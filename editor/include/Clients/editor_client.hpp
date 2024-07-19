@@ -20,9 +20,7 @@ namespace Engine
             bool is_using_guizmo               = false;
         } viewport;
 
-        Pointer<RenderSurface> imgui_output_surface;
         EditorState();
-        EditorState& initialize_surface(const Size2D& size);
     };
 
     class EditorClient : public ViewportClient

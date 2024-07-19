@@ -122,23 +122,24 @@ namespace Engine
 
     static void copy_gbuffer_to_scene_output()
     {
-        // static Name screen_texture      = "screen_texture";
-        // Material* material              = DefaultResources::screen_material;
-        // PositionVertexBuffer* positions = DefaultResources::screen_position_buffer;
+        static Name screen_texture      = "screen_texture";
+        Material* material              = DefaultResources::screen_material;
+        PositionVertexBuffer* positions = DefaultResources::screen_position_buffer;
 
-        // if (material && positions)
-        // {
-        //     using TextureParam = CombinedImageSampler2DMaterialParameter;
+        if (material && positions)
+        {
+            using TextureParam = CombinedImageSampler2DMaterialParameter;
 
-        //     if (TextureParam* texture = reinterpret_cast<TextureParam*>(material->find_parameter(screen_texture)))
-        //     {
-        //         Texture* base_color = reinterpret_cast<class Texture*>(GBuffer::instance()->base_color());
-        //         texture->texture_param(base_color);
-        //         material->apply();
-        //         positions->rhi_bind(0, 0);
-        //         rhi->draw(6, 0);
-        //     }
-        // }
+            if (TextureParam* texture = reinterpret_cast<TextureParam*>(material->find_parameter(screen_texture)))
+            {
+                Texture* base_color = reinterpret_cast<class Texture*>(
+                        SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor));
+                texture->texture_param(base_color);
+                material->apply();
+                positions->rhi_bind(0, 0);
+                rhi->draw(6, 0);
+            }
+        }
     }
 
     static void render_ambient_light_only(Scene* scene)

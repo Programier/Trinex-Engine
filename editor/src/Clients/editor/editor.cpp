@@ -42,13 +42,6 @@ namespace Engine
     EditorState::EditorState()
     {
         viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
-        imgui_output_surface     = Object::new_instance<RenderSurface>();
-    }
-
-    EditorState& EditorState::initialize_surface(const Size2D& size)
-    {
-        imgui_output_surface->init(ColorFormat::R8G8B8A8, size);
-        return *this;
     }
 
     implement_engine_class_default_init(EditorClient, 0);
@@ -166,8 +159,6 @@ namespace Engine
         m_world          = World::new_system<World>();
         m_renderer.scene = m_world->scene();
         m_world->start_play();
-
-        m_state.initialize_surface(viewport->size() * Settings::e_screen_percentage);
         return *this;
     }
 
@@ -207,9 +198,6 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* render_viewport)
     {
-        const float backup_rhi_scale              = ImGuiRenderer::rhi_rendering_scale_factor;
-        ImGuiRenderer::rhi_rendering_scale_factor = Settings::e_screen_percentage;
-
         ViewPort viewport = rhi->viewport();
         viewport.pos      = {0.f, 0.f};
         viewport.size     = SceneRenderTargets::instance()->size() * Settings::e_screen_percentage;
@@ -222,15 +210,9 @@ namespace Engine
         m_scene_view.scissor(scissor);
 
         m_renderer.render(m_scene_view, render_viewport);
-        RenderSurface* output[1] = {m_state.imgui_output_surface.ptr()};
-        rhi->bind_render_target(output, nullptr);
+
+        render_viewport->rhi_bind();
         render_viewport->window()->imgui_window()->rhi_render();
-
-        Rect2D src_rect = {.position = {0.f, 0.f}, .size = viewport.size};
-        Rect2D dst_rect = {.position = {0.f, 0.f}, .size = render_viewport->size()};
-        render_viewport->rhi_blit_target(output[0], src_rect, dst_rect);
-
-        ImGuiRenderer::rhi_rendering_scale_factor = backup_rhi_scale;
         return *this;
     }
 
@@ -328,17 +310,6 @@ namespace Engine
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
-        const Size2D viewport_size = viewport->size() * Settings::e_screen_percentage;
-        {
-            // Initialize imgui output surface
-            Size2D current_size = m_state.imgui_output_surface->size();
-
-            if (viewport_size.x > current_size.x || viewport_size.y > current_size.y)
-            {
-                m_state.initialize_surface(viewport_size);
-            }
-        }
-
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
 
@@ -586,9 +557,10 @@ namespace Engine
             m_state.viewport.size = ImGuiHelpers::construct_vec2<Vector2D>(size);
             camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
-            auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
+            //auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
 
-            ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, factor.y}, {factor.x, 0.f});
+            ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, Settings::e_screen_percentage},
+                         {Settings::e_screen_percentage, 0.f});
             m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
             ImGui::SetCursorPos(current_pos);

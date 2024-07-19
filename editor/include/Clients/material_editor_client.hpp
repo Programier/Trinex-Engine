@@ -19,6 +19,11 @@ namespace Engine
     {
         declare_class(MaterialEditorClient, ViewportClient);
 
+    public:
+        struct GraphState {
+            Vector2D m_node_spawn_position;
+        };
+
     private:
         MessageList m_shader_compile_error_list;
 
@@ -28,6 +33,7 @@ namespace Engine
         class ImGuiMaterialCode* m_material_code         = nullptr;
 
         ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
+        GraphState m_graph_state;
 
         class RenderViewport* m_viewport             = nullptr;
         class Material* m_material                   = nullptr;

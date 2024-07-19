@@ -24,117 +24,66 @@ namespace Engine::VisualMaterialGraph
         Matrix  = BIT(2),
         Object  = BIT(3),
 
-        Bool      = BIT(4) | Scalar,
-        Int       = BIT(5) | Scalar,
-        UInt      = BIT(6) | Scalar,
-        Float     = BIT(7) | Scalar,
-        BVec2     = BIT(8) | Vector,
-        BVec3     = BIT(9) | Vector,
-        BVec4     = BIT(10) | Vector,
-        IVec2     = BIT(11) | Vector,
-        IVec3     = BIT(12) | Vector,
-        IVec4     = BIT(13) | Vector,
-        UVec2     = BIT(14) | Vector,
-        UVec3     = BIT(15) | Vector,
-        UVec4     = BIT(16) | Vector,
-        Vec2      = BIT(17) | Vector,
-        Vec3      = BIT(18) | Vector,
-        Color3    = BIT(19) | Vector,
-        Vec4      = BIT(20) | Vector,
-        Color4    = BIT(21) | Vector,
+        Bool  = BIT(4) | Scalar,
+        Int   = BIT(5) | Scalar,
+        UInt  = BIT(6) | Scalar,
+        Float = BIT(7) | Scalar,
+
+        BVec2 = BIT(8) | Vector,
+        IVec2 = BIT(9) | Vector,
+        UVec2 = BIT(10) | Vector,
+        Vec2  = BIT(11) | Vector,
+
+        BVec3  = BIT(12) | Vector,
+        IVec3  = BIT(13) | Vector,
+        UVec3  = BIT(14) | Vector,
+        Vec3   = BIT(15) | Vector,
+        Color3 = BIT(16) | Vector,
+
+        BVec4  = BIT(17) | Vector,
+        IVec4  = BIT(18) | Vector,
+        UVec4  = BIT(19) | Vector,
+        Vec4   = BIT(20) | Vector,
+        Color4 = BIT(21) | Vector,
+
         Mat3      = BIT(22) | Matrix,
         Mat4      = BIT(23) | Matrix,
         Sampler   = BIT(24) | Object,
         Texture2D = BIT(25) | Object,
     };
 
-    static FORCE_INLINE bool is_scalar(PinType type)
+    FORCE_INLINE PinType max_type(PinType a, PinType b)
+    {
+        return static_cast<PinType>(glm::max(static_cast<BitMask>(a), static_cast<BitMask>(b)));
+    }
+
+    FORCE_INLINE bool is_scalar(PinType type)
     {
         return (Flags<PinType>(type) & PinType::Scalar) == PinType::Scalar;
     }
 
-    static FORCE_INLINE bool is_vector(PinType type)
+    FORCE_INLINE bool is_vector(PinType type)
     {
         return (Flags<PinType>(type) & PinType::Vector) == PinType::Vector;
     }
 
-    static FORCE_INLINE bool is_numeric(PinType type)
+    FORCE_INLINE bool is_numeric(PinType type)
     {
         return (Flags<PinType>(type) & PinType::Numeric) != 0;
     }
 
-    static FORCE_INLINE bool is_matrix(PinType type)
+    FORCE_INLINE bool is_matrix(PinType type)
     {
         return (Flags<PinType>(type) & PinType::Matrix) == PinType::Matrix;
     }
 
-    static FORCE_INLINE bool is_object(PinType type)
+    FORCE_INLINE bool is_object(PinType type)
     {
         return (Flags<PinType>(type) & PinType::Object) == PinType::Object;
     }
 
-    static FORCE_INLINE bool is_convertable(PinType first, PinType second)
-    {
-        return (first == second || (is_numeric(first) && is_numeric(second)) || (is_matrix(first) && is_matrix(second)));
-    }
 
-    static FORCE_INLINE constexpr PinType to_int_or_float(PinType type)
-    {
-        switch (type)
-        {
-            case PinType::Bool:
-                return PinType::Float;
-            case PinType::BVec2:
-                return PinType::Vec2;
-            case PinType::BVec3:
-                return PinType::Vec3;
-            case PinType::BVec4:
-                return PinType::Vec4;
-            default:
-                return type;
-        }
-        return type;
-    }
-
-    static FORCE_INLINE constexpr PinType to_floating_point(PinType type)
-    {
-        switch (type)
-        {
-            case PinType::Bool:
-            case PinType::Int:
-            case PinType::UInt:
-            case PinType::Float:
-                return PinType::Float;
-
-            case PinType::BVec2:
-            case PinType::IVec2:
-            case PinType::UVec2:
-            case PinType::Vec2:
-                return PinType::Vec2;
-
-            case PinType::BVec3:
-            case PinType::IVec3:
-            case PinType::UVec3:
-            case PinType::Vec3:
-                return PinType::Float;
-            case PinType::Color3:
-                return PinType::Color3;
-
-            case PinType::BVec4:
-            case PinType::IVec4:
-            case PinType::UVec4:
-            case PinType::Vec4:
-                return PinType::Vec4;
-
-            default:
-                return type;
-        }
-
-        return type;
-    }
-
-
-    static FORCE_INLINE uint_t components_count(PinType type)
+    constexpr FORCE_INLINE byte components_count(PinType type)
     {
         switch (type)
         {
@@ -181,7 +130,81 @@ namespace Engine::VisualMaterialGraph
         }
     }
 
-    static FORCE_INLINE PinType components_type(PinType type)
+    constexpr FORCE_INLINE bool is_convertable(PinType src, PinType dst)
+    {
+        if (src == dst)
+            return true;
+
+        if (is_scalar(src))
+        {
+            return is_numeric(dst);
+        }
+
+        if (is_in<PinType::Color3, PinType::Color4>(src) && is_in<PinType::Color3, PinType::Color4>(dst))
+            return true;
+
+        if (is_vector(src) && is_vector(dst))
+            return components_count(src) == components_count(dst);
+
+        return false;
+    }
+
+    constexpr FORCE_INLINE PinType to_int_or_float(PinType type)
+    {
+        switch (type)
+        {
+            case PinType::Bool:
+                return PinType::Float;
+            case PinType::BVec2:
+                return PinType::Vec2;
+            case PinType::BVec3:
+                return PinType::Vec3;
+            case PinType::BVec4:
+                return PinType::Vec4;
+            default:
+                return type;
+        }
+        return type;
+    }
+
+    constexpr FORCE_INLINE PinType to_floating_point(PinType type)
+    {
+        switch (type)
+        {
+            case PinType::Bool:
+            case PinType::Int:
+            case PinType::UInt:
+            case PinType::Float:
+                return PinType::Float;
+
+            case PinType::BVec2:
+            case PinType::IVec2:
+            case PinType::UVec2:
+            case PinType::Vec2:
+                return PinType::Vec2;
+
+            case PinType::BVec3:
+            case PinType::IVec3:
+            case PinType::UVec3:
+            case PinType::Vec3:
+                return PinType::Float;
+            case PinType::Color3:
+                return PinType::Color3;
+
+            case PinType::BVec4:
+            case PinType::IVec4:
+            case PinType::UVec4:
+            case PinType::Vec4:
+                return PinType::Vec4;
+
+            default:
+                return type;
+        }
+
+        return type;
+    }
+
+    constexpr FORCE_INLINE PinType components_type(PinType type)
     {
         switch (type)
         {
@@ -217,6 +240,20 @@ namespace Engine::VisualMaterialGraph
                 return PinType::Undefined;
         }
     }
+
+    FORCE_INLINE PinType construct_vector_type(PinType base_type, byte components)
+    {
+        if (!is_scalar(base_type) || components == 0)
+            return PinType::Undefined;
+
+        if (components == 1)
+            return base_type;
+
+        BitMask base_component_mask = static_cast<BitMask>(base_type) ^ static_cast<BitMask>(PinType::Scalar);
+        BitMask result              = (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
+        return static_cast<PinType>(result);
+    }
+
 
     struct ENGINE_EXPORT Expression {
         String code;
@@ -511,6 +548,10 @@ namespace Engine::VisualMaterialGraph
         virtual Node& render();
         virtual Node& override_parameter(VisualMaterial* material);
 
+        virtual bool can_connect(InputPin* pin, PinType output_pin_type);
+        PinType in_pin_type(InputPin* pin);
+        virtual PinType out_pin_type(OutputPin* pin);
+
         const Vector<InputPin*>& inputs() const;
         const Vector<OutputPin*>& outputs() const;
         Index find_pin_index(OutputPin* pin) const;
@@ -620,12 +661,58 @@ public:                                                                         
 
     // MATH NODES
     declare_visual_material_simple_node(Abs);
-    declare_visual_material_simple_node(Add);
-    declare_visual_material_simple_node(Sub);
-    declare_visual_material_simple_node(Mul);
-    declare_visual_material_simple_node(Div);
     declare_visual_material_simple_node(Sin);
     declare_visual_material_simple_node(Cos);
+
+
+    struct BinaryOperatorNode : public Node {
+        bool can_connect(InputPin* pin, PinType link_pin_type) override;
+        PinType out_pin_type(OutputPin* pin) override;
+    };
+
+
+    struct Add : public BinaryOperatorNode {
+        declare_visual_material_node(Add);
+
+        Add();
+        Expression compile(OutputPin* pin, CompilerState& state) override;
+    };
+
+    struct Sub : public BinaryOperatorNode {
+        declare_visual_material_node(Sub);
+
+        Sub();
+        Expression compile(OutputPin* pin, CompilerState& state) override;
+    };
+
+    struct Mul : public BinaryOperatorNode {
+        declare_visual_material_node(Mul);
+
+        Mul();
+        Expression compile(OutputPin* pin, CompilerState& state) override;
+    };
+
+    struct Div : public BinaryOperatorNode {
+        declare_visual_material_node(Div);
+
+        Div();
+        Expression compile(OutputPin* pin, CompilerState& state) override;
+    };
+
+
+    // COMMON NODES
+
+    struct ComponentMask : public Node {
+        declare_visual_material_node(ComponentMask);
+
+    public:
+        bool masks[4] = {true, false, false, false};
+        ComponentMask();
+        Expression compile(OutputPin* pin, CompilerState& state) override;
+        bool can_connect(InputPin* pin, PinType linked_pin_type) override;
+        PinType out_pin_type(OutputPin* pin) override;
+        ComponentMask& render() override;
+    };
 
     // TEXTURE NODES
 
@@ -640,9 +727,11 @@ public:                                                                         
         declare_visual_material_node(Texture2D);
 
     private:
-        Pointer<Engine::Texture2D> m_texture;
-        Pointer<Engine::Sampler> m_sampler;
         String m_name;
+
+    public:
+        Pointer<Engine::Texture2D> texture;
+        Pointer<Engine::Sampler> sampler;
 
     public:
         Texture2D();

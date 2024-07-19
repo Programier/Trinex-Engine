@@ -99,7 +99,7 @@ struct MaterialInput
 	void init_vs(in GeometryData data)
 	{
 		init_base(data);
-		sv_position 	= mul(globals.projview, mul(local_to_world, data.world_position));
+		sv_position 	= mul(globals.projview, data.world_position);
 	}
 
 	[mutating]

@@ -51,6 +51,31 @@ namespace Engine
             {VisualMaterialGraph::PinType::Sampler, ImVec4(0.0, 0.502, 0.502, 1.0)},
             {VisualMaterialGraph::PinType::Texture2D, ImVec4(0.0, 0.502, 0.0, 1.0)},
     };
+    static const TreeMap<VisualMaterialGraph::PinType, const char*> pin_type_names = {
+            {VisualMaterialGraph::PinType::Undefined, "Undefined"},
+            {VisualMaterialGraph::PinType::Bool, "bool"},
+            {VisualMaterialGraph::PinType::Int, "int"},
+            {VisualMaterialGraph::PinType::UInt, "uint"},
+            {VisualMaterialGraph::PinType::Float, "float"},
+            {VisualMaterialGraph::PinType::BVec2, "bvec2"},
+            {VisualMaterialGraph::PinType::BVec3, "bvec3"},
+            {VisualMaterialGraph::PinType::BVec4, "bvec4"},
+            {VisualMaterialGraph::PinType::IVec2, "ivec2"},
+            {VisualMaterialGraph::PinType::IVec3, "ivec2"},
+            {VisualMaterialGraph::PinType::IVec4, "ivec4"},
+            {VisualMaterialGraph::PinType::UVec2, "uvec2"},
+            {VisualMaterialGraph::PinType::UVec3, "uvec3"},
+            {VisualMaterialGraph::PinType::UVec4, "uvec4"},
+            {VisualMaterialGraph::PinType::Vec2, "vec2"},
+            {VisualMaterialGraph::PinType::Vec3, "vec3"},
+            {VisualMaterialGraph::PinType::Color3, "color3"},
+            {VisualMaterialGraph::PinType::Vec4, "vec4"},
+            {VisualMaterialGraph::PinType::Color4, "color4"},
+            {VisualMaterialGraph::PinType::Mat3, "mat3"},
+            {VisualMaterialGraph::PinType::Mat4, "mat4"},
+            {VisualMaterialGraph::PinType::Sampler, "Sampler"},
+            {VisualMaterialGraph::PinType::Texture2D, "Texture2D"},
+    };
 
     static FORCE_INLINE float input_item_width(int components)
     {
@@ -189,13 +214,17 @@ namespace Engine
         {
             auto pos = ed::GetNodePosition(node->id());
 
-            builder.begin(node->id());
-
             if (pos.x == FLT_MAX || pos.y == FLT_MAX)
             {
                 pos = ImGuiHelpers::construct_vec2<ImVec2>(node->position);
                 ed::SetNodePosition(node->id(), pos);
             }
+            else
+            {
+                node->position = ImGuiHelpers::construct_vec2<Vector2D>(pos);
+            }
+
+            builder.begin(node->id());
 
             builder.begin_header(ImGuiHelpers::construct_vec2<ImVec4>(node->header_color()));
             ImGui::Spring(1.f);
@@ -224,8 +253,10 @@ namespace Engine
                     ImGui::Spring(0.f, 0.f);
                     builder.begin_input_pin(input->id());
                     ed::PinPivotAlignment({0.5, 0.5f});
+                    const VisualMaterialGraph::PinType type = input->node()->in_pin_type(input);
                     BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->has_links(),
-                                           pin_colors.at(input->type()));
+                                           pin_colors.at(type));
+                    ImGui::SetItemTooltip("%s", pin_type_names.at(type));
                     builder.end_input_pin();
 
                     ImGui::Spring(0.f, 0.f);
@@ -249,6 +280,7 @@ namespace Engine
                 }
             }
 
+            ImGui::Spring();
             builder.begin_middle();
             node->render();
             ImGui::Spring();
@@ -272,8 +304,10 @@ namespace Engine
 
                 builder.begin_output_pin(output->id());
                 ed::PinPivotAlignment({0.9, 0.5f});
+                const VisualMaterialGraph::PinType type = output->node()->out_pin_type(output);
                 BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
-                                       pin_colors.at(output->type()));
+                                       pin_colors.at(type));
+                ImGui::SetItemTooltip("%s", pin_type_names.at(type));
                 builder.end_output_pin();
 
                 ImGui::Spring(0.f, 0.f);
@@ -304,8 +338,18 @@ namespace Engine
         }
     }
 
+    static void open_nodes_popup(MaterialEditorClient::GraphState& state, bool is_in_canvas)
+    {
+        if (is_in_canvas)
+            state.m_node_spawn_position = ImGuiHelpers::construct_vec2<Vector2D>(ImGui::GetMousePos());
+        else
+            state.m_node_spawn_position = ImGuiHelpers::construct_vec2<Vector2D>(ed::ScreenToCanvas(ImGui::GetMousePos()));
+        ed::Suspend();
+        ImGui::OpenPopup("Create New Node");
+        ed::Resume();
+    }
 
-    static void check_creating(void*& out_pin)
+    static void check_creating(void*& out_pin, MaterialEditorClient::GraphState& state)
     {
         if (ed::BeginCreate(ImColor(0, 169, 233), 2.f))
         {
@@ -334,7 +378,9 @@ namespace Engine
                     show_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
                 }
-                else if (!VisualMaterialGraph::is_convertable(input_pin->type(), output_pin->type()))
+                else if (!input_pin->node()->can_connect(
+                                 reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin),
+                                 output_pin->node()->out_pin_type(reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
                 {
                     show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
@@ -347,7 +393,6 @@ namespace Engine
                 }
             }
 
-
             if (ed::QueryNewNode(&from))
             {
                 VisualMaterialGraph::Pin* pin = from.AsPointer<VisualMaterialGraph::Pin>();
@@ -355,10 +400,7 @@ namespace Engine
 
                 if (ed::AcceptNewItem() && !ImGui::IsPopupOpen("Create New Node"))
                 {
-                    ed::Suspend();
-                    ImGui::OpenPopup("Create New Node");
-                    ed::Resume();
-
+                    open_nodes_popup(state, false);
                     out_pin = pin;
                 }
             }
@@ -403,10 +445,12 @@ namespace Engine
         return current;
     }
 
-    static bool show_new_node_popup(VisualMaterial* material, VisualMaterialGraph::Pin* from)
+    static bool show_new_node_popup(VisualMaterial* material, VisualMaterialGraph::Pin* from,
+                                    MaterialEditorClient::GraphState& state)
     {
         bool status = false;
         ed::Suspend();
+        ImGui::SetNextWindowSizeConstraints({}, {300, 500});
         if ((status = ImGui::BeginPopup("Create New Node")))
         {
             ImGui::Dummy({200, 0});
@@ -415,7 +459,7 @@ namespace Engine
             if (Class* self = render_node_types(root_group))
             {
                 auto node      = material->create_node(self);
-                node->position = ImGuiHelpers::construct_vec2<Vector2D>(ed::ScreenToCanvas(ImGui::GetCursorScreenPos()));
+                node->position = state.m_node_spawn_position;
 
                 if (from)
                 {
@@ -511,25 +555,59 @@ namespace Engine
     }
 
 
+    static void process_drag_and_drop(VisualMaterial* material)
+    {
+        if (ImGui::BeginDragDropTarget())
+        {
+
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
+            if (payload)
+            {
+                IM_ASSERT(payload->DataSize == sizeof(Object*));
+                Object* new_object = *reinterpret_cast<Object**>(payload->Data);
+
+                if (Texture2D* texture = Object::instance_cast<Texture2D>(new_object))
+                {
+                    auto pos       = ed::ScreenToCanvas(ImGui::GetMousePos());
+                    auto node      = material->create_node<VisualMaterialGraph::Texture2D>();
+                    node->texture  = texture;
+                    node->position = Vector2D(pos.x, pos.y);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
+
     MaterialEditorClient& MaterialEditorClient::render_visual_material_graph(class VisualMaterial* material)
     {
-        if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
-        {
-            ed::Suspend();
-            ImGui::OpenPopup("Create New Node");
-            ed::Resume();
-        }
+        ax::NodeEditor::SetCurrentEditor(m_graph_editor_context);
+        ax::NodeEditor::Begin("Editor");
 
-        render_graph(material->nodes());
-        check_creating(m_create_node_from_pin);
-        if (!show_new_node_popup(material, reinterpret_cast<VisualMaterialGraph::Pin*>(m_create_node_from_pin)))
+        if (material)
         {
-            m_create_node_from_pin = nullptr;
-        }
+            if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
+            {
+                open_nodes_popup(m_graph_state, true);
+            }
 
-        if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+            render_graph(material->nodes());
+            check_creating(m_create_node_from_pin, m_graph_state);
+            if (!show_new_node_popup(material, reinterpret_cast<VisualMaterialGraph::Pin*>(m_create_node_from_pin),
+                                     m_graph_state))
+            {
+                m_create_node_from_pin = nullptr;
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+            {
+                delete_selected_items(material);
+            }
+        }
+        ax::NodeEditor::End();
+
+        if (material)
         {
-            delete_selected_items(material);
+            process_drag_and_drop(material);
         }
         return *this;
     }

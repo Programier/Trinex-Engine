@@ -43,9 +43,6 @@ namespace Engine
         viewport->rhi_bind();
         viewport->rhi_clear_color(Color(0, 0, 0, 1));
         m_material->apply();
-        auto param = reinterpret_cast<Vec4MaterialParameter*>(m_material->find_parameter(Name::color));
-
-        param->param = {1.0, 0.f, 0.f, 1.0};
 
         m_vertex_buffer->rhi_bind(0);
         m_index_buffer->rhi_bind(0);

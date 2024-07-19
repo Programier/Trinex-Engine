@@ -68,7 +68,8 @@ namespace Engine
             bool is_open = true;
             ImGui::SetNextWindowSize({300, 400}, ImGuiCond_Appearing);
             ImGui::Begin(name(), &is_open);
-            ImGui::InputTextMultiline("##Code", code.data(), code.size(), ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputTextMultiline("##Code", code.data(), code.size(), ImGui::GetContentRegionAvail(),
+                                      ImGuiInputTextFlags_ReadOnly);
             ImGui::End();
             return is_open;
         }
@@ -296,16 +297,7 @@ namespace Engine
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
         ImGui::Begin("editor/Material Source###Material Source"_localized);
-        ax::NodeEditor::SetCurrentEditor(m_graph_editor_context);
-        ax::NodeEditor::Begin("Editor");
-
-        if (VisualMaterial* visual_material = Object::instance_cast<VisualMaterial>(m_material))
-        {
-            render_visual_material_graph(visual_material);
-        }
-
-        ax::NodeEditor::End();
-
+        render_visual_material_graph(Object::instance_cast<VisualMaterial>(m_material));
         ImGui::End();
 
         //ImGui::SetNextWindowSize({500, 200}, ImGuiCond_Appearing);

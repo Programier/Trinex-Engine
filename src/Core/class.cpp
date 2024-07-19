@@ -40,6 +40,11 @@ namespace Engine
         {
             get_asset_class_table().push_back(this);
         }
+
+        if (parent)
+        {
+            parent->m_childs.insert(this);
+        }
     }
 
     void Class::on_create_call(Object* object) const

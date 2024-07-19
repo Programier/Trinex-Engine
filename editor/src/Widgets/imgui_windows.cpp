@@ -385,9 +385,12 @@ namespace Engine
 
         for (Class* child : self->childs_classes())
         {
-            Node* child_node = new Node();
-            build_tree(child_node, child);
-            node->childs.insert(child_node);
+            if (child->parent() == self)
+            {
+                Node* child_node = new Node();
+                build_tree(child_node, child);
+                node->childs.insert(child_node);
+            }
         }
     }
 

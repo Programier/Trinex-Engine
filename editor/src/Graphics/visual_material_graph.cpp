@@ -156,6 +156,26 @@ namespace Engine::VisualMaterialGraph
         return *this;
     }
 
+    bool Node::can_connect(InputPin* pin, PinType output_pin_type)
+    {
+        return VisualMaterialGraph::is_convertable(output_pin_type, pin->type());
+    }
+
+    PinType Node::in_pin_type(InputPin* pin)
+    {
+        if (OutputPin* output_pin = pin->linked_to())
+        {
+            return output_pin->node()->out_pin_type(output_pin);
+        }
+
+        return pin->type();
+    }
+
+    PinType Node::out_pin_type(OutputPin* pin)
+    {
+        return pin->type();
+    }
+
     const Vector<InputPin*>& Node::inputs() const
     {
         return m_inputs;
@@ -291,8 +311,8 @@ namespace Engine::VisualMaterialGraph
                 {
                     Expression variable = create_variable(in_expression);
 
-                    uint_t in_components  = components_count(in_expression.type);
-                    uint_t out_components = components_count(out_type);
+                    byte in_components  = components_count(in_expression.type);
+                    byte out_components = components_count(out_type);
 
                     PinType in_component_type  = components_type(in_expression.type);
                     PinType out_component_type = components_type(out_type);
@@ -308,7 +328,7 @@ namespace Engine::VisualMaterialGraph
                                               out_type);
                         }
 
-                        uint_t diff          = out_components - in_components;
+                        byte diff            = out_components - in_components;
                         String default_value = create_default_value(out_component_type, nullptr);
 
                         if (diff == 1)
@@ -330,7 +350,7 @@ namespace Engine::VisualMaterialGraph
                     String code          = slang_type_name(out_type);
                     code.push_back('(');
 
-                    for (uint_t i = 0; i < out_components; ++i)
+                    for (byte i = 0; i < out_components; ++i)
                     {
                         static constexpr const char* components_mask[] = {"x", "y", "z", "w"};
 
@@ -459,7 +479,6 @@ namespace Engine::VisualMaterialGraph
         return "Undefined";
     }
 
-
     ENGINE_EXPORT String create_default_value(PinType type, const void* data)
     {
         union Storage
@@ -474,6 +493,8 @@ namespace Engine::VisualMaterialGraph
             {}
         } storage(data);
 
+        static auto bool_to_string = [](bool v) -> const char* { return v ? "true" : "false"; };
+
         switch (type)
         {
             case PinType::Bool:
@@ -485,23 +506,38 @@ namespace Engine::VisualMaterialGraph
             case PinType::Float:
                 return storage.ptr ? Strings::format("{:.6f}f", storage.float_ptr[0]) : "0.f";
             case PinType::BVec2:
-                break;
+                return storage.ptr ? Strings::format("bool2({}, {})", bool_to_string(storage.bool_ptr[0]),
+                                                     bool_to_string(storage.bool_ptr[1]))
+                                   : "bool2(false, false)";
             case PinType::BVec3:
-                break;
+                return storage.ptr ? Strings::format("bool3({}, {}, {})", bool_to_string(storage.bool_ptr[0]),
+                                                     bool_to_string(storage.bool_ptr[1]), bool_to_string(storage.bool_ptr[2]))
+                                   : "bool3(false, false, false)";
             case PinType::BVec4:
-                break;
+                return storage.ptr ? Strings::format("bool4({}, {}, {}, {})", bool_to_string(storage.bool_ptr[0]),
+                                                     bool_to_string(storage.bool_ptr[1]), bool_to_string(storage.bool_ptr[2]),
+                                                     bool_to_string(storage.bool_ptr[3]))
+                                   : "bool4(false, false, false, false)";
             case PinType::IVec2:
-                break;
+                return storage.ptr ? Strings::format("int2({}, {})", storage.int_ptr[0], storage.int_ptr[1]) : "int2(0, 0)";
             case PinType::IVec3:
-                break;
+                return storage.ptr
+                               ? Strings::format("int3({}, {}, {})", storage.int_ptr[0], storage.int_ptr[1], storage.int_ptr[2])
+                               : "int3(0, 0, 0)";
             case PinType::IVec4:
-                break;
+                return storage.ptr ? Strings::format("int4({}, {}, {}, {})", storage.int_ptr[0], storage.int_ptr[1],
+                                                     storage.int_ptr[2], storage.int_ptr[3])
+                                   : "int4(0, 0, 0, 0)";
             case PinType::UVec2:
-                break;
+                return storage.ptr ? Strings::format("uint2({}, {})", storage.uint_ptr[0], storage.uint_ptr[1]) : "uint2(0, 0)";
             case PinType::UVec3:
-                break;
+                return storage.ptr ? Strings::format("uint3({}, {}, {})", storage.uint_ptr[0], storage.uint_ptr[1],
+                                                     storage.uint_ptr[2])
+                                   : "uint3(0, 0, 0)";
             case PinType::UVec4:
-                break;
+                return storage.ptr ? Strings::format("uint4({}, {}, {}, {})", storage.uint_ptr[0], storage.uint_ptr[1],
+                                                     storage.uint_ptr[2], storage.uint_ptr[3])
+                                   : "uint4(0, 0, 0, 0)";
 
             case PinType::Vec2:
                 return storage.float_ptr ? Strings::format("float2({:.6f}, {:.6f})", storage.float_ptr[0], storage.float_ptr[1])
@@ -532,7 +568,7 @@ namespace Engine::VisualMaterialGraph
     Root::Root()
     {
         m_inputs.push_back(new Color3InputPin(this, "Base Color"));
-        m_inputs.push_back(new FloatInputPin(this, "Opacity"));
+        m_inputs.push_back(new FloatInputPin(this, "Opacity", 1.f));
         m_inputs.push_back(new Color3InputPin(this, "Emissive"));
         m_inputs.push_back(new FloatInputPin(this, "Specular"));
         m_inputs.push_back(new FloatInputPin(this, "Metalness"));
@@ -611,7 +647,6 @@ namespace Engine::VisualMaterialGraph
         return Expression(expr, PinType::type, true);                                                                            \
     }
 
-
     implement_visual_material_input_node(Projection, Mat4, "globals.projection");
     implement_visual_material_input_node(View, Mat4, "globals.view");
     implement_visual_material_input_node(ProjView, Mat4, "globals.projview");
@@ -685,6 +720,36 @@ namespace Engine::VisualMaterialGraph
     }
 
 
+    bool BinaryOperatorNode::can_connect(InputPin* pin, PinType link_pin_type)
+    {
+        if (!is_numeric(link_pin_type))
+            return false;
+
+        const Index pin_index = find_pin_index(pin);
+
+        if (pin_index == Constants::index_none)
+            return false;
+
+        const PinType pin_type        = in_pin_type(m_inputs[(pin_index + 1) % 2]);
+        const PinType output_pin_type = max_type(pin_type, link_pin_type);
+
+
+        if (!m_inputs[0]->has_links() && !m_inputs[1]->has_links())
+            return is_numeric(output_pin_type);
+
+        return is_convertable(pin_type, output_pin_type) && is_convertable(link_pin_type, output_pin_type);
+    }
+
+    PinType BinaryOperatorNode::out_pin_type(OutputPin* pin)
+    {
+        auto a = in_pin_type(m_inputs[0]);
+        auto b = in_pin_type(m_inputs[1]);
+
+        if (!is_numeric(a) || !is_numeric(b))
+            return PinType::Undefined;
+        return max_type(a, b);
+    }
+
     Add::Add()
     {
         m_inputs.push_back(new FloatInputPin(this, "A"));
@@ -695,10 +760,12 @@ namespace Engine::VisualMaterialGraph
 
     Expression Add::compile(OutputPin* pin, CompilerState& state)
     {
+        auto out_type = out_pin_type(m_outputs[0]);
+
         Expression A = state.pin_source(m_inputs[0]);
         Expression B = state.pin_source(m_inputs[1]);
-        A            = state.expression_cast(A, to_int_or_float(A.type));
-        B            = state.expression_cast(B, to_int_or_float(B.type));
+        A            = state.expression_cast(A, out_type);
+        B            = state.expression_cast(B, out_type);
         return Expression(Strings::format("({} + {})", A.code, B.code), A.type, false);
     }
 
@@ -709,13 +776,14 @@ namespace Engine::VisualMaterialGraph
         m_outputs.push_back(new FloatOutputPinND(this, "Out"));
     }
 
-
     Expression Sub::compile(OutputPin* pin, CompilerState& state)
     {
-        Expression A = state.pin_source(m_inputs[0]);
-        Expression B = state.pin_source(m_inputs[1]);
-        A            = state.expression_cast(A, to_int_or_float(A.type));
-        B            = state.expression_cast(B, to_int_or_float(B.type));
+        auto out_type = out_pin_type(m_outputs[0]);
+        Expression A  = state.pin_source(m_inputs[0]);
+        Expression B  = state.pin_source(m_inputs[1]);
+        A             = state.expression_cast(A, out_type);
+        B             = state.expression_cast(B, out_type);
+
         return Expression(Strings::format("({} - {})", A.code, B.code), A.type, false);
     }
 
@@ -729,10 +797,12 @@ namespace Engine::VisualMaterialGraph
 
     Expression Mul::compile(OutputPin* pin, CompilerState& state)
     {
-        Expression A = state.pin_source(m_inputs[0]);
-        Expression B = state.pin_source(m_inputs[1]);
-        A            = state.expression_cast(A, to_int_or_float(A.type));
-        B            = state.expression_cast(B, to_int_or_float(B.type));
+        auto out_type = out_pin_type(m_outputs[0]);
+        Expression A  = state.pin_source(m_inputs[0]);
+        Expression B  = state.pin_source(m_inputs[1]);
+        A             = state.expression_cast(A, out_type);
+        B             = state.expression_cast(B, out_type);
+
         return Expression(Strings::format("({} * {})", A.code, B.code), A.type, false);
     }
 
@@ -745,10 +815,12 @@ namespace Engine::VisualMaterialGraph
 
     Expression Div::compile(OutputPin* pin, CompilerState& state)
     {
-        Expression A = state.pin_source(m_inputs[0]);
-        Expression B = state.pin_source(m_inputs[1]);
-        A            = state.expression_cast(A, to_int_or_float(A.type));
-        B            = state.expression_cast(B, to_int_or_float(B.type));
+        auto out_type = out_pin_type(m_outputs[0]);
+        Expression A  = state.pin_source(m_inputs[0]);
+        Expression B  = state.pin_source(m_inputs[1]);
+        A             = state.expression_cast(A, out_type);
+        B             = state.expression_cast(B, out_type);
+
         return Expression(Strings::format("({} / {})", A.code, B.code), A.type, false);
     }
 
@@ -757,7 +829,6 @@ namespace Engine::VisualMaterialGraph
         m_inputs.push_back(new FloatInputPin(this, "In"));
         m_outputs.push_back(new FloatOutputPinND(this, "Out"));
     }
-
 
     Expression Sin::compile(OutputPin* pin, CompilerState& state)
     {
@@ -799,6 +870,103 @@ namespace Engine::VisualMaterialGraph
         return expression;
     }
 
+    ////////////////////////// COMMON BLOCK //////////////////////////
+
+    implement_visual_material_node(ComponentMask, Common);
+
+    ComponentMask::ComponentMask()
+    {
+        m_inputs.push_back(new InputPin(this, "In"));
+        m_outputs.push_back(new OutputPin(this, "Out"));
+    }
+
+    Expression ComponentMask::compile(OutputPin* pin, CompilerState& state)
+    {
+        if (!m_inputs[0]->has_links())
+            return Expression();
+
+        auto input_pin        = m_inputs[0];
+        Expression input_expr = state.create_variable(input_pin->linked_to()->node()->compile(input_pin->linked_to(), state));
+        PinType out_type      = out_pin_type(pin);
+
+        if (out_type == PinType::Undefined)
+            return Expression();
+
+        if (is_vector(out_type))
+        {
+            const char mask[4] = {'r', 'g', 'b', 'a'};
+            String code        = Strings::format("{}.", input_expr.code);
+
+            byte count = components_count(input_pin->linked_to()->node()->out_pin_type(input_pin->linked_to()));
+
+            for (byte i = 0; i < count; ++i)
+            {
+                if (masks[i])
+                {
+                    code += mask[i];
+                }
+            }
+
+            return Expression(code, out_type, false);
+        }
+
+        if (out_type == input_expr.type)
+            return input_expr;
+        return Expression();
+    }
+
+    bool ComponentMask::can_connect(InputPin* pin, PinType linked_pin_type)
+    {
+        return true;
+    }
+
+    PinType ComponentMask::out_pin_type(OutputPin* pin)
+    {
+        if (!m_inputs[0]->has_links())
+            return PinType::Undefined;
+        auto linked_pin = m_inputs[0]->linked_to();
+
+        PinType input_type = linked_pin->node()->out_pin_type(linked_pin);
+
+        if (is_vector(input_type))
+        {
+            size_t components        = components_count(input_type);
+            PinType component_type   = components_type(input_type);
+            byte new_type_components = 0;
+
+            for (size_t i = 0; i < components; ++i)
+            {
+                if (masks[i])
+                {
+                    new_type_components += 1;
+                }
+            }
+
+            return construct_vector_type(component_type, new_type_components);
+        }
+
+        return input_type;
+    }
+
+    ComponentMask& ComponentMask::render()
+    {
+        Super::render();
+
+        static const char* names[4] = {
+                "R/X",
+                "G/Y",
+                "B/Z",
+                "A/W",
+        };
+
+        for (int i = 0; i < 4; ++i)
+        {
+            ImGui::Checkbox(names[i], &masks[i]);
+        }
+
+        return *this;
+    }
+
     ////////////////////////// TEXTURES BLOCK //////////////////////////
 
     implement_visual_material_node(Sampler, Textures);
@@ -809,13 +977,13 @@ namespace Engine::VisualMaterialGraph
         m_outputs.push_back(new SamplerOutputPin(this, "Sampler", DefaultResources::default_sampler));
     }
 
-    Texture2D::Texture2D() : m_texture(DefaultResources::default_texture), m_sampler(DefaultResources::default_sampler)
+    Texture2D::Texture2D() : texture(DefaultResources::default_texture), sampler(DefaultResources::default_sampler)
     {
         m_inputs.push_back(new SamplerInputPin(this, "Sampler", DefaultResources::default_sampler));
         m_inputs.push_back(new IntInputPinND(this, "LOD"));
         m_inputs.push_back(new Vec2InputPinND(this, "UV"));
 
-        m_outputs.push_back(new Color3OutputPinND(this, "Color"));
+        m_outputs.push_back(new Color4OutputPinND(this, "Color"));
         m_outputs.push_back(new FloatOutputPinND(this, "R"));
         m_outputs.push_back(new FloatOutputPinND(this, "G"));
         m_outputs.push_back(new FloatOutputPinND(this, "B"));
@@ -826,7 +994,7 @@ namespace Engine::VisualMaterialGraph
     {
         ImGui::SetNextItemWidth(125.f);
         ImGuiRenderer::InputText("Name", m_name);
-        ImGui::Image(m_texture.ptr(), {125, 125});
+        ImGui::Image(texture.ptr(), {125, 125});
 
         if (ImGui::BeginDragDropTarget())
         {
@@ -837,9 +1005,9 @@ namespace Engine::VisualMaterialGraph
 
                 Object* new_object = *reinterpret_cast<Object**>(payload->Data);
 
-                if (Engine::Texture2D* texture = Object::instance_cast<Engine::Texture2D>(new_object))
+                if (Engine::Texture2D* new_texture = Object::instance_cast<Engine::Texture2D>(new_object))
                 {
-                    m_texture = texture;
+                    texture = new_texture;
                 }
             }
             ImGui::EndDragDropTarget();
@@ -884,7 +1052,7 @@ namespace Engine::VisualMaterialGraph
             }
             else
             {
-                expression = Expression("vertex_factory.get_uv(0)", PinType::Vec2, false);
+                expression = Expression("input.uv[0]", PinType::Vec2, false);
             }
             sampled_image = Strings::format("{}.Sample({})", m_name, expression.code);
 
@@ -904,19 +1072,19 @@ namespace Engine::VisualMaterialGraph
             }
 
             // Find sampler instance
-            m_sampler = nullptr;
+            sampler = nullptr;
 
             if (m_inputs[0]->has_links())
             {
                 Expression expression = m_inputs[0]->node()->compile(m_inputs[0]->linked_to(), state);
                 if (expression.is_valid())
                 {
-                    m_sampler = reinterpret_cast<Engine::Sampler*>(expression.userdata);
+                    sampler = reinterpret_cast<Engine::Sampler*>(expression.userdata);
                 }
             }
 
-            if (m_sampler == nullptr)
-                m_sampler = DefaultResources::default_sampler;
+            if (sampler == nullptr)
+                sampler = DefaultResources::default_sampler;
         }
 
         static auto create_swizzle = [](const String& code, char component) -> Expression {
@@ -945,15 +1113,16 @@ namespace Engine::VisualMaterialGraph
     Texture2D& Texture2D::override_parameter(VisualMaterial* material)
     {
         Super::override_parameter(material);
+
         if (auto param = material->find_parameter(m_name))
         {
             if (param->type() == MaterialParameterType::CombinedImageSampler2D)
             {
                 CombinedImageSampler2DMaterialParameter* texture_parameter =
                         reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(param);
-                texture_parameter->texture = m_texture == nullptr ? DefaultResources::default_texture : m_texture.ptr();
+                texture_parameter->texture = texture == nullptr ? DefaultResources::default_texture : texture.ptr();
 
-                texture_parameter->sampler = m_sampler;
+                texture_parameter->sampler = sampler;
 
                 if (texture_parameter->sampler == nullptr)
                     texture_parameter->sampler = DefaultResources::default_sampler;
