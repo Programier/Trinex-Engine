@@ -4,9 +4,8 @@
 
 namespace Engine
 {
-    static ThreadBase* m_logic_thread = nullptr;
-    static Thread* m_render_thread    = nullptr;
-
+    static Thread* m_logic_thread  = nullptr;
+    static Thread* m_render_thread = nullptr;
 
     ENGINE_EXPORT ThreadBase* this_thread()
     {
@@ -18,7 +17,7 @@ namespace Engine
         return m_render_thread;
     }
 
-    ENGINE_EXPORT ThreadBase* logic_thread()
+    ENGINE_EXPORT Thread* logic_thread()
     {
         return m_logic_thread;
     }
@@ -38,8 +37,7 @@ namespace Engine
     {
         if (m_logic_thread == nullptr)
         {
-            m_logic_thread = Thread::this_thread();
-            m_logic_thread->name("Logic");
+            m_logic_thread = new Thread("Logic");
         }
 
         if (m_render_thread == nullptr)
@@ -51,7 +49,7 @@ namespace Engine
     template<typename ThreadType>
     static void destroy_thread(ThreadType*& thread)
     {
-        if(thread && thread->is_destroyable())
+        if (thread && thread->is_destroyable())
         {
             delete thread;
             thread = nullptr;

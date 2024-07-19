@@ -8,7 +8,7 @@ namespace Engine
     ENGINE_EXPORT void destroy_threads();
 
     ENGINE_EXPORT Thread* render_thread();
-    ENGINE_EXPORT ThreadBase* logic_thread();
+    ENGINE_EXPORT Thread* logic_thread();
     ENGINE_EXPORT ThreadBase* this_thread();
 
     ENGINE_EXPORT bool is_in_render_thread();
@@ -57,6 +57,33 @@ namespace Engine
         };
 
         Thread* rt = render_thread();
+        if (Thread::this_thread() == rt)
+        {
+            callable();
+        }
+        else
+        {
+            rt->insert_new_task<Command>(std::forward<Callable>(callable));
+        }
+    }
+
+    template<typename Callable>
+    FORCE_INLINE void call_in_logic_thread(Callable&& callable)
+    {
+        struct Command : public ExecutableObject {
+            Callable m_callable;
+
+            Command(Callable&& callable) : m_callable(std::forward<Callable>(callable))
+            {}
+
+            int_t execute() override
+            {
+                m_callable();
+                return sizeof(Command);
+            }
+        };
+
+        Thread* rt = logic_thread();
         if (Thread::this_thread() == rt)
         {
             callable();

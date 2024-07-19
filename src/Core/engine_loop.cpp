@@ -122,8 +122,6 @@ namespace Engine
             }
         }
 
-        create_threads();
-
         Class* engine_class = Class::static_find(Settings::e_engine, true);
         Object* object      = engine_class->create_object();
 
@@ -152,12 +150,21 @@ namespace Engine
         return 0;
     }
 
-    int_t EngineLoop::init(int_t argc, const char** argv)
+    void EngineLoop::init(int_t argc, const char** argv)
     {
+        create_threads();
+
+        if (!is_in_logic_thread())
+        {
+            call_in_logic_thread([this, argc, argv]() { init(argc, argv); });
+            logic_thread()->wait_all();
+            return;
+        }
+
         {
             int result = preinit(argc, argv);
             if (result != 0 || engine_instance->is_requesting_exit())
-                return result;
+                return;
         }
 
         const bool show_splash = Settings::e_show_splash;
@@ -193,13 +200,28 @@ namespace Engine
         {
             window->show();
         }
-
-        return 0;
     }
 
     void EngineLoop::update()
     {
-        engine_instance->update();
+        struct UpdateEngine : public ExecutableObject {
+        public:
+            int_t execute() override
+            {
+                engine_instance->update();
+                return sizeof(UpdateEngine);
+            }
+        };
+
+        if (is_in_logic_thread())
+        {
+            engine_instance->update();
+        }
+        else
+        {
+            logic_thread()->insert_new_task<UpdateEngine>();
+            logic_thread()->wait_all();
+        }
     }
 
     class DestroyRHI_Task : public ExecutableObject
@@ -215,6 +237,18 @@ namespace Engine
 
     void EngineLoop::terminate()
     {
+        static bool need_destroy_threads = true;
+
+        if (!is_in_logic_thread())
+        {
+            need_destroy_threads = false;
+            call_in_logic_thread([this]() { terminate(); });
+            logic_thread()->wait_all();
+
+            destroy_threads();
+            return;
+        }
+
         info_log("EngineInstance", "Terminate Engine");
         DestroyController().execute();
 
@@ -250,5 +284,10 @@ namespace Engine
         engine_instance = nullptr;
 
         PostDestroyController().execute();
+
+        if(need_destroy_threads)
+        {
+            destroy_threads();
+        }
     }
 }// namespace Engine

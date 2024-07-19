@@ -9,7 +9,7 @@ namespace Engine
     public:
         EngineLoop();
         virtual ~EngineLoop();
-        int_t init(int_t argc, const char** argv);
+        void init(int_t argc, const char** argv);
         void update();
         void terminate();
     };

@@ -14,19 +14,15 @@ try
 {
     Engine::EngineLoop loop;
 
-    int init_status = loop.init(argc, argv);
-    auto engine     = Engine::engine_instance;
+    loop.init(argc, argv);
+    auto engine = Engine::engine_instance;
 
-    if (init_status == 0)
+    while (!engine->is_requesting_exit())
     {
-        while (!engine->is_requesting_exit())
-        {
-            loop.update();
-        }
+        loop.update();
     }
 
-    loop.terminate();
-    return init_status;
+    return 0;
 }
 catch (std::exception& e)
 {
