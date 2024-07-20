@@ -66,6 +66,8 @@ namespace Engine
         if (scene == nullptr)
             return *this;
 
+        statistics.reset();
+
         m_global_shader_params.clear();
         m_scene_views.clear();
         m_scene_views.push_back(view);

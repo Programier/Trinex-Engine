@@ -3,6 +3,7 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
+#include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 
 
@@ -53,11 +54,15 @@ namespace Engine
 
 
     template<typename Node>
-    static void build_views_internal(SceneRenderer* renderer, Node* node)
+    static void build_views_internal(SceneRenderer* renderer, Node* node, const Frustum& frustum)
     {
         for (auto component : node->values)
         {
-            component->render(renderer);
+            if (frustum.in_frustum(component->bounding_box()))
+            {
+                component->render(renderer);
+                ++renderer->statistics.visible_objects;
+            }
         }
 
         for (byte i = 0; i < 8; i++)
@@ -66,15 +71,16 @@ namespace Engine
 
             if (child)
             {
-                build_views_internal(renderer, child);
+                build_views_internal(renderer, child, frustum);
             }
         }
     }
 
     Scene& Scene::build_views(SceneRenderer* renderer)
     {
-        build_views_internal(renderer, m_octree_render_thread.root_node());
-        build_views_internal(renderer, m_light_octree_render_thread.root_node());
+        Frustum frustum = renderer->scene_view().camera_view();
+        build_views_internal(renderer, m_octree_render_thread.root_node(), frustum);
+        build_views_internal(renderer, m_light_octree_render_thread.root_node(), frustum);
         return *this;
     }
 

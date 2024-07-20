@@ -35,6 +35,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <icons.hpp>
 #include <imgui_internal.h>
+#include <imgui_stacklayout.h>
 #include <theme.hpp>
 
 namespace Engine
@@ -213,6 +214,11 @@ namespace Engine
 
         render_viewport->rhi_bind();
         render_viewport->window()->imgui_window()->rhi_render();
+
+        if (m_scene_view.show_flags() & ShowFlags::Statistics)
+        {
+            call_in_logic_thread([this, statistics = m_renderer.statistics]() { m_statistics = statistics; });
+        }
         return *this;
     }
 
@@ -307,6 +313,18 @@ namespace Engine
         return *this;
     }
 
+    EditorClient& EditorClient::render_statistics(float dt)
+    {
+        ImGui::BeginVertical(1, ImGui::GetContentRegionAvail() - ImVec2(100, 0.f), 1.f);
+        {
+            static const ImVec4 color = {0.f, 1.f, 0.f, 1.f};
+            ImGui::TextColored(color, "Delta Time: %f", dt);
+            ImGui::TextColored(color, "FPS: %f", 1.f / dt);
+            ImGui::TextColored(color, "Visible objects: %zu", m_statistics.visible_objects);
+        }
+        ImGui::EndVertical();
+        return *this;
+    }
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
@@ -514,6 +532,7 @@ namespace Engine
 
                     if (ImGui::BeginMenu("editor/Show Flags"_localized))
                     {
+                        render_show_flag(m_show_flags, ShowFlags::Statistics, "Statistics");
                         render_show_flag(m_show_flags, ShowFlags::Sprite, "Sprite");
                         render_show_flag(m_show_flags, ShowFlags::StaticMesh, "Static Mesh");
                         render_show_flag(m_show_flags, ShowFlags::Wireframe, "Wireframe");
@@ -569,7 +588,15 @@ namespace Engine
             update_drag_and_drop();
 
             ImGui::SetCursorPos(current_pos);
+            ImGui::BeginGroup();
             render_viewport_menu();
+            ImGui::EndGroup();
+
+            if (m_show_flags & ShowFlags::Statistics)
+            {
+                ImGui::SetCursorPos(current_pos + ImVec2(0, ImGui::GetItemRectSize().y));
+                render_statistics(dt);
+            }
         }
 
         ImGui::End();

@@ -31,6 +31,16 @@ namespace Engine
         return render_base_component(component);                                                                                 \
     }
 
+    struct ENGINE_EXPORT RenderStatistics final {
+        size_t visible_objects;
+
+        FORCE_INLINE RenderStatistics& reset()
+        {
+            visible_objects = 0;
+            return *this;
+        }
+    };
+
     class ENGINE_EXPORT SceneRenderer
     {
     protected:
@@ -39,8 +49,8 @@ namespace Engine
         Vector<GlobalShaderParameters> m_global_shader_params;
         Vector<SceneView> m_scene_views;
 
-
     public:
+        RenderStatistics statistics;
         Scene* scene;
 
         SceneRenderer();

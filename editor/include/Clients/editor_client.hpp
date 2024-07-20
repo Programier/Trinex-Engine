@@ -31,6 +31,7 @@ namespace Engine
     private:
         class World* m_world = nullptr;
         EditorSceneRenderer m_renderer;
+        RenderStatistics m_statistics;
         Flags<ShowFlags, BitMask> m_show_flags;
         SceneView m_scene_view;
         Vector<EventSystemListenerID> m_event_system_listeners;
@@ -69,6 +70,7 @@ namespace Engine
         EditorClient& render_guizmo(float dt);
         EditorClient& render_viewport_menu();
         EditorClient& render_dock_window(float dt);
+        EditorClient& render_statistics(float dt);
 
         void on_object_select(Object* object);
         EditorClient& on_object_dropped(Object* object);

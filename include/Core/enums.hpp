@@ -364,6 +364,7 @@ namespace Engine
 
         LightOctree     = BIT(8),
         PrimitiveOctree = BIT(9),
+        Statistics      = BIT(10),
 
         DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess
     };
