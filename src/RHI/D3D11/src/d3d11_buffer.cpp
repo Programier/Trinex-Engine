@@ -19,7 +19,7 @@ namespace Engine
     {
         D3D11_MAPPED_SUBRESOURCE mapped_resource{};
 
-        HRESULT hr = DXAPI->m_context->Map(buffer, 0, D3D11_MAP_WRITE, 0, &mapped_resource);
+        HRESULT hr = DXAPI->m_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
         if (SUCCEEDED(hr))
         {
             memcpy(mapped_resource.pData, data, size);
@@ -87,7 +87,7 @@ namespace Engine
 
     bool D3D11_IndexBuffer::init(size_t size, const byte* data, RHIBufferType type, IndexBufferFormat format)
     {
-        m_format = format == IndexBufferFormat::UInt32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16G16_UINT;
+        m_format = format == IndexBufferFormat::UInt32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
         return create_buffer(m_buffer, size, data, type, m_update_function, D3D11_BIND_INDEX_BUFFER);
     }
 
@@ -117,7 +117,8 @@ namespace Engine
         return buffer;
     }
 
-    RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
+    RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format,
+                                                RHIBufferType type)
     {
         D3D11_IndexBuffer* buffer = new D3D11_IndexBuffer();
         if (!buffer->init(size, data, type, format))

@@ -53,7 +53,6 @@ namespace Engine
 
         D3D11& initialize(Window* window) override;
         void* context() override;
-        D3D11& destroy_object(RHI_Object* object) override;
         D3D11& begin_render() override;
         D3D11& end_render() override;
 

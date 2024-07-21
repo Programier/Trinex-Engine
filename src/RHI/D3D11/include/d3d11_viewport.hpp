@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    class D3D11_WindowViewport : public RHI_Viewport
+    class D3D11_WindowViewport : public RHI_DefaultDestroyable<RHI_Viewport>
     {
     public:
         IDXGISwapChain* m_swap_chain   = nullptr;
@@ -22,7 +22,8 @@ namespace Engine
         void vsync(bool flag) override;
         void on_resize(const Size2D& new_size) override;
         void bind() override;
-        void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
+        void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+                         SamplerFilter filter) override;
         void clear_color(const Color& color) override;
 
         ~D3D11_WindowViewport();

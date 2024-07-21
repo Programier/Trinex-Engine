@@ -71,12 +71,6 @@ namespace Engine
         return m_context;
     }
 
-    D3D11& D3D11::destroy_object(RHI_Object* object)
-    {
-        delete object;
-        return *this;
-    }
-
     D3D11& D3D11::begin_render()
     {
         return *this;

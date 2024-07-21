@@ -10,7 +10,7 @@ namespace Engine
     class D3D11_GeometryShader;
     class D3D11_FragmentShader;
 
-    class D3D11_Pipeline : public RHI_Pipeline
+    class D3D11_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline>
     {
     public:
         const Pipeline* m_engine_pipeline = nullptr;

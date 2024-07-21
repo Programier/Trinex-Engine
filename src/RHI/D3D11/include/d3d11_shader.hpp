@@ -5,7 +5,7 @@
 namespace Engine
 {
 
-    class D3D11_VertexShader : public RHI_Shader
+    class D3D11_VertexShader : public RHI_DefaultDestroyable<RHI_Shader>
     {
     public:
         ID3D11VertexShader* m_shader = nullptr;
@@ -16,7 +16,7 @@ namespace Engine
         ~D3D11_VertexShader();
     };
 
-    class D3D11_TesselationControlShader : public RHI_Shader
+    class D3D11_TesselationControlShader : public RHI_DefaultDestroyable<RHI_Shader>
     {
     public:
         ID3D11HullShader* m_shader = nullptr;
@@ -26,7 +26,7 @@ namespace Engine
         ~D3D11_TesselationControlShader();
     };
 
-    class D3D11_TesselationShader : public RHI_Shader
+    class D3D11_TesselationShader : public RHI_DefaultDestroyable<RHI_Shader>
     {
     public:
         ID3D11DomainShader* m_shader = nullptr;
@@ -36,7 +36,7 @@ namespace Engine
         ~D3D11_TesselationShader();
     };
 
-    class D3D11_GeometryShader : public RHI_Shader
+    class D3D11_GeometryShader : public RHI_DefaultDestroyable<RHI_Shader>
     {
     public:
         ID3D11GeometryShader* m_shader = nullptr;
@@ -46,7 +46,7 @@ namespace Engine
         ~D3D11_GeometryShader();
     };
 
-    class D3D11_FragmentShader : public RHI_Shader
+    class D3D11_FragmentShader : public RHI_DefaultDestroyable<RHI_Shader>
     {
     public:
         ID3D11PixelShader* m_shader = nullptr;

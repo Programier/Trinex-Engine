@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    class D3D11_Sampler : public RHI_Sampler
+    class D3D11_Sampler : public RHI_DefaultDestroyable<RHI_Sampler>
     {
     public:
         ID3D11SamplerState* m_sampler = nullptr;

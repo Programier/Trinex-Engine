@@ -11,7 +11,7 @@ namespace Engine
         void clear_depth_stencil(float depth, byte stencil) override;
     };
 
-    class D3D11_Texture2D : public D3D11_Texture
+    class D3D11_Texture2D : public RHI_DefaultDestroyable<D3D11_Texture>
     {
     public:
         ID3D11Texture2D* m_texture       = nullptr;

@@ -6,7 +6,7 @@ namespace Engine
 {
     using BufferUpdateFunction = void (*)(ID3D11Buffer* buffer, size_t, size_t, const byte*);
 
-    class D3D11_VertexBuffer : public RHI_VertexBuffer
+    class D3D11_VertexBuffer : public RHI_DefaultDestroyable<RHI_VertexBuffer>
     {
     public:
         BufferUpdateFunction m_update_function = nullptr;
@@ -19,7 +19,7 @@ namespace Engine
         ~D3D11_VertexBuffer();
     };
 
-    class D3D11_IndexBuffer : public RHI_IndexBuffer
+    class D3D11_IndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer>
     {
     public:
         BufferUpdateFunction m_update_function = nullptr;
