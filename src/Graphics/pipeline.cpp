@@ -528,34 +528,6 @@ namespace Engine
         auto flags = shader_type_flags();
 
         archive & flags;
-        archive & global_parameters;
-        archive & local_parameters;
-
-        {
-            size_t size = parameters.size();
-            archive & size;
-
-            if (archive.is_reading())
-            {
-                parameters.clear();
-                MaterialParameterInfo info;
-
-                while (size > 0)
-                {
-                    archive & info;
-                    parameters[info.name] = info;
-                    --size;
-                }
-            }
-            else
-            {
-                for (auto& [name, param] : parameters)
-                {
-                    archive & param;
-                }
-            }
-        }
-
         allocate_shaders(flags);
 
         serialize_shader_internal(m_vertex_shader, archive);

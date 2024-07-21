@@ -1,15 +1,21 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/name.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {
     struct ENGINE_EXPORT ShaderCache {
+        TreeMap<Name, MaterialParameterInfo> parameters;
+
         Buffer vertex;
         Buffer tessellation_control;
         Buffer tessellation;
         Buffer geometry;
         Buffer fragment;
         Buffer compute;
+
+        MaterialScalarParametersInfo global_parameters;
+        MaterialScalarParametersInfo local_parameters;
 
         void init_from(const class Pipeline* pipeline);
         void apply_to(class Pipeline* pipeline);

@@ -32,6 +32,8 @@ namespace Engine
 
     static bool serialize(Archive& ar, ShaderCache* cache)
     {
+        if (!(ar & cache->parameters))
+            return false;
         if (!(ar & cache->vertex))
             return false;
         if (!(ar & cache->tessellation_control))
@@ -43,6 +45,10 @@ namespace Engine
         if (!(ar & cache->fragment))
             return false;
         if (!(ar & cache->compute))
+            return false;
+        if (!(ar & cache->global_parameters))
+            return false;
+        if (!(ar & cache->local_parameters))
             return false;
         return ar;
     }
@@ -103,21 +109,31 @@ namespace Engine
 
     void ShaderCache::init_from(const class Pipeline* pipeline)
     {
+        parameters = pipeline->parameters;
+
         copy_buffer(vertex, pipeline->vertex_shader());
         copy_buffer(tessellation_control, pipeline->tessellation_control_shader());
         copy_buffer(tessellation, pipeline->tessellation_shader());
         copy_buffer(geometry, pipeline->geometry_shader());
         copy_buffer(fragment, pipeline->fragment_shader());
         copy_buffer(compute, nullptr);
+
+        global_parameters = pipeline->global_parameters;
+        local_parameters  = pipeline->local_parameters;
     }
 
     void ShaderCache::apply_to(class Pipeline* pipeline)
     {
+        pipeline->parameters = parameters;
+
         apply_buffer(vertex, pipeline->vertex_shader());
         apply_buffer(tessellation_control, pipeline->tessellation_control_shader());
         apply_buffer(tessellation, pipeline->tessellation_shader());
         apply_buffer(geometry, pipeline->geometry_shader());
         apply_buffer(fragment, pipeline->fragment_shader());
         apply_buffer(compute, nullptr);
+
+        pipeline->global_parameters = global_parameters;
+        pipeline->local_parameters  = local_parameters;
     }
 }// namespace Engine
