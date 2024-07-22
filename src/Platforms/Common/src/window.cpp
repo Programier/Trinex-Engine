@@ -69,7 +69,7 @@ namespace Engine
 
     static int validate_pos(int pos)
     {
-        return pos < 0 ? SDL_WINDOWPOS_UNDEFINED : pos;
+        return pos < 0 ? SDL_WINDOWPOS_CENTERED : pos;
     }
 
     WindowSDL* WindowSDL::sdl_initialize(const WindowConfig* info)

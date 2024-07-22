@@ -24,10 +24,10 @@ namespace Engine::Settings
 
     ENGINE_EXPORT String w_title;
     ENGINE_EXPORT String w_client;
-    ENGINE_EXPORT int_t w_size_x;
-    ENGINE_EXPORT int_t w_size_y;
-    ENGINE_EXPORT int_t w_pos_x;
-    ENGINE_EXPORT int_t w_pos_y;
+    ENGINE_EXPORT int_t w_size_x = 1280;
+    ENGINE_EXPORT int_t w_size_y = 720;
+    ENGINE_EXPORT int_t w_pos_x  = -1;
+    ENGINE_EXPORT int_t w_pos_y  = -1;
     ENGINE_EXPORT bool w_vsync;
     ENGINE_EXPORT ScriptArray<WindowAttribute, "Engine::WindowAttribute"> w_attributes;
     ENGINE_EXPORT ScriptArray<Orientation, "Engine::Orientation"> w_orientations;
