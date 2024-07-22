@@ -4,5 +4,5 @@ if(WIN32 OR LINUX)
 
     add_trinex_private_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include/")
     add_trinex_sources(${PLATFORM_COMMON_SRC})
-    add_trinex_private_libraries(SDL2-static)
+    add_trinex_private_libraries(SDL2::SDL2-static)
 endif()

@@ -250,12 +250,12 @@ namespace Engine::VisualMaterialGraph
             return base_type;
 
         BitMask base_component_mask = static_cast<BitMask>(base_type) ^ static_cast<BitMask>(PinType::Scalar);
-        BitMask result              = (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
+        BitMask result = (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
         return static_cast<PinType>(result);
     }
 
 
-    struct ENGINE_EXPORT Expression {
+    struct Expression {
         String code;
         void* userdata;
         PinType type;
@@ -294,7 +294,7 @@ namespace Engine::VisualMaterialGraph
 
     class Node;
 
-    class ENGINE_EXPORT Pin
+    class Pin
     {
     private:
         Node* m_node;
@@ -329,7 +329,7 @@ namespace Engine::VisualMaterialGraph
 
     class OutputPin;
 
-    class ENGINE_EXPORT InputPin : public Pin
+    class InputPin : public Pin
     {
         OutputPin* m_linked_to;
 
@@ -345,7 +345,7 @@ namespace Engine::VisualMaterialGraph
         friend class OutputPin;
     };
 
-    class ENGINE_EXPORT OutputPin : public Pin
+    class OutputPin : public Pin
     {
         Set<InputPin*> m_linked_to;
 
@@ -495,14 +495,14 @@ namespace Engine::VisualMaterialGraph
     using Texture2DOutputPin = TypedPin<PinType::Texture2D, Pointer<Engine::Texture2D>, OutputPin>;
 
 
-    struct ENGINE_EXPORT GlobalCompilerState {
+    struct GlobalCompilerState {
         Set<String> globals;
         Set<String> global_names;
 
         String compile() const;
     };
 
-    struct ENGINE_EXPORT CompilerState {
+    struct CompilerState {
     private:
         Map<Identifier, Expression> m_internal_cache;
 
@@ -522,7 +522,7 @@ namespace Engine::VisualMaterialGraph
     };
 
 
-    class ENGINE_EXPORT Node : public Object
+    class Node : public Object
     {
         declare_class(Node, Object);
 
@@ -564,35 +564,35 @@ namespace Engine::VisualMaterialGraph
     };
 
 
-    ENGINE_EXPORT const char* slang_type_name(PinType type);
-    ENGINE_EXPORT String create_default_value(PinType type, const void* data);
+    const char* slang_type_name(PinType type);
+    String create_default_value(PinType type, const void* data);
 
 
-#define declare_visual_material_node(NodeName)                                                                                   \
-    declare_class(NodeName, Node);                                                                                               \
-                                                                                                                                 \
-public:                                                                                                                          \
+#define declare_visual_material_node(NodeName)                                                                         \
+    declare_class(NodeName, Node);                                                                                     \
+                                                                                                                       \
+public:                                                                                                                \
     const char* name() const override;
 
-#define declare_visual_material_simple_node(NodeName)                                                                            \
-    struct NodeName : public Node {                                                                                              \
-        declare_visual_material_node(NodeName);                                                                                  \
-                                                                                                                                 \
-        NodeName();                                                                                                              \
-        Expression compile(OutputPin* pin, CompilerState& state) override;                                                       \
+#define declare_visual_material_simple_node(NodeName)                                                                  \
+    struct NodeName : public Node {                                                                                    \
+        declare_visual_material_node(NodeName);                                                                        \
+                                                                                                                       \
+        NodeName();                                                                                                    \
+        Expression compile(OutputPin* pin, CompilerState& state) override;                                             \
     };
 
-#define implement_visual_material_node(NodeName, GroupName)                                                                      \
-    const char* NodeName::name() const                                                                                           \
-    {                                                                                                                            \
-        return #NodeName;                                                                                                        \
-    }                                                                                                                            \
-    implement_class(Engine::VisualMaterialGraph, NodeName, 0)                                                                    \
-    {                                                                                                                            \
-        if constexpr (!std::is_same_v<Root, NodeName>)                                                                           \
-        {                                                                                                                        \
-            static_class_instance()->group(Group::find("Engine::VisualMaterialGraphGroups::" #GroupName, true));                 \
-        }                                                                                                                        \
+#define implement_visual_material_node(NodeName, GroupName)                                                            \
+    const char* NodeName::name() const                                                                                 \
+    {                                                                                                                  \
+        return #NodeName;                                                                                              \
+    }                                                                                                                  \
+    implement_class(Engine::VisualMaterialGraph, NodeName, 0)                                                          \
+    {                                                                                                                  \
+        if constexpr (!std::is_same_v<Root, NodeName>)                                                                 \
+        {                                                                                                              \
+            static_class_instance()->group(Group::find("Engine::VisualMaterialGraphGroups::" #GroupName, true));       \
+        }                                                                                                              \
     }
 
     class Root : public Node

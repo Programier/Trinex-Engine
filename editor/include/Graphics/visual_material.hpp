@@ -9,7 +9,7 @@ namespace Engine
         class Node;
     }
 
-    class ENGINE_EXPORT VisualMaterial : public Material
+    class VisualMaterial : public Material
     {
         declare_class(VisualMaterial, Material);
 

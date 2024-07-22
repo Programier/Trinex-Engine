@@ -30,9 +30,6 @@ set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")
 
 add_subdirectory(zlib EXCLUDE_FROM_ALL)
 
-# Compile libzip library
-add_subdirectory(libzip EXCLUDE_FROM_ALL)
-
 add_subdirectory(fmt)
 set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
 

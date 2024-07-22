@@ -426,7 +426,7 @@ namespace Engine::VisualMaterialGraph
         return pin->node()->compile(pin, *this);
     }
 
-    ENGINE_EXPORT const char* slang_type_name(PinType type)
+    const char* slang_type_name(PinType type)
     {
 
         switch (type)
@@ -479,7 +479,7 @@ namespace Engine::VisualMaterialGraph
         return "Undefined";
     }
 
-    ENGINE_EXPORT String create_default_value(PinType type, const void* data)
+    String create_default_value(PinType type, const void* data)
     {
         union Storage
         {
