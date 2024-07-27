@@ -30,6 +30,7 @@ namespace Engine
 
         bool init(const class Pipeline* pipeline);
         void bind() override;
+        static void unbind();
         ~D3D11_Pipeline();
     };
 }// namespace Engine

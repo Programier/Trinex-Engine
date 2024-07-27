@@ -1,10 +1,12 @@
+#include "platform.slang"
+
 Sampler2D screen_texture;
 
 [shader("vertex")]
 float2 vs_main(in float3 position : POSITION0, out float4 out_position : SV_Position) : TEXCOORD0
 {
 	out_position = float4(position, 1.0);
-	return (float2(position.x, position.y) * 0.5) + float2(0.5, 0.5);
+	return platform_validate_uv((float2(position.x, position.y) * 0.5) + float2(0.5, 0.5));
 }
 
 [shader("fragment")]

@@ -1,4 +1,5 @@
 #include "common.slang"
+#include "platform.slang"
 
 uniform Sampler2D texture;
 uniform float4x4 model;
@@ -7,7 +8,7 @@ uniform float4x4 model;
 float2 vs_main(in float3 position : POSITION0, out float4 out_position : SV_Position) : TEXCOORD0
 {
 	out_position = mul(globals.projview, mul(model, float4(position, 1.0)));
-	return (float2(position.x, position.y) * 0.5) + float2(0.5, 0.5);
+	return platform_validate_uv((float2(position.x, position.y) * 0.5) + float2(0.5, 0.5));
 }
 
 [shader("fragment")]

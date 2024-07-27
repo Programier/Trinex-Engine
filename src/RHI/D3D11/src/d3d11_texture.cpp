@@ -55,6 +55,21 @@ namespace Engine
         }
     }
 
+    static FORCE_INLINE Buffer flip_texture_buffer(const Buffer& buffer, int_t height, int_t pitch)
+    {
+        Buffer result(buffer.size());
+        byte* write_to = result.data();
+
+        for (int_t i = height - 1; i >= 0; --i)
+        {
+            const byte* current_row = buffer.data() + pitch * i;
+            std::copy(current_row, current_row + pitch, write_to);
+            write_to += pitch;
+        }
+
+        return result;
+    }
+
     bool D3D11_Texture2D::init(const Texture2D* texture, bool is_render_surface)
     {
         D3D11_TEXTURE2D_DESC desc{};
@@ -72,8 +87,8 @@ namespace Engine
 
         if (is_render_surface)
         {
-            if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-                        texture->format()))
+            if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth,
+                      ColorFormat::FilteredShadowDepth>(texture->format()))
             {
                 desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
             }
@@ -90,20 +105,23 @@ namespace Engine
         {
             D3D11_SUBRESOURCE_DATA& data = sub_resource_data[i];
             const auto& mip              = texture->mip(i);
-            data.pSysMem                 = mip->data.data();
+            int_t pitch                  = static_cast<int_t>(mip->data.size()) / static_cast<int_t>(mip->size.y);
 
-            if(data.pSysMem == nullptr)
+            Buffer buffer = flip_texture_buffer(mip->data, static_cast<int_t>(mip->size.y), pitch);
+            data.pSysMem  = buffer.data();
+
+            if (data.pSysMem == nullptr)
             {
                 sub_resource_data.erase(sub_resource_data.begin() + i, sub_resource_data.end());
                 break;
             }
 
-            data.SysMemSlicePitch        = 0;
-            data.SysMemPitch             = static_cast<UINT>(mip->size.x) * format_block_size(desc.Format);
+            data.SysMemSlicePitch = 0;
+            data.SysMemPitch      = static_cast<UINT>(mip->size.x) * format_block_size(desc.Format);
         }
 
-        HRESULT hr = DXAPI->m_device->CreateTexture2D(&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(),
-                                                      &m_texture);
+        HRESULT hr = DXAPI->m_device->CreateTexture2D(
+                &desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(), &m_texture);
 
         if (hr != S_OK)
         {
@@ -112,7 +130,7 @@ namespace Engine
         }
 
 
-        if(desc.Format != DXGI_FORMAT_D24_UNORM_S8_UINT)
+        if (desc.Format != DXGI_FORMAT_D24_UNORM_S8_UINT)
         {
             D3D11_SHADER_RESOURCE_VIEW_DESC view_desc{};
             view_desc.Format                    = desc.Format;
@@ -169,8 +187,8 @@ namespace Engine
             return false;
         }
 
-        if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-                    surface->format()))
+        if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth,
+                  ColorFormat::FilteredShadowDepth>(surface->format()))
         {
             m_depth_stencil_view = DXAPI->create_depth_stencil_view(m_texture, format_of(surface->format()));
 
@@ -206,8 +224,8 @@ namespace Engine
     {
         if (m_depth_stencil_view)
         {
-            DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth,
-                                                    stencil);
+            DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                                    depth, stencil);
         }
     }
 
@@ -255,9 +273,16 @@ namespace Engine
             ++size;
         }
 
-        m_context->OMSetRenderTargets(size, render_target_views,
-                                      depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view
-                                                    : nullptr);
+        D3D11_Pipeline::unbind();
+
+        m_context->OMSetRenderTargets(
+                size, render_target_views,
+                depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view : nullptr);
+
+        if (current_viewport_mode() != m_state.viewport_mode)
+        {
+            viewport(m_state.viewport);
+        }
         return *this;
     }
 

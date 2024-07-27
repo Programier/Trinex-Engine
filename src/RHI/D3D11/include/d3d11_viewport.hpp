@@ -4,7 +4,15 @@
 
 namespace Engine
 {
-    class D3D11_WindowViewport : public RHI_DefaultDestroyable<RHI_Viewport>
+    class D3D11_Viewport : public RHI_DefaultDestroyable<RHI_Viewport>
+    {
+    public:
+        virtual bool is_window_viewport() const;
+        virtual ID3D11RenderTargetView* render_target();
+        virtual Size2D render_target_size() const;
+    };
+
+    class D3D11_WindowViewport : public D3D11_Viewport
     {
     public:
         IDXGISwapChain* m_swap_chain   = nullptr;
@@ -13,6 +21,10 @@ namespace Engine
         class Window* m_window         = nullptr;
         Size2D m_size                  = {0.f, 0.f};
         bool m_with_vsync              = false;
+
+        bool is_window_viewport() const override;
+        ID3D11RenderTargetView* render_target() override;
+        Size2D render_target_size() const override;
 
         void init(class Window* window);
         void create_swapchain(const Size2D& size);

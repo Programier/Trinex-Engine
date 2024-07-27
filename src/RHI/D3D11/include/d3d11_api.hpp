@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <d3d11_uniform_buffer.hpp>
 #include <none_api.hpp>
+#include <d3d11_definitions.hpp>
 
 namespace Engine
 {
@@ -17,11 +18,19 @@ namespace Engine
         }
     }
 
+    enum class D3D11_ViewportMode
+    {
+        Undefined = 0,
+        Normal    = 1,
+        Flipped   = 2,
+    };
+
     struct D3D11_State {
         ViewPort viewport;
         Scissor scissor;
-        Size2D render_target_size      = {-1.f, -1.f};
-        class D3D11_Pipeline* pipeline = nullptr;
+        class D3D11_Viewport* render_viewport = nullptr;
+        class D3D11_Pipeline* pipeline        = nullptr;
+        D3D11_ViewportMode viewport_mode      = D3D11_ViewportMode::Undefined;
     };
 
     class D3D11 : public NoneApi
@@ -36,6 +45,9 @@ namespace Engine
         IDXGIAdapter* m_dxgi_adapter   = nullptr;
         ID3D11Device* m_device         = nullptr;
         ID3D11DeviceContext* m_context = nullptr;
+#if D3D11_WITH_DEBUG
+        ID3D11Debug* m_debug = nullptr;
+#endif
 
         D3D_FEATURE_LEVEL m_feature_level = D3D_FEATURE_LEVEL_11_0;
 
@@ -70,6 +82,7 @@ namespace Engine
         D3D11& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         D3D11& prepare_draw();
+        D3D11_ViewportMode current_viewport_mode();
         D3D11& draw(size_t vertex_count, size_t vertices_offset) override;
         D3D11& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
         D3D11& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
@@ -81,7 +94,8 @@ namespace Engine
         RHI_Texture* create_render_surface(const RenderSurface* surface) override;
 
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
-        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
+        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format,
+                                             RHIBufferType type) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;

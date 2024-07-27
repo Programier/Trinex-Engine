@@ -5,7 +5,6 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>
-#include <functional>
 #include <glm/ext.hpp>
 
 namespace Engine

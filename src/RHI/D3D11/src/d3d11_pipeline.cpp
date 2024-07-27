@@ -151,6 +151,19 @@ namespace Engine
         DXAPI->m_state.pipeline = this;
     }
 
+    void D3D11_Pipeline::unbind()
+    {
+        if (DXAPI->m_state.pipeline)
+        {
+            D3D11_VertexShader::bind(nullptr);
+            D3D11_TesselationControlShader::bind(nullptr);
+            D3D11_TesselationShader::bind(nullptr);
+            D3D11_GeometryShader::bind(nullptr);
+            D3D11_FragmentShader::bind(nullptr);
+            DXAPI->m_state.pipeline = nullptr;
+        }
+    }
+
     D3D11_Pipeline::~D3D11_Pipeline()
     {
         d3d11_release(m_depth_stencil_state);

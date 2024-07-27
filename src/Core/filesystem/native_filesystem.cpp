@@ -13,7 +13,6 @@ namespace Engine::VFS
 {
     namespace fs = std::filesystem;
 
-
     template<typename Iterator>
     struct NativeIterator : public DirectoryIteratorInterface {
         NativeFileSystem* m_base;

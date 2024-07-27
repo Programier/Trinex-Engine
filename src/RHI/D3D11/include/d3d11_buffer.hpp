@@ -4,12 +4,9 @@
 
 namespace Engine
 {
-    using BufferUpdateFunction = void (*)(ID3D11Buffer* buffer, size_t, size_t, const byte*);
-
     class D3D11_VertexBuffer : public RHI_DefaultDestroyable<RHI_VertexBuffer>
     {
     public:
-        BufferUpdateFunction m_update_function = nullptr;
         ID3D11Buffer* m_buffer                 = nullptr;
 
         bool init(size_t size, const byte* data, RHIBufferType type);
@@ -22,7 +19,6 @@ namespace Engine
     class D3D11_IndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer>
     {
     public:
-        BufferUpdateFunction m_update_function = nullptr;
         ID3D11Buffer* m_buffer                 = nullptr;
         DXGI_FORMAT m_format                   = DXGI_FORMAT_UNKNOWN;
 

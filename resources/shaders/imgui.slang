@@ -1,3 +1,5 @@
+#include "platform.slang"
+
 struct VS_INPUT
 {
     float2 pos : TEXCOORD0;
@@ -21,7 +23,7 @@ PS_INPUT vs_main(in VS_INPUT input)
     PS_INPUT output;
     output.pos = mul(model, float4(input.pos.xy, 0.f, 1.f));
     output.col = input.col;
-    output.uv  = input.uv;
+    output.uv  = platform_validate_uv(input.uv);
     return output;
 }
 

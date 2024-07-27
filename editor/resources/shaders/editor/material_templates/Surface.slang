@@ -4,6 +4,7 @@
 #include "common.slang"
 #include "vertex_factory/static_mesh.slang"
 #include "material_common.slang"
+#include "platform.slang"
 
 
 #ifndef USE_VERTEX_COLOR
@@ -36,7 +37,7 @@ struct GeometryData
 
 		for(uint i = 0, count = vertex_factory.get_uv_count(); i < count; ++i)
 		{
-			uv[i] = vertex_factory.get_uv(i);
+			uv[i] = platform_validate_uv(vertex_factory.get_uv(i));
 		}
 
 #if USE_VERTEX_COLOR

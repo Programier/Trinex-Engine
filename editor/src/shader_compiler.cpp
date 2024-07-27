@@ -19,9 +19,9 @@
 
 namespace Engine::ShaderCompiler
 {
-#define RETURN_ON_FAIL(code)                                                                                                     \
-    if (SLANG_FAILED(code))                                                                                                      \
-        return                                                                                                                   \
+#define RETURN_ON_FAIL(code)                                                                                           \
+    if (SLANG_FAILED(code))                                                                                            \
+        return                                                                                                         \
         {}
 
     static slang::IGlobalSession* global_session()
@@ -39,7 +39,8 @@ namespace Engine::ShaderCompiler
     }
 
 
-    static bool find_semantic(String name, VertexBufferSemantic& out_semantic, const Function<void(const char*)>& print_error)
+    static bool find_semantic(String name, VertexBufferSemantic& out_semantic,
+                              const Function<void(const char*)>& print_error)
     {
         Strings::to_lower(name);
 
@@ -163,7 +164,8 @@ namespace Engine::ShaderCompiler
                           VertexBufferSemantic::Binormal,//
                           VertexBufferSemantic::BlendWeight>(attribute.semantic))
             {
-                print_error(Strings::format("Semantic '{}' doesn't support vector type!", var->getSemanticName()).c_str());
+                print_error(
+                        Strings::format("Semantic '{}' doesn't support vector type!", var->getSemanticName()).c_str());
                 return false;
             }
 
@@ -180,7 +182,8 @@ namespace Engine::ShaderCompiler
             if (requred_elements_count != var->getType()->getElementCount())
             {
                 print_error(
-                        Strings::format("Sematic '{}' require vector{}", var->getSemanticName(), requred_elements_count).c_str());
+                        Strings::format("Sematic '{}' require vector{}", var->getSemanticName(), requred_elements_count)
+                                .c_str());
                 return false;
             }
 
@@ -270,8 +273,8 @@ namespace Engine::ShaderCompiler
     {
         auto kind = param->getTypeLayout()->getKind();
 
-        if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(
-                    kind))
+        if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
+                  slang::TypeReflection::Kind::Matrix>(kind))
         {
             auto name = param->getName();
             trinex_always_check(name, "Failed to get parameter name!");
@@ -306,17 +309,18 @@ namespace Engine::ShaderCompiler
             if (auto type_layout = param->getTypeLayout())
             {
                 SlangResourceShape shape = type_layout->getResourceShape();
+
                 if (shape == SLANG_TEXTURE_2D)
                 {
                     auto binding_type = type_layout->getBindingRangeType(0);
 
                     MaterialParameterInfo object;
-
-                    object.name             = param->getName();
-                    object.location.binding = param->getBindingIndex();
-                    object.type             = binding_type == slang::BindingType::CombinedTextureSampler
-                                                      ? MaterialParameterType::CombinedImageSampler2D
-                                                      : MaterialParameterType::Texture2D;
+                    object.name = param->getName();
+                    object.location.binding =
+                            param->getOffset(SLANG_PARAMETER_CATEGORY_SHADER_RESOURCE) + param->getBindingIndex();
+                    object.type = binding_type == slang::BindingType::CombinedTextureSampler
+                                          ? MaterialParameterType::CombinedImageSampler2D
+                                          : MaterialParameterType::Texture2D;
                     out_reflection.uniform_member_infos.push_back(object);
                 }
             }
@@ -394,9 +398,9 @@ namespace Engine::ShaderCompiler
         request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
     }
 
-#define check_compile_errors()                                                                                                   \
-    if (!errors.empty())                                                                                                         \
-        return                                                                                                                   \
+#define check_compile_errors()                                                                                         \
+    if (!errors.empty())                                                                                               \
+        return                                                                                                         \
         {}
 
 
@@ -413,8 +417,8 @@ namespace Engine::ShaderCompiler
 
     using SetupRequestFunction = void (*)(SlangCompileRequest*);
 
-    static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList& errors,
-                                       const RequestSetupInterface* setup_request)
+    static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions,
+                                       MessageList& errors, const RequestSetupInterface* setup_request)
     {
         errors.clear();
 
@@ -589,12 +593,13 @@ namespace Engine::ShaderCompiler
             ComPtr<slang::IBlob> result_code;
             {
                 ComPtr<slang::IBlob> diagnostics_blob;
-                SlangResult result =
-                        program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+                SlangResult result = program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(),
+                                                                diagnostics_blob.writeRef());
                 diagnose_if_needed(diagnostics_blob);
                 RETURN_ON_FAIL(result);
 
-                submit_compiled_source(out_source.vertex_code, result_code->getBufferPointer(), result_code->getBufferSize());
+                submit_compiled_source(out_source.vertex_code, result_code->getBufferPointer(),
+                                       result_code->getBufferSize());
             }
         }
 
@@ -603,12 +608,13 @@ namespace Engine::ShaderCompiler
             ComPtr<slang::IBlob> result_code;
             {
                 ComPtr<slang::IBlob> diagnostics_blob;
-                SlangResult result =
-                        program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+                SlangResult result = program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(),
+                                                                diagnostics_blob.writeRef());
                 diagnose_if_needed(diagnostics_blob);
                 RETURN_ON_FAIL(result);
 
-                submit_compiled_source(out_source.fragment_code, result_code->getBufferPointer(), result_code->getBufferSize());
+                submit_compiled_source(out_source.fragment_code, result_code->getBufferPointer(),
+                                       result_code->getBufferSize());
             }
         }
 
@@ -632,8 +638,8 @@ namespace Engine::ShaderCompiler
             ComPtr<slang::IBlob> result_code;
             {
                 ComPtr<slang::IBlob> diagnostics_blob;
-                SlangResult result =
-                        program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+                SlangResult result = program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(),
+                                                                diagnostics_blob.writeRef());
                 diagnose_if_needed(diagnostics_blob);
                 RETURN_ON_FAIL(result);
 
@@ -647,12 +653,13 @@ namespace Engine::ShaderCompiler
             ComPtr<slang::IBlob> result_code;
             {
                 ComPtr<slang::IBlob> diagnostics_blob;
-                SlangResult result =
-                        program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+                SlangResult result = program->getEntryPointCode(geometry_index, 0, result_code.writeRef(),
+                                                                diagnostics_blob.writeRef());
                 diagnose_if_needed(diagnostics_blob);
                 RETURN_ON_FAIL(result);
 
-                submit_compiled_source(out_source.geometry_code, result_code->getBufferPointer(), result_code->getBufferSize());
+                submit_compiled_source(out_source.geometry_code, result_code->getBufferPointer(),
+                                       result_code->getBufferSize());
             }
         }
 
@@ -707,7 +714,8 @@ namespace Engine::ShaderCompiler
             };
 
             static constexpr int count = sizeof(arguments) / sizeof(const char*);
-            request->processCommandLineArguments(arguments, count);// TODO: Maybe it can be optimized to avoid parsing arguments?
+            request->processCommandLineArguments(arguments,
+                                                 count);// TODO: Maybe it can be optimized to avoid parsing arguments?
         }
     };
 
@@ -763,7 +771,8 @@ namespace Engine::ShaderCompiler
     implement_class_default_init(Engine::ShaderCompiler, NONE_Compiler, 0);
     implement_class_default_init(Engine::ShaderCompiler, D3D11_Compiler, 0);
 
-    bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
+                                  MessageList& errors)
     {
         auto source = create_opengl_shader(slang_source, material->compile_definitions, errors);
 
@@ -775,7 +784,8 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
+                                  MessageList& errors)
     {
         auto source = create_vulkan_shader(slang_source, material->compile_definitions, errors);
 
@@ -787,14 +797,24 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
+                                MessageList& errors)
     {
         return false;
     }
 
-    bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
+                                 MessageList& errors)
     {
-        auto source = create_d3d11_shader(slang_source, material->compile_definitions, errors);
+        auto definitions = material->compile_definitions;
+        {
+            ShaderDefinition def;
+            def.key   = "TRINEX_INVERT_UV";
+            def.value = "1";
+            definitions.push_back(def);
+        }
+
+        auto source = create_d3d11_shader(slang_source, definitions, errors);
 
         if (errors.empty())
         {

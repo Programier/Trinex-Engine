@@ -1,5 +1,5 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
+#include <SDL.h>
+#include <SDL_vulkan.h>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 #include <vulkan_headers.hpp>

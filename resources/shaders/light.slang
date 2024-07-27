@@ -1,5 +1,6 @@
 #include "common.slang"
 #include "math.slang"
+#include "platform.slang"
 
 uniform Sampler2D base_color_texture;  
 uniform Sampler2D position_texture;
@@ -82,7 +83,7 @@ float3 fresnel_schlick(in float cos_theta, in float3 F0)
 [shader("vertex")]
 float4 vs_main(in float3 position : POSITION0, out float2 uv : TEXCOORD0) : SV_Position
 {
-    uv = (float2(1, 1) + position.xy) / float2(2, 2);
+    uv = platform_validate_uv((float2(1, 1) + position.xy) / float2(2, 2));
     return float4(position, 1.0);
 }
 

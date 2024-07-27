@@ -1,6 +1,8 @@
 #define DISABLE_TANGENT_AND_BINORMAL 1
 
 #include "common.slang"
+#include "platform.slang"
+
 #include VERTEX_FACTORY_FILE
 
 struct VertexOutput
@@ -29,7 +31,7 @@ VertexOutput vs_main(in VertexFactory input)
 	output.world_position = world_position;
 	output.position = mul(globals.projview, world_position);
 	output.world_normal = input.get_world_normal();
-	output.uv =		input.get_uv(0);
+	output.uv =	platform_validate_uv(input.get_uv(0));
 
 	return output;
 }

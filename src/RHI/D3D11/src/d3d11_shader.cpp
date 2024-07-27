@@ -67,22 +67,18 @@ namespace Engine
 
         Vector<D3D11_INPUT_ELEMENT_DESC> inputs;
 
-        uint_t slot_index = 0;
-
         for (auto& attribute : shader->attributes)
         {
             D3D11_INPUT_ELEMENT_DESC desc{};
             desc.SemanticName         = semantic_name(attribute.semantic);
             desc.SemanticIndex        = attribute.semantic_index;
             desc.Format               = format_of(attribute.type);
-            desc.InputSlot            = slot_index;
-            desc.AlignedByteOffset    = 0;
+            desc.InputSlot            = attribute.stream_index;
+            desc.AlignedByteOffset    = attribute.offset;
             desc.InputSlotClass       = attribute.rate == VertexAttributeInputRate::Vertex ? D3D11_INPUT_PER_VERTEX_DATA
                                                                                            : D3D11_INPUT_PER_INSTANCE_DATA;
             desc.InstanceDataStepRate = attribute.rate == VertexAttributeInputRate::Vertex ? 0 : 1;
             inputs.emplace_back(desc);
-
-            ++slot_index;
         }
 
         hr = DXAPI->m_device->CreateInputLayout(inputs.data(), inputs.size(), data, size, &m_layout);
@@ -98,20 +94,32 @@ namespace Engine
 
     void D3D11_VertexShader::bind(D3D11_VertexShader* self)
     {
+        auto context = DXAPI->m_context;
+
         if (self)
         {
-            DXAPI->m_context->VSSetShader(self->m_shader, nullptr, 0);
-            DXAPI->m_context->IASetInputLayout(self->m_layout);
+            context->VSSetShader(self->m_shader, nullptr, 0);
+            context->IASetInputLayout(self->m_layout);
         }
         else
         {
-            DXAPI->m_context->VSSetShader(nullptr, nullptr, 0);
-            DXAPI->m_context->IASetInputLayout(nullptr);
+            context->VSSetShader(nullptr, nullptr, 0);
+            context->IASetInputLayout(nullptr);
+
+            ID3D11Buffer* null_constants_buffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = {nullptr};
+            context->VSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, null_constants_buffers);
+
+            ID3D11ShaderResourceView* null_srv[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {nullptr};
+            context->VSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, null_srv);
+
+            ID3D11SamplerState* null_samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = {nullptr};
+            context->VSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, null_samplers);
         }
     }
 
     D3D11_VertexShader::~D3D11_VertexShader()
     {
+        d3d11_release(m_layout);
         d3d11_release(m_shader);
     }
 
@@ -199,7 +207,24 @@ namespace Engine
 
     void D3D11_FragmentShader::bind(D3D11_FragmentShader* self)
     {
-        DXAPI->m_context->PSSetShader(self ? self->m_shader : nullptr, nullptr, 0);
+        auto context = DXAPI->m_context;
+        if (self)
+        {
+            context->PSSetShader(self->m_shader, nullptr, 0);
+        }
+        else
+        {
+            context->PSSetShader(nullptr, nullptr, 0);
+
+            ID3D11Buffer* null_constants_buffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = {nullptr};
+            context->PSSetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, null_constants_buffers);
+
+            ID3D11ShaderResourceView* null_srv[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {nullptr};
+            context->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, null_srv);
+
+            ID3D11SamplerState* null_samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = {nullptr};
+            context->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, null_samplers);
+        }
     }
 
     D3D11_FragmentShader::~D3D11_FragmentShader()
