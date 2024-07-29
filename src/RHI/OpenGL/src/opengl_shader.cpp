@@ -229,11 +229,71 @@ namespace Engine
                 out.type       = GL_FLOAT;
                 out.normalized = GL_FALSE;
                 break;
+            case VertexBufferElementType::Byte1:
+                out.count      = 1;
+                out.size       = sizeof(signed_byte) * out.count;
+                out.type       = GL_BYTE;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Byte2:
+                out.count      = 2;
+                out.size       = sizeof(signed_byte) * out.count;
+                out.type       = GL_BYTE;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Byte4:
+                out.count      = 4;
+                out.size       = sizeof(signed_byte) * out.count;
+                out.type       = GL_BYTE;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Byte1N:
+                out.count      = 1;
+                out.size       = sizeof(signed_byte) * out.count;
+                out.type       = GL_BYTE;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::Byte2N:
+                out.count      = 2;
+                out.size       = sizeof(signed_byte) * out.count;
+                out.type       = GL_BYTE;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::Byte4N:
+                out.count      = 4;
+                out.size       = sizeof(signed_byte) * out.count;
+                out.type       = GL_BYTE;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::UByte1:
+                out.count      = 1;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UByte2:
+                out.count      = 2;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_FALSE;
+                break;
             case VertexBufferElementType::UByte4:
                 out.count      = 4;
                 out.size       = sizeof(byte) * out.count;
                 out.type       = GL_UNSIGNED_BYTE;
                 out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UByte1N:
+                out.count      = 1;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::UByte2N:
+                out.count      = 2;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_TRUE;
                 break;
             case VertexBufferElementType::UByte4N:
                 out.count      = 4;
@@ -241,12 +301,128 @@ namespace Engine
                 out.type       = GL_UNSIGNED_BYTE;
                 out.normalized = GL_TRUE;
                 break;
-            case VertexBufferElementType::Color:
+            case VertexBufferElementType::Short1:
+                out.count      = 1;
+                out.size       = sizeof(short_t) * out.count;
+                out.type       = GL_SHORT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Short2:
+                out.count      = 2;
+                out.size       = sizeof(short_t) * out.count;
+                out.type       = GL_SHORT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Short4:
                 out.count      = 4;
-                out.size       = sizeof(byte) * out.count;
-                out.type       = GL_UNSIGNED_BYTE;
+                out.size       = sizeof(short_t) * out.count;
+                out.type       = GL_SHORT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Short1N:
+                out.count      = 1;
+                out.size       = sizeof(short_t) * out.count;
+                out.type       = GL_SHORT;
                 out.normalized = GL_TRUE;
                 break;
+            case VertexBufferElementType::Short2N:
+                out.count      = 2;
+                out.size       = sizeof(short_t) * out.count;
+                out.type       = GL_SHORT;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::Short4N:
+                out.count      = 4;
+                out.size       = sizeof(short_t) * out.count;
+                out.type       = GL_SHORT;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::UShort1:
+                out.count      = 1;
+                out.size       = sizeof(ushort_t) * out.count;
+                out.type       = GL_UNSIGNED_SHORT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UShort2:
+                out.count      = 2;
+                out.size       = sizeof(ushort_t) * out.count;
+                out.type       = GL_UNSIGNED_SHORT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UShort4:
+                out.count      = 4;
+                out.size       = sizeof(ushort_t) * out.count;
+                out.type       = GL_UNSIGNED_SHORT;
+                out.normalized = GL_FALSE;
+                break;
+
+            case VertexBufferElementType::UShort1N:
+                out.count      = 1;
+                out.size       = sizeof(ushort_t) * out.count;
+                out.type       = GL_UNSIGNED_SHORT;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::UShort2N:
+                out.count      = 2;
+                out.size       = sizeof(ushort_t) * out.count;
+                out.type       = GL_UNSIGNED_SHORT;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::UShort4N:
+                out.count      = 4;
+                out.size       = sizeof(ushort_t) * out.count;
+                out.type       = GL_UNSIGNED_SHORT;
+                out.normalized = GL_TRUE;
+                break;
+            case VertexBufferElementType::Int1:
+                out.count      = 1;
+                out.size       = sizeof(int_t) * out.count;
+                out.type       = GL_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Int2:
+                out.count      = 2;
+                out.size       = sizeof(int_t) * out.count;
+                out.type       = GL_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Int3:
+                out.count      = 3;
+                out.size       = sizeof(int_t) * out.count;
+                out.type       = GL_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::Int4:
+                out.count      = 4;
+                out.size       = sizeof(int_t) * out.count;
+                out.type       = GL_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UInt1:
+                out.count      = 1;
+                out.size       = sizeof(uint_t) * out.count;
+                out.type       = GL_UNSIGNED_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UInt2:
+                out.count      = 2;
+                out.size       = sizeof(uint_t) * out.count;
+                out.type       = GL_UNSIGNED_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UInt3:
+                out.count      = 3;
+                out.size       = sizeof(uint_t) * out.count;
+                out.type       = GL_UNSIGNED_INT;
+                out.normalized = GL_FALSE;
+                break;
+            case VertexBufferElementType::UInt4:
+                out.count      = 4;
+                out.size       = sizeof(uint_t) * out.count;
+                out.type       = GL_UNSIGNED_INT;
+                out.normalized = GL_FALSE;
+                break;
+
             default:
                 break;
         }

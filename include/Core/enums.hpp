@@ -72,9 +72,49 @@ namespace Engine
         Float2    = 2,
         Float3    = 3,
         Float4    = 4,
-        UByte4    = 5,
-        UByte4N   = 6,
-        Color     = 7,
+
+        Byte1 = 5,
+        Byte2 = 6,
+        Byte4 = 7,
+
+        Byte1N = 8,
+        Byte2N = 9,
+        Byte4N = 10,
+
+        UByte1 = 11,
+        UByte2 = 12,
+        UByte4 = 13,
+
+        UByte1N = 14,
+        UByte2N = 15,
+        UByte4N = 16,
+        Color   = 16,
+
+        Short1 = 17,
+        Short2 = 18,
+        Short4 = 19,
+
+        Short1N = 20,
+        Short2N = 21,
+        Short4N = 22,
+
+        UShort1 = 23,
+        UShort2 = 24,
+        UShort4 = 25,
+
+        UShort1N = 26,
+        UShort2N = 27,
+        UShort4N = 28,
+
+        Int1 = 29,
+        Int2 = 30,
+        Int3 = 31,
+        Int4 = 32,
+
+        UInt1 = 33,
+        UInt2 = 34,
+        UInt3 = 35,
+        UInt4 = 36
     };
 
     enum class Coord

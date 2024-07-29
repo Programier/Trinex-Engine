@@ -42,11 +42,79 @@ namespace Engine
                 return DXGI_FORMAT_R32G32B32_FLOAT;
             case VertexBufferElementType::Float4:
                 return DXGI_FORMAT_R32G32B32A32_FLOAT;
+            case VertexBufferElementType::Byte1:
+                return DXGI_FORMAT_R8_SINT;
+            case VertexBufferElementType::Byte2:
+                return DXGI_FORMAT_R8G8_SINT;
+            case VertexBufferElementType::Byte4:
+                return DXGI_FORMAT_R8G8B8A8_SINT;
+
+            case VertexBufferElementType::Byte1N:
+                return DXGI_FORMAT_R8_SNORM;
+            case VertexBufferElementType::Byte2N:
+                return DXGI_FORMAT_R8G8_SNORM;
+            case VertexBufferElementType::Byte4N:
+                return DXGI_FORMAT_R8G8B8A8_SNORM;
+
+            case VertexBufferElementType::UByte1:
+                return DXGI_FORMAT_R8_UINT;
+            case VertexBufferElementType::UByte2:
+                return DXGI_FORMAT_R8G8_UINT;
             case VertexBufferElementType::UByte4:
                 return DXGI_FORMAT_R8G8B8A8_UINT;
+
+            case VertexBufferElementType::UByte1N:
+                return DXGI_FORMAT_R8_UNORM;
+            case VertexBufferElementType::UByte2N:
+                return DXGI_FORMAT_R8G8_UNORM;
             case VertexBufferElementType::UByte4N:
-            case VertexBufferElementType::Color:
                 return DXGI_FORMAT_R8G8B8A8_UNORM;
+
+            case VertexBufferElementType::Short1:
+                return DXGI_FORMAT_R16_SINT;
+            case VertexBufferElementType::Short2:
+                return DXGI_FORMAT_R16G16_SINT;
+            case VertexBufferElementType::Short4:
+                return DXGI_FORMAT_R16G16B16A16_SINT;
+
+            case VertexBufferElementType::Short1N:
+                return DXGI_FORMAT_R16_SNORM;
+            case VertexBufferElementType::Short2N:
+                return DXGI_FORMAT_R16G16_SNORM;
+            case VertexBufferElementType::Short4N:
+                return DXGI_FORMAT_R16G16B16A16_SNORM;
+
+            case VertexBufferElementType::UShort1:
+                return DXGI_FORMAT_R16_UINT;
+            case VertexBufferElementType::UShort2:
+                return DXGI_FORMAT_R16G16_UINT;
+            case VertexBufferElementType::UShort4:
+                return DXGI_FORMAT_R16G16B16A16_UINT;
+
+            case VertexBufferElementType::UShort1N:
+                return DXGI_FORMAT_R16_UNORM;
+            case VertexBufferElementType::UShort2N:
+                return DXGI_FORMAT_R16G16_UNORM;
+            case VertexBufferElementType::UShort4N:
+                return DXGI_FORMAT_R16G16B16A16_UNORM;
+
+            case VertexBufferElementType::Int1:
+                return DXGI_FORMAT_R32_SINT;
+            case VertexBufferElementType::Int2:
+                return DXGI_FORMAT_R32G32_SINT;
+            case VertexBufferElementType::Int3:
+                return DXGI_FORMAT_R32G32B32_SINT;
+            case VertexBufferElementType::Int4:
+                return DXGI_FORMAT_R32G32B32A32_SINT;
+
+            case VertexBufferElementType::UInt1:
+                return DXGI_FORMAT_R32_UINT;
+            case VertexBufferElementType::UInt2:
+                return DXGI_FORMAT_R32G32_UINT;
+            case VertexBufferElementType::UInt3:
+                return DXGI_FORMAT_R32G32B32_UINT;
+            case VertexBufferElementType::UInt4:
+                return DXGI_FORMAT_R32G32B32A32_UINT;
             default:
                 throw EngineException("Undefined vertex element type");
         }

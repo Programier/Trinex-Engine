@@ -67,27 +67,63 @@ namespace Engine::ShaderCompiler
         }
     }
 
-    static VertexBufferElementType find_vertex_element_type_for_semantic(VertexBufferSemantic semantic)
+    static VertexBufferElementType parse_vertex_element_type(slang::TypeLayoutReflection* var, VertexBufferSemantic semantic)
     {
-        switch (semantic)
+        if (var == nullptr)
+            return VertexBufferElementType::Undefined;
+
+        auto kind = var->getKind();
+
+        if (kind == slang::TypeReflection::Kind::Scalar)
         {
-            case Engine::VertexBufferSemantic::Position:
-                return VertexBufferElementType::Float3;
-            case Engine::VertexBufferSemantic::TexCoord:
-                return VertexBufferElementType::Float2;
-            case Engine::VertexBufferSemantic::Color:
-                return VertexBufferElementType::Color;
-            case Engine::VertexBufferSemantic::Normal:
-                return VertexBufferElementType::Float3;
-            case Engine::VertexBufferSemantic::Tangent:
-                return VertexBufferElementType::Float3;
-            case Engine::VertexBufferSemantic::Binormal:
-                return VertexBufferElementType::Float3;
-            case Engine::VertexBufferSemantic::BlendWeight:
-                return VertexBufferElementType::Float3;
-            case Engine::VertexBufferSemantic::BlendIndices:
-                return VertexBufferElementType::UByte4;
+            switch (var->getScalarType())
+            {
+                case slang::TypeReflection::ScalarType::Int8:
+                    return VertexBufferElementType::Byte1;
+
+                case slang::TypeReflection::ScalarType::UInt8:
+                    return VertexBufferElementType::UByte1;
+
+                case slang::TypeReflection::ScalarType::Int16:
+                    return VertexBufferElementType::Short1;
+
+                case slang::TypeReflection::ScalarType::UInt16:
+                    return VertexBufferElementType::UShort1;
+
+                case slang::TypeReflection::ScalarType::Int32:
+                    return VertexBufferElementType::Int1;
+
+                case slang::TypeReflection::ScalarType::UInt32:
+                    return VertexBufferElementType::UInt1;
+
+                case slang::TypeReflection::ScalarType::Float32:
+                    return VertexBufferElementType::Float1;
+
+                default:
+                    return VertexBufferElementType::Undefined;
+            }
         }
+        else if (kind == slang::TypeReflection::Kind::Vector)
+        {
+            auto base_type         = parse_vertex_element_type(var->getElementTypeLayout(), semantic);
+            auto components_offset = var->getElementCount() - 1;
+
+            if (components_offset > 3)
+                return VertexBufferElementType::Undefined;
+
+            if (components_offset == 3 &&
+                !is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
+            {
+                --components_offset;
+            }
+
+            auto result = static_cast<VertexBufferElementType>(static_cast<EnumerateType>(base_type) + components_offset);
+
+            if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
+                return VertexBufferElementType::Color;
+            return result;
+        }
+
         return VertexBufferElementType::Undefined;
     }
 
@@ -140,16 +176,18 @@ namespace Engine::ShaderCompiler
                 }
             }
         }
-        else if (kind == slang::TypeReflection::Kind::Vector)
+        else if (kind == slang::TypeReflection::Kind::Vector || kind == slang::TypeReflection::Kind::Scalar)
         {
             ShaderReflection::VertexAttribute attribute;
 
             const char* semantic_name = var->getSemanticName();
+
             if (semantic_name == nullptr)
             {
                 print_error(Strings::format("Cannot find semantic for vertex input '{}'", var->getName()).c_str());
                 return false;
             }
+
             if (!find_semantic(var->getSemanticName(), attribute.semantic, print_error))
             {
                 return false;
@@ -170,7 +208,7 @@ namespace Engine::ShaderCompiler
             attribute.semantic_index = var->getSemanticIndex();
             attribute.name           = var->getName();
             attribute.rate           = VertexAttributeInputRate::Vertex;
-            attribute.type           = find_vertex_element_type_for_semantic(attribute.semantic);
+            attribute.type           = parse_vertex_element_type(var->getTypeLayout(), attribute.semantic);
             attribute.location       = var->getBindingIndex();
             attribute.stream_index   = attribute.location;
             attribute.offset         = 0;
