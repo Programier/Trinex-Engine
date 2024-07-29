@@ -1,6 +1,6 @@
+#include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
@@ -87,7 +87,7 @@ namespace Engine
             !component->leaf_class_is<PointLightComponent>())
             return *this;
 
-        Material* material = DefaultResources::point_light_material;
+        Material* material = DefaultResources::Materials::point_light;
 
         Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
         Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
@@ -121,7 +121,7 @@ namespace Engine
         }
 
         layer->bind_material(material);
-        layer->bind_vertex_buffer(DefaultResources::screen_position_buffer, 0, 0);
+        layer->bind_vertex_buffer(DefaultResources::Buffers::screen_position, 0, 0);
         layer->draw(6, 0);
         return *this;
     }

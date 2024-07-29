@@ -1,6 +1,6 @@
+#include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
@@ -176,7 +176,7 @@ namespace Engine
 
         auto layer = deferred_lighting_layer();
 
-        Material* material = DefaultResources::spot_light_material;
+        Material* material = DefaultResources::Materials::spot_light;
 
         Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
         FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
@@ -223,7 +223,7 @@ namespace Engine
         }
 
         layer->bind_material(material, nullptr);
-        layer->bind_vertex_buffer(DefaultResources::screen_position_buffer, 0, 0);
+        layer->bind_vertex_buffer(DefaultResources::Buffers::screen_position, 0, 0);
         layer->draw(6, 0);
         return *this;
     }

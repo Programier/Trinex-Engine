@@ -204,7 +204,7 @@ namespace Engine
         return *this;
     }
 
-    SamplerMaterialParameter::SamplerMaterialParameter() : sampler(DefaultResources::default_sampler)
+    SamplerMaterialParameter::SamplerMaterialParameter() : sampler(DefaultResources::Samplers::default_sampler)
     {}
 
     MaterialParameterType SamplerMaterialParameter::type() const

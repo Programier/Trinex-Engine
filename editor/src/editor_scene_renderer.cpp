@@ -21,8 +21,8 @@ namespace Engine
     extern void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer);
     static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
     {
-        Material* material                 = DefaultResources::sprite_material;
-        PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
+        Material* material                 = DefaultResources::Materials::sprite;
+        PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_position;
 
         if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
         {

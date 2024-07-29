@@ -171,7 +171,10 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpotLightMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DirectionalLightMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/AmbientLightMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ImGuiMaterial.tasset)
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ImGuiMaterial.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Cube.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Cylinder.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Sphere.tasset)
     add_custom_target(
         TrinexEngineHeaders ALL
         COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" ${TRINEX_INTERNAL_ASSETS}

@@ -178,8 +178,8 @@ namespace Engine::Importer
         if (indices.size() > 0)
         {
             UInt32IndexBuffer* index_buffer = Object::new_instance<UInt32IndexBuffer>();
-            index_buffer->buffer              = std::move(indices);
-            lod.indices                       = index_buffer;
+            index_buffer->buffer            = std::move(indices);
+            lod.indices                     = index_buffer;
         }
 
         lod.surfaces.emplace_back();
@@ -189,7 +189,7 @@ namespace Engine::Importer
         surface.vertices_count    = mesh->mNumFaces * 3;
 
         auto& material         = static_mesh->materials.back();
-        material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::base_pass_material);
+        material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::Materials::base_pass);
         material.policy        = policy_id(Name::color_scene_rendering);
         material.surface_index = 0;
 

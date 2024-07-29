@@ -398,5 +398,7 @@ namespace Engine
 
 VkImageView trinex_vulkan_image_view(Engine::Texture2D* texture)
 {
-    return (texture ? texture : Engine::DefaultResources::default_texture)->rhi_object<Engine::VulkanTexture>()->image_view();
+    return (texture ? texture : Engine::DefaultResources::Textures::default_texture)
+            ->rhi_object<Engine::VulkanTexture>()
+            ->image_view();
 }

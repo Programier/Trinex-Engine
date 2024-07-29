@@ -49,6 +49,8 @@ namespace Engine
 
         public:
             VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
+            size_t vertex_count() const;
+            size_t indices_count() const;
         };
 
         Vector<MeshMaterial> materials;

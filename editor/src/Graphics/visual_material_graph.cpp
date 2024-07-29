@@ -974,12 +974,13 @@ namespace Engine::VisualMaterialGraph
 
     Sampler::Sampler()
     {
-        m_outputs.push_back(new SamplerOutputPin(this, "Sampler", DefaultResources::default_sampler));
+        m_outputs.push_back(new SamplerOutputPin(this, "Sampler", DefaultResources::Samplers::default_sampler));
     }
 
-    Texture2D::Texture2D() : texture(DefaultResources::default_texture), sampler(DefaultResources::default_sampler)
+    Texture2D::Texture2D()
+        : texture(DefaultResources::Textures::default_texture), sampler(DefaultResources::Samplers::default_sampler)
     {
-        m_inputs.push_back(new SamplerInputPin(this, "Sampler", DefaultResources::default_sampler));
+        m_inputs.push_back(new SamplerInputPin(this, "Sampler", DefaultResources::Samplers::default_sampler));
         m_inputs.push_back(new IntInputPinND(this, "LOD"));
         m_inputs.push_back(new Vec2InputPinND(this, "UV"));
 
@@ -1084,7 +1085,7 @@ namespace Engine::VisualMaterialGraph
             }
 
             if (sampler == nullptr)
-                sampler = DefaultResources::default_sampler;
+                sampler = DefaultResources::Samplers::default_sampler;
         }
 
         static auto create_swizzle = [](const String& code, char component) -> Expression {
@@ -1120,12 +1121,12 @@ namespace Engine::VisualMaterialGraph
             {
                 CombinedImageSampler2DMaterialParameter* texture_parameter =
                         reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(param);
-                texture_parameter->texture = texture == nullptr ? DefaultResources::default_texture : texture.ptr();
+                texture_parameter->texture = texture == nullptr ? DefaultResources::Textures::default_texture : texture.ptr();
 
                 texture_parameter->sampler = sampler;
 
                 if (texture_parameter->sampler == nullptr)
-                    texture_parameter->sampler = DefaultResources::default_sampler;
+                    texture_parameter->sampler = DefaultResources::Samplers::default_sampler;
             }
         }
 

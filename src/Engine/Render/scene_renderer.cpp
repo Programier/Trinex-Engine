@@ -125,8 +125,8 @@ namespace Engine
     static void copy_gbuffer_to_scene_output()
     {
         static Name screen_texture      = "screen_texture";
-        Material* material              = DefaultResources::screen_material;
-        PositionVertexBuffer* positions = DefaultResources::screen_position_buffer;
+        Material* material              = DefaultResources::Materials::screen;
+        PositionVertexBuffer* positions = DefaultResources::Buffers::screen_position;
 
         if (material && positions)
         {
@@ -147,7 +147,7 @@ namespace Engine
     static void render_ambient_light_only(Scene* scene)
     {
         static Name name_ambient_color = "ambient_color";
-        Material* material             = DefaultResources::ambient_light_material;
+        Material* material             = DefaultResources::Materials::ambient_light;
 
         if (material)
         {
@@ -159,7 +159,7 @@ namespace Engine
             }
 
             material->apply();
-            DefaultResources::screen_position_buffer->rhi_bind(0, 0);
+            DefaultResources::Buffers::screen_position->rhi_bind(0, 0);
             rhi->draw(6, 0);
         }
     }

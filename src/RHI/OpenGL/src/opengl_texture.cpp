@@ -192,5 +192,5 @@ namespace Engine
 
 GLuint get_opengl_texture_2d_id(Engine::Texture2D* texture)
 {
-    return (texture ? texture : Engine::DefaultResources::default_texture)->rhi_object<Engine::OpenGL_Texture>()->m_id;
+    return (texture ? texture : Engine::DefaultResources::Textures::default_texture)->rhi_object<Engine::OpenGL_Texture>()->m_id;
 }

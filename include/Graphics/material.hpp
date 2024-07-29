@@ -219,7 +219,7 @@ namespace Engine
         Pointer<ClassType> texture;
         Pointer<class Sampler> sampler;
 
-        CombinedImageSamplerMaterialParameter() : texture(nullptr), sampler(DefaultResources::default_sampler)
+        CombinedImageSamplerMaterialParameter() : texture(nullptr), sampler(DefaultResources::Samplers::default_sampler)
         {}
 
         inline MaterialParameterType type() const override
@@ -272,7 +272,7 @@ namespace Engine
         : public CombinedImageSamplerMaterialParameter<class Texture2D, MaterialParameterType::CombinedImageSampler2D> {
         CombinedImageSampler2DMaterialParameter()
         {
-            texture = DefaultResources::default_texture;
+            texture = DefaultResources::Textures::default_texture;
         }
     };
 

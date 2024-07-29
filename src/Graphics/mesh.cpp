@@ -220,4 +220,21 @@ namespace Engine
 
         return ((*this).*(find_buffer_private[semantic_index]))(index);
     }
+
+    size_t StaticMesh::LOD::vertex_count() const
+    {
+        for (auto& buffer : positions)
+        {
+            if (buffer.ptr())
+            {
+                return buffer->elements_count();
+            }
+        }
+        return 0;
+    }
+
+    size_t StaticMesh::LOD::indices_count() const
+    {
+        return indices.ptr() ? indices->elements_count() : 0;
+    }
 }// namespace Engine

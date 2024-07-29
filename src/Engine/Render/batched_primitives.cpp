@@ -84,7 +84,7 @@ namespace Engine
         if (!begin_render())
             return *this;
 
-        Material* material = DefaultResources::batched_lines_material;
+        Material* material = DefaultResources::Materials::batched_lines;
 
         if (material)
         {
@@ -141,7 +141,7 @@ namespace Engine
         if (!begin_render())
             return *this;
 
-        Material* material = DefaultResources::batched_triangles_material;
+        Material* material = DefaultResources::Materials::batched_triangles;
 
         if (material)
         {

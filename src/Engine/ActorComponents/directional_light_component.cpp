@@ -57,7 +57,7 @@ namespace Engine
             !component->leaf_class_is<DirectionalLightComponent>())
             return *this;
 
-        Material* material = DefaultResources::directional_light_material;
+        Material* material = DefaultResources::Materials::directional_light;
 
         Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
         Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
@@ -79,7 +79,7 @@ namespace Engine
         }
 
         layer->bind_material(material, nullptr);
-        layer->bind_vertex_buffer(DefaultResources::screen_position_buffer, 0, 0);
+        layer->bind_vertex_buffer(DefaultResources::Buffers::screen_position, 0, 0);
         layer->draw(6, 0);
         return *this;
     }

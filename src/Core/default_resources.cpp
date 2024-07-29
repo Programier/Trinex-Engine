@@ -10,19 +10,43 @@ namespace Engine
 {
     namespace DefaultResources
     {
-        ENGINE_EXPORT Sampler* default_sampler                     = nullptr;
-        ENGINE_EXPORT Texture2D* default_texture                   = nullptr;
-        ENGINE_EXPORT Material* sprite_material                    = nullptr;
-        ENGINE_EXPORT PositionVertexBuffer* screen_position_buffer = nullptr;
-        ENGINE_EXPORT Material* screen_material                    = nullptr;
-        ENGINE_EXPORT Material* base_pass_material                 = nullptr;
-        ENGINE_EXPORT Material* batched_lines_material             = nullptr;
-        ENGINE_EXPORT Material* batched_triangles_material         = nullptr;
-        ENGINE_EXPORT Material* point_light_material               = nullptr;
-        ENGINE_EXPORT Material* spot_light_material                = nullptr;
-        ENGINE_EXPORT Material* directional_light_material         = nullptr;
-        ENGINE_EXPORT Material* ambient_light_material             = nullptr;
-        ENGINE_EXPORT Material* imgui_material                     = nullptr;
+
+        namespace Samplers
+        {
+            ENGINE_EXPORT Sampler* default_sampler = nullptr;
+        }
+
+        namespace Textures
+        {
+            ENGINE_EXPORT Texture2D* default_texture = nullptr;
+        }
+
+        namespace Buffers
+        {
+            ENGINE_EXPORT PositionVertexBuffer* screen_position = nullptr;
+        }
+
+        namespace Materials
+        {
+            ENGINE_EXPORT Material* sprite            = nullptr;
+            ENGINE_EXPORT Material* screen            = nullptr;
+            ENGINE_EXPORT Material* base_pass         = nullptr;
+            ENGINE_EXPORT Material* batched_lines     = nullptr;
+            ENGINE_EXPORT Material* batched_triangles = nullptr;
+            ENGINE_EXPORT Material* point_light       = nullptr;
+            ENGINE_EXPORT Material* spot_light        = nullptr;
+            ENGINE_EXPORT Material* directional_light = nullptr;
+            ENGINE_EXPORT Material* ambient_light     = nullptr;
+            ENGINE_EXPORT Material* imgui             = nullptr;
+        }// namespace Materials
+
+        namespace Meshes
+        {
+            ENGINE_EXPORT StaticMesh* cube     = nullptr;
+            ENGINE_EXPORT StaticMesh* sphere   = nullptr;
+            ENGINE_EXPORT StaticMesh* cylinder = nullptr;
+        }// namespace Meshes
+
     }// namespace DefaultResources
 
     ENGINE_EXPORT Object* load_object_from_memory(const byte* data, size_t size, const StringView& name)
@@ -38,25 +62,28 @@ namespace Engine
     }
 
 #define load_default_asset(name, object, class_name, group_name)                                                                 \
-    DefaultResources::object = reinterpret_cast<class_name*>(                                                                    \
+    DefaultResources::group_name::object = reinterpret_cast<class_name*>(                                                        \
             load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));                        \
-    reinterpret_cast<Object*>(DefaultResources::object)->add_reference()
+    reinterpret_cast<Object*>(DefaultResources::group_name::object)->add_reference()
 
 
     void load_default_resources()
     {
         load_default_asset(DefaultSampler, default_sampler, Sampler, Samplers);
         load_default_asset(DefaultTexture, default_texture, Texture2D, Textures);
-        load_default_asset(ScreenPositionBuffer, screen_position_buffer, PositionVertexBuffer, Buffers);
-        load_default_asset(SpriteMaterial, sprite_material, Material, Materials);
-        load_default_asset(ScreenMaterial, screen_material, Material, Materials);
-        load_default_asset(BasePassMaterial, base_pass_material, Material, Materials);
-        load_default_asset(BatchedLinesMaterial, batched_lines_material, Material, Materials);
-        load_default_asset(BatchedTrianglesMaterial, batched_triangles_material, Material, Materials);
-        load_default_asset(PointLightMaterial, point_light_material, Material, Materials);
-        load_default_asset(SpotLightMaterial, spot_light_material, Material, Materials);
-        load_default_asset(DirectionalLightMaterial, directional_light_material, Material, Materials);
-        load_default_asset(AmbientLightMaterial, ambient_light_material, Material, Materials);
-        load_default_asset(ImGuiMaterial, imgui_material, Material, Materials);
+        load_default_asset(ScreenPositionBuffer, screen_position, PositionVertexBuffer, Buffers);
+        load_default_asset(SpriteMaterial, sprite, Material, Materials);
+        load_default_asset(ScreenMaterial, screen, Material, Materials);
+        load_default_asset(BasePassMaterial, base_pass, Material, Materials);
+        load_default_asset(BatchedLinesMaterial, batched_lines, Material, Materials);
+        load_default_asset(BatchedTrianglesMaterial, batched_triangles, Material, Materials);
+        load_default_asset(PointLightMaterial, point_light, Material, Materials);
+        load_default_asset(SpotLightMaterial, spot_light, Material, Materials);
+        load_default_asset(DirectionalLightMaterial, directional_light, Material, Materials);
+        load_default_asset(AmbientLightMaterial, ambient_light, Material, Materials);
+        load_default_asset(ImGuiMaterial, imgui, Material, Materials);
+        load_default_asset(Cube, cube, StaticMesh, Meshes);
+        load_default_asset(Sphere, sphere, StaticMesh, Meshes);
+        load_default_asset(Cylinder, cylinder, StaticMesh, Meshes);
     }
 }// namespace Engine

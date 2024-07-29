@@ -359,7 +359,7 @@ namespace Engine::ImGuiBackend
         if (bd->font_texture)
             imgui_trinex_destroy_device_objects();
 
-        bd->material = DefaultResources::imgui_material;
+        bd->material = DefaultResources::Materials::imgui;
         bd->texture_parameter =
                 reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(bd->material->find_parameter(Name::texture));
         bd->model_parameter = reinterpret_cast<Mat4MaterialParameter*>(bd->material->find_parameter(Name::model));

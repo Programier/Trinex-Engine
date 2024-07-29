@@ -29,7 +29,7 @@ namespace Engine
         viewport->rhi_clear_color(Color(0, 0, 0, 1));
 
         material->apply();
-        DefaultResources::screen_position_buffer->rhi_bind(0);
+        DefaultResources::Buffers::screen_position->rhi_bind(0);
         rhi->draw(6, 0);
 
         return *this;
