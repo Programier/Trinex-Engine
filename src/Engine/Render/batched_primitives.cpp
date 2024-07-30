@@ -54,35 +54,24 @@ namespace Engine
 
     //// Lines
 
-    BatchedLines& BatchedLines::add_line(const Vector3D& point1, const Vector3D& point2, ByteColor color1, ByteColor color2)
+    BatchedLines::BatchedLines() : m_vertex_count(0)
     {
-        m_position_buffer->buffer.push_back(point1);
-        m_position_buffer->buffer.push_back(point2);
-
-        m_color_buffer->buffer.push_back(color1);
-        m_color_buffer->buffer.push_back(color2);
-        return *this;
+        m_lines = Object::new_instance<LinesVertexBuffer>();
     }
 
-    BatchedLines& BatchedLines::override_line(Index index, const Vector3D& point1, const Vector3D& point2, ByteColor color1,
-                                              ByteColor color2)
+    BatchedLines& BatchedLines::add_line(const Vertex& point1, const Vertex& point2)
     {
-        index *= 2;
-        if (m_position_buffer->buffer.size() <= index)
-            return add_line(point1, point2, color1, color2);
-
-        m_position_buffer->buffer[index]     = point1;
-        m_position_buffer->buffer[index + 1] = point2;
-
-        m_color_buffer->buffer[index]     = color1;
-        m_color_buffer->buffer[index + 1] = color2;
+        m_lines->buffer.push_back(point1);
+        m_lines->buffer.push_back(point2);
         return *this;
     }
 
     BatchedLines& BatchedLines::render(const class SceneView& view)
     {
-        if (!begin_render())
+        if (m_lines->buffer.size() == 0)
             return *this;
+
+        submit_vertex_buffer(m_lines.ptr(), m_vertex_count);
 
         Material* material = DefaultResources::Materials::batched_lines;
 
@@ -92,16 +81,21 @@ namespace Engine
             rhi->push_debug_stage("Lines Rendering");
 #endif
             material->apply();
-            m_position_buffer->rhi_bind(0);
-            m_color_buffer->rhi_bind(1);
+            m_lines->rhi_bind(0);
 
-            rhi->draw(m_position_buffer->buffer.size(), 0);
+            rhi->draw(m_lines->buffer.size(), 0);
 
 #if TRINEX_DEBUG_BUILD
             rhi->pop_debug_stage();
 #endif
         }
 
+        return *this;
+    }
+
+    BatchedLines& BatchedLines::clear()
+    {
+        m_lines->buffer.clear();
         return *this;
     }
 
@@ -118,9 +112,9 @@ namespace Engine
         return *this;
     }
 
-    BatchedTriangles& BatchedTriangles::override_line(Index index, const Vector3D& point1, const Vector3D& point2,
-                                                      const Vector3D& point3, ByteColor color1, ByteColor color2,
-                                                      ByteColor color3)
+    BatchedTriangles& BatchedTriangles::override_triangle(Index index, const Vector3D& point1, const Vector3D& point2,
+                                                          const Vector3D& point3, ByteColor color1, ByteColor color2,
+                                                          ByteColor color3)
     {
         index *= 3;
         if (m_position_buffer->buffer.size() <= index)

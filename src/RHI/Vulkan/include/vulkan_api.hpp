@@ -73,8 +73,6 @@ namespace Engine
 
         vk::SurfaceKHR create_surface(Window* interface);
         void create_command_pool();
-
-        void check_extentions();
         void enable_dynamic_states();
         void initialize_pfn();
 

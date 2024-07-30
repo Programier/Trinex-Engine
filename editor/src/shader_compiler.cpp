@@ -127,31 +127,6 @@ namespace Engine::ShaderCompiler
         return VertexBufferElementType::Undefined;
     }
 
-    static byte find_components_count_for_semantic(VertexBufferSemantic semantic)
-    {
-        switch (semantic)
-        {
-            case Engine::VertexBufferSemantic::Position:
-                return 3;
-            case Engine::VertexBufferSemantic::TexCoord:
-                return 2;
-            case Engine::VertexBufferSemantic::Color:
-                return 4;
-            case Engine::VertexBufferSemantic::Normal:
-                return 3;
-            case Engine::VertexBufferSemantic::Tangent:
-                return 3;
-            case Engine::VertexBufferSemantic::Binormal:
-                return 3;
-            case Engine::VertexBufferSemantic::BlendWeight:
-                return 4;
-            case Engine::VertexBufferSemantic::BlendIndices:
-                return 1;
-        }
-
-        return 0;
-    }
-
     static bool parse_vertex_semantic(slang::VariableLayoutReflection* var, ShaderReflection& out_reflection,
                                       const Function<void(const char*)>& print_error)
     {
@@ -212,16 +187,6 @@ namespace Engine::ShaderCompiler
             attribute.location       = var->getBindingIndex();
             attribute.stream_index   = attribute.location;
             attribute.offset         = 0;
-
-            auto requred_elements_count = find_components_count_for_semantic(attribute.semantic);
-
-            if (requred_elements_count != var->getType()->getElementCount())
-            {
-                print_error(
-                        Strings::format("Sematic '{}' require vector{}", var->getSemanticName(), requred_elements_count).c_str());
-                return false;
-            }
-
             out_reflection.attributes.push_back(attribute);
         }
         else
@@ -738,7 +703,12 @@ namespace Engine::ShaderCompiler
         {
             request->setCodeGenTarget(SLANG_SPIRV);
             request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-            request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_HIGH);
+            request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+#if TRINEX_DEBUG_BUILD
+            request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+#else
+            request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+#endif
 
             const char* arguments[] = {
                     "-emit-spirv-via-glsl",
@@ -783,8 +753,12 @@ namespace Engine::ShaderCompiler
         {
             request->setCodeGenTarget(SLANG_DXBC);
             request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-            request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_HIGH);
-            request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+            request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+#if TRINEX_DEBUG_BUILD
+            request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
+#else
+            request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+#endif
             auto profile = global_session()->findProfile("sm_4_0");
             request->setTargetProfile(0, profile);
         }

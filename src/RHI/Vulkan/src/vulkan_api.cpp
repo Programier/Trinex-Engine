@@ -44,19 +44,14 @@ namespace Engine
         });
     });
 
-    static constexpr inline size_t ext_maintenance1_index     = 0;
-    static constexpr inline size_t ext_swapchain_index        = 1;
-    static constexpr inline size_t ext_index_type_uint8_index = 2;
-
-    static constexpr inline size_t ext_count = 3;
-
     VulkanAPI::VulkanAPI()
     {
-        m_device_extensions.resize(ext_count);
-
-        m_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
-        m_device_extensions[ext_swapchain_index]        = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false};
-        m_device_extensions[ext_index_type_uint8_index] = {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false};
+        m_device_extensions = {
+                {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false},
+                {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false},
+                {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false},
+                {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
+        };
     }
 
     VulkanAPI::~VulkanAPI()
@@ -210,7 +205,10 @@ namespace Engine
         for (VulkanExtention& extension : API->m_device_extensions)
         {
             if (extension.required)
+            {
                 phys_device_selector.add_required_extension(extension.name);
+                extension.enabled = true;
+            }
         }
 
         phys_device_selector.allow_any_gpu_device_type(false);
@@ -230,7 +228,17 @@ namespace Engine
             throw std::runtime_error(msg);
         }
 
-        return selected_device.value();
+        auto device = selected_device.value();
+
+        for (VulkanExtention& extension : API->m_device_extensions)
+        {
+            if (!extension.required)
+            {
+                extension.enabled = device.enable_extension_if_present(extension.name);
+            }
+        }
+
+        return device;
     }
 
 
@@ -240,7 +248,6 @@ namespace Engine
 
         vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
         builder.add_pNext(&idx_byte_feature);
-
         auto device_ret = builder.build();
 
         if (!device_ret)
@@ -307,7 +314,6 @@ namespace Engine
         // Initialize physical device
         auto selected_device = initialize_physical_device();
         m_physical_device    = vk::PhysicalDevice(selected_device.physical_device);
-        check_extentions();
 
         m_properties           = m_physical_device.getProperties();
         m_features             = filter_features(m_physical_device.getFeatures());
@@ -372,22 +378,6 @@ namespace Engine
     void* VulkanAPI::context()
     {
         return nullptr;
-    }
-
-    void VulkanAPI::check_extentions()
-    {
-        auto properties = m_physical_device.enumerateDeviceExtensionProperties();
-        for (VulkanExtention& extension : m_device_extensions)
-        {
-            for (auto& prop : properties)
-            {
-                if (std::strcmp(extension.name, prop.extensionName) == 0)
-                {
-                    extension.enabled = true;
-                    break;
-                }
-            }
-        }
     }
 
     void VulkanAPI::enable_dynamic_states()
