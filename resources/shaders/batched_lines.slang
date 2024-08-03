@@ -1,13 +1,15 @@
 #include "common.slang"
 #include "wide_lines.slang"
 
-struct VertexInput {
+struct VertexInput 
+{
     float3 position : POSITION0;
     float4 color : COLOR0;
     float thickness : POSITION1;
 };
 
-struct VertexOutput : WideLines::Vertex {
+struct VertexOutput : WideLines::Vertex 
+{
     float4 position : SV_Position;
     float4 color : COLOR0;
     noperspective float thickness : POSITION1;
@@ -23,7 +25,8 @@ struct VertexOutput : WideLines::Vertex {
     }
 };
 
-struct GeometryOutput : WideLines::OutputVertex {
+struct GeometryOutput : WideLines::OutputVertex 
+{
     float4 position : SV_Position;
     float4 color : COLOR0;
 
@@ -38,7 +41,9 @@ struct GeometryOutput : WideLines::OutputVertex {
     }
 };
 
-[shader("vertex")] VertexOutput vs_main(in VertexInput input) {
+[shader("vertex")]
+VertexOutput vs_main(in VertexInput input) 
+{
     VertexOutput output;
     output.color     = input.color;
     output.position  = mul(globals.projview, float4(input.position, 1.0));
@@ -46,13 +51,15 @@ struct GeometryOutput : WideLines::OutputVertex {
     return output;
 }
 
-        [shader("geometry")][maxvertexcount(42)] void gs_main(line VertexOutput input[2],
-                                                              inout TriangleStream<GeometryOutput> stream)
+[shader("geometry")]
+[maxvertexcount(42)] 
+void gs_main(line VertexOutput input[2], inout TriangleStream<GeometryOutput> stream)
 {
     WideLines::stream_line(stream, input[0], input[1], globals.viewport.zw);
 }
 
-[shader("fragment")] float4 fs_main(in GeometryOutput output) : SV_Target
+[shader("fragment")]
+float4 fs_main(in GeometryOutput output) : SV_Target
 {
     return output.color;
 }
