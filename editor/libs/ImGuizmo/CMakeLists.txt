@@ -7,12 +7,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(IMGUI_GUIZMO_SOURCES    ${CMAKE_CURRENT_SOURCE_DIR}/src/ImGuizmo.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/src/ImSequencer.cpp)
 
-
-if(TRINEX_AS_EXECUTABLE)
-    add_trinex_sources(${IMGUI_GUIZMO_SOURCES})
-    add_trinex_private_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/")
-else()
-    add_library(imgui_guizmo STATIC ${IMGUI_GUIZMO_SOURCES})
-    target_link_libraries(imgui_guizmo TrinexEngine)
-    target_include_directories(imgui_guizmo PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
-endif()
+add_trinex_editor_sources(${IMGUI_GUIZMO_SOURCES})
+add_trinex_editor_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/")
