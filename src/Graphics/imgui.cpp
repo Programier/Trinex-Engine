@@ -231,7 +231,7 @@ namespace Engine::ImGuiRenderer
 
     static Window* m_current_window = nullptr;
 
-    Window::Window(Engine::Window* window, ImGuiContext* ctx) : m_context(ctx), m_window(window)
+    Window::Window(Engine::Window* window, ImGuiContext* ctx) : m_frame(0), m_context(ctx), m_window(window)
     {}
 
     Window& Window::free_resources()
@@ -273,6 +273,8 @@ namespace Engine::ImGuiRenderer
         make_current(this);
         m_window->imgui_new_frame();
         ImGui::NewFrame();
+
+        ++m_frame;
         return *this;
     }
 
@@ -306,6 +308,17 @@ namespace Engine::ImGuiRenderer
     Engine::Window* Window::window() const
     {
         return m_window;
+    }
+
+    size_t Window::frame_index() const
+    {
+        return m_frame;
+    }
+
+    Window& Window::reset_frame_index()
+    {
+        m_frame = 0;
+        return *this;
     }
 
     Window* Window::current()

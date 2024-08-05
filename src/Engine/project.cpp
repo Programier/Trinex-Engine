@@ -1,5 +1,7 @@
 #include <Core/arguments.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/native_file_system.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -64,7 +66,15 @@ namespace Engine
     {
         if (close_project() == false)
             return false;
-        return ScriptEngine::exec_string(config);
+        bool status = ScriptEngine::exec_string(config);
+
+        if (status)
+        {
+            auto rfs = rootfs();
+            rfs->mount("scripts:", new VFS::NativeFileSystem(scripts_dir), [](VFS::FileSystem* fs) { delete fs; });
+        }
+
+        return status;
     }
 
     bool Project::open_project(const Path& project_file)
@@ -116,14 +126,14 @@ Engine::Project::shader_cache_dir = "{}";
 
     static void setup_default_project()
     {
-        Engine::Project::name = "Trinex Engine Project";
-        Engine::Project::version = "1.0.0";
-        Engine::Project::configs_dir = "resources/configs";
-        Engine::Project::assets_dir = "resources/assets";
-        Engine::Project::scripts_dir = "resources/scripts";
-        Engine::Project::shaders_dir = "resources/shaders";
+        Engine::Project::name             = "Trinex Engine Project";
+        Engine::Project::version          = "1.0.0";
+        Engine::Project::configs_dir      = "resources/configs";
+        Engine::Project::assets_dir       = "resources/assets";
+        Engine::Project::scripts_dir      = "resources/scripts";
+        Engine::Project::shaders_dir      = "resources/shaders";
         Engine::Project::localization_dir = "resources/localization";
-        Engine::Project::libraries_dir = "libs";
+        Engine::Project::libraries_dir    = "libs";
         Engine::Project::shader_cache_dir = "ShaderCache";
     }
 

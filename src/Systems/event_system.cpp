@@ -177,15 +177,20 @@ namespace Engine
         return Name::undefined;
     }
 
+    static void push_event_internal(const Event& event, void* self)
+    {
+        reinterpret_cast<EventSystem*>(self)->push_event(event);
+    }
+
     EventSystem& EventSystem::wait_events()
     {
-        WindowManager::instance()->wait_for_events();
+        WindowManager::instance()->wait_for_events(push_event_internal, this);
         return *this;
     }
 
     EventSystem& EventSystem::pool_events()
     {
-        WindowManager::instance()->pool_events();
+        WindowManager::instance()->pool_events(push_event_internal, this);
         return *this;
     }
 

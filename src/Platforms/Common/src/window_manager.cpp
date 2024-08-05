@@ -214,10 +214,10 @@ namespace Engine::Platform::WindowManager
         SDL_SetRelativeMouseMode(static_cast<SDL_bool>(flag));
     }
 
-#define new_event(a, b) EventSystem::instance()->push_event(Event(m_event.window.windowID, EventType::a, b))
-#define new_event_typed(a, b) EventSystem::instance()->push_event(Event(m_event.window.windowID, a, b))
+#define new_event(a, b) callback(Event(m_event.window.windowID, EventType::a, b), userdata)
+#define new_event_typed(a, b) callback(Event(m_event.window.windowID, a, b), userdata)
 
-    static void process_window_event()
+    static void process_window_event(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
         int_t x = m_event.window.data1;
         int_t y = m_event.window.data2;
@@ -281,7 +281,7 @@ namespace Engine::Platform::WindowManager
         }
     }
 
-    static void process_mouse_button()
+    static void process_mouse_button(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
         MouseButtonEvent button_event;
         button_event.x = m_event.button.x;
@@ -303,7 +303,7 @@ namespace Engine::Platform::WindowManager
         }
     }
 
-    static void process_event()
+    static void process_event(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
         switch (m_event.type)
         {
@@ -334,7 +334,7 @@ namespace Engine::Platform::WindowManager
 
             case SDL_WINDOWEVENT:
             {
-                process_window_event();
+                process_window_event(callback, userdata);
                 break;
             }
 
@@ -395,7 +395,7 @@ namespace Engine::Platform::WindowManager
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
             {
-                process_mouse_button();
+                process_mouse_button(callback, userdata);
                 break;
             }
 
@@ -455,23 +455,23 @@ namespace Engine::Platform::WindowManager
         }
     }
 
-    static void pool_events_loop()
+    static void pool_events_loop(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
         while (SDL_PollEvent(&m_event))
         {
-            process_event();
+            process_event(callback, userdata);
         }
     }
 
-    ENGINE_EXPORT void pool_events()
+    ENGINE_EXPORT void pool_events(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
-        pool_events_loop();
+        pool_events_loop(callback, userdata);
     }
 
-    ENGINE_EXPORT void wait_for_events()
+    ENGINE_EXPORT void wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
         SDL_WaitEvent(&m_event);
-        process_event();
-        pool_events_loop();
+        process_event(callback, userdata);
+        pool_events_loop(callback, userdata);
     }
 }// namespace Engine::Platform::WindowManager

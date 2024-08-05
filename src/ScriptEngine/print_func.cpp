@@ -411,3 +411,13 @@ static void Print::asRegister()
 }
 
 static Engine::ScriptAddonsInitializeController on_init(Print::asRegister, "Engine::PrintFunction", {"Engine::DefaultAddons"});
+
+namespace Engine
+{
+    String ScriptEngine::to_string(const void* object, int_t type_id)
+    {
+        std::stringstream stream;
+        Print::PrintTemplate(stream, object, type_id);
+        return stream.str();
+    }
+}// namespace Engine

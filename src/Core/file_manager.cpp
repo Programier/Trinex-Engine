@@ -155,7 +155,7 @@ namespace Engine
     bool FileReader::read(byte* data, size_t size)
     {
         if (is_open())
-            return static_cast<bool>(m_file->read(data, size)) == size;
+            return m_file->read(data, size) == size;
         return false;
     }
 

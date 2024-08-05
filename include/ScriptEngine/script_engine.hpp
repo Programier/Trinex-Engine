@@ -21,9 +21,8 @@ namespace Engine
         static Vector<class Script*> m_scripts;
         static asIScriptEngine* m_engine;
         static asIJITCompiler* m_jit_compiler;
+        static class ScriptFolder* m_script_folder;
 
-
-        static void release_scripts();
         static void terminate();
         static asIScriptContext* new_context();
         static ScriptEngine& destroy_script_object(ScriptObjectAddress, const ScriptTypeInfo& info);
@@ -56,14 +55,11 @@ namespace Engine
         static String default_namespace();
         static int_t register_property(const char* declaration, void* data);
         static int_t register_property(const String& declaration, void* data);
-        static ScriptModule global_module();
         static ScriptModule create_module(const String& name, EnumerateType flags = 0);
         static ScriptModule create_module(const char* name, EnumerateType flags = 0);
         static uint_t module_count();
         static String to_string(const void* object, int_t type_id);
-
-        static class Script* new_script(const Path& path);
-        static const Vector<class Script*>& scripts();
+        static class ScriptFolder* scripts_folder();
         static ScriptEngine& load_scripts();
 
         static ScriptEngine& bind_imports();

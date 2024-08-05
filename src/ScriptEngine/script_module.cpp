@@ -43,11 +43,6 @@ namespace Engine
     ScriptModule::ScriptModule(const String& name, ModuleFlags flags) : ScriptModule(name.c_str(), flags)
     {}
 
-    ScriptModule ScriptModule::global()
-    {
-        return ScriptEngine::global_module();
-    }
-
     asIScriptModule* ScriptModule::as_module() const
     {
         return m_module;
@@ -77,36 +72,37 @@ namespace Engine
     ScriptModule& ScriptModule::discard()
     {
         m_module->Discard();
+        m_module = nullptr;
         return *this;
     }
 
     // Compilation
-    int_t ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length, int_t line_offset)
+    bool ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length, int_t line_offset)
     {
-        return static_cast<int_t>(m_module->AddScriptSection(section_name, code, code_length, line_offset));
+        return m_module->AddScriptSection(section_name, code, code_length, line_offset) >= 0;
     }
 
-    int_t ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int_t line_offset)
+    bool ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int_t line_offset)
     {
         return add_script_section(section_name.c_str(), code.c_str(), code_length, line_offset);
     }
 
-    int_t ScriptModule::build()
+    bool ScriptModule::build()
     {
-        return static_cast<int_t>(m_module->Build());
+        return m_module->Build() >= 0;
     }
 
-    int_t ScriptModule::compile_global_var(const char* section_name, const char* code, int_t line_offset)
+    bool ScriptModule::compile_global_var(const char* section_name, const char* code, int_t line_offset)
     {
-        return static_cast<int_t>(m_module->CompileGlobalVar(section_name, code, line_offset));
+        return m_module->CompileGlobalVar(section_name, code, line_offset) >= 0;
     }
 
-    int_t ScriptModule::default_namespace(const char* name_space)
+    bool ScriptModule::default_namespace(const char* name_space)
     {
-        return m_module->SetDefaultNamespace(name_space);
+        return m_module->SetDefaultNamespace(name_space) >= 0;
     }
 
-    int_t ScriptModule::default_namespace(const String& name_space)
+    bool ScriptModule::default_namespace(const String& name_space)
     {
         return default_namespace(name_space.c_str());
     }
@@ -148,16 +144,15 @@ namespace Engine
     }
 
 
-    int_t ScriptModule::remove_function(const ScriptFunction& function)
+    bool ScriptModule::remove_function(const ScriptFunction& function)
     {
         if (function.is_valid())
         {
             asIScriptFunction* func = function.function();
             function.release();
-            int_t result = static_cast<int_t>(m_module->RemoveFunction(func));
-            return result;
+            return m_module->RemoveFunction(func) >= 0;
         }
-        return -1;
+        return false;
     }
 
     Counter ScriptModule::global_var_count() const
@@ -337,7 +332,6 @@ namespace Engine
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ScriptModule>);
         registrar.opfunc("ScriptModule& opAssign(const ScriptModule& in)",
                          method_of<ScriptModule&, const ScriptModule&>(&ScriptModule::operator=));
-
 
         registrar.method("bool is_valid() const", &ScriptModule::is_valid);
         registrar.method("ScriptModule& name(const string& in name)",

@@ -78,8 +78,9 @@ namespace Engine::VFS
             it->update_path();
             return it;
         }
-        catch (...)
+        catch (const std::exception& e)
         {
+            error_log("NativeFileSystem", "%s", e.what());
             return nullptr;
         }
     }

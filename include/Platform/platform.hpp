@@ -8,6 +8,7 @@ namespace Engine
     struct WindowConfig;
     struct MonitorInfo;
     struct Rect2D;
+    class Event;
 
     namespace Platform
     {
@@ -34,8 +35,8 @@ namespace Engine
             ENGINE_EXPORT void destroy_window(Window* interface);
             ENGINE_EXPORT bool mouse_relative_mode();
             ENGINE_EXPORT void mouse_relative_mode(bool flag);
-            ENGINE_EXPORT void pool_events();
-            ENGINE_EXPORT void wait_for_events();
+            ENGINE_EXPORT void pool_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
+            ENGINE_EXPORT void wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
         }// namespace WindowManager
 
         namespace LibraryLoader

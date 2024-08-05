@@ -127,15 +127,15 @@ namespace Engine
         return *this;
     }
 
-    WindowManager& WindowManager::pool_events()
+    WindowManager& WindowManager::pool_events(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
-        Platform::WindowManager::pool_events();
+        Platform::WindowManager::pool_events(callback, userdata);
         return *this;
     }
 
-    WindowManager& WindowManager::wait_for_events()
+    WindowManager& WindowManager::wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata)
     {
-        Platform::WindowManager::wait_for_events();
+        Platform::WindowManager::wait_for_events(callback, userdata);
         return *this;
     }
 

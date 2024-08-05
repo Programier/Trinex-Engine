@@ -148,6 +148,7 @@ namespace Engine::ImGuiRenderer
 
     private:
         DrawData m_draw_data;
+        size_t m_frame;
 
         ImGuiContext* m_context;
         Engine::Window* m_window;
@@ -169,6 +170,8 @@ namespace Engine::ImGuiRenderer
         Window& end_frame();
         Window& rhi_render();
         Engine::Window* window() const;
+        size_t frame_index() const;
+        Window& reset_frame_index();
         static Window* current();
         static void make_current(Window*);
 

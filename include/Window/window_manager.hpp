@@ -7,6 +7,7 @@ namespace Engine
     struct WindowInterface;
     class Window;
     struct WindowConfig;
+    class Event;
 
     class ENGINE_EXPORT WindowManager final : public Singletone<WindowManager, EmptyClass>
     {
@@ -23,8 +24,8 @@ namespace Engine
         WindowManager& destroy_window(Window* window);
 
         WindowManager& mouse_relative_mode(bool flag);
-        WindowManager& pool_events();
-        WindowManager& wait_for_events();
+        WindowManager& pool_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
+        WindowManager& wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
         Window* find(Identifier id) const;
 
         Window* main_window() const;

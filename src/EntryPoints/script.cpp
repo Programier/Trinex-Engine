@@ -28,13 +28,13 @@ namespace Engine
         static int_t exec_script(const String& source)
         {
             ScriptModule module("__TRINEX_SCRIPT_EXEC_MODULE__", ScriptModule::AlwaysCreate);
-            if (module.add_script_section("Global", source.c_str(), source.length()) < 0)
+            if (!module.add_script_section("Global", source.c_str(), source.length()))
             {
                 error_log("ScriptExec", "Failed to add script section!");
                 return -1;
             }
 
-            if (module.build() < 0)
+            if (!module.build())
             {
                 error_log("ScriptExec", "Failed to build module!");
                 return -1;

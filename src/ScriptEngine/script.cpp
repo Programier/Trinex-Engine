@@ -10,114 +10,230 @@
 
 namespace Engine
 {
-
-    Script::Script(const Path& path) : m_path(path)
-    {}
-
-    Script::~Script()
-    {}
-
-    const Path& Script::path() const
+    ScriptFolder::ScriptFolder(const String& name, ScriptFolder* parent) : m_name(name), m_parent(parent)
     {
-        return m_path;
-    }
-
-    Script& Script::replace_code(const char* new_code, size_t len, size_t offset)
-    {
-        ScriptModule::global().add_script_section(m_path.str().c_str(), new_code, len, offset);
-        return *this;
-    }
-
-    Script& Script::load()
-    {
-        FileReader reader(Path(Project::scripts_dir) / m_path);
-        if (reader.is_open())
+        if (parent)
         {
-            Buffer buffer(reader.size(), 0);
-            reader.read(buffer.data(), buffer.size());
-
-            if (m_path.str().ends_with(Constants::script_extension))
-            {
-                replace_code(reinterpret_cast<const char*>(buffer.data()), buffer.size(), 0);
-            }
-            else
-            {
-                throw not_implemented;
-            }
-        }
-
-        return *this;
-    }
-
-    class Script* ScriptEngine::new_script(const Path& path)
-    {
-        for (Script* script : m_scripts)
-        {
-            if (script->path() == path)
-                return script;
-        }
-
-        if (path.extension() == Constants::script_extension || path.extension() == Constants::script_byte_code_extension)
-        {
-            Script* script = new Script(path);
-            m_scripts.push_back(script);
-            return script;
-        }
-        else
-        {
-            error_log("ScriptEngine", "Invalid script extension!");
-            return nullptr;
+            parent->m_folders.insert_or_assign(name, this);
         }
     }
 
-    const Vector<class Script*>& ScriptEngine::scripts()
+    ScriptFolder::~ScriptFolder()
+    {
+        auto childs = std::move(m_folders);
+
+        for (auto& child : childs)
+        {
+            delete child.second;
+        }
+
+        if (m_parent)
+        {
+            m_parent->m_folders.erase(m_name);
+            m_parent = nullptr;
+        }
+
+        auto scripts = std::move(m_scripts);
+
+        for (auto& script : scripts)
+        {
+            delete script.second;
+        }
+    }
+
+    const TreeMap<String, Script*>& ScriptFolder::scripts() const
     {
         return m_scripts;
     }
 
+    const TreeMap<String, ScriptFolder*>& ScriptFolder::sub_folders() const
+    {
+        return m_folders;
+    }
 
-    static void static_load_scripts(const Path& base, const Path& current, Set<Path>& scripts)
+    ScriptFolder* ScriptFolder::find(const Path& path, bool create_if_not_exists)
+    {
+        auto splited_path = path.split();
+        return find(splited_path, create_if_not_exists);
+    }
+
+    ScriptFolder* ScriptFolder::find(const Span<String>& path, bool create_if_not_exists)
+    {
+        ScriptFolder* folder = this;
+
+        for (auto& name : path)
+        {
+            if (name.empty())
+                continue;
+
+            auto it = folder->m_folders.find(name);
+
+            if (it == folder->m_folders.end())
+            {
+                if (create_if_not_exists)
+                {
+                    folder = new ScriptFolder(name, folder);
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+            else
+            {
+                folder = it->second;
+            }
+        }
+
+        return folder;
+    }
+
+    Script* ScriptFolder::find_script(const Path& script_path, bool create_if_not_exists)
+    {
+        auto splited_path = script_path.split();
+        return find_script(splited_path, create_if_not_exists);
+    }
+
+    Script* ScriptFolder::find_script(const Span<String>& path, bool create_if_not_exists)
+    {
+        if (path.empty() || !path.back().ends_with(Constants::script_extension))
+            return nullptr;
+
+        if (ScriptFolder* folder = find(path.subspan(0, path.size() - 1), create_if_not_exists))
+        {
+            auto it = folder->m_scripts.find(path.back());
+
+            if (it == folder->m_scripts.end())
+            {
+                if (create_if_not_exists)
+                {
+                    Script* new_script = new Script(folder, path.back());
+                    folder->m_scripts.insert_or_assign(path.back(), new_script);
+                    return new_script;
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+
+            return it->second;
+        }
+
+        return nullptr;
+    }
+
+    ScriptFolder* ScriptFolder::parent() const
+    {
+        return m_parent;
+    }
+
+    const String& ScriptFolder::name() const
+    {
+        return m_name;
+    }
+
+    Path ScriptFolder::path() const
+    {
+        if (m_parent)
+        {
+            return m_parent->path() / m_name;
+        }
+        return m_name;
+    }
+
+    Script::Script(ScriptFolder* folder, const String& name) : m_name(name), m_folder(folder), m_is_dirty(false)
+    {
+        m_module = ScriptModule(path().c_str());
+    }
+
+    Script::~Script()
+    {
+        m_module.discard();
+        m_folder->m_scripts.erase(m_name);
+    }
+
+    const String& Script::code() const
+    {
+        return m_code;
+    }
+
+    Script& Script::code(const String& code)
+    {
+        m_code     = code;
+        m_is_dirty = true;
+        return *this;
+    }
+
+    bool Script::is_dirty() const
+    {
+        return m_is_dirty;
+    }
+
+    Path Script::path() const
+    {
+        return m_folder->path() / m_name;
+    }
+
+    bool Script::load()
+    {
+        FileReader reader(path());
+
+        if (reader.is_open())
+        {
+            String new_code(reader.size(), 0);
+
+            if (new_code.size() > 0 && reader.read(reinterpret_cast<byte*>(new_code.data()), new_code.size()))
+            {
+                m_code = std::move(new_code);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool Script::save() const
+    {
+        m_is_dirty = false;
+        return false;
+    }
+
+    bool Script::build()
+    {
+        m_module.add_script_section("Code", m_code.data(), m_code.size());
+        return m_module.build();
+    }
+
+    ScriptModule Script::module() const
+    {
+        return m_module;
+    }
+
+    static void static_load_scripts(ScriptFolder* folder)
     {
         auto fs = rootfs();
-        for (const auto& entry : VFS::DirectoryIterator(current))
+        for (const auto& entry : VFS::DirectoryIterator(folder->path()))
         {
             if (rootfs()->is_file(entry))
             {
                 if (entry.extension() == Constants::script_extension)
                 {
-                    Path relative = entry.relative(base);
-                    scripts.insert(relative);
-                    ScriptEngine::new_script(relative)->load();
+                    auto script = folder->find_script(entry.filename(), true);
+                    if (script->load())
+                        script->build();
                 }
             }
             else if (fs->is_dir(entry))
             {
-                static_load_scripts(base, entry, scripts);
+                static_load_scripts(folder->find(entry.filename(), true));
             }
         }
     }
 
-    void ScriptEngine::release_scripts()
-    {
-        for (Script* script : m_scripts)
-        {
-            delete script;
-        }
-
-        m_scripts.clear();
-    }
-
     ScriptEngine& ScriptEngine::load_scripts()
     {
-        release_scripts();
-        ScriptModule::global().discard();
-
-        Path path = Project::scripts_dir;
-        Set<Path> scripts;
-        static_load_scripts(path, path, scripts);
-
-        List<Script*> scripts_for_delete;
-        ScriptModule::global().build();
+        static_load_scripts(m_script_folder);
         return instance();
     }
 }// namespace Engine

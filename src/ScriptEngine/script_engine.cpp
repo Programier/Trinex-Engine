@@ -4,6 +4,7 @@
 #include <Core/logger.hpp>
 #include <Core/stacktrace.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -46,6 +47,7 @@ namespace Engine
     Vector<class Script*> ScriptEngine::m_scripts;
     asIScriptEngine* ScriptEngine::m_engine      = nullptr;
     asIJITCompiler* ScriptEngine::m_jit_compiler = nullptr;
+    ScriptFolder* ScriptEngine::m_script_folder  = nullptr;
 
     ScriptEngine& ScriptEngine::initialize()
     {
@@ -74,6 +76,7 @@ namespace Engine
         ScriptContext::initialize();
 
         ScriptAddonsInitializeController().execute();
+        m_script_folder = new ScriptFolder("scripts:");
         return instance();
     }
 
@@ -82,7 +85,8 @@ namespace Engine
         if (m_engine)
         {
             ScriptContext::terminate();
-            release_scripts();
+            delete m_script_folder;
+            m_script_folder = nullptr;
             m_engine->Release();
             m_engine = nullptr;
         }
@@ -92,6 +96,8 @@ namespace Engine
             delete m_jit_compiler;
             m_jit_compiler = nullptr;
         }
+
+
     }
 
     ScriptEngine& ScriptEngine::instance()
@@ -180,12 +186,6 @@ namespace Engine
         return register_property(declaration.c_str(), data);
     }
 
-    ScriptModule ScriptEngine::global_module()
-    {
-        asIScriptModule* module = m_engine->GetModule("__TRINEX_GLOBAL_MODULE__", asGM_CREATE_IF_NOT_EXISTS);
-        return module;
-    }
-
     ScriptModule ScriptEngine::create_module(const String& name, EnumerateType flags)
     {
         return create_module(name.c_str(), flags);
@@ -212,6 +212,11 @@ namespace Engine
     uint_t ScriptEngine::module_count()
     {
         return m_engine->GetModuleCount();
+    }
+
+    class ScriptFolder* ScriptEngine::scripts_folder()
+    {
+        return m_script_folder;
     }
 
     ScriptEngine& ScriptEngine::bind_imports()

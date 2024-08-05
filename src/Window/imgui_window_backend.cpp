@@ -8,6 +8,7 @@
 #include <Graphics/rhi.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
@@ -442,8 +443,17 @@ namespace Engine
             auto& data        = event.get<const KeyEvent&>();
             auto& io          = ImGui::GetIO();
             auto imgui_button = imgui_button_of(data.key);
+
             if (imgui_button != -ImGuiKey_None)
             {
+                auto keyboard = KeyboardSystem::instance();
+                io.AddKeyEvent(ImGuiMod_Ctrl,
+                               keyboard->is_pressed(Keyboard::LeftControl) || keyboard->is_pressed(Keyboard::RightControl));
+                io.AddKeyEvent(ImGuiMod_Shift,
+                               keyboard->is_pressed(Keyboard::LeftShift) || keyboard->is_pressed(Keyboard::RightShift));
+                io.AddKeyEvent(ImGuiMod_Alt, keyboard->is_pressed(Keyboard::LeftAlt) || keyboard->is_pressed(Keyboard::RightAlt));
+                io.AddKeyEvent(ImGuiMod_Super,
+                               keyboard->is_pressed(Keyboard::LeftSuper) || keyboard->is_pressed(Keyboard::RightSuper));
                 io.AddKeyEvent(imgui_button, is_pressed);
             }
         }

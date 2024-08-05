@@ -30,8 +30,6 @@ namespace Engine
         ScriptModule(const char* name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
         ScriptModule(const String& name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
 
-        static ScriptModule global();
-
         asIScriptModule* as_module() const;
         bool is_valid() const;
         ScriptModule& name(const String& name);
@@ -40,13 +38,13 @@ namespace Engine
         ScriptModule& discard();
 
         // Compilation
-        int_t add_script_section(const char* name, const char* code, size_t code_length = 0, int_t line_offset = 0);
-        int_t add_script_section(const String& name, const String& code, size_t code_length = 0, int_t line_offset = 0);
-        int_t build();
+        bool add_script_section(const char* name, const char* code, size_t code_length = 0, int_t line_offset = 0);
+        bool add_script_section(const String& name, const String& code, size_t code_length = 0, int_t line_offset = 0);
+        bool build();
 
-        int_t compile_global_var(const char* section_name, const char* code, int_t line_offset);
-        int_t default_namespace(const char* name_space);
-        int_t default_namespace(const String& name_space);
+        bool compile_global_var(const char* section_name, const char* code, int_t line_offset);
+        bool default_namespace(const char* name_space);
+        bool default_namespace(const String& name_space);
         const char* default_namespace();
 
         // Functions
@@ -56,7 +54,7 @@ namespace Engine
         ScriptFunction function_by_name(const char* name) const;
         ScriptFunction function_by_decl(const String& decl) const;
         ScriptFunction function_by_name(const String& name) const;
-        int_t remove_function(const ScriptFunction& function);
+        bool remove_function(const ScriptFunction& function);
 
         // Global variables
         Counter global_var_count() const;
