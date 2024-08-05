@@ -936,8 +936,48 @@ doesn't match the stored handle the returned pointer will be null.
 To retrieve an object of an unknown type use the GetType() or GetTypeId() to
 determine the type stored in the handle, then use the Cast() method.
 
+\section doc_addon_handle_5 Example on how to return a newly registered function from C++
 
+The following is a bit more practical example of using the CScriptHandle to return a recently registered function. The 
+function could for example have been loaded from a shared library, based on informed function and name from the script.
 
+\code
+// This C++ function would be called from script, register a new C++ function and then return it to the script as a function pointer
+// Register with engine->RegisterGlobalFunction("ref @getDynamicFunction()", asFUNCTION(getDynamicFunction), asCALL_CDECL);
+CScriptHandle getDynamicFunction()
+{
+  // Get the active context and engine to register the function with
+  asIScriptContext* ctx = asGetActiveContext();
+  asIScriptEngine *engine = ctx->GetEngine();
+
+  // Register the function. The actual function could be dynamically loaded from a shared library
+  int funcId = engine->RegisterGlobalFunction("void dynamicFunction()", asFUNCTION(dynamicFunction), asCALL_CDECL);
+
+  // Create the CScriptHandle and put the function pointer in it for return to script
+  asIScriptFunction* func = engine->GetFunctionById(funcId);
+  CScriptHandle ref;
+  ref.Set(func, engine->GetTypeInfoById(func->GetTypeId()));
+
+  return ref;
+}
+\endcode
+
+In the script the this would be used in the following way:
+
+<pre>
+  funcdef void func();
+  void main()
+  {
+    // Get the function pointer as a generic ref
+    ref @r = getDynamicFunction();
+
+    // Cast the ref to the expected function pointer
+    func @f = cast<func>(r);
+
+    // Call the function
+    f();
+  }
+</pre>
 
 
 
@@ -1761,6 +1801,10 @@ The macros are defined as:
 // Wrap a class method with implicit or explicit signature
 #define WRAP_MFN(ClassType, name)
 #define WRAP_MFN_PR(ClassType, name, Parameters, ReturnType)
+
+// Wrap a class method that will emulate a global function
+#define WRAP_MFN_GLOBAL(ClassType, name)
+#define WRAP_MFN_GLOBAL_PR(ClassType, name, Parameters, ReturnType)
 
 // Wrap a global function that will emulate a class method and receives the 'this' pointer as the first argument
 #define WRAP_OBJ_FIRST(name)

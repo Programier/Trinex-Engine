@@ -124,19 +124,15 @@ bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, i
 {
     auto engine = Engine::ScriptEngine::engine();
 
-    int stringTypeId = engine->GetStringFactoryReturnTypeId();
+    auto typeInfo    = engine->GetTypeInfoById(typeId);
+    const char* name = typeInfo->GetName();
 
-    if (stringTypeId == typeId)
+    if (strcmp(name, "string") == 0)
     {
         auto const& string = *((std::string const*) objPtr);
         dst << string;
         return true;
     }
-
-
-    auto typeInfo    = engine->GetTypeInfoById(typeId);
-    const char* name = typeInfo->GetName();
-
 
     if (strcmp(name, "StringView") == 0)
     {
