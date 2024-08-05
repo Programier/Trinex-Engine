@@ -322,7 +322,10 @@ namespace Engine
                 ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassAllInts);
 
         ScriptClassRegistrar registrar("Engine::ScriptModule", info);
-        ReflectionInitializeController().require("Engine::ScriptFunction").require("Engine::ScriptTypeInfo");
+        ReflectionInitializeController()
+                .require("Engine::ScriptFunction")
+                .require("Engine::ScriptTypeInfo")
+                .require("Engine::ScriptPointer");
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<ScriptModule>);
         registrar.behave(ScriptClassBehave::Construct, "void f(const ScriptModule& in)",

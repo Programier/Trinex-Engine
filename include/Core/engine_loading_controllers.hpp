@@ -55,5 +55,6 @@ namespace Engine
     IMPLEMENT_CONTROLLER(StartupResourcesInitializeController);
     IMPLEMENT_CONTROLLER(ReflectionInitializeController);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController);
+    IMPLEMENT_CONTROLLER(ScriptAddonsInitializeController);
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

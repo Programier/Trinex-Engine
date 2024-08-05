@@ -33,6 +33,11 @@ namespace Engine
             PreInitializeController().execute();
         }
 
+        if (ScriptAddonsInitializeController::is_triggered())
+        {
+            ScriptAddonsInitializeController().execute();
+        }
+
         if (ReflectionInitializeController::is_triggered())
         {
             ReflectionInitializeController().execute();
@@ -112,7 +117,7 @@ namespace Engine
         PostDestroy            = BIT(3),
         ReflectionInit         = BIT(4),
         ResourcesInit          = BIT(5),
-        ScriptEngineInitialize = BIT(6),
+        ScriptAddonsInitialize = BIT(6),
         ConfigsInitialize      = BIT(7),
     };
 
@@ -178,5 +183,5 @@ namespace Engine
     IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInit);
     IMPLEMENT_CONTROLLER(StartupResourcesInitializeController, ResourcesInit);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
-
+    IMPLEMENT_CONTROLLER(ScriptAddonsInitializeController, ScriptAddonsInitialize);
 }// namespace Engine

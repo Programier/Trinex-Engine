@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-
 #define declare_primitive(name, type)                                                                                            \
     class name final                                                                                                             \
     {                                                                                                                            \
@@ -17,17 +16,19 @@
         type op_conv() const;                                                                                                    \
     }
 
-
-declare_primitive(Boolean, bool);
-declare_primitive(Integer8, Engine::int8_t);
-declare_primitive(Integer16, Engine::int16_t);
-declare_primitive(Integer32, Engine::int32_t);
-declare_primitive(Integer64, Engine::int64_t);
-declare_primitive(UnsignedInteger8, Engine::uint8_t);
-declare_primitive(UnsignedInteger16, Engine::uint16_t);
-declare_primitive(UnsignedInteger32, Engine::uint32_t);
-declare_primitive(UnsignedInteger64, Engine::uint64_t);
-declare_primitive(Float, float);
-declare_primitive(Double, double);
+namespace Engine
+{
+    declare_primitive(Boolean, bool);
+    declare_primitive(Integer8, int8_t);
+    declare_primitive(Integer16, int16_t);
+    declare_primitive(Integer32, int32_t);
+    declare_primitive(Integer64, int64_t);
+    declare_primitive(UnsignedInteger8, uint8_t);
+    declare_primitive(UnsignedInteger16, uint16_t);
+    declare_primitive(UnsignedInteger32, uint32_t);
+    declare_primitive(UnsignedInteger64, uint64_t);
+    declare_primitive(Float, float);
+    declare_primitive(Double, double);
+}// namespace Engine
 
 #undef declare_primitive

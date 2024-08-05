@@ -1,3 +1,4 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -26,22 +27,22 @@
         return value;                                                                                                            \
     }
 
-declare_primitive(Boolean, bool);
-declare_primitive(Integer8, Engine::int8_t);
-declare_primitive(Integer16, Engine::int16_t);
-declare_primitive(Integer32, Engine::int32_t);
-declare_primitive(Integer64, Engine::int64_t);
-declare_primitive(UnsignedInteger8, Engine::uint8_t);
-declare_primitive(UnsignedInteger16, Engine::uint16_t);
-declare_primitive(UnsignedInteger32, Engine::uint32_t);
-declare_primitive(UnsignedInteger64, Engine::uint64_t);
-declare_primitive(Float, float);
-declare_primitive(Double, double);
-
-namespace Engine::Initializers
+namespace Engine
 {
+    declare_primitive(Boolean, bool);
+    declare_primitive(Integer8, Engine::int8_t);
+    declare_primitive(Integer16, Engine::int16_t);
+    declare_primitive(Integer32, Engine::int32_t);
+    declare_primitive(Integer64, Engine::int64_t);
+    declare_primitive(UnsignedInteger8, Engine::uint8_t);
+    declare_primitive(UnsignedInteger16, Engine::uint16_t);
+    declare_primitive(UnsignedInteger32, Engine::uint32_t);
+    declare_primitive(UnsignedInteger64, Engine::uint64_t);
+    declare_primitive(Float, float);
+    declare_primitive(Double, double);
+
     template<typename T1, typename T2>
-    T1* factory(T2 value)
+    static T1* factory(T2 value)
     {
         T1* instance = new T1(value);
         instance->add_ref();
@@ -50,7 +51,7 @@ namespace Engine::Initializers
 
 
     template<typename T, typename BaseType>
-    void register_base_type(const char* name, const char* base, const char* default_v)
+    static void register_base_type(const char* name, const char* base, const char* default_v)
     {
         ScriptClassRegistrar::ClassInfo info;
         info.size  = sizeof(T);
@@ -66,7 +67,7 @@ namespace Engine::Initializers
         registrar.property(Strings::format("{} value", base).c_str(), &T::value);
     }
 
-    void init_primitive_wrappers()
+    static void init_primitive_wrappers()
     {
         register_base_type<Boolean, bool>("Bool", "bool", "false");
         register_base_type<Integer8, Engine::int8_t>("Int8", "int8", "0");
@@ -80,4 +81,6 @@ namespace Engine::Initializers
         register_base_type<Float, float>("Float", "float", "0.0");
         register_base_type<Double, double>("Double", "double", "0.0");
     }
-}// namespace Engine::Initializers
+
+    static ScriptAddonsInitializeController on_init(init_primitive_wrappers, "Engine::PrimitiveWrappers");
+}// namespace Engine

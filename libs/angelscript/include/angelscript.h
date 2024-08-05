@@ -562,7 +562,6 @@ extern "C"
 	AS_API asIScriptEngine *asCreateScriptEngine(asDWORD version = ANGELSCRIPT_VERSION);
 	AS_API const char      *asGetLibraryVersion();
 	AS_API const char      *asGetLibraryOptions();
-    AS_API void             asInitializeAddons(asIScriptEngine* engine);
 
 	// Context
 	AS_API asIScriptContext *asGetActiveContext();

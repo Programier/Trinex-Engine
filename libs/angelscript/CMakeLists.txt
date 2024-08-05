@@ -109,7 +109,6 @@ set(ANGELSCRIPT_SOURCE
     ./source/as_tokenizer.cpp
     ./source/as_typeinfo.cpp
     ./source/as_variablescope.cpp
-    ./source/as_addons_initialize.cpp
     ./source/add_on/scriptmath/scriptmath.cpp
     ./source/add_on/scriptmath/scriptmathcomplex.cpp
     ./source/add_on/scriptdictionary/scriptdictionary.cpp

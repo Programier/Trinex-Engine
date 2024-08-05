@@ -63,7 +63,7 @@ namespace Print
         PrintTemplate(dst, std::move(args)...);
     }
 
-    void asRegister(asIScriptEngine* engine);
+    static void asRegister();
 
 };// namespace Print
 
@@ -395,8 +395,9 @@ static std::string PrettyPrintingF(std::string* This, IN_ARGS_16)
 }
 
 
-void Print::asRegister(asIScriptEngine* engine)
+static void Print::asRegister()
 {
+    asIScriptEngine* engine = Engine::ScriptEngine::engine();
     int r;
     r = engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(const ?&in, " INS_15 ")",
                                         asFUNCTION(PrettyPrinting), asCALL_CDECL_OBJLAST);
@@ -413,13 +414,4 @@ void Print::asRegister(asIScriptEngine* engine)
     assert(r == asALREADY_REGISTERED || r >= 0);
 }
 
-
-namespace Engine
-{
-    String ScriptEngine::to_string(const void* object, int_t type_id)
-    {
-        std::stringstream stream;
-        Print::PrintTemplate(stream, object, type_id);
-        return stream.str();
-    }
-}// namespace Engine
+static Engine::ScriptAddonsInitializeController on_init(Print::asRegister, "Engine::PrintFunction", {"Engine::DefaultAddons"});

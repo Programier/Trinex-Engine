@@ -22,22 +22,10 @@ using PlatformJitCompiler = JIT::ARM64_Compiler;
 using PlatformJitCompiler = JIT::X86_64_Compiler;
 #endif
 
-
 static constexpr bool enable_jit = false;
-
-
-namespace Print
-{
-    void asRegister(asIScriptEngine* engine);
-}
 
 namespace Engine
 {
-    namespace Initializers
-    {
-        void init_primitive_wrappers();
-    }// namespace Initializers
-
     static void angel_script_callback(const asSMessageInfo* msg, void* param)
     {
         if (msg->type == asMSGTYPE_WARNING)
@@ -80,28 +68,12 @@ namespace Engine
             m_jit_compiler = compiler;
             m_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
             m_engine->SetJITCompiler(m_jit_compiler);
-
-#if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
-            for (auto& [func_name, indices] : engine_config.jit_skip_instructions)
-            {
-                for (auto index : indices)
-                {
-                    compiler->push_instruction_index_for_skip(func_name, index);
-                }
-            }
-#endif
         }
 #endif
-
-        asInitializeAddons(m_engine);
-        Print::asRegister(m_engine);
-        Initializers::init_primitive_wrappers();
-
         PostDestroyController controller(ScriptEngine::terminate);
-
         ScriptContext::initialize();
 
-        ReflectionInitializeController().require("Engine::ScriptPointer");
+        ScriptAddonsInitializeController().execute();
         return instance();
     }
 
