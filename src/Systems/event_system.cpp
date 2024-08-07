@@ -67,7 +67,6 @@ namespace Engine
     EventSystem::EventSystem()
     {}
 
-
     const EventSystem::ListenerMap& EventSystem::listeners() const
     {
         return m_listeners;
@@ -80,7 +79,11 @@ namespace Engine
 
     EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
     {
-        m_listeners_to_remove.push_back(id);
+        if (m_is_in_events_pooling)
+            m_listeners_to_remove.push_back(id);
+        else
+            m_listeners[static_cast<EnumerateType>(id.m_type)].remove(id.m_id);
+
         return *this;
     }
 
@@ -88,6 +91,7 @@ namespace Engine
     {
         Super::create();
 
+        m_is_in_events_pooling = false;
         System::new_system<EngineSystem>()->register_subsystem(this);
         add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
         add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, false));
@@ -107,16 +111,6 @@ namespace Engine
     EventSystem& EventSystem::update(float dt)
     {
         Super::update(dt);
-
-        if (!m_listeners_to_remove.empty())
-        {
-            for (auto& id : m_listeners_to_remove)
-            {
-                m_listeners[static_cast<EnumerateType>(id.m_type)].remove(id.m_id);
-            }
-            m_listeners_to_remove.clear();
-        }
-
         (this->*m_process_events)();
 
         if (!m_windows_to_destroy.empty())
@@ -139,9 +133,12 @@ namespace Engine
         return *this;
     }
 
-    const EventSystem& EventSystem::push_event(const Event& event) const
+    EventSystem& EventSystem::push_event(const Event& event)
     {
-        auto it = m_listeners.find(static_cast<EnumerateType>(event.type()));
+        bool is_nested = m_is_in_events_pooling;
+
+        m_is_in_events_pooling = true;
+        auto it                = m_listeners.find(static_cast<EnumerateType>(event.type()));
         if (it != m_listeners.end())
         {
             it->second.trigger(event);
@@ -152,6 +149,17 @@ namespace Engine
         if (it != m_listeners.end())
         {
             it->second.trigger(event);
+        }
+
+        m_is_in_events_pooling = is_nested;
+
+        if (!m_listeners_to_remove.empty())
+        {
+            for (auto& id : m_listeners_to_remove)
+            {
+                remove_listener(id);
+            }
+            m_listeners_to_remove.clear();
         }
 
         return *this;

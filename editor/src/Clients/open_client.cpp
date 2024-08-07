@@ -17,4 +17,11 @@ namespace Engine
         new_config.client       = "Engine::EditorClient";
         WindowManager::instance()->create_window(new_config);
     }
+
+    void open_script_debugger()
+    {
+        WindowConfig new_config;
+        new_config.client       = "Engine::ScriptDebuggerClient";
+        WindowManager::instance()->create_window(new_config);
+    }
 }// namespace Engine

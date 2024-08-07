@@ -66,6 +66,9 @@ namespace Engine
             if (name.empty())
                 continue;
 
+            if (name == "scripts:" && m_name == "scripts:")
+                continue;
+
             auto it = folder->m_folders.find(name);
 
             if (it == folder->m_folders.end())
@@ -143,9 +146,7 @@ namespace Engine
     }
 
     Script::Script(ScriptFolder* folder, const String& name) : m_name(name), m_folder(folder), m_is_dirty(false)
-    {
-        m_module = ScriptModule(path().c_str());
-    }
+    {}
 
     Script::~Script()
     {
@@ -195,14 +196,36 @@ namespace Engine
 
     bool Script::save() const
     {
-        m_is_dirty = false;
+        FileWriter writer(path());
+
+        if (writer.is_open())
+        {
+            if (writer.write(reinterpret_cast<const byte*>(m_code.c_str()), m_code.size()))
+            {
+                m_is_dirty = false;
+                return true;
+            }
+        }
+
         return false;
     }
 
     bool Script::build()
     {
+        if (m_module.is_valid())
+            m_module.discard();
+
+        m_module = ScriptModule(path().c_str());
         m_module.add_script_section("Code", m_code.data(), m_code.size());
-        return m_module.build();
+
+        bool result = m_module.build();
+
+        if(result)
+        {
+            on_build(this);
+        }
+
+        return result;
     }
 
     ScriptModule Script::module() const

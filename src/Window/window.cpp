@@ -333,6 +333,7 @@ namespace Engine
         {
             RenderViewport* viewport = m_render_viewport;
             m_render_viewport        = nullptr;
+            viewport->client(nullptr);
             GarbageCollector::destroy(viewport);
         }
     }

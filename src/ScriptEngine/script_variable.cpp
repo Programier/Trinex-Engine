@@ -263,17 +263,17 @@ namespace Engine
 
     bool ScriptVariableBase::check_type(int_t mask) const
     {
-        return (m_type_id & mask) != 0;
+        return m_type_id == mask;
     }
 
     bool ScriptVariableBase::is_object(bool сonsider_handle_as_object) const
     {
-        return check_type(asTYPEID_MASK_OBJECT) && (сonsider_handle_as_object ? true : !is_handle());
+        return (m_type_id & asTYPEID_MASK_OBJECT) && (сonsider_handle_as_object ? true : !is_handle());
     }
 
     bool ScriptVariableBase::is_handle() const
     {
-        return check_type(asTYPEID_OBJHANDLE);
+        return (m_type_id & asTYPEID_MASK_OBJECT) && (m_type_id & asTYPEID_OBJHANDLE);
     }
 
     void* ScriptVariableBase::address() const

@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/name.hpp>
 #include <ScriptEngine/script_module.hpp>
@@ -46,6 +47,8 @@ namespace Engine
         Script(ScriptFolder* folder, const String& name);
 
     public:
+        CallBacks<void(Script*)> on_build;
+
         const String& code() const;
         Script& code(const String& code);
 

@@ -93,6 +93,10 @@ namespace Engine
         bool is_abstract() const;
         bool is_enum() const;
         bool is_array() const;
+        bool is_object(bool handle_is_object = false) const;
+        bool is_handle() const;
+
+        operator bool() const;
 
         ~ScriptTypeInfo();
     };

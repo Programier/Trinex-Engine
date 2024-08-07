@@ -65,7 +65,7 @@ namespace Engine
     bool FileWriter::write(const byte* data, size_t size)
     {
         if (is_open())
-            return static_cast<bool>(m_file->write(data, size)) == size;
+            return m_file->write(data, size) == size;
         return false;
     }
 

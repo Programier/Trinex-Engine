@@ -11,6 +11,7 @@
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
+#include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 #include <scripthelper.h>
 
@@ -48,6 +49,7 @@ namespace Engine
     asIScriptEngine* ScriptEngine::m_engine      = nullptr;
     asIJITCompiler* ScriptEngine::m_jit_compiler = nullptr;
     ScriptFolder* ScriptEngine::m_script_folder  = nullptr;
+    TreeMap<int_t, ScriptEngine::VariableToStringFunction> ScriptEngine::m_custom_variable_parsers;
 
     ScriptEngine& ScriptEngine::initialize()
     {
@@ -96,8 +98,6 @@ namespace Engine
             delete m_jit_compiler;
             m_jit_compiler = nullptr;
         }
-
-
     }
 
     ScriptEngine& ScriptEngine::instance()
@@ -285,6 +285,57 @@ namespace Engine
         return global_function_by_decl(declaration.c_str());
     }
 
+    uint_t ScriptEngine::global_property_count()
+    {
+        return m_engine->GetGlobalPropertyCount();
+    }
+
+    int_t ScriptEngine::global_property_index_by_name(const char* name)
+    {
+        return m_engine->GetGlobalPropertyIndexByName(name);
+    }
+
+    int_t ScriptEngine::global_property_index_by_name(const String& name)
+    {
+        return global_property_index_by_name(name.c_str());
+    }
+
+    int_t ScriptEngine::global_property_index_by_decl(const char* declaration)
+    {
+        return m_engine->GetGlobalPropertyIndexByDecl(declaration);
+    }
+
+    int_t ScriptEngine::global_property_index_by_decl(const String& declaration)
+    {
+        return global_property_index_by_decl(declaration.c_str());
+    }
+
+    bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const,
+                                       byte** pointer)
+    {
+        const char* c_name       = nullptr;
+        const char* c_name_space = nullptr;
+
+        bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
+                                                         type_id, is_const, nullptr, reinterpret_cast<void**>(pointer));
+
+        if (result)
+        {
+            if (name)
+            {
+                *name = c_name;
+            }
+
+            if (name_space)
+            {
+                *name_space = c_name_space;
+            }
+        }
+
+        return result;
+    }
+
+
     ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, size_t iterations)
     {
         m_engine->GarbageCollect(flags, iterations);
@@ -373,6 +424,22 @@ namespace Engine
     }
 
     // Type identification
+
+    bool ScriptEngine::is_primitive_type(int_t type_id)
+    {
+        return sizeof_primitive_type(type_id) != 0;
+    }
+
+    bool ScriptEngine::is_object_type(int_t type_id, bool handle_is_object)
+    {
+        return (type_id & asTYPEID_MASK_OBJECT) && (handle_is_object ? true : !is_handle_type(type_id));
+    }
+
+    bool ScriptEngine::is_handle_type(int_t type_id)
+    {
+        return (type_id & asTYPEID_MASK_OBJECT) && (type_id & asTYPEID_OBJHANDLE);
+    }
+
     int_t ScriptEngine::type_id_by_decl(const char* decl)
     {
         return m_engine->GetTypeIdByDecl(decl);
@@ -489,6 +556,103 @@ namespace Engine
         return "Undefined";
     }
 
+    ScriptEngine& ScriptEngine::register_custom_variable_parser(int_t type_id, VariableToStringFunction function)
+    {
+        if (function == nullptr)
+            return unregister_custom_variable(type_id);
+        m_custom_variable_parsers[type_id] = function;
+        return instance();
+    }
+
+    ScriptEngine& ScriptEngine::unregister_custom_variable(int_t type_id)
+    {
+        m_custom_variable_parsers.erase(type_id);
+        return instance();
+    }
+
+    ScriptEngine::VariableToStringFunction ScriptEngine::custom_variable_parser(int_t type_id)
+    {
+        auto it = m_custom_variable_parsers.find(type_id);
+        if (it != m_custom_variable_parsers.end())
+            return it->second;
+        return nullptr;
+    }
+
+    String ScriptEngine::to_string(const byte* address, int_t type_id)
+    {
+        if (address == nullptr)
+            return "null";
+
+        if (auto parser = custom_variable_parser(type_id))
+            return parser(address, type_id);
+
+        if (ScriptEngine::is_primitive_type(type_id))
+        {
+            ScriptVariable var(const_cast<byte*>(address), type_id);
+
+            if (var.is_bool())
+                return var.bool_value() ? "true" : "false";
+            else if (var.is_int8())
+                return Strings::format("{}", var.int8_value());
+            else if (var.is_int16())
+                return Strings::format("{}", var.int16_value());
+            else if (var.is_int32())
+                return Strings::format("{}", var.int32_value());
+            else if (var.is_int64())
+                return Strings::format("{}", var.int64_value());
+            else if (var.is_uint8())
+                return Strings::format("{}", var.uint8_value());
+            else if (var.is_uint16())
+                return Strings::format("{}", var.uint16_value());
+            else if (var.is_uint32())
+                return Strings::format("{}", var.uint32_value());
+            else if (var.is_uint64())
+                return Strings::format("{}", var.uint64_value());
+            else if (var.is_float())
+                return Strings::format("{}", var.float_value());
+            else if (var.is_double())
+                return Strings::format("{}", var.double_value());
+        }
+
+        ScriptTypeInfo info = ScriptEngine::type_info_by_id(type_id);
+        if (!info.is_valid())
+            return Strings::format("{}", reinterpret_cast<const void*>(address));
+
+        if (info.funcdef_signature())
+        {
+            auto func = *reinterpret_cast<const asIScriptFunction* const*>(address);
+            if (func == nullptr)
+                return "null";
+            return func->GetDeclaration(true, true, true);
+        }
+
+        auto enum_value_count = info.enum_value_count();
+
+        if (enum_value_count > 0)
+        {
+            int_t value = *(int_t const*) address;
+
+            for (uint_t i = 0; i < enum_value_count; ++i)
+            {
+                int_t val;
+                StringView text = info.enum_value_by_index(i, &val);
+
+                if (val == value)
+                {
+                    auto ns = info.namespace_name();
+                    if (!ns.empty())
+                        return Strings::format("{}::{}::{}", ns, info.name(), text);
+                    return Strings::format("{}::{}", info.name(), text);
+                }
+            }
+        }
+
+        if (ScriptEngine::is_handle_type(type_id))
+        {
+            address = *reinterpret_cast<const byte* const*>(address);
+        }
+        return address ? Strings::format("{}", reinterpret_cast<const void*>(address)) : "null";
+    }
 
     static void variable_name_generic(asIScriptGeneric* generic)
     {

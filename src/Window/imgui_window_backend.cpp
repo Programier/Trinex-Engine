@@ -11,16 +11,19 @@
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Window/config.hpp>
+#include <Window/imgui_window_backend.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
 namespace Engine
 {
-
     namespace ImGuiBackend
     {
         extern void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
+    }
 
+    namespace ImGuiWindowBackend
+    {
         struct ImGuiTrinexWindowData {
             Window* window;
             float time;
@@ -446,14 +449,10 @@ namespace Engine
 
             if (imgui_button != -ImGuiKey_None)
             {
-                auto keyboard = KeyboardSystem::instance();
-                io.AddKeyEvent(ImGuiMod_Ctrl,
-                               keyboard->is_pressed(Keyboard::LeftControl) || keyboard->is_pressed(Keyboard::RightControl));
-                io.AddKeyEvent(ImGuiMod_Shift,
-                               keyboard->is_pressed(Keyboard::LeftShift) || keyboard->is_pressed(Keyboard::RightShift));
-                io.AddKeyEvent(ImGuiMod_Alt, keyboard->is_pressed(Keyboard::LeftAlt) || keyboard->is_pressed(Keyboard::RightAlt));
-                io.AddKeyEvent(ImGuiMod_Super,
-                               keyboard->is_pressed(Keyboard::LeftSuper) || keyboard->is_pressed(Keyboard::RightSuper));
+                io.AddKeyEvent(ImGuiMod_Ctrl, ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
+                io.AddKeyEvent(ImGuiMod_Shift, ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
+                io.AddKeyEvent(ImGuiMod_Alt, ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
+                io.AddKeyEvent(ImGuiMod_Super, ImGui::IsKeyDown(ImGuiKey_LeftSuper) || ImGui::IsKeyDown(ImGuiKey_RightSuper));
                 io.AddKeyEvent(imgui_button, is_pressed);
             }
         }
@@ -466,7 +465,6 @@ namespace Engine
 
             io.AddInputCharactersUTF8(data.text.c_str());
         }
-
 
         static void on_window_close(const Event& event)
         {
@@ -538,39 +536,73 @@ namespace Engine
             }
         }
 
-        static void register_listeners()
+        ENGINE_EXPORT void on_event_recieved(const Event& event)
         {
-            static bool initialized = false;
-            if (initialized)
+            auto type = event.type();
+
+            switch (type)
+            {
+                case EventType::MouseMotion:
+                    return on_mouse_move(event);
+
+                case EventType::MouseButtonDown:
+                case EventType::MouseButtonUp:
+                    return on_mouse_button(event, type == EventType::MouseButtonDown);
+
+                case EventType::MouseWheel:
+                    return on_mouse_wheel(event);
+
+                case EventType::KeyDown:
+                case EventType::KeyUp:
+                    return on_keyboard_button(event, type == EventType::KeyDown);
+
+                case EventType::TextInput:
+                    return on_text_input(event);
+
+                case EventType::WindowClose:
+                    return on_window_close(event);
+                case EventType::WindowMoved:
+                    return on_window_move(event);
+                case EventType::WindowResized:
+                    return on_window_resize(event);
+
+                case EventType::FingerDown:
+                    return on_finger_down(event);
+                case EventType::FingerUp:
+                    return on_finger_up(event);
+                case EventType::FingerMotion:
+                    return on_finger_motion(event);
+
+                default:
+                    break;
+            }
+        }
+
+        static EventSystemListenerID m_listener_id;
+
+        ENGINE_EXPORT void disable_events()
+        {
+            if (!m_listener_id.is_valid())
                 return;
 
-            initialized = true;
+            EventSystem* system = EventSystem::instance();
+            system->remove_listener(m_listener_id);
+            m_listener_id = EventSystemListenerID();
+        }
+
+        ENGINE_EXPORT void enable_events()
+        {
+            if (m_listener_id.is_valid())
+                return;
 
             EventSystem* system = EventSystem::instance();
-            system->add_listener(EventType::MouseMotion, on_mouse_move);
-            system->add_listener(EventType::MouseButtonDown, std::bind(on_mouse_button, std::placeholders::_1, true));
-            system->add_listener(EventType::MouseButtonUp, std::bind(on_mouse_button, std::placeholders::_1, false));
-            system->add_listener(EventType::MouseWheel, on_mouse_wheel);
-
-            system->add_listener(EventType::KeyDown, std::bind(on_keyboard_button, std::placeholders::_1, true));
-            system->add_listener(EventType::KeyUp, std::bind(on_keyboard_button, std::placeholders::_1, false));
-
-            system->add_listener(EventType::TextInput, on_text_input);
-
-            system->add_listener(EventType::WindowClose, on_window_close);
-            system->add_listener(EventType::WindowMoved, on_window_move);
-            system->add_listener(EventType::WindowResized, on_window_resize);
-
-            system->add_listener(EventType::FingerDown, on_finger_down);
-            system->add_listener(EventType::FingerUp, on_finger_up);
-            system->add_listener(EventType::FingerMotion, on_finger_motion);
+            m_listener_id       = system->add_listener(EventType::Undefined, on_event_recieved);
         }
 
         static FORCE_INLINE Window* window_from(ImGuiViewport* vp)
         {
             return reinterpret_cast<Window*>(vp->PlatformHandle);
         }
-
 
         static void imgui_trinex_window_create(ImGuiViewport* vp)
         {
@@ -728,7 +760,7 @@ namespace Engine
             io.BackendPlatformName = "imgui_impl_android";
             auto bd                = IM_NEW(ImGuiTrinexWindowData)();
 
-            register_listeners();
+            enable_events();
             io.BackendPlatformUserData = bd;
             io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
 
@@ -797,23 +829,23 @@ namespace Engine
             io.DeltaTime       = bd->time > 0.0 ? (current_time - bd->time) : (1.0f / 60.0f);
             bd->time           = current_time;
         }
-    }// namespace ImGuiBackend
+    }// namespace ImGuiWindowBackend
 
     Window& Window::imgui_initialize_internal()
     {
-        ImGuiBackend::imgui_trinex_window_init(this);
+        ImGuiWindowBackend::imgui_trinex_window_init(this);
         return *this;
     }
 
     Window& Window::imgui_terminate_internal()
     {
-        ImGuiBackend::imgui_trinex_window_shutdown(this);
+        ImGuiWindowBackend::imgui_trinex_window_shutdown(this);
         return *this;
     }
 
     Window& Window::imgui_new_frame()
     {
-        ImGuiBackend::imgui_trinex_window_new_frame(this);
+        ImGuiWindowBackend::imgui_trinex_window_new_frame(this);
         return *this;
     }
 }// namespace Engine

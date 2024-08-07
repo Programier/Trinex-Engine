@@ -26,7 +26,8 @@ namespace Engine
 
     static void script_line_callback_internal(asIScriptEngine* engine, void* userdata)
     {
-        return m_callback(userdata);
+        if (m_callback)
+            m_callback(userdata);
     }
 
     void ScriptContext::initialize()
@@ -124,7 +125,6 @@ namespace Engine
 
         if (!info.is_active && !unprepare())
         {
-
             throw EngineException("Failed to unprepare function!");
         }
 
@@ -388,6 +388,7 @@ namespace Engine
     {
         Function<void(void*)> tmp = {};
         m_callback.swap(tmp);
+        m_context->ClearLineCallback();
         return instance();
     }
 
@@ -432,7 +433,7 @@ namespace Engine
         asETypeModifiers script_modifiers;
         const char* script_name;
         const bool result = m_context->GetVar(var_index, stack_level, &script_name, type_id,
-                                              (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset);
+                                              (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset) >= 0;
 
         if (name)
         {
@@ -453,10 +454,11 @@ namespace Engine
         return "";
     }
 
-    void* ScriptContext::address_of_var(uint_t var_index, uint_t stack_level, bool dont_dereference,
+    byte* ScriptContext::address_of_var(uint_t var_index, uint_t stack_level, bool dont_dereference,
                                         bool return_address_of_unitialized_objects)
     {
-        return m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects);
+        return reinterpret_cast<byte*>(
+                m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects));
     }
 
     bool ScriptContext::is_var_in_scope(uint_t var_index, uint_t stack_level)
@@ -469,9 +471,9 @@ namespace Engine
         return m_context->GetThisTypeId(stack_level);
     }
 
-    void* ScriptContext::this_pointer(uint_t stack_level)
+    byte* ScriptContext::this_pointer(uint_t stack_level)
     {
-        return m_context->GetThisPointer(stack_level);
+        return reinterpret_cast<byte*>(m_context->GetThisPointer(stack_level));
     }
 
     static void bind_script_argument(asUINT argument, const CScriptDictionary::CIterator& it, int_t param_typeid)

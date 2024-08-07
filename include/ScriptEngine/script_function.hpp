@@ -80,6 +80,9 @@ namespace Engine
         void* delegate_object() const;
         ScriptTypeInfo delegate_object_type() const;
         ScriptFunction delegate_function() const;
+
+        operator bool() const;
+
         ~ScriptFunction();
     };
 

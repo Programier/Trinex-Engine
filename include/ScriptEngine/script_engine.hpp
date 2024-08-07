@@ -17,11 +17,15 @@ namespace Engine
 
     class ENGINE_EXPORT ScriptEngine
     {
+    public:
+        using VariableToStringFunction = String (*)(const byte* object, int_t type_id);
+
     private:
         static Vector<class Script*> m_scripts;
         static asIScriptEngine* m_engine;
         static asIJITCompiler* m_jit_compiler;
         static class ScriptFolder* m_script_folder;
+        static TreeMap<int_t, VariableToStringFunction> m_custom_variable_parsers;
 
         static void terminate();
         static asIScriptContext* new_context();
@@ -58,7 +62,6 @@ namespace Engine
         static ScriptModule create_module(const String& name, EnumerateType flags = 0);
         static ScriptModule create_module(const char* name, EnumerateType flags = 0);
         static uint_t module_count();
-        static String to_string(const void* object, int_t type_id);
         static class ScriptFolder* scripts_folder();
         static ScriptEngine& load_scripts();
 
@@ -72,6 +75,14 @@ namespace Engine
         static ScriptFunction global_function_by_index(uint_t index);
         static ScriptFunction global_function_by_decl(const char* declaration);
         static ScriptFunction global_function_by_decl(const String& declaration);
+
+        static uint_t global_property_count();
+        static int_t global_property_index_by_name(const char* name);
+        static int_t global_property_index_by_name(const String& name);
+        static int_t global_property_index_by_decl(const char* declaration);
+        static int_t global_property_index_by_decl(const String& declaration);
+        static bool global_property(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr,
+                                    int_t* type_id = nullptr, bool* is_const = nullptr, byte** pointer = nullptr);
 
         static ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
 
@@ -103,6 +114,10 @@ namespace Engine
         static ScriptFunction function_by_id(int_t func_id);
 
         // Type identification
+        static bool is_primitive_type(int_t type_id);
+        static bool is_object_type(int_t type_id, bool handle_is_object = false);
+        static bool is_handle_type(int_t type_id);
+
         static int_t type_id_by_decl(const char* decl);
         static int_t type_id_by_decl(const String& decl);
         static String type_declaration(int_t type_id, bool include_namespace = false);
@@ -116,13 +131,18 @@ namespace Engine
         // User functions
         static String variable_name(const void* object, bool include_namespace = true);
 
-
         // Functions register
 
         static ScriptEngine& register_function(const char* declaration, ScriptFuncPtr* func,
                                                ScriptCallConv conv = ScriptCallConv::CDECL);
         static ScriptEngine& register_function(const String& declaration, ScriptFuncPtr* func,
                                                ScriptCallConv conv = ScriptCallConv::CDECL);
+
+        // Variable to string
+        static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);
+        static ScriptEngine& unregister_custom_variable(int_t type_id);
+        static VariableToStringFunction custom_variable_parser(int_t type_id);
+        static String to_string(const byte* object, int_t type_id);
 
         template<typename ReturnValue, typename... Args>
         static ScriptEngine& register_function(const char* declaration, ReturnValue (*func)(Args...),

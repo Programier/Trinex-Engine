@@ -237,11 +237,11 @@ namespace Engine
         static bool var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id = 0,
                         Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
         static String var_declaration(uint_t var_index, uint_t stack_level = 0, bool include_namespace = false);
-        static void* address_of_var(uint_t var_index, uint_t stack_level = 0, bool dont_dereference = false,
+        static byte* address_of_var(uint_t var_index, uint_t stack_level = 0, bool dont_dereference = false,
                                     bool return_address_of_unitialized_objects = false);
         static bool is_var_in_scope(uint_t var_index, uint_t stack_level = 0);
         static int_t this_type_id(uint_t stack_level = 0);
-        static void* this_pointer(uint_t stack_level = 0);
+        static byte* this_pointer(uint_t stack_level = 0);
         static ScriptFunction system_function();
         friend class ScriptEngine;
     };

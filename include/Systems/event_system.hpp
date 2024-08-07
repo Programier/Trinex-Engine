@@ -27,7 +27,7 @@ namespace Engine
         EventSystem& (EventSystem::*m_process_events)() = nullptr;
         List<Identifier> m_windows_to_destroy;
         List<EventSystemListenerID> m_listeners_to_remove;
-
+        bool m_is_in_events_pooling;
 
         EventSystem& wait_events();
         EventSystem& pool_events();
@@ -41,7 +41,7 @@ namespace Engine
         EventSystem& remove_listener(const EventSystemListenerID&);
         EventSystem& create() override;
         EventSystem& update(float dt) override;
-        const EventSystem& push_event(const Event& event) const;
+        EventSystem& push_event(const Event& event);
         EventSystem& shutdown() override;
         static Name event_name(EventType type);
 

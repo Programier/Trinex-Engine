@@ -274,6 +274,11 @@ namespace Engine
         return ScriptFunction(m_function->GetDelegateFunction());
     }
 
+    ScriptFunction::operator bool() const
+    {
+        return is_valid();
+    }
+
     const ScriptFunction& ScriptFunction::add_ref() const
     {
         if (m_function)

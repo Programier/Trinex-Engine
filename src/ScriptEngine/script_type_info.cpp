@@ -419,6 +419,22 @@ namespace Engine
         return std::strcmp("array", m_info->GetName()) == 0;
     }
 
+    bool ScriptTypeInfo::is_object(bool handle_is_object) const
+    {
+        return ScriptEngine::is_object_type(type_id());
+    }
+
+    bool ScriptTypeInfo::is_handle() const
+    {
+        return ScriptEngine::is_handle_type(type_id());
+    }
+
+
+    ScriptTypeInfo::operator bool() const
+    {
+        return is_valid();
+    }
+
     ScriptTypeInfo::~ScriptTypeInfo()
     {
         release();
