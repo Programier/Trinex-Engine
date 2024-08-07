@@ -18,10 +18,128 @@
 #include <Window/window.hpp>
 #include <editor_config.hpp>
 #include <imgui_internal.h>
+#include <imgui_stacklayout.h>
 #include <theme.hpp>
 
 namespace Engine
 {
+    class DebugExecScriptFunction : public ImGuiRenderer::ImGuiAdditionalWindow
+    {
+        ImVec2 m_window_pos;
+        ScriptFolder* m_root_folder;
+        Script* m_script = nullptr;
+        ScriptFunction m_function;
+
+    public:
+        DebugExecScriptFunction() : m_root_folder(ScriptEngine::scripts_folder())
+        {
+            auto vp = ImGui::GetMainViewport();
+            m_window_pos = vp->WorkPos + vp->WorkSize * 0.5f;
+        }
+
+        void init(RenderViewport* viewport) override
+        {}
+
+        void render_script_combo_box(ScriptFolder* folder)
+        {
+            for (auto& [name, subfolder] : folder->sub_folders())
+            {
+                render_script_combo_box(subfolder);
+            }
+
+            for (auto& [name, script] : folder->scripts())
+            {
+                if (ImGui::Selectable(script->path().c_str(), script == m_script))
+                {
+                    m_script = script;
+                    m_function.release();
+                }
+            }
+        }
+
+        void render_function_combo_box()
+        {
+            if (m_script == nullptr)
+                return;
+
+            auto module  = m_script->module();
+            uint_t count = module.functions_count();
+
+            for (uint_t i = 0; i < count; ++i)
+            {
+                ScriptFunction func = module.function_by_index(i);
+
+                if (func.param_count() != 0)
+                    continue;
+
+                if (ImGui::Selectable(func.name().data()))
+                {
+                    m_function = func;
+                }
+            }
+        }
+
+        bool render(RenderViewport* viewport) override
+        {
+            bool is_open = true;
+
+            ImGui::SetNextWindowPos(m_window_pos, ImGuiCond_FirstUseEver, {0.5f, 0.5f});
+            ImGui::SetNextWindowSize({400, 150}, ImGuiCond_FirstUseEver);
+
+            if (ImGui::Begin("editor/Exec Script Function"_localized, &is_open))
+            {
+                ImGui::BeginVertical(0, ImGui::GetContentRegionAvail(), 0.f);
+                ImGui::Spring(0.f);
+
+                if (ImGui::BeginCombo("editor/Script"_localized, m_script ? m_script->name().c_str() : ""))
+                {
+                    render_script_combo_box(m_root_folder);
+                    ImGui::EndCombo();
+                }
+                ImGui::Spring(0.f);
+
+                if (ImGui::BeginCombo("editor/Function"_localized, m_function ? m_function.name().data() : ""))
+                {
+                    render_function_combo_box();
+                    ImGui::EndCombo();
+                }
+
+                ImGui::Spring(1.f);
+
+                ImGui::BeginHorizontal(1);
+                {
+                    ImGui::Spring();
+
+                    if (ImGui::Button("editor/Cancel"_localized))
+                    {
+                        is_open = false;
+                    }
+
+                    if (ImGui::Button("editor/Execute"_localized))
+                    {
+                        if (m_function)
+                        {
+                            logic_thread()->call_function([func = m_function]() { ScriptContext::execute(func); });
+                        }
+
+                        is_open = false;
+                    }
+
+                    ImGui::Spring(0.f);
+
+                    ImGui::EndHorizontal();
+                }
+
+                ImGui::Spring(0.f);
+                ImGui::EndVertical();
+            }
+
+            ImGui::End();
+            return is_open;
+        }
+    };
+
+
     implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
     ScriptDebuggerClient::ScriptDebuggerClient()
@@ -118,7 +236,7 @@ namespace Engine
         ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
         ImGui::Begin("Debugger", nullptr,
                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
-                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
+                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
 
         auto dock_id = ImGui::GetID("ScriptDebugger##Dock");
         ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
@@ -142,7 +260,8 @@ namespace Engine
             ImGui::DockBuilderFinish(dock_id);
         }
 
-        render_left_viewport(dt)
+        render_bar_menu(dt)
+                .render_left_viewport(dt)
                 .render_code_viewport(dt)
                 .render_variables_viewport(dt)
                 .render_globals_viewport(dt)
@@ -150,6 +269,39 @@ namespace Engine
 
         ImGui::End();
         m_imgui_window->end_frame();
+        return *this;
+    }
+
+    ScriptDebuggerClient& ScriptDebuggerClient::render_bar_menu(float dt)
+    {
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("editor/File"_localized))
+            {
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("editor/View"_localized))
+            {
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("editor/Debug"_localized))
+            {
+                if (ImGui::MenuItem("editor/Exec Function"_localized, "editor/Execute specific function from a module"_localized))
+                {
+                    m_imgui_window->window_list.create<DebugExecScriptFunction>();
+                }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("editor/Build"_localized))
+            {
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
+        }
         return *this;
     }
 

@@ -49,6 +49,7 @@ namespace Engine
     public:
         CallBacks<void(Script*)> on_build;
 
+        const String& name() const;
         const String& code() const;
         Script& code(const String& code);
 

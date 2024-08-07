@@ -154,6 +154,11 @@ namespace Engine
         m_folder->m_scripts.erase(m_name);
     }
 
+    const String& Script::name() const
+    {
+        return m_name;
+    }
+
     const String& Script::code() const
     {
         return m_code;
@@ -220,7 +225,7 @@ namespace Engine
 
         bool result = m_module.build();
 
-        if(result)
+        if (result)
         {
             on_build(this);
         }

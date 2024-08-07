@@ -78,6 +78,7 @@ namespace Engine
         ScriptDebuggerClient& open_script(Script* script);
         ScriptDebuggerClient& open_script(const Path& path);
 
+        ScriptDebuggerClient& render_bar_menu(float dt);
         ScriptDebuggerClient& render_code_viewport(float dt);
         ScriptDebuggerClient& render_source_tree(class ScriptFolder* folder);
         ScriptDebuggerClient& render_left_viewport(float dt);

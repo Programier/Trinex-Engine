@@ -51,6 +51,22 @@ namespace Engine
     class ENGINE_EXPORT Thread : public ThreadBase
     {
     private:
+        template<typename Func>
+        struct FunctionCaller : public ExecutableObject {
+            std::decay_t<Func> m_func;
+
+        public:
+            FunctionCaller(Func&& func) : m_func(std::forward<Func>(func))
+            {}
+
+            int_t execute() override
+            {
+                m_func();
+                return sizeof(*this);
+            }
+        };
+
+
         std::mutex m_exec_mutex;
         std::condition_variable m_exec_cv;
 
@@ -71,9 +87,7 @@ namespace Engine
 
         NewTaskEvent m_event;
 
-
         static void thread_loop(Thread* self);
-
 
     public:
         Thread(size_t command_buffer_size = default_thread_command_buffer_size);
@@ -131,6 +145,20 @@ namespace Engine
                 new (context.data()) CommandType(std::forward<Args>(args)...);
             }
             return *this;
+        }
+
+        template<typename Function, typename... Args>
+        FORCE_INLINE Thread& call_function(Function&& function, Args&&... args)
+        {
+            if constexpr (sizeof...(args) > 0)
+            {
+                auto new_function = std::bind(std::forward<Function>(function), std::forward<Args>(args)...);
+                return insert_new_task<FunctionCaller<Function>>(std::move(new_function));
+            }
+            else
+            {
+                return insert_new_task<FunctionCaller<Function>>(std::forward<Function>(function));
+            }
         }
 
         virtual ~Thread();
