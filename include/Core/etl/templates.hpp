@@ -97,4 +97,11 @@ namespace Engine
         ClassType* instance = reinterpret_cast<ClassType*>(1024);
         return reinterpret_cast<size_t>(&(instance->*field)) - reinterpret_cast<size_t>(instance);
     }
+
+    template<typename T>
+    const std::decay_t<T>& default_value_of()
+    {
+        static T value{};
+        return value;
+    }
 }// namespace Engine

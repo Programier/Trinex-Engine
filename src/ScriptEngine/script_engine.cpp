@@ -40,7 +40,10 @@ namespace Engine
         }
         else
         {
-            throw EngineException(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+            if (ScriptEngine::exception_on_error)
+                throw EngineException(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+            else
+                error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
         }
     }
 
@@ -50,6 +53,8 @@ namespace Engine
     asIJITCompiler* ScriptEngine::m_jit_compiler = nullptr;
     ScriptFolder* ScriptEngine::m_script_folder  = nullptr;
     TreeMap<int_t, ScriptEngine::VariableToStringFunction> ScriptEngine::m_custom_variable_parsers;
+
+    bool ScriptEngine::exception_on_error = true;
 
     ScriptEngine& ScriptEngine::initialize()
     {

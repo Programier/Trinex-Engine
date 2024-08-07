@@ -33,7 +33,7 @@ namespace Engine
     public:
         DebugExecScriptFunction() : m_root_folder(ScriptEngine::scripts_folder())
         {
-            auto vp = ImGui::GetMainViewport();
+            auto vp      = ImGui::GetMainViewport();
             m_window_pos = vp->WorkPos + vp->WorkSize * 0.5f;
         }
 
@@ -62,12 +62,11 @@ namespace Engine
             if (m_script == nullptr)
                 return;
 
-            auto module  = m_script->module();
-            uint_t count = module.functions_count();
+            uint_t count = m_script->functions_count();
 
             for (uint_t i = 0; i < count; ++i)
             {
-                ScriptFunction func = module.function_by_index(i);
+                ScriptFunction func = m_script->function_by_index(i);
 
                 if (func.param_count() != 0)
                     continue;
@@ -423,10 +422,7 @@ namespace Engine
                     }
                 }
 
-                if (!m_script_for_popup->build())
-                {
-                    error_log("ScriptDebugger", "Failed to build script '%s'", m_script_for_popup->path().c_str());
-                }
+                m_script_for_popup->build(false);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -690,7 +686,14 @@ namespace Engine
                 }
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%s", func.module_name().data());
+                if (Script* script = func.module().script())
+                {
+                    ImGui::Text("%s", script->path().c_str());
+                }
+                else
+                {
+                    ImGui::Text("Undefined");
+                }
 
                 ImGui::TableNextColumn();
                 ImGui::Text("%d", line);
@@ -856,7 +859,7 @@ namespace Engine
 
     ScriptDebuggerClient& ScriptDebuggerClient::open_script(const Path& path)
     {
-        if (m_current_editor && m_current_editor->m_script->module().name() == path.str())
+        if (m_current_editor && m_current_editor->m_script->path() == path)
         {
             m_current_editor->m_need_focus = true;
             return *this;
@@ -867,15 +870,10 @@ namespace Engine
 
     ScriptDebuggerClient& ScriptDebuggerClient::open_script(const ScriptFunction& function)
     {
-        StringView name = function.module_name();
-
-        if (m_current_editor && m_current_editor->m_script->module().name() == name)
-        {
-            m_current_editor->m_need_focus = true;
-            return *this;
-        }
-
-        return open_script(name);
+        Script* script = function.module().script();
+        if (script)
+            return open_script(script);
+        return *this;
     }
 
     ScriptDebuggerClient& ScriptDebuggerClient::close_editor(const String& path, Editor& editor)
@@ -1014,7 +1012,11 @@ namespace Engine
         auto line = ScriptContext::line_position().y;
         auto func = ScriptContext::function();
 
-        auto editor = m_text_editors.find(String(func.module_name()));
+        Script* script = func.module().script();
+        if (script == nullptr)
+            return false;
+
+        auto editor = m_text_editors.find(script->path().str());
         if (editor == m_text_editors.end())
             return false;
 

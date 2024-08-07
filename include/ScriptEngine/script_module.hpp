@@ -48,8 +48,8 @@ namespace Engine
         const char* default_namespace();
 
         // Functions
-        Counter functions_count() const;
-        ScriptFunction function_by_index(Index index) const;
+        uint_t functions_count() const;
+        ScriptFunction function_by_index(uint_t index) const;
         ScriptFunction function_by_decl(const char* decl) const;
         ScriptFunction function_by_name(const char* name) const;
         ScriptFunction function_by_decl(const String& decl) const;
@@ -57,7 +57,7 @@ namespace Engine
         bool remove_function(const ScriptFunction& function);
 
         // Global variables
-        Counter global_var_count() const;
+        uint_t global_var_count() const;
         int_t global_var_index_by_name(const char* name) const;
         int_t global_var_index_by_decl(const char* decl) const;
         int_t global_var_index_by_name(const String& name) const;
@@ -88,6 +88,8 @@ namespace Engine
         // Typedefs
         uint_t typedef_count() const;
         ScriptTypeInfo typedef_by_index(uint_t index) const;
+
+        class Script* script() const;
 
         friend class ScriptEngine;
         friend class ScriptTypeInfo;

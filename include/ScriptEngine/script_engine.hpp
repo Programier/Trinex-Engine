@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <ScriptEngine/script_enums.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
@@ -48,6 +49,8 @@ namespace Engine
             DestroyGarbage = 4,
             DetectGarbage  = 8
         };
+
+        static bool exception_on_error;
 
         static ScriptEngine& initialize();
         static ScriptEngine& instance();

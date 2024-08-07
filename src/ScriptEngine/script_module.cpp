@@ -1,3 +1,4 @@
+#include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -112,13 +113,13 @@ namespace Engine
         return m_module->GetDefaultNamespace();
     }
 
-    Counter ScriptModule::functions_count() const
+    uint_t ScriptModule::functions_count() const
     {
         return static_cast<Counter>(m_module->GetFunctionCount());
     }
 
 
-    ScriptFunction ScriptModule::function_by_index(Index index) const
+    ScriptFunction ScriptModule::function_by_index(uint_t index) const
     {
         return ScriptFunction(m_module->GetFunctionByIndex(index));
     }
@@ -155,7 +156,7 @@ namespace Engine
         return false;
     }
 
-    Counter ScriptModule::global_var_count() const
+    uint_t ScriptModule::global_var_count() const
     {
         return static_cast<Counter>(m_module->GetGlobalVarCount());
     }
@@ -292,6 +293,15 @@ namespace Engine
         return ScriptTypeInfo(m_module->GetTypedefByIndex(index));
     }
 
+    class Script* ScriptModule::script() const
+    {
+        if (m_module)
+        {
+            return reinterpret_cast<Script*>(m_module->GetUserData(Constants::script_userdata_id));
+        }
+        return nullptr;
+    }
+
 
     bool script_global_var(const ScriptModule* self, uint_t index, ScriptPointer* name, ScriptPointer* name_space,
                            Integer32* type_id, Boolean* is_const)
@@ -337,14 +347,14 @@ namespace Engine
         registrar.method("ScriptModule& name(const string& in name)",
                          method_of<ScriptModule&, const String&>(&ScriptModule::name));
         registrar.method("StringView name() const", &ScriptModule::name);
-        registrar.method("uint64 functions_count() const", &ScriptModule::functions_count);
-        registrar.method("ScriptFunction function_by_index(uint64 index) const", &ScriptModule::function_by_index);
+        registrar.method("uint functions_count() const", &ScriptModule::functions_count);
+        registrar.method("ScriptFunction function_by_index(uint index) const", &ScriptModule::function_by_index);
         registrar.method("ScriptFunction function_by_decl(const string& in decl) const",
                          method_of<ScriptFunction, const String&>(&ScriptModule::function_by_decl));
         registrar.method("ScriptFunction function_by_name(const string& in name) const",
                          method_of<ScriptFunction, const String&>(&ScriptModule::function_by_name));
 
-        registrar.method("uint64 global_var_count() const", &ScriptModule::global_var_count);
+        registrar.method("uint global_var_count() const", &ScriptModule::global_var_count);
         registrar.method("int global_var_index_by_name(const string& in) const",
                          method_of<int_t, const String&>(&ScriptModule::global_var_index_by_name));
         registrar.method("int global_var_index_by_decl(const string& in) const",

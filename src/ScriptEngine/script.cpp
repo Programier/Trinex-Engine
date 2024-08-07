@@ -6,7 +6,10 @@
 #include <Engine/project.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <ScriptEngine/script_type_info.hpp>
+#include <scriptbuilder.h>
 
 namespace Engine
 {
@@ -15,6 +18,11 @@ namespace Engine
         if (parent)
         {
             parent->m_folders.insert_or_assign(name, this);
+            m_path = m_parent->path() / name;
+        }
+        else
+        {
+            m_path = name;
         }
     }
 
@@ -39,6 +47,30 @@ namespace Engine
         {
             delete script.second;
         }
+    }
+
+    ScriptFolder& ScriptFolder::on_path_changed()
+    {
+        if (m_parent)
+        {
+            m_path = m_parent->path() / m_name;
+        }
+        else
+        {
+            m_path = m_name;
+        }
+
+        for (auto& [name, script] : m_scripts)
+        {
+            script->on_path_changed();
+        }
+
+        for (auto& [name, folder] : m_folders)
+        {
+            folder->on_path_changed();
+        }
+
+        return *this;
     }
 
     const TreeMap<String, Script*>& ScriptFolder::scripts() const
@@ -136,22 +168,92 @@ namespace Engine
         return m_name;
     }
 
-    Path ScriptFolder::path() const
+    const Path& ScriptFolder::path() const
     {
-        if (m_parent)
-        {
-            return m_parent->path() / m_name;
-        }
-        return m_name;
+        return m_path;
     }
 
-    Script::Script(ScriptFolder* folder, const String& name) : m_name(name), m_folder(folder), m_is_dirty(false)
+
+    class Script::Builder : public CScriptBuilder
+    {
+    public:
+        static TreeSet<String> parse_metadata(const std::map<int, std::vector<std::string>>& in_map, int type_id)
+        {
+            TreeSet<String> result;
+
+            auto it = in_map.find(type_id);
+            if (it == in_map.end())
+                return result;
+
+            for (auto& ell : it->second)
+            {
+                result.insert(ell);
+            }
+
+            return result;
+        }
+
+        static TreeMap<int_t, TreeSet<String>> parse_metadata(const std::map<int, std::vector<std::string>>& in_map)
+        {
+            TreeMap<int_t, TreeSet<String>> result;
+
+            for (auto& [type_id, metadata] : in_map)
+            {
+                result[type_id] = parse_metadata(in_map, type_id);
+            }
+
+            return result;
+        }
+
+        TreeMap<int_t, TreeSet<String>> type_metadata_map() const
+        {
+            return parse_metadata(typeMetadataMap);
+        }
+
+        TreeMap<int_t, TreeSet<String>> func_metadata_map()
+        {
+            return parse_metadata(funcMetadataMap);
+        }
+
+        TreeMap<int_t, TreeSet<String>> var_metadata_map()
+        {
+            return parse_metadata(varMetadataMap);
+        }
+
+        TreeMap<int_t, Script::ClassMetadata> class_metadata_map()
+        {
+            TreeMap<int_t, Script::ClassMetadata> result;
+
+            for (auto& [type_id, metadata] : classMetadataMap)
+            {
+                auto info = ScriptEngine::type_info_by_id(type_id);
+                if (!info.is_valid())
+                    continue;
+
+                auto& result_metadata             = result[type_id];
+                result_metadata.type_info         = info;
+                result_metadata.class_metadata    = parse_metadata(typeMetadataMap, type_id);
+                result_metadata.func_metadata_map = parse_metadata(metadata.funcMetadataMap);
+                result_metadata.prop_metadata_map = parse_metadata(metadata.varMetadataMap);
+            }
+            return result;
+        }
+    };
+
+    Script::Script(ScriptFolder* folder, const String& name)
+        : m_path(folder->path() / name), m_name(name), m_folder(folder), m_is_dirty(false)
     {}
 
     Script::~Script()
     {
         m_module.discard();
         m_folder->m_scripts.erase(m_name);
+    }
+
+    Script& Script::on_path_changed()
+    {
+        m_path = m_folder->path() / m_name;
+        return *this;
     }
 
     const String& Script::name() const
@@ -176,9 +278,9 @@ namespace Engine
         return m_is_dirty;
     }
 
-    Path Script::path() const
+    const Path& Script::path() const
     {
-        return m_folder->path() / m_name;
+        return m_path;
     }
 
     bool Script::load()
@@ -215,27 +317,242 @@ namespace Engine
         return false;
     }
 
-    bool Script::build()
+    Script& Script::load_metadata(Builder& builder)
     {
+        m_func_metadata_map  = builder.func_metadata_map();
+        m_var_metadata_map   = builder.var_metadata_map();
+        m_class_metadata_map = builder.class_metadata_map();
+        return *this;
+    }
+
+    bool Script::build(bool exception_on_error)
+    {
+        Builder builder;
+
+        const bool old_exception_on_error = ScriptEngine::exception_on_error;
+        ScriptEngine::exception_on_error  = exception_on_error;
+
+        if (builder.StartNewModule(ScriptEngine::engine(), "__TRINEX_TEMPORARY_BUILD_MODULE__") < 0)
+        {
+            error_log("Script", "Failed to start new module!");
+            return false;
+        }
+
+        if (builder.AddSectionFromMemory(path().c_str(), m_code.data(), m_code.size()) < 0)
+        {
+            error_log("Script", "Failed to add script section!");
+            return false;
+        }
+
+        if (builder.BuildModule() < 0)
+        {
+            return false;
+        }
+
+        ScriptEngine::exception_on_error = old_exception_on_error;
+
         if (m_module.is_valid())
             m_module.discard();
 
-        m_module = ScriptModule(path().c_str());
-        m_module.add_script_section("Code", m_code.data(), m_code.size());
+        m_module = builder.GetModule();
+        m_module.name(path().str());
+        m_module.as_module()->SetUserData(this, Constants::script_userdata_id);
+        load_metadata(builder);
 
-        bool result = m_module.build();
-
-        if (result)
-        {
-            on_build(this);
-        }
-
-        return result;
+        on_build(this);
+        return true;
     }
 
-    ScriptModule Script::module() const
+    // Metadata
+
+    const TreeMap<int_t, TreeSet<String>>& Script::func_metadata_map() const
     {
-        return m_module;
+        return m_func_metadata_map;
+    }
+
+    const TreeMap<int_t, TreeSet<String>>& Script::var_metadata_map() const
+    {
+        return m_var_metadata_map;
+    }
+
+    const TreeMap<int_t, Script::ClassMetadata>& Script::class_metadata_map() const
+    {
+        return m_class_metadata_map;
+    }
+
+    const TreeSet<String>& Script::ClassMetadata::metadata_for_func(const ScriptFunction& func) const
+    {
+        auto it = func_metadata_map.find(func.id());
+        if (it != func_metadata_map.end())
+            return it->second;
+        return default_value_of<TreeSet<String>>();
+    }
+
+    const TreeSet<String>& Script::ClassMetadata::metadata_for_var(uint_t prop_index) const
+    {
+        auto it = prop_metadata_map.find(prop_index);
+        if (it != prop_metadata_map.end())
+            return it->second;
+        return default_value_of<TreeSet<String>>();
+    }
+
+    const TreeSet<String>& Script::metadata_for_func(const ScriptFunction& func) const
+    {
+        auto it = m_func_metadata_map.find(func.id());
+        if (it != m_func_metadata_map.end())
+            return it->second;
+        return default_value_of<TreeSet<String>>();
+    }
+
+    const TreeSet<String>& Script::metadata_for_var(uint_t var_index) const
+    {
+        auto it = m_var_metadata_map.find(var_index);
+        if (it != m_var_metadata_map.end())
+            return it->second;
+        return default_value_of<TreeSet<String>>();
+    }
+
+    const Script::ClassMetadata& Script::metadata_for_class(const ScriptTypeInfo& info) const
+    {
+        auto it = m_class_metadata_map.find(info.type_id());
+        if (it != m_class_metadata_map.end())
+            return it->second;
+        return default_value_of<ClassMetadata>();
+    }
+
+    // Functions
+    uint_t Script::functions_count() const
+    {
+        return m_module.functions_count();
+    }
+
+    ScriptFunction Script::function_by_index(uint_t index) const
+    {
+        return m_module.function_by_index(index);
+    }
+
+    ScriptFunction Script::function_by_decl(const char* decl) const
+    {
+        return m_module.function_by_decl(decl);
+    }
+
+    ScriptFunction Script::function_by_name(const char* name) const
+    {
+        return m_module.function_by_name(name);
+    }
+
+    ScriptFunction Script::function_by_decl(const String& decl) const
+    {
+        return m_module.function_by_decl(decl);
+    }
+
+    ScriptFunction Script::function_by_name(const String& name) const
+    {
+        return m_module.function_by_name(name);
+    }
+
+    // Global variables
+    uint_t Script::global_var_count() const
+    {
+        return m_module.global_var_count();
+    }
+
+    int_t Script::global_var_index_by_name(const char* name) const
+    {
+        return m_module.global_var_index_by_name(name);
+    }
+
+    int_t Script::global_var_index_by_decl(const char* decl) const
+    {
+        return m_module.global_var_index_by_decl(decl);
+    }
+
+    int_t Script::global_var_index_by_name(const String& name) const
+    {
+        return m_module.global_var_index_by_name(name);
+    }
+
+    int_t Script::global_var_index_by_decl(const String& decl) const
+    {
+        return m_module.global_var_index_by_decl(decl);
+    }
+
+    bool Script::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
+    {
+        return m_module.global_var(index, name, name_space, type_id, is_const);
+    }
+
+    String Script::global_var_declaration(uint_t index, bool include_namespace) const
+    {
+        return m_module.global_var_declaration(index, include_namespace);
+    }
+
+    void* Script::address_of_global_var(uint_t index)
+    {
+        return m_module.address_of_global_var(index);
+    }
+
+    // Type identification
+    uint_t Script::object_type_count() const
+    {
+        return m_module.object_type_count();
+    }
+
+    ScriptTypeInfo Script::object_type_by_index(uint_t index) const
+    {
+        return m_module.object_type_by_index(index);
+    }
+
+    int_t Script::type_id_by_decl(const char* decl) const
+    {
+        return m_module.type_id_by_decl(decl);
+    }
+
+    int_t Script::type_id_by_decl(const String& decl) const
+    {
+        return m_module.type_id_by_decl(decl);
+    }
+
+    ScriptTypeInfo Script::type_info_by_name(const char* name) const
+    {
+        return m_module.type_info_by_name(name);
+    }
+
+    ScriptTypeInfo Script::type_info_by_decl(const char* decl) const
+    {
+        return m_module.type_info_by_decl(decl);
+    }
+
+    ScriptTypeInfo Script::type_info_by_name(const String& name) const
+    {
+        return m_module.type_info_by_name(name);
+    }
+
+    ScriptTypeInfo Script::type_info_by_decl(const String& decl) const
+    {
+        return m_module.type_info_by_decl(decl);
+    }
+
+    // Enums
+    uint_t Script::enum_count() const
+    {
+        return m_module.enum_count();
+    }
+
+    ScriptTypeInfo Script::enum_by_index(uint_t index) const
+    {
+        return m_module.enum_by_index(index);
+    }
+
+    // Typedefs
+    uint_t Script::typedef_count() const
+    {
+        return m_module.typedef_count();
+    }
+
+    ScriptTypeInfo Script::typedef_by_index(uint_t index) const
+    {
+        return m_module.typedef_by_index(index);
     }
 
     static void static_load_scripts(ScriptFolder* folder)
