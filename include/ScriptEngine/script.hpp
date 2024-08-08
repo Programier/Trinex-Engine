@@ -75,6 +75,8 @@ namespace Engine
 
     public:
         CallBacks<void(Script*)> on_build;
+        CallBacks<void(Script*)> on_discard;
+        CallBacks<void(Script*)> on_exception;
 
         const String& name() const;
         const String& code() const;

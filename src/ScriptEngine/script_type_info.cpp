@@ -429,12 +429,6 @@ namespace Engine
         return ScriptEngine::is_handle_type(type_id());
     }
 
-
-    ScriptTypeInfo::operator bool() const
-    {
-        return is_valid();
-    }
-
     ScriptTypeInfo::~ScriptTypeInfo()
     {
         release();

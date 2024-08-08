@@ -352,7 +352,10 @@ namespace Engine
         ScriptEngine::exception_on_error = old_exception_on_error;
 
         if (m_module.is_valid())
+        {
+            on_discard(this);
             m_module.discard();
+        }
 
         m_module = builder.GetModule();
         m_module.name(path().str());

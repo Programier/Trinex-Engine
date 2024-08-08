@@ -97,7 +97,7 @@ namespace Engine
                 }
                 ImGui::Spring(0.f);
 
-                if (ImGui::BeginCombo("editor/Function"_localized, m_function ? m_function.name().data() : ""))
+                if (ImGui::BeginCombo("editor/Function"_localized, m_function.is_valid() ? m_function.name().data() : ""))
                 {
                     render_function_combo_box();
                     ImGui::EndCombo();
@@ -116,7 +116,7 @@ namespace Engine
 
                     if (ImGui::Button("editor/Execute"_localized))
                     {
-                        if (m_function)
+                        if (m_function.is_valid())
                         {
                             logic_thread()->call_function([func = m_function]() { ScriptContext::execute(func); });
                         }
@@ -499,11 +499,11 @@ namespace Engine
                 {
                     if (info.property(i, &prop_name, &prop_type_id, nullptr, nullptr, &offset))
                     {
-                        if (ScriptEngine::is_object_type(prop_type_id, true))
-                        {
-                            draw_variable("", prop_name, prop_type_id, *reinterpret_cast<byte**>(object_address + offset));
-                        }
-                        else
+                        // if (ScriptEngine::is_object_type(prop_type_id, true))
+                        // {
+                        //     draw_variable("", prop_name, prop_type_id, *reinterpret_cast<byte**>(object_address + offset));
+                        // }
+                        // else
                         {
                             draw_variable("", prop_name, prop_type_id, object_address + offset);
                         }

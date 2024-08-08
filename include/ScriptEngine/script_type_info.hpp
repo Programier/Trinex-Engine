@@ -96,8 +96,6 @@ namespace Engine
         bool is_object(bool handle_is_object = false) const;
         bool is_handle() const;
 
-        operator bool() const;
-
         ~ScriptTypeInfo();
     };
 }// namespace Engine

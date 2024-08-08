@@ -28,7 +28,7 @@ namespace Engine
         mutable int_t m_type_id;
 
         bool check_type(int_t mask) const;
-        const ScriptVariableBase& add_ref() const;
+        virtual const ScriptVariableBase& add_ref() const;
 
     public:
         ScriptVariableBase();
@@ -39,7 +39,7 @@ namespace Engine
         bool operator==(const ScriptVariableBase& other) const;
         bool operator!=(const ScriptVariableBase& other) const;
 
-        const ScriptVariableBase& release() const;
+        virtual const ScriptVariableBase& release() const;
 
         bool assign(const ScriptVariableBase& other);
         bool assign(void* address, bool is_object_address_for_handle = false);
@@ -83,8 +83,8 @@ namespace Engine
         using ScriptVariableBase::create;
         bool create(const ScriptVariableBase& other);
         bool create(int_t type_id, bool is_uninitialized = false);
-        bool create(const char* type_declaration);
-        bool create(const char* type_declaration, const char* module);
+        bool create(const char* type_declaration, bool is_uninitialized = false);
+        bool create(const char* type_declaration, const char* module, bool is_uninitialized = false);
         bool create(void* src_address, int_t type_id, bool is_object_address_for_handle = false);
         bool create(void* src_address, const char* type_declaration, bool is_object_address_for_handle = false);
         bool create(void* src_address, const char* type_declaration, const char* module,

@@ -67,6 +67,7 @@ namespace Engine
         m_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
         m_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
         m_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
+        m_engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
         m_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
 
 #if ARCH_X86_64 || ARCH_ARM
@@ -623,7 +624,7 @@ namespace Engine
         if (!info.is_valid())
             return Strings::format("{}", reinterpret_cast<const void*>(address));
 
-        if (info.funcdef_signature())
+        if (info.funcdef_signature().is_valid())
         {
             auto func = *reinterpret_cast<const asIScriptFunction* const*>(address);
             if (func == nullptr)

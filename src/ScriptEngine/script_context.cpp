@@ -1,10 +1,12 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
+#include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_handle.hpp>
+#include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_primitives.hpp>
 #include <angelscript.h>
@@ -30,10 +32,29 @@ namespace Engine
             m_callback(userdata);
     }
 
+    static void script_exception_callback(asIScriptContext* ctx, void* object)
+    {
+        ScriptFunction function      = ctx->GetExceptionFunction();
+        const char* exception_string = ctx->GetExceptionString();
+        int_t column                 = 0;
+        const int_t line             = ctx->GetExceptionLineNumber(&column);
+
+        Script* script = function.module().script();
+
+        if (script)
+        {
+            error_log("ScriptEngine", "Script Exception: %s (Line: %d, Column: %d): %s", script->path().c_str(), line, column,
+                      exception_string);
+            script->on_exception(script);
+        }
+    }
+
     void ScriptContext::initialize()
     {
         m_context = ScriptEngine::engine()->RequestContext();
         m_context->AddRef();
+
+        m_context->SetExceptionCallback(asFUNCTION(script_exception_callback), nullptr, asCALL_CDECL);
     }
 
     void ScriptContext::terminate()

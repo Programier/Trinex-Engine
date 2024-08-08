@@ -268,12 +268,12 @@ namespace Engine
 
     bool ScriptVariableBase::is_object(bool сonsider_handle_as_object) const
     {
-        return (m_type_id & asTYPEID_MASK_OBJECT) && (сonsider_handle_as_object ? true : !is_handle());
+        return ScriptEngine::is_object_type(m_type_id, сonsider_handle_as_object);
     }
 
     bool ScriptVariableBase::is_handle() const
     {
-        return (m_type_id & asTYPEID_MASK_OBJECT) && (m_type_id & asTYPEID_OBJHANDLE);
+        return ScriptEngine::is_handle_type(m_type_id);
     }
 
     void* ScriptVariableBase::address() const
@@ -449,7 +449,7 @@ namespace Engine
         return create(other.address(), other.type_id(), true);
     }
 
-    bool ScriptVariable::create(const char* type_declaration)
+    bool ScriptVariable::create(const char* type_declaration, bool is_uninitialized)
     {
         int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
         if (type_id < 0)
@@ -457,10 +457,10 @@ namespace Engine
             error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
             return false;
         }
-        return create(type_id);
+        return create(type_id, is_uninitialized);
     }
 
-    bool ScriptVariable::create(const char* type_declaration, const char* module)
+    bool ScriptVariable::create(const char* type_declaration, const char* module, bool is_uninitialized)
     {
         int_t type_id = find_type_id_internal(type_declaration, module);
         if (type_id < 0)
@@ -468,7 +468,7 @@ namespace Engine
             error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
             return false;
         }
-        return create(type_id);
+        return create(type_id, is_uninitialized);
     }
 
     bool ScriptVariable::is_bool() const

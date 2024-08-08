@@ -19,7 +19,7 @@ namespace Engine
             GC                       = (1 << 2),
             POD                      = (1 << 3),
             NoHandle                 = (1 << 4),
-            Scopen                   = (1 << 5),
+            Scoped                   = (1 << 5),
             Template                 = (1 << 6),
             AsHandle                 = (1 << 7),
             AppClass                 = (1 << 8),
