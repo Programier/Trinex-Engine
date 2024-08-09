@@ -29,9 +29,8 @@ namespace Engine
         if (initialized)
             return;
 
-        ScriptEngine::NamespaceSaverScoped ns_saver;
+        ScriptNamespaceScopedChanger changer("Engine::Project");
 
-        ScriptEngine::default_namespace("Engine::Project");
 #define register_var(name) ScriptEngine::register_property("string " #name, &Project::name)
 
         register_var(name);

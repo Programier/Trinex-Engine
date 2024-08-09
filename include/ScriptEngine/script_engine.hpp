@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/engine_types.hpp>
-#include <ScriptEngine/script_enums.hpp>
+#include <Core/enums.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
 
 class asIScriptEngine;
@@ -15,6 +14,18 @@ namespace Engine
     class ScriptTypeInfo;
     class ScriptObject;
     class ScriptFunction;
+
+    class ENGINE_EXPORT ScriptNamespaceScopedChanger final
+    {
+        String m_prev_namespace;
+
+    public:
+        ScriptNamespaceScopedChanger();
+        ScriptNamespaceScopedChanger(const char* new_namespace);
+        ScriptNamespaceScopedChanger(const String& new_namespace);
+        const String& saved_namespace() const;
+        ~ScriptNamespaceScopedChanger();
+    };
 
     class ENGINE_EXPORT ScriptEngine
     {
@@ -33,15 +44,6 @@ namespace Engine
         static ScriptEngine& destroy_script_object(ScriptObjectAddress, const ScriptTypeInfo& info);
 
     public:
-        class ENGINE_EXPORT NamespaceSaverScoped final
-        {
-            String m_ns;
-
-        public:
-            NamespaceSaverScoped();
-            ~NamespaceSaverScoped();
-        };
-
         enum GarbageCollectFlags
         {
             FullCycle      = 1,
@@ -59,7 +61,7 @@ namespace Engine
 
         static ScriptEngine& default_namespace(const String& name);
         static ScriptEngine& default_namespace(const char* ns);
-        static String default_namespace();
+        static StringView default_namespace();
         static int_t register_property(const char* declaration, void* data);
         static int_t register_property(const String& declaration, void* data);
         static ScriptModule create_module(const String& name, EnumerateType flags = 0);
@@ -137,9 +139,9 @@ namespace Engine
         // Functions register
 
         static ScriptEngine& register_function(const char* declaration, ScriptFuncPtr* func,
-                                               ScriptCallConv conv = ScriptCallConv::CDECL);
+                                               ScriptCallConv conv = ScriptCallConv::CDecl);
         static ScriptEngine& register_function(const String& declaration, ScriptFuncPtr* func,
-                                               ScriptCallConv conv = ScriptCallConv::CDECL);
+                                               ScriptCallConv conv = ScriptCallConv::CDecl);
 
         // Variable to string
         static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);
@@ -149,14 +151,14 @@ namespace Engine
 
         template<typename ReturnValue, typename... Args>
         static ScriptEngine& register_function(const char* declaration, ReturnValue (*func)(Args...),
-                                               ScriptCallConv conv = ScriptCallConv::CDECL)
+                                               ScriptCallConv conv = ScriptCallConv::CDecl)
         {
             return register_function(declaration, ScriptFuncPtr::function_ptr(func), conv);
         }
 
         template<typename ReturnValue, typename... Args>
         static ScriptEngine& register_function(const String& declaration, ReturnValue (*func)(Args...),
-                                               ScriptCallConv conv = ScriptCallConv::CDECL)
+                                               ScriptCallConv conv = ScriptCallConv::CDecl)
         {
             return register_function(declaration.c_str(), func, conv);
         }

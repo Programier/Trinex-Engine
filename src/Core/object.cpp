@@ -52,32 +52,30 @@ namespace Engine
 
         if (!self->flags(Class::IsSingletone))
         {
-            registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor(), ScriptCallConv::CDECL);
+            registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor(), ScriptCallConv::CDecl);
         }
 
-        registrar->require_type("Engine::Package");
-
-        registrar->behave(ScriptClassBehave::AddRef, "void f()", add_object_reference, ScriptCallConv::CDECL_OBJFIRST)
-                .behave(ScriptClassBehave::Release, "void f()", remove_object_reference, ScriptCallConv::CDECL_OBJFIRST)
-                .method("const string& string_name() const", &Object::string_name)
-                .method("Engine::ObjectRenameStatus name(StringView, bool = false)",
-                        method_of<ObjectRenameStatus, StringView, bool>(&Object::name))
-                .static_function("Package@ root_package()", &Object::root_package)
-                .method("string as_string() const", &Object::as_string)
-                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
-                .static_function("Package@ find_package(StringView, bool)",
-                                 func_of<Package*(StringView, bool)>(&Object::find_package))
-                .static_function("Object@ static_find_object(const StringView&)",
-                                 func_of<Object*(const StringView&)>(&Object::find_object))
-                .method("Object& remove_from_package()", &Object::remove_from_package)
-                .method("const Name& name() const", method_of<const Name&>(&Object::name))
-                .method("string opConv() const", &Object::as_string)
-                .method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
-                        ScriptCallConv::CDECL_OBJFIRST)
-                .method("Object@ postload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
-                        ScriptCallConv::CDECL_OBJFIRST)
-                .method("Engine::Class@ class_instance() const",
-                        func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
+        registrar->behave(ScriptClassBehave::AddRef, "void f()", add_object_reference, ScriptCallConv::CDeclObjFirst)
+                .behave(ScriptClassBehave::Release, "void f()", remove_object_reference, ScriptCallConv::CDeclObjFirst);
+        // .method("const string& string_name() const", &Object::string_name)
+        // .method("Engine::ObjectRenameStatus name(StringView, bool = false)",
+        //         method_of<ObjectRenameStatus, StringView, bool>(&Object::name))
+        // .static_function("Package@ root_package()", &Object::root_package)
+        // .method("string as_string() const", &Object::as_string)
+        // .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
+        // .static_function("Package@ find_package(StringView, bool)",
+        //                  func_of<Package*(StringView, bool)>(&Object::find_package))
+        // .static_function("Object@ static_find_object(const StringView&)",
+        //                  func_of<Object*(const StringView&)>(&Object::find_object))
+        // .method("Object& remove_from_package()", &Object::remove_from_package)
+        // .method("const Name& name() const", method_of<const Name&>(&Object::name))
+        // .method("string opConv() const", &Object::as_string)
+        // .method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
+        //         ScriptCallConv::CDECL_OBJFIRST)
+        // .method("Object@ postload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
+        //         ScriptCallConv::CDECL_OBJFIRST)
+        // .method("Engine::Class@ class_instance() const",
+        //         func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
     }
 
 
@@ -87,8 +85,6 @@ namespace Engine
                 .set("Skipped", static_cast<int_t>(ObjectRenameStatus::Skipped))
                 .set("Success", static_cast<int_t>(ObjectRenameStatus::Success))
                 .set("Failed", static_cast<int_t>(ObjectRenameStatus::Failed));
-
-        static_class_instance()->set_script_registration_callback(register_object_to_script);
     }
 
     void Object::prepare_next_object_allocation()

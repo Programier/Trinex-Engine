@@ -253,7 +253,7 @@ namespace Engine
 
     implement_engine_class(EventSystem, Class::IsScriptable)
     {
-        static_class_instance()->set_script_registration_callback(init_script_class);
+
     }
 
 

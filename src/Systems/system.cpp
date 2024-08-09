@@ -297,7 +297,6 @@ namespace Engine
     implement_engine_class(System, Class::IsScriptable)
     {
         Class* self = static_class_instance();
-        self->set_script_registration_callback(bind_to_script);
         self->on_destroy.push(on_system_destroy);
     }
 }// namespace Engine

@@ -126,36 +126,20 @@ namespace Engine
         return m_singletone_object;
     }
 
-    Class& Class::set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>& callback)
-    {
-        m_script_register_callback = callback;
-        return *this;
-    }
-
     Class& Class::post_initialize()
     {
         if (is_scriptable())
         {
-            ScriptClassRegistrar registrar(this);
-            List<Class*> stack;
+            // while (!stack.empty())
+            // {
+            //     current = stack.back();
+            //     if (current->m_script_register_callback)
+            //     {
+            //         current->m_script_register_callback(&registrar, this);
+            //     }
 
-            Class* current = this;
-            while (current)
-            {
-                stack.push_back(current);
-                current = current->parent();
-            }
-
-            while (!stack.empty())
-            {
-                current = stack.back();
-                if (current->m_script_register_callback)
-                {
-                    current->m_script_register_callback(&registrar, this);
-                }
-
-                stack.pop_back();
-            }
+            //     stack.pop_back();
+            // }
         }
         return *this;
     }
@@ -175,6 +159,30 @@ namespace Engine
         return get_asset_class_table();
     }
 
+    const TreeMap<String, Class::MethodInfo>& Class::methods_info() const
+    {
+        return m_methods;
+    }
+
+    Class& Class::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
+    {
+        auto& info       = m_methods[declaration];
+        info.declaration = declaration;
+        info.conv        = conv;
+        info.method      = method;
+        return *this;
+    }
+
+    Class& Class::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
+    {
+        auto& info       = m_methods[declaration];
+        info.declaration = declaration;
+        info.conv        = conv;
+        info.function    = function;
+        return *this;
+    }
+
+
     Class::~Class()
     {
         if (Class* parent_class = parent())
@@ -185,21 +193,21 @@ namespace Engine
 
     static void on_init()
     {
-        ScriptClassRegistrar::ClassInfo info;
-        info.size  = sizeof(Class);
-        info.flags = ScriptClassRegistrar::Ref | ScriptClassRegistrar::NoCount;
-        ScriptClassRegistrar("Engine::Class", info)
-                .require_types<Object>()
-                .method("Class@ parent() const", &Class::parent)
-                .method("const string& name() const", &Class::name)
-                .method("const string& namespace_name() const", &Class::namespace_name)
-                .method("const string& base_name() const", &Class::base_name)
-                .method("Object@ create_object() const", &Class::create_object)
-                .static_function("Class@ static_find(const string& in)", Class::static_find)
-                .method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a))
-                .method("uint64 sizeof_class() const", &Class::sizeof_class)
-                .method("bool is_binded_to_script() const", &Class::is_scriptable)
-                .method("Object@ singletone_instance() const", &Class::singletone_instance);
+        // ScriptClassRegistrar::ClassInfo info;
+        // info.size  = sizeof(Class);
+        // info.flags = ScriptClassRegistrar::Ref | ScriptClassRegistrar::NoCount;
+        // ScriptClassRegistrar("Engine::Class", info)
+        //         .require_types<Object>()
+        //         .method("Class@ parent() const", &Class::parent)
+        //         .method("const string& name() const", &Class::name)
+        //         .method("const string& namespace_name() const", &Class::namespace_name)
+        //         .method("const string& base_name() const", &Class::base_name)
+        //         .method("Object@ create_object() const", &Class::create_object)
+        //         .static_function("Class@ static_find(const string& in)", Class::static_find)
+        //         .method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a))
+        //         .method("uint64 sizeof_class() const", &Class::sizeof_class)
+        //         .method("bool is_binded_to_script() const", &Class::is_scriptable)
+        //         .method("Object@ singletone_instance() const", &Class::singletone_instance);
     }
 
     static ReflectionInitializeController initializer(on_init, "Engine::Class");

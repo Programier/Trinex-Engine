@@ -1,6 +1,5 @@
 #pragma once
-#include <Core/engine_types.hpp>
-#include <ScriptEngine/script_enums.hpp>
+#include <Core/enums.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
 
 class asIScriptEngine;
@@ -12,51 +11,97 @@ namespace Engine
     class ENGINE_EXPORT ScriptClassRegistrar
     {
     public:
-        enum ClassFlags
-        {
-            Ref                      = (1 << 0),
-            Value                    = (1 << 1),
-            GC                       = (1 << 2),
-            POD                      = (1 << 3),
-            NoHandle                 = (1 << 4),
-            Scoped                   = (1 << 5),
-            Template                 = (1 << 6),
-            AsHandle                 = (1 << 7),
-            AppClass                 = (1 << 8),
-            AppClassConstructor      = (1 << 9),
-            AppClassDestructor       = (1 << 10),
-            AppClassAssignment       = (1 << 11),
-            AppClassCopyConstructor  = (1 << 12),
-            AppClassC                = (AppClass + AppClassConstructor),
-            AppClassCD               = (AppClassC + AppClassDestructor),
-            AppClassCA               = (AppClassC + AppClassAssignment),
-            AppClassCK               = (AppClassC + AppClassCopyConstructor),
-            AppClassCDA              = (AppClassCD + AppClassAssignment),
-            AppClassCDK              = (AppClassCD + AppClassConstructor),
-            AppClassCAK              = (AppClassCA + AppClassConstructor),
-            AppClassCDAK             = (AppClassCDA + AppClassConstructor),
-            AppClassD                = (AppClass + AppClassDestructor),
-            AppClassDA               = (AppClassD + AppClassAssignment),
-            AppClassDK               = (AppClassD + AppClassCopyConstructor),
-            AppClassDAK              = (AppClassDA + AppClassConstructor),
-            AppClassA                = (AppClass + AppClassAssignment),
-            AppClassAK               = (AppClassA + AppClassCopyConstructor),
-            AppClassK                = (AppClass + AppClassCopyConstructor),
-            AppClassMoreConstructors = (1 << 31),
-            AppPrimitive             = (1 << 13),
-            AppFloat                 = (1 << 14),
-            AppArray                 = (1 << 15),
-            AppClassAllInts          = (1 << 16),
-            AppClassAllFloats        = (1 << 17),
-            NoCount                  = (1 << 18),
-            AppClassAlign8           = (1 << 19),
-            ImplicitHandle           = (1 << 20),
-            MaskValidFlags           = 0x801FFFFF,
+        struct ENGINE_EXPORT BaseInfo {
+            String template_type;
+            BitMask extra_flags = 0;
+
+            BaseInfo();
         };
 
-        struct ClassInfo {
-            BitMask flags;
-            size_t size;
+        struct ENGINE_EXPORT ValueInfo : public BaseInfo {
+            bool all_ints : 1;
+            bool all_floats : 1;
+            bool pod : 1;
+            bool more_constructors : 1;
+            bool is_class : 1;
+            bool is_array : 1;
+            bool is_float : 1;
+            bool is_primitive : 1;
+            bool has_constructor : 1;
+            bool has_destructor : 1;
+            bool has_assignment_operator : 1;
+            bool has_copy_constructor : 1;
+
+            ValueInfo();
+
+            template<typename T>
+            static ValueInfo from(ValueInfo info = ValueInfo())
+            {
+#if defined(_MSC_VER) || defined(_LIBCPP_TYPE_TRAITS) || (__GNUC__ >= 5) || (defined(__clang__) && !defined(CLANG_PRE_STANDARD))
+                // MSVC, XCode/Clang, and gnuc 5+
+                // C++11 compliant code
+                constexpr bool has_constructor =
+                        std::is_default_constructible<T>::value && !std::is_trivially_default_constructible<T>::value;
+                constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
+                constexpr bool has_assignment_operator =
+                        std::is_copy_assignable<T>::value && !std::is_trivially_copy_assignable<T>::value;
+                constexpr bool has_copy_constructor =
+                        std::is_copy_constructible<T>::value && !std::is_trivially_copy_constructible<T>::value;
+#elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                                         \
+        (defined(__clang__) && defined(CLANG_PRE_STANDARD))
+                // gnuc 4.8 is using a mix of C++11 standard and pre-standard templates
+                constexpr bool has_constructor =
+                        std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
+                constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
+                constexpr bool has_assignment_operator =
+                        std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
+                constexpr bool has_copy_constructor =
+                        std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
+#else
+                constexpr bool has_constructor =
+                        std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
+                constexpr bool has_destructor = std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
+                constexpr bool has_assignment_operator =
+                        std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
+                constexpr bool has_copy_constructor =
+                        std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
+#endif
+                info.is_class                = false;
+                info.is_array                = false;
+                info.is_primitive            = false;
+                info.has_constructor         = false;
+                info.has_destructor          = false;
+                info.has_assignment_operator = false;
+
+                if (std::is_floating_point<T>::value)
+                {
+                    info.is_float = true;
+                }
+                else if (std::is_integral<T>::value || std::is_pointer<T>::value || std::is_enum<T>::value)
+                {
+                    info.is_primitive = true;
+                }
+                else if (std::is_class<T>::value)
+                {
+                    info.is_class                = true;
+                    info.has_constructor         = has_constructor;
+                    info.has_destructor          = has_destructor;
+                    info.has_assignment_operator = has_assignment_operator;
+                    info.has_copy_constructor    = has_copy_constructor;
+                }
+                else if (std::is_array<T>::value)
+                {
+                    info.is_array = true;
+                }
+                return info;
+            }
+        };
+
+        struct ENGINE_EXPORT RefInfo : public BaseInfo {
+            bool no_count : 1;
+            bool implicit_handle : 1;
+
+            RefInfo();
         };
 
         template<typename T, typename... Args>
@@ -82,63 +127,58 @@ namespace Engine
 
 
     private:
-        String m_class_base_name;
-        String m_class_namespace_name;
         String m_class_name;
-        String m_current_namespace;
-        ClassInfo m_info;
+        String m_class_base_name;
+        String m_namespace_name;
 
-        asIScriptEngine* m_engine;
 
-        static void declare_as_class(const Class* _class);
-        static void declare_as_class(const Class* _class, const ClassInfo& info);
+        ScriptClassRegistrar(const StringView& name);
+        ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags);
 
-        ScriptClassRegistrar& prepare_namespace(bool static_member = false);
-        ScriptClassRegistrar& release_namespace();
-        ScriptClassRegistrar& declare_as_class();
+        ScriptClassRegistrar& modify_name_if_template(const BaseInfo& info);
 
     public:
-        ScriptClassRegistrar(const class Class* _class);
-        ScriptClassRegistrar(const String& full_name, const ClassInfo& info = {}, const String& template_override = "");
-        const String& namespace_name() const;
-        const String& class_base_name() const;
-        const String& class_name() const;
+        static ScriptClassRegistrar value_class(const StringView& name, size_t size, const ValueInfo& info = ValueInfo());
+        static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo());
+        static ScriptClassRegistrar existing_class(const String& name);
 
-        static ENGINE_EXPORT void global_namespace_name(const String& name);
+        const String& class_name() const;
+        const String& class_base_name() const;
+        const String& namespace_name() const;
 
         // Method registration
         ScriptClassRegistrar& method(const char* declaration, ScriptMethodPtr* method,
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL);
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall);
         ScriptClassRegistrar& method(const char* declaration, ScriptFuncPtr* function,
-                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST);
+                                     ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL)
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall)
         {
             return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL)
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall)
         {
             return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename... Args>
         ScriptClassRegistrar& method(const char* declaration, ReturnType (*function_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
+                                     ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
         {
             return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv);
         }
 
         ScriptClassRegistrar& static_function(const char* declaration, ScriptFuncPtr* function,
-                                              ScriptCallConv conv = ScriptCallConv::CDECL);
+                                              ScriptCallConv conv = ScriptCallConv::CDecl);
 
         template<typename ReturnType, typename... Args>
         ScriptClassRegistrar& static_function(const char* declaration, ReturnType (*function)(Args...),
-                                              ScriptCallConv conv = ScriptCallConv::CDECL)
+                                              ScriptCallConv conv = ScriptCallConv::CDecl)
         {
             return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv);
         }
@@ -153,25 +193,17 @@ namespace Engine
         }
 
         ScriptClassRegistrar& static_property(const char* declaration, void* prop);
-        ScriptClassRegistrar& require_type(const String& name, const ClassInfo& info = {});
-
-        template<typename... Types>
-        ScriptClassRegistrar& require_types()
-        {
-            (declare_as_class(Types::static_class_instance()), ...);
-            return *this;
-        }
 
         // Behaviour registration
         ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptFuncPtr* function,
-                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST);
+                                     ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
         ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptMethodPtr* method,
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL);
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall);
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
                                      ReturnType (ClassType::*method_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL)
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall)
         {
             return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
@@ -179,15 +211,14 @@ namespace Engine
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
                                      ReturnType (ClassType::*method_address)(Args...) const,
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL)
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall)
         {
             return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename... Args>
         ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-                                     ReturnType (*function_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
+                                     ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
         {
             return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv);
         }
@@ -195,97 +226,29 @@ namespace Engine
         // Operator registration
 
         ScriptClassRegistrar& opfunc(const char* declaration, ScriptMethodPtr* method,
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL);
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall);
         ScriptClassRegistrar& opfunc(const char* declaration, ScriptFuncPtr* function,
-                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST);
+                                     ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL)
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall)
         {
             return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-                                     ScriptCallConv conv = ScriptCallConv::THISCALL)
+                                     ScriptCallConv conv = ScriptCallConv::ThisCall)
         {
             return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename... Args>
         ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (*function)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
+                                     ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
         {
             return opfunc(declaration, ScriptFuncPtr::function_ptr(function), conv);
-        }
-
-
-        template<typename T>
-        static ClassInfo create_type_info(BitMask additional_flags = 0)
-        {
-            ClassInfo info;
-#if defined(_MSC_VER) || defined(_LIBCPP_TYPE_TRAITS) || (__GNUC__ >= 5) || (defined(__clang__) && !defined(CLANG_PRE_STANDARD))
-            // MSVC, XCode/Clang, and gnuc 5+
-            // C++11 compliant code
-            constexpr bool has_constructor =
-                    std::is_default_constructible<T>::value && !std::is_trivially_default_constructible<T>::value;
-            constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
-            constexpr bool has_assignment_operator =
-                    std::is_copy_assignable<T>::value && !std::is_trivially_copy_assignable<T>::value;
-            constexpr bool has_copy_constructor =
-                    std::is_copy_constructible<T>::value && !std::is_trivially_copy_constructible<T>::value;
-#elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                                         \
-        (defined(__clang__) && defined(CLANG_PRE_STANDARD))
-            // gnuc 4.8 is using a mix of C++11 standard and pre-standard templates
-            constexpr bool has_constructor =
-                    std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
-            constexpr bool has_destructor          = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
-            constexpr bool has_assignment_operator = std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
-            constexpr bool has_copy_constructor =
-                    std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
-#else
-            // All other compilers and versions are assumed to use non C++11 compliant code until proven otherwise
-            // Not fully C++11 compliant. The has_trivial checks were used while the standard was still
-            // being elaborated, but were then removed in favor of the above is_trivially checks
-            // http://stackoverflow.com/questions/12702103/writing-code-that-works-when-has-trivial-destructor-is-defined-instead-of-is
-            // https://github.com/mozart/mozart2/issues/51
-            constexpr bool has_constructor =
-                    std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
-            constexpr bool has_destructor          = std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
-            constexpr bool has_assignment_operator = std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
-            constexpr bool has_copy_constructor =
-                    std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
-#endif
-            constexpr bool is_float     = std::is_floating_point<T>::value;
-            constexpr bool is_primitive = std::is_integral<T>::value || std::is_pointer<T>::value || std::is_enum<T>::value;
-            constexpr bool is_class     = std::is_class<T>::value;
-            constexpr bool is_array     = std::is_array<T>::value;
-
-            if constexpr (is_float)
-                info.flags = ScriptClassRegistrar::AppFloat;
-            else if (is_primitive)
-                info.flags = ScriptClassRegistrar::AppPrimitive;
-            else if (is_class)
-            {
-                BitMask flags = ScriptClassRegistrar::AppClass;
-                if (has_constructor)
-                    flags |= ScriptClassRegistrar::AppClassConstructor;
-                if (has_destructor)
-                    flags |= ScriptClassRegistrar::AppClassDestructor;
-                if (has_assignment_operator)
-                    flags |= ScriptClassRegistrar::AppClassAssignment;
-                if (has_copy_constructor)
-                    flags |= ScriptClassRegistrar::AppClassCopyConstructor;
-                info.flags = flags;
-            }
-            else if (is_array)
-                info.flags = ScriptClassRegistrar::AppArray;
-
-
-            info.size = sizeof(T);
-            info.flags |= additional_flags;
-            return info;
         }
     };
 
@@ -297,13 +260,12 @@ namespace Engine
         String m_enum_namespace_name;
         String m_current_namespace;
 
-        asIScriptEngine* m_engine;
+        ScriptEnumRegistrar& prepare_namespace();
+        ScriptEnumRegistrar& release_namespace();
 
     public:
         ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init = true);
         ScriptEnumRegistrar(const String& full_name, bool init = true);
-        ScriptEnumRegistrar& prepare_namespace();
-        ScriptEnumRegistrar& release_namespace();
 
         ScriptEnumRegistrar& set(const char* name, int_t value);
 

@@ -56,6 +56,29 @@ namespace Engine
 
     bool ScriptEngine::exception_on_error = true;
 
+
+    ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger() : m_prev_namespace(ScriptEngine::default_namespace())
+    {}
+
+    ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger(const char* new_namespace) : ScriptNamespaceScopedChanger()
+    {
+        ScriptEngine::default_namespace(new_namespace);
+    }
+
+    ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger(const String& new_namespace)
+        : ScriptNamespaceScopedChanger(new_namespace.c_str())
+    {}
+
+    const String& ScriptNamespaceScopedChanger::saved_namespace() const
+    {
+        return m_prev_namespace;
+    }
+
+    ScriptNamespaceScopedChanger::~ScriptNamespaceScopedChanger()
+    {
+        ScriptEngine::default_namespace(m_prev_namespace);
+    }
+
     ScriptEngine& ScriptEngine::initialize()
     {
         if (m_engine != nullptr)
@@ -126,23 +149,23 @@ namespace Engine
     {
         switch (conv)
         {
-            case ScriptCallConv::CDECL:
+            case ScriptCallConv::CDecl:
                 return asCALL_CDECL;
-            case ScriptCallConv::STDCALL:
+            case ScriptCallConv::StdCall:
                 return asCALL_STDCALL;
-            case ScriptCallConv::THISCALL_ASGLOBAL:
+            case ScriptCallConv::ThisCallAsGlobal:
                 return asCALL_THISCALL_ASGLOBAL;
-            case ScriptCallConv::THISCALL:
+            case ScriptCallConv::ThisCall:
                 return asCALL_THISCALL;
-            case ScriptCallConv::CDECL_OBJLAST:
+            case ScriptCallConv::CDeclObjLast:
                 return asCALL_CDECL_OBJLAST;
-            case ScriptCallConv::CDECL_OBJFIRST:
+            case ScriptCallConv::CDeclObjFirst:
                 return asCALL_CDECL_OBJFIRST;
-            case ScriptCallConv::GENERIC:
+            case ScriptCallConv::Generic:
                 return asCALL_GENERIC;
-            case ScriptCallConv::THISCALL_OBJLAST:
+            case ScriptCallConv::ThisCall_ObjLast:
                 return asCALL_THISCALL_OBJLAST;
-            case ScriptCallConv::THISCALL_OBJFIRST:
+            case ScriptCallConv::ThisCall_ObjFirst:
                 return asCALL_THISCALL_OBJFIRST;
             default:
                 throw EngineException("Undefined call convension!");
@@ -177,7 +200,7 @@ namespace Engine
         return instance();
     }
 
-    String ScriptEngine::default_namespace()
+    StringView ScriptEngine::default_namespace()
     {
         return m_engine->GetDefaultNamespace();
     }
@@ -261,15 +284,6 @@ namespace Engine
         m_engine->ReleaseScriptObject(object, info.info());
         return instance();
     }
-
-    ScriptEngine::NamespaceSaverScoped::NamespaceSaverScoped() : m_ns(ScriptEngine::instance().default_namespace())
-    {}
-
-    ScriptEngine::NamespaceSaverScoped::~NamespaceSaverScoped()
-    {
-        ScriptEngine::instance().default_namespace(m_ns);
-    }
-
 
     uint_t ScriptEngine::global_function_count()
     {
@@ -679,41 +693,12 @@ namespace Engine
 
     static void reflection_init()
     {
-        using T = ScriptEngine;
         ScriptEngine::default_namespace("Engine::ScriptEngine");
         ScriptEngine::register_function("string variable_name(const ?& in variable, bool include_namespace = true)",
-                                        variable_name_generic, ScriptCallConv::GENERIC);
-        ScriptEngine::register_function("ScriptModule module_by_index(uint index)", T::module_by_index);
-        ScriptEngine::register_function("uint module_count()", T::module_count);
-        ScriptEngine::register_function("uint global_function_count()", T::global_function_count);
-        ScriptEngine::register_function("ScriptFunction global_function_by_index(uint index)", T::global_function_by_index);
-        ScriptEngine::register_function("ScriptFunction global_function_by_decl(const string& in)",
-                                        func_of<ScriptFunction(const String&)>(T::global_function_by_decl));
-        ScriptEngine::register_function("uint object_type_count()", T::object_type_count);
-        ScriptEngine::register_function("ScriptTypeInfo object_type_by_index()", T::object_type_by_index);
-        ScriptEngine::register_function("bool exec_string(const string& in)", func_of<bool(const String&)>(T::exec_string));
-
-        ScriptEngine::register_function("uint enum_count()", T::enum_count);
-        ScriptEngine::register_function("ScriptTypeInfo enum_by_index(uint index)", T::enum_by_index);
-
-        ScriptEngine::register_function("uint funcdef_count()", T::funcdef_count);
-        ScriptEngine::register_function("ScriptTypeInfo funcdef_by_index(uint index)", T::funcdef_by_index);
-
-        ScriptEngine::register_function("uint typedef_count()", T::typedef_count);
-        ScriptEngine::register_function("ScriptTypeInfo typedef_by_index(uint index)", T::typedef_by_index);
-
-        ScriptEngine::register_function("int typeid_by_decl(const string& in)", func_of<int(const String&)>(T::type_id_by_decl));
-        ScriptEngine::register_function("ScriptTypeInfo type_info_by_id(int type_id)", T::type_info_by_id);
-
-        ScriptEngine::register_function("ScriptTypeInfo type_info_by_name(const string& in name)",
-                                        func_of<ScriptTypeInfo(const String&)>(T::type_info_by_name));
-        ScriptEngine::register_function("ScriptTypeInfo type_info_by_decl(const string& in decl)",
-                                        func_of<ScriptTypeInfo(const String&)>(T::type_info_by_decl));
+                                        variable_name_generic, ScriptCallConv::Generic);
         ScriptEngine::default_namespace("");
     }
 
     static PreInitializeController on_preinit([]() { on_init(); }, "Engine::ScriptEngine");
-    static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptEngine",
-                                                             {"Engine::ScriptModule", "Engine::ScriptFunction",
-                                                              "Engine::ScriptTypeInfo"});
+    static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptEngine");
 }// namespace Engine

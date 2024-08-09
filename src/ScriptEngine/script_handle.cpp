@@ -53,15 +53,16 @@ namespace Engine
 
     static void on_init()
     {
-        ScriptClassRegistrar::ClassInfo info;
-        info.size  = 0;
-        info.flags = ScriptClassRegistrar::Ref | ScriptClassRegistrar::Template;
+        ScriptClassRegistrar::RefInfo info;
+        info.no_count        = false;
+        info.implicit_handle = false;
+        info.template_type   = "<T>";
 
-        ScriptClassRegistrar registrar("Ptr<class T>", info, "Ptr<T>");
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class("Ptr<class T>", info);
         registrar.behave(ScriptClassBehave::Factory, "Ptr<T>@ f(int& in)",
-                         func_of<ScriptPointer*(asITypeInfo*)>(ScriptPointer::create), ScriptCallConv::CDECL);
+                         func_of<ScriptPointer*(asITypeInfo*)>(ScriptPointer::create), ScriptCallConv::CDecl);
         registrar.behave(ScriptClassBehave::Factory, "Ptr<T>@ f(int& in, T& inout)",
-                         func_of<ScriptPointer*(asITypeInfo*, void* address)>(ScriptPointer::create), ScriptCallConv::CDECL);
+                         func_of<ScriptPointer*(asITypeInfo*, void* address)>(ScriptPointer::create), ScriptCallConv::CDecl);
 
         registrar.behave(ScriptClassBehave::AddRef, "void f() const", &ScriptPointer::add_ref);
         registrar.behave(ScriptClassBehave::Release, "void f() const", &ScriptPointer::release);

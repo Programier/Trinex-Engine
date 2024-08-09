@@ -371,21 +371,7 @@ namespace Engine
         }
     }
 
-    static void bind_to_script(ScriptClassRegistrar* registrar, Class* self)
-    {
-        registrar->method("bool add_object(Object@, bool = false)", &Package::add_object)
-                .method("Package@ remove_object(Object@)", &Package::remove_object)
-                .method("Object@ find_object(const StringView& in, bool=false) const",
-                        method_of<Object*, const StringView&, bool>(&Package::find_object))
-                /* .method("bool contains_object(const Object@) const",
-                        method_of<bool, Package, const Object*>(&Package::contains_object))
-                .method("bool contains_object(const string& in) const",
-                        method_of<bool, Package, const String&>(&Package::contains_object))*/
-                ;
-    }
 
     implement_engine_class(Package, Class::IsScriptable)
-    {
-        static_class_instance()->set_script_registration_callback(bind_to_script);
-    }
+    {}
 }// namespace Engine

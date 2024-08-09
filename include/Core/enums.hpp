@@ -428,4 +428,44 @@ namespace Engine
         UInt32 = 0,
         UInt16 = 1,
     };
+
+    enum class ScriptCallConv
+    {
+        CDecl             = 0,
+        StdCall           = 1,
+        ThisCallAsGlobal  = 2,
+        ThisCall          = 3,
+        CDeclObjLast      = 4,
+        CDeclObjFirst     = 5,
+        Generic           = 6,
+        ThisCall_ObjLast  = 7,
+        ThisCall_ObjFirst = 8
+    };
+
+    enum class ScriptClassBehave : EnumerateType
+    {
+        Construct        = 0,
+        ListConstruct    = 1,
+        Destruct         = 2,
+        Factory          = 3,
+        ListFactory      = 4,
+        AddRef           = 5,
+        Release          = 6,
+        GetWeakRefFlag   = 7,
+        TemplateCallback = 8,
+        GetRefCount      = 9,
+        GetGCFlag        = 10,
+        SetGCFlag        = 11,
+        EnumRefs         = 12,
+        ReleaseRefs      = 13,
+    };
+
+    enum class ScriptTypeModifiers : EnumerateType
+    {
+        None     = 0,
+        InRef    = 1,
+        OutRef   = 2,
+        InOutRef = 3,
+        Const    = 4
+    };
 }// namespace Engine

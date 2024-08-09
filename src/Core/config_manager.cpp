@@ -53,10 +53,8 @@ namespace Engine
 
     static void reflection_init()
     {
-        using T = ScriptConfigValue;
-        ScriptClassRegistrar::ClassInfo info =
-                ScriptClassRegistrar::create_type_info<ScriptConfigValue>(ScriptClassRegistrar::Value);
-        ScriptClassRegistrar registrar("ConfigValue", info);
+        using T                        = ScriptConfigValue;
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("ConfigValue", sizeof(T));
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
         registrar.behave(ScriptClassBehave::Construct, "void f(const ConfigValue& in)",
@@ -182,9 +180,8 @@ namespace Engine
             error_log("ConfigManager", "Failed to register property with name '%s'. Property is exist!", name.c_str());
             return nullptr;
         }
-        ScriptEngine::NamespaceSaverScoped saver;
         String ns = Strings::namespace_of(name);
-        ScriptEngine::default_namespace(ns);
+        ScriptNamespaceScopedChanger changer(ns.c_str());
 
         String prop_name        = Strings::class_name_of(name);
         String full_declaration = Strings::format("{} {}", type_declaration, prop_name.c_str());

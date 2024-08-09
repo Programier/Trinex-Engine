@@ -20,21 +20,22 @@ namespace Engine
     template<typename Type, typename... Args>
     static void register_event_data_type(const char* name, const char* func, Args... args)
     {
-        ScriptClassRegistrar registrar(name, ScriptClassRegistrar::create_type_info<Type>(ScriptClassRegistrar::Value));
+        ScriptClassRegistrar registrar =
+                ScriptClassRegistrar::value_class(name, sizeof(Type), ScriptClassRegistrar::ValueInfo::from<Type>());
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}& in)", name).c_str(),
-                         ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.method(Strings::format("{}& opAssign(const {}& in)", name, name).c_str(),
                          method_of<Type&, Type, const Type&>(&Type::operator=));
 
-        ScriptClassRegistrar("Engine::Event")
+        ScriptClassRegistrar::value_class("Engine::Event", sizeof(Event), ScriptClassRegistrar::ValueInfo::from<Event>())
                 .method(Strings::format("const {}& {}() const", name, func).c_str(),
                         func_of<const Type&(const Event*)>(
                                 [](const Event* event) -> const Type& { return event->get<const Type&>(); }),
-                        ScriptCallConv::CDECL_OBJFIRST);
+                        ScriptCallConv::CDeclObjFirst);
 
         register_event_data_props(registrar, args...);
     }

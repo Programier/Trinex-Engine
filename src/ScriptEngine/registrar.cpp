@@ -9,68 +9,104 @@ namespace Engine
 {
 #define SCRIPT_CALL(call) trinex_always_check(call, #call)
 
-    enum FuncType
+    static FORCE_INLINE asIScriptEngine* script_engine()
     {
-        General = 1,
-        Func    = 2,
-        Method  = 3,
-    };
-
-
-    struct Dummy {
-    };
-
-    asSFuncPtr create_function(void* data, FuncType type)
-    {
-        if (type == Func)
-        {
-            return asFunctionPtr(data);
-        }
-
-        if (type == Method)
-        {
-            using Helper = void (Dummy::*)();
-
-            Helper* helper = reinterpret_cast<Helper*>(data);
-            return asSMethodPtr<sizeof(void(Dummy::*)())>::Convert((void(Dummy::*)())(*helper));
-        }
-
-        return {};
+        return ScriptEngine::engine();
     }
 
-
-    static asDWORD create_flags(const ScriptClassRegistrar::ClassInfo& info)
+    static BitMask create_flags(const ScriptClassRegistrar::BaseInfo& info)
     {
-        asDWORD flags = static_cast<asDWORD>(info.flags);
-        // If class info haven't any flags, using Ref flag for registration
-        if (!flags)
-        {
-            return ScriptClassRegistrar::Ref;
-        }
-        return flags;
+        BitMask result = info.extra_flags;
+
+        if (!info.template_type.empty())
+            result |= asOBJ_TEMPLATE;
+
+        return result;
+    }
+
+    static BitMask create_flags(const ScriptClassRegistrar::ValueInfo& info)
+    {
+        BitMask result = asOBJ_VALUE | create_flags(static_cast<const ScriptClassRegistrar::BaseInfo&>(info));
+
+        if (info.all_ints)
+            result |= asOBJ_APP_CLASS_ALLINTS;
+
+        if (info.all_floats)
+            result |= asOBJ_APP_CLASS_ALLFLOATS;
+
+        if (info.pod)
+            result |= asOBJ_POD;
+
+        if (!info.template_type.empty())
+            result |= asOBJ_TEMPLATE;
+
+        if (info.is_array)
+            result |= asOBJ_APP_ARRAY;
+
+        if (info.is_class)
+            result |= asOBJ_APP_CLASS;
+
+        if (info.is_array)
+            result |= asOBJ_APP_ARRAY;
+
+        if (info.is_float)
+            result |= asOBJ_APP_FLOAT;
+
+        if (info.is_primitive)
+            result |= asOBJ_APP_PRIMITIVE;
+
+        if (info.has_constructor)
+            result |= asOBJ_APP_CLASS_CONSTRUCTOR;
+
+        if (info.more_constructors)
+            result |= asOBJ_APP_CLASS_MORE_CONSTRUCTORS;
+
+        if (info.has_assignment_operator)
+            result |= asOBJ_APP_CLASS_ASSIGNMENT;
+
+        if (info.has_copy_constructor)
+            result |= asOBJ_APP_CLASS_COPY_CONSTRUCTOR;
+
+        if (info.has_destructor)
+            result |= asOBJ_APP_CLASS_DESTRUCTOR;
+
+        return result;
+    }
+
+    static BitMask create_flags(const ScriptClassRegistrar::RefInfo& info)
+    {
+        BitMask result = asOBJ_REF | create_flags(static_cast<const ScriptClassRegistrar::BaseInfo&>(info));
+
+        if (info.no_count)
+            result |= asOBJ_NOCOUNT;
+
+        if (info.implicit_handle)
+            result |= asOBJ_IMPLICIT_HANDLE;
+
+        return result;
     }
 
     static asDWORD create_call_conv(ScriptCallConv conv)
     {
         switch (conv)
         {
-            case ScriptCallConv::CDECL:
+            case ScriptCallConv::CDecl:
                 return asCALL_CDECL;
-            case ScriptCallConv::STDCALL:
+            case ScriptCallConv::StdCall:
                 return asCALL_STDCALL;
-            case ScriptCallConv::THISCALL_ASGLOBAL:
+            case ScriptCallConv::ThisCallAsGlobal:
                 return asCALL_THISCALL_ASGLOBAL;
-            case ScriptCallConv::THISCALL:
+            case ScriptCallConv::ThisCall:
                 return asCALL_THISCALL;
-            case ScriptCallConv::CDECL_OBJLAST:
+            case ScriptCallConv::CDeclObjLast:
                 return asCALL_CDECL_OBJLAST;
-            case ScriptCallConv::CDECL_OBJFIRST:
+            case ScriptCallConv::CDeclObjFirst:
                 return asCALL_CDECL_OBJFIRST;
-            case ScriptCallConv::GENERIC:
+            case ScriptCallConv::Generic:
                 return asCALL_GENERIC;
-            case ScriptCallConv::THISCALL_OBJLAST:
+            case ScriptCallConv::ThisCall_ObjLast:
                 return asCALL_THISCALL_OBJLAST;
-            case ScriptCallConv::THISCALL_OBJFIRST:
+            case ScriptCallConv::ThisCall_ObjFirst:
                 return asCALL_THISCALL_OBJFIRST;
             default:
                 throw EngineException("Undefined call convension!");
@@ -115,43 +151,53 @@ namespace Engine
     }
 
 
-    ScriptClassRegistrar::ScriptClassRegistrar(const class Class* _class)
-        : m_class_base_name(_class->base_name()), m_class_namespace_name(_class->namespace_name()), m_class_name(_class->name()),
-          m_engine(ScriptEngine::engine())
+    ScriptClassRegistrar::BaseInfo::BaseInfo() : template_type(""), extra_flags(0)
+    {}
+
+    ScriptClassRegistrar::ValueInfo::ValueInfo()
+        : all_ints(false), all_floats(false), pod(false), more_constructors(false), is_class(true), is_array(false),
+          is_float(false), is_primitive(false), has_constructor(false), has_destructor(false), has_assignment_operator(false),
+          has_copy_constructor(false)
+    {}
+
+    ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true)
+    {}
+
+    ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name)
+        : m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)), m_namespace_name(Strings::namespace_sv_of(name))
+    {}
+
+    ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags) : ScriptClassRegistrar(name)
     {
-        m_info      = {};
-        m_info.size = _class->sizeof_class();
-        declare_as_class(_class, m_info);
+        ScriptNamespaceScopedChanger changer(m_namespace_name);
+        script_engine()->RegisterObjectType(m_class_base_name.c_str(), size, flags);
     }
 
-
-    template<class B>
-    static B* ref_cast(Object* a)
+    ScriptClassRegistrar& ScriptClassRegistrar::modify_name_if_template(const BaseInfo& info)
     {
-        return a->instance_cast<B>();
-    }
-
-    ScriptClassRegistrar::ScriptClassRegistrar(const String& full_name, const ClassInfo& info, const String& template_override)
-        : m_class_base_name(Object::object_name_of(full_name)), m_class_namespace_name(Object::package_name_of(full_name)),
-          m_class_name(full_name), m_engine(ScriptEngine::engine())
-    {
-        m_info = info;
-        declare_as_class();
-        if (!template_override.empty() && (info.flags & Template) == Template)
+        if (!info.template_type.empty())
         {
-            m_class_base_name = template_override;
-            m_class_name = m_class_namespace_name.empty() ? m_class_base_name : m_class_namespace_name + "::" + m_class_base_name;
+            m_class_name      = m_class_name.substr(0, m_class_name.find_first_of('<'));
+            m_class_base_name = m_class_base_name.substr(0, m_class_base_name.find_first_of('<'));
+            m_class_name += info.template_type;
+            m_class_base_name += info.template_type;
         }
+        return *this;
     }
 
-    const String& ScriptClassRegistrar::namespace_name() const
+    ScriptClassRegistrar ScriptClassRegistrar::value_class(const StringView& name, size_t size, const ValueInfo& info)
     {
-        return m_class_namespace_name;
+        return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
     }
 
-    const String& ScriptClassRegistrar::class_base_name() const
+    ScriptClassRegistrar ScriptClassRegistrar::reference_class(const StringView& name, const RefInfo& info)
     {
-        return m_class_base_name;
+        return ScriptClassRegistrar(name, 0, create_flags(info)).modify_name_if_template(info);
+    }
+
+    ScriptClassRegistrar ScriptClassRegistrar::existing_class(const String& name)
+    {
+        return ScriptClassRegistrar(name);
     }
 
     const String& ScriptClassRegistrar::class_name() const
@@ -159,203 +205,125 @@ namespace Engine
         return m_class_name;
     }
 
-
-    ENGINE_EXPORT void ScriptClassRegistrar::global_namespace_name(const String& name)
+    const String& ScriptClassRegistrar::class_base_name() const
     {
-        ScriptEngine::default_namespace(name);
+        return m_class_base_name;
     }
 
-    static void static_declare_new_class(const String& class_namespace, const String& base_name,
-                                         const ScriptClassRegistrar::ClassInfo& info)
+    const String& ScriptClassRegistrar::namespace_name() const
     {
-        static Set<String> registered;
-        String fullname = class_namespace.empty() ? base_name : class_namespace + "::" + base_name;
-
-        if (!registered.contains(fullname))
-        {
-            asIScriptEngine* engine = ScriptEngine::engine();
-            String ns               = engine->GetDefaultNamespace();
-
-            SCRIPT_CALL(engine->SetDefaultNamespace(class_namespace.c_str()) >= 0);
-            SCRIPT_CALL(engine->RegisterObjectType(base_name.c_str(), info.size, create_flags(info)) >= 0);
-            SCRIPT_CALL(engine->SetDefaultNamespace(ns.c_str()) >= 0);
-            registered.insert(fullname);
-        }
-    }
-
-
-    void ScriptClassRegistrar::declare_as_class(const Class* _class)
-    {
-        ClassInfo info;
-        info      = {};
-        info.size = _class->sizeof_class();
-        declare_as_class(_class, info);
-    }
-
-    void ScriptClassRegistrar::declare_as_class(const Class* _class, const ClassInfo& info)
-    {
-        static_declare_new_class(_class->namespace_name(), _class->base_name(), info);
-
-        // Register cast operators
-
-        asIScriptEngine* engine = ScriptEngine::engine();
-        for (Class* parent = _class->parent(); parent != nullptr; parent = parent->parent())
-        {
-            if (parent->is_scriptable())
-            {
-                assert(1 > 0);
-                String op = Strings::format("{}@ opCast()", _class->name().c_str());
-                SCRIPT_CALL(engine->RegisterObjectMethod(parent->name().c_str(), op.c_str(), asFUNCTION(parent->cast_to_this()),
-                                                         asCALL_CDECL_OBJLAST) >= 0);
-
-                op = Strings::format("{}@ opImplCast()", parent->name().c_str());
-                SCRIPT_CALL(engine->RegisterObjectMethod(_class->name().c_str(), op.c_str(), asFUNCTION(_class->cast_to_this()),
-                                                         asCALL_CDECL_OBJLAST) >= 0);
-            }
-        }
+        return m_namespace_name;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
     {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, *reinterpret_cast<asSFuncPtr*>(method),
-                                                   create_call_conv(conv)) >= 0);
-        return release_namespace();
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+                                                          *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
+        return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
     {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-                                                   *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
-        return release_namespace();
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+                                                          *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
+        return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function,
                                                                 ScriptCallConv conv)
     {
-        prepare_namespace(true);
+        ScriptNamespaceScopedChanger ns(m_class_name);
         ScriptEngine::register_function(declaration, function, conv);
-        return release_namespace();
+        return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, size_t offset)
     {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectProperty(m_class_base_name.c_str(), declaration, offset) >= 0);
-        return release_namespace();
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectProperty(m_class_base_name.c_str(), declaration, offset) >= 0);
+        return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::static_property(const char* declaration, void* prop)
     {
-        prepare_namespace(true);
-        SCRIPT_CALL(m_engine->RegisterGlobalProperty(declaration, prop) >= 0);
-        return release_namespace();
-    }
-
-    ScriptClassRegistrar& ScriptClassRegistrar::require_type(const String& name, const ClassInfo& info)
-    {
-        String ns = Object::package_name_of(name), bs = Object::object_name_of(name);
-        static_declare_new_class(ns, bs, info);
+        ScriptNamespaceScopedChanger ns(m_class_name);
+        SCRIPT_CALL(script_engine()->RegisterGlobalProperty(declaration, prop) >= 0);
         return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
                                                        ScriptFuncPtr* function, ScriptCallConv conv)
     {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-                                                      *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
-        return release_namespace();
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+                                                             *reinterpret_cast<asSFuncPtr*>(function),
+                                                             create_call_conv(conv)) >= 0);
+        return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
                                                        ScriptMethodPtr* method, ScriptCallConv conv)
     {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-                                                      *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
-        return release_namespace();
-    }
-
-
-    ScriptClassRegistrar& ScriptClassRegistrar::prepare_namespace(bool static_member)
-    {
-        m_current_namespace = m_engine->GetDefaultNamespace();
-        if (static_member)
-        {
-            SCRIPT_CALL(m_engine->SetDefaultNamespace(m_class_name.c_str()) >= 0);
-        }
-        else
-        {
-            SCRIPT_CALL(m_engine->SetDefaultNamespace(m_class_namespace_name.c_str()) >= 0);
-        }
-        return *this;
-    }
-
-    ScriptClassRegistrar& ScriptClassRegistrar::release_namespace()
-    {
-        SCRIPT_CALL(m_engine->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
-        return *this;
-    }
-
-    ScriptClassRegistrar& ScriptClassRegistrar::declare_as_class()
-    {
-        static_declare_new_class(m_class_namespace_name, m_class_base_name, m_info);
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+                                                             *reinterpret_cast<asSFuncPtr*>(method),
+                                                             create_call_conv(conv)) >= 0);
         return *this;
     }
 
 
     ScriptEnumRegistrar::ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init)
-        : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name), m_engine(ScriptEngine::engine())
+        : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
     {
         if (init)
         {
             prepare_namespace();
-            SCRIPT_CALL(m_engine->RegisterEnum(m_enum_base_name.c_str()) >= 0);
+
+            SCRIPT_CALL(script_engine()->RegisterEnum(m_enum_base_name.c_str()) >= 0);
             release_namespace();
         }
     }
 
-    ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name, bool init)
-        : Engine::ScriptEnumRegistrar(Strings::namespace_of(full_name), Strings::class_name_of(full_name), init)
-    {}
+    ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
+    {
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+                                                          *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
+        return *this;
+    }
 
+    ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
+    {
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+                                                          *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
+        return *this;
+    }
+
+    ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name, bool init)
+        : ScriptEnumRegistrar(Strings::namespace_of(full_name), Strings::class_name_of(full_name), init)
+    {}
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::prepare_namespace()
     {
-        m_current_namespace = m_engine->GetDefaultNamespace();
-        SCRIPT_CALL(m_engine->SetDefaultNamespace(m_enum_namespace_name.c_str()) >= 0);
+        m_current_namespace = script_engine()->GetDefaultNamespace();
+        SCRIPT_CALL(script_engine()->SetDefaultNamespace(m_enum_namespace_name.c_str()) >= 0);
         return *this;
     }
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::release_namespace()
     {
-        SCRIPT_CALL(m_engine->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
+        SCRIPT_CALL(script_engine()->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
         return *this;
     }
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::set(const char* name, int_t value)
     {
         prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
-        return release_namespace();
-    }
-
-
-    ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
-    {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, *reinterpret_cast<asSFuncPtr*>(method),
-                                                   create_call_conv(conv)) >= 0);
-        return release_namespace();
-    }
-
-    ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
-    {
-        prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-                                                   *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
-        return release_namespace();
+        SCRIPT_CALL(script_engine()->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
+        release_namespace();
+        return *this;
     }
 }// namespace Engine

@@ -2,7 +2,6 @@
 #include <Core/game_controller.hpp>
 #include <Core/logger.hpp>
 #include <ScriptEngine/registrar.hpp>
-#include <numeric>
 
 namespace Engine
 {
@@ -34,12 +33,7 @@ namespace Engine
 
     static void on_init()
     {
-
-        ScriptClassRegistrar::ClassInfo info;
-        info.size  = sizeof(GameController);
-        info.flags = ScriptClassRegistrar::Ref | ScriptClassRegistrar::NoCount;
-
-        ScriptClassRegistrar registrar("Engine::GameController", info);
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class("Engine::GameController");
         ScriptEnumRegistrar axis_enum("Engine::GameController::Axis");
 
         axis_enum.set("None", GameController::None);

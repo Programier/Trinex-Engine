@@ -1,11 +1,11 @@
 #pragma once
 #include "angelscript.h"
 #include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
 #include <Core/etl/ref.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
 #include <Core/flags.hpp>
-#include <ScriptEngine/script_enums.hpp>
 #include <ScriptEngine/script_variable.hpp>
 
 class asIScriptContext;

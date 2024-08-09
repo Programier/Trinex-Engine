@@ -1,9 +1,9 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/enums.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_enums.hpp>
 #include <ScriptEngine/script_primitives.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
@@ -304,29 +304,31 @@ namespace Engine
     template<typename Type, size_t count = 1>
     void register_vector_type(const char* name)
     {
-        ScriptClassRegistrar registrar(
-                name, ScriptClassRegistrar::create_type_info<Type>(
-                              ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassMoreConstructors |
-                              ScriptClassRegistrar::AppClassCopyConstructor | ScriptClassRegistrar::AppClassAssignment));
+        ScriptClassRegistrar::ValueInfo info;
+        info.more_constructors       = true;
+        info.has_constructor         = true;
+        info.has_assignment_operator = true;
+        info.is_class                = true;
+        info.all_floats              = true;
 
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(name, sizeof(Type), info);
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
-                         ScriptCallConv::CDECL_OBJFIRST);
-        registrar.behave(ScriptClassBehave::Construct,
-                         Strings::format("void f(const {}& in)", registrar.class_base_name()).c_str(),
-                         ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
+        registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}& in)", registrar.class_name()).c_str(),
+                         ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
 
 
         if constexpr (count == 2)
             registrar.behave(ScriptClassBehave::Construct, "void f(float, float)",
-                             ScriptClassRegistrar::constructor<Type, float, float>, ScriptCallConv::CDECL_OBJFIRST);
+                             ScriptClassRegistrar::constructor<Type, float, float>, ScriptCallConv::CDeclObjFirst);
 
         if constexpr (count == 4)
             registrar.behave(ScriptClassBehave::Construct, "void f(float, float, float, float)",
-                             ScriptClassRegistrar::constructor<Type, float, float, float, float>, ScriptCallConv::CDECL_OBJFIRST);
+                             ScriptClassRegistrar::constructor<Type, float, float, float, float>, ScriptCallConv::CDeclObjFirst);
 
 
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
     }
 
 

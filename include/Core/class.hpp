@@ -1,11 +1,12 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/name.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/struct.hpp>
+#include <ScriptEngine/script_func_ptr.hpp>
 
 namespace Engine
 {
@@ -21,19 +22,27 @@ namespace Engine
             IsAsset      = 1 << 4,
         };
 
+        struct MethodInfo {
+            String declaration      = "";
+            String name             = "";
+            ScriptMethodPtr* method = nullptr;
+            ScriptFuncPtr* function = nullptr;
+            ScriptCallConv conv     = ScriptCallConv::CDecl;
+            uint_t args_count       = 0;
+            bool is_static          = false;
+        };
+
         Flags<Class::Flag> flags;
 
     private:
         mutable Object* m_singletone_object;
 
+        TreeMap<String, MethodInfo> m_methods;
+
         Object* (*m_static_constructor)();
         Object* (*m_cast_to_this)(Object* object);
         Set<Class*> m_childs;
         size_t m_size;
-
-
-        /// SCRIPT PART
-        CallBack<void(class ScriptClassRegistrar*, Class*)> m_script_register_callback;
 
         static Object* internal_cast(Class* required_class, Object* object);
 
@@ -60,16 +69,51 @@ namespace Engine
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)();
         Object* singletone_instance() const;
-
-        Class& set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>&);
         Class& post_initialize();
+
+        using Struct::is_a;
         bool is_asset() const;
         bool is_class() const override;
 
         static Class* static_find(const StringView& name, bool required = false);
         static const Vector<Class*>& asset_classes();
 
-        using Struct::is_a;
+        // Script class reflections
+        const TreeMap<String, MethodInfo>& methods_info() const;
+        ;
+        Class& method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall);
+        Class& method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+
+        template<typename ReturnType, typename ClassType, typename... Args>
+        Class& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
+                      ScriptCallConv conv = ScriptCallConv::ThisCall)
+        {
+            return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
+        }
+
+        template<typename ReturnType, typename ClassType, typename... Args>
+        Class& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
+                      ScriptCallConv conv = ScriptCallConv::ThisCall)
+        {
+            return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
+        }
+
+        template<typename ReturnType, typename... Args>
+        Class& method(const char* declaration, ReturnType (*function_address)(Args...),
+                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+        {
+            return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv);
+        }
+
+        Class& static_function(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv = ScriptCallConv::CDecl);
+
+        template<typename ReturnType, typename... Args>
+        Class& static_function(const char* declaration, ReturnType (*function)(Args...),
+                               ScriptCallConv conv = ScriptCallConv::CDecl)
+        {
+            return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv);
+        }
+
         ~Class();
 
         template<typename Type>
@@ -77,7 +121,6 @@ namespace Engine
         {
             return is_a(Type::static_class_instance());
         }
-
 
         template<typename ObjectClass>
         void setup_class()

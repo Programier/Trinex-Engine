@@ -53,16 +53,14 @@ namespace Engine
     template<typename T, typename BaseType>
     static void register_base_type(const char* name, const char* base, const char* default_v)
     {
-        ScriptClassRegistrar::ClassInfo info;
-        info.size  = sizeof(T);
-        info.flags = ScriptClassRegistrar::Ref;
-
-        ScriptClassRegistrar registrar(name, info);
+        ScriptClassRegistrar::RefInfo info;
+        info.no_count                  = false;
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class(name, info);
 
         registrar.behave(ScriptClassBehave::Factory, Strings::format("{}@ f({} = {})", name, base, default_v).c_str(),
-                         factory<T, BaseType>, ScriptCallConv::CDECL);
-        registrar.behave(ScriptClassBehave::AddRef, "void AddRef()", &T::add_ref, ScriptCallConv::THISCALL);
-        registrar.behave(ScriptClassBehave::Release, "void Release()", &T::release, ScriptCallConv::THISCALL);
+                         factory<T, BaseType>, ScriptCallConv::CDecl);
+        registrar.behave(ScriptClassBehave::AddRef, "void AddRef()", &T::add_ref, ScriptCallConv::ThisCall);
+        registrar.behave(ScriptClassBehave::Release, "void Release()", &T::release, ScriptCallConv::ThisCall);
         registrar.method(Strings::format("{} opConv() const", base).c_str(), &T::op_conv);
         registrar.property(Strings::format("{} value", base).c_str(), &T::value);
     }

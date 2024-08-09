@@ -294,22 +294,22 @@ namespace Engine
     static void on_init()
     {
         ReflectionInitializeController().require("Engine::StringView");
+        ScriptClassRegistrar::ValueInfo info;
+        info.all_ints          = true;
+        info.more_constructors = true;
 
-        ScriptClassRegistrar registrar(
-                "Engine::Name", ScriptClassRegistrar::create_type_info<Name>(ScriptClassRegistrar::Value |
-                                                                             ScriptClassRegistrar::AppClassMoreConstructors |
-                                                                             ScriptClassRegistrar::AppClassAllInts));
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Name", sizeof(Name), info);
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Name>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",
-                         ScriptClassRegistrar::constructor<Name, const String&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Name, const String&>, ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, "void f(const StringView& in)",
-                         ScriptClassRegistrar::constructor<Name, const StringView&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, "void f(const Name& in)",
-                         ScriptClassRegistrar::constructor<Name, const Name&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Name, const Name&>, ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Name>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
 
         registrar.static_function("Name find_name(const StringView& in)", func_of<Name(const StringView&)>(Name::find_name));
         registrar.method("bool is_valid() const", &Name::is_valid);

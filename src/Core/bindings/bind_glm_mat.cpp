@@ -171,7 +171,8 @@ namespace Engine
         {
             using ConstType = const Matrix4f::col_type&;
             using RefType   = Matrix4f::col_type&;
-            ScriptClassRegistrar registrar(class_name + "4f", info_of<Matrix4fWrapper>());
+            ScriptClassRegistrar registrar =
+                    ScriptClassRegistrar::value_class(class_name + "4f", sizeof(Matrix4fWrapper), info_of<Matrix4fWrapper>());
             bind_glm_behaviours<Matrix4fWrapper>(registrar, prop_type);
             bind_glm_operators<Matrix4fWrapper>(registrar, prop_type);
             bind_index_op<Matrix4fWrapper, ConstType, RefType>(registrar, "const Engine::Vector4D&", "Engine::Vector4D&");
@@ -179,7 +180,8 @@ namespace Engine
         {
             using ConstType = const Matrix3f::col_type&;
             using RefType   = Matrix3f::col_type&;
-            ScriptClassRegistrar registrar(class_name + "3f", info_of<Matrix3fWrapper>());
+            ScriptClassRegistrar registrar =
+                    ScriptClassRegistrar::value_class(class_name + "3f", sizeof(Matrix3fWrapper), info_of<Matrix3fWrapper>());
             bind_glm_behaviours<Matrix3fWrapper>(registrar, prop_type);
             bind_glm_operators<Matrix3fWrapper>(registrar, prop_type);
             bind_index_op<Matrix3fWrapper, ConstType, RefType>(registrar, "const Engine::Vector3D&", "Engine::Vector3D&");
@@ -187,7 +189,8 @@ namespace Engine
         {
             using ConstType = const Matrix2f::col_type&;
             using RefType   = Matrix2f::col_type&;
-            ScriptClassRegistrar registrar(class_name + "2f", info_of<Matrix2fWrapper>());
+            ScriptClassRegistrar registrar =
+                    ScriptClassRegistrar::value_class(class_name + "2f", sizeof(Matrix2fWrapper), info_of<Matrix2fWrapper>());
             bind_glm_behaviours<Matrix2fWrapper>(registrar, prop_type);
             bind_glm_operators<Matrix2fWrapper>(registrar, prop_type);
             bind_index_op<Matrix2fWrapper, ConstType, RefType>(registrar, "const Engine::Vector2D&", "Engine::Vector2D&");

@@ -297,17 +297,16 @@ namespace Engine
 
     static void on_init()
     {
-        ScriptClassRegistrar registrar("Engine::Transform",
-                                       ScriptClassRegistrar::create_type_info<Transform>(ScriptClassRegistrar::Value));
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform));
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform& in)",
-                         ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
 
-        registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDECL_OBJFIRST);
+        registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDeclObjFirst);
     }
 
     static ReflectionInitializeController init(on_init, "Engine::Transform",

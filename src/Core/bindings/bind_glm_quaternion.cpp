@@ -1,7 +1,6 @@
 #include "bind_glm.hpp"
 #include <Core/engine_loading_controllers.hpp>
 
-
 namespace Engine
 {
 
@@ -117,40 +116,40 @@ namespace Engine
 
 
         registrar.opfunc("Engine::Quaternion& opAssign(const Engine::Quaternion& in)", method_of<T&>(&T::operator=),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("bool opEquals(const Engine::Quaternion& in) const", method_of<bool>(&T::operator==),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion& opAddAssign(const Engine::Quaternion& in)", method_of<T&, const T&>(&T::operator+=),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion& opSubAssign(const Engine::Quaternion& in)", method_of<T&, const T&>(&T::operator-=),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion& opMulAssign(const Engine::Quaternion& in)", method_of<T&, const T&>(&T::operator*=),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
         registrar.opfunc("Engine::Quaternion& opMulAssign(float)", method_of<T&, typename T::value_type>(&T::operator*=),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion& opDivAssign(const Engine::Quaternion& in)",
-                         method_of<T&, typename T::value_type>(&T::operator/=), ScriptCallConv::THISCALL);
+                         method_of<T&, typename T::value_type>(&T::operator/=), ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion opAdd(const Engine::Quaternion& in) const", method_of<T, const T&>(&T::operator+),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion opSub(const Engine::Quaternion& in) const", method_of<T, const T&>(&T::operator-),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion opMul(const Engine::Quaternion& in) const", method_of<T, const T&>(&T::operator*),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
         registrar.opfunc("Engine::Quaternion opMul(float) const", method_of<T, typename T::value_type>(&T::operator*),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
         registrar.opfunc("Engine::Quaternion opMul_r(float) const", method_of<T, typename T::value_type>(&T::operator*),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
 
         registrar.opfunc("Engine::Quaternion opDiv(float) const", method_of<T, typename T::value_type>(&T::operator/),
-                         ScriptCallConv::THISCALL);
+                         ScriptCallConv::ThisCall);
     }
 
 
@@ -169,7 +168,8 @@ namespace Engine
         using RegistryType1 = QuaternionWrapper;
 
         {
-            ScriptClassRegistrar registrar("Engine::Quaternion", info_of<RegistryType1>());
+            ScriptClassRegistrar registrar =
+                    ScriptClassRegistrar::value_class("Engine::Quaternion", sizeof(RegistryType1), info_of<RegistryType1>());
             bind_glm_behaviours<QuaternionWrapper>(registrar, "float");
             bind_quat_operators(registrar);
             bind_quat_props(registrar);

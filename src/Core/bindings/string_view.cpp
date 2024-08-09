@@ -8,10 +8,11 @@ namespace Engine
 {
     static void on_init()
     {
-        ScriptClassRegistrar::ClassInfo info = ScriptClassRegistrar::create_type_info<StringView>(
-                ScriptClassRegistrar::Value | ScriptClassRegistrar::POD | ScriptClassRegistrar::AppClassAllInts);
+        ScriptClassRegistrar::ValueInfo info;
+        info.pod      = true;
+        info.all_ints = true;
 
-        ScriptClassRegistrar registrar("Engine::StringView", info);
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::StringView", sizeof(StringView), info);
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<StringView>);
         registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",

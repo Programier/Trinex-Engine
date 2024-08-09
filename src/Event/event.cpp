@@ -38,8 +38,8 @@ namespace Engine
                    {"WindowResized", EventType::WindowResized}, {"WindowMinimized", EventType::WindowMinimized},
                    {"WindowMaximized", EventType::WindowMaximized}, {"WindowRestored", EventType::WindowRestored},
                    {"WindowFocusGained", EventType::WindowFocusGained}, {"WindowFocusLost", EventType::WindowFocusLost},
-                   {"WindowClose", EventType::WindowClose}, {"TextInput", EventType::TextInput},
-                   {"KeyDown", EventType::KeyDown}, {"KeyUp", EventType::KeyUp}, {"MouseMotion", EventType::MouseMotion},
+                   {"WindowClose", EventType::WindowClose}, {"TextInput", EventType::TextInput}, {"KeyDown", EventType::KeyDown},
+                   {"KeyUp", EventType::KeyUp}, {"MouseMotion", EventType::MouseMotion},
                    {"MouseButtonUp", EventType::MouseButtonUp}, {"MouseButtonDown", EventType::MouseButtonDown},
                    {"MouseWheel", EventType::MouseWheel}, {"ControllerAxisMotion", EventType::ControllerAxisMotion},
                    {"ControllerButtonUp", EventType::ControllerButtonUp},
@@ -57,18 +57,17 @@ namespace Engine
 
     static void on_init()
     {
-        ScriptClassRegistrar registrar("Engine::Event",
-                                       ScriptClassRegistrar::create_type_info<Event>(ScriptClassRegistrar::Value));
+        ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Event", sizeof(Event));
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Event>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, "void f(uint64, EventType, const any&)",
                          ScriptClassRegistrar::constructor<Event, Identifier, EventType, const Any&>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Construct, "void f(const Event&)",
-                         ScriptClassRegistrar::constructor<Event, const Event&>, ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Event, const Event&>, ScriptCallConv::CDeclObjFirst);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Event>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptCallConv::CDeclObjFirst);
         registrar.method("Event& opAssign(const Event&)", method_of<Event&, const Event&>(&Event::operator=));
         registrar.method("EventType type() const", &Event::type);
         registrar.method("uint64 window_id() const", &Event::window_id);
