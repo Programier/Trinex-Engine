@@ -135,6 +135,7 @@ namespace Engine
         }
 
         ReflectionInitializeController().execute();
+        ScriptBindingsInitializeController().execute();
         ScriptEngine::load_scripts();
 
 
@@ -285,7 +286,7 @@ namespace Engine
 
         PostDestroyController().execute();
 
-        if(need_destroy_threads)
+        if (need_destroy_threads)
         {
             destroy_threads();
         }

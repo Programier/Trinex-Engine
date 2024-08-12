@@ -25,7 +25,6 @@ namespace Engine
     LoadingControllerBase::LoadingControllerBase(void* list, const char* name) : m_list(list), m_name(name)
     {}
 
-
     void LoadingControllerBase::exec_all_if_already_triggered()
     {
         if (PreInitializeController::is_triggered())
@@ -41,6 +40,11 @@ namespace Engine
         if (ReflectionInitializeController::is_triggered())
         {
             ReflectionInitializeController().execute();
+        }
+
+        if (ScriptBindingsInitializeController::is_triggered())
+        {
+            ScriptBindingsInitializeController().execute();
         }
 
         if (ConfigsInitializeController::is_triggered())
@@ -111,14 +115,15 @@ namespace Engine
 
     enum class ControllerType
     {
-        PreInit                = BIT(0),
-        Init                   = BIT(1),
-        Destroy                = BIT(2),
-        PostDestroy            = BIT(3),
-        ReflectionInit         = BIT(4),
-        ResourcesInit          = BIT(5),
-        ScriptAddonsInitialize = BIT(6),
-        ConfigsInitialize      = BIT(7),
+        PreInit                  = BIT(0),
+        Init                     = BIT(1),
+        Destroy                  = BIT(2),
+        PostDestroy              = BIT(3),
+        ReflectionInit           = BIT(4),
+        ResourcesInit            = BIT(5),
+        ConfigsInitialize        = BIT(6),
+        ScriptAddonsInitialize   = BIT(7),
+        ScriptBindingsInitialize = BIT(7),
     };
 
     static Flags<ControllerType, BitMask> m_triggered;
@@ -184,4 +189,5 @@ namespace Engine
     IMPLEMENT_CONTROLLER(StartupResourcesInitializeController, ResourcesInit);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
     IMPLEMENT_CONTROLLER(ScriptAddonsInitializeController, ScriptAddonsInitialize);
+    IMPLEMENT_CONTROLLER(ScriptBindingsInitializeController, ScriptBindingsInitialize);
 }// namespace Engine

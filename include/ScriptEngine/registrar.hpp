@@ -139,12 +139,13 @@ namespace Engine
 
     public:
         static ScriptClassRegistrar value_class(const StringView& name, size_t size, const ValueInfo& info = ValueInfo());
-        static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo());
+        static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo(), size_t size = 0);
         static ScriptClassRegistrar existing_class(const String& name);
 
         const String& class_name() const;
         const String& class_base_name() const;
         const String& namespace_name() const;
+        class ScriptTypeInfo type_info() const;
 
         // Method registration
         ScriptClassRegistrar& method(const char* declaration, ScriptMethodPtr* method,

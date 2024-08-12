@@ -3,6 +3,7 @@
 #include <Core/object.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
 namespace Engine
@@ -80,7 +81,7 @@ namespace Engine
         if (info.no_count)
             result |= asOBJ_NOCOUNT;
 
-        if (info.implicit_handle)
+        if (info.implicit_handle && script_engine()->GetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES) != 0)
             result |= asOBJ_IMPLICIT_HANDLE;
 
         return result;
@@ -190,9 +191,9 @@ namespace Engine
         return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
     }
 
-    ScriptClassRegistrar ScriptClassRegistrar::reference_class(const StringView& name, const RefInfo& info)
+    ScriptClassRegistrar ScriptClassRegistrar::reference_class(const StringView& name, const RefInfo& info, size_t size)
     {
-        return ScriptClassRegistrar(name, 0, create_flags(info)).modify_name_if_template(info);
+        return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
     }
 
     ScriptClassRegistrar ScriptClassRegistrar::existing_class(const String& name)
@@ -213,6 +214,12 @@ namespace Engine
     const String& ScriptClassRegistrar::namespace_name() const
     {
         return m_namespace_name;
+    }
+
+    ScriptTypeInfo ScriptClassRegistrar::type_info() const
+    {
+        ScriptNamespaceScopedChanger ns(m_namespace_name);
+        return ScriptEngine::type_info_by_name(m_class_base_name);
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)

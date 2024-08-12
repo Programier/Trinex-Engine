@@ -222,3 +222,5 @@ else()
     target_compile_options(${ANGELSCRIPT_LIBRARY_NAME} PRIVATE "-funroll-loops")
     target_compile_options(${ANGELSCRIPT_LIBRARY_NAME} PRIVATE "-fomit-frame-pointer")
 endif()
+
+add_trinex_private_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/)

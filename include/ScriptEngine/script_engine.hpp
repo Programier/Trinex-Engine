@@ -2,6 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/enums.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
+#include <ScriptEngine/script_function.hpp>
 
 class asIScriptEngine;
 class asIScriptContext;
@@ -138,10 +139,10 @@ namespace Engine
 
         // Functions register
 
-        static ScriptEngine& register_function(const char* declaration, ScriptFuncPtr* func,
-                                               ScriptCallConv conv = ScriptCallConv::CDecl);
-        static ScriptEngine& register_function(const String& declaration, ScriptFuncPtr* func,
-                                               ScriptCallConv conv = ScriptCallConv::CDecl);
+        static ScriptFunction register_function(const char* declaration, ScriptFuncPtr* func,
+                                                ScriptCallConv conv = ScriptCallConv::CDecl);
+        static ScriptFunction register_function(const String& declaration, ScriptFuncPtr* func,
+                                                ScriptCallConv conv = ScriptCallConv::CDecl);
 
         // Variable to string
         static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);
@@ -150,15 +151,15 @@ namespace Engine
         static String to_string(const byte* object, int_t type_id);
 
         template<typename ReturnValue, typename... Args>
-        static ScriptEngine& register_function(const char* declaration, ReturnValue (*func)(Args...),
-                                               ScriptCallConv conv = ScriptCallConv::CDecl)
+        static ScriptFunction register_function(const char* declaration, ReturnValue (*func)(Args...),
+                                                ScriptCallConv conv = ScriptCallConv::CDecl)
         {
             return register_function(declaration, ScriptFuncPtr::function_ptr(func), conv);
         }
 
         template<typename ReturnValue, typename... Args>
-        static ScriptEngine& register_function(const String& declaration, ReturnValue (*func)(Args...),
-                                               ScriptCallConv conv = ScriptCallConv::CDecl)
+        static ScriptFunction register_function(const String& declaration, ReturnValue (*func)(Args...),
+                                                ScriptCallConv conv = ScriptCallConv::CDecl)
         {
             return register_function(declaration.c_str(), func, conv);
         }

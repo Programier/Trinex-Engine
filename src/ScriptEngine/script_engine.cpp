@@ -172,13 +172,15 @@ namespace Engine
         }
     }
 
-    ScriptEngine& ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv)
+    ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv)
     {
-        m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv));
-        return instance();
+        int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv));
+        if (id < 0)
+            return {};
+        return function_by_id(id);
     }
 
-    ScriptEngine& ScriptEngine::register_function(const String& declaration, ScriptFuncPtr* func, ScriptCallConv conv)
+    ScriptFunction ScriptEngine::register_function(const String& declaration, ScriptFuncPtr* func, ScriptCallConv conv)
     {
         return register_function(declaration.c_str(), func, conv);
     }
