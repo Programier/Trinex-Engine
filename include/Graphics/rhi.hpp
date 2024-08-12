@@ -109,12 +109,6 @@ namespace Engine
         virtual RHI& initialize(class Window* window) = 0;
         virtual void* context()                       = 0;
 
-        virtual RHI& imgui_init(ImGuiContext*)                = 0;
-        virtual RHI& imgui_terminate(ImGuiContext*)           = 0;
-        virtual RHI& imgui_new_frame(ImGuiContext*)           = 0;
-        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*) = 0;
-
-
         virtual RHI& draw(size_t vertex_count, size_t vertices_offset)                                 = 0;
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) = 0;
         virtual RHI& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)       = 0;

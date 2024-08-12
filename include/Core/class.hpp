@@ -4,10 +4,10 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/name.hpp>
+#include <Core/object.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/struct.hpp>
-
-class asCObjectType;
+#include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine
 {
@@ -31,8 +31,8 @@ namespace Engine
         mutable Object* m_singletone_object;
 
         Object* (*m_static_constructor)();
+        Object* (*m_static_placement_constructor)(void*);
         Object* (*m_cast_to_this)(Object* object);
-        asCObjectType* m_script_object_type;
         Set<Class*> m_childs;
         size_t m_size;
 
@@ -44,11 +44,38 @@ namespace Engine
             return internal_cast(T::static_class_instance(), o);
         }
 
+        template<typename T>
+        static Object* constructor()
+        {
+            if constexpr (std::is_abstract_v<T> || (!std::is_default_constructible_v<T> && !Engine::is_singletone_v<T>) )
+            {
+                return nullptr;
+            }
+            else
+            {
+                return Object::new_instance<T>();
+            }
+        }
+
+        template<typename T>
+        static Object* placement_constructor(void* address)
+        {
+            if constexpr (std::is_abstract_v<T> || (!std::is_default_constructible_v<T> && !Engine::is_singletone_v<T>) )
+            {
+                return nullptr;
+            }
+            else
+            {
+                return Object::new_placement_instance<T>(address);
+            }
+        }
+
         void on_create_call(Object* object) const;
         void bind_class_to_script_engine();
         void register_scriptable_class();
 
     public:
+        ScriptTypeInfo script_type_info;
         CallBacks<void(Object*)> on_create;
         CallBacks<void(Object*)> on_destroy;
         Function<void(ScriptClassRegistrar*, Class*)> script_registration_callback;
@@ -59,10 +86,12 @@ namespace Engine
         const Set<Class*>& childs_classes() const;
         void* create_struct() const override;
         Object* create_object() const;
+        Object* create_object(void* place) const;
         size_t sizeof_class() const;
         bool is_scriptable() const;
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)();
+        Object* (*static_placement_constructor() const)(void*);
         Object* singletone_instance() const;
         Class& post_initialize();
 
@@ -86,8 +115,9 @@ namespace Engine
         {
             if (m_size == 0)
             {
-                m_size               = sizeof(ObjectClass);
-                m_static_constructor = &ObjectClass::static_constructor;
+                m_size                         = sizeof(ObjectClass);
+                m_static_constructor           = constructor<ObjectClass>;
+                m_static_placement_constructor = placement_constructor<ObjectClass>;
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {

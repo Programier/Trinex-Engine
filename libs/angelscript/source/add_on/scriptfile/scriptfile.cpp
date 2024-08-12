@@ -12,6 +12,12 @@
 #endif
 #endif
 
+#ifdef HELLO
+void foo()
+{
+
+}
+#endif
 using namespace std;
 
 BEGIN_AS_NAMESPACE

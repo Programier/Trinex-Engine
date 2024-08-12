@@ -7,7 +7,6 @@
 #include <d3d11_api.hpp>
 #include <d3d11_viewport.hpp>
 #include <d3d9.h>
-#include <imgui_impl_dx11.h>
 #include <tchar.h>
 #include <wrl/client.h>
 
@@ -185,33 +184,6 @@ namespace Engine
         if (vp->is_window_viewport() && vp->render_target() == rt.Get())
             return D3D11_ViewportMode::Flipped;
         return D3D11_ViewportMode::Normal;
-    }
-
-    D3D11& D3D11::imgui_init(ImGuiContext* context)
-    {
-        ImGui::SetCurrentContext(context);
-        ImGui_ImplDX11_Init(m_device, m_context);
-        ImGui_ImplDX11_NewFrame();// Initialize resources
-        return *this;
-    }
-
-    D3D11& D3D11::imgui_terminate(ImGuiContext* context)
-    {
-        ImGui::SetCurrentContext(context);
-        ImGui_ImplDX11_Shutdown();
-        return *this;
-    }
-
-    D3D11& D3D11::imgui_new_frame(ImGuiContext* context)
-    {
-        return *this;
-    }
-
-    D3D11& D3D11::imgui_render(ImGuiContext* context, ImDrawData* data)
-    {
-        ImGui::SetCurrentContext(context);
-        ImGui_ImplDX11_RenderDrawData(data);
-        return *this;
     }
 
     D3D11& D3D11::prepare_draw()

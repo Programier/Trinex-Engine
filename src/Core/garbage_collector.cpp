@@ -43,6 +43,11 @@ namespace Engine
         return memory;
     }
 
+    ENGINE_EXPORT void* Object::operator new(size_t size, void* place) noexcept
+    {
+        return place;
+    }
+
     void Object::operator delete(void* _memory, size_t size) noexcept
     {
         byte* memory = reinterpret_cast<byte*>(_memory);
@@ -76,7 +81,7 @@ namespace Engine
         if (object == nullptr)
             return;
 
-        if(engine_instance && !engine_instance->is_shuting_down())
+        if (engine_instance && !engine_instance->is_shuting_down())
         {
             if (!object->is_noname())
             {

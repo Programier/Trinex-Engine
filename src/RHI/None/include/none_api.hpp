@@ -13,10 +13,6 @@ namespace Engine
         NoneApi& initialize(class Window* window) override;
         void* context() override;
 
-        NoneApi& imgui_init(ImGuiContext*) override;
-        NoneApi& imgui_terminate(ImGuiContext*) override;
-        NoneApi& imgui_new_frame(ImGuiContext*) override;
-        NoneApi& imgui_render(ImGuiContext*, ImDrawData*) override;
         NoneApi& draw(size_t vertex_count, size_t vertices_offset) override;
         NoneApi& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
         NoneApi& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;

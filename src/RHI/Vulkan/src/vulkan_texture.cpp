@@ -4,7 +4,6 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_pipeline.hpp>
@@ -395,10 +394,3 @@ namespace Engine
         return &(new VulkanSurface())->create(surface);
     }
 }// namespace Engine
-
-VkImageView trinex_vulkan_image_view(Engine::Texture2D* texture)
-{
-    return (texture ? texture : Engine::DefaultResources::Textures::default_texture)
-            ->rhi_object<Engine::VulkanTexture>()
-            ->image_view();
-}

@@ -39,11 +39,13 @@ endif()
 ######################## ENGINE COMPILATION FUNCTIONS ########################
 set_property(GLOBAL PROPERTY trinex_private_libraries freetype asmjit zlib_library lz4_static)
 set_property(GLOBAL PROPERTY trinex_private_headers_dir "${TRINEX_ENGINE_ROOT}/include-internal/")
-set_property(GLOBAL PROPERTY trinex_public_libraries imgui imgui_node_editor angelscript imgui-filebrowser fmt-header-only stb_library)
+set_property(GLOBAL PROPERTY trinex_public_libraries imgui imgui_node_editor imgui-filebrowser fmt-header-only stb_library)
 set_property(GLOBAL PROPERTY trinex_public_headers_dir ${TRINEX_ENGINE_ROOT}/include)
 set_property(GLOBAL PROPERTY trinex_link_directories)
 set_property(GLOBAL PROPERTY trinex_sources)
 set_property(GLOBAL PROPERTY trinex_dependencies)
+set_property(GLOBAL PROPERTY trinex_private_definitions -DENABLE_ENGINE_EXPORTS -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+set_property(GLOBAL PROPERTY trinex_public_definitions)
 
 function(add_trinex_sources sources)
     get_property(local_sources GLOBAL PROPERTY trinex_sources)
@@ -80,7 +82,15 @@ function(add_trinex_dependencies dependencies)
     set_property(GLOBAL PROPERTY trinex_dependencies ${local_dependencies} ${dependencies} ${ARGN})
 endfunction()
 
+function(add_trinex_public_definitions definitions)
+    get_property(local_definitions GLOBAL PROPERTY trinex_public_definitions)
+    set_property(GLOBAL PROPERTY trinex_public_definitions ${local_definitions} ${definitions} ${ARGN})
+endfunction()
 
+function(add_trinex_private_dependencies definitions)
+    get_property(local_definitions GLOBAL PROPERTY trinex_private_definitions)
+    set_property(GLOBAL PROPERTY trinex_private_definitions ${local_definitions} ${definitions} ${ARGN})
+endfunction()
 
 ######################## EXTERNAL LIBRARY COMPILATION ########################
 
@@ -219,8 +229,16 @@ else()
 endif()
 
 # Trinex Engine compile definitions
-target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS)
-target_compile_definitions(TrinexEngine PRIVATE -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+get_property(TRINEX_ENGINE_PUBLIC_DEFINITIONS GLOBAL PROPERTY trinex_public_definitions)
+get_property(TRINEX_ENGINE_PRIVATE_DEFINITIONS GLOBAL PROPERTY trinex_private_definitions)
+
+if(TRINEX_ENGINE_PUBLIC_DEFINITIONS)
+    target_compile_definitions(TrinexEngine PUBLIC ${TRINEX_ENGINE_PUBLIC_DEFINITIONS})
+endif()
+
+if(TRINEX_ENGINE_PRIVATE_DEFINITIONS)
+    target_compile_definitions(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_DEFINITIONS})
+endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=1)
@@ -229,7 +247,6 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=0)
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=1)
 endif()
-
 
 # Linking libraries and including directories
 get_property(TRINEX_ENGINE_PUBLIC_INCLUDE_DIRS GLOBAL PROPERTY trinex_public_headers_dir)

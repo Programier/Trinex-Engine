@@ -113,11 +113,6 @@ namespace Engine
         VulkanAPI& scissor(const Scissor& scissor) override;
         Scissor scissor() override;
 
-        VulkanAPI& imgui_init(ImGuiContext*) override;
-        VulkanAPI& imgui_terminate(ImGuiContext*) override;
-        VulkanAPI& imgui_new_frame(ImGuiContext*) override;
-        VulkanAPI& imgui_render(ImGuiContext*, ImDrawData* draw_data) override;
-
         vk::PresentModeKHR present_mode_of(bool vsync);
         bool vsync_from_present_mode(vk::PresentModeKHR);
 

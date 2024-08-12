@@ -76,11 +76,6 @@ namespace Engine
 
         D3D11& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 
-        D3D11& imgui_init(ImGuiContext*) override;
-        D3D11& imgui_terminate(ImGuiContext*) override;
-        D3D11& imgui_new_frame(ImGuiContext*) override;
-        D3D11& imgui_render(ImGuiContext*, ImDrawData*) override;
-
         D3D11& prepare_draw();
         D3D11_ViewportMode current_viewport_mode();
         D3D11& draw(size_t vertex_count, size_t vertices_offset) override;

@@ -99,26 +99,6 @@ namespace Engine
         return nullptr;
     }
 
-    NoneApi& NoneApi::imgui_init(ImGuiContext*)
-    {
-        return *this;
-    }
-
-    NoneApi& NoneApi::imgui_terminate(ImGuiContext*)
-    {
-        return *this;
-    }
-
-    NoneApi& NoneApi::imgui_new_frame(ImGuiContext*)
-    {
-        return *this;
-    }
-
-    NoneApi& NoneApi::imgui_render(ImGuiContext*, ImDrawData*)
-    {
-        return *this;
-    }
-
     NoneApi& NoneApi::draw(size_t vertex_count, size_t vertices_offset)
     {
         return *this;

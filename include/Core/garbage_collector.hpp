@@ -1,11 +1,13 @@
 #pragma once
-#include <Core/export.hpp>
 #include <Core/callback.hpp>
+#include <Core/export.hpp>
 
 namespace Engine
 {
     class Object;
-    struct ENGINE_EXPORT GarbageCollector final {
+    class ENGINE_EXPORT GarbageCollector final
+    {
+    public:
         ENGINE_EXPORT static CallBacks<void(Object*)> on_unreachable_check;
         ENGINE_EXPORT static CallBacks<void(Object*)> on_destroy;
 

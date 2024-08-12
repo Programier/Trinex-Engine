@@ -1,7 +1,6 @@
 #include <Core/definitions.hpp>
 #include <Core/struct.hpp>
 #include <Window/config.hpp>
-#include <imgui_impl_opengl3.h>
 #include <opengl_api.hpp>
 #include <opengl_buffers.hpp>
 #include <opengl_render_target.hpp>
@@ -81,33 +80,6 @@ namespace Engine
     void* OpenGL::context()
     {
         return m_context;
-    }
-
-    OpenGL& OpenGL::imgui_init(ImGuiContext* ctx)
-    {
-        ImGui::SetCurrentContext(ctx);
-        ImGui_ImplOpenGL3_Init("#version 300 es");
-        ImGui_ImplOpenGL3_NewFrame();
-        return *this;
-    }
-
-    OpenGL& OpenGL::imgui_terminate(ImGuiContext* ctx)
-    {
-        ImGui::SetCurrentContext(ctx);
-        ImGui_ImplOpenGL3_Shutdown();
-        return *this;
-    }
-
-    OpenGL& OpenGL::imgui_new_frame(ImGuiContext* ctx)
-    {
-        return *this;
-    }
-
-    OpenGL& OpenGL::imgui_render(ImGuiContext* ctx, ImDrawData* draw_data)
-    {
-        ImGui::SetCurrentContext(ctx);
-        ImGui_ImplOpenGL3_RenderDrawData(draw_data);
-        return *this;
     }
 
     OpenGL& OpenGL::prepare_render()

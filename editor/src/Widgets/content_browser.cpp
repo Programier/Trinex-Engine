@@ -2,6 +2,7 @@
 #include <Core/constants.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/garbage_collector.hpp>
 #include <Core/package.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -146,7 +147,7 @@ namespace Engine
         {
             Package* package = selected_object->package();
             package->remove_object(selected_object);
-            delete selected_object;
+            GarbageCollector::destroy(selected_object);
             selected_object = nullptr;
             on_object_select(nullptr);
             return false;

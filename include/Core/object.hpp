@@ -61,6 +61,10 @@ namespace Engine
         bool private_check_instance(const class Class* const check_class) const;
         static Object* noname_object();
 
+        // Override new and delete operators
+        static ENGINE_EXPORT void* operator new(size_t size) noexcept;
+        static ENGINE_EXPORT void* operator new(size_t size, void*) noexcept;
+        static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
 
     public:
         using This  = Object;
@@ -123,11 +127,6 @@ namespace Engine
         Object* owner() const;
         Object& owner(Object* new_owner);
 
-        // Override new and delete operators
-        static ENGINE_EXPORT void* operator new(size_t size) noexcept;
-        static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
-
-
         static ENGINE_EXPORT Object* copy_from(Object* src);
 
         // NOTE! You will manually push object to package, if you use this method!
@@ -150,15 +149,23 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_non_serializable_instance(Args&&... args)
+        static Type* new_placement_instance(void* place, Args&&... args)
         {
-            Type* instance = new_instance<Type>(std::forward<Args>(args)...);
-
-            if constexpr (is_object_based_v<Type>)
+            if constexpr (is_singletone_v<Type>)
             {
-                instance->flags(IsSerializable, false);
+                auto current = Type::instance();
+
+                if (current)
+                {
+                    return current == place ? current : nullptr;
+                }
+
+                return Type::create_placement_instance(place, std::forward<Args>(args)...);
             }
-            return instance;
+            else
+            {
+                return new (place) Type(std::forward<Args>(args)...);
+            }
         }
 
         template<typename Type, typename... Args>
@@ -167,18 +174,20 @@ namespace Engine
             Type* object = new_instance<Type>(std::forward<Args>(args)...);
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                object->name(object_name, true);
+                if (object)
+                    object->name(object_name, true);
             }
             return object;
         }
 
         template<typename Type, typename... Args>
-        static Type* new_non_serializable_instance_named(const StringView& object_name, Args&&... args)
+        static Type* new_placement_instance_named(void* place, const StringView& object_name, Args&&... args)
         {
-            Type* object = new_non_serializable_instance<Type>(std::forward<Args>(args)...);
+            Type* object = new_placement_instance<Type>(place, std::forward<Args>(args)...);
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                object->name(object_name, true);
+                if (object)
+                    object->name(object_name, true);
             }
             return object;
         }
@@ -256,7 +265,7 @@ namespace Engine
         friend class Package;
         friend class Archive;
         friend class MemoryManager;
-        friend class EngineInstance;
+        friend class GarbageCollector;
     };
 
 
@@ -267,7 +276,6 @@ protected:                                                                      
 public:                                                                                                                          \
     using This  = class_name;                                                                                                    \
     using Super = base_name;                                                                                                     \
-    static Object* static_constructor();                                                                                         \
     static void static_initialize_class();                                                                                       \
     static class Engine::Class* static_class_instance();                                                                         \
     virtual class Engine::Class* class_instance() const override;                                                                \
@@ -276,18 +284,6 @@ private:
 
 #define implement_class(namespace_name, class_name, flags)                                                                       \
     class Engine::Class* class_name::m_static_class = nullptr;                                                                   \
-    Engine::Object* class_name::static_constructor()                                                                             \
-    {                                                                                                                            \
-        if constexpr (std::is_abstract_v<class_name> ||                                                                          \
-                      (!std::is_default_constructible_v<class_name> && !Engine::is_singletone_v<class_name>) )                   \
-        {                                                                                                                        \
-            return nullptr;                                                                                                      \
-        }                                                                                                                        \
-        else                                                                                                                     \
-        {                                                                                                                        \
-            return Engine::Object::new_instance<class_name>();                                                                   \
-        }                                                                                                                        \
-    }                                                                                                                            \
                                                                                                                                  \
     class Engine::Class* class_name::class_instance() const                                                                      \
     {                                                                                                                            \

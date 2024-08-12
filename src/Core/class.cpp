@@ -28,7 +28,7 @@ namespace Engine
         return nullptr;
     }
 
-    Class::Class(const Name& name, Class* parent, BitMask _flags) : Struct(name, parent), m_script_object_type(nullptr)
+    Class::Class(const Name& name, Class* parent, BitMask _flags) : Struct(name, parent)
     {
         m_size = 0;
         info_log("Class", "Created class instance '%s'", this->name().c_str());
@@ -90,6 +90,25 @@ namespace Engine
         return object;
     }
 
+    Object* Class::create_object(void* place) const
+    {
+        if (flags(Class::IsSingletone))
+        {
+            if (m_singletone_object == nullptr)
+            {
+                m_singletone_object = m_static_placement_constructor(place);
+                on_create_call(m_singletone_object);
+                return m_singletone_object;
+            }
+
+            return nullptr;
+        }
+
+        Object* object = m_static_placement_constructor(place);
+        on_create_call(object);
+        return object;
+    }
+
     size_t Class::sizeof_class() const
     {
         return m_size;
@@ -119,6 +138,11 @@ namespace Engine
     Object* (*Class::static_constructor() const)()
     {
         return m_static_constructor;
+    }
+
+    Object* (*Class::static_placement_constructor() const)(void*)
+    {
+        return m_static_placement_constructor;
     }
 
     Object* Class::singletone_instance() const
@@ -167,7 +191,7 @@ namespace Engine
                     .method("const string& name() const", &Class::name)
                     .method("const string& namespace_name() const", &Class::namespace_name)
                     .method("const string& base_name() const", &Class::base_name)
-                    .method("Object@ create_object() const", &Class::create_object)
+                    .method("Object@ create_object() const", method_of<Object*, void*>(&Class::create_object))
                     .static_function("Class@ static_find(const string& in)", Class::static_find)
                     .method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a))
                     .method("uint64 sizeof_class() const", &Class::sizeof_class)

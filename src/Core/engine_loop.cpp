@@ -134,6 +134,12 @@ namespace Engine
             }
         }
 
+        if(engine_instance == nullptr)
+        {
+            error_log("EngineLoop", "Failed to create engine instance!");
+            return -1;
+        }
+
         ReflectionInitializeController().execute();
         ScriptBindingsInitializeController().execute();
         ScriptEngine::load_scripts();

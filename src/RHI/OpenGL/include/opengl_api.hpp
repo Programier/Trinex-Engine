@@ -32,10 +32,6 @@ namespace Engine
         OpenGL& initialize(Window* window) override;
         OpenGL& initialize_ubo();
         void* context() override;
-        OpenGL& imgui_init(ImGuiContext*) override;
-        OpenGL& imgui_terminate(ImGuiContext*) override;
-        OpenGL& imgui_new_frame(ImGuiContext*) override;
-        OpenGL& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         OpenGL& prepare_render();
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;

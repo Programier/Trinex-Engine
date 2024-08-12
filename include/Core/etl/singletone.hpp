@@ -54,6 +54,24 @@ namespace Engine
             return instance();
         }
 
+        template<typename... Args>
+        static Type* create_placement_instance(void* place, Args&&... args)
+        {
+            if (!instance())
+            {
+                if constexpr (singletone_based_on_object)
+                {
+                    register_singletone(Type::static_class_instance(), new (place) Type(std::forward<Args>(args)...));
+                }
+                else
+                {
+                    Type::m_instance = new (place) Type(std::forward<Args>(args)...);
+                }
+            }
+
+            return instance();
+        }
+
         INLINE_DEBUGGABLE static Type* instance()
         {
             if constexpr (singletone_based_on_object)

@@ -5,7 +5,6 @@
 #include <Graphics/texture.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
-#include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_descriptor_pool.hpp>
@@ -81,77 +80,6 @@ namespace Engine
     bool VulkanAPI::vsync_from_present_mode(vk::PresentModeKHR present_mode)
     {
         return present_mode == vk::PresentModeKHR::eFifo ? true : false;
-    }
-
-    VulkanAPI& VulkanAPI::imgui_init(ImGuiContext* ctx)
-    {
-        ImGui::SetCurrentContext(ctx);
-        ImGui_ImplVulkan_InitInfo init_info{};
-        init_info.Instance       = m_instance;
-        init_info.PhysicalDevice = m_physical_device;
-        init_info.Device         = m_device;
-        init_info.QueueFamily    = m_graphics_queue_index;
-        init_info.Queue          = m_graphics_queue;
-
-        if (!m_imgui_descriptor_pool)
-        {
-            VkDescriptorPoolSize pool_sizes[] = {
-                    {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-                    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-                    {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-                    {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-                    {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000},
-            };
-
-            VkDescriptorPoolCreateInfo descriptor_pool_create_info = {};
-            descriptor_pool_create_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            descriptor_pool_create_info.maxSets                    = 1000;
-            descriptor_pool_create_info.poolSizeCount              = sizeof(pool_sizes) / sizeof(VkDescriptorPoolSize);
-            descriptor_pool_create_info.pPoolSizes                 = pool_sizes;
-            descriptor_pool_create_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-
-            m_imgui_descriptor_pool = m_device.createDescriptorPool(descriptor_pool_create_info);
-        }
-
-        init_info.DescriptorPool = m_imgui_descriptor_pool;
-
-        init_info.MinImageCount = m_framebuffers_count;
-        init_info.ImageCount    = m_framebuffers_count;
-
-
-        auto renderpass = m_window->render_viewport()
-                                  ->rhi_object<VulkanWindowViewport>()
-                                  ->m_render_target->state.m_render_pass->m_render_pass;
-        ImGui_ImplVulkan_Init(&init_info, renderpass);
-
-        ImGui_ImplVulkan_NewFrame();
-
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::imgui_terminate(ImGuiContext* ctx)
-    {
-        ImGui::SetCurrentContext(ctx);
-        ImGui_ImplVulkan_Shutdown();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::imgui_new_frame(ImGuiContext* ctx)
-    {
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::imgui_render(ImGuiContext* ctx, ImDrawData* draw_data)
-    {
-        ImGui::SetCurrentContext(ctx);
-        ImGui_ImplVulkan_RenderDrawData(draw_data, current_command_buffer_handle());
-        return *this;
     }
 
     vk::Device* vulkan_device()
