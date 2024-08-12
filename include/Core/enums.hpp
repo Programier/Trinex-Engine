@@ -320,7 +320,9 @@ namespace Engine
     enum class SerializationFlags : EnumerateType
     {
         None             = 0,
-        SkipObjectSearch = BIT(0)
+        SkipObjectSearch = BIT(0),
+
+        IsCopyProcess = BIT(1),
     };
 
     enum class BufferSeekDir : EnumerateType
