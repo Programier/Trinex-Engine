@@ -747,4 +747,32 @@ namespace Engine
         Object::create_default_package();
         return m_root_package;
     }
+
+    ENGINE_EXPORT Object* Object::copy_from(Object* src)
+    {
+        Flags<SerializationFlags> flags = SerializationFlags::IsCopyProcess;
+
+        Buffer buffer;
+        {
+            VectorWriter writer(&buffer);
+
+            if (!src->save(&writer, flags))
+            {
+                error_log("Object", "Failed to save object to buffer!");
+                return nullptr;
+            }
+        }
+
+        {
+            VectorReader reader(&buffer);
+            Object* new_object = Object::load_object("", &reader, flags);
+
+            if(!new_object)
+            {
+                error_log("Object", "Failed to create copy of object!");
+            }
+
+            return new_object;
+        }
+    }
 }// namespace Engine

@@ -127,6 +127,9 @@ namespace Engine
         static ENGINE_EXPORT void* operator new(size_t size) noexcept;
         static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
 
+
+        static ENGINE_EXPORT Object* copy_from(Object* src);
+
         // NOTE! You will manually push object to package, if you use this method!
         template<typename Type, typename... Args>
         static Type* new_instance(Args&&... args)
