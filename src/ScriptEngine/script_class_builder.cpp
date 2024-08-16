@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine
 {
@@ -43,4 +44,24 @@ namespace Engine
         ScriptClassRegistrar registrar = registrar_of(this, false);
         ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); });
     }
+
+
+    static void on_script_engine_terminate()
+    {
+        for (auto& [key, value] : Struct::struct_map())
+        {
+            if (value && value->is_class())
+            {
+                Class* class_instance = reinterpret_cast<Class*>(value);
+                class_instance->script_type_info.release();
+            }
+        }
+    }
+
+    static void on_pre_init()
+    {
+        ScriptEngine::on_terminate.push(on_script_engine_terminate);
+    }
+
+    static PreInitializeController pre_initializer(on_pre_init, "Engine::Class");
 }// namespace Engine

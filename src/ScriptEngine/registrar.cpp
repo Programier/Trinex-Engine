@@ -196,6 +196,14 @@ namespace Engine
         return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
     }
 
+    ScriptClassRegistrar ScriptClassRegistrar::reference_class(Class* class_instance)
+    {
+        auto res =
+                ScriptClassRegistrar(class_instance->name().to_string(), class_instance->sizeof_class(), create_flags(RefInfo()));
+        class_instance->script_type_info = res.type_info().info();
+        return res;
+    }
+
     ScriptClassRegistrar ScriptClassRegistrar::existing_class(const String& name)
     {
         return ScriptClassRegistrar(name);

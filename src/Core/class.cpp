@@ -5,7 +5,6 @@
 #include <Core/object.hpp>
 #include <Core/property.hpp>
 
-
 namespace Engine
 {
     static FORCE_INLINE Vector<Class*>& get_asset_class_table()
@@ -20,6 +19,7 @@ namespace Engine
         {
             return nullptr;
         }
+
         if (object->class_instance()->is_a(required_class))
         {
             return object;
@@ -145,6 +145,20 @@ namespace Engine
         return m_static_placement_constructor;
     }
 
+    Class& Class::static_constructor(Object* (*new_static_constructor)(StringView, Object*) )
+    {
+        trinex_always_check(new_static_constructor, "Constructor can't be nullptr!");
+        m_static_constructor = new_static_constructor;
+        return *this;
+    }
+
+    Class& Class::static_placement_constructor(Object* (*new_static_placement_constructor)(void*, StringView, Object*) )
+    {
+        trinex_always_check(new_static_placement_constructor, "Constructor can't be nullptr!");
+        m_static_placement_constructor = new_static_placement_constructor;
+        return *this;
+    }
+
     Object* Class::singletone_instance() const
     {
         return m_singletone_object;
@@ -176,6 +190,8 @@ namespace Engine
 
     Class::~Class()
     {
+        on_class_destroy(this);
+
         if (Class* parent_class = parent())
         {
             parent_class->m_childs.erase(this);

@@ -1031,7 +1031,7 @@ protected:
 	virtual ~asIScriptGeneric() {}
 };
 
-class AS_API asIScriptObject
+class asIScriptObject
 {
 public:
 	// Memory management
@@ -1050,8 +1050,12 @@ public:
 	virtual void       *GetAddressOfProperty(asUINT prop) = 0;
 
 	// Miscellaneous
-    asIScriptEngine *GetEngine() const;
+	virtual asIScriptEngine *GetEngine() const = 0;
 	virtual int              CopyFrom(const asIScriptObject *other) = 0;
+
+	// User data
+	virtual void *SetUserData(void *data, asPWORD type = 0) = 0;
+	virtual void *GetUserData(asPWORD type = 0) const = 0;
 
 protected:
 	virtual ~asIScriptObject() {}

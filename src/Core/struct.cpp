@@ -38,7 +38,12 @@ namespace Engine
             parent();
         }
 
-        internal_struct_map()[Strings::hash_of(m_full_name)] = this;
+        auto& it = internal_struct_map()[Strings::hash_of(m_full_name)];
+        if (it)
+        {
+            delete it;
+        }
+        it = this;
     }
 
     Struct::Struct(const Name& name, Struct* parent) : Struct(name)

@@ -14,13 +14,14 @@ namespace Engine
     {
     private:
         mutable asITypeInfo* m_info = nullptr;
-
         const ScriptTypeInfo& add_ref() const;
-        const ScriptTypeInfo& release() const;
+
 
     public:
         ScriptTypeInfo(asITypeInfo* info = nullptr);
         copy_constructors_hpp(ScriptTypeInfo);
+
+        const ScriptTypeInfo& release() const;
 
         asITypeInfo* info() const;
 

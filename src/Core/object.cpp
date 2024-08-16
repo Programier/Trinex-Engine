@@ -21,7 +21,30 @@
 namespace Engine
 {
 
-    static thread_local bool m_is_valid_next_object = false;
+    static thread_local struct NextObjectInfo {
+        Class* class_instance;
+
+        NextObjectInfo()
+        {
+            reset();
+        }
+
+        void reset()
+        {
+            class_instance = nullptr;
+        }
+
+    } next_object_info;
+
+    void Object::setup_next_object_info(Class* self)
+    {
+        next_object_info.class_instance = self;
+    }
+
+    void Object::reset_next_object_info()
+    {
+        next_object_info.reset();
+    }
 
     static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
     {
@@ -51,11 +74,6 @@ namespace Engine
         static_class_instance()->script_registration_callback = register_object_to_script;
     }
 
-    void Object::prepare_next_object_allocation()
-    {
-        m_is_valid_next_object = true;
-    }
-
     static Vector<Index>& get_free_indexes_array()
     {
         static Vector<Index> array;
@@ -67,7 +85,6 @@ namespace Engine
         static Vector<Object*> array;
         return array;
     }
-
 
     static Package* m_root_package = nullptr;
 
@@ -94,12 +111,13 @@ namespace Engine
 
     Object::Object() : m_references(0), m_instance_index(Constants::index_none)
     {
-        if (!m_is_valid_next_object)
+        if (next_object_info.class_instance == nullptr)
         {
-            throw EngineException("Use Object::new_instance method or operator new for allocating objects");
+            throw EngineException("Next object class is invalid!");
         }
 
         m_owner                    = nullptr;
+        m_class                    = next_object_info.class_instance;
         ObjectArray& objects_array = get_instances_array();
         m_instance_index           = objects_array.size();
 
@@ -118,7 +136,13 @@ namespace Engine
         flags(Flag::IsSerializable, true);
         flags(Flag::IsEditable, true);
         flags(Flag::IsAvailableForGC, true);
-        m_is_valid_next_object = false;
+
+        next_object_info.reset();
+    }
+
+    class Class* Object::class_instance() const
+    {
+        return m_class;
     }
 
     ENGINE_EXPORT HashIndex Object::hash_of_name(const StringView& name)
@@ -348,14 +372,16 @@ namespace Engine
         return m_references;
     }
 
-    void Object::add_reference()
+    size_t Object::add_reference() const
     {
         ++m_references;
+        return references();
     }
 
-    void Object::remove_reference()
+    size_t Object::remove_reference() const
     {
         --m_references;
+        return references();
     }
 
     bool Object::is_noname() const
@@ -776,7 +802,10 @@ namespace Engine
     {
         if (object_class)
         {
-            return object_class->create_object(name, owner);
+            setup_next_object_info(object_class);
+            Object* result = object_class->create_object(name, owner);
+            reset_next_object_info();
+            return result;
         }
         return nullptr;
     }
@@ -785,7 +814,10 @@ namespace Engine
     {
         if (object_class)
         {
-            return object_class->create_object(name, owner);
+            setup_next_object_info(object_class);
+            Object* result = object_class->create_placement_object(place, name, owner);
+            reset_next_object_info();
+            return result;
         }
         return nullptr;
     }

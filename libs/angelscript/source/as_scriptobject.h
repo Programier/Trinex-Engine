@@ -93,8 +93,12 @@ public:
 	void       *GetAddressOfProperty(asUINT prop);
 
 	// Miscellaneous
+	asIScriptEngine *GetEngine() const;
 	int              CopyFrom(const asIScriptObject *other);
 
+	// User data
+	void *SetUserData(void *data, asPWORD type = 0);
+	void *GetUserData(asPWORD type = 0) const;
 
 //====================================
 // Internal

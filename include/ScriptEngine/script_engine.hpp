@@ -54,6 +54,7 @@ namespace Engine
         };
 
         static bool exception_on_error;
+        static CallBacks<void()> on_terminate;
 
         static ScriptEngine& initialize();
         static ScriptEngine& instance();

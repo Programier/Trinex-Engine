@@ -39,7 +39,6 @@ namespace Engine
     void* Object::operator new(size_t size) noexcept
     {
         byte* memory = allocator().allocate(size);
-        prepare_next_object_allocation();
         return memory;
     }
 

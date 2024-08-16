@@ -55,7 +55,7 @@ namespace Engine
     TreeMap<int_t, ScriptEngine::VariableToStringFunction> ScriptEngine::m_custom_variable_parsers;
 
     bool ScriptEngine::exception_on_error = true;
-
+    CallBacks<void()> ScriptEngine::on_terminate;
 
     ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger() : m_prev_namespace(ScriptEngine::default_namespace())
     {}
@@ -103,7 +103,7 @@ namespace Engine
             m_engine->SetJITCompiler(m_jit_compiler);
         }
 #endif
-        PostDestroyController controller(ScriptEngine::terminate);
+        PostDestroyController controller(ScriptEngine::terminate, "Engine::ScriptEngine");
         ScriptContext::initialize();
 
         ScriptAddonsInitializeController().execute();
@@ -115,6 +115,7 @@ namespace Engine
     {
         if (m_engine)
         {
+            on_terminate();
             ScriptContext::terminate();
             delete m_script_folder;
             m_script_folder = nullptr;

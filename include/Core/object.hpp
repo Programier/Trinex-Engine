@@ -43,8 +43,9 @@ namespace Engine
         };
 
     private:
+        Class* m_class;
         Object* m_owner;
-        Counter m_references;
+        mutable Counter m_references;
         Name m_name;
         mutable Index m_instance_index;
 
@@ -55,17 +56,24 @@ namespace Engine
         mutable Flags<Object::Flag> flags;
 
     private:
+        // Setup object info
+        static void setup_next_object_info(Class* self);
+        static void reset_next_object_info();
+
         static void create_default_package();
         const Object& remove_from_instances_array() const;
-        static void prepare_next_object_allocation();
         bool serialize_object_properties(Archive& ar);
 
         template<typename T>
         static FORCE_INLINE T* setup_new_object(T* object, StringView name, Object* owner)
         {
-            Object* base_object = object;
-            base_object->m_name = name;
-            base_object->owner(owner);
+            if constexpr (std::is_base_of_v<Object, T>)
+            {
+                Object* base_object = object;
+                base_object->m_name = name;
+                base_object->owner(owner);
+                reset_next_object_info();
+            }
             return object;
         }
 
@@ -92,7 +100,7 @@ namespace Engine
         static void static_initialize_class();
         static class Class* static_class_instance();
         static HashIndex hash_of_name(const StringView& name);
-        virtual class Class* class_instance() const;
+        class Class* class_instance() const;
 
         delete_copy_constructors(Object);
         static String package_name_of(const StringView& name);
@@ -118,8 +126,8 @@ namespace Engine
         Package* package(bool recursive = false) const;
         String full_name(bool override_by_owner = false) const;
         Counter references() const;
-        void add_reference();
-        void remove_reference();
+        size_t add_reference() const;
+        size_t remove_reference() const;
         bool is_noname() const;
         String as_string() const;
         Index instance_index() const;
@@ -171,10 +179,14 @@ namespace Engine
                         return Type::instance();
                     }
 
+                    if constexpr (std::is_base_of_v<Object, Type>)
+                        setup_next_object_info(Type::static_class_instance());
                     return setup_new_object(Type::create_instance(std::forward<Args>(args)...), name, owner);
                 }
                 else
                 {
+                    if constexpr (std::is_base_of_v<Object, Type>)
+                        setup_next_object_info(Type::static_class_instance());
                     return setup_new_object(new Type(std::forward<Args>(args)...), name, owner);
                 }
             }
@@ -202,10 +214,14 @@ namespace Engine
                         return current == place ? current : nullptr;
                     }
 
+                    if constexpr (std::is_base_of_v<Object, Type>)
+                        setup_next_object_info(Type::static_class_instance());
                     return setup_new_object(Type::create_placement_instance(place, std::forward<Args>(args)...), name, owner);
                 }
                 else
                 {
+                    if constexpr (std::is_base_of_v<Object, Type>)
+                        setup_next_object_info(Type::static_class_instance());
                     return setup_new_object(new (place) Type(std::forward<Args>(args)...), name, owner);
                 }
             }
@@ -310,18 +326,12 @@ public:                                                                         
     using Super = base_name;                                                                                                     \
     static void static_initialize_class();                                                                                       \
     static class Engine::Class* static_class_instance();                                                                         \
-    virtual class Engine::Class* class_instance() const override;                                                                \
     friend class Engine::Class;                                                                                                  \
                                                                                                                                  \
 private:
 
 #define implement_class(namespace_name, class_name, flags)                                                                       \
     class Engine::Class* class_name::m_static_class = nullptr;                                                                   \
-                                                                                                                                 \
-    class Engine::Class* class_name::class_instance() const                                                                      \
-    {                                                                                                                            \
-        return class_name::static_class_instance();                                                                              \
-    }                                                                                                                            \
                                                                                                                                  \
     class Engine::Class* class_name::static_class_instance()                                                                     \
     {                                                                                                                            \

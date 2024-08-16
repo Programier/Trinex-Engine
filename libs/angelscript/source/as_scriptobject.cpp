@@ -515,9 +515,72 @@ asILockableSharedBool *asCScriptObject::GetWeakRefFlag() const
 	return extra->weakRefFlag;
 }
 
-asIScriptEngine *asIScriptObject::GetEngine() const
+void *asCScriptObject::GetUserData(asPWORD type) const
 {
-    return reinterpret_cast<asCObjectType*>(GetObjectType())->engine;
+	if( !extra )
+		return 0;
+
+	// There may be multiple threads reading, but when
+	// setting the user data nobody must be reading.
+	// TODO: runtime optimize: Would it be worth it to have a rwlock per object type?
+	asAcquireSharedLock();
+
+	for( asUINT n = 0; n < extra->userData.GetLength(); n += 2 )
+	{
+		if( extra->userData[n] == type )
+		{
+			void *userData = reinterpret_cast<void*>(extra->userData[n+1]);
+			asReleaseSharedLock();
+			return userData;
+		}
+	}
+
+	asReleaseSharedLock();
+
+	return 0;
+}
+
+void *asCScriptObject::SetUserData(void *data, asPWORD type)
+{
+	// Lock globally so no other thread can attempt
+	// to manipulate the extra data at the same time.
+	// TODO: runtime optimize: Instead of locking globally, it would be possible to have 
+	//                         a critical section per object type. This would reduce the 
+	//                         chances of two threads lock on the same critical section.
+	asAcquireExclusiveLock();
+
+	// Make sure another thread didn't create the 
+	// flag while we waited for the lock
+	if( !extra )
+		extra = asNEW(SExtra);
+
+	// It is not intended to store a lot of different types of userdata,
+	// so a more complex structure like a associative map would just have
+	// more overhead than a simple array.
+	for( asUINT n = 0; n < extra->userData.GetLength(); n += 2 )
+	{
+		if( extra->userData[n] == type )
+		{
+			void *oldData = reinterpret_cast<void*>(extra->userData[n+1]);
+			extra->userData[n+1] = reinterpret_cast<asPWORD>(data);
+
+			asReleaseExclusiveLock();
+
+			return oldData;
+		}
+	}
+
+	extra->userData.PushLast(type);
+	extra->userData.PushLast(reinterpret_cast<asPWORD>(data));
+
+	asReleaseExclusiveLock();
+
+	return 0;
+}
+
+asIScriptEngine *asCScriptObject::GetEngine() const
+{
+	return objType->engine;
 }
 
 int asCScriptObject::AddRef() const

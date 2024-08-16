@@ -18,11 +18,12 @@ namespace Engine
     public:
         enum Flag : BitMask
         {
-            IsSingletone = 1 << 0,
-            IsAbstract   = 1 << 1,
-            IsFinal      = 1 << 2,
-            IsScriptable = 1 << 3,
-            IsAsset      = 1 << 4,
+            IsSingletone = BIT(0),
+            IsAbstract   = BIT(1),
+            IsFinal      = BIT(2),
+            IsNative     = BIT(3),
+            IsScriptable = BIT(4),
+            IsAsset      = BIT(5),
         };
 
         Flags<Class::Flag> flags;
@@ -52,6 +53,7 @@ namespace Engine
         ScriptTypeInfo script_type_info;
         CallBacks<void(Object*)> on_create;
         CallBacks<void(Object*)> on_destroy;
+        CallBacks<void(Class*)> on_class_destroy;
         Function<void(ScriptClassRegistrar*, Class*)> script_registration_callback;
 
         Class(const Name& full_name, Class* parent = nullptr, BitMask flags = 0);
@@ -68,6 +70,8 @@ namespace Engine
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)(StringView, Object*);
         Object* (*static_placement_constructor() const)(void*, StringView, Object*);
+        Class& static_constructor(Object* (*new_static_constructor)(StringView, Object*) );
+        Class& static_placement_constructor(Object* (*new_static_placement_constructor)(void*, StringView, Object*) );
         Object* singletone_instance() const;
         Class& post_initialize();
 
@@ -92,6 +96,7 @@ namespace Engine
             if (m_size == 0)
             {
                 m_size = sizeof(ObjectClass);
+                flags(Flag::IsNative, true);
 
                 m_static_constructor = [](StringView name, Object* owner) -> Object* {
                     return Object::new_instance<ObjectClass, true>(name, owner);
