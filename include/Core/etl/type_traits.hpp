@@ -83,7 +83,6 @@ namespace Engine
     template<typename T>
     inline constexpr bool is_singletone_v = std::is_base_of_v<SingletoneBase, T>;
 
-
     namespace Concepts
     {
         template<typename T>

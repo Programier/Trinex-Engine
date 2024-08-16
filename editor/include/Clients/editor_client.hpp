@@ -20,6 +20,12 @@ namespace Engine
             bool is_using_guizmo               = false;
         } viewport;
 
+        struct {
+            RenderViewport* render_viewport     = nullptr;
+            Window* window                      = nullptr;
+            ImGuiRenderer::Window* imgui_window = nullptr;
+        } window;
+
         EditorState();
     };
 
@@ -30,6 +36,8 @@ namespace Engine
 
     private:
         class World* m_world = nullptr;
+
+
         EditorSceneRenderer m_renderer;
         RenderStatistics m_statistics;
         Flags<ShowFlags, BitMask> m_show_flags;
@@ -38,11 +46,6 @@ namespace Engine
 
         class ContentBrowser* m_content_browser;
         ImGuiObjectProperties* m_properties;
-
-        RenderViewport* m_render_viewport = nullptr;
-        Window* m_window                  = nullptr;
-        size_t m_frame                    = 0;
-
         class SceneComponent* m_selected_scene_component = nullptr;
 
 

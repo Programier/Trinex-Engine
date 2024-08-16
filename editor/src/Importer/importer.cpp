@@ -32,7 +32,7 @@ namespace Engine::Importer
             return;
         }
 
-        StaticMesh* static_mesh = Object::new_instance<StaticMesh>();
+        StaticMesh* static_mesh = Object::new_instance<StaticMesh>(mesh->mName.C_Str(), package);
 
 
         Vector<Vector3D> positions;
@@ -195,9 +195,7 @@ namespace Engine::Importer
 
         static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))
                                       .apply_transform(model);
-        static_mesh->name(mesh->mName.C_Str());
         static_mesh->init_resources();
-        package->add_object(static_mesh);
     }
 
     void import_resource(Package* package, const Path& file, const Transform& transform)

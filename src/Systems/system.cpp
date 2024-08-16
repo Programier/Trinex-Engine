@@ -50,7 +50,8 @@ namespace Engine
             throw EngineException("Each class based from Engine::System must be registered!");
         }
 
-        name(Strings::format("Engine::Systems::{}", _class->base_name().c_str()), true);
+        rename(_class->base_name().c_str(), static_find_package("Engine::Systems", true));
+
         debug_log("System", "Created system '%s'", string_name().c_str());
         m_is_fully_created = true;
         return *this;
@@ -266,21 +267,6 @@ namespace Engine
         {
             error_log("System", "You must call shutdown method before destroy system! System address %p", this);
         }
-    }
-
-    static void bind_to_script(ScriptClassRegistrar* registar, Class* self)
-    {
-        registar->static_function("System@ new_system(const string& in)", func_of<System*(const String&)>(System::new_system))
-                .method("System@ register_subsystem(System@)", &System::register_subsystem)
-                .method("System@ remove_subsystem(System@)", &System::remove_subsystem)
-                .method("System@ parent_system() const", &System::parent_system)
-                .method("System@ sort_subsystems()", &System::sort_subsystems)
-                .method("System@ wait()", func_of<System&(System*)>([](System* self) -> System& { return self->wait(); }))
-                .method("System@ update(float)",
-                        func_of<System&(System*, float)>([](System* self, float dt) -> System& { return self->update(dt); }))
-                .method("System@ shutdown()", func_of<System&(System*)>([](System* self) -> System& { return self->shutdown(); }))
-                .method("Class@ depends_on() const",
-                        func_of<Class*(System*)>([](System* self) -> Class* { return self->depends_on(); }));
     }
 
     static void on_system_destroy(Object* object)

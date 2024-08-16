@@ -312,14 +312,14 @@ namespace Engine::ImGuiBackend
 
         ImTextureID& texture = bd->font_texture;
 
-        texture.texture = Object::new_instance_named<EngineResource<Texture2D>>(
+        texture.texture = Object::new_instance<EngineResource<Texture2D>>(
                 Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
         texture.texture->init(ColorFormat::R8G8B8A8, Size2D(static_cast<float>(width), static_cast<float>(height)), pixels,
                               static_cast<size_t>(width * height * 4));
-        auto package = Package::find_package("Engine::ImGui", true);
+        auto package = Package::static_find_package("Engine::ImGui", true);
         package->add_object(texture.texture);
 
-        texture.sampler = Object::new_instance_named<EngineResource<Sampler>>(
+        texture.sampler = Object::new_instance<EngineResource<Sampler>>(
                 Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
         texture.sampler->filter = SamplerFilter::Trilinear;
         texture.sampler->rhi_create();

@@ -63,12 +63,12 @@ namespace Engine
             m_event_system_listeners.clear();
         }
 
-        m_window = nullptr;
+        m_state.window.window = nullptr;
     }
 
     void EditorClient::on_window_close(const Event& event)
     {
-        if (event.window_id() == m_window->id())
+        if (event.window_id() == m_state.window.window->id())
         {
             unbind_window(false);
         }
@@ -118,20 +118,19 @@ namespace Engine
         {
             throw EngineException("Cannot bind client to non-window viewport!");
         }
-        m_window          = window;
-        m_render_viewport = viewport;
-
         window->imgui_initialize(initialize_theme);
+
+        m_state.window.window          = window;
+        m_state.window.render_viewport = viewport;
+        m_state.window.imgui_window    = window->imgui_window();
 
         String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
         window->title(new_title);
         render_thread()->wait_all();
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 
-
-        ImGuiRenderer::Window* imgui_window = window->imgui_window();
-        ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
-        ImGuiRenderer::Window::make_current(imgui_window);
+        ImGuiRenderer::Window* prev_window = ImGuiRenderer::Window::current();
+        ImGuiRenderer::Window::make_current(m_state.window.imgui_window);
 
         create_content_browser();
         create_properties_window();
@@ -165,7 +164,7 @@ namespace Engine
 
     ViewportClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
     {
-        auto& list = viewport->window()->imgui_window()->window_list;
+        auto& list = m_state.window.imgui_window->window_list;
         list.close_all_windows();
 
         unbind_window(false);
@@ -294,7 +293,7 @@ namespace Engine
             ImGui::EndMenuBar();
         }
 
-        if (m_frame == 0)
+        if (m_state.window.imgui_window->frame_index() == 1)
         {
             ImGui::DockBuilderRemoveNode(dock_id);
             ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
@@ -328,7 +327,7 @@ namespace Engine
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
-        ImGuiRenderer::Window* window = viewport->window()->imgui_window();
+        ImGuiRenderer::Window* window = m_state.window.imgui_window;
         window->new_frame();
 
         ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
@@ -356,8 +355,6 @@ namespace Engine
                 m_world->destroy_actor(ell);
             }
         }
-
-        ++m_frame;
         return *this;
     }
 
@@ -615,7 +612,7 @@ namespace Engine
 
         if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
         {
-            MouseSystem::instance()->relative_mode(true, m_window);
+            MouseSystem::instance()->relative_mode(true, m_state.window.window);
         }
     }
 
@@ -625,7 +622,7 @@ namespace Engine
 
         if (button.button == Mouse::Button::Right)
         {
-            MouseSystem::instance()->relative_mode(false, m_window);
+            MouseSystem::instance()->relative_mode(false, m_state.window.window);
             m_camera_move = {0, 0, 0};
         }
     }
@@ -634,7 +631,7 @@ namespace Engine
     {
         const MouseMotionEvent& motion = event.get<const MouseMotionEvent&>();
 
-        if (MouseSystem::instance()->is_relative_mode(m_window))
+        if (MouseSystem::instance()->is_relative_mode(m_state.window.window))
         {
             camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
                                   calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
@@ -670,7 +667,7 @@ namespace Engine
 
     EditorClient& EditorClient::update_camera(float dt)
     {
-        move_camera(m_camera_move, m_window);
+        move_camera(m_camera_move, m_state.window.window);
 
         camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
                              m_camera_speed);

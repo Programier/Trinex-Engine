@@ -128,18 +128,13 @@ namespace Engine
         if (!self)
             return nullptr;
 
-        Actor* actor = self->create_object()->instance_cast<Actor>();
+        Actor* actor = self->create_object(actor_name, this)->instance_cast<Actor>();
+
         if (actor == nullptr)
         {
             throw EngineException("Invalid class for actor!");
         }
 
-        if (actor_name.is_valid())
-        {
-            actor->name(actor_name);
-        }
-
-        actor->owner(this);
         actor->spawned();
 
         {
@@ -259,7 +254,6 @@ namespace Engine
         return actor->actor_flags.has_all(Actor::Selected);
     }
 
-
     World::~World()
     {
         if (!is_shutdowned())
@@ -273,7 +267,7 @@ namespace Engine
         static World* global_world = nullptr;
         if (global_world == nullptr)
         {
-            System* system = Object::find_object_checked<System>("Engine::Systems::EngineSystem");
+            System* system = Object::static_find_object_checked<System>("Engine::Systems::EngineSystem");
             if (!system)
                 return nullptr;
             system = system->find_subsystem("LogicSystem::Global World");

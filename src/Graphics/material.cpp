@@ -288,7 +288,7 @@ namespace Engine
 
     Material::Material()
     {
-        pipeline = Object::new_instance_named<Pipeline>("Pipeline");
+        pipeline = Object::new_instance<Pipeline>("Pipeline");
         pipeline->flags(Object::IsAvailableForGC, false);
         pipeline->owner(this);
     }

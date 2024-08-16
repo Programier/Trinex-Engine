@@ -82,7 +82,7 @@ namespace Engine
             if (out)
                 return out;
 
-            out = Object::new_instance_named<Type>(name);
+            out = Object::new_instance<Type>(name);
             out->flags(Object::IsAvailableForGC, false);
             out->owner(this);
             return out;

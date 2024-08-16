@@ -16,7 +16,6 @@ namespace Engine
         PropertiesMap& build_props_map(Struct* self);
 
     public:
-        UserData userdata;
         CallBacks<void(Object*)> on_begin_render;
 
         ImGuiObjectProperties();

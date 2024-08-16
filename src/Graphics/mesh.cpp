@@ -71,7 +71,7 @@ namespace Engine
         materials.resize(1);
         auto& entry    = materials.back();
         entry.policy   = policy_id(Name::color_scene_rendering);
-        entry.material = Object::find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
+        entry.material = Object::static_find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
     }
 
     StaticMesh& StaticMesh::init_resources()

@@ -85,7 +85,7 @@ namespace Engine
             return instance();
 
         m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
-        logger->log("ScriptEngine", "Created script engine [%p]", m_engine);
+        info_log("ScriptEngine", "Created script engine [%p]", m_engine);
 
         m_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
         m_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);

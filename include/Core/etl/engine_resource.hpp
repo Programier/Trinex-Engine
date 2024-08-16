@@ -1,5 +1,5 @@
 #pragma once
-
+#include <Core/object.hpp>
 
 namespace Engine
 {
@@ -9,9 +9,9 @@ namespace Engine
     public:
         using Parent::Parent;
 
-        bool is_engine_resource() const override
+        EngineResource()
         {
-            return true;
+            Object::flags(Object::StandAlone, true);
         }
     };
 }// namespace Engine

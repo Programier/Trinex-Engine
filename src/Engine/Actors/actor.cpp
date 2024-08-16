@@ -13,11 +13,9 @@ namespace Engine
         if (self == nullptr)
             return nullptr;
 
-
-        ActorComponent* component_object = self->create_object()->instance_cast<ActorComponent>();
+        ActorComponent* component_object = self->create_object(component_name)->instance_cast<ActorComponent>();
         if (!component_object)
             throw EngineException("Cannot create actor component from non component class!");
-        component_object->name(component_name);
 
         add_component(component_object);
         return component_object;

@@ -72,31 +72,31 @@ namespace Engine
         return create_object();
     }
 
-    Object* Class::create_object() const
+    Object* Class::create_object(StringView name, Object* owner) const
     {
         if (flags(Class::IsSingletone))
         {
             if (m_singletone_object == nullptr)
             {
-                m_singletone_object = m_static_constructor();
+                m_singletone_object = m_static_constructor(name, owner);
                 on_create_call(m_singletone_object);
             }
 
             return m_singletone_object;
         }
 
-        Object* object = m_static_constructor();
+        Object* object = m_static_constructor(name, owner);
         on_create_call(object);
         return object;
     }
 
-    Object* Class::create_object(void* place) const
+    Object* Class::create_placement_object(void* place, StringView name, Object* owner) const
     {
         if (flags(Class::IsSingletone))
         {
             if (m_singletone_object == nullptr)
             {
-                m_singletone_object = m_static_placement_constructor(place);
+                m_singletone_object = m_static_placement_constructor(place, name, owner);
                 on_create_call(m_singletone_object);
                 return m_singletone_object;
             }
@@ -104,7 +104,7 @@ namespace Engine
             return nullptr;
         }
 
-        Object* object = m_static_placement_constructor(place);
+        Object* object = m_static_placement_constructor(place, name, owner);
         on_create_call(object);
         return object;
     }
@@ -135,12 +135,12 @@ namespace Engine
         return m_cast_to_this;
     }
 
-    Object* (*Class::static_constructor() const)()
+    Object* (*Class::static_constructor() const)(StringView, Object*)
     {
         return m_static_constructor;
     }
 
-    Object* (*Class::static_placement_constructor() const)(void*)
+    Object* (*Class::static_placement_constructor() const)(void*, StringView, Object*)
     {
         return m_static_placement_constructor;
     }
@@ -191,7 +191,6 @@ namespace Engine
                     .method("const string& name() const", &Class::name)
                     .method("const string& namespace_name() const", &Class::namespace_name)
                     .method("const string& base_name() const", &Class::base_name)
-                    .method("Object@ create_object() const", method_of<Object*, void*>(&Class::create_object))
                     .static_function("Class@ static_find(const string& in)", Class::static_find)
                     .method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a))
                     .method("uint64 sizeof_class() const", &Class::sizeof_class)

@@ -200,7 +200,7 @@ namespace Engine
         if (render_target != nullptr)
             return render_target;
 
-        if (API->m_properties.limits.maxColorAttachments < static_cast<int32_t>(color_attachments.size()))
+        if (API->m_properties.limits.maxColorAttachments < static_cast<uint32_t>(color_attachments.size()))
         {
             throw EngineException(Strings::format("Max color attachments is {}", API->m_properties.limits.maxColorAttachments));
         }

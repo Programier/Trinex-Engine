@@ -49,12 +49,9 @@ namespace Engine
 
             if (object_class)
             {
-                if (!(object = pkg->find_object(names[entry->object_name], false)))
+                if (!(object = pkg->find_child_object(names[entry->object_name], false)))
                 {
-                    object = object_class->create_object();
-                    object->name(names[entry->object_name]);
-
-                    pkg->add_object(object);
+                    object = object_class->create_object(names[entry->object_name], pkg);
                     object->preload();
                 }
             }
@@ -225,9 +222,10 @@ namespace Engine
     Package::Package()
     {
         flags(Object::IsPackage, true);
+        flags(Object::StandAlone, true);
     }
 
-    bool Package::add_object(Object* object, bool autorename)
+    bool Package::can_add_object(Object* object, Name name) const
     {
         if (!object)
             return false;
@@ -244,41 +242,64 @@ namespace Engine
             return false;
         }
 
-        if (!autorename && contains_object(object->m_name))
+        if (contains_object(name))
         {
             error_log("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
                       object->string_name().c_str());
             return false;
         }
-
-        if (object->m_package)
-        {
-            object->m_package->remove_object(object);
-        }
-
-        {
-            static size_t index    = 2;
-            String new_object_name = object->m_name;
-            while (contains_object(new_object_name))
-            {
-                new_object_name = object->m_name.to_string() + Strings::format(" {}", index++);
-            }
-            if (new_object_name != object->m_name.to_string())
-                object->name(new_object_name);
-        }
-
-        object->m_package = this;
-        m_objects.insert_or_assign(object->name(), object);
         return true;
+    }
+
+    bool Package::add_new_object(Object* object, Name name)
+    {
+        if (can_add_object(object, name))
+        {
+            m_objects.insert_or_assign(name, object);
+            return true;
+        }
+        return false;
+    }
+
+    bool Package::register_child(Object* object)
+    {
+        return add_new_object(object, object->name());
+    }
+
+    bool Package::unregister_child(Object* child)
+    {
+        if (child->owner() == this)
+        {
+            m_objects.erase(child->name());
+        }
+
+        return true;
+    }
+
+    bool Package::rename_child_object(Object* object, StringView new_name)
+    {
+        bool result = add_new_object(object, new_name);
+        if (result)
+        {
+            m_objects.erase(object->name());
+        }
+        return result;
+    }
+
+    bool Package::add_object(Object* object)
+    {
+        if (!object)
+            return false;
+
+        return object->owner(this);
     }
 
     Package& Package::remove_object(Object* object)
     {
-        if (!object || object->m_package != this)
+        if (!object || object->package() != this)
             return *this;
 
-        m_objects.erase(object->name());
-        object->m_package = nullptr;
+        object->owner(nullptr);
         return *this;
     }
 
@@ -300,7 +321,7 @@ namespace Engine
 
         while (separator_index != StringView::npos && package)
         {
-            package         = package->find_object_checked<Package>(_name.substr(0, separator_index), false);
+            package         = package->find_child_object_checked<Package>(_name.substr(0, separator_index), false);
             _name           = _name.substr(separator_index + separator_len);
             separator_index = _name.find_first_of(separator);
         }
@@ -308,7 +329,7 @@ namespace Engine
         return package ? package->find_object_private_no_recurse(_name) : nullptr;
     }
 
-    Object* Package::find_object(const StringView& object_name, bool recursive) const
+    Object* Package::find_child_object(StringView object_name, bool recursive) const
     {
         if (recursive)
             return find_object_private(object_name);
@@ -325,14 +346,9 @@ namespace Engine
         return object ? object->package() == this : false;
     }
 
-    bool Package::is_engine_resource() const
-    {
-        return true;
-    }
-
     bool Package::contains_object(const StringView& name) const
     {
-        return find_object(name, false) != nullptr;
+        return find_child_object(name, false) != nullptr;
     }
 
     bool Package::save(BufferWriter* writer, Flags<SerializationFlags> serialization_flags)
@@ -365,9 +381,10 @@ namespace Engine
 
     Package::~Package()
     {
-        for (auto& [name, object] : m_objects)
+        auto objects = std::move(m_objects);
+        for (auto& [name, object] : objects)
         {
-            object->m_package = nullptr;
+            object->owner(nullptr);
         }
     }
 

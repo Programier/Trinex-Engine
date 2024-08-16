@@ -49,7 +49,7 @@ namespace Engine
 
     Scene::Scene()
     {
-        m_root_component = Object::new_instance_named<SceneComponent>("Root");
+        m_root_component = Object::new_instance<SceneComponent>("Root");
     }
 
 

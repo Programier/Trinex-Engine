@@ -5,8 +5,8 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/implement.hpp>
+#include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
-#include <Core/userdata.hpp>
 #include <ScriptEngine/registrar.hpp>
 
 namespace Engine
@@ -26,17 +26,23 @@ namespace Engine
 
         enum Flag : BitMask
         {
-            None             = 0,
-            IsSerializable   = BIT(0),
+            None = 0,
+
+            /*  The object is kept around for editing even if is not referenced by anything.
+                The object is deleted at the end of the engine operation, or must be deleted manually */
+            StandAlone = BIT(0),
+
+            // The object is kept around for editing even if is not referenced by anything. The object must always be deleted manually
             IsAvailableForGC = BIT(1),
-            IsPackage        = BIT(2),
-            IsUnreachable    = BIT(3),
-            IsEditable       = BIT(4),
-            IsDirty          = BIT(5),
+
+            IsSerializable = BIT(2),
+            IsPackage      = BIT(3),
+            IsUnreachable  = BIT(4),
+            IsEditable     = BIT(5),
+            IsDirty        = BIT(6),
         };
 
     private:
-        Package* m_package;
         Object* m_owner;
         Counter m_references;
         Name m_name;
@@ -47,8 +53,6 @@ namespace Engine
 
     public:
         mutable Flags<Object::Flag> flags;
-        UserData userdata;
-
 
     private:
         static void create_default_package();
@@ -56,10 +60,25 @@ namespace Engine
         static void prepare_next_object_allocation();
         bool serialize_object_properties(Archive& ar);
 
+        template<typename T>
+        static FORCE_INLINE T* setup_new_object(T* object, StringView name, Object* owner)
+        {
+            Object* base_object = object;
+            base_object->m_name = name;
+            base_object->owner(owner);
+            return object;
+        }
+
     protected:
         Object();
         bool private_check_instance(const class Class* const check_class) const;
         static Object* noname_object();
+
+        virtual Object& on_owner_update(Object* new_owner);
+        virtual bool register_child(Object* child);
+        virtual bool unregister_child(Object* child);
+        virtual bool rename_child_object(Object* object, StringView new_name);
+        virtual Object& post_rename(Object* old_owner, Name old_name);
 
         // Override new and delete operators
         static ENGINE_EXPORT void* operator new(size_t size) noexcept;
@@ -76,26 +95,27 @@ namespace Engine
         virtual class Class* class_instance() const;
 
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static String package_name_of(const StringView& name);
-        ENGINE_EXPORT static String object_name_of(const StringView& name);
-        ENGINE_EXPORT static StringView package_name_sv_of(const StringView& name);
-        ENGINE_EXPORT static StringView object_name_sv_of(const StringView& name);
-        ENGINE_EXPORT static const ObjectArray& all_objects();
-        ENGINE_EXPORT static Object* find_object(const StringView& object_name);
-        ENGINE_EXPORT static Package* root_package();
+        static String package_name_of(const StringView& name);
+        static String object_name_of(const StringView& name);
+        static StringView package_name_sv_of(const StringView& name);
+        static StringView object_name_sv_of(const StringView& name);
+        static const ObjectArray& all_objects();
+        static Package* root_package();
 
-        ENGINE_EXPORT static const String& language();
-        ENGINE_EXPORT static void language(const StringView& new_language);
-        ENGINE_EXPORT static const String& localize(const StringView& line);
+        static const String& language();
+        static void language(const StringView& new_language);
+        static const String& localize(const StringView& line);
+
+        virtual bool rename(StringView name, Object* new_owner = nullptr);
+        const Name& name() const;
+
+        static Object* static_find_object(StringView object_name);
+        static Package* static_find_package(StringView name, bool create = false);
+        virtual Object* find_child_object(StringView name, bool recursive = true) const;
 
         const String& string_name() const;
         HashIndex hash_index() const;
-        ObjectRenameStatus name(StringView name, bool autorename = false);
-        const Name& name() const;
-        virtual Object* copy();
-        bool add_to_package(Package* package, bool autorename = false);
-        Object& remove_from_package();
-        Package* package() const;
+        Package* package(bool recursive = false) const;
         String full_name(bool override_by_owner = false) const;
         Counter references() const;
         void add_reference();
@@ -108,88 +128,87 @@ namespace Engine
         bool is_editable() const;
         bool is_serializable() const;
         virtual bool is_valid() const;
-        virtual bool is_engine_resource() const;
         virtual const Object& mark_dirty() const;
         bool is_dirty() const;
 
         virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});
-        ENGINE_EXPORT static Object* load_object(const StringView& fullname, class BufferReader* reader,
+        ENGINE_EXPORT static Object* load_object(StringView fullname, class BufferReader* reader,
                                                  Flags<SerializationFlags> flags = {});
-        ENGINE_EXPORT static Object* load_object(const StringView& fullname, Flags<SerializationFlags> flags = {});
+        ENGINE_EXPORT static Object* load_object(StringView fullname, Flags<SerializationFlags> flags = {});
         ENGINE_EXPORT static Object* load_object_from_file(const Path& path, Flags<SerializationFlags> flags = {});
 
-        static Package* find_package(StringView name, bool create = false);
 
         virtual Object& preload();
         virtual Object& postload();
         virtual Object& apply_changes();
 
         Object* owner() const;
-        Object& owner(Object* new_owner);
+        bool owner(Object* new_owner);
 
         static ENGINE_EXPORT Object* copy_from(Object* src);
 
-        // NOTE! You will manually push object to package, if you use this method!
-        template<typename Type, typename... Args>
-        static Type* new_instance(Args&&... args)
-        {
-            if constexpr (is_singletone_v<Type>)
-            {
-                if (Type::instance() != nullptr)
-                {
-                    return Type::instance();
-                }
+        static Object* static_new_instance(Class* object_class, StringView name = "", Object* owner = nullptr);
+        static Object* static_new_placement_instance(void* place, Class* object_class, StringView name = "",
+                                                     Object* owner = nullptr);
 
-                return Type::create_instance(std::forward<Args>(args)...);
+        template<typename Type, bool check_constructible = false, typename... Args>
+        static Type* new_instance(StringView name = "", Object* owner = nullptr, Args&&... args)
+        {
+            constexpr bool invalid =
+                    check_constructible &&
+                    (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+
+            if constexpr (invalid)
+            {
+                return nullptr;
             }
             else
             {
-                return new Type(std::forward<Args>(args)...);
+                if constexpr (is_singletone_v<Type>)
+                {
+                    if (Type::instance() != nullptr)
+                    {
+                        return Type::instance();
+                    }
+
+                    return setup_new_object(Type::create_instance(std::forward<Args>(args)...), name, owner);
+                }
+                else
+                {
+                    return setup_new_object(new Type(std::forward<Args>(args)...), name, owner);
+                }
             }
         }
 
-        template<typename Type, typename... Args>
-        static Type* new_placement_instance(void* place, Args&&... args)
+        template<typename Type, bool check_constructible = false, typename... Args>
+        static Type* new_placement_instance(void* place, StringView name = "", Object* owner = nullptr, Args&&... args)
         {
-            if constexpr (is_singletone_v<Type>)
+            constexpr bool invalid =
+                    check_constructible &&
+                    (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+
+            if constexpr (invalid)
             {
-                auto current = Type::instance();
-
-                if (current)
-                {
-                    return current == place ? current : nullptr;
-                }
-
-                return Type::create_placement_instance(place, std::forward<Args>(args)...);
+                return nullptr;
             }
             else
             {
-                return new (place) Type(std::forward<Args>(args)...);
-            }
-        }
+                if constexpr (is_singletone_v<Type>)
+                {
+                    auto current = Type::instance();
 
-        template<typename Type, typename... Args>
-        static Type* new_instance_named(const StringView& object_name, Args&&... args)
-        {
-            Type* object = new_instance<Type>(std::forward<Args>(args)...);
-            if constexpr (std::is_base_of_v<Object, Type>)
-            {
-                if (object)
-                    object->name(object_name, true);
-            }
-            return object;
-        }
+                    if (current)
+                    {
+                        return current == place ? current : nullptr;
+                    }
 
-        template<typename Type, typename... Args>
-        static Type* new_placement_instance_named(void* place, const StringView& object_name, Args&&... args)
-        {
-            Type* object = new_placement_instance<Type>(place, std::forward<Args>(args)...);
-            if constexpr (std::is_base_of_v<Object, Type>)
-            {
-                if (object)
-                    object->name(object_name, true);
+                    return setup_new_object(Type::create_placement_instance(place, std::forward<Args>(args)...), name, owner);
+                }
+                else
+                {
+                    return setup_new_object(new (place) Type(std::forward<Args>(args)...), name, owner);
+                }
             }
-            return object;
         }
 
         template<typename Type>
@@ -250,9 +269,9 @@ namespace Engine
         }
 
         template<typename ObjectInstanceType>
-        static ObjectInstanceType* find_object_checked(const StringView& object_name)
+        static ObjectInstanceType* static_find_object_checked(const StringView& object_name)
         {
-            Object* object = find_object(object_name);
+            Object* object = static_find_object(object_name);
             if (object)
             {
                 return object->instance_cast<ObjectInstanceType>();
@@ -260,12 +279,25 @@ namespace Engine
             return nullptr;
         }
 
+        template<typename ObjectInstanceType>
+        ObjectInstanceType* find_child_object_checked(StringView object_name, bool recursive = true) const
+        {
+            Object* object = find_child_object(object_name, recursive);
+            if (object)
+            {
+                return instance_cast<ObjectInstanceType>(object);
+            }
+            return nullptr;
+        }
+
+
         virtual ~Object();
         friend class PointerBase;
         friend class Package;
         friend class Archive;
         friend class MemoryManager;
         friend class GarbageCollector;
+        friend class Class;
     };
 
 
@@ -279,6 +311,7 @@ public:                                                                         
     static void static_initialize_class();                                                                                       \
     static class Engine::Class* static_class_instance();                                                                         \
     virtual class Engine::Class* class_instance() const override;                                                                \
+    friend class Engine::Class;                                                                                                  \
                                                                                                                                  \
 private:
 

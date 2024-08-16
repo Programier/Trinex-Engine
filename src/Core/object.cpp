@@ -33,16 +33,8 @@ namespace Engine
         }
 
         registrar->method("const string& string_name() const", &Object::string_name)
-                .method("ObjectRenameStatus name(StringView, bool = false)",
-                        method_of<ObjectRenameStatus, StringView, bool>(&Object::name))
                 .static_function("Package@ root_package()", &Object::root_package)
                 .method("string as_string() const", &Object::as_string)
-                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
-                .static_function("Package@ find_package(StringView, bool)",
-                                 func_of<Package*(StringView, bool)>(&Object::find_package))
-                .static_function("Object@ static_find_object(const StringView&)",
-                                 func_of<Object*(const StringView&)>(&Object::find_object))
-                .method("Object& remove_from_package()", &Object::remove_from_package)
                 .method("const Name& name() const", method_of<const Name&>(&Object::name))
                 .method("string opConv() const", &Object::as_string)
                 .method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
@@ -56,10 +48,6 @@ namespace Engine
 
     implement_engine_class(Object, Class::IsScriptable)
     {
-        ScriptEnumRegistrar("Engine::ObjectRenameStatus")
-                .set("Skipped", static_cast<int_t>(ObjectRenameStatus::Skipped))
-                .set("Success", static_cast<int_t>(ObjectRenameStatus::Success))
-                .set("Failed", static_cast<int_t>(ObjectRenameStatus::Failed));
         static_class_instance()->script_registration_callback = register_object_to_script;
     }
 
@@ -87,8 +75,7 @@ namespace Engine
     {
         if (m_root_package == nullptr)
         {
-            m_root_package = new_instance<Package>();
-            m_root_package->name("Root Package");
+            m_root_package = new_instance<Package>("Content");
             m_root_package->flags(IsSerializable, false);
             m_root_package->add_reference();
         }
@@ -105,7 +92,7 @@ namespace Engine
     }
 
 
-    Object::Object() : m_package(nullptr), m_references(0), m_instance_index(Constants::index_none)
+    Object::Object() : m_references(0), m_instance_index(Constants::index_none)
     {
         if (!m_is_valid_next_object)
         {
@@ -191,7 +178,6 @@ namespace Engine
         return *this;
     }
 
-
     ENGINE_EXPORT const ObjectArray& Object::all_objects()
     {
         return get_instances_array();
@@ -199,11 +185,12 @@ namespace Engine
 
     Object::~Object()
     {
-        if (m_package)
+        if (m_owner)
         {
-            m_package->remove_object(this);
-            m_package = nullptr;
+            m_owner->unregister_child(this);
+            m_owner = nullptr;
         }
+
         remove_from_instances_array();
     }
 
@@ -212,104 +199,62 @@ namespace Engine
         return m_name.to_string();
     }
 
-
-    ObjectRenameStatus Object::name(StringView new_name, bool autorename)
+    Object* Object::find_child_object(StringView name, bool recursive) const
     {
-        if (m_name == new_name)
-            return ObjectRenameStatus::Skipped;
-
-        Package* package_backup = m_package;
-        Name name_backup        = m_name;
-
-        auto restore_object_name = [&package_backup, &name_backup, this]() {
-            m_name = name_backup;
-            if (package_backup)
-            {
-                package_backup->add_object(this);
-            }
-        };
-
-
-        Package* package = m_package;
-        if (package)
-        {
-            package->remove_object(this);
-        }
-
-        // Find package
-        const String& separator_text = Constants::name_separator;
-        size_t separator_index       = new_name.find_first_of(separator_text);
-
-        if (separator_index != StringView::npos)
-        {
-            package = root_package();
-        }
-
-        while (separator_index != StringView::npos && package)
-        {
-            StringView package_name = new_name.substr(0, separator_index);
-            Package* next_package   = package->find_object_checked<Package>(package_name, false);
-
-            if (next_package == nullptr)
-            {
-                next_package = Object::new_instance<Package>();
-                next_package->name(package_name);
-                if (!package->add_object(next_package, false))
-                {
-                    restore_object_name();
-                    return ObjectRenameStatus::Failed;
-                }
-            }
-
-            package  = next_package;
-            new_name = new_name.substr(separator_index + separator_text.length());
-
-            separator_index = new_name.find(separator_text);
-        }
-
-        // Apply new object name
-        m_name = new_name;
-
-        if (package)
-        {
-            if (!package->add_object(this, autorename))
-            {
-                restore_object_name();
-                return ObjectRenameStatus::Failed;
-            }
-        }
-
-        return ObjectRenameStatus::Success;
+        return nullptr;
     }
 
+    bool Object::rename(StringView name, Object* new_owner)
+    {
+        if (name.find(Constants::name_separator) != StringView::npos)
+        {
+            error_log("Object", "Failed to rename object. Name can't contains '%s'", Constants::name_separator.c_str());
+            return false;
+        }
+
+        if (new_owner == nullptr)
+            new_owner = m_owner;
+
+        Object* old_owner = m_owner;
+        Name old_name     = m_name;
+
+        bool result = true;
+
+        if (new_owner != m_owner)
+        {
+            result = owner(nullptr);
+        }
+        else if (m_owner)
+        {
+            result = m_owner->rename_child_object(this, name);
+        }
+
+        if (result)
+        {
+            m_name = name;
+        }
+
+        if (new_owner != m_owner)
+        {
+            result = owner(new_owner);
+        }
+
+        if (result)
+        {
+            post_rename(old_owner, old_name);
+        }
+
+        return result;
+    }
+
+    Object& Object::post_rename(Object* old_owner, Name old_name)
+    {
+        return *this;
+    }
 
     const Name& Object::name() const
     {
         return m_name;
-    }
-
-    Object* Object::copy()
-    {
-        Object* object = nullptr;
-
-        {
-            object        = class_instance()->create_object();
-            object->flags = flags;
-        }
-
-        return object;
-    }
-
-    bool Object::add_to_package(Package* package, bool autorename)
-    {
-        return package->add_object(this, autorename);
-    }
-
-    Object& Object::remove_from_package()
-    {
-        if (m_package && m_package != m_root_package)
-            m_package->remove_object(this);
-        return *this;
     }
 
     Object* Object::noname_object()
@@ -318,9 +263,43 @@ namespace Engine
         return reinterpret_cast<Object*>(data);
     }
 
-    Package* Object::package() const
+    Object& Object::on_owner_update(Object* new_owner)
     {
-        return m_package;
+        return *this;
+    }
+
+    bool Object::register_child(Object* child)
+    {
+        return true;
+    }
+
+    bool Object::unregister_child(Object* child)
+    {
+        return true;
+    }
+
+    bool Object::rename_child_object(Object* object, StringView new_name)
+    {
+        return true;
+    }
+
+    Package* Object::package(bool recursive) const
+    {
+        if (recursive)
+        {
+            const Object* self = this;
+            Package* pkg       = nullptr;
+
+            while (self && !pkg)
+            {
+                pkg  = instance_cast<Package>(m_owner);
+                self = m_owner;
+            }
+
+            return pkg;
+        }
+
+        return instance_cast<Package>(m_owner);
     }
 
 
@@ -390,9 +369,9 @@ namespace Engine
         return m_root_package;
     }
 
-    ENGINE_EXPORT Object* Object::find_object(const StringView& object_name)
+    ENGINE_EXPORT Object* Object::static_find_object(StringView object_name)
     {
-        return m_root_package->find_object(object_name);
+        return m_root_package->find_child_object(object_name, true);
     }
 
     Object& Object::preload()
@@ -415,38 +394,65 @@ namespace Engine
         return m_owner;
     }
 
-    Object& Object::owner(Object* new_owner)
+    bool Object::owner(Object* new_owner)
     {
-        m_owner = new_owner;
-        return *this;
+        if (new_owner == m_owner)
+            return true;
+
+        bool result = true;
+
+        if (m_owner)
+        {
+            result  = m_owner->unregister_child(this);
+            m_owner = nullptr;
+
+            if (!result)
+            {
+                error_log("Object", "Failed to unregister object from prev owner!");
+                return false;
+            }
+        }
+
+        if (new_owner)
+        {
+            if ((result = new_owner->register_child(this)))
+            {
+                m_owner = new_owner;
+            }
+            else
+            {
+                error_log("Object", "Failed to register object to owner!");
+            }
+        }
+
+        on_owner_update(new_owner);
+        return result;
     }
 
     static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
     {
-        Package* next_package = package->find_object_checked<Package>(name, false);
+        Package* next_package = package->find_child_object_checked<Package>(name, false);
         if (next_package == nullptr && create)
         {
-            next_package = Object::new_instance<Package>();
-            next_package->name(name);
-            package->add_object(next_package);
+            next_package = Object::new_instance<Package>(name, package);
         }
         return next_package;
     }
 
-    Package* Object::find_package(StringView name, bool create)
+    Package* Object::static_find_package(StringView name, bool create)
     {
         Package* package = const_cast<Package*>(root_package());
 
         const String& separator_text = Constants::name_separator;
         const size_t separator_len   = separator_text.length();
 
-        size_t separator = name.find_first_of(separator_text);
+        size_t separator = name.find(separator_text);
 
         while (separator != StringView::npos && package)
         {
             package   = find_next_package(package, name.substr(0, separator), create);
             name      = name.substr(separator + separator_len);
-            separator = name.find_first_of(separator_text);
+            separator = name.find(separator_text);
         }
 
         return package ? find_next_package(package, name, create) : nullptr;
@@ -487,7 +493,7 @@ namespace Engine
     {
         Path path = m_name.to_string() + Constants::asset_extention;
 
-        const Package* pkg  = m_package;
+        const Package* pkg  = package(true);
         const Package* root = root_package();
 
         while (pkg && pkg != root)
@@ -502,11 +508,6 @@ namespace Engine
     bool Object::is_editable() const
     {
         return flags(IsEditable);
-    }
-
-    bool Object::is_engine_resource() const
-    {
-        return false;
     }
 
     const Object& Object::mark_dirty() const
@@ -617,7 +618,7 @@ namespace Engine
         return instance;
     }
 
-    ENGINE_EXPORT Object* Object::load_object(const StringView& fullname, class BufferReader* reader,
+    ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
                                               Flags<SerializationFlags> serialization_flags)
     {
         if (reader == nullptr)
@@ -628,7 +629,7 @@ namespace Engine
 
         if (!serialization_flags(SerializationFlags::SkipObjectSearch))
         {
-            if (Object* object = find_object(fullname))
+            if (Object* object = static_find_object(fullname))
             {
                 return object;
             }
@@ -673,12 +674,7 @@ namespace Engine
             StringView package_name = package_name_sv_of(fullname);
             StringView object_name  = object_name_sv_of(fullname);
 
-            object->name(object_name);
-
-            if (!package_name.empty())
-            {
-                Package::find_package(package_name, true)->add_object(object);
-            }
+            object->rename(object_name, Package::static_find_package(package_name, true));
         }
 
         object->preload();
@@ -709,11 +705,11 @@ namespace Engine
         return nullptr;
     }
 
-    ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags<SerializationFlags> flags)
+    ENGINE_EXPORT Object* Object::load_object(StringView name, Flags<SerializationFlags> flags)
     {
         if (!flags(SerializationFlags::SkipObjectSearch))
         {
-            if (Object* object = find_object(name))
+            if (Object* object = static_find_object(name))
                 return object;
         }
 
@@ -730,7 +726,7 @@ namespace Engine
 
         if (!flags(SerializationFlags::SkipObjectSearch))
         {
-            if (Object* object = find_object(full_name))
+            if (Object* object = static_find_object(full_name))
                 return object;
         }
 
@@ -767,12 +763,30 @@ namespace Engine
             VectorReader reader(&buffer);
             Object* new_object = Object::load_object("", &reader, flags);
 
-            if(!new_object)
+            if (!new_object)
             {
                 error_log("Object", "Failed to create copy of object!");
             }
 
             return new_object;
         }
+    }
+
+    Object* Object::static_new_instance(Class* object_class, StringView name, Object* owner)
+    {
+        if (object_class)
+        {
+            return object_class->create_object(name, owner);
+        }
+        return nullptr;
+    }
+
+    Object* Object::static_new_placement_instance(void* place, Class* object_class, StringView name, Object* owner)
+    {
+        if (object_class)
+        {
+            return object_class->create_object(name, owner);
+        }
+        return nullptr;
     }
 }// namespace Engine

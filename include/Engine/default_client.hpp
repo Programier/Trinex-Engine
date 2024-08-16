@@ -11,8 +11,6 @@ namespace Engine
         declare_class(DefaultClient, ViewportClient);
 
     public:
-        Pointer<Material> material;
-
         DefaultClient();
         DefaultClient& on_bind_viewport(class RenderViewport* viewport) override;
         DefaultClient& render(class RenderViewport* viewport) override;

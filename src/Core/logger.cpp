@@ -61,6 +61,8 @@ static void set_output_color(ConsoleColor color, FILE* output)
 
 namespace Engine
 {
+    Logger* Logger::logger = Logger::standart();
+
     Logger& Logger::log(const char* tag, const char* format, ...)
     {
         return *this;
@@ -86,6 +88,12 @@ namespace Engine
         return *this;
     }
 
+    Logger* Logger::null()
+    {
+        static Logger logger;
+        return &logger;
+    }
+
     class BasicLogger : public Logger
     {
     private:
@@ -97,8 +105,7 @@ namespace Engine
             return ((first == args) || ...);
         }
 
-        void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out,
-                           ConsoleColor color)
+        void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out, ConsoleColor color)
         {
             m_mutex.lock();
             static char buffer[512];
@@ -173,11 +180,9 @@ namespace Engine
         }
     };
 
-    static BasicLogger logger_object;
-    ENGINE_EXPORT Logger* logger = &logger_object;
-
-    ENGINE_EXPORT Logger& standart_logger()
+    Logger* Logger::standart()
     {
-        return logger_object;
+        static BasicLogger logger_object;
+        return &logger_object;
     }
 }// namespace Engine

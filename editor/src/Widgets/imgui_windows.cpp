@@ -108,9 +108,7 @@ namespace Engine
 
             if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
             {
-                Package* new_package = Object::new_instance<Package>();
-                new_package->name(new_package_name);
-                m_parent->add_object(new_package, allow_rename);
+                Package* new_package = Object::new_instance<Package>(new_package_name, m_parent);
                 open = false;
 
                 if (m_on_create)
@@ -189,8 +187,7 @@ namespace Engine
             if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
             {
                 Class* class_instance  = m_filtered_classes[current_index];
-                Object* created_object = class_instance->create_object();
-                created_object->name(new_asset_name);
+                Object* created_object = class_instance->create_object(new_asset_name);
                 m_parent->add_object(created_object);
                 open = false;
             }
@@ -225,7 +222,6 @@ namespace Engine
         ImGui::Text("Object: %s", m_object->full_name().c_str());
 
         ImGuiRenderer::InputText("editor/New Name"_localized, new_object_name);
-        ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
         if (!m_object->is_editable())
         {
@@ -248,7 +244,7 @@ namespace Engine
 
             if (ImGui::Button("editor/Rename"_localized))
             {
-                if (m_object->name(new_object_name, allow_rename) == ObjectRenameStatus::Failed)
+                if (m_object->rename(new_object_name))
                 {
                     ImGuiRenderer::Window::current()->window_list.create<ImGuiNotificationMessage>(
                             "Failed to rename object", ImGuiNotificationMessage::Error);

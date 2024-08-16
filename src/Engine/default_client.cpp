@@ -14,12 +14,11 @@
 namespace Engine
 {
     DefaultClient::DefaultClient()
-    {
-        material = Object::instance_cast<Material>(Object::load_object("Test::Test"));
-    }
+    {}
 
     DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
     {
+        viewport->window()->imgui_initialize();
         return *this;
     }
 
@@ -27,11 +26,6 @@ namespace Engine
     {
         viewport->rhi_bind();
         viewport->rhi_clear_color(Color(0, 0, 0, 1));
-
-        material->apply();
-        DefaultResources::Buffers::screen_position->rhi_bind(0);
-        rhi->draw(6, 0);
-
         return *this;
     }
 

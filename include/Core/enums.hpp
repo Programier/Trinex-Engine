@@ -310,13 +310,6 @@ namespace Engine
         A    = mask_of<EnumerateType>(ColorComponent::A)
     };
 
-    enum class ObjectRenameStatus
-    {
-        Success,
-        Skipped,
-        Failed,
-    };
-
     enum class SerializationFlags : EnumerateType
     {
         None             = 0,

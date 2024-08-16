@@ -1,9 +1,9 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
-#include <Engine/settings.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/thread.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
 
@@ -13,7 +13,7 @@ namespace Engine
     {
         Super::create();
 
-        Package* package = Package::find_package("Engine::Systems", false);
+        Package* package = Package::static_find_package("Engine::Systems", false);
         if (package)
         {
             package->flags(Object::IsSerializable, false);

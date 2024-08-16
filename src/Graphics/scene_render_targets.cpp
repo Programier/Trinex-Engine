@@ -2,6 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/logger.hpp>
+#include <Core/package.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
@@ -17,9 +18,9 @@ namespace Engine
     {
         for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
         {
-            Surface type = static_cast<Surface>(texture_index);
-            m_surfaces[texture_index] =
-                    Object::new_instance_named<RenderSurface>(Strings::format("Engine::EngineRenderTargets::{}", name_of(type)));
+            Surface type              = static_cast<Surface>(texture_index);
+            m_surfaces[texture_index] = Object::new_instance<RenderSurface>(
+                    name_of(type), Object::static_find_package("Engine::EngineRenderTargets", true));
         }
     }
 

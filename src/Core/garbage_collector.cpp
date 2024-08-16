@@ -167,11 +167,13 @@ namespace Engine
         process_objects(callback);
     }
 
-
     static void find_unreachable(Object* object)
     {
         GarbageCollector::on_unreachable_check(object);
-        if (object->references() > 0 || object->is_engine_resource() || object->owner() != nullptr)
+
+        auto& flags = object->flags;
+
+        if (flags(Object::StandAlone) || object->references() > 0 || object->owner() != nullptr)
         {
             object->flags(Object::IsUnreachable, false);
         }

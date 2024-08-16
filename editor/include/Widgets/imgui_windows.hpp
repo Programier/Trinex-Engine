@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/userdata.hpp>
 #include <Graphics/imgui.hpp>
 
 namespace ImGui
@@ -64,7 +63,6 @@ namespace Engine
     {
         class Object* m_object = nullptr;
         String new_object_name;
-        bool allow_rename = false;
 
     public:
         ImGuiRenameObject(class Object* object);

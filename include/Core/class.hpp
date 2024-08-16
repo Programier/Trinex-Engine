@@ -30,8 +30,8 @@ namespace Engine
     private:
         mutable Object* m_singletone_object;
 
-        Object* (*m_static_constructor)();
-        Object* (*m_static_placement_constructor)(void*);
+        Object* (*m_static_constructor)(StringView, Object*);
+        Object* (*m_static_placement_constructor)(void*, StringView, Object*);
         Object* (*m_cast_to_this)(Object* object);
         Set<Class*> m_childs;
         size_t m_size;
@@ -42,32 +42,6 @@ namespace Engine
         static Object* private_cast_func(Object* o)
         {
             return internal_cast(T::static_class_instance(), o);
-        }
-
-        template<typename T>
-        static Object* constructor()
-        {
-            if constexpr (std::is_abstract_v<T> || (!std::is_default_constructible_v<T> && !Engine::is_singletone_v<T>) )
-            {
-                return nullptr;
-            }
-            else
-            {
-                return Object::new_instance<T>();
-            }
-        }
-
-        template<typename T>
-        static Object* placement_constructor(void* address)
-        {
-            if constexpr (std::is_abstract_v<T> || (!std::is_default_constructible_v<T> && !Engine::is_singletone_v<T>) )
-            {
-                return nullptr;
-            }
-            else
-            {
-                return Object::new_placement_instance<T>(address);
-            }
         }
 
         void on_create_call(Object* object) const;
@@ -85,13 +59,15 @@ namespace Engine
         Class* parent() const;
         const Set<Class*>& childs_classes() const;
         void* create_struct() const override;
-        Object* create_object() const;
-        Object* create_object(void* place) const;
+
+        Object* create_object(StringView name = "", Object* owner = nullptr) const;
+        Object* create_placement_object(void* place, StringView name = "", Object* owner = nullptr) const;
+
         size_t sizeof_class() const;
         bool is_scriptable() const;
         Object* (*cast_to_this() const)(Object*);
-        Object* (*static_constructor() const)();
-        Object* (*static_placement_constructor() const)(void*);
+        Object* (*static_constructor() const)(StringView, Object*);
+        Object* (*static_placement_constructor() const)(void*, StringView, Object*);
         Object* singletone_instance() const;
         Class& post_initialize();
 
@@ -115,9 +91,15 @@ namespace Engine
         {
             if (m_size == 0)
             {
-                m_size                         = sizeof(ObjectClass);
-                m_static_constructor           = constructor<ObjectClass>;
-                m_static_placement_constructor = placement_constructor<ObjectClass>;
+                m_size = sizeof(ObjectClass);
+
+                m_static_constructor = [](StringView name, Object* owner) -> Object* {
+                    return Object::new_instance<ObjectClass, true>(name, owner);
+                };
+
+                m_static_placement_constructor = [](void* place, StringView name, Object* owner) -> Object* {
+                    return Object::new_placement_instance<ObjectClass, true>(place, name, owner);
+                };
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {
