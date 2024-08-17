@@ -2174,7 +2174,14 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 	}
 
 	// Then call the true script function
-	CallScriptFunction(realFunc);
+	if(realFunc->GetFuncType() == asFUNC_SYSTEM)
+	{
+		CallSystemFunction(realFunc->GetId(), this);
+	}
+	else
+	{
+		CallScriptFunction(realFunc);
+	}
 }
 
 

@@ -41,6 +41,7 @@ namespace Engine::Strings
     ENGINE_EXPORT String class_name_of(const StringView& name);
     ENGINE_EXPORT StringView namespace_sv_of(const StringView& name);
     ENGINE_EXPORT StringView class_name_sv_of(const StringView& name);
+    ENGINE_EXPORT String concat_scoped_name(StringView scope, StringView name);
 
 
     template<typename Range, typename Value = typename Range::value_type, typename FormatFunction>

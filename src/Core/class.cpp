@@ -78,14 +78,18 @@ namespace Engine
         {
             if (m_singletone_object == nullptr)
             {
+                Object::setup_next_object_info(const_cast<Class*>(this));
                 m_singletone_object = m_static_constructor(name, owner);
+                Object::reset_next_object_info();
                 on_create_call(m_singletone_object);
             }
 
             return m_singletone_object;
         }
 
+        Object::setup_next_object_info(const_cast<Class*>(this));
         Object* object = m_static_constructor(name, owner);
+
         on_create_call(object);
         return object;
     }
@@ -96,14 +100,17 @@ namespace Engine
         {
             if (m_singletone_object == nullptr)
             {
+                Object::setup_next_object_info(const_cast<Class*>(this));
                 m_singletone_object = m_static_placement_constructor(place, name, owner);
                 on_create_call(m_singletone_object);
+                Object::reset_next_object_info();
                 return m_singletone_object;
             }
 
             return nullptr;
         }
 
+        Object::setup_next_object_info(const_cast<Class*>(this));
         Object* object = m_static_placement_constructor(place, name, owner);
         on_create_call(object);
         return object;
@@ -133,16 +140,6 @@ namespace Engine
     Object* (*Class::cast_to_this() const)(Object*)
     {
         return m_cast_to_this;
-    }
-
-    Object* (*Class::static_constructor() const)(StringView, Object*)
-    {
-        return m_static_constructor;
-    }
-
-    Object* (*Class::static_placement_constructor() const)(void*, StringView, Object*)
-    {
-        return m_static_placement_constructor;
     }
 
     Class& Class::static_constructor(Object* (*new_static_constructor)(StringView, Object*) )

@@ -238,6 +238,13 @@ namespace Engine::Strings
         return name.substr(pos + 1, name.length() - pos + 1);
     }
 
+    ENGINE_EXPORT String concat_scoped_name(StringView scope, StringView name)
+    {
+        if(scope.empty())
+            return String(name);
+        return format("{}::{}", scope, name);
+    }
+
     ENGINE_EXPORT bool boolean_of(const char* line, size_t len)
     {
         if (len == 0)

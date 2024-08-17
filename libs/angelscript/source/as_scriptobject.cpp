@@ -444,6 +444,10 @@ asCScriptObject::~asCScriptObject()
 	for( int n = (int)objType->properties.GetLength()-1; n >= 0; n-- )
 	{
 		asCObjectProperty *prop = objType->properties[n];
+
+		if(prop->isNative)
+			continue;
+
 		if( prop->type.IsObject() )
 		{
 			// Destroy the object

@@ -48,13 +48,6 @@ namespace Engine
 
     static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
     {
-        String factory = Strings::format("{}@ f()", self->base_name().c_str());
-
-        if (!self->flags(Class::IsSingletone))
-        {
-            registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor(), ScriptCallConv::CDecl);
-        }
-
         registrar->method("const string& string_name() const", &Object::string_name)
                 .static_function("Package@ root_package()", &Object::root_package)
                 .method("string as_string() const", &Object::as_string)
@@ -131,7 +124,6 @@ namespace Engine
         {
             objects_array.push_back(this);
         }
-
 
         flags(Flag::IsSerializable, true);
         flags(Flag::IsEditable, true);
@@ -802,10 +794,7 @@ namespace Engine
     {
         if (object_class)
         {
-            setup_next_object_info(object_class);
-            Object* result = object_class->create_object(name, owner);
-            reset_next_object_info();
-            return result;
+            return object_class->create_object(name, owner);
         }
         return nullptr;
     }
@@ -814,10 +803,7 @@ namespace Engine
     {
         if (object_class)
         {
-            setup_next_object_info(object_class);
-            Object* result = object_class->create_placement_object(place, name, owner);
-            reset_next_object_info();
-            return result;
+            return object_class->create_placement_object(place, name, owner);
         }
         return nullptr;
     }

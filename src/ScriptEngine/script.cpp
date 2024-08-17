@@ -1,3 +1,4 @@
+#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
@@ -246,6 +247,7 @@ namespace Engine
 
     Script::~Script()
     {
+        unload_classes();
         m_module.discard();
         m_folder->m_scripts.erase(m_name);
     }
@@ -325,6 +327,47 @@ namespace Engine
         return *this;
     }
 
+    Script& Script::load_classes()
+    {
+        return *this;
+
+        auto count = m_module.object_type_count();
+
+        for (uint_t i = 0; i < count; ++i)
+        {
+            auto type = m_module.object_type_by_index(i);
+            auto base = type.base_type();
+            Class* parent = nullptr;
+
+            if(base.is_valid())
+            {
+                parent = Class::static_find(Strings::concat_scoped_name(base.namespace_name(), base.name()), true);
+            }
+
+            Class* script_class = new Class(Strings::concat_scoped_name(type.namespace_name(), type.name()), parent, Class::IsScriptable);
+
+            m_classes.insert(script_class);
+
+            script_class->on_class_destroy.push([this](Class* self) {
+                m_classes.erase(self);
+            });
+        }
+
+        return *this;
+    }
+
+    Script& Script::unload_classes()
+    {
+        auto classes = std::move(m_classes);
+
+        for(Class* class_instance : classes)
+        {
+            delete class_instance;
+        }
+
+        return *this;
+    }
+
     bool Script::build(bool exception_on_error)
     {
         Builder builder;
@@ -351,6 +394,8 @@ namespace Engine
 
         ScriptEngine::exception_on_error = old_exception_on_error;
 
+        unload_classes();
+
         if (m_module.is_valid())
         {
             on_discard(this);
@@ -361,6 +406,7 @@ namespace Engine
         m_module.name(path().str());
         m_module.as_module()->SetUserData(this, Constants::script_userdata_id);
         load_metadata(builder);
+        load_classes();
 
         on_build(this);
         return true;

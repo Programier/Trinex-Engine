@@ -506,7 +506,7 @@ asIScriptFunction *asCObjectType::GetBehaviourByIndex(asUINT index, asEBehaviour
 }
 
 // internal
-asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, const asCDataType &dt, bool isPrivate, bool isProtected, bool isInherited)
+asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, const asCDataType &dt, bool isPrivate, bool isProtected, bool isInherited, bool isNative)
 {
 	asASSERT( flags & asOBJ_SCRIPT_OBJECT );
 	asASSERT( dt.CanBeInstantiated() );
@@ -525,6 +525,7 @@ asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, 
 	prop->isPrivate   = isPrivate;
 	prop->isProtected = isProtected;
 	prop->isInherited = isInherited;
+	prop->isNative    = isNative;
 
 	int propSize;
 	if( dt.IsObject() )
@@ -533,7 +534,8 @@ asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, 
 		// because there is a risk that the script might
 		// try to access the content without knowing that
 		// it hasn't been initialized yet.
-		if( dt.GetTypeInfo()->flags & asOBJ_POD )
+
+		if( dt.GetTypeInfo()->flags & asOBJ_POD || isNative)
 			propSize = dt.GetSizeInMemoryBytes();
 		else
 		{

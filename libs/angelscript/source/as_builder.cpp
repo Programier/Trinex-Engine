@@ -3230,7 +3230,7 @@ void asCBuilder::DetermineTypeRelations()
 			{
 				AddInterfaceFromMixinToClass(decl, node, mixin);
 			}
-			else if (!(objType->flags & asOBJ_SCRIPT_OBJECT) ||
+			else if ((!(objType->flags & asOBJ_SCRIPT_OBJECT) && !(objType->flags & asOBJ_APP_NATIVE)) ||
 				(objType->flags & asOBJ_NOINHERIT))
 			{
 				// Either the class is not a script class or interface
@@ -3382,7 +3382,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 			// Copy properties from base class to derived class
 			for( asUINT p = 0; p < baseType->properties.GetLength(); p++ )
 			{
-				asCObjectProperty *prop = AddPropertyToClass(decl, baseType->properties[p]->name, baseType->properties[p]->type, baseType->properties[p]->isPrivate, baseType->properties[p]->isProtected, true);
+				asCObjectProperty *prop = AddPropertyToClass(decl, baseType->properties[p]->name, baseType->properties[p]->type, baseType->properties[p]->isPrivate, baseType->properties[p]->isProtected, true, baseType->properties[p]->isNative);
 
 				// The properties must maintain the same offset
 				asASSERT(prop && prop->byteOffset == baseType->properties[p]->byteOffset); UNUSED_VAR(prop);
@@ -3576,7 +3576,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 				if( !decl->isExistingShared )
 				{
 					CheckNameConflictMember(ot, name.AddressOf(), nd, file, true, false);
-					AddPropertyToClass(decl, name, dt, isPrivate, isProtected, false, file, nd);
+					AddPropertyToClass(decl, name, dt, isPrivate, isProtected, false, false, file, nd);
 				}
 				else
 				{
@@ -4270,7 +4270,7 @@ void asCBuilder::IncludePropertiesFromMixins(sClassDeclaration *decl)
 								if( r < 0 )
 									WriteInfo(TXT_WHILE_INCLUDING_MIXIN, decl->script, node);
 
-								AddPropertyToClass(decl, name, dt, isPrivate, isProtected, false, file, n2);
+								AddPropertyToClass(decl, name, dt, isPrivate, isProtected, false, false, file, n2);
 							}
 							else
 							{
@@ -4345,7 +4345,7 @@ int asCBuilder::CreateVirtualFunction(asCScriptFunction *func, int idx)
 	return vf->id;
 }
 
-asCObjectProperty *asCBuilder::AddPropertyToClass(sClassDeclaration *decl, const asCString &name, const asCDataType &dt, bool isPrivate, bool isProtected, bool isInherited, asCScriptCode *file, asCScriptNode *node)
+asCObjectProperty *asCBuilder::AddPropertyToClass(sClassDeclaration *decl, const asCString &name, const asCDataType &dt, bool isPrivate, bool isProtected, bool isInherited, bool isNative, asCScriptCode *file, asCScriptNode *node)
 {
 	if( node )
 	{
@@ -4389,7 +4389,7 @@ asCObjectProperty *asCBuilder::AddPropertyToClass(sClassDeclaration *decl, const
 	}
 
 	// Add the property to the object type
-	return CastToObjectType(decl->typeInfo)->AddPropertyToClass(name, dt, isPrivate, isProtected, isInherited);
+	return CastToObjectType(decl->typeInfo)->AddPropertyToClass(name, dt, isPrivate, isProtected, isInherited, isNative);
 }
 
 bool asCBuilder::DoesMethodExist(asCObjectType *objType, int methodId, asUINT *methodIndex)

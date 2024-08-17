@@ -171,8 +171,6 @@ int asCCompiler::CompileDefaultCopyConstructor(asCBuilder* in_builder, asCScript
 				CompileVariableAccess("this", "", &ctx, 0);
 				ctx.bc.Instr(asBC_RDSPtr);
 				ctx.bc.InstrWORD(asBC_GETOBJ, AS_PTR_SIZE);
-				ctx.bc.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.copyconstruct, 2 * AS_PTR_SIZE);
-				ctx.bc.OptimizeLocally(tempVariableOffsets);
 			}
 			else
 			{
@@ -180,9 +178,18 @@ int asCCompiler::CompileDefaultCopyConstructor(asCBuilder* in_builder, asCScript
 				ctx.bc.Instr(asBC_RDSPtr);
 				CompileVariableAccess("this", "", &ctx, 0);
 				ctx.bc.Instr(asBC_RDSPtr);
-				ctx.bc.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.copyconstruct, 2 * AS_PTR_SIZE);
-				ctx.bc.OptimizeLocally(tempVariableOffsets);
 			}
+
+			if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE)
+			{
+				ctx.bc.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.copyconstruct, 2 * AS_PTR_SIZE);
+			}
+			else
+			{
+				ctx.bc.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.copyconstruct, 2 * AS_PTR_SIZE);
+			}
+			ctx.bc.OptimizeLocally(tempVariableOffsets);
+
 			byteCode.AddCode(&ctx.bc);
 			byteCode.InstrPTR(asBC_JitEntry, 0);
 		}
@@ -194,13 +201,16 @@ int asCCompiler::CompileDefaultCopyConstructor(asCBuilder* in_builder, asCScript
 			{
 				asCExprContext ctx(engine);
 				CompileVariableAccess("this", "", &ctx, 0);
-				ctx.bc.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+
+				auto call_bc = (outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE) ? asBC_CALLSYS : asBC_CALL;
+
+				ctx.bc.Call(call_bc, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
 
 				CompileVariableAccess("other", "", &ctx, 0);
 				ctx.bc.Instr(asBC_RDSPtr);
 				CompileVariableAccess("this", "", &ctx, 0);
 				ctx.bc.Instr(asBC_RDSPtr);
-				ctx.bc.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.copy, 2 * AS_PTR_SIZE);
+				ctx.bc.Call(call_bc, outFunc->objectType->derivedFrom->beh.copy, 2 * AS_PTR_SIZE);
 
 				ctx.bc.OptimizeLocally(tempVariableOffsets);
 				byteCode.AddCode(&ctx.bc);
@@ -281,7 +291,15 @@ int asCCompiler::CompileDefaultConstructor(asCBuilder *in_builder, asCScriptCode
 		// Call the base class' default constructor
 		byteCode.InstrSHORT(asBC_PSF, 0);
 		byteCode.Instr(asBC_RDSPtr);
-		byteCode.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+
+		if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE)
+		{
+			byteCode.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+		}
+		else
+		{
+			byteCode.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+		}
 	}
 
 	// Initialize the class members that explicit expressions afterwards. This allow the expressions
@@ -813,7 +831,15 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 						asCByteCode tmpBC(engine);
 						tmpBC.InstrSHORT(asBC_PSF, 0);
 						tmpBC.Instr(asBC_RDSPtr);
-						tmpBC.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+
+						if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE)
+						{
+							tmpBC.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+						}
+						else
+						{
+							tmpBC.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+						}
 						tmpBC.OptimizeLocally(tempVariableOffsets);
 						byteCode.AddCode(&tmpBC);
 
@@ -16311,7 +16337,12 @@ void asCCompiler::PerformFunctionCall(int funcId, asCExprContext *ctx, bool isCo
 				!descr->parameterTypes[0].IsReference() )
 				ctx->bc.Call(asBC_Thiscall1, descr->id, argSize);
 			else
-				ctx->bc.Call(asBC_CALLSYS , descr->id, argSize);
+			{
+				if( descr->objectType && descr->objectType->flags & asOBJ_APP_NATIVE)
+					ctx->bc.Call(asBC_CALLINTF , descr->id, argSize);
+				else
+					ctx->bc.Call(asBC_CALLSYS , descr->id, argSize);
+			}
 		}
 		else if( descr->funcType == asFUNC_FUNCDEF )
 			ctx->bc.CallPtr(asBC_CallPtr, funcPtrVar, argSize);

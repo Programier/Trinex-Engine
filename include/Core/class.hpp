@@ -68,8 +68,6 @@ namespace Engine
         size_t sizeof_class() const;
         bool is_scriptable() const;
         Object* (*cast_to_this() const)(Object*);
-        Object* (*static_constructor() const)(StringView, Object*);
-        Object* (*static_placement_constructor() const)(void*, StringView, Object*);
         Class& static_constructor(Object* (*new_static_constructor)(StringView, Object*) );
         Class& static_placement_constructor(Object* (*new_static_placement_constructor)(void*, StringView, Object*) );
         Object* singletone_instance() const;

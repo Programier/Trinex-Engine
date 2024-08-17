@@ -1580,6 +1580,7 @@ int asCScriptEngine::RegisterObjectProperty(const char *obj, const char *declara
 	prop->compositeOffset     = compositeOffset;
 	prop->isCompositeIndirect = isCompositeIndirect;
 	prop->accessMask          = defaultAccessMask;
+	prop->isNative            = true;
 
 	asCObjectType *ot = CastToObjectType(dt.GetTypeInfo());
 	asUINT idx = ot->properties.GetLength();
@@ -1728,7 +1729,7 @@ int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD 
 	if( flags & asOBJ_REF )
 	{
 		// Can optionally have the asOBJ_GC, asOBJ_NOHANDLE, asOBJ_SCOPED, or asOBJ_TEMPLATE flag set, but nothing else
-		if( flags & ~(asOBJ_REF | asOBJ_GC | asOBJ_NOHANDLE | asOBJ_SCOPED | asOBJ_TEMPLATE | asOBJ_NOCOUNT | asOBJ_IMPLICIT_HANDLE) )
+		if( flags & ~(asOBJ_REF | asOBJ_GC | asOBJ_NOHANDLE | asOBJ_SCOPED | asOBJ_TEMPLATE | asOBJ_NOCOUNT | asOBJ_IMPLICIT_HANDLE | asOBJ_APP_NATIVE) )
 			return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
 
 		// flags are exclusive
@@ -1804,9 +1805,9 @@ int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD 
 
 	// Don't allow anything else than the defined flags
 #ifndef WIP_16BYTE_ALIGN
-	if( flags - (flags & asOBJ_MASK_VALID_FLAGS) )
+	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_NATIVE)) )
 #else
-	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_ALIGN16)) )
+	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_ALIGN16 | asOBJ_APP_NATIVE)) )
 #endif
 		return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
 
@@ -2126,7 +2127,7 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 		if( func.returnType != asCDataType::CreatePrimitive(ttVoid, false) )
 			return ConfigError(asINVALID_DECLARATION, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
 
-		if( objectType->flags & asOBJ_SCRIPT_OBJECT )
+		if( objectType->flags & asOBJ_SCRIPT_OBJECT || objectType->flags & asOBJ_APP_NATIVE)
 		{
 			// The script object is a special case
 			asASSERT(func.parameterTypes.GetLength() == 1);
@@ -2950,6 +2951,12 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 	func->id = GetNextScriptFunctionId();
 	func->objectType->methods.PushLast(func->id);
 	func->accessMask = defaultAccessMask;
+	if(objectType->flags & asOBJ_APP_NATIVE)
+	{
+		func->vfTableIdx = func->objectType->virtualFunctionTable.GetLength();
+		func->objectType->virtualFunctionTable.PushLast(func);
+		func->AddRefInternal();
+	}
 	AddScriptFunction(func);
 
 	// If parameter type from other groups are used, add references

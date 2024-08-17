@@ -60,6 +60,7 @@ namespace Engine
         String m_name;
         String m_code;
         ScriptFolder* m_folder;
+        Set<class Class*> m_classes;
 
         // Metadata info
         TreeMap<int_t, TreeSet<String>> m_func_metadata_map;
@@ -71,6 +72,8 @@ namespace Engine
         Script(ScriptFolder* folder, const String& name);
 
         Script& load_metadata(Builder& builder);
+        Script& load_classes();
+        Script& unload_classes();
         Script& on_path_changed();
 
     public:
