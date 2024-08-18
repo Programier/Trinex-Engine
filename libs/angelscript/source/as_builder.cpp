@@ -2385,7 +2385,7 @@ int asCBuilder::RegisterClass(asCScriptNode *node, asCScriptCode *file, asSNameS
 		if (node->tokenType == ttHandle)
 			st->flags |= asOBJ_IMPLICIT_HANDLE;
 
-		st->size = sizeof(asCScriptObject);
+		st->size = sizeof(asCScriptObjectData);
 		st->name = name;
 		st->nameSpace = ns;
 		st->module = module;
@@ -3382,10 +3382,17 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 			// Copy properties from base class to derived class
 			for( asUINT p = 0; p < baseType->properties.GetLength(); p++ )
 			{
-				asCObjectProperty *prop = AddPropertyToClass(decl, baseType->properties[p]->name, baseType->properties[p]->type, baseType->properties[p]->isPrivate, baseType->properties[p]->isProtected, true, baseType->properties[p]->isNative);
+				asCObjectProperty *prop = ot->InheritProperty(baseType->properties[p]);
 
 				// The properties must maintain the same offset
 				asASSERT(prop && prop->byteOffset == baseType->properties[p]->byteOffset); UNUSED_VAR(prop);
+			}
+			
+			ot->size = baseType->size;
+			
+			if(baseType->flags & asOBJ_APP_NATIVE)
+			{
+				ot->size += sizeof(asCScriptObjectData);
 			}
 
 			// Copy methods from base class to derived class
@@ -3467,7 +3474,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 			for( asUINT m = 0; m < ot->methods.GetLength(); m++ )
 			{
 				asCScriptFunction *func = GetFunctionDescription(ot->methods[m]);
-				if( func->funcType != asFUNC_VIRTUAL )
+				if( func->funcType != asFUNC_VIRTUAL && func->funcType != asFUNC_SYSTEM )
 				{
 					// Move the reference from the method list to the virtual function list
 					ot->methods.RemoveIndex(m);

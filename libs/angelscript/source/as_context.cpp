@@ -1574,7 +1574,7 @@ asCScriptFunction *asCContext::GetRealFunc(asCScriptFunction * currentFunction, 
 		}
 		else
 		{
-			asCObjectType *objType = obj->objType;
+			asCObjectType *objType = obj->objType();
 			asCScriptFunction * realFunc = 0;
 
 			if( currentFunction->funcType == asFUNC_VIRTUAL )
@@ -2127,7 +2127,7 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 		return;
 	}
 
-	asCObjectType *objType = obj->objType;
+	asCObjectType *objType = obj->objType();
 
 	// Search the object type for a function that matches the interface function
 	asCScriptFunction *realFunc = 0;
@@ -3965,7 +3965,7 @@ static const void *const dispatch_table[256] = {
 				asDWORD typeId = asBC_DWORDARG(l_bc);
 
 				asCScriptObject *obj = (asCScriptObject *)* a;
-				asCObjectType *objType = obj->objType;
+				asCObjectType *objType = obj->objType();
 				asCObjectType *to = m_engine->GetObjectTypeFromTypeId(typeId);
 
 				// This instruction can only be used with script classes and interfaces

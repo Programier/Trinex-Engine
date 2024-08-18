@@ -900,7 +900,7 @@ int asCGarbageCollector::IdentifyGarbageWithCyclicRefs()
 					// releasing the references, otherwise the destructor may not
 					// be able to perform the necessary clean-up as the handles will 
 					// be null.
-					reinterpret_cast<asCScriptObject*>(gcObj)->CallDestructor();
+					reinterpret_cast<asCScriptObject*>(gcObj)->CallDestructor(type);
 				}
 				engine->CallObjectMethod(gcObj, engine, type->beh.gcReleaseAllReferences);
 

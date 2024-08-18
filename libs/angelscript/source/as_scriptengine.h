@@ -52,6 +52,7 @@
 #include "as_memory.h"
 #include "as_gc.h"
 #include "as_tokenizer.h"
+#include <unordered_map>
 
 BEGIN_AS_NAMESPACE
 
@@ -205,6 +206,10 @@ public:
 
 	// Exception handling
 	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv);
+	
+	static void RegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot);
+	static void UnRegisterScriptObjectType(const class asCScriptObject* object);
+	static class asCObjectType* FindScriptObjectType(const class asCScriptObject* object);
 
 //===========================================================
 // internal methods
@@ -367,6 +372,7 @@ public:
 	// This map is used to quickly find a property by its memory address
 	// It is used principally during building, cleanup, and garbage detection for script functions
 	asCMap<void*, asCGlobalProperty*> varAddressMap; // doesn't increase ref count
+	static std::unordered_map<const asCScriptObject*, asCObjectType*> objectTypeAddressMap;
 
 	// Stores all functions, i.e. registered functions, script functions, class methods, behaviours, etc.
 	asCArray<asCScriptFunction *> scriptFunctions;       // doesn't increase ref count

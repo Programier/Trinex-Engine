@@ -1032,34 +1032,40 @@ protected:
 	virtual ~asIScriptGeneric() {}
 };
 
-class asIScriptObject
+class AS_API asIScriptObject
 {
 public:
 	// Memory management
-	virtual int                    AddRef() const = 0;
-	virtual int                    Release() const = 0;
-	virtual asILockableSharedBool *GetWeakRefFlag() const = 0;
+	int                    AddRef() const;
+	int                    Release() const;
+	asILockableSharedBool *GetWeakRefFlag() const;
 
 	// Type info
-	virtual int            GetTypeId() const = 0;
-	virtual asITypeInfo   *GetObjectType() const = 0;
+	int            GetTypeId() const;
+	asITypeInfo   *GetObjectType() const;
 
 	// Class properties
-	virtual asUINT      GetPropertyCount() const = 0;
-	virtual int         GetPropertyTypeId(asUINT prop) const = 0;
-	virtual const char *GetPropertyName(asUINT prop) const = 0;
-	virtual void       *GetAddressOfProperty(asUINT prop) = 0;
+	asUINT      GetPropertyCount() const;
+	int         GetPropertyTypeId(asUINT prop) const;
+	const char *GetPropertyName(asUINT prop) const;
+	void       *GetAddressOfProperty(asUINT prop);
 
 	// Miscellaneous
-	virtual asIScriptEngine *GetEngine() const = 0;
-	virtual int              CopyFrom(const asIScriptObject *other) = 0;
+	asIScriptEngine *GetEngine() const;
+	int              CopyFrom(const asIScriptObject *other);
 
 	// User data
-	virtual void *SetUserData(void *data, asPWORD type = 0) = 0;
-	virtual void *GetUserData(asPWORD type = 0) const = 0;
+	void *SetUserData(void *data, asPWORD type = 0);
+	void *GetUserData(asPWORD type = 0) const;
 
 protected:
-	virtual ~asIScriptObject() {}
+	class asCObjectType* objType() const;
+	struct asCScriptObjectData* GetDataBlock();
+	const struct asCScriptObjectData* GetDataBlock() const;
+	asUINT GetScriptDataOffset() const;
+	asUINT GetNativeObjectSize() const;
+	
+	~asIScriptObject();
 };
 
 class asITypeInfo

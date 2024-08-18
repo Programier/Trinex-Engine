@@ -70,41 +70,37 @@ protected:
 	DECLARECRITICALSECTION(mutable lock)
 };
 
+struct asCScriptObjectData
+{
+private:
+	mutable asCAtomic refCount;
+	mutable asBYTE    gcFlag:1;
+	mutable asBYTE    hasRefCountReachedZero:1;
+	bool              isDestructCalled;
+	
+	// Most script classes instances won't have neither the weakRefFlags nor
+	// userData so we only allocate this if requested. Even when used it is
+	// not something that will be accessed all the time so having the extra
+	// indirection will not affect the performance significantly.
+	struct SExtra
+	{
+		SExtra() : weakRefFlag(0) {};
+		asCLockableSharedBool *weakRefFlag;
+		asCArray<asPWORD>      userData;
+	};
+	mutable SExtra *extra;
+	
+	friend class asCScriptObject;
+	friend class asIScriptObject;
+};
+
 class asCScriptObject : public asIScriptObject
 {
 public:
-//===================================
-// From asIScriptObject
-//===================================
-
-	// Memory management
-	int                    AddRef() const;
-	int                    Release() const;
-	asILockableSharedBool *GetWeakRefFlag() const;
-
-	// Type info
-	int            GetTypeId() const;
-	asITypeInfo   *GetObjectType() const;
-
-	// Class properties
-	asUINT      GetPropertyCount() const;
-	int         GetPropertyTypeId(asUINT prop) const;
-	const char *GetPropertyName(asUINT prop) const;
-	void       *GetAddressOfProperty(asUINT prop);
-
-	// Miscellaneous
-	asIScriptEngine *GetEngine() const;
-	int              CopyFrom(const asIScriptObject *other);
-
-	// User data
-	void *SetUserData(void *data, asPWORD type = 0);
-	void *GetUserData(asPWORD type = 0) const;
-
 //====================================
 // Internal
 //====================================
 	asCScriptObject(asCObjectType *objType, bool doInitialize = true);
-	virtual ~asCScriptObject();
 
 	asCScriptObject &operator=(const asCScriptObject &other);
 
@@ -122,34 +118,9 @@ public:
 	void CopyObject(const void *src, void *dst, asCObjectType *objType, asCScriptEngine *engine);
 	void CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *objType, asCScriptEngine *engine);
 	int  CopyFromAs(const asCScriptObject *other, asCObjectType *objType);
-
-	void CallDestructor();
-
-//=============================================
-// Properties
-//=============================================
-public:
-	// This is public to allow external code (e.g. JIT compiler) to do asOFFSET to 
-	// access the members directly without having to modify the code to add friend
-	asCObjectType* objType;
-
-protected:
-	mutable asCAtomic refCount;
-	mutable asBYTE    gcFlag:1;
-	mutable asBYTE    hasRefCountReachedZero:1;
-	bool              isDestructCalled;
-
-	// Most script classes instances won't have neither the weakRefFlags nor
-	// userData so we only allocate this if requested. Even when used it is
-	// not something that will be accessed all the time so having the extra
-	// indirection will not affect the performance significantly.
-	struct SExtra
-	{
-		SExtra() : weakRefFlag(0) {};
-		asCLockableSharedBool *weakRefFlag;
-		asCArray<asPWORD>      userData;
-	};
-	mutable SExtra *extra;
+	
+	void CallDestructor(asCObjectType* ot);
+	using asIScriptObject::objType;	
 };
 
 void ScriptObject_Construct(asCObjectType *objType, asCScriptObject *self);

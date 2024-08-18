@@ -664,6 +664,9 @@ void asCCompiler::CompileMemberInitialization(asCByteCode *bc, bool onlyDefaults
 	for( asUINT n = 0; n < outFunc->objectType->properties.GetLength(); n++ )
 	{
 		asCObjectProperty *prop = outFunc->objectType->properties[n];
+        
+		if(prop->isNative)
+			continue;
 
 		// Check if the property has an initialization expression
 		asCParser parser(builder);

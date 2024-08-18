@@ -111,6 +111,12 @@ namespace Engine
             std::fill(data, data + sizeof(T), 0);
             new (memory) T(args...);
         }
+		
+		template<typename T, typename... Args>
+		static void scriptable_constructor(T* memory, void* type, Args... args)
+		{
+			new (memory)T(args...);	
+		}
 
         template<typename T>
         static void destructor(T* memory)

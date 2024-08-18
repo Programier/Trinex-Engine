@@ -334,20 +334,29 @@ void ScriptObject_ConstructUnitialized(asCObjectType *objType, asCScriptObject *
 
 asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 {
-	refCount.set(1);
-	objType = ot;
-	objType->AddRef();
-	isDestructCalled = false;
-	extra = 0;
-	hasRefCountReachedZero = false;
+	asCScriptEngine::RegisterScriptObjectType(this, ot);
+	auto self = GetDataBlock();
+	
+	new(self)asCScriptObjectData();
+	ot->AddRef();
+	
+	self->refCount.set(1);
+	self->isDestructCalled = false;
+	self->extra = 0;
+	self->hasRefCountReachedZero = false;
 
 	// Notify the garbage collector of this object
-	if( objType->flags & asOBJ_GC )
-		objType->engine->gc.AddScriptObjectToGC(this, objType);
+	if( ot->flags & asOBJ_GC )
+		ot->engine->gc.AddScriptObjectToGC(this, ot);
 
 	// Initialize members to zero. Technically we only need to zero the pointer
 	// members, but just the memset is faster than having to loop and check the datatypes
-	memset((void*)(this+1), 0, objType->size - sizeof(asCScriptObject));
+	
+	{
+		auto offset = GetScriptDataOffset();
+		asBYTE* mem = reinterpret_cast<asBYTE*>(this) + offset;
+		memset(mem, 0, ot->size - offset);
+	}
 
 	if( doInitialize )
 	{
@@ -374,10 +383,14 @@ asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 	else
 	{
 		// When the object is created without initialization, all non-handle members must be allocated, but not initialized
-		asCScriptEngine *engine = objType->engine;
-		for( asUINT n = 0; n < objType->properties.GetLength(); n++ )
+		asCScriptEngine *engine = ot->engine;
+		for( asUINT n = 0; n < ot->properties.GetLength(); n++ )
 		{
-			asCObjectProperty *prop = objType->properties[n];
+			asCObjectProperty *prop = ot->properties[n];
+			
+			if(prop->isNative)
+				continue;
+			
 			if( prop->type.IsObject() && !prop->type.IsObjectHandle() )
 			{
 				if( prop->type.IsReference() || (prop->type.GetTypeInfo()->flags & asOBJ_REF) )
@@ -394,7 +407,7 @@ void asCScriptObject::Destruct()
 {
 	// Call the destructor, which will also call the GCObject's destructor
 	this->~asCScriptObject();
-
+	
 	// Free the memory
 #ifndef WIP_16BYTE_ALIGN
 	userFree(this);
@@ -405,35 +418,38 @@ void asCScriptObject::Destruct()
 #endif
 }
 
-asCScriptObject::~asCScriptObject()
+asIScriptObject::~asIScriptObject()
 {
-	if( extra )
+	auto self = GetDataBlock();
+	auto ot = objType();
+	
+	if( self->extra )
 	{
-		if( extra->weakRefFlag )
+		if( self->extra->weakRefFlag )
 		{
-			extra->weakRefFlag->Release();
-			extra->weakRefFlag = 0;
+			self->extra->weakRefFlag->Release();
+			self->extra->weakRefFlag = 0;
 		}
 
-		if( objType->engine )
+		if( ot->engine )
 		{
 			// Clean the user data
-			for( asUINT n = 0; n < extra->userData.GetLength(); n += 2 )
+			for( asUINT n = 0; n < self->extra->userData.GetLength(); n += 2 )
 			{
-				if( extra->userData[n+1] )
+				if( self->extra->userData[n+1] )
 				{
-					for( asUINT c = 0; c < objType->engine->cleanScriptObjectFuncs.GetLength(); c++ )
-						if( objType->engine->cleanScriptObjectFuncs[c].type == extra->userData[n] )
-							objType->engine->cleanScriptObjectFuncs[c].cleanFunc(this);
+					for( asUINT c = 0; c < ot->engine->cleanScriptObjectFuncs.GetLength(); c++ )
+						if( ot->engine->cleanScriptObjectFuncs[c].type == self->extra->userData[n] )
+							ot->engine->cleanScriptObjectFuncs[c].cleanFunc(this);
 				}
 			}
 		}
 
-		asDELETE(extra, SExtra);
+		asDELETE(self->extra, SExtra);
 	}
 
 	// The engine pointer should be available from the objectType
-	asCScriptEngine *engine = objType->engine;
+	asCScriptEngine *engine = ot->engine;
 
 	// Destroy all properties
 	// In most cases the members are initialized in the order they have been declared, 
@@ -441,9 +457,9 @@ asCScriptObject::~asCScriptObject()
 	// depending on the use of inheritance and or initialization in the declaration.
 	// TODO: Should the order of initialization be stored by the compiler so that the 
 	//       reverse order can be guaranteed during the destruction?
-	for( int n = (int)objType->properties.GetLength()-1; n >= 0; n-- )
+	for( int n = (int)ot->properties.GetLength()-1; n >= 0; n-- )
 	{
-		asCObjectProperty *prop = objType->properties[n];
+		asCObjectProperty *prop = ot->properties[n];
 
 		if(prop->isNative)
 			continue;
@@ -457,7 +473,7 @@ asCScriptObject::~asCScriptObject()
 				void **ptr = (void**)(((char*)this) + prop->byteOffset);
 				if( *ptr )
 				{
-					FreeObject(*ptr, propType, engine);
+					reinterpret_cast<asCScriptObject*>(this)->FreeObject(*ptr, propType, engine);
 					*(asDWORD*)ptr = 0;
 				}
 			}
@@ -485,20 +501,22 @@ asCScriptObject::~asCScriptObject()
 		}
 	}
 
-	objType->Release();
-	objType = 0;
+	ot->Release();
 
 	// Something is really wrong if the refCount is not 0 by now
-	asASSERT( refCount.get() == 0 );
+	asASSERT( self->refCount.get() == 0 );
+	
+	asCScriptEngine::UnRegisterScriptObjectType(reinterpret_cast<asCScriptObject*>(this));
 }
 
-asILockableSharedBool *asCScriptObject::GetWeakRefFlag() const
+asILockableSharedBool *asIScriptObject::GetWeakRefFlag() const
 {
+	auto self = GetDataBlock();
 	// If the object's refCount has already reached zero then the object is already
 	// about to be destroyed so it's ok to return null if the weakRefFlag doesn't already
 	// exist
-	if( (extra && extra->weakRefFlag) || hasRefCountReachedZero )
-		return extra->weakRefFlag;
+	if( (self->extra && self->extra->weakRefFlag) || self->hasRefCountReachedZero )
+		return self->extra->weakRefFlag;
 
 	// Lock globally so no other thread can attempt
 	// to create a shared bool at the same time.
@@ -509,31 +527,32 @@ asILockableSharedBool *asCScriptObject::GetWeakRefFlag() const
 
 	// Make sure another thread didn't create the 
 	// flag while we waited for the lock
-	if( !extra )
-		extra = asNEW(SExtra);
-	if( !extra->weakRefFlag )
-		extra->weakRefFlag = asNEW(asCLockableSharedBool);
+	if( !self->extra )
+		self->extra = asNEW(asCScriptObjectData::SExtra);
+	if( !self->extra->weakRefFlag )
+		self->extra->weakRefFlag = asNEW(asCLockableSharedBool);
 
 	asReleaseExclusiveLock();
-
-	return extra->weakRefFlag;
+	
+	return self->extra->weakRefFlag;
 }
 
-void *asCScriptObject::GetUserData(asPWORD type) const
+void *asIScriptObject::GetUserData(asPWORD type) const
 {
-	if( !extra )
+	auto self = GetDataBlock();
+	if( !self->extra )
 		return 0;
 
 	// There may be multiple threads reading, but when
 	// setting the user data nobody must be reading.
 	// TODO: runtime optimize: Would it be worth it to have a rwlock per object type?
 	asAcquireSharedLock();
-
-	for( asUINT n = 0; n < extra->userData.GetLength(); n += 2 )
+	
+	for( asUINT n = 0; n < self->extra->userData.GetLength(); n += 2 )
 	{
-		if( extra->userData[n] == type )
+		if( self->extra->userData[n] == type )
 		{
-			void *userData = reinterpret_cast<void*>(extra->userData[n+1]);
+			void *userData = reinterpret_cast<void*>(self->extra->userData[n+1]);
 			asReleaseSharedLock();
 			return userData;
 		}
@@ -544,8 +563,9 @@ void *asCScriptObject::GetUserData(asPWORD type) const
 	return 0;
 }
 
-void *asCScriptObject::SetUserData(void *data, asPWORD type)
+void *asIScriptObject::SetUserData(void *data, asPWORD type)
 {
+	auto self = GetDataBlock();
 	// Lock globally so no other thread can attempt
 	// to manipulate the extra data at the same time.
 	// TODO: runtime optimize: Instead of locking globally, it would be possible to have 
@@ -555,18 +575,18 @@ void *asCScriptObject::SetUserData(void *data, asPWORD type)
 
 	// Make sure another thread didn't create the 
 	// flag while we waited for the lock
-	if( !extra )
-		extra = asNEW(SExtra);
+	if( !self->extra )
+		self->extra = asNEW(asCScriptObjectData::SExtra);
 
 	// It is not intended to store a lot of different types of userdata,
 	// so a more complex structure like a associative map would just have
 	// more overhead than a simple array.
-	for( asUINT n = 0; n < extra->userData.GetLength(); n += 2 )
+	for( asUINT n = 0; n < self->extra->userData.GetLength(); n += 2 )
 	{
-		if( extra->userData[n] == type )
+		if( self->extra->userData[n] == type )
 		{
-			void *oldData = reinterpret_cast<void*>(extra->userData[n+1]);
-			extra->userData[n+1] = reinterpret_cast<asPWORD>(data);
+			void *oldData = reinterpret_cast<void*>(self->extra->userData[n+1]);
+			self->extra->userData[n+1] = reinterpret_cast<asPWORD>(data);
 
 			asReleaseExclusiveLock();
 
@@ -574,69 +594,70 @@ void *asCScriptObject::SetUserData(void *data, asPWORD type)
 		}
 	}
 
-	extra->userData.PushLast(type);
-	extra->userData.PushLast(reinterpret_cast<asPWORD>(data));
+	self->extra->userData.PushLast(type);
+	self->extra->userData.PushLast(reinterpret_cast<asPWORD>(data));
 
 	asReleaseExclusiveLock();
 
 	return 0;
 }
 
-asIScriptEngine *asCScriptObject::GetEngine() const
+asIScriptEngine *asIScriptObject::GetEngine() const
 {
-	return objType->engine;
+	return objType()->engine;
 }
 
-int asCScriptObject::AddRef() const
+int asIScriptObject::AddRef() const
 {
+	auto ot = objType();
 	// Warn in case the application tries to increase the refCount after it has reached zero.
 	// This may happen for example if the application calls a method on the class while it is
 	// being destroyed. The application shouldn't do this because it may cause application
 	// crashes if members that have already been destroyed are accessed accidentally.
-	if( hasRefCountReachedZero )
+	if( GetDataBlock()->hasRefCountReachedZero )
 	{
-		if( objType && objType->engine )
+		if( ot && ot->engine )
 		{
 			asCString msg;
-			msg.Format(TXT_RESURRECTING_SCRIPTOBJECT_s, objType->name.AddressOf());
-			objType->engine->WriteMessage("", 0, 0, asMSGTYPE_ERROR, msg.AddressOf());
+			msg.Format(TXT_RESURRECTING_SCRIPTOBJECT_s, ot->name.AddressOf());
+			ot->engine->WriteMessage("", 0, 0, asMSGTYPE_ERROR, msg.AddressOf());
 		}
 	}
 
 	// Increase counter and clear flag set by GC
-	gcFlag = false;
-	return refCount.atomicInc();
+	GetDataBlock()->gcFlag = false;
+	return GetDataBlock()->refCount.atomicInc();
 }
 
-int asCScriptObject::Release() const
+int asIScriptObject::Release() const
 {
 	// Clear the flag set by the GC
-	gcFlag = false;
+	GetDataBlock()->gcFlag = false;
 
 	// If the weak ref flag exists it is because someone held a weak ref
 	// and that someone may add a reference to the object at any time. It
 	// is ok to check the existance of the weakRefFlag without locking here
 	// because if the refCount is 1 then no other thread is currently 
 	// creating the weakRefFlag.
-	if( refCount.get() == 1 && extra && extra->weakRefFlag )
+	if( GetDataBlock()->refCount.get() == 1 && GetDataBlock()->extra && GetDataBlock()->extra->weakRefFlag )
 	{
 		// Set the flag to tell others that the object is no longer alive
 		// We must do this before decreasing the refCount to 0 so we don't
 		// end up with a race condition between this thread attempting to 
 		// destroy the object and the other that temporary added a strong
 		// ref from the weak ref.
-		extra->weakRefFlag->Set(true);
+		GetDataBlock()->extra->weakRefFlag->Set(true);
 	}
 
 	// Call the script destructor behaviour if the reference counter is 1.
-	if( refCount.get() == 1 && !isDestructCalled )
+	if( GetDataBlock()->refCount.get() == 1 && !GetDataBlock()->isDestructCalled )
 	{
 		// This cast is OK since we are the last reference
-		const_cast<asCScriptObject*>(this)->CallDestructor();
+		reinterpret_cast<asCScriptObject*>(const_cast<asIScriptObject*>(this))->CallDestructor(objType());
 	}
 
 	// Now do the actual releasing
-	int r = refCount.atomicDec();
+	int r = GetDataBlock()->refCount.atomicDec();
 	if( r == 0 )
 	{
 		// Flag this object as being destroyed so the application
@@ -644,12 +665,12 @@ int asCScriptObject::Release() const
 		// during the destructor. This also avoids a recursive call
 		// to the destructor which would crash the application if it
 		// really does resurrect the object.
-		if( !hasRefCountReachedZero )
+		if( !GetDataBlock()->hasRefCountReachedZero )
 		{
-			hasRefCountReachedZero = true;
+			GetDataBlock()->hasRefCountReachedZero = true;
 
 			// This cast is OK since we are the last reference
-			const_cast<asCScriptObject*>(this)->Destruct();
+			reinterpret_cast<asCScriptObject*>(const_cast<asIScriptObject*>(this))->Destruct();
 		}
 		return 0;
 	}
@@ -657,10 +678,10 @@ int asCScriptObject::Release() const
 	return r;
 }
 
-void asCScriptObject::CallDestructor()
+void asCScriptObject::CallDestructor(asCObjectType* type)
 {
 	// Only allow the destructor to be called once
-	if( isDestructCalled ) return;
+	if( GetDataBlock()->isDestructCalled ) return;
 
 	asIScriptContext *ctx = 0;
 	bool isNested = false;
@@ -668,10 +689,10 @@ void asCScriptObject::CallDestructor()
 
 	// Make sure the destructor is called once only, even if the  
 	// reference count is increased and then decreased again
-	isDestructCalled = true;
+	GetDataBlock()->isDestructCalled = true;
 
 	// Call the destructor for this class and all the super classes
-	asCObjectType *ot = objType;
+	asCObjectType *ot = type;
 	while( ot )
 	{
 		int funcIndex = ot->beh.destruct;
@@ -684,7 +705,7 @@ void asCScriptObject::CallDestructor()
 				ctx = asGetActiveContext();
 				if( ctx )
 				{
-					if( ctx->GetEngine() == objType->GetEngine() && ctx->PushState() == asSUCCESS )
+					if( ctx->GetEngine() == type->GetEngine() && ctx->PushState() == asSUCCESS )
 						isNested = true;
 					else
 						ctx = 0;
@@ -693,7 +714,7 @@ void asCScriptObject::CallDestructor()
 				if( ctx == 0 )
 				{
 					// Request a context from the engine
-					ctx = objType->engine->RequestContext();
+					ctx = type->engine->RequestContext();
 					if( ctx == 0 )
 					{
 						// TODO: How to best report this failure?
@@ -702,7 +723,7 @@ void asCScriptObject::CallDestructor()
 				}
 			}
 
-			int r = ctx->Prepare(objType->engine->scriptFunctions[funcIndex]);
+			int r = ctx->Prepare(type->engine->scriptFunctions[funcIndex]);
 			if( r >= 0 )
 			{
 				ctx->SetObject(this);
@@ -744,79 +765,85 @@ void asCScriptObject::CallDestructor()
 		else
 		{
 			// Return the context to engine
-			objType->engine->ReturnContext(ctx);
+			type->engine->ReturnContext(ctx);
 		}
 	}
 }
 
-asITypeInfo *asCScriptObject::GetObjectType() const
+asITypeInfo *asIScriptObject::GetObjectType() const
 {
-	return objType;
+	return objType();
 }
 
 int asCScriptObject::GetRefCount()
 {
-	return refCount.get();
+	return GetDataBlock()->refCount.get();
 }
 
 void asCScriptObject::SetFlag()
 {
-	gcFlag = true;
+	GetDataBlock()->gcFlag = true;
 }
 
 bool asCScriptObject::GetFlag()
 {
-	return gcFlag;
+	return GetDataBlock()->gcFlag;
 }
 
 // interface
-int asCScriptObject::GetTypeId() const
+int asIScriptObject::GetTypeId() const
 {
-	asCDataType dt = asCDataType::CreateType(objType, false);
-	return objType->engine->GetTypeIdFromDataType(dt);
+	auto ot = objType();
+	asCDataType dt = asCDataType::CreateType(ot, false);
+	return ot->engine->GetTypeIdFromDataType(dt);
 }
 
-asUINT asCScriptObject::GetPropertyCount() const
+asUINT asIScriptObject::GetPropertyCount() const
 {
-	return asUINT(objType->properties.GetLength());
+	return asUINT(objType()->properties.GetLength());
 }
 
-int asCScriptObject::GetPropertyTypeId(asUINT prop) const
+int asIScriptObject::GetPropertyTypeId(asUINT prop) const
 {
-	if( prop >= objType->properties.GetLength() )
+	auto ot = objType();
+	if( prop >= ot->properties.GetLength() )
 		return asINVALID_ARG;
 
-	return objType->engine->GetTypeIdFromDataType(objType->properties[prop]->type);
+	return ot->engine->GetTypeIdFromDataType(ot->properties[prop]->type);
 }
 
-const char *asCScriptObject::GetPropertyName(asUINT prop) const
+const char *asIScriptObject::GetPropertyName(asUINT prop) const
 {
-	if( prop >= objType->properties.GetLength() )
+	auto ot = objType();
+	
+	if( prop >= ot->properties.GetLength() )
 		return 0;
 
-	return objType->properties[prop]->name.AddressOf();
+	return ot->properties[prop]->name.AddressOf();
 }
 
-void *asCScriptObject::GetAddressOfProperty(asUINT prop)
+void *asIScriptObject::GetAddressOfProperty(asUINT prop)
 {
-	if( prop >= objType->properties.GetLength() )
+	auto ot = objType();
+	if( prop >= ot->properties.GetLength() )
 		return 0;
 
 	// Objects are stored by reference, so this must be dereferenced
-	asCDataType *dt = &objType->properties[prop]->type;
+	asCDataType *dt = &ot->properties[prop]->type;
 	if( dt->IsObject() && !dt->IsObjectHandle() &&
 		(dt->IsReference() || dt->GetTypeInfo()->flags & asOBJ_REF) )
-		return *(void**)(((char*)this) + objType->properties[prop]->byteOffset);
+		return *(void**)(((char*)this) + ot->properties[prop]->byteOffset);
 
-	return (void*)(((char*)this) + objType->properties[prop]->byteOffset);
+	return (void*)(((char*)this) + ot->properties[prop]->byteOffset);
 }
 
 void asCScriptObject::EnumReferences(asIScriptEngine *engine)
 {
+	auto ot = objType();
 	// We'll notify the GC of all object handles that we're holding
-	for( asUINT n = 0; n < objType->properties.GetLength(); n++ )
+	for( asUINT n = 0; n < ot->properties.GetLength(); n++ )
 	{
-		asCObjectProperty *prop = objType->properties[n];
+		asCObjectProperty *prop = ot->properties[n];
 		void *ptr = 0;
 		if (prop->type.IsObject())
 		{
@@ -842,9 +869,10 @@ void asCScriptObject::EnumReferences(asIScriptEngine *engine)
 
 void asCScriptObject::ReleaseAllHandles(asIScriptEngine *engine)
 {
-	for( asUINT n = 0; n < objType->properties.GetLength(); n++ )
+	auto ot = objType();
+	for( asUINT n = 0; n < ot->properties.GetLength(); n++ )
 	{
-		asCObjectProperty *prop = objType->properties[n];
+		asCObjectProperty *prop = ot->properties[n];
 
 		if (prop->type.IsObject())
 		{
@@ -892,7 +920,7 @@ asCScriptObject &ScriptObject_Assignment(asCScriptObject *other, asCScriptObject
 
 asCScriptObject &asCScriptObject::operator=(const asCScriptObject &other)
 {
-	CopyFromAs(&other, objType);
+	CopyFromAs(&other, objType());
 	return *this;
 }
 
@@ -901,7 +929,7 @@ int asCScriptObject::CopyFromAs(const asCScriptObject *other, asCObjectType *in_
 {
 	if( other != this )
 	{
-		if( !other->objType->DerivesFrom(in_objType) )
+		if( !other->objType()->DerivesFrom(in_objType) )
 		{
 			// We cannot allow a value assignment from a type that isn't the same or 
 			// derives from this type as the member properties may not have the same layout
@@ -1043,7 +1071,7 @@ int asCScriptObject::CopyFromAs(const asCScriptObject *other, asCObjectType *in_
 	return asSUCCESS;
 }
 
-int asCScriptObject::CopyFrom(const asIScriptObject *other)
+int asIScriptObject::CopyFrom(const asIScriptObject *other)
 {
 	if( other == 0 ) return asINVALID_ARG;
 
@@ -1131,6 +1159,43 @@ void asCScriptObject::CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *in_o
 	*dst = *src;
 	if( *dst && in_objType->beh.addref )
 		engine->CallObjectMethod(*(void**)dst, in_objType->beh.addref);
+}
+
+asCObjectType* asIScriptObject::objType() const
+{
+	return asCScriptEngine::FindScriptObjectType(reinterpret_cast<const asCScriptObject*>(this));
+}
+
+asCScriptObjectData* asIScriptObject::GetDataBlock()
+{
+	auto mem = reinterpret_cast<asBYTE*>(this);
+	return reinterpret_cast<asCScriptObjectData*>(mem + GetNativeObjectSize());	
+}
+
+const asCScriptObjectData* asIScriptObject::GetDataBlock() const
+{
+	const auto mem = reinterpret_cast<const asBYTE*>(this);
+	return reinterpret_cast<const asCScriptObjectData*>(mem + GetNativeObjectSize());
+}
+
+asUINT asIScriptObject::GetScriptDataOffset() const
+{
+	return GetNativeObjectSize() + sizeof(asCScriptObjectData);
+}
+
+asUINT asIScriptObject::GetNativeObjectSize() const
+{
+	auto ot = objType();
+	
+	while(ot && !(ot->flags & asOBJ_APP_NATIVE))
+		ot = ot->derivedFrom;
+	
+	if(ot)
+	{
+		return ot->size;
+	}
+	
+	return 0;
 }
 
 // TODO: weak: Should move to its own file

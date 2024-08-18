@@ -585,6 +585,35 @@ asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, 
 	return prop;
 }
 
+asCObjectProperty *asCObjectType::InheritProperty(asCObjectProperty* prop)
+{
+	asASSERT( flags & asOBJ_SCRIPT_OBJECT );
+	asASSERT( !IsInterface() );
+	
+	// Store the properties in the object type descriptor
+	asCObjectProperty *new_prop = asNEW(asCObjectProperty)(*prop);
+	
+	if( prop == 0 )
+	{
+		// Out of memory
+		return 0;
+	}
+	
+	new_prop->isInherited = true;
+	properties.PushLast(new_prop);
+	
+	// Make sure the struct holds a reference to the config group where the object is registered
+	asCConfigGroup *group = engine->FindConfigGroupForTypeInfo(new_prop->type.GetTypeInfo());
+	if( group != 0 ) group->AddRef();
+	
+	// Add reference to object types
+	asCTypeInfo *type = new_prop->type.GetTypeInfo();
+	if( type )
+		type->AddRefInternal();
+	
+	return new_prop;
+}
+
 // internal
 void asCObjectType::ReleaseAllProperties()
 {

@@ -274,6 +274,7 @@ AS_API asIScriptEngine *asCreateScriptEngine(asDWORD version)
 
 } // extern "C"
 
+std::unordered_map<const asCScriptObject*, asCObjectType*> asCScriptEngine::objectTypeAddressMap;
 
 // interface
 int asCScriptEngine::SetEngineProperty(asEEngineProp property, asPWORD value)
@@ -6538,6 +6539,24 @@ int asCScriptEngine::SetTranslateAppExceptionCallback(asSFuncPtr callback, void 
 
 	return r;
 #endif
+}
+
+void asCScriptEngine::RegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot)
+{
+	objectTypeAddressMap.insert_or_assign(object, ot);		
+}
+
+void asCScriptEngine::UnRegisterScriptObjectType(const class asCScriptObject* object)
+{
+	objectTypeAddressMap.erase(object);
+}
+
+class asCObjectType* asCScriptEngine::FindScriptObjectType(const class asCScriptObject* object)
+{
+	auto it = objectTypeAddressMap.find(object);
+	if(it == objectTypeAddressMap.end())
+		return nullptr;
+	return it->second;
 }
 
 // internal

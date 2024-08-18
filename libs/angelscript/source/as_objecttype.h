@@ -134,6 +134,7 @@ public:
 	bool IsInterface() const;
 
 	asCObjectProperty *AddPropertyToClass(const asCString &name, const asCDataType &dt, bool isPrivate, bool isProtected, bool isInherited, bool isNative = false);
+	asCObjectProperty *InheritProperty(asCObjectProperty* prop);
 	void ReleaseAllProperties();
 
 #ifdef WIP_16BYTE_ALIGN

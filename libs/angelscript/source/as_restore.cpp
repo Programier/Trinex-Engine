@@ -1552,7 +1552,7 @@ void asCReader::ReadTypeDeclaration(asCTypeInfo *type, int phase, bool *isExtern
 
 		// Reset the size of script classes, since it will be recalculated as properties are added
 		if( (type->flags & asOBJ_SCRIPT_OBJECT) && type->size != 0 )
-			type->size = sizeof(asCScriptObject);
+			type->size = sizeof(asCScriptObjectData);
 
 		asCObjectType *ot = CastToObjectType(type);
 		if (ot)
