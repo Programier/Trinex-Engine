@@ -36,8 +36,13 @@ namespace Engine
 
     } next_object_info;
 
-    void Object::setup_next_object_info(Class* self)
+    void Object::setup_next_object_info(Class* self, bool override)
     {
+		if(next_object_info.class_instance && !override)
+		{
+			return;
+		}
+		
         next_object_info.class_instance = self;
     }
 

@@ -184,6 +184,26 @@ void *asCTypeInfo::GetUserData(asPWORD type) const
 	return 0;
 }
 
+void asCTypeInfo::SetUserAllocFunction(void*(*)(const asITypeInfo* type, asUINT size))
+{
+	engine->ConfigError(asERROR, "SetUserAllocFunction", "Cannot set user alloc function for non object type", nullptr);
+}
+
+void  asCTypeInfo::SetUserFreeFunction(void(*)(void* obj, const asITypeInfo* type, asUINT size))
+{
+	engine->ConfigError(asERROR, "SetUserFreeFunction", "Cannot set user free function for non object type", nullptr);
+}
+
+void  asCTypeInfo::SetNativeClassUserData(void* NativeClassUserData)
+{
+	engine->ConfigError(asERROR, "SetNativeClassUserData", "Cannot set native class userdata for non object type", nullptr);
+}
+
+void* asCTypeInfo::GetNativeClassUserData() const
+{
+	return nullptr;
+}
+
 // interface
 const char *asCTypeInfo::GetName() const
 {

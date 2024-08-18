@@ -2168,6 +2168,10 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 
 		asASSERT( realFunc->signatureId == func->signatureId );
 	}
+	else if( func->funcType == asFUNC_SYSTEM )
+	{
+		realFunc = objType && func->vfTableIdx != -1 ? objType->virtualFunctionTable[func->vfTableIdx] : func;
+	}
 	else // if( func->funcType == asFUNC_VIRTUAL )
 	{
 		realFunc = objType->virtualFunctionTable[func->vfTableIdx];
@@ -3115,7 +3119,7 @@ static const void *const dispatch_table[256] = {
 				m_regs.stackFramePointer = l_fp;
 
 				// Pre-allocate the memory
-				asDWORD *mem = (asDWORD*)m_engine->CallAlloc(objType);
+				asDWORD *mem = (asDWORD*)m_engine->ScriptObjectAlloc(objType);
 
 				// Pre-initialize the memory by calling the constructor for asCScriptObject
 				ScriptObject_Construct(objType, (asCScriptObject*)mem);
@@ -3227,7 +3231,14 @@ static const void *const dispatch_table[256] = {
 					else if( objType->flags & asOBJ_LIST_PATTERN )
 						m_engine->DestroyList((asBYTE*)(asPWORD)*a, objType);
 
-					m_engine->CallFree((void*)(asPWORD)*a);
+					if (objType->flags & asOBJ_SCRIPT_OBJECT)
+					{
+						m_engine->ScriptObjectFree((void*)(asPWORD)*a, objType);
+					}
+					else
+					{
+						m_engine->CallFree((void*)(asPWORD)*a);
+					}
 				}
 
 				// Clear the variable

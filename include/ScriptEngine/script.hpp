@@ -72,6 +72,7 @@ namespace Engine
         Script(ScriptFolder* folder, const String& name);
 
         Script& load_metadata(Builder& builder);
+		bool load_classes(asITypeInfo* info);
         Script& load_classes();
         Script& unload_classes();
         Script& on_path_changed();

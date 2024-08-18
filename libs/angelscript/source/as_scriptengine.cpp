@@ -1732,7 +1732,12 @@ int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD 
 		// Can optionally have the asOBJ_GC, asOBJ_NOHANDLE, asOBJ_SCOPED, or asOBJ_TEMPLATE flag set, but nothing else
 		if( flags & ~(asOBJ_REF | asOBJ_GC | asOBJ_NOHANDLE | asOBJ_SCOPED | asOBJ_TEMPLATE | asOBJ_NOCOUNT | asOBJ_IMPLICIT_HANDLE | asOBJ_APP_NATIVE) )
 			return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
-
+		
+		if( flags & asOBJ_APP_NATIVE )
+		{
+			flags |= asOBJ_IMPLICIT_HANDLE;
+		}
+		
 		// flags are exclusive
 		if( (flags & asOBJ_GC) && (flags & (asOBJ_NOHANDLE|asOBJ_SCOPED|asOBJ_NOCOUNT)) )
 			return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
@@ -2128,7 +2133,7 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 		if( func.returnType != asCDataType::CreatePrimitive(ttVoid, false) )
 			return ConfigError(asINVALID_DECLARATION, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
 
-		if( objectType->flags & asOBJ_SCRIPT_OBJECT || objectType->flags & asOBJ_APP_NATIVE)
+		if( objectType->flags & asOBJ_SCRIPT_OBJECT)
 		{
 			// The script object is a special case
 			asASSERT(func.parameterTypes.GetLength() == 1);
@@ -2143,7 +2148,7 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 		else
 		{
 			// Verify that it is a value type
-			if( !(func.objectType->flags & asOBJ_VALUE) )
+			if( !(func.objectType->flags & asOBJ_VALUE) && !(objectType->flags & asOBJ_APP_NATIVE))
 			{
 				WriteMessage("", 0, 0, asMSGTYPE_ERROR, TXT_ILLEGAL_BEHAVIOUR_FOR_TYPE);
 				return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
@@ -4786,6 +4791,32 @@ bool asCScriptEngine::CallGlobalFunctionRetBool(void *param1, void *param2, asSS
 	}
 }
 
+void *asCScriptEngine::ScriptObjectAlloc(const asCObjectType *objType) const
+{
+	if (objType->userAllocFunc != nullptr)
+	{
+		asUINT size = objType->size;
+		if( size & 0x3 )
+			size += 4 - (size & 0x3);
+		return objType->userAllocFunc(objType, size);
+	}
+	
+	return CallAlloc(objType);
+}
+
+void asCScriptEngine::ScriptObjectFree(void* obj, const asCObjectType *objType) const
+{
+	if (objType->userFreeFunc != nullptr)
+	{
+		asUINT size = objType->size;
+		if( size & 0x3 )
+			size += 4 - (size & 0x3);
+		objType->userFreeFunc(obj, objType, size);
+	}
+	
+	return CallFree(obj);
+}
+
 void *asCScriptEngine::CallAlloc(const asCObjectType *type) const
 {
 	// Allocate 4 bytes as the smallest size. Otherwise CallSystemFunction may try to
@@ -6541,22 +6572,38 @@ int asCScriptEngine::SetTranslateAppExceptionCallback(asSFuncPtr callback, void 
 #endif
 }
 
-void asCScriptEngine::RegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot)
+void asCScriptEngine::StaticRegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot)
 {
-	objectTypeAddressMap.insert_or_assign(object, ot);		
+	if(object && ot)
+		objectTypeAddressMap.insert_or_assign(object, ot);		
 }
 
-void asCScriptEngine::UnRegisterScriptObjectType(const class asCScriptObject* object)
+void asCScriptEngine::StaticUnregisterScriptObjectType(const class asCScriptObject* object)
 {
 	objectTypeAddressMap.erase(object);
 }
 
-class asCObjectType* asCScriptEngine::FindScriptObjectType(const class asCScriptObject* object)
+class asCObjectType* asCScriptEngine::StaticFindScriptObjectType(const class asCScriptObject* object)
 {
 	auto it = objectTypeAddressMap.find(object);
 	if(it == objectTypeAddressMap.end())
 		return nullptr;
 	return it->second;
+}
+
+void asCScriptEngine::RegisterScriptObjectType(const class asIScriptObject* object, class asITypeInfo* ot)
+{
+	StaticRegisterScriptObjectType(reinterpret_cast<const asCScriptObject*>(object), CastToObjectType(reinterpret_cast<asCTypeInfo*>(ot)));	
+}
+
+void asCScriptEngine::UnregisterScriptObjectType(const class asIScriptObject* object)
+{
+	StaticUnregisterScriptObjectType(reinterpret_cast<const asCScriptObject*>(object));
+}
+
+class asITypeInfo* asCScriptEngine::FindScriptObjectType(const class asIScriptObject* object)
+{
+	return StaticFindScriptObjectType(reinterpret_cast<const asCScriptObject*>(object));
 }
 
 // internal

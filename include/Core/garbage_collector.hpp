@@ -15,6 +15,7 @@ namespace Engine
         ENGINE_EXPORT static void update(float dt);
 
         friend class EngineLoop;
+		friend class Class;
 
     private:
         ENGINE_EXPORT static void submit_current_stage();
@@ -22,7 +23,8 @@ namespace Engine
         ENGINE_EXPORT static void mark_unreachable(float dt);
         ENGINE_EXPORT static void collect_garbage(float dt);
         ENGINE_EXPORT static void destroy_garbage(float dt);
-        ENGINE_EXPORT static void destroy_internal(Object* object, bool destroy_owner_if_exist = false);
+        ENGINE_EXPORT static void destroy_recursive(Object* object, bool destroy_owner_if_exist = false);
+		ENGINE_EXPORT static void destroy_internal(Object* object);
 
         ENGINE_EXPORT static void destroy_all_objects();
     };

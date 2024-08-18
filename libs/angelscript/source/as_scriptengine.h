@@ -207,9 +207,12 @@ public:
 	// Exception handling
 	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv);
 	
-	static void RegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot);
-	static void UnRegisterScriptObjectType(const class asCScriptObject* object);
-	static class asCObjectType* FindScriptObjectType(const class asCScriptObject* object);
+	static void StaticRegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot);
+	static void StaticUnregisterScriptObjectType(const class asCScriptObject* object);
+	static class asCObjectType* StaticFindScriptObjectType(const class asCScriptObject* object);
+	void RegisterScriptObjectType(const class asIScriptObject* object, class asITypeInfo* ot);
+	void UnregisterScriptObjectType(const class asIScriptObject* object);
+	class asITypeInfo* FindScriptObjectType(const class asIScriptObject* object);
 
 //===========================================================
 // internal methods
@@ -232,7 +235,9 @@ public:
 	int RegisterBehaviourToObjectType(asCObjectType *objectType, asEBehaviours behaviour, const char *decl, const asSFuncPtr &funcPointer, asDWORD callConv, void *auxiliary = 0, int compositeOffset = 0, bool isCompositeIndirect = false);
 
 	int VerifyVarTypeNotInFunction(asCScriptFunction *func);
-
+	
+	void *ScriptObjectAlloc(const asCObjectType *objType) const;
+	void ScriptObjectFree(void* obj, const asCObjectType *objType) const;
 	void *CallAlloc(const asCObjectType *objType) const;
 	void  CallFree(void *obj) const;
 

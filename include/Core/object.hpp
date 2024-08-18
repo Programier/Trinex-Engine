@@ -57,7 +57,7 @@ namespace Engine
 
     private:
         // Setup object info
-        static void setup_next_object_info(Class* self);
+        static void setup_next_object_info(Class* self, bool override = true);
         static void reset_next_object_info();
 
         static void create_default_package();
@@ -78,25 +78,27 @@ namespace Engine
         }
 
     protected:
-        Object();
         bool private_check_instance(const class Class* const check_class) const;
         static Object* noname_object();
-
+		
         virtual Object& on_owner_update(Object* new_owner);
         virtual bool register_child(Object* child);
         virtual bool unregister_child(Object* child);
         virtual bool rename_child_object(Object* object, StringView new_name);
         virtual Object& post_rename(Object* old_owner, Name old_name);
-
+		
         // Override new and delete operators
         static ENGINE_EXPORT void* operator new(size_t size) noexcept;
         static ENGINE_EXPORT void* operator new(size_t size, void*) noexcept;
         static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
-
+		
     public:
         using This  = Object;
         using Super = Object;
-        static Object* static_constructor();
+		
+		Object();
+		
+		static Object* static_constructor();
         static void static_initialize_class();
         static class Class* static_class_instance();
         static HashIndex hash_of_name(const StringView& name);
@@ -180,13 +182,13 @@ namespace Engine
                     }
 
                     if constexpr (std::is_base_of_v<Object, Type>)
-                        setup_next_object_info(Type::static_class_instance());
+                        setup_next_object_info(Type::static_class_instance(), false);
                     return setup_new_object(Type::create_instance(std::forward<Args>(args)...), name, owner);
                 }
                 else
                 {
                     if constexpr (std::is_base_of_v<Object, Type>)
-                        setup_next_object_info(Type::static_class_instance());
+                        setup_next_object_info(Type::static_class_instance(), false);
                     return setup_new_object(new Type(std::forward<Args>(args)...), name, owner);
                 }
             }
@@ -215,13 +217,13 @@ namespace Engine
                     }
 
                     if constexpr (std::is_base_of_v<Object, Type>)
-                        setup_next_object_info(Type::static_class_instance());
+                        setup_next_object_info(Type::static_class_instance(), false);
                     return setup_new_object(Type::create_placement_instance(place, std::forward<Args>(args)...), name, owner);
                 }
                 else
                 {
                     if constexpr (std::is_base_of_v<Object, Type>)
-                        setup_next_object_info(Type::static_class_instance());
+                        setup_next_object_info(Type::static_class_instance(), false);
                     return setup_new_object(new (place) Type(std::forward<Args>(args)...), name, owner);
                 }
             }

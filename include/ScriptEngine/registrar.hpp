@@ -107,15 +107,13 @@ namespace Engine
         template<typename T, typename... Args>
         static void constructor(T* memory, Args... args)
         {
-            byte* data = reinterpret_cast<byte*>(memory);
-            std::fill(data, data + sizeof(T), 0);
             new (memory) T(args...);
         }
 		
-		template<typename T, typename... Args>
-		static void scriptable_constructor(T* memory, void* type, Args... args)
+		template<typename T>
+		static void ref_constructor(T* self, const T*& other)
 		{
-			new (memory)T(args...);	
+			new (self) T(*other);
 		}
 
         template<typename T>

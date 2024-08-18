@@ -800,6 +800,10 @@ public:
 
 	// Exception handling
 	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv) = 0;
+	
+	virtual void RegisterScriptObjectType(const class asIScriptObject* object, class asITypeInfo* ot) = 0;
+	virtual void UnregisterScriptObjectType(const class asIScriptObject* object) = 0;
+	virtual class asITypeInfo* FindScriptObjectType(const class asIScriptObject* object) = 0;
 
 protected:
 	virtual ~asIScriptEngine() {}
@@ -1057,9 +1061,12 @@ public:
 	// User data
 	void *SetUserData(void *data, asPWORD type = 0);
 	void *GetUserData(asPWORD type = 0) const;
-
+	
+	void Destroy();
+	
 protected:
 	class asCObjectType* objType() const;
+	class asCObjectType* nativeObjType() const;
 	struct asCScriptObjectData* GetDataBlock();
 	const struct asCScriptObjectData* GetDataBlock() const;
 	asUINT GetScriptDataOffset() const;
@@ -1136,6 +1143,11 @@ public:
 	// User data
 	virtual void *SetUserData(void *data, asPWORD type = 0) = 0;
 	virtual void *GetUserData(asPWORD type = 0) const = 0;
+	
+	virtual void  SetUserAllocFunction(void*(*)(const asITypeInfo* type, asUINT size)) = 0;
+	virtual void  SetUserFreeFunction(void(*)(void* obj, const asITypeInfo* type, asUINT size)) = 0;
+	virtual void  SetNativeClassUserData(void* NativeClassUserData) = 0;
+	virtual void* GetNativeClassUserData() const = 0;
 
 protected:
 	virtual ~asITypeInfo() {}

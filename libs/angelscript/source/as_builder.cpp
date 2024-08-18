@@ -3348,6 +3348,21 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 	{
 		sClassDeclaration *decl = classDeclarations[n];
 		asCObjectType *ot = CastToObjectType(decl->typeInfo);
+		asCObjectType *native = ot->derivedFrom;
+		
+		while( native && !(native->flags & asOBJ_APP_NATIVE) )
+			native = native->derivedFrom;
+		
+		if( native )
+		{
+			ot->flags |= asOBJ_IMPLICIT_HANDLE;
+            
+			if(native->flags & asOBJ_NOCOUNT)
+			{
+				ot->flags |= asOBJ_NOCOUNT;    
+			}
+		}
+		
 		if( decl->isExistingShared )
 		{
 			// Set the declaration as validated already, so that other

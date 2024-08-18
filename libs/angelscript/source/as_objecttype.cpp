@@ -51,6 +51,9 @@ asCObjectType::asCObjectType() : asCTypeInfo()
 
 	acceptValueSubType = true;
 	acceptRefSubType   = true;
+	userAllocFunc	   = nullptr;
+	userFreeFunc	   = nullptr;
+	nativeClassUserData = nullptr;
 
 #ifdef WIP_16BYTE_ALIGN
 	alignment  = 4;
@@ -63,6 +66,9 @@ asCObjectType::asCObjectType(asCScriptEngine *in_engine) : asCTypeInfo(in_engine
 
 	acceptValueSubType = true;
 	acceptRefSubType = true;
+	userAllocFunc	   = nullptr;
+	userFreeFunc	   = nullptr;
+	nativeClassUserData = nullptr;
 
 #ifdef WIP_16BYTE_ALIGN
 	alignment  = 4;
@@ -82,6 +88,26 @@ asITypeInfo *asCObjectType::GetChildFuncdef(asUINT index) const
 		return 0;
 
 	return childFuncDefs[index];
+}
+
+void asCObjectType::SetUserAllocFunction(void*(*callback)(const asITypeInfo* type, asUINT size))
+{
+	userAllocFunc = callback;
+}
+
+void asCObjectType::SetUserFreeFunction(void(*callback)(void* address, const asITypeInfo* type, asUINT size))
+{
+	userFreeFunc = callback;
+}
+
+void asCObjectType::SetNativeClassUserData(void* Data)
+{
+	nativeClassUserData = Data;
+}
+
+void* asCObjectType::GetNativeClassUserData() const
+{
+	return nativeClassUserData;
 }
 
 // internal

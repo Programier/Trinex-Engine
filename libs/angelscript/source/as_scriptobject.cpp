@@ -334,7 +334,7 @@ void ScriptObject_ConstructUnitialized(asCObjectType *objType, asCScriptObject *
 
 asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 {
-	asCScriptEngine::RegisterScriptObjectType(this, ot);
+	asCScriptEngine::StaticRegisterScriptObjectType(this, ot);
 	auto self = GetDataBlock();
 	
 	new(self)asCScriptObjectData();
@@ -502,11 +502,14 @@ asIScriptObject::~asIScriptObject()
 	}
 
 	ot->Release();
-
-	// Something is really wrong if the refCount is not 0 by now
-	asASSERT( self->refCount.get() == 0 );
 	
-	asCScriptEngine::UnRegisterScriptObjectType(reinterpret_cast<asCScriptObject*>(this));
+	if (!(ot->flags & asOBJ_NOCOUNT))
+	{
+		// Something is really wrong if the refCount is not 0 by now
+		asASSERT( self->refCount.get() == 0 );
+	}
+	
+	asCScriptEngine::StaticUnregisterScriptObjectType(reinterpret_cast<asCScriptObject*>(this));
 }
 
 asILockableSharedBool *asIScriptObject::GetWeakRefFlag() const
@@ -610,6 +613,22 @@ asIScriptEngine *asIScriptObject::GetEngine() const
 int asIScriptObject::AddRef() const
 {
 	auto ot = objType();
+	
+	if(ot->flags & asOBJ_NOCOUNT)
+		return 1;
+	
+	{
+		auto native = ot;
+		while(native && !(native->flags & asOBJ_APP_NATIVE))
+			native = native->derivedFrom;
+		
+		if(native)
+		{
+			native->engine->CallObjectMethod(const_cast<asIScriptObject*>(this), native->beh.addref);
+			return native->engine->CallObjectMethodRetInt(const_cast<asIScriptObject*>(this), native->beh.gcGetRefCount);
+		}
+	}
+	
 	// Warn in case the application tries to increase the refCount after it has reached zero.
 	// This may happen for example if the application calls a method on the class while it is
 	// being destroyed. The application shouldn't do this because it may cause application
@@ -631,6 +650,11 @@ int asIScriptObject::AddRef() const
 
 int asIScriptObject::Release() const
 {
+	auto ot = objType();
+	
+	if(ot->flags & asOBJ_NOCOUNT)
+		return 1;
+	
 	// Clear the flag set by the GC
 	GetDataBlock()->gcFlag = false;
 
@@ -676,6 +700,12 @@ int asIScriptObject::Release() const
 	}
 
 	return r;
+}
+
+void asIScriptObject::Destroy()
+{
+	reinterpret_cast<asCScriptObject*>(this)->CallDestructor(objType());
+	this->~asIScriptObject();
 }
 
 void asCScriptObject::CallDestructor(asCObjectType* type)
@@ -1163,7 +1193,15 @@ void asCScriptObject::CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *in_o
 
 asCObjectType* asIScriptObject::objType() const
 {
-	return asCScriptEngine::FindScriptObjectType(reinterpret_cast<const asCScriptObject*>(this));
+	return asCScriptEngine::StaticFindScriptObjectType(reinterpret_cast<const asCScriptObject*>(this));
+}
+
+class asCObjectType* asIScriptObject::nativeObjType() const
+{
+	auto ot = objType();
+	while(ot && !(ot->flags & asOBJ_APP_NATIVE))
+		ot = ot->derivedFrom;
+	return ot;
 }
 
 asCScriptObjectData* asIScriptObject::GetDataBlock()
@@ -1185,12 +1223,7 @@ asUINT asIScriptObject::GetScriptDataOffset() const
 
 asUINT asIScriptObject::GetNativeObjectSize() const
 {
-	auto ot = objType();
-	
-	while(ot && !(ot->flags & asOBJ_APP_NATIVE))
-		ot = ot->derivedFrom;
-	
-	if(ot)
+	if(auto ot = nativeObjType())
 	{
 		return ot->size;
 	}

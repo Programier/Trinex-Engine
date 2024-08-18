@@ -59,7 +59,7 @@ namespace Engine
     }
 
 
-    void GarbageCollector::destroy_internal(Object* object, bool destroy_owner_if_exist)
+    void GarbageCollector::destroy_recursive(Object* object, bool destroy_owner_if_exist)
     {
         if (object == nullptr || object->flags(Object::IsAvailableForGC) == false)
             return;
@@ -68,12 +68,17 @@ namespace Engine
         {
             if (Object* owner = object->owner())
             {
-                destroy_internal(owner, destroy_owner_if_exist);
+                destroy_recursive(owner, destroy_owner_if_exist);
             }
         }
 
         destroy(object);
     }
+	
+	ENGINE_EXPORT void GarbageCollector::destroy_internal(Object* object)
+	{
+		delete object;
+	}
 
     void GarbageCollector::destroy(Object* object)
     {
@@ -98,7 +103,7 @@ namespace Engine
         }
 
         on_destroy(object);
-        delete object;
+		object->class_instance()->destroy_func()(object);
     }
 
     void GarbageCollector::update(float dt)
@@ -119,7 +124,6 @@ namespace Engine
             destroy_garbage(dt);
         }
     }
-
 
     void GarbageCollector::submit_current_stage()
     {
@@ -228,7 +232,7 @@ namespace Engine
 
         for (Object* object : objects)
         {
-            destroy_internal(object, true);
+            destroy_recursive(object, true);
         }
     }
 }// namespace Engine

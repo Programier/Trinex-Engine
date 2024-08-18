@@ -123,6 +123,10 @@ public:
 	asIScriptFunction *GetBehaviourByIndex(asUINT index, asEBehaviours *outBehaviour) const;
 	asUINT             GetChildFuncdefCount() const;
 	asITypeInfo       *GetChildFuncdef(asUINT index) const;
+	void  SetUserAllocFunction(void*(*)(const asITypeInfo* type, asUINT size));
+	void  SetUserFreeFunction(void(*)(void* address, const asITypeInfo* type, asUINT size));
+	void  SetNativeClassUserData(void* NativeClassUserData);
+	void* GetNativeClassUserData() const;
 
 public:
 	asCObjectType(asCScriptEngine *engine);
@@ -159,6 +163,9 @@ public:
 	asCArray<asCDataType> templateSubTypes;   // increases refCount for typeinfo held in datatype
 	bool                  acceptValueSubType;
 	bool                  acceptRefSubType;
+	void*				  (*userAllocFunc)(const asITypeInfo*, asUINT);
+	void				  (*userFreeFunc)(void*, const asITypeInfo*, asUINT);
+	void*				  nativeClassUserData;
 
 protected:
 	friend class asCScriptEngine;
