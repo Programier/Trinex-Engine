@@ -356,7 +356,9 @@ namespace Engine
 		ctx->Prepare(factory);
 		ctx->Execute();
 		Object* obj = *reinterpret_cast<Object**>(ctx->GetAddressOfReturnValue());
-
+		ctx->Unprepare();
+		
+		
 		if (!name.empty() || owner)
 		{
 			obj->rename(name, owner);
