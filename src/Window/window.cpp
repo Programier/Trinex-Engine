@@ -328,7 +328,6 @@ namespace Engine
 	Window::~Window()
 	{
 		m_destroy_callback.trigger();
-		imgui_terminate();
 
 		if (m_render_viewport)
 		{
@@ -337,6 +336,8 @@ namespace Engine
 			viewport->client(nullptr);
 			GarbageCollector::destroy(viewport);
 		}
+		
+		imgui_terminate();
 	}
 
 	Identifier Window::register_destroy_callback(const DestroyCallback& callback)
