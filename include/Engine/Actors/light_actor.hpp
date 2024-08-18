@@ -4,10 +4,10 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT LightActor : public Actor
-    {
-        declare_class(LightActor, Actor);
+	class ENGINE_EXPORT LightActor : public Actor
+	{
+		declare_class(LightActor, Actor);
 
-    public:
-    };
+	public:
+	};
 }// namespace Engine

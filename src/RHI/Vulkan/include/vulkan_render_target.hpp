@@ -5,90 +5,91 @@
 
 namespace Engine
 {
-    struct VulkanRenderTargetState {
-        struct VulkanRenderPass* m_render_pass = nullptr;
-        vk::RenderPassBeginInfo m_render_pass_info;
-        Size2D m_size;
+	struct VulkanRenderTargetState {
+		struct VulkanRenderPass* m_render_pass = nullptr;
+		vk::RenderPassBeginInfo m_render_pass_info;
+		Size2D m_size;
 
-        void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-        void post_init();
+		void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+		void post_init();
 
-        virtual bool is_main_render_target_state();
-    };
+		virtual bool is_main_render_target_state();
+	};
 
-    struct VulkanMainRenderTargetState : public VulkanRenderTargetState {
-        struct VulkanWindowViewport* m_viewport = nullptr;
-        bool is_main_render_target_state() override;
-    };
-
-
-    struct VulkanRenderTargetBase {
-        vk::Framebuffer m_framebuffer;
-
-        bool prepare_bind();
-
-        virtual bool is_main_render_target();
-        virtual VulkanRenderTargetBase& destroy();
-        virtual VulkanRenderTargetState* state();
-
-        VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
-        VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
-
-        virtual void bind();
-        virtual VulkanRenderTargetBase& unbind();
-        virtual ~VulkanRenderTargetBase();
-    };
+	struct VulkanMainRenderTargetState : public VulkanRenderTargetState {
+		struct VulkanWindowViewport* m_viewport = nullptr;
+		bool is_main_render_target_state() override;
+	};
 
 
-    struct VulkanWindowRenderTargetFrame : VulkanRenderTargetBase {
-        VulkanMainRenderTargetState* m_state;
-        bool is_main_render_target() override;
-        VulkanMainRenderTargetState* state() override;
+	struct VulkanRenderTargetBase {
+		vk::Framebuffer m_framebuffer;
 
-        void bind() override;
-        VulkanRenderTargetBase& unbind() override;
-    };
+		bool prepare_bind();
 
-    struct VulkanRenderTarget : VulkanRenderTargetBase {
-        struct Key {
-            struct VulkanSurface* m_color_attachments[RHI_MAX_RT_BINDED];
-            struct VulkanSurface* m_depth_stencil;
+		virtual bool is_main_render_target();
+		virtual VulkanRenderTargetBase& destroy();
+		virtual VulkanRenderTargetState* state();
 
-            void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-            bool operator<(const Key& key) const;
-        };
+		VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
+		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
-        static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
-        Vector<struct VulkanSurface*> m_surfaces;
-
-        VulkanRenderTargetState m_state;
-        Vector<vk::ImageView> m_attachments;
-
-        static VulkanRenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-
-        VulkanRenderTarget();
-        VulkanRenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-        VulkanRenderTarget& destroy() override;
-        VulkanRenderTargetState* state() override;
-
-        void bind() override;
-        VulkanRenderTargetBase& unbind() override;
-
-        ~VulkanRenderTarget();
-    };
+		virtual void bind();
+		virtual VulkanRenderTargetBase& unbind();
+		virtual ~VulkanRenderTargetBase();
+	};
 
 
-    struct VulkanWindowRenderTarget {
-        VulkanMainRenderTargetState state;
-        Vector<VulkanWindowRenderTargetFrame*> m_frames;
+	struct VulkanWindowRenderTargetFrame : VulkanRenderTargetBase {
+		VulkanMainRenderTargetState* m_state;
+		bool is_main_render_target() override;
+		VulkanMainRenderTargetState* state() override;
 
-        VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);
-        VulkanWindowRenderTarget& destroy();
+		void bind() override;
+		VulkanRenderTargetBase& unbind() override;
+	};
 
-        void resize_count(size_t new_count);
-        VulkanWindowRenderTargetFrame* frame();
+	struct VulkanRenderTarget : VulkanRenderTargetBase {
+		struct Key {
+			struct VulkanSurface* m_color_attachments[RHI_MAX_RT_BINDED];
+			struct VulkanSurface* m_depth_stencil;
 
-        void bind();
-        ~VulkanWindowRenderTarget();
-    };
+			void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+			bool operator<(const Key& key) const;
+		};
+
+		static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
+		Vector<struct VulkanSurface*> m_surfaces;
+
+		VulkanRenderTargetState m_state;
+		Vector<vk::ImageView> m_attachments;
+
+		static VulkanRenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments,
+												  RenderSurface* depth_stencil);
+
+		VulkanRenderTarget();
+		VulkanRenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+		VulkanRenderTarget& destroy() override;
+		VulkanRenderTargetState* state() override;
+
+		void bind() override;
+		VulkanRenderTargetBase& unbind() override;
+
+		~VulkanRenderTarget();
+	};
+
+
+	struct VulkanWindowRenderTarget {
+		VulkanMainRenderTargetState state;
+		Vector<VulkanWindowRenderTargetFrame*> m_frames;
+
+		VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);
+		VulkanWindowRenderTarget& destroy();
+
+		void resize_count(size_t new_count);
+		VulkanWindowRenderTargetFrame* frame();
+
+		void bind();
+		~VulkanWindowRenderTarget();
+	};
 }// namespace Engine

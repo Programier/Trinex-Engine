@@ -3,19 +3,19 @@
 
 namespace Engine
 {
-    struct ENGINE_EXPORT WindowConfig {
-        Set<WindowAttribute> attributes;
-        Set<Orientation> orientations;
+	struct ENGINE_EXPORT WindowConfig {
+		Set<WindowAttribute> attributes;
+		Set<Orientation> orientations;
 
-        String title;
-        String client;
-        Size2D size;
-        Point2D position = {-1, -1};
+		String title;
+		String client;
+		Size2D size;
+		Point2D position = {-1, -1};
 
-        bool vsync;
+		bool vsync;
 
-        WindowConfig(bool init = true);
-        WindowConfig& initialize();
-        bool contains_attribute(WindowAttribute attribute) const;
-    };
+		WindowConfig(bool init = true);
+		WindowConfig& initialize();
+		bool contains_attribute(WindowAttribute attribute) const;
+	};
 }// namespace Engine

@@ -8,18 +8,16 @@
 
 namespace Engine
 {
-    SwapChain::SwapChain()
-    {
-
-    }
-    SwapChain::~SwapChain()
-    {
-        vulkan_info_log("Vulkan API", "Destroy swapchain");
-        for (auto& view : m_image_views)
-        {
-            API->m_device.destroyImageView(view);
-        }
-        vkb::destroy_swapchain(m_bootstrap_swapchain);
-    }
+	SwapChain::SwapChain()
+	{}
+	SwapChain::~SwapChain()
+	{
+		vulkan_info_log("Vulkan API", "Destroy swapchain");
+		for (auto& view : m_image_views)
+		{
+			API->m_device.destroyImageView(view);
+		}
+		vkb::destroy_swapchain(m_bootstrap_swapchain);
+	}
 
 }// namespace Engine

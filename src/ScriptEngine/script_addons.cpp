@@ -25,34 +25,34 @@
 
 namespace Engine
 {
-    static String parse_string_value(const byte* address, int_t type_id)
-    {
-        return Strings::format("\"{}\"", *reinterpret_cast<const String*>(address));
-    }
+	static String parse_string_value(const byte* address, int_t type_id)
+	{
+		return Strings::format("\"{}\"", *reinterpret_cast<const String*>(address));
+	}
 
 
-    static void on_init()
-    {
-        asIScriptEngine* engine = ScriptEngine::engine();
+	static void on_init()
+	{
+		asIScriptEngine* engine = ScriptEngine::engine();
 
-        RegisterScriptDateTime(engine);
-        RegisterStdString(engine);
-        RegisterScriptArray(engine, true);
-        RegisterScriptAny(engine);
-        RegisterScriptWeakRef(engine);
-        RegisterScriptMathComplex(engine);
-        RegisterScriptMath(engine);
-        RegisterExceptionRoutines(engine);
-        RegisterScriptHandle(engine);
-        RegisterScriptGrid(engine);
-        RegisterScriptFileSystem(engine);
-        RegisterScriptFile(engine);
-        RegisterScriptDictionary(engine);
-        RegisterStdStringUtils(engine);
+		RegisterScriptDateTime(engine);
+		RegisterStdString(engine);
+		RegisterScriptArray(engine, true);
+		RegisterScriptAny(engine);
+		RegisterScriptWeakRef(engine);
+		RegisterScriptMathComplex(engine);
+		RegisterScriptMath(engine);
+		RegisterExceptionRoutines(engine);
+		RegisterScriptHandle(engine);
+		RegisterScriptGrid(engine);
+		RegisterScriptFileSystem(engine);
+		RegisterScriptFile(engine);
+		RegisterScriptDictionary(engine);
+		RegisterStdStringUtils(engine);
 
-        int_t type_id = ScriptEngine::type_id_by_decl("string");
-        ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
-    }
+		int_t type_id = ScriptEngine::type_id_by_decl("string");
+		ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
+	}
 
-    static ScriptAddonsInitializeController init(on_init, "Engine::DefaultAddons");
+	static ScriptAddonsInitializeController init(on_init, "Engine::DefaultAddons");
 }// namespace Engine

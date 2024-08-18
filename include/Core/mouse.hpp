@@ -3,21 +3,21 @@
 
 namespace Engine::Mouse
 {
-    enum Status : EnumerateType
-    {
-        Released = 0,
-        JustReleased,
-        JustPressed,
-        Pressed,
-    };
+	enum Status : EnumerateType
+	{
+		Released = 0,
+		JustReleased,
+		JustPressed,
+		Pressed,
+	};
 
-    enum Button : EnumerateType
-    {
-        Left,
-        Middle,
-        Right,
-        Forward,
-        Back,
-        __COUNT__
-    };
+	enum Button : EnumerateType
+	{
+		Left,
+		Middle,
+		Right,
+		Forward,
+		Back,
+		__COUNT__
+	};
 }// namespace Engine::Mouse

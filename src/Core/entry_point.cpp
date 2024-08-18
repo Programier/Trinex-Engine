@@ -6,10 +6,10 @@
 
 namespace Engine
 {
-    int_t EntryPoint::execute()
-    {
-        return 0;
-    }
+	int_t EntryPoint::execute()
+	{
+		return 0;
+	}
 
-    implement_engine_class_default_init(EntryPoint, 0);
+	implement_engine_class_default_init(EntryPoint, 0);
 }// namespace Engine

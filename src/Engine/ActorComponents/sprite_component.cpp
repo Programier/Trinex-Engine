@@ -1,6 +1,6 @@
+#include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/property.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -14,89 +14,90 @@
 
 namespace Engine
 {
-    implement_engine_class(SpriteComponent, 0)
-    {
-        Class* self    = This::static_class_instance();
-        Property* prop = new ObjectReferenceProperty("Texture", "Sprite texture", &This::m_texture);
-        prop->on_prop_changed.push([](void* object) { reinterpret_cast<SpriteComponent*>(object)->on_transform_changed(); });
-        self->add_property(prop);
-    }
+	implement_engine_class(SpriteComponent, 0)
+	{
+		Class* self	   = This::static_class_instance();
+		Property* prop = new ObjectReferenceProperty("Texture", "Sprite texture", &This::m_texture);
+		prop->on_prop_changed.push(
+				[](void* object) { reinterpret_cast<SpriteComponent*>(object)->on_transform_changed(); });
+		self->add_property(prop);
+	}
 
-    implement_empty_rendering_methods_for(SpriteComponent);
+	implement_empty_rendering_methods_for(SpriteComponent);
 
 
-    static FORCE_INLINE Matrix4f rotate_sprite(Transform input_transform, const SceneView& view)
-    {
-        return input_transform.look_at(view.camera_view().location, Constants::OY).matrix();
-    }
+	static FORCE_INLINE Matrix4f rotate_sprite(Transform input_transform, const SceneView& view)
+	{
+		return input_transform.look_at(view.camera_view().location, Constants::OY).matrix();
+	}
 
-    ColorSceneRenderer& ColorSceneRenderer::render_component(SpriteComponent* component)
-    {
-        render_base_component(component);
-//        Material* material                 = DefaultResources::sprite_material;
-//        PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
-//        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
-//        {
-//            Matrix4f model   = rotate_sprite(component->proxy()->world_transform(), scene_view());
-//            parameter->param = model;
-//        }
+	ColorSceneRenderer& ColorSceneRenderer::render_component(SpriteComponent* component)
+	{
+		render_base_component(component);
+		//        Material* material                 = DefaultResources::sprite_material;
+		//        PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
+		//        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
+		//        {
+		//            Matrix4f model   = rotate_sprite(component->proxy()->world_transform(), scene_view());
+		//            parameter->param = model;
+		//        }
 
-//        BindingMaterialParameter* texture_parameter =
-//                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
-//        Texture* tmp     = nullptr;
-//        Texture* current = reinterpret_cast<Texture*>(component->texture());
+		//        BindingMaterialParameter* texture_parameter =
+		//                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
+		//        Texture* tmp     = nullptr;
+		//        Texture* current = reinterpret_cast<Texture*>(component->texture());
 
-//        if (texture_parameter && current)
-//        {
-//            tmp = texture_parameter->texture_param();
-//            texture_parameter->texture_param(current);
-//        }
+		//        if (texture_parameter && current)
+		//        {
+		//            tmp = texture_parameter->texture_param();
+		//            texture_parameter->texture_param(current);
+		//        }
 
-//        material->apply(component);
-//        vertex_bufer->rhi_bind(0, 0);
-//        engine_instance->rhi()->draw(6, 0);
+		//        material->apply(component);
+		//        vertex_bufer->rhi_bind(0, 0);
+		//        engine_instance->rhi()->draw(6, 0);
 
-//        if (texture_parameter && current)
-//        {
-//            texture_parameter->texture_param(tmp);
-//        }
-        return *this;
-    }
+		//        if (texture_parameter && current)
+		//        {
+		//            texture_parameter->texture_param(tmp);
+		//        }
+		return *this;
+	}
 
-    Texture2D* SpriteComponent::texture() const
-    {
-        return m_texture;
-    }
+	Texture2D* SpriteComponent::texture() const
+	{
+		return m_texture;
+	}
 
-    SpriteComponent& SpriteComponent::texture(Texture2D* texture)
-    {
-        m_texture = texture;
-        on_transform_changed();
-        return *this;
-    }
+	SpriteComponent& SpriteComponent::texture(Texture2D* texture)
+	{
+		m_texture = texture;
+		on_transform_changed();
+		return *this;
+	}
 
-    SpriteComponent& SpriteComponent::update_bounding_box()
-    {
-        if (m_texture)
-        {
-            static AABB_3Df default_aabb({-.5, -.5, -.5}, {.5f, .5f, .5f});
-            m_bounding_box = default_aabb.apply_transform(world_transform().matrix());
-        }
-        else
-        {
-            const Vector3D& location = world_transform().location();
-            m_bounding_box.minmax(location, location);
-        }
+	SpriteComponent& SpriteComponent::update_bounding_box()
+	{
+		if (m_texture)
+		{
+			static AABB_3Df default_aabb({-.5, -.5, -.5}, {.5f, .5f, .5f});
+			m_bounding_box = default_aabb.apply_transform(world_transform().matrix());
+		}
+		else
+		{
+			const Vector3D& location = world_transform().location();
+			m_bounding_box.minmax(location, location);
+		}
 
-        submit_bounds_to_render_thread();
-        return *this;
-    }
+		submit_bounds_to_render_thread();
+		return *this;
+	}
 
-    SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer)
-    {
-        renderer->render_component(this);
-        return *this;
-    }
+	SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer)
+	{
+		renderer->render_component(this);
+		return *this;
+	}
 
 
 }// namespace Engine

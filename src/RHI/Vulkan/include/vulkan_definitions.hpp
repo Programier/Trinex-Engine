@@ -23,9 +23,9 @@
 #define SKIP_SUBOPTIMAL_KHR_ERROR (PLATFORM_ANDROID)
 
 
-#define DESTROY_CALL(func, instance)                                                                                             \
-    {                                                                                                                            \
-        if (instance)                                                                                                            \
-            API->m_device.func(instance);                                                                                        \
-        instance = nullptr;                                                                                                      \
-    }
+#define DESTROY_CALL(func, instance)                                                                                   \
+	{                                                                                                                  \
+		if (instance)                                                                                                  \
+			API->m_device.func(instance);                                                                              \
+		instance = nullptr;                                                                                            \
+	}

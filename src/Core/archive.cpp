@@ -5,165 +5,165 @@
 
 namespace Engine
 {
-    class Object* Archive::load_object(const StringView& name, class Class* self)
-    {
-        Object* object = Object::load_object(name);
-        if (object && object->class_instance()->is_a(self))
-            return object;
-        return nullptr;
-    }
+	class Object* Archive::load_object(const StringView& name, class Class* self)
+	{
+		Object* object = Object::load_object(name);
+		if (object && object->class_instance()->is_a(self))
+			return object;
+		return nullptr;
+	}
 
-    Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false)
-    {}
+	Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false)
+	{}
 
-    Archive::Archive(BufferReader* reader) : m_is_saving(false)
-    {
-        m_reader = reader;
-        if (reader == nullptr)
-        {
-            throw EngineException("Archive: Reader can't be nullptr!");
-        }
+	Archive::Archive(BufferReader* reader) : m_is_saving(false)
+	{
+		m_reader = reader;
+		if (reader == nullptr)
+		{
+			throw EngineException("Archive: Reader can't be nullptr!");
+		}
 
-        m_process_status = m_reader->is_open();
-    }
+		m_process_status = m_reader->is_open();
+	}
 
-    Archive::Archive(BufferWriter* writer) : m_is_saving(true)
-    {
-        m_writer = writer;
-        if (writer == nullptr)
-        {
-            throw EngineException("Archive: Writer can't be nullptr!");
-        }
+	Archive::Archive(BufferWriter* writer) : m_is_saving(true)
+	{
+		m_writer = writer;
+		if (writer == nullptr)
+		{
+			throw EngineException("Archive: Writer can't be nullptr!");
+		}
 
-        m_process_status = m_writer->is_open();
-    }
+		m_process_status = m_writer->is_open();
+	}
 
-    Archive::Archive(Archive&& other)
-    {
-        (*this) = std::move(other);
-    }
+	Archive::Archive(Archive&& other)
+	{
+		(*this) = std::move(other);
+	}
 
-    Archive& Archive::operator=(Archive&& other)
-    {
-        if (this == &other)
-            return *this;
+	Archive& Archive::operator=(Archive&& other)
+	{
+		if (this == &other)
+			return *this;
 
-        m_reader         = other.m_reader;
-        m_process_status = other.m_process_status;
-        m_is_saving      = other.m_is_saving;
+		m_reader		 = other.m_reader;
+		m_process_status = other.m_process_status;
+		m_is_saving		 = other.m_is_saving;
 
-        other.m_process_status = false;
-        other.m_reader         = nullptr;
-        other.m_is_saving      = false;
+		other.m_process_status = false;
+		other.m_reader		   = nullptr;
+		other.m_is_saving	   = false;
 
-        return *this;
-    }
+		return *this;
+	}
 
-    bool Archive::is_saving() const
-    {
-        return m_is_saving && m_writer;
-    }
+	bool Archive::is_saving() const
+	{
+		return m_is_saving && m_writer;
+	}
 
-    bool Archive::is_reading() const
-    {
-        return !m_is_saving && m_reader;
-    }
+	bool Archive::is_reading() const
+	{
+		return !m_is_saving && m_reader;
+	}
 
-    BufferReader* Archive::reader() const
-    {
-        return m_is_saving ? nullptr : m_reader;
-    }
+	BufferReader* Archive::reader() const
+	{
+		return m_is_saving ? nullptr : m_reader;
+	}
 
-    BufferWriter* Archive::writer() const
-    {
-        return m_is_saving ? m_writer : nullptr;
-    }
+	BufferWriter* Archive::writer() const
+	{
+		return m_is_saving ? m_writer : nullptr;
+	}
 
-    Archive& Archive::write_data(const byte* data, size_t size)
-    {
-        if (is_saving())
-        {
-            m_writer->write(data, size);
-        }
+	Archive& Archive::write_data(const byte* data, size_t size)
+	{
+		if (is_saving())
+		{
+			m_writer->write(data, size);
+		}
 
-        return *this;
-    }
+		return *this;
+	}
 
-    Archive& Archive::read_data(byte* data, size_t size)
-    {
-        if (is_reading())
-        {
-            m_reader->read(data, size);
-        }
+	Archive& Archive::read_data(byte* data, size_t size)
+	{
+		if (is_reading())
+		{
+			m_reader->read(data, size);
+		}
 
-        return *this;
-    }
+		return *this;
+	}
 
-    size_t Archive::position() const
-    {
-        if (is_saving())
-        {
-            return writer()->position();
-        }
-        else if (is_reading())
-        {
-            return reader()->position();
-        }
+	size_t Archive::position() const
+	{
+		if (is_saving())
+		{
+			return writer()->position();
+		}
+		else if (is_reading())
+		{
+			return reader()->position();
+		}
 
-        return 0;
-    }
+		return 0;
+	}
 
-    Archive& Archive::position(size_t position)
-    {
-        if (is_saving())
-        {
-            writer()->position(position);
-        }
-        else if (is_reading())
-        {
-            reader()->position(position);
-        }
-        return *this;
-    }
+	Archive& Archive::position(size_t position)
+	{
+		if (is_saving())
+		{
+			writer()->position(position);
+		}
+		else if (is_reading())
+		{
+			reader()->position(position);
+		}
+		return *this;
+	}
 
-    bool Archive::is_open() const
-    {
-        if (is_saving())
-        {
-            return writer()->is_open();
-        }
-        else if (is_reading())
-        {
-            return reader()->is_open();
-        }
+	bool Archive::is_open() const
+	{
+		if (is_saving())
+		{
+			return writer()->is_open();
+		}
+		else if (is_reading())
+		{
+			return reader()->is_open();
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 
-    ENGINE_EXPORT bool operator&(Archive& ar, String& str)
-    {
-        size_t size = str.length();
-        ar & size;
+	ENGINE_EXPORT bool operator&(Archive& ar, String& str)
+	{
+		size_t size = str.length();
+		ar & size;
 
-        if (ar.is_reading())
-        {
-            str.resize(size);
-            ar.read_data(reinterpret_cast<byte*>(str.data()), size);
-        }
-        else if (ar.is_saving())
-        {
-            ar.write_data(reinterpret_cast<byte*>(str.data()), size);
-        }
-        return ar;
-    }
+		if (ar.is_reading())
+		{
+			str.resize(size);
+			ar.read_data(reinterpret_cast<byte*>(str.data()), size);
+		}
+		else if (ar.is_saving())
+		{
+			ar.write_data(reinterpret_cast<byte*>(str.data()), size);
+		}
+		return ar;
+	}
 
-    ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
-    {
-        String str = path.str();
-        ar & str;
-        if (ar.is_reading())
-            path = str;
-        return ar;
-    }
+	ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
+	{
+		String str = path.str();
+		ar & str;
+		if (ar.is_reading())
+			path = str;
+		return ar;
+	}
 }// namespace Engine

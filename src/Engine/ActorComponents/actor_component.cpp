@@ -4,88 +4,88 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(ActorComponent, 0);
+	implement_engine_class_default_init(ActorComponent, 0);
 
-    ActorComponentProxy::ActorComponentProxy()
-    {}
+	ActorComponentProxy::ActorComponentProxy()
+	{}
 
-    ActorComponentProxy::~ActorComponentProxy()
-    {}
+	ActorComponentProxy::~ActorComponentProxy()
+	{}
 
-    ActorComponent::ActorComponent() : m_proxy(nullptr)
-    {}
+	ActorComponent::ActorComponent() : m_proxy(nullptr)
+	{}
 
-    ActorComponent::~ActorComponent()
-    {
-        destroy_proxy();
-    }
+	ActorComponent::~ActorComponent()
+	{
+		destroy_proxy();
+	}
 
-    void ActorComponent::destroy_proxy()
-    {
-        if (m_proxy)
-        {
-            delete m_proxy;
-            m_proxy = nullptr;
-        }
-    }
+	void ActorComponent::destroy_proxy()
+	{
+		if (m_proxy)
+		{
+			delete m_proxy;
+			m_proxy = nullptr;
+		}
+	}
 
-    ActorComponent& ActorComponent::start_play()
-    {
-        return *this;
-    }
+	ActorComponent& ActorComponent::start_play()
+	{
+		return *this;
+	}
 
-    ActorComponent& ActorComponent::stop_play()
-    {
-        return *this;
-    }
+	ActorComponent& ActorComponent::stop_play()
+	{
+		return *this;
+	}
 
-    ActorComponent& ActorComponent::update(float dt)
-    {
-        return *this;
-    }
+	ActorComponent& ActorComponent::update(float dt)
+	{
+		return *this;
+	}
 
-    ActorComponent& ActorComponent::spawned()
-    {
-        m_proxy = create_proxy();
-        return *this;
-    }
+	ActorComponent& ActorComponent::spawned()
+	{
+		m_proxy = create_proxy();
+		return *this;
+	}
 
-    ActorComponent& ActorComponent::destroyed()
-    {
-        destroy_proxy();
-        return *this;
-    }
+	ActorComponent& ActorComponent::destroyed()
+	{
+		destroy_proxy();
+		return *this;
+	}
 
-    ActorComponentProxy* ActorComponent::create_proxy()
-    {
-        return nullptr;
-    }
+	ActorComponentProxy* ActorComponent::create_proxy()
+	{
+		return nullptr;
+	}
 
-    ActorComponentProxy* ActorComponent::proxy() const
-    {
-        return m_proxy;
-    }
+	ActorComponentProxy* ActorComponent::proxy() const
+	{
+		return m_proxy;
+	}
 
-    class Actor* ActorComponent::actor() const
-    {
-        return Super::owner()->instance_cast<Actor>();
-    }
+	class Actor* ActorComponent::actor() const
+	{
+		return Super::owner()->instance_cast<Actor>();
+	}
 
-    class World* ActorComponent::world() const
-    {
-        Actor* owner_actor = actor();
-        return owner_actor ? owner_actor->world() : nullptr;
-    }
+	class World* ActorComponent::world() const
+	{
+		Actor* owner_actor = actor();
+		return owner_actor ? owner_actor->world() : nullptr;
+	}
 
-    class Scene* ActorComponent::scene() const
-    {
-        Actor* owner_actor = actor();
-        return owner_actor ? owner_actor->scene() : nullptr;
-    }
+	class Scene* ActorComponent::scene() const
+	{
+		Actor* owner_actor = actor();
+		return owner_actor ? owner_actor->scene() : nullptr;
+	}
 
-    class ActorComponent& ActorComponent::actor(Actor* actor)
-    {
-        owner(actor);
-        return *this;
-    }
+	class ActorComponent& ActorComponent::actor(Actor* actor)
+	{
+		owner(actor);
+		return *this;
+	}
 }// namespace Engine

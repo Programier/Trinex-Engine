@@ -6,15 +6,15 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(PointLightActor, 0);
+	implement_engine_class_default_init(PointLightActor, 0);
 
-    PointLightActor::PointLightActor()
-    {
-        m_point_light_component = create_component<PointLightComponent>(("PointLightComponent"));
-    }
+	PointLightActor::PointLightActor()
+	{
+		m_point_light_component = create_component<PointLightComponent>(("PointLightComponent"));
+	}
 
-    PointLightComponent* PointLightActor::point_light_component() const
-    {
-        return m_point_light_component;
-    }
+	PointLightComponent* PointLightActor::point_light_component() const
+	{
+		return m_point_light_component;
+	}
 }// namespace Engine

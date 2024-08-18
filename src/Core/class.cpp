@@ -101,7 +101,8 @@ namespace Engine
 		return object;
 	}
 
-	Object* Class::create_placement_object(void* place, StringView name, Object* owner, const Class* class_overload) const
+	Object* Class::create_placement_object(void* place, StringView name, Object* owner,
+										   const Class* class_overload) const
 	{
 		if (class_overload)
 		{
@@ -160,7 +161,8 @@ namespace Engine
 		return *this;
 	}
 
-	Class& Class::static_placement_constructor(Object* (*new_static_placement_constructor)(Class*, void*, StringView, Object*) )
+	Class& Class::static_placement_constructor(Object* (*new_static_placement_constructor)(Class*, void*, StringView,
+																						   Object*) )
 	{
 		trinex_always_check(new_static_placement_constructor, "Constructor can't be nullptr!");
 		m_static_placement_constructor = new_static_placement_constructor;

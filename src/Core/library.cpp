@@ -12,115 +12,115 @@
 
 namespace Engine
 {
-    struct LibInfo {
-        void* handle = nullptr;
-        String name;
-    };
+	struct LibInfo {
+		void* handle = nullptr;
+		String name;
+	};
 
-    struct Less {
-        bool operator()(const LibInfo& __x, const LibInfo& __y) const
-        {
-            return __x.handle < __y.handle;
-        }
-    };
-
-
-    static Engine::TreeSet<LibInfo, Less> m_libraries;
-    Library::Library(const String& libname)
-    {
-        load(libname);
-    }
-
-    default_copy_constructors_cpp(Library);
-    Library::Library() = default;
+	struct Less {
+		bool operator()(const LibInfo& __x, const LibInfo& __y) const
+		{
+			return __x.handle < __y.handle;
+		}
+	};
 
 
-    void* Library::load_function(void* handle, const String& name)
-    {
-        void* func = Platform::LibraryLoader::find_function(handle, name);
+	static Engine::TreeSet<LibInfo, Less> m_libraries;
+	Library::Library(const String& libname)
+	{
+		load(libname);
+	}
 
-        if (func == nullptr)
-            error_log("Library", "Failed to load function %s from lib %s\n", name.c_str(), m_libname.c_str());
+	default_copy_constructors_cpp(Library);
+	Library::Library() = default;
 
-        return func;
-    }
 
-    Library& Library::load(const String& libname)
-    {
-        close();
+	void* Library::load_function(void* handle, const String& name)
+	{
+		void* func = Platform::LibraryLoader::find_function(handle, name);
 
-        m_handle = Platform::LibraryLoader::load_library(libname);
+		if (func == nullptr)
+			error_log("Library", "Failed to load function %s from lib %s\n", name.c_str(), m_libname.c_str());
 
-        if (m_handle)
-        {
-            LibInfo info;
-            info.handle = m_handle;
-            info.name   = libname;
-            m_libraries.insert(info);
+		return func;
+	}
 
-            LoadingControllerBase::exec_all_if_already_triggered();
-        }
+	Library& Library::load(const String& libname)
+	{
+		close();
 
-        return *this;
-    }
+		m_handle = Platform::LibraryLoader::load_library(libname);
 
-    void Library::close()
-    {
-        if (m_handle)
-        {
+		if (m_handle)
+		{
+			LibInfo info;
+			info.handle = m_handle;
+			info.name	= libname;
+			m_libraries.insert(info);
 
-            LibInfo info;
-            info.handle = m_handle;
+			LoadingControllerBase::exec_all_if_already_triggered();
+		}
 
-            auto it = m_libraries.find(info);
+		return *this;
+	}
 
-            if (it == m_libraries.end())
-            {
-                throw EngineException("Unexpected error!");
-            }
+	void Library::close()
+	{
+		if (m_handle)
+		{
 
-            if (it->handle == m_handle)
-            {
-                m_libraries.erase(it);
-                info_log("Library", "Close library: '%s'", m_libname.c_str());
-                Platform::LibraryLoader::close_library(m_handle);
-            }
-            else
-            {
-                throw EngineException("Unexpected error!");
-            }
-        }
-    }
+			LibInfo info;
+			info.handle = m_handle;
 
-    bool Library::has_lib() const
-    {
-        return m_handle != nullptr;
-    }
+			auto it = m_libraries.find(info);
 
-    const String& Library::libname() const
-    {
-        return m_libname;
-    }
+			if (it == m_libraries.end())
+			{
+				throw EngineException("Unexpected error!");
+			}
 
-    Library::operator bool() const
-    {
-        return m_handle != nullptr;
-    }
+			if (it->handle == m_handle)
+			{
+				m_libraries.erase(it);
+				info_log("Library", "Close library: '%s'", m_libname.c_str());
+				Platform::LibraryLoader::close_library(m_handle);
+			}
+			else
+			{
+				throw EngineException("Unexpected error!");
+			}
+		}
+	}
 
-    void* Library::resolve(const String& name)
-    {
-        return load_function(m_handle, name);
-    }
+	bool Library::has_lib() const
+	{
+		return m_handle != nullptr;
+	}
 
-    void Library::close_all()
-    {
-        info_log("LibrariesController", "Closing all opened libs\n");
+	const String& Library::libname() const
+	{
+		return m_libname;
+	}
 
-        for (auto& ell : m_libraries)
-        {
-            info_log("LibrariesController", "Close library: '%s'", ell.name.c_str());
-            Platform::LibraryLoader::close_library(ell.handle);
-        }
-        m_libraries.clear();
-    }
+	Library::operator bool() const
+	{
+		return m_handle != nullptr;
+	}
+
+	void* Library::resolve(const String& name)
+	{
+		return load_function(m_handle, name);
+	}
+
+	void Library::close_all()
+	{
+		info_log("LibrariesController", "Closing all opened libs\n");
+
+		for (auto& ell : m_libraries)
+		{
+			info_log("LibrariesController", "Close library: '%s'", ell.name.c_str());
+			Platform::LibraryLoader::close_library(ell.handle);
+		}
+		m_libraries.clear();
+	}
 }// namespace Engine

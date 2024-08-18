@@ -2,12 +2,12 @@
 
 namespace Engine
 {
-    class Event;
+	class Event;
 
-    namespace ImGuiWindowBackend
-    {
-        ENGINE_EXPORT void on_event_recieved(const Event& event);
-        ENGINE_EXPORT void disable_events();
-        ENGINE_EXPORT void enable_events();
-    }
+	namespace ImGuiWindowBackend
+	{
+		ENGINE_EXPORT void on_event_recieved(const Event& event);
+		ENGINE_EXPORT void disable_events();
+		ENGINE_EXPORT void enable_events();
+	}// namespace ImGuiWindowBackend
 }// namespace Engine

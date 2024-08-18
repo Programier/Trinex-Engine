@@ -9,38 +9,38 @@
 
 namespace Engine
 {
-    EngineSystem& EngineSystem::create()
-    {
-        Super::create();
+	EngineSystem& EngineSystem::create()
+	{
+		Super::create();
 
-        Package* package = Package::static_find_package("Engine::Systems", false);
-        if (package)
-        {
-            package->flags(Object::IsSerializable, false);
-        }
-        add_reference();
-        return *this;
-    }
+		Package* package = Package::static_find_package("Engine::Systems", false);
+		if (package)
+		{
+			package->flags(Object::IsSerializable, false);
+		}
+		add_reference();
+		return *this;
+	}
 
-    EngineSystem& EngineSystem::create_systems_from_config()
-    {
-        for (const String& system_name : Settings::e_systems)
-        {
-            System* system = System::new_system(system_name);
-            if (system && system->parent_system() == nullptr)
-            {
-                register_subsystem(system);
-            }
-        }
+	EngineSystem& EngineSystem::create_systems_from_config()
+	{
+		for (const String& system_name : Settings::e_systems)
+		{
+			System* system = System::new_system(system_name);
+			if (system && system->parent_system() == nullptr)
+			{
+				register_subsystem(system);
+			}
+		}
 
-        return *this;
-    }
+		return *this;
+	}
 
-    EngineSystem& EngineSystem::update(float dt)
-    {
-        Super::update(dt);
-        return *this;
-    }
+	EngineSystem& EngineSystem::update(float dt)
+	{
+		Super::update(dt);
+		return *this;
+	}
 
-    implement_engine_class_default_init(EngineSystem, 0);
+	implement_engine_class_default_init(EngineSystem, 0);
 }// namespace Engine

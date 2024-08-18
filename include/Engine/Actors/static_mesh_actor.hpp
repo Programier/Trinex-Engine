@@ -4,17 +4,17 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT StaticMeshActor : public Actor
-    {
-        declare_class(StaticMeshActor, Actor);
+	class ENGINE_EXPORT StaticMeshActor : public Actor
+	{
+		declare_class(StaticMeshActor, Actor);
 
-    private:
-        class StaticMeshComponent* m_mesh_component = nullptr;
+	private:
+		class StaticMeshComponent* m_mesh_component = nullptr;
 
-    public:
-        StaticMeshComponent* mesh_component() const;
+	public:
+		StaticMeshComponent* mesh_component() const;
 
-        StaticMeshActor();
-        ~StaticMeshActor();
-    };
+		StaticMeshActor();
+		~StaticMeshActor();
+	};
 }// namespace Engine

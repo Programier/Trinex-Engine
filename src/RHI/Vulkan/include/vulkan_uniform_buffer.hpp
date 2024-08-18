@@ -5,59 +5,59 @@
 
 namespace Engine
 {
-    struct UniformBufferPoolBase {
-        struct BufferEntry {
-            vk::Buffer buffer;
-            vk::DeviceMemory memory;
-            size_t size;
+	struct UniformBufferPoolBase {
+		struct BufferEntry {
+			vk::Buffer buffer;
+			vk::DeviceMemory memory;
+			size_t size;
 
-            BufferEntry& update(const void* data, size_t size, size_t offset);
-        };
+			BufferEntry& update(const void* data, size_t size, size_t offset);
+		};
 
-        Vector<BufferEntry> buffers;
+		Vector<BufferEntry> buffers;
 
-    protected:
-        UniformBufferPoolBase& allocate_new(size_t size);
-        ~UniformBufferPoolBase();
-    };
+	protected:
+		UniformBufferPoolBase& allocate_new(size_t size);
+		~UniformBufferPoolBase();
+	};
 
-    template<size_t pool_size>
-    struct UniformBufferPool : public UniformBufferPoolBase {
-        UniformBufferPool& allocate_new(size_t size = pool_size)
-        {
-            UniformBufferPoolBase::allocate_new(glm::max(size, pool_size));
-            return *this;
-        }
-    };
+	template<size_t pool_size>
+	struct UniformBufferPool : public UniformBufferPoolBase {
+		UniformBufferPool& allocate_new(size_t size = pool_size)
+		{
+			UniformBufferPoolBase::allocate_new(glm::max(size, pool_size));
+			return *this;
+		}
+	};
 
-    struct GlobalUniformBufferPool : public UniformBufferPool<sizeof(GlobalShaderParameters)> {
-        int64_t index = -1;
+	struct GlobalUniformBufferPool : public UniformBufferPool<sizeof(GlobalShaderParameters)> {
+		int64_t index = -1;
 
-        void push(const GlobalShaderParameters* params = nullptr);
-        void pop();
+		void push(const GlobalShaderParameters* params = nullptr);
+		void pop();
 
-        void bind();
-        void reset();
-    };
+		void bind();
+		void reset();
+	};
 
-    struct LocalUniformBufferPool : public UniformBufferPool<4096> {
-        Vector<byte> shadow_data;
-        size_t shadow_data_size = 0;
-        size_t index            = 0;
-        size_t used_data        = 0;
+	struct LocalUniformBufferPool : public UniformBufferPool<4096> {
+		Vector<byte> shadow_data;
+		size_t shadow_data_size = 0;
+		size_t index			= 0;
+		size_t used_data		= 0;
 
-        LocalUniformBufferPool();
+		LocalUniformBufferPool();
 
-        void update(const void* data, size_t size, size_t offset);
-        void bind();
-        void reset();
-    };
+		void update(const void* data, size_t size, size_t offset);
+		void bind();
+		void reset();
+	};
 
-    struct VulkanUniformBuffer {
-        GlobalUniformBufferPool global_pool;
-        LocalUniformBufferPool local_pool;
+	struct VulkanUniformBuffer {
+		GlobalUniformBufferPool global_pool;
+		LocalUniformBufferPool local_pool;
 
-        void reset();
-        void bind();
-    };
+		void reset();
+		void bind();
+	};
 }// namespace Engine

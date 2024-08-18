@@ -7,135 +7,135 @@
 
 namespace Engine
 {
-    using EmptyEvent = EmptyStruct;
+	using EmptyEvent = EmptyStruct;
 
-    using QuitEvent           = EmptyEvent;
-    using AppTerminatingEvent = EmptyEvent;
-    using AppLowMemoryEvent   = EmptyEvent;
-    using AppPauseEvent       = EmptyEvent;
-    using AppResumeEvent      = EmptyEvent;
+	using QuitEvent			  = EmptyEvent;
+	using AppTerminatingEvent = EmptyEvent;
+	using AppLowMemoryEvent	  = EmptyEvent;
+	using AppPauseEvent		  = EmptyEvent;
+	using AppResumeEvent	  = EmptyEvent;
 
-    struct DisplayAddedEvent {
-    };
+	struct DisplayAddedEvent {
+	};
 
-    struct DisplayRemovedEvent {
-    };
+	struct DisplayRemovedEvent {
+	};
 
-    struct ENGINE_EXPORT DisplayOrientationChangedEvent {
-        Orientation orientation;
-    };
+	struct ENGINE_EXPORT DisplayOrientationChangedEvent {
+		Orientation orientation;
+	};
 
-    using WindowShownEvent  = EmptyStruct;
-    using WindowHiddenEvent = EmptyEvent;
+	using WindowShownEvent	= EmptyStruct;
+	using WindowHiddenEvent = EmptyEvent;
 
-    struct ENGINE_EXPORT WindowEvent {
-        union
-        {
-            float x;
-            float width;
-        };
+	struct ENGINE_EXPORT WindowEvent {
+		union
+		{
+			float x;
+			float width;
+		};
 
-        union
-        {
-            float y;
-            float height;
-        };
-    };
+		union
+		{
+			float y;
+			float height;
+		};
+	};
 
-    using WindowMovedEvent       = WindowEvent;
-    using WindowResizedEvent     = WindowEvent;
-    using WindowMinimizedEvent   = EmptyEvent;
-    using WindowMaximizedEvent   = EmptyEvent;
-    using WindowRestoredEvent    = EmptyEvent;
-    using WindowFocusGainedEvent = EmptyEvent;
-    using WindowFocusLostEvent   = EmptyEvent;
-    using WindowCloseEvent       = EmptyEvent;
+	using WindowMovedEvent		 = WindowEvent;
+	using WindowResizedEvent	 = WindowEvent;
+	using WindowMinimizedEvent	 = EmptyEvent;
+	using WindowMaximizedEvent	 = EmptyEvent;
+	using WindowRestoredEvent	 = EmptyEvent;
+	using WindowFocusGainedEvent = EmptyEvent;
+	using WindowFocusLostEvent	 = EmptyEvent;
+	using WindowCloseEvent		 = EmptyEvent;
 
-    struct ENGINE_EXPORT TextInputEvent {
-        String text;
-    };
+	struct ENGINE_EXPORT TextInputEvent {
+		String text;
+	};
 
-    struct ENGINE_EXPORT KeyEvent {
-        Keyboard::Key key;
-    };
+	struct ENGINE_EXPORT KeyEvent {
+		Keyboard::Key key;
+	};
 
-    using KeyDownEvent = KeyEvent;
-    using KeyUpEvent   = KeyEvent;
+	using KeyDownEvent = KeyEvent;
+	using KeyUpEvent   = KeyEvent;
 
-    struct ENGINE_EXPORT MouseMotionEvent {
-        float x;
-        float y;
-        float xrel;
-        float yrel;
-    };
+	struct ENGINE_EXPORT MouseMotionEvent {
+		float x;
+		float y;
+		float xrel;
+		float yrel;
+	};
 
-    struct ENGINE_EXPORT MouseButtonEvent {
-        Mouse::Button button;
-        float x;
-        float y;
-    };
-
-
-    using MouseButtonUpEvent   = MouseButtonEvent;
-    using MouseButtonDownEvent = MouseButtonEvent;
-
-    struct ENGINE_EXPORT MouseWheelEvent {
-        float x;
-        float y;
-    };
+	struct ENGINE_EXPORT MouseButtonEvent {
+		Mouse::Button button;
+		float x;
+		float y;
+	};
 
 
-    // Game controller events
-    struct ENGINE_EXPORT EventWithControllerId {
-        Identifier id;
-    };
+	using MouseButtonUpEvent   = MouseButtonEvent;
+	using MouseButtonDownEvent = MouseButtonEvent;
 
-    struct ENGINE_EXPORT ControllerAxisMotionEvent : EventWithControllerId {
-        GameController::Axis axis;
-        short_t value;
-    };
+	struct ENGINE_EXPORT MouseWheelEvent {
+		float x;
+		float y;
+	};
 
-    // struct ENGINE_EXPORT ControllerButtonEvent : EventWithControllerId {
-    //     GameController::LeftX axis;
-    //     short_t value;
-    // };
 
-    //         ControllerButtonUp,
-    //         ControllerButtonDown,
+	// Game controller events
+	struct ENGINE_EXPORT EventWithControllerId {
+		Identifier id;
+	};
 
-    //         using ControllerDeviceAddedEvent   = EventWithControllerId;
-    //         using ControllerDeviceRemovedEvent = EventWithControllerId;
-    //         ControllerDeviceRemapped,
-    //         ControllerTouchPadDown,
-    //         ControllerTouchPadMotion,
-    //         ControllerTouchPadUp,
-    //         ControllerSensorUpdate,
+	struct ENGINE_EXPORT ControllerAxisMotionEvent : EventWithControllerId {
+		GameController::Axis axis;
+		short_t value;
+	};
 
-    //         // Touch events
-    struct ENGINE_EXPORT FingerDownEvent {
-        Index finger_index;
-        float x;
-        float y;
-    };
+	// struct ENGINE_EXPORT ControllerButtonEvent : EventWithControllerId {
+	//     GameController::LeftX axis;
+	//     short_t value;
+	// };
 
-    struct ENGINE_EXPORT FingerUpEvent {
-        Index finger_index;
-        float x;
-        float y;
-    };
+	//         ControllerButtonUp,
+	//         ControllerButtonDown,
 
-    struct ENGINE_EXPORT FingerMotionEvent {
-        Index finger_index;
-        float x;
-        float y;
-        float xrel;
-        float yrel;
-    };
+	//         using ControllerDeviceAddedEvent   = EventWithControllerId;
+	//         using ControllerDeviceRemovedEvent = EventWithControllerId;
+	//         ControllerDeviceRemapped,
+	//         ControllerTouchPadDown,
+	//         ControllerTouchPadMotion,
+	//         ControllerTouchPadUp,
+	//         ControllerSensorUpdate,
 
-    //         // Drag and drop events
-    //         DropFile,
-    //         DropText,
-    //         DropBegin,
-    //         DropComplete,
+	//         // Touch events
+	struct ENGINE_EXPORT FingerDownEvent {
+		Index finger_index;
+		float x;
+		float y;
+	};
+
+	struct ENGINE_EXPORT FingerUpEvent {
+		Index finger_index;
+		float x;
+		float y;
+	};
+
+	struct ENGINE_EXPORT FingerMotionEvent {
+		Index finger_index;
+		float x;
+		float y;
+		float xrel;
+		float yrel;
+	};
+
+	//         // Drag and drop events
+	//         DropFile,
+	//         DropText,
+	//         DropBegin,
+	//         DropComplete,
 
 }// namespace Engine

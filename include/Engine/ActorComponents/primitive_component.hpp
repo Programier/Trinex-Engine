@@ -4,44 +4,44 @@
 
 namespace Engine
 {
-    class PrimitiveComponent;
+	class PrimitiveComponent;
 
-    class ENGINE_EXPORT PrimitiveComponentProxy : public SceneComponentProxy
-    {
-    protected:
-        AABB_3Df m_bounds;
+	class ENGINE_EXPORT PrimitiveComponentProxy : public SceneComponentProxy
+	{
+	protected:
+		AABB_3Df m_bounds;
 
-    public:
-        PrimitiveComponentProxy& bounding_box(const AABB_3Df& bounds);
-        const AABB_3Df& bounding_box() const;
-        friend class PrimitiveComponent;
-    };
+	public:
+		PrimitiveComponentProxy& bounding_box(const AABB_3Df& bounds);
+		const AABB_3Df& bounding_box() const;
+		friend class PrimitiveComponent;
+	};
 
-    class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
-    {
-        declare_class(PrimitiveComponent, SceneComponent);
+	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
+	{
+		declare_class(PrimitiveComponent, SceneComponent);
 
-    protected:
-        bool m_is_visible;
-        AABB_3Df m_bounding_box;
+	protected:
+		bool m_is_visible;
+		AABB_3Df m_bounding_box;
 
-        void submit_bounds_to_render_thread();
+		void submit_bounds_to_render_thread();
 
-    public:
-        PrimitiveComponent();
-        bool is_visible() const;
-        const AABB_3Df& bounding_box() const;
+	public:
+		PrimitiveComponent();
+		bool is_visible() const;
+		const AABB_3Df& bounding_box() const;
 
-        PrimitiveComponent& start_play() override;
-        PrimitiveComponent& stop_play() override;
-        PrimitiveComponent& on_transform_changed() override;
-        ActorComponentProxy* create_proxy() override;
+		PrimitiveComponent& start_play() override;
+		PrimitiveComponent& stop_play() override;
+		PrimitiveComponent& on_transform_changed() override;
+		ActorComponentProxy* create_proxy() override;
 
-        virtual PrimitiveComponent& render(class SceneRenderer* renderer);
-        virtual PrimitiveComponent& update_bounding_box();
+		virtual PrimitiveComponent& render(class SceneRenderer* renderer);
+		virtual PrimitiveComponent& update_bounding_box();
 
-        PrimitiveComponentProxy* proxy() const;
-        ~PrimitiveComponent();
-        friend class SceneLayer;
-    };
+		PrimitiveComponentProxy* proxy() const;
+		~PrimitiveComponent();
+		friend class SceneLayer;
+	};
 }// namespace Engine

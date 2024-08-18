@@ -4,11 +4,11 @@
 
 namespace Engine
 {
-    bool SerializableObject::archive_process(Archive& archive)
-    {
-        return true;
-    }
+	bool SerializableObject::archive_process(Archive& archive)
+	{
+		return true;
+	}
 
-    SerializableObject::~SerializableObject()
-    {}
+	SerializableObject::~SerializableObject()
+	{}
 }// namespace Engine

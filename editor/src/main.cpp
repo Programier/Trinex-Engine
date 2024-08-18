@@ -5,8 +5,8 @@
 
 static void load_configs()
 {
-    Engine::Settings::e_splash_font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
-    Engine::ConfigManager::load_config_from_file("editor.config");
+	Engine::Settings::e_splash_font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+	Engine::ConfigManager::load_config_from_file("editor.config");
 }
 
 static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");

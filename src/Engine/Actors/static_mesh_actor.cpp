@@ -5,22 +5,22 @@
 
 namespace Engine
 {
-    implement_engine_class(StaticMeshActor, 0)
-    {
-        Class* self = This::static_class_instance();
-        self->add_property(new ObjectProperty("StaticMeshComponent", "StaticMeshComponent", &This::m_mesh_component));
-    }
+	implement_engine_class(StaticMeshActor, 0)
+	{
+		Class* self = This::static_class_instance();
+		self->add_property(new ObjectProperty("StaticMeshComponent", "StaticMeshComponent", &This::m_mesh_component));
+	}
 
-    StaticMeshActor::StaticMeshActor()
-    {
-        m_mesh_component = create_component<StaticMeshComponent>("StaticMeshComponent");
-    }
+	StaticMeshActor::StaticMeshActor()
+	{
+		m_mesh_component = create_component<StaticMeshComponent>("StaticMeshComponent");
+	}
 
-    StaticMeshComponent* StaticMeshActor::mesh_component() const
-    {
-        return m_mesh_component;
-    }
+	StaticMeshComponent* StaticMeshActor::mesh_component() const
+	{
+		return m_mesh_component;
+	}
 
-    StaticMeshActor::~StaticMeshActor()
-    {}
+	StaticMeshActor::~StaticMeshActor()
+	{}
 }// namespace Engine

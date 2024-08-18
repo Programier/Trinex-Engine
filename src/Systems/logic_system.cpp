@@ -9,36 +9,36 @@
 
 namespace Engine
 {
-    LogicSystem& LogicSystem::create()
-    {
-        Super::create();
-        EngineSystem::new_system<EngineSystem>()->register_subsystem(this);
-        return *this;
-    }
+	LogicSystem& LogicSystem::create()
+	{
+		Super::create();
+		EngineSystem::new_system<EngineSystem>()->register_subsystem(this);
+		return *this;
+	}
 
-    LogicSystem& LogicSystem::update(float dt)
-    {
-        Super::update(dt);
+	LogicSystem& LogicSystem::update(float dt)
+	{
+		Super::update(dt);
 
 
-        return *this;
-    }
+		return *this;
+	}
 
-    LogicSystem& LogicSystem::shutdown()
-    {
-        Super::shutdown();
-        return *this;
-    }
+	LogicSystem& LogicSystem::shutdown()
+	{
+		Super::shutdown();
+		return *this;
+	}
 
-    LogicSystem& LogicSystem::wait()
-    {
-        return *this;
-    }
+	LogicSystem& LogicSystem::wait()
+	{
+		return *this;
+	}
 
-    class Class* LogicSystem::depends_on() const
-    {
-        return EventSystem::static_class_instance();
-    }
+	class Class* LogicSystem::depends_on() const
+	{
+		return EventSystem::static_class_instance();
+	}
 
-    implement_engine_class_default_init(LogicSystem, 0);
+	implement_engine_class_default_init(LogicSystem, 0);
 }// namespace Engine

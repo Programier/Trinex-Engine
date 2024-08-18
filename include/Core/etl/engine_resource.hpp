@@ -3,15 +3,15 @@
 
 namespace Engine
 {
-    template<typename Parent>
-    class EngineResource : public Parent
-    {
-    public:
-        using Parent::Parent;
+	template<typename Parent>
+	class EngineResource : public Parent
+	{
+	public:
+		using Parent::Parent;
 
-        EngineResource()
-        {
-            Object::flags(Object::StandAlone, true);
-        }
-    };
+		EngineResource()
+		{
+			Object::flags(Object::StandAlone, true);
+		}
+	};
 }// namespace Engine

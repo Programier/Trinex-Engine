@@ -7,21 +7,21 @@
 
 namespace Engine
 {
-    class Thread;
-    class Window;
+	class Thread;
+	class Window;
 
-    struct RHI;
+	struct RHI;
 
-    class ENGINE_EXPORT EngineInstance : public BaseEngine
-    {
-        declare_class(EngineInstance, BaseEngine);
+	class ENGINE_EXPORT EngineInstance : public BaseEngine
+	{
+		declare_class(EngineInstance, BaseEngine);
 
-    private:
-    public:
-        ENGINE_EXPORT static const String& project_name();
-        ENGINE_EXPORT static const String& project_name(const String& name);
+	private:
+	public:
+		ENGINE_EXPORT static const String& project_name();
+		ENGINE_EXPORT static const String& project_name(const String& name);
 
-        int_t init() override;
-        int_t terminate() override;
-    };
+		int_t init() override;
+		int_t terminate() override;
+	};
 }// namespace Engine

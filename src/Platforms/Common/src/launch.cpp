@@ -9,22 +9,22 @@
 FORCE_ENGINE_EXPORT int main(int argc, const char** argv)
 try
 {
-    Engine::EngineLoop loop;
+	Engine::EngineLoop loop;
 
-    loop.init(argc, argv);
-    auto engine = Engine::engine_instance;
+	loop.init(argc, argv);
+	auto engine = Engine::engine_instance;
 
-    while (!engine->is_requesting_exit())
-    {
-        loop.update();
-    }
+	while (!engine->is_requesting_exit())
+	{
+		loop.update();
+	}
 
-    loop.terminate();
+	loop.terminate();
 
-    return 0;
+	return 0;
 }
 catch (std::exception& e)
 {
-    error_log("EXCEPTION", "%s", e.what());
-    return 1;
+	error_log("EXCEPTION", "%s", e.what());
+	return 1;
 }

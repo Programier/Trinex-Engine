@@ -29,272 +29,272 @@
 
 namespace Engine
 {
-    EngineLoop::EngineLoop()
-    {}
+	EngineLoop::EngineLoop()
+	{}
 
-    EngineLoop::~EngineLoop()
-    {}
-
-
-    static void init_api(bool force_no_api = false)
-    {
-        if (Settings::e_api.empty() || force_no_api)
-        {
-            Settings::e_api         = "None";
-            Settings::e_show_splash = false;
-        }
-
-        String api = Settings::e_api;
-        rhi        = reinterpret_cast<RHI*>(
-                Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
-        if (!rhi)
-        {
-            throw EngineException("Failed to init API");
-        }
-    }
-
-    static void create_main_window()
-    {
-        WindowConfig config;
-        config.attributes.insert(WindowAttribute::Hidden);
-        config.attributes.insert(WindowAttribute::Resizable);// TODO: REMOVE IT
-        WindowManager::create_instance();
-        EventSystem::new_system<EventSystem>();
-        WindowManager::instance()->create_window(config, nullptr)->hide();
-
-        SceneRenderTargets::create_instance();
-    }
-
-    static void initialize_filesystem()
-    {
-        auto vfs                       = VFS::RootFS::create_instance();
-        VFS::NativeFileSystem* exec_fs = new VFS::NativeFileSystem(Platform::find_exec_directory());
-
-        vfs->mount("[ExecDir]:", exec_fs, [](VFS::FileSystem* system) { delete system; });
-        vfs->mount("", exec_fs);// Temporary root directory is mounted to exec directory
-
-        Platform::bind_platform_mount_points();
-    }
-
-    static int_t execute_entry(const StringView& entry_name)
-    {
-        init_api(true);
-
-        int_t result = 0;
-        if (Object* entry_object = Class::static_find(entry_name, true)->create_object())
-        {
-            if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
-            {
-                result = entry->execute();
-            }
-            else
-            {
-                throw EngineException("Failed to cast entry point!");
-            }
-        }
-        else
-        {
-            throw EngineException("Failed to create entry point!");
-        }
-        engine_instance->request_exit();
-        return result;
-    }
-
-    int_t EngineLoop::preinit(int_t argc, const char** argv)
-    {
-        info_log("TrinexEngine", "Start engine!");
-
-        Arguments arguments;
-        arguments.init(argc, argv);
-
-        PreInitializeController().execute();
-        initialize_filesystem();
-        Project::initialize();
-
-        ReflectionInitializeController().execute();
-        ConfigManager::initialize();
-
-        // Load libraries
-        {
-            for (const String& library : Settings::e_libs)
-            {
-                Library().load(library);
-            }
-        }
-
-        Class* engine_class = Class::static_find(Settings::e_engine, true);
-        Object* object      = engine_class->create_object();
-
-        if (object)
-        {
-            engine_instance = object->instance_cast<BaseEngine>();
-            if (engine_instance)
-            {
-                engine_instance->flags(Object::IsAvailableForGC, false);
-            }
-        }
-
-        if(engine_instance == nullptr)
-        {
-            error_log("EngineLoop", "Failed to create engine instance!");
-            return -1;
-        }
-
-        ReflectionInitializeController().execute();
-        ScriptBindingsInitializeController().execute();
-        ScriptEngine::load_scripts();
+	EngineLoop::~EngineLoop()
+	{}
 
 
-        auto entry_param = Arguments::find("e_entry");
-        if (entry_param && entry_param->type == Arguments::Type::String)
-        {
-            return execute_entry(entry_param->get<const String&>());
-        }
+	static void init_api(bool force_no_api = false)
+	{
+		if (Settings::e_api.empty() || force_no_api)
+		{
+			Settings::e_api			= "None";
+			Settings::e_show_splash = false;
+		}
 
-        init_api();
-        create_main_window();
+		String api = Settings::e_api;
+		rhi		   = reinterpret_cast<RHI*>(
+				   Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
+		if (!rhi)
+		{
+			throw EngineException("Failed to init API");
+		}
+	}
 
-        return 0;
-    }
+	static void create_main_window()
+	{
+		WindowConfig config;
+		config.attributes.insert(WindowAttribute::Hidden);
+		config.attributes.insert(WindowAttribute::Resizable);// TODO: REMOVE IT
+		WindowManager::create_instance();
+		EventSystem::new_system<EventSystem>();
+		WindowManager::instance()->create_window(config, nullptr)->hide();
 
-    void EngineLoop::init(int_t argc, const char** argv)
-    {
-        create_threads();
+		SceneRenderTargets::create_instance();
+	}
 
-        if (!is_in_logic_thread())
-        {
-            call_in_logic_thread([this, argc, argv]() { init(argc, argv); });
-            logic_thread()->wait_all();
-            return;
-        }
+	static void initialize_filesystem()
+	{
+		auto vfs					   = VFS::RootFS::create_instance();
+		VFS::NativeFileSystem* exec_fs = new VFS::NativeFileSystem(Platform::find_exec_directory());
 
-        {
-            int result = preinit(argc, argv);
-            if (result != 0 || engine_instance->is_requesting_exit())
-                return;
-        }
+		vfs->mount("[ExecDir]:", exec_fs, [](VFS::FileSystem* system) { delete system; });
+		vfs->mount("", exec_fs);// Temporary root directory is mounted to exec directory
 
-        const bool show_splash = Settings::e_show_splash;
+		Platform::bind_platform_mount_points();
+	}
 
-        float wait_time = engine_instance->time_seconds();
-        engine_instance->init();
+	static int_t execute_entry(const StringView& entry_name)
+	{
+		init_api(true);
 
-        extern void load_default_resources();
-        load_default_resources();
+		int_t result = 0;
+		if (Object* entry_object = Class::static_find(entry_name, true)->create_object())
+		{
+			if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
+			{
+				result = entry->execute();
+			}
+			else
+			{
+				throw EngineException("Failed to cast entry point!");
+			}
+		}
+		else
+		{
+			throw EngineException("Failed to create entry point!");
+		}
+		engine_instance->request_exit();
+		return result;
+	}
 
-        if (show_splash)
-        {
-            Engine::show_splash_screen();
-            Engine::splash_screen_text(Engine::SplashTextType::GameName, Project::name);
-            Engine::splash_screen_text(Engine::SplashTextType::VersionInfo, Project::version);
-            Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
-        }
+	int_t EngineLoop::preinit(int_t argc, const char** argv)
+	{
+		info_log("TrinexEngine", "Start engine!");
 
-        StartupResourcesInitializeController().execute();
-        InitializeController().execute();
+		Arguments arguments;
+		arguments.init(argc, argv);
 
-        wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);
+		PreInitializeController().execute();
+		initialize_filesystem();
+		Project::initialize();
 
-        if (wait_time > 0.f)
-        {
-            Thread::sleep_for(wait_time);
-        }
+		ReflectionInitializeController().execute();
+		ConfigManager::initialize();
 
-        if (show_splash)
-            Engine::hide_splash_screen();
+		// Load libraries
+		{
+			for (const String& library : Settings::e_libs)
+			{
+				Library().load(library);
+			}
+		}
 
-        if (Window* window = WindowManager::instance()->main_window())
-        {
-            window->show();
-        }
-    }
+		Class* engine_class = Class::static_find(Settings::e_engine, true);
+		Object* object		= engine_class->create_object();
 
-    void EngineLoop::update()
-    {
-        struct UpdateEngine : public ExecutableObject {
-        public:
-            int_t execute() override
-            {
-                engine_instance->update();
-                return sizeof(UpdateEngine);
-            }
-        };
+		if (object)
+		{
+			engine_instance = object->instance_cast<BaseEngine>();
+			if (engine_instance)
+			{
+				engine_instance->flags(Object::IsAvailableForGC, false);
+			}
+		}
 
-        if (is_in_logic_thread())
-        {
-            engine_instance->update();
-        }
-        else
-        {
-            logic_thread()->insert_new_task<UpdateEngine>();
-            logic_thread()->wait_all();
-        }
-    }
+		if (engine_instance == nullptr)
+		{
+			error_log("EngineLoop", "Failed to create engine instance!");
+			return -1;
+		}
 
-    class DestroyRHI_Task : public ExecutableObject
-    {
+		ReflectionInitializeController().execute();
+		ScriptBindingsInitializeController().execute();
+		ScriptEngine::load_scripts();
 
-    public:
-        int_t execute() override
-        {
-            delete rhi;
-            return sizeof(DestroyRHI_Task);
-        }
-    };
 
-    void EngineLoop::terminate()
-    {
-        static bool need_destroy_threads = true;
+		auto entry_param = Arguments::find("e_entry");
+		if (entry_param && entry_param->type == Arguments::Type::String)
+		{
+			return execute_entry(entry_param->get<const String&>());
+		}
 
-        if (!is_in_logic_thread())
-        {
-            need_destroy_threads = false;
-            call_in_logic_thread([this]() { terminate(); });
-            logic_thread()->wait_all();
+		init_api();
+		create_main_window();
 
-            destroy_threads();
-            return;
-        }
+		return 0;
+	}
 
-        info_log("EngineInstance", "Terminate Engine");
-        DestroyController().execute();
+	void EngineLoop::init(int_t argc, const char** argv)
+	{
+		create_threads();
 
-        engine_instance->terminate();
+		if (!is_in_logic_thread())
+		{
+			call_in_logic_thread([this, argc, argv]() { init(argc, argv); });
+			logic_thread()->wait_all();
+			return;
+		}
 
-        if (rhi)
-        {
-            render_thread()->wait_all();
-        }
+		{
+			int result = preinit(argc, argv);
+			if (result != 0 || engine_instance->is_requesting_exit())
+				return;
+		}
 
-        GarbageCollector::destroy_all_objects();
-        render_thread()->wait_all();
+		const bool show_splash = Settings::e_show_splash;
 
-        if (rhi)
-        {
-            // Cannot delete rhi in logic thread, because the gpu resources can be used now
-            // So, delete it on render thread
-            render_thread()->insert_new_task<DestroyRHI_Task>();
-            render_thread()->wait_all();
-            rhi = nullptr;
-        }
+		float wait_time = engine_instance->time_seconds();
+		engine_instance->init();
 
-        if (WindowManager::instance())
-            WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
+		extern void load_default_resources();
+		load_default_resources();
 
-        if (WindowManager::instance())
-            delete WindowManager::instance();
+		if (show_splash)
+		{
+			Engine::show_splash_screen();
+			Engine::splash_screen_text(Engine::SplashTextType::GameName, Project::name);
+			Engine::splash_screen_text(Engine::SplashTextType::VersionInfo, Project::version);
+			Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
+		}
 
-        rhi = nullptr;
-        Library::close_all();
+		StartupResourcesInitializeController().execute();
+		InitializeController().execute();
 
-        GarbageCollector::destroy(engine_instance);
-        engine_instance = nullptr;
+		wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);
 
-        PostDestroyController().execute();
+		if (wait_time > 0.f)
+		{
+			Thread::sleep_for(wait_time);
+		}
 
-        if (need_destroy_threads)
-        {
-            destroy_threads();
-        }
-    }
+		if (show_splash)
+			Engine::hide_splash_screen();
+
+		if (Window* window = WindowManager::instance()->main_window())
+		{
+			window->show();
+		}
+	}
+
+	void EngineLoop::update()
+	{
+		struct UpdateEngine : public ExecutableObject {
+		public:
+			int_t execute() override
+			{
+				engine_instance->update();
+				return sizeof(UpdateEngine);
+			}
+		};
+
+		if (is_in_logic_thread())
+		{
+			engine_instance->update();
+		}
+		else
+		{
+			logic_thread()->insert_new_task<UpdateEngine>();
+			logic_thread()->wait_all();
+		}
+	}
+
+	class DestroyRHI_Task : public ExecutableObject
+	{
+
+	public:
+		int_t execute() override
+		{
+			delete rhi;
+			return sizeof(DestroyRHI_Task);
+		}
+	};
+
+	void EngineLoop::terminate()
+	{
+		static bool need_destroy_threads = true;
+
+		if (!is_in_logic_thread())
+		{
+			need_destroy_threads = false;
+			call_in_logic_thread([this]() { terminate(); });
+			logic_thread()->wait_all();
+
+			destroy_threads();
+			return;
+		}
+
+		info_log("EngineInstance", "Terminate Engine");
+		DestroyController().execute();
+
+		engine_instance->terminate();
+
+		if (rhi)
+		{
+			render_thread()->wait_all();
+		}
+
+		GarbageCollector::destroy_all_objects();
+		render_thread()->wait_all();
+
+		if (rhi)
+		{
+			// Cannot delete rhi in logic thread, because the gpu resources can be used now
+			// So, delete it on render thread
+			render_thread()->insert_new_task<DestroyRHI_Task>();
+			render_thread()->wait_all();
+			rhi = nullptr;
+		}
+
+		if (WindowManager::instance())
+			WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
+
+		if (WindowManager::instance())
+			delete WindowManager::instance();
+
+		rhi = nullptr;
+		Library::close_all();
+
+		GarbageCollector::destroy(engine_instance);
+		engine_instance = nullptr;
+
+		PostDestroyController().execute();
+
+		if (need_destroy_threads)
+		{
+			destroy_threads();
+		}
+	}
 }// namespace Engine

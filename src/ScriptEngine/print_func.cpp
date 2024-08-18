@@ -45,25 +45,25 @@ class asIScriptEngine;
 namespace Print
 {
 
-    typedef ::asIScriptEngine asIScriptEngine;
-    typedef bool PrintNonPrimitiveType(std::ostream& dst, void const* objPtr, int typeId, int depth);
-    extern PrintNonPrimitiveType* g_PrintRegisteredType;
-    extern PrintNonPrimitiveType* g_PrintScriptObjectType;
+	typedef ::asIScriptEngine asIScriptEngine;
+	typedef bool PrintNonPrimitiveType(std::ostream& dst, void const* objPtr, int typeId, int depth);
+	extern PrintNonPrimitiveType* g_PrintRegisteredType;
+	extern PrintNonPrimitiveType* g_PrintScriptObjectType;
 
-    void PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int depth = 0);
-    void PrintFormat(std::ostream& stream, std::string const& in, std::pair<void const*, int> const* args, int argc);
+	void PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int depth = 0);
+	void PrintFormat(std::ostream& stream, std::string const& in, std::pair<void const*, int> const* args, int argc);
 
-    //currently only string and array
-    bool PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, int depth);
+	//currently only string and array
+	bool PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, int depth);
 
-    template<typename... Args>
-    inline void PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, Args... args)
-    {
-        PrintTemplate(dst, objPtr, typeId, 0);
-        PrintTemplate(dst, std::move(args)...);
-    }
+	template<typename... Args>
+	inline void PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, Args... args)
+	{
+		PrintTemplate(dst, objPtr, typeId, 0);
+		PrintTemplate(dst, std::move(args)...);
+	}
 
-    static void asRegister();
+	static void asRegister();
 
 };// namespace Print
 
@@ -93,8 +93,9 @@ class CScriptDictionary;
 #define V_ARGS_2(q) V_ARGS_1(q), V_ARG(1, q)
 #define V_ARGS_4(q) V_ARGS_2(q), V_ARG(2, q), V_ARG(3, q)
 #define V_ARGS_8(q) V_ARGS_4(q), V_ARG(4, q), V_ARG(5, q), V_ARG(6, q), V_ARG(7, q)
-#define V_ARGS_16(q)                                                                                                             \
-    V_ARGS_8(q), V_ARG(8, q), V_ARG(9, q), V_ARG(10, q), V_ARG(11, q), V_ARG(12, q), V_ARG(13, q), V_ARG(14, q), V_ARG(15, q)
+#define V_ARGS_16(q)                                                                                                   \
+	V_ARGS_8(q), V_ARG(8, q), V_ARG(9, q), V_ARG(10, q), V_ARG(11, q), V_ARG(12, q), V_ARG(13, q), V_ARG(14, q),       \
+			V_ARG(15, q)
 
 #define IN_ARGS_1 V_ARGS_1(const)
 #define IN_ARGS_2 V_ARGS_2(const)
@@ -109,11 +110,11 @@ class CScriptDictionary;
 #define W_ARGS_8 W_ARGS_4, W_ARG(4), W_ARG(5), W_ARG(6), W_ARG(7)
 #define W_ARGS_16 W_ARGS_8, W_ARG(8), W_ARG(9), W_ARG(10), W_ARG(11), W_ARG(12), W_ARG(13), W_ARG(14), W_ARG(15)
 
-#define A_ARG(n)                                                                                                                 \
-    std::pair<void const*, int>                                                                                                  \
-    {                                                                                                                            \
-        objPtr##n, typeId##n                                                                                                     \
-    }
+#define A_ARG(n)                                                                                                       \
+	std::pair<void const*, int>                                                                                        \
+	{                                                                                                                  \
+		objPtr##n, typeId##n                                                                                           \
+	}
 #define A_ARGS_1 A_ARG(0)
 #define A_ARGS_2 A_ARGS_1, A_ARG(1)
 #define A_ARGS_4 A_ARGS_2, A_ARG(2), A_ARG(3)
@@ -122,292 +123,293 @@ class CScriptDictionary;
 
 bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, int depth)
 {
-    auto engine = Engine::ScriptEngine::engine();
+	auto engine = Engine::ScriptEngine::engine();
 
-    auto typeInfo    = engine->GetTypeInfoById(typeId);
-    const char* name = typeInfo->GetName();
+	auto typeInfo	 = engine->GetTypeInfoById(typeId);
+	const char* name = typeInfo->GetName();
 
-    if (strcmp(name, "string") == 0)
-    {
-        auto const& string = *((std::string const*) objPtr);
-        dst << string;
-        return true;
-    }
+	if (strcmp(name, "string") == 0)
+	{
+		auto const& string = *((std::string const*) objPtr);
+		dst << string;
+		return true;
+	}
 
-    if (strcmp(name, "StringView") == 0)
-    {
-        auto const& string = *((std::string_view const*) objPtr);
-        dst << string;
-        return true;
-    }
+	if (strcmp(name, "StringView") == 0)
+	{
+		auto const& string = *((std::string_view const*) objPtr);
+		dst << string;
+		return true;
+	}
 
-    if (depth < 2 && strcmp(name, "array") == 0)
-    {
-        CScriptArray const* array{};
+	if (depth < 2 && strcmp(name, "array") == 0)
+	{
+		CScriptArray const* array{};
 
-        if (typeId & asTYPEID_OBJHANDLE)
-            array = *reinterpret_cast<CScriptArray* const*>(objPtr);
-        else
-            array = reinterpret_cast<CScriptArray const*>(objPtr);
+		if (typeId & asTYPEID_OBJHANDLE)
+			array = *reinterpret_cast<CScriptArray* const*>(objPtr);
+		else
+			array = reinterpret_cast<CScriptArray const*>(objPtr);
 
-        if (array->GetSize() == 0)
-            dst << "{}";
-        else
-        {
-            dst << "{";
+		if (array->GetSize() == 0)
+			dst << "{}";
+		else
+		{
+			dst << "{";
 
-            for (uint32_t i = 0; i < array->GetSize(); ++i)
-            {
-                Print::PrintTemplate(dst, array->At(i), array->GetElementTypeId(), depth + 1);
-                dst << ((i + 1 == array->GetSize()) ? "}" : ", ");
-            }
-        }
+			for (uint32_t i = 0; i < array->GetSize(); ++i)
+			{
+				Print::PrintTemplate(dst, array->At(i), array->GetElementTypeId(), depth + 1);
+				dst << ((i + 1 == array->GetSize()) ? "}" : ", ");
+			}
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    if (strcmp(name, "dictionary") == 0)
-    {
-        CScriptDictionary const* dictionary{};
+	if (strcmp(name, "dictionary") == 0)
+	{
+		CScriptDictionary const* dictionary{};
 
-        if (typeId & asTYPEID_OBJHANDLE)
-            dictionary = *reinterpret_cast<CScriptDictionary* const*>(objPtr);
-        else
-            dictionary = reinterpret_cast<CScriptDictionary const*>(objPtr);
+		if (typeId & asTYPEID_OBJHANDLE)
+			dictionary = *reinterpret_cast<CScriptDictionary* const*>(objPtr);
+		else
+			dictionary = reinterpret_cast<CScriptDictionary const*>(objPtr);
 
-        std::string indent(depth + 1, '\t');
+		std::string indent(depth + 1, '\t');
 
-        dst << "{\n";
+		dst << "{\n";
 
-        bool printed = false;
-        for (auto const& pair : *dictionary)
-        {
-            if (printed)
-                dst << ",\n";
-            printed = true;
+		bool printed = false;
+		for (auto const& pair : *dictionary)
+		{
+			if (printed)
+				dst << ",\n";
+			printed = true;
 
-            dst << indent << '"' << pair.GetKey() << "\":";
-            Print::PrintTemplate(dst, pair.GetAddressOfValue(), pair.GetTypeId(), depth + 1);
-        }
+			dst << indent << '"' << pair.GetKey() << "\":";
+			Print::PrintTemplate(dst, pair.GetAddressOfValue(), pair.GetTypeId(), depth + 1);
+		}
 
-        dst << '\n' << indent.substr(0, indent.size() - 1) << '}';
+		dst << '\n' << indent.substr(0, indent.size() - 1) << '}';
 
-        return true;
-    }
+		return true;
+	}
 
-    if (strcmp(name, "dictionaryValue") == 0)
-    {
-        auto value = reinterpret_cast<CScriptDictValue const*>(objPtr);
+	if (strcmp(name, "dictionaryValue") == 0)
+	{
+		auto value = reinterpret_cast<CScriptDictValue const*>(objPtr);
 
-        Print::PrintTemplate(dst, value->GetAddressOfValue(), value->GetTypeId(), depth + 1);
-    }
+		Print::PrintTemplate(dst, value->GetAddressOfValue(), value->GetTypeId(), depth + 1);
+	}
 
-    return false;
+	return false;
 }
 
 void Print::PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int depth)
 {
-    switch (typeId)
-    {
-        case asTYPEID_VOID:
-            return;
-        case asTYPEID_BOOL:
-            dst << ((*(bool const*) objPtr) ? "true" : "false");
-            return;
-        case asTYPEID_INT8:
-            dst << (int64_t) * (int8_t const*) objPtr;
-            return;
-        case asTYPEID_INT16:
-            dst << (int64_t) * (int16_t const*) objPtr;
-            return;
-        case asTYPEID_INT32:
-            dst << (int64_t) * (int32_t const*) objPtr;
-            return;
-        case asTYPEID_INT64:
-            dst << (int64_t) * (int64_t const*) objPtr;
-            return;
-        case asTYPEID_UINT8:
-            dst << (uint64_t) * (uint8_t const*) objPtr;
-            return;
-        case asTYPEID_UINT16:
-            dst << (uint64_t) * (uint16_t const*) objPtr;
-            return;
-        case asTYPEID_UINT32:
-            dst << (uint64_t) * (uint32_t const*) objPtr;
-            return;
-        case asTYPEID_UINT64:
-            dst << (uint64_t) * (uint64_t const*) objPtr;
-            return;
-        case asTYPEID_FLOAT:
-            dst << (double) *(float const*) objPtr;
-            return;
-        case asTYPEID_DOUBLE:
-            dst << (double) *(double const*) objPtr;
-            return;
-        default:
-            break;
-    }
+	switch (typeId)
+	{
+		case asTYPEID_VOID:
+			return;
+		case asTYPEID_BOOL:
+			dst << ((*(bool const*) objPtr) ? "true" : "false");
+			return;
+		case asTYPEID_INT8:
+			dst << (int64_t) * (int8_t const*) objPtr;
+			return;
+		case asTYPEID_INT16:
+			dst << (int64_t) * (int16_t const*) objPtr;
+			return;
+		case asTYPEID_INT32:
+			dst << (int64_t) * (int32_t const*) objPtr;
+			return;
+		case asTYPEID_INT64:
+			dst << (int64_t) * (int64_t const*) objPtr;
+			return;
+		case asTYPEID_UINT8:
+			dst << (uint64_t) * (uint8_t const*) objPtr;
+			return;
+		case asTYPEID_UINT16:
+			dst << (uint64_t) * (uint16_t const*) objPtr;
+			return;
+		case asTYPEID_UINT32:
+			dst << (uint64_t) * (uint32_t const*) objPtr;
+			return;
+		case asTYPEID_UINT64:
+			dst << (uint64_t) * (uint64_t const*) objPtr;
+			return;
+		case asTYPEID_FLOAT:
+			dst << (double) *(float const*) objPtr;
+			return;
+		case asTYPEID_DOUBLE:
+			dst << (double) *(double const*) objPtr;
+			return;
+		default:
+			break;
+	}
 
-    auto engine = Engine::ScriptEngine::engine();
+	auto engine = Engine::ScriptEngine::engine();
 
-    auto typeInfo = engine->GetTypeInfoById(typeId);
+	auto typeInfo = engine->GetTypeInfoById(typeId);
 
-    if (!typeInfo)
-    {
-        dst << "BAD_TYPEID";
-        return;
-    }
+	if (!typeInfo)
+	{
+		dst << "BAD_TYPEID";
+		return;
+	}
 
-    if (objPtr == nullptr)
-    {
-        dst << typeInfo->GetName();
-        return;
-    }
+	if (objPtr == nullptr)
+	{
+		dst << typeInfo->GetName();
+		return;
+	}
 
-    if (typeInfo->GetFuncdefSignature())
-    {
-        auto func = *reinterpret_cast<asIScriptFunction* const*>(objPtr);
-        dst << func->GetDeclaration(true, true, true);
-        return;
-    }
+	if (typeInfo->GetFuncdefSignature())
+	{
+		auto func = *reinterpret_cast<asIScriptFunction* const*>(objPtr);
+		dst << func->GetDeclaration(true, true, true);
+		return;
+	}
 
-    auto enumValueCount = typeInfo->GetEnumValueCount();
-    if (enumValueCount)
-    {
-        int value = *(uint32_t const*) objPtr;
+	auto enumValueCount = typeInfo->GetEnumValueCount();
+	if (enumValueCount)
+	{
+		int value = *(uint32_t const*) objPtr;
 
-        dst << typeInfo->GetName();
+		dst << typeInfo->GetName();
 
-        for (uint32_t i = 0; i < enumValueCount; ++i)
-        {
-            int val;
-            const char* text = typeInfo->GetEnumValueByIndex(i, &val);
+		for (uint32_t i = 0; i < enumValueCount; ++i)
+		{
+			int val;
+			const char* text = typeInfo->GetEnumValueByIndex(i, &val);
 
-            if (val == value)
-            {
-                dst << "::" << text;
-            }
-        }
+			if (val == value)
+			{
+				dst << "::" << text;
+			}
+		}
 
-        return;
-    }
+		return;
+	}
 
-    if (typeId & asTYPEID_SCRIPTOBJECT)
-    {
-        if (g_PrintScriptObjectType && g_PrintScriptObjectType(dst, objPtr, typeId, depth))
-            return;
+	if (typeId & asTYPEID_SCRIPTOBJECT)
+	{
+		if (g_PrintScriptObjectType && g_PrintScriptObjectType(dst, objPtr, typeId, depth))
+			return;
 
-        if (typeId & asTYPEID_OBJHANDLE)
-        {
-            dst << "@" << typeInfo->GetName() << "(" << *(void**) objPtr << ")";
-        }
-        else
-        {
-            dst << typeInfo->GetName() << "(" << objPtr << ")";
-        }
-        return;
-    }
+		if (typeId & asTYPEID_OBJHANDLE)
+		{
+			dst << "@" << typeInfo->GetName() << "(" << *(void**) objPtr << ")";
+		}
+		else
+		{
+			dst << typeInfo->GetName() << "(" << objPtr << ")";
+		}
+		return;
+	}
 
-    if (typeId & (asTYPEID_APPOBJECT | asTYPEID_TEMPLATE))
-    {
-        if (g_PrintRegisteredType != nullptr)
-        {
-            if (typeId & asTYPEID_OBJHANDLE)
-            {
-                typeId &= ~(asTYPEID_OBJHANDLE | asTYPEID_HANDLETOCONST);
-                objPtr = *(void**) objPtr;
-            }
+	if (typeId & (asTYPEID_APPOBJECT | asTYPEID_TEMPLATE))
+	{
+		if (g_PrintRegisteredType != nullptr)
+		{
+			if (typeId & asTYPEID_OBJHANDLE)
+			{
+				typeId &= ~(asTYPEID_OBJHANDLE | asTYPEID_HANDLETOCONST);
+				objPtr = *(void**) objPtr;
+			}
 
-            if (g_PrintRegisteredType(dst, objPtr, typeId, depth))
-                return;
-        }
+			if (g_PrintRegisteredType(dst, objPtr, typeId, depth))
+				return;
+		}
 
-        dst << "Registered Object";
+		dst << "Registered Object";
 
-        return;
-    }
+		return;
+	}
 
-    dst << "UNKNOWN";
+	dst << "UNKNOWN";
 
-    return;
+	return;
 }
 
 void Print::PrintFormat(std::ostream& stream, std::string const& in, std::pair<void const*, int> const* args, int argc)
 {
-    if (argc <= 0)
-    {
-        stream << in;
-        return;
-    }
+	if (argc <= 0)
+	{
+		stream << in;
+		return;
+	}
 
-    for (size_t itr = 0, next = 0; itr < in.size(); itr = next)
-    {
-        next = in.find_first_of('%', itr);
-        stream << in.substr(itr, next - itr);
+	for (size_t itr = 0, next = 0; itr < in.size(); itr = next)
+	{
+		next = in.find_first_of('%', itr);
+		stream << in.substr(itr, next - itr);
 
-        if (next == std::string::npos)
-            break;
+		if (next == std::string::npos)
+			break;
 
-        if (!isdigit(in[++next]))
-            stream << '%';
-        else
-        {
-            auto arg = atoi(&in[next]) % argc;
-            while (next < in.size() && isdigit(in[next])) ++next;
+		if (!isdigit(in[++next]))
+			stream << '%';
+		else
+		{
+			auto arg = atoi(&in[next]) % argc;
+			while (next < in.size() && isdigit(in[next])) ++next;
 
-            Print::PrintTemplate(stream, args[arg].first, args[arg].second, 0);
-        }
-    }
+			Print::PrintTemplate(stream, args[arg].first, args[arg].second, 0);
+		}
+	}
 }
 
 static void PrintFunc(IN_ARGS_16)
 {
-    std::stringstream ss;
-    Print::PrintTemplate(ss, W_ARGS_16);
-    info_log("ScriptEngine", "%s", ss.str().c_str());
+	std::stringstream ss;
+	Print::PrintTemplate(ss, W_ARGS_16);
+	info_log("ScriptEngine", "%s", ss.str().c_str());
 }
 
 static void PrettyPrinting(IN_ARGS_16, std::string* thisPointer)
 {
-    std::stringstream ss;
-    Print::PrintTemplate(ss, W_ARGS_16);
-    new (thisPointer) std::string(ss.str());
+	std::stringstream ss;
+	Print::PrintTemplate(ss, W_ARGS_16);
+	new (thisPointer) std::string(ss.str());
 }
 
 static void asPrintFormat(std::string const& in, IN_ARGS_16)
 {
-    std::array<std::pair<void const*, int>, 16> args{A_ARGS_16};
-    std::stringstream ss;
-    Print::PrintFormat(ss, in, args.data(), args.size());
-    info_log("ScriptEngine", "%s", ss.str().c_str());
+	std::array<std::pair<void const*, int>, 16> args{A_ARGS_16};
+	std::stringstream ss;
+	Print::PrintFormat(ss, in, args.data(), args.size());
+	info_log("ScriptEngine", "%s", ss.str().c_str());
 }
 
 static std::string PrettyPrintingF(std::string* This, IN_ARGS_16)
 {
-    std::array<std::pair<void const*, int>, 16> args{A_ARGS_16};
-    std::stringstream ss;
-    Print::PrintFormat(ss, *This, args.data(), args.size());
-    return ss.str();
+	std::array<std::pair<void const*, int>, 16> args{A_ARGS_16};
+	std::stringstream ss;
+	Print::PrintFormat(ss, *This, args.data(), args.size());
+	return ss.str();
 }
 
 
 static void Print::asRegister()
 {
-    asIScriptEngine* engine = Engine::ScriptEngine::engine();
-    int r;
-    r = engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(const ?&in, " INS_15 ")",
-                                        asFUNCTION(PrettyPrinting), asCALL_CDECL_OBJLAST);
-    assert(r >= 0);
-    r = engine->RegisterObjectMethod("string", "string format(" INS_16 ") const", asFUNCTION(PrettyPrintingF),
-                                     asCALL_CDECL_OBJFIRST);
-    assert(r >= 0);
+	asIScriptEngine* engine = Engine::ScriptEngine::engine();
+	int r;
+	r = engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(const ?&in, " INS_15 ")",
+										asFUNCTION(PrettyPrinting), asCALL_CDECL_OBJLAST);
+	assert(r >= 0);
+	r = engine->RegisterObjectMethod("string", "string format(" INS_16 ") const", asFUNCTION(PrettyPrintingF),
+									 asCALL_CDECL_OBJFIRST);
+	assert(r >= 0);
 
-    r = engine->RegisterGlobalFunction("void print(" INS_16 ")", asFUNCTION(PrintFunc), asCALL_CDECL);
-    assert(r == asALREADY_REGISTERED || r >= 0);
+	r = engine->RegisterGlobalFunction("void print(" INS_16 ")", asFUNCTION(PrintFunc), asCALL_CDECL);
+	assert(r == asALREADY_REGISTERED || r >= 0);
 
-    r = engine->RegisterGlobalFunction("void printf(const string &in format, " INS_16 ")", asFUNCTION(asPrintFormat),
-                                       asCALL_CDECL);
-    assert(r == asALREADY_REGISTERED || r >= 0);
+	r = engine->RegisterGlobalFunction("void printf(const string &in format, " INS_16 ")", asFUNCTION(asPrintFormat),
+									   asCALL_CDECL);
+	assert(r == asALREADY_REGISTERED || r >= 0);
 }
 
-static Engine::ScriptAddonsInitializeController on_init(Print::asRegister, "Engine::PrintFunction", {"Engine::DefaultAddons"});
+static Engine::ScriptAddonsInitializeController on_init(Print::asRegister, "Engine::PrintFunction",
+														{"Engine::DefaultAddons"});

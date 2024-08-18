@@ -59,14 +59,16 @@ namespace Engine
 		Class& destroy_func(void (*)(Object*));
 
 		void* create_struct() const override;
-		Object* create_object(StringView name = "", Object* owner = nullptr, const Class* class_overload = nullptr) const;
+		Object* create_object(StringView name = "", Object* owner = nullptr,
+							  const Class* class_overload = nullptr) const;
 		Object* create_placement_object(void* place, StringView name = "", Object* owner = nullptr,
 										const Class* class_overload = nullptr) const;
 
 		size_t sizeof_class() const;
 		bool is_scriptable() const;
 		Class& static_constructor(Object* (*new_static_constructor)(Class*, StringView, Object*) );
-		Class& static_placement_constructor(Object* (*new_static_placement_constructor)(Class*, void*, StringView, Object*) );
+		Class& static_placement_constructor(Object* (*new_static_placement_constructor)(Class*, void*, StringView,
+																						Object*) );
 		Object* singletone_instance() const;
 		Class& post_initialize();
 
@@ -102,7 +104,8 @@ namespace Engine
 					return Object::new_instance<ObjectClass, true>(name, owner);
 				};
 
-				m_static_placement_constructor = [](Class* self, void* place, StringView name, Object* owner) -> Object* {
+				m_static_placement_constructor = [](Class* self, void* place, StringView name,
+													Object* owner) -> Object* {
 					return Object::new_placement_instance<ObjectClass, true>(place, name, owner);
 				};
 

@@ -370,15 +370,15 @@ namespace Engine
 		auto script_object = reinterpret_cast<asIScriptObject*>(object);
 		script_object->Destroy();
 		std::destroy_at(object);
-		
+
 		delete[] reinterpret_cast<byte*>(object);
 	}
-	
+
 	static void* script_object_alloc(const asITypeInfo* info, asUINT size)
 	{
 		return new byte[size];
 	}
-	
+
 	static void script_object_free(void* obj, const asITypeInfo* info, asUINT size)
 	{
 		delete[] reinterpret_cast<byte*>(obj);
@@ -405,17 +405,17 @@ namespace Engine
 		auto full_name = Strings::concat_scoped_name(Strings::make_string_view(info->GetNamespace()),
 													 Strings::make_string_view(info->GetName()));
 
-		Class* script_class			   = new Class(full_name, base_class, Class::IsScriptable);
-		
+		Class* script_class = new Class(full_name, base_class, Class::IsScriptable);
+
 		info->SetNativeClassUserData(script_class);
 		info->SetUserAllocFunction(script_object_alloc);
 		info->SetUserFreeFunction(script_object_free);
-		
+
 		script_class->script_type_info = info;
 		script_class->static_constructor(script_object_constructor);
 		script_class->destroy_func(script_object_destructor);
-		
-		
+
+
 		m_classes.insert(script_class);
 		script_class->on_class_destroy.push([this](Class* self) { m_classes.erase(self); });
 
@@ -605,7 +605,8 @@ namespace Engine
 		return m_module.global_var_index_by_decl(decl);
 	}
 
-	bool Script::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
+	bool Script::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id,
+							bool* is_const) const
 	{
 		return m_module.global_var(index, name, name_space, type_id, is_const);
 	}

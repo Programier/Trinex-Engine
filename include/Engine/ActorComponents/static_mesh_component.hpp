@@ -7,15 +7,15 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT StaticMeshComponent : public PrimitiveComponent
-    {
-        declare_class(StaticMeshComponent, PrimitiveComponent);
+	class ENGINE_EXPORT StaticMeshComponent : public PrimitiveComponent
+	{
+		declare_class(StaticMeshComponent, PrimitiveComponent);
 
-    public:
-        class StaticMesh* mesh = nullptr;
+	public:
+		class StaticMesh* mesh = nullptr;
 
-        StaticMeshComponent& update(float dt) override;
-        StaticMeshComponent& render(class SceneRenderer*) override;
-        StaticMeshComponent& update_bounding_box() override;
-    };
+		StaticMeshComponent& update(float dt) override;
+		StaticMeshComponent& render(class SceneRenderer*) override;
+		StaticMeshComponent& update_bounding_box() override;
+	};
 }// namespace Engine

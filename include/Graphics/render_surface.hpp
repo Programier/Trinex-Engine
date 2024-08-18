@@ -4,15 +4,15 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT RenderSurface : public Texture2D
-    {
-        declare_class(RenderSurface, Texture2D);
+	class ENGINE_EXPORT RenderSurface : public Texture2D
+	{
+		declare_class(RenderSurface, Texture2D);
 
-    public:
-        RenderSurface();
+	public:
+		RenderSurface();
 
-        RenderSurface& rhi_create() override;
-        RenderSurface& rhi_clear_color(const Color& color);
-        RenderSurface& rhi_clear_depth_stencil(float depth, byte stencil);
-    };
+		RenderSurface& rhi_create() override;
+		RenderSurface& rhi_clear_color(const Color& color);
+		RenderSurface& rhi_clear_depth_stencil(float depth, byte stencil);
+	};
 }// namespace Engine

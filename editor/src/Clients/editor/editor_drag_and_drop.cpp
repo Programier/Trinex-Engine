@@ -6,16 +6,16 @@
 
 namespace Engine
 {
-    EditorClient& EditorClient::on_object_dropped(Object* object)
-    {
-        if (StaticMesh* mesh = object->instance_cast<StaticMesh>())
-        {
-            StaticMeshActor* actor =
-                    m_world->spawn_actor(StaticMeshActor::static_class_instance())->instance_cast<StaticMeshActor>();
-            actor->mesh_component()->mesh = mesh;
-            actor->mesh_component()->on_transform_changed();
-        }
+	EditorClient& EditorClient::on_object_dropped(Object* object)
+	{
+		if (StaticMesh* mesh = object->instance_cast<StaticMesh>())
+		{
+			StaticMeshActor* actor =
+					m_world->spawn_actor(StaticMeshActor::static_class_instance())->instance_cast<StaticMeshActor>();
+			actor->mesh_component()->mesh = mesh;
+			actor->mesh_component()->on_transform_changed();
+		}
 
-        return *this;
-    }
+		return *this;
+	}
 }// namespace Engine

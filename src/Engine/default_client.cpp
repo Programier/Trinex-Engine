@@ -13,26 +13,26 @@
 
 namespace Engine
 {
-    DefaultClient::DefaultClient()
-    {}
+	DefaultClient::DefaultClient()
+	{}
 
-    DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
-    {
-        viewport->window()->imgui_initialize();
-        return *this;
-    }
+	DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
+	{
+		viewport->window()->imgui_initialize();
+		return *this;
+	}
 
-    DefaultClient& DefaultClient::render(class RenderViewport* viewport)
-    {
-        viewport->rhi_bind();
-        viewport->rhi_clear_color(Color(0, 0, 0, 1));
-        return *this;
-    }
+	DefaultClient& DefaultClient::render(class RenderViewport* viewport)
+	{
+		viewport->rhi_bind();
+		viewport->rhi_clear_color(Color(0, 0, 0, 1));
+		return *this;
+	}
 
-    DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
-    {
-        return *this;
-    }
+	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
+	{
+		return *this;
+	}
 
-    implement_engine_class_default_init(DefaultClient, 0);
+	implement_engine_class_default_init(DefaultClient, 0);
 }// namespace Engine

@@ -89,4 +89,3 @@
 
 #define TRINEX_WRAP_CODE(code) code
 // USER SPECIFIC DEFINITIONS!
-

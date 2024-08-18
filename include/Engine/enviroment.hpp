@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-    struct ENGINE_EXPORT WorldEnvironment {
-        Color3 ambient_color = Color3(0.3, 0.3, 0.3);
-    };
+	struct ENGINE_EXPORT WorldEnvironment {
+		Color3 ambient_color = Color3(0.3, 0.3, 0.3);
+	};
 }// namespace Engine

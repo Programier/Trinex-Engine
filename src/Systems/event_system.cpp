@@ -26,235 +26,234 @@
 
 namespace Engine
 {
-    // Basic callbacks
+	// Basic callbacks
 
-    void EventSystem::on_window_close(const Event& event, bool is_quit)
-    {
-        WindowManager* manager = WindowManager::instance();
-        Window* window         = manager->find(event.window_id());
+	void EventSystem::on_window_close(const Event& event, bool is_quit)
+	{
+		WindowManager* manager = WindowManager::instance();
+		Window* window		   = manager->find(event.window_id());
 
-        if (manager->main_window() == window || is_quit)
-        {
-            engine_instance->request_exit();
-        }
-        else if (window)
-        {
-            m_windows_to_destroy.push_back(window->id());
-        }
-    }
+		if (manager->main_window() == window || is_quit)
+		{
+			engine_instance->request_exit();
+		}
+		else if (window)
+		{
+			m_windows_to_destroy.push_back(window->id());
+		}
+	}
 
-    static void on_resize(const Event& event)
-    {
-        WindowManager* manager = WindowManager::instance();
-        Window* window         = manager->find(event.window_id());
-        if (!window)
-            return;
+	static void on_resize(const Event& event)
+	{
+		WindowManager* manager = WindowManager::instance();
+		Window* window		   = manager->find(event.window_id());
+		if (!window)
+			return;
 
-        const WindowEvent& window_event = event.get<const WindowEvent&>();
-        window->update_cached_size();
+		const WindowEvent& window_event = event.get<const WindowEvent&>();
+		window->update_cached_size();
 
-        {
-            auto x                          = window_event.x;
-            auto y                          = window_event.y;
-            RenderViewport* render_viewport = window->render_viewport();
-            if (render_viewport)
-            {
-                render_viewport->on_resize({x, y});
-            }
-        }
-    }
+		{
+			auto x							= window_event.x;
+			auto y							= window_event.y;
+			RenderViewport* render_viewport = window->render_viewport();
+			if (render_viewport)
+			{
+				render_viewport->on_resize({x, y});
+			}
+		}
+	}
 
-    EventSystem::EventSystem()
-    {}
+	EventSystem::EventSystem()
+	{}
 
-    const EventSystem::ListenerMap& EventSystem::listeners() const
-    {
-        return m_listeners;
-    }
+	const EventSystem::ListenerMap& EventSystem::listeners() const
+	{
+		return m_listeners;
+	}
 
-    EventSystemListenerID EventSystem::add_listener(EventType type, const Listener& listener)
-    {
-        return EventSystemListenerID(type, m_listeners[static_cast<Identifier>(type)].push(listener));
-    }
+	EventSystemListenerID EventSystem::add_listener(EventType type, const Listener& listener)
+	{
+		return EventSystemListenerID(type, m_listeners[static_cast<Identifier>(type)].push(listener));
+	}
 
-    EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
-    {
-        if (m_is_in_events_pooling)
-            m_listeners_to_remove.push_back(id);
-        else
-            m_listeners[static_cast<EnumerateType>(id.m_type)].remove(id.m_id);
+	EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
+	{
+		if (m_is_in_events_pooling)
+			m_listeners_to_remove.push_back(id);
+		else
+			m_listeners[static_cast<EnumerateType>(id.m_type)].remove(id.m_id);
 
-        return *this;
-    }
+		return *this;
+	}
 
-    EventSystem& EventSystem::create()
-    {
-        Super::create();
+	EventSystem& EventSystem::create()
+	{
+		Super::create();
 
-        m_is_in_events_pooling = false;
-        System::new_system<EngineSystem>()->register_subsystem(this);
-        add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
-        add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, false));
-        add_listener(EventType::WindowResized, on_resize);
+		m_is_in_events_pooling = false;
+		System::new_system<EngineSystem>()->register_subsystem(this);
+		add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
+		add_listener(EventType::WindowClose,
+					 std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, false));
+		add_listener(EventType::WindowResized, on_resize);
 
-        // Register subsystems
-        new_system<KeyboardSystem>();
-        new_system<MouseSystem>();
-        new_system<TouchScreenSystem>();
-        new_system<GameControllerSystem>();
+		// Register subsystems
+		new_system<KeyboardSystem>();
+		new_system<MouseSystem>();
+		new_system<TouchScreenSystem>();
+		new_system<GameControllerSystem>();
 
-        process_event_method(ProcessEventMethod::PoolEvents);
+		process_event_method(ProcessEventMethod::PoolEvents);
 
-        return *this;
-    }
+		return *this;
+	}
 
-    EventSystem& EventSystem::update(float dt)
-    {
-        Super::update(dt);
-        (this->*m_process_events)();
+	EventSystem& EventSystem::update(float dt)
+	{
+		Super::update(dt);
+		(this->*m_process_events)();
 
-        if (!m_windows_to_destroy.empty())
-        {
-            WindowManager* manager = WindowManager::instance();
+		if (!m_windows_to_destroy.empty())
+		{
+			WindowManager* manager = WindowManager::instance();
 
-            if (manager)
-            {
-                for (Identifier id : m_windows_to_destroy)
-                {
-                    if (auto window = manager->find(id))
-                    {
-                        manager->destroy_window(window);
-                    }
-                }
-            }
+			if (manager)
+			{
+				for (Identifier id : m_windows_to_destroy)
+				{
+					if (auto window = manager->find(id))
+					{
+						manager->destroy_window(window);
+					}
+				}
+			}
 
-            m_windows_to_destroy.clear();
-        }
-        return *this;
-    }
+			m_windows_to_destroy.clear();
+		}
+		return *this;
+	}
 
-    EventSystem& EventSystem::push_event(const Event& event)
-    {
-        bool is_nested = m_is_in_events_pooling;
+	EventSystem& EventSystem::push_event(const Event& event)
+	{
+		bool is_nested = m_is_in_events_pooling;
 
-        m_is_in_events_pooling = true;
-        auto it                = m_listeners.find(static_cast<EnumerateType>(event.type()));
-        if (it != m_listeners.end())
-        {
-            it->second.trigger(event);
-        }
+		m_is_in_events_pooling = true;
+		auto it				   = m_listeners.find(static_cast<EnumerateType>(event.type()));
+		if (it != m_listeners.end())
+		{
+			it->second.trigger(event);
+		}
 
-        it = m_listeners.find(static_cast<EnumerateType>(EventType::Undefined));
+		it = m_listeners.find(static_cast<EnumerateType>(EventType::Undefined));
 
-        if (it != m_listeners.end())
-        {
-            it->second.trigger(event);
-        }
+		if (it != m_listeners.end())
+		{
+			it->second.trigger(event);
+		}
 
-        m_is_in_events_pooling = is_nested;
+		m_is_in_events_pooling = is_nested;
 
-        if (!m_listeners_to_remove.empty())
-        {
-            for (auto& id : m_listeners_to_remove)
-            {
-                remove_listener(id);
-            }
-            m_listeners_to_remove.clear();
-        }
+		if (!m_listeners_to_remove.empty())
+		{
+			for (auto& id : m_listeners_to_remove)
+			{
+				remove_listener(id);
+			}
+			m_listeners_to_remove.clear();
+		}
 
-        return *this;
-    }
+		return *this;
+	}
 
-    EventSystem& EventSystem::shutdown()
-    {
-        Super::shutdown();
-        m_listeners.clear();
-        return *this;
-    }
+	EventSystem& EventSystem::shutdown()
+	{
+		Super::shutdown();
+		m_listeners.clear();
+		return *this;
+	}
 
-    Name EventSystem::event_name(EventType type)
-    {
-        static Enum* event_type_enum = Enum::static_find("Engine::EventType", true);
-        auto entry                   = event_type_enum->entry(static_cast<EnumerateType>(type));
+	Name EventSystem::event_name(EventType type)
+	{
+		static Enum* event_type_enum = Enum::static_find("Engine::EventType", true);
+		auto entry					 = event_type_enum->entry(static_cast<EnumerateType>(type));
 
-        if (entry)
-        {
-            return entry->name;
-        }
+		if (entry)
+		{
+			return entry->name;
+		}
 
-        return Name::undefined;
-    }
+		return Name::undefined;
+	}
 
-    static void push_event_internal(const Event& event, void* self)
-    {
-        reinterpret_cast<EventSystem*>(self)->push_event(event);
-    }
+	static void push_event_internal(const Event& event, void* self)
+	{
+		reinterpret_cast<EventSystem*>(self)->push_event(event);
+	}
 
-    EventSystem& EventSystem::wait_events()
-    {
-        WindowManager::instance()->wait_for_events(push_event_internal, this);
-        return *this;
-    }
+	EventSystem& EventSystem::wait_events()
+	{
+		WindowManager::instance()->wait_for_events(push_event_internal, this);
+		return *this;
+	}
 
-    EventSystem& EventSystem::pool_events()
-    {
-        WindowManager::instance()->pool_events(push_event_internal, this);
-        return *this;
-    }
+	EventSystem& EventSystem::pool_events()
+	{
+		WindowManager::instance()->pool_events(push_event_internal, this);
+		return *this;
+	}
 
-    EventSystem& EventSystem::process_event_method(ProcessEventMethod method)
-    {
-        if (method == ProcessEventMethod::PoolEvents)
-        {
-            m_process_events = &EventSystem::pool_events;
-        }
-        else
-        {
-            m_process_events = &EventSystem::wait_events;
-        }
-        return *this;
-    }
-
-
-    static EventSystemListenerID add_script_listener(EventSystem* system, EventType type, asIScriptFunction* _function)
-    {
-        ScriptFunction function        = _function;
-        EventSystem::Listener callback = [function](const Event& event) mutable {
-            const void* address = &event;
-            //function.prepare().arg_address(0, const_cast<void*>(address)).call().unbind_context();
-        };
-        return system->add_listener(type, callback);
-    }
+	EventSystem& EventSystem::process_event_method(ProcessEventMethod method)
+	{
+		if (method == ProcessEventMethod::PoolEvents)
+		{
+			m_process_events = &EventSystem::pool_events;
+		}
+		else
+		{
+			m_process_events = &EventSystem::wait_events;
+		}
+		return *this;
+	}
 
 
-    static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
-    {
-        ReflectionInitializeController()
-                .require("Engine::Event")
-                .require("Engine::EventSystenListenerID")
-                .require("Engine::EventType");
-
-        ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
-        enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);
-        enum_regisrar.set("WaitingEvents", EventSystem::WaitingEvents);
-
-
-        // ScriptEngine::instance()->funcdef("void Engine::EventCallback(const Engine::Event&)");
+	static EventSystemListenerID add_script_listener(EventSystem* system, EventType type, asIScriptFunction* _function)
+	{
+		ScriptFunction function		   = _function;
+		EventSystem::Listener callback = [function](const Event& event) mutable {
+			const void* address = &event;
+			//function.prepare().arg_address(0, const_cast<void*>(address)).call().unbind_context();
+		};
+		return system->add_listener(type, callback);
+	}
 
 
-        // registrar->static_function("EventSystem@ instance()", EventSystem::new_system<EventSystem>);
-        // registrar->func_as_method("uint64 add_listener(Engine::EventType, Engine::EventCallback@)", add_script_listener,
-        //                           ScriptCallConv::CDECL_OBJFIRST);
-        // registrar->method("EventSystem& remove_listener(const Engine::EventType, uint64 id)", &EventSystem::remove_listener);
-        // registrar->method("const EventSystem& push_event(const Engine::Event& in) const", &EventSystem::push_event);
-        // registrar->method("EventSystem& process_event_method(Engine::EventSystem::ProcessEventMethod)",
-        //                   &EventSystem::process_event_method);
-    }
+	static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
+	{
+		ReflectionInitializeController()
+				.require("Engine::Event")
+				.require("Engine::EventSystenListenerID")
+				.require("Engine::EventType");
 
-    implement_engine_class(EventSystem, Class::IsScriptable)
-    {
+		ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
+		enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);
+		enum_regisrar.set("WaitingEvents", EventSystem::WaitingEvents);
 
-    }
+
+		// ScriptEngine::instance()->funcdef("void Engine::EventCallback(const Engine::Event&)");
+
+
+		// registrar->static_function("EventSystem@ instance()", EventSystem::new_system<EventSystem>);
+		// registrar->func_as_method("uint64 add_listener(Engine::EventType, Engine::EventCallback@)", add_script_listener,
+		//                           ScriptCallConv::CDECL_OBJFIRST);
+		// registrar->method("EventSystem& remove_listener(const Engine::EventType, uint64 id)", &EventSystem::remove_listener);
+		// registrar->method("const EventSystem& push_event(const Engine::Event& in) const", &EventSystem::push_event);
+		// registrar->method("EventSystem& process_event_method(Engine::EventSystem::ProcessEventMethod)",
+		//                   &EventSystem::process_event_method);
+	}
+
+	implement_engine_class(EventSystem, Class::IsScriptable)
+	{}
 
 
 }// namespace Engine

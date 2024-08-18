@@ -5,59 +5,60 @@
 
 namespace Engine
 {
-    class ActorComponent;
+	class ActorComponent;
 
-    class ENGINE_EXPORT Actor : public Object
-    {
-        declare_class(Actor, Object);
+	class ENGINE_EXPORT Actor : public Object
+	{
+		declare_class(Actor, Object);
 
-    public:
-        enum Flag
-        {
-            Selected = BIT(0),
-        };
+	public:
+		enum Flag
+		{
+			Selected = BIT(0),
+		};
 
-        Flags<Flag, Atomic<BitMask>> actor_flags;
+		Flags<Flag, Atomic<BitMask>> actor_flags;
 
-    private:
-        Pointer<class SceneComponent> m_root_component;
-        Vector<class ActorComponent*> m_owned_components;
+	private:
+		Pointer<class SceneComponent> m_root_component;
+		Vector<class ActorComponent*> m_owned_components;
 
-        bool m_is_playing         = false;
-        bool m_is_being_destroyed = false;
+		bool m_is_playing		  = false;
+		bool m_is_being_destroyed = false;
 
-    protected:
-        Actor& add_component(ActorComponent* component);
-        Actor& remove_component(ActorComponent* component);
+	protected:
+		Actor& add_component(ActorComponent* component);
+		Actor& remove_component(ActorComponent* component);
 
-    public:
-        ActorComponent* create_component(Class* self, const Name& name = {});
+	public:
+		ActorComponent* create_component(Class* self, const Name& name = {});
 
-        template<typename ComponentType>
-        FORCE_INLINE ComponentType* create_component(const Name& name = {})
-        {
-            return create_component(ComponentType::static_class_instance(), name)->template instance_cast<ComponentType>();
-        }
+		template<typename ComponentType>
+		FORCE_INLINE ComponentType* create_component(const Name& name = {})
+		{
+			return create_component(ComponentType::static_class_instance(), name)
+					->template instance_cast<ComponentType>();
+		}
 
-        virtual Actor& update(float dt);
-        virtual Actor& start_play();
-        virtual Actor& stop_play();
-        virtual Actor& spawned();
-        virtual Actor& destroyed();
-        Actor& destroy();
-        Actor& update_drawing_data();
+		virtual Actor& update(float dt);
+		virtual Actor& start_play();
+		virtual Actor& stop_play();
+		virtual Actor& spawned();
+		virtual Actor& destroyed();
+		Actor& destroy();
+		Actor& update_drawing_data();
 
-        bool is_playing() const;
-        bool is_selected() const;
+		bool is_playing() const;
+		bool is_selected() const;
 
-        const Vector<class ActorComponent*>& owned_components() const;
-        const Transform& transfrom() const;
-        SceneComponent* scene_component() const;
+		const Vector<class ActorComponent*>& owned_components() const;
+		const Transform& transfrom() const;
+		SceneComponent* scene_component() const;
 
-        class World* world() const;
-        class Scene* scene() const;
-        bool archive_process(Archive& archive) override;
+		class World* world() const;
+		class Scene* scene() const;
+		bool archive_process(Archive& archive) override;
 
-        friend class World;
-    };
+		friend class World;
+	};
 }// namespace Engine

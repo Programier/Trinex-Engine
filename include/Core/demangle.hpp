@@ -7,11 +7,11 @@
 namespace Engine::Demangle
 {
 
-    ENGINE_EXPORT String decode_name(const String& name);
+	ENGINE_EXPORT String decode_name(const String& name);
 
-    template<typename Type>
-    FORCE_INLINE typename std::enable_if<is_object_based<Type>::value, String>::type name_of_type()
-    {
-        return Type::static_class_instance()->name();
-    }
+	template<typename Type>
+	FORCE_INLINE typename std::enable_if<is_object_based<Type>::value, String>::type name_of_type()
+	{
+		return Type::static_class_instance()->name();
+	}
 }// namespace Engine::Demangle

@@ -5,16 +5,16 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT LogicSystem : public Singletone<LogicSystem, System>
-    {
-        declare_class(LogicSystem, System);
+	class ENGINE_EXPORT LogicSystem : public Singletone<LogicSystem, System>
+	{
+		declare_class(LogicSystem, System);
 
-    public:
-        LogicSystem& create() override;
-        LogicSystem& update(float dt) override;
-        LogicSystem& shutdown() override;
-        LogicSystem& wait() override;
-        class Class* depends_on() const override;
-        friend class Singletone<LogicSystem, System>;
-    };
+	public:
+		LogicSystem& create() override;
+		LogicSystem& update(float dt) override;
+		LogicSystem& shutdown() override;
+		LogicSystem& wait() override;
+		class Class* depends_on() const override;
+		friend class Singletone<LogicSystem, System>;
+	};
 }// namespace Engine

@@ -4,10 +4,10 @@
 
 namespace Engine
 {
-    class Package;
+	class Package;
 }
 
 namespace Engine::Importer
 {
-    void import_resource(Package* package, const Path& file, const Transform& transform = {});
+	void import_resource(Package* package, const Path& file, const Transform& transform = {});
 }

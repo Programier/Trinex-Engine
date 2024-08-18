@@ -9,7 +9,7 @@ namespace Engine
 	{
 		asITypeInfo* type = object->GetObjectType();
 		Class* self		  = reinterpret_cast<Class*>(type->GetNativeClassUserData());
-		Class* native = self;
+		Class* native	  = self;
 
 		while (native && !native->is_native()) native = native->parent();
 
@@ -45,10 +45,11 @@ namespace Engine
 
 		if (flags(IsConstructible))
 		{
-			auto factory = Strings::format(R"({}@ f(StringView name = "", Engine::Object owner = null))", name().to_string());
+			auto factory =
+					Strings::format(R"({}@ f(StringView name = "", Engine::Object owner = null))", name().to_string());
 			registrar.behave(ScriptClassBehave::Construct, "void f()", native_default_object_constructor);
-			registrar.behave(ScriptClassBehave::Construct, R"(void f(StringView name = "", Engine::Object owner = null))",
-							 native_object_constructor);
+			registrar.behave(ScriptClassBehave::Construct,
+							 R"(void f(StringView name = "", Engine::Object owner = null))", native_object_constructor);
 			registrar.behave(ScriptClassBehave::Factory, factory.c_str(), m_script_factory, ScriptCallConv::CDecl);
 		}
 
