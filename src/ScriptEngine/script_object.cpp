@@ -1,11 +1,12 @@
+#include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/object.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
-
 
 namespace Engine
 {
@@ -54,6 +55,11 @@ namespace Engine
 	ScriptObject::ScriptObject(void* address, const char* declaration, const char* module, bool consider_handle_as_object)
 		: Engine::ScriptObject(address, find_type_id(declaration, module), consider_handle_as_object)
 	{}
+
+	ScriptObject::ScriptObject(Object* self)
+	{
+		create(self);
+	}
 
 	ScriptObject::ScriptObject(const ScriptObject& object) : ScriptVariableBase(object.address(), object.type_info(), true)
 	{}
@@ -199,6 +205,21 @@ namespace Engine
 	bool ScriptObject::create(void* src_address, const char* type_declaration, const char* module, bool consider_handle_as_object)
 	{
 		return create(src_address, find_type_id(type_declaration, module), consider_handle_as_object);
+	}
+
+	bool ScriptObject::create(Object* src)
+	{
+		if (src == nullptr)
+			return false;
+
+		auto obj = reinterpret_cast<asIScriptObject*>(src);
+		release();
+
+		m_type_id = obj->GetTypeId();
+		m_address = src;
+
+		// No need to call add_ref for Object based classes
+		return true;
 	}
 
 	uint_t ScriptObject::factory_count() const

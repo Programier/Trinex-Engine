@@ -4,12 +4,80 @@
 #include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
+#include <ScriptEngine/script_context.hpp>
+#include <ScriptEngine/script_object.hpp>
 #include <Systems/logic_system.hpp>
 
 namespace Engine
 {
 	implement_engine_class_default_init(World, 0);
 
+	static FORCE_INLINE void call_actor_update(Actor* self, float dt)
+	{
+		if (self->class_instance()->is_native())
+		{
+			self->update(dt);
+		}
+		else
+		{
+			ScriptObject object(self);
+			object.execute(Actor::script_update_func(), dt);
+		}
+	}
+	
+	static FORCE_INLINE void call_actor_start_play(Actor* self)
+	{
+		if (self->class_instance()->is_native())
+		{
+			self->start_play();
+		}
+		else
+		{
+			ScriptObject object(self);
+			object.execute(Actor::script_start_play_func());
+		}
+	}
+	
+	static FORCE_INLINE void call_actor_stop_play(Actor* self)
+	{
+		if (self->class_instance()->is_native())
+		{
+			self->stop_play();
+		}
+		else
+		{
+			ScriptObject object(self);
+			object.execute(Actor::script_stop_play_func());
+		}
+	}
+	
+	static FORCE_INLINE void call_actor_spawned(Actor* self)
+	{
+		if (self->class_instance()->is_native())
+		{
+			self->spawned();
+		}
+		else
+		{
+			ScriptObject object(self);
+			object.execute(Actor::script_spawned_func());
+		}
+	}
+	
+	static FORCE_INLINE void call_actor_destroyed(Actor* self)
+	{
+		if (self->class_instance()->is_native())
+		{
+			self->destroyed();
+		}
+		else
+		{
+			ScriptObject object(self);
+			object.execute(Actor::script_destroyed_func());
+		}
+	}
+	
+	
 	World& World::create()
 	{
 		Super::create();
@@ -60,7 +128,7 @@ namespace Engine
 			Actor* actor = m_actors[index];
 			if (actor->is_playing())
 			{
-				m_actors[index]->update(dt);
+				call_actor_update(m_actors[index], dt);
 			}
 		}
 
@@ -101,7 +169,7 @@ namespace Engine
 
 		for (size_t index = 0; index < m_actors.size(); index++)
 		{
-			m_actors[index]->start_play();
+			call_actor_start_play(m_actors[index]);
 		}
 
 		m_is_playing = true;
@@ -115,7 +183,7 @@ namespace Engine
 
 		for (size_t index = 0; index < m_actors.size(); index++)
 		{
-			m_actors[index]->stop_play();
+			call_actor_stop_play(m_actors[index]);
 		}
 
 		m_is_playing = true;
@@ -135,7 +203,7 @@ namespace Engine
 			throw EngineException("Invalid class for actor!");
 		}
 
-		actor->spawned();
+		call_actor_spawned(actor);
 
 		{
 			SceneComponent* root = actor->scene_component();
@@ -150,7 +218,7 @@ namespace Engine
 
 		if (m_is_playing)
 		{
-			actor->start_play();
+			call_actor_start_play(actor);
 		}
 
 		m_actors.push_back(actor);
@@ -164,7 +232,7 @@ namespace Engine
 
 		if (!ignore_playing && actor->is_playing())
 		{
-			actor->stop_play();
+			call_actor_stop_play(actor);
 			// Perhaps the method will be called before World::update, so we skip one frame and only then delete the actor
 			DestroyActorInfo info;
 			info.actor		 = actor;
@@ -174,7 +242,7 @@ namespace Engine
 		}
 
 		unselect_actor(actor);
-		actor->destroyed();
+		call_actor_destroyed(actor);
 		actor->owner(nullptr);
 
 		for (size_t index = 0, count = m_actors.size(); index < count; ++index)

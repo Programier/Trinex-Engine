@@ -10,6 +10,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <Systems/engine_system.hpp>

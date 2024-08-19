@@ -16341,7 +16341,7 @@ void asCCompiler::PerformFunctionCall(int funcId, asCExprContext *ctx, bool isCo
 				ctx->bc.Call(asBC_Thiscall1, descr->id, argSize);
 			else
 			{
-				if( descr->objectType && descr->objectType->flags & asOBJ_APP_NATIVE)
+				if( objType && objType->flags & asOBJ_SCRIPT_OBJECT && descr->objectType && descr->objectType->flags & asOBJ_APP_NATIVE)
 					ctx->bc.Call(asBC_CALLINTF , descr->id, argSize);
 				else
 					ctx->bc.Call(asBC_CALLSYS , descr->id, argSize);

@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
+#include <ScriptEngine/script_function.hpp>
 
 class asIScriptEngine;
 
@@ -153,38 +154,37 @@ namespace Engine
 		class ScriptTypeInfo type_info() const;
 
 		// Method registration
-		ScriptClassRegistrar& method(const char* declaration, ScriptMethodPtr* method,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall);
-		ScriptClassRegistrar& method(const char* declaration, ScriptFuncPtr* function,
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall);
+		ScriptFunction method(const char* declaration, ScriptFuncPtr* function,
+							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
-		ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::ThisCall)
+		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
+							  ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
-		ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall)
+		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
+							  ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename... Args>
-		ScriptClassRegistrar& method(const char* declaration, ReturnType (*function_address)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+		ScriptFunction method(const char* declaration, ReturnType (*function_address)(Args...),
+							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
 		{
 			return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv);
 		}
 
-		ScriptClassRegistrar& static_function(const char* declaration, ScriptFuncPtr* function,
-											  ScriptCallConv conv = ScriptCallConv::CDecl);
+		ScriptFunction static_function(const char* declaration, ScriptFuncPtr* function,
+									   ScriptCallConv conv = ScriptCallConv::CDecl);
 
 		template<typename ReturnType, typename... Args>
-		ScriptClassRegistrar& static_function(const char* declaration, ReturnType (*function)(Args...),
-											  ScriptCallConv conv = ScriptCallConv::CDecl)
+		ScriptFunction static_function(const char* declaration, ReturnType (*function)(Args...),
+									   ScriptCallConv conv = ScriptCallConv::CDecl)
 		{
 			return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv);
 		}

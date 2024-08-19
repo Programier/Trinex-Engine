@@ -15,6 +15,7 @@
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_object.hpp>
 
 
@@ -53,17 +54,18 @@ namespace Engine
 
 	static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
 	{
-		registrar->method("const string& string_name() const", &Object::string_name)
-				.static_function("Package@ root_package()", &Object::root_package)
-				.method("string as_string() const", &Object::as_string)
-				.method("const Name& name() const", method_of<const Name&>(&Object::name))
-				.method("string opConv() const", &Object::as_string)
-				.method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
-						ScriptCallConv::CDeclObjFirst)
-				.method("Object@ postload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
-						ScriptCallConv::CDeclObjFirst)
-				.method("Class@ class_instance() const",
-						func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
+		registrar->method("const string& string_name() const", &Object::string_name);
+		registrar->static_function("Package@ root_package()", &Object::root_package);
+		registrar->method("string as_string() const", &Object::as_string);
+		registrar->method("const Name& name() const", method_of<const Name&>(&Object::name));
+		registrar->method("string opConv() const", &Object::as_string);
+		registrar->method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
+						  ScriptCallConv::CDeclObjFirst);
+		registrar->method("Object@ postload()",
+						  func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
+						  ScriptCallConv::CDeclObjFirst);
+		registrar->method("Class@ class_instance() const",
+						  func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
 	}
 
 

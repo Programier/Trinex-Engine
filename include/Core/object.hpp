@@ -7,12 +7,12 @@
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
-#include <ScriptEngine/registrar.hpp>
 
 namespace Engine
 {
 	class Package;
 	class Object;
+	class Class;
 	using MessageList = List<String>;
 
 

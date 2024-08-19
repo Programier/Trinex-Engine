@@ -5,9 +5,43 @@
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
+#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine
 {
+	static ScriptFunction script_actor_update;
+	static ScriptFunction script_actor_start_play;
+	static ScriptFunction script_actor_stop_play;
+	static ScriptFunction script_actor_spawned;
+	static ScriptFunction script_actor_destroyed;
+
+
+	const ScriptFunction& Actor::script_update_func()
+	{
+		return script_actor_update;
+	}
+
+	const ScriptFunction& Actor::script_start_play_func()
+	{
+		return script_actor_start_play;
+	}
+
+	const ScriptFunction& Actor::script_stop_play_func()
+	{
+		return script_actor_stop_play;
+	}
+
+	const ScriptFunction& Actor::script_spawned_func()
+	{
+		return script_actor_spawned;
+	}
+
+	const ScriptFunction& Actor::script_destroyed_func()
+	{
+		return script_actor_destroyed;
+	}
+
 	ActorComponent* Actor::create_component(Class* self, const Name& component_name)
 	{
 		if (self == nullptr)
@@ -188,6 +222,30 @@ namespace Engine
 		return static_cast<bool>(archive);
 	}
 
+	static void bind_to_scripts(ScriptClassRegistrar* registrar, Class*)
+	{
+		void (*update)(Actor*, float) = [](Actor* self, float dt) -> void { self->update(dt); };
+		void (*start_play)(Actor*)	  = [](Actor* self) -> void { self->start_play(); };
+		void (*stop_play)(Actor*)	  = [](Actor* self) -> void { self->stop_play(); };
+		void (*spawned)(Actor*)		  = [](Actor* self) -> void { self->spawned(); };
+		void (*destroyed)(Actor*)	  = [](Actor* self) -> void { self->destroyed(); };
+
+		script_actor_update		= registrar->method("void update(float dt)", update);
+		script_actor_start_play = registrar->method("void start_play()", start_play);
+		script_actor_stop_play	= registrar->method("void stop_play()", stop_play);
+		script_actor_spawned	= registrar->method("void spawned()", spawned);
+		script_actor_destroyed	= registrar->method("void destroyed()", destroyed);
+	}
+	
+	static void on_destroy()
+	{
+		script_actor_update.release();
+		script_actor_start_play.release();
+		script_actor_stop_play.release();
+		script_actor_spawned.release();
+		script_actor_destroyed.release();
+	}
+	
 	implement_engine_class(Actor, Class::IsScriptable)
 	{
 		Class* self		= This::static_class_instance();
@@ -196,5 +254,9 @@ namespace Engine
 											Property::Flag::IsConst);
 		components->element_name_callback(default_array_object_element_name);
 		self->add_property(components);
+		self->script_registration_callback = bind_to_scripts;
+		ScriptEngine::on_terminate.push(on_destroy);
 	}
+
+	
 }// namespace Engine

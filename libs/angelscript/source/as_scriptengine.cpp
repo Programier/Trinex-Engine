@@ -2987,7 +2987,10 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 		func->objectType->beh.copy = func->id;
 		func->AddRefInternal();
 	}
-
+	
+	if(objectType->flags & asOBJ_APP_NATIVE)
+		func->ComputeSignatureId();
+	
 	// Return the function id as success
 	return func->id;
 }

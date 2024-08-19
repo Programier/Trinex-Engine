@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-#define SCRIPT_CALL(call) trinex_always_check(call, #call)
+#define SCRIPT_CHECK(call) trinex_always_check(call, #call)
 
 	static FORCE_INLINE asIScriptEngine* script_engine()
 	{
@@ -230,41 +230,41 @@ namespace Engine
 		return ScriptEngine::type_info_by_name(m_class_base_name);
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
+	ScriptFunction ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
-		return *this;
+		int r = script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+													  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv));
+		SCRIPT_CHECK(r >= 0);
+		return script_engine()->GetFunctionById(r);
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
+	ScriptFunction ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
-		return *this;
+		int r = script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+													  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv));
+		SCRIPT_CHECK(r >= 0);
+		return script_engine()->GetFunctionById(r);
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function,
-																ScriptCallConv conv)
+	ScriptFunction ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_class_name);
-		ScriptEngine::register_function(declaration, function, conv);
-		return *this;
+		return ScriptEngine::register_function(declaration, function, conv);
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, size_t offset)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectProperty(m_class_base_name.c_str(), declaration, offset) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterObjectProperty(m_class_base_name.c_str(), declaration, offset) >= 0);
 		return *this;
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::static_property(const char* declaration, void* prop)
 	{
 		ScriptNamespaceScopedChanger ns(m_class_name);
-		SCRIPT_CALL(script_engine()->RegisterGlobalProperty(declaration, prop) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterGlobalProperty(declaration, prop) >= 0);
 		return *this;
 	}
 
@@ -272,9 +272,9 @@ namespace Engine
 													   ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-															 *reinterpret_cast<asSFuncPtr*>(function),
-															 create_call_conv(conv)) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+															  *reinterpret_cast<asSFuncPtr*>(function),
+															  create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
@@ -282,9 +282,9 @@ namespace Engine
 													   ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-															 *reinterpret_cast<asSFuncPtr*>(method),
-															 create_call_conv(conv)) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+															  *reinterpret_cast<asSFuncPtr*>(method),
+															  create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
@@ -296,7 +296,7 @@ namespace Engine
 		{
 			prepare_namespace();
 
-			SCRIPT_CALL(script_engine()->RegisterEnum(m_enum_base_name.c_str()) >= 0);
+			SCRIPT_CHECK(script_engine()->RegisterEnum(m_enum_base_name.c_str()) >= 0);
 			release_namespace();
 		}
 	}
@@ -304,16 +304,17 @@ namespace Engine
 	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+														   *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+														   *reinterpret_cast<asSFuncPtr*>(function),
+														   create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
@@ -324,20 +325,20 @@ namespace Engine
 	ScriptEnumRegistrar& ScriptEnumRegistrar::prepare_namespace()
 	{
 		m_current_namespace = script_engine()->GetDefaultNamespace();
-		SCRIPT_CALL(script_engine()->SetDefaultNamespace(m_enum_namespace_name.c_str()) >= 0);
+		SCRIPT_CHECK(script_engine()->SetDefaultNamespace(m_enum_namespace_name.c_str()) >= 0);
 		return *this;
 	}
 
 	ScriptEnumRegistrar& ScriptEnumRegistrar::release_namespace()
 	{
-		SCRIPT_CALL(script_engine()->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
+		SCRIPT_CHECK(script_engine()->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
 		return *this;
 	}
 
 	ScriptEnumRegistrar& ScriptEnumRegistrar::set(const char* name, int_t value)
 	{
 		prepare_namespace();
-		SCRIPT_CALL(script_engine()->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
+		SCRIPT_CHECK(script_engine()->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
 		release_namespace();
 		return *this;
 	}

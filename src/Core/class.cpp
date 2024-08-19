@@ -5,6 +5,7 @@
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
+#include <ScriptEngine/registrar.hpp>
 
 namespace Engine
 {
@@ -215,16 +216,16 @@ namespace Engine
 	{
 		ScriptClassRegistrar::reference_class("Engine::Class");
 		ScriptBindingsInitializeController().push([]() {
-			ScriptClassRegistrar::existing_class("Engine::Class")
-					.method("Class@ parent() const", &Class::parent)
-					.method("const string& name() const", &Class::name)
-					.method("const string& namespace_name() const", &Class::namespace_name)
-					.method("const string& base_name() const", &Class::base_name)
-					.static_function("Class@ static_find(const string& in)", Class::static_find)
-					.method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a))
-					.method("uint64 sizeof_class() const", &Class::sizeof_class)
-					.method("bool is_binded_to_script() const", &Class::is_scriptable)
-					.method("Object@ singletone_instance() const", &Class::singletone_instance);
+			auto reg = ScriptClassRegistrar::existing_class("Engine::Class");
+			reg.method("Class@ parent() const", &Class::parent);
+			reg.method("const string& name() const", &Class::name);
+			reg.method("const string& namespace_name() const", &Class::namespace_name);
+			reg.method("const string& base_name() const", &Class::base_name);
+			reg.static_function("Class@ static_find(const string& in)", Class::static_find);
+			reg.method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a));
+			reg.method("uint64 sizeof_class() const", &Class::sizeof_class);
+			reg.method("bool is_binded_to_script() const", &Class::is_scriptable);
+			reg.method("Object@ singletone_instance() const", &Class::singletone_instance);
 		});
 	}
 

@@ -351,14 +351,14 @@ namespace Engine
 				throw EngineException("The script class does not contain a default constructor");
 			}
 		}
-
-		auto ctx = ScriptContext::context();
-		ctx->Prepare(factory);
-		ctx->Execute();
-		Object* obj = *reinterpret_cast<Object**>(ctx->GetAddressOfReturnValue());
-		ctx->Unprepare();
-
-
+		
+		auto obj = ScriptContext::execute(factory).address_as<Object>();
+		
+		if(obj == nullptr)
+		{
+			throw EngineException("Failed to create new instance");
+		}
+		
 		if (!name.empty() || owner)
 		{
 			obj->rename(name, owner);

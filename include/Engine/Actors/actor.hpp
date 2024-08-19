@@ -6,6 +6,7 @@
 namespace Engine
 {
 	class ActorComponent;
+	class ScriptFunction;
 
 	class ENGINE_EXPORT Actor : public Object
 	{
@@ -31,6 +32,12 @@ namespace Engine
 		Actor& remove_component(ActorComponent* component);
 
 	public:
+		static const ScriptFunction& script_update_func();
+		static const ScriptFunction& script_start_play_func();
+		static const ScriptFunction& script_stop_play_func();
+		static const ScriptFunction& script_spawned_func();
+		static const ScriptFunction& script_destroyed_func();
+
 		ActorComponent* create_component(Class* self, const Name& name = {});
 
 		template<typename ComponentType>
