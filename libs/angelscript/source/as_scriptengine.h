@@ -207,12 +207,9 @@ public:
 	// Exception handling
 	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv);
 	
-	static void StaticRegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot);
+	static void StaticRegisterScriptObjectType(const class asCScriptObject* object, const class asCObjectType* ot);
 	static void StaticUnregisterScriptObjectType(const class asCScriptObject* object);
-	static class asCObjectType* StaticFindScriptObjectType(const class asCScriptObject* object);
-	void RegisterScriptObjectType(const class asIScriptObject* object, class asITypeInfo* ot);
-	void UnregisterScriptObjectType(const class asIScriptObject* object);
-	class asITypeInfo* FindScriptObjectType(const class asIScriptObject* object);
+	static const class asCObjectType* StaticFindScriptObjectType(const class asCScriptObject* object);
 
 //===========================================================
 // internal methods
@@ -236,10 +233,8 @@ public:
 
 	int VerifyVarTypeNotInFunction(asCScriptFunction *func);
 	
-	void *ScriptObjectAlloc(const asCObjectType *objType) const;
-	void ScriptObjectFree(void* obj, const asCObjectType *objType) const;
-	void *CallAlloc(const asCObjectType *objType) const;
-	void  CallFree(void *obj) const;
+	static void *CallAlloc(const asCObjectType *objType);
+	static void  CallFree(void *obj);
 
 	void *CallGlobalFunctionRetPtr(int func) const;
 	void *CallGlobalFunctionRetPtr(int func, void *param1) const;
@@ -377,7 +372,7 @@ public:
 	// This map is used to quickly find a property by its memory address
 	// It is used principally during building, cleanup, and garbage detection for script functions
 	asCMap<void*, asCGlobalProperty*> varAddressMap; // doesn't increase ref count
-	static std::unordered_map<const asCScriptObject*, asCObjectType*> objectTypeAddressMap;
+	static std::unordered_map<const asCScriptObject*, const asCObjectType*> objectTypeAddressMap;
 
 	// Stores all functions, i.e. registered functions, script functions, class methods, behaviours, etc.
 	asCArray<asCScriptFunction *> scriptFunctions;       // doesn't increase ref count

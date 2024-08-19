@@ -70,14 +70,9 @@ protected:
 	DECLARECRITICALSECTION(mutable lock)
 };
 
-struct asCScriptObjectData
+struct alignas(8) asCScriptObjectData
 {
 private:
-	mutable asCAtomic refCount;
-	mutable asBYTE    gcFlag:1;
-	mutable asBYTE    hasRefCountReachedZero:1;
-	bool              isDestructCalled;
-	
 	// Most script classes instances won't have neither the weakRefFlags nor
 	// userData so we only allocate this if requested. Even when used it is
 	// not something that will be accessed all the time so having the extra
@@ -88,7 +83,14 @@ private:
 		asCLockableSharedBool *weakRefFlag;
 		asCArray<asPWORD>      userData;
 	};
-	mutable SExtra *extra;
+	
+	asCObjectType*	  objectType;
+	mutable SExtra*	  extra;
+	
+	mutable asCAtomic refCount;
+	mutable asBYTE    gcFlag:1;
+	mutable asBYTE    hasRefCountReachedZero:1;
+	bool              isDestructCalled;
 	
 	friend class asCScriptObject;
 	friend class asIScriptObject;

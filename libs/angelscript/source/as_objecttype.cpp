@@ -42,6 +42,7 @@
 #include "as_objecttype.h"
 #include "as_configgroup.h"
 #include "as_scriptengine.h"
+#include "as_scriptobject.h"
 
 BEGIN_AS_NAMESPACE
 
@@ -51,8 +52,6 @@ asCObjectType::asCObjectType() : asCTypeInfo()
 
 	acceptValueSubType = true;
 	acceptRefSubType   = true;
-	userAllocFunc	   = nullptr;
-	userFreeFunc	   = nullptr;
 	nativeClassUserData = nullptr;
 
 #ifdef WIP_16BYTE_ALIGN
@@ -66,8 +65,6 @@ asCObjectType::asCObjectType(asCScriptEngine *in_engine) : asCTypeInfo(in_engine
 
 	acceptValueSubType = true;
 	acceptRefSubType = true;
-	userAllocFunc	   = nullptr;
-	userFreeFunc	   = nullptr;
 	nativeClassUserData = nullptr;
 
 #ifdef WIP_16BYTE_ALIGN
@@ -88,16 +85,6 @@ asITypeInfo *asCObjectType::GetChildFuncdef(asUINT index) const
 		return 0;
 
 	return childFuncDefs[index];
-}
-
-void asCObjectType::SetUserAllocFunction(void*(*callback)(const asITypeInfo* type, asUINT size))
-{
-	userAllocFunc = callback;
-}
-
-void asCObjectType::SetUserFreeFunction(void(*callback)(void* address, const asITypeInfo* type, asUINT size))
-{
-	userFreeFunc = callback;
 }
 
 void asCObjectType::SetNativeClassUserData(void* Data)
@@ -593,8 +580,8 @@ asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, 
 
 	asASSERT((size % alignment) == 0);
 #endif
-
-	prop->byteOffset = size;
+	
+	prop->byteOffset = size - sizeof(asCScriptObjectData);
 	size += propSize;
 
 	properties.PushLast(prop);

@@ -372,18 +372,8 @@ namespace Engine
 		auto script_object = reinterpret_cast<asIScriptObject*>(object);
 		script_object->Destroy();
 		std::destroy_at(object);
-
-		delete[] reinterpret_cast<byte*>(object);
-	}
-
-	static void* script_object_alloc(const asITypeInfo* info, asUINT size)
-	{
-		return new byte[size];
-	}
-
-	static void script_object_free(void* obj, const asITypeInfo* info, asUINT size)
-	{
-		delete[] reinterpret_cast<byte*>(obj);
+		
+		script_object->FreeObjectMemory();
 	}
 
 	bool Script::load_classes(asITypeInfo* info)
@@ -410,8 +400,6 @@ namespace Engine
 		Class* script_class = new Class(full_name, base_class, Class::IsScriptable);
 
 		info->SetNativeClassUserData(script_class);
-		info->SetUserAllocFunction(script_object_alloc);
-		info->SetUserFreeFunction(script_object_free);
 
 		script_class->script_type_info = info;
 		script_class->static_constructor(script_object_constructor);

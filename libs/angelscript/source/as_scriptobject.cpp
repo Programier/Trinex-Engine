@@ -334,12 +334,12 @@ void ScriptObject_ConstructUnitialized(asCObjectType *objType, asCScriptObject *
 
 asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 {
-	asCScriptEngine::StaticRegisterScriptObjectType(this, ot);
 	auto self = GetDataBlock();
 	
 	new(self)asCScriptObjectData();
 	ot->AddRef();
 	
+	self->objectType = ot;
 	self->refCount.set(1);
 	self->isDestructCalled = false;
 	self->extra = 0;
@@ -355,7 +355,7 @@ asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 	{
 		auto offset = GetScriptDataOffset();
 		asBYTE* mem = reinterpret_cast<asBYTE*>(this) + offset;
-		memset(mem, 0, ot->size - offset);
+		memset(mem, 0, ot->size - offset - sizeof(asCScriptObjectData));
 	}
 
 	if( doInitialize )
@@ -406,16 +406,8 @@ asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 void asCScriptObject::Destruct()
 {
 	// Call the destructor, which will also call the GCObject's destructor
-	this->~asCScriptObject();
-	
-	// Free the memory
-#ifndef WIP_16BYTE_ALIGN
-	userFree(this);
-#else
-	// Script object memory is allocated through asCScriptEngine::CallAlloc()
-	// This free call must match the allocator used in CallAlloc().
-	userFreeAligned(this);
-#endif
+	this->~asCScriptObject();	
+	asCScriptEngine::CallFree(this);
 }
 
 asIScriptObject::~asIScriptObject()
@@ -508,8 +500,6 @@ asIScriptObject::~asIScriptObject()
 		// Something is really wrong if the refCount is not 0 by now
 		asASSERT( self->refCount.get() == 0 );
 	}
-	
-	asCScriptEngine::StaticUnregisterScriptObjectType(reinterpret_cast<asCScriptObject*>(this));
 }
 
 asILockableSharedBool *asIScriptObject::GetWeakRefFlag() const
@@ -706,6 +696,11 @@ void asIScriptObject::Destroy()
 {
 	reinterpret_cast<asCScriptObject*>(this)->CallDestructor(objType());
 	this->~asIScriptObject();
+}
+
+void asIScriptObject::FreeObjectMemory()
+{
+	asCScriptEngine::CallFree(this);
 }
 
 void asCScriptObject::CallDestructor(asCObjectType* type)
@@ -1193,7 +1188,7 @@ void asCScriptObject::CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *in_o
 
 asCObjectType* asIScriptObject::objType() const
 {
-	return asCScriptEngine::StaticFindScriptObjectType(reinterpret_cast<const asCScriptObject*>(this));
+	return GetDataBlock()->objectType;
 }
 
 class asCObjectType* asIScriptObject::nativeObjType() const
@@ -1207,18 +1202,18 @@ class asCObjectType* asIScriptObject::nativeObjType() const
 asCScriptObjectData* asIScriptObject::GetDataBlock()
 {
 	auto mem = reinterpret_cast<asBYTE*>(this);
-	return reinterpret_cast<asCScriptObjectData*>(mem + GetNativeObjectSize());	
+	return reinterpret_cast<asCScriptObjectData*>(mem - sizeof(asCScriptObjectData));	
 }
 
 const asCScriptObjectData* asIScriptObject::GetDataBlock() const
 {
 	const auto mem = reinterpret_cast<const asBYTE*>(this);
-	return reinterpret_cast<const asCScriptObjectData*>(mem + GetNativeObjectSize());
+	return reinterpret_cast<const asCScriptObjectData*>(mem - sizeof(asCScriptObjectData));
 }
 
 asUINT asIScriptObject::GetScriptDataOffset() const
 {
-	return GetNativeObjectSize() + sizeof(asCScriptObjectData);
+	return GetNativeObjectSize();
 }
 
 asUINT asIScriptObject::GetNativeObjectSize() const

@@ -274,7 +274,7 @@ AS_API asIScriptEngine *asCreateScriptEngine(asDWORD version)
 
 } // extern "C"
 
-std::unordered_map<const asCScriptObject*, asCObjectType*> asCScriptEngine::objectTypeAddressMap;
+std::unordered_map<const asCScriptObject*, const asCObjectType*> asCScriptEngine::objectTypeAddressMap;
 
 // interface
 int asCScriptEngine::SetEngineProperty(asEEngineProp property, asPWORD value)
@@ -4794,33 +4794,7 @@ bool asCScriptEngine::CallGlobalFunctionRetBool(void *param1, void *param2, asSS
 	}
 }
 
-void *asCScriptEngine::ScriptObjectAlloc(const asCObjectType *objType) const
-{
-	if (objType->userAllocFunc != nullptr)
-	{
-		asUINT size = objType->size;
-		if( size & 0x3 )
-			size += 4 - (size & 0x3);
-		return objType->userAllocFunc(objType, size);
-	}
-	
-	return CallAlloc(objType);
-}
-
-void asCScriptEngine::ScriptObjectFree(void* obj, const asCObjectType *objType) const
-{
-	if (objType->userFreeFunc != nullptr)
-	{
-		asUINT size = objType->size;
-		if( size & 0x3 )
-			size += 4 - (size & 0x3);
-		objType->userFreeFunc(obj, objType, size);
-	}
-	
-	return CallFree(obj);
-}
-
-void *asCScriptEngine::CallAlloc(const asCObjectType *type) const
+void *asCScriptEngine::CallAlloc(const asCObjectType *type)
 {
 	// Allocate 4 bytes as the smallest size. Otherwise CallSystemFunction may try to
 	// copy a DWORD onto a smaller memory block, in case the object type is return in registers.
@@ -4829,24 +4803,41 @@ void *asCScriptEngine::CallAlloc(const asCObjectType *type) const
 	asUINT size = type->size;
 	if( size & 0x3 )
 		size += 4 - (size & 0x3);
+	
+	void* ptr = nullptr;
 
 #ifndef WIP_16BYTE_ALIGN
 #if defined(AS_DEBUG)
-	return ((asALLOCFUNCDEBUG_t)userAlloc)(size, __FILE__, __LINE__);
+	ptr = ((asALLOCFUNCDEBUG_t)userAlloc)(size, __FILE__, __LINE__);
 #else
-	return userAlloc(size);
+	ptr = userAlloc(size);
 #endif
 #else
 #if defined(AS_DEBUG)
-	return ((asALLOCALIGNEDFUNCDEBUG_t)userAllocAligned)(size, type->alignment, __FILE__, __LINE__);
+	ptr = ((asALLOCALIGNEDFUNCDEBUG_t)userAllocAligned)(size, type->alignment, __FILE__, __LINE__);
 #else
-	return userAllocAligned(size, type->alignment);
+	ptr = userAllocAligned(size, type->alignment);
 #endif
 #endif
+	
+	if(type->flags & asOBJ_SCRIPT_OBJECT)
+	{
+		ptr = reinterpret_cast<asBYTE*>(ptr) + sizeof(asCScriptObjectData);
+		StaticRegisterScriptObjectType(reinterpret_cast<const asCScriptObject*>(ptr), type);
+	}
+	return ptr;
 }
 
-void asCScriptEngine::CallFree(void *obj) const
+void asCScriptEngine::CallFree(void *obj)
 {
+	auto ot = StaticFindScriptObjectType(reinterpret_cast<asCScriptObject*>(obj));
+	
+	if(ot)
+	{
+		StaticUnregisterScriptObjectType(reinterpret_cast<asCScriptObject*>(obj));
+		obj = reinterpret_cast<asBYTE*>(obj) - sizeof(asCScriptObjectData);
+	}
+
 #ifndef WIP_16BYTE_ALIGN
 	userFree(obj);
 #else
@@ -6575,7 +6566,7 @@ int asCScriptEngine::SetTranslateAppExceptionCallback(asSFuncPtr callback, void 
 #endif
 }
 
-void asCScriptEngine::StaticRegisterScriptObjectType(const class asCScriptObject* object, class asCObjectType* ot)
+void asCScriptEngine::StaticRegisterScriptObjectType(const class asCScriptObject* object, const class asCObjectType* ot)
 {
 	if(object && ot)
 		objectTypeAddressMap.insert_or_assign(object, ot);		
@@ -6586,27 +6577,12 @@ void asCScriptEngine::StaticUnregisterScriptObjectType(const class asCScriptObje
 	objectTypeAddressMap.erase(object);
 }
 
-class asCObjectType* asCScriptEngine::StaticFindScriptObjectType(const class asCScriptObject* object)
+const class asCObjectType* asCScriptEngine::StaticFindScriptObjectType(const class asCScriptObject* object)
 {
 	auto it = objectTypeAddressMap.find(object);
 	if(it == objectTypeAddressMap.end())
 		return nullptr;
 	return it->second;
-}
-
-void asCScriptEngine::RegisterScriptObjectType(const class asIScriptObject* object, class asITypeInfo* ot)
-{
-	StaticRegisterScriptObjectType(reinterpret_cast<const asCScriptObject*>(object), CastToObjectType(reinterpret_cast<asCTypeInfo*>(ot)));	
-}
-
-void asCScriptEngine::UnregisterScriptObjectType(const class asIScriptObject* object)
-{
-	StaticUnregisterScriptObjectType(reinterpret_cast<const asCScriptObject*>(object));
-}
-
-class asITypeInfo* asCScriptEngine::FindScriptObjectType(const class asIScriptObject* object)
-{
-	return StaticFindScriptObjectType(reinterpret_cast<const asCScriptObject*>(object));
 }
 
 // internal

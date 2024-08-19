@@ -130,8 +130,6 @@ public:
 	// User data
 	void *SetUserData(void *data, asPWORD type);
 	void *GetUserData(asPWORD type) const;
-	void  SetUserAllocFunction(void*(*)(const asITypeInfo* type, asUINT size));
-	void  SetUserFreeFunction(void(*)(void* obj, const asITypeInfo* type, asUINT size));
 	void  SetNativeClassUserData(void* NativeClassUserData);
 	void* GetNativeClassUserData() const;
 

@@ -3120,7 +3120,7 @@ static const void *const dispatch_table[256] = {
 				m_regs.stackFramePointer = l_fp;
 
 				// Pre-allocate the memory
-				asDWORD *mem = (asDWORD*)m_engine->ScriptObjectAlloc(objType);
+				asDWORD *mem = (asDWORD*)m_engine->CallAlloc(objType);
 
 				// Pre-initialize the memory by calling the constructor for asCScriptObject
 				ScriptObject_Construct(objType, (asCScriptObject*)mem);
@@ -3232,14 +3232,7 @@ static const void *const dispatch_table[256] = {
 					else if( objType->flags & asOBJ_LIST_PATTERN )
 						m_engine->DestroyList((asBYTE*)(asPWORD)*a, objType);
 
-					if (objType->flags & asOBJ_SCRIPT_OBJECT)
-					{
-						m_engine->ScriptObjectFree((void*)(asPWORD)*a, objType);
-					}
-					else
-					{
-						m_engine->CallFree((void*)(asPWORD)*a);
-					}
+					m_engine->CallFree((void*)(asPWORD)*a);
 				}
 
 				// Clear the variable
