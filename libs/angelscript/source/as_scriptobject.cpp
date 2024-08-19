@@ -606,19 +606,7 @@ int asIScriptObject::AddRef() const
 	
 	if(ot->flags & asOBJ_NOCOUNT)
 		return 1;
-	
-	{
-		auto native = ot;
-		while(native && !(native->flags & asOBJ_APP_NATIVE))
-			native = native->derivedFrom;
 		
-		if(native)
-		{
-			native->engine->CallObjectMethod(const_cast<asIScriptObject*>(this), native->beh.addref);
-			return native->engine->CallObjectMethodRetInt(const_cast<asIScriptObject*>(this), native->beh.gcGetRefCount);
-		}
-	}
-	
 	// Warn in case the application tries to increase the refCount after it has reached zero.
 	// This may happen for example if the application calls a method on the class while it is
 	// being destroyed. The application shouldn't do this because it may cause application
@@ -1193,10 +1181,7 @@ asCObjectType* asIScriptObject::objType() const
 
 class asCObjectType* asIScriptObject::nativeObjType() const
 {
-	auto ot = objType();
-	while(ot && !(ot->flags & asOBJ_APP_NATIVE))
-		ot = ot->derivedFrom;
-	return ot;
+	return objType()->nativeTypeInfo;
 }
 
 asCScriptObjectData* asIScriptObject::GetDataBlock()

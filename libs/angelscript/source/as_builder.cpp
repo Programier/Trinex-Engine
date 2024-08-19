@@ -3348,18 +3348,39 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 	{
 		sClassDeclaration *decl = classDeclarations[n];
 		asCObjectType *ot = CastToObjectType(decl->typeInfo);
-		asCObjectType *native = ot->derivedFrom;
+		asCObjectType *base = ot->derivedFrom;
 		
-		while( native && !(native->flags & asOBJ_APP_NATIVE) )
-			native = native->derivedFrom;
-		
-		if( native )
+		if(base)
+		{
+			ot->nativeTypeInfo = (base->flags & asOBJ_APP_NATIVE) ? base : base->nativeTypeInfo;
+		}
+        
+		if( ot->nativeTypeInfo )
 		{
 			ot->flags |= asOBJ_IMPLICIT_HANDLE;
             
-			if(native->flags & asOBJ_NOCOUNT)
+			if(ot->nativeTypeInfo->flags & asOBJ_NOCOUNT)
 			{
-				ot->flags |= asOBJ_NOCOUNT;    
+				ot->flags |= asOBJ_NOCOUNT;
+				ot->flags &= ~asOBJ_GC;
+				
+				engine->scriptFunctions[ot->beh.addref]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.release]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.gcEnumReferences]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.gcGetFlag]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.gcGetRefCount]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.gcReleaseAllReferences]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.gcSetFlag]->ReleaseInternal();
+				engine->scriptFunctions[ot->beh.getWeakRefFlag]->ReleaseInternal();
+
+				ot->beh.addref                  = 0;
+				ot->beh.release                 = 0;
+				ot->beh.gcEnumReferences        = 0;
+				ot->beh.gcGetFlag               = 0;
+				ot->beh.gcGetRefCount           = 0;
+				ot->beh.gcReleaseAllReferences  = 0;
+				ot->beh.gcSetFlag               = 0;
+				ot->beh.getWeakRefFlag          = 0;
 			}
 		}
 		
@@ -3935,7 +3956,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 			if( decl->isExistingShared ) continue;
 	
 			asCObjectType *ot = CastToObjectType(decl->typeInfo);
-			if( ot->IsInterface() ) continue;
+			if( ot->IsInterface() || (ot->nativeTypeInfo && ot->nativeTypeInfo->flags & asOBJ_NOCOUNT)) continue;
 	
 			typesToValidate.PushLast(ot);
 		}

@@ -150,6 +150,7 @@ public:
 	asCArray<asCObjectType*>     interfaces;
 	asCArray<asUINT>             interfaceVFTOffsets;
 	asCObjectType *              derivedFrom;
+	asCObjectType *              nativeTypeInfo;
 	asCArray<asCScriptFunction*> virtualFunctionTable;
 
 	// Used for funcdefs declared as members of class.

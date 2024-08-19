@@ -53,6 +53,7 @@ asCObjectType::asCObjectType() : asCTypeInfo()
 	acceptValueSubType = true;
 	acceptRefSubType   = true;
 	nativeClassUserData = nullptr;
+	nativeTypeInfo = nullptr;
 
 #ifdef WIP_16BYTE_ALIGN
 	alignment  = 4;
@@ -66,6 +67,7 @@ asCObjectType::asCObjectType(asCScriptEngine *in_engine) : asCTypeInfo(in_engine
 	acceptValueSubType = true;
 	acceptRefSubType = true;
 	nativeClassUserData = nullptr;
+	nativeTypeInfo = nullptr;
 
 #ifdef WIP_16BYTE_ALIGN
 	alignment  = 4;
