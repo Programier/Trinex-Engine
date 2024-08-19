@@ -29,12 +29,24 @@ namespace Engine
 
 	bool PrimitiveComponent::is_visible() const
 	{
-		return m_is_visible;
+		if(m_is_visible)
+		{
+			if(auto owner_actor = actor())
+				return owner_actor->is_visible();
+			return true;
+		}
+		return false;
 	}
 
 	const AABB_3Df& PrimitiveComponent::bounding_box() const
 	{
 		return m_bounding_box;
+	}
+	
+	PrimitiveComponent& PrimitiveComponent::is_visible(bool visible)
+	{
+		m_is_visible = visible;
+		return *this;
 	}
 
 	PrimitiveComponent& PrimitiveComponent::start_play()

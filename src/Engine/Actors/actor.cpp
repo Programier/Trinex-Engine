@@ -7,6 +7,7 @@
 #include <Engine/world.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_object.hpp>
 
 namespace Engine
 {
@@ -143,6 +144,17 @@ namespace Engine
 		return *this;
 	}
 
+	bool Actor::is_visible() const
+	{
+		return m_is_visible;
+	}
+
+	Actor& Actor::is_visible(bool visible)
+	{
+		m_is_visible = visible;
+		return *this;
+	}
+
 	bool Actor::is_playing() const
 	{
 		return m_is_playing;
@@ -174,7 +186,19 @@ namespace Engine
 
 	Actor& Actor::destroyed()
 	{
-		stop_play();
+		if (m_is_playing)
+		{
+			if (class_instance()->is_native())
+			{
+				stop_play();
+			}
+			else
+			{
+				ScriptObject object(this);
+				object.execute(Actor::script_stop_play_func());
+			}
+		}
+
 		// Call destroy for each component
 		for (size_t index = 0, count = m_owned_components.size(); index < count; ++index)
 		{
@@ -236,7 +260,7 @@ namespace Engine
 		script_actor_spawned	= registrar->method("void spawned()", spawned);
 		script_actor_destroyed	= registrar->method("void destroyed()", destroyed);
 	}
-	
+
 	static void on_destroy()
 	{
 		script_actor_update.release();
@@ -245,7 +269,7 @@ namespace Engine
 		script_actor_spawned.release();
 		script_actor_destroyed.release();
 	}
-	
+
 	implement_engine_class(Actor, Class::IsScriptable)
 	{
 		Class* self		= This::static_class_instance();
@@ -254,9 +278,10 @@ namespace Engine
 											Property::Flag::IsConst);
 		components->element_name_callback(default_array_object_element_name);
 		self->add_property(components);
+		self->add_property(new BoolProperty("Is Visible", "If true, actor is visible in the scene", &This::m_is_visible));
 		self->script_registration_callback = bind_to_scripts;
 		ScriptEngine::on_terminate.push(on_destroy);
 	}
 
-	
+
 }// namespace Engine

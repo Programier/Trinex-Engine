@@ -16,6 +16,7 @@ namespace Engine
 		PropertiesMap& build_props_map(Struct* self);
 
 	public:
+		size_t row_index = 0;
 		CallBacks<void(Object*)> on_begin_render;
 
 		ImGuiObjectProperties();
@@ -27,7 +28,8 @@ namespace Engine
 
 		ImGuiObjectProperties& update(Object* object);
 		const PropertiesMap& properties_map(Struct* self);
-		void render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
+		ImGuiObjectProperties& render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
+		ImGuiObjectProperties& setup_next_row();
 		static bool collapsing_header(const void* id, const char* format, ...);
 		static const char* name();
 	};

@@ -30,6 +30,7 @@ namespace Engine
 	public:
 		PrimitiveComponent();
 		bool is_visible() const;
+		PrimitiveComponent& is_visible(bool visible);
 		const AABB_3Df& bounding_box() const;
 
 		PrimitiveComponent& start_play() override;

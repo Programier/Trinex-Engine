@@ -37,32 +37,35 @@ namespace Engine
 	private:
 		class World* m_world = nullptr;
 
+		Vector<EventSystemListenerID> m_event_system_listeners;
+		Identifier m_on_actor_select_callback_id   = 0;
+		Identifier m_on_actor_unselect_callback_id = 0;
 
 		EditorSceneRenderer m_renderer;
 		RenderStatistics m_statistics;
 		Flags<ShowFlags, BitMask> m_show_flags;
 		SceneView m_scene_view;
-		Vector<EventSystemListenerID> m_event_system_listeners;
 
-		class ContentBrowser* m_content_browser;
-		ImGuiObjectProperties* m_properties;
-		class SceneComponent* m_selected_scene_component = nullptr;
-
+		class ContentBrowser* m_content_browser = nullptr;
+		ImGuiObjectProperties* m_properties		= nullptr;
+		ImGuiLevelExplorer* m_level_explorer	= nullptr;
 
 		Pointer<CameraComponent> camera;
 		float m_camera_speed	 = 10.f;
 		Vector3D m_camera_move	 = {0, 0, 0};
 		int_t m_guizmo_operation = 0;
 		EditorState m_state;
+		
+		void on_actor_select(World* world, class Actor* actor);
+		void on_actor_unselect(World* world, class Actor* actor);
 
 	public:
 		EditorClient();
 
 		// Window manipulation
-		void on_content_browser_close();
-		void on_properties_window_close();
 		EditorClient& create_content_browser();
 		EditorClient& create_properties_window();
+		EditorClient& create_level_explorer();
 
 		ViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
@@ -75,7 +78,6 @@ namespace Engine
 		EditorClient& render_dock_window(float dt);
 		EditorClient& render_statistics(float dt);
 
-		void on_object_select(Object* object);
 		EditorClient& on_object_dropped(Object* object);
 		EditorClient& update_drag_and_drop();
 

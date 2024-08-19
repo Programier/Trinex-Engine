@@ -3,8 +3,11 @@
 #include <imgui.h>
 #include <theme.hpp>
 
-namespace Engine
+namespace Engine::EditorTheme
 {
+	ImVec4 table_row_color1 = ImVec4(0.10f, 0.10f, 0.15f, 1.00f);
+	ImVec4 table_row_color2 = ImVec4(0.08f, 0.08f, 0.12f, 1.00f);
+	
 	float editor_scale_factor()
 	{
 		return 1.0f;
@@ -14,7 +17,7 @@ namespace Engine
 	{
 		return Settings::ed_font_size;
 	}
-
+	
 	void initialize_theme(ImGuiContext* ctx)
 	{
 		// Initialize fonts
@@ -34,10 +37,10 @@ namespace Engine
 
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
-
-
+		
+		
 		ImGuiStyle& style = ImGui::GetStyle();
-
+		
 		ImVec4* colors						   = style.Colors;
 		colors[ImGuiCol_Text]				   = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
 		colors[ImGuiCol_TextDisabled]		   = ImVec4(0.24f, 0.24f, 0.29f, 1.00f);
@@ -85,8 +88,8 @@ namespace Engine
 		colors[ImGuiCol_DragDropTarget]		   = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
 		colors[ImGuiCol_NavHighlight]		   = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-
-
+		
+		
 		style.WindowRounding	= 4.0f;
 		style.ChildRounding		= 4.0f;
 		style.FrameRounding		= 4.0f;
@@ -94,14 +97,14 @@ namespace Engine
 		style.ScrollbarRounding = 4.0f;
 		style.GrabRounding		= 4.0f;
 		style.TabRounding		= 4.0f;
-
-
+		
+		
 		style.WindowBorderSize = 0.0f;
 		style.ChildBorderSize  = 0.0f;
 		style.PopupBorderSize  = 0.0f;
 		style.FrameBorderSize  = 0.0f;
 		style.TabBorderSize	   = 0.0f;
-
+		
 		style.AntiAliasedLines = true;
 		style.AntiAliasedFill  = true;
 

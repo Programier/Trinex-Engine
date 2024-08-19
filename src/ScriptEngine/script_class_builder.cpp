@@ -47,7 +47,7 @@ namespace Engine
 		{
 			auto factory = Strings::format(R"({}@ f(StringView name = "", Engine::Object owner = null))", name().to_string());
 			registrar.behave(ScriptClassBehave::Construct, "void f()", native_default_object_constructor);
-			registrar.behave(ScriptClassBehave::Construct, R"(void f(StringView name = "", Engine::Object owner = null))",
+			registrar.behave(ScriptClassBehave::Construct, R"(void f(StringView name, Engine::Object owner = null))",
 							 native_object_constructor);
 			registrar.behave(ScriptClassBehave::Factory, factory.c_str(), m_script_factory, ScriptCallConv::CDecl);
 		}

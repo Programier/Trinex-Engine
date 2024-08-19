@@ -50,6 +50,11 @@ namespace Engine
 	EditorClient::EditorClient() : m_show_flags(ShowFlags::DefaultFlags)
 	{}
 
+	EditorClient::~EditorClient()
+	{
+		unbind_window(true);
+	}
+
 	void EditorClient::unbind_window(bool destroying)
 	{
 		EventSystem* event_system = EventSystem::instance();
@@ -66,50 +71,27 @@ namespace Engine
 		m_state.window.window = nullptr;
 	}
 
-	void EditorClient::on_window_close(const Event& event)
-	{
-		if (event.window_id() == m_state.window.window->id())
-		{
-			unbind_window(false);
-		}
-	}
-
-	EditorClient::~EditorClient()
-	{
-		unbind_window(true);
-	}
-
-	void EditorClient::on_content_browser_close()
-	{
-		m_content_browser = nullptr;
-	}
-
-	void EditorClient::on_properties_window_close()
-	{
-		m_properties = nullptr;
-	}
-
 
 	EditorClient& EditorClient::create_content_browser()
 	{
 		m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
-		m_content_browser->on_close.push(std::bind(&EditorClient::on_content_browser_close, this));
-		m_content_browser->on_object_select.push(std::bind(&EditorClient::on_object_select, this, std::placeholders::_1));
+		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
 	EditorClient& EditorClient::create_properties_window()
 	{
 		m_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
-		m_properties->on_close.push(std::bind(&EditorClient::on_properties_window_close, this));
-
-		if (m_content_browser)
-		{
-			on_object_select(m_content_browser->selected_object);
-		}
+		m_properties->on_close.push([this]() { m_properties = nullptr; });
 		return *this;
 	}
 
+	EditorClient& EditorClient::create_level_explorer()
+	{
+		m_level_explorer = ImGuiRenderer::Window::current()->window_list.create<ImGuiLevelExplorer>(m_world);
+		m_level_explorer->on_close.push([this]() { m_level_explorer = nullptr; });
+		return *this;
+	}
 
 	ViewportClient& EditorClient::on_bind_viewport(class RenderViewport* viewport)
 	{
@@ -118,7 +100,7 @@ namespace Engine
 		{
 			throw EngineException("Cannot bind client to non-window viewport!");
 		}
-		window->imgui_initialize(initialize_theme);
+		window->imgui_initialize(EditorTheme::initialize_theme);
 
 		m_state.window.window		   = window;
 		m_state.window.render_viewport = viewport;
@@ -127,13 +109,22 @@ namespace Engine
 		String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
 		window->title(new_title);
 		render_thread()->wait_all();
+
 		EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
+		m_world						  = World::new_system<World>();
+		m_on_actor_select_callback_id = m_world->on_actor_select.push(
+				std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
+		m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
+				std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
+		m_renderer.scene = m_world->scene();
+		m_world->start_play();
 
 		ImGuiRenderer::Window* prev_window = ImGuiRenderer::Window::current();
 		ImGuiRenderer::Window::make_current(m_state.window.imgui_window);
 
 		create_content_browser();
 		create_properties_window();
+		create_level_explorer();
 
 		ImGuiRenderer::Window::make_current(prev_window);
 
@@ -154,31 +145,45 @@ namespace Engine
 				EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
 				EventType::WindowClose, std::bind(&EditorClient::on_window_close, this, std::placeholders::_1)));
-
-
-		m_world			 = World::new_system<World>();
-		m_renderer.scene = m_world->scene();
-		m_world->start_play();
 		return *this;
 	}
 
 	ViewportClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
 	{
+		m_world->on_actor_select.remove(m_on_actor_select_callback_id);
+		m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
+
 		auto& list = m_state.window.imgui_window->window_list;
 		list.close_all_windows();
-
 		unbind_window(false);
 		return *this;
 	}
 
-	void EditorClient::on_object_select(Object* object)
+	void EditorClient::on_window_close(const Event& event)
+	{
+		if (event.window_id() == m_state.window.window->id())
+		{
+			unbind_window(false);
+		}
+	}
+
+	void EditorClient::on_actor_select(World* world, class Actor* actor)
 	{
 		if (m_properties)
 		{
-			m_properties->update(object);
+			m_properties->update(actor);
 		}
+	}
 
-		m_selected_scene_component = Object::instance_cast<SceneComponent>(object);
+	void EditorClient::on_actor_unselect(World* world, class Actor* actor)
+	{
+		if (m_properties)
+		{
+			if(m_properties->object() == actor || actor == nullptr)
+			{
+				m_properties->update(nullptr);
+			}
+		}
 	}
 
 	EditorClient& EditorClient::update_drag_and_drop()
@@ -309,11 +314,15 @@ namespace Engine
 			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
-			auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
-			auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
+			auto dock_id_right		= ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
+			auto dock_id_right_up	= ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
+			auto dock_id_right_down = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
+
+			auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow(ContentBrowser::name(), dock_id_down);
-			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
+			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right_up);
+			ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::name(), dock_id_right_down);
 			ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport Title").c_str(), dock_id);
 
 			ImGui::DockBuilderFinish(dock_id);
@@ -430,7 +439,7 @@ namespace Engine
 
 	EditorClient& EditorClient::render_viewport_menu()
 	{
-		const float height			 = 24.f * editor_scale_factor();
+		const float height			 = 24.f * EditorTheme::editor_scale_factor();
 		ImVec2 screen_pos			 = ImGui::GetCursorScreenPos();
 		static auto render_separator = []() {
 			ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));
@@ -766,7 +775,6 @@ namespace Engine
 			{
 				m_world->unselect_actors();
 				m_world->select_actor(actor);
-				on_object_select(actor);
 			}
 		}
 		else

@@ -24,7 +24,7 @@ namespace Engine
 			object.execute(Actor::script_update_func(), dt);
 		}
 	}
-	
+
 	static FORCE_INLINE void call_actor_start_play(Actor* self)
 	{
 		if (self->class_instance()->is_native())
@@ -37,7 +37,7 @@ namespace Engine
 			object.execute(Actor::script_start_play_func());
 		}
 	}
-	
+
 	static FORCE_INLINE void call_actor_stop_play(Actor* self)
 	{
 		if (self->class_instance()->is_native())
@@ -50,7 +50,7 @@ namespace Engine
 			object.execute(Actor::script_stop_play_func());
 		}
 	}
-	
+
 	static FORCE_INLINE void call_actor_spawned(Actor* self)
 	{
 		if (self->class_instance()->is_native())
@@ -63,7 +63,7 @@ namespace Engine
 			object.execute(Actor::script_spawned_func());
 		}
 	}
-	
+
 	static FORCE_INLINE void call_actor_destroyed(Actor* self)
 	{
 		if (self->class_instance()->is_native())
@@ -76,8 +76,8 @@ namespace Engine
 			object.execute(Actor::script_destroyed_func());
 		}
 	}
-	
-	
+
+
 	World& World::create()
 	{
 		Super::create();
@@ -242,6 +242,10 @@ namespace Engine
 		}
 
 		unselect_actor(actor);
+		
+		if(actor->is_playing())
+			call_actor_stop_play(actor);
+		
 		call_actor_destroyed(actor);
 		actor->owner(nullptr);
 
@@ -269,18 +273,24 @@ namespace Engine
 
 	World& World::select_actor(Actor* actor)
 	{
-		if (actor->world() == this)
+		if (actor->world() == this && !is_selected(actor))
 		{
 			m_selected_actors.insert(actor);
 			actor->actor_flags(Actor::Selected, true);
+			on_actor_select(this, actor);
 		}
 		return *this;
 	}
 
 	World& World::unselect_actor(Actor* actor)
 	{
-		m_selected_actors.erase(actor);
-		actor->actor_flags(Actor::Selected, false);
+		if (is_selected(actor))
+		{
+			m_selected_actors.erase(actor);
+			actor->actor_flags(Actor::Selected, false);
+
+			on_actor_unselect(this, actor);
+		}
 		return *this;
 	}
 
@@ -307,6 +317,7 @@ namespace Engine
 		for (auto& selected : m_selected_actors)
 		{
 			selected->actor_flags(Actor::Selected, false);
+			on_actor_unselect(this, selected);
 		}
 		m_selected_actors.clear();
 		return *this;
@@ -319,7 +330,24 @@ namespace Engine
 
 	bool World::is_selected(Actor* actor) const
 	{
-		return actor->actor_flags.has_all(Actor::Selected);
+		return actor->world() == this && actor->actor_flags.has_all(Actor::Selected);
+	}
+
+	const Vector<class Actor*>& World::actors() const
+	{
+		return m_actors;
+	}
+
+	size_t World::actors_count() const
+	{
+		return m_actors.size();
+	}
+
+	class Actor* World::actor_by_index(size_t index) const
+	{
+		if (index >= m_actors.size())
+			return nullptr;
+		return m_actors[index];
 	}
 
 	World::~World()

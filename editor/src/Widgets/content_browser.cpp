@@ -328,7 +328,7 @@ namespace Engine
 
 	void ContentBrowser::render_content_window()
 	{
-		const ImVec2 item_size = ImVec2(100, 100) * editor_scale_factor();
+		const ImVec2 item_size = ImVec2(100, 100) * EditorTheme::editor_scale_factor();
 
 		ImGui::Begin("##ContentBrowserItems", nullptr, ImGuiWindowFlags_MenuBar);
 

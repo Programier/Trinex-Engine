@@ -15,6 +15,7 @@
 #include <imfilebrowser.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <theme.hpp>
 
 
 namespace Engine
@@ -464,7 +465,7 @@ namespace Engine
 
 			for (size_t i = 0; i < count;)
 			{
-				ImGui::TableNextRow();
+				window->setup_next_row();
 				ImGui::TableSetColumnIndex(2);
 
 				ImGui::PushID(i);
@@ -607,7 +608,9 @@ namespace Engine
 
 			if (group != Name::none)
 			{
-				ImGui::TableNextRow();
+				window->setup_next_row();
+				++window->row_index;
+
 				open = props_collapsing_header(group.c_str(), group.c_str());
 				ImGui::Indent(Settings::ed_collapsing_indent);
 			}
@@ -616,7 +619,7 @@ namespace Engine
 			{
 				for (auto& prop : props)
 				{
-					ImGui::TableNextRow();
+					window->setup_next_row();
 					if (render_property(window, object, prop, editable))
 						has_changed_props = true;
 				}
@@ -665,6 +668,7 @@ namespace Engine
 				m_object->apply_changes();
 			}
 			ImGui::Separator();
+			row_index = 0;
 			::Engine::render_struct_properties(this, m_object, m_object->class_instance(), true, false);
 		}
 		ImGui::End();
@@ -729,9 +733,21 @@ namespace Engine
 		return map;
 	}
 
-	void ImGuiObjectProperties::render_struct_properties(void* object, class Struct* struct_class, bool editable)
+	ImGuiObjectProperties& ImGuiObjectProperties::render_struct_properties(void* object, class Struct* struct_class,
+																		   bool editable)
 	{
 		::Engine::render_struct_properties(this, object, struct_class, editable, true);
+		return *this;
+	}
+
+	ImGuiObjectProperties& ImGuiObjectProperties::setup_next_row()
+	{
+		ImGui::TableNextRow();
+		ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+							   !(row_index % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
+												: ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
+		++row_index;
+		return *this;
 	}
 
 	bool ImGuiObjectProperties::collapsing_header(const void* id, const char* format, ...)

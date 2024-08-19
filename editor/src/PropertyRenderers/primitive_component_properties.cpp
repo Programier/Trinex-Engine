@@ -10,13 +10,14 @@ namespace Engine
 	{
 		PrimitiveComponent* component = reinterpret_cast<PrimitiveComponent*>(object);
 
-		ImGui::TableNextRow();
+		window->setup_next_row();
+
 		if (component && window->collapsing_header(reinterpret_cast<const void*>(&renderer), "editor/Bounds"_localized))
 		{
 			AABB_3Df bounds = component->bounding_box();
 			ImGui::Indent(Settings::ed_collapsing_indent);
 
-			ImGui::TableNextRow();
+			window->setup_next_row();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("Min");
 
@@ -26,7 +27,7 @@ namespace Engine
 			ImGui::SetNextItemWidth(item_width);
 			ImGui::InputFloat3("##MinValue", const_cast<float*>(&bounds.min().x), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
-			ImGui::TableNextRow();
+			window->setup_next_row();
 			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("Max");
 

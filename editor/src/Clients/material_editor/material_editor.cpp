@@ -127,8 +127,8 @@ namespace Engine
 		{
 			throw EngineException("Cannot bind client to non-window viewport!");
 		}
-
-		window->imgui_initialize(initialize_theme);
+		
+		window->imgui_initialize(EditorTheme::initialize_theme);
 		String new_title = Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str());
 		window->title(new_title);
 

@@ -26,6 +26,7 @@ namespace Engine
 
 		bool m_is_playing		  = false;
 		bool m_is_being_destroyed = false;
+		bool m_is_visible		  = true;
 
 	protected:
 		Actor& add_component(ActorComponent* component);
@@ -53,7 +54,9 @@ namespace Engine
 		virtual Actor& destroyed();
 		Actor& destroy();
 		Actor& update_drawing_data();
-
+		
+		bool is_visible() const;
+		Actor& is_visible(bool visible);
 		bool is_playing() const;
 		bool is_selected() const;
 

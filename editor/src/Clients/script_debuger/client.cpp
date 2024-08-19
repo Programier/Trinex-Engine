@@ -198,8 +198,8 @@ namespace Engine
 		if (m_window == nullptr)
 			return *this;
 		m_viewport = viewport;
-
-		m_window->imgui_initialize(initialize_theme);
+		
+		m_window->imgui_initialize(EditorTheme::initialize_theme);
 		m_imgui_window = m_window->imgui_window();
 
 		m_window->title("Script Debugger");

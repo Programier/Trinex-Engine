@@ -26,6 +26,9 @@ namespace Engine
 		World& destroy_all_actors();
 
 	public:
+		CallBacks<void(World*, Actor*)> on_actor_select;
+		CallBacks<void(World*, Actor*)> on_actor_unselect;
+		
 		World& create() override;
 		World& wait() override;
 		World& update(float dt) override;
@@ -45,6 +48,10 @@ namespace Engine
 		World& unselect_actors();
 		const TreeSet<Actor*>& selected_actors() const;
 		bool is_selected(Actor* actor) const;
+		
+		const Vector<class Actor*>& actors() const;
+		size_t actors_count() const;
+		class Actor* actor_by_index(size_t index) const;
 		~World();
 
 		static World* global();

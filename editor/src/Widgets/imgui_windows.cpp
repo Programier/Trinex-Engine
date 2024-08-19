@@ -3,6 +3,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/package.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
+#include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
@@ -486,5 +487,70 @@ namespace Engine
 	const char* ImGuiSpawnNewActor::name()
 	{
 		return "editor/Spawn Actor"_localized;
+	}
+
+	ImGuiLevelExplorer::ImGuiLevelExplorer(World* world) : m_world(world)
+	{}
+
+	bool ImGuiLevelExplorer::render(RenderViewport* viewport)
+	{
+		bool is_open = true;
+
+		if (ImGui::Begin(name(), &is_open))
+		{
+			ImGui::BeginTable("##LevelTable", 3, ImGuiTableFlags_Resizable);
+
+			ImGui::TableSetupColumn("editor/Visibility"_localized);
+			ImGui::TableSetupColumn("editor/Name"_localized);
+			ImGui::TableSetupColumn("editor/Class"_localized);
+			ImGui::TableHeadersRow();
+
+			if (m_world)
+			{
+				for (size_t i = 0, count = m_world->actors_count(); i < count; ++i)
+				{
+					if (Actor* actor = m_world->actor_by_index(i))
+					{
+						ImGui::PushID(i);
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+
+						ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+											   !(i % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
+														: ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
+
+						bool is_visible = actor->is_visible();
+					
+						if (ImGui::Checkbox("###Visible", &is_visible))
+						{
+							actor->is_visible(is_visible);
+						}
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%s", actor->is_noname() ? "No Name" : actor->name().c_str());
+
+						ImGui::TableNextColumn();
+						
+						if(ImGui::Selectable(actor->class_instance()->base_name().c_str(), m_world->is_selected(actor), ImGuiSelectableFlags_SpanAllColumns))
+						{
+							m_world->select_actor(actor);
+						}
+						
+						ImGui::PopID();
+					}
+				}
+			}
+
+			ImGui::EndTable();
+		}
+
+		ImGui::End();
+
+		return is_open;
+	}
+
+	const char* ImGuiLevelExplorer::name()
+	{
+		return "editor/Level Explorer"_localized;
 	}
 }// namespace Engine

@@ -151,4 +151,14 @@ namespace Engine
 
 		~ImGuiSpawnNewActor();
 	};
+
+	class ImGuiLevelExplorer : public ImGuiRenderer::ImGuiAdditionalWindow
+	{
+		Pointer<World> m_world;
+
+	public:
+		ImGuiLevelExplorer(World* world);
+		bool render(RenderViewport* viewport) override;
+		static const char* name();
+	};
 }// namespace Engine

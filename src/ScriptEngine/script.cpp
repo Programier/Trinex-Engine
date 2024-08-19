@@ -351,17 +351,17 @@ namespace Engine
 				throw EngineException("The script class does not contain a default constructor");
 			}
 		}
-		
+
 		auto obj = ScriptContext::execute(factory).address_as<Object>();
-		
-		if(obj == nullptr)
+
+		if (obj == nullptr)
 		{
 			throw EngineException("Failed to create new instance");
 		}
-		
+
 		if (!name.empty() || owner)
 		{
-			obj->rename(name, owner);
+			obj->rename(name.empty() ? obj->name().to_string() : name, owner);
 		}
 
 		return obj;
@@ -372,7 +372,7 @@ namespace Engine
 		auto script_object = reinterpret_cast<asIScriptObject*>(object);
 		script_object->Destroy();
 		std::destroy_at(object);
-		
+
 		script_object->FreeObjectMemory();
 	}
 

@@ -388,7 +388,6 @@ namespace Engine
 		return !m_name.is_valid();
 	}
 
-
 	ENGINE_EXPORT const Package* root_package()
 	{
 		return m_root_package;
