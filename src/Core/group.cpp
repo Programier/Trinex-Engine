@@ -71,8 +71,7 @@ namespace Engine
 		const char* separator_pos = nullptr;
 		Group* current			  = root();
 
-		while (current &&
-			   (separator_pos = Strings::strnstr(name, name_end - name, separator.c_str(), separator.length())))
+		while (current && (separator_pos = Strings::strnstr(name, name_end - name, separator.c_str(), separator.length())))
 		{
 			current = current->find_subgroup(name, separator_pos - name, create);
 			name	= separator_pos + separator.length();

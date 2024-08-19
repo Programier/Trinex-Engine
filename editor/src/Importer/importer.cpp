@@ -23,13 +23,12 @@ namespace Engine::Importer
 	}
 
 
-	static void load_static_meshes(Package* package, const aiScene* scene, const aiMesh* mesh,
-								   const Transform& transform)
+	static void load_static_meshes(Package* package, const aiScene* scene, const aiMesh* mesh, const Transform& transform)
 	{
 		if (package->contains_object(mesh->mName.C_Str()))
 		{
-			error_log("Importer", "Cannot load mesh '%s', because package '%s' already contains object '%'",
-					  mesh->mName.C_Str(), package->name().c_str(), mesh->mName.C_Str());
+			error_log("Importer", "Cannot load mesh '%s', because package '%s' already contains object '%'", mesh->mName.C_Str(),
+					  package->name().c_str(), mesh->mName.C_Str());
 			return;
 		}
 
@@ -194,9 +193,8 @@ namespace Engine::Importer
 		material.policy		   = policy_id(Name::color_scene_rendering);
 		material.surface_index = 0;
 
-		static_mesh->bounds =
-				AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))
-						.apply_transform(model);
+		static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))
+									  .apply_transform(model);
 		static_mesh->init_resources();
 	}
 

@@ -195,8 +195,7 @@ namespace Engine
 	ColorSceneRenderer::ColorSceneRenderer() : m_view_mode(ViewMode::Lit)
 	{
 		m_clear_layer = root_layer()->create_next(Name::clear_render_targets);
-		m_clear_layer->on_begin_render.push_back(
-				declare_rendering_function() { SceneRenderTargets::instance()->clear(); });
+		m_clear_layer->on_begin_render.push_back(declare_rendering_function() { SceneRenderTargets::instance()->clear(); });
 
 
 		m_depth_layer = m_clear_layer->create_next<DepthRenderingLayer>(Name::depth_pass);

@@ -12,8 +12,8 @@
 
 namespace Engine
 {
-#define check_info(return_value)                                                                                       \
-	if (m_info == nullptr)                                                                                             \
+#define check_info(return_value)                                                                                                 \
+	if (m_info == nullptr)                                                                                                       \
 	return return_value
 
 
@@ -244,8 +244,7 @@ namespace Engine
 	{
 		check_info(false);
 		const char* c_name = nullptr;
-		int_t res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset,
-										is_reference);
+		int_t res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset, is_reference);
 
 		if (name)
 		{

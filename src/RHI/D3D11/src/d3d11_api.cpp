@@ -60,8 +60,8 @@ namespace Engine
 		trinex_always_check(m_dxgi_adapter, "GPU adapter not found");
 
 		D3D_FEATURE_LEVEL max_feature_level = D3D_FEATURE_LEVEL_11_0;
-		result = D3D11CreateDevice(m_dxgi_adapter, driver_type, nullptr, device_flags, &max_feature_level, 1,
-								   D3D11_SDK_VERSION, &m_device, &m_feature_level, &m_context);
+		result = D3D11CreateDevice(m_dxgi_adapter, driver_type, nullptr, device_flags, &max_feature_level, 1, D3D11_SDK_VERSION,
+								   &m_device, &m_feature_level, &m_context);
 		trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
 
 		m_global_uniform_buffer.initialize();
@@ -214,8 +214,7 @@ namespace Engine
 		return *this;
 	}
 
-	D3D11& D3D11::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-										 size_t instances)
+	D3D11& D3D11::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
 	{
 		prepare_draw();
 		m_context->DrawIndexedInstanced(indices_count, instances, indices_offset, vertices_offset, 0);

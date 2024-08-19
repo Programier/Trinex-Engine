@@ -254,8 +254,8 @@ namespace Engine
 					builder.begin_input_pin(input->id());
 					ed::PinPivotAlignment({0.5, 0.5f});
 					const VisualMaterialGraph::PinType type = input->node()->in_pin_type(input);
-					BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle,
-										   input->has_links(), pin_colors.at(type));
+					BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->has_links(),
+										   pin_colors.at(type));
 					ImGui::SetItemTooltip("%s", pin_type_names.at(type));
 					builder.end_input_pin();
 
@@ -305,8 +305,8 @@ namespace Engine
 				builder.begin_output_pin(output->id());
 				ed::PinPivotAlignment({0.9, 0.5f});
 				const VisualMaterialGraph::PinType type = output->node()->out_pin_type(output);
-				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle,
-									   output->has_links(), pin_colors.at(type));
+				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
+									   pin_colors.at(type));
 				ImGui::SetItemTooltip("%s", pin_type_names.at(type));
 				builder.end_output_pin();
 
@@ -343,8 +343,7 @@ namespace Engine
 		if (is_in_canvas)
 			state.m_node_spawn_position = ImGuiHelpers::construct_vec2<Vector2D>(ImGui::GetMousePos());
 		else
-			state.m_node_spawn_position =
-					ImGuiHelpers::construct_vec2<Vector2D>(ed::ScreenToCanvas(ImGui::GetMousePos()));
+			state.m_node_spawn_position = ImGuiHelpers::construct_vec2<Vector2D>(ed::ScreenToCanvas(ImGui::GetMousePos()));
 		ed::Suspend();
 		ImGui::OpenPopup("Create New Node");
 		ed::Resume();
@@ -381,8 +380,7 @@ namespace Engine
 				}
 				else if (!input_pin->node()->can_connect(
 								 reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin),
-								 output_pin->node()->out_pin_type(
-										 reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
+								 output_pin->node()->out_pin_type(reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
 				{
 					show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
 					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);

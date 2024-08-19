@@ -110,8 +110,8 @@ namespace Engine
 		auto dst_start = dst_rect.position;
 		auto dst_end   = dst_start + dst_rect.size;
 
-		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x,
-						  dst_end.y, GL_COLOR_BUFFER_BIT, filter_of(filter));
+		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
+						  GL_COLOR_BUFFER_BIT, filter_of(filter));
 
 		if (OPENGL_API->m_state.render_target)
 		{

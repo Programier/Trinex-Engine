@@ -182,9 +182,8 @@ namespace Engine::ImGuiBackend
 		if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
 			return;
 
-		ImGuiTrinexData* bd = imgui_trinex_backend_data();
-		ImGuiTrinexViewportData* vd =
-				reinterpret_cast<ImGuiTrinexViewportData*>(draw_data->OwnerViewport->RendererUserData);
+		ImGuiTrinexData* bd			= imgui_trinex_backend_data();
+		ImGuiTrinexViewportData* vd = reinterpret_cast<ImGuiTrinexViewportData*>(draw_data->OwnerViewport->RendererUserData);
 
 		if (bd == nullptr || vd == nullptr)
 			return;
@@ -217,8 +216,7 @@ namespace Engine::ImGuiBackend
 			size_t vtx_size			   = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
 			size_t idx_size			   = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-			vd->vertex_buffer->rhi_update(vtx_offset, vtx_size,
-										  reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+			vd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
 			vd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
 
 			vtx_offset += vtx_size;
@@ -283,8 +281,7 @@ namespace Engine::ImGuiBackend
 					vd->vertex_buffer->rhi_bind(0);
 					vd->index_buffer->rhi_bind();
 
-					rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
-									  pcmd->VtxOffset + global_vtx_offset);
+					rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
 
 					bd->texture_parameter->texture = nullptr;
 					bd->texture_parameter->sampler = nullptr;
@@ -317,8 +314,8 @@ namespace Engine::ImGuiBackend
 
 		texture.texture = Object::new_instance<EngineResource<Texture2D>>(
 				Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-		texture.texture->init(ColorFormat::R8G8B8A8, Size2D(static_cast<float>(width), static_cast<float>(height)),
-							  pixels, static_cast<size_t>(width * height * 4));
+		texture.texture->init(ColorFormat::R8G8B8A8, Size2D(static_cast<float>(width), static_cast<float>(height)), pixels,
+							  static_cast<size_t>(width * height * 4));
 		auto package = Package::static_find_package("Engine::ImGui", true);
 		package->add_object(texture.texture);
 

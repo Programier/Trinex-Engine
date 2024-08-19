@@ -87,8 +87,8 @@ namespace Engine
 		vk::CommandBuffer begin_single_time_command_buffer();
 		VulkanAPI& end_single_time_command_buffer(const vk::CommandBuffer& buffer);
 
-		VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
-							   vk::DeviceSize src_offset = 0, vk::DeviceSize dst_offset = 0);
+		VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size, vk::DeviceSize src_offset = 0,
+							   vk::DeviceSize dst_offset = 0);
 		bool has_stencil_component(vk::Format format);
 		VulkanAPI& create_image(struct VulkanTexture* state, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
 								vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
@@ -107,8 +107,7 @@ namespace Engine
 		VulkanAPI& end_render() override;
 		VulkanAPI& wait_idle();
 
-		VulkanAPI& bind_render_target(const Span<RenderSurface*>& color_attachments,
-									  RenderSurface* depth_stencil) override;
+		VulkanAPI& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 		VulkanAPI& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		VulkanAPI& scissor(const Scissor& scissor) override;
@@ -134,8 +133,7 @@ namespace Engine
 		RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
 		RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format,
-											 RHIBufferType type) override;
+		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(RenderViewport* viewport) override;
 

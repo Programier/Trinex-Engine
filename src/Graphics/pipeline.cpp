@@ -24,10 +24,10 @@ namespace Engine
 		using DTI	 = Pipeline::DepthTestInfo;
 		Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);
 
-		self->add_properties(new EnumProperty("Func", "Depth compare function", &DTI::func,
-											  Enum::static_find("Engine::DepthFunc", true)),
-							 new BoolProperty("Enable", "Enable depth test", &DTI::enable),
-							 new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable));
+		self->add_properties(
+				new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::static_find("Engine::DepthFunc", true)),
+				new BoolProperty("Enable", "Enable depth test", &DTI::enable),
+				new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable));
 	});
 
 	implement_struct(Engine::Pipeline, StencilTestInfo, ).push([]() {
@@ -37,14 +37,13 @@ namespace Engine
 		Enum* stencil_op_enum	= Enum::static_find("Engine::StencilOp", true);
 		Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
 
-		self->add_properties(
-				new BoolProperty("Enable", "Enable stencil test", &STI::enable),
-				new EnumProperty("Fail", "Operation on fail", &STI::fail, stencil_op_enum),
-				new EnumProperty("Depth pass", "Operation on depth pass", &STI::depth_pass, stencil_op_enum),
-				new EnumProperty("Depth Fail", "Operation on depth fail", &STI::depth_fail, stencil_op_enum),
-				new EnumProperty("Compare func", "Stencil compare function", &STI::compare, compare_func_enum),
-				new ByteProperty("Compare mask", "Stencil compare mask", &STI::compare_mask),
-				new ByteProperty("Write mask", "Stencil write mask", &STI::write_mask));
+		self->add_properties(new BoolProperty("Enable", "Enable stencil test", &STI::enable),
+							 new EnumProperty("Fail", "Operation on fail", &STI::fail, stencil_op_enum),
+							 new EnumProperty("Depth pass", "Operation on depth pass", &STI::depth_pass, stencil_op_enum),
+							 new EnumProperty("Depth Fail", "Operation on depth fail", &STI::depth_fail, stencil_op_enum),
+							 new EnumProperty("Compare func", "Stencil compare function", &STI::compare, compare_func_enum),
+							 new ByteProperty("Compare mask", "Stencil compare mask", &STI::compare_mask),
+							 new ByteProperty("Write mask", "Stencil write mask", &STI::write_mask));
 	});
 
 	implement_struct(Engine::Pipeline, AssemblyInfo, ).push([]() {
@@ -52,9 +51,8 @@ namespace Engine
 
 		Struct* self = Struct::static_find("Engine::Pipeline::AssemblyInfo", true);
 
-		self->add_properties(
-				new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-								 &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
+		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
+											  &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
 	});
 
 	implement_struct(Engine::Pipeline, RasterizerInfo, ).push([]() {
@@ -66,10 +64,8 @@ namespace Engine
 				new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
 								 Enum::static_find("Engine::PolygonMode", true)),
 				new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
-				new EnumProperty("Front face", "Front face", &RI::front_face,
-								 Enum::static_find("Engine::FrontFace", true)),
-				new FloatProperty("Line width", "Width of line which will be rendered by this material",
-								  &RI::line_width));
+				new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)),
+				new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width));
 	});
 
 	implement_struct(Engine::Pipeline, ColorBlendingInfo, ).push([]() {
@@ -99,8 +95,8 @@ namespace Engine
 		remove_all_shaders();
 	}
 
-#define init_shader(sdr)                                                                                               \
-	if (sdr)                                                                                                           \
+#define init_shader(sdr)                                                                                                         \
+	if (sdr)                                                                                                                     \
 	sdr->rhi_create()
 
 	Pipeline& Pipeline::rhi_create()
@@ -358,8 +354,8 @@ namespace Engine
 	static FORCE_INLINE bool is_equal_attribute(const VertexShader::Attribute& attr1,
 												const ShaderCompiler::ShaderReflection::VertexAttribute& attr2)
 	{
-		return attr1.type == attr2.type && attr1.semantic == attr2.semantic &&
-			   attr1.semantic_index == attr2.semantic_index && attr1.location == attr2.location;
+		return attr1.type == attr2.type && attr1.semantic == attr2.semantic && attr1.semantic_index == attr2.semantic_index &&
+			   attr1.location == attr2.location;
 	}
 
 	bool Pipeline::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)

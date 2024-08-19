@@ -51,8 +51,7 @@ namespace Engine
 		API->m_device.resetFences(sync.m_fence);
 
 		API->current_command_buffer()->reset();
-		API->current_command_buffer_handle().begin(
-				vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+		API->current_command_buffer_handle().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 	}
 
 
@@ -206,10 +205,8 @@ namespace Engine
 		auto dst_end = dst_rect.position + dst_rect.size;
 
 		vk::ImageBlit blit;
-		blit.setSrcOffsets(
-				{vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets(
-				{vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
+		blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
+		blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
 
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
@@ -237,8 +234,7 @@ namespace Engine
 		auto dst  = vk::Image(m_images[m_buffer_index]);
 		transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
 
-		cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal,
-							vk::ClearColorValue(color.r, color.g, color.b, color.a),
+		cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
 							vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 		transition_swapchain_image(dst, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR, cmd);
 
@@ -269,14 +265,13 @@ namespace Engine
 			swapchain_builder.set_old_swapchain(m_swapchain->swapchain);
 		}
 
-		swapchain_builder.set_desired_present_mode(
-				static_cast<VkPresentModeKHR>(API->present_mode_of(m_viewport->vsync())));
+		swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->present_mode_of(m_viewport->vsync())));
 
 		size_t images_count = API->m_framebuffers_count;
 		swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
 
-		swapchain_builder.add_image_usage_flags(static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc |
-																			   vk::ImageUsageFlagBits::eTransferDst));
+		swapchain_builder.add_image_usage_flags(
+				static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
 #if PLATFORM_ANDROID
 		swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR);
 #endif
@@ -317,8 +312,7 @@ namespace Engine
 
 		for (VkImage image : m_images)
 		{
-			transition_swapchain_image(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR,
-									   cmd);
+			transition_swapchain_image(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
 		}
 
 		API->end_single_time_command_buffer(cmd);
@@ -400,8 +394,7 @@ namespace Engine
 			return begin_render();
 		}
 
-		if (current_buffer_index.result != vk::Result::eSuccess &&
-			current_buffer_index.result != vk::Result::eSuboptimalKHR)
+		if (current_buffer_index.result != vk::Result::eSuccess && current_buffer_index.result != vk::Result::eSuboptimalKHR)
 		{
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}

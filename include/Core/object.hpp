@@ -164,9 +164,9 @@ namespace Engine
 		template<typename Type, bool check_constructible = false, typename... Args>
 		static Type* new_instance(StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
-			constexpr bool invalid = check_constructible &&
-									 (std::is_abstract_v<Type> ||
-									  (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			constexpr bool invalid =
+					check_constructible &&
+					(std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -197,9 +197,9 @@ namespace Engine
 		template<typename Type, bool check_constructible = false, typename... Args>
 		static Type* new_placement_instance(void* place, StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
-			constexpr bool invalid = check_constructible &&
-									 (std::is_abstract_v<Type> ||
-									  (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			constexpr bool invalid =
+					check_constructible &&
+					(std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -218,8 +218,7 @@ namespace Engine
 
 					if constexpr (std::is_base_of_v<Object, Type>)
 						setup_next_object_info(Type::static_class_instance(), false);
-					return setup_new_object(Type::create_placement_instance(place, std::forward<Args>(args)...), name,
-											owner);
+					return setup_new_object(Type::create_placement_instance(place, std::forward<Args>(args)...), name, owner);
 				}
 				else
 				{
@@ -320,17 +319,17 @@ namespace Engine
 	};
 
 
-#define declare_class(class_name, base_name)                                                                           \
-protected:                                                                                                             \
-	static class Engine::Class* m_static_class;                                                                        \
-                                                                                                                       \
-public:                                                                                                                \
-	using This	= class_name;                                                                                          \
-	using Super = base_name;                                                                                           \
-	static void static_initialize_class();                                                                             \
-	static class Engine::Class* static_class_instance();                                                               \
-	friend class Engine::Class;                                                                                        \
-                                                                                                                       \
+#define declare_class(class_name, base_name)                                                                                     \
+protected:                                                                                                                       \
+	static class Engine::Class* m_static_class;                                                                                  \
+                                                                                                                                 \
+public:                                                                                                                          \
+	using This	= class_name;                                                                                                    \
+	using Super = base_name;                                                                                                     \
+	static void static_initialize_class();                                                                                       \
+	static class Engine::Class* static_class_instance();                                                                         \
+	friend class Engine::Class;                                                                                                  \
+                                                                                                                                 \
 private:
 
 #define implement_class(namespace_name, class_name, flags)                                                                       \
@@ -355,8 +354,8 @@ private:
 	void class_name::static_initialize_class()
 
 
-#define implement_class_default_init(namespace_name, class_name, flags)                                                \
-	implement_class(namespace_name, class_name, flags)                                                                 \
+#define implement_class_default_init(namespace_name, class_name, flags)                                                          \
+	implement_class(namespace_name, class_name, flags)                                                                           \
 	{}
 
 #define implement_engine_class(class_name, flags) implement_class(Engine, class_name, flags)

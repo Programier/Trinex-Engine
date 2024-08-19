@@ -36,17 +36,17 @@ namespace Engine
 		bool is_just_released(Keyboard::Key key) const;
 
 
-#define implement_variadic_template(name)                                                                              \
-	template<typename... Keys>                                                                                         \
-	FORCE_INLINE bool name##_and(Keys&&... keys) const                                                                 \
-	{                                                                                                                  \
-		return (name(std::forward<Keys>(keys)) && ...);                                                                \
-	}                                                                                                                  \
-                                                                                                                       \
-	template<typename... Keys>                                                                                         \
-	FORCE_INLINE bool name##_or(Keys&&... keys) const                                                                  \
-	{                                                                                                                  \
-		return (name(std::forward<Keys>(keys)) || ...);                                                                \
+#define implement_variadic_template(name)                                                                                        \
+	template<typename... Keys>                                                                                                   \
+	FORCE_INLINE bool name##_and(Keys&&... keys) const                                                                           \
+	{                                                                                                                            \
+		return (name(std::forward<Keys>(keys)) && ...);                                                                          \
+	}                                                                                                                            \
+                                                                                                                                 \
+	template<typename... Keys>                                                                                                   \
+	FORCE_INLINE bool name##_or(Keys&&... keys) const                                                                            \
+	{                                                                                                                            \
+		return (name(std::forward<Keys>(keys)) || ...);                                                                          \
 	}
 
 

@@ -50,9 +50,8 @@ namespace Engine::Strings
 		if (elements.empty())
 			return "";
 
-		return std::accumulate(
-				std::next(elements.begin()), elements.end(), format("{}", function(elements[0])),
-				[&delimiter, &function](const String& a, const Value& b) { return a + delimiter + function(b); });
+		return std::accumulate(std::next(elements.begin()), elements.end(), format("{}", function(elements[0])),
+							   [&delimiter, &function](const String& a, const Value& b) { return a + delimiter + function(b); });
 	}
 
 	template<typename Range, typename Value = typename Range::value_type>

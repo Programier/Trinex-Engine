@@ -147,8 +147,8 @@ namespace Engine
 
 			current_x += face->glyph->advance.x >> 6;
 			size_x = glm::max(size_x, current_x);
-			size_y = glm::max(size_y, font_size.y + static_cast<uint_t>(face->glyph->metrics.height >> 6) -
-											  face->glyph->bitmap_top);
+			size_y = glm::max(size_y,
+							  font_size.y + static_cast<uint_t>(face->glyph->metrics.height >> 6) - face->glyph->bitmap_top);
 		}
 
 		return {static_cast<float>(size_x), static_cast<float>(size_y)};

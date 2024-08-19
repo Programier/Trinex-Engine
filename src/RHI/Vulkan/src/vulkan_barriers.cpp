@@ -71,9 +71,8 @@ namespace Engine::Barrier
 
 			case vk::ImageLayout::eDepthAttachmentOptimal:
 			case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-				access = vk::AccessFlagBits::eDepthStencilAttachmentRead |
-						 vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-				stage = vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests;
+				access = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+				stage  = vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests;
 				break;
 
 			case vk::ImageLayout::ePresentSrcKHR:

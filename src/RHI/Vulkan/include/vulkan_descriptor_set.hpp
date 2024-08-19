@@ -17,8 +17,7 @@ namespace Engine
 		vk::DescriptorSet descriptor_set = {};
 
 		VulkanDescriptorSet();
-		VulkanDescriptorSet& bind(vk::PipelineLayout& layout,
-								  vk::PipelineBindPoint point = vk::PipelineBindPoint::eGraphics);
+		VulkanDescriptorSet& bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point = vk::PipelineBindPoint::eGraphics);
 
 		VulkanDescriptorSet& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
 		VulkanDescriptorSet& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,

@@ -16,8 +16,7 @@ namespace Engine
 		asIScriptFunction* function = nullptr;
 		context->GetCallStateRegisters(stack_level, reinterpret_cast<asDWORD*>(&m_stack_frame_pointer), &function,
 									   reinterpret_cast<asDWORD*>(&m_program_pointer),
-									   reinterpret_cast<asDWORD*>(&m_stack_pointer),
-									   reinterpret_cast<asDWORD*>(&m_stack_index));
+									   reinterpret_cast<asDWORD*>(&m_stack_pointer), reinterpret_cast<asDWORD*>(&m_stack_index));
 		m_function = function;
 		m_object   = context->GetThisPointer();
 
@@ -48,8 +47,8 @@ namespace Engine
 		asIScriptContext* context = ScriptContext::context();
 		context->StartDeserialization();
 		context->PushFunction(m_function.function(), m_object);
-		context->SetCallStateRegisters(0, m_stack_frame_pointer, m_function.function(), m_program_pointer,
-									   m_stack_pointer, m_stack_index);
+		context->SetCallStateRegisters(0, m_stack_frame_pointer, m_function.function(), m_program_pointer, m_stack_pointer,
+									   m_stack_index);
 
 		// Deserialize variables
 		const uint_t var_count = ScriptContext::var_count(0);

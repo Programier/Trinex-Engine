@@ -296,8 +296,7 @@ namespace Engine
 		if (!m_imgui_window)
 		{
 			ImGuiContext* current_context = ImGui::GetCurrentContext();
-			m_imgui_window =
-					Object::new_instance<ImGuiRenderer::Window>("", nullptr, this, imgui_create_context(callback));
+			m_imgui_window = Object::new_instance<ImGuiRenderer::Window>("", nullptr, this, imgui_create_context(callback));
 			ImGui::SetCurrentContext(current_context);
 		}
 
@@ -336,7 +335,7 @@ namespace Engine
 			viewport->client(nullptr);
 			GarbageCollector::destroy(viewport);
 		}
-		
+
 		imgui_terminate();
 	}
 

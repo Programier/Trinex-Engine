@@ -59,8 +59,8 @@ namespace Engine
 		StructPropertyValue(const void* _instance = nullptr, Struct* _struct = nullptr);
 	};
 
-#define declare_prop_constructor(type)                                                                                 \
-	PropertyValue(const type&);                                                                                        \
+#define declare_prop_constructor(type)                                                                                           \
+	PropertyValue(const type&);                                                                                                  \
 	PropertyValue& operator=(const type&);
 
 	class ENGINE_EXPORT PropertyValue : public Any
@@ -185,8 +185,7 @@ namespace Engine
 		DataType InstanceType::*m_prop = nullptr;
 
 	public:
-		PrimitivePropertyBase(const Name& name, const String& description, const Name& group = Name::none,
-							  BitMask flags = 0)
+		PrimitivePropertyBase(const Name& name, const String& description, const Name& group = Name::none, BitMask flags = 0)
 			: Property(name, description, group, flags)
 		{}
 
@@ -232,9 +231,8 @@ namespace Engine
 		{
 			if (object)
 			{
-				return PropertyValue(
-						static_cast<CastType>(*reinterpret_cast<const DataType*>(Super::prop_address(object))),
-						prop_type);
+				return PropertyValue(static_cast<CastType>(*reinterpret_cast<const DataType*>(Super::prop_address(object))),
+									 prop_type);
 			}
 
 			return {};
@@ -281,8 +279,7 @@ namespace Engine
 	};
 
 	template<typename InstanceType>
-	class SignedByteProperty
-		: public PrimitiveProperty<InstanceType, signed_byte, signed_byte, PropertyType::SignedByte>
+	class SignedByteProperty : public PrimitiveProperty<InstanceType, signed_byte, signed_byte, PropertyType::SignedByte>
 	{
 	public:
 		using Super = PrimitiveProperty<InstanceType, signed_byte, signed_byte, PropertyType::SignedByte>;
@@ -482,8 +479,7 @@ namespace Engine
 	public:
 		EnumProperty(const Name& name, const String& description, EnumType InstanceType::*prop, class Enum* _enum,
 					 const Name& group = Name::none, BitMask flags = 0)
-			: PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>(name, description, prop,
-																						   group, flags)
+			: PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>(name, description, prop, group, flags)
 		{
 			m_enum = _enum;
 		}
@@ -582,8 +578,7 @@ namespace Engine
 	};
 
 	template<typename InstanceType, typename ObjectType>
-	class ObjectReferenceProperty
-		: public PrimitiveProperty<InstanceType, ObjectType*, Object*, PropertyType::ObjectReference>
+	class ObjectReferenceProperty : public PrimitiveProperty<InstanceType, ObjectType*, Object*, PropertyType::ObjectReference>
 	{
 	public:
 		using Super = PrimitiveProperty<InstanceType, ObjectType*, Object*, PropertyType::ObjectReference>;
@@ -608,8 +603,8 @@ namespace Engine
 		using Super = PrimitivePropertyBase<InstanceType, StructType>;
 
 	public:
-		StructProperty(const Name& name, const String& description, StructType InstanceType::*prop,
-					   class Struct* _struct, const Name& group = Name::none, BitMask flags = 0)
+		StructProperty(const Name& name, const String& description, StructType InstanceType::*prop, class Struct* _struct,
+					   const Name& group = Name::none, BitMask flags = 0)
 			: Super(name, description, group, flags)
 		{
 			Super::m_prop = prop;
@@ -641,8 +636,7 @@ namespace Engine
 				return false;
 
 
-			(*reinterpret_cast<StructType*>(Super::prop_address(object))) =
-					*reinterpret_cast<const StructType*>(value.instace);
+			(*reinterpret_cast<StructType*>(Super::prop_address(object))) = *reinterpret_cast<const StructType*>(value.instace);
 			Property::on_prop_changed(object);
 			return true;
 		}
@@ -679,8 +673,7 @@ namespace Engine
 	};
 
 	ENGINE_EXPORT Name default_array_element_name(class ArrayPropertyInterface* interface, void* object, size_t index);
-	ENGINE_EXPORT Name default_array_object_element_name(class ArrayPropertyInterface* interface, void* object,
-														 size_t index);
+	ENGINE_EXPORT Name default_array_object_element_name(class ArrayPropertyInterface* interface, void* object, size_t index);
 	using ArrayPropertyElementNameCallback = Name (*)(class ArrayPropertyInterface*, void*, size_t);
 
 	class ENGINE_EXPORT ArrayPropertyInterface : public Property
@@ -689,8 +682,7 @@ namespace Engine
 		ArrayPropertyElementNameCallback m_element_name_callback;
 
 	public:
-		ArrayPropertyInterface(const Name& name, const String& description, const Name& group = Name::none,
-							   BitMask flags = 0);
+		ArrayPropertyInterface(const Name& name, const String& description, const Name& group = Name::none, BitMask flags = 0);
 
 		virtual Property* element_type() const					= 0;
 		virtual void* at(void* object, Index index)				= 0;

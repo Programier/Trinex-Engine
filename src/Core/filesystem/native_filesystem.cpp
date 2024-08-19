@@ -24,7 +24,7 @@ namespace Engine::VFS
 			if (is_valid())
 			{
 				const std::filesystem::path& path = *m_it;
-				m_path = m_base->mount_point() / Path(path.string()).relative(m_base->path());
+				m_path							  = m_base->mount_point() / Path(path.string()).relative(m_base->path());
 			}
 		}
 
@@ -92,10 +92,9 @@ namespace Engine::VFS
 			Path dir	  = m_path / path;
 			auto iterator = fs::recursive_directory_iterator(dir.str());
 
-			NativeIterator<fs::recursive_directory_iterator>* it =
-					new NativeIterator<fs::recursive_directory_iterator>();
-			it->m_base = this;
-			it->m_it   = iterator;
+			NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
+			it->m_base											 = this;
+			it->m_it											 = iterator;
 			it->update_path();
 			return it;
 		}
@@ -129,7 +128,7 @@ namespace Engine::VFS
 		Path full_path = m_path / path;
 
 		std::ios_base::openmode open_mode = std::ios_base::binary;
-		bool is_read_only = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
+		bool is_read_only				  = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
 
 
 		if (mode & FileOpenMode::In)

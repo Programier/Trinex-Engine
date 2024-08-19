@@ -58,11 +58,9 @@ namespace Engine
 				.method("string as_string() const", &Object::as_string)
 				.method("const Name& name() const", method_of<const Name&>(&Object::name))
 				.method("string opConv() const", &Object::as_string)
-				.method("Object@ preload()",
-						func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
+				.method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
 						ScriptCallConv::CDeclObjFirst)
-				.method("Object@ postload()",
-						func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
+				.method("Object@ postload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
 						ScriptCallConv::CDeclObjFirst)
 				.method("Class@ class_instance() const",
 						func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
@@ -355,11 +353,11 @@ namespace Engine
 
 		while (current)
 		{
-			result	= Strings::format("{}{}{}",
-									  (current->m_name.is_valid()
-											   ? current->m_name.to_string()
-											   : Strings::format("Noname object {}", current->m_instance_index)),
-									  Constants::name_separator, result);
+			result =
+					Strings::format("{}{}{}",
+									(current->m_name.is_valid() ? current->m_name.to_string()
+																: Strings::format("Noname object {}", current->m_instance_index)),
+									Constants::name_separator, result);
 			current = parent_object_of(current, override_by_owner);
 		}
 
@@ -566,8 +564,7 @@ namespace Engine
 
 		if constexpr (std::is_base_of_v<BufferReader, Type>)
 		{
-			error_log("Object", "Failed to load object '%s': File '%s' not found!", object->full_name().c_str(),
-					  path.c_str());
+			error_log("Object", "Failed to load object '%s': File '%s' not found!", object->full_name().c_str(), path.c_str());
 		}
 		else
 		{
@@ -740,8 +737,7 @@ namespace Engine
 		}
 
 		Path path = Path(Project::assets_dir) /
-					Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) +
-						 Constants::asset_extention);
+					Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
 		return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
 	}
 
@@ -757,8 +753,7 @@ namespace Engine
 				return object;
 		}
 
-		return load_from_file_internal(Path(Project::assets_dir) / path, full_name,
-									   flags | SerializationFlags::SkipObjectSearch);
+		return load_from_file_internal(Path(Project::assets_dir) / path, full_name, flags | SerializationFlags::SkipObjectSearch);
 	}
 
 	bool Object::is_serializable() const

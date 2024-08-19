@@ -13,8 +13,8 @@ namespace Engine
 		void render_packages();
 		bool show_context_menu(void* userdata);
 
-		bool render_content_item(Object* object, const StringView& name, const ImVec2& item_size,
-								 const ImVec2& content_size, bool& not_first_item);
+		bool render_content_item(Object* object, const StringView& name, const ImVec2& item_size, const ImVec2& content_size,
+								 bool& not_first_item);
 		void render_content_window();
 
 		void create_dock_space();

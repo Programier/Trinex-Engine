@@ -43,8 +43,8 @@ namespace Engine
 
 		if (script)
 		{
-			error_log("ScriptEngine", "Script Exception: %s (Line: %d, Column: %d): %s", script->path().c_str(), line,
-					  column, exception_string);
+			error_log("ScriptEngine", "Script Exception: %s (Line: %d, Column: %d): %s", script->path().c_str(), line, column,
+					  exception_string);
 			script->on_exception(script);
 		}
 	}
@@ -387,9 +387,8 @@ namespace Engine
 
 	bool ScriptContext::line_callback(const Function<void(void*)>& function, void* userdata)
 	{
-		m_callback = function;
-		const bool result =
-				m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), userdata, asCALL_CDECL) >= 0;
+		m_callback		  = function;
+		const bool result = m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), userdata, asCALL_CDECL) >= 0;
 		if (!result)
 			clear_line_callback();
 		return result;
@@ -454,9 +453,8 @@ namespace Engine
 	{
 		asETypeModifiers script_modifiers;
 		const char* script_name;
-		const bool result =
-				m_context->GetVar(var_index, stack_level, &script_name, type_id,
-								  (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset) >= 0;
+		const bool result = m_context->GetVar(var_index, stack_level, &script_name, type_id,
+											  (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset) >= 0;
 
 		if (name)
 		{
@@ -480,8 +478,8 @@ namespace Engine
 	byte* ScriptContext::address_of_var(uint_t var_index, uint_t stack_level, bool dont_dereference,
 										bool return_address_of_unitialized_objects)
 	{
-		return reinterpret_cast<byte*>(m_context->GetAddressOfVar(var_index, stack_level, dont_dereference,
-																  return_address_of_unitialized_objects));
+		return reinterpret_cast<byte*>(
+				m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects));
 	}
 
 	bool ScriptContext::is_var_in_scope(uint_t var_index, uint_t stack_level)

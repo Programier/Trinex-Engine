@@ -51,13 +51,11 @@ namespace Engine
 		: Engine::ScriptObject(address, find_type_id(declaration), consider_handle_as_object)
 	{}
 
-	ScriptObject::ScriptObject(void* address, const char* declaration, const char* module,
-							   bool consider_handle_as_object)
+	ScriptObject::ScriptObject(void* address, const char* declaration, const char* module, bool consider_handle_as_object)
 		: Engine::ScriptObject(address, find_type_id(declaration, module), consider_handle_as_object)
 	{}
 
-	ScriptObject::ScriptObject(const ScriptObject& object)
-		: ScriptVariableBase(object.address(), object.type_info(), true)
+	ScriptObject::ScriptObject(const ScriptObject& object) : ScriptVariableBase(object.address(), object.type_info(), true)
 	{}
 
 	ScriptObject& ScriptObject::operator=(const ScriptObject& object)
@@ -198,8 +196,7 @@ namespace Engine
 		return create(src_address, find_type_id(type_declaration), consider_handle_as_object);
 	}
 
-	bool ScriptObject::create(void* src_address, const char* type_declaration, const char* module,
-							  bool consider_handle_as_object)
+	bool ScriptObject::create(void* src_address, const char* type_declaration, const char* module, bool consider_handle_as_object)
 	{
 		return create(src_address, find_type_id(type_declaration, module), consider_handle_as_object);
 	}

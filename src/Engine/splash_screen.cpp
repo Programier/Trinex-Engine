@@ -88,9 +88,9 @@ namespace Engine
 					for (size_t i = 0; i < count; i++)
 					{
 						auto& info = m_splash_data->text_info_of(i);
-						info.font  = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(
-								 buffer.data(), buffer.size(), info.font_size, &config,
-								 ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+						info.font =
+								ImGui::GetIO().Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), info.font_size, &config,
+																		   ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
 					}
 				}
 			});

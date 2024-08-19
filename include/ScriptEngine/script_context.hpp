@@ -85,8 +85,8 @@ namespace Engine
 
 		template<typename T>
 		static inline void* validate_argument(const T& value)
-			requires(!Concepts::is_byte<T> && !Concepts::is_word<T> && !Concepts::is_dword<T> &&
-					 !Concepts::is_qword<T> && !Concepts::is_float<T> && !Concepts::is_double<T>)
+			requires(!Concepts::is_byte<T> && !Concepts::is_word<T> && !Concepts::is_dword<T> && !Concepts::is_qword<T> &&
+					 !Concepts::is_float<T> && !Concepts::is_double<T>)
 		{
 			return validate_argument(&value);
 		}
@@ -199,8 +199,7 @@ namespace Engine
 		}
 
 		template<typename... Args>
-		static inline ScriptVariable execute(const ScriptObject& self, const ScriptFunction& function,
-											 const Args&... args)
+		static inline ScriptVariable execute(const ScriptObject& self, const ScriptFunction& function, const Args&... args)
 		{
 			if (!begin_execute(function))
 				return {};
@@ -236,8 +235,7 @@ namespace Engine
 		static IntVector2D line_position(uint_t stack_level = 0, StringView* section_name = nullptr);
 		static uint_t var_count(uint_t stack_level = 0);
 		static bool var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id = 0,
-						Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0,
-						int_t* stack_offset = 0);
+						Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
 		static String var_declaration(uint_t var_index, uint_t stack_level = 0, bool include_namespace = false);
 		static byte* address_of_var(uint_t var_index, uint_t stack_level = 0, bool dont_dereference = false,
 									bool return_address_of_unitialized_objects = false);

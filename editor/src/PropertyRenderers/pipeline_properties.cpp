@@ -13,8 +13,7 @@ namespace Engine
 		if (vertex_shader == nullptr)
 			return;
 
-		window->render_struct_properties(vertex_shader, reinterpret_cast<Struct*>(vertex_shader->class_instance()),
-										 editable);
+		window->render_struct_properties(vertex_shader, reinterpret_cast<Struct*>(vertex_shader->class_instance()), editable);
 	}
 
 	static void initialize_special_class_properties_renderers()

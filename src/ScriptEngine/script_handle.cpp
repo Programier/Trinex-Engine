@@ -62,8 +62,7 @@ namespace Engine
 		registrar.behave(ScriptClassBehave::Factory, "Ptr<T>@ f(int& in)",
 						 func_of<ScriptPointer*(asITypeInfo*)>(ScriptPointer::create), ScriptCallConv::CDecl);
 		registrar.behave(ScriptClassBehave::Factory, "Ptr<T>@ f(int& in, T& inout)",
-						 func_of<ScriptPointer*(asITypeInfo*, void* address)>(ScriptPointer::create),
-						 ScriptCallConv::CDecl);
+						 func_of<ScriptPointer*(asITypeInfo*, void* address)>(ScriptPointer::create), ScriptCallConv::CDecl);
 
 		registrar.behave(ScriptClassBehave::AddRef, "void f() const", &ScriptPointer::add_ref);
 		registrar.behave(ScriptClassBehave::Release, "void f() const", &ScriptPointer::release);

@@ -78,9 +78,9 @@ namespace Engine
 			component->submit_light_info_render_thread();
 		};
 
-		auto is_enabled_prop  = new BoolProperty("Is Enabled", "Is light enabled", &This::m_is_enabled);
-		auto shadows_prop	  = new BoolProperty("Enable Shadows", "The light source can cast real-time shadows",
-												 &This::m_is_shadows_enabled);
+		auto is_enabled_prop = new BoolProperty("Is Enabled", "Is light enabled", &This::m_is_enabled);
+		auto shadows_prop =
+				new BoolProperty("Enable Shadows", "The light source can cast real-time shadows", &This::m_is_shadows_enabled);
 		auto color_prop		  = new Color3Property("Color", "Color of this light", &This::m_light_color);
 		auto intensivity_prop = new FloatProperty("Intensivity", "Intensivity of this light", &This::m_intensivity);
 

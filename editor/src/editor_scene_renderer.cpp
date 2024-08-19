@@ -24,8 +24,7 @@ namespace Engine
 		Material* material				   = DefaultResources::Materials::sprite;
 		PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_position;
 
-		if (Mat4MaterialParameter* parameter =
-					reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
+		if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
 		{
 			Transform transform = component->proxy()->world_transform();
 			transform.scale({0.5, 0.5, 0.5});

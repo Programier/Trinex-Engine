@@ -11,8 +11,7 @@ namespace Engine
 	Event::Event(Identifier window_id, EventType type) : m_window_id(window_id), m_type(type)
 	{}
 
-	Event::Event(Identifier window_id, EventType type, const Any& any)
-		: m_any(any), m_window_id(window_id), m_type(type)
+	Event::Event(Identifier window_id, EventType type, const Any& any) : m_any(any), m_window_id(window_id), m_type(type)
 	{}
 
 	EventType Event::type() const
@@ -34,16 +33,15 @@ namespace Engine
 				   {"AppLowMemory", EventType::AppLowMemory}, {"AppPause", EventType::AppPause},
 				   {"AppResume", EventType::AppResume}, {"DisplayAdded", EventType::DisplayAdded},
 				   {"DisplayRemoved", EventType::DisplayRemoved},
-				   {"DisplayOrientationChanged", EventType::DisplayOrientationChanged},
-				   {"WindowShown", EventType::WindowShown}, {"WindowHidden", EventType::WindowHidden},
-				   {"WindowMoved", EventType::WindowMoved}, {"WindowResized", EventType::WindowResized},
-				   {"WindowMinimized", EventType::WindowMinimized}, {"WindowMaximized", EventType::WindowMaximized},
-				   {"WindowRestored", EventType::WindowRestored}, {"WindowFocusGained", EventType::WindowFocusGained},
-				   {"WindowFocusLost", EventType::WindowFocusLost}, {"WindowClose", EventType::WindowClose},
-				   {"TextInput", EventType::TextInput}, {"KeyDown", EventType::KeyDown}, {"KeyUp", EventType::KeyUp},
-				   {"MouseMotion", EventType::MouseMotion}, {"MouseButtonUp", EventType::MouseButtonUp},
-				   {"MouseButtonDown", EventType::MouseButtonDown}, {"MouseWheel", EventType::MouseWheel},
-				   {"ControllerAxisMotion", EventType::ControllerAxisMotion},
+				   {"DisplayOrientationChanged", EventType::DisplayOrientationChanged}, {"WindowShown", EventType::WindowShown},
+				   {"WindowHidden", EventType::WindowHidden}, {"WindowMoved", EventType::WindowMoved},
+				   {"WindowResized", EventType::WindowResized}, {"WindowMinimized", EventType::WindowMinimized},
+				   {"WindowMaximized", EventType::WindowMaximized}, {"WindowRestored", EventType::WindowRestored},
+				   {"WindowFocusGained", EventType::WindowFocusGained}, {"WindowFocusLost", EventType::WindowFocusLost},
+				   {"WindowClose", EventType::WindowClose}, {"TextInput", EventType::TextInput}, {"KeyDown", EventType::KeyDown},
+				   {"KeyUp", EventType::KeyUp}, {"MouseMotion", EventType::MouseMotion},
+				   {"MouseButtonUp", EventType::MouseButtonUp}, {"MouseButtonDown", EventType::MouseButtonDown},
+				   {"MouseWheel", EventType::MouseWheel}, {"ControllerAxisMotion", EventType::ControllerAxisMotion},
 				   {"ControllerButtonUp", EventType::ControllerButtonUp},
 				   {"ControllerButtonDown", EventType::ControllerButtonDown},
 				   {"ControllerDeviceAdded", EventType::ControllerDeviceAdded},
@@ -54,8 +52,8 @@ namespace Engine
 				   {"ControllerTouchPadUp", EventType::ControllerTouchPadUp},
 				   {"ControllerSensorUpdate", EventType::ControllerSensorUpdate}, {"FingerDown", EventType::FingerDown},
 				   {"FingerUp", EventType::FingerUp}, {"FingerMotion", EventType::FingerMotion},
-				   {"DropFile", EventType::DropFile}, {"DropText", EventType::DropText},
-				   {"DropBegin", EventType::DropBegin}, {"DropComplete", EventType::DropComplete});
+				   {"DropFile", EventType::DropFile}, {"DropText", EventType::DropText}, {"DropBegin", EventType::DropBegin},
+				   {"DropComplete", EventType::DropComplete});
 
 	static void on_init()
 	{

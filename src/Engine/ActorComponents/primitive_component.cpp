@@ -105,8 +105,7 @@ namespace Engine
 	{
 		if (PrimitiveComponentProxy* component_proxy = proxy())
 		{
-			render_thread()->insert_new_task<UpdateVariableCommand<AABB_3Df>>(m_bounding_box,
-																			  component_proxy->m_bounds);
+			render_thread()->insert_new_task<UpdateVariableCommand<AABB_3Df>>(m_bounding_box, component_proxy->m_bounds);
 		}
 	}
 

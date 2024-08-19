@@ -22,15 +22,15 @@ namespace Engine
 	VulkanDescriptorSet& VulkanDescriptorSet::bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location)
 	{
 		vk::DescriptorBufferInfo buffer_info(ssbo->m_buffer.m_buffer, 0, ssbo->m_buffer.m_size);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eStorageBuffer,
-												{}, buffer_info);
+		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eStorageBuffer, {},
+												buffer_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
 		API->current_command_buffer()->add_object(ssbo);
 		return *this;
 	}
 
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_uniform_buffer(const vk::DescriptorBufferInfo& info,
-																  BindLocation location, vk::DescriptorType type)
+	VulkanDescriptorSet& VulkanDescriptorSet::bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,
+																  vk::DescriptorType type)
 	{
 		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, type, {}, info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
@@ -40,8 +40,7 @@ namespace Engine
 	VulkanDescriptorSet& VulkanDescriptorSet::bind_sampler(VulkanSampler* sampler, BindLocation location)
 	{
 		vk::DescriptorImageInfo image_info(sampler->m_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampler,
-												image_info);
+		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampler, image_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
 		API->current_command_buffer()->add_object(sampler);
 		return *this;
@@ -60,10 +59,9 @@ namespace Engine
 	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture_combined(VulkanTexture* texture, VulkanSampler* sampler,
 																	BindLocation location)
 	{
-		vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->image_view(),
-										   vk::ImageLayout::eShaderReadOnlyOptimal);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0,
-												vk::DescriptorType::eCombinedImageSampler, image_info);
+		vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eCombinedImageSampler,
+												image_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
 		API->current_command_buffer()->add_object(texture);
 		API->current_command_buffer()->add_object(sampler);

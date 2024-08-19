@@ -32,8 +32,7 @@ namespace Engine
 		SceneView& scissor(const Scissor& scissor);
 
 		SceneView& show_flags(const Flags<ShowFlags, BitMask>& flags);
-		const SceneView& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
-										 Vector3D& world_direction) const;
+		const SceneView& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin, Vector3D& world_direction) const;
 		Vector4D world_to_screen(const Vector3D& world_point) const;
 
 

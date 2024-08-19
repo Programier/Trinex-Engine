@@ -45,8 +45,7 @@ namespace Engine
 	{
 		if (node_class->is_a<VisualMaterialGraph::Node>())
 		{
-			VisualMaterialGraph::Node* node =
-					Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object());
+			VisualMaterialGraph::Node* node = Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object());
 			if (node)
 				m_nodes.push_back(node);
 			return node;
@@ -100,8 +99,8 @@ namespace Engine
 		return "";
 	}
 
-	static bool compile_vertex_shader(VisualMaterialGraph::GlobalCompilerState& gs, String& template_source,
-									  size_t position, VisualMaterialGraph::Node* root, MaterialDomain domain)
+	static bool compile_vertex_shader(VisualMaterialGraph::GlobalCompilerState& gs, String& template_source, size_t position,
+									  VisualMaterialGraph::Node* root, MaterialDomain domain)
 	{
 		VisualMaterialGraph::CompilerState compiler(gs);
 
@@ -131,8 +130,8 @@ namespace Engine
 		return (args.is_valid() && ...);
 	}
 
-	static bool compile_fragment_shader(VisualMaterialGraph::GlobalCompilerState& gs, String& template_source,
-										size_t position, VisualMaterialGraph::Node* root, MaterialDomain domain)
+	static bool compile_fragment_shader(VisualMaterialGraph::GlobalCompilerState& gs, String& template_source, size_t position,
+										VisualMaterialGraph::Node* root, MaterialDomain domain)
 	{
 		VisualMaterialGraph::CompilerState compiler(gs);
 
@@ -161,8 +160,8 @@ namespace Engine
 			return false;
 
 		String header	  = compiler.create_header("\t");
-		String out_source = Strings::format(format, header, base_color.code, emissive.code, specular.code,
-											metalness.code, roughness.code, opacity.code, AO.code);
+		String out_source = Strings::format(format, header, base_color.code, emissive.code, specular.code, metalness.code,
+											roughness.code, opacity.code, AO.code);
 		template_source.replace(position, std::strlen(vertex_material_source_attribute), out_source);
 		return true;
 	}

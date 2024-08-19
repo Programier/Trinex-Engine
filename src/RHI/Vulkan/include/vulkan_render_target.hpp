@@ -64,8 +64,7 @@ namespace Engine
 		VulkanRenderTargetState m_state;
 		Vector<vk::ImageView> m_attachments;
 
-		static VulkanRenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments,
-												  RenderSurface* depth_stencil);
+		static VulkanRenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 
 		VulkanRenderTarget();
 		VulkanRenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);

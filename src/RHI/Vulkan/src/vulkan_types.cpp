@@ -68,14 +68,13 @@ namespace Engine
 	});
 
 
-	const Array<vk::PrimitiveTopology, 5> m_primitive_topologies =
-			generate_array<vk::PrimitiveTopology, 5, PrimitiveTopology>({
-					{PrimitiveTopology::TriangleList, vk::PrimitiveTopology::eTriangleList},
-					{PrimitiveTopology::PointList, vk::PrimitiveTopology::ePointList},
-					{PrimitiveTopology::LineList, vk::PrimitiveTopology::eLineList},
-					{PrimitiveTopology::LineStrip, vk::PrimitiveTopology::eLineStrip},
-					{PrimitiveTopology::TriangleStrip, vk::PrimitiveTopology::eTriangleStrip},
-			});
+	const Array<vk::PrimitiveTopology, 5> m_primitive_topologies = generate_array<vk::PrimitiveTopology, 5, PrimitiveTopology>({
+			{PrimitiveTopology::TriangleList, vk::PrimitiveTopology::eTriangleList},
+			{PrimitiveTopology::PointList, vk::PrimitiveTopology::ePointList},
+			{PrimitiveTopology::LineList, vk::PrimitiveTopology::eLineList},
+			{PrimitiveTopology::LineStrip, vk::PrimitiveTopology::eLineStrip},
+			{PrimitiveTopology::TriangleStrip, vk::PrimitiveTopology::eTriangleStrip},
+	});
 
 	const Array<vk::PolygonMode, 3> m_poligon_modes = generate_array<vk::PolygonMode, 3, PolygonMode>({
 			{PolygonMode::Fill, vk::PolygonMode::eFill},

@@ -289,7 +289,7 @@ namespace Engine
 		eglGetConfigAttrib(egl_display, egl_config, EGL_NATIVE_VISUAL_ID, &egl_format);
 
 		const EGLint egl_context_attributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-		egl_context = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, egl_context_attributes);
+		egl_context							  = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, egl_context_attributes);
 
 		if (egl_context == EGL_NO_CONTEXT)
 			throw EngineException("eglCreateContext() returned EGL_NO_CONTEXT");

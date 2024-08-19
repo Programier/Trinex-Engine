@@ -72,9 +72,8 @@ namespace Engine
 		Class* self				  = static_class_instance();
 		Struct* definition_struct = Struct::static_find("Engine::ShaderDefinition", true);
 
-		auto definitions_prop =
-				new ArrayProperty("Definitions", "Compile definitions", &This::compile_definitions,
-								  new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
+		auto definitions_prop = new ArrayProperty("Definitions", "Compile definitions", &This::compile_definitions,
+												  new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
 		self->add_property(definitions_prop);
 		self->add_properties(new ObjectProperty("Pipeline", "Pipeline settings for this material", &Material::pipeline,
 												Name::none, Property::IsNotSerializable));
@@ -249,8 +248,8 @@ namespace Engine
 		return *this;
 	}
 
-	CombinedImageSamplerMaterialParameterBase&
-	CombinedImageSamplerMaterialParameterBase::apply(const Pipeline* pipeline, SceneComponent* component)
+	CombinedImageSamplerMaterialParameterBase& CombinedImageSamplerMaterialParameterBase::apply(const Pipeline* pipeline,
+																								SceneComponent* component)
 	{
 		auto texture = texture_param();
 		auto sampler = sampler_param();
@@ -329,10 +328,10 @@ namespace Engine
 	}
 
 
-#define declare_allocator(name)                                                                                        \
-	static MaterialParameter* name##_material_param_allocator()                                                        \
-	{                                                                                                                  \
-		return new name##MaterialParameter();                                                                          \
+#define declare_allocator(name)                                                                                                  \
+	static MaterialParameter* name##_material_param_allocator()                                                                  \
+	{                                                                                                                            \
+		return new name##MaterialParameter();                                                                                    \
 	}
 
 
@@ -359,8 +358,8 @@ namespace Engine
 	declare_allocator(CombinedImageSampler2D);
 
 
-#define new_param_allocator(type)                                                                                      \
-	case MaterialParameterType::type:                                                                                  \
+#define new_param_allocator(type)                                                                                                \
+	case MaterialParameterType::type:                                                                                            \
 		return type##_material_param_allocator;
 
 
@@ -403,9 +402,8 @@ namespace Engine
 		{
 			if (param->type() != type)
 			{
-				error_log("Material",
-						  "Failed to create new material parameter with type [%d]. Parameter with same name, but "
-						  "different type already exist!");
+				error_log("Material", "Failed to create new material parameter with type [%d]. Parameter with same name, but "
+									  "different type already exist!");
 				return nullptr;
 			}
 

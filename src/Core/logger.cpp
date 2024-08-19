@@ -105,8 +105,7 @@ namespace Engine
 			return ((first == args) || ...);
 		}
 
-		void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out,
-						   ConsoleColor color)
+		void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out, ConsoleColor color)
 		{
 			m_mutex.lock();
 			static char buffer[512];

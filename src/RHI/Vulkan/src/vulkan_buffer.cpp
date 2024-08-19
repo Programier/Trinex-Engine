@@ -11,8 +11,8 @@ namespace Engine
 	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type)
 	{
 		m_size = size;
-		API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible,
-						   m_buffer, m_memory);
+		API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible, m_buffer,
+						   m_memory);
 		update(0, data, size);
 		return *this;
 	}
@@ -205,8 +205,7 @@ namespace Engine
 		return &(new VulkanDynamicVertexBuffer())->create(data, size);
 	}
 
-	RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format,
-													RHIBufferType type)
+	RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
 	{
 		if (type == RHIBufferType::Static)
 			return &(new VulkanIndexBuffer())->create(data, size, format);

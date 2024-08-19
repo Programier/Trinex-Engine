@@ -97,8 +97,7 @@ namespace Engine
 				}
 				ImGui::Spring(0.f);
 
-				if (ImGui::BeginCombo("editor/Function"_localized,
-									  m_function.is_valid() ? m_function.name().data() : ""))
+				if (ImGui::BeginCombo("editor/Function"_localized, m_function.is_valid() ? m_function.name().data() : ""))
 				{
 					render_function_combo_box();
 					ImGui::EndCombo();
@@ -184,8 +183,7 @@ namespace Engine
 	{
 		m_lang = ImGui::TextEditor::LanguageDefinition::AngelScript();
 
-		for (uint_t module_index = 0, module_count = ScriptEngine::module_count(); module_index < module_count;
-			 ++module_index)
+		for (uint_t module_index = 0, module_count = ScriptEngine::module_count(); module_index < module_count; ++module_index)
 		{
 			auto module = ScriptEngine::module_by_index(module_index);
 			register_module(m_lang, module);
@@ -237,8 +235,7 @@ namespace Engine
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
 		ImGui::Begin("Debugger", nullptr,
 					 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
-							 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-							 ImGuiWindowFlags_MenuBar);
+							 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
 
 		auto dock_id = ImGui::GetID("ScriptDebugger##Dock");
 		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
@@ -246,14 +243,13 @@ namespace Engine
 		if (m_imgui_window->frame_index() == 1)
 		{
 			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id, int_t(ImGuiDockNodeFlags_PassthruCentralNode) |
-													   int_t(ImGuiDockNodeFlags_DockSpace));
+			ImGui::DockBuilderAddNode(dock_id,
+									  int_t(ImGuiDockNodeFlags_PassthruCentralNode) | int_t(ImGuiDockNodeFlags_DockSpace));
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
-			auto dock_id_left = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.25f, nullptr, &dock_id);
-			auto dock_id_variables_and_globals =
-					ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
-			auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
+			auto dock_id_left				   = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.25f, nullptr, &dock_id);
+			auto dock_id_variables_and_globals = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
+			auto dock_id_down				   = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow("###Bottom", dock_id_down);
 			ImGui::DockBuilderDockWindow("###Left", dock_id_left);
@@ -291,8 +287,7 @@ namespace Engine
 
 			if (ImGui::BeginMenu("editor/Debug"_localized))
 			{
-				if (ImGui::MenuItem("editor/Exec Function"_localized,
-									"editor/Execute specific function from a module"_localized))
+				if (ImGui::MenuItem("editor/Exec Function"_localized, "editor/Execute specific function from a module"_localized))
 				{
 					m_imgui_window->window_list.create<DebugExecScriptFunction>();
 				}
@@ -472,8 +467,7 @@ namespace Engine
 
 		if (expand)
 		{
-			expand = ImGui::TreeNodeEx("###Node",
-									   ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_NoAutoOpenOnLog,
+			expand = ImGui::TreeNodeEx("###Node", ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_NoAutoOpenOnLog,
 									   "%s%s%s", ns.data(), ns.empty() ? "" : "::", name.data());
 		}
 		else
@@ -537,8 +531,7 @@ namespace Engine
 
 			ImGui::BeginTable("###Variables", 3, ImGuiTableFlags_Resizable);
 
-			ImGui::TableSetupColumn("Name###Name",
-									ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentEnable);
+			ImGui::TableSetupColumn("Name###Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentEnable);
 			ImGui::TableSetupColumn("Value###Value", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupColumn("Type###Type", ImGuiTableColumnFlags_WidthStretch);
 
@@ -587,8 +580,7 @@ namespace Engine
 		{
 			ImGui::BeginTable("###Variables", 3, ImGuiTableFlags_Resizable);
 
-			ImGui::TableSetupColumn("Name###Name",
-									ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentEnable);
+			ImGui::TableSetupColumn("Name###Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentEnable);
 			ImGui::TableSetupColumn("Value###Value", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableSetupColumn("Type###Type", ImGuiTableColumnFlags_WidthStretch);
 
@@ -765,8 +757,7 @@ namespace Engine
 	void ScriptDebuggerClient::on_breakpoint_update(ImGui::TextEditor* editor, int_t line)
 	{}
 
-	void ScriptDebuggerClient::on_ctrl_alt_click(ImGui::TextEditor* editor, const String&,
-												 ImGui::TextEditor::Coordinates coords)
+	void ScriptDebuggerClient::on_ctrl_alt_click(ImGui::TextEditor* editor, const String&, ImGui::TextEditor::Coordinates coords)
 	{}
 
 	void ScriptDebuggerClient::on_request_open(ImGui::TextEditor* editor, const String&, const String&)
@@ -850,10 +841,10 @@ namespace Engine
 					std::bind(&This::on_breakpoint_remove, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnBreakpointUpdate =
 					std::bind(&This::on_breakpoint_update, this, std::placeholders::_1, std::placeholders::_2);
-			editor.m_editor.OnCtrlAltClick	= std::bind(&This::on_ctrl_alt_click, this, std::placeholders::_1,
-														std::placeholders::_2, std::placeholders::_3);
-			editor.m_editor.RequestOpen		= std::bind(&This::on_request_open, this, std::placeholders::_1,
-														std::placeholders::_2, std::placeholders::_3);
+			editor.m_editor.OnCtrlAltClick = std::bind(&This::on_ctrl_alt_click, this, std::placeholders::_1,
+													   std::placeholders::_2, std::placeholders::_3);
+			editor.m_editor.RequestOpen =
+					std::bind(&This::on_request_open, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 			editor.m_editor.OnContentUpdate = std::bind(&This::on_content_update, this, std::placeholders::_1);
 
 			editor.m_script = script;

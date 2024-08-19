@@ -43,8 +43,8 @@
 #define STDCALL_DECL
 
 #define RETURN_CONTROL_TO_VM() return exec_asBC_RET(info)
-#define NEED_IMPLEMENTATION()                                                                                          \
-	printf("Function %s need implementaion!\n", __FUNCTION__);                                                         \
+#define NEED_IMPLEMENTATION()                                                                                                    \
+	printf("Function %s need implementaion!\n", __FUNCTION__);                                                                   \
 	RETURN_CONTROL_TO_VM()
 #define CHECK_IT() printf("Function %s marked for check\n", __FUNCTION__)
 
@@ -289,8 +289,8 @@ namespace JIT
 
 	X86_64_Compiler::X86_64_Compiler(bool with_suspend) : m_with_suspend(with_suspend)
 	{
-#define register_code(name)                                                                                            \
-	exec[static_cast<size_t>(name)]		  = &X86_64_Compiler::exec_##name;                                             \
+#define register_code(name)                                                                                                      \
+	exec[static_cast<size_t>(name)]		  = &X86_64_Compiler::exec_##name;                                                       \
 	code_names[static_cast<size_t>(name)] = #name;
 
 		register_code(asBC_PopPtr);
@@ -582,8 +582,7 @@ namespace JIT
 			auto size			= instruction_size(info->instruction);
 			bool is_implemented = current_offset != info->assembler.offset();
 
-			if (info->instruction == asBC_JitEntry || info->instruction == asBC_SUSPEND ||
-				info->instruction == asBC_iTOb)
+			if (info->instruction == asBC_JitEntry || info->instruction == asBC_SUSPEND || info->instruction == asBC_iTOb)
 			{
 				is_implemented = true;
 			}
@@ -659,8 +658,7 @@ namespace JIT
 	{
 		new_instruction(mov(restore_register, qword_ptr(base_pointer, vm_register_offset)));
 
-		new_instruction(
-				mov(vm_stack_frame_pointer, qword_ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer))));
+		new_instruction(mov(vm_stack_frame_pointer, qword_ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer))));
 		new_instruction(mov(vm_stack_pointer, qword_ptr(restore_register, offsetof(asSVMRegisters, stackPointer))));
 		new_instruction(mov(vm_value_q, qword_ptr(restore_register, offsetof(asSVMRegisters, valueRegister))));
 		new_instruction(mov(vm_object, qword_ptr(restore_register, offsetof(asSVMRegisters, objectRegister))));
@@ -676,8 +674,7 @@ namespace JIT
 			new_instruction(mov(qword_ptr(restore_register, offsetof(asSVMRegisters, programPointer)), qword_free_1));
 		}
 
-		new_instruction(
-				mov(qword_ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer)), vm_stack_frame_pointer));
+		new_instruction(mov(qword_ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer)), vm_stack_frame_pointer));
 		new_instruction(mov(qword_ptr(restore_register, offsetof(asSVMRegisters, stackPointer)), vm_stack_pointer));
 		new_instruction(mov(qword_ptr(restore_register, offsetof(asSVMRegisters, valueRegister)), vm_value_q));
 		new_instruction(mov(qword_ptr(restore_register, offsetof(asSVMRegisters, objectRegister)), vm_object));

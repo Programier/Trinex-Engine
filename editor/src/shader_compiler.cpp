@@ -19,9 +19,9 @@
 
 namespace Engine::ShaderCompiler
 {
-#define RETURN_ON_FAIL(code)                                                                                           \
-	if (SLANG_FAILED(code))                                                                                            \
-		return                                                                                                         \
+#define RETURN_ON_FAIL(code)                                                                                                     \
+	if (SLANG_FAILED(code))                                                                                                      \
+		return                                                                                                                   \
 		{}
 
 	static slang::IGlobalSession* global_session()
@@ -39,8 +39,7 @@ namespace Engine::ShaderCompiler
 	}
 
 
-	static bool find_semantic(String name, VertexBufferSemantic& out_semantic,
-							  const Function<void(const char*)>& print_error)
+	static bool find_semantic(String name, VertexBufferSemantic& out_semantic, const Function<void(const char*)>& print_error)
 	{
 		Strings::to_lower(name);
 
@@ -68,8 +67,7 @@ namespace Engine::ShaderCompiler
 		}
 	}
 
-	static VertexBufferElementType parse_vertex_element_type(slang::TypeLayoutReflection* var,
-															 VertexBufferSemantic semantic)
+	static VertexBufferElementType parse_vertex_element_type(slang::TypeLayoutReflection* var, VertexBufferSemantic semantic)
 	{
 		if (var == nullptr)
 			return VertexBufferElementType::Undefined;
@@ -114,14 +112,12 @@ namespace Engine::ShaderCompiler
 				return VertexBufferElementType::Undefined;
 
 			if (components_offset == 3 &&
-				!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(
-						base_type))
+				!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
 			{
 				--components_offset;
 			}
 
-			auto result =
-					static_cast<VertexBufferElementType>(static_cast<EnumerateType>(base_type) + components_offset);
+			auto result = static_cast<VertexBufferElementType>(static_cast<EnumerateType>(base_type) + components_offset);
 
 			if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
 				return VertexBufferElementType::Color;
@@ -180,8 +176,7 @@ namespace Engine::ShaderCompiler
 						  VertexBufferSemantic::Binormal,//
 						  VertexBufferSemantic::BlendWeight>(attribute.semantic))
 			{
-				print_error(
-						Strings::format("Semantic '{}' doesn't support vector type!", var->getSemanticName()).c_str());
+				print_error(Strings::format("Semantic '{}' doesn't support vector type!", var->getSemanticName()).c_str());
 				return false;
 			}
 
@@ -278,8 +273,8 @@ namespace Engine::ShaderCompiler
 	{
 		auto kind = param->getTypeLayout()->getKind();
 
-		if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
-				  slang::TypeReflection::Kind::Matrix>(kind))
+		if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(
+					kind))
 		{
 			auto name = param->getName();
 			trinex_always_check(name, "Failed to get parameter name!");
@@ -402,9 +397,9 @@ namespace Engine::ShaderCompiler
 		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 	}
 
-#define check_compile_errors()                                                                                         \
-	if (!errors.empty())                                                                                               \
-		return                                                                                                         \
+#define check_compile_errors()                                                                                                   \
+	if (!errors.empty())                                                                                                         \
+		return                                                                                                                   \
 		{}
 
 
@@ -421,8 +416,8 @@ namespace Engine::ShaderCompiler
 
 	using SetupRequestFunction = void (*)(SlangCompileRequest*);
 
-	static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions,
-									   MessageList& errors, const RequestSetupInterface* setup_request)
+	static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList& errors,
+									   const RequestSetupInterface* setup_request)
 	{
 		errors.clear();
 
@@ -597,13 +592,12 @@ namespace Engine::ShaderCompiler
 			ComPtr<slang::IBlob> result_code;
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(),
-																diagnostics_blob.writeRef());
+				SlangResult result =
+						program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
-				submit_compiled_source(out_source.vertex_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
+				submit_compiled_source(out_source.vertex_code, result_code->getBufferPointer(), result_code->getBufferSize());
 			}
 		}
 
@@ -612,13 +606,12 @@ namespace Engine::ShaderCompiler
 			ComPtr<slang::IBlob> result_code;
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(),
-																diagnostics_blob.writeRef());
+				SlangResult result =
+						program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
-				submit_compiled_source(out_source.fragment_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
+				submit_compiled_source(out_source.fragment_code, result_code->getBufferPointer(), result_code->getBufferSize());
 			}
 		}
 
@@ -642,8 +635,8 @@ namespace Engine::ShaderCompiler
 			ComPtr<slang::IBlob> result_code;
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(),
-																diagnostics_blob.writeRef());
+				SlangResult result =
+						program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
@@ -657,13 +650,12 @@ namespace Engine::ShaderCompiler
 			ComPtr<slang::IBlob> result_code;
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = program->getEntryPointCode(geometry_index, 0, result_code.writeRef(),
-																diagnostics_blob.writeRef());
+				SlangResult result =
+						program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
-				submit_compiled_source(out_source.geometry_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
+				submit_compiled_source(out_source.geometry_code, result_code->getBufferPointer(), result_code->getBufferSize());
 			}
 		}
 
@@ -784,8 +776,7 @@ namespace Engine::ShaderCompiler
 	implement_class_default_init(Engine::ShaderCompiler, NONE_Compiler, 0);
 	implement_class_default_init(Engine::ShaderCompiler, D3D11_Compiler, 0);
 
-	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
-								  MessageList& errors)
+	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
 		auto source = create_opengl_shader(slang_source, material->compile_definitions, errors);
 
@@ -797,8 +788,7 @@ namespace Engine::ShaderCompiler
 		return false;
 	}
 
-	bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
-								  MessageList& errors)
+	bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
 		auto source = create_vulkan_shader(slang_source, material->compile_definitions, errors);
 
@@ -810,14 +800,12 @@ namespace Engine::ShaderCompiler
 		return false;
 	}
 
-	bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
-								MessageList& errors)
+	bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
 		return false;
 	}
 
-	bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source,
-								 MessageList& errors)
+	bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
 		auto definitions = material->compile_definitions;
 		{

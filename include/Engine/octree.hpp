@@ -202,7 +202,7 @@ namespace Engine
 			while (!box.inside(node->m_box))
 			{
 				Octree::Index index = calc_child_index(box, node->m_box);
-				node = new Octree::Node((node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
+				node				= new Octree::Node((node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
 				node->m_childs[index.index()] = m_root_node;
 				m_root_node					  = node;
 			}

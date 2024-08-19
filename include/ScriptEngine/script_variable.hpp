@@ -75,8 +75,7 @@ namespace Engine
 		ScriptVariable(const char* declaration, const char* module);
 		ScriptVariable(void* address, int_t type_id, bool is_object_address_for_handle = false);
 		ScriptVariable(void* address, const char* declaration, bool is_object_address_for_handle = false);
-		ScriptVariable(void* address, const char* declaration, const char* module,
-					   bool is_object_address_for_handle = false);
+		ScriptVariable(void* address, const char* declaration, const char* module, bool is_object_address_for_handle = false);
 
 		ScriptVariable(const ScriptVariable& object);
 		ScriptVariable& operator=(const ScriptVariable&);

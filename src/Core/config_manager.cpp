@@ -349,14 +349,14 @@ namespace Engine
 	}
 
 
-#define declare_setter_and_getter(type, func_prefix)                                                                   \
-	bool ConfigManager::property(const Name& name, const type& property)                                               \
-	{                                                                                                                  \
-		return set_property_internal<type>(name, property, #type);                                                     \
-	}                                                                                                                  \
-	type* ConfigManager::func_prefix##_property(const Name& name)                                                      \
-	{                                                                                                                  \
-		return get_property_internal<type>(name, ConfigValueType::type);                                               \
+#define declare_setter_and_getter(type, func_prefix)                                                                             \
+	bool ConfigManager::property(const Name& name, const type& property)                                                         \
+	{                                                                                                                            \
+		return set_property_internal<type>(name, property, #type);                                                               \
+	}                                                                                                                            \
+	type* ConfigManager::func_prefix##_property(const Name& name)                                                                \
+	{                                                                                                                            \
+		return get_property_internal<type>(name, ConfigValueType::type);                                                         \
 	}
 
 	declare_setter_and_getter(ConfigBool, bool);

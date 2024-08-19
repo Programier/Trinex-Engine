@@ -30,8 +30,7 @@ namespace Engine
 		}
 	}
 
-	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info,
-										   bool is_object_address_for_handle)
+	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool is_object_address_for_handle)
 		: ScriptVariableBase()
 	{
 		if (!create(src_address, info, is_object_address_for_handle))
@@ -338,13 +337,11 @@ namespace Engine
 		: ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), is_object_address_for_handle)
 	{}
 
-	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module,
-								   bool is_object_address_for_handle)
+	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool is_object_address_for_handle)
 		: ScriptVariable(address, find_type_id_internal(declaration, module), is_object_address_for_handle)
 	{}
 
-	ScriptVariable::ScriptVariable(const ScriptVariable& object)
-		: ScriptVariable(object.address(), object.type_id(), true)
+	ScriptVariable::ScriptVariable(const ScriptVariable& object) : ScriptVariable(object.address(), object.type_id(), true)
 	{}
 
 	ScriptVariable& ScriptVariable::operator=(const ScriptVariable& object)

@@ -206,8 +206,7 @@ namespace Engine
 		switch (filter)
 		{
 			case SamplerFilter::Bilinear:
-				return comparison_enabled ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR
-										  : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+				return comparison_enabled ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			case SamplerFilter::Trilinear:
 				return comparison_enabled ? D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT
 										  : D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;

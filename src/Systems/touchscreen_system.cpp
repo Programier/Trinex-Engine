@@ -17,10 +17,8 @@ namespace Engine
 		event_system->register_subsystem(this);
 
 		m_listeners = {
-				event_system->add_listener(EventType::FingerDown,
-										   std::bind(&This::on_finger_down, this, std::placeholders::_1)),
-				event_system->add_listener(EventType::FingerUp,
-										   std::bind(&This::on_finger_up, this, std::placeholders::_1)),
+				event_system->add_listener(EventType::FingerDown, std::bind(&This::on_finger_down, this, std::placeholders::_1)),
+				event_system->add_listener(EventType::FingerUp, std::bind(&This::on_finger_up, this, std::placeholders::_1)),
 				event_system->add_listener(EventType::FingerMotion,
 										   std::bind(&This::on_finger_motion, this, std::placeholders::_1)),
 		};
@@ -108,7 +106,7 @@ namespace Engine
 		if (auto window = WindowManager::instance()->find(event.window_id()))
 		{
 			const FingerUpEvent& event_data = event.get<const FingerUpEvent&>();
-			auto& data = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
+			auto& data	 = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
 			data.is_down = false;
 			data.x = data.y = -1.f;
 			data.x_offset = data.y_offset = 0.f;
@@ -120,7 +118,7 @@ namespace Engine
 		if (auto window = WindowManager::instance()->find(event.window_id()))
 		{
 			const FingerDownEvent& event_data = event.get<const FingerDownEvent&>();
-			auto& data = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
+			auto& data	  = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
 			data.is_down  = true;
 			data.x		  = event_data.x;
 			data.y		  = event_data.y;
@@ -133,7 +131,7 @@ namespace Engine
 		if (auto window = WindowManager::instance()->find(event.window_id()))
 		{
 			const FingerMotionEvent& event_data = event.get<const FingerMotionEvent&>();
-			auto& data = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
+			auto& data	  = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
 			data.is_down  = true;
 			data.x		  = event_data.x;
 			data.y		  = event_data.y;

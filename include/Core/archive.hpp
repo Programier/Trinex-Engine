@@ -92,8 +92,7 @@ namespace Engine
 		}
 
 		template<typename Type>
-		typename std::enable_if<std::is_base_of_v<class Engine::Object, Type>, bool>::type
-		serialize_reference(Type*& object)
+		typename std::enable_if<std::is_base_of_v<class Engine::Object, Type>, bool>::type serialize_reference(Type*& object)
 		{
 			if (is_saving())
 			{
@@ -124,9 +123,9 @@ namespace Engine
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool
-		process_vector(Type& vector, bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
-					   void* userdata = nullptr)
+		FORCE_INLINE bool process_vector(Type& vector,
+										 bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
+										 void* userdata														   = nullptr)
 		{
 			size_t size = vector.size();
 			Archive& ar = *this;
@@ -177,9 +176,8 @@ namespace Engine
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool process_set(Type& set,
-									  bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
-									  void* userdata														= nullptr)
+		FORCE_INLINE bool process_set(Type& set, bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
+									  void* userdata = nullptr)
 		{
 			size_t size = set.size();
 			Archive& ar = *this;

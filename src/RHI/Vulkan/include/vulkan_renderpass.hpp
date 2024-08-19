@@ -28,8 +28,7 @@ namespace Engine
 		bool m_has_depth_attachment = false;
 
 
-		static VulkanRenderPass* find_or_create(const Span<RenderSurface*>& color_attachments,
-												RenderSurface* depth_stencil);
+		static VulkanRenderPass* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 		static VulkanRenderPass* swapchain_render_pass(vk::Format format);
 		static void destroy_all();
 

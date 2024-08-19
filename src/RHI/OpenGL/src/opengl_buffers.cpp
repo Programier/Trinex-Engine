@@ -85,8 +85,7 @@ namespace Engine
 		}
 	}
 
-	RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format,
-												 RHIBufferType type)
+	RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
 	{
 		return new OpenGL_IndexBuffer(size, data, format, type);
 	}

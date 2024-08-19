@@ -33,8 +33,8 @@ namespace Engine
 			ALIGNED(4) float m_thickness;
 
 		public:
-			FORCE_INLINE constexpr Vertex(const Vector3D& position = {0, 0, 0},
-										  const ByteColor4& color = {255, 255, 255, 255}, float thickness = 1.f)
+			FORCE_INLINE constexpr Vertex(const Vector3D& position = {0, 0, 0}, const ByteColor4& color = {255, 255, 255, 255},
+										  float thickness = 1.f)
 				: m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
@@ -93,9 +93,8 @@ namespace Engine
 		BatchedTriangles& add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
 									   ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 									   ByteColor color3 = {255, 255, 255, 255});
-		BatchedTriangles& override_triangle(Index index, const Vector3D& point1, const Vector3D& point2,
-											const Vector3D& point3, ByteColor color1 = {255, 255, 255, 255},
-											ByteColor color2 = {255, 255, 255, 255},
+		BatchedTriangles& override_triangle(Index index, const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
+											ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 											ByteColor color3 = {255, 255, 255, 255});
 		BatchedTriangles& render(const class SceneView& view);
 	};

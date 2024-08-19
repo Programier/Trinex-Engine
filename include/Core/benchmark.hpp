@@ -5,12 +5,12 @@
 
 namespace Engine
 {
-#define BENCH_CODE(code)                                                                                               \
-	{                                                                                                                  \
-		BenchMark m_bench;                                                                                             \
-		{                                                                                                              \
-			code                                                                                                       \
-		}                                                                                                              \
+#define BENCH_CODE(code)                                                                                                         \
+	{                                                                                                                            \
+		BenchMark m_bench;                                                                                                       \
+		{                                                                                                                        \
+			code                                                                                                                 \
+		}                                                                                                                        \
 	}
 	template<typename duration = std::chrono::microseconds>
 	class BenchMark final
@@ -27,8 +27,7 @@ namespace Engine
 	public:
 		BenchMark(const String& message = "", int_t line = __builtin_LINE(), const String& file = __builtin_FILE(),
 				  const String& function = __builtin_FUNCTION())
-			: m_line(line), m_file(file), m_function(function), m_message(message),
-			  m_start(std::chrono::steady_clock::now())
+			: m_line(line), m_file(file), m_function(function), m_message(message), m_start(std::chrono::steady_clock::now())
 		{}
 
 		std::size_t time()
@@ -50,8 +49,8 @@ namespace Engine
 		~BenchMark()
 		{
 			if (m_enable_log)
-				info_log("BenchMark", "%s: %d: %s(): %s %d", m_file.c_str(), m_line, m_function.c_str(),
-						 m_message.c_str(), (int) time());
+				info_log("BenchMark", "%s: %d: %s(): %s %d", m_file.c_str(), m_line, m_function.c_str(), m_message.c_str(),
+						 (int) time());
 		}
 	};
 }// namespace Engine

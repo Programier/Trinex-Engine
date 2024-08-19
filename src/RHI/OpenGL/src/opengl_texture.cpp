@@ -88,13 +88,12 @@ namespace Engine
 			{
 				if (auto mip = texture->mip(i))
 				{
-					glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE,
-										   mip->data.size(), mip->data.data());
+					glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, mip->data.size(),
+										   mip->data.data());
 				}
 				else
 				{
-					glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, 0,
-										   nullptr);
+					glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, 0, nullptr);
 				}
 			}
 		}
@@ -193,7 +192,5 @@ namespace Engine
 
 GLuint get_opengl_texture_2d_id(Engine::Texture2D* texture)
 {
-	return (texture ? texture : Engine::DefaultResources::Textures::default_texture)
-			->rhi_object<Engine::OpenGL_Texture>()
-			->m_id;
+	return (texture ? texture : Engine::DefaultResources::Textures::default_texture)->rhi_object<Engine::OpenGL_Texture>()->m_id;
 }

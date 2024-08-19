@@ -94,8 +94,8 @@ namespace Engine
 
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->insert_new_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(
-				&m_octree_render_thread, primitive, primitive->bounding_box());
+		render_thread()->insert_new_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+																					  primitive->bounding_box());
 		m_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}

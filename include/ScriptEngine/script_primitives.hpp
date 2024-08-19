@@ -1,19 +1,19 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-#define declare_primitive(name, type)                                                                                  \
-	class name final                                                                                                   \
-	{                                                                                                                  \
-		mutable size_t m_refs = 0;                                                                                     \
-                                                                                                                       \
-	public:                                                                                                            \
-		type value;                                                                                                    \
-		name(type initial);                                                                                            \
-		name(const name&);                                                                                             \
-		name& operator=(const name&);                                                                                  \
-		void add_ref() const;                                                                                          \
-		void release() const;                                                                                          \
-		type op_conv() const;                                                                                          \
+#define declare_primitive(name, type)                                                                                            \
+	class name final                                                                                                             \
+	{                                                                                                                            \
+		mutable size_t m_refs = 0;                                                                                               \
+                                                                                                                                 \
+	public:                                                                                                                      \
+		type value;                                                                                                              \
+		name(type initial);                                                                                                      \
+		name(const name&);                                                                                                       \
+		name& operator=(const name&);                                                                                            \
+		void add_ref() const;                                                                                                    \
+		void release() const;                                                                                                    \
+		type op_conv() const;                                                                                                    \
 	}
 
 namespace Engine

@@ -306,8 +306,7 @@ namespace Engine
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
 						 ScriptCallConv::CDeclObjFirst);
 
-		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign,
-						 ScriptCallConv::CDeclObjFirst);
+		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDeclObjFirst);
 	}
 
 	static ReflectionInitializeController init(on_init, "Engine::Transform",

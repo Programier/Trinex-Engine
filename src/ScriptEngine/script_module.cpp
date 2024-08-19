@@ -78,14 +78,12 @@ namespace Engine
 	}
 
 	// Compilation
-	bool ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length,
-										  int_t line_offset)
+	bool ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length, int_t line_offset)
 	{
 		return m_module->AddScriptSection(section_name, code, code_length, line_offset) >= 0;
 	}
 
-	bool ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length,
-										  int_t line_offset)
+	bool ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int_t line_offset)
 	{
 		return add_script_section(section_name.c_str(), code.c_str(), code_length, line_offset);
 	}
@@ -183,13 +181,12 @@ namespace Engine
 		return m_module->GetGlobalVarIndexByDecl(decl.c_str());
 	}
 
-	bool ScriptModule::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id,
-								  bool* is_const) const
+	bool ScriptModule::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
 	{
 		const char* out_name	  = nullptr;
 		const char* out_namespace = nullptr;
-		bool result = m_module->GetGlobalVar(index, name ? &out_name : nullptr, name_space ? &out_namespace : nullptr,
-											 type_id, is_const) >= 0;
+		bool result = m_module->GetGlobalVar(index, name ? &out_name : nullptr, name_space ? &out_namespace : nullptr, type_id,
+											 is_const) >= 0;
 
 		if (result)
 		{

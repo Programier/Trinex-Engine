@@ -314,8 +314,7 @@ namespace Engine
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(name, sizeof(Type), info);
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
 						 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct,
-						 Strings::format("void f(const {}& in)", registrar.class_name()).c_str(),
+		registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}& in)", registrar.class_name()).c_str(),
 						 ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
 
 
@@ -325,8 +324,7 @@ namespace Engine
 
 		if constexpr (count == 4)
 			registrar.behave(ScriptClassBehave::Construct, "void f(float, float, float, float)",
-							 ScriptClassRegistrar::constructor<Type, float, float, float, float>,
-							 ScriptCallConv::CDeclObjFirst);
+							 ScriptClassRegistrar::constructor<Type, float, float, float, float>, ScriptCallConv::CDeclObjFirst);
 
 
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
@@ -984,8 +982,7 @@ namespace Engine
 		reg_func("bool BeginTabBar(const string& in, int = 0)", BeginTabBar);
 		reg_func_nw_ns("bool BeginTabItem(const string& in, Bool@ = null, int = 0)",
 					   (result_wrapped_func<ImGui::BeginTabItem, bool, const String&, Boolean*, int>) );
-		reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)",
-				 BeginTable);
+		reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)", BeginTable);
 		reg_func_nw("bool BeginTooltip()", BeginTooltip);
 		reg_func("bool Button(const string& in, const ImVec2& size = ImVec2(0, 0))", Button);
 		reg_func("bool Checkbox(const string& in, bool&)", Checkbox);
@@ -1005,9 +1002,8 @@ namespace Engine
 		reg_func("bool ColorPicker3(const string& in, Engine::Vector3D& inout, int = 0)", ColorPicker3);
 		reg_func("bool ColorPicker4(const string& in, Engine::Vector4D& inout, int = 0)", ColorPicker4);
 		reg_func_nw_ns("bool Combo(const string& in, int&, const string[]& in, int = -1)", wrapped_combo);
-		reg_func(
-				"bool DebugCheckVersionAndDataLayout(const string& in, uint64, uint64, uint64, uint64, uint64, uint64)",
-				DebugCheckVersionAndDataLayout);
+		reg_func("bool DebugCheckVersionAndDataLayout(const string& in, uint64, uint64, uint64, uint64, uint64, uint64)",
+				 DebugCheckVersionAndDataLayout);
 
 		reg_func("bool DragFloat2(const string&, Engine::Vector2D& inout, float = 1.0f, float = 0.0f, float = 0.0f, "
 				 "const string& in = \"%.3f\", int = 0)",
@@ -1072,9 +1068,8 @@ namespace Engine
 		reg_func_nw_ns("bool InputText(const string& in, string& inout, int = 0)", wrap_input_text);
 		reg_func_nw_ns("bool InputTextWithHint(const string& in, const string& in, string& inout, int = 0)",
 					   wrap_input_text_hint);
-		reg_func_nw_ns(
-				"bool InputTextMultiline(const string& in, string& inout, const ImVec2& size = ImVec2(0, 0), int = 0)",
-				wrap_input_text_multiline);
+		reg_func_nw_ns("bool InputTextMultiline(const string& in, string& inout, const ImVec2& size = ImVec2(0, 0), int = 0)",
+					   wrap_input_text_multiline);
 		reg_func("bool InvisibleButton(const string&, const ImVec2&, int = 0)", InvisibleButton);
 		reg_func("bool IsAnyItemActive()", IsAnyItemActive);
 		reg_func("bool IsAnyItemFocused()", IsAnyItemFocused);
@@ -1113,8 +1108,7 @@ namespace Engine
 		//        bool  ListBox(const char* label, int* current_item, const char* (*getter)(void* user_data, int idx), void* user_data, int items_count, int height_in_items = -1);
 		//        bool  MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);
 		//        bool  MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);
-		reg_func_nw_ns("bool RadioButton(const string& in, bool)",
-					   func_of<bool(const char*, bool)>(ImGui::RadioButton));
+		reg_func_nw_ns("bool RadioButton(const string& in, bool)", func_of<bool(const char*, bool)>(ImGui::RadioButton));
 		//        bool  RadioButton(const char* label, int* v, int v_button);
 		//        bool  Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));
 		//        bool  Selectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));
@@ -1135,11 +1129,11 @@ namespace Engine
 		reg_func_no_ns("bool TreeNode(const string& in)", (func_of<bool(const char*)>(ImGui::TreeNode)));
 		reg_func_no_ns("bool TreeNodeEx(const string& in, int = 0)",
 					   func_of<bool(const char*, ImGuiTreeNodeFlags)>(ImGui::TreeNodeEx));
-		reg_func_nw_ns("bool  TreeNodeEx(const string& in, int flags, const string& in)",
-					   func_of<bool(const String&, int, const String&)>(
-							   [](const String& id, int flags, const String& fmt) -> bool {
-								   return ImGui::TreeNodeEx(id.c_str(), flags, "%s", fmt.c_str());
-							   }));
+		reg_func_nw_ns(
+				"bool  TreeNodeEx(const string& in, int flags, const string& in)",
+				func_of<bool(const String&, int, const String&)>([](const String& id, int flags, const String& fmt) -> bool {
+					return ImGui::TreeNodeEx(id.c_str(), flags, "%s", fmt.c_str());
+				}));
 
 		//        bool  VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
 		//        bool  VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
@@ -1158,17 +1152,14 @@ namespace Engine
 		ScriptEngine::register_function("float GetCursorPosY()", make_wrap<ImGui::GetCursorPosY>());
 		ScriptEngine::register_function("float GetFontSize()", make_wrap<ImGui::GetFontSize>());
 		ScriptEngine::register_function("float GetFrameHeight()", make_wrap<ImGui::GetFrameHeight>());
-		ScriptEngine::register_function("float GetFrameHeightWithSpacing()",
-										make_wrap<ImGui::GetFrameHeightWithSpacing>());
+		ScriptEngine::register_function("float GetFrameHeightWithSpacing()", make_wrap<ImGui::GetFrameHeightWithSpacing>());
 		ScriptEngine::register_function("float GetScrollMaxX()", make_wrap<ImGui::GetScrollMaxX>());
 		ScriptEngine::register_function("float GetScrollMaxY()", make_wrap<ImGui::GetScrollMaxY>());
 		ScriptEngine::register_function("float GetScrollX()", make_wrap<ImGui::GetScrollX>());
 		ScriptEngine::register_function("float GetScrollY()", make_wrap<ImGui::GetScrollY>());
 		ScriptEngine::register_function("float GetTextLineHeight()", make_wrap<ImGui::GetTextLineHeight>());
-		ScriptEngine::register_function("float GetTextLineHeightWithSpacing()",
-										make_wrap<ImGui::GetTextLineHeightWithSpacing>());
-		ScriptEngine::register_function("float GetTreeNodeToLabelSpacing()",
-										make_wrap<ImGui::GetTreeNodeToLabelSpacing>());
+		ScriptEngine::register_function("float GetTextLineHeightWithSpacing()", make_wrap<ImGui::GetTextLineHeightWithSpacing>());
+		ScriptEngine::register_function("float GetTreeNodeToLabelSpacing()", make_wrap<ImGui::GetTreeNodeToLabelSpacing>());
 		ScriptEngine::register_function("float GetWindowDpiScale()", make_wrap<ImGui::GetWindowDpiScale>());
 		ScriptEngine::register_function("float GetWindowHeight()", make_wrap<ImGui::GetWindowHeight>());
 		ScriptEngine::register_function("float GetWindowWidth()", make_wrap<ImGui::GetWindowWidth>());
@@ -1183,11 +1174,10 @@ namespace Engine
 		reg_func_nw_ns("uint GetColorU32(const ImVec4& )", (func_of<ImU32(const ImVec4&)>(ImGui::GetColorU32)));
 		reg_func_nw_ns("uint GetColorU32(int, float = 1.0f)", (func_of<ImU32(ImGuiCol, float)>(ImGui::GetColorU32)));
 		reg_func_nw_ns("uint GetColorU32(uint)", (func_of<ImU32(ImU32)>(ImGui::GetColorU32)));
-		reg_func_nw_ns(
-				"ImVec2 CalcTextSize(const string& in, bool = false, float = -1.0f)",
-				func_of<ImVec2(const String&, bool, float)>([](const String& text, bool hide, float wrap) -> ImVec2 {
-					return ImGui::CalcTextSize(text.c_str(), nullptr, hide, wrap);
-				}));
+		reg_func_nw_ns("ImVec2 CalcTextSize(const string& in, bool = false, float = -1.0f)",
+					   func_of<ImVec2(const String&, bool, float)>([](const String& text, bool hide, float wrap) -> ImVec2 {
+						   return ImGui::CalcTextSize(text.c_str(), nullptr, hide, wrap);
+					   }));
 		reg_func_nw("ImVec2 GetContentRegionAvail()", GetContentRegionAvail);
 		reg_func_nw("ImVec2 GetContentRegionMax()", GetContentRegionMax);
 		reg_func_nw("ImVec2 GetCursorPos()", GetCursorPos);
@@ -1219,10 +1209,8 @@ namespace Engine
 		reg_func_nw("void Bullet()", Bullet);
 		reg_func_nw_ns("void BulletText(const string& in)", bullet_text);
 		reg_func_nw("void CloseCurrentPopup()", CloseCurrentPopup);
-		reg_func_nw("void ColorConvertHSVtoRGB(float, float, float, float& out, float& out, float& out)",
-					ColorConvertHSVtoRGB);
-		reg_func_nw("void ColorConvertRGBtoHSV(float, float, float, float& out, float& out, float& out)",
-					ColorConvertRGBtoHSV);
+		reg_func_nw("void ColorConvertHSVtoRGB(float, float, float, float& out, float& out, float& out)", ColorConvertHSVtoRGB);
+		reg_func_nw("void ColorConvertRGBtoHSV(float, float, float, float& out, float& out, float& out)", ColorConvertRGBtoHSV);
 		reg_func("void Columns(int, const string& in, bool= true)", Columns);
 		reg_func_nw_ns("void Columns(int = 1)", static_cast<void (*)(int)>(([](int value) { ImGui::Columns(value); })));
 		reg_func_nw("void DebugFlashStyleColor(int)", DebugFlashStyleColor);
@@ -1243,11 +1231,10 @@ namespace Engine
 		reg_func_nw("void EndTooltip()", EndTooltip);
 		//        void  Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
 		reg_func_nw("void Indent(float = 0.0f)", Indent);
-		reg_func_nw_ns(
-				"void LabelText(const string& in, const string& in fmt)",
-				func_of<void(const String& label, const String& fmt)>([](const String& label, const String& fmt) {
-					ImGui::LabelText(label.c_str(), "%s", fmt.c_str());
-				}));
+		reg_func_nw_ns("void LabelText(const string& in, const string& in fmt)",
+					   func_of<void(const String& label, const String& fmt)>([](const String& label, const String& fmt) {
+						   ImGui::LabelText(label.c_str(), "%s", fmt.c_str());
+					   }));
 
 		reg_func("void LoadIniSettingsFromDisk(const string& in)", LoadIniSettingsFromDisk);
 		reg_func("void LoadIniSettingsFromMemory(const string& in, uint64 =0)", LoadIniSettingsFromMemory);
@@ -1301,9 +1288,8 @@ namespace Engine
 		reg_func_nw("void SetCursorPosY(float)", SetCursorPosY);
 		reg_func_nw("void SetCursorScreenPos(const ImVec2&)", SetCursorScreenPos);
 		reg_func_nw("void SetItemDefaultFocus()", SetItemDefaultFocus);
-		reg_func_nw_ns("void SetItemTooltip(const string& in)", func_of<void(const String&)>([](const String& fmt) {
-						   ImGui::SetItemTooltip("%s", fmt.c_str());
-					   }));
+		reg_func_nw_ns("void SetItemTooltip(const string& in)",
+					   func_of<void(const String&)>([](const String& fmt) { ImGui::SetItemTooltip("%s", fmt.c_str()); }));
 		reg_func_nw("void SetKeyboardFocusHere(int = 0)", SetKeyboardFocusHere);
 		//        void SetMouseCursor(ImGuiMouseCursor cursor_type);
 		reg_func_nw("void SetNextFrameWantCaptureKeyboard(bool)", SetNextFrameWantCaptureKeyboard);
@@ -1330,8 +1316,7 @@ namespace Engine
 		reg_func_nw("void SetScrollY(float)", SetScrollY);
 		reg_func("void SetTabItemClosed(const string& in)", SetTabItemClosed);
 		reg_func_nw_ns("void SetToolTip(const string& in)", set_tooltip);
-		reg_func_nw_ns("void SetWindowCollapsed(bool collapsed, int= 0)",
-					   (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
+		reg_func_nw_ns("void SetWindowCollapsed(bool collapsed, int= 0)", (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
 		reg_func_no_ns("void SetWindowCollapsed(const string& in, bool collapsed, int= 0)",
 					   (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
 		reg_func_nw_ns("void  SetWindowFocus()", (func_of<void()>(ImGui::SetWindowFocus)));
@@ -1339,23 +1324,18 @@ namespace Engine
 		reg_func_nw("void SetWindowFontScale(float)", SetWindowFontScale);
 		reg_func_no_ns("void SetWindowPos(const string& in, const ImVec2& , int = 0)",
 					   (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowPos)));
-		reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)",
-					   (func_of<void(const ImVec2&, int)>(ImGui::SetWindowPos)));
+		reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowPos)));
 		reg_func_no_ns("void SetWindowSize(const string& in, const ImVec2& , int = 0)",
 					   (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowSize)));
-		reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)",
-					   (func_of<void(const ImVec2&, int)>(ImGui::SetWindowSize)));
-		reg_func_nw_ns("void ShowAboutWindow(Bool@ = null)",
-					   (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
+		reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowSize)));
+		reg_func_nw_ns("void ShowAboutWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
 		reg_func_nw_ns("void ShowDebugLogWindow(Bool@ = null)",
 					   (result_wrapped_func<ImGui::ShowDebugLogWindow, void, Boolean*>) );
-		reg_func_nw_ns("void ShowDemoWindow(Bool@ = null)",
-					   (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
+		reg_func_nw_ns("void ShowDemoWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
 		reg_func("void ShowFontSelector(const string& in)", ShowFontSelector);
 		reg_func_nw_ns("void ShowIDStackToolWindow(Bool@ = null)",
 					   (result_wrapped_func<ImGui::ShowIDStackToolWindow, void, Boolean*>) );
-		reg_func_nw_ns("void ShowMetricsWindow(Bool@ = null)",
-					   (result_wrapped_func<ImGui::ShowMetricsWindow, void, Boolean*>) );
+		reg_func_nw_ns("void ShowMetricsWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowMetricsWindow, void, Boolean*>) );
 		reg_func_nw_ns("void ShowStyleEditor()", wrapped_show_style_editor);
 		reg_func_nw("void ShowUserGuide()", ShowUserGuide);
 		reg_func_nw("void Spacing()", Spacing);

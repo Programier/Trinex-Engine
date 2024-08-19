@@ -93,8 +93,7 @@ namespace Engine
 			}
 			else
 			{
-				debug_log("Garbage Collector", "Destroy noname object with type '%s'",
-						  object->class_instance()->name().c_str());
+				debug_log("Garbage Collector", "Destroy noname object with type '%s'", object->class_instance()->name().c_str());
 			}
 		}
 
@@ -167,9 +166,7 @@ namespace Engine
 
 	void GarbageCollector::mark_unreachable(float dt)
 	{
-		static void (*callback)(Object* object) = [](Object* object) {
-			object->flags(Object::Flag::IsUnreachable, true);
-		};
+		static void (*callback)(Object* object) = [](Object* object) { object->flags(Object::Flag::IsUnreachable, true); };
 		process_objects(callback);
 	}
 

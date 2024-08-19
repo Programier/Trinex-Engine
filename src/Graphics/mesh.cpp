@@ -17,8 +17,7 @@ namespace Engine
 		Enum* policy_enum = Enum::static_find("Engine::RenderingPolicy", true);
 
 		self->add_properties(new EnumProperty<MeshMaterial, EnumerateType>("Layer", "Layer type for this material",
-																		   &MeshMaterial::policy, policy_enum,
-																		   Name::none, 0),
+																		   &MeshMaterial::policy, policy_enum, Name::none, 0),
 							 new ByteProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
 							 new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
 														 &MeshMaterial::material));
@@ -30,8 +29,8 @@ namespace Engine
 		Class* self					  = StaticMesh::static_class_instance();
 		Struct* mesh_materials_struct = Struct::static_find("Engine::MeshMaterial", true);
 		auto mesh_material_prop		  = new StructProperty<This, MeshMaterial>("", "", nullptr, mesh_materials_struct);
-		self->add_property(new ArrayProperty<This, decltype(materials)>(
-				"Materials", "Array of materials for this primitive", &This::materials, mesh_material_prop));
+		self->add_property(new ArrayProperty<This, decltype(materials)>("Materials", "Array of materials for this primitive",
+																		&This::materials, mesh_material_prop));
 	}
 
 	implement_engine_class_default_init(DynamicMesh, 0);

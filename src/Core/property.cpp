@@ -19,20 +19,20 @@ namespace Engine
 	}
 
 
-#define declare_prop_constructor(type, enum_type)                                                                      \
-	PropertyValue::PropertyValue(const type& value) : Any(value)                                                       \
-	{                                                                                                                  \
-		m_type = PropertyType::enum_type;                                                                              \
-	}                                                                                                                  \
-	PropertyValue& PropertyValue::operator=(const type& value)                                                         \
-	{                                                                                                                  \
-		static_cast<Any&>(*this) = value;                                                                              \
-		m_type					 = PropertyType::enum_type;                                                            \
-		return *this;                                                                                                  \
+#define declare_prop_constructor(type, enum_type)                                                                                \
+	PropertyValue::PropertyValue(const type& value) : Any(value)                                                                 \
+	{                                                                                                                            \
+		m_type = PropertyType::enum_type;                                                                                        \
+	}                                                                                                                            \
+	PropertyValue& PropertyValue::operator=(const type& value)                                                                   \
+	{                                                                                                                            \
+		static_cast<Any&>(*this) = value;                                                                                        \
+		m_type					 = PropertyType::enum_type;                                                                      \
+		return *this;                                                                                                            \
 	}
 
-#define check_prop_type(type)                                                                                          \
-	if (m_type != PropertyType::type)                                                                                  \
+#define check_prop_type(type)                                                                                                    \
+	if (m_type != PropertyType::type)                                                                                            \
 		return {};
 
 	PropertyValue::PropertyValue(const PropertyValue&)			  = default;
@@ -436,8 +436,7 @@ namespace Engine
 		return elements[index].c_str();
 	}
 
-	ENGINE_EXPORT Name default_array_object_element_name(class ArrayPropertyInterface* interface, void* object,
-														 size_t index)
+	ENGINE_EXPORT Name default_array_object_element_name(class ArrayPropertyInterface* interface, void* object, size_t index)
 	{
 		if (index >= interface->elements_count(object))
 		{
@@ -458,8 +457,7 @@ namespace Engine
 		return default_array_element_name(interface, object, index);
 	}
 
-	ArrayPropertyInterface::ArrayPropertyInterface(const Name& name, const String& description, const Name& group,
-												   BitMask flags)
+	ArrayPropertyInterface::ArrayPropertyInterface(const Name& name, const String& description, const Name& group, BitMask flags)
 		: Property(name, description, group, flags)
 	{
 		m_element_name_callback = default_array_element_name;

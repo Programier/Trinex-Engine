@@ -98,20 +98,20 @@ Engine::Project::shader_cache_dir = "{}";
 
 	String Project::to_string()
 	{
-		return Strings::format(literal, name, version, configs_dir, assets_dir, scripts_dir, shader_cache_dir,
-							   localization_dir, libraries_dir, shader_cache_dir);
+		return Strings::format(literal, name, version, configs_dir, assets_dir, scripts_dir, shader_cache_dir, localization_dir,
+							   libraries_dir, shader_cache_dir);
 	}
 
 	static bool check_initialize(bool with_msg)
 	{
-#define check_var(var)                                                                                                 \
-	if (Project::var.empty())                                                                                          \
-	{                                                                                                                  \
-		if (with_msg)                                                                                                  \
-		{                                                                                                              \
-			error_log("Project", "Project value '%s' can't be empty!", #var);                                          \
-		}                                                                                                              \
-		return false;                                                                                                  \
+#define check_var(var)                                                                                                           \
+	if (Project::var.empty())                                                                                                    \
+	{                                                                                                                            \
+		if (with_msg)                                                                                                            \
+		{                                                                                                                        \
+			error_log("Project", "Project value '%s' can't be empty!", #var);                                                    \
+		}                                                                                                                        \
+		return false;                                                                                                            \
 	}
 		check_var(configs_dir);
 		check_var(assets_dir);

@@ -91,14 +91,10 @@ namespace Engine
 			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigInt>) return int_property(name));
 			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigFloat>) return float_property(name));
 			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigString>) return string_property(name));
-			wrap_config_value(
-					else if constexpr (std::is_same_v<OutType, ConfigBoolArray>) return bool_array_property(name));
-			wrap_config_value(
-					else if constexpr (std::is_same_v<OutType, ConfigIntArray>) return int_array_property(name));
-			wrap_config_value(
-					else if constexpr (std::is_same_v<OutType, ConfigFloatArray>) return float_array_property(name));
-			wrap_config_value(
-					else if constexpr (std::is_same_v<OutType, ConfigStringArray>) return string_array_property(name));
+			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigBoolArray>) return bool_array_property(name));
+			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigIntArray>) return int_array_property(name));
+			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigFloatArray>) return float_array_property(name));
+			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigStringArray>) return string_array_property(name));
 #undef wrap_config_value
 			return nullptr;
 		}

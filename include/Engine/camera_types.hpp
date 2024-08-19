@@ -27,8 +27,7 @@ namespace Engine
 
 		Matrix4f projection_matrix() const;
 		Matrix4f view_matrix() const;
-		static ENGINE_EXPORT Matrix4f view_matrix(const Vector3D& position, const Vector3D& direction,
-												  const Vector3D& up_vector);
+		static ENGINE_EXPORT Matrix4f view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector);
 
 		CameraView& operator=(class CameraComponent*);
 		CameraView& operator=(class CameraComponent&);

@@ -60,7 +60,7 @@ namespace Engine
 
 		static vk::ImageCreateFlagBits default_flags = {};
 
-		vk::ImageUsageFlags m_usage_flags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+		vk::ImageUsageFlags m_usage_flags	   = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
 		vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
 
 
@@ -81,21 +81,19 @@ namespace Engine
 		vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
 
 		API->create_image(this, tiling,
-						  texture->type() == TextureType::Texture2D ? default_flags
-																	: vk::ImageCreateFlagBits::eCubeCompatible,
+						  texture->type() == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
 						  m_usage_flags, m_memory_flags, m_image, m_image_memory, layer_count());
 
 		// Creating image view
-		m_swizzle	 = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g),
-											get_type(texture->swizzle_b), get_type(texture->swizzle_a));
+		m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
+										 get_type(texture->swizzle_a));
 		m_image_view = create_image_view(vk::ImageSubresourceRange(aspect(true), 0, mipmap_count(), 0, layer_count()));
 		change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
 		return *this;
 	}
 
-	void VulkanTexture::update_texture(const Size2D& size, MipMapLevel level, uint_t layer, const byte* data,
-									   size_t data_size)
+	void VulkanTexture::update_texture(const Size2D& size, MipMapLevel level, uint_t layer, const byte* data, size_t data_size)
 	{
 		if (data == nullptr || data_size == 0)
 			return;
@@ -106,8 +104,8 @@ namespace Engine
 		vk::DeviceSize buffer_size = data_size;
 
 		API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
-						   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-						   staging_buffer, staging_buffer_memory);
+						   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, staging_buffer,
+						   staging_buffer_memory);
 
 		void* vulkan_data = API->m_device.mapMemory(staging_buffer_memory, 0, buffer_size);
 		std::memcpy(vulkan_data, data, buffer_size);
@@ -125,8 +123,7 @@ namespace Engine
 		Barrier::transition_image_layout(barrier);
 		auto command_buffer = API->begin_single_time_command_buffer();
 
-		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1),
-								   vk::Offset3D(0, 0, 0),
+		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1), vk::Offset3D(0, 0, 0),
 								   vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
 
 		command_buffer.copyBufferToImage(staging_buffer, m_image, vk::ImageLayout::eTransferDstOptimal, region);
@@ -182,8 +179,8 @@ namespace Engine
 
 	bool VulkanTexture::is_color_image() const
 	{
-		return is_in<ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8, ColorFormat::R8G8B8A8,
-					 ColorFormat::BC1, ColorFormat::BC2, ColorFormat::BC3>(engine_format());
+		return is_in<ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8, ColorFormat::R8G8B8A8, ColorFormat::BC1,
+					 ColorFormat::BC2, ColorFormat::BC3>(engine_format());
 	}
 
 	bool VulkanTexture::is_render_target_color_image() const
@@ -198,8 +195,8 @@ namespace Engine
 
 	bool VulkanTexture::is_depth_stencil_image(ColorFormat format)
 	{
-		return is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth,
-					 ColorFormat::FilteredShadowDepth>(format);
+		return is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
+				format);
 	}
 
 	vk::ImageView VulkanTexture::create_image_view(const vk::ImageSubresourceRange& range)
@@ -228,9 +225,8 @@ namespace Engine
 			barrier.newLayout			= new_layout;
 			barrier.image				= m_image;
 
-			barrier.subresourceRange =
-					vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
-			m_layout = barrier.newLayout;
+			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
+			m_layout				 = barrier.newLayout;
 
 			Barrier::transition_image_layout(barrier);
 
@@ -252,9 +248,8 @@ namespace Engine
 			barrier.newLayout			= new_layout;
 			barrier.image				= m_image;
 
-			barrier.subresourceRange =
-					vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
-			m_layout = barrier.newLayout;
+			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
+			m_layout				 = barrier.newLayout;
 
 			Barrier::transition_image_layout(cmd, barrier);
 

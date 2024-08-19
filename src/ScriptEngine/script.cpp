@@ -357,8 +357,8 @@ namespace Engine
 		ctx->Execute();
 		Object* obj = *reinterpret_cast<Object**>(ctx->GetAddressOfReturnValue());
 		ctx->Unprepare();
-		
-		
+
+
 		if (!name.empty() || owner)
 		{
 			obj->rename(name, owner);
@@ -607,8 +607,7 @@ namespace Engine
 		return m_module.global_var_index_by_decl(decl);
 	}
 
-	bool Script::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id,
-							bool* is_const) const
+	bool Script::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
 	{
 		return m_module.global_var(index, name, name_space, type_id, is_const);
 	}

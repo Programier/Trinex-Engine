@@ -26,8 +26,7 @@ namespace Engine
 
 	static PostDestroyController destroy_struct_map(on_destroy);
 
-	ENGINE_EXPORT Enum* Enum::create(const String& namespace_name, const String& name,
-									 const Vector<Enum::Entry>& entries)
+	ENGINE_EXPORT Enum* Enum::create(const String& namespace_name, const String& name, const Vector<Enum::Entry>& entries)
 	{
 		Name full_name = Name(namespace_name.empty() ? name : namespace_name + "::" + name);
 		Enum* _enum	   = static_find(full_name);

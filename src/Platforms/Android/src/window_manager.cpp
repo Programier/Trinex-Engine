@@ -172,8 +172,7 @@ namespace Engine::Platform
 					break;
 
 				case APP_CMD_GAINED_FOCUS:
-					event_system->push_event(
-							Event(window_id(), EventType::WindowFocusGained, WindowFocusGainedEvent()));
+					event_system->push_event(Event(window_id(), EventType::WindowFocusGained, WindowFocusGainedEvent()));
 					break;
 
 				case APP_CMD_LOST_FOCUS:
@@ -290,8 +289,7 @@ namespace Engine::Platform
 			else
 			{
 				event.xrel = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_RELATIVE_X, event_pointer_index);
-				event.yrel =
-						-AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_RELATIVE_Y, event_pointer_index);
+				event.yrel = -AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_RELATIVE_Y, event_pointer_index);
 			}
 
 			event.x = x;
@@ -313,13 +311,12 @@ namespace Engine::Platform
 		}
 		else if (action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
 		{
-			result = handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown,
-																	 event_pointer_index);
+			result =
+					handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown, event_pointer_index);
 		}
 		else if (action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
 		{
-			result = handle_mouse_button_event<MouseButtonUpEvent>(input_event, EventType::MouseButtonUp,
-																   event_pointer_index);
+			result = handle_mouse_button_event<MouseButtonUpEvent>(input_event, EventType::MouseButtonUp, event_pointer_index);
 		}
 
 		return result;
@@ -494,8 +491,7 @@ namespace Engine::Platform
 		ENGINE_EXPORT void mouse_relative_mode(bool flag)
 		{
 			Platform::m_android_platform_info.mouse_in_relative_mode = flag;
-			Engine::WindowManager::instance()->main_window()->cursor_mode(flag ? CursorMode::Hidden
-																			   : CursorMode::Normal);
+			Engine::WindowManager::instance()->main_window()->cursor_mode(flag ? CursorMode::Hidden : CursorMode::Normal);
 		}
 
 		static void execute_pool_source(struct android_poll_source* source)

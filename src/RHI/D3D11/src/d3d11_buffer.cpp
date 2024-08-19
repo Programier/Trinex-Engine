@@ -93,8 +93,7 @@ namespace Engine
 		return buffer;
 	}
 
-	RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format,
-												RHIBufferType type)
+	RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
 	{
 		D3D11_IndexBuffer* buffer = new D3D11_IndexBuffer();
 		if (!buffer->init(size, data, type, format))

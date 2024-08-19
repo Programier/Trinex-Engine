@@ -263,8 +263,7 @@ namespace Engine::VisualMaterialGraph
 			return in_expression;
 
 		String var_name = Strings::format("var_{}", locals.size());
-		locals.push_back(
-				Strings::format("{} {} = {};", slang_type_name(in_expression.type), var_name, in_expression.code));
+		locals.push_back(Strings::format("{} {} = {};", slang_type_name(in_expression.type), var_name, in_expression.code));
 		return Expression(var_name, in_expression.type, true);
 	}
 
@@ -279,8 +278,7 @@ namespace Engine::VisualMaterialGraph
 			{
 				if (is_scalar(out_type))
 				{
-					return Expression(Strings::format("{}({})", slang_type_name(out_type), in_expression.code.c_str()),
-									  out_type);
+					return Expression(Strings::format("{}({})", slang_type_name(out_type), in_expression.code.c_str()), out_type);
 				}
 
 				if (is_vector(out_type))
@@ -289,16 +287,15 @@ namespace Engine::VisualMaterialGraph
 					uint_t components	= components_count(out_type);
 
 					if (components == 2)
-						return Expression(
-								Strings::format("{}({}, {})", slang_type_name(out_type), variable.code, variable.code),
-								out_type);
+						return Expression(Strings::format("{}({}, {})", slang_type_name(out_type), variable.code, variable.code),
+										  out_type);
 					if (components == 3)
 						return Expression(Strings::format("{}({}, {}, {})", slang_type_name(out_type), variable.code,
 														  variable.code, variable.code),
 										  out_type);
 					if (components == 4)
-						return Expression(Strings::format("{}({}, {}, {}, {})", slang_type_name(out_type),
-														  variable.code, variable.code, variable.code, variable.code),
+						return Expression(Strings::format("{}({}, {}, {}, {})", slang_type_name(out_type), variable.code,
+														  variable.code, variable.code, variable.code),
 										  out_type);
 				}
 			}
@@ -306,9 +303,8 @@ namespace Engine::VisualMaterialGraph
 			{
 				if (is_scalar(out_type))
 				{
-					return Expression(
-							Strings::format("{}({}.x)", slang_type_name(out_type), in_expression.code.c_str()),
-							out_type);
+					return Expression(Strings::format("{}({}.x)", slang_type_name(out_type), in_expression.code.c_str()),
+									  out_type);
 				}
 
 				if (is_vector(out_type))
@@ -327,8 +323,7 @@ namespace Engine::VisualMaterialGraph
 						static const char* components_mask[] = {"xy", "xyz", "xyzw"};
 						if (in_components > out_components)
 						{
-							return Expression(Strings::format("{}({}.{})", slang_type_name(out_type),
-															  variable.code.c_str(),
+							return Expression(Strings::format("{}({}.{})", slang_type_name(out_type), variable.code.c_str(),
 															  components_mask[out_components - 2]),
 											  out_type);
 						}
@@ -338,9 +333,8 @@ namespace Engine::VisualMaterialGraph
 
 						if (diff == 1)
 						{
-							return Expression(Strings::format("{}({}.{}, {})", slang_type_name(out_type),
-															  variable.code.c_str(), components_mask[in_components - 2],
-															  default_value),
+							return Expression(Strings::format("{}({}.{}, {})", slang_type_name(out_type), variable.code.c_str(),
+															  components_mask[in_components - 2], default_value),
 											  out_type);
 						}
 						else if (diff == 2)
@@ -363,8 +357,7 @@ namespace Engine::VisualMaterialGraph
 						if (i < in_components)
 						{
 							Expression component = expression_cast(
-									Expression(Strings::format("{}.{}", variable.code, components_mask[i]),
-											   in_component_type),
+									Expression(Strings::format("{}.{}", variable.code, components_mask[i]), in_component_type),
 									out_component_type);
 							code += component.code;
 						}
@@ -386,8 +379,7 @@ namespace Engine::VisualMaterialGraph
 
 				if (out_components < in_components)
 				{
-					return Expression(Strings::format("{}({})", slang_type_name(out_type), in_expression.code),
-									  out_type);
+					return Expression(Strings::format("{}({})", slang_type_name(out_type), in_expression.code), out_type);
 				}
 				else
 				{
@@ -519,29 +511,25 @@ namespace Engine::VisualMaterialGraph
 								   : "bool2(false, false)";
 			case PinType::BVec3:
 				return storage.ptr ? Strings::format("bool3({}, {}, {})", bool_to_string(storage.bool_ptr[0]),
-													 bool_to_string(storage.bool_ptr[1]),
-													 bool_to_string(storage.bool_ptr[2]))
+													 bool_to_string(storage.bool_ptr[1]), bool_to_string(storage.bool_ptr[2]))
 								   : "bool3(false, false, false)";
 			case PinType::BVec4:
 				return storage.ptr ? Strings::format("bool4({}, {}, {}, {})", bool_to_string(storage.bool_ptr[0]),
-													 bool_to_string(storage.bool_ptr[1]),
-													 bool_to_string(storage.bool_ptr[2]),
+													 bool_to_string(storage.bool_ptr[1]), bool_to_string(storage.bool_ptr[2]),
 													 bool_to_string(storage.bool_ptr[3]))
 								   : "bool4(false, false, false, false)";
 			case PinType::IVec2:
-				return storage.ptr ? Strings::format("int2({}, {})", storage.int_ptr[0], storage.int_ptr[1])
-								   : "int2(0, 0)";
+				return storage.ptr ? Strings::format("int2({}, {})", storage.int_ptr[0], storage.int_ptr[1]) : "int2(0, 0)";
 			case PinType::IVec3:
-				return storage.ptr ? Strings::format("int3({}, {}, {})", storage.int_ptr[0], storage.int_ptr[1],
-													 storage.int_ptr[2])
-								   : "int3(0, 0, 0)";
+				return storage.ptr
+							   ? Strings::format("int3({}, {}, {})", storage.int_ptr[0], storage.int_ptr[1], storage.int_ptr[2])
+							   : "int3(0, 0, 0)";
 			case PinType::IVec4:
 				return storage.ptr ? Strings::format("int4({}, {}, {}, {})", storage.int_ptr[0], storage.int_ptr[1],
 													 storage.int_ptr[2], storage.int_ptr[3])
 								   : "int4(0, 0, 0, 0)";
 			case PinType::UVec2:
-				return storage.ptr ? Strings::format("uint2({}, {})", storage.uint_ptr[0], storage.uint_ptr[1])
-								   : "uint2(0, 0)";
+				return storage.ptr ? Strings::format("uint2({}, {})", storage.uint_ptr[0], storage.uint_ptr[1]) : "uint2(0, 0)";
 			case PinType::UVec3:
 				return storage.ptr ? Strings::format("uint3({}, {}, {})", storage.uint_ptr[0], storage.uint_ptr[1],
 													 storage.uint_ptr[2])
@@ -552,9 +540,8 @@ namespace Engine::VisualMaterialGraph
 								   : "uint4(0, 0, 0, 0)";
 
 			case PinType::Vec2:
-				return storage.float_ptr
-							   ? Strings::format("float2({:.6f}, {:.6f})", storage.float_ptr[0], storage.float_ptr[1])
-							   : "float2(0.f, 0.f)";
+				return storage.float_ptr ? Strings::format("float2({:.6f}, {:.6f})", storage.float_ptr[0], storage.float_ptr[1])
+										 : "float2(0.f, 0.f)";
 			case PinType::Vec3:
 			case PinType::Color3:
 				return storage.float_ptr ? Strings::format("float3({:.6f}, {:.6f}, {:.6f})", storage.float_ptr[0],
@@ -562,10 +549,9 @@ namespace Engine::VisualMaterialGraph
 										 : "float3(0.f, 0.f, 0.f)";
 			case PinType::Vec4:
 			case PinType::Color4:
-				return storage.float_ptr
-							   ? Strings::format("float4({:.6f}, {:.6f}, {:.6f}, {:.6f})", storage.float_ptr[0],
-												 storage.float_ptr[1], storage.float_ptr[2], storage.float_ptr[3])
-							   : "float4(0.f, 0.f, 0.f, 0.f)";
+				return storage.float_ptr ? Strings::format("float4({:.6f}, {:.6f}, {:.6f}, {:.6f})", storage.float_ptr[0],
+														   storage.float_ptr[1], storage.float_ptr[2], storage.float_ptr[3])
+										 : "float4(0.f, 0.f, 0.f, 0.f)";
 
 			default:
 				return "";
@@ -617,15 +603,15 @@ namespace Engine::VisualMaterialGraph
 
 	////////////////////////// CONSTANTS BLOCK //////////////////////////
 
-#define implement_visual_material_constant_node(type)                                                                  \
-	implement_visual_material_node(type, Constants);                                                                   \
-	type::type()                                                                                                       \
-	{                                                                                                                  \
-		m_outputs.push_back(new type##OutputPin(this, "Value"));                                                       \
-	}                                                                                                                  \
-	Expression type::compile(OutputPin* pin, CompilerState& state)                                                     \
-	{                                                                                                                  \
-		return Expression(create_default_value(PinType::type, pin->default_value()), PinType::type);                   \
+#define implement_visual_material_constant_node(type)                                                                            \
+	implement_visual_material_node(type, Constants);                                                                             \
+	type::type()                                                                                                                 \
+	{                                                                                                                            \
+		m_outputs.push_back(new type##OutputPin(this, "Value"));                                                                 \
+	}                                                                                                                            \
+	Expression type::compile(OutputPin* pin, CompilerState& state)                                                               \
+	{                                                                                                                            \
+		return Expression(create_default_value(PinType::type, pin->default_value()), PinType::type);                             \
 	}
 
 	implement_visual_material_constant_node(Bool);
@@ -650,15 +636,15 @@ namespace Engine::VisualMaterialGraph
 
 	////////////////////////// INPUTS BLOCK //////////////////////////
 
-#define implement_visual_material_input_node(name, type, expr)                                                         \
-	implement_visual_material_node(name, Inputs);                                                                      \
-	name::name()                                                                                                       \
-	{                                                                                                                  \
-		m_outputs.push_back(new type##OutputPinND(this, "Value"));                                                     \
-	}                                                                                                                  \
-	Expression name::compile(OutputPin* pin, CompilerState& state)                                                     \
-	{                                                                                                                  \
-		return Expression(expr, PinType::type, true);                                                                  \
+#define implement_visual_material_input_node(name, type, expr)                                                                   \
+	implement_visual_material_node(name, Inputs);                                                                                \
+	name::name()                                                                                                                 \
+	{                                                                                                                            \
+		m_outputs.push_back(new type##OutputPinND(this, "Value"));                                                               \
+	}                                                                                                                            \
+	Expression name::compile(OutputPin* pin, CompilerState& state)                                                               \
+	{                                                                                                                            \
+		return Expression(expr, PinType::type, true);                                                                            \
 	}
 
 	implement_visual_material_input_node(Projection, Mat4, "globals.projection");
@@ -899,10 +885,9 @@ namespace Engine::VisualMaterialGraph
 		if (!m_inputs[0]->has_links())
 			return Expression();
 
-		auto input_pin = m_inputs[0];
-		Expression input_expr =
-				state.create_variable(input_pin->linked_to()->node()->compile(input_pin->linked_to(), state));
-		PinType out_type = out_pin_type(pin);
+		auto input_pin		  = m_inputs[0];
+		Expression input_expr = state.create_variable(input_pin->linked_to()->node()->compile(input_pin->linked_to(), state));
+		PinType out_type	  = out_pin_type(pin);
 
 		if (out_type == PinType::Undefined)
 			return Expression();
@@ -1136,8 +1121,7 @@ namespace Engine::VisualMaterialGraph
 			{
 				CombinedImageSampler2DMaterialParameter* texture_parameter =
 						reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(param);
-				texture_parameter->texture =
-						texture == nullptr ? DefaultResources::Textures::default_texture : texture.ptr();
+				texture_parameter->texture = texture == nullptr ? DefaultResources::Textures::default_texture : texture.ptr();
 
 				texture_parameter->sampler = sampler;
 

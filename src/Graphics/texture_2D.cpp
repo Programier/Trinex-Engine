@@ -36,8 +36,7 @@ namespace Engine
 		return init(format, size, data.data(), data.size(), need_generate_mips);
 	}
 
-	Texture2D& Texture2D::init(ColorFormat format, Size2D size, const byte* data, size_t data_size,
-							   bool need_generate_mips)
+	Texture2D& Texture2D::init(ColorFormat format, Size2D size, const byte* data, size_t data_size, bool need_generate_mips)
 	{
 		if (data == nullptr || data_size == 0)
 			return init(format, size);

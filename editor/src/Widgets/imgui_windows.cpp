@@ -16,9 +16,9 @@
 
 namespace Engine
 {
-#define text_wrapped_colored(color, format, ...)                                                                       \
-	ImGui::PushStyleColor(ImGuiCol_Text, color);                                                                       \
-	ImGui::TextWrapped(format __VA_OPT__(, ) __VA_ARGS__);                                                             \
+#define text_wrapped_colored(color, format, ...)                                                                                 \
+	ImGui::PushStyleColor(ImGuiCol_Text, color);                                                                                 \
+	ImGui::TextWrapped(format __VA_OPT__(, ) __VA_ARGS__);                                                                       \
 	ImGui::PopStyleColor()
 
 
@@ -31,8 +31,7 @@ namespace Engine
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100),
-								ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		if (ImGui::Begin(name(), &open, window_flags))
 		{
@@ -84,8 +83,7 @@ namespace Engine
 		bool open = true;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100),
-								ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -160,8 +158,7 @@ namespace Engine
 		bool open = true;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100),
-								ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -219,8 +216,7 @@ namespace Engine
 		bool open = true;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100),
-								ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Object: %s", m_object->full_name().c_str());
@@ -237,13 +233,11 @@ namespace Engine
 		}
 		else if (new_object_name.starts_with(Constants::name_separator))
 		{
-			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't starts with '%s'!",
-								 Constants::name_separator.c_str());
+			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't starts with '%s'!", Constants::name_separator.c_str());
 		}
 		else if (new_object_name.ends_with(Constants::name_separator))
 		{
-			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't ends with '%s'!",
-								 Constants::name_separator.c_str());
+			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't ends with '%s'!", Constants::name_separator.c_str());
 		}
 		{
 			ImGui::Separator();
@@ -435,8 +429,7 @@ namespace Engine
 		m_dock_id = ImGui::GetID("##SpawnActorDock");
 
 		ImGui::DockSpace(m_dock_id, {0, 0},
-						 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking |
-								 ImGuiDockNodeFlags_NoTabBar);
+						 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
 
 		if (frame_number == 1)
 		{
@@ -470,8 +463,7 @@ namespace Engine
 	bool ImGuiSpawnNewActor::render(RenderViewport* viewport)
 	{
 		m_is_open = true;
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(m_monitor_size / 2.f), ImGuiCond_Appearing,
-								{0.5f, 0.5f});
+		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(m_monitor_size / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
 		ImGui::SetNextWindowSize({900, 450}, ImGuiCond_Appearing);
 		ImGui::Begin(name(), &m_is_open);
 

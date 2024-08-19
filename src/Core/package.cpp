@@ -158,8 +158,7 @@ namespace Engine
 			return *this;
 		}
 
-		bool archive_process(Archive& ar, bool (*callback)(HeaderEntry& entry, void*) = nullptr,
-							 void* userdata = nullptr)
+		bool archive_process(Archive& ar, bool (*callback)(HeaderEntry& entry, void*) = nullptr, void* userdata = nullptr)
 		{
 			header_begin_offset = ar.position();
 

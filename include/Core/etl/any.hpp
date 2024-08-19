@@ -17,8 +17,7 @@ namespace Engine
 
 		union ENGINE_EXPORT Storage
 		{
-			using stack_storage_t =
-					typename std::aligned_storage<2 * sizeof(void*), std::alignment_of<void*>::value>::type;
+			using stack_storage_t = typename std::aligned_storage<2 * sizeof(void*), std::alignment_of<void*>::value>::type;
 			void* dynamic;
 			stack_storage_t stack;
 
@@ -154,8 +153,8 @@ namespace Engine
 		Any& operator=(const Any& any);
 		Any& operator=(Any&& any);
 
-		template<typename ValueType, typename = typename std::enable_if<
-											 !std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
+		template<typename ValueType,
+				 typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
 		Any(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
@@ -164,8 +163,8 @@ namespace Engine
 		}
 
 
-		template<typename ValueType, typename = typename std::enable_if<
-											 !std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
+		template<typename ValueType,
+				 typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
 		Any& operator=(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,

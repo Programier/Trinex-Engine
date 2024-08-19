@@ -157,20 +157,18 @@ namespace Engine
 
 	ScriptClassRegistrar::ValueInfo::ValueInfo()
 		: all_ints(false), all_floats(false), pod(false), more_constructors(false), is_class(true), is_array(false),
-		  is_float(false), is_primitive(false), has_constructor(false), has_destructor(false),
-		  has_assignment_operator(false), has_copy_constructor(false)
+		  is_float(false), is_primitive(false), has_constructor(false), has_destructor(false), has_assignment_operator(false),
+		  has_copy_constructor(false)
 	{}
 
 	ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true)
 	{}
 
 	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name)
-		: m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)),
-		  m_namespace_name(Strings::namespace_sv_of(name))
+		: m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)), m_namespace_name(Strings::namespace_sv_of(name))
 	{}
 
-	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags)
-		: ScriptClassRegistrar(name)
+	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags) : ScriptClassRegistrar(name)
 	{
 		ScriptNamespaceScopedChanger changer(m_namespace_name);
 		script_engine()->RegisterObjectType(m_class_base_name.c_str(), size, flags);
@@ -200,8 +198,8 @@ namespace Engine
 
 	ScriptClassRegistrar ScriptClassRegistrar::reference_class(Class* class_instance)
 	{
-		auto res = ScriptClassRegistrar(class_instance->name().to_string(), class_instance->sizeof_class(),
-										create_flags(RefInfo()));
+		auto res =
+				ScriptClassRegistrar(class_instance->name().to_string(), class_instance->sizeof_class(), create_flags(RefInfo()));
 		class_instance->script_type_info = res.type_info().info();
 		return res;
 	}
@@ -232,23 +230,19 @@ namespace Engine
 		return ScriptEngine::type_info_by_name(m_class_base_name);
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method,
-													   ScriptCallConv conv)
+	ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(method),
-														  create_call_conv(conv)) >= 0);
+														  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function,
-													   ScriptCallConv conv)
+	ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(function),
-														  create_call_conv(conv)) >= 0);
+														  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
@@ -278,8 +272,8 @@ namespace Engine
 													   ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour),
-															 declaration, *reinterpret_cast<asSFuncPtr*>(function),
+		SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+															 *reinterpret_cast<asSFuncPtr*>(function),
 															 create_call_conv(conv)) >= 0);
 		return *this;
 	}
@@ -288,8 +282,8 @@ namespace Engine
 													   ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
-		SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour),
-															 declaration, *reinterpret_cast<asSFuncPtr*>(method),
+		SCRIPT_CALL(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+															 *reinterpret_cast<asSFuncPtr*>(method),
 															 create_call_conv(conv)) >= 0);
 		return *this;
 	}
@@ -307,23 +301,19 @@ namespace Engine
 		}
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method,
-													   ScriptCallConv conv)
+	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(method),
-														  create_call_conv(conv)) >= 0);
+														  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptFuncPtr* function,
-													   ScriptCallConv conv)
+	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CALL(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														  *reinterpret_cast<asSFuncPtr*>(function),
-														  create_call_conv(conv)) >= 0);
+														  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 

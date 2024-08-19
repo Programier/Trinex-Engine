@@ -62,8 +62,7 @@ namespace Engine
 
 	PointLightComponent& PointLightComponent::submit_point_light_data()
 	{
-		render_thread()->insert_new_task<UpdateVariableCommand<float>>(m_fall_off_exponent,
-																	   proxy()->m_fall_off_exponent);
+		render_thread()->insert_new_task<UpdateVariableCommand<float>>(m_fall_off_exponent, proxy()->m_fall_off_exponent);
 		return *this;
 	}
 

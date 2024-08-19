@@ -96,8 +96,7 @@ namespace Engine
 
 	void SceneRenderTargets::initialize(Size2D new_size)
 	{
-		if (new_size == m_size || new_size.x == 0 || new_size.y == 0 ||
-			(m_size.x >= new_size.x && m_size.y >= new_size.y))
+		if (new_size == m_size || new_size.x == 0 || new_size.y == 0 || (m_size.x >= new_size.x && m_size.y >= new_size.y))
 			return;
 
 		m_size = new_size;
@@ -149,9 +148,8 @@ namespace Engine
 
 	const SceneRenderTargets& SceneRenderTargets::begin_rendering_gbuffer() const
 	{
-		RenderSurface* m_surfaces[] = {surface_of(Surface::BaseColor), surface_of(Surface::Position),
-									   surface_of(Surface::Normal), surface_of(Surface::Emissive),
-									   surface_of(Surface::MSRA)};
+		RenderSurface* m_surfaces[] = {surface_of(Surface::BaseColor), surface_of(Surface::Position), surface_of(Surface::Normal),
+									   surface_of(Surface::Emissive), surface_of(Surface::MSRA)};
 
 		rhi->bind_render_target(m_surfaces, surface_of(Surface::SceneDepthZ));
 		return *this;

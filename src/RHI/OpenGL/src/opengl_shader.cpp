@@ -58,8 +58,7 @@ namespace Engine
 		if (!success)
 		{
 			glGetShaderInfoLog(shader_id, 1024, nullptr, log);
-			error_log("OpenGL Shader", "Failed to compile %s shader '%s'\n\n%s\n", shader_type_name(type), name.c_str(),
-					  log);
+			error_log("OpenGL Shader", "Failed to compile %s shader '%s'\n\n%s\n", shader_type_name(type), name.c_str(), log);
 			cleanup();
 			return 0;
 		}
@@ -452,8 +451,7 @@ namespace Engine
 
 				glVertexAttribFormat(attribute.location, input.count, input.type, input.normalized, attribute.offset);
 				glVertexAttribBinding(attribute.location, attribute.stream_index);
-				glVertexAttribDivisor(attribute.stream_index,
-									  attribute.rate == VertexAttributeInputRate::Instance ? 1 : 0);
+				glVertexAttribDivisor(attribute.stream_index, attribute.rate == VertexAttributeInputRate::Instance ? 1 : 0);
 				glEnableVertexAttribArray(attribute.location);
 			}
 		}
@@ -526,8 +524,7 @@ namespace Engine
 				new_command(glDisable, static_cast<GLenum>(GL_BLEND));
 		}
 
-		info_log("OpenGL", "Writed %zu commands for pipeline '%s'", m_apply_state.size(),
-				 pipeline->full_name().c_str());
+		info_log("OpenGL", "Writed %zu commands for pipeline '%s'", m_apply_state.size(), pipeline->full_name().c_str());
 	}
 
 	void OpenGL_Pipeline::bind()

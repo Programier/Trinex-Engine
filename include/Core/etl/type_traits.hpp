@@ -14,11 +14,10 @@ namespace Engine
 
 	template<typename T>
 	struct is_container<
-			T, std::conditional_t<
-					   false,
-					   is_container_helper<decltype(std::declval<T>().size()), decltype(std::declval<T>().begin()),
-										   decltype(std::declval<T>().end()), typename T::value_type>,
-					   void>> : public std::true_type {
+			T, std::conditional_t<false,
+								  is_container_helper<decltype(std::declval<T>().size()), decltype(std::declval<T>().begin()),
+													  decltype(std::declval<T>().end()), typename T::value_type>,
+								  void>> : public std::true_type {
 	};
 
 	template<typename T>

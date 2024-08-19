@@ -5,8 +5,7 @@
 
 namespace Engine
 {
-	UniformBufferPoolBase::BufferEntry& UniformBufferPoolBase::BufferEntry::update(const void* data, size_t size,
-																				   size_t offset)
+	UniformBufferPoolBase::BufferEntry& UniformBufferPoolBase::BufferEntry::update(const void* data, size_t size, size_t offset)
 	{
 		byte* mapped = reinterpret_cast<byte*>(API->m_device.mapMemory(memory, 0, VK_WHOLE_SIZE));
 		std::memcpy(mapped + offset, data, size);
@@ -106,8 +105,7 @@ namespace Engine
 			API->m_state.m_pipeline->bind_uniform_buffer(
 					vk::DescriptorBufferInfo(current_buffer.buffer, used_data, shadow_data_size), local_params_location,
 					vk::DescriptorType::eUniformBuffer);
-			used_data = align_memory(used_data + shadow_data_size,
-									 API->m_properties.limits.minUniformBufferOffsetAlignment);
+			used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
 		}
 
 		shadow_data_size = 0;

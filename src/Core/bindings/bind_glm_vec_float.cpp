@@ -35,38 +35,38 @@ namespace Engine
 			using ConstType = RegistryType1::value_type;
 			using RefType	= RegistryType1::value_type&;
 
-			ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(class_name + "1D", sizeof(RegistryType1),
-																			   info_of<RegistryType1>());
+			ScriptClassRegistrar registrar =
+					ScriptClassRegistrar::value_class(class_name + "1D", sizeof(RegistryType1), info_of<RegistryType1>());
 			bind_glm_behaviours<RegistryType1>(registrar, prop_type);
 			bind_vec1_props<RegistryType1>(registrar, prop_type);
 			bind_glm_operators<RegistryType1>(registrar, prop_type);
 			bind_index_op<RegistryType1, ConstType, RefType>(registrar, const_type, ref_type);
 		}
 		{
-			using ConstType				   = RegistryType2::value_type;
-			using RefType				   = RegistryType2::value_type&;
-			ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(class_name + "2D", sizeof(RegistryType2),
-																			   info_of<RegistryType2>());
+			using ConstType = RegistryType2::value_type;
+			using RefType	= RegistryType2::value_type&;
+			ScriptClassRegistrar registrar =
+					ScriptClassRegistrar::value_class(class_name + "2D", sizeof(RegistryType2), info_of<RegistryType2>());
 			bind_glm_behaviours<RegistryType2>(registrar, prop_type);
 			bind_vec2_props<RegistryType2>(registrar, prop_type);
 			bind_glm_operators<RegistryType2>(registrar, prop_type);
 			bind_index_op<RegistryType2, ConstType, RefType>(registrar, const_type, ref_type);
 		}
 		{
-			using ConstType				   = RegistryType3::value_type;
-			using RefType				   = RegistryType3::value_type&;
-			ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(class_name + "3D", sizeof(RegistryType3),
-																			   info_of<RegistryType3>());
+			using ConstType = RegistryType3::value_type;
+			using RefType	= RegistryType3::value_type&;
+			ScriptClassRegistrar registrar =
+					ScriptClassRegistrar::value_class(class_name + "3D", sizeof(RegistryType3), info_of<RegistryType3>());
 			bind_glm_behaviours<RegistryType3>(registrar, prop_type);
 			bind_vec3_props<RegistryType3>(registrar, prop_type);
 			bind_glm_operators<RegistryType3>(registrar, prop_type);
 			bind_index_op<RegistryType3, ConstType, RefType>(registrar, const_type, ref_type);
 		}
 		{
-			using ConstType				   = RegistryType3::value_type;
-			using RefType				   = RegistryType3::value_type&;
-			ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(class_name + "4D", sizeof(RegistryType4),
-																			   info_of<RegistryType4>());
+			using ConstType = RegistryType3::value_type;
+			using RefType	= RegistryType3::value_type&;
+			ScriptClassRegistrar registrar =
+					ScriptClassRegistrar::value_class(class_name + "4D", sizeof(RegistryType4), info_of<RegistryType4>());
 			bind_glm_behaviours<RegistryType4>(registrar, prop_type);
 			bind_vec4_props<RegistryType4>(registrar, prop_type);
 			bind_glm_operators<RegistryType4>(registrar, prop_type);

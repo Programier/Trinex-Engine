@@ -42,9 +42,8 @@ namespace Engine
 	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(const Vector<vk::ImageView>& image_views)
 	{
 		auto m_state = state();
-		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(),
-														  m_state->m_render_pass->m_render_pass, image_views,
-														  m_state->m_size.x, m_state->m_size.y, 1);
+		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_state->m_render_pass->m_render_pass,
+														  image_views, m_state->m_size.x, m_state->m_size.y, 1);
 		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
 		return *this;
@@ -203,8 +202,7 @@ namespace Engine
 
 		if (API->m_properties.limits.maxColorAttachments < static_cast<uint32_t>(color_attachments.size()))
 		{
-			throw EngineException(
-					Strings::format("Max color attachments is {}", API->m_properties.limits.maxColorAttachments));
+			throw EngineException(Strings::format("Max color attachments is {}", API->m_properties.limits.maxColorAttachments));
 		}
 		render_target = new VulkanRenderTarget();
 		render_target->init(color_attachments, depth_stencil);
@@ -212,8 +210,7 @@ namespace Engine
 		return render_target;
 	}
 
-	VulkanRenderTarget& VulkanRenderTarget::init(const Span<RenderSurface*>& color_attachments,
-												 RenderSurface* depth_stencil)
+	VulkanRenderTarget& VulkanRenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
 	{
 		m_state.init(color_attachments, depth_stencil);
 
@@ -385,8 +382,7 @@ namespace Engine
 		m_frames.clear();
 	}
 
-	VulkanAPI& VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments,
-											 RenderSurface* depth_stencil)
+	VulkanAPI& VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
 	{
 		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(color_attachments, depth_stencil);
 		rt->bind();
@@ -454,10 +450,8 @@ namespace Engine
 				vk::Rect2D vulkan_scissor;
 				vulkan_scissor.offset.setX(glm::clamp(scissor.pos.x, 0.f, render_target_size.x));
 				vulkan_scissor.offset.setY(glm::clamp(sc_y, 0.f, render_target_size.y));
-				vulkan_scissor.extent.setWidth(
-						glm::clamp(scissor.size.x, 0.f, render_target_size.x - vulkan_scissor.offset.x));
-				vulkan_scissor.extent.setHeight(
-						glm::clamp(scissor.size.y, 0.f, render_target_size.y - vulkan_scissor.offset.y));
+				vulkan_scissor.extent.setWidth(glm::clamp(scissor.size.x, 0.f, render_target_size.x - vulkan_scissor.offset.x));
+				vulkan_scissor.extent.setHeight(glm::clamp(scissor.size.y, 0.f, render_target_size.y - vulkan_scissor.offset.y));
 				current_command_buffer_handle().setScissor(0, vulkan_scissor);
 			}
 

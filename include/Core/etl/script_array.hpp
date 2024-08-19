@@ -10,14 +10,14 @@ class asITypeInfo;
 
 namespace Engine
 {
-#define script_array_init_check(fail_ret)                                                                              \
-	if (m_as_array == nullptr)                                                                                         \
+#define script_array_init_check(fail_ret)                                                                                        \
+	if (m_as_array == nullptr)                                                                                                   \
 		return fail_ret;
 
-#define script_array_init_check_noret(fail_ret)                                                                        \
-	if (m_as_array == nullptr)                                                                                         \
-	{                                                                                                                  \
-		fail_ret;                                                                                                      \
+#define script_array_init_check_noret(fail_ret)                                                                                  \
+	if (m_as_array == nullptr)                                                                                                   \
+	{                                                                                                                            \
+		fail_ret;                                                                                                                \
 	}
 
 	class ENGINE_EXPORT ScriptArrayBase

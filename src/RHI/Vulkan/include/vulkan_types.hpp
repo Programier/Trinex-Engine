@@ -33,10 +33,10 @@ namespace Engine
 	}
 
 
-#define DECLARE_GETTER(a, b, array)                                                                                    \
-	inline a get_type(const b& in_type)                                                                                \
-	{                                                                                                                  \
-		return array[static_cast<EnumerateType>(in_type)];                                                             \
+#define DECLARE_GETTER(a, b, array)                                                                                              \
+	inline a get_type(const b& in_type)                                                                                          \
+	{                                                                                                                            \
+		return array[static_cast<EnumerateType>(in_type)];                                                                       \
 	}
 
 	DECLARE_GETTER(vk::FrontFace, FrontFace, m_front_faces);

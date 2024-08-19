@@ -103,8 +103,8 @@ namespace Engine
 					String key, value;
 					if (parse_string(line, key, value))
 					{
-						String p = entry.relative(path);
-						key = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+						String p	   = entry.relative(path);
+						key			   = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
 						HashIndex hash = memory_hash_fast(key.c_str(), key.length());
 						out[hash]	   = value;
 					}

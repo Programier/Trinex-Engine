@@ -87,8 +87,8 @@ namespace Engine
 
 		if (is_render_surface)
 		{
-			if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth,
-					  ColorFormat::FilteredShadowDepth>(texture->format()))
+			if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
+						texture->format()))
 			{
 				desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
 			}
@@ -120,8 +120,8 @@ namespace Engine
 			data.SysMemPitch	  = static_cast<UINT>(mip->size.x) * format_block_size(desc.Format);
 		}
 
-		HRESULT hr = DXAPI->m_device->CreateTexture2D(
-				&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(), &m_texture);
+		HRESULT hr = DXAPI->m_device->CreateTexture2D(&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(),
+													  &m_texture);
 
 		if (hr != S_OK)
 		{
@@ -187,8 +187,8 @@ namespace Engine
 			return false;
 		}
 
-		if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth,
-				  ColorFormat::FilteredShadowDepth>(surface->format()))
+		if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
+					surface->format()))
 		{
 			m_depth_stencil_view = DXAPI->create_depth_stencil_view(m_texture, format_of(surface->format()));
 
@@ -224,8 +224,8 @@ namespace Engine
 	{
 		if (m_depth_stencil_view)
 		{
-			DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-													depth, stencil);
+			DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth,
+													stencil);
 		}
 	}
 
@@ -275,9 +275,9 @@ namespace Engine
 
 		D3D11_Pipeline::unbind();
 
-		m_context->OMSetRenderTargets(
-				size, render_target_views,
-				depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view : nullptr);
+		m_context->OMSetRenderTargets(size, render_target_views,
+									  depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view
+													: nullptr);
 
 		if (current_viewport_mode() != m_state.viewport_mode)
 		{

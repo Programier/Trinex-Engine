@@ -69,8 +69,7 @@ namespace Engine
 		auto box_extents = extents();
 
 		Vector3D t_center = Vector3D(matrix * Vector4D(box_center, 1.0));
-		Matrix3f abs_mat =
-				Matrix3f(glm::abs(Vector3D(matrix[0])), glm::abs(Vector3D(matrix[1])), glm::abs(Vector3D(matrix[2])));
+		Matrix3f abs_mat  = Matrix3f(glm::abs(Vector3D(matrix[0])), glm::abs(Vector3D(matrix[1])), glm::abs(Vector3D(matrix[2])));
 		Vector3D t_extents = abs_mat * box_extents;
 		return AABB_3Df(t_center - t_extents, t_center + t_extents);
 	}
@@ -78,46 +77,32 @@ namespace Engine
 	const AABB_3Df& AABB_3Df::write_to_batcher(BatchedLines& batcher, const ByteColor& color) const
 	{
 		using Vertex = BatchedLines::Vertex;
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0),
-						 Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0),
-						 Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0),
-						 Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0),
-						 Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
 
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0),
-						 Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0),
-						 Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0),
-						 Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0),
-						 Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0));
+		batcher.add_line(Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0), Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
 
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0),
-						 Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0),
-						 Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0),
-						 Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0),
-						 Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0), Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
 		return *this;
 	}
 
 	bool AABB_3Df::inside(const AABB_3Df& other) const
 	{
-		return (m_min.x >= other.m_min.x && m_max.x <= other.m_max.x) &&
-			   (m_min.y >= other.m_min.y && m_max.y <= other.m_max.y) &&
+		return (m_min.x >= other.m_min.x && m_max.x <= other.m_max.x) && (m_min.y >= other.m_min.y && m_max.y <= other.m_max.y) &&
 			   (m_min.z >= other.m_min.z && m_max.z <= other.m_max.z);
 	}
 
 	bool AABB_3Df::intersect(const AABB_3Df& other) const
 	{
-		return (m_min.x <= other.m_max.x && m_max.x >= other.m_min.x) &&
-			   (m_min.y <= other.m_max.y && m_max.y >= other.m_min.y) &&
+		return (m_min.x <= other.m_max.x && m_max.x >= other.m_min.x) && (m_min.y <= other.m_max.y && m_max.y >= other.m_min.y) &&
 			   (m_min.z <= other.m_max.z && m_max.z >= other.m_min.z);
 	}
 
@@ -142,8 +127,7 @@ namespace Engine
 
 	bool AABB_3Df::outside(const AABB_3Df& other) const
 	{
-		return (m_min.x > other.m_max.x || m_max.x < other.m_min.x) ||
-			   (m_min.y > other.m_max.y || m_max.y < other.m_min.y) ||
+		return (m_min.x > other.m_max.x || m_max.x < other.m_min.x) || (m_min.y > other.m_max.y || m_max.y < other.m_min.y) ||
 			   (m_min.z > other.m_max.z || m_max.z < other.m_min.z);
 	}
 

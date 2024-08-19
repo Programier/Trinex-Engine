@@ -31,8 +31,7 @@ namespace Engine
 		registrar.method(Strings::format("{}& opAssign(const {}& in)", name, name).c_str(),
 						 method_of<Type&, Type, const Type&>(&Type::operator=));
 
-		ScriptClassRegistrar::value_class("Engine::Event", sizeof(Event),
-										  ScriptClassRegistrar::ValueInfo::from<Event>())
+		ScriptClassRegistrar::value_class("Engine::Event", sizeof(Event), ScriptClassRegistrar::ValueInfo::from<Event>())
 				.method(Strings::format("const {}& {}() const", name, func).c_str(),
 						func_of<const Type&(const Event*)>(
 								[](const Event* event) -> const Type& { return event->get<const Type&>(); }),

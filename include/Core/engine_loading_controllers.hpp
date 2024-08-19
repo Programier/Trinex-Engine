@@ -31,19 +31,19 @@ namespace Engine
 		virtual ~LoadingControllerBase();
 	};
 
-#define IMPLEMENT_CONTROLLER(ControllerName)                                                                           \
-	class ENGINE_EXPORT ControllerName : public LoadingControllerBase                                                  \
-	{                                                                                                                  \
-	public:                                                                                                            \
-		ControllerName();                                                                                              \
-		ControllerName(const ControllerCallback& callback, const String& name = "",                                    \
-					   const std::initializer_list<String>& require_initializers = {});                                \
-		ControllerName& push(const ControllerCallback& callback, const String& name = "",                              \
-							 const std::initializer_list<String>& require_initializers = {});                          \
-		ControllerName& require(const String& name);                                                                   \
-		ControllerName& execute();                                                                                     \
-		Identifier id() const override;                                                                                \
-		static bool is_triggered();                                                                                    \
+#define IMPLEMENT_CONTROLLER(ControllerName)                                                                                     \
+	class ENGINE_EXPORT ControllerName : public LoadingControllerBase                                                            \
+	{                                                                                                                            \
+	public:                                                                                                                      \
+		ControllerName();                                                                                                        \
+		ControllerName(const ControllerCallback& callback, const String& name = "",                                              \
+					   const std::initializer_list<String>& require_initializers = {});                                          \
+		ControllerName& push(const ControllerCallback& callback, const String& name = "",                                        \
+							 const std::initializer_list<String>& require_initializers = {});                                    \
+		ControllerName& require(const String& name);                                                                             \
+		ControllerName& execute();                                                                                               \
+		Identifier id() const override;                                                                                          \
+		static bool is_triggered();                                                                                              \
 	}
 
 	IMPLEMENT_CONTROLLER(PreInitializeController);

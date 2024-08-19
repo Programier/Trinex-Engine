@@ -99,9 +99,8 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3D& point1, const Vector3D& point2,
-													 const Vector3D& point3, ByteColor color1, ByteColor color2,
-													 ByteColor color3)
+	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
+													 ByteColor color1, ByteColor color2, ByteColor color3)
 	{
 		m_position_buffer->buffer.push_back(point1);
 		m_position_buffer->buffer.push_back(point2);

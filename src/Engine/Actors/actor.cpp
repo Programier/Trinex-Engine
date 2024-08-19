@@ -188,13 +188,12 @@ namespace Engine
 		return static_cast<bool>(archive);
 	}
 
-	implement_engine_class(Actor, 0)
+	implement_engine_class(Actor, Class::IsScriptable)
 	{
-		Class* self = This::static_class_instance();
-		auto components =
-				new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
-								  new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
-								  Property::Flag::IsConst);
+		Class* self		= This::static_class_instance();
+		auto components = new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
+											new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
+											Property::Flag::IsConst);
 		components->element_name_callback(default_array_object_element_name);
 		self->add_property(components);
 	}

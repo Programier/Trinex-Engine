@@ -311,20 +311,16 @@ namespace Engine
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Name>,
 						 ScriptCallConv::CDeclObjFirst);
 
-		registrar.static_function("Name find_name(const StringView& in)",
-								  func_of<Name(const StringView&)>(Name::find_name));
+		registrar.static_function("Name find_name(const StringView& in)", func_of<Name(const StringView&)>(Name::find_name));
 		registrar.method("bool is_valid() const", &Name::is_valid);
 		registrar.method("uint64 hash() const", &Name::hash);
 		registrar.method("const string& to_string() const", method_of<const String&>(&Name::to_string));
 		registrar.method("const Name& to_string(string& out) const", method_of<const Name&>(&Name::to_string));
 
-		registrar.method("Engine::Name& opAssign(const Engine::Name& in)",
-						 method_of<Name&, const Name&>(&Name::operator=));
-		registrar.method("Engine::Name& opAssign(const StringView& in)",
-						 method_of<Name&, const StringView&>(&Name::operator=));
+		registrar.method("Engine::Name& opAssign(const Engine::Name& in)", method_of<Name&, const Name&>(&Name::operator=));
+		registrar.method("Engine::Name& opAssign(const StringView& in)", method_of<Name&, const StringView&>(&Name::operator=));
 		registrar.method("Engine::Name& opAssign(const string& in)", method_of<Name&, const String&>(&Name::operator=));
-		registrar.method("bool opEquals(const StringView& in) const",
-						 method_of<bool, const StringView&>(&Name::operator==));
+		registrar.method("bool opEquals(const StringView& in) const", method_of<bool, const StringView&>(&Name::operator==));
 		registrar.method("bool opEquals(const string& in) const", method_of<bool, const String&>(&Name::operator==));
 		registrar.method("bool opEquals(const Name& in) const", method_of<bool, const Name&>(&Name::operator==));
 

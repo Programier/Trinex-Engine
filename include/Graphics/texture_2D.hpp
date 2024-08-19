@@ -26,8 +26,7 @@ namespace Engine
 		static void (*generate_mips)(ColorFormat format, Vector<Texture2DMip>&);
 
 		Texture2D& init(ColorFormat format, Size2D size, const Buffer& data, bool generate_mips = false);
-		Texture2D& init(ColorFormat format, Size2D size, const byte* data, size_t data_size,
-						bool generate_mips = false);
+		Texture2D& init(ColorFormat format, Size2D size, const byte* data, size_t data_size, bool generate_mips = false);
 		Texture2D& init(const Image& image, bool generate_mips = false);
 		Texture2D& init(ColorFormat format, Size2D size);
 

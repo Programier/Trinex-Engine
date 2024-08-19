@@ -115,8 +115,7 @@ namespace Engine::VFS
 
 		for (auto& [fs_path, fs] : m_file_systems)
 		{
-			if (path.path().starts_with(fs_path) &&
-				(next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
+			if (path.path().starts_with(fs_path) && (next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
 			{
 				return {fs, path.relative(fs_path)};
 			}

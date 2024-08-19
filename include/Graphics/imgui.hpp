@@ -48,8 +48,7 @@ namespace Engine::ImGuiHelpers
 
 namespace Engine::ImGuiRenderer
 {
-	ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x,
-												   float fonts_texture_y);
+	ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x, float fonts_texture_y);
 
 	ENGINE_EXPORT extern float rhi_rendering_scale_factor;
 
@@ -190,9 +189,8 @@ namespace Engine::ImGuiRenderer
 										  ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
 										  void* user_data = nullptr);
 
-	bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, String& buffer,
-										 ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
-										 void* user_data = nullptr);
+	bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags = 0,
+										 ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
 	bool ENGINE_EXPORT BeginPopup(const char* name, ImGuiWindowFlags flags = 0, bool (*callback)(void*) = nullptr,
 								  void* userdata = nullptr);

@@ -25,8 +25,7 @@ namespace Engine
 		{
 			return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
 				   glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f})) &&
-				   glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) &&
-				   glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
+				   glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) && glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
 		}
 
 		FORCE_INLINE bool operator!=(const ViewPort& v) const

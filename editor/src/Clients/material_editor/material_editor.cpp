@@ -193,14 +193,12 @@ namespace Engine
 					open_editor();
 				}
 
-				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false,
-									m_content_browser == nullptr))
+				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
 				{
 					create_content_browser();
 				}
 
-				if (ImGui::MenuItem("editor/Open Material Code"_localized, nullptr, nullptr,
-									m_material_code == nullptr))
+				if (ImGui::MenuItem("editor/Open Material Code"_localized, nullptr, nullptr, m_material_code == nullptr))
 				{
 					create_material_code_window();
 				}
@@ -244,8 +242,7 @@ namespace Engine
 					m_material->apply_changes();
 				}
 
-				if (ImGui::MenuItem("Update Source", nullptr, false,
-									m_material != nullptr && m_material_code != nullptr))
+				if (ImGui::MenuItem("Update Source", nullptr, false, m_material != nullptr && m_material_code != nullptr))
 				{
 					m_material->shader_source(m_material_code->code);
 				}
@@ -286,8 +283,8 @@ namespace Engine
 
 		ImGui::Begin("MaterialEditorDock", nullptr,
 					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
-							 ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
+							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
+							 ImGuiWindowFlags_MenuBar);
 		render_dock_window();
 
 		render_viewport(dt);

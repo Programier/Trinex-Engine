@@ -71,9 +71,8 @@ namespace Engine
 
 		static ImGuiTrinexWindowData* imgui_trinex_backend_data()
 		{
-			return ImGui::GetCurrentContext()
-						   ? reinterpret_cast<ImGuiTrinexWindowData*>(ImGui::GetIO().BackendPlatformUserData)
-						   : nullptr;
+			return ImGui::GetCurrentContext() ? reinterpret_cast<ImGuiTrinexWindowData*>(ImGui::GetIO().BackendPlatformUserData)
+											  : nullptr;
 		}
 
 		static FORCE_INLINE Window* window_from(const Event& event)
@@ -358,37 +357,36 @@ namespace Engine
 			}
 		}
 
-#define IMGUI_EVENT_FUNC_HEADER(return_value)                                                                          \
-	ImGuiContext* context = nullptr;                                                                                   \
-	Window* engine_window = window_from(event);                                                                        \
-	{                                                                                                                  \
-		ImGuiRenderer::Window* window = nullptr;                                                                       \
-                                                                                                                       \
-		if (engine_window)                                                                                             \
-		{                                                                                                              \
-			window = engine_window->imgui_window();                                                                    \
-		}                                                                                                              \
-		else                                                                                                           \
-		{                                                                                                              \
-			return return_value;                                                                                       \
-		}                                                                                                              \
-                                                                                                                       \
-		if (window == nullptr || (context = window->context()) == nullptr)                                             \
-		{                                                                                                              \
-			if (auto render_viewport = engine_window->render_viewport())                                               \
-			{                                                                                                          \
-				if (ImGuiViewportClient* client =                                                                      \
-							Object::instance_cast<ImGuiViewportClient>(render_viewport->client()))                     \
-				{                                                                                                      \
-					context = client->context;                                                                         \
-				}                                                                                                      \
-			}                                                                                                          \
-		}                                                                                                              \
-		if (context == nullptr)                                                                                        \
-		{                                                                                                              \
-			return return_value;                                                                                       \
-		}                                                                                                              \
-	}                                                                                                                  \
+#define IMGUI_EVENT_FUNC_HEADER(return_value)                                                                                    \
+	ImGuiContext* context = nullptr;                                                                                             \
+	Window* engine_window = window_from(event);                                                                                  \
+	{                                                                                                                            \
+		ImGuiRenderer::Window* window = nullptr;                                                                                 \
+                                                                                                                                 \
+		if (engine_window)                                                                                                       \
+		{                                                                                                                        \
+			window = engine_window->imgui_window();                                                                              \
+		}                                                                                                                        \
+		else                                                                                                                     \
+		{                                                                                                                        \
+			return return_value;                                                                                                 \
+		}                                                                                                                        \
+                                                                                                                                 \
+		if (window == nullptr || (context = window->context()) == nullptr)                                                       \
+		{                                                                                                                        \
+			if (auto render_viewport = engine_window->render_viewport())                                                         \
+			{                                                                                                                    \
+				if (ImGuiViewportClient* client = Object::instance_cast<ImGuiViewportClient>(render_viewport->client()))         \
+				{                                                                                                                \
+					context = client->context;                                                                                   \
+				}                                                                                                                \
+			}                                                                                                                    \
+		}                                                                                                                        \
+		if (context == nullptr)                                                                                                  \
+		{                                                                                                                        \
+			return return_value;                                                                                                 \
+		}                                                                                                                        \
+	}                                                                                                                            \
 	ImGuiContextSaver imgui_context_saver(context);
 
 		static void imgui_sent_mouse_position(Engine::Window* engine_window, float x, float y)
@@ -451,13 +449,10 @@ namespace Engine
 
 			if (imgui_button != -ImGuiKey_None)
 			{
-				io.AddKeyEvent(ImGuiMod_Ctrl,
-							   ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
-				io.AddKeyEvent(ImGuiMod_Shift,
-							   ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
+				io.AddKeyEvent(ImGuiMod_Ctrl, ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
+				io.AddKeyEvent(ImGuiMod_Shift, ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
 				io.AddKeyEvent(ImGuiMod_Alt, ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
-				io.AddKeyEvent(ImGuiMod_Super,
-							   ImGui::IsKeyDown(ImGuiKey_LeftSuper) || ImGui::IsKeyDown(ImGuiKey_RightSuper));
+				io.AddKeyEvent(ImGuiMod_Super, ImGui::IsKeyDown(ImGuiKey_LeftSuper) || ImGui::IsKeyDown(ImGuiKey_RightSuper));
 				io.AddKeyEvent(imgui_button, is_pressed);
 			}
 		}
@@ -770,8 +765,7 @@ namespace Engine
 			io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
 
 
-			if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) &&
-				(io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports))
+			if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) && (io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports))
 				imgui_trinex_window_init_platform_interface(window);
 		}
 

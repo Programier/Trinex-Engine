@@ -109,9 +109,8 @@ namespace Engine
 			d3d11_release(m_back_buffer);
 			d3d11_release(m_view);
 
-			HRESULT result =
-					m_swap_chain->ResizeBuffers(1, static_cast<uint_t>(new_size.x), static_cast<uint_t>(new_size.y),
-												DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+			HRESULT result = m_swap_chain->ResizeBuffers(1, static_cast<uint_t>(new_size.x), static_cast<uint_t>(new_size.y),
+														 DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 			trinex_always_check(result == S_OK, "Failed to resize swapchain");
 
 			result = m_swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**) &m_back_buffer);

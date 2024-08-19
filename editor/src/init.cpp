@@ -97,9 +97,9 @@ namespace Engine
 
 	static void initialialize_editor()
 	{
-#define load_resource(var, name, type, group_name)                                                                     \
-	EditorResources::var = reinterpret_cast<type*>(                                                                    \
-			load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));                      \
+#define load_resource(var, name, type, group_name)                                                                               \
+	EditorResources::var =                                                                                                       \
+			reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
 	reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
 		load_resource(default_icon, DefaultIcon, Texture2D, Textures);

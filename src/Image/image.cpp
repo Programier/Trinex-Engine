@@ -113,8 +113,7 @@ namespace Engine
 		m_data.shrink_to_fit();
 
 		stbi_set_flip_vertically_on_load(static_cast<int>(!invert));
-		stbi_uc* image_data =
-				stbi_load_from_memory(buffer, static_cast<int>(size), &m_width, &m_height, &m_channels, 0);
+		stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &m_width, &m_height, &m_channels, 0);
 		m_data.resize(m_width * m_height * m_channels);
 		std::copy(image_data, image_data + m_data.size(), m_data.data());
 		stbi_image_free(image_data);
@@ -200,8 +199,8 @@ namespace Engine
 
 		Vector<byte> resized_image(new_width * new_height * m_channels, 0);
 
-		auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(),
-										 new_width, new_height, new_width * m_channels, m_channels);
+		auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(), new_width,
+										 new_height, new_width * m_channels, m_channels);
 
 		m_width	 = new_width;
 		m_height = new_height;
@@ -221,16 +220,16 @@ namespace Engine
 		writer->write(reinterpret_cast<const byte*>(data), size);
 	}
 
-#define make_writer()                                                                                                  \
-	FileWriter writer(filename);                                                                                       \
-	if (!writer.is_open())                                                                                             \
+#define make_writer()                                                                                                            \
+	FileWriter writer(filename);                                                                                                 \
+	if (!writer.is_open())                                                                                                       \
 		return false;
 
 	bool Image::write_png(const Path& filename)
 	{
 		make_writer();
-		return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels,
-														m_data.data(), m_width * m_channels));
+		return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(),
+														m_width * m_channels));
 	}
 
 	bool Image::write_jpg(const Path& filename)
@@ -254,8 +253,8 @@ namespace Engine
 	{
 		path += extension_of_type(type);
 
-		static bool (Engine::Image::*write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg,
-																		&Image::write_bmp, &Image::write_tga};
+		static bool (Engine::Image::*write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
+																		&Image::write_tga};
 
 		auto method = write_methods[static_cast<EnumerateType>(type)];
 		stbi_flip_vertically_on_write(static_cast<int>(invert));
@@ -356,8 +355,7 @@ namespace Engine
 		return m_is_compressed;
 	}
 
-	static void dxt_texture_compress(uint8_t const* const data, Buffer& comp_data, int_t width, int_t height,
-									 int_t ncolors)
+	static void dxt_texture_compress(uint8_t const* const data, Buffer& comp_data, int_t width, int_t height, int_t ncolors)
 	{
 		assert(width > 0 && height > 0);
 		assert(ncolors == 3 || ncolors == 4);
@@ -381,8 +379,7 @@ namespace Engine
 					for (int_t xx = 0; xx < 4; ++xx)
 					{
 						const uint_t bix = 4 * (4 * yy + xx);
-						const uint_t dix =
-								ncolors * (width * glm::min(y + yy, height - 1) + glm::min(x + xx, width - 1));
+						const uint_t dix = ncolors * (width * glm::min(y + yy, height - 1) + glm::min(x + xx, width - 1));
 						for (int_t c = 0; c < ncolors; ++c)
 						{
 							block[bix + c] = data[dix + c];

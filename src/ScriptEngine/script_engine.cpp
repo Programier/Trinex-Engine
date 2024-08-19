@@ -41,8 +41,7 @@ namespace Engine
 		else
 		{
 			if (ScriptEngine::exception_on_error)
-				throw EngineException(
-						Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+				throw EngineException(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
 			else
 				error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 		}
@@ -61,8 +60,7 @@ namespace Engine
 	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger() : m_prev_namespace(ScriptEngine::default_namespace())
 	{}
 
-	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger(const char* new_namespace)
-		: ScriptNamespaceScopedChanger()
+	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger(const char* new_namespace) : ScriptNamespaceScopedChanger()
 	{
 		ScriptEngine::default_namespace(new_namespace);
 	}
@@ -177,8 +175,7 @@ namespace Engine
 
 	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv)
 	{
-		int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
-													create_call_conv(conv));
+		int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv));
 		if (id < 0)
 			return {};
 		return function_by_id(id);
@@ -336,15 +333,14 @@ namespace Engine
 		return global_property_index_by_decl(declaration.c_str());
 	}
 
-	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, int_t* type_id,
-									   bool* is_const, byte** pointer)
+	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const,
+									   byte** pointer)
 	{
 		const char* c_name		 = nullptr;
 		const char* c_name_space = nullptr;
 
-		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr,
-														 name_space ? &c_name_space : nullptr, type_id, is_const,
-														 nullptr, reinterpret_cast<void**>(pointer));
+		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
+														 type_id, is_const, nullptr, reinterpret_cast<void**>(pointer));
 
 		if (result)
 		{

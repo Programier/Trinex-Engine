@@ -61,9 +61,9 @@ namespace Engine
 		return nullptr;
 	}
 
-#define load_default_asset(name, object, class_name, group_name)                                                       \
-	DefaultResources::group_name::object = reinterpret_cast<class_name*>(                                              \
-			load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));              \
+#define load_default_asset(name, object, class_name, group_name)                                                                 \
+	DefaultResources::group_name::object = reinterpret_cast<class_name*>(                                                        \
+			load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));                        \
 	reinterpret_cast<Object*>(DefaultResources::group_name::object)->add_reference()
 
 

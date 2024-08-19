@@ -149,12 +149,11 @@ namespace Engine
 					const auto uv	   = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->width()),
 												(m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
 
-					draw_list->AddImageRounded(ImTextureID(texture, EditorResources::default_sampler),
-											   m_header_min - ImVec2(node_padding.x - half_border_width,
-																	 node_padding.y - half_border_width),
-											   m_header_max + ImVec2(node_padding.z - half_border_width, 0),
-											   ImVec2(0.0f, 0.0f), uv, header_color, GetStyle().NodeRounding,
-											   ImDrawFlags_RoundCornersTop);
+					draw_list->AddImageRounded(
+							ImTextureID(texture, EditorResources::default_sampler),
+							m_header_min - ImVec2(node_padding.x - half_border_width, node_padding.y - half_border_width),
+							m_header_max + ImVec2(node_padding.z - half_border_width, 0), ImVec2(0.0f, 0.0f), uv, header_color,
+							GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
 
 
 					if (m_content_min.y > m_header_max.y)
@@ -175,12 +174,11 @@ namespace Engine
 					const auto uv	   = ImVec2((m_footer_max.x - m_footer_min.x) / (4.0f * texture->width()),
 												(m_footer_max.y - m_footer_min.y) / (4.0f * texture->height()));
 
-					draw_list->AddImageRounded(ImTextureID(texture, EditorResources::default_sampler),
-											   m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
-											   m_footer_max + ImVec2(node_padding.z - half_border_width,
-																	 node_padding.w - half_border_width),
-											   ImVec2(0.0f, 0.0f), uv, footer_color, GetStyle().NodeRounding,
-											   ImDrawFlags_RoundCornersBottom);
+					draw_list->AddImageRounded(
+							ImTextureID(texture, EditorResources::default_sampler),
+							m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
+							m_footer_max + ImVec2(node_padding.z - half_border_width, node_padding.w - half_border_width),
+							ImVec2(0.0f, 0.0f), uv, footer_color, GetStyle().NodeRounding, ImDrawFlags_RoundCornersBottom);
 				}
 			}
 		}
@@ -303,8 +301,7 @@ namespace Engine
 			const auto tip_bottom = ImVec2(canvas_x + canvas_w * 0.5f, bottom);
 
 			draw_list->PathLineTo(ImVec2(left, top) + ImVec2(0, rounding));
-			draw_list->PathBezierCubicCurveTo(ImVec2(left, top), ImVec2(left, top),
-											  ImVec2(left, top) + ImVec2(rounding, 0));
+			draw_list->PathBezierCubicCurveTo(ImVec2(left, top), ImVec2(left, top), ImVec2(left, top) + ImVec2(rounding, 0));
 			draw_list->PathLineTo(tip_top);
 			draw_list->PathLineTo(tip_top + (tip_right - tip_top) * tip_round);
 			draw_list->PathBezierCubicCurveTo(tip_right, tip_right, tip_bottom + (tip_right - tip_bottom) * tip_round);
@@ -470,8 +467,7 @@ namespace Engine
 		}
 	}
 
-	void BlueprintBuilder::icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color,
-								const ImVec4& inner_color)
+	void BlueprintBuilder::icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color, const ImVec4& inner_color)
 	{
 		if (ImGui::IsRectVisible(size))
 		{

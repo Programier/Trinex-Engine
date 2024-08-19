@@ -12,8 +12,8 @@
 namespace Engine
 {
 
-#define check_function(return_value)                                                                                   \
-	if (m_function == nullptr)                                                                                         \
+#define check_function(return_value)                                                                                             \
+	if (m_function == nullptr)                                                                                                   \
 	return return_value
 
 	ScriptFunction::ScriptFunction(asIScriptFunction* function) : m_function(function)
@@ -145,8 +145,7 @@ namespace Engine
 	String ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const
 	{
 		check_function("");
-		return Strings::make_string(
-				m_function->GetDeclaration(include_object_name, include_namespace, include_param_names));
+		return Strings::make_string(m_function->GetDeclaration(include_object_name, include_namespace, include_param_names));
 	}
 
 	bool ScriptFunction::is_read_only() const

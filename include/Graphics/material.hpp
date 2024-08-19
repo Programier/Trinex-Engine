@@ -102,8 +102,7 @@ namespace Engine
 	class TypedMatrixMaterialParameter : public TypedMaterialParameter<TypeData, _parameter_type>
 	{
 	public:
-		TypedMatrixMaterialParameter(TypeData value = TypeData(1.f))
-			: TypedMaterialParameter<TypeData, _parameter_type>(value)
+		TypedMatrixMaterialParameter(TypeData value = TypeData(1.f)) : TypedMaterialParameter<TypeData, _parameter_type>(value)
 		{}
 	};
 
@@ -129,8 +128,7 @@ namespace Engine
 	using Vec4MaterialParameter = TypedMaterialParameter<Vector4D, MaterialParameterType::Vec4>;
 	using Mat3MaterialParameter = TypedMatrixMaterialParameter<Matrix3f, MaterialParameterType::Mat3>;
 
-	struct ENGINE_EXPORT Mat4MaterialParameter
-		: public TypedMatrixMaterialParameter<Matrix4f, MaterialParameterType::Mat4> {
+	struct ENGINE_EXPORT Mat4MaterialParameter : public TypedMatrixMaterialParameter<Matrix4f, MaterialParameterType::Mat4> {
 		using Super = TypedMatrixMaterialParameter<Matrix4f, MaterialParameterType::Mat4>;
 
 		bool bind_model_matrix = false;
@@ -174,8 +172,7 @@ namespace Engine
 
 	struct ENGINE_EXPORT CombinedImageSamplerMaterialParameterBase : public BindingMaterialParameter {
 	public:
-		CombinedImageSamplerMaterialParameterBase& apply(const Pipeline* pipeline,
-														 SceneComponent* component = nullptr) override;
+		CombinedImageSamplerMaterialParameterBase& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
 	};
 
 	template<typename ClassType, MaterialParameterType parameter_type>

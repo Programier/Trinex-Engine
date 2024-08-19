@@ -25,10 +25,10 @@ namespace Engine
 	class RenderViewport;
 
 
-#define implement_empty_rendering_methods_for(type)                                                                    \
-	SceneRenderer& SceneRenderer::render_component(type* component)                                                    \
-	{                                                                                                                  \
-		return render_base_component(component);                                                                       \
+#define implement_empty_rendering_methods_for(type)                                                                              \
+	SceneRenderer& SceneRenderer::render_component(type* component)                                                              \
+	{                                                                                                                            \
+		return render_base_component(component);                                                                                 \
 	}
 
 	struct ENGINE_EXPORT RenderStatistics final {

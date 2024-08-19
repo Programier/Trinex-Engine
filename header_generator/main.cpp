@@ -4,10 +4,10 @@
 #include <string_view>
 #include <vector>
 
-#define error_log(...)                                                                                                 \
-	{                                                                                                                  \
-		fprintf(stderr, __VA_ARGS__);                                                                                  \
-		return -1;                                                                                                     \
+#define error_log(...)                                                                                                           \
+	{                                                                                                                            \
+		fprintf(stderr, __VA_ARGS__);                                                                                            \
+		return -1;                                                                                                               \
 	}
 
 static void begin_header(std::ofstream& file)

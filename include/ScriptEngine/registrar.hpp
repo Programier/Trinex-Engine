@@ -37,25 +37,22 @@ namespace Engine
 			template<typename T>
 			static ValueInfo from(ValueInfo info = ValueInfo())
 			{
-#if defined(_MSC_VER) || defined(_LIBCPP_TYPE_TRAITS) || (__GNUC__ >= 5) ||                                            \
-		(defined(__clang__) && !defined(CLANG_PRE_STANDARD))
+#if defined(_MSC_VER) || defined(_LIBCPP_TYPE_TRAITS) || (__GNUC__ >= 5) || (defined(__clang__) && !defined(CLANG_PRE_STANDARD))
 				// MSVC, XCode/Clang, and gnuc 5+
 				// C++11 compliant code
 				constexpr bool has_constructor =
 						std::is_default_constructible<T>::value && !std::is_trivially_default_constructible<T>::value;
-				constexpr bool has_destructor =
-						std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
+				constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
 				constexpr bool has_assignment_operator =
 						std::is_copy_assignable<T>::value && !std::is_trivially_copy_assignable<T>::value;
 				constexpr bool has_copy_constructor =
 						std::is_copy_constructible<T>::value && !std::is_trivially_copy_constructible<T>::value;
-#elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                               \
+#elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                                         \
 		(defined(__clang__) && defined(CLANG_PRE_STANDARD))
 				// gnuc 4.8 is using a mix of C++11 standard and pre-standard templates
 				constexpr bool has_constructor =
 						std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
-				constexpr bool has_destructor =
-						std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
+				constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
 				constexpr bool has_assignment_operator =
 						std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
 				constexpr bool has_copy_constructor =
@@ -63,8 +60,7 @@ namespace Engine
 #else
 				constexpr bool has_constructor =
 						std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
-				constexpr bool has_destructor =
-						std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
+				constexpr bool has_destructor = std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
 				constexpr bool has_assignment_operator =
 						std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
 				constexpr bool has_copy_constructor =
@@ -146,10 +142,8 @@ namespace Engine
 		ScriptClassRegistrar& modify_name_if_template(const BaseInfo& info);
 
 	public:
-		static ScriptClassRegistrar value_class(const StringView& name, size_t size,
-												const ValueInfo& info = ValueInfo());
-		static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo(),
-													size_t size = 0);
+		static ScriptClassRegistrar value_class(const StringView& name, size_t size, const ValueInfo& info = ValueInfo());
+		static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo(), size_t size = 0);
 		static ScriptClassRegistrar reference_class(Class* class_instance);
 		static ScriptClassRegistrar existing_class(const String& name);
 
@@ -230,8 +224,7 @@ namespace Engine
 
 		template<typename ReturnType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-									 ReturnType (*function_address)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+									 ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
 		{
 			return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv);
 		}

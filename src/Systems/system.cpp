@@ -23,8 +23,7 @@ namespace Engine
 
 	void System::on_create_fail()
 	{
-		throw EngineException(
-				"Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
+		throw EngineException("Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
 	}
 
 	void System::on_new_system(System* system)
@@ -185,7 +184,7 @@ namespace Engine
 			size_t current_len = separator - _name;
 			system			   = system->find_system_private_no_recurse(_name, current_len);
 			_name			   = separator + separator_len;
-			separator = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+			separator		   = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
 		}
 
 		return system ? system->find_system_private_no_recurse(_name, end_name - _name) : nullptr;

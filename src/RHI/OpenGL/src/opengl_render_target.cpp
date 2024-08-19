@@ -129,8 +129,7 @@ namespace Engine
 
 		if (depth_stencil)
 		{
-			self->attach_texture(callback(depth_stencil),
-								 get_attachment_type(callback(depth_stencil)->m_format.m_format));
+			self->attach_texture(callback(depth_stencil), get_attachment_type(callback(depth_stencil)->m_format.m_format));
 		}
 
 		if (color_attachment_indices.size() > 0)
@@ -140,13 +139,11 @@ namespace Engine
 		return m_framebuffer;
 	}
 
-	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<RenderSurface*>& color_attachments,
-												   RenderSurface* depth_stencil)
+	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
 	{
-		m_framebuffer = create_framebuffer<RenderSurface>(this, color_attachments, depth_stencil,
-														  [](RenderSurface* texture) -> OpenGL_RenderSurface* {
-															  return texture->rhi_object<OpenGL_RenderSurface>();
-														  });
+		m_framebuffer = create_framebuffer<RenderSurface>(
+				this, color_attachments, depth_stencil,
+				[](RenderSurface* texture) -> OpenGL_RenderSurface* { return texture->rhi_object<OpenGL_RenderSurface>(); });
 		return *this;
 	}
 
@@ -181,9 +178,8 @@ namespace Engine
 #endif
 		else if (status == GL_FRAMEBUFFER_UNSUPPORTED)
 		{
-			error_log("Framebuffer",
-					  "Combination of internal formats used by attachments in thef ramebuffer results in a "
-					  "nonrednerable target");
+			error_log("Framebuffer", "Combination of internal formats used by attachments in thef ramebuffer results in a "
+									 "nonrednerable target");
 		}
 		else
 		{

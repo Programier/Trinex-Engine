@@ -3,8 +3,7 @@
 
 namespace Engine
 {
-	implement_enum(TextureType, Engine, {"Texture2D", TextureType::Texture2D},
-				   {"TextureCubeMap", TextureType::TextureCubeMap});
+	implement_enum(TextureType, Engine, {"Texture2D", TextureType::Texture2D}, {"TextureCubeMap", TextureType::TextureCubeMap});
 	implement_enum(CompareMode, Engine, {"None", CompareMode::None}, {"RefToTexture", CompareMode::RefToTexture});
 	implement_enum(SamplerFilter, Engine, {"Point", SamplerFilter::Point}, {"Bilinear", SamplerFilter::Bilinear},
 				   {"Trilinear", SamplerFilter::Trilinear});
@@ -12,14 +11,13 @@ namespace Engine
 				   {"R", Swizzle::R}, {"G", Swizzle::G}, {"B", Swizzle::B}, {"A", Swizzle::A});
 
 	implement_enum(SamplerAddressMode, Engine, {"Repeat", SamplerAddressMode::Repeat},
-				   {"ClampToEdge", SamplerAddressMode::ClampToEdge},
-				   {"ClampToBorder", SamplerAddressMode::ClampToBorder},
+				   {"ClampToEdge", SamplerAddressMode::ClampToEdge}, {"ClampToBorder", SamplerAddressMode::ClampToBorder},
 				   {"MirroredRepeat", SamplerAddressMode::MirroredRepeat},
 				   {"MirrorClampToEdge", SamplerAddressMode::MirrorClampToEdge});
 
 	implement_enum(TextureCubeMapFace, Engine, {"Front", TextureCubeMapFace::Front}, {"Back", TextureCubeMapFace::Back},
-				   {"Up", TextureCubeMapFace::Up}, {"Down", TextureCubeMapFace::Down},
-				   {"Left", TextureCubeMapFace::Left}, {"Right", TextureCubeMapFace::Right});
+				   {"Up", TextureCubeMapFace::Up}, {"Down", TextureCubeMapFace::Down}, {"Left", TextureCubeMapFace::Left},
+				   {"Right", TextureCubeMapFace::Right});
 
 	implement_enum(VertexBufferSemantic, Engine, {"Position", VertexBufferSemantic::Position},
 				   {"TexCoord", VertexBufferSemantic::TexCoord}, {"Color", VertexBufferSemantic::Color},
@@ -30,8 +28,8 @@ namespace Engine
 	implement_enum(Coord, Engine, {"X", Coord::X}, {"Y", Coord::Y}, {"Z", Coord::Z});
 	implement_enum(DataType, Engine, {"Text", DataType::Text}, {"Binary", DataType::Binary});
 
-	implement_enum(OperationSystemType, Engine, {"Linux", OperationSystemType::Linux},
-				   {"Windows", OperationSystemType::Windows}, {"Android", OperationSystemType::Android});
+	implement_enum(OperationSystemType, Engine, {"Linux", OperationSystemType::Linux}, {"Windows", OperationSystemType::Windows},
+				   {"Android", OperationSystemType::Android});
 
 	implement_enum(ColorComponent, Engine, {"R", ColorComponent::R}, {"G", ColorComponent::G}, {"B", ColorComponent::B},
 				   {"A", ColorComponent::A});
@@ -44,39 +42,36 @@ namespace Engine
 				   {"Сentimeters", PhysicalSizeMetric::Сentimeters});
 
 
-	implement_enum(StencilOp, Engine, {"Keep", StencilOp::Keep}, {"Zero", StencilOp::Zero},
-				   {"Replace", StencilOp::Replace}, {"Incr", StencilOp::Incr}, {"IncrWrap", StencilOp::IncrWrap},
-				   {"Decr", StencilOp::Decr}, {"DecrWrap", StencilOp::DecrWrap}, {"Invert", StencilOp::Invert});
+	implement_enum(StencilOp, Engine, {"Keep", StencilOp::Keep}, {"Zero", StencilOp::Zero}, {"Replace", StencilOp::Replace},
+				   {"Incr", StencilOp::Incr}, {"IncrWrap", StencilOp::IncrWrap}, {"Decr", StencilOp::Decr},
+				   {"DecrWrap", StencilOp::DecrWrap}, {"Invert", StencilOp::Invert});
 
-	implement_enum(BlendFunc, Engine, {"Zero", BlendFunc::Zero}, {"One", BlendFunc::One},
-				   {"SrcColor", BlendFunc::SrcColor}, {"OneMinusSrcColor", BlendFunc::OneMinusSrcColor},
-				   {"DstColor", BlendFunc::DstColor}, {"OneMinusDstColor", BlendFunc::OneMinusDstColor},
-				   {"SrcAlpha", BlendFunc::SrcAlpha}, {"OneMinusSrcAlpha", BlendFunc::OneMinusSrcAlpha},
-				   {"DstAlpha", BlendFunc::DstAlpha}, {"OneMinusDstAlpha", BlendFunc::OneMinusDstAlpha},
-				   {"BlendFactor", BlendFunc::BlendFactor}, {"OneMinusBlendFactor", BlendFunc::OneMinusBlendFactor});
+	implement_enum(BlendFunc, Engine, {"Zero", BlendFunc::Zero}, {"One", BlendFunc::One}, {"SrcColor", BlendFunc::SrcColor},
+				   {"OneMinusSrcColor", BlendFunc::OneMinusSrcColor}, {"DstColor", BlendFunc::DstColor},
+				   {"OneMinusDstColor", BlendFunc::OneMinusDstColor}, {"SrcAlpha", BlendFunc::SrcAlpha},
+				   {"OneMinusSrcAlpha", BlendFunc::OneMinusSrcAlpha}, {"DstAlpha", BlendFunc::DstAlpha},
+				   {"OneMinusDstAlpha", BlendFunc::OneMinusDstAlpha}, {"BlendFactor", BlendFunc::BlendFactor},
+				   {"OneMinusBlendFactor", BlendFunc::OneMinusBlendFactor});
 
 	implement_enum(BlendOp, Engine, {"Add", BlendOp::Add}, {"Subtract", BlendOp::Subtract},
 				   {"ReverseSubtract", BlendOp::ReverseSubtract}, {"Min", BlendOp::Min}, {"Max", BlendOp::Max});
 
-	implement_enum(Primitive, Engine, {"Triangle", Primitive::Triangle}, {"Line", Primitive::Line},
-				   {"Point", Primitive::Point});
+	implement_enum(Primitive, Engine, {"Triangle", Primitive::Triangle}, {"Line", Primitive::Line}, {"Point", Primitive::Point});
 
-	implement_enum(DepthFunc, Engine, {"Always", DepthFunc::Always}, {"Lequal", DepthFunc::Lequal},
-				   {"Gequal", DepthFunc::Gequal}, {"Less", DepthFunc::Less}, {"Greater", DepthFunc::Greater},
-				   {"Equal", DepthFunc::Equal}, {"NotEqual", DepthFunc::NotEqual}, {"Never", DepthFunc::Never});
+	implement_enum(DepthFunc, Engine, {"Always", DepthFunc::Always}, {"Lequal", DepthFunc::Lequal}, {"Gequal", DepthFunc::Gequal},
+				   {"Less", DepthFunc::Less}, {"Greater", DepthFunc::Greater}, {"Equal", DepthFunc::Equal},
+				   {"NotEqual", DepthFunc::NotEqual}, {"Never", DepthFunc::Never});
 
 	implement_enum(PrimitiveTopology, Engine, {"TriangleList", PrimitiveTopology::TriangleList},
 				   {"PointList", PrimitiveTopology::PointList}, {"LineList", PrimitiveTopology::LineList},
 				   {"LineStrip", PrimitiveTopology::LineStrip}, {"TriangleStrip", PrimitiveTopology::TriangleStrip});
 
-	implement_enum(PolygonMode, Engine, {"Fill", PolygonMode::Fill}, {"Line", PolygonMode::Line},
-				   {"Point", PolygonMode::Point});
+	implement_enum(PolygonMode, Engine, {"Fill", PolygonMode::Fill}, {"Line", PolygonMode::Line}, {"Point", PolygonMode::Point});
 
 	implement_enum(CullMode, Engine, {"None", CullMode::None}, {"Front", CullMode::Front}, {"Back", CullMode::Back});
 
 
-	implement_enum(FrontFace, Engine, {"ClockWise", FrontFace::ClockWise},
-				   {"CounterClockWise", FrontFace::CounterClockWise});
+	implement_enum(FrontFace, Engine, {"ClockWise", FrontFace::ClockWise}, {"CounterClockWise", FrontFace::CounterClockWise});
 
 	implement_enum(WindowAttribute, Engine, {"None", WindowAttribute::None}, {"Resizable", WindowAttribute::Resizable},
 				   {"FullScreen", WindowAttribute::FullScreen}, {"Shown", WindowAttribute::Shown},
@@ -84,8 +79,7 @@ namespace Engine
 				   {"MouseFocus", WindowAttribute::MouseFocus}, {"InputFocus", WindowAttribute::InputFocus},
 				   {"InputGrabbed", WindowAttribute::InputGrabbed}, {"Minimized", WindowAttribute::Minimized},
 				   {"Maximized", WindowAttribute::Maximized}, {"MouseCapture", WindowAttribute::MouseCapture},
-				   {"MouseGrabbed", WindowAttribute::MouseGrabbed},
-				   {"KeyboardGrabbed", WindowAttribute::KeyboardGrabbed});
+				   {"MouseGrabbed", WindowAttribute::MouseGrabbed}, {"KeyboardGrabbed", WindowAttribute::KeyboardGrabbed});
 
 	implement_enum(CursorMode, Engine, {"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden});
 

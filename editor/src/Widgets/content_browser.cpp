@@ -26,8 +26,7 @@ namespace Engine
 
 		if (ImGui::Button("editor/Create Package"_localized))
 		{
-			ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiCreateNewPackage>(this,
-																								   m_show_popup_for);
+			ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
 			return false;
 		}
 
@@ -291,8 +290,7 @@ namespace Engine
 
 
 			String object_name = Strings::make_sentence(name);
-			float offset =
-					(item_size.x - ImGui::CalcTextSize(object_name.c_str(), nullptr, false, item_size.x).x) / 2.f;
+			float offset	   = (item_size.x - ImGui::CalcTextSize(object_name.c_str(), nullptr, false, item_size.x).x) / 2.f;
 			current_pos.x += offset;
 			ImGui::SetCursorPos(current_pos);
 
@@ -388,8 +386,7 @@ namespace Engine
 		m_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
 
 		ImGui::DockSpace(m_dock_window_id, {0, 0},
-						 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking |
-								 ImGuiDockNodeFlags_NoTabBar);
+						 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
 
 		if (frame_number == 1)
 		{
@@ -397,8 +394,7 @@ namespace Engine
 			ImGui::DockBuilderAddNode(m_dock_window_id, ImGuiDockNodeFlags_DockSpace);
 			ImGui::DockBuilderSetNodeSize(m_dock_window_id, ImGui::GetWindowSize());
 
-			auto dock_id_left =
-					ImGui::DockBuilderSplitNode(m_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &m_dock_window_id);
+			auto dock_id_left = ImGui::DockBuilderSplitNode(m_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &m_dock_window_id);
 
 			ImGui::DockBuilderDockWindow("##ContentBrowserPackages", dock_id_left);
 			ImGui::DockBuilderDockWindow("##ContentBrowserItems", m_dock_window_id);

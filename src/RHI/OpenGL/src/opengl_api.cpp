@@ -21,8 +21,8 @@ namespace Engine
 
 	OpenGL* OpenGL::m_instance = nullptr;
 
-	static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-							   const GLchar* message, const void* userParam)
+	static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
+							   const void* userParam)
 	{
 		if (type == GL_DEBUG_TYPE_ERROR)
 		{
@@ -103,9 +103,8 @@ namespace Engine
 	{
 		prepare_render();
 		indices_offset *= (m_state.index_buffer->m_format == GL_UNSIGNED_SHORT ? 2 : 4);
-		glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count,
-								 m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset),
-								 vertices_offset);
+		glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
+								 reinterpret_cast<void*>(indices_offset), vertices_offset);
 		reset_samplers();
 		return *this;
 	}
@@ -126,13 +125,11 @@ namespace Engine
 		return *this;
 	}
 
-	OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-										   size_t instances)
+	OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
 	{
 		prepare_render();
-		glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count,
-										  m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset),
-										  instances, vertices_offset);
+		glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
+										  reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
 		reset_samplers();
 		return *this;
 	}

@@ -33,15 +33,13 @@ namespace Engine
 		if (!scene_view().show_flags().has_all(ShowFlags::StaticMesh))
 			return *this;
 
-		StaticMesh* mesh  = component->mesh;
-		auto& camera_view = scene_view().camera_view();
-		float inv_distance =
-				1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
-							   camera_view.far_clip_plane);
-		auto& lods = mesh->lods;
-		Index lod_index =
-				glm::min<Index>(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
-		auto& lod = lods[lod_index];
+		StaticMesh* mesh   = component->mesh;
+		auto& camera_view  = scene_view().camera_view();
+		float inv_distance = 1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
+											camera_view.far_clip_plane);
+		auto& lods		   = mesh->lods;
+		Index lod_index	   = glm::min<Index>(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
+		auto& lod		   = lods[lod_index];
 
 		for (auto& material : mesh->materials)
 		{

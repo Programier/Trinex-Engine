@@ -23,8 +23,7 @@ namespace Engine::ImGuiRenderer
 {
 	ENGINE_EXPORT float rhi_rendering_scale_factor = 1.f;
 
-	ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x,
-												   float fonts_texture_y)
+	ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x, float fonts_texture_y)
 	{
 		ImTextureID texture = {};
 
@@ -367,8 +366,8 @@ namespace Engine::ImGuiRenderer
 		return ImGui::GetIO().MouseDownDuration[button] == 0.f && ImGui::IsMouseDown(button);
 	}
 
-	bool ENGINE_EXPORT InputText(const char* label, String& buffer, ImGuiInputTextFlags flags,
-								 ImGuiInputTextCallback callback, void* user_data)
+	bool ENGINE_EXPORT InputText(const char* label, String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
+								 void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
@@ -379,8 +378,8 @@ namespace Engine::ImGuiRenderer
 		return ImGui::InputText(label, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 
-	bool ENGINE_EXPORT InputTextMultiline(const char* label, String& buffer, const ImVec2& size,
-										  ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+	bool ENGINE_EXPORT InputTextMultiline(const char* label, String& buffer, const ImVec2& size, ImGuiInputTextFlags flags,
+										  ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
@@ -388,8 +387,7 @@ namespace Engine::ImGuiRenderer
 		data.str	  = &buffer;
 
 		flags |= ImGuiInputTextFlags_CallbackResize;
-		return ImGui::InputTextMultiline(label, buffer.data(), buffer.size() + 1, size, flags, input_text_callback,
-										 &data);
+		return ImGui::InputTextMultiline(label, buffer.data(), buffer.size() + 1, size, flags, input_text_callback, &data);
 	}
 
 	bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags,
@@ -401,8 +399,7 @@ namespace Engine::ImGuiRenderer
 		data.str	  = &buffer;
 
 		flags |= ImGuiInputTextFlags_CallbackResize;
-		return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback,
-										&data);
+		return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 
 	bool ENGINE_EXPORT BeginPopup(const char* name, ImGuiWindowFlags flags, bool (*callback)(void*), void* userdata)

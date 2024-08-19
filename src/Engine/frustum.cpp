@@ -8,8 +8,7 @@ namespace Engine
 	Plane::Plane() : normal(Constants::zero_vector), distance(0.f)
 	{}
 
-	Plane::Plane(const Vector3D& _p1, const Vector3D& _normal)
-		: normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
+	Plane::Plane(const Vector3D& _p1, const Vector3D& _normal) : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
 	{}
 
 	float Plane::signed_distance_to_plane(const Point3D& point) const
@@ -25,8 +24,7 @@ namespace Engine
 	bool Plane::is_on_or_forward(const AABB_3Df& box) const
 	{
 		const auto extents = box.extents();
-		const float r =
-				extents.x * std::abs(normal.x) + extents.y * std::abs(normal.y) + extents.z * std::abs(normal.z);
+		const float r	   = extents.x * std::abs(normal.x) + extents.y * std::abs(normal.y) + extents.z * std::abs(normal.z);
 		return -r <= signed_distance_to_plane(box.center());
 	}
 

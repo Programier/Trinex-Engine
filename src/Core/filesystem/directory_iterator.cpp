@@ -105,8 +105,7 @@ namespace Engine::VFS
 		: m_interface(other.m_interface ? other.m_interface->copy() : nullptr)
 	{}
 
-	RecursiveDirectoryIterator::RecursiveDirectoryIterator(RecursiveDirectoryIterator&& other)
-		: m_interface(other.m_interface)
+	RecursiveDirectoryIterator::RecursiveDirectoryIterator(RecursiveDirectoryIterator&& other) : m_interface(other.m_interface)
 	{
 		other.m_interface = nullptr;
 	}

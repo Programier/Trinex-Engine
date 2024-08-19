@@ -142,41 +142,41 @@ namespace Engine
 	{}
 
 
-#define IMPLEMENT_CONTROLLER(ControllerName, type)                                                                     \
-	ControllerName::ControllerName() : LoadingControllerBase(callbacks_list<ControllerName>(), #ControllerName)        \
-	{}                                                                                                                 \
-                                                                                                                       \
-                                                                                                                       \
-	ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                             \
-								   const std::initializer_list<String>& require_initializers)                          \
-		: ControllerName()                                                                                             \
-	{                                                                                                                  \
-		push(callback, name, require_initializers);                                                                    \
-	}                                                                                                                  \
-	ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                       \
-										 const std::initializer_list<String>& require_initializers)                    \
-	{                                                                                                                  \
-		LoadingControllerBase::push(callback, name, require_initializers);                                             \
-		return *this;                                                                                                  \
-	}                                                                                                                  \
-	ControllerName& ControllerName::require(const String& name)                                                        \
-	{                                                                                                                  \
-		LoadingControllerBase::require(name);                                                                          \
-		return *this;                                                                                                  \
-	}                                                                                                                  \
-	ControllerName& ControllerName::execute()                                                                          \
-	{                                                                                                                  \
-		LoadingControllerBase::execute();                                                                              \
-		LoadingControllerBase::mark_triggered(static_cast<BitMask>(ControllerType::type));                             \
-		return *this;                                                                                                  \
-	}                                                                                                                  \
-	bool ControllerName::is_triggered()                                                                                \
-	{                                                                                                                  \
-		return LoadingControllerBase::is_triggered(static_cast<BitMask>(ControllerType::type));                        \
-	}                                                                                                                  \
-	Identifier ControllerName::id() const                                                                              \
-	{                                                                                                                  \
-		return static_cast<BitMask>(ControllerType::type);                                                             \
+#define IMPLEMENT_CONTROLLER(ControllerName, type)                                                                               \
+	ControllerName::ControllerName() : LoadingControllerBase(callbacks_list<ControllerName>(), #ControllerName)                  \
+	{}                                                                                                                           \
+                                                                                                                                 \
+                                                                                                                                 \
+	ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                                       \
+								   const std::initializer_list<String>& require_initializers)                                    \
+		: ControllerName()                                                                                                       \
+	{                                                                                                                            \
+		push(callback, name, require_initializers);                                                                              \
+	}                                                                                                                            \
+	ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                                 \
+										 const std::initializer_list<String>& require_initializers)                              \
+	{                                                                                                                            \
+		LoadingControllerBase::push(callback, name, require_initializers);                                                       \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	ControllerName& ControllerName::require(const String& name)                                                                  \
+	{                                                                                                                            \
+		LoadingControllerBase::require(name);                                                                                    \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	ControllerName& ControllerName::execute()                                                                                    \
+	{                                                                                                                            \
+		LoadingControllerBase::execute();                                                                                        \
+		LoadingControllerBase::mark_triggered(static_cast<BitMask>(ControllerType::type));                                       \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	bool ControllerName::is_triggered()                                                                                          \
+	{                                                                                                                            \
+		return LoadingControllerBase::is_triggered(static_cast<BitMask>(ControllerType::type));                                  \
+	}                                                                                                                            \
+	Identifier ControllerName::id() const                                                                                        \
+	{                                                                                                                            \
+		return static_cast<BitMask>(ControllerType::type);                                                                       \
 	}
 
 	IMPLEMENT_CONTROLLER(PreInitializeController, PreInit);

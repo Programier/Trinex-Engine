@@ -85,10 +85,8 @@ namespace Engine
 		virtual ~Struct();
 	};
 
-#define implement_struct(namespace_name, struct_name, parent_struct_name)                                              \
-	Engine::ReflectionInitializeController initialize_##struct_name = Engine::ReflectionInitializeController(          \
-			[]() {                                                                                                     \
-				Engine::Struct::create(ENTITY_INITIALIZER_NAME(struct_name, namespace_name), #parent_struct_name);     \
-			},                                                                                                         \
+#define implement_struct(namespace_name, struct_name, parent_struct_name)                                                        \
+	Engine::ReflectionInitializeController initialize_##struct_name = Engine::ReflectionInitializeController(                    \
+			[]() { Engine::Struct::create(ENTITY_INITIALIZER_NAME(struct_name, namespace_name), #parent_struct_name); },         \
 			ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
 }// namespace Engine

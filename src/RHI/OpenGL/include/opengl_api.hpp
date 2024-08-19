@@ -43,8 +43,7 @@ namespace Engine
 		OpenGL& end_render() override;
 		OpenGL& reset_state();
 
-		OpenGL& bind_render_target(const Span<RenderSurface*>& color_attachments,
-								   RenderSurface* depth_stencil) override;
+		OpenGL& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 		OpenGL& bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
 								   struct OpenGL_RenderSurface* depth_stencil);
 		OpenGL& viewport(const ViewPort& viewport) override;
@@ -62,8 +61,7 @@ namespace Engine
 		RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
 		RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format,
-											 RHIBufferType type) override;
+		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(RenderViewport* viewport) override;
 

@@ -23,9 +23,8 @@ namespace Engine
 				EventType::MouseMotion, std::bind(&MouseSystem::on_motion_event, this, std::placeholders::_1)));
 		m_callbacks_identifier.push_back(event_system->add_listener(
 				EventType::MouseButtonUp, std::bind(&MouseSystem::on_button_up_event, this, std::placeholders::_1)));
-		m_callbacks_identifier.push_back(
-				event_system->add_listener(EventType::MouseButtonDown,
-										   std::bind(&MouseSystem::on_button_down_event, this, std::placeholders::_1)));
+		m_callbacks_identifier.push_back(event_system->add_listener(
+				EventType::MouseButtonDown, std::bind(&MouseSystem::on_button_down_event, this, std::placeholders::_1)));
 		m_callbacks_identifier.push_back(event_system->add_listener(
 				EventType::WindowClose, std::bind(&MouseSystem::on_window_close, this, std::placeholders::_1)));
 		return *this;

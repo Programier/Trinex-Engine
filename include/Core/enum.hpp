@@ -34,8 +34,7 @@ namespace Engine
 		Vector<Entry> m_entries;
 
 	public:
-		static ENGINE_EXPORT Enum* create(const String& namespace_name, const String& name,
-										  const Vector<Enum::Entry>& entries);
+		static ENGINE_EXPORT Enum* create(const String& namespace_name, const String& name, const Vector<Enum::Entry>& entries);
 		Index index_of(const Name& name) const;
 		Index index_of(EnumerateType value) const;
 		const Entry* entry(EnumerateType value) const;
@@ -49,8 +48,8 @@ namespace Engine
 		static ENGINE_EXPORT Enum* static_find(const String& name, bool required = false);
 	};
 
-#define implement_enum(enum_name, namespace_name, ...)                                                                 \
-	static Engine::ReflectionInitializeController initialize_##enum_name = Engine::ReflectionInitializeController(     \
-			[]() { Enum::create(#namespace_name, #enum_name, Vector<Engine::Enum::Entry>({__VA_ARGS__})); },           \
+#define implement_enum(enum_name, namespace_name, ...)                                                                           \
+	static Engine::ReflectionInitializeController initialize_##enum_name = Engine::ReflectionInitializeController(               \
+			[]() { Enum::create(#namespace_name, #enum_name, Vector<Engine::Enum::Entry>({__VA_ARGS__})); },                     \
 			ENTITY_INITIALIZER_NAME(enum_name, namespace_name))
 }// namespace Engine

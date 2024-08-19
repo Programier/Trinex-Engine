@@ -290,8 +290,7 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 				case AKEY_EVENT_ACTION_UP:
 				{
 					ImGuiKey key = ImGui_ImplAndroid_KeyCodeToImGuiKey(event_key_code);
-					if (key != ImGuiKey_None &&
-						(event_action == AKEY_EVENT_ACTION_DOWN || event_action == AKEY_EVENT_ACTION_UP))
+					if (key != ImGuiKey_None && (event_action == AKEY_EVENT_ACTION_DOWN || event_action == AKEY_EVENT_ACTION_UP))
 					{
 						io.AddKeyEvent(key, event_action == AKEY_EVENT_ACTION_DOWN);
 						io.SetKeyEventNativeData(key, event_key_code, event_scan_code);
@@ -306,9 +305,9 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 		}
 		case AINPUT_EVENT_TYPE_MOTION:
 		{
-			int32_t event_action		= AMotionEvent_getAction(input_event);
-			int32_t event_pointer_index = (event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
-										  AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+			int32_t event_action = AMotionEvent_getAction(input_event);
+			int32_t event_pointer_index =
+					(event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 			event_action &= AMOTION_EVENT_ACTION_MASK;
 
 			switch (AMotionEvent_getToolType(input_event, event_pointer_index))
@@ -404,8 +403,7 @@ void ImGui_ImplAndroid_NewFrame()
 
 	io.DisplaySize = ImVec2((float) window_width, (float) window_height);
 	if (window_width > 0 && window_height > 0)
-		io.DisplayFramebufferScale =
-				ImVec2((float) display_width / window_width, (float) display_height / window_height);
+		io.DisplayFramebufferScale = ImVec2((float) display_width / window_width, (float) display_height / window_height);
 
 	// Setup time step
 	struct timespec current_timespec;

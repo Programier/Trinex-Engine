@@ -101,8 +101,7 @@ namespace Engine
 	{
 #define has_bit(bit) ((message_severity & bit) == bit)
 
-		if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) ||
-			has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
+		if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) || has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
 		{
 			info_log("Vulkan API", "%s", callback_data->pMessage);
 		}
@@ -367,13 +366,12 @@ namespace Engine
 	{
 
 		vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->format(),
-									   vk::Extent3D(texture->size().x, texture->size().y, 1), texture->mipmap_count(),
-									   layers, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
+									   vk::Extent3D(texture->size().x, texture->size().y, 1), texture->mipmap_count(), layers,
+									   vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
 
 		image									   = API->m_device.createImage(image_info);
 		vk::MemoryRequirements memory_requirements = API->m_device.getImageMemoryRequirements(image);
-		auto memory_type =
-				API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+		auto memory_type = API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
 		vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
 		image_memory = API->m_device.allocateMemory(alloc_info);
 		API->m_device.bindImageMemory(image, image_memory, 0);
@@ -420,16 +418,14 @@ namespace Engine
 		throw std::runtime_error("VulkanAPI: Failed to find suitable memory type!");
 	}
 
-	VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
-										vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-										vk::DeviceMemory& buffer_memory)
+	VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+										vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
 	{
 		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
 		buffer = m_device.createBuffer(buffer_info);
 
 		vk::MemoryRequirements mem_requirements = m_device.getBufferMemoryRequirements(buffer);
-		vk::MemoryAllocateInfo alloc_info(mem_requirements.size,
-										  find_memory_type(mem_requirements.memoryTypeBits, properties));
+		vk::MemoryAllocateInfo alloc_info(mem_requirements.size, find_memory_type(mem_requirements.memoryTypeBits, properties));
 
 
 		buffer_memory = m_device.allocateMemory(alloc_info);
@@ -502,8 +498,7 @@ namespace Engine
 	VulkanAPI& VulkanAPI::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 												 size_t instances)
 	{
-		prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset,
-																   vertices_offset, 0);
+		prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
 	}
 

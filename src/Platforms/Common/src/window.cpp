@@ -310,8 +310,8 @@ namespace Engine
 		int_t b_mask = 0x0000FF00 >> s;
 		int_t a_mask = 0x000000FF >> s;
 #endif
-		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask,
-														g_mask, b_mask, a_mask);
+		SDL_Surface* surface =
+				SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask, g_mask, b_mask, a_mask);
 		if (surface == nullptr)
 		{
 			error_log("WindowSDL", "Failed to create surface from image: %s", SDL_GetError());

@@ -21,8 +21,8 @@ namespace Engine
 {
 	Map<Struct*, void (*)(class ImGuiObjectProperties*, void*, Struct*, bool)> special_class_properties_renderers;
 
-	static bool render_struct_properties(ImGuiObjectProperties*, void* object, class Struct* struct_class,
-										 bool editable = true, bool is_in_table = false);
+	static bool render_struct_properties(ImGuiObjectProperties*, void* object, class Struct* struct_class, bool editable = true,
+										 bool is_in_table = false);
 
 	static FORCE_INLINE float get_column_width(ImGuiTableColumn& column)
 	{
@@ -71,8 +71,7 @@ namespace Engine
 
 	template<typename Type, PropertyType property_type = PropertyType::Undefined>
 	static bool render_prop_internal(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit,
-									 bool (*callback)(ImGuiObjectProperties* window, void*, Property*, Type&,
-													  bool can_edit))
+									 bool (*callback)(ImGuiObjectProperties* window, void*, Property*, Type&, bool can_edit))
 	{
 		render_prop_name(prop);
 
@@ -101,8 +100,7 @@ namespace Engine
 
 
 #define input_text_flags() (ImGuiInputTextFlags_EnterReturnsTrue | (editable ? 0 : ImGuiInputTextFlags_ReadOnly))
-#define edit_f(type)                                                                                                   \
-	[](ImGuiObjectProperties * window, void* object, Property* prop, type& value, bool editable) -> bool
+#define edit_f(type) [](ImGuiObjectProperties * window, void* object, Property* prop, type& value, bool editable) -> bool
 
 
 	static bool render_byte_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
@@ -118,8 +116,7 @@ namespace Engine
 	{
 		return render_prop_internal<signed_byte>(
 				window, object, prop, can_edit, edit_f(signed_byte) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_S8, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
+					return ImGui::InputScalar("##Value", ImGuiDataType_S8, &value, nullptr, nullptr, nullptr, input_text_flags());
 				});
 	}
 
@@ -355,8 +352,8 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_object_reference_internal(ImGuiObjectProperties* window, void* object, Property* prop,
-												 Object*& value, bool can_edit)
+	static bool render_object_reference_internal(ImGuiObjectProperties* window, void* object, Property* prop, Object*& value,
+												 bool can_edit)
 	{
 		Struct* self	 = prop->struct_instance();
 		const float size = ImGui::GetFrameHeight();
@@ -391,9 +388,8 @@ namespace Engine
 			if (can_edit)
 			{
 				ImGui::TableSetColumnIndex(2);
-				if (ImGui::ImageButton(
-							ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
-							{size, size}))
+				if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
+									   {size, size}))
 				{
 					value	= nullptr;
 					changed = true;
@@ -587,8 +583,8 @@ namespace Engine
 		return is_changed;
 	}
 
-	static bool render_struct_properties(ImGuiObjectProperties* window, void* object, class Struct* struct_class,
-										 bool editable, bool is_in_table)
+	static bool render_struct_properties(ImGuiObjectProperties* window, void* object, class Struct* struct_class, bool editable,
+										 bool is_in_table)
 	{
 		if (!is_in_table)
 			begin_prop_table();
@@ -750,8 +746,7 @@ namespace Engine
 		float indent = window->DC.Indent.x;
 
 		auto min_pos = ImGui::GetCursorScreenPos() - padding - ImVec2(indent, 0.f);
-		auto max_pos =
-				min_pos + ImVec2(window->ParentWorkRect.GetWidth() + indent, ImGui::GetFrameHeight()) + padding * 2.f;
+		auto max_pos = min_pos + ImVec2(window->ParentWorkRect.GetWidth() + indent, ImGui::GetFrameHeight()) + padding * 2.f;
 
 		ImGui::TablePushBackgroundChannel();
 		ImGui::GetWindowDrawList()->AddRectFilled(min_pos, max_pos, ImGui::ColorConvertFloat4ToU32(color));
@@ -766,8 +761,8 @@ namespace Engine
 
 		va_list args;
 		va_start(args, format);
-		bool result = ImGui::TreeNodeExV(id, ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader,
-										 format, args);
+		bool result =
+				ImGui::TreeNodeExV(id, ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader, format, args);
 		va_end(args);
 
 		window->ClipRect	   = clip_rect;

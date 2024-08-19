@@ -23,8 +23,7 @@ namespace Engine
 				new FloatProperty("Min lod", "Min lod of sampler", &This::min_lod),
 				new FloatProperty("Max lod", "Max lod of sampler", &This::max_lod),
 
-				new EnumProperty("Filter", "Filter of sampler", &This::filter,
-								 Enum::static_find("Engine::SamplerFilter")),
+				new EnumProperty("Filter", "Filter of sampler", &This::filter, Enum::static_find("Engine::SamplerFilter")),
 				new EnumProperty("Address U", "Address mode for U of sampler", &This::address_u, address_mode_enum),
 				new EnumProperty("Address V", "Address mode for V of sampler", &This::address_v, address_mode_enum),
 				new EnumProperty("Address W", "Address mode for W of sampler", &This::address_w, address_mode_enum),

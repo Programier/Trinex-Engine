@@ -5,8 +5,8 @@
 
 namespace Engine
 {
-#define script_array_init_check(fail_ret)                                                                              \
-	if (m_as_array == nullptr)                                                                                         \
+#define script_array_init_check(fail_ret)                                                                                        \
+	if (m_as_array == nullptr)                                                                                                   \
 		return fail_ret;
 
 	static FORCE_INLINE asIScriptEngine* engine()

@@ -42,8 +42,7 @@ namespace Engine
 {
 	EditorState::EditorState()
 	{
-		viewport.view_mode_entry =
-				Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
+		viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
 	implement_engine_class_default_init(EditorClient, 0);
@@ -95,8 +94,7 @@ namespace Engine
 	{
 		m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
 		m_content_browser->on_close.push(std::bind(&EditorClient::on_content_browser_close, this));
-		m_content_browser->on_object_select.push(
-				std::bind(&EditorClient::on_object_select, this, std::placeholders::_1));
+		m_content_browser->on_object_select.push(std::bind(&EditorClient::on_object_select, this, std::placeholders::_1));
 		return *this;
 	}
 
@@ -239,10 +237,19 @@ namespace Engine
 					open_material_editor();
 				}
 
-				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false,
-									m_content_browser == nullptr))
+				if (ImGui::MenuItem("editor/Open Script Debugger"_localized))
+				{
+					open_script_debugger();
+				}
+
+				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
 				{
 					create_content_browser();
+				}
+
+				if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
+				{
+					create_properties_window();
 				}
 
 				if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
@@ -282,8 +289,7 @@ namespace Engine
 			{
 				bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
 				if (ImGui::MenuItem("editor/Import resource"_localized,
-									"editor/Import resource from file to selected package"_localized, false,
-									enable_import))
+									"editor/Import resource from file to selected package"_localized, false, enable_import))
 				{
 					Package* package = m_content_browser->selected_package();
 					ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>()->on_select.push(
@@ -340,8 +346,8 @@ namespace Engine
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
 		ImGui::Begin("EditorDock", nullptr,
 					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
-							 ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
+							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
+							 ImGuiWindowFlags_MenuBar);
 		render_dock_window(dt);
 
 		update_camera(dt);
@@ -461,8 +467,8 @@ namespace Engine
 			{
 				ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 
-				if (ImGui::ImageButton({imgui_texture, EditorResources::default_sampler}, {height, height}, {0, 1},
-									   {1, 0}, -1, color))
+				if (ImGui::ImageButton({imgui_texture, EditorResources::default_sampler}, {height, height}, {0, 1}, {1, 0}, -1,
+									   color))
 				{
 					m_guizmo_operation = control.first;
 				}
@@ -563,8 +569,7 @@ namespace Engine
 			return *this;
 		};
 
-		if (!m_state.viewport.is_using_guizmo && m_state.viewport.is_hovered &&
-			ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (!m_state.viewport.is_using_guizmo && m_state.viewport.is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
 			relative_mouse_pos.y	= m_state.viewport.size.y - relative_mouse_pos.y;
@@ -580,8 +585,8 @@ namespace Engine
 
 			//auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
 
-			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size,
-						 {0.f, Settings::e_screen_percentage}, {Settings::e_screen_percentage, 0.f});
+			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, Settings::e_screen_percentage},
+						 {Settings::e_screen_percentage, 0.f});
 			m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
 			ImGui::SetCursorPos(current_pos);
@@ -638,10 +643,9 @@ namespace Engine
 
 		if (MouseSystem::instance()->is_relative_mode(m_state.window.window))
 		{
-			camera->add_rotation(
-					{-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-					 calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-					 0.f});
+			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
+								  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+								  0.f});
 		}
 	}
 
@@ -650,10 +654,9 @@ namespace Engine
 		const FingerMotionEvent& motion = event.get<const FingerMotionEvent&>();
 		if (motion.finger_index == 0 && m_state.viewport.is_hovered)
 		{
-			camera->add_rotation(
-					{-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-					 calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-					 0.f});
+			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
+								  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+								  0.f});
 		}
 	}
 
@@ -676,8 +679,8 @@ namespace Engine
 	{
 		move_camera(m_camera_move, m_state.window.window);
 
-		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) *
-							 dt * m_camera_speed);
+		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
+							 m_camera_speed);
 		camera->on_transform_changed();
 
 		struct UpdateView : ExecutableObject {

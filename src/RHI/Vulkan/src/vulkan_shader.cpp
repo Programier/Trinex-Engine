@@ -232,8 +232,7 @@ namespace Engine
 
 						if (desc.inputRate != rate)
 						{
-							error_log("Vulkan",
-									  "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'",
+							error_log("Vulkan", "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'",
 									  name_of_rate(rate), index, name_of_rate(desc.inputRate));
 							return false;
 						}

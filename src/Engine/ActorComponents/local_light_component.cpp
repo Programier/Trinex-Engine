@@ -26,8 +26,8 @@ namespace Engine
 			component->submit_local_light_info();
 		};
 
-		auto attenuation_property = new FloatProperty("Attenuation radius", "Attenuation radius of this light",
-													  &This::m_attenuation_radius);
+		auto attenuation_property =
+				new FloatProperty("Attenuation radius", "Attenuation radius of this light", &This::m_attenuation_radius);
 		attenuation_property->on_prop_changed.push(on_prop_changed);
 
 		self->add_property(attenuation_property);
@@ -38,8 +38,7 @@ namespace Engine
 
 	LocalLightComponent& LocalLightComponent::submit_local_light_info()
 	{
-		render_thread()->insert_new_task<UpdateVariableCommand<float>>(m_attenuation_radius,
-																	   proxy()->m_attenuation_radius);
+		render_thread()->insert_new_task<UpdateVariableCommand<float>>(m_attenuation_radius, proxy()->m_attenuation_radius);
 		return *this;
 	}
 

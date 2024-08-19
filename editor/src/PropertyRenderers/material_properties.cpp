@@ -10,9 +10,9 @@ namespace Engine
 {
 	static TreeMap<MaterialParameterType, void (*)(MaterialParameter*)> m_parameter_renderers;
 
-#define declare_parameter_renderer(type)                                                                               \
-	{                                                                                                                  \
-		MaterialParameterType::type, trinex_editor_##type##_renderer                                                   \
+#define declare_parameter_renderer(type)                                                                                         \
+	{                                                                                                                            \
+		MaterialParameterType::type, trinex_editor_##type##_renderer                                                             \
 	}
 
 
@@ -176,18 +176,17 @@ namespace Engine
 
 	static void on_init()
 	{
-		m_parameter_renderers = {
-				declare_parameter_renderer(Bool),	  declare_parameter_renderer(Int),
-				declare_parameter_renderer(UInt),	  declare_parameter_renderer(Float),
-				declare_parameter_renderer(BVec2),	  declare_parameter_renderer(BVec3),
-				declare_parameter_renderer(BVec4),	  declare_parameter_renderer(IVec2),
-				declare_parameter_renderer(IVec3),	  declare_parameter_renderer(IVec4),
-				declare_parameter_renderer(UVec2),	  declare_parameter_renderer(UVec3),
-				declare_parameter_renderer(UVec4),	  declare_parameter_renderer(Vec2),
-				declare_parameter_renderer(Vec3),	  declare_parameter_renderer(Vec4),
-				declare_parameter_renderer(Mat3),	  declare_parameter_renderer(Mat4),
-				declare_parameter_renderer(Sampler),  declare_parameter_renderer(CombinedImageSampler2D),
-				declare_parameter_renderer(Texture2D)};
+		m_parameter_renderers = {declare_parameter_renderer(Bool),	   declare_parameter_renderer(Int),
+								 declare_parameter_renderer(UInt),	   declare_parameter_renderer(Float),
+								 declare_parameter_renderer(BVec2),	   declare_parameter_renderer(BVec3),
+								 declare_parameter_renderer(BVec4),	   declare_parameter_renderer(IVec2),
+								 declare_parameter_renderer(IVec3),	   declare_parameter_renderer(IVec4),
+								 declare_parameter_renderer(UVec2),	   declare_parameter_renderer(UVec3),
+								 declare_parameter_renderer(UVec4),	   declare_parameter_renderer(Vec2),
+								 declare_parameter_renderer(Vec3),	   declare_parameter_renderer(Vec4),
+								 declare_parameter_renderer(Mat3),	   declare_parameter_renderer(Mat4),
+								 declare_parameter_renderer(Sampler),  declare_parameter_renderer(CombinedImageSampler2D),
+								 declare_parameter_renderer(Texture2D)};
 	}
 
 	static PreInitializeController initializer(on_init);
