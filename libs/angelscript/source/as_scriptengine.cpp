@@ -2837,6 +2837,34 @@ int asCScriptEngine::RegisterObjectMethod(const char *obj, const char *declarati
 	return RegisterMethodToObjectType(CastToObjectType(dt.GetTypeInfo()), declaration, funcPointer, callConv, auxiliary, compositeOffset, isCompositeIndirect);
 }
 
+int asCScriptEngine::CreateVirtualFunction(asCScriptFunction *func, int idx)
+{
+	asCScriptFunction *vf = asNEW(asCScriptFunction)(this, nullptr, asFUNC_VIRTUAL);
+	
+    if( vf == 0 )
+		return asOUT_OF_MEMORY;
+	
+	vf->name             = func->name;
+	vf->nameSpace        = func->nameSpace;
+	vf->returnType       = func->returnType;
+	vf->parameterTypes   = func->parameterTypes;
+	vf->inOutFlags       = func->inOutFlags;
+	vf->id               = GetNextScriptFunctionId();
+	vf->objectType       = func->objectType;
+	vf->objectType->AddRefInternal();
+	vf->signatureId      = func->signatureId;
+	vf->vfTableIdx       = idx;
+	vf->traits           = func->traits;
+	
+	// Clear the shared trait since the virtual function should not have that
+	vf->SetShared(false);
+	
+	// It is not necessary to copy the default args, as they have no meaning in the virtual function
+	AddScriptFunction(vf);
+	
+	return vf->id;
+}
+
 // internal
 int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv, void *auxiliary, int compositeOffset, bool isCompositeIndirect)
 {
@@ -2957,12 +2985,6 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 	func->id = GetNextScriptFunctionId();
 	func->objectType->methods.PushLast(func->id);
 	func->accessMask = defaultAccessMask;
-	if(objectType->flags & asOBJ_APP_NATIVE)
-	{
-		func->vfTableIdx = func->objectType->virtualFunctionTable.GetLength();
-		func->objectType->virtualFunctionTable.PushLast(func);
-		func->AddRefInternal();
-	}
 	AddScriptFunction(func);
 
 	// If parameter type from other groups are used, add references
@@ -2989,7 +3011,17 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 	}
 	
 	if(objectType->flags & asOBJ_APP_NATIVE)
+	{
 		func->ComputeSignatureId();
+		
+        objectType->methods.PopLast();
+        
+        auto virtual_func = CreateVirtualFunction(func, objectType->virtualFunctionTable.GetLength());
+        objectType->virtualFunctionTable.PushLast(func);
+        
+        objectType->methods.PushLast(virtual_func);
+        return virtual_func;
+	}
 	
 	// Return the function id as success
 	return func->id;

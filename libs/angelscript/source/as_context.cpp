@@ -1561,8 +1561,7 @@ int asCContext::Execute()
 asCScriptFunction *asCContext::GetRealFunc(asCScriptFunction * currentFunction, void ** _This)
 {
 	if( currentFunction->funcType == asFUNC_VIRTUAL ||
-		currentFunction->funcType == asFUNC_INTERFACE ||
-        (currentFunction->funcType == asFUNC_SYSTEM && currentFunction->objectType && *_This))
+		currentFunction->funcType == asFUNC_INTERFACE )
 	{
 		// The currentFunction is a virtual method
 
@@ -1578,7 +1577,7 @@ asCScriptFunction *asCContext::GetRealFunc(asCScriptFunction * currentFunction, 
 			asCObjectType *objType = obj->objType();
 			asCScriptFunction * realFunc = 0;
 
-			if( currentFunction->funcType == asFUNC_VIRTUAL || currentFunction->funcType == asFUNC_SYSTEM )
+			if( currentFunction->funcType == asFUNC_VIRTUAL )
 			{
 				if( objType->virtualFunctionTable.GetLength() > (asUINT)currentFunction->vfTableIdx )
 				{
