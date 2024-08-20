@@ -34,7 +34,7 @@ namespace Engine
 		ScriptClassRegistrar::RefInfo info;
 		info.no_count		 = true;
 		info.implicit_handle = true;
-		info.extra_flags	 = asOBJ_APP_NATIVE;
+		info.extra_flags	 = asOBJ_APP_NATIVE_INHERITANCE;
 
 		return ScriptClassRegistrar::reference_class(self->name().to_string(), info, self->sizeof_class());
 	}

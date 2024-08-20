@@ -33,6 +33,7 @@ namespace Engine
 		StringView name() const;
 		StringView namespace_name() const;
 		ScriptTypeInfo base_type() const;
+		ScriptTypeInfo native_base_type() const;
 		bool derives_from(const ScriptTypeInfo& info) const;
 		int_t type_id() const;
 		int_t sub_type_id(uint_t index) const;
@@ -64,6 +65,13 @@ namespace Engine
 		bool property(uint_t index, StringView* name = nullptr, int_t* type_id = nullptr, bool* is_private = nullptr,
 					  bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr) const;
 		String property_declaration(uint_t index, bool include_bamespace = false) const;
+		StringView property_name(uint_t index) const;
+		int_t property_type_id(uint_t index) const;
+		int_t property_offset(uint_t index) const;
+		bool is_property_private(uint_t index) const;
+		bool is_property_protected(uint_t index) const;
+		bool is_property_native(uint_t index) const;
+		bool is_property_reference(uint_t index) const;
 
 		// Behaviours
 		uint_t behaviour_count() const;
@@ -86,6 +94,10 @@ namespace Engine
 
 		// Flags processing
 		bool is_script_object() const;
+		bool is_native() const;
+		bool is_native_inheritable() const;
+		bool is_inheritable() const;
+		bool is_registered() const;
 		bool is_shared() const;
 		bool is_noinherit() const;
 		bool is_funcdef() const;

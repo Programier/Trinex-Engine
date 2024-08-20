@@ -114,6 +114,12 @@ namespace Engine
 		return ScriptTypeInfo(m_info->GetBaseType());
 	}
 
+	ScriptTypeInfo ScriptTypeInfo::native_base_type() const
+	{
+		check_info({});
+		return ScriptTypeInfo(m_info->GetNativeBaseType());
+	}
+
 	bool ScriptTypeInfo::derives_from(const ScriptTypeInfo& info) const
 	{
 		check_info(false);
@@ -260,6 +266,49 @@ namespace Engine
 		return Strings::make_string(m_info->GetPropertyDeclaration(index, include_bamespace));
 	}
 
+	StringView ScriptTypeInfo::property_name(uint_t index) const
+	{
+		check_info("");
+		return Strings::make_string_view(m_info->GetPropertyName(index));
+	}
+
+	int_t ScriptTypeInfo::property_type_id(uint_t index) const
+	{
+		check_info(0);
+		return m_info->GetPropertyTypeId(index);
+	}
+
+	int_t ScriptTypeInfo::property_offset(uint_t index) const
+	{
+		check_info(0);
+		return m_info->GetPropertyOffset(index);
+	}
+
+	bool ScriptTypeInfo::is_property_private(uint_t index) const
+	{
+		check_info(false);
+		return m_info->IsPropertyPrivate(index);
+	}
+
+	bool ScriptTypeInfo::is_property_protected(uint_t index) const
+	{
+		check_info(false);
+		return m_info->IsPropertyProtected(index);
+	}
+
+	bool ScriptTypeInfo::is_property_native(uint_t index) const
+	{
+		check_info(false);
+		return m_info->IsPropertyNative(index);
+	}
+
+	bool ScriptTypeInfo::is_property_reference(uint_t index) const
+	{
+		check_info(false);
+		return m_info->IsPropertyReference(index);
+	}
+
+
 	// Behaviours
 	uint_t ScriptTypeInfo::behaviour_count() const
 	{
@@ -369,6 +418,23 @@ namespace Engine
 	{
 		check_info(false);
 		return (m_info->GetFlags() & asOBJ_SCRIPT_OBJECT) == asOBJ_SCRIPT_OBJECT;
+	}
+
+	bool ScriptTypeInfo::is_native() const
+	{
+		check_info(false);
+		return !is_script_object();
+	}
+
+	bool ScriptTypeInfo::is_native_inheritable() const
+	{
+		check_info(false);
+		return (m_info->GetFlags() & asOBJ_APP_NATIVE_INHERITANCE) == asOBJ_APP_NATIVE_INHERITANCE;
+	}
+
+	bool ScriptTypeInfo::is_inheritable() const
+	{
+		return is_script_object() || is_native_inheritable();
 	}
 
 	bool ScriptTypeInfo::is_shared() const

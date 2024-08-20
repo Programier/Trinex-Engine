@@ -180,7 +180,7 @@ namespace Engine
 	class Script::Builder : public CScriptBuilder
 	{
 	public:
-		static TreeSet<String> parse_metadata(const std::map<int, std::vector<std::string>>& in_map, int type_id)
+		TreeSet<String> parse_metadata(const std::map<int, std::vector<std::string>>& in_map, int type_id)
 		{
 			TreeSet<String> result;
 
@@ -196,36 +196,65 @@ namespace Engine
 			return result;
 		}
 
-		static TreeMap<int_t, TreeSet<String>> parse_metadata(const std::map<int, std::vector<std::string>>& in_map)
+		TreeMap<int_t, TreeSet<String>> parse_func_metadata(const std::map<int, std::vector<std::string>>& in_map)
 		{
 			TreeMap<int_t, TreeSet<String>> result;
 
-			for (auto& [type_id, metadata] : in_map)
+			for (auto& [func_id, metadata] : in_map)
 			{
-				result[type_id] = parse_metadata(in_map, type_id);
+				result[func_id] = parse_metadata(in_map, func_id);
 			}
 
 			return result;
 		}
 
-		TreeMap<int_t, TreeSet<String>> type_metadata_map() const
+		TreeMap<String, TreeSet<String>> parse_var_metadata(const std::map<int, std::vector<std::string>>& in_map)
 		{
-			return parse_metadata(typeMetadataMap);
+			TreeMap<String, TreeSet<String>> result;
+
+			for (auto& [var_idx, metadata] : in_map)
+			{
+				const char* name = nullptr;
+				const char* ns	 = nullptr;
+
+				if (module->GetGlobalVar(var_idx, &name, &ns))
+				{
+					String full_name =
+							Strings::concat_scoped_name(Strings::make_string_view(ns), Strings::make_string_view(name));
+					result[full_name] = parse_metadata(in_map, var_idx);
+				}
+			}
+
+			return result;
+		}
+
+		TreeMap<String, TreeSet<String>> parse_prop_metadata(const ScriptTypeInfo& info,
+															 const std::map<int, std::vector<std::string>>& in_map)
+		{
+			TreeMap<String, TreeSet<String>> result;
+
+			for (auto& [var_idx, metadata] : in_map)
+			{
+				String full_name  = String(info.property_name(var_idx));
+				result[full_name] = parse_metadata(in_map, var_idx);
+			}
+
+			return result;
 		}
 
 		TreeMap<int_t, TreeSet<String>> func_metadata_map()
 		{
-			return parse_metadata(funcMetadataMap);
+			return parse_func_metadata(funcMetadataMap);
 		}
 
-		TreeMap<int_t, TreeSet<String>> var_metadata_map()
+		TreeMap<String, TreeSet<String>> var_metadata_map()
 		{
-			return parse_metadata(varMetadataMap);
+			return parse_var_metadata(varMetadataMap);
 		}
 
-		TreeMap<int_t, Script::ClassMetadata> class_metadata_map()
+		TreeMap<String, Script::ClassMetadata> class_metadata_map()
 		{
-			TreeMap<int_t, Script::ClassMetadata> result;
+			TreeMap<String, Script::ClassMetadata> result;
 
 			for (auto& [type_id, metadata] : classMetadataMap)
 			{
@@ -233,11 +262,11 @@ namespace Engine
 				if (!info.is_valid())
 					continue;
 
-				auto& result_metadata			  = result[type_id];
+				auto& result_metadata			  = result[Strings::concat_scoped_name(info.namespace_name(), info.name())];
 				result_metadata.type_info		  = info;
 				result_metadata.class_metadata	  = parse_metadata(typeMetadataMap, type_id);
-				result_metadata.func_metadata_map = parse_metadata(metadata.funcMetadataMap);
-				result_metadata.prop_metadata_map = parse_metadata(metadata.varMetadataMap);
+				result_metadata.func_metadata_map = parse_func_metadata(metadata.funcMetadataMap);
+				result_metadata.prop_metadata_map = parse_prop_metadata(info, metadata.varMetadataMap);
 			}
 			return result;
 		}
@@ -387,7 +416,7 @@ namespace Engine
 		auto base = info->GetBaseType();
 
 		if (base == nullptr)
-			return (info->GetFlags() & asOBJ_APP_NATIVE) != 0;
+			return (info->GetFlags() & asOBJ_APP_NATIVE_INHERITANCE) != 0;
 
 		if (!load_classes(base))
 			return false;
@@ -405,10 +434,10 @@ namespace Engine
 		script_class->static_constructor(script_object_constructor);
 		script_class->destroy_func(script_object_destructor);
 
-
 		m_classes.insert(script_class);
 		script_class->on_class_destroy.push([this](Class* self) { m_classes.erase(self); });
 
+		register_properties(script_class);
 		return true;
 	}
 
@@ -488,27 +517,42 @@ namespace Engine
 		return m_func_metadata_map;
 	}
 
-	const TreeMap<int_t, TreeSet<String>>& Script::var_metadata_map() const
+	const TreeMap<String, TreeSet<String>>& Script::var_metadata_map() const
 	{
 		return m_var_metadata_map;
 	}
 
-	const TreeMap<int_t, Script::ClassMetadata>& Script::class_metadata_map() const
+	const TreeMap<String, Script::ClassMetadata>& Script::class_metadata_map() const
 	{
 		return m_class_metadata_map;
 	}
 
 	const TreeSet<String>& Script::ClassMetadata::metadata_for_func(const ScriptFunction& func) const
 	{
-		auto it = func_metadata_map.find(func.id());
+		return metadata_for_func(func.id());
+	}
+
+	const TreeSet<String>& Script::ClassMetadata::metadata_for_func(const char* decl, bool get_virtual) const
+	{
+		return metadata_for_func(type_info.method_by_decl(decl, get_virtual));
+	}
+
+	const TreeSet<String>& Script::ClassMetadata::metadata_for_func(int_t func_id) const
+	{
+		auto it = func_metadata_map.find(func_id);
 		if (it != func_metadata_map.end())
 			return it->second;
 		return default_value_of<TreeSet<String>>();
 	}
 
-	const TreeSet<String>& Script::ClassMetadata::metadata_for_var(uint_t prop_index) const
+	const TreeSet<String>& Script::ClassMetadata::metadata_for_property(uint_t prop_index) const
 	{
-		auto it = prop_metadata_map.find(prop_index);
+		return metadata_for_property(String(type_info.property_name(prop_index)));
+	}
+
+	const TreeSet<String>& Script::ClassMetadata::metadata_for_property(const String& name) const
+	{
+		auto it = prop_metadata_map.find(name);
 		if (it != prop_metadata_map.end())
 			return it->second;
 		return default_value_of<TreeSet<String>>();
@@ -516,7 +560,19 @@ namespace Engine
 
 	const TreeSet<String>& Script::metadata_for_func(const ScriptFunction& func) const
 	{
-		auto it = m_func_metadata_map.find(func.id());
+		return metadata_for_func(func.id());
+	}
+
+	const TreeSet<String>& Script::metadata_for_func(const char* decl) const
+	{
+		if (m_module.is_valid())
+			return metadata_for_func(m_module.function_by_decl(decl).id());
+		return default_value_of<TreeSet<String>>();
+	}
+
+	const TreeSet<String>& Script::metadata_for_func(int_t func_id) const
+	{
+		auto it = m_func_metadata_map.find(func_id);
 		if (it != m_func_metadata_map.end())
 			return it->second;
 		return default_value_of<TreeSet<String>>();
@@ -524,7 +580,17 @@ namespace Engine
 
 	const TreeSet<String>& Script::metadata_for_var(uint_t var_index) const
 	{
-		auto it = m_var_metadata_map.find(var_index);
+		if (m_module.is_valid())
+		{
+			String name = m_module.global_var_declaration(var_index, true);
+			return metadata_for_var(name);
+		}
+		return default_value_of<TreeSet<String>>();
+	}
+
+	const TreeSet<String>& Script::metadata_for_var(const String& name) const
+	{
+		auto it = m_var_metadata_map.find(name);
 		if (it != m_var_metadata_map.end())
 			return it->second;
 		return default_value_of<TreeSet<String>>();
@@ -532,9 +598,26 @@ namespace Engine
 
 	const Script::ClassMetadata& Script::metadata_for_class(const ScriptTypeInfo& info) const
 	{
-		auto it = m_class_metadata_map.find(info.type_id());
+		if (info.is_valid())
+			return metadata_for_class(Strings::concat_scoped_name(String(info.namespace_name()), String(info.name())));
+		return default_value_of<ClassMetadata>();
+	}
+
+	const Script::ClassMetadata& Script::metadata_for_class(const String& name) const
+	{
+		auto it = m_class_metadata_map.find(name);
 		if (it != m_class_metadata_map.end())
 			return it->second;
+		return default_value_of<ClassMetadata>();
+	}
+
+
+	const Script::ClassMetadata& Script::metadata_for_class(int_t type_id) const
+	{
+		if (m_module.is_valid())
+		{
+			return metadata_for_class(ScriptEngine::type_info_by_id(type_id));
+		}
 		return default_value_of<ClassMetadata>();
 	}
 

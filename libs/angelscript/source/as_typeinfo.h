@@ -79,6 +79,7 @@ public:
 	const char      *GetName() const;
 	const char      *GetNamespace() const;
 	asITypeInfo     *GetBaseType() const { return 0; }
+	asITypeInfo     *GetNativeBaseType() const { return 0; }
 	bool             DerivesFrom(const asITypeInfo *objType) const { UNUSED_VAR(objType); return 0; }
 	asQWORD          GetFlags() const;
 	asUINT           GetSize() const;
@@ -107,6 +108,13 @@ public:
 	asUINT      GetPropertyCount() const { return 0; }
 	int         GetProperty(asUINT index, const char **name, int *typeId, bool *isPrivate, bool *isProtected, int *offset, bool *isReference, asDWORD *accessMask, int *compositeOffset, bool *isCompositeIndirect) const;
 	const char *GetPropertyDeclaration(asUINT index, bool includeNamespace = false) const { UNUSED_VAR(index); UNUSED_VAR(includeNamespace); return 0; }
+	inline const char *GetPropertyName(asUINT index) const { return nullptr; }
+	inline int         GetPropertyTypeId(asUINT index) const { return 0; }
+	inline int         GetPropertyOffset(asUINT index) const { return 0; }
+	inline bool        IsPropertyPrivate(asUINT index) const { return false; }
+	inline bool        IsPropertyProtected(asUINT index) const {return false; }
+	inline bool        IsPropertyNative(asUINT index) const { return false; };
+	inline bool        IsPropertyReference(asUINT index) const { return false; };
 
 	// Behaviours
 	asUINT             GetBehaviourCount() const { return 0; }

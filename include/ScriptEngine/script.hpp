@@ -46,10 +46,14 @@ namespace Engine
 			ScriptTypeInfo type_info;
 			TreeSet<String> class_metadata;
 			TreeMap<int_t, TreeSet<String>> func_metadata_map;
-			TreeMap<int_t, TreeSet<String>> prop_metadata_map;
+			TreeMap<String, TreeSet<String>> prop_metadata_map;
 
 			const TreeSet<String>& metadata_for_func(const ScriptFunction& func) const;
-			const TreeSet<String>& metadata_for_var(uint_t prop_index) const;
+			const TreeSet<String>& metadata_for_func(const char* decl, bool get_virtual = true) const;
+			const TreeSet<String>& metadata_for_func(int_t func_id) const;
+			
+			const TreeSet<String>& metadata_for_property(uint_t prop_index) const;
+			const TreeSet<String>& metadata_for_property(const String& name) const;
 		};
 
 	private:
@@ -64,14 +68,15 @@ namespace Engine
 
 		// Metadata info
 		TreeMap<int_t, TreeSet<String>> m_func_metadata_map;
-		TreeMap<int_t, TreeSet<String>> m_var_metadata_map;
-		TreeMap<int_t, ClassMetadata> m_class_metadata_map;
+		TreeMap<String, TreeSet<String>> m_var_metadata_map;
+		TreeMap<String, ClassMetadata> m_class_metadata_map;
 
 		mutable bool m_is_dirty;
 
 		Script(ScriptFolder* folder, const String& name);
 
 		Script& load_metadata(Builder& builder);
+		Script& register_properties(Class* self);
 		bool load_classes(asITypeInfo* info);
 		Script& load_classes();
 		Script& unload_classes();
@@ -94,12 +99,19 @@ namespace Engine
 
 		// Metadata
 		const TreeMap<int_t, TreeSet<String>>& func_metadata_map() const;
-		const TreeMap<int_t, TreeSet<String>>& var_metadata_map() const;
-		const TreeMap<int_t, ClassMetadata>& class_metadata_map() const;
+		const TreeMap<String, TreeSet<String>>& var_metadata_map() const;
+		const TreeMap<String, ClassMetadata>& class_metadata_map() const;
 
 		const TreeSet<String>& metadata_for_func(const ScriptFunction& func) const;
+		const TreeSet<String>& metadata_for_func(const char* decl) const;
+		const TreeSet<String>& metadata_for_func(int_t func_id) const;
+		
 		const TreeSet<String>& metadata_for_var(uint_t var_index) const;
+		const TreeSet<String>& metadata_for_var(const String& name) const;
+		
 		const ClassMetadata& metadata_for_class(const ScriptTypeInfo& info) const;
+		const ClassMetadata& metadata_for_class(const String& name) const;
+		const ClassMetadata& metadata_for_class(int_t type_id) const;
 
 		// Functions
 		uint_t functions_count() const;

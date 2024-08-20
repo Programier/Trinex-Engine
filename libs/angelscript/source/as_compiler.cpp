@@ -180,7 +180,7 @@ int asCCompiler::CompileDefaultCopyConstructor(asCBuilder* in_builder, asCScript
 				ctx.bc.Instr(asBC_RDSPtr);
 			}
 
-			if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE)
+			if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE_INHERITANCE)
 			{
 				ctx.bc.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.copyconstruct, 2 * AS_PTR_SIZE);
 			}
@@ -202,7 +202,7 @@ int asCCompiler::CompileDefaultCopyConstructor(asCBuilder* in_builder, asCScript
 				asCExprContext ctx(engine);
 				CompileVariableAccess("this", "", &ctx, 0);
 
-				auto call_bc = (outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE) ? asBC_CALLSYS : asBC_CALL;
+				auto call_bc = (outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE_INHERITANCE) ? asBC_CALLSYS : asBC_CALL;
 
 				ctx.bc.Call(call_bc, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
 
@@ -292,7 +292,7 @@ int asCCompiler::CompileDefaultConstructor(asCBuilder *in_builder, asCScriptCode
 		byteCode.InstrSHORT(asBC_PSF, 0);
 		byteCode.Instr(asBC_RDSPtr);
 
-		if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE)
+		if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE_INHERITANCE)
 		{
 			byteCode.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
 		}
@@ -835,7 +835,7 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 						tmpBC.InstrSHORT(asBC_PSF, 0);
 						tmpBC.Instr(asBC_RDSPtr);
 
-						if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE)
+						if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE_INHERITANCE)
 						{
 							tmpBC.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
 						}

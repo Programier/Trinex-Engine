@@ -29,20 +29,21 @@ namespace Engine
 		UnsignedInt64	= 8,
 		Bool			= 9,
 		Float			= 10,
-		Vec2			= 11,
-		Vec3			= 12,
-		Vec4			= 13,
-		Enum			= 14,
-		Color3			= 15,
-		Color4			= 16,
+		Double			= 11,
+		Vec2			= 12,
+		Vec3			= 13,
+		Vec4			= 14,
+		Enum			= 15,
+		Color3			= 16,
+		Color4			= 17,
 		LastPrimitive	= Color4,
-		Name			= 17,
-		String			= 18,
-		Path			= 19,
-		Object			= 20,
-		ObjectReference = 21,
-		Struct			= 22,
-		Array			= 23,
+		Name			= 18,
+		String			= 19,
+		Path			= 20,
+		Object			= 21,
+		ObjectReference = 22,
+		Struct			= 23,
+		Array			= 24,
 	};
 
 	struct ENGINE_EXPORT ArrayPropertyValue final {
@@ -92,6 +93,7 @@ namespace Engine
 		declare_prop_constructor(uint64_t);
 		declare_prop_constructor(bool);
 		declare_prop_constructor(float);
+		declare_prop_constructor(double);
 		declare_prop_constructor(Vector2D);
 		declare_prop_constructor(Vector3D);
 		declare_prop_constructor(Vector4D);
@@ -139,7 +141,8 @@ namespace Engine
 			IsPrivate		  = BIT(0),
 			IsConst			  = BIT(1),
 			IsNativeConst	  = BIT(2),
-			IsNotSerializable = BIT(3)
+			IsNotSerializable = BIT(3),
+			IsHidden		  = BIT(4),
 		};
 
 	protected:
@@ -173,6 +176,7 @@ namespace Engine
 		bool is_const() const;
 		bool is_private() const;
 		bool is_serializable() const;
+		bool is_hidden() const;
 		virtual bool archive_process(void* object, Archive& ar);
 
 		virtual ~Property();
@@ -246,6 +250,7 @@ namespace Engine
 				(*reinterpret_cast<DataType*>(Super::prop_address(object))) =
 						static_cast<DataType>(property_value.cast<CastType>());
 				Property::on_prop_changed(object);
+				return true;
 			}
 			return false;
 		}
@@ -430,6 +435,18 @@ namespace Engine
 
 		FloatProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
 					  const Name& group = Name::none, BitMask flags = 0)
+			: Super(name, description, prop, group, flags)
+		{}
+	};
+
+	template<typename InstanceType>
+	class DoubleProperty : public PrimitiveProperty<InstanceType, double, double, PropertyType::Double>
+	{
+	public:
+		using Super = PrimitiveProperty<InstanceType, float, float, PropertyType::Double>;
+
+		DoubleProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
+					   const Name& group = Name::none, BitMask flags = 0)
 			: Super(name, description, prop, group, flags)
 		{}
 	};

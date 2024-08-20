@@ -5,7 +5,6 @@
 #include <Core/flags.hpp>
 #include <Core/name.hpp>
 #include <Core/object.hpp>
-#include <Core/string_functions.hpp>
 #include <Core/struct.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 

@@ -66,6 +66,13 @@ namespace Engine
 		ImGui::TableSetColumnIndex(0);
 		ImGui::Text("%s", prop->name().c_str());
 		ImGui::TableSetColumnIndex(1);
+
+		auto& desc = prop->description();
+
+		if (!desc.empty() && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+		{
+			ImGui::SetTooltip("%s", desc.c_str());
+		}
 	}
 
 	static bool render_property(ImGuiObjectProperties*, void* object, Property* prop, bool can_edit);
@@ -192,6 +199,13 @@ namespace Engine
 		return render_prop_internal<float>(
 				window, object, prop, can_edit,
 				edit_f(float) { return ImGui::InputFloat("##Value", &value, 0.0f, 0.0f, "%.2f", input_text_flags()); });
+	}
+
+	static bool render_double_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
+	{
+		return render_prop_internal<double>(
+				window, object, prop, can_edit,
+				edit_f(double) { return ImGui::InputDouble("##Value", &value, 0.0f, 0.0f, "%.2f", input_text_flags()); });
 	}
 
 	static bool render_vec2_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
@@ -536,6 +550,9 @@ namespace Engine
 			case PropertyType::Float:
 				is_changed = render_float_prop(window, object, prop, can_edit);
 				break;
+			case PropertyType::Double:
+				is_changed = render_double_prop(window, object, prop, can_edit);
+				break;
 			case PropertyType::Vec2:
 				is_changed = render_vec2_prop(window, object, prop, can_edit);
 				break;
@@ -619,9 +636,12 @@ namespace Engine
 			{
 				for (auto& prop : props)
 				{
-					window->setup_next_row();
-					if (render_property(window, object, prop, editable))
-						has_changed_props = true;
+					if (!prop->is_hidden())
+					{
+						window->setup_next_row();
+						if (render_property(window, object, prop, editable))
+							has_changed_props = true;
+					}
 				}
 			}
 

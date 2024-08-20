@@ -400,9 +400,78 @@ const char *asCObjectType::GetPropertyDeclaration(asUINT index, bool includeName
 	return tempString->AddressOf();
 }
 
+const char *asCObjectType::GetPropertyName(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return nullptr;
+	
+	asCObjectProperty *prop = properties[index];
+	return prop->name.AddressOf();
+}
+
+int asCObjectType::GetPropertyTypeId(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return 0;
+	
+	asCObjectProperty *prop = properties[index];
+	return engine->GetTypeIdFromDataType(prop->type);
+}
+
+int asCObjectType::GetPropertyOffset(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return 0;
+	
+	asCObjectProperty *prop = properties[index];
+	return prop->byteOffset;
+}
+
+bool asCObjectType::IsPropertyPrivate(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return false;
+	
+	asCObjectProperty *prop = properties[index];
+	return prop->isPrivate;
+}
+
+bool asCObjectType::IsPropertyProtected(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return false;
+	
+	asCObjectProperty *prop = properties[index];
+	return prop->isProtected;
+}
+
+bool asCObjectType::IsPropertyNative(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return false;
+	
+	asCObjectProperty *prop = properties[index];
+	return prop->isNative;
+}
+
+bool asCObjectType::IsPropertyReference(asUINT index) const
+{
+	if( index >= properties.GetLength() )
+		return false;
+	
+	asCObjectProperty *prop = properties[index];
+	return prop->type.IsReference();
+}
+
+
 asITypeInfo *asCObjectType::GetBaseType() const
 {
 	return derivedFrom; 
+}
+
+asITypeInfo *asCObjectType::GetNativeBaseType() const
+{
+	return nativeTypeInfo;
 }
 
 asUINT asCObjectType::GetBehaviourCount() const

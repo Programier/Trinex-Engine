@@ -453,6 +453,62 @@ namespace Engine
 		return sizeof_primitive_type(type_id) != 0;
 	}
 
+	bool ScriptEngine::is_bool(int_t type_id)
+	{
+		return type_id == asTYPEID_BOOL;
+	}
+
+	bool ScriptEngine::is_int8(int_t type_id)
+	{
+		return type_id == asTYPEID_INT8;
+	}
+
+	bool ScriptEngine::is_int16(int_t type_id)
+	{
+		return type_id == asTYPEID_INT16;
+	}
+
+	bool ScriptEngine::is_int32(int_t type_id)
+	{
+		return type_id == asTYPEID_INT32;
+	}
+
+	bool ScriptEngine::is_int64(int_t type_id)
+	{
+		return type_id == asTYPEID_INT64;
+	}
+
+	bool ScriptEngine::is_uint8(int_t type_id)
+	{
+		return type_id == asTYPEID_UINT8;
+	}
+
+	bool ScriptEngine::is_uint16(int_t type_id)
+	{
+		return type_id == asTYPEID_UINT16;
+	}
+
+	bool ScriptEngine::is_uint32(int_t type_id)
+	{
+		return type_id == asTYPEID_UINT32;
+	}
+
+	bool ScriptEngine::is_uint64(int_t type_id)
+	{
+		return type_id == asTYPEID_UINT64;
+	}
+
+	bool ScriptEngine::is_float(int_t type_id)
+	{
+		return type_id == asTYPEID_FLOAT;
+	}
+
+	bool ScriptEngine::is_double(int_t type_id)
+	{
+		return type_id == asTYPEID_DOUBLE;
+	}
+
+
 	bool ScriptEngine::is_object_type(int_t type_id, bool handle_is_object)
 	{
 		return (type_id & asTYPEID_MASK_OBJECT) && (handle_is_object ? true : !is_handle_type(type_id));

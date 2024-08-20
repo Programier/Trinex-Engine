@@ -50,6 +50,7 @@ namespace Engine
 	declare_prop_constructor(uint64_t, UnsignedInt64);
 	declare_prop_constructor(bool, Bool);
 	declare_prop_constructor(float, Float);
+	declare_prop_constructor(double, Double);
 	declare_prop_constructor(Vector2D, Vec2);
 	declare_prop_constructor(Vector3D, Vec3);
 	declare_prop_constructor(Vector4D, Vec4);
@@ -253,6 +254,11 @@ namespace Engine
 	bool Property::is_serializable() const
 	{
 		return !m_flags(IsNativeConst) && !m_flags(IsNotSerializable);
+	}
+
+	bool Property::is_hidden() const
+	{
+		return m_flags(IsHidden);
 	}
 
 	static FORCE_INLINE List<Property*> collect_serializable_properties(Struct* self)

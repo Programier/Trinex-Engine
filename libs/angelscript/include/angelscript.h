@@ -259,7 +259,7 @@ enum asEObjTypeFlags : asQWORD
 	asOBJ_TYPEDEF                     = (1<<28),
 	asOBJ_ABSTRACT                    = (1<<29),
 	asOBJ_APP_ALIGN16                 = (1<<30),
-	asOBJ_APP_NATIVE                  = (asQWORD(1) << 33)
+	asOBJ_APP_NATIVE_INHERITANCE      = (asQWORD(1) << 33)
 };
 
 // Behaviours
@@ -1089,6 +1089,7 @@ public:
 	virtual const char      *GetName() const = 0;
 	virtual	const char      *GetNamespace() const = 0;
 	virtual asITypeInfo     *GetBaseType() const = 0;
+	virtual asITypeInfo     *GetNativeBaseType() const = 0;
 	virtual bool             DerivesFrom(const asITypeInfo *objType) const = 0;
 	virtual asQWORD          GetFlags() const = 0;
 	virtual asUINT           GetSize() const = 0;
@@ -1117,6 +1118,13 @@ public:
 	virtual asUINT      GetPropertyCount() const = 0;
 	virtual int         GetProperty(asUINT index, const char **name, int *typeId = 0, bool *isPrivate = 0, bool *isProtected = 0, int *offset = 0, bool *isReference = 0, asDWORD *accessMask = 0, int *compositeOffset = 0, bool *isCompositeIndirect = 0) const = 0;
 	virtual const char *GetPropertyDeclaration(asUINT index, bool includeNamespace = false) const = 0;
+	virtual const char *GetPropertyName(asUINT index) const = 0;
+	virtual int         GetPropertyTypeId(asUINT index) const = 0;
+	virtual int			GetPropertyOffset(asUINT index) const = 0;
+	virtual bool        IsPropertyPrivate(asUINT index) const = 0;
+	virtual bool        IsPropertyProtected(asUINT index) const = 0;
+	virtual bool        IsPropertyNative(asUINT index) const = 0;
+	virtual bool        IsPropertyReference(asUINT index) const= 0;
 
 	// Behaviours
 	virtual asUINT             GetBehaviourCount() const = 0;

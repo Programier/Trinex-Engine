@@ -3230,7 +3230,7 @@ void asCBuilder::DetermineTypeRelations()
 			{
 				AddInterfaceFromMixinToClass(decl, node, mixin);
 			}
-			else if ((!(objType->flags & asOBJ_SCRIPT_OBJECT) && !(objType->flags & asOBJ_APP_NATIVE)) ||
+			else if ((!(objType->flags & asOBJ_SCRIPT_OBJECT) && !(objType->flags & asOBJ_APP_NATIVE_INHERITANCE)) ||
 				(objType->flags & asOBJ_NOINHERIT))
 			{
 				// Either the class is not a script class or interface
@@ -3352,7 +3352,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 		
 		if(base)
 		{
-			ot->nativeTypeInfo = (base->flags & asOBJ_APP_NATIVE) ? base : base->nativeTypeInfo;
+			ot->nativeTypeInfo = (base->flags & asOBJ_APP_NATIVE_INHERITANCE) ? base : base->nativeTypeInfo;
 		}
         
 		if( ot->nativeTypeInfo )
@@ -3426,7 +3426,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 			
 			ot->size = baseType->size;
 			
-			if(baseType->flags & asOBJ_APP_NATIVE)
+			if(baseType->flags & asOBJ_APP_NATIVE_INHERITANCE)
 			{
 				ot->size += sizeof(asCScriptObjectData);
 			}

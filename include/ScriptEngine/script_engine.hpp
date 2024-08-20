@@ -122,6 +122,17 @@ namespace Engine
 
 		// Type identification
 		static bool is_primitive_type(int_t type_id);
+		static bool is_bool(int_t type_id);
+		static bool is_int8(int_t type_id);
+		static bool is_int16(int_t type_id);
+		static bool is_int32(int_t type_id);
+		static bool is_int64(int_t type_id);
+		static bool is_uint8(int_t type_id);
+		static bool is_uint16(int_t type_id);
+		static bool is_uint32(int_t type_id);
+		static bool is_uint64(int_t type_id);
+		static bool is_float(int_t type_id);
+		static bool is_double(int_t type_id);
 		static bool is_object_type(int_t type_id, bool handle_is_object = false);
 		static bool is_handle_type(int_t type_id);
 

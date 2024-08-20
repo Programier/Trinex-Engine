@@ -1730,10 +1730,10 @@ int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD 
 	if( flags & asOBJ_REF )
 	{
 		// Can optionally have the asOBJ_GC, asOBJ_NOHANDLE, asOBJ_SCOPED, or asOBJ_TEMPLATE flag set, but nothing else
-		if( flags & ~(asOBJ_REF | asOBJ_GC | asOBJ_NOHANDLE | asOBJ_SCOPED | asOBJ_TEMPLATE | asOBJ_NOCOUNT | asOBJ_IMPLICIT_HANDLE | asOBJ_APP_NATIVE) )
+		if( flags & ~(asOBJ_REF | asOBJ_GC | asOBJ_NOHANDLE | asOBJ_SCOPED | asOBJ_TEMPLATE | asOBJ_NOCOUNT | asOBJ_IMPLICIT_HANDLE | asOBJ_APP_NATIVE_INHERITANCE) )
 			return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
 		
-		if( flags & asOBJ_APP_NATIVE )
+		if( flags & asOBJ_APP_NATIVE_INHERITANCE )
 		{
 			flags |= asOBJ_IMPLICIT_HANDLE;
 		}
@@ -1811,9 +1811,9 @@ int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD 
 
 	// Don't allow anything else than the defined flags
 #ifndef WIP_16BYTE_ALIGN
-	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_NATIVE)) )
+	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_NATIVE_INHERITANCE)) )
 #else
-	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_ALIGN16 | asOBJ_APP_NATIVE)) )
+	if( flags - (flags & (asOBJ_MASK_VALID_FLAGS | asOBJ_APP_ALIGN16 | asOBJ_APP_NATIVE_INHERITANCE)) )
 #endif
 		return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
 
@@ -2148,7 +2148,7 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 		else
 		{
 			// Verify that it is a value type
-			if( !(func.objectType->flags & asOBJ_VALUE) && !(objectType->flags & asOBJ_APP_NATIVE))
+			if( !(func.objectType->flags & asOBJ_VALUE) && !(objectType->flags & asOBJ_APP_NATIVE_INHERITANCE))
 			{
 				WriteMessage("", 0, 0, asMSGTYPE_ERROR, TXT_ILLEGAL_BEHAVIOUR_FOR_TYPE);
 				return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
@@ -3010,7 +3010,7 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 		func->AddRefInternal();
 	}
 	
-	if(objectType->flags & asOBJ_APP_NATIVE)
+	if(objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
 	{
 		func->ComputeSignatureId();
 		

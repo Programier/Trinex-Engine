@@ -102,6 +102,7 @@ class asCObjectType : public asCTypeInfo
 {
 public:
 	asITypeInfo       *GetBaseType() const;
+	asITypeInfo       *GetNativeBaseType() const;
 	bool               DerivesFrom(const asITypeInfo *objType) const;
 	int                GetSubTypeId(asUINT subtypeIndex = 0) const;
 	asITypeInfo       *GetSubType(asUINT subtypeIndex = 0) const;
@@ -119,6 +120,13 @@ public:
 	asUINT             GetPropertyCount() const;
 	int                GetProperty(asUINT index, const char **name, int *typeId, bool *isPrivate, bool *isProtected, int *offset, bool *isReference, asDWORD *accessMask, int *compositeOffset, bool *isCompositeIndirect) const;
 	const char        *GetPropertyDeclaration(asUINT index, bool includeNamespace = false) const;
+	const char        *GetPropertyName(asUINT index) const;
+	int                GetPropertyTypeId(asUINT index) const;
+	int                GetPropertyOffset(asUINT index) const;
+	bool               IsPropertyPrivate(asUINT index) const;
+	bool               IsPropertyProtected(asUINT index) const;
+	bool               IsPropertyNative(asUINT index) const;
+	bool               IsPropertyReference(asUINT index) const;
 	asUINT             GetBehaviourCount() const;
 	asIScriptFunction *GetBehaviourByIndex(asUINT index, asEBehaviours *outBehaviour) const;
 	asUINT             GetChildFuncdefCount() const;
