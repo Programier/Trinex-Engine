@@ -68,6 +68,7 @@ struct asSTypeBehaviour
 		gcReleaseAllReferences = 0;
 		templateCallback = 0;
 		getWeakRefFlag = 0;
+		getTypeId = 0;
 	}
 
 	int factory;
@@ -90,6 +91,7 @@ struct asSTypeBehaviour
 
 	// Weakref behaviours
 	int getWeakRefFlag;
+	int getTypeId;
 
 	asCArray<int> factories;
 	asCArray<int> constructors;

@@ -15,7 +15,10 @@ namespace Engine
 
 		if (native)
 		{
-			native->create_placement_object(object, name, owner, self);
+			if (Object* res = native->create_placement_object(object, name, owner, self))
+			{
+				res->flags(Class::IsScriptable, true);
+			}
 		}
 	}
 
@@ -24,24 +27,19 @@ namespace Engine
 		native_object_constructor(object, "", nullptr);
 	}
 
-	static ScriptClassRegistrar registrar_of(Class* self, bool exiting)
+	static asITypeInfo* get_object_type_info(Object* object)
 	{
-		if (exiting)
-		{
-			return ScriptClassRegistrar::existing_class(self->name().to_string());
-		}
-
-		ScriptClassRegistrar::RefInfo info;
-		info.no_count		 = true;
-		info.implicit_handle = true;
-		info.extra_flags	 = asOBJ_APP_NATIVE_INHERITANCE;
-
-		return ScriptClassRegistrar::reference_class(self->name().to_string(), info, self->sizeof_class());
+		return object->class_instance()->script_type_info.info();
 	}
 
 	void Class::bind_class_to_script_engine()
 	{
-		ScriptClassRegistrar registrar = registrar_of(this, true);
+		auto registrar = ScriptClassRegistrar::existing_class(name().to_string());
+
+		if (auto base = parent())
+		{
+			ScriptEngine::engine()->RegisterObjectBaseType(name().c_str(), base->name().c_str());
+		}
 
 		if (flags(IsConstructible))
 		{
@@ -52,34 +50,28 @@ namespace Engine
 			registrar.behave(ScriptClassBehave::Factory, factory.c_str(), m_script_factory, ScriptCallConv::CDecl);
 		}
 
-		registrar.type_info().info()->SetNativeClassUserData(this);
+		registrar.behave(ScriptClassBehave::GetTypeInfo, "int& f()", get_object_type_info);
 
-		Class* current = this;
-		List<Class*> stack;
-
-		while (current)
+		if (script_registration_callback)
 		{
-			stack.push_back(current);
-			current = current->parent();
-		}
-
-		while (!stack.empty())
-		{
-			current = stack.back();
-			if (current->script_registration_callback)
-			{
-				current->script_registration_callback(&registrar, this);
-			}
-
-			stack.pop_back();
+			script_registration_callback(&registrar, this);
 		}
 	}
 
 	void Class::register_scriptable_class()
 	{
-		ScriptClassRegistrar registrar = registrar_of(this, false);
-		script_type_info			   = registrar.type_info();
-		ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); });
+		auto registrar		= ScriptClassRegistrar::reference_class(this);
+		Class* parent_class = parent();
+
+		if (parent_class)
+		{
+			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, name().to_string(),
+													  {parent_class->name().to_string()});
+		}
+		else
+		{
+			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, name().to_string());
+		}
 	}
 
 

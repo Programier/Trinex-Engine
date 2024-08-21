@@ -453,6 +453,7 @@ namespace Engine
 		SetGCFlag		 = 11,
 		EnumRefs		 = 12,
 		ReleaseRefs		 = 13,
+		GetTypeInfo		 = 14,
 	};
 
 	enum class ScriptTypeModifiers : EnumerateType

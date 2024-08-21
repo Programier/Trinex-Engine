@@ -814,6 +814,10 @@ void asCObjectType::ReleaseAllFunctions()
 	if ( beh.getWeakRefFlag )
 		engine->scriptFunctions[beh.getWeakRefFlag]->ReleaseInternal();
 	beh.getWeakRefFlag = 0;
+	
+	if (beh.getTypeId)
+		engine->scriptFunctions[beh.getTypeId]->ReleaseInternal();
+	beh.getTypeId = 0;
 }
 
 END_AS_NAMESPACE

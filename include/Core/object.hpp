@@ -40,6 +40,7 @@ namespace Engine
 			IsUnreachable  = BIT(4),
 			IsEditable	   = BIT(5),
 			IsDirty		   = BIT(6),
+			IsScriptable   = BIT(7),
 		};
 
 	private:

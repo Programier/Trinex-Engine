@@ -1719,6 +1719,122 @@ int asCScriptEngine::RegisterInterfaceMethod(const char *intf, const char *decla
 	return func->id;
 }
 
+int asCScriptEngine::RegisterObjectBaseType(const char* obj, const char* base)
+{
+	if (obj == nullptr || base == nullptr)
+		return ConfigError(asINVALID_ARG, "RegisterObjectBehaviour", obj, base);
+
+	int r = 0;
+	asCDataType obj_dt;
+	asCDataType base_dt;
+	asCBuilder bld(this, 0);
+
+	r = bld.ParseDataType(obj, &obj_dt, defaultNamespace);
+	if (r < 0)
+		return ConfigError(r, "RegisterObjectProperty", obj, base);
+
+	r = bld.ParseDataType(base, &base_dt, defaultNamespace);
+	if (r < 0)
+		return ConfigError(r, "RegisterObjectProperty", obj, base);
+
+	asCObjectType* ot		= CastToObjectType(obj_dt.GetTypeInfo());
+	asCObjectType* baseType = CastToObjectType(base_dt.GetTypeInfo());
+
+	if (ot == nullptr || baseType == nullptr)
+		return ConfigError(asINVALID_ARG, "RegisterObjectBehaviour", obj, base);
+
+	if ((ot->flags & asOBJ_APP_NATIVE_INHERITANCE) == 0 || (baseType->flags & asOBJ_APP_NATIVE_INHERITANCE) == 0)
+	{
+		return ConfigError(asINVALID_ARG, "RegisterObjectBehaviour", obj, base);
+	}
+
+	if (ot->derivedFrom || ot->methods.GetLength() > 0 || ot->properties.GetLength() > 0)
+	{
+		return ConfigError(asINVALID_ARG, "RegisterObjectBehaviour", obj, base);
+	}
+
+	ot->derivedFrom	   = baseType;
+	ot->nativeTypeInfo = baseType;
+	baseType->AddRefInternal();
+
+	// Copy properties from base class to derived class
+
+	for (asUINT p = 0; p < baseType->properties.GetLength(); p++)
+	{
+		ot->InheritProperty(baseType->properties[p]);
+	}
+
+	// Copy methods from base class to derived class
+	for (asUINT m = 0; m < baseType->methods.GetLength(); m++)
+	{
+		// If the derived class implements the same method, then don't add the base class' method
+		asCScriptFunction* baseFunc	   = scriptFunctions[baseType->methods[m]];
+		asCScriptFunction* derivedFunc = 0;
+		bool found					   = false;
+		for (asUINT d = 0; d < ot->methods.GetLength(); d++)
+		{
+			derivedFunc = scriptFunctions[ot->methods[d]];
+			if (baseFunc->name == "opConv" || baseFunc->name == "opImplConv" || baseFunc->name == "opCast" ||
+				baseFunc->name == "opImplCast")
+			{
+				// For the opConv and opCast methods, the return type can differ if they are different methods
+				if (derivedFunc->name == baseFunc->name && derivedFunc->IsSignatureExceptNameEqual(baseFunc))
+				{
+					if (baseFunc->IsFinal())
+					{
+						asCString msg;
+						msg.Format(TXT_METHOD_CANNOT_OVERRIDE_s, baseFunc->GetDeclaration());
+						ConfigError(asERROR, baseFunc->GetName(), msg.AddressOf(), nullptr);
+					}
+
+					// Move the function from the methods array to the virtualFunctionTable
+					ot->methods.RemoveIndex(d);
+					ot->virtualFunctionTable.PushLast(derivedFunc);
+					found = true;
+					break;
+				}
+			}
+			else
+			{
+				if (derivedFunc->name == baseFunc->name && derivedFunc->IsSignatureExceptNameAndReturnTypeEqual(baseFunc))
+				{
+					if (baseFunc->returnType != derivedFunc->returnType)
+					{
+						asCString msg;
+						msg.Format(TXT_DERIVED_METHOD_MUST_HAVE_SAME_RETTYPE_s, baseFunc->GetDeclaration());
+						ConfigError(asERROR, baseFunc->GetName(), msg.AddressOf(), nullptr);
+					}
+
+					if (baseFunc->IsFinal())
+					{
+						asCString msg;
+						msg.Format(TXT_METHOD_CANNOT_OVERRIDE_s, baseFunc->GetDeclaration());
+						ConfigError(asERROR, baseFunc->GetName(), msg.AddressOf(), nullptr);
+					}
+
+					// Move the function from the methods array to the virtualFunctionTable
+					ot->methods.RemoveIndex(d);
+					ot->virtualFunctionTable.PushLast(derivedFunc);
+					found = true;
+					break;
+				}
+			}
+		}
+
+		if (!found)
+		{
+			// Push the base class function on the virtual function table
+			ot->virtualFunctionTable.PushLast(baseType->virtualFunctionTable[m]);
+			baseType->virtualFunctionTable[m]->AddRefInternal();
+		}
+
+		ot->methods.PushLast(baseType->methods[m]);
+		scriptFunctions[baseType->methods[m]]->AddRefInternal();
+	}
+
+	return 0;
+}
+
 int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD flags)
 {
 	int r;
@@ -2532,6 +2648,19 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 
 		func.id = beh->getWeakRefFlag = AddBehaviourFunction(func, internal);
 	}
+	else if (behaviour == asBEHAVE_GET_TYPE_INFO)
+	{
+		if (!(func.objectType->flags & asOBJ_APP_NATIVE_INHERITANCE))
+			return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
+
+		if (func.parameterTypes.GetLength() != 0)
+			return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
+
+		if (!(func.returnType.IsReference() && func.returnType.IsPrimitive()))
+			return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
+
+		func.id = beh->getTypeId = AddBehaviourFunction(func, internal);
+	}
 	else
 	{
 		asASSERT(false);
@@ -2837,12 +2966,12 @@ int asCScriptEngine::RegisterObjectMethod(const char *obj, const char *declarati
 	return RegisterMethodToObjectType(CastToObjectType(dt.GetTypeInfo()), declaration, funcPointer, callConv, auxiliary, compositeOffset, isCompositeIndirect);
 }
 
-int asCScriptEngine::CreateVirtualFunction(asCScriptFunction *func, int idx)
+asCScriptFunction* asCScriptEngine::CreateVirtualFunction(asCScriptFunction *func, int idx)
 {
 	asCScriptFunction *vf = asNEW(asCScriptFunction)(this, nullptr, asFUNC_VIRTUAL);
 	
     if( vf == 0 )
-		return asOUT_OF_MEMORY;
+		return nullptr;
 	
 	vf->name             = func->name;
 	vf->nameSpace        = func->nameSpace;
@@ -2862,7 +2991,7 @@ int asCScriptEngine::CreateVirtualFunction(asCScriptFunction *func, int idx)
 	// It is not necessary to copy the default args, as they have no meaning in the virtual function
 	AddScriptFunction(vf);
 	
-	return vf->id;
+	return vf;
 }
 
 // internal
@@ -2950,7 +3079,9 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 		else
 			return ConfigError(asINVALID_DECLARATION, "RegisterObjectMethod", objectType->name.AddressOf(), declaration);
 	}
-	
+
+	asCScriptFunction* VirtualMethod = nullptr;
+
 	// Check against duplicate methods
 	if( func->name == "opConv" || func->name == "opImplConv" || func->name == "opCast" || func->name == "opImplCast" )
 	{
@@ -2975,15 +3106,42 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 			if( f->name == func->name &&
 				f->IsSignatureExceptNameAndReturnTypeEqual(func) )
 			{
-				func->funcType = asFUNC_DUMMY;
-				asDELETE(func,asCScriptFunction);
-				return ConfigError(asALREADY_REGISTERED, "RegisterObjectMethod", objectType->name.AddressOf(), declaration);
+				if (objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
+				{
+					VirtualMethod = f;
+
+					auto vfTableIdx = f->vfTableIdx;
+					f				= objectType->virtualFunctionTable[vfTableIdx];
+
+					if (f->objectType == objectType)
+					{
+						func->funcType = asFUNC_DUMMY;
+						asDELETE(func, asCScriptFunction);
+						return ConfigError(asALREADY_REGISTERED, "RegisterObjectMethod", objectType->name.AddressOf(),
+										   declaration);
+					}
+
+					// Overload function
+					objectType->virtualFunctionTable[vfTableIdx]->ReleaseInternal();
+					objectType->virtualFunctionTable[vfTableIdx] = func;
+				}
+				else
+				{
+					func->funcType = asFUNC_DUMMY;
+					asDELETE(func, asCScriptFunction);
+					return ConfigError(asALREADY_REGISTERED, "RegisterObjectMethod", objectType->name.AddressOf(), declaration);
+				}
 			}
 		}
 	}
 
 	func->id = GetNextScriptFunctionId();
-	func->objectType->methods.PushLast(func->id);
+
+	if (!VirtualMethod)
+	{
+		func->objectType->methods.PushLast(func->id);
+	}
+
 	func->accessMask = defaultAccessMask;
 	AddScriptFunction(func);
 
@@ -3009,22 +3167,23 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 		func->objectType->beh.copy = func->id;
 		func->AddRefInternal();
 	}
-	
-	if(objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
+
+	if (objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
 	{
 		func->ComputeSignatureId();
-		
-        objectType->methods.PopLast();
-        
-        auto virtual_func = CreateVirtualFunction(func, objectType->virtualFunctionTable.GetLength());
-        objectType->virtualFunctionTable.PushLast(func);
-        
-        objectType->methods.PushLast(virtual_func);
-        return virtual_func;
+
+		if (!VirtualMethod)
+		{
+			objectType->methods.PopLast();
+			VirtualMethod = CreateVirtualFunction(func, objectType->virtualFunctionTable.GetLength());
+			asASSERT(VirtualMethod);
+			objectType->virtualFunctionTable.PushLast(func);
+			objectType->methods.PushLast(VirtualMethod->id);
+		}
 	}
-	
+
 	// Return the function id as success
-	return func->id;
+	return VirtualMethod ? VirtualMethod->id : func->id;
 }
 
 // interface
@@ -3295,6 +3454,12 @@ void asCScriptEngine::PrepareEngine()
 					infoMsg = TXT_NON_POD_REQUIRE_CONSTR_DESTR_BEHAVIOUR;
 					missingBehaviour = true;
 				}
+			}
+
+			if (type->flags & asOBJ_APP_NATIVE_INHERITANCE)
+			{
+				if (type->beh.getTypeId == 0)
+					missingBehaviour = true;
 			}
 
 			if( missingBehaviour )
@@ -5442,7 +5607,7 @@ int asCScriptEngine::CallScriptObjectMethod(void *obj, int funcId)
 void *asCScriptEngine::CreateUninitializedScriptObject(const asITypeInfo *type)
 {
 	// This function only works for script classes. Registered types cannot be created this way.
-	if( type == 0 || !(type->GetFlags() & asOBJ_SCRIPT_OBJECT) )
+	if( type == 0 || (!(type->GetFlags() & asOBJ_SCRIPT_OBJECT) && !(type->GetFlags() & asOBJ_APP_NATIVE_INHERITANCE)) )
 		return 0;
 
 	asCObjectType *objType = CastToObjectType(const_cast<asCTypeInfo*>(reinterpret_cast<const asCTypeInfo*>(type)));

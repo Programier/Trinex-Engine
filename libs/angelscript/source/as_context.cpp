@@ -2127,7 +2127,16 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 		return;
 	}
 
-	asCObjectType *objType = obj->objType();
+	asCObjectType *objType = nullptr;
+   
+	if(func->objectType && func->objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
+	{
+		objType = reinterpret_cast<asCObjectType*>(m_engine->CallObjectMethodRetPtr(obj, func->objectType->beh.getTypeId));
+	}
+	else
+	{
+		objType = obj->objType();
+	}
 
 	// Search the object type for a function that matches the interface function
 	asCScriptFunction *realFunc = 0;
@@ -2180,7 +2189,7 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 	// Then call the true script function
 	if(realFunc->GetFuncType() == asFUNC_SYSTEM)
 	{
-		CallSystemFunction(realFunc->GetId(), this);
+		m_regs.stackPointer += CallSystemFunction(realFunc->GetId(), this);
 	}
 	else
 	{

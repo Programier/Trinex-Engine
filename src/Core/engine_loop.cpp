@@ -112,6 +112,7 @@ namespace Engine
 		Project::initialize();
 
 		ReflectionInitializeController().execute();
+		ScriptBindingsInitializeController().execute();
 		ConfigManager::initialize();
 
 		// Load libraries
@@ -140,10 +141,7 @@ namespace Engine
 			return -1;
 		}
 
-		ReflectionInitializeController().execute();
-		ScriptBindingsInitializeController().execute();
 		ScriptEngine::load_scripts();
-
 
 		auto entry_param = Arguments::find("e_entry");
 		if (entry_param && entry_param->type == Arguments::Type::String)

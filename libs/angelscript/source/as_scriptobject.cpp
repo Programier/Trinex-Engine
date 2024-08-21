@@ -366,6 +366,10 @@ asCScriptObject::asCScriptObject(asCObjectType *ot, bool doInitialize)
 		for( asUINT n = 0; n < objType->properties.GetLength(); n++ )
 		{
 			asCObjectProperty *prop = objType->properties[n];
+			
+			if(prop->isNative)
+				continue;
+			
 			if( prop->type.IsObject() && !prop->type.IsObjectHandle() )
 			{
 				if( prop->type.IsReference() || prop->type.GetTypeInfo()->flags & asOBJ_REF )

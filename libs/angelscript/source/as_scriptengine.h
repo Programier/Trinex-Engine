@@ -101,9 +101,10 @@ public:
 
 	// Type registration
 	virtual int            RegisterObjectType(const char *obj, int byteSize, asQWORD flags);
+	virtual int            RegisterObjectBaseType(const char* obj, const char* base);
 	virtual int            RegisterObjectProperty(const char *obj, const char *declaration, int byteOffset, int compositeOffset = 0, bool isCompositeIndirect = false);
 	virtual int            RegisterObjectMethod(const char *obj, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv, void *auxiliary = 0, int compositeOffset = 0, bool isCompositeIndirect = false);
-	virtual int            CreateVirtualFunction(asCScriptFunction *func, int idx); 
+	virtual asCScriptFunction* CreateVirtualFunction(asCScriptFunction *func, int idx); 
 	virtual int            RegisterObjectBehaviour(const char *obj, asEBehaviours behaviour, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv, void *auxiliary = 0, int compositeOffset = 0, bool isCompositeIndirect = false);
 	virtual int            RegisterInterface(const char *name);
 	virtual int            RegisterInterfaceMethod(const char *intf, const char *declaration);

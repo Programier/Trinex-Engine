@@ -288,6 +288,8 @@ enum asEBehaviours
 	 asBEHAVE_ENUMREFS,
 	 asBEHAVE_RELEASEREFS,
 	asBEHAVE_LAST_GC = asBEHAVE_RELEASEREFS,
+	
+	asBEHAVE_GET_TYPE_INFO,
 
 	asBEHAVE_MAX
 };
@@ -696,6 +698,7 @@ public:
 
 	// Object types
 	virtual int            RegisterObjectType(const char *obj, int byteSize, asQWORD flags) = 0;
+	virtual int            RegisterObjectBaseType(const char* obj, const char* base) = 0;
 	virtual int            RegisterObjectProperty(const char *obj, const char *declaration, int byteOffset, int compositeOffset = 0, bool isCompositeIndirect = false) = 0;
 	virtual int            RegisterObjectMethod(const char *obj, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv, void *auxiliary = 0, int compositeOffset = 0, bool isCompositeIndirect = false) = 0;
 	virtual int            RegisterObjectBehaviour(const char *obj, asEBehaviours behaviour, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv, void *auxiliary = 0, int compositeOffset = 0, bool isCompositeIndirect = false) = 0;
