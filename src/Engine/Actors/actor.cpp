@@ -110,7 +110,15 @@ namespace Engine
 		// Update each component in actor
 		for (auto& component : m_owned_components)
 		{
-			component->update(dt);
+			if (component->class_instance()->is_native())
+			{
+				component->update(dt);
+			}
+			else
+			{
+				ScriptObject obj(component);
+				obj.execute(ActorComponent::script_update_func(), dt);
+			}
 		}
 		return *this;
 	}
@@ -123,7 +131,15 @@ namespace Engine
 
 			for (auto& component : m_owned_components)
 			{
-				component->start_play();
+				if (component->class_instance()->is_native())
+				{
+					component->start_play();
+				}
+				else
+				{
+					ScriptObject obj(component);
+					obj.execute(ActorComponent::script_start_play_func());
+				}
 			}
 		}
 		return *this;
@@ -137,7 +153,15 @@ namespace Engine
 
 			for (auto& component : m_owned_components)
 			{
-				component->stop_play();
+				if (component->class_instance()->is_native())
+				{
+					component->stop_play();
+				}
+				else
+				{
+					ScriptObject obj(component);
+					obj.execute(ActorComponent::script_stop_play_func());
+				}
 			}
 		}
 
@@ -169,7 +193,17 @@ namespace Engine
 	{
 		for (Index index = 0, count = m_owned_components.size(); index < count; ++index)
 		{
-			m_owned_components[index]->spawned();
+			auto component = m_owned_components[index];
+
+			if (component->class_instance()->is_native())
+			{
+				component->spawned();
+			}
+			else
+			{
+				ScriptObject obj(component);
+				obj.execute(ActorComponent::script_spawned_func());
+			}
 		}
 		return *this;
 	}
@@ -203,7 +237,17 @@ namespace Engine
 		for (size_t index = 0, count = m_owned_components.size(); index < count; ++index)
 		{
 			ActorComponent* component = m_owned_components[index];
-			component->destroyed();
+
+			if (component->class_instance()->is_native())
+			{
+				component->destroyed();
+			}
+			else
+			{
+				ScriptObject obj(component);
+				obj.execute(ActorComponent::script_destroyed_func());
+			}
+
 			component->owner(nullptr);
 		}
 
@@ -248,17 +292,17 @@ namespace Engine
 
 	static void bind_to_scripts(ScriptClassRegistrar* registrar, Class*)
 	{
-		void (*update)(Actor*, float) = [](Actor* self, float dt) -> void { self->update(dt); };
-		void (*start_play)(Actor*)    = [](Actor* self) -> void { self->start_play(); };
-		void (*stop_play)(Actor*)     = [](Actor* self) -> void { self->stop_play(); };
-		void (*spawned)(Actor*)       = [](Actor* self) -> void { self->spawned(); };
-		void (*destroyed)(Actor*)     = [](Actor* self) -> void { self->destroyed(); };
+		script_actor_update     = registrar->method("void update(float dt)", &Actor::update);
+		script_actor_start_play = registrar->method("void start_play()", &Actor::start_play);
+		script_actor_stop_play  = registrar->method("void stop_play()", &Actor::stop_play);
+		script_actor_spawned    = registrar->method("void spawned()", &Actor::spawned);
+		script_actor_destroyed  = registrar->method("void destroyed()", &Actor::destroyed);
 
-		script_actor_update     = registrar->method("void update(float dt)", update);
-		script_actor_start_play = registrar->method("void start_play()", start_play);
-		script_actor_stop_play  = registrar->method("void stop_play()", stop_play);
-		script_actor_spawned    = registrar->method("void spawned()", spawned);
-		script_actor_destroyed  = registrar->method("void destroyed()", destroyed);
+		ActorComponent* (*create_component)(Actor*, Class*, const Name&) = [](Actor* actor, Class* self, const Name& name) {
+			return actor->create_component(self, name);
+		};
+
+		registrar->method("ActorComponent create_component(Class self, const Name& in name) final", create_component);
 	}
 
 	static void on_destroy()
@@ -282,6 +326,4 @@ namespace Engine
 		self->script_registration_callback = bind_to_scripts;
 		ScriptEngine::on_terminate.push(on_destroy);
 	}
-
-
 }// namespace Engine

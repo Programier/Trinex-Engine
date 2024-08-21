@@ -1386,6 +1386,8 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 			func->SetExplicit(true);
 		else if( source.TokenEquals(n->tokenPos, n->tokenLength, PROPERTY_TOKEN))
 			func->SetProperty(true);
+		else if( source.TokenEquals(n->tokenPos, n->tokenLength, FINAL_TOKEN))
+			func->SetFinal(true);
 		else
 			return asINVALID_DECLARATION;
 
@@ -3490,13 +3492,13 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 					}
 				}
 
-				if( !found )
+				if( !found && baseFunc->funcType == asFUNC_VIRTUAL)
 				{
 					// Push the base class function on the virtual function table
-					ot->virtualFunctionTable.PushLast(baseType->virtualFunctionTable[m]);
-					baseType->virtualFunctionTable[m]->AddRefInternal();
+					ot->virtualFunctionTable.PushLast(baseType->virtualFunctionTable[baseFunc->vfTableIdx]);
+					baseType->virtualFunctionTable[baseFunc->vfTableIdx]->AddRefInternal();
 
-					CheckForConflictsDueToDefaultArgs(decl->script, decl->node, baseType->virtualFunctionTable[m], ot);
+					CheckForConflictsDueToDefaultArgs(decl->script, decl->node, baseType->virtualFunctionTable[baseFunc->vfTableIdx], ot);
 				}
 
 				ot->methods.PushLast(baseType->methods[m]);

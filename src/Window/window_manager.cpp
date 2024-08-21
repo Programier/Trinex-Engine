@@ -68,7 +68,8 @@ namespace Engine
 					}
 				}
 			}
-
+			
+			window->on_destroy(window);
 			Platform::WindowManager::destroy_window(window);
 		}
 		return *this;

@@ -214,18 +214,26 @@ namespace Engine
 
 	static void on_init()
 	{
-		ScriptClassRegistrar::reference_class("Engine::Class");
+
+		ScriptClassRegistrar::RefInfo info;
+		info.implicit_handle = true;
+		info.no_count        = true;
+
+		ScriptClassRegistrar::reference_class("Engine::Class", info);
+
 		ScriptBindingsInitializeController().push([]() {
 			auto reg = ScriptClassRegistrar::existing_class("Engine::Class");
 			reg.method("Class@ parent() const", &Class::parent);
-			reg.method("const string& name() const", &Class::name);
-			reg.method("const string& namespace_name() const", &Class::namespace_name);
-			reg.method("const string& base_name() const", &Class::base_name);
-			reg.static_function("Class@ static_find(const string& in)", Class::static_find);
+			reg.method("const Name& name() const", &Class::name);
+			reg.method("const Name& namespace_name() const", &Class::namespace_name);
+			reg.method("const Name& base_name() const", &Class::base_name);
+			reg.static_function("Class@ static_find(const StringView& in)", Class::static_find);
 			reg.method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a));
 			reg.method("uint64 sizeof_class() const", &Class::sizeof_class);
-			reg.method("bool is_binded_to_script() const", &Class::is_scriptable);
+			reg.method("bool is_scriptable() const", &Class::is_scriptable);
 			reg.method("Object@ singletone_instance() const", &Class::singletone_instance);
+			reg.method("bool is_asset() const", &Class::is_asset);
+			reg.method("bool is_native() const", &Class::is_native);
 		});
 	}
 

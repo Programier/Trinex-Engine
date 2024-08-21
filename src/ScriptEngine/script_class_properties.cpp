@@ -9,6 +9,13 @@
 
 namespace Engine
 {
+	static int_t vec2_type_id   = 0;
+	static int_t vec3_type_id   = 0;
+	static int_t vec4_type_id   = 0;
+	static int_t name_type_id   = 0;
+	static int_t string_type_id = 0;
+
+
 	// virtual void* prop_address(void* object)									   = 0;
 	// virtual const void* prop_address(const void* object) const					   = 0;
 	// virtual PropertyValue property_value(const void* object) const				   = 0;
@@ -72,6 +79,75 @@ namespace Engine
 		{
 
 			if (!ScriptPrimitivePropBase::is_const() && object && property_value.type() == prop_type)
+			{
+				(*reinterpret_cast<T*>(prop_address(object))) = static_cast<T>(property_value.cast<T>());
+				Property::on_prop_changed(object);
+				return true;
+			}
+			return false;
+		}
+
+		PropertyType type() const override
+		{
+			return prop_type;
+		}
+	};
+
+
+	struct ScriptObjectPropBase : public Property {
+		uint_t m_offset;
+
+		ScriptObjectPropBase(uint_t offset, const Name& name, const String& description = "", const Name& group = Name::none,
+		                     BitMask flags = 0)
+		    : Property(name, description, group, flags)
+		{
+			m_offset = offset;
+		}
+
+		void* prop_address(void* object) override
+		{
+			if (object == nullptr)
+				return nullptr;
+			return *reinterpret_cast<void**>(reinterpret_cast<byte*>(object) + m_offset);
+		}
+
+		const void* prop_address(const void* object) const override
+		{
+			if (object == nullptr)
+				return nullptr;
+			return *reinterpret_cast<void* const*>(reinterpret_cast<const byte*>(object) + m_offset);
+		}
+	};
+
+	template<typename T, PropertyType prop_type>
+	struct ScriptObjectProp : public ScriptObjectPropBase {
+		uint_t m_offset = 0;
+
+		using ScriptObjectPropBase::ScriptObjectPropBase;
+
+		size_t size() const override
+		{
+			return sizeof(T);
+		}
+
+		size_t min_alignment() const override
+		{
+			return alignof(DataType);
+		}
+
+		PropertyValue property_value(const void* object) const override
+		{
+			if (object)
+			{
+				return PropertyValue(*reinterpret_cast<const T*>(prop_address(object)));
+			}
+			return {};
+		}
+
+		bool property_value(void* object, const PropertyValue& property_value) override
+		{
+
+			if (!ScriptObjectPropBase::is_const() && object && property_value.type() == prop_type)
 			{
 				(*reinterpret_cast<T*>(prop_address(object))) = static_cast<T>(property_value.cast<T>());
 				Property::on_prop_changed(object);
@@ -223,6 +299,71 @@ namespace Engine
 		self->add_property(prop);
 	}
 
+	static void initialize_classes_type_id()
+	{
+		if (string_type_id != 0)
+			return;
+
+		vec2_type_id   = ScriptEngine::type_id_by_decl("Engine::Vector2D");
+		vec3_type_id   = ScriptEngine::type_id_by_decl("Engine::Vector3D");
+		vec4_type_id   = ScriptEngine::type_id_by_decl("Engine::Vector4D");
+		name_type_id   = ScriptEngine::type_id_by_decl("Engine::Name");
+		string_type_id = ScriptEngine::type_id_by_decl("string");
+	}
+
+
+	static void register_object_property(Class* self, const TreeSet<String>& metadata, int_t type_id, uint_t prop_idx)
+	{
+		Property* prop = nullptr;
+
+		uint_t offset = self->script_type_info.property_offset(prop_idx);
+
+		if (offset == 0)
+			return;
+
+		initialize_classes_type_id();
+
+		String name   = String(self->script_type_info.property_name(prop_idx));
+		String desc   = "";
+		String group  = "";
+		BitMask flags = 0;
+
+		parse_metadata(metadata, name, desc, group, flags);
+
+		if (type_id == vec2_type_id)
+		{
+			prop = new ScriptObjectProp<Vector2D, PropertyType::Vec2>(offset, name, desc, group, flags);
+		}
+		else if (type_id == vec3_type_id)
+		{
+			if (metadata.contains("is_color"))
+				prop = new ScriptObjectProp<Vector3D, PropertyType::Color3>(offset, name, desc, group, flags);
+			else
+				prop = new ScriptObjectProp<Vector3D, PropertyType::Vec3>(offset, name, desc, group, flags);
+		}
+		else if (type_id == vec4_type_id)
+		{
+			if (metadata.contains("is_color"))
+				prop = new ScriptObjectProp<Vector3D, PropertyType::Color4>(offset, name, desc, group, flags);
+			else
+				prop = new ScriptObjectProp<Vector4D, PropertyType::Vec4>(offset, name, desc, group, flags);
+		}
+		else if (type_id == name_type_id)
+		{
+			prop = new ScriptObjectProp<Name, PropertyType::Name>(offset, name, desc, group, flags);
+		}
+		else if (type_id == string_type_id)
+		{
+			prop = new ScriptObjectProp<String, PropertyType::String>(offset, name, desc, group, flags);
+		}
+		else
+		{
+			auto type = ScriptEngine::type_info_by_id(type_id);
+		}
+
+		self->add_property(prop);
+	}
+
 	Script& Script::register_properties(Class* self)
 	{
 		auto& type      = self->script_type_info;
@@ -243,6 +384,12 @@ namespace Engine
 					if (ScriptEngine::is_primitive_type(prop_type_id))
 					{
 						register_primitive_property(self, metadata, prop_type_id, i);
+						continue;
+					}
+
+					if (ScriptEngine::is_object_type(prop_type_id, true))
+					{
+						register_object_property(self, metadata, prop_type_id, i);
 						continue;
 					}
 				}

@@ -108,6 +108,7 @@ namespace Engine
 		template<typename T, typename... Args>
 		static void constructor(T* memory, Args... args)
 		{
+			std::fill(reinterpret_cast<byte*>(memory), reinterpret_cast<byte*>(memory) + sizeof(T), 0);
 			new (memory) T(args...);
 		}
 

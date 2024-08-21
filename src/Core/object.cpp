@@ -54,18 +54,14 @@ namespace Engine
 
 	static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
 	{
-		registrar->method("const string& string_name() const", &Object::string_name);
+		registrar->method("const string& string_name() const final", &Object::string_name);
 		registrar->static_function("Package@ root_package()", &Object::root_package);
-		registrar->method("string as_string() const", &Object::as_string);
-		registrar->method("const Name& name() const", method_of<const Name&>(&Object::name));
+		registrar->method("string as_string() const final", &Object::as_string);
+		registrar->method("const Name& name() const final", method_of<const Name&>(&Object::name));
 		registrar->method("string opConv() const", &Object::as_string);
-		registrar->method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
-		                  ScriptCallConv::CDeclObjFirst);
-		registrar->method("Object@ postload()",
-		                  func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
-		                  ScriptCallConv::CDeclObjFirst);
-		registrar->method("Class@ class_instance() const",
-		                  func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
+		registrar->method("void preload()", &Object::preload);
+		registrar->method("void postload()", &Object::postload);
+		registrar->method("Class@ class_instance() const final", &Object::class_instance);
 	}
 
 

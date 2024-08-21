@@ -6,6 +6,7 @@
 namespace Engine
 {
 	class Actor;
+	class ScriptFunction;
 
 	class ENGINE_EXPORT ActorComponentProxy
 	{
@@ -31,7 +32,13 @@ namespace Engine
 		};
 
 		Flags<Flag, Atomic<BitMask>> component_flags;
-
+		
+		static const ScriptFunction& script_update_func();
+		static const ScriptFunction& script_start_play_func();
+		static const ScriptFunction& script_stop_play_func();
+		static const ScriptFunction& script_spawned_func();
+		static const ScriptFunction& script_destroyed_func();
+		
 		ActorComponent();
 		~ActorComponent();
 

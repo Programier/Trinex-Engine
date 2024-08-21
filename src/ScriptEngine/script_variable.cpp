@@ -83,8 +83,13 @@ namespace Engine
 
 		if (is_handle() && m_address)
 		{
-			asIScriptEngine* engine = ScriptEngine::engine();
-			engine->AddRefScriptObject(address(), type_info().info());
+			auto info = type_info().info();
+
+			if (!(info->GetFlags() & asOBJ_NOCOUNT))
+			{
+				asIScriptEngine* engine = ScriptEngine::engine();
+				engine->AddRefScriptObject(address(), info);
+			}
 		}
 
 		return *this;
@@ -97,8 +102,13 @@ namespace Engine
 
 		if ((is_handle() || is_object()) && m_address)
 		{
-			asIScriptEngine* engine = ScriptEngine::engine();
-			engine->ReleaseScriptObject(address(), type_info().info());
+			auto info = type_info().info();
+
+			if (!(info->GetFlags() & asOBJ_NOCOUNT))
+			{
+				asIScriptEngine* engine = ScriptEngine::engine();
+				engine->ReleaseScriptObject(address(), info);
+			}
 		}
 
 		m_address = nullptr;

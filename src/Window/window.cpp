@@ -326,8 +326,6 @@ namespace Engine
 
 	Window::~Window()
 	{
-		m_destroy_callback.trigger();
-
 		if (m_render_viewport)
 		{
 			RenderViewport* viewport = m_render_viewport;
@@ -337,17 +335,6 @@ namespace Engine
 		}
 
 		imgui_terminate();
-	}
-
-	Identifier Window::register_destroy_callback(const DestroyCallback& callback)
-	{
-		return m_destroy_callback.push(callback);
-	}
-
-	Window& Window::unregister_destroy_callback(Identifier id)
-	{
-		m_destroy_callback.remove(id);
-		return *this;
 	}
 
 	Size2D Window::cached_size() const

@@ -22,13 +22,14 @@ namespace Engine
 	public:
 		using DestroyCallback = CallBack<void()>;
 
+		CallBacks<void(Window* window)> on_destroy;
+
 	private:
 		Pointer<class RenderViewport> m_render_viewport;
 		Size2D m_cached_size;
 		Window* m_parent_window = nullptr;
 		Vector<Window*> m_childs;
 		Pointer<ImGuiRenderer::Window> m_imgui_window = nullptr;
-		CallBacks<void()> m_destroy_callback;
 
 	protected:
 		Window& imgui_initialize_internal();
@@ -74,8 +75,8 @@ namespace Engine
 		virtual Identifier id();
 		virtual void* native_window();
 		virtual size_t monitor_index();
-		Window& imgui_new_frame();
 
+		Window& imgui_new_frame();
 
 		RenderViewport* render_viewport() const;
 		Window* parent_window() const;
@@ -84,9 +85,6 @@ namespace Engine
 		ImGuiRenderer::Window* imgui_window();
 		Window& imgui_initialize(const Function<void(ImGuiContext*)>& callback = {});
 		Window& imgui_terminate();
-
-		Identifier register_destroy_callback(const DestroyCallback& callback);
-		Window& unregister_destroy_callback(Identifier id);
 
 		Size2D cached_size() const;
 		Window& update_cached_size();
