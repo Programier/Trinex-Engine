@@ -8,13 +8,13 @@ namespace Engine
 		EGLDisplay egl_display = EGL_NO_DISPLAY;
 		EGLSurface egl_surface = EGL_NO_SURFACE;
 		EGLContext egl_context = EGL_NO_CONTEXT;
-		bool m_vsync		   = false;
+		bool m_vsync           = false;
 	};
 
 	void* create_opengl_context(Window* main_window)
 	{
 		AndroidEGLWindow* window = reinterpret_cast<AndroidEGLWindow*>(main_window);
-		void* context			 = window->create_context();
+		void* context            = window->create_context();
 		window->make_current(context);
 		return context;
 	}

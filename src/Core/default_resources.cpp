@@ -28,21 +28,21 @@ namespace Engine
 
 		namespace Materials
 		{
-			ENGINE_EXPORT Material* sprite			  = nullptr;
-			ENGINE_EXPORT Material* screen			  = nullptr;
-			ENGINE_EXPORT Material* base_pass		  = nullptr;
-			ENGINE_EXPORT Material* batched_lines	  = nullptr;
+			ENGINE_EXPORT Material* sprite            = nullptr;
+			ENGINE_EXPORT Material* screen            = nullptr;
+			ENGINE_EXPORT Material* base_pass         = nullptr;
+			ENGINE_EXPORT Material* batched_lines     = nullptr;
 			ENGINE_EXPORT Material* batched_triangles = nullptr;
-			ENGINE_EXPORT Material* point_light		  = nullptr;
-			ENGINE_EXPORT Material* spot_light		  = nullptr;
+			ENGINE_EXPORT Material* point_light       = nullptr;
+			ENGINE_EXPORT Material* spot_light        = nullptr;
 			ENGINE_EXPORT Material* directional_light = nullptr;
-			ENGINE_EXPORT Material* ambient_light	  = nullptr;
-			ENGINE_EXPORT Material* imgui			  = nullptr;
+			ENGINE_EXPORT Material* ambient_light     = nullptr;
+			ENGINE_EXPORT Material* imgui             = nullptr;
 		}// namespace Materials
 
 		namespace Meshes
 		{
-			ENGINE_EXPORT StaticMesh* cube	   = nullptr;
+			ENGINE_EXPORT StaticMesh* cube     = nullptr;
 			ENGINE_EXPORT StaticMesh* sphere   = nullptr;
 			ENGINE_EXPORT StaticMesh* cylinder = nullptr;
 		}// namespace Meshes
@@ -63,7 +63,7 @@ namespace Engine
 
 #define load_default_asset(name, object, class_name, group_name)                                                                 \
 	DefaultResources::group_name::object = reinterpret_cast<class_name*>(                                                        \
-			load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));                        \
+	        load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));                        \
 	reinterpret_cast<Object*>(DefaultResources::group_name::object)->add_reference()
 
 

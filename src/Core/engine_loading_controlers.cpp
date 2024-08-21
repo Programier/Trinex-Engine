@@ -64,10 +64,10 @@ namespace Engine
 	}
 
 	LoadingControllerBase& LoadingControllerBase::push(const ControllerCallback& callback, const String& name,
-													   const std::initializer_list<String>& require_initializers)
+	                                                   const std::initializer_list<String>& require_initializers)
 	{
 		CallbackEntry entry;
-		entry.function			   = callback;
+		entry.function             = callback;
 		entry.require_initializers = require_initializers;
 		list_of(m_list)[name].push_back(entry);
 		return *this;
@@ -115,14 +115,14 @@ namespace Engine
 
 	enum class ControllerType
 	{
-		PreInit					 = BIT(0),
-		Init					 = BIT(1),
-		Destroy					 = BIT(2),
-		PostDestroy				 = BIT(3),
-		ReflectionInit			 = BIT(4),
-		ResourcesInit			 = BIT(5),
-		ConfigsInitialize		 = BIT(6),
-		ScriptAddonsInitialize	 = BIT(7),
+		PreInit                  = BIT(0),
+		Init                     = BIT(1),
+		Destroy                  = BIT(2),
+		PostDestroy              = BIT(3),
+		ReflectionInit           = BIT(4),
+		ResourcesInit            = BIT(5),
+		ConfigsInitialize        = BIT(6),
+		ScriptAddonsInitialize   = BIT(7),
 		ScriptBindingsInitialize = BIT(7),
 	};
 
@@ -148,13 +148,13 @@ namespace Engine
                                                                                                                                  \
                                                                                                                                  \
 	ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                                       \
-								   const std::initializer_list<String>& require_initializers)                                    \
-		: ControllerName()                                                                                                       \
+	                               const std::initializer_list<String>& require_initializers)                                    \
+	    : ControllerName()                                                                                                       \
 	{                                                                                                                            \
 		push(callback, name, require_initializers);                                                                              \
 	}                                                                                                                            \
 	ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                                 \
-										 const std::initializer_list<String>& require_initializers)                              \
+	                                     const std::initializer_list<String>& require_initializers)                              \
 	{                                                                                                                            \
 		LoadingControllerBase::push(callback, name, require_initializers);                                                       \
 		return *this;                                                                                                            \

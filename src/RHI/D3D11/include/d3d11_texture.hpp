@@ -14,7 +14,7 @@ namespace Engine
 	class D3D11_Texture2D : public RHI_DefaultDestroyable<D3D11_Texture>
 	{
 	public:
-		ID3D11Texture2D* m_texture		 = nullptr;
+		ID3D11Texture2D* m_texture       = nullptr;
 		ID3D11ShaderResourceView* m_view = nullptr;
 
 		bool init(const Texture2D* texture, bool is_render_surface = false);
@@ -27,7 +27,7 @@ namespace Engine
 	{
 	public:
 		ID3D11DepthStencilView* m_depth_stencil_view = nullptr;
-		ID3D11RenderTargetView* m_render_target		 = nullptr;
+		ID3D11RenderTargetView* m_render_target      = nullptr;
 
 		bool init(const RenderSurface* texture);
 		void clear_color(const Color& color) override;

@@ -18,10 +18,10 @@ namespace Engine
 		Result(const Type& value) : m_result(value)
 		{}
 
-		Result(const Result&)			 = default;
-		Result(Result&&)				 = default;
+		Result(const Result&)            = default;
+		Result(Result&&)                 = default;
 		Result& operator=(const Result&) = default;
-		Result& operator=(Result&&)		 = default;
+		Result& operator=(Result&&)      = default;
 
 		operator Type()
 		{

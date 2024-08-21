@@ -80,8 +80,8 @@ namespace Engine
 
 		auto is_enabled_prop = new BoolProperty("Is Enabled", "Is light enabled", &This::m_is_enabled);
 		auto shadows_prop =
-				new BoolProperty("Enable Shadows", "The light source can cast real-time shadows", &This::m_is_shadows_enabled);
-		auto color_prop		  = new Color3Property("Color", "Color of this light", &This::m_light_color);
+		        new BoolProperty("Enable Shadows", "The light source can cast real-time shadows", &This::m_is_shadows_enabled);
+		auto color_prop       = new Color3Property("Color", "Color of this light", &This::m_light_color);
 		auto intensivity_prop = new FloatProperty("Intensivity", "Intensivity of this light", &This::m_intensivity);
 
 		is_enabled_prop->on_prop_changed.push(on_props_changed);
@@ -93,7 +93,7 @@ namespace Engine
 	}
 
 	LightComponent::LightComponent()
-		: m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_is_enabled(true), m_is_shadows_enabled(false)
+	    : m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_is_enabled(true), m_is_shadows_enabled(false)
 	{}
 
 	LightComponent& LightComponent::on_transform_changed()
@@ -209,18 +209,18 @@ namespace Engine
 
 	public:
 		UpdateLightInfoCommand(LightComponent* component)
-			: m_bounds(component->bounding_box()), m_light_color(component->light_color()),
-			  m_intensivity(component->intensivity()), m_is_enabled(component->is_enabled()),
-			  m_is_shadows_enabled(component->is_shadows_enabled()), m_proxy(component->proxy())
+		    : m_bounds(component->bounding_box()), m_light_color(component->light_color()),
+		      m_intensivity(component->intensivity()), m_is_enabled(component->is_enabled()),
+		      m_is_shadows_enabled(component->is_shadows_enabled()), m_proxy(component->proxy())
 		{}
 
 		int_t execute() override
 		{
 			m_proxy->bounding_box(m_bounds)
-					.light_color(m_light_color)
-					.intensivity(m_intensivity)
-					.is_enabled(m_is_enabled)
-					.is_shadows_enabled(m_is_shadows_enabled);
+			        .light_color(m_light_color)
+			        .intensivity(m_intensivity)
+			        .is_enabled(m_is_enabled)
+			        .is_shadows_enabled(m_is_shadows_enabled);
 			return sizeof(UpdateLightInfoCommand);
 		}
 	};

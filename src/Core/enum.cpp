@@ -29,13 +29,13 @@ namespace Engine
 	ENGINE_EXPORT Enum* Enum::create(const String& namespace_name, const String& name, const Vector<Enum::Entry>& entries)
 	{
 		Name full_name = Name(namespace_name.empty() ? name : namespace_name + "::" + name);
-		Enum* _enum	   = static_find(full_name);
+		Enum* _enum    = static_find(full_name);
 
 		info_log("Enum", "Register enum '%s'", full_name.c_str());
 
 		if (!_enum)
 		{
-			_enum				   = new Enum();
+			_enum                  = new Enum();
 			enums_map()[full_name] = _enum;
 
 			_enum->m_base_name = name;
@@ -92,7 +92,7 @@ namespace Engine
 			return e;
 
 		Entry new_entry;
-		new_entry.name	= name;
+		new_entry.name  = name;
 		new_entry.value = value;
 
 		Index index = m_entries.size();
@@ -130,7 +130,7 @@ namespace Engine
 	ENGINE_EXPORT Enum* Enum::static_find(const String& name, bool required)
 	{
 		auto& map = enums_map();
-		auto it	  = map.find(name);
+		auto it   = map.find(name);
 
 		if (it == map.end())
 		{

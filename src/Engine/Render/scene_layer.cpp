@@ -27,7 +27,7 @@ namespace Engine
 		if (m_parent)
 		{
 			m_parent->m_next = nullptr;
-			m_parent		 = nullptr;
+			m_parent         = nullptr;
 		}
 	}
 
@@ -122,10 +122,10 @@ namespace Engine
 		if (new_layer)
 			return new_layer;
 
-		new_layer			= allocator(name);
+		new_layer           = allocator(name);
 		new_layer->m_parent = this;
-		new_layer->m_next	= m_next;
-		m_next				= new_layer;
+		new_layer->m_next   = m_next;
+		m_next              = new_layer;
 		return new_layer;
 	}
 
@@ -139,10 +139,10 @@ namespace Engine
 		if (new_layer)
 			return new_layer;
 
-		new_layer			= allocator(name);
+		new_layer           = allocator(name);
 		new_layer->m_parent = m_parent;
-		new_layer->m_next	= this;
-		m_parent			= new_layer;
+		new_layer->m_next   = this;
+		m_parent            = new_layer;
 		return new_layer;
 	}
 

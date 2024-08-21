@@ -12,8 +12,8 @@ namespace Engine
 
 	public:
 		using ListenerSignature = void(const Event&);
-		using Listener			= Function<ListenerSignature>;
-		using ListenerMap		= TreeMap<EnumerateType, CallBacks<ListenerSignature>>;
+		using Listener          = Function<ListenerSignature>;
+		using ListenerMap       = TreeMap<EnumerateType, CallBacks<ListenerSignature>>;
 
 		enum ProcessEventMethod
 		{

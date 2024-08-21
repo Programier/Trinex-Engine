@@ -106,9 +106,9 @@ namespace Engine
 		{}
 	};
 
-	using BoolMaterialParameter	 = TypedMaterialParameter<bool, MaterialParameterType::Bool>;
-	using IntMaterialParameter	 = TypedMaterialParameter<int32_t, MaterialParameterType::Int>;
-	using UIntMaterialParameter	 = TypedMaterialParameter<uint32_t, MaterialParameterType::UInt>;
+	using BoolMaterialParameter  = TypedMaterialParameter<bool, MaterialParameterType::Bool>;
+	using IntMaterialParameter   = TypedMaterialParameter<int32_t, MaterialParameterType::Int>;
+	using UIntMaterialParameter  = TypedMaterialParameter<uint32_t, MaterialParameterType::UInt>;
 	using FloatMaterialParameter = TypedMaterialParameter<float, MaterialParameterType::Float>;
 
 	using BVec2MaterialParameter = TypedMaterialParameter<BoolVector2D, MaterialParameterType::BVec2>;
@@ -269,7 +269,7 @@ namespace Engine
 	};
 
 	struct CombinedImageSampler2DMaterialParameter
-		: public CombinedImageSamplerMaterialParameter<class Texture2D, MaterialParameterType::CombinedImageSampler2D> {
+	    : public CombinedImageSamplerMaterialParameter<class Texture2D, MaterialParameterType::CombinedImageSampler2D> {
 		CombinedImageSampler2DMaterialParameter()
 		{
 			texture = DefaultResources::Textures::default_texture;

@@ -17,10 +17,10 @@ namespace Engine
 	ScriptPointer* ScriptPointer::create(asITypeInfo* ti, void* address)
 	{
 		ScriptPointer* handle = new ScriptPointer();
-		handle->m_address	  = address;
-		handle->m_type_id	  = ti->GetSubTypeId();
-		handle->m_refs		  = 1;
-		handle->m_gc_flag	  = false;
+		handle->m_address     = address;
+		handle->m_type_id     = ti->GetSubTypeId();
+		handle->m_refs        = 1;
+		handle->m_gc_flag     = false;
 		return handle;
 	}
 
@@ -54,15 +54,15 @@ namespace Engine
 	static void on_init()
 	{
 		ScriptClassRegistrar::RefInfo info;
-		info.no_count		 = false;
+		info.no_count        = false;
 		info.implicit_handle = false;
-		info.template_type	 = "<T>";
+		info.template_type   = "<T>";
 
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class("Ptr<class T>", info);
 		registrar.behave(ScriptClassBehave::Factory, "Ptr<T>@ f(int& in)",
-						 func_of<ScriptPointer*(asITypeInfo*)>(ScriptPointer::create), ScriptCallConv::CDecl);
+		                 func_of<ScriptPointer*(asITypeInfo*)>(ScriptPointer::create), ScriptCallConv::CDecl);
 		registrar.behave(ScriptClassBehave::Factory, "Ptr<T>@ f(int& in, T& inout)",
-						 func_of<ScriptPointer*(asITypeInfo*, void* address)>(ScriptPointer::create), ScriptCallConv::CDecl);
+		                 func_of<ScriptPointer*(asITypeInfo*, void* address)>(ScriptPointer::create), ScriptCallConv::CDecl);
 
 		registrar.behave(ScriptClassBehave::AddRef, "void f() const", &ScriptPointer::add_ref);
 		registrar.behave(ScriptClassBehave::Release, "void f() const", &ScriptPointer::release);

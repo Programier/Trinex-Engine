@@ -239,7 +239,7 @@ namespace Engine
 
 	void AndroidEGLSurface::init(AndroidEGLContext* _context, ANativeWindow* window)
 	{
-		context		= _context;
+		context     = _context;
 		egl_surface = eglCreateWindowSurface(context->egl_display, context->egl_config, window, nullptr);
 		context->egl_surfaces.insert(this);
 	}
@@ -250,7 +250,7 @@ namespace Engine
 		{
 			eglDestroySurface(context->egl_display, egl_surface);
 			context->egl_surfaces.erase(this);
-			context		= nullptr;
+			context     = nullptr;
 			egl_surface = EGL_NO_SURFACE;
 		}
 	}
@@ -276,8 +276,8 @@ namespace Engine
 
 
 		const EGLint egl_attributes[] = {
-				EGL_BLUE_SIZE,	8,		 EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_DEPTH_SIZE, 24, EGL_SURFACE_TYPE,
-				EGL_WINDOW_BIT, EGL_NONE};
+		        EGL_BLUE_SIZE,  8,       EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_DEPTH_SIZE, 24, EGL_SURFACE_TYPE,
+		        EGL_WINDOW_BIT, EGL_NONE};
 		EGLint num_configs = 0;
 		if (eglChooseConfig(egl_display, egl_attributes, nullptr, 0, &num_configs) != EGL_TRUE)
 			throw EngineException("eglChooseConfig() returned with an error");
@@ -289,7 +289,7 @@ namespace Engine
 		eglGetConfigAttrib(egl_display, egl_config, EGL_NATIVE_VISUAL_ID, &egl_format);
 
 		const EGLint egl_context_attributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-		egl_context							  = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, egl_context_attributes);
+		egl_context                           = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, egl_context_attributes);
 
 		if (egl_context == EGL_NO_CONTEXT)
 			throw EngineException("eglCreateContext() returned EGL_NO_CONTEXT");
@@ -346,7 +346,7 @@ namespace Engine
 	AndroidEGLWindow& AndroidEGLWindow::make_current(void* _context)
 	{
 		AndroidEGLContext* context = reinterpret_cast<AndroidEGLContext*>(_context);
-		EGLSurface egl_surface	   = surface(context);
+		EGLSurface egl_surface     = surface(context);
 		eglMakeCurrent(context->egl_display, egl_surface, egl_surface, context->egl_context);
 		return *this;
 	}

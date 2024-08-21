@@ -26,22 +26,22 @@ namespace Engine
 
 	namespace EditorResources
 	{
-		Texture2D* default_icon								= nullptr;
-		Texture2D* add_icon									= nullptr;
-		Texture2D* move_icon								= nullptr;
-		Texture2D* remove_icon								= nullptr;
-		Texture2D* rotate_icon								= nullptr;
-		Texture2D* scale_icon								= nullptr;
-		Texture2D* select_icon								= nullptr;
-		Texture2D* more_icon								= nullptr;
-		Texture2D* light_sprite								= nullptr;
-		Texture2D* blueprint_texture						= nullptr;
-		Sampler* default_sampler							= nullptr;
-		Material* axis_material								= nullptr;
-		Material* grid_material								= nullptr;
-		Material* point_light_overlay_material				= nullptr;
-		Material* spot_light_overlay_material				= nullptr;
-		PositionVertexBuffer* spot_light_overlay_positions	= nullptr;
+		Texture2D* default_icon                             = nullptr;
+		Texture2D* add_icon                                 = nullptr;
+		Texture2D* move_icon                                = nullptr;
+		Texture2D* remove_icon                              = nullptr;
+		Texture2D* rotate_icon                              = nullptr;
+		Texture2D* scale_icon                               = nullptr;
+		Texture2D* select_icon                              = nullptr;
+		Texture2D* more_icon                                = nullptr;
+		Texture2D* light_sprite                             = nullptr;
+		Texture2D* blueprint_texture                        = nullptr;
+		Sampler* default_sampler                            = nullptr;
+		Material* axis_material                             = nullptr;
+		Material* grid_material                             = nullptr;
+		Material* point_light_overlay_material              = nullptr;
+		Material* spot_light_overlay_material               = nullptr;
+		PositionVertexBuffer* spot_light_overlay_positions  = nullptr;
 		PositionVertexBuffer* point_light_overlay_positions = nullptr;
 	}// namespace EditorResources
 
@@ -53,8 +53,8 @@ namespace Engine
 			for (int j = -1; j <= 1; j++)
 			{
 				float angle = glm::two_pi<float>() * static_cast<float>(i + j) / 360.f;
-				float x		= glm::cos(angle);
-				float z		= glm::sin(angle);
+				float x     = glm::cos(angle);
+				float z     = glm::sin(angle);
 				callback(x, z);
 			}
 		}
@@ -63,7 +63,7 @@ namespace Engine
 	static void create_spot_light_overlay_positions()
 	{
 		EditorResources::spot_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		auto buffer									  = EditorResources::spot_light_overlay_positions;
+		auto buffer                                   = EditorResources::spot_light_overlay_positions;
 
 		static constexpr float circle_y = -1.f;
 
@@ -87,7 +87,7 @@ namespace Engine
 	static void create_point_light_overlay_positions()
 	{
 		EditorResources::point_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		auto buffer									   = EditorResources::point_light_overlay_positions;
+		auto buffer                                    = EditorResources::point_light_overlay_positions;
 
 		create_circle([buffer](float y, float z) { buffer->buffer.push_back(Vector3D(0, y, z)); });
 		create_circle([buffer](float x, float z) { buffer->buffer.push_back(Vector3D(x, 0, z)); });
@@ -99,7 +99,7 @@ namespace Engine
 	{
 #define load_resource(var, name, type, group_name)                                                                               \
 	EditorResources::var =                                                                                                       \
-			reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
+	        reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
 	reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
 		load_resource(default_icon, DefaultIcon, Texture2D, Textures);

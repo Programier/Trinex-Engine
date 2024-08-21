@@ -50,17 +50,17 @@ namespace Engine
 	{
 		render_base_component(component);
 
-		CommandBufferLayer* layer			  = deferred_lighting_layer();
+		CommandBufferLayer* layer             = deferred_lighting_layer();
 		DirectionalLightComponentProxy* proxy = component->proxy();
 
 		if (!scene_view().show_flags().has_all(ShowFlags::DirectionalLights) || !proxy->is_enabled() ||
-			!component->leaf_class_is<DirectionalLightComponent>())
+		    !component->leaf_class_is<DirectionalLightComponent>())
 			return *this;
 
 		Material* material = DefaultResources::Materials::directional_light;
 
-		Vec3MaterialParameter* color_parameter		  = get_param(color, Vec3MaterialParameter);
-		Vec3MaterialParameter* direction_parameter	  = get_param(direction, Vec3MaterialParameter);
+		Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
+		Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
 		FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
 
 		if (color_parameter)

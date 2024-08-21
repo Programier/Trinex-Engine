@@ -6,11 +6,11 @@
 namespace Engine
 {
 	ArrayPropertyValue::ArrayPropertyValue(const void* _instance, class Property* _element_type)
-		: instace(_instance), element_type(_element_type)
+	    : instace(_instance), element_type(_element_type)
 	{}
 
 	StructPropertyValue::StructPropertyValue(const void* _instance, class Struct* _struct)
-		: instace(_instance), struct_instance(_struct)
+	    : instace(_instance), struct_instance(_struct)
 	{}
 
 	PropertyValue::PropertyValue() : Any()
@@ -27,7 +27,7 @@ namespace Engine
 	PropertyValue& PropertyValue::operator=(const type& value)                                                                   \
 	{                                                                                                                            \
 		static_cast<Any&>(*this) = value;                                                                                        \
-		m_type					 = PropertyType::enum_type;                                                                      \
+		m_type                   = PropertyType::enum_type;                                                                      \
 		return *this;                                                                                                            \
 	}
 
@@ -35,10 +35,10 @@ namespace Engine
 	if (m_type != PropertyType::type)                                                                                            \
 		return {};
 
-	PropertyValue::PropertyValue(const PropertyValue&)			  = default;
-	PropertyValue::PropertyValue(PropertyValue&&)				  = default;
+	PropertyValue::PropertyValue(const PropertyValue&)            = default;
+	PropertyValue::PropertyValue(PropertyValue&&)                 = default;
 	PropertyValue& PropertyValue::operator=(const PropertyValue&) = default;
-	PropertyValue& PropertyValue::operator=(PropertyValue&&)	  = default;
+	PropertyValue& PropertyValue::operator=(PropertyValue&&)      = default;
 
 	declare_prop_constructor(byte, Byte);
 	declare_prop_constructor(signed_byte, SignedByte);
@@ -202,7 +202,7 @@ namespace Engine
 	}
 
 	Property::Property(const Name& name, const String& description, const Name& group, BitMask flags)
-		: m_name(name), m_group(group), m_description(description), m_flags(flags)
+	    : m_name(name), m_group(group), m_description(description), m_flags(flags)
 	{}
 
 	Property& Property::name(const Name& new_name)
@@ -291,7 +291,7 @@ namespace Engine
 			count = 0;
 			for (auto& prop : properties)
 			{
-				Name name	   = prop->name();
+				Name name      = prop->name();
 				offsets[count] = ar.position() - start_pos;
 				ar & name;
 				prop->archive_process(object, ar);
@@ -464,7 +464,7 @@ namespace Engine
 	}
 
 	ArrayPropertyInterface::ArrayPropertyInterface(const Name& name, const String& description, const Name& group, BitMask flags)
-		: Property(name, description, group, flags)
+	    : Property(name, description, group, flags)
 	{
 		m_element_name_callback = default_array_element_name;
 	}

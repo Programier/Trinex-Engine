@@ -39,7 +39,7 @@ namespace Engine
 		Class* client_class = Class::static_find(name);
 		if (client_class)
 		{
-			Object* object		   = client_class->create_object();
+			Object* object         = client_class->create_object();
 			ViewportClient* client = object->instance_cast<ViewportClient>();
 			if (client)
 			{
@@ -68,7 +68,7 @@ namespace Engine
 		if (m_window)
 		{
 			m_window->m_render_viewport = nullptr;
-			m_window					= nullptr;
+			m_window                    = nullptr;
 		}
 	}
 
@@ -85,7 +85,7 @@ namespace Engine
 
 	RenderViewport& RenderViewport::window(Window* window, bool vsync)
 	{
-		m_vsync	 = vsync;
+		m_vsync  = vsync;
 		m_window = window;
 		return *this;
 	}
@@ -99,7 +99,7 @@ namespace Engine
 	{
 		if (flag != m_vsync)
 		{
-			m_vsync				   = flag;
+			m_vsync                = flag;
 			RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
 			if (viewport)
 			{
@@ -132,7 +132,7 @@ namespace Engine
 		RHI_Viewport* m_rhi_viewport;
 
 		StartRenderingViewport(ViewportClient* client, RenderViewport* viewport, RHI_Viewport* rhi_viewport)
-			: m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
+		    : m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
 		{}
 
 		int_t execute() override
@@ -167,7 +167,7 @@ namespace Engine
 		if (m_client)
 		{
 			ViewportClient* tmp = m_client;
-			m_client			= nullptr;
+			m_client            = nullptr;
 			tmp->on_unbind_viewport(this);
 		}
 
@@ -202,7 +202,7 @@ namespace Engine
 	}
 
 	RenderViewport& RenderViewport::rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
-													SamplerFilter filter)
+	                                                SamplerFilter filter)
 	{
 		RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
 		if (viewport)

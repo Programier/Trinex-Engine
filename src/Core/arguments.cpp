@@ -5,7 +5,7 @@
 namespace Engine
 {
 	Map<String, Arguments::Argument> Arguments::m_arguments;
-	int_t Arguments::m_argc		   = 0;
+	int_t Arguments::m_argc        = 0;
 	const char** Arguments::m_argv = nullptr;
 
 	Arguments::Argument::Argument() = default;
@@ -13,7 +13,7 @@ namespace Engine
 	Arguments::Argument::Argument(const String& name) : Argument()
 	{
 		this->name = name;
-		type	   = Type::Define;
+		type       = Type::Define;
 	}
 
 	Arguments::Argument::Argument(const String& name, const String& value) : Argument(name, StringView(value))
@@ -69,7 +69,7 @@ namespace Engine
 		if (argument[0] == '\'' || argument[0] == '"')
 		{
 			end_char = argument[0];
-			start	 = 1;
+			start    = 1;
 		}
 
 		size_t end = start;

@@ -30,10 +30,10 @@ namespace Engine
 		SplashConfig config;
 
 		Atomic<bool> is_active = false;
-		Thread* thread		   = nullptr;
-		Thread* exec_thread	   = nullptr;
-		Window* window		   = nullptr;
-		Texture2D* texture	   = nullptr;
+		Thread* thread         = nullptr;
+		Thread* exec_thread    = nullptr;
+		Window* window         = nullptr;
+		Texture2D* texture     = nullptr;
 		Path font_path;
 
 		Array<TextInfo, static_cast<size_t>(SplashTextType::Count)> text_infos;
@@ -42,9 +42,9 @@ namespace Engine
 		SplashData()
 		{
 			text_info_of(SplashTextType::StartupProgress).font_size = config.startup_text_size;
-			text_info_of(SplashTextType::VersionInfo).font_size		= config.version_text_size;
-			text_info_of(SplashTextType::CopyrightInfo).font_size	= config.copyright_text_size;
-			text_info_of(SplashTextType::GameName).font_size		= config.game_name_text_size;
+			text_info_of(SplashTextType::VersionInfo).font_size     = config.version_text_size;
+			text_info_of(SplashTextType::CopyrightInfo).font_size   = config.copyright_text_size;
+			text_info_of(SplashTextType::GameName).font_size        = config.game_name_text_size;
 		}
 
 		TextInfo& text_info_of(size_t index)
@@ -70,8 +70,8 @@ namespace Engine
 			Window* window = viewport->window();
 
 			window->imgui_initialize([](ImGuiContext* ctx) {
-				auto& style			   = ImGui::GetStyle();
-				style.WindowPadding	   = {0, 0};
+				auto& style            = ImGui::GetStyle();
+				style.WindowPadding    = {0, 0};
 				style.WindowBorderSize = 0.f;
 
 				FileReader reader(m_splash_data->config.font_path);
@@ -89,8 +89,8 @@ namespace Engine
 					{
 						auto& info = m_splash_data->text_info_of(i);
 						info.font =
-								ImGui::GetIO().Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), info.font_size, &config,
-																		   ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+						        ImGui::GetIO().Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), info.font_size, &config,
+						                                                   ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
 					}
 				}
 			});
@@ -132,11 +132,11 @@ namespace Engine
 			ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos);
 			ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
 			ImGui::Begin("SplashScreen", nullptr,
-						 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+			             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
 
 			static constexpr float padding = 10.f;
-			auto pos					   = ImGui::GetCursorPos() + ImVec2(padding, padding);
-			auto size					   = ImGui::GetContentRegionAvail();
+			auto pos                       = ImGui::GetCursorPos() + ImVec2(padding, padding);
+			auto size                      = ImGui::GetContentRegionAvail();
 			ImGui::Image(m_splash_data->texture, size);
 
 			size -= ImVec2(2 * padding, 2 * padding);
@@ -215,18 +215,18 @@ namespace Engine
 		WindowConfig window_config;
 
 		window_config.attributes = {WindowAttribute::BorderLess};
-		window_config.title		 = "Splash Screen";
-		window_config.client	 = "";
-		window_config.size		 = image.size();
+		window_config.title      = "Splash Screen";
+		window_config.client     = "";
+		window_config.size       = image.size();
 		window_config.size =
-				(window_config.size / window_config.size.x) * static_cast<float>(Platform::monitor_info().size.x) / 3.f;
+		        (window_config.size / window_config.size.x) * static_cast<float>(Platform::monitor_info().size.x) / 3.f;
 		window_config.position = {-1, -1};
-		window_config.vsync	   = true;
+		window_config.vsync    = true;
 
 		m_splash_data->window = WindowManager::instance()->create_window(window_config);
 		m_splash_data->window->render_viewport()->client(Object::new_instance<SplashClient>());
 
-		m_splash_data->thread	   = new Thread("Splash");
+		m_splash_data->thread      = new Thread("Splash");
 		m_splash_data->exec_thread = new Thread("Splash Exec");
 		m_splash_data->is_active   = true;
 
@@ -254,8 +254,8 @@ namespace Engine
 
 			int_t execute() override
 			{
-				auto& info				   = m_splash_data->text_info_of(m_type);
-				info.text				   = m_text;
+				auto& info                 = m_splash_data->text_info_of(m_type);
+				info.text                  = m_text;
 				info.need_update_text_size = true;
 				return sizeof(UpdateText);
 			}

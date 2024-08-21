@@ -33,7 +33,7 @@ namespace Engine
 	public:
 		DebugExecScriptFunction() : m_root_folder(ScriptEngine::scripts_folder())
 		{
-			auto vp		 = ImGui::GetMainViewport();
+			auto vp      = ImGui::GetMainViewport();
 			m_window_pos = vp->WorkPos + vp->WorkSize * 0.5f;
 		}
 
@@ -142,8 +142,8 @@ namespace Engine
 	implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
-		: m_debugging_thread(new Thread("Debugging")), m_action(ImGui::TextEditor::DebugAction::Continue),
-		  m_is_in_debug_loop(false)
+	    : m_debugging_thread(new Thread("Debugging")), m_action(ImGui::TextEditor::DebugAction::Continue),
+	      m_is_in_debug_loop(false)
 	{
 		build_language_definition();
 	}
@@ -198,7 +198,7 @@ namespace Engine
 		if (m_window == nullptr)
 			return *this;
 		m_viewport = viewport;
-		
+
 		m_window->imgui_initialize(EditorTheme::initialize_theme);
 		m_imgui_window = m_window->imgui_window();
 
@@ -234,8 +234,8 @@ namespace Engine
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
 		ImGui::Begin("Debugger", nullptr,
-					 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
-							 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
+		             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+		                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_MenuBar);
 
 		auto dock_id = ImGui::GetID("ScriptDebugger##Dock");
 		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
@@ -244,12 +244,12 @@ namespace Engine
 		{
 			ImGui::DockBuilderRemoveNode(dock_id);
 			ImGui::DockBuilderAddNode(dock_id,
-									  int_t(ImGuiDockNodeFlags_PassthruCentralNode) | int_t(ImGuiDockNodeFlags_DockSpace));
+			                          int_t(ImGuiDockNodeFlags_PassthruCentralNode) | int_t(ImGuiDockNodeFlags_DockSpace));
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
-			auto dock_id_left				   = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.25f, nullptr, &dock_id);
+			auto dock_id_left                  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.25f, nullptr, &dock_id);
 			auto dock_id_variables_and_globals = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
-			auto dock_id_down				   = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
+			auto dock_id_down                  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow("###Bottom", dock_id_down);
 			ImGui::DockBuilderDockWindow("###Left", dock_id_left);
@@ -260,11 +260,11 @@ namespace Engine
 		}
 
 		render_bar_menu(dt)
-				.render_left_viewport(dt)
-				.render_code_viewport(dt)
-				.render_variables_viewport(dt)
-				.render_globals_viewport(dt)
-				.render_bottom_viewport(dt);
+		        .render_left_viewport(dt)
+		        .render_code_viewport(dt)
+		        .render_variables_viewport(dt)
+		        .render_globals_viewport(dt)
+		        .render_bottom_viewport(dt);
 
 		ImGui::End();
 		m_imgui_window->end_frame();
@@ -439,14 +439,14 @@ namespace Engine
 		ScriptTypeInfo info;
 
 		ImGui::TableNextRow();
-		bool expand	 = ScriptEngine::is_object_type(type_id, true) && address;
+		bool expand  = ScriptEngine::is_object_type(type_id, true) && address;
 		String value = address ? ScriptEngine::to_string(address, type_id) : "null";
 
 		ImGui::TableSetColumnIndex(0);
 
 		if (expand)
 		{
-			expand		  = false;
+			expand        = false;
 			bool do_check = true;
 
 			if (ScriptEngine::is_handle_type(type_id) && *reinterpret_cast<byte**>(address) == nullptr)
@@ -468,7 +468,7 @@ namespace Engine
 		if (expand)
 		{
 			expand = ImGui::TreeNodeEx("###Node", ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_NoAutoOpenOnLog,
-									   "%s%s%s", ns.data(), ns.empty() ? "" : "::", name.data());
+			                           "%s%s%s", ns.data(), ns.empty() ? "" : "::", name.data());
 		}
 		else
 		{
@@ -487,9 +487,9 @@ namespace Engine
 
 			StringView prop_name;
 			int_t prop_type_id = 0;
-			int_t offset	   = 0;
+			int_t offset       = 0;
 			byte* object_address =
-					ScriptEngine::is_handle_type(type_id) && address ? *reinterpret_cast<byte**>(address) : address;
+			        ScriptEngine::is_handle_type(type_id) && address ? *reinterpret_cast<byte**>(address) : address;
 
 			ImGui::Indent(25);
 
@@ -538,7 +538,7 @@ namespace Engine
 			ImGui::TableHeadersRow();
 
 			{
-				byte* self	  = ScriptContext::this_pointer(m_current_stack_level);
+				byte* self    = ScriptContext::this_pointer(m_current_stack_level);
 				int_t type_id = ScriptContext::this_type_id(m_current_stack_level);
 
 				if (self && type_id > 0)
@@ -779,7 +779,7 @@ namespace Engine
 			return *this;
 
 		m_last_function = func;
-		m_last_line		= line;
+		m_last_line     = line;
 
 		if (m_current_editor)
 			m_current_editor->m_editor.SetCurrentLineIndicator(-1, false);
@@ -820,31 +820,31 @@ namespace Engine
 		if (m_current_editor && m_current_editor->m_script == script)
 			return *this;
 
-		String path	 = script->path().str();
+		String path  = script->path().str();
 		auto& editor = m_text_editors[path];
 
 		if (!editor.m_script)
 		{
 			editor.m_editor.OnDebuggerJump =
-					std::bind(&This::on_debugger_jump, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::on_debugger_jump, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnDebuggerAction =
-					std::bind(&This::on_debugger_action, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::on_debugger_action, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnIdentifierHover =
-					std::bind(&This::on_identifier_hover, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::on_identifier_hover, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.HasIdentifierHover =
-					std::bind(&This::has_identifier_hover, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::has_identifier_hover, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnExpressionHover =
-					std::bind(&This::on_expression_hover, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::on_expression_hover, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.HasExpressionHover =
-					std::bind(&This::has_expression_hover, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::has_expression_hover, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnBreakpointRemove =
-					std::bind(&This::on_breakpoint_remove, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::on_breakpoint_remove, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnBreakpointUpdate =
-					std::bind(&This::on_breakpoint_update, this, std::placeholders::_1, std::placeholders::_2);
+			        std::bind(&This::on_breakpoint_update, this, std::placeholders::_1, std::placeholders::_2);
 			editor.m_editor.OnCtrlAltClick = std::bind(&This::on_ctrl_alt_click, this, std::placeholders::_1,
-													   std::placeholders::_2, std::placeholders::_3);
+			                                           std::placeholders::_2, std::placeholders::_3);
 			editor.m_editor.RequestOpen =
-					std::bind(&This::on_request_open, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+			        std::bind(&This::on_request_open, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 			editor.m_editor.OnContentUpdate = std::bind(&This::on_content_update, this, std::placeholders::_1);
 
 			editor.m_script = script;
@@ -853,7 +853,7 @@ namespace Engine
 		}
 
 		editor.m_need_focus = true;
-		m_current_editor	= &editor;
+		m_current_editor    = &editor;
 		return *this;
 	}
 
@@ -887,7 +887,7 @@ namespace Engine
 		ScriptDebuggerClient* self = reinterpret_cast<ScriptDebuggerClient*>(userdata);
 
 		if (event.type() == EventType::Quit ||
-			(event.type() == EventType::WindowClose && event.window_id() == self->m_window->id()))
+		    (event.type() == EventType::WindowClose && event.window_id() == self->m_window->id()))
 		{
 			self->m_is_in_debug_loop = false;
 		}
@@ -938,7 +938,7 @@ namespace Engine
 
 	ScriptDebuggerClient& ScriptDebuggerClient::debugger_thread_loop()
 	{
-		m_is_in_debug_loop	  = true;
+		m_is_in_debug_loop    = true;
 		m_current_stack_level = 0;
 
 		auto prev_time = engine_instance->time_seconds() - 0.033f;
@@ -946,8 +946,8 @@ namespace Engine
 		while (m_is_in_debug_loop)
 		{
 			float current_time = engine_instance->time_seconds();
-			float dt		   = current_time - prev_time;
-			prev_time		   = current_time;
+			float dt           = current_time - prev_time;
+			prev_time          = current_time;
 
 
 			Platform::WindowManager::pool_events(on_event_recieved, this);
@@ -973,7 +973,7 @@ namespace Engine
 				ScriptDebuggerClient* m_client;
 				ScriptDebuggerClient& (ScriptDebuggerClient::*m_method)();
 				RunDebugLoop(ScriptDebuggerClient* client, ScriptDebuggerClient& (ScriptDebuggerClient::*method)())
-					: m_client(client), m_method(method)
+				    : m_client(client), m_method(method)
 				{}
 
 				int_t execute() override

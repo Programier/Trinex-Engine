@@ -60,12 +60,12 @@ namespace Engine
 		registrar->method("const Name& name() const", method_of<const Name&>(&Object::name));
 		registrar->method("string opConv() const", &Object::as_string);
 		registrar->method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
-						  ScriptCallConv::CDeclObjFirst);
+		                  ScriptCallConv::CDeclObjFirst);
 		registrar->method("Object@ postload()",
-						  func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
-						  ScriptCallConv::CDeclObjFirst);
+		                  func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
+		                  ScriptCallConv::CDeclObjFirst);
 		registrar->method("Class@ class_instance() const",
-						  func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
+		                  func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
 	}
 
 
@@ -116,10 +116,10 @@ namespace Engine
 			throw EngineException("Next object class is invalid!");
 		}
 
-		m_owner					   = nullptr;
-		m_class					   = next_object_info.class_instance;
+		m_owner                    = nullptr;
+		m_class                    = next_object_info.class_instance;
 		ObjectArray& objects_array = get_instances_array();
-		m_instance_index		   = objects_array.size();
+		m_instance_index           = objects_array.size();
 
 		if (!get_free_indexes_array().empty())
 		{
@@ -239,7 +239,7 @@ namespace Engine
 			new_owner = m_owner;
 
 		Object* old_owner = m_owner;
-		Name old_name	  = m_name;
+		Name old_name     = m_name;
 
 		bool result = true;
 
@@ -311,11 +311,11 @@ namespace Engine
 		if (recursive)
 		{
 			const Object* self = this;
-			Package* pkg	   = nullptr;
+			Package* pkg       = nullptr;
 
 			while (self && !pkg)
 			{
-				pkg	 = instance_cast<Package>(m_owner);
+				pkg  = instance_cast<Package>(m_owner);
 				self = m_owner;
 			}
 
@@ -350,16 +350,16 @@ namespace Engine
 			return nullptr;
 		};
 
-		String result		  = object_name_of(this);
+		String result         = object_name_of(this);
 		const Object* current = parent_object_of(this, override_by_owner);
 
 		while (current)
 		{
 			result =
-					Strings::format("{}{}{}",
-									(current->m_name.is_valid() ? current->m_name.to_string()
-																: Strings::format("Noname object {}", current->m_instance_index)),
-									Constants::name_separator, result);
+			        Strings::format("{}{}{}",
+			                        (current->m_name.is_valid() ? current->m_name.to_string()
+			                                                    : Strings::format("Noname object {}", current->m_instance_index)),
+			                        Constants::name_separator, result);
 			current = parent_object_of(current, override_by_owner);
 		}
 
@@ -427,7 +427,7 @@ namespace Engine
 
 		if (m_owner)
 		{
-			result	= m_owner->unregister_child(this);
+			result  = m_owner->unregister_child(this);
 			m_owner = nullptr;
 
 			if (!result)
@@ -468,14 +468,14 @@ namespace Engine
 		Package* package = const_cast<Package*>(root_package());
 
 		const String& separator_text = Constants::name_separator;
-		const size_t separator_len	 = separator_text.length();
+		const size_t separator_len   = separator_text.length();
 
 		size_t separator = name.find(separator_text);
 
 		while (separator != StringView::npos && package)
 		{
-			package	  = find_next_package(package, name.substr(0, separator), create);
-			name	  = name.substr(separator + separator_len);
+			package   = find_next_package(package, name.substr(0, separator), create);
+			name      = name.substr(separator + separator_len);
 			separator = name.find(separator_text);
 		}
 
@@ -485,7 +485,7 @@ namespace Engine
 	String Object::as_string() const
 	{
 		return Strings::format("{}: {}", class_instance()->name().c_str(),
-							   m_name.is_valid() ? m_name.to_string().c_str() : "NoName");
+		                       m_name.is_valid() ? m_name.to_string().c_str() : "NoName");
 	}
 
 	Index Object::instance_index() const
@@ -517,13 +517,13 @@ namespace Engine
 	{
 		Path path = m_name.to_string() + Constants::asset_extention;
 
-		const Package* pkg	= package(true);
+		const Package* pkg  = package(true);
 		const Package* root = root_package();
 
 		while (pkg && pkg != root)
 		{
 			path = Path(pkg->string_name()) / path;
-			pkg	 = pkg->package();
+			pkg  = pkg->package();
 		}
 
 		return path;
@@ -570,7 +570,7 @@ namespace Engine
 		else
 		{
 			error_log("Object", "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
-					  path.c_str());
+			          path.c_str());
 		}
 
 		return nullptr;
@@ -587,8 +587,8 @@ namespace Engine
 		bool status;
 		Vector<byte> raw_buffer;
 		VectorWriter raw_writer = &raw_buffer;
-		Archive raw_ar			= &raw_writer;
-		raw_ar.flags			= serialization_flags;
+		Archive raw_ar          = &raw_writer;
+		raw_ar.flags            = serialization_flags;
 
 		auto hierarchy = class_instance()->hierarchy(1);
 		raw_ar & hierarchy;
@@ -643,7 +643,7 @@ namespace Engine
 	}
 
 	ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
-											  Flags<SerializationFlags> serialization_flags)
+	                                          Flags<SerializationFlags> serialization_flags)
 	{
 		if (reader == nullptr)
 		{
@@ -678,7 +678,7 @@ namespace Engine
 		Vector<byte> raw_data;
 		Compressor::decompress(compressed_buffer, raw_data);
 		VectorReader raw_reader = &raw_data;
-		Archive raw_ar			= &raw_reader;
+		Archive raw_ar          = &raw_reader;
 
 		Vector<Name> hierarchy;
 		raw_ar & hierarchy;
@@ -696,7 +696,7 @@ namespace Engine
 		if (!fullname.empty())
 		{
 			StringView package_name = package_name_sv_of(fullname);
-			StringView object_name	= object_name_sv_of(fullname);
+			StringView object_name  = object_name_sv_of(fullname);
 
 			object->rename(object_name, Package::static_find_package(package_name, true));
 		}
@@ -738,15 +738,15 @@ namespace Engine
 		}
 
 		Path path = Path(Project::assets_dir) /
-					Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
+		            Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
 		return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
 	}
 
 	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, Flags<SerializationFlags> flags)
 	{
 		String package_name = Strings::replace_all(path.base_path(), Path::sv_separator, Constants::name_separator);
-		StringView name		= path.stem();
-		String full_name	= package_name + Constants::name_separator + String(name);
+		StringView name     = path.stem();
+		String full_name    = package_name + Constants::name_separator + String(name);
 
 		if (!flags(SerializationFlags::SkipObjectSearch))
 		{

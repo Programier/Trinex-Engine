@@ -10,7 +10,7 @@ namespace Engine
 		open(filename, clear);
 	}
 
-	FileWriter::FileWriter(FileWriter&&)			= default;
+	FileWriter::FileWriter(FileWriter&&)            = default;
 	FileWriter& FileWriter::operator=(FileWriter&&) = default;
 
 	bool FileWriter::open(const Path& filename, bool clear)
@@ -99,7 +99,7 @@ namespace Engine
 		open(filename);
 	}
 
-	FileReader::FileReader(FileReader&&)			= default;
+	FileReader::FileReader(FileReader&&)            = default;
 	FileReader& FileReader::operator=(FileReader&&) = default;
 
 

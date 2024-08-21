@@ -12,7 +12,7 @@ namespace Engine
 	{
 		m_size = size;
 		API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible, m_buffer,
-						   m_memory);
+		                   m_memory);
 		update(0, data, size);
 		return *this;
 	}
@@ -27,7 +27,7 @@ namespace Engine
 			return *this;
 		}
 
-		size		 = std::min(size, m_size - offset);
+		size         = std::min(size, m_size - offset);
 		byte* memory = map_memory();
 		std::memcpy(memory + offset, data, size);
 		return *this;

@@ -53,7 +53,7 @@ namespace Engine
 		RenderViewport& update(float dt);
 		RenderViewport& rhi_bind();
 		RenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
-										SamplerFilter filter = SamplerFilter::Trilinear);
+		                                SamplerFilter filter = SamplerFilter::Trilinear);
 		RenderViewport& rhi_clear_color(const Color& color);
 
 		static RenderViewport* current();

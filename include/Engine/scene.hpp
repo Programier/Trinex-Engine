@@ -22,7 +22,7 @@ namespace Engine
 	{
 	public:
 		using PrimitiveOctree = Octree<PrimitiveComponent*>;
-		using LightOctree	  = Octree<LightComponent*>;
+		using LightOctree     = Octree<LightComponent*>;
 
 	private:
 		PrimitiveOctree m_octree_render_thread;

@@ -26,7 +26,7 @@ namespace Engine
 
 	ScriptFunction::ScriptFunction(ScriptFunction&& obj)
 	{
-		m_function	   = obj.m_function;
+		m_function     = obj.m_function;
 		obj.m_function = nullptr;
 	}
 
@@ -40,7 +40,7 @@ namespace Engine
 		if (this != &obj)
 		{
 			release();
-			m_function	   = obj.m_function;
+			m_function     = obj.m_function;
 			obj.m_function = nullptr;
 		}
 		return *this;
@@ -202,13 +202,13 @@ namespace Engine
 	}
 
 	bool ScriptFunction::param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags_ptr, StringView* name,
-							   StringView* default_arg) const
+	                           StringView* default_arg) const
 	{
 		check_function(false);
-		const char* c_name		  = nullptr;
+		const char* c_name        = nullptr;
 		const char* c_default_arg = nullptr;
-		asDWORD as_flags		  = 0;
-		bool status				  = m_function->GetParam(index, type_id, &as_flags, &c_name, &c_default_arg) >= 0;
+		asDWORD as_flags          = 0;
+		bool status               = m_function->GetParam(index, type_id, &as_flags, &c_name, &c_default_arg) >= 0;
 
 		if (status)
 		{
@@ -234,7 +234,7 @@ namespace Engine
 	{
 		check_function(0);
 		asDWORD script_flags = 0;
-		const int_t result	 = m_function->GetReturnTypeId(flags ? &script_flags : nullptr);
+		const int_t result   = m_function->GetReturnTypeId(flags ? &script_flags : nullptr);
 
 		if (flags)
 		{

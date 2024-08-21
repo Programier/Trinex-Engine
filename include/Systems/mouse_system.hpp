@@ -21,8 +21,8 @@ namespace Engine
 
 		struct ButtonInfo {
 			Mouse::Status status = Mouse::Status::Released;
-			float x				 = 0;
-			float y				 = 0;
+			float x              = 0;
+			float y              = 0;
 		};
 
 		struct WheelInfo {

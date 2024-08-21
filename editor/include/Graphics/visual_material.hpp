@@ -27,7 +27,7 @@ namespace Engine
 		T* create_node()
 		{
 			static_assert(std::is_base_of_v<VisualMaterialGraph::Node, T>,
-						  "Template type must have base class VisualMaterialGraph::Node");
+			              "Template type must have base class VisualMaterialGraph::Node");
 			return Object::instance_cast<T>(create_node(T::static_class_instance()));
 		}
 

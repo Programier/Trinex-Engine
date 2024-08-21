@@ -36,11 +36,11 @@ namespace Engine
 	public:
 		enum Type
 		{
-			Unknown		= -1,
-			Point		= 0,
-			Spot		= 1,
+			Unknown     = -1,
+			Point       = 0,
+			Spot        = 1,
 			Directional = 2,
-			Num			= 3
+			Num         = 3
 		};
 
 	private:

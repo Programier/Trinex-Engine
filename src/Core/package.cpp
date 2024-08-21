@@ -14,9 +14,9 @@ namespace Engine
 {
 	struct HeaderEntry {
 		Vector<Index> class_hierarchy;
-		size_t offset			 = 0;
+		size_t offset            = 0;
 		size_t uncompressed_size = 0;
-		Index object_name		 = 0;
+		Index object_name        = 0;
 
 		Vector<byte> compressed_data;
 	};
@@ -45,7 +45,7 @@ namespace Engine
 		Object* preload_object(Package* pkg, HeaderEntry* entry)
 		{
 			Class* object_class = find_class(entry);
-			Object* object		= nullptr;
+			Object* object      = nullptr;
 
 			if (object_class)
 			{
@@ -73,7 +73,7 @@ namespace Engine
 			Vector<byte> uncompressed_buffer;
 
 			VectorReader uncompressed_reader = &uncompressed_buffer;
-			Archive uncompressed_ar			 = &uncompressed_reader;
+			Archive uncompressed_ar          = &uncompressed_reader;
 
 			Object* object = preload_object(pkg, entry);
 
@@ -107,7 +107,7 @@ namespace Engine
 		Header& build(const Package* package)
 		{
 			size_t current_entry = 0;
-			auto& objects		 = package->objects();
+			auto& objects        = package->objects();
 			entries.resize(objects.size());
 
 			size_t offset = 0;
@@ -169,7 +169,7 @@ namespace Engine
 			if (ar.is_saving())
 			{
 				VectorWriter writer = &uncompressed;
-				Archive buffer_ar	= &writer;
+				Archive buffer_ar   = &writer;
 
 				buffer_ar.process_vector(names);
 				buffer_ar.process_vector(entries, callback, userdata);
@@ -190,7 +190,7 @@ namespace Engine
 				Compressor::decompress(compressed, uncompressed);
 
 				VectorReader reader = &uncompressed;
-				Archive buffer_ar	= &reader;
+				Archive buffer_ar   = &reader;
 
 				buffer_ar.process_vector(names);
 				buffer_ar.process_vector(entries, callback, userdata);
@@ -245,7 +245,7 @@ namespace Engine
 		if (contains_object(name))
 		{
 			error_log("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
-					  object->string_name().c_str());
+			          object->string_name().c_str());
 			return false;
 		}
 		return true;
@@ -306,7 +306,7 @@ namespace Engine
 	Object* Package::find_object_private_no_recurse(const StringView& _name) const
 	{
 		Name object_name = _name;
-		auto it			 = m_objects.find(object_name);
+		auto it          = m_objects.find(object_name);
 		if (it == m_objects.end())
 			return nullptr;
 		return it->second;
@@ -314,15 +314,15 @@ namespace Engine
 
 	Object* Package::find_object_private(StringView _name) const
 	{
-		const String& separator	   = Constants::name_separator;
+		const String& separator    = Constants::name_separator;
 		const size_t separator_len = separator.length();
-		size_t separator_index	   = _name.find_first_of(separator);
-		const Package* package	   = this;
+		size_t separator_index     = _name.find_first_of(separator);
+		const Package* package     = this;
 
 		while (separator_index != StringView::npos && package)
 		{
-			package			= package->find_child_object_checked<Package>(_name.substr(0, separator_index), false);
-			_name			= _name.substr(separator_index + separator_len);
+			package         = package->find_child_object_checked<Package>(_name.substr(0, separator_index), false);
+			_name           = _name.substr(separator_index + separator_len);
 			separator_index = _name.find_first_of(separator);
 		}
 

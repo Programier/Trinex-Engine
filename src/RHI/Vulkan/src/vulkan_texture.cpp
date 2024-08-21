@@ -60,7 +60,7 @@ namespace Engine
 
 		static vk::ImageCreateFlagBits default_flags = {};
 
-		vk::ImageUsageFlags m_usage_flags	   = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+		vk::ImageUsageFlags m_usage_flags      = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
 		vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
 
 
@@ -81,12 +81,12 @@ namespace Engine
 		vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
 
 		API->create_image(this, tiling,
-						  texture->type() == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
-						  m_usage_flags, m_memory_flags, m_image, m_image_memory, layer_count());
+		                  texture->type() == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
+		                  m_usage_flags, m_memory_flags, m_image, m_image_memory, layer_count());
 
 		// Creating image view
 		m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
-										 get_type(texture->swizzle_a));
+		                                 get_type(texture->swizzle_a));
 		m_image_view = create_image_view(vk::ImageSubresourceRange(aspect(true), 0, mipmap_count(), 0, layer_count()));
 		change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
@@ -104,8 +104,8 @@ namespace Engine
 		vk::DeviceSize buffer_size = data_size;
 
 		API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
-						   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, staging_buffer,
-						   staging_buffer_memory);
+		                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, staging_buffer,
+		                   staging_buffer_memory);
 
 		void* vulkan_data = API->m_device.mapMemory(staging_buffer_memory, 0, buffer_size);
 		std::memcpy(vulkan_data, data, buffer_size);
@@ -114,17 +114,17 @@ namespace Engine
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout			= m_layout;
-		barrier.newLayout			= vk::ImageLayout::eTransferDstOptimal;
-		barrier.image				= m_image;
-		barrier.subresourceRange	= vk::ImageSubresourceRange(aspect(), level, 1, layer, 1);
+		barrier.oldLayout           = m_layout;
+		barrier.newLayout           = vk::ImageLayout::eTransferDstOptimal;
+		barrier.image               = m_image;
+		barrier.subresourceRange    = vk::ImageSubresourceRange(aspect(), level, 1, layer, 1);
 
 
 		Barrier::transition_image_layout(barrier);
 		auto command_buffer = API->begin_single_time_command_buffer();
 
 		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1), vk::Offset3D(0, 0, 0),
-								   vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
+		                           vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
 
 		command_buffer.copyBufferToImage(staging_buffer, m_image, vk::ImageLayout::eTransferDstOptimal, region);
 
@@ -180,7 +180,7 @@ namespace Engine
 	bool VulkanTexture::is_color_image() const
 	{
 		return is_in<ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8, ColorFormat::R8G8B8A8, ColorFormat::BC1,
-					 ColorFormat::BC2, ColorFormat::BC3>(engine_format());
+		             ColorFormat::BC2, ColorFormat::BC3>(engine_format());
 	}
 
 	bool VulkanTexture::is_render_target_color_image() const
@@ -196,7 +196,7 @@ namespace Engine
 	bool VulkanTexture::is_depth_stencil_image(ColorFormat format)
 	{
 		return is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-				format);
+		        format);
 	}
 
 	vk::ImageView VulkanTexture::create_image_view(const vk::ImageSubresourceRange& range)
@@ -221,12 +221,12 @@ namespace Engine
 			vk::ImageMemoryBarrier barrier;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.oldLayout			= m_layout;
-			barrier.newLayout			= new_layout;
-			barrier.image				= m_image;
+			barrier.oldLayout           = m_layout;
+			barrier.newLayout           = new_layout;
+			barrier.image               = m_image;
 
 			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
-			m_layout				 = barrier.newLayout;
+			m_layout                 = barrier.newLayout;
 
 			Barrier::transition_image_layout(barrier);
 
@@ -244,12 +244,12 @@ namespace Engine
 			vk::ImageMemoryBarrier barrier;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.oldLayout			= m_layout;
-			barrier.newLayout			= new_layout;
-			barrier.image				= m_image;
+			barrier.oldLayout           = m_layout;
+			barrier.newLayout           = new_layout;
+			barrier.image               = m_image;
 
 			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
-			m_layout				 = barrier.newLayout;
+			m_layout                 = barrier.newLayout;
 
 			Barrier::transition_image_layout(cmd, barrier);
 
@@ -333,7 +333,7 @@ namespace Engine
 		if (is_color_image())
 		{
 			auto current_layout = layout();
-			auto& cmd			= API->current_command_buffer_handle();
+			auto& cmd           = API->current_command_buffer_handle();
 			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
 
 			vk::ClearColorValue value;
@@ -341,10 +341,10 @@ namespace Engine
 
 			vk::ImageSubresourceRange range;
 			range.setAspectMask(aspect(false))
-					.setBaseArrayLayer(0)
-					.setBaseMipLevel(0)
-					.setLayerCount(layer_count())
-					.setLevelCount(mipmap_count());
+			        .setBaseArrayLayer(0)
+			        .setBaseMipLevel(0)
+			        .setLayerCount(layer_count())
+			        .setLevelCount(mipmap_count());
 
 
 			API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
@@ -357,17 +357,17 @@ namespace Engine
 		if (is_depth_stencil_image())
 		{
 			auto current_layout = layout();
-			auto& cmd			= API->current_command_buffer_handle();
+			auto& cmd           = API->current_command_buffer_handle();
 			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
 
 			vk::ClearDepthStencilValue value;
 			value.setDepth(depth).setStencil(stencil);
 			vk::ImageSubresourceRange range;
 			range.setAspectMask(aspect(false))
-					.setBaseArrayLayer(0)
-					.setBaseMipLevel(0)
-					.setLayerCount(layer_count())
-					.setLevelCount(mipmap_count());
+			        .setBaseArrayLayer(0)
+			        .setBaseMipLevel(0)
+			        .setLayerCount(layer_count())
+			        .setLevelCount(mipmap_count());
 
 
 			API->current_command_buffer_handle().clearDepthStencilImage(image(), layout(), value, range);

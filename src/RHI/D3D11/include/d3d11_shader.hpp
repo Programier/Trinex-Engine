@@ -9,7 +9,7 @@ namespace Engine
 	{
 	public:
 		ID3D11VertexShader* m_shader = nullptr;
-		ID3D11InputLayout* m_layout	 = nullptr;
+		ID3D11InputLayout* m_layout  = nullptr;
 
 		bool init(const class VertexShader* shader);
 		static void bind(D3D11_VertexShader* self);

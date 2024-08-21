@@ -33,7 +33,7 @@ namespace Engine
 		if (is_editable && ImGui::Button("editor/Rename"_localized))
 		{
 			ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiRenameObject>("RenameObject",
-																							   m_selected_package);
+			                                                                                   m_selected_package);
 			return false;
 		}
 
@@ -63,7 +63,7 @@ namespace Engine
 			ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
 		}
 
-		bool opened			 = false;
+		bool opened          = false;
 		bool is_root_package = node == Object::root_package();
 
 		opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "%s", node->string_name().c_str());
@@ -162,7 +162,7 @@ namespace Engine
 	}
 
 	bool ContentBrowser::render_content_item(Object* object, const StringView& name, const ImVec2& item_size,
-											 const ImVec2& content_size, bool& not_first_item)
+	                                         const ImVec2& content_size, bool& not_first_item)
 	{
 		float padding = ImGui::GetStyle().FramePadding.x;
 
@@ -210,7 +210,7 @@ namespace Engine
 			if (is_selected)
 			{
 				static ImVec4 color1 = ImVec4(79.f / 255.f, 109.f / 255.f, 231.f / 255.f, 1.0),
-							  color2 = ImVec4(114.f / 255.f, 138.f / 255.f, 233.f / 255.f, 1.0);
+				              color2 = ImVec4(114.f / 255.f, 138.f / 255.f, 233.f / 255.f, 1.0);
 
 				ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(color1));
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(color2));
@@ -251,10 +251,10 @@ namespace Engine
 				if (imgui_texture == Icons::default_texture())
 				{
 					const char* class_name = object->class_instance()->base_name_splitted().c_str();
-					ImVec2 text_size	   = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
+					ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
 
 					ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,
-														  (item_size.y / 2) - (text_size.y / 2));
+					                                      (item_size.y / 2) - (text_size.y / 2));
 
 					ImGui::SetCursorPos(text_pos);
 					ImGui::PushTextWrapPos(text_pos.x + item_size.x);
@@ -276,10 +276,10 @@ namespace Engine
 			if (imgui_texture == Icons::default_texture())
 			{
 				const char* class_name = object->class_instance()->base_name_splitted().c_str();
-				ImVec2 text_size	   = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
+				ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
 
 				ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,
-													  (item_size.y / 2) - (text_size.y / 2));
+				                                      (item_size.y / 2) - (text_size.y / 2));
 
 				ImGui::SetCursorPos(text_pos);
 				ImGui::PushTextWrapPos(text_pos.x + item_size.x);
@@ -290,7 +290,7 @@ namespace Engine
 
 
 			String object_name = Strings::make_sentence(name);
-			float offset	   = (item_size.x - ImGui::CalcTextSize(object_name.c_str(), nullptr, false, item_size.x).x) / 2.f;
+			float offset       = (item_size.x - ImGui::CalcTextSize(object_name.c_str(), nullptr, false, item_size.x).x) / 2.f;
 			current_pos.x += offset;
 			ImGui::SetCursorPos(current_pos);
 
@@ -386,7 +386,7 @@ namespace Engine
 		m_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
 
 		ImGui::DockSpace(m_dock_window_id, {0, 0},
-						 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
+		                 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
 
 		if (frame_number == 1)
 		{

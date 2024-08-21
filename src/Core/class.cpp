@@ -19,9 +19,9 @@ namespace Engine
 	{
 		m_size = 0;
 		info_log("Class", "Created class instance '%s'", this->name().c_str());
-		flags				= _flags;
+		flags               = _flags;
 		m_singletone_object = nullptr;
-		m_destroy_func		= GarbageCollector::destroy_internal;
+		m_destroy_func      = GarbageCollector::destroy_internal;
 
 		if (is_asset())
 		{

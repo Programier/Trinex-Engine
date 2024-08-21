@@ -27,15 +27,15 @@ namespace Engine
 
 	WindowConfig& WindowConfig::initialize()
 	{
-		attributes	 = Settings::w_attributes.to_set<decltype(attributes)>();
+		attributes   = Settings::w_attributes.to_set<decltype(attributes)>();
 		orientations = Settings::w_attributes.to_set<decltype(orientations)>();
-		title		 = Settings::w_title;
-		client		 = Settings::w_client;
-		size.x		 = Settings::w_size_x;
-		size.y		 = Settings::w_size_y;
-		position.x	 = Settings::w_pos_x;
-		position.y	 = Settings::w_pos_y;
-		vsync		 = Settings::w_vsync;
+		title        = Settings::w_title;
+		client       = Settings::w_client;
+		size.x       = Settings::w_size_x;
+		size.y       = Settings::w_size_y;
+		position.x   = Settings::w_pos_x;
+		position.y   = Settings::w_pos_y;
+		vsync        = Settings::w_vsync;
 		return *this;
 	}
 

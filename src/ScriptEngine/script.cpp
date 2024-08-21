@@ -215,12 +215,12 @@ namespace Engine
 			for (auto& [var_idx, metadata] : in_map)
 			{
 				const char* name = nullptr;
-				const char* ns	 = nullptr;
+				const char* ns   = nullptr;
 
 				if (module->GetGlobalVar(var_idx, &name, &ns))
 				{
 					String full_name =
-							Strings::concat_scoped_name(Strings::make_string_view(ns), Strings::make_string_view(name));
+					        Strings::concat_scoped_name(Strings::make_string_view(ns), Strings::make_string_view(name));
 					result[full_name] = parse_metadata(in_map, var_idx);
 				}
 			}
@@ -229,7 +229,7 @@ namespace Engine
 		}
 
 		TreeMap<String, TreeSet<String>> parse_prop_metadata(const ScriptTypeInfo& info,
-															 const std::map<int, std::vector<std::string>>& in_map)
+		                                                     const std::map<int, std::vector<std::string>>& in_map)
 		{
 			TreeMap<String, TreeSet<String>> result;
 
@@ -262,9 +262,9 @@ namespace Engine
 				if (!info.is_valid())
 					continue;
 
-				auto& result_metadata			  = result[Strings::concat_scoped_name(info.namespace_name(), info.name())];
-				result_metadata.type_info		  = info;
-				result_metadata.class_metadata	  = parse_metadata(typeMetadataMap, type_id);
+				auto& result_metadata             = result[Strings::concat_scoped_name(info.namespace_name(), info.name())];
+				result_metadata.type_info         = info;
+				result_metadata.class_metadata    = parse_metadata(typeMetadataMap, type_id);
 				result_metadata.func_metadata_map = parse_func_metadata(metadata.funcMetadataMap);
 				result_metadata.prop_metadata_map = parse_prop_metadata(info, metadata.varMetadataMap);
 			}
@@ -273,7 +273,7 @@ namespace Engine
 	};
 
 	Script::Script(ScriptFolder* folder, const String& name)
-		: m_path(folder->path() / name), m_name(name), m_folder(folder), m_is_dirty(false)
+	    : m_path(folder->path() / name), m_name(name), m_folder(folder), m_is_dirty(false)
 	{}
 
 	Script::~Script()
@@ -301,7 +301,7 @@ namespace Engine
 
 	Script& Script::code(const String& code)
 	{
-		m_code	   = code;
+		m_code     = code;
 		m_is_dirty = true;
 		return *this;
 	}
@@ -352,8 +352,8 @@ namespace Engine
 
 	Script& Script::load_metadata(Builder& builder)
 	{
-		m_func_metadata_map	 = builder.func_metadata_map();
-		m_var_metadata_map	 = builder.var_metadata_map();
+		m_func_metadata_map  = builder.func_metadata_map();
+		m_var_metadata_map   = builder.var_metadata_map();
 		m_class_metadata_map = builder.class_metadata_map();
 		return *this;
 	}
@@ -424,7 +424,7 @@ namespace Engine
 		auto base_class = reinterpret_cast<Class*>(base->GetNativeClassUserData());
 
 		auto full_name = Strings::concat_scoped_name(Strings::make_string_view(info->GetNamespace()),
-													 Strings::make_string_view(info->GetName()));
+		                                             Strings::make_string_view(info->GetName()));
 
 		Class* script_class = new Class(full_name, base_class, Class::IsScriptable);
 

@@ -8,7 +8,7 @@ namespace Engine
 {
 	vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance)
 	{
-		SDL_Window* window	 = reinterpret_cast<SDL_Window*>(native_window);
+		SDL_Window* window   = reinterpret_cast<SDL_Window*>(native_window);
 		VkSurfaceKHR surface = {};
 		SDL_Vulkan_CreateSurface(window, static_cast<VkInstance>(instance), &surface);
 		return surface;

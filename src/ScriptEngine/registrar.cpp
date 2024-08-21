@@ -158,16 +158,16 @@ namespace Engine
 	{}
 
 	ScriptClassRegistrar::ValueInfo::ValueInfo()
-		: all_ints(false), all_floats(false), pod(false), more_constructors(false), is_class(true), is_array(false),
-		  is_float(false), is_primitive(false), has_constructor(false), has_destructor(false), has_assignment_operator(false),
-		  has_copy_constructor(false)
+	    : all_ints(false), all_floats(false), pod(false), more_constructors(false), is_class(true), is_array(false),
+	      is_float(false), is_primitive(false), has_constructor(false), has_destructor(false), has_assignment_operator(false),
+	      has_copy_constructor(false)
 	{}
 
 	ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true)
 	{}
 
 	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name)
-		: m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)), m_namespace_name(Strings::namespace_sv_of(name))
+	    : m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)), m_namespace_name(Strings::namespace_sv_of(name))
 	{}
 
 	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags) : ScriptClassRegistrar(name)
@@ -180,7 +180,7 @@ namespace Engine
 	{
 		if (!info.template_type.empty())
 		{
-			m_class_name	  = m_class_name.substr(0, m_class_name.find_first_of('<'));
+			m_class_name      = m_class_name.substr(0, m_class_name.find_first_of('<'));
 			m_class_base_name = m_class_base_name.substr(0, m_class_base_name.find_first_of('<'));
 			m_class_name += info.template_type;
 			m_class_base_name += info.template_type;
@@ -201,12 +201,12 @@ namespace Engine
 	ScriptClassRegistrar ScriptClassRegistrar::reference_class(Class* class_instance)
 	{
 		ScriptClassRegistrar::RefInfo info;
-		info.no_count		 = true;
+		info.no_count        = true;
 		info.implicit_handle = true;
-		info.extra_flags	 = asOBJ_APP_NATIVE_INHERITANCE;
+		info.extra_flags     = asOBJ_APP_NATIVE_INHERITANCE;
 
 		auto res = ScriptClassRegistrar(class_instance->name().to_string(), class_instance->sizeof_class(), create_flags(info));
-		auto ti	 = res.type_info();
+		auto ti  = res.type_info();
 		class_instance->script_type_info = ti;
 		ti.info()->SetNativeClassUserData(class_instance);
 		return res;
@@ -242,7 +242,7 @@ namespace Engine
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		int r = script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-													  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv));
+		                                              *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv));
 		SCRIPT_CHECK(r >= 0);
 		return script_engine()->GetFunctionById(r);
 	}
@@ -251,7 +251,7 @@ namespace Engine
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		int r = script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-													  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv));
+		                                              *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv));
 		SCRIPT_CHECK(r >= 0);
 		return script_engine()->GetFunctionById(r);
 	}
@@ -277,28 +277,28 @@ namespace Engine
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
-													   ScriptFuncPtr* function, ScriptCallConv conv)
+	                                                   ScriptFuncPtr* function, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-															  *reinterpret_cast<asSFuncPtr*>(function),
-															  create_call_conv(conv)) >= 0);
+		                                                      *reinterpret_cast<asSFuncPtr*>(function),
+		                                                      create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
-													   ScriptMethodPtr* method, ScriptCallConv conv)
+	                                                   ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-															  *reinterpret_cast<asSFuncPtr*>(method),
-															  create_call_conv(conv)) >= 0);
+		                                                      *reinterpret_cast<asSFuncPtr*>(method),
+		                                                      create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
 
 	ScriptEnumRegistrar::ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init)
-		: m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
+	    : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
 	{
 		if (init)
 		{
@@ -313,7 +313,7 @@ namespace Engine
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														   *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
+		                                                   *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
@@ -321,13 +321,13 @@ namespace Engine
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-														   *reinterpret_cast<asSFuncPtr*>(function),
-														   create_call_conv(conv)) >= 0);
+		                                                   *reinterpret_cast<asSFuncPtr*>(function),
+		                                                   create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
 	ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name, bool init)
-		: ScriptEnumRegistrar(Strings::namespace_of(full_name), Strings::class_name_of(full_name), init)
+	    : ScriptEnumRegistrar(Strings::namespace_of(full_name), Strings::class_name_of(full_name), init)
 	{}
 
 	ScriptEnumRegistrar& ScriptEnumRegistrar::prepare_namespace()

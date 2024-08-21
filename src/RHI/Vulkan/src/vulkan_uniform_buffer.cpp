@@ -19,7 +19,7 @@ namespace Engine
 		buffers.emplace_back();
 		auto& buffer = buffers.back();
 		API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer,
-						   vk::MemoryPropertyFlagBits::eHostVisible, buffer.buffer, buffer.memory);
+		                   vk::MemoryPropertyFlagBits::eHostVisible, buffer.buffer, buffer.memory);
 
 		buffer.size = size;
 		return *this;
@@ -63,8 +63,8 @@ namespace Engine
 		if (index >= 0 && pipeline && pipeline->global_parameters_info().has_parameters())
 		{
 			API->m_state.m_pipeline->bind_uniform_buffer(
-					vk::DescriptorBufferInfo(buffers[index].buffer, 0, sizeof(GlobalShaderParameters)),
-					pipeline->global_parameters_info().bind_index(), vk::DescriptorType::eUniformBuffer);
+			        vk::DescriptorBufferInfo(buffers[index].buffer, 0, sizeof(GlobalShaderParameters)),
+			        pipeline->global_parameters_info().bind_index(), vk::DescriptorType::eUniformBuffer);
 		}
 	}
 
@@ -103,8 +103,8 @@ namespace Engine
 
 			BindLocation local_params_location = pipeline->local_parameters_info().bind_index();
 			API->m_state.m_pipeline->bind_uniform_buffer(
-					vk::DescriptorBufferInfo(current_buffer.buffer, used_data, shadow_data_size), local_params_location,
-					vk::DescriptorType::eUniformBuffer);
+			        vk::DescriptorBufferInfo(current_buffer.buffer, used_data, shadow_data_size), local_params_location,
+			        vk::DescriptorType::eUniformBuffer);
 			used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
 		}
 
@@ -126,8 +126,8 @@ namespace Engine
 	void LocalUniformBufferPool::reset()
 	{
 		shadow_data_size = 0;
-		index			 = 0;
-		used_data		 = 0;
+		index            = 0;
+		used_data        = 0;
 	}
 
 	void VulkanUniformBuffer::reset()

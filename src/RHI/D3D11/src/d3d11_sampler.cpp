@@ -16,19 +16,19 @@ namespace Engine
 	{
 		D3D11_SAMPLER_DESC desc{};
 
-		desc.Filter			= filter_of(sampler->filter, is_comparison_mode(sampler->compare_func));
-		desc.AddressU		= address_mode_of(sampler->address_u);
-		desc.AddressV		= address_mode_of(sampler->address_v);
-		desc.AddressW		= address_mode_of(sampler->address_w);
-		desc.MipLODBias		= sampler->mip_lod_bias;
-		desc.MaxAnisotropy	= sampler->anisotropy;
+		desc.Filter         = filter_of(sampler->filter, is_comparison_mode(sampler->compare_func));
+		desc.AddressU       = address_mode_of(sampler->address_u);
+		desc.AddressV       = address_mode_of(sampler->address_v);
+		desc.AddressW       = address_mode_of(sampler->address_w);
+		desc.MipLODBias     = sampler->mip_lod_bias;
+		desc.MaxAnisotropy  = sampler->anisotropy;
 		desc.ComparisonFunc = comparison_func_of(sampler->compare_func);
 		desc.BorderColor[0] = sampler->border_color.r;
 		desc.BorderColor[1] = sampler->border_color.g;
 		desc.BorderColor[2] = sampler->border_color.b;
 		desc.BorderColor[3] = sampler->border_color.a;
-		desc.MinLOD			= sampler->min_lod;
-		desc.MaxLOD			= sampler->max_lod;
+		desc.MinLOD         = sampler->min_lod;
+		desc.MaxLOD         = sampler->max_lod;
 
 		return DXAPI->m_device->CreateSamplerState(&desc, &m_sampler) == S_OK;
 	}

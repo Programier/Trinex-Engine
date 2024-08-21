@@ -315,7 +315,7 @@ namespace Engine
 
 			imgui_destroy_context(m_imgui_window->context());
 			m_imgui_window->m_window = nullptr;
-			m_imgui_window			 = nullptr;
+			m_imgui_window           = nullptr;
 
 			ImGuiRenderer::Window::make_current(current_window);
 			return *this;
@@ -331,7 +331,7 @@ namespace Engine
 		if (m_render_viewport)
 		{
 			RenderViewport* viewport = m_render_viewport;
-			m_render_viewport		 = nullptr;
+			m_render_viewport        = nullptr;
 			viewport->client(nullptr);
 			GarbageCollector::destroy(viewport);
 		}

@@ -50,6 +50,6 @@ namespace Engine
 
 #define implement_enum(enum_name, namespace_name, ...)                                                                           \
 	static Engine::ReflectionInitializeController initialize_##enum_name = Engine::ReflectionInitializeController(               \
-			[]() { Enum::create(#namespace_name, #enum_name, Vector<Engine::Enum::Entry>({__VA_ARGS__})); },                     \
-			ENTITY_INITIALIZER_NAME(enum_name, namespace_name))
+	        []() { Enum::create(#namespace_name, #enum_name, Vector<Engine::Enum::Entry>({__VA_ARGS__})); },                     \
+	        ENTITY_INITIALIZER_NAME(enum_name, namespace_name))
 }// namespace Engine

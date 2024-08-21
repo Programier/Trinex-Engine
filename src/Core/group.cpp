@@ -13,7 +13,7 @@ namespace Engine
 
 		if (root_group == nullptr)
 		{
-			root_group		   = new Group();
+			root_group         = new Group();
 			root_group->m_name = "Root Group";
 
 			PostDestroyController([]() {
@@ -45,13 +45,13 @@ namespace Engine
 
 		if (create)
 		{
-			Group* new_group	= new Group();
-			new_group->m_name	= Name(name, len);
+			Group* new_group    = new Group();
+			new_group->m_name   = Name(name, len);
 			new_group->m_parent = this;
 
 			// Find index for insert
 			Index index = 0;
-			auto& name	= new_group->name().to_string();
+			auto& name  = new_group->name().to_string();
 
 			for (Index size = m_childs.size(); index < size && name > m_childs[index]->name().to_string(); index++)
 			{
@@ -66,15 +66,15 @@ namespace Engine
 
 	Group* Group::find(const char* name, size_t len, bool create)
 	{
-		const char* name_end	  = name + len;
-		const String& separator	  = Constants::name_separator;
+		const char* name_end      = name + len;
+		const String& separator   = Constants::name_separator;
 		const char* separator_pos = nullptr;
-		Group* current			  = root();
+		Group* current            = root();
 
 		while (current && (separator_pos = Strings::strnstr(name, name_end - name, separator.c_str(), separator.length())))
 		{
 			current = current->find_subgroup(name, separator_pos - name, create);
-			name	= separator_pos + separator.length();
+			name    = separator_pos + separator.length();
 		}
 
 		return current ? current->find_subgroup(name, name_end - name, create) : nullptr;
@@ -113,7 +113,7 @@ namespace Engine
 
 		// Find index for insert
 		Index index = 0;
-		auto& name	= instance->base_name().to_string();
+		auto& name  = instance->base_name().to_string();
 		for (Index size = m_structs.size(); index < size && name > m_structs[index]->name().to_string(); index++)
 		{
 		}

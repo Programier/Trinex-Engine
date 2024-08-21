@@ -14,15 +14,15 @@ namespace Engine
 	struct EditorState {
 		struct {
 			const Enum::Entry* view_mode_entry = nullptr;
-			Vector2D size					   = {0.f, 0.f};
-			bool show_additional_menu		   = false;
-			bool is_hovered					   = false;
-			bool is_using_guizmo			   = false;
+			Vector2D size                      = {0.f, 0.f};
+			bool show_additional_menu          = false;
+			bool is_hovered                    = false;
+			bool is_using_guizmo               = false;
 		} viewport;
 
 		struct {
-			RenderViewport* render_viewport		= nullptr;
-			Window* window						= nullptr;
+			RenderViewport* render_viewport     = nullptr;
+			Window* window                      = nullptr;
 			ImGuiRenderer::Window* imgui_window = nullptr;
 		} window;
 
@@ -47,15 +47,15 @@ namespace Engine
 		SceneView m_scene_view;
 
 		class ContentBrowser* m_content_browser = nullptr;
-		ImGuiObjectProperties* m_properties		= nullptr;
-		ImGuiLevelExplorer* m_level_explorer	= nullptr;
+		ImGuiObjectProperties* m_properties     = nullptr;
+		ImGuiLevelExplorer* m_level_explorer    = nullptr;
 
 		Pointer<CameraComponent> camera;
-		float m_camera_speed	 = 10.f;
-		Vector3D m_camera_move	 = {0, 0, 0};
+		float m_camera_speed     = 10.f;
+		Vector3D m_camera_move   = {0, 0, 0};
 		int_t m_guizmo_operation = 0;
 		EditorState m_state;
-		
+
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);
 

@@ -18,7 +18,7 @@ namespace Engine
 			BufferWriter* m_writer;
 		};
 
-		bool m_is_saving	  = false;
+		bool m_is_saving      = false;
 		bool m_process_status = true;
 
 
@@ -71,7 +71,7 @@ namespace Engine
 			else
 			{
 				size_t size = sizeof(Type);
-				byte* data	= reinterpret_cast<byte*>(&value);
+				byte* data  = reinterpret_cast<byte*>(&value);
 
 				if (is_reading())
 				{
@@ -124,8 +124,8 @@ namespace Engine
 
 		template<typename Type>
 		FORCE_INLINE bool process_vector(Type& vector,
-										 bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
-										 void* userdata														   = nullptr)
+		                                 bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
+		                                 void* userdata                                                        = nullptr)
 		{
 			size_t size = vector.size();
 			Archive& ar = *this;
@@ -138,7 +138,7 @@ namespace Engine
 
 			if constexpr (std::is_fundamental_v<Type>)
 			{
-				byte* data	 = reinterpret_cast<byte*>(vector.data());
+				byte* data   = reinterpret_cast<byte*>(vector.data());
 				size_t bytes = size * sizeof(Type);
 
 				if (ar.is_reading())
@@ -177,7 +177,7 @@ namespace Engine
 
 		template<typename Type>
 		FORCE_INLINE bool process_set(Type& set, bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
-									  void* userdata = nullptr)
+		                              void* userdata = nullptr)
 		{
 			size_t size = set.size();
 			Archive& ar = *this;
@@ -313,7 +313,7 @@ namespace Engine
 	}
 
 	template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>,
-			 typename AllocatorType = Allocator<Type>>
+	         typename AllocatorType = Allocator<Type>>
 	FORCE_INLINE bool operator&(Archive& ar, Set<Type, HashType, Pred, AllocatorType>& set)
 	{
 		return ar.process_set(set);
@@ -326,14 +326,14 @@ namespace Engine
 	}
 
 	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,
-			 typename AllocatorType = Allocator<Pair<const Key, Value>>>
+	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
 	FORCE_INLINE bool operator&(Archive& ar, Map<Key, Value, HashType, Pred, AllocatorType>& map)
 	{
 		return ar.write_map(map);
 	}
 
 	template<typename Key, typename Value, typename Compare = std::less<Key>,
-			 typename AllocatorType = Allocator<Pair<const Key, Value>>>
+	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
 	FORCE_INLINE bool operator&(Archive& ar, TreeMap<Key, Value, Compare, AllocatorType>& map)
 	{
 		return ar.write_map(map);

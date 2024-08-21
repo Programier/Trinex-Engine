@@ -4,8 +4,8 @@
 
 namespace Engine::Settings
 {
-	String ed_font_path		   = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
-	float ed_font_size		   = 18.f;
+	String ed_font_path        = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+	float ed_font_size         = 18.f;
 	float ed_collapsing_indent = 5.f;
 
 	static ReflectionInitializeController initialize([]() {

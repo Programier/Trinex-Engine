@@ -24,7 +24,7 @@ namespace Engine::VFS
 			if (is_valid())
 			{
 				const std::filesystem::path& path = *m_it;
-				m_path							  = m_base->mount_point() / Path(path.string()).relative(m_base->path());
+				m_path                            = m_base->mount_point() / Path(path.string()).relative(m_base->path());
 			}
 		}
 
@@ -48,9 +48,9 @@ namespace Engine::VFS
 		DirectoryIteratorInterface* copy() override
 		{
 			NativeIterator* new_iterator = new NativeIterator();
-			new_iterator->m_path		 = m_path;
-			new_iterator->m_it			 = m_it;
-			new_iterator->m_base		 = m_base;
+			new_iterator->m_path         = m_path;
+			new_iterator->m_it           = m_it;
+			new_iterator->m_base         = m_base;
 			return new_iterator;
 		}
 
@@ -69,12 +69,12 @@ namespace Engine::VFS
 	{
 		try
 		{
-			Path dir	  = m_path / path;
+			Path dir      = m_path / path;
 			auto iterator = fs::directory_iterator(dir.str());
 
 			NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
-			it->m_base								   = this;
-			it->m_it								   = iterator;
+			it->m_base                                 = this;
+			it->m_it                                   = iterator;
 			it->update_path();
 			return it;
 		}
@@ -89,12 +89,12 @@ namespace Engine::VFS
 	{
 		try
 		{
-			Path dir	  = m_path / path;
+			Path dir      = m_path / path;
 			auto iterator = fs::recursive_directory_iterator(dir.str());
 
 			NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
-			it->m_base											 = this;
-			it->m_it											 = iterator;
+			it->m_base                                           = this;
+			it->m_it                                             = iterator;
 			it->update_path();
 			return it;
 		}
@@ -128,7 +128,7 @@ namespace Engine::VFS
 		Path full_path = m_path / path;
 
 		std::ios_base::openmode open_mode = std::ios_base::binary;
-		bool is_read_only				  = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
+		bool is_read_only                 = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
 
 
 		if (mode & FileOpenMode::In)

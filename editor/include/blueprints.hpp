@@ -23,14 +23,14 @@ namespace Engine
 		enum class Stage
 		{
 			Invalid = 0,
-			Begin	= 1,
-			End		= 2,
-			Header	= 3,
+			Begin   = 1,
+			End     = 2,
+			Header  = 3,
 			Content = 4,
-			Input	= 5,
-			Middle	= 6,
-			Output	= 7,
-			Footer	= 8,
+			Input   = 5,
+			Middle  = 6,
+			Output  = 7,
+			Footer  = 8,
 		};
 
 		Identifier m_id = 0;
@@ -78,6 +78,6 @@ namespace Engine
 
 		void begin_footer(const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color = ImVec4(1, 1, 1, 1),
-						 const ImVec4& inner_color = ImVec4(0, 0, 0, 0));
+		                 const ImVec4& inner_color = ImVec4(0, 0, 0, 0));
 	};
 }// namespace Engine

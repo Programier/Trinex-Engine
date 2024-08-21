@@ -17,7 +17,7 @@ namespace Engine
 			return;
 
 		Stage old = m_stage;
-		m_stage	  = new_stage;
+		m_stage   = new_stage;
 
 		switch (old)
 		{
@@ -114,7 +114,7 @@ namespace Engine
 
 	void BlueprintBuilder::begin(Identifier id)
 	{
-		m_id		 = id;
+		m_id         = id;
 		m_footer_min = m_footer_max = m_header_min = m_header_max = ImVec2();
 
 		m_has_header = false;
@@ -134,11 +134,11 @@ namespace Engine
 
 		if (ImGui::IsItemVisible())
 		{
-			auto alpha	   = static_cast<int>(255 * ImGui::GetStyle().Alpha);
+			auto alpha     = static_cast<int>(255 * ImGui::GetStyle().Alpha);
 			auto draw_list = ed::GetNodeBackgroundDrawList(m_id);
 
 			const auto half_border_width = ed::GetStyle().NodeBorderWidth * 0.5f;
-			const auto node_padding		 = ed::GetStyle().NodePadding;
+			const auto node_padding      = ed::GetStyle().NodePadding;
 
 			if (m_has_header)
 			{
@@ -146,21 +146,21 @@ namespace Engine
 				if ((m_header_max.x > m_header_min.x) && (m_header_max.y > m_header_min.y))
 				{
 					Texture2D* texture = EditorResources::blueprint_texture;
-					const auto uv	   = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->width()),
-												(m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
+					const auto uv      = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->width()),
+					                            (m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
 
 					draw_list->AddImageRounded(
-							ImTextureID(texture, EditorResources::default_sampler),
-							m_header_min - ImVec2(node_padding.x - half_border_width, node_padding.y - half_border_width),
-							m_header_max + ImVec2(node_padding.z - half_border_width, 0), ImVec2(0.0f, 0.0f), uv, header_color,
-							GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
+					        ImTextureID(texture, EditorResources::default_sampler),
+					        m_header_min - ImVec2(node_padding.x - half_border_width, node_padding.y - half_border_width),
+					        m_header_max + ImVec2(node_padding.z - half_border_width, 0), ImVec2(0.0f, 0.0f), uv, header_color,
+					        GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
 
 
 					if (m_content_min.y > m_header_max.y)
 					{
 						draw_list->AddLine(ImVec2(m_header_min.x - (8 - half_border_width), m_header_max.y - 0.5f),
-										   ImVec2(m_header_max.x + (8 - half_border_width), m_header_max.y - 0.5f),
-										   ImColor(255, 255, 255, 96 * alpha / (3 * 255)), 1.0f);
+						                   ImVec2(m_header_max.x + (8 - half_border_width), m_header_max.y - 0.5f),
+						                   ImColor(255, 255, 255, 96 * alpha / (3 * 255)), 1.0f);
 					}
 				}
 			}
@@ -171,14 +171,14 @@ namespace Engine
 				if ((m_footer_max.x > m_footer_min.x) && (m_footer_max.y > m_footer_min.y))
 				{
 					Texture2D* texture = EditorResources::blueprint_texture;
-					const auto uv	   = ImVec2((m_footer_max.x - m_footer_min.x) / (4.0f * texture->width()),
-												(m_footer_max.y - m_footer_min.y) / (4.0f * texture->height()));
+					const auto uv      = ImVec2((m_footer_max.x - m_footer_min.x) / (4.0f * texture->width()),
+					                            (m_footer_max.y - m_footer_min.y) / (4.0f * texture->height()));
 
 					draw_list->AddImageRounded(
-							ImTextureID(texture, EditorResources::default_sampler),
-							m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
-							m_footer_max + ImVec2(node_padding.z - half_border_width, node_padding.w - half_border_width),
-							ImVec2(0.0f, 0.0f), uv, footer_color, GetStyle().NodeRounding, ImDrawFlags_RoundCornersBottom);
+					        ImTextureID(texture, EditorResources::default_sampler),
+					        m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
+					        m_footer_max + ImVec2(node_padding.z - half_border_width, node_padding.w - half_border_width),
+					        ImVec2(0.0f, 0.0f), uv, footer_color, GetStyle().NodeRounding, ImDrawFlags_RoundCornersBottom);
 				}
 			}
 		}
@@ -262,15 +262,15 @@ namespace Engine
 	}
 
 	static void draw_icon(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max, BlueprintBuilder::IconType type,
-						  bool filled, ImU32 color, ImU32 inner_color)
+	                      bool filled, ImU32 color, ImU32 inner_color)
 	{
-		auto rect				  = ImRect(min, max);
-		auto rect_y				  = rect.Min.y;
-		auto rect_w				  = rect.Max.x - rect.Min.x;
-		auto rect_h				  = rect.Max.y - rect.Min.y;
-		auto rect_center_x		  = (rect.Min.x + rect.Max.x) * 0.5f;
-		auto rect_center_y		  = (rect.Min.y + rect.Max.y) * 0.5f;
-		auto rect_center		  = ImVec2(rect_center_x, rect_center_y);
+		auto rect                 = ImRect(min, max);
+		auto rect_y               = rect.Min.y;
+		auto rect_w               = rect.Max.x - rect.Min.x;
+		auto rect_h               = rect.Max.y - rect.Min.y;
+		auto rect_center_x        = (rect.Min.x + rect.Max.x) * 0.5f;
+		auto rect_center_y        = (rect.Min.y + rect.Max.y) * 0.5f;
+		auto rect_center          = ImVec2(rect_center_x, rect_center_y);
 		const auto outline_scale  = rect_w / 24.0f;
 		const auto extra_segments = static_cast<int>(2 * outline_scale);// for full circle
 
@@ -278,25 +278,25 @@ namespace Engine
 		{
 			const auto origin_scale = rect_w / 24.0f;
 
-			const auto offset_x	 = 1.0f * origin_scale;
-			const auto offset_y	 = 0.0f * origin_scale;
-			const auto margin	 = (filled ? 2.0f : 2.0f) * origin_scale;
-			const auto rounding	 = 0.1f * origin_scale;
+			const auto offset_x  = 1.0f * origin_scale;
+			const auto offset_y  = 0.0f * origin_scale;
+			const auto margin    = (filled ? 2.0f : 2.0f) * origin_scale;
+			const auto rounding  = 0.1f * origin_scale;
 			const auto tip_round = 0.7f;
-			const auto canvas	 = ImRect(rect.Min.x + margin + offset_x, rect.Min.y + margin + offset_y,
-										  rect.Max.x - margin + offset_x, rect.Max.y - margin + offset_y);
-			const auto canvas_x	 = canvas.Min.x;
-			const auto canvas_y	 = canvas.Min.y;
-			const auto canvas_w	 = canvas.Max.x - canvas.Min.x;
-			const auto canvas_h	 = canvas.Max.y - canvas.Min.y;
+			const auto canvas    = ImRect(rect.Min.x + margin + offset_x, rect.Min.y + margin + offset_y,
+			                              rect.Max.x - margin + offset_x, rect.Max.y - margin + offset_y);
+			const auto canvas_x  = canvas.Min.x;
+			const auto canvas_y  = canvas.Min.y;
+			const auto canvas_w  = canvas.Max.x - canvas.Min.x;
+			const auto canvas_h  = canvas.Max.y - canvas.Min.y;
 
-			const auto left		= canvas_x + canvas_w * 0.5f * 0.3f;
-			const auto right	= canvas_x + canvas_w - canvas_w * 0.5f * 0.3f;
-			const auto top		= canvas_y + canvas_h * 0.5f * 0.2f;
-			const auto bottom	= canvas_y + canvas_h - canvas_h * 0.5f * 0.2f;
+			const auto left     = canvas_x + canvas_w * 0.5f * 0.3f;
+			const auto right    = canvas_x + canvas_w - canvas_w * 0.5f * 0.3f;
+			const auto top      = canvas_y + canvas_h * 0.5f * 0.2f;
+			const auto bottom   = canvas_y + canvas_h - canvas_h * 0.5f * 0.2f;
 			const auto center_y = (top + bottom) * 0.5f;
 
-			const auto tip_top	  = ImVec2(canvas_x + canvas_w * 0.5f, top);
+			const auto tip_top    = ImVec2(canvas_x + canvas_w * 0.5f, top);
 			const auto tip_right  = ImVec2(right, center_y);
 			const auto tip_bottom = ImVec2(canvas_x + canvas_w * 0.5f, bottom);
 
@@ -308,7 +308,7 @@ namespace Engine
 			draw_list->PathLineTo(tip_bottom);
 			draw_list->PathLineTo(ImVec2(left, bottom) + ImVec2(rounding, 0));
 			draw_list->PathBezierCubicCurveTo(ImVec2(left, bottom), ImVec2(left, bottom),
-											  ImVec2(left, bottom) - ImVec2(0, rounding));
+			                                  ImVec2(left, bottom) - ImVec2(0, rounding));
 
 			if (!filled)
 			{
@@ -461,8 +461,8 @@ namespace Engine
 				const auto triangleTip = triangleStart + rect_w * (0.45f - 0.32f);
 
 				draw_list->AddTriangleFilled(ImVec2(ceilf(triangleTip), rect_y + rect_h * 0.5f),
-											 ImVec2(triangleStart, rect_center_y + 0.15f * rect_h),
-											 ImVec2(triangleStart, rect_center_y - 0.15f * rect_h), color);
+				                             ImVec2(triangleStart, rect_center_y + 0.15f * rect_h),
+				                             ImVec2(triangleStart, rect_center_y - 0.15f * rect_h), color);
 			}
 		}
 	}

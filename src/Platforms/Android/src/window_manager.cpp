@@ -17,122 +17,122 @@
 namespace Engine::Platform
 {
 
-	static bool m_is_inited			  = false;
+	static bool m_is_inited           = false;
 	static android_app* m_application = nullptr;
-	static AndroidWindow* m_window	  = nullptr;
+	static AndroidWindow* m_window    = nullptr;
 
 	template<typename T>
 	using ValueMap = Map<int32_t, T>;
 
 
 	static ValueMap<Keyboard::Key> keys = {
-			{AKEYCODE_UNKNOWN, Keyboard::Key::Unknown},
-			{AKEYCODE_SPACE, Keyboard::Key::Space},
-			{AKEYCODE_APOSTROPHE, Keyboard::Key::Apostrophe},
-			{AKEYCODE_COMMA, Keyboard::Key::Comma},
-			{AKEYCODE_MINUS, Keyboard::Key::Minus},
-			{AKEYCODE_PERIOD, Keyboard::Key::Period},
-			{AKEYCODE_SLASH, Keyboard::Key::Slash},
-			{AKEYCODE_0, Keyboard::Key::Num0},
-			{AKEYCODE_1, Keyboard::Key::Num1},
-			{AKEYCODE_2, Keyboard::Key::Num2},
-			{AKEYCODE_3, Keyboard::Key::Num3},
-			{AKEYCODE_4, Keyboard::Key::Num4},
-			{AKEYCODE_5, Keyboard::Key::Num5},
-			{AKEYCODE_6, Keyboard::Key::Num6},
-			{AKEYCODE_7, Keyboard::Key::Num7},
-			{AKEYCODE_8, Keyboard::Key::Num8},
-			{AKEYCODE_9, Keyboard::Key::Num9},
-			{AKEYCODE_SEMICOLON, Keyboard::Key::Semicolon},
-			{AKEYCODE_EQUALS, Keyboard::Key::Equal},
-			{AKEYCODE_A, Keyboard::Key::A},
-			{AKEYCODE_B, Keyboard::Key::B},
-			{AKEYCODE_C, Keyboard::Key::C},
-			{AKEYCODE_D, Keyboard::Key::D},
-			{AKEYCODE_E, Keyboard::Key::E},
-			{AKEYCODE_F, Keyboard::Key::F},
-			{AKEYCODE_G, Keyboard::Key::G},
-			{AKEYCODE_H, Keyboard::Key::H},
-			{AKEYCODE_I, Keyboard::Key::I},
-			{AKEYCODE_J, Keyboard::Key::J},
-			{AKEYCODE_K, Keyboard::Key::K},
-			{AKEYCODE_L, Keyboard::Key::L},
-			{AKEYCODE_M, Keyboard::Key::M},
-			{AKEYCODE_N, Keyboard::Key::N},
-			{AKEYCODE_O, Keyboard::Key::O},
-			{AKEYCODE_P, Keyboard::Key::P},
-			{AKEYCODE_Q, Keyboard::Key::Q},
-			{AKEYCODE_R, Keyboard::Key::R},
-			{AKEYCODE_S, Keyboard::Key::S},
-			{AKEYCODE_T, Keyboard::Key::T},
-			{AKEYCODE_U, Keyboard::Key::U},
-			{AKEYCODE_V, Keyboard::Key::V},
-			{AKEYCODE_W, Keyboard::Key::W},
-			{AKEYCODE_X, Keyboard::Key::X},
-			{AKEYCODE_Y, Keyboard::Key::Y},
-			{AKEYCODE_Z, Keyboard::Key::Z},
-			{AKEYCODE_LEFT_BRACKET, Keyboard::Key::LeftBracket},
-			{AKEYCODE_BACKSLASH, Keyboard::Key::Backslash},
-			{AKEYCODE_RIGHT_BRACKET, Keyboard::Key::RightBracket},
-			{AKEYCODE_GRAVE, Keyboard::Key::GraveAccent},
-			{AKEYCODE_EXPLORER, Keyboard::Key::Explorer},
-			{AKEYCODE_ESCAPE, Keyboard::Key::Escape},
-			{AKEYCODE_ENTER, Keyboard::Key::Enter},
-			{AKEYCODE_TAB, Keyboard::Key::Tab},
-			{AKEYCODE_BACKSLASH, Keyboard::Key::Backspace},
-			{AKEYCODE_INSERT, Keyboard::Key::Insert},
-			{AKEYCODE_DEL, Keyboard::Key::Delete},
-			{AKEYCODE_DPAD_RIGHT, Keyboard::Key::Right},
-			{AKEYCODE_DPAD_LEFT, Keyboard::Key::Left},
-			{AKEYCODE_DPAD_DOWN, Keyboard::Key::Down},
-			{AKEYCODE_DPAD_UP, Keyboard::Key::Up},
-			{AKEYCODE_PAGE_UP, Keyboard::Key::PageUp},
-			{AKEYCODE_PAGE_DOWN, Keyboard::Key::PageDown},
-			{AKEYCODE_HOME, Keyboard::Key::Home},
-			{AKEYCODE_MOVE_END, Keyboard::Key::End},
-			{AKEYCODE_CAPS_LOCK, Keyboard::Key::CapsLock},
-			{AKEYCODE_SCROLL_LOCK, Keyboard::Key::ScrollLock},
-			{AKEYCODE_NUM_LOCK, Keyboard::Key::NumLock},
-			{AKEYCODE_SYSRQ, Keyboard::Key::PrintScreen},
-			{AKEYCODE_MEDIA_PAUSE, Keyboard::Key::Pause},
-			{AKEYCODE_F1, Keyboard::Key::F1},
-			{AKEYCODE_F2, Keyboard::Key::F2},
-			{AKEYCODE_F3, Keyboard::Key::F3},
-			{AKEYCODE_F4, Keyboard::Key::F4},
-			{AKEYCODE_F5, Keyboard::Key::F5},
-			{AKEYCODE_F6, Keyboard::Key::F6},
-			{AKEYCODE_F7, Keyboard::Key::F7},
-			{AKEYCODE_F8, Keyboard::Key::F8},
-			{AKEYCODE_F9, Keyboard::Key::F9},
-			{AKEYCODE_F10, Keyboard::Key::F10},
-			{AKEYCODE_F11, Keyboard::Key::F11},
-			{AKEYCODE_F12, Keyboard::Key::F12},
-			{AKEYCODE_NUMPAD_0, Keyboard::Key::Kp0},
-			{AKEYCODE_NUMPAD_1, Keyboard::Key::Kp1},
-			{AKEYCODE_NUMPAD_2, Keyboard::Key::Kp2},
-			{AKEYCODE_NUMPAD_3, Keyboard::Key::Kp3},
-			{AKEYCODE_NUMPAD_4, Keyboard::Key::Kp4},
-			{AKEYCODE_NUMPAD_5, Keyboard::Key::Kp5},
-			{AKEYCODE_NUMPAD_6, Keyboard::Key::Kp6},
-			{AKEYCODE_NUMPAD_7, Keyboard::Key::Kp7},
-			{AKEYCODE_NUMPAD_8, Keyboard::Key::Kp8},
-			{AKEYCODE_NUMPAD_9, Keyboard::Key::Kp9},
-			{AKEYCODE_NUMPAD_DOT, Keyboard::Key::KpDot},
-			{AKEYCODE_NUMPAD_DIVIDE, Keyboard::Key::KpDivide},
-			{AKEYCODE_NUMPAD_MULTIPLY, Keyboard::Key::KpMultiply},
-			{AKEYCODE_NUMPAD_ADD, Keyboard::Key::KpSubtract},
-			{AKEYCODE_NUMPAD_SUBTRACT, Keyboard::Key::KpAdd},
-			{AKEYCODE_NUMPAD_ENTER, Keyboard::Key::KpEnter},
-			{AKEYCODE_NUMPAD_EQUALS, Keyboard::Key::KpEqual},
-			{AKEYCODE_SHIFT_LEFT, Keyboard::Key::LeftShift},
-			{AKEYCODE_CTRL_LEFT, Keyboard::Key::LeftControl},
-			{AKEYCODE_ALT_LEFT, Keyboard::Key::LeftAlt},
-			{AKEYCODE_META_LEFT, Keyboard::Key::LeftSuper},
-			{AKEYCODE_SHIFT_RIGHT, Keyboard::Key::RightShift},
-			{AKEYCODE_CTRL_RIGHT, Keyboard::Key::RightControl},
-			{AKEYCODE_ALT_RIGHT, Keyboard::Key::RightAlt},
-			{AKEYCODE_META_RIGHT, Keyboard::Key::RightSuper},
-			{AKEYCODE_MENU, Keyboard::Key::Menu},
+	        {AKEYCODE_UNKNOWN, Keyboard::Key::Unknown},
+	        {AKEYCODE_SPACE, Keyboard::Key::Space},
+	        {AKEYCODE_APOSTROPHE, Keyboard::Key::Apostrophe},
+	        {AKEYCODE_COMMA, Keyboard::Key::Comma},
+	        {AKEYCODE_MINUS, Keyboard::Key::Minus},
+	        {AKEYCODE_PERIOD, Keyboard::Key::Period},
+	        {AKEYCODE_SLASH, Keyboard::Key::Slash},
+	        {AKEYCODE_0, Keyboard::Key::Num0},
+	        {AKEYCODE_1, Keyboard::Key::Num1},
+	        {AKEYCODE_2, Keyboard::Key::Num2},
+	        {AKEYCODE_3, Keyboard::Key::Num3},
+	        {AKEYCODE_4, Keyboard::Key::Num4},
+	        {AKEYCODE_5, Keyboard::Key::Num5},
+	        {AKEYCODE_6, Keyboard::Key::Num6},
+	        {AKEYCODE_7, Keyboard::Key::Num7},
+	        {AKEYCODE_8, Keyboard::Key::Num8},
+	        {AKEYCODE_9, Keyboard::Key::Num9},
+	        {AKEYCODE_SEMICOLON, Keyboard::Key::Semicolon},
+	        {AKEYCODE_EQUALS, Keyboard::Key::Equal},
+	        {AKEYCODE_A, Keyboard::Key::A},
+	        {AKEYCODE_B, Keyboard::Key::B},
+	        {AKEYCODE_C, Keyboard::Key::C},
+	        {AKEYCODE_D, Keyboard::Key::D},
+	        {AKEYCODE_E, Keyboard::Key::E},
+	        {AKEYCODE_F, Keyboard::Key::F},
+	        {AKEYCODE_G, Keyboard::Key::G},
+	        {AKEYCODE_H, Keyboard::Key::H},
+	        {AKEYCODE_I, Keyboard::Key::I},
+	        {AKEYCODE_J, Keyboard::Key::J},
+	        {AKEYCODE_K, Keyboard::Key::K},
+	        {AKEYCODE_L, Keyboard::Key::L},
+	        {AKEYCODE_M, Keyboard::Key::M},
+	        {AKEYCODE_N, Keyboard::Key::N},
+	        {AKEYCODE_O, Keyboard::Key::O},
+	        {AKEYCODE_P, Keyboard::Key::P},
+	        {AKEYCODE_Q, Keyboard::Key::Q},
+	        {AKEYCODE_R, Keyboard::Key::R},
+	        {AKEYCODE_S, Keyboard::Key::S},
+	        {AKEYCODE_T, Keyboard::Key::T},
+	        {AKEYCODE_U, Keyboard::Key::U},
+	        {AKEYCODE_V, Keyboard::Key::V},
+	        {AKEYCODE_W, Keyboard::Key::W},
+	        {AKEYCODE_X, Keyboard::Key::X},
+	        {AKEYCODE_Y, Keyboard::Key::Y},
+	        {AKEYCODE_Z, Keyboard::Key::Z},
+	        {AKEYCODE_LEFT_BRACKET, Keyboard::Key::LeftBracket},
+	        {AKEYCODE_BACKSLASH, Keyboard::Key::Backslash},
+	        {AKEYCODE_RIGHT_BRACKET, Keyboard::Key::RightBracket},
+	        {AKEYCODE_GRAVE, Keyboard::Key::GraveAccent},
+	        {AKEYCODE_EXPLORER, Keyboard::Key::Explorer},
+	        {AKEYCODE_ESCAPE, Keyboard::Key::Escape},
+	        {AKEYCODE_ENTER, Keyboard::Key::Enter},
+	        {AKEYCODE_TAB, Keyboard::Key::Tab},
+	        {AKEYCODE_BACKSLASH, Keyboard::Key::Backspace},
+	        {AKEYCODE_INSERT, Keyboard::Key::Insert},
+	        {AKEYCODE_DEL, Keyboard::Key::Delete},
+	        {AKEYCODE_DPAD_RIGHT, Keyboard::Key::Right},
+	        {AKEYCODE_DPAD_LEFT, Keyboard::Key::Left},
+	        {AKEYCODE_DPAD_DOWN, Keyboard::Key::Down},
+	        {AKEYCODE_DPAD_UP, Keyboard::Key::Up},
+	        {AKEYCODE_PAGE_UP, Keyboard::Key::PageUp},
+	        {AKEYCODE_PAGE_DOWN, Keyboard::Key::PageDown},
+	        {AKEYCODE_HOME, Keyboard::Key::Home},
+	        {AKEYCODE_MOVE_END, Keyboard::Key::End},
+	        {AKEYCODE_CAPS_LOCK, Keyboard::Key::CapsLock},
+	        {AKEYCODE_SCROLL_LOCK, Keyboard::Key::ScrollLock},
+	        {AKEYCODE_NUM_LOCK, Keyboard::Key::NumLock},
+	        {AKEYCODE_SYSRQ, Keyboard::Key::PrintScreen},
+	        {AKEYCODE_MEDIA_PAUSE, Keyboard::Key::Pause},
+	        {AKEYCODE_F1, Keyboard::Key::F1},
+	        {AKEYCODE_F2, Keyboard::Key::F2},
+	        {AKEYCODE_F3, Keyboard::Key::F3},
+	        {AKEYCODE_F4, Keyboard::Key::F4},
+	        {AKEYCODE_F5, Keyboard::Key::F5},
+	        {AKEYCODE_F6, Keyboard::Key::F6},
+	        {AKEYCODE_F7, Keyboard::Key::F7},
+	        {AKEYCODE_F8, Keyboard::Key::F8},
+	        {AKEYCODE_F9, Keyboard::Key::F9},
+	        {AKEYCODE_F10, Keyboard::Key::F10},
+	        {AKEYCODE_F11, Keyboard::Key::F11},
+	        {AKEYCODE_F12, Keyboard::Key::F12},
+	        {AKEYCODE_NUMPAD_0, Keyboard::Key::Kp0},
+	        {AKEYCODE_NUMPAD_1, Keyboard::Key::Kp1},
+	        {AKEYCODE_NUMPAD_2, Keyboard::Key::Kp2},
+	        {AKEYCODE_NUMPAD_3, Keyboard::Key::Kp3},
+	        {AKEYCODE_NUMPAD_4, Keyboard::Key::Kp4},
+	        {AKEYCODE_NUMPAD_5, Keyboard::Key::Kp5},
+	        {AKEYCODE_NUMPAD_6, Keyboard::Key::Kp6},
+	        {AKEYCODE_NUMPAD_7, Keyboard::Key::Kp7},
+	        {AKEYCODE_NUMPAD_8, Keyboard::Key::Kp8},
+	        {AKEYCODE_NUMPAD_9, Keyboard::Key::Kp9},
+	        {AKEYCODE_NUMPAD_DOT, Keyboard::Key::KpDot},
+	        {AKEYCODE_NUMPAD_DIVIDE, Keyboard::Key::KpDivide},
+	        {AKEYCODE_NUMPAD_MULTIPLY, Keyboard::Key::KpMultiply},
+	        {AKEYCODE_NUMPAD_ADD, Keyboard::Key::KpSubtract},
+	        {AKEYCODE_NUMPAD_SUBTRACT, Keyboard::Key::KpAdd},
+	        {AKEYCODE_NUMPAD_ENTER, Keyboard::Key::KpEnter},
+	        {AKEYCODE_NUMPAD_EQUALS, Keyboard::Key::KpEqual},
+	        {AKEYCODE_SHIFT_LEFT, Keyboard::Key::LeftShift},
+	        {AKEYCODE_CTRL_LEFT, Keyboard::Key::LeftControl},
+	        {AKEYCODE_ALT_LEFT, Keyboard::Key::LeftAlt},
+	        {AKEYCODE_META_LEFT, Keyboard::Key::LeftSuper},
+	        {AKEYCODE_SHIFT_RIGHT, Keyboard::Key::RightShift},
+	        {AKEYCODE_CTRL_RIGHT, Keyboard::Key::RightControl},
+	        {AKEYCODE_ALT_RIGHT, Keyboard::Key::RightAlt},
+	        {AKEYCODE_META_RIGHT, Keyboard::Key::RightSuper},
+	        {AKEYCODE_MENU, Keyboard::Key::Menu},
 	};
 
 	static FORCE_INLINE Identifier window_id()
@@ -210,7 +210,7 @@ namespace Engine::Platform
 		if (event_action == AKEY_EVENT_ACTION_MULTIPLE)
 			return 0;
 
-		auto it			  = keys.find(event_key_code);
+		auto it           = keys.find(event_key_code);
 		Keyboard::Key key = it == keys.end() ? Keyboard::Key::Unknown : it->second;
 
 
@@ -234,9 +234,9 @@ namespace Engine::Platform
 	static int32_t handle_mouse_button_event(AInputEvent* input_event, EventType type, int32_t event_pointer_index)
 	{
 		static int32_t pressed_buttons = 0;
-		int_t buttons				   = AMotionEvent_getButtonState(input_event);
+		int_t buttons                  = AMotionEvent_getButtonState(input_event);
 
-		int_t button	= pressed_buttons ^ buttons;
+		int_t button    = pressed_buttons ^ buttons;
 		pressed_buttons = buttons;
 
 
@@ -261,7 +261,7 @@ namespace Engine::Platform
 				break;
 		}
 
-		float h		 = Engine::WindowManager::instance()->main_window()->size().y;
+		float h      = Engine::WindowManager::instance()->main_window()->size().y;
 		event_data.x = AMotionEvent_getX(input_event, event_pointer_index);
 		event_data.y = h - AMotionEvent_getY(input_event, event_pointer_index);
 
@@ -312,7 +312,7 @@ namespace Engine::Platform
 		else if (action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
 		{
 			result =
-					handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown, event_pointer_index);
+			        handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown, event_pointer_index);
 		}
 		else if (action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
 		{
@@ -333,14 +333,14 @@ namespace Engine::Platform
 			for (int32_t i = 0, count = AMotionEvent_getPointerCount(input_event); i < count; ++i)
 			{
 				event.finger_index = static_cast<Index>(i);
-				auto window		   = Engine::WindowManager::instance()->main_window();
-				float h			   = window->size().y;
-				event.x			   = AMotionEvent_getX(input_event, i);
-				event.y			   = h - AMotionEvent_getY(input_event, i);
+				auto window        = Engine::WindowManager::instance()->main_window();
+				float h            = window->size().y;
+				event.x            = AMotionEvent_getX(input_event, i);
+				event.y            = h - AMotionEvent_getY(input_event, i);
 
 				Size2D prev_pos = TouchScreenSystem::instance()->finger_location(event.finger_index, window);
-				event.xrel		= event.x - prev_pos.x;
-				event.yrel		= event.y - prev_pos.y;
+				event.xrel      = event.x - prev_pos.x;
+				event.yrel      = event.y - prev_pos.y;
 
 				if (glm::epsilonNotEqual(event.xrel, 0.f, 0.001f) || glm::epsilonNotEqual(event.yrel, 0.f, 0.001f))
 				{
@@ -357,10 +357,10 @@ namespace Engine::Platform
 			if (event_pointer_index >= 0)
 			{
 				event.finger_index = static_cast<Index>(event_pointer_index);
-				auto window		   = Engine::WindowManager::instance()->main_window();
-				float h			   = window->size().y;
-				event.x			   = AMotionEvent_getX(input_event, event_pointer_index);
-				event.y			   = h - AMotionEvent_getY(input_event, event_pointer_index);
+				auto window        = Engine::WindowManager::instance()->main_window();
+				float h            = window->size().y;
+				event.x            = AMotionEvent_getX(input_event, event_pointer_index);
+				event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
 
 				EventSystem::instance()->push_event(Event(window_id(), EventType::FingerDown, event));
 			}
@@ -374,10 +374,10 @@ namespace Engine::Platform
 			if (event_pointer_index >= 0)
 			{
 				event.finger_index = static_cast<Index>(event_pointer_index);
-				auto window		   = Engine::WindowManager::instance()->main_window();
-				float h			   = window->size().y;
-				event.x			   = AMotionEvent_getX(input_event, event_pointer_index);
-				event.y			   = h - AMotionEvent_getY(input_event, event_pointer_index);
+				auto window        = Engine::WindowManager::instance()->main_window();
+				float h            = window->size().y;
+				event.x            = AMotionEvent_getX(input_event, event_pointer_index);
+				event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
 				EventSystem::instance()->push_event(Event(window_id(), EventType::FingerUp, event));
 			}
 
@@ -390,7 +390,7 @@ namespace Engine::Platform
 	{
 		int32_t action = AMotionEvent_getAction(input_event);
 		int32_t event_pointer_index =
-				(action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+		        (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 		action &= AMOTION_EVENT_ACTION_MASK;
 
 		switch (AMotionEvent_getToolType(input_event, event_pointer_index))
@@ -437,7 +437,7 @@ namespace Engine::Platform
 	{
 		m_application = app;
 
-		app->onAppCmd	  = handle_app_cmd;
+		app->onAppCmd     = handle_app_cmd;
 		app->onInputEvent = handle_input_event;
 
 		// Wait activity initialization

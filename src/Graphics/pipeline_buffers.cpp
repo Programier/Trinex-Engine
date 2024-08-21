@@ -92,7 +92,7 @@ namespace Engine
 		size_t e_size = element_size();
 		trinex_always_check(e_size == 4 || e_size == 2, "Size of index buffer element must be equal 16 or 32 bytes");
 		m_rhi_object.reset(rhi->create_index_buffer(
-				size(), data(), e_size == 4 ? IndexBufferFormat::UInt32 : IndexBufferFormat::UInt16, buffer_type()));
+		        size(), data(), e_size == 4 ? IndexBufferFormat::UInt32 : IndexBufferFormat::UInt16, buffer_type()));
 		return *this;
 	}
 

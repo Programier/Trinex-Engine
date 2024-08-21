@@ -55,7 +55,7 @@ namespace Engine
 		{
 			LibInfo info;
 			info.handle = m_handle;
-			info.name	= libname;
+			info.name   = libname;
 			m_libraries.insert(info);
 
 			LoadingControllerBase::exec_all_if_already_triggered();

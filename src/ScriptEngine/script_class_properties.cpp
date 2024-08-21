@@ -22,8 +22,8 @@ namespace Engine
 		uint_t m_offset;
 
 		ScriptPrimitivePropBase(uint_t offset, const Name& name, const String& description = "", const Name& group = Name::none,
-								BitMask flags = 0)
-			: Property(name, description, group, flags)
+		                        BitMask flags = 0)
+		    : Property(name, description, group, flags)
 		{
 			m_offset = offset;
 		}
@@ -166,8 +166,8 @@ namespace Engine
 		if (offset == 0)
 			return;
 
-		String name	  = String(self->script_type_info.property_name(prop_idx));
-		String desc	  = "";
+		String name   = String(self->script_type_info.property_name(prop_idx));
+		String desc   = "";
 		String group  = "";
 		BitMask flags = 0;
 
@@ -225,12 +225,12 @@ namespace Engine
 
 	Script& Script::register_properties(Class* self)
 	{
-		auto& type		= self->script_type_info;
+		auto& type      = self->script_type_info;
 		auto prop_count = type.property_count();
 
 		if (prop_count > 0)
 		{
-			String type_name	 = Strings::concat_scoped_name(type.namespace_name(), type.name());
+			String type_name     = Strings::concat_scoped_name(type.namespace_name(), type.name());
 			auto& class_metadata = metadata_for_class(type_name);
 
 			for (uint_t i = 0; i < prop_count; ++i)
@@ -238,7 +238,7 @@ namespace Engine
 				if (!type.is_property_native(i))
 				{
 					auto prop_type_id = type.property_type_id(i);
-					auto& metadata	  = class_metadata.metadata_for_property(i);
+					auto& metadata    = class_metadata.metadata_for_property(i);
 
 					if (ScriptEngine::is_primitive_type(prop_type_id))
 					{

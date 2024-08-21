@@ -20,7 +20,7 @@ namespace Engine
 			Index(byte index = 0) : x((index >> 2) & 1), y((index >> 1) & 1), z(index & 1)
 			{}
 
-			Index(const Index&)			   = default;
+			Index(const Index&)            = default;
 			Index& operator=(const Index&) = default;
 
 			FORCE_INLINE byte index() const
@@ -141,9 +141,9 @@ namespace Engine
 			Octree::Index result;
 			auto parent_center = parent.center();
 			auto child_center  = child.center();
-			result.x		   = calc_axis_offset_index(parent_center.x, child_center.x);
-			result.y		   = calc_axis_offset_index(parent_center.y, child_center.y);
-			result.z		   = calc_axis_offset_index(parent_center.z, child_center.z);
+			result.x           = calc_axis_offset_index(parent_center.x, child_center.x);
+			result.y           = calc_axis_offset_index(parent_center.y, child_center.y);
+			result.z           = calc_axis_offset_index(parent_center.z, child_center.z);
 			return result;
 		}
 
@@ -202,9 +202,9 @@ namespace Engine
 			while (!box.inside(node->m_box))
 			{
 				Octree::Index index = calc_child_index(box, node->m_box);
-				node				= new Octree::Node((node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
+				node                = new Octree::Node((node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
 				node->m_childs[index.index()] = m_root_node;
-				m_root_node					  = node;
+				m_root_node                   = node;
 			}
 
 			while (node && node->m_box.size().x / 2 >= m_min_size && is_child_of(node->m_box, box))
@@ -213,7 +213,7 @@ namespace Engine
 				if (node->m_childs[index.index()] == nullptr)
 				{
 					node->m_childs[index.index()] =
-							new Octree::Node((node->m_box * 0.5) + (node->m_box.size() * 0.25f) * index.factor());
+					        new Octree::Node((node->m_box * 0.5) + (node->m_box.size() * 0.25f) * index.factor());
 				}
 				node = node->m_childs[index.index()];
 			}

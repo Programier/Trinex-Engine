@@ -6,7 +6,7 @@ namespace Engine
 {
 	struct Rect2D {
 		Point2D position = {0.f, 0.f};
-		Size2D size		 = {0.f, 0.f};
+		Size2D size      = {0.f, 0.f};
 	};
 
 	struct ViewPort {
@@ -24,8 +24,8 @@ namespace Engine
 		FORCE_INLINE bool operator==(const ViewPort& v) const
 		{
 			return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
-				   glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f})) &&
-				   glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) && glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
+			       glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f})) &&
+			       glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) && glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
 		}
 
 		FORCE_INLINE bool operator!=(const ViewPort& v) const
@@ -41,7 +41,7 @@ namespace Engine
 		FORCE_INLINE bool operator==(const Scissor& v) const
 		{
 			return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
-				   glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f}));
+			       glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f}));
 		}
 
 		FORCE_INLINE bool operator!=(const Scissor& v) const
@@ -51,7 +51,7 @@ namespace Engine
 	};
 
 	struct DepthStencilClearValue {
-		float depth	 = 1.0;
+		float depth  = 1.0;
 		byte stencil = 0.0;
 	};
 
@@ -82,12 +82,12 @@ namespace Engine
 		SizeLimits(Type&& _min, Type&& _max) : min(std::move(_min)), max(std::move(_max))
 		{}
 
-		SizeLimits(SizeLimits&&)	  = default;
+		SizeLimits(SizeLimits&&)      = default;
 		SizeLimits(const SizeLimits&) = default;
 
 
 		SizeLimits& operator=(const SizeLimits&) = default;
-		SizeLimits& operator=(SizeLimits&&)		 = default;
+		SizeLimits& operator=(SizeLimits&&)      = default;
 	};
 
 	using SizeLimits1D = SizeLimits<Size1D>;

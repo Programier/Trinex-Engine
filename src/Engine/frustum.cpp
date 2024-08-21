@@ -24,7 +24,7 @@ namespace Engine
 	bool Plane::is_on_or_forward(const AABB_3Df& box) const
 	{
 		const auto extents = box.extents();
-		const float r	   = extents.x * std::abs(normal.x) + extents.y * std::abs(normal.y) + extents.z * std::abs(normal.z);
+		const float r      = extents.x * std::abs(normal.x) + extents.y * std::abs(normal.y) + extents.z * std::abs(normal.z);
 		return -r <= signed_distance_to_plane(box.center());
 	}
 
@@ -41,11 +41,11 @@ namespace Engine
 		const Vector3D front_mult_far = view.far_clip_plane * view.forward_vector;
 
 		near = {view.location + view.near_clip_plane * view.forward_vector, view.forward_vector};
-		far	 = {view.location + front_mult_far, -view.forward_vector};
+		far  = {view.location + front_mult_far, -view.forward_vector};
 
 		right  = {view.location, glm::cross(view.up_vector, front_mult_far + view.right_vector * half_h_side)};
 		left   = {view.location, glm::cross(front_mult_far - view.right_vector * half_h_side, view.up_vector)};
-		top	   = {view.location, glm::cross(view.right_vector, front_mult_far - view.up_vector * half_v_side)};
+		top    = {view.location, glm::cross(view.right_vector, front_mult_far - view.up_vector * half_v_side)};
 		bottom = {view.location, glm::cross(front_mult_far + view.up_vector * half_v_side, view.right_vector)};
 
 		return *this;

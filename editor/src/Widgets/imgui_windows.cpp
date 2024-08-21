@@ -28,7 +28,7 @@ namespace Engine
 
 	bool ImGuiNotificationMessage::render(RenderViewport* viewport)
 	{
-		bool open					  = true;
+		bool open                     = true;
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
@@ -54,7 +54,7 @@ namespace Engine
 
 			text_wrapped_colored(text_color, "%s", m_message.c_str());
 
-			static constexpr float button_width	 = 80.0f;
+			static constexpr float button_width  = 80.0f;
 			static constexpr float button_height = 25.0f;
 			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - button_width) * 0.5f);
 			ImGui::SetCursorPosY(ImGui::GetWindowSize().y - button_height - 10.0f);
@@ -76,7 +76,7 @@ namespace Engine
 	}
 
 	ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent, const CallBack<void(Package*)>& on_create)
-		: m_parent(parent ? parent : Object::root_package()), m_on_create(on_create)
+	    : m_parent(parent ? parent : Object::root_package()), m_on_create(on_create)
 	{}
 
 	bool ImGuiCreateNewPackage::render(class RenderViewport* viewport)
@@ -95,13 +95,13 @@ namespace Engine
 		if (!allow_rename && m_parent->contains_object(new_package_name))
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
-								 "Cannot create package! Object with name '%s' already exists in package '%s'",
-								 new_package_name.c_str(), m_parent->string_name().c_str());
+			                     "Cannot create package! Object with name '%s' already exists in package '%s'",
+			                     new_package_name.c_str(), m_parent->string_name().c_str());
 		}
 		else if (new_package_name.find(Constants::name_separator) != String::npos)
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot create package! Name can't contain '%s'",
-								 Constants::name_separator.c_str());
+			                     Constants::name_separator.c_str());
 		}
 		else
 		{
@@ -110,7 +110,7 @@ namespace Engine
 			if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
 			{
 				Package* new_package = Object::new_instance<Package>(new_package_name, m_parent);
-				open				 = false;
+				open                 = false;
 
 				if (m_on_create)
 					m_on_create(new_package);
@@ -127,7 +127,7 @@ namespace Engine
 	}
 
 	ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& filters)
-		: m_parent(pkg), filters(filters)
+	    : m_parent(pkg), filters(filters)
 	{
 		if (filters.empty())
 		{
@@ -165,7 +165,7 @@ namespace Engine
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
 
 		ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &m_filtered_classes,
-					 m_filtered_classes.size());
+		             m_filtered_classes.size());
 
 		ImGuiRenderer::InputText("editor/Asset Name"_localized, new_asset_name);
 		ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
@@ -173,13 +173,13 @@ namespace Engine
 		if (!allow_rename && m_parent->contains_object(new_asset_name))
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
-								 "Cannot create new Asset! Object with name '%s' already exists in package '%s'",
-								 new_asset_name.c_str(), m_parent->string_name().c_str());
+			                     "Cannot create new Asset! Object with name '%s' already exists in package '%s'",
+			                     new_asset_name.c_str(), m_parent->string_name().c_str());
 		}
 		else if (new_asset_name.find(Constants::name_separator) != String::npos)
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot create asset! Name can't contain '%s'",
-								 Constants::name_separator.c_str());
+			                     Constants::name_separator.c_str());
 		}
 		else
 		{
@@ -248,7 +248,7 @@ namespace Engine
 				if (m_object->rename(new_object_name))
 				{
 					ImGuiRenderer::Window::current()->window_list.create<ImGuiNotificationMessage>(
-							"Failed to rename object", ImGuiNotificationMessage::Error);
+					        "Failed to rename object", ImGuiNotificationMessage::Error);
 				}
 
 				open = false;
@@ -394,7 +394,7 @@ namespace Engine
 	ImGuiSpawnNewActor::ImGuiSpawnNewActor(class World* world) : world(world)
 	{
 		Class* actor_class = Class::static_find("Engine::Actor", true);
-		m_root			   = new Node();
+		m_root             = new Node();
 		build_tree(m_root, actor_class);
 		m_monitor_size = Platform::monitor_info().size;
 	}
@@ -407,7 +407,7 @@ namespace Engine
 	void ImGuiSpawnNewActor::render_tree(Node* node)
 	{
 		bool state = ImGui::TreeNodeEx(node->self->base_name_splitted().c_str(),
-									   (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
+		                               (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
 
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
@@ -430,7 +430,7 @@ namespace Engine
 		m_dock_id = ImGui::GetID("##SpawnActorDock");
 
 		ImGui::DockSpace(m_dock_id, {0, 0},
-						 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
+		                 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
 
 		if (frame_number == 1)
 		{
@@ -516,11 +516,11 @@ namespace Engine
 						ImGui::TableNextColumn();
 
 						ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
-											   !(i % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
-														: ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
+						                       !(i % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
+						                                : ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
 
 						bool is_visible = actor->is_visible();
-					
+
 						if (ImGui::Checkbox("###Visible", &is_visible))
 						{
 							actor->is_visible(is_visible);
@@ -530,12 +530,13 @@ namespace Engine
 						ImGui::Text("%s", actor->is_noname() ? "No Name" : actor->name().c_str());
 
 						ImGui::TableNextColumn();
-						
-						if(ImGui::Selectable(actor->class_instance()->base_name().c_str(), m_world->is_selected(actor), ImGuiSelectableFlags_SpanAllColumns))
+
+						if (ImGui::Selectable(actor->class_instance()->base_name().c_str(), m_world->is_selected(actor),
+						                      ImGuiSelectableFlags_SpanAllColumns))
 						{
 							m_world->select_actor(actor);
 						}
-						
+
 						ImGui::PopID();
 					}
 				}

@@ -12,7 +12,7 @@ namespace Engine
 		Struct::static_find("Engine::RHI::OPENGL", true)->struct_constructor([]() -> void* {
 			if (OpenGL::m_instance == nullptr)
 			{
-				OpenGL::m_instance						 = new OpenGL();
+				OpenGL::m_instance                       = new OpenGL();
 				OpenGL::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::OPENGL", true);
 			}
 			return OpenGL::m_instance;
@@ -22,7 +22,7 @@ namespace Engine
 	OpenGL* OpenGL::m_instance = nullptr;
 
 	static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
-							   const void* userParam)
+	                           const void* userParam)
 	{
 		if (type == GL_DEBUG_TYPE_ERROR)
 		{
@@ -104,7 +104,7 @@ namespace Engine
 		prepare_render();
 		indices_offset *= (m_state.index_buffer->m_format == GL_UNSIGNED_SHORT ? 2 : 4);
 		glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
-								 reinterpret_cast<void*>(indices_offset), vertices_offset);
+		                         reinterpret_cast<void*>(indices_offset), vertices_offset);
 		reset_samplers();
 		return *this;
 	}
@@ -129,7 +129,7 @@ namespace Engine
 	{
 		prepare_render();
 		glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
-										  reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
+		                                  reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
 		reset_samplers();
 		return *this;
 	}

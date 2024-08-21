@@ -265,15 +265,15 @@ static ImGuiKey ImGui_ImplAndroid_KeyCodeToImGuiKey(int32_t key_code)
 
 int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 {
-	ImGuiIO& io		   = ImGui::GetIO();
+	ImGuiIO& io        = ImGui::GetIO();
 	int32_t event_type = AInputEvent_getType(input_event);
 	switch (event_type)
 	{
 		case AINPUT_EVENT_TYPE_KEY:
 		{
-			int32_t event_key_code	 = AKeyEvent_getKeyCode(input_event);
-			int32_t event_scan_code	 = AKeyEvent_getScanCode(input_event);
-			int32_t event_action	 = AKeyEvent_getAction(input_event);
+			int32_t event_key_code   = AKeyEvent_getKeyCode(input_event);
+			int32_t event_scan_code  = AKeyEvent_getScanCode(input_event);
+			int32_t event_action     = AKeyEvent_getAction(input_event);
 			int32_t event_meta_state = AKeyEvent_getMetaState(input_event);
 
 			io.AddKeyEvent(ImGuiMod_Ctrl, (event_meta_state & AMETA_CTRL_ON) != 0);
@@ -307,7 +307,7 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 		{
 			int32_t event_action = AMotionEvent_getAction(input_event);
 			int32_t event_pointer_index =
-					(event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+			        (event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 			event_action &= AMOTION_EVENT_ACTION_MASK;
 
 			switch (AMotionEvent_getToolType(input_event, event_pointer_index))
@@ -337,7 +337,7 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 					if (tool_type == AMOTION_EVENT_TOOL_TYPE_FINGER || tool_type == AMOTION_EVENT_TOOL_TYPE_UNKNOWN)
 					{
 						io.AddMousePosEvent(AMotionEvent_getX(input_event, event_pointer_index),
-											AMotionEvent_getY(input_event, event_pointer_index));
+						                    AMotionEvent_getY(input_event, event_pointer_index));
 						io.AddMouseButtonEvent(0, event_action == AMOTION_EVENT_ACTION_DOWN);
 					}
 					break;
@@ -352,14 +352,14 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 					break;
 				}
 				case AMOTION_EVENT_ACTION_HOVER_MOVE:// Hovering: Tool moves while NOT pressed (such as a physical mouse)
-				case AMOTION_EVENT_ACTION_MOVE:		 // Touch pointer moves while DOWN
+				case AMOTION_EVENT_ACTION_MOVE:      // Touch pointer moves while DOWN
 					io.AddMousePosEvent(AMotionEvent_getX(input_event, event_pointer_index),
-										AMotionEvent_getY(input_event, event_pointer_index));
+					                    AMotionEvent_getY(input_event, event_pointer_index));
 					break;
 				case AMOTION_EVENT_ACTION_SCROLL:
 					io.AddMouseWheelEvent(
-							AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, event_pointer_index),
-							AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_VSCROLL, event_pointer_index));
+					        AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, event_pointer_index),
+					        AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_VSCROLL, event_pointer_index));
 					break;
 				default:
 					break;
@@ -376,10 +376,10 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(const AInputEvent* input_event)
 bool ImGui_ImplAndroid_Init(ANativeWindow* window)
 {
 	g_Window = window;
-	g_Time	 = 0.0;
+	g_Time   = 0.0;
 
 	// Setup backend capabilities flags
-	ImGuiIO& io			   = ImGui::GetIO();
+	ImGuiIO& io            = ImGui::GetIO();
 	io.BackendPlatformName = "imgui_impl_android";
 
 	return true;
@@ -387,7 +387,7 @@ bool ImGui_ImplAndroid_Init(ANativeWindow* window)
 
 void ImGui_ImplAndroid_Shutdown()
 {
-	ImGuiIO& io			   = ImGui::GetIO();
+	ImGuiIO& io            = ImGui::GetIO();
 	io.BackendPlatformName = nullptr;
 }
 
@@ -398,8 +398,8 @@ void ImGui_ImplAndroid_NewFrame()
 	// Setup display size (every frame to accommodate for window resizing)
 	int32_t window_width  = ANativeWindow_getWidth(g_Window);
 	int32_t window_height = ANativeWindow_getHeight(g_Window);
-	int display_width	  = window_width;
-	int display_height	  = window_height;
+	int display_width     = window_width;
+	int display_height    = window_height;
 
 	io.DisplaySize = ImVec2((float) window_width, (float) window_height);
 	if (window_width > 0 && window_height > 0)
@@ -409,8 +409,8 @@ void ImGui_ImplAndroid_NewFrame()
 	struct timespec current_timespec;
 	clock_gettime(CLOCK_MONOTONIC, &current_timespec);
 	double current_time = (double) (current_timespec.tv_sec) + (current_timespec.tv_nsec / 1000000000.0);
-	io.DeltaTime		= g_Time > 0.0 ? (float) (current_time - g_Time) : (float) (1.0f / 60.0f);
-	g_Time				= current_time;
+	io.DeltaTime        = g_Time > 0.0 ? (float) (current_time - g_Time) : (float) (1.0f / 60.0f);
+	g_Time              = current_time;
 }
 
 //-----------------------------------------------------------------------------

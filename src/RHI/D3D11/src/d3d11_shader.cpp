@@ -123,8 +123,8 @@ namespace Engine
 	bool D3D11_VertexShader::init(const class VertexShader* shader)
 	{
 		const byte* data = shader->source_code.data();
-		size_t size		 = shader->source_code.size();
-		HRESULT hr		 = DXAPI->m_device->CreateVertexShader(data, size, nullptr, &m_shader);
+		size_t size      = shader->source_code.size();
+		HRESULT hr       = DXAPI->m_device->CreateVertexShader(data, size, nullptr, &m_shader);
 
 		if (hr != S_OK)
 		{
@@ -138,13 +138,13 @@ namespace Engine
 		for (auto& attribute : shader->attributes)
 		{
 			D3D11_INPUT_ELEMENT_DESC desc{};
-			desc.SemanticName		  = semantic_name(attribute.semantic);
-			desc.SemanticIndex		  = attribute.semantic_index;
-			desc.Format				  = format_of(attribute.type);
-			desc.InputSlot			  = attribute.stream_index;
-			desc.AlignedByteOffset	  = attribute.offset;
-			desc.InputSlotClass		  = attribute.rate == VertexAttributeInputRate::Vertex ? D3D11_INPUT_PER_VERTEX_DATA
-																						   : D3D11_INPUT_PER_INSTANCE_DATA;
+			desc.SemanticName         = semantic_name(attribute.semantic);
+			desc.SemanticIndex        = attribute.semantic_index;
+			desc.Format               = format_of(attribute.type);
+			desc.InputSlot            = attribute.stream_index;
+			desc.AlignedByteOffset    = attribute.offset;
+			desc.InputSlotClass       = attribute.rate == VertexAttributeInputRate::Vertex ? D3D11_INPUT_PER_VERTEX_DATA
+			                                                                               : D3D11_INPUT_PER_INSTANCE_DATA;
 			desc.InstanceDataStepRate = attribute.rate == VertexAttributeInputRate::Vertex ? 0 : 1;
 			inputs.emplace_back(desc);
 		}
@@ -194,8 +194,8 @@ namespace Engine
 	bool D3D11_TesselationControlShader::init(const class TessellationControlShader* shader)
 	{
 		const byte* data = shader->source_code.data();
-		size_t size		 = shader->source_code.size();
-		bool result		 = DXAPI->m_device->CreateHullShader(data, size, nullptr, &m_shader) == S_OK;
+		size_t size      = shader->source_code.size();
+		bool result      = DXAPI->m_device->CreateHullShader(data, size, nullptr, &m_shader) == S_OK;
 
 		if (!result)
 		{
@@ -217,8 +217,8 @@ namespace Engine
 	bool D3D11_TesselationShader::init(const class TessellationShader* shader)
 	{
 		const byte* data = shader->source_code.data();
-		size_t size		 = shader->source_code.size();
-		bool result		 = DXAPI->m_device->CreateDomainShader(data, size, nullptr, &m_shader) == S_OK;
+		size_t size      = shader->source_code.size();
+		bool result      = DXAPI->m_device->CreateDomainShader(data, size, nullptr, &m_shader) == S_OK;
 
 		if (!result)
 		{
@@ -240,8 +240,8 @@ namespace Engine
 	bool D3D11_GeometryShader::init(const class GeometryShader* shader)
 	{
 		const byte* data = shader->source_code.data();
-		size_t size		 = shader->source_code.size();
-		bool result		 = DXAPI->m_device->CreateGeometryShader(data, size, nullptr, &m_shader) == S_OK;
+		size_t size      = shader->source_code.size();
+		bool result      = DXAPI->m_device->CreateGeometryShader(data, size, nullptr, &m_shader) == S_OK;
 
 		if (!result)
 		{
@@ -263,8 +263,8 @@ namespace Engine
 	bool D3D11_FragmentShader::init(const class FragmentShader* shader)
 	{
 		const byte* data = shader->source_code.data();
-		size_t size		 = shader->source_code.size();
-		bool result		 = DXAPI->m_device->CreatePixelShader(data, size, nullptr, &m_shader) == S_OK;
+		size_t size      = shader->source_code.size();
+		bool result      = DXAPI->m_device->CreatePixelShader(data, size, nullptr, &m_shader) == S_OK;
 
 		if (!result)
 		{

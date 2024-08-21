@@ -47,18 +47,18 @@ namespace Engine
 
 	void D3D11_WindowViewport::create_swapchain(const Size2D& size)
 	{
-		DXGI_SWAP_CHAIN_DESC sd				  = {};
-		sd.BufferCount						  = 1;
-		sd.BufferDesc.Width					  = static_cast<uint_t>(size.x);
-		sd.BufferDesc.Height				  = static_cast<uint_t>(size.y);
-		sd.BufferDesc.Format				  = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.BufferDesc.RefreshRate.Numerator	  = 75;
+		DXGI_SWAP_CHAIN_DESC sd               = {};
+		sd.BufferCount                        = 1;
+		sd.BufferDesc.Width                   = static_cast<uint_t>(size.x);
+		sd.BufferDesc.Height                  = static_cast<uint_t>(size.y);
+		sd.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sd.BufferDesc.RefreshRate.Numerator   = 75;
 		sd.BufferDesc.RefreshRate.Denominator = 1;
-		sd.BufferUsage						  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.OutputWindow						  = extract_d3dx11_hwnd(m_window);
-		sd.SampleDesc.Count					  = 1;
-		sd.SampleDesc.Quality				  = 0;
-		sd.Windowed							  = true;
+		sd.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		sd.OutputWindow                       = extract_d3dx11_hwnd(m_window);
+		sd.SampleDesc.Count                   = 1;
+		sd.SampleDesc.Quality                 = 0;
+		sd.Windowed                           = true;
 
 		auto hr = DXAPI->m_dxgi_factory->CreateSwapChain(DXAPI->m_device, &sd, &m_swap_chain);
 		trinex_always_check(hr == S_OK, "Failed to create swapchain!");
@@ -76,8 +76,8 @@ namespace Engine
 	void D3D11_WindowViewport::begin_render()
 	{
 		ViewPort viewport;
-		viewport.pos	   = {0, 0};
-		viewport.size	   = m_size;
+		viewport.pos       = {0, 0};
+		viewport.size      = m_size;
 		viewport.min_depth = 0.f;
 		viewport.max_depth = 1.f;
 
@@ -110,7 +110,7 @@ namespace Engine
 			d3d11_release(m_view);
 
 			HRESULT result = m_swap_chain->ResizeBuffers(1, static_cast<uint_t>(new_size.x), static_cast<uint_t>(new_size.y),
-														 DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+			                                             DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 			trinex_always_check(result == S_OK, "Failed to resize swapchain");
 
 			result = m_swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**) &m_back_buffer);
@@ -133,7 +133,7 @@ namespace Engine
 	}
 
 	void D3D11_WindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-										   SamplerFilter filter)
+	                                       SamplerFilter filter)
 	{}
 
 	void D3D11_WindowViewport::clear_color(const Color& color)

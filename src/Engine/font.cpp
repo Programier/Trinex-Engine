@@ -92,7 +92,7 @@ namespace Engine
 
 	static void draw_bitmap(Image& image, const FT_GlyphSlot& glyph, uint_t x, uint_t y, const FontConfig* config)
 	{
-		uint_t image_width	= image.width();
+		uint_t image_width  = image.width();
 		uint_t image_height = image.height();
 
 		FT_Bitmap bitmap = glyph->bitmap;
@@ -110,10 +110,10 @@ namespace Engine
 					unsigned char value = bitmap.buffer[i * bitmap.pitch + j];
 
 					byte* data = image.pixel_at(img_x, img_y);
-					data[0]	   = config->color.r;
-					data[1]	   = config->color.g;
-					data[2]	   = config->color.b;
-					data[3]	   = value;
+					data[0]    = config->color.r;
+					data[1]    = config->color.g;
+					data[2]    = config->color.b;
+					data[3]    = value;
 				}
 			}
 		}
@@ -127,8 +127,8 @@ namespace Engine
 		const FT_Face& face = make_face(m_font);
 		FT_Set_Pixel_Sizes(face, font_size.x, font_size.y);
 
-		uint_t size_x	 = 0;
-		uint_t size_y	 = font_size.y;
+		uint_t size_x    = 0;
+		uint_t size_y    = font_size.y;
 		uint_t current_x = 0;
 
 		for (char p : text)
@@ -148,7 +148,7 @@ namespace Engine
 			current_x += face->glyph->advance.x >> 6;
 			size_x = glm::max(size_x, current_x);
 			size_y = glm::max(size_y,
-							  font_size.y + static_cast<uint_t>(face->glyph->metrics.height >> 6) - face->glyph->bitmap_top);
+			                  font_size.y + static_cast<uint_t>(face->glyph->metrics.height >> 6) - face->glyph->bitmap_top);
 		}
 
 		return {static_cast<float>(size_x), static_cast<float>(size_y)};
@@ -176,8 +176,8 @@ namespace Engine
 			return image;
 		}
 
-		uint_t pen_x		= 0;
-		uint_t pen_y		= static_cast<uint_t>(image_size.y) - config->font_size.y;
+		uint_t pen_x        = 0;
+		uint_t pen_y        = static_cast<uint_t>(image_size.y) - config->font_size.y;
 		uint_t image_size_x = image.width();
 
 		for (char p : text)

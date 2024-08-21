@@ -27,13 +27,13 @@ namespace Engine
 		static SceneLayer* static_layer_allocator(const Name& name)
 		{
 			SceneLayer* layer = new LayerType();
-			layer->m_name	  = name;
+			layer->m_name     = name;
 			return layer;
 		}
 
 	protected:
 		SceneLayer* m_parent = nullptr;
-		SceneLayer* m_next	 = nullptr;
+		SceneLayer* m_next   = nullptr;
 		Name m_name;
 
 

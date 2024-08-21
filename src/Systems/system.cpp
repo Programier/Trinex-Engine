@@ -42,7 +42,7 @@ namespace Engine
 
 	System& System::create()
 	{
-		const Class* _this	= This::static_class_instance();
+		const Class* _this  = This::static_class_instance();
 		const Class* _class = class_instance();
 
 		if (_class == nullptr || _this == nullptr || _this == _class)
@@ -96,7 +96,7 @@ namespace Engine
 	{
 		if (system->m_parent_system == this)
 		{
-			auto it	 = m_subsystems.begin();
+			auto it  = m_subsystems.begin();
 			auto end = m_subsystems.end();
 
 			while (it != end)
@@ -173,18 +173,18 @@ namespace Engine
 
 	System* System::find_subsystem(const char* _name, size_t len)
 	{
-		const char* end_name	   = _name + len;
+		const char* end_name       = _name + len;
 		const size_t separator_len = Constants::name_separator.length();
-		const char* separator	   = Strings::strnstr(_name, len, Constants::name_separator.c_str(), separator_len);
-		const System* system	   = this;
+		const char* separator      = Strings::strnstr(_name, len, Constants::name_separator.c_str(), separator_len);
+		const System* system       = this;
 
 
 		while (separator && system)
 		{
 			size_t current_len = separator - _name;
-			system			   = system->find_system_private_no_recurse(_name, current_len);
-			_name			   = separator + separator_len;
-			separator		   = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+			system             = system->find_system_private_no_recurse(_name, current_len);
+			_name              = separator + separator_len;
+			separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
 		}
 
 		return system ? system->find_system_private_no_recurse(_name, end_name - _name) : nullptr;

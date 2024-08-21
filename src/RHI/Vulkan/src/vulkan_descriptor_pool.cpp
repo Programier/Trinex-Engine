@@ -12,17 +12,17 @@ namespace Engine
 	void VulkanDescriptorPool::init()
 	{
 		info_log("Vulkan", "Allocate new descriptor pool!");
-		free_sets			   = max_sets;
-		samplers			   = max_sets;
-		textures			   = max_sets / 2;
+		free_sets              = max_sets;
+		samplers               = max_sets;
+		textures               = max_sets / 2;
 		combined_image_sampler = max_sets / 4;
-		uniform_buffers		   = max_sets * 2;
+		uniform_buffers        = max_sets * 2;
 
 		std::array<vk::DescriptorPoolSize, 4> pools = {{
-				{vk::DescriptorType::eSampler, samplers},
-				{vk::DescriptorType::eCombinedImageSampler, combined_image_sampler},
-				{vk::DescriptorType::eSampledImage, textures},
-				{vk::DescriptorType::eUniformBuffer, uniform_buffers},
+		        {vk::DescriptorType::eSampler, samplers},
+		        {vk::DescriptorType::eCombinedImageSampler, combined_image_sampler},
+		        {vk::DescriptorType::eSampledImage, textures},
+		        {vk::DescriptorType::eUniformBuffer, uniform_buffers},
 		}};
 
 		vk::DescriptorPoolCreateInfo info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, max_sets, pools);
@@ -32,7 +32,7 @@ namespace Engine
 	bool VulkanDescriptorPool::can_allocate(VulkanDescriptorSetLayout* layout)
 	{
 		return free_sets > 0 && samplers >= layout->samplers && textures >= layout->textures &&
-			   combined_image_sampler >= layout->combined_image_sampler && uniform_buffers >= layout->uniform_buffers;
+		       combined_image_sampler >= layout->combined_image_sampler && uniform_buffers >= layout->uniform_buffers;
 	}
 
 	VulkanDescriptorSet* VulkanDescriptorPool::allocate_descriptor_set(VulkanDescriptorSetLayout* layout)
@@ -41,7 +41,7 @@ namespace Engine
 			return nullptr;
 
 		VulkanDescriptorSet* new_set = new VulkanDescriptorSet();
-		new_set->pool				 = this;
+		new_set->pool                = this;
 		vk::DescriptorSetAllocateInfo info(pool, layout->layout);
 		new_set->descriptor_set = API->m_device.allocateDescriptorSets(info)[0];
 
@@ -55,7 +55,7 @@ namespace Engine
 	}
 
 	VulkanDescriptorPool& VulkanDescriptorPool::release_descriptor_set(VulkanDescriptorSet* descriptor_set,
-																	   VulkanDescriptorSetLayout* layout)
+	                                                                   VulkanDescriptorSetLayout* layout)
 	{
 		free_sets += 1;
 		samplers += layout->samplers;
@@ -107,7 +107,7 @@ namespace Engine
 			for (auto& pool : m_descriptor_pools)
 			{
 				trinex_always_check(pool->free_sets == max_sets,
-									"All descriptor sets must be released before destroying descriptor pool!");
+				                    "All descriptor sets must be released before destroying descriptor pool!");
 				delete pool;
 			}
 			m_descriptor_pools.clear();

@@ -55,7 +55,7 @@ namespace Engine::ImGuiRenderer
 	class ENGINE_EXPORT DrawData final
 	{
 		ImDrawData m_draw_data[2];
-		byte m_logic_index	= 0;
+		byte m_logic_index  = 0;
 		byte m_render_index = 0;
 
 	public:
@@ -76,7 +76,7 @@ namespace Engine::ImGuiRenderer
 	{
 	public:
 		size_t frame_number = 0;
-		bool closable		= true;
+		bool closable       = true;
 		CallBacks<void()> on_close;
 
 		ImGuiAdditionalWindow();
@@ -92,9 +92,9 @@ namespace Engine::ImGuiRenderer
 	{
 		struct Node {
 			ImGuiAdditionalWindow* window = nullptr;
-			Node* next					  = nullptr;
-			Node* parent				  = nullptr;
-			const void* id				  = nullptr;
+			Node* next                    = nullptr;
+			Node* parent                  = nullptr;
+			const void* id                = nullptr;
 		};
 
 		Node* m_root = nullptr;
@@ -161,7 +161,7 @@ namespace Engine::ImGuiRenderer
 		ImGuiAdditionalWindowList window_list;
 		CallBacks<void()> on_destroy;
 
-		Window(const Window& window)	 = delete;
+		Window(const Window& window)     = delete;
 		Window& operator=(const Window&) = delete;
 
 		ImGuiContext* context() const;
@@ -183,30 +183,30 @@ namespace Engine::ImGuiRenderer
 	bool ENGINE_EXPORT IsMouseDownNow(ImGuiMouseButton button);
 
 	bool ENGINE_EXPORT InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0,
-								 ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+	                             ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
 	bool ENGINE_EXPORT InputTextMultiline(const char* label, String& buffer, const ImVec2& size = ImVec2(0.0f, 0.0f),
-										  ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
-										  void* user_data = nullptr);
+	                                      ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
+	                                      void* user_data = nullptr);
 
 	bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags = 0,
-										 ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+	                                     ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
 	bool ENGINE_EXPORT BeginPopup(const char* name, ImGuiWindowFlags flags = 0, bool (*callback)(void*) = nullptr,
-								  void* userdata = nullptr);
+	                              void* userdata = nullptr);
 
 	bool ENGINE_EXPORT IsWindowRectHovered();
 
 
 	template<typename Instance>
 	FORCE_INLINE bool BeginPopup(const char* name, ImGuiWindowFlags flags = 0,
-								 bool (Instance::*callback)(void* userdata) = nullptr, Instance* instance = nullptr,
-								 void* userdata = nullptr)
+	                             bool (Instance::*callback)(void* userdata) = nullptr, Instance* instance = nullptr,
+	                             void* userdata = nullptr)
 	{
 		struct InternalData {
 			bool (Instance::*callback)(void*) = nullptr;
-			Instance* instance				  = nullptr;
-			void* userdata					  = nullptr;
+			Instance* instance                = nullptr;
+			void* userdata                    = nullptr;
 		} data;
 
 		data.callback = callback;

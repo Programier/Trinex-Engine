@@ -7,22 +7,22 @@ namespace Engine
 	{}
 
 	SceneView::SceneView(const CameraView& view, const Size2D& view_size, const Flags<ShowFlags, BitMask>& show_flags)
-		: m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_show_flags(show_flags)
+	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_show_flags(show_flags)
 	{
-		m_viewport.pos		 = {0, 0};
-		m_viewport.size		 = view_size;
+		m_viewport.pos       = {0, 0};
+		m_viewport.size      = view_size;
 		m_viewport.min_depth = 0.f;
 		m_viewport.max_depth = 1.f;
-		m_scissor.pos		 = {0, 0};
-		m_scissor.size		 = view_size;
+		m_scissor.pos        = {0, 0};
+		m_scissor.size       = view_size;
 	}
 
 	SceneView::SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor,
-						 const Flags<ShowFlags, BitMask>& show_flags)
-		: m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_viewport(viewport),
-		  m_scissor(scissor), m_show_flags(show_flags)
+	                     const Flags<ShowFlags, BitMask>& show_flags)
+	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_viewport(viewport),
+	      m_scissor(scissor), m_show_flags(show_flags)
 	{
-		m_projview	   = m_projection * m_view;
+		m_projview     = m_projection * m_view;
 		m_inv_projview = glm::inverse(m_projview);
 	}
 
@@ -32,8 +32,8 @@ namespace Engine
 	{
 		m_camera_view  = view;
 		m_projection   = view.projection_matrix();
-		m_view		   = view.view_matrix();
-		m_projview	   = m_projection * m_view;
+		m_view         = view.view_matrix();
+		m_projview     = m_projection * m_view;
 		m_inv_projview = glm::inverse(m_projview);
 		return *this;
 	}
@@ -57,22 +57,22 @@ namespace Engine
 	}
 
 	const SceneView& SceneView::screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
-												Vector3D& world_direction) const
+	                                            Vector3D& world_direction) const
 	{
 		int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
 
-		Matrix4f inverse_view		= glm::inverse(m_view);
+		Matrix4f inverse_view       = glm::inverse(m_view);
 		Matrix4f inverse_projection = glm::inverse(m_projection);
 
 		Size2D m_size = view_size();
 
-		float screen_space_x				= (x - m_size.x / 2.f) / (m_size.x / 2.f);
-		float screen_space_y				= (y - m_size.y / 2.f) / (m_size.y / 2.f);
+		float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
+		float screen_space_y                = (y - m_size.y / 2.f) / (m_size.y / 2.f);
 		Vector4D ray_start_projection_space = Vector4D(screen_space_x, screen_space_y, 0.f, 1.0f);
-		Vector4D ray_end_projection_space	= Vector4D(screen_space_x, screen_space_y, 0.5f, 1.0f);
+		Vector4D ray_end_projection_space   = Vector4D(screen_space_x, screen_space_y, 0.5f, 1.0f);
 
 		Vector4D hg_ray_start_view_space = inverse_projection * ray_start_projection_space;
-		Vector4D hg_ray_end_view_space	 = inverse_projection * ray_end_projection_space;
+		Vector4D hg_ray_end_view_space   = inverse_projection * ray_end_projection_space;
 
 		Vector3D ray_start_view_space(hg_ray_start_view_space.x, hg_ray_start_view_space.y, hg_ray_start_view_space.z);
 		Vector3D ray_end_view_space(hg_ray_end_view_space.x, hg_ray_end_view_space.y, hg_ray_end_view_space.z);
@@ -87,11 +87,11 @@ namespace Engine
 		}
 
 		Vector3D ray_dir_view_space = ray_end_view_space - ray_start_view_space;
-		ray_dir_view_space			= glm::normalize(ray_dir_view_space);
+		ray_dir_view_space          = glm::normalize(ray_dir_view_space);
 
 		Vector3D ray_dir_world_space = inverse_view * Vector4D(ray_dir_view_space, 0.f);
 
-		world_origin	= m_camera_view.location;
+		world_origin    = m_camera_view.location;
 		world_direction = glm::normalize(ray_dir_world_space);
 		return *this;
 	}

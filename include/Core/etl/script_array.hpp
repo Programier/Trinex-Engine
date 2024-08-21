@@ -23,7 +23,7 @@ namespace Engine
 	class ENGINE_EXPORT ScriptArrayBase
 	{
 	public:
-		using size_type		  = size_t;
+		using size_type       = size_t;
 		using difference_type = ptrdiff_t;
 
 	protected:
@@ -65,10 +65,10 @@ namespace Engine
 	class ScriptArray : public ScriptArrayBase
 	{
 	public:
-		using value_type	  = T;
-		using pointer		  = T*;
-		using const_pointer	  = const T*;
-		using reference		  = T&;
+		using value_type      = T;
+		using pointer         = T*;
+		using const_pointer   = const T*;
+		using reference       = T&;
 		using const_reference = const T&;
 
 
@@ -80,10 +80,10 @@ namespace Engine
 			size_type m_position;
 
 		public:
-			using value_type	  = Type;
-			using pointer		  = Type*;
-			using const_pointer	  = const Type*;
-			using reference		  = Type&;
+			using value_type      = Type;
+			using pointer         = Type*;
+			using const_pointer   = const Type*;
+			using reference       = Type&;
 			using const_reference = const Type&;
 
 			Iterator(ScriptArrayType* array, size_type position) : m_script_array(array), m_position(position)
@@ -187,9 +187,9 @@ namespace Engine
 		};
 
 	public:
-		using iterator				 = Iterator<value_type, ScriptArray>;
-		using const_iterator		 = Iterator<const value_type, const ScriptArray>;
-		using reverse_iterator		 = std::reverse_iterator<iterator>;
+		using iterator               = Iterator<value_type, ScriptArray>;
+		using const_iterator         = Iterator<const value_type, const ScriptArray>;
+		using reverse_iterator       = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 

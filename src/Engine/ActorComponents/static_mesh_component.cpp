@@ -36,15 +36,15 @@ namespace Engine
 		StaticMesh* mesh   = component->mesh;
 		auto& camera_view  = scene_view().camera_view();
 		float inv_distance = 1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
-											camera_view.far_clip_plane);
-		auto& lods		   = mesh->lods;
-		Index lod_index	   = glm::min<Index>(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
-		auto& lod		   = lods[lod_index];
+		                                    camera_view.far_clip_plane);
+		auto& lods         = mesh->lods;
+		Index lod_index    = glm::min<Index>(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
+		auto& lod          = lods[lod_index];
 
 		for (auto& material : mesh->materials)
 		{
 			if (material.policy != policy_id() || material.material == nullptr ||
-				static_cast<Index>(material.surface_index) > lod.surfaces.size())
+			    static_cast<Index>(material.surface_index) > lod.surfaces.size())
 			{
 				continue;
 			}
@@ -56,7 +56,7 @@ namespace Engine
 
 			for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
 			{
-				auto& attribute		 = shader->attributes[i];
+				auto& attribute      = shader->attributes[i];
 				VertexBuffer* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
 
 				if (buffer)

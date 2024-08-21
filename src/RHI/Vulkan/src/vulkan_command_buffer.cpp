@@ -11,7 +11,7 @@ namespace Engine
 	}
 
 	VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandBuffer&& other)
-		: m_references(std::move(other.m_references)), m_cmd(std::move(other.m_cmd))
+	    : m_references(std::move(other.m_references)), m_cmd(std::move(other.m_cmd))
 	{
 		other.m_cmd = vk::CommandBuffer{};
 	}
@@ -22,8 +22,8 @@ namespace Engine
 			return *this;
 
 		m_references = std::move(other.m_references);
-		m_cmd		 = std::move(other.m_cmd);
-		other.m_cmd	 = vk::CommandBuffer{};
+		m_cmd        = std::move(other.m_cmd);
+		other.m_cmd  = vk::CommandBuffer{};
 		return *this;
 	}
 

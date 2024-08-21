@@ -9,9 +9,9 @@ namespace Engine
 		Struct::static_find("Engine::RHI::NONE", true)->struct_constructor([]() -> void* {
 			if (NoneApi::m_instance == nullptr)
 			{
-				NoneApi::m_instance						  = new NoneApi();
-				NoneApi::m_instance->info.name			  = "None";
-				NoneApi::m_instance->info.renderer		  = "None";
+				NoneApi::m_instance                       = new NoneApi();
+				NoneApi::m_instance->info.name            = "None";
+				NoneApi::m_instance->info.renderer        = "None";
 				NoneApi::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::NONE", true);
 			}
 			return NoneApi::m_instance;
@@ -115,7 +115,7 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-											 size_t instances)
+	                                         size_t instances)
 	{
 		return *this;
 	}

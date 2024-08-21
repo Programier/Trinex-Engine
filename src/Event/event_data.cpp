@@ -21,21 +21,21 @@ namespace Engine
 	static void register_event_data_type(const char* name, const char* func, Args... args)
 	{
 		ScriptClassRegistrar registrar =
-				ScriptClassRegistrar::value_class(name, sizeof(Type), ScriptClassRegistrar::ValueInfo::from<Type>());
+		        ScriptClassRegistrar::value_class(name, sizeof(Type), ScriptClassRegistrar::ValueInfo::from<Type>());
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}& in)", name).c_str(),
-						 ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
+		                 ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 		registrar.method(Strings::format("{}& opAssign(const {}& in)", name, name).c_str(),
-						 method_of<Type&, Type, const Type&>(&Type::operator=));
+		                 method_of<Type&, Type, const Type&>(&Type::operator=));
 
 		ScriptClassRegistrar::value_class("Engine::Event", sizeof(Event), ScriptClassRegistrar::ValueInfo::from<Event>())
-				.method(Strings::format("const {}& {}() const", name, func).c_str(),
-						func_of<const Type&(const Event*)>(
-								[](const Event* event) -> const Type& { return event->get<const Type&>(); }),
-						ScriptCallConv::CDeclObjFirst);
+		        .method(Strings::format("const {}& {}() const", name, func).c_str(),
+		                func_of<const Type&(const Event*)>(
+		                        [](const Event* event) -> const Type& { return event->get<const Type&>(); }),
+		                ScriptCallConv::CDeclObjFirst);
 
 		register_event_data_props(registrar, args...);
 	}
@@ -44,5 +44,5 @@ namespace Engine
 	{}
 
 	static ReflectionInitializeController initializer(on_init, "Engine::EventData",
-													  {"Engine::Event", "Engine::Keyboard", "Engine::GameController"});
+	                                                  {"Engine::Event", "Engine::Keyboard", "Engine::GameController"});
 }// namespace Engine

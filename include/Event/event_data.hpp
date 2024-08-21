@@ -9,11 +9,11 @@ namespace Engine
 {
 	using EmptyEvent = EmptyStruct;
 
-	using QuitEvent			  = EmptyEvent;
+	using QuitEvent           = EmptyEvent;
 	using AppTerminatingEvent = EmptyEvent;
-	using AppLowMemoryEvent	  = EmptyEvent;
-	using AppPauseEvent		  = EmptyEvent;
-	using AppResumeEvent	  = EmptyEvent;
+	using AppLowMemoryEvent   = EmptyEvent;
+	using AppPauseEvent       = EmptyEvent;
+	using AppResumeEvent      = EmptyEvent;
 
 	struct DisplayAddedEvent {
 	};
@@ -25,7 +25,7 @@ namespace Engine
 		Orientation orientation;
 	};
 
-	using WindowShownEvent	= EmptyStruct;
+	using WindowShownEvent  = EmptyStruct;
 	using WindowHiddenEvent = EmptyEvent;
 
 	struct ENGINE_EXPORT WindowEvent {
@@ -42,14 +42,14 @@ namespace Engine
 		};
 	};
 
-	using WindowMovedEvent		 = WindowEvent;
-	using WindowResizedEvent	 = WindowEvent;
-	using WindowMinimizedEvent	 = EmptyEvent;
-	using WindowMaximizedEvent	 = EmptyEvent;
-	using WindowRestoredEvent	 = EmptyEvent;
+	using WindowMovedEvent       = WindowEvent;
+	using WindowResizedEvent     = WindowEvent;
+	using WindowMinimizedEvent   = EmptyEvent;
+	using WindowMaximizedEvent   = EmptyEvent;
+	using WindowRestoredEvent    = EmptyEvent;
 	using WindowFocusGainedEvent = EmptyEvent;
-	using WindowFocusLostEvent	 = EmptyEvent;
-	using WindowCloseEvent		 = EmptyEvent;
+	using WindowFocusLostEvent   = EmptyEvent;
+	using WindowCloseEvent       = EmptyEvent;
 
 	struct ENGINE_EXPORT TextInputEvent {
 		String text;

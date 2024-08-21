@@ -15,19 +15,19 @@
 namespace Engine
 {
 	static const Map<WindowAttribute, SDL_WindowFlags> window_attributes = {
-			{WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE},
-			{WindowAttribute::FullScreen, SDL_WINDOW_FULLSCREEN},
-			{WindowAttribute::Shown, SDL_WINDOW_SHOWN},
-			{WindowAttribute::Hidden, SDL_WINDOW_HIDDEN},
-			{WindowAttribute::BorderLess, SDL_WINDOW_BORDERLESS},
-			{WindowAttribute::MouseFocus, SDL_WINDOW_MOUSE_FOCUS},
-			{WindowAttribute::InputFocus, SDL_WINDOW_INPUT_FOCUS},
-			{WindowAttribute::InputGrabbed, SDL_WINDOW_INPUT_GRABBED},
-			{WindowAttribute::Minimized, SDL_WINDOW_MINIMIZED},
-			{WindowAttribute::Maximized, SDL_WINDOW_MAXIMIZED},
-			{WindowAttribute::MouseCapture, SDL_WINDOW_MOUSE_CAPTURE},
-			{WindowAttribute::MouseGrabbed, SDL_WINDOW_MOUSE_GRABBED},
-			{WindowAttribute::KeyboardGrabbed, SDL_WINDOW_KEYBOARD_GRABBED}};
+	        {WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE},
+	        {WindowAttribute::FullScreen, SDL_WINDOW_FULLSCREEN},
+	        {WindowAttribute::Shown, SDL_WINDOW_SHOWN},
+	        {WindowAttribute::Hidden, SDL_WINDOW_HIDDEN},
+	        {WindowAttribute::BorderLess, SDL_WINDOW_BORDERLESS},
+	        {WindowAttribute::MouseFocus, SDL_WINDOW_MOUSE_FOCUS},
+	        {WindowAttribute::InputFocus, SDL_WINDOW_INPUT_FOCUS},
+	        {WindowAttribute::InputGrabbed, SDL_WINDOW_INPUT_GRABBED},
+	        {WindowAttribute::Minimized, SDL_WINDOW_MINIMIZED},
+	        {WindowAttribute::Maximized, SDL_WINDOW_MAXIMIZED},
+	        {WindowAttribute::MouseCapture, SDL_WINDOW_MOUSE_CAPTURE},
+	        {WindowAttribute::MouseGrabbed, SDL_WINDOW_MOUSE_GRABBED},
+	        {WindowAttribute::KeyboardGrabbed, SDL_WINDOW_KEYBOARD_GRABBED}};
 
 
 #define has_flag(flag) static_cast<bool>(SDL_GetWindowFlags(m_window) & flag)
@@ -89,8 +89,8 @@ namespace Engine
 		m_api = sdl_api();
 
 		m_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
-									static_cast<int>(info->size.x), static_cast<int>(info->size.y),
-									m_api | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
+		                            static_cast<int>(info->size.x), static_cast<int>(info->size.y),
+		                            m_api | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
 		m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 
@@ -179,15 +179,15 @@ namespace Engine
 		int x, y;
 		SDL_GetWindowPosition(m_window, &x, &y);
 		size_t index = monitor_index();
-		auto info	 = Platform::monitor_info(index);
+		auto info    = Platform::monitor_info(index);
 		return {x, info.size.y - (y + cached_size().y)};
 	}
 
 	WindowSDL& WindowSDL::position(const Point2D& position)
 	{
 		size_t index = monitor_index();
-		auto info	 = Platform::monitor_info(index);
-		float new_y	 = -position.y + info.size.y - cached_size().y;
+		auto info    = Platform::monitor_info(index);
+		float new_y  = -position.y + info.size.y - cached_size().y;
 		SDL_SetWindowPosition(m_window, position.x, new_y);
 		return *this;
 	}
@@ -304,14 +304,14 @@ namespace Engine
 		int_t b_mask = 0x00FF0000;
 		int_t a_mask = (channels == 4) ? 0xFF000000 : 0;
 #else
-		int_t s		 = (channels == 4) ? 0 : 8;
+		int_t s      = (channels == 4) ? 0 : 8;
 		int_t r_mask = 0xFF000000 >> s;
 		int_t g_mask = 0x00FF0000 >> s;
 		int_t b_mask = 0x0000FF00 >> s;
 		int_t a_mask = 0x000000FF >> s;
 #endif
 		SDL_Surface* surface =
-				SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask, g_mask, b_mask, a_mask);
+		        SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask, g_mask, b_mask, a_mask);
 		if (surface == nullptr)
 		{
 			error_log("WindowSDL", "Failed to create surface from image: %s", SDL_GetError());
@@ -327,7 +327,7 @@ namespace Engine
 			destroy_icon();
 
 			m_icon_buffer = image.buffer();
-			m_icon		  = create_surface(m_icon_buffer, image.width(), image.height(), channels);
+			m_icon        = create_surface(m_icon_buffer, image.width(), image.height(), channels);
 
 			SDL_SetWindowIcon(m_window, m_icon);
 		}
@@ -347,7 +347,7 @@ namespace Engine
 			destroy_cursor();
 
 			m_cursor_icon_buffer = image.buffer();
-			m_cursor_icon		 = create_surface(m_cursor_icon_buffer, image.width(), image.height(), channels);
+			m_cursor_icon        = create_surface(m_cursor_icon_buffer, image.width(), image.height(), channels);
 
 			if (m_cursor_icon)
 			{
@@ -371,11 +371,11 @@ namespace Engine
 
 			static struct {
 				bool m_fullscreen = false;
-				Uint32 m_flag	  = 0;
+				Uint32 m_flag     = 0;
 			} fullscreen_mode;
 
 			fullscreen_mode.m_fullscreen = false;
-			fullscreen_mode.m_flag		 = 0;
+			fullscreen_mode.m_flag       = 0;
 
 			switch (attrib)
 			{
@@ -384,7 +384,7 @@ namespace Engine
 					break;
 
 				case WindowAttribute::FullScreen:
-					fullscreen_mode.m_flag		 = value ? SDL_WINDOW_FULLSCREEN : 0;
+					fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
 					fullscreen_mode.m_fullscreen = true;
 					break;
 

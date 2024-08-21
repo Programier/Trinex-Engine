@@ -23,7 +23,7 @@ namespace Engine
 	Map<Struct*, void (*)(class ImGuiObjectProperties*, void*, Struct*, bool)> special_class_properties_renderers;
 
 	static bool render_struct_properties(ImGuiObjectProperties*, void* object, class Struct* struct_class, bool editable = true,
-										 bool is_in_table = false);
+	                                     bool is_in_table = false);
 
 	static FORCE_INLINE float get_column_width(ImGuiTableColumn& column)
 	{
@@ -79,7 +79,7 @@ namespace Engine
 
 	template<typename Type, PropertyType property_type = PropertyType::Undefined>
 	static bool render_prop_internal(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit,
-									 bool (*callback)(ImGuiObjectProperties* window, void*, Property*, Type&, bool can_edit))
+	                                 bool (*callback)(ImGuiObjectProperties* window, void*, Property*, Type&, bool can_edit))
 	{
 		render_prop_name(prop);
 
@@ -114,173 +114,173 @@ namespace Engine
 	static bool render_byte_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<byte>(
-				window, object, prop, can_edit, edit_f(byte) {
-					return ImGui::InputScalar(prop->name().c_str(), ImGuiDataType_U8, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(byte) {
+			        return ImGui::InputScalar(prop->name().c_str(), ImGuiDataType_U8, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_signed_byte_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<signed_byte>(
-				window, object, prop, can_edit, edit_f(signed_byte) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_S8, &value, nullptr, nullptr, nullptr, input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(signed_byte) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_S8, &value, nullptr, nullptr, nullptr, input_text_flags());
+		        });
 	}
 
 	static bool render_int16_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<int16_t>(
-				window, object, prop, can_edit, edit_f(int16_t) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_S16, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(int16_t) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_S16, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_uint16_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<uint16_t>(
-				window, object, prop, can_edit, edit_f(uint16_t) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_U16, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(uint16_t) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_U16, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_int_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<int_t>(
-				window, object, prop, can_edit, edit_f(int_t) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_S32, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(int_t) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_S32, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_uint_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<uint_t>(
-				window, object, prop, can_edit, edit_f(uint_t) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_U32, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(uint_t) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_U32, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_int64_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<int64_t>(
-				window, object, prop, can_edit, edit_f(int64_t) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_S64, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(int64_t) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_S64, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_uint64_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<uint64_t>(
-				window, object, prop, can_edit, edit_f(uint64_t) {
-					return ImGui::InputScalar("##Value", ImGuiDataType_U64, &value, nullptr, nullptr, nullptr,
-											  input_text_flags());
-				});
+		        window, object, prop, can_edit, edit_f(uint64_t) {
+			        return ImGui::InputScalar("##Value", ImGuiDataType_U64, &value, nullptr, nullptr, nullptr,
+			                                  input_text_flags());
+		        });
 	}
 
 	static bool render_bool_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<bool>(
-				window, object, prop, can_edit, edit_f(bool) {
-					if (editable)
-						return ImGui::Checkbox("##Value", &value);
-					bool flag = value;
-					ImGui::Checkbox("##Value", &flag);
-					return false;
-				});
+		        window, object, prop, can_edit, edit_f(bool) {
+			        if (editable)
+				        return ImGui::Checkbox("##Value", &value);
+			        bool flag = value;
+			        ImGui::Checkbox("##Value", &flag);
+			        return false;
+		        });
 	}
 
 	static bool render_float_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<float>(
-				window, object, prop, can_edit,
-				edit_f(float) { return ImGui::InputFloat("##Value", &value, 0.0f, 0.0f, "%.2f", input_text_flags()); });
+		        window, object, prop, can_edit,
+		        edit_f(float) { return ImGui::InputFloat("##Value", &value, 0.0f, 0.0f, "%.2f", input_text_flags()); });
 	}
 
 	static bool render_double_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<double>(
-				window, object, prop, can_edit,
-				edit_f(double) { return ImGui::InputDouble("##Value", &value, 0.0f, 0.0f, "%.2f", input_text_flags()); });
+		        window, object, prop, can_edit,
+		        edit_f(double) { return ImGui::InputDouble("##Value", &value, 0.0f, 0.0f, "%.2f", input_text_flags()); });
 	}
 
 	static bool render_vec2_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Vector2D>(
-				window, object, prop, can_edit,
-				edit_f(Vector2D) { return ImGui::InputFloat2("##Value", &value.x, "%.2f", input_text_flags()); });
+		        window, object, prop, can_edit,
+		        edit_f(Vector2D) { return ImGui::InputFloat2("##Value", &value.x, "%.2f", input_text_flags()); });
 	}
 
 	static bool render_vec3_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Vector3D>(
-				window, object, prop, can_edit,
-				edit_f(Vector3D) { return ImGui::InputFloat3("##Value", &value.x, "%.2f", input_text_flags()); });
+		        window, object, prop, can_edit,
+		        edit_f(Vector3D) { return ImGui::InputFloat3("##Value", &value.x, "%.2f", input_text_flags()); });
 	}
 
 	static bool render_vec4_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Vector4D>(
-				window, object, prop, can_edit,
-				edit_f(Vector4D) { return ImGui::InputFloat4("##Value", &value.x, "%.2f", input_text_flags()); });
+		        window, object, prop, can_edit,
+		        edit_f(Vector4D) { return ImGui::InputFloat4("##Value", &value.x, "%.2f", input_text_flags()); });
 	}
 
 	static bool render_color3_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Color3, PropertyType::Color3>(
-				window, object, prop, can_edit, edit_f(Color3) {
-					return ImGui::ColorEdit3("##Value", const_cast<float*>(&value.x),
-											 editable ? 0 : ImGuiColorEditFlags_NoInputs);
-				});
+		        window, object, prop, can_edit, edit_f(Color3) {
+			        return ImGui::ColorEdit3("##Value", const_cast<float*>(&value.x),
+			                                 editable ? 0 : ImGuiColorEditFlags_NoInputs);
+		        });
 	}
 
 	static bool render_color4_prop(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Color4, PropertyType::Color4>(
-				window, object, prop, can_edit, edit_f(Color4) {
-					return ImGui::ColorEdit4("##Value", const_cast<float*>(&value.x),
-											 editable ? 0 : ImGuiColorEditFlags_NoInputs);
-				});
+		        window, object, prop, can_edit, edit_f(Color4) {
+			        return ImGui::ColorEdit4("##Value", const_cast<float*>(&value.x),
+			                                 editable ? 0 : ImGuiColorEditFlags_NoInputs);
+		        });
 	}
 
 	static bool render_name_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Name, PropertyType::Name>(
-				window, object, prop, can_edit, edit_f(Name) {
-					ImGui::Text("%s", value.c_str());
-					return false;
-				});
+		        window, object, prop, can_edit, edit_f(Name) {
+			        ImGui::Text("%s", value.c_str());
+			        return false;
+		        });
 	}
 
 	static bool render_string_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<String, PropertyType::String>(
-				window, object, prop, can_edit, edit_f(String) {
-					return ImGuiRenderer::InputText("##Value", value, editable ? 0 : ImGuiInputTextFlags_ReadOnly);
-				});
+		        window, object, prop, can_edit, edit_f(String) {
+			        return ImGuiRenderer::InputText("##Value", value, editable ? 0 : ImGuiInputTextFlags_ReadOnly);
+		        });
 	}
 
 	static bool render_path_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Path, PropertyType::Path>(
-				window, object, prop, can_edit, edit_f(Path) {
-					ImGuiRenderer::Window* imgui_window = ImGuiRenderer::Window::current();
+		        window, object, prop, can_edit, edit_f(Path) {
+			        ImGuiRenderer::Window* imgui_window = ImGuiRenderer::Window::current();
 
-					const char* text = value.empty() ? "None" : value.c_str();
-					if (ImGui::Selectable(text) && editable)
-					{
-						Function<void(const Path&)> callback = [object, prop](const Path& path) {
-							prop->property_value(object, path);
-						};
-						imgui_window->window_list.create<ImGuiOpenFile>()->on_select.push(callback);
-					}
+			        const char* text = value.empty() ? "None" : value.c_str();
+			        if (ImGui::Selectable(text) && editable)
+			        {
+				        Function<void(const Path&)> callback = [object, prop](const Path& path) {
+					        prop->property_value(object, path);
+				        };
+				        imgui_window->window_list.create<ImGuiOpenFile>()->on_select.push(callback);
+			        }
 
-					return false;
-				});
+			        return false;
+		        });
 	}
 
 	struct EnumRenderingUserdata {
@@ -321,10 +321,10 @@ namespace Engine
 			return false;
 
 
-		EnumerateType current			 = value.cast<EnumerateType>();
+		EnumerateType current            = value.cast<EnumerateType>();
 		const Enum::Entry* current_entry = userdata.enum_class->entry(current);
 
-		int index						   = convert_to_imgui_index(userdata.enum_class->index_of(current));
+		int index                          = convert_to_imgui_index(userdata.enum_class->index_of(current));
 		const Vector<Enum::Entry>& entries = userdata.enum_class->entries();
 
 		render_prop_name(prop);
@@ -334,7 +334,7 @@ namespace Engine
 		if (ImGui::Combo("##ComboValue", &index, enum_element_name, &userdata, entries.size()) && can_edit)
 		{
 			current_entry = &entries[index];
-			value		  = PropertyValue(current_entry->value, PropertyType::Enum);
+			value         = PropertyValue(current_entry->value, PropertyType::Enum);
 			prop->property_value(object, value);
 			return true;
 		}
@@ -368,9 +368,9 @@ namespace Engine
 	}
 
 	static bool render_object_reference_internal(ImGuiObjectProperties* window, void* object, Property* prop, Object*& value,
-												 bool can_edit)
+	                                             bool can_edit)
 	{
-		Struct* self	 = prop->struct_instance();
+		Struct* self     = prop->struct_instance();
 		const float size = ImGui::GetFrameHeight();
 
 		bool changed = false;
@@ -392,7 +392,7 @@ namespace Engine
 
 					if (new_object->class_instance()->is_a(self))
 					{
-						value	= new_object;
+						value   = new_object;
 						changed = true;
 					}
 				}
@@ -404,9 +404,9 @@ namespace Engine
 			{
 				ImGui::TableSetColumnIndex(2);
 				if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
-									   {size, size}))
+				                       {size, size}))
 				{
-					value	= nullptr;
+					value   = nullptr;
 					changed = true;
 				}
 			}
@@ -417,7 +417,7 @@ namespace Engine
 	static bool render_object_reference(ImGuiObjectProperties* window, Object* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Object*, PropertyType::ObjectReference>(window, object, prop, can_edit,
-																			render_object_reference_internal);
+		                                                                    render_object_reference_internal);
 	}
 
 
@@ -429,7 +429,7 @@ namespace Engine
 
 		if (value.has_value())
 		{
-			void* struct_object	 = value.cast<void*>();
+			void* struct_object  = value.cast<void*>();
 			Struct* struct_class = prop->struct_instance();
 			if (props_collapsing_header(prop, prop->name().c_str()))
 			{
@@ -457,7 +457,7 @@ namespace Engine
 
 		ImGui::TableSetColumnIndex(2);
 		ArrayPropertyInterface* interface = reinterpret_cast<ArrayPropertyInterface*>(prop);
-		const float size				  = ImGui::GetFrameHeight();
+		const float size                  = ImGui::GetFrameHeight();
 
 		bool is_changed = false;
 
@@ -473,7 +473,7 @@ namespace Engine
 			Property* element_property = interface->element_type();
 
 			size_t count = interface->elements_count(object);
-			auto name	 = element_property->name();
+			auto name    = element_property->name();
 			static Vector<Name> names;
 
 
@@ -602,7 +602,7 @@ namespace Engine
 	}
 
 	static bool render_struct_properties(ImGuiObjectProperties* window, void* object, class Struct* struct_class, bool editable,
-										 bool is_in_table)
+	                                     bool is_in_table)
 	{
 		if (!is_in_table)
 			begin_prop_table();
@@ -754,7 +754,7 @@ namespace Engine
 	}
 
 	ImGuiObjectProperties& ImGuiObjectProperties::render_struct_properties(void* object, class Struct* struct_class,
-																		   bool editable)
+	                                                                       bool editable)
 	{
 		::Engine::render_struct_properties(this, object, struct_class, editable, true);
 		return *this;
@@ -764,8 +764,8 @@ namespace Engine
 	{
 		ImGui::TableNextRow();
 		ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
-							   !(row_index % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
-												: ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
+		                       !(row_index % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
+		                                        : ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
 		++row_index;
 		return *this;
 	}
@@ -773,11 +773,11 @@ namespace Engine
 	bool ImGuiObjectProperties::collapsing_header(const void* id, const char* format, ...)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImGuiTable* table	= ImGui::GetCurrentContext()->CurrentTable;
+		ImGuiTable* table   = ImGui::GetCurrentContext()->CurrentTable;
 
 		ImGui::TableSetColumnIndex(0);
 		ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-		color.w		 = 1.0f;
+		color.w      = 1.0f;
 		auto padding = ImGui::GetStyle().CellPadding;
 		float indent = window->DC.Indent.x;
 
@@ -788,7 +788,7 @@ namespace Engine
 		ImGui::GetWindowDrawList()->AddRectFilled(min_pos, max_pos, ImGui::ColorConvertFloat4ToU32(color));
 		ImGui::TablePopBackgroundChannel();
 
-		auto clip_rect		  = window->ClipRect;
+		auto clip_rect        = window->ClipRect;
 		auto parent_work_rect = window->ParentWorkRect;
 
 		max_pos.x -= get_column_width(table->Columns[2]) + (padding.x * 1.f) + indent;
@@ -798,10 +798,10 @@ namespace Engine
 		va_list args;
 		va_start(args, format);
 		bool result =
-				ImGui::TreeNodeExV(id, ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader, format, args);
+		        ImGui::TreeNodeExV(id, ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader, format, args);
 		va_end(args);
 
-		window->ClipRect	   = clip_rect;
+		window->ClipRect       = clip_rect;
 		window->ParentWorkRect = parent_work_rect;
 		return result;
 	}

@@ -47,8 +47,8 @@ namespace Engine
 	public:
 		enum GarbageCollectFlags
 		{
-			FullCycle	   = 1,
-			OneStep		   = 2,
+			FullCycle      = 1,
+			OneStep        = 2,
 			DestroyGarbage = 4,
 			DetectGarbage  = 8
 		};
@@ -89,7 +89,7 @@ namespace Engine
 		static int_t global_property_index_by_decl(const char* declaration);
 		static int_t global_property_index_by_decl(const String& declaration);
 		static bool global_property(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr,
-									int_t* type_id = nullptr, bool* is_const = nullptr, byte** pointer = nullptr);
+		                            int_t* type_id = nullptr, bool* is_const = nullptr, byte** pointer = nullptr);
 
 		static ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
 
@@ -152,9 +152,9 @@ namespace Engine
 		// Functions register
 
 		static ScriptFunction register_function(const char* declaration, ScriptFuncPtr* func,
-												ScriptCallConv conv = ScriptCallConv::CDecl);
+		                                        ScriptCallConv conv = ScriptCallConv::CDecl);
 		static ScriptFunction register_function(const String& declaration, ScriptFuncPtr* func,
-												ScriptCallConv conv = ScriptCallConv::CDecl);
+		                                        ScriptCallConv conv = ScriptCallConv::CDecl);
 
 		// Variable to string
 		static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);
@@ -164,14 +164,14 @@ namespace Engine
 
 		template<typename ReturnValue, typename... Args>
 		static ScriptFunction register_function(const char* declaration, ReturnValue (*func)(Args...),
-												ScriptCallConv conv = ScriptCallConv::CDecl)
+		                                        ScriptCallConv conv = ScriptCallConv::CDecl)
 		{
 			return register_function(declaration, ScriptFuncPtr::function_ptr(func), conv);
 		}
 
 		template<typename ReturnValue, typename... Args>
 		static ScriptFunction register_function(const String& declaration, ReturnValue (*func)(Args...),
-												ScriptCallConv conv = ScriptCallConv::CDecl)
+		                                        ScriptCallConv conv = ScriptCallConv::CDecl)
 		{
 			return register_function(declaration.c_str(), func, conv);
 		}

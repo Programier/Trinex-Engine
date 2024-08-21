@@ -15,8 +15,8 @@ namespace Engine
 	public:
 		struct ENGINE_EXPORT Finger {
 			bool is_down   = false;
-			float x		   = -1.f;
-			float y		   = -1.f;
+			float x        = -1.f;
+			float y        = -1.f;
 			float x_offset = 0.f;
 			float y_offset = 0.f;
 		};

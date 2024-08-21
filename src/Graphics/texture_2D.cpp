@@ -27,8 +27,8 @@ namespace Engine
 		Class* self_class = static_class_instance();
 		self_class->add_properties(new PathProperty("Path", "Path to texture", &Texture2D::path));
 		self_class->add_property(new EnumProperty("Format", "Color format of this texture", &This::m_format,
-												  Enum::static_find("Engine::ColorFormat", true), Name::none,
-												  Property::IsConst | Property::IsPrivate));
+		                                          Enum::static_find("Engine::ColorFormat", true), Name::none,
+		                                          Property::IsConst | Property::IsPrivate));
 	}
 
 	Texture2D& Texture2D::init(ColorFormat format, Size2D size, const Buffer& data, bool need_generate_mips)

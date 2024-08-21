@@ -21,8 +21,8 @@ namespace Engine
 		Struct::static_find("Engine::RHI::D3D11", true)->struct_constructor([]() -> void* {
 			if (D3D11::m_instance == nullptr)
 			{
-				D3D11::m_instance						= new D3D11();
-				D3D11::m_instance->info.name			= "D3D11";
+				D3D11::m_instance                       = new D3D11();
+				D3D11::m_instance->info.name            = "D3D11";
 				D3D11::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::D3D11", true);
 			}
 			return D3D11::m_instance;
@@ -41,7 +41,7 @@ namespace Engine
 			return *this;
 		m_main_window = window;
 
-		uint32_t device_flags		= 0;
+		uint32_t device_flags       = 0;
 		D3D_DRIVER_TYPE driver_type = D3D_DRIVER_TYPE_UNKNOWN;
 
 #if D3D11_WITH_DEBUG
@@ -61,7 +61,7 @@ namespace Engine
 
 		D3D_FEATURE_LEVEL max_feature_level = D3D_FEATURE_LEVEL_11_0;
 		result = D3D11CreateDevice(m_dxgi_adapter, driver_type, nullptr, device_flags, &max_feature_level, 1, D3D11_SDK_VERSION,
-								   &m_device, &m_feature_level, &m_context);
+		                           &m_device, &m_feature_level, &m_context);
 		trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
 
 		m_global_uniform_buffer.initialize();
@@ -93,8 +93,8 @@ namespace Engine
 		ID3D11RenderTargetView* render_target_view = nullptr;
 		D3D11_RENDER_TARGET_VIEW_DESC rtv_desc{};
 
-		rtv_desc.Format				= format;
-		rtv_desc.ViewDimension		= D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtv_desc.Format             = format;
+		rtv_desc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
 		rtv_desc.Texture2D.MipSlice = 0;
 
 		HRESULT result = m_device->CreateRenderTargetView(buffer, &rtv_desc, &render_target_view);
@@ -106,8 +106,8 @@ namespace Engine
 	{
 		ID3D11DepthStencilView* depth_stencil_view = nullptr;
 		D3D11_DEPTH_STENCIL_VIEW_DESC desc{};
-		desc.Format				= format;
-		desc.ViewDimension		= D3D11_DSV_DIMENSION_TEXTURE2D;
+		desc.Format             = format;
+		desc.ViewDimension      = D3D11_DSV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = 0;
 
 		HRESULT result = m_device->CreateDepthStencilView(buffer, &desc, &depth_stencil_view);
@@ -118,7 +118,7 @@ namespace Engine
 	D3D11& D3D11::viewport(const ViewPort& viewport)
 	{
 		auto& m_viewport = m_state.viewport;
-		auto new_mode	 = current_viewport_mode();
+		auto new_mode    = current_viewport_mode();
 
 		if (new_mode != m_state.viewport_mode || m_viewport != viewport)
 		{
@@ -130,18 +130,18 @@ namespace Engine
 				if (false && new_mode == D3D11_ViewportMode::Flipped)
 				{
 					auto render_target_size = m_state.render_viewport->render_target_size();
-					vp_y					= render_target_size.y - viewport.pos.y;
-					vp_h					= -vp_h;
+					vp_y                    = render_target_size.y - viewport.pos.y;
+					vp_h                    = -vp_h;
 				}
 
 				{
 					D3D11_VIEWPORT vp = {};
-					vp.Width		  = viewport.size.x;
-					vp.Height		  = vp_h;
-					vp.TopLeftX		  = viewport.pos.x;
-					vp.TopLeftY		  = vp_y;
-					vp.MinDepth		  = viewport.min_depth;
-					vp.MaxDepth		  = viewport.max_depth;
+					vp.Width          = viewport.size.x;
+					vp.Height         = vp_h;
+					vp.TopLeftX       = viewport.pos.x;
+					vp.TopLeftY       = vp_y;
+					vp.MinDepth       = viewport.min_depth;
+					vp.MaxDepth       = viewport.max_depth;
 					m_context->RSSetViewports(1, &vp);
 				}
 			}
@@ -223,10 +223,10 @@ namespace Engine
 
 	D3D11& D3D11::push_debug_stage(const char* stage, const Color& color)
 	{
-		byte r				  = static_cast<byte>(color.r * 255.f);
-		byte g				  = static_cast<byte>(color.g * 255.f);
-		byte b				  = static_cast<byte>(color.b * 255.f);
-		byte a				  = static_cast<byte>(color.a * 255.f);
+		byte r                = static_cast<byte>(color.r * 255.f);
+		byte g                = static_cast<byte>(color.g * 255.f);
+		byte b                = static_cast<byte>(color.b * 255.f);
+		byte a                = static_cast<byte>(color.a * 255.f);
 		D3DCOLOR marker_color = D3DCOLOR_RGBA(r, g, b, a);
 
 		static thread_local WCHAR buffer[256]{};
@@ -249,9 +249,9 @@ namespace Engine
 		m_context->ClearState();
 		m_context->Flush();
 
-		ID3D11Query* query			= nullptr;
+		ID3D11Query* query          = nullptr;
 		D3D11_QUERY_DESC query_desc = {};
-		query_desc.Query			= D3D11_QUERY_EVENT;
+		query_desc.Query            = D3D11_QUERY_EVENT;
 		m_device->CreateQuery(&query_desc, &query);
 		m_context->End(query);
 

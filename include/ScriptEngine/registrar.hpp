@@ -42,36 +42,36 @@ namespace Engine
 				// MSVC, XCode/Clang, and gnuc 5+
 				// C++11 compliant code
 				constexpr bool has_constructor =
-						std::is_default_constructible<T>::value && !std::is_trivially_default_constructible<T>::value;
+				        std::is_default_constructible<T>::value && !std::is_trivially_default_constructible<T>::value;
 				constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
 				constexpr bool has_assignment_operator =
-						std::is_copy_assignable<T>::value && !std::is_trivially_copy_assignable<T>::value;
+				        std::is_copy_assignable<T>::value && !std::is_trivially_copy_assignable<T>::value;
 				constexpr bool has_copy_constructor =
-						std::is_copy_constructible<T>::value && !std::is_trivially_copy_constructible<T>::value;
+				        std::is_copy_constructible<T>::value && !std::is_trivially_copy_constructible<T>::value;
 #elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                                         \
-		(defined(__clang__) && defined(CLANG_PRE_STANDARD))
+        (defined(__clang__) && defined(CLANG_PRE_STANDARD))
 				// gnuc 4.8 is using a mix of C++11 standard and pre-standard templates
 				constexpr bool has_constructor =
-						std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
+				        std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
 				constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
 				constexpr bool has_assignment_operator =
-						std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
+				        std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
 				constexpr bool has_copy_constructor =
-						std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
+				        std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
 #else
 				constexpr bool has_constructor =
-						std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
+				        std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
 				constexpr bool has_destructor = std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
 				constexpr bool has_assignment_operator =
-						std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
+				        std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
 				constexpr bool has_copy_constructor =
-						std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
+				        std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
 #endif
-				info.is_class				 = false;
-				info.is_array				 = false;
-				info.is_primitive			 = false;
-				info.has_constructor		 = false;
-				info.has_destructor			 = false;
+				info.is_class                = false;
+				info.is_array                = false;
+				info.is_primitive            = false;
+				info.has_constructor         = false;
+				info.has_destructor          = false;
 				info.has_assignment_operator = false;
 
 				if (std::is_floating_point<T>::value)
@@ -84,11 +84,11 @@ namespace Engine
 				}
 				else if (std::is_class<T>::value)
 				{
-					info.is_class				 = true;
-					info.has_constructor		 = has_constructor;
-					info.has_destructor			 = has_destructor;
+					info.is_class                = true;
+					info.has_constructor         = has_constructor;
+					info.has_destructor          = has_destructor;
 					info.has_assignment_operator = has_assignment_operator;
-					info.has_copy_constructor	 = has_copy_constructor;
+					info.has_copy_constructor    = has_copy_constructor;
 				}
 				else if (std::is_array<T>::value)
 				{
@@ -156,35 +156,35 @@ namespace Engine
 		// Method registration
 		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall);
 		ScriptFunction method(const char* declaration, ScriptFuncPtr* function,
-							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+		                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-							  ScriptCallConv conv = ScriptCallConv::ThisCall)
+		                      ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-							  ScriptCallConv conv = ScriptCallConv::ThisCall)
+		                      ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (*function_address)(Args...),
-							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+		                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
 		{
 			return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv);
 		}
 
 		ScriptFunction static_function(const char* declaration, ScriptFuncPtr* function,
-									   ScriptCallConv conv = ScriptCallConv::CDecl);
+		                               ScriptCallConv conv = ScriptCallConv::CDecl);
 
 		template<typename ReturnType, typename... Args>
 		ScriptFunction static_function(const char* declaration, ReturnType (*function)(Args...),
-									   ScriptCallConv conv = ScriptCallConv::CDecl)
+		                               ScriptCallConv conv = ScriptCallConv::CDecl)
 		{
 			return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv);
 		}
@@ -202,29 +202,29 @@ namespace Engine
 
 		// Behaviour registration
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptFuncPtr* function,
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptMethodPtr* method,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall);
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-									 ReturnType (ClassType::*method_address)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::ThisCall)
+		                             ReturnType (ClassType::*method_address)(Args...),
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-									 ReturnType (ClassType::*method_address)(Args...) const,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall)
+		                             ReturnType (ClassType::*method_address)(Args...) const,
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-									 ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+		                             ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
 		{
 			return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv);
 		}
@@ -232,27 +232,27 @@ namespace Engine
 		// Operator registration
 
 		ScriptClassRegistrar& opfunc(const char* declaration, ScriptMethodPtr* method,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall);
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall);
 		ScriptClassRegistrar& opfunc(const char* declaration, ScriptFuncPtr* function,
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::ThisCall)
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall)
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
 		{
 			return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (*function)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
 		{
 			return opfunc(declaration, ScriptFuncPtr::function_ptr(function), conv);
 		}

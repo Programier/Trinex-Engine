@@ -10,11 +10,11 @@
 namespace Engine
 {
 	struct OpenGL_State {
-		ViewPort viewport						  = {};
-		Scissor scissor							  = {};
+		ViewPort viewport                         = {};
+		Scissor scissor                           = {};
 		struct OpenGL_RenderTarget* render_target = nullptr;
-		struct OpenGL_Pipeline* pipeline		  = nullptr;
-		struct OpenGL_IndexBuffer* index_buffer	  = nullptr;
+		struct OpenGL_Pipeline* pipeline          = nullptr;
+		struct OpenGL_IndexBuffer* index_buffer   = nullptr;
 	};
 
 	struct OpenGL : public RHI {
@@ -23,7 +23,7 @@ namespace Engine
 
 		Vector<BindingIndex> m_sampler_units;// TODO: Maybe we can remove this variable?
 		Vector<GlobalShaderParameters> m_global_parameters_stack;
-		struct OpenGL_UniformBuffer* m_global_ubo	  = nullptr;
+		struct OpenGL_UniformBuffer* m_global_ubo     = nullptr;
 		struct OpenGL_LocalUniformBuffer* m_local_ubo = nullptr;
 
 		OpenGL_State m_state;
@@ -38,14 +38,14 @@ namespace Engine
 		OpenGL& draw(size_t vertex_count, size_t vertices_offset) override;
 		OpenGL& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
 		OpenGL& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-									   size_t instances) override;
+		                               size_t instances) override;
 		OpenGL& begin_render() override;
 		OpenGL& end_render() override;
 		OpenGL& reset_state();
 
 		OpenGL& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 		OpenGL& bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-								   struct OpenGL_RenderSurface* depth_stencil);
+		                           struct OpenGL_RenderSurface* depth_stencil);
 		OpenGL& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		OpenGL& scissor(const Scissor& scissor) override;

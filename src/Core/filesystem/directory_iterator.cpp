@@ -12,7 +12,7 @@ namespace Engine::VFS
 	{}
 
 	DirectoryIterator::DirectoryIterator(const DirectoryIterator& other)
-		: m_interface(other.m_interface ? other.m_interface->copy() : nullptr)
+	    : m_interface(other.m_interface ? other.m_interface->copy() : nullptr)
 	{}
 
 	DirectoryIterator::DirectoryIterator(DirectoryIterator&& other) : m_interface(other.m_interface)
@@ -40,7 +40,7 @@ namespace Engine::VFS
 		if (m_interface)
 			delete m_interface;
 
-		m_interface		  = other.m_interface;
+		m_interface       = other.m_interface;
 		other.m_interface = nullptr;
 		return *this;
 	}
@@ -98,11 +98,11 @@ namespace Engine::VFS
 	{}
 
 	RecursiveDirectoryIterator::RecursiveDirectoryIterator(const Path& path)
-		: m_interface(rootfs()->create_recursive_directory_iterator(path))
+	    : m_interface(rootfs()->create_recursive_directory_iterator(path))
 	{}
 
 	RecursiveDirectoryIterator::RecursiveDirectoryIterator(const RecursiveDirectoryIterator& other)
-		: m_interface(other.m_interface ? other.m_interface->copy() : nullptr)
+	    : m_interface(other.m_interface ? other.m_interface->copy() : nullptr)
 	{}
 
 	RecursiveDirectoryIterator::RecursiveDirectoryIterator(RecursiveDirectoryIterator&& other) : m_interface(other.m_interface)
@@ -130,7 +130,7 @@ namespace Engine::VFS
 		if (m_interface)
 			delete m_interface;
 
-		m_interface		  = other.m_interface;
+		m_interface       = other.m_interface;
 		other.m_interface = nullptr;
 		return *this;
 	}

@@ -63,7 +63,7 @@ namespace Engine
 		// Properties
 		uint_t property_count() const;
 		bool property(uint_t index, StringView* name = nullptr, int_t* type_id = nullptr, bool* is_private = nullptr,
-					  bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr) const;
+		              bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr) const;
 		String property_declaration(uint_t index, bool include_bamespace = false) const;
 		StringView property_name(uint_t index) const;
 		int_t property_type_id(uint_t index) const;

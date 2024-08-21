@@ -23,7 +23,7 @@ namespace Engine
 		static void exec_all_if_already_triggered();
 
 		LoadingControllerBase& push(const ControllerCallback& callback, const String& name = "",
-									const std::initializer_list<String>& require_initializers = {});
+		                            const std::initializer_list<String>& require_initializers = {});
 		LoadingControllerBase& require(const String& name);
 		LoadingControllerBase& execute();
 		virtual Identifier id() const = 0;
@@ -37,9 +37,9 @@ namespace Engine
 	public:                                                                                                                      \
 		ControllerName();                                                                                                        \
 		ControllerName(const ControllerCallback& callback, const String& name = "",                                              \
-					   const std::initializer_list<String>& require_initializers = {});                                          \
+		               const std::initializer_list<String>& require_initializers = {});                                          \
 		ControllerName& push(const ControllerCallback& callback, const String& name = "",                                        \
-							 const std::initializer_list<String>& require_initializers = {});                                    \
+		                     const std::initializer_list<String>& require_initializers = {});                                    \
 		ControllerName& require(const String& name);                                                                             \
 		ControllerName& execute();                                                                                               \
 		Identifier id() const override;                                                                                          \

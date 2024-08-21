@@ -28,7 +28,7 @@ namespace Engine
 	BatchedPrimitive::BatchedPrimitive()
 	{
 		m_position_buffer = Object::new_instance<PositionDynamicVertexBuffer>();
-		m_color_buffer	  = Object::new_instance<ColorDynamicVertexBuffer>();
+		m_color_buffer    = Object::new_instance<ColorDynamicVertexBuffer>();
 	}
 
 	BatchedPrimitive& BatchedPrimitive::clear()
@@ -100,7 +100,7 @@ namespace Engine
 	}
 
 	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
-													 ByteColor color1, ByteColor color2, ByteColor color3)
+	                                                 ByteColor color1, ByteColor color2, ByteColor color3)
 	{
 		m_position_buffer->buffer.push_back(point1);
 		m_position_buffer->buffer.push_back(point2);
@@ -113,18 +113,18 @@ namespace Engine
 	}
 
 	BatchedTriangles& BatchedTriangles::override_triangle(Index index, const Vector3D& point1, const Vector3D& point2,
-														  const Vector3D& point3, ByteColor color1, ByteColor color2,
-														  ByteColor color3)
+	                                                      const Vector3D& point3, ByteColor color1, ByteColor color2,
+	                                                      ByteColor color3)
 	{
 		index *= 3;
 		if (m_position_buffer->buffer.size() <= index)
 			return add_triangle(point1, point2, point3, color1, color2, color3);
 
-		m_position_buffer->buffer[index]	 = point1;
+		m_position_buffer->buffer[index]     = point1;
 		m_position_buffer->buffer[index + 1] = point2;
 		m_position_buffer->buffer[index + 2] = point2;
 
-		m_color_buffer->buffer[index]	  = color1;
+		m_color_buffer->buffer[index]     = color1;
 		m_color_buffer->buffer[index + 1] = color2;
 		m_color_buffer->buffer[index + 2] = color3;
 		return *this;

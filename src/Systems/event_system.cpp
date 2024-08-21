@@ -32,7 +32,7 @@ namespace Engine
 	void EventSystem::on_window_close(const Event& event, bool is_quit)
 	{
 		WindowManager* manager = WindowManager::instance();
-		Window* window		   = manager->find(event.window_id());
+		Window* window         = manager->find(event.window_id());
 
 		if (manager->main_window() == window || is_quit)
 		{
@@ -47,7 +47,7 @@ namespace Engine
 	static void on_resize(const Event& event)
 	{
 		WindowManager* manager = WindowManager::instance();
-		Window* window		   = manager->find(event.window_id());
+		Window* window         = manager->find(event.window_id());
 		if (!window)
 			return;
 
@@ -55,8 +55,8 @@ namespace Engine
 		window->update_cached_size();
 
 		{
-			auto x							= window_event.x;
-			auto y							= window_event.y;
+			auto x                          = window_event.x;
+			auto y                          = window_event.y;
 			RenderViewport* render_viewport = window->render_viewport();
 			if (render_viewport)
 			{
@@ -139,7 +139,7 @@ namespace Engine
 		bool is_nested = m_is_in_events_pooling;
 
 		m_is_in_events_pooling = true;
-		auto it				   = m_listeners.find(static_cast<EnumerateType>(event.type()));
+		auto it                = m_listeners.find(static_cast<EnumerateType>(event.type()));
 		if (it != m_listeners.end())
 		{
 			it->second.trigger(event);
@@ -176,7 +176,7 @@ namespace Engine
 	Name EventSystem::event_name(EventType type)
 	{
 		static Enum* event_type_enum = Enum::static_find("Engine::EventType", true);
-		auto entry					 = event_type_enum->entry(static_cast<EnumerateType>(type));
+		auto entry                   = event_type_enum->entry(static_cast<EnumerateType>(type));
 
 		if (entry)
 		{
@@ -219,7 +219,7 @@ namespace Engine
 
 	static EventSystemListenerID add_script_listener(EventSystem* system, EventType type, asIScriptFunction* _function)
 	{
-		ScriptFunction function		   = _function;
+		ScriptFunction function        = _function;
 		EventSystem::Listener callback = [function](const Event& event) mutable {
 			const void* address = &event;
 			//function.prepare().arg_address(0, const_cast<void*>(address)).call().unbind_context();
@@ -231,9 +231,9 @@ namespace Engine
 	static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
 	{
 		ReflectionInitializeController()
-				.require("Engine::Event")
-				.require("Engine::EventSystenListenerID")
-				.require("Engine::EventType");
+		        .require("Engine::Event")
+		        .require("Engine::EventSystenListenerID")
+		        .require("Engine::EventType");
 
 		ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
 		enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);

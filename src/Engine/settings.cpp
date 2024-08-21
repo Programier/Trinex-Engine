@@ -26,17 +26,17 @@ namespace Engine::Settings
 	ENGINE_EXPORT String w_client;
 	ENGINE_EXPORT int_t w_size_x = 1280;
 	ENGINE_EXPORT int_t w_size_y = 720;
-	ENGINE_EXPORT int_t w_pos_x	 = -1;
-	ENGINE_EXPORT int_t w_pos_y	 = -1;
+	ENGINE_EXPORT int_t w_pos_x  = -1;
+	ENGINE_EXPORT int_t w_pos_y  = -1;
 	ENGINE_EXPORT bool w_vsync;
 	ENGINE_EXPORT ScriptArray<WindowAttribute, "Engine::WindowAttribute"> w_attributes;
 	ENGINE_EXPORT ScriptArray<Orientation, "Engine::Orientation"> w_orientations;
 
-	ENGINE_EXPORT bool e_show_splash				 = true;
-	ENGINE_EXPORT String e_splash_image				 = "resources/splash/splash.png";
-	ENGINE_EXPORT String e_splash_font				 = "";
-	ENGINE_EXPORT int_t e_splash_startup_text_size	 = 14;
-	ENGINE_EXPORT int_t e_splash_version_text_size	 = 14;
+	ENGINE_EXPORT bool e_show_splash                 = true;
+	ENGINE_EXPORT String e_splash_image              = "resources/splash/splash.png";
+	ENGINE_EXPORT String e_splash_font               = "";
+	ENGINE_EXPORT int_t e_splash_startup_text_size   = 14;
+	ENGINE_EXPORT int_t e_splash_version_text_size   = 14;
 	ENGINE_EXPORT int_t e_splash_copyright_text_size = 14;
 	ENGINE_EXPORT int_t e_splash_game_name_text_size = 32;
 
@@ -66,9 +66,9 @@ namespace Engine::Settings
 		w_orientations.create();
 
 		ConfigManager::register_custom_property("Engine::Settings::w_attributes", w_attributes.array(),
-												w_attributes.full_declaration().c_str(), "engine");
+		                                        w_attributes.full_declaration().c_str(), "engine");
 		ConfigManager::register_custom_property("Engine::Settings::w_orientations", w_orientations.array(),
-												w_orientations.full_declaration().c_str(), "engine");
+		                                        w_orientations.full_declaration().c_str(), "engine");
 
 		bind_value(e_show_splash, engine);
 		bind_value(e_splash_image, engine);
@@ -89,6 +89,6 @@ namespace Engine::Settings
 	}
 
 	static ReflectionInitializeController on_init(init, "Engine::Settings",
-												  {"Engine::WindowAttribute", "Engine::WindowOrientation"});
+	                                              {"Engine::WindowAttribute", "Engine::WindowOrientation"});
 	static DestroyController on_destroy(destroy, "Engine::Settings");
 }// namespace Engine::Settings

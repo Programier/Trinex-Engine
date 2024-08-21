@@ -96,12 +96,12 @@ namespace Engine
 		DepthSceneRenderer* m_depth_renderer = nullptr;
 
 		// Layers
-		SceneLayer* m_clear_layer					  = nullptr;
-		DepthRenderingLayer* m_depth_layer			  = nullptr;
-		CommandBufferLayer* m_base_pass_layer		  = nullptr;
+		SceneLayer* m_clear_layer                     = nullptr;
+		DepthRenderingLayer* m_depth_layer            = nullptr;
+		CommandBufferLayer* m_base_pass_layer         = nullptr;
 		CommandBufferLayer* m_deferred_lighting_layer = nullptr;
-		SceneOutputLayer* m_scene_output			  = nullptr;
-		SceneLayer* m_post_process_layer			  = nullptr;
+		SceneOutputLayer* m_scene_output              = nullptr;
+		SceneLayer* m_post_process_layer              = nullptr;
 
 
 		ViewMode m_view_mode;

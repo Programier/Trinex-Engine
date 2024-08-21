@@ -9,14 +9,14 @@ namespace Engine
 	static void on_init()
 	{
 		ScriptClassRegistrar::ValueInfo info;
-		info.pod	  = true;
+		info.pod      = true;
 		info.all_ints = true;
 
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::StringView", sizeof(StringView), info);
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<StringView>);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",
-						 ScriptClassRegistrar::constructor<StringView, const String&>);
+		                 ScriptClassRegistrar::constructor<StringView, const String&>);
 
 		registrar.method("bool empty() const", &StringView::empty);
 		registrar.method("uint64 length() const", &StringView::length);
@@ -32,29 +32,29 @@ namespace Engine
 		registrar.method("bool starts_with(StringView) const", method_of<bool, StringView>(&StringView::starts_with));
 
 		registrar.method("uint64 find(uint8, uint64 = 0) const",
-						 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find));
+		                 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find));
 		registrar.method("uint64 find(StringView, uint64 = 0) const",
-						 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find));
+		                 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find));
 
 		registrar.method("uint64 find_first_not_of(uint8, uint64 = 0) const",
-						 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_first_not_of));
+		                 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_first_not_of));
 		registrar.method("uint64 find_first_not_of(StringView, uint64 = 0) const",
-						 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_first_not_of));
+		                 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_first_not_of));
 
 		registrar.method("uint64 find_first_of(uint8, uint64 = 0) const",
-						 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_first_of));
+		                 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_first_of));
 		registrar.method("uint64 find_first_of(StringView, uint64 = 0) const",
-						 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_first_of));
+		                 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_first_of));
 
 		registrar.method("uint64 find_last_not_of(uint8, uint64 = 0) const",
-						 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_last_not_of));
+		                 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_last_not_of));
 		registrar.method("uint64 find_last_not_of(StringView, uint64 = 0) const",
-						 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_last_not_of));
+		                 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_last_not_of));
 
 		registrar.method("uint64 find_last_of(uint8, uint64 = 0) const",
-						 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_last_of));
+		                 method_of<StringView::size_type, char, StringView::size_type>(&StringView::find_last_of));
 		registrar.method("uint64 find_last_of(StringView, uint64 = 0) const",
-						 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_last_of));
+		                 method_of<StringView::size_type, StringView, StringView::size_type>(&StringView::find_last_of));
 	}
 
 	static ReflectionInitializeController initialize(on_init, "Engine::StringView");

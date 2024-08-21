@@ -43,7 +43,7 @@ namespace Engine
 	{
 		auto m_state = state();
 		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_state->m_render_pass->m_render_pass,
-														  image_views, m_state->m_size.x, m_state->m_size.y, 1);
+		                                                  image_views, m_state->m_size.x, m_state->m_size.y, 1);
 		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
 		return *this;
@@ -108,7 +108,7 @@ namespace Engine
 
 	VulkanRenderTargetBase& VulkanRenderTargetBase::size(uint32_t width, uint32_t height)
 	{
-		auto m_state	  = state();
+		auto m_state      = state();
 		m_state->m_size.x = static_cast<float>(width);
 		m_state->m_size.y = static_cast<float>(height);
 		return *this;
@@ -137,10 +137,10 @@ namespace Engine
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout			= vk::ImageLayout::ePresentSrcKHR;
-		barrier.newLayout			= vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.image				= m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
-		barrier.subresourceRange	= vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		barrier.oldLayout           = vk::ImageLayout::ePresentSrcKHR;
+		barrier.newLayout           = vk::ImageLayout::eColorAttachmentOptimal;
+		barrier.image               = m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
+		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
 		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
 
@@ -154,10 +154,10 @@ namespace Engine
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout			= vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.newLayout			= vk::ImageLayout::ePresentSrcKHR;
-		barrier.image				= m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
-		barrier.subresourceRange	= vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		barrier.oldLayout           = vk::ImageLayout::eColorAttachmentOptimal;
+		barrier.newLayout           = vk::ImageLayout::ePresentSrcKHR;
+		barrier.image               = m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
+		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
 		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
 		return *this;
@@ -191,7 +191,7 @@ namespace Engine
 	}
 
 	VulkanRenderTarget* VulkanRenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
-														   RenderSurface* depth_stencil)
+	                                                       RenderSurface* depth_stencil)
 	{
 		Key key;
 		key.init(color_attachments, depth_stencil);
@@ -221,7 +221,7 @@ namespace Engine
 		for (auto& attachment : color_attachments)
 		{
 			const Texture2D* color_binding = attachment;
-			VulkanSurface* texture		   = color_binding->rhi_object<VulkanSurface>();
+			VulkanSurface* texture         = color_binding->rhi_object<VulkanSurface>();
 
 			trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
 			bool usage_check = texture->is_render_target_color_image();
@@ -229,7 +229,7 @@ namespace Engine
 
 			vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 			m_attachments[index] = texture->create_image_view(range);
-			m_surfaces[index]	 = texture;
+			m_surfaces[index]    = texture;
 			texture->m_render_targets.insert(this);
 			++index;
 		}
@@ -237,7 +237,7 @@ namespace Engine
 		if (depth_stencil)
 		{
 			const Texture2D* binding = depth_stencil;
-			VulkanSurface* texture	 = binding->rhi_object<VulkanSurface>();
+			VulkanSurface* texture   = binding->rhi_object<VulkanSurface>();
 			trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
 			bool check_status = texture->is_depth_stencil_image();
@@ -245,7 +245,7 @@ namespace Engine
 
 			vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
 			m_attachments[index] = texture->create_image_view(range);
-			m_surfaces[index]	 = texture;
+			m_surfaces[index]    = texture;
 
 			texture->m_render_targets.insert(this);
 		}
@@ -348,9 +348,9 @@ namespace Engine
 	{
 		state.m_viewport = viewport;
 
-		uint_t index		= 0;
-		state.m_size.x		= static_cast<float>(viewport->m_swapchain->extent.width);
-		state.m_size.y		= static_cast<float>(viewport->m_swapchain->extent.height);
+		uint_t index        = 0;
+		state.m_size.x      = static_cast<float>(viewport->m_swapchain->extent.width);
+		state.m_size.y      = static_cast<float>(viewport->m_swapchain->extent.height);
 		state.m_render_pass = VulkanRenderPass::swapchain_render_pass(vk::Format(viewport->m_swapchain->image_format));
 		state.post_init();
 
@@ -392,20 +392,20 @@ namespace Engine
 	VulkanAPI& VulkanAPI::viewport(const ViewPort& viewport)
 	{
 		auto& m_viewport = m_state.m_viewport;
-		auto new_mode	 = find_current_viewport_mode();
+		auto new_mode    = find_current_viewport_mode();
 
 		if (new_mode != m_state.m_viewport_mode || m_viewport != viewport)
 		{
 			if (new_mode != VulkanViewportMode::Undefined)
 			{
 				float vp_height = viewport.size.y;
-				float vp_y		= viewport.pos.y;
+				float vp_y      = viewport.pos.y;
 
 				if (new_mode == VulkanViewportMode::Flipped)
 				{
-					vp_height				= -vp_height;
+					vp_height               = -vp_height;
 					auto render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
-					vp_y					= render_target_size.y - vp_y;
+					vp_y                    = render_target_size.y - vp_y;
 				}
 
 				{
@@ -433,14 +433,14 @@ namespace Engine
 	VulkanAPI& VulkanAPI::scissor(const Scissor& scissor)
 	{
 		auto& m_scissor = m_state.m_scissor;
-		auto new_mode	= find_current_viewport_mode();
+		auto new_mode   = find_current_viewport_mode();
 
 		if (new_mode != m_state.m_viewport_mode || m_scissor != scissor)
 		{
 			if (new_mode != VulkanViewportMode::Undefined)
 			{
 				const auto& render_target_size = m_state.m_render_target->state()->m_size;
-				float sc_y					   = scissor.pos.y;
+				float sc_y                     = scissor.pos.y;
 
 				if (new_mode == VulkanViewportMode::Flipped)
 				{

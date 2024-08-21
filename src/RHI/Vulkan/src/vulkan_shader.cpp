@@ -32,7 +32,7 @@ namespace Engine
 		if (shader->source_code.empty())
 			return false;
 		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->source_code.size(),
-										reinterpret_cast<const uint32_t*>(shader->source_code.data()));
+		                                reinterpret_cast<const uint32_t*>(shader->source_code.data()));
 		m_shader = API->m_device.createShaderModule(info);
 
 		return true;
@@ -217,8 +217,8 @@ namespace Engine
 
 		for (Index index = 0; auto& attribute : shader->attributes)
 		{
-			uint32_t stream	  = static_cast<uint32_t>(attribute.stream_index);
-			uint32_t stride	  = 0;
+			uint32_t stream   = static_cast<uint32_t>(attribute.stream_index);
+			uint32_t stride   = 0;
 			vk::Format format = parse_vertex_format(attribute.type, stride);
 
 			{
@@ -233,12 +233,12 @@ namespace Engine
 						if (desc.inputRate != rate)
 						{
 							error_log("Vulkan", "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'",
-									  name_of_rate(rate), index, name_of_rate(desc.inputRate));
+							          name_of_rate(rate), index, name_of_rate(desc.inputRate));
 							return false;
 						}
 
 						desc.stride = glm::max(desc.stride, stride + static_cast<uint32_t>(attribute.offset));
-						found		= true;
+						found       = true;
 						break;
 					}
 				}
@@ -246,9 +246,9 @@ namespace Engine
 				if (!found)
 				{
 					m_binding_description.emplace_back();
-					auto& desc	   = m_binding_description.back();
+					auto& desc     = m_binding_description.back();
 					desc.binding   = attribute.stream_index;
-					desc.stride	   = stride;
+					desc.stride    = stride;
 					desc.inputRate = rate_of(attribute.rate);
 				}
 			}
@@ -256,10 +256,10 @@ namespace Engine
 			{
 				m_attribute_description.emplace_back();
 				vk::VertexInputAttributeDescription& description = m_attribute_description.back();
-				description.binding	 = static_cast<decltype(description.binding)>(attribute.stream_index);
+				description.binding  = static_cast<decltype(description.binding)>(attribute.stream_index);
 				description.location = static_cast<decltype(description.location)>(attribute.location);
-				description.offset	 = attribute.offset;
-				description.format	 = format;
+				description.offset   = attribute.offset;
+				description.format   = format;
 			}
 
 			++index;

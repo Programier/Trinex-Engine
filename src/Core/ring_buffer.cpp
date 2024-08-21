@@ -19,7 +19,7 @@ namespace Engine
 		}
 
 		m_start_pointer = buffer.m_write_pointer;
-		m_size			= glm::min<size_t>(size, (buffer.m_end_pointer - buffer.m_write_pointer));
+		m_size          = glm::min<size_t>(size, (buffer.m_end_pointer - buffer.m_write_pointer));
 	}
 
 	void* RingBuffer::AllocationContext::data() const
@@ -72,15 +72,15 @@ namespace Engine
 	{
 		if (!is_inited())
 		{
-			size		= align_memory(size, alignment);
+			size        = align_memory(size, alignment);
 			m_alignment = alignment;
-			m_event		= event;
+			m_event     = event;
 
 			m_data.resize(size, 0);
-			m_read_pointer	= m_data.data();
+			m_read_pointer  = m_data.data();
 			m_write_pointer = m_read_pointer.load();
 			m_start_pointer = m_read_pointer;
-			m_end_pointer	= m_read_pointer + size;
+			m_end_pointer   = m_read_pointer + size;
 			m_unreaded_size = 0;
 		}
 

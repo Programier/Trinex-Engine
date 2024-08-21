@@ -9,7 +9,7 @@ namespace Engine
 	struct OpenGL_Texture : public RHI_DefaultDestroyable<RHI_Texture> {
 		OpenGL_ColorInfo m_format;
 		GLuint m_type = 0;
-		GLuint m_id	  = 0;
+		GLuint m_id   = 0;
 		Size2D m_size;
 
 		void bind(BindLocation location) override;

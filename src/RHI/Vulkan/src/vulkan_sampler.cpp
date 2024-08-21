@@ -13,35 +13,35 @@ namespace Engine
 	VulkanSamplerCreateInfo::VulkanSamplerCreateInfo() = default;
 
 	VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const Sampler* sampler)
-		: address_u(get_type(sampler->address_u)), address_v(get_type(sampler->address_v)),
-		  address_w(get_type(sampler->address_w)), compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy),
-		  mip_lod_bias(sampler->mip_lod_bias), min_lod(sampler->min_lod), max_lod(sampler->max_lod),
-		  unnormalized_coordinates(sampler->unnormalized_coordinates),
-		  compare_enable(sampler->compare_mode == CompareMode::RefToTexture)
+	    : address_u(get_type(sampler->address_u)), address_v(get_type(sampler->address_v)),
+	      address_w(get_type(sampler->address_w)), compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy),
+	      mip_lod_bias(sampler->mip_lod_bias), min_lod(sampler->min_lod), max_lod(sampler->max_lod),
+	      unnormalized_coordinates(sampler->unnormalized_coordinates),
+	      compare_enable(sampler->compare_mode == CompareMode::RefToTexture)
 	{
 		switch (sampler->filter)
 		{
 			case SamplerFilter::Trilinear:
-				mag_filter	= vk::Filter::eLinear;
-				min_filter	= vk::Filter::eLinear;
+				mag_filter  = vk::Filter::eLinear;
+				min_filter  = vk::Filter::eLinear;
 				mipmap_mode = vk::SamplerMipmapMode::eLinear;
 				break;
 
 			case SamplerFilter::Bilinear:
-				mag_filter	= vk::Filter::eLinear;
-				min_filter	= vk::Filter::eLinear;
+				mag_filter  = vk::Filter::eLinear;
+				min_filter  = vk::Filter::eLinear;
 				mipmap_mode = vk::SamplerMipmapMode::eNearest;
 				break;
 
 			case SamplerFilter::Point:
-				mag_filter	= vk::Filter::eNearest;
-				min_filter	= vk::Filter::eNearest;
+				mag_filter  = vk::Filter::eNearest;
+				min_filter  = vk::Filter::eNearest;
 				mipmap_mode = vk::SamplerMipmapMode::eNearest;
 				break;
 
 			default:
-				mag_filter	= vk::Filter::eNearest;
-				min_filter	= vk::Filter::eNearest;
+				mag_filter  = vk::Filter::eNearest;
+				min_filter  = vk::Filter::eNearest;
 				mipmap_mode = vk::SamplerMipmapMode::eNearest;
 		}
 	}
@@ -49,9 +49,9 @@ namespace Engine
 	VulkanSampler& VulkanSampler::create(const VulkanSamplerCreateInfo& info)
 	{
 		vk::SamplerCreateInfo sampler_info({}, info.mag_filter, info.min_filter, info.mipmap_mode, info.address_u, info.address_v,
-										   info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
-										   info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
-										   vk::BorderColor::eIntOpaqueBlack, info.unnormalized_coordinates);
+		                                   info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
+		                                   info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
+		                                   vk::BorderColor::eIntOpaqueBlack, info.unnormalized_coordinates);
 		m_sampler = API->m_device.createSampler(sampler_info);
 		return *this;
 	}

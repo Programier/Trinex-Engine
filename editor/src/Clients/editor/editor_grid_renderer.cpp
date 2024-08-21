@@ -14,12 +14,12 @@
 
 namespace Engine
 {
-	static int lines_per_axis	  = 150;
+	static int lines_per_axis     = 150;
 	static const float scale_step = 8.f;
 
 	static PositionVertexBuffer* x_axis_vertex_buffer = nullptr;
 	static PositionVertexBuffer* y_axis_vertex_buffer = nullptr;
-	static PositionVertexBuffer* grid_vertex_buffer	  = nullptr;
+	static PositionVertexBuffer* grid_vertex_buffer   = nullptr;
 
 
 	static void initialize_resources()
@@ -27,7 +27,7 @@ namespace Engine
 		StartupResourcesInitializeController().require("Load Editor Package");
 		x_axis_vertex_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
 		y_axis_vertex_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		grid_vertex_buffer	 = Object::new_instance<EngineResource<PositionVertexBuffer>>();
+		grid_vertex_buffer   = Object::new_instance<EngineResource<PositionVertexBuffer>>();
 
 		x_axis_vertex_buffer->buffer = {{-lines_per_axis, 0, 0}, {lines_per_axis, 0, 0}};
 		y_axis_vertex_buffer->buffer = {{0, 0, -lines_per_axis}, {0, 0, lines_per_axis}};
@@ -50,8 +50,8 @@ namespace Engine
 
 	void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer)
 	{
-		static Name name_color	= "color";
-		static Name name_scale	= "scale";
+		static Name name_color  = "color";
+		static Name name_scale  = "scale";
 		static Name name_offset = "offset";
 
 		Material* axis_material = EditorResources::axis_material;
@@ -60,8 +60,8 @@ namespace Engine
 		const CameraView& view = renderer->scene_view().camera_view();
 
 		float camera_height = glm::abs(view.location.y);
-		float scale			= 1.f;
-		float next_scale	= scale_step;
+		float scale         = 1.f;
+		float next_scale    = scale_step;
 
 		float lower_height = 0.f;
 		float upper_height = glm::tan(glm::radians(view.fov)) * scale_step;
@@ -96,7 +96,7 @@ namespace Engine
 				grid_vertex_buffer->rhi_bind(0);
 				rhi->draw(grid_vertex_buffer->buffer.size(), 0);
 
-				alpha		= 1.f - alpha;
+				alpha       = 1.f - alpha;
 				local_scale = next_scale;
 			}
 		}
@@ -105,9 +105,9 @@ namespace Engine
 		{
 			scale = glm::mix(next_scale, scale, alpha);
 
-			MaterialParameter* color_param	= axis_material->find_parameter(name_color);
+			MaterialParameter* color_param  = axis_material->find_parameter(name_color);
 			MaterialParameter* offset_param = axis_material->find_parameter(name_offset);
-			MaterialParameter* scale_param	= axis_material->find_parameter(name_scale);
+			MaterialParameter* scale_param  = axis_material->find_parameter(name_scale);
 
 			if (scale_param)
 			{

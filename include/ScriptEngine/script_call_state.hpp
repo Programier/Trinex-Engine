@@ -9,9 +9,9 @@ namespace Engine
 		void* m_object = 0;
 
 		dword m_stack_frame_pointer = 0;
-		dword m_program_pointer		= 0;
-		dword m_stack_pointer		= 0;
-		dword m_stack_index			= 0;
+		dword m_program_pointer     = 0;
+		dword m_stack_pointer       = 0;
+		dword m_stack_index         = 0;
 
 		Map<String, ScriptVariable> m_local_variables;
 

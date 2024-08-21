@@ -63,7 +63,7 @@ namespace Engine
 
 	void ScriptArrayBase::do_move(ScriptArrayBase* from)
 	{
-		m_as_array		 = from->m_as_array;
+		m_as_array       = from->m_as_array;
 		from->m_as_array = nullptr;
 	}
 
@@ -76,7 +76,7 @@ namespace Engine
 		if (info == nullptr)
 			return false;
 		CScriptArray* array = CScriptArray::Create(info, init_size);
-		bool result			= attach(array, false);
+		bool result         = attach(array, false);
 		if (!result)
 		{
 			array->Release();

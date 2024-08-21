@@ -251,7 +251,7 @@ namespace Engine
 	static const char* combo_getter(void* _array, int index)
 	{
 		CScriptArray* array = reinterpret_cast<CScriptArray*>(_array);
-		String* string		= reinterpret_cast<String*>(array->At(index));
+		String* string      = reinterpret_cast<String*>(array->At(index));
 
 		if (string)
 		{
@@ -305,30 +305,30 @@ namespace Engine
 	void register_vector_type(const char* name)
 	{
 		ScriptClassRegistrar::ValueInfo info;
-		info.more_constructors		 = true;
-		info.has_constructor		 = true;
+		info.more_constructors       = true;
+		info.has_constructor         = true;
 		info.has_assignment_operator = true;
-		info.is_class				 = true;
-		info.all_floats				 = true;
+		info.is_class                = true;
+		info.all_floats              = true;
 
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class(name, sizeof(Type), info);
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}& in)", registrar.class_name()).c_str(),
-						 ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
+		                 ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
 
 
 		if constexpr (count == 2)
 			registrar.behave(ScriptClassBehave::Construct, "void f(float, float)",
-							 ScriptClassRegistrar::constructor<Type, float, float>, ScriptCallConv::CDeclObjFirst);
+			                 ScriptClassRegistrar::constructor<Type, float, float>, ScriptCallConv::CDeclObjFirst);
 
 		if constexpr (count == 4)
 			registrar.behave(ScriptClassBehave::Construct, "void f(float, float, float, float)",
-							 ScriptClassRegistrar::constructor<Type, float, float, float, float>, ScriptCallConv::CDeclObjFirst);
+			                 ScriptClassRegistrar::constructor<Type, float, float, float, float>, ScriptCallConv::CDeclObjFirst);
 
 
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 	}
 
 
@@ -942,7 +942,7 @@ namespace Engine
 		ScriptEngine::default_namespace("ImGui");
 
 		reg_func_nw_ns("bool Begin(const string& in, Bool@ = null, int = 0)",
-					   (result_wrapped_func<ImGui::Begin, bool, const String&, Boolean*, int>) );
+		               (result_wrapped_func<ImGui::Begin, bool, const String&, Boolean*, int>) );
 
 		ScriptEngine::register_function("void End()", ImGui::End);
 		ScriptEngine::register_function("void EndChild()", ImGui::EndChild);
@@ -978,24 +978,24 @@ namespace Engine
 		reg_func("bool BeginPopupContextVoid(const string& in, int = 1)", BeginPopupContextVoid);
 		reg_func("bool BeginPopupContextWindow(const string& in, int = 1)", BeginPopupContextWindow);
 		reg_func_nw_ns("bool BeginPopupModal(const string& in name, Bool@ = null, int = 0)",
-					   (result_wrapped_func<ImGui::BeginPopupModal, bool, const String&, Boolean*, int>) );
+		               (result_wrapped_func<ImGui::BeginPopupModal, bool, const String&, Boolean*, int>) );
 		reg_func("bool BeginTabBar(const string& in, int = 0)", BeginTabBar);
 		reg_func_nw_ns("bool BeginTabItem(const string& in, Bool@ = null, int = 0)",
-					   (result_wrapped_func<ImGui::BeginTabItem, bool, const String&, Boolean*, int>) );
+		               (result_wrapped_func<ImGui::BeginTabItem, bool, const String&, Boolean*, int>) );
 		reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)", BeginTable);
 		reg_func_nw("bool BeginTooltip()", BeginTooltip);
 		reg_func("bool Button(const string& in, const ImVec2& size = ImVec2(0, 0))", Button);
 		reg_func("bool Checkbox(const string& in, bool&)", Checkbox);
 		reg_func_no_ns("bool CheckboxFlags(const string& in, int& flags, int flags_value)",
-					   (func_of<bool(const char*, int*, int)>(ImGui::CheckboxFlags)));
+		               (func_of<bool(const char*, int*, int)>(ImGui::CheckboxFlags)));
 		reg_func_no_ns("bool CheckboxFlags(const string& in, uint& flags, uint flags_value)",
-					   (func_of<bool(const char*, unsigned int*, unsigned int)>(ImGui::CheckboxFlags)));
+		               (func_of<bool(const char*, unsigned int*, unsigned int)>(ImGui::CheckboxFlags)));
 		reg_func_no_ns("bool CollapsingHeader(const string& in, bool& , int = 0)",
-					   (func_of<bool(const char*, bool*, int)>(ImGui::CollapsingHeader)));
+		               (func_of<bool(const char*, bool*, int)>(ImGui::CollapsingHeader)));
 		reg_func_no_ns("bool CollapsingHeader(const string& in, int = 0)",
-					   (func_of<bool(const char*, int)>(ImGui::CollapsingHeader)));
+		               (func_of<bool(const char*, int)>(ImGui::CollapsingHeader)));
 		reg_func("bool ColorButton(const string& in, const ImVec4& col, int = 0, const ImVec2& size = ImVec2(0, 0))",
-				 ColorButton);
+		         ColorButton);
 
 		reg_func("bool ColorEdit3(const string& in, Engine::Vector3D& inout, int = 0)", ColorEdit3);
 		reg_func("bool ColorEdit4(const string& in, Engine::Vector4D& inout, int = 0)", ColorEdit4);
@@ -1003,63 +1003,63 @@ namespace Engine
 		reg_func("bool ColorPicker4(const string& in, Engine::Vector4D& inout, int = 0)", ColorPicker4);
 		reg_func_nw_ns("bool Combo(const string& in, int&, const string[]& in, int = -1)", wrapped_combo);
 		reg_func("bool DebugCheckVersionAndDataLayout(const string& in, uint64, uint64, uint64, uint64, uint64, uint64)",
-				 DebugCheckVersionAndDataLayout);
+		         DebugCheckVersionAndDataLayout);
 
 		reg_func("bool DragFloat2(const string&, Engine::Vector2D& inout, float = 1.0f, float = 0.0f, float = 0.0f, "
-				 "const string& in = \"%.3f\", int = 0)",
-				 DragFloat2);
+		         "const string& in = \"%.3f\", int = 0)",
+		         DragFloat2);
 
 		reg_func("bool DragFloat3(const string&, Engine::Vector3D& inout, float = 1.0f, float = 0.0f, float = 0.0f, "
-				 "const string& in = \"%.3f\", int = 0)",
-				 DragFloat3);
+		         "const string& in = \"%.3f\", int = 0)",
+		         DragFloat3);
 
 		reg_func("bool DragFloat4(const string&, Engine::Vector4D& inout, float = 1.0f, float = 0.0f, float = 0.0f, "
-				 "const string& in = \"%.3f\", int = 0)",
-				 DragFloat4);
+		         "const string& in = \"%.3f\", int = 0)",
+		         DragFloat4);
 
 		reg_func("bool DragFloat(const string&, float&, float = 1.0f, float = 0.0f, float = 0.0f, "
-				 "const string& in = \"%.3f\", int = 0)",
-				 DragFloat);
+		         "const string& in = \"%.3f\", int = 0)",
+		         DragFloat);
 
 		reg_func("bool DragFloatRange2(const string& in, float&, float&, float = 1.0f, float = 0.0f, float "
-				 "= 0.0f, const string& in = \"%.3f\", const string& in = \"%.3f\", int = 0)",
-				 DragFloatRange2);
+		         "= 0.0f, const string& in = \"%.3f\", const string& in = \"%.3f\", int = 0)",
+		         DragFloatRange2);
 
 
 		reg_func("bool DragInt2(const string&, Engine::IntVector2D& inout, int = 1.0f, int = 0, int = 0,"
-				 "const string& in = \"%.d\", int = 0)",
-				 DragInt2);
+		         "const string& in = \"%.d\", int = 0)",
+		         DragInt2);
 
 		reg_func("bool DragInt3(const string&, Engine::IntVector3D& inout, int = 1.0f, int = 0, int = 0,"
-				 "const string& in = \"%.d\", int = 0)",
-				 DragInt3);
+		         "const string& in = \"%.d\", int = 0)",
+		         DragInt3);
 
 		reg_func("bool DragInt4(const string&, Engine::IntVector4D& inout, int = 1.0f, int = 0, int = 0,"
-				 "const string& in = \"%.d\", int = 0)",
-				 DragInt4);
+		         "const string& in = \"%.d\", int = 0)",
+		         DragInt4);
 
 		reg_func("bool DragInt(const string&, int&, float = 1.0f, int= 0, int = 0,"
-				 "const string& in = \"%.d\", int = 0)",
-				 DragInt);
+		         "const string& in = \"%.d\", int = 0)",
+		         DragInt);
 
 		reg_func("bool DragIntRange2(const string& in, int&, int&, float = 1.0f, int = 0, int"
-				 "= 0, const string& in = \"%.d\", const string& in = \"%.d\", int = 0)",
-				 DragIntRange2);
+		         "= 0, const string& in = \"%.d\", const string& in = \"%.d\", int = 0)",
+		         DragIntRange2);
 
 		//        bool  ImageButton(const char* str_id, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 
 		reg_func("bool InputDouble(const string& in, double&, double = 0.0, double = 0.0, const string& in = \"%.6f\", "
-				 "int = 0)",
-				 InputDouble);
+		         "int = 0)",
+		         InputDouble);
 		reg_func("bool InputFloat2(const string& in, Engine::Vector2D& inout, const string& in = \"%.3f\", int = 0)",
-				 InputFloat2);
+		         InputFloat2);
 		reg_func("bool InputFloat3(const string& in, Engine::Vector3D& inout, const string& in = \"%.3f\", int = 0)",
-				 InputFloat3);
+		         InputFloat3);
 		reg_func("bool InputFloat4(const string& in, Engine::Vector4D& inout, const string& in = \"%.3f\", int = 0)",
-				 InputFloat4);
+		         InputFloat4);
 		reg_func("bool InputFloat(const string& in, float& inout, float = 0.0f, float= 0.0f, const string& in = "
-				 "\"%.3f\", int = 0)",
-				 InputFloat);
+		         "\"%.3f\", int = 0)",
+		         InputFloat);
 
 		reg_func("bool InputInt2(const string& in, Engine::IntVector2D& inout, int = 0)", InputInt2);
 		reg_func("bool InputInt3(const string& in, Engine::IntVector3D& inout, int = 0)", InputInt3);
@@ -1067,9 +1067,9 @@ namespace Engine
 		reg_func("bool InputInt(const string& in, int& inout, int = 1, int = 100, int = 0)", InputInt);
 		reg_func_nw_ns("bool InputText(const string& in, string& inout, int = 0)", wrap_input_text);
 		reg_func_nw_ns("bool InputTextWithHint(const string& in, const string& in, string& inout, int = 0)",
-					   wrap_input_text_hint);
+		               wrap_input_text_hint);
 		reg_func_nw_ns("bool InputTextMultiline(const string& in, string& inout, const ImVec2& size = ImVec2(0, 0), int = 0)",
-					   wrap_input_text_multiline);
+		               wrap_input_text_multiline);
 		reg_func("bool InvisibleButton(const string&, const ImVec2&, int = 0)", InvisibleButton);
 		reg_func("bool IsAnyItemActive()", IsAnyItemActive);
 		reg_func("bool IsAnyItemFocused()", IsAnyItemFocused);
@@ -1099,7 +1099,7 @@ namespace Engine
 		reg_func_nw("bool  IsMouseReleased(ImGuiMouseButton)", IsMouseReleased);
 		reg_func("bool IsPopupOpen(const string& in, int = 0)", IsPopupOpen);
 		reg_func_no_ns("bool IsRectVisible(const ImVec2& in, const ImVec2& in)",
-					   func_of<bool(const ImVec2&, const ImVec2&)>(ImGui::IsRectVisible));
+		               func_of<bool(const ImVec2&, const ImVec2&)>(ImGui::IsRectVisible));
 		reg_func_no_ns("bool IsRectVisible(const ImVec2& in)", (func_of<bool(const ImVec2&)>(ImGui::IsRectVisible)));
 		reg_func("bool IsWindowDocked()", IsWindowDocked);
 		reg_func_nw("bool IsWindowFocused(int=0)", IsWindowFocused);
@@ -1128,12 +1128,12 @@ namespace Engine
 		reg_func_nw("bool TableSetColumnIndex(int)", TableSetColumnIndex);
 		reg_func_no_ns("bool TreeNode(const string& in)", (func_of<bool(const char*)>(ImGui::TreeNode)));
 		reg_func_no_ns("bool TreeNodeEx(const string& in, int = 0)",
-					   func_of<bool(const char*, ImGuiTreeNodeFlags)>(ImGui::TreeNodeEx));
+		               func_of<bool(const char*, ImGuiTreeNodeFlags)>(ImGui::TreeNodeEx));
 		reg_func_nw_ns(
-				"bool  TreeNodeEx(const string& in, int flags, const string& in)",
-				func_of<bool(const String&, int, const String&)>([](const String& id, int flags, const String& fmt) -> bool {
-					return ImGui::TreeNodeEx(id.c_str(), flags, "%s", fmt.c_str());
-				}));
+		        "bool  TreeNodeEx(const string& in, int flags, const string& in)",
+		        func_of<bool(const String&, int, const String&)>([](const String& id, int flags, const String& fmt) -> bool {
+			        return ImGui::TreeNodeEx(id.c_str(), flags, "%s", fmt.c_str());
+		        }));
 
 		//        bool  VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
 		//        bool  VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
@@ -1175,9 +1175,9 @@ namespace Engine
 		reg_func_nw_ns("uint GetColorU32(int, float = 1.0f)", (func_of<ImU32(ImGuiCol, float)>(ImGui::GetColorU32)));
 		reg_func_nw_ns("uint GetColorU32(uint)", (func_of<ImU32(ImU32)>(ImGui::GetColorU32)));
 		reg_func_nw_ns("ImVec2 CalcTextSize(const string& in, bool = false, float = -1.0f)",
-					   func_of<ImVec2(const String&, bool, float)>([](const String& text, bool hide, float wrap) -> ImVec2 {
-						   return ImGui::CalcTextSize(text.c_str(), nullptr, hide, wrap);
-					   }));
+		               func_of<ImVec2(const String&, bool, float)>([](const String& text, bool hide, float wrap) -> ImVec2 {
+			               return ImGui::CalcTextSize(text.c_str(), nullptr, hide, wrap);
+		               }));
 		reg_func_nw("ImVec2 GetContentRegionAvail()", GetContentRegionAvail);
 		reg_func_nw("ImVec2 GetContentRegionMax()", GetContentRegionMax);
 		reg_func_nw("ImVec2 GetCursorPos()", GetCursorPos);
@@ -1232,9 +1232,9 @@ namespace Engine
 		//        void  Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
 		reg_func_nw("void Indent(float = 0.0f)", Indent);
 		reg_func_nw_ns("void LabelText(const string& in, const string& in fmt)",
-					   func_of<void(const String& label, const String& fmt)>([](const String& label, const String& fmt) {
-						   ImGui::LabelText(label.c_str(), "%s", fmt.c_str());
-					   }));
+		               func_of<void(const String& label, const String& fmt)>([](const String& label, const String& fmt) {
+			               ImGui::LabelText(label.c_str(), "%s", fmt.c_str());
+		               }));
 
 		reg_func("void LoadIniSettingsFromDisk(const string& in)", LoadIniSettingsFromDisk);
 		reg_func("void LoadIniSettingsFromMemory(const string& in, uint64 =0)", LoadIniSettingsFromMemory);
@@ -1289,7 +1289,7 @@ namespace Engine
 		reg_func_nw("void SetCursorScreenPos(const ImVec2&)", SetCursorScreenPos);
 		reg_func_nw("void SetItemDefaultFocus()", SetItemDefaultFocus);
 		reg_func_nw_ns("void SetItemTooltip(const string& in)",
-					   func_of<void(const String&)>([](const String& fmt) { ImGui::SetItemTooltip("%s", fmt.c_str()); }));
+		               func_of<void(const String&)>([](const String& fmt) { ImGui::SetItemTooltip("%s", fmt.c_str()); }));
 		reg_func_nw("void SetKeyboardFocusHere(int = 0)", SetKeyboardFocusHere);
 		//        void SetMouseCursor(ImGuiMouseCursor cursor_type);
 		reg_func_nw("void SetNextFrameWantCaptureKeyboard(bool)", SetNextFrameWantCaptureKeyboard);
@@ -1304,7 +1304,7 @@ namespace Engine
 		reg_func_nw("void SetNextWindowDockID(ImGuiID, ImGuiCond = 0)", SetNextWindowDockID);
 		reg_func_nw("void SetNextWindowFocus()", SetNextWindowFocus);
 		reg_func_nw("void SetNextWindowPos(const ImVec2& pos, ImGuiCond = 0, const ImVec2& pivot = ImVec2(0, 0))",
-					SetNextWindowPos);
+		            SetNextWindowPos);
 		reg_func_nw("void SetNextWindowScroll(const ImVec2& scroll)", SetNextWindowScroll);
 		reg_func_nw("void SetNextWindowSize(const ImVec2& size, int = 0)", SetNextWindowSize);
 		//        void SetNextWindowSizeConstraints(const ImVec2& size_min, const ImVec2& size_max, ImGuiSizeCallback custom_callback = NULL, void* custom_callback_data = NULL);
@@ -1318,23 +1318,23 @@ namespace Engine
 		reg_func_nw_ns("void SetToolTip(const string& in)", set_tooltip);
 		reg_func_nw_ns("void SetWindowCollapsed(bool collapsed, int= 0)", (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
 		reg_func_no_ns("void SetWindowCollapsed(const string& in, bool collapsed, int= 0)",
-					   (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
+		               (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
 		reg_func_nw_ns("void  SetWindowFocus()", (func_of<void()>(ImGui::SetWindowFocus)));
 		reg_func_no_ns("void  SetWindowFocus(const string& in)", (func_of<void(const char*)>(ImGui::SetWindowFocus)));
 		reg_func_nw("void SetWindowFontScale(float)", SetWindowFontScale);
 		reg_func_no_ns("void SetWindowPos(const string& in, const ImVec2& , int = 0)",
-					   (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowPos)));
+		               (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowPos)));
 		reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowPos)));
 		reg_func_no_ns("void SetWindowSize(const string& in, const ImVec2& , int = 0)",
-					   (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowSize)));
+		               (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowSize)));
 		reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowSize)));
 		reg_func_nw_ns("void ShowAboutWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
 		reg_func_nw_ns("void ShowDebugLogWindow(Bool@ = null)",
-					   (result_wrapped_func<ImGui::ShowDebugLogWindow, void, Boolean*>) );
+		               (result_wrapped_func<ImGui::ShowDebugLogWindow, void, Boolean*>) );
 		reg_func_nw_ns("void ShowDemoWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
 		reg_func("void ShowFontSelector(const string& in)", ShowFontSelector);
 		reg_func_nw_ns("void ShowIDStackToolWindow(Bool@ = null)",
-					   (result_wrapped_func<ImGui::ShowIDStackToolWindow, void, Boolean*>) );
+		               (result_wrapped_func<ImGui::ShowIDStackToolWindow, void, Boolean*>) );
 		reg_func_nw_ns("void ShowMetricsWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowMetricsWindow, void, Boolean*>) );
 		reg_func_nw_ns("void ShowStyleEditor()", wrapped_show_style_editor);
 		reg_func_nw("void ShowUserGuide()", ShowUserGuide);
@@ -1353,18 +1353,18 @@ namespace Engine
 		reg_func_no_ns("void TreePush(const string& in)", (func_of<void(const char*)>(ImGui::TreePush)));
 		ScriptEngine::register_function("void Unindent(float = 0.0)", make_wrap<ImGui::Unindent>());
 		ScriptEngine::register_function("void Value(const string& in, bool)",
-										make_wrap<func_of<void(const char*, bool)>(ImGui::Value)>());
+		                                make_wrap<func_of<void(const char*, bool)>(ImGui::Value)>());
 
 		ScriptEngine::register_function("void Value(const string& in, float, const string& in)",
-										make_wrap<func_of<void(const char*, float, const char*)>(ImGui::Value)>());
+		                                make_wrap<func_of<void(const char*, float, const char*)>(ImGui::Value)>());
 
 		ScriptEngine::register_function("void Value(const string& in, int)",
-										make_wrap<func_of<void(const char*, int)>(ImGui::Value)>());
+		                                make_wrap<func_of<void(const char*, int)>(ImGui::Value)>());
 		ScriptEngine::register_function("void Value(const string& in, uint)",
-										make_wrap<func_of<void(const char*, unsigned int)>(ImGui::Value)>());
+		                                make_wrap<func_of<void(const char*, unsigned int)>(ImGui::Value)>());
 		ScriptEngine::default_namespace("");
 	}
 
 	static ReflectionInitializeController initializer(on_init, "ImGui",
-													  {"Engine::Vector", "Engine::IntVector", "Engine::UIntVector"});
+	                                                  {"Engine::Vector", "Engine::IntVector", "Engine::UIntVector"});
 }// namespace Engine

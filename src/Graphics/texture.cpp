@@ -16,12 +16,12 @@ namespace Engine
 {
 	implement_engine_class(Texture, Class::IsAsset)
 	{
-		Class* self		   = static_class_instance();
+		Class* self        = static_class_instance();
 		Enum* swizzle_enum = Enum::static_find("Engine::Swizzle");
 		self->add_properties(new EnumProperty("Swizze R", "Swizze R of texture", &This::swizzle_r, swizzle_enum),
-							 new EnumProperty("Swizze G", "Swizze G of texture", &This::swizzle_g, swizzle_enum),
-							 new EnumProperty("Swizze B", "Swizze B of texture", &This::swizzle_b, swizzle_enum),
-							 new EnumProperty("Swizze A", "Swizze A of texture", &This::swizzle_a, swizzle_enum));
+		                     new EnumProperty("Swizze G", "Swizze G of texture", &This::swizzle_g, swizzle_enum),
+		                     new EnumProperty("Swizze B", "Swizze B of texture", &This::swizzle_b, swizzle_enum),
+		                     new EnumProperty("Swizze A", "Swizze A of texture", &This::swizzle_a, swizzle_enum));
 	}
 
 

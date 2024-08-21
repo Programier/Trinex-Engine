@@ -88,7 +88,7 @@ namespace Engine
 		bool create(void* src_address, int_t type_id, bool is_object_address_for_handle = false);
 		bool create(void* src_address, const char* type_declaration, bool is_object_address_for_handle = false);
 		bool create(void* src_address, const char* type_declaration, const char* module,
-					bool is_object_address_for_handle = false);
+		            bool is_object_address_for_handle = false);
 
 		bool is_bool() const;
 		bool is_int8() const;

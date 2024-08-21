@@ -11,12 +11,12 @@ namespace Engine
 
 	public:
 		CameraProjectionMode projection_mode = CameraProjectionMode::Perspective;
-		float fov							 = 75.f;
-		float ortho_width					 = 1000.f;
-		float ortho_height					 = 1000.f;
-		float near_clip_plane				 = 1.f;
-		float far_clip_plane				 = 100000.f;
-		float aspect_ratio					 = 1.f;
+		float fov                            = 75.f;
+		float ortho_width                    = 1000.f;
+		float ortho_height                   = 1000.f;
+		float near_clip_plane                = 1.f;
+		float far_clip_plane                 = 100000.f;
+		float aspect_ratio                   = 1.f;
 
 		bool archive_process(Archive& archive) override;
 		const CameraComponent& camera_view(CameraView& out) const;

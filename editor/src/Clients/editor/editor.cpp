@@ -102,20 +102,20 @@ namespace Engine
 		}
 		window->imgui_initialize(EditorTheme::initialize_theme);
 
-		m_state.window.window		   = window;
+		m_state.window.window          = window;
 		m_state.window.render_viewport = viewport;
-		m_state.window.imgui_window	   = window->imgui_window();
+		m_state.window.imgui_window    = window->imgui_window();
 
 		String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
 		window->title(new_title);
 		render_thread()->wait_all();
 
 		EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
-		m_world						  = World::new_system<World>();
+		m_world                       = World::new_system<World>();
 		m_on_actor_select_callback_id = m_world->on_actor_select.push(
-				std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
+		        std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
 		m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
-				std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
+		        std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
 		m_renderer.scene = m_world->scene();
 		m_world->start_play();
 
@@ -131,20 +131,20 @@ namespace Engine
 		camera = Object::new_instance<CameraComponent>();
 		camera->location({0, 10, 10});
 		camera->near_clip_plane = 0.1;
-		camera->far_clip_plane	= 1000.f;
+		camera->far_clip_plane  = 1000.f;
 
 		EventSystem* event_system = EventSystem::new_system<EventSystem>();
 		m_event_system_listeners.push_back(event_system->add_listener(
-				EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
+		        EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
-				EventType::FingerMotion, std::bind(&EditorClient::on_finger_move, this, std::placeholders::_1)));
+		        EventType::FingerMotion, std::bind(&EditorClient::on_finger_move, this, std::placeholders::_1)));
 
 		m_event_system_listeners.push_back(event_system->add_listener(
-				EventType::MouseButtonDown, std::bind(&EditorClient::on_mouse_press, this, std::placeholders::_1)));
+		        EventType::MouseButtonDown, std::bind(&EditorClient::on_mouse_press, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
-				EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
+		        EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
-				EventType::WindowClose, std::bind(&EditorClient::on_window_close, this, std::placeholders::_1)));
+		        EventType::WindowClose, std::bind(&EditorClient::on_window_close, this, std::placeholders::_1)));
 		return *this;
 	}
 
@@ -179,7 +179,7 @@ namespace Engine
 	{
 		if (m_properties)
 		{
-			if(m_properties->object() == actor || actor == nullptr)
+			if (m_properties->object() == actor || actor == nullptr)
 			{
 				m_properties->update(nullptr);
 			}
@@ -204,11 +204,11 @@ namespace Engine
 	ViewportClient& EditorClient::render(class RenderViewport* render_viewport)
 	{
 		ViewPort viewport = rhi->viewport();
-		viewport.pos	  = {0.f, 0.f};
-		viewport.size	  = SceneRenderTargets::instance()->size() * Settings::e_screen_percentage;
+		viewport.pos      = {0.f, 0.f};
+		viewport.size     = SceneRenderTargets::instance()->size() * Settings::e_screen_percentage;
 
 		Scissor scissor;
-		scissor.pos	 = {0.f, 0.f};
+		scissor.pos  = {0.f, 0.f};
 		scissor.size = viewport.size;
 
 		m_scene_view.viewport(viewport);
@@ -229,7 +229,7 @@ namespace Engine
 
 	EditorClient& EditorClient::render_dock_window(float dt)
 	{
-		auto dock_id					   = ImGui::GetID("EditorDock##Dock");
+		auto dock_id                       = ImGui::GetID("EditorDock##Dock");
 		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
@@ -294,11 +294,11 @@ namespace Engine
 			{
 				bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
 				if (ImGui::MenuItem("editor/Import resource"_localized,
-									"editor/Import resource from file to selected package"_localized, false, enable_import))
+				                    "editor/Import resource from file to selected package"_localized, false, enable_import))
 				{
 					Package* package = m_content_browser->selected_package();
 					ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>()->on_select.push(
-							[package](const Path& path) { Importer::import_resource(package, path); });
+					        [package](const Path& path) { Importer::import_resource(package, path); });
 				}
 
 				ImGui::EndMenu();
@@ -314,8 +314,8 @@ namespace Engine
 			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
-			auto dock_id_right		= ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
-			auto dock_id_right_up	= ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
+			auto dock_id_right      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
+			auto dock_id_right_up   = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
 			auto dock_id_right_down = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
 
 			auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
@@ -354,9 +354,9 @@ namespace Engine
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
 		ImGui::Begin("EditorDock", nullptr,
-					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-							 ImGuiWindowFlags_MenuBar);
+		             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
+		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
+		                     ImGuiWindowFlags_MenuBar);
 		render_dock_window(dt);
 
 		update_camera(dt);
@@ -392,9 +392,9 @@ namespace Engine
 		ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_state.viewport.size.x,
-						  m_state.viewport.size.y);
+		                  m_state.viewport.size.y);
 
-		auto view		= camera->view_matrix();
+		auto view       = camera->view_matrix();
 		auto projection = camera->projection_matrix();
 
 		for (Actor* actor : selected)
@@ -411,8 +411,8 @@ namespace Engine
 				}
 				Matrix4f model = transform.matrix();
 				if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
-										 static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
-										 glm::value_ptr(model), nullptr, nullptr))
+				                         static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
+				                         glm::value_ptr(model), nullptr, nullptr))
 				{
 
 					Transform new_transform = model;
@@ -423,7 +423,7 @@ namespace Engine
 		}
 
 		m_state.viewport.is_using_guizmo =
-				ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
+		        ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
 		return *this;
 	}
 
@@ -439,8 +439,8 @@ namespace Engine
 
 	EditorClient& EditorClient::render_viewport_menu()
 	{
-		const float height			 = 24.f * EditorTheme::editor_scale_factor();
-		ImVec2 screen_pos			 = ImGui::GetCursorScreenPos();
+		const float height           = 24.f * EditorTheme::editor_scale_factor();
+		ImVec2 screen_pos            = ImGui::GetCursorScreenPos();
 		static auto render_separator = []() {
 			ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));
 			ImGui::PushStyleColor(ImGuiCol_Separator, color);
@@ -457,17 +457,17 @@ namespace Engine
 				m_state.viewport.show_additional_menu = true;
 				ImGui::OpenPopup("##addition_menu");
 				ImGui::SetNextWindowPos(screen_pos + ImVec2(0, height + ImGui::GetStyle().ItemSpacing.y * 2.f),
-										ImGuiCond_Appearing);
+				                        ImGuiCond_Appearing);
 			}
 
 			ImGui::SameLine();
 		}
 
 		static const Pair<ImGuizmo::OPERATION, Icons::IconType> controls[] = {
-				{ImGuizmo::OPERATION::UNIVERSAL, Icons::IconType::Select},
-				{ImGuizmo::OPERATION::TRANSLATE, Icons::IconType::Move},
-				{ImGuizmo::OPERATION::ROTATE, Icons::IconType::Rotate},
-				{ImGuizmo::OPERATION::SCALE, Icons::IconType::Scale},
+		        {ImGuizmo::OPERATION::UNIVERSAL, Icons::IconType::Select},
+		        {ImGuizmo::OPERATION::TRANSLATE, Icons::IconType::Move},
+		        {ImGuizmo::OPERATION::ROTATE, Icons::IconType::Rotate},
+		        {ImGuizmo::OPERATION::SCALE, Icons::IconType::Scale},
 		};
 
 		for (auto& control : controls)
@@ -477,7 +477,7 @@ namespace Engine
 				ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 
 				if (ImGui::ImageButton({imgui_texture, EditorResources::default_sampler}, {height, height}, {0, 1}, {1, 0}, -1,
-									   color))
+				                       color))
 				{
 					m_guizmo_operation = control.first;
 				}
@@ -506,8 +506,8 @@ namespace Engine
 			ImGui::SameLine();
 			render_separator();
 			const auto& transfom = camera->local_transform();
-			Vector3D location	 = transfom.location();
-			Vector3D rotation	 = transfom.rotation();
+			Vector3D location    = transfom.location();
+			Vector3D rotation    = transfom.rotation();
 
 			ImGui::BeginGroup();
 			ImGui::PushItemWidth(height * 10.f);
@@ -581,13 +581,13 @@ namespace Engine
 		if (!m_state.viewport.is_using_guizmo && m_state.viewport.is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
-			relative_mouse_pos.y	= m_state.viewport.size.y - relative_mouse_pos.y;
+			relative_mouse_pos.y    = m_state.viewport.size.y - relative_mouse_pos.y;
 			raycast_objects(ImGuiHelpers::construct_vec2<Vector2D>(relative_mouse_pos));
 		}
 
 		{
 			auto current_pos = ImGui::GetCursorPos();
-			auto size		 = ImGui::GetContentRegionAvail();
+			auto size        = ImGui::GetContentRegionAvail();
 
 			m_state.viewport.size = ImGuiHelpers::construct_vec2<Vector2D>(size);
 			camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
@@ -595,7 +595,7 @@ namespace Engine
 			//auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
 
 			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, Settings::e_screen_percentage},
-						 {Settings::e_screen_percentage, 0.f});
+			             {Settings::e_screen_percentage, 0.f});
 			m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
 			ImGui::SetCursorPos(current_pos);
@@ -653,8 +653,8 @@ namespace Engine
 		if (MouseSystem::instance()->is_relative_mode(m_state.window.window))
 		{
 			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-								  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-								  0.f});
+			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+			                      0.f});
 		}
 	}
 
@@ -664,8 +664,8 @@ namespace Engine
 		if (motion.finger_index == 0 && m_state.viewport.is_hovered)
 		{
 			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-								  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-								  0.f});
+			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+			                      0.f});
 		}
 	}
 
@@ -689,7 +689,7 @@ namespace Engine
 		move_camera(m_camera_move, m_state.window.window);
 
 		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
-							 m_camera_speed);
+		                     m_camera_speed);
 		camera->on_transform_changed();
 
 		struct UpdateView : ExecutableObject {
@@ -698,7 +698,7 @@ namespace Engine
 			const Flags<ShowFlags, BitMask>& show_flags;
 
 			UpdateView(const CameraView& in, SceneView& out, const Flags<ShowFlags, BitMask>& show_flags)
-				: view(in), out(out), show_flags(show_flags)
+			    : view(in), out(out), show_flags(show_flags)
 			{}
 
 			int_t execute() override
@@ -718,7 +718,7 @@ namespace Engine
 
 	template<typename NodeType>
 	static RaycastPrimitiveResult raycast_primitive(NodeType* node, const Ray& ray,
-													RaycastPrimitiveResult result = {nullptr, -1.f})
+	                                                RaycastPrimitiveResult result = {nullptr, -1.f})
 	{
 		if (node == nullptr)
 			return result;
@@ -767,7 +767,7 @@ namespace Engine
 
 		// Raycast primitives and lights
 		auto component = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
-		component	   = raycast_primitive(m_world->scene()->light_octree().root_node(), ray, component);
+		component      = raycast_primitive(m_world->scene()->light_octree().root_node(), ray, component);
 
 		if (component.first)
 		{

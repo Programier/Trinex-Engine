@@ -12,11 +12,11 @@ namespace Engine
 
 	ScriptCallState& ScriptCallState::save(uint_t stack_level, bool save_local_variables, bool save_arguments)
 	{
-		asIScriptContext* context	= ScriptContext::context();
+		asIScriptContext* context   = ScriptContext::context();
 		asIScriptFunction* function = nullptr;
 		context->GetCallStateRegisters(stack_level, reinterpret_cast<asDWORD*>(&m_stack_frame_pointer), &function,
-									   reinterpret_cast<asDWORD*>(&m_program_pointer),
-									   reinterpret_cast<asDWORD*>(&m_stack_pointer), reinterpret_cast<asDWORD*>(&m_stack_index));
+		                               reinterpret_cast<asDWORD*>(&m_program_pointer),
+		                               reinterpret_cast<asDWORD*>(&m_stack_pointer), reinterpret_cast<asDWORD*>(&m_stack_index));
 		m_function = function;
 		m_object   = context->GetThisPointer();
 
@@ -34,7 +34,7 @@ namespace Engine
 
 				ScriptVariable variable(address, type_id);
 
-				String final_name			  = name.empty() ? Strings::format("{}", offset) : String(name);
+				String final_name             = name.empty() ? Strings::format("{}", offset) : String(name);
 				m_local_variables[final_name] = variable;
 			}
 		}
@@ -48,7 +48,7 @@ namespace Engine
 		context->StartDeserialization();
 		context->PushFunction(m_function.function(), m_object);
 		context->SetCallStateRegisters(0, m_stack_frame_pointer, m_function.function(), m_program_pointer, m_stack_pointer,
-									   m_stack_index);
+		                               m_stack_index);
 
 		// Deserialize variables
 		const uint_t var_count = ScriptContext::var_count(0);
@@ -62,7 +62,7 @@ namespace Engine
 			void* address = ScriptContext::address_of_var(var, 0, false);
 
 			String final_name = name.empty() ? Strings::format("{}", offset) : String(name);
-			auto it			  = m_local_variables.find(final_name);
+			auto it           = m_local_variables.find(final_name);
 			if (it == m_local_variables.end())
 				continue;
 

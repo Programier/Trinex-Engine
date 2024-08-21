@@ -18,7 +18,7 @@ namespace Engine
 
 	enum class SamplerFilter : EnumerateType
 	{
-		Point	  = 0,
+		Point     = 0,
 		Bilinear  = 1,
 		Trilinear = 2,
 	};
@@ -26,20 +26,20 @@ namespace Engine
 	enum class Swizzle : EnumerateType
 	{
 		Identity = 0,
-		Zero	 = 1,
-		One		 = 2,
-		R		 = 3,
-		G		 = 4,
-		B		 = 5,
-		A		 = 6
+		Zero     = 1,
+		One      = 2,
+		R        = 3,
+		G        = 4,
+		B        = 5,
+		A        = 6
 	};
 
 	enum class SamplerAddressMode : EnumerateType
 	{
-		Repeat			  = 0,
-		ClampToEdge		  = 1,
-		ClampToBorder	  = 2,
-		MirroredRepeat	  = 3,
+		Repeat            = 0,
+		ClampToEdge       = 1,
+		ClampToBorder     = 2,
+		MirroredRepeat    = 3,
 		MirrorClampToEdge = 4,
 	};
 
@@ -47,7 +47,7 @@ namespace Engine
 	{
 		Front = 0,
 		Back  = 1,
-		Up	  = 2,
+		Up    = 2,
 		Down  = 3,
 		Left  = 4,
 		Right = 5
@@ -55,23 +55,23 @@ namespace Engine
 
 	enum class VertexBufferSemantic : EnumerateType
 	{
-		Position	 = 0,
-		TexCoord	 = 1,
-		Color		 = 2,
-		Normal		 = 3,
-		Tangent		 = 4,
-		Binormal	 = 5,
-		BlendWeight	 = 6,
+		Position     = 0,
+		TexCoord     = 1,
+		Color        = 2,
+		Normal       = 3,
+		Tangent      = 4,
+		Binormal     = 5,
+		BlendWeight  = 6,
 		BlendIndices = 7,
 	};
 
 	enum class VertexBufferElementType : EnumerateType
 	{
 		Undefined = 0,
-		Float1	  = 1,
-		Float2	  = 2,
-		Float3	  = 3,
-		Float4	  = 4,
+		Float1    = 1,
+		Float2    = 2,
+		Float3    = 3,
+		Float4    = 4,
 
 		Byte1 = 5,
 		Byte2 = 6,
@@ -88,7 +88,7 @@ namespace Engine
 		UByte1N = 14,
 		UByte2N = 15,
 		UByte4N = 16,
-		Color	= 16,
+		Color   = 16,
 
 		Short1 = 17,
 		Short2 = 18,
@@ -148,14 +148,14 @@ namespace Engine
 
 	enum class CompareFunc : EnumerateType
 	{
-		Always	 = 0,
-		Lequal	 = 1,
-		Gequal	 = 2,
-		Less	 = 3,
-		Greater	 = 4,
-		Equal	 = 5,
+		Always   = 0,
+		Lequal   = 1,
+		Gequal   = 2,
+		Less     = 3,
+		Greater  = 4,
+		Equal    = 5,
 		NotEqual = 6,
-		Never	 = 7,
+		Never    = 7,
 	};
 
 	enum class PhysicalSizeMetric
@@ -173,46 +173,46 @@ namespace Engine
 
 	enum class StencilOp : EnumerateType
 	{
-		Keep	 = 0,
-		Zero	 = 1,
-		Replace	 = 2,
-		Incr	 = 3,
+		Keep     = 0,
+		Zero     = 1,
+		Replace  = 2,
+		Incr     = 3,
 		IncrWrap = 4,
-		Decr	 = 5,
+		Decr     = 5,
 		DecrWrap = 6,
-		Invert	 = 7,
+		Invert   = 7,
 	};
 
 	enum class BlendFunc : EnumerateType
 	{
-		Zero				= 0,
-		One					= 1,
-		SrcColor			= 2,
-		OneMinusSrcColor	= 3,
-		DstColor			= 4,
-		OneMinusDstColor	= 5,
-		SrcAlpha			= 6,
-		OneMinusSrcAlpha	= 7,
-		DstAlpha			= 8,
-		OneMinusDstAlpha	= 9,
-		BlendFactor			= 10,
+		Zero                = 0,
+		One                 = 1,
+		SrcColor            = 2,
+		OneMinusSrcColor    = 3,
+		DstColor            = 4,
+		OneMinusDstColor    = 5,
+		SrcAlpha            = 6,
+		OneMinusSrcAlpha    = 7,
+		DstAlpha            = 8,
+		OneMinusDstAlpha    = 9,
+		BlendFactor         = 10,
 		OneMinusBlendFactor = 11,
 	};
 
 	enum class BlendOp : EnumerateType
 	{
-		Add				= 0,
-		Subtract		= 1,
+		Add             = 0,
+		Subtract        = 1,
 		ReverseSubtract = 2,
-		Min				= 3,
-		Max				= 4,
+		Min             = 3,
+		Max             = 4,
 	};
 
 	enum class Primitive : EnumerateType
 	{
 		Triangle = 0,
-		Line	 = 1,
-		Point	 = 2,
+		Line     = 1,
+		Point    = 2,
 	};
 
 	using DepthFunc = CompareFunc;
@@ -221,9 +221,9 @@ namespace Engine
 	{
 		TriangleList  = 0,
 		TriangleStrip = 1,
-		LineList	  = 2,
-		LineStrip	  = 3,
-		PointList	  = 4,
+		LineList      = 2,
+		LineStrip     = 3,
+		PointList     = 4,
 	};
 
 	enum class PolygonMode : EnumerateType
@@ -242,25 +242,25 @@ namespace Engine
 
 	enum class FrontFace : EnumerateType
 	{
-		ClockWise		 = 0,
+		ClockWise        = 0,
 		CounterClockWise = 1,
 	};
 
 	enum class WindowAttribute : EnumerateType
 	{
-		None			= 0,
-		Resizable		= 1,
-		FullScreen		= 2,
-		Shown			= 3,
-		Hidden			= 4,
-		BorderLess		= 5,
-		MouseFocus		= 6,
-		InputFocus		= 7,
-		InputGrabbed	= 8,
-		Minimized		= 9,
-		Maximized		= 10,
-		MouseCapture	= 12,
-		MouseGrabbed	= 14,
+		None            = 0,
+		Resizable       = 1,
+		FullScreen      = 2,
+		Shown           = 3,
+		Hidden          = 4,
+		BorderLess      = 5,
+		MouseFocus      = 6,
+		InputFocus      = 7,
+		InputGrabbed    = 8,
+		Minimized       = 9,
+		Maximized       = 10,
+		MouseCapture    = 12,
+		MouseGrabbed    = 14,
 		KeyboardGrabbed = 15,
 	};
 
@@ -272,10 +272,10 @@ namespace Engine
 
 	enum class Orientation : EnumerateType
 	{
-		Landscape		 = 0,
+		Landscape        = 0,
 		LandscapeFlipped = 1,
-		Portrait		 = 2,
-		PortraitFlipped	 = 3
+		Portrait         = 2,
+		PortraitFlipped  = 3
 	};
 
 	enum class MessageBoxType
@@ -287,32 +287,32 @@ namespace Engine
 
 	enum class VertexAttributeInputRate : byte
 	{
-		Vertex	 = 0,
+		Vertex   = 0,
 		Instance = 1
 	};
 
 	enum class ColorComponentMask : EnumerateType
 	{
 		RGBA = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A),
-		RGB	 = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B),
-		RGA	 = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::A),
-		RG	 = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G),
-		RBA	 = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B, ColorComponent::A),
-		RB	 = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B),
-		RA	 = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::A),
-		R	 = mask_of<EnumerateType>(ColorComponent::R),
-		GBA	 = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B, ColorComponent::A),
-		GB	 = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B),
-		GA	 = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::A),
-		G	 = mask_of<EnumerateType>(ColorComponent::G),
-		BA	 = mask_of<EnumerateType>(ColorComponent::B, ColorComponent::A),
-		B	 = mask_of<EnumerateType>(ColorComponent::B),
-		A	 = mask_of<EnumerateType>(ColorComponent::A)
+		RGB  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B),
+		RGA  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::A),
+		RG   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G),
+		RBA  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B, ColorComponent::A),
+		RB   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B),
+		RA   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::A),
+		R    = mask_of<EnumerateType>(ColorComponent::R),
+		GBA  = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B, ColorComponent::A),
+		GB   = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B),
+		GA   = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::A),
+		G    = mask_of<EnumerateType>(ColorComponent::G),
+		BA   = mask_of<EnumerateType>(ColorComponent::B, ColorComponent::A),
+		B    = mask_of<EnumerateType>(ColorComponent::B),
+		A    = mask_of<EnumerateType>(ColorComponent::A)
 	};
 
 	enum class SerializationFlags : EnumerateType
 	{
-		None			 = 0,
+		None             = 0,
 		SkipObjectSearch = BIT(0),
 
 		IsCopyProcess = BIT(1),
@@ -321,85 +321,85 @@ namespace Engine
 	enum class BufferSeekDir : EnumerateType
 	{
 		Current = 0,
-		Begin	= 1,
-		End		= 2,
+		Begin   = 1,
+		End     = 2,
 	};
 
 	enum class FileOpenMode : EnumerateType
 	{
-		In		  = 0x01,
-		Out		  = 0x02,
+		In        = 0x01,
+		Out       = 0x02,
 		ReadWrite = In | Out,
-		Append	  = 0x04,
-		Trunc	  = 0x08
+		Append    = 0x04,
+		Trunc     = 0x08
 	};
 	using FileSeekDir = BufferSeekDir;
 
 	enum class RenderPassType : EnumerateType
 	{
 		Undefined  = 0,
-		Window	   = 1,
+		Window     = 1,
 		SceneColor = 2,
-		GBuffer	   = 3,
-		Depth	   = 4,
+		GBuffer    = 3,
+		Depth      = 4,
 		__COUNT__  = 4,
 	};
 
 	enum class ViewMode : EnumerateType
 	{
-		Lit	  = 0,
+		Lit   = 0,
 		Unlit = 1
 	};
 
 	enum class ShaderType : EnumerateType
 	{
-		Undefined			= 0,
-		Vertex				= BIT(0),
+		Undefined           = 0,
+		Vertex              = BIT(0),
 		TessellationControl = BIT(1),
-		Tessellation		= BIT(2),
-		Geometry			= BIT(3),
-		Fragment			= BIT(4),
-		Compute				= BIT(5),
+		Tessellation        = BIT(2),
+		Geometry            = BIT(3),
+		Fragment            = BIT(4),
+		Compute             = BIT(5),
 	};
 
 	enum class RHIBufferType : EnumerateType
 	{
-		Static	= 0,
+		Static  = 0,
 		Dynamic = 1,
 	};
 
 	enum class ColorFormat : EnumerateType
 	{
-		Undefined			= 0,
-		FloatR				= 1,
-		FloatRGBA			= 2,
-		R8					= 3,
-		R8G8B8A8			= 4,
-		DepthStencil		= 5,
-		ShadowDepth			= 6,
+		Undefined           = 0,
+		FloatR              = 1,
+		FloatRGBA           = 2,
+		R8                  = 3,
+		R8G8B8A8            = 4,
+		DepthStencil        = 5,
+		ShadowDepth         = 6,
 		FilteredShadowDepth = 7,
-		D32F				= 8,
-		BC1					= 9,
-		BC2					= 10,
-		BC3					= 11,
+		D32F                = 8,
+		BC1                 = 9,
+		BC2                 = 10,
+		BC3                 = 11,
 	};
 
 	enum class ShowFlags : EnumerateType
 	{
-		None			  = 0,
-		Sprite			  = BIT(0),
-		Wireframe		  = BIT(1),
-		Gizmo			  = BIT(2),
-		PointLights		  = BIT(3),
-		SpotLights		  = BIT(4),
+		None              = 0,
+		Sprite            = BIT(0),
+		Wireframe         = BIT(1),
+		Gizmo             = BIT(2),
+		PointLights       = BIT(3),
+		SpotLights        = BIT(4),
 		DirectionalLights = BIT(5),
-		PostProcess		  = BIT(6),
+		PostProcess       = BIT(6),
 
 		StaticMesh = BIT(7),
 
-		LightOctree		= BIT(8),
+		LightOctree     = BIT(8),
 		PrimitiveOctree = BIT(9),
-		Statistics		= BIT(10),
+		Statistics      = BIT(10),
 
 		DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess
 	};
@@ -412,10 +412,10 @@ namespace Engine
 	enum class SplashTextType : EnumerateType
 	{
 		StartupProgress = 0,
-		VersionInfo		= 1,
-		CopyrightInfo	= 2,
-		GameName		= 3,
-		Count			= 4
+		VersionInfo     = 1,
+		CopyrightInfo   = 2,
+		GameName        = 3,
+		Count           = 4
 	};
 
 	enum class IndexBufferFormat
@@ -426,42 +426,42 @@ namespace Engine
 
 	enum class ScriptCallConv
 	{
-		CDecl			  = 0,
-		StdCall			  = 1,
+		CDecl             = 0,
+		StdCall           = 1,
 		ThisCallAsGlobal  = 2,
-		ThisCall		  = 3,
-		CDeclObjLast	  = 4,
-		CDeclObjFirst	  = 5,
-		Generic			  = 6,
+		ThisCall          = 3,
+		CDeclObjLast      = 4,
+		CDeclObjFirst     = 5,
+		Generic           = 6,
 		ThisCall_ObjLast  = 7,
 		ThisCall_ObjFirst = 8
 	};
 
 	enum class ScriptClassBehave : EnumerateType
 	{
-		Construct		 = 0,
-		ListConstruct	 = 1,
-		Destruct		 = 2,
-		Factory			 = 3,
-		ListFactory		 = 4,
-		AddRef			 = 5,
-		Release			 = 6,
-		GetWeakRefFlag	 = 7,
+		Construct        = 0,
+		ListConstruct    = 1,
+		Destruct         = 2,
+		Factory          = 3,
+		ListFactory      = 4,
+		AddRef           = 5,
+		Release          = 6,
+		GetWeakRefFlag   = 7,
 		TemplateCallback = 8,
-		GetRefCount		 = 9,
-		GetGCFlag		 = 10,
-		SetGCFlag		 = 11,
-		EnumRefs		 = 12,
-		ReleaseRefs		 = 13,
-		GetTypeInfo		 = 14,
+		GetRefCount      = 9,
+		GetGCFlag        = 10,
+		SetGCFlag        = 11,
+		EnumRefs         = 12,
+		ReleaseRefs      = 13,
+		GetTypeInfo      = 14,
 	};
 
 	enum class ScriptTypeModifiers : EnumerateType
 	{
-		None	 = 0,
-		InRef	 = 1,
-		OutRef	 = 2,
+		None     = 0,
+		InRef    = 1,
+		OutRef   = 2,
 		InOutRef = 3,
-		Const	 = 4
+		Const    = 4
 	};
 }// namespace Engine

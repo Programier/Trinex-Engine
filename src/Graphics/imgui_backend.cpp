@@ -156,14 +156,14 @@ namespace Engine::ImGuiBackend
 
 		ViewPort viewport;
 		viewport.size = {draw_data->DisplaySize.x * ImGuiRenderer::rhi_rendering_scale_factor,
-						 draw_data->DisplaySize.y * ImGuiRenderer::rhi_rendering_scale_factor};
+		                 draw_data->DisplaySize.y * ImGuiRenderer::rhi_rendering_scale_factor};
 		rhi->viewport(viewport);
 
-		float L						   = draw_data->DisplayPos.x;
-		float R						   = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-		float T						   = draw_data->DisplayPos.y;
-		float B						   = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-		bd->model_parameter->param	   = glm::ortho(L, R, B, T);
+		float L                        = draw_data->DisplayPos.x;
+		float R                        = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+		float T                        = draw_data->DisplayPos.y;
+		float B                        = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+		bd->model_parameter->param     = glm::ortho(L, R, B, T);
 		bd->texture_parameter->texture = nullptr;
 	}
 
@@ -182,14 +182,14 @@ namespace Engine::ImGuiBackend
 		if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
 			return;
 
-		ImGuiTrinexData* bd			= imgui_trinex_backend_data();
+		ImGuiTrinexData* bd         = imgui_trinex_backend_data();
 		ImGuiTrinexViewportData* vd = reinterpret_cast<ImGuiTrinexViewportData*>(draw_data->OwnerViewport->RendererUserData);
 
 		if (bd == nullptr || vd == nullptr)
 			return;
 
 		rhi->push_debug_stage("ImGui Setup state");
-		const float fb_height		   = draw_data->DisplaySize.y * draw_data->FramebufferScale.y;
+		const float fb_height          = draw_data->DisplaySize.y * draw_data->FramebufferScale.y;
 		const ViewPort backup_viewport = rhi->viewport();
 		const Scissor backup_scissor   = rhi->scissor();
 
@@ -213,8 +213,8 @@ namespace Engine::ImGuiBackend
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
 		{
 			const ImDrawList* cmd_list = draw_data->CmdLists[n];
-			size_t vtx_size			   = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
-			size_t idx_size			   = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
+			size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
+			size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
 			vd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
 			vd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
@@ -227,7 +227,7 @@ namespace Engine::ImGuiBackend
 
 		int global_idx_offset = 0;
 		int global_vtx_offset = 0;
-		ImVec2 clip_off		  = draw_data->DisplayPos;
+		ImVec2 clip_off       = draw_data->DisplayPos;
 
 		rhi->pop_debug_stage();
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -247,7 +247,7 @@ namespace Engine::ImGuiBackend
 				}
 				else if (pcmd->UpdateImageCallback)
 				{
-					ImTextureID next_texture	   = pcmd->UpdateImageCallback(pcmd->UserCallbackData);
+					ImTextureID next_texture       = pcmd->UpdateImageCallback(pcmd->UserCallbackData);
 					bd->texture_parameter->texture = next_texture.texture;
 					bd->texture_parameter->sampler = next_texture.sampler;
 				}
@@ -304,7 +304,7 @@ namespace Engine::ImGuiBackend
 	static void imgui_trinex_create_fonts_texture()
 	{
 		// Build texture atlas
-		ImGuiIO& io			= ImGui::GetIO();
+		ImGuiIO& io         = ImGui::GetIO();
 		ImGuiTrinexData* bd = imgui_trinex_backend_data();
 		unsigned char* pixels;
 		int width, height;
@@ -313,14 +313,14 @@ namespace Engine::ImGuiBackend
 		ImTextureID& texture = bd->font_texture;
 
 		texture.texture = Object::new_instance<EngineResource<Texture2D>>(
-				Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+		        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 		texture.texture->init(ColorFormat::R8G8B8A8, Size2D(static_cast<float>(width), static_cast<float>(height)), pixels,
-							  static_cast<size_t>(width * height * 4));
+		                      static_cast<size_t>(width * height * 4));
 		auto package = Package::static_find_package("Engine::ImGui", true);
 		package->add_object(texture.texture);
 
 		texture.sampler = Object::new_instance<EngineResource<Sampler>>(
-				Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+		        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 		texture.sampler->filter = SamplerFilter::Trilinear;
 		texture.sampler->rhi_create();
 		package->add_object(texture.sampler);
@@ -331,7 +331,7 @@ namespace Engine::ImGuiBackend
 
 	static void imgui_trinex_destroy_device_objects()
 	{
-		ImGuiTrinexData* bd			= imgui_trinex_backend_data();
+		ImGuiTrinexData* bd         = imgui_trinex_backend_data();
 		bool call_garbage_collector = !Engine::engine_instance->is_shuting_down();
 
 		if (bd->font_texture)
@@ -347,9 +347,9 @@ namespace Engine::ImGuiBackend
 
 		if (bd->material)
 		{
-			bd->material		  = nullptr;
+			bd->material          = nullptr;
 			bd->texture_parameter = nullptr;
-			bd->model_parameter	  = nullptr;
+			bd->model_parameter   = nullptr;
 		}
 	}
 
@@ -361,7 +361,7 @@ namespace Engine::ImGuiBackend
 
 		bd->material = DefaultResources::Materials::imgui;
 		bd->texture_parameter =
-				reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(bd->material->find_parameter(Name::texture));
+		        reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(bd->material->find_parameter(Name::texture));
 		bd->model_parameter = reinterpret_cast<Mat4MaterialParameter*>(bd->material->find_parameter(Name::model));
 
 		imgui_trinex_create_fonts_texture();
@@ -371,7 +371,7 @@ namespace Engine::ImGuiBackend
 	static void imgui_trinex_create_window(ImGuiViewport* viewport)
 	{
 		ImGuiTrinexViewportData* vd = IM_NEW(ImGuiTrinexViewportData)();
-		viewport->RendererUserData	= vd;
+		viewport->RendererUserData  = vd;
 	}
 
 	static void imgui_trinex_destroy_window(ImGuiViewport* viewport)
@@ -385,7 +385,7 @@ namespace Engine::ImGuiBackend
 
 	static void imgui_trinex_init_platform_interface()
 	{
-		ImGuiPlatformIO& platform_io	   = ImGui::GetPlatformIO();
+		ImGuiPlatformIO& platform_io       = ImGui::GetPlatformIO();
 		platform_io.Renderer_CreateWindow  = imgui_trinex_create_window;
 		platform_io.Renderer_DestroyWindow = imgui_trinex_destroy_window;
 	}
@@ -407,9 +407,9 @@ namespace Engine::ImGuiBackend
 		IMGUI_CHECKVERSION();
 		IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
 
-		ImGuiTrinexData* bd		   = IM_NEW(ImGuiTrinexData)();
+		ImGuiTrinexData* bd        = IM_NEW(ImGuiTrinexData)();
 		io.BackendRendererUserData = (void*) bd;
-		io.BackendRendererName	   = "imgui_impl_trinex";
+		io.BackendRendererName     = "imgui_impl_trinex";
 		io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
 		io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
@@ -418,7 +418,7 @@ namespace Engine::ImGuiBackend
 
 		imgui_trinex_create_device_objects();
 
-		ImGuiViewport* main_viewport	= ImGui::GetMainViewport();
+		ImGuiViewport* main_viewport    = ImGui::GetMainViewport();
 		main_viewport->RendererUserData = IM_NEW(ImGuiTrinexViewportData)();
 		return true;
 #endif
@@ -441,7 +441,7 @@ namespace Engine::ImGuiBackend
 
 		imgui_trinex_shutdown_platform_interface();
 		imgui_trinex_destroy_device_objects();
-		io.BackendRendererName	   = nullptr;
+		io.BackendRendererName     = nullptr;
 		io.BackendRendererUserData = nullptr;
 		io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasViewports);
 		IM_DELETE(bd);

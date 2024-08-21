@@ -59,13 +59,13 @@ namespace Engine
 	enum BindFlags
 	{
 		Normalize = (1 << 0),
-		Length	  = (1 << 1),
-		Dot		  = (1 << 2),
-		Cross	  = (1 << 3),
-		Max		  = (1 << 4),
-		Min		  = (1 << 5),
-		Clamp	  = (1 << 6),
-		All		  = ~size_t(0),
+		Length    = (1 << 1),
+		Dot       = (1 << 2),
+		Cross     = (1 << 3),
+		Max       = (1 << 4),
+		Min       = (1 << 5),
+		Clamp     = (1 << 6),
+		All       = ~size_t(0),
 	};
 
 #define checked_bind(flag, code)                                                                                                 \
@@ -88,8 +88,8 @@ namespace Engine
 		checked_bind(Max, regf(Strings::format("{} max(const {}& in, const {}& in)", name, name, name), glm_max<T, GLM>));
 		checked_bind(Min, regf(Strings::format("{} min(const {}& in, const {}& in)", name, name, name), glm_min<T, GLM>));
 		checked_bind(Clamp, regf(Strings::format("{} clamp(const {}& in, const {}& in, const {}& in)", name, name, name, name),
-								 glm_clamp<T, GLM>));
+		                         glm_clamp<T, GLM>));
 		checked_bind(Clamp, regf(Strings::format("{} clamp(const {}& in, {}, {})", name, name, vtype, vtype),
-								 glm_clamp<T, typename T::value_type, GLM>));
+		                         glm_clamp<T, typename T::value_type, GLM>));
 	}
 }// namespace Engine

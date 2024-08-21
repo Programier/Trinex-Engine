@@ -25,7 +25,7 @@ namespace Engine
 {
 #if ENABLE_VALIDATION_LAYERS
 	const Vector<const char*> validation_layers = {
-			"VK_LAYER_KHRONOS_validation",
+	        "VK_LAYER_KHRONOS_validation",
 	};
 #endif
 
@@ -35,8 +35,8 @@ namespace Engine
 		Struct::static_find("Engine::RHI::VULKAN", true)->struct_constructor([]() -> void* {
 			if (VulkanAPI::m_vulkan == nullptr)
 			{
-				VulkanAPI::m_vulkan						  = new VulkanAPI();
-				VulkanAPI::m_vulkan->info.name			  = "Vulkan";
+				VulkanAPI::m_vulkan                       = new VulkanAPI();
+				VulkanAPI::m_vulkan->info.name            = "Vulkan";
 				VulkanAPI::m_vulkan->info.struct_instance = Struct::static_find("Engine::RHI::VULKAN", true);
 			}
 			return VulkanAPI::m_vulkan;
@@ -46,10 +46,10 @@ namespace Engine
 	VulkanAPI::VulkanAPI()
 	{
 		m_device_extensions = {
-				{VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false},
-				{VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false},
-				{VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false},
-				{VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
+		        {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false},
+		        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false},
+		        {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false},
+		        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
 		};
 	}
 
@@ -95,9 +95,9 @@ namespace Engine
 	///////////////////////////////// INITIALIZATION /////////////////////////////////
 #if ENABLE_VALIDATION_LAYERS
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-														 VkDebugUtilsMessageTypeFlagsEXT message_type,
-														 const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-														 void* pUserData)
+	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
+	                                                     const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
+	                                                     void* pUserData)
 	{
 #define has_bit(bit) ((message_severity & bit) == bit)
 
@@ -123,7 +123,7 @@ namespace Engine
 	{
 		auto& m_surface_capabilities = API->m_surface_capabilities;
 		return (m_surface_capabilities.maxImageCount == 0 || m_surface_capabilities.maxImageCount >= count) &&
-			   m_surface_capabilities.minImageCount <= count;
+		       m_surface_capabilities.minImageCount <= count;
 	}
 
 	static vkb::PhysicalDevice initialize_physical_device()
@@ -190,11 +190,11 @@ namespace Engine
 	{
 		vk::PhysicalDeviceFeatures new_features;
 
-		new_features.samplerAnisotropy	= features.samplerAnisotropy;
-		new_features.fillModeNonSolid	= features.fillModeNonSolid;
-		new_features.wideLines			= features.wideLines;
+		new_features.samplerAnisotropy  = features.samplerAnisotropy;
+		new_features.fillModeNonSolid   = features.fillModeNonSolid;
+		new_features.wideLines          = features.wideLines;
 		new_features.tessellationShader = features.tessellationShader;
-		new_features.geometryShader		= features.geometryShader;
+		new_features.geometryShader     = features.geometryShader;
 
 		return new_features;
 	}
@@ -218,8 +218,8 @@ namespace Engine
 
 #if ENABLE_VALIDATION_LAYERS
 		instance_builder.set_debug_callback(debug_callback)
-				.request_validation_layers()
-				.add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
+		        .request_validation_layers()
+		        .add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
 #else
 		instance_builder.add_validation_disable(VK_VALIDATION_CHECK_ALL_EXT);
 		instance_builder.add_validation_feature_disable(VK_VALIDATION_FEATURE_DISABLE_ALL_EXT);
@@ -241,12 +241,12 @@ namespace Engine
 
 		// Initialize physical device
 		auto selected_device = initialize_physical_device();
-		m_physical_device	 = vk::PhysicalDevice(selected_device.physical_device);
+		m_physical_device    = vk::PhysicalDevice(selected_device.physical_device);
 
-		m_properties		   = m_physical_device.getProperties();
-		m_features			   = filter_features(m_physical_device.getFeatures());
+		m_properties           = m_physical_device.getProperties();
+		m_features             = filter_features(m_physical_device.getFeatures());
 		m_surface_capabilities = m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
-		info.renderer		   = m_properties.deviceName.data();
+		info.renderer          = m_properties.deviceName.data();
 		selected_device.enable_features_if_present(m_features);
 
 		info_log("Vulkan", "Selected GPU '%s'", info.renderer.c_str());
@@ -254,12 +254,12 @@ namespace Engine
 
 		// Initialize device
 		m_bootstrap_device = build_device(selected_device);
-		m_device		   = vk::Device(m_bootstrap_device.device);
+		m_device           = vk::Device(m_bootstrap_device.device);
 
-		auto index_1		= m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
-		auto index_2		= m_bootstrap_device.get_queue_index(vkb::QueueType::present);
+		auto index_1        = m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
+		auto index_2        = m_bootstrap_device.get_queue_index(vkb::QueueType::present);
 		auto graphics_queue = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
-		auto present_queue	= m_bootstrap_device.get_queue(vkb::QueueType::present);
+		auto present_queue  = m_bootstrap_device.get_queue(vkb::QueueType::present);
 
 		if (!index_1.has_value() || !index_2.has_value() || !graphics_queue.has_value() || !present_queue.has_value())
 		{
@@ -270,7 +270,7 @@ namespace Engine
 		m_present_queue_index  = index_2.value();
 
 		m_graphics_queue = vk::Queue(graphics_queue.value());
-		m_present_queue	 = vk::Queue(present_queue.value());
+		m_present_queue  = vk::Queue(present_queue.value());
 
 
 		initialize_pfn();
@@ -311,17 +311,17 @@ namespace Engine
 	void VulkanAPI::enable_dynamic_states()
 	{
 		m_dynamic_states = {
-				vk::DynamicState::eViewport,
-				vk::DynamicState::eScissor,
+		        vk::DynamicState::eViewport,
+		        vk::DynamicState::eScissor,
 		};
 	}
 
 	void VulkanAPI::initialize_pfn()
 	{
 		pfn.vkCmdBeginDebugUtilsLabelEXT =
-				(PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdBeginDebugUtilsLabelEXT");
+		        (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdBeginDebugUtilsLabelEXT");
 		pfn.vkCmdEndDebugUtilsLabelEXT =
-				(PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdEndDebugUtilsLabelEXT");
+		        (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdEndDebugUtilsLabelEXT");
 	}
 
 
@@ -361,15 +361,15 @@ namespace Engine
 	}
 
 	VulkanAPI& VulkanAPI::create_image(VulkanTexture* texture, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
-									   vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-									   vk::DeviceMemory& image_memory, uint32_t layers)
+	                                   vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+	                                   vk::DeviceMemory& image_memory, uint32_t layers)
 	{
 
 		vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->format(),
-									   vk::Extent3D(texture->size().x, texture->size().y, 1), texture->mipmap_count(), layers,
-									   vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
+		                               vk::Extent3D(texture->size().x, texture->size().y, 1), texture->mipmap_count(), layers,
+		                               vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
 
-		image									   = API->m_device.createImage(image_info);
+		image                                      = API->m_device.createImage(image_info);
 		vk::MemoryRequirements memory_requirements = API->m_device.getImageMemoryRequirements(image);
 		auto memory_type = API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
 		vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
@@ -381,7 +381,7 @@ namespace Engine
 	void VulkanAPI::create_command_pool()
 	{
 		m_command_pool = m_device.createCommandPool(
-				vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_graphics_queue_index));
+		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_graphics_queue_index));
 	}
 
 
@@ -419,7 +419,7 @@ namespace Engine
 	}
 
 	VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-										vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
+	                                    vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
 	{
 		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
 		buffer = m_device.createBuffer(buffer_info);
@@ -453,7 +453,7 @@ namespace Engine
 	}
 
 	VulkanAPI& VulkanAPI::copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
-									  vk::DeviceSize src_offset, vk::DeviceSize dst_offset)
+	                                  vk::DeviceSize src_offset, vk::DeviceSize dst_offset)
 	{
 		auto command_buffer = begin_single_time_command_buffer();
 		vk::BufferCopy copy_region(src_offset, dst_offset, size);
@@ -496,7 +496,7 @@ namespace Engine
 	}
 
 	VulkanAPI& VulkanAPI::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-												 size_t instances)
+	                                             size_t instances)
 	{
 		prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
@@ -512,12 +512,12 @@ namespace Engine
 		if (pfn.vkCmdBeginDebugUtilsLabelEXT)
 		{
 			VkDebugUtilsLabelEXT label_info = {};
-			label_info.sType				= VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-			label_info.pLabelName			= stage;
-			label_info.color[0]				= color.r;
-			label_info.color[1]				= color.g;
-			label_info.color[2]				= color.b;
-			label_info.color[3]				= color.a;
+			label_info.sType                = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			label_info.pLabelName           = stage;
+			label_info.color[0]             = color.r;
+			label_info.color[1]             = color.g;
+			label_info.color[2]             = color.b;
+			label_info.color[3]             = color.a;
 
 			pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer_handle(), &label_info);
 		}

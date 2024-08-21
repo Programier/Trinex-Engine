@@ -4,8 +4,8 @@
 
 namespace Engine
 {
-	const char Path::separator			  = '/';
-	const StringView Path::sv_separator	  = "/";
+	const char Path::separator            = '/';
+	const StringView Path::sv_separator   = "/";
 	static constexpr const char* prev_dir = "../";
 
 	size_t Path::Hash::operator()(const Path& p) const noexcept
@@ -17,7 +17,7 @@ namespace Engine
 	static FORCE_INLINE void simplify_path(String& path)
 	{
 		static auto simplify_separators = [](char a, char b) { return a == b && a == Path::separator; };
-		auto end						= std::unique(path.begin(), path.end(), simplify_separators);
+		auto end                        = std::unique(path.begin(), path.end(), simplify_separators);
 		path.erase(end, path.end());
 
 		if (path.length() > 1 && path.back() == Path::separator)
@@ -47,13 +47,13 @@ namespace Engine
 			position = view.rfind(separator);
 			if (position != StringView::npos)
 			{
-				m_filename	= view.substr(position + 1);
+				m_filename  = view.substr(position + 1);
 				m_base_path = view.substr(0, position);
 			}
 			else
 			{
 				m_base_path = {};
-				m_filename	= view;
+				m_filename  = view;
 			}
 		}
 
@@ -63,12 +63,12 @@ namespace Engine
 			if (position != StringView::npos)
 			{
 				m_extension = m_filename.substr(position);
-				m_stem		= m_filename.substr(0, position);
+				m_stem      = m_filename.substr(0, position);
 			}
 			else
 			{
 				m_extension = {};
-				m_stem		= m_filename;
+				m_stem      = m_filename;
 			}
 		}
 
@@ -151,7 +151,7 @@ namespace Engine
 
 	Vector<StringView> Path::split_sv() const
 	{
-		Index index	  = 0;
+		Index index   = 0;
 		Index current = 0;
 
 		StringView view = m_path;
@@ -171,7 +171,7 @@ namespace Engine
 
 	Vector<String> Path::split() const
 	{
-		Index index	  = 0;
+		Index index   = 0;
 		Index current = 0;
 
 		Vector<String> result;
@@ -197,7 +197,7 @@ namespace Engine
 		Vector<StringView> self_sv = split_sv();
 
 		size_t min_len = glm::min(base_sv.size(), self_sv.size());
-		Index index	   = 0;
+		Index index    = 0;
 
 		while (index < min_len && base_sv[index] == self_sv[index]) ++index;
 

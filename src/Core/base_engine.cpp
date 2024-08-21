@@ -39,9 +39,9 @@ namespace Engine
 
 	BaseEngine::BaseEngine()
 	{
-		start_time	  = current_time_point();
+		start_time    = current_time_point();
 		m_frame_index = 0;
-		m_prev_time	  = 0.f;
+		m_prev_time   = 0.f;
 	}
 
 	int_t BaseEngine::init()
@@ -55,7 +55,7 @@ namespace Engine
 		auto current_time = time_seconds();
 
 		m_delta_time = current_time - m_prev_time;
-		m_prev_time	 = current_time;
+		m_prev_time  = current_time;
 
 		++m_frame_index;
 

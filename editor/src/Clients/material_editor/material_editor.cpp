@@ -69,7 +69,7 @@ namespace Engine
 			ImGui::SetNextWindowSize({300, 400}, ImGuiCond_Appearing);
 			ImGui::Begin(name(), &is_open);
 			ImGui::InputTextMultiline("##Code", code.data(), code.size(), ImGui::GetContentRegionAvail(),
-									  ImGuiInputTextFlags_ReadOnly);
+			                          ImGuiInputTextFlags_ReadOnly);
 			ImGui::End();
 			return is_open;
 		}
@@ -95,7 +95,7 @@ namespace Engine
 		m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		m_content_browser->on_object_double_click.push(
-				std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
+		        std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
 		return *this;
 	}
 
@@ -127,7 +127,7 @@ namespace Engine
 		{
 			throw EngineException("Cannot bind client to non-window viewport!");
 		}
-		
+
 		window->imgui_initialize(EditorTheme::initialize_theme);
 		String new_title = Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str());
 		window->title(new_title);
@@ -137,7 +137,7 @@ namespace Engine
 
 
 		ImGuiRenderer::Window* imgui_window = window->imgui_window();
-		ImGuiRenderer::Window* prev_window	= ImGuiRenderer::Window::current();
+		ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
 		ImGuiRenderer::Window::make_current(imgui_window);
 
 		create_content_browser().create_preview_window().create_properties_window();
@@ -180,7 +180,7 @@ namespace Engine
 
 	void MaterialEditorClient::render_dock_window()
 	{
-		auto dock_id					   = ImGui::GetID("MaterialEditorDock##Dock");
+		auto dock_id                       = ImGui::GetID("MaterialEditorDock##Dock");
 		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
@@ -282,9 +282,9 @@ namespace Engine
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
 
 		ImGui::Begin("MaterialEditorDock", nullptr,
-					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-							 ImGuiWindowFlags_MenuBar);
+		             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
+		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
+		                     ImGuiWindowFlags_MenuBar);
 		render_dock_window();
 
 		render_viewport(dt);

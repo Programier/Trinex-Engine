@@ -29,9 +29,9 @@ namespace Engine
 
 	bool PrimitiveComponent::is_visible() const
 	{
-		if(m_is_visible)
+		if (m_is_visible)
 		{
-			if(auto owner_actor = actor())
+			if (auto owner_actor = actor())
 				return owner_actor->is_visible();
 			return true;
 		}
@@ -42,7 +42,7 @@ namespace Engine
 	{
 		return m_bounding_box;
 	}
-	
+
 	PrimitiveComponent& PrimitiveComponent::is_visible(bool visible)
 	{
 		m_is_visible = visible;

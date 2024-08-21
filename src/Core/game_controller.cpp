@@ -48,7 +48,7 @@ namespace Engine
 		registrar.method("uint64 id() const", &GameController::id);
 		registrar.method("int16 axis_value(Engine::GameController::Axis) const", &GameController::axis_value);
 		registrar.method("float axis_value_normalized(Engine::GameController::Axis) const",
-						 &GameController::axis_value_normalized);
+		                 &GameController::axis_value_normalized);
 	}
 
 	static ReflectionInitializeController init(on_init, "Engine::GameController");

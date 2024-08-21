@@ -36,10 +36,10 @@ namespace Engine
 			IsAvailableForGC = BIT(1),
 
 			IsSerializable = BIT(2),
-			IsPackage	   = BIT(3),
+			IsPackage      = BIT(3),
 			IsUnreachable  = BIT(4),
-			IsEditable	   = BIT(5),
-			IsDirty		   = BIT(6),
+			IsEditable     = BIT(5),
+			IsDirty        = BIT(6),
 			IsScriptable   = BIT(7),
 		};
 
@@ -94,7 +94,7 @@ namespace Engine
 		static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
 
 	public:
-		using This	= Object;
+		using This  = Object;
 		using Super = Object;
 
 		Object();
@@ -144,7 +144,7 @@ namespace Engine
 
 		virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});
 		ENGINE_EXPORT static Object* load_object(StringView fullname, class BufferReader* reader,
-												 Flags<SerializationFlags> flags = {});
+		                                         Flags<SerializationFlags> flags = {});
 		ENGINE_EXPORT static Object* load_object(StringView fullname, Flags<SerializationFlags> flags = {});
 		ENGINE_EXPORT static Object* load_object_from_file(const Path& path, Flags<SerializationFlags> flags = {});
 
@@ -160,14 +160,14 @@ namespace Engine
 
 		static Object* static_new_instance(Class* object_class, StringView name = "", Object* owner = nullptr);
 		static Object* static_new_placement_instance(void* place, Class* object_class, StringView name = "",
-													 Object* owner = nullptr);
+		                                             Object* owner = nullptr);
 
 		template<typename Type, bool check_constructible = false, typename... Args>
 		static Type* new_instance(StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
-					check_constructible &&
-					(std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			        check_constructible &&
+			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -199,8 +199,8 @@ namespace Engine
 		static Type* new_placement_instance(void* place, StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
-					check_constructible &&
-					(std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			        check_constructible &&
+			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -325,7 +325,7 @@ protected:                                                                      
 	static class Engine::Class* m_static_class;                                                                                  \
                                                                                                                                  \
 public:                                                                                                                          \
-	using This	= class_name;                                                                                                    \
+	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
 	static class Engine::Class* static_class_instance();                                                                         \
@@ -341,8 +341,8 @@ private:
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
 			constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-			m_static_class				  = new Engine::Class(ENTITY_INITIALIZER_NAME(class_name, namespace_name),               \
-												  has_base_class ? Super::static_class_instance() : nullptr, flags); \
+			m_static_class                = new Engine::Class(ENTITY_INITIALIZER_NAME(class_name, namespace_name),               \
+                                               has_base_class ? Super::static_class_instance() : nullptr, flags); \
 			m_static_class->setup_class<class_name>();                                                                           \
                                                                                                                                  \
 			class_name::static_initialize_class();                                                                               \
@@ -351,7 +351,7 @@ private:
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
 	static Engine::ReflectionInitializeController initialize_##class_name = Engine::ReflectionInitializeController(              \
-			[]() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name));                 \
+	        []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name));                 \
 	void class_name::static_initialize_class()
 
 

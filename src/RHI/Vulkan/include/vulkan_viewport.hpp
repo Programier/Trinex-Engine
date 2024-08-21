@@ -44,9 +44,9 @@ namespace Engine
 	class Window;
 	struct VulkanWindowViewport : VulkanViewport {
 		Vector<VkImage> m_images;
-		RenderViewport* m_viewport						 = nullptr;
+		RenderViewport* m_viewport                       = nullptr;
 		struct VulkanWindowRenderTarget* m_render_target = nullptr;
-		vkb::Swapchain* m_swapchain						 = nullptr;
+		vkb::Swapchain* m_swapchain                      = nullptr;
 
 		vk::SurfaceKHR m_surface;
 		bool m_need_recreate_swap_chain = false;

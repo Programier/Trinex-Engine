@@ -38,10 +38,10 @@ namespace Engine
 		event_system->register_subsystem(this);
 
 		m_key_press_id = event_system->add_listener(EventType::KeyDown,
-													std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
+		                                            std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
 
 		m_key_release_id = event_system->add_listener(EventType::KeyUp,
-													  std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
+		                                              std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
 		return *this;
 	}
 

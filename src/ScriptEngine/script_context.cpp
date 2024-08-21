@@ -15,12 +15,12 @@
 
 namespace Engine
 {
-	static asIScriptContext* m_context		= nullptr;
+	static asIScriptContext* m_context      = nullptr;
 	static Function<void(void*)> m_callback = {};
 
 	struct ExecInfo {
 		int_t return_type_id = 0;
-		bool is_active		 = false;
+		bool is_active       = false;
 	};
 
 	static List<ExecInfo> m_exec_info;
@@ -34,17 +34,17 @@ namespace Engine
 
 	static void script_exception_callback(asIScriptContext* ctx, void* object)
 	{
-		ScriptFunction function		 = ctx->GetExceptionFunction();
+		ScriptFunction function      = ctx->GetExceptionFunction();
 		const char* exception_string = ctx->GetExceptionString();
-		int_t column				 = 0;
-		const int_t line			 = ctx->GetExceptionLineNumber(&column);
+		int_t column                 = 0;
+		const int_t line             = ctx->GetExceptionLineNumber(&column);
 
 		Script* script = function.module().script();
 
 		if (script)
 		{
 			error_log("ScriptEngine", "Script Exception: %s (Line: %d, Column: %d): %s", script->path().c_str(), line, column,
-					  exception_string);
+			          exception_string);
 			script->on_exception(script);
 		}
 	}
@@ -357,7 +357,7 @@ namespace Engine
 	{
 		IntVector2D result = {-1, -1};
 		const char* name   = nullptr;
-		result.y		   = m_context->GetExceptionLineNumber(&result.x, section ? &name : nullptr);
+		result.y           = m_context->GetExceptionLineNumber(&result.x, section ? &name : nullptr);
 
 		if (section && name)
 		{
@@ -387,7 +387,7 @@ namespace Engine
 
 	bool ScriptContext::line_callback(const Function<void(void*)>& function, void* userdata)
 	{
-		m_callback		  = function;
+		m_callback        = function;
 		const bool result = m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), userdata, asCALL_CDECL) >= 0;
 		if (!result)
 			clear_line_callback();
@@ -397,12 +397,12 @@ namespace Engine
 	bool ScriptContext::line_callback(const ScriptFunction& function)
 	{
 		return line_callback(
-				[function](void*) {
-					m_context->ClearLineCallback();
-					ScriptContext::execute(function);
-					m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), nullptr, asCALL_CDECL);
-				},
-				nullptr);
+		        [function](void*) {
+			        m_context->ClearLineCallback();
+			        ScriptContext::execute(function);
+			        m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), nullptr, asCALL_CDECL);
+		        },
+		        nullptr);
 	}
 
 	ScriptContext& ScriptContext::clear_line_callback()
@@ -430,9 +430,9 @@ namespace Engine
 
 	IntVector2D ScriptContext::line_position(uint_t stack_level, StringView* section_name)
 	{
-		IntVector2D result	= {-1, -1};
+		IntVector2D result  = {-1, -1};
 		const char* section = nullptr;
-		result.y			= m_context->GetLineNumber(stack_level, &result.x, (section_name ? &section : nullptr));
+		result.y            = m_context->GetLineNumber(stack_level, &result.x, (section_name ? &section : nullptr));
 
 		if (section_name)
 		{
@@ -449,12 +449,12 @@ namespace Engine
 	}
 
 	bool ScriptContext::var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id,
-							Flags<ScriptTypeModifiers>* modifiers, bool* is_var_on_heap, int_t* stack_offset)
+	                        Flags<ScriptTypeModifiers>* modifiers, bool* is_var_on_heap, int_t* stack_offset)
 	{
 		asETypeModifiers script_modifiers;
 		const char* script_name;
 		const bool result = m_context->GetVar(var_index, stack_level, &script_name, type_id,
-											  (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset) >= 0;
+		                                      (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset) >= 0;
 
 		if (name)
 		{
@@ -476,10 +476,10 @@ namespace Engine
 	}
 
 	byte* ScriptContext::address_of_var(uint_t var_index, uint_t stack_level, bool dont_dereference,
-										bool return_address_of_unitialized_objects)
+	                                    bool return_address_of_unitialized_objects)
 	{
 		return reinterpret_cast<byte*>(
-				m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects));
+		        m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects));
 	}
 
 	bool ScriptContext::is_var_in_scope(uint_t var_index, uint_t stack_level)

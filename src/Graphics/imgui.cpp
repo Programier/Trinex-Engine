@@ -28,16 +28,16 @@ namespace Engine::ImGuiRenderer
 		ImTextureID texture = {};
 
 		texture.texture = Object::new_instance<EngineResource<Texture2D>>(
-				Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+		        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 
 		texture.texture->flags(Object::IsAvailableForGC, false);
 		texture.texture->init(ColorFormat::R8G8B8A8, Size2D(fonts_texture_x, fonts_texture_y), fonts_texture_data,
-							  static_cast<size_t>(fonts_texture_x * fonts_texture_y * 4.f));
+		                      static_cast<size_t>(fonts_texture_x * fonts_texture_y * 4.f));
 		auto package = Package::static_find_package("Engine::ImGui", true);
 		package->add_object(texture.texture);
 
 		texture.sampler = Object::new_instance<EngineResource<Sampler>>(
-				Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+		        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 		texture.sampler->filter = SamplerFilter::Trilinear;
 		texture.sampler->rhi_create();
 		texture.sampler->flags(Object::IsAvailableForGC, false);
@@ -85,7 +85,7 @@ namespace Engine::ImGuiRenderer
 		m_draw_data[m_logic_index].CmdLists.resize(draw_data->CmdListsCount);
 		for (int index = 0; index < draw_data->CmdListsCount; index++)
 		{
-			ImDrawList* drawList					   = draw_data->CmdLists[index]->CloneOutput();
+			ImDrawList* drawList                       = draw_data->CmdLists[index]->CloneOutput();
 			m_draw_data[m_logic_index].CmdLists[index] = drawList;
 		}
 
@@ -200,11 +200,11 @@ namespace Engine::ImGuiRenderer
 		Node* parent_node = m_root;
 		while (parent_node && parent_node->next) parent_node = parent_node->next;
 
-		Node* node	 = new Node();
+		Node* node   = new Node();
 		node->window = window;
 		node->parent = parent_node;
-		node->next	 = nullptr;
-		node->id	 = id;
+		node->next   = nullptr;
+		node->id     = id;
 
 		if (parent_node)
 		{
@@ -346,7 +346,7 @@ namespace Engine::ImGuiRenderer
 
 		if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
 		{
-			String* str		   = userdata->str;
+			String* str        = userdata->str;
 			const int new_size = data->BufTextLen;
 			str->resize(new_size);
 			data->Buf = str->data();
@@ -367,36 +367,36 @@ namespace Engine::ImGuiRenderer
 	}
 
 	bool ENGINE_EXPORT InputText(const char* label, String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
-								 void* user_data)
+	                             void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
 		data.userdata = user_data;
-		data.str	  = &buffer;
+		data.str      = &buffer;
 
 		flags |= ImGuiInputTextFlags_CallbackResize;
 		return ImGui::InputText(label, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 
 	bool ENGINE_EXPORT InputTextMultiline(const char* label, String& buffer, const ImVec2& size, ImGuiInputTextFlags flags,
-										  ImGuiInputTextCallback callback, void* user_data)
+	                                      ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
 		data.userdata = user_data;
-		data.str	  = &buffer;
+		data.str      = &buffer;
 
 		flags |= ImGuiInputTextFlags_CallbackResize;
 		return ImGui::InputTextMultiline(label, buffer.data(), buffer.size() + 1, size, flags, input_text_callback, &data);
 	}
 
 	bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags,
-										 ImGuiInputTextCallback callback, void* user_data)
+	                                     ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
 		data.userdata = user_data;
-		data.str	  = &buffer;
+		data.str      = &buffer;
 
 		flags |= ImGuiInputTextFlags_CallbackResize;
 		return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
@@ -440,7 +440,7 @@ namespace Engine::ImGuiRenderer
 
 	bool ENGINE_EXPORT IsWindowRectHovered()
 	{
-		auto pos	 = ImGui::GetWindowPos();
+		auto pos     = ImGui::GetWindowPos();
 		auto end_pos = pos + ImGui::GetWindowSize();
 
 		return ImGui::IsMouseHoveringRect(pos, end_pos);

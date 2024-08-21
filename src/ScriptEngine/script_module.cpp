@@ -25,7 +25,7 @@ namespace Engine
 	{
 		if (this != &other)
 		{
-			m_module	   = other.m_module;
+			m_module       = other.m_module;
 			other.m_module = nullptr;
 		}
 		return *this;
@@ -183,10 +183,10 @@ namespace Engine
 
 	bool ScriptModule::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
 	{
-		const char* out_name	  = nullptr;
+		const char* out_name      = nullptr;
 		const char* out_namespace = nullptr;
 		bool result = m_module->GetGlobalVar(index, name ? &out_name : nullptr, name_space ? &out_namespace : nullptr, type_id,
-											 is_const) >= 0;
+		                                     is_const) >= 0;
 
 		if (result)
 		{

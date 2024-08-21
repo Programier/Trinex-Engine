@@ -6,7 +6,7 @@ namespace Engine
 {
 	enum class CameraProjectionMode
 	{
-		Perspective	 = 0,
+		Perspective  = 0,
 		Orthographic = 1,
 	};
 

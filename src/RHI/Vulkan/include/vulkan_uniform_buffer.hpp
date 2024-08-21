@@ -43,8 +43,8 @@ namespace Engine
 	struct LocalUniformBufferPool : public UniformBufferPool<4096> {
 		Vector<byte> shadow_data;
 		size_t shadow_data_size = 0;
-		size_t index			= 0;
-		size_t used_data		= 0;
+		size_t index            = 0;
+		size_t used_data        = 0;
 
 		LocalUniformBufferPool();
 

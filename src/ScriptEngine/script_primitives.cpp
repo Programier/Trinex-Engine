@@ -8,7 +8,7 @@
 #define declare_primitive(name, type)                                                                                            \
 	name::name(type initial) : value(initial)                                                                                    \
 	{}                                                                                                                           \
-	name::name(const name&)					 = default;                                                                          \
+	name::name(const name&)                  = default;                                                                          \
 	name& name::operator=(const name& other) = default;                                                                          \
 	void name::add_ref() const                                                                                                   \
 	{                                                                                                                            \
@@ -54,11 +54,11 @@ namespace Engine
 	static void register_base_type(const char* name, const char* base, const char* default_v)
 	{
 		ScriptClassRegistrar::RefInfo info;
-		info.no_count				   = false;
+		info.no_count                  = false;
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class(name, info);
 
 		registrar.behave(ScriptClassBehave::Factory, Strings::format("{}@ f({} = {})", name, base, default_v).c_str(),
-						 factory<T, BaseType>, ScriptCallConv::CDecl);
+		                 factory<T, BaseType>, ScriptCallConv::CDecl);
 		registrar.behave(ScriptClassBehave::AddRef, "void AddRef()", &T::add_ref, ScriptCallConv::ThisCall);
 		registrar.behave(ScriptClassBehave::Release, "void Release()", &T::release, ScriptCallConv::ThisCall);
 		registrar.method(Strings::format("{} opConv() const", base).c_str(), &T::op_conv);

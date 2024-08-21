@@ -44,14 +44,14 @@ namespace Engine::ShaderCompiler
 		Strings::to_lower(name);
 
 		static const TreeMap<String, VertexBufferSemantic> semantics = {
-				{"position", VertexBufferSemantic::Position},		//
-				{"texcoord", VertexBufferSemantic::TexCoord},		//
-				{"color", VertexBufferSemantic::Color},				//
-				{"normal", VertexBufferSemantic::Normal},			//
-				{"tangent", VertexBufferSemantic::Tangent},			//
-				{"binormal", VertexBufferSemantic::Binormal},		//
-				{"blendweight", VertexBufferSemantic::BlendWeight}, //
-				{"blendindices", VertexBufferSemantic::BlendIndices}//
+		        {"position", VertexBufferSemantic::Position},       //
+		        {"texcoord", VertexBufferSemantic::TexCoord},       //
+		        {"color", VertexBufferSemantic::Color},             //
+		        {"normal", VertexBufferSemantic::Normal},           //
+		        {"tangent", VertexBufferSemantic::Tangent},         //
+		        {"binormal", VertexBufferSemantic::Binormal},       //
+		        {"blendweight", VertexBufferSemantic::BlendWeight}, //
+		        {"blendindices", VertexBufferSemantic::BlendIndices}//
 		};
 
 		auto it = semantics.find(name);
@@ -105,14 +105,14 @@ namespace Engine::ShaderCompiler
 		}
 		else if (kind == slang::TypeReflection::Kind::Vector)
 		{
-			auto base_type		   = parse_vertex_element_type(var->getElementTypeLayout(), semantic);
+			auto base_type         = parse_vertex_element_type(var->getElementTypeLayout(), semantic);
 			auto components_offset = var->getElementCount() - 1;
 
 			if (components_offset > 3)
 				return VertexBufferElementType::Undefined;
 
 			if (components_offset == 3 &&
-				!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
+			    !is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
 			{
 				--components_offset;
 			}
@@ -128,16 +128,16 @@ namespace Engine::ShaderCompiler
 	}
 
 	static bool parse_vertex_semantic(slang::VariableLayoutReflection* var, ShaderReflection& out_reflection,
-									  const Function<void(const char*)>& print_error)
+	                                  const Function<void(const char*)>& print_error)
 	{
-		auto kind	  = var->getType()->getKind();
+		auto kind     = var->getType()->getKind();
 		auto category = var->getCategory();
 		if (category != slang::ParameterCategory::VaryingInput)
 			return true;
 
 		if (kind == slang::TypeReflection::Kind::Struct)
 		{
-			auto layout		  = var->getTypeLayout();
+			auto layout       = var->getTypeLayout();
 			auto fields_count = layout->getFieldCount();
 
 			for (uint32_t field_index = 0; field_index < fields_count; ++field_index)
@@ -169,24 +169,24 @@ namespace Engine::ShaderCompiler
 			}
 
 			if (is_not_in<VertexBufferSemantic::Position,//
-						  VertexBufferSemantic::TexCoord,//
-						  VertexBufferSemantic::Color,	 //
-						  VertexBufferSemantic::Normal,	 //
-						  VertexBufferSemantic::Tangent, //
-						  VertexBufferSemantic::Binormal,//
-						  VertexBufferSemantic::BlendWeight>(attribute.semantic))
+			              VertexBufferSemantic::TexCoord,//
+			              VertexBufferSemantic::Color,   //
+			              VertexBufferSemantic::Normal,  //
+			              VertexBufferSemantic::Tangent, //
+			              VertexBufferSemantic::Binormal,//
+			              VertexBufferSemantic::BlendWeight>(attribute.semantic))
 			{
 				print_error(Strings::format("Semantic '{}' doesn't support vector type!", var->getSemanticName()).c_str());
 				return false;
 			}
 
 			attribute.semantic_index = var->getSemanticIndex();
-			attribute.name			 = var->getName();
-			attribute.rate			 = VertexAttributeInputRate::Vertex;
-			attribute.type			 = parse_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-			attribute.location		 = var->getBindingIndex();
-			attribute.stream_index	 = attribute.location;
-			attribute.offset		 = 0;
+			attribute.name           = var->getName();
+			attribute.rate           = VertexAttributeInputRate::Vertex;
+			attribute.type           = parse_vertex_element_type(var->getTypeLayout(), attribute.semantic);
+			attribute.location       = var->getBindingIndex();
+			attribute.stream_index   = attribute.location;
+			attribute.offset         = 0;
 			out_reflection.attributes.push_back(attribute);
 		}
 		else
@@ -236,10 +236,10 @@ namespace Engine::ShaderCompiler
 
 	static MaterialParameterType find_scalar_parameter_type(slang::TypeReflection* reflection)
 	{
-		auto rows	  = reflection->getRowCount();
-		auto colums	  = reflection->getColumnCount();
+		auto rows     = reflection->getRowCount();
+		auto colums   = reflection->getColumnCount();
 		auto elements = reflection->getElementCount();
-		auto scalar	  = find_scalar_type(reflection->getScalarType());
+		auto scalar   = find_scalar_type(reflection->getScalarType());
 		return MaterialParameterTypeLayout(scalar, rows, colums, elements, true, 0).as_value<MaterialParameterType>();
 	}
 
@@ -258,7 +258,7 @@ namespace Engine::ShaderCompiler
 				continue;
 
 			StringView struct_name = Strings::make_string_view(type->getElementType()->getName());
-			StringView var_name	   = Strings::make_string_view(parameter->getName());
+			StringView var_name    = Strings::make_string_view(parameter->getName());
 
 			if (var_name == "globals" && struct_name == "GlobalParameters")
 			{
@@ -269,12 +269,12 @@ namespace Engine::ShaderCompiler
 	}
 
 	static void parse_shader_parameter(ShaderReflection& out_reflection, const Function<void(const char*)>& print_error,
-									   slang::VariableLayoutReflection* param, size_t offset = 0)
+	                                   slang::VariableLayoutReflection* param, size_t offset = 0)
 	{
 		auto kind = param->getTypeLayout()->getKind();
 
 		if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(
-					kind))
+		            kind))
 		{
 			auto name = param->getName();
 			trinex_always_check(name, "Failed to get parameter name!");
@@ -288,7 +288,7 @@ namespace Engine::ShaderCompiler
 				return;
 			}
 
-			info.name	= name;
+			info.name   = name;
 			info.offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
 
 			if (auto layout = param->getTypeLayout())
@@ -315,11 +315,11 @@ namespace Engine::ShaderCompiler
 					auto binding_type = type_layout->getBindingRangeType(0);
 
 					MaterialParameterInfo object;
-					object.name				= param->getName();
+					object.name             = param->getName();
 					object.location.binding = param->getOffset(SLANG_PARAMETER_CATEGORY_SHADER_RESOURCE);
-					object.type				= binding_type == slang::BindingType::CombinedTextureSampler
-													  ? MaterialParameterType::CombinedImageSampler2D
-													  : MaterialParameterType::Texture2D;
+					object.type             = binding_type == slang::BindingType::CombinedTextureSampler
+					                                  ? MaterialParameterType::CombinedImageSampler2D
+					                                  : MaterialParameterType::Texture2D;
 					out_reflection.uniform_member_infos.push_back(object);
 				}
 			}
@@ -340,7 +340,7 @@ namespace Engine::ShaderCompiler
 	}
 
 	static void create_reflection(slang::ShaderReflection* reflection, ShaderReflection& out_reflection,
-								  const Function<void(const char*)>& print_error)
+	                              const Function<void(const char*)>& print_error)
 	{
 		out_reflection.clear();
 
@@ -417,7 +417,7 @@ namespace Engine::ShaderCompiler
 	using SetupRequestFunction = void (*)(SlangCompileRequest*);
 
 	static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList& errors,
-									   const RequestSetupInterface* setup_request)
+	                                   const RequestSetupInterface* setup_request)
 	{
 		errors.clear();
 
@@ -437,9 +437,9 @@ namespace Engine::ShaderCompiler
 		ShaderSource out_source;
 		using Slang::ComPtr;
 
-		slang::SessionDesc session_desc		 = {};
+		slang::SessionDesc session_desc      = {};
 		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-		session_desc.allowGLSLSyntax		 = false;
+		session_desc.allowGLSLSyntax         = false;
 
 
 		ComPtr<slang::ISession> session;
@@ -451,11 +451,11 @@ namespace Engine::ShaderCompiler
 
 		int_t current_entry_index = 0;
 
-		int_t vertex_entry_index		 = -1;
+		int_t vertex_entry_index         = -1;
 		int_t tessellation_control_index = -1;
-		int_t tessellation_index		 = -1;
-		int_t geometry_index			 = -1;
-		int_t fragment_entry_index		 = -1;
+		int_t tessellation_index         = -1;
+		int_t geometry_index             = -1;
+		int_t fragment_entry_index       = -1;
 
 
 		{
@@ -568,7 +568,7 @@ namespace Engine::ShaderCompiler
 		{
 			ComPtr<slang::IBlob> diagnostics_blob;
 			SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
-																	   program.writeRef(), diagnostics_blob.writeRef());
+			                                                           program.writeRef(), diagnostics_blob.writeRef());
 			diagnose_if_needed(diagnostics_blob);
 			RETURN_ON_FAIL(result);
 		}
@@ -593,7 +593,7 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-						program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+				        program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
@@ -607,7 +607,7 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-						program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+				        program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
@@ -621,12 +621,12 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result = program->getEntryPointCode(tessellation_control_index, 0, result_code.writeRef(),
-																diagnostics_blob.writeRef());
+				                                                diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
 				submit_compiled_source(out_source.tessellation_control_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
+				                       result_code->getBufferSize());
 			}
 		}
 
@@ -636,12 +636,12 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-						program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+				        program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
 				submit_compiled_source(out_source.tessellation_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
+				                       result_code->getBufferSize());
 			}
 		}
 
@@ -651,7 +651,7 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-						program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+				        program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
@@ -666,7 +666,7 @@ namespace Engine::ShaderCompiler
 	static Vector<uint32_t> to_spirv_buffer(const Buffer& spirv)
 	{
 		const uint32_t* data = reinterpret_cast<const uint32_t*>(spirv.data());
-		const uint32_t size	 = spirv.size() / 4;
+		const uint32_t size  = spirv.size() / 4;
 		return Vector<uint32_t>(data, data + size);
 	}
 
@@ -681,7 +681,7 @@ namespace Engine::ShaderCompiler
 
 		for (auto& resource : resources.sampled_images)
 		{
-			unsigned set	 = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
+			unsigned set     = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
 			unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
 			glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
 			glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
@@ -690,7 +690,7 @@ namespace Engine::ShaderCompiler
 		// Set some options.
 		spirv_cross::CompilerGLSL::Options options;
 		options.version = 310;
-		options.es		= true;
+		options.es      = true;
 		glsl.set_common_options(options);
 
 		String glsl_code = glsl.compile();
@@ -711,24 +711,24 @@ namespace Engine::ShaderCompiler
 #endif
 
 			const char* arguments[] = {
-					"-emit-spirv-via-glsl",
+			        "-emit-spirv-via-glsl",
 			};
 
 			static constexpr int count = sizeof(arguments) / sizeof(const char*);
 			request->processCommandLineArguments(arguments,
-												 count);// TODO: Maybe it can be optimized to avoid parsing arguments?
+			                                     count);// TODO: Maybe it can be optimized to avoid parsing arguments?
 		}
 	};
 
 	static ShaderSource create_vulkan_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-											 MessageList& errors)
+	                                         MessageList& errors)
 	{
 		static VulkanRequestSetup setup;
 		return compile_shader(slang_source, definitions, errors, &setup);
 	}
 
 	static ShaderSource create_opengles_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-											   MessageList& errors)
+	                                           MessageList& errors)
 	{
 		ShaderSource source = create_vulkan_shader(slang_source, definitions, errors);
 
@@ -743,7 +743,7 @@ namespace Engine::ShaderCompiler
 	}
 
 	static ShaderSource create_opengl_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-											 MessageList& errors)
+	                                         MessageList& errors)
 	{
 		return create_opengles_shader(slang_source, definitions, errors);
 	}
@@ -765,7 +765,7 @@ namespace Engine::ShaderCompiler
 	};
 
 	static ShaderSource create_d3d11_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-											MessageList& errors)
+	                                        MessageList& errors)
 	{
 		static D3D11RequestSetup setup;
 		return compile_shader(slang_source, definitions, errors, &setup);
@@ -810,7 +810,7 @@ namespace Engine::ShaderCompiler
 		auto definitions = material->compile_definitions;
 		{
 			ShaderDefinition def;
-			def.key	  = "TRINEX_INVERT_UV";
+			def.key   = "TRINEX_INVERT_UV";
 			def.value = "1";
 			definitions.push_back(def);
 		}

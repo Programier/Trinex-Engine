@@ -28,8 +28,8 @@ namespace Engine
 
 
 	Struct::Struct(const Name& name, const Name& _parent)
-		: m_struct_constructor(nullptr), m_full_name(name), m_namespace_name(Strings::namespace_sv_of(name)),
-		  m_base_name(Strings::class_name_sv_of(name)), m_parent(_parent)
+	    : m_struct_constructor(nullptr), m_full_name(name), m_namespace_name(Strings::namespace_sv_of(name)),
+	      m_base_name(Strings::class_name_sv_of(name)), m_parent(_parent)
 	{
 		m_base_name_splitted = Strings::make_sentence(m_base_name.to_string());
 
@@ -71,7 +71,7 @@ namespace Engine
 	ENGINE_EXPORT Struct* Struct::static_find(const StringView& name, bool requred)
 	{
 		auto& map = internal_struct_map();
-		auto it	  = map.find(Strings::hash_of(name));
+		auto it   = map.find(Strings::hash_of(name));
 		if (it == map.end())
 		{
 			// Maybe initializer is not executed?

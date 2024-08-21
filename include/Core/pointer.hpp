@@ -49,7 +49,7 @@ namespace Engine
 
 		Pointer(Pointer&& pointer)
 		{
-			m_instance		   = pointer.m_instance;
+			m_instance         = pointer.m_instance;
 			pointer.m_instance = nullptr;
 		}
 
@@ -68,7 +68,7 @@ namespace Engine
 		{
 			if (this != &pointer)
 			{
-				m_instance		   = pointer.m_instance;
+				m_instance         = pointer.m_instance;
 				pointer.m_instance = nullptr;
 			}
 

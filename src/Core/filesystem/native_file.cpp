@@ -3,7 +3,7 @@
 namespace Engine::VFS
 {
 	NativeFile::NativeFile(const Path& path, const Path& native_path, std::fstream&& stream, bool is_read_only)
-		: m_path(path), m_native_path(native_path), m_stream(std::move(stream)), m_is_read_only(is_read_only)
+	    : m_path(path), m_native_path(native_path), m_stream(std::move(stream)), m_is_read_only(is_read_only)
 	{}
 
 	const Path& NativeFile::path() const

@@ -249,16 +249,16 @@ namespace Engine
 	static void bind_to_scripts(ScriptClassRegistrar* registrar, Class*)
 	{
 		void (*update)(Actor*, float) = [](Actor* self, float dt) -> void { self->update(dt); };
-		void (*start_play)(Actor*)	  = [](Actor* self) -> void { self->start_play(); };
-		void (*stop_play)(Actor*)	  = [](Actor* self) -> void { self->stop_play(); };
-		void (*spawned)(Actor*)		  = [](Actor* self) -> void { self->spawned(); };
-		void (*destroyed)(Actor*)	  = [](Actor* self) -> void { self->destroyed(); };
+		void (*start_play)(Actor*)    = [](Actor* self) -> void { self->start_play(); };
+		void (*stop_play)(Actor*)     = [](Actor* self) -> void { self->stop_play(); };
+		void (*spawned)(Actor*)       = [](Actor* self) -> void { self->spawned(); };
+		void (*destroyed)(Actor*)     = [](Actor* self) -> void { self->destroyed(); };
 
-		script_actor_update		= registrar->method("void update(float dt)", update);
+		script_actor_update     = registrar->method("void update(float dt)", update);
 		script_actor_start_play = registrar->method("void start_play()", start_play);
-		script_actor_stop_play	= registrar->method("void stop_play()", stop_play);
-		script_actor_spawned	= registrar->method("void spawned()", spawned);
-		script_actor_destroyed	= registrar->method("void destroyed()", destroyed);
+		script_actor_stop_play  = registrar->method("void stop_play()", stop_play);
+		script_actor_spawned    = registrar->method("void spawned()", spawned);
+		script_actor_destroyed  = registrar->method("void destroyed()", destroyed);
 	}
 
 	static void on_destroy()
@@ -272,10 +272,10 @@ namespace Engine
 
 	implement_engine_class(Actor, Class::IsScriptable)
 	{
-		Class* self		= This::static_class_instance();
+		Class* self     = This::static_class_instance();
 		auto components = new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
-											new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
-											Property::Flag::IsConst);
+		                                    new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
+		                                    Property::Flag::IsConst);
 		components->element_name_callback(default_array_object_element_name);
 		self->add_property(components);
 		self->add_property(new BoolProperty("Is Visible", "If true, actor is visible in the scene", &This::m_is_visible));

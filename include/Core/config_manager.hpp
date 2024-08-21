@@ -5,13 +5,13 @@
 
 namespace Engine
 {
-	using ConfigBool		= bool;
-	using ConfigInt			= int_t;
-	using ConfigFloat		= float;
-	using ConfigString		= String;
-	using ConfigBoolArray	= ScriptArray<ConfigBool, "bool">;
-	using ConfigIntArray	= ScriptArray<ConfigInt, "int">;
-	using ConfigFloatArray	= ScriptArray<ConfigFloat, "float">;
+	using ConfigBool        = bool;
+	using ConfigInt         = int_t;
+	using ConfigFloat       = float;
+	using ConfigString      = String;
+	using ConfigBoolArray   = ScriptArray<ConfigBool, "bool">;
+	using ConfigIntArray    = ScriptArray<ConfigInt, "int">;
+	using ConfigFloatArray  = ScriptArray<ConfigFloat, "float">;
 	using ConfigStringArray = ScriptArray<ConfigString, "string">;
 
 	struct ENGINE_EXPORT ConfigManager {
@@ -58,7 +58,7 @@ namespace Engine
 		static void register_property(const Name& name, ConfigFloatArray& property, const StringView& group);
 		static void register_property(const Name& name, ConfigStringArray& property, const StringView& group);
 		static void register_custom_property(const Name& name, void* property, const char* script_type_declaration,
-											 const StringView& group);
+		                                     const StringView& group);
 
 		static bool property(const Name& name, const ConfigBool& property);
 		static bool property(const Name& name, const ConfigInt& property);

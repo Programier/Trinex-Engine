@@ -27,54 +27,54 @@ namespace Engine
 	};
 
 	static const TreeMap<VisualMaterialGraph::PinType, ImVec4> pin_colors = {
-			{VisualMaterialGraph::PinType::Undefined, ImVec4(0.0, 0.0, 1.0, 1.0)},
-			{VisualMaterialGraph::PinType::Bool, ImVec4(0.0, 0.0, 1.0, 1.0)},
-			{VisualMaterialGraph::PinType::Int, ImVec4(1.0, 0.0, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::UInt, ImVec4(1.0, 0.647, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::Float, ImVec4(0.0, 1.0, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::BVec2, ImVec4(1.0, 0.753, 0.796, 1.0)},
-			{VisualMaterialGraph::PinType::BVec3, ImVec4(1.0, 0.078, 0.576, 1.0)},
-			{VisualMaterialGraph::PinType::BVec4, ImVec4(1.0, 0.412, 0.706, 1.0)},
-			{VisualMaterialGraph::PinType::IVec2, ImVec4(1.0, 1.0, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::IVec3, ImVec4(0.855, 0.647, 0.125, 1.0)},
-			{VisualMaterialGraph::PinType::IVec4, ImVec4(1.0, 0.843, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::UVec2, ImVec4(0.0, 1.0, 1.0, 1.0)},
-			{VisualMaterialGraph::PinType::UVec3, ImVec4(0.255, 0.412, 0.882, 1.0)},
-			{VisualMaterialGraph::PinType::UVec4, ImVec4(0.0, 0.749, 1.0, 1.0)},
-			{VisualMaterialGraph::PinType::Vec2, ImVec4(1.0, 0.0, 1.0, 1.0)},
-			{VisualMaterialGraph::PinType::Vec3, ImVec4(0.502, 0.0, 0.502, 1.0)},
-			{VisualMaterialGraph::PinType::Color3, ImVec4(1.0, 0.078, 0.576, 1.0)},
-			{VisualMaterialGraph::PinType::Vec4, ImVec4(0.502, 0.0, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::Color4, ImVec4(1.0, 0.412, 0.706, 1.0)},
-			{VisualMaterialGraph::PinType::Mat3, ImVec4(1.0, 0.843, 0.0, 1.0)},
-			{VisualMaterialGraph::PinType::Mat4, ImVec4(0.855, 0.647, 0.125, 1.0)},
-			{VisualMaterialGraph::PinType::Sampler, ImVec4(0.0, 0.502, 0.502, 1.0)},
-			{VisualMaterialGraph::PinType::Texture2D, ImVec4(0.0, 0.502, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Undefined, ImVec4(0.0, 0.0, 1.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Bool, ImVec4(0.0, 0.0, 1.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Int, ImVec4(1.0, 0.0, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::UInt, ImVec4(1.0, 0.647, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Float, ImVec4(0.0, 1.0, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::BVec2, ImVec4(1.0, 0.753, 0.796, 1.0)},
+	        {VisualMaterialGraph::PinType::BVec3, ImVec4(1.0, 0.078, 0.576, 1.0)},
+	        {VisualMaterialGraph::PinType::BVec4, ImVec4(1.0, 0.412, 0.706, 1.0)},
+	        {VisualMaterialGraph::PinType::IVec2, ImVec4(1.0, 1.0, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::IVec3, ImVec4(0.855, 0.647, 0.125, 1.0)},
+	        {VisualMaterialGraph::PinType::IVec4, ImVec4(1.0, 0.843, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::UVec2, ImVec4(0.0, 1.0, 1.0, 1.0)},
+	        {VisualMaterialGraph::PinType::UVec3, ImVec4(0.255, 0.412, 0.882, 1.0)},
+	        {VisualMaterialGraph::PinType::UVec4, ImVec4(0.0, 0.749, 1.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Vec2, ImVec4(1.0, 0.0, 1.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Vec3, ImVec4(0.502, 0.0, 0.502, 1.0)},
+	        {VisualMaterialGraph::PinType::Color3, ImVec4(1.0, 0.078, 0.576, 1.0)},
+	        {VisualMaterialGraph::PinType::Vec4, ImVec4(0.502, 0.0, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Color4, ImVec4(1.0, 0.412, 0.706, 1.0)},
+	        {VisualMaterialGraph::PinType::Mat3, ImVec4(1.0, 0.843, 0.0, 1.0)},
+	        {VisualMaterialGraph::PinType::Mat4, ImVec4(0.855, 0.647, 0.125, 1.0)},
+	        {VisualMaterialGraph::PinType::Sampler, ImVec4(0.0, 0.502, 0.502, 1.0)},
+	        {VisualMaterialGraph::PinType::Texture2D, ImVec4(0.0, 0.502, 0.0, 1.0)},
 	};
 	static const TreeMap<VisualMaterialGraph::PinType, const char*> pin_type_names = {
-			{VisualMaterialGraph::PinType::Undefined, "Undefined"},
-			{VisualMaterialGraph::PinType::Bool, "bool"},
-			{VisualMaterialGraph::PinType::Int, "int"},
-			{VisualMaterialGraph::PinType::UInt, "uint"},
-			{VisualMaterialGraph::PinType::Float, "float"},
-			{VisualMaterialGraph::PinType::BVec2, "bvec2"},
-			{VisualMaterialGraph::PinType::BVec3, "bvec3"},
-			{VisualMaterialGraph::PinType::BVec4, "bvec4"},
-			{VisualMaterialGraph::PinType::IVec2, "ivec2"},
-			{VisualMaterialGraph::PinType::IVec3, "ivec2"},
-			{VisualMaterialGraph::PinType::IVec4, "ivec4"},
-			{VisualMaterialGraph::PinType::UVec2, "uvec2"},
-			{VisualMaterialGraph::PinType::UVec3, "uvec3"},
-			{VisualMaterialGraph::PinType::UVec4, "uvec4"},
-			{VisualMaterialGraph::PinType::Vec2, "vec2"},
-			{VisualMaterialGraph::PinType::Vec3, "vec3"},
-			{VisualMaterialGraph::PinType::Color3, "color3"},
-			{VisualMaterialGraph::PinType::Vec4, "vec4"},
-			{VisualMaterialGraph::PinType::Color4, "color4"},
-			{VisualMaterialGraph::PinType::Mat3, "mat3"},
-			{VisualMaterialGraph::PinType::Mat4, "mat4"},
-			{VisualMaterialGraph::PinType::Sampler, "Sampler"},
-			{VisualMaterialGraph::PinType::Texture2D, "Texture2D"},
+	        {VisualMaterialGraph::PinType::Undefined, "Undefined"},
+	        {VisualMaterialGraph::PinType::Bool, "bool"},
+	        {VisualMaterialGraph::PinType::Int, "int"},
+	        {VisualMaterialGraph::PinType::UInt, "uint"},
+	        {VisualMaterialGraph::PinType::Float, "float"},
+	        {VisualMaterialGraph::PinType::BVec2, "bvec2"},
+	        {VisualMaterialGraph::PinType::BVec3, "bvec3"},
+	        {VisualMaterialGraph::PinType::BVec4, "bvec4"},
+	        {VisualMaterialGraph::PinType::IVec2, "ivec2"},
+	        {VisualMaterialGraph::PinType::IVec3, "ivec2"},
+	        {VisualMaterialGraph::PinType::IVec4, "ivec4"},
+	        {VisualMaterialGraph::PinType::UVec2, "uvec2"},
+	        {VisualMaterialGraph::PinType::UVec3, "uvec3"},
+	        {VisualMaterialGraph::PinType::UVec4, "uvec4"},
+	        {VisualMaterialGraph::PinType::Vec2, "vec2"},
+	        {VisualMaterialGraph::PinType::Vec3, "vec3"},
+	        {VisualMaterialGraph::PinType::Color3, "color3"},
+	        {VisualMaterialGraph::PinType::Vec4, "vec4"},
+	        {VisualMaterialGraph::PinType::Color4, "color4"},
+	        {VisualMaterialGraph::PinType::Mat3, "mat3"},
+	        {VisualMaterialGraph::PinType::Mat4, "mat4"},
+	        {VisualMaterialGraph::PinType::Sampler, "Sampler"},
+	        {VisualMaterialGraph::PinType::Texture2D, "Texture2D"},
 	};
 
 	static FORCE_INLINE float input_item_width(int components)
@@ -241,7 +241,7 @@ namespace Engine
 				for (auto& input : node->inputs())
 				{
 					float len = ImGui::CalcTextSize(input->name().c_str()).x;
-					max_len	  = glm::max(max_len, len);
+					max_len   = glm::max(max_len, len);
 					sizes.push_back(len);
 				}
 
@@ -255,7 +255,7 @@ namespace Engine
 					ed::PinPivotAlignment({0.5, 0.5f});
 					const VisualMaterialGraph::PinType type = input->node()->in_pin_type(input);
 					BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->has_links(),
-										   pin_colors.at(type));
+					                       pin_colors.at(type));
 					ImGui::SetItemTooltip("%s", pin_type_names.at(type));
 					builder.end_input_pin();
 
@@ -306,7 +306,7 @@ namespace Engine
 				ed::PinPivotAlignment({0.9, 0.5f});
 				const VisualMaterialGraph::PinType type = output->node()->out_pin_type(output);
 				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
-									   pin_colors.at(type));
+				                       pin_colors.at(type));
 				ImGui::SetItemTooltip("%s", pin_type_names.at(type));
 				builder.end_output_pin();
 
@@ -356,7 +356,7 @@ namespace Engine
 			ed::PinId from, to;
 			if (ed::QueryNewLink(&from, &to) && from && to)
 			{
-				VisualMaterialGraph::Pin* input_pin	 = from.AsPointer<VisualMaterialGraph::Pin>();
+				VisualMaterialGraph::Pin* input_pin  = from.AsPointer<VisualMaterialGraph::Pin>();
 				VisualMaterialGraph::Pin* output_pin = to.AsPointer<VisualMaterialGraph::Pin>();
 
 				if (input_pin->kind() != VisualMaterialGraph::PinKind::Input)
@@ -379,15 +379,15 @@ namespace Engine
 					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
 				}
 				else if (!input_pin->node()->can_connect(
-								 reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin),
-								 output_pin->node()->out_pin_type(reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
+				                 reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin),
+				                 output_pin->node()->out_pin_type(reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
 				{
 					show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
 					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
 				}
 				else if (ed::AcceptNewItem())
 				{
-					VisualMaterialGraph::InputPin* in	= reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin);
+					VisualMaterialGraph::InputPin* in   = reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin);
 					VisualMaterialGraph::OutputPin* out = reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin);
 					in->create_link(out);
 				}
@@ -446,7 +446,7 @@ namespace Engine
 	}
 
 	static bool show_new_node_popup(VisualMaterial* material, VisualMaterialGraph::Pin* from,
-									MaterialEditorClient::GraphState& state)
+	                                MaterialEditorClient::GraphState& state)
 	{
 		bool status = false;
 		ed::Suspend();
@@ -458,7 +458,7 @@ namespace Engine
 			static Group* root_group = Group::find("Engine::VisualMaterialGraphGroups");
 			if (Class* self = render_node_types(root_group))
 			{
-				auto node	   = material->create_node(self);
+				auto node      = material->create_node(self);
 				node->position = state.m_node_spawn_position;
 
 				if (from)
@@ -541,7 +541,7 @@ namespace Engine
 			for (int i = 0, count = ed::GetSelectedLinks(links, objects); i < count; i++)
 			{
 				VisualMaterialGraph::Pin* pin =
-						reinterpret_cast<VisualMaterialGraph::Pin*>(static_cast<Identifier>(links[i]) - 1);
+				        reinterpret_cast<VisualMaterialGraph::Pin*>(static_cast<Identifier>(links[i]) - 1);
 
 				if (pin)
 				{
@@ -568,8 +568,8 @@ namespace Engine
 
 				if (Texture2D* texture = Object::instance_cast<Texture2D>(new_object))
 				{
-					auto pos	   = ed::ScreenToCanvas(ImGui::GetMousePos());
-					auto node	   = material->create_node<VisualMaterialGraph::Texture2D>();
+					auto pos       = ed::ScreenToCanvas(ImGui::GetMousePos());
+					auto node      = material->create_node<VisualMaterialGraph::Texture2D>();
 					node->texture  = texture;
 					node->position = Vector2D(pos.x, pos.y);
 				}
@@ -593,7 +593,7 @@ namespace Engine
 			render_graph(material->nodes());
 			check_creating(m_create_node_from_pin, m_graph_state);
 			if (!show_new_node_popup(material, reinterpret_cast<VisualMaterialGraph::Pin*>(m_create_node_from_pin),
-									 m_graph_state))
+			                         m_graph_state))
 			{
 				m_create_node_from_pin = nullptr;
 			}

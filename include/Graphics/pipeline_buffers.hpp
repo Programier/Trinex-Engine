@@ -14,9 +14,9 @@ namespace Engine
 		size_t elements_count() const;
 
 		virtual RHIBufferType buffer_type() const = 0;
-		virtual const byte* data() const		  = 0;
-		virtual size_t size() const				  = 0;
-		virtual size_t element_size() const		  = 0;
+		virtual const byte* data() const          = 0;
+		virtual size_t size() const               = 0;
+		virtual size_t element_size() const       = 0;
 	};
 
 
@@ -262,7 +262,7 @@ namespace Engine
 		declare_class(SSBO, PipelineBuffer);
 
 	public:
-		size_t init_size	  = 0;
+		size_t init_size      = 0;
 		const byte* init_data = nullptr;
 
 		SSBO& rhi_create() override;

@@ -7,7 +7,7 @@ namespace Engine
 	void* create_opengl_context(Window* main_window)
 	{
 		SDL_Window* window = reinterpret_cast<SDL_Window*>(main_window->native_window());
-		void* context	   = SDL_GL_CreateContext(window);
+		void* context      = SDL_GL_CreateContext(window);
 		SDL_GL_MakeCurrent(window, context);
 		return context;
 	}

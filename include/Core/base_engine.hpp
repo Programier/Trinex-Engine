@@ -18,7 +18,7 @@ namespace Engine
 		{
 			IsRequestExit  = BIT(0),
 			IsShuttingDown = BIT(1),
-			IsInitied	   = BIT(2),
+			IsInitied      = BIT(2),
 		};
 
 		Flags<Flag> m_flags;

@@ -18,9 +18,9 @@ namespace Engine
 	{
 		for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
 		{
-			Surface type			  = static_cast<Surface>(texture_index);
+			Surface type              = static_cast<Surface>(texture_index);
 			m_surfaces[texture_index] = Object::new_instance<RenderSurface>(
-					name_of(type), Object::static_find_package("Engine::EngineRenderTargets", true));
+			        name_of(type), Object::static_find_package("Engine::EngineRenderTargets", true));
 		}
 	}
 
@@ -149,7 +149,7 @@ namespace Engine
 	const SceneRenderTargets& SceneRenderTargets::begin_rendering_gbuffer() const
 	{
 		RenderSurface* m_surfaces[] = {surface_of(Surface::BaseColor), surface_of(Surface::Position), surface_of(Surface::Normal),
-									   surface_of(Surface::Emissive), surface_of(Surface::MSRA)};
+		                               surface_of(Surface::Emissive), surface_of(Surface::MSRA)};
 
 		rhi->bind_render_target(m_surfaces, surface_of(Surface::SceneDepthZ));
 		return *this;

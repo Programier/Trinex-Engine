@@ -42,7 +42,7 @@ namespace Engine
 		Vector<OpenGL_UniformBuffer*> m_buffers;
 		Vector<byte> shadow_data;
 		size_t shadow_data_size = 0;
-		Index index				= 0;
+		Index index             = 0;
 
 		OpenGL_LocalUniformBuffer();
 		void bind(BindingIndex index);

@@ -32,7 +32,7 @@ namespace Engine
 	}
 
 	MaterialParameterInfo::MaterialParameterInfo()
-		: type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
+	    : type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
 	{}
 
 	implement_struct(Engine, ShaderDefinition, ).push([]() {

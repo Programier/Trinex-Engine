@@ -48,13 +48,13 @@ namespace Engine
 		if (this == &other)
 			return *this;
 
-		m_reader		 = other.m_reader;
+		m_reader         = other.m_reader;
 		m_process_status = other.m_process_status;
-		m_is_saving		 = other.m_is_saving;
+		m_is_saving      = other.m_is_saving;
 
 		other.m_process_status = false;
-		other.m_reader		   = nullptr;
-		other.m_is_saving	   = false;
+		other.m_reader         = nullptr;
+		other.m_is_saving      = false;
 
 		return *this;
 	}

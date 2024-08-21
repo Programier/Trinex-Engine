@@ -28,7 +28,7 @@ namespace Engine
 	public:
 		CallBacks<void(World*, Actor*)> on_actor_select;
 		CallBacks<void(World*, Actor*)> on_actor_unselect;
-		
+
 		World& create() override;
 		World& wait() override;
 		World& update(float dt) override;
@@ -37,7 +37,7 @@ namespace Engine
 		World& start_play();
 		World& stop_play();
 		Actor* spawn_actor(class Class* self, const Vector3D& location = {}, const Vector3D& rotation = {},
-						   const Vector3D& scale = {1, 1, 1}, const Name& name = {});
+		                   const Vector3D& scale = {1, 1, 1}, const Name& name = {});
 
 		World& destroy_actor(Actor* actor);
 		Scene* scene() const;
@@ -48,7 +48,7 @@ namespace Engine
 		World& unselect_actors();
 		const TreeSet<Actor*>& selected_actors() const;
 		bool is_selected(Actor* actor) const;
-		
+
 		const Vector<class Actor*>& actors() const;
 		size_t actors_count() const;
 		class Actor* actor_by_index(size_t index) const;

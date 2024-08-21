@@ -69,8 +69,8 @@ namespace Engine
 	{
 		trinex_always_check(texture->mipmap_count() > 0, "Cannot create texture with zero mips!");
 		m_format = color_format_from_engine_format(texture->format());
-		m_type	 = texture_type(texture);
-		m_size	 = texture->size(0);
+		m_type   = texture_type(texture);
+		m_size   = texture->size(0);
 
 		glGenTextures(1, &m_id);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -89,7 +89,7 @@ namespace Engine
 				if (auto mip = texture->mip(i))
 				{
 					glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, mip->data.size(),
-										   mip->data.data());
+					                       mip->data.data());
 				}
 				else
 				{
@@ -104,12 +104,12 @@ namespace Engine
 				if (auto mip = texture->mip(i))
 				{
 					glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
-								 m_format.m_type, mip->data.data());
+					             m_format.m_type, mip->data.data());
 				}
 				else
 				{
 					glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
-								 m_format.m_type, nullptr);
+					             m_format.m_type, nullptr);
 				}
 			}
 		}

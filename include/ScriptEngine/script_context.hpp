@@ -24,42 +24,42 @@ namespace Engine
 
 		template<typename T>
 		static inline byte validate_argument(const T& value)
-			requires Concepts::is_byte<T>
+		    requires Concepts::is_byte<T>
 		{
 			return static_cast<byte>(value);
 		}
 
 		template<typename T>
 		static inline word validate_argument(const T& value)
-			requires Concepts::is_word<T>
+		    requires Concepts::is_word<T>
 		{
 			return static_cast<word>(value);
 		}
 
 		template<typename T>
 		static inline dword validate_argument(const T& value)
-			requires Concepts::is_dword<T>
+		    requires Concepts::is_dword<T>
 		{
 			return static_cast<dword>(value);
 		}
 
 		template<typename T>
 		static inline qword validate_argument(const T& value)
-			requires Concepts::is_qword<T>
+		    requires Concepts::is_qword<T>
 		{
 			return static_cast<qword>(value);
 		}
 
 		template<typename T>
 		static inline float validate_argument(const T& value)
-			requires Concepts::is_float<T>
+		    requires Concepts::is_float<T>
 		{
 			return static_cast<float>(value);
 		}
 
 		template<typename T>
 		static inline double validate_argument(const T& value)
-			requires Concepts::is_double<T>
+		    requires Concepts::is_double<T>
 		{
 			return static_cast<double>(value);
 		}
@@ -85,8 +85,8 @@ namespace Engine
 
 		template<typename T>
 		static inline void* validate_argument(const T& value)
-			requires(!Concepts::is_byte<T> && !Concepts::is_word<T> && !Concepts::is_dword<T> && !Concepts::is_qword<T> &&
-					 !Concepts::is_float<T> && !Concepts::is_double<T>)
+		    requires(!Concepts::is_byte<T> && !Concepts::is_word<T> && !Concepts::is_dword<T> && !Concepts::is_qword<T> &&
+		             !Concepts::is_float<T> && !Concepts::is_double<T>)
 		{
 			return validate_argument(&value);
 		}
@@ -100,15 +100,15 @@ namespace Engine
 	public:
 		enum class State
 		{
-			Undefined		= 0,
-			Finished		= 1,
-			Suspended		= 2,
-			Aborted			= 3,
-			Exception		= 4,
-			Prepared		= 5,
-			Uninitialized	= 6,
-			Active			= 7,
-			Error			= 8,
+			Undefined       = 0,
+			Finished        = 1,
+			Suspended       = 2,
+			Aborted         = 3,
+			Exception       = 4,
+			Prepared        = 5,
+			Uninitialized   = 6,
+			Active          = 7,
+			Error           = 8,
 			Deserealization = 9,
 		};
 
@@ -186,7 +186,7 @@ namespace Engine
 		{
 			if (!begin_execute(function))
 				return {};
-			uint_t argument			   = 0;
+			uint_t argument            = 0;
 			bool bind_arguments_status = (arg(argument++, validate_argument(args)) && ...);
 
 			if (!bind_arguments_status)
@@ -205,7 +205,7 @@ namespace Engine
 				return {};
 			object(self);
 
-			uint_t argument			   = 0;
+			uint_t argument            = 0;
 			bool bind_arguments_status = (arg(argument++, validate_argument(args)) && ...);
 
 			if (!bind_arguments_status)
@@ -235,10 +235,10 @@ namespace Engine
 		static IntVector2D line_position(uint_t stack_level = 0, StringView* section_name = nullptr);
 		static uint_t var_count(uint_t stack_level = 0);
 		static bool var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id = 0,
-						Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
+		                Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
 		static String var_declaration(uint_t var_index, uint_t stack_level = 0, bool include_namespace = false);
 		static byte* address_of_var(uint_t var_index, uint_t stack_level = 0, bool dont_dereference = false,
-									bool return_address_of_unitialized_objects = false);
+		                            bool return_address_of_unitialized_objects = false);
 		static bool is_var_in_scope(uint_t var_index, uint_t stack_level = 0);
 		static int_t this_type_id(uint_t stack_level = 0);
 		static byte* this_pointer(uint_t stack_level = 0);

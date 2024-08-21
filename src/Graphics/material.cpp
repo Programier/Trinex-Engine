@@ -69,21 +69,21 @@ namespace Engine
 
 	implement_engine_class(Material, Class::IsAsset)
 	{
-		Class* self				  = static_class_instance();
+		Class* self               = static_class_instance();
 		Struct* definition_struct = Struct::static_find("Engine::ShaderDefinition", true);
 
 		auto definitions_prop = new ArrayProperty("Definitions", "Compile definitions", &This::compile_definitions,
-												  new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
+		                                          new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
 		self->add_property(definitions_prop);
 		self->add_properties(new ObjectProperty("Pipeline", "Pipeline settings for this material", &Material::pipeline,
-												Name::none, Property::IsNotSerializable));
+		                                        Name::none, Property::IsNotSerializable));
 	}
 
 	implement_engine_class(MaterialInstance, Class::IsAsset)
 	{
 		Class* self = MaterialInstance::static_class_instance();
 		self->add_property(new ObjectReferenceProperty("Parent Material", "Parent Material of this instance",
-													   &MaterialInstance::parent_material));
+		                                               &MaterialInstance::parent_material));
 	}
 
 
@@ -96,7 +96,7 @@ namespace Engine
 			for (auto& [_name, param] : map)
 			{
 				MaterialParameterType type = param->type();
-				Name name				   = _name;
+				Name name                  = _name;
 				ar & name;
 				ar & type;
 
@@ -249,7 +249,7 @@ namespace Engine
 	}
 
 	CombinedImageSamplerMaterialParameterBase& CombinedImageSamplerMaterialParameterBase::apply(const Pipeline* pipeline,
-																								SceneComponent* component)
+	                                                                                            SceneComponent* component)
 	{
 		auto texture = texture_param();
 		auto sampler = sampler_param();
@@ -403,7 +403,7 @@ namespace Engine
 			if (param->type() != type)
 			{
 				error_log("Material", "Failed to create new material parameter with type [%d]. Parameter with same name, but "
-									  "different type already exist!");
+				                      "different type already exist!");
 				return nullptr;
 			}
 
@@ -414,8 +414,8 @@ namespace Engine
 
 		if (allocator)
 		{
-			param						= allocator();
-			param->name					= name;
+			param                       = allocator();
+			param->name                 = name;
 			m_material_parameters[name] = param;
 			return param;
 		}
@@ -609,8 +609,8 @@ namespace Engine
 			if (param->type() != type)
 			{
 				error_log("MaterialInstance",
-						  "Failed to create new material parameter with type [%d]. Parameter with same name, but "
-						  "different type already exist!");
+				          "Failed to create new material parameter with type [%d]. Parameter with same name, but "
+				          "different type already exist!");
 				return nullptr;
 			}
 
@@ -620,7 +620,7 @@ namespace Engine
 		auto allocator = find_param_allocator(type);
 		if (allocator)
 		{
-			param						= allocator();
+			param                       = allocator();
 			m_material_parameters[name] = param;
 			return param;
 		}

@@ -8,7 +8,7 @@ namespace Engine
 	{
 	public:
 		using StringType = String;
-		using ArrayType	 = Vector<StringType>;
+		using ArrayType  = Vector<StringType>;
 
 		enum class Type
 		{

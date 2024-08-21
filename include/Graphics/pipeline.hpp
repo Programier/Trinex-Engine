@@ -25,20 +25,20 @@ namespace Engine
 		using ShadersArray = Array<class Shader*, 6>;
 
 		struct ALIGNED(4) DepthTestInfo {
-			DepthFunc func	  = DepthFunc::Less;
-			bool enable		  = true;
+			DepthFunc func    = DepthFunc::Less;
+			bool enable       = true;
 			bool write_enable = true;
 		} depth_test;
 
 		struct ALIGNED(4) StencilTestInfo {
 			bool enable = false;
 
-			StencilOp fail		 = StencilOp::Decr;
+			StencilOp fail       = StencilOp::Decr;
 			StencilOp depth_pass = StencilOp::Decr;
 			StencilOp depth_fail = StencilOp::Decr;
-			CompareFunc compare	 = CompareFunc::Less;
-			byte compare_mask	 = 0;
-			byte write_mask		 = 0;
+			CompareFunc compare  = CompareFunc::Less;
+			byte compare_mask    = 0;
+			byte write_mask      = 0;
 		} stencil_test;
 
 		struct ALIGNED(4) AssemblyInfo {
@@ -47,21 +47,21 @@ namespace Engine
 
 		struct ALIGNED(4) RasterizerInfo {
 			PolygonMode polygon_mode = PolygonMode::Fill;
-			CullMode cull_mode		 = CullMode::Back;
-			FrontFace front_face	 = FrontFace::ClockWise;
-			float line_width		 = 1.f;
+			CullMode cull_mode       = CullMode::Back;
+			FrontFace front_face     = FrontFace::ClockWise;
+			float line_width         = 1.f;
 		} rasterizer;
 
 		struct ALIGNED(4) ColorBlendingInfo {
 			bool enable = false;
 
 
-			BlendFunc src_color_func	  = BlendFunc::SrcAlpha;
-			BlendFunc dst_color_func	  = BlendFunc::OneMinusSrcAlpha;
-			BlendOp color_op			  = BlendOp::Add;
-			BlendFunc src_alpha_func	  = BlendFunc::One;
-			BlendFunc dst_alpha_func	  = BlendFunc::Zero;
-			BlendOp alpha_op			  = BlendOp::Add;
+			BlendFunc src_color_func      = BlendFunc::SrcAlpha;
+			BlendFunc dst_color_func      = BlendFunc::OneMinusSrcAlpha;
+			BlendOp color_op              = BlendOp::Add;
+			BlendFunc src_alpha_func      = BlendFunc::One;
+			BlendFunc dst_alpha_func      = BlendFunc::Zero;
+			BlendOp alpha_op              = BlendOp::Add;
 			ColorComponentMask color_mask = ColorComponentMask::RGBA;
 		} ALIGNED(4) color_blending;
 
@@ -70,11 +70,11 @@ namespace Engine
 		MaterialScalarParametersInfo local_parameters;
 
 	private:
-		VertexShader* m_vertex_shader							 = nullptr;
+		VertexShader* m_vertex_shader                            = nullptr;
 		TessellationControlShader* m_tessellation_control_shader = nullptr;
-		TessellationShader* m_tessellation_shader				 = nullptr;
-		GeometryShader* m_geometry_shader						 = nullptr;
-		FragmentShader* m_fragment_shader						 = nullptr;
+		TessellationShader* m_tessellation_shader                = nullptr;
+		GeometryShader* m_geometry_shader                        = nullptr;
+		FragmentShader* m_fragment_shader                        = nullptr;
 
 		template<typename Type>
 		Type* create_new_shader(const char* name, Type*& out)

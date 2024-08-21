@@ -10,11 +10,11 @@ namespace Engine
 	struct VulkanDescriptorPool {
 		vk::DescriptorPool pool;
 
-		uint32_t free_sets				= 0;
-		uint32_t samplers				= 0;
-		uint32_t textures				= 0;
+		uint32_t free_sets              = 0;
+		uint32_t samplers               = 0;
+		uint32_t textures               = 0;
 		uint32_t combined_image_sampler = 0;
-		uint32_t uniform_buffers		= 0;
+		uint32_t uniform_buffers        = 0;
 
 		void init();
 		bool can_allocate(VulkanDescriptorSetLayout* layout);

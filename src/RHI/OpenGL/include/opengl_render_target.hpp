@@ -11,19 +11,19 @@ namespace Engine
 
 		Vector<const struct OpenGL_RenderSurface*> m_textures;
 		GLuint m_framebuffer = 0;
-		size_t m_last_usage	 = 0;
-		HashIndex m_index	 = 0;
+		size_t m_last_usage  = 0;
+		HashIndex m_index    = 0;
 
 		static void release_all();
 		static OpenGL_RenderTarget* current();
 		static OpenGL_RenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 		static OpenGL_RenderTarget* find_or_create(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-												   struct OpenGL_RenderSurface* depth_stencil);
+		                                           struct OpenGL_RenderSurface* depth_stencil);
 
 		void bind();
 		OpenGL_RenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 		OpenGL_RenderTarget& init(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-								  struct OpenGL_RenderSurface* depth_stencil);
+		                          struct OpenGL_RenderSurface* depth_stencil);
 		OpenGL_RenderTarget& attach_texture(const struct OpenGL_RenderSurface* texture_attachmend, GLuint attachment);
 
 		~OpenGL_RenderTarget();

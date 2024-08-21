@@ -75,7 +75,7 @@ namespace Engine
 
 	UINT8 component_mask_of(ColorComponentMask component_mask)
 	{
-		UINT8 value		= 0;
+		UINT8 value     = 0;
 		EnumerateType R = enum_value_of(ColorComponent::R);
 		EnumerateType G = enum_value_of(ColorComponent::G);
 		EnumerateType B = enum_value_of(ColorComponent::B);
@@ -209,7 +209,7 @@ namespace Engine
 				return comparison_enabled ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			case SamplerFilter::Trilinear:
 				return comparison_enabled ? D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT
-										  : D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+				                          : D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 			default:
 				return comparison_enabled ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_POINT;
 		}

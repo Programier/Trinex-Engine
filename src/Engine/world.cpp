@@ -191,7 +191,7 @@ namespace Engine
 	}
 
 	Actor* World::spawn_actor(class Class* self, const Vector3D& location, const Vector3D& rotation, const Vector3D& scale,
-							  const Name& actor_name)
+	                          const Name& actor_name)
 	{
 		if (!self)
 			return nullptr;
@@ -235,17 +235,17 @@ namespace Engine
 			call_actor_stop_play(actor);
 			// Perhaps the method will be called before World::update, so we skip one frame and only then delete the actor
 			DestroyActorInfo info;
-			info.actor		 = actor;
+			info.actor       = actor;
 			info.skip_frames = 1;
 			m_actors_to_destroy.push_back(info);
 			return *this;
 		}
 
 		unselect_actor(actor);
-		
-		if(actor->is_playing())
+
+		if (actor->is_playing())
 			call_actor_stop_play(actor);
-		
+
 		call_actor_destroyed(actor);
 		actor->owner(nullptr);
 

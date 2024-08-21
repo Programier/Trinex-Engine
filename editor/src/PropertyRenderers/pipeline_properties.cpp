@@ -8,7 +8,7 @@ namespace Engine
 {
 	static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
 	{
-		Pipeline* pipeline			= reinterpret_cast<Pipeline*>(object);
+		Pipeline* pipeline          = reinterpret_cast<Pipeline*>(object);
 		VertexShader* vertex_shader = pipeline->vertex_shader();
 		if (vertex_shader == nullptr)
 			return;

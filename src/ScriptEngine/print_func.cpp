@@ -124,7 +124,7 @@ bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, i
 {
 	auto engine = Engine::ScriptEngine::engine();
 
-	auto typeInfo	 = engine->GetTypeInfoById(typeId);
+	auto typeInfo    = engine->GetTypeInfoById(typeId);
 	const char* name = typeInfo->GetName();
 
 	if (strcmp(name, "string") == 0)
@@ -396,17 +396,17 @@ static void Print::asRegister()
 	asIScriptEngine* engine = Engine::ScriptEngine::engine();
 	int r;
 	r = engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(const ?&in, " INS_15 ")",
-										asFUNCTION(PrettyPrinting), asCALL_CDECL_OBJLAST);
+	                                    asFUNCTION(PrettyPrinting), asCALL_CDECL_OBJLAST);
 	assert(r >= 0);
 	r = engine->RegisterObjectMethod("string", "string format(" INS_16 ") const", asFUNCTION(PrettyPrintingF),
-									 asCALL_CDECL_OBJFIRST);
+	                                 asCALL_CDECL_OBJFIRST);
 	assert(r >= 0);
 
 	r = engine->RegisterGlobalFunction("void print(" INS_16 ")", asFUNCTION(PrintFunc), asCALL_CDECL);
 	assert(r == asALREADY_REGISTERED || r >= 0);
 
 	r = engine->RegisterGlobalFunction("void printf(const string &in format, " INS_16 ")", asFUNCTION(asPrintFormat),
-									   asCALL_CDECL);
+	                                   asCALL_CDECL);
 	assert(r == asALREADY_REGISTERED || r >= 0);
 }
 

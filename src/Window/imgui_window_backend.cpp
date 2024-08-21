@@ -72,7 +72,7 @@ namespace Engine
 		static ImGuiTrinexWindowData* imgui_trinex_backend_data()
 		{
 			return ImGui::GetCurrentContext() ? reinterpret_cast<ImGuiTrinexWindowData*>(ImGui::GetIO().BackendPlatformUserData)
-											  : nullptr;
+			                                  : nullptr;
 		}
 
 		static FORCE_INLINE Window* window_from(const Event& event)
@@ -419,8 +419,8 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			auto& data		  = event.get<const MouseButtonEvent&>();
-			auto& io		  = ImGui::GetIO();
+			auto& data        = event.get<const MouseButtonEvent&>();
+			auto& io          = ImGui::GetIO();
 			auto imgui_button = imgui_button_of(data.button);
 			if (imgui_button != -1)
 			{
@@ -443,8 +443,8 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			auto& data		  = event.get<const KeyEvent&>();
-			auto& io		  = ImGui::GetIO();
+			auto& data        = event.get<const KeyEvent&>();
+			auto& io          = ImGui::GetIO();
 			auto imgui_button = imgui_button_of(data.key);
 
 			if (imgui_button != -ImGuiKey_None)
@@ -596,7 +596,7 @@ namespace Engine
 				return;
 
 			EventSystem* system = EventSystem::instance();
-			m_listener_id		= system->add_listener(EventType::Undefined, on_event_recieved);
+			m_listener_id       = system->add_listener(EventType::Undefined, on_event_recieved);
 		}
 
 		static FORCE_INLINE Window* window_from(ImGuiViewport* vp)
@@ -609,8 +609,8 @@ namespace Engine
 			WindowConfig config;
 			config.position.x = vp->Pos.x;
 			config.position.y = vp->Pos.y;
-			config.size.x	  = vp->Size.x;
-			config.size.y	  = vp->Size.y;
+			config.size.x     = vp->Size.x;
+			config.size.y     = vp->Size.y;
 
 			config.attributes = {WindowAttribute::Hidden};
 
@@ -626,15 +626,15 @@ namespace Engine
 			config.client = "";
 
 			auto parent_window = window_from(ImGui::FindViewportByID(vp->ParentViewportId));
-			auto new_window	   = Engine::WindowManager::instance()->create_window(config, parent_window);
+			auto new_window    = Engine::WindowManager::instance()->create_window(config, parent_window);
 
 			auto render_viewport = new_window->render_viewport();
-			auto client			 = Object::new_instance<ImGuiViewportClient>();
-			client->viewport	 = vp;
-			client->context		 = ImGui::GetCurrentContext();
+			auto client          = Object::new_instance<ImGuiViewportClient>();
+			client->viewport     = vp;
+			client->context      = ImGui::GetCurrentContext();
 			render_viewport->client(client);
 
-			vp->PlatformHandle	 = new_window;
+			vp->PlatformHandle   = new_window;
 			vp->PlatformUserData = reinterpret_cast<void*>(new_window->id());
 		}
 
@@ -677,8 +677,8 @@ namespace Engine
 		{
 			if (Window* wd = window_from(vp))
 			{
-				auto pos	= wd->position();
-				auto info	= Platform::monitor_info(wd->monitor_index());
+				auto pos    = wd->position();
+				auto info   = Platform::monitor_info(wd->monitor_index());
 				float new_y = -pos.y + info.size.y - wd->cached_size().y;
 				return {pos.x, new_y};
 			}
@@ -736,29 +736,29 @@ namespace Engine
 
 		static void imgui_trinex_window_init_platform_interface(Window* window)
 		{
-			ImGuiPlatformIO& platform_io			= ImGui::GetPlatformIO();
-			platform_io.Platform_CreateWindow		= imgui_trinex_window_create;
-			platform_io.Platform_DestroyWindow		= imgui_trinex_window_destroy;
-			platform_io.Platform_ShowWindow			= imgui_trinex_window_show;
-			platform_io.Platform_SetWindowPos		= imgui_trinex_set_window_pos;
-			platform_io.Platform_GetWindowPos		= imgui_trinex_get_window_pos;
-			platform_io.Platform_SetWindowSize		= imgui_trinex_set_window_size;
-			platform_io.Platform_GetWindowSize		= imgui_trinex_get_window_size;
-			platform_io.Platform_SetWindowFocus		= imgui_trinex_set_window_focus;
-			platform_io.Platform_GetWindowFocus		= imgui_trinex_get_window_focus;
+			ImGuiPlatformIO& platform_io            = ImGui::GetPlatformIO();
+			platform_io.Platform_CreateWindow       = imgui_trinex_window_create;
+			platform_io.Platform_DestroyWindow      = imgui_trinex_window_destroy;
+			platform_io.Platform_ShowWindow         = imgui_trinex_window_show;
+			platform_io.Platform_SetWindowPos       = imgui_trinex_set_window_pos;
+			platform_io.Platform_GetWindowPos       = imgui_trinex_get_window_pos;
+			platform_io.Platform_SetWindowSize      = imgui_trinex_set_window_size;
+			platform_io.Platform_GetWindowSize      = imgui_trinex_get_window_size;
+			platform_io.Platform_SetWindowFocus     = imgui_trinex_set_window_focus;
+			platform_io.Platform_GetWindowFocus     = imgui_trinex_get_window_focus;
 			platform_io.Platform_GetWindowMinimized = imgui_trinex_get_window_minimized;
-			platform_io.Platform_SetWindowTitle		= imgui_trinex_set_window_title;
+			platform_io.Platform_SetWindowTitle     = imgui_trinex_set_window_title;
 
-			ImGuiViewport* main_viewport	= ImGui::GetMainViewport();
-			main_viewport->PlatformHandle	= window;
+			ImGuiViewport* main_viewport    = ImGui::GetMainViewport();
+			main_viewport->PlatformHandle   = window;
 			main_viewport->PlatformUserData = reinterpret_cast<void*>(window->id());
 		}
 
 		static void imgui_trinex_window_init(Window* window)
 		{
-			ImGuiIO& io			   = ImGui::GetIO();
+			ImGuiIO& io            = ImGui::GetIO();
 			io.BackendPlatformName = "imgui_impl_android";
-			auto bd				   = IM_NEW(ImGuiTrinexWindowData)();
+			auto bd                = IM_NEW(ImGuiTrinexWindowData)();
 
 			enable_events();
 			io.BackendPlatformUserData = bd;
@@ -778,7 +778,7 @@ namespace Engine
 		{
 			imgui_trinex_window_shutdown_platform_interface(window);
 
-			ImGuiIO& io			   = ImGui::GetIO();
+			ImGuiIO& io            = ImGui::GetIO();
 			io.BackendPlatformName = nullptr;
 			IM_DELETE(reinterpret_cast<ImGuiTrinexWindowData*>(io.BackendPlatformUserData));
 			io.BackendPlatformUserData = nullptr;
@@ -786,7 +786,7 @@ namespace Engine
 
 		static void imgui_trinex_window_update_monitors()
 		{
-			auto* bd					 = imgui_trinex_backend_data();
+			auto* bd                     = imgui_trinex_backend_data();
 			ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 			platform_io.Monitors.resize(0);
 			bd->update_monitors = false;
@@ -795,10 +795,10 @@ namespace Engine
 			for (size_t n = 0; n < display_count; n++)
 			{
 				ImGuiPlatformMonitor monitor;
-				auto info		= Platform::monitor_info(n);
+				auto info       = Platform::monitor_info(n);
 				monitor.WorkPos = monitor.MainPos = ImVec2(info.pos.x, info.pos.y);
 				monitor.WorkSize = monitor.MainSize = ImVec2(info.size.x, info.size.y);
-				monitor.DpiScale					= info.dpi / 96.0f;
+				monitor.DpiScale                    = info.dpi / 96.0f;
 
 				if (n == 0)
 				{
@@ -812,9 +812,9 @@ namespace Engine
 		static void imgui_trinex_window_new_frame(Window* window)
 		{
 			ImGuiIO& io = ImGui::GetIO();
-			auto bd		= imgui_trinex_backend_data();
+			auto bd     = imgui_trinex_backend_data();
 
-			auto size			 = window->cached_size();
+			auto size            = window->cached_size();
 			Size2D drawable_size = window->cached_size();
 
 			io.DisplaySize = ImVec2(size.x, size.y);
@@ -826,8 +826,8 @@ namespace Engine
 				imgui_trinex_window_update_monitors();
 
 			float current_time = engine_instance->time_seconds();
-			io.DeltaTime	   = bd->time > 0.0 ? (current_time - bd->time) : (1.0f / 60.0f);
-			bd->time		   = current_time;
+			io.DeltaTime       = bd->time > 0.0 ? (current_time - bd->time) : (1.0f / 60.0f);
+			bd->time           = current_time;
 		}
 	}// namespace ImGuiWindowBackend
 

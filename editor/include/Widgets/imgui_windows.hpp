@@ -78,14 +78,14 @@ namespace Engine
 	public:
 		enum Flag
 		{
-			None			  = 0,
-			SelectDirectory	  = 1 << 0,
+			None              = 0,
+			SelectDirectory   = 1 << 0,
 			EnterNewFilename  = 1 << 1,
-			NoModal			  = 1 << 2,
-			NoTitleBar		  = 1 << 3,
-			NoStatusBar		  = 1 << 4,
-			CloseOnEsc		  = 1 << 5,
-			CreateNewDir	  = 1 << 6,
+			NoModal           = 1 << 2,
+			NoTitleBar        = 1 << 3,
+			NoStatusBar       = 1 << 4,
+			CloseOnEsc        = 1 << 5,
+			CreateNewDir      = 1 << 6,
 			MultipleSelection = 1 << 7,
 		};
 
@@ -125,14 +125,14 @@ namespace Engine
 			~Node();
 		};
 
-		Node* m_root	 = nullptr;
+		Node* m_root     = nullptr;
 		Node* m_selected = nullptr;
 		ImGuiID m_dock_id;
 
 		Size2D m_monitor_size;
 		Vector3D m_location = {0, 0, 0};
 		Vector3D m_rotation = {0, 0, 0};
-		Vector3D m_scale	= {1, 1, 1};
+		Vector3D m_scale    = {1, 1, 1};
 		String m_name;
 		bool m_is_open = false;
 

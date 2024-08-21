@@ -41,20 +41,20 @@ namespace Engine
 	}
 
 	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
-															 RenderSurface* depth_stencil)
+	                                                         RenderSurface* depth_stencil)
 	{
 		HashIndex hash = 0;
 
 		for (auto& texture : color_attachments)
 		{
 			RHI_Object* object = texture->rhi_object<RHI_Object>();
-			hash			   = memory_hash_fast(&object, sizeof(object), hash);
+			hash               = memory_hash_fast(&object, sizeof(object), hash);
 		}
 
 		if (depth_stencil)
 		{
 			RHI_Object* object = depth_stencil->rhi_object<RHI_Object>();
-			hash			   = memory_hash_fast(&object, sizeof(object), hash);
+			hash               = memory_hash_fast(&object, sizeof(object), hash);
 		}
 
 		auto it = m_render_targets.find(hash);
@@ -63,15 +63,15 @@ namespace Engine
 			return it->second;
 		}
 		OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
-		rt->m_index				= hash;
-		m_render_targets[hash]	= rt;
+		rt->m_index             = hash;
+		m_render_targets[hash]  = rt;
 
 		rt->init(color_attachments, depth_stencil);
 		return rt;
 	}
 
 	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<OpenGL_RenderSurface*>& color_attachments,
-															 OpenGL_RenderSurface* depth_stencil)
+	                                                         OpenGL_RenderSurface* depth_stencil)
 	{
 
 		HashIndex hash = 0;
@@ -92,8 +92,8 @@ namespace Engine
 			return it->second;
 		}
 		OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
-		rt->m_index				= hash;
-		m_render_targets[hash]	= rt;
+		rt->m_index             = hash;
+		m_render_targets[hash]  = rt;
 
 		rt->init(color_attachments, depth_stencil);
 		return rt;
@@ -107,7 +107,7 @@ namespace Engine
 
 	template<typename T>
 	static GLuint create_framebuffer(OpenGL_RenderTarget* self, const Span<T*>& color_attachments, T* depth_stencil,
-									 OpenGL_RenderSurface* (*callback)(T*) )
+	                                 OpenGL_RenderSurface* (*callback)(T*) )
 	{
 		GLuint m_framebuffer = 0;
 		glGenFramebuffers(1, &m_framebuffer);
@@ -142,17 +142,17 @@ namespace Engine
 	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
 	{
 		m_framebuffer = create_framebuffer<RenderSurface>(
-				this, color_attachments, depth_stencil,
-				[](RenderSurface* texture) -> OpenGL_RenderSurface* { return texture->rhi_object<OpenGL_RenderSurface>(); });
+		        this, color_attachments, depth_stencil,
+		        [](RenderSurface* texture) -> OpenGL_RenderSurface* { return texture->rhi_object<OpenGL_RenderSurface>(); });
 		return *this;
 	}
 
 	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-												   struct OpenGL_RenderSurface* depth_stencil)
+	                                               struct OpenGL_RenderSurface* depth_stencil)
 	{
 		m_framebuffer = create_framebuffer<OpenGL_RenderSurface>(
-				this, color_attachments, depth_stencil,
-				[](OpenGL_RenderSurface* texture) -> OpenGL_RenderSurface* { return texture; });
+		        this, color_attachments, depth_stencil,
+		        [](OpenGL_RenderSurface* texture) -> OpenGL_RenderSurface* { return texture; });
 		return *this;
 	}
 
@@ -179,7 +179,7 @@ namespace Engine
 		else if (status == GL_FRAMEBUFFER_UNSUPPORTED)
 		{
 			error_log("Framebuffer", "Combination of internal formats used by attachments in thef ramebuffer results in a "
-									 "nonrednerable target");
+			                         "nonrednerable target");
 		}
 		else
 		{
@@ -228,7 +228,7 @@ namespace Engine
 	}
 
 	OpenGL& OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-									   struct OpenGL_RenderSurface* depth_stencil)
+	                                   struct OpenGL_RenderSurface* depth_stencil)
 	{
 		auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
 		rt->bind();

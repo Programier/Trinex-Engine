@@ -10,9 +10,9 @@ namespace Engine
 	{
 	protected:
 		Pointer<PositionDynamicVertexBuffer> m_position_buffer = nullptr;
-		Pointer<ColorDynamicVertexBuffer> m_color_buffer	   = nullptr;
-		size_t m_position_buffer_size						   = 0;
-		size_t m_color_buffer_size							   = 0;
+		Pointer<ColorDynamicVertexBuffer> m_color_buffer       = nullptr;
+		size_t m_position_buffer_size                          = 0;
+		size_t m_color_buffer_size                             = 0;
 
 		bool begin_render();
 
@@ -34,8 +34,8 @@ namespace Engine
 
 		public:
 			FORCE_INLINE constexpr Vertex(const Vector3D& position = {0, 0, 0}, const ByteColor4& color = {255, 255, 255, 255},
-										  float thickness = 1.f)
-				: m_position(position), m_color(color), m_thickness(thickness)
+			                              float thickness = 1.f)
+			    : m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
 			FORCE_INLINE const Vector3D& position() const
@@ -91,11 +91,11 @@ namespace Engine
 	{
 	public:
 		BatchedTriangles& add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
-									   ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
-									   ByteColor color3 = {255, 255, 255, 255});
+		                               ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
+		                               ByteColor color3 = {255, 255, 255, 255});
 		BatchedTriangles& override_triangle(Index index, const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
-											ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
-											ByteColor color3 = {255, 255, 255, 255});
+		                                    ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
+		                                    ByteColor color3 = {255, 255, 255, 255});
 		BatchedTriangles& render(const class SceneView& view);
 	};
 }// namespace Engine

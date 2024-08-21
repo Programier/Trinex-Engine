@@ -31,20 +31,20 @@ namespace Engine
 	{
 		D3D11_DEPTH_STENCIL_DESC desc{};
 
-		auto& depth	  = pipeline->depth_test;
+		auto& depth   = pipeline->depth_test;
 		auto& stencil = pipeline->stencil_test;
 
-		desc.DepthEnable				  = depth.enable ? TRUE : FALSE;
-		desc.DepthWriteMask				  = depth.enable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-		desc.DepthFunc					  = comparison_func_of(depth.func);
-		desc.StencilEnable				  = stencil.enable ? TRUE : FALSE;
-		desc.StencilReadMask			  = static_cast<UINT8>(stencil.compare_mask);
-		desc.StencilWriteMask			  = static_cast<UINT8>(stencil.write_mask);
-		desc.FrontFace.StencilFailOp	  = stencil_op_of(stencil.fail);
+		desc.DepthEnable                  = depth.enable ? TRUE : FALSE;
+		desc.DepthWriteMask               = depth.enable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+		desc.DepthFunc                    = comparison_func_of(depth.func);
+		desc.StencilEnable                = stencil.enable ? TRUE : FALSE;
+		desc.StencilReadMask              = static_cast<UINT8>(stencil.compare_mask);
+		desc.StencilWriteMask             = static_cast<UINT8>(stencil.write_mask);
+		desc.FrontFace.StencilFailOp      = stencil_op_of(stencil.fail);
 		desc.FrontFace.StencilDepthFailOp = stencil_op_of(stencil.depth_fail);
-		desc.FrontFace.StencilPassOp	  = stencil_op_of(stencil.depth_pass);
-		desc.FrontFace.StencilFunc		  = comparison_func_of(stencil.compare);
-		desc.BackFace					  = desc.FrontFace;
+		desc.FrontFace.StencilPassOp      = stencil_op_of(stencil.depth_pass);
+		desc.FrontFace.StencilFunc        = comparison_func_of(stencil.compare);
+		desc.BackFace                     = desc.FrontFace;
 
 		return desc;
 	}
@@ -54,16 +54,16 @@ namespace Engine
 		D3D11_BLEND_DESC desc{};
 		auto& blend = pipeline->color_blending;
 
-		desc.AlphaToCoverageEnable	= FALSE;
+		desc.AlphaToCoverageEnable  = FALSE;
 		desc.IndependentBlendEnable = FALSE;
 
-		desc.RenderTarget[0].BlendEnable	= blend.enable ? TRUE : FALSE;
-		desc.RenderTarget[0].SrcBlend		= blend_func_of(blend.src_color_func);
-		desc.RenderTarget[0].DestBlend		= blend_func_of(blend.dst_color_func);
-		desc.RenderTarget[0].SrcBlendAlpha	= blend_func_of(blend.src_alpha_func);
+		desc.RenderTarget[0].BlendEnable    = blend.enable ? TRUE : FALSE;
+		desc.RenderTarget[0].SrcBlend       = blend_func_of(blend.src_color_func);
+		desc.RenderTarget[0].DestBlend      = blend_func_of(blend.dst_color_func);
+		desc.RenderTarget[0].SrcBlendAlpha  = blend_func_of(blend.src_alpha_func);
 		desc.RenderTarget[0].DestBlendAlpha = blend_func_of(blend.dst_alpha_func);
-		desc.RenderTarget[0].BlendOp		= blend_op_of(blend.color_op);
-		desc.RenderTarget[0].BlendOpAlpha	= blend_op_of(blend.alpha_op);
+		desc.RenderTarget[0].BlendOp        = blend_op_of(blend.color_op);
+		desc.RenderTarget[0].BlendOpAlpha   = blend_op_of(blend.alpha_op);
 
 		desc.RenderTarget[0].RenderTargetWriteMask = component_mask_of(blend.color_mask);
 
@@ -80,16 +80,16 @@ namespace Engine
 	static D3D11_RASTERIZER_DESC create_rasterizer_description(const Pipeline* pipeline)
 	{
 		D3D11_RASTERIZER_DESC desc{};
-		auto& rasterizer		   = pipeline->rasterizer;
-		desc.FillMode			   = fill_mode_of(rasterizer.polygon_mode);
-		desc.CullMode			   = cull_mode_of(rasterizer.cull_mode);
+		auto& rasterizer           = pipeline->rasterizer;
+		desc.FillMode              = fill_mode_of(rasterizer.polygon_mode);
+		desc.CullMode              = cull_mode_of(rasterizer.cull_mode);
 		desc.FrontCounterClockwise = rasterizer.front_face == FrontFace::CounterClockWise;
-		desc.DepthBias			   = 0.f;
-		desc.DepthBiasClamp		   = 0.f;
+		desc.DepthBias             = 0.f;
+		desc.DepthBiasClamp        = 0.f;
 		desc.SlopeScaledDepthBias  = 0.f;
-		desc.DepthClipEnable	   = TRUE;
-		desc.ScissorEnable		   = FALSE;
-		desc.MultisampleEnable	   = FALSE;
+		desc.DepthClipEnable       = TRUE;
+		desc.ScissorEnable         = FALSE;
+		desc.MultisampleEnable     = FALSE;
 		desc.AntialiasedLineEnable = FALSE;
 		return desc;
 	}
@@ -97,9 +97,9 @@ namespace Engine
 	bool D3D11_Pipeline::init(const class Pipeline* pipeline)
 	{
 		m_engine_pipeline = pipeline;
-		m_vertex_shader	  = extract_shader<D3D11_VertexShader>(pipeline->vertex_shader());
-		m_tsc_shader	  = extract_shader<D3D11_TesselationControlShader>(pipeline->tessellation_control_shader());
-		m_ts_shader		  = extract_shader<D3D11_TesselationShader>(pipeline->tessellation_shader());
+		m_vertex_shader   = extract_shader<D3D11_VertexShader>(pipeline->vertex_shader());
+		m_tsc_shader      = extract_shader<D3D11_TesselationControlShader>(pipeline->tessellation_control_shader());
+		m_ts_shader       = extract_shader<D3D11_TesselationShader>(pipeline->tessellation_shader());
 		m_geometry_shader = extract_shader<D3D11_GeometryShader>(pipeline->geometry_shader());
 		m_fragment_shader = extract_shader<D3D11_FragmentShader>(pipeline->fragment_shader());
 

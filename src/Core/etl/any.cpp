@@ -23,9 +23,9 @@ namespace Engine
 	void Any::Manager::reset()
 	{
 		destroy = nullptr;
-		copy	= nullptr;
-		move	= nullptr;
-		swap	= nullptr;
+		copy    = nullptr;
+		move    = nullptr;
+		swap    = nullptr;
 	}
 
 	bool Any::Manager::is_valid() const

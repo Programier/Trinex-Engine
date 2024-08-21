@@ -21,9 +21,9 @@ namespace Engine
 	public:
 		SceneView(const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
 		SceneView(const CameraView& view, const Size2D& view_size,
-				  const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
+		          const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
 		SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor,
-				  const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
+		          const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
 		copy_constructors_hpp(SceneView);
 
 	public:

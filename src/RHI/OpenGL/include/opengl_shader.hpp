@@ -55,7 +55,7 @@ namespace Engine
 
 		GLuint m_pipeline = 0;
 		GLuint m_topology = 0;
-		GLuint m_vao	  = 0;
+		GLuint m_vao      = 0;
 
 		void init_pipeline_shader(Shader* shader, GLbitfield stage);
 		void init(const Pipeline* pipeline);

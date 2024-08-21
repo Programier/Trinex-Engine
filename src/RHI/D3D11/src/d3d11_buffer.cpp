@@ -6,23 +6,23 @@ namespace Engine
 	void static update_buffer_internal(ID3D11Buffer* buffer, size_t offset, size_t size, const byte* data)
 	{
 		D3D11_BOX update_box = {};
-		update_box.left		 = offset;
-		update_box.right	 = offset + size;
-		update_box.top		 = 0;
-		update_box.bottom	 = 1;
-		update_box.front	 = 0;
-		update_box.back		 = 1;
+		update_box.left      = offset;
+		update_box.right     = offset + size;
+		update_box.top       = 0;
+		update_box.bottom    = 1;
+		update_box.front     = 0;
+		update_box.back      = 1;
 		DXAPI->m_context->UpdateSubresource(buffer, 0, &update_box, data, 0, 0);
 	}
 	static bool create_buffer(ID3D11Buffer*& out_buffer, size_t size, const byte* data, UINT bind_flags)
 	{
 		D3D11_BUFFER_DESC desc = {};
 
-		desc.Usage				 = D3D11_USAGE_DEFAULT;
-		desc.CPUAccessFlags		 = 0;
-		desc.ByteWidth			 = size;
-		desc.BindFlags			 = bind_flags;
-		desc.MiscFlags			 = 0;
+		desc.Usage               = D3D11_USAGE_DEFAULT;
+		desc.CPUAccessFlags      = 0;
+		desc.ByteWidth           = size;
+		desc.BindFlags           = bind_flags;
+		desc.MiscFlags           = 0;
 		desc.StructureByteStride = 0;
 
 		D3D11_SUBRESOURCE_DATA init_data;
@@ -30,10 +30,10 @@ namespace Engine
 
 		if (data)
 		{
-			init_data.pSysMem		   = data;
-			init_data.SysMemPitch	   = size;
+			init_data.pSysMem          = data;
+			init_data.SysMemPitch      = size;
 			init_data.SysMemSlicePitch = 0;
-			p_init_data				   = &init_data;
+			p_init_data                = &init_data;
 		}
 
 		return DXAPI->m_device->CreateBuffer(&desc, p_init_data, &out_buffer) == S_OK;

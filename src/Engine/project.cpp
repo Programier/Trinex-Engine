@@ -49,14 +49,14 @@ namespace Engine
 
 	bool Project::close_project()
 	{
-		name			 = "";
-		version			 = "";
-		configs_dir		 = "";
-		assets_dir		 = "";
-		scripts_dir		 = "";
-		shaders_dir		 = "";
+		name             = "";
+		version          = "";
+		configs_dir      = "";
+		assets_dir       = "";
+		scripts_dir      = "";
+		shaders_dir      = "";
 		localization_dir = "";
-		libraries_dir	 = "";
+		libraries_dir    = "";
 		shader_cache_dir = "";
 		return true;
 	}
@@ -99,7 +99,7 @@ Engine::Project::shader_cache_dir = "{}";
 	String Project::to_string()
 	{
 		return Strings::format(literal, name, version, configs_dir, assets_dir, scripts_dir, shader_cache_dir, localization_dir,
-							   libraries_dir, shader_cache_dir);
+		                       libraries_dir, shader_cache_dir);
 	}
 
 	static bool check_initialize(bool with_msg)
@@ -125,14 +125,14 @@ Engine::Project::shader_cache_dir = "{}";
 
 	static void setup_default_project()
 	{
-		Engine::Project::name			  = "Trinex Engine Project";
-		Engine::Project::version		  = "1.0.0";
-		Engine::Project::configs_dir	  = "resources/configs";
-		Engine::Project::assets_dir		  = "resources/assets";
-		Engine::Project::scripts_dir	  = "resources/scripts";
-		Engine::Project::shaders_dir	  = "resources/shaders";
+		Engine::Project::name             = "Trinex Engine Project";
+		Engine::Project::version          = "1.0.0";
+		Engine::Project::configs_dir      = "resources/configs";
+		Engine::Project::assets_dir       = "resources/assets";
+		Engine::Project::scripts_dir      = "resources/scripts";
+		Engine::Project::shaders_dir      = "resources/shaders";
 		Engine::Project::localization_dir = "resources/localization";
-		Engine::Project::libraries_dir	  = "libs";
+		Engine::Project::libraries_dir    = "libs";
 		Engine::Project::shader_cache_dir = "ShaderCache";
 	}
 

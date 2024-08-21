@@ -25,7 +25,7 @@ namespace Engine
 
 	public:
 		Transform(const Vector3D& location = Vector3D(0.0f), const Vector3D& rotation = Vector3D(0.f),
-				  const Vector3D& scale = Vector3D(1.0f));
+		          const Vector3D& scale = Vector3D(1.0f));
 		Transform(const Vector3D& location, const Quaternion& rotation, const Vector3D& scale = Vector3D(1.0f));
 		Transform(const Matrix4f& matrix);
 

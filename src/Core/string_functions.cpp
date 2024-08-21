@@ -67,30 +67,30 @@ namespace Engine::Strings
 	}
 
 	static bool (*insert_space[])(char, char, String& to) = {
-			[](char, char ch, String& to) {
-				if (ch == '_')
-				{
-					to.push_back(' ');
-					return true;
-				}
-				return false;
-			},
-			[](char prev, char ch, String& to) -> bool {
-				if (std::isdigit(ch) && !isdigit(prev))
-				{
-					to.push_back(' ');
-					to.push_back(ch);
-					return true;
-				}
-				else if (std::isupper(ch) && std::islower(prev) && !std::isdigit(prev))
-				{
-					to.push_back(' ');
-					to.push_back(ch);
-					return true;
-				}
+	        [](char, char ch, String& to) {
+		        if (ch == '_')
+		        {
+			        to.push_back(' ');
+			        return true;
+		        }
+		        return false;
+	        },
+	        [](char prev, char ch, String& to) -> bool {
+		        if (std::isdigit(ch) && !isdigit(prev))
+		        {
+			        to.push_back(' ');
+			        to.push_back(ch);
+			        return true;
+		        }
+		        else if (std::isupper(ch) && std::islower(prev) && !std::isdigit(prev))
+		        {
+			        to.push_back(' ');
+			        to.push_back(ch);
+			        return true;
+		        }
 
-				return false;
-			},
+		        return false;
+	        },
 	};
 
 
@@ -130,7 +130,7 @@ namespace Engine::Strings
 	String replace_all(StringView line, StringView old, StringView new_line)
 	{
 		String result;
-		size_t pos	   = 0;
+		size_t pos     = 0;
 		size_t old_len = old.length();
 
 		while ((pos = line.find(old)) != StringView::npos)
@@ -174,7 +174,7 @@ namespace Engine::Strings
 	ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len)
 	{
 		return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const byte*>(haystack), haystack_len,
-														   reinterpret_cast<const byte*>(needle), needle_len));
+		                                                   reinterpret_cast<const byte*>(needle), needle_len));
 	}
 
 
@@ -185,7 +185,7 @@ namespace Engine::Strings
 		String token;
 
 		size_t start = 0;
-		size_t end	 = 0;
+		size_t end   = 0;
 
 		while ((end = line.find(delimiter, start)) != String::npos)
 		{

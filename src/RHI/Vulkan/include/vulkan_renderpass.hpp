@@ -35,9 +35,9 @@ namespace Engine
 		VulkanRenderPass& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 
 		VulkanRenderPass& create_attachment_descriptions(const Span<RenderSurface*>& color_attachments,
-														 RenderSurface* depth_stencil);
+		                                                 RenderSurface* depth_stencil);
 		VulkanRenderPass& create_attachment_references(const Span<RenderSurface*>& color_attachments,
-													   RenderSurface* depth_stencil);
+		                                               RenderSurface* depth_stencil);
 
 		VulkanRenderPass& create();
 		uint_t attachments_count() const;

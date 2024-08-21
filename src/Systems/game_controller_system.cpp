@@ -27,7 +27,7 @@ namespace Engine
 	{
 		try
 		{
-			const ControllerAxisMotionEvent& e			  = event.get<const ControllerAxisMotionEvent&>();
+			const ControllerAxisMotionEvent& e            = event.get<const ControllerAxisMotionEvent&>();
 			m_controllers.at(e.id)->m_axis_values[e.axis] = e.value;
 		}
 		catch (...)
@@ -46,13 +46,13 @@ namespace Engine
 		event_system->register_subsystem(this);
 
 		new_id(event_system->add_listener(EventType::ControllerDeviceAdded,
-										  std::bind(&GameControllerSystem::on_controller_added, this, std::placeholders::_1)));
+		                                  std::bind(&GameControllerSystem::on_controller_added, this, std::placeholders::_1)));
 
 		new_id(event_system->add_listener(EventType::ControllerDeviceRemoved,
-										  std::bind(&GameControllerSystem::on_controller_removed, this, std::placeholders::_1)));
+		                                  std::bind(&GameControllerSystem::on_controller_removed, this, std::placeholders::_1)));
 
 		new_id(event_system->add_listener(EventType::ControllerAxisMotion,
-										  std::bind(&GameControllerSystem::on_axis_motion, this, std::placeholders::_1)));
+		                                  std::bind(&GameControllerSystem::on_axis_motion, this, std::placeholders::_1)));
 
 		return *this;
 	}

@@ -51,7 +51,7 @@ namespace Engine
 			const TreeSet<String>& metadata_for_func(const ScriptFunction& func) const;
 			const TreeSet<String>& metadata_for_func(const char* decl, bool get_virtual = true) const;
 			const TreeSet<String>& metadata_for_func(int_t func_id) const;
-			
+
 			const TreeSet<String>& metadata_for_property(uint_t prop_index) const;
 			const TreeSet<String>& metadata_for_property(const String& name) const;
 		};
@@ -105,10 +105,10 @@ namespace Engine
 		const TreeSet<String>& metadata_for_func(const ScriptFunction& func) const;
 		const TreeSet<String>& metadata_for_func(const char* decl) const;
 		const TreeSet<String>& metadata_for_func(int_t func_id) const;
-		
+
 		const TreeSet<String>& metadata_for_var(uint_t var_index) const;
 		const TreeSet<String>& metadata_for_var(const String& name) const;
-		
+
 		const ClassMetadata& metadata_for_class(const ScriptTypeInfo& info) const;
 		const ClassMetadata& metadata_for_class(const String& name) const;
 		const ClassMetadata& metadata_for_class(int_t type_id) const;
@@ -128,7 +128,7 @@ namespace Engine
 		int_t global_var_index_by_name(const String& name) const;
 		int_t global_var_index_by_decl(const String& decl) const;
 		bool global_var(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr, int_t* type_id = nullptr,
-						bool* is_const = nullptr) const;
+		                bool* is_const = nullptr) const;
 		String global_var_declaration(uint_t index, bool include_namespace = false) const;
 		void* address_of_global_var(uint_t index);
 

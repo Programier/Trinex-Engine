@@ -7,7 +7,7 @@ namespace Engine
 	class Average
 	{
 		std::size_t m_count = 0;
-		Type m_value		= static_cast<Type>(0);
+		Type m_value        = static_cast<Type>(0);
 
 	public:
 		Average& push(const Type& value)

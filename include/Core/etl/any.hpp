@@ -26,8 +26,8 @@ namespace Engine
 
 		template<typename T>
 		static constexpr inline bool is_stack_type = std::integral_constant<
-				bool, std::is_nothrow_move_constructible<T>::value && sizeof(T) <= sizeof(Storage::stack) &&
-							  std::alignment_of<T>::value <= std::alignment_of<Storage::stack_storage_t>::value>::value;
+		        bool, std::is_nothrow_move_constructible<T>::value && sizeof(T) <= sizeof(Storage::stack) &&
+		                      std::alignment_of<T>::value <= std::alignment_of<Storage::stack_storage_t>::value>::value;
 
 		struct ENGINE_EXPORT Manager {
 			void (*destroy)(Storage&) noexcept;
@@ -83,7 +83,7 @@ namespace Engine
 			static void move(Storage& src, Storage& dest) noexcept
 			{
 				dest.dynamic = src.dynamic;
-				src.dynamic	 = nullptr;
+				src.dynamic  = nullptr;
 			}
 
 			static void swap(Storage& lhs, Storage& rhs) noexcept
@@ -101,16 +101,16 @@ namespace Engine
 				if constexpr (is_stack_type<Type>)
 				{
 					manager.destroy = StackManager<Type>::destroy;
-					manager.copy	= StackManager<Type>::copy;
-					manager.move	= StackManager<Type>::move;
-					manager.swap	= StackManager<Type>::swap;
+					manager.copy    = StackManager<Type>::copy;
+					manager.move    = StackManager<Type>::move;
+					manager.swap    = StackManager<Type>::swap;
 				}
 				else
 				{
 					manager.destroy = DynamicManager<Type>::destroy;
-					manager.copy	= DynamicManager<Type>::copy;
-					manager.move	= DynamicManager<Type>::move;
-					manager.swap	= DynamicManager<Type>::swap;
+					manager.copy    = DynamicManager<Type>::copy;
+					manager.move    = DynamicManager<Type>::move;
+					manager.swap    = DynamicManager<Type>::swap;
 				}
 			}
 
@@ -139,7 +139,7 @@ namespace Engine
 		void construct(Value&& value)
 		{
 			using DecayValue = typename std::decay<Value>::type;
-			m_manager		 = find_manager_of<DecayValue>();
+			m_manager        = find_manager_of<DecayValue>();
 			initialize<Value, DecayValue>(std::forward<Value>(value));
 		}
 
@@ -154,21 +154,21 @@ namespace Engine
 		Any& operator=(Any&& any);
 
 		template<typename ValueType,
-				 typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
+		         typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
 		Any(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
-						  "Type must be copy constructible");
+			              "Type must be copy constructible");
 			construct(std::forward<ValueType>(value));
 		}
 
 
 		template<typename ValueType,
-				 typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
+		         typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
 		Any& operator=(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
-						  "Type must be copy constructible");
+			              "Type must be copy constructible");
 			Any(std::forward<ValueType>(value)).swap(*this);
 			return *this;
 		}
@@ -185,7 +185,7 @@ namespace Engine
 			if (has_value())
 			{
 				return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&m_storage.stack)
-											 : *reinterpret_cast<DecayT*>(m_storage.dynamic);
+				                             : *reinterpret_cast<DecayT*>(m_storage.dynamic);
 			}
 			throw bad_any_cast();
 		}
@@ -197,7 +197,7 @@ namespace Engine
 			if (has_value())
 			{
 				return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
-											 : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
+				                             : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
 			}
 			throw bad_any_cast();
 		}

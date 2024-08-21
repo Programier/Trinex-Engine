@@ -67,7 +67,7 @@ namespace Engine
                                                                                                                                  \
 	public:                                                                                                                      \
 		command_name##Command(type1 var1, type2 var2, type3 var3, type4 var4)                                                    \
-			: name1(var1), name2(var2), name3(var3), name4(var4)                                                                 \
+		    : name1(var1), name2(var2), name3(var3), name4(var4)                                                                 \
 		{}                                                                                                                       \
                                                                                                                                  \
 		int_t execute() override                                                                                                 \
@@ -79,17 +79,17 @@ namespace Engine
 
 	declare_command_two_param(Draw, size_t, vertices_count, size_t, vertices_offset, rhi->draw(vertices_count, vertices_offset));
 	declare_command_three_param(DrawIndexed, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-								rhi->draw_indexed(indices_count, indices_offset, vertices_offset));
+	                            rhi->draw_indexed(indices_count, indices_offset, vertices_offset));
 	declare_command_three_param(DrawInstanced, size_t, vertices_count, size_t, vertices_offset, size_t, instances,
-								rhi->draw_instanced(vertices_count, vertices_offset, instances));
+	                            rhi->draw_instanced(vertices_count, vertices_offset, instances));
 	declare_command_four_param(DrawIndexedInstanced, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-							   size_t, instances,
-							   rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
+	                           size_t, instances,
+	                           rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
 	declare_command_two_param(BindMaterial, MaterialInterface*, interface, SceneComponent*, component,
-							  interface->apply(component));
+	                          interface->apply(component));
 
 	declare_command_three_param(BindVertexBuffer, VertexBuffer*, buffer, byte, stream, size_t, offset,
-								buffer->rhi_bind(stream, offset));
+	                            buffer->rhi_bind(stream, offset));
 
 	declare_command_two_param(BindIndexBuffer, IndexBuffer*, buffer, size_t, offset, buffer->rhi_bind(offset));
 
@@ -112,7 +112,7 @@ namespace Engine
 	}
 
 	CommandBufferLayer& CommandBufferLayer::draw_indexed_instanced(size_t indices_count, size_t indices_offset,
-																   size_t vertices_offset, size_t instances)
+	                                                               size_t vertices_offset, size_t instances)
 	{
 		create_command<DrawIndexedInstancedCommand>(indices_count, indices_offset, vertices_offset, instances);
 		return *this;
@@ -146,7 +146,7 @@ namespace Engine
 	CommandBufferLayer& CommandBufferLayer::render(SceneRenderer* renderer, RenderViewport* rt)
 	{
 		size_t offset = 0;
-		byte* data	  = m_commands.data();
+		byte* data    = m_commands.data();
 
 		while (offset < m_allocated)
 		{

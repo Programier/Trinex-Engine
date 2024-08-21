@@ -9,7 +9,7 @@ namespace Engine
 		vk::DeviceMemory m_memory;
 		vk::DeviceSize m_size;
 		vk::DeviceSize m_offset = 0;
-		byte* m_mapped_data		= nullptr;
+		byte* m_mapped_data     = nullptr;
 
 
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);

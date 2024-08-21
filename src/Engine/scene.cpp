@@ -18,7 +18,7 @@ namespace Engine
 
 	public:
 		AddPrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const AABB_3Df& box)
-			: m_octree(octree), m_primitive(primitive), m_box(box)
+		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
 		int_t execute() override
@@ -37,7 +37,7 @@ namespace Engine
 
 	public:
 		RemovePrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const AABB_3Df& box)
-			: m_octree(octree), m_primitive(primitive), m_box(box)
+		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
 		int_t execute() override
@@ -87,7 +87,7 @@ namespace Engine
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
 		render_thread()->insert_new_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
-																				   primitive->bounding_box());
+		                                                                           primitive->bounding_box());
 		m_octree.push(primitive->bounding_box(), primitive);
 		return *this;
 	}
@@ -95,7 +95,7 @@ namespace Engine
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
 		render_thread()->insert_new_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
-																					  primitive->bounding_box());
+		                                                                              primitive->bounding_box());
 		m_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}
@@ -119,7 +119,7 @@ namespace Engine
 	Scene& Scene::add_light(LightComponent* light)
 	{
 		render_thread()->insert_new_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-																			   light->bounding_box());
+		                                                                       light->bounding_box());
 		m_light_octree.push(light->bounding_box(), light);
 		return *this;
 	}
@@ -127,7 +127,7 @@ namespace Engine
 	Scene& Scene::remove_light(LightComponent* light)
 	{
 		render_thread()->insert_new_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-																				  light->bounding_box());
+		                                                                          light->bounding_box());
 		m_light_octree.remove(light->bounding_box(), light);
 		return *this;
 	}

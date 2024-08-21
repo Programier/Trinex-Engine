@@ -12,7 +12,7 @@
 using PrioType = int;
 
 static constexpr PrioType DEBUG_PRIO   = ANDROID_LOG_DEBUG;
-static constexpr PrioType INFO_PRIO	   = ANDROID_LOG_INFO;
+static constexpr PrioType INFO_PRIO    = ANDROID_LOG_INFO;
 static constexpr PrioType WARNING_PRIO = ANDROID_LOG_WARN;
 static constexpr PrioType ERROR_PRIO   = ANDROID_LOG_ERROR;
 
@@ -20,10 +20,10 @@ static constexpr PrioType ERROR_PRIO   = ANDROID_LOG_ERROR;
 
 using PrioType = const char*;
 
-static PrioType DEBUG_PRIO	 = "DEBUG";
-static PrioType INFO_PRIO	 = "INFO";
+static PrioType DEBUG_PRIO   = "DEBUG";
+static PrioType INFO_PRIO    = "INFO";
 static PrioType WARNING_PRIO = "WARNING";
-static PrioType ERROR_PRIO	 = "ERROR";
+static PrioType ERROR_PRIO   = "ERROR";
 
 #endif
 

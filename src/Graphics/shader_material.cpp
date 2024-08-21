@@ -10,12 +10,12 @@ namespace Engine
 {
 	implement_engine_class(ShaderMaterial, Class::IsAsset)
 	{
-		Class* self	   = This::static_class_instance();
+		Class* self    = This::static_class_instance();
 		auto path_prop = new PathProperty("Shader Path", "Path to slang file", &This::shader_path, "Shader Material");
 
 		path_prop->on_prop_changed.push([](void* object) {
 			ShaderMaterial* material = reinterpret_cast<ShaderMaterial*>(object);
-			material->shader_path	 = material->shader_path.relative(Project::shaders_dir);
+			material->shader_path    = material->shader_path.relative(Project::shaders_dir);
 		});
 
 		self->add_property(path_prop);

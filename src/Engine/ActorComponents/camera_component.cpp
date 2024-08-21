@@ -18,11 +18,11 @@ namespace Engine
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{
 			return glm::ortho(-ortho_width / 2.0f, // Left
-							  ortho_width / 2.0f,  // Right
-							  -ortho_height / 2.0f,// Bottom
-							  ortho_height / 2.0f, // Top
-							  near_clip_plane,	   // Near clipping plane
-							  far_clip_plane	   // Far clipping plane
+			                  ortho_width / 2.0f,  // Right
+			                  -ortho_height / 2.0f,// Bottom
+			                  ortho_height / 2.0f, // Top
+			                  near_clip_plane,     // Near clipping plane
+			                  far_clip_plane       // Far clipping plane
 			);
 		}
 
@@ -67,11 +67,11 @@ namespace Engine
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{
 			return glm::ortho(-ortho_width / 2.0f, // Left
-							  ortho_width / 2.0f,  // Right
-							  -ortho_height / 2.0f,// Bottom
-							  ortho_height / 2.0f, // Top
-							  near_clip_plane,	   // Near clipping plane
-							  far_clip_plane	   // Far clipping plane
+			                  ortho_width / 2.0f,  // Right
+			                  -ortho_height / 2.0f,// Bottom
+			                  ortho_height / 2.0f, // Top
+			                  near_clip_plane,     // Near clipping plane
+			                  far_clip_plane       // Far clipping plane
 			);
 		}
 
@@ -92,18 +92,18 @@ namespace Engine
 	const CameraComponent& CameraComponent::camera_view(CameraView& out) const
 	{
 		auto& global_transform = world_transform();
-		out.location		   = global_transform.location();
-		out.rotation		   = global_transform.rotation();
-		out.up_vector		   = global_transform.up_vector();
-		out.right_vector	   = global_transform.right_vector();
-		out.forward_vector	   = global_transform.forward_vector();
-		out.projection_mode	   = projection_mode;
-		out.fov				   = fov;
-		out.ortho_width		   = ortho_width;
-		out.ortho_height	   = ortho_height;
-		out.near_clip_plane	   = near_clip_plane;
-		out.far_clip_plane	   = far_clip_plane;
-		out.aspect_ratio	   = aspect_ratio;
+		out.location           = global_transform.location();
+		out.rotation           = global_transform.rotation();
+		out.up_vector          = global_transform.up_vector();
+		out.right_vector       = global_transform.right_vector();
+		out.forward_vector     = global_transform.forward_vector();
+		out.projection_mode    = projection_mode;
+		out.fov                = fov;
+		out.ortho_width        = ortho_width;
+		out.ortho_height       = ortho_height;
+		out.near_clip_plane    = near_clip_plane;
+		out.far_clip_plane     = far_clip_plane;
+		out.aspect_ratio       = aspect_ratio;
 
 		return *this;
 	}

@@ -14,7 +14,7 @@ namespace Engine
 		String m_name;
 		Size2D m_size;
 		bool m_is_resizable : 1 = true;
-		bool m_init_vsync : 1	= true;
+		bool m_init_vsync : 1   = true;
 
 	public:
 		struct ImGuiContext* imgui_context = nullptr;
@@ -65,7 +65,7 @@ namespace Engine
 
 
 	struct AndroidEGLSurface {
-		EGLSurface egl_surface			  = EGL_NO_SURFACE;
+		EGLSurface egl_surface            = EGL_NO_SURFACE;
 		struct AndroidEGLContext* context = nullptr;
 
 		void init(AndroidEGLContext* context, ANativeWindow* window);
@@ -77,7 +77,7 @@ namespace Engine
 		EGLDisplay egl_display = EGL_NO_DISPLAY;
 		EGLContext egl_context = EGL_NO_CONTEXT;
 		EGLConfig egl_config   = nullptr;
-		EGLint egl_format	   = 0;
+		EGLint egl_format      = 0;
 		Set<AndroidEGLSurface*> egl_surfaces;
 		bool m_vsync = false;
 

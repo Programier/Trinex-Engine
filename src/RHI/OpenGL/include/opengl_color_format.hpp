@@ -10,7 +10,7 @@ namespace Engine
 		GLenum m_type;
 
 		OpenGL_ColorInfo(GLenum internal_format = 0, GLenum format = 0, GLenum type = 0)
-			: m_internal_format(internal_format), m_format(format), m_type(type)
+		    : m_internal_format(internal_format), m_format(format), m_type(type)
 		{}
 
 		FORCE_INLINE bool is_valid() const

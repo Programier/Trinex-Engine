@@ -37,7 +37,7 @@ namespace Engine
 
 		struct {
 			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
-			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT	  = nullptr;
+			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT     = nullptr;
 		} pfn;
 
 
@@ -63,7 +63,7 @@ namespace Engine
 		vk::CommandPool m_command_pool;
 		uint32_t m_framebuffers_count = 0;
 
-		size_t m_current_frame	= 0;
+		size_t m_current_frame  = 0;
 		size_t m_current_buffer = 0;
 
 		//////////////////////////////////////////////////////////////
@@ -81,18 +81,18 @@ namespace Engine
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 
 		VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-								 vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
+		                         vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
 		uint32_t find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties);
 
 		vk::CommandBuffer begin_single_time_command_buffer();
 		VulkanAPI& end_single_time_command_buffer(const vk::CommandBuffer& buffer);
 
 		VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size, vk::DeviceSize src_offset = 0,
-							   vk::DeviceSize dst_offset = 0);
+		                       vk::DeviceSize dst_offset = 0);
 		bool has_stencil_component(vk::Format format);
 		VulkanAPI& create_image(struct VulkanTexture* state, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
-								vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-								vk::DeviceMemory& image_memory, uint32_t layers);
+		                        vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+		                        vk::DeviceMemory& image_memory, uint32_t layers);
 
 		struct VulkanCommandBuffer* current_command_buffer();
 		vk::CommandBuffer& current_command_buffer_handle();
@@ -121,7 +121,7 @@ namespace Engine
 		VulkanAPI& draw_indexed(size_t indices, size_t offset, size_t vertices_offset) override;
 		VulkanAPI& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
 		VulkanAPI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-										  size_t instances) override;
+		                                  size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
 		RHI_Texture* create_texture_2d(const Texture2D*) override;

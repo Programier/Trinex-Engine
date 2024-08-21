@@ -40,13 +40,13 @@ namespace Engine
 	{
 		if (Settings::e_api.empty() || force_no_api)
 		{
-			Settings::e_api			= "None";
+			Settings::e_api         = "None";
 			Settings::e_show_splash = false;
 		}
 
 		String api = Settings::e_api;
-		rhi		   = reinterpret_cast<RHI*>(
-				   Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
+		rhi        = reinterpret_cast<RHI*>(
+                Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
 		if (!rhi)
 		{
 			throw EngineException("Failed to init API");
@@ -67,7 +67,7 @@ namespace Engine
 
 	static void initialize_filesystem()
 	{
-		auto vfs					   = VFS::RootFS::create_instance();
+		auto vfs                       = VFS::RootFS::create_instance();
 		VFS::NativeFileSystem* exec_fs = new VFS::NativeFileSystem(Platform::find_exec_directory());
 
 		vfs->mount("[ExecDir]:", exec_fs, [](VFS::FileSystem* system) { delete system; });
@@ -124,7 +124,7 @@ namespace Engine
 		}
 
 		Class* engine_class = Class::static_find(Settings::e_engine, true);
-		Object* object		= engine_class->create_object();
+		Object* object      = engine_class->create_object();
 
 		if (object)
 		{

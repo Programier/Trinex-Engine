@@ -49,9 +49,9 @@ namespace Engine
 
 
 	Vector<class Script*> ScriptEngine::m_scripts;
-	asIScriptEngine* ScriptEngine::m_engine		 = nullptr;
+	asIScriptEngine* ScriptEngine::m_engine      = nullptr;
 	asIJITCompiler* ScriptEngine::m_jit_compiler = nullptr;
-	ScriptFolder* ScriptEngine::m_script_folder	 = nullptr;
+	ScriptFolder* ScriptEngine::m_script_folder  = nullptr;
 	TreeMap<int_t, ScriptEngine::VariableToStringFunction> ScriptEngine::m_custom_variable_parsers;
 
 	bool ScriptEngine::exception_on_error = true;
@@ -66,7 +66,7 @@ namespace Engine
 	}
 
 	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger(const String& new_namespace)
-		: ScriptNamespaceScopedChanger(new_namespace.c_str())
+	    : ScriptNamespaceScopedChanger(new_namespace.c_str())
 	{}
 
 	const String& ScriptNamespaceScopedChanger::saved_namespace() const
@@ -334,13 +334,13 @@ namespace Engine
 	}
 
 	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const,
-									   byte** pointer)
+	                                   byte** pointer)
 	{
-		const char* c_name		 = nullptr;
+		const char* c_name       = nullptr;
 		const char* c_name_space = nullptr;
 
 		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
-														 type_id, is_const, nullptr, reinterpret_cast<void**>(pointer));
+		                                                 type_id, is_const, nullptr, reinterpret_cast<void**>(pointer));
 
 		if (result)
 		{
@@ -609,13 +609,13 @@ namespace Engine
 		for (auto& func : functions)
 		{
 			asIScriptModule* module = func->GetModule();
-			asUINT count			= module->GetGlobalVarCount();
+			asUINT count            = module->GetGlobalVarCount();
 
 			for (asUINT prop = 0; prop < count; ++prop)
 			{
 				if (module->GetAddressOfGlobalVar(prop) == object)
 				{
-					const char* name		   = nullptr;
+					const char* name           = nullptr;
 					const char* namespace_name = nullptr;
 					module->GetGlobalVar(prop, &name, &namespace_name);
 
@@ -735,12 +735,12 @@ namespace Engine
 
 	static void variable_name_generic(asIScriptGeneric* generic)
 	{
-		asUINT arg_type_id	   = generic->GetArgTypeId(0);
-		bool is_handle		   = (arg_type_id & asTYPEID_MASK_OBJECT) && (arg_type_id & asTYPEID_OBJHANDLE);
-		void* object		   = is_handle ? *reinterpret_cast<void**>(generic->GetArgAddress(0))
-										   : reinterpret_cast<void*>(generic->GetArgAddress(0));
+		asUINT arg_type_id     = generic->GetArgTypeId(0);
+		bool is_handle         = (arg_type_id & asTYPEID_MASK_OBJECT) && (arg_type_id & asTYPEID_OBJHANDLE);
+		void* object           = is_handle ? *reinterpret_cast<void**>(generic->GetArgAddress(0))
+		                                   : reinterpret_cast<void*>(generic->GetArgAddress(0));
 		bool include_namespace = static_cast<bool>(generic->GetArgByte(1));
-		String name			   = ScriptEngine::variable_name(object, include_namespace);
+		String name            = ScriptEngine::variable_name(object, include_namespace);
 		generic->SetReturnObject(&name);
 	}
 
@@ -754,7 +754,7 @@ namespace Engine
 	{
 		ScriptEngine::default_namespace("Engine::ScriptEngine");
 		ScriptEngine::register_function("string variable_name(const ?& in variable, bool include_namespace = true)",
-										variable_name_generic, ScriptCallConv::Generic);
+		                                variable_name_generic, ScriptCallConv::Generic);
 		ScriptEngine::default_namespace("");
 	}
 

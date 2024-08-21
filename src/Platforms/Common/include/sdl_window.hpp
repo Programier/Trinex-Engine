@@ -13,10 +13,10 @@ namespace Engine
 		Buffer m_icon_buffer;
 		Buffer m_cursor_icon_buffer;
 
-		SDL_Window* m_window	   = nullptr;
-		SDL_Surface* m_icon		   = nullptr;
+		SDL_Window* m_window       = nullptr;
+		SDL_Surface* m_icon        = nullptr;
 		SDL_Surface* m_cursor_icon = nullptr;
-		SDL_Cursor* m_cursor	   = nullptr;
+		SDL_Cursor* m_cursor       = nullptr;
 
 		SDL_WindowFlags m_api;
 		SDL_Event m_event;

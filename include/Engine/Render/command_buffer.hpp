@@ -35,7 +35,7 @@ namespace Engine
 		CommandBufferLayer& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset);
 		CommandBufferLayer& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances);
 		CommandBufferLayer& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-												   size_t instances);
+		                                           size_t instances);
 		CommandBufferLayer& bind_material(class MaterialInterface* material, SceneComponent* component = nullptr);
 		CommandBufferLayer& bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset = 0);
 		CommandBufferLayer& bind_index_buffer(class IndexBuffer* buffer, size_t offset = 0);

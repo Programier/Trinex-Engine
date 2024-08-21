@@ -59,7 +59,7 @@ namespace Engine::VFS
 	{
 		FileSystem* system = it->second;
 		m_file_systems.erase(it);
-		system->m_mount_point	 = {};
+		system->m_mount_point    = {};
 		UnMountCallback callback = std::move(system->m_on_unmount);
 
 		if (callback)
@@ -84,8 +84,8 @@ namespace Engine::VFS
 		}
 
 		m_file_systems[mount_point] = system;
-		system->m_mount_point		= mount_point;
-		system->m_on_unmount		= callback;
+		system->m_mount_point       = mount_point;
+		system->m_on_unmount        = callback;
 
 		vfs_log("Mounted '%s' to '%s'", system->path().c_str(), mount_point.c_str());
 		return system;

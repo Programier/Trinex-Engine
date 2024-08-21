@@ -13,9 +13,9 @@ namespace Engine
 {
 	enum GCStage : EnumerateType
 	{
-		MarkUnreachable	  = 0,
+		MarkUnreachable   = 0,
 		CollectingGarbage = 1,
-		DestroyGarbage	  = 2,
+		DestroyGarbage    = 2,
 
 		FirstStage = MarkUnreachable,
 		LastStage  = DestroyGarbage
@@ -23,7 +23,7 @@ namespace Engine
 
 	static struct GCState {
 		Index object_index = 0;
-		GCStage stage	   = GCStage::MarkUnreachable;
+		GCStage stage      = GCStage::MarkUnreachable;
 	} gc_state;
 
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
@@ -139,9 +139,9 @@ namespace Engine
 
 	bool GarbageCollector::process_objects(void (*callback)(Object* object))
 	{
-		const auto& objects		= Object::all_objects();
+		const auto& objects     = Object::all_objects();
 		uint_t objects_per_tick = get_max_objects_per_tick();
-		auto objects_count		= objects.size();
+		auto objects_count      = objects.size();
 
 		while (objects_per_tick > 0 && gc_state.object_index < objects_count)
 		{

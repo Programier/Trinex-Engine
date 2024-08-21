@@ -60,14 +60,14 @@ namespace Engine
 		make_current();
 
 		ViewPort viewport;
-		viewport.pos	   = {0, 0};
-		viewport.size	   = m_viewport->window()->cached_size();
+		viewport.pos       = {0, 0};
+		viewport.size      = m_viewport->window()->cached_size();
 		viewport.min_depth = 0.f;
 		viewport.max_depth = 1.f;
 		OPENGL_API->viewport(viewport);
 
 		Scissor scissor;
-		scissor.pos	 = {0.f, 0.f};
+		scissor.pos  = {0.f, 0.f};
 		scissor.size = viewport.size;
 		OPENGL_API->scissor(scissor);
 	}
@@ -97,10 +97,10 @@ namespace Engine
 	}
 
 	void OpenGL_WindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-											SamplerFilter filter)
+	                                        SamplerFilter filter)
 	{
 		RenderSurface* surface_array[] = {surface};
-		auto render_target			   = OpenGL_RenderTarget::find_or_create(surface_array, nullptr);
+		auto render_target             = OpenGL_RenderTarget::find_or_create(surface_array, nullptr);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);
@@ -111,7 +111,7 @@ namespace Engine
 		auto dst_end   = dst_start + dst_rect.size;
 
 		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
-						  GL_COLOR_BUFFER_BIT, filter_of(filter));
+		                  GL_COLOR_BUFFER_BIT, filter_of(filter));
 
 		if (OPENGL_API->m_state.render_target)
 		{

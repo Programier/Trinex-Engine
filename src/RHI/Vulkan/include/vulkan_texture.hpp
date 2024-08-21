@@ -15,13 +15,13 @@ namespace Engine
 		vk::ComponentMapping m_swizzle;
 
 	public:
-		virtual uint_t layer_count() const					 = 0;
+		virtual uint_t layer_count() const                   = 0;
 		virtual vk::ImageCreateFlagBits create_flags() const = 0;
-		virtual vk::ImageViewType view_type() const			 = 0;
-		virtual Size2D size() const							 = 0;
-		virtual MipMapLevel mipmap_count() const			 = 0;
-		virtual vk::Format format() const					 = 0;
-		virtual ColorFormat engine_format() const			 = 0;
+		virtual vk::ImageViewType view_type() const          = 0;
+		virtual Size2D size() const                          = 0;
+		virtual MipMapLevel mipmap_count() const             = 0;
+		virtual vk::Format format() const                    = 0;
+		virtual ColorFormat engine_format() const            = 0;
 
 		void clear_color(const Color& color) override;
 		void clear_depth_stencil(float depth, byte stencil) override;

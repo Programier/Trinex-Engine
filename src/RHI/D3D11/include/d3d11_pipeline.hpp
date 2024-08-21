@@ -15,17 +15,17 @@ namespace Engine
 	public:
 		const Pipeline* m_engine_pipeline = nullptr;
 
-		D3D11_VertexShader* m_vertex_shader			 = nullptr;
+		D3D11_VertexShader* m_vertex_shader          = nullptr;
 		D3D11_TesselationControlShader* m_tsc_shader = nullptr;
-		D3D11_TesselationShader* m_ts_shader		 = nullptr;
-		D3D11_GeometryShader* m_geometry_shader		 = nullptr;
-		D3D11_FragmentShader* m_fragment_shader		 = nullptr;
+		D3D11_TesselationShader* m_ts_shader         = nullptr;
+		D3D11_GeometryShader* m_geometry_shader      = nullptr;
+		D3D11_FragmentShader* m_fragment_shader      = nullptr;
 
 		D3D11_PRIMITIVE_TOPOLOGY m_primitive_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 		ID3D11DepthStencilState* m_depth_stencil_state = nullptr;
-		ID3D11BlendState* m_blend_state				   = nullptr;
-		ID3D11RasterizerState* m_rasterizer_state	   = nullptr;
+		ID3D11BlendState* m_blend_state                = nullptr;
+		ID3D11RasterizerState* m_rasterizer_state      = nullptr;
 
 
 		bool init(const class Pipeline* pipeline);

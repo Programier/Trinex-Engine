@@ -51,7 +51,7 @@ namespace Engine::Strings
 			return "";
 
 		return std::accumulate(std::next(elements.begin()), elements.end(), format("{}", function(elements[0])),
-							   [&delimiter, &function](const String& a, const Value& b) { return a + delimiter + function(b); });
+		                       [&delimiter, &function](const String& a, const Value& b) { return a + delimiter + function(b); });
 	}
 
 	template<typename Range, typename Value = typename Range::value_type>
@@ -141,7 +141,7 @@ namespace Engine::Strings
 	FORCE_INLINE String container_to_code_string(const T& container)
 	{
 		auto current = container.begin();
-		auto end	 = container.end();
+		auto end     = container.end();
 
 		if (current == end)
 			return "{}";

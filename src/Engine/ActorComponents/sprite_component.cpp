@@ -16,7 +16,7 @@ namespace Engine
 {
 	implement_engine_class(SpriteComponent, 0)
 	{
-		Class* self	   = This::static_class_instance();
+		Class* self    = This::static_class_instance();
 		Property* prop = new ObjectReferenceProperty("Texture", "Sprite texture", &This::m_texture);
 		prop->on_prop_changed.push([](void* object) { reinterpret_cast<SpriteComponent*>(object)->on_transform_changed(); });
 		self->add_property(prop);

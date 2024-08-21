@@ -31,7 +31,7 @@ namespace Engine
 	}
 
 	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool is_object_address_for_handle)
-		: ScriptVariableBase()
+	    : ScriptVariableBase()
 	{
 		if (!create(src_address, info, is_object_address_for_handle))
 		{
@@ -188,7 +188,7 @@ namespace Engine
 		else
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			size_t size				= engine->GetSizeOfPrimitiveType(type_id());
+			size_t size             = engine->GetSizeOfPrimitiveType(type_id());
 			if (size > 0)
 			{
 				std::memcpy(dst, address(), size);
@@ -238,7 +238,7 @@ namespace Engine
 		if (is_object())
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			m_address				= engine->CreateScriptObjectCopy(address, info.info());
+			m_address               = engine->CreateScriptObjectCopy(address, info.info());
 
 			if (m_address == nullptr)
 			{
@@ -322,7 +322,7 @@ namespace Engine
 	}
 
 	ScriptVariable::ScriptVariable(const char* declaration, const char* module)
-		: ScriptVariable(find_type_id_internal(declaration, module))
+	    : ScriptVariable(find_type_id_internal(declaration, module))
 	{}
 
 	ScriptVariable::ScriptVariable(void* address, int_t type_id, bool is_object_address_for_handle)
@@ -334,11 +334,11 @@ namespace Engine
 	}
 
 	ScriptVariable::ScriptVariable(void* address, const char* declaration, bool is_object_address_for_handle)
-		: ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), is_object_address_for_handle)
+	    : ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), is_object_address_for_handle)
 	{}
 
 	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool is_object_address_for_handle)
-		: ScriptVariable(address, find_type_id_internal(declaration, module), is_object_address_for_handle)
+	    : ScriptVariable(address, find_type_id_internal(declaration, module), is_object_address_for_handle)
 	{}
 
 	ScriptVariable::ScriptVariable(const ScriptVariable& object) : ScriptVariable(object.address(), object.type_id(), true)
@@ -395,7 +395,7 @@ namespace Engine
 		if (is_object())
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			m_address				= engine->CreateScriptObjectCopy(address, engine->GetTypeInfoById(type_id));
+			m_address               = engine->CreateScriptObjectCopy(address, engine->GetTypeInfoById(type_id));
 
 			if (m_address == nullptr)
 			{
@@ -433,7 +433,7 @@ namespace Engine
 	}
 
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, const char* module,
-								bool is_object_address_for_handle)
+	                            bool is_object_address_for_handle)
 	{
 		int_t type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)

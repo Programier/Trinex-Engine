@@ -7,19 +7,19 @@ namespace Engine
 	class ENGINE_EXPORT BufferWriter
 	{
 	public:
-		using Stream	= std::ostream;
-		using WritePos	= size_t;
+		using Stream    = std::ostream;
+		using WritePos  = size_t;
 		using PosOffset = int64_t;
 
 
 		size_t size();
 		BufferWriter& position(WritePos pos);
 
-		virtual bool write(const byte* data, size_t size)										   = 0;
-		virtual WritePos position()																   = 0;
+		virtual bool write(const byte* data, size_t size)                                          = 0;
+		virtual WritePos position()                                                                = 0;
 		virtual BufferWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
-		virtual bool is_open() const															   = 0;
-		virtual BufferWriter& clear()															   = 0;
+		virtual bool is_open() const                                                               = 0;
+		virtual BufferWriter& clear()                                                              = 0;
 
 
 		template<typename... T>
@@ -36,17 +36,17 @@ namespace Engine
 	class ENGINE_EXPORT BufferReader
 	{
 	public:
-		using ReadPos	= size_t;
+		using ReadPos   = size_t;
 		using PosOffset = int64_t;
-		using Stream	= std::istream;
+		using Stream    = std::istream;
 
 		size_t size();
 		BufferReader& position(ReadPos pos);
 
-		virtual bool read(byte* data, size_t size)												   = 0;
-		virtual ReadPos position()																   = 0;
+		virtual bool read(byte* data, size_t size)                                                 = 0;
+		virtual ReadPos position()                                                                 = 0;
 		virtual BufferReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
-		virtual bool is_open() const															   = 0;
+		virtual bool is_open() const                                                               = 0;
 
 
 		template<typename... T>

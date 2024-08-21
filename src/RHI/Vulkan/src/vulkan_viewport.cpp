@@ -16,9 +16,9 @@ namespace Engine
 
 	VulkanViewport::SyncObject::SyncObject()
 	{
-		m_image_present	  = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+		m_image_present   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
 		m_render_finished = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
-		m_fence			  = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+		m_fence           = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
 	}
 
 	VulkanViewport::SyncObject::~SyncObject()
@@ -68,7 +68,7 @@ namespace Engine
 
 		static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
 		vk::SubmitInfo submit_info(sync.m_image_present, wait_flags, API->current_command_buffer_handle(),
-								   sync.m_render_finished);
+		                           sync.m_render_finished);
 
 		API->m_graphics_queue.submit(submit_info, sync.m_fence);
 	}
@@ -169,21 +169,21 @@ namespace Engine
 	}
 
 	static void transition_swapchain_image(vk::Image image, vk::ImageLayout current, vk::ImageLayout new_layout,
-										   vk::CommandBuffer& cmd)
+	                                       vk::CommandBuffer& cmd)
 	{
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout			= current;
-		barrier.newLayout			= new_layout;
-		barrier.image				= image;
-		barrier.subresourceRange	= vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		barrier.oldLayout           = current;
+		barrier.newLayout           = new_layout;
+		barrier.image               = image;
+		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
 		Barrier::transition_image_layout(cmd, barrier);
 	}
 
 	void VulkanWindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-										   SamplerFilter filter)
+	                                       SamplerFilter filter)
 	{
 		auto current = API->m_state.m_render_target;
 
@@ -235,7 +235,7 @@ namespace Engine
 		transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
 
 		cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
-							vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+		                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 		transition_swapchain_image(dst, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR, cmd);
 
 		if (current)
@@ -271,13 +271,13 @@ namespace Engine
 		swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
 
 		swapchain_builder.add_image_usage_flags(
-				static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
+		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
 #if PLATFORM_ANDROID
 		swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR);
 #endif
 		VkSurfaceFormatKHR f;
 		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-		f.format	 = VK_FORMAT_B8G8R8A8_UNORM;
+		f.format     = VK_FORMAT_B8G8R8A8_UNORM;
 		swapchain_builder.set_desired_format(f);
 
 		auto swap_ret = swapchain_builder.build();
@@ -322,7 +322,7 @@ namespace Engine
 	{
 		if (m_need_recreate_swap_chain)
 		{
-			m_need_recreate_swap_chain				= false;
+			m_need_recreate_swap_chain              = false;
 			VulkanWindowRenderTarget* render_target = reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target);
 			API->wait_idle();
 
@@ -403,14 +403,14 @@ namespace Engine
 
 		Size2D rt_size = render_target()->state()->m_size;
 		ViewPort viewport;
-		viewport.pos	   = {0.f, 0.f};
-		viewport.size	   = rt_size;
+		viewport.pos       = {0.f, 0.f};
+		viewport.size      = rt_size;
 		viewport.min_depth = 0.f;
 		viewport.max_depth = 1.f;
 		API->viewport(viewport);
 
 		Scissor scissor;
-		scissor.pos	 = {0.f, 0.f};
+		scissor.pos  = {0.f, 0.f};
 		scissor.size = rt_size;
 		API->scissor(scissor);
 	}

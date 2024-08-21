@@ -21,29 +21,29 @@
 namespace Engine
 {
 	implement_struct(Engine::Pipeline, DepthTestInfo, ).push([]() {
-		using DTI	 = Pipeline::DepthTestInfo;
+		using DTI    = Pipeline::DepthTestInfo;
 		Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);
 
 		self->add_properties(
-				new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::static_find("Engine::DepthFunc", true)),
-				new BoolProperty("Enable", "Enable depth test", &DTI::enable),
-				new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable));
+		        new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::static_find("Engine::DepthFunc", true)),
+		        new BoolProperty("Enable", "Enable depth test", &DTI::enable),
+		        new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable));
 	});
 
 	implement_struct(Engine::Pipeline, StencilTestInfo, ).push([]() {
 		using STI = Pipeline::StencilTestInfo;
 
-		Struct* self			= Struct::static_find("Engine::Pipeline::StencilTestInfo", true);
-		Enum* stencil_op_enum	= Enum::static_find("Engine::StencilOp", true);
+		Struct* self            = Struct::static_find("Engine::Pipeline::StencilTestInfo", true);
+		Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
 		Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
 
 		self->add_properties(new BoolProperty("Enable", "Enable stencil test", &STI::enable),
-							 new EnumProperty("Fail", "Operation on fail", &STI::fail, stencil_op_enum),
-							 new EnumProperty("Depth pass", "Operation on depth pass", &STI::depth_pass, stencil_op_enum),
-							 new EnumProperty("Depth Fail", "Operation on depth fail", &STI::depth_fail, stencil_op_enum),
-							 new EnumProperty("Compare func", "Stencil compare function", &STI::compare, compare_func_enum),
-							 new ByteProperty("Compare mask", "Stencil compare mask", &STI::compare_mask),
-							 new ByteProperty("Write mask", "Stencil write mask", &STI::write_mask));
+		                     new EnumProperty("Fail", "Operation on fail", &STI::fail, stencil_op_enum),
+		                     new EnumProperty("Depth pass", "Operation on depth pass", &STI::depth_pass, stencil_op_enum),
+		                     new EnumProperty("Depth Fail", "Operation on depth fail", &STI::depth_fail, stencil_op_enum),
+		                     new EnumProperty("Compare func", "Stencil compare function", &STI::compare, compare_func_enum),
+		                     new ByteProperty("Compare mask", "Stencil compare mask", &STI::compare_mask),
+		                     new ByteProperty("Write mask", "Stencil write mask", &STI::write_mask));
 	});
 
 	implement_struct(Engine::Pipeline, AssemblyInfo, ).push([]() {
@@ -52,7 +52,7 @@ namespace Engine
 		Struct* self = Struct::static_find("Engine::Pipeline::AssemblyInfo", true);
 
 		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-											  &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
+		                                      &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
 	});
 
 	implement_struct(Engine::Pipeline, RasterizerInfo, ).push([]() {
@@ -61,30 +61,30 @@ namespace Engine
 		Struct* self = Struct::static_find("Engine::Pipeline::RasterizerInfo", true);
 
 		self->add_properties(
-				new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
-								 Enum::static_find("Engine::PolygonMode", true)),
-				new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
-				new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)),
-				new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width));
+		        new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
+		                         Enum::static_find("Engine::PolygonMode", true)),
+		        new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
+		        new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)),
+		        new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width));
 	});
 
 	implement_struct(Engine::Pipeline, ColorBlendingInfo, ).push([]() {
-		using CBI	 = Pipeline::ColorBlendingInfo;
+		using CBI    = Pipeline::ColorBlendingInfo;
 		Struct* self = Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true);
 
 		Enum* blend_func = Enum::static_find("Engine::BlendFunc", true);
-		Enum* blend_op	 = Enum::static_find("Engine::BlendOp", true);
+		Enum* blend_op   = Enum::static_find("Engine::BlendOp", true);
 
 		self->add_properties(new BoolProperty("Enable", "Enable blending", &CBI::enable),
-							 new EnumProperty("Src color func", "Src color func", &CBI::src_color_func, blend_func),
-							 new EnumProperty("Dst color func", "Dst color func", &CBI::dst_color_func, blend_func),
-							 new EnumProperty("Color operator", "Color operator", &CBI::color_op, blend_op),
+		                     new EnumProperty("Src color func", "Src color func", &CBI::src_color_func, blend_func),
+		                     new EnumProperty("Dst color func", "Dst color func", &CBI::dst_color_func, blend_func),
+		                     new EnumProperty("Color operator", "Color operator", &CBI::color_op, blend_op),
 
-							 new EnumProperty("Src alpha func", "Src alpha func", &CBI::src_alpha_func, blend_func),
-							 new EnumProperty("Dst alpha func", "Dst alpha func", &CBI::dst_alpha_func, blend_func),
-							 new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
-							 new EnumProperty("Color mask", "Color mask", &CBI::color_mask,
-											  Enum::static_find("Engine::ColorComponentMask", true)));
+		                     new EnumProperty("Src alpha func", "Src alpha func", &CBI::src_alpha_func, blend_func),
+		                     new EnumProperty("Dst alpha func", "Dst alpha func", &CBI::dst_alpha_func, blend_func),
+		                     new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
+		                     new EnumProperty("Color mask", "Color mask", &CBI::color_mask,
+		                                      Enum::static_find("Engine::ColorComponentMask", true)));
 	});
 
 	Pipeline::Pipeline()
@@ -334,12 +334,12 @@ namespace Engine
 	Pipeline::ShadersArray Pipeline::shader_array() const
 	{
 		return {
-				m_vertex_shader,			  //
-				m_tessellation_control_shader,//
-				m_tessellation_shader,		  //
-				m_geometry_shader,			  //
-				m_fragment_shader,			  //
-				nullptr						  //
+		        m_vertex_shader,              //
+		        m_tessellation_control_shader,//
+		        m_tessellation_shader,        //
+		        m_geometry_shader,            //
+		        m_fragment_shader,            //
+		        nullptr                       //
 		};
 	}
 
@@ -352,10 +352,10 @@ namespace Engine
 	}
 
 	static FORCE_INLINE bool is_equal_attribute(const VertexShader::Attribute& attr1,
-												const ShaderCompiler::ShaderReflection::VertexAttribute& attr2)
+	                                            const ShaderCompiler::ShaderReflection::VertexAttribute& attr2)
 	{
 		return attr1.type == attr2.type && attr1.semantic == attr2.semantic && attr1.semantic_index == attr2.semantic_index &&
-			   attr1.location == attr2.location;
+		       attr1.location == attr2.location;
 	}
 
 	bool Pipeline::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
@@ -363,7 +363,7 @@ namespace Engine
 		bool status = false;
 
 		bool has_valid_graphical_pipeline = source.has_valid_graphical_pipeline();
-		bool has_valid_compute_pipiline	  = source.has_valid_compute_pipeline();
+		bool has_valid_compute_pipiline   = source.has_valid_compute_pipeline();
 
 		Vector<VertexShader::Attribute> vertex_attributes;
 
@@ -415,13 +415,13 @@ namespace Engine
 							break;
 						}
 
-						current_attribute.type			 = attribute.type;
-						current_attribute.rate			 = attribute.rate;
-						current_attribute.semantic		 = attribute.semantic;
+						current_attribute.type           = attribute.type;
+						current_attribute.rate           = attribute.rate;
+						current_attribute.semantic       = attribute.semantic;
 						current_attribute.semantic_index = attribute.semantic_index;
-						current_attribute.location		 = attribute.location;
-						current_attribute.stream_index	 = attribute.stream_index;
-						current_attribute.offset		 = attribute.offset;
+						current_attribute.location       = attribute.location;
+						current_attribute.stream_index   = attribute.stream_index;
+						current_attribute.offset         = attribute.offset;
 						break;
 					}
 				}
@@ -430,14 +430,14 @@ namespace Engine
 					continue;
 
 				VertexShader::Attribute out_attribute;
-				out_attribute.name			 = attribute.name;
-				out_attribute.type			 = attribute.type;
-				out_attribute.rate			 = attribute.rate;
-				out_attribute.semantic		 = attribute.semantic;
+				out_attribute.name           = attribute.name;
+				out_attribute.type           = attribute.type;
+				out_attribute.rate           = attribute.rate;
+				out_attribute.semantic       = attribute.semantic;
 				out_attribute.semantic_index = attribute.semantic_index;
-				out_attribute.location		 = attribute.location;
-				out_attribute.stream_index	 = attribute.stream_index;
-				out_attribute.offset		 = attribute.offset;
+				out_attribute.location       = attribute.location;
+				out_attribute.stream_index   = attribute.stream_index;
+				out_attribute.offset         = attribute.offset;
 
 				v_shader->attributes.push_back(out_attribute);
 			}
@@ -486,7 +486,7 @@ namespace Engine
 
 			global_parameters = source.reflection.global_parameters_info;
 			local_parameters  = source.reflection.local_parameters_info;
-			status			  = true;
+			status            = true;
 		}
 
 		return status;
@@ -582,14 +582,14 @@ namespace Engine
 	{
 		Class* self = static_class_instance();
 		self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
-												Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
-							 new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
-												Struct::static_find("Engine::Pipeline::StencilTestInfo", true)),
-							 new StructProperty("Assembly Input", "Assembly Input", &Pipeline::input_assembly,
-												Struct::static_find("Engine::Pipeline::AssemblyInfo", true)),
-							 new StructProperty("Rasterizer", "Rasterizer properties", &Pipeline::rasterizer,
-												Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
-							 new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
-												Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)));
+		                                        Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
+		                     new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
+		                                        Struct::static_find("Engine::Pipeline::StencilTestInfo", true)),
+		                     new StructProperty("Assembly Input", "Assembly Input", &Pipeline::input_assembly,
+		                                        Struct::static_find("Engine::Pipeline::AssemblyInfo", true)),
+		                     new StructProperty("Rasterizer", "Rasterizer properties", &Pipeline::rasterizer,
+		                                        Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
+		                     new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
+		                                        Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)));
 	}
 }// namespace Engine

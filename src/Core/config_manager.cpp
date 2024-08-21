@@ -53,12 +53,12 @@ namespace Engine
 
 	static void reflection_init()
 	{
-		using T						   = ScriptConfigValue;
+		using T                        = ScriptConfigValue;
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("ConfigValue", sizeof(T));
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const ConfigValue& in)",
-						 ScriptClassRegistrar::constructor<T, const T&>);
+		                 ScriptClassRegistrar::constructor<T, const T&>);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
 
 		registrar.method("const string& name() const", &T::name);
@@ -78,22 +78,22 @@ namespace Engine
 
 	enum class ConfigValueType
 	{
-		Undefined		  = 0,
-		ConfigBool		  = 1,
-		ConfigInt		  = 2,
-		ConfigFloat		  = 3,
-		ConfigString	  = 4,
-		ConfigBoolArray	  = 5,
-		ConfigIntArray	  = 6,
+		Undefined         = 0,
+		ConfigBool        = 1,
+		ConfigInt         = 2,
+		ConfigFloat       = 3,
+		ConfigString      = 4,
+		ConfigBoolArray   = 5,
+		ConfigIntArray    = 6,
 		ConfigFloatArray  = 7,
 		ConfigStringArray = 8,
-		ConfigUserType	  = 9,
+		ConfigUserType    = 9,
 	};
 
 	struct ConfigValueInfo {
-		void* address							= nullptr;
+		void* address                           = nullptr;
 		String (*to_string_func)(void* address) = nullptr;
-		String group							= "";
+		String group                            = "";
 		ConfigValueType type;
 	};
 
@@ -173,7 +173,7 @@ namespace Engine
 
 	template<typename Type>
 	static ConfigValueInfo* register_property_internal(const Name& name, const char* type_declaration, void* ptr,
-													   const StringView& group)
+	                                                   const StringView& group)
 	{
 		if (ConfigManager::is_exist(name))
 		{
@@ -183,14 +183,14 @@ namespace Engine
 		String ns = Strings::namespace_of(name);
 		ScriptNamespaceScopedChanger changer(ns.c_str());
 
-		String prop_name		= Strings::class_name_of(name);
+		String prop_name        = Strings::class_name_of(name);
 		String full_declaration = Strings::format("{} {}", type_declaration, prop_name.c_str());
 
 		if (ScriptEngine::register_property(full_declaration.c_str(), ptr) >= 0)
 		{
-			auto& info	 = variable_map()[name];
+			auto& info   = variable_map()[name];
 			info.address = ptr;// Need override for arrays!
-			info.group	 = String(group);
+			info.group   = String(group);
 			config_groups().insert(info.group);
 			return &info;
 		}
@@ -234,7 +234,7 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigBool>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigBool;
+			info->type           = ConfigValueType::ConfigBool;
 			info->to_string_func = convert_default_value<ConfigBool>;
 		}
 	}
@@ -243,7 +243,7 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigInt>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigInt;
+			info->type           = ConfigValueType::ConfigInt;
 			info->to_string_func = convert_default_value<ConfigInt>;
 		}
 	}
@@ -252,7 +252,7 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigFloat>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigFloat;
+			info->type           = ConfigValueType::ConfigFloat;
 			info->to_string_func = convert_default_value<ConfigFloat>;
 		}
 	}
@@ -261,7 +261,7 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigString>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigString;
+			info->type           = ConfigValueType::ConfigString;
 			info->to_string_func = convert_default_value<ConfigString>;
 		}
 	}
@@ -270,9 +270,9 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigBoolArray>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigBoolArray;
+			info->type           = ConfigValueType::ConfigBoolArray;
 			info->to_string_func = convert_default_value<ConfigBoolArray>;
-			info->address		 = &property;
+			info->address        = &property;
 		}
 	}
 
@@ -280,9 +280,9 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigIntArray>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigIntArray;
+			info->type           = ConfigValueType::ConfigIntArray;
 			info->to_string_func = convert_default_value<ConfigIntArray>;
-			info->address		 = &property;
+			info->address        = &property;
 		}
 	}
 
@@ -290,9 +290,9 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigFloatArray>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigFloatArray;
+			info->type           = ConfigValueType::ConfigFloatArray;
 			info->to_string_func = convert_default_value<ConfigFloatArray>;
-			info->address		 = &property;
+			info->address        = &property;
 		}
 	}
 
@@ -300,14 +300,14 @@ namespace Engine
 	{
 		if (auto info = register_property_internal<ConfigStringArray>(name, property, group))
 		{
-			info->type			 = ConfigValueType::ConfigStringArray;
+			info->type           = ConfigValueType::ConfigStringArray;
 			info->to_string_func = convert_default_value<ConfigStringArray>;
-			info->address		 = &property;
+			info->address        = &property;
 		}
 	}
 
 	void ConfigManager::register_custom_property(const Name& name, void* property, const char* script_type_declaration,
-												 const StringView& group)
+	                                             const StringView& group)
 	{
 		if (auto info = register_property_internal<void>(name, script_type_declaration, property, group))
 		{
@@ -337,7 +337,7 @@ namespace Engine
 	static T* get_property_internal(const Name& name, ConfigValueType type)
 	{
 		auto& map = variable_map();
-		auto it	  = map.find(name);
+		auto it   = map.find(name);
 
 		if (it == map.end())
 			return nullptr;

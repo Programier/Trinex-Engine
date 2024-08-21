@@ -15,8 +15,8 @@ namespace Engine::Compressor
 		dst.resize(out_size + sizeof(size_t));
 
 		out_size =
-				LZ4_compress_HC(reinterpret_cast<const char*>(src.data()), reinterpret_cast<char*>(dst.data() + sizeof(size_t)),
-								input_size, out_size, Settings::e_lz4_compression_level);
+		        LZ4_compress_HC(reinterpret_cast<const char*>(src.data()), reinterpret_cast<char*>(dst.data() + sizeof(size_t)),
+		                        input_size, out_size, Settings::e_lz4_compression_level);
 
 		dst.resize(out_size + sizeof(size_t));
 		(*reinterpret_cast<size_t*>(dst.data())) = src.size();
@@ -29,7 +29,7 @@ namespace Engine::Compressor
 		int out_size = static_cast<int>(dst.size());
 
 		out_size = LZ4_decompress_safe(reinterpret_cast<const char*>(src.data() + sizeof(size_t)),
-									   reinterpret_cast<char*>(dst.data()), input_size, out_size);
+		                               reinterpret_cast<char*>(dst.data()), input_size, out_size);
 
 		if (out_size < 0)
 		{

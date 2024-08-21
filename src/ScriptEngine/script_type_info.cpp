@@ -31,7 +31,7 @@ namespace Engine
 
 	ScriptTypeInfo::ScriptTypeInfo(ScriptTypeInfo&& obj)
 	{
-		m_info	   = obj.m_info;
+		m_info     = obj.m_info;
 		obj.m_info = nullptr;
 	}
 
@@ -40,7 +40,7 @@ namespace Engine
 		if (this != &obj)
 		{
 			release();
-			m_info	   = obj.m_info;
+			m_info     = obj.m_info;
 			obj.m_info = nullptr;
 		}
 
@@ -246,7 +246,7 @@ namespace Engine
 	}
 
 	bool ScriptTypeInfo::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected,
-								  int_t* offset, bool* is_reference) const
+	                              int_t* offset, bool* is_reference) const
 	{
 		check_info(false);
 		const char* c_name = nullptr;

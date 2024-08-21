@@ -101,7 +101,7 @@ namespace Engine
 		}
 
 		const bool is_windows_empty = m_windows.empty();
-		m_windows[window->id()]		= window;
+		m_windows[window->id()]     = window;
 
 		if (is_windows_empty)
 		{

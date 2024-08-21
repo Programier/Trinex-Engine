@@ -49,11 +49,11 @@ namespace Engine
 	}
 
 	ScriptObject::ScriptObject(void* address, const char* declaration, bool consider_handle_as_object)
-		: Engine::ScriptObject(address, find_type_id(declaration), consider_handle_as_object)
+	    : Engine::ScriptObject(address, find_type_id(declaration), consider_handle_as_object)
 	{}
 
 	ScriptObject::ScriptObject(void* address, const char* declaration, const char* module, bool consider_handle_as_object)
-		: Engine::ScriptObject(address, find_type_id(declaration, module), consider_handle_as_object)
+	    : Engine::ScriptObject(address, find_type_id(declaration, module), consider_handle_as_object)
 	{}
 
 	ScriptObject::ScriptObject(Object* self)
@@ -179,7 +179,7 @@ namespace Engine
 		if (is_object())
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			m_address				= engine->CreateScriptObjectCopy(src_address, engine->GetTypeInfoById(type_id));
+			m_address               = engine->CreateScriptObjectCopy(src_address, engine->GetTypeInfoById(type_id));
 
 			if (m_address == nullptr)
 			{
@@ -280,7 +280,7 @@ namespace Engine
 	}
 
 	bool ScriptObject::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected,
-								int_t* offset, bool* is_reference) const
+	                            int_t* offset, bool* is_reference) const
 	{
 		return type_info().property(index, name, type_id, is_private, is_protected, offset, is_reference);
 	}

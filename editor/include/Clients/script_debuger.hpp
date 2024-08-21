@@ -20,7 +20,7 @@ namespace Engine
 			ImGui::TextEditor m_editor;
 			class Script* m_script = nullptr;
 			bool m_is_bind_to_dock = false;
-			bool m_need_focus	   = false;
+			bool m_need_focus      = false;
 		};
 
 		ImGui::TextEditor::LanguageDefinition m_lang;
@@ -29,11 +29,11 @@ namespace Engine
 
 		Pointer<RenderViewport> m_viewport;
 		Vector<class Event> m_recieved_events;
-		class Window* m_window						= nullptr;
+		class Window* m_window                      = nullptr;
 		class ImGuiRenderer::Window* m_imgui_window = nullptr;
 		Thread* m_debugging_thread;
 
-		class Script* m_selected_script	 = nullptr;
+		class Script* m_selected_script  = nullptr;
 		class Script* m_script_for_popup = nullptr;
 
 		ScriptFunction m_last_function;

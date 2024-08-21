@@ -20,13 +20,13 @@ namespace Engine
 		event_system->register_subsystem(this);
 
 		m_callbacks_identifier.push_back(event_system->add_listener(
-				EventType::MouseMotion, std::bind(&MouseSystem::on_motion_event, this, std::placeholders::_1)));
+		        EventType::MouseMotion, std::bind(&MouseSystem::on_motion_event, this, std::placeholders::_1)));
 		m_callbacks_identifier.push_back(event_system->add_listener(
-				EventType::MouseButtonUp, std::bind(&MouseSystem::on_button_up_event, this, std::placeholders::_1)));
+		        EventType::MouseButtonUp, std::bind(&MouseSystem::on_button_up_event, this, std::placeholders::_1)));
 		m_callbacks_identifier.push_back(event_system->add_listener(
-				EventType::MouseButtonDown, std::bind(&MouseSystem::on_button_down_event, this, std::placeholders::_1)));
+		        EventType::MouseButtonDown, std::bind(&MouseSystem::on_button_down_event, this, std::placeholders::_1)));
 		m_callbacks_identifier.push_back(event_system->add_listener(
-				EventType::WindowClose, std::bind(&MouseSystem::on_window_close, this, std::placeholders::_1)));
+		        EventType::WindowClose, std::bind(&MouseSystem::on_window_close, this, std::placeholders::_1)));
 		return *this;
 	}
 
@@ -45,11 +45,11 @@ namespace Engine
 		const MouseMotionEvent& motion = e.get<const MouseMotionEvent&>();
 		if (Window* window = find_window(e.window_id()))
 		{
-			auto& state				  = state_of(window);
+			auto& state               = state_of(window);
 			state.m_pos_info.x_offset = motion.xrel;
 			state.m_pos_info.y_offset = motion.yrel;
-			state.m_pos_info.x		  = motion.x;
-			state.m_pos_info.y		  = motion.y;
+			state.m_pos_info.x        = motion.x;
+			state.m_pos_info.y        = motion.y;
 		}
 	}
 
@@ -59,9 +59,9 @@ namespace Engine
 		if (Window* window = find_window(e.window_id()))
 		{
 			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(button_event.button)];
-			info.status		 = Mouse::JustPressed;
-			info.x			 = button_event.x;
-			info.y			 = button_event.y;
+			info.status      = Mouse::JustPressed;
+			info.x           = button_event.x;
+			info.y           = button_event.y;
 		}
 	}
 
@@ -71,7 +71,7 @@ namespace Engine
 		if (Window* window = find_window(e.window_id()))
 		{
 			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(button_event.button)];
-			info.status		 = Mouse::JustReleased;
+			info.status      = Mouse::JustReleased;
 
 			info.x = button_event.x;
 			info.y = button_event.y;
@@ -91,9 +91,9 @@ namespace Engine
 		if (Window* window = find_window(e.window_id()))
 		{
 			const MouseWheelEvent& wheel = e.get<const MouseWheelEvent&>();
-			auto& state					 = state_of(window);
-			state.m_wheel_info.x		 = wheel.x;
-			state.m_wheel_info.y		 = wheel.y;
+			auto& state                  = state_of(window);
+			state.m_wheel_info.x         = wheel.x;
+			state.m_wheel_info.y         = wheel.y;
 		}
 	}
 
@@ -121,7 +121,7 @@ namespace Engine
 		if (window == nullptr)
 		{
 			auto instance = WindowManager::instance();
-			window		  = instance->main_window();
+			window        = instance->main_window();
 		}
 
 		return m_mouse_state[window];

@@ -69,8 +69,8 @@
 
 namespace JIT
 {
-	static constexpr inline int32_t half_ptr_size	   = static_cast<int32_t>(sizeof(void*) / 2);
-	static constexpr inline int32_t ptr_size_1		   = static_cast<int32_t>(sizeof(void*) * 1);
+	static constexpr inline int32_t half_ptr_size      = static_cast<int32_t>(sizeof(void*) / 2);
+	static constexpr inline int32_t ptr_size_1         = static_cast<int32_t>(sizeof(void*) * 1);
 	static constexpr inline int32_t vm_register_offset = -ptr_size_1;
 
 	static constexpr inline size_t const_pool_size = 64;
@@ -125,13 +125,13 @@ namespace JIT
 	static constexpr inline Gpq restore_register = r13;
 
 	static constexpr inline Gpq vm_stack_frame_pointer MAYBE_UNUSED = r8;
-	static constexpr inline Gpq vm_stack_pointer MAYBE_UNUSED		= r9;
-	static constexpr inline Gpq vm_value_q MAYBE_UNUSED				= r10;
-	static constexpr inline Gpd vm_value_d MAYBE_UNUSED				= r10d;
-	static constexpr inline Gpw vm_value_w MAYBE_UNUSED				= r10w;
-	static constexpr inline Gpb vm_value_b MAYBE_UNUSED				= r10b;
-	static constexpr inline Gpq vm_object MAYBE_UNUSED				= r11;
-	static constexpr inline Gpq vm_object_type MAYBE_UNUSED			= r12;
+	static constexpr inline Gpq vm_stack_pointer MAYBE_UNUSED       = r9;
+	static constexpr inline Gpq vm_value_q MAYBE_UNUSED             = r10;
+	static constexpr inline Gpd vm_value_d MAYBE_UNUSED             = r10d;
+	static constexpr inline Gpw vm_value_w MAYBE_UNUSED             = r10w;
+	static constexpr inline Gpb vm_value_b MAYBE_UNUSED             = r10b;
+	static constexpr inline Gpq vm_object MAYBE_UNUSED              = r11;
+	static constexpr inline Gpq vm_object_type MAYBE_UNUSED         = r12;
 
 
 #elif PLATFORM_WINDOWS
@@ -184,13 +184,13 @@ namespace JIT
 	static constexpr inline Gpq restore_register = r13;
 
 	static constexpr inline Gpq vm_stack_frame_pointer MAYBE_UNUSED = r8;
-	static constexpr inline Gpq vm_stack_pointer MAYBE_UNUSED		= r9;
-	static constexpr inline Gpq vm_value_q MAYBE_UNUSED				= r10;
-	static constexpr inline Gpd vm_value_d MAYBE_UNUSED				= r10d;
-	static constexpr inline Gpw vm_value_w MAYBE_UNUSED				= r10w;
-	static constexpr inline Gpb vm_value_b MAYBE_UNUSED				= r10b;
-	static constexpr inline Gpq vm_object MAYBE_UNUSED				= r11;
-	static constexpr inline Gpq vm_object_type MAYBE_UNUSED			= r12;
+	static constexpr inline Gpq vm_stack_pointer MAYBE_UNUSED       = r9;
+	static constexpr inline Gpq vm_value_q MAYBE_UNUSED             = r10;
+	static constexpr inline Gpd vm_value_d MAYBE_UNUSED             = r10d;
+	static constexpr inline Gpw vm_value_w MAYBE_UNUSED             = r10w;
+	static constexpr inline Gpb vm_value_b MAYBE_UNUSED             = r10b;
+	static constexpr inline Gpq vm_object MAYBE_UNUSED              = r11;
+	static constexpr inline Gpq vm_object_type MAYBE_UNUSED         = r12;
 #endif
 
 
@@ -290,7 +290,7 @@ namespace JIT
 	X86_64_Compiler::X86_64_Compiler(bool with_suspend) : m_with_suspend(with_suspend)
 	{
 #define register_code(name)                                                                                                      \
-	exec[static_cast<size_t>(name)]		  = &X86_64_Compiler::exec_##name;                                                       \
+	exec[static_cast<size_t>(name)]       = &X86_64_Compiler::exec_##name;                                                       \
 	code_names[static_cast<size_t>(name)] = #name;
 
 		register_code(asBC_PopPtr);
@@ -501,7 +501,7 @@ namespace JIT
 	int X86_64_Compiler::CompileFunction(asIScriptFunction* function, asJITFunction* output)
 	{
 		logf("=================================================================\nBegin compile function '%s'\n",
-			 function->GetName());
+		     function->GetName());
 
 		CompileInfo info;
 		info.address = info.begin = function->GetByteCode(&info.byte_codes);
@@ -522,10 +522,10 @@ namespace JIT
 
 		Label const_pool_label = info.assembler.newLabel();
 		info.const_pool_label  = &const_pool_label;
-		info.const_pool		   = &const_pool;
+		info.const_pool        = &const_pool;
 
 
-		unsigned int index				= 0;
+		unsigned int index              = 0;
 		std::set<unsigned int>& skip_it = m_skip_instructions[function->GetName()];
 
 		while (info.address < info.end)
@@ -551,7 +551,7 @@ namespace JIT
 		m_rt.add(output, &code);
 
 		logf("End of compile function '%s'\n=================================================================\n\n",
-			 function->GetName());
+		     function->GetName());
 		return 0;
 	}
 
@@ -579,7 +579,7 @@ namespace JIT
 
 #if WITH_LOG
 		{
-			auto size			= instruction_size(info->instruction);
+			auto size           = instruction_size(info->instruction);
 			bool is_implemented = current_offset != info->assembler.offset();
 
 			if (info->instruction == asBC_JitEntry || info->instruction == asBC_SUSPEND || info->instruction == asBC_iTOb)
@@ -592,7 +592,7 @@ namespace JIT
 #endif
 			{
 				logf("%-15s (%3zu with size = %u, %15s) -> [", code_names[index], index, size,
-					 (is_implemented ? "IMPLEMENTED" : "NOT IMPLEMENTED"));
+				     (is_implemented ? "IMPLEMENTED" : "NOT IMPLEMENTED"));
 
 				for (decltype(size) i = 1; i < size; i++)
 				{
@@ -642,7 +642,7 @@ namespace JIT
 				{
 					info->labels.emplace_back();
 					info->labels.back().byte_code_address = start + asBC_INTARG(start) + instruction_size(op);
-					info->labels.back().label			  = info->assembler.newLabel();
+					info->labels.back().label             = info->assembler.newLabel();
 					break;
 				}
 
@@ -766,7 +766,7 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_NOT(CompileInfo* info)
 	{
 		Label not_equal = info->assembler.newLabel();
-		Label end		= info->assembler.newLabel();
+		Label end       = info->assembler.newLabel();
 
 
 		new_instruction(cmp(vm_value_q, 0));
@@ -864,7 +864,7 @@ namespace JIT
 	{
 		CHECK_IT();
 		Label is_zero = info->assembler.newLabel();
-		Label end	  = info->assembler.newLabel();
+		Label end     = info->assembler.newLabel();
 
 
 		new_instruction(cmp(vm_value_d, 0));
@@ -881,7 +881,7 @@ namespace JIT
 	{
 		// If the value in the register is not 0, then set the register to 1, else to 0
 		Label is_zero = info->assembler.newLabel();
-		Label end	  = info->assembler.newLabel();
+		Label end     = info->assembler.newLabel();
 
 		new_instruction(cmp(vm_value_q, 0));
 		new_instruction(je(is_zero));
@@ -898,7 +898,7 @@ namespace JIT
 		// If the value in the register is negative, then set the register to 1, else to 0
 		CHECK_IT();
 		Label is_negative = info->assembler.newLabel();
-		Label end		  = info->assembler.newLabel();
+		Label end         = info->assembler.newLabel();
 
 		new_instruction(cmp(vm_value_d, 0));
 		new_instruction(jl(is_negative));
@@ -915,7 +915,7 @@ namespace JIT
 		// If the value in the register is not negative, then set the register to 1, else to 0
 		CHECK_IT();
 		Label is_negative = info->assembler.newLabel();
-		Label end		  = info->assembler.newLabel();
+		Label end         = info->assembler.newLabel();
 
 		new_instruction(cmp(vm_value_d, 0));
 		new_instruction(jl(is_negative));
@@ -932,7 +932,7 @@ namespace JIT
 		// If the value in the register is not negative, then set the register to 1, else to 0
 		CHECK_IT();
 		Label is_negative = info->assembler.newLabel();
-		Label end		  = info->assembler.newLabel();
+		Label end         = info->assembler.newLabel();
 
 		new_instruction(cmp(vm_value_d, 0));
 		new_instruction(jl(is_negative));
@@ -949,7 +949,7 @@ namespace JIT
 		// If the value in the register is not greater than 0, then set the register to 1, else to 0
 		CHECK_IT();
 		Label is_le = info->assembler.newLabel();
-		Label end	= info->assembler.newLabel();
+		Label end   = info->assembler.newLabel();
 
 		new_instruction(cmp(vm_value_d, 0));
 		new_instruction(jle(is_le));
@@ -1142,8 +1142,8 @@ namespace JIT
 		new_instruction(mov(qword_second_arg, qword_ptr(vm_stack_pointer)));
 
 		Label nullptr_access = info->assembler.newLabel();
-		Label is_ok			 = info->assembler.newLabel();
-		Label end			 = info->assembler.newLabel();
+		Label is_ok          = info->assembler.newLabel();
+		Label end            = info->assembler.newLabel();
 
 		new_instruction(cmp(qword_first_arg, 0));
 		new_instruction(je(nullptr_access));
@@ -1201,9 +1201,9 @@ namespace JIT
 
 		new_instruction(movsd(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(comisd(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(jne(is_greater));
@@ -1227,9 +1227,9 @@ namespace JIT
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(cmp(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(jne(is_greater));
@@ -1253,9 +1253,9 @@ namespace JIT
 
 		new_instruction(movss(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(comiss(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(jne(is_greater));
@@ -1279,9 +1279,9 @@ namespace JIT
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(cmp(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(jne(is_greater));
@@ -1300,14 +1300,14 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_CMPIi(CompileInfo* info)
 	{
-		int value	  = arg_value_int();
+		int value     = arg_value_int();
 		short offset0 = arg_offset(0);
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less		  = info->assembler.newLabel();
+		asmjit::Label is_less         = info->assembler.newLabel();
 		asmjit::Label is_greater_than = info->assembler.newLabel();
-		asmjit::Label end			  = info->assembler.newLabel();
+		asmjit::Label end             = info->assembler.newLabel();
 
 		new_instruction(cmp(dword_free_1, value));
 		new_instruction(jne(is_greater_than));
@@ -1328,13 +1328,13 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_CMPIf(CompileInfo* info)
 	{
 		short offset0 = arg_offset(0);
-		float value	  = arg_value_float(0);
+		float value   = arg_value_float(0);
 
 		new_instruction(movss(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(comiss(xmm_free_1, info->insert_constant<float>(value)));
 		new_instruction(jne(is_greater));
@@ -1358,9 +1358,9 @@ namespace JIT
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(cmp(dword_free_1, value));
 		new_instruction(jne(is_greater));
@@ -1590,7 +1590,7 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_CpyVtoG4(CompileInfo* info)
 	{
-		asPWORD ptr	 = arg_value_ptr();
+		asPWORD ptr  = arg_value_ptr();
 		short offset = arg_offset(0);
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset)));
@@ -1612,7 +1612,7 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_CpyGtoV4(CompileInfo* info)
 	{
-		asPWORD ptr	 = arg_value_ptr();
+		asPWORD ptr  = arg_value_ptr();
 		short offset = arg_offset(0);
 		new_instruction(movabs(qword_free_1, ptr));
 		new_instruction(mov(dword_free_1, dword_ptr(qword_free_1)));
@@ -2017,7 +2017,7 @@ namespace JIT
 	{
 		short offset0 = arg_offset(0);
 		short offset1 = arg_offset(1);
-		int value	  = (asBC_INTARG(info->address + 1));
+		int value     = (asBC_INTARG(info->address + 1));
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(add(dword_free_1, value));
@@ -2028,7 +2028,7 @@ namespace JIT
 	{
 		short offset0 = arg_offset(0);
 		short offset1 = arg_offset(1);
-		int value	  = (asBC_INTARG(info->address + 1));
+		int value     = (asBC_INTARG(info->address + 1));
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(sub(dword_free_1, value));
@@ -2039,7 +2039,7 @@ namespace JIT
 	{
 		short offset0 = arg_offset(0);
 		short offset1 = arg_offset(1);
-		int value	  = (asBC_INTARG(info->address + 1));
+		int value     = (asBC_INTARG(info->address + 1));
 
 		new_instruction(mov(dword_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(imul(dword_free_1, value));
@@ -2050,7 +2050,7 @@ namespace JIT
 	{
 		short offset0 = arg_offset(0);
 		short offset1 = arg_offset(1);
-		float value	  = arg_value_float(1);
+		float value   = arg_value_float(1);
 
 		new_instruction(movss(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(addss(xmm_free_1, info->insert_constant(value)));
@@ -2061,7 +2061,7 @@ namespace JIT
 	{
 		short offset0 = arg_offset(0);
 		short offset1 = arg_offset(1);
-		float value	  = arg_value_float(1);
+		float value   = arg_value_float(1);
 
 		new_instruction(movss(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(subss(xmm_free_1, info->insert_constant(value)));
@@ -2072,7 +2072,7 @@ namespace JIT
 	{
 		short offset0 = arg_offset(0);
 		short offset1 = arg_offset(1);
-		float value	  = arg_value_float(1);
+		float value   = arg_value_float(1);
 
 		new_instruction(movss(xmm_free_1, dword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(mulss(xmm_free_1, info->insert_constant(value)));
@@ -2081,7 +2081,7 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_SetG4(CompileInfo* info)
 	{
-		asPWORD ptr	  = arg_value_ptr();
+		asPWORD ptr   = arg_value_ptr();
 		asDWORD value = asBC_DWORDARG(info->address + AS_PTR_SIZE);
 		new_instruction(movabs(qword_free_1, ptr));
 		new_instruction(mov(dword_ptr(qword_free_1), value));
@@ -2131,7 +2131,7 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_SetV1(CompileInfo* info)
 	{
-		short value	  = arg_value_dword(0);
+		short value   = arg_value_dword(0);
 		short offset0 = arg_offset(0);
 
 		new_instruction(mov(dword_ptr(vm_stack_frame_pointer, offset0), value));
@@ -2139,7 +2139,7 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_SetV2(CompileInfo* info)
 	{
-		short value	  = arg_value_dword(0);
+		short value   = arg_value_dword(0);
 		short offset0 = arg_offset(0);
 
 		new_instruction(mov(dword_ptr(vm_stack_frame_pointer, offset0), value));
@@ -2417,9 +2417,9 @@ namespace JIT
 
 		new_instruction(mov(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(cmp(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(jne(is_greater));
@@ -2443,9 +2443,9 @@ namespace JIT
 
 		new_instruction(mov(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset0)));
 
-		asmjit::Label is_less	 = info->assembler.newLabel();
+		asmjit::Label is_less    = info->assembler.newLabel();
 		asmjit::Label is_greater = info->assembler.newLabel();
-		asmjit::Label end		 = info->assembler.newLabel();
+		asmjit::Label end        = info->assembler.newLabel();
 
 		new_instruction(cmp(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset1)));
 		new_instruction(jne(is_greater));
@@ -2479,7 +2479,7 @@ namespace JIT
 
 	void X86_64_Compiler::exec_asBC_JitEntry(CompileInfo* info)
 	{
-		asDWORD offset				 = static_cast<asDWORD>(info->assembler.offset()) - info->header_size;
+		asDWORD offset               = static_cast<asDWORD>(info->assembler.offset()) - info->header_size;
 		asBC_DWORDARG(info->address) = offset;
 	}
 
@@ -2626,11 +2626,11 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_SetListSize(CompileInfo* info)
 	{
 		short offset = arg_offset(0);
-		asUINT off	 = arg_value_dword(0);
-		asUINT size	 = arg_value_dword(1);
+		asUINT off   = arg_value_dword(0);
+		asUINT size  = arg_value_dword(1);
 
 		Label is_valid = info->assembler.newLabel();
-		Label end	   = info->assembler.newLabel();
+		Label end      = info->assembler.newLabel();
 
 		new_instruction(mov(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset)));
 
@@ -2648,10 +2648,10 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_PshListElmnt(CompileInfo* info)
 	{
 		short offset = arg_offset(0);
-		asUINT off	 = arg_value_dword(0);
+		asUINT off   = arg_value_dword(0);
 
 		Label is_valid = info->assembler.newLabel();
-		Label end	   = info->assembler.newLabel();
+		Label end      = info->assembler.newLabel();
 
 		new_instruction(mov(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset)));
 
@@ -2671,11 +2671,11 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_SetListType(CompileInfo* info)
 	{
 		short offset = arg_offset(0);
-		asUINT type	 = arg_value_dword(1);
-		asUINT off	 = arg_value_dword(0);
+		asUINT type  = arg_value_dword(1);
+		asUINT off   = arg_value_dword(0);
 
 		Label is_valid = info->assembler.newLabel();
-		Label end	   = info->assembler.newLabel();
+		Label end      = info->assembler.newLabel();
 
 		new_instruction(mov(qword_free_1, qword_ptr(vm_stack_frame_pointer, offset)));
 

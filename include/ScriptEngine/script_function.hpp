@@ -18,12 +18,12 @@ namespace Engine
 	public:
 		enum Type
 		{
-			Dummy	  = 0,
-			System	  = 1,
-			Script	  = 2,
+			Dummy     = 0,
+			System    = 1,
+			Script    = 2,
 			Interface = 3,
-			Virtual	  = 4,
-			Funcdef	  = 5,
+			Virtual   = 4,
+			Funcdef   = 5,
 			Imported  = 6,
 			Delegate  = 7
 		};
@@ -56,7 +56,7 @@ namespace Engine
 		StringView name() const;
 		StringView namespace_name() const;
 		String declaration(bool include_object_name = true, bool include_namespace = false,
-						   bool include_param_names = false) const;
+		                   bool include_param_names = false) const;
 		bool is_read_only() const;
 		bool is_private() const;
 		bool is_protected() const;
@@ -68,7 +68,7 @@ namespace Engine
 
 		uint_t param_count() const;
 		bool param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,
-				   StringView* default_arg = nullptr) const;
+		           StringView* default_arg = nullptr) const;
 		int_t return_type_id(Flags<ScriptTypeModifiers>* flags = nullptr) const;
 
 		// Type id for function pointers

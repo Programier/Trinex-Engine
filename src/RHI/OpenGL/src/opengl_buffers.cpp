@@ -147,7 +147,7 @@ namespace Engine
 		buffer->bind(binding_index);
 
 		shadow_data_size = 0;
-		index			 = 0;
+		index            = 0;
 	}
 
 	void OpenGL_LocalUniformBuffer::update(const void* data, size_t size, size_t offset)
@@ -200,7 +200,7 @@ namespace Engine
 	OpenGL& OpenGL::initialize_ubo()
 	{
 		m_global_ubo = new OpenGL_UniformBuffer(sizeof(GlobalShaderParameters));
-		m_local_ubo	 = new OpenGL_LocalUniformBuffer();
+		m_local_ubo  = new OpenGL_LocalUniformBuffer();
 		return *this;
 	}
 

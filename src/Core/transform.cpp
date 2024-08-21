@@ -20,7 +20,7 @@ namespace Engine
 		if (inited)
 			return;
 
-		Struct* self				= Struct::static_find("Engine::Transform", true);
+		Struct* self                = Struct::static_find("Engine::Transform", true);
 		static auto on_prop_changed = [](void* object) {
 			Transform* transform  = reinterpret_cast<Transform*>(object);
 			transform->m_is_dirty = true;
@@ -28,7 +28,7 @@ namespace Engine
 
 		auto location_prop = new Vec3Property("Location", "Location component of transform", &Transform::m_location);
 		auto rotation_prop = new Vec3Property("Rotation", "Rotation component of transform", &Transform::m_rotation);
-		auto scale_prop	   = new Vec3Property("Scale", "Scale component of transform", &Transform::m_scale);
+		auto scale_prop    = new Vec3Property("Scale", "Scale component of transform", &Transform::m_scale);
 
 		location_prop->on_prop_changed.push(on_prop_changed);
 		rotation_prop->on_prop_changed.push(on_prop_changed);
@@ -40,11 +40,11 @@ namespace Engine
 	implement_struct(Engine, Transform, ).push(Transform::initialize_transform_properties);
 
 	Transform::Transform(const Vector3D& location, const Vector3D& rotation, const Vector3D& scale)
-		: m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
+	    : m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
 	{}
 
 	Transform::Transform(const Vector3D& location, const Quaternion& rotation, const Vector3D& scale)
-		: Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
+	    : Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
 	{}
 
 
@@ -128,7 +128,7 @@ namespace Engine
 
 	Transform& Transform::scale(const Vector3D& new_scale)
 	{
-		m_scale	   = new_scale;
+		m_scale    = new_scale;
 		m_is_dirty = true;
 		return *this;
 	}
@@ -262,11 +262,11 @@ namespace Engine
 	String Transform::as_string() const
 	{
 		return Strings::format("Location: {}, {}, {}\n"
-							   "Rotation: {}, {}, {}\n"
-							   "Scale: {}, {}, {}",						//
-							   m_location.x, m_location.y, m_location.z,//
-							   m_rotation.x, m_rotation.y, m_rotation.z,//
-							   m_scale.x, m_scale.y, m_scale.z);
+		                       "Rotation: {}, {}, {}\n"
+		                       "Scale: {}, {}, {}",                     //
+		                       m_location.x, m_location.y, m_location.z,//
+		                       m_rotation.x, m_rotation.y, m_rotation.z,//
+		                       m_scale.x, m_scale.y, m_scale.z);
 	}
 
 	bool Transform::is_dirty() const
@@ -300,15 +300,15 @@ namespace Engine
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform));
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform& in)",
-						 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
+		                 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 
 		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDeclObjFirst);
 	}
 
 	static ReflectionInitializeController init(on_init, "Engine::Transform",
-											   {"Engine::Matrix", "Engine::Vector", "Engine::Quaternion"});
+	                                           {"Engine::Matrix", "Engine::Vector", "Engine::Quaternion"});
 }// namespace Engine

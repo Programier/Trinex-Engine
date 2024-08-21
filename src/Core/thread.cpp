@@ -104,8 +104,8 @@ namespace Engine
 				using namespace std::chrono_literals;
 
 				if (self->m_exec_cv.wait_until(lock, std::chrono::system_clock::now() + 1ms, [self]() -> bool {
-						return self->m_command_buffer.unreaded_buffer_size() != 0 || self->m_is_shuting_down;
-					}))
+					    return self->m_command_buffer.unreaded_buffer_size() != 0 || self->m_is_shuting_down;
+				    }))
 				{
 					self->m_is_thread_busy.store(true);
 					contains_tasks = true;
@@ -144,7 +144,7 @@ namespace Engine
 		m_event.m_thread = this;
 
 		m_command_buffer.init(size, 16, &m_event);
-		m_thread		= new std::thread(&Thread::thread_loop, this);
+		m_thread        = new std::thread(&Thread::thread_loop, this);
 		m_native_handle = m_thread->native_handle();
 
 		update_name();

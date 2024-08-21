@@ -85,7 +85,7 @@ namespace Engine
 				}
 			}
 
-			m_data	   = std::move(new_data);
+			m_data     = std::move(new_data);
 			m_channels = new_channels;
 		}
 	}
@@ -162,8 +162,8 @@ namespace Engine
 	{
 		if (this == &img)
 			return *this;
-		m_data	   = img.m_data;
-		m_width	   = img.m_width;
+		m_data     = img.m_data;
+		m_width    = img.m_width;
 		m_height   = img.m_height;
 		m_channels = img.m_channels;
 		return *this;
@@ -183,9 +183,9 @@ namespace Engine
 		if (this == &img)
 			return *this;
 
-		m_data	   = std::move(img.m_data);
+		m_data     = std::move(img.m_data);
 		m_channels = img.m_channels;
-		m_width	   = img.m_width;
+		m_width    = img.m_width;
 		m_height   = img.m_height;
 
 		img.m_channels = img.m_height = img.m_width = 0;
@@ -200,11 +200,11 @@ namespace Engine
 		Vector<byte> resized_image(new_width * new_height * m_channels, 0);
 
 		auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(), new_width,
-										 new_height, new_width * m_channels, m_channels);
+		                                 new_height, new_width * m_channels, m_channels);
 
-		m_width	 = new_width;
+		m_width  = new_width;
 		m_height = new_height;
-		m_data	 = std::move(resized_image);
+		m_data   = std::move(resized_image);
 		return status;
 	}
 
@@ -229,14 +229,14 @@ namespace Engine
 	{
 		make_writer();
 		return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(),
-														m_width * m_channels));
+		                                                m_width * m_channels));
 	}
 
 	bool Image::write_jpg(const Path& filename)
 	{
 		make_writer();
 		return static_cast<bool>(
-				stbi_write_jpg_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(), 100));
+		        stbi_write_jpg_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(), 100));
 	}
 
 	bool Image::write_bmp(const Path& filename)
@@ -254,7 +254,7 @@ namespace Engine
 		path += extension_of_type(type);
 
 		static bool (Engine::Image::*write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
-																		&Image::write_tga};
+		                                                                &Image::write_tga};
 
 		auto method = write_methods[static_cast<EnumerateType>(type)];
 		stbi_flip_vertically_on_write(static_cast<int>(invert));
@@ -264,15 +264,15 @@ namespace Engine
 	Image& Image::create(const Size2D& size, uint_t channels, Buffer&& buffer)
 	{
 		if (static_cast<int_t>(size.x) * static_cast<int_t>(size.y) * static_cast<int_t>(channels) !=
-			static_cast<int_t>(buffer.size()))
+		    static_cast<int_t>(buffer.size()))
 		{
 			throw EngineException("Image: Invalid buffer size");
 		}
 
 		m_channels = channels;
-		m_width	   = static_cast<int_t>(size.x);
+		m_width    = static_cast<int_t>(size.x);
 		m_height   = static_cast<int_t>(size.y);
-		m_data	   = std::move(buffer);
+		m_data     = std::move(buffer);
 
 		return *this;
 	}
@@ -287,7 +287,7 @@ namespace Engine
 	Image& Image::create(const Size2D& size, uint_t channels, const byte* buffer)
 	{
 		m_channels = channels;
-		m_width	   = static_cast<int_t>(size.x);
+		m_width    = static_cast<int_t>(size.x);
 		m_height   = static_cast<int_t>(size.y);
 
 		auto buffer_size = m_width * m_height * m_channels;
@@ -329,7 +329,7 @@ namespace Engine
 	Image& Image::create_interface(const Size2D& size, uint_t channels)
 	{
 		m_channels = glm::min<uint_t>(channels, 4);
-		m_width	   = static_cast<int_t>(glm::abs(size.x));
+		m_width    = static_cast<int_t>(glm::abs(size.x));
 		m_height   = static_cast<int_t>(glm::abs(size.y));
 		m_data.clear();
 

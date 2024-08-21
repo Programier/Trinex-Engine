@@ -21,7 +21,7 @@ namespace Engine
 	extern void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer);
 	static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
 	{
-		Material* material				   = DefaultResources::Materials::sprite;
+		Material* material                 = DefaultResources::Materials::sprite;
 		PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_position;
 
 		if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
@@ -33,7 +33,7 @@ namespace Engine
 		}
 
 		BindingMaterialParameter* texture_parameter =
-				reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
+		        reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
 		Texture* tmp_texture = nullptr;
 		Sampler* tmp_sampler = nullptr;
 
@@ -58,11 +58,11 @@ namespace Engine
 
 	static void render_spot_light_overlay_colored(SpotLightComponent* component, float angle, Vector4D color)
 	{
-		auto proxy		   = component->proxy();
+		auto proxy         = component->proxy();
 		Material* material = EditorResources::spot_light_overlay_material;
 
 		auto model_param = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model));
-		auto transform	 = proxy->world_transform();
+		auto transform   = proxy->world_transform();
 		transform.scale({1, 1, 1});
 		model_param->param = transform.matrix();
 
@@ -70,8 +70,8 @@ namespace Engine
 		auto height_param = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::height));
 
 		static constexpr float sphere_radius = 4.f;
-		float radius						 = glm::sin(angle) * sphere_radius;
-		float height						 = glm::cos(angle) * sphere_radius;
+		float radius                         = glm::sin(angle) * sphere_radius;
+		float height                         = glm::cos(angle) * sphere_radius;
 
 		radius_param->param = radius;
 		height_param->param = height;
@@ -94,7 +94,7 @@ namespace Engine
 
 	static void render_point_light_overlay(PointLightComponent* component)
 	{
-		auto proxy		   = component->proxy();
+		auto proxy         = component->proxy();
 		Material* material = EditorResources::point_light_overlay_material;
 
 		auto color_parameter  = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
@@ -172,26 +172,26 @@ namespace Engine
 	static void create_directional_arrow(DirectionalLightComponent* component, OverlaySceneLayer* layer)
 	{
 		DirectionalLightComponentProxy* proxy = component->proxy();
-		auto& transform						  = proxy->world_transform();
-		auto location						  = transform.location();
-		auto direction						  = proxy->direction();
+		auto& transform                       = proxy->world_transform();
+		auto location                         = transform.location();
+		auto direction                        = proxy->direction();
 
-		constexpr float offset		  = 0.5f;
+		constexpr float offset        = 0.5f;
 		const Vector3D forward_vector = transform.forward_vector();
-		const Vector3D right_vector	  = transform.right_vector();
+		const Vector3D right_vector   = transform.right_vector();
 
-		Vector3D end_point		  = location + direction * 3.f;
+		Vector3D end_point        = location + direction * 3.f;
 		Vector3D arrow_base_point = end_point - direction * offset;
 
 
 		static const ByteColor white = {255, 150, 150, 255};
-		static const ByteColor red	 = {255, 0, 0, 255};
+		static const ByteColor red   = {255, 0, 0, 255};
 
 		Vector3D arrow_points[4] = {
-				arrow_base_point + forward_vector * offset / 2.f,
-				arrow_base_point + right_vector * offset / 2.f,
-				arrow_base_point + forward_vector * -offset / 2.f,
-				arrow_base_point + right_vector * -offset / 2.f,
+		        arrow_base_point + forward_vector * offset / 2.f,
+		        arrow_base_point + right_vector * offset / 2.f,
+		        arrow_base_point + forward_vector * -offset / 2.f,
+		        arrow_base_point + right_vector * -offset / 2.f,
 		};
 
 		layer->lines.add_line(location, end_point);

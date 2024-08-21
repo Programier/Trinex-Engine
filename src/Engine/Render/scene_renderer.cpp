@@ -124,8 +124,8 @@ namespace Engine
 
 	static void copy_gbuffer_to_scene_output()
 	{
-		static Name screen_texture		= "screen_texture";
-		Material* material				= DefaultResources::Materials::screen;
+		static Name screen_texture      = "screen_texture";
+		Material* material              = DefaultResources::Materials::screen;
 		PositionVertexBuffer* positions = DefaultResources::Buffers::screen_position;
 
 		if (material && positions)
@@ -135,7 +135,7 @@ namespace Engine
 			if (TextureParam* texture = reinterpret_cast<TextureParam*>(material->find_parameter(screen_texture)))
 			{
 				Texture* base_color = reinterpret_cast<class Texture*>(
-						SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor));
+				        SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor));
 				texture->texture_param(base_color);
 				material->apply();
 				positions->rhi_bind(0, 0);
@@ -147,7 +147,7 @@ namespace Engine
 	static void render_ambient_light_only(Scene* scene)
 	{
 		static Name name_ambient_color = "ambient_color";
-		Material* material			   = DefaultResources::Materials::ambient_light;
+		Material* material             = DefaultResources::Materials::ambient_light;
 
 		if (material)
 		{
@@ -202,18 +202,18 @@ namespace Engine
 
 		m_base_pass_layer = m_depth_layer->create_next<CommandBufferLayer>(Name::base_pass);
 		m_base_pass_layer->on_begin_render.push_back(
-				declare_rendering_function() { SceneRenderTargets::instance()->begin_rendering_gbuffer(); });
+		        declare_rendering_function() { SceneRenderTargets::instance()->begin_rendering_gbuffer(); });
 		m_base_pass_layer->on_end_render.push_back(
-				declare_rendering_function() { SceneRenderTargets::instance()->end_rendering_gbuffer(); });
+		        declare_rendering_function() { SceneRenderTargets::instance()->end_rendering_gbuffer(); });
 
 		m_deferred_lighting_layer = m_base_pass_layer->create_next<DeferredLightingLayer>(Name::deferred_light_pass);
 		m_deferred_lighting_layer->on_begin_render.push_back(
-				declare_rendering_function() { SceneRenderTargets::instance()->begin_rendering_scene_color_ldr(); });
+		        declare_rendering_function() { SceneRenderTargets::instance()->begin_rendering_scene_color_ldr(); });
 		m_deferred_lighting_layer->on_begin_render.push_back(begin_deferred_lighting_pass);
 		m_base_pass_layer->on_end_render.push_back(
-				declare_rendering_function() { SceneRenderTargets::instance()->end_rendering_scene_color_ldr(); });
+		        declare_rendering_function() { SceneRenderTargets::instance()->end_rendering_scene_color_ldr(); });
 
-		m_scene_output		 = m_deferred_lighting_layer->create_next<SceneOutputLayer>(Name::scene_output_pass);
+		m_scene_output       = m_deferred_lighting_layer->create_next<SceneOutputLayer>(Name::scene_output_pass);
 		m_post_process_layer = m_scene_output->create_next(Name::post_process);
 	}
 

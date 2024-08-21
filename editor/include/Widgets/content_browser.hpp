@@ -14,12 +14,12 @@ namespace Engine
 		bool show_context_menu(void* userdata);
 
 		bool render_content_item(Object* object, const StringView& name, const ImVec2& item_size, const ImVec2& content_size,
-								 bool& not_first_item);
+		                         bool& not_first_item);
 		void render_content_window();
 
 		void create_dock_space();
 
-		Package* m_show_popup_for	= nullptr;
+		Package* m_show_popup_for   = nullptr;
 		Package* m_selected_package = nullptr;
 
 		bool m_show_context_menu = false;

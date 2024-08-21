@@ -34,7 +34,7 @@ namespace Engine
 
 		Vector<Vector<VulkanDescriptorSet*>> m_descriptor_sets;
 		size_t m_descriptor_set_index = 0;
-		size_t m_last_frame			  = 0;
+		size_t m_last_frame           = 0;
 
 
 		State& create_pipeline_state(bool with_flipped_viewport);

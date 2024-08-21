@@ -8,8 +8,8 @@ namespace Engine
 	static void native_object_constructor(asIScriptObject* object, StringView name, Object* owner)
 	{
 		asITypeInfo* type = object->GetObjectType();
-		Class* self		  = reinterpret_cast<Class*>(type->GetNativeClassUserData());
-		Class* native	  = self;
+		Class* self       = reinterpret_cast<Class*>(type->GetNativeClassUserData());
+		Class* native     = self;
 
 		while (native && !native->is_native()) native = native->parent();
 
@@ -46,7 +46,7 @@ namespace Engine
 			auto factory = Strings::format(R"({}@ f(StringView name = "", Engine::Object owner = null))", name().to_string());
 			registrar.behave(ScriptClassBehave::Construct, "void f()", native_default_object_constructor);
 			registrar.behave(ScriptClassBehave::Construct, R"(void f(StringView name, Engine::Object owner = null))",
-							 native_object_constructor);
+			                 native_object_constructor);
 			registrar.behave(ScriptClassBehave::Factory, factory.c_str(), m_script_factory, ScriptCallConv::CDecl);
 		}
 
@@ -60,13 +60,13 @@ namespace Engine
 
 	void Class::register_scriptable_class()
 	{
-		auto registrar		= ScriptClassRegistrar::reference_class(this);
+		auto registrar      = ScriptClassRegistrar::reference_class(this);
 		Class* parent_class = parent();
 
 		if (parent_class)
 		{
 			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, name().to_string(),
-													  {parent_class->name().to_string()});
+			                                          {parent_class->name().to_string()});
 		}
 		else
 		{

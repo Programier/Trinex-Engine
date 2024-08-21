@@ -18,14 +18,14 @@ namespace Engine::VisualMaterialGraph
 	{
 		Undefined = 0,
 
-		Scalar	= BIT(0),
-		Vector	= BIT(1),
+		Scalar  = BIT(0),
+		Vector  = BIT(1),
 		Numeric = Scalar | Vector,
-		Matrix	= BIT(2),
-		Object	= BIT(3),
+		Matrix  = BIT(2),
+		Object  = BIT(3),
 
 		Bool  = BIT(4) | Scalar,
-		Int	  = BIT(5) | Scalar,
+		Int   = BIT(5) | Scalar,
 		UInt  = BIT(6) | Scalar,
 		Float = BIT(7) | Scalar,
 
@@ -46,9 +46,9 @@ namespace Engine::VisualMaterialGraph
 		Vec4   = BIT(20) | Vector,
 		Color4 = BIT(21) | Vector,
 
-		Mat3	  = BIT(22) | Matrix,
-		Mat4	  = BIT(23) | Matrix,
-		Sampler	  = BIT(24) | Object,
+		Mat3      = BIT(22) | Matrix,
+		Mat4      = BIT(23) | Matrix,
+		Sampler   = BIT(24) | Object,
 		Texture2D = BIT(25) | Object,
 	};
 
@@ -250,7 +250,7 @@ namespace Engine::VisualMaterialGraph
 			return base_type;
 
 		BitMask base_component_mask = static_cast<BitMask>(base_type) ^ static_cast<BitMask>(PinType::Scalar);
-		BitMask result				= (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
+		BitMask result              = (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
 		return static_cast<PinType>(result);
 	}
 
@@ -265,11 +265,11 @@ namespace Engine::VisualMaterialGraph
 		{}
 
 		FORCE_INLINE Expression(const String& code, PinType type, bool is_var = false)
-			: code(code), userdata(nullptr), type(type), is_variable(is_var)
+		    : code(code), userdata(nullptr), type(type), is_variable(is_var)
 		{}
 
 		FORCE_INLINE Expression(void* userdata, PinType type, bool is_var = false)
-			: code(""), userdata(userdata), type(type), is_variable(is_var)
+		    : code(""), userdata(userdata), type(type), is_variable(is_var)
 		{}
 
 		FORCE_INLINE bool is_valid() const
@@ -280,7 +280,7 @@ namespace Engine::VisualMaterialGraph
 		FORCE_INLINE Expression& reset()
 		{
 			code.clear();
-			type		= PinType::Undefined;
+			type        = PinType::Undefined;
 			is_variable = false;
 			return *this;
 		}
@@ -313,9 +313,9 @@ namespace Engine::VisualMaterialGraph
 		Name name() const;
 		bool has_links() const;
 
-		virtual PinKind kind() const	   = 0;
+		virtual PinKind kind() const       = 0;
 		virtual size_t links_count() const = 0;
-		virtual void unlink()			   = 0;
+		virtual void unlink()              = 0;
 
 		virtual PinType type() const;
 		virtual void* default_value();
@@ -383,7 +383,7 @@ namespace Engine::VisualMaterialGraph
 		ValueType value;
 
 		TypedPin(Node* node, Name name, const ValueType& value = {})
-			: TypedPinNoDefault<m_pin_type, BaseClass>(node, name), value(value)
+		    : TypedPinNoDefault<m_pin_type, BaseClass>(node, name), value(value)
 		{}
 
 		virtual void* default_value()
@@ -402,96 +402,96 @@ namespace Engine::VisualMaterialGraph
 		}
 	};
 
-	using BoolInputPinND	  = TypedPinNoDefault<PinType::Bool, InputPin>;
-	using IntInputPinND		  = TypedPinNoDefault<PinType::Int, InputPin>;
-	using UIntInputPinND	  = TypedPinNoDefault<PinType::UInt, InputPin>;
-	using FloatInputPinND	  = TypedPinNoDefault<PinType::Float, InputPin>;
-	using BVec2InputPinND	  = TypedPinNoDefault<PinType::BVec2, InputPin>;
-	using BVec3InputPinND	  = TypedPinNoDefault<PinType::BVec3, InputPin>;
-	using BVec4InputPinND	  = TypedPinNoDefault<PinType::BVec4, InputPin>;
-	using IVec2InputPinND	  = TypedPinNoDefault<PinType::IVec2, InputPin>;
-	using IVec3InputPinND	  = TypedPinNoDefault<PinType::IVec3, InputPin>;
-	using IVec4InputPinND	  = TypedPinNoDefault<PinType::IVec4, InputPin>;
-	using UVec2InputPinND	  = TypedPinNoDefault<PinType::UVec2, InputPin>;
-	using UVec3InputPinND	  = TypedPinNoDefault<PinType::UVec3, InputPin>;
-	using UVec4InputPinND	  = TypedPinNoDefault<PinType::UVec4, InputPin>;
-	using Vec2InputPinND	  = TypedPinNoDefault<PinType::Vec2, InputPin>;
-	using Vec3InputPinND	  = TypedPinNoDefault<PinType::Vec3, InputPin>;
-	using Color3InputPinND	  = TypedPinNoDefault<PinType::Color3, InputPin>;
-	using Vec4InputPinND	  = TypedPinNoDefault<PinType::Vec4, InputPin>;
-	using Color4InputPinND	  = TypedPinNoDefault<PinType::Color4, InputPin>;
-	using Mat3InputPinND	  = TypedPinNoDefault<PinType::Mat3, InputPin>;
-	using Mat4InputPinND	  = TypedPinNoDefault<PinType::Mat4, InputPin>;
-	using SamplerInputPinND	  = TypedPinNoDefault<PinType::Sampler, InputPin>;
+	using BoolInputPinND      = TypedPinNoDefault<PinType::Bool, InputPin>;
+	using IntInputPinND       = TypedPinNoDefault<PinType::Int, InputPin>;
+	using UIntInputPinND      = TypedPinNoDefault<PinType::UInt, InputPin>;
+	using FloatInputPinND     = TypedPinNoDefault<PinType::Float, InputPin>;
+	using BVec2InputPinND     = TypedPinNoDefault<PinType::BVec2, InputPin>;
+	using BVec3InputPinND     = TypedPinNoDefault<PinType::BVec3, InputPin>;
+	using BVec4InputPinND     = TypedPinNoDefault<PinType::BVec4, InputPin>;
+	using IVec2InputPinND     = TypedPinNoDefault<PinType::IVec2, InputPin>;
+	using IVec3InputPinND     = TypedPinNoDefault<PinType::IVec3, InputPin>;
+	using IVec4InputPinND     = TypedPinNoDefault<PinType::IVec4, InputPin>;
+	using UVec2InputPinND     = TypedPinNoDefault<PinType::UVec2, InputPin>;
+	using UVec3InputPinND     = TypedPinNoDefault<PinType::UVec3, InputPin>;
+	using UVec4InputPinND     = TypedPinNoDefault<PinType::UVec4, InputPin>;
+	using Vec2InputPinND      = TypedPinNoDefault<PinType::Vec2, InputPin>;
+	using Vec3InputPinND      = TypedPinNoDefault<PinType::Vec3, InputPin>;
+	using Color3InputPinND    = TypedPinNoDefault<PinType::Color3, InputPin>;
+	using Vec4InputPinND      = TypedPinNoDefault<PinType::Vec4, InputPin>;
+	using Color4InputPinND    = TypedPinNoDefault<PinType::Color4, InputPin>;
+	using Mat3InputPinND      = TypedPinNoDefault<PinType::Mat3, InputPin>;
+	using Mat4InputPinND      = TypedPinNoDefault<PinType::Mat4, InputPin>;
+	using SamplerInputPinND   = TypedPinNoDefault<PinType::Sampler, InputPin>;
 	using Texture2DInputPinND = TypedPinNoDefault<PinType::Texture2D, InputPin>;
 
-	using BoolInputPin		= TypedPin<PinType::Bool, bool, InputPin>;
-	using IntInputPin		= TypedPin<PinType::Int, int_t, InputPin>;
-	using UIntInputPin		= TypedPin<PinType::UInt, uint_t, InputPin>;
-	using FloatInputPin		= TypedPin<PinType::Float, float, InputPin>;
-	using BVec2InputPin		= TypedPin<PinType::BVec2, BoolVector2D, InputPin>;
-	using BVec3InputPin		= TypedPin<PinType::BVec3, BoolVector3D, InputPin>;
-	using BVec4InputPin		= TypedPin<PinType::BVec4, BoolVector4D, InputPin>;
-	using IVec2InputPin		= TypedPin<PinType::IVec2, IntVector2D, InputPin>;
-	using IVec3InputPin		= TypedPin<PinType::IVec3, IntVector3D, InputPin>;
-	using IVec4InputPin		= TypedPin<PinType::IVec4, IntVector4D, InputPin>;
-	using UVec2InputPin		= TypedPin<PinType::UVec2, UIntVector2D, InputPin>;
-	using UVec3InputPin		= TypedPin<PinType::UVec3, UIntVector3D, InputPin>;
-	using UVec4InputPin		= TypedPin<PinType::UVec4, UIntVector4D, InputPin>;
-	using Vec2InputPin		= TypedPin<PinType::Vec2, Vector2D, InputPin>;
-	using Vec3InputPin		= TypedPin<PinType::Vec3, Vector3D, InputPin>;
-	using Color3InputPin	= TypedPin<PinType::Color3, Vector3D, InputPin>;
-	using Vec4InputPin		= TypedPin<PinType::Vec4, Vector4D, InputPin>;
-	using Color4InputPin	= TypedPin<PinType::Color4, Vector4D, InputPin>;
-	using Mat3InputPin		= TypedPin<PinType::Mat3, Matrix3f, InputPin>;
-	using Mat4InputPin		= TypedPin<PinType::Mat4, Matrix4f, InputPin>;
-	using SamplerInputPin	= TypedPin<PinType::Sampler, Pointer<Engine::Sampler>, InputPin>;
+	using BoolInputPin      = TypedPin<PinType::Bool, bool, InputPin>;
+	using IntInputPin       = TypedPin<PinType::Int, int_t, InputPin>;
+	using UIntInputPin      = TypedPin<PinType::UInt, uint_t, InputPin>;
+	using FloatInputPin     = TypedPin<PinType::Float, float, InputPin>;
+	using BVec2InputPin     = TypedPin<PinType::BVec2, BoolVector2D, InputPin>;
+	using BVec3InputPin     = TypedPin<PinType::BVec3, BoolVector3D, InputPin>;
+	using BVec4InputPin     = TypedPin<PinType::BVec4, BoolVector4D, InputPin>;
+	using IVec2InputPin     = TypedPin<PinType::IVec2, IntVector2D, InputPin>;
+	using IVec3InputPin     = TypedPin<PinType::IVec3, IntVector3D, InputPin>;
+	using IVec4InputPin     = TypedPin<PinType::IVec4, IntVector4D, InputPin>;
+	using UVec2InputPin     = TypedPin<PinType::UVec2, UIntVector2D, InputPin>;
+	using UVec3InputPin     = TypedPin<PinType::UVec3, UIntVector3D, InputPin>;
+	using UVec4InputPin     = TypedPin<PinType::UVec4, UIntVector4D, InputPin>;
+	using Vec2InputPin      = TypedPin<PinType::Vec2, Vector2D, InputPin>;
+	using Vec3InputPin      = TypedPin<PinType::Vec3, Vector3D, InputPin>;
+	using Color3InputPin    = TypedPin<PinType::Color3, Vector3D, InputPin>;
+	using Vec4InputPin      = TypedPin<PinType::Vec4, Vector4D, InputPin>;
+	using Color4InputPin    = TypedPin<PinType::Color4, Vector4D, InputPin>;
+	using Mat3InputPin      = TypedPin<PinType::Mat3, Matrix3f, InputPin>;
+	using Mat4InputPin      = TypedPin<PinType::Mat4, Matrix4f, InputPin>;
+	using SamplerInputPin   = TypedPin<PinType::Sampler, Pointer<Engine::Sampler>, InputPin>;
 	using Texture2DInputPin = TypedPin<PinType::Texture2D, Pointer<Engine::Texture2D>, InputPin>;
 
-	using BoolOutputPinND	   = TypedPinNoDefault<PinType::Bool, OutputPin>;
-	using IntOutputPinND	   = TypedPinNoDefault<PinType::Int, OutputPin>;
-	using UIntOutputPinND	   = TypedPinNoDefault<PinType::UInt, OutputPin>;
-	using FloatOutputPinND	   = TypedPinNoDefault<PinType::Float, OutputPin>;
-	using BVec2OutputPinND	   = TypedPinNoDefault<PinType::BVec2, OutputPin>;
-	using BVec3OutputPinND	   = TypedPinNoDefault<PinType::BVec3, OutputPin>;
-	using BVec4OutputPinND	   = TypedPinNoDefault<PinType::BVec4, OutputPin>;
-	using IVec2OutputPinND	   = TypedPinNoDefault<PinType::IVec2, OutputPin>;
-	using IVec3OutputPinND	   = TypedPinNoDefault<PinType::IVec3, OutputPin>;
-	using IVec4OutputPinND	   = TypedPinNoDefault<PinType::IVec4, OutputPin>;
-	using UVec2OutputPinND	   = TypedPinNoDefault<PinType::UVec2, OutputPin>;
-	using UVec3OutputPinND	   = TypedPinNoDefault<PinType::UVec3, OutputPin>;
-	using UVec4OutputPinND	   = TypedPinNoDefault<PinType::UVec4, OutputPin>;
-	using Vec2OutputPinND	   = TypedPinNoDefault<PinType::Vec2, OutputPin>;
-	using Vec3OutputPinND	   = TypedPinNoDefault<PinType::Vec3, OutputPin>;
-	using Color3OutputPinND	   = TypedPinNoDefault<PinType::Color3, OutputPin>;
-	using Vec4OutputPinND	   = TypedPinNoDefault<PinType::Vec4, OutputPin>;
-	using Color4OutputPinND	   = TypedPinNoDefault<PinType::Color4, OutputPin>;
-	using Mat3OutputPinND	   = TypedPinNoDefault<PinType::Mat3, OutputPin>;
-	using Mat4OutputPinND	   = TypedPinNoDefault<PinType::Mat4, OutputPin>;
+	using BoolOutputPinND      = TypedPinNoDefault<PinType::Bool, OutputPin>;
+	using IntOutputPinND       = TypedPinNoDefault<PinType::Int, OutputPin>;
+	using UIntOutputPinND      = TypedPinNoDefault<PinType::UInt, OutputPin>;
+	using FloatOutputPinND     = TypedPinNoDefault<PinType::Float, OutputPin>;
+	using BVec2OutputPinND     = TypedPinNoDefault<PinType::BVec2, OutputPin>;
+	using BVec3OutputPinND     = TypedPinNoDefault<PinType::BVec3, OutputPin>;
+	using BVec4OutputPinND     = TypedPinNoDefault<PinType::BVec4, OutputPin>;
+	using IVec2OutputPinND     = TypedPinNoDefault<PinType::IVec2, OutputPin>;
+	using IVec3OutputPinND     = TypedPinNoDefault<PinType::IVec3, OutputPin>;
+	using IVec4OutputPinND     = TypedPinNoDefault<PinType::IVec4, OutputPin>;
+	using UVec2OutputPinND     = TypedPinNoDefault<PinType::UVec2, OutputPin>;
+	using UVec3OutputPinND     = TypedPinNoDefault<PinType::UVec3, OutputPin>;
+	using UVec4OutputPinND     = TypedPinNoDefault<PinType::UVec4, OutputPin>;
+	using Vec2OutputPinND      = TypedPinNoDefault<PinType::Vec2, OutputPin>;
+	using Vec3OutputPinND      = TypedPinNoDefault<PinType::Vec3, OutputPin>;
+	using Color3OutputPinND    = TypedPinNoDefault<PinType::Color3, OutputPin>;
+	using Vec4OutputPinND      = TypedPinNoDefault<PinType::Vec4, OutputPin>;
+	using Color4OutputPinND    = TypedPinNoDefault<PinType::Color4, OutputPin>;
+	using Mat3OutputPinND      = TypedPinNoDefault<PinType::Mat3, OutputPin>;
+	using Mat4OutputPinND      = TypedPinNoDefault<PinType::Mat4, OutputPin>;
 	using SamplerOutputPinND   = TypedPinNoDefault<PinType::Sampler, OutputPin>;
 	using Texture2DOutputPinND = TypedPinNoDefault<PinType::Texture2D, OutputPin>;
 
-	using BoolOutputPin		 = TypedPin<PinType::Bool, bool, OutputPin>;
-	using IntOutputPin		 = TypedPin<PinType::Int, int_t, OutputPin>;
-	using UIntOutputPin		 = TypedPin<PinType::UInt, uint_t, OutputPin>;
-	using FloatOutputPin	 = TypedPin<PinType::Float, float, OutputPin>;
-	using BVec2OutputPin	 = TypedPin<PinType::BVec2, BoolVector2D, OutputPin>;
-	using BVec3OutputPin	 = TypedPin<PinType::BVec3, BoolVector3D, OutputPin>;
-	using BVec4OutputPin	 = TypedPin<PinType::BVec4, BoolVector4D, OutputPin>;
-	using IVec2OutputPin	 = TypedPin<PinType::IVec2, IntVector2D, OutputPin>;
-	using IVec3OutputPin	 = TypedPin<PinType::IVec3, IntVector3D, OutputPin>;
-	using IVec4OutputPin	 = TypedPin<PinType::IVec4, IntVector4D, OutputPin>;
-	using UVec2OutputPin	 = TypedPin<PinType::UVec2, UIntVector2D, OutputPin>;
-	using UVec3OutputPin	 = TypedPin<PinType::UVec3, UIntVector3D, OutputPin>;
-	using UVec4OutputPin	 = TypedPin<PinType::UVec4, UIntVector4D, OutputPin>;
-	using Vec2OutputPin		 = TypedPin<PinType::Vec2, Vector2D, OutputPin>;
-	using Vec3OutputPin		 = TypedPin<PinType::Vec3, Vector3D, OutputPin>;
-	using Color3OutputPin	 = TypedPin<PinType::Color3, Vector3D, OutputPin>;
-	using Vec4OutputPin		 = TypedPin<PinType::Vec4, Vector4D, OutputPin>;
-	using Color4OutputPin	 = TypedPin<PinType::Color4, Vector4D, OutputPin>;
-	using Mat3OutputPin		 = TypedPin<PinType::Mat3, Matrix3f, OutputPin>;
-	using Mat4OutputPin		 = TypedPin<PinType::Mat4, Matrix4f, OutputPin>;
-	using SamplerOutputPin	 = TypedPin<PinType::Sampler, Pointer<Engine::Sampler>, OutputPin>;
+	using BoolOutputPin      = TypedPin<PinType::Bool, bool, OutputPin>;
+	using IntOutputPin       = TypedPin<PinType::Int, int_t, OutputPin>;
+	using UIntOutputPin      = TypedPin<PinType::UInt, uint_t, OutputPin>;
+	using FloatOutputPin     = TypedPin<PinType::Float, float, OutputPin>;
+	using BVec2OutputPin     = TypedPin<PinType::BVec2, BoolVector2D, OutputPin>;
+	using BVec3OutputPin     = TypedPin<PinType::BVec3, BoolVector3D, OutputPin>;
+	using BVec4OutputPin     = TypedPin<PinType::BVec4, BoolVector4D, OutputPin>;
+	using IVec2OutputPin     = TypedPin<PinType::IVec2, IntVector2D, OutputPin>;
+	using IVec3OutputPin     = TypedPin<PinType::IVec3, IntVector3D, OutputPin>;
+	using IVec4OutputPin     = TypedPin<PinType::IVec4, IntVector4D, OutputPin>;
+	using UVec2OutputPin     = TypedPin<PinType::UVec2, UIntVector2D, OutputPin>;
+	using UVec3OutputPin     = TypedPin<PinType::UVec3, UIntVector3D, OutputPin>;
+	using UVec4OutputPin     = TypedPin<PinType::UVec4, UIntVector4D, OutputPin>;
+	using Vec2OutputPin      = TypedPin<PinType::Vec2, Vector2D, OutputPin>;
+	using Vec3OutputPin      = TypedPin<PinType::Vec3, Vector3D, OutputPin>;
+	using Color3OutputPin    = TypedPin<PinType::Color3, Vector3D, OutputPin>;
+	using Vec4OutputPin      = TypedPin<PinType::Vec4, Vector4D, OutputPin>;
+	using Color4OutputPin    = TypedPin<PinType::Color4, Vector4D, OutputPin>;
+	using Mat3OutputPin      = TypedPin<PinType::Mat3, Matrix3f, OutputPin>;
+	using Mat4OutputPin      = TypedPin<PinType::Mat4, Matrix4f, OutputPin>;
+	using SamplerOutputPin   = TypedPin<PinType::Sampler, Pointer<Engine::Sampler>, OutputPin>;
 	using Texture2DOutputPin = TypedPin<PinType::Texture2D, Pointer<Engine::Texture2D>, OutputPin>;
 
 

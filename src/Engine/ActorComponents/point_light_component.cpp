@@ -24,7 +24,7 @@ namespace Engine
 		};
 
 		auto fall_off_exponent_prop =
-				new FloatProperty("Fall Off Exponent", "Fall Off Exponent of this light", &This::m_fall_off_exponent);
+		        new FloatProperty("Fall Off Exponent", "Fall Off Exponent of this light", &This::m_fall_off_exponent);
 		fall_off_exponent_prop->on_prop_changed.push(update_data);
 		self->add_property(fall_off_exponent_prop);
 	}
@@ -81,19 +81,19 @@ namespace Engine
 		render_base_component(component);
 
 		PointLightComponentProxy* proxy = component->proxy();
-		auto layer						= deferred_lighting_layer();
+		auto layer                      = deferred_lighting_layer();
 
 		if (!scene_view().show_flags().has_all(ShowFlags::PointLights) || !proxy->is_enabled() ||
-			!component->leaf_class_is<PointLightComponent>())
+		    !component->leaf_class_is<PointLightComponent>())
 			return *this;
 
 		Material* material = DefaultResources::Materials::point_light;
 
-		Vec3MaterialParameter* color_parameter		  = get_param(color, Vec3MaterialParameter);
-		Vec3MaterialParameter* location_parameter	  = get_param(location, Vec3MaterialParameter);
+		Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
+		Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
 		FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
-		FloatMaterialParameter* radius_parameter	  = get_param(radius, FloatMaterialParameter);
-		FloatMaterialParameter* fall_off_parameter	  = get_param(fall_off_exponent, FloatMaterialParameter);
+		FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
+		FloatMaterialParameter* fall_off_parameter    = get_param(fall_off_exponent, FloatMaterialParameter);
 
 		if (color_parameter)
 		{

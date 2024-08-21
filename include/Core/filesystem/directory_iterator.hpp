@@ -13,16 +13,16 @@ namespace Engine
 			enum Type
 			{
 				Virtual = 1,
-				Native	= 2,
+				Native  = 2,
 			};
 
-			virtual void next()								   = 0;
-			virtual const Path& path()						   = 0;
-			virtual bool is_valid() const					   = 0;
-			virtual DirectoryIteratorInterface* copy()		   = 0;
-			virtual Type type() const						   = 0;
+			virtual void next()                                = 0;
+			virtual const Path& path()                         = 0;
+			virtual bool is_valid() const                      = 0;
+			virtual DirectoryIteratorInterface* copy()         = 0;
+			virtual Type type() const                          = 0;
 			virtual bool is_equal(DirectoryIteratorInterface*) = 0;
-			virtual ~DirectoryIteratorInterface()			   = default;
+			virtual ~DirectoryIteratorInterface()              = default;
 
 		public:
 			friend class DirectoryIterator;

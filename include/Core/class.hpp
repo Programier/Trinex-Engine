@@ -17,13 +17,13 @@ namespace Engine
 	public:
 		enum Flag : BitMask
 		{
-			IsSingletone	= BIT(0),
-			IsAbstract		= BIT(1),
+			IsSingletone    = BIT(0),
+			IsAbstract      = BIT(1),
 			IsConstructible = BIT(2),
-			IsFinal			= BIT(3),
-			IsNative		= BIT(4),
-			IsScriptable	= BIT(5),
-			IsAsset			= BIT(6),
+			IsFinal         = BIT(3),
+			IsNative        = BIT(4),
+			IsScriptable    = BIT(5),
+			IsAsset         = BIT(6),
 		};
 
 		Flags<Class::Flag> flags;
@@ -31,9 +31,9 @@ namespace Engine
 	private:
 		mutable Object* m_singletone_object;
 
-		void (*m_destroy_func)(Object*)												  = nullptr;
-		Object* (*m_script_factory)(StringView, Object*)							  = nullptr;
-		Object* (*m_static_constructor)(Class*, StringView, Object*)				  = nullptr;
+		void (*m_destroy_func)(Object*)                                               = nullptr;
+		Object* (*m_script_factory)(StringView, Object*)                              = nullptr;
+		Object* (*m_static_constructor)(Class*, StringView, Object*)                  = nullptr;
 		Object* (*m_static_placement_constructor)(Class*, void*, StringView, Object*) = nullptr;
 		Set<Class*> m_childs;
 		size_t m_size;
@@ -60,7 +60,7 @@ namespace Engine
 		void* create_struct() const override;
 		Object* create_object(StringView name = "", Object* owner = nullptr, const Class* class_overload = nullptr) const;
 		Object* create_placement_object(void* place, StringView name = "", Object* owner = nullptr,
-										const Class* class_overload = nullptr) const;
+		                                const Class* class_overload = nullptr) const;
 
 		size_t sizeof_class() const;
 		bool is_scriptable() const;
@@ -121,7 +121,7 @@ namespace Engine
 				}
 
 				if constexpr (!(std::is_abstract_v<ObjectClass> ||
-								(!std::is_constructible_v<ObjectClass> && !Engine::is_singletone_v<ObjectClass>) ))
+				                (!std::is_constructible_v<ObjectClass> && !Engine::is_singletone_v<ObjectClass>) ))
 				{
 					flags(IsConstructible, true);
 				}
