@@ -2,12 +2,11 @@ set(TRINEX_ENGINE_EDITOR_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SRC "${TRINEX_ENGINE_EDITOR_SOURCES_DIR}/*.cpp")
 
 add_trinex_editor_sources(${TRINEX_ENGINE_EDITOR_SRC})
-add_trinex_editor_libraries(assimp spirv-cross-glsl spirv-cross-core)
+add_trinex_editor_libraries(assimp spirv-cross-glsl spirv-cross-core imgui imgui_node_editor imgui-filebrowser)
 
 if(NOT ANDROID)
     add_trinex_editor_libraries(slang)
 endif()
-
 
 if(TRINEX_REBUILD_HEADERS)
     set(EDITOR_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AddIcon.tasset
@@ -34,8 +33,6 @@ if(TRINEX_REBUILD_HEADERS)
     add_trinex_dependencies(TrinexEngineEditorHeaders)
 endif()
 
-
-
 get_property(TRINEX_ENGINE_EDITOR_SRC GLOBAL PROPERTY trinex_editor_sources)
 get_property(TRINEX_ENGINE_EDITOR_LIBRARIES GLOBAL PROPERTY trinex_editor_libraries)
 get_property(TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES GLOBAL PROPERTY trinex_editor_include_directories)
@@ -54,9 +51,17 @@ else()
         add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC})
     endif()
 
+				if(TRINEX_ENGINE_EDITOR_LINK_DIRECTORIES)
+								target_link_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_LINK_DIRECTORIES})
+				endif()
+				
+				if(TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES)
+								target_include_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES})
+				endif()
+				
     target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine ${TRINEX_ENGINE_EDITOR_LIBRARIES})
     install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})
-    target_include_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES})
+    
 endif()
 
 set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")

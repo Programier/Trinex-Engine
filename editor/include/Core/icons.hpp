@@ -2,11 +2,6 @@
 
 namespace Engine
 {
-	namespace ImGuiRenderer
-	{
-		class ImGuiTexture;
-	}
-
 	class Sampler;
 	class Texture2D;
 

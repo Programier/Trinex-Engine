@@ -1,21 +1,21 @@
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
+#include <Core/editor_config.hpp>
+#include <Core/editor_resources.hpp>
 #include <Core/enum.hpp>
 #include <Core/garbage_collector.hpp>
+#include <Core/icons.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/theme.hpp>
 #include <Graphics/imgui.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
-#include <editor_config.hpp>
-#include <editor_resources.hpp>
-#include <icons.hpp>
 #include <imfilebrowser.h>
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <theme.hpp>
 
 
 namespace Engine
@@ -259,16 +259,15 @@ namespace Engine
 	static bool render_string_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<String, PropertyType::String>(
-		        window, object, prop, can_edit, edit_f(String) {
-			        return ImGuiRenderer::InputText("##Value", value, editable ? 0 : ImGuiInputTextFlags_ReadOnly);
-		        });
+		        window, object, prop, can_edit,
+		        edit_f(String) { return ImGui::InputText("##Value", value, editable ? 0 : ImGuiInputTextFlags_ReadOnly); });
 	}
 
 	static bool render_path_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
 	{
 		return render_prop_internal<Path, PropertyType::Path>(
 		        window, object, prop, can_edit, edit_f(Path) {
-			        ImGuiRenderer::Window* imgui_window = ImGuiRenderer::Window::current();
+			        ImGuiWindow* imgui_window = ImGuiWindow::current();
 
 			        const char* text = value.empty() ? "None" : value.c_str();
 			        if (ImGui::Selectable(text) && editable)
@@ -276,7 +275,7 @@ namespace Engine
 				        Function<void(const Path&)> callback = [object, prop](const Path& path) {
 					        prop->property_value(object, path);
 				        };
-				        imgui_window->window_list.create<ImGuiOpenFile>()->on_select.push(callback);
+				        imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
 			        }
 
 			        return false;
@@ -772,8 +771,8 @@ namespace Engine
 
 	bool ImGuiObjectProperties::collapsing_header(const void* id, const char* format, ...)
 	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImGuiTable* table   = ImGui::GetCurrentContext()->CurrentTable;
+		::ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImGuiTable* table     = ImGui::GetCurrentContext()->CurrentTable;
 
 		ImGui::TableSetColumnIndex(0);
 		ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);

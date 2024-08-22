@@ -3,11 +3,13 @@
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
 #include <Event/listener_id.hpp>
+#include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
-#include <editor_scene_renderer.hpp>
+
+#include <Clients/imgui_client.hpp>
 
 namespace Engine
 {
@@ -20,19 +22,12 @@ namespace Engine
 			bool is_using_guizmo               = false;
 		} viewport;
 
-		struct {
-			RenderViewport* render_viewport     = nullptr;
-			Window* window                      = nullptr;
-			ImGuiRenderer::Window* imgui_window = nullptr;
-		} window;
-
 		EditorState();
 	};
 
-	class EditorClient : public ViewportClient
+	class EditorClient : public ImGuiEditorClient
 	{
-
-		declare_class(EditorClient, ViewportClient);
+		declare_class(EditorClient, ImGuiEditorClient);
 
 	private:
 		class World* m_world = nullptr;
@@ -43,7 +38,7 @@ namespace Engine
 
 		EditorSceneRenderer m_renderer;
 		RenderStatistics m_statistics;
-		Flags<ShowFlags, BitMask> m_show_flags;
+		Flags<ShowFlags, BitMask> m_show_flags = ShowFlags::DefaultFlags;
 		SceneView m_scene_view;
 
 		class ContentBrowser* m_content_browser = nullptr;
@@ -60,17 +55,15 @@ namespace Engine
 		void on_actor_unselect(World* world, class Actor* actor);
 
 	public:
-		EditorClient();
-
 		// Window manipulation
 		EditorClient& create_content_browser();
 		EditorClient& create_properties_window();
 		EditorClient& create_level_explorer();
 
-		ViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
-		ViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
-		ViewportClient& render(class RenderViewport* viewport) override;
-		ViewportClient& update(class RenderViewport* viewport, float dt) override;
+		EditorClient& on_bind_viewport(class RenderViewport* viewport) override;
+		EditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
+		EditorClient& render(class RenderViewport* viewport) override;
+		EditorClient& update(class RenderViewport* viewport, float dt) override;
 
 		EditorClient& render_viewport_window(float dt);
 		EditorClient& render_guizmo(float dt);
@@ -81,8 +74,6 @@ namespace Engine
 		EditorClient& on_object_dropped(Object* object);
 		EditorClient& update_drag_and_drop();
 
-		~EditorClient();
-
 		EditorClient& update_camera(float dt);
 		EditorClient& raycast_objects(const Vector2D& coords);
 
@@ -91,7 +82,5 @@ namespace Engine
 		void on_mouse_release(const Event& event);
 		void on_mouse_move(const Event& event);
 		void on_finger_move(const Event& event);
-		void unbind_window(bool destroying);
-		void on_window_close(const Event& event);
 	};
 }// namespace Engine

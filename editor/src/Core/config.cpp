@@ -1,6 +1,6 @@
 #include <Core/config_manager.hpp>
+#include <Core/editor_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <editor_config.hpp>
 
 namespace Engine::Settings
 {

@@ -1,9 +1,9 @@
 #include <Clients/material_editor_client.hpp>
+#include <Core/blueprints.hpp>
 #include <Core/class.hpp>
 #include <Core/group.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
-#include <blueprints.hpp>
 #include <imgui_stacklayout.h>
 
 namespace Engine
@@ -216,17 +216,17 @@ namespace Engine
 
 			if (pos.x == FLT_MAX || pos.y == FLT_MAX)
 			{
-				pos = ImGuiHelpers::construct_vec2<ImVec2>(node->position);
+				pos = {node->position.x, node->position.y};
 				ed::SetNodePosition(node->id(), pos);
 			}
 			else
 			{
-				node->position = ImGuiHelpers::construct_vec2<Vector2D>(pos);
+				node->position = ImGui::EngineVecFrom(pos);
 			}
 
 			builder.begin(node->id());
 
-			builder.begin_header(ImGuiHelpers::construct_vec2<ImVec4>(node->header_color()));
+			builder.begin_header(ImGui::ImVecFrom(node->header_color()));
 			ImGui::Spring(1.f);
 			ImGui::TextUnformatted(node->name());
 			ImGui::Dummy({0, ImGui::GetTextLineHeightWithSpacing()});
@@ -341,9 +341,9 @@ namespace Engine
 	static void open_nodes_popup(MaterialEditorClient::GraphState& state, bool is_in_canvas)
 	{
 		if (is_in_canvas)
-			state.m_node_spawn_position = ImGuiHelpers::construct_vec2<Vector2D>(ImGui::GetMousePos());
+			state.m_node_spawn_position = ImGui::EngineVecFrom(ImGui::GetMousePos());
 		else
-			state.m_node_spawn_position = ImGuiHelpers::construct_vec2<Vector2D>(ed::ScreenToCanvas(ImGui::GetMousePos()));
+			state.m_node_spawn_position = ImGui::EngineVecFrom(ed::ScreenToCanvas(ImGui::GetMousePos()));
 		ed::Suspend();
 		ImGui::OpenPopup("Create New Node");
 		ed::Resume();

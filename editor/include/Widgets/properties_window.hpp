@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-	class ImGuiObjectProperties : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiObjectProperties : public ImGuiWidget
 	{
 	public:
 		using PropertiesMap = TreeMap<Name, Vector<class Property*>>;

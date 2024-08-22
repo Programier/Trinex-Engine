@@ -27,7 +27,7 @@ BEGIN_AS_NAMESPACE
 struct SArrayBuffer;
 struct SArrayCache;
 
-class CScriptArray
+class AS_API CScriptArray
 {
 public:
 	// Set the memory functions that should be used by all CScriptArrays

@@ -3,7 +3,6 @@
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <Window/window.hpp>
-#include <imgui.h>
 
 namespace Engine
 {

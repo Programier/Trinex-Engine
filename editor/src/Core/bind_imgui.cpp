@@ -6,8 +6,6 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_primitives.hpp>
 #include <ScriptEngine/script_type_info.hpp>
-#include <angelscript.h>
-#include <imgui.h>
 #include <scriptarray.h>
 
 namespace Engine
@@ -267,17 +265,17 @@ namespace Engine
 
 	static bool wrap_input_text(const String& label, String& buffer, int flags)
 	{
-		return ImGuiRenderer::InputText(label.c_str(), buffer, flags);
+		return ImGui::InputText(label.c_str(), buffer, flags);
 	}
 
 	static bool wrap_input_text_hint(const String& label, const String& hint, String& buffer, int flags)
 	{
-		return ImGuiRenderer::InputTextWithHint(label.c_str(), hint.c_str(), buffer, flags);
+		return ImGui::InputTextWithHint(label.c_str(), hint.c_str(), buffer, flags);
 	}
 
 	static bool wrap_input_text_multiline(const String& label, String& buffer, const ImVec2& size, int flags)
 	{
-		return ImGuiRenderer::InputTextMultiline(label.c_str(), buffer, size, flags);
+		return ImGui::InputTextMultiline(label.c_str(), buffer, size, flags);
 	}
 
 	static bool is_mouse_pos_valid_wrap1()

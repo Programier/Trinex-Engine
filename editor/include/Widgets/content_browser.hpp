@@ -4,14 +4,13 @@
 
 namespace Engine
 {
-	class ContentBrowser : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ContentBrowser : public ImGuiWidget
 	{
 	private:
 		bool render_package_popup(void* data);
 		void render_package_tree(Package* node);
 		void render_package_popup();
 		void render_packages();
-		bool show_context_menu(void* userdata);
 
 		bool render_content_item(Object* object, const StringView& name, const ImVec2& item_size, const ImVec2& content_size,
 		                         bool& not_first_item);
@@ -21,9 +20,6 @@ namespace Engine
 
 		Package* m_show_popup_for   = nullptr;
 		Package* m_selected_package = nullptr;
-
-		bool m_show_context_menu = false;
-
 		ImGuiID m_dock_window_id;
 
 

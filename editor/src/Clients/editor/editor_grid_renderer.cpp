@@ -1,4 +1,5 @@
 #include <Core/base_engine.hpp>
+#include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -10,7 +11,6 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
-#include <editor_resources.hpp>
 
 namespace Engine
 {

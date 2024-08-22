@@ -1,7 +1,9 @@
 #include <Clients/script_debuger.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
+#include <Core/editor_config.hpp>
 #include <Core/logger.hpp>
+#include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
@@ -14,16 +16,13 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <ScriptEngine/script_variable.hpp>
 #include <Systems/event_system.hpp>
-#include <Window/imgui_window_backend.hpp>
 #include <Window/window.hpp>
-#include <editor_config.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
-#include <theme.hpp>
 
 namespace Engine
 {
-	class DebugExecScriptFunction : public ImGuiRenderer::ImGuiAdditionalWindow
+	class DebugExecScriptFunction : public ImGuiWidget
 	{
 		ImVec2 m_window_pos;
 		ScriptFolder* m_root_folder;
@@ -194,41 +193,23 @@ namespace Engine
 
 	ScriptDebuggerClient& ScriptDebuggerClient::on_bind_viewport(class RenderViewport* viewport)
 	{
-		m_window = viewport->window();
-		if (m_window == nullptr)
-			return *this;
-		m_viewport = viewport;
-
-		m_window->imgui_initialize(EditorTheme::initialize_theme);
-		m_imgui_window = m_window->imgui_window();
-
-		m_window->title("Script Debugger");
-
-		m_imgui_window->reset_frame_index();
-
+		Super::on_bind_viewport(viewport);
+		window()->title("Script Debugger");
 		ScriptContext::line_callback([this](void*) { on_line_callback(); });
 		return *this;
 	}
 
 	ScriptDebuggerClient& ScriptDebuggerClient::on_unbind_viewport(class RenderViewport* viewport)
 	{
-		m_window   = nullptr;
-		m_viewport = nullptr;
+		Super::on_unbind_viewport(viewport);
 		ScriptContext::clear_line_callback();
-		return *this;
-	}
-
-	ScriptDebuggerClient& ScriptDebuggerClient::render(class RenderViewport* viewport)
-	{
-		viewport->rhi_bind();
-		viewport->rhi_clear_color(Color(0, 0, 0, 1.f));
-		m_imgui_window->rhi_render();
 		return *this;
 	}
 
 	ScriptDebuggerClient& ScriptDebuggerClient::update(class RenderViewport* viewport, float dt)
 	{
-		m_imgui_window->new_frame();
+		Super::update(viewport, dt);
+		imgui_new_frame();
 
 		auto imgui_viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
@@ -240,7 +221,7 @@ namespace Engine
 		auto dock_id = ImGui::GetID("ScriptDebugger##Dock");
 		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
-		if (m_imgui_window->frame_index() == 1)
+		if (imgui_window()->frame_index() == 1)
 		{
 			ImGui::DockBuilderRemoveNode(dock_id);
 			ImGui::DockBuilderAddNode(dock_id,
@@ -267,7 +248,7 @@ namespace Engine
 		        .render_bottom_viewport(dt);
 
 		ImGui::End();
-		m_imgui_window->end_frame();
+		imgui_end_frame();
 		return *this;
 	}
 
@@ -289,7 +270,7 @@ namespace Engine
 			{
 				if (ImGui::MenuItem("editor/Exec Function"_localized, "editor/Execute specific function from a module"_localized))
 				{
-					m_imgui_window->window_list.create<DebugExecScriptFunction>();
+					imgui_window()->widgets_list.create<DebugExecScriptFunction>();
 				}
 				ImGui::EndMenu();
 			}
@@ -887,7 +868,7 @@ namespace Engine
 		ScriptDebuggerClient* self = reinterpret_cast<ScriptDebuggerClient*>(userdata);
 
 		if (event.type() == EventType::Quit ||
-		    (event.type() == EventType::WindowClose && event.window_id() == self->m_window->id()))
+		    (event.type() == EventType::WindowClose && event.window_id() == self->window()->id()))
 		{
 			self->m_is_in_debug_loop = false;
 		}
@@ -899,7 +880,7 @@ namespace Engine
 		}
 
 		bool push_to_recieved_events = true;
-		ImGuiWindowBackend::on_event_recieved(event);
+		ImGuiBackend_Window::on_event_recieved(event);
 
 		if (event.type() == EventType::KeyUp)
 		{
@@ -921,13 +902,13 @@ namespace Engine
 					break;
 			}
 		}
-		else if (event.type() == EventType::WindowResized && self->m_window->id() == event.window_id())
+		else if (event.type() == EventType::WindowResized && self->window()->id() == event.window_id())
 		{
 			const WindowEvent& window_event = event.get<const WindowEvent&>();
-			self->m_window->update_cached_size();
+			self->window()->update_cached_size();
 			auto x = window_event.x;
 			auto y = window_event.y;
-			self->m_viewport->on_resize({x, y});
+			self->viewport()->on_resize({x, y});
 
 			push_to_recieved_events = false;
 		}
@@ -954,10 +935,10 @@ namespace Engine
 
 			if (m_is_in_debug_loop)
 			{
-				m_viewport->update(dt);
+				viewport()->update(dt);
 
 				engine_instance->begin_render();
-				m_viewport->render();
+				viewport()->render();
 				engine_instance->end_render();
 			}
 		}
@@ -988,7 +969,7 @@ namespace Engine
 
 			if (!m_recieved_events.empty())
 			{
-				ImGuiWindowBackend::disable_events();
+				ImGuiBackend_Window::disable_events();
 			}
 
 			for (auto& event : m_recieved_events)
@@ -998,7 +979,7 @@ namespace Engine
 
 			if (!m_recieved_events.empty())
 			{
-				ImGuiWindowBackend::enable_events();
+				ImGuiBackend_Window::enable_events();
 			}
 
 			m_recieved_events.clear();

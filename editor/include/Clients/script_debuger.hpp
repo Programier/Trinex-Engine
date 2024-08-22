@@ -1,20 +1,15 @@
+#include <Clients/imgui_client.hpp>
 #include <Core/pointer.hpp>
 #include <Core/thread.hpp>
-#include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <TextEditor.h>
 #include <debugger.h>
 
 namespace Engine
 {
-	namespace ImGuiRenderer
+	class ScriptDebuggerClient : public ImGuiEditorClient
 	{
-		class Window;
-	}
-
-	class ScriptDebuggerClient : public ViewportClient
-	{
-		declare_class(ScriptDebuggerClient, ViewportClient);
+		declare_class(ScriptDebuggerClient, ImGuiEditorClient);
 
 		struct Editor {
 			ImGui::TextEditor m_editor;
@@ -27,10 +22,7 @@ namespace Engine
 		TreeMap<String, Editor> m_text_editors;
 		Editor* m_current_editor = nullptr;
 
-		Pointer<RenderViewport> m_viewport;
 		Vector<class Event> m_recieved_events;
-		class Window* m_window                      = nullptr;
-		class ImGuiRenderer::Window* m_imgui_window = nullptr;
 		Thread* m_debugging_thread;
 
 		class Script* m_selected_script  = nullptr;
@@ -72,7 +64,6 @@ namespace Engine
 		~ScriptDebuggerClient();
 		ScriptDebuggerClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ScriptDebuggerClient& on_unbind_viewport(class RenderViewport* viewport) override;
-		ScriptDebuggerClient& render(class RenderViewport* viewport) override;
 		ScriptDebuggerClient& update(class RenderViewport* viewport, float dt) override;
 
 		ScriptDebuggerClient& open_script(Script* script);

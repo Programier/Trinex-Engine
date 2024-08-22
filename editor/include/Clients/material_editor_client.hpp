@@ -1,6 +1,7 @@
 #pragma once
-#include <Graphics/render_viewport.hpp>
+#include <Clients/imgui_client.hpp>
 #include <Widgets/imgui_windows.hpp>
+
 
 namespace ax::NodeEditor
 {
@@ -15,9 +16,9 @@ namespace Engine
 		struct ShaderSource;
 	};// namespace ShaderCompiler
 
-	class MaterialEditorClient : public ViewportClient
+	class MaterialEditorClient : public ImGuiEditorClient
 	{
-		declare_class(MaterialEditorClient, ViewportClient);
+		declare_class(MaterialEditorClient, ImGuiEditorClient);
 
 	public:
 		struct GraphState {
@@ -32,16 +33,12 @@ namespace Engine
 		class ImGuiObjectProperties* m_properties_window = nullptr;
 		class ImGuiMaterialCode* m_material_code         = nullptr;
 
-		ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
 		GraphState m_graph_state;
+		ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
+		class Material* m_material                            = nullptr;
+		Pointer<ShaderCompiler::Compiler> m_compiler          = nullptr;
 
-		class RenderViewport* m_viewport             = nullptr;
-		class Material* m_material                   = nullptr;
-		Pointer<ShaderCompiler::Compiler> m_compiler = nullptr;
-
-		bool m_open_select_node_window = false;
-
-		// Graph editor state
+		bool m_open_select_node_window   = false;
 		bool m_is_open_create_node_popup = false;
 		void* m_create_node_from_pin     = nullptr;
 
@@ -56,9 +53,7 @@ namespace Engine
 		void on_object_select(Object* object);
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
-		MaterialEditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
-
 
 		void render_dock_window();
 		void* editor_context() const;
@@ -66,6 +61,5 @@ namespace Engine
 		MaterialEditorClient& update_drag_and_drop();
 		MaterialEditorClient& render_viewport(float dt);
 		MaterialEditorClient& render_visual_material_graph(class VisualMaterial* material);
-		MaterialEditorClient& render(class RenderViewport* viewport) override;
 	};
 }// namespace Engine

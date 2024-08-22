@@ -994,7 +994,7 @@ namespace Engine::VisualMaterialGraph
 	Texture2D& Texture2D::render()
 	{
 		ImGui::SetNextItemWidth(125.f);
-		ImGuiRenderer::InputText("Name", m_name);
+		ImGui::InputText("Name", m_name);
 		ImGui::Image(texture.ptr(), {125, 125});
 
 		if (ImGui::BeginDragDropTarget())

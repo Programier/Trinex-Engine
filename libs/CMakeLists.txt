@@ -11,15 +11,6 @@ set(FT_DISABLE_HARFBUZZ on)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/freetype/" EXCLUDE_FROM_ALL)
 set_target_properties(freetype PROPERTIES COMPILE_OPTIONS "-fPIC")
 
-# Compile ImGUI
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui/")
-
-# Compile ImGUI Node Editor
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-node-editor/")
-
-# Compile ImGUI FileBrowser
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-filebrowser/")
-
 # Compile stb library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/stb")
 

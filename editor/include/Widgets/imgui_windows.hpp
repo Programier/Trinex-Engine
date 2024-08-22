@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
+#include <Core/pointer.hpp>
 #include <Graphics/imgui.hpp>
 
 namespace ImGui
@@ -9,7 +10,7 @@ namespace ImGui
 
 namespace Engine
 {
-	class ImGuiNotificationMessage : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiNotificationMessage : public ImGuiWidget
 	{
 	public:
 		enum Type
@@ -29,7 +30,7 @@ namespace Engine
 		static const char* name();
 	};
 
-	class ImGuiCreateNewPackage : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiCreateNewPackage : public ImGuiWidget
 	{
 		class Package* m_parent = nullptr;
 		String new_package_name;
@@ -42,7 +43,7 @@ namespace Engine
 		static const char* name();
 	};
 
-	class ImGuiCreateNewAsset : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiCreateNewAsset : public ImGuiWidget
 	{
 		class Package* m_parent = nullptr;
 		String new_asset_name;
@@ -59,7 +60,7 @@ namespace Engine
 		static const char* name();
 	};
 
-	class ImGuiRenameObject : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiRenameObject : public ImGuiWidget
 	{
 		class Object* m_object = nullptr;
 		String new_object_name;
@@ -70,7 +71,7 @@ namespace Engine
 		static const char* name();
 	};
 
-	class ImGuiOpenFile : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiOpenFile : public ImGuiWidget
 	{
 		ImGui::FileBrowser* m_browser = nullptr;
 
@@ -111,7 +112,7 @@ namespace Engine
 		~ImGuiOpenFile();
 	};
 
-	class ImGuiSpawnNewActor : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiSpawnNewActor : public ImGuiWidget
 	{
 		struct Node {
 			class Class* self = nullptr;
@@ -152,7 +153,7 @@ namespace Engine
 		~ImGuiSpawnNewActor();
 	};
 
-	class ImGuiLevelExplorer : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiLevelExplorer : public ImGuiWidget
 	{
 		Pointer<World> m_world;
 

@@ -1,9 +1,13 @@
 #include <Clients/material_editor_client.hpp>
 #include <Clients/open_client.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/blueprints.hpp>
 #include <Core/class.hpp>
+#include <Core/editor_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>
+#include <Core/shader_compiler.hpp>
+#include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/imgui.hpp>
@@ -19,13 +23,9 @@
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
 #include <Window/window.hpp>
-#include <blueprints.hpp>
-#include <editor_config.hpp>
 #include <imgui_internal.h>
 #include <imgui_node_editor.h>
 #include <imgui_stacklayout.h>
-#include <shader_compiler.hpp>
-#include <theme.hpp>
 
 #define MATERIAL_EDITOR_DEBUG 1
 
@@ -34,7 +34,7 @@ namespace Engine
 	implement_engine_class_default_init(MaterialEditorClient, 0);
 
 
-	class ImGuiMaterialPreview : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiMaterialPreview : public ImGuiWidget
 	{
 	public:
 		void init(RenderViewport* viewport)
@@ -55,7 +55,7 @@ namespace Engine
 	};
 
 
-	class ImGuiMaterialCode : public ImGuiRenderer::ImGuiAdditionalWindow
+	class ImGuiMaterialCode : public ImGuiWidget
 	{
 	public:
 		String code;
@@ -92,7 +92,7 @@ namespace Engine
 
 	MaterialEditorClient& MaterialEditorClient::create_content_browser()
 	{
-		m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
+		m_content_browser = imgui_window()->widgets_list.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		m_content_browser->on_object_double_click.push(
 		        std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
@@ -101,65 +101,46 @@ namespace Engine
 
 	MaterialEditorClient& MaterialEditorClient::create_preview_window()
 	{
-		m_preview_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialPreview>();
+		m_preview_window = imgui_window()->widgets_list.create<ImGuiMaterialPreview>();
 		m_preview_window->on_close.push([this]() { m_preview_window = nullptr; });
 		return *this;
 	}
 
 	MaterialEditorClient& MaterialEditorClient::create_material_code_window()
 	{
-		m_material_code = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialCode>();
+		m_material_code = imgui_window()->widgets_list.create<ImGuiMaterialCode>();
 		m_material_code->on_close.push([this]() { m_material_code = nullptr; });
 		return *this;
 	}
 
 	MaterialEditorClient& MaterialEditorClient::create_properties_window()
 	{
-		m_properties_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
+		m_properties_window = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
 		m_properties_window->on_close.push([this]() { m_preview_window = nullptr; });
 		return *this;
 	}
 
 	MaterialEditorClient& MaterialEditorClient::on_bind_viewport(class RenderViewport* viewport)
 	{
-		Window* window = viewport->window();
-		if (window == nullptr)
-		{
-			throw EngineException("Cannot bind client to non-window viewport!");
-		}
+		Super::on_bind_viewport(viewport);
 
-		window->imgui_initialize(EditorTheme::initialize_theme);
+		auto wd = window();
+
+
 		String new_title = Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str());
-		window->title(new_title);
+		wd->title(new_title);
 
 		render_thread()->wait_all();
-		m_viewport = viewport;
 
-
-		ImGuiRenderer::Window* imgui_window = window->imgui_window();
-		ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
-		ImGuiRenderer::Window::make_current(imgui_window);
+		ImGuiWindow* prev_window = ImGuiWindow::current();
+		ImGuiWindow::make_current(imgui_window());
 
 		create_content_browser().create_preview_window().create_properties_window();
 
-		ImGuiRenderer::Window::make_current(prev_window);
+		ImGuiWindow::make_current(prev_window);
 		m_compiler = ShaderCompiler::Compiler::static_create_compiler();
 		return *this;
 	}
-
-	MaterialEditorClient& MaterialEditorClient::on_unbind_viewport(class RenderViewport* viewport)
-	{
-		viewport->window()->imgui_window()->window_list.close_all_windows();
-		return *this;
-	}
-
-	MaterialEditorClient& MaterialEditorClient::render(class RenderViewport* viewport)
-	{
-		viewport->rhi_bind();
-		viewport->window()->imgui_window()->rhi_render();
-		return *this;
-	}
-
 
 	void MaterialEditorClient::on_object_select(Object* object)
 	{
@@ -276,7 +257,8 @@ namespace Engine
 
 	MaterialEditorClient& MaterialEditorClient::update(class RenderViewport* viewport, float dt)
 	{
-		viewport->window()->imgui_window()->new_frame();
+		Super::update(viewport, dt);
+		imgui_new_frame();
 		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
@@ -290,7 +272,7 @@ namespace Engine
 		render_viewport(dt);
 
 		ImGui::End();
-		viewport->window()->imgui_window()->end_frame();
+		imgui_end_frame();
 		return *this;
 	}
 

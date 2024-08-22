@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/colors.hpp>
 #include <Core/default_resources.hpp>
+#include <Core/editor_resources.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
@@ -9,12 +10,11 @@
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/Render/scene_layer.hpp>
+#include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
-#include <editor_resources.hpp>
-#include <editor_scene_renderer.hpp>
 
 namespace Engine
 {

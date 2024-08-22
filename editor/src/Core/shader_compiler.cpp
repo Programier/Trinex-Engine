@@ -6,12 +6,12 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Core/shader_compiler.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <cstring>
-#include <shader_compiler.hpp>
 #include <slang-com-ptr.h>
 #include <slang.h>
 #include <spirv_glsl.hpp>

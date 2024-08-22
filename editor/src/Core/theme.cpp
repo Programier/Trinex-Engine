@@ -1,7 +1,7 @@
+#include <Core/editor_config.hpp>
 #include <Core/file_manager.hpp>
-#include <editor_config.hpp>
+#include <Core/theme.hpp>
 #include <imgui.h>
-#include <theme.hpp>
 
 namespace Engine::EditorTheme
 {

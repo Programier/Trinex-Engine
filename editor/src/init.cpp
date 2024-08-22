@@ -1,5 +1,6 @@
 #include "DefaultResources/editor.hpp"
 #include <Core/class.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
@@ -7,6 +8,7 @@
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 
 namespace Engine
@@ -126,4 +128,13 @@ namespace Engine
 	}
 
 	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
+
+
+	static void load_configs()
+	{
+		Engine::Settings::e_splash_font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+		Engine::ConfigManager::load_config_from_file("editor.config");
+	}
+
+	static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
 }// namespace Engine

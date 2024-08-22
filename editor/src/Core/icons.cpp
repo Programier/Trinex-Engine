@@ -1,11 +1,11 @@
 #include <Core/class.hpp>
+#include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/icons.hpp>
 #include <Core/package.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <editor_resources.hpp>
-#include <icons.hpp>
 
 
 namespace Engine::Icons

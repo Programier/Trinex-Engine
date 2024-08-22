@@ -3,14 +3,14 @@
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
+#include <Core/icons.hpp>
 #include <Core/package.hpp>
+#include <Core/theme.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <icons.hpp>
 #include <imgui_internal.h>
-#include <theme.hpp>
 
 namespace Engine
 {
@@ -26,14 +26,13 @@ namespace Engine
 
 		if (ImGui::Button("editor/Create Package"_localized))
 		{
-			ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+			ImGuiWindow::current()->widgets_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
 			return false;
 		}
 
 		if (is_editable && ImGui::Button("editor/Rename"_localized))
 		{
-			ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiRenameObject>("RenameObject",
-			                                                                                   m_selected_package);
+			ImGuiWindow::current()->widgets_list.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
 			return false;
 		}
 
@@ -48,12 +47,30 @@ namespace Engine
 
 	void ContentBrowser::render_package_popup()
 	{
-		if (m_show_popup_for == nullptr)
-			return;
+		if (ImGui::BeginPopup("###PackagePopup"))
+		{
+			bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
 
-		ImGui::OpenPopup("##popup");
-		if (!ImGuiRenderer::BeginPopup("##popup", 0, &ContentBrowser::render_package_popup, this))
-			m_show_popup_for = nullptr;
+			if (ImGui::Button("editor/Create Package"_localized))
+			{
+				ImGuiWindow::current()->widgets_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (is_editable && ImGui::Button("editor/Rename"_localized))
+			{
+				ImGuiWindow::current()->widgets_list.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (is_editable && ImGui::Button("editor/Save"_localized))
+			{
+				m_show_popup_for->save();
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
 	}
 
 	void ContentBrowser::render_package_tree(Package* node)
@@ -82,6 +99,7 @@ namespace Engine
 		{
 			m_selected_package = node;
 			m_show_popup_for   = node;
+			ImGui::OpenPopup("###PackagePopup");
 		}
 
 		if (opened)
@@ -111,7 +129,7 @@ namespace Engine
 		if (ImGui::ImageButton(icon, {18, 18}))
 		{
 			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
-			auto window = ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiOpenFile>(this, flags);
+			auto window                      = ImGuiWindow::current()->widgets_list.create_identified<ImGuiOpenFile>(this, flags);
 			window->on_select.push([](const Path& path) {
 				Path relative = path.relative(Project::assets_dir);
 				Object::load_object_from_file(relative);
@@ -124,41 +142,6 @@ namespace Engine
 		render_package_tree(Object::root_package());
 		render_package_popup();
 		ImGui::End();
-	}
-
-	bool ContentBrowser::show_context_menu(void* userdata)
-	{
-		Package* pkg = selected_package();
-		if (ImGui::Button("editor/Create new asset"_localized))
-		{
-			ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewAsset>(pkg, filters);
-			return false;
-		}
-
-		bool is_editable_object = selected_object && selected_object->is_editable();
-
-		if (is_editable_object && ImGui::Button("editor/Rename"_localized))
-		{
-			ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(selected_object);
-			return false;
-		}
-
-		if (is_editable_object && ImGui::Button("editor/Delete"_localized))
-		{
-			Package* package = selected_object->package();
-			package->remove_object(selected_object);
-			GarbageCollector::destroy(selected_object);
-			selected_object = nullptr;
-			on_object_select(nullptr);
-			return false;
-		}
-
-		if (is_editable_object && ImGui::Button("editor/Save"_localized))
-		{
-			selected_object->save();
-			return false;
-		}
-		return true;
 	}
 
 	bool ContentBrowser::render_content_item(Object* object, const StringView& name, const ImVec2& item_size,
@@ -350,13 +333,7 @@ namespace Engine
 
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
-			m_show_context_menu = true;
-		}
-
-		if (m_show_context_menu)
-		{
-			ImGui::OpenPopup("##NoName1");
-			m_show_context_menu = ImGuiRenderer::BeginPopup("##NoName1", 0, &ContentBrowser::show_context_menu, this);
+			ImGui::OpenPopup("###ContentContextMenu");
 		}
 
 		ImVec2 content_size = ImGui::GetContentRegionAvail();
@@ -377,6 +354,41 @@ namespace Engine
 			ImGui::Text("%s", "editor/No objects found"_localized);
 		}
 
+		if (ImGui::BeginPopup("###ContentContextMenu"))
+		{
+			Package* pkg = selected_package();
+
+			if (ImGui::Button("editor/Create new asset"_localized))
+			{
+				ImGuiWindow::current()->widgets_list.create<ImGuiCreateNewAsset>(pkg, filters);
+				ImGui::CloseCurrentPopup();
+			}
+
+			bool is_editable_object = selected_object && selected_object->is_editable();
+
+			if (is_editable_object && ImGui::Button("editor/Rename"_localized))
+			{
+				ImGuiWindow::current()->widgets_list.create<ImGuiRenameObject>(selected_object);
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (is_editable_object && ImGui::Button("editor/Delete"_localized))
+			{
+				Package* package = selected_object->package();
+				package->remove_object(selected_object);
+				GarbageCollector::destroy(selected_object);
+				selected_object = nullptr;
+				on_object_select(nullptr);
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (is_editable_object && ImGui::Button("editor/Save"_localized))
+			{
+				selected_object->save();
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
 
 		ImGui::End();
 	}

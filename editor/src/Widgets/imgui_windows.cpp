@@ -1,7 +1,9 @@
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/icons.hpp>
 #include <Core/package.hpp>
+#include <Core/theme.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>
@@ -10,10 +12,8 @@
 #include <Graphics/render_viewport.hpp>
 #include <Platform/platform.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <icons.hpp>
 #include <imfilebrowser.h>
 #include <imgui_internal.h>
-#include <theme.hpp>
 
 namespace Engine
 {
@@ -32,7 +32,7 @@ namespace Engine
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		if (ImGui::Begin(name(), &open, window_flags))
 		{
@@ -84,12 +84,11 @@ namespace Engine
 		bool open = true;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
-
-		ImGuiRenderer::InputText("editor/Package Name"_localized, new_package_name);
+		ImGui::InputText("editor/Package Name"_localized, new_package_name);
 		ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
 		if (!allow_rename && m_parent->contains_object(new_package_name))
@@ -159,7 +158,7 @@ namespace Engine
 		bool open = true;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -167,7 +166,7 @@ namespace Engine
 		ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &m_filtered_classes,
 		             m_filtered_classes.size());
 
-		ImGuiRenderer::InputText("editor/Asset Name"_localized, new_asset_name);
+		ImGui::InputText("editor/Asset Name"_localized, new_asset_name);
 		ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
 		if (!allow_rename && m_parent->contains_object(new_asset_name))
@@ -217,12 +216,12 @@ namespace Engine
 		bool open = true;
 
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Object: %s", m_object->full_name().c_str());
 
-		ImGuiRenderer::InputText("editor/New Name"_localized, new_object_name);
+		ImGui::InputText("editor/New Name"_localized, new_object_name);
 
 		if (!m_object->is_editable())
 		{
@@ -247,8 +246,8 @@ namespace Engine
 			{
 				if (m_object->rename(new_object_name))
 				{
-					ImGuiRenderer::Window::current()->window_list.create<ImGuiNotificationMessage>(
-					        "Failed to rename object", ImGuiNotificationMessage::Error);
+					ImGuiWindow::current()->widgets_list.create<ImGuiNotificationMessage>("Failed to rename object",
+					                                                                      ImGuiNotificationMessage::Error);
 				}
 
 				open = false;
@@ -449,7 +448,7 @@ namespace Engine
 	void ImGuiSpawnNewActor::render_parameters()
 	{
 		ImGui::Text("editor/Class: %s"_localized, m_selected ? m_selected->self->base_name_splitted().c_str() : "None");
-		ImGuiRenderer::InputText("editor/Name"_localized, m_name);
+		ImGui::InputText("editor/Name"_localized, m_name);
 		ImGui::InputFloat3("editor/Location"_localized, &m_location.x);
 		ImGui::InputFloat3("editor/Rotation"_localized, &m_rotation.x);
 		ImGui::InputFloat3("editor/Scale"_localized, &m_scale.x);
@@ -464,7 +463,7 @@ namespace Engine
 	bool ImGuiSpawnNewActor::render(RenderViewport* viewport)
 	{
 		m_is_open = true;
-		ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(m_monitor_size / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(m_monitor_size / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
 		ImGui::SetNextWindowSize({900, 450}, ImGuiCond_Appearing);
 		ImGui::Begin(name(), &m_is_open);
 

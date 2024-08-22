@@ -1,8 +1,8 @@
+#include <Core/editor_config.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Graphics/imgui.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
 #include <Widgets/properties_window.hpp>
-#include <editor_config.hpp>
 
 namespace Engine
 {

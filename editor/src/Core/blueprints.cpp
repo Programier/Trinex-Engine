@@ -1,6 +1,6 @@
+#include <Core/blueprints.hpp>
+#include <Core/editor_resources.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <blueprints.hpp>
-#include <editor_resources.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 

@@ -3,7 +3,6 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <imgui.h>
 #include <opengl_api.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_sampler.hpp>

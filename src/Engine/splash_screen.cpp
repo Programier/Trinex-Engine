@@ -7,21 +7,19 @@
 #include <Core/threading.hpp>
 #include <Engine/splash_config.hpp>
 #include <Engine/splash_screen.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Platform/platform.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <imgui_stacklayout.h>
 
 namespace Engine
 {
 	struct TextInfo {
 		String text;
-		ImFont* font;
-		ImVec2 text_size;
+		// ImFont* font;
+		// ImVec2 text_size;
 		int_t font_size;
 		bool need_update_text_size = true;
 	};
@@ -60,115 +58,115 @@ namespace Engine
 
 	static SplashData* m_splash_data = nullptr;
 
-	class SplashClient : public ViewportClient
-	{
-		declare_class(SplashClient, ViewportClient);
+	// class SplashClient : public ViewportClient
+	// {
+	// 	declare_class(SplashClient, ViewportClient);
 
-	public:
-		ViewportClient& on_bind_viewport(class RenderViewport* viewport) override
-		{
-			Window* window = viewport->window();
+	// public:
+	// 	ViewportClient& on_bind_viewport(class RenderViewport* viewport) override
+	// 	{
+	// 		Window* window = viewport->window();
 
-			window->imgui_initialize([](ImGuiContext* ctx) {
-				auto& style            = ImGui::GetStyle();
-				style.WindowPadding    = {0, 0};
-				style.WindowBorderSize = 0.f;
+	// 		window->imgui_initialize([](ImGuiContext* ctx) {
+	// 			auto& style            = ImGui::GetStyle();
+	// 			style.WindowPadding    = {0, 0};
+	// 			style.WindowBorderSize = 0.f;
 
-				FileReader reader(m_splash_data->config.font_path);
+	// 			FileReader reader(m_splash_data->config.font_path);
 
-				if (reader.is_open())
-				{
-					Buffer buffer = reader.read_buffer();
-					ImFontConfig config;
-					config.FontDataOwnedByAtlas = false;
+	// 			if (reader.is_open())
+	// 			{
+	// 				Buffer buffer = reader.read_buffer();
+	// 				ImFontConfig config;
+	// 				config.FontDataOwnedByAtlas = false;
 
 
-					size_t count = static_cast<size_t>(SplashTextType::Count);
+	// 				size_t count = static_cast<size_t>(SplashTextType::Count);
 
-					for (size_t i = 0; i < count; i++)
-					{
-						auto& info = m_splash_data->text_info_of(i);
-						info.font =
-						        ImGui::GetIO().Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), info.font_size, &config,
-						                                                   ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
-					}
-				}
-			});
+	// 				for (size_t i = 0; i < count; i++)
+	// 				{
+	// 					auto& info = m_splash_data->text_info_of(i);
+	// 					info.font =
+	// 					        ImGui::GetIO().Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), info.font_size, &config,
+	// 					                                                   ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+	// 				}
+	// 			}
+	// 		});
 
-			return *this;
-		}
+	// 		return *this;
+	// 	}
 
-		ViewportClient& render(class RenderViewport* viewport) override
-		{
-			viewport->rhi_bind();
-			viewport->window()->imgui_window()->rhi_render();
-			return *this;
-		}
+	// 	ViewportClient& render(class RenderViewport* viewport) override
+	// 	{
+	// 		viewport->rhi_bind();
+	// 		viewport->window()->imgui_window()->rhi_render();
+	// 		return *this;
+	// 	}
 
-		static void render_text(SplashTextType type)
-		{
-			auto& info = m_splash_data->text_info_of(type);
-			ImGui::PushFont(info.font);
+	// 	static void render_text(SplashTextType type)
+	// 	{
+	// 		auto& info = m_splash_data->text_info_of(type);
+	// 		ImGui::PushFont(info.font);
 
-			if (info.need_update_text_size)
-			{
-				info.text_size = ImGui::CalcTextSize(info.text.c_str());
-			}
+	// 		if (info.need_update_text_size)
+	// 		{
+	// 			info.text_size = ImGui::CalcTextSize(info.text.c_str());
+	// 		}
 
-			auto list = ImGui::GetWindowDrawList();
-			auto pos  = ImGui::GetCursorScreenPos();
+	// 		auto list = ImGui::GetWindowDrawList();
+	// 		auto pos  = ImGui::GetCursorScreenPos();
 
-			list->AddRectFilled(pos, pos + info.text_size, ImGui::GetColorU32({0.25, 0.25, 0.25, 0.5}));
+	// 		list->AddRectFilled(pos, pos + info.text_size, ImGui::GetColorU32({0.25, 0.25, 0.25, 0.5}));
 
-			ImGui::TextUnformatted(info.text.c_str());
-			ImGui::PopFont();
-		}
+	// 		ImGui::TextUnformatted(info.text.c_str());
+	// 		ImGui::PopFont();
+	// 	}
 
-		ViewportClient& update(class RenderViewport* viewport, float dt) override
-		{
-			auto imgui_window = viewport->window()->imgui_window();
-			imgui_window->new_frame();
+	// 	ViewportClient& update(class RenderViewport* viewport, float dt) override
+	// 	{
+	// 		auto imgui_window = viewport->window()->imgui_window();
+	// 		imgui_window->new_frame();
 
-			ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos);
-			ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
-			ImGui::Begin("SplashScreen", nullptr,
-			             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+	// 		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos);
+	// 		ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
+	// 		ImGui::Begin("SplashScreen", nullptr,
+	// 		             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
 
-			static constexpr float padding = 10.f;
-			auto pos                       = ImGui::GetCursorPos() + ImVec2(padding, padding);
-			auto size                      = ImGui::GetContentRegionAvail();
-			ImGui::Image(m_splash_data->texture, size);
+	// 		static constexpr float padding = 10.f;
+	// 		auto pos                       = ImGui::GetCursorPos() + ImVec2(padding, padding);
+	// 		auto size                      = ImGui::GetContentRegionAvail();
+	// 		ImGui::Image(m_splash_data->texture, size);
 
-			size -= ImVec2(2 * padding, 2 * padding);
+	// 		size -= ImVec2(2 * padding, 2 * padding);
 
-			ImGui::SetCursorPos(pos);
-			// Left side
-			ImGui::BeginVertical(0, size, 0.0);
+	// 		ImGui::SetCursorPos(pos);
+	// 		// Left side
+	// 		ImGui::BeginVertical(0, size, 0.0);
 
-			ImGui::Spring(1);
-			render_text(SplashTextType::GameName);
-			render_text(SplashTextType::VersionInfo);
-			render_text(SplashTextType::StartupProgress);
-			ImGui::Spring(0);
-			ImGui::EndVertical();
+	// 		ImGui::Spring(1);
+	// 		render_text(SplashTextType::GameName);
+	// 		render_text(SplashTextType::VersionInfo);
+	// 		render_text(SplashTextType::StartupProgress);
+	// 		ImGui::Spring(0);
+	// 		ImGui::EndVertical();
 
-			ImGui::SetCursorPos(pos);
+	// 		ImGui::SetCursorPos(pos);
 
-			// Right side
-			ImGui::BeginVertical(1, size, 1.f);
-			ImGui::Spring(1);
-			render_text(SplashTextType::CopyrightInfo);
-			ImGui::Spring(0);
-			ImGui::EndVertical();
+	// 		// Right side
+	// 		ImGui::BeginVertical(1, size, 1.f);
+	// 		ImGui::Spring(1);
+	// 		render_text(SplashTextType::CopyrightInfo);
+	// 		ImGui::Spring(0);
+	// 		ImGui::EndVertical();
 
-			ImGui::End();
+	// 		ImGui::End();
 
-			imgui_window->end_frame();
-			return *this;
-		}
-	};
+	// 		imgui_window->end_frame();
+	// 		return *this;
+	// 	}
+	// };
 
-	implement_engine_class_default_init(SplashClient, 0);
+	// implement_engine_class_default_init(SplashClient, 0);
 
 	struct SplashUpdate : public ExecutableObject {
 		int_t execute() override
@@ -197,6 +195,7 @@ namespace Engine
 
 	ENGINE_EXPORT void show_splash_screen()
 	{
+		return;
 		if (m_splash_data)
 			return;
 
@@ -224,7 +223,7 @@ namespace Engine
 		window_config.vsync    = true;
 
 		m_splash_data->window = WindowManager::instance()->create_window(window_config);
-		m_splash_data->window->render_viewport()->client(Object::new_instance<SplashClient>());
+		//m_splash_data->window->render_viewport()->client(Object::new_instance<SplashClient>());
 
 		m_splash_data->thread      = new Thread("Splash");
 		m_splash_data->exec_thread = new Thread("Splash Exec");
@@ -243,6 +242,7 @@ namespace Engine
 
 	ENGINE_EXPORT void splash_screen_text(SplashTextType type, const StringView& text)
 	{
+		return ;
 		class UpdateText : public ExecutableObject
 		{
 			SplashTextType m_type;
@@ -280,6 +280,7 @@ namespace Engine
 
 	ENGINE_EXPORT void hide_splash_screen()
 	{
+		return;
 		if (m_splash_data == nullptr)
 			return;
 		m_splash_data->is_active = false;

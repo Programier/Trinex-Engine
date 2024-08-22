@@ -1,9 +1,9 @@
+#include <Core/editor_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
 #include <Widgets/properties_window.hpp>
-#include <editor_config.hpp>
 
 
 namespace Engine

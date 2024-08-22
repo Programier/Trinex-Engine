@@ -3,7 +3,6 @@
 #include <Core/thread.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
-#include <Graphics/imgui.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window.hpp>

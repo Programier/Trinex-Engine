@@ -4,16 +4,8 @@
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
 
-struct ImGuiContext;
-struct ImDrawData;
-
 namespace Engine
 {
-	namespace ImGuiRenderer
-	{
-		class Window;
-	}
-
 	struct WindowConfig;
 	class Image;
 
@@ -29,15 +21,10 @@ namespace Engine
 		Size2D m_cached_size;
 		Window* m_parent_window = nullptr;
 		Vector<Window*> m_childs;
-		Pointer<ImGuiRenderer::Window> m_imgui_window = nullptr;
 
 	protected:
 		Window& imgui_initialize_internal();
 		Window& imgui_terminate_internal();
-
-	private:
-		ImGuiContext* imgui_create_context(const Function<void(ImGuiContext*)>& callback);
-		void imgui_destroy_context(ImGuiContext* context);
 
 	public:
 		virtual void initialize(const WindowConfig&);
@@ -76,15 +63,9 @@ namespace Engine
 		virtual void* native_window();
 		virtual size_t monitor_index();
 
-		Window& imgui_new_frame();
-
 		RenderViewport* render_viewport() const;
 		Window* parent_window() const;
 		const Vector<Window*>& child_windows() const;
-
-		ImGuiRenderer::Window* imgui_window();
-		Window& imgui_initialize(const Function<void(ImGuiContext*)>& callback = {});
-		Window& imgui_terminate();
 
 		Size2D cached_size() const;
 		Window& update_cached_size();

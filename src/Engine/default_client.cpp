@@ -3,7 +3,6 @@
 #include <Core/colors.hpp>
 #include <Core/logger.hpp>
 #include <Engine/default_client.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
@@ -18,7 +17,6 @@ namespace Engine
 
 	DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
 	{
-		viewport->window()->imgui_initialize();
 		return *this;
 	}
 

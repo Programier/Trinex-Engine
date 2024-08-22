@@ -1,42 +1,35 @@
 #include <Clients/editor_client.hpp>
 #include <Clients/open_client.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/class.hpp>
+#include <Core/editor_config.hpp>
+#include <Core/editor_resources.hpp>
+#include <Core/icons.hpp>
+#include <Core/importer.hpp>
 #include <Core/localization.hpp>
+#include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <Engine/Render/scene_layer.hpp>
 #include <Engine/ray.hpp>
-#include <Engine/scene.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/material.hpp>
-#include <Graphics/pipeline.hpp>
-#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/sampler.hpp>
 #include <Graphics/scene_render_targets.hpp>
-#include <Graphics/shader_parameters.hpp>
 #include <ImGuizmo.h>
-#include <Importer/importer.hpp>
-#include <ScriptEngine/script_module.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
-#include <editor_resources.hpp>
+#include <Window/window_manager.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <icons.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
-#include <theme.hpp>
 
 namespace Engine
 {
@@ -47,68 +40,34 @@ namespace Engine
 
 	implement_engine_class_default_init(EditorClient, 0);
 
-	EditorClient::EditorClient() : m_show_flags(ShowFlags::DefaultFlags)
-	{}
-
-	EditorClient::~EditorClient()
-	{
-		unbind_window(true);
-	}
-
-	void EditorClient::unbind_window(bool destroying)
-	{
-		EventSystem* event_system = EventSystem::instance();
-
-		if (event_system)
-		{
-			for (auto listener : m_event_system_listeners)
-			{
-				event_system->remove_listener(listener);
-			}
-			m_event_system_listeners.clear();
-		}
-
-		m_state.window.window = nullptr;
-	}
-
-
 	EditorClient& EditorClient::create_content_browser()
 	{
-		m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
+		m_content_browser = imgui_window()->widgets_list.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
 	EditorClient& EditorClient::create_properties_window()
 	{
-		m_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
+		m_properties = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
 		m_properties->on_close.push([this]() { m_properties = nullptr; });
 		return *this;
 	}
 
 	EditorClient& EditorClient::create_level_explorer()
 	{
-		m_level_explorer = ImGuiRenderer::Window::current()->window_list.create<ImGuiLevelExplorer>(m_world);
+		m_level_explorer = imgui_window()->widgets_list.create<ImGuiLevelExplorer>(m_world);
 		m_level_explorer->on_close.push([this]() { m_level_explorer = nullptr; });
 		return *this;
 	}
 
-	ViewportClient& EditorClient::on_bind_viewport(class RenderViewport* viewport)
+	EditorClient& EditorClient::on_bind_viewport(class RenderViewport* viewport)
 	{
-		Window* window = viewport->window();
-		if (window == nullptr)
-		{
-			throw EngineException("Cannot bind client to non-window viewport!");
-		}
-		window->imgui_initialize(EditorTheme::initialize_theme);
+		Super::on_bind_viewport(viewport);
 
-		m_state.window.window          = window;
-		m_state.window.render_viewport = viewport;
-		m_state.window.imgui_window    = window->imgui_window();
-
+		auto wd          = window();
 		String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
-		window->title(new_title);
-		render_thread()->wait_all();
+		wd->title(new_title);
 
 		EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 		m_world                       = World::new_system<World>();
@@ -119,14 +78,14 @@ namespace Engine
 		m_renderer.scene = m_world->scene();
 		m_world->start_play();
 
-		ImGuiRenderer::Window* prev_window = ImGuiRenderer::Window::current();
-		ImGuiRenderer::Window::make_current(m_state.window.imgui_window);
+		ImGuiWindow* prev_window = ImGuiWindow::current();
+		ImGuiWindow::make_current(imgui_window());
 
 		create_content_browser();
 		create_properties_window();
 		create_level_explorer();
 
-		ImGuiRenderer::Window::make_current(prev_window);
+		ImGuiWindow::make_current(prev_window);
 
 		camera = Object::new_instance<CameraComponent>();
 		camera->location({0, 10, 10});
@@ -138,35 +97,33 @@ namespace Engine
 		        EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
 		        EventType::FingerMotion, std::bind(&EditorClient::on_finger_move, this, std::placeholders::_1)));
-
 		m_event_system_listeners.push_back(event_system->add_listener(
 		        EventType::MouseButtonDown, std::bind(&EditorClient::on_mouse_press, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
 		        EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
-		m_event_system_listeners.push_back(event_system->add_listener(
-		        EventType::WindowClose, std::bind(&EditorClient::on_window_close, this, std::placeholders::_1)));
 		return *this;
 	}
 
-	ViewportClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
+	EditorClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
 	{
+		Super::on_unbind_viewport(viewport);
+
 		m_world->on_actor_select.remove(m_on_actor_select_callback_id);
 		m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
 
-		auto& list = m_state.window.imgui_window->window_list;
-		list.close_all_windows();
-		unbind_window(false);
+		EventSystem* event_system = EventSystem::instance();
+
+		if (event_system)
+		{
+			for (auto listener : m_event_system_listeners)
+			{
+				event_system->remove_listener(listener);
+			}
+			m_event_system_listeners.clear();
+		}
+
 		return *this;
 	}
-
-	void EditorClient::on_window_close(const Event& event)
-	{
-		if (event.window_id() == m_state.window.window->id())
-		{
-			unbind_window(false);
-		}
-	}
-
 	void EditorClient::on_actor_select(World* world, class Actor* actor)
 	{
 		if (m_properties)
@@ -201,7 +158,7 @@ namespace Engine
 		return *this;
 	}
 
-	ViewportClient& EditorClient::render(class RenderViewport* render_viewport)
+	EditorClient& EditorClient::render(class RenderViewport* render_viewport)
 	{
 		ViewPort viewport = rhi->viewport();
 		viewport.pos      = {0.f, 0.f};
@@ -216,13 +173,12 @@ namespace Engine
 
 		m_renderer.render(m_scene_view, render_viewport);
 
-		render_viewport->rhi_bind();
-		render_viewport->window()->imgui_window()->rhi_render();
-
 		if (m_scene_view.show_flags() & ShowFlags::Statistics)
 		{
 			call_in_logic_thread([this, statistics = m_renderer.statistics]() { m_statistics = statistics; });
 		}
+
+		Super::render(render_viewport);
 		return *this;
 	}
 
@@ -297,7 +253,7 @@ namespace Engine
 				                    "editor/Import resource from file to selected package"_localized, false, enable_import))
 				{
 					Package* package = m_content_browser->selected_package();
-					ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>()->on_select.push(
+					imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
 					        [package](const Path& path) { Importer::import_resource(package, path); });
 				}
 
@@ -308,7 +264,7 @@ namespace Engine
 			ImGui::EndMenuBar();
 		}
 
-		if (m_state.window.imgui_window->frame_index() == 1)
+		if (imgui_window()->frame_index() == 1)
 		{
 			ImGui::DockBuilderRemoveNode(dock_id);
 			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
@@ -344,10 +300,9 @@ namespace Engine
 		return *this;
 	}
 
-	ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
+	EditorClient& EditorClient::update(class RenderViewport* viewport, float dt)
 	{
-		ImGuiRenderer::Window* window = m_state.window.imgui_window;
-		window->new_frame();
+		imgui_new_frame();
 
 		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 
@@ -363,8 +318,8 @@ namespace Engine
 		render_viewport_window(dt);
 
 		ImGui::End();
-		window->end_frame();
 
+		imgui_end_frame();
 
 		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
 		{
@@ -498,7 +453,7 @@ namespace Engine
 			render_separator();
 			if (ImGui::ImageButton({add_icon, EditorResources::default_sampler}, {height, height}))
 			{
-				ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiSpawnNewActor>(this, m_world);
+				imgui_window()->widgets_list.create_identified<ImGuiSpawnNewActor>(this, m_world);
 			}
 		}
 
@@ -582,14 +537,14 @@ namespace Engine
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
 			relative_mouse_pos.y    = m_state.viewport.size.y - relative_mouse_pos.y;
-			raycast_objects(ImGuiHelpers::construct_vec2<Vector2D>(relative_mouse_pos));
+			raycast_objects(ImGui::EngineVecFrom(relative_mouse_pos));
 		}
 
 		{
 			auto current_pos = ImGui::GetCursorPos();
 			auto size        = ImGui::GetContentRegionAvail();
 
-			m_state.viewport.size = ImGuiHelpers::construct_vec2<Vector2D>(size);
+			m_state.viewport.size = ImGui::EngineVecFrom(size);
 			camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
 			//auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
@@ -631,7 +586,7 @@ namespace Engine
 
 		if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
 		{
-			MouseSystem::instance()->relative_mode(true, m_state.window.window);
+			MouseSystem::instance()->relative_mode(true, window());
 		}
 	}
 
@@ -641,7 +596,7 @@ namespace Engine
 
 		if (button.button == Mouse::Button::Right)
 		{
-			MouseSystem::instance()->relative_mode(false, m_state.window.window);
+			MouseSystem::instance()->relative_mode(false, window());
 			m_camera_move = {0, 0, 0};
 		}
 	}
@@ -650,7 +605,7 @@ namespace Engine
 	{
 		const MouseMotionEvent& motion = event.get<const MouseMotionEvent&>();
 
-		if (MouseSystem::instance()->is_relative_mode(m_state.window.window))
+		if (MouseSystem::instance()->is_relative_mode(window()))
 		{
 			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
 			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
@@ -686,7 +641,7 @@ namespace Engine
 
 	EditorClient& EditorClient::update_camera(float dt)
 	{
-		move_camera(m_camera_move, m_state.window.window);
+		move_camera(m_camera_move, window());
 
 		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
 		                     m_camera_speed);
