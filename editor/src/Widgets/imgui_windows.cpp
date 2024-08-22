@@ -379,7 +379,7 @@ namespace Engine
 	{
 		node->self = self;
 
-		for (Class* child : self->childs_classes())
+		for (Class* child : self->child_classes())
 		{
 			if (child->parent() == self)
 			{

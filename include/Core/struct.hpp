@@ -14,6 +14,13 @@ namespace Engine
 	public:
 		using GroupedPropertiesMap = TreeMap<Name, Vector<class Property*>, Name::Less>;
 
+		struct ENGINE_EXPORT StructCompare {
+			bool operator()(const Struct* a, const Struct* b) const
+			{
+				return a->name().to_string() < b->name().to_string();
+			}
+		};
+
 	private:
 		void* (*m_struct_constructor)() = nullptr;
 
@@ -27,13 +34,15 @@ namespace Engine
 		class Group* m_group = nullptr;
 
 		mutable Struct* m_parent_struct = nullptr;
-		Set<Struct*> m_childs;
+		TreeSet<Struct*, StructCompare> m_childs;
 		Vector<class Property*> m_properties;
 		GroupedPropertiesMap m_grouped_properties;
 
 
 		Struct(const Name& name, const Name& parent = Name::none);
 		Struct(const Name& name, Struct* parent);
+		
+		void destroy_childs();
 
 	public:
 		static ENGINE_EXPORT Struct* create(const Name& name, const Name& parent = Name::none);
@@ -51,7 +60,7 @@ namespace Engine
 		class Group* group() const;
 		size_t abstraction_level() const;
 		Vector<Name> hierarchy(size_t offset = 0) const;
-		const Set<Struct*>& child_structs() const;
+		const TreeSet<Struct*, StructCompare>& child_structs() const;
 
 		bool is_a(const Struct* other) const;
 		virtual bool is_class() const;

@@ -56,6 +56,15 @@ namespace Engine
 		}
 	}
 
+	void Struct::destroy_childs()
+	{
+		while (!m_childs.empty())
+		{
+			Struct* child_struct = *m_childs.begin();
+			delete child_struct;
+		}
+	}
+
 	ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& parent)
 	{
 		Struct* self = static_find(name);
@@ -201,7 +210,7 @@ namespace Engine
 		return result;
 	}
 
-	const Set<Struct*>& Struct::child_structs() const
+	const TreeSet<Struct*, Struct::StructCompare>& Struct::child_structs() const
 	{
 		return m_childs;
 	}
@@ -287,11 +296,7 @@ namespace Engine
 
 		m_properties.clear();
 
-		while (!m_childs.empty())
-		{
-			Struct* child_struct = *m_childs.begin();
-			delete child_struct;
-		}
+		destroy_childs();
 
 		if (m_parent_struct)
 		{

@@ -2,7 +2,6 @@
 #include <Core/pointer.hpp>
 #include <Graphics/render_viewport.hpp>
 
-
 namespace Engine
 {
 	class ImGuiWindow;
@@ -16,6 +15,9 @@ namespace Engine
 		Pointer<ImGuiWindow> m_window;
 		RenderViewport* m_viewport = nullptr;
 
+	protected:
+		void draw_available_clients_for_opening();
+		
 	public:
 		ImGuiEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ImGuiEditorClient& on_unbind_viewport(class RenderViewport* viewport) override;

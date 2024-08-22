@@ -169,10 +169,7 @@ namespace Engine
 		{
 			if (ImGui::BeginMenu("editor/View"_localized))
 			{
-				if (ImGui::MenuItem("editor/Open Editor"_localized))
-				{
-					open_editor();
-				}
+				draw_available_clients_for_opening();
 
 				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
 				{

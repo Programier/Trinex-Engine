@@ -182,7 +182,6 @@ namespace Engine
 		return *this;
 	}
 
-
 	EditorClient& EditorClient::render_dock_window(float dt)
 	{
 		auto dock_id                       = ImGui::GetID("EditorDock##Dock");
@@ -193,15 +192,7 @@ namespace Engine
 		{
 			if (ImGui::BeginMenu("editor/View"_localized))
 			{
-				if (ImGui::MenuItem("editor/Open Material Editor"_localized))
-				{
-					open_material_editor();
-				}
-
-				if (ImGui::MenuItem("editor/Open Script Debugger"_localized))
-				{
-					open_script_debugger();
-				}
+				draw_available_clients_for_opening();
 
 				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
 				{

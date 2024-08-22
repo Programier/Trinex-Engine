@@ -27,6 +27,7 @@ namespace Engine
 		};
 
 		Flags<Class::Flag> flags;
+		using ChildsSet = TreeSet<Class*, StructCompare>;
 
 	private:
 		mutable Object* m_singletone_object;
@@ -35,7 +36,7 @@ namespace Engine
 		Object* (*m_script_factory)(StringView, Object*)                              = nullptr;
 		Object* (*m_static_constructor)(Class*, StringView, Object*)                  = nullptr;
 		Object* (*m_static_placement_constructor)(Class*, void*, StringView, Object*) = nullptr;
-		Set<Class*> m_childs;
+		ChildsSet m_childs;
 		size_t m_size;
 
 		void on_create_call(Object* object) const;
@@ -52,7 +53,7 @@ namespace Engine
 		Class(const Name& full_name, Class* parent = nullptr, BitMask flags = 0);
 
 		Class* parent() const;
-		const Set<Class*>& childs_classes() const;
+		const ChildsSet& child_classes() const;
 
 		void (*destroy_func() const)(Object*);
 		Class& destroy_func(void (*)(Object*));

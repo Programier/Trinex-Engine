@@ -243,6 +243,11 @@ namespace Engine
 		return m_context->SetObject(obj) >= 0;
 	}
 
+	bool ScriptContext::arg(uint_t arg, bool value)
+	{
+		return m_context->SetArgByte(arg, value) >= 0;
+	}
+
 	bool ScriptContext::arg(uint_t arg, byte value)
 	{
 		return m_context->SetArgByte(arg, value) >= 0;
@@ -273,19 +278,19 @@ namespace Engine
 		return m_context->SetArgDouble(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_reference(uint_t arg, void* addr)
+	bool ScriptContext::arg(uint_t arg, const ScriptObject& obj)
 	{
-		return m_context->SetArgAddress(arg, addr) >= 0;
-	}
-
-	bool ScriptContext::arg(uint_t arg, void* addr)
-	{
-		return m_context->SetArgObject(arg, addr) >= 0;
+		return m_context->SetArgObject(arg, obj.address()) >= 0;
 	}
 
 	bool ScriptContext::arg(uint_t arg, void* ptr, int_t type_id)
 	{
 		return m_context->SetArgVarType(arg, ptr, type_id);
+	}
+
+	bool ScriptContext::arg_reference(uint_t arg, void* addr)
+	{
+		return m_context->SetArgAddress(arg, addr) >= 0;
 	}
 
 	void* ScriptContext::address_of_arg(uint_t arg)

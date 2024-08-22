@@ -5,12 +5,47 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
+#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_object.hpp>
 #include <Window/window.hpp>
 
 namespace Engine
 {
-	implement_engine_class_default_init(RenderViewport, 0);
-	implement_engine_class_default_init(ViewportClient, 0);
+	static ScriptFunction vc_update;
+	static ScriptFunction vc_on_bind_viewport;
+	static ScriptFunction vc_on_unbind_viewport;
+	static ScriptFunction vc_render;
+
+	implement_engine_class(RenderViewport, Class::IsScriptable)
+	{
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+			r->method("Vector2D size() const final", &This::size);
+			r->method("bool vsync() const final", method_of<bool>(&This::vsync));
+			r->method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
+			r->method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
+			r->method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
+		};
+	}
+
+	implement_engine_class(ViewportClient, Class::IsScriptable)
+	{
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+			vc_update             = r->method("void update(RenderViewport viewport, float dt)", &This::update);
+			vc_on_bind_viewport   = r->method("void on_bind_viewport(RenderViewport)", &This::on_bind_viewport);
+			vc_on_unbind_viewport = r->method("void on_unbind_viewport(RenderViewport)", &This::on_unbind_viewport);
+
+			// Need to check, can we use script engine in multi-thread mode?
+			// vc_render = r->method("void render(RenderViewport viewport)", &This::render);
+		};
+
+		ScriptEngine::on_terminate.push([]() {
+			vc_update.release();
+			vc_on_bind_viewport.release();
+			vc_on_unbind_viewport.release();
+			vc_render.release();
+		});
+	}
 
 	static RenderViewport* m_current_render_viewport = nullptr;
 
@@ -37,18 +72,10 @@ namespace Engine
 	ViewportClient* ViewportClient::create(const StringView& name)
 	{
 		Class* client_class = Class::static_find(name);
+
 		if (client_class)
 		{
-			Object* object         = client_class->create_object();
-			ViewportClient* client = object->instance_cast<ViewportClient>();
-			if (client)
-			{
-				return client;
-			}
-			else if (object)
-			{
-				delete object;
-			}
+			return Object::instance_cast<ViewportClient>(client_class->create_object());
 		}
 
 		return nullptr;
@@ -168,14 +195,31 @@ namespace Engine
 		{
 			ViewportClient* tmp = m_client;
 			m_client            = nullptr;
-			tmp->on_unbind_viewport(this);
+
+			if (tmp->class_instance()->is_native())
+			{
+				tmp->on_unbind_viewport(this);
+			}
+			else
+			{
+				ScriptObject obj(tmp);
+				obj.execute(vc_on_unbind_viewport, ScriptObject(this));
+			}
 		}
 
 		m_client = new_client;
 
 		if (new_client)
 		{
-			new_client->on_bind_viewport(this);
+			if (new_client->class_instance()->is_native())
+			{
+				new_client->on_bind_viewport(this);
+			}
+			else
+			{
+				ScriptObject obj(new_client);
+				obj.execute(vc_on_bind_viewport, ScriptObject(this));
+			}
 		}
 		return *this;
 	}
@@ -185,7 +229,16 @@ namespace Engine
 		if (m_client)
 		{
 			m_current_render_viewport = this;
-			m_client->update(this, dt);
+
+			if (m_client->class_instance()->is_native())
+			{
+				m_client->update(this, dt);
+			}
+			else
+			{
+				ScriptObject obj(m_client);
+				obj.execute(vc_update, ScriptObject(this), dt);
+			}
 			m_current_render_viewport = nullptr;
 		}
 		return *this;

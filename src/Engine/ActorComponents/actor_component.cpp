@@ -2,6 +2,7 @@
 #include <Engine/ActorComponents/actor_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine
 {
@@ -23,6 +24,14 @@ namespace Engine
 			r->method("Actor actor() const final", method_of<Actor*>(&This::actor));
 			r->method("void actor(Actor actor) const final", method_of<ActorComponent&, Actor*>(&This::actor));
 		};
+
+		ScriptEngine::on_terminate.push([]() {
+			script_actor_comp_update.release();
+			script_actor_comp_start_play.release();
+			script_actor_comp_stop_play.release();
+			script_actor_comp_spawned.release();
+			script_actor_comp_destroyed.release();
+		});
 	}
 
 	ActorComponentProxy::ActorComponentProxy()

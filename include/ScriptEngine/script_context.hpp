@@ -22,81 +22,6 @@ namespace Engine
 		static void initialize();
 		static void terminate();
 
-		template<typename T>
-		static inline byte validate_argument(const T& value)
-		    requires Concepts::is_byte<T>
-		{
-			return static_cast<byte>(value);
-		}
-
-		template<typename T>
-		static inline word validate_argument(const T& value)
-		    requires Concepts::is_word<T>
-		{
-			return static_cast<word>(value);
-		}
-
-		template<typename T>
-		static inline dword validate_argument(const T& value)
-		    requires Concepts::is_dword<T>
-		{
-			return static_cast<dword>(value);
-		}
-
-		template<typename T>
-		static inline qword validate_argument(const T& value)
-		    requires Concepts::is_qword<T>
-		{
-			return static_cast<qword>(value);
-		}
-
-		template<typename T>
-		static inline float validate_argument(const T& value)
-		    requires Concepts::is_float<T>
-		{
-			return static_cast<float>(value);
-		}
-
-		template<typename T>
-		static inline double validate_argument(const T& value)
-		    requires Concepts::is_double<T>
-		{
-			return static_cast<double>(value);
-		}
-
-		template<typename T>
-		static inline const RRef<T>& validate_argument(const RRef<T>& value)
-		{
-			return value;
-		}
-
-		template<typename T>
-		static inline const LRef<T>& validate_argument(const LRef<T>& value)
-		{
-			return value;
-		}
-
-		template<typename T>
-		static inline void* validate_argument(T* value)
-		{
-			std::decay_t<T>* non_const = const_cast<std::decay_t<T>*>(value);
-			return non_const;
-		}
-
-		template<typename T>
-		static inline void* validate_argument(const T& value)
-		    requires(!Concepts::is_byte<T> && !Concepts::is_word<T> && !Concepts::is_dword<T> && !Concepts::is_qword<T> &&
-		             !Concepts::is_float<T> && !Concepts::is_double<T>)
-		{
-			return validate_argument(&value);
-		}
-
-		template<typename T>
-		static bool arg(uint_t index, const RRef<T>& value)
-		{
-			return arg_reference(index, const_cast<T*>(value.address()));
-		}
-
 	public:
 		enum class State
 		{
@@ -131,13 +56,14 @@ namespace Engine
 
 		// Arguments
 
+		static bool arg(uint_t arg, bool value);
 		static bool arg(uint_t arg, byte value);
 		static bool arg(uint_t arg, word value);
 		static bool arg(uint_t arg, dword value);
 		static bool arg(uint_t arg, qword value);
 		static bool arg(uint_t arg, float value);
 		static bool arg(uint_t arg, double value);
-		static bool arg(uint_t arg, void* addr);
+		static bool arg(uint_t arg, const ScriptObject& obj);
 		static bool arg_reference(uint_t arg, void* addr);
 
 		template<typename T>
@@ -187,7 +113,7 @@ namespace Engine
 			if (!begin_execute(function))
 				return {};
 			uint_t argument            = 0;
-			bool bind_arguments_status = (arg(argument++, validate_argument(args)) && ...);
+			bool bind_arguments_status = (arg(argument++, args) && ...);
 
 			if (!bind_arguments_status)
 			{
@@ -206,7 +132,7 @@ namespace Engine
 			object(self);
 
 			uint_t argument            = 0;
-			bool bind_arguments_status = (arg(argument++, validate_argument(args)) && ...);
+			bool bind_arguments_status = (arg(argument++, args) && ...);
 
 			if (!bind_arguments_status)
 			{

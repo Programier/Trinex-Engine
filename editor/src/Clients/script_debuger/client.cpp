@@ -258,6 +258,7 @@ namespace Engine
 		{
 			if (ImGui::BeginMenu("editor/File"_localized))
 			{
+				draw_available_clients_for_opening();
 				ImGui::EndMenu();
 			}
 

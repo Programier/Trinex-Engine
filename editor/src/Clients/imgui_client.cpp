@@ -1,15 +1,60 @@
 #include <Clients/imgui_client.hpp>
 #include <Core/class.hpp>
+#include <Core/localization.hpp>
 #include <Core/theme.hpp>
 #include <Graphics/imgui.hpp>
+#include <ScriptEngine/registrar.hpp>
+#include <Window/config.hpp>
+#include <Window/window_manager.hpp>
 
 
 namespace Engine
 {
-	implement_engine_class_default_init(ImGuiEditorClient, 0);
+	implement_engine_class(ImGuiEditorClient, Class::IsScriptable)
+	{
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+			r->method("void update(RenderViewport viewport, float dt)", &This::update);
+			r->method("void on_bind_viewport(RenderViewport)", &This::on_bind_viewport);
+			r->method("void on_unbind_viewport(RenderViewport)", &This::on_unbind_viewport);
+			r->method("RenderViewport viewport() const final", &This::viewport);
+			r->method("void imgui_new_frame() const final", &This::imgui_new_frame);
+			r->method("void imgui_end_frame() const final", &This::imgui_end_frame);
+		};
+	}
+
+	static Set<Class*> m_opened_clients;
+
+	static void draw_available_clients_for_opening_internal(Class* self, Class* skip)
+	{
+		if (self == nullptr)
+			return;
+
+		if (self != skip && self != ImGuiEditorClient::static_class_instance() && !m_opened_clients.contains(self))
+		{
+			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->base_name_splitted()));
+
+			if (ImGui::MenuItem(fmt.c_str(), nullptr))
+			{
+				WindowConfig new_config;
+				new_config.client = self->name().to_string();
+				WindowManager::instance()->create_window(new_config);
+			}
+		}
+
+		for (Class* child : self->child_classes())
+		{
+			draw_available_clients_for_opening_internal(child, skip);
+		}
+	}
+
+	void ImGuiEditorClient::draw_available_clients_for_opening()
+	{
+		draw_available_clients_for_opening_internal(This::static_class_instance(), class_instance());
+	}
 
 	ImGuiEditorClient& ImGuiEditorClient::on_bind_viewport(class RenderViewport* viewport)
 	{
+		m_opened_clients.insert(class_instance());
 		Super::on_bind_viewport(viewport);
 		auto window = viewport->window();
 
@@ -22,6 +67,8 @@ namespace Engine
 
 	ImGuiEditorClient& ImGuiEditorClient::on_unbind_viewport(class RenderViewport* viewport)
 	{
+		m_opened_clients.erase(class_instance());
+
 		Super::on_unbind_viewport(viewport);
 		m_window->terminate();
 		m_window   = nullptr;

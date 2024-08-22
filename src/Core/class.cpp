@@ -49,7 +49,7 @@ namespace Engine
 		return reinterpret_cast<Class*>(Struct::parent());
 	}
 
-	const Set<Class*>& Class::childs_classes() const
+	const Class::ChildsSet& Class::child_classes() const
 	{
 		return m_childs;
 	}
@@ -205,6 +205,8 @@ namespace Engine
 	Class::~Class()
 	{
 		on_class_destroy(this);
+
+		destroy_childs();
 
 		if (Class* parent_class = parent())
 		{

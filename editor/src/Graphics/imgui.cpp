@@ -201,13 +201,19 @@ namespace Engine
 
 			// Avoid rendering when minimized
 			if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
+			{
+				rhi->pop_debug_stage();
 				return;
+			}
 
 			ImGuiTrinexData* bd         = imgui_trinex_backend_data();
 			ImGuiTrinexViewportData* vd = reinterpret_cast<ImGuiTrinexViewportData*>(draw_data->OwnerViewport->RendererUserData);
 
 			if (bd == nullptr || vd == nullptr)
+			{
+				rhi->pop_debug_stage();
 				return;
+			}
 
 			rhi->push_debug_stage("ImGui Setup state");
 			const float fb_height          = draw_data->DisplaySize.y * draw_data->FramebufferScale.y;

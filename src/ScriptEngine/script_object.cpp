@@ -212,10 +212,9 @@ namespace Engine
 		if (src == nullptr)
 			return false;
 
-		auto obj = reinterpret_cast<asIScriptObject*>(src);
 		release();
-
-		m_type_id = obj->GetTypeId();
+		
+		m_type_id = src->class_instance()->script_type_info.info()->GetTypeId();
 		m_address = src;
 
 		// No need to call add_ref for Object based classes

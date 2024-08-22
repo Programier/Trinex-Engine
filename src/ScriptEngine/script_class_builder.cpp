@@ -36,7 +36,11 @@ namespace Engine
 	{
 		auto registrar = ScriptClassRegistrar::existing_class(name().to_string());
 
-		if (auto base = parent())
+		auto base = parent();
+
+		while (base && base->script_type_info.info() == nullptr) base = base->parent();
+
+		if (base)
 		{
 			ScriptEngine::engine()->RegisterObjectBaseType(name().c_str(), base->name().c_str());
 		}
@@ -60,8 +64,10 @@ namespace Engine
 
 	void Class::register_scriptable_class()
 	{
-		auto registrar      = ScriptClassRegistrar::reference_class(this);
+		auto registrar = ScriptClassRegistrar::reference_class(this);
+
 		Class* parent_class = parent();
+		while (parent_class && parent_class->script_type_info.info() == nullptr) parent_class = parent_class->parent();
 
 		if (parent_class)
 		{
@@ -99,12 +105,12 @@ namespace Engine
 		ClassOf(asITypeInfo* ti)
 		{
 			auto sub_type_id = ti->GetSubTypeId();
-			
-			if(!ScriptEngine::is_object_type(sub_type_id, true))
+
+			if (!ScriptEngine::is_object_type(sub_type_id, true))
 				return;
-			
+
 			ti = ti->GetSubType(0);
-			
+
 			asITypeInfo* is_object_ti = ti;
 			auto object_ti            = Engine::Object::static_class_instance()->script_type_info.info();
 
@@ -141,7 +147,7 @@ namespace Engine
 		reg.behave(ScriptClassBehave::Construct, "void f(int&, const class_of<T>& in other)",
 		           ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
 		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ClassOf>);
-		
+
 		reg.method("Engine::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}
 
