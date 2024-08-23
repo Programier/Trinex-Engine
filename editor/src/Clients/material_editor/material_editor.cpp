@@ -50,6 +50,11 @@ namespace Engine
 
 		static const char* name()
 		{
+			return static_name();
+		}
+
+		static const char* static_name()
+		{
 			return "editor/MaterialPreview"_localized;
 		}
 	};
@@ -74,9 +79,28 @@ namespace Engine
 			return is_open;
 		}
 
-		static const char* name()
+		virtual const char* name() const
+		{
+			return static_name();
+		}
+
+		static const char* static_name()
 		{
 			return "editor/Material Code"_localized;
+		}
+	};
+
+	class ImGuiNodeProperties : public ImGuiObjectProperties
+	{
+	public:
+		const char* name() const override
+		{
+			return static_name();
+		}
+
+		static const char* static_name()
+		{
+			return "editor/Node Properties"_localized;
 		}
 	};
 
@@ -116,7 +140,14 @@ namespace Engine
 	MaterialEditorClient& MaterialEditorClient::create_properties_window()
 	{
 		m_properties_window = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
-		m_properties_window->on_close.push([this]() { m_preview_window = nullptr; });
+		m_properties_window->on_close.push([this]() { m_properties_window = nullptr; });
+		return *this;
+	}
+
+	MaterialEditorClient& MaterialEditorClient::create_node_properties_window()
+	{
+		m_node_properties_window = imgui_window()->widgets_list.create<ImGuiNodeProperties>();
+		m_node_properties_window->on_close.push([this]() { m_node_properties_window = nullptr; });
 		return *this;
 	}
 
@@ -126,7 +157,6 @@ namespace Engine
 
 		auto wd = window();
 
-
 		String new_title = Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str());
 		wd->title(new_title);
 
@@ -135,7 +165,7 @@ namespace Engine
 		ImGuiWindow* prev_window = ImGuiWindow::current();
 		ImGuiWindow::make_current(imgui_window());
 
-		create_content_browser().create_preview_window().create_properties_window();
+		create_content_browser().create_preview_window().create_properties_window().create_node_properties_window();
 
 		ImGuiWindow::make_current(prev_window);
 		m_compiler = ShaderCompiler::Compiler::static_create_compiler();
@@ -152,11 +182,24 @@ namespace Engine
 			{
 				m_properties_window->update(material);
 			}
+
+			on_node_select(nullptr);
 		}
 
 		if (m_preview_window)
 		{
 		}
+	}
+
+	void MaterialEditorClient::on_node_select(Object* object)
+	{
+		if (m_selected_node == object)
+			return;
+
+		m_selected_node = Object::instance_cast<VisualMaterialGraph::Node>(object);
+
+		if (m_node_properties_window)
+			m_node_properties_window->update(m_selected_node);
 	}
 
 	void MaterialEditorClient::render_dock_window()
@@ -238,14 +281,16 @@ namespace Engine
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
 
-			auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
-			auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
-			auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.2f, nullptr, &dock_id);
+			auto dock_id_down      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
+			auto dock_id_left      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
+			auto dock_id_left_up   = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Up, 0.5f, nullptr, &dock_id_left);
+			auto dock_id_left_down = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.5f, nullptr, &dock_id_left);
+			auto dock_id_right     = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.2f, nullptr, &dock_id);
 
-			ImGui::DockBuilderDockWindow(ContentBrowser::name(), dock_id_down);
-			ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::name(), dock_id_left);
-			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
-
+			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
+			ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::static_name(), dock_id_left_up);
+			ImGui::DockBuilderDockWindow(ImGuiNodeProperties::static_name(), dock_id_left_down);
+			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::static_name(), dock_id_right);
 			ImGui::DockBuilderDockWindow("###Material Source", dock_id);
 
 			ImGui::DockBuilderFinish(dock_id);
@@ -287,10 +332,8 @@ namespace Engine
 		return *this;
 	}
 
-	MaterialEditorClient& MaterialEditorClient::on_object_dropped(Object* object)
-	{
-		return *this;
-	}
+	void MaterialEditorClient::on_object_dropped(Object* object)
+	{}
 
 	MaterialEditorClient& MaterialEditorClient::update_drag_and_drop()
 	{

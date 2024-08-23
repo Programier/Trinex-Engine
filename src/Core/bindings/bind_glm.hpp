@@ -11,7 +11,27 @@ namespace Engine
 	template<typename Type>
 	inline ScriptClassRegistrar::ValueInfo info_of()
 	{
-		return ScriptClassRegistrar::ValueInfo::from<Type>();
+		ScriptClassRegistrar::ValueInfo result;
+		result.is_class        = true;
+		result.pod             = true;
+		result.has_constructor = true;
+
+		using Element = Type::value_type;
+
+		if constexpr (std::is_floating_point_v<Element>)
+		{
+			result.all_floats = true;
+
+			if constexpr (alignof(Type) == 8)
+			{
+				result.align8 = true;
+			}
+		}
+		else
+		{
+			result.all_ints = true;
+		}
+		return result;
 	}
 
 	// We need to implement wrappers for glm::vec* objects
@@ -173,14 +193,8 @@ namespace Engine
 	{
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>,
 		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, fmt::format("void f(const {}& in)", registrar.class_base_name()).c_str(),
-		                 ScriptClassRegistrar::constructor<T, const T&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, fmt::format("void f({})", prop_type).c_str(),
 		                 ScriptClassRegistrar::constructor<T, typename T::value_type>, ScriptCallConv::CDeclObjFirst);
-
-		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>,
-		                 ScriptCallConv::CDeclObjFirst);
-
 		registrar.method("string as_string() const", &T::as_string, ScriptCallConv::ThisCall);
 	}
 

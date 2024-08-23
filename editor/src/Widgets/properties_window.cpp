@@ -805,8 +805,12 @@ namespace Engine
 		return result;
 	}
 
+	const char* ImGuiObjectProperties::name() const
+	{
+		return static_name();
+	}
 
-	const char* ImGuiObjectProperties::name()
+	const char* ImGuiObjectProperties::static_name()
 	{
 		return "editor/Properties Title"_localized;
 	}

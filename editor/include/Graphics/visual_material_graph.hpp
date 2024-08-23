@@ -14,7 +14,7 @@ namespace Engine
 
 namespace Engine::VisualMaterialGraph
 {
-	enum class PinType : BitMask
+	enum class PinType : EnumerateType
 	{
 		Undefined = 0,
 
@@ -253,7 +253,6 @@ namespace Engine::VisualMaterialGraph
 		BitMask result              = (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
 		return static_cast<PinType>(result);
 	}
-
 
 	struct Expression {
 		String code;
@@ -496,19 +495,29 @@ namespace Engine::VisualMaterialGraph
 
 
 	struct GlobalCompilerState {
-		Set<String> globals;
-		Set<String> global_names;
+	private:
+		Set<String> m_globals;
+		Set<String> m_global_names;
 
+	public:
 		String compile() const;
+
+		GlobalCompilerState& add(const String& expression, const String& name);
+		GlobalCompilerState& remove(const String& expression, const String& name);
+
+		bool contains_expression(const String& expression) const;
+		bool contains_name(const String& name) const;
+
+		size_t globals_count() const;
 	};
 
 	struct CompilerState {
 	private:
 		Map<Identifier, Expression> m_internal_cache;
+		Vector<String> m_locals;
 
 	public:
-		Vector<String> locals;
-		GlobalCompilerState& global_state;
+		GlobalCompilerState* global_state;
 		Map<Identifier, Any> cache;
 
 		CompilerState(GlobalCompilerState& global_state);
@@ -521,7 +530,6 @@ namespace Engine::VisualMaterialGraph
 		Expression pin_source(InputPin* pin);
 	};
 
-
 	class Node : public Object
 	{
 		declare_class(Node, Object);
@@ -532,8 +540,11 @@ namespace Engine::VisualMaterialGraph
 
 		String m_error_message;
 
+		void add_pin(InputPin* pin);
+		void add_pin(OutputPin* pin);
+
 	public:
-		Vector2D position;
+		Vector2D position = {0, 0};
 
 		FORCE_INLINE Identifier id() const
 		{
@@ -554,6 +565,8 @@ namespace Engine::VisualMaterialGraph
 
 		const Vector<InputPin*>& inputs() const;
 		const Vector<OutputPin*>& outputs() const;
+		InputPin* input_pin(Index index) const;
+		OutputPin* output_pin(Index index) const;
 		Index find_pin_index(OutputPin* pin) const;
 		Index find_pin_index(InputPin* pin) const;
 		bool has_error() const;

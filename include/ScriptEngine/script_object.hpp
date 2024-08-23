@@ -26,6 +26,7 @@ namespace Engine
 		ScriptObject(void* address, const char* declaration, bool consider_handle_as_object = false);
 		ScriptObject(void* address, const char* declaration, const char* module, bool consider_handle_as_object = false);
 		ScriptObject(Object* self);
+		ScriptObject(const Object* self);
 
 		ScriptObject(const ScriptObject& object);
 		ScriptObject& operator=(const ScriptObject&);
@@ -43,6 +44,7 @@ namespace Engine
 		bool create(void* src_address, const char* type_declaration, bool consider_handle_as_object = false);
 		bool create(void* src_address, const char* type_declaration, const char* module, bool consider_handle_as_object = false);
 		bool create(Object* src);
+		bool create(const Object* src);
 
 		// Factories
 		uint_t factory_count() const;

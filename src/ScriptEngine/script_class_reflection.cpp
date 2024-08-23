@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Core/group.hpp>
 #include <Core/property.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -337,16 +338,16 @@ namespace Engine
 		else if (type_id == vec3_type_id)
 		{
 			if (metadata.contains("is_color"))
-				prop = new ScriptObjectProp<Vector3D, PropertyType::Color3>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector3D, PropertyType::Color3>(offset, name, desc, group, flags);
 			else
-				prop = new ScriptObjectProp<Vector3D, PropertyType::Vec3>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector3D, PropertyType::Vec3>(offset, name, desc, group, flags);
 		}
 		else if (type_id == vec4_type_id)
 		{
 			if (metadata.contains("is_color"))
-				prop = new ScriptObjectProp<Vector3D, PropertyType::Color4>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector4D, PropertyType::Color4>(offset, name, desc, group, flags);
 			else
-				prop = new ScriptObjectProp<Vector4D, PropertyType::Vec4>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector4D, PropertyType::Vec4>(offset, name, desc, group, flags);
 		}
 		else if (type_id == name_type_id)
 		{
@@ -364,16 +365,31 @@ namespace Engine
 		self->add_property(prop);
 	}
 
-	Script& Script::register_properties(Class* self)
+	static void register_class_metadata(Class* self, const TreeSet<String>& metadata)
+	{
+		for (auto& argument : metadata)
+		{
+			if (argument.starts_with("group"))
+			{
+				String result = parse_group_argument(argument);
+				if (!result.empty())
+				{
+					self->group(Group::find(result, true));
+				}
+			}
+		}
+	}
+
+	Script& Script::register_reflection(Class* self)
 	{
 		auto& type      = self->script_type_info;
 		auto prop_count = type.property_count();
 
+		String type_name     = Strings::concat_scoped_name(type.namespace_name(), type.name());
+		auto& class_metadata = metadata_for_class(type_name);
+
 		if (prop_count > 0)
 		{
-			String type_name     = Strings::concat_scoped_name(type.namespace_name(), type.name());
-			auto& class_metadata = metadata_for_class(type_name);
-
 			for (uint_t i = 0; i < prop_count; ++i)
 			{
 				if (!type.is_property_native(i))
@@ -395,6 +411,8 @@ namespace Engine
 				}
 			}
 		}
+
+		register_class_metadata(self, class_metadata.class_metadata);
 
 		return *this;
 	}

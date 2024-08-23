@@ -61,6 +61,11 @@ namespace Engine
 		create(self);
 	}
 
+	ScriptObject::ScriptObject(const Object* self)
+	{
+		create(self);
+	}
+
 	ScriptObject::ScriptObject(const ScriptObject& object) : ScriptVariableBase(object.address(), object.type_info(), true)
 	{}
 
@@ -213,12 +218,18 @@ namespace Engine
 			return false;
 
 		release();
-		
-		m_type_id = src->class_instance()->script_type_info.info()->GetTypeId();
+
+		m_type_id = src->class_instance()->find_valid_script_type_info().type_id();
 		m_address = src;
 
-		// No need to call add_ref for Object based classes
+		add_ref();
 		return true;
+	}
+
+	bool ScriptObject::create(const Object* src)
+	{
+		// TODO: Implement const objects!
+		return create(const_cast<Object*>(src));
 	}
 
 	uint_t ScriptObject::factory_count() const

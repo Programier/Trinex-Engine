@@ -70,7 +70,12 @@ namespace Engine
 		return open;
 	}
 
-	const char* ImGuiNotificationMessage::name()
+	const char* ImGuiNotificationMessage::name() const
+	{
+		return static_name();
+	}
+
+	const char* ImGuiNotificationMessage::static_name()
 	{
 		return "editor/Notification Title"_localized;
 	}
@@ -120,7 +125,12 @@ namespace Engine
 		return open;
 	}
 
-	const char* ImGuiCreateNewPackage::name()
+	const char* ImGuiCreateNewPackage::name() const
+	{
+		return static_name();
+	}
+
+	const char* ImGuiCreateNewPackage::static_name()
 	{
 		return "editor/New Package Title"_localized;
 	}
@@ -197,7 +207,12 @@ namespace Engine
 		return open;
 	}
 
-	const char* ImGuiCreateNewAsset::name()
+	const char* ImGuiCreateNewAsset::name() const
+	{
+		return static_name();
+	}
+
+	const char* ImGuiCreateNewAsset::static_name()
 	{
 		return "editor/New Asset Title"_localized;
 	}
@@ -258,7 +273,12 @@ namespace Engine
 		return open;
 	}
 
-	const char* ImGuiRenameObject::name()
+	const char* ImGuiRenameObject::name() const
+	{
+		return static_name();
+	}
+
+	const char* ImGuiRenameObject::static_name()
 	{
 		return "editor/Rename Object Title"_localized;
 	}
@@ -355,8 +375,12 @@ namespace Engine
 		delete m_browser;
 	}
 
+	const char* ImGuiOpenFile::name() const
+	{
+		return static_name();
+	}
 
-	const char* ImGuiOpenFile::name()
+	const char* ImGuiOpenFile::static_name()
 	{
 		return "editor/Open File"_localized;
 	}
@@ -483,7 +507,12 @@ namespace Engine
 		return m_is_open;
 	}
 
-	const char* ImGuiSpawnNewActor::name()
+	const char* ImGuiSpawnNewActor::name() const
+	{
+		return static_name();
+	}
+
+	const char* ImGuiSpawnNewActor::static_name()
 	{
 		return "editor/Spawn Actor"_localized;
 	}
@@ -549,7 +578,12 @@ namespace Engine
 		return is_open;
 	}
 
-	const char* ImGuiLevelExplorer::name()
+	const char* ImGuiLevelExplorer::name() const
+	{
+		return static_name();
+	}
+
+	const char* ImGuiLevelExplorer::static_name()
 	{
 		return "editor/Level Explorer"_localized;
 	}

@@ -1574,7 +1574,17 @@ asCScriptFunction *asCContext::GetRealFunc(asCScriptFunction * currentFunction, 
 		}
 		else
 		{
-			asCObjectType *objType = obj->objType();
+			asCObjectType* objType = nullptr;
+
+			if (currentFunction->objectType && currentFunction->objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
+			{
+				objType = reinterpret_cast<asCObjectType*>(m_engine->CallObjectMethodRetPtr(obj, currentFunction->objectType->beh.getTypeId));
+			}
+			else
+			{
+				objType = obj->objType();
+			}
+
 			asCScriptFunction * realFunc = 0;
 
 			if( currentFunction->funcType == asFUNC_VIRTUAL )

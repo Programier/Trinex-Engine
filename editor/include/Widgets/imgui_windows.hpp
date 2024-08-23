@@ -27,7 +27,8 @@ namespace Engine
 	public:
 		ImGuiNotificationMessage(const String& msg, Type type = Type::Info);
 		bool render(class RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 	};
 
 	class ImGuiCreateNewPackage : public ImGuiWidget
@@ -40,7 +41,8 @@ namespace Engine
 	public:
 		ImGuiCreateNewPackage(class Package* pkg, const CallBack<void(Package*)>& on_create = {});
 		bool render(class RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 	};
 
 	class ImGuiCreateNewAsset : public ImGuiWidget
@@ -57,7 +59,8 @@ namespace Engine
 
 		ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& = {});
 		bool render(class RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 	};
 
 	class ImGuiRenameObject : public ImGuiWidget
@@ -68,7 +71,8 @@ namespace Engine
 	public:
 		ImGuiRenameObject(class Object* object);
 		bool render(class RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 	};
 
 	class ImGuiOpenFile : public ImGuiWidget
@@ -107,7 +111,8 @@ namespace Engine
 		ImGuiOpenFile& type_filters(const Vector<String>& type_filters);
 		ImGuiOpenFile& pwd(const Path& path);
 		bool render(RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 
 		~ImGuiOpenFile();
 	};
@@ -148,7 +153,8 @@ namespace Engine
 		ImGuiSpawnNewActor(class World* world);
 
 		bool render(RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 
 		~ImGuiSpawnNewActor();
 	};
@@ -160,6 +166,7 @@ namespace Engine
 	public:
 		ImGuiLevelExplorer(World* world);
 		bool render(RenderViewport* viewport) override;
-		static const char* name();
+		virtual const char* name() const;
+		static const char* static_name();
 	};
 }// namespace Engine

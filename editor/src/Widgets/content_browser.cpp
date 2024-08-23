@@ -431,8 +431,13 @@ namespace Engine
 	{
 		return m_selected_package;
 	}
-
-	const char* ContentBrowser::name()
+	
+	const char* ContentBrowser::name() const
+	{
+		return static_name();
+	}
+	
+	const char* ContentBrowser::static_name()
 	{
 		return "editor/Content Browser Title"_localized;
 	}

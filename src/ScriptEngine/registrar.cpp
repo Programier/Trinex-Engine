@@ -71,6 +71,9 @@ namespace Engine
 		if (info.has_destructor)
 			result |= asOBJ_APP_CLASS_DESTRUCTOR;
 
+		if (info.align8)
+			result |= asOBJ_APP_CLASS_ALIGN8;
+
 		return result;
 	}
 
@@ -160,7 +163,7 @@ namespace Engine
 	ScriptClassRegistrar::ValueInfo::ValueInfo()
 	    : all_ints(false), all_floats(false), pod(false), more_constructors(false), is_class(true), is_array(false),
 	      is_float(false), is_primitive(false), has_constructor(false), has_destructor(false), has_assignment_operator(false),
-	      has_copy_constructor(false)
+	      has_copy_constructor(false), align8(false)
 	{}
 
 	ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true)

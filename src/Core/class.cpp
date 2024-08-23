@@ -149,6 +149,13 @@ namespace Engine
 		return nullptr;
 	}
 
+	const ScriptTypeInfo& Class::find_valid_script_type_info() const
+	{
+		auto self = this;
+		while (self && !self->script_type_info.is_valid()) self = self->parent();
+		return self->script_type_info;
+	}
+
 	bool Class::is_scriptable() const
 	{
 		return flags(IsScriptable);

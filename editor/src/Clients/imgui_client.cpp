@@ -29,11 +29,11 @@ namespace Engine
 		if (self == nullptr)
 			return;
 
-		if (self != skip && self != ImGuiEditorClient::static_class_instance() && !m_opened_clients.contains(self))
+		if (self != skip && self != ImGuiEditorClient::static_class_instance())
 		{
 			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->base_name_splitted()));
 
-			if (ImGui::MenuItem(fmt.c_str(), nullptr))
+			if (ImGui::MenuItem(fmt.c_str(), nullptr, false, !m_opened_clients.contains(self)))
 			{
 				WindowConfig new_config;
 				new_config.client = self->name().to_string();

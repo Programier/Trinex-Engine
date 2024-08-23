@@ -29,7 +29,7 @@ namespace Engine
 
 	static asITypeInfo* get_object_type_info(Object* object)
 	{
-		return object->class_instance()->script_type_info.info();
+		return object->class_instance()->find_valid_script_type_info().info();
 	}
 
 	void Class::bind_class_to_script_engine()

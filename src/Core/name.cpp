@@ -297,6 +297,9 @@ namespace Engine
 		ScriptClassRegistrar::ValueInfo info;
 		info.all_ints          = true;
 		info.more_constructors = true;
+		info.pod               = true;
+		info.has_constructor   = true;
+		info.align8            = true;
 
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Name", sizeof(Name), info);
 
@@ -306,10 +309,6 @@ namespace Engine
 		                 ScriptClassRegistrar::constructor<Name, const String&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const StringView& in)",
 		                 ScriptClassRegistrar::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const Name& in)",
-		                 ScriptClassRegistrar::constructor<Name, const Name&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Name>,
-		                 ScriptCallConv::CDeclObjFirst);
 
 		registrar.static_function("Name find_name(const StringView& in)", func_of<Name(const StringView&)>(Name::find_name));
 		registrar.method("bool is_valid() const", &Name::is_valid);
@@ -317,7 +316,6 @@ namespace Engine
 		registrar.method("const string& to_string() const", method_of<const String&>(&Name::to_string));
 		registrar.method("const Name& to_string(string& out) const", method_of<const Name&>(&Name::to_string));
 
-		registrar.method("Engine::Name& opAssign(const Engine::Name& in)", method_of<Name&, const Name&>(&Name::operator=));
 		registrar.method("Engine::Name& opAssign(const StringView& in)", method_of<Name&, const StringView&>(&Name::operator=));
 		registrar.method("Engine::Name& opAssign(const string& in)", method_of<Name&, const String&>(&Name::operator=));
 		registrar.method("bool opEquals(const StringView& in) const", method_of<bool, const StringView&>(&Name::operator==));

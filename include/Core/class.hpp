@@ -76,6 +76,7 @@ namespace Engine
 		bool is_native() const;
 
 		static Class* static_find(const StringView& name, bool required = false);
+		const ScriptTypeInfo& find_valid_script_type_info() const;
 		static const Vector<Class*>& asset_classes();
 
 		~Class();

@@ -16,6 +16,11 @@ namespace Engine
 		struct ShaderSource;
 	};// namespace ShaderCompiler
 
+	namespace VisualMaterialGraph
+	{
+		class Node;
+	}
+
 	class MaterialEditorClient : public ImGuiEditorClient
 	{
 		declare_class(MaterialEditorClient, ImGuiEditorClient);
@@ -28,19 +33,25 @@ namespace Engine
 	private:
 		MessageList m_shader_compile_error_list;
 
-		class ContentBrowser* m_content_browser          = nullptr;
-		class ImGuiMaterialPreview* m_preview_window     = nullptr;
-		class ImGuiObjectProperties* m_properties_window = nullptr;
-		class ImGuiMaterialCode* m_material_code         = nullptr;
+		class ContentBrowser* m_content_browser             = nullptr;
+		class ImGuiMaterialPreview* m_preview_window        = nullptr;
+		class ImGuiObjectProperties* m_properties_window    = nullptr;
+		class ImGuiNodeProperties* m_node_properties_window = nullptr;
+		class ImGuiMaterialCode* m_material_code            = nullptr;
 
 		GraphState m_graph_state;
 		ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
 		class Material* m_material                            = nullptr;
+		class VisualMaterialGraph::Node* m_selected_node      = nullptr;
 		Pointer<ShaderCompiler::Compiler> m_compiler          = nullptr;
 
 		bool m_open_select_node_window   = false;
 		bool m_is_open_create_node_popup = false;
 		void* m_create_node_from_pin     = nullptr;
+
+		void on_object_select(Object* object);
+		void on_node_select(Object* object);
+		void on_object_dropped(Object* object);
 
 	public:
 		MaterialEditorClient();
@@ -50,14 +61,13 @@ namespace Engine
 		MaterialEditorClient& create_preview_window();
 		MaterialEditorClient& create_material_code_window();
 		MaterialEditorClient& create_properties_window();
-		void on_object_select(Object* object);
+		MaterialEditorClient& create_node_properties_window();
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
 
 		void render_dock_window();
 		void* editor_context() const;
-		MaterialEditorClient& on_object_dropped(Object* object);
 		MaterialEditorClient& update_drag_and_drop();
 		MaterialEditorClient& render_viewport(float dt);
 		MaterialEditorClient& render_visual_material_graph(class VisualMaterial* material);

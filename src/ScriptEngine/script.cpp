@@ -256,15 +256,29 @@ namespace Engine
 		{
 			TreeMap<String, Script::ClassMetadata> result;
 
+			for (auto& [type_id, metadata] : typeMetadataMap)
+			{
+				auto info                 = ScriptEngine::type_info_by_id(type_id);
+				auto& result_metadata     = result[Strings::concat_scoped_name(info.namespace_name(), info.name())];
+				result_metadata.type_info = info;
+
+				for (auto& ell : metadata)
+				{
+					result_metadata.class_metadata.insert(ell);
+				}
+			}
+
 			for (auto& [type_id, metadata] : classMetadataMap)
 			{
 				auto info = ScriptEngine::type_info_by_id(type_id);
 				if (!info.is_valid())
 					continue;
 
-				auto& result_metadata             = result[Strings::concat_scoped_name(info.namespace_name(), info.name())];
-				result_metadata.type_info         = info;
-				result_metadata.class_metadata    = parse_metadata(typeMetadataMap, type_id);
+				auto& result_metadata = result[Strings::concat_scoped_name(info.namespace_name(), info.name())];
+
+				if (!result_metadata.type_info.is_valid())
+					result_metadata.type_info = info;
+
 				result_metadata.func_metadata_map = parse_func_metadata(metadata.funcMetadataMap);
 				result_metadata.prop_metadata_map = parse_prop_metadata(info, metadata.varMetadataMap);
 			}
@@ -437,7 +451,7 @@ namespace Engine
 		m_classes.insert(script_class);
 		script_class->on_class_destroy.push([this](Class* self) { m_classes.erase(self); });
 
-		register_properties(script_class);
+		register_reflection(script_class);
 		return true;
 	}
 

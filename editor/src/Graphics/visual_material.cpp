@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/garbage_collector.hpp>
 #include <Core/group.hpp>
 #include <Core/property.hpp>
 #include <Engine/project.hpp>
@@ -79,7 +80,7 @@ namespace Engine
 			}
 
 			m_nodes.erase(m_nodes.begin() + index);
-			delete node;
+			GarbageCollector::destroy(node);
 		}
 		return *this;
 	}

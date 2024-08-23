@@ -33,8 +33,9 @@ namespace Engine
 		void init(RenderViewport* viewport) override;
 		bool render(RenderViewport* viewport) override;
 		Package* selected_package() const;
-
-		static const char* name();
+		
+		virtual const char* name() const;
+		static const char* static_name();
 		~ContentBrowser();
 	};
 }// namespace Engine

@@ -32,6 +32,7 @@ namespace Engine
 			bool has_destructor : 1;
 			bool has_assignment_operator : 1;
 			bool has_copy_constructor : 1;
+			bool align8 : 1;
 
 			ValueInfo();
 

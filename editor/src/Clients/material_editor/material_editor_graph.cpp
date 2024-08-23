@@ -202,13 +202,16 @@ namespace Engine
 		return ImGui::GetItemRectSize().x;
 	}
 
-
-	static void render_graph(const Vector<Pointer<VisualMaterialGraph::Node>>& nodes)
+	static VisualMaterialGraph::Node* render_graph(MaterialEditorClient* client,
+	                                               const Vector<Pointer<VisualMaterialGraph::Node>>& nodes)
 	{
 		static BlueprintBuilder builder;
 
-		float text_height  = ImGui::GetTextLineHeightWithSpacing();
-		float item_spacing = ImGui::GetStyle().ItemSpacing.x;
+		float text_height                        = ImGui::GetTextLineHeightWithSpacing();
+		float item_spacing                       = ImGui::GetStyle().ItemSpacing.x;
+		VisualMaterialGraph::Node* selected_node = nullptr;
+
+		auto selected_items = ed::GetSelectedObjectCount();
 
 		for (auto& node : nodes)
 		{
@@ -225,6 +228,11 @@ namespace Engine
 			}
 
 			builder.begin(node->id());
+
+			if (selected_items == 1 && ed::IsNodeSelected(node->id()))
+			{
+				selected_node = node;
+			}
 
 			builder.begin_header(ImGui::ImVecFrom(node->header_color()));
 			ImGui::Spring(1.f);
@@ -336,6 +344,8 @@ namespace Engine
 				}
 			}
 		}
+
+		return selected_node;
 	}
 
 	static void open_nodes_popup(MaterialEditorClient::GraphState& state, bool is_in_canvas)
@@ -590,7 +600,7 @@ namespace Engine
 				open_nodes_popup(m_graph_state, true);
 			}
 
-			render_graph(material->nodes());
+			on_node_select(render_graph(this, material->nodes()));
 			check_creating(m_create_node_from_pin, m_graph_state);
 			if (!show_new_node_popup(material, reinterpret_cast<VisualMaterialGraph::Pin*>(m_create_node_from_pin),
 			                         m_graph_state))

@@ -288,8 +288,11 @@ namespace Engine
 		return m_context->SetArgVarType(arg, ptr, type_id);
 	}
 
-	bool ScriptContext::arg_reference(uint_t arg, void* addr)
+	bool ScriptContext::arg(uint_t arg, void* addr, bool is_object)
 	{
+		if (is_object)
+			return m_context->SetArgObject(arg, addr) >= 0;
+
 		return m_context->SetArgAddress(arg, addr) >= 0;
 	}
 

@@ -64,18 +64,18 @@ namespace Engine
 		static bool arg(uint_t arg, float value);
 		static bool arg(uint_t arg, double value);
 		static bool arg(uint_t arg, const ScriptObject& obj);
-		static bool arg_reference(uint_t arg, void* addr);
+		static bool arg(uint_t arg, void* addr, bool is_object = false);
 
 		template<typename T>
 		static bool arg(uint_t arg, RRef<T>& ref)
 		{
 			if constexpr (std::is_pointer_v<T>)
 			{
-				return arg_reference(arg, ref.get());
+				return arg_address(arg, ref.get());
 			}
 			else
 			{
-				return arg_reference(arg, ref.address());
+				return arg_address(arg, ref.address());
 			}
 		}
 
@@ -84,11 +84,11 @@ namespace Engine
 		{
 			if constexpr (std::is_pointer_v<T>)
 			{
-				return arg_reference(arg, ref.get());
+				return arg_address(arg, ref.get());
 			}
 			else
 			{
-				return arg_reference(arg, ref.address());
+				return arg_address(arg, ref.address());
 			}
 		}
 

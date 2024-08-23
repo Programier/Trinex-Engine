@@ -302,6 +302,11 @@ namespace Engine
 		{
 			m_parent_struct->m_childs.erase(this);
 		}
+		
+		if(m_group)
+		{
+			m_group->remove_struct(this);
+		}
 
 		internal_struct_map().erase(Strings::hash_of(m_full_name));
 	}

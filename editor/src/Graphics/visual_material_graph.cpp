@@ -117,6 +117,16 @@ namespace Engine::VisualMaterialGraph
 		m_linked_to.erase(pin);
 	}
 
+	void Node::add_pin(InputPin* pin)
+	{
+		m_inputs.push_back(pin);
+	}
+
+	void Node::add_pin(OutputPin* pin)
+	{
+		m_outputs.push_back(pin);
+	}
+
 	bool Node::is_destroyable() const
 	{
 		return true;
@@ -186,6 +196,20 @@ namespace Engine::VisualMaterialGraph
 		return m_outputs;
 	}
 
+	InputPin* Node::input_pin(Index index) const
+	{
+		if (index >= m_inputs.size())
+			return nullptr;
+		return m_inputs[index];
+	}
+
+	OutputPin* Node::output_pin(Index index) const
+	{
+		if (index >= m_outputs.size())
+			return nullptr;
+		return m_outputs[index];
+	}
+
 	Index Node::find_pin_index(OutputPin* pin) const
 	{
 		for (Index i = 0, count = m_outputs.size(); i < count; ++i)
@@ -239,14 +263,14 @@ namespace Engine::VisualMaterialGraph
 
 	const char* Node::name() const
 	{
-		return "Undefined";
+		return class_instance()->base_name_splitted().c_str();
 	}
 
 	String GlobalCompilerState::compile() const
 	{
 		String result = "";
 
-		for (auto& entry : globals)
+		for (auto& entry : m_globals)
 		{
 			result += entry;
 			result += ";\n";
@@ -254,7 +278,36 @@ namespace Engine::VisualMaterialGraph
 		return result;
 	}
 
-	CompilerState::CompilerState(GlobalCompilerState& global_state) : global_state(global_state)
+	GlobalCompilerState& GlobalCompilerState::add(const String& expression, const String& name)
+	{
+		m_globals.insert(expression);
+		m_global_names.insert(name);
+		return *this;
+	}
+
+	GlobalCompilerState& GlobalCompilerState::remove(const String& expression, const String& name)
+	{
+		m_globals.erase(expression);
+		m_global_names.erase(name);
+		return *this;
+	}
+
+	bool GlobalCompilerState::contains_expression(const String& expression) const
+	{
+		return m_globals.contains(expression);
+	}
+
+	bool GlobalCompilerState::contains_name(const String& name) const
+	{
+		return m_global_names.contains(name);
+	}
+
+	size_t GlobalCompilerState::globals_count() const
+	{
+		return m_global_names.size();
+	}
+
+	CompilerState::CompilerState(GlobalCompilerState& global_state) : global_state(&global_state)
 	{}
 
 	Expression CompilerState::create_variable(const Expression& in_expression)
@@ -262,8 +315,8 @@ namespace Engine::VisualMaterialGraph
 		if (in_expression.is_variable)
 			return in_expression;
 
-		String var_name = Strings::format("var_{}", locals.size());
-		locals.push_back(Strings::format("{} {} = {};", slang_type_name(in_expression.type), var_name, in_expression.code));
+		String var_name = Strings::format("var_{}", m_locals.size());
+		m_locals.push_back(Strings::format("{} {} = {};", slang_type_name(in_expression.type), var_name, in_expression.code));
 		return Expression(var_name, in_expression.type, true);
 	}
 
@@ -399,7 +452,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		String result = {};
 
-		for (auto& line : locals)
+		for (auto& line : m_locals)
 		{
 			result += Strings::format("{}{}\n", prefix, line);
 		}
@@ -1038,12 +1091,13 @@ namespace Engine::VisualMaterialGraph
 				return {};
 			}
 
-			if (state.global_state.global_names.contains(m_name))
+			if (state.global_state->contains_name(m_name))
 			{
 				m_error_message = Strings::format("Parameter with name '{}' already exist!", m_name);
 				return {};
 			}
-			state.global_state.globals.insert(Strings::format("Sampler2D {}", m_name));
+
+			state.global_state->add(Strings::format("Sampler2D {}", m_name), m_name);
 			InputPin* UV = m_inputs[2];
 
 			Expression expression;

@@ -31,7 +31,9 @@ namespace Engine
 		ImGuiObjectProperties& render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
 		ImGuiObjectProperties& setup_next_row();
 		static bool collapsing_header(const void* id, const char* format, ...);
-		static const char* name();
+		
+		virtual const char* name() const;
+		static const char* static_name();
 	};
 
 }// namespace Engine
