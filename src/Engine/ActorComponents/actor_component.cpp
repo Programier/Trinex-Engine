@@ -3,6 +3,7 @@
 #include <Engine/Actors/actor.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_object.hpp>
 
 namespace Engine
 {
@@ -15,11 +16,11 @@ namespace Engine
 	implement_engine_class(ActorComponent, Class::IsScriptable)
 	{
 		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
-			script_actor_comp_start_play = r->method("void start_play()", &This::start_play);
-			script_actor_comp_stop_play  = r->method("void stop_play()", &This::stop_play);
-			script_actor_comp_update     = r->method("void update(float dt)", &This::update);
-			script_actor_comp_spawned    = r->method("void spawned()", &This::spawned);
-			script_actor_comp_destroyed  = r->method("void destroyed()", &This::destroyed);
+			script_actor_comp_start_play = r->method("void start_play()", &This::scoped_start_play<ActorComponent>);
+			script_actor_comp_stop_play  = r->method("void stop_play()", &This::scoped_stop_play<ActorComponent>);
+			script_actor_comp_update     = r->method("void update(float dt)", &This::scoped_update<ActorComponent>);
+			script_actor_comp_spawned    = r->method("void spawned()", &This::scoped_spawned<ActorComponent>);
+			script_actor_comp_destroyed  = r->method("void destroyed()", &This::scoped_destroyed<ActorComponent>);
 
 			r->method("Actor actor() const final", method_of<Actor*>(&This::actor));
 			r->method("void actor(Actor actor) const final", method_of<ActorComponent&, Actor*>(&This::actor));
@@ -40,29 +41,29 @@ namespace Engine
 	ActorComponentProxy::~ActorComponentProxy()
 	{}
 
-	const ScriptFunction& ActorComponent::script_update_func()
+	void ActorComponent::script_update(float dt)
 	{
-		return script_actor_comp_update;
+		ScriptObject(this).execute(script_actor_comp_update, dt);
 	}
 
-	const ScriptFunction& ActorComponent::script_start_play_func()
+	void ActorComponent::script_start_play()
 	{
-		return script_actor_comp_start_play;
+		ScriptObject(this).execute(script_actor_comp_start_play);
 	}
 
-	const ScriptFunction& ActorComponent::script_stop_play_func()
+	void ActorComponent::script_stop_play()
 	{
-		return script_actor_comp_stop_play;
+		ScriptObject(this).execute(script_actor_comp_stop_play);
 	}
 
-	const ScriptFunction& ActorComponent::script_spawned_func()
+	void ActorComponent::script_spawned()
 	{
-		return script_actor_comp_spawned;
+		ScriptObject(this).execute(script_actor_comp_spawned);
 	}
 
-	const ScriptFunction& ActorComponent::script_destroyed_func()
+	void ActorComponent::script_destroyed()
 	{
-		return script_actor_comp_destroyed;
+		ScriptObject(this).execute(script_actor_comp_destroyed);
 	}
 
 	ActorComponent::ActorComponent() : m_proxy(nullptr)

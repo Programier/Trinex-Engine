@@ -110,7 +110,9 @@ namespace Engine
 
 		m_world->on_actor_select.remove(m_on_actor_select_callback_id);
 		m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
-
+		
+		m_world->stop_play();
+		
 		EventSystem* event_system = EventSystem::instance();
 
 		if (event_system)
@@ -315,9 +317,9 @@ namespace Engine
 		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
 		{
 			auto& selected = m_world->selected_actors();
-			for (auto& ell : selected)
+			while (!selected.empty())
 			{
-				m_world->destroy_actor(ell);
+				m_world->destroy_actor(*selected.begin());
 			}
 		}
 		return *this;

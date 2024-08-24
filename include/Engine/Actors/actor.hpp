@@ -8,11 +8,46 @@ namespace Engine
 	class ActorComponent;
 	class ScriptFunction;
 
+
 	class ENGINE_EXPORT Actor : public Object
 	{
 		declare_class(Actor, Object);
 
 	public:
+		template<typename NativeType>
+		struct Scriptable : Super::Scriptable<NativeType> {
+			Actor& update(float dt) override
+			{
+				static_cast<Actor*>(this)->scriptable_update(dt);
+				return *this;
+			}
+
+			Actor& start_play() override
+			{
+				static_cast<Actor*>(this)->scriptable_start_play();
+				return *this;
+			}
+
+			Actor& stop_play() override
+			{
+				static_cast<Actor*>(this)->scriptable_stop_play();
+				return *this;
+			}
+
+			Actor& spawned() override
+			{
+				static_cast<Actor*>(this)->scriptable_spawned();
+				return *this;
+			}
+
+			Actor& destroyed() override
+			{
+				static_cast<Actor*>(this)->scriptable_destroyed();
+				return *this;
+			}
+		};
+
+
 		enum Flag
 		{
 			Selected = BIT(0),
@@ -28,17 +63,48 @@ namespace Engine
 		bool m_is_being_destroyed = false;
 		bool m_is_visible         = true;
 
+		void scriptable_update(float dt);
+		void scriptable_start_play();
+		void scriptable_stop_play();
+		void scriptable_spawned();
+		void scriptable_destroyed();
+
 	protected:
 		Actor& add_component(ActorComponent* component);
 		Actor& remove_component(ActorComponent* component);
 
-	public:
-		static const ScriptFunction& script_update_func();
-		static const ScriptFunction& script_start_play_func();
-		static const ScriptFunction& script_stop_play_func();
-		static const ScriptFunction& script_spawned_func();
-		static const ScriptFunction& script_destroyed_func();
 
+		template<typename Scope = Actor>
+		auto scoped_update(float dt) -> decltype(Scope::update(dt))
+		{
+			return Scope::update(dt);
+		}
+
+		template<typename Scope = Actor>
+		auto scoped_start_play() -> decltype(Scope::start_play())
+		{
+			return Scope::start_play();
+		}
+
+		template<typename Scope = Actor>
+		auto scoped_stop_play() -> decltype(Scope::stop_play())
+		{
+			return Scope::stop_play();
+		}
+
+		template<typename Scope = Actor>
+		auto scoped_spawned() -> decltype(Scope::spawned())
+		{
+			return Scope::spawned();
+		}
+
+		template<typename Scope = Actor>
+		auto scoped_destroyed() -> decltype(Scope::destroyed())
+		{
+			return Scope::destroyed();
+		}
+
+	public:
 		ActorComponent* create_component(Class* self, const Name& name = {});
 
 		template<typename ComponentType>
@@ -52,6 +118,7 @@ namespace Engine
 		virtual Actor& stop_play();
 		virtual Actor& spawned();
 		virtual Actor& destroyed();
+
 		Actor& destroy();
 		Actor& update_drawing_data();
 

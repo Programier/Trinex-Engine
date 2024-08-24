@@ -22,6 +22,22 @@ namespace Engine
 	class ENGINE_EXPORT Object : public SerializableObject
 	{
 	public:
+		template<typename NativeType>
+		struct Scriptable : public NativeType {
+			Scriptable& preload() override
+			{
+				static_cast<Object*>(this)->script_preload();
+				return *this;
+			}
+
+			Scriptable& postload() override
+			{
+				static_cast<Object*>(this)->script_postload();
+				return *this;
+			}
+		};
+
+
 		using ObjectClass = Object;
 
 		enum Flag : BitMask
@@ -78,6 +94,9 @@ namespace Engine
 			return object;
 		}
 
+		void script_preload();
+		void script_postload();
+
 	protected:
 		bool private_check_instance(const class Class* const check_class) const;
 		static Object* noname_object();
@@ -92,6 +111,19 @@ namespace Engine
 		static ENGINE_EXPORT void* operator new(size_t size) noexcept;
 		static ENGINE_EXPORT void* operator new(size_t size, void*) noexcept;
 		static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
+
+
+		template<typename Scope = Object>
+		auto scoped_preload() -> decltype(Scope::preload())
+		{
+			return Scope::preload();
+		}
+
+		template<typename Scope = Object>
+		auto scoped_postload() -> decltype(Scope::postload())
+		{
+			return Scope::postload();
+		}
 
 	public:
 		using This  = Object;

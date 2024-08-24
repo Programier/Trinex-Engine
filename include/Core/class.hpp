@@ -32,8 +32,10 @@ namespace Engine
 	private:
 		mutable Object* m_singletone_object;
 
-		void (*m_destroy_func)(Object*)                                               = nullptr;
 		Object* (*m_script_factory)(StringView, Object*)                              = nullptr;
+		Object* (*m_script_placement_constructor)(Class*, void*, StringView, Object*) = nullptr;
+
+		void (*m_destroy_func)(Object*)                                               = nullptr;
 		Object* (*m_static_constructor)(Class*, StringView, Object*)                  = nullptr;
 		Object* (*m_static_placement_constructor)(Class*, void*, StringView, Object*) = nullptr;
 		ChildsSet m_childs;
@@ -66,7 +68,6 @@ namespace Engine
 		size_t sizeof_class() const;
 		bool is_scriptable() const;
 		Class& static_constructor(Object* (*new_static_constructor)(Class*, StringView, Object*) );
-		Class& static_placement_constructor(Object* (*new_static_placement_constructor)(Class*, void*, StringView, Object*) );
 		Object* singletone_instance() const;
 		Class& post_initialize();
 
@@ -95,9 +96,36 @@ namespace Engine
 				m_size = sizeof(ObjectClass);
 				flags(Flag::IsNative, true);
 
-				m_script_factory = [](StringView name, Object* owner) -> Object* {
-					return Object::new_instance<ObjectClass, true>(name, owner);
-				};
+				if constexpr (!is_singletone_v<ObjectClass>)
+				{
+					if (flags(Flag::IsScriptable))
+					{
+						if constexpr (std::is_final_v<ObjectClass>)
+						{
+							m_script_factory = [](StringView name, Object* owner) -> Object* {
+								return Object::new_instance<ObjectClass, true>(name, owner);
+							};
+
+							m_script_placement_constructor = [](Class* self, void* place, StringView name,
+							                                    Object* owner) -> Object* {
+								return Object::new_placement_instance<ObjectClass, true>(place, name, owner);
+							};
+						}
+						else
+						{
+							using ScriptableType = ObjectClass::template Scriptable<ObjectClass>;
+
+							m_script_factory = [](StringView name, Object* owner) -> Object* {
+								return Object::new_instance<ScriptableType, true>(name, owner);
+							};
+
+							m_script_placement_constructor = [](Class* self, void* place, StringView name,
+							                                    Object* owner) -> Object* {
+								return Object::new_placement_instance<ScriptableType, true>(place, name, owner);
+							};
+						}
+					}
+				}
 
 				m_static_constructor = [](Class* self, StringView name, Object* owner) -> Object* {
 					return Object::new_instance<ObjectClass, true>(name, owner);

@@ -113,12 +113,14 @@ namespace Engine
 			class_overload = this;
 		}
 
+		auto constructor = class_overload->is_native() ? m_static_placement_constructor : m_script_placement_constructor;
+
 		if (flags(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
 				Object::setup_next_object_info(const_cast<Class*>(class_overload));
-				m_singletone_object = m_static_placement_constructor(const_cast<Class*>(this), place, name, owner);
+				m_singletone_object = constructor(const_cast<Class*>(this), place, name, owner);
 				class_overload->on_create_call(m_singletone_object);
 				Object::reset_next_object_info();
 				return m_singletone_object;
@@ -128,7 +130,7 @@ namespace Engine
 		}
 
 		Object::setup_next_object_info(const_cast<Class*>(class_overload));
-		Object* object = m_static_placement_constructor(const_cast<Class*>(this), place, name, owner);
+		Object* object = constructor(const_cast<Class*>(this), place, name, owner);
 		class_overload->on_create_call(object);
 		return object;
 	}
@@ -165,13 +167,6 @@ namespace Engine
 	{
 		trinex_always_check(new_static_constructor, "Constructor can't be nullptr!");
 		m_static_constructor = new_static_constructor;
-		return *this;
-	}
-
-	Class& Class::static_placement_constructor(Object* (*new_static_placement_constructor)(Class*, void*, StringView, Object*) )
-	{
-		trinex_always_check(new_static_placement_constructor, "Constructor can't be nullptr!");
-		m_static_placement_constructor = new_static_placement_constructor;
 		return *this;
 	}
 

@@ -22,23 +22,88 @@ namespace Engine
 	private:
 		ActorComponentProxy* m_proxy;
 
-
 		void destroy_proxy();
 
+		void script_update(float dt);
+		void script_start_play();
+		void script_stop_play();
+		void script_spawned();
+		void script_destroyed();
+
+	protected:
+		template<typename Scope = ActorComponent>
+		auto scoped_update(float dt) -> decltype(Scope::update(dt))
+		{
+			return Scope::update(dt);
+		}
+
+		template<typename Scope = ActorComponent>
+		auto scoped_start_play() -> decltype(Scope::start_play())
+		{
+			return Scope::start_play();
+		}
+
+		template<typename Scope = ActorComponent>
+		auto scoped_stop_play() -> decltype(Scope::stop_play())
+		{
+			return Scope::stop_play();
+		}
+
+		template<typename Scope = ActorComponent>
+		auto scoped_spawned() -> decltype(Scope::spawned())
+		{
+			return Scope::spawned();
+		}
+
+		template<typename Scope = ActorComponent>
+		auto scoped_destroyed() -> decltype(Scope::destroyed())
+		{
+			return Scope::destroyed();
+		}
+
+
 	public:
+		template<typename NativeType>
+		struct Scriptable : public Super::Scriptable<NativeType> {
+			Scriptable& start_play() override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_start_play();
+				return *this;
+			}
+
+			Scriptable& stop_play() override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_stop_play();
+				return *this;
+			}
+
+			Scriptable& update(float dt) override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_update(dt);
+				return *this;
+			}
+
+			Scriptable& spawned() override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_spawned();
+				return *this;
+			}
+
+			Scriptable& destroyed() override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_destroyed();
+				return *this;
+			}
+		};
+
+
 		enum Flag
 		{
 			DisableRaycast = BIT(0),
 		};
 
 		Flags<Flag, Atomic<BitMask>> component_flags;
-		
-		static const ScriptFunction& script_update_func();
-		static const ScriptFunction& script_start_play_func();
-		static const ScriptFunction& script_stop_play_func();
-		static const ScriptFunction& script_spawned_func();
-		static const ScriptFunction& script_destroyed_func();
-		
+
 		ActorComponent();
 		~ActorComponent();
 
@@ -47,6 +112,7 @@ namespace Engine
 		virtual ActorComponent& update(float dt);
 		virtual ActorComponent& spawned();
 		virtual ActorComponent& destroyed();
+
 		virtual ActorComponentProxy* create_proxy();
 		ActorComponentProxy* proxy() const;
 

@@ -18,29 +18,29 @@ namespace Engine
 	static ScriptFunction script_actor_destroyed;
 
 
-	const ScriptFunction& Actor::script_update_func()
+	void Actor::scriptable_update(float dt)
 	{
-		return script_actor_update;
+		ScriptObject(this).execute(script_actor_update, dt);
 	}
 
-	const ScriptFunction& Actor::script_start_play_func()
+	void Actor::scriptable_start_play()
 	{
-		return script_actor_start_play;
+		ScriptObject(this).execute(script_actor_start_play);
 	}
 
-	const ScriptFunction& Actor::script_stop_play_func()
+	void Actor::scriptable_stop_play()
 	{
-		return script_actor_stop_play;
+		ScriptObject(this).execute(script_actor_stop_play);
 	}
 
-	const ScriptFunction& Actor::script_spawned_func()
+	void Actor::scriptable_spawned()
 	{
-		return script_actor_spawned;
+		ScriptObject(this).execute(script_actor_spawned);
 	}
 
-	const ScriptFunction& Actor::script_destroyed_func()
+	void Actor::scriptable_destroyed()
 	{
-		return script_actor_destroyed;
+		ScriptObject(this).execute(script_actor_destroyed);
 	}
 
 	ActorComponent* Actor::create_component(Class* self, const Name& component_name)
@@ -110,15 +110,7 @@ namespace Engine
 		// Update each component in actor
 		for (auto& component : m_owned_components)
 		{
-			if (component->class_instance()->is_native())
-			{
-				component->update(dt);
-			}
-			else
-			{
-				ScriptObject obj(component);
-				obj.execute(ActorComponent::script_update_func(), dt);
-			}
+			component->update(dt);
 		}
 		return *this;
 	}
@@ -131,15 +123,7 @@ namespace Engine
 
 			for (auto& component : m_owned_components)
 			{
-				if (component->class_instance()->is_native())
-				{
-					component->start_play();
-				}
-				else
-				{
-					ScriptObject obj(component);
-					obj.execute(ActorComponent::script_start_play_func());
-				}
+				component->start_play();
 			}
 		}
 		return *this;
@@ -153,15 +137,7 @@ namespace Engine
 
 			for (auto& component : m_owned_components)
 			{
-				if (component->class_instance()->is_native())
-				{
-					component->stop_play();
-				}
-				else
-				{
-					ScriptObject obj(component);
-					obj.execute(ActorComponent::script_stop_play_func());
-				}
+				component->stop_play();
 			}
 		}
 
@@ -194,16 +170,7 @@ namespace Engine
 		for (Index index = 0, count = m_owned_components.size(); index < count; ++index)
 		{
 			auto component = m_owned_components[index];
-
-			if (component->class_instance()->is_native())
-			{
-				component->spawned();
-			}
-			else
-			{
-				ScriptObject obj(component);
-				obj.execute(ActorComponent::script_spawned_func());
-			}
+			component->spawned();
 		}
 		return *this;
 	}
@@ -222,15 +189,7 @@ namespace Engine
 	{
 		if (m_is_playing)
 		{
-			if (class_instance()->is_native())
-			{
-				stop_play();
-			}
-			else
-			{
-				ScriptObject object(this);
-				object.execute(Actor::script_stop_play_func());
-			}
+			stop_play();
 		}
 
 		// Call destroy for each component
@@ -238,16 +197,7 @@ namespace Engine
 		{
 			ActorComponent* component = m_owned_components[index];
 
-			if (component->class_instance()->is_native())
-			{
-				component->destroyed();
-			}
-			else
-			{
-				ScriptObject obj(component);
-				obj.execute(ActorComponent::script_destroyed_func());
-			}
-
+			component->destroyed();
 			component->owner(nullptr);
 		}
 
@@ -290,40 +240,37 @@ namespace Engine
 		return static_cast<bool>(archive);
 	}
 
-	static void bind_to_scripts(ScriptClassRegistrar* registrar, Class*)
-	{
-		script_actor_update     = registrar->method("void update(float dt)", &Actor::update);
-		script_actor_start_play = registrar->method("void start_play()", &Actor::start_play);
-		script_actor_stop_play  = registrar->method("void stop_play()", &Actor::stop_play);
-		script_actor_spawned    = registrar->method("void spawned()", &Actor::spawned);
-		script_actor_destroyed  = registrar->method("void destroyed()", &Actor::destroyed);
-
-		ActorComponent* (*create_component)(Actor*, Class*, const Name&) = [](Actor* actor, Class* self, const Name& name) {
-			return actor->create_component(self, name);
-		};
-
-		registrar->method("ActorComponent create_component(Class self, const Name& in name) final", create_component);
-	}
-
-	static void on_destroy()
-	{
-		script_actor_update.release();
-		script_actor_start_play.release();
-		script_actor_stop_play.release();
-		script_actor_spawned.release();
-		script_actor_destroyed.release();
-	}
-
 	implement_engine_class(Actor, Class::IsScriptable)
 	{
-		Class* self     = This::static_class_instance();
+		Class* self = This::static_class_instance();
+
+		self->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+			script_actor_update     = r->method("void update(float dt)", &Actor::scoped_update<Actor>);
+			script_actor_start_play = r->method("void start_play()", &Actor::scoped_start_play<Actor>);
+			script_actor_stop_play  = r->method("void stop_play()", &Actor::scoped_stop_play<Actor>);
+			script_actor_spawned    = r->method("void spawned()", &Actor::scoped_spawned<Actor>);
+			script_actor_destroyed  = r->method("void destroyed()", &Actor::scoped_destroyed<Actor>);
+
+			ActorComponent* (*create_component)(Actor*, Class*, const Name&) = [](Actor* actor, Class* self, const Name& name) {
+				return actor->create_component(self, name);
+			};
+
+			r->method("ActorComponent create_component(Class self, const Name& in name) final", create_component);
+		};
+
+		ScriptEngine::on_terminate.push([]() {
+			script_actor_update.release();
+			script_actor_start_play.release();
+			script_actor_stop_play.release();
+			script_actor_spawned.release();
+			script_actor_destroyed.release();
+		});
+
 		auto components = new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
 		                                    new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
 		                                    Property::Flag::IsConst);
 		components->element_name_callback(default_array_object_element_name);
 		self->add_property(components);
 		self->add_property(new BoolProperty("Is Visible", "If true, actor is visible in the scene", &This::m_is_visible));
-		self->script_registration_callback = bind_to_scripts;
-		ScriptEngine::on_terminate.push(on_destroy);
 	}
 }// namespace Engine

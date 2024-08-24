@@ -16,11 +16,15 @@
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_object.hpp>
 
 
 namespace Engine
 {
+
+	static ScriptFunction script_object_preload;
+	static ScriptFunction script_object_postload;
 
 	static thread_local struct NextObjectInfo {
 		Class* class_instance;
@@ -52,22 +56,24 @@ namespace Engine
 		next_object_info.reset();
 	}
 
-	static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
-	{
-		registrar->method("const string& string_name() const final", &Object::string_name);
-		registrar->static_function("Package@ root_package()", &Object::root_package);
-		registrar->method("string as_string() const final", &Object::as_string);
-		registrar->method("const Name& name() const final", method_of<const Name&>(&Object::name));
-		registrar->method("string opConv() const", &Object::as_string);
-		registrar->method("void preload()", &Object::preload);
-		registrar->method("void postload()", &Object::postload);
-		registrar->method("Class@ class_instance() const final", &Object::class_instance);
-	}
-
-
 	implement_engine_class(Object, Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = register_object_to_script;
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+			r->method("const string& string_name() const final", &Object::string_name);
+			r->static_function("Package@ root_package()", &Object::root_package);
+			r->method("string as_string() const final", &Object::as_string);
+			r->method("const Name& name() const final", method_of<const Name&>(&Object::name));
+			r->method("Class@ class_instance() const final", &Object::class_instance);
+			r->method("string opConv() const", &Object::as_string);
+
+			script_object_preload  = r->method("void preload()", &Object::scoped_preload<Object>);
+			script_object_postload = r->method("void postload()", &Object::scoped_postload<Object>);
+		};
+
+		ScriptEngine::on_terminate.push([]() {
+			script_object_preload.release();
+			script_object_postload.release();
+		});
 	}
 
 	static Vector<Index>& get_free_indexes_array()
@@ -92,6 +98,16 @@ namespace Engine
 			m_root_package->flags(IsSerializable, false);
 			m_root_package->add_reference();
 		}
+	}
+
+	void Object::script_preload()
+	{
+		ScriptObject(this).execute(script_object_preload);
+	}
+
+	void Object::script_postload()
+	{
+		ScriptObject(this).execute(script_object_postload);
 	}
 
 	bool Object::private_check_instance(const Class* const check_class) const
