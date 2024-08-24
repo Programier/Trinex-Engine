@@ -55,7 +55,7 @@ namespace Engine
 	{
 		ScriptClassRegistrar::RefInfo info;
 		info.no_count        = false;
-		info.implicit_handle = false;
+		info.implicit_handle = true;
 		info.template_type   = "<T>";
 
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class("Ptr<class T>", info);

@@ -1105,6 +1105,11 @@ namespace Engine
 
 			vp->PlatformHandle   = new_window;
 			vp->PlatformUserData = reinterpret_cast<void*>(new_window->id());
+
+			new_window->on_destroy.push([vp](Window* window) {
+				vp->PlatformHandle   = nullptr;
+				vp->PlatformUserData = nullptr;
+			});
 		}
 
 
@@ -1155,8 +1160,13 @@ namespace Engine
 			return {0, 0};
 		}
 
-		static void imgui_trinex_set_window_size(ImGuiViewport* vp, ImVec2 pos)
-		{}
+		static void imgui_trinex_set_window_size(ImGuiViewport* vp, ImVec2 size)
+		{
+			if (Engine::Window* wd = window_from(vp))
+			{
+				wd->size({size.x, size.y});
+			}
+		}
 
 		static ImVec2 imgui_trinex_get_window_size(ImGuiViewport* vp)
 		{

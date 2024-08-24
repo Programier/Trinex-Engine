@@ -3,7 +3,6 @@
 #include <Core/thread.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <TextEditor.h>
-#include <debugger.h>
 
 namespace Engine
 {

@@ -4,7 +4,6 @@
 
 namespace Engine
 {
-
 	const char* Any::bad_any_cast::what() const noexcept
 	{
 		return "bad any cast";
