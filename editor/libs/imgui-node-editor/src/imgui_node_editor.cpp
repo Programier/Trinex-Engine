@@ -3979,44 +3979,10 @@ bool ed::DragAction::Process(const Control& control)
         auto dragOffset = ImGui::GetMouseDragDelta(Editor->GetConfig().DragButtonIndex, 0.0f);
 
         auto draggedOrigin  = m_DraggedObject->DragStartLocation();
-        auto alignPivot     = ImVec2(0, 0);
-
-        // TODO: Move this experimental alignment to closes pivot out of internals to node API
-        if (auto draggedNode = m_DraggedObject->AsNode())
-        {
-            float x = FLT_MAX;
-            float y = FLT_MAX;
-
-            auto testPivot = [this, &x, &y, &draggedOrigin, &dragOffset, &alignPivot](const ImVec2& pivot)
-            {
-                auto initial   = draggedOrigin + dragOffset + pivot;
-                auto candidate = Editor->AlignPointToGrid(initial) - draggedOrigin - pivot;
-
-                if (ImFabs(candidate.x) < ImFabs(ImMin(x, FLT_MAX)))
-                {
-                    x = candidate.x;
-                    alignPivot.x = pivot.x;
-                }
-
-                if (ImFabs(candidate.y) < ImFabs(ImMin(y, FLT_MAX)))
-                {
-                    y = candidate.y;
-                    alignPivot.y = pivot.y;
-                }
-            };
-
-            for (auto pin = draggedNode->m_LastPin; pin; pin = pin->m_PreviousPin)
-            {
-                auto pivot = pin->m_Pivot.GetCenter() - draggedNode->m_Bounds.Min;
-                testPivot(pivot);
-            }
-
-            //testPivot(point(0, 0));
-        }
-
+        auto alignPivot     = m_DraggedObject->GetBounds().GetSize() * 0.5;
         auto alignedOffset  = Editor->AlignPointToGrid(draggedOrigin + dragOffset + alignPivot) - draggedOrigin - alignPivot;
 
-        if (!ImGui::GetIO().KeyAlt)
+        if (ImGui::GetIO().KeyAlt)
             dragOffset = alignedOffset;
 
         for (auto object : m_Objects)

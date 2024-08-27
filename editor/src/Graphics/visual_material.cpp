@@ -1,7 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/garbage_collector.hpp>
 #include <Core/group.hpp>
 #include <Core/property.hpp>
 #include <Engine/project.hpp>
@@ -42,21 +41,31 @@ namespace Engine
 		return m_nodes;
 	}
 
-	VisualMaterialGraph::Node* VisualMaterial::create_node(class Class* node_class)
+	VisualMaterial& VisualMaterial::register_node(VisualMaterialGraph::Node* node)
+	{
+		if (node && (!node->is_root_node() || m_nodes.empty()))
+			m_nodes.push_back(node);
+		return *this;
+	}
+
+	VisualMaterialGraph::Node* VisualMaterial::create_node(class Class* node_class, const Vector2D& position)
 	{
 		if (node_class->is_a<VisualMaterialGraph::Node>())
 		{
 			VisualMaterialGraph::Node* node = Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object());
 			if (node)
-				m_nodes.push_back(node);
+			{
+				node->position = position;
+				register_node(node);
+			}
 			return node;
 		}
 		return nullptr;
 	}
 
-	VisualMaterial& VisualMaterial::destroy_node(VisualMaterialGraph::Node* node)
+	VisualMaterial& VisualMaterial::destroy_node(VisualMaterialGraph::Node* node, bool destroy_links)
 	{
-		if (node->is_destroyable())
+		if (!node->is_root_node())
 		{
 			size_t index = 0;
 			for (size_t count = m_nodes.size(); index < count; ++index)
@@ -69,18 +78,20 @@ namespace Engine
 				return *this;
 
 
-			for (VisualMaterialGraph::InputPin* in : node->inputs())
+			if (destroy_links)
 			{
-				in->unlink();
-			}
+				for (VisualMaterialGraph::InputPin* in : node->inputs())
+				{
+					in->unlink();
+				}
 
-			for (VisualMaterialGraph::OutputPin* out : node->outputs())
-			{
-				out->unlink();
+				for (VisualMaterialGraph::OutputPin* out : node->outputs())
+				{
+					out->unlink();
+				}
 			}
 
 			m_nodes.erase(m_nodes.begin() + index);
-			GarbageCollector::destroy(node);
 		}
 		return *this;
 	}

@@ -6,7 +6,6 @@
 
 namespace Engine::VisualMaterialGraph
 {
-	static ScriptFunction node_is_destroyable;
 	static ScriptFunction node_header_color;
 	static ScriptFunction node_render;
 	static ScriptFunction node_can_connect;
@@ -19,11 +18,6 @@ namespace Engine::VisualMaterialGraph
 		declare_class(ScriptableNode, Node);
 
 	public:
-		bool is_destroyable() const override
-		{
-			return ScriptObject(this).execute(node_is_destroyable).bool_value();
-		}
-
 		Vector4D header_color() const override
 		{
 			return *ScriptObject(this).execute(node_header_color).address_as<Vector4D>();
@@ -56,11 +50,6 @@ namespace Engine::VisualMaterialGraph
 		}
 
 		// Base implementation
-		bool is_destroyable_base() const
-		{
-			return Node::is_destroyable();
-		}
-
 		Vector4D header_color_base() const
 		{
 			return Node::header_color();
@@ -95,16 +84,16 @@ namespace Engine::VisualMaterialGraph
 	implement_class(Engine::VisualMaterialGraph, ScriptableNode, Class::IsScriptable)
 	{
 		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
-			node_is_destroyable = r->method("bool is_destroyable() const", &This::is_destroyable_base);
-			node_header_color   = r->method("Vector4D header_color() const", &This::header_color_base);
-			node_render         = r->method("ScriptableNode@ render()", &This::render_base);
-			node_can_connect    = r->method("bool can_connect(OutputPin@ pin, PinType type)", &This::can_connect_base);
-			node_out_pin_type   = r->method("PinType out_pin_type(OutputPin@ pin)", &This::out_pin_type_base);
+			node_header_color = r->method("Vector4D header_color() const", &This::header_color_base);
+			node_render       = r->method("ScriptableNode@ render()", &This::render_base);
+			node_can_connect  = r->method("bool can_connect(OutputPin@ pin, PinType type)", &This::can_connect_base);
+			node_out_pin_type = r->method("PinType out_pin_type(OutputPin@ pin)", &This::out_pin_type_base);
 
 			node_compile_out =
 			        r->method("Expression compile(OutputPin@ pin, CompilerState& inout state)", &This::compile_base_out);
 			node_compile_in = r->method("Expression compile(InputPin@ pin, CompilerState& inout state)", &This::compile_base_in);
 
+			r->method("bool is_root_node() const final", &This::is_root_node);
 			r->method("bool has_error() const final", &This::has_error);
 			r->method("const string& error_message() const final", &This::error_message);
 			r->method("ScriptableNode& clear_error_message() const final", &This::clear_error_message);
@@ -120,7 +109,6 @@ namespace Engine::VisualMaterialGraph
 		};
 
 		ScriptEngine::on_terminate.push([]() {
-			node_is_destroyable.release();
 			node_header_color.release();
 			node_render.release();
 			node_can_connect.release();

@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/flags.hpp>
@@ -293,7 +294,7 @@ namespace Engine::VisualMaterialGraph
 
 	class Node;
 
-	class Pin
+	class Pin : public SerializableObject
 	{
 	private:
 		Node* m_node;
@@ -398,6 +399,15 @@ namespace Engine::VisualMaterialGraph
 					return nullptr;
 			}
 			return &value;
+		}
+
+		bool archive_process(Archive& ar) override
+		{
+			if (!TypedPinNoDefault<m_pin_type, BaseClass>::archive_process(ar))
+				return false;
+
+			ar & value;
+			return ar;
 		}
 	};
 
@@ -551,7 +561,7 @@ namespace Engine::VisualMaterialGraph
 			return reinterpret_cast<Identifier>(this);
 		}
 
-		virtual bool is_destroyable() const;
+		bool is_root_node() const;
 		virtual Vector4D header_color() const;
 
 		virtual Expression compile(OutputPin* pin, CompilerState& state);
@@ -572,6 +582,8 @@ namespace Engine::VisualMaterialGraph
 		bool has_error() const;
 		const String& error_message() const;
 		Node& clear_error_message();
+		bool archive_process(Archive& ar) override;
+
 		virtual ~Node();
 		virtual const char* name() const;
 	};
@@ -614,7 +626,6 @@ public:                                                                         
 
 		Root();
 		Expression compile(InputPin* pin, CompilerState& state) override;
-		bool is_destroyable() const override;
 	};
 
 

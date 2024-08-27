@@ -8,6 +8,8 @@
 
 namespace Engine
 {
+	using NodesSet = Set<Pointer<VisualMaterialGraph::Node>, Pointer<VisualMaterialGraph::Node>::HashStruct>;
+
 	static void show_label(const char* label, ImColor color)
 	{
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - ImGui::GetTextLineHeight());
@@ -77,23 +79,6 @@ namespace Engine
 	        {VisualMaterialGraph::PinType::Texture2D, "Texture2D"},
 	};
 
-	static FORCE_INLINE float input_item_width(int components)
-	{
-		return 75.f * static_cast<float>(components);
-	}
-
-	static void render_bool_pin(bool* data, uint32_t count)
-	{
-		static const char* names[] = {"##Value1", "##Value2", "##Value3", "##Value4"};
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			ImGui::Checkbox(names[i], data + i);
-
-			if (i != count - 1)
-				ImGui::SameLine();
-		}
-	}
-
 	static float render_default_value(void* data, VisualMaterialGraph::PinType type)
 	{
 		if (data == nullptr)
@@ -110,6 +95,19 @@ namespace Engine
 		} storage(data);
 
 		ImGui::BeginGroup();
+
+		static auto input_item_width = [](int components) -> float { return 75.f * static_cast<float>(components); };
+
+		static auto render_bool_pin = [](bool* data, uint32_t count) {
+			static const char* names[] = {"##Value1", "##Value2", "##Value3", "##Value4"};
+			for (uint32_t i = 0; i < count; ++i)
+			{
+				ImGui::Checkbox(names[i], data + i);
+
+				if (i != count - 1)
+					ImGui::SameLine();
+			}
+		};
 
 		switch (type)
 		{
@@ -228,7 +226,6 @@ namespace Engine
 			}
 
 			builder.begin(node->id());
-
 			if (selected_items == 1 && ed::IsNodeSelected(node->id()))
 			{
 				selected_node = node;
@@ -340,7 +337,7 @@ namespace Engine
 			{
 				if (auto* output = input->linked_to())
 				{
-					ed::Link(input->id() + 1, input->id(), output->id(), ImColor(0, 149, 220), 2.f);
+					ed::Link(input->id() + 1, input->id(), output->id(), ImColor(0, 149, 220), 3.f);
 				}
 			}
 		}
@@ -359,92 +356,101 @@ namespace Engine
 		ed::Resume();
 	}
 
-	static void check_creating(void*& out_pin, MaterialEditorClient::GraphState& state)
+	static bool match_filter(Struct* self, const String& filter)
 	{
-		if (ed::BeginCreate(ImColor(0, 169, 233), 2.f))
+		if (self->is_class())
 		{
-			ed::PinId from, to;
-			if (ed::QueryNewLink(&from, &to) && from && to)
+			if (!filter.empty())
 			{
-				VisualMaterialGraph::Pin* input_pin  = from.AsPointer<VisualMaterialGraph::Pin>();
-				VisualMaterialGraph::Pin* output_pin = to.AsPointer<VisualMaterialGraph::Pin>();
-
-				if (input_pin->kind() != VisualMaterialGraph::PinKind::Input)
-				{
-					std::swap(input_pin, output_pin);
-				}
-
-				if (input_pin == output_pin)
-				{
-					ed::RejectNewItem();
-				}
-				else if (input_pin->kind() == output_pin->kind())
-				{
-					show_label("editor/Cannot create link to same pin type"_localized, ImColor(255, 0, 0));
-					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
-				}
-				else if (input_pin->node() == output_pin->node())
-				{
-					show_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0));
-					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
-				}
-				else if (!input_pin->node()->can_connect(
-				                 reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin),
-				                 output_pin->node()->out_pin_type(reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
-				{
-					show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
-					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
-				}
-				else if (ed::AcceptNewItem())
-				{
-					VisualMaterialGraph::InputPin* in   = reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin);
-					VisualMaterialGraph::OutputPin* out = reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin);
-					in->create_link(out);
-				}
+				String name = Strings::to_lower(self->base_name().to_string());
+				if (name.starts_with(filter))
+					return true;
 			}
-
-			if (ed::QueryNewNode(&from))
+			else
 			{
-				VisualMaterialGraph::Pin* pin = from.AsPointer<VisualMaterialGraph::Pin>();
-				show_label("editor/+ Create Node"_localized, ImColor(32, 45, 32, 180));
-
-				if (ed::AcceptNewItem() && !ImGui::IsPopupOpen("Create New Node"))
-				{
-					open_nodes_popup(state, false);
-					out_pin = pin;
-				}
+				return true;
 			}
 		}
-		ed::EndCreate();
+		return false;
 	}
 
+	static bool match_filter(Group* group, const String& filter)
+	{
+		if (filter.empty())
+			return true;
 
-	static Class* render_node_types(Group* group)
+		for (Struct* instance : group->structs())
+		{
+			if (match_filter(instance, filter))
+				return true;
+		}
+
+		for (auto* child : group->childs())
+		{
+			if (match_filter(child, filter))
+				return true;
+		}
+
+		return false;
+	}
+
+	static Class* render_node_types(Group* group, const String& filter, bool changed)
 	{
 		if (!group)
 			return nullptr;
 
-
 		Class* current = nullptr;
 
-		for (Group* child : group->childs())
+		for (auto* child : group->childs())
 		{
-			if (ImGui::CollapsingHeader(child->name().c_str()))
+			ImGui::PushID(child->name().c_str());
+
+			bool is_visible = false;
+
+			if (changed)
 			{
-				ImGui::Indent(10.f);
-				Class* new_class = render_node_types(child);
-				if (!current && new_class)
-					current = new_class;
-
-				ImGui::Unindent(10.f);
+				is_visible = match_filter(child, filter);
+				ImGui::GetStateStorage()->SetBool(ImGui::GetID("is_visible"), is_visible);
 			}
-		}
+			else
+			{
+				is_visible = ImGui::GetStateStorage()->GetBool(ImGui::GetID("is_visible"));
+			}
 
+			if (is_visible)
+			{
+				if (changed)
+				{
+					ImGui::SetNextItemOpen(!filter.empty());
+				}
+
+				if (ImGui::TreeNodeEx(child->name().c_str()))
+				{
+					ImGui::Indent(10.f);
+					Class* new_class = render_node_types(child, filter, changed);
+
+					if (!current && new_class)
+						current = new_class;
+
+					ImGui::Unindent(10.f);
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::PopID();
+		}
 
 		for (Struct* instance : group->structs())
 		{
 			if (instance->is_class())
 			{
+				if (!filter.empty())
+				{
+					String name = Strings::to_lower(instance->base_name().to_string());
+					if (!name.starts_with(filter))
+						continue;
+				}
+
 				if (ImGui::MenuItem(instance->base_name().c_str()))
 				{
 					current = reinterpret_cast<Class*>(instance);
@@ -455,9 +461,11 @@ namespace Engine
 		return current;
 	}
 
-	static bool show_new_node_popup(VisualMaterial* material, VisualMaterialGraph::Pin* from,
-	                                MaterialEditorClient::GraphState& state)
+	bool MaterialEditorClient::show_new_node_popup(class VisualMaterial* material)
 	{
+		const auto from = reinterpret_cast<VisualMaterialGraph::Pin*>(m_graph_state.m_create_node_from_pin);
+		auto& state     = m_graph_state;
+
 		bool status = false;
 		ed::Suspend();
 		ImGui::SetNextWindowSizeConstraints({}, {300, 500});
@@ -465,8 +473,19 @@ namespace Engine
 		{
 			ImGui::Dummy({200, 0});
 
+			bool filter_changed = ImGui::InputTextWithHint("##SearchLine", "Search...", state.m_nodes_filter);
+
+			if (filter_changed)
+			{
+				m_graph_state.m_nodes_filter = Strings::to_lower(m_graph_state.m_nodes_filter);
+			}
+
+			filter_changed = filter_changed || ImGui::IsWindowAppearing();
+
+			ImGui::Separator();
+
 			static Group* root_group = Group::find("Engine::VisualMaterialGraphGroups");
-			if (Class* self = render_node_types(root_group))
+			if (Class* self = render_node_types(root_group, m_graph_state.m_nodes_filter, filter_changed))
 			{
 				auto node      = material->create_node(self);
 				node->position = state.m_node_spawn_position;
@@ -524,52 +543,10 @@ namespace Engine
 	}
 
 
-	static void delete_selected_items(VisualMaterial* material)
-	{
-		size_t objects = ed::GetSelectedObjectCount();
-		if (objects == 0)
-			return;
-
-		byte* _data = new byte[objects * glm::max(sizeof(ed::NodeId), sizeof(ed::PinId))];
-
-		{
-			ed::NodeId* nodes = reinterpret_cast<ed::NodeId*>(_data);
-			for (int i = 0, count = ed::GetSelectedNodes(nodes, objects); i < count; i++)
-			{
-				VisualMaterialGraph::Node* node = nodes[i].AsPointer<VisualMaterialGraph::Node>();
-
-				if (node->is_destroyable())
-				{
-					ed::DeleteNode(nodes[i]);
-					material->destroy_node(node);
-				}
-			}
-		}
-
-		{
-			ed::LinkId* links = reinterpret_cast<ed::LinkId*>(_data);
-			for (int i = 0, count = ed::GetSelectedLinks(links, objects); i < count; i++)
-			{
-				VisualMaterialGraph::Pin* pin =
-				        reinterpret_cast<VisualMaterialGraph::Pin*>(static_cast<Identifier>(links[i]) - 1);
-
-				if (pin)
-				{
-					pin->unlink();
-				}
-			}
-		}
-
-		delete[] _data;
-		ed::ClearSelection();
-	}
-
-
 	static void process_drag_and_drop(VisualMaterial* material)
 	{
 		if (ImGui::BeginDragDropTarget())
 		{
-
 			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
 			if (payload)
 			{
@@ -588,31 +565,321 @@ namespace Engine
 		}
 	}
 
+	static void process_editor_delete(VisualMaterial* material)
+	{
+		if (ed::BeginDelete())
+		{
+			ed::NodeId node_id = 0;
+
+			while (ed::QueryDeletedNode(&node_id))
+			{
+				VisualMaterialGraph::Node* node = node_id.AsPointer<VisualMaterialGraph::Node>();
+
+				if (node->is_root_node())
+				{
+					ed::RejectDeletedItem();
+					continue;
+				}
+
+				if (ed::AcceptDeletedItem())
+				{
+					material->destroy_node(node);
+				}
+			}
+
+			ed::LinkId link_id = 0;
+			while (ed::QueryDeletedLink(&link_id))
+			{
+				VisualMaterialGraph::Pin* pin = reinterpret_cast<VisualMaterialGraph::Pin*>(static_cast<Identifier>(link_id) - 1);
+				if (pin)
+				{
+					ed::AcceptDeletedItem();
+					pin->unlink();
+				}
+				else
+				{
+					ed::RejectDeletedItem();
+				}
+			}
+		}
+		ed::EndDelete();
+	}
+
+	static void process_editor_create(VisualMaterial* material, MaterialEditorClient::GraphState& state)
+	{
+		if (ed::BeginCreate(ImColor(0, 169, 233), 3.f))
+		{
+			ed::PinId from, to;
+			if (ed::QueryNewLink(&from, &to) && from && to)
+			{
+				VisualMaterialGraph::Pin* input_pin  = from.AsPointer<VisualMaterialGraph::Pin>();
+				VisualMaterialGraph::Pin* output_pin = to.AsPointer<VisualMaterialGraph::Pin>();
+
+				if (input_pin->kind() != VisualMaterialGraph::PinKind::Input)
+				{
+					std::swap(input_pin, output_pin);
+				}
+
+				if (input_pin == output_pin)
+				{
+					ed::RejectNewItem();
+				}
+				else if (input_pin->kind() == output_pin->kind())
+				{
+					show_label("editor/Cannot create link to same pin type"_localized, ImColor(255, 0, 0));
+					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
+				}
+				else if (input_pin->node() == output_pin->node())
+				{
+					show_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0));
+					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
+				}
+				else if (!input_pin->node()->can_connect(
+				                 reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin),
+				                 output_pin->node()->out_pin_type(reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin))))
+				{
+					show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
+					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
+				}
+				else if (ed::AcceptNewItem())
+				{
+					VisualMaterialGraph::InputPin* in   = reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin);
+					VisualMaterialGraph::OutputPin* out = reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin);
+					in->create_link(out);
+				}
+			}
+
+			if (ed::QueryNewNode(&from))
+			{
+				VisualMaterialGraph::Pin* pin = from.AsPointer<VisualMaterialGraph::Pin>();
+
+				show_label("editor/+ Create Node"_localized, ImColor(32, 45, 32, 180));
+
+				ed::NodeId node;
+				if (ed::ShowNodeContextMenu(&node))
+				{
+					printf("CONTEX MENU!\n");
+				}
+
+				if (ed::AcceptNewItem() && !ImGui::IsPopupOpen("Create New Node"))
+				{
+					open_nodes_popup(state, false);
+					state.m_create_node_from_pin = pin;
+				}
+			}
+		}
+		ed::EndCreate();
+	}
+
+	static NodesSet copy_nodes(const NodesSet& nodes, const Vector2D& position_offset = {0, 0})
+	{
+		Map<VisualMaterialGraph::Node*, VisualMaterialGraph::Node*> m_nodes_map;
+		NodesSet result;
+
+
+		for (auto node : nodes)
+		{
+			if (!node->is_root_node())
+			{
+				auto copy         = Object::instance_cast<VisualMaterialGraph::Node>(Object::copy_from(node));
+				copy->position    = node->position + position_offset;
+				m_nodes_map[node] = copy;
+				result.insert(copy);
+			}
+		}
+
+		// Copy links
+		for (auto& [src, dst] : m_nodes_map)
+		{
+			for (auto& input : src->inputs())
+			{
+				if (auto linked_to = input->linked_to())
+				{
+					if (auto node = m_nodes_map[linked_to->node()])
+					{
+						size_t in_index  = src->find_pin_index(input);
+						size_t out_index = linked_to->node()->find_pin_index(linked_to);
+
+						dst->input_pin(in_index)->create_link(node->output_pin(out_index));
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	static NodesSet copy_selected_nodes(const Vector2D& position_offset = {0, 0})
+	{
+		NodesSet m_nodes;
+
+		const int_t context_size = ed::GetSelectedObjectCount();
+		Vector<ed::NodeId> nodes(context_size);
+		int_t nodes_count = ed::GetSelectedNodes(nodes.data(), context_size);
+
+		for (int_t i = 0; i < nodes_count; ++i)
+		{
+			m_nodes.insert(nodes[i].AsPointer<VisualMaterialGraph::Node>());
+		}
+
+		return copy_nodes(m_nodes, position_offset);
+	}
+
+	static NodesSet cut_selected_nodes(VisualMaterial* material)
+	{
+		NodesSet m_nodes;
+
+		const int_t context_size = ed::GetSelectedObjectCount();
+		Vector<ed::NodeId> nodes(context_size);
+
+		int_t nodes_count = ed::GetSelectedNodes(nodes.data(), context_size);
+		m_nodes.reserve(nodes_count);
+
+		for (int_t i = 0; i < nodes_count; ++i)
+		{
+			auto node = nodes[i].AsPointer<VisualMaterialGraph::Node>();
+
+			if (!node->is_root_node())
+			{
+				m_nodes.insert(node);
+				material->destroy_node(node, false);
+				ed::DeleteNode(node->id());
+			}
+		}
+
+		for (auto& node : m_nodes)
+		{
+			for (auto& input : node->inputs())
+			{
+				if (auto linked_to = input->linked_to())
+				{
+					if (!m_nodes.contains(linked_to->node()))
+					{
+						input->unlink();
+					}
+				}
+			}
+
+			for (auto& output : node->outputs())
+			{
+				auto& linked_to = output->linked_to();
+
+				for (auto input : linked_to)
+				{
+					if (!m_nodes.contains(input->node()))
+					{
+						input->unlink();
+					}
+				}
+			}
+		}
+
+		return m_nodes;
+	}
+
+	MaterialEditorClient& MaterialEditorClient::process_editor_events(class VisualMaterial* material)
+	{
+		if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
+		{
+			open_nodes_popup(m_graph_state, true);
+		}
+
+		process_editor_delete(material);
+		process_editor_create(material, m_graph_state);
+
+		auto& io = ImGui::GetIO();
+
+		// Select All
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
+		{
+			ed::ClearSelection();
+			for (auto node : material->nodes())
+			{
+				ed::SelectNode(node->id(), true);
+			}
+		}
+
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_X)))
+		{
+			m_graph_state.m_nodes = cut_selected_nodes(material);
+		}
+
+		// Copy command
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)))
+		{
+			m_graph_state.m_nodes = copy_selected_nodes({0, 0});
+		}
+
+		// Paste command
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)))
+		{
+			if (!m_graph_state.m_nodes.empty())
+			{
+				ed::ClearSelection();
+				auto nodes = copy_nodes(m_graph_state.m_nodes);
+
+				Vector2D mid_point = {0, 0};
+
+				for (auto& node : nodes)
+				{
+					material->register_node(node);
+					mid_point += node->position;
+				}
+
+				mid_point /= static_cast<float>(m_graph_state.m_nodes.size());
+
+				Vector2D difference = ImGui::EngineVecFrom(ImGui::GetMousePos()) - mid_point;
+
+				for (auto& node : nodes)
+				{
+					node->position += difference;
+					ed::SelectNode(node->id(), true, true);
+					ed::SetNodePosition(node->id(), {node->position.x, node->position.y});
+				}
+			}
+		}
+
+		// Duplicate command
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_D)))
+		{
+			auto new_nodes = copy_selected_nodes({20, 20});
+
+			if (!new_nodes.empty())
+			{
+				ed::ClearSelection();
+
+				for (VisualMaterialGraph::Node* copy : new_nodes)
+				{
+					material->register_node(copy);
+					ed::SelectNode(copy->id(), true, true);
+					ed::SetNodePosition(copy->id(), {copy->position.x, copy->position.y});
+				}
+			}
+		}
+
+		return *this;
+	}
+
+
 	MaterialEditorClient& MaterialEditorClient::render_visual_material_graph(class VisualMaterial* material)
 	{
+		if (ImGui::IsWindowAppearing())
+			return *this;
+
 		ax::NodeEditor::SetCurrentEditor(m_graph_editor_context);
 		ax::NodeEditor::Begin("Editor");
 
 		if (material)
 		{
-			if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
-			{
-				open_nodes_popup(m_graph_state, true);
-			}
-
 			on_node_select(render_graph(this, material->nodes()));
-			check_creating(m_create_node_from_pin, m_graph_state);
-			if (!show_new_node_popup(material, reinterpret_cast<VisualMaterialGraph::Pin*>(m_create_node_from_pin),
-			                         m_graph_state))
-			{
-				m_create_node_from_pin = nullptr;
-			}
+			process_editor_events(material);
 
-			if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+			if (!show_new_node_popup(material))
 			{
-				delete_selected_items(material);
+				m_graph_state.m_create_node_from_pin = nullptr;
 			}
 		}
+
 		ax::NodeEditor::End();
 
 		if (material)

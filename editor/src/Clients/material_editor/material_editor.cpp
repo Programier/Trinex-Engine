@@ -106,7 +106,9 @@ namespace Engine
 
 	MaterialEditorClient::MaterialEditorClient()
 	{
-		m_graph_editor_context = ax::NodeEditor::CreateEditor();
+		ax::NodeEditor::Config config;
+		config.SettingsFile    = nullptr;
+		m_graph_editor_context = ax::NodeEditor::CreateEditor(&config);
 	}
 
 	MaterialEditorClient::~MaterialEditorClient()

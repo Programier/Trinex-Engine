@@ -369,7 +369,7 @@ IMGUI_NODE_EDITOR_API int  GetSelectedLinks(LinkId* links, int size);
 IMGUI_NODE_EDITOR_API bool IsNodeSelected(NodeId nodeId);
 IMGUI_NODE_EDITOR_API bool IsLinkSelected(LinkId linkId);
 IMGUI_NODE_EDITOR_API void ClearSelection();
-IMGUI_NODE_EDITOR_API void SelectNode(NodeId nodeId, bool append = false);
+IMGUI_NODE_EDITOR_API void SelectNode(NodeId nodeId, bool append = false, bool create = false);
 IMGUI_NODE_EDITOR_API void SelectLink(LinkId linkId, bool append = false);
 IMGUI_NODE_EDITOR_API void DeselectNode(NodeId nodeId);
 IMGUI_NODE_EDITOR_API void DeselectLink(LinkId linkId);

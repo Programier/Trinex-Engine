@@ -68,6 +68,7 @@ namespace Engine
 		{
 			if (this != &pointer)
 			{
+				remove_reference(m_object);
 				m_instance         = pointer.m_instance;
 				pointer.m_instance = nullptr;
 			}

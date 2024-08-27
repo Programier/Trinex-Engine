@@ -503,9 +503,14 @@ void ax::NodeEditor::ClearSelection()
     s_Editor->ClearSelection();
 }
 
-void ax::NodeEditor::SelectNode(NodeId nodeId, bool append)
+void ax::NodeEditor::SelectNode(NodeId nodeId, bool append, bool create)
 {
-    if (auto node = s_Editor->FindNode(nodeId))
+	auto node = s_Editor->FindNode(nodeId);
+	
+	if (!node && create)
+		node = s_Editor->CreateNode(nodeId);
+	
+    if (node)
     {
         if (append)
             s_Editor->SelectObject(node);

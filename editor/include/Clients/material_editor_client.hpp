@@ -27,7 +27,11 @@ namespace Engine
 
 	public:
 		struct GraphState {
+			Set<Pointer<VisualMaterialGraph::Node>, Pointer<VisualMaterialGraph::Node>::HashStruct> m_nodes;
+
 			Vector2D m_node_spawn_position;
+			void* m_create_node_from_pin = nullptr;
+			String m_nodes_filter        = "";
 		};
 
 	private:
@@ -47,11 +51,13 @@ namespace Engine
 
 		bool m_open_select_node_window   = false;
 		bool m_is_open_create_node_popup = false;
-		void* m_create_node_from_pin     = nullptr;
 
 		void on_object_select(Object* object);
 		void on_node_select(Object* object);
 		void on_object_dropped(Object* object);
+
+		MaterialEditorClient& process_editor_events(class VisualMaterial* material);
+		bool show_new_node_popup(class VisualMaterial* material);
 
 	public:
 		MaterialEditorClient();

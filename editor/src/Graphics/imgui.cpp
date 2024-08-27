@@ -916,12 +916,16 @@ namespace Engine
 			auto& io          = ImGui::GetIO();
 			auto imgui_button = imgui_button_of(data.key);
 
-			if (imgui_button != -ImGuiKey_None)
+			if (imgui_button != ImGuiKey_None)
 			{
-				io.AddKeyEvent(ImGuiMod_Ctrl, ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
-				io.AddKeyEvent(ImGuiMod_Shift, ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
-				io.AddKeyEvent(ImGuiMod_Alt, ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
-				io.AddKeyEvent(ImGuiMod_Super, ImGui::IsKeyDown(ImGuiKey_LeftSuper) || ImGui::IsKeyDown(ImGuiKey_RightSuper));
+				if (is_in<ImGuiKey_LeftCtrl, ImGuiKey_RightCtrl>(imgui_button))
+					io.AddKeyEvent(ImGuiMod_Ctrl, is_pressed);
+				if (is_in<ImGuiKey_LeftShift, ImGuiKey_RightShift>(imgui_button))
+					io.AddKeyEvent(ImGuiMod_Shift, is_pressed);
+				if (is_in<ImGuiKey_LeftAlt, ImGuiKey_RightAlt>(imgui_button))
+					io.AddKeyEvent(ImGuiMod_Alt, is_pressed);
+				if (is_in<ImGuiKey_LeftSuper, ImGuiKey_RightSuper>(imgui_button))
+					io.AddKeyEvent(ImGuiMod_Super, is_pressed);
 				io.AddKeyEvent(imgui_button, is_pressed);
 			}
 		}

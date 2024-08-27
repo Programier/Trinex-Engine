@@ -127,9 +127,9 @@ namespace Engine::VisualMaterialGraph
 		m_outputs.push_back(pin);
 	}
 
-	bool Node::is_destroyable() const
+	bool Node::is_root_node() const
 	{
-		return true;
+		return class_instance()->is_a(Root::static_class_instance());
 	}
 
 	Vector4D Node::header_color() const
@@ -246,6 +246,26 @@ namespace Engine::VisualMaterialGraph
 	{
 		m_error_message.clear();
 		return *this;
+	}
+
+	bool Node::archive_process(Archive& ar)
+	{
+		if (!Super::archive_process(ar))
+			return false;
+
+		ar & position;
+
+		for (auto input : m_inputs)
+		{
+			input->archive_process(ar);
+		}
+
+		for (auto output : m_outputs)
+		{
+			output->archive_process(ar);
+		}
+
+		return ar;
 	}
 
 	Node::~Node()
@@ -647,11 +667,6 @@ namespace Engine::VisualMaterialGraph
 		}
 
 		return state.expression_cast(expression, pin->type());
-	}
-
-	bool Root::is_destroyable() const
-	{
-		return false;
 	}
 
 	////////////////////////// CONSTANTS BLOCK //////////////////////////

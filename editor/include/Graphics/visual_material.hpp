@@ -21,7 +21,8 @@ namespace Engine
 
 		VisualMaterial();
 		const Vector<Pointer<VisualMaterialGraph::Node>>& nodes() const;
-		VisualMaterialGraph::Node* create_node(class Class* node_class);
+		VisualMaterial& register_node(VisualMaterialGraph::Node* node);
+		VisualMaterialGraph::Node* create_node(class Class* node_class, const Vector2D& position = {});
 
 		template<typename T>
 		T* create_node()
@@ -31,7 +32,7 @@ namespace Engine
 			return Object::instance_cast<T>(create_node(T::static_class_instance()));
 		}
 
-		VisualMaterial& destroy_node(VisualMaterialGraph::Node* node);
+		VisualMaterial& destroy_node(VisualMaterialGraph::Node* node, bool destroy_links = true);
 		bool shader_source(String& out_source) override;
 		bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr) override;
 	};

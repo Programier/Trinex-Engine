@@ -10,7 +10,7 @@ namespace Engine::Settings
 	ENGINE_EXPORT String e_default_language;
 	ENGINE_EXPORT String e_current_language;
 	ENGINE_EXPORT int_t e_lz4_compression_level;
-	ENGINE_EXPORT int_t e_gc_max_object_per_tick;
+	ENGINE_EXPORT int_t e_gc_max_object_per_tick = 100;
 	ENGINE_EXPORT int_t e_fps_limit;
 
 #if PLATFORM_ANDROID

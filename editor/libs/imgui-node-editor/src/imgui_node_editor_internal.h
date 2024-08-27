@@ -1467,7 +1467,7 @@ struct EditorContext
 
     float AlignPointToGrid(float p) const
     {
-        if (!ImGui::GetIO().KeyAlt)
+        if (ImGui::GetIO().KeyAlt)
             return p - ImFmod(p, 16.0f);
         else
             return p;
