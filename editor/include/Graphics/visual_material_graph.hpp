@@ -15,42 +15,99 @@ namespace Engine
 
 namespace Engine::VisualMaterialGraph
 {
+	enum class PinType : EnumerateType;
+
+	struct TypeMetaData {
+		enum
+		{
+			Scalar = BIT(0),
+			Vector = BIT(1),
+			Matrix = BIT(2),
+			Object = BIT(3),
+
+			C1  = 1 << 4,
+			C2  = 2 << 4,
+			C3  = 3 << 4,
+			C4  = 4 << 4,
+			C9  = 9 << 4,
+			C16 = 16 << 4,
+
+			Bool  = 1 << 9,
+			Int   = 2 << 9,
+			UInt  = 3 << 9,
+			Float = 4 << 9
+		};
+
+		static constexpr inline EnumerateType metadata_bits = 24;
+
+		union
+		{
+			PinType component_type = static_cast<PinType>(0);// Undefined
+			EnumerateType component_type_value;
+		};
+
+		byte components : 5  = 0;
+		byte component_index = 0;
+		bool is_scalar : 1   = false;
+		bool is_vector : 1   = false;
+		bool is_numeric : 1  = false;
+		bool is_matrix : 1   = false;
+		bool is_object : 1   = false;
+
+		constexpr inline TypeMetaData(EnumerateType enum_value)
+		{
+			component_index = (enum_value >> 9) & 0b111;
+
+			if (component_index)
+			{
+				component_type = static_cast<PinType>((static_cast<EnumerateType>(component_index) << metadata_bits) |
+				                                      TypeMetaData::Scalar | TypeMetaData::C1);
+			}
+
+			components = (enum_value >> 4) & 0b11111;
+
+			is_scalar  = (enum_value & TypeMetaData::Scalar) == TypeMetaData::Scalar;
+			is_vector  = (enum_value & TypeMetaData::Vector) == TypeMetaData::Vector;
+			is_numeric = is_scalar || is_vector;
+			is_matrix  = (enum_value & TypeMetaData::Matrix) == TypeMetaData::Matrix;
+			is_object  = (enum_value & TypeMetaData::Object) == TypeMetaData::Object;
+		}
+
+		template<typename PinTypeEnum>
+		constexpr TypeMetaData(PinTypeEnum enum_value) : TypeMetaData(static_cast<EnumerateType>(enum_value))
+		{}
+	};
+
 	enum class PinType : EnumerateType
 	{
 		Undefined = 0,
 
-		Scalar  = BIT(0),
-		Vector  = BIT(1),
-		Numeric = Scalar | Vector,
-		Matrix  = BIT(2),
-		Object  = BIT(3),
+		Bool  = (1 << TypeMetaData::metadata_bits) | TypeMetaData::Scalar | TypeMetaData::C1 | TypeMetaData::Bool,
+		Int   = (2 << TypeMetaData::metadata_bits) | TypeMetaData::Scalar | TypeMetaData::C1 | TypeMetaData::Int,
+		UInt  = (3 << TypeMetaData::metadata_bits) | TypeMetaData::Scalar | TypeMetaData::C1 | TypeMetaData::UInt,
+		Float = (4 << TypeMetaData::metadata_bits) | TypeMetaData::Scalar | TypeMetaData::C1 | TypeMetaData::Float,
 
-		Bool  = BIT(4) | Scalar,
-		Int   = BIT(5) | Scalar,
-		UInt  = BIT(6) | Scalar,
-		Float = BIT(7) | Scalar,
+		BVec2 = (5 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C2 | TypeMetaData::Bool,
+		IVec2 = (6 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C2 | TypeMetaData::Int,
+		UVec2 = (7 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C2 | TypeMetaData::UInt,
+		Vec2  = (8 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C2 | TypeMetaData::Float,
 
-		BVec2 = BIT(8) | Vector,
-		IVec2 = BIT(9) | Vector,
-		UVec2 = BIT(10) | Vector,
-		Vec2  = BIT(11) | Vector,
+		BVec3  = (9 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C3 | TypeMetaData::Bool,
+		IVec3  = (10 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C3 | TypeMetaData::Int,
+		UVec3  = (11 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C3 | TypeMetaData::UInt,
+		Vec3   = (12 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C3 | TypeMetaData::Float,
+		Color3 = (13 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C3 | TypeMetaData::Float,
 
-		BVec3  = BIT(12) | Vector,
-		IVec3  = BIT(13) | Vector,
-		UVec3  = BIT(14) | Vector,
-		Vec3   = BIT(15) | Vector,
-		Color3 = BIT(16) | Vector,
+		BVec4  = (14 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C4 | TypeMetaData::Bool,
+		IVec4  = (15 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C4 | TypeMetaData::Int,
+		UVec4  = (16 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C4 | TypeMetaData::UInt,
+		Vec4   = (17 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C4 | TypeMetaData::Float,
+		Color4 = (18 << TypeMetaData::metadata_bits) | TypeMetaData::Vector | TypeMetaData::C4 | TypeMetaData::Float,
 
-		BVec4  = BIT(17) | Vector,
-		IVec4  = BIT(18) | Vector,
-		UVec4  = BIT(19) | Vector,
-		Vec4   = BIT(20) | Vector,
-		Color4 = BIT(21) | Vector,
-
-		Mat3      = BIT(22) | Matrix,
-		Mat4      = BIT(23) | Matrix,
-		Sampler   = BIT(24) | Object,
-		Texture2D = BIT(25) | Object,
+		Mat3      = (19 << TypeMetaData::metadata_bits) | TypeMetaData::Matrix | TypeMetaData::C9 | TypeMetaData::Float,
+		Mat4      = (20 << TypeMetaData::metadata_bits) | TypeMetaData::Matrix | TypeMetaData::C16 | TypeMetaData::Float,
+		Sampler   = (21 << TypeMetaData::metadata_bits) | TypeMetaData::Object,
+		Texture2D = (22 << TypeMetaData::metadata_bits) | TypeMetaData::Object,
 	};
 
 	FORCE_INLINE PinType max_type(PinType a, PinType b)
@@ -58,96 +115,15 @@ namespace Engine::VisualMaterialGraph
 		return static_cast<PinType>(glm::max(static_cast<BitMask>(a), static_cast<BitMask>(b)));
 	}
 
-	FORCE_INLINE bool is_scalar(PinType type)
-	{
-		return (Flags<PinType>(type) & PinType::Scalar) == PinType::Scalar;
-	}
-
-	FORCE_INLINE bool is_vector(PinType type)
-	{
-		return (Flags<PinType>(type) & PinType::Vector) == PinType::Vector;
-	}
-
-	FORCE_INLINE bool is_numeric(PinType type)
-	{
-		return (Flags<PinType>(type) & PinType::Numeric) != 0;
-	}
-
-	FORCE_INLINE bool is_matrix(PinType type)
-	{
-		return (Flags<PinType>(type) & PinType::Matrix) == PinType::Matrix;
-	}
-
-	FORCE_INLINE bool is_object(PinType type)
-	{
-		return (Flags<PinType>(type) & PinType::Object) == PinType::Object;
-	}
-
-
-	constexpr FORCE_INLINE byte components_count(PinType type)
-	{
-		switch (type)
-		{
-			case PinType::Bool:
-				return 1;
-			case PinType::Int:
-				return 1;
-			case PinType::UInt:
-				return 1;
-			case PinType::Float:
-				return 1;
-			case PinType::BVec2:
-				return 2;
-			case PinType::BVec3:
-				return 3;
-			case PinType::BVec4:
-				return 4;
-			case PinType::IVec2:
-				return 2;
-			case PinType::IVec3:
-				return 3;
-			case PinType::IVec4:
-				return 4;
-			case PinType::UVec2:
-				return 2;
-			case PinType::UVec3:
-				return 3;
-			case PinType::UVec4:
-				return 4;
-			case PinType::Vec2:
-				return 2;
-			case PinType::Vec3:
-			case PinType::Color3:
-				return 3;
-			case PinType::Vec4:
-			case PinType::Color4:
-				return 4;
-			case PinType::Mat3:
-				return 9;
-			case PinType::Mat4:
-				return 16;
-			default:
-				return 0;
-		}
-	}
-
 	constexpr FORCE_INLINE bool is_convertable(PinType src, PinType dst)
 	{
 		if (src == dst)
 			return true;
 
-		if (is_scalar(src))
-		{
-			return is_numeric(dst);
-		}
+		TypeMetaData src_meta(src);
+		TypeMetaData dst_meta(dst);
 
-		if (is_in<PinType::Color3, PinType::Color4>(src) && is_in<PinType::Color3, PinType::Color4>(dst))
-			return true;
-
-		if (is_vector(src) && is_vector(dst))
-			return components_count(src) == components_count(dst);
-
-		return false;
+		return src_meta.is_numeric && dst_meta.is_numeric;
 	}
 
 	constexpr FORCE_INLINE PinType to_int_or_float(PinType type)
@@ -205,56 +181,6 @@ namespace Engine::VisualMaterialGraph
 		return type;
 	}
 
-	constexpr FORCE_INLINE PinType components_type(PinType type)
-	{
-		switch (type)
-		{
-			case PinType::Bool:
-			case PinType::BVec2:
-			case PinType::BVec3:
-			case PinType::BVec4:
-				return PinType::Bool;
-
-			case PinType::Int:
-			case PinType::IVec2:
-			case PinType::IVec3:
-			case PinType::IVec4:
-				return PinType::Int;
-
-			case PinType::UInt:
-			case PinType::UVec2:
-			case PinType::UVec3:
-			case PinType::UVec4:
-				return PinType::UInt;
-
-			case PinType::Float:
-			case PinType::Vec2:
-			case PinType::Vec3:
-			case PinType::Color3:
-			case PinType::Vec4:
-			case PinType::Color4:
-			case PinType::Mat3:
-			case PinType::Mat4:
-				return PinType::Float;
-
-			default:
-				return PinType::Undefined;
-		}
-	}
-
-	FORCE_INLINE PinType construct_vector_type(PinType base_type, byte components)
-	{
-		if (!is_scalar(base_type) || components == 0)
-			return PinType::Undefined;
-
-		if (components == 1)
-			return base_type;
-
-		BitMask base_component_mask = static_cast<BitMask>(base_type) ^ static_cast<BitMask>(PinType::Scalar);
-		BitMask result              = (base_component_mask << 4 * (components - 1)) | static_cast<BitMask>(PinType::Vector);
-		return static_cast<PinType>(result);
-	}
-
 	struct Expression {
 		String code;
 		void* userdata;
@@ -293,6 +219,36 @@ namespace Engine::VisualMaterialGraph
 	};
 
 	class Node;
+
+	class NodeSignature
+	{
+	public:
+		class Signature
+		{
+			Vector<PinType> m_inputs;
+			Vector<PinType> m_outputs;
+
+		public:
+			Signature(const Vector<PinType>& input = {}, const Vector<PinType>& output = {});
+
+			size_t inputs_count() const;
+			size_t outputs_count() const;
+			PinType input(size_t index) const;
+			PinType output(size_t index) const;
+		};
+
+	private:
+		Vector<Signature> m_signatures;
+		Vector<Set<PinType>> m_input_pin_types;
+
+	public:
+		NodeSignature& add_signature(const Vector<PinType>& input, const Vector<PinType>& output);
+		NodeSignature& add_input_types(size_t pin_index, const Set<PinType>& types);
+		int_t find_signature_index(const Node* node) const;
+		bool support_input_type(size_t pin_index, PinType type) const;
+		size_t signatures_count() const;
+		const Signature& signature(size_t index) const;
+	};
 
 	class Pin : public SerializableObject
 	{
@@ -386,7 +342,7 @@ namespace Engine::VisualMaterialGraph
 		    : TypedPinNoDefault<m_pin_type, BaseClass>(node, name), value(value)
 		{}
 
-		virtual void* default_value()
+		void* default_value() override
 		{
 			if constexpr (std::is_base_of_v<InputPin, BaseClass>)
 			{
@@ -553,7 +509,86 @@ namespace Engine::VisualMaterialGraph
 		void add_pin(InputPin* pin);
 		void add_pin(OutputPin* pin);
 
+		Vector4D script_header_color() const;
+		const NodeSignature& script_signature() const;
+		Expression script_compile(OutputPin* pin, CompilerState& state);
+		Expression script_compile(InputPin* pin, CompilerState& state);
+		Node& script_render();
+		Node& script_override_parameter(VisualMaterial* material);
+
+		template<typename Scope = Node>
+		Vector4D scoped_header_color() const
+		{
+			return Scope::header_color();
+		}
+
+		template<typename Scope = Node>
+		const NodeSignature& scoped_signature() const
+		{
+			return Scope::signature();
+		}
+
+		template<typename Scope>
+		Expression scoped_compile_out(OutputPin* pin, CompilerState& state)
+		{
+			return Scope::compile(pin, state);
+		}
+
+		template<typename Scope>
+		Expression scoped_compile_in(InputPin* pin, CompilerState& state)
+		{
+			return Scope::compile(pin, state);
+		}
+
+		template<typename Scope>
+		Node& scoped_render()
+		{
+			return Scope::render();
+		}
+
+		template<typename Scope>
+		Node& scoped_override_parameter(VisualMaterial* material)
+		{
+			return Scope::override_parameter(material);
+		}
+
 	public:
+		template<typename NativeClass>
+		struct Scriptable : Super::Scriptable<NativeClass> {
+			Vector4D header_color() const override
+			{
+				return static_cast<const Node*>(this)->script_header_color();
+			}
+
+			const NodeSignature& signature() const override
+			{
+				return static_cast<const Node*>(this)->script_signature();
+			}
+
+			Expression compile(OutputPin* pin, CompilerState& state) override
+			{
+				return static_cast<Node*>(this)->script_compile(pin, state);
+			}
+
+			Expression compile(InputPin* pin, CompilerState& state) override
+			{
+				return static_cast<Node*>(this)->script_compile(pin, state);
+			}
+
+			Scriptable& render() override
+			{
+				static_cast<Node*>(this)->script_render();
+				return *this;
+			}
+
+			Scriptable& override_parameter(VisualMaterial* material) override
+			{
+				static_cast<Node*>(this)->script_override_parameter(material);
+				return *this;
+			}
+		};
+
+
 		Vector2D position = {0, 0};
 
 		FORCE_INLINE Identifier id() const
@@ -564,14 +599,15 @@ namespace Engine::VisualMaterialGraph
 		bool is_root_node() const;
 		virtual Vector4D header_color() const;
 
+		virtual const NodeSignature& signature() const;
 		virtual Expression compile(OutputPin* pin, CompilerState& state);
 		virtual Expression compile(InputPin* pin, CompilerState& state);
 		virtual Node& render();
 		virtual Node& override_parameter(VisualMaterial* material);
 
-		virtual bool can_connect(InputPin* pin, PinType output_pin_type);
-		PinType in_pin_type(InputPin* pin);
-		virtual PinType out_pin_type(OutputPin* pin);
+		PinType in_pin_type(InputPin* pin) const;
+		PinType out_pin_type(OutputPin* pin) const;
+		bool can_connect(InputPin* pin, PinType output_pin_type) const;
 
 		const Vector<InputPin*>& inputs() const;
 		const Vector<OutputPin*>& outputs() const;
@@ -587,7 +623,6 @@ namespace Engine::VisualMaterialGraph
 		virtual ~Node();
 		virtual const char* name() const;
 	};
-
 
 	const char* slang_type_name(PinType type);
 	String create_default_value(PinType type, const void* data);
@@ -690,8 +725,6 @@ public:                                                                         
 
 
 	struct BinaryOperatorNode : public Node {
-		bool can_connect(InputPin* pin, PinType link_pin_type) override;
-		PinType out_pin_type(OutputPin* pin) override;
 	};
 
 
@@ -726,17 +759,17 @@ public:                                                                         
 
 	// COMMON NODES
 
-	struct ComponentMask : public Node {
-		declare_visual_material_node(ComponentMask);
+	// struct ComponentMask : public Node {
+	// 	declare_visual_material_node(ComponentMask);
 
-	public:
-		bool masks[4] = {true, false, false, false};
-		ComponentMask();
-		Expression compile(OutputPin* pin, CompilerState& state) override;
-		bool can_connect(InputPin* pin, PinType linked_pin_type) override;
-		PinType out_pin_type(OutputPin* pin) override;
-		ComponentMask& render() override;
-	};
+	// public:
+	// 	bool masks[4] = {true, false, false, false};
+	// 	ComponentMask();
+	// 	Expression compile(OutputPin* pin, CompilerState& state) override;
+	// 	bool can_connect(InputPin* pin, PinType linked_pin_type) override;
+	// 	PinType out_pin_type(OutputPin* pin) override;
+	// 	ComponentMask& render() override;
+	// };
 
 	// TEXTURE NODES
 

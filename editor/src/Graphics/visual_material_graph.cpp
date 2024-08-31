@@ -8,7 +8,155 @@
 
 namespace Engine::VisualMaterialGraph
 {
-	implement_class_default_init(Engine::VisualMaterialGraph, Node, 0);
+	NodeSignature::Signature::Signature(const Vector<PinType>& input, const Vector<PinType>& output)
+	    : m_inputs(input), m_outputs(output)
+	{}
+
+	size_t NodeSignature::Signature::inputs_count() const
+	{
+		return m_inputs.size();
+	}
+
+	size_t NodeSignature::Signature::outputs_count() const
+	{
+		return m_outputs.size();
+	}
+
+	PinType NodeSignature::Signature::input(size_t index) const
+	{
+		if (index >= m_inputs.size())
+			return PinType::Undefined;
+		return m_inputs[index];
+	}
+
+	PinType NodeSignature::Signature::output(size_t index) const
+	{
+		if (index >= m_outputs.size())
+			return PinType::Undefined;
+		return m_outputs[index];
+	}
+
+	NodeSignature& NodeSignature::add_signature(const Vector<PinType>& input, const Vector<PinType>& output)
+	{
+		m_signatures.emplace_back(input, output);
+
+		if (input.size() >= m_input_pin_types.size())
+			m_input_pin_types.resize(input.size());
+
+		int_t index = 0;
+
+		for (auto& in : input)
+		{
+			m_input_pin_types[index].insert(in);
+			++index;
+		}
+		return *this;
+	}
+
+	NodeSignature& NodeSignature::add_input_types(size_t index, const Set<PinType>& types)
+	{
+		if (index >= m_input_pin_types.size())
+			m_input_pin_types.resize(index + 1);
+		m_input_pin_types[index].insert(types.begin(), types.end());
+		return *this;
+	}
+
+	int_t NodeSignature::find_signature_index(const Node* node) const
+	{
+		static auto calc_conv_cost = [](PinType src, PinType dst) -> int_t {
+			if (src == dst)
+				return 0;
+
+			const TypeMetaData src_meta = src;
+			const TypeMetaData dst_meta = dst;
+
+			int_t cost = 1;
+
+			if (src_meta.component_type != dst_meta.component_type)
+			{
+				++cost;
+				if (src_meta.component_type_value > dst_meta.component_type_value)
+					++cost;
+			}
+
+			if (src_meta.components != dst_meta.components)
+			{
+				auto min = glm::min(src_meta.components, dst_meta.components);
+				auto max = glm::max(src_meta.components, dst_meta.components);
+				cost += (max - min);
+
+				if (src_meta.components > dst_meta.components)
+					++cost;
+			}
+			else if (src_meta.components == dst_meta.components)
+			{
+				bool (*is_color)(const PinType&) = is_in<PinType::Color3, PinType::Color4>;
+
+				if (is_color(dst))
+					++cost;
+			}
+
+			return cost;
+		};
+
+
+		auto in_count  = node->inputs().size();
+		auto out_count = node->outputs().size();
+
+		int_t index = -1;
+		int_t cost  = std::numeric_limits<int_t>::max();
+
+		for (size_t i = 0, count = m_signatures.size(); i < count; ++i)
+		{
+			auto& signature = m_signatures[i];
+
+			if (signature.inputs_count() != in_count || signature.outputs_count() != out_count)
+				continue;
+
+			int_t current_cost = 0;
+
+			for (size_t input_index = 0, input_count = signature.inputs_count(); input_index < input_count; ++input_index)
+			{
+				PinType src = node->in_pin_type(node->inputs()[input_index]);
+				PinType dst = signature.input(input_index);
+
+				if (!is_convertable(src, dst))
+				{
+					current_cost = std::numeric_limits<int_t>::max();
+					break;
+				}
+
+				current_cost += calc_conv_cost(src, dst);
+			}
+
+			if (current_cost < cost)
+			{
+				cost  = current_cost;
+				index = static_cast<int_t>(i);
+			}
+		}
+
+		return index;
+	}
+
+	bool NodeSignature::support_input_type(size_t pin_index, PinType type) const
+	{
+		if (pin_index >= m_input_pin_types.size())
+			return false;
+		return m_input_pin_types[pin_index].contains(type);
+	}
+
+	size_t NodeSignature::signatures_count() const
+	{
+		return m_signatures.size();
+	}
+
+	const NodeSignature::Signature& NodeSignature::signature(size_t index) const
+	{
+		if (index >= m_signatures.size())
+			throw EngineException("Index out of range!");
+		return m_signatures[index];
+	}
 
 	Pin::Pin(Node* node, Name name) : m_node(node), m_name(name)
 	{}
@@ -137,6 +285,12 @@ namespace Engine::VisualMaterialGraph
 		return Vector4D(1.0, 0.0, 0.0, 1.0);
 	}
 
+	const NodeSignature& Node::signature() const
+	{
+		static NodeSignature sign;
+		return sign;
+	}
+
 	Expression Node::compile(OutputPin* pin, CompilerState& state)
 	{
 		return Expression("", PinType::Undefined);
@@ -166,12 +320,17 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	bool Node::can_connect(InputPin* pin, PinType output_pin_type)
+	bool Node::can_connect(InputPin* pin, PinType output_pin_type) const
 	{
-		return VisualMaterialGraph::is_convertable(output_pin_type, pin->type());
+		auto src = pin->type();
+		if (src == output_pin_type)
+			return true;
+
+		auto& node_signature = signature();
+		return node_signature.support_input_type(find_pin_index(pin), output_pin_type);
 	}
 
-	PinType Node::in_pin_type(InputPin* pin)
+	PinType Node::in_pin_type(InputPin* pin) const
 	{
 		if (OutputPin* output_pin = pin->linked_to())
 		{
@@ -181,8 +340,16 @@ namespace Engine::VisualMaterialGraph
 		return pin->type();
 	}
 
-	PinType Node::out_pin_type(OutputPin* pin)
+	PinType Node::out_pin_type(OutputPin* pin) const
 	{
+		auto& node_signature = signature();
+		int_t index          = node_signature.find_signature_index(this);
+
+		if (index != -1)
+		{
+			return node_signature.signature(index).output(find_pin_index(pin));
+		}
+
 		return pin->type();
 	}
 
@@ -345,76 +512,75 @@ namespace Engine::VisualMaterialGraph
 		if (!is_convertable(in_expression.type, out_type))
 			return Expression("", PinType::Undefined);
 
+		TypeMetaData out_meta          = out_type;
+		TypeMetaData in_expr_type_meta = in_expression.type;
+
 		if (in_expression.type != out_type)
 		{
-			if (is_scalar(in_expression.type))
+			if (in_expr_type_meta.is_scalar)
 			{
-				if (is_scalar(out_type))
+				if (out_meta.is_scalar)
 				{
 					return Expression(Strings::format("{}({})", slang_type_name(out_type), in_expression.code.c_str()), out_type);
 				}
 
-				if (is_vector(out_type))
+				if (out_meta.is_vector)
 				{
 					Expression variable = create_variable(in_expression);
-					uint_t components   = components_count(out_type);
 
-					if (components == 2)
+					if (out_meta.components == 2)
 						return Expression(Strings::format("{}({}, {})", slang_type_name(out_type), variable.code, variable.code),
 						                  out_type);
-					if (components == 3)
+					if (out_meta.components == 3)
 						return Expression(Strings::format("{}({}, {}, {})", slang_type_name(out_type), variable.code,
 						                                  variable.code, variable.code),
 						                  out_type);
-					if (components == 4)
+					if (out_meta.components == 4)
 						return Expression(Strings::format("{}({}, {}, {}, {})", slang_type_name(out_type), variable.code,
 						                                  variable.code, variable.code, variable.code),
 						                  out_type);
 				}
 			}
-			else if (is_vector(in_expression.type))
+			else if (in_expr_type_meta.is_vector)
 			{
-				if (is_scalar(out_type))
+				if (out_meta.is_scalar)
 				{
 					return Expression(Strings::format("{}({}.x)", slang_type_name(out_type), in_expression.code.c_str()),
 					                  out_type);
 				}
 
-				if (is_vector(out_type))
+				if (out_meta.is_vector)
 				{
 					Expression variable = create_variable(in_expression);
 
-					byte in_components  = components_count(in_expression.type);
-					byte out_components = components_count(out_type);
-
-					PinType in_component_type  = components_type(in_expression.type);
-					PinType out_component_type = components_type(out_type);
-
+					PinType in_component_type  = in_expr_type_meta.component_type;
+					PinType out_component_type = out_meta.component_type;
 
 					if (in_component_type == out_component_type)
 					{
 						static const char* components_mask[] = {"xy", "xyz", "xyzw"};
-						if (in_components > out_components)
+						if (in_expr_type_meta.components > out_meta.components)
 						{
 							return Expression(Strings::format("{}({}.{})", slang_type_name(out_type), variable.code.c_str(),
-							                                  components_mask[out_components - 2]),
+							                                  components_mask[out_meta.components - 2]),
 							                  out_type);
 						}
 
-						byte diff            = out_components - in_components;
+						byte diff            = out_meta.components - in_expr_type_meta.components;
 						String default_value = create_default_value(out_component_type, nullptr);
 
 						if (diff == 1)
 						{
 							return Expression(Strings::format("{}({}.{}, {})", slang_type_name(out_type), variable.code.c_str(),
-							                                  components_mask[in_components - 2], default_value),
+							                                  components_mask[in_expr_type_meta.components - 2], default_value),
 							                  out_type);
 						}
 						else if (diff == 2)
 						{
 							return Expression(Strings::format("{}({}.{}, {}, {})", slang_type_name(out_type),
-							                                  variable.code.c_str(), components_mask[in_components - 2],
-							                                  default_value, default_value),
+							                                  variable.code.c_str(),
+							                                  components_mask[in_expr_type_meta.components - 2], default_value,
+							                                  default_value),
 							                  out_type);
 						}
 					}
@@ -423,11 +589,11 @@ namespace Engine::VisualMaterialGraph
 					String code          = slang_type_name(out_type);
 					code.push_back('(');
 
-					for (byte i = 0; i < out_components; ++i)
+					for (byte i = 0; i < out_meta.components; ++i)
 					{
 						static constexpr const char* components_mask[] = {"x", "y", "z", "w"};
 
-						if (i < in_components)
+						if (i < in_expr_type_meta.components)
 						{
 							Expression component = expression_cast(
 							        Expression(Strings::format("{}.{}", variable.code, components_mask[i]), in_component_type),
@@ -439,18 +605,15 @@ namespace Engine::VisualMaterialGraph
 							code += default_value;
 						}
 
-						code += i == out_components - 1 ? ")" : ", ";
+						code += i == out_meta.components - 1 ? ")" : ", ";
 					}
 
 					return Expression(code, out_type, false);
 				}
 			}
-			else if (is_matrix(in_expression.type) && is_matrix(out_type))
+			else if (in_expr_type_meta.is_matrix && out_meta.is_matrix)
 			{
-				uint_t in_components  = components_count(in_expression.type);
-				uint_t out_components = components_count(out_type);
-
-				if (out_components < in_components)
+				if (out_meta.components < in_expr_type_meta.components)
 				{
 					return Expression(Strings::format("{}({})", slang_type_name(out_type), in_expression.code), out_type);
 				}
@@ -787,37 +950,6 @@ namespace Engine::VisualMaterialGraph
 		return expression;
 	}
 
-
-	bool BinaryOperatorNode::can_connect(InputPin* pin, PinType link_pin_type)
-	{
-		if (!is_numeric(link_pin_type))
-			return false;
-
-		const Index pin_index = find_pin_index(pin);
-
-		if (pin_index == Constants::index_none)
-			return false;
-
-		const PinType pin_type        = in_pin_type(m_inputs[(pin_index + 1) % 2]);
-		const PinType output_pin_type = max_type(pin_type, link_pin_type);
-
-
-		if (!m_inputs[0]->has_links() && !m_inputs[1]->has_links())
-			return is_numeric(output_pin_type);
-
-		return is_convertable(pin_type, output_pin_type) && is_convertable(link_pin_type, output_pin_type);
-	}
-
-	PinType BinaryOperatorNode::out_pin_type(OutputPin* pin)
-	{
-		auto a = in_pin_type(m_inputs[0]);
-		auto b = in_pin_type(m_inputs[1]);
-
-		if (!is_numeric(a) || !is_numeric(b))
-			return PinType::Undefined;
-		return max_type(a, b);
-	}
-
 	Add::Add()
 	{
 		m_inputs.push_back(new FloatInputPin(this, "A"));
@@ -940,100 +1072,101 @@ namespace Engine::VisualMaterialGraph
 
 	////////////////////////// COMMON BLOCK //////////////////////////
 
-	implement_visual_material_node(ComponentMask, Common);
+	// implement_visual_material_node(ComponentMask, Common);
 
-	ComponentMask::ComponentMask()
-	{
-		m_inputs.push_back(new InputPin(this, "In"));
-		m_outputs.push_back(new OutputPin(this, "Out"));
-	}
+	// ComponentMask::ComponentMask()
+	// {
+	// 	m_inputs.push_back(new InputPin(this, "In"));
+	// 	m_outputs.push_back(new OutputPin(this, "Out"));
+	// }
 
-	Expression ComponentMask::compile(OutputPin* pin, CompilerState& state)
-	{
-		if (!m_inputs[0]->has_links())
-			return Expression();
+	// Expression ComponentMask::compile(OutputPin* pin, CompilerState& state)
+	// {
+	// 	if (!m_inputs[0]->has_links())
+	// 		return Expression();
 
-		auto input_pin        = m_inputs[0];
-		Expression input_expr = state.create_variable(input_pin->linked_to()->node()->compile(input_pin->linked_to(), state));
-		PinType out_type      = out_pin_type(pin);
+	// 	auto input_pin        = m_inputs[0];
+	// 	Expression input_expr = state.create_variable(input_pin->linked_to()->node()->compile(input_pin->linked_to(), state));
+	// 	PinType out_type      = out_pin_type(pin);
 
-		if (out_type == PinType::Undefined)
-			return Expression();
+	// 	if (out_type == PinType::Undefined)
+	// 		return Expression();
 
-		if (is_vector(out_type))
-		{
-			const char mask[4] = {'r', 'g', 'b', 'a'};
-			String code        = Strings::format("{}.", input_expr.code);
+	// 	if (TypeMetaData(out_type).is_vector)
+	// 	{
+	// 		const char mask[4] = {'r', 'g', 'b', 'a'};
+	// 		String code        = Strings::format("{}.", input_expr.code);
 
-			byte count = components_count(input_pin->linked_to()->node()->out_pin_type(input_pin->linked_to()));
+	// 		byte count = TypeMetaData(input_pin->linked_to()->node()->out_pin_type(input_pin->linked_to())).components;
 
-			for (byte i = 0; i < count; ++i)
-			{
-				if (masks[i])
-				{
-					code += mask[i];
-				}
-			}
+	// 		for (byte i = 0; i < count; ++i)
+	// 		{
+	// 			if (masks[i])
+	// 			{
+	// 				code += mask[i];
+	// 			}
+	// 		}
 
-			return Expression(code, out_type, false);
-		}
+	// 		return Expression(code, out_type, false);
+	// 	}
 
-		if (out_type == input_expr.type)
-			return input_expr;
-		return Expression();
-	}
+	// 	if (out_type == input_expr.type)
+	// 		return input_expr;
+	// 	return Expression();
+	// }
 
-	bool ComponentMask::can_connect(InputPin* pin, PinType linked_pin_type)
-	{
-		return true;
-	}
+	// bool ComponentMask::can_connect(InputPin* pin, PinType linked_pin_type)
+	// {
+	// 	return true;
+	// }
 
-	PinType ComponentMask::out_pin_type(OutputPin* pin)
-	{
-		if (!m_inputs[0]->has_links())
-			return PinType::Undefined;
-		auto linked_pin = m_inputs[0]->linked_to();
+	// PinType ComponentMask::out_pin_type(OutputPin* pin)
+	// {
+	// 	if (!m_inputs[0]->has_links())
+	// 		return PinType::Undefined;
+	// 	auto linked_pin = m_inputs[0]->linked_to();
 
-		PinType input_type = linked_pin->node()->out_pin_type(linked_pin);
+	// 	PinType input_type = linked_pin->node()->out_pin_type(linked_pin);
 
-		if (is_vector(input_type))
-		{
-			size_t components        = components_count(input_type);
-			PinType component_type   = components_type(input_type);
-			byte new_type_components = 0;
+	// 	TypeMetaData input_meta = input_type;
+	// 	if (input_meta.is_vector)
+	// 	{
+	// 		size_t components        = input_meta.components;
+	// 		PinType component_type   = input_meta.component_type;
+	// 		byte new_type_components = 0;
 
-			for (size_t i = 0; i < components; ++i)
-			{
-				if (masks[i])
-				{
-					new_type_components += 1;
-				}
-			}
+	// 		for (size_t i = 0; i < components; ++i)
+	// 		{
+	// 			if (masks[i])
+	// 			{
+	// 				new_type_components += 1;
+	// 			}
+	// 		}
 
-			return construct_vector_type(component_type, new_type_components);
-		}
+	// 		return construct_vector_type(component_type, new_type_components);
+	// 	}
 
-		return input_type;
-	}
+	// 	return input_type;
+	// }
 
-	ComponentMask& ComponentMask::render()
-	{
-		Super::render();
+	// ComponentMask& ComponentMask::render()
+	// {
+	// 	Super::render();
 
-		static const char* names[4] = {
-		        "R/X",
-		        "G/Y",
-		        "B/Z",
-		        "A/W",
-		};
+	// 	static const char* names[4] = {
+	// 	        "R/X",
+	// 	        "G/Y",
+	// 	        "B/Z",
+	// 	        "A/W",
+	// 	};
 
-		for (int i = 0; i < 4; ++i)
-		{
-			ImGui::Checkbox(names[i], &masks[i]);
-		}
+	// 	for (int i = 0; i < 4; ++i)
+	// 	{
+	// 		ImGui::Checkbox(names[i], &masks[i]);
+	// 	}
 
-		return *this;
-	}
+	// 	return *this;
+	// }
 
 	////////////////////////// TEXTURES BLOCK //////////////////////////
 

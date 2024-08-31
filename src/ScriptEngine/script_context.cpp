@@ -19,11 +19,12 @@ namespace Engine
 	static Function<void(void*)> m_callback = {};
 
 	struct ExecInfo {
+		Flags<ScriptTypeModifiers> return_type_modifiers;
 		int_t return_type_id = 0;
 		bool is_active       = false;
 	};
 
-	static List<ExecInfo> m_exec_info;
+	static Vector<ExecInfo> m_exec_info;
 
 
 	static void script_line_callback_internal(asIScriptEngine* engine, void* userdata)
@@ -90,7 +91,7 @@ namespace Engine
 		}
 
 		ExecInfo info;
-		info.return_type_id = function.return_type_id();
+		info.return_type_id = function.return_type_id(&info.return_type_modifiers);
 
 		if (current_state == State::Active)
 		{
@@ -141,7 +142,7 @@ namespace Engine
 
 		if (info.return_type_id != 0)
 		{
-			return_variable.create(address_of_return_value(), info.return_type_id);
+			return_variable.create(address_of_return_value(), info.return_type_id, false, info.return_type_modifiers);
 		}
 
 		if (!info.is_active && !unprepare())
@@ -341,7 +342,7 @@ namespace Engine
 		int_t return_typeid = function(0).return_type_id();
 		if (return_typeid & asTYPEID_MASK_OBJECT)
 		{
-			return ScriptObject(m_context->GetReturnObject(), ScriptEngine::type_info_by_id(return_typeid));
+			return ScriptObject(m_context->GetReturnObject(), return_typeid);
 		}
 		return {};
 	}

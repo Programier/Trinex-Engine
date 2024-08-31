@@ -3,107 +3,71 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_object.hpp>
+#include <scriptarray.h>
 
 namespace Engine::VisualMaterialGraph
 {
 	static ScriptFunction node_header_color;
 	static ScriptFunction node_render;
-	static ScriptFunction node_can_connect;
-	static ScriptFunction node_out_pin_type;
 	static ScriptFunction node_compile_out;
 	static ScriptFunction node_compile_in;
+	static ScriptFunction node_signature;
 
-	class ScriptableNode : public Node
+	Vector4D Node::script_header_color() const
 	{
-		declare_class(ScriptableNode, Node);
+		return *ScriptObject(this).execute(node_header_color).address_as<Vector4D>();
+	}
 
-	public:
-		Vector4D header_color() const override
-		{
-			return *ScriptObject(this).execute(node_header_color).address_as<Vector4D>();
-		}
+	const NodeSignature& Node::script_signature() const
+	{
+		return **ScriptObject(this).execute(node_signature).address_as<NodeSignature*>();
+	}
 
-		Node& render() override
-		{
-			ScriptObject(this).execute(node_render);
-			return *this;
-		}
+	Expression Node::script_compile(OutputPin* pin, CompilerState& state)
+	{
+		return *ScriptObject(this).execute(node_compile_out, pin, &state).address_as<Expression>();
+	}
 
-		bool can_connect(InputPin* pin, PinType output_pin_type) override
-		{
-			return ScriptObject(this).execute(node_can_connect, pin, static_cast<dword>(output_pin_type)).bool_value();
-		}
+	Expression Node::script_compile(InputPin* pin, CompilerState& state)
+	{
+		return *ScriptObject(this).execute(node_compile_in, pin, &state).address_as<Expression>();
+	}
 
-		PinType out_pin_type(OutputPin* pin) override
-		{
-			return static_cast<PinType>(ScriptObject(this).execute(node_out_pin_type, pin).int32_value());
-		}
+	Node& Node::script_render()
+	{
+		ScriptObject(this).execute(node_render);
+		return *this;
+	}
 
-		Expression compile(OutputPin* pin, CompilerState& state) override
-		{
-			return *ScriptObject(this).execute(node_compile_out, pin, &state).address_as<Expression>();
-		}
+	Node& Node::script_override_parameter(VisualMaterial* material)
+	{
+		return *this;
+	}
 
-		Expression compile(InputPin* pin, CompilerState& state) override
-		{
-			return *ScriptObject(this).execute(node_compile_in, pin, &state).address_as<Expression>();
-		}
-
-		// Base implementation
-		Vector4D header_color_base() const
-		{
-			return Node::header_color();
-		}
-
-		Node& render_base()
-		{
-			return Node::render();
-		}
-
-		bool can_connect_base(InputPin* pin, PinType output_pin_type)
-		{
-			return Node::can_connect(pin, output_pin_type);
-		}
-
-		PinType out_pin_type_base(OutputPin* pin)
-		{
-			return Node::out_pin_type(pin);
-		}
-
-		Expression compile_base_out(OutputPin* pin, CompilerState& state)
-		{
-			return Node::compile(pin, state);
-		}
-
-		Expression compile_base_in(InputPin* pin, CompilerState& state)
-		{
-			return Node::compile(pin, state);
-		}
-	};
-
-	implement_class(Engine::VisualMaterialGraph, ScriptableNode, Class::IsScriptable)
+	implement_class(Engine::VisualMaterialGraph, Node, Class::IsScriptable)
 	{
 		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
-			node_header_color = r->method("Vector4D header_color() const", &This::header_color_base);
-			node_render       = r->method("ScriptableNode@ render()", &This::render_base);
-			node_can_connect  = r->method("bool can_connect(OutputPin@ pin, PinType type)", &This::can_connect_base);
-			node_out_pin_type = r->method("PinType out_pin_type(OutputPin@ pin)", &This::out_pin_type_base);
-
+			node_header_color = r->method("Vector4D header_color() const", &This::scoped_header_color<This>);
+			node_render       = r->method("Node@ render()", &This::scoped_render<This>);
+			node_signature    = r->method("const NodeSignature& signature() const", &This::scoped_signature<This>);
 			node_compile_out =
-			        r->method("Expression compile(OutputPin@ pin, CompilerState& inout state)", &This::compile_base_out);
-			node_compile_in = r->method("Expression compile(InputPin@ pin, CompilerState& inout state)", &This::compile_base_in);
+			        r->method("Expression compile(OutputPin@ pin, CompilerState@ state)", &This::scoped_compile_out<This>);
+			node_compile_in =
+			        r->method("Expression compile(InputPin@ pin, CompilerState@ state)", &This::scoped_compile_in<This>);
 
+			r->method("bool can_connect(OutputPin@ pin, PinType type) final", &This::can_connect);
 			r->method("bool is_root_node() const final", &This::is_root_node);
 			r->method("bool has_error() const final", &This::has_error);
 			r->method("const string& error_message() const final", &This::error_message);
-			r->method("ScriptableNode& clear_error_message() const final", &This::clear_error_message);
+			r->method("Node& clear_error_message() const final", &This::clear_error_message);
 			r->method("void add_pin(InputPin@ pin) final", method_of<void, InputPin*>(&This::add_pin));
 			r->method("void add_pin(OutputPin@ pin) final", method_of<void, OutputPin*>(&This::add_pin));
 			r->method("InputPin@ input_pin(uint64 index) const final", &This::input_pin);
 			r->method("OutputPin@ output_pin(uint64 index) const final", &This::output_pin);
 			r->method("uint64 find_pin_index(OutputPin@ pin) const final", method_of<Index, OutputPin*>(&This::find_pin_index));
 			r->method("uint64 find_pin_index(InputPin@ pin) const final", method_of<Index, InputPin*>(&This::find_pin_index));
-			r->method("PinType in_pin_type(InputPin@ pin) final", &This::in_pin_type);
+			r->method("PinType in_pin_type(InputPin@ pin) const final", &This::in_pin_type);
+			r->method("PinType out_pin_type(OutputPin@ pin) const final", &This::out_pin_type);
 			r->method("uint64 id() const final", &This::id);
 			r->property("Vector2D position", &This::position);
 		};
@@ -111,10 +75,9 @@ namespace Engine::VisualMaterialGraph
 		ScriptEngine::on_terminate.push([]() {
 			node_header_color.release();
 			node_render.release();
-			node_can_connect.release();
-			node_out_pin_type.release();
 			node_compile_out.release();
 			node_compile_in.release();
+			node_signature.release();
 		});
 	}
 
@@ -201,9 +164,8 @@ namespace Engine::VisualMaterialGraph
 		}
 
 		auto register_behaviour = [reg]() mutable {
-			String factory_decl =
-			        Strings::format("{}@ f(ScriptableNode node, const Engine::Name& in name)", reg.class_base_name());
-			reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(), factory_of<Type, ScriptableNode*, const Name&>,
+			String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& in name)", reg.class_base_name());
+			reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(), factory_of<Type, Node*, const Name&>,
 			           ScriptCallConv::CDecl);
 
 			if constexpr (pin_has_default_value<Type>::value)
@@ -211,11 +173,10 @@ namespace Engine::VisualMaterialGraph
 				if (const char* default_type_name = typename_of<typename Type::ValueType>())
 				{
 					String factory_decl =
-					        Strings::format("{}@ f(ScriptableNode node, const Engine::Name& in name, const {}& in default_value)",
+					        Strings::format("{}@ f(Node node, const Engine::Name& in name, const {}& in default_value)",
 					                        reg.class_base_name(), default_type_name);
 					reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(),
-					           factory_of<Type, ScriptableNode*, const Name&, const typename Type::ValueType&>,
-					           ScriptCallConv::CDecl);
+					           factory_of<Type, Node*, const Name&, const typename Type::ValueType&>, ScriptCallConv::CDecl);
 				}
 			}
 		};
@@ -284,19 +245,98 @@ namespace Engine::VisualMaterialGraph
 
 		reg.property("GlobalCompilerState@ global_state", &CompilerState::global_state);
 
+		reg.method("Expression create_variable(const Expression& in)", &CompilerState::create_variable);
+		reg.method("Expression expression_cast(const Expression& in , PinType)", &CompilerState::expression_cast);
 		reg.method("Expression pin_source(OutputPin@ pin)", method_of<Expression, OutputPin*>(&CompilerState::pin_source));
 		reg.method("Expression pin_source(InputPin@ pin)", method_of<Expression, InputPin*>(&CompilerState::pin_source));
+	}
+
+
+	static void register_node_signatures()
+	{
+		auto info                    = ScriptClassRegistrar::ValueInfo();
+		info.is_class                = true;
+		info.has_constructor         = true;
+		info.has_copy_constructor    = true;
+		info.has_assignment_operator = true;
+		info.has_destructor          = true;
+
+		struct Helper {
+			static Vector<PinType> copy_pin_type_array(CScriptArray* array)
+			{
+				Vector<PinType> result(array->GetSize());
+
+				asUINT count = array->GetSize();
+
+				for (asUINT i = 0; i < count; ++i)
+				{
+					result[i] = *reinterpret_cast<PinType*>(array->At(i));
+				}
+				return result;
+			}
+
+			static Set<PinType> copy_pin_type_set(CScriptArray* array)
+			{
+				Set<PinType> result(array->GetSize());
+
+				asUINT count = array->GetSize();
+
+				for (asUINT i = 0; i < count; ++i)
+				{
+					result.insert(*reinterpret_cast<PinType*>(array->At(i)));
+				}
+				return result;
+			}
+
+			static NodeSignature& add_signature(NodeSignature* self, CScriptArray* script_inputs, CScriptArray* script_outputs)
+			{
+				return self->add_signature(copy_pin_type_array(script_inputs), copy_pin_type_array(script_outputs));
+			}
+
+			static NodeSignature& add_input_types(NodeSignature* self, uint64_t index, CScriptArray* values)
+			{
+				return self->add_input_types(index, copy_pin_type_set(values));
+			}
+		};
+
+		{
+			using T = NodeSignature::Signature;
+			auto reg =
+			        ScriptClassRegistrar::value_class("Engine::VisualMaterialGraph::NodeSignature::Signature", sizeof(T), info);
+			reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
+			reg.behave(ScriptClassBehave::Construct, "void f(const Signature& in)",
+			           ScriptClassRegistrar::constructor<T, const T&>);
+			reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
+			reg.method("Signature& opAssign(const Signature& in)", ScriptClassRegistrar::assign<T, const T&>);
+			reg.method("uint64 inputs_count() const", &T::inputs_count);
+			reg.method("uint64 outputs_count() const", &T::outputs_count);
+			reg.method("PinType input(uint64 index) const", &T::input);
+			reg.method("PinType output(uint64 index) const", &T::output);
+		}
+
+		{
+			using T  = NodeSignature;
+			auto reg = ScriptClassRegistrar::value_class("Engine::VisualMaterialGraph::NodeSignature", sizeof(T), info);
+			reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
+			reg.behave(ScriptClassBehave::Construct, "void f(const NodeSignature& in)",
+			           ScriptClassRegistrar::constructor<T, const T&>);
+			reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
+			reg.method("NodeSignature& opAssign(const NodeSignature& in)", ScriptClassRegistrar::assign<T, const T&>);
+			reg.method("bool support_input_type(uint64 pin_index, PinType type) const", &T::support_input_type);
+			reg.method("uint64 signatures_count() const", &T::signatures_count);
+			reg.method("NodeSignature::Signature& signature(uint64 index) const", &T::signature);
+			reg.method("NodeSignature& add_signature(const array<PinType>& in inputs = {}, const array<PinType>& outputs = {})",
+			           &Helper::add_signature);
+			reg.method("NodeSignature& add_input_types(uint64, const array<PinType>& in )", &Helper::add_input_types);
+			reg.method("uint64 find_signature_index(Node@ node) const", &T::find_signature_index);
+		}
 	}
 
 	static void initilize()
 	{
 		ScriptEnumRegistrar pin_type_enum("Engine::VisualMaterialGraph::PinType");
 		pin_type_enum.set("Undefined", PinType::Undefined);
-		pin_type_enum.set("Scalar", PinType::Scalar);
-		pin_type_enum.set("Vector", PinType::Vector);
-		pin_type_enum.set("Numeric", PinType::Numeric);
-		pin_type_enum.set("Matrix", PinType::Matrix);
-		pin_type_enum.set("Object", PinType::Object);
+
 		pin_type_enum.set("Bool", PinType::Bool);
 		pin_type_enum.set("Int", PinType::Int);
 		pin_type_enum.set("UInt", PinType::UInt);
@@ -418,8 +458,10 @@ namespace Engine::VisualMaterialGraph
 
 		register_expression_class();
 		register_compiler_state();
+		register_node_signatures();
 	}
 
-	static ReflectionInitializeController on_init(initilize);
+	static ReflectionInitializeController on_init(initilize, "Engine::VisualMaterialGraph::Bindings",
+	                                              {"Engine::VisualMaterialGraph::Node"});
 
 }// namespace Engine::VisualMaterialGraph

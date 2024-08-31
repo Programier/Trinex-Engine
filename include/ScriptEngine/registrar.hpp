@@ -20,9 +20,12 @@ namespace Engine
 		};
 
 		struct ENGINE_EXPORT ValueInfo : public BaseInfo {
+			bool as_handle : 1;
+			bool pod : 1;
 			bool all_ints : 1;
 			bool all_floats : 1;
-			bool pod : 1;
+			bool align8 : 1;
+
 			bool more_constructors : 1;
 			bool is_class : 1;
 			bool is_array : 1;
@@ -32,7 +35,6 @@ namespace Engine
 			bool has_destructor : 1;
 			bool has_assignment_operator : 1;
 			bool has_copy_constructor : 1;
-			bool align8 : 1;
 
 			ValueInfo();
 
@@ -111,12 +113,6 @@ namespace Engine
 		{
 			std::fill(reinterpret_cast<byte*>(memory), reinterpret_cast<byte*>(memory) + sizeof(T), 0);
 			new (memory) T(args...);
-		}
-
-		template<typename T>
-		static void ref_constructor(T* self, const T*& other)
-		{
-			new (self) T(*other);
 		}
 
 		template<typename T>
@@ -280,6 +276,7 @@ namespace Engine
 		template<typename T>
 		ScriptEnumRegistrar& set(const char* name, T value)
 		{
+			static_assert(sizeof(T) <= sizeof(int_t), "Size of enum value must be less or equal to sizeof int_t");
 			return set(name, static_cast<int_t>(value));
 		}
 	};

@@ -520,6 +520,19 @@ namespace Engine
 		load_metadata(builder);
 		load_classes();
 
+		for (auto& [id, metadata] : m_func_metadata_map)
+		{
+			if (metadata.contains("initializer"))
+			{
+				auto func = ScriptEngine::function_by_id(id);
+				
+				if (func.is_valid() && func.param_count() == 0)
+				{
+					ScriptContext::execute(func);
+				}
+			}
+		}
+
 		on_build(this);
 		return true;
 	}

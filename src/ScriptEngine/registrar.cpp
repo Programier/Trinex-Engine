@@ -29,6 +29,9 @@ namespace Engine
 	{
 		BitMask result = asOBJ_VALUE | create_flags(static_cast<const ScriptClassRegistrar::BaseInfo&>(info));
 
+		if (info.as_handle)
+			result |= asOBJ_ASHANDLE;
+
 		if (info.all_ints)
 			result |= asOBJ_APP_CLASS_ALLINTS;
 
@@ -161,9 +164,9 @@ namespace Engine
 	{}
 
 	ScriptClassRegistrar::ValueInfo::ValueInfo()
-	    : all_ints(false), all_floats(false), pod(false), more_constructors(false), is_class(true), is_array(false),
-	      is_float(false), is_primitive(false), has_constructor(false), has_destructor(false), has_assignment_operator(false),
-	      has_copy_constructor(false), align8(false)
+	    : as_handle(false), pod(false), all_ints(false), all_floats(false), align8(false), more_constructors(false),
+	      is_class(true), is_array(false), is_float(false), is_primitive(false), has_constructor(false), has_destructor(false),
+	      has_assignment_operator(false), has_copy_constructor(false)
 	{}
 
 	ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true)

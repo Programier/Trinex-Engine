@@ -23,7 +23,7 @@ namespace Engine
 	static inline constexpr size_t normal_index          = 7;
 	static inline constexpr size_t position_offset_index = 8;
 
-	implement_engine_class(VisualMaterial, Class::IsAsset)
+	implement_engine_class(VisualMaterial, Class::IsAsset | Class::IsScriptable)
 	{
 		Class* self       = This::static_class_instance();
 		Enum* domain_enum = Enum::static_find("Engine::MaterialDomain", true);

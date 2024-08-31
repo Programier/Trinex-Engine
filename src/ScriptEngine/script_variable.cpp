@@ -8,12 +8,12 @@
 
 namespace Engine
 {
-	static FORCE_INLINE void* object_from_handle(void* address, bool is_object_address_for_handle)
+	static FORCE_INLINE void* object_from_handle(void* address, bool handle_is_object)
 	{
 		if (address == nullptr)
 			return address;
 
-		if (is_object_address_for_handle)
+		if (handle_is_object)
 			return address;
 
 		return *reinterpret_cast<void**>(address);
@@ -30,10 +30,11 @@ namespace Engine
 		}
 	}
 
-	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool is_object_address_for_handle)
+	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool handle_is_object,
+	                                       const Flags<ScriptTypeModifiers>& modifiers)
 	    : ScriptVariableBase()
 	{
-		if (!create(src_address, info, is_object_address_for_handle))
+		if (!create(src_address, info, handle_is_object, modifiers))
 		{
 			throw EngineException("Failed to create new script variable!");
 		}
@@ -53,11 +54,13 @@ namespace Engine
 			return *this;
 
 		release();
-		m_address = object.m_address;
-		m_type_id = object.m_type_id;
+		m_address   = object.m_address;
+		m_type_id   = object.m_type_id;
+		m_modifiers = object.m_modifiers;
 
-		object.m_address = nullptr;
-		object.m_type_id = 0;
+		object.m_address   = nullptr;
+		object.m_type_id   = 0;
+		object.m_modifiers = {};
 		return *this;
 	}
 
@@ -100,7 +103,7 @@ namespace Engine
 		if (!is_valid())
 			return *this;
 
-		if ((is_handle() || is_object()) && m_address)
+		if ((is_handle() || (is_object() && !is_out_ref())) && m_address)
 		{
 			auto info = type_info().info();
 
@@ -111,8 +114,9 @@ namespace Engine
 			}
 		}
 
-		m_address = nullptr;
-		m_type_id = 0;
+		m_address   = nullptr;
+		m_type_id   = 0;
+		m_modifiers = {};
 		return *this;
 	}
 
@@ -123,7 +127,7 @@ namespace Engine
 		return assign(other.address(), true);
 	}
 
-	bool ScriptVariableBase::assign(void* var_address, bool is_object_address_for_handle)
+	bool ScriptVariableBase::assign(void* var_address, bool handle_is_object)
 	{
 		if (var_address == nullptr && !is_handle())
 		{
@@ -141,7 +145,7 @@ namespace Engine
 				engine->ReleaseScriptObject(m_address, info.info());
 			}
 
-			m_address = object_from_handle(var_address, is_object_address_for_handle);
+			m_address = object_from_handle(var_address, handle_is_object);
 
 			if (m_address)
 			{
@@ -240,15 +244,28 @@ namespace Engine
 		return true;
 	}
 
-	bool ScriptVariableBase::create(void* address, const ScriptTypeInfo& info, bool is_object_address_for_handle)
+	bool ScriptVariableBase::create(void* address, const ScriptTypeInfo& info, bool handle_is_object,
+	                                const Flags<ScriptTypeModifiers>& modifiers)
 	{
 		release();
-		m_type_id = info.type_id();
+		m_type_id   = info.type_id();
+		m_modifiers = modifiers;
 
-		if (is_object())
+		if (is_handle())
+		{
+			m_address = object_from_handle(address, handle_is_object);
+		}
+		else if (is_object())
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			m_address               = engine->CreateScriptObjectCopy(address, info.info());
+			if (is_out_ref())
+			{
+				m_address = address;
+			}
+			else
+			{
+				m_address = engine->CreateScriptObjectCopy(address, info.info());
+			}
 
 			if (m_address == nullptr)
 			{
@@ -256,10 +273,6 @@ namespace Engine
 				error_log("ScriptVariableBase", "Failed to create script object!");
 				return false;
 			}
-		}
-		else if (is_handle())
-		{
-			m_address = object_from_handle(address, is_object_address_for_handle);
 		}
 
 		add_ref();
@@ -276,14 +289,34 @@ namespace Engine
 		return m_type_id == mask;
 	}
 
-	bool ScriptVariableBase::is_object(bool сonsider_handle_as_object) const
+	bool ScriptVariableBase::is_object(bool handle_is_object) const
 	{
-		return ScriptEngine::is_object_type(m_type_id, сonsider_handle_as_object);
+		return ScriptEngine::is_object_type(m_type_id, handle_is_object);
 	}
 
 	bool ScriptVariableBase::is_handle() const
 	{
 		return ScriptEngine::is_handle_type(m_type_id);
+	}
+
+	bool ScriptVariableBase::is_const() const
+	{
+		return m_modifiers & ScriptTypeModifiers::Const;
+	}
+
+	bool ScriptVariableBase::is_in_ref() const
+	{
+		return m_modifiers & ScriptTypeModifiers::InRef;
+	}
+
+	bool ScriptVariableBase::is_out_ref() const
+	{
+		return m_modifiers & ScriptTypeModifiers::OutRef;
+	}
+
+	bool ScriptVariableBase::is_inout_ref() const
+	{
+		return (m_modifiers & ScriptTypeModifiers::InOutRef) == ScriptTypeModifiers::InOutRef;
 	}
 
 	void* ScriptVariableBase::address() const
@@ -335,24 +368,37 @@ namespace Engine
 	    : ScriptVariable(find_type_id_internal(declaration, module))
 	{}
 
-	ScriptVariable::ScriptVariable(void* address, int_t type_id, bool is_object_address_for_handle)
+	ScriptVariable::ScriptVariable(void* address, int_t type_id, bool handle_is_object,
+	                               const Flags<ScriptTypeModifiers>& modifiers)
 	{
-		if (!create(address, type_id, is_object_address_for_handle))
+		if (!create(address, type_id, handle_is_object, modifiers))
 		{
 			throw EngineException("Failed to create new script variable!");
 		}
 	}
 
-	ScriptVariable::ScriptVariable(void* address, const char* declaration, bool is_object_address_for_handle)
-	    : ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), is_object_address_for_handle)
+	ScriptVariable::ScriptVariable(void* address, const char* declaration, bool handle_is_object,
+	                               const Flags<ScriptTypeModifiers>& modifiers)
+	    : ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), handle_is_object, modifiers)
 	{}
 
-	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool is_object_address_for_handle)
-	    : ScriptVariable(address, find_type_id_internal(declaration, module), is_object_address_for_handle)
+	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool handle_is_object,
+	                               const Flags<ScriptTypeModifiers>& modifiers)
+	    : ScriptVariable(address, find_type_id_internal(declaration, module), handle_is_object, modifiers)
 	{}
 
-	ScriptVariable::ScriptVariable(const ScriptVariable& object) : ScriptVariable(object.address(), object.type_id(), true)
+	ScriptVariable::ScriptVariable(const ScriptVariable& object)
+	    : ScriptVariable(object.address(), object.type_id(), true, object.m_modifiers)
 	{}
+
+	ScriptVariable::ScriptVariable(ScriptVariable&& object) : ScriptVariableBase(std::move(object))
+	{}
+
+	ScriptVariable& ScriptVariable::operator=(ScriptVariable&& object)
+	{
+		ScriptVariableBase::operator=(std::move(object));
+		return *this;
+	}
 
 	ScriptVariable& ScriptVariable::operator=(const ScriptVariable& object)
 	{
@@ -397,15 +443,28 @@ namespace Engine
 		return true;
 	}
 
-	bool ScriptVariable::create(void* address, int_t type_id, bool is_object_address_for_handle)
+	bool ScriptVariable::create(void* address, int_t type_id, bool handle_is_object, const Flags<ScriptTypeModifiers>& modifiers)
 	{
 		release();
-		m_type_id = type_id;
+		m_type_id   = type_id;
+		m_modifiers = modifiers;
 
-		if (is_object())
+		if (is_handle())
+		{
+			m_address = object_from_handle(address, handle_is_object);
+		}
+		else if (is_object())
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			m_address               = engine->CreateScriptObjectCopy(address, engine->GetTypeInfoById(type_id));
+
+			if (is_out_ref())
+			{
+				m_address = address;
+			}
+			else
+			{
+				m_address = engine->CreateScriptObjectCopy(address, engine->GetTypeInfoById(type_id));
+			}
 
 			if (m_address == nullptr)
 			{
@@ -413,10 +472,6 @@ namespace Engine
 				error_log("ScriptVariableBase", "Failed to create script object!");
 				return false;
 			}
-		}
-		else if (is_handle())
-		{
-			m_address = object_from_handle(address, is_object_address_for_handle);
 		}
 		else
 		{
@@ -431,7 +486,8 @@ namespace Engine
 		return true;
 	}
 
-	bool ScriptVariable::create(void* src_address, const char* type_declaration, bool is_object_address_for_handle)
+	bool ScriptVariable::create(void* src_address, const char* type_declaration, bool handle_is_object,
+	                            const Flags<ScriptTypeModifiers>& modifiers)
 	{
 		int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
@@ -439,11 +495,11 @@ namespace Engine
 			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
 			return false;
 		}
-		return create(src_address, type_id, is_object_address_for_handle);
+		return create(src_address, type_id, handle_is_object, modifiers);
 	}
 
-	bool ScriptVariable::create(void* src_address, const char* type_declaration, const char* module,
-	                            bool is_object_address_for_handle)
+	bool ScriptVariable::create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object,
+	                            const Flags<ScriptTypeModifiers>& modifiers)
 	{
 		int_t type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)
@@ -451,7 +507,7 @@ namespace Engine
 			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
 			return false;
 		}
-		return create(src_address, type_id, is_object_address_for_handle);
+		return create(src_address, type_id, handle_is_object, modifiers);
 	}
 
 	bool ScriptVariable::create(const ScriptVariableBase& other)

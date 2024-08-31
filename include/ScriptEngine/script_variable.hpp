@@ -6,10 +6,12 @@
 namespace Engine
 {
 	class ScriptTypeInfo;
+	enum class ScriptTypeModifiers : EnumerateType;
 
 	class ENGINE_EXPORT ScriptVariableBase
 	{
 	protected:
+		mutable Flags<ScriptTypeModifiers> m_modifiers;
 		union
 		{
 			mutable void* m_address;
@@ -33,7 +35,8 @@ namespace Engine
 	public:
 		ScriptVariableBase();
 		ScriptVariableBase(const ScriptTypeInfo& info, bool is_uninitialized = false);
-		ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool is_object_address_for_handle = false);
+		ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool handle_is_object = false,
+		                   const Flags<ScriptTypeModifiers>& modifiers = {});
 		copy_constructors_hpp(ScriptVariableBase);
 
 		bool operator==(const ScriptVariableBase& other) const;
@@ -42,16 +45,21 @@ namespace Engine
 		virtual const ScriptVariableBase& release() const;
 
 		bool assign(const ScriptVariableBase& other);
-		bool assign(void* address, bool is_object_address_for_handle = false);
+		bool assign(void* address, bool handle_is_object = false);
 		bool assign_to(ScriptVariableBase& other) const;
 		bool assign_to(void* address) const;
 
 		bool create(const ScriptTypeInfo& info, bool is_uninitialized = false);
-		bool create(void* src_address, const ScriptTypeInfo& info, bool is_object_address_for_handle = false);
+		bool create(void* src_address, const ScriptTypeInfo& info, bool handle_is_object = false,
+		            const Flags<ScriptTypeModifiers>& modifiers = {});
 
 		bool is_valid() const;
-		bool is_object(bool сonsider_handle_as_object = false) const;
+		bool is_object(bool handle_is_object = false) const;
 		bool is_handle() const;
+		bool is_const() const;
+		bool is_in_ref() const;
+		bool is_out_ref() const;
+		bool is_inout_ref() const;
 		void* address() const;
 		int_t type_id() const;
 		virtual ScriptTypeInfo type_info() const;
@@ -73,11 +81,16 @@ namespace Engine
 		ScriptVariable(int_t type_id);
 		ScriptVariable(const char* declaration);
 		ScriptVariable(const char* declaration, const char* module);
-		ScriptVariable(void* address, int_t type_id, bool is_object_address_for_handle = false);
-		ScriptVariable(void* address, const char* declaration, bool is_object_address_for_handle = false);
-		ScriptVariable(void* address, const char* declaration, const char* module, bool is_object_address_for_handle = false);
+		ScriptVariable(void* address, int_t type_id, bool handle_is_object = false,
+		               const Flags<ScriptTypeModifiers>& modifiers = {});
+		ScriptVariable(void* address, const char* declaration, bool handle_is_object = false,
+		               const Flags<ScriptTypeModifiers>& modifiers = {});
+		ScriptVariable(void* address, const char* declaration, const char* module, bool handle_is_object = false,
+		               const Flags<ScriptTypeModifiers>& modifiers = {});
 
 		ScriptVariable(const ScriptVariable& object);
+		ScriptVariable(ScriptVariable&& object);
+		ScriptVariable& operator=(ScriptVariable&&);
 		ScriptVariable& operator=(const ScriptVariable&);
 
 		using ScriptVariableBase::create;
@@ -85,10 +98,12 @@ namespace Engine
 		bool create(int_t type_id, bool is_uninitialized = false);
 		bool create(const char* type_declaration, bool is_uninitialized = false);
 		bool create(const char* type_declaration, const char* module, bool is_uninitialized = false);
-		bool create(void* src_address, int_t type_id, bool is_object_address_for_handle = false);
-		bool create(void* src_address, const char* type_declaration, bool is_object_address_for_handle = false);
-		bool create(void* src_address, const char* type_declaration, const char* module,
-		            bool is_object_address_for_handle = false);
+		bool create(void* src_address, int_t type_id, bool handle_is_object = false,
+		            const Flags<ScriptTypeModifiers>& modifiers = {});
+		bool create(void* src_address, const char* type_declaration, bool handle_is_object = false,
+		            const Flags<ScriptTypeModifiers>& modifiers = {});
+		bool create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object = false,
+		            const Flags<ScriptTypeModifiers>& modifiers = {});
 
 		bool is_bool() const;
 		bool is_int8() const;

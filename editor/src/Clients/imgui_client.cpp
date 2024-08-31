@@ -37,6 +37,7 @@ namespace Engine
 			{
 				WindowConfig new_config;
 				new_config.client = self->name().to_string();
+				new_config.attributes.insert(WindowAttribute::Resizable);
 				WindowManager::instance()->create_window(new_config);
 			}
 		}

@@ -203,5 +203,7 @@ namespace Engine
 		}
 
 		~Any();
+		
+		friend struct ScriptAny;
 	};
 }// namespace Engine
