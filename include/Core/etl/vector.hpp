@@ -23,12 +23,12 @@ namespace Engine::Containers
 		using size_type       = std::size_t;
 		using difference_type = std::ptrdiff_t;
 
-
-	private:
+	protected:
 		pointer m_start;
 		pointer m_finish;
 		pointer m_end;
 
+	private:
 		template<typename IteratorType>
 		using RequireInputIter =
 		        std::enable_if_t<std::is_convertible<typename std::iterator_traits<IteratorType>::iterator_category,
@@ -53,7 +53,8 @@ namespace Engine::Containers
 		constexpr inline void grow(size_type n = 1)
 		{
 			size_type c = capacity();
-			c           = (c == 0) ? 1 : c * 2;
+			if (c == 0)
+				c = 1;
 			while (c < size() + n) c *= 2;
 			reserve(c);
 		}
@@ -334,7 +335,7 @@ namespace Engine::Containers
 		{
 			auto cp = capacity();
 
-			if (n < cp)
+			if (n <= cp)
 				return;
 
 			auto sz = size();
@@ -367,7 +368,7 @@ namespace Engine::Containers
 			if (n > size())
 			{
 				reserve(n);
-				append_to_end(n);
+				append_to_end(n - size());
 			}
 			else if (n < size())
 			{
