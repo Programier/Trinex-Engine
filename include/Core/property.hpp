@@ -724,7 +724,6 @@ namespace Engine
 	private:
 		ArrayType InstanceType::*m_prop;
 		Property* m_element_property;
-		;
 
 		using Super = ArrayPropertyInterface;
 

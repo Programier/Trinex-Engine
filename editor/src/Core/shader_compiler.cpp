@@ -663,11 +663,11 @@ namespace Engine::ShaderCompiler
 		return out_source;
 	}
 
-	static Vector<uint32_t> to_spirv_buffer(const Buffer& spirv)
+	static std::vector<uint32_t> to_spirv_buffer(const Buffer& spirv)
 	{
 		const uint32_t* data = reinterpret_cast<const uint32_t*>(spirv.data());
 		const uint32_t size  = spirv.size() / 4;
-		return Vector<uint32_t>(data, data + size);
+		return std::vector<uint32_t>(data, data + size);
 	}
 
 	static void compile_spirv_to_glsl_es(Buffer& code)
@@ -675,7 +675,7 @@ namespace Engine::ShaderCompiler
 		if (code.empty())
 			return;
 
-		Vector<uint32_t> spirv_binary = to_spirv_buffer(code);
+		std::vector<uint32_t> spirv_binary = to_spirv_buffer(code);
 		spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 

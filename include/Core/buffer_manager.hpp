@@ -84,15 +84,15 @@ namespace Engine
 		static void copy_data(byte* to, const byte* from, size_t count);
 	};
 
-	template<typename T, typename AllocatorType>
+	template<typename T>
 	class VectorWriter : public VectorWriterBase
 	{
 	private:
-		Vector<T, AllocatorType>* m_buffer;
+		Vector<T>* m_buffer;
 		WritePos m_write_pos = 0;
 
 	public:
-		VectorWriter(Vector<T, AllocatorType>* buffer) : m_buffer(buffer)
+		VectorWriter(Vector<T>* buffer) : m_buffer(buffer)
 		{}
 
 		using VectorWriterBase::position;
@@ -138,15 +138,15 @@ namespace Engine
 		}
 	};
 
-	template<typename T, typename AllocatorType>
+	template<typename T>
 	class VectorReader : public VectorReaderBase
 	{
 	private:
-		const Vector<T, AllocatorType>* m_buffer;
+		const Vector<T>* m_buffer;
 		ReadPos m_read_pos = 0;
 
 	public:
-		VectorReader(const Vector<T, AllocatorType>* buffer) : m_buffer(buffer)
+		VectorReader(const Vector<T>* buffer) : m_buffer(buffer)
 		{}
 
 		using VectorReaderBase::position;

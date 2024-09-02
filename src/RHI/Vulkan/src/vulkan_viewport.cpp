@@ -301,7 +301,7 @@ namespace Engine
 		if (!images_result.has_value())
 			throw EngineException(images_result.error().message());
 
-		m_images = std::move(images_result.value());
+		m_images = Vector<VkImage>(images_result.value().begin(), images_result.value().end());
 
 		auto image_views_result = m_swapchain->get_image_views();
 		if (!image_views_result.has_value())

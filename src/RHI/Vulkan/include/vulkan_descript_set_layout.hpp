@@ -14,7 +14,7 @@ namespace Engine
 
 		FORCE_INLINE bool has_layouts() const
 		{
-			return layout != 0;
+			return static_cast<bool>(layout);
 		}
 
 		void destroy();

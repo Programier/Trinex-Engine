@@ -334,7 +334,7 @@ namespace Engine
 
 	ImGuiOpenFile& ImGuiOpenFile::type_filters(const Vector<String>& type_filters)
 	{
-		m_browser->SetTypeFilters(type_filters);
+		m_browser->SetTypeFilters(std::vector<std::string>(type_filters.begin(), type_filters.end()));
 		return *this;
 	}
 

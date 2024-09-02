@@ -293,48 +293,45 @@ namespace Engine
 	ENGINE_EXPORT bool operator&(Archive&, String&);
 	ENGINE_EXPORT bool operator&(Archive&, Path&);
 
-	template<typename Type, typename AllocatorType>
-	FORCE_INLINE bool operator&(Archive& ar, Vector<Type, AllocatorType>& vector)
+	template<typename Type>
+	FORCE_INLINE bool operator&(Archive& ar, Vector<Type>& vector)
 	{
 		return ar.process_vector(vector, nullptr);
 	}
 
 
-	template<typename Type, typename AllocatorType>
-	FORCE_INLINE bool operator&(Archive& ar, List<Type, AllocatorType>& list)
+	template<typename Type>
+	FORCE_INLINE bool operator&(Archive& ar, List<Type>& list)
 	{
 		return ar.write_container(list);
 	}
 
-	template<typename Type, typename AllocatorType = Allocator<Type>>
-	FORCE_INLINE bool operator&(Archive& ar, ForwardList<Type, AllocatorType>& list)
+	template<typename Type>
+	FORCE_INLINE bool operator&(Archive& ar, ForwardList<Type>& list)
 	{
 		return ar.write_container(list);
 	}
 
-	template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>,
-	         typename AllocatorType = Allocator<Type>>
-	FORCE_INLINE bool operator&(Archive& ar, Set<Type, HashType, Pred, AllocatorType>& set)
+	template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>>
+	FORCE_INLINE bool operator&(Archive& ar, Set<Type, HashType, Pred>& set)
 	{
 		return ar.process_set(set);
 	}
 
-	template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = Allocator<Type>>
-	FORCE_INLINE bool operator&(Archive& ar, TreeSet<Type, Compare, AllocatorType>& set)
+	template<typename Type, typename Compare = std::less<Type>>
+	FORCE_INLINE bool operator&(Archive& ar, TreeSet<Type, Compare>& set)
 	{
 		return ar.process_set(set);
 	}
 
-	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,
-	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
-	FORCE_INLINE bool operator&(Archive& ar, Map<Key, Value, HashType, Pred, AllocatorType>& map)
+	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>>
+	FORCE_INLINE bool operator&(Archive& ar, Map<Key, Value, HashType, Pred>& map)
 	{
 		return ar.write_map(map);
 	}
 
-	template<typename Key, typename Value, typename Compare = std::less<Key>,
-	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
-	FORCE_INLINE bool operator&(Archive& ar, TreeMap<Key, Value, Compare, AllocatorType>& map)
+	template<typename Key, typename Value, typename Compare = std::less<Key>>
+	FORCE_INLINE bool operator&(Archive& ar, TreeMap<Key, Value, Compare>& map)
 	{
 		return ar.write_map(map);
 	}

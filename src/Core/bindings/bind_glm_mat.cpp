@@ -1,7 +1,5 @@
 #include "bind_glm.hpp"
 #include <Core/engine_loading_controllers.hpp>
-#include <sstream>
-
 
 namespace Engine
 {
@@ -136,13 +134,6 @@ namespace Engine
 		name##Wrapper reverse_operator_div(name::value_type f)                                                                   \
 		{                                                                                                                        \
 			return f / obj();                                                                                                    \
-		}                                                                                                                        \
-                                                                                                                                 \
-		String as_string() const                                                                                                 \
-		{                                                                                                                        \
-			std::stringstream s;                                                                                                 \
-			s << obj();                                                                                                          \
-			return s.str();                                                                                                      \
 		}                                                                                                                        \
                                                                                                                                  \
 		const name::col_type& value_at(uint_t index) const                                                                       \

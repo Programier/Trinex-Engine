@@ -101,13 +101,6 @@ namespace Engine
 		{
 			return obj() / v;
 		}
-
-		String as_string() const
-		{
-			std::stringstream s;
-			s << obj();
-			return s.str();
-		}
 	};
 
 	static void bind_quat_operators(ScriptClassRegistrar& registrar)

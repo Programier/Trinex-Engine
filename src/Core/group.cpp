@@ -125,7 +125,8 @@ namespace Engine
 
 	Group& Group::remove_struct(class Struct* instance)
 	{
-		std::erase_if(m_structs, [instance](Struct* ell) { return ell == instance; });
+		auto removed = std::remove_if(m_structs.begin(), m_structs.end(), [instance](Struct* ell) { return ell == instance; });
+		m_structs.erase(removed, m_structs.end());
 		return *this;
 	}
 

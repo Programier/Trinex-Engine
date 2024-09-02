@@ -30,9 +30,9 @@ namespace Engine
 	CallBacks<void(Object*)> GarbageCollector::on_destroy;
 
 
-	static FORCE_INLINE Allocator<byte>& allocator()
+	static FORCE_INLINE ByteAllocator& allocator()
 	{
-		static Allocator<byte> object_allocator;
+		static ByteAllocator object_allocator;
 		return object_allocator;
 	}
 
