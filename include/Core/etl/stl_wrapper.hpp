@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/any.hpp>
+#include <Core/etl/vector.hpp>
 #include <array>
 #include <atomic>
 #include <bitset>
@@ -16,7 +17,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 
 namespace Engine
@@ -31,7 +31,7 @@ namespace Engine
 	using Array = std::array<Type, size>;
 
 	template<typename Type>
-	using Vector = std::vector<Type, Allocator<Type>>;
+	using Vector = Containers::Vector<Type, Allocator<Type>>;
 
 	template<typename Type>
 	using List = std::list<Type, Allocator<Type>>;
