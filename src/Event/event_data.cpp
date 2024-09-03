@@ -24,11 +24,11 @@ namespace Engine
 		        ScriptClassRegistrar::value_class(name, sizeof(Type), ScriptClassRegistrar::ValueInfo::from<Type>());
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
 		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}& in)", name).c_str(),
+		registrar.behave(ScriptClassBehave::Construct, Strings::format("void f(const {}&)", name).c_str(),
 		                 ScriptClassRegistrar::constructor<Type, const Type&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
 		                 ScriptCallConv::CDeclObjFirst);
-		registrar.method(Strings::format("{}& opAssign(const {}& in)", name, name).c_str(),
+		registrar.method(Strings::format("{}& opAssign(const {}&)", name, name).c_str(),
 		                 method_of<Type&, Type, const Type&>(&Type::operator=));
 
 		ScriptClassRegistrar::value_class("Engine::Event", sizeof(Event), ScriptClassRegistrar::ValueInfo::from<Event>())

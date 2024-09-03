@@ -301,12 +301,12 @@ namespace Engine
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
 		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform& in)",
+		registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform&)",
 		                 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
 		                 ScriptCallConv::CDeclObjFirst);
 
-		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDeclObjFirst);
+		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
 	}
 
 	static ReflectionInitializeController init(on_init, "Engine::Transform",

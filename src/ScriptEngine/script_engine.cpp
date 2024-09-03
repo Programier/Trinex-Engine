@@ -753,7 +753,7 @@ namespace Engine
 	static void reflection_init()
 	{
 		ScriptEngine::default_namespace("Engine::ScriptEngine");
-		ScriptEngine::register_function("string variable_name(const ?& in variable, bool include_namespace = true)",
+		ScriptEngine::register_function("string variable_name(const ?& variable, bool include_namespace = true)",
 		                                variable_name_generic, ScriptCallConv::Generic);
 		ScriptEngine::default_namespace("");
 	}

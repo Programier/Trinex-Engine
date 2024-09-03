@@ -255,7 +255,7 @@ namespace Engine
 				return actor->create_component(self, name);
 			};
 
-			r->method("ActorComponent create_component(Class self, const Name& in name) final", create_component);
+			r->method("ActorComponent create_component(Class self, const Name& name) final", create_component);
 		};
 
 		ScriptEngine::on_terminate.push([]() {

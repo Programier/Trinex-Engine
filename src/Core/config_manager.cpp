@@ -65,12 +65,12 @@ namespace Engine
 		registrar.opfunc("ConfigValue& opAssign(bool value)", &T::assign_primitive<bool>);
 		registrar.opfunc("ConfigValue& opAssign(int value)", &T::assign_primitive<int_t>);
 		registrar.opfunc("ConfigValue& opAssign(float value)", &T::assign_primitive<float>);
-		registrar.opfunc("ConfigValue& opAssign(const string& in value)", &T::assign_primitive<const String&>);
+		registrar.opfunc("ConfigValue& opAssign(const string& value)", &T::assign_primitive<const String&>);
 
-		registrar.opfunc("ConfigValue& opAssign(const array<bool>& in value)", &T::assign_array<bool, "bool">);
-		registrar.opfunc("ConfigValue& opAssign(const array<int>& in value)", &T::assign_array<int_t, "int">);
-		registrar.opfunc("ConfigValue& opAssign(const array<float>& in value)", &T::assign_array<float, "float">);
-		registrar.opfunc("ConfigValue& opAssign(const array<string>& in value)", &T::assign_array<String, "string">);
+		registrar.opfunc("ConfigValue& opAssign(const array<bool>& value)", &T::assign_array<bool, "bool">);
+		registrar.opfunc("ConfigValue& opAssign(const array<int>& value)", &T::assign_array<int_t, "int">);
+		registrar.opfunc("ConfigValue& opAssign(const array<float>& value)", &T::assign_array<float, "float">);
+		registrar.opfunc("ConfigValue& opAssign(const array<string>& value)", &T::assign_array<String, "string">);
 	}
 
 	static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptConfigValue");

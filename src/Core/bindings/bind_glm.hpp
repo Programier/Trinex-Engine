@@ -207,54 +207,54 @@ namespace Engine
 	{
 		const String& name = registrar.class_base_name();
 
-		registrar.opfunc(fmt::format("{}& opAssign(const {}& in)", name, name).c_str(), method_of<T&>(&T::operator=),
+		registrar.opfunc(fmt::format("{}& opAssign(const {}&)", name, name).c_str(), method_of<T&>(&T::operator=),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("bool opEquals(const {}& in) const", name).c_str(), method_of<bool>(&T::operator==),
+		registrar.opfunc(fmt::format("bool opEquals(const {}&) const", name).c_str(), method_of<bool>(&T::operator==),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{}& opAddAssign(const {}& in)", name, name).c_str(),
-		                 method_of<T&, const T&>(&T::operator+=), ScriptCallConv::ThisCall);
+		registrar.opfunc(fmt::format("{}& opAddAssign(const {}&)", name, name).c_str(), method_of<T&, const T&>(&T::operator+=),
+		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{}& opAddAssign({})", name, prop_type).c_str(),
 		                 method_of<T&, typename T::value_type>(&T::operator+=), ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{}& opSubAssign(const {}& in)", name, name).c_str(),
-		                 method_of<T&, const T&>(&T::operator-=), ScriptCallConv::ThisCall);
+		registrar.opfunc(fmt::format("{}& opSubAssign(const {}&)", name, name).c_str(), method_of<T&, const T&>(&T::operator-=),
+		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{}& opSubAssign({})", name, prop_type).c_str(),
 		                 method_of<T&, typename T::value_type>(&T::operator-=), ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{}& opMulAssign(const {}& in)", name, name).c_str(),
-		                 method_of<T&, const T&>(&T::operator*=), ScriptCallConv::ThisCall);
+		registrar.opfunc(fmt::format("{}& opMulAssign(const {}&)", name, name).c_str(), method_of<T&, const T&>(&T::operator*=),
+		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{}& opMulAssign({})", name, prop_type).c_str(),
 		                 method_of<T&, typename T::value_type>(&T::operator*=), ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{}& opDivAssign(const {}& in)", name, name).c_str(),
-		                 method_of<T&, const T&>(&T::operator/=), ScriptCallConv::ThisCall);
+		registrar.opfunc(fmt::format("{}& opDivAssign(const {}&)", name, name).c_str(), method_of<T&, const T&>(&T::operator/=),
+		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{}& opDivAssign({})", name, prop_type).c_str(),
 		                 method_of<T&, typename T::value_type>(&T::operator/=), ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{} opAdd(const {}& in) const", name, name).c_str(), method_of<T, const T&>(&T::operator+),
+		registrar.opfunc(fmt::format("{} opAdd(const {}&) const", name, name).c_str(), method_of<T, const T&>(&T::operator+),
 		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opAdd({}) const", name, prop_type).c_str(),
 		                 method_of<T, typename T::value_type>(&T::operator+), ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opAdd_r({}) const", name, prop_type).c_str(),
 		                 method_of<T, typename T::value_type>(&T::operator+), ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{} opSub(const {}& in) const", name, name).c_str(), method_of<T, const T&>(&T::operator-),
+		registrar.opfunc(fmt::format("{} opSub(const {}&) const", name, name).c_str(), method_of<T, const T&>(&T::operator-),
 		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opSub({}) const", name, prop_type).c_str(),
 		                 method_of<T, typename T::value_type>(&T::operator-), ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opSub_r({}) const", name, prop_type).c_str(), &T::reverse_operator_sub,
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{} opMul(const {}& in) const", name, name).c_str(), method_of<T, const T&>(&T::operator*),
+		registrar.opfunc(fmt::format("{} opMul(const {}&) const", name, name).c_str(), method_of<T, const T&>(&T::operator*),
 		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opMul({}) const", name, prop_type).c_str(),
 		                 method_of<T, typename T::value_type>(&T::operator*), ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opMul_r({}) const", name, prop_type).c_str(),
 		                 method_of<T, typename T::value_type>(&T::operator*), ScriptCallConv::ThisCall);
 
-		registrar.opfunc(fmt::format("{} opDiv(const {}& in) const", name, name).c_str(), method_of<T, const T&>(&T::operator/),
+		registrar.opfunc(fmt::format("{} opDiv(const {}&) const", name, name).c_str(), method_of<T, const T&>(&T::operator/),
 		                 ScriptCallConv::ThisCall);
 		registrar.opfunc(fmt::format("{} opDiv({}) const", name, prop_type).c_str(),
 		                 method_of<T, typename T::value_type>(&T::operator/), ScriptCallConv::ThisCall);

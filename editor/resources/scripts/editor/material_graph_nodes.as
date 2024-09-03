@@ -4,7 +4,7 @@ namespace Engine
 	{
 		class SignaturedNode : Node
 		{
-			Expression make_expression(OutputPin@ pin, Ptr<NodeSignature::Signature> signature, const array<Expression>& in args)
+			Expression make_expression(OutputPin@ pin, Ptr<NodeSignature::Signature> signature, const array<Expression>& args)
 			{
 				return Expression();
 			}
@@ -52,7 +52,7 @@ namespace Engine
 				add_pin(FloatOutputPinND(this, "Out"));
 			}
 
-			Expression make_expression(OutputPin@ pin, Ptr<NodeSignature::Signature> signature, const array<Expression>& in args)
+			Expression make_expression(OutputPin@ pin, Ptr<NodeSignature::Signature> signature, const array<Expression>& args)
 			{
 				return Expression("pow(%0, %1)".format(args[0].code, args[1].code), signature.get().output(0));
 			}

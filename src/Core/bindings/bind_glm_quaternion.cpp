@@ -108,33 +108,33 @@ namespace Engine
 		using T = QuaternionWrapper;
 
 
-		registrar.opfunc("Engine::Quaternion& opAssign(const Engine::Quaternion& in)", method_of<T&>(&T::operator=),
+		registrar.opfunc("Engine::Quaternion& opAssign(const Engine::Quaternion&)", method_of<T&>(&T::operator=),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("bool opEquals(const Engine::Quaternion& in) const", method_of<bool>(&T::operator==),
+		registrar.opfunc("bool opEquals(const Engine::Quaternion&) const", method_of<bool>(&T::operator==),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion& opAddAssign(const Engine::Quaternion& in)", method_of<T&, const T&>(&T::operator+=),
+		registrar.opfunc("Engine::Quaternion& opAddAssign(const Engine::Quaternion&)", method_of<T&, const T&>(&T::operator+=),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion& opSubAssign(const Engine::Quaternion& in)", method_of<T&, const T&>(&T::operator-=),
+		registrar.opfunc("Engine::Quaternion& opSubAssign(const Engine::Quaternion&)", method_of<T&, const T&>(&T::operator-=),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion& opMulAssign(const Engine::Quaternion& in)", method_of<T&, const T&>(&T::operator*=),
+		registrar.opfunc("Engine::Quaternion& opMulAssign(const Engine::Quaternion&)", method_of<T&, const T&>(&T::operator*=),
 		                 ScriptCallConv::ThisCall);
 		registrar.opfunc("Engine::Quaternion& opMulAssign(float)", method_of<T&, typename T::value_type>(&T::operator*=),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion& opDivAssign(const Engine::Quaternion& in)",
+		registrar.opfunc("Engine::Quaternion& opDivAssign(const Engine::Quaternion&)",
 		                 method_of<T&, typename T::value_type>(&T::operator/=), ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion opAdd(const Engine::Quaternion& in) const", method_of<T, const T&>(&T::operator+),
+		registrar.opfunc("Engine::Quaternion opAdd(const Engine::Quaternion&) const", method_of<T, const T&>(&T::operator+),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion opSub(const Engine::Quaternion& in) const", method_of<T, const T&>(&T::operator-),
+		registrar.opfunc("Engine::Quaternion opSub(const Engine::Quaternion&) const", method_of<T, const T&>(&T::operator-),
 		                 ScriptCallConv::ThisCall);
 
-		registrar.opfunc("Engine::Quaternion opMul(const Engine::Quaternion& in) const", method_of<T, const T&>(&T::operator*),
+		registrar.opfunc("Engine::Quaternion opMul(const Engine::Quaternion&) const", method_of<T, const T&>(&T::operator*),
 		                 ScriptCallConv::ThisCall);
 		registrar.opfunc("Engine::Quaternion opMul(float) const", method_of<T, typename T::value_type>(&T::operator*),
 		                 ScriptCallConv::ThisCall);

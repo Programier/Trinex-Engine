@@ -164,7 +164,7 @@ namespace Engine::VisualMaterialGraph
 		}
 
 		auto register_behaviour = [reg]() mutable {
-			String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& in name)", reg.class_base_name());
+			String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& name)", reg.class_base_name());
 			reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(), factory_of<Type, Node*, const Name&>,
 			           ScriptCallConv::CDecl);
 
@@ -172,9 +172,8 @@ namespace Engine::VisualMaterialGraph
 			{
 				if (const char* default_type_name = typename_of<typename Type::ValueType>())
 				{
-					String factory_decl =
-					        Strings::format("{}@ f(Node node, const Engine::Name& in name, const {}& in default_value)",
-					                        reg.class_base_name(), default_type_name);
+					String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& name, const {}& default_value)",
+					                                      reg.class_base_name(), default_type_name);
 					reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(),
 					           factory_of<Type, Node*, const Name&, const typename Type::ValueType&>, ScriptCallConv::CDecl);
 				}
@@ -202,13 +201,13 @@ namespace Engine::VisualMaterialGraph
 
 		auto reg = ScriptClassRegistrar::value_class("Engine::VisualMaterialGraph::Expression", sizeof(Expression), info);
 		reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Expression>);
-		reg.behave(ScriptClassBehave::Construct, "void f(const Expression& in expr)",
+		reg.behave(ScriptClassBehave::Construct, "void f(const Expression& expr)",
 		           ScriptClassRegistrar::constructor<Expression, const Expression&>);
 		reg.behave(ScriptClassBehave::Construct, "void f(const string& code, PinType type, bool is_var = false)",
 		           ScriptClassRegistrar::constructor<Expression, const String&, PinType, bool>);
 		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Expression>);
 
-		reg.method("Expression& opAssign(const Expression& in other)", expression_opAssign);
+		reg.method("Expression& opAssign(const Expression& other)", expression_opAssign);
 		reg.method("bool is_valid() const", &Expression::is_valid);
 		reg.method("Expression& reset()", &Expression::reset);
 
@@ -225,11 +224,10 @@ namespace Engine::VisualMaterialGraph
 
 		auto reg = ScriptClassRegistrar::reference_class("Engine::VisualMaterialGraph::GlobalCompilerState", info);
 
-		reg.method("GlobalCompilerState& add(const string& in expression, const string& in name)", &GlobalCompilerState::add);
-		reg.method("GlobalCompilerState& remove(const string& in expression, const string& in name)",
-		           &GlobalCompilerState::remove);
-		reg.method("bool contains_expression(const string& in expression) const", &GlobalCompilerState::contains_expression);
-		reg.method("bool contains_name(const string& in name) const", &GlobalCompilerState::contains_name);
+		reg.method("GlobalCompilerState& add(const string& expression, const string& name)", &GlobalCompilerState::add);
+		reg.method("GlobalCompilerState& remove(const string& expression, const string& name)", &GlobalCompilerState::remove);
+		reg.method("bool contains_expression(const string& expression) const", &GlobalCompilerState::contains_expression);
+		reg.method("bool contains_name(const string& name) const", &GlobalCompilerState::contains_name);
 		reg.method("uint64 globals_count() const", &GlobalCompilerState::globals_count);
 	}
 
@@ -245,8 +243,8 @@ namespace Engine::VisualMaterialGraph
 
 		reg.property("GlobalCompilerState@ global_state", &CompilerState::global_state);
 
-		reg.method("Expression create_variable(const Expression& in)", &CompilerState::create_variable);
-		reg.method("Expression expression_cast(const Expression& in , PinType)", &CompilerState::expression_cast);
+		reg.method("Expression create_variable(const Expression&)", &CompilerState::create_variable);
+		reg.method("Expression expression_cast(const Expression& , PinType)", &CompilerState::expression_cast);
 		reg.method("Expression pin_source(OutputPin@ pin)", method_of<Expression, OutputPin*>(&CompilerState::pin_source));
 		reg.method("Expression pin_source(InputPin@ pin)", method_of<Expression, InputPin*>(&CompilerState::pin_source));
 	}
@@ -304,10 +302,9 @@ namespace Engine::VisualMaterialGraph
 			auto reg =
 			        ScriptClassRegistrar::value_class("Engine::VisualMaterialGraph::NodeSignature::Signature", sizeof(T), info);
 			reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
-			reg.behave(ScriptClassBehave::Construct, "void f(const Signature& in)",
-			           ScriptClassRegistrar::constructor<T, const T&>);
+			reg.behave(ScriptClassBehave::Construct, "void f(const Signature&)", ScriptClassRegistrar::constructor<T, const T&>);
 			reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
-			reg.method("Signature& opAssign(const Signature& in)", ScriptClassRegistrar::assign<T, const T&>);
+			reg.method("Signature& opAssign(const Signature&)", ScriptClassRegistrar::assign<T, const T&>);
 			reg.method("uint64 inputs_count() const", &T::inputs_count);
 			reg.method("uint64 outputs_count() const", &T::outputs_count);
 			reg.method("PinType input(uint64 index) const", &T::input);
@@ -318,16 +315,16 @@ namespace Engine::VisualMaterialGraph
 			using T  = NodeSignature;
 			auto reg = ScriptClassRegistrar::value_class("Engine::VisualMaterialGraph::NodeSignature", sizeof(T), info);
 			reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
-			reg.behave(ScriptClassBehave::Construct, "void f(const NodeSignature& in)",
+			reg.behave(ScriptClassBehave::Construct, "void f(const NodeSignature&)",
 			           ScriptClassRegistrar::constructor<T, const T&>);
 			reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
-			reg.method("NodeSignature& opAssign(const NodeSignature& in)", ScriptClassRegistrar::assign<T, const T&>);
+			reg.method("NodeSignature& opAssign(const NodeSignature&)", ScriptClassRegistrar::assign<T, const T&>);
 			reg.method("bool support_input_type(uint64 pin_index, PinType type) const", &T::support_input_type);
 			reg.method("uint64 signatures_count() const", &T::signatures_count);
 			reg.method("NodeSignature::Signature& signature(uint64 index) const", &T::signature);
-			reg.method("NodeSignature& add_signature(const array<PinType>& in inputs = {}, const array<PinType>& outputs = {})",
+			reg.method("NodeSignature& add_signature(const array<PinType>& inputs = {}, const array<PinType>& outputs = {})",
 			           &Helper::add_signature);
-			reg.method("NodeSignature& add_input_types(uint64, const array<PinType>& in )", &Helper::add_input_types);
+			reg.method("NodeSignature& add_input_types(uint64, const array<PinType>& )", &Helper::add_input_types);
 			reg.method("uint64 find_signature_index(Node@ node) const", &T::find_signature_index);
 		}
 	}

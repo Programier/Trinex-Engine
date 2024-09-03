@@ -334,16 +334,16 @@ namespace Engine
 
 		auto reg = ScriptClassRegistrar::value_class("Engine::Any", sizeof(Any), info);
 		reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Any>);
-		reg.behave(ScriptClassBehave::Construct, "void f(const Any& in any)", ScriptClassRegistrar::constructor<Any, const Any&>);
-		reg.behave(ScriptClassBehave::Construct, "void f(const ?& in value)", ScriptAny::constructor);
+		reg.behave(ScriptClassBehave::Construct, "void f(const Any& any)", ScriptClassRegistrar::constructor<Any, const Any&>);
+		reg.behave(ScriptClassBehave::Construct, "void f(const ?& value)", ScriptAny::constructor);
 		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Any>);
-		reg.method("Any& opAssign(const Any& in)", ScriptAny::opAssign);
-		reg.method("Any& opAssign(const ?& in)", ScriptAny::opAssignValue);
+		reg.method("Any& opAssign(const Any&)", ScriptAny::opAssign);
+		reg.method("Any& opAssign(const ?&)", ScriptAny::opAssignValue);
 		reg.method("Any& reset()", &Any::reset);
 		reg.method("bool has_value() const", &Any::has_value);
-		reg.method("Any& swap(const Any& in any)", &Any::swap);
-		reg.method("bool get(?& out value)", &ScriptAny::get);
-		reg.method("void opConv(?& out)", &ScriptAny::opCast);
+		reg.method("Any& swap(const Any& any)", &Any::swap);
+		reg.method("bool get(?& value)", &ScriptAny::get);
+		reg.method("void opConv(?&)", &ScriptAny::opCast);
 	}
 
 	static ReflectionInitializeController on_init(initialize);
