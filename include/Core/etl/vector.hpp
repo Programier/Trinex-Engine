@@ -30,9 +30,15 @@ namespace Engine::Containers
 
 	private:
 		template<typename IteratorType>
+		using IteratorCategory = std::iterator_traits<IteratorType>::iterator_category;
+
+		template<typename IteratorType>
 		using RequireInputIter =
-		        std::enable_if_t<std::is_convertible<typename std::iterator_traits<IteratorType>::iterator_category,
-		                                             std::input_iterator_tag>::value>;
+		        std::enable_if_t<std::is_convertible<IteratorCategory<IteratorType>, std::input_iterator_tag>::value>;
+
+		template<typename IteratorType>
+		using RequireForwardIter =
+		        std::enable_if_t<std::is_convertible<IteratorCategory<IteratorType>, std::forward_iterator_tag>::value>;
 
 		template<typename IteratorType>
 		static constexpr inline bool is_forward_iterator =
@@ -50,13 +56,329 @@ namespace Engine::Containers
 			return empty() ? nullptr : std::to_address(ptr);
 		}
 
-		constexpr inline void grow(size_type n = 1)
+		constexpr size_type next_capacity(size_type n = 1)
 		{
 			size_type c = capacity();
 			if (c == 0)
 				c = 1;
 			while (c < size() + n) c *= 2;
-			reserve(c);
+			return c;
+		}
+
+		pointer allocate_and_copy(size_type count, const_pointer first, const_pointer last)
+		{
+			pointer result = AllocatorType().allocate(count);
+			try
+			{
+				std::uninitialized_copy(first, last, result);
+				return result;
+			}
+			catch (...)
+			{
+				AllocatorType().deallocate(result, count);
+				throw;
+			}
+		}
+
+		constexpr void default_append(size_type n)
+		{
+			if (n != 0)
+			{
+				const size_type s = size();
+				size_type avail   = size_type(m_end - m_finish);
+
+				if (avail >= n)
+				{
+					m_finish = std::uninitialized_default_construct_n(m_finish, n);
+				}
+				else
+				{
+					const size_type len = next_capacity(n);
+					pointer new_start(AllocatorType().allocate(len));
+					pointer destroy_from = pointer();
+
+					try
+					{
+						std::uninitialized_default_construct_n(new_start + s, n);
+						destroy_from = new_start + s;
+						std::uninitialized_move(m_start, m_finish, new_start);
+					}
+					catch (...)
+					{
+						if (destroy_from)
+							std::destroy(destroy_from, destroy_from + n);
+
+						AllocatorType().deallocate(new_start, len);
+						throw;
+					}
+
+					AllocatorType().deallocate(m_start, capacity());
+					m_start  = new_start;
+					m_finish = new_start + s + n;
+					m_end    = new_start + len;
+				}
+			}
+		}
+
+		constexpr void fill_insert(iterator pos, size_type n, const value_type& x)
+		{
+			if (n != 0)
+			{
+				if (size_type(m_end - m_finish) >= n)
+				{
+					value_type x_copy = value_type(x);
+
+					const size_type elems_after = end() - pos;
+					pointer old_finish(m_finish);
+
+					if (elems_after > n)
+					{
+						std::uninitialized_move(old_finish - n, old_finish, old_finish);
+						m_finish += n;
+						std::move_backward(pos, old_finish - n, old_finish);
+						std::fill(pos, pos + n, x_copy);
+					}
+					else
+					{
+						m_finish = std::uninitialized_fill_n(old_finish, n - elems_after, x_copy);
+						std::uninitialized_move(pos, old_finish, m_finish);
+						m_finish += elems_after;
+						std::fill(pos, old_finish, x_copy);
+					}
+				}
+				else
+				{
+					pointer old_start  = m_start;
+					pointer old_finish = m_finish;
+
+					const size_type len          = next_capacity(n);
+					const size_type elems_before = pos - old_start;
+					pointer new_start(AllocatorType().allocate(len));
+					pointer new_finish(new_start);
+
+					try
+					{
+						std::uninitialized_fill_n(new_start + elems_before, n, x);
+						new_finish = nullptr;
+						new_finish = std::uninitialized_move(old_start, pos, new_start);
+						new_finish += n;
+						new_finish = std::uninitialized_move(pos, old_finish, new_finish);
+					}
+					catch (...)
+					{
+						if (!new_finish)
+							std::destroy(new_start + elems_before, new_start + elems_before + n);
+						else
+							std::destroy(new_start, new_finish);
+						AllocatorType().deallocate(new_start, len);
+						throw;
+					}
+					std::destroy(old_start, old_finish);
+					AllocatorType().deallocate(old_start, capacity());
+					m_start  = new_start;
+					m_finish = new_finish;
+					m_end    = new_start + len;
+				}
+			}
+		}
+
+		template<typename... Args>
+		constexpr inline void realloc_insert(iterator pos, Args&&... args)
+		{
+			const size_type len          = next_capacity(size_type(1));
+			pointer old_start            = m_start;
+			pointer old_finish           = m_finish;
+			const size_type elems_before = pos - begin();
+			pointer new_start(AllocatorType().allocate(len));
+			pointer new_finish(new_start);
+
+			try
+			{
+				std::construct_at(new_start + elems_before, std::forward<Args>(args)...);
+				new_finish = nullptr;
+				new_finish = std::uninitialized_move(old_start, pos, new_start) + 1;
+				new_finish = std::uninitialized_move(pos, old_finish, new_finish);
+			}
+			catch (...)
+			{
+				if (!new_finish)
+					std::destroy_at(new_start + elems_before);
+				else
+					std::destroy(new_start, new_finish);
+				AllocatorType().deallocate(new_start, len);
+				throw;
+			}
+
+			std::destroy(old_start, old_finish);
+			AllocatorType().deallocate(old_start, capacity());
+			m_start  = new_start;
+			m_finish = new_finish;
+			m_end    = new_start + len;
+		}
+
+
+		template<typename IteratorType>
+		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, std::input_iterator_tag)
+		{
+			if (pos == end())
+			{
+				for (; first != last; ++first) insert(end(), *first);
+			}
+			else if (first != last)
+			{
+				Vector tmp(first, last);
+				insert(pos, std::make_move_iterator(tmp.begin()), std::make_move_iterator(tmp.end()));
+			}
+		}
+
+		template<typename IteratorType>
+		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, std::forward_iterator_tag)
+		{
+			if (first != last)
+			{
+				const size_type n = std::distance(first, last);
+				if (size_type(m_end - m_finish) >= n)
+				{
+					const size_type elems_after = end() - pos;
+					pointer old_finish(m_finish);
+					if (elems_after > n)
+					{
+						std::uninitialized_move(m_finish - n, m_finish, m_finish);
+						m_finish += n;
+						std::move_backward(pos, old_finish - n, old_finish);
+						std::copy(first, last, pos);
+					}
+					else
+					{
+						IteratorType mid = first;
+						std::advance(mid, elems_after);
+						std::uninitialized_copy(mid, last, m_finish);
+						m_finish += n - elems_after;
+						std::uninitialized_move(pos, old_finish, m_finish);
+						m_finish += elems_after;
+						std::copy(first, mid, pos);
+					}
+				}
+				else
+				{
+					pointer old_start  = m_start;
+					pointer old_finish = m_finish;
+
+					const size_type len = next_capacity(n);
+					pointer new_start(AllocatorType().allocate(len));
+					pointer new_finish(new_start);
+
+					try
+					{
+						new_finish = std::uninitialized_move(old_start, pos, new_start);
+						new_finish = std::uninitialized_copy(first, last, new_finish);
+						new_finish = std::uninitialized_move(pos, old_finish, new_finish);
+					}
+					catch (...)
+					{
+						std::destroy(new_start, new_finish);
+						AllocatorType().deallocate(m_start, len);
+						throw;
+					}
+
+					std::destroy(m_start, m_finish);
+					AllocatorType().deallocate(m_start, capacity());
+					m_start  = new_start;
+					m_finish = new_finish;
+					m_end    = new_start + len;
+				}
+			}
+		}
+
+		constexpr auto insert_rval(const_iterator pos, value_type&& v) -> iterator
+		{
+			const auto n = pos - cbegin();
+			if (m_finish != m_end)
+				if (pos == cend())
+				{
+					std::construct_at(m_finish, std::move(v));
+					++m_finish;
+				}
+				else
+					insert_aux(begin() + n, std::move(v));
+			else
+				realloc_insert(begin() + n, std::move(v));
+
+			return iterator(m_start + n);
+		}
+
+		template<typename InputIterator>
+		constexpr void assign_aux(InputIterator first, InputIterator last, std::input_iterator_tag)
+		{
+			std::destroy(m_start, m_end);
+
+			pointer cur(m_start);
+			for (; first != last && cur != m_finish; ++cur, ++first) std::construct_at(cur, *first);
+
+			if (first == last)
+				erase_at_end(cur);
+			else
+				range_insert(end(), first, last);
+		}
+
+		template<typename ForwardIterator>
+		constexpr void assign_aux(ForwardIterator first, ForwardIterator last, std::forward_iterator_tag)
+		{
+			const size_type len = std::distance(first, last);
+
+			if (len > capacity())
+			{
+				pointer tmp(allocate_and_copy(len, first, last));
+				std::destroy(m_start, m_finish);
+				AllocatorType().deallocate(m_start, capacity());
+				m_start  = tmp;
+				m_finish = m_start + len;
+				m_end    = m_finish;
+			}
+			else if (size() >= len)
+				erase_at_end(std::copy(first, last, m_start));
+			else
+			{
+				ForwardIterator mid = first;
+				std::advance(mid, size());
+				std::copy(first, mid, m_start);
+				m_finish = std::uninitialized_copy(mid, last, m_finish);
+			}
+		}
+
+		template<typename Arg>
+		constexpr void insert_aux(iterator pos, Arg&& arg)
+		{
+			std::construct_at(m_finish, std::move(*(m_finish - 1)));
+			++m_finish;
+			std::move_backward(pos, m_finish - 2, m_finish - 1);
+			*pos = std::forward<Arg>(arg);
+		}
+
+		template<typename... Args>
+		constexpr auto emplace_aux(const_iterator pos, Args&&... args) -> iterator
+		{
+			const auto n = pos - cbegin();
+			if (m_finish != m_end)
+				if (pos == cend())
+				{
+					std::construct_at(m_finish, std::forward<Args>(args)...);
+					++m_finish;
+				}
+				else
+				{
+					value_type tmp(std::forward<Args>(args)...);
+					insert_aux(begin() + n, std::move(tmp));
+				}
+			else
+				realloc_insert(begin() + n, std::forward<Args>(args)...);
+
+			return iterator(m_start + n);
+		}
+
+		constexpr iterator emplace_aux(const_iterator pos, value_type&& v)
+		{
+			return insert_rval(pos, std::move(v));
 		}
 
 		constexpr inline void append_to_end(size_type count)
@@ -367,8 +689,7 @@ namespace Engine::Containers
 		{
 			if (n > size())
 			{
-				reserve(n);
-				append_to_end(n - size());
+				default_append(n - size());
 			}
 			else if (n < size())
 			{
@@ -380,8 +701,7 @@ namespace Engine::Containers
 		{
 			if (n > size())
 			{
-				reserve(n);
-				append_to_end(n, v);
+				fill_insert(end(), n - size(), v);
 			}
 			else if (n < size())
 			{
@@ -391,16 +711,25 @@ namespace Engine::Containers
 
 		constexpr void assign(size_type n, const value_type& value)
 		{
-			clear();
-			reserve(n);
-			append_to_end(n, value);
+			if (n > capacity())
+			{
+				Vector tmp(n, value);
+				swap(tmp);
+			}
+			else if (n > size())
+			{
+				std::fill(begin(), end(), value);
+				const size_type add = n - size();
+				m_finish            = std::uninitialized_fill_n(m_finish, add, value);
+			}
+			else
+				erase_at_end(std::fill_n(m_start, n, value));
 		}
 
 		template<class InputIterator, typename = RequireInputIter<InputIterator>>
 		constexpr void assign(InputIterator first, InputIterator last)
 		{
-			clear();
-			range_initialize(first, last);
+			assign_aux(first, last, IteratorCategory<InputIterator>());
 		}
 
 		constexpr void assign(std::initializer_list<T> list)
@@ -411,24 +740,7 @@ namespace Engine::Containers
 		template<class... Args>
 		constexpr iterator emplace(const_iterator pos, Args&&... args)
 		{
-			if (m_finish == m_end)
-			{
-				auto offset = std::distance(cbegin(), pos);
-				grow();
-				pos = cbegin() + offset;
-			}
-
-			iterator non_const_pos = const_cast<iterator>(pos);
-
-			if (non_const_pos != end())
-			{
-				std::move_backward(non_const_pos, end(), end() + 1);
-				std::destroy_at(non_const_pos);
-			}
-
-			std::construct_at(pos, std::forward<Args>(args)...);
-			++m_finish;
-			return non_const_pos;
+			return emplace_aux(pos, std::forward<Args>(args)...);
 		}
 
 		constexpr iterator insert(const_iterator pos, const value_type& v)
@@ -443,68 +755,17 @@ namespace Engine::Containers
 
 		constexpr iterator insert(const_iterator pos, size_type n, const value_type& v)
 		{
-			if (n == 0)
-			{
-				return const_cast<iterator>(pos);
-			}
-
-			if (m_finish + n > m_end)
-			{
-				auto offset = std::distance(cbegin(), pos);
-				grow(n);
-				pos = cbegin() + offset;
-			}
-
-			iterator non_const_pos = const_cast<iterator>(pos);
-
-			if (non_const_pos != end())
-			{
-				std::move_backward(non_const_pos, end(), end() + n);
-
-				for (iterator it = end() - 1; it >= non_const_pos; --it)
-				{
-					std::destroy_at(it);
-				}
-			}
-
-			std::uninitialized_fill_n(non_const_pos, n, v);
-
-			m_finish += n;
-			return non_const_pos;
+			difference_type offset = pos - cbegin();
+			fill_insert(begin() + offset, n, v);
+			return begin() + offset;
 		}
 
 		template<class InputIterator, typename = RequireInputIter<InputIterator>>
 		constexpr iterator insert(const_iterator pos, InputIterator first, InputIterator last)
 		{
-			if (first == last)
-			{
-				return const_cast<iterator>(pos);
-			}
-
-			auto n = std::distance(first, last);
-
-			if (m_finish + n > m_end)
-			{
-				auto offset = std::distance(cbegin(), pos);
-				grow(n);
-				pos = cbegin() + offset;
-			}
-
-			iterator non_const_pos = const_cast<iterator>(pos);
-
-			if (non_const_pos != end())
-			{
-				std::move_backward(non_const_pos, end(), end() + n);
-
-				for (iterator it = end() - 1; it >= non_const_pos; --it)
-				{
-					std::destroy_at(it);
-				}
-			}
-
-			std::uninitialized_copy(first, last, non_const_pos);
-			m_finish += n;
-			return non_const_pos;
+			difference_type offset = pos - cbegin();
+			range_insert(begin() + offset, first, last, IteratorCategory<InputIterator>());
+			return begin() + offset;
 		}
 
 		constexpr iterator insert(const_iterator pos, const std::initializer_list<value_type>& v)
@@ -515,10 +776,15 @@ namespace Engine::Containers
 		template<typename... Args>
 		constexpr reference emplace_back(Args&&... args)
 		{
-			if (m_finish == m_end)
-				grow();
-			std::construct_at(m_finish, std::forward<Args>(args)...);
-			++m_finish;
+			if (m_finish != m_end)
+			{
+				std::construct_at(m_finish, std::forward<Args>(args)...);
+				++m_finish;
+			}
+			else
+			{
+				realloc_insert(end(), std::forward<Args>(args)...);
+			}
 			return back();
 		}
 
@@ -547,25 +813,26 @@ namespace Engine::Containers
 				return const_cast<iterator>(pos);
 
 			iterator non_const_pos = const_cast<iterator>(pos);
-
-			std::destroy_at(non_const_pos);
-			std::move(non_const_pos + 1, end(), non_const_pos);
+			if (pos + 1 != end())
+				std::move(non_const_pos + 1, end(), non_const_pos);
 			--m_finish;
+			std::destroy_at(m_finish);
 			return non_const_pos;
 		}
 
 		constexpr iterator erase(const_iterator first, const_iterator last)
 		{
-			if (empty())
-				return const_cast<iterator>(first);
+			if (first != last)
+			{
+				iterator non_const_first = const_cast<iterator>(first);
+				iterator non_const_last  = const_cast<iterator>(last);
 
-			iterator non_const_first = const_cast<iterator>(first);
-			iterator non_const_last  = const_cast<iterator>(last);
+				if (non_const_first != end())
+					std::move(non_const_last, end(), non_const_first);
 
-			std::destroy(non_const_first, non_const_last);
-			std::move(non_const_last, end(), non_const_first);
-			m_finish -= std::distance(first, last);
-			return non_const_first;
+				erase_at_end(non_const_first + (end() - non_const_last));
+			}
+			return const_cast<iterator>(first);
 		}
 
 		constexpr void shrink_to_fit()
