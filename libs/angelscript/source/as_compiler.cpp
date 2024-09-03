@@ -13763,16 +13763,18 @@ int asCCompiler::MatchArgument(asCScriptFunction *desc, const asCExprContext *ar
 		ti.type.dataType.MakeReference(false);
 
 	// Don't allow the implicit conversion to make a copy in case the argument is expecting a reference to the true value
-	if (desc->parameterTypes[paramNum].IsReference() && desc->inOutFlags[paramNum] == asTM_INOUTREF)
+	// if (desc->parameterTypes[paramNum].IsReference() && desc->inOutFlags[paramNum] == asTM_INOUTREF)
+	if (desc->parameterTypes[paramNum].IsReference() && !desc->parameterTypes[paramNum].IsReadOnly())
 		allowObjectConstruct = false;
 
 	int cost = ImplicitConversion(&ti, desc->parameterTypes[paramNum], 0, asIC_IMPLICIT_CONV, false, allowObjectConstruct);
 
 	// If the function parameter is an inout-reference then it must not be possible to call the
 	// function with an incorrect argument type, even though the type can normally be converted.
-	if( desc->parameterTypes[paramNum].IsReference() &&
-		desc->inOutFlags[paramNum] == asTM_INOUTREF &&
-		desc->parameterTypes[paramNum].GetTokenType() != ttQuestion )
+	if (desc->parameterTypes[paramNum].IsReference() &&
+		// desc->inOutFlags[paramNum] == asTM_INOUTREF &&
+		!desc->parameterTypes[paramNum].IsReadOnly() && 
+		desc->parameterTypes[paramNum].GetTokenType() != ttQuestion)
 	{
 		// Observe, that the below checks are only necessary for when unsafe references have been
 		// enabled by the application. Without this the &inout reference form wouldn't be allowed
