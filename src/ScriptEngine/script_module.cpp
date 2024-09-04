@@ -72,8 +72,11 @@ namespace Engine
 
 	ScriptModule& ScriptModule::discard()
 	{
-		m_module->Discard();
-		m_module = nullptr;
+		if (m_module)
+		{
+			m_module->Discard();
+			m_module = nullptr;
+		}
 		return *this;
 	}
 

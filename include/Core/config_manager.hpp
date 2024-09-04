@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/arguments.hpp>
-#include <Core/etl/script_array.hpp>
 #include <Core/name.hpp>
+#include <Core/string_functions.hpp>
 
 namespace Engine
 {
@@ -9,27 +9,40 @@ namespace Engine
 	using ConfigInt         = int_t;
 	using ConfigFloat       = float;
 	using ConfigString      = String;
-	using ConfigBoolArray   = ScriptArray<ConfigBool, "bool">;
-	using ConfigIntArray    = ScriptArray<ConfigInt, "int">;
-	using ConfigFloatArray  = ScriptArray<ConfigFloat, "float">;
-	using ConfigStringArray = ScriptArray<ConfigString, "string">;
+	using ConfigBoolArray   = Vector<ConfigBool>;
+	using ConfigIntArray    = Vector<ConfigInt>;
+	using ConfigFloatArray  = Vector<ConfigFloat>;
+	using ConfigStringArray = Vector<ConfigString>;
 
 	struct ENGINE_EXPORT ConfigManager {
 	private:
+		template<typename T>
+		static constexpr inline bool is_enum_type = std::is_enum_v<T> && sizeof(T) == sizeof(EnumerateType);
+
+		template<typename T>
+		struct IsEnumVector : std::false_type {
+		};
+
+		template<typename T>
+		    requires(is_enum_type<T>)
+		struct IsEnumVector<Vector<T>> : std::true_type {
+		};
+
+		template<typename T>
+		static constexpr inline bool is_enum_vector = IsEnumVector<T>::value;
+
+
 		template<typename ScriptArrayType, typename ArrayType>
-		static void copy_array(const ArrayType& in, ScriptArrayType& out)
+		static ScriptArrayType copy_array(const ArrayType& in)
 		{
 			using ElementType = typename ScriptArrayType::value_type;
 
-			out.create(in.size());
+			ScriptArrayType out;
+			out.resize(in.size());
 
 			for (size_t i = 0, count = in.size(); i < count; ++i)
 			{
-				if constexpr (std::is_same_v<ElementType, String>)
-				{
-					out[i] = in[i];
-				}
-				else if constexpr (std::is_same_v<ElementType, bool>)
+				if constexpr (std::is_same_v<ElementType, bool>)
 				{
 					out[i] = Strings::boolean_of(in[i].c_str(), in[i].size());
 				}
@@ -42,21 +55,31 @@ namespace Engine
 					out[i] = Strings::float_of(in[i].c_str());
 				}
 			}
-		}
 
+			return out;
+		}
 
 	public:
 		static bool is_exist(const Name& name);
 		static const Set<String>& groups();
 
 		static void register_property(const Name& name, ConfigBool& property, const StringView& group);
-		static void register_property(const Name& name, ConfigInt& property, const StringView& group);
+		static void register_property(const Name& name, ConfigInt& property, const StringView& group, const char* enum_type = nullptr);
 		static void register_property(const Name& name, ConfigFloat& property, const StringView& group);
 		static void register_property(const Name& name, ConfigString& property, const StringView& group);
 		static void register_property(const Name& name, ConfigBoolArray& property, const StringView& group);
-		static void register_property(const Name& name, ConfigIntArray& property, const StringView& group);
+		static void register_property(const Name& name, ConfigIntArray& property, const StringView& group, const char* enum_type = nullptr);
 		static void register_property(const Name& name, ConfigFloatArray& property, const StringView& group);
 		static void register_property(const Name& name, ConfigStringArray& property, const StringView& group);
+
+		template<typename T>
+		    requires(is_enum_type<T>)
+		static void register_property(const Name& name, Vector<T>& prop, const StringView& group, const char* enum_type)
+		{
+			ConfigIntArray* array = reinterpret_cast<ConfigIntArray*>(&prop);
+			register_property(name, *array, group, enum_type);
+		}
+
 		static void register_custom_property(const Name& name, void* property, const char* script_type_declaration,
 		                                     const StringView& group);
 
@@ -86,16 +109,22 @@ namespace Engine
 		template<typename OutType>
 		static OutType* property(const Name& name)
 		{
-#define wrap_config_value(code) code
-			wrap_config_value(if constexpr (std::is_same_v<OutType, ConfigBool>) return bool_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigInt>) return int_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigFloat>) return float_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigString>) return string_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigBoolArray>) return bool_array_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigIntArray>) return int_array_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigFloatArray>) return float_array_property(name));
-			wrap_config_value(else if constexpr (std::is_same_v<OutType, ConfigStringArray>) return string_array_property(name));
-#undef wrap_config_value
+			if constexpr (std::is_same_v<OutType, ConfigBool>)
+				return bool_property(name);
+			else if constexpr (std::is_same_v<OutType, ConfigInt> || is_enum_type<OutType>)
+				return reinterpret_cast<OutType*>(int_property(name));
+			else if constexpr (std::is_same_v<OutType, ConfigFloat>)
+				return float_property(name);
+			else if constexpr (std::is_same_v<OutType, ConfigString>)
+				return string_property(name);
+			else if constexpr (std::is_same_v<OutType, ConfigBoolArray>)
+				return bool_array_property(name);
+			else if constexpr (std::is_same_v<OutType, ConfigIntArray> || is_enum_vector<OutType>)
+				return reinterpret_cast<OutType*>(int_array_property(name));
+			else if constexpr (std::is_same_v<OutType, ConfigFloatArray>)
+				return float_array_property(name);
+			else if constexpr (std::is_same_v<OutType, ConfigStringArray>)
+				return string_array_property(name);
 			return nullptr;
 		}
 
@@ -137,32 +166,24 @@ namespace Engine
 			Arguments::Argument* arg = Arguments::find(arg_name);
 			if (arg && arg->type == Arguments::Type::Array)
 			{
-				Arguments::ArrayType array = arg->get<Arguments::ArrayType>();
+				const Arguments::ArrayType& array = arg->get<const Arguments::ArrayType&>();
 
 				if constexpr (std::is_same_v<Type, String>)
 				{
-					ScriptArray<String, "string"> result_array;
-					copy_array(array, result_array);
-					ConfigManager::property(arg_name, result_array);
+					ConfigManager::property(arg_name, array);
 				}
 
 				else if constexpr (std::is_same_v<Type, bool>)
 				{
-					ScriptArray<bool, "bool"> result_array;
-					copy_array(array, result_array);
-					ConfigManager::property(arg_name, result_array);
+					ConfigManager::property(arg_name, copy_array<ConfigBoolArray>(array));
 				}
 				else if constexpr (std::is_same_v<Type, int_t>)
 				{
-					ScriptArray<int_t, "int"> result_array;
-					copy_array(array, result_array);
-					ConfigManager::property(arg_name, result_array);
+					ConfigManager::property(arg_name, copy_array<ConfigIntArray>(array));
 				}
 				else if constexpr (std::is_same_v<Type, float>)
 				{
-					ScriptArray<float, "float"> result_array;
-					copy_array(array, result_array);
-					ConfigManager::property(arg_name, result_array);
+					ConfigManager::property(arg_name, copy_array<ConfigFloatArray>(array));
 				}
 				else
 				{
