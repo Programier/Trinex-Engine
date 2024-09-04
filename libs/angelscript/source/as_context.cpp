@@ -77,6 +77,7 @@ public:
 	{
 		// This code writes out some statistics for the VM.
 		// It's useful for determining what needs to be optimized.
+		if (!outputDebug) return;
 
 #ifndef __MINGW32__
 		// _mkdir is broken on mingw
@@ -122,17 +123,19 @@ public:
 		}
 	}
 
-	void Instr(asBYTE bc)
+	void Instr(asBYTE bc, bool writeDebug)
 	{
 		++instrCount[bc];
 		++instrCount2[lastBC][bc];
 		lastBC = bc;
+		outputDebug = writeDebug;
 	}
 
 	// Instruction statistics
 	double instrCount[256];
 	double instrCount2[256][256];
 	int lastBC;
+	bool outputDebug;
 } stats;
 
 #endif
@@ -1672,15 +1675,13 @@ void asCContext::SetProgramPointer()
 
 		// Was the call successful?
 		if( m_status == asEXECUTION_ACTIVE )
-		{
 			m_status = asEXECUTION_FINISHED;
-		}
 	}
 	else
 	{
-		// This shouldn't happen unless there was an error in which
-		// case an exception should have been raised already
-		asASSERT( m_status == asEXECUTION_EXCEPTION );
+		// This can happen, e.g. if attempting to call a template function
+		if( m_status != asEXECUTION_EXCEPTION )
+			SetInternalException(TXT_NULL_POINTER_ACCESS, false);
 	}
 }
 
@@ -2207,24 +2208,7 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 	}
 }
 
-
-#if !defined(HAVE_COMPUTED_GOTOS)
-
-#if defined(__GNUC__) && __GNUC__ >= 6
-#define HAVE_COMPUTED_GOTOS 1
-
-// Also in clang 5.0 but how do i test for that? Should use __has_extension, but I don't know the name of the labels as values extension
-#elif defined(__clang__) 
-#define HAVE_COMPUTED_GOTOS 1
-#endif
-#endif
-
-#if !defined(HAVE_COMPUTED_GOTOS) || HAVE_COMPUTED_GOTOS == 0
-#undef asUSE_COMPUTED_GOTOS
-#define asUSE_COMPUTED_GOTOS 0
-#endif
-
-#if asUSE_COMPUTED_GOTOS
+#if AS_USE_COMPUTED_GOTOS
 #define INSTRUCTION(x) case_##x
 #define NEXT_INSTRUCTION() goto *dispatch_table[*(asBYTE*)l_bc]
 #define BEGIN() NEXT_INSTRUCTION();
@@ -2236,7 +2220,7 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 
 void asCContext::ExecuteNext()
 {
-#if asUSE_COMPUTED_GOTOS
+#if AS_USE_COMPUTED_GOTOS
 static const void *const dispatch_table[256] = {
 &&INSTRUCTION(asBC_PopPtr),		&&INSTRUCTION(asBC_PshGPtr),	&&INSTRUCTION(asBC_PshC4),		&&INSTRUCTION(asBC_PshV4),
 &&INSTRUCTION(asBC_PSF),		&&INSTRUCTION(asBC_SwapPtr),	&&INSTRUCTION(asBC_NOT),		&&INSTRUCTION(asBC_PshG4),
@@ -2316,7 +2300,7 @@ static const void *const dispatch_table[256] = {
 
 #ifdef AS_DEBUG
 	// Gather statistics on executed bytecode
-	stats.Instr(*(asBYTE*)l_bc);
+	stats.Instr(*(asBYTE*)l_bc, !m_engine->ep.noDebugOutput);
 
 	// Used to verify that the size of the instructions are correct
 	asDWORD *old = l_bc;
@@ -4903,7 +4887,7 @@ static const void *const dispatch_table[256] = {
 
 	// Don't let the optimizer optimize for size,
 	// since it requires extra conditions and jumps
-#if asUSE_COMPUTED_GOTOS == 0
+#if AS_USE_COMPUTED_GOTOS == 0
 	INSTRUCTION(201): l_bc = (asDWORD*)201; goto case_FAULT;
 	INSTRUCTION(202): l_bc = (asDWORD*)202; goto case_FAULT;
 	INSTRUCTION(203): l_bc = (asDWORD*)203; goto case_FAULT;
@@ -5479,6 +5463,17 @@ bool asCContext::CleanStackFrame(bool catchException)
 	bool exceptionCaught = false;
 	asSTryCatchInfo *tryCatchInfo = 0;
 
+	if (m_currentFunction == 0)
+		return false;
+
+	if (m_currentFunction->funcType == asFUNC_SCRIPT && m_currentFunction->scriptData == 0)
+	{
+		asCString msg;
+		msg.Format(TXT_FUNC_s_RELEASED_BEFORE_CLEANUP, m_currentFunction->name.AddressOf());
+		m_engine->WriteMessage("", 0, 0, asMSGTYPE_ERROR, msg.AddressOf());
+		return false;
+	}
+
 	// Clean object variables on the stack
 	// If the stack memory is not allocated or the program pointer
 	// is not set, then there is nothing to clean up on the stack frame
@@ -5490,7 +5485,6 @@ bool asCContext::CleanStackFrame(bool catchException)
 
 		// Check if this function will catch the exception
 		// Try blocks can be nested, so use the innermost block
-		asASSERT(m_currentFunction->scriptData);
 		if (catchException && m_currentFunction->scriptData)
 		{
 			asUINT currPos = asUINT(m_regs.programPointer - m_currentFunction->scriptData->byteCode.AddressOf());

@@ -493,6 +493,10 @@ void asCScriptFunction::DestroyInternal()
 		asDELETE(listPattern, asSListPatternNode);
 		listPattern = n;
 	}
+
+	// Release template sub types
+	for (asUINT n = 0; n < templateSubTypes.GetLength(); n++)
+		templateSubTypes[n].GetTypeInfo()->Release();
 }
 
 // interface
@@ -720,7 +724,18 @@ asCString asCScriptFunction::GetDeclarationStr(bool includeObjectName, bool incl
 			str += name + "(";
 	}
 	else
-		str += name + "(";
+	{
+		if (funcType == asFUNC_TEMPLATE)
+		{
+			str += name + "<";
+			for (asUINT t = 0; t < templateSubTypes.GetLength()-1; t++)
+				str += templateSubTypes[t].GetTypeInfo()->name + ",";
+			str += templateSubTypes[templateSubTypes.GetLength() - 1].GetTypeInfo()->name;
+			str += ">(";
+		}
+		else
+			str += name + "(";
+	}
 
 	if( parameterTypes.GetLength() > 0 )
 	{

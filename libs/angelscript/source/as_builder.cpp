@@ -1267,12 +1267,29 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 	// Find name
 	func->name.Assign(&source.code[n->tokenPos], n->tokenLength);
 
+	// Handle templates
+	asCScriptNode* tmp = n;
+	bool isTemplate = false;
+	while(tmp->next->nodeType != snParameterList)
+	{
+		asCString name(decl + tmp->next->tokenPos, tmp->next->tokenLength);
+		asCTypeInfo* templSubType = engine->GetTemplateSubTypeByName(name);
+		if (templSubType == 0)
+			return asOUT_OF_MEMORY;
+
+		func->templateSubTypes.PushLast(asCDataType::CreateType(templSubType,false));
+		templSubType->AddRef();
+		isTemplate = true;
+		tmp = tmp->next;
+	}
+	
 	// Initialize a script function object for registration
 	bool autoHandle;
 
 	// Scoped reference types are allowed to use handle when returned from application functions
-	func->returnType = CreateDataTypeFromNode(node->firstChild, &source, objType ? objType->nameSpace : ns, true, parentClass ? parentClass : objType);
+	func->returnType = CreateDataTypeFromNode(node->firstChild, &source, objType ? objType->nameSpace : ns, true, parentClass ? parentClass : objType, true, 0, isTemplate ? &func->templateSubTypes : 0);
 	func->returnType = ModifyDataTypeFromNode(func->returnType, node->firstChild->next, &source, 0, &autoHandle);
+		
 	if( autoHandle && (!func->returnType.IsObjectHandle() || func->returnType.IsReference()) )
 		return asINVALID_DECLARATION;
 	if( returnAutoHandle ) *returnAutoHandle = autoHandle;
@@ -1287,7 +1304,7 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 
 	// Count number of parameters
 	int paramCount = 0;
-	asCScriptNode *paramList = n->next;
+	asCScriptNode *paramList = tmp->next;
 	n = paramList->firstChild;
 	while( n )
 	{
@@ -1312,7 +1329,8 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 	while( n )
 	{
 		asETypeModifiers inOutFlags;
-		asCDataType type = CreateDataTypeFromNode(n, &source, objType ? objType->nameSpace : ns, false, parentClass ? parentClass : objType);
+		asCDataType type;
+		type = CreateDataTypeFromNode(n, &source, objType ? objType->nameSpace : ns, false, parentClass ? parentClass : objType, true, 0, isTemplate ? &func->templateSubTypes : 0);
 		type = ModifyDataTypeFromNode(type, n->next, &source, &inOutFlags, &autoHandle);
 
 		// Reference types cannot be passed by value to system functions
@@ -3385,7 +3403,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 				ot->beh.getWeakRefFlag          = 0;
 			}
 		}
-		
+
 		if( decl->isExistingShared )
 		{
 			// Set the declaration as validated already, so that other
@@ -3425,7 +3443,7 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 				// The properties must maintain the same offset
 				asASSERT(prop && prop->byteOffset == baseType->properties[p]->byteOffset); UNUSED_VAR(prop);
 			}
-			
+
 			ot->size = baseType->size;
 			
 			if(baseType->flags & asOBJ_APP_NATIVE_INHERITANCE)
@@ -5902,7 +5920,7 @@ void asCBuilder::GetObjectMethodDescriptions(const char *name, asCObjectType *ob
 			else
 			{
 				asCScriptFunction *f = engine->scriptFunctions[objectType->methods[n]];
-				if( f && (f->funcType == asFUNC_VIRTUAL) )
+				if( f && f->funcType == asFUNC_VIRTUAL )
 					f = objectType->virtualFunctionTable[f->vfTableIdx];
 				methods.PushLast(f->id);
 			}
@@ -6150,7 +6168,7 @@ asSNameSpace *asCBuilder::GetNameSpaceByString(const asCString &nsName, asSNameS
 	return ns;
 }
 
-asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCode *file, asSNameSpace *implicitNamespace, bool acceptHandleForScope, asCObjectType *currentType, bool reportError, bool *isValid)
+asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCode *file, asSNameSpace *implicitNamespace, bool acceptHandleForScope, asCObjectType *currentType, bool reportError, bool *isValid, asCArray<asCDataType> *templSubTypes)
 {
 	asASSERT(node->nodeType == snDataType || node->nodeType == snIdentifier || node->nodeType == snScope );
 
@@ -6200,7 +6218,20 @@ asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCod
 		{
 			asCTypeInfo *ti = 0;
 
-			if (currentType)
+			if (templSubTypes)
+			{
+				// If a list of templSubTypes is provided then first check if the identifier matches any of them
+				for (asUINT subtypeIndex = 0; subtypeIndex < templSubTypes->GetLength(); subtypeIndex++)
+				{
+					asCTypeInfo* type = ((*templSubTypes)[subtypeIndex]).GetTypeInfo();
+					if (type && str == type->name)
+					{
+						ti = type;
+						break;
+					}
+				}
+			}
+			if (ti == 0 && currentType)
 			{
 				// If this is for a template type, then we must first determine if the
 				// identifier matches any of the template subtypes

@@ -233,10 +233,6 @@ int asCModule::SetDefaultNamespace(const char *nameSpace)
 			if( (expectIdentifier && t != ttIdentifier) || (!expectIdentifier && t != ttScope) )
 				return asINVALID_DECLARATION;
 
-            // Make sure parent namespaces are registred in case of nested namespaces
-            if (expectIdentifier)
-                m_engine->AddNameSpace(ns.SubString(0, pos + len).AddressOf());
-
 			expectIdentifier = !expectIdentifier;
 		}
 

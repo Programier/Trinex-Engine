@@ -664,7 +664,7 @@ void asCCompiler::CompileMemberInitialization(asCByteCode *bc, bool onlyDefaults
 	for( asUINT n = 0; n < outFunc->objectType->properties.GetLength(); n++ )
 	{
 		asCObjectProperty *prop = outFunc->objectType->properties[n];
-        
+		
 		if(prop->isNative)
 			continue;
 
@@ -834,7 +834,7 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 						asCByteCode tmpBC(engine);
 						tmpBC.InstrSHORT(asBC_PSF, 0);
 						tmpBC.Instr(asBC_RDSPtr);
-
+						
 						if(outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE_INHERITANCE)
 						{
 							tmpBC.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
@@ -843,6 +843,7 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 						{
 							tmpBC.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
 						}
+
 						tmpBC.OptimizeLocally(tempVariableOffsets);
 						byteCode.AddCode(&tmpBC);
 
@@ -11720,6 +11721,28 @@ int asCCompiler::CompileConstructCall(asCScriptNode *node, asCExprContext *ctx)
 }
 
 
+int asCCompiler::InstantiateTemplateFunctions(asCArray<int>& funcs, asCScriptNode* types)
+{
+	for ( asUINT i = 0; i < funcs.GetLength(); i++ )
+	{
+		asCScriptFunction* func = builder->GetFunctionDescription(funcs[i]);
+		asUINT numTypes = func->templateSubTypes.GetLength();
+		// TODO: If types for template instance has been given in the node, and no matching template function exists then an error must be given
+		if (numTypes == 0) continue;
+		asCArray<asCDataType> dataTypes;
+		// TODO: If the number of types doesn't match the template then give an error 
+		// (or if there is more than one template function with the same name, then use only the one that matches)
+		for (asUINT j = 0; j < numTypes; j++)
+		{
+			dataTypes.PushLast(builder->CreateDataTypeFromNode(types, script, func->nameSpace, func->objectType));
+			types = types->next;
+		}
+		funcs[i] = engine->GetTemplateFunctionInstance(func, dataTypes);
+	}
+
+	return 0;
+}
+
 int asCCompiler::CompileFunctionCall(asCScriptNode *node, asCExprContext *ctx, asCObjectType *objectType, bool objIsConst, const asCString &scope)
 {
 	asCExprValue tempObj;
@@ -11728,7 +11751,10 @@ int asCCompiler::CompileFunctionCall(asCScriptNode *node, asCExprContext *ctx, a
 	bool initializeMembers = false;
 	asCExprContext funcExpr(engine);
 
-	asCScriptNode *nm = node->lastChild->prev;
+	// Skip over the optional scope to get the name of the function
+	asCScriptNode* nm = node->firstChild;
+	if (nm->nodeType == snScope) nm = nm->next;
+	asASSERT(nm->tokenType == ttIdentifier);
 	asCString name(&script->code[nm->tokenPos], nm->tokenLength);
 
 	// Find the matching entities
@@ -11856,6 +11882,10 @@ int asCCompiler::CompileFunctionCall(asCScriptNode *node, asCExprContext *ctx, a
 		{
 			// The scope can be used to specify the base class
 			builder->GetObjectMethodDescriptions(name.AddressOf(), CastToObjectType(lookupResult.type.dataType.GetTypeInfo()), funcs, objIsConst, scope, node, script);
+
+			// Instantiate all template functions
+			int r = InstantiateTemplateFunctions(funcs, node->firstChild->next);
+			if (r < 0) return r;
 		}
 
 		// If a class method is being called implicitly, then add the this pointer for the call
@@ -11907,6 +11937,10 @@ int asCCompiler::CompileFunctionCall(asCScriptNode *node, asCExprContext *ctx, a
 		asSNameSpace *ns = engine->FindNameSpace(lookupResult.methodName.SubString(0, n).AddressOf());
 
 		builder->GetFunctionDescriptions(name.AddressOf(), funcs, ns);
+		
+		// Instantiate all template functions
+		int r = InstantiateTemplateFunctions(funcs, node->firstChild->next);
+		if (r < 0) return r;
 	}
 
 	// Is it a type?
@@ -16342,9 +16376,7 @@ void asCCompiler::PerformFunctionCall(int funcId, asCExprContext *ctx, bool isCo
 				!descr->parameterTypes[0].IsReference() )
 				ctx->bc.Call(asBC_Thiscall1, descr->id, argSize);
 			else
-			{
 				ctx->bc.Call(asBC_CALLSYS , descr->id, argSize);
-			}
 		}
 		else if( descr->funcType == asFUNC_FUNCDEF )
 			ctx->bc.CallPtr(asBC_CallPtr, funcPtrVar, argSize);
