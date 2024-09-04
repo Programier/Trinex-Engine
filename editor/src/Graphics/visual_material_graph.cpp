@@ -453,6 +453,40 @@ namespace Engine::VisualMaterialGraph
 		return class_instance()->base_name_splitted().c_str();
 	}
 
+	Expression SignaturedNode::make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+	                                           const Vector<Expression>& args)
+	{
+		return {};
+	}
+
+	Expression SignaturedNode::compile(OutputPin* pin, CompilerState& state)
+	{
+		auto& node_signature = signature();
+		int index            = node_signature.find_signature_index(this);
+
+		if (index == -1)
+			return Expression();
+
+		const NodeSignature::Signature& signature = node_signature.signature(index);
+
+		Vector<Expression> arguments;
+		int args_count = signature.inputs_count();
+		arguments.resize(args_count);
+
+		for (int i = 0; i < args_count; ++i)
+		{
+			Expression expr = state.pin_source(input_pin(i));
+			expr            = state.expression_cast(expr, signature.input(i));
+
+			if (!expr.is_valid())
+				return Expression();
+
+			arguments[i] = expr;
+		}
+
+		return make_expression(pin, signature, arguments);
+	}
+
 	String GlobalCompilerState::compile() const
 	{
 		String result = "";

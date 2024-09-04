@@ -12,6 +12,7 @@ namespace Engine::VisualMaterialGraph
 	static ScriptFunction node_compile_out;
 	static ScriptFunction node_compile_in;
 	static ScriptFunction node_signature;
+	static ScriptFunction signatured_node_make_expression;
 
 	Vector4D Node::script_header_color() const
 	{
@@ -42,6 +43,12 @@ namespace Engine::VisualMaterialGraph
 	Node& Node::script_override_parameter(VisualMaterial* material)
 	{
 		return *this;
+	}
+
+	Expression SignaturedNode::script_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+	                                                  const Vector<Expression>& args)
+	{
+		return *ScriptObject(this).execute(signatured_node_make_expression, pin, &signature, &args).address_as<Expression>();
 	}
 
 	implement_class(Engine::VisualMaterialGraph, Node, Class::IsScriptable)
@@ -79,6 +86,20 @@ namespace Engine::VisualMaterialGraph
 			node_compile_in.release();
 			node_signature.release();
 		});
+	}
+
+	implement_class(Engine::VisualMaterialGraph, SignaturedNode, Class::IsScriptable)
+	{
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+			signatured_node_make_expression =
+			        r->method("Expression make_expression(OutputPin@ pin, const NodeSignature::Signature& signature, const "
+			                  "Vector<Expression>& args)",
+			                  &This::scoped_make_expression<This>);
+
+			r->method("Expression compile(OutputPin@ pin, CompilerState@ state)", &This::scoped_compile_out<This>);
+		};
+
+		ScriptEngine::on_terminate.push([]() { signatured_node_make_expression.release(); });
 	}
 
 

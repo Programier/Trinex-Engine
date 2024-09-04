@@ -2,48 +2,10 @@ namespace Engine
 {
 	namespace VisualMaterialGraph
 	{
-		class SignaturedNode : Node
-		{
-			Expression make_expression(OutputPin@ pin, Ptr<NodeSignature::Signature> signature, const array<Expression>& args)
-			{
-				return Expression();
-			}
-
-			Expression compile(OutputPin@ pin, CompilerState@ state)
-			{
-				Ptr<const NodeSignature> node_signature = Ptr<const NodeSignature>(signature());
-
-			 	int index = node_signature.get().find_signature_index(this);
-
-			 	if(index == -1)
-			 		return Expression();
-
-			 	Ptr<NodeSignature::Signature> signature = Ptr<NodeSignature::Signature>(node_signature.get().signature(index));
-
-			 	array<Expression> arguments;
-			 	int args_count = signature.get().inputs_count();
-			 	arguments.resize(args_count);
-
-			 	for(int i = 0; i < args_count; ++i)
-			 	{
-			 		Expression expr = state.pin_source(input_pin(i));
-			 		expr = state.expression_cast(expr, signature.get().input(i));
-
-			 		if(!expr.is_valid())
-			 			return Expression();
-
-			 		arguments[i] = expr;
-			 	}
-
-			 	return make_expression(pin, signature, arguments);
-			}
-		};
-
-
 		NodeSignature power_node_signature;
 
 		[group("Engine::VisualMaterialGraphGroups::Math")]
-		class Power : SignaturedNode 
+		class Power : SignaturedNode
 		{	
 			Power()
 			{
@@ -52,9 +14,9 @@ namespace Engine
 				add_pin(FloatOutputPinND(this, "Out"));
 			}
 
-			Expression make_expression(OutputPin@ pin, Ptr<NodeSignature::Signature> signature, const array<Expression>& args)
+			Expression make_expression(OutputPin@ pin, const NodeSignature::Signature& signature, const Vector<Expression>& args)
 			{
-				return Expression("pow(%0, %1)".format(args[0].code, args[1].code), signature.get().output(0));
+				return Expression("pow(%0, %1)".format(args[0].code, args[1].code), signature.output(0));
 			}
 
 			const NodeSignature& signature() const
@@ -66,6 +28,7 @@ namespace Engine
 		[initializer]
 		void initializer()
 		{
+			Class@ self = class_of<SignaturedNode>();
 			power_node_signature.add_signature({PinType::Int, PinType::Int}, {PinType::Int});
 			power_node_signature.add_signature({PinType::UInt, PinType::UInt}, {PinType::UInt});
 			power_node_signature.add_signature({PinType::Float, PinType::Float}, {PinType::Float});

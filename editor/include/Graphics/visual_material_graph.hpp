@@ -516,43 +516,43 @@ namespace Engine::VisualMaterialGraph
 		Node& script_render();
 		Node& script_override_parameter(VisualMaterial* material);
 
+	public:
 		template<typename Scope = Node>
 		Vector4D scoped_header_color() const
 		{
-			return Scope::header_color();
+			return reinterpret_cast<const Scope*>(this)->Scope::header_color();
 		}
 
 		template<typename Scope = Node>
 		const NodeSignature& scoped_signature() const
 		{
-			return Scope::signature();
+			return reinterpret_cast<const Scope*>(this)->Scope::signature();
 		}
 
 		template<typename Scope>
 		Expression scoped_compile_out(OutputPin* pin, CompilerState& state)
 		{
-			return Scope::compile(pin, state);
+			return reinterpret_cast<Scope*>(this)->Scope::compile(pin, state);
 		}
 
 		template<typename Scope>
 		Expression scoped_compile_in(InputPin* pin, CompilerState& state)
 		{
-			return Scope::compile(pin, state);
+			return reinterpret_cast<Scope*>(this)->Scope::compile(pin, state);
 		}
 
 		template<typename Scope>
 		Node& scoped_render()
 		{
-			return Scope::render();
+			return reinterpret_cast<Scope*>(this)->Scope::render();
 		}
 
 		template<typename Scope>
 		Node& scoped_override_parameter(VisualMaterial* material)
 		{
-			return Scope::override_parameter(material);
+			return reinterpret_cast<Scope*>(this)->Scope::override_parameter(material);
 		}
 
-	public:
 		template<typename NativeClass>
 		struct Scriptable : Super::Scriptable<NativeClass> {
 			Vector4D header_color() const override
@@ -622,6 +622,37 @@ namespace Engine::VisualMaterialGraph
 
 		virtual ~Node();
 		virtual const char* name() const;
+	};
+
+
+	class SignaturedNode : public Node
+	{
+		declare_class(SignaturedNode, Node);
+
+	protected:
+		template<typename Scope>
+		Expression scoped_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+		                                  const Vector<Expression>& args)
+		{
+			return Scope::make_expression(pin, signature, args);
+		}
+
+		Expression script_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+		                                  const Vector<Expression>& args);
+
+	public:
+		template<typename NativeType>
+		struct Scriptable : Super::Scriptable<NativeType> {
+			Expression make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+			                           const Vector<Expression>& args) override
+			{
+				return static_cast<SignaturedNode*>(this)->script_make_expression(pin, signature, args);
+			}
+		};
+
+		virtual Expression make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+		                                   const Vector<Expression>& args);
+		Expression compile(OutputPin* pin, CompilerState& state) override;
 	};
 
 	const char* slang_type_name(PinType type);

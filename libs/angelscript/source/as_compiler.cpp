@@ -2080,8 +2080,8 @@ int asCCompiler::PrepareArgument(asCDataType *paramType, asCExprContext *ctx, as
 			if( ctx->IsAnonymousInitList() )
 				ImplicitConversion(ctx, dt, node, asIC_IMPLICIT_CONV, true, true);
 			
-			if( (ctx->type.dataType.IsObject() || ctx->type.dataType.IsFuncdef()) && ctx->type.dataType.GetTypeInfo() != dt.GetTypeInfo() )
-				ImplicitConversion(ctx, dt, node, asIC_IMPLICIT_CONV, true, false);
+            if( (ctx->type.dataType.IsObject() || ctx->type.dataType.IsFuncdef()) && ctx->type.dataType.GetTypeInfo() != dt.GetTypeInfo() )
+				ImplicitConversion(ctx, dt, node, asIC_IMPLICIT_CONV, true, (ctx->type.dataType.IsObject() && !ctx->type.dataType.IsObjectHandle()));
 
 			// Only objects that support object handles
 			// can be guaranteed to be safe. Local variables are

@@ -671,7 +671,7 @@ asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, 
 
 asCObjectProperty *asCObjectType::InheritProperty(asCObjectProperty* prop)
 {
-	asASSERT( flags & asOBJ_SCRIPT_OBJECT );
+	// asASSERT( flags & asOBJ_SCRIPT_OBJECT );
 	asASSERT( !IsInterface() );
 	
 	// Store the properties in the object type descriptor

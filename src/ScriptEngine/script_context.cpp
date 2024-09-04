@@ -244,52 +244,52 @@ namespace Engine
 		return m_context->SetObject(obj) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, bool value)
+	bool ScriptContext::arg_bool(uint_t arg, bool value)
 	{
 		return m_context->SetArgByte(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, byte value)
+	bool ScriptContext::arg_byte(uint_t arg, byte value)
 	{
 		return m_context->SetArgByte(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, word value)
+	bool ScriptContext::arg_word(uint_t arg, word value)
 	{
 		return m_context->SetArgWord(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, dword value)
+	bool ScriptContext::arg_dword(uint_t arg, dword value)
 	{
 		return m_context->SetArgDWord(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, qword value)
+	bool ScriptContext::arg_qword(uint_t arg, qword value)
 	{
 		return m_context->SetArgQWord(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, float value)
+	bool ScriptContext::arg_float(uint_t arg, float value)
 	{
 		return m_context->SetArgFloat(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, double value)
+	bool ScriptContext::arg_double(uint_t arg, double value)
 	{
 		return m_context->SetArgDouble(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, const ScriptObject& obj)
+	bool ScriptContext::arg_script_obj(uint_t arg, const ScriptObject& obj)
 	{
 		return m_context->SetArgObject(arg, obj.address()) >= 0;
 	}
 
-	bool ScriptContext::arg(uint_t arg, void* ptr, int_t type_id)
+	bool ScriptContext::arg_var_type(uint_t arg, void* ptr, int_t type_id)
 	{
 		return m_context->SetArgVarType(arg, ptr, type_id);
 	}
 
-	bool ScriptContext::arg(uint_t arg, void* addr, bool is_object)
+	bool ScriptContext::arg_address(uint_t arg, void* addr, bool is_object)
 	{
 		if (is_object)
 			return m_context->SetArgObject(arg, addr) >= 0;
