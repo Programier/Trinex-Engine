@@ -394,7 +394,8 @@ enum asEFuncType
 	asFUNC_VIRTUAL   = 3,
 	asFUNC_FUNCDEF   = 4,
 	asFUNC_IMPORTED  = 5,
-	asFUNC_DELEGATE  = 6
+	asFUNC_DELEGATE  = 6,
+	asFUNC_TEMPLATE  = 7
 };
 
 // Is the target a 64bit system?
@@ -803,7 +804,7 @@ public:
 
 	// Exception handling
 	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv) = 0;
-	
+
 protected:
 	virtual ~asIScriptEngine() {}
 };
@@ -1123,7 +1124,7 @@ public:
 	virtual const char *GetPropertyDeclaration(asUINT index, bool includeNamespace = false) const = 0;
 	virtual const char *GetPropertyName(asUINT index) const = 0;
 	virtual int         GetPropertyTypeId(asUINT index) const = 0;
-	virtual int			GetPropertyOffset(asUINT index) const = 0;
+	virtual int         GetPropertyOffset(asUINT index) const = 0;
 	virtual bool        IsPropertyPrivate(asUINT index) const = 0;
 	virtual bool        IsPropertyProtected(asUINT index) const = 0;
 	virtual bool        IsPropertyNative(asUINT index) const = 0;
