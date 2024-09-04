@@ -3115,7 +3115,6 @@ int asCScriptEngine::RegisterMethodToObjectType(asCObjectType *objectType, const
 	}
 
 	func->id = GetNextScriptFunctionId();
-	func->objectType->methods.PushLast(func->id);
 	func->accessMask = defaultAccessMask;
 
 	if (!VirtualMethod)
