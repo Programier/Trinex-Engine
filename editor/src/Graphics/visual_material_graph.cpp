@@ -8,6 +8,63 @@
 
 namespace Engine::VisualMaterialGraph
 {
+	namespace NodeBuilder
+	{
+		template<PinType... Args>
+		struct input {
+		};
+
+		template<PinType... Args>
+		struct output {
+		};
+
+		template<typename RetType, typename ArgsType>
+		struct NodeFunction {
+			using Ret  = RetType;
+			using Args = ArgsType;
+		};
+
+		template<PinType... out, PinType... in>
+		constexpr auto func(output<out...> = output<>(), input<in...> = input<>())
+		{
+			return NodeFunction<output<out...>, input<in...>>();
+		}
+
+		template<PinType... out, PinType... in>
+		constexpr auto func(input<in...> = input<>(), output<out...> = output<>())
+		{
+			return NodeFunction<output<out...>, input<in...>>();
+		}
+
+		template<PinType... out, PinType... in>
+		void register_function(NodeSignature* signature, NodeFunction<output<out...>, input<in...>>)
+		{
+			signature->add_signature({in...}, {out...});
+		}
+
+		template<auto... Functions>
+		NodeSignature* make_signature()
+		{
+			static NodeSignature signature;
+			return &signature;
+		}
+
+		template<auto... Functions>
+		NodeSignature& build()
+		{
+			static NodeSignature* signature = nullptr;
+
+			if (signature == nullptr)
+			{
+				signature = make_signature<Functions...>();
+				(register_function(signature, Functions), ...);
+			}
+
+			return *signature;
+		}
+
+	}// namespace NodeBuilder
+
 	NodeSignature::Signature::Signature(const Vector<PinType>& input, const Vector<PinType>& output)
 	    : m_inputs(input), m_outputs(output)
 	{}
@@ -144,6 +201,16 @@ namespace Engine::VisualMaterialGraph
 		if (pin_index >= m_input_pin_types.size())
 			return false;
 		return m_input_pin_types[pin_index].contains(type);
+	}
+
+	size_t NodeSignature::input_pin_types_count() const
+	{
+		size_t res = 0;
+		for (auto& ell : m_input_pin_types)
+		{
+			res += ell.size();
+		}
+		return res;
 	}
 
 	size_t NodeSignature::signatures_count() const
@@ -853,7 +920,7 @@ namespace Engine::VisualMaterialGraph
 		Index index = find_pin_index(pin);
 		Expression expression;
 
-		if (index == 7 && !m_inputs[7]->has_links())// Is no
+		if (index == 7 && !m_inputs[7]->has_links())
 		{
 			expression = Expression("input.world_normal", PinType::Vec3, true);
 		}
@@ -864,6 +931,23 @@ namespace Engine::VisualMaterialGraph
 		}
 
 		return state.expression_cast(expression, pin->type());
+	}
+
+	const NodeSignature& Root::signature() const
+	{
+		static NodeSignature root;
+		static bool is_not_initialized = true;
+
+		if (is_not_initialized)
+		{
+			is_not_initialized = false;
+
+			using enum PinType;
+			root.add_input_types(0, {Bool, Int, UInt, Float, BVec2, IVec2, UVec2, Vec2, BVec3, IVec3, UVec3, Vec3, Color3, BVec4,
+			                         IVec4, UVec4, Vec4, Color4});
+		}
+
+		return root;
 	}
 
 	////////////////////////// CONSTANTS BLOCK //////////////////////////
@@ -968,6 +1052,29 @@ namespace Engine::VisualMaterialGraph
 	implement_visual_material_node(Sin, Math);
 	implement_visual_material_node(Cos, Math);
 
+	implement_class_default_init(Engine::VisualMaterialGraph, BinaryOperatorNode, 0);
+
+	const NodeSignature& BinaryOperatorNode::signature() const
+	{
+		using enum PinType;
+		using namespace NodeBuilder;
+		constexpr auto a = func(output<Int>{}, input<Int, Int>{});
+		constexpr auto b = func(output<UInt>{}, input<UInt, UInt>{});
+		constexpr auto c = func(output<Float>{}, input<Float, Float>{});
+		constexpr auto d = func(output<IVec2>{}, input<IVec2, IVec2>{});
+		constexpr auto e = func(output<UVec2>{}, input<UVec2, UVec2>{});
+		constexpr auto f = func(output<Vec2>{}, input<Vec2, Vec2>{});
+		constexpr auto g = func(output<IVec3>{}, input<IVec3, IVec3>{});
+		constexpr auto h = func(output<UVec3>{}, input<UVec3, UVec3>{});
+		constexpr auto k = func(output<Vec3>{}, input<Vec3, Vec3>{});
+		constexpr auto l = func(output<Color3>{}, input<Color3, Color3>{});
+		constexpr auto m = func(output<IVec4>{}, input<IVec4, IVec4>{});
+		constexpr auto n = func(output<UVec4>{}, input<UVec4, UVec4>{});
+		constexpr auto o = func(output<Vec4>{}, input<Vec4, Vec4>{});
+		constexpr auto p = func(output<Color4>{}, input<Color4, Color4>{});
+		return build<a, b, c, d, e, f, g, h, k, l, m, n, o, p>();
+	}
+
 	Abs::Abs()
 	{
 		m_inputs.push_back(new FloatInputPin(this, "In"));
@@ -991,36 +1098,12 @@ namespace Engine::VisualMaterialGraph
 		m_outputs.push_back(new FloatOutputPinND(this, "Out"));
 	}
 
-
-	Expression Add::compile(OutputPin* pin, CompilerState& state)
-	{
-		auto out_type = out_pin_type(m_outputs[0]);
-
-		Expression A = state.pin_source(m_inputs[0]);
-		Expression B = state.pin_source(m_inputs[1]);
-		A            = state.expression_cast(A, out_type);
-		B            = state.expression_cast(B, out_type);
-		return Expression(Strings::format("({} + {})", A.code, B.code), A.type, false);
-	}
-
 	Sub::Sub()
 	{
 		m_inputs.push_back(new FloatInputPin(this, "A"));
 		m_inputs.push_back(new FloatInputPin(this, "B"));
 		m_outputs.push_back(new FloatOutputPinND(this, "Out"));
 	}
-
-	Expression Sub::compile(OutputPin* pin, CompilerState& state)
-	{
-		auto out_type = out_pin_type(m_outputs[0]);
-		Expression A  = state.pin_source(m_inputs[0]);
-		Expression B  = state.pin_source(m_inputs[1]);
-		A             = state.expression_cast(A, out_type);
-		B             = state.expression_cast(B, out_type);
-
-		return Expression(Strings::format("({} - {})", A.code, B.code), A.type, false);
-	}
-
 
 	Mul::Mul()
 	{
@@ -1029,33 +1112,11 @@ namespace Engine::VisualMaterialGraph
 		m_outputs.push_back(new FloatOutputPinND(this, "Out"));
 	}
 
-	Expression Mul::compile(OutputPin* pin, CompilerState& state)
-	{
-		auto out_type = out_pin_type(m_outputs[0]);
-		Expression A  = state.pin_source(m_inputs[0]);
-		Expression B  = state.pin_source(m_inputs[1]);
-		A             = state.expression_cast(A, out_type);
-		B             = state.expression_cast(B, out_type);
-
-		return Expression(Strings::format("({} * {})", A.code, B.code), A.type, false);
-	}
-
 	Div::Div()
 	{
 		m_inputs.push_back(new FloatInputPin(this, "A"));
 		m_inputs.push_back(new FloatInputPin(this, "B"));
 		m_outputs.push_back(new FloatOutputPinND(this, "Out"));
-	}
-
-	Expression Div::compile(OutputPin* pin, CompilerState& state)
-	{
-		auto out_type = out_pin_type(m_outputs[0]);
-		Expression A  = state.pin_source(m_inputs[0]);
-		Expression B  = state.pin_source(m_inputs[1]);
-		A             = state.expression_cast(A, out_type);
-		B             = state.expression_cast(B, out_type);
-
-		return Expression(Strings::format("({} / {})", A.code, B.code), A.type, false);
 	}
 
 	Sin::Sin()

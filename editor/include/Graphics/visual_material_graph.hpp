@@ -246,6 +246,7 @@ namespace Engine::VisualMaterialGraph
 		NodeSignature& add_input_types(size_t pin_index, const Set<PinType>& types);
 		int_t find_signature_index(const Node* node) const;
 		bool support_input_type(size_t pin_index, PinType type) const;
+		size_t input_pin_types_count() const;
 		size_t signatures_count() const;
 		const Signature& signature(size_t index) const;
 	};
@@ -660,13 +661,13 @@ namespace Engine::VisualMaterialGraph
 
 
 #define declare_visual_material_node(NodeName)                                                                                   \
-	declare_class(NodeName, Node);                                                                                               \
                                                                                                                                  \
 public:                                                                                                                          \
 	const char* name() const override;
 
 #define declare_visual_material_simple_node(NodeName)                                                                            \
 	struct NodeName : public Node {                                                                                              \
+		declare_class(NodeName, Node);                                                                                           \
 		declare_visual_material_node(NodeName);                                                                                  \
                                                                                                                                  \
 		NodeName();                                                                                                              \
@@ -688,10 +689,12 @@ public:                                                                         
 
 	class Root : public Node
 	{
+		declare_class(Root, Node);
 		declare_visual_material_node(Root);
 
 		Root();
 		Expression compile(InputPin* pin, CompilerState& state) override;
+		const NodeSignature& signature() const override;
 	};
 
 
@@ -740,6 +743,7 @@ public:                                                                         
 	declare_visual_material_simple_node(AspectRatio);
 
 	struct UV : public Node {
+		declare_class(UV, Node);
 		declare_visual_material_node(UV);
 		int_t m_index = 0;
 
@@ -755,36 +759,46 @@ public:                                                                         
 	declare_visual_material_simple_node(Cos);
 
 
-	struct BinaryOperatorNode : public Node {
+	struct BinaryOperatorNode : public SignaturedNode {
+		declare_class(BinaryOperatorNode, SignaturedNode);
+		const NodeSignature& signature() const override;
 	};
 
+	template<char op>
+	struct OperatorNode : BinaryOperatorNode {
+		Expression make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
+		                           const Vector<Expression>& args) override
+		{
+			return Expression(Strings::format("({} {} {})", args[0].code, op, args[1].code), signature.output(0));
+		}
+	};
 
-	struct Add : public BinaryOperatorNode {
+	struct Add : public OperatorNode<'+'> {
+		declare_class(Add, BinaryOperatorNode);
 		declare_visual_material_node(Add);
 
 		Add();
-		Expression compile(OutputPin* pin, CompilerState& state) override;
 	};
 
-	struct Sub : public BinaryOperatorNode {
+	struct Sub : public OperatorNode<'-'> {
+		declare_class(Sub, BinaryOperatorNode);
 		declare_visual_material_node(Sub);
 
 		Sub();
-		Expression compile(OutputPin* pin, CompilerState& state) override;
 	};
 
-	struct Mul : public BinaryOperatorNode {
+	struct Mul : public OperatorNode<'*'> {
+		declare_class(Mul, BinaryOperatorNode);
 		declare_visual_material_node(Mul);
 
 		Mul();
-		Expression compile(OutputPin* pin, CompilerState& state) override;
 	};
 
-	struct Div : public BinaryOperatorNode {
+	struct Div : public OperatorNode<'/'> {
+		declare_class(Div, BinaryOperatorNode);
 		declare_visual_material_node(Div);
 
 		Div();
-		Expression compile(OutputPin* pin, CompilerState& state) override;
 	};
 
 
@@ -806,12 +820,14 @@ public:                                                                         
 
 	class Sampler : public Node
 	{
+		declare_class(Sampler, Node);
 		declare_visual_material_node(Sampler);
 		Sampler();
 	};
 
 	class Texture2D : public Node
 	{
+		declare_class(Texture2D, Node);
 		declare_visual_material_node(Texture2D);
 
 	private:

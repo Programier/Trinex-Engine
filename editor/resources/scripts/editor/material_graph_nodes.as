@@ -5,9 +5,9 @@ namespace Engine
 		NodeSignature power_node_signature;
 
 		[group("Engine::VisualMaterialGraphGroups::Math")]
-		class Power : SignaturedNode
+		class Pow : SignaturedNode
 		{	
-			Power()
+			Pow()
 			{
 				add_pin(FloatInputPin(this, "Base"));
 				add_pin(FloatInputPin(this, "Exp", 2.f));
@@ -28,22 +28,10 @@ namespace Engine
 		[initializer]
 		void initializer()
 		{
-			Class@ self = class_of<SignaturedNode>();
-			power_node_signature.add_signature({PinType::Int, PinType::Int}, {PinType::Int});
-			power_node_signature.add_signature({PinType::UInt, PinType::UInt}, {PinType::UInt});
 			power_node_signature.add_signature({PinType::Float, PinType::Float}, {PinType::Float});
-
-			power_node_signature.add_signature({PinType::IVec2, PinType::IVec2}, {PinType::IVec2});
-			power_node_signature.add_signature({PinType::UVec2, PinType::UVec2}, {PinType::Vec2});
 			power_node_signature.add_signature({PinType::Vec2, PinType::Vec2}, {PinType::Vec2});
-
-			power_node_signature.add_signature({PinType::IVec3, PinType::IVec3}, {PinType::IVec3});
-			power_node_signature.add_signature({PinType::UVec3, PinType::UVec3}, {PinType::UVec3});
 			power_node_signature.add_signature({PinType::Vec3, PinType::Vec3}, {PinType::Vec3});
 			power_node_signature.add_signature({PinType::Color3, PinType::Color3}, {PinType::Color3});
-
-			power_node_signature.add_signature({PinType::IVec4, PinType::IVec4}, {PinType::IVec4});
-			power_node_signature.add_signature({PinType::UVec4, PinType::UVec4}, {PinType::UVec4});
 			power_node_signature.add_signature({PinType::Vec4, PinType::Vec4}, {PinType::Vec4});
 			power_node_signature.add_signature({PinType::Color4, PinType::Color4}, {PinType::Color4});
 		}
