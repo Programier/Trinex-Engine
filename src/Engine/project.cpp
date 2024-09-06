@@ -70,6 +70,7 @@ namespace Engine
 		if (status)
 		{
 			auto rfs = rootfs();
+			rfs->create_dir(scripts_dir);
 			rfs->mount("scripts:", new VFS::NativeFileSystem(scripts_dir), [](VFS::FileSystem* fs) { delete fs; });
 		}
 

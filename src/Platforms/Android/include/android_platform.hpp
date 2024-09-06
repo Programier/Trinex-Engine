@@ -21,10 +21,12 @@ namespace Engine::Platform
 		uint_t screen_height;
 		Orientation orientation;
 		bool mouse_in_relative_mode = false;
+		bool is_inited              = false;
 	};
 
 	extern AndroidPlatformInfo m_android_platform_info;
 
 	void initialize_android_application(struct android_app* app);
+	void initialize_android_events_callbacks(struct android_app* app);
 	android_app* android_application();
 }// namespace Engine::Platform

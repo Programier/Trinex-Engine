@@ -5,6 +5,7 @@
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
 #include <jni.h>
+#include <unistd.h>
 
 
 static Engine::String to_string(JNIEnv* env, jstring str)
@@ -47,6 +48,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_updateOri
 namespace Engine::Platform
 {
 	AndroidPlatformInfo m_android_platform_info = {};
+	static android_app* m_application           = nullptr;
 
 	ENGINE_EXPORT OperationSystemType system_type()
 	{
@@ -85,5 +87,25 @@ namespace Engine::Platform
 		info.size = {m_android_platform_info.screen_width, m_android_platform_info.screen_height};
 		//info.dpi = m_android_platform_info.
 		return info;
+	}
+
+	void initialize_android_application(struct android_app* app)
+	{
+		m_application = app;
+
+		initialize_android_events_callbacks(app);
+
+		while (m_android_platform_info.is_inited == false)
+		{
+			WindowManager::wait_for_events([](const Event& e, void*) {}, nullptr);
+		}
+
+		Path exec_dir = find_exec_directory();
+		chdir(exec_dir.c_str());
+	}
+
+	android_app* android_application()
+	{
+		return m_application;
 	}
 }// namespace Engine::Platform

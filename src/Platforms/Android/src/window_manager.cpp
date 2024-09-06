@@ -12,13 +12,11 @@
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
 #include <android_window.hpp>
+#include <unistd.h>
 
 namespace Engine::Platform
 {
-
-	static bool m_is_inited           = false;
-	static android_app* m_application = nullptr;
-	static AndroidWindow* m_window    = nullptr;
+	static AndroidWindow* m_window = nullptr;
 
 	template<typename T>
 	using ValueMap = Map<int32_t, T>;
@@ -154,11 +152,11 @@ namespace Engine::Platform
 
 	static void handle_app_cmd(struct android_app* app, int32_t cmd)
 	{
-		if (m_is_inited == false)
+		if (m_android_platform_info.is_inited == false)
 		{
 			if (cmd == APP_CMD_INIT_WINDOW)
 			{
-				m_is_inited = true;
+				m_android_platform_info.is_inited = true;
 			}
 			return;
 		}
@@ -223,13 +221,13 @@ namespace Engine::Platform
 		{
 			KeyDownEvent event;
 			event.key = key;
-			EventSystem::instance()->push_event(Event(window_id(), EventType::KeyDown, event));
+			push_event(Event(window_id(), EventType::KeyDown, event));
 		}
 		else
 		{
 			KeyUpEvent event;
 			event.key = key;
-			EventSystem::instance()->push_event(Event(window_id(), EventType::KeyUp, event));
+			push_event(Event(window_id(), EventType::KeyUp, event));
 		}
 
 		return 1;
@@ -270,7 +268,7 @@ namespace Engine::Platform
 		event_data.x = AMotionEvent_getX(input_event, event_pointer_index);
 		event_data.y = h - AMotionEvent_getY(input_event, event_pointer_index);
 
-		EventSystem::instance()->push_event(Event(window_id(), type, event_data));
+		push_event(Event(window_id(), type, event_data));
 		return 1;
 	}
 
@@ -299,7 +297,7 @@ namespace Engine::Platform
 
 			event.x = x;
 			event.y = y;
-			EventSystem::instance()->push_event(Event(window_id(), EventType::MouseMotion, event));
+			push_event(Event(window_id(), EventType::MouseMotion, event));
 			result = 1;
 		}
 		else if (action == AMOTION_EVENT_ACTION_SCROLL)
@@ -310,7 +308,7 @@ namespace Engine::Platform
 
 			if (glm::epsilonNotEqual(event.x, 0.f, 0.01f) || glm::epsilonNotEqual(event.y, 0.f, 0.01f))
 			{
-				EventSystem::instance()->push_event(Event(window_id(), EventType::MouseWheel, event));
+				push_event(Event(window_id(), EventType::MouseWheel, event));
 				result = 1;
 			}
 		}
@@ -349,7 +347,7 @@ namespace Engine::Platform
 
 				if (glm::epsilonNotEqual(event.xrel, 0.f, 0.001f) || glm::epsilonNotEqual(event.yrel, 0.f, 0.001f))
 				{
-					EventSystem::instance()->push_event(Event(window_id(), EventType::FingerMotion, event));
+					push_event(Event(window_id(), EventType::FingerMotion, event));
 				}
 			}
 
@@ -367,7 +365,7 @@ namespace Engine::Platform
 				event.x            = AMotionEvent_getX(input_event, event_pointer_index);
 				event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
 
-				EventSystem::instance()->push_event(Event(window_id(), EventType::FingerDown, event));
+				push_event(Event(window_id(), EventType::FingerDown, event));
 			}
 
 			result = 1;
@@ -383,7 +381,7 @@ namespace Engine::Platform
 				float h            = window->size().y;
 				event.x            = AMotionEvent_getX(input_event, event_pointer_index);
 				event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
-				EventSystem::instance()->push_event(Event(window_id(), EventType::FingerUp, event));
+				push_event(Event(window_id(), EventType::FingerUp, event));
 			}
 
 			result = 1;
@@ -416,8 +414,7 @@ namespace Engine::Platform
 
 	static int32_t handle_input_event(struct android_app* app, AInputEvent* input_event)
 	{
-		int32_t result = 0;
-
+		int32_t result     = 0;
 		int32_t event_type = AInputEvent_getType(input_event);
 
 		switch (event_type)
@@ -431,25 +428,6 @@ namespace Engine::Platform
 		}
 
 		return result;
-	}
-
-	void initialize_android_application(struct android_app* app)
-	{
-		m_application = app;
-
-		app->onAppCmd     = handle_app_cmd;
-		app->onInputEvent = handle_input_event;
-
-		// Wait activity initialization
-		while (m_is_inited == false)
-		{
-			WindowManager::wait_for_events([](const Event& e, void*) {}, nullptr);
-		}
-	}
-
-	android_app* android_application()
-	{
-		return m_application;
 	}
 
 	namespace WindowManager
@@ -500,9 +478,9 @@ namespace Engine::Platform
 			m_event_userdata = userdata;
 
 			if (source != nullptr)
-				source->process(m_application, source);
+				source->process(android_application(), source);
 
-			if (m_application->destroyRequested != 0)
+			if (android_application()->destroyRequested != 0)
 			{
 				callback(Event(0, EventType::Quit), userdata);
 			}
@@ -521,7 +499,8 @@ namespace Engine::Platform
 				throw EngineException("Android: ALOOPER_POLL_ERROR");
 			}
 
-			execute_pool_source(source, callback, userdata);
+			if (source && result >= 0)
+				execute_pool_source(source, callback, userdata);
 		}
 
 		ENGINE_EXPORT void pool_events(void (*callback)(const Event&, void*), void* userdata)
@@ -534,4 +513,38 @@ namespace Engine::Platform
 			android_get_events(-1, callback, userdata);
 		}
 	}// namespace WindowManager
+
+	void initialize_android_events_callbacks(struct android_app* app)
+	{
+		app->onAppCmd     = handle_app_cmd;
+		app->onInputEvent = handle_input_event;
+	}
+
+	static void on_preinit()
+	{
+		// So, this method is called from logic thread, but app->looper is setuped for main thread.
+		// We need to create a new looper on this thread and setup him like in android_native_app_glue.c
+
+		auto looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+		auto app    = android_application();
+		ALooper_removeFd(app->looper, app->msgread);
+		ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
+
+		pthread_mutex_lock(&app->mutex);
+		AInputQueue_detachLooper(app->inputQueue);
+
+		app->inputQueue = app->pendingInputQueue;
+
+		if (app->inputQueue != NULL)
+		{
+			AInputQueue_attachLooper(app->inputQueue, looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
+		}
+
+		pthread_cond_broadcast(&app->cond);
+		pthread_mutex_unlock(&app->mutex);
+
+		app->looper = looper;
+	}
+
+	static PreInitializeController preinit(on_preinit);
 }// namespace Engine::Platform
