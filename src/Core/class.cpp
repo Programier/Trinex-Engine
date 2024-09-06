@@ -15,7 +15,7 @@ namespace Engine
 		return vector;
 	}
 
-	Class::Class(const Name& name, Class* parent, BitMask _flags) : Struct(name, parent)
+	Class::Class(const Name& ns, const Name& name, Class* parent, BitMask _flags) : Struct(ns, name, parent)
 	{
 		m_size = 0;
 		info_log("Class", "Created class instance '%s'", this->name().c_str());
@@ -70,6 +70,12 @@ namespace Engine
 	{
 		return create_object();
 	}
+
+	const Struct& Class::destroy_struct(void* obj) const
+	{
+		return *this;
+	}
+
 
 	Object* Class::create_object(StringView name, Object* owner, const Class* class_overload) const
 	{

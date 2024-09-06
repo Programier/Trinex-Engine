@@ -373,7 +373,7 @@ private:
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
 			constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-			m_static_class                = new Engine::Class(ENTITY_INITIALIZER_NAME(class_name, namespace_name),               \
+			m_static_class                = new Engine::Class(#namespace_name, #class_name,                                      \
                                                has_base_class ? Super::static_class_instance() : nullptr, flags); \
 			m_static_class->setup_class<class_name>();                                                                           \
                                                                                                                                  \

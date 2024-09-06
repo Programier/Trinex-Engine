@@ -235,7 +235,7 @@ namespace Engine
 	public:
 		int_t execute() override
 		{
-			delete rhi;
+			rhi->info.struct_instance->destroy_struct(rhi);
 			return sizeof(DestroyRHI_Task);
 		}
 	};

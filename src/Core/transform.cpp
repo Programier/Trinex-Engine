@@ -14,13 +14,9 @@ namespace Engine
 {
 	const Transform Transform::transform_zero;
 
-	void Transform::initialize_transform_properties()
+	implement_struct(Engine, Transform)
 	{
-		static bool inited = false;
-		if (inited)
-			return;
-
-		Struct* self                = Struct::static_find("Engine::Transform", true);
+		Struct* self                = static_struct_instance();
 		static auto on_prop_changed = [](void* object) {
 			Transform* transform  = reinterpret_cast<Transform*>(object);
 			transform->m_is_dirty = true;
@@ -34,10 +30,7 @@ namespace Engine
 		rotation_prop->on_prop_changed.push(on_prop_changed);
 		scale_prop->on_prop_changed.push(on_prop_changed);
 		self->add_properties(location_prop, rotation_prop, scale_prop);
-		inited = true;
 	}
-
-	implement_struct(Engine, Transform, ).push(Transform::initialize_transform_properties);
 
 	Transform::Transform(const Vector3D& location, const Vector3D& rotation, const Vector3D& scale)
 	    : m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)

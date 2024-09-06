@@ -102,5 +102,17 @@ namespace Engine
 
 		template<typename T>
 		concept is_double = std::is_same_v<T, double> || std::is_same_v<T, long double>;
+
+		template<typename T>
+		concept struct_with_custom_allocation = requires(T* mem) {
+			{
+				T::static_constructor()
+			} -> std::same_as<T*>;
+
+			{
+				T::static_destructor(mem)
+			};
+		};
+
 	}// namespace Concepts
 }// namespace Engine

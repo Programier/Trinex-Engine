@@ -18,6 +18,10 @@ namespace Engine
 	};
 
 	struct OpenGL : public RHI {
+		declare_struct(OpenGL, void);
+		static OpenGL* static_constructor();
+		static void static_destructor(OpenGL* opengl);
+		
 		static OpenGL* m_instance;
 		void* m_context = nullptr;
 

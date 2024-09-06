@@ -144,6 +144,8 @@ namespace Engine
 
 	template<size_t length, typename Type>
 	using TypedVector = glm::vec<length, Type, glm::defaultp>;
+	
+	class Struct;
 }// namespace Engine
 
 

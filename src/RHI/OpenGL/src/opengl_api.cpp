@@ -8,16 +8,28 @@
 
 namespace Engine
 {
-	implement_struct(Engine::RHI, OPENGL, ).push([]() {
-		Struct::static_find("Engine::RHI::OPENGL", true)->struct_constructor([]() -> void* {
-			if (OpenGL::m_instance == nullptr)
-			{
-				OpenGL::m_instance                       = new OpenGL();
-				OpenGL::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::OPENGL", true);
-			}
-			return OpenGL::m_instance;
-		});
-	});
+	using OPENGL = OpenGL;
+	implement_struct_default_init(Engine::RHI, OPENGL);
+
+	OpenGL* OpenGL::static_constructor()
+	{
+		if (OpenGL::m_instance == nullptr)
+		{
+			OpenGL::m_instance                       = new OpenGL();
+			OpenGL::m_instance->info.struct_instance = static_struct_instance();
+		}
+
+		return OpenGL::m_instance;
+	}
+
+	void OpenGL::static_destructor(OpenGL* opengl)
+	{
+		if (opengl == m_instance)
+		{
+			delete opengl;
+			m_instance = nullptr;
+		}
+	}
 
 	OpenGL* OpenGL::m_instance = nullptr;
 

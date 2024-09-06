@@ -88,4 +88,15 @@
 #define HAS_INCLUDE(include_name) __has_include(<include_name>)
 
 #define TRINEX_WRAP_CODE(code) code
+
 // USER SPECIFIC DEFINITIONS!
+
+#define declare_struct(struct_name, base_name)                                                                                   \
+protected:                                                                                                                       \
+	static class Engine::Struct* m_static_struct;                                                                                \
+                                                                                                                                 \
+public:                                                                                                                          \
+	using This  = struct_name;                                                                                                   \
+	using Super = base_name;                                                                                                     \
+	static void static_initialize_struct();                                                                                      \
+	static class Engine::Struct* static_struct_instance();

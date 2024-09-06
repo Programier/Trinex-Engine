@@ -20,72 +20,74 @@
 
 namespace Engine
 {
-	implement_struct(Engine::Pipeline, DepthTestInfo, ).push([]() {
-		using DTI    = Pipeline::DepthTestInfo;
-		Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);
+	using DepthTestInfo     = Pipeline::DepthTestInfo;
+	using StencilTestInfo   = Pipeline::StencilTestInfo;
+	using AssemblyInfo      = Pipeline::AssemblyInfo;
+	using RasterizerInfo    = Pipeline::RasterizerInfo;
+	using ColorBlendingInfo = Pipeline::ColorBlendingInfo;
+
+	implement_struct(Engine::Pipeline, DepthTestInfo)
+	{
+		Struct* self = static_struct_instance();
 
 		self->add_properties(
-		        new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::static_find("Engine::DepthFunc", true)),
-		        new BoolProperty("Enable", "Enable depth test", &DTI::enable),
-		        new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable));
-	});
+		        new EnumProperty("Func", "Depth compare function", &This::func, Enum::static_find("Engine::DepthFunc", true)),
+		        new BoolProperty("Enable", "Enable depth test", &This::enable),
+		        new BoolProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
+	}
 
-	implement_struct(Engine::Pipeline, StencilTestInfo, ).push([]() {
-		using STI = Pipeline::StencilTestInfo;
-
-		Struct* self            = Struct::static_find("Engine::Pipeline::StencilTestInfo", true);
+	implement_struct(Engine::Pipeline, StencilTestInfo)
+	{
+		Struct* self            = static_struct_instance();
 		Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
 		Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
 
-		self->add_properties(new BoolProperty("Enable", "Enable stencil test", &STI::enable),
-		                     new EnumProperty("Fail", "Operation on fail", &STI::fail, stencil_op_enum),
-		                     new EnumProperty("Depth pass", "Operation on depth pass", &STI::depth_pass, stencil_op_enum),
-		                     new EnumProperty("Depth Fail", "Operation on depth fail", &STI::depth_fail, stencil_op_enum),
-		                     new EnumProperty("Compare func", "Stencil compare function", &STI::compare, compare_func_enum),
-		                     new ByteProperty("Compare mask", "Stencil compare mask", &STI::compare_mask),
-		                     new ByteProperty("Write mask", "Stencil write mask", &STI::write_mask));
-	});
+		self->add_properties(new BoolProperty("Enable", "Enable stencil test", &This::enable),
+		                     new EnumProperty("Fail", "Operation on fail", &This::fail, stencil_op_enum),
+		                     new EnumProperty("Depth pass", "Operation on depth pass", &This::depth_pass, stencil_op_enum),
+		                     new EnumProperty("Depth Fail", "Operation on depth fail", &This::depth_fail, stencil_op_enum),
+		                     new EnumProperty("Compare func", "Stencil compare function", &This::compare, compare_func_enum),
+		                     new ByteProperty("Compare mask", "Stencil compare mask", &This::compare_mask),
+		                     new ByteProperty("Write mask", "Stencil write mask", &This::write_mask));
+	}
 
-	implement_struct(Engine::Pipeline, AssemblyInfo, ).push([]() {
-		using AI = Pipeline::AssemblyInfo;
-
-		Struct* self = Struct::static_find("Engine::Pipeline::AssemblyInfo", true);
-
+	implement_struct(Engine::Pipeline, AssemblyInfo)
+	{
+		Struct* self = static_struct_instance();
 		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-		                                      &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
-	});
+		                                      &This::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
+	}
 
-	implement_struct(Engine::Pipeline, RasterizerInfo, ).push([]() {
-		using RI = Pipeline::RasterizerInfo;
-
-		Struct* self = Struct::static_find("Engine::Pipeline::RasterizerInfo", true);
+	implement_struct(Engine::Pipeline, RasterizerInfo)
+	{
+		Struct* self = static_struct_instance();
 
 		self->add_properties(
-		        new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
+		        new EnumProperty("Polygon mode", "Polygon Mode", &This::polygon_mode,
 		                         Enum::static_find("Engine::PolygonMode", true)),
-		        new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
-		        new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)),
-		        new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width));
-	});
+		        new EnumProperty("Cull mode", "Cull Mode", &This::cull_mode, Enum::static_find("Engine::CullMode", true)),
+		        new EnumProperty("Front face", "Front face", &This::front_face, Enum::static_find("Engine::FrontFace", true)),
+		        new FloatProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
+	}
 
-	implement_struct(Engine::Pipeline, ColorBlendingInfo, ).push([]() {
-		using CBI    = Pipeline::ColorBlendingInfo;
-		Struct* self = Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true);
+	implement_struct(Engine::Pipeline, ColorBlendingInfo)
+	{
+		Struct* self = static_struct_instance();
 
 		Enum* blend_func = Enum::static_find("Engine::BlendFunc", true);
 		Enum* blend_op   = Enum::static_find("Engine::BlendOp", true);
 
-		self->add_properties(new BoolProperty("Enable", "Enable blending", &CBI::enable),
-		                     new EnumProperty("Src color func", "Src color func", &CBI::src_color_func, blend_func),
-		                     new EnumProperty("Dst color func", "Dst color func", &CBI::dst_color_func, blend_func),
-		                     new EnumProperty("Color operator", "Color operator", &CBI::color_op, blend_op),
+		self->add_properties(new BoolProperty("Enable", "Enable blending", &This::enable),
+		                     new EnumProperty("Src color func", "Src color func", &This::src_color_func, blend_func),
+		                     new EnumProperty("Dst color func", "Dst color func", &This::dst_color_func, blend_func),
+		                     new EnumProperty("Color operator", "Color operator", &This::color_op, blend_op),
 
-		                     new EnumProperty("Src alpha func", "Src alpha func", &CBI::src_alpha_func, blend_func),
-		                     new EnumProperty("Dst alpha func", "Dst alpha func", &CBI::dst_alpha_func, blend_func),
-		                     new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
-		                     new EnumProperty("Color mask", "Color mask", &CBI::color_mask,
+		                     new EnumProperty("Src alpha func", "Src alpha func", &This::src_alpha_func, blend_func),
+		                     new EnumProperty("Dst alpha func", "Dst alpha func", &This::dst_alpha_func, blend_func),
+		                     new EnumProperty("Alpha operator", "Alpha operator", &This::alpha_op, blend_op),
+		                     new EnumProperty("Color mask", "Color mask", &This::color_mask,
 		                                      Enum::static_find("Engine::ColorComponentMask", true)));
-	});
+	}
 
 	Pipeline::Pipeline()
 	{}

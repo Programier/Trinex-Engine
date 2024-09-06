@@ -5,18 +5,30 @@ namespace Engine
 {
 	NoneApi* NoneApi::m_instance = nullptr;
 
-	implement_struct(Engine::RHI, NONE, ).push([]() {
-		Struct::static_find("Engine::RHI::NONE", true)->struct_constructor([]() -> void* {
-			if (NoneApi::m_instance == nullptr)
-			{
-				NoneApi::m_instance                       = new NoneApi();
-				NoneApi::m_instance->info.name            = "None";
-				NoneApi::m_instance->info.renderer        = "None";
-				NoneApi::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::NONE", true);
-			}
-			return NoneApi::m_instance;
-		});
-	});
+	using NONE = NoneApi;
+
+	NoneApi* NoneApi::static_constructor()
+	{
+		if (NoneApi::m_instance == nullptr)
+		{
+			NoneApi::m_instance                       = new NoneApi();
+			NoneApi::m_instance->info.name            = "None";
+			NoneApi::m_instance->info.renderer        = "None";
+			NoneApi::m_instance->info.struct_instance = static_struct_instance();
+		}
+		return NoneApi::m_instance;
+	}
+
+	void NoneApi::static_destructor(NoneApi* api)
+	{
+		if (api == m_instance)
+		{
+			delete api;
+			m_instance = nullptr;
+		}
+	}
+
+	implement_struct_default_init(Engine::RHI, NONE);
 
 	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
 		void bind(BindLocation location) override

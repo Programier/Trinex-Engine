@@ -27,6 +27,8 @@ namespace Engine
 
 	public:
 		struct Attribute {
+			declare_struct(Attribute, void);
+			
 			Name name;
 			VertexBufferElementType type;
 			VertexAttributeInputRate rate;

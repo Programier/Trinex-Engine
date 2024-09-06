@@ -15,8 +15,12 @@
 
 namespace Engine
 {
-	implement_struct(Engine::VertexShader, Attribute, ).push([]() {
-		Struct* self                      = Struct::static_find("Engine::VertexShader::Attribute", true);
+	using Attribute = VertexShader::Attribute;
+
+	implement_struct(Engine::VertexShader, Attribute)
+	{
+		auto self = static_struct_instance();
+
 		Enum* type_enum                   = Enum::static_find("Engine::VertexBufferElementType", true);
 		Enum* vertex_attribute_rate_enum  = Enum::static_find("Engine::VertexAttributeInputRate", true);
 		Enum* vertex_buffer_semantic_enum = Enum::static_find("Engine::VertexBufferSemantic", true);
@@ -40,7 +44,7 @@ namespace Engine
 		                                    &VertexShader::Attribute::stream_index, Name::none, Property::IsNotSerializable));
 		self->add_property(new UInt16Property("Offset", "Offset of this attribute in vertex struct",
 		                                      &VertexShader::Attribute::offset, Name::none, Property::IsNotSerializable));
-	});
+	}
 
 	implement_engine_class_default_init(Shader, 0);
 

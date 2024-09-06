@@ -437,10 +437,8 @@ namespace Engine
 
 		auto base_class = reinterpret_cast<Class*>(base->GetNativeClassUserData());
 
-		auto full_name = Strings::concat_scoped_name(Strings::make_string_view(info->GetNamespace()),
-		                                             Strings::make_string_view(info->GetName()));
-
-		Class* script_class = new Class(full_name, base_class, Class::IsScriptable);
+		Class* script_class = new Class(Strings::make_string_view(info->GetNamespace()),
+		                                Strings::make_string_view(info->GetName()), base_class, Class::IsScriptable);
 
 		info->SetNativeClassUserData(script_class);
 
@@ -525,7 +523,7 @@ namespace Engine
 			if (metadata.contains("initializer"))
 			{
 				auto func = ScriptEngine::function_by_id(id);
-				
+
 				if (func.is_valid() && func.param_count() == 0)
 				{
 					ScriptContext::execute(func);

@@ -12,8 +12,9 @@
 
 namespace Engine
 {
-	implement_struct(Engine, MeshMaterial, ).push([]() {
-		Struct* self      = Struct::static_find("Engine::MeshMaterial", true);
+	implement_struct(Engine, MeshMaterial)
+	{
+		Struct* self      = static_struct_instance();
 		Enum* policy_enum = Enum::static_find("Engine::RenderingPolicy", true);
 
 		self->add_properties(new EnumProperty<MeshMaterial, EnumerateType>("Layer", "Layer type for this material",
@@ -21,8 +22,7 @@ namespace Engine
 		                     new ByteProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
 		                     new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
 		                                                 &MeshMaterial::material));
-	});
-
+	}
 
 	implement_engine_class(StaticMesh, Class::IsAsset)
 	{

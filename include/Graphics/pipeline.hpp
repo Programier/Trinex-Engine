@@ -25,12 +25,16 @@ namespace Engine
 		using ShadersArray = Array<class Shader*, 6>;
 
 		struct ALIGNED(4) DepthTestInfo {
+			declare_struct(DepthTestInfo, void);
+
 			DepthFunc func    = DepthFunc::Less;
 			bool enable       = true;
 			bool write_enable = true;
 		} depth_test;
 
 		struct ALIGNED(4) StencilTestInfo {
+			declare_struct(StencilTestInfo, void);
+
 			bool enable = false;
 
 			StencilOp fail       = StencilOp::Decr;
@@ -42,10 +46,14 @@ namespace Engine
 		} stencil_test;
 
 		struct ALIGNED(4) AssemblyInfo {
+			declare_struct(AssemblyInfo, void);
+
 			PrimitiveTopology primitive_topology = PrimitiveTopology::TriangleList;
 		} input_assembly;
 
 		struct ALIGNED(4) RasterizerInfo {
+			declare_struct(RasterizerInfo, void);
+
 			PolygonMode polygon_mode = PolygonMode::Fill;
 			CullMode cull_mode       = CullMode::Back;
 			FrontFace front_face     = FrontFace::ClockWise;
@@ -53,6 +61,8 @@ namespace Engine
 		} rasterizer;
 
 		struct ALIGNED(4) ColorBlendingInfo {
+			declare_struct(ColorBlendingInfo, void);
+
 			bool enable = false;
 
 

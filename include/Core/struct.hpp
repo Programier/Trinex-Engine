@@ -22,7 +22,8 @@ namespace Engine
 		};
 
 	private:
-		void* (*m_struct_constructor)() = nullptr;
+		void* (*m_alloc)()        = nullptr;
+		void (*m_free)(void* mem) = nullptr;
 
 	protected:
 		String m_base_name_splitted;
@@ -39,13 +40,42 @@ namespace Engine
 		GroupedPropertiesMap m_grouped_properties;
 
 
-		Struct(const Name& name, const Name& parent = Name::none);
-		Struct(const Name& name, Struct* parent);
-		
+		Struct(const Name& ns, const Name& name, const Name& parent = Name::none);
+		Struct(const Name& ns, const Name& name, Struct* parent);
+
 		void destroy_childs();
 
+		static ENGINE_EXPORT bool create_internal(const Name& ns, const Name& name, Struct* parent, Struct*& self);
+
 	public:
-		static ENGINE_EXPORT Struct* create(const Name& name, const Name& parent = Name::none);
+		template<typename T>
+		static Struct* create(const Name& ns, const Name& name)
+		{
+			Struct* self   = nullptr;
+			Struct* parent = nullptr;
+
+			if constexpr (!std::is_same_v<typename T::Super, void>)
+			{
+				parent = T::Super::static_struct_instance();
+			}
+
+			if (create_internal(ns, name, parent, self))
+			{
+				if constexpr (Concepts::struct_with_custom_allocation<T>)
+				{
+					self->m_alloc = []() -> void* { return T::static_constructor(); };
+					self->m_free  = [](void* mem) { T::static_destructor(reinterpret_cast<T*>(mem)); };
+				}
+				else
+				{
+					self->m_alloc = []() -> void* { return new T(); };
+					self->m_free  = [](void* mem) { delete reinterpret_cast<T*>(mem); };
+				}
+			}
+
+			return self;
+		}
+
 		static ENGINE_EXPORT Struct* static_find(const StringView& name, bool requred = false);
 
 		const String& base_name_splitted() const;
@@ -55,7 +85,7 @@ namespace Engine
 		const Name& parent_name() const;
 		Struct* parent() const;
 		virtual void* create_struct() const;
-		Struct& struct_constructor(void* (*constructor)());
+		virtual const Struct& destroy_struct(void* obj) const;
 		Struct& group(class Group*);
 		class Group* group() const;
 		size_t abstraction_level() const;
@@ -78,24 +108,26 @@ namespace Engine
 			(add_property(std::forward<Args>(args)), ...);
 			return *this;
 		}
-
-
-		template<typename Type>
-		Struct& setup_struct_constuctor()
-		{
-			if (m_struct_constructor == nullptr && !is_class())
-			{
-				m_struct_constructor = static_void_constructor_of<Type>;
-			}
-
-			return *this;
-		}
-
 		virtual ~Struct();
 	};
 
-#define implement_struct(namespace_name, struct_name, parent_struct_name)                                                        \
-	Engine::ReflectionInitializeController initialize_##struct_name = Engine::ReflectionInitializeController(                    \
-	        []() { Engine::Struct::create(ENTITY_INITIALIZER_NAME(struct_name, namespace_name), #parent_struct_name); },         \
-	        ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
+#define implement_struct(ns, name)                                                                                               \
+	class Engine::Struct* name::m_static_struct = nullptr;                                                                       \
+                                                                                                                                 \
+	class Engine::Struct* name::static_struct_instance()                                                                         \
+	{                                                                                                                            \
+		if (!m_static_struct)                                                                                                    \
+		{                                                                                                                        \
+			m_static_struct = Engine::Struct::create<name>(#ns, #name);                                                          \
+			name::static_initialize_struct();                                                                                    \
+		}                                                                                                                        \
+		return m_static_struct;                                                                                                  \
+	}                                                                                                                            \
+	static Engine::ReflectionInitializeController initialize_##name =                                                            \
+	        Engine::ReflectionInitializeController([]() { name::static_struct_instance(); }, ENTITY_INITIALIZER_NAME(name, ns)); \
+	void name::static_initialize_struct()
+
+#define implement_struct_default_init(ns, name)                                                                                  \
+	implement_struct(ns, name)                                                                                                   \
+	{}
 }// namespace Engine

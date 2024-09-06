@@ -146,6 +146,8 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT ShaderDefinition {
+		declare_struct(ShaderDefinition, void);
+
 		String key;
 		String value;
 	};

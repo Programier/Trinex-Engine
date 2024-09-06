@@ -11,6 +11,7 @@ namespace Engine
 	class ENGINE_EXPORT Transform
 	{
 	public:
+		declare_struct(Transform, void);
 		static const Transform transform_zero;
 
 	private:
@@ -75,7 +76,6 @@ namespace Engine
 		bool is_dirty() const;
 		const Transform& mark_dirty() const;
 		friend bool operator&(Archive& ar, Transform& t);
-		static void initialize_transform_properties();
 	};
 
 	bool operator&(Archive& ar, Transform& t);

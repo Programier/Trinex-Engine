@@ -27,6 +27,10 @@ namespace Engine
 	};
 
 	struct VulkanAPI : public RHI {
+		declare_struct(VulkanAPI, void);
+		static VulkanAPI* static_constructor();
+		static void static_destructor(VulkanAPI* vulkan);
+		
 		static VulkanAPI* m_vulkan;
 
 		Vector<VulkanExtention> m_device_extensions;

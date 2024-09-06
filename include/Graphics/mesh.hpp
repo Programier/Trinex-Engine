@@ -11,6 +11,8 @@ namespace Engine
 	class UInt32IndexBuffer;
 
 	struct ENGINE_EXPORT MeshMaterial {
+		declare_struct(MeshMaterial, void);
+
 		MaterialInterface* material = nullptr;
 		PolicyID policy;
 		byte surface_index;

@@ -27,9 +27,9 @@ namespace Engine
 	static PostDestroyController destroy_struct_map(on_destroy);
 
 
-	Struct::Struct(const Name& name, const Name& _parent)
-	    : m_struct_constructor(nullptr), m_full_name(name), m_namespace_name(Strings::namespace_sv_of(name)),
-	      m_base_name(Strings::class_name_sv_of(name)), m_parent(_parent)
+	Struct::Struct(const Name& ns, const Name& name, const Name& _parent)
+	    : m_alloc(nullptr), m_free(nullptr), m_full_name(Strings::concat_scoped_name(ns, name)), m_namespace_name(ns),
+	      m_base_name(name), m_parent(_parent)
 	{
 		m_base_name_splitted = Strings::make_sentence(m_base_name.to_string());
 
@@ -46,7 +46,7 @@ namespace Engine
 		it = this;
 	}
 
-	Struct::Struct(const Name& name, Struct* parent) : Struct(name)
+	Struct::Struct(const Name& ns, const Name& name, Struct* parent) : Struct(ns, name)
 	{
 		m_parent_struct = parent;
 		if (m_parent_struct)
@@ -65,16 +65,17 @@ namespace Engine
 		}
 	}
 
-	ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& parent)
+	ENGINE_EXPORT bool Struct::create_internal(const Name& ns, const Name& name, Struct* parent, Struct*& self)
 	{
-		Struct* self = static_find(name);
+		self = static_find(Strings::concat_scoped_name(ns, name));
 
 		if (!self)
 		{
-			self = new Struct(name, parent);
+			self = new Struct(ns, name, parent);
+			return true;
 		}
 
-		return self;
+		return false;
 	}
 
 	ENGINE_EXPORT Struct* Struct::static_find(const StringView& name, bool requred)
@@ -139,17 +140,12 @@ namespace Engine
 
 	void* Struct::create_struct() const
 	{
-		if (m_struct_constructor)
-		{
-			return m_struct_constructor();
-		}
-
-		return nullptr;
+		return m_alloc();
 	}
 
-	Struct& Struct::struct_constructor(void* (*constructor)())
+	const Struct& Struct::destroy_struct(void* obj) const
 	{
-		m_struct_constructor = constructor;
+		m_free(obj);
 		return *this;
 	}
 
@@ -302,8 +298,8 @@ namespace Engine
 		{
 			m_parent_struct->m_childs.erase(this);
 		}
-		
-		if(m_group)
+
+		if (m_group)
 		{
 			m_group->remove_struct(this);
 		}

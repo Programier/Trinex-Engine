@@ -8,6 +8,10 @@ namespace Engine
 	class NoneApi : public RHI
 	{
 	public:
+		declare_struct(NoneApi, void);
+		static NoneApi* static_constructor();
+		static void static_destructor(NoneApi* api);
+		
 		static NoneApi* m_instance;
 
 		NoneApi& initialize(class Window* window) override;

@@ -52,7 +52,7 @@ namespace Engine
 		CallBacks<void(Class*)> on_class_destroy;
 		Function<void(ScriptClassRegistrar*, Class*)> script_registration_callback;
 
-		Class(const Name& full_name, Class* parent = nullptr, BitMask flags = 0);
+		Class(const Name& ns, const Name& name, Class* parent = nullptr, BitMask flags = 0);
 
 		Class* parent() const;
 		const ChildsSet& child_classes() const;
@@ -61,6 +61,7 @@ namespace Engine
 		Class& destroy_func(void (*)(Object*));
 
 		void* create_struct() const override;
+		const Struct& destroy_struct(void* obj) const override;
 		Object* create_object(StringView name = "", Object* owner = nullptr, const Class* class_overload = nullptr) const;
 		Object* create_placement_object(void* place, StringView name = "", Object* owner = nullptr,
 		                                const Class* class_overload = nullptr) const;

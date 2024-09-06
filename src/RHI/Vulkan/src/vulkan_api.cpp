@@ -31,17 +31,29 @@ namespace Engine
 
 	VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
-	implement_struct(Engine::RHI, VULKAN, ).push([]() {
-		Struct::static_find("Engine::RHI::VULKAN", true)->struct_constructor([]() -> void* {
-			if (VulkanAPI::m_vulkan == nullptr)
-			{
-				VulkanAPI::m_vulkan                       = new VulkanAPI();
-				VulkanAPI::m_vulkan->info.name            = "Vulkan";
-				VulkanAPI::m_vulkan->info.struct_instance = Struct::static_find("Engine::RHI::VULKAN", true);
-			}
-			return VulkanAPI::m_vulkan;
-		});
-	});
+	using VULKAN = VulkanAPI;
+
+	implement_struct_default_init(Engine::RHI, VULKAN);
+
+	VulkanAPI* VulkanAPI::static_constructor()
+	{
+		if (VulkanAPI::m_vulkan == nullptr)
+		{
+			VulkanAPI::m_vulkan                       = new VulkanAPI();
+			VulkanAPI::m_vulkan->info.name            = "Vulkan";
+			VulkanAPI::m_vulkan->info.struct_instance = static_struct_instance();
+		}
+		return VulkanAPI::m_vulkan;
+	}
+
+	void VulkanAPI::static_destructor(VulkanAPI* vulkan)
+	{
+		if (vulkan == m_vulkan)
+		{
+			delete vulkan;
+			m_vulkan = nullptr;
+		}
+	}
 
 	VulkanAPI::VulkanAPI()
 	{

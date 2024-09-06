@@ -35,9 +35,10 @@ namespace Engine
 	    : type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
 	{}
 
-	implement_struct(Engine, ShaderDefinition, ).push([]() {
-		Struct* self = Struct::static_find("Engine::ShaderDefinition", true);
+	implement_struct(Engine, ShaderDefinition)
+	{
+		Struct* self = static_struct_instance();
 		self->add_property(new StringProperty("Key", "Key of definition", &ShaderDefinition::key));
 		self->add_property(new StringProperty("Value", "Value of definition", &ShaderDefinition::value));
-	});
+	}
 }// namespace Engine
