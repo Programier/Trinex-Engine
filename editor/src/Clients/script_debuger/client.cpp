@@ -586,7 +586,7 @@ namespace Engine
 
 			count = ScriptEngine::module_count();
 
-			for (uint i = 0; i < count; ++i)
+			for (uint_t i = 0; i < count; ++i)
 			{
 				auto module = ScriptEngine::module_by_index(i);
 

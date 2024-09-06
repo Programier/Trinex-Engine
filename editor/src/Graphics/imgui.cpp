@@ -495,7 +495,7 @@ namespace Engine
 			{}
 		};
 
-		class ENGINE_EXPORT ImGuiViewportClient : public ViewportClient
+		class ImGuiViewportClient : public ViewportClient
 		{
 			declare_class(ImGuiViewportClient, ViewportClient);
 			ImGuiDrawData m_draw_data;
@@ -1009,7 +1009,7 @@ namespace Engine
 			}
 		}
 
-		ENGINE_EXPORT void on_event_recieved(const Event& event)
+		void on_event_recieved(const Event& event)
 		{
 			auto type = event.type();
 
@@ -1053,7 +1053,7 @@ namespace Engine
 
 		static EventSystemListenerID m_listener_id;
 
-		ENGINE_EXPORT void disable_events()
+		void disable_events()
 		{
 			if (!m_listener_id.is_valid())
 				return;
@@ -1063,7 +1063,7 @@ namespace Engine
 			m_listener_id = EventSystemListenerID();
 		}
 
-		ENGINE_EXPORT void enable_events()
+		void enable_events()
 		{
 			if (m_listener_id.is_valid())
 				return;
@@ -1717,8 +1717,8 @@ namespace ImGui
 		return 0;
 	}
 
-	bool ENGINE_EXPORT InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags,
-	                             ImGuiInputTextCallback callback, void* user_data)
+	bool InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
+	               void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
@@ -1729,8 +1729,8 @@ namespace ImGui
 		return ImGui::InputText(label, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 
-	bool ENGINE_EXPORT InputTextMultiline(const char* label, Engine::String& buffer, const ImVec2& size,
-	                                      ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+	bool InputTextMultiline(const char* label, Engine::String& buffer, const ImVec2& size, ImGuiInputTextFlags flags,
+	                        ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;
@@ -1741,8 +1741,8 @@ namespace ImGui
 		return ImGui::InputTextMultiline(label, buffer.data(), buffer.size() + 1, size, flags, input_text_callback, &data);
 	}
 
-	bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, Engine::String& buffer, ImGuiInputTextFlags flags,
-	                                     ImGuiInputTextCallback callback, void* user_data)
+	bool InputTextWithHint(const char* label, const char* hint, Engine::String& buffer, ImGuiInputTextFlags flags,
+	                       ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
 		data.callback = callback;

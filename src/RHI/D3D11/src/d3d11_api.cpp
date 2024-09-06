@@ -17,17 +17,27 @@ namespace Engine
 	extern HWND extract_d3dx11_hwnd(class Window* main_window);
 	D3D11* D3D11::m_instance = nullptr;
 
-	implement_struct(Engine::RHI, D3D11, ).push([]() {
-		Struct::static_find("Engine::RHI::D3D11", true)->struct_constructor([]() -> void* {
-			if (D3D11::m_instance == nullptr)
-			{
-				D3D11::m_instance                       = new D3D11();
-				D3D11::m_instance->info.name            = "D3D11";
-				D3D11::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::D3D11", true);
-			}
-			return D3D11::m_instance;
-		});
-	});
+	implement_struct_default_init(Engine::RHI, D3D11);
+
+	D3D11* D3D11::static_constructor()
+	{
+		if (D3D11::m_instance == nullptr)
+		{
+			D3D11::m_instance                       = new D3D11();
+			D3D11::m_instance->info.name            = "D3D11";
+			D3D11::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::D3D11", true);
+		}
+		return D3D11::m_instance;
+	}
+
+	void D3D11::static_destructor(D3D11* d3d11)
+	{
+		if (d3d11 == m_instance)
+		{
+			delete d3d11;
+			m_instance = nullptr;
+		}
+	}
 
 	D3D11::D3D11()
 	{

@@ -36,6 +36,11 @@ namespace Engine
 	class D3D11 : public NoneApi
 	{
 	public:
+		declare_struct(D3D11, void);
+		
+		static D3D11* static_constructor();
+		static void static_destructor(D3D11* d3d11);
+		
 		static D3D11* m_instance;
 		D3D11_State m_state;
 

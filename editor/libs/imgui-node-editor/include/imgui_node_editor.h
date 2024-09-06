@@ -22,9 +22,8 @@
 
 
 //------------------------------------------------------------------------------
-# include <imgui_node_editor_export.hpp>
 #ifndef IMGUI_NODE_EDITOR_API
-#define IMGUI_NODE_EDITOR_API IMGUI_NODE_EDITOR_EXPORT
+#define IMGUI_NODE_EDITOR_API
 #endif
 
 
