@@ -3700,9 +3700,9 @@ namespace ImGui
 
                 if (ImGui::IsKeyPressed(sct.Key))
                 {
-                    if (((sct.Ctrl == 0 && !ctrl) || (sct.Ctrl == 1 && ctrl) || (sct.Ctrl == 2)) &&// ctrl check
-                        ((sct.Alt == 0 && !alt) || (sct.Alt == 1 && alt) || (sct.Alt == 2)) &&     // alt check
-                        ((sct.Shift == 0 && !shift) || (sct.Shift == 1 && shift) || (sct.Shift == 2)))
+                    if (((sct.Ctrl == 0 && !ctrl) || (sct.Ctrl == 1 && ctrl)) &&// ctrl check
+                        ((sct.Alt == 0 && !alt) || (sct.Alt == 1 && alt)) &&     // alt check
+                        ((sct.Shift == 0 && !shift) || (sct.Shift == 1 && shift)))
                     {// shift check
 
                         curActionID = (TextEditor::ShortcutID) i;
@@ -5094,12 +5094,9 @@ namespace ImGui
     void TextEditor::SetShortcut(TextEditor::ShortcutID id, Shortcut s)
     {
         m_shortcuts[(int) id].Key = s.Key;
-        if (m_shortcuts[(int) id].Ctrl != 2)
-            m_shortcuts[(int) id].Ctrl = s.Ctrl;
-        if (m_shortcuts[(int) id].Shift != 2)
-            m_shortcuts[(int) id].Shift = s.Shift;
-        if (m_shortcuts[(int) id].Alt != 2)
-            m_shortcuts[(int) id].Alt = s.Alt;
+        m_shortcuts[(int) id].Ctrl = s.Ctrl;
+        m_shortcuts[(int) id].Shift = s.Shift;
+        m_shortcuts[(int) id].Alt = s.Alt;
     }
 
     void TextEditor::Copy()

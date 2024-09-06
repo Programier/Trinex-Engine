@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -30,7 +31,7 @@ namespace Engine::Containers
 
 	private:
 		template<typename IteratorType>
-		using IteratorCategory = std::iterator_traits<IteratorType>::iterator_category;
+		using IteratorCategory = typename std::iterator_traits<IteratorType>::iterator_category;
 
 		template<typename IteratorType>
 		using RequireInputIter =
@@ -182,6 +183,13 @@ namespace Engine::Containers
 			}
 		}
 
+		template<typename Type, typename... Args>
+		constexpr auto construct_at(Type* loc, Args&&... args) noexcept(noexcept(::new((void*) 0) Type(std::declval<Args>()...)))
+		        -> decltype(::new((void*) 0) Type(std::declval<Args>()...))
+		{
+			return ::new ((void*) loc) Type(std::forward<Args>(args)...);
+		}
+
 		template<typename... Args>
 		constexpr inline void realloc_insert(iterator pos, Args&&... args)
 		{
@@ -194,7 +202,7 @@ namespace Engine::Containers
 
 			try
 			{
-				std::construct_at(new_start + elems_before, std::forward<Args>(args)...);
+				construct_at(new_start + elems_before, std::forward<Args>(args)...);
 				new_finish = nullptr;
 				new_finish = std::uninitialized_move(old_start, pos, new_start) + 1;
 				new_finish = std::uninitialized_move(pos, old_finish, new_finish);
@@ -296,7 +304,7 @@ namespace Engine::Containers
 			if (m_finish != m_end)
 				if (pos == cend())
 				{
-					std::construct_at(m_finish, std::move(v));
+					construct_at(m_finish, std::move(v));
 					++m_finish;
 				}
 				else
@@ -313,7 +321,7 @@ namespace Engine::Containers
 			std::destroy(m_start, m_end);
 
 			pointer cur(m_start);
-			for (; first != last && cur != m_finish; ++cur, ++first) std::construct_at(cur, *first);
+			for (; first != last && cur != m_finish; ++cur, ++first) construct_at(cur, *first);
 
 			if (first == last)
 				erase_at_end(cur);
@@ -349,7 +357,7 @@ namespace Engine::Containers
 		template<typename Arg>
 		constexpr void insert_aux(iterator pos, Arg&& arg)
 		{
-			std::construct_at(m_finish, std::move(*(m_finish - 1)));
+			construct_at(m_finish, std::move(*(m_finish - 1)));
 			++m_finish;
 			std::move_backward(pos, m_finish - 2, m_finish - 1);
 			*pos = std::forward<Arg>(arg);
@@ -362,7 +370,7 @@ namespace Engine::Containers
 			if (m_finish != m_end)
 				if (pos == cend())
 				{
-					std::construct_at(m_finish, std::forward<Args>(args)...);
+					construct_at(m_finish, std::forward<Args>(args)...);
 					++m_finish;
 				}
 				else
@@ -387,7 +395,7 @@ namespace Engine::Containers
 
 			while (m_finish != new_finish)
 			{
-				std::construct_at(m_finish);
+				construct_at(m_finish);
 				++m_finish;
 			}
 		}
@@ -398,7 +406,7 @@ namespace Engine::Containers
 
 			while (m_finish != new_finish)
 			{
-				std::construct_at(m_finish, v);
+				construct_at(m_finish, v);
 				++m_finish;
 			}
 		}
@@ -778,7 +786,7 @@ namespace Engine::Containers
 		{
 			if (m_finish != m_end)
 			{
-				std::construct_at(m_finish, std::forward<Args>(args)...);
+				construct_at(m_finish, std::forward<Args>(args)...);
 				++m_finish;
 			}
 			else

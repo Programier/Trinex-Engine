@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(TrinexEngine LANGUAGES C CXX)
+project(TrinexEngine LANGUAGES C CXX ASM)
 
 option(TRINEX_WITH_VULKAN "Build TrinexEngine with support Vulkan API" ON)
 option(TRINEX_WITH_OPENGL "Build TrinexEngine with support OpenGL API" ON)

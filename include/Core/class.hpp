@@ -114,7 +114,7 @@ namespace Engine
 						}
 						else
 						{
-							using ScriptableType = ObjectClass::template Scriptable<ObjectClass>;
+							using ScriptableType = typename ObjectClass::template Scriptable<ObjectClass>;
 
 							m_script_factory = [](StringView name, Object* owner) -> Object* {
 								return Object::new_instance<ScriptableType, true>(name, owner);

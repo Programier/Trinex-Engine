@@ -16,7 +16,7 @@ namespace Engine
 		result.pod             = true;
 		result.has_constructor = true;
 
-		using Element = Type::value_type;
+		using Element = typename Type::value_type;
 
 		if constexpr (std::is_floating_point_v<Element>)
 		{
@@ -92,10 +92,7 @@ namespace Engine
                                                                                                                                  \
 		name##Wrapper& operator*=(const name##Wrapper& new_obj)                                                                  \
 		{                                                                                                                        \
-			if constexpr (std::is_same_v<name::value_type, bool>)                                                                \
-				obj() = obj() & new_obj.obj();                                                                                   \
-			else                                                                                                                 \
-				obj() *= new_obj.obj();                                                                                          \
+			obj() *= new_obj.obj();                                                                                              \
 			return *this;                                                                                                        \
 		}                                                                                                                        \
                                                                                                                                  \
@@ -119,10 +116,7 @@ namespace Engine
                                                                                                                                  \
 		name##Wrapper& operator*=(name::value_type v)                                                                            \
 		{                                                                                                                        \
-			if constexpr (std::is_same_v<name::value_type, bool>)                                                                \
-				obj() = obj() & v;                                                                                               \
-			else                                                                                                                 \
-				obj() *= v;                                                                                                      \
+			obj() *= v;                                                                                                          \
 			return *this;                                                                                                        \
 		}                                                                                                                        \
                                                                                                                                  \
@@ -148,18 +142,12 @@ namespace Engine
                                                                                                                                  \
 		name##Wrapper operator*(const name##Wrapper& new_obj) const                                                              \
 		{                                                                                                                        \
-			if constexpr (std::is_same_v<name::value_type, bool>)                                                                \
-				return obj() & new_obj;                                                                                          \
-			else                                                                                                                 \
-				return obj() * new_obj.obj();                                                                                    \
+			return obj() * new_obj.obj();                                                                                        \
 		}                                                                                                                        \
                                                                                                                                  \
 		name##Wrapper operator*(name::value_type v) const                                                                        \
 		{                                                                                                                        \
-			if constexpr (std::is_same_v<name::value_type, bool>)                                                                \
-				return obj() & v;                                                                                                \
-			else                                                                                                                 \
-				return obj() * v;                                                                                                \
+			return obj() * v;                                                                                                    \
 		}                                                                                                                        \
                                                                                                                                  \
 		name##Wrapper operator/(const name##Wrapper& new_obj) const                                                              \

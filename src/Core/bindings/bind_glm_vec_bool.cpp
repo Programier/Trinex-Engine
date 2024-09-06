@@ -4,10 +4,156 @@
 
 namespace Engine
 {
-	implement_vector_wrapper(BoolVector1D);
-	implement_vector_wrapper(BoolVector2D);
-	implement_vector_wrapper(BoolVector3D);
-	implement_vector_wrapper(BoolVector4D);
+
+#define implement_vector_wrapper_bool(name)                                                                                      \
+	struct name##Wrapper : public name {                                                                                         \
+		name& obj()                                                                                                              \
+		{                                                                                                                        \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		const name& obj() const                                                                                                  \
+		{                                                                                                                        \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper()                                                                                                          \
+		{}                                                                                                                       \
+                                                                                                                                 \
+		template<typename... Args>                                                                                               \
+		name##Wrapper(Args... args) : name(args...)                                                                              \
+		{}                                                                                                                       \
+                                                                                                                                 \
+		name##Wrapper(const name##Wrapper& vec)                                                                                  \
+		{                                                                                                                        \
+			obj() = vec.obj();                                                                                                   \
+		}                                                                                                                        \
+                                                                                                                                 \
+		bool operator==(const name##Wrapper& wrap) const                                                                         \
+		{                                                                                                                        \
+			return obj() == wrap.obj();                                                                                          \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator=(const name##Wrapper& new_obj)                                                                   \
+		{                                                                                                                        \
+			obj() = new_obj.obj();                                                                                               \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator+=(const name##Wrapper& new_obj)                                                                  \
+		{                                                                                                                        \
+			obj() += new_obj.obj();                                                                                              \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator-=(const name##Wrapper& new_obj)                                                                  \
+		{                                                                                                                        \
+			obj() -= new_obj.obj();                                                                                              \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator/=(const name##Wrapper& new_obj)                                                                  \
+		{                                                                                                                        \
+			obj() /= new_obj.obj();                                                                                              \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator*=(const name##Wrapper& new_obj)                                                                  \
+		{                                                                                                                        \
+			obj() *= new_obj.obj();                                                                                              \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator+=(name::value_type v)                                                                            \
+		{                                                                                                                        \
+			obj() += v;                                                                                                          \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator-=(name::value_type v)                                                                            \
+		{                                                                                                                        \
+			obj() -= v;                                                                                                          \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator/=(name::value_type v)                                                                            \
+		{                                                                                                                        \
+			obj() /= v;                                                                                                          \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper& operator*=(name::value_type v)                                                                            \
+		{                                                                                                                        \
+			obj() &= v;                                                                                                          \
+			return *this;                                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator+(const name##Wrapper& new_obj) const                                                              \
+		{                                                                                                                        \
+			return obj() + new_obj.obj();                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator+(name::value_type v) const                                                                        \
+		{                                                                                                                        \
+			return obj() + v;                                                                                                    \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator-(const name##Wrapper& new_obj) const                                                              \
+		{                                                                                                                        \
+			return obj() - new_obj.obj();                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator-(name::value_type v) const                                                                        \
+		{                                                                                                                        \
+			return obj() - v;                                                                                                    \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator*(const name##Wrapper& new_obj) const                                                              \
+		{                                                                                                                        \
+			return obj() & new_obj.obj();                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator*(name::value_type v) const                                                                        \
+		{                                                                                                                        \
+			return obj() & v;                                                                                                    \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator/(const name##Wrapper& new_obj) const                                                              \
+		{                                                                                                                        \
+			return obj() / new_obj.obj();                                                                                        \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper operator/(name::value_type v) const                                                                        \
+		{                                                                                                                        \
+			return obj() / v;                                                                                                    \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper reverse_operator_sub(name::value_type f)                                                                   \
+		{                                                                                                                        \
+			return f - obj();                                                                                                    \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name##Wrapper reverse_operator_div(name::value_type f)                                                                   \
+		{                                                                                                                        \
+			return f / obj();                                                                                                    \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name::value_type value_at(uint_t index) const                                                                            \
+		{                                                                                                                        \
+			return obj()[index];                                                                                                 \
+		}                                                                                                                        \
+                                                                                                                                 \
+		name::value_type& value_at(uint_t index)                                                                                 \
+		{                                                                                                                        \
+			return obj()[index];                                                                                                 \
+		}                                                                                                                        \
+	};
+
+
+	implement_vector_wrapper_bool(BoolVector1D);
+	implement_vector_wrapper_bool(BoolVector2D);
+	implement_vector_wrapper_bool(BoolVector3D);
+	implement_vector_wrapper_bool(BoolVector4D);
 
 	static void bind_functions()
 	{

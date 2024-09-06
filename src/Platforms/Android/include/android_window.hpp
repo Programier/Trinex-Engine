@@ -58,8 +58,6 @@ namespace Engine
 		CursorMode cursor_mode() override;
 		bool support_orientation(Orientation orientation) override;
 		Orientation orientation() override;
-		int32_t process_imgui_event(AInputEvent* event);
-
 		~AndroidWindow();
 	};
 

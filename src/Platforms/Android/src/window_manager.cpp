@@ -12,7 +12,6 @@
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
 #include <android_window.hpp>
-#include <imgui_impl_android.h>
 
 namespace Engine::Platform
 {
@@ -23,6 +22,9 @@ namespace Engine::Platform
 
 	template<typename T>
 	using ValueMap = Map<int32_t, T>;
+
+	static void (*m_event_callback)(const Event&, void*) = nullptr;
+	static void* m_event_userdata                        = nullptr;
 
 
 	static ValueMap<Keyboard::Key> keys = {
@@ -145,11 +147,14 @@ namespace Engine::Platform
 		return 0;
 	}
 
+	static inline void push_event(const Event& e)
+	{
+		m_event_callback(e, m_event_userdata);
+	}
+
 	static void handle_app_cmd(struct android_app* app, int32_t cmd)
 	{
-		EventSystem* event_system = m_is_inited ? EventSystem::instance() : nullptr;
-
-		if (event_system == nullptr)
+		if (m_is_inited == false)
 		{
 			if (cmd == APP_CMD_INIT_WINDOW)
 			{
@@ -162,7 +167,7 @@ namespace Engine::Platform
 			switch (cmd)
 			{
 				case APP_CMD_TERM_WINDOW:
-					event_system->push_event(Event(window_id(), EventType::AppTerminating, AppTerminatingEvent()));
+					push_event(Event(window_id(), EventType::AppTerminating, AppTerminatingEvent()));
 					break;
 
 				case APP_CMD_WINDOW_RESIZED:
@@ -172,28 +177,28 @@ namespace Engine::Platform
 					break;
 
 				case APP_CMD_GAINED_FOCUS:
-					event_system->push_event(Event(window_id(), EventType::WindowFocusGained, WindowFocusGainedEvent()));
+					push_event(Event(window_id(), EventType::WindowFocusGained, WindowFocusGainedEvent()));
 					break;
 
 				case APP_CMD_LOST_FOCUS:
-					event_system->push_event(Event(window_id(), EventType::WindowFocusLost, WindowFocusLostEvent()));
+					push_event(Event(window_id(), EventType::WindowFocusLost, WindowFocusLostEvent()));
 					break;
 
 				case APP_CMD_LOW_MEMORY:
-					event_system->push_event(Event(window_id(), EventType::AppLowMemory, AppLowMemoryEvent()));
+					push_event(Event(window_id(), EventType::AppLowMemory, AppLowMemoryEvent()));
 					break;
 
 				case APP_CMD_RESUME:
-					event_system->push_event(Event(window_id(), EventType::AppResume, AppResumeEvent()));
+					push_event(Event(window_id(), EventType::AppResume, AppResumeEvent()));
 					break;
 
 				case APP_CMD_PAUSE:
-					event_system->push_event(Event(window_id(), EventType::AppPause, AppPauseEvent()));
+					push_event(Event(window_id(), EventType::AppPause, AppPauseEvent()));
 					break;
 
 				case APP_CMD_STOP:
 				case APP_CMD_DESTROY:
-					event_system->push_event(Event(window_id(), EventType::Quit, QuitEvent()));
+					push_event(Event(window_id(), EventType::Quit, QuitEvent()));
 					break;
 
 				default:
@@ -425,12 +430,7 @@ namespace Engine::Platform
 				break;
 		}
 
-		if (m_window)
-		{
-			result = glm::max(m_window->process_imgui_event(input_event), result);
-		}
-
-		return 1;
+		return result;
 	}
 
 	void initialize_android_application(struct android_app* app)
@@ -443,7 +443,7 @@ namespace Engine::Platform
 		// Wait activity initialization
 		while (m_is_inited == false)
 		{
-			WindowManager::wait_for_events();
+			WindowManager::wait_for_events([](const Event& e, void*) {}, nullptr);
 		}
 	}
 
@@ -494,18 +494,24 @@ namespace Engine::Platform
 			Engine::WindowManager::instance()->main_window()->cursor_mode(flag ? CursorMode::Hidden : CursorMode::Normal);
 		}
 
-		static void execute_pool_source(struct android_poll_source* source)
+		static void execute_pool_source(struct android_poll_source* source, void (*callback)(const Event&, void*), void* userdata)
 		{
+			m_event_callback = callback;
+			m_event_userdata = userdata;
+
 			if (source != nullptr)
 				source->process(m_application, source);
 
 			if (m_application->destroyRequested != 0)
 			{
-				EventSystem::instance()->push_event(Event(0, EventType::Quit, QuitEvent()));
+				callback(Event(0, EventType::Quit), userdata);
 			}
+
+			m_event_callback = nullptr;
+			m_event_userdata = nullptr;
 		}
 
-		static void android_get_events(int timeout)
+		static void android_get_events(int timeout, void (*callback)(const Event&, void*), void* userdata)
 		{
 			android_poll_source* source;
 			auto result = ALooper_pollOnce(timeout, nullptr, nullptr, (void**) &source);
@@ -515,17 +521,17 @@ namespace Engine::Platform
 				throw EngineException("Android: ALOOPER_POLL_ERROR");
 			}
 
-			execute_pool_source(source);
+			execute_pool_source(source, callback, userdata);
 		}
 
-		ENGINE_EXPORT void pool_events()
+		ENGINE_EXPORT void pool_events(void (*callback)(const Event&, void*), void* userdata)
 		{
-			android_get_events(0);
+			android_get_events(0, callback, userdata);
 		}
 
-		ENGINE_EXPORT void wait_for_events()
+		ENGINE_EXPORT void wait_for_events(void (*callback)(const Event&, void*), void* userdata)
 		{
-			android_get_events(-1);
+			android_get_events(-1, callback, userdata);
 		}
 	}// namespace WindowManager
 }// namespace Engine::Platform

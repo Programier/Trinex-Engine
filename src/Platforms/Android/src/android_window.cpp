@@ -5,7 +5,6 @@
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
 #include <android_window.hpp>
-#include <imgui_impl_android.h>
 
 #include <vulkan/vulkan.h>
 
@@ -206,33 +205,6 @@ namespace Engine
 	Orientation AndroidWindow::orientation()
 	{
 		return Platform::m_android_platform_info.orientation;
-	}
-
-	struct ImGuiContextSaver {
-		ImGuiContext* context;
-
-		ImGuiContextSaver() : context(ImGui::GetCurrentContext())
-		{}
-
-		ImGuiContextSaver(ImGuiContext* new_context) : context(ImGui::GetCurrentContext())
-		{
-			ImGui::SetCurrentContext(new_context);
-		}
-
-		~ImGuiContextSaver()
-		{
-			ImGui::SetCurrentContext(context);
-		}
-	};
-
-	int32_t AndroidWindow::process_imgui_event(AInputEvent* event)
-	{
-		if (imgui_context)
-		{
-			ImGuiContextSaver saver(imgui_context);
-			ImGui_ImplAndroid_HandleInputEvent(event);
-		}
-		return 0;
 	}
 
 	//// EGL WINDOW
