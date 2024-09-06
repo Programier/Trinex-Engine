@@ -135,7 +135,7 @@ namespace Engine
 
 		VulkanViewport::init();
 		create_swapchain();
-		create_main_render_target();
+		create_render_target();
 		return this;
 	}
 
@@ -328,13 +328,13 @@ namespace Engine
 
 			render_target->destroy();
 			create_swapchain();
-			create_main_render_target();
+			create_render_target();
 
 			VulkanViewport::reinit();
 		}
 	}
 
-	void VulkanWindowViewport::create_main_render_target()
+	void VulkanWindowViewport::create_render_target()
 	{
 		if (!m_render_target)
 			m_render_target = new VulkanWindowRenderTarget();

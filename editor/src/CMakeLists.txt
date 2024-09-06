@@ -4,10 +4,6 @@ file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SRC "${TRINEX_ENGINE_EDITOR_SOURCES_DIR}/
 add_trinex_editor_sources(${TRINEX_ENGINE_EDITOR_SRC})
 add_trinex_editor_libraries(assimp spirv-cross-glsl spirv-cross-core imgui imgui_node_editor imgui-filebrowser)
 
-if(NOT ANDROID)
-    add_trinex_editor_libraries(slang)
-endif()
-
 if(TRINEX_REBUILD_HEADERS)
     set(EDITOR_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AddIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AxisMaterial.tasset

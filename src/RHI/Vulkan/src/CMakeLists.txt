@@ -7,7 +7,7 @@ add_trinex_sources(${VULKAN_SRC})
 add_trinex_public_libraries(vk-bootstrap ${Vulkan_LIBRARY})
 target_include_directories(vk-bootstrap PRIVATE ${Vulkan_INCLUDE_DIR})
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND ANDROID)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_trinex_public_libraries(VkLayer_khronos_validation)
 endif()
 

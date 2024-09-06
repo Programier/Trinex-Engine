@@ -53,7 +53,7 @@ namespace Engine
 
 		VulkanViewport* init(RenderViewport* viewport);
 
-		void create_main_render_target();
+		void create_render_target();
 		void create_swapchain();
 		void destroy_swapchain(bool fully = false);
 		void recreate_swapchain();

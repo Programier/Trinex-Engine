@@ -336,7 +336,7 @@ namespace Engine
 
 	void VulkanWindowRenderTarget::resize_count(size_t new_count)
 	{
-		m_frames.resize(new_count);
+		m_frames.resize(new_count, nullptr);
 		for (VulkanWindowRenderTargetFrame*& frame : m_frames)
 		{
 			if (frame == nullptr)
