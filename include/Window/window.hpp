@@ -18,21 +18,20 @@ namespace Engine
 
 	private:
 		Pointer<class RenderViewport> m_render_viewport;
-		Size2D m_cached_size;
 		Window* m_parent_window = nullptr;
 		Vector<Window*> m_childs;
 
 	protected:
-		Window& imgui_initialize_internal();
-		Window& imgui_terminate_internal();
+		Atomic<Size2D> m_size;
 
 	public:
 		virtual void initialize(const WindowConfig&);
-		virtual Size1D width();
+		Size1D width();
+		Size1D height();
+		Size2D size();
+
 		virtual Window& width(const Size1D& width);
-		virtual Size1D height();
 		virtual Window& height(const Size1D& height);
-		virtual Size2D size();
 		virtual Window& size(const Size2D& size);
 		virtual String title();
 		virtual Window& title(const String& title);
@@ -67,8 +66,6 @@ namespace Engine
 		Window* parent_window() const;
 		const Vector<Window*>& child_windows() const;
 
-		Size2D cached_size() const;
-		Window& update_cached_size();
 		Window& create_client(const StringView& client_name);
 
 		virtual ~Window();

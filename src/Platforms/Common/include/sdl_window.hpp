@@ -7,8 +7,8 @@
 namespace Engine
 {
 	struct ENGINE_EXPORT WindowSDL : public Window {
-		Set<void (*)(SDL_Event*)> m_on_event;
-
+		using Window::m_size;
+		
 		Buffer m_icon_buffer;
 		Buffer m_cursor_icon_buffer;
 
@@ -21,13 +21,14 @@ namespace Engine
 		SDL_Event m_event;
 
 		Identifier m_id;
-
+		
+		using Window::width;
+		using Window::height;
+		using Window::size;
+		
 		WindowSDL* sdl_initialize(const WindowConfig* config);
-		Size1D width() override;
 		WindowSDL& width(const Size1D& width) override;
-		Size1D height() override;
 		WindowSDL& height(const Size1D& height) override;
-		Size2D size() override;
 		WindowSDL& size(const Size2D& size) override;
 		String title() override;
 		WindowSDL& title(const String& title) override;

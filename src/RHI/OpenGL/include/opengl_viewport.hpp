@@ -7,6 +7,7 @@ namespace Engine
 	struct OpenGL_Viewport : public RHI_DefaultDestroyable<RHI_Viewport> {
 		void vsync(bool flag) override;
 		void on_resize(const Size2D& new_size) override;
+		void on_orientation_changed(Orientation orientation) override;
 	};
 
 	struct OpenGL_WindowViewport : OpenGL_Viewport {

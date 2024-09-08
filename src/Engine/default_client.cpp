@@ -23,7 +23,16 @@ namespace Engine
 	DefaultClient& DefaultClient::render(class RenderViewport* viewport)
 	{
 		viewport->rhi_bind();
-		viewport->rhi_clear_color(Color(0, 0, 0, 1));
+
+		auto mat = DefaultResources::Materials::screen;
+
+		static Name name = "screen_texture";
+		reinterpret_cast<CombinedImageSamplerMaterialParameterBase*>(mat->find_parameter(name))
+		        ->texture_param(DefaultResources::Textures::default_texture);
+		mat->apply();
+		DefaultResources::Buffers::screen_position->rhi_bind(0);
+		rhi->draw(6, 0);
+
 		return *this;
 	}
 

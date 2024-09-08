@@ -46,6 +46,7 @@ namespace Engine
 		bool vsync();
 		RenderViewport& vsync(bool flag);
 		RenderViewport& on_resize(const Size2D& new_size);
+		RenderViewport& on_orientation_changed(Orientation orientation);
 		RenderViewport& render();
 
 		ViewportClient* client() const;

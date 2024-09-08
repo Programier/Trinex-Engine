@@ -20,8 +20,10 @@ namespace Engine::Platform
 		uint_t screen_width;
 		uint_t screen_height;
 		Orientation orientation;
-		bool mouse_in_relative_mode = false;
-		bool is_inited              = false;
+
+		bool mouse_in_relative_mode : 1 = false;
+		bool is_inited : 1              = false;
+		bool is_orientation_updated : 1 = false;
 	};
 
 	extern AndroidPlatformInfo m_android_platform_info;

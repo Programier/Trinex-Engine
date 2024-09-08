@@ -169,7 +169,22 @@ namespace Engine::Platform
 					break;
 
 				case APP_CMD_WINDOW_RESIZED:
+				{
+					auto new_size = m_window->calc_size();
+					m_window->m_size.store(new_size);
+					m_window->resized();
+
+					{
+						WindowResizedEvent e;
+						e.x      = 0.f;
+						e.y      = 0.f;
+						e.width  = new_size.x;
+						e.height = new_size.y;
+						push_event(Event(window_id(), EventType::WindowResized, e));
+					}
+
 					break;
+				}
 
 				case APP_CMD_CONTENT_RECT_CHANGED:
 					break;
@@ -199,6 +214,16 @@ namespace Engine::Platform
 					push_event(Event(window_id(), EventType::Quit, QuitEvent()));
 					break;
 
+				case APP_CMD_CONFIG_CHANGED:
+				{
+					if (m_android_platform_info.is_orientation_updated)
+					{
+						DisplayOrientationChangedEvent e;
+						e.orientation = m_android_platform_info.orientation;
+						push_event(Event(window_id(), EventType::DisplayOrientationChanged, e));
+					}
+					break;
+				}
 				default:
 					break;
 			}

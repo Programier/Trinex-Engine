@@ -13,7 +13,7 @@ namespace Engine
 
 	Size1D Window::width()
 	{
-		return 0.f;
+		return m_size.load().x;
 	}
 
 	Window& Window::width(const Size1D& width)
@@ -23,7 +23,7 @@ namespace Engine
 
 	Size1D Window::height()
 	{
-		return 0.f;
+		return m_size.load().y;
 	}
 
 	Window& Window::height(const Size1D& height)
@@ -33,7 +33,7 @@ namespace Engine
 
 	Size2D Window::size()
 	{
-		return {width(), height()};
+		return m_size.load();
 	}
 
 	Window& Window::size(const Size2D& size)
@@ -187,8 +187,6 @@ namespace Engine
 		m_render_viewport->window(this, config.vsync);
 		m_render_viewport->init_resource(true);
 
-		update_cached_size();
-
 		if (!InitializeController().is_triggered())
 		{
 			// Default resources is not loaded now, so, using deferred initialization
@@ -224,17 +222,6 @@ namespace Engine
 			viewport->client(nullptr);
 			GarbageCollector::destroy(viewport);
 		}
-	}
-
-	Size2D Window::cached_size() const
-	{
-		return m_cached_size;
-	}
-
-	Window& Window::update_cached_size()
-	{
-		m_cached_size = size();
-		return *this;
 	}
 
 	Window& Window::create_client(const StringView& client_name)

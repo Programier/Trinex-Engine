@@ -52,7 +52,6 @@ namespace Engine
 			return;
 
 		const WindowEvent& window_event = event.get<const WindowEvent&>();
-		window->update_cached_size();
 
 		{
 			auto x                          = window_event.x;
@@ -61,6 +60,23 @@ namespace Engine
 			if (render_viewport)
 			{
 				render_viewport->on_resize({x, y});
+			}
+		}
+	}
+
+	static void on_orientation_changed(const Event& event)
+	{
+		WindowManager* manager = WindowManager::instance();
+		Window* window         = manager->find(event.window_id());
+		if (!window)
+			return;
+
+		const DisplayOrientationChangedEvent& display_event = event.get<const DisplayOrientationChangedEvent&>();
+		{
+			RenderViewport* render_viewport = window->render_viewport();
+			if (render_viewport)
+			{
+				render_viewport->on_orientation_changed(display_event.orientation);
 			}
 		}
 	}
@@ -97,6 +113,7 @@ namespace Engine
 		add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
 		add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, false));
 		add_listener(EventType::WindowResized, on_resize);
+		add_listener(EventType::DisplayOrientationChanged, on_orientation_changed);
 
 		// Register subsystems
 		new_system<KeyboardSystem>();

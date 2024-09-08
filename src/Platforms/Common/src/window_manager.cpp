@@ -239,7 +239,7 @@ namespace Engine::Platform::WindowManager
 				{
 					size_t index = window->monitor_index();
 					auto info    = Platform::monitor_info(index);
-					e.y          = info.size.y - (y + window->cached_size().y);
+					e.y          = info.size.y - (y + window->size().y);
 					new_event(WindowMoved, e);
 				}
 				break;
@@ -248,9 +248,13 @@ namespace Engine::Platform::WindowManager
 			case SDL_WINDOWEVENT_RESIZED:
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 			{
+				WindowSDL* window =
+				        reinterpret_cast<WindowSDL*>(Engine::WindowManager::instance()->find(m_event.window.windowID));
 				WindowResizedEvent e;
 				e.x = x;
 				e.y = y;
+
+				window->m_size.store({x, y});
 				new_event(WindowResized, e);
 				break;
 			}

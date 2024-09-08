@@ -146,9 +146,19 @@ namespace Engine
 		return *this;
 	}
 
+	RenderViewport& RenderViewport::on_orientation_changed(Orientation orientation)
+	{
+		RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
+		if (viewport)
+		{
+			call_in_render_thread([viewport, orientation]() { viewport->on_orientation_changed(orientation); });
+		}
+		return *this;
+	}
+
 	Size2D RenderViewport::size() const
 	{
-		return window()->cached_size();
+		return window()->size();
 	}
 
 	class StartRenderingViewport : public ExecutableObject

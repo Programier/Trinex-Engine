@@ -906,9 +906,8 @@ namespace Engine
 		else if (event.type() == EventType::WindowResized && self->window()->id() == event.window_id())
 		{
 			const WindowEvent& window_event = event.get<const WindowEvent&>();
-			self->window()->update_cached_size();
-			auto x = window_event.x;
-			auto y = window_event.y;
+			auto x                          = window_event.x;
+			auto y                          = window_event.y;
 			self->viewport()->on_resize({x, y});
 
 			push_to_recieved_events = false;
@@ -937,7 +936,6 @@ namespace Engine
 			if (m_is_in_debug_loop)
 			{
 				viewport()->update(dt);
-
 				engine_instance->begin_render();
 				viewport()->render();
 				engine_instance->end_render();

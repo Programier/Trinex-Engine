@@ -90,6 +90,9 @@ namespace Engine
 		void on_resize(const Size2D& new_size) override
 		{}
 
+		void on_orientation_changed(Orientation orientation) override
+		{}
+
 		void bind() override
 		{}
 

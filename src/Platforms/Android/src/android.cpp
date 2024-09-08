@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/definitions.hpp>
+#include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
@@ -41,7 +42,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_updateOri
 {
 	using namespace Engine::Platform;
 
-	m_android_platform_info.orientation = static_cast<Engine::Orientation>(orientation);
+	m_android_platform_info.orientation            = static_cast<Engine::Orientation>(orientation);
+	m_android_platform_info.is_orientation_updated = true;
 }
 
 

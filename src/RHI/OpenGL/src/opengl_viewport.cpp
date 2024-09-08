@@ -13,6 +13,9 @@ namespace Engine
 	void OpenGL_Viewport::on_resize(const Size2D& new_size)
 	{}
 
+	void OpenGL_Viewport::on_orientation_changed(Orientation orientation)
+	{}
+
 	// Window Viewport
 
 	void make_window_current(Window* window, void* context);
@@ -61,7 +64,7 @@ namespace Engine
 
 		ViewPort viewport;
 		viewport.pos       = {0, 0};
-		viewport.size      = m_viewport->window()->cached_size();
+		viewport.size      = m_viewport->window()->size();
 		viewport.min_depth = 0.f;
 		viewport.max_depth = 1.f;
 		OPENGL_API->viewport(viewport);

@@ -30,7 +30,7 @@ namespace Engine
 		declare_struct(VulkanAPI, void);
 		static VulkanAPI* static_constructor();
 		static void static_destructor(VulkanAPI* vulkan);
-		
+
 		static VulkanAPI* m_vulkan;
 
 		Vector<VulkanExtention> m_device_extensions;
@@ -43,7 +43,6 @@ namespace Engine
 			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
 			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT     = nullptr;
 		} pfn;
-
 
 		// API DATA
 		VulkanState m_state;
@@ -117,8 +116,7 @@ namespace Engine
 		VulkanAPI& scissor(const Scissor& scissor) override;
 		Scissor scissor() override;
 
-		vk::PresentModeKHR present_mode_of(bool vsync);
-		bool vsync_from_present_mode(vk::PresentModeKHR);
+		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);
 
 		VulkanAPI& prepare_draw();
 		VulkanAPI& draw(size_t vertex_count, size_t vertices_offset) override;

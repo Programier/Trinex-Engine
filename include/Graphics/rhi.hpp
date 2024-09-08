@@ -91,12 +91,13 @@ namespace Engine
 		virtual void begin_render() = 0;
 		virtual void end_render()   = 0;
 
-		virtual void vsync(bool flag)                  = 0;
-		virtual void on_resize(const Size2D& new_size) = 0;
-		virtual void bind()                            = 0;
+		virtual void vsync(bool flag)                                = 0;
+		virtual void on_resize(const Size2D& new_size)               = 0;
+		virtual void on_orientation_changed(Orientation orientation) = 0;
+		virtual void bind()                                          = 0;
 		virtual void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-		                         SamplerFilter filter) = 0;
-		virtual void clear_color(const Color& color)   = 0;
+		                         SamplerFilter filter)               = 0;
+		virtual void clear_color(const Color& color)                 = 0;
 	};
 
 	struct ENGINE_EXPORT RHI {

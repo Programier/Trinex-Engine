@@ -76,6 +76,9 @@ namespace Engine
 	void VulkanViewport::on_resize(const Size2D& new_size)
 	{}
 
+	void VulkanViewport::on_orientation_changed(Orientation orientation)
+	{}
+
 	void VulkanViewport::vsync(bool flag)
 	{}
 
@@ -143,6 +146,11 @@ namespace Engine
 	{
 		m_need_recreate_swap_chain = true;
 		reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target)->frame()->size(new_size.x, new_size.y);
+	}
+
+	void VulkanWindowViewport::on_orientation_changed(Orientation orientation)
+	{
+		m_need_recreate_swap_chain = true;
 	}
 
 	void VulkanWindowViewport::vsync(bool flag)
@@ -265,16 +273,22 @@ namespace Engine
 			swapchain_builder.set_old_swapchain(m_swapchain->swapchain);
 		}
 
-		swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->present_mode_of(m_viewport->vsync())));
+		swapchain_builder.set_desired_present_mode(
+		        static_cast<VkPresentModeKHR>(API->present_mode_of(m_viewport->vsync(), m_surface)));
+		auto capabilities = API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
 
 		size_t images_count = API->m_framebuffers_count;
 		swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
 
 		swapchain_builder.add_image_usage_flags(
 		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
-#if PLATFORM_ANDROID
-		swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR);
-#endif
+
+		if (capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
+			swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR);
+		else
+			swapchain_builder.set_pre_transform_flags(static_cast<VkSurfaceTransformFlagBitsKHR>(capabilities.currentTransform));
+
+
 		VkSurfaceFormatKHR f;
 		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 		f.format     = VK_FORMAT_B8G8R8A8_UNORM;

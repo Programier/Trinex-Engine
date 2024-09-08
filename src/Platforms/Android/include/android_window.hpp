@@ -12,26 +12,28 @@ namespace Engine
 	{
 	protected:
 		String m_name;
-		Size2D m_size;
-		bool m_is_resizable : 1 = true;
-		bool m_init_vsync : 1   = true;
+		bool m_init_vsync : 1 = true;
 
 	public:
+		using Window::m_size;
 		struct ImGuiContext* imgui_context = nullptr;
 
 		AndroidWindow(const WindowConfig* config);
 
 		static ANativeWindow* static_native_window();
 
+		using Window::height;
+		using Window::size;
+		using Window::width;
+		
+		Size2D calc_size() const;
+
 		String title() override;
 		Window& title(const String& title) override;
 		Point2D position() override;
 		Window& position(const Point2D& position) override;
-		Size1D width() override;
 		Window& width(const Size1D& width) override;
-		Size1D height() override;
 		Window& height(const Size1D& height) override;
-		Size2D size() override;
 		Window& size(const Size2D& size) override;
 		bool resizable() override;
 		Window& resizable(bool value) override;
@@ -49,6 +51,8 @@ namespace Engine
 		Window& opacity(float value) override;
 		float opacity() override;
 		void* native_window() override;
+		
+		virtual void resized();
 
 		Window& icon(const Image& image) override;
 		Window& cursor(const Image& image, IntVector2D hotspot = {0, 0}) override;

@@ -12,14 +12,21 @@ namespace Engine
 {
 	AndroidWindow::AndroidWindow(const WindowConfig* config) : m_name("Android Window")
 	{
-		ANativeWindow_release(static_native_window());
-		m_is_resizable = config->contains_attribute(WindowAttribute::Resizable);
-		m_init_vsync   = config->vsync;
+		ANativeWindow_acquire(static_native_window());
+		m_init_vsync = config->vsync;
+
+		m_size.store(calc_size());
 	}
 
 	AndroidWindow::~AndroidWindow()
 	{
 		ANativeWindow_release(static_native_window());
+	}
+
+	Size2D AndroidWindow::calc_size() const
+	{
+		auto window = static_native_window();
+		return {static_cast<float>(ANativeWindow_getWidth(window)), static_cast<float>(ANativeWindow_getHeight(window))};
 	}
 
 	ANativeWindow* AndroidWindow::static_native_window()
@@ -48,33 +55,16 @@ namespace Engine
 		return *this;
 	}
 
-	Size1D AndroidWindow::width()
-	{
-		ANativeWindow* window = static_native_window();
-		return static_cast<Size1D>(ANativeWindow_getWidth(window));
-	}
-
 	Window& AndroidWindow::width(const Size1D& value)
 	{
 		size(Size2D(value, height()));
 		return *this;
 	}
 
-	Size1D AndroidWindow::height()
-	{
-		ANativeWindow* window = static_native_window();
-		return static_cast<Size1D>(ANativeWindow_getHeight(window));
-	}
-
 	Window& AndroidWindow::height(const Size1D& value)
 	{
 		size(Size2D(height(), value));
 		return *this;
-	}
-
-	Size2D AndroidWindow::size()
-	{
-		return Size2D(width(), height());
 	}
 
 	Window& AndroidWindow::size(const Size2D& size)
@@ -92,12 +82,11 @@ namespace Engine
 
 	bool AndroidWindow::resizable()
 	{
-		return m_is_resizable;
+		return false;
 	}
 
 	Window& AndroidWindow::resizable(bool value)
 	{
-		m_is_resizable = value;
 		return *this;
 	}
 
@@ -165,6 +154,12 @@ namespace Engine
 	void* AndroidWindow::native_window()
 	{
 		return static_native_window();
+	}
+
+	void AndroidWindow::resized()
+	{
+		ANativeWindow_setBuffersGeometry(static_native_window(), width(), height(),
+		                                 ANativeWindow_getFormat(static_native_window()));
 	}
 
 	Window& AndroidWindow::icon(const Image& image)

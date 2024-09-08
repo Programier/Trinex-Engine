@@ -20,6 +20,7 @@ namespace Engine::Settings
 	ENGINE_EXPORT Vector<String> e_languages;
 	ENGINE_EXPORT Vector<String> e_systems;
 	ENGINE_EXPORT Vector<String> e_libs;
+	ENGINE_EXPORT bool e_debug_shaders = false;
 
 	ENGINE_EXPORT String w_title;
 	ENGINE_EXPORT String w_client;
@@ -55,6 +56,7 @@ namespace Engine::Settings
 		bind_value(e_languages, engine);
 		bind_value(e_systems, engine);
 		bind_value(e_libs, engine);
+		bind_value(e_debug_shaders, engine);
 		bind_value(w_title, engine);
 		bind_value(w_client, engine);
 		bind_value(w_size_x, engine);

@@ -120,6 +120,9 @@ namespace Engine
 		}
 	}
 
+	void D3D11_WindowViewport::on_orientation_changed(Orientation orientation)
+	{}
+
 	void D3D11_WindowViewport::bind()
 	{
 		D3D11_Pipeline::unbind();

@@ -84,14 +84,33 @@ namespace Engine
 		vkb::destroy_instance(m_instance);
 	}
 
-	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync)
+
+	static vk::PresentModeKHR find_present_mode(const std::vector<vk::PresentModeKHR>& modes,
+	                                            const std::initializer_list<vk::PresentModeKHR>& requested)
 	{
-		return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
+		for (auto& mode : requested)
+		{
+			if (std::find(modes.begin(), modes.end(), mode) != modes.end())
+				return mode;
+		}
+		return modes[0];
 	}
 
-	bool VulkanAPI::vsync_from_present_mode(vk::PresentModeKHR present_mode)
+	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync, vk::SurfaceKHR surface)
 	{
-		return present_mode == vk::PresentModeKHR::eFifo ? true : false;
+		auto present_modes = m_physical_device.getSurfacePresentModesKHR(surface);
+
+		if (present_modes.empty())
+			throw EngineException("Failed to find present mode!");
+
+		if (vsync)
+		{
+			return find_present_mode(present_modes, {vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed});
+		}
+		else
+		{
+			return find_present_mode(present_modes, {vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox});
+		}
 	}
 
 	vk::Device* vulkan_device()

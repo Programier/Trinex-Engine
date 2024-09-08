@@ -869,7 +869,7 @@ namespace Engine
 			}
 			else
 			{
-				io.AddMousePosEvent(x, engine_window->cached_size().y - y);
+				io.AddMousePosEvent(x, engine_window->size().y - y);
 			}
 		}
 
@@ -1147,7 +1147,7 @@ namespace Engine
 			if (Engine::Window* wd = window_from(vp))
 			{
 				auto info = Platform::monitor_info(wd->monitor_index());
-				wd->position({pos.x, info.size.y - (pos.y + wd->cached_size().y)});
+				wd->position({pos.x, info.size.y - (pos.y + wd->size().y)});
 			}
 		}
 
@@ -1157,7 +1157,7 @@ namespace Engine
 			{
 				auto pos    = wd->position();
 				auto info   = Platform::monitor_info(wd->monitor_index());
-				float new_y = -pos.y + info.size.y - wd->cached_size().y;
+				float new_y = -pos.y + info.size.y - wd->size().y;
 				return {pos.x, new_y};
 			}
 
@@ -1292,8 +1292,8 @@ namespace Engine
 			ImGuiIO& io = ImGui::GetIO();
 			auto bd     = imgui_trinex_backend_data();
 
-			auto size            = window->cached_size();
-			Size2D drawable_size = window->cached_size();
+			auto size            = window->size();
+			Size2D drawable_size = window->size();
 
 			io.DisplaySize = ImVec2(size.x, size.y);
 			if (drawable_size.x > 0 && drawable_size.y > 0)

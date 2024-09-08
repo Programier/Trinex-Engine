@@ -91,6 +91,12 @@ namespace Engine
 		                            static_cast<int>(info->size.x), static_cast<int>(info->size.y),
 		                            m_api | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
+		{
+			int_t x, y;
+			SDL_GetWindowSize(m_window, &x, &y);
+			m_size = {static_cast<float>(x), static_cast<float>(y)};
+		}
+
 		m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 
 		if (m_window == nullptr)
@@ -126,34 +132,16 @@ namespace Engine
 		return this;
 	}
 
-
-	Size1D WindowSDL::width()
-	{
-		return size().x;
-	}
-
 	WindowSDL& WindowSDL::width(const Size1D& w)
 	{
 		size({w, height()});
 		return *this;
 	}
 
-	Size1D WindowSDL::height()
-	{
-		return size().y;
-	}
-
 	WindowSDL& WindowSDL::height(const Size1D& h)
 	{
 		size({width(), h});
 		return *this;
-	}
-
-	Size2D WindowSDL::size()
-	{
-		int w, h;
-		SDL_GetWindowSize(m_window, &w, &h);
-		return {w, h};
 	}
 
 	WindowSDL& WindowSDL::size(const Size2D& size)
@@ -179,14 +167,14 @@ namespace Engine
 		SDL_GetWindowPosition(m_window, &x, &y);
 		size_t index = monitor_index();
 		auto info    = Platform::monitor_info(index);
-		return {x, info.size.y - (y + cached_size().y)};
+		return {x, info.size.y - (y + size().y)};
 	}
 
 	WindowSDL& WindowSDL::position(const Point2D& position)
 	{
 		size_t index = monitor_index();
 		auto info    = Platform::monitor_info(index);
-		float new_y  = -position.y + info.size.y - cached_size().y;
+		float new_y  = -position.y + info.size.y - size().y;
 		SDL_SetWindowPosition(m_window, position.x, new_y);
 		return *this;
 	}

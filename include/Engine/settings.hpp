@@ -14,6 +14,7 @@ namespace Engine::Settings
 	extern ENGINE_EXPORT Vector<String> e_languages;
 	extern ENGINE_EXPORT Vector<String> e_systems;
 	extern ENGINE_EXPORT Vector<String> e_libs;
+	extern ENGINE_EXPORT bool e_debug_shaders;
 
 	extern ENGINE_EXPORT String w_title;
 	extern ENGINE_EXPORT String w_client;

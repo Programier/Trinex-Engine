@@ -8,6 +8,7 @@
 #include <Core/logger.hpp>
 #include <Core/shader_compiler.hpp>
 #include <Engine/project.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
@@ -704,11 +705,11 @@ namespace Engine::ShaderCompiler
 			request->setCodeGenTarget(SLANG_SPIRV);
 			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-#if TRINEX_DEBUG_BUILD
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
-#else
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-#endif
+
+			if (Settings::e_debug_shaders)
+				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+			else
+				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
 
 			const char* arguments[] = {
 			        "-emit-spirv-via-glsl",
@@ -754,11 +755,12 @@ namespace Engine::ShaderCompiler
 			request->setCodeGenTarget(SLANG_DXBC);
 			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-#if TRINEX_DEBUG_BUILD
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
-#else
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-#endif
+
+			if (Settings::e_debug_shaders)
+				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+			else
+				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+
 			auto profile = global_session()->findProfile("sm_4_0");
 			request->setTargetProfile(0, profile);
 		}
