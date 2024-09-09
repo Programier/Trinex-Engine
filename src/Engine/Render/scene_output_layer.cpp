@@ -51,12 +51,12 @@ namespace Engine
 	{
 		CommandBufferLayer::render(renderer, viewport);
 
-		if (renderer->scene_view().show_flags().has_all(ShowFlags::LightOctree))
+		if ((renderer->scene_view().show_flags() & ShowFlags::LightOctree) != ShowFlags::None)
 		{
 			render_light_octree(renderer->scene);
 		}
 
-		if (renderer->scene_view().show_flags().has_all(ShowFlags::PrimitiveOctree))
+		if ((renderer->scene_view().show_flags() & ShowFlags::PrimitiveOctree) != ShowFlags::None)
 		{
 			render_primitive_octree(renderer->scene);
 		}

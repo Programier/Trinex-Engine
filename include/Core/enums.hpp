@@ -403,6 +403,8 @@ namespace Engine
 
 		DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess
 	};
+	
+	declare_enum_operators(ShowFlags);
 
 	enum class MaterialDomain : EnumerateType
 	{

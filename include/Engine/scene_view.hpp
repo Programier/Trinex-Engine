@@ -16,14 +16,13 @@ namespace Engine
 		Matrix4f m_inv_projview;
 		ViewPort m_viewport;
 		Scissor m_scissor;
-		Flags<ShowFlags, BitMask> m_show_flags;
+		ShowFlags m_show_flags;
 
 	public:
-		SceneView(const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
-		SceneView(const CameraView& view, const Size2D& view_size,
-		          const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
+		SceneView(ShowFlags show_flags = ShowFlags::DefaultFlags);
+		SceneView(const CameraView& view, const Size2D& view_size, ShowFlags show_flags = ShowFlags::DefaultFlags);
 		SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor,
-		          const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
+		          ShowFlags show_flags = ShowFlags::DefaultFlags);
 		copy_constructors_hpp(SceneView);
 
 	public:
@@ -31,7 +30,7 @@ namespace Engine
 		SceneView& viewport(const ViewPort& viewport);
 		SceneView& scissor(const Scissor& scissor);
 
-		SceneView& show_flags(const Flags<ShowFlags, BitMask>& flags);
+		SceneView& show_flags(ShowFlags flags);
 		const SceneView& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin, Vector3D& world_direction) const;
 		Vector4D world_to_screen(const Vector3D& world_point) const;
 
@@ -76,7 +75,7 @@ namespace Engine
 			return m_viewport.size;
 		}
 
-		FORCE_INLINE const Flags<ShowFlags, BitMask>& show_flags() const
+		FORCE_INLINE ShowFlags show_flags() const
 		{
 			return m_show_flags;
 		}

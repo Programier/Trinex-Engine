@@ -3,10 +3,10 @@
 namespace Engine
 {
 
-	SceneView::SceneView(const Flags<ShowFlags, BitMask>& show_flags) : m_show_flags(show_flags)
+	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags)
 	{}
 
-	SceneView::SceneView(const CameraView& view, const Size2D& view_size, const Flags<ShowFlags, BitMask>& show_flags)
+	SceneView::SceneView(const CameraView& view, const Size2D& view_size, ShowFlags show_flags)
 	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_show_flags(show_flags)
 	{
 		m_viewport.pos       = {0, 0};
@@ -17,8 +17,7 @@ namespace Engine
 		m_scissor.size       = view_size;
 	}
 
-	SceneView::SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor,
-	                     const Flags<ShowFlags, BitMask>& show_flags)
+	SceneView::SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor, ShowFlags show_flags)
 	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_viewport(viewport),
 	      m_scissor(scissor), m_show_flags(show_flags)
 	{
@@ -50,7 +49,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneView& SceneView::show_flags(const Flags<ShowFlags, BitMask>& flags)
+	SceneView& SceneView::show_flags(ShowFlags flags)
 	{
 		m_show_flags = flags;
 		return *this;

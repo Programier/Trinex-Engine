@@ -100,3 +100,38 @@ public:                                                                         
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_struct();                                                                                      \
 	static class Engine::Struct* static_struct_instance();
+
+
+#define declare_enum_operators(T)                                                                                                \
+	inline constexpr bool operator!(T a)                                                                                         \
+	{                                                                                                                            \
+		return !(__underlying_type(T)) a;                                                                                        \
+	}                                                                                                                            \
+	inline constexpr T operator~(T a)                                                                                            \
+	{                                                                                                                            \
+		return (T) ~(__underlying_type(T)) a;                                                                                    \
+	}                                                                                                                            \
+	inline constexpr T operator|(T a, T b)                                                                                       \
+	{                                                                                                                            \
+		return (T) ((__underlying_type(T)) a | (__underlying_type(T)) b);                                                        \
+	}                                                                                                                            \
+	inline constexpr T operator&(T a, T b)                                                                                       \
+	{                                                                                                                            \
+		return (T) ((__underlying_type(T)) a & (__underlying_type(T)) b);                                                        \
+	}                                                                                                                            \
+	inline constexpr T operator^(T a, T b)                                                                                       \
+	{                                                                                                                            \
+		return (T) ((__underlying_type(T)) a ^ (__underlying_type(T)) b);                                                        \
+	}                                                                                                                            \
+	inline T& operator|=(T& a, T b)                                                                                              \
+	{                                                                                                                            \
+		return a = (T) ((__underlying_type(T)) a | (__underlying_type(T)) b);                                                    \
+	}                                                                                                                            \
+	inline T& operator&=(T& a, T b)                                                                                              \
+	{                                                                                                                            \
+		return a = (T) ((__underlying_type(T)) a & (__underlying_type(T)) b);                                                    \
+	}                                                                                                                            \
+	inline T& operator^=(T& a, T b)                                                                                              \
+	{                                                                                                                            \
+		return a = (T) ((__underlying_type(T)) a ^ (__underlying_type(T)) b);                                                    \
+	}

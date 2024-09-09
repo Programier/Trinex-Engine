@@ -38,7 +38,7 @@ namespace Engine
 
 		EditorSceneRenderer m_renderer;
 		RenderStatistics m_statistics;
-		Flags<ShowFlags, BitMask> m_show_flags = ShowFlags::DefaultFlags;
+		ShowFlags m_show_flags = ShowFlags::DefaultFlags;
 		SceneView m_scene_view;
 
 		class ContentBrowser* m_content_browser = nullptr;

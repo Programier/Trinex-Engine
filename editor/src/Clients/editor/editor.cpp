@@ -110,9 +110,9 @@ namespace Engine
 
 		m_world->on_actor_select.remove(m_on_actor_select_callback_id);
 		m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
-		
+
 		m_world->stop_play();
-		
+
 		EventSystem* event_system = EventSystem::instance();
 
 		if (event_system)
@@ -175,7 +175,7 @@ namespace Engine
 
 		m_renderer.render(m_scene_view, render_viewport);
 
-		if (m_scene_view.show_flags() & ShowFlags::Statistics)
+		if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
 		{
 			call_in_logic_thread([this, statistics = m_renderer.statistics]() { m_statistics = statistics; });
 		}
@@ -375,13 +375,13 @@ namespace Engine
 		return *this;
 	}
 
-	static void render_show_flag(Flags<ShowFlags, BitMask>& flags, ShowFlags flag, const char* name)
+	static void render_show_flag(ShowFlags& flags, ShowFlags flag, const char* name)
 	{
-		int i_flags = static_cast<int>(flags);
-		if (ImGui::CheckboxFlags(name, &i_flags, static_cast<int>(flag)))
+		ImU64 mask = static_cast<ImU64>(flags);
+
+		if (ImGui::CheckboxFlags(name, &mask, static_cast<ImU64>(flag)))
 		{
-			flags.clear_all();
-			flags.set(static_cast<BitMask>(i_flags));
+			flags = static_cast<ShowFlags>(mask);
 		}
 	}
 
@@ -556,7 +556,7 @@ namespace Engine
 			render_viewport_menu();
 			ImGui::EndGroup();
 
-			if (m_show_flags & ShowFlags::Statistics)
+			if ((m_show_flags & ShowFlags::Statistics) != ShowFlags::None)
 			{
 				ImGui::SetCursorPos(current_pos + ImVec2(0, ImGui::GetItemRectSize().y));
 				render_statistics(dt);

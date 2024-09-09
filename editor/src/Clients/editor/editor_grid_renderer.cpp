@@ -1,4 +1,5 @@
 #include <Core/base_engine.hpp>
+#include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
@@ -14,7 +15,12 @@
 
 namespace Engine
 {
-	static int lines_per_axis     = 150;
+#if PLATFORM_ANDROID
+	static int lines_per_axis = 30;
+#else
+	static int lines_per_axis = 150;
+#endif
+
 	static const float scale_step = 8.f;
 
 	static PositionVertexBuffer* x_axis_vertex_buffer = nullptr;
@@ -50,6 +56,9 @@ namespace Engine
 
 	void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer)
 	{
+		if (Settings::ed_show_grid == false)
+			return;
+
 		static Name name_color  = "color";
 		static Name name_scale  = "scale";
 		static Name name_offset = "offset";

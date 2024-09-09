@@ -30,7 +30,7 @@ namespace Engine
 	{
 		render_base_component(component);
 
-		if (!scene_view().show_flags().has_all(ShowFlags::StaticMesh))
+		if (!(scene_view().show_flags() & ShowFlags::StaticMesh))
 			return *this;
 
 		StaticMesh* mesh   = component->mesh;

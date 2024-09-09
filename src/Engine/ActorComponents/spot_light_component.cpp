@@ -170,7 +170,7 @@ namespace Engine
 
 		SpotLightComponentProxy* proxy = component->proxy();
 
-		if (!scene_view().show_flags().has_all(ShowFlags::SpotLights) || !proxy->is_enabled() ||
+		if (!(scene_view().show_flags() & ShowFlags::SpotLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<SpotLightComponent>())
 			return *this;
 

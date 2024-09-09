@@ -83,7 +83,7 @@ namespace Engine
 		PointLightComponentProxy* proxy = component->proxy();
 		auto layer                      = deferred_lighting_layer();
 
-		if (!scene_view().show_flags().has_all(ShowFlags::PointLights) || !proxy->is_enabled() ||
+		if (!(scene_view().show_flags() & ShowFlags::PointLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<PointLightComponent>())
 			return *this;
 
