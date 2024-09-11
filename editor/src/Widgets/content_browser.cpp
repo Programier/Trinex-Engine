@@ -1,3 +1,4 @@
+#include <Clients/imgui_client.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
@@ -203,8 +204,9 @@ namespace Engine
 
 			bool is_single_press = ImGui::ImageButton(imgui_texture, item_size);
 			bool is_double_press = false;
+			bool is_item_hovered = ImGui::IsItemHovered();
 
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			if (is_item_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
 				is_single_press = false;
 				is_double_press = true;
@@ -217,15 +219,21 @@ namespace Engine
 			}
 			else if (is_double_press)
 			{
-				on_object_double_click(object);
-
 				if (Package* new_package = object->instance_cast<Package>())
 				{
 					m_selected_package = new_package;
 				}
-			}
+				else
+				{
+					if (auto client = ImGuiEditorClient::client_of(object->class_instance(), true))
+					{
+						client->select(object);
+					}
+				}
 
-			if (ImGui::BeginDragDropSource())
+				on_object_double_click(object);
+			}
+			else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::BeginDragDropSource())
 			{
 				ImGui::SetDragDropPayload("ContentBrowser->Object", &object, sizeof(Object**));
 				ImVec2 item_start = ImGui::GetCursorPos();
@@ -431,12 +439,12 @@ namespace Engine
 	{
 		return m_selected_package;
 	}
-	
+
 	const char* ContentBrowser::name() const
 	{
 		return static_name();
 	}
-	
+
 	const char* ContentBrowser::static_name()
 	{
 		return "editor/Content Browser Title"_localized;

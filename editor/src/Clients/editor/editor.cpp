@@ -1,5 +1,4 @@
 #include <Clients/editor_client.hpp>
-#include <Clients/open_client.hpp>
 #include <Core/class.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
@@ -38,7 +37,10 @@ namespace Engine
 		viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
-	implement_engine_class_default_init(EditorClient, 0);
+	implement_engine_class(EditorClient, 0)
+	{
+		register_client(Actor::static_class_instance(), static_class_instance());
+	}
 
 	EditorClient& EditorClient::create_content_browser()
 	{
@@ -293,10 +295,8 @@ namespace Engine
 		return *this;
 	}
 
-	EditorClient& EditorClient::update(class RenderViewport* viewport, float dt)
+	EditorClient& EditorClient::update(float dt)
 	{
-		imgui_new_frame();
-
 		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
@@ -311,8 +311,6 @@ namespace Engine
 		render_viewport_window(dt);
 
 		ImGui::End();
-
-		imgui_end_frame();
 
 		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
 		{

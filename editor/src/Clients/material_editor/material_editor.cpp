@@ -1,5 +1,4 @@
 #include <Clients/material_editor_client.hpp>
-#include <Clients/open_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/blueprints.hpp>
 #include <Core/class.hpp>
@@ -31,7 +30,10 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(MaterialEditorClient, 0);
+	implement_engine_class(MaterialEditorClient, 0)
+	{
+		register_client(Material::static_class_instance(), static_class_instance());
+	}
 
 
 	class ImGuiMaterialPreview : public ImGuiWidget
@@ -120,8 +122,6 @@ namespace Engine
 	{
 		m_content_browser = imgui_window()->widgets_list.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
-		m_content_browser->on_object_double_click.push(
-		        std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
 		return *this;
 	}
 
@@ -174,8 +174,13 @@ namespace Engine
 		return *this;
 	}
 
-	void MaterialEditorClient::on_object_select(Object* object)
+	MaterialEditorClient& MaterialEditorClient::select(Object* object)
 	{
+		Super::select(object);
+
+		if (m_material == object)
+			return *this;
+
 		if (Material* material = object->instance_cast<Material>())
 		{
 			m_material = material;
@@ -188,9 +193,7 @@ namespace Engine
 			on_node_select(nullptr);
 		}
 
-		if (m_preview_window)
-		{
-		}
+		return *this;
 	}
 
 	void MaterialEditorClient::on_node_select(Object* object)
@@ -299,10 +302,10 @@ namespace Engine
 		}
 	}
 
-	MaterialEditorClient& MaterialEditorClient::update(class RenderViewport* viewport, float dt)
+	MaterialEditorClient& MaterialEditorClient::update(float dt)
 	{
-		Super::update(viewport, dt);
-		imgui_new_frame();
+		Super::update(dt);
+
 		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
 		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
@@ -316,7 +319,6 @@ namespace Engine
 		render_viewport(dt);
 
 		ImGui::End();
-		imgui_end_frame();
 		return *this;
 	}
 

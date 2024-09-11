@@ -15,19 +15,25 @@ namespace Engine
 		Pointer<ImGuiWindow> m_window;
 		RenderViewport* m_viewport = nullptr;
 
+		ImGuiEditorClient& update(class RenderViewport* viewport, float dt) final override;
+
 	protected:
 		void draw_available_clients_for_opening();
-		
+
 	public:
+		static bool register_client(Class* object_type, Class* renderer);
+		static ImGuiEditorClient* client_of(Class* object_type, bool create_if_not_exist = false);
+
 		ImGuiEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ImGuiEditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
-		ImGuiEditorClient& update(class RenderViewport* viewport, float dt) override;
 		ImGuiEditorClient& render(class RenderViewport* viewport) override;
 
 		ImGuiWindow* imgui_window() const;
-		const ImGuiEditorClient& imgui_new_frame() const;
-		const ImGuiEditorClient& imgui_end_frame() const;
 		Window* window() const;
 		RenderViewport* viewport() const;
+
+
+		virtual ImGuiEditorClient& update(float dt);
+		virtual ImGuiEditorClient& select(Object* object);
 	};
 }// namespace Engine

@@ -63,7 +63,7 @@ namespace Engine
 		EditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		EditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
 		EditorClient& render(class RenderViewport* viewport) override;
-		EditorClient& update(class RenderViewport* viewport, float dt) override;
+		EditorClient& update(float dt) override;
 
 		EditorClient& render_viewport_window(float dt);
 		EditorClient& render_guizmo(float dt);

@@ -52,7 +52,7 @@ namespace Engine
 		bool m_open_select_node_window   = false;
 		bool m_is_open_create_node_popup = false;
 
-		void on_object_select(Object* object);
+		MaterialEditorClient& select(Object* object) override;
 		void on_node_select(Object* object);
 		void on_object_dropped(Object* object);
 
@@ -70,7 +70,7 @@ namespace Engine
 		MaterialEditorClient& create_node_properties_window();
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
-		MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
+		MaterialEditorClient& update(float dt) override;
 
 		void render_dock_window();
 		void* editor_context() const;

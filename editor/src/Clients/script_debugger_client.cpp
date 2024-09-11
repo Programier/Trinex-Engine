@@ -1,4 +1,4 @@
-#include <Clients/script_debuger.hpp>
+#include <Clients/script_debuger_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/editor_config.hpp>
@@ -206,10 +206,9 @@ namespace Engine
 		return *this;
 	}
 
-	ScriptDebuggerClient& ScriptDebuggerClient::update(class RenderViewport* viewport, float dt)
+	ScriptDebuggerClient& ScriptDebuggerClient::update(float dt)
 	{
-		Super::update(viewport, dt);
-		imgui_new_frame();
+		Super::update(dt);
 
 		auto imgui_viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
@@ -248,7 +247,6 @@ namespace Engine
 		        .render_bottom_viewport(dt);
 
 		ImGui::End();
-		imgui_end_frame();
 		return *this;
 	}
 

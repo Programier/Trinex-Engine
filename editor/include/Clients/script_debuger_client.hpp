@@ -63,7 +63,7 @@ namespace Engine
 		~ScriptDebuggerClient();
 		ScriptDebuggerClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ScriptDebuggerClient& on_unbind_viewport(class RenderViewport* viewport) override;
-		ScriptDebuggerClient& update(class RenderViewport* viewport, float dt) override;
+		ScriptDebuggerClient& update(float dt) override;
 
 		ScriptDebuggerClient& open_script(Script* script);
 		ScriptDebuggerClient& open_script(const Path& path);
