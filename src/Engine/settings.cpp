@@ -4,32 +4,32 @@
 
 namespace Engine::Settings
 {
-	ENGINE_EXPORT String e_engine = "Engine::EngineInstance";
-	ENGINE_EXPORT String e_api;
-	ENGINE_EXPORT String e_default_language;
-	ENGINE_EXPORT String e_current_language;
-	ENGINE_EXPORT int_t e_lz4_compression_level;
+	ENGINE_EXPORT String e_engine                = "Engine::EngineInstance";
+	ENGINE_EXPORT String e_api                   = "OpenGL";
+	ENGINE_EXPORT String e_default_language      = "eng";
+	ENGINE_EXPORT String e_current_language      = "eng";
+	ENGINE_EXPORT int_t e_lz4_compression_level  = 0;
 	ENGINE_EXPORT int_t e_gc_max_object_per_tick = 100;
-	ENGINE_EXPORT int_t e_fps_limit;
+	ENGINE_EXPORT int_t e_fps_limit              = 60;
 
 #if PLATFORM_ANDROID
 	ENGINE_EXPORT float e_screen_percentage = 1.f;
 #else
 	ENGINE_EXPORT float e_screen_percentage = 1.f;
 #endif
-	ENGINE_EXPORT Vector<String> e_languages;
+	ENGINE_EXPORT Vector<String> e_languages = {"eng"};
 	ENGINE_EXPORT Vector<String> e_systems;
 	ENGINE_EXPORT Vector<String> e_libs;
 	ENGINE_EXPORT bool e_debug_shaders = false;
 
-	ENGINE_EXPORT String w_title;
+	ENGINE_EXPORT String w_title = "Trinex Engine";
 	ENGINE_EXPORT String w_client;
-	ENGINE_EXPORT int_t w_size_x = 1280;
-	ENGINE_EXPORT int_t w_size_y = 720;
-	ENGINE_EXPORT int_t w_pos_x  = -1;
-	ENGINE_EXPORT int_t w_pos_y  = -1;
-	ENGINE_EXPORT bool w_vsync;
-	ENGINE_EXPORT Vector<WindowAttribute> w_attributes;
+	ENGINE_EXPORT int_t w_size_x                       = 1280;
+	ENGINE_EXPORT int_t w_size_y                       = 720;
+	ENGINE_EXPORT int_t w_pos_x                        = -1;
+	ENGINE_EXPORT int_t w_pos_y                        = -1;
+	ENGINE_EXPORT bool w_vsync                         = true;
+	ENGINE_EXPORT Vector<WindowAttribute> w_attributes = {WindowAttribute::Resizable};
 	ENGINE_EXPORT Vector<Orientation> w_orientations;
 
 	ENGINE_EXPORT bool e_show_splash                 = true;

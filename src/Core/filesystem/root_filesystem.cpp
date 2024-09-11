@@ -4,7 +4,6 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Platform/platform.hpp>
-#include <filesystem>
 
 namespace Engine
 {
@@ -19,7 +18,7 @@ namespace Engine::VFS
 {
 	bool RootFS::FileSystemCompare::operator()(const String& first, const String& second) const
 	{
-		return first.length() > second.length();
+		return first > second;
 	}
 
 	RootFS* RootFS::m_instance = nullptr;
@@ -246,5 +245,17 @@ namespace Engine::VFS
 		if (fs == nullptr)
 			return Type::Undefined;
 		return fs->type();
+	}
+
+	Vector<String> RootFS::mount_points() const
+	{
+		Vector<String> result;
+		result.reserve(m_file_systems.size());
+
+		for (auto& [name, fs] : m_file_systems)
+		{
+			result.push_back(name);
+		}
+		return result;
 	}
 }// namespace Engine::VFS

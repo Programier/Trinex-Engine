@@ -74,7 +74,7 @@ namespace Engine
 	using BitSet = std::bitset<size>;
 
 	template<typename Type>
-	using SmartPointer = std::shared_ptr<Type>;
+	using SharedPtr = std::shared_ptr<Type>;
 
 	template<typename Signature>
 	using Function = std::function<Signature>;

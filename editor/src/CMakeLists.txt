@@ -4,31 +4,6 @@ file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SRC "${TRINEX_ENGINE_EDITOR_SOURCES_DIR}/
 add_trinex_editor_sources(${TRINEX_ENGINE_EDITOR_SRC})
 add_trinex_editor_libraries(assimp spirv-cross-glsl spirv-cross-core imgui imgui_node_editor imgui-filebrowser)
 
-if(TRINEX_REBUILD_HEADERS)
-    set(EDITOR_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AddIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AxisMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/DefaultIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/DefaultSampler.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/GridMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/MoveIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/RemoveIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/RotateIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/ScaleIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/SelectIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/PointLightSprite.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/PointLightOverlay.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/SpotLightOverlay.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/MoreIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/BlueprintBackground.tasset)
-
-    add_custom_target(
-        TrinexEngineEditorHeaders ALL
-        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/DefaultResources/editor.hpp" ${EDITOR_INTERNAL_ASSETS}
-        COMMENT "Generating editor package header"
-    )
-    add_trinex_dependencies(TrinexEngineEditorHeaders)
-endif()
-
 get_property(TRINEX_ENGINE_EDITOR_SRC GLOBAL PROPERTY trinex_editor_sources)
 get_property(TRINEX_ENGINE_EDITOR_LIBRARIES GLOBAL PROPERTY trinex_editor_libraries)
 get_property(TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES GLOBAL PROPERTY trinex_editor_include_directories)

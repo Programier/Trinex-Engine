@@ -4,6 +4,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Engine/project.hpp>
+#include <Platform/platform.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 namespace Engine
@@ -61,17 +62,70 @@ namespace Engine
 		return true;
 	}
 
+	static void create_folders()
+	{
+		auto rfs = rootfs();
+
+		rfs->create_dir(Project::configs_dir);
+		rfs->create_dir(Project::assets_dir);
+		rfs->create_dir(Project::scripts_dir);
+		rfs->create_dir(Project::shaders_dir);
+		rfs->create_dir(Project::localization_dir);
+		rfs->create_dir(Project::libraries_dir);
+		rfs->create_dir(Project::shader_cache_dir);
+	}
+
+	static void rename_dirs_to_mount_points()
+	{
+		Project::configs_dir      = "[configs_dir]:";
+		Project::assets_dir       = "[assets_dir]:";
+		Project::scripts_dir      = "[scripts_dir]:";
+		Project::shaders_dir      = "[shaders_dir]:";
+		Project::localization_dir = "[localization_dir]:";
+		Project::libraries_dir    = "[libraries_dir]:";
+		Project::shader_cache_dir = "[shader_cache_dir]:";
+	}
+
+	static void delete_system(VFS::FileSystem* system)
+	{
+		delete system;
+	}
+
+	static void apply_project_config()
+	{
+		auto rfs = rootfs();
+		create_folders();
+
+		using FS = VFS::NativeFileSystem;
+
+		rfs->mount("[configs_dir]:", new FS(Project::configs_dir), delete_system);
+		rfs->mount("[assets_dir]:", new FS(Project::assets_dir), delete_system);
+		rfs->mount("[scripts_dir]:", new FS(Project::scripts_dir), delete_system);
+		rfs->mount("[shaders_dir]:", new FS(Project::shaders_dir), delete_system);
+		rfs->mount("[localization_dir]:", new FS(Project::localization_dir), delete_system);
+		rfs->mount("[libraries_dir]:", new FS(Project::libraries_dir), delete_system);
+		rfs->mount("[shader_cache_dir]:", new FS(Project::shader_cache_dir), delete_system);
+
+		rename_dirs_to_mount_points();
+	}
+
 	bool Project::open_project(const String& config, const Path& root)
 	{
 		if (close_project() == false)
 			return false;
 		bool status = ScriptEngine::exec_string(config);
 
+
 		if (status)
 		{
-			auto rfs = rootfs();
-			rfs->create_dir(scripts_dir);
-			rfs->mount("scripts:", new VFS::NativeFileSystem(scripts_dir), [](VFS::FileSystem* fs) { delete fs; });
+			configs_dir      = (root / configs_dir).str();
+			assets_dir       = (root / assets_dir).str();
+			scripts_dir      = (root / scripts_dir).str();
+			shaders_dir      = (root / shaders_dir).str();
+			localization_dir = (root / localization_dir).str();
+			libraries_dir    = (root / libraries_dir).str();
+			shader_cache_dir = (root / shader_cache_dir).str();
+			apply_project_config();
 		}
 
 		return status;
@@ -135,6 +189,8 @@ Engine::Project::shader_cache_dir = "{}";
 		Engine::Project::localization_dir = "resources/localization";
 		Engine::Project::libraries_dir    = "libs";
 		Engine::Project::shader_cache_dir = "ShaderCache";
+
+		apply_project_config();
 	}
 
 	void Project::initialize()

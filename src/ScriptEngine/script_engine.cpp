@@ -107,7 +107,7 @@ namespace Engine
 		ScriptContext::initialize();
 
 		ScriptAddonsInitializeController().execute();
-		m_script_folder = new ScriptFolder("scripts:");
+		m_script_folder = new ScriptFolder("[scripts_dir]:");
 		return instance();
 	}
 

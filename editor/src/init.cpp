@@ -1,15 +1,17 @@
-#include "DefaultResources/editor.hpp"
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/filesystem/native_file_system.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/pipeline_buffers.hpp>
+#include <Platform/platform.hpp>
 
 namespace Engine
 {
@@ -97,6 +99,25 @@ namespace Engine
 		buffer->init_resource();
 	}
 
+	static void preinit()
+	{
+		auto fs       = rootfs();
+		auto exec_dir = Platform::find_exec_directory();
+
+		using FS = VFS::NativeFileSystem;
+
+		fs->mount("[assets_dir]:/Editor", new FS(exec_dir / "resources/editor/assets"));
+		fs->mount("[configs_dir]:/editor", new FS(exec_dir / "resources/editor/configs"));
+		fs->mount("[shaders_dir]:/editor", new FS(exec_dir / "resources/editor/shaders"));
+	}
+
+	template<typename T>
+	static T* load_object(const char* name)
+	{
+		Object* obj = Object::load_object(name);
+		return reinterpret_cast<T*>(obj);
+	}
+
 	static void initialialize_editor()
 	{
 #define load_resource(var, name, type, group_name)                                                                               \
@@ -104,21 +125,22 @@ namespace Engine
 	        reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
 	reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
-		load_resource(default_icon, DefaultIcon, Texture2D, Textures);
-		load_resource(add_icon, AddIcon, Texture2D, Textures);
-		load_resource(move_icon, MoveIcon, Texture2D, Textures);
-		load_resource(remove_icon, RemoveIcon, Texture2D, Textures);
-		load_resource(rotate_icon, RotateIcon, Texture2D, Textures);
-		load_resource(scale_icon, ScaleIcon, Texture2D, Textures);
-		load_resource(select_icon, SelectIcon, Texture2D, Textures);
-		load_resource(more_icon, MoreIcon, Texture2D, Textures);
-		load_resource(blueprint_texture, BlueprintBackground, Texture2D, Textures);
-		load_resource(light_sprite, PointLightSprite, Texture2D, Textures);
-		load_resource(default_sampler, DefaultSampler, Sampler, Samplers);
-		load_resource(axis_material, AxisMaterial, Material, Materials);
-		load_resource(grid_material, GridMaterial, Material, Materials);
-		load_resource(point_light_overlay_material, PointLightOverlay, Material, Materials);
-		load_resource(spot_light_overlay_material, SpotLightOverlay, Material, Materials);
+		EditorResources::default_icon      = load_object<Texture2D>("Editor::Textures::DefaultIcon");
+		EditorResources::add_icon          = load_object<Texture2D>("Editor::Textures::AddIcon");
+		EditorResources::move_icon         = load_object<Texture2D>("Editor::Textures::MoveIcon");
+		EditorResources::remove_icon       = load_object<Texture2D>("Editor::Textures::RemoveIcon");
+		EditorResources::rotate_icon       = load_object<Texture2D>("Editor::Textures::RotateIcon");
+		EditorResources::scale_icon        = load_object<Texture2D>("Editor::Textures::ScaleIcon");
+		EditorResources::select_icon       = load_object<Texture2D>("Editor::Textures::SelectIcon");
+		EditorResources::more_icon         = load_object<Texture2D>("Editor::Textures::MoreIcon");
+		EditorResources::blueprint_texture = load_object<Texture2D>("Editor::Textures::BlueprintBackground");
+		EditorResources::light_sprite      = load_object<Texture2D>("Editor::Textures::PointLightSprite");
+
+		EditorResources::default_sampler              = load_object<Sampler>("Editor::Samplers::DefaultSampler");
+		EditorResources::axis_material                = load_object<Material>("Editor::Materials::AxisMaterial");
+		EditorResources::grid_material                = load_object<Material>("Editor::Materials::GridMaterial");
+		EditorResources::point_light_overlay_material = load_object<Material>("Editor::Materials::PointLightOverlay");
+		EditorResources::spot_light_overlay_material  = load_object<Material>("Editor::Materials::SpotLightOverlay");
 
 		create_point_light_overlay_positions();
 		create_spot_light_overlay_positions();
@@ -133,8 +155,9 @@ namespace Engine
 	static void load_configs()
 	{
 		Engine::Settings::e_splash_font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
-		Engine::ConfigManager::load_config_from_file("editor.config");
+		Engine::ConfigManager::load_config_from_file("editor/editor.config");
 	}
 
 	static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
+	static Engine::PreInitializeController on_preinit(preinit, "EditorPreinit");
 }// namespace Engine

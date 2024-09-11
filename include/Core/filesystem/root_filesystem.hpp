@@ -46,6 +46,7 @@ namespace Engine::VFS
 		FileSystem* filesystem_of(const Path& path) const;
 		FileSystem::Type filesystem_type_of(const Path& path) const;
 		bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
+		Vector<String> mount_points() const;
 
 		friend class Singletone<RootFS, FileSystem>;
 		friend class DirectoryIterator;
