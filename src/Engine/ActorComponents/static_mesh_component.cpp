@@ -16,7 +16,11 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(StaticMeshComponent, 0);
+	implement_engine_class(StaticMeshComponent, 0)
+	{
+		auto mesh = new ObjectReferenceProperty("Mesh", "Mesh object of this component", &This::mesh);
+		static_class_instance()->add_property(mesh);
+	}
 
 	StaticMeshComponent& StaticMeshComponent::update(float dt)
 	{

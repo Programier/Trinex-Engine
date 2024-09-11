@@ -12,26 +12,36 @@
 
 namespace Engine
 {
+
+
 	DefaultClient::DefaultClient()
 	{}
 
 	DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
 	{
+		material = Object::load_object("Example::Example")->instance_cast<Material>();
+		vb       = Object::new_instance<VB>();
+		cb       = Object::new_instance<ColorVertexBuffer>();
+
+		vb->buffer = {{-1, -1}, {-1, 1}, {1, 1}};
+		cb->buffer = {{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}};
+		
+		vb->init_resource();
+		cb->init_resource();
+		
 		return *this;
 	}
 
 	DefaultClient& DefaultClient::render(class RenderViewport* viewport)
 	{
 		viewport->rhi_bind();
-
-		auto mat = DefaultResources::Materials::screen;
-
-		static Name name = "screen_texture";
-		reinterpret_cast<CombinedImageSamplerMaterialParameterBase*>(mat->find_parameter(name))
-		        ->texture_param(DefaultResources::Textures::default_texture);
-		mat->apply();
-		DefaultResources::Buffers::screen_position->rhi_bind(0);
-		rhi->draw(6, 0);
+		
+		viewport->rhi_clear_color(Color(0.0, 0.0, 0.0, 1.0));
+		material->apply();
+		vb->rhi_bind(0);
+		cb->rhi_bind(1);
+		
+		rhi->draw(3, 0);
 
 		return *this;
 	}

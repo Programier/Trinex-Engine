@@ -10,6 +10,12 @@ namespace Engine
 	{
 		declare_class(DefaultClient, ViewportClient);
 
+		using VB = TypedVertexBuffer<Vector2D>;
+
+		Pointer<Material> material;
+		Pointer<VB> vb;
+		Pointer<ColorVertexBuffer> cb;
+
 	public:
 		DefaultClient();
 		DefaultClient& on_bind_viewport(class RenderViewport* viewport) override;

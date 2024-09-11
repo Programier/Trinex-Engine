@@ -379,6 +379,11 @@ namespace Engine
 
 			ImGui::PushID("##Image");
 			ImGui::Image(Icons::find_imgui_icon(value), {100, 100});
+			
+			if (value && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			{
+				ImGui::SetTooltip("%s", value->full_name().c_str());
+			}
 
 			if (can_edit && ImGui::BeginDragDropTarget())
 			{

@@ -643,10 +643,9 @@ namespace Engine
 		struct UpdateView : ExecutableObject {
 			CameraView view;
 			SceneView& out;
-			const Flags<ShowFlags, BitMask>& show_flags;
+			ShowFlags show_flags;
 
-			UpdateView(const CameraView& in, SceneView& out, const Flags<ShowFlags, BitMask>& show_flags)
-			    : view(in), out(out), show_flags(show_flags)
+			UpdateView(const CameraView& in, SceneView& out, ShowFlags show_flags) : view(in), out(out), show_flags(show_flags)
 			{}
 
 			int_t execute() override
