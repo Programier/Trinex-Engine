@@ -106,9 +106,9 @@ namespace Engine
 
 		using FS = VFS::NativeFileSystem;
 
-		fs->mount("[assets_dir]:/Editor", new FS(exec_dir / "resources/editor/assets"));
-		fs->mount("[configs_dir]:/editor", new FS(exec_dir / "resources/editor/configs"));
-		fs->mount("[shaders_dir]:/editor", new FS(exec_dir / "resources/editor/shaders"));
+		fs->mount("[assets_dir]:/Editor", "Editor Assets", new FS(exec_dir / "resources/editor/assets"));
+		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/editor/configs"));
+		fs->mount("[shaders_dir]:/editor", "Editor Shaders", new FS(exec_dir / "resources/editor/shaders"));
 	}
 
 	template<typename T>

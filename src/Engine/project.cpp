@@ -98,13 +98,13 @@ namespace Engine
 
 		using FS = VFS::NativeFileSystem;
 
-		rfs->mount("[configs_dir]:", new FS(Project::configs_dir), delete_system);
-		rfs->mount("[assets_dir]:", new FS(Project::assets_dir), delete_system);
-		rfs->mount("[scripts_dir]:", new FS(Project::scripts_dir), delete_system);
-		rfs->mount("[shaders_dir]:", new FS(Project::shaders_dir), delete_system);
-		rfs->mount("[localization_dir]:", new FS(Project::localization_dir), delete_system);
-		rfs->mount("[libraries_dir]:", new FS(Project::libraries_dir), delete_system);
-		rfs->mount("[shader_cache_dir]:", new FS(Project::shader_cache_dir), delete_system);
+		rfs->mount("[configs_dir]:", "Configs", new FS(Project::configs_dir), delete_system);
+		rfs->mount("[assets_dir]:", "Assets", new FS(Project::assets_dir), delete_system);
+		rfs->mount("[scripts_dir]:", "Scripts", new FS(Project::scripts_dir), delete_system);
+		rfs->mount("[shaders_dir]:", "Shaders", new FS(Project::shaders_dir), delete_system);
+		rfs->mount("[localization_dir]:", "Localization", new FS(Project::localization_dir), delete_system);
+		rfs->mount("[libraries_dir]:", "Libraries", new FS(Project::libraries_dir), delete_system);
+		rfs->mount("[shader_cache_dir]:", "Shader Cache", new FS(Project::shader_cache_dir), delete_system);
 
 		rename_dirs_to_mount_points();
 	}

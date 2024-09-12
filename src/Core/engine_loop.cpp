@@ -70,8 +70,8 @@ namespace Engine
 		auto vfs                       = VFS::RootFS::create_instance();
 		VFS::NativeFileSystem* exec_fs = new VFS::NativeFileSystem(Platform::find_exec_directory());
 
-		vfs->mount("[exec_dir]:", exec_fs, [](VFS::FileSystem* system) { delete system; });
-		vfs->mount("", exec_fs);// Temporary root directory is mounted to exec directory
+		vfs->mount("[exec_dir]:", "Executable Dir", exec_fs, [](VFS::FileSystem* system) { delete system; });
+		vfs->mount("", "Root", exec_fs);// Temporary root directory is mounted to exec directory
 
 		Platform::bind_platform_mount_points();
 	}

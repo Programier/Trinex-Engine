@@ -56,7 +56,7 @@ namespace Engine::VFS
 
 	FileSystem* RootFS::remove_fs(const FileSystemMap::iterator& it)
 	{
-		FileSystem* system = it->second;
+		FileSystem* system = it->second.fs;
 		m_file_systems.erase(it);
 		system->m_mount_point    = {};
 		UnMountCallback callback = std::move(system->m_on_unmount);
@@ -69,7 +69,7 @@ namespace Engine::VFS
 		return system;
 	}
 
-	bool RootFS::mount(const Path& mount_point, FileSystem* system, const UnMountCallback& callback)
+	bool RootFS::mount(const Path& mount_point, const StringView& name, FileSystem* system, const UnMountCallback& callback)
 	{
 		if (system == nullptr)
 		{
@@ -82,9 +82,13 @@ namespace Engine::VFS
 			return false;
 		}
 
-		m_file_systems[mount_point] = system;
-		system->m_mount_point       = mount_point;
-		system->m_on_unmount        = callback;
+		auto& info = m_file_systems[mount_point];
+		info.fs    = system;
+		info.name  = String(name);
+		info.mount = mount_point;
+
+		system->m_mount_point = mount_point;
+		system->m_on_unmount  = callback;
 
 		vfs_log("Mounted '%s' to '%s'", system->path().c_str(), mount_point.c_str());
 		return system;
@@ -116,7 +120,7 @@ namespace Engine::VFS
 		{
 			if (path.path().starts_with(fs_path) && (next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
 			{
-				return {fs, path.relative(fs_path)};
+				return {fs.fs, path.relative(fs_path)};
 			}
 		}
 
@@ -257,5 +261,10 @@ namespace Engine::VFS
 			result.push_back(name);
 		}
 		return result;
+	}
+
+	const RootFS::FileSystemMap& RootFS::filesystems() const
+	{
+		return m_file_systems;
 	}
 }// namespace Engine::VFS

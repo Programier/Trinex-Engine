@@ -406,6 +406,7 @@ namespace Engine
 		{
 			if (ImGuiTrinexViewportData* vd = (ImGuiTrinexViewportData*) viewport->RendererUserData)
 			{
+				render_thread()->wait_all();
 				IM_DELETE(vd);
 			}
 			viewport->RendererUserData = nullptr;

@@ -11,7 +11,13 @@ namespace Engine::VFS
 			bool operator()(const String&, const String& second) const;
 		};
 
-		using FileSystemMap = TreeMap<String, FileSystem*, FileSystemCompare>;
+		struct FileSystemInfo {
+			FileSystem* fs = nullptr;
+			String name;
+			Path mount;
+		};
+
+		using FileSystemMap = TreeMap<String, FileSystemInfo, FileSystemCompare>;
 
 	private:
 		FileSystemMap m_file_systems;
@@ -27,7 +33,7 @@ namespace Engine::VFS
 		FileSystem* remove_fs(const FileSystemMap::iterator& it);
 
 	public:
-		bool mount(const Path& mount_point, FileSystem* system, const UnMountCallback& callback = {});
+		bool mount(const Path& mount_point, const StringView& name, FileSystem* system, const UnMountCallback& callback = {});
 		FileSystem* unmount(const Path& mount_point);
 		Pair<FileSystem*, Path> find_filesystem(const Path& path) const;
 
@@ -47,6 +53,7 @@ namespace Engine::VFS
 		FileSystem::Type filesystem_type_of(const Path& path) const;
 		bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
 		Vector<String> mount_points() const;
+		const FileSystemMap& filesystems() const;
 
 		friend class Singletone<RootFS, FileSystem>;
 		friend class DirectoryIterator;
