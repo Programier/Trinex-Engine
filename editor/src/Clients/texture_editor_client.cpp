@@ -1,9 +1,15 @@
 #include <Clients/texture_editor_client.hpp>
 #include <Core/class.hpp>
+#include <Core/default_resources.hpp>
+#include <Core/editor_resources.hpp>
 #include <Core/logger.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/sampler.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/material.hpp>
+#include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/render_surface.hpp>
+#include <Graphics/rhi.hpp>
+#include <Widgets/properties_window.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
@@ -37,11 +43,46 @@ namespace Engine
 
 	TextureEditorClient::TextureEditorClient()
 	{
-		m_sampler = Object::new_instance<Sampler>();
-		m_sampler->init_resource();
+		m_surface = Object::new_instance<RenderSurface>();
 	}
 
-	void TextureEditorClient::render_dock()
+	TextureEditorClient& TextureEditorClient::render_menu_bar()
+	{
+		ImGui::BeginMainMenuBar();
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+		static ImU32 colors[4] = {IM_COL32(255, 0, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(0, 0, 255, 255),
+		                          IM_COL32(255, 255, 255, 255)};
+
+		float height                       = ImGui::GetContentRegionAvail().y;
+		static const char* channel_names[] = {"###red", "###green", "###blue", "###alpha"};
+
+		for (int i = 0; const char* name : channel_names)
+		{
+			if (ImGui::Selectable(name, channels_status[i], 0, {height, height}))
+			{
+				channels_status[i] = !channels_status[i];
+				on_object_parameters_changed();
+			}
+
+			auto min = ImGui::GetItemRectMin();
+			auto max = ImGui::GetItemRectMax();
+
+			auto center = (max + min) * 0.5f;
+
+			if (channels_status[i])
+				draw_list->AddCircleFilled(center, height / 2.f, colors[i]);
+			else
+				draw_list->AddCircle(center, height / 2.f, colors[i], 0, 2.f);
+
+			++i;
+		}
+
+		ImGui::EndMainMenuBar();
+		return *this;
+	}
+
+	TextureEditorClient& TextureEditorClient::render_dock()
 	{
 		auto dock_id                       = ImGui::GetID("TextureEditorDock##Dock");
 		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -57,31 +98,92 @@ namespace Engine
 			auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow("###texture", dock_id);
-			ImGui::DockBuilderDockWindow("###properties", dock_id_right);
+			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::static_name(), dock_id_right);
 
 			ImGui::DockBuilderFinish(dock_id);
 		}
+
+		return *this;
 	}
 
-	void TextureEditorClient::render_texture()
+	TextureEditorClient& TextureEditorClient::render_texture()
 	{
 		ImGui::Begin("###texture");
-		if (m_texture)
+		if (m_surface->has_object())
 		{
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
 			ImGui::Spring(1.f, 0.5);
 			auto size = max_texture_size_in_viewport(m_texture->size(), ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
-			ImGui::Image(ImTextureID(m_texture.ptr(), m_sampler.ptr()), ImGui::ImVecFrom(size));
+			ImGui::Image(ImTextureID(m_surface.ptr(), EditorResources::default_sampler), ImGui::ImVecFrom(size));
 			ImGui::Spring(1.f, 0.5);
 			ImGui::EndHorizontal();
 		}
 		ImGui::End();
+
+		return *this;
 	}
 
-	void TextureEditorClient::render_properties()
+	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4D mask)
 	{
-		ImGui::Begin("###properties");
-		ImGui::End();
+		return;
+		RenderSurface* surfaces[] = {surface};
+		
+		rhi->begin_render();
+		
+		ViewPort vp;
+		vp.size = texture->size(0);
+		vp.pos  = {0, 0};
+		
+		rhi->viewport(vp);
+
+		surface->rhi_clear_color(Color(0.f, 0.f, 0.f, 0.f));
+		rhi->bind_render_target(surfaces, nullptr);
+
+		static Name mip_level_name = "mip_level";
+		auto mat                   = EditorResources::texture_editor_material;
+
+		auto p_mask      = reinterpret_cast<Vec4MaterialParameter*>(mat->find_parameter(Name::mask));
+		auto p_texture   = reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(mat->find_parameter(Name::texture));
+		auto p_mip_level = reinterpret_cast<UIntMaterialParameter*>(mat->find_parameter(mip_level_name));
+
+		p_mask->param = mask;
+		p_texture->texture_param(texture);
+		p_texture->sampler_param(EditorResources::default_sampler);
+		p_mip_level->param = mip;
+
+		mat->apply();
+		DefaultResources::Buffers::screen_position->rhi_bind(0);
+		rhi->draw(6, 0);
+		
+		rhi->end_render();
+
+	}
+
+	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)
+	{
+		if (!m_texture)
+			return *this;
+
+		if (reinit)
+		{
+			m_surface->init(ColorFormat::R8G8B8A8, m_texture->size(m_mip_index));
+		}
+
+		Vector4D mask = Vector4D(red ? 1.f : 0.f, green ? 1.f : 0.f, blue ? 1.f : 0.f, alpha ? 1.f : 0.f);
+		render_thread()->call_function(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask);
+		return *this;
+	}
+
+	TextureEditorClient& TextureEditorClient::on_bind_viewport(RenderViewport* vp)
+	{
+		Super::on_bind_viewport(vp);
+		auto current = ImGuiWindow::current();
+		ImGuiWindow::make_current(imgui_window());
+		m_properties           = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
+		m_properties->closable = false;
+
+		ImGuiWindow::make_current(current);
+		return *this;
 	}
 
 	TextureEditorClient& TextureEditorClient::update(float dt)
@@ -95,14 +197,16 @@ namespace Engine
 
 		ImGui::Begin("Texture Editor", nullptr,
 		             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-		                     ImGuiWindowFlags_MenuBar);
+		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
+		render_menu_bar();
 		render_dock();
 		render_texture();
-		render_properties();
 
 		ImGui::End();
+
+		Vector4D mask = Vector4D(red ? 1.f : 0.f, green ? 1.f : 0.f, blue ? 1.f : 0.f, alpha ? 1.f : 0.f);
+		render_thread()->call_function(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask);
 
 		return *this;
 	}
@@ -117,6 +221,9 @@ namespace Engine
 		if (Texture2D* texture = Object::instance_cast<Texture2D>(object))
 		{
 			m_texture = texture;
+			m_properties->update(object);
+
+			on_object_parameters_changed(true);
 		}
 		return *this;
 	}

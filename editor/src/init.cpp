@@ -45,6 +45,7 @@ namespace Engine
 		Material* grid_material                             = nullptr;
 		Material* point_light_overlay_material              = nullptr;
 		Material* spot_light_overlay_material               = nullptr;
+		Material* texture_editor_material                   = nullptr;
 		PositionVertexBuffer* spot_light_overlay_positions  = nullptr;
 		PositionVertexBuffer* point_light_overlay_positions = nullptr;
 	}// namespace EditorResources
@@ -141,6 +142,7 @@ namespace Engine
 		EditorResources::grid_material                = load_object<Material>("Editor::Materials::GridMaterial");
 		EditorResources::point_light_overlay_material = load_object<Material>("Editor::Materials::PointLightOverlay");
 		EditorResources::spot_light_overlay_material  = load_object<Material>("Editor::Materials::SpotLightOverlay");
+		EditorResources::texture_editor_material      = load_object<Material>("Editor::Materials::TextureEditorMaterial");
 
 		create_point_light_overlay_positions();
 		create_spot_light_overlay_positions();

@@ -22,6 +22,7 @@ namespace Engine
 		static const Name out_of_range;
 		static const Name model;
 		static const Name texture;
+		static const Name mask;
 
 		static const Name clear_render_targets;
 		static const Name base_pass;

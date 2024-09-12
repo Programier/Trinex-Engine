@@ -147,18 +147,17 @@ namespace Engine
 			return *this;
 		}
 
+		template<typename Function>
+		FORCE_INLINE Thread& call_function(Function&& function)
+		{
+			return insert_new_task<FunctionCaller<Function>>(std::forward<Function>(function));
+		}
+
 		template<typename Function, typename... Args>
 		FORCE_INLINE Thread& call_function(Function&& function, Args&&... args)
 		{
-			if constexpr (sizeof...(args) > 0)
-			{
-				auto new_function = std::bind(std::forward<Function>(function), std::forward<Args>(args)...);
-				return insert_new_task<FunctionCaller<Function>>(std::move(new_function));
-			}
-			else
-			{
-				return insert_new_task<FunctionCaller<Function>>(std::forward<Function>(function));
-			}
+			auto new_function = std::bind(std::forward<Function>(function), std::forward<Args>(args)...);
+			return insert_new_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));
 		}
 
 		virtual ~Thread();

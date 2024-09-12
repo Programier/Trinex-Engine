@@ -26,6 +26,7 @@ namespace Engine
 	declare_name(intensivity);
 	declare_name(location);
 	declare_name(direction);
+	declare_name(mask);
 	declare_custom_name(clear_render_targets, ClearRenderTargets);
 	declare_custom_name(base_pass, BasePass);
 	declare_custom_name(depth_pass, DepthPass);
