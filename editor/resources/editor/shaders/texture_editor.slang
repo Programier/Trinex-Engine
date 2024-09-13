@@ -1,6 +1,6 @@
 struct VertexInput
 {
-	float4 position : POSITION0;	
+	float3 position : POSITION0;	
 };
 
 struct VertexOutput
@@ -16,7 +16,7 @@ uniform uint mip_level;
 [shader("vertex")]
 void vs_main(in VertexInput input, out VertexOutput out)
 {
-	out.position = input.position;
+	out.position = float4(input.position.x, input.position.y, input.position.z, 1.f);
 	out.uv = (input.position.xy + float2(1.f, 1.f)) * float2(0.5f, 0.5f);
 }
 

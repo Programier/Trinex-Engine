@@ -72,8 +72,9 @@ namespace Engine
 		void* context() override;
 		D3D11& begin_render() override;
 		D3D11& end_render() override;
-
-		RHI_Viewport* create_viewport(RenderViewport* viewport) override;
+		
+		RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport) override;
+		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 		D3D11& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		D3D11& scissor(const Scissor& scissor) override;

@@ -109,6 +109,9 @@ namespace Engine
 		Super::on_bind_viewport(viewport);
 		auto window = viewport->window();
 
+		if (window == nullptr)
+			throw EngineException("ImGuiEditorClient requires valid window object!");
+
 		m_window = Object::new_instance<ImGuiWindow>();
 		m_window->initialize(window, EditorTheme::initialize_theme);
 		m_viewport = viewport;

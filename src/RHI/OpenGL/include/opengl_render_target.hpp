@@ -20,7 +20,7 @@ namespace Engine
 		static OpenGL_RenderTarget* find_or_create(const Span<struct OpenGL_RenderSurface*>& color_attachments,
 		                                           struct OpenGL_RenderSurface* depth_stencil);
 
-		void bind();
+		void bind(bool override = true);
 		OpenGL_RenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 		OpenGL_RenderTarget& init(const Span<struct OpenGL_RenderSurface*>& color_attachments,
 		                          struct OpenGL_RenderSurface* depth_stencil);

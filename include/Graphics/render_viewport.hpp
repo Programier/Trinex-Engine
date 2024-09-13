@@ -28,22 +28,22 @@ namespace Engine
 		declare_class(RenderViewport, RenderResource);
 
 	private:
-		static List<RenderViewport*> m_viewports;
-		Atomic<bool> m_vsync = true;
-		class Window* m_window;
 		Pointer<ViewportClient> m_client;
+		bool m_is_active = true;
 
-		RenderViewport& window(Window* window, bool vsync);
+	protected:
+		static Vector<RenderViewport*> m_viewports;
 
 	public:
 		RenderViewport();
 		~RenderViewport();
 
-		RenderViewport& rhi_create() override;
-		Window* window() const;
-		Size2D size() const;
+		virtual Window* window() const;
+		virtual RenderSurface* render_surface() const;
+		virtual Size2D size() const;
+		virtual bool is_active() const;
 
-		bool vsync();
+		RenderViewport& is_active(bool active);
 		RenderViewport& vsync(bool flag);
 		RenderViewport& on_resize(const Size2D& new_size);
 		RenderViewport& on_orientation_changed(Orientation orientation);
@@ -52,14 +52,45 @@ namespace Engine
 		ViewportClient* client() const;
 		RenderViewport& client(ViewportClient* client);
 		RenderViewport& update(float dt);
+
 		RenderViewport& rhi_bind();
+		RenderViewport& rhi_begin_render();
+		RenderViewport& rhi_end_render();
 		RenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
 		                                SamplerFilter filter = SamplerFilter::Trilinear);
 		RenderViewport& rhi_clear_color(const Color& color);
 
 		static RenderViewport* current();
-		static const List<RenderViewport*>& viewports();
+		static const Vector<RenderViewport*>& viewports();
+	};
 
-		friend class Window;
+	class ENGINE_EXPORT WindowRenderViewport : public RenderViewport
+	{
+		declare_class(WindowRenderViewport, RenderViewport);
+
+		bool m_vsync = true;
+		class Window* m_window;
+
+	public:
+		WindowRenderViewport(Window* window, bool vsync);
+		~WindowRenderViewport();
+		Window* window() const override;
+		Size2D size() const override;
+		WindowRenderViewport& rhi_create() override;
+	};
+
+	class ENGINE_EXPORT SurfaceRenderViewport : public RenderViewport
+	{
+		declare_class(SurfaceRenderViewport, RenderViewport);
+		Pointer<RenderSurface> m_surface;
+
+	public:
+		SurfaceRenderViewport(RenderSurface* surface);
+		~SurfaceRenderViewport();
+		RenderSurface* render_surface() const override;
+		Size2D size() const override;
+		SurfaceRenderViewport& rhi_create() override;
+
+		static SurfaceRenderViewport* dummy();
 	};
 }// namespace Engine

@@ -99,9 +99,10 @@ namespace Engine
 		return rt;
 	}
 
-	void OpenGL_RenderTarget::bind()
+	void OpenGL_RenderTarget::bind(bool override)
 	{
-		OPENGL_API->m_state.render_target = this;
+		if (override)
+			OPENGL_API->m_state.render_target = this;
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 	}
 
@@ -227,12 +228,12 @@ namespace Engine
 		return *this;
 	}
 
-	OpenGL& OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-	                                   struct OpenGL_RenderSurface* depth_stencil)
+	OpenGL_RenderTarget* OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+	                                                struct OpenGL_RenderSurface* depth_stencil)
 	{
 		auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
 		rt->bind();
-		return *this;
+		return rt;
 	}
 
 	OpenGL& OpenGL::viewport(const ViewPort& viewport)

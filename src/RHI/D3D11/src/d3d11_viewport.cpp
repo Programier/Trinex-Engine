@@ -1,37 +1,98 @@
 #include <Core/exception.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/window.hpp>
 #include <d3d11_api.hpp>
 #include <d3d11_pipeline.hpp>
+#include <d3d11_texture.hpp>
 #include <d3d11_viewport.hpp>
 
 namespace Engine
 {
 	extern HWND extract_d3dx11_hwnd(class Window* window);
+	void D3D11_Viewport::begin_render()
+	{
+		auto size = render_target_size();
 
-	bool D3D11_Viewport::is_window_viewport() const
+		if (size.x > 0.f && size.y > 0.f)
+		{
+			ViewPort viewport;
+			viewport.pos       = {0, 0};
+			viewport.size      = size;
+			viewport.min_depth = 0.f;
+			viewport.max_depth = 1.f;
+
+			DXAPI->m_state.render_viewport = this;
+			DXAPI->m_state.viewport_mode   = D3D11_ViewportMode::Undefined;
+			DXAPI->viewport(viewport);
+		}
+	}
+
+	void D3D11_Viewport::bind()
+	{
+		D3D11_Pipeline::unbind();
+		DXAPI->m_state.render_viewport = this;
+		auto rt                        = render_target();
+		DXAPI->m_context->OMSetRenderTargets(1, &rt, nullptr);
+
+		if (DXAPI->current_viewport_mode() != DXAPI->m_state.viewport_mode)
+		{
+			DXAPI->viewport(DXAPI->m_state.viewport);
+		}
+	}
+
+	void D3D11_Viewport::vsync(bool flag)
+	{}
+
+	void D3D11_Viewport::on_orientation_changed(Orientation orientation)
+	{}
+
+	void D3D11_Viewport::on_resize(const Size2D& new_size)
+	{}
+
+	void D3D11_Viewport::clear_color(const Color& color)
+	{
+		DXAPI->m_context->ClearRenderTargetView(render_target(), &color.x);
+	}
+
+	void D3D11_Viewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	{}
+
+
+	bool D3D11_SurfaceViewport::is_window_viewport() const
 	{
 		return false;
 	}
 
-	ID3D11RenderTargetView* D3D11_Viewport::render_target()
+	Size2D D3D11_SurfaceViewport::render_target_size() const
 	{
+		if (m_surface)
+		{
+			return m_surface->size();
+		}
+		return {-1.f, -1.f};
+	}
+
+	ID3D11RenderTargetView* D3D11_SurfaceViewport::render_target() const
+	{
+		if (m_surface)
+		{
+			return m_surface->rhi_object<D3D11_RenderSurface>()->m_render_target;
+		}
 		return nullptr;
 	}
 
-	Size2D D3D11_Viewport::render_target_size() const
+	void D3D11_SurfaceViewport::init(class RenderSurface* surface)
 	{
-		return {0.f, 0.f};
+		m_surface = surface;
 	}
+
+	void D3D11_SurfaceViewport::end_render()
+	{}
 
 	bool D3D11_WindowViewport::is_window_viewport() const
 	{
 		return true;
-	}
-
-	ID3D11RenderTargetView* D3D11_WindowViewport::render_target()
-	{
-		return m_view;
 	}
 
 	Size2D D3D11_WindowViewport::render_target_size() const
@@ -39,9 +100,15 @@ namespace Engine
 		return m_size;
 	}
 
-	void D3D11_WindowViewport::init(class Window* window)
+	ID3D11RenderTargetView* D3D11_WindowViewport::render_target() const
 	{
-		m_window = window;
+		return m_view;
+	}
+
+	void D3D11_WindowViewport::init(class Window* window, bool vsync)
+	{
+		m_window     = window;
+		m_with_vsync = vsync;
 		create_swapchain(window->size());
 	}
 
@@ -73,19 +140,6 @@ namespace Engine
 		m_size = size;
 	}
 
-	void D3D11_WindowViewport::begin_render()
-	{
-		ViewPort viewport;
-		viewport.pos       = {0, 0};
-		viewport.size      = m_size;
-		viewport.min_depth = 0.f;
-		viewport.max_depth = 1.f;
-
-		DXAPI->m_state.render_viewport = this;
-		DXAPI->m_state.viewport_mode   = D3D11_ViewportMode::Undefined;
-		DXAPI->viewport(viewport);
-	}
-
 	void D3D11_WindowViewport::end_render()
 	{
 		m_swap_chain->Present(m_with_vsync ? 1 : 0, 0);
@@ -98,6 +152,8 @@ namespace Engine
 
 	void D3D11_WindowViewport::on_resize(const Size2D& new_size)
 	{
+		D3D11_Viewport::on_resize(new_size);
+
 		m_size = new_size;
 
 		if (m_swap_chain)
@@ -120,30 +176,6 @@ namespace Engine
 		}
 	}
 
-	void D3D11_WindowViewport::on_orientation_changed(Orientation orientation)
-	{}
-
-	void D3D11_WindowViewport::bind()
-	{
-		D3D11_Pipeline::unbind();
-		DXAPI->m_state.render_viewport = this;
-		DXAPI->m_context->OMSetRenderTargets(1, &m_view, nullptr);
-
-		if (DXAPI->current_viewport_mode() != DXAPI->m_state.viewport_mode)
-		{
-			DXAPI->viewport(DXAPI->m_state.viewport);
-		}
-	}
-
-	void D3D11_WindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-	                                       SamplerFilter filter)
-	{}
-
-	void D3D11_WindowViewport::clear_color(const Color& color)
-	{
-		DXAPI->m_context->ClearRenderTargetView(m_view, &color.x);
-	}
-
 	D3D11_WindowViewport::~D3D11_WindowViewport()
 	{
 		d3d11_release(m_swap_chain);
@@ -151,10 +183,17 @@ namespace Engine
 		d3d11_release(m_view);
 	}
 
-	RHI_Viewport* D3D11::create_viewport(RenderViewport* viewport)
+	RHI_Viewport* D3D11::create_viewport(SurfaceRenderViewport* viewport)
+	{
+		D3D11_SurfaceViewport* result = new D3D11_SurfaceViewport();
+		result->init(viewport->render_surface());
+		return result;
+	}
+
+	RHI_Viewport* D3D11::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
 		D3D11_WindowViewport* result = new D3D11_WindowViewport();
-		result->init(viewport->window());
+		result->init(viewport->window(), vsync);
 		return result;
 	}
 }// namespace Engine

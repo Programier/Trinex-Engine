@@ -7,14 +7,97 @@
 
 namespace Engine
 {
-	void OpenGL_Viewport::vsync(bool flag)
-	{}
+	static FORCE_INLINE GLenum filter_of(SamplerFilter filter)
+	{
+		switch (filter)
+		{
+			case SamplerFilter::Bilinear:
+			case SamplerFilter::Trilinear:
+				return GL_LINEAR;
+
+			default:
+				return GL_NEAREST;
+		}
+	}
 
 	void OpenGL_Viewport::on_resize(const Size2D& new_size)
 	{}
 
 	void OpenGL_Viewport::on_orientation_changed(Orientation orientation)
 	{}
+
+	void OpenGL_Viewport::clear_color(const Color& color)
+	{
+		GLint current_fbo;
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &current_fbo);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_id());
+
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glClearColor(color.r, color.g, color.b, color.a);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		if (OPENGL_API->m_state.render_target)
+		{
+			OPENGL_API->m_state.render_target->bind();
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+	}
+
+	void OpenGL_Viewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+	                                  SamplerFilter filter)
+	{
+		RenderSurface* surface_array[] = {surface};
+		auto render_target             = OpenGL_RenderTarget::find_or_create(surface_array, nullptr);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id());
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);
+
+		auto src_start = src_rect.position;
+		auto src_end   = src_start + src_rect.size;
+		auto dst_start = dst_rect.position;
+		auto dst_end   = dst_start + dst_rect.size;
+
+		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
+		                  GL_COLOR_BUFFER_BIT, filter_of(filter));
+
+		if (OPENGL_API->m_state.render_target)
+		{
+			OPENGL_API->m_state.render_target->bind();
+		}
+	}
+
+
+	// Surface Viewport
+	void OpenGL_SurfaceViewport::begin_render()
+	{}
+
+	void OpenGL_SurfaceViewport::end_render()
+	{}
+
+
+	void OpenGL_SurfaceViewport::init(SurfaceRenderViewport* viewport)
+	{
+		m_surface[0] = viewport->rhi_object<OpenGL_RenderSurface>();
+	}
+
+	void OpenGL_SurfaceViewport::vsync(bool flag)
+	{}
+
+	void OpenGL_SurfaceViewport::bind()
+	{
+		if (m_surface[0])
+			OPENGL_API->bind_render_target(m_surface, nullptr);
+	}
+
+	int_t OpenGL_SurfaceViewport::framebuffer_id()
+	{
+		if (!m_surface[0])
+			throw EngineException("Invalid framebuffer!");
+		
+		return OpenGL_RenderTarget::find_or_create(m_surface, nullptr)->m_framebuffer;
+	}
 
 	// Window Viewport
 
@@ -23,9 +106,10 @@ namespace Engine
 	void set_window_vsync(Window* window, void* context, bool flag);
 	void swap_window_buffers(Window* window, void* context);
 
-	void OpenGL_WindowViewport::init(RenderViewport* viewport)
+	void OpenGL_WindowViewport::init(WindowRenderViewport* viewport, bool vsync)
 	{
 		m_viewport = viewport;
+		m_vsync    = vsync;
 	}
 
 
@@ -37,7 +121,7 @@ namespace Engine
 		{
 			m_current_viewport = this;
 			make_window_current(m_viewport->window(), OPENGL_API->context());
-			vsync(m_viewport->vsync());
+			vsync(m_vsync);
 		}
 	}
 
@@ -86,62 +170,25 @@ namespace Engine
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	static FORCE_INLINE GLenum filter_of(SamplerFilter filter)
+	int_t OpenGL_WindowViewport::framebuffer_id()
 	{
-		switch (filter)
-		{
-			case SamplerFilter::Bilinear:
-			case SamplerFilter::Trilinear:
-				return GL_LINEAR;
-
-			default:
-				return GL_NEAREST;
-		}
-	}
-
-	void OpenGL_WindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-	                                        SamplerFilter filter)
-	{
-		RenderSurface* surface_array[] = {surface};
-		auto render_target             = OpenGL_RenderTarget::find_or_create(surface_array, nullptr);
-
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);
-
-		auto src_start = src_rect.position;
-		auto src_end   = src_start + src_rect.size;
-		auto dst_start = dst_rect.position;
-		auto dst_end   = dst_start + dst_rect.size;
-
-		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
-		                  GL_COLOR_BUFFER_BIT, filter_of(filter));
-
-		if (OPENGL_API->m_state.render_target)
-		{
-			OPENGL_API->m_state.render_target->bind();
-		}
-	}
-
-	void OpenGL_WindowViewport::clear_color(const Color& color)
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glClearColor(color.r, color.g, color.b, color.a);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		if (OPENGL_API->m_state.render_target)
-		{
-			OPENGL_API->m_state.render_target->bind();
-		}
+		return 0;
 	}
 
 	OpenGL_WindowViewport::~OpenGL_WindowViewport()
 	{}
 
-	RHI_Viewport* OpenGL::create_viewport(RenderViewport* engine_viewport)
+	RHI_Viewport* OpenGL::create_viewport(SurfaceRenderViewport* engine_viewport)
+	{
+		OpenGL_SurfaceViewport* viewport = new OpenGL_SurfaceViewport();
+		viewport->init(engine_viewport);
+		return viewport;
+	}
+
+	RHI_Viewport* OpenGL::create_viewport(WindowRenderViewport* engine_viewport, bool vsync)
 	{
 		OpenGL_WindowViewport* viewport = new OpenGL_WindowViewport();
-		viewport->init(engine_viewport);
+		viewport->init(engine_viewport, vsync);
 		return viewport;
 	}
 }// namespace Engine

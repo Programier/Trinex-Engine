@@ -17,7 +17,7 @@ namespace Engine
 		CallBacks<void(Window* window)> on_destroy;
 
 	private:
-		Pointer<class RenderViewport> m_render_viewport;
+		Pointer<class WindowRenderViewport> m_render_viewport;
 		Window* m_parent_window = nullptr;
 		Vector<Window*> m_childs;
 
@@ -62,7 +62,7 @@ namespace Engine
 		virtual void* native_window();
 		virtual size_t monitor_index();
 
-		RenderViewport* render_viewport() const;
+		WindowRenderViewport* render_viewport() const;
 		Window* parent_window() const;
 		const Vector<Window*>& child_windows() const;
 
@@ -71,6 +71,6 @@ namespace Engine
 		virtual ~Window();
 
 		friend class WindowManager;
-		friend class RenderViewport;
+		friend class WindowRenderViewport;
 	};
 }// namespace Engine

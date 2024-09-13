@@ -6,7 +6,8 @@ struct ImDrawData;
 
 namespace Engine
 {
-	class RenderViewport;
+	class WindowRenderViewport;
+	class SurfaceRenderViewport;
 	struct WindowConfig;
 	struct SamplerCreateInfo;
 
@@ -137,7 +138,8 @@ namespace Engine
 		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
 		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;
 		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;
-		virtual RHI_Viewport* create_viewport(RenderViewport* viewport)                                                      = 0;
+		virtual RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport)                                               = 0;
+		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;
 
 		virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
 		virtual RHI& pop_global_params()                                                  = 0;

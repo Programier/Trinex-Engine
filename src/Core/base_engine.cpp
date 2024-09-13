@@ -70,17 +70,23 @@ namespace Engine
 		if (!is_requesting_exit())
 		{
 			auto& viewports = RenderViewport::viewports();
-
-			for (auto& viewport : viewports)
+			
+			for (size_t i = 0; i < viewports.size(); ++i)
 			{
-				viewport->update(m_delta_time);
+				auto viewport = viewports[i];
+				
+				if (viewport->is_active())
+					viewport->update(m_delta_time);
 			}
 
 			begin_render();
-
-			for (auto& viewport : viewports)
+			
+			for (size_t i = 0; i < viewports.size(); ++i)
 			{
-				viewport->render();
+				auto viewport = viewports[i];
+				
+				if (viewport->is_active())
+					viewport->render();
 			}
 
 			end_render();

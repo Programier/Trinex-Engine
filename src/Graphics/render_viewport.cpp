@@ -2,6 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -21,12 +22,14 @@ namespace Engine
 	{
 		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
 			r->method("Vector2D size() const final", &This::size);
-			r->method("bool vsync() const final", method_of<bool>(&This::vsync));
 			r->method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
 			r->method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
 			r->method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
 		};
 	}
+
+	implement_engine_class_default_init(WindowRenderViewport, 0);
+	implement_engine_class_default_init(SurfaceRenderViewport, 0);
 
 	implement_engine_class(ViewportClient, Class::IsScriptable)
 	{
@@ -81,7 +84,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	List<RenderViewport*> RenderViewport::m_viewports;
+	Vector<RenderViewport*> RenderViewport::m_viewports;
 
 	RenderViewport::RenderViewport()
 	{
@@ -90,49 +93,29 @@ namespace Engine
 
 	RenderViewport::~RenderViewport()
 	{
-		m_viewports.remove(this);
-
-		if (m_window)
-		{
-			m_window->m_render_viewport = nullptr;
-			m_window                    = nullptr;
-		}
-	}
-
-	RenderViewport& RenderViewport::rhi_create()
-	{
-		m_rhi_object.reset(rhi->create_viewport(this));
-		return *this;
+		auto it = std::remove_if(m_viewports.begin(), m_viewports.end(), [this](RenderViewport* vp) { return vp == this; });
+		m_viewports.erase(it, m_viewports.end());
 	}
 
 	Window* RenderViewport::window() const
 	{
-		return m_window;
+		return nullptr;
 	}
 
-	RenderViewport& RenderViewport::window(Window* window, bool vsync)
+	RenderSurface* RenderViewport::render_surface() const
 	{
-		m_vsync  = vsync;
-		m_window = window;
-		return *this;
-	}
-
-	bool RenderViewport::vsync()
-	{
-		return m_vsync;
+		return nullptr;
 	}
 
 	RenderViewport& RenderViewport::vsync(bool flag)
 	{
-		if (flag != m_vsync)
+
+		RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
+		if (viewport)
 		{
-			m_vsync                = flag;
-			RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
-			if (viewport)
-			{
-				call_in_render_thread([viewport, flag]() { viewport->vsync(flag); });
-			}
+			call_in_render_thread([viewport, flag]() { viewport->vsync(flag); });
 		}
+
 		return *this;
 	}
 
@@ -156,9 +139,21 @@ namespace Engine
 		return *this;
 	}
 
+
 	Size2D RenderViewport::size() const
 	{
-		return window()->size();
+		return {};
+	}
+
+	bool RenderViewport::is_active() const
+	{
+		return m_is_active;
+	}
+
+	RenderViewport& RenderViewport::is_active(bool active)
+	{
+		m_is_active = active;
+		return *this;
 	}
 
 	class StartRenderingViewport : public ExecutableObject
@@ -264,6 +259,26 @@ namespace Engine
 		return *this;
 	}
 
+	RenderViewport& RenderViewport::rhi_begin_render()
+	{
+		RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
+		if (viewport)
+		{
+			viewport->begin_render();
+		}
+		return *this;
+	}
+
+	RenderViewport& RenderViewport::rhi_end_render()
+	{
+		RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
+		if (viewport)
+		{
+			viewport->end_render();
+		}
+		return *this;
+	}
+
 	RenderViewport& RenderViewport::rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
 	                                                SamplerFilter filter)
 	{
@@ -290,8 +305,91 @@ namespace Engine
 		return m_current_render_viewport;
 	}
 
-	const List<RenderViewport*>& RenderViewport::viewports()
+	const Vector<RenderViewport*>& RenderViewport::viewports()
 	{
 		return m_viewports;
+	}
+
+
+	WindowRenderViewport::WindowRenderViewport(Window* window, bool vsync)
+	{
+		m_window = window;
+		m_vsync  = vsync;
+	}
+
+	WindowRenderViewport::~WindowRenderViewport()
+	{
+		if (m_window)
+		{
+			m_window->m_render_viewport = nullptr;
+			m_window                    = nullptr;
+		}
+	}
+
+	Window* WindowRenderViewport::window() const
+	{
+		return m_window;
+	}
+
+	Size2D WindowRenderViewport::size() const
+	{
+		return m_window->size();
+	}
+
+	WindowRenderViewport& WindowRenderViewport::rhi_create()
+	{
+		m_rhi_object.reset(rhi->create_viewport(this, m_vsync));
+		return *this;
+	}
+
+	SurfaceRenderViewport::SurfaceRenderViewport(RenderSurface* surface)
+	{
+		m_surface = surface;
+	}
+
+	SurfaceRenderViewport::~SurfaceRenderViewport()
+	{}
+
+	RenderSurface* SurfaceRenderViewport::render_surface() const
+	{
+		return m_surface;
+	}
+
+	Size2D SurfaceRenderViewport::size() const
+	{
+		return m_surface->size();
+	}
+
+	SurfaceRenderViewport& SurfaceRenderViewport::rhi_create()
+	{
+		m_rhi_object.reset(rhi->create_viewport(this));
+		return *this;
+	}
+
+
+	class DummySurfaceRenderViewport : public SurfaceRenderViewport
+	{
+	public:
+		DummySurfaceRenderViewport() : SurfaceRenderViewport(nullptr)
+		{
+			m_viewports.pop_back(); // Unregister this viewport from viewports array
+		}
+
+		bool is_active() const override
+		{
+			return false;
+		}
+	};
+
+	SurfaceRenderViewport* SurfaceRenderViewport::dummy()
+	{
+		static SurfaceRenderViewport* dummy_viewport = nullptr;
+
+		if (dummy_viewport == nullptr)
+		{
+			dummy_viewport = Object::new_instance<EngineResource<DummySurfaceRenderViewport>>();
+			dummy_viewport->init_resource();
+		}
+		return dummy_viewport;
 	}
 }// namespace Engine

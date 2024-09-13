@@ -125,16 +125,20 @@ namespace Engine
 
 	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4D mask)
 	{
-		return;
 		RenderSurface* surfaces[] = {surface};
-		
+
 		rhi->begin_render();
-		
+		SurfaceRenderViewport::dummy()->rhi_begin_render();
+
 		ViewPort vp;
 		vp.size = texture->size(0);
 		vp.pos  = {0, 0};
-		
 		rhi->viewport(vp);
+
+		Scissor scissor;
+		scissor.size = texture->size(0);
+		scissor.pos  = {0, 0};
+		rhi->scissor(scissor);
 
 		surface->rhi_clear_color(Color(0.f, 0.f, 0.f, 0.f));
 		rhi->bind_render_target(surfaces, nullptr);
@@ -154,9 +158,9 @@ namespace Engine
 		mat->apply();
 		DefaultResources::Buffers::screen_position->rhi_bind(0);
 		rhi->draw(6, 0);
-		
-		rhi->end_render();
 
+		SurfaceRenderViewport::dummy()->rhi_end_render();
+		rhi->end_render();
 	}
 
 	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)

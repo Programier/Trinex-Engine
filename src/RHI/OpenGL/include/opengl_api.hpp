@@ -21,7 +21,7 @@ namespace Engine
 		declare_struct(OpenGL, void);
 		static OpenGL* static_constructor();
 		static void static_destructor(OpenGL* opengl);
-		
+
 		static OpenGL* m_instance;
 		void* m_context = nullptr;
 
@@ -48,8 +48,8 @@ namespace Engine
 		OpenGL& reset_state();
 
 		OpenGL& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-		OpenGL& bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-		                           struct OpenGL_RenderSurface* depth_stencil);
+		OpenGL_RenderTarget* bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+		                                        struct OpenGL_RenderSurface* depth_stencil);
 		OpenGL& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		OpenGL& scissor(const Scissor& scissor) override;
@@ -67,7 +67,8 @@ namespace Engine
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_Viewport* create_viewport(RenderViewport* viewport) override;
+		RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport) override;
+		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 
 		OpenGL& push_global_params(const GlobalShaderParameters& params) override;
 		OpenGL& pop_global_params() override;

@@ -13,83 +13,31 @@
 
 namespace Engine
 {
-
-	VulkanViewport::SyncObject::SyncObject()
+	static void transition_image_layout(vk::Image image, vk::ImageLayout current, vk::ImageLayout new_layout,
+	                                    vk::CommandBuffer& cmd)
 	{
-		m_image_present   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
-		m_render_finished = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
-		m_fence           = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+		vk::ImageMemoryBarrier barrier;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.oldLayout           = current;
+		barrier.newLayout           = new_layout;
+		barrier.image               = image;
+		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+		Barrier::transition_image_layout(cmd, barrier);
 	}
 
-	VulkanViewport::SyncObject::~SyncObject()
+	static vk::Filter filter_of(SamplerFilter filter)
 	{
-		DESTROY_CALL(destroySemaphore, m_image_present);
-		DESTROY_CALL(destroyFence, m_fence);
-		DESTROY_CALL(destroySemaphore, m_render_finished);
-	}
-
-	void VulkanViewport::init()
-	{
-		m_command_buffers.resize(API->m_framebuffers_count);
-		m_sync_objects.resize(API->m_framebuffers_count);
-	}
-
-	void VulkanViewport::reinit()
-	{
-		m_sync_objects.clear();
-		m_sync_objects.resize(API->m_framebuffers_count);
-	}
-
-	void VulkanViewport::begin_render()
-	{
-		SyncObject& sync = m_sync_objects[API->m_current_buffer];
-
-		while (vk::Result::eTimeout == API->m_device.waitForFences(sync.m_fence, VK_TRUE, UINT64_MAX))
+		switch (filter)
 		{
+			case SamplerFilter::Bilinear:
+			case SamplerFilter::Trilinear:
+				return vk::Filter::eLinear;
+
+			default:
+				return vk::Filter::eNearest;
 		}
-
-		API->m_device.resetFences(sync.m_fence);
-
-		API->current_command_buffer()->reset();
-		API->current_command_buffer_handle().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-	}
-
-
-	void VulkanViewport::end_render()
-	{
-		if (API->m_state.m_render_target)
-		{
-			API->m_state.m_render_target->unbind();
-		}
-
-		API->current_command_buffer_handle().end();
-
-		SyncObject& sync = m_sync_objects[API->m_current_buffer];
-
-		static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-		vk::SubmitInfo submit_info(sync.m_image_present, wait_flags, API->current_command_buffer_handle(),
-		                           sync.m_render_finished);
-
-		API->m_graphics_queue.submit(submit_info, sync.m_fence);
-	}
-
-	void VulkanViewport::on_resize(const Size2D& new_size)
-	{}
-
-	void VulkanViewport::on_orientation_changed(Orientation orientation)
-	{}
-
-	void VulkanViewport::vsync(bool flag)
-	{}
-
-	VulkanRenderTargetBase* VulkanViewport::render_target()
-	{
-		return nullptr;
-	}
-
-	bool VulkanViewport::is_window_viewport()
-	{
-		return false;
 	}
 
 	void VulkanViewport::destroy_image_views()
@@ -113,30 +61,289 @@ namespace Engine
 		API->m_state.m_current_viewport = nullptr;
 	}
 
-	VulkanViewport::~VulkanViewport()
+	void VulkanViewport::begin_render()
 	{
-		m_command_buffers.clear();
-		m_sync_objects.clear();
+		SyncObject& sync = *current_sync_object();
+
+		if (auto fence = sync.fence())
+		{
+			while (vk::Result::eTimeout == API->m_device.waitForFences(fence, VK_TRUE, UINT64_MAX))
+			{
+			}
+
+			API->m_device.resetFences(fence);
+		}
+
+		API->current_command_buffer()->reset();
+		API->current_command_buffer_handle().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+	}
+
+	void VulkanViewport::end_render()
+	{
+		if (API->m_state.m_render_target)
+		{
+			API->m_state.m_render_target->unbind();
+		}
+
+		API->current_command_buffer_handle().end();
+
+		SyncObject& sync = *current_sync_object();
+
+		static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+
+		vk::SubmitInfo submit_info({}, {}, API->current_command_buffer_handle(), {});
+
+		auto image_present   = sync.image_present();
+		auto render_finished = sync.render_finished();
+
+		if (image_present)
+		{
+			submit_info.setWaitSemaphores(image_present);
+			submit_info.setWaitDstStageMask(wait_flags);
+		}
+
+		if (render_finished)
+			submit_info.setSignalSemaphores(render_finished);
+
+		API->m_graphics_queue.submit(submit_info, sync.fence());
+	}
+
+	void VulkanViewport::on_resize(const Size2D& new_size)
+	{}
+
+	void VulkanViewport::on_orientation_changed(Orientation orientation)
+	{}
+
+	void VulkanViewport::vsync(bool flag)
+	{}
+
+	void VulkanViewport::bind()
+	{
+		return render_target()->bind();
+	}
+
+	void VulkanViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	{
+		auto current = API->m_state.m_render_target;
+
+		if (current)
+		{
+			current->unbind();
+		}
+
+		auto& cmd = API->current_command_buffer_handle();
+		auto src  = surface->rhi_object<VulkanSurface>();
+
+		auto src_layout = src->layout();
+		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd);
+
+		auto dst    = current_image();
+		auto layout = default_image_layout();
+		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd);
+
+		auto src_end = src_rect.position + src_rect.size;
+		auto dst_end = dst_rect.position + dst_rect.size;
+
+		vk::ImageBlit blit;
+		blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
+		blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
+
+		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
+		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
+		cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
+
+		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, default_image_layout(), cmd);
+		src->change_layout(src_layout, cmd);
+
+		if (current)
+		{
+			current->bind();
+		}
+	}
+
+	void VulkanViewport::clear_color(const Color& color)
+	{
+		auto current = API->m_state.m_render_target;
+
+		if (current)
+		{
+			current->unbind();
+		}
+
+		auto& cmd   = API->current_command_buffer_handle();
+		auto dst    = current_image();
+		auto layout = default_image_layout();
+
+		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd);
+
+		cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
+		                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+
+		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, layout, cmd);
+
+		if (current)
+		{
+			current->bind();
+		}
 	}
 
 	VulkanCommandBuffer* VulkanAPI::current_command_buffer()
 	{
-		return &m_state.m_current_viewport->m_command_buffers.at(API->m_current_buffer);
+		return m_state.m_current_viewport->current_command_buffer();
 	}
 
 	vk::CommandBuffer& VulkanAPI::current_command_buffer_handle()
 	{
-		return m_state.m_current_viewport->m_command_buffers[API->m_current_buffer].m_cmd;
+		return m_state.m_current_viewport->current_command_buffer()->m_cmd;
+	}
+
+	// Surface Viewport
+	VulkanSurfaceViewport::SyncObject::SyncObject()
+	{
+		m_fence = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+	}
+
+	VulkanSurfaceViewport::SyncObject::~SyncObject()
+	{
+		DESTROY_CALL(destroyFence, m_fence);
+	}
+
+	VulkanSurfaceViewport::VulkanSurfaceViewport()
+	{
+		m_command_buffer = new VulkanCommandBuffer();
+		m_sync_object    = new SyncObject();
+		m_render_target  = nullptr;
+	}
+
+	VulkanSurfaceViewport::~VulkanSurfaceViewport()
+	{
+		API->wait_idle();
+		delete m_command_buffer;
+		delete m_sync_object;
+	}
+
+	VulkanCommandBuffer* VulkanSurfaceViewport::current_command_buffer()
+	{
+		return m_command_buffer;
+	}
+
+	VulkanSurfaceViewport::SyncObject* VulkanSurfaceViewport::current_sync_object()
+	{
+		return m_sync_object;
+	}
+
+	vk::Image VulkanSurfaceViewport::current_image()
+	{
+		return m_surface[0]->rhi_object<VulkanSurface>()->image();
+	}
+
+	vk::ImageLayout VulkanSurfaceViewport::default_image_layout()
+	{
+		return vk::ImageLayout::eShaderReadOnlyOptimal;
+	}
+
+	VulkanRenderTargetBase* VulkanSurfaceViewport::render_target()
+	{
+		return m_render_target;
+	}
+
+	bool VulkanSurfaceViewport::is_window_viewport()
+	{
+		return false;
+	}
+
+	VulkanViewport* VulkanSurfaceViewport::init(SurfaceRenderViewport* viewport)
+	{
+		m_surface[0] = viewport->render_surface();
+
+		if (m_surface[0])
+			m_render_target = VulkanRenderTarget::find_or_create(m_surface, nullptr);
+		return this;
+	}
+
+	void VulkanSurfaceViewport::begin_render()
+	{
+		VulkanViewport::before_begin_render();
+		VulkanViewport::begin_render();
+
+		if (m_render_target)
+		{
+			Size2D rt_size = m_render_target->state()->m_size;
+			ViewPort viewport;
+			viewport.pos       = {0.f, 0.f};
+			viewport.size      = rt_size;
+			viewport.min_depth = 0.f;
+			viewport.max_depth = 1.f;
+			API->viewport(viewport);
+
+			Scissor scissor;
+			scissor.pos  = {0.f, 0.f};
+			scissor.size = rt_size;
+			API->scissor(scissor);
+		}
+	}
+
+	void VulkanSurfaceViewport::end_render()
+	{
+		VulkanViewport::end_render();
+		VulkanViewport::after_end_render();
 	}
 
 	// Window Viewport
 
-	VulkanViewport* VulkanWindowViewport::init(RenderViewport* viewport)
+	VulkanWindowViewport::SyncObject::SyncObject()
+	{
+		m_image_present   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+		m_render_finished = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+		m_fence           = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+	}
+
+	VulkanWindowViewport::SyncObject::~SyncObject()
+	{
+		DESTROY_CALL(destroySemaphore, m_image_present);
+		DESTROY_CALL(destroyFence, m_fence);
+		DESTROY_CALL(destroySemaphore, m_render_finished);
+	}
+
+	VulkanCommandBuffer* VulkanWindowViewport::current_command_buffer()
+	{
+		return &m_command_buffers[API->m_current_buffer];
+	}
+
+	VulkanWindowViewport::SyncObject* VulkanWindowViewport::current_sync_object()
+	{
+		return &m_sync_objects[API->m_current_buffer];
+	}
+
+	vk::Image VulkanWindowViewport::current_image()
+	{
+		return m_images[m_buffer_index];
+	}
+
+	vk::ImageLayout VulkanWindowViewport::default_image_layout()
+	{
+		return vk::ImageLayout::ePresentSrcKHR;
+	}
+
+	VulkanRenderTargetBase* VulkanWindowViewport::render_target()
+	{
+		return m_render_target->frame();
+	}
+
+	bool VulkanWindowViewport::is_window_viewport()
+	{
+		return true;
+	}
+
+	VulkanViewport* VulkanWindowViewport::init(WindowRenderViewport* viewport, bool vsync)
 	{
 		m_viewport = viewport;
+		m_vsync    = vsync;
 		m_surface  = API->m_window == viewport->window() ? API->m_surface : API->create_surface(viewport->window());
 
-		VulkanViewport::init();
+		m_command_buffers.resize(API->m_framebuffers_count);
+		m_sync_objects.resize(API->m_framebuffers_count);
+
 		create_swapchain();
 		create_render_target();
 		return this;
@@ -158,110 +365,6 @@ namespace Engine
 		m_need_recreate_swap_chain = true;
 	}
 
-	void VulkanWindowViewport::bind()
-	{
-		m_render_target->bind();
-	}
-
-	static vk::Filter filter_of(SamplerFilter filter)
-	{
-		switch (filter)
-		{
-			case SamplerFilter::Bilinear:
-			case SamplerFilter::Trilinear:
-				return vk::Filter::eLinear;
-
-			default:
-				return vk::Filter::eNearest;
-		}
-	}
-
-	static void transition_swapchain_image(vk::Image image, vk::ImageLayout current, vk::ImageLayout new_layout,
-	                                       vk::CommandBuffer& cmd)
-	{
-		vk::ImageMemoryBarrier barrier;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout           = current;
-		barrier.newLayout           = new_layout;
-		barrier.image               = image;
-		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		Barrier::transition_image_layout(cmd, barrier);
-	}
-
-	void VulkanWindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-	                                       SamplerFilter filter)
-	{
-		auto current = API->m_state.m_render_target;
-
-		if (current)
-		{
-			current->unbind();
-		}
-
-		auto& cmd = API->current_command_buffer_handle();
-		auto src  = surface->rhi_object<VulkanSurface>();
-
-		auto src_layout = src->layout();
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd);
-
-		auto dst = vk::Image(m_images[m_buffer_index]);
-		transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
-
-		auto src_end = src_rect.position + src_rect.size;
-		auto dst_end = dst_rect.position + dst_rect.size;
-
-		vk::ImageBlit blit;
-		blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
-
-		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
-		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
-
-		transition_swapchain_image(dst, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR, cmd);
-		src->change_layout(src_layout, cmd);
-
-		if (current)
-		{
-			current->bind();
-		}
-	}
-
-	void VulkanWindowViewport::clear_color(const Color& color)
-	{
-		auto current = API->m_state.m_render_target;
-
-		if (current)
-		{
-			current->unbind();
-		}
-
-		auto& cmd = API->current_command_buffer_handle();
-		auto dst  = vk::Image(m_images[m_buffer_index]);
-		transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
-
-		cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
-		                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-		transition_swapchain_image(dst, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR, cmd);
-
-		if (current)
-		{
-			current->bind();
-		}
-	}
-
-	VulkanRenderTargetBase* VulkanWindowViewport::render_target()
-	{
-		return m_render_target->frame();
-	}
-
-	bool VulkanWindowViewport::is_window_viewport()
-	{
-		return true;
-	}
-
 	void VulkanWindowViewport::create_swapchain()
 	{
 		// Creating swapchain
@@ -273,8 +376,7 @@ namespace Engine
 			swapchain_builder.set_old_swapchain(m_swapchain->swapchain);
 		}
 
-		swapchain_builder.set_desired_present_mode(
-		        static_cast<VkPresentModeKHR>(API->present_mode_of(m_viewport->vsync(), m_surface)));
+		swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->present_mode_of(m_vsync, m_surface)));
 		auto capabilities = API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
 
 		size_t images_count = API->m_framebuffers_count;
@@ -326,7 +428,7 @@ namespace Engine
 
 		for (VkImage image : m_images)
 		{
-			transition_swapchain_image(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
+			transition_image_layout(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
 		}
 
 		API->end_single_time_command_buffer(cmd);
@@ -344,7 +446,8 @@ namespace Engine
 			create_swapchain();
 			create_render_target();
 
-			VulkanViewport::reinit();
+			m_sync_objects.clear();
+			m_sync_objects.resize(API->m_framebuffers_count);
 		}
 	}
 
@@ -353,9 +456,8 @@ namespace Engine
 		if (!m_render_target)
 			m_render_target = new VulkanWindowRenderTarget();
 
-		VulkanWindowRenderTarget* render_target = reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target);
-		render_target->resize_count(m_swapchain->image_count);
-		render_target->init(this);
+		m_render_target->resize_count(m_swapchain->image_count);
+		m_render_target->init(this);
 	}
 
 	void VulkanWindowViewport::destroy_swapchain(bool fully)
@@ -386,6 +488,7 @@ namespace Engine
 	VulkanWindowViewport::~VulkanWindowViewport()
 	{
 		API->wait_idle();
+
 		delete m_render_target;
 		destroy_swapchain(true);
 		vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);
@@ -473,10 +576,17 @@ namespace Engine
 
 	// Creating Viewports
 
-	RHI_Viewport* VulkanAPI::create_viewport(RenderViewport* viewport)
+	RHI_Viewport* VulkanAPI::create_viewport(SurfaceRenderViewport* viewport)
+	{
+		VulkanSurfaceViewport* vulkan_viewport = new VulkanSurfaceViewport();
+		vulkan_viewport->init(viewport);
+		return vulkan_viewport;
+	}
+
+	RHI_Viewport* VulkanAPI::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
 		VulkanWindowViewport* vulkan_viewport = new VulkanWindowViewport();
-		vulkan_viewport->init(viewport);
+		vulkan_viewport->init(viewport, vsync);
 		return vulkan_viewport;
 	}
 }// namespace Engine

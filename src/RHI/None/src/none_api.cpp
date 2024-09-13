@@ -230,7 +230,12 @@ namespace Engine
 		return new NoneSSBOBuffer();
 	}
 
-	RHI_Viewport* NoneApi::create_viewport(RenderViewport* viewport)
+	RHI_Viewport* NoneApi::create_viewport(SurfaceRenderViewport* viewport)
+	{
+		return new NoneViewport();
+	}
+
+	RHI_Viewport* NoneApi::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
 		return new NoneViewport();
 	}
