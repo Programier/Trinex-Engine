@@ -61,8 +61,6 @@ namespace Engine
 		vk::PhysicalDeviceFeatures m_features;
 		vk::SurfaceCapabilitiesKHR m_surface_capabilities;
 
-		vk::DescriptorPool m_imgui_descriptor_pool;
-
 		vk::CommandPool m_command_pool;
 		uint32_t m_framebuffers_count = 0;
 

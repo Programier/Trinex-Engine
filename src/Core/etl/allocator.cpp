@@ -12,4 +12,10 @@ namespace Engine
 	{
 		std::allocator<unsigned char>().deallocate(ptr, size);
 	}
+
+	BlockAllocatorBase::size_type BlockAllocatorBase::allign_pointer(unsigned char* p, size_type align) const noexcept
+	{
+		uintptr_t result = reinterpret_cast<uintptr_t>(p);
+		return ((align - result) % align);
+	}
 }// namespace Engine

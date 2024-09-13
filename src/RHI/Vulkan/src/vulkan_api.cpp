@@ -78,7 +78,6 @@ namespace Engine
 		m_uniform_buffer.clear();
 		VulkanDescriptorPoolManager::release_all();
 
-		DESTROY_CALL(destroyDescriptorPool, m_imgui_descriptor_pool);
 		m_device.destroyCommandPool(m_command_pool);
 		m_device.destroy();
 		vkb::destroy_instance(m_instance);
