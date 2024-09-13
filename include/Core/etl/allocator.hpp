@@ -165,7 +165,10 @@ namespace Engine
 			}
 		}
 
-		BlockAllocator& operator=(const BlockAllocator& BlockAllocator) = delete;
+		BlockAllocator& operator=(const BlockAllocator& other)
+		{
+			return *this;
+		}
 
 		BlockAllocator& operator=(BlockAllocator&& other) noexcept
 		{

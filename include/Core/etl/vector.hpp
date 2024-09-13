@@ -8,7 +8,7 @@
 namespace Engine::Containers
 {
 	template<typename T, typename AllocatorType = std::allocator<T>>
-	class Vector
+	class Vector : private AllocatorType
 	{
 	public:
 		using value_type             = T;
@@ -45,6 +45,16 @@ namespace Engine::Containers
 		static constexpr inline bool is_forward_iterator =
 		        std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::forward_iterator_tag>;
 
+		constexpr AllocatorType& allocator()
+		{
+			return *this;
+		}
+
+		constexpr const AllocatorType& allocator() const
+		{
+			return *this;
+		}
+
 		constexpr inline void range_check(size_type n) const
 		{
 			if (n >= size())
@@ -68,7 +78,7 @@ namespace Engine::Containers
 
 		pointer allocate_and_copy(size_type count, const_pointer first, const_pointer last)
 		{
-			pointer result = AllocatorType().allocate(count);
+			pointer result = allocator().allocate(count);
 			try
 			{
 				std::uninitialized_copy(first, last, result);
@@ -76,7 +86,7 @@ namespace Engine::Containers
 			}
 			catch (...)
 			{
-				AllocatorType().deallocate(result, count);
+				allocator().deallocate(result, count);
 				throw;
 			}
 		}
@@ -95,7 +105,7 @@ namespace Engine::Containers
 				else
 				{
 					const size_type len = next_capacity(n);
-					pointer new_start(AllocatorType().allocate(len));
+					pointer new_start(allocator().allocate(len));
 					pointer destroy_from = pointer();
 
 					try
@@ -109,11 +119,11 @@ namespace Engine::Containers
 						if (destroy_from)
 							std::destroy(destroy_from, destroy_from + n);
 
-						AllocatorType().deallocate(new_start, len);
+						allocator().deallocate(new_start, len);
 						throw;
 					}
 
-					AllocatorType().deallocate(m_start, capacity());
+					allocator().deallocate(m_start, capacity());
 					m_start  = new_start;
 					m_finish = new_start + s + n;
 					m_end    = new_start + len;
@@ -154,7 +164,7 @@ namespace Engine::Containers
 
 					const size_type len          = next_capacity(n);
 					const size_type elems_before = pos - old_start;
-					pointer new_start(AllocatorType().allocate(len));
+					pointer new_start(allocator().allocate(len));
 					pointer new_finish(new_start);
 
 					try
@@ -171,11 +181,11 @@ namespace Engine::Containers
 							std::destroy(new_start + elems_before, new_start + elems_before + n);
 						else
 							std::destroy(new_start, new_finish);
-						AllocatorType().deallocate(new_start, len);
+						allocator().deallocate(new_start, len);
 						throw;
 					}
 					std::destroy(old_start, old_finish);
-					AllocatorType().deallocate(old_start, capacity());
+					allocator().deallocate(old_start, capacity());
 					m_start  = new_start;
 					m_finish = new_finish;
 					m_end    = new_start + len;
@@ -197,7 +207,7 @@ namespace Engine::Containers
 			pointer old_start            = m_start;
 			pointer old_finish           = m_finish;
 			const size_type elems_before = pos - begin();
-			pointer new_start(AllocatorType().allocate(len));
+			pointer new_start(allocator().allocate(len));
 			pointer new_finish(new_start);
 
 			try
@@ -213,12 +223,12 @@ namespace Engine::Containers
 					std::destroy_at(new_start + elems_before);
 				else
 					std::destroy(new_start, new_finish);
-				AllocatorType().deallocate(new_start, len);
+				allocator().deallocate(new_start, len);
 				throw;
 			}
 
 			std::destroy(old_start, old_finish);
-			AllocatorType().deallocate(old_start, capacity());
+			allocator().deallocate(old_start, capacity());
 			m_start  = new_start;
 			m_finish = new_finish;
 			m_end    = new_start + len;
@@ -273,7 +283,7 @@ namespace Engine::Containers
 					pointer old_finish = m_finish;
 
 					const size_type len = next_capacity(n);
-					pointer new_start(AllocatorType().allocate(len));
+					pointer new_start(allocator().allocate(len));
 					pointer new_finish(new_start);
 
 					try
@@ -285,12 +295,12 @@ namespace Engine::Containers
 					catch (...)
 					{
 						std::destroy(new_start, new_finish);
-						AllocatorType().deallocate(m_start, len);
+						allocator().deallocate(m_start, len);
 						throw;
 					}
 
 					std::destroy(m_start, m_finish);
-					AllocatorType().deallocate(m_start, capacity());
+					allocator().deallocate(m_start, capacity());
 					m_start  = new_start;
 					m_finish = new_finish;
 					m_end    = new_start + len;
@@ -338,7 +348,7 @@ namespace Engine::Containers
 			{
 				pointer tmp(allocate_and_copy(len, first, last));
 				std::destroy(m_start, m_finish);
-				AllocatorType().deallocate(m_start, capacity());
+				allocator().deallocate(m_start, capacity());
 				m_start  = tmp;
 				m_finish = m_start + len;
 				m_end    = m_finish;
@@ -450,7 +460,7 @@ namespace Engine::Containers
 			if (m_start)
 			{
 				clear();
-				AllocatorType().deallocate(m_start, capacity());
+				allocator().deallocate(m_start, capacity());
 			}
 		}
 
@@ -518,7 +528,17 @@ namespace Engine::Containers
 		constexpr Vector() noexcept : m_start(nullptr), m_finish(nullptr), m_end(nullptr)
 		{}
 
+		constexpr Vector(const AllocatorType& allocator) noexcept
+		    : AllocatorType(allocator), m_start(nullptr), m_finish(nullptr), m_end(nullptr)
+		{}
+
 		constexpr explicit Vector(size_type n) : Vector()
+		{
+			reserve(n);
+			append_to_end(n);
+		}
+
+		constexpr explicit Vector(size_type n, const AllocatorType& allocator) : Vector(allocator)
 		{
 			reserve(n);
 			append_to_end(n);
@@ -530,8 +550,20 @@ namespace Engine::Containers
 			append_to_end(n, v);
 		}
 
+		constexpr Vector(size_type n, const value_type& v, const AllocatorType& allocator) : Vector(allocator)
+		{
+			reserve(n);
+			append_to_end(n, v);
+		}
+
 		template<class InputIterator, typename = RequireInputIter<InputIterator>>
 		constexpr Vector(InputIterator first, InputIterator last) : Vector()
+		{
+			range_initialize(first, last);
+		}
+
+		template<class InputIterator, typename = RequireInputIter<InputIterator>>
+		constexpr Vector(InputIterator first, InputIterator last, const AllocatorType& allocator) : Vector(allocator)
 		{
 			range_initialize(first, last);
 		}
@@ -539,10 +571,24 @@ namespace Engine::Containers
 		constexpr Vector(std::initializer_list<T> list) : Vector(list.begin(), list.end())
 		{}
 
-		constexpr Vector(const Vector& other) : Vector(other.begin(), other.end())
+		constexpr Vector(std::initializer_list<T> list, const AllocatorType& allocator)
+		    : Vector(list.begin(), list.end(), allocator)
 		{}
 
-		constexpr Vector(Vector&& other) : m_start(other.m_start), m_finish(other.m_finish), m_end(other.m_end)
+		constexpr Vector(const Vector& other) : Vector(other.begin(), other.end(), other.allocator())
+		{}
+
+		constexpr Vector(const Vector& other, const AllocatorType& allocator) : Vector(other.begin(), other.end(), allocator)
+		{}
+
+		constexpr Vector(Vector&& other)
+		    : AllocatorType(std::move(other)), m_start(other.m_start), m_finish(other.m_finish), m_end(other.m_end)
+		{
+			other.m_start = other.m_finish = other.m_end = nullptr;
+		}
+
+		constexpr Vector(Vector&& other, const AllocatorType& allocator)
+		    : AllocatorType(allocator), m_start(other.m_start), m_finish(other.m_finish), m_end(other.m_end)
 		{
 			other.m_start = other.m_finish = other.m_end = nullptr;
 		}
@@ -646,7 +692,7 @@ namespace Engine::Containers
 		constexpr inline size_type max_size() const
 		{
 			const size_type diffmax  = std::numeric_limits<difference_type>::max() / sizeof(value_type);
-			const size_type allocmax = std::allocator_traits<AllocatorType>::max_size(AllocatorType());
+			const size_type allocmax = std::allocator_traits<AllocatorType>::max_size(allocator());
 			return (std::min)(diffmax, allocmax);
 		}
 
@@ -670,7 +716,7 @@ namespace Engine::Containers
 
 			auto sz = size();
 
-			T* new_mem = AllocatorType().allocate(n);
+			T* new_mem = allocator().allocate(n);
 
 			if (m_start)
 			{
@@ -680,12 +726,12 @@ namespace Engine::Containers
 				}
 				catch (...)
 				{
-					AllocatorType().deallocate(new_mem, n);
+					allocator().deallocate(new_mem, n);
 					throw;
 				}
 
 				std::destroy(m_start, m_finish);
-				AllocatorType().deallocate(m_start, cp);
+				allocator().deallocate(m_start, cp);
 			}
 
 			m_start  = new_mem;
