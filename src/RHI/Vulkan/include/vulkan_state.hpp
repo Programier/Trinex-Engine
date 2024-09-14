@@ -12,7 +12,10 @@ namespace Engine
 	};
 
 	struct VulkanState {
-		struct VulkanRenderTargetBase* m_render_target       = nullptr;
+		struct VulkanRenderPass* m_render_pass              = nullptr;
+		struct VulkanRenderTargetBase* m_render_target      = nullptr;
+		struct VulkanRenderTargetBase* m_next_render_target = nullptr;
+
 		struct VulkanPipeline* m_pipeline                    = nullptr;
 		vk::Pipeline m_vk_pipeline                           = {};
 		struct RHI_VertexBuffer* m_current_vertex_buffer[15] = {};

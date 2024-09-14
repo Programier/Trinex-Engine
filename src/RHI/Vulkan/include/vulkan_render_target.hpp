@@ -10,10 +10,10 @@ namespace Engine
 		vk::RenderPassBeginInfo m_render_pass_info;
 		Size2D m_size;
 
+		virtual bool is_main_render_target_state();
+
 		void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 		void post_init();
-
-		virtual bool is_main_render_target_state();
 	};
 
 	struct VulkanMainRenderTargetState : public VulkanRenderTargetState {
@@ -21,11 +21,8 @@ namespace Engine
 		bool is_main_render_target_state() override;
 	};
 
-
 	struct VulkanRenderTargetBase {
 		vk::Framebuffer m_framebuffer;
-
-		bool prepare_bind();
 
 		virtual bool is_main_render_target();
 		virtual VulkanRenderTargetBase& destroy();
@@ -34,8 +31,12 @@ namespace Engine
 		VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
 		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
-		virtual void bind();
-		virtual VulkanRenderTargetBase& unbind();
+		void bind();
+		virtual VulkanRenderTargetBase& lock_surfaces()   = 0;
+		virtual VulkanRenderTargetBase& unlock_surfaces() = 0;
+
+		virtual size_t color_attachments_count() const         = 0;
+		virtual size_t depth_stencil_attachments_count() const = 0;
 		virtual ~VulkanRenderTargetBase();
 	};
 
@@ -45,8 +46,10 @@ namespace Engine
 		bool is_main_render_target() override;
 		VulkanMainRenderTargetState* state() override;
 
-		void bind() override;
-		VulkanRenderTargetBase& unbind() override;
+		VulkanRenderTargetBase& lock_surfaces() override;
+		VulkanRenderTargetBase& unlock_surfaces() override;
+		size_t color_attachments_count() const override;
+		size_t depth_stencil_attachments_count() const override;
 	};
 
 	struct VulkanRenderTarget : VulkanRenderTargetBase {
@@ -59,8 +62,9 @@ namespace Engine
 		};
 
 		static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
-		Vector<struct VulkanSurface*> m_surfaces;
 
+
+		Vector<struct VulkanSurface*> m_surfaces;
 		VulkanRenderTargetState m_state;
 		Vector<vk::ImageView> m_attachments;
 
@@ -71,8 +75,10 @@ namespace Engine
 		VulkanRenderTarget& destroy() override;
 		VulkanRenderTargetState* state() override;
 
-		void bind() override;
-		VulkanRenderTargetBase& unbind() override;
+		VulkanRenderTargetBase& lock_surfaces() override;
+		VulkanRenderTargetBase& unlock_surfaces() override;
+		size_t color_attachments_count() const override;
+		size_t depth_stencil_attachments_count() const override;
 
 		~VulkanRenderTarget();
 	};

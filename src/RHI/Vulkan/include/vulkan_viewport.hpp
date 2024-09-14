@@ -10,10 +10,9 @@ namespace Engine
 
 	struct VulkanViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
 		struct SyncObject {
-			virtual vk::Semaphore image_present()   = 0;
-			virtual vk::Semaphore render_finished() = 0;
-			virtual vk::Fence fence()               = 0;
-			virtual ~SyncObject()                   = default;
+			virtual vk::Semaphore image_present();
+			virtual vk::Semaphore render_finished();
+			virtual ~SyncObject();
 		};
 
 		std::vector<VkImageView> m_image_views;
@@ -44,28 +43,6 @@ namespace Engine
 	class Window;
 
 	struct VulkanSurfaceViewport : VulkanViewport {
-		struct SyncObject : VulkanViewport::SyncObject {
-			vk::Fence m_fence;
-
-			SyncObject();
-			~SyncObject();
-
-			inline vk::Semaphore image_present()
-			{
-				return {};
-			}
-
-			inline vk::Semaphore render_finished()
-			{
-				return {};
-			}
-
-			inline vk::Fence fence()
-			{
-				return m_fence;
-			}
-		};
-
 		RenderSurface* m_surface[1]                  = {nullptr};
 		struct VulkanRenderTarget* m_render_target   = nullptr;
 		struct VulkanCommandBuffer* m_command_buffer = nullptr;

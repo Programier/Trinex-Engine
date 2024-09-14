@@ -62,43 +62,11 @@ namespace Engine
 
 	void VulkanRenderTargetBase::bind()
 	{
-		API->m_state.m_render_target = this;
-
-		auto m_state = state();
-		m_state->m_render_pass_info.setFramebuffer(m_framebuffer);
-
-		if (API->find_current_viewport_mode() != API->m_state.m_viewport_mode)
+		if (API->m_state.m_render_target != this)
 		{
-			API->viewport(API->m_state.m_viewport);
-			API->scissor(API->m_state.m_scissor);
+			API->m_state.m_next_render_target = this;
 		}
-
-		API->current_command_buffer_handle().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
 		return;
-	}
-
-	VulkanRenderTargetBase& VulkanRenderTargetBase::unbind()
-	{
-		if (API->m_state.m_render_target == this)
-		{
-			API->current_command_buffer_handle().endRenderPass();
-			API->m_state.m_render_target = nullptr;
-		}
-		return *this;
-	}
-
-	bool VulkanRenderTargetBase::prepare_bind()
-	{
-		if (API->m_state.m_render_target == this)
-		{
-			return false;
-		}
-
-		if (API->m_state.m_render_target)
-		{
-			API->m_state.m_render_target->unbind();
-		}
-		return true;
 	}
 
 	bool VulkanRenderTargetBase::is_main_render_target()
@@ -129,11 +97,8 @@ namespace Engine
 		return m_state;
 	}
 
-	void VulkanWindowRenderTargetFrame::bind()
+	VulkanRenderTargetBase& VulkanWindowRenderTargetFrame::lock_surfaces()
 	{
-		if (!prepare_bind())
-			return;
-
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -143,14 +108,11 @@ namespace Engine
 		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
 		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
-
-		VulkanRenderTargetBase::bind();
+		return *this;
 	}
 
-	VulkanRenderTargetBase& VulkanWindowRenderTargetFrame::unbind()
+	VulkanRenderTargetBase& VulkanWindowRenderTargetFrame::unlock_surfaces()
 	{
-		VulkanRenderTargetBase::unbind();
-
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -161,6 +123,16 @@ namespace Engine
 
 		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
 		return *this;
+	}
+
+	size_t VulkanWindowRenderTargetFrame::color_attachments_count() const
+	{
+		return 1;
+	}
+
+	size_t VulkanWindowRenderTargetFrame::depth_stencil_attachments_count() const
+	{
+		return 0;
 	}
 
 	VulkanRenderTarget::VulkanRenderTarget()
@@ -271,11 +243,8 @@ namespace Engine
 		return &m_state;
 	}
 
-	void VulkanRenderTarget::bind()
+	VulkanRenderTargetBase& VulkanRenderTarget::lock_surfaces()
 	{
-		if (!prepare_bind())
-			return;
-
 		auto& cmd = API->current_command_buffer_handle();
 		for (auto& surface : m_surfaces)
 		{
@@ -295,14 +264,11 @@ namespace Engine
 				surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal, cmd);
 			}
 		}
-
-		VulkanRenderTargetBase::bind();
+		return *this;
 	}
 
-	VulkanRenderTargetBase& VulkanRenderTarget::unbind()
+	VulkanRenderTargetBase& VulkanRenderTarget::unlock_surfaces()
 	{
-		VulkanRenderTargetBase::unbind();
-
 		auto& cmd = API->current_command_buffer_handle();
 		for (auto& surface : m_surfaces)
 		{
@@ -310,6 +276,19 @@ namespace Engine
 		}
 
 		return *this;
+	}
+
+	size_t VulkanRenderTarget::color_attachments_count() const
+	{
+		return m_surfaces.size() - depth_stencil_attachments_count();
+	}
+
+	size_t VulkanRenderTarget::depth_stencil_attachments_count() const
+	{
+		if (m_surfaces.empty())
+			return 0;
+
+		return m_surfaces.back()->is_depth_stencil_image() ? 1 : 0;
 	}
 
 	VulkanRenderTarget::~VulkanRenderTarget()

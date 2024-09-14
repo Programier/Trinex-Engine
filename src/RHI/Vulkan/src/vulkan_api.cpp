@@ -7,6 +7,7 @@
 #include <Window/window.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
@@ -415,6 +416,33 @@ namespace Engine
 	}
 
 
+	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
+	{
+		if (m_state.m_next_render_target)
+		{
+			m_state.m_render_target      = m_state.m_next_render_target;
+			m_state.m_next_render_target = nullptr;
+		}
+
+		if (lock)
+			m_state.m_render_target->lock_surfaces();
+
+		m_state.m_render_pass = m_state.m_render_target->state()->m_render_pass;
+		current_command_buffer()->begin_render_pass(m_state.m_render_target);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::end_render_pass(bool unlock)
+	{
+		current_command_buffer()->end_render_pass();
+
+		if (unlock)
+			m_state.m_render_target->unlock_surfaces();
+
+		m_state.m_render_pass = nullptr;
+		return *this;
+	}
+
 	VulkanAPI& VulkanAPI::begin_render()
 	{
 		++m_current_frame;
@@ -502,6 +530,27 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::prepare_draw()
 	{
+		trinex_check(m_state.m_pipeline, "Pipeline can't be nullptr");
+		trinex_check(m_state.m_render_target || m_state.m_next_render_target, "Render target can't be nullptr");
+
+		auto cmd                    = current_command_buffer();
+		bool is_render_target_dirty = m_state.m_next_render_target;
+
+		if (is_render_target_dirty && cmd->is_inside_render_pass())
+			end_render_pass();
+
+		if (cmd->is_outside_render_pass())
+			begin_render_pass();
+
+		if (is_render_target_dirty)
+		{
+			if (find_current_viewport_mode() != m_state.m_viewport_mode)
+			{
+				viewport(m_state.m_viewport);
+				scissor(m_state.m_scissor);
+			}
+		}
+
 		uniform_buffer()->bind();
 		m_state.m_pipeline->bind_descriptor_set();
 		return *this;

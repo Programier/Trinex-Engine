@@ -98,6 +98,9 @@ namespace Engine
 		struct VulkanCommandBuffer* current_command_buffer();
 		vk::CommandBuffer& current_command_buffer_handle();
 
+		VulkanAPI& begin_render_pass(bool lock_resources = true);
+		VulkanAPI& end_render_pass(bool unlock_resources = true);
+
 		//////////////////////////////////////////////////////////////
 
 		VulkanAPI();

@@ -40,6 +40,19 @@ namespace Engine
 		}
 	}
 
+	vk::Semaphore VulkanViewport::SyncObject::image_present()
+	{
+		return {};
+	}
+
+	vk::Semaphore VulkanViewport::SyncObject::render_finished()
+	{
+		return {};
+	}
+
+	VulkanViewport::SyncObject::~SyncObject()
+	{}
+
 	void VulkanViewport::destroy_image_views()
 	{
 		for (auto& view : m_image_views)
@@ -63,34 +76,21 @@ namespace Engine
 
 	void VulkanViewport::begin_render()
 	{
-		SyncObject& sync = *current_sync_object();
-
-		if (auto fence = sync.fence())
-		{
-			while (vk::Result::eTimeout == API->m_device.waitForFences(fence, VK_TRUE, UINT64_MAX))
-			{
-			}
-
-			API->m_device.resetFences(fence);
-		}
-
-		API->current_command_buffer()->reset();
-		API->current_command_buffer_handle().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+		API->current_command_buffer()->begin();
 	}
 
 	void VulkanViewport::end_render()
 	{
-		if (API->m_state.m_render_target)
-		{
-			API->m_state.m_render_target->unbind();
-		}
-
-		API->current_command_buffer_handle().end();
+		auto cmd = API->current_command_buffer();
+		
+		if(cmd->is_inside_render_pass())
+			API->end_render_pass();
+		
+		cmd->end();
 
 		SyncObject& sync = *current_sync_object();
 
 		static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-
 		vk::SubmitInfo submit_info({}, {}, API->current_command_buffer_handle(), {});
 
 		auto image_present   = sync.image_present();
@@ -105,7 +105,7 @@ namespace Engine
 		if (render_finished)
 			submit_info.setSignalSemaphores(render_finished);
 
-		API->m_graphics_queue.submit(submit_info, sync.fence());
+		cmd->submit(submit_info);
 	}
 
 	void VulkanViewport::on_resize(const Size2D& new_size)
@@ -124,22 +124,20 @@ namespace Engine
 
 	void VulkanViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
 	{
-		auto current = API->m_state.m_render_target;
+		auto cmd            = API->current_command_buffer();
+		bool in_render_pass = cmd->is_inside_render_pass();
 
-		if (current)
-		{
-			current->unbind();
-		}
+		if (in_render_pass)
+			API->end_render_pass();
 
-		auto& cmd = API->current_command_buffer_handle();
-		auto src  = surface->rhi_object<VulkanSurface>();
+		auto src = surface->rhi_object<VulkanSurface>();
 
 		auto src_layout = src->layout();
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd);
+		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd->m_cmd);
 
 		auto dst    = current_image();
 		auto layout = default_image_layout();
-		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd);
+		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
 		auto src_end = src_rect.position + src_rect.size;
 		auto dst_end = dst_rect.position + dst_rect.size;
@@ -150,41 +148,38 @@ namespace Engine
 
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
+		cmd->m_cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
 
-		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, default_image_layout(), cmd);
-		src->change_layout(src_layout, cmd);
+		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, default_image_layout(), cmd->m_cmd);
+		src->change_layout(src_layout, cmd->m_cmd);
 
-		if (current)
+		if (in_render_pass)
 		{
-			current->bind();
+			API->begin_render_pass();
 		}
 	}
 
 	void VulkanViewport::clear_color(const Color& color)
 	{
-		auto current = API->m_state.m_render_target;
+		auto cmd            = API->current_command_buffer();
+		bool in_render_pass = cmd->is_inside_render_pass();
 
-		if (current)
-		{
-			current->unbind();
-		}
+		if (in_render_pass)
+			API->end_render_pass();
 
-		auto& cmd   = API->current_command_buffer_handle();
 		auto dst    = current_image();
 		auto layout = default_image_layout();
 
-		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd);
+		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
-		cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
-		                    vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+		cmd->m_cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal,
+		                           vk::ClearColorValue(color.r, color.g, color.b, color.a),
+		                           vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 
-		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, layout, cmd);
+		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, layout, cmd->m_cmd);
 
-		if (current)
-		{
-			current->bind();
-		}
+		if (in_render_pass)
+			API->begin_render_pass();
 	}
 
 	VulkanCommandBuffer* VulkanAPI::current_command_buffer()
@@ -198,16 +193,6 @@ namespace Engine
 	}
 
 	// Surface Viewport
-	VulkanSurfaceViewport::SyncObject::SyncObject()
-	{
-		m_fence = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-	}
-
-	VulkanSurfaceViewport::SyncObject::~SyncObject()
-	{
-		DESTROY_CALL(destroyFence, m_fence);
-	}
-
 	VulkanSurfaceViewport::VulkanSurfaceViewport()
 	{
 		m_command_buffer = new VulkanCommandBuffer();
