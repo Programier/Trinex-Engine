@@ -75,11 +75,11 @@ namespace Engine
 		{
 			delete buffer;
 		}
-
+		
+		delete m_cmd_manager;
 		m_uniform_buffer.clear();
 		VulkanDescriptorPoolManager::release_all();
 
-		m_device.destroyCommandPool(m_command_pool);
 		m_device.destroy();
 		vkb::destroy_instance(m_instance);
 	}
@@ -111,16 +111,6 @@ namespace Engine
 		{
 			return find_present_mode(present_modes, {vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox});
 		}
-	}
-
-	vk::Device* vulkan_device()
-	{
-		return &API->m_device;
-	}
-
-	vk::CommandPool* vulkan_command_pool()
-	{
-		return &API->m_command_pool;
 	}
 
 	///////////////////////////////// INITIALIZATION /////////////////////////////////
@@ -306,7 +296,8 @@ namespace Engine
 
 		initialize_pfn();
 		enable_dynamic_states();
-		create_command_pool();
+
+		m_cmd_manager = new VulkanCommandBufferManager();
 
 		if (is_available_swapchain_images_count(VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT))
 		{
@@ -409,13 +400,6 @@ namespace Engine
 		return *this;
 	}
 
-	void VulkanAPI::create_command_pool()
-	{
-		m_command_pool = m_device.createCommandPool(
-		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_graphics_queue_index));
-	}
-
-
 	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
 	{
 		if (m_state.m_next_render_target)
@@ -493,7 +477,7 @@ namespace Engine
 
 	vk::CommandBuffer VulkanAPI::begin_single_time_command_buffer()
 	{
-		vk::CommandBufferAllocateInfo alloc_info(m_command_pool, vk::CommandBufferLevel::ePrimary, 1);
+		vk::CommandBufferAllocateInfo alloc_info(m_cmd_manager->m_pool.m_pool, vk::CommandBufferLevel::ePrimary, 1);
 		vk::CommandBuffer command_buffer = m_device.allocateCommandBuffers(alloc_info).front();
 		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
 		command_buffer.begin(begin_info);
@@ -506,7 +490,7 @@ namespace Engine
 		vk::SubmitInfo submit_info({}, {}, command_buffer);
 		m_graphics_queue.submit(submit_info, {});
 		m_graphics_queue.waitIdle();
-		m_device.freeCommandBuffers(m_command_pool, command_buffer);
+		m_device.freeCommandBuffers(m_cmd_manager->m_pool.m_pool, command_buffer);
 		return *this;
 	}
 

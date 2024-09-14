@@ -20,7 +20,7 @@ namespace Engine
 		                                                                      bool has_stencil)
 		{
 			return vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1,
-			                                 vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
+			                                 vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
 			                                 has_stencil ? vk::AttachmentLoadOp::eLoad : vk::AttachmentLoadOp::eDontCare,   //
 			                                 has_stencil ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare,//
 			                                 layout, layout);

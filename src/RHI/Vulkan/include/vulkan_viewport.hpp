@@ -10,19 +10,17 @@ namespace Engine
 
 	struct VulkanViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
 		struct SyncObject {
-			virtual vk::Semaphore image_present();
-			virtual vk::Semaphore render_finished();
+			virtual vk::Semaphore* image_present();
+			virtual vk::Semaphore* render_finished();
 			virtual ~SyncObject();
 		};
 
 		std::vector<VkImageView> m_image_views;
-
-		virtual VulkanCommandBuffer* current_command_buffer() = 0;
-		virtual SyncObject* current_sync_object()             = 0;
-		virtual vk::Image current_image()                     = 0;
-		virtual vk::ImageLayout default_image_layout()        = 0;
-		virtual VulkanRenderTargetBase* render_target()       = 0;
-		virtual bool is_window_viewport()                     = 0;
+		virtual SyncObject* current_sync_object()       = 0;
+		virtual vk::Image current_image()               = 0;
+		virtual vk::ImageLayout default_image_layout()  = 0;
+		virtual VulkanRenderTargetBase* render_target() = 0;
+		virtual bool is_window_viewport()               = 0;
 
 		void destroy_image_views();
 
@@ -43,15 +41,13 @@ namespace Engine
 	class Window;
 
 	struct VulkanSurfaceViewport : VulkanViewport {
-		RenderSurface* m_surface[1]                  = {nullptr};
-		struct VulkanRenderTarget* m_render_target   = nullptr;
-		struct VulkanCommandBuffer* m_command_buffer = nullptr;
+		RenderSurface* m_surface[1]                = {nullptr};
+		struct VulkanRenderTarget* m_render_target = nullptr;
 		SyncObject* m_sync_object;
 
 		VulkanSurfaceViewport();
 		~VulkanSurfaceViewport();
 
-		VulkanCommandBuffer* current_command_buffer() override;
 		SyncObject* current_sync_object() override;
 		vk::Image current_image() override;
 		vk::ImageLayout default_image_layout() override;
@@ -73,14 +69,14 @@ namespace Engine
 			SyncObject();
 			~SyncObject();
 
-			inline vk::Semaphore image_present()
+			inline vk::Semaphore* image_present()
 			{
-				return m_image_present;
+				return &m_image_present;
 			}
 
-			inline vk::Semaphore render_finished()
+			inline vk::Semaphore* render_finished()
 			{
-				return m_render_finished;
+				return &m_render_finished;
 			}
 
 			inline vk::Fence fence()
@@ -89,8 +85,6 @@ namespace Engine
 			}
 		};
 
-
-		Vector<struct VulkanCommandBuffer> m_command_buffers;
 		Vector<SyncObject> m_sync_objects;
 
 		WindowRenderViewport* m_viewport                 = nullptr;
@@ -104,8 +98,6 @@ namespace Engine
 		bool m_need_recreate_swap_chain = false;
 		bool m_vsync                    = false;
 
-
-		VulkanCommandBuffer* current_command_buffer() override;
 		SyncObject* current_sync_object() override;
 		vk::Image current_image() override;
 		vk::ImageLayout default_image_layout() override;

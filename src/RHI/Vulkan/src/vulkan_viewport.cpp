@@ -40,14 +40,14 @@ namespace Engine
 		}
 	}
 
-	vk::Semaphore VulkanViewport::SyncObject::image_present()
+	vk::Semaphore* VulkanViewport::SyncObject::image_present()
 	{
-		return {};
+		return nullptr;
 	}
 
-	vk::Semaphore VulkanViewport::SyncObject::render_finished()
+	vk::Semaphore* VulkanViewport::SyncObject::render_finished()
 	{
-		return {};
+		return nullptr;
 	}
 
 	VulkanViewport::SyncObject::~SyncObject()
@@ -75,37 +75,11 @@ namespace Engine
 	}
 
 	void VulkanViewport::begin_render()
-	{
-		API->current_command_buffer()->begin();
-	}
+	{}
 
 	void VulkanViewport::end_render()
 	{
-		auto cmd = API->current_command_buffer();
-		
-		if(cmd->is_inside_render_pass())
-			API->end_render_pass();
-		
-		cmd->end();
-
-		SyncObject& sync = *current_sync_object();
-
-		static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-		vk::SubmitInfo submit_info({}, {}, API->current_command_buffer_handle(), {});
-
-		auto image_present   = sync.image_present();
-		auto render_finished = sync.render_finished();
-
-		if (image_present)
-		{
-			submit_info.setWaitSemaphores(image_present);
-			submit_info.setWaitDstStageMask(wait_flags);
-		}
-
-		if (render_finished)
-			submit_info.setSignalSemaphores(render_finished);
-
-		cmd->submit(submit_info);
+		API->m_cmd_manager->submit_active_cmd_buffer(current_sync_object()->render_finished());
 	}
 
 	void VulkanViewport::on_resize(const Size2D& new_size)
@@ -182,34 +156,17 @@ namespace Engine
 			API->begin_render_pass();
 	}
 
-	VulkanCommandBuffer* VulkanAPI::current_command_buffer()
-	{
-		return m_state.m_current_viewport->current_command_buffer();
-	}
-
-	vk::CommandBuffer& VulkanAPI::current_command_buffer_handle()
-	{
-		return m_state.m_current_viewport->current_command_buffer()->m_cmd;
-	}
-
 	// Surface Viewport
 	VulkanSurfaceViewport::VulkanSurfaceViewport()
 	{
-		m_command_buffer = new VulkanCommandBuffer();
-		m_sync_object    = new SyncObject();
-		m_render_target  = nullptr;
+		m_sync_object   = new SyncObject();
+		m_render_target = nullptr;
 	}
 
 	VulkanSurfaceViewport::~VulkanSurfaceViewport()
 	{
 		API->wait_idle();
-		delete m_command_buffer;
 		delete m_sync_object;
-	}
-
-	VulkanCommandBuffer* VulkanSurfaceViewport::current_command_buffer()
-	{
-		return m_command_buffer;
 	}
 
 	VulkanSurfaceViewport::SyncObject* VulkanSurfaceViewport::current_sync_object()
@@ -290,11 +247,6 @@ namespace Engine
 		DESTROY_CALL(destroySemaphore, m_render_finished);
 	}
 
-	VulkanCommandBuffer* VulkanWindowViewport::current_command_buffer()
-	{
-		return &m_command_buffers[API->m_current_buffer];
-	}
-
 	VulkanWindowViewport::SyncObject* VulkanWindowViewport::current_sync_object()
 	{
 		return &m_sync_objects[API->m_current_buffer];
@@ -326,7 +278,6 @@ namespace Engine
 		m_vsync    = vsync;
 		m_surface  = API->m_window == viewport->window() ? API->m_surface : API->create_surface(viewport->window());
 
-		m_command_buffers.resize(API->m_framebuffers_count);
 		m_sync_objects.resize(API->m_framebuffers_count);
 
 		create_swapchain();
@@ -517,9 +468,11 @@ namespace Engine
 		API->scissor(scissor);
 	}
 
-
 	void VulkanWindowViewport::end_render()
 	{
+		auto cmd = API->current_command_buffer();
+		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, current_sync_object()->m_image_present);
+
 		VulkanViewport::end_render();
 
 		SyncObject& sync = m_sync_objects[API->m_current_buffer];
