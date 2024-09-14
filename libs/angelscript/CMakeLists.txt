@@ -92,7 +92,7 @@ if(${ARCHFLAGS} MATCHES "^aarch64")
 endif()
 
 add_trinex_sources(${ANGELSCRIPT_SOURCE})
-add_trinex_private_dependencies(-DANGELSCRIPT_EXPORT -D_LIB)
+add_trinex_private_definitions(-DANGELSCRIPT_EXPORT -D_LIB)
 
 if(AS_NO_EXCEPTIONS)
         add_trinex_private_dependencies(AS_NO_EXCEPTIONS)

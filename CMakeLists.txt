@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES C CXX ASM)
 
-option(TRINEX_WITH_VULKAN "Build TrinexEngine with support Vulkan API" ON)
-option(TRINEX_WITH_OPENGL "Build TrinexEngine with support OpenGL API" ON)
+option(TRINEX_WITH_TRACY_PROFILER "Build Trinex Engine with supper Tracy Profiler" OFF)
+option(TRINEX_WITH_VULKAN "Build Trinex Engine with support Vulkan API" ON)
+option(TRINEX_WITH_OPENGL "Build Trinex Engine with support OpenGL API" ON)
 
 if(WIN32)
     option(TRINEX_WITH_D3D11 "Build TrinexEngine with support DirectX 11 API" ON)
@@ -87,7 +88,7 @@ function(add_trinex_public_definitions definitions)
     set_property(GLOBAL PROPERTY trinex_public_definitions ${local_definitions} ${definitions} ${ARGN})
 endfunction()
 
-function(add_trinex_private_dependencies definitions)
+function(add_trinex_private_definitions definitions)
     get_property(local_definitions GLOBAL PROPERTY trinex_private_definitions)
     set_property(GLOBAL PROPERTY trinex_private_definitions ${local_definitions} ${definitions} ${ARGN})
 endfunction()
