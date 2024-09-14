@@ -2,6 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/garbage_collector.hpp>
+#include <Core/profiler.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
@@ -52,6 +53,9 @@ namespace Engine
 
 	int_t BaseEngine::update()
 	{
+		trinex_profile_frame_mark();
+		trinex_profile_cpu();
+
 		auto current_time = time_seconds();
 
 		m_delta_time = current_time - m_prev_time;

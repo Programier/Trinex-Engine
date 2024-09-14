@@ -1,5 +1,6 @@
 ﻿#include <VkBootstrap.h>
 
+#include <Core/profiler.hpp>
 #include <Core/struct.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
@@ -402,6 +403,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
 	{
+		trinex_profile_cpu();
 		if (m_state.m_next_render_target)
 		{
 			m_state.m_render_target      = m_state.m_next_render_target;
@@ -418,6 +420,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::end_render_pass(bool unlock)
 	{
+		trinex_profile_cpu();
 		current_command_buffer()->end_render_pass();
 
 		if (unlock)
@@ -514,6 +517,8 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::prepare_draw()
 	{
+		trinex_profile_cpu();
+
 		trinex_check(m_state.m_pipeline, "Pipeline can't be nullptr");
 		trinex_check(m_state.m_render_target || m_state.m_next_render_target, "Render target can't be nullptr");
 

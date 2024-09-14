@@ -122,7 +122,7 @@ namespace Engine
 
 	class Actor* ActorComponent::actor() const
 	{
-		return Super::owner()->instance_cast<Actor>();
+		return instance_cast<Actor>(Super::owner());
 	}
 
 	class World* ActorComponent::world() const

@@ -1,4 +1,5 @@
 #include <Core/exception.hpp>
+#include <Core/profiler.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
@@ -102,6 +103,7 @@ namespace Engine
 
 	VulkanCommandBuffer& VulkanCommandBuffer::submit(vk::Semaphore* signal_semaphore)
 	{
+		trinex_profile_cpu();
 		trinex_check(has_ended(), "Command Buffer must be in ended state!");
 
 		vk::SubmitInfo info(m_wait_semaphores, m_wait_flags, m_cmd);

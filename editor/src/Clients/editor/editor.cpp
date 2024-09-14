@@ -505,6 +505,7 @@ namespace Engine
 						render_show_flag(m_show_flags, ShowFlags::PostProcess, "Post Process");
 						render_show_flag(m_show_flags, ShowFlags::LightOctree, "Light Octree");
 						render_show_flag(m_show_flags, ShowFlags::PrimitiveOctree, "Primitive Octree");
+						ImGui::Checkbox("Show Grid", &Settings::ed_show_grid);
 						ImGui::EndMenu();
 					}
 				}

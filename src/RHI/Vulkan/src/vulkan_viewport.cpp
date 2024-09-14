@@ -1,4 +1,5 @@
 #include <Core/exception.hpp>
+#include <Core/profiler.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>
@@ -433,6 +434,7 @@ namespace Engine
 
 	void VulkanWindowViewport::begin_render()
 	{
+		trinex_profile_cpu();
 		before_begin_render();
 		recreate_swapchain();
 
@@ -470,6 +472,8 @@ namespace Engine
 
 	void VulkanWindowViewport::end_render()
 	{
+		trinex_profile_cpu();
+		
 		auto cmd = API->current_command_buffer();
 		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, current_sync_object()->m_image_present);
 
@@ -483,6 +487,7 @@ namespace Engine
 
 		try
 		{
+			trinex_profile_cpu_n("Present KHR");
 			result = API->m_present_queue.presentKHR(present_info);
 		}
 		catch (const std::exception& e)
