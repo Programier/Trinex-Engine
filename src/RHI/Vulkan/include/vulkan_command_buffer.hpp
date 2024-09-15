@@ -41,6 +41,7 @@ namespace Engine
 		VulkanCommandBuffer& end_render_pass();
 		VulkanCommandBuffer& add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore);
 		VulkanCommandBuffer& submit(vk::Semaphore* signal_semaphore = nullptr);
+		VulkanCommandBuffer& wait();
 
 		inline bool is_ready_for_begin() const
 		{

@@ -19,6 +19,7 @@ namespace Engine
 			return m_is_signaled || update_status();
 		}
 		VulkanFence& reset();
+		VulkanFence& wait();
 
 		static VulkanFence* create(bool is_signaled);
 		static void release(VulkanFence* fence);

@@ -208,22 +208,6 @@ namespace Engine
 	{
 		VulkanViewport::before_begin_render();
 		VulkanViewport::begin_render();
-
-		if (m_render_target)
-		{
-			Size2D rt_size = m_render_target->state()->m_size;
-			ViewPort viewport;
-			viewport.pos       = {0.f, 0.f};
-			viewport.size      = rt_size;
-			viewport.min_depth = 0.f;
-			viewport.max_depth = 1.f;
-			API->viewport(viewport);
-
-			Scissor scissor;
-			scissor.pos  = {0.f, 0.f};
-			scissor.size = rt_size;
-			API->scissor(scissor);
-		}
 	}
 
 	void VulkanSurfaceViewport::end_render()
@@ -238,13 +222,11 @@ namespace Engine
 	{
 		m_image_present   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
 		m_render_finished = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
-		m_fence           = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
 	}
 
 	VulkanWindowViewport::SyncObject::~SyncObject()
 	{
 		DESTROY_CALL(destroySemaphore, m_image_present);
-		DESTROY_CALL(destroyFence, m_fence);
 		DESTROY_CALL(destroySemaphore, m_render_finished);
 	}
 
@@ -275,9 +257,8 @@ namespace Engine
 
 	VulkanViewport* VulkanWindowViewport::init(WindowRenderViewport* viewport, bool vsync)
 	{
-		m_viewport = viewport;
-		m_vsync    = vsync;
-		m_surface  = API->m_window == viewport->window() ? API->m_surface : API->create_surface(viewport->window());
+		m_vsync   = vsync;
+		m_surface = API->m_window == viewport->window() ? API->m_surface : API->create_surface(viewport->window());
 
 		m_sync_objects.resize(API->m_framebuffers_count);
 
@@ -411,10 +392,17 @@ namespace Engine
 
 	vk::ResultValue<uint32_t> VulkanWindowViewport::swapchain_image_index()
 	{
+		trinex_profile_cpu();
 		SyncObject& sync = m_sync_objects[API->m_current_buffer];
 		try
 		{
-			return API->m_device.acquireNextImageKHR(m_swapchain->swapchain, UINT64_MAX, sync.m_image_present, nullptr);
+			if (sync.m_cmd_buffer)
+			{
+				sync.m_cmd_buffer->wait();
+				sync.m_cmd_buffer = nullptr;
+			}
+			auto res = API->m_device.acquireNextImageKHR(m_swapchain->swapchain, UINT64_MAX, sync.m_image_present, nullptr);
+			return res;
 		}
 		catch (const std::exception& e)
 		{
@@ -455,31 +443,19 @@ namespace Engine
 		}
 
 		m_buffer_index = current_buffer_index.value;
-
-		Size2D rt_size = render_target()->state()->m_size;
-		ViewPort viewport;
-		viewport.pos       = {0.f, 0.f};
-		viewport.size      = rt_size;
-		viewport.min_depth = 0.f;
-		viewport.max_depth = 1.f;
-		API->viewport(viewport);
-
-		Scissor scissor;
-		scissor.pos  = {0.f, 0.f};
-		scissor.size = rt_size;
-		API->scissor(scissor);
 	}
 
 	void VulkanWindowViewport::end_render()
 	{
 		trinex_profile_cpu();
-		
+
 		auto cmd = API->current_command_buffer();
-		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, current_sync_object()->m_image_present);
+		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eBottomOfPipe, current_sync_object()->m_image_present);
 
 		VulkanViewport::end_render();
 
-		SyncObject& sync = m_sync_objects[API->m_current_buffer];
+		SyncObject& sync  = m_sync_objects[API->m_current_buffer];
+		sync.m_cmd_buffer = cmd;
 
 		vk::SwapchainKHR swapchain = m_swapchain->swapchain;
 		vk::PresentInfoKHR present_info(sync.m_render_finished, swapchain, m_buffer_index);

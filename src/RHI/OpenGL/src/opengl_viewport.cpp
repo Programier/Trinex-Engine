@@ -95,7 +95,7 @@ namespace Engine
 	{
 		if (!m_surface[0])
 			throw EngineException("Invalid framebuffer!");
-		
+
 		return OpenGL_RenderTarget::find_or_create(m_surface, nullptr)->m_framebuffer;
 	}
 
@@ -145,18 +145,6 @@ namespace Engine
 	{
 		OPENGL_API->reset_state();
 		make_current();
-
-		ViewPort viewport;
-		viewport.pos       = {0, 0};
-		viewport.size      = m_viewport->window()->size();
-		viewport.min_depth = 0.f;
-		viewport.max_depth = 1.f;
-		OPENGL_API->viewport(viewport);
-
-		Scissor scissor;
-		scissor.pos  = {0.f, 0.f};
-		scissor.size = viewport.size;
-		OPENGL_API->scissor(scissor);
 	}
 
 	void OpenGL_WindowViewport::end_render()

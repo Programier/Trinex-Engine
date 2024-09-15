@@ -149,8 +149,10 @@ namespace Engine
 		FileDialogClient& on_bind_viewport(RenderViewport* vp) override
 		{
 			Super::on_bind_viewport(vp);
+			auto current = ImGuiWindow::current();
 			ImGuiWindow::make_current(imgui_window());
 			imgui_window()->widgets_list.create<ImGuiFileDialog>();
+			ImGuiWindow::make_current(current);
 			return *this;
 		}
 	};

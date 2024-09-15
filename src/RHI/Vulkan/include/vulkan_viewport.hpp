@@ -64,30 +64,23 @@ namespace Engine
 		struct SyncObject : VulkanViewport::SyncObject {
 			vk::Semaphore m_image_present;
 			vk::Semaphore m_render_finished;
-			vk::Fence m_fence;
+			VulkanCommandBuffer* m_cmd_buffer = nullptr;
 
 			SyncObject();
 			~SyncObject();
 
-			inline vk::Semaphore* image_present()
+			inline vk::Semaphore* image_present() override
 			{
 				return &m_image_present;
 			}
 
-			inline vk::Semaphore* render_finished()
+			inline vk::Semaphore* render_finished() override
 			{
 				return &m_render_finished;
-			}
-
-			inline vk::Fence fence()
-			{
-				return m_fence;
 			}
 		};
 
 		Vector<SyncObject> m_sync_objects;
-
-		WindowRenderViewport* m_viewport                 = nullptr;
 		struct VulkanWindowRenderTarget* m_render_target = nullptr;
 		vkb::Swapchain* m_swapchain                      = nullptr;
 

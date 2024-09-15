@@ -164,17 +164,8 @@ namespace Engine
 
 	EditorClient& EditorClient::render(class RenderViewport* render_viewport)
 	{
-		ViewPort viewport = rhi->viewport();
-		viewport.pos      = {0.f, 0.f};
-		viewport.size     = SceneRenderTargets::instance()->size() * Settings::e_screen_percentage;
-
-		Scissor scissor;
-		scissor.pos  = {0.f, 0.f};
-		scissor.size = viewport.size;
-
-		m_scene_view.viewport(viewport);
-		m_scene_view.scissor(scissor);
-
+		m_scene_view.viewport(render_viewport->viewport_info());
+		m_scene_view.scissor(render_viewport->scissor_info());
 		m_renderer.render(m_scene_view, render_viewport);
 
 		if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
@@ -237,6 +228,8 @@ namespace Engine
 
 					ImGui::EndMenu();
 				}
+
+				ImGui::SliderFloat("Screen Percentage", &Settings::e_screen_percentage, 0.f, 2.f);
 
 				ImGui::EndMenu();
 			}
@@ -541,8 +534,10 @@ namespace Engine
 
 			//auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
 
-			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, Settings::e_screen_percentage},
-			             {Settings::e_screen_percentage, 0.f});
+			auto k = viewport()->size() / SceneRenderTargets::instance()->size();
+
+			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, k.y},
+			             {k.x, 0.f});
 			m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
 			ImGui::SetCursorPos(current_pos);

@@ -23,6 +23,13 @@ namespace Engine
 		m_is_signaled = false;
 		return *this;
 	}
+	
+	VulkanFence& VulkanFence::wait()
+	{
+		auto result = API->m_device.waitForFences(m_fence, vk::True, UINT64_MAX);
+		(void) result;
+		return *this;
+	}
 
 	VulkanFence* VulkanFence::create(bool is_signaled)
 	{

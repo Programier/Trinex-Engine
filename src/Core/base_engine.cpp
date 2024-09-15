@@ -4,8 +4,10 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/profiler.hpp>
 #include <Core/threading.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <Systems/engine_system.hpp>
 #include <Window/window_manager.hpp>
 #include <chrono>
@@ -73,22 +75,28 @@ namespace Engine
 
 		if (!is_requesting_exit())
 		{
-			auto& viewports = RenderViewport::viewports();
-			
+			auto& viewports    = RenderViewport::viewports();
+			Size2D max_vp_size = {0.f, 0.f};
+
 			for (size_t i = 0; i < viewports.size(); ++i)
 			{
 				auto viewport = viewports[i];
-				
+
 				if (viewport->is_active())
+				{
 					viewport->update(m_delta_time);
+					max_vp_size = glm::max(max_vp_size, viewport->size() * Settings::e_screen_percentage);
+				}
 			}
 
 			begin_render();
-			
+
+			SceneRenderTargets::instance()->initialize(max_vp_size);
+
 			for (size_t i = 0; i < viewports.size(); ++i)
 			{
 				auto viewport = viewports[i];
-				
+
 				if (viewport->is_active())
 					viewport->render();
 			}

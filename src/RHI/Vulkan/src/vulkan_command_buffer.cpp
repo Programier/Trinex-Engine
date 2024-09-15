@@ -116,6 +116,14 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanCommandBuffer& VulkanCommandBuffer::wait()
+	{
+		trinex_profile_cpu();
+		if (m_state == State::Submitted && !m_fence->is_signaled())
+			m_fence->wait();
+		return *this;
+	}
+
 	VulkanCommandBuffer& VulkanCommandBuffer::destroy(struct VulkanCommandBufferPool* pool)
 	{
 		release_references();

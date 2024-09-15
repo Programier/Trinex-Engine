@@ -5,7 +5,6 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_object.hpp>
@@ -52,6 +51,24 @@ namespace Engine
 
 	static RenderViewport* m_current_render_viewport = nullptr;
 
+	static FORCE_INLINE ViewPort construct_default_viewport(Size2D size)
+	{
+		ViewPort viewport;
+		viewport.pos       = {0.f, 0.f};
+		viewport.size      = size;
+		viewport.min_depth = 0.f;
+		viewport.max_depth = 1.f;
+		return viewport;
+	}
+
+	static FORCE_INLINE Scissor construct_default_scissor(Size2D size)
+	{
+		Scissor scissor;
+		scissor.pos  = {0.f, 0.f};
+		scissor.size = size;
+		return scissor;
+	}
+
 	ViewportClient& ViewportClient::on_bind_viewport(class RenderViewport* viewport)
 	{
 		return *this;
@@ -72,6 +89,16 @@ namespace Engine
 		return *this;
 	}
 
+	ViewPort ViewportClient::viewport_info(Size2D size) const
+	{
+		return construct_default_viewport(size);
+	}
+
+	Scissor ViewportClient::scissor_info(Size2D size) const
+	{
+		return construct_default_scissor(size);
+	}
+
 	ViewportClient* ViewportClient::create(const StringView& name)
 	{
 		Class* client_class = Class::static_find(name);
@@ -86,7 +113,7 @@ namespace Engine
 
 	Vector<RenderViewport*> RenderViewport::m_viewports;
 
-	RenderViewport::RenderViewport()
+	RenderViewport::RenderViewport() : m_size(0.f, 0.f)
 	{
 		m_viewports.push_back(this);
 	}
@@ -142,12 +169,26 @@ namespace Engine
 
 	Size2D RenderViewport::size() const
 	{
-		return {};
+		return m_size;
 	}
 
 	bool RenderViewport::is_active() const
 	{
 		return m_is_active;
+	}
+
+	ViewPort RenderViewport::viewport_info(Size2D size) const
+	{
+		if (m_client)
+			return m_client->viewport_info(size);
+		return construct_default_viewport(size);
+	}
+
+	Scissor RenderViewport::scissor_info(Size2D size) const
+	{
+		if (m_client)
+			return m_client->scissor_info(size);
+		return construct_default_scissor(size);
 	}
 
 	RenderViewport& RenderViewport::is_active(bool active)
@@ -159,19 +200,25 @@ namespace Engine
 	class StartRenderingViewport : public ExecutableObject
 	{
 	public:
+		Size2D m_size;
 		ViewportClient* m_client;
 		RenderViewport* m_viewport;
 		RHI_Viewport* m_rhi_viewport;
 
-		StartRenderingViewport(ViewportClient* client, RenderViewport* viewport, RHI_Viewport* rhi_viewport)
-		    : m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
+		StartRenderingViewport(ViewportClient* client, RenderViewport* viewport, RHI_Viewport* rhi_viewport, Size2D size)
+		    : m_size(size), m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
 		{}
 
 		int_t execute() override
 		{
+			m_viewport->m_size = m_size;
+
 			m_rhi_viewport->begin_render();
-			if (m_client)
-				m_client->render(m_viewport);
+
+			rhi->viewport(m_viewport->viewport_info(m_size));
+			rhi->scissor(m_viewport->scissor_info(m_size));
+			m_client->render(m_viewport);
+
 			m_rhi_viewport->end_render();
 
 			return sizeof(StartRenderingViewport);
@@ -180,12 +227,14 @@ namespace Engine
 
 	RenderViewport& RenderViewport::render()
 	{
+		if (m_client == nullptr)
+			return *this;
+
 		RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
 		if (viewport == nullptr)
 			return *this;
 
-		SceneRenderTargets::instance()->initialize(size() * Settings::e_screen_percentage);
-		render_thread()->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport);
+		render_thread()->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport, size());
 		return *this;
 	}
 
@@ -333,7 +382,10 @@ namespace Engine
 
 	Size2D WindowRenderViewport::size() const
 	{
-		return m_window->size();
+		if (is_in_render_thread())
+			return Super::size();
+
+		return m_window->size() * Settings::e_screen_percentage;
 	}
 
 	WindowRenderViewport& WindowRenderViewport::rhi_create()
@@ -345,6 +397,8 @@ namespace Engine
 	SurfaceRenderViewport::SurfaceRenderViewport(RenderSurface* surface)
 	{
 		m_surface = surface;
+		if (surface)
+			m_size = surface->size();
 	}
 
 	SurfaceRenderViewport::~SurfaceRenderViewport()
@@ -357,6 +411,9 @@ namespace Engine
 
 	Size2D SurfaceRenderViewport::size() const
 	{
+		if (is_in_render_thread())
+			return Super::size();
+
 		return m_surface->size();
 	}
 
@@ -366,13 +423,12 @@ namespace Engine
 		return *this;
 	}
 
-
 	class DummySurfaceRenderViewport : public SurfaceRenderViewport
 	{
 	public:
 		DummySurfaceRenderViewport() : SurfaceRenderViewport(nullptr)
 		{
-			m_viewports.pop_back(); // Unregister this viewport from viewports array
+			m_viewports.pop_back();// Unregister this viewport from viewports array
 		}
 
 		bool is_active() const override

@@ -19,6 +19,9 @@ namespace Engine
 		virtual ViewportClient& on_unbind_viewport(class RenderViewport* viewport);
 		virtual ViewportClient& render(class RenderViewport* viewport);
 		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
+		virtual ViewPort viewport_info(Size2D size) const;
+		virtual Scissor scissor_info(Size2D size) const;
+
 
 		static ViewportClient* create(const StringView& name);
 	};
@@ -27,11 +30,11 @@ namespace Engine
 	{
 		declare_class(RenderViewport, RenderResource);
 
-	private:
+	protected:
+		Size2D m_size;
 		Pointer<ViewportClient> m_client;
 		bool m_is_active = true;
 
-	protected:
 		static Vector<RenderViewport*> m_viewports;
 
 	public:
@@ -53,6 +56,19 @@ namespace Engine
 		RenderViewport& client(ViewportClient* client);
 		RenderViewport& update(float dt);
 
+		ViewPort viewport_info(Size2D size) const;
+		Scissor scissor_info(Size2D size) const;
+
+		FORCE_INLINE ViewPort viewport_info() const
+		{
+			return viewport_info(size());
+		}
+
+		FORCE_INLINE Scissor scissor_info() const
+		{
+			return scissor_info(size());
+		}
+
 		RenderViewport& rhi_bind();
 		RenderViewport& rhi_begin_render();
 		RenderViewport& rhi_end_render();
@@ -60,8 +76,10 @@ namespace Engine
 		                                SamplerFilter filter = SamplerFilter::Trilinear);
 		RenderViewport& rhi_clear_color(const Color& color);
 
+
 		static RenderViewport* current();
 		static const Vector<RenderViewport*>& viewports();
+		friend class StartRenderingViewport;
 	};
 
 	class ENGINE_EXPORT WindowRenderViewport : public RenderViewport
