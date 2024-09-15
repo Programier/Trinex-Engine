@@ -11,6 +11,7 @@
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
@@ -70,16 +71,24 @@ namespace Engine
 	VulkanAPI::~VulkanAPI()
 	{
 		wait_idle();
+
 		VulkanRenderPass::destroy_all();
 
 		for (VulkanUniformBuffer* buffer : m_uniform_buffer)
 		{
 			delete buffer;
 		}
-		
+
 		delete m_cmd_manager;
 		m_uniform_buffer.clear();
 		VulkanDescriptorPoolManager::release_all();
+
+		delete m_graphics_queue;
+
+		if (m_present_queue != m_graphics_queue)
+		{
+			delete m_present_queue;
+		}
 
 		m_device.destroy();
 		vkb::destroy_instance(m_instance);
@@ -141,13 +150,6 @@ namespace Engine
 	}
 #endif
 
-	static bool is_available_swapchain_images_count(uint32_t count)
-	{
-		auto& m_surface_capabilities = API->m_surface_capabilities;
-		return (m_surface_capabilities.maxImageCount == 0 || m_surface_capabilities.maxImageCount >= count) &&
-		       m_surface_capabilities.minImageCount <= count;
-	}
-
 	static vkb::PhysicalDevice initialize_physical_device()
 	{
 		vkb::PhysicalDeviceSelector phys_device_selector(API->m_instance);
@@ -167,8 +169,7 @@ namespace Engine
 #else
 		phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
 #endif
-
-		phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(API->m_surface));
+		phys_device_selector.defer_surface_initialization();
 
 		auto selected_device = phys_device_selector.select();
 		if (!selected_device.has_value())
@@ -223,8 +224,6 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::initialize(Window* window)
 	{
-		m_window = window;
-
 		vkb::InstanceBuilder instance_builder;
 		instance_builder.require_api_version(VK_API_VERSION_1_0);
 
@@ -258,17 +257,13 @@ namespace Engine
 
 		m_instance = instance_ret.value();
 
-		m_surface = create_surface(window);
-
-
 		// Initialize physical device
 		auto selected_device = initialize_physical_device();
 		m_physical_device    = vk::PhysicalDevice(selected_device.physical_device);
 
-		m_properties           = m_physical_device.getProperties();
-		m_features             = filter_features(m_physical_device.getFeatures());
-		m_surface_capabilities = m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
-		info.renderer          = m_properties.deviceName.data();
+		m_properties  = m_physical_device.getProperties();
+		m_features    = filter_features(m_physical_device.getFeatures());
+		info.renderer = m_properties.deviceName.data();
 		selected_device.enable_features_if_present(m_features);
 
 		info_log("Vulkan", "Selected GPU '%s'", info.renderer.c_str());
@@ -278,65 +273,25 @@ namespace Engine
 		m_bootstrap_device = build_device(selected_device);
 		m_device           = vk::Device(m_bootstrap_device.device);
 
-		auto index_1        = m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
-		auto index_2        = m_bootstrap_device.get_queue_index(vkb::QueueType::present);
-		auto graphics_queue = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
-		auto present_queue  = m_bootstrap_device.get_queue(vkb::QueueType::present);
+		auto graphics_queue_index = m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
+		auto graphics_queue       = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
 
-		if (!index_1.has_value() || !index_2.has_value() || !graphics_queue.has_value() || !present_queue.has_value())
+		if (!graphics_queue_index.has_value() || !graphics_queue.has_value())
 		{
-			throw std::runtime_error("Failed to init queues");
+			throw EngineException("Failed to create graphics queue");
 		}
 
-		m_graphics_queue_index = index_1.value();
-		m_present_queue_index  = index_2.value();
-
-		m_graphics_queue = vk::Queue(graphics_queue.value());
-		m_present_queue  = vk::Queue(present_queue.value());
-
+		m_graphics_queue = new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
 
 		initialize_pfn();
-		enable_dynamic_states();
-
 		m_cmd_manager = new VulkanCommandBufferManager();
 
-		if (is_available_swapchain_images_count(VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT))
-		{
-			m_framebuffers_count = VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT;
-		}
-		else if (is_available_swapchain_images_count(VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT))
-		{
-			m_framebuffers_count = VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT;
-		}
-		else if (m_surface_capabilities.minImageCount >= VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT)
-		{
-			m_framebuffers_count = m_surface_capabilities.minImageCount;
-		}
-		else
-		{
-			throw EngineException("Vulkan requires a minimum of 2 images for Swapchain");
-		}
-
-		m_uniform_buffer.resize(m_framebuffers_count);
-
-		for (VulkanUniformBuffer*& buffer : m_uniform_buffer)
-		{
-			buffer = new VulkanUniformBuffer();
-		}
 		return *this;
 	}
 
 	void* VulkanAPI::context()
 	{
 		return nullptr;
-	}
-
-	void VulkanAPI::enable_dynamic_states()
-	{
-		m_dynamic_states = {
-		        vk::DynamicState::eViewport,
-		        vk::DynamicState::eScissor,
-		};
 	}
 
 	void VulkanAPI::initialize_pfn()
@@ -351,7 +306,29 @@ namespace Engine
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
 	{
 		extern vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance);
-		return create_vulkan_surface(window->native_window(), m_instance.instance);
+		vk::SurfaceKHR surface = create_vulkan_surface(window->native_window(), m_instance.instance);
+		setup_present_queue(surface);
+
+		if (m_framebuffers_count == 0)
+		{
+			m_framebuffers_count = m_physical_device.getSurfaceCapabilitiesKHR(surface).minImageCount;
+			m_uniform_buffer.resize(m_framebuffers_count);
+			
+			for (VulkanUniformBuffer*& buffer : m_uniform_buffer)
+			{
+				buffer = new VulkanUniformBuffer();
+			}
+		}
+		return surface;
+	}
+
+	VulkanAPI& VulkanAPI::setup_present_queue(vk::SurfaceKHR surface)
+	{
+		if (m_present_queue)
+			return *this;
+
+		m_present_queue = m_graphics_queue;
+		return *this;
 	}
 
 	VulkanViewportMode VulkanAPI::find_current_viewport_mode()
@@ -365,12 +342,6 @@ namespace Engine
 		if (vp->is_window_viewport() && vp->render_target() == rt)
 			return VulkanViewportMode::Flipped;
 		return VulkanViewportMode::Normal;
-	}
-
-
-	vk::Extent2D VulkanAPI::surface_size() const
-	{
-		return surface_size(m_surface);
 	}
 
 	vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const
@@ -491,8 +462,8 @@ namespace Engine
 	{
 		command_buffer.end();
 		vk::SubmitInfo submit_info({}, {}, command_buffer);
-		m_graphics_queue.submit(submit_info, {});
-		m_graphics_queue.waitIdle();
+		m_graphics_queue->submit(submit_info);
+		m_graphics_queue->wait_idle();
 		m_device.freeCommandBuffers(m_cmd_manager->m_pool.m_pool, command_buffer);
 		return *this;
 	}
@@ -509,8 +480,8 @@ namespace Engine
 	VulkanAPI& VulkanAPI::wait_idle()
 	{
 		m_device.waitIdle();
-		m_graphics_queue.waitIdle();
-		m_present_queue.waitIdle();
+		m_graphics_queue->wait_idle();
+		m_present_queue->wait_idle();
 
 		return *this;
 	}

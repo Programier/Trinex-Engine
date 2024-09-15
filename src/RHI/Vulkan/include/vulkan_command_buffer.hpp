@@ -74,6 +74,7 @@ namespace Engine
 		}
 
 		friend struct VulkanCommandBufferPool;
+		friend struct VulkanQueue;
 	};
 
 	struct VulkanCommandBufferPool {

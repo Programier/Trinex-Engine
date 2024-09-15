@@ -7,6 +7,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_texture.hpp>
@@ -258,8 +259,7 @@ namespace Engine
 	VulkanViewport* VulkanWindowViewport::init(WindowRenderViewport* viewport, bool vsync)
 	{
 		m_vsync   = vsync;
-		m_surface = API->m_window == viewport->window() ? API->m_surface : API->create_surface(viewport->window());
-
+		m_surface = API->create_surface(viewport->window());
 		m_sync_objects.resize(API->m_framebuffers_count);
 
 		create_swapchain();
@@ -464,7 +464,7 @@ namespace Engine
 		try
 		{
 			trinex_profile_cpu_n("Present KHR");
-			result = API->m_present_queue.presentKHR(present_info);
+			result = API->m_present_queue->m_queue.presentKHR(present_info);
 		}
 		catch (const std::exception& e)
 		{

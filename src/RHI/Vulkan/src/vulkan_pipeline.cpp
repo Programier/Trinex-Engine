@@ -144,7 +144,8 @@ namespace Engine
 		}
 
 		color_blending.setAttachments(color_blend_attachment).setLogicOpEnable(false);
-		dynamic_state_info.setDynamicStates(API->m_dynamic_states);
+		static const Array<vk::DynamicState, 2> dynamic_states = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+		dynamic_state_info.setDynamicStates(dynamic_states);
 		return *this;
 	}
 

@@ -4,6 +4,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_fence.hpp>
+#include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 
@@ -46,9 +47,6 @@ namespace Engine
 				m_cmd.reset();
 				m_fence->reset();
 				release_references();
-
-				m_wait_flags.clear();
-				m_wait_semaphores.clear();
 			}
 		}
 
@@ -106,12 +104,7 @@ namespace Engine
 		trinex_profile_cpu();
 		trinex_check(has_ended(), "Command Buffer must be in ended state!");
 
-		vk::SubmitInfo info(m_wait_semaphores, m_wait_flags, m_cmd);
-
-		if (signal_semaphore)
-			info.setSignalSemaphores(*signal_semaphore);
-
-		API->m_graphics_queue.submit(info, m_fence->m_fence);
+		API->m_graphics_queue->submit(this, signal_semaphore ? 1 : 0, signal_semaphore);
 		m_state = State::Submitted;
 		return *this;
 	}
@@ -138,7 +131,7 @@ namespace Engine
 	VulkanCommandBufferPool::VulkanCommandBufferPool()
 	{
 		m_pool = API->m_device.createCommandPool(
-		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue_index));
+		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->m_index));
 	}
 
 	VulkanCommandBuffer* VulkanCommandBufferPool::create()

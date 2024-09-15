@@ -34,10 +34,7 @@ namespace Engine
 		static VulkanAPI* m_vulkan;
 
 		Vector<VulkanExtention> m_device_extensions;
-		Vector<vk::DynamicState> m_dynamic_states;
 		Vector<VulkanUniformBuffer*> m_uniform_buffer;
-
-		Window* m_window = nullptr;
 
 		struct {
 			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -47,19 +44,15 @@ namespace Engine
 		// API DATA
 		VulkanState m_state;
 		vkb::Instance m_instance;
-		vk::SurfaceKHR m_surface;
 		vk::PhysicalDevice m_physical_device;
 		vk::Device m_device;
 		vkb::Device m_bootstrap_device;
 
-		uint32_t m_graphics_queue_index;
-		uint32_t m_present_queue_index;
-		vk::Queue m_graphics_queue;
-		vk::Queue m_present_queue;
+		struct VulkanQueue* m_graphics_queue = nullptr;
+		struct VulkanQueue* m_present_queue  = nullptr;
 
 		vk::PhysicalDeviceProperties m_properties;
 		vk::PhysicalDeviceFeatures m_features;
-		vk::SurfaceCapabilitiesKHR m_surface_capabilities;
 
 		struct VulkanCommandBufferManager* m_cmd_manager = nullptr;
 		uint32_t m_framebuffers_count                    = 0;
@@ -73,11 +66,10 @@ namespace Engine
 
 
 		vk::SurfaceKHR create_surface(Window* interface);
-		void enable_dynamic_states();
+		VulkanAPI& setup_present_queue(vk::SurfaceKHR surface);
 		void initialize_pfn();
 
 		VulkanViewportMode find_current_viewport_mode();
-		vk::Extent2D surface_size() const;
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 
 		VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,

@@ -1,3 +1,4 @@
+#pragma once
 #include <vulkan_headers.hpp>
 
 
