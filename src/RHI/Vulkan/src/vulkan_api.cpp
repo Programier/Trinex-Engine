@@ -384,7 +384,7 @@ namespace Engine
 		if (lock)
 			m_state.m_render_target->lock_surfaces();
 
-		m_state.m_render_pass = m_state.m_render_target->state()->m_render_pass;
+		m_state.m_render_pass = m_state.m_render_target->m_render_pass;
 		current_command_buffer()->begin_render_pass(m_state.m_render_target);
 		return *this;
 	}

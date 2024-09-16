@@ -60,51 +60,63 @@ namespace Engine
 		void end_render() override;
 	};
 
-	struct VulkanWindowViewport : VulkanViewport {
-		struct SyncObject : VulkanViewport::SyncObject {
-			vk::Semaphore m_image_present;
-			vk::Semaphore m_render_finished;
-			VulkanCommandBuffer* m_cmd_buffer = nullptr;
+	struct VulkanBackBuffer {
+		vk::Semaphore m_image_present_semaphore;
+		vk::Semaphore m_render_finished_semaphore;
+		struct VulkanCommandBuffer* m_command_buffer        = nullptr;
+		struct VulkanSwapchainRenderTarget* m_render_target = nullptr;
 
-			SyncObject();
-			~SyncObject();
+		VulkanBackBuffer& setup(vk::Image backbuffer, vk::ImageView view, Size2D size, vk::Format format);
+		VulkanBackBuffer& wait_for_command_buffer();
+		VulkanBackBuffer& release();
+	};
 
-			inline vk::Semaphore* image_present() override
-			{
-				return &m_image_present;
-			}
-
-			inline vk::Semaphore* render_finished() override
-			{
-				return &m_render_finished;
-			}
+	struct VulkanSwapchain {
+		enum Status : int_t
+		{
+			Success     = 0,
+			OutOfDate   = -1,
+			SurfaceLost = -2,
 		};
 
-		Vector<SyncObject> m_sync_objects;
-		struct VulkanWindowRenderTarget* m_render_target = nullptr;
-		vkb::Swapchain* m_swapchain                      = nullptr;
-
-		Vector<VkImage> m_images;
+		Vector<VulkanBackBuffer> m_backbuffers;
 		vk::SurfaceKHR m_surface;
-		uint32_t m_buffer_index = 0;
+		vk::PresentModeKHR m_present_mode;
+		vk::SwapchainKHR m_swapchain;
+		int32_t m_buffer_index = 0;
+		int32_t m_image_index  = -1;
+		bool m_need_recreate   = false;
 
-		bool m_need_recreate_swap_chain = false;
-		bool m_vsync                    = false;
+		VulkanSwapchain(Window* window, bool vsync);
+		~VulkanSwapchain();
+		VulkanSwapchain& vsync(bool flag, bool is_init = false);
 
-		SyncObject* current_sync_object() override;
+		VulkanSwapchain& create();
+		VulkanSwapchain& release();
+
+		int_t acquire_image_index();
+		int_t do_present();
+		VulkanBackBuffer* backbuffer();
+		int_t try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date);
+
+		vk::Semaphore* render_finished_semaphore();
+		vk::Semaphore* image_present_semaphore();
+	};
+
+	struct VulkanWindowViewport : VulkanViewport {
+		VulkanSwapchain* m_swapchain = nullptr;
+
+		inline SyncObject* current_sync_object() override
+		{
+			static SyncObject obj;
+			return &obj;
+		}
 		vk::Image current_image() override;
 		vk::ImageLayout default_image_layout() override;
 		VulkanRenderTargetBase* render_target() override;
 		bool is_window_viewport() override;
 
 		VulkanViewport* init(WindowRenderViewport* viewport, bool vsync);
-
-		void create_render_target();
-		void create_swapchain();
-		void destroy_swapchain(bool fully = false);
-		void recreate_swapchain();
-		vk::ResultValue<uint32_t> swapchain_image_index();
-
 
 		void begin_render() override;
 		void end_render() override;

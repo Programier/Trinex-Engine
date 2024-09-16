@@ -74,9 +74,8 @@ namespace Engine
 	{
 		trinex_check(has_begun(), "Command Buffer must be begun!");
 
-		auto state = rt->state();
-		vk::Rect2D area({0, 0}, {static_cast<uint32_t>(state->m_size.x), static_cast<uint32_t>(state->m_size.y)});
-		vk::RenderPassBeginInfo info(state->m_render_pass->m_render_pass, rt->m_framebuffer, area);
+		vk::Rect2D area({0, 0}, {static_cast<uint32_t>(rt->m_size.x), static_cast<uint32_t>(rt->m_size.y)});
+		vk::RenderPassBeginInfo info(rt->m_render_pass->m_render_pass, rt->m_framebuffer, area);
 		m_cmd.beginRenderPass(info, vk::SubpassContents::eInline);
 
 		m_state = State::IsInsideRenderPass;

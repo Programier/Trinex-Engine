@@ -5,51 +5,22 @@
 
 namespace Engine
 {
-	struct VulkanRenderTargetState {
-		struct VulkanRenderPass* m_render_pass = nullptr;
-		vk::RenderPassBeginInfo m_render_pass_info;
-		Size2D m_size;
-
-		virtual bool is_main_render_target_state();
-
-		void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-		void post_init();
-	};
-
-	struct VulkanMainRenderTargetState : public VulkanRenderTargetState {
-		struct VulkanWindowViewport* m_viewport = nullptr;
-		bool is_main_render_target_state() override;
-	};
-
 	struct VulkanRenderTargetBase {
 		vk::Framebuffer m_framebuffer;
-
-		virtual bool is_main_render_target();
-		virtual VulkanRenderTargetBase& destroy();
-		virtual VulkanRenderTargetState* state();
+		struct VulkanRenderPass* m_render_pass = nullptr;
+		Size2D m_size;
 
 		VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
 		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
 		void bind();
+		virtual bool is_main_render_target();
 		virtual VulkanRenderTargetBase& lock_surfaces()   = 0;
 		virtual VulkanRenderTargetBase& unlock_surfaces() = 0;
 
 		virtual size_t color_attachments_count() const         = 0;
 		virtual size_t depth_stencil_attachments_count() const = 0;
 		virtual ~VulkanRenderTargetBase();
-	};
-
-
-	struct VulkanWindowRenderTargetFrame : VulkanRenderTargetBase {
-		VulkanMainRenderTargetState* m_state;
-		bool is_main_render_target() override;
-		VulkanMainRenderTargetState* state() override;
-
-		VulkanRenderTargetBase& lock_surfaces() override;
-		VulkanRenderTargetBase& unlock_surfaces() override;
-		size_t color_attachments_count() const override;
-		size_t depth_stencil_attachments_count() const override;
 	};
 
 	struct VulkanRenderTarget : VulkanRenderTargetBase {
@@ -65,15 +36,12 @@ namespace Engine
 
 
 		Vector<struct VulkanSurface*> m_surfaces;
-		VulkanRenderTargetState m_state;
 		Vector<vk::ImageView> m_attachments;
 
 		static VulkanRenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 
 		VulkanRenderTarget();
 		VulkanRenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-		VulkanRenderTarget& destroy() override;
-		VulkanRenderTargetState* state() override;
 
 		VulkanRenderTargetBase& lock_surfaces() override;
 		VulkanRenderTargetBase& unlock_surfaces() override;
@@ -83,18 +51,18 @@ namespace Engine
 		~VulkanRenderTarget();
 	};
 
+	struct VulkanSwapchainRenderTarget : public VulkanRenderTargetBase {
+		vk::Image m_image;
+		vk::ImageView m_view;
+		
+		VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format);
 
-	struct VulkanWindowRenderTarget {
-		VulkanMainRenderTargetState state;
-		Vector<VulkanWindowRenderTargetFrame*> m_frames;
+		virtual bool is_main_render_target() override;
+		VulkanSwapchainRenderTarget& lock_surfaces() override;
+		VulkanSwapchainRenderTarget& unlock_surfaces() override;
 
-		VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);
-		VulkanWindowRenderTarget& destroy();
-
-		void resize_count(size_t new_count);
-		VulkanWindowRenderTargetFrame* frame();
-
-		void bind();
-		~VulkanWindowRenderTarget();
+		size_t color_attachments_count() const override;
+		size_t depth_stencil_attachments_count() const override;
+		~VulkanSwapchainRenderTarget();
 	};
 }// namespace Engine

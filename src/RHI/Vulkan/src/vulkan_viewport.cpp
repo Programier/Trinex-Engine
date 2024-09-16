@@ -219,26 +219,293 @@ namespace Engine
 
 	// Window Viewport
 
-	VulkanWindowViewport::SyncObject::SyncObject()
+	VulkanBackBuffer& VulkanBackBuffer::setup(vk::Image backbuffer, vk::ImageView view, Size2D size, vk::Format format)
 	{
-		m_image_present   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
-		m_render_finished = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+		m_image_present_semaphore   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+		m_render_finished_semaphore = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+
+		m_render_target = new VulkanSwapchainRenderTarget(backbuffer, view, size, format);
+		return *this;
 	}
 
-	VulkanWindowViewport::SyncObject::~SyncObject()
+	VulkanBackBuffer& VulkanBackBuffer::wait_for_command_buffer()
 	{
-		DESTROY_CALL(destroySemaphore, m_image_present);
-		DESTROY_CALL(destroySemaphore, m_render_finished);
+		if (m_command_buffer)
+		{
+			m_command_buffer->wait();
+			m_command_buffer = nullptr;
+		}
+		return *this;
 	}
 
-	VulkanWindowViewport::SyncObject* VulkanWindowViewport::current_sync_object()
+	VulkanBackBuffer& VulkanBackBuffer::release()
 	{
-		return &m_sync_objects[API->m_current_buffer];
+		API->m_device.destroySemaphore(m_image_present_semaphore);
+		API->m_device.destroySemaphore(m_render_finished_semaphore);
+
+		delete m_render_target;
+		m_render_target = nullptr;
+		return *this;
+	}
+
+	VulkanSwapchain::VulkanSwapchain(Window* window, bool vsync) : m_surface(API->create_surface(window))
+	{
+		this->vsync(vsync, true);
+		create();
+	}
+
+	VulkanSwapchain::~VulkanSwapchain()
+	{
+		release();
+		vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);
+	}
+
+	VulkanSwapchain& VulkanSwapchain::vsync(bool flag, bool is_init)
+	{
+		if (is_init)
+		{
+			m_present_mode = API->present_mode_of(flag, m_surface);
+		}
+		else
+		{
+			auto mode = API->present_mode_of(flag, m_surface);
+			if (mode != m_present_mode)
+			{
+				m_present_mode  = mode;
+				m_need_recreate = true;
+			}
+		}
+		return *this;
+	}
+
+	VulkanSwapchain& VulkanSwapchain::create()
+	{
+		vulkan_info_log("Vulkan API", "Creating new swapchain");
+		m_need_recreate = false;
+
+		vkb::SwapchainBuilder builder(API->m_physical_device, API->m_device, m_surface, API->m_graphics_queue->m_index,
+		                              API->m_present_queue->m_index);
+
+		builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
+		auto capabilities = API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
+
+		builder.add_image_usage_flags(
+		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
+
+		if (capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
+			builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR);
+		else
+			builder.set_pre_transform_flags(static_cast<VkSurfaceTransformFlagBitsKHR>(capabilities.currentTransform));
+
+
+		VkSurfaceFormatKHR f;
+		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+		f.format     = VK_FORMAT_B8G8R8A8_UNORM;
+		builder.set_desired_format(f);
+
+		auto swapchain = builder.build();
+
+		if (!swapchain)
+		{
+			throw EngineException(swapchain.error().message());
+		}
+
+		auto images_result = swapchain->get_images();
+		if (!images_result.has_value())
+			throw EngineException(images_result.error().message());
+
+		auto image_views_result = swapchain->get_image_views();
+		if (!image_views_result.has_value())
+			throw EngineException(image_views_result.error().message());
+
+		auto& images      = images_result.value();
+		auto& image_views = image_views_result.value();
+
+		m_backbuffers.resize(images.size());
+		Size2D size = {swapchain->extent.width, swapchain->extent.height};
+
+		for (int_t i = 0; auto& backbuffer : m_backbuffers)
+		{
+			backbuffer.setup(images[i], image_views[i], size, vk::Format(swapchain->image_format));
+			++i;
+		}
+
+		auto cmd = API->begin_single_time_command_buffer();
+
+		for (VkImage image : images)
+		{
+			transition_image_layout(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
+		}
+
+		API->end_single_time_command_buffer(cmd);
+		m_swapchain = swapchain->swapchain;
+		return *this;
+	}
+
+	VulkanSwapchain& VulkanSwapchain::release()
+	{
+		API->wait_idle();
+
+		for (auto& backbuffer : m_backbuffers)
+		{
+			backbuffer.wait_for_command_buffer();
+		}
+
+		for (auto& backbuffer : m_backbuffers)
+		{
+			backbuffer.release();
+		}
+
+		m_backbuffers.clear();
+
+		API->m_device.destroySwapchainKHR(m_swapchain);
+
+		m_buffer_index = 0;
+		m_image_index  = -1;
+		return *this;
+	}
+
+	int_t VulkanSwapchain::acquire_image_index()
+	{
+		trinex_profile_cpu();
+
+		const auto prev_buffer_index = m_buffer_index;
+		m_buffer_index               = (m_buffer_index + 1) % m_backbuffers.size();
+
+		auto& backbuffer = m_backbuffers[m_buffer_index].wait_for_command_buffer();
+
+		auto result = API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, backbuffer.m_image_present_semaphore);
+
+		if (result.result == vk::Result::eErrorOutOfDateKHR)
+		{
+			m_buffer_index = prev_buffer_index;
+			return OutOfDate;
+		}
+		if (result.result == vk::Result::eErrorSurfaceLostKHR)
+		{
+			m_buffer_index = prev_buffer_index;
+			return SurfaceLost;
+		}
+
+		if (result.result == vk::Result::eErrorValidationFailedEXT)
+		{
+			error_log("Vulkan", "vkAcquireNextImageKHR failed with validation error");
+		}
+		else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
+		{
+			throw EngineException("Failed to acquire image index");
+		}
+
+		m_image_index = result.value;
+		return m_image_index;
+	}
+
+	int_t VulkanSwapchain::do_present()
+	{
+		if (m_image_index == -1)
+			return Status::Success;
+
+		auto image_index = static_cast<uint32_t>(m_image_index);
+		vk::PresentInfoKHR present_info(*render_finished_semaphore(), m_swapchain, image_index);
+		vk::Result result;
+		m_image_index = -1;
+
+		m_backbuffers[m_buffer_index].m_command_buffer = API->current_command_buffer();
+
+		try
+		{
+			trinex_profile_cpu_n("Present KHR");
+			result = API->m_present_queue->m_queue.presentKHR(present_info);
+		}
+		catch (const vk::OutOfDateKHRError& e)
+		{
+			return OutOfDate;
+		}
+		catch (const vk::SurfaceLostKHRError& e)
+		{
+			return SurfaceLost;
+		}
+
+		if (result == vk::Result::eErrorOutOfDateKHR)
+		{
+			return OutOfDate;
+		}
+		if (result == vk::Result::eErrorSurfaceLostKHR)
+		{
+			return SurfaceLost;
+		}
+
+		return Status::Success;
+	}
+
+	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)
+	{
+		if (m_need_recreate)
+		{
+			release();
+			create();
+			return try_present(callback, skip_on_out_of_date);
+		}
+
+		int_t status           = (this->*callback)();
+		int_t attempts_pending = 4;
+
+		while (status < 0 && attempts_pending > 0)
+		{
+			if (status == Status::OutOfDate)
+			{
+				if (skip_on_out_of_date)
+					return status;
+			}
+			else if (status == Status::SurfaceLost)
+			{
+				warn_log("Vulkan", "Swapchain surface lost");
+			}
+			else
+			{
+				throw EngineException("Failed to present swapchain");
+			}
+
+			release();
+			create();
+
+			status = (this->*callback)();
+			attempts_pending--;
+		}
+
+		return status;
+	}
+
+	vk::Semaphore* VulkanSwapchain::render_finished_semaphore()
+	{
+		backbuffer();
+		return &m_backbuffers[m_buffer_index].m_render_finished_semaphore;
+	}
+
+	vk::Semaphore* VulkanSwapchain::image_present_semaphore()
+	{
+		backbuffer();
+		return &m_backbuffers[m_buffer_index].m_image_present_semaphore;
+	}
+
+	VulkanBackBuffer* VulkanSwapchain::backbuffer()
+	{
+		if (m_image_index == -1)
+		{
+			trinex_profile_cpu();
+
+			if (try_present(&VulkanSwapchain::acquire_image_index, false) < 0)
+			{
+				throw EngineException("Failed to acquire image index");
+			}
+		}
+
+		return &m_backbuffers[m_image_index];
 	}
 
 	vk::Image VulkanWindowViewport::current_image()
 	{
-		return m_images[m_buffer_index];
+		return m_swapchain->backbuffer()->m_render_target->m_image;
 	}
 
 	vk::ImageLayout VulkanWindowViewport::default_image_layout()
@@ -248,7 +515,7 @@ namespace Engine
 
 	VulkanRenderTargetBase* VulkanWindowViewport::render_target()
 	{
-		return m_render_target->frame();
+		return m_swapchain->backbuffer()->m_render_target;
 	}
 
 	bool VulkanWindowViewport::is_window_viewport()
@@ -258,238 +525,44 @@ namespace Engine
 
 	VulkanViewport* VulkanWindowViewport::init(WindowRenderViewport* viewport, bool vsync)
 	{
-		m_vsync   = vsync;
-		m_surface = API->create_surface(viewport->window());
-		m_sync_objects.resize(API->m_framebuffers_count);
-
-		create_swapchain();
-		create_render_target();
+		m_swapchain = new VulkanSwapchain(viewport->window(), vsync);
 		return this;
 	}
 
 	void VulkanWindowViewport::on_resize(const Size2D& new_size)
 	{
-		m_need_recreate_swap_chain = true;
-		reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target)->frame()->size(new_size.x, new_size.y);
+		m_swapchain->m_need_recreate = true;
 	}
 
 	void VulkanWindowViewport::on_orientation_changed(Orientation orientation)
 	{
-		m_need_recreate_swap_chain = true;
+		m_swapchain->m_need_recreate = true;
 	}
 
 	void VulkanWindowViewport::vsync(bool flag)
 	{
-		m_need_recreate_swap_chain = true;
-	}
-
-	void VulkanWindowViewport::create_swapchain()
-	{
-		// Creating swapchain
-		vulkan_info_log("Vulkan API", "Creating new swapchain");
-		vkb::SwapchainBuilder swapchain_builder(API->m_bootstrap_device, m_surface);
-
-		if (m_swapchain)
-		{
-			swapchain_builder.set_old_swapchain(m_swapchain->swapchain);
-		}
-
-		swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->present_mode_of(m_vsync, m_surface)));
-		auto capabilities = API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
-
-		size_t images_count = API->m_framebuffers_count;
-		swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
-
-		swapchain_builder.add_image_usage_flags(
-		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
-
-		if (capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
-			swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR);
-		else
-			swapchain_builder.set_pre_transform_flags(static_cast<VkSurfaceTransformFlagBitsKHR>(capabilities.currentTransform));
-
-
-		VkSurfaceFormatKHR f;
-		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-		f.format     = VK_FORMAT_B8G8R8A8_UNORM;
-		swapchain_builder.set_desired_format(f);
-
-		auto swap_ret = swapchain_builder.build();
-
-		if (!swap_ret)
-		{
-			throw std::runtime_error(swap_ret.error().message());
-		}
-
-		if (m_swapchain)
-		{
-			destroy_swapchain(false);
-		}
-
-		if (!m_swapchain)
-			m_swapchain = new vkb::Swapchain();
-
-		(*m_swapchain) = swap_ret.value();
-
-		auto images_result = m_swapchain->get_images();
-		if (!images_result.has_value())
-			throw EngineException(images_result.error().message());
-
-		m_images = Vector<VkImage>(images_result.value().begin(), images_result.value().end());
-
-		auto image_views_result = m_swapchain->get_image_views();
-		if (!image_views_result.has_value())
-			throw EngineException(image_views_result.error().message());
-		m_image_views = std::move(image_views_result.value());
-
-		auto cmd = API->begin_single_time_command_buffer();
-
-		for (VkImage image : m_images)
-		{
-			transition_image_layout(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
-		}
-
-		API->end_single_time_command_buffer(cmd);
-	}
-
-	void VulkanWindowViewport::recreate_swapchain()
-	{
-		if (m_need_recreate_swap_chain)
-		{
-			m_need_recreate_swap_chain              = false;
-			VulkanWindowRenderTarget* render_target = reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target);
-			API->wait_idle();
-
-			render_target->destroy();
-			create_swapchain();
-			create_render_target();
-
-			m_sync_objects.clear();
-			m_sync_objects.resize(API->m_framebuffers_count);
-		}
-	}
-
-	void VulkanWindowViewport::create_render_target()
-	{
-		if (!m_render_target)
-			m_render_target = new VulkanWindowRenderTarget();
-
-		m_render_target->resize_count(m_swapchain->image_count);
-		m_render_target->init(this);
-	}
-
-	void VulkanWindowViewport::destroy_swapchain(bool fully)
-	{
-		vkb::destroy_swapchain(*m_swapchain);
-		destroy_image_views();
-
-		if (fully)
-		{
-			delete m_swapchain;
-			m_swapchain = nullptr;
-		}
-	}
-
-	vk::ResultValue<uint32_t> VulkanWindowViewport::swapchain_image_index()
-	{
-		trinex_profile_cpu();
-		SyncObject& sync = m_sync_objects[API->m_current_buffer];
-		try
-		{
-			if (sync.m_cmd_buffer)
-			{
-				sync.m_cmd_buffer->wait();
-				sync.m_cmd_buffer = nullptr;
-			}
-			auto res = API->m_device.acquireNextImageKHR(m_swapchain->swapchain, UINT64_MAX, sync.m_image_present, nullptr);
-			return res;
-		}
-		catch (const std::exception& e)
-		{
-			return vk::ResultValue<uint32_t>(vk::Result::eErrorOutOfDateKHR, -1);
-		}
+		m_swapchain->vsync(flag);
 	}
 
 	VulkanWindowViewport::~VulkanWindowViewport()
 	{
 		API->wait_idle();
-
-		delete m_render_target;
-		destroy_swapchain(true);
-		vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);
+		delete m_swapchain;
 	}
-
 
 	void VulkanWindowViewport::begin_render()
 	{
-		trinex_profile_cpu();
 		before_begin_render();
-		recreate_swapchain();
-
-		VulkanViewport::begin_render();
-
-		auto current_buffer_index = swapchain_image_index();
-
-		if (current_buffer_index.result == vk::Result::eErrorOutOfDateKHR)
-		{
-			m_need_recreate_swap_chain = true;
-			recreate_swapchain();
-			return begin_render();
-		}
-
-		if (current_buffer_index.result != vk::Result::eSuccess && current_buffer_index.result != vk::Result::eSuboptimalKHR)
-		{
-			throw std::runtime_error("failed to acquire swap chain image!");
-		}
-
-		m_buffer_index = current_buffer_index.value;
 	}
 
 	void VulkanWindowViewport::end_render()
 	{
 		trinex_profile_cpu();
-
 		auto cmd = API->current_command_buffer();
-		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eBottomOfPipe, current_sync_object()->m_image_present);
+		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, *m_swapchain->image_present_semaphore());
+		API->m_cmd_manager->submit_active_cmd_buffer(m_swapchain->render_finished_semaphore());
+		m_swapchain->try_present(&VulkanSwapchain::do_present, true);
 
-		VulkanViewport::end_render();
-
-		SyncObject& sync  = m_sync_objects[API->m_current_buffer];
-		sync.m_cmd_buffer = cmd;
-
-		vk::SwapchainKHR swapchain = m_swapchain->swapchain;
-		vk::PresentInfoKHR present_info(sync.m_render_finished, swapchain, m_buffer_index);
-		vk::Result result;
-
-		try
-		{
-			trinex_profile_cpu_n("Present KHR");
-			result = API->m_present_queue->m_queue.presentKHR(present_info);
-		}
-		catch (const std::exception& e)
-		{
-			result = vk::Result::eErrorOutOfDateKHR;
-		}
-
-		switch (result)
-		{
-			case vk::Result::eSuccess:
-				break;
-
-			case vk::Result::eSuboptimalKHR:
-#if SKIP_SUBOPTIMAL_KHR_ERROR
-				break;
-#endif
-			case vk::Result::eErrorOutOfDateKHR:
-				m_need_recreate_swap_chain = true;
-				break;
-
-			default:
-				assert(false);
-		}
-
-
-		recreate_swapchain();
 		after_end_render();
 	}
 

@@ -9,56 +9,13 @@
 
 namespace Engine
 {
-	void VulkanRenderTargetState::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
-	{
-		m_render_pass = VulkanRenderPass::find_or_create(color_attachments, depth_stencil);
-
-		RenderSurface* base_surface = color_attachments.empty() ? depth_stencil : color_attachments[0];
-
-		if (base_surface == nullptr)
-		{
-			throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
-		}
-
-		m_size = base_surface->rhi_object<VulkanSurface>()->size();
-		post_init();
-	}
-
-	void VulkanRenderTargetState::post_init()
-	{
-		m_render_pass_info.setRenderPass(m_render_pass->m_render_pass);
-		m_render_pass_info.setRenderArea(vk::Rect2D({0, 0}, vk::Extent2D(m_size.x, m_size.y)));
-	}
-
-	bool VulkanRenderTargetState::is_main_render_target_state()
-	{
-		return false;
-	}
-
-	bool VulkanMainRenderTargetState::is_main_render_target_state()
-	{
-		return true;
-	}
-
 	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(const Vector<vk::ImageView>& image_views)
 	{
-		auto m_state = state();
-		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_state->m_render_pass->m_render_pass,
-		                                                  image_views, m_state->m_size.x, m_state->m_size.y, 1);
+		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->m_render_pass,
+		                                                  image_views, m_size.x, m_size.y, 1);
 		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
 		return *this;
-	}
-
-	VulkanRenderTargetBase& VulkanRenderTargetBase::destroy()
-	{
-		DESTROY_CALL(destroyFramebuffer, m_framebuffer);
-		return *this;
-	}
-
-	VulkanRenderTargetState* VulkanRenderTargetBase::state()
-	{
-		return nullptr;
 	}
 
 	void VulkanRenderTargetBase::bind()
@@ -77,63 +34,14 @@ namespace Engine
 
 	VulkanRenderTargetBase& VulkanRenderTargetBase::size(uint32_t width, uint32_t height)
 	{
-		auto m_state      = state();
-		m_state->m_size.x = static_cast<float>(width);
-		m_state->m_size.y = static_cast<float>(height);
+		m_size.x = static_cast<float>(width);
+		m_size.y = static_cast<float>(height);
 		return *this;
 	}
 
 	VulkanRenderTargetBase::~VulkanRenderTargetBase()
 	{
 		DESTROY_CALL(destroyFramebuffer, m_framebuffer);
-	}
-
-	bool VulkanWindowRenderTargetFrame::is_main_render_target()
-	{
-		return true;
-	}
-
-	VulkanMainRenderTargetState* VulkanWindowRenderTargetFrame::state()
-	{
-		return m_state;
-	}
-
-	VulkanRenderTargetBase& VulkanWindowRenderTargetFrame::lock_surfaces()
-	{
-		vk::ImageMemoryBarrier barrier;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout           = vk::ImageLayout::ePresentSrcKHR;
-		barrier.newLayout           = vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.image               = m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
-		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
-		return *this;
-	}
-
-	VulkanRenderTargetBase& VulkanWindowRenderTargetFrame::unlock_surfaces()
-	{
-		vk::ImageMemoryBarrier barrier;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout           = vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.newLayout           = vk::ImageLayout::ePresentSrcKHR;
-		barrier.image               = m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
-		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
-		return *this;
-	}
-
-	size_t VulkanWindowRenderTargetFrame::color_attachments_count() const
-	{
-		return 1;
-	}
-
-	size_t VulkanWindowRenderTargetFrame::depth_stencil_attachments_count() const
-	{
-		return 0;
 	}
 
 	VulkanRenderTarget::VulkanRenderTarget()
@@ -186,7 +94,16 @@ namespace Engine
 
 	VulkanRenderTarget& VulkanRenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
 	{
-		m_state.init(color_attachments, depth_stencil);
+		m_render_pass               = VulkanRenderPass::find_or_create(color_attachments, depth_stencil);
+		RenderSurface* base_surface = color_attachments.empty() ? depth_stencil : color_attachments[0];
+
+		if (base_surface == nullptr)
+		{
+			throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
+		}
+
+		m_size = base_surface->rhi_object<VulkanSurface>()->size();
+
 
 		m_attachments.resize(color_attachments.size() + (depth_stencil ? 1 : 0));
 		m_surfaces.resize(m_attachments.size());
@@ -226,23 +143,6 @@ namespace Engine
 
 		post_init(m_attachments);
 		return *this;
-	}
-
-	VulkanRenderTarget& VulkanRenderTarget::destroy()
-	{
-		VulkanRenderTargetBase::destroy();
-
-		for (auto& image_view : m_attachments)
-		{
-			DESTROY_CALL(destroyImageView, image_view);
-		}
-
-		return *this;
-	}
-
-	VulkanRenderTargetState* VulkanRenderTarget::state()
-	{
-		return &m_state;
 	}
 
 	VulkanRenderTargetBase& VulkanRenderTarget::lock_surfaces()
@@ -306,61 +206,62 @@ namespace Engine
 		}
 	}
 
-	VulkanWindowRenderTarget& VulkanWindowRenderTarget::destroy()
+	VulkanSwapchainRenderTarget::VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format)
 	{
-		for (VulkanWindowRenderTargetFrame* frame : m_frames)
-		{
-			frame->destroy();
-		}
+		m_image = image;
+		m_view  = view;
+
+		m_size        = size;
+		m_render_pass = VulkanRenderPass::swapchain_render_pass(format);
+		post_init({view});
+	}
+
+	bool VulkanSwapchainRenderTarget::is_main_render_target()
+	{
+		return true;
+	}
+
+	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::lock_surfaces()
+	{
+		vk::ImageMemoryBarrier barrier;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.oldLayout           = vk::ImageLayout::ePresentSrcKHR;
+		barrier.newLayout           = vk::ImageLayout::eColorAttachmentOptimal;
+		barrier.image               = m_image;
+		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
 		return *this;
 	}
 
-	void VulkanWindowRenderTarget::resize_count(size_t new_count)
+	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::unlock_surfaces()
 	{
-		m_frames.resize(new_count, nullptr);
-		for (VulkanWindowRenderTargetFrame*& frame : m_frames)
-		{
-			if (frame == nullptr)
-				frame = new VulkanWindowRenderTargetFrame();
-		}
-	}
+		vk::ImageMemoryBarrier barrier;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.oldLayout           = vk::ImageLayout::eColorAttachmentOptimal;
+		barrier.newLayout           = vk::ImageLayout::ePresentSrcKHR;
+		barrier.image               = m_image;
+		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
-	VulkanWindowRenderTarget& VulkanWindowRenderTarget::init(struct VulkanWindowViewport* viewport)
-	{
-		state.m_viewport = viewport;
-
-		uint_t index        = 0;
-		state.m_size.x      = static_cast<float>(viewport->m_swapchain->extent.width);
-		state.m_size.y      = static_cast<float>(viewport->m_swapchain->extent.height);
-		state.m_render_pass = VulkanRenderPass::swapchain_render_pass(vk::Format(viewport->m_swapchain->image_format));
-		state.post_init();
-
-		for (VulkanWindowRenderTargetFrame* frame : m_frames)
-		{
-			frame->m_state = &state;
-			frame->post_init({viewport->m_image_views[index]});
-			++index;
-		}
+		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
 		return *this;
 	}
 
-	VulkanWindowRenderTargetFrame* VulkanWindowRenderTarget::frame()
+	size_t VulkanSwapchainRenderTarget::color_attachments_count() const
 	{
-		return m_frames[state.m_viewport->m_buffer_index];
+		return 1;
 	}
 
-	void VulkanWindowRenderTarget::bind()
+	size_t VulkanSwapchainRenderTarget::depth_stencil_attachments_count() const
 	{
-		frame()->bind();
+		return 0;
 	}
 
-	VulkanWindowRenderTarget::~VulkanWindowRenderTarget()
+	VulkanSwapchainRenderTarget::~VulkanSwapchainRenderTarget()
 	{
-		for (VulkanWindowRenderTargetFrame* frame : m_frames)
-		{
-			delete frame;
-		}
-		m_frames.clear();
+		DESTROY_CALL(destroyImageView, m_view);
 	}
 
 	VulkanAPI& VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
@@ -385,7 +286,7 @@ namespace Engine
 				if (new_mode == VulkanViewportMode::Flipped)
 				{
 					vp_height               = -vp_height;
-					auto render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
+					auto render_target_size = m_state.m_current_viewport->render_target()->m_size;
 					vp_y                    = render_target_size.y - vp_y;
 				}
 
@@ -420,7 +321,7 @@ namespace Engine
 		{
 			if (new_mode != VulkanViewportMode::Undefined)
 			{
-				const auto& render_target_size = m_state.m_render_target->state()->m_size;
+				const auto& render_target_size = m_state.m_render_target->m_size;
 				float sc_y                     = scissor.pos.y;
 
 				if (new_mode == VulkanViewportMode::Flipped)

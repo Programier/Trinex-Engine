@@ -349,7 +349,7 @@ namespace Engine
 	{
 		auto rt = API->m_state.m_next_render_target ? API->m_state.m_next_render_target : API->m_state.m_render_target;
 
-		Identifier identifier            = reinterpret_cast<Identifier>(rt->state()->m_render_pass);
+		Identifier identifier            = reinterpret_cast<Identifier>(rt->m_render_pass);
 		VulkanViewportMode viewport_mode = API->m_state.m_viewport_mode;
 
 		if (viewport_mode == VulkanViewportMode::Flipped)
@@ -376,7 +376,7 @@ namespace Engine
 		vk::GraphicsPipelineCreateInfo pipeline_info(
 		        {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
 		        &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
-		        &out_state.dynamic_state_info, m_pipeline_layout, rt->state()->m_render_pass->m_render_pass, 0, {});
+		        &out_state.dynamic_state_info, m_pipeline_layout, rt->m_render_pass->m_render_pass, 0, {});
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 
