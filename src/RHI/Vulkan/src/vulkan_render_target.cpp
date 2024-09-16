@@ -24,7 +24,6 @@ namespace Engine
 		{
 			API->m_state.m_next_render_target = this;
 		}
-		return;
 	}
 
 	bool VulkanRenderTargetBase::is_main_render_target()
@@ -64,6 +63,28 @@ namespace Engine
 		}
 
 		m_depth_stencil = depth_stencil ? depth_stencil->rhi_object<VulkanSurface>() : nullptr;
+	}
+
+	void VulkanRenderTarget::Key::init(const Span<VulkanSurface*>& attachments)
+	{
+		size_t index = 0;
+
+		for (auto surface : attachments)
+		{
+			if (surface->is_render_target_color_image())
+			{
+				m_color_attachments[index++] = surface;
+			}
+			else if (surface->is_depth_stencil_image())
+			{
+				m_depth_stencil = surface;
+			}
+		}
+
+		for (; index < RHI_MAX_RT_BINDED; ++index)
+		{
+			m_color_attachments[index] = nullptr;
+		}
 	}
 
 	bool VulkanRenderTarget::Key::operator<(const Key& key) const
@@ -195,6 +216,10 @@ namespace Engine
 
 	VulkanRenderTarget::~VulkanRenderTarget()
 	{
+		Key key;
+		key.init(m_surfaces);
+		m_render_targets.erase(key);
+
 		for (auto& image_view : m_attachments)
 		{
 			DESTROY_CALL(destroyImageView, image_view);

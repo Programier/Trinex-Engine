@@ -2,7 +2,6 @@
 #include <Graphics/rhi.hpp>
 #include <vulkan_descript_set_layout.hpp>
 #include <vulkan_headers.hpp>
-#include <vulkan_unique_per_frame.hpp>
 
 namespace Engine
 {
@@ -28,14 +27,10 @@ namespace Engine
 		};
 
 		const Pipeline* m_engine_pipeline;
-		VulkanDescriptorSetLayout m_descriptor_set_layout;
+		VulkanDescriptorSetLayout* m_descriptor_set_layout;
 		vk::PipelineLayout m_pipeline_layout;
 		TreeMap<Identifier, vk::Pipeline> m_pipelines;
-
-		Vector<Vector<VulkanDescriptorSet*>> m_descriptor_sets;
-		size_t m_descriptor_set_index = 0;
-		size_t m_last_frame           = 0;
-
+		VulkanDescriptorSet* m_descriptor_set = nullptr;
 
 		State& create_pipeline_state(bool with_flipped_viewport);
 		VulkanPipeline& create_descriptor_set_layout();

@@ -25,16 +25,15 @@ namespace Engine
 
 	struct VulkanRenderTarget : VulkanRenderTargetBase {
 		struct Key {
-			struct VulkanSurface* m_color_attachments[RHI_MAX_RT_BINDED];
-			struct VulkanSurface* m_depth_stencil;
+			struct VulkanSurface* m_color_attachments[RHI_MAX_RT_BINDED] = {};
+			struct VulkanSurface* m_depth_stencil = nullptr;
 
 			void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+			void init(const Span<VulkanSurface*>& attachments);
 			bool operator<(const Key& key) const;
 		};
 
 		static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
-
-
 		Vector<struct VulkanSurface*> m_surfaces;
 		Vector<vk::ImageView> m_attachments;
 
@@ -54,7 +53,7 @@ namespace Engine
 	struct VulkanSwapchainRenderTarget : public VulkanRenderTargetBase {
 		vk::Image m_image;
 		vk::ImageView m_view;
-		
+
 		VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format);
 
 		virtual bool is_main_render_target() override;

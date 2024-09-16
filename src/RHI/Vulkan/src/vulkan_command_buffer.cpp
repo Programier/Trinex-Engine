@@ -3,6 +3,7 @@
 #include <Graphics/rhi.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_descriptor_set.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
@@ -15,6 +16,8 @@ namespace Engine
 		vk::CommandBufferAllocateInfo alloc_info(pool->m_pool, vk::CommandBufferLevel::ePrimary, 1);
 		m_cmd   = API->m_device.allocateCommandBuffers(alloc_info).front();
 		m_fence = VulkanFence::create(false);
+
+		m_descriptor_set_manager = new VulkanDescriptorSetManager();
 	}
 
 	VulkanCommandBuffer& VulkanCommandBuffer::add_object(RHI_Object* object)
@@ -104,6 +107,9 @@ namespace Engine
 		trinex_check(has_ended(), "Command Buffer must be in ended state!");
 
 		API->m_graphics_queue->submit(this, signal_semaphore ? 1 : 0, signal_semaphore);
+		m_descriptor_set_manager->submit();
+		m_wait_flags.clear();
+		m_wait_semaphores.clear();
 		m_state = State::Submitted;
 		return *this;
 	}
@@ -125,7 +131,9 @@ namespace Engine
 	}
 
 	VulkanCommandBuffer::~VulkanCommandBuffer()
-	{}
+	{
+		delete m_descriptor_set_manager;
+	}
 
 	VulkanCommandBufferPool::VulkanCommandBufferPool()
 	{

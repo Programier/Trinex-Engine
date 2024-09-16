@@ -14,7 +14,6 @@
 
 namespace Engine
 {
-
 	struct BeginRenderCommand : public ExecutableObject {
 		int_t execute() override
 		{

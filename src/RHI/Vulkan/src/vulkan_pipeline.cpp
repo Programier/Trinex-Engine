@@ -6,7 +6,6 @@
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_descript_set_layout.hpp>
-#include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
@@ -249,14 +248,15 @@ namespace Engine
 	VulkanPipeline& VulkanPipeline::create_descriptor_set_layout()
 	{
 		Vector<vk::DescriptorSetLayoutBinding> layout_bindings;
+		m_descriptor_set_layout = new VulkanDescriptorSetLayout();
 
 		auto stages = parse_stages_flags(m_engine_pipeline);
-		create_descriptor_layout_internal(m_engine_pipeline, layout_bindings, m_descriptor_set_layout, stages);
+		create_descriptor_layout_internal(m_engine_pipeline, layout_bindings, *m_descriptor_set_layout, stages);
 
 		if (!layout_bindings.empty())
 		{
 			vk::DescriptorSetLayoutCreateInfo layout_info({}, layout_bindings);
-			m_descriptor_set_layout.layout = API->m_device.createDescriptorSetLayout(layout_info);
+			m_descriptor_set_layout->layout = API->m_device.createDescriptorSetLayout(layout_info);
 		}
 
 		return *this;
@@ -338,8 +338,8 @@ namespace Engine
 	bool VulkanPipeline::create_pipeline_layout()
 	{
 		vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout> layouts =
-		        m_descriptor_set_layout.has_layouts() ? m_descriptor_set_layout.layout
-		                                              : vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout>{};
+		        m_descriptor_set_layout->has_layouts() ? m_descriptor_set_layout->layout
+		                                               : vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout>{};
 		vk::PipelineLayoutCreateInfo pipeline_layout_info({}, layouts);
 		m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
 		return true;
@@ -391,7 +391,7 @@ namespace Engine
 
 	VulkanDescriptorSet* VulkanPipeline::current_descriptor_set()
 	{
-		return m_descriptor_set_layout.has_layouts() ? m_descriptor_sets[API->m_current_buffer][m_descriptor_set_index] : nullptr;
+		return m_descriptor_set_layout->has_layouts() ? m_descriptor_set : nullptr;
 	}
 
 	const MaterialScalarParametersInfo& VulkanPipeline::global_parameters_info() const
@@ -425,11 +425,6 @@ namespace Engine
 
 		create_descriptor_set_layout();
 		create_pipeline_layout();
-
-		if (m_descriptor_set_layout.has_layouts())
-		{
-			m_descriptor_sets.resize(API->m_framebuffers_count);
-		}
 		return true;
 	}
 
@@ -438,30 +433,21 @@ namespace Engine
 	{
 		API->wait_idle();
 
-		for (auto& buffer : m_descriptor_sets)
-		{
-			for (auto& set : buffer)
-			{
-				VulkanDescriptorPoolManager::release_descriptor_set(set, &m_descriptor_set_layout);
-			}
-		}
-
 		for (auto& pipeline : m_pipelines)
 		{
 			DESTROY_CALL(destroyPipeline, pipeline.second);
 		}
 		DESTROY_CALL(destroyPipelineLayout, m_pipeline_layout);
-		m_descriptor_set_layout.destroy();
+		m_descriptor_set_layout->release();
 	}
 
 	void VulkanPipeline::bind()
 	{
+		auto cmd = API->current_command_buffer();
 		{
 			auto current_pipeline = find_or_create_pipeline();
-
 			if (API->m_state.m_vk_pipeline != current_pipeline)
 			{
-				auto cmd = API->current_command_buffer();
 				cmd->m_cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
 				cmd->add_object(this);
 				API->m_state.m_pipeline    = this;
@@ -469,34 +455,9 @@ namespace Engine
 			}
 		}
 
-		if (m_last_frame != API->m_current_frame)
+		if (m_descriptor_set_layout->has_layouts())
 		{
-			m_descriptor_set_index = 0;
-			m_last_frame           = API->m_current_frame;
-		}
-		else
-		{
-			++m_descriptor_set_index;
-		}
-
-		if (m_descriptor_set_layout.has_layouts())
-		{
-			auto& current_buffer = m_descriptor_sets[API->m_current_buffer];
-
-			while (true)
-			{
-				if (current_buffer.size() <= m_descriptor_set_index)
-				{
-					current_buffer.push_back(VulkanDescriptorPoolManager::allocate_descriptor_set(&m_descriptor_set_layout));
-					break;
-				}
-
-				if (current_buffer[m_descriptor_set_index]->references() <= 1)
-					break;
-
-				// Current descriptor is busy now, so, lets check next descriptor
-				++m_descriptor_set_index;
-			}
+			m_descriptor_set = cmd->descriptor_set_manager()->allocate_descriptor_set(m_descriptor_set_layout);
 		}
 	}
 

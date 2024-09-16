@@ -19,9 +19,6 @@ namespace Engine
 		vk::SubmitInfo info(wait_semaphores.size(), wait_semaphores.data(), wait_flags.data(), 1, &cmd_buffer->m_cmd,
 		                    signal_semaphores_count, signal_semaphores);
 		m_queue.submit(info, cmd_buffer->m_fence->m_fence);
-
-		cmd_buffer->m_wait_flags.clear();
-		cmd_buffer->m_wait_semaphores.clear();
 		return *this;
 	}
 

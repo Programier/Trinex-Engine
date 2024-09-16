@@ -9,7 +9,6 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
-#include <vulkan_descriptor_pool.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
@@ -81,7 +80,6 @@ namespace Engine
 
 		delete m_cmd_manager;
 		m_uniform_buffer.clear();
-		VulkanDescriptorPoolManager::release_all();
 
 		delete m_graphics_queue;
 

@@ -3,13 +3,8 @@
 
 namespace Engine
 {
-	void VulkanDescriptorSetLayout::destroy()
-	{
-		DESTROY_CALL(destroyDescriptorSetLayout, layout);
-	}
-
 	VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout()
 	{
-		destroy();
+		DESTROY_CALL(destroyDescriptorSetLayout, layout);
 	}
 }// namespace Engine

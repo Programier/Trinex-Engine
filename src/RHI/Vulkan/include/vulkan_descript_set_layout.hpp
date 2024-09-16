@@ -1,10 +1,11 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Graphics/rhi.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine
 {
-	struct VulkanDescriptorSetLayout {
+	struct VulkanDescriptorSetLayout : public RHI_DefaultDestroyable<RHI_Object> {
 		vk::DescriptorSetLayout layout = {};
 
 		byte uniform_buffers        = 0;
@@ -17,7 +18,6 @@ namespace Engine
 			return static_cast<bool>(layout);
 		}
 
-		void destroy();
 		~VulkanDescriptorSetLayout();
 	};
 }// namespace Engine

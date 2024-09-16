@@ -1,14 +1,10 @@
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
-#include <vulkan_descriptor_pool.hpp>
-#include <vulkan_descriptor_set.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
-
-#define SHADER_DATA info.binaries
 
 namespace Engine
 {

@@ -5,6 +5,7 @@
 namespace Engine
 {
 	struct RHI_Object;
+	struct VulkanDescriptorSetManager;
 
 	struct VulkanCommandBuffer final {
 	private:
@@ -20,6 +21,7 @@ namespace Engine
 		Vector<RHI_Object*> m_references;
 		std::vector<vk::Semaphore> m_wait_semaphores;
 		std::vector<vk::PipelineStageFlags> m_wait_flags;
+		VulkanDescriptorSetManager* m_descriptor_set_manager = nullptr;
 
 		State m_state = State::IsReadyForBegin;
 
@@ -71,6 +73,11 @@ namespace Engine
 		inline bool is_submitted() const
 		{
 			return m_state == State::Submitted;
+		}
+
+		inline VulkanDescriptorSetManager* descriptor_set_manager()
+		{
+			return m_descriptor_set_manager;
 		}
 
 		friend struct VulkanCommandBufferPool;
