@@ -374,7 +374,22 @@ namespace Engine
 
 		auto& backbuffer = m_backbuffers[m_buffer_index].wait_for_command_buffer();
 
-		auto result = API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, backbuffer.m_image_present_semaphore);
+		vk::ResultValue<uint32_t> result = vk::ResultValue<uint32_t>(vk::Result::eSuccess, 0);
+
+		try
+		{
+			result = API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, backbuffer.m_image_present_semaphore);
+		}
+		catch (const vk::OutOfDateKHRError& e)
+		{
+			m_buffer_index = prev_buffer_index;
+			return OutOfDate;
+		}
+		catch (const vk::SurfaceLostKHRError& e)
+		{
+			m_buffer_index = prev_buffer_index;
+			return SurfaceLost;
+		}
 
 		if (result.result == vk::Result::eErrorOutOfDateKHR)
 		{

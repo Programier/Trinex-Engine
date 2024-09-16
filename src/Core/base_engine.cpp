@@ -84,7 +84,7 @@ namespace Engine
 				if (viewport->is_active())
 				{
 					viewport->update(m_delta_time);
-					max_vp_size = glm::max(max_vp_size, viewport->size() * Settings::e_screen_percentage);
+					max_vp_size = glm::max(max_vp_size, viewport->size());
 				}
 			}
 
