@@ -1,6 +1,4 @@
-﻿#define VMA_IMPLEMENTATION
-
-#include <VkBootstrap.h>
+﻿#include <VkBootstrap.h>
 
 #include <Core/profiler.hpp>
 #include <Core/struct.hpp>

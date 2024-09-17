@@ -1,16 +1,15 @@
 #pragma once
 #include <Graphics/rhi.hpp>
+#include <vk_mem_alloc.h>
 #include <vulkan_headers.hpp>
 
 namespace Engine
 {
 	struct VulkanBuffer {
-		vk::Buffer m_buffer;
-		vk::DeviceMemory m_memory;
-		vk::DeviceSize m_size;
-		vk::DeviceSize m_offset = 0;
-		byte* m_mapped_data     = nullptr;
-
+		vk::Buffer m_buffer        = VK_NULL_HANDLE;
+		size_t m_size              = 0;
+		VmaAllocation m_allocation = VK_NULL_HANDLE;
+		byte* m_mapped_data        = nullptr;
 
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);
 		VulkanBuffer& update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);

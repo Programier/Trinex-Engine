@@ -1,4 +1,9 @@
+#define VMA_IMPLEMENTATION
+
+#include <Core/exception.hpp>
+#include <Core/memory.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <vk_mem_alloc.h>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
@@ -11,15 +16,23 @@ namespace Engine
 	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type)
 	{
 		m_size = size;
-		API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible, m_buffer,
-		                   m_memory);
+		vk::BufferCreateInfo buffer_info({}, size, vk::BufferUsageFlagBits::eTransferDst | type, vk::SharingMode::eExclusive);
+
+		VmaAllocationCreateInfo alloc_info = {};
+		alloc_info.usage                   = VMA_MEMORY_USAGE_CPU_TO_GPU;
+		VkBuffer out_buffer                = VK_NULL_HANDLE;
+		auto res = vmaCreateBuffer(API->m_allocator, &static_cast<VkBufferCreateInfo&>(buffer_info), &alloc_info, &out_buffer,
+		                           &m_allocation, nullptr);
+		m_buffer = out_buffer;
+		trinex_check(res == VK_SUCCESS, "Failed to create buffer");
+
 		update(0, data, size);
 		return *this;
 	}
 
 	VulkanBuffer& VulkanBuffer::update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size)
 	{
-		if (data == nullptr || offset >= m_size)
+		if (data == nullptr || offset >= m_allocation->GetSize())
 			return *this;
 
 		if (offset > m_size)
@@ -37,7 +50,8 @@ namespace Engine
 	{
 		if (!m_mapped_data)
 		{
-			m_mapped_data = reinterpret_cast<byte*>(API->m_device.mapMemory(m_memory, 0, VK_WHOLE_SIZE));
+			auto res = vmaMapMemory(API->m_allocator, m_allocation, reinterpret_cast<void**>(&m_mapped_data));
+			trinex_check(res == VK_SUCCESS, "Failed to map buffer");
 		}
 
 		return m_mapped_data;
@@ -47,7 +61,7 @@ namespace Engine
 	{
 		if (m_mapped_data)
 		{
-			API->m_device.unmapMemory(m_memory);
+			vmaUnmapMemory(API->m_allocator, m_allocation);
 			m_mapped_data = nullptr;
 		}
 
@@ -62,8 +76,7 @@ namespace Engine
 	VulkanBuffer::~VulkanBuffer()
 	{
 		unmap_memory();
-		DESTROY_CALL(destroyBuffer, m_buffer);
-		DESTROY_CALL(freeMemory, m_memory);
+		vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
 	}
 
 	VulkanStaticVertexBuffer& VulkanStaticVertexBuffer::create(const byte* data, size_t size)
