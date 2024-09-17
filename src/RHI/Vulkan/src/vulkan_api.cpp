@@ -73,14 +73,8 @@ namespace Engine
 
 		VulkanRenderPass::destroy_all();
 
-		for (VulkanUniformBuffer* buffer : m_uniform_buffer)
-		{
-			delete buffer;
-		}
-
 		delete m_cmd_manager;
-		m_uniform_buffer.clear();
-
+		delete m_stagging_manager;
 		delete m_graphics_queue;
 
 		if (m_present_queue != m_graphics_queue)
@@ -285,7 +279,9 @@ namespace Engine
 		m_graphics_queue = new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
 
 		initialize_pfn();
-		m_cmd_manager = new VulkanCommandBufferManager();
+
+		m_cmd_manager      = new VulkanCommandBufferManager();
+		m_stagging_manager = new VulkanStaggingBufferManager();
 
 
 		// Initialize memory allocator
@@ -351,17 +347,6 @@ namespace Engine
 		extern vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance);
 		vk::SurfaceKHR surface = create_vulkan_surface(window->native_window(), m_instance.instance);
 		setup_present_queue(surface);
-
-		if (m_framebuffers_count == 0)
-		{
-			m_framebuffers_count = m_physical_device.getSurfaceCapabilitiesKHR(surface).minImageCount;
-			m_uniform_buffer.resize(m_framebuffers_count);
-			
-			for (VulkanUniformBuffer*& buffer : m_uniform_buffer)
-			{
-				buffer = new VulkanUniformBuffer();
-			}
-		}
 		return surface;
 	}
 
@@ -446,10 +431,6 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::begin_render()
 	{
-		++m_current_frame;
-		m_current_buffer = m_current_frame % m_framebuffers_count;
-
-		uniform_buffer()->reset();
 		return *this;
 	}
 
@@ -459,6 +440,8 @@ namespace Engine
 		{
 			m_state.m_current_viewport->end_render();
 		}
+
+		m_stagging_manager->update();
 		return *this;
 	}
 
@@ -582,11 +565,6 @@ namespace Engine
 	{
 		prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
-	}
-
-	VulkanUniformBuffer* VulkanAPI::uniform_buffer() const
-	{
-		return m_uniform_buffer[m_current_buffer];
 	}
 
 	VulkanAPI& VulkanAPI::push_debug_stage(const char* stage, const Color& color)

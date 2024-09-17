@@ -5,35 +5,49 @@
 
 namespace Engine
 {
-	struct VulkanBuffer {
-		vk::Buffer m_buffer        = VK_NULL_HANDLE;
-		size_t m_size              = 0;
-		VmaAllocation m_allocation = VK_NULL_HANDLE;
-		byte* m_mapped_data        = nullptr;
+	struct VulkanBuffer : public RHI_DefaultDestroyable<RHI_Object> {
+		vk::BufferUsageFlags m_usage = {};
+		vk::Buffer m_buffer          = VK_NULL_HANDLE;
+		VmaAllocation m_allocation   = VK_NULL_HANDLE;
+		size_t m_size                = 0;
 
-		VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);
+		VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlags usage,
+		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
+		VulkanBuffer& copy(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
+		VulkanBuffer& copy(vk::DeviceSize offset, VulkanBuffer* buffer, vk::DeviceSize size);
 		VulkanBuffer& update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
 		byte* map_memory();
 		VulkanBuffer& unmap_memory();
-		bool is_mapped() const;
 		~VulkanBuffer();
 	};
 
-	struct VulkanStaticVertexBuffer : RHI_DefaultDestroyable<RHI_VertexBuffer> {
-		VulkanBuffer m_buffer;
+	struct VulkanStaggingBufferManager {
+	private:
+		struct FreeEntry {
+			VulkanBuffer* m_buffer = nullptr;
+			size_t m_frame_number  = 0;
 
-		VulkanStaticVertexBuffer& create(const byte* data, size_t size);
-		void bind(byte stream_index, size_t stride, size_t offset) override;
-		void update(size_t offset, size_t size, const byte* data) override;
+			FreeEntry(VulkanBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames)
+			{}
+		};
+
+		Vector<VulkanBuffer*> m_buffers;
+		Vector<FreeEntry> m_free;
+
+	public:
+		VulkanBuffer* allocate(vk::DeviceSize size, vk::BufferUsageFlags usage,
+		                       VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_CPU_ONLY);
+		VulkanStaggingBufferManager& release(VulkanBuffer* buffer);
+		VulkanStaggingBufferManager& update();
+		~VulkanStaggingBufferManager();
 	};
 
-	struct VulkanDynamicVertexBuffer : RHI_DefaultDestroyable<RHI_VertexBuffer> {
-		Vector<VulkanBuffer> m_buffers;
+	struct VulkanVertexBuffer : RHI_DefaultDestroyable<RHI_VertexBuffer> {
+		VulkanBuffer m_buffer;
 
-		VulkanDynamicVertexBuffer& create(const byte* data, size_t size);
+		VulkanVertexBuffer& create(const byte* data, size_t size);
 		void bind(byte stream_index, size_t stride, size_t offset) override;
 		void update(size_t offset, size_t size, const byte* data) override;
-		VulkanBuffer& current();
 	};
 
 	struct VulkanIndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer> {
@@ -44,17 +58,6 @@ namespace Engine
 
 		void bind(size_t offset) override;
 		void update(size_t offset, size_t size, const byte* data) override;
-	};
-
-	struct VulkanDynamicIndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer> {
-		Vector<VulkanBuffer> m_buffers;
-		vk::IndexType m_type;
-
-		VulkanDynamicIndexBuffer& create(const byte* data, size_t size, IndexBufferFormat format);
-
-		void bind(size_t offset) override;
-		void update(size_t offset, size_t size, const byte* data) override;
-		VulkanBuffer& current();
 	};
 
 	struct VulkanSSBO : public RHI_DefaultDestroyable<RHI_SSBO> {

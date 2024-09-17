@@ -5,32 +5,19 @@
 
 namespace Engine
 {
-	UniformBufferPoolBase::BufferEntry& UniformBufferPoolBase::BufferEntry::update(const void* data, size_t size, size_t offset)
-	{
-		byte* mapped = reinterpret_cast<byte*>(API->m_device.mapMemory(memory, 0, VK_WHOLE_SIZE));
-		std::memcpy(mapped + offset, data, size);
-		API->m_device.flushMappedMemoryRanges(vk::MappedMemoryRange(memory, 0, VK_WHOLE_SIZE));
-		API->m_device.unmapMemory(memory);
-		return *this;
-	}
-
 	UniformBufferPoolBase& UniformBufferPoolBase::allocate_new(size_t size)
 	{
-		buffers.emplace_back();
-		auto& buffer = buffers.back();
-		API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer,
-		                   vk::MemoryPropertyFlagBits::eHostVisible, buffer.buffer, buffer.memory);
-
-		buffer.size = size;
+		VulkanBuffer* buffer = new VulkanBuffer();
+		buffer->create(size, nullptr, vk::BufferUsageFlagBits::eUniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU);
+		buffers.push_back(buffer);
 		return *this;
 	}
 
 	UniformBufferPoolBase::~UniformBufferPoolBase()
 	{
-		for (BufferEntry& entry : buffers)
+		for (VulkanBuffer* buffer : buffers)
 		{
-			DESTROY_CALL(destroyBuffer, entry.buffer);
-			DESTROY_CALL(freeMemory, entry.memory);
+			buffer->release();
 		}
 
 		buffers.clear();
@@ -42,7 +29,7 @@ namespace Engine
 		if (index >= static_cast<int64_t>(buffers.size()))
 			allocate_new();
 
-		buffers[index].update(params, sizeof(GlobalShaderParameters), 0);
+		buffers[index]->copy(0, reinterpret_cast<const byte*>(params), sizeof(GlobalShaderParameters));
 	}
 
 	void GlobalUniformBufferPool::pop()
@@ -63,7 +50,7 @@ namespace Engine
 		if (index >= 0 && pipeline && pipeline->global_parameters_info().has_parameters())
 		{
 			API->m_state.m_pipeline->bind_uniform_buffer(
-			        vk::DescriptorBufferInfo(buffers[index].buffer, 0, sizeof(GlobalShaderParameters)),
+			        vk::DescriptorBufferInfo(buffers[index]->m_buffer, 0, sizeof(GlobalShaderParameters)),
 			        pipeline->global_parameters_info().bind_index(), vk::DescriptorType::eUniformBuffer);
 		}
 	}
@@ -87,7 +74,7 @@ namespace Engine
 
 		if (pipeline && pipeline->local_parameters_info().has_parameters())
 		{
-			if (buffers[index].size < used_data + shadow_data_size)
+			if (buffers[index]->m_size < used_data + shadow_data_size)
 			{
 				++index;
 				used_data = 0;
@@ -99,11 +86,11 @@ namespace Engine
 			}
 
 			auto& current_buffer = buffers[index];
-			current_buffer.update(shadow_data.data(), shadow_data_size, used_data);
+			current_buffer->copy(used_data, shadow_data.data(), shadow_data_size);
 
 			BindLocation local_params_location = pipeline->local_parameters_info().bind_index();
 			API->m_state.m_pipeline->bind_uniform_buffer(
-			        vk::DescriptorBufferInfo(current_buffer.buffer, used_data, shadow_data_size), local_params_location,
+			        vk::DescriptorBufferInfo(current_buffer->m_buffer, used_data, shadow_data_size), local_params_location,
 			        vk::DescriptorType::eUniformBuffer);
 			used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
 		}

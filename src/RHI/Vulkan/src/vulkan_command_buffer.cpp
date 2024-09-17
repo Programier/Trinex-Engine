@@ -8,6 +8,7 @@
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
+#include <vulkan_uniform_buffer.hpp>
 
 namespace Engine
 {
@@ -18,6 +19,7 @@ namespace Engine
 		m_fence = VulkanFence::create(false);
 
 		m_descriptor_set_manager = new VulkanDescriptorSetManager();
+		m_uniform_buffer         = new VulkanUniformBuffer();
 	}
 
 	VulkanCommandBuffer& VulkanCommandBuffer::add_object(RHI_Object* object)
@@ -49,7 +51,8 @@ namespace Engine
 				m_state = State::IsReadyForBegin;
 				m_cmd.reset();
 				m_fence->reset();
-				release_references();
+				m_uniform_buffer->reset();
+				release_references();				
 			}
 		}
 
@@ -133,6 +136,7 @@ namespace Engine
 	VulkanCommandBuffer::~VulkanCommandBuffer()
 	{
 		delete m_descriptor_set_manager;
+		delete m_uniform_buffer;
 	}
 
 	VulkanCommandBufferPool::VulkanCommandBufferPool()
@@ -222,5 +226,10 @@ namespace Engine
 	vk::CommandBuffer& VulkanAPI::current_command_buffer_handle()
 	{
 		return m_cmd_manager->command_buffer()->m_cmd;
+	}
+
+	VulkanUniformBuffer* VulkanAPI::uniform_buffer()
+	{
+		return current_command_buffer()->uniform_buffer();
 	}
 }// namespace Engine

@@ -35,7 +35,6 @@ namespace Engine
 		static VulkanAPI* m_vulkan;
 
 		Vector<VulkanExtention> m_device_extensions;
-		Vector<VulkanUniformBuffer*> m_uniform_buffer;
 
 		struct {
 			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT           = nullptr;
@@ -58,11 +57,8 @@ namespace Engine
 		vk::PhysicalDeviceProperties m_properties;
 		vk::PhysicalDeviceFeatures m_features;
 
-		struct VulkanCommandBufferManager* m_cmd_manager = nullptr;
-		uint32_t m_framebuffers_count                    = 0;
-
-		size_t m_current_frame  = 0;
-		size_t m_current_buffer = 0;
+		struct VulkanCommandBufferManager* m_cmd_manager       = nullptr;
+		struct VulkanStaggingBufferManager* m_stagging_manager = nullptr;
 
 		//////////////////////////////////////////////////////////////
 
@@ -92,6 +88,7 @@ namespace Engine
 
 		struct VulkanCommandBuffer* current_command_buffer();
 		vk::CommandBuffer& current_command_buffer_handle();
+		VulkanUniformBuffer* uniform_buffer();
 
 		VulkanAPI& begin_render_pass(bool lock_resources = true);
 		VulkanAPI& end_render_pass(bool unlock_resources = true);
@@ -135,8 +132,6 @@ namespace Engine
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
-
-		VulkanUniformBuffer* uniform_buffer() const;
 
 		VulkanAPI& push_global_params(const GlobalShaderParameters& params) override;
 		VulkanAPI& pop_global_params() override;

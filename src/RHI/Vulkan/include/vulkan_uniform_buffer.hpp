@@ -1,20 +1,13 @@
 #pragma once
 #include <Core/memory.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <vulkan_buffer.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine
 {
 	struct UniformBufferPoolBase {
-		struct BufferEntry {
-			vk::Buffer buffer;
-			vk::DeviceMemory memory;
-			size_t size;
-
-			BufferEntry& update(const void* data, size_t size, size_t offset);
-		};
-
-		Vector<BufferEntry> buffers;
+		Vector<VulkanBuffer*> buffers;
 
 	protected:
 		UniformBufferPoolBase& allocate_new(size_t size);
