@@ -1,4 +1,6 @@
 add_subdirectory(libs/vk-bootstrap)
+add_subdirectory(libs/vulkan_memory_allocator)
+
 add_trinex_private_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/" "${CMAKE_CURRENT_SOURCE_DIR}/vulkan_headers/")
 
 if(ANDROID)

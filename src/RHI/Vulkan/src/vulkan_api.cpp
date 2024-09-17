@@ -1,4 +1,6 @@
-﻿#include <VkBootstrap.h>
+﻿#define VMA_IMPLEMENTATION
+
+#include <VkBootstrap.h>
 
 #include <Core/profiler.hpp>
 #include <Core/struct.hpp>
@@ -87,6 +89,9 @@ namespace Engine
 		{
 			delete m_present_queue;
 		}
+
+		vmaDestroyAllocator(m_allocator);
+		m_allocator = VK_NULL_HANDLE;
 
 		m_device.destroy();
 		vkb::destroy_instance(m_instance);
@@ -284,6 +289,45 @@ namespace Engine
 		initialize_pfn();
 		m_cmd_manager = new VulkanCommandBufferManager();
 
+
+		// Initialize memory allocator
+		{
+			VmaVulkanFunctions vulkan_functions;
+#define INIT_FUNC(name) vulkan_functions.name = name
+			INIT_FUNC(vkGetPhysicalDeviceProperties);
+			INIT_FUNC(vkGetPhysicalDeviceMemoryProperties);
+			INIT_FUNC(vkAllocateMemory);
+			INIT_FUNC(vkFreeMemory);
+			INIT_FUNC(vkMapMemory);
+			INIT_FUNC(vkUnmapMemory);
+			INIT_FUNC(vkFlushMappedMemoryRanges);
+			INIT_FUNC(vkInvalidateMappedMemoryRanges);
+			INIT_FUNC(vkBindBufferMemory);
+			INIT_FUNC(vkBindImageMemory);
+			INIT_FUNC(vkGetBufferMemoryRequirements);
+			INIT_FUNC(vkGetImageMemoryRequirements);
+			INIT_FUNC(vkCreateBuffer);
+			INIT_FUNC(vkDestroyBuffer);
+			INIT_FUNC(vkCreateImage);
+			INIT_FUNC(vkDestroyImage);
+			INIT_FUNC(vkCmdCopyBuffer);
+#if VMA_DEDICATED_ALLOCATION
+			vulkan_functions.vkGetBufferMemoryRequirements2KHR = pfn.vkGetBufferMemoryRequirements2KHR;
+			vulkan_functions.vkGetImageMemoryRequirements2KHR  = pfn.vkGetImageMemoryRequirements2KHR;
+#endif
+
+#undef INIT_FUNC
+
+			VmaAllocatorCreateInfo allocator_info = {};
+			allocator_info.vulkanApiVersion       = VK_API_VERSION_1_0;
+			allocator_info.physicalDevice         = m_physical_device;
+			allocator_info.instance               = m_instance;
+			allocator_info.device                 = m_device;
+			allocator_info.pVulkanFunctions       = &vulkan_functions;
+			vmaCreateAllocator(&allocator_info, &m_allocator);
+		}
+
+
 		return *this;
 	}
 
@@ -294,10 +338,13 @@ namespace Engine
 
 	void VulkanAPI::initialize_pfn()
 	{
-		pfn.vkCmdBeginDebugUtilsLabelEXT =
-		        (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdBeginDebugUtilsLabelEXT");
-		pfn.vkCmdEndDebugUtilsLabelEXT =
-		        (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdEndDebugUtilsLabelEXT");
+		auto load = [this]<typename T>(T& func, const char* name) {
+			func = reinterpret_cast<T>(vkGetDeviceProcAddr(m_device, name));
+		};
+
+		load(pfn.vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
+		load(pfn.vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
+		load(pfn.vkGetBufferMemoryRequirements2KHR, "vkGetBufferMemoryRequirements2KHR");
 	}
 
 

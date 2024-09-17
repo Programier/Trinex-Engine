@@ -7,6 +7,7 @@
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
 #include <VkBootstrap.h>
+#include <vk_mem_alloc.h>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
@@ -37,8 +38,10 @@ namespace Engine
 		Vector<VulkanUniformBuffer*> m_uniform_buffer;
 
 		struct {
-			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
-			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT     = nullptr;
+			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT           = nullptr;
+			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT               = nullptr;
+			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR = nullptr;
+			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR   = nullptr;
 		} pfn;
 
 		// API DATA
@@ -47,6 +50,7 @@ namespace Engine
 		vk::PhysicalDevice m_physical_device;
 		vk::Device m_device;
 		vkb::Device m_bootstrap_device;
+		VmaAllocator m_allocator = VK_NULL_HANDLE;
 
 		struct VulkanQueue* m_graphics_queue = nullptr;
 		struct VulkanQueue* m_present_queue  = nullptr;
