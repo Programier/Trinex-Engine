@@ -69,7 +69,7 @@ namespace Engine
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, barrier,
 			                           {}, {});
 		}
-		
+
 		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
 		if (size <= 65536 && size % 4 == 0 && offset % 4 == 0)
 		{
@@ -86,10 +86,18 @@ namespace Engine
 		}
 
 		{
+			vk::PipelineStageFlags dst_stage;
+
+			if (m_usage & (vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer))
+				dst_stage = vk::PipelineStageFlagBits::eVertexInput;
+			else if (m_usage & vk::BufferUsageFlagBits::eUniformBuffer)
+				dst_stage = all_shaders_stage;
+			else
+				dst_stage = vk::PipelineStageFlagBits::eAllCommands;
+
 			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
 			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryRead);
-			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eAllCommands, {}, barrier,
-			                           {}, {});
+			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, dst_stage, {}, barrier, {}, {});
 		}
 
 		return *this;

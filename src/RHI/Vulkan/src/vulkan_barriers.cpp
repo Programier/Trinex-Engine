@@ -45,11 +45,6 @@ namespace Engine::Barrier
 		// TODO
 	}
 
-	static constexpr inline vk::PipelineStageFlags all_shaders_stage =
-	        vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
-	        vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eFragmentShader |
-	        vk::PipelineStageFlagBits::eGeometryShader;
-
 	void LayoutFlags::setup(vk::ImageLayout layout)
 	{
 		switch (layout)

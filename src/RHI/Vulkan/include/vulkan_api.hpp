@@ -27,6 +27,12 @@ namespace Engine
 		bool enabled  = false;
 	};
 
+	static constexpr inline vk::PipelineStageFlags all_shaders_stage =
+	        vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
+	        vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eFragmentShader |
+	        vk::PipelineStageFlagBits::eGeometryShader;
+
+
 	struct VulkanAPI : public RHI {
 		declare_struct(VulkanAPI, void);
 		static VulkanAPI* static_constructor();

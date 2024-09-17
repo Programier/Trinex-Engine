@@ -287,30 +287,8 @@ namespace Engine
 		// Initialize memory allocator
 		{
 			VmaVulkanFunctions vulkan_functions;
-#define INIT_FUNC(name) vulkan_functions.name = name
-			INIT_FUNC(vkGetPhysicalDeviceProperties);
-			INIT_FUNC(vkGetPhysicalDeviceMemoryProperties);
-			INIT_FUNC(vkAllocateMemory);
-			INIT_FUNC(vkFreeMemory);
-			INIT_FUNC(vkMapMemory);
-			INIT_FUNC(vkUnmapMemory);
-			INIT_FUNC(vkFlushMappedMemoryRanges);
-			INIT_FUNC(vkInvalidateMappedMemoryRanges);
-			INIT_FUNC(vkBindBufferMemory);
-			INIT_FUNC(vkBindImageMemory);
-			INIT_FUNC(vkGetBufferMemoryRequirements);
-			INIT_FUNC(vkGetImageMemoryRequirements);
-			INIT_FUNC(vkCreateBuffer);
-			INIT_FUNC(vkDestroyBuffer);
-			INIT_FUNC(vkCreateImage);
-			INIT_FUNC(vkDestroyImage);
-			INIT_FUNC(vkCmdCopyBuffer);
-#if VMA_DEDICATED_ALLOCATION
-			vulkan_functions.vkGetBufferMemoryRequirements2KHR = pfn.vkGetBufferMemoryRequirements2KHR;
-			vulkan_functions.vkGetImageMemoryRequirements2KHR  = pfn.vkGetImageMemoryRequirements2KHR;
-#endif
-
-#undef INIT_FUNC
+			vulkan_functions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+			vulkan_functions.vkGetDeviceProcAddr   = vkGetDeviceProcAddr;
 
 			VmaAllocatorCreateInfo allocator_info = {};
 			allocator_info.vulkanApiVersion       = VK_API_VERSION_1_0;
