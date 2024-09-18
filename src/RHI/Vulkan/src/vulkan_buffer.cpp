@@ -39,10 +39,9 @@ namespace Engine
 
 	VulkanBuffer& VulkanBuffer::copy(vk::DeviceSize offset, const byte* data, vk::DeviceSize size)
 	{
-		if (m_allocation->IsMappingAllowed())
+		if (m_allocation->IsMappingAllowed() && map_memory() != nullptr)
 		{
-			auto res = vmaCopyMemoryToAllocation(API->m_allocator, data, m_allocation, offset, size);
-			trinex_check(res == VK_SUCCESS, "Failed to copy data");
+			std::memcpy(m_mapped + offset, data, size);
 		}
 		else
 		{
@@ -105,25 +104,28 @@ namespace Engine
 
 	byte* VulkanBuffer::map_memory()
 	{
-		union
+		if (m_mapped == nullptr)
 		{
-			void* mapped = nullptr;
-			byte* data;
-		};
-
-		auto res = vmaMapMemory(API->m_allocator, m_allocation, &mapped);
-		trinex_check(res == VK_SUCCESS, "Failed to map buffer");
-		return data;
+			auto res = vmaMapMemory(API->m_allocator, m_allocation, reinterpret_cast<void**>(&m_mapped));
+			trinex_check(res == VK_SUCCESS, "Failed to map buffer");
+		}
+		return m_mapped;
 	}
 
 	VulkanBuffer& VulkanBuffer::unmap_memory()
 	{
-		vmaUnmapMemory(API->m_allocator, m_allocation);
+		if (m_mapped)
+		{
+			vmaUnmapMemory(API->m_allocator, m_allocation);
+			m_mapped = nullptr;
+		}
 		return *this;
 	}
 
 	VulkanBuffer::~VulkanBuffer()
 	{
+		unmap_memory();
+
 		if (m_allocation)
 			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
 	}

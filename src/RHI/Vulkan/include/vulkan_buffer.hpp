@@ -10,6 +10,7 @@ namespace Engine
 		vk::Buffer m_buffer          = VK_NULL_HANDLE;
 		VmaAllocation m_allocation   = VK_NULL_HANDLE;
 		size_t m_size                = 0;
+		byte* m_mapped               = nullptr;
 
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlags usage,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
