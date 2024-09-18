@@ -25,12 +25,6 @@
 
 namespace Engine
 {
-#if ENABLE_VALIDATION_LAYERS
-	const Vector<const char*> validation_layers = {
-	        "VK_LAYER_KHRONOS_validation",
-	};
-#endif
-
 	VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
 	using VULKAN = VulkanAPI;
@@ -234,11 +228,11 @@ namespace Engine
 
 #if ENABLE_VALIDATION_LAYERS
 		instance_builder.set_debug_callback(debug_callback)
-		        .request_validation_layers()
+		        .request_validation_layers(true)
+		        .enable_validation_layers(true)
 		        .add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
 #else
-		instance_builder.add_validation_disable(VK_VALIDATION_CHECK_ALL_EXT);
-		instance_builder.add_validation_feature_disable(VK_VALIDATION_FEATURE_DISABLE_ALL_EXT);
+		instance_builder.enable_validation_layers(false).request_validation_layers(false);
 #endif
 
 		auto instance_ret = instance_builder.build();
@@ -360,24 +354,6 @@ namespace Engine
 		return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 	}
 
-	VulkanAPI& VulkanAPI::create_image(VulkanTexture* texture, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
-	                                   vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-	                                   vk::DeviceMemory& image_memory, uint32_t layers)
-	{
-
-		vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->format(),
-		                               vk::Extent3D(texture->size().x, texture->size().y, 1), texture->mipmap_count(), layers,
-		                               vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
-
-		image                                      = API->m_device.createImage(image_info);
-		vk::MemoryRequirements memory_requirements = API->m_device.getImageMemoryRequirements(image);
-		auto memory_type = API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
-		vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
-		image_memory = API->m_device.allocateMemory(alloc_info);
-		API->m_device.bindImageMemory(image, image_memory, 0);
-		return *this;
-	}
-
 	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
 	{
 		trinex_profile_cpu();
@@ -420,36 +396,6 @@ namespace Engine
 		}
 
 		m_stagging_manager->update();
-		return *this;
-	}
-
-	uint32_t VulkanAPI::find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties)
-	{
-		vk::PhysicalDeviceMemoryProperties mem_properties = m_physical_device.getMemoryProperties();
-
-		for (uint32_t i = 0; (1u << i) <= type_filter && i < mem_properties.memoryTypeCount; i++)
-		{
-			if ((type_filter & (1u << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties))
-			{
-				return i;
-			}
-		}
-
-		throw std::runtime_error("VulkanAPI: Failed to find suitable memory type!");
-	}
-
-	VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-	                                    vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
-	{
-		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
-		buffer = m_device.createBuffer(buffer_info);
-
-		vk::MemoryRequirements mem_requirements = m_device.getBufferMemoryRequirements(buffer);
-		vk::MemoryAllocateInfo alloc_info(mem_requirements.size, find_memory_type(mem_requirements.memoryTypeBits, properties));
-
-
-		buffer_memory = m_device.allocateMemory(alloc_info);
-		m_device.bindBufferMemory(buffer, buffer_memory, 0);
 		return *this;
 	}
 

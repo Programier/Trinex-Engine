@@ -78,19 +78,12 @@ namespace Engine
 		VulkanViewportMode find_current_viewport_mode();
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 
-		VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-		                         vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
-		uint32_t find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties);
-
 		vk::CommandBuffer begin_single_time_command_buffer();
 		VulkanAPI& end_single_time_command_buffer(const vk::CommandBuffer& buffer);
 
 		VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size, vk::DeviceSize src_offset = 0,
 		                       vk::DeviceSize dst_offset = 0);
 		bool has_stencil_component(vk::Format format);
-		VulkanAPI& create_image(struct VulkanTexture* state, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
-		                        vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-		                        vk::DeviceMemory& image_memory, uint32_t layers);
 
 		struct VulkanCommandBuffer* current_command_buffer();
 		vk::CommandBuffer& current_command_buffer_handle();

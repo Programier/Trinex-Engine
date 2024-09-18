@@ -1,5 +1,6 @@
 #pragma once
 #include <Graphics/rhi.hpp>
+#include <vk_mem_alloc.h>
 #include <vulkan_headers.hpp>
 
 
@@ -7,7 +8,7 @@ namespace Engine
 {
 	struct VulkanTexture : RHI_DefaultDestroyable<RHI_Texture> {
 	private:
-		vk::DeviceMemory m_image_memory;
+		VmaAllocation m_allocation = VK_NULL_HANDLE;
 
 		vk::Image m_image;
 		vk::ImageView m_image_view;
@@ -15,18 +16,19 @@ namespace Engine
 		vk::ComponentMapping m_swizzle;
 
 	public:
-		virtual uint_t layer_count() const                   = 0;
-		virtual vk::ImageCreateFlagBits create_flags() const = 0;
-		virtual vk::ImageViewType view_type() const          = 0;
-		virtual Size2D size() const                          = 0;
-		virtual MipMapLevel mipmap_count() const             = 0;
-		virtual vk::Format format() const                    = 0;
-		virtual ColorFormat engine_format() const            = 0;
+		virtual uint_t layer_count() const                       = 0;
+		virtual vk::ImageCreateFlagBits create_flags() const     = 0;
+		virtual vk::ImageViewType view_type() const              = 0;
+		virtual Size2D size(MipMapLevel level = 0) const         = 0;
+		virtual MipMapLevel mipmap_count() const                 = 0;
+		virtual vk::Format format() const                        = 0;
+		virtual ColorFormat engine_format() const                = 0;
+		virtual vk::ImageType image_type() const                 = 0;
+		virtual vk::Extent3D extent(MipMapLevel level = 0) const = 0;
 
 		void clear_color(const Color& color) override;
 		void clear_depth_stencil(float depth, byte stencil) override;
 
-		vk::DeviceMemory memory() const;
 		vk::Image image() const;
 		vk::ImageView image_view() const;
 		vk::ImageLayout layout() const;
@@ -62,10 +64,12 @@ namespace Engine
 		uint_t layer_count() const override;
 		vk::ImageCreateFlagBits create_flags() const override;
 		vk::ImageViewType view_type() const override;
-		Size2D size() const override;
+		Size2D size(MipMapLevel level = 0) const override;
 		MipMapLevel mipmap_count() const override;
 		vk::Format format() const override;
 		ColorFormat engine_format() const override;
+		vk::ImageType image_type() const override;
+		vk::Extent3D extent(MipMapLevel level = 0) const override;
 	};
 
 	struct VulkanSurface : public VulkanTexture2D {
@@ -73,7 +77,7 @@ namespace Engine
 		Size2D m_size;
 
 		VulkanSurface& create(const Texture2D* texture);
-		Size2D size() const override;
+		Size2D size(MipMapLevel level = 0) const override;
 		void clear_color(const Color& color) override;
 		void clear_depth_stencil(float depth, byte stencil) override;
 

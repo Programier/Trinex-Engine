@@ -6,6 +6,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
+#include <vulkan_buffer.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_sampler.hpp>
@@ -16,12 +17,6 @@
 
 namespace Engine
 {
-
-	vk::DeviceMemory VulkanTexture::memory() const
-	{
-		return m_image_memory;
-	}
-
 	vk::Image VulkanTexture::image() const
 	{
 		return m_image;
@@ -56,40 +51,42 @@ namespace Engine
 
 	VulkanTexture& VulkanTexture::create(const Texture* texture)
 	{
-		m_layout = vk::ImageLayout::eUndefined;
-
-		static vk::ImageCreateFlagBits default_flags = {};
-
-		vk::ImageUsageFlags m_usage_flags      = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-		vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
-
+		m_layout                  = vk::ImageLayout::eUndefined;
+		vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
 
 		if (texture->class_instance()->is_a<RenderSurface>())
 		{
 			if (is_depth_stencil_image())
 			{
-				m_usage_flags |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
+				usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
 			}
 			else if (is_color_image())
 			{
-				m_usage_flags |= vk::ImageUsageFlagBits::eColorAttachment;
+				usage |= vk::ImageUsageFlagBits::eColorAttachment;
 			}
 
-			m_usage_flags |= vk::ImageUsageFlagBits::eTransferSrc;
+			usage |= vk::ImageUsageFlagBits::eTransferSrc;
 		}
 
-		vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
+		vk::ImageCreateInfo info(create_flags(), image_type(), format(), extent(), mipmap_count(), layer_count(),
+		                         vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
 
-		API->create_image(this, tiling,
-		                  texture->type() == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
-		                  m_usage_flags, m_memory_flags, m_image, m_image_memory, layer_count());
+		VmaAllocationCreateInfo alloc_info = {};
+		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
+
+		VkImage out_image = VK_NULL_HANDLE;
+		auto res          = vmaCreateImage(API->m_allocator, &static_cast<VkImageCreateInfo&>(info), &alloc_info, &out_image,
+		                                   &m_allocation, nullptr);
+		trinex_check(res == VK_SUCCESS, "Failed to create texture!");
+		m_image = out_image;
 
 		// Creating image view
 		m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
 		                                 get_type(texture->swizzle_a));
 		m_image_view = create_image_view(vk::ImageSubresourceRange(aspect(true), 0, mipmap_count(), 0, layer_count()));
-		change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
+
+		change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 		return *this;
 	}
 
@@ -98,18 +95,8 @@ namespace Engine
 		if (data == nullptr || data_size == 0)
 			return;
 
-		vk::Buffer staging_buffer;
-		vk::DeviceMemory staging_buffer_memory;
-
-		vk::DeviceSize buffer_size = data_size;
-
-		API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
-		                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, staging_buffer,
-		                   staging_buffer_memory);
-
-		void* vulkan_data = API->m_device.mapMemory(staging_buffer_memory, 0, buffer_size);
-		std::memcpy(vulkan_data, data, buffer_size);
-		API->m_device.unmapMemory(staging_buffer_memory);
+		auto buffer = API->m_stagging_manager->allocate(data_size, vk::BufferUsageFlagBits::eTransferSrc);
+		buffer->copy(0, data, data_size);
 
 		vk::ImageMemoryBarrier barrier;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -119,20 +106,16 @@ namespace Engine
 		barrier.image               = m_image;
 		barrier.subresourceRange    = vk::ImageSubresourceRange(aspect(), level, 1, layer, 1);
 
-
 		Barrier::transition_image_layout(barrier);
 		auto command_buffer = API->begin_single_time_command_buffer();
 
 		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1), vk::Offset3D(0, 0, 0),
 		                           vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
 
-		command_buffer.copyBufferToImage(staging_buffer, m_image, vk::ImageLayout::eTransferDstOptimal, region);
-
+		command_buffer.copyBufferToImage(buffer->m_buffer, m_image, vk::ImageLayout::eTransferDstOptimal, region);
 		API->end_single_time_command_buffer(command_buffer);
 
-		API->m_device.freeMemory(staging_buffer_memory, nullptr);
-		API->m_device.destroyBuffer(staging_buffer);
-
+		API->m_stagging_manager->release(buffer);
 
 		barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
 		barrier.newLayout = m_layout;
@@ -261,9 +244,8 @@ namespace Engine
 
 	VulkanTexture::~VulkanTexture()
 	{
-		DESTROY_CALL(destroyImage, m_image);
-		DESTROY_CALL(freeMemory, m_image_memory);
 		DESTROY_CALL(destroyImageView, m_image_view);
+		vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
 	VulkanTexture2D& VulkanTexture2D::create(const Texture2D* texture)
@@ -296,9 +278,9 @@ namespace Engine
 		return vk::ImageViewType::e2D;
 	}
 
-	Size2D VulkanTexture2D::size() const
+	Size2D VulkanTexture2D::size(MipMapLevel level) const
 	{
-		return m_texture->size();
+		return m_texture->size(level);
 	}
 
 	MipMapLevel VulkanTexture2D::mipmap_count() const
@@ -316,6 +298,17 @@ namespace Engine
 		return m_texture->format();
 	}
 
+	vk::ImageType VulkanTexture2D::image_type() const
+	{
+		return vk::ImageType::e2D;
+	}
+
+	vk::Extent3D VulkanTexture2D::extent(MipMapLevel level) const
+	{
+		auto texture_size = size();
+		return vk::Extent3D(texture_size.x, texture_size.y, 1.f);
+	}
+
 	VulkanSurface& VulkanSurface::create(const Texture2D* texture)
 	{
 		m_size = texture->size();
@@ -323,7 +316,7 @@ namespace Engine
 		return *this;
 	}
 
-	Size2D VulkanSurface::size() const
+	Size2D VulkanSurface::size(MipMapLevel level) const
 	{
 		return m_size;
 	}
