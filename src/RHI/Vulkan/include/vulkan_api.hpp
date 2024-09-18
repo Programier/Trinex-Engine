@@ -54,7 +54,6 @@ namespace Engine
 		vkb::Instance m_instance;
 		vk::PhysicalDevice m_physical_device;
 		vk::Device m_device;
-		vkb::Device m_bootstrap_device;
 		VmaAllocator m_allocator = VK_NULL_HANDLE;
 
 		struct VulkanQueue* m_graphics_queue = nullptr;

@@ -259,11 +259,11 @@ namespace Engine
 
 
 		// Initialize device
-		m_bootstrap_device = build_device(selected_device);
-		m_device           = vk::Device(m_bootstrap_device.device);
+		auto bootstrap_device = build_device(selected_device);
+		m_device              = vk::Device(bootstrap_device.device);
 
-		auto graphics_queue_index = m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
-		auto graphics_queue       = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
+		auto graphics_queue_index = bootstrap_device.get_queue_index(vkb::QueueType::graphics);
+		auto graphics_queue       = bootstrap_device.get_queue(vkb::QueueType::graphics);
 
 		if (!graphics_queue_index.has_value() || !graphics_queue.has_value())
 		{
