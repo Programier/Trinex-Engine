@@ -280,7 +280,7 @@ namespace Engine
 
 		// Initialize memory allocator
 		{
-			VmaVulkanFunctions vulkan_functions;
+			VmaVulkanFunctions vulkan_functions = {};
 			vulkan_functions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
 			vulkan_functions.vkGetDeviceProcAddr   = vkGetDeviceProcAddr;
 
