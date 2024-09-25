@@ -130,42 +130,43 @@ namespace Engine
 			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
 	}
 
-	struct VulkanStaggingBuffer : public VulkanBuffer {
-		VulkanStaggingBufferManager* m_manager;
-		
-		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager) : m_manager(manager)
-		{
-			m_references = 0;
-		}
 
-		void destroy() const override
-		{
+	VulkanStaggingBuffer::VulkanStaggingBuffer(VulkanStaggingBufferManager* manager) : m_manager(manager)
+	{
+		m_references = 0;
+	}
+
+	void VulkanStaggingBuffer::destroy() const
+	{
+		if (m_manager)
 			m_manager->release(const_cast<VulkanStaggingBuffer*>(this));
-		}
-	};
+		else
+			delete this;
+	}
 
-	VulkanBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, vk::BufferUsageFlags usage,
-	                                                    VmaMemoryUsage memory_usage)
+	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, vk::BufferUsageFlags usage,
+	                                                            VmaMemoryUsage memory_usage)
 	{
 		for (size_t i = 0, size = m_free.size(); i < size; i++)
 		{
 			auto buffer = m_free[i].m_buffer;
-			if (buffer->references() == 1 && buffer->m_size >= buffer_size && (buffer->m_usage & usage) == usage)
+			if (buffer->references() == 0 && buffer->m_size >= buffer_size && (buffer->m_usage & usage) == usage)
 			{
 				m_free.erase(m_free.begin() + i);
 				return buffer;
 			}
 		}
 
-		VulkanBuffer* buffer = new VulkanStaggingBuffer(this);
+		VulkanStaggingBuffer* buffer = new VulkanStaggingBuffer(this);
 		buffer->create(buffer_size, nullptr, usage, memory_usage);
 		m_buffers.insert(buffer);
 		return buffer;
 	}
 
-	VulkanStaggingBufferManager& VulkanStaggingBufferManager::release(VulkanBuffer* buffer)
+	VulkanStaggingBufferManager& VulkanStaggingBufferManager::release(VulkanStaggingBuffer* buffer)
 	{
-		m_free.emplace_back(buffer, VK_STAGGING_RESOURCE_WAIT_FRAMES);
+		if (buffer->m_manager == this)
+			m_free.emplace_back(buffer, VK_STAGGING_RESOURCE_WAIT_FRAMES);
 		return *this;
 	}
 
@@ -195,7 +196,14 @@ namespace Engine
 	{
 		for (auto buffer : m_buffers)
 		{
-			delete buffer;
+			if (buffer->references() == 0)
+			{
+				delete buffer;
+			}
+			else
+			{
+				buffer->m_manager = nullptr;
+			}
 		}
 
 		m_buffers.clear();

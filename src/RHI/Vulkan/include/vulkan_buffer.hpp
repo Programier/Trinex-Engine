@@ -22,23 +22,33 @@ namespace Engine
 		~VulkanBuffer();
 	};
 
+	struct VulkanStaggingBuffer : VulkanBuffer {
+	private:
+		struct VulkanStaggingBufferManager* m_manager = nullptr;
+
+		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager);
+		void destroy() const override;
+		
+		friend struct VulkanStaggingBufferManager;
+	};
+
 	struct VulkanStaggingBufferManager {
 	private:
 		struct FreeEntry {
-			VulkanBuffer* m_buffer = nullptr;
-			size_t m_frame_number  = 0;
+			struct VulkanStaggingBuffer* m_buffer = nullptr;
+			size_t m_frame_number                 = 0;
 
-			FreeEntry(VulkanBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames)
+			FreeEntry(VulkanStaggingBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames)
 			{}
 		};
 
-		Set<VulkanBuffer*> m_buffers;
+		Set<VulkanStaggingBuffer*> m_buffers;
 		Vector<FreeEntry> m_free;
 
 	public:
-		VulkanBuffer* allocate(vk::DeviceSize size, vk::BufferUsageFlags usage,
-		                       VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_CPU_ONLY);
-		VulkanStaggingBufferManager& release(VulkanBuffer* buffer);
+		VulkanStaggingBuffer* allocate(vk::DeviceSize size, vk::BufferUsageFlags usage,
+		                               VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_CPU_ONLY);
+		VulkanStaggingBufferManager& release(VulkanStaggingBuffer* buffer);
 		VulkanStaggingBufferManager& update();
 		~VulkanStaggingBufferManager();
 	};
