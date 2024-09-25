@@ -130,22 +130,36 @@ namespace Engine
 			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
 	}
 
-	VulkanBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize size, vk::BufferUsageFlags usage,
+	struct VulkanStaggingBuffer : public VulkanBuffer {
+		VulkanStaggingBufferManager* m_manager;
+		
+		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager) : m_manager(manager)
+		{
+			m_references = 0;
+		}
+
+		void destroy() const override
+		{
+			m_manager->release(const_cast<VulkanStaggingBuffer*>(this));
+		}
+	};
+
+	VulkanBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, vk::BufferUsageFlags usage,
 	                                                    VmaMemoryUsage memory_usage)
 	{
 		for (size_t i = 0, size = m_free.size(); i < size; i++)
 		{
 			auto buffer = m_free[i].m_buffer;
-			if (buffer->references() == 1 && buffer->m_size >= size && (buffer->m_usage & usage) == usage)
+			if (buffer->references() == 1 && buffer->m_size >= buffer_size && (buffer->m_usage & usage) == usage)
 			{
 				m_free.erase(m_free.begin() + i);
 				return buffer;
 			}
 		}
 
-		VulkanBuffer* buffer = new VulkanBuffer();
-		buffer->create(size, nullptr, usage, memory_usage);
-		m_buffers.push_back(buffer);
+		VulkanBuffer* buffer = new VulkanStaggingBuffer(this);
+		buffer->create(buffer_size, nullptr, usage, memory_usage);
+		m_buffers.insert(buffer);
 		return buffer;
 	}
 
@@ -164,7 +178,8 @@ namespace Engine
 
 			if (entry.m_frame_number == 0)
 			{
-				entry.m_buffer->release();
+				m_buffers.erase(entry.m_buffer);
+				delete entry.m_buffer;
 				m_free.erase(m_free.begin() + i);
 				--size;
 			}
@@ -180,7 +195,7 @@ namespace Engine
 	{
 		for (auto buffer : m_buffers)
 		{
-			buffer->release();
+			delete buffer;
 		}
 
 		m_buffers.clear();

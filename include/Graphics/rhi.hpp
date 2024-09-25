@@ -25,16 +25,14 @@ namespace Engine
 
 
 	struct ENGINE_EXPORT RHI_Object {
-	private:
-		mutable size_t m_references;
-
 	protected:
+		mutable size_t m_references;
 		virtual void destroy() const = 0;
 
 	public:
 		RHI_Object(size_t init_ref_count = 1);
-		void add_reference() const;
-		void release() const;
+		virtual void add_reference() const;
+		virtual void release() const;
 		size_t references() const;
 		virtual ~RHI_Object();
 	};

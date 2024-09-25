@@ -32,7 +32,7 @@ namespace Engine
 			{}
 		};
 
-		Vector<VulkanBuffer*> m_buffers;
+		Set<VulkanBuffer*> m_buffers;
 		Vector<FreeEntry> m_free;
 
 	public:
