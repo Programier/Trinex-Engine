@@ -248,7 +248,9 @@ namespace Engine
 				ImGui::EndMenu();
 			}
 
-			ImGui::Text("FPS: %f\n", 1.f / dt);
+			ImGui::Text("FPS: %.2f\n", 1.f / dt);
+			ImGui::Spacing();
+			ImGui::Text("RHI: %s\n", rhi->info.name.c_str());
 			ImGui::EndMenuBar();
 		}
 
