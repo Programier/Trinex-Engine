@@ -64,8 +64,7 @@ namespace Engine::Platform
 
 	ENGINE_EXPORT Path find_exec_directory()
 	{
-		// TODO: Fix it
-		return "/sdcard/TrinexGames/TrinexEngine/";
+		return Path("/sdcard/Android/obb") / m_android_platform_info.app_package_name;
 	}
 
 	ENGINE_EXPORT void bind_platform_mount_points()
