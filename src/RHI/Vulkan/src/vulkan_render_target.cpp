@@ -24,6 +24,10 @@ namespace Engine
 		{
 			API->m_state.m_next_render_target = this;
 		}
+		else
+		{
+			API->m_state.m_next_render_target = nullptr;
+		}
 	}
 
 	bool VulkanRenderTargetBase::is_main_render_target()
@@ -346,7 +350,7 @@ namespace Engine
 		{
 			if (new_mode != VulkanViewportMode::Undefined)
 			{
-				const auto& render_target_size = m_state.m_render_target->m_size;
+				const auto& render_target_size = m_state.render_target()->m_size;
 				float sc_y                     = scissor.pos.y;
 
 				if (new_mode == VulkanViewportMode::Flipped)

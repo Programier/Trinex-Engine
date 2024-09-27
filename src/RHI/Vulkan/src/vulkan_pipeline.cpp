@@ -96,7 +96,7 @@ namespace Engine
 		        .setBack(stencil_state);
 
 
-		auto rt = API->m_state.m_next_render_target ? API->m_state.m_next_render_target : API->m_state.m_render_target;
+		auto rt                      = API->m_state.render_target();
 		auto color_attachments_count = rt->color_attachments_count();
 		color_blend_attachment.resize(color_attachments_count);
 
@@ -347,7 +347,7 @@ namespace Engine
 
 	vk::Pipeline VulkanPipeline::find_or_create_pipeline()
 	{
-		auto rt = API->m_state.m_next_render_target ? API->m_state.m_next_render_target : API->m_state.m_render_target;
+		auto rt = API->m_state.render_target();
 
 		Identifier identifier            = reinterpret_cast<Identifier>(rt->m_render_pass);
 		VulkanViewportMode viewport_mode = API->m_state.m_viewport_mode;

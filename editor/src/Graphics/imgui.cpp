@@ -7,6 +7,7 @@
 #include <Core/logger.hpp>
 #include <Core/mouse.hpp>
 #include <Core/package.hpp>
+#include <Core/profiler.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
@@ -72,7 +73,6 @@ namespace Engine
 
 		implement_class_default_init(Engine::ImGuiBackend, ImGuiMaterial, Class::IsAsset);
 
-#if !USE_RHI_IMPLEMENTATION
 		bool imgui_trinex_rhi_init(ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
@@ -188,14 +188,11 @@ namespace Engine
 			bd->texture_parameter->texture = nullptr;
 		}
 
-#endif
-
 		// Render function
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
 		{
-#if USE_RHI_IMPLEMENTATION
-			rhi->imgui_render(ctx, draw_data);
-#else
+			trinex_profile_cpu_n("ImGui");
+
 			ImGui::SetCurrentContext(ctx);
 			rhi->push_debug_stage("ImGui Render");
 
@@ -237,17 +234,20 @@ namespace Engine
 			size_t vtx_offset = 0;
 			size_t idx_offset = 0;
 
-			for (int n = 0; n < draw_data->CmdListsCount; n++)
 			{
-				const ImDrawList* cmd_list = draw_data->CmdLists[n];
-				size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
-				size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
+				trinex_profile_cpu_n("Update Buffers");
+				for (int n = 0; n < draw_data->CmdListsCount; n++)
+				{
+					const ImDrawList* cmd_list = draw_data->CmdLists[n];
+					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
+					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-				vd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
-				vd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+					vd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+					vd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
 
-				vtx_offset += vtx_size;
-				idx_offset += idx_size;
+					vtx_offset += vtx_size;
+					idx_offset += idx_size;
+				}
 			}
 
 			imgui_trinex_setup_render_state(draw_data);
@@ -257,78 +257,86 @@ namespace Engine
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
 			rhi->pop_debug_stage();
-			for (int n = 0; n < draw_data->CmdListsCount; n++)
 			{
-				rhi->push_debug_stage("ImGui Command list");
-				const ImDrawList* cmd_list = draw_data->CmdLists[n];
-				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				trinex_profile_cpu_n("Render");
+
+				for (int n = 0; n < draw_data->CmdListsCount; n++)
 				{
-					const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-					rhi->push_debug_stage("ImGui Draw Command");
-					if (pcmd->UserCallback != nullptr)
+					rhi->push_debug_stage("ImGui Command list");
+					const ImDrawList* cmd_list = draw_data->CmdLists[n];
+					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
-						if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-							imgui_trinex_setup_render_state(draw_data);
+						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+						rhi->push_debug_stage("ImGui Draw Command");
+						if (pcmd->UserCallback != nullptr)
+						{
+							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+								imgui_trinex_setup_render_state(draw_data);
+							else
+								pcmd->UserCallback(cmd_list, pcmd);
+						}
+						else if (pcmd->UpdateImageCallback)
+						{
+							ImTextureID next_texture       = pcmd->UpdateImageCallback(pcmd->UserCallbackData);
+							bd->texture_parameter->texture = next_texture.texture;
+							bd->texture_parameter->sampler = next_texture.sampler;
+						}
 						else
-							pcmd->UserCallback(cmd_list, pcmd);
-					}
-					else if (pcmd->UpdateImageCallback)
-					{
-						ImTextureID next_texture       = pcmd->UpdateImageCallback(pcmd->UserCallbackData);
-						bd->texture_parameter->texture = next_texture.texture;
-						bd->texture_parameter->sampler = next_texture.sampler;
-					}
-					else
-					{
-						ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
-						ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
-						if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
-							continue;
-
-						Scissor scissor;
-						scissor.pos.x  = clip_min.x * rendering_scale_factor;
-						scissor.pos.y  = (fb_height - clip_max.y) * rendering_scale_factor;
-						scissor.size.x = (clip_max.x - clip_min.x) * rendering_scale_factor;
-						scissor.size.y = (clip_max.y - clip_min.y) * rendering_scale_factor;
-
-						rhi->scissor(scissor);
-
-						if (!bd->texture_parameter->texture)
 						{
-							bd->texture_parameter->texture = pcmd->TextureId.texture;
-							bd->texture_parameter->sampler = pcmd->TextureId.sampler;
+							ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
+							ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
+							if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+								continue;
+
+							Scissor scissor;
+							scissor.pos.x  = clip_min.x * rendering_scale_factor;
+							scissor.pos.y  = (fb_height - clip_max.y) * rendering_scale_factor;
+							scissor.size.x = (clip_max.x - clip_min.x) * rendering_scale_factor;
+							scissor.size.y = (clip_max.y - clip_min.y) * rendering_scale_factor;
+
+							rhi->scissor(scissor);
+
+							if (!bd->texture_parameter->texture)
+							{
+								bd->texture_parameter->texture = pcmd->TextureId.texture;
+								bd->texture_parameter->sampler = pcmd->TextureId.sampler;
+							}
+
+							if (bd->texture_parameter->sampler == nullptr)
+							{
+								bd->texture_parameter->sampler = bd->font_texture.sampler;
+							}
+
+							{
+								trinex_profile_cpu_n("Bindings");
+								bd->material->apply();
+								vd->vertex_buffer->rhi_bind(0);
+								vd->index_buffer->rhi_bind();
+							}
+
+							{
+								trinex_profile_cpu_n("Drawing");
+								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
+								                  pcmd->VtxOffset + global_vtx_offset);
+							}
+
+							bd->texture_parameter->texture = nullptr;
+							bd->texture_parameter->sampler = nullptr;
 						}
 
-						if (bd->texture_parameter->sampler == nullptr)
-						{
-							bd->texture_parameter->sampler = bd->font_texture.sampler;
-						}
-
-						bd->material->apply();
-						vd->vertex_buffer->rhi_bind(0);
-						vd->index_buffer->rhi_bind();
-
-						rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
-						                  pcmd->VtxOffset + global_vtx_offset);
-
-						bd->texture_parameter->texture = nullptr;
-						bd->texture_parameter->sampler = nullptr;
+						rhi->pop_debug_stage();
 					}
-
+					global_idx_offset += cmd_list->IdxBuffer.Size;
+					global_vtx_offset += cmd_list->VtxBuffer.Size;
 					rhi->pop_debug_stage();
 				}
-				global_idx_offset += cmd_list->IdxBuffer.Size;
-				global_vtx_offset += cmd_list->VtxBuffer.Size;
-				rhi->pop_debug_stage();
 			}
 
 			rhi->viewport(backup_viewport);
 			rhi->scissor(backup_scissor);
 			rhi->pop_debug_stage();
-#endif
 		}
 
-#if !USE_RHI_IMPLEMENTATION
 		static void imgui_trinex_create_fonts_texture()
 		{
 			// Build texture atlas
@@ -423,14 +431,9 @@ namespace Engine
 		{
 			// Do not destroy from render thread!
 		}
-#endif
 
 		bool imgui_trinex_rhi_init(ImGuiContext* ctx)
 		{
-#if USE_RHI_IMPLEMENTATION
-			rhi->imgui_init(ctx);
-			return true;
-#else
 			ImGui::SetCurrentContext(ctx);
 			ImGuiIO& io = ImGui::GetIO();
 			IMGUI_CHECKVERSION();
@@ -450,14 +453,10 @@ namespace Engine
 			ImGuiViewport* main_viewport    = ImGui::GetMainViewport();
 			main_viewport->RendererUserData = IM_NEW(ImGuiTrinexViewportData)();
 			return true;
-#endif
 		}
 
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx)
 		{
-#if USE_RHI_IMPLEMENTATION
-			rhi->imgui_terminate(ctx);
-#else
 			ImGui::SetCurrentContext(ctx);
 			ImGuiTrinexData* bd = imgui_trinex_backend_data();
 			IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
@@ -474,7 +473,6 @@ namespace Engine
 			io.BackendRendererUserData = nullptr;
 			io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasViewports);
 			IM_DELETE(bd);
-#endif
 		}
 	}// namespace ImGuiBackend_RHI
 

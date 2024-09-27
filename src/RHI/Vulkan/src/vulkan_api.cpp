@@ -280,7 +280,7 @@ namespace Engine
 
 		// Initialize memory allocator
 		{
-			VmaVulkanFunctions vulkan_functions = {};
+			VmaVulkanFunctions vulkan_functions    = {};
 			vulkan_functions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
 			vulkan_functions.vkGetDeviceProcAddr   = vkGetDeviceProcAddr;
 
@@ -334,11 +334,13 @@ namespace Engine
 	VulkanViewportMode VulkanAPI::find_current_viewport_mode()
 	{
 		auto vp = m_state.m_current_viewport;
-		auto rt = m_state.m_render_target;
+		auto rt = m_state.render_target();
+
 		if (vp == nullptr || rt == nullptr)
 		{
 			return VulkanViewportMode::Undefined;
 		}
+
 		if (vp->is_window_viewport() && vp->render_target() == rt)
 			return VulkanViewportMode::Flipped;
 		return VulkanViewportMode::Normal;
@@ -357,6 +359,7 @@ namespace Engine
 	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
 	{
 		trinex_profile_cpu();
+
 		if (m_state.m_next_render_target)
 		{
 			m_state.m_render_target      = m_state.m_next_render_target;
@@ -373,13 +376,16 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::end_render_pass(bool unlock)
 	{
-		trinex_profile_cpu();
-		current_command_buffer()->end_render_pass();
+		if (m_state.m_render_pass)
+		{
+			trinex_profile_cpu();
+			current_command_buffer()->end_render_pass();
 
-		if (unlock)
-			m_state.m_render_target->unlock_surfaces();
+			if (unlock)
+				m_state.m_render_target->unlock_surfaces();
 
-		m_state.m_render_pass = nullptr;
+			m_state.m_render_pass = nullptr;
+		}
 		return *this;
 	}
 
@@ -441,25 +447,25 @@ namespace Engine
 		trinex_profile_cpu();
 
 		trinex_check(m_state.m_pipeline, "Pipeline can't be nullptr");
-		trinex_check(m_state.m_render_target || m_state.m_next_render_target, "Render target can't be nullptr");
+		trinex_check(m_state.render_target(), "Render target can't be nullptr");
 
 		auto cmd                    = current_command_buffer();
-		bool is_render_target_dirty = m_state.m_next_render_target;
-
-		if (is_render_target_dirty && cmd->is_inside_render_pass())
-			end_render_pass();
-
-		if (cmd->is_outside_render_pass())
-			begin_render_pass();
+		bool is_render_target_dirty = m_state.m_next_render_target != nullptr;
 
 		if (is_render_target_dirty)
 		{
+			if (cmd->is_inside_render_pass())
+				end_render_pass();
+
 			if (find_current_viewport_mode() != m_state.m_viewport_mode)
 			{
 				viewport(m_state.m_viewport);
 				scissor(m_state.m_scissor);
 			}
 		}
+
+		if (cmd->is_outside_render_pass())
+			begin_render_pass();
 
 		uniform_buffer()->bind();
 		m_state.m_pipeline->bind_descriptor_set();
