@@ -1,5 +1,6 @@
 #include <Core/exception.hpp>
 #include <Core/profiler.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>
@@ -462,10 +463,9 @@ namespace Engine
 			return try_present(callback, skip_on_out_of_date);
 		}
 
-		int_t status           = (this->*callback)();
-		int_t attempts_pending = 4;
+		int_t status = (this->*callback)();
 
-		while (status < 0 && attempts_pending > 0)
+		while (status < 0)
 		{
 			if (status == Status::OutOfDate)
 			{
@@ -481,11 +481,11 @@ namespace Engine
 				throw EngineException("Failed to present swapchain");
 			}
 
+			Thread::this_thread()->sleep_for(0.1);
 			release();
 			create();
 
 			status = (this->*callback)();
-			attempts_pending--;
 		}
 
 		return status;
