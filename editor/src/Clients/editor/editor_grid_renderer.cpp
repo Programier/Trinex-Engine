@@ -3,8 +3,8 @@
 #include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/profiler.hpp>
 #include <Engine/Render/scene_layer.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
@@ -54,10 +54,12 @@ namespace Engine
 
 	static StartupResourcesInitializeController on_init(initialize_resources);
 
-	void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer)
+	void render_editor_grid(const CameraView& view)
 	{
 		if (Settings::ed_show_grid == false)
 			return;
+
+		trinex_profile_cpu_n("Grid");
 
 		static Name name_color  = "color";
 		static Name name_scale  = "scale";
@@ -65,8 +67,6 @@ namespace Engine
 
 		Material* axis_material = EditorResources::axis_material;
 		Material* grid_material = EditorResources::grid_material;
-
-		const CameraView& view = renderer->scene_view().camera_view();
 
 		float camera_height = glm::abs(view.location.y);
 		float scale         = 1.f;
@@ -101,7 +101,10 @@ namespace Engine
 					(*param->get<Vector4D>()).w = alpha;
 				}
 
-				grid_material->apply();
+				{
+					trinex_profile_cpu_n("Material Apply");
+					grid_material->apply();
+				}
 				grid_vertex_buffer->rhi_bind(0);
 				rhi->draw(grid_vertex_buffer->buffer.size(), 0);
 
@@ -133,7 +136,10 @@ namespace Engine
 				(*offset_param->get<Vector3D>()) = Vector3D(view.location.x, 0, 0);
 			}
 
-			axis_material->apply();
+			{
+				trinex_profile_cpu_n("Axis Material Apply");
+				axis_material->apply();
+			}
 			x_axis_vertex_buffer->rhi_bind(0);
 			rhi->draw(x_axis_vertex_buffer->buffer.size(), 0);
 

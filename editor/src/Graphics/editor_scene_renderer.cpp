@@ -18,7 +18,7 @@
 
 namespace Engine
 {
-	extern void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer);
+	extern void render_editor_grid(const CameraView& view);
 	static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
 	{
 		Material* material                 = DefaultResources::Materials::sprite;
@@ -161,8 +161,8 @@ namespace Engine
 					}
 				}
 			}
-
-			render_editor_grid(renderer, rt, this);
+			
+			render_editor_grid(renderer->scene_view().camera_view());
 
 			SceneRenderTargets::instance()->end_rendering_scene_color_ldr();
 			return *this;

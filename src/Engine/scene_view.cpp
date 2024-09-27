@@ -15,6 +15,9 @@ namespace Engine
 		m_viewport.max_depth = 1.f;
 		m_scissor.pos        = {0, 0};
 		m_scissor.size       = view_size;
+
+		m_projview     = m_projection * m_view;
+		m_inv_projview = glm::inverse(m_projview);
 	}
 
 	SceneView::SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor, ShowFlags show_flags)
