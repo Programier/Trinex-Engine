@@ -26,30 +26,6 @@ namespace Engine
 		~OpenGL_IndexBuffer();
 	};
 
-	struct OpenGL_UniformBuffer {
-		GLuint m_id;
-		size_t m_size;
-
-		OpenGL_UniformBuffer(size_t size);
-		void bind(BindLocation location);
-		void bind(BindingIndex index);
-		void update(size_t offset, size_t size, const byte* data);
-
-		~OpenGL_UniformBuffer();
-	};
-
-	struct OpenGL_LocalUniformBuffer {
-		Vector<OpenGL_UniformBuffer*> m_buffers;
-		Vector<byte> shadow_data;
-		size_t shadow_data_size = 0;
-		Index index             = 0;
-
-		OpenGL_LocalUniformBuffer();
-		void bind(BindingIndex index);
-		void update(const void* data, size_t size, size_t offset);
-		~OpenGL_LocalUniformBuffer();
-	};
-
 	struct OpenGL_SSBO : public RHI_DefaultDestroyable<RHI_SSBO> {
 		GLuint m_id;
 
@@ -60,4 +36,34 @@ namespace Engine
 
 		~OpenGL_SSBO();
 	};
+	
+	struct OpenGL_GlobalUniformBufferManager {
+	private:
+		Vector<struct OpenGL_GlobalUniformBuffer*> m_buffers;
+		int_t m_index = -1;
+		
+		struct OpenGL_GlobalUniformBuffer* buffer();
+		
+	public:
+		void bind(BindingIndex index);
+		void push(const GlobalShaderParameters& params);
+		void pop();
+		void submit();
+		~OpenGL_GlobalUniformBufferManager();
+	};
+	
+	struct OpenGL_LocalUniformBufferManager {
+	private:
+		Vector<struct OpenGL_LocalUniformBuffer*> m_buffers;
+		int_t m_index = -1;
+
+		struct OpenGL_LocalUniformBuffer* buffer();
+
+	public:
+		void bind(BindingIndex index);
+		void update(const void* data, size_t size, size_t offset);
+		void submit();
+		~OpenGL_LocalUniformBufferManager();
+	};
+
 }// namespace Engine

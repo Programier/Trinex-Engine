@@ -154,12 +154,13 @@ namespace Engine
 
 	OpenGL& OpenGL::begin_render()
 	{
-		m_global_parameters_stack.clear();
 		return *this;
 	}
 
 	OpenGL& OpenGL::end_render()
 	{
+		m_global_ubo->submit();
+		m_local_ubo->submit();
 		return *this;
 	}
 

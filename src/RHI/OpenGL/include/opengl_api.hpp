@@ -26,9 +26,8 @@ namespace Engine
 		void* m_context = nullptr;
 
 		Vector<BindingIndex> m_sampler_units;// TODO: Maybe we can remove this variable?
-		Vector<GlobalShaderParameters> m_global_parameters_stack;
-		struct OpenGL_UniformBuffer* m_global_ubo     = nullptr;
-		struct OpenGL_LocalUniformBuffer* m_local_ubo = nullptr;
+		struct OpenGL_GlobalUniformBufferManager* m_global_ubo = nullptr;
+		struct OpenGL_LocalUniformBufferManager* m_local_ubo   = nullptr;
 
 		OpenGL_State m_state;
 

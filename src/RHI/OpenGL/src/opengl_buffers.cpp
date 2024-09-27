@@ -6,9 +6,6 @@
 #include <opengl_buffers.hpp>
 #include <opengl_shader.hpp>
 
-
-#define MAX_LOCAL_UBO_SIZE 4096
-
 namespace Engine
 {
 
@@ -90,85 +87,6 @@ namespace Engine
 		return new OpenGL_IndexBuffer(size, data, format, type);
 	}
 
-
-	OpenGL_UniformBuffer::OpenGL_UniformBuffer(size_t size) : m_size(size)
-	{
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_UNIFORM_BUFFER, m_id);
-		glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_COPY);
-	}
-
-	void OpenGL_UniformBuffer::bind(BindLocation location)
-	{
-		glBindBufferBase(GL_UNIFORM_BUFFER, location.binding, m_id);
-	}
-
-	void OpenGL_UniformBuffer::bind(BindingIndex index)
-	{
-		glBindBufferBase(GL_UNIFORM_BUFFER, index, m_id);
-	}
-
-	void OpenGL_UniformBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		glBindBuffer(GL_UNIFORM_BUFFER, m_id);
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
-	}
-
-	OpenGL_UniformBuffer::~OpenGL_UniformBuffer()
-	{
-		glDeleteBuffers(1, &m_id);
-	}
-
-	OpenGL_LocalUniformBuffer::OpenGL_LocalUniformBuffer()
-	{
-		m_buffers.push_back(new OpenGL_UniformBuffer(MAX_LOCAL_UBO_SIZE));
-	}
-
-	void OpenGL_LocalUniformBuffer::bind(BindingIndex binding_index)
-	{
-		if (shadow_data_size == 0)
-		{
-			glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
-			return;
-		}
-
-		while (m_buffers[index]->m_size < shadow_data_size)
-		{
-			++index;
-
-			if (m_buffers.size() <= index)
-			{
-				m_buffers.push_back(new OpenGL_UniformBuffer(shadow_data_size));
-			}
-		}
-
-		OpenGL_UniformBuffer* buffer = m_buffers[index];
-		buffer->update(0, shadow_data_size, shadow_data.data());
-		buffer->bind(binding_index);
-
-		shadow_data_size = 0;
-		index            = 0;
-	}
-
-	void OpenGL_LocalUniformBuffer::update(const void* data, size_t size, size_t offset)
-	{
-		shadow_data_size = glm::max(size + offset, shadow_data_size);
-		if (shadow_data.size() < shadow_data_size)
-			shadow_data.resize(shadow_data_size);
-
-		std::memcpy(shadow_data.data() + offset, data, size);
-	}
-
-	OpenGL_LocalUniformBuffer::~OpenGL_LocalUniformBuffer()
-	{
-		for (auto& ell : m_buffers)
-		{
-			delete ell;
-		}
-
-		m_buffers.clear();
-	}
-
 	OpenGL_SSBO::OpenGL_SSBO(size_t size, const byte* data)
 	{
 		glGenBuffers(1, &m_id);
@@ -196,39 +114,4 @@ namespace Engine
 	{
 		return new OpenGL_SSBO(size, data);
 	}
-
-	OpenGL& OpenGL::initialize_ubo()
-	{
-		m_global_ubo = new OpenGL_UniformBuffer(sizeof(GlobalShaderParameters));
-		m_local_ubo  = new OpenGL_LocalUniformBuffer();
-		return *this;
-	}
-
-	OpenGL& OpenGL::push_global_params(const GlobalShaderParameters& params)
-	{
-		m_global_parameters_stack.push_back(params);
-		m_global_ubo->update(0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
-		return *this;
-	}
-
-	OpenGL& OpenGL::pop_global_params()
-	{
-		if (!m_global_parameters_stack.empty())
-		{
-			m_global_parameters_stack.pop_back();
-			if (!m_global_parameters_stack.empty())
-			{
-				GlobalShaderParameters& params = m_global_parameters_stack.back();
-				m_global_ubo->update(0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
-			}
-		}
-		return *this;
-	}
-
-	OpenGL& OpenGL::update_local_parameter(const void* data, size_t size, size_t offset)
-	{
-		m_local_ubo->update(data, size, offset);
-		return *this;
-	}
-
 }// namespace Engine
