@@ -12,7 +12,6 @@
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_state.hpp>
-#include <vulkan_swap_chain.hpp>
 
 namespace Engine
 {
