@@ -149,12 +149,15 @@ namespace Engine
 			inputs.emplace_back(desc);
 		}
 
-		hr = DXAPI->m_device->CreateInputLayout(inputs.data(), inputs.size(), data, size, &m_layout);
-
-		if (hr != S_OK)
+		if (!inputs.empty())
 		{
-			error_log("D3D11 VertexShader", "Failed to create vertex input layout");
-			return false;
+			hr = DXAPI->m_device->CreateInputLayout(inputs.data(), inputs.size(), data, size, &m_layout);
+
+			if (hr != S_OK)
+			{
+				error_log("D3D11 VertexShader", "Failed to create vertex input layout");
+				return false;
+			}
 		}
 
 		return true;

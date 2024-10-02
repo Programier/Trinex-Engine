@@ -8,8 +8,8 @@ static float3 grid_plane[6] = {
 struct VertexOutput
 {
     float4 position : SV_Position;
-    float3 near;
-    float3 far;
+    float3 near : POSITION0;
+    float3 far : POSITION1;
 };
 
 struct Grid
@@ -111,7 +111,7 @@ float compute_depth(float3 pos)
 }
 
 [shader("vertex")]
-void vs_main(out VertexOutput output, uint vertex : SV_VertexID) : SV_Position
+void vs_main(out VertexOutput output, uint vertex : SV_VertexID)
 {
     float3 p = grid_plane[vertex];
     output.position = float4(p, 1.0);
