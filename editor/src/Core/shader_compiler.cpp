@@ -703,21 +703,35 @@ namespace Engine::ShaderCompiler
 		void setup(SlangCompileRequest* request) const override
 		{
 			request->setCodeGenTarget(SLANG_SPIRV);
-			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+
+			Vector<const char*> arguments;
 
 			if (Settings::e_debug_shaders)
-				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+			{
+				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
+				request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_NONE);
+				request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_STANDARD);
+
+				auto profile = global_session()->findProfile("spirv_1_3");
+				request->setTargetProfile(0, profile);
+
+				arguments.push_back("-emit-spirv-directly");
+			}
 			else
+			{
+				request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+				request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 
-			const char* arguments[] = {
-			        "-emit-spirv-via-glsl",
-			};
+				auto profile = global_session()->findProfile("spirv_1_0");
+				request->setTargetProfile(0, profile);
+				
+				arguments.push_back("-emit-spirv-via-glsl");
+			}
 
-			static constexpr int count = sizeof(arguments) / sizeof(const char*);
-			request->processCommandLineArguments(arguments,
-			                                     count);// TODO: Maybe it can be optimized to avoid parsing arguments?
+
+			request->processCommandLineArguments(arguments.data(),
+			                                     arguments.size());// TODO: Maybe it can be optimized to avoid parsing arguments?
 		}
 	};
 

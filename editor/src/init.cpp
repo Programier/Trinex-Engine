@@ -41,7 +41,6 @@ namespace Engine
 		Texture2D* light_sprite                             = nullptr;
 		Texture2D* blueprint_texture                        = nullptr;
 		Sampler* default_sampler                            = nullptr;
-		Material* axis_material                             = nullptr;
 		Material* grid_material                             = nullptr;
 		Material* point_light_overlay_material              = nullptr;
 		Material* spot_light_overlay_material               = nullptr;
@@ -138,7 +137,6 @@ namespace Engine
 		EditorResources::light_sprite      = load_object<Texture2D>("Editor::Textures::PointLightSprite");
 
 		EditorResources::default_sampler              = load_object<Sampler>("Editor::Samplers::DefaultSampler");
-		EditorResources::axis_material                = load_object<Material>("Editor::Materials::AxisMaterial");
 		EditorResources::grid_material                = load_object<Material>("Editor::Materials::GridMaterial");
 		EditorResources::point_light_overlay_material = load_object<Material>("Editor::Materials::PointLightOverlay");
 		EditorResources::spot_light_overlay_material  = load_object<Material>("Editor::Materials::SpotLightOverlay");
