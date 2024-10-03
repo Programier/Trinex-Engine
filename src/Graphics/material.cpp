@@ -299,8 +299,8 @@ namespace Engine
 			return false;
 
 		archive & compile_definitions;
-		serialize_parameters(m_material_parameters, archive);
-		return pipeline->archive_process(archive);
+		pipeline->archive_process(archive);
+		return serialize_parameters(m_material_parameters, archive);
 	}
 
 	Material& Material::preload()
