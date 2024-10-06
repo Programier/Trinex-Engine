@@ -20,8 +20,6 @@ namespace Engine
 		ObjectMap m_objects;
 
 		Object* find_object_private_no_recurse(const StringView& name) const;
-		Object* find_object_private(StringView name) const;
-
 		bool can_add_object(Object* object, Name name) const;
 
 	protected:

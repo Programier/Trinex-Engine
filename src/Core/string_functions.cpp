@@ -1,3 +1,4 @@
+#include <Core/constants.hpp>
 #include <Core/memory.hpp>
 #include <Core/string_functions.hpp>
 #include <algorithm>
@@ -9,7 +10,6 @@
 
 namespace Engine::Strings
 {
-
 	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>& convertor()
 	{
 		static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> m_convertor;
@@ -243,6 +243,31 @@ namespace Engine::Strings
 		if (scope.empty())
 			return String(name);
 		return format("{}::{}", scope, name);
+	}
+
+	ENGINE_EXPORT StringView parse_name_identifier(StringView sentence, StringView* out)
+	{
+		auto pos = sentence.find(Constants::name_separator);
+
+		if (pos == StringView::npos)
+		{
+			if (out)
+			{
+				*out = StringView(sentence.data() + sentence.size(), 0);
+			}
+
+			return sentence;
+		}
+
+		StringView name = sentence.substr(0, pos);
+
+		if (out)
+		{
+			sentence.remove_prefix(name.length() + Constants::name_separator.length());
+			*out = sentence;
+		}
+		
+		return name;
 	}
 
 	ENGINE_EXPORT bool boolean_of(const char* line, size_t len)

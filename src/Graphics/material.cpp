@@ -109,19 +109,18 @@ namespace Engine
 	{
 		if (recursive)
 		{
-			auto it = name.find(Constants::name_separator);
-			if (it == StringView::npos)
-				return find_child_object(name, false);
+			StringView current_name = Strings::parse_name_identifier(name, &name);
 
-			auto obj = find_child_object(name.substr(0, it), false);
-
-			if (obj)
+			if (Object* object = find_child_object(current_name, false))
 			{
-				it += Constants::name_separator.length();
-				obj = obj->find_child_object(name.substr(it, name.length() - it), true);
+				if (!name.empty())
+				{
+					object = object->find_child_object(name, true);
+				}
+				return object;
 			}
 
-			return obj;
+			return nullptr;
 		}
 		else
 		{

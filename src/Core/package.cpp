@@ -312,27 +312,24 @@ namespace Engine
 		return it->second;
 	}
 
-	Object* Package::find_object_private(StringView _name) const
-	{
-		const String& separator    = Constants::name_separator;
-		const size_t separator_len = separator.length();
-		size_t separator_index     = _name.find_first_of(separator);
-		const Package* package     = this;
-
-		while (separator_index != StringView::npos && package)
-		{
-			package         = package->find_child_object_checked<Package>(_name.substr(0, separator_index), false);
-			_name           = _name.substr(separator_index + separator_len);
-			separator_index = _name.find_first_of(separator);
-		}
-
-		return package ? package->find_object_private_no_recurse(_name) : nullptr;
-	}
-
 	Object* Package::find_child_object(StringView object_name, bool recursive) const
 	{
 		if (recursive)
-			return find_object_private(object_name);
+		{
+			StringView name = Strings::parse_name_identifier(object_name, &object_name);
+
+			if (object_name.empty())
+				return find_object_private_no_recurse(name);
+
+			if (Object* object = find_object_private_no_recurse(name))
+			{
+				return object->find_child_object(object_name, true);
+			}
+
+			return nullptr;
+		}
+
+
 		return find_object_private_no_recurse(object_name);
 	}
 
