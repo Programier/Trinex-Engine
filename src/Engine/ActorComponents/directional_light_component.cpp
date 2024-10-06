@@ -5,6 +5,7 @@
 #include <Engine/Render/command_buffer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
@@ -45,7 +46,7 @@ namespace Engine
 
 	implement_empty_rendering_methods_for(DirectionalLightComponent);
 
-#define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
+#define get_param(param_name, type) reinterpret_cast<MaterialParameters::type*>(material->find_parameter(Name::param_name));
 	ColorSceneRenderer& ColorSceneRenderer::render_component(DirectionalLightComponent* component)
 	{
 		render_base_component(component);
@@ -60,23 +61,23 @@ namespace Engine
 
 		Material* material = DefaultResources::Materials::directional_light;
 
-		Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
-		Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
-		FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
+		auto* color_parameter       = get_param(color, Float3);
+		auto* direction_parameter   = get_param(direction, Float3);
+		auto* intensivity_parameter = get_param(intensivity, Float);
 
 		if (color_parameter)
 		{
-			layer->update_variable(color_parameter->param, proxy->light_color());
+			layer->update_variable(color_parameter->value, proxy->light_color());
 		}
 
 		if (direction_parameter)
 		{
-			layer->update_variable(direction_parameter->param, proxy->direction());
+			layer->update_variable(direction_parameter->value, proxy->direction());
 		}
 
 		if (intensivity_parameter)
 		{
-			layer->update_variable(intensivity_parameter->param, proxy->intensivity());
+			layer->update_variable(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		layer->bind_material(material, nullptr);

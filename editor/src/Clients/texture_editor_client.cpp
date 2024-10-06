@@ -6,6 +6,7 @@
 #include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
@@ -146,14 +147,14 @@ namespace Engine
 		static Name mip_level_name = "mip_level";
 		auto mat                   = EditorResources::texture_editor_material;
 
-		auto p_mask      = reinterpret_cast<Vec4MaterialParameter*>(mat->find_parameter(Name::mask));
-		auto p_texture   = reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(mat->find_parameter(Name::texture));
-		auto p_mip_level = reinterpret_cast<UIntMaterialParameter*>(mat->find_parameter(mip_level_name));
+		auto p_mask      = mat->find_parameter<MaterialParameters::Float4>(Name::mask);
+		auto p_texture   = mat->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
+		auto p_mip_level = mat->find_parameter<MaterialParameters::UInt>(mip_level_name);
 
-		p_mask->param = mask;
-		p_texture->texture_param(texture);
-		p_texture->sampler_param(EditorResources::default_sampler);
-		p_mip_level->param = mip;
+		p_mask->value      = mask;
+		p_texture->texture = texture;
+		p_texture->sampler = EditorResources::default_sampler;
+		p_mip_level->value = mip;
 
 		mat->apply();
 		DefaultResources::Buffers::screen_position->rhi_bind(0);

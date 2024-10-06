@@ -10,6 +10,7 @@
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <cstring>
@@ -24,6 +25,80 @@ namespace Engine::ShaderCompiler
 	if (SLANG_FAILED(code))                                                                                                      \
 		return                                                                                                                   \
 		{}
+
+	static Vector<Class* (*) (slang::TypeReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)> m_param_parsers;
+
+#define return_nullptr_if_not(cond)                                                                                              \
+	if (!(cond))                                                                                                                 \
+	return nullptr
+
+	struct ParamParser {
+		using Scalar = slang::TypeReflection::ScalarType;
+
+		template<typename Type, Scalar required_scalar>
+		static Class* primitive(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		{
+			return_nullptr_if_not(rows == 1);
+			return_nullptr_if_not(columns == 1);
+			return_nullptr_if_not(elements == 0);
+			return_nullptr_if_not(scalar == required_scalar);
+			return Type::static_class_instance();
+		}
+
+		template<typename Type, Scalar required_scalar>
+		static Class* vector(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		{
+			auto len = static_cast<uint_t>(decltype(Type::value)::length());
+			return_nullptr_if_not(rows == 1);
+			return_nullptr_if_not(columns == len);
+			return_nullptr_if_not(elements == len);
+			return_nullptr_if_not(scalar == required_scalar);
+			return Type::static_class_instance();
+		}
+
+		template<typename Type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
+		static Class* matrix(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		{
+			return_nullptr_if_not(rows == required_rows);
+			return_nullptr_if_not(columns == required_columns);
+			return_nullptr_if_not(elements == 0);
+			return_nullptr_if_not(scalar == required_scalar);
+			return Type::static_class_instance();
+		}
+	};
+
+	static void setup_parsers()
+	{
+		using T      = ParamParser;
+		using Scalar = slang::TypeReflection::ScalarType;
+		namespace MP = MaterialParameters;
+
+		m_param_parsers.push_back(T::primitive<MP::Bool, Scalar::Bool>);
+		m_param_parsers.push_back(T::primitive<MP::Int, Scalar::Int32>);
+		m_param_parsers.push_back(T::primitive<MP::UInt, Scalar::UInt32>);
+		m_param_parsers.push_back(T::primitive<MP::Float, Scalar::Float32>);
+
+		m_param_parsers.push_back(T::vector<MP::Bool2, Scalar::Bool>);
+		m_param_parsers.push_back(T::vector<MP::Bool3, Scalar::Bool>);
+		m_param_parsers.push_back(T::vector<MP::Bool4, Scalar::Bool>);
+
+		m_param_parsers.push_back(T::vector<MP::Int2, Scalar::Int32>);
+		m_param_parsers.push_back(T::vector<MP::Int3, Scalar::Int32>);
+		m_param_parsers.push_back(T::vector<MP::Int4, Scalar::Int32>);
+
+		m_param_parsers.push_back(T::vector<MP::UInt2, Scalar::UInt32>);
+		m_param_parsers.push_back(T::vector<MP::UInt3, Scalar::UInt32>);
+		m_param_parsers.push_back(T::vector<MP::UInt4, Scalar::UInt32>);
+
+		m_param_parsers.push_back(T::vector<MP::Float2, Scalar::Float32>);
+		m_param_parsers.push_back(T::vector<MP::Float3, Scalar::Float32>);
+		m_param_parsers.push_back(T::vector<MP::Float4, Scalar::Float32>);
+
+		m_param_parsers.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
+		m_param_parsers.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
+	}
+
+	static PreInitializeController preinit(setup_parsers);
 
 	static slang::IGlobalSession* global_session()
 	{
@@ -199,49 +274,22 @@ namespace Engine::ShaderCompiler
 		return true;
 	}
 
-	static MaterialScalarType find_scalar_type(slang::TypeReflection::ScalarType scalar)
-	{
-		using ScalarType = slang::TypeReflection::ScalarType;
-
-		switch (scalar)
-		{
-			case ScalarType::Bool:
-				return MaterialScalarType::Bool;
-			case ScalarType::Int32:
-				return MaterialScalarType::Int32;
-			case ScalarType::UInt32:
-				return MaterialScalarType::UInt32;
-			case ScalarType::Int64:
-				return MaterialScalarType::Int64;
-			case ScalarType::UInt64:
-				return MaterialScalarType::UInt64;
-			case ScalarType::Float16:
-				return MaterialScalarType::Float16;
-			case ScalarType::Float32:
-				return MaterialScalarType::Float32;
-			case ScalarType::Float64:
-				return MaterialScalarType::Float64;
-			case ScalarType::Int8:
-				return MaterialScalarType::Int8;
-			case ScalarType::UInt8:
-				return MaterialScalarType::UInt8;
-			case ScalarType::Int16:
-				return MaterialScalarType::Int16;
-			case ScalarType::UInt16:
-				return MaterialScalarType::UInt16;
-
-			default:
-				return MaterialScalarType::Undefined;
-		}
-	}
-
-	static MaterialParameterType find_scalar_parameter_type(slang::TypeReflection* reflection)
+	static Class* find_scalar_parameter_type(slang::TypeReflection* reflection)
 	{
 		auto rows     = reflection->getRowCount();
 		auto colums   = reflection->getColumnCount();
 		auto elements = reflection->getElementCount();
-		auto scalar   = find_scalar_type(reflection->getScalarType());
-		return MaterialParameterTypeLayout(scalar, rows, colums, elements, true, 0).as_value<MaterialParameterType>();
+		auto scalar   = reflection->getScalarType();
+
+		for (auto& parser : m_param_parsers)
+		{
+			if (auto type = parser(reflection, rows, colums, elements, scalar))
+			{
+				return type;
+			}
+		}
+
+		return nullptr;
 	}
 
 	static BindLocation find_global_ubo_location(slang::ShaderReflection* reflection)
@@ -282,7 +330,7 @@ namespace Engine::ShaderCompiler
 			MaterialParameterInfo info;
 			info.type = find_scalar_parameter_type(param->getType());
 
-			if (info.type == MaterialParameterType::Undefined)
+			if (info.type == nullptr)
 			{
 				print_error("Failed to get parameter type!");
 				out_reflection.clear();
@@ -319,8 +367,8 @@ namespace Engine::ShaderCompiler
 					object.name             = param->getName();
 					object.location.binding = param->getOffset(SLANG_PARAMETER_CATEGORY_SHADER_RESOURCE);
 					object.type             = binding_type == slang::BindingType::CombinedTextureSampler
-					                                  ? MaterialParameterType::CombinedImageSampler2D
-					                                  : MaterialParameterType::Texture2D;
+					                                  ? MaterialParameters::Sampler2D::static_class_instance()
+					                                  : MaterialParameters::Texture2D::static_class_instance();
 					out_reflection.uniform_member_infos.push_back(object);
 				}
 			}
@@ -725,7 +773,7 @@ namespace Engine::ShaderCompiler
 
 				auto profile = global_session()->findProfile("spirv_1_0");
 				request->setTargetProfile(0, profile);
-				
+
 				arguments.push_back("-emit-spirv-via-glsl");
 			}
 

@@ -468,7 +468,7 @@ namespace Engine
 	static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
 	{
 		Package* next_package = package->find_child_object_checked<Package>(name, false);
-		if (next_package == nullptr && create)
+		if (next_package == nullptr && create && !name.empty())
 		{
 			next_package = Object::new_instance<Package>(name, package);
 		}

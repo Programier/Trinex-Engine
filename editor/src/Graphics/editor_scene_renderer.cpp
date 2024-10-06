@@ -12,6 +12,7 @@
 #include <Engine/Render/scene_layer.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -24,25 +25,24 @@ namespace Engine
 		Material* material                 = DefaultResources::Materials::sprite;
 		PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_position;
 
-		if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
+		if (auto* parameter = material->find_parameter<MaterialParameters::Float4x4>(Name::model))
 		{
 			Transform transform = component->proxy()->world_transform();
 			transform.scale({0.5, 0.5, 0.5});
 			transform.look_at(view.camera_view().location, Constants::OY);
-			parameter->param = transform.matrix();
+			parameter->value = transform.matrix();
 		}
 
-		BindingMaterialParameter* texture_parameter =
-		        reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
-		Texture* tmp_texture = nullptr;
-		Sampler* tmp_sampler = nullptr;
+		auto* texture_parameter = material->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
+		Texture2D* tmp_texture  = nullptr;
+		Sampler* tmp_sampler    = nullptr;
 
 		if (texture_parameter && texture)
 		{
-			tmp_texture = texture_parameter->texture_param();
-			tmp_sampler = texture_parameter->sampler_param();
-			texture_parameter->texture_param(texture);
-			texture_parameter->sampler_param(EditorResources::default_sampler);
+			tmp_texture                = texture_parameter->texture;
+			tmp_sampler                = texture_parameter->sampler;
+			texture_parameter->texture = texture;
+			texture_parameter->sampler = EditorResources::default_sampler;
 		}
 
 		material->apply(component);
@@ -51,8 +51,8 @@ namespace Engine
 
 		if (texture_parameter && texture)
 		{
-			texture_parameter->texture_param(tmp_texture);
-			texture_parameter->sampler_param(tmp_sampler);
+			texture_parameter->texture = tmp_texture;
+			texture_parameter->sampler = tmp_sampler;
 		}
 	}
 
@@ -61,23 +61,23 @@ namespace Engine
 		auto proxy         = component->proxy();
 		Material* material = EditorResources::spot_light_overlay_material;
 
-		auto model_param = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model));
+		auto model_param = material->find_parameter<MaterialParameters::Float4x4>(Name::model);
 		auto transform   = proxy->world_transform();
 		transform.scale({1, 1, 1});
-		model_param->param = transform.matrix();
+		model_param->value = transform.matrix();
 
-		auto radius_param = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::radius));
-		auto height_param = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::height));
+		auto radius_param = material->find_parameter<MaterialParameters::Float>(Name::radius);
+		auto height_param = material->find_parameter<MaterialParameters::Float>(Name::height);
 
 		static constexpr float sphere_radius = 4.f;
 		float radius                         = glm::sin(angle) * sphere_radius;
 		float height                         = glm::cos(angle) * sphere_radius;
 
-		radius_param->param = radius;
-		height_param->param = height;
+		radius_param->value = radius;
+		height_param->value = height;
 
-		auto color_param   = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
-		color_param->param = color;
+		auto color_param   = material->find_parameter<MaterialParameters::Float4>(Name::color);
+		color_param->value = color;
 
 		material->apply();
 
@@ -97,23 +97,23 @@ namespace Engine
 		auto proxy         = component->proxy();
 		Material* material = EditorResources::point_light_overlay_material;
 
-		auto color_parameter  = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
-		auto offset_parameter = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(Name::offset));
-		auto radius_parameter = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::radius));
+		auto color_parameter  = material->find_parameter<MaterialParameters::Float4>(Name::color);
+		auto offset_parameter = material->find_parameter<MaterialParameters::Float3>(Name::offset);
+		auto radius_parameter = material->find_parameter<MaterialParameters::Float>(Name::radius);
 
 		if (color_parameter)
 		{
-			color_parameter->param = Colors::White;
+			color_parameter->value = Colors::White;
 		}
 
 		if (offset_parameter)
 		{
-			offset_parameter->param = proxy->world_transform().location();
+			offset_parameter->value = proxy->world_transform().location();
 		}
 
 		if (radius_parameter)
 		{
-			radius_parameter->param = proxy->attenuation_radius();
+			radius_parameter->value = proxy->attenuation_radius();
 		}
 
 		material->apply();
@@ -161,7 +161,7 @@ namespace Engine
 					}
 				}
 			}
-			
+
 			render_editor_grid(renderer->scene_view().camera_view());
 
 			SceneRenderTargets::instance()->end_rendering_scene_color_ldr();

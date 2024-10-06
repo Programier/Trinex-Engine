@@ -3,6 +3,8 @@
 #include <Core/group.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material_parameter.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
 
@@ -1412,19 +1414,13 @@ namespace Engine::VisualMaterialGraph
 	{
 		Super::override_parameter(material);
 
-		if (auto param = material->find_parameter(m_name))
+		if (auto texture_parameter = material->find_parameter<MaterialParameters::Sampler2D>(m_name))
 		{
-			if (param->type() == MaterialParameterType::CombinedImageSampler2D)
-			{
-				CombinedImageSampler2DMaterialParameter* texture_parameter =
-				        reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(param);
-				texture_parameter->texture = texture == nullptr ? DefaultResources::Textures::default_texture : texture.ptr();
+			texture_parameter->texture = texture == nullptr ? DefaultResources::Textures::default_texture : texture.ptr();
+			texture_parameter->sampler = sampler;
 
-				texture_parameter->sampler = sampler;
-
-				if (texture_parameter->sampler == nullptr)
-					texture_parameter->sampler = DefaultResources::Samplers::default_sampler;
-			}
+			if (texture_parameter->sampler == nullptr)
+				texture_parameter->sampler = DefaultResources::Samplers::default_sampler;
 		}
 
 		return *this;

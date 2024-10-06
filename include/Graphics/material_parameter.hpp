@@ -8,6 +8,7 @@ namespace Engine
 	struct MaterialParameterInfo;
 	class Sampler;
 	class Texture2D;
+	class Material;
 
 	namespace MaterialParameters
 	{
@@ -19,7 +20,7 @@ namespace Engine
 			virtual Parameter& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) = 0;
 
 		public:
-			friend class Material;
+			friend class Engine::Material;
 		};
 
 		class ENGINE_EXPORT PrimitiveBase : public Parameter
@@ -162,6 +163,7 @@ namespace Engine
 		public:
 			Pointer<Engine::Sampler> sampler;
 
+			Sampler();
 			Sampler& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
 			bool archive_process(Archive& ar) override;
 		};
@@ -171,9 +173,10 @@ namespace Engine
 			declare_class(Sampler2D, Parameter);
 
 		public:
-			Pointer<Engine::Sampler> sampler;
-			Pointer<Engine::Texture2D> texture;
+			Engine::Sampler* sampler;
+			Engine::Texture2D* texture;
 
+			Sampler2D();
 			Sampler2D& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
 			bool archive_process(Archive& ar) override;
 		};
@@ -183,8 +186,9 @@ namespace Engine
 			declare_class(Texture2D, Parameter);
 
 		public:
-			Pointer<Engine::Texture2D> texture;
+			Engine::Texture2D* texture;
 
+			Texture2D();
 			Texture2D& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
 			bool archive_process(Archive& ar) override;
 		};

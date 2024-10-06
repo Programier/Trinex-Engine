@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Graphics/material_parameter_types.hpp>
 
 namespace Engine
 {
@@ -187,7 +186,7 @@ namespace Engine
 	ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
 
 	struct ENGINE_EXPORT MaterialParameterInfo {
-		MaterialParameterType type;
+		class Class* type = nullptr;
 		String name;
 		size_t size;
 		size_t offset;

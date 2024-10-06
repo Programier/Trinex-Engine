@@ -1,5 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
+#include <Core/default_resources.hpp>
+#include <Core/property.hpp>
 #include <Core/structures.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -41,6 +43,9 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
+	Sampler::Sampler() : sampler(DefaultResources::Samplers::default_sampler)
+	{}
+
 	Sampler& Sampler::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
 	{
 		if (sampler)
@@ -55,6 +60,10 @@ namespace Engine::MaterialParameters
 		return sampler.archive_process(ar);
 	}
 
+	Sampler2D::Sampler2D()
+	    : sampler(DefaultResources::Samplers::default_sampler), texture(DefaultResources::Textures::default_texture)
+	{}
+
 	Sampler2D& Sampler2D::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
 	{
 		if (sampler && texture)
@@ -67,10 +76,13 @@ namespace Engine::MaterialParameters
 		if (!Super::archive_process(ar))
 			return false;
 
-		sampler.archive_process(ar);
-		texture.archive_process(ar);
+		ar.serialize_reference(sampler);
+		ar.serialize_reference(texture);
 		return ar;
 	}
+
+	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
+	{}
 
 	Texture2D& Texture2D::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
 	{
@@ -83,23 +95,32 @@ namespace Engine::MaterialParameters
 	{
 		if (!Super::archive_process(ar))
 			return false;
-		return texture.archive_process(ar);
+		ar.serialize_reference(texture);
+		return true;
 	}
 
 	implement_parameter(Parameter)
 	{}
 
 	implement_parameter(Bool)
-	{}
+	{
+		static_class_instance()->add_property(new BoolProperty("Value", "", &This::value));
+	}
 
 	implement_parameter(Int)
-	{}
+	{
+		static_class_instance()->add_property(new IntProperty("Value", "", &This::value));
+	}
 
 	implement_parameter(UInt)
-	{}
+	{
+		static_class_instance()->add_property(new UIntProperty("Value", "", &This::value));
+	}
 
 	implement_parameter(Float)
-	{}
+	{
+		static_class_instance()->add_property(new FloatProperty("Value", "", &This::value));
+	}
 
 	implement_parameter(Bool2)
 	{}
@@ -147,8 +168,13 @@ namespace Engine::MaterialParameters
 	{}
 
 	implement_parameter(Sampler2D)
-	{}
+	{
+		static_class_instance()->add_property(new ObjectReferenceProperty("Texture", "", &This::texture));
+		static_class_instance()->add_property(new ObjectReferenceProperty("Sampler", "", &This::sampler));
+	}
 
 	implement_parameter(Texture2D)
-	{}
+	{
+		static_class_instance()->add_property(new ObjectReferenceProperty("Texture", "", &This::texture));
+	}
 }// namespace Engine::MaterialParameters

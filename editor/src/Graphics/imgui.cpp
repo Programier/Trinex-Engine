@@ -1,5 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
+#include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
@@ -15,6 +16,7 @@
 #include <Event/event_data.hpp>
 #include <Event/listener_id.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -122,8 +124,8 @@ namespace Engine
 		struct ImGuiTrinexData {
 			ImTextureID font_texture;
 			Material* material;
-			CombinedImageSampler2DMaterialParameter* texture_parameter;
-			Mat4MaterialParameter* model_parameter;
+			MaterialParameters::Sampler2D* texture_parameter;
+			MaterialParameters::Float4x4* model_parameter;
 
 			ImGuiTrinexData()
 			{
@@ -184,7 +186,7 @@ namespace Engine
 			float R                        = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
 			float T                        = draw_data->DisplayPos.y;
 			float B                        = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-			bd->model_parameter->param     = glm::ortho(L, R, B, T);
+			bd->model_parameter->value     = glm::ortho(L, R, B, T);
 			bd->texture_parameter->texture = nullptr;
 		}
 
@@ -395,10 +397,9 @@ namespace Engine
 			if (bd->font_texture)
 				imgui_trinex_destroy_device_objects();
 
-			bd->material = DefaultResources::Materials::imgui;
-			bd->texture_parameter =
-			        reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(bd->material->find_parameter(Name::texture));
-			bd->model_parameter = reinterpret_cast<Mat4MaterialParameter*>(bd->material->find_parameter(Name::model));
+			bd->material          = DefaultResources::Materials::imgui;
+			bd->texture_parameter = bd->material->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
+			bd->model_parameter   = bd->material->find_parameter<MaterialParameters::Float4x4>(Name::model);
 
 			imgui_trinex_create_fonts_texture();
 		}

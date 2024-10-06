@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/flags.hpp>
+#include <Core/pointer.hpp>
 #include <Graphics/material.hpp>
 
 namespace Engine

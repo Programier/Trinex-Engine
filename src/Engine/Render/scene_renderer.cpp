@@ -11,12 +11,12 @@
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/texture_2D.hpp>
-
 
 namespace Engine
 {
@@ -130,13 +130,11 @@ namespace Engine
 
 		if (material && positions)
 		{
-			using TextureParam = CombinedImageSampler2DMaterialParameter;
-
-			if (TextureParam* texture = reinterpret_cast<TextureParam*>(material->find_parameter(screen_texture)))
+			if (auto* texture = Object::instance_cast<MaterialParameters::Sampler2D>(material->find_parameter(screen_texture)))
 			{
-				Texture* base_color = reinterpret_cast<class Texture*>(
+				Texture2D* base_color = reinterpret_cast<class Texture2D*>(
 				        SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor));
-				texture->texture_param(base_color);
+				texture->texture = base_color;
 				material->apply();
 				positions->rhi_bind(0, 0);
 				rhi->draw(6, 0);
@@ -151,11 +149,11 @@ namespace Engine
 
 		if (material)
 		{
-			auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
+			auto ambient_param = Object::instance_cast<MaterialParameters::Float3>(material->find_parameter(name_ambient_color));
 
 			if (ambient_param)
 			{
-				ambient_param->param = scene->environment.ambient_color;
+				ambient_param->value = scene->environment.ambient_color;
 			}
 
 			material->apply();

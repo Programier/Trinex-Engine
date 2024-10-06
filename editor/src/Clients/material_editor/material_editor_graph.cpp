@@ -2,6 +2,7 @@
 #include <Core/blueprints.hpp>
 #include <Core/class.hpp>
 #include <Core/group.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
 #include <imgui_stacklayout.h>

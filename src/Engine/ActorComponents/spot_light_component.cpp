@@ -9,6 +9,7 @@
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
@@ -163,7 +164,7 @@ namespace Engine
 	}
 
 
-#define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
+#define get_param(param_name, type) reinterpret_cast<MaterialParameters::type*>(material->find_parameter(Name::param_name));
 	ColorSceneRenderer& ColorSceneRenderer::render_component(SpotLightComponent* component)
 	{
 		render_base_component(component);
@@ -178,48 +179,48 @@ namespace Engine
 
 		Material* material = DefaultResources::Materials::spot_light;
 
-		Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
-		FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
-		Vec2MaterialParameter* spot_angles_parameter  = get_param(spot_angles, Vec2MaterialParameter);
-		Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
-		Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
-		FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
-		FloatMaterialParameter* fall_off_parameter    = get_param(fall_off_exponent, FloatMaterialParameter);
+		auto* color_parameter       = get_param(color, Float3);
+		auto* intensivity_parameter = get_param(intensivity, Float);
+		auto* spot_angles_parameter = get_param(spot_angles, Float2);
+		auto* location_parameter    = get_param(location, Float3);
+		auto* direction_parameter   = get_param(direction, Float3);
+		auto* radius_parameter      = get_param(radius, Float);
+		auto* fall_off_parameter    = get_param(fall_off_exponent, Float);
 
 		if (color_parameter)
 		{
-			layer->update_variable(color_parameter->param, proxy->light_color());
+			layer->update_variable(color_parameter->value, proxy->light_color());
 		}
 
 		if (intensivity_parameter)
 		{
-			layer->update_variable(intensivity_parameter->param, proxy->intensivity());
+			layer->update_variable(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		if (location_parameter)
 		{
-			layer->update_variable(location_parameter->param, proxy->world_transform().location());
+			layer->update_variable(location_parameter->value, proxy->world_transform().location());
 		}
 
 		if (direction_parameter)
 		{
-			layer->update_variable(direction_parameter->param, proxy->direction());
+			layer->update_variable(direction_parameter->value, proxy->direction());
 		}
 
 		if (spot_angles_parameter)
 		{
-			layer->update_variable(spot_angles_parameter->param,
+			layer->update_variable(spot_angles_parameter->value,
 			                       Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
 		}
 
 		if (radius_parameter)
 		{
-			layer->update_variable(radius_parameter->param, proxy->attenuation_radius());
+			layer->update_variable(radius_parameter->value, proxy->attenuation_radius());
 		}
 
 		if (fall_off_parameter)
 		{
-			layer->update_variable(fall_off_parameter->param, proxy->fall_off_exponent());
+			layer->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
 		}
 
 		layer->bind_material(material, nullptr);

@@ -8,6 +8,7 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -17,55 +18,17 @@
 
 namespace Engine
 {
-	bool MaterialParameter::serialize_data(Archive& ar, void* data, size_t size)
+	using Parameter = MaterialInterface::Parameter;
+
+	implement_engine_class(MaterialInterface, 0)
 	{
-		if (ar.is_reading())
-		{
-			return ar.read_data(reinterpret_cast<byte*>(data), size);
-		}
-		else if (ar.is_saving())
-		{
-			return ar.write_data(reinterpret_cast<const byte*>(data), size);
-		}
-		return false;
+		auto element_type = new ObjectProperty<This, Parameter>("", "", nullptr, Name::none, Property::IsNotSerializable);
+		auto array_type   = new ArrayProperty<This, Vector<Parameter*>>("Parameters", "Array of parammeters of this material",
+                                                                      &This::m_parameters, element_type, Name::none,
+                                                                      Property::IsNotSerializable);
+		array_type->element_name_callback(default_array_object_element_name);
+		static_class_instance()->add_property(array_type);
 	}
-
-	size_t MaterialParameter::size() const
-	{
-		return 0;
-	}
-
-	byte* MaterialParameter::data()
-	{
-		return nullptr;
-	}
-
-	const byte* MaterialParameter::data() const
-	{
-		return nullptr;
-	}
-
-	MaterialParameterType MaterialParameter::binding_object_type() const
-	{
-		return type();
-	}
-
-	MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline, class SceneComponent* component)
-	{
-		if (MaterialParameterTypeLayout::from(static_cast<EnumerateType>(type())).is_scalar)
-		{
-			auto* info = pipeline->find_param_info(name);
-
-			if (info && info->offset != Constants::offset_none)
-			{
-				rhi->update_local_parameter(data(), size(), info->offset);
-			}
-		}
-
-		return *this;
-	}
-
-	implement_engine_class_default_init(MaterialInterface, 0);
 
 	implement_engine_class(Material, Class::IsAsset)
 	{
@@ -86,189 +49,124 @@ namespace Engine
 		                                               &MaterialInstance::parent_material));
 	}
 
-
-	bool MaterialInterface::serialize_parameters(Map<Name, MaterialParameter*, Name::HashFunction>& map, Archive& ar)
+	static Vector<Parameter*>::iterator lower_bound(Vector<Parameter*>& params, const Name& name)
 	{
-		size_t count = map.size();
-		ar & count;
-		if (ar.is_saving())
-		{
-			for (auto& [_name, param] : map)
-			{
-				MaterialParameterType type = param->type();
-				Name name                  = _name;
-				ar & name;
-				ar & type;
-
-				param->archive_process(ar);
-			}
-		}
-		else if (ar.is_reading())
-		{
-			Name name;
-			MaterialParameterType type;
-
-			while (count > 0)
-			{
-				ar & name;
-				ar & type;
-
-				MaterialParameter* param = create_parameter_internal(name, type);
-
-				if (param)
-				{
-					param->archive_process(ar);
-				}
-				else
-				{
-					return false;
-				}
-
-				--count;
-			}
-		}
-		return ar;
+		return std::lower_bound(params.begin(), params.end(), name,
+		                        [](Parameter* param, const Name& name) -> bool { return param->name() < name; });
 	}
 
-	Mat4MaterialParameter& Mat4MaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
+	static Vector<Parameter*>::iterator search(Vector<Parameter*>& params, const Name& name)
 	{
-		if (bind_model_matrix)
-		{
-			param = component ? component->proxy()->world_transform().matrix() : Matrix4f(1.f);
-		}
-		Super::apply(pipeline, component);
-		return *this;
+		auto it  = lower_bound(params, name);
+		auto end = params.end();
+
+		if (it == end)
+			return end;
+
+		if ((*it)->name() == name)
+			return it;
+		return end;
 	}
 
-	bool Mat4MaterialParameter::archive_process(Archive& archive)
+	bool MaterialInterface::register_child_internal(Object* child, const Name& name)
 	{
-		if (!Super::archive_process(archive))
+		auto param = Object::instance_cast<Parameter>(child);
+
+		if (param == nullptr)
+			return Super::register_child(child);
+
+		if (find_parameter(name) != nullptr)
+		{
+			error_log("MaterialInterface", "Failed to register new parameter. Parameter with name '%s' already exist!",
+			          name.c_str());
 			return false;
+		}
 
-		archive & bind_model_matrix;
-		return archive;
+		m_parameters.insert(lower_bound(m_parameters, name), param);
+		return true;
 	}
 
-	void BindingMaterialParameter::bind_texture(class Engine::Texture* texture, const Pipeline* pipeline)
+	bool MaterialInterface::register_child(Object* object)
 	{
-		if (texture && pipeline)
+		return register_child_internal(object, object->name());
+	}
+
+	bool MaterialInterface::unregister_child(Object* child)
+	{
+		if (!Object::instance_cast<Parameter>(child))
+			return Super::unregister_child(child);
+
+		m_parameters.erase(search(m_parameters, child->name()));
+		return true;
+	}
+
+	bool MaterialInterface::rename_child_object(Object* object, StringView new_name)
+	{
+		return unregister_child(object) && register_child_internal(object, new_name);
+	}
+
+	Object* MaterialInterface::find_child_object(StringView name, bool recursive) const
+	{
+		if (recursive)
 		{
-			auto info = pipeline->find_param_info(name);
-			if (info && info->type == type())
+			auto it = name.find(Constants::name_separator);
+			if (it == StringView::npos)
+				return find_child_object(name, false);
+
+			auto obj = find_child_object(name.substr(0, it), false);
+
+			if (obj)
 			{
-				texture->rhi_bind(info->location);
+				it += Constants::name_separator.length();
+				obj = obj->find_child_object(name.substr(it, name.length() - it), true);
 			}
-		}
-	}
 
-	void BindingMaterialParameter::bind_sampler(class Engine::Sampler* sampler, const Pipeline* pipeline)
-	{
-		if (sampler && pipeline)
+			return obj;
+		}
+		else
 		{
-			auto info = pipeline->find_param_info(name);
-			if (info && info->type == type())
-			{
-				sampler->rhi_bind(info->location);
-			}
+			auto it = search(const_cast<Vector<Parameter*>&>(m_parameters), name);
+
+			if (it == m_parameters.end())
+				return nullptr;
+			return *it;
 		}
 	}
 
-	bool BindingMaterialParameter::archive_status(Archive& ar)
+	Parameter* MaterialInterface::find_parameter(const Name& name) const
 	{
-		return static_cast<bool>(ar);
+		auto params = const_cast<Vector<Parameter*>&>(m_parameters);
+		auto it     = search(params, name);
+		if (it == params.end())
+			return nullptr;
+		return *it;
 	}
 
-	bool BindingMaterialParameter::archive_process(Archive& ar)
+	MaterialInterface& MaterialInterface::remove_parameter(const Name& name)
 	{
-		MaterialParameter::archive_process(ar);
-		return ar;
-	}
-
-	class Texture* BindingMaterialParameter::texture_param() const
-	{
-		return nullptr;
-	}
-
-	class Sampler* BindingMaterialParameter::sampler_param() const
-	{
-		return nullptr;
-	}
-
-	BindingMaterialParameter& BindingMaterialParameter::texture_param(class Texture* texture)
-	{
-		return *this;
-	}
-
-	BindingMaterialParameter& BindingMaterialParameter::sampler_param(class Sampler* sampler)
-	{
-		return *this;
-	}
-
-	SamplerMaterialParameter::SamplerMaterialParameter() : sampler(DefaultResources::Samplers::default_sampler)
-	{}
-
-	MaterialParameterType SamplerMaterialParameter::type() const
-	{
-		return MaterialParameterType::Sampler;
-	}
-
-
-	MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-	{
-		bind_sampler(sampler, pipeline);
-		return *this;
-	}
-
-	bool SamplerMaterialParameter::archive_process(Archive& ar)
-	{
-		if (!BindingMaterialParameter::archive_process(ar))
-			return false;
-
-		sampler.archive_process(ar, true);
-		return ar;
-	}
-
-	class Sampler* SamplerMaterialParameter::sampler_param() const
-	{
-		return sampler.ptr();
-	}
-
-	SamplerMaterialParameter& SamplerMaterialParameter::sampler_param(class Sampler* new_sampler)
-	{
-		sampler = new_sampler;
-		return *this;
-	}
-
-	TextureMaterialParameterBase& TextureMaterialParameterBase::apply(const Pipeline* pipeline, SceneComponent*)
-	{
-		if (Texture* texture = texture_param())
+		if (auto param = find_parameter(name))
 		{
-			bind_texture(texture, pipeline);
+			param->owner(nullptr);
 		}
+
 		return *this;
 	}
 
-	CombinedImageSamplerMaterialParameterBase& CombinedImageSamplerMaterialParameterBase::apply(const Pipeline* pipeline,
-	                                                                                            SceneComponent* component)
+	MaterialInterface& MaterialInterface::clear_parameters()
 	{
-		auto texture = texture_param();
-		auto sampler = sampler_param();
+		auto params = std::move(m_parameters);
 
-		if (texture && sampler && pipeline)
+		for (auto& param : params)
 		{
-			auto info = pipeline->find_param_info(name);
-			if (info && info->type == type())
-			{
-				texture->rhi_bind_combined(sampler, info->location);
-			}
+			param->owner(nullptr);
 		}
+
 		return *this;
 	}
 
-
-	MaterialParameter* MaterialInterface::find_parameter(const Name& name) const
+	const Vector<Parameter*>& MaterialInterface::parameters() const
 	{
-		return nullptr;
+		return m_parameters;
 	}
 
 	MaterialInterface* MaterialInterface::parent() const
@@ -286,21 +184,53 @@ namespace Engine
 		return false;
 	}
 
+	bool MaterialInterface::archive_process(Archive& archive)
+	{
+		if (!Super::archive_process(archive))
+			return false;
+
+		size_t size = m_parameters.size();
+		archive & size;
+
+		if (archive.is_reading())
+		{
+			clear_parameters();
+
+			while (size > 0)
+			{
+				--size;
+				String name;
+				archive & name;
+
+				if (auto param = Object::load_object(name, archive.reader(), SerializationFlags::SkipObjectSearch))
+				{
+					param->owner(this);
+				}
+			}
+		}
+		else
+		{
+			for (auto param : m_parameters)
+			{
+				String name = param->name().to_string();
+				archive & name;
+				param->save(archive.writer());
+			}
+		}
+
+		return true;
+	}
+
+	MaterialInterface::~MaterialInterface()
+	{
+		clear_parameters();
+	}
+
 	Material::Material()
 	{
 		pipeline = Object::new_instance<Pipeline>("Pipeline");
 		pipeline->flags(Object::IsAvailableForGC, false);
 		pipeline->owner(this);
-	}
-
-	bool Material::archive_process(Archive& archive)
-	{
-		if (!Super::archive_process(archive))
-			return false;
-
-		archive & compile_definitions;
-		pipeline->archive_process(archive);
-		return serialize_parameters(m_material_parameters, archive);
 	}
 
 	Material& Material::preload()
@@ -315,147 +245,6 @@ namespace Engine
 		return *this;
 	}
 
-	MaterialParameter* Material::find_parameter(const Name& name) const
-	{
-		auto it = m_material_parameters.find(name);
-
-		if (it != m_material_parameters.end())
-		{
-			return it->second;
-		}
-
-		return Super::find_parameter(name);
-	}
-
-
-#define declare_allocator(name)                                                                                                  \
-	static MaterialParameter* name##_material_param_allocator()                                                                  \
-	{                                                                                                                            \
-		return new name##MaterialParameter();                                                                                    \
-	}
-
-
-	declare_allocator(Bool);
-	declare_allocator(Int);
-	declare_allocator(UInt);
-	declare_allocator(Float);
-	declare_allocator(BVec2);
-	declare_allocator(BVec3);
-	declare_allocator(BVec4);
-	declare_allocator(IVec2);
-	declare_allocator(IVec3);
-	declare_allocator(IVec4);
-	declare_allocator(UVec2);
-	declare_allocator(UVec3);
-	declare_allocator(UVec4);
-	declare_allocator(Vec2);
-	declare_allocator(Vec3);
-	declare_allocator(Vec4);
-	declare_allocator(Mat3);
-	declare_allocator(Mat4);
-	declare_allocator(Sampler);
-	declare_allocator(Texture2D);
-	declare_allocator(CombinedImageSampler2D);
-
-
-#define new_param_allocator(type)                                                                                                \
-	case MaterialParameterType::type:                                                                                            \
-		return type##_material_param_allocator;
-
-
-	static MaterialParameter* (*find_param_allocator(MaterialParameterType type))()
-	{
-		switch (type)
-		{
-			new_param_allocator(Bool);
-			new_param_allocator(Int);
-			new_param_allocator(UInt);
-			new_param_allocator(Float);
-			new_param_allocator(BVec2);
-			new_param_allocator(BVec3);
-			new_param_allocator(BVec4);
-			new_param_allocator(IVec2);
-			new_param_allocator(IVec3);
-			new_param_allocator(IVec4);
-			new_param_allocator(UVec2);
-			new_param_allocator(UVec3);
-			new_param_allocator(UVec4);
-			new_param_allocator(Vec2);
-			new_param_allocator(Vec3);
-			new_param_allocator(Vec4);
-			new_param_allocator(Mat3);
-			new_param_allocator(Mat4);
-			new_param_allocator(Sampler);
-			new_param_allocator(CombinedImageSampler2D);
-			new_param_allocator(Texture2D);
-
-			default:
-				return nullptr;
-		}
-	}
-
-
-	MaterialParameter* Material::create_parameter_internal(const Name& name, MaterialParameterType type)
-	{
-		MaterialParameter* param = find_parameter(name);
-		if (param)
-		{
-			if (param->type() != type)
-			{
-				error_log("Material", "Failed to create new material parameter with type [%d]. Parameter with same name, but "
-				                      "different type already exist!");
-				return nullptr;
-			}
-
-			return param;
-		}
-
-		auto allocator = find_param_allocator(type);
-
-		if (allocator)
-		{
-			param                       = allocator();
-			param->name                 = name;
-			m_material_parameters[name] = param;
-			return param;
-		}
-
-		return nullptr;
-	}
-
-	MaterialParameter* Material::create_parameter(const Name& name, MaterialParameterType type)
-	{
-		return create_parameter_internal(name, type);
-	}
-
-	Material& Material::remove_parameter(const Name& name)
-	{
-		auto it = m_material_parameters.find(name);
-
-		if (it != m_material_parameters.end())
-		{
-			delete it->second;
-			m_material_parameters.erase(it);
-		}
-		return *this;
-	}
-
-	Material& Material::clear_parameters()
-	{
-		for (auto& [name, param] : m_material_parameters)
-		{
-			delete param;
-		}
-
-		m_material_parameters.clear();
-		return *this;
-	}
-
-	const Material::ParametersMap& Material::parameters() const
-	{
-		return m_material_parameters;
-	}
-
 	bool Material::apply(SceneComponent* component)
 	{
 		return apply(this, component);
@@ -468,13 +257,12 @@ namespace Engine
 		// TODO: We need to find pipeline here using current render pass as id?
 		pipeline->rhi_bind();
 
-		for (auto& [name, material_parameter] : m_material_parameters)
+		for (auto& [name, info] : pipeline->parameters)
 		{
-			MaterialParameter* parameter = head->find_parameter(name);
+			Parameter* parameter = head->find_parameter(name);
+
 			if (parameter)
-			{
-				parameter->apply(pipeline, component);
-			}
+				parameter->apply(component, pipeline, &info);
 		}
 		return true;
 	}
@@ -482,59 +270,6 @@ namespace Engine
 	class Material* Material::material()
 	{
 		return this;
-	}
-
-	bool Material::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
-	{
-		bool status = pipeline->submit_compiled_source(source, errors);
-		if (!status)
-			return status;
-
-
-		TreeSet<Name> names_to_remove;
-
-		for (auto& entry : parameters())
-		{
-			names_to_remove.insert(entry.first);
-		}
-
-		auto create_material_parameter = [&](Name name, MaterialParameterType type) -> MaterialParameter* {
-			names_to_remove.erase(name);
-			MaterialParameter* material_parameter = find_parameter(name);
-
-			if (material_parameter && material_parameter->type() != type)
-			{
-				remove_parameter(name);
-				material_parameter = nullptr;
-			}
-
-			if (!material_parameter)
-			{
-				if (!(material_parameter = create_parameter(name, type)))
-				{
-					error_log("Material", "Failed to create material parameter '%s'", name.c_str());
-					return nullptr;
-				}
-			}
-
-			return material_parameter;
-		};
-
-		for (auto& [name, parameter] : pipeline->parameters)
-		{
-			create_material_parameter(name, parameter.type);
-		}
-
-		for (auto& name : names_to_remove)
-		{
-			remove_parameter(name);
-		}
-
-		apply_changes();
-		status = true;
-
-
-		return status;
 	}
 
 	bool Material::compile(ShaderCompiler::Compiler* compiler, MessageList* errors)
@@ -596,54 +331,83 @@ namespace Engine
 		return postload();
 	}
 
+	bool Material::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
+	{
+		bool status = pipeline->submit_compiled_source(source, errors);
+		if (!status)
+			return status;
+
+
+		TreeSet<Name> names_to_remove;
+
+		for (auto& entry : parameters())
+		{
+			names_to_remove.insert(entry->name());
+		}
+
+		auto create_material_parameter = [&](Name name, Class* type) -> Parameter* {
+			names_to_remove.erase(name);
+			Parameter* material_parameter = find_parameter(name);
+
+			if (material_parameter && material_parameter->class_instance() != type)
+			{
+				remove_parameter(name);
+				material_parameter = nullptr;
+			}
+
+			if (!material_parameter)
+			{
+				if (!(material_parameter = Object::instance_cast<Parameter>(type->create_object(name, this))))
+				{
+					error_log("Material", "Failed to create material parameter '%s'", name.c_str());
+					return nullptr;
+				}
+			}
+
+			return material_parameter;
+		};
+
+		for (auto& [name, parameter] : pipeline->parameters)
+		{
+			trinex_always_check(parameter.type != nullptr, "Parameter type is nullptr");
+			trinex_always_check(parameter.type->is_a<Parameter>(),
+			                    "Material parameter type must be Engine::MaterialParameters::Parameter");
+			create_material_parameter(name, parameter.type);
+		}
+
+		for (auto& name : names_to_remove)
+		{
+			remove_parameter(name);
+		}
+
+		apply_changes();
+		status = true;
+
+
+		return status;
+	}
+
+	bool Material::archive_process(Archive& archive)
+	{
+		if (!Super::archive_process(archive))
+			return false;
+
+		archive & compile_definitions;
+		return pipeline->archive_process(archive);
+	}
+
 	Material::~Material()
 	{
 		delete pipeline;
 	}
 
-	MaterialParameter* MaterialInstance::create_parameter_internal(const Name& name, MaterialParameterType type)
+	class Material* MaterialInstance::material()
 	{
-		MaterialParameter* param = find_parameter(name);
-		if (param)
+		if (parent_material)
 		{
-			if (param->type() != type)
-			{
-				error_log("MaterialInstance",
-				          "Failed to create new material parameter with type [%d]. Parameter with same name, but "
-				          "different type already exist!");
-				return nullptr;
-			}
-
-			return param;
-		}
-
-		auto allocator = find_param_allocator(type);
-		if (allocator)
-		{
-			param                       = allocator();
-			m_material_parameters[name] = param;
-			return param;
+			return parent_material->material();
 		}
 		return nullptr;
-	}
-
-	bool MaterialInstance::archive_process(Archive& archive)
-	{
-		if (!Super::archive_process(archive))
-			return false;
-		return serialize_parameters(m_material_parameters, archive);
-	}
-
-	MaterialParameter* MaterialInstance::find_parameter(const Name& name) const
-	{
-		auto it = m_material_parameters.find(name);
-
-		if (it != m_material_parameters.end())
-		{
-			return it->second;
-		}
-
-		return Super::find_parameter(name);
 	}
 
 	MaterialInterface* MaterialInstance::parent() const
@@ -662,12 +426,20 @@ namespace Engine
 		return mat->apply(this, component);
 	}
 
-	class Material* MaterialInstance::material()
+	bool MaterialInstance::archive_process(Archive& archive)
 	{
-		if (parent_material)
+		if (!Super::archive_process(archive))
+			return false;
+		return true;
+	}
+
+	MaterialInstance::~MaterialInstance()
+	{
+		auto params = std::move(m_parameters);
+
+		for (auto& param : params)
 		{
-			return parent_material->material();
+			param->owner(nullptr);
 		}
-		return nullptr;
 	}
 }// namespace Engine

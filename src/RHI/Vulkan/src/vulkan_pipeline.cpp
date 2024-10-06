@@ -1,4 +1,6 @@
+#include <Core/class.hpp>
 #include <Core/enum.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
@@ -185,20 +187,20 @@ namespace Engine
 
 		for (auto& [name, param] : pipeline->parameters)
 		{
-			switch (param.type)
+			namespace MP = MaterialParameters;
+
+			if (param.type->is_a<MP::Sampler2D>())
 			{
-				case MaterialParameterType::Texture2D:
-					push_layout_binding(param.location, vk::DescriptorType::eSampledImage, &VulkanDescriptorSetLayout::textures);
-					break;
-				case MaterialParameterType::Sampler:
-					push_layout_binding(param.location, vk::DescriptorType::eSampler, &VulkanDescriptorSetLayout::samplers);
-					break;
-				case MaterialParameterType::CombinedImageSampler2D:
-					push_layout_binding(param.location, vk::DescriptorType::eCombinedImageSampler,
-					                    &VulkanDescriptorSetLayout::combined_image_sampler);
-					break;
-				default:
-					break;
+				push_layout_binding(param.location, vk::DescriptorType::eCombinedImageSampler,
+				                    &VulkanDescriptorSetLayout::combined_image_sampler);
+			}
+			else if (param.type->is_a<MP::Texture2D>())
+			{
+				push_layout_binding(param.location, vk::DescriptorType::eSampledImage, &VulkanDescriptorSetLayout::textures);
+			}
+			else if (param.type->is_a<MP::Sampler>())
+			{
+				push_layout_binding(param.location, vk::DescriptorType::eSampler, &VulkanDescriptorSetLayout::samplers);
 			}
 		}
 	}
