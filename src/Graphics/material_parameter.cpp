@@ -104,22 +104,22 @@ namespace Engine::MaterialParameters
 
 	implement_parameter(Bool)
 	{
-		static_class_instance()->add_property(new BoolProperty("Value", "", &This::value));
+		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
 	}
 
 	implement_parameter(Int)
 	{
-		static_class_instance()->add_property(new IntProperty("Value", "", &This::value));
+		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
 	}
 
 	implement_parameter(UInt)
 	{
-		static_class_instance()->add_property(new UIntProperty("Value", "", &This::value));
+		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
 	}
 
 	implement_parameter(Float)
 	{
-		static_class_instance()->add_property(new FloatProperty("Value", "", &This::value));
+		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
 	}
 
 	implement_parameter(Bool2)

@@ -40,130 +40,12 @@ namespace Engine
 	PropertyValue& PropertyValue::operator=(const PropertyValue&) = default;
 	PropertyValue& PropertyValue::operator=(PropertyValue&&)      = default;
 
-	declare_prop_constructor(byte, Byte);
-	declare_prop_constructor(signed_byte, SignedByte);
-	declare_prop_constructor(int16_t, Int16);
-	declare_prop_constructor(uint16_t, UnsignedInt16);
-	declare_prop_constructor(int32_t, Int32);
-	declare_prop_constructor(uint32_t, UnsignedInt32);
-	declare_prop_constructor(int64_t, Int64);
-	declare_prop_constructor(uint64_t, UnsignedInt64);
-	declare_prop_constructor(bool, Bool);
-	declare_prop_constructor(float, Float);
-	declare_prop_constructor(double, Double);
-	declare_prop_constructor(Vector2D, Vec2);
-	declare_prop_constructor(Vector3D, Vec3);
-	declare_prop_constructor(Vector4D, Vec4);
-	declare_prop_constructor(String, String);
-	declare_prop_constructor(Path, Path);
 	declare_prop_constructor(ArrayPropertyValue, Array);
 	declare_prop_constructor(StructPropertyValue, Struct);
 
 	PropertyType PropertyValue::type() const
 	{
 		return m_type;
-	}
-
-	byte PropertyValue::byte_v() const
-	{
-		check_prop_type(Byte);
-		return cast<byte>();
-	}
-
-	signed_byte PropertyValue::signed_byte_v() const
-	{
-		check_prop_type(SignedByte);
-		return cast<signed_byte>();
-	}
-
-	int8_t PropertyValue::int8_v() const
-	{
-		check_prop_type(Int8);
-		return cast<int8_t>();
-	}
-
-	uint8_t PropertyValue::uint8_v() const
-	{
-		check_prop_type(UnsignedInt8);
-		return cast<uint8_t>();
-	}
-
-	int16_t PropertyValue::int16_v() const
-	{
-		check_prop_type(Int16);
-		return cast<int16_t>();
-	}
-
-	uint16_t PropertyValue::uint16_v() const
-	{
-		check_prop_type(UnsignedInt16);
-		return cast<uint16_t>();
-	}
-
-	int32_t PropertyValue::int32_v() const
-	{
-		check_prop_type(Int32);
-		return cast<int32_t>();
-	}
-
-	uint32_t PropertyValue::uint32_v() const
-	{
-		check_prop_type(UnsignedInt32);
-		return cast<uint32_t>();
-	}
-
-	int64_t PropertyValue::int64_v() const
-	{
-		check_prop_type(Int64);
-		return cast<int64_t>();
-	}
-
-	uint64_t PropertyValue::uint64_v() const
-	{
-		check_prop_type(UnsignedInt64);
-		return cast<uint64_t>();
-	}
-
-	bool PropertyValue::bool_v() const
-	{
-		check_prop_type(Bool);
-		return cast<bool>();
-	}
-
-	float PropertyValue::float_v() const
-	{
-		check_prop_type(Float);
-		return cast<float>();
-	}
-
-	Vector2D PropertyValue::vec2_v() const
-	{
-		check_prop_type(Vec2);
-		return cast<Vector2D>();
-	}
-
-	Vector3D PropertyValue::vec3_v() const
-	{
-		check_prop_type(Vec3);
-		return cast<Vector3D>();
-	}
-
-	Vector4D PropertyValue::vec4_v() const
-	{
-		check_prop_type(Vec4);
-		return cast<Vector4D>();
-	}
-
-	String PropertyValue::string_v() const
-	{
-		check_prop_type(String);
-		return cast<String>();
-	}
-
-	Path PropertyValue::path_v() const
-	{
-		check_prop_type(Path);
-		return cast<Path>();
 	}
 
 	EnumerateType PropertyValue::enum_v() const
@@ -231,6 +113,11 @@ namespace Engine
 		return m_flags;
 	}
 
+	size_t Property::type_id() const
+	{
+		return 0;
+	}
+
 	Struct* Property::struct_instance()
 	{
 		return nullptr;
@@ -259,6 +146,11 @@ namespace Engine
 	bool Property::is_hidden() const
 	{
 		return m_flags(IsHidden);
+	}
+
+	bool Property::is_color() const
+	{
+		return m_flags(IsColor);
 	}
 
 	static FORCE_INLINE List<Property*> collect_serializable_properties(Struct* self)
@@ -363,14 +255,6 @@ namespace Engine
 			{
 				ar.write_data(reinterpret_cast<const byte*>(prop_address(object)), size());
 			}
-		}
-		else if (prop_type == PropertyType::String)
-		{
-			ar&(*reinterpret_cast<String*>(prop_address(object)));
-		}
-		else if (prop_type == PropertyType::Path)
-		{
-			ar&(*reinterpret_cast<Path*>(prop_address(object)));
 		}
 		else if (prop_type == PropertyType::Object)
 		{

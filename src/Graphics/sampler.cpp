@@ -16,12 +16,12 @@ namespace Engine
 		Enum* address_mode_enum = Enum::static_find("Engine::SamplerAddressMode");
 
 		self->add_properties(
-		        new Vec4Property("Border color", "Border color", &This::border_color),
+		        new ClassProperty("Border color", "Border color", &This::border_color),
 
-		        new FloatProperty("Mip lod bias", "Mip lod bias of sampler", &This::mip_lod_bias),
-		        new FloatProperty("Anisotropy", "Anisotropy of sampler", &This::anisotropy),
-		        new FloatProperty("Min lod", "Min lod of sampler", &This::min_lod),
-		        new FloatProperty("Max lod", "Max lod of sampler", &This::max_lod),
+		        new ClassProperty("Mip lod bias", "Mip lod bias of sampler", &This::mip_lod_bias),
+		        new ClassProperty("Anisotropy", "Anisotropy of sampler", &This::anisotropy),
+		        new ClassProperty("Min lod", "Min lod of sampler", &This::min_lod),
+		        new ClassProperty("Max lod", "Max lod of sampler", &This::max_lod),
 
 		        new EnumProperty("Filter", "Filter of sampler", &This::filter, Enum::static_find("Engine::SamplerFilter")),
 		        new EnumProperty("Address U", "Address mode for U of sampler", &This::address_u, address_mode_enum),
@@ -32,8 +32,8 @@ namespace Engine
 		        new EnumProperty("Compare Func", "Compare Func of sampler", &This::compare_func,
 		                         Enum::static_find("Engine::CompareFunc")),
 
-		        new BoolProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
-		                         &This::unnormalized_coordinates));
+		        new ClassProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
+		                          &This::unnormalized_coordinates));
 	}
 
 	Sampler& Sampler::rhi_create()

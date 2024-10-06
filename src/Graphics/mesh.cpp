@@ -19,7 +19,7 @@ namespace Engine
 
 		self->add_properties(new EnumProperty<MeshMaterial, EnumerateType>("Layer", "Layer type for this material",
 		                                                                   &MeshMaterial::policy, policy_enum, Name::none, 0),
-		                     new ByteProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
+		                     new ClassProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
 		                     new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
 		                                                 &MeshMaterial::material));
 	}

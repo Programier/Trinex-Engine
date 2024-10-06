@@ -78,11 +78,11 @@ namespace Engine
 			component->submit_light_info_render_thread();
 		};
 
-		auto is_enabled_prop = new BoolProperty("Is Enabled", "Is light enabled", &This::m_is_enabled);
+		auto is_enabled_prop = new ClassProperty("Is Enabled", "Is light enabled", &This::m_is_enabled);
 		auto shadows_prop =
-		        new BoolProperty("Enable Shadows", "The light source can cast real-time shadows", &This::m_is_shadows_enabled);
-		auto color_prop       = new Color3Property("Color", "Color of this light", &This::m_light_color);
-		auto intensivity_prop = new FloatProperty("Intensivity", "Intensivity of this light", &This::m_intensivity);
+		        new ClassProperty("Enable Shadows", "The light source can cast real-time shadows", &This::m_is_shadows_enabled);
+		auto color_prop = new ClassProperty("Color", "Color of this light", &This::m_light_color, Name::none, Property::IsColor);
+		auto intensivity_prop = new ClassProperty("Intensivity", "Intensivity of this light", &This::m_intensivity);
 
 		is_enabled_prop->on_prop_changed.push(on_props_changed);
 		shadows_prop->on_prop_changed.push(on_props_changed);

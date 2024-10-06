@@ -31,9 +31,9 @@ namespace Engine
 		};
 
 		auto outer_angle_property =
-		        new FloatProperty("Outer Cone Angle", "Outer Cone Angle of this spot light", &This::m_outer_cone_angle);
+		        new ClassProperty("Outer Cone Angle", "Outer Cone Angle of this spot light", &This::m_outer_cone_angle);
 		auto inner_angle_property =
-		        new FloatProperty("Inner Cone Angle", "Inner Cone Angle of this spot light", &This::m_inner_cone_angle);
+		        new ClassProperty("Inner Cone Angle", "Inner Cone Angle of this spot light", &This::m_inner_cone_angle);
 		outer_angle_property->on_prop_changed.push(on_data_changed);
 		inner_angle_property->on_prop_changed.push(on_data_changed);
 

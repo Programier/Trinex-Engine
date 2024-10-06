@@ -25,7 +25,7 @@ namespace Engine
 		};
 
 		auto fall_off_exponent_prop =
-		        new FloatProperty("Fall Off Exponent", "Fall Off Exponent of this light", &This::m_fall_off_exponent);
+		        new ClassProperty("Fall Off Exponent", "Fall Off Exponent of this light", &This::m_fall_off_exponent);
 		fall_off_exponent_prop->on_prop_changed.push(update_data);
 		self->add_property(fall_off_exponent_prop);
 	}

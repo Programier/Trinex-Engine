@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/type_id.hpp>
 #include <Graphics/imgui.hpp>
 
 namespace Engine
@@ -6,7 +7,8 @@ namespace Engine
 	class ImGuiObjectProperties : public ImGuiWidget
 	{
 	public:
-		using PropertiesMap = TreeMap<Name, Vector<class Property*>>;
+		using PropertiesMap    = TreeMap<Name, Vector<class Property*>>;
+		using PropertyRenderer = Function<bool(ImGuiObjectProperties* wnd, void* obj, Property* prop, bool can_edit)>;
 
 	private:
 		Object* m_object;
@@ -14,6 +16,8 @@ namespace Engine
 
 		TreeMap<class Struct*, PropertiesMap> m_properties;
 		PropertiesMap& build_props_map(Struct* self);
+
+		static void register_prop_renderer(size_t type_id, const PropertyRenderer& renderer);
 
 	public:
 		size_t row_index = 0;
@@ -31,9 +35,15 @@ namespace Engine
 		ImGuiObjectProperties& render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
 		ImGuiObjectProperties& setup_next_row();
 		static bool collapsing_header(const void* id, const char* format, ...);
-		
+
 		virtual const char* name() const;
 		static const char* static_name();
+
+		template<typename T>
+		static void register_prop_renderer(const PropertyRenderer& renderer)
+		{
+			register_prop_renderer(type_id<T>::get(), renderer);
+		}
 	};
 
 }// namespace Engine

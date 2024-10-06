@@ -38,7 +38,7 @@ namespace Engine
 				name = info.type->name();
 			ar & name;
 		}
-		
+
 		ar & info.name;
 		ar & info.size;
 		ar & info.offset;
@@ -53,7 +53,7 @@ namespace Engine
 	implement_struct(Engine, ShaderDefinition)
 	{
 		Struct* self = static_struct_instance();
-		self->add_property(new StringProperty("Key", "Key of definition", &ShaderDefinition::key));
-		self->add_property(new StringProperty("Value", "Value of definition", &ShaderDefinition::value));
+		self->add_property(new ClassProperty("Key", "Key of definition", &ShaderDefinition::key));
+		self->add_property(new ClassProperty("Value", "Value of definition", &ShaderDefinition::value));
 	}
 }// namespace Engine

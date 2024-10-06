@@ -22,9 +22,9 @@ namespace Engine
 			transform->m_is_dirty = true;
 		};
 
-		auto location_prop = new Vec3Property("Location", "Location component of transform", &Transform::m_location);
-		auto rotation_prop = new Vec3Property("Rotation", "Rotation component of transform", &Transform::m_rotation);
-		auto scale_prop    = new Vec3Property("Scale", "Scale component of transform", &Transform::m_scale);
+		auto location_prop = new ClassProperty("Location", "Location component of transform", &Transform::m_location);
+		auto rotation_prop = new ClassProperty("Rotation", "Rotation component of transform", &Transform::m_rotation);
+		auto scale_prop    = new ClassProperty("Scale", "Scale component of transform", &Transform::m_scale);
 
 		location_prop->on_prop_changed.push(on_prop_changed);
 		rotation_prop->on_prop_changed.push(on_prop_changed);

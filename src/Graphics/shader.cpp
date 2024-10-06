@@ -25,8 +25,8 @@ namespace Engine
 		Enum* vertex_attribute_rate_enum  = Enum::static_find("Engine::VertexAttributeInputRate", true);
 		Enum* vertex_buffer_semantic_enum = Enum::static_find("Engine::VertexBufferSemantic", true);
 
-		self->add_property(new NameProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
-		                                    Property::IsConst | Property::IsNotSerializable));
+		self->add_property(new ClassProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
+		                                     Property::IsConst | Property::IsNotSerializable));
 		self->add_property(new EnumProperty("Element Type", "Type of element of this attribute", &VertexShader::Attribute::type,
 		                                    type_enum, Name::none, Property::IsNotSerializable));
 		self->add_property(new EnumProperty("Rate", "Rate of this attribute", &VertexShader::Attribute::rate,
@@ -34,16 +34,16 @@ namespace Engine
 		self->add_property(new EnumProperty("Semantic", "Semantic of this attribute", &VertexShader::Attribute::semantic,
 		                                    vertex_buffer_semantic_enum, Name::none,
 		                                    Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new ByteProperty("Semantic Index", "Semantic index of this attribute",
-		                                    &VertexShader::Attribute::semantic_index, Name::none,
-		                                    Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new ByteProperty("Location Index", "Location index of this attribute",
-		                                    &VertexShader::Attribute::location, Name::none,
-		                                    Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new ByteProperty("Stream Index", "The stream index from which to read this attribute",
-		                                    &VertexShader::Attribute::stream_index, Name::none, Property::IsNotSerializable));
-		self->add_property(new UInt16Property("Offset", "Offset of this attribute in vertex struct",
-		                                      &VertexShader::Attribute::offset, Name::none, Property::IsNotSerializable));
+		self->add_property(new ClassProperty("Semantic Index", "Semantic index of this attribute",
+		                                     &VertexShader::Attribute::semantic_index, Name::none,
+		                                     Property::IsConst | Property::IsNotSerializable));
+		self->add_property(new ClassProperty("Location Index", "Location index of this attribute",
+		                                     &VertexShader::Attribute::location, Name::none,
+		                                     Property::IsConst | Property::IsNotSerializable));
+		self->add_property(new ClassProperty("Stream Index", "The stream index from which to read this attribute",
+		                                     &VertexShader::Attribute::stream_index, Name::none, Property::IsNotSerializable));
+		self->add_property(new ClassProperty("Offset", "Offset of this attribute in vertex struct",
+		                                     &VertexShader::Attribute::offset, Name::none, Property::IsNotSerializable));
 	}
 
 	implement_engine_class_default_init(Shader, 0);

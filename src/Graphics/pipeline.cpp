@@ -32,8 +32,8 @@ namespace Engine
 
 		self->add_properties(
 		        new EnumProperty("Func", "Depth compare function", &This::func, Enum::static_find("Engine::DepthFunc", true)),
-		        new BoolProperty("Enable", "Enable depth test", &This::enable),
-		        new BoolProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
+		        new ClassProperty("Enable", "Enable depth test", &This::enable),
+		        new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
 	}
 
 	implement_struct(Engine::Pipeline, StencilTestInfo)
@@ -42,13 +42,13 @@ namespace Engine
 		Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
 		Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
 
-		self->add_properties(new BoolProperty("Enable", "Enable stencil test", &This::enable),
+		self->add_properties(new ClassProperty("Enable", "Enable stencil test", &This::enable),
 		                     new EnumProperty("Fail", "Operation on fail", &This::fail, stencil_op_enum),
 		                     new EnumProperty("Depth pass", "Operation on depth pass", &This::depth_pass, stencil_op_enum),
 		                     new EnumProperty("Depth Fail", "Operation on depth fail", &This::depth_fail, stencil_op_enum),
 		                     new EnumProperty("Compare func", "Stencil compare function", &This::compare, compare_func_enum),
-		                     new ByteProperty("Compare mask", "Stencil compare mask", &This::compare_mask),
-		                     new ByteProperty("Write mask", "Stencil write mask", &This::write_mask));
+		                     new ClassProperty("Compare mask", "Stencil compare mask", &This::compare_mask),
+		                     new ClassProperty("Write mask", "Stencil write mask", &This::write_mask));
 	}
 
 	implement_struct(Engine::Pipeline, AssemblyInfo)
@@ -67,7 +67,7 @@ namespace Engine
 		                         Enum::static_find("Engine::PolygonMode", true)),
 		        new EnumProperty("Cull mode", "Cull Mode", &This::cull_mode, Enum::static_find("Engine::CullMode", true)),
 		        new EnumProperty("Front face", "Front face", &This::front_face, Enum::static_find("Engine::FrontFace", true)),
-		        new FloatProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
+		        new ClassProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
 	}
 
 	implement_struct(Engine::Pipeline, ColorBlendingInfo)
@@ -77,7 +77,7 @@ namespace Engine
 		Enum* blend_func = Enum::static_find("Engine::BlendFunc", true);
 		Enum* blend_op   = Enum::static_find("Engine::BlendOp", true);
 
-		self->add_properties(new BoolProperty("Enable", "Enable blending", &This::enable),
+		self->add_properties(new ClassProperty("Enable", "Enable blending", &This::enable),
 		                     new EnumProperty("Src color func", "Src color func", &This::src_color_func, blend_func),
 		                     new EnumProperty("Dst color func", "Dst color func", &This::dst_color_func, blend_func),
 		                     new EnumProperty("Color operator", "Color operator", &This::color_op, blend_op),

@@ -1,7 +1,9 @@
 #pragma once
+#include <Core/archive.hpp>
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/any.hpp>
+#include <Core/etl/type_id.hpp>
 #include <Core/flags.hpp>
 #include <Core/name.hpp>
 
@@ -15,31 +17,8 @@ namespace Engine
 	enum class PropertyType
 	{
 		Undefined       = 0,
-		Byte            = 1,
-		SignedByte      = 2,
-		Int8            = SignedByte,
-		UnsignedInt8    = Byte,
-		Int16           = 3,
-		UnsignedInt16   = 4,
-		Int32           = 5,
-		Int             = Int32,
-		UnsignedInt32   = 6,
-		UnsignedInt     = UnsignedInt32,
-		Int64           = 7,
-		UnsignedInt64   = 8,
-		Bool            = 9,
-		Float           = 10,
-		Double          = 11,
-		Vec2            = 12,
-		Vec3            = 13,
-		Vec4            = 14,
 		Enum            = 15,
-		Color3          = 16,
-		Color4          = 17,
-		LastPrimitive   = Color4,
-		Name            = 18,
-		String          = 19,
-		Path            = 20,
+		LastPrimitive   = Enum,
 		Object          = 21,
 		ObjectReference = 22,
 		Struct          = 23,
@@ -78,27 +57,15 @@ namespace Engine
 			m_type = type;
 		}
 
+		template<typename T>
+		PropertyValue(T&& value) : Any(std::forward<T>(value))
+		{}
+
 		PropertyValue(const PropertyValue&);
 		PropertyValue(PropertyValue&&);
 		PropertyValue& operator=(const PropertyValue&);
 		PropertyValue& operator=(PropertyValue&&);
 
-		declare_prop_constructor(byte);
-		declare_prop_constructor(signed_byte);
-		declare_prop_constructor(int16_t);
-		declare_prop_constructor(uint16_t);
-		declare_prop_constructor(int32_t);
-		declare_prop_constructor(uint32_t);
-		declare_prop_constructor(int64_t);
-		declare_prop_constructor(uint64_t);
-		declare_prop_constructor(bool);
-		declare_prop_constructor(float);
-		declare_prop_constructor(double);
-		declare_prop_constructor(Vector2D);
-		declare_prop_constructor(Vector3D);
-		declare_prop_constructor(Vector4D);
-		declare_prop_constructor(String);
-		declare_prop_constructor(Path);
 		declare_prop_constructor(ArrayPropertyValue);
 		declare_prop_constructor(StructPropertyValue);
 
@@ -143,6 +110,7 @@ namespace Engine
 			IsNativeConst     = BIT(2),
 			IsNotSerializable = BIT(3),
 			IsHidden          = BIT(4),
+			IsColor           = BIT(5),
 		};
 
 	protected:
@@ -164,6 +132,12 @@ namespace Engine
 		const String& description() const;
 		const Flags<Property::Flag>& flags() const;
 
+		bool is_const() const;
+		bool is_private() const;
+		bool is_serializable() const;
+		bool is_hidden() const;
+		bool is_color() const;
+
 		virtual void* prop_address(void* object)                                       = 0;
 		virtual const void* prop_address(const void* object) const                     = 0;
 		virtual PropertyValue property_value(const void* object) const                 = 0;
@@ -171,15 +145,95 @@ namespace Engine
 		virtual size_t size() const                                                    = 0;
 		virtual size_t min_alignment() const                                           = 0;
 		virtual PropertyType type() const                                              = 0;
+		virtual size_t type_id() const;
+
 		virtual Struct* struct_instance();
 		virtual class Enum* enum_instance();
-		bool is_const() const;
-		bool is_private() const;
-		bool is_serializable() const;
-		bool is_hidden() const;
+
 		virtual bool archive_process(void* object, Archive& ar);
 
 		virtual ~Property();
+	};
+
+	template<typename Instance, typename Type>
+	struct ClassProperty : public Property {
+		Type Instance::*m_prop = nullptr;
+
+	public:
+		ClassProperty(const Name& name, const String& description, Type Instance::*prop, const Name& group = Name::none,
+		              BitMask flags = 0)
+		    : Property(name, description, group, flags)
+		{
+			m_prop = prop;
+		}
+
+		void* prop_address(void* object) override
+		{
+			if (m_prop == nullptr)
+				return object;
+
+			if (object == nullptr)
+				return nullptr;
+			return &(reinterpret_cast<Instance*>(object)->*m_prop);
+		}
+
+		const void* prop_address(const void* object) const override
+		{
+			if (m_prop == nullptr)
+				return object;
+
+			if (object == nullptr)
+				return nullptr;
+			return &(reinterpret_cast<const Instance*>(object)->*m_prop);
+		}
+
+		PropertyValue property_value(const void* object) const override
+		{
+			if (object)
+			{
+				return PropertyValue(*reinterpret_cast<const Type*>(prop_address(object)));
+			}
+
+			return {};
+		}
+
+		bool property_value(void* object, const PropertyValue& property_value) override
+		{
+			Instance* instance = reinterpret_cast<Instance*>(object);
+			if (!is_const() && instance /*&& property_value.type() == prop_type*/)
+			{
+				(*reinterpret_cast<Type*>(prop_address(object))) = static_cast<Type>(property_value.cast<Type>());
+				Property::on_prop_changed(object);
+				return true;
+			}
+			return false;
+		}
+
+		size_t size() const override
+		{
+			return sizeof(Type);
+		}
+
+		size_t min_alignment() const override
+		{
+			return alignof(Type);
+		}
+
+		PropertyType type() const override
+		{
+			return PropertyType::Undefined;
+		}
+
+		size_t type_id() const override
+		{
+			return Engine::type_id<Type>::get();
+		}
+
+		bool archive_process(void* object, Archive& ar) override
+		{
+			Type* address = reinterpret_cast<Type*>(prop_address(object));
+			return ar & (*address);
+		}
 	};
 
 	template<typename InstanceType, typename DataType>
@@ -271,221 +325,6 @@ namespace Engine
 		}
 	};
 
-	template<typename InstanceType>
-	class ByteProperty : public PrimitiveProperty<InstanceType, byte, byte, PropertyType::Byte>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, byte, byte, PropertyType::Byte>;
-
-		ByteProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class SignedByteProperty : public PrimitiveProperty<InstanceType, signed_byte, signed_byte, PropertyType::SignedByte>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, signed_byte, signed_byte, PropertyType::SignedByte>;
-
-		SignedByteProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		                   const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Int8Property : public PrimitiveProperty<InstanceType, int8_t, int8_t, PropertyType::Int8>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, int8_t, int8_t, PropertyType::Int8>;
-
-		Int8Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class UInt8Property : public PrimitiveProperty<InstanceType, uint8_t, uint8_t, PropertyType::UnsignedInt8>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, uint8_t, uint8_t, PropertyType::UnsignedInt8>;
-
-		UInt8Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		              const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Int16Property : public PrimitiveProperty<InstanceType, int16_t, int16_t, PropertyType::Int16>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, int16_t, int16_t, PropertyType::Int16>;
-
-		Int16Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		              const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class UInt16Property : public PrimitiveProperty<InstanceType, uint16_t, uint16_t, PropertyType::UnsignedInt16>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, uint16_t, uint16_t, PropertyType::UnsignedInt16>;
-
-		UInt16Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class IntProperty : public PrimitiveProperty<InstanceType, int32_t, int32_t, PropertyType::Int>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, int32_t, int32_t, PropertyType::Int>;
-
-		IntProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		            const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class UIntProperty : public PrimitiveProperty<InstanceType, uint32_t, uint32_t, PropertyType::UnsignedInt>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, uint32_t, uint32_t, PropertyType::UnsignedInt>;
-
-		UIntProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Int32Property : public PrimitiveProperty<InstanceType, int32_t, int32_t, PropertyType::Int32>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, int32_t, int32_t, PropertyType::Int32>;
-
-		Int32Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		              const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class UInt32Property : public PrimitiveProperty<InstanceType, uint32_t, uint32_t, PropertyType::UnsignedInt32>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, uint32_t, uint32_t, PropertyType::UnsignedInt32>;
-
-		UInt32Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Int64Property : public PrimitiveProperty<InstanceType, int64_t, int64_t, PropertyType::Int64>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, int64_t, int64_t, PropertyType::Int64>;
-
-		Int64Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		              const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class UInt64Property : public PrimitiveProperty<InstanceType, uint64_t, uint64_t, PropertyType::UnsignedInt64>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, uint64_t, uint64_t, PropertyType::UnsignedInt64>;
-
-		UInt64Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class BoolProperty : public PrimitiveProperty<InstanceType, bool, bool, PropertyType::Bool>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, bool, bool, PropertyType::Bool>;
-
-		BoolProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class FloatProperty : public PrimitiveProperty<InstanceType, float, float, PropertyType::Float>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, float, float, PropertyType::Float>;
-
-		FloatProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		              const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class DoubleProperty : public PrimitiveProperty<InstanceType, double, double, PropertyType::Double>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, float, float, PropertyType::Double>;
-
-		DoubleProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Vec2Property : public PrimitiveProperty<InstanceType, Vector2D, Vector2D, PropertyType::Vec2>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Vector2D, Vector2D, PropertyType::Vec2>;
-
-		Vec2Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Vec3Property : public PrimitiveProperty<InstanceType, Vector3D, Vector3D, PropertyType::Vec3>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Vector3D, Vector3D, PropertyType::Vec3>;
-
-		Vec3Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Vec4Property : public PrimitiveProperty<InstanceType, Vector4D, Vector4D, PropertyType::Vec4>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Vector4D, Vector4D, PropertyType::Vec4>;
-
-		Vec4Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
 
 	template<typename InstanceType, typename EnumType>
 	class EnumProperty : public PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>
@@ -515,66 +354,6 @@ namespace Engine
 		{
 			return alignof(EnumerateType);
 		}
-	};
-
-	template<typename InstanceType>
-	class Color3Property : public PrimitiveProperty<InstanceType, Color3, Color3, PropertyType::Color3>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Color3, Color3, PropertyType::Color3>;
-
-		Color3Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class Color4Property : public PrimitiveProperty<InstanceType, Color4, Color4, PropertyType::Color4>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Color4, Color4, PropertyType::Color4>;
-
-		Color4Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class NameProperty : public PrimitiveProperty<InstanceType, Name, Name, PropertyType::Name>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Name, Name, PropertyType::Name>;
-
-		NameProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags | Property::IsConst)
-		{}
-	};
-
-	template<typename InstanceType>
-	class StringProperty : public PrimitiveProperty<InstanceType, String, String, PropertyType::String>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, String, String, PropertyType::String>;
-
-		StringProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		               const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
-	};
-
-	template<typename InstanceType>
-	class PathProperty : public PrimitiveProperty<InstanceType, Path, Path, PropertyType::Path>
-	{
-	public:
-		using Super = PrimitiveProperty<InstanceType, Path, Path, PropertyType::Path>;
-
-		PathProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
-		             const Name& group = Name::none, BitMask flags = 0)
-		    : Super(name, description, prop, group, flags)
-		{}
 	};
 
 	template<typename InstanceType, typename ObjectType>

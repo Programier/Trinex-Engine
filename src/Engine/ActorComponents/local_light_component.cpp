@@ -27,7 +27,7 @@ namespace Engine
 		};
 
 		auto attenuation_property =
-		        new FloatProperty("Attenuation radius", "Attenuation radius of this light", &This::m_attenuation_radius);
+		        new ClassProperty("Attenuation radius", "Attenuation radius of this light", &This::m_attenuation_radius);
 		attenuation_property->on_prop_changed.push(on_prop_changed);
 
 		self->add_property(attenuation_property);

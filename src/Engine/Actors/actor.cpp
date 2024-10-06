@@ -271,6 +271,6 @@ namespace Engine
 		                                    Property::Flag::IsConst);
 		components->element_name_callback(default_array_object_element_name);
 		self->add_property(components);
-		self->add_property(new BoolProperty("Is Visible", "If true, actor is visible in the scene", &This::m_is_visible));
+		self->add_property(new ClassProperty("Is Visible", "If true, actor is visible in the scene", &This::m_is_visible));
 	}
 }// namespace Engine

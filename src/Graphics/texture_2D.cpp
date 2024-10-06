@@ -25,7 +25,7 @@ namespace Engine
 	implement_engine_class(Texture2D, Class::IsAsset)
 	{
 		Class* self_class = static_class_instance();
-		self_class->add_properties(new PathProperty("Path", "Path to texture", &Texture2D::path));
+		self_class->add_properties(new ClassProperty("Path", "Path to texture", &Texture2D::path));
 		self_class->add_property(new EnumProperty("Format", "Color format of this texture", &This::m_format,
 		                                          Enum::static_find("Engine::ColorFormat", true), Name::none,
 		                                          Property::IsConst | Property::IsPrivate));

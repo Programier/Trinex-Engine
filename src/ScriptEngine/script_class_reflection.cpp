@@ -51,7 +51,7 @@ namespace Engine
 		}
 	};
 
-	template<typename T, PropertyType prop_type>
+	template<typename T>
 	struct ScriptPrimitiveProp : public ScriptPrimitivePropBase {
 		uint_t m_offset = 0;
 
@@ -78,8 +78,7 @@ namespace Engine
 
 		bool property_value(void* object, const PropertyValue& property_value) override
 		{
-
-			if (!ScriptPrimitivePropBase::is_const() && object && property_value.type() == prop_type)
+			if (!ScriptPrimitivePropBase::is_const() && object /* && property_value.type() == prop_type*/)
 			{
 				(*reinterpret_cast<T*>(prop_address(object))) = static_cast<T>(property_value.cast<T>());
 				Property::on_prop_changed(object);
@@ -90,7 +89,12 @@ namespace Engine
 
 		PropertyType type() const override
 		{
-			return prop_type;
+			return PropertyType::Undefined;
+		}
+
+		size_t type_id() const override
+		{
+			return Engine::type_id<T>::get();
 		}
 	};
 
@@ -120,7 +124,7 @@ namespace Engine
 		}
 	};
 
-	template<typename T, PropertyType prop_type>
+	template<typename T, PropertyType prop_type = PropertyType::Undefined>
 	struct ScriptObjectProp : public ScriptObjectPropBase {
 		uint_t m_offset = 0;
 
@@ -254,47 +258,47 @@ namespace Engine
 
 		if (ScriptEngine::is_bool(type_id))
 		{
-			prop = new ScriptPrimitiveProp<bool, PropertyType::Bool>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<bool>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_int8(type_id))
 		{
-			prop = new ScriptPrimitiveProp<int8_t, PropertyType::Int8>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<int8_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_int16(type_id))
 		{
-			prop = new ScriptPrimitiveProp<int16_t, PropertyType::Int16>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<int16_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_int32(type_id))
 		{
-			prop = new ScriptPrimitiveProp<int32_t, PropertyType::Int32>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<int32_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_int64(type_id))
 		{
-			prop = new ScriptPrimitiveProp<int64_t, PropertyType::Int64>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<int64_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_uint8(type_id))
 		{
-			prop = new ScriptPrimitiveProp<uint8_t, PropertyType::UnsignedInt8>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<uint8_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_uint16(type_id))
 		{
-			prop = new ScriptPrimitiveProp<uint16_t, PropertyType::UnsignedInt16>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<uint16_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_uint32(type_id))
 		{
-			prop = new ScriptPrimitiveProp<uint32_t, PropertyType::UnsignedInt32>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<uint32_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_uint64(type_id))
 		{
-			prop = new ScriptPrimitiveProp<uint64_t, PropertyType::UnsignedInt64>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<uint64_t>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_float(type_id))
 		{
-			prop = new ScriptPrimitiveProp<float, PropertyType::Float>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<float>(offset, name, desc, group, flags);
 		}
 		else if (ScriptEngine::is_double(type_id))
 		{
-			prop = new ScriptPrimitiveProp<double, PropertyType::Double>(offset, name, desc, group, flags);
+			prop = new ScriptPrimitiveProp<double>(offset, name, desc, group, flags);
 		}
 
 		self->add_property(prop);
@@ -333,29 +337,29 @@ namespace Engine
 
 		if (type_id == vec2_type_id)
 		{
-			prop = new ScriptObjectProp<Vector2D, PropertyType::Vec2>(offset, name, desc, group, flags);
+			prop = new ScriptObjectProp<Vector2D>(offset, name, desc, group, flags);
 		}
 		else if (type_id == vec3_type_id)
 		{
 			if (metadata.contains("is_color"))
-				prop = new ScriptPrimitiveProp<Vector3D, PropertyType::Color3>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector3D>(offset, name, desc, group, flags);
 			else
-				prop = new ScriptPrimitiveProp<Vector3D, PropertyType::Vec3>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector3D>(offset, name, desc, group, flags);
 		}
 		else if (type_id == vec4_type_id)
 		{
 			if (metadata.contains("is_color"))
-				prop = new ScriptPrimitiveProp<Vector4D, PropertyType::Color4>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector4D>(offset, name, desc, group, flags);
 			else
-				prop = new ScriptPrimitiveProp<Vector4D, PropertyType::Vec4>(offset, name, desc, group, flags);
+				prop = new ScriptPrimitiveProp<Vector4D>(offset, name, desc, group, flags);
 		}
 		else if (type_id == name_type_id)
 		{
-			prop = new ScriptObjectProp<Name, PropertyType::Name>(offset, name, desc, group, flags);
+			prop = new ScriptObjectProp<Name>(offset, name, desc, group, flags);
 		}
 		else if (type_id == string_type_id)
 		{
-			prop = new ScriptObjectProp<String, PropertyType::String>(offset, name, desc, group, flags);
+			prop = new ScriptObjectProp<String>(offset, name, desc, group, flags);
 		}
 		else
 		{
