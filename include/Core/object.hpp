@@ -361,7 +361,6 @@ public:                                                                         
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
 	static class Engine::Class* static_class_instance();                                                                         \
-	friend class Engine::Class;                                                                                                  \
                                                                                                                                  \
 private:
 

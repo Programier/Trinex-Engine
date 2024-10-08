@@ -145,6 +145,7 @@ namespace Engine
 		static void make_current(ImGuiWindow*);
 
 		friend class Object;
+		friend class Class;
 	};
 }// namespace Engine
 
