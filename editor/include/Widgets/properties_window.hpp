@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/type_id.hpp>
+#include <Core/etl/type_info.hpp>
 #include <Graphics/imgui.hpp>
 
 namespace Engine
@@ -42,7 +42,7 @@ namespace Engine
 		template<typename T>
 		static void register_prop_renderer(const PropertyRenderer& renderer)
 		{
-			register_prop_renderer(type_id<T>::get(), renderer);
+			register_prop_renderer(type_info<T>::id(), renderer);
 		}
 	};
 

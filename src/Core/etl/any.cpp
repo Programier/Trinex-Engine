@@ -30,11 +30,12 @@ namespace Engine
 		copy    = nullptr;
 		move    = nullptr;
 		swap    = nullptr;
+		type_id = nullptr;
 	}
 
 	bool Any::Manager::is_valid() const
 	{
-		return destroy && copy && move && swap;
+		return destroy && copy && move && swap && type_id;
 	}
 
 	Any::Any() = default;

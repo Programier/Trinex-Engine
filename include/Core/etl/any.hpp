@@ -1,8 +1,8 @@
 #pragma once
+#include <Core/etl/type_info.hpp>
 #include <Core/export.hpp>
 #include <memory>
 #include <type_traits>
-#include <typeinfo>
 
 namespace Engine
 {
@@ -34,6 +34,7 @@ namespace Engine
 			void (*copy)(const Storage& src, Storage& dest);
 			void (*move)(Storage& src, Storage& dest) noexcept;
 			void (*swap)(Storage& lhs, Storage& rhs) noexcept;
+			size_t (*type_id)();
 
 
 			Manager();
@@ -112,6 +113,8 @@ namespace Engine
 					manager.move    = DynamicManager<Type>::move;
 					manager.swap    = DynamicManager<Type>::swap;
 				}
+
+				manager.type_id = type_info<Type>::id;
 			}
 
 			return &manager;
@@ -176,13 +179,18 @@ namespace Engine
 		bool has_value() const;
 		Any& swap(Any& other);
 		Any& reset();
-
-
+		
+		template<typename T>
+		bool is_a() const
+		{
+			return has_value() && m_manager->type_id() == type_info<T>::id();
+		}
+		
 		template<typename T>
 		T cast()
 		{
 			using DecayT = std::decay_t<T>;
-			if (has_value())
+			if (is_a<DecayT>())
 			{
 				return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&m_storage.stack)
 				                             : *reinterpret_cast<DecayT*>(m_storage.dynamic);
@@ -194,7 +202,7 @@ namespace Engine
 		const T cast() const
 		{
 			using DecayT = std::decay_t<T>;
-			if (has_value())
+			if (is_a<DecayT>())
 			{
 				return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
 				                             : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
@@ -203,7 +211,7 @@ namespace Engine
 		}
 
 		~Any();
-		
+
 		friend struct ScriptAny;
 	};
 }// namespace Engine

@@ -94,7 +94,7 @@ namespace Engine
 
 		size_t type_id() const override
 		{
-			return Engine::type_id<T>::get();
+			return Engine::type_info<T>::id();
 		}
 	};
 

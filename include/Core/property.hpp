@@ -3,7 +3,7 @@
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/any.hpp>
-#include <Core/etl/type_id.hpp>
+#include <Core/etl/type_info.hpp>
 #include <Core/flags.hpp>
 #include <Core/name.hpp>
 
@@ -226,7 +226,7 @@ namespace Engine
 
 		size_t type_id() const override
 		{
-			return Engine::type_id<Type>::get();
+			return Engine::type_info<Type>::id();
 		}
 
 		bool archive_process(void* object, Archive& ar) override

@@ -61,5 +61,15 @@ namespace Engine
 		{
 			return trigger(std::forward<Args>(args)...);
 		}
+
+		Identifier operator+=(const Function<Signature>& func)
+		{
+			return push(func);
+		}
+
+		Identifier operator+=(Function<Signature>&& func)
+		{
+			return push(func);
+		}
 	};
 }// namespace Engine
