@@ -1,0 +1,203 @@
+#include <Core/constants.hpp>
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/exception.hpp>
+#include <Core/reflection/object.hpp>
+#include <Core/string_functions.hpp>
+
+namespace Engine::Refl
+{
+	static Set<Object*> m_instances;
+	static bool m_remove_on_delete                 = true;
+	static thread_local StringView m_accepted_name = "";
+
+	static void destroy_reflection_instances()
+	{
+		m_remove_on_delete = false;
+
+		for (Object* object : m_instances)
+		{
+			Object::destroy_instance(object);
+		}
+
+		m_remove_on_delete = true;
+	}
+
+	static DestroyController destroy_controller(destroy_reflection_instances);
+
+	Object::Link::Link(const char* name, const Link* const parent) : class_name(Strings::class_name_sv_of(name)), parent(parent)
+	{}
+
+	bool Object::Link::is_a(const Link* const link) const
+	{
+		const Link* self = this;
+		while (self && self != link) self = self->parent;
+		return self != nullptr;
+	}
+
+	const Object::Link* Object::static_link()
+	{
+		static const Link link("Type", nullptr);
+
+		return &link;
+	}
+
+	String Object::concat_scoped_name(StringView scope, StringView name)
+	{
+		if (scope == static_root()->m_name)
+			return String(name);
+		return Strings::concat_scoped_name(scope, name);
+	}
+
+	void Object::accept_next_object(StringView name)
+	{
+		if (name != "Root")
+		{
+			trinex_always_check(static_find(name) == nullptr, "Object with same name already exist");
+		}
+
+		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
+		m_accepted_name = name;
+	}
+
+	Object::Object() : m_owner(nullptr), m_name(Strings::class_name_of(m_accepted_name))
+	{
+		trinex_always_check(!m_accepted_name.empty(), "Reflection object name cannot be empty!");
+		trinex_always_check(!m_name.empty(), "Reflection object name cannot be empty!");
+
+		auto owner_name = Strings::namespace_sv_of(m_accepted_name);
+
+		if (owner_name.empty())
+		{
+			if (m_name != "Root")
+			{
+				owner(static_root());
+			}
+		}
+		else
+		{
+			owner(static_find(owner_name, FindFlags::CreateScope));
+		}
+
+		m_instances.insert(this);
+		m_accepted_name = "";
+	}
+
+	Object::~Object()
+	{
+		if (m_remove_on_delete)
+			m_instances.erase(this);
+	}
+
+	const Object::Link* Object::link() const
+	{
+		return This::static_link();
+	}
+
+	const Name& Object::class_name() const
+	{
+		return link()->class_name;
+	}
+
+	Object& Object::unregister_subobject(Object* subobject)
+	{
+		throw EngineException("Cannot unregister object to non-scoped object");
+		return *this;
+	}
+
+	Object& Object::register_subobject(Object* subobject)
+	{
+		throw EngineException("Cannot register object to non-scoped object");
+		return *this;
+	}
+
+	Object& Object::owner(Object* object)
+	{
+		if (m_owner)
+		{
+			m_owner->unregister_subobject(this);
+			m_owner = nullptr;
+		}
+
+		if (object)
+		{
+			m_owner = object;
+			object->register_subobject(this);
+		}
+
+		return *this;
+	}
+
+	Object* Object::owner() const
+	{
+		return m_owner;
+	}
+
+	const String& Object::name() const
+	{
+		return m_name;
+	}
+
+	void Object::full_name(String& out) const
+	{
+		if (m_owner && m_owner != static_root())
+		{
+			m_owner->full_name(out);
+		}
+
+		if (!out.empty())
+		{
+			out += Constants::name_separator;
+		}
+
+		out += m_name;
+	}
+
+	String Object::full_name() const
+	{
+		String result;
+		result.reserve(64);
+		full_name(result);
+		return result;
+	}
+
+	String Object::scope_name() const
+	{
+		if (m_owner)
+		{
+			return m_owner->full_name();
+		}
+
+		return "";
+	}
+
+	Object* Object::find(StringView name, FindFlags flags)
+	{
+		if ((flags & FindFlags::CreateScope) == FindFlags::CreateScope)
+		{
+			throw EngineException("Cannot create new scope with non-scoped owner");
+		}
+
+		if ((flags & FindFlags::IsRequired) == FindFlags::IsRequired)
+		{
+			throw EngineException(Strings::format("Failed to find reflection for '{}'", concat_scoped_name(full_name(), name)));
+		}
+
+		return nullptr;
+	}
+
+	Object* Object::static_find(StringView name, FindFlags flags)
+	{
+		return static_root()->find(name, flags);
+	}
+
+	bool Object::destroy_instance(Object* object)
+	{
+		if (!m_remove_on_delete || m_instances.find(object) != m_instances.end())
+		{
+			object->on_destroy(object);
+			delete object;
+			return true;
+		}
+		return false;
+	}
+}// namespace Engine::Refl

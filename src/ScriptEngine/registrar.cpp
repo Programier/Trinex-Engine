@@ -303,7 +303,7 @@ namespace Engine
 	}
 
 
-	ScriptEnumRegistrar::ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init)
+	ScriptEnumRegistrar::ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init)
 	    : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
 	{
 		if (init)
@@ -332,7 +332,7 @@ namespace Engine
 		return *this;
 	}
 
-	ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name, bool init)
+	ScriptEnumRegistrar::ScriptEnumRegistrar(const StringView& full_name, bool init)
 	    : ScriptEnumRegistrar(Strings::namespace_of(full_name), Strings::class_name_of(full_name), init)
 	{}
 

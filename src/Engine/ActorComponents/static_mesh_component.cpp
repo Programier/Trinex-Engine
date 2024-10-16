@@ -47,8 +47,7 @@ namespace Engine
 
 		for (auto& material : mesh->materials)
 		{
-			if (material.policy != policy_id() || material.material == nullptr ||
-			    static_cast<Index>(material.surface_index) > lod.surfaces.size())
+			if (material.material == nullptr || static_cast<Index>(material.surface_index) > lod.surfaces.size())
 			{
 				continue;
 			}

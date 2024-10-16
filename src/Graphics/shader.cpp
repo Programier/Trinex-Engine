@@ -3,11 +3,11 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine_types.hpp>
-#include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/name.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
@@ -21,9 +21,11 @@ namespace Engine
 	{
 		auto self = static_struct_instance();
 
-		Enum* type_enum                   = Enum::static_find("Engine::VertexBufferElementType", true);
-		Enum* vertex_attribute_rate_enum  = Enum::static_find("Engine::VertexAttributeInputRate", true);
-		Enum* vertex_buffer_semantic_enum = Enum::static_find("Engine::VertexBufferSemantic", true);
+		Refl::Enum* type_enum = Refl::Enum::static_find("Engine::VertexBufferElementType", Refl::FindFlags::IsRequired);
+		Refl::Enum* vertex_attribute_rate_enum =
+				Refl::Enum::static_find("Engine::VertexAttributeInputRate", Refl::FindFlags::IsRequired);
+		Refl::Enum* vertex_buffer_semantic_enum =
+				Refl::Enum::static_find("Engine::VertexBufferSemantic", Refl::FindFlags::IsRequired);
 
 		self->add_property(new ClassProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
 		                                     Property::IsConst | Property::IsNotSerializable));

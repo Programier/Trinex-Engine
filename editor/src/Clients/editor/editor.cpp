@@ -34,7 +34,8 @@ namespace Engine
 {
 	EditorState::EditorState()
 	{
-		viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
+		viewport.view_mode_entry = Refl::Enum::static_find("Engine::ViewMode", Refl::FindFlags::IsRequired)
+										   ->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
 	implement_engine_class(EditorClient, 0)
@@ -472,7 +473,7 @@ namespace Engine
 			if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
 			{
 				{
-					static Enum* self = Enum::static_find("Engine::ViewMode", true);
+					static auto* self = Refl::Enum::static_find("Engine::ViewMode", Refl::FindFlags::IsRequired);
 
 					if (ImGui::BeginCombo("editor/View Mode"_localized, m_state.viewport.view_mode_entry->name.c_str()))
 					{
@@ -538,8 +539,7 @@ namespace Engine
 
 			auto k = viewport()->size() / SceneRenderTargets::instance()->size();
 
-			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, k.y},
-			             {k.x, 0.f});
+			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, k.y}, {k.x, 0.f});
 			m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
 			ImGui::SetCursorPos(current_pos);

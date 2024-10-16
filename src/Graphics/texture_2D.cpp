@@ -2,17 +2,16 @@
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 
 namespace Engine
 {
-
 	ENGINE_EXPORT bool operator&(Archive& ar, Texture2DMip& mip)
 	{
 		ar & mip.size;
@@ -27,8 +26,8 @@ namespace Engine
 		Class* self_class = static_class_instance();
 		self_class->add_properties(new ClassProperty("Path", "Path to texture", &Texture2D::path));
 		self_class->add_property(new EnumProperty("Format", "Color format of this texture", &This::m_format,
-		                                          Enum::static_find("Engine::ColorFormat", true), Name::none,
-		                                          Property::IsConst | Property::IsPrivate));
+												  Refl::Enum::static_find("Engine::ColorFormat", Refl::FindFlags::IsRequired),
+												  Name::none, Property::IsConst | Property::IsPrivate));
 	}
 
 	Texture2D& Texture2D::init(ColorFormat format, Size2D size, const Buffer& data, bool need_generate_mips)

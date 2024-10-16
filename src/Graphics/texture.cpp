@@ -2,10 +2,10 @@
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -17,7 +17,7 @@ namespace Engine
 	implement_engine_class(Texture, Class::IsAsset)
 	{
 		Class* self        = static_class_instance();
-		Enum* swizzle_enum = Enum::static_find("Engine::Swizzle");
+		auto* swizzle_enum = Refl::Enum::static_find("Engine::Swizzle", Refl::FindFlags::IsRequired);
 		self->add_properties(new EnumProperty("Swizze R", "Swizze R of texture", &This::swizzle_r, swizzle_enum),
 		                     new EnumProperty("Swizze G", "Swizze G of texture", &This::swizzle_g, swizzle_enum),
 		                     new EnumProperty("Swizze B", "Swizze B of texture", &This::swizzle_b, swizzle_enum),

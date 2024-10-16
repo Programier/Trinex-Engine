@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/enum.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
@@ -57,7 +57,7 @@ namespace Engine
 		{
 			if (in_state->rasterizer.polygon_mode != PolygonMode::Fill)
 			{
-				Name name = Enum::static_find("Engine::PolygoneMode", true)
+				Name name = Refl::Enum::static_find("Engine::PolygoneMode", Refl::FindFlags::IsRequired)
 				                    ->entry(static_cast<EnumerateType>(in_state->rasterizer.polygon_mode))
 				                    ->name;
 				error_log("Vulkan", "Polygon mode '%s' is not supported on this device. Force set it to PoligoneMode::Fill",

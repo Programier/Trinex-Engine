@@ -1,8 +1,8 @@
 #include <Core/class.hpp>
-#include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/group.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -25,8 +25,8 @@ namespace Engine
 
 	implement_engine_class(VisualMaterial, Class::IsAsset | Class::IsScriptable)
 	{
-		Class* self       = This::static_class_instance();
-		Enum* domain_enum = Enum::static_find("Engine::MaterialDomain", true);
+		Class* self             = This::static_class_instance();
+		Refl::Enum* domain_enum = Refl::Enum::static_find("Engine::MaterialDomain", Refl::FindFlags::IsRequired);
 		self->add_property(new EnumProperty("Domain", "Domain of this material", &This::domain, domain_enum));
 	}
 
@@ -98,7 +98,7 @@ namespace Engine
 
 	static String read_material_template(MaterialDomain domain)
 	{
-		static Enum* domain_enum = Enum::static_find("Engine::MaterialDomain", true);
+		static auto* domain_enum = Refl::Enum::static_find("Engine::MaterialDomain", Refl::FindFlags::IsRequired);
 		Name name                = domain_enum->entry(static_cast<EnumerateType>(domain))->name;
 
 		Path file_path = Path(Project::shaders_dir) / "editor/material_templates" / name.c_str() + ".slang";

@@ -14,6 +14,12 @@ namespace Engine
     */
 
 	class Struct;
+
+	namespace Refl
+	{
+		class Enum;
+	}
+
 	enum class PropertyType
 	{
 		Undefined       = 0,
@@ -148,7 +154,7 @@ namespace Engine
 		virtual size_t type_id() const;
 
 		virtual Struct* struct_instance();
-		virtual class Enum* enum_instance();
+		virtual class Refl::Enum* enum_instance();
 
 		virtual bool archive_process(void* object, Archive& ar);
 
@@ -330,17 +336,17 @@ namespace Engine
 	class EnumProperty : public PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>
 	{
 	private:
-		class Enum* m_enum;
+		Refl::Enum* m_enum;
 
 	public:
-		EnumProperty(const Name& name, const String& description, EnumType InstanceType::*prop, class Enum* _enum,
+		EnumProperty(const Name& name, const String& description, EnumType InstanceType::*prop, Refl::Enum* _enum,
 		             const Name& group = Name::none, BitMask flags = 0)
 		    : PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>(name, description, prop, group, flags)
 		{
 			m_enum = _enum;
 		}
 
-		class Enum* enum_instance() override
+		class Refl::Enum* enum_instance() override
 		{
 			return m_enum;
 		}

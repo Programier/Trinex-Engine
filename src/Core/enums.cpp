@@ -1,140 +1,115 @@
-#include <Core/enum.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/enums.hpp>
+#include <Core/reflection/enum.hpp>
 
 namespace Engine
 {
-	implement_enum(TextureType, Engine, {"Texture2D", TextureType::Texture2D}, {"TextureCubeMap", TextureType::TextureCubeMap});
-	implement_enum(CompareMode, Engine, {"None", CompareMode::None}, {"RefToTexture", CompareMode::RefToTexture});
-	implement_enum(SamplerFilter, Engine, {"Point", SamplerFilter::Point}, {"Bilinear", SamplerFilter::Bilinear},
-	               {"Trilinear", SamplerFilter::Trilinear});
-	implement_enum(Swizzle, Engine, {"Identity", Swizzle::Identity}, {"Zero", Swizzle::Zero}, {"One", Swizzle::One},
-	               {"R", Swizzle::R}, {"G", Swizzle::G}, {"B", Swizzle::B}, {"A", Swizzle::A});
+	implement_engine_enum(TextureType, TextureType::Texture2D, TextureType::TextureCubeMap);
+	implement_engine_enum(CompareMode, CompareMode::None, CompareMode::RefToTexture);
+	implement_engine_enum(SamplerFilter, SamplerFilter::Point, SamplerFilter::Bilinear, SamplerFilter::Trilinear);
+	implement_engine_enum(Swizzle, Swizzle::Identity, Swizzle::Zero, Swizzle::One, Swizzle::R, Swizzle::G, Swizzle::B,
+						  Swizzle::A);
 
-	implement_enum(SamplerAddressMode, Engine, {"Repeat", SamplerAddressMode::Repeat},
-	               {"ClampToEdge", SamplerAddressMode::ClampToEdge}, {"ClampToBorder", SamplerAddressMode::ClampToBorder},
-	               {"MirroredRepeat", SamplerAddressMode::MirroredRepeat},
-	               {"MirrorClampToEdge", SamplerAddressMode::MirrorClampToEdge});
+	implement_engine_enum(SamplerAddressMode, SamplerAddressMode::Repeat, SamplerAddressMode::ClampToEdge,
+						  SamplerAddressMode::ClampToBorder, SamplerAddressMode::MirroredRepeat,
+						  SamplerAddressMode::MirrorClampToEdge);
+	implement_engine_enum(TextureCubeMapFace, TextureCubeMapFace::Front, TextureCubeMapFace::Back, TextureCubeMapFace::Up,
+						  TextureCubeMapFace::Down, TextureCubeMapFace::Left, TextureCubeMapFace::Right);
 
-	implement_enum(TextureCubeMapFace, Engine, {"Front", TextureCubeMapFace::Front}, {"Back", TextureCubeMapFace::Back},
-	               {"Up", TextureCubeMapFace::Up}, {"Down", TextureCubeMapFace::Down}, {"Left", TextureCubeMapFace::Left},
-	               {"Right", TextureCubeMapFace::Right});
+	implement_engine_enum(VertexBufferSemantic, VertexBufferSemantic::Position, VertexBufferSemantic::TexCoord,
+						  VertexBufferSemantic::Color, VertexBufferSemantic::Normal, VertexBufferSemantic::Tangent,
+						  VertexBufferSemantic::Binormal, VertexBufferSemantic::BlendWeight, VertexBufferSemantic::BlendIndices);
 
-	implement_enum(VertexBufferSemantic, Engine, {"Position", VertexBufferSemantic::Position},
-	               {"TexCoord", VertexBufferSemantic::TexCoord}, {"Color", VertexBufferSemantic::Color},
-	               {"Normal", VertexBufferSemantic::Normal}, {"Tangent", VertexBufferSemantic::Tangent},
-	               {"Binormal", VertexBufferSemantic::Binormal}, {"BlendWeight", VertexBufferSemantic::BlendWeight},
-	               {"BlendIndices", VertexBufferSemantic::BlendIndices});
+	implement_engine_enum(Coord, Coord::X, Coord::Y, Coord::Z);
 
-	implement_enum(Coord, Engine, {"X", Coord::X}, {"Y", Coord::Y}, {"Z", Coord::Z});
-	implement_enum(DataType, Engine, {"Text", DataType::Text}, {"Binary", DataType::Binary});
+	implement_engine_enum(DataType, DataType::Text, DataType::Binary);
 
-	implement_enum(OperationSystemType, Engine, {"Linux", OperationSystemType::Linux}, {"Windows", OperationSystemType::Windows},
-	               {"Android", OperationSystemType::Android});
+	implement_engine_enum(OperationSystemType, OperationSystemType::Linux, OperationSystemType::Windows,
+						  OperationSystemType::Android);
 
-	implement_enum(ColorComponent, Engine, {"R", ColorComponent::R}, {"G", ColorComponent::G}, {"B", ColorComponent::B},
-	               {"A", ColorComponent::A});
+	implement_engine_enum(ColorComponent, ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A);
 
-	implement_enum(CompareFunc, Engine, {"Always", CompareFunc::Always}, {"Lequal", CompareFunc::Lequal},
-	               {"Gequal", CompareFunc::Gequal}, {"Less", CompareFunc::Less}, {"Greater", CompareFunc::Greater},
-	               {"Equal", CompareFunc::Equal}, {"NotEqual", CompareFunc::NotEqual}, {"Never", CompareFunc::Never});
+	implement_engine_enum(CompareFunc, CompareFunc::Always, CompareFunc::Lequal, CompareFunc::Gequal, CompareFunc::Less,
+						  CompareFunc::Greater, CompareFunc::Equal, CompareFunc::NotEqual, CompareFunc::Never);
 
-	implement_enum(PhysicalSizeMetric, Engine, {"Inch", PhysicalSizeMetric::Inch},
-	               {"Сentimeters", PhysicalSizeMetric::Сentimeters});
+	implement_engine_enum(PhysicalSizeMetric, PhysicalSizeMetric::Inch, PhysicalSizeMetric::Сentimeters);
 
+	implement_engine_enum(StencilOp, StencilOp::Keep, StencilOp::Zero, StencilOp::Replace, StencilOp::Incr, StencilOp::IncrWrap,
+						  StencilOp::Decr, StencilOp::DecrWrap, StencilOp::Invert);
 
-	implement_enum(StencilOp, Engine, {"Keep", StencilOp::Keep}, {"Zero", StencilOp::Zero}, {"Replace", StencilOp::Replace},
-	               {"Incr", StencilOp::Incr}, {"IncrWrap", StencilOp::IncrWrap}, {"Decr", StencilOp::Decr},
-	               {"DecrWrap", StencilOp::DecrWrap}, {"Invert", StencilOp::Invert});
-
-	implement_enum(BlendFunc, Engine, {"Zero", BlendFunc::Zero}, {"One", BlendFunc::One}, {"SrcColor", BlendFunc::SrcColor},
-	               {"OneMinusSrcColor", BlendFunc::OneMinusSrcColor}, {"DstColor", BlendFunc::DstColor},
-	               {"OneMinusDstColor", BlendFunc::OneMinusDstColor}, {"SrcAlpha", BlendFunc::SrcAlpha},
-	               {"OneMinusSrcAlpha", BlendFunc::OneMinusSrcAlpha}, {"DstAlpha", BlendFunc::DstAlpha},
-	               {"OneMinusDstAlpha", BlendFunc::OneMinusDstAlpha}, {"BlendFactor", BlendFunc::BlendFactor},
-	               {"OneMinusBlendFactor", BlendFunc::OneMinusBlendFactor});
-
-	implement_enum(BlendOp, Engine, {"Add", BlendOp::Add}, {"Subtract", BlendOp::Subtract},
-	               {"ReverseSubtract", BlendOp::ReverseSubtract}, {"Min", BlendOp::Min}, {"Max", BlendOp::Max});
-
-	implement_enum(Primitive, Engine, {"Triangle", Primitive::Triangle}, {"Line", Primitive::Line}, {"Point", Primitive::Point});
-
-	implement_enum(DepthFunc, Engine, {"Always", DepthFunc::Always}, {"Lequal", DepthFunc::Lequal}, {"Gequal", DepthFunc::Gequal},
-	               {"Less", DepthFunc::Less}, {"Greater", DepthFunc::Greater}, {"Equal", DepthFunc::Equal},
-	               {"NotEqual", DepthFunc::NotEqual}, {"Never", DepthFunc::Never});
-
-	implement_enum(PrimitiveTopology, Engine, {"TriangleList", PrimitiveTopology::TriangleList},
-	               {"PointList", PrimitiveTopology::PointList}, {"LineList", PrimitiveTopology::LineList},
-	               {"LineStrip", PrimitiveTopology::LineStrip}, {"TriangleStrip", PrimitiveTopology::TriangleStrip});
-
-	implement_enum(PolygonMode, Engine, {"Fill", PolygonMode::Fill}, {"Line", PolygonMode::Line}, {"Point", PolygonMode::Point});
-
-	implement_enum(CullMode, Engine, {"None", CullMode::None}, {"Front", CullMode::Front}, {"Back", CullMode::Back});
+	implement_engine_enum(BlendFunc, BlendFunc::Zero, BlendFunc::One, BlendFunc::SrcColor, BlendFunc::OneMinusSrcColor,
+						  BlendFunc::DstColor, BlendFunc::OneMinusDstColor, BlendFunc::SrcAlpha, BlendFunc::OneMinusSrcAlpha,
+						  BlendFunc::DstAlpha, BlendFunc::OneMinusDstAlpha, BlendFunc::BlendFactor,
+						  BlendFunc::OneMinusBlendFactor);
 
 
-	implement_enum(FrontFace, Engine, {"ClockWise", FrontFace::ClockWise}, {"CounterClockWise", FrontFace::CounterClockWise});
+	implement_engine_enum(BlendOp, BlendOp::Add, BlendOp::Subtract, BlendOp::ReverseSubtract, BlendOp::Min, BlendOp::Max);
 
-	implement_enum(WindowAttribute, Engine, {"None", WindowAttribute::None}, {"Resizable", WindowAttribute::Resizable},
-	               {"FullScreen", WindowAttribute::FullScreen}, {"Shown", WindowAttribute::Shown},
-	               {"Hidden", WindowAttribute::Hidden}, {"BorderLess", WindowAttribute::BorderLess},
-	               {"MouseFocus", WindowAttribute::MouseFocus}, {"InputFocus", WindowAttribute::InputFocus},
-	               {"InputGrabbed", WindowAttribute::InputGrabbed}, {"Minimized", WindowAttribute::Minimized},
-	               {"Maximized", WindowAttribute::Maximized}, {"MouseCapture", WindowAttribute::MouseCapture},
-	               {"MouseGrabbed", WindowAttribute::MouseGrabbed}, {"KeyboardGrabbed", WindowAttribute::KeyboardGrabbed});
+	implement_engine_enum(Primitive, Primitive::Triangle, Primitive::Line, Primitive::Point);
 
-	implement_enum(CursorMode, Engine, {"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden});
+	implement_engine_enum(DepthFunc, DepthFunc::Always, DepthFunc::Lequal, DepthFunc::Gequal, DepthFunc::Less, DepthFunc::Greater,
+						  DepthFunc::Equal, DepthFunc::NotEqual, DepthFunc::Never);
 
-	implement_enum(Orientation, Engine, {"Landscape", Orientation::Landscape},
-	               {"LandscapeFlipped", Orientation::LandscapeFlipped}, {"Portrait", Orientation::Portrait},
-	               {"PortraitFlipped", Orientation::PortraitFlipped});
+	implement_engine_enum(PrimitiveTopology, PrimitiveTopology::TriangleList, PrimitiveTopology::PointList,
+						  PrimitiveTopology::LineList, PrimitiveTopology::LineStrip, PrimitiveTopology::TriangleStrip);
 
-	implement_enum(MessageBoxType, Engine, {"Error", MessageBoxType::Error}, {"Warning", MessageBoxType::Warning},
-	               {"Info", MessageBoxType::Info});
+	implement_engine_enum(PolygonMode, PolygonMode::Fill, PolygonMode::Line, PolygonMode::Point);
 
-	implement_enum(VertexAttributeInputRate, Engine, {"Vertex", VertexAttributeInputRate::Vertex},
-	               {"Instance", VertexAttributeInputRate::Instance});
+	implement_engine_enum(CullMode, CullMode::None, CullMode::Front, CullMode::Back);
 
-	implement_enum(ColorComponentMask, Engine, {"RGBA", ColorComponentMask::RGBA}, {"RGB", ColorComponentMask::RGB},
-	               {"RGA", ColorComponentMask::RGA}, {"RG", ColorComponentMask::RG}, {"RBA", ColorComponentMask::RBA},
-	               {"RB", ColorComponentMask::RB}, {"RA", ColorComponentMask::RA}, {"R", ColorComponentMask::R},
-	               {"GBA", ColorComponentMask::GBA}, {"GB", ColorComponentMask::GB}, {"GA", ColorComponentMask::GA},
-	               {"G", ColorComponentMask::G}, {"BA", ColorComponentMask::BA}, {"B", ColorComponentMask::B},
-	               {"A", ColorComponentMask::A});
 
-	implement_enum(RenderPassType, Engine, {"Undefined", RenderPassType::Undefined}, {"Window", RenderPassType::Window},
-	               {"SceneColor", RenderPassType::SceneColor}, {"GBuffer", RenderPassType::GBuffer});
+	implement_engine_enum(FrontFace, FrontFace::ClockWise, FrontFace::CounterClockWise);
 
-	implement_enum(ViewMode, Engine, {"Lit", ViewMode::Lit}, {"Unlit", ViewMode::Unlit});
+	implement_engine_enum(WindowAttribute, WindowAttribute::None, WindowAttribute::Resizable, WindowAttribute::FullScreen,
+						  WindowAttribute::Shown, WindowAttribute::Hidden, WindowAttribute::BorderLess,
+						  WindowAttribute::MouseFocus, WindowAttribute::InputFocus, WindowAttribute::InputGrabbed,
+						  WindowAttribute::Minimized, WindowAttribute::Maximized, WindowAttribute::MouseCapture,
+						  WindowAttribute::MouseGrabbed, WindowAttribute::KeyboardGrabbed);
 
-	implement_enum(VertexBufferElementType, Engine, {"Undefined", VertexBufferElementType::Undefined},
-	               {"Float1", VertexBufferElementType::Float1}, {"Float2", VertexBufferElementType::Float2},
-	               {"Float3", VertexBufferElementType::Float3}, {"Float4", VertexBufferElementType::Float4},
-	               {"Byte1", VertexBufferElementType::Byte1}, {"Byte2", VertexBufferElementType::Byte2},
-	               {"Byte4", VertexBufferElementType::Byte4}, {"Byte1N", VertexBufferElementType::Byte1},
-	               {"Byte2N", VertexBufferElementType::Byte2N}, {"Byte4N", VertexBufferElementType::Byte4N},
-	               {"UByte1", VertexBufferElementType::UByte1}, {"UByte2", VertexBufferElementType::UByte2},
-	               {"UByte4", VertexBufferElementType::UByte4}, {"UByte1N", VertexBufferElementType::UByte1N},
-	               {"UByte2N", VertexBufferElementType::UByte2N}, {"UByte4N", VertexBufferElementType::UByte4N},
-	               {"Color", VertexBufferElementType::Color}, {"Short1", VertexBufferElementType::Short1},
-	               {"Short2", VertexBufferElementType::Short2}, {"Short4", VertexBufferElementType::Short4},
-	               {"Short1N", VertexBufferElementType::Short1N}, {"Short2N", VertexBufferElementType::Short2N},
-	               {"Short4N", VertexBufferElementType::Short4N}, {"UShort1", VertexBufferElementType::UShort1},
-	               {"UShort2", VertexBufferElementType::UShort2}, {"UShort4", VertexBufferElementType::UShort4},
-	               {"UShort1N", VertexBufferElementType::UShort1N}, {"UShort2N", VertexBufferElementType::UShort2N},
-	               {"UShort4N", VertexBufferElementType::UShort4N}, {"Int1", VertexBufferElementType::Int1},
-	               {"Int2", VertexBufferElementType::Int2}, {"Int3", VertexBufferElementType::Int3},
-	               {"Int4", VertexBufferElementType::Int4}, {"UInt1", VertexBufferElementType::UInt1},
-	               {"UInt2", VertexBufferElementType::UInt2}, {"UInt3", VertexBufferElementType::UInt3},
-	               {"UInt4", VertexBufferElementType::UInt4});
+	implement_engine_enum(CursorMode, CursorMode::Normal, CursorMode::Hidden);
 
-	implement_enum(ColorFormat, Engine, {"Unknown", ColorFormat::Undefined}, {"FloatR", ColorFormat::FloatR},
-	               {"FloatRGBA", ColorFormat::FloatRGBA}, {"R8", ColorFormat::R8}, {"R8G8B8A8", ColorFormat::R8G8B8A8},
-	               {"DepthStencil", ColorFormat::DepthStencil}, {"ShadowDepth", ColorFormat::ShadowDepth},
-	               {"FilteredShadowDepth", ColorFormat::FilteredShadowDepth}, {"D32F", ColorFormat::D32F},
-	               {"BC1", ColorFormat::BC1}, {"BC2", ColorFormat::BC2}, {"BC3", ColorFormat::BC3});
+	implement_engine_enum(Orientation, Orientation::Landscape, Orientation::LandscapeFlipped, Orientation::Portrait,
+						  Orientation::PortraitFlipped);
 
-	implement_enum(MaterialDomain, Engine, {"Surface", MaterialDomain::Surface});
+	implement_engine_enum(MessageBoxType, MessageBoxType::Error, MessageBoxType::Warning, MessageBoxType::Info);
 
-	implement_enum(SplashTextType, Engine, {"StartupProgress", SplashTextType::StartupProgress},
-	               {"VersionInfo", SplashTextType::VersionInfo}, {"CopyrightInfo", SplashTextType::CopyrightInfo},
-	               {"GameName", SplashTextType::GameName});
+	implement_engine_enum(VertexAttributeInputRate, VertexAttributeInputRate::Vertex, VertexAttributeInputRate::Instance);
+
+
+	implement_engine_enum(ColorComponentMask, ColorComponentMask::RGBA, ColorComponentMask::RGB, ColorComponentMask::RGA,
+						  ColorComponentMask::RG, ColorComponentMask::RBA, ColorComponentMask::RB, ColorComponentMask::RA,
+						  ColorComponentMask::R, ColorComponentMask::GBA, ColorComponentMask::GB, ColorComponentMask::GA,
+						  ColorComponentMask::G, ColorComponentMask::BA, ColorComponentMask::B, ColorComponentMask::A);
+
+	implement_engine_enum(RenderPassType, RenderPassType::Undefined, RenderPassType::Window, RenderPassType::SceneColor,
+						  RenderPassType::GBuffer);
+
+	implement_engine_enum(ViewMode, ViewMode::Lit, ViewMode::Unlit);
+
+
+	implement_engine_enum(VertexBufferElementType, VertexBufferElementType::Undefined, VertexBufferElementType::Float1,
+						  VertexBufferElementType::Float2, VertexBufferElementType::Float3, VertexBufferElementType::Float4,
+						  VertexBufferElementType::Byte1, VertexBufferElementType::Byte2, VertexBufferElementType::Byte4,
+						  VertexBufferElementType::Byte1, VertexBufferElementType::Byte2N, VertexBufferElementType::Byte4N,
+						  VertexBufferElementType::UByte1, VertexBufferElementType::UByte2, VertexBufferElementType::UByte4,
+						  VertexBufferElementType::UByte1N, VertexBufferElementType::UByte2N, VertexBufferElementType::UByte4N,
+						  VertexBufferElementType::Color, VertexBufferElementType::Short1, VertexBufferElementType::Short2,
+						  VertexBufferElementType::Short4, VertexBufferElementType::Short1N, VertexBufferElementType::Short2N,
+						  VertexBufferElementType::Short4N, VertexBufferElementType::UShort1, VertexBufferElementType::UShort2,
+						  VertexBufferElementType::UShort4, VertexBufferElementType::UShort1N, VertexBufferElementType::UShort2N,
+						  VertexBufferElementType::UShort4N, VertexBufferElementType::Int1, VertexBufferElementType::Int2,
+						  VertexBufferElementType::Int3, VertexBufferElementType::Int4, VertexBufferElementType::UInt1,
+						  VertexBufferElementType::UInt2, VertexBufferElementType::UInt3, VertexBufferElementType::UInt4);
+
+	implement_engine_enum(ColorFormat, ColorFormat::Undefined, ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8,
+						  ColorFormat::R8G8B8A8, ColorFormat::DepthStencil, ColorFormat::ShadowDepth,
+						  ColorFormat::FilteredShadowDepth, ColorFormat::D32F, ColorFormat::BC1, ColorFormat::BC2,
+						  ColorFormat::BC3);
+
+	implement_engine_enum(MaterialDomain, MaterialDomain::Surface);
+
+
+	implement_engine_enum(SplashTextType, SplashTextType::StartupProgress, SplashTextType::VersionInfo,
+						  SplashTextType::CopyrightInfo, SplashTextType::GameName);
+
 }// namespace Engine

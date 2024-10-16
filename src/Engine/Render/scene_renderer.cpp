@@ -5,7 +5,6 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/command_buffer.hpp>
-#include <Engine/Render/rendering_policy.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_output_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -226,12 +225,6 @@ namespace Engine
 		{
 			delete m_depth_renderer;
 		}
-	}
-
-	PolicyID ColorSceneRenderer::policy_id()
-	{
-		static PolicyID id = ::Engine::policy_id(Name::color_scene_rendering);
-		return id;
 	}
 
 	ColorSceneRenderer& ColorSceneRenderer::view_mode(ViewMode new_mode)

@@ -1,4 +1,4 @@
-#include <Core/enum.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <PropertyRenderers/special_renderers.hpp>

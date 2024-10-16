@@ -1,12 +1,9 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/enum.hpp>
 #include <Core/mouse.hpp>
+#include <Core/reflection/enum.hpp>
 
 namespace Engine::Mouse
 {
-	implement_enum(Status, Engine::Mouse, {"Released", Released}, {"JustReleased", JustReleased}, {"JustPressed", JustPressed},
-	               {"Pressed", Pressed});
-
-	implement_enum(Button, Engine::Mouse, {"Left", Button::Left}, {"Middle", Button::Middle}, {"Right", Button::Right},
-	               {"Back", Button::Back}, {"Forward", Button::Forward});
+	implement_enum(Engine::Mouse, Status, Released, JustReleased, JustPressed, Pressed);
+	implement_enum(Engine::Mouse, Button, Button::Left, Button::Middle, Button::Right, Button::Back, Button::Forward);
 }// namespace Engine::Mouse

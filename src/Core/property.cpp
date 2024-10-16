@@ -123,7 +123,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	class Enum* Property::enum_instance()
+	class Refl::Enum* Property::enum_instance()
 	{
 		return nullptr;
 	}

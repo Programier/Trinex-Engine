@@ -1,5 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/enum.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -29,31 +29,20 @@ namespace Engine
 		return m_any;
 	}
 
-	implement_enum(EventType, Engine, {"Quit", EventType::Quit}, {"AppTerminating", EventType::AppTerminating},
-	               {"AppLowMemory", EventType::AppLowMemory}, {"AppPause", EventType::AppPause},
-	               {"AppResume", EventType::AppResume}, {"DisplayAdded", EventType::DisplayAdded},
-	               {"DisplayRemoved", EventType::DisplayRemoved},
-	               {"DisplayOrientationChanged", EventType::DisplayOrientationChanged}, {"WindowShown", EventType::WindowShown},
-	               {"WindowHidden", EventType::WindowHidden}, {"WindowMoved", EventType::WindowMoved},
-	               {"WindowResized", EventType::WindowResized}, {"WindowMinimized", EventType::WindowMinimized},
-	               {"WindowMaximized", EventType::WindowMaximized}, {"WindowRestored", EventType::WindowRestored},
-	               {"WindowFocusGained", EventType::WindowFocusGained}, {"WindowFocusLost", EventType::WindowFocusLost},
-	               {"WindowClose", EventType::WindowClose}, {"TextInput", EventType::TextInput}, {"KeyDown", EventType::KeyDown},
-	               {"KeyUp", EventType::KeyUp}, {"MouseMotion", EventType::MouseMotion},
-	               {"MouseButtonUp", EventType::MouseButtonUp}, {"MouseButtonDown", EventType::MouseButtonDown},
-	               {"MouseWheel", EventType::MouseWheel}, {"ControllerAxisMotion", EventType::ControllerAxisMotion},
-	               {"ControllerButtonUp", EventType::ControllerButtonUp},
-	               {"ControllerButtonDown", EventType::ControllerButtonDown},
-	               {"ControllerDeviceAdded", EventType::ControllerDeviceAdded},
-	               {"ControllerDeviceRemoved", EventType::ControllerDeviceRemoved},
-	               {"ControllerDeviceRemapped", EventType::ControllerDeviceRemapped},
-	               {"ControllerTouchPadDown", EventType::ControllerTouchPadDown},
-	               {"ControllerTouchPadMotion", EventType::ControllerTouchPadMotion},
-	               {"ControllerTouchPadUp", EventType::ControllerTouchPadUp},
-	               {"ControllerSensorUpdate", EventType::ControllerSensorUpdate}, {"FingerDown", EventType::FingerDown},
-	               {"FingerUp", EventType::FingerUp}, {"FingerMotion", EventType::FingerMotion},
-	               {"DropFile", EventType::DropFile}, {"DropText", EventType::DropText}, {"DropBegin", EventType::DropBegin},
-	               {"DropComplete", EventType::DropComplete});
+	implement_engine_enum(EventType, EventType::Quit, EventType::AppTerminating, EventType::AppLowMemory, EventType::AppPause,
+						  EventType::AppResume, EventType::DisplayAdded, EventType::DisplayRemoved,
+						  EventType::DisplayOrientationChanged, EventType::WindowShown, EventType::WindowHidden,
+						  EventType::WindowMoved, EventType::WindowResized, EventType::WindowMinimized,
+						  EventType::WindowMaximized, EventType::WindowRestored, EventType::WindowFocusGained,
+						  EventType::WindowFocusLost, EventType::WindowClose, EventType::TextInput, EventType::KeyDown,
+						  EventType::KeyUp, EventType::MouseMotion, EventType::MouseButtonUp, EventType::MouseButtonDown,
+						  EventType::MouseWheel, EventType::ControllerAxisMotion, EventType::ControllerButtonUp,
+						  EventType::ControllerButtonDown, EventType::ControllerDeviceAdded, EventType::ControllerDeviceRemoved,
+						  EventType::ControllerDeviceRemapped, EventType::ControllerTouchPadDown,
+						  EventType::ControllerTouchPadMotion, EventType::ControllerTouchPadUp, EventType::ControllerSensorUpdate,
+						  EventType::FingerDown, EventType::FingerUp, EventType::FingerMotion, EventType::DropFile,
+						  EventType::DropText, EventType::DropBegin, EventType::DropComplete);
+
 
 	static void on_init()
 	{

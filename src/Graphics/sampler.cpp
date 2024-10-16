@@ -2,9 +2,9 @@
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/enum.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 
@@ -12,28 +12,26 @@ namespace Engine
 {
 	implement_engine_class(Sampler, Class::IsAsset)
 	{
-		Class* self             = static_class_instance();
-		Enum* address_mode_enum = Enum::static_find("Engine::SamplerAddressMode");
+		Class* self                   = static_class_instance();
+		Refl::Enum* address_mode_enum = Refl::Enum::static_find("Engine::SamplerAddressMode", Refl::FindFlags::IsRequired);
 
-		self->add_properties(
-		        new ClassProperty("Border color", "Border color", &This::border_color),
+		self->add_properties(new ClassProperty("Border color", "Border color", &This::border_color),
 
-		        new ClassProperty("Mip lod bias", "Mip lod bias of sampler", &This::mip_lod_bias),
-		        new ClassProperty("Anisotropy", "Anisotropy of sampler", &This::anisotropy),
-		        new ClassProperty("Min lod", "Min lod of sampler", &This::min_lod),
-		        new ClassProperty("Max lod", "Max lod of sampler", &This::max_lod),
-
-		        new EnumProperty("Filter", "Filter of sampler", &This::filter, Enum::static_find("Engine::SamplerFilter")),
-		        new EnumProperty("Address U", "Address mode for U of sampler", &This::address_u, address_mode_enum),
-		        new EnumProperty("Address V", "Address mode for V of sampler", &This::address_v, address_mode_enum),
-		        new EnumProperty("Address W", "Address mode for W of sampler", &This::address_w, address_mode_enum),
-		        new EnumProperty("Compare Mode", "Compare Mode of sampler", &This::compare_mode,
-		                         Enum::static_find("Engine::CompareMode")),
-		        new EnumProperty("Compare Func", "Compare Func of sampler", &This::compare_func,
-		                         Enum::static_find("Engine::CompareFunc")),
-
-		        new ClassProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
-		                          &This::unnormalized_coordinates));
+							 new ClassProperty("Mip lod bias", "Mip lod bias of sampler", &This::mip_lod_bias),
+							 new ClassProperty("Anisotropy", "Anisotropy of sampler", &This::anisotropy),
+							 new ClassProperty("Min lod", "Min lod of sampler", &This::min_lod),
+							 new ClassProperty("Max lod", "Max lod of sampler", &This::max_lod),
+							 new EnumProperty("Filter", "Filter of sampler", &This::filter,
+											  Refl::Enum::static_find("Engine::SamplerFilter", Refl::FindFlags::IsRequired)),
+							 new EnumProperty("Address U", "Address mode for U of sampler", &This::address_u, address_mode_enum),
+							 new EnumProperty("Address V", "Address mode for V of sampler", &This::address_v, address_mode_enum),
+							 new EnumProperty("Address W", "Address mode for W of sampler", &This::address_w, address_mode_enum),
+							 new EnumProperty("Compare Mode", "Compare Mode of sampler", &This::compare_mode,
+											  Refl::Enum::static_find("Engine::CompareMode", Refl::FindFlags::IsRequired)),
+							 new EnumProperty("Compare Func", "Compare Func of sampler", &This::compare_func,
+											  Refl::Enum::static_find("Engine::CompareFunc", Refl::FindFlags::IsRequired)),
+							 new ClassProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
+											   &This::unnormalized_coordinates));
 	}
 
 	Sampler& Sampler::rhi_create()

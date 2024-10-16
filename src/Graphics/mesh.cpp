@@ -1,9 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
-#include <Core/enum.hpp>
 #include <Core/property.hpp>
-#include <Engine/Render/rendering_policy.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
@@ -14,12 +13,8 @@ namespace Engine
 {
 	implement_struct(Engine, MeshMaterial)
 	{
-		Struct* self      = static_struct_instance();
-		Enum* policy_enum = Enum::static_find("Engine::RenderingPolicy", true);
-
-		self->add_properties(new EnumProperty<MeshMaterial, EnumerateType>("Layer", "Layer type for this material",
-		                                                                   &MeshMaterial::policy, policy_enum, Name::none, 0),
-		                     new ClassProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
+		Struct* self = static_struct_instance();
+		self->add_properties(new ClassProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
 		                     new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
 		                                                 &MeshMaterial::material));
 	}
@@ -70,7 +65,7 @@ namespace Engine
 	{
 		materials.resize(1);
 		auto& entry    = materials.back();
-		entry.policy   = policy_id(Name::color_scene_rendering);
+		entry.policy   = 0;
 		entry.material = Object::static_find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
 	}
 

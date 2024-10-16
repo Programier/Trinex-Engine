@@ -3,7 +3,6 @@
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
-#include <Engine/Render/rendering_policy.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <assimp/Importer.hpp>
@@ -190,7 +189,7 @@ namespace Engine::Importer
 
 		auto& material         = static_mesh->materials.back();
 		material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::Materials::base_pass);
-		material.policy        = policy_id(Name::color_scene_rendering);
+		material.policy        = 0;
 		material.surface_index = 0;
 
 		static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))

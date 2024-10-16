@@ -268,8 +268,8 @@ namespace Engine
 		ScriptEnumRegistrar& release_namespace();
 
 	public:
-		ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init = true);
-		ScriptEnumRegistrar(const String& full_name, bool init = true);
+		ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init = true);
+		ScriptEnumRegistrar(const StringView& full_name, bool init = true);
 
 		ScriptEnumRegistrar& set(const char* name, int_t value);
 

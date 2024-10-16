@@ -1,9 +1,9 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/enum.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/threading.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
@@ -192,8 +192,8 @@ namespace Engine
 
 	Name EventSystem::event_name(EventType type)
 	{
-		static Enum* event_type_enum = Enum::static_find("Engine::EventType", true);
-		auto entry                   = event_type_enum->entry(static_cast<EnumerateType>(type));
+		static Refl::Enum* event_type_enum = Refl::Enum::static_find("Engine::EventType", Refl::FindFlags::IsRequired);
+		auto entry                         = event_type_enum->entry(static_cast<EnumerateType>(type));
 
 		if (entry)
 		{

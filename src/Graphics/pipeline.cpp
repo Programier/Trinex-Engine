@@ -2,11 +2,11 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
-#include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
@@ -30,17 +30,17 @@ namespace Engine
 	{
 		Struct* self = static_struct_instance();
 
-		self->add_properties(
-		        new EnumProperty("Func", "Depth compare function", &This::func, Enum::static_find("Engine::DepthFunc", true)),
-		        new ClassProperty("Enable", "Enable depth test", &This::enable),
-		        new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
+		self->add_properties(new EnumProperty("Func", "Depth compare function", &This::func,
+											  Refl::Enum::static_find("Engine::DepthFunc", Refl::FindFlags::IsRequired)),
+							 new ClassProperty("Enable", "Enable depth test", &This::enable),
+							 new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
 	}
 
 	implement_struct(Engine::Pipeline, StencilTestInfo)
 	{
-		Struct* self            = static_struct_instance();
-		Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
-		Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
+		Struct* self                  = static_struct_instance();
+		Refl::Enum* stencil_op_enum   = Refl::Enum::static_find("Engine::StencilOp", Refl::FindFlags::IsRequired);
+		Refl::Enum* compare_func_enum = Refl::Enum::static_find("Engine::CompareFunc", Refl::FindFlags::IsRequired);
 
 		self->add_properties(new ClassProperty("Enable", "Enable stencil test", &This::enable),
 		                     new EnumProperty("Fail", "Operation on fail", &This::fail, stencil_op_enum),
@@ -55,7 +55,8 @@ namespace Engine
 	{
 		Struct* self = static_struct_instance();
 		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-		                                      &This::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
+											  &This::primitive_topology,
+											  Refl::Enum::static_find("Engine::PrimitiveTopology", Refl::FindFlags::IsRequired)));
 	}
 
 	implement_struct(Engine::Pipeline, RasterizerInfo)
@@ -64,9 +65,11 @@ namespace Engine
 
 		self->add_properties(
 		        new EnumProperty("Polygon mode", "Polygon Mode", &This::polygon_mode,
-		                         Enum::static_find("Engine::PolygonMode", true)),
-		        new EnumProperty("Cull mode", "Cull Mode", &This::cull_mode, Enum::static_find("Engine::CullMode", true)),
-		        new EnumProperty("Front face", "Front face", &This::front_face, Enum::static_find("Engine::FrontFace", true)),
+								 Refl::Enum::static_find("Engine::PolygonMode", Refl::FindFlags::IsRequired)),
+				new EnumProperty("Cull mode", "Cull Mode", &This::cull_mode,
+								 Refl::Enum::static_find("Engine::CullMode", Refl::FindFlags::IsRequired)),
+				new EnumProperty("Front face", "Front face", &This::front_face,
+								 Refl::Enum::static_find("Engine::FrontFace", Refl::FindFlags::IsRequired)),
 		        new ClassProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
 	}
 
@@ -74,19 +77,20 @@ namespace Engine
 	{
 		Struct* self = static_struct_instance();
 
-		Enum* blend_func = Enum::static_find("Engine::BlendFunc", true);
-		Enum* blend_op   = Enum::static_find("Engine::BlendOp", true);
+		auto* blend_func = Refl::Enum::static_find("Engine::BlendFunc", Refl::FindFlags::IsRequired);
+		auto* blend_op   = Refl::Enum::static_find("Engine::BlendOp", Refl::FindFlags::IsRequired);
 
-		self->add_properties(new ClassProperty("Enable", "Enable blending", &This::enable),
-		                     new EnumProperty("Src color func", "Src color func", &This::src_color_func, blend_func),
-		                     new EnumProperty("Dst color func", "Dst color func", &This::dst_color_func, blend_func),
-		                     new EnumProperty("Color operator", "Color operator", &This::color_op, blend_op),
+		self->add_properties(
+				new ClassProperty("Enable", "Enable blending", &This::enable),
+				new EnumProperty("Src color func", "Src color func", &This::src_color_func, blend_func),
+				new EnumProperty("Dst color func", "Dst color func", &This::dst_color_func, blend_func),
+				new EnumProperty("Color operator", "Color operator", &This::color_op, blend_op),
 
-		                     new EnumProperty("Src alpha func", "Src alpha func", &This::src_alpha_func, blend_func),
-		                     new EnumProperty("Dst alpha func", "Dst alpha func", &This::dst_alpha_func, blend_func),
-		                     new EnumProperty("Alpha operator", "Alpha operator", &This::alpha_op, blend_op),
-		                     new EnumProperty("Color mask", "Color mask", &This::color_mask,
-		                                      Enum::static_find("Engine::ColorComponentMask", true)));
+				new EnumProperty("Src alpha func", "Src alpha func", &This::src_alpha_func, blend_func),
+				new EnumProperty("Dst alpha func", "Dst alpha func", &This::dst_alpha_func, blend_func),
+				new EnumProperty("Alpha operator", "Alpha operator", &This::alpha_op, blend_op),
+				new EnumProperty("Color mask", "Color mask", &This::color_mask,
+								 Refl::Enum::static_find("Engine::ColorComponentMask", Refl::FindFlags::IsRequired)));
 	}
 
 	Pipeline::Pipeline()

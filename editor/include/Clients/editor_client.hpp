@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/enum.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
 #include <Event/listener_id.hpp>
@@ -15,11 +15,11 @@ namespace Engine
 {
 	struct EditorState {
 		struct {
-			const Enum::Entry* view_mode_entry = nullptr;
-			Vector2D size                      = {0.f, 0.f};
-			bool show_additional_menu          = false;
-			bool is_hovered                    = false;
-			bool is_using_guizmo               = false;
+			const Refl::Enum::Entry* view_mode_entry = nullptr;
+			Vector2D size                            = {0.f, 0.f};
+			bool show_additional_menu                = false;
+			bool is_hovered                          = false;
+			bool is_using_guizmo                     = false;
 		} viewport;
 
 		EditorState();

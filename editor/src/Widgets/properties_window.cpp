@@ -2,12 +2,12 @@
 #include <Core/constants.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/enum.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/icons.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Graphics/imgui.hpp>
@@ -113,8 +113,8 @@ namespace Engine
 
 	struct EnumRenderingUserdata {
 		EnumerateType value;
-		const Enum::Entry* current_entry;
-		Enum* enum_class;
+		const Refl::Enum::Entry* current_entry;
+		Refl::Enum* enum_class;
 	};
 
 
@@ -149,11 +149,11 @@ namespace Engine
 			return false;
 
 
-		EnumerateType current            = value.cast<EnumerateType>();
-		const Enum::Entry* current_entry = userdata.enum_class->entry(current);
+		EnumerateType current     = value.cast<EnumerateType>();
+		const auto* current_entry = userdata.enum_class->entry(current);
 
-		int index                          = convert_to_imgui_index(userdata.enum_class->index_of(current));
-		const Vector<Enum::Entry>& entries = userdata.enum_class->entries();
+		int index           = convert_to_imgui_index(userdata.enum_class->index_of(current));
+		const auto& entries = userdata.enum_class->entries();
 
 		render_prop_name(prop);
 
@@ -786,10 +786,10 @@ namespace Engine
 			}
 			return false;
 		});
-		
+
 		T::register_prop_renderer<Name>([](ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit) -> bool {
 			render_prop_name(prop);
-			
+
 			if (Name* value = reinterpret_cast<Name*>(prop->prop_address(object)))
 			{
 				ImGui::Text("%s", value->c_str());

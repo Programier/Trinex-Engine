@@ -1,4 +1,3 @@
-#include <Core/enum.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>

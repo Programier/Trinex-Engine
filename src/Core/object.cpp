@@ -120,7 +120,6 @@ namespace Engine
 		return _class != nullptr && _class->is_a(check_class);
 	}
 
-
 	Object::Object() : m_references(0), m_instance_index(Constants::index_none)
 	{
 		if (next_object_info.class_instance == nullptr)

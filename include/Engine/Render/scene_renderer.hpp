@@ -113,8 +113,6 @@ namespace Engine
 		~ColorSceneRenderer();
 		delete_copy_constructors(ColorSceneRenderer);
 
-		static PolicyID policy_id();
-
 		// Layers getters
 
 		FORCE_INLINE SceneLayer* root_layer() const
