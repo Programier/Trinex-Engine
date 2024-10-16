@@ -29,14 +29,13 @@ namespace Engine::Refl
 		return Strings::class_name_sv_of(full_name);
 	}
 
-	ENGINE_EXPORT Enum* Enum::create_internal(const StringView& ns, const StringView& name, const Vector<Enum::Entry>& entries)
+	ENGINE_EXPORT Enum* Enum::create_internal(const StringView& name, const Vector<Enum::Entry>& entries)
 	{
-		String full_name = Strings::concat_scoped_name(ns, name);
-		Enum* instance   = static_find<Enum>(full_name);
+		Enum* instance = static_find<Enum>(name);
 
 		if (!instance)
 		{
-			instance = Object::new_instance<Enum>(full_name, entries);
+			instance = Object::new_instance<Enum>(name, entries);
 		}
 
 		return instance;

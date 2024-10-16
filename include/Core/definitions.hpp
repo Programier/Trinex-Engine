@@ -45,13 +45,6 @@
 #error "Compiler doesn't support!"
 #endif
 
-#define CLASS class ENGINE_EXPORT
-#define STRUCT struct ENGINE_EXPORT
-
-#define PRELOAD_FUNCTION __attribute__((constructor))
-#define ON_EXIT_FUNCTION __attribute__((destructor))
-
-
 #define FILE_POS_INFO (String(__FILE__ ":") + std::to_string(__LINE__) + String(": ") + String(__PRETTY_FUNCTION__))
 
 #define not_implemented FILE_POS_INFO + String("\n\tError: Method or function is not implemented!")
@@ -88,6 +81,8 @@
 #define HAS_INCLUDE(include_name) __has_include(<include_name>)
 
 #define TRINEX_WRAP_CODE(code) code
+#define TRINEX_CONCAT_IMPL(x, y) x##y
+#define TRINEX_CONCAT(x, y) TRINEX_CONCAT_IMPL(x, y)
 
 // USER SPECIFIC DEFINITIONS!
 

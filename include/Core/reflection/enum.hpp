@@ -31,16 +31,16 @@ namespace Engine::Refl
 
 		const Entry* create_entry(void* registrar, const Name& name, EnumerateType value);
 		static StringView extract_enum_value_name(StringView full_name);
-		static Enum* create_internal(const StringView& ns, const StringView& name, const Vector<Enum::Entry>& entries);
+		static Enum* create_internal(const StringView& name, const Vector<Enum::Entry>& entries);
 
 	public:
 		Enum(const Vector<Enum::Entry>& entries);
 
 		template<auto... enum_values>
-		static Enum* create(const StringView& ns, const StringView& name)
+		static Enum* create(const StringView& name)
 		{
 			auto name_of = extract_enum_value_name;
-			return create_internal(ns, name, {Entry(name_of(value_info<enum_values>::name()), enum_values)...});
+			return create_internal(name, {Entry(name_of(value_info<enum_values>::name()), enum_values)...});
 		}
 
 		Index index_of(const Name& name) const;
@@ -52,10 +52,10 @@ namespace Engine::Refl
 		const Vector<Enum::Entry>& entries() const;
 	};
 
-#define implement_enum(namespace_name, enum_name, ...)                                                                           \
-	static Engine::ReflectionInitializeController initialize_##enum_name = Engine::ReflectionInitializeController(               \
-			[]() { Engine::Refl::Enum::create<__VA_ARGS__>(#namespace_name, #enum_name); },                                      \
-			ENTITY_INITIALIZER_NAME(enum_name, namespace_name))
+#define implement_enum(enum_name, ...)                                                                                           \
+	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::byte>(                           \
+			Engine::ReflectionInitializeController([]() { Engine::Refl::Enum::create<__VA_ARGS__>(#enum_name); }, #enum_name)    \
+					.id())
 
-#define implement_engine_enum(enum_name, ...) implement_enum(Engine, enum_name, __VA_ARGS__)
+#define implement_engine_enum(enum_name, ...) implement_enum(Engine::enum_name, __VA_ARGS__)
 }// namespace Engine::Refl
