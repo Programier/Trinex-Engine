@@ -363,7 +363,7 @@ namespace Engine
 		{
 			if (!filter.empty())
 			{
-				String name = Strings::to_lower(self->base_name().to_string());
+				String name = Strings::to_lower(self->name().to_string());
 				if (name.starts_with(filter))
 					return true;
 			}
@@ -447,12 +447,12 @@ namespace Engine
 			{
 				if (!filter.empty())
 				{
-					String name = Strings::to_lower(instance->base_name().to_string());
+					String name = Strings::to_lower(instance->name().to_string());
 					if (!name.starts_with(filter))
 						continue;
 				}
 
-				if (ImGui::MenuItem(instance->base_name().c_str()))
+				if (ImGui::MenuItem(instance->name().c_str()))
 				{
 					current = reinterpret_cast<Class*>(instance);
 				}

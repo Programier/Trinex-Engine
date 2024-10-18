@@ -519,7 +519,7 @@ namespace Engine::VisualMaterialGraph
 
 	const char* Node::name() const
 	{
-		return class_instance()->base_name_splitted().c_str();
+		return class_instance()->name_splitted().c_str();
 	}
 
 	Expression SignaturedNode::make_expression(OutputPin* pin, const NodeSignature::Signature& signature,

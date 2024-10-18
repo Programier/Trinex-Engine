@@ -93,7 +93,8 @@ namespace Engine
 			}
 			else
 			{
-				debug_log("Garbage Collector", "Destroy noname object with type '%s'", object->class_instance()->name().c_str());
+				debug_log("Garbage Collector", "Destroy noname object with type '%s'",
+						  object->class_instance()->full_name().c_str());
 			}
 		}
 

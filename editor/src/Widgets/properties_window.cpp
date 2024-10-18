@@ -467,7 +467,7 @@ namespace Engine
 		if (m_object)
 		{
 			ImGui::Text("editor/Object: %s"_localized, m_object->name().to_string().c_str());
-			ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->name().c_str());
+			ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->full_name().c_str());
 			if (ImGui::Button("editor/Apply changes"_localized))
 			{
 				m_object->apply_changes();

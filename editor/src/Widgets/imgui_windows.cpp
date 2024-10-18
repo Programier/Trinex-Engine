@@ -160,7 +160,7 @@ namespace Engine
 
 	static const char* get_asset_class_name_default(void* userdata, int index)
 	{
-		return (*reinterpret_cast<Vector<Class*>*>(userdata))[index]->name().c_str();
+		return (*reinterpret_cast<Vector<Class*>*>(userdata))[index]->full_name().c_str();
 	}
 
 	bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
@@ -388,7 +388,7 @@ namespace Engine
 
 	bool ImGuiSpawnNewActor::Node::Compare::operator()(const Node* a, const Node* b) const
 	{
-		return a->self->base_name_splitted() < b->self->base_name_splitted();
+		return a->self->name_splitted() < b->self->name_splitted();
 	}
 
 	ImGuiSpawnNewActor::Node::~Node()
@@ -429,8 +429,8 @@ namespace Engine
 
 	void ImGuiSpawnNewActor::render_tree(Node* node)
 	{
-		bool state = ImGui::TreeNodeEx(node->self->base_name_splitted().c_str(),
-		                               (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
+		bool state =
+				ImGui::TreeNodeEx(node->self->name_splitted().c_str(), (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
 
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
@@ -471,7 +471,7 @@ namespace Engine
 
 	void ImGuiSpawnNewActor::render_parameters()
 	{
-		ImGui::Text("editor/Class: %s"_localized, m_selected ? m_selected->self->base_name_splitted().c_str() : "None");
+		ImGui::Text("editor/Class: %s"_localized, m_selected ? m_selected->self->name_splitted().c_str() : "None");
 		ImGui::InputText("editor/Name"_localized, m_name);
 		ImGui::InputFloat3("editor/Location"_localized, &m_location.x);
 		ImGui::InputFloat3("editor/Rotation"_localized, &m_rotation.x);
@@ -559,7 +559,7 @@ namespace Engine
 
 						ImGui::TableNextColumn();
 
-						if (ImGui::Selectable(actor->class_instance()->base_name().c_str(), m_world->is_selected(actor),
+						if (ImGui::Selectable(actor->class_instance()->name().c_str(), m_world->is_selected(actor),
 						                      ImGuiSelectableFlags_SpanAllColumns))
 						{
 							m_world->select_actor(actor);

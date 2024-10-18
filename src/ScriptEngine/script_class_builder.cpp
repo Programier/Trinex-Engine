@@ -34,7 +34,7 @@ namespace Engine
 
 	void Class::bind_class_to_script_engine()
 	{
-		auto registrar = ScriptClassRegistrar::existing_class(name().to_string());
+		auto registrar = ScriptClassRegistrar::existing_class(full_name().to_string());
 
 		auto base = parent();
 
@@ -42,12 +42,13 @@ namespace Engine
 
 		if (base)
 		{
-			ScriptEngine::engine()->RegisterObjectBaseType(name().c_str(), base->name().c_str());
+			ScriptEngine::engine()->RegisterObjectBaseType(full_name().c_str(), base->full_name().c_str());
 		}
 
 		if (flags(IsConstructible))
 		{
-			auto factory = Strings::format(R"({}@ f(StringView name = "", Engine::Object owner = null))", name().to_string());
+			auto factory =
+					Strings::format(R"({}@ f(StringView name = "", Engine::Object owner = null))", full_name().to_string());
 			registrar.behave(ScriptClassBehave::Construct, "void f()", native_default_object_constructor);
 			registrar.behave(ScriptClassBehave::Construct, R"(void f(StringView name, Engine::Object owner = null))",
 			                 native_object_constructor);
@@ -71,12 +72,12 @@ namespace Engine
 
 		if (parent_class)
 		{
-			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, name().to_string(),
-			                                          {parent_class->name().to_string()});
+			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, full_name().to_string(),
+													  {parent_class->full_name().to_string()});
 		}
 		else
 		{
-			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, name().to_string());
+			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, full_name().to_string());
 		}
 	}
 

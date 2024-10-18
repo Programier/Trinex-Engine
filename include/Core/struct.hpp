@@ -17,7 +17,7 @@ namespace Engine
 		struct ENGINE_EXPORT StructCompare {
 			bool operator()(const Struct* a, const Struct* b) const
 			{
-				return a->name().to_string() < b->name().to_string();
+				return a->full_name().to_string() < b->full_name().to_string();
 			}
 		};
 
@@ -78,11 +78,10 @@ namespace Engine
 
 		static ENGINE_EXPORT Struct* static_find(const StringView& name, bool requred = false);
 
-		const String& base_name_splitted() const;
-		const Name& name() const;
+		const String& name_splitted() const;
+		const Name& full_name() const;
 		const Name& namespace_name() const;
-		const Name& base_name() const;
-		const Name& parent_name() const;
+		const Name& name() const;
 		Struct* parent() const;
 		virtual void* create_struct() const;
 		virtual const Struct& destroy_struct(void* obj) const;

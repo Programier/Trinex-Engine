@@ -113,8 +113,8 @@ namespace Engine
 
 		// Find index for insert
 		Index index = 0;
-		auto& name  = instance->base_name().to_string();
-		for (Index size = m_structs.size(); index < size && name > m_structs[index]->name().to_string(); index++)
+		auto& name  = instance->name().to_string();
+		for (Index size = m_structs.size(); index < size && name > m_structs[index]->full_name().to_string(); index++)
 		{
 		}
 

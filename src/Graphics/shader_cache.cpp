@@ -18,7 +18,7 @@ namespace Engine
 	{
 		if (rhi_name.empty())
 		{
-			return rhi->info.struct_instance->base_name().to_string();
+			return rhi->info.struct_instance->name().to_string();
 		}
 		return rhi_name;
 	}

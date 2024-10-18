@@ -29,7 +29,7 @@ namespace Engine
 
 	Struct::Struct(const Name& ns, const Name& name, const Name& _parent)
 	    : m_alloc(nullptr), m_free(nullptr), m_full_name(Strings::concat_scoped_name(ns, name)), m_namespace_name(ns),
-	      m_base_name(name), m_parent(_parent)
+		  m_base_name(name), m_parent(_parent)
 	{
 		m_base_name_splitted = Strings::make_sentence(m_base_name.to_string());
 
@@ -51,7 +51,7 @@ namespace Engine
 		m_parent_struct = parent;
 		if (m_parent_struct)
 		{
-			m_parent = m_parent_struct->name();
+			m_parent = m_parent_struct->full_name();
 			m_parent_struct->m_childs.insert(this);
 		}
 	}
@@ -100,12 +100,12 @@ namespace Engine
 		return it->second;
 	}
 
-	const String& Struct::base_name_splitted() const
+	const String& Struct::name_splitted() const
 	{
 		return m_base_name_splitted;
 	}
 
-	const Name& Struct::name() const
+	const Name& Struct::full_name() const
 	{
 		return m_full_name;
 	}
@@ -115,14 +115,9 @@ namespace Engine
 		return m_namespace_name;
 	}
 
-	const Name& Struct::base_name() const
+	const Name& Struct::name() const
 	{
 		return m_base_name;
-	}
-
-	const Name& Struct::parent_name() const
-	{
-		return m_parent;
 	}
 
 	Struct* Struct::parent() const

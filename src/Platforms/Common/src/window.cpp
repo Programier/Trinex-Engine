@@ -47,7 +47,7 @@ namespace Engine
 
 	static SDL_WindowFlags sdl_api()
 	{
-		const Name api_name = rhi->info.struct_instance->base_name();
+		const Name api_name = rhi->info.struct_instance->name();
 		if (api_name == "OPENGL")
 		{
 			return SDL_WINDOW_OPENGL;

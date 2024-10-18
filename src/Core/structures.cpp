@@ -35,7 +35,7 @@ namespace Engine
 			Name name;
 
 			if (info.type)
-				name = info.type->name();
+				name = info.type->full_name();
 			ar & name;
 		}
 

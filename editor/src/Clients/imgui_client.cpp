@@ -27,7 +27,7 @@ namespace Engine
 	static ImGuiEditorClient* open_editor_client(Class* client)
 	{
 		WindowConfig new_config;
-		new_config.client = client->name().to_string();
+		new_config.client = client->full_name().to_string();
 		auto window       = WindowManager::instance()->create_window(new_config);
 		return Object::instance_cast<ImGuiEditorClient>(window->render_viewport()->client());
 	}
@@ -39,7 +39,7 @@ namespace Engine
 
 		if (self != skip && self != ImGuiEditorClient::static_class_instance())
 		{
-			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->base_name_splitted()));
+			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->name_splitted()));
 
 			if (ImGui::MenuItem(fmt.c_str(), nullptr, false, !m_opened_clients.contains(self)))
 			{

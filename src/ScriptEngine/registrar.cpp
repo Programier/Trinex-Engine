@@ -211,8 +211,9 @@ namespace Engine
 		info.implicit_handle = true;
 		info.extra_flags     = asOBJ_APP_NATIVE_INHERITANCE;
 
-		auto res = ScriptClassRegistrar(class_instance->name().to_string(), class_instance->sizeof_class(), create_flags(info));
-		auto ti  = res.type_info();
+		auto res =
+				ScriptClassRegistrar(class_instance->full_name().to_string(), class_instance->sizeof_class(), create_flags(info));
+		auto ti                          = res.type_info();
 		class_instance->script_type_info = ti;
 		ti.info()->SetNativeClassUserData(class_instance);
 		return res;

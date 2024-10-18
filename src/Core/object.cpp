@@ -495,7 +495,7 @@ namespace Engine
 
 	String Object::as_string() const
 	{
-		return Strings::format("{}: {}", class_instance()->name().c_str(),
+		return Strings::format("{}: {}", class_instance()->full_name().c_str(),
 		                       m_name.is_valid() ? m_name.to_string().c_str() : "NoName");
 	}
 

@@ -11,7 +11,7 @@ namespace Engine::ShaderCompiler
 	{
 		if (api_name.empty())
 		{
-			StringView new_name = rhi->info.struct_instance->base_name().to_string();
+			StringView new_name = rhi->info.struct_instance->name().to_string();
 			if (new_name.empty())
 				return nullptr;
 			return static_create_compiler(new_name);

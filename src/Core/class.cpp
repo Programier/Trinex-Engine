@@ -18,7 +18,7 @@ namespace Engine
 	Class::Class(const Name& ns, const Name& name, Class* parent, BitMask _flags) : Struct(ns, name, parent)
 	{
 		m_size = 0;
-		info_log("Class", "Created class instance '%s'", this->name().c_str());
+		info_log("Class", "Created class instance '%s'", this->full_name().c_str());
 		flags               = _flags;
 		m_singletone_object = nullptr;
 		m_destroy_func      = GarbageCollector::destroy_internal;
@@ -234,9 +234,9 @@ namespace Engine
 		ScriptBindingsInitializeController().push([]() {
 			auto reg = ScriptClassRegistrar::existing_class("Engine::Class");
 			reg.method("Class@ parent() const", &Class::parent);
-			reg.method("const Name& name() const", &Class::name);
+			reg.method("const Name& full_name() const", &Class::full_name);
 			reg.method("const Name& namespace_name() const", &Class::namespace_name);
-			reg.method("const Name& base_name() const", &Class::base_name);
+			reg.method("const Name& name() const", &Class::name);
 			reg.static_function("Class@ static_find(const StringView& in)", Class::static_find);
 			reg.method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a));
 			reg.method("uint64 sizeof_class() const", &Class::sizeof_class);
