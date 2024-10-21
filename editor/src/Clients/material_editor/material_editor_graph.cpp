@@ -1,7 +1,7 @@
 #include <Clients/material_editor_client.hpp>
 #include <Core/blueprints.hpp>
-#include <Core/class.hpp>
 #include <Core/group.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -357,7 +357,7 @@ namespace Engine
 		ed::Resume();
 	}
 
-	static bool match_filter(Struct* self, const String& filter)
+	static bool match_filter(Refl::Struct* self, const String& filter)
 	{
 		if (self->is_class())
 		{
@@ -380,7 +380,7 @@ namespace Engine
 		if (filter.empty())
 			return true;
 
-		for (Struct* instance : group->structs())
+		for (Refl::Struct* instance : group->structs())
 		{
 			if (match_filter(instance, filter))
 				return true;
@@ -395,12 +395,12 @@ namespace Engine
 		return false;
 	}
 
-	static Class* render_node_types(Group* group, const String& filter, bool changed)
+	static Refl::Class* render_node_types(Group* group, const String& filter, bool changed)
 	{
 		if (!group)
 			return nullptr;
 
-		Class* current = nullptr;
+		Refl::Class* current = nullptr;
 
 		for (auto* child : group->childs())
 		{
@@ -428,7 +428,7 @@ namespace Engine
 				if (ImGui::TreeNodeEx(child->name().c_str()))
 				{
 					ImGui::Indent(10.f);
-					Class* new_class = render_node_types(child, filter, changed);
+					Refl::Class* new_class = render_node_types(child, filter, changed);
 
 					if (!current && new_class)
 						current = new_class;
@@ -441,7 +441,7 @@ namespace Engine
 			ImGui::PopID();
 		}
 
-		for (Struct* instance : group->structs())
+		for (Refl::Struct* instance : group->structs())
 		{
 			if (instance->is_class())
 			{
@@ -454,7 +454,7 @@ namespace Engine
 
 				if (ImGui::MenuItem(instance->name().c_str()))
 				{
-					current = reinterpret_cast<Class*>(instance);
+					current = Refl::Object::instance_cast<Refl::Class>(instance);
 				}
 			}
 		}
@@ -486,7 +486,7 @@ namespace Engine
 			ImGui::Separator();
 
 			static Group* root_group = Group::find("Engine::VisualMaterialGraphGroups");
-			if (Class* self = render_node_types(root_group, m_graph_state.m_nodes_filter, filter_changed))
+			if (Refl::Class* self = render_node_types(root_group, m_graph_state.m_nodes_filter, filter_changed))
 			{
 				auto node      = material->create_node(self);
 				node->position = state.m_node_spawn_position;

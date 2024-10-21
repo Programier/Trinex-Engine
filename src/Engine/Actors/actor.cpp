@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
@@ -43,7 +43,7 @@ namespace Engine
 		ScriptObject(this).execute(script_actor_destroyed);
 	}
 
-	ActorComponent* Actor::create_component(Class* self, const Name& component_name)
+	ActorComponent* Actor::create_component(Refl::Class* self, const Name& component_name)
 	{
 		if (self == nullptr)
 			return nullptr;
@@ -240,18 +240,18 @@ namespace Engine
 		return static_cast<bool>(archive);
 	}
 
-	implement_engine_class(Actor, Class::IsScriptable)
+	implement_engine_class(Actor, Refl::Class::IsScriptable)
 	{
-		Class* self = This::static_class_instance();
+		Refl::Class* self = This::static_class_instance();
 
-		self->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		self->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			script_actor_update     = r->method("void update(float dt)", &Actor::scoped_update<Actor>);
 			script_actor_start_play = r->method("void start_play()", &Actor::scoped_start_play<Actor>);
 			script_actor_stop_play  = r->method("void stop_play()", &Actor::scoped_stop_play<Actor>);
 			script_actor_spawned    = r->method("void spawned()", &Actor::scoped_spawned<Actor>);
 			script_actor_destroyed  = r->method("void destroyed()", &Actor::scoped_destroyed<Actor>);
 
-			ActorComponent* (*create_component)(Actor*, Class*, const Name&) = [](Actor* actor, Class* self, const Name& name) {
+			ActorComponent* (*create_component)(Actor*, Refl::Class*, const Name&) = [](Actor* actor, Refl::Class* self, const Name& name) {
 				return actor->create_component(self, name);
 			};
 

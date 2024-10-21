@@ -1,10 +1,10 @@
 #include "logo.hpp"
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/exception.hpp>
 #include <Core/library.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>

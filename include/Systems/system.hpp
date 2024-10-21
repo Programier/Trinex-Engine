@@ -39,7 +39,7 @@ namespace Engine
 		virtual System& update(float dt);
 		virtual System& shutdown();
 		static System* new_system(const String& name);
-		static System* new_system(class Class* class_instance);
+		static System* new_system(class Refl::Class* class_instance);
 
 		const Vector<System*>& subsystems() const;
 		System& register_subsystem(System* system);
@@ -49,7 +49,7 @@ namespace Engine
 		System* find_subsystem(const char* name, size_t len);
 		System* find_subsystem(const char* name);
 		System* find_subsystem(const String& name);
-		virtual class Class* depends_on() const;
+		virtual class Refl::Class* depends_on() const;
 		bool is_shutdowned() const;
 
 		template<typename SystemType>

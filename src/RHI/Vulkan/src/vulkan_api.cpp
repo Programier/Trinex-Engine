@@ -1,7 +1,8 @@
 ﻿#include <VkBootstrap.h>
 
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/profiler.hpp>
-#include <Core/struct.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
 #include <Window/config.hpp>
@@ -27,9 +28,12 @@ namespace Engine
 {
 	VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
-	using VULKAN = VulkanAPI;
+	namespace TRINEX_RHI
+	{
+		using VULKAN = VulkanAPI;
+	}
 
-	implement_struct_default_init(Engine::RHI, VULKAN);
+	implement_struct_default_init(Engine::TRINEX_RHI::VULKAN);
 
 	VulkanAPI* VulkanAPI::static_constructor()
 	{

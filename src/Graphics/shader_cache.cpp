@@ -4,7 +4,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/struct.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>

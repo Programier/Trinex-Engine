@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/structures.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -11,8 +11,7 @@
 
 namespace Engine::MaterialParameters
 {
-#define implement_parameter(name) implement_class(Engine::MaterialParameters, name, Class::IsAsset)
-
+#define implement_parameter(name) implement_class(Engine::MaterialParameters::name, 0)
 
 	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, MaterialParameterInfo* info)
 	{

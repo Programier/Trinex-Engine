@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/game_controller.hpp>
 #include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>

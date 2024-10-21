@@ -88,13 +88,13 @@
 
 #define declare_struct(struct_name, base_name)                                                                                   \
 protected:                                                                                                                       \
-	static class Engine::Struct* m_static_struct;                                                                                \
+    static Engine::Refl::Struct* m_static_struct;                                                                                \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = struct_name;                                                                                                   \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_struct();                                                                                      \
-	static class Engine::Struct* static_struct_instance();
+	static class Engine::Refl::Struct* static_struct_instance();
 
 
 #define declare_enum_operators(T)                                                                                                \

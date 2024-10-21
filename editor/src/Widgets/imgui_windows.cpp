@@ -1,8 +1,8 @@
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/icons.hpp>
 #include <Core/package.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -135,16 +135,16 @@ namespace Engine
 		return "editor/New Package Title"_localized;
 	}
 
-	ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& filters)
+	ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Class*)>& filters)
 	    : m_parent(pkg), filters(filters)
 	{
 		if (filters.empty())
 		{
-			m_filtered_classes = Class::asset_classes();
+			m_filtered_classes = Refl::Class::asset_classes();
 		}
 		else
 		{
-			for (Class* class_instance : Class::asset_classes())
+			for (Refl::Class* class_instance : Refl::Class::asset_classes())
 			{
 				for (auto& [id, filter] : filters.callbacks())
 				{
@@ -160,7 +160,7 @@ namespace Engine
 
 	static const char* get_asset_class_name_default(void* userdata, int index)
 	{
-		return (*reinterpret_cast<Vector<Class*>*>(userdata))[index]->full_name().c_str();
+		return (*reinterpret_cast<Vector<Refl::Class*>*>(userdata))[index]->name().c_str();
 	}
 
 	bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
@@ -196,8 +196,8 @@ namespace Engine
 
 			if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
 			{
-				Class* class_instance  = m_filtered_classes[current_index];
-				Object* created_object = class_instance->create_object(new_asset_name);
+				Refl::Class* class_instance = m_filtered_classes[current_index];
+				Object* created_object      = class_instance->create_object(new_asset_name);
 				m_parent->add_object(created_object);
 				open = false;
 			}
@@ -399,25 +399,28 @@ namespace Engine
 		}
 	}
 
-	void ImGuiSpawnNewActor::build_tree(Node* node, class Class* self)
+	void ImGuiSpawnNewActor::build_tree(Node* node, class Refl::Class* self)
 	{
 		node->self = self;
 
-		for (Class* child : self->child_classes())
+		for (Refl::Struct* child : self->childs())
 		{
 			if (child->parent() == self)
 			{
-				Node* child_node = new Node();
-				build_tree(child_node, child);
-				node->childs.insert(child_node);
+				if (Refl::Class* child_class = Refl::Object::instance_cast<Refl::Class>(child))
+				{
+					Node* child_node = new Node();
+					build_tree(child_node, child_class);
+					node->childs.insert(child_node);
+				}
 			}
 		}
 	}
 
 	ImGuiSpawnNewActor::ImGuiSpawnNewActor(class World* world) : world(world)
 	{
-		Class* actor_class = Class::static_find("Engine::Actor", true);
-		m_root             = new Node();
+		auto* actor_class = Refl::Class::static_find("Engine::Actor", Refl::FindFlags::IsRequired);
+		m_root            = new Node();
 		build_tree(m_root, actor_class);
 		m_monitor_size = Platform::monitor_info().size;
 	}

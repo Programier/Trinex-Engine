@@ -1,4 +1,3 @@
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
@@ -7,6 +6,7 @@
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
@@ -20,11 +20,11 @@
 
 namespace Engine
 {
-	Map<Struct*, void (*)(class ImGuiObjectProperties*, void*, Struct*, bool)> special_class_properties_renderers;
+	Map<Refl::Struct*, void (*)(class ImGuiObjectProperties*, void*, Refl::Struct*, bool)> special_class_properties_renderers;
 	static Map<size_t, ImGuiObjectProperties::PropertyRenderer> m_renderers;
 
-	static bool render_struct_properties(ImGuiObjectProperties*, void* object, class Struct* struct_class, bool editable = true,
-	                                     bool is_in_table = false);
+	static bool render_struct_properties(ImGuiObjectProperties*, void* object, class Refl::Struct* struct_class,
+										 bool editable = true, bool is_in_table = false);
 
 	static FORCE_INLINE float get_column_width(ImGuiTableColumn& column)
 	{
@@ -180,7 +180,7 @@ namespace Engine
 
 			if (object)
 			{
-				Struct* struct_class = object->class_instance();
+				auto* struct_class = object->class_instance();
 				if (props_collapsing_header(prop, prop->name().c_str()))
 				{
 					push_props_id(object, prop);
@@ -198,7 +198,7 @@ namespace Engine
 	static bool render_object_reference_internal(ImGuiObjectProperties* window, void* object, Property* prop, Object*& value,
 	                                             bool can_edit)
 	{
-		Struct* self     = prop->struct_instance();
+		auto* self       = prop->struct_instance();
 		const float size = ImGui::GetFrameHeight();
 
 		bool changed = false;
@@ -262,8 +262,8 @@ namespace Engine
 
 		if (value.has_value())
 		{
-			void* struct_object  = value.cast<void*>();
-			Struct* struct_class = prop->struct_instance();
+			void* struct_object = value.cast<void*>();
+			auto* struct_class  = prop->struct_instance();
 			if (props_collapsing_header(prop, prop->name().c_str()))
 			{
 				push_props_id(object, prop);
@@ -386,13 +386,13 @@ namespace Engine
 		return is_changed;
 	}
 
-	static bool render_struct_properties(ImGuiObjectProperties* window, void* object, class Struct* struct_class, bool editable,
+	static bool render_struct_properties(ImGuiObjectProperties* window, void* object, Refl::Struct* struct_class, bool editable,
 	                                     bool is_in_table)
 	{
 		if (!is_in_table)
 			begin_prop_table();
 
-		for (Struct* self = struct_class; self; self = self->parent())
+		for (Refl::Struct* self = struct_class; self; self = self->parent())
 		{
 			auto it = special_class_properties_renderers.find(self);
 
@@ -481,7 +481,7 @@ namespace Engine
 		return open;
 	}
 
-	Struct* ImGuiObjectProperties::struct_instance() const
+	Refl::Struct* ImGuiObjectProperties::struct_instance() const
 	{
 		return m_object ? m_object->class_instance() : nullptr;
 	}
@@ -492,7 +492,7 @@ namespace Engine
 	}
 
 
-	ImGuiObjectProperties::PropertiesMap& ImGuiObjectProperties::build_props_map(Struct* self)
+	ImGuiObjectProperties::PropertiesMap& ImGuiObjectProperties::build_props_map(Refl::Struct* self)
 	{
 		auto& map = m_properties[self];
 		map.clear();
@@ -516,11 +516,11 @@ namespace Engine
 		return *this;
 	}
 
-	const ImGuiObjectProperties::PropertiesMap& ImGuiObjectProperties::properties_map(Struct* self)
+	const ImGuiObjectProperties::PropertiesMap& ImGuiObjectProperties::properties_map(Refl::Struct* self)
 	{
 		auto& map = m_properties[self];
 
-		static auto has_props = [](Struct* self) -> bool {
+		static auto has_props = [](Refl::Struct* self) -> bool {
 			while (self)
 			{
 				if (!self->properties().empty())
@@ -538,7 +538,7 @@ namespace Engine
 		return map;
 	}
 
-	ImGuiObjectProperties& ImGuiObjectProperties::render_struct_properties(void* object, class Struct* struct_class,
+	ImGuiObjectProperties& ImGuiObjectProperties::render_struct_properties(void* object, Refl::Struct* struct_class,
 	                                                                       bool editable)
 	{
 		::Engine::render_struct_properties(this, object, struct_class, editable, true);

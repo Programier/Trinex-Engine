@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>

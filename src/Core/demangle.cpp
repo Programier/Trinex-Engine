@@ -2,10 +2,8 @@
 #include <Core/string_functions.hpp>
 #include <cxxabi.h>
 
-
 namespace Engine::Demangle
 {
-
 	ENGINE_EXPORT String decode_name(const String& name)
 	{
 		std::size_t len;

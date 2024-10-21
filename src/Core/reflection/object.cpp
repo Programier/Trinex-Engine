@@ -7,22 +7,22 @@
 namespace Engine::Refl
 {
 	static Set<Object*> m_instances;
-	static bool m_remove_on_delete                 = true;
+	static bool m_check_exiting_instance           = true;
 	static thread_local StringView m_accepted_name = "";
 
 	static void destroy_reflection_instances()
 	{
-		m_remove_on_delete = false;
+		m_check_exiting_instance = false;
 
-		for (Object* object : m_instances)
+		while (!m_instances.empty())
 		{
-			Object::destroy_instance(object);
+			Object::destroy_instance(*m_instances.begin());
 		}
 
-		m_remove_on_delete = true;
+		m_check_exiting_instance = true;
 	}
 
-	static DestroyController destroy_controller(destroy_reflection_instances);
+	static PostDestroyController destroy_controller(destroy_reflection_instances);
 
 	Object::Link::Link(const char* name, const Link* const parent) : class_name(Strings::class_name_sv_of(name)), parent(parent)
 	{}
@@ -52,7 +52,8 @@ namespace Engine::Refl
 	{
 		if (name != "Root")
 		{
-			trinex_always_check(static_find(name) == nullptr, "Object with same name already exist");
+			trinex_always_check(static_find(name, FindFlags::DisableReflectionCheck) == nullptr,
+								"Object with same name already exist");
 		}
 
 		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
@@ -62,7 +63,8 @@ namespace Engine::Refl
 	Object::Object() : m_owner(nullptr), m_name(Strings::class_name_of(m_accepted_name))
 	{
 		trinex_always_check(!m_accepted_name.empty(), "Reflection object name cannot be empty!");
-		trinex_always_check(!m_name.empty(), "Reflection object name cannot be empty!");
+		trinex_always_check(m_name.is_valid(), "Reflection object name cannot be empty!");
+		m_name_splitted = Strings::make_sentence(m_name);
 
 		auto owner_name = Strings::namespace_sv_of(m_accepted_name);
 
@@ -84,8 +86,7 @@ namespace Engine::Refl
 
 	Object::~Object()
 	{
-		if (m_remove_on_delete)
-			m_instances.erase(this);
+		m_instances.erase(this);
 	}
 
 	const Object::Link* Object::link() const
@@ -132,9 +133,14 @@ namespace Engine::Refl
 		return m_owner;
 	}
 
-	const String& Object::name() const
+	const Name& Object::name() const
 	{
 		return m_name;
+	}
+
+	const String& Object::name_splitted() const
+	{
+		return m_name_splitted;
 	}
 
 	void Object::full_name(String& out) const
@@ -192,10 +198,15 @@ namespace Engine::Refl
 
 	bool Object::destroy_instance(Object* object)
 	{
-		if (!m_remove_on_delete || m_instances.find(object) != m_instances.end())
+		if (!m_check_exiting_instance || m_instances.find(object) != m_instances.end())
 		{
+			bool check_exiting_instance_tmp = m_check_exiting_instance;
+			m_check_exiting_instance        = true;
+
 			object->on_destroy(object);
 			delete object;
+
+			m_check_exiting_instance = check_exiting_instance_tmp;
 			return true;
 		}
 		return false;

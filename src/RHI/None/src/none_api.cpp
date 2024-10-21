@@ -1,11 +1,10 @@
-#include <Core/struct.hpp>
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/reflection/struct.hpp>
 #include <none_api.hpp>
 
 namespace Engine
 {
 	NoneApi* NoneApi::m_instance = nullptr;
-
-	using NONE = NoneApi;
 
 	NoneApi* NoneApi::static_constructor()
 	{
@@ -28,7 +27,12 @@ namespace Engine
 		}
 	}
 
-	implement_struct_default_init(Engine::RHI, NONE);
+	namespace TRINEX_RHI
+	{
+		using NONE = NoneApi;
+	}
+
+	implement_struct_default_init(Engine::TRINEX_RHI::NONE);
 
 	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
 		void bind(BindLocation location) override

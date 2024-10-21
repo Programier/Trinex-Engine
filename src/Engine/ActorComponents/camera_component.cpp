@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>

@@ -5,6 +5,12 @@
 namespace Engine
 {
 	class Object;
+
+	namespace Refl
+	{
+		class Class;
+	};
+
 	class ENGINE_EXPORT GarbageCollector final
 	{
 	public:
@@ -16,6 +22,7 @@ namespace Engine
 
 		friend class EngineLoop;
 		friend class Class;
+		friend class Refl::Class;
 
 	private:
 		ENGINE_EXPORT static void submit_current_stage();

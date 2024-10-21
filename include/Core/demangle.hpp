@@ -1,12 +1,9 @@
 #pragma once
-#include <Core/class.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <typeinfo>
 
 namespace Engine::Demangle
 {
-
 	ENGINE_EXPORT String decode_name(const String& name);
 
 	template<typename Type>

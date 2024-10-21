@@ -1,6 +1,6 @@
 #include <Clients/imgui_client.hpp>
-#include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/scoped_type.hpp>
 #include <Graphics/imgui.hpp>

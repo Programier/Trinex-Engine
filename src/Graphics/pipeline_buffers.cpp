@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -10,11 +10,9 @@
 
 namespace Engine
 {
-
 	implement_engine_class_default_init(PipelineBuffer, 0);
 	implement_engine_class_default_init(VertexBuffer, 0);
 	implement_engine_class_default_init(SSBO, 0);
-
 
 	PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
 	{

@@ -1,10 +1,9 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/struct.hpp>
 #include <Core/transform.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -14,9 +13,9 @@ namespace Engine
 {
 	const Transform Transform::transform_zero;
 
-	implement_struct(Engine, Transform)
+	implement_struct(Engine::Transform)
 	{
-		Struct* self                = static_struct_instance();
+		auto* self                  = static_struct_instance();
 		static auto on_prop_changed = [](void* object) {
 			Transform* transform  = reinterpret_cast<Transform*>(object);
 			transform->m_is_dirty = true;

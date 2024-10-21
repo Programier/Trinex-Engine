@@ -1,8 +1,9 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
@@ -11,19 +12,19 @@
 
 namespace Engine
 {
-	implement_struct(Engine, MeshMaterial)
+	implement_struct(Engine::MeshMaterial)
 	{
-		Struct* self = static_struct_instance();
+		auto* self = static_struct_instance();
 		self->add_properties(new ClassProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
 		                     new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
 		                                                 &MeshMaterial::material));
 	}
 
-	implement_engine_class(StaticMesh, Class::IsAsset)
+	implement_engine_class(StaticMesh, Refl::Class::IsAsset)
 	{
-		Class* self                   = StaticMesh::static_class_instance();
-		Struct* mesh_materials_struct = Struct::static_find("Engine::MeshMaterial", true);
-		auto mesh_material_prop       = new StructProperty<This, MeshMaterial>("", "", nullptr, mesh_materials_struct);
+		auto* self                  = StaticMesh::static_class_instance();
+		auto* mesh_materials_struct = Refl::Struct::static_find("Engine::MeshMaterial", Refl::FindFlags::IsRequired);
+		auto mesh_material_prop     = new StructProperty<This, MeshMaterial>("", "", nullptr, mesh_materials_struct);
 		self->add_property(new ArrayProperty<This, decltype(materials)>("Materials", "Array of materials for this primitive",
 		                                                                &This::materials, mesh_material_prop));
 	}

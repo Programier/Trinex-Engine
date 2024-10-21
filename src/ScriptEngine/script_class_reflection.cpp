@@ -1,12 +1,11 @@
-#include <Core/class.hpp>
 #include <Core/group.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 #include <regex>
-
 
 namespace Engine
 {
@@ -237,7 +236,7 @@ namespace Engine
 		}
 	}
 
-	static void register_primitive_property(Class* self, const TreeSet<String>& metadata, int_t type_id, uint_t prop_idx)
+	static void register_primitive_property(Refl::Class* self, const TreeSet<String>& metadata, int_t type_id, uint_t prop_idx)
 	{
 		if (!metadata.contains("property"))
 			return;
@@ -316,8 +315,7 @@ namespace Engine
 		string_type_id = ScriptEngine::type_id_by_decl("string");
 	}
 
-
-	static void register_object_property(Class* self, const TreeSet<String>& metadata, int_t type_id, uint_t prop_idx)
+	static void register_object_property(Refl::Class* self, const TreeSet<String>& metadata, int_t type_id, uint_t prop_idx)
 	{
 		Property* prop = nullptr;
 
@@ -369,7 +367,7 @@ namespace Engine
 		self->add_property(prop);
 	}
 
-	static void register_class_metadata(Class* self, const TreeSet<String>& metadata)
+	static void register_class_metadata(Refl::Class* self, const TreeSet<String>& metadata)
 	{
 		for (auto& argument : metadata)
 		{
@@ -384,7 +382,7 @@ namespace Engine
 		}
 	}
 
-	Script& Script::register_reflection(Class* self)
+	Script& Script::register_reflection(Refl::Class* self)
 	{
 		auto& type      = self->script_type_info;
 		auto prop_count = type.property_count();

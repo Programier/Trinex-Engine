@@ -26,7 +26,7 @@ namespace Engine
 	public:
 		CallBacks<void(Object*)> on_object_select;
 		CallBacks<void(Object*)> on_object_double_click;
-		CallBacks<bool(class Class*)> filters;
+		CallBacks<bool(Refl::Class*)> filters;
 
 		class Object* selected_object = nullptr;
 

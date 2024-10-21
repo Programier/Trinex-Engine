@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/property.hpp>
-#include <Core/struct.hpp>
+#include <Core/reflection/class.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
@@ -28,7 +28,7 @@ namespace Engine
 		{
 			Name name;
 			ar & name;
-			info.type = Class::static_find(name, true);
+			info.type = Refl::Class::static_find(name, Refl::FindFlags::IsRequired);
 		}
 		else
 		{
@@ -50,9 +50,9 @@ namespace Engine
 	    : type(nullptr), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
 	{}
 
-	implement_struct(Engine, ShaderDefinition)
+	implement_struct(Engine::ShaderDefinition)
 	{
-		Struct* self = static_struct_instance();
+		Refl::Struct* self = static_struct_instance();
 		self->add_property(new ClassProperty("Key", "Key of definition", &ShaderDefinition::key));
 		self->add_property(new ClassProperty("Value", "Value of definition", &ShaderDefinition::value));
 	}

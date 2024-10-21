@@ -1,8 +1,8 @@
 #include <Clients/texture_editor_client.hpp>
-#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>

@@ -79,7 +79,7 @@ namespace Engine
 
 	static void initialize_special_class_properties_renderers()
 	{
-		special_class_properties_renderers[reinterpret_cast<Struct*>(StaticMesh::static_class_instance())] = renderer;
+		//special_class_properties_renderers[reinterpret_cast<Struct*>(StaticMesh::static_class_instance())] = renderer;
 	}
 
 	static InitializeController on_post_init(initialize_special_class_properties_renderers);

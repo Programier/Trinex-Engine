@@ -1,8 +1,8 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/threading.hpp>
 #include <Event/event.hpp>
@@ -269,7 +269,7 @@ namespace Engine
 		//                   &EventSystem::process_event_method);
 	}
 
-	implement_engine_class(EventSystem, Class::IsScriptable)
+	implement_engine_class(EventSystem, Refl::Class::IsScriptable)
 	{}
 
 

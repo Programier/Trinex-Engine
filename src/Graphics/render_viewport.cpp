@@ -1,5 +1,5 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
@@ -17,9 +17,9 @@ namespace Engine
 	static ScriptFunction vc_on_unbind_viewport;
 	static ScriptFunction vc_render;
 
-	implement_engine_class(RenderViewport, Class::IsScriptable)
+	implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			r->method("Vector2D size() const final", &This::size);
 			r->method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
 			r->method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
@@ -30,9 +30,9 @@ namespace Engine
 	implement_engine_class_default_init(WindowRenderViewport, 0);
 	implement_engine_class_default_init(SurfaceRenderViewport, 0);
 
-	implement_engine_class(ViewportClient, Class::IsScriptable)
+	implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			vc_update             = r->method("void update(RenderViewport viewport, float dt)", &This::update);
 			vc_on_bind_viewport   = r->method("void on_bind_viewport(RenderViewport)", &This::on_bind_viewport);
 			vc_on_unbind_viewport = r->method("void on_unbind_viewport(RenderViewport)", &This::on_unbind_viewport);
@@ -101,7 +101,7 @@ namespace Engine
 
 	ViewportClient* ViewportClient::create(const StringView& name)
 	{
-		Class* client_class = Class::static_find(name);
+		auto* client_class = Refl::Class::static_find(name);
 
 		if (client_class)
 		{

@@ -1,7 +1,7 @@
 #include <Clients/material_editor_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/blueprints.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>

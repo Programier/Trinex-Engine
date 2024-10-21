@@ -679,7 +679,7 @@ public:                                                                         
 	{                                                                                                                            \
 		return #NodeName;                                                                                                        \
 	}                                                                                                                            \
-	implement_class(Engine::VisualMaterialGraph, NodeName, 0)                                                                    \
+	implement_class(Engine::VisualMaterialGraph::NodeName, 0)                                                                    \
 	{                                                                                                                            \
 		if constexpr (!std::is_same_v<Root, NodeName>)                                                                           \
 		{                                                                                                                        \

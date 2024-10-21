@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/thread.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
@@ -35,7 +35,7 @@ namespace Engine
 		return *this;
 	}
 
-	class Class* LogicSystem::depends_on() const
+	class Refl::Class* LogicSystem::depends_on() const
 	{
 		return EventSystem::static_class_instance();
 	}

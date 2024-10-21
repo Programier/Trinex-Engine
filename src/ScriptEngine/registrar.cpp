@@ -1,6 +1,6 @@
-#include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
+#include <Core/reflection/class.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_type_info.hpp>
@@ -204,16 +204,15 @@ namespace Engine
 		return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
 	}
 
-	ScriptClassRegistrar ScriptClassRegistrar::reference_class(Class* class_instance)
+	ScriptClassRegistrar ScriptClassRegistrar::reference_class(Refl::Class* class_instance)
 	{
 		ScriptClassRegistrar::RefInfo info;
 		info.no_count        = true;
 		info.implicit_handle = true;
 		info.extra_flags     = asOBJ_APP_NATIVE_INHERITANCE;
 
-		auto res =
-				ScriptClassRegistrar(class_instance->full_name().to_string(), class_instance->sizeof_class(), create_flags(info));
-		auto ti                          = res.type_info();
+		auto res = ScriptClassRegistrar(class_instance->full_name(), class_instance->sizeof_class(), create_flags(info));
+		auto ti  = res.type_info();
 		class_instance->script_type_info = ti;
 		ti.info()->SetNativeClassUserData(class_instance);
 		return res;

@@ -5,7 +5,7 @@
 
 
 #include <Clients/imgui_client.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/render_viewport.hpp>
 
 
@@ -91,11 +91,10 @@ namespace Engine
 
 		if (ImGui::CollapsingHeader("editor/Devices"_localized))
 		{
-			for(auto& [mount, fs] : rootfs()->filesystems())
+			for (auto& [mount, fs] : rootfs()->filesystems())
 			{
-				if(ImGui::Button(fs.name.c_str()))
+				if (ImGui::Button(fs.name.c_str()))
 				{
-					
 				}
 			}
 		}

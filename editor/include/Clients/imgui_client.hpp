@@ -21,8 +21,8 @@ namespace Engine
 		void draw_available_clients_for_opening();
 
 	public:
-		static bool register_client(Class* object_type, Class* renderer);
-		static ImGuiEditorClient* client_of(Class* object_type, bool create_if_not_exist = false);
+		static bool register_client(Refl::Class* object_type, Refl::Class* renderer);
+		static ImGuiEditorClient* client_of(Refl::Class* object_type, bool create_if_not_exist = false);
 
 		ImGuiEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ImGuiEditorClient& on_unbind_viewport(class RenderViewport* viewport) override;

@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/Actors/light_actor.hpp>
 
 namespace Engine

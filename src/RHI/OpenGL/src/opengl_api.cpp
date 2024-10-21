@@ -1,5 +1,6 @@
 #include <Core/definitions.hpp>
-#include <Core/struct.hpp>
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Window/config.hpp>
 #include <opengl_api.hpp>
 #include <opengl_buffers.hpp>
@@ -8,8 +9,12 @@
 
 namespace Engine
 {
-	using OPENGL = OpenGL;
-	implement_struct_default_init(Engine::RHI, OPENGL);
+	namespace TRINEX_RHI
+	{
+		using OPENGL = OpenGL;
+	}
+
+	implement_struct_default_init(Engine::TRINEX_RHI::OPENGL);
 
 	OpenGL* OpenGL::static_constructor()
 	{

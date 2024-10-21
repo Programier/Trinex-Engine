@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/touchscreen_system.hpp>

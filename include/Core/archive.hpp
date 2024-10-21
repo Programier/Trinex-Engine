@@ -35,7 +35,7 @@ namespace Engine
 			}
 		}
 
-		class Object* load_object(const StringView& name, class Class* self);
+		class Object* load_object(const StringView& name, class Refl::Class* self);
 
 	public:
 		Flags<SerializationFlags> flags;

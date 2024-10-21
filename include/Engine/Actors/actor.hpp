@@ -105,7 +105,7 @@ namespace Engine
 		}
 
 	public:
-		ActorComponent* create_component(Class* self, const Name& name = {});
+		ActorComponent* create_component(Refl::Class* self, const Name& name = {});
 
 		template<typename ComponentType>
 		FORCE_INLINE ComponentType* create_component(const Name& name = {})

@@ -64,7 +64,7 @@ namespace Engine
 		String m_name;
 		String m_code;
 		ScriptFolder* m_folder;
-		Set<class Class*> m_classes;
+		Set<Refl::Class*> m_classes;
 
 		// Metadata info
 		TreeMap<int_t, TreeSet<String>> m_func_metadata_map;
@@ -76,7 +76,7 @@ namespace Engine
 		Script(ScriptFolder* folder, const String& name);
 
 		Script& load_metadata(Builder& builder);
-		Script& register_reflection(Class* self);
+		Script& register_reflection(Refl::Class* self);
 		bool load_classes(asITypeInfo* info);
 		Script& load_classes();
 		Script& unload_classes();

@@ -1,7 +1,7 @@
-#include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
+#include <Core/reflection/class.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_object.hpp>

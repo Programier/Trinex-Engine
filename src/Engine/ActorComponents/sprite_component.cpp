@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -16,7 +16,7 @@ namespace Engine
 {
 	implement_engine_class(SpriteComponent, 0)
 	{
-		Class* self    = This::static_class_instance();
+		auto* self     = This::static_class_instance();
 		Property* prop = new ObjectReferenceProperty("Texture", "Sprite texture", &This::m_texture);
 		prop->on_prop_changed.push([](void* object) { reinterpret_cast<SpriteComponent*>(object)->on_transform_changed(); });
 		self->add_property(prop);

@@ -1,10 +1,10 @@
 #include <Clients/editor_client.hpp>
-#include <Core/class.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/icons.hpp>
 #include <Core/importer.hpp>
 #include <Core/localization.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>

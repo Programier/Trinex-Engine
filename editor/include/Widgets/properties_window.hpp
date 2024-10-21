@@ -14,8 +14,8 @@ namespace Engine
 		Object* m_object;
 		Identifier m_destroy_id;
 
-		TreeMap<class Struct*, PropertiesMap> m_properties;
-		PropertiesMap& build_props_map(Struct* self);
+		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
+		PropertiesMap& build_props_map(Refl::Struct* self);
 
 		static void register_prop_renderer(size_t type_id, const PropertyRenderer& renderer);
 
@@ -27,12 +27,12 @@ namespace Engine
 		~ImGuiObjectProperties();
 
 		bool render(RenderViewport* viewport) override;
-		Struct* struct_instance() const;
+		Refl::Struct* struct_instance() const;
 		Object* object() const;
 
 		ImGuiObjectProperties& update(Object* object);
-		const PropertiesMap& properties_map(Struct* self);
-		ImGuiObjectProperties& render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
+		const PropertiesMap& properties_map(Refl::Struct* self);
+		ImGuiObjectProperties& render_struct_properties(void* object, class Refl::Struct* struct_class, bool editable = true);
 		ImGuiObjectProperties& setup_next_row();
 		static bool collapsing_header(const void* id, const char* format, ...);
 

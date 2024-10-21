@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Actors/point_light_actor.hpp>

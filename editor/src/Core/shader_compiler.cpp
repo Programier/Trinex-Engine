@@ -1,11 +1,11 @@
 #include <Core/definitions.hpp>
 
 #if !PLATFORM_ANDROID
-#include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/shader_compiler.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
@@ -26,7 +26,8 @@ namespace Engine::ShaderCompiler
 		return                                                                                                                   \
 		{}
 
-	static Vector<Class* (*) (slang::TypeReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)> m_param_parsers;
+	static Vector<Refl::Class* (*) (slang::TypeReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)>
+			m_param_parsers;
 
 #define return_nullptr_if_not(cond)                                                                                              \
 	if (!(cond))                                                                                                                 \
@@ -36,7 +37,7 @@ namespace Engine::ShaderCompiler
 		using Scalar = slang::TypeReflection::ScalarType;
 
 		template<typename Type, Scalar required_scalar>
-		static Class* primitive(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		static Refl::Class* primitive(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			return_nullptr_if_not(rows == 1);
 			return_nullptr_if_not(columns == 1);
@@ -46,7 +47,7 @@ namespace Engine::ShaderCompiler
 		}
 
 		template<typename Type, Scalar required_scalar>
-		static Class* vector(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		static Refl::Class* vector(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			auto len = static_cast<uint_t>(decltype(Type::value)::length());
 			return_nullptr_if_not(rows == 1);
@@ -57,7 +58,7 @@ namespace Engine::ShaderCompiler
 		}
 
 		template<typename Type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
-		static Class* matrix(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		static Refl::Class* matrix(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			return_nullptr_if_not(rows == required_rows);
 			return_nullptr_if_not(columns == required_columns);
@@ -274,7 +275,7 @@ namespace Engine::ShaderCompiler
 		return true;
 	}
 
-	static Class* find_scalar_parameter_type(slang::TypeReflection* reflection)
+	static Refl::Class* find_scalar_parameter_type(slang::TypeReflection* reflection)
 	{
 		auto rows     = reflection->getRowCount();
 		auto colums   = reflection->getColumnCount();
@@ -835,10 +836,10 @@ namespace Engine::ShaderCompiler
 		return compile_shader(slang_source, definitions, errors, &setup);
 	}
 
-	implement_class_default_init(Engine::ShaderCompiler, OPENGL_Compiler, 0);
-	implement_class_default_init(Engine::ShaderCompiler, VULKAN_Compiler, 0);
-	implement_class_default_init(Engine::ShaderCompiler, NONE_Compiler, 0);
-	implement_class_default_init(Engine::ShaderCompiler, D3D11_Compiler, 0);
+	implement_class_default_init(Engine::ShaderCompiler::OPENGL_Compiler, 0);
+	implement_class_default_init(Engine::ShaderCompiler::VULKAN_Compiler, 0);
+	implement_class_default_init(Engine::ShaderCompiler::NONE_Compiler, 0);
+	implement_class_default_init(Engine::ShaderCompiler::D3D11_Compiler, 0);
 
 	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{

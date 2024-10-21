@@ -1,6 +1,6 @@
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/group.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -1054,7 +1054,7 @@ namespace Engine::VisualMaterialGraph
 	implement_visual_material_node(Sin, Math);
 	implement_visual_material_node(Cos, Math);
 
-	implement_class_default_init(Engine::VisualMaterialGraph, BinaryOperatorNode, 0);
+	implement_class_default_init(Engine::VisualMaterialGraph::BinaryOperatorNode, 0);
 
 	const NodeSignature& BinaryOperatorNode::signature() const
 	{

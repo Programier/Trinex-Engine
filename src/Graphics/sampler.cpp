@@ -1,18 +1,18 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 
 namespace Engine
 {
-	implement_engine_class(Sampler, Class::IsAsset)
+	implement_engine_class(Sampler, Refl::Class::IsAsset)
 	{
-		Class* self                   = static_class_instance();
+		auto* self                    = static_class_instance();
 		Refl::Enum* address_mode_enum = Refl::Enum::static_find("Engine::SamplerAddressMode", Refl::FindFlags::IsRequired);
 
 		self->add_properties(new ClassProperty("Border color", "Border color", &This::border_color),

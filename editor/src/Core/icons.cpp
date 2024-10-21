@@ -1,4 +1,3 @@
-#include <Core/class.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/icons.hpp>

@@ -186,7 +186,7 @@ namespace Engine
 	ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
 
 	struct ENGINE_EXPORT MaterialParameterInfo {
-		class Class* type = nullptr;
+		class Refl::Class* type = nullptr;
 		String name;
 		size_t size;
 		size_t offset;

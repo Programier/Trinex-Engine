@@ -23,7 +23,7 @@ namespace Engine
 		VisualMaterial();
 		const Vector<Pointer<VisualMaterialGraph::Node>>& nodes() const;
 		VisualMaterial& register_node(VisualMaterialGraph::Node* node);
-		VisualMaterialGraph::Node* create_node(class Class* node_class, const Vector2D& position = {});
+		VisualMaterialGraph::Node* create_node(class Refl::Class* node_class, const Vector2D& position = {});
 
 		template<typename T>
 		T* create_node()

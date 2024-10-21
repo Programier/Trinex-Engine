@@ -1,11 +1,11 @@
 #include <Clients/imgui_client.hpp>
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/icons.hpp>
 #include <Core/package.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture_2D.hpp>

@@ -1,11 +1,11 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/object.hpp>
 
 namespace Engine
 {
-	class Object* Archive::load_object(const StringView& name, class Class* self)
+	class Object* Archive::load_object(const StringView& name, class Refl::Class* self)
 	{
 		Object* object = Object::load_object(name);
 		if (object && object->class_instance()->is_a(self))

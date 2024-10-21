@@ -1,9 +1,9 @@
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -372,7 +372,7 @@ namespace Engine
 		return *this;
 	}
 
-	static Object* script_object_constructor(Class* self, StringView name, Object* owner)
+	static Object* script_object_constructor(Refl::Class* self, StringView name, Object* owner)
 	{
 		asITypeInfo* type = self->script_type_info.info();
 
@@ -435,10 +435,11 @@ namespace Engine
 		if (!load_classes(base))
 			return false;
 
-		auto base_class = reinterpret_cast<Class*>(base->GetNativeClassUserData());
+		auto base_class = reinterpret_cast<Refl::Class*>(base->GetNativeClassUserData());
 
-		Class* script_class = new Class(Strings::make_string_view(info->GetNamespace()),
-		                                Strings::make_string_view(info->GetName()), base_class, Class::IsScriptable);
+		auto decl                 = Strings::concat_scoped_name(Strings::make_string_view(info->GetNamespace()),
+																Strings::make_string_view(info->GetName()));
+		Refl::Class* script_class = Refl::Object::new_instance<Refl::Class>(decl, base_class, Refl::Class::IsScriptable);
 
 		info->SetNativeClassUserData(script_class);
 
@@ -447,7 +448,7 @@ namespace Engine
 		script_class->destroy_func(script_object_destructor);
 
 		m_classes.insert(script_class);
-		script_class->on_class_destroy.push([this](Class* self) { m_classes.erase(self); });
+		script_class->on_class_destroy.push([this](Refl::Class* self) { m_classes.erase(self); });
 
 		register_reflection(script_class);
 		return true;
@@ -470,9 +471,9 @@ namespace Engine
 	{
 		auto classes = std::move(m_classes);
 
-		for (Class* class_instance : classes)
+		for (Refl::Class* class_instance : classes)
 		{
-			delete class_instance;
+			Refl::Object::destroy_instance(class_instance);
 		}
 
 		return *this;

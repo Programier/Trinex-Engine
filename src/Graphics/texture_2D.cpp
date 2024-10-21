@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
@@ -21,9 +21,9 @@ namespace Engine
 
 	void (*Texture2D::generate_mips)(ColorFormat format, Vector<Texture2DMip>&) = nullptr;
 
-	implement_engine_class(Texture2D, Class::IsAsset)
+	implement_engine_class(Texture2D, Refl::Class::IsAsset)
 	{
-		Class* self_class = static_class_instance();
+		auto* self_class = static_class_instance();
 		self_class->add_properties(new ClassProperty("Path", "Path to texture", &Texture2D::path));
 		self_class->add_property(new EnumProperty("Format", "Color format of this texture", &This::m_format,
 												  Refl::Enum::static_find("Engine::ColorFormat", Refl::FindFlags::IsRequired),

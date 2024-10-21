@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/local_light_component.hpp>
@@ -19,7 +19,7 @@ namespace Engine
 
 	implement_engine_class(LocalLightComponent, 0)
 	{
-		Class* self = static_class_instance();
+		auto* self = static_class_instance();
 
 		static auto on_prop_changed = [](void* object) {
 			LocalLightComponent* component = reinterpret_cast<LocalLightComponent*>(object);

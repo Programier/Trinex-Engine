@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -124,7 +124,7 @@ namespace Engine
 		return *this;
 	}
 
-	Actor* World::spawn_actor(class Class* self, const Vector3D& location, const Vector3D& rotation, const Vector3D& scale,
+	Actor* World::spawn_actor(class Refl::Class* self, const Vector3D& location, const Vector3D& rotation, const Vector3D& scale,
 	                          const Name& actor_name)
 	{
 		if (!self)

@@ -23,6 +23,11 @@ namespace Engine
 	class Texture2D;
 	struct GlobalShaderParameters;
 
+	namespace Refl
+	{
+		class Struct;
+	}
+
 
 	struct ENGINE_EXPORT RHI_Object {
 	protected:
@@ -103,7 +108,7 @@ namespace Engine
 		struct Info {
 			String name;
 			String renderer;
-			class Struct* struct_instance = nullptr;
+			Refl::Struct* struct_instance = nullptr;
 		} info;
 
 		virtual RHI& initialize(class Window* window) = 0;
@@ -146,7 +151,7 @@ namespace Engine
 		virtual RHI& push_debug_stage(const char* stage, const Color& color = {}) = 0;
 		virtual RHI& pop_debug_stage()                                            = 0;
 
-		virtual ~RHI(){};
+		virtual ~RHI() {};
 	};
 
 	ENGINE_EXPORT extern RHI* rhi;

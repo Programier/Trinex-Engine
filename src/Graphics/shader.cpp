@@ -1,13 +1,14 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/name.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
@@ -15,9 +16,7 @@
 
 namespace Engine
 {
-	using Attribute = VertexShader::Attribute;
-
-	implement_struct(Engine::VertexShader, Attribute)
+	implement_struct(Engine::VertexShader::Attribute)
 	{
 		auto self = static_struct_instance();
 
@@ -28,7 +27,7 @@ namespace Engine
 				Refl::Enum::static_find("Engine::VertexBufferSemantic", Refl::FindFlags::IsRequired);
 
 		self->add_property(new ClassProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
-		                                     Property::IsConst | Property::IsNotSerializable));
+											 Property::IsConst | Property::IsNotSerializable));
 		self->add_property(new EnumProperty("Element Type", "Type of element of this attribute", &VertexShader::Attribute::type,
 		                                    type_enum, Name::none, Property::IsNotSerializable));
 		self->add_property(new EnumProperty("Rate", "Rate of this attribute", &VertexShader::Attribute::rate,
@@ -63,8 +62,8 @@ namespace Engine
 
 	implement_engine_class(VertexShader, 0)
 	{
-		Class* self              = This::static_class_instance();
-		Struct* attribute_struct = Struct::static_find("Engine::VertexShader::Attribute", true);
+		auto* self             = This::static_class_instance();
+		auto* attribute_struct = Refl::Struct::static_find("Engine::VertexShader::Attribute", Refl::FindFlags::IsRequired);
 
 		auto attributes_prop =
 		        new StructProperty<This, Attribute>("", "", nullptr, attribute_struct, Name::none, Property::IsNotSerializable);

@@ -11,9 +11,9 @@ namespace Engine
 	class ENGINE_EXPORT SingletoneBase
 	{
 	protected:
-		static void register_singletone(const Class* class_instance, Object* object);
-		static void unlink_instance(const Class* class_instance);
-		static Object* extract_object_from_class(const Class* class_instance);
+		static void register_singletone(const Refl::Class* class_instance, Object* object);
+		static void unlink_instance(const Refl::Class* class_instance);
+		static Object* extract_object_from_class(const Refl::Class* class_instance);
 	};
 
 	struct EmptySingletoneParent {

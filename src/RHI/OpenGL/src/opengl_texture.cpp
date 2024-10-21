@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>

@@ -1,4 +1,3 @@
-#include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
@@ -9,6 +8,7 @@
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Platform/platform.hpp>

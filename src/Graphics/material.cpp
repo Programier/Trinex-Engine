@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -24,16 +24,16 @@ namespace Engine
 	{
 		auto element_type = new ObjectProperty<This, Parameter>("", "", nullptr, Name::none, Property::IsNotSerializable);
 		auto array_type   = new ArrayProperty<This, Vector<Parameter*>>("Parameters", "Array of parammeters of this material",
-                                                                      &This::m_parameters, element_type, Name::none,
-                                                                      Property::IsNotSerializable);
+																		&This::m_parameters, element_type, Name::none,
+																		Property::IsNotSerializable);
 		array_type->element_name_callback(default_array_object_element_name);
 		static_class_instance()->add_property(array_type);
 	}
 
-	implement_engine_class(Material, Class::IsAsset)
+	implement_engine_class(Material, Refl::Class::IsAsset)
 	{
-		Class* self               = static_class_instance();
-		Struct* definition_struct = Struct::static_find("Engine::ShaderDefinition", true);
+		auto* self              = static_class_instance();
+		auto* definition_struct = Refl::Struct::static_find("Engine::ShaderDefinition", Refl::FindFlags::IsRequired);
 
 		auto definitions_prop = new ArrayProperty("Definitions", "Compile definitions", &This::compile_definitions,
 		                                          new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
@@ -42,9 +42,9 @@ namespace Engine
 		                                        Name::none, Property::IsNotSerializable));
 	}
 
-	implement_engine_class(MaterialInstance, Class::IsAsset)
+	implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
-		Class* self = MaterialInstance::static_class_instance();
+		auto* self = MaterialInstance::static_class_instance();
 		self->add_property(new ObjectReferenceProperty("Parent Material", "Parent Material of this instance",
 		                                               &MaterialInstance::parent_material));
 	}
@@ -344,7 +344,7 @@ namespace Engine
 			names_to_remove.insert(entry->name());
 		}
 
-		auto create_material_parameter = [&](Name name, Class* type) -> Parameter* {
+		auto create_material_parameter = [&](Name name, Refl::Class* type) -> Parameter* {
 			names_to_remove.erase(name);
 			Parameter* material_parameter = find_parameter(name);
 

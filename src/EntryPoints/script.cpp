@@ -1,8 +1,8 @@
 #include <Core/arguments.hpp>
-#include <Core/class.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/etl/script_array.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -14,7 +14,6 @@
 
 namespace Engine
 {
-
 	class ScriptExec : public EntryPoint
 	{
 		declare_class(ScriptExec, EntryPoint);

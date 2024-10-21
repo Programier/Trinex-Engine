@@ -1,5 +1,4 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
@@ -9,6 +8,7 @@
 #include <Core/mouse.hpp>
 #include <Core/package.hpp>
 #include <Core/profiler.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
@@ -72,8 +72,6 @@ namespace Engine
 				return *this;
 			}
 		};
-
-		implement_class_default_init(Engine::ImGuiBackend, ImGuiMaterial, Class::IsAsset);
 
 		bool imgui_trinex_rhi_init(ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
@@ -528,8 +526,6 @@ namespace Engine
 				return *this;
 			}
 		};
-
-		implement_class_default_init(Engine::ImGuiBackend, ImGuiViewportClient, 0);
 
 		static ImGuiTrinexWindowData* imgui_trinex_backend_data()
 		{
@@ -1753,3 +1749,16 @@ namespace ImGui
 		return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 }// namespace ImGui
+
+
+namespace Engine
+{
+	implement_class_default_init(Engine::ImGuiBackend_RHI::ImGuiMaterial, Refl::Class::IsAsset);
+	implement_class_default_init(Engine::ImGuiBackend_Window::ImGuiViewportClient, 0);
+
+
+	static ReflectionInitializeController on_init([]() {
+		auto owner = Refl::ScopedType::static_find("Engine::ImGuiBackend", Refl::FindFlags::CreateScope);
+		ImGuiBackend_RHI::ImGuiMaterial::static_class_instance()->owner(owner);
+	});
+}// namespace Engine

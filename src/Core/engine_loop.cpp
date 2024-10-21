@@ -1,6 +1,5 @@
 #include <Core/arguments.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loop.hpp>
@@ -10,6 +9,8 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
@@ -45,8 +46,9 @@ namespace Engine
 		}
 
 		String api = Settings::e_api;
-		rhi        = reinterpret_cast<RHI*>(
-                Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
+		auto decl  = Strings::format("Engine::TRINEX_RHI::{}", Strings::to_upper(api));
+		rhi        = reinterpret_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
+
 		if (!rhi)
 		{
 			throw EngineException("Failed to init API");
@@ -81,7 +83,7 @@ namespace Engine
 		init_api(true);
 
 		int_t result = 0;
-		if (Object* entry_object = Class::static_find(entry_name, true)->create_object())
+		if (Object* entry_object = Refl::Class::static_find(entry_name, Refl::FindFlags::IsRequired)->create_object())
 		{
 			if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
 			{
@@ -123,8 +125,8 @@ namespace Engine
 			}
 		}
 
-		Class* engine_class = Class::static_find(Settings::e_engine, true);
-		Object* object      = engine_class->create_object();
+		Refl::Class* engine_class = Refl::Class::static_find(Settings::e_engine, Refl::FindFlags::IsRequired);
+		Object* object            = engine_class->create_object();
 
 		if (object)
 		{
@@ -255,7 +257,7 @@ namespace Engine
 
 		GarbageCollector::destroy_all_objects();
 		render_thread()->wait_all();
-		
+
 		if (rhi)
 		{
 			// Cannot delete rhi in logic thread, because the gpu resources can be used now

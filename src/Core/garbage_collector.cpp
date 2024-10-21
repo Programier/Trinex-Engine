@@ -1,10 +1,10 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/settings.hpp>
 
 #define DISABLE_GC 1
@@ -98,7 +98,7 @@ namespace Engine
 			}
 		}
 
-		for (Class* self = object->class_instance(); self; self = self->parent())
+		for (Refl::Class* self = object->class_instance(); self; self = self->parent())
 		{
 			self->on_destroy(object);
 		}
@@ -184,7 +184,7 @@ namespace Engine
 
 		if (!object->flags(Object::IsUnreachable))
 		{
-			Class* class_instance = object->class_instance();
+			Refl::Class* class_instance = object->class_instance();
 
 			if (class_instance)
 			{

@@ -1,11 +1,10 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Systems/system.hpp>
-#include <algorithm>
 #include <cstring>
 
 
@@ -42,8 +41,8 @@ namespace Engine
 
 	System& System::create()
 	{
-		const Class* _this  = This::static_class_instance();
-		const Class* _class = class_instance();
+		const Refl::Class* _this  = This::static_class_instance();
+		const Refl::Class* _class = class_instance();
 
 		if (_class == nullptr || _this == nullptr || _this == _class)
 		{
@@ -125,8 +124,8 @@ namespace Engine
 
 	static bool sort_systems_predicate(System* first, System* second)
 	{
-		Class* _first  = first->class_instance();
-		Class* _second = second->depends_on();
+		Refl::Class* _first  = first->class_instance();
+		Refl::Class* _second = second->depends_on();
 
 
 		while (_first && _second)
@@ -200,7 +199,7 @@ namespace Engine
 		return find_subsystem(name.c_str(), name.length());
 	}
 
-	class Class* System::depends_on() const
+	class Refl::Class* System::depends_on() const
 	{
 		return nullptr;
 	}
@@ -231,7 +230,7 @@ namespace Engine
 		return *this;
 	}
 
-	System* System::new_system(class Class* class_instance)
+	System* System::new_system(class Refl::Class* class_instance)
 	{
 		if (class_instance && class_instance->is_a(System::static_class_instance()))
 		{
@@ -248,7 +247,7 @@ namespace Engine
 
 	System* System::new_system(const String& name)
 	{
-		return new_system(Class::static_find(name));
+		return new_system(Refl::Class::static_find(name));
 	}
 
 	const Vector<System*>& System::subsystems() const
@@ -280,9 +279,9 @@ namespace Engine
 		}
 	}
 
-	implement_engine_class(System, Class::IsScriptable)
+	implement_engine_class(System, Refl::Class::IsScriptable)
 	{
-		Class* self = static_class_instance();
+		Refl::Class* self = static_class_instance();
 		self->on_destroy.push(on_system_destroy);
 	}
 }// namespace Engine

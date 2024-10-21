@@ -52,12 +52,12 @@ namespace Engine
 		bool allow_rename = false;
 		int current_index = 0;
 
-		Vector<class Class*> m_filtered_classes;
+		Vector<Refl::Class*> m_filtered_classes;
 
 	public:
-		CallBacks<bool(class Class*)> filters;
+		CallBacks<bool(class Refl::Class*)> filters;
 
-		ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& = {});
+		ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Class*)>& = {});
 		bool render(class RenderViewport* viewport) override;
 		virtual const char* name() const;
 		static const char* static_name();
@@ -120,7 +120,7 @@ namespace Engine
 	class ImGuiSpawnNewActor : public ImGuiWidget
 	{
 		struct Node {
-			class Class* self = nullptr;
+			class Refl::Class* self = nullptr;
 
 			struct Compare {
 				bool operator()(const Node* a, const Node* b) const;
@@ -142,7 +142,7 @@ namespace Engine
 		String m_name;
 		bool m_is_open = false;
 
-		void build_tree(Node* node, class Class* self);
+		void build_tree(Node* node, class Refl::Class* self);
 		void render_tree(Node* node);
 		void render_parameters();
 		void begin_dock_space();

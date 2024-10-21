@@ -1,12 +1,13 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
@@ -20,15 +21,9 @@
 
 namespace Engine
 {
-	using DepthTestInfo     = Pipeline::DepthTestInfo;
-	using StencilTestInfo   = Pipeline::StencilTestInfo;
-	using AssemblyInfo      = Pipeline::AssemblyInfo;
-	using RasterizerInfo    = Pipeline::RasterizerInfo;
-	using ColorBlendingInfo = Pipeline::ColorBlendingInfo;
-
-	implement_struct(Engine::Pipeline, DepthTestInfo)
+	implement_struct(Engine::Pipeline::DepthTestInfo)
 	{
-		Struct* self = static_struct_instance();
+		auto* self = static_struct_instance();
 
 		self->add_properties(new EnumProperty("Func", "Depth compare function", &This::func,
 											  Refl::Enum::static_find("Engine::DepthFunc", Refl::FindFlags::IsRequired)),
@@ -36,9 +31,9 @@ namespace Engine
 							 new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
 	}
 
-	implement_struct(Engine::Pipeline, StencilTestInfo)
+	implement_struct(Engine::Pipeline::StencilTestInfo)
 	{
-		Struct* self                  = static_struct_instance();
+		auto* self                    = static_struct_instance();
 		Refl::Enum* stencil_op_enum   = Refl::Enum::static_find("Engine::StencilOp", Refl::FindFlags::IsRequired);
 		Refl::Enum* compare_func_enum = Refl::Enum::static_find("Engine::CompareFunc", Refl::FindFlags::IsRequired);
 
@@ -51,17 +46,17 @@ namespace Engine
 		                     new ClassProperty("Write mask", "Stencil write mask", &This::write_mask));
 	}
 
-	implement_struct(Engine::Pipeline, AssemblyInfo)
+	implement_struct(Engine::Pipeline::AssemblyInfo)
 	{
-		Struct* self = static_struct_instance();
+		auto* self = static_struct_instance();
 		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
 											  &This::primitive_topology,
 											  Refl::Enum::static_find("Engine::PrimitiveTopology", Refl::FindFlags::IsRequired)));
 	}
 
-	implement_struct(Engine::Pipeline, RasterizerInfo)
+	implement_struct(Engine::Pipeline::RasterizerInfo)
 	{
-		Struct* self = static_struct_instance();
+		auto* self = static_struct_instance();
 
 		self->add_properties(
 		        new EnumProperty("Polygon mode", "Polygon Mode", &This::polygon_mode,
@@ -73,9 +68,9 @@ namespace Engine
 		        new ClassProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
 	}
 
-	implement_struct(Engine::Pipeline, ColorBlendingInfo)
+	implement_struct(Engine::Pipeline::ColorBlendingInfo)
 	{
-		Struct* self = static_struct_instance();
+		auto* self = static_struct_instance();
 
 		auto* blend_func = Refl::Enum::static_find("Engine::BlendFunc", Refl::FindFlags::IsRequired);
 		auto* blend_op   = Refl::Enum::static_find("Engine::BlendOp", Refl::FindFlags::IsRequired);
@@ -586,16 +581,18 @@ namespace Engine
 
 	implement_engine_class(Pipeline, 0)
 	{
-		Class* self = static_class_instance();
+		auto* self    = static_class_instance();
+		auto required = Refl::FindFlags::IsRequired;
+
 		self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
-		                                        Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
+												Refl::Struct::static_find("Engine::Pipeline::DepthTestInfo", required)),
 		                     new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
-		                                        Struct::static_find("Engine::Pipeline::StencilTestInfo", true)),
+												Refl::Struct::static_find("Engine::Pipeline::StencilTestInfo", required)),
 		                     new StructProperty("Assembly Input", "Assembly Input", &Pipeline::input_assembly,
-		                                        Struct::static_find("Engine::Pipeline::AssemblyInfo", true)),
+												Refl::Struct::static_find("Engine::Pipeline::AssemblyInfo", required)),
 		                     new StructProperty("Rasterizer", "Rasterizer properties", &Pipeline::rasterizer,
-		                                        Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
+												Refl::Struct::static_find("Engine::Pipeline::RasterizerInfo", required)),
 		                     new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
-		                                        Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)));
+												Refl::Struct::static_find("Engine::Pipeline::ColorBlendingInfo", required)));
 	}
 }// namespace Engine

@@ -1,7 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/class.hpp>
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
@@ -12,6 +11,7 @@
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
@@ -27,7 +27,7 @@ namespace Engine
 	static ScriptFunction script_object_postload;
 
 	static thread_local struct NextObjectInfo {
-		Class* class_instance;
+		Refl::Class* class_instance;
 
 		NextObjectInfo()
 		{
@@ -41,7 +41,7 @@ namespace Engine
 
 	} next_object_info;
 
-	void Object::setup_next_object_info(Class* self, bool override)
+	void Object::setup_next_object_info(Refl::Class* self, bool override)
 	{
 		if (next_object_info.class_instance && !override)
 		{
@@ -56,9 +56,9 @@ namespace Engine
 		next_object_info.reset();
 	}
 
-	implement_engine_class(Object, Class::IsScriptable)
+	implement_engine_class(Object, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			r->method("const string& string_name() const final", &Object::string_name);
 			r->static_function("Package@ root_package()", &Object::root_package);
 			r->method("string as_string() const final", &Object::as_string);
@@ -110,7 +110,7 @@ namespace Engine
 		ScriptObject(this).execute(script_object_postload);
 	}
 
-	bool Object::private_check_instance(const Class* const check_class) const
+	bool Object::private_check_instance(const Refl::Class* const check_class) const
 	{
 		const void* self = this;
 		if (self == nullptr)
@@ -150,7 +150,7 @@ namespace Engine
 		next_object_info.reset();
 	}
 
-	class Class* Object::class_instance() const
+	class Refl::Class* Object::class_instance() const
 	{
 		return m_class;
 	}
@@ -638,13 +638,13 @@ namespace Engine
 	}
 
 
-	static FORCE_INLINE Class* find_class(const Vector<Name>& hierarchy)
+	static FORCE_INLINE Refl::Class* find_class(const Vector<Name>& hierarchy)
 	{
-		Class* instance = nullptr;
+		Refl::Class* instance = nullptr;
 
 		for (Name name : hierarchy)
 		{
-			if ((instance = Class::static_find(name, false)))
+			if ((instance = Refl::Class::static_find(name)))
 			{
 				return instance;
 			}
@@ -694,7 +694,7 @@ namespace Engine
 		Vector<Name> hierarchy;
 		raw_ar & hierarchy;
 
-		Class* self = find_class(hierarchy);
+		Refl::Class* self = find_class(hierarchy);
 
 		if (self == nullptr)
 		{
@@ -807,7 +807,7 @@ namespace Engine
 		}
 	}
 
-	Object* Object::static_new_instance(Class* object_class, StringView name, Object* owner)
+	Object* Object::static_new_instance(Refl::Class* object_class, StringView name, Object* owner)
 	{
 		if (object_class)
 		{
@@ -816,7 +816,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	Object* Object::static_new_placement_instance(void* place, Class* object_class, StringView name, Object* owner)
+	Object* Object::static_new_placement_instance(void* place, Refl::Class* object_class, StringView name, Object* owner)
 	{
 		if (object_class)
 		{

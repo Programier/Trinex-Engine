@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
-#include <Core/struct.hpp>
+#include <Core/reflection/struct.hpp>
 
 namespace Engine
 {
@@ -9,7 +9,7 @@ namespace Engine
 	    : instace(_instance), element_type(_element_type)
 	{}
 
-	StructPropertyValue::StructPropertyValue(const void* _instance, class Struct* _struct)
+	StructPropertyValue::StructPropertyValue(const void* _instance, class Refl::Struct* _struct)
 	    : instace(_instance), struct_instance(_struct)
 	{}
 
@@ -118,7 +118,7 @@ namespace Engine
 		return 0;
 	}
 
-	Struct* Property::struct_instance()
+	Refl::Struct* Property::struct_instance()
 	{
 		return nullptr;
 	}
@@ -153,7 +153,7 @@ namespace Engine
 		return m_flags(IsColor);
 	}
 
-	static FORCE_INLINE List<Property*> collect_serializable_properties(Struct* self)
+	static FORCE_INLINE List<Property*> collect_serializable_properties(Refl::Struct* self)
 	{
 		List<Property*> result;
 
@@ -167,7 +167,7 @@ namespace Engine
 		return result;
 	}
 
-	static bool serialize_object_properies(Struct* self, void* object, Archive& ar)
+	static bool serialize_object_properies(Refl::Struct* self, void* object, Archive& ar)
 	{
 		if (ar.is_saving())
 		{
@@ -234,7 +234,7 @@ namespace Engine
 		return ar;
 	}
 
-	bool Property::serialize_properies(class Struct* self, void* object, Archive& ar)
+	bool Property::serialize_properies(class Refl::Struct* self, void* object, Archive& ar)
 	{
 		return serialize_object_properies(self, object, ar);
 	}
@@ -302,7 +302,7 @@ namespace Engine
 
 	bool Object::serialize_object_properties(Archive& ar)
 	{
-		Struct* self = reinterpret_cast<Struct*>(class_instance());
+		Refl::Struct* self = reinterpret_cast<Refl::Struct*>(class_instance());
 		if (self == nullptr)
 			return false;
 

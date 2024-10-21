@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>

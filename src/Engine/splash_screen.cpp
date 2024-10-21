@@ -1,9 +1,9 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/garbage_collector.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/splash_config.hpp>
 #include <Engine/splash_screen.hpp>
@@ -242,7 +242,7 @@ namespace Engine
 
 	ENGINE_EXPORT void splash_screen_text(SplashTextType type, const StringView& text)
 	{
-		return ;
+		return;
 		class UpdateText : public ExecutableObject
 		{
 			SplashTextType m_type;

@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/actor_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -13,9 +13,9 @@ namespace Engine
 	static ScriptFunction script_actor_comp_spawned;
 	static ScriptFunction script_actor_comp_destroyed;
 
-	implement_engine_class(ActorComponent, Class::IsScriptable)
+	implement_engine_class(ActorComponent, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			script_actor_comp_start_play = r->method("void start_play()", &This::scoped_start_play<ActorComponent>);
 			script_actor_comp_stop_play  = r->method("void stop_play()", &This::scoped_stop_play<ActorComponent>);
 			script_actor_comp_update     = r->method("void update(float dt)", &This::scoped_update<ActorComponent>);

@@ -7,16 +7,18 @@ namespace Engine::Refl
 {
 	enum class FindFlags
 	{
-		None        = 0,
-		CreateScope = BIT(0),
-		IsRequired  = BIT(2),
+		None                   = 0,
+		CreateScope            = BIT(0),
+		IsRequired             = BIT(2),
+		DisableReflectionCheck = BIT(3),
 	};
 
 	class ENGINE_EXPORT Object
 	{
 	private:
 		Object* m_owner = nullptr;
-		String m_name;
+		Name m_name;
+		String m_name_splitted;
 
 	protected:
 		struct ENGINE_EXPORT Link {
@@ -51,7 +53,8 @@ namespace Engine::Refl
 		const Name& class_name() const;
 		Object& owner(Object* object);
 		Object* owner() const;
-		const String& name() const;
+		const Name& name() const;
+		const String& name_splitted() const;
 		String full_name() const;
 		String scope_name() const;
 

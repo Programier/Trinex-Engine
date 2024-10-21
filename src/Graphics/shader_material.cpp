@@ -1,16 +1,16 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/shader_material.hpp>
 
 
 namespace Engine
 {
-	implement_engine_class(ShaderMaterial, Class::IsAsset)
+	implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
 	{
-		Class* self    = This::static_class_instance();
+		auto* self     = This::static_class_instance();
 		auto path_prop = new ClassProperty("Shader Path", "Path to slang file", &This::shader_path, "Shader Material");
 
 		path_prop->on_prop_changed.push([](void* object) {

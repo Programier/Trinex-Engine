@@ -34,12 +34,12 @@ namespace Engine::Refl
 
 	Object* ScopedType::find(StringView name, FindFlags flags)
 	{
-		StringView instance = Strings::parse_name_identifier(name, &name);
+		String instance = String(Strings::parse_name_identifier(name, &name));
 
 		auto it        = m_childs.find(instance);
 		Object* object = nullptr;
 
-		if (it == m_childs.end())
+		if (it == m_childs.end() && !(flags & FindFlags::DisableReflectionCheck))
 		{
 			String controller_name = concat_scoped_name(full_name(), instance);
 			ReflectionInitializeController().require(controller_name);
@@ -73,9 +73,18 @@ namespace Engine::Refl
 		return object;
 	}
 
-	const Map<StringView, Object*>& ScopedType::childs() const
+	const Map<String, Object*>& ScopedType::childs() const
 	{
 		return m_childs;
 	}
 
+	ScopedType::~ScopedType()
+	{
+		auto childs = std::move(m_childs);
+
+		for (auto& [name, child] : childs)
+		{
+			Object::destroy_instance(child);
+		}
+	}
 }// namespace Engine::Refl

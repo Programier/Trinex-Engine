@@ -1,8 +1,8 @@
 #include <Clients/script_debuger_client.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Event/event.hpp>

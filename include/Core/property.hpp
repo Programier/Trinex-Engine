@@ -13,13 +13,6 @@ namespace Engine
         NOTE! If pointer to field in property class is nullptr, than use object address as address of property!
     */
 
-	class Struct;
-
-	namespace Refl
-	{
-		class Enum;
-	}
-
 	enum class PropertyType
 	{
 		Undefined       = 0,
@@ -39,10 +32,10 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT StructPropertyValue final {
-		const void* instace     = nullptr;
-		Struct* struct_instance = nullptr;
+		const void* instace           = nullptr;
+		Refl::Struct* struct_instance = nullptr;
 
-		StructPropertyValue(const void* _instance = nullptr, Struct* _struct = nullptr);
+		StructPropertyValue(const void* _instance = nullptr, Refl::Struct* _struct = nullptr);
 	};
 
 #define declare_prop_constructor(type)                                                                                           \
@@ -125,7 +118,7 @@ namespace Engine
 		String m_description;
 		Flags<Property::Flag> m_flags;
 
-		bool serialize_properies(class Struct* self, void* object, Archive& ar);
+		bool serialize_properies(class Refl::Struct* self, void* object, Archive& ar);
 
 	public:
 		CallBacks<void(void* object)> on_prop_changed;
@@ -153,7 +146,7 @@ namespace Engine
 		virtual PropertyType type() const                                              = 0;
 		virtual size_t type_id() const;
 
-		virtual Struct* struct_instance();
+		virtual Refl::Struct* struct_instance();
 		virtual class Refl::Enum* enum_instance();
 
 		virtual bool archive_process(void* object, Archive& ar);
@@ -373,7 +366,7 @@ namespace Engine
 		    : Super(name, description, prop, group, flags)
 		{}
 
-		Struct* struct_instance() override
+		Refl::Struct* struct_instance() override
 		{
 			return ObjectType::static_class_instance();
 		}
@@ -390,7 +383,7 @@ namespace Engine
 		    : Super(name, description, prop, group, flags)
 		{}
 
-		Struct* struct_instance() override
+		Refl::Struct* struct_instance() override
 		{
 			return ObjectType::static_class_instance();
 		}
@@ -400,12 +393,12 @@ namespace Engine
 	class StructProperty : public PrimitivePropertyBase<InstanceType, StructType>
 	{
 	private:
-		Struct* m_struct = nullptr;
+		Refl::Struct* m_struct = nullptr;
 
 		using Super = PrimitivePropertyBase<InstanceType, StructType>;
 
 	public:
-		StructProperty(const Name& name, const String& description, StructType InstanceType::*prop, class Struct* _struct,
+		StructProperty(const Name& name, const String& description, StructType InstanceType::*prop, class Refl::Struct* _struct,
 		               const Name& group = Name::none, BitMask flags = 0)
 		    : Super(name, description, group, flags)
 		{
@@ -468,7 +461,7 @@ namespace Engine
 			return false;
 		}
 
-		Struct* struct_instance() override
+		Refl::Struct* struct_instance() override
 		{
 			return m_struct;
 		}

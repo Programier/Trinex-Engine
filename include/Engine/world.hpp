@@ -36,7 +36,7 @@ namespace Engine
 
 		World& start_play();
 		World& stop_play();
-		Actor* spawn_actor(class Class* self, const Vector3D& location = {}, const Vector3D& rotation = {},
+		Actor* spawn_actor(class Refl::Class* self, const Vector3D& location = {}, const Vector3D& rotation = {},
 		                   const Vector3D& scale = {1, 1, 1}, const Name& name = {});
 
 		World& destroy_actor(Actor* actor);

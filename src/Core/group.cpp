@@ -1,8 +1,8 @@
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/struct.hpp>
 #include <cstring>
 
 namespace Engine
@@ -98,14 +98,14 @@ namespace Engine
 		return m_name;
 	}
 
-	const Vector<class Struct*>& Group::structs() const
+	const Vector<Refl::Struct*>& Group::structs() const
 	{
 		return m_structs;
 	}
 
-	Group& Group::add_struct(class Struct* instance)
+	Group& Group::add_struct(class Refl::Struct* instance)
 	{
-		for (class Struct* element : m_structs)
+		for (class Refl::Struct* element : m_structs)
 		{
 			if (element == instance)
 				return *this;
@@ -114,7 +114,8 @@ namespace Engine
 		// Find index for insert
 		Index index = 0;
 		auto& name  = instance->name().to_string();
-		for (Index size = m_structs.size(); index < size && name > m_structs[index]->full_name().to_string(); index++)
+
+		for (Index size = m_structs.size(); index < size && name > m_structs[index]->full_name(); index++)
 		{
 		}
 
@@ -123,9 +124,10 @@ namespace Engine
 		return *this;
 	}
 
-	Group& Group::remove_struct(class Struct* instance)
+	Group& Group::remove_struct(class Refl::Struct* instance)
 	{
-		auto removed = std::remove_if(m_structs.begin(), m_structs.end(), [instance](Struct* ell) { return ell == instance; });
+		auto removed =
+				std::remove_if(m_structs.begin(), m_structs.end(), [instance](Refl::Struct* ell) { return ell == instance; });
 		m_structs.erase(removed, m_structs.end());
 		return *this;
 	}

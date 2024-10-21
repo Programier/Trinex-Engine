@@ -1,7 +1,7 @@
-#include <Core/class.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/group.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
@@ -23,9 +23,9 @@ namespace Engine
 	static inline constexpr size_t normal_index          = 7;
 	static inline constexpr size_t position_offset_index = 8;
 
-	implement_engine_class(VisualMaterial, Class::IsAsset | Class::IsScriptable)
+	implement_engine_class(VisualMaterial, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
-		Class* self             = This::static_class_instance();
+		auto* self              = This::static_class_instance();
 		Refl::Enum* domain_enum = Refl::Enum::static_find("Engine::MaterialDomain", Refl::FindFlags::IsRequired);
 		self->add_property(new EnumProperty("Domain", "Domain of this material", &This::domain, domain_enum));
 	}
@@ -33,7 +33,7 @@ namespace Engine
 
 	VisualMaterial::VisualMaterial() : domain(MaterialDomain::Surface)
 	{
-		create_node(Class::static_find("Engine::VisualMaterialGraph::Root", true));
+		create_node(Refl::Class::static_find("Engine::VisualMaterialGraph::Root", Refl::FindFlags::IsRequired));
 	}
 
 	const Vector<Pointer<VisualMaterialGraph::Node>>& VisualMaterial::nodes() const
@@ -48,7 +48,7 @@ namespace Engine
 		return *this;
 	}
 
-	VisualMaterialGraph::Node* VisualMaterial::create_node(class Class* node_class, const Vector2D& position)
+	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2D& position)
 	{
 		if (node_class->is_a<VisualMaterialGraph::Node>())
 		{

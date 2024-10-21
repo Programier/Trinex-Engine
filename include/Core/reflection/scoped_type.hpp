@@ -7,13 +7,14 @@ namespace Engine::Refl
 	{
 		declare_reflect_type(ScopedType, Object);
 
-		Map<StringView, Object*> m_childs;
+		Map<String, Object*> m_childs;
 
 		ScopedType& unregister_subobject(Object* subobject) override;
 		ScopedType& register_subobject(Object* subobject) override;
 
+		~ScopedType();
 	public:
 		Object* find(StringView name, FindFlags flags = FindFlags::None) override;
-		const Map<StringView, Object*>& childs() const;
+		const Map<String, Object*>& childs() const;
 	};
 }// namespace Engine::Refl

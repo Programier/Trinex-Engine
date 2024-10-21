@@ -1,6 +1,6 @@
-#include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 
@@ -8,10 +8,10 @@ namespace Engine
 {
 	implement_engine_class(SceneComponent, 0)
 	{
-		Class* self              = static_class_instance();
-		Struct* transform_struct = Struct::static_find("Engine::Transform", true);
-		auto transform_property  = new StructProperty<This, Transform>("Transform", "Transform of this component", &This::m_local,
-                                                                      transform_struct, Name::none, 0);
+		auto* self              = static_class_instance();
+		auto* transform_struct  = Refl::Struct::static_find("Engine::Transform", Refl::FindFlags::IsRequired);
+		auto transform_property = new StructProperty<This, Transform>("Transform", "Transform of this component", &This::m_local,
+																	  transform_struct, Name::none, 0);
 		transform_property->on_prop_changed.push([](void* object) {
 			SceneComponent* component = reinterpret_cast<SceneComponent*>(object);
 			component->m_is_dirty     = true;

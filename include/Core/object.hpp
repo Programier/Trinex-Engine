@@ -12,9 +12,7 @@ namespace Engine
 {
 	class Package;
 	class Object;
-	class Class;
 	using MessageList = List<String>;
-
 
 	ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
 
@@ -60,21 +58,21 @@ namespace Engine
 		};
 
 	private:
-		Class* m_class;
+		Refl::Class* m_class;
 		Object* m_owner;
 		mutable Counter m_references;
 		Name m_name;
 		mutable Index m_instance_index;
 
 	protected:
-		static class Class* m_static_class;
+		static class Refl::Class* m_static_class;
 
 	public:
 		mutable Flags<Object::Flag> flags;
 
 	private:
 		// Setup object info
-		static void setup_next_object_info(Class* self, bool override = true);
+		static void setup_next_object_info(Refl::Class* self, bool override = true);
 		static void reset_next_object_info();
 
 		static void create_default_package();
@@ -98,7 +96,7 @@ namespace Engine
 		void script_postload();
 
 	protected:
-		bool private_check_instance(const class Class* const check_class) const;
+		bool private_check_instance(const class Refl::Class* const check_class) const;
 		static Object* noname_object();
 
 		virtual Object& on_owner_update(Object* new_owner);
@@ -133,9 +131,9 @@ namespace Engine
 
 		static Object* static_constructor();
 		static void static_initialize_class();
-		static class Class* static_class_instance();
+		static class Refl::Class* static_class_instance();
 		static HashIndex hash_of_name(const StringView& name);
-		class Class* class_instance() const;
+		class Refl::Class* class_instance() const;
 
 		delete_copy_constructors(Object);
 		static String package_name_of(const StringView& name);
@@ -190,8 +188,8 @@ namespace Engine
 
 		static ENGINE_EXPORT Object* copy_from(Object* src);
 
-		static Object* static_new_instance(Class* object_class, StringView name = "", Object* owner = nullptr);
-		static Object* static_new_placement_instance(void* place, Class* object_class, StringView name = "",
+		static Object* static_new_instance(Refl::Class* object_class, StringView name = "", Object* owner = nullptr);
+		static Object* static_new_placement_instance(void* place, Refl::Class* object_class, StringView name = "",
 		                                             Object* owner = nullptr);
 
 		template<typename Type, bool check_constructible = false, typename... Args>
@@ -349,47 +347,46 @@ namespace Engine
 		friend class MemoryManager;
 		friend class GarbageCollector;
 		friend class Class;
+		friend class Refl::Class;
 	};
 
 
 #define declare_class(class_name, base_name)                                                                                     \
 protected:                                                                                                                       \
-	static class Engine::Class* m_static_class;                                                                                  \
+    static class Engine::Refl::Class* m_static_class;                                                                            \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
-	static class Engine::Class* static_class_instance();                                                                         \
+	static class Engine::Refl::Class* static_class_instance();                                                                   \
                                                                                                                                  \
 private:
 
-#define implement_class(namespace_name, class_name, flags)                                                                       \
-	class Engine::Class* class_name::m_static_class = nullptr;                                                                   \
+#define implement_class(decl, flags)                                                                                             \
+    class Engine::Refl::Class* decl::m_static_class = nullptr;                                                                   \
                                                                                                                                  \
-	class Engine::Class* class_name::static_class_instance()                                                                     \
-	{                                                                                                                            \
-		if (!m_static_class)                                                                                                     \
-		{                                                                                                                        \
-			constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-			m_static_class                = new Engine::Class(#namespace_name, #class_name,                                      \
-                                               has_base_class ? Super::static_class_instance() : nullptr, flags); \
-			m_static_class->setup_class<class_name>();                                                                           \
-                                                                                                                                 \
-			class_name::static_initialize_class();                                                                               \
-			class_name::static_class_instance()->post_initialize();                                                              \
-		}                                                                                                                        \
-		return m_static_class;                                                                                                   \
-	}                                                                                                                            \
-	static Engine::ReflectionInitializeController initialize_##class_name = Engine::ReflectionInitializeController(              \
-	        []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name));                 \
-	void class_name::static_initialize_class()
+    class Engine::Refl::Class* decl::static_class_instance()                                                                     \
+    {                                                                                                                            \
+        if (!m_static_class)                                                                                                     \
+        {                                                                                                                        \
+            m_static_class = Engine::Refl::Class::create<decl>(#decl, flags);                                                    \
+            decl::static_initialize_class();                                                                                     \
+            m_static_class->post_initialize();                                                                                   \
+        }                                                                                                                        \
+        return m_static_class;                                                                                                   \
+    }                                                                                                                            \
+    static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
+            Engine::ReflectionInitializeController([]() { decl::static_class_instance(); }, #decl).id());                        \
+    void decl::static_initialize_class()
 
 
-#define implement_class_default_init(namespace_name, class_name, flags)                                                          \
-	implement_class(namespace_name, class_name, flags)                                                                           \
+#define implement_class_default_init(decl, flags)                                                                                \
+	implement_class(decl, flags)                                                                                                 \
 	{}
 
-#define implement_engine_class(class_name, flags) implement_class(Engine, class_name, flags)
-#define implement_engine_class_default_init(class_name, flags) implement_class_default_init(Engine, class_name, flags)
+#define implement_engine_class(decl, flags) implement_class(Engine::decl, flags)
+#define implement_engine_class_default_init(decl, flags)                                                                         \
+	implement_engine_class(decl, flags)                                                                                          \
+	{}
 }// namespace Engine

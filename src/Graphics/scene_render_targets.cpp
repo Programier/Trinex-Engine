@@ -1,8 +1,8 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>

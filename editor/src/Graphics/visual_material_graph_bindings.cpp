@@ -1,4 +1,4 @@
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/visual_material_graph.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -51,9 +51,9 @@ namespace Engine::VisualMaterialGraph
 		return *ScriptObject(this).execute(signatured_node_make_expression, pin, &signature, &args).address_as<Expression>();
 	}
 
-	implement_class(Engine::VisualMaterialGraph, Node, Class::IsScriptable)
+	implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			node_header_color = r->method("Vector4D header_color() const", &This::scoped_header_color<This>);
 			node_render       = r->method("Node@ render()", &This::scoped_render<This>);
 			node_signature    = r->method("const NodeSignature& signature() const", &This::scoped_signature<This>);
@@ -88,9 +88,9 @@ namespace Engine::VisualMaterialGraph
 		});
 	}
 
-	implement_class(Engine::VisualMaterialGraph, SignaturedNode, Class::IsScriptable)
+	implement_class(Engine::VisualMaterialGraph::SignaturedNode, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Class*) {
+		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
 			signatured_node_make_expression =
 			        r->method("Expression make_expression(OutputPin@ pin, const NodeSignature::Signature& signature, const "
 			                  "Vector<Expression>& args)",

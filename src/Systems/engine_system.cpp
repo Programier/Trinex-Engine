@@ -1,5 +1,5 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/thread.hpp>

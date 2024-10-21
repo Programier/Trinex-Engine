@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
-#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/command_buffer.hpp>
@@ -15,7 +15,6 @@
 
 namespace Engine
 {
-
 	static FORCE_INLINE Vector3D calc_spot_light_direction(const Transform& transform)
 	{
 		// Using down vector for direction
@@ -24,7 +23,7 @@ namespace Engine
 
 	implement_engine_class(SpotLightComponent, 0)
 	{
-		Class* self                 = static_class_instance();
+		auto* self                  = static_class_instance();
 		static auto on_data_changed = [](void* object) {
 			SpotLightComponent* component = reinterpret_cast<SpotLightComponent*>(object);
 			component->submit_spot_light_data();

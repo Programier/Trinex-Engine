@@ -145,7 +145,7 @@ namespace Engine
 		static void make_current(ImGuiWindow*);
 
 		friend class Object;
-		friend class Class;
+		friend class Refl::Class;
 	};
 }// namespace Engine
 
