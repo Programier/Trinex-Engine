@@ -45,7 +45,7 @@ namespace Engine
 			void on_create_call(Engine::Object* object) const;
 			void bind_class_to_script_engine();
 			void register_scriptable_class();
-			static Class* create_internal(StringView decl, Class* parent = nullptr, BitMask flags = 0);
+			static Class* create_internal(StringView decl, Class* parent = nullptr, BitMask flags = 0, Identifier id = 0);
 
 		public:
 			ScriptTypeInfo script_type_info;
@@ -54,7 +54,7 @@ namespace Engine
 			CallBacks<void(Class*)> on_class_destroy;
 			Function<void(ScriptClassRegistrar*, Class*)> script_registration_callback;
 
-			Class(Class* parent = nullptr, BitMask flags = 0);
+			Class(Class* parent = nullptr, BitMask flags = 0, Identifier id = 0);
 
 			Class* parent() const;
 
@@ -170,7 +170,7 @@ namespace Engine
 					parent = T::Super::static_class_instance();
 				}
 
-				if (auto self = create_internal(decl, parent, flags))
+				if (Class* self = create_internal(decl, parent, flags, type_info<T>::id()))
 				{
 					self->setup_class<T>();
 					return self;

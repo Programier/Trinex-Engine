@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/type_info.hpp>
 #include <Core/etl/value_info.hpp>
 #include <Core/reflection/object.hpp>
 
@@ -28,19 +29,21 @@ namespace Engine::Refl
 		TreeMap<Name, Index> m_entries_by_name;
 		TreeMap<EnumerateType, Index> m_entries_by_value;
 		Vector<Entry> m_entries;
+		Identifier m_id;
 
 		const Entry* create_entry(void* registrar, const Name& name, EnumerateType value);
 		static StringView extract_enum_value_name(StringView full_name);
-		static Enum* create_internal(const StringView& name, const Vector<Enum::Entry>& entries);
+		static Enum* create_internal(const StringView& name, const Vector<Enum::Entry>& entries, Identifier id);
 
 	public:
-		Enum(const Vector<Enum::Entry>& entries);
+		Enum(const Vector<Enum::Entry>& entries, Identifier id);
 
-		template<auto... enum_values>
+		template<typename EnumType, auto... enum_values>
 		static Enum* create(const StringView& name)
 		{
 			auto name_of = extract_enum_value_name;
-			return create_internal(name, {Entry(name_of(value_info<enum_values>::name()), enum_values)...});
+			return create_internal(name, {Entry(name_of(value_info<enum_values>::name()), enum_values)...},
+								   type_info<EnumType>::id());
 		}
 
 		Index index_of(const Name& name) const;
@@ -50,11 +53,19 @@ namespace Engine::Refl
 		const Entry* create_entry(const Name& name, EnumerateType value);
 
 		const Vector<Enum::Entry>& entries() const;
+
+		~Enum();
+
+		FORCE_INLINE Identifier id() const
+		{
+			return m_id;
+		}
 	};
 
 #define implement_enum(enum_name, ...)                                                                                           \
 	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::byte>(                           \
-			Engine::ReflectionInitializeController([]() { Engine::Refl::Enum::create<__VA_ARGS__>(#enum_name); }, #enum_name)    \
+			Engine::ReflectionInitializeController([]() { Engine::Refl::Enum::create<enum_name, __VA_ARGS__>(#enum_name); },     \
+												   #enum_name)                                                                   \
 					.id())
 
 #define implement_engine_enum(enum_name, ...) implement_enum(Engine::enum_name, __VA_ARGS__)

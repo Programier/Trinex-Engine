@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/type_info.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/reflection/scoped_type.hpp>
 
@@ -31,10 +32,12 @@ namespace Engine::Refl
 		void* (*m_alloc)()        = nullptr;
 		void (*m_free)(void* mem) = nullptr;
 
-		static Struct* create_internal(StringView decl, Struct* parent);
+		Identifier m_id;
+
+		static Struct* create_internal(StringView decl, Struct* parent, Identifier id);
 
 	protected:
-		Struct(Struct* parent = nullptr);
+		Struct(Struct* parent = nullptr, Identifier id = 0);
 
 		void destroy_childs();
 
@@ -49,7 +52,7 @@ namespace Engine::Refl
 				parent = T::Super::static_struct_instance();
 			}
 
-			if (Struct* self = create_internal(decl, parent))
+			if (Struct* self = create_internal(decl, parent, type_info<T>::id()))
 			{
 				if constexpr (Concepts::struct_with_custom_allocation<T>)
 				{
@@ -89,6 +92,11 @@ namespace Engine::Refl
 
 		Struct& group(class Group*);
 		class Group* group() const;
+
+		FORCE_INLINE Identifier id() const
+		{
+			return m_id;
+		}
 
 		template<typename... Args>
 		Struct& add_properties(Args&&... args)

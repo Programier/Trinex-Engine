@@ -8,7 +8,7 @@ namespace Engine::Refl
 {
 	implement_reflect_type(Enum);
 
-	Enum::Enum(const Vector<Enum::Entry>& entries)
+	Enum::Enum(const Vector<Enum::Entry>& entries, Identifier id) : m_id(id)
 	{
 		String name = full_name();
 		info_log("Enum", "Register enum '%s'", name.c_str());
@@ -20,6 +20,8 @@ namespace Engine::Refl
 		{
 			create_entry(&registrar, entry.name, entry.value);
 		}
+
+		bind_type_id(id);
 	}
 
 	StringView Enum::extract_enum_value_name(StringView full_name)
@@ -27,16 +29,9 @@ namespace Engine::Refl
 		return Strings::class_name_sv_of(full_name);
 	}
 
-	ENGINE_EXPORT Enum* Enum::create_internal(const StringView& name, const Vector<Enum::Entry>& entries)
+	ENGINE_EXPORT Enum* Enum::create_internal(const StringView& name, const Vector<Enum::Entry>& entries, Identifier id)
 	{
-		Enum* instance = static_find<Enum>(name);
-
-		if (!instance)
-		{
-			instance = Object::new_instance<Enum>(name, entries);
-		}
-
-		return instance;
+		return Object::new_instance<Enum>(name, entries, id);
 	}
 
 	Index Enum::index_of(const Name& name) const
@@ -100,5 +95,10 @@ namespace Engine::Refl
 	const Vector<Enum::Entry>& Enum::entries() const
 	{
 		return m_entries;
+	}
+
+	Enum::~Enum()
+	{
+		unbind_type_id(m_id);
 	}
 }// namespace Engine::Refl

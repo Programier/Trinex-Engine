@@ -6,12 +6,15 @@ namespace Engine::Refl
 {
 	implement_reflect_type(Struct);
 
-	Struct::Struct(Struct* parent) : m_parent(parent)
+	Struct::Struct(Struct* parent, Identifier id) : m_parent(parent), m_id(id)
 	{
 		if (parent)
 		{
 			parent->m_childs.insert(this);
 		}
+
+		if (id != 0)
+			bind_type_id(id);
 	}
 
 	void Struct::destroy_childs()
@@ -23,16 +26,9 @@ namespace Engine::Refl
 		}
 	}
 
-	Struct* Struct::create_internal(StringView decl, Struct* parent)
+	Struct* Struct::create_internal(StringView decl, Struct* parent, Identifier id)
 	{
-		auto instance = static_find<Struct>(decl);
-
-		if (instance == nullptr)
-		{
-			instance = Object::new_instance<Struct>(decl, parent);
-		}
-
-		return instance;
+		return Object::new_instance<Struct>(decl, parent, id);
 	}
 
 	void* Struct::create_struct() const
@@ -189,5 +185,8 @@ namespace Engine::Refl
 		{
 			m_parent->m_childs.erase(this);
 		}
+
+		if (m_id != 0)
+			unbind_type_id(m_id);
 	}
 }// namespace Engine::Refl
