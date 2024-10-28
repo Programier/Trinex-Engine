@@ -11,7 +11,7 @@ namespace Engine
 		GLuint m_id;
 		size_t m_size;
 
-		OpenGL_UniformBuffer(size_t size)
+		OpenGL_UniformBuffer(size_t size) : m_size(size)
 		{
 			glGenBuffers(1, &m_id);
 			glBindBuffer(GL_UNIFORM_BUFFER, m_id);
