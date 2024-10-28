@@ -13,7 +13,7 @@ namespace Engine::Refl
 		return vector;
 	}
 
-	Class::Class(Class* parent, BitMask flags, Identifier id) : Struct(parent, id), flags(flags)
+	Class::Class(Class* parent, BitMask flags, StringView type_name) : Struct(parent, type_name), flags(flags)
 	{
 		m_size = 0;
 		info_log("Class", "Created class instance '%s'", this->full_name().c_str());
@@ -26,9 +26,9 @@ namespace Engine::Refl
 		}
 	}
 
-	Class* Class::create_internal(StringView decl, Class* parent, BitMask flags, Identifier id)
+	Class* Class::create_internal(StringView decl, Class* parent, BitMask flags, StringView type_name)
 	{
-		return Object::new_instance<Class>(decl, parent, flags, id);
+		return Object::new_instance<Class>(decl, parent, flags, type_name);
 	}
 
 	void Class::on_create_call(Engine::Object* object) const

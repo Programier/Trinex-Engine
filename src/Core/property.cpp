@@ -113,9 +113,9 @@ namespace Engine
 		return m_flags;
 	}
 
-	size_t Property::type_id() const
+	StringView Property::type_name() const
 	{
-		return 0;
+		return "";
 	}
 
 	Refl::Struct* Property::struct_instance()

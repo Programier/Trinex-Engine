@@ -9,7 +9,7 @@ namespace Engine::Refl
 	static Set<Object*> m_instances;
 	static bool m_check_exiting_instance           = true;
 	static thread_local StringView m_accepted_name = "";
-	static Map<Identifier, Object*> m_type_id_map;
+	static Map<StringView, Object*> m_type_name_map;
 
 	static void destroy_reflection_instances()
 	{
@@ -159,15 +159,15 @@ namespace Engine::Refl
 		out += m_name;
 	}
 
-	void Object::bind_type_id(Identifier type_id)
+	void Object::bind_type_name(StringView name)
 	{
-		//trinex_always_check(static_find(type_id) == nullptr, "Type id currently in use");
-		m_type_id_map[type_id] = this;
+		trinex_always_check(static_find_by_type_name(name) == nullptr, "Type id currently in use");
+		m_type_name_map[name] = this;
 	}
 
-	void Object::unbind_type_id(Identifier type_id)
+	void Object::unbind_type_name(StringView name)
 	{
-		m_type_id_map.erase(type_id);
+		m_type_name_map.erase(name);
 	}
 
 	String Object::full_name() const
@@ -208,10 +208,10 @@ namespace Engine::Refl
 		return static_root()->find(name, flags);
 	}
 
-	Object* Object::static_find(Identifier type_id)
+	Object* Object::static_find_by_type_name(StringView name)
 	{
-		auto it = m_type_id_map.find(type_id);
-		if (it == m_type_id_map.end())
+		auto it = m_type_name_map.find(name);
+		if (it == m_type_name_map.end())
 			return nullptr;
 		return it->second;
 	}

@@ -34,8 +34,8 @@ namespace Engine::Refl
 		static void accept_next_object(StringView name);
 
 		void full_name(String& out) const;
-		void bind_type_id(Identifier type_id);
-		void unbind_type_id(Identifier type_id);
+		void bind_type_name(StringView name);
+		void unbind_type_name(StringView name);
 
 		virtual const Link* link() const;
 		virtual Object& unregister_subobject(Object* subobject);
@@ -64,7 +64,7 @@ namespace Engine::Refl
 
 		static Object* static_root();
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
-		static Object* static_find(Identifier type_id);
+		static Object* static_find_by_type_name(StringView name);
 		static bool destroy_instance(Object* object);
 
 		template<typename T>

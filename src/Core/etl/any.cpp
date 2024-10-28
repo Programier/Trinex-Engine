@@ -26,16 +26,16 @@ namespace Engine
 
 	void Any::Manager::reset()
 	{
-		destroy = nullptr;
-		copy    = nullptr;
-		move    = nullptr;
-		swap    = nullptr;
-		type_id = nullptr;
+		destroy   = nullptr;
+		copy      = nullptr;
+		move      = nullptr;
+		swap      = nullptr;
+		type_name = "";
 	}
 
 	bool Any::Manager::is_valid() const
 	{
-		return destroy && copy && move && swap && type_id;
+		return destroy && copy && move && swap && !type_name.empty();
 	}
 
 	Any::Any() = default;

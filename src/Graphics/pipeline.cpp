@@ -26,7 +26,7 @@ namespace Engine
 		auto* self = static_struct_instance();
 
 		self->add_properties(new EnumProperty("Func", "Depth compare function", &This::func,
-											  Refl::Enum::static_find("Engine::DepthFunc", Refl::FindFlags::IsRequired)),
+											  Refl::Enum::static_find("Engine::CompareFunc", Refl::FindFlags::IsRequired)),
 							 new ClassProperty("Enable", "Enable depth test", &This::enable),
 							 new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
 	}

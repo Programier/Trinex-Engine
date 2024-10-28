@@ -21,7 +21,7 @@
 namespace Engine
 {
 	Map<Refl::Struct*, void (*)(class ImGuiObjectProperties*, void*, Refl::Struct*, bool)> special_class_properties_renderers;
-	static Map<size_t, ImGuiObjectProperties::PropertyRenderer> m_renderers;
+	static Map<StringView, ImGuiObjectProperties::PropertyRenderer> m_renderers;
 
 	static bool render_struct_properties(ImGuiObjectProperties*, void* object, class Refl::Struct* struct_class,
 										 bool editable = true, bool is_in_table = false);
@@ -149,7 +149,7 @@ namespace Engine
 			return false;
 
 
-		EnumerateType current     = value.cast<EnumerateType>();
+		EnumerateType current     = value.reinterpret<EnumerateType>();
 		const auto* current_entry = userdata.enum_class->entry(current);
 
 		int index           = convert_to_imgui_index(userdata.enum_class->index_of(current));
@@ -351,7 +351,7 @@ namespace Engine
 
 		bool is_changed = false;
 
-		auto renderer = m_renderers.find(prop->type_id());
+		auto renderer = m_renderers.find(prop->type_name());
 
 		if (renderer != m_renderers.end())
 		{
@@ -601,9 +601,9 @@ namespace Engine
 		return "editor/Properties Title"_localized;
 	}
 
-	void ImGuiObjectProperties::register_prop_renderer(size_t type_id, const PropertyRenderer& renderer)
+	void ImGuiObjectProperties::register_prop_renderer(StringView name, const PropertyRenderer& renderer)
 	{
-		m_renderers[type_id] = renderer;
+		m_renderers[name] = renderer;
 	}
 
 	template<typename T, ImGuiDataType type, int count, bool maybe_color>

@@ -17,7 +17,7 @@ namespace Engine
 		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
 		PropertiesMap& build_props_map(Refl::Struct* self);
 
-		static void register_prop_renderer(size_t type_id, const PropertyRenderer& renderer);
+		static void register_prop_renderer(StringView type_name, const PropertyRenderer& renderer);
 
 	public:
 		size_t row_index = 0;
@@ -42,7 +42,7 @@ namespace Engine
 		template<typename T>
 		static void register_prop_renderer(const PropertyRenderer& renderer)
 		{
-			register_prop_renderer(type_info<T>::id(), renderer);
+			register_prop_renderer(type_info<T>::name(), renderer);
 		}
 	};
 

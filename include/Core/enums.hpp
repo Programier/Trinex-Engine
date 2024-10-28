@@ -215,8 +215,6 @@ namespace Engine
 		Point    = 2,
 	};
 
-	using DepthFunc = CompareFunc;
-
 	enum class PrimitiveTopology : EnumerateType
 	{
 		TriangleList  = 0,
@@ -403,7 +401,7 @@ namespace Engine
 
 		DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess
 	};
-	
+
 	declare_enum_operators(ShowFlags);
 
 	enum class MaterialDomain : EnumerateType

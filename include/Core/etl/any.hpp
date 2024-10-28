@@ -34,8 +34,7 @@ namespace Engine
 			void (*copy)(const Storage& src, Storage& dest);
 			void (*move)(Storage& src, Storage& dest) noexcept;
 			void (*swap)(Storage& lhs, Storage& rhs) noexcept;
-			size_t (*type_id)();
-
+			std::string_view type_name;
 
 			Manager();
 			bool is_valid() const;
@@ -114,7 +113,7 @@ namespace Engine
 					manager.swap    = DynamicManager<Type>::swap;
 				}
 
-				manager.type_id = type_info<Type>::id;
+				manager.type_name = type_info<Type>::name();
 			}
 
 			return &manager;
@@ -179,13 +178,20 @@ namespace Engine
 		bool has_value() const;
 		Any& swap(Any& other);
 		Any& reset();
-		
+
 		template<typename T>
 		bool is_a() const
 		{
-			return has_value() && m_manager->type_id() == type_info<T>::id();
+			if constexpr (std::is_same_v<T, void*>)
+			{
+				return has_value();
+			}
+			else
+			{
+				return has_value() && m_manager->type_name == type_info<T>::name();
+			}
 		}
-		
+
 		template<typename T>
 		T cast()
 		{
@@ -206,6 +212,30 @@ namespace Engine
 			{
 				return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
 				                             : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
+			}
+			throw bad_any_cast();
+		}
+
+		template<typename T>
+		T reinterpret()
+		{
+			using DecayT = std::decay_t<T>;
+			if (has_value())
+			{
+				return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&m_storage.stack)
+											 : *reinterpret_cast<DecayT*>(m_storage.dynamic);
+			}
+			throw bad_any_cast();
+		}
+
+		template<typename T>
+		const T reinterpret() const
+		{
+			using DecayT = std::decay_t<T>;
+			if (has_value())
+			{
+				return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
+											 : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
 			}
 			throw bad_any_cast();
 		}

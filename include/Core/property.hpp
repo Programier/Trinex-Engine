@@ -144,7 +144,7 @@ namespace Engine
 		virtual size_t size() const                                                    = 0;
 		virtual size_t min_alignment() const                                           = 0;
 		virtual PropertyType type() const                                              = 0;
-		virtual size_t type_id() const;
+		virtual StringView type_name() const;
 
 		virtual Refl::Struct* struct_instance();
 		virtual class Refl::Enum* enum_instance();
@@ -223,9 +223,9 @@ namespace Engine
 			return PropertyType::Undefined;
 		}
 
-		size_t type_id() const override
+		StringView type_name() const override
 		{
-			return Engine::type_info<Type>::id();
+			return Engine::type_info<Type>::name();
 		}
 
 		bool archive_process(void* object, Archive& ar) override

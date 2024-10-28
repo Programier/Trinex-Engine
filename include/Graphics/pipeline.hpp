@@ -27,7 +27,7 @@ namespace Engine
 		struct ALIGNED(4) DepthTestInfo {
 			declare_struct(DepthTestInfo, void);
 
-			DepthFunc func    = DepthFunc::Less;
+			CompareFunc func  = CompareFunc::Less;
 			bool enable       = true;
 			bool write_enable = true;
 		} depth_test;

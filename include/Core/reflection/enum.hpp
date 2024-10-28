@@ -29,21 +29,21 @@ namespace Engine::Refl
 		TreeMap<Name, Index> m_entries_by_name;
 		TreeMap<EnumerateType, Index> m_entries_by_value;
 		Vector<Entry> m_entries;
-		Identifier m_id;
+		StringView m_type_name;
 
 		const Entry* create_entry(void* registrar, const Name& name, EnumerateType value);
 		static StringView extract_enum_value_name(StringView full_name);
-		static Enum* create_internal(const StringView& name, const Vector<Enum::Entry>& entries, Identifier id);
+		static Enum* create_internal(const StringView& name, const Vector<Enum::Entry>& entries, StringView type_name);
 
 	public:
-		Enum(const Vector<Enum::Entry>& entries, Identifier id);
+		Enum(const Vector<Enum::Entry>& entries, StringView type_name = "");
 
 		template<typename EnumType, auto... enum_values>
 		static Enum* create(const StringView& name)
 		{
 			auto name_of = extract_enum_value_name;
 			return create_internal(name, {Entry(name_of(value_info<enum_values>::name()), enum_values)...},
-								   type_info<EnumType>::id());
+								   type_info<EnumType>::name());
 		}
 
 		Index index_of(const Name& name) const;
@@ -56,9 +56,9 @@ namespace Engine::Refl
 
 		~Enum();
 
-		FORCE_INLINE Identifier id() const
+		FORCE_INLINE StringView type_name() const
 		{
-			return m_id;
+			return m_type_name;
 		}
 	};
 

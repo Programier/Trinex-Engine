@@ -91,9 +91,9 @@ namespace Engine
 			return PropertyType::Undefined;
 		}
 
-		size_t type_id() const override
+		StringView type_name() const override
 		{
-			return Engine::type_info<T>::id();
+			return Engine::type_info<T>::name();
 		}
 	};
 

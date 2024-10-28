@@ -469,7 +469,7 @@ namespace Engine
 
 		new_command((pipeline->depth_test.enable ? glEnable : glDisable), GL_DEPTH_TEST);
 		new_command(glDepthMask, static_cast<GLboolean>(pipeline->depth_test.write_enable));
-		new_command(glDepthFunc, depth_func(pipeline->depth_test.func));
+		new_command(glDepthFunc, compare_func(pipeline->depth_test.func));
 
 
 		// Stencil test

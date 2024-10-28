@@ -102,34 +102,19 @@ namespace Engine
 		static constexpr inline bool is_nothrow_destructible            = std::is_nothrow_destructible_v<T>;
 		static constexpr inline bool is_object_based                    = std::is_base_of_v<Object, decay_type>;
 
-		static consteval const char* name()
+		static consteval std::string_view name()
 		{
 			return m_name.data();
 		}
 
-		static std::size_t id()
-		{
-			static std::size_t m_id = generate_id(name());
-			return m_id;
-		}
-
 		consteval bool operator==(const type_info& info) const
 		{
-			if (m_name.size() != info.m_name.size())
-				return false;
-
-			for (std::size_t i = 0, count = m_name.size(); i < count; ++i)
-			{
-				if (m_name[i] != info.m_name[i])
-					return false;
-			}
-
-			return true;
+			return name() == info.name();
 		}
 
 		consteval bool operator!=(const type_info& info) const
 		{
-			return !(operator==(info));
+			return name() != info.name();
 		}
 	};
 }// namespace Engine

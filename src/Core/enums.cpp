@@ -47,9 +47,6 @@ namespace Engine
 
 	implement_engine_enum(Primitive, Primitive::Triangle, Primitive::Line, Primitive::Point);
 
-	implement_engine_enum(DepthFunc, DepthFunc::Always, DepthFunc::Lequal, DepthFunc::Gequal, DepthFunc::Less, DepthFunc::Greater,
-						  DepthFunc::Equal, DepthFunc::NotEqual, DepthFunc::Never);
-
 	implement_engine_enum(PrimitiveTopology, PrimitiveTopology::TriangleList, PrimitiveTopology::PointList,
 						  PrimitiveTopology::LineList, PrimitiveTopology::LineStrip, PrimitiveTopology::TriangleStrip);
 

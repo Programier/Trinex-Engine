@@ -123,32 +123,6 @@ namespace Engine
 		}
 	}
 
-
-	GLuint depth_func(DepthFunc func)
-	{
-		switch (func)
-		{
-			case DepthFunc::Always:
-				return GL_ALWAYS;
-			case DepthFunc::Lequal:
-				return GL_LEQUAL;
-			case DepthFunc::Gequal:
-				return GL_GEQUAL;
-			case CompareFunc::Less:
-				return GL_LESS;
-			case DepthFunc::Greater:
-				return GL_GREATER;
-			case DepthFunc::Equal:
-				return GL_EQUAL;
-			case DepthFunc::NotEqual:
-				return GL_NOTEQUAL;
-			case DepthFunc::Never:
-				return GL_NEVER;
-		}
-
-		return GL_ALWAYS;
-	}
-
 	GLuint stencil_op(StencilOp op)
 	{
 		switch (op)

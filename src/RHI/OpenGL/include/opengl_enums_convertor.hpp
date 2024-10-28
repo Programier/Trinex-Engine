@@ -9,7 +9,6 @@ namespace Engine
 	GLuint wrap_from(SamplerAddressMode value);
 	GLuint blend_func(BlendFunc func, bool for_alpha);
 	GLuint blend_op(BlendOp op);
-	GLuint depth_func(DepthFunc func);
 	GLuint stencil_op(StencilOp op);
 	GLuint convert_topology(PrimitiveTopology topology);
 #if USING_OPENGL_CORE

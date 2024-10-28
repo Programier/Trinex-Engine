@@ -31,13 +31,12 @@ namespace Engine::Refl
 		class Group* m_group      = nullptr;
 		void* (*m_alloc)()        = nullptr;
 		void (*m_free)(void* mem) = nullptr;
+		StringView m_type_name;
 
-		Identifier m_id;
-
-		static Struct* create_internal(StringView decl, Struct* parent, Identifier id);
+		static Struct* create_internal(StringView decl, Struct* parent, StringView type_name);
 
 	protected:
-		Struct(Struct* parent = nullptr, Identifier id = 0);
+		Struct(Struct* parent = nullptr, StringView type_name = "");
 
 		void destroy_childs();
 
@@ -52,7 +51,7 @@ namespace Engine::Refl
 				parent = T::Super::static_struct_instance();
 			}
 
-			if (Struct* self = create_internal(decl, parent, type_info<T>::id()))
+			if (Struct* self = create_internal(decl, parent, type_info<T>::name()))
 			{
 				if constexpr (Concepts::struct_with_custom_allocation<T>)
 				{
@@ -93,9 +92,9 @@ namespace Engine::Refl
 		Struct& group(class Group*);
 		class Group* group() const;
 
-		FORCE_INLINE Identifier id() const
+		FORCE_INLINE StringView type_name() const
 		{
-			return m_id;
+			return m_type_name;
 		}
 
 		template<typename... Args>
