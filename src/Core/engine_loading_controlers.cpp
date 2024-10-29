@@ -1,11 +1,27 @@
+#include <Core/base_engine.hpp>
 #include <Core/demangle.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/flags.hpp>
 #include <Core/logger.hpp>
+#include <Core/threading.hpp>
 
 namespace Engine
 {
+	enum class ControllerType : BitMask
+	{
+		InitializerMask = BIT(63),
+
+		PreInit                = BIT(0) | InitializerMask,
+		Init                   = BIT(1) | InitializerMask,
+		Destroy                = BIT(2),
+		PostDestroy            = BIT(3),
+		ReflectionInit         = BIT(4) | InitializerMask,
+		ResourcesInit          = BIT(5) | InitializerMask,
+		ConfigsInitialize      = BIT(6) | InitializerMask,
+		ScriptAddonsInitialize = BIT(7) | InitializerMask,
+		ReflectionPostInit     = BIT(8) | InitializerMask,
+	};
 
 	struct CallbackEntry {
 		ControllerCallback function;
@@ -20,6 +36,8 @@ namespace Engine
 		static CallbacksList list;
 		return &list;
 	}
+
+	static Flags<ControllerType, BitMask> m_triggered;
 
 #define list_of(ptr) (*reinterpret_cast<CallbacksList*>(ptr))
 
@@ -43,9 +61,9 @@ namespace Engine
 			ReflectionInitializeController().execute();
 		}
 
-		if (ScriptBindingsInitializeController::is_triggered())
+		if (ReflectionPostInitializeController::is_triggered())
 		{
-			ScriptBindingsInitializeController().execute();
+			ReflectionPostInitializeController().execute();
 		}
 
 		if (ConfigsInitializeController::is_triggered())
@@ -71,6 +89,22 @@ namespace Engine
 		entry.function             = callback;
 		entry.require_initializers = require_initializers;
 		list_of(m_list)[name].push_back(entry);
+
+		if (is_triggered(id()) && (id() & static_cast<BitMask>(ControllerType::InitializerMask)) ==
+										  static_cast<BitMask>(ControllerType::InitializerMask))
+		{
+			static bool submit_command = true;
+
+			if (submit_command)
+			{
+				submit_command = false;
+				logic_thread()->call_function([]() {
+					submit_command = true;
+					exec_all_if_already_triggered();
+				});
+			}
+		}
+
 		return *this;
 	}
 
@@ -113,25 +147,9 @@ namespace Engine
 		return *this;
 	}
 
-
-	enum class ControllerType
-	{
-		PreInit                  = BIT(0),
-		Init                     = BIT(1),
-		Destroy                  = BIT(2),
-		PostDestroy              = BIT(3),
-		ReflectionInit           = BIT(4),
-		ResourcesInit            = BIT(5),
-		ConfigsInitialize        = BIT(6),
-		ScriptAddonsInitialize   = BIT(7),
-		ScriptBindingsInitialize = BIT(7),
-	};
-
-	static Flags<ControllerType, BitMask> m_triggered;
-
 	bool LoadingControllerBase::is_triggered(BitMask type)
 	{
-		return m_triggered & static_cast<ControllerType>(type);
+		return (m_triggered & static_cast<ControllerType>(type)) == type;
 	}
 
 	void LoadingControllerBase::mark_triggered(BitMask type)
@@ -141,7 +159,6 @@ namespace Engine
 
 	LoadingControllerBase::~LoadingControllerBase()
 	{}
-
 
 #define IMPLEMENT_CONTROLLER(ControllerName, type)                                                                               \
 	ControllerName::ControllerName() : LoadingControllerBase(callbacks_list<ControllerName>(), #ControllerName)                  \
@@ -190,5 +207,5 @@ namespace Engine
 	IMPLEMENT_CONTROLLER(StartupResourcesInitializeController, ResourcesInit);
 	IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
 	IMPLEMENT_CONTROLLER(ScriptAddonsInitializeController, ScriptAddonsInitialize);
-	IMPLEMENT_CONTROLLER(ScriptBindingsInitializeController, ScriptBindingsInitialize);
+	IMPLEMENT_CONTROLLER(ReflectionPostInitializeController, ReflectionPostInit);
 }// namespace Engine

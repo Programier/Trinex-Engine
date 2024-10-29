@@ -1,7 +1,9 @@
 #pragma once
 #include <Core/etl/type_info.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/flags.hpp>
 #include <Core/reflection/scoped_type.hpp>
+#include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine
 {
@@ -23,6 +25,20 @@ namespace Engine::Refl
 			}
 		};
 
+		enum Flag : BitMask
+		{
+			IsSingletone    = BIT(0),
+			IsAbstract      = BIT(1),
+			IsConstructible = BIT(2),
+			IsFinal         = BIT(3),
+			IsNative        = BIT(4),
+			IsScriptable    = BIT(5),
+			IsAsset         = BIT(6),
+		};
+
+		Flags<Flag> flags;
+		ScriptTypeInfo script_type_info;
+
 	private:
 		Vector<Property*> m_properties;
 		Set<Struct*> m_childs;
@@ -33,25 +49,31 @@ namespace Engine::Refl
 		void (*m_free)(void* mem) = nullptr;
 		StringView m_type_name;
 
-		static Struct* create_internal(StringView decl, Struct* parent, StringView type_name);
+		template<typename T>
+		inline static Struct* super_of()
+			requires(has_super_type_v<T> && !std::is_same_v<typename T::Super, void>)
+		{
+			return T::Super::static_struct_instance();
+		}
+
+		template<typename T>
+		inline static Struct* super_of()
+		{
+			return nullptr;
+		}
 
 	protected:
-		Struct(Struct* parent = nullptr, StringView type_name = "");
-
 		void destroy_childs();
 
 	public:
+		Struct(Struct* parent = nullptr, BitMask flags = 0, StringView type_name = "");
+
 		template<typename T>
 		static Struct* create(StringView decl)
 		{
-			Struct* parent = nullptr;
+			Struct* parent = super_of<T>();
 
-			if constexpr (!std::is_same_v<typename T::Super, void>)
-			{
-				parent = T::Super::static_struct_instance();
-			}
-
-			if (Struct* self = create_internal(decl, parent, type_info<T>::name()))
+			if (Struct* self = Object::new_instance<Struct>(decl, parent, 0, type_info<T>::name()))
 			{
 				if constexpr (Concepts::struct_with_custom_allocation<T>)
 				{

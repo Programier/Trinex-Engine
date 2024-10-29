@@ -36,7 +36,6 @@ namespace Engine
 	EngineLoop::~EngineLoop()
 	{}
 
-
 	static void init_api(bool force_no_api = false)
 	{
 		if (Settings::e_api.empty() || force_no_api)
@@ -114,7 +113,8 @@ namespace Engine
 		Project::initialize();
 
 		ReflectionInitializeController().execute();
-		ScriptBindingsInitializeController().execute();
+		ReflectionPostInitializeController().execute();
+
 		ConfigManager::initialize();
 
 		// Load libraries
@@ -126,16 +126,7 @@ namespace Engine
 		}
 
 		Refl::Class* engine_class = Refl::Class::static_find(Settings::e_engine, Refl::FindFlags::IsRequired);
-		Object* object            = engine_class->create_object();
-
-		if (object)
-		{
-			engine_instance = object->instance_cast<BaseEngine>();
-			if (engine_instance)
-			{
-				engine_instance->flags(Object::IsAvailableForGC, false);
-			}
-		}
+		engine_instance           = Object::instance_cast<BaseEngine>(engine_class->create_object());
 
 		if (engine_instance == nullptr)
 		{
@@ -207,6 +198,8 @@ namespace Engine
 		{
 			window->show();
 		}
+
+		engine_instance->make_inited();
 	}
 
 	void EngineLoop::update()

@@ -1,8 +1,8 @@
 #include <Core/base_engine.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/profiler.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -44,6 +44,9 @@ namespace Engine
 		start_time    = current_time_point();
 		m_frame_index = 0;
 		m_prev_time   = 0.f;
+
+		flags(StandAlone, true);
+		flags(IsAvailableForGC, false);
 	}
 
 	int_t BaseEngine::init()
@@ -141,7 +144,7 @@ namespace Engine
 
 	BaseEngine& BaseEngine::request_exit()
 	{
-		m_flags(Flag::IsRequestExit, 1);
+		m_flags(Flag::IsRequestExit, true);
 		return *this;
 	}
 
@@ -162,7 +165,7 @@ namespace Engine
 
 	BaseEngine& BaseEngine::make_inited()
 	{
-		m_flags(Flag::IsInitied);
+		m_flags(Flag::IsInitied, true);
 		return *this;
 	}
 

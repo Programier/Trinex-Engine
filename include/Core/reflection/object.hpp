@@ -66,6 +66,7 @@ namespace Engine::Refl
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_find_by_type_name(StringView name);
 		static bool destroy_instance(Object* object);
+		static bool is_valid(Object* object);
 
 		template<typename T>
 		bool is_a() const

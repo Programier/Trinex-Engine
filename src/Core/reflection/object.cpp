@@ -231,4 +231,9 @@ namespace Engine::Refl
 		}
 		return false;
 	}
+
+	bool Object::is_valid(Object* object)
+	{
+		return m_instances.contains(object);
+	}
 }// namespace Engine::Refl

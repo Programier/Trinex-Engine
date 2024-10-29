@@ -6,7 +6,7 @@ namespace Engine::Refl
 {
 	implement_reflect_type(Struct);
 
-	Struct::Struct(Struct* parent, StringView type_name) : m_parent(parent), m_type_name(type_name)
+	Struct::Struct(Struct* parent, BitMask flags, StringView type_name) : flags(flags), m_parent(parent), m_type_name(type_name)
 	{
 		if (parent)
 		{
@@ -24,11 +24,6 @@ namespace Engine::Refl
 			Struct* child_struct = *m_childs.begin();
 			delete child_struct;
 		}
-	}
-
-	Struct* Struct::create_internal(StringView decl, Struct* parent, StringView type_name)
-	{
-		return Object::new_instance<Struct>(decl, parent, type_name);
 	}
 
 	void* Struct::create_struct() const

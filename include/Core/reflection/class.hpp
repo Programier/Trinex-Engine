@@ -1,9 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/flags.hpp>
 #include <Core/object.hpp>
 #include <Core/reflection/struct.hpp>
-#include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine
 {
@@ -15,20 +13,6 @@ namespace Engine
 		class ENGINE_EXPORT Class : public Struct
 		{
 			declare_reflect_type(Class, Struct);
-
-		public:
-			enum Flag : BitMask
-			{
-				IsSingletone    = BIT(0),
-				IsAbstract      = BIT(1),
-				IsConstructible = BIT(2),
-				IsFinal         = BIT(3),
-				IsNative        = BIT(4),
-				IsScriptable    = BIT(5),
-				IsAsset         = BIT(6),
-			};
-
-			Flags<Flag> flags;
 
 		private:
 			mutable Engine::Object* m_singletone_object;
@@ -45,10 +29,8 @@ namespace Engine
 			void on_create_call(Engine::Object* object) const;
 			void bind_class_to_script_engine();
 			void register_scriptable_class();
-			static Class* create_internal(StringView decl, Class* parent = nullptr, BitMask flags = 0, StringView type_name = "");
 
 		public:
-			ScriptTypeInfo script_type_info;
 			CallBacks<void(Engine::Object*)> on_create;
 			CallBacks<void(Engine::Object*)> on_destroy;
 			CallBacks<void(Class*)> on_class_destroy;
@@ -170,7 +152,7 @@ namespace Engine
 					parent = T::Super::static_class_instance();
 				}
 
-				if (Class* self = create_internal(decl, parent, flags, type_info<T>::name()))
+				if (Class* self = Object::new_instance<Class>(decl, parent, flags, type_info<T>::name()))
 				{
 					self->setup_class<T>();
 					return self;

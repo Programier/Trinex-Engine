@@ -71,12 +71,12 @@ namespace Engine::Refl
 
 		if (parent_class)
 		{
-			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, full_name(),
+			ReflectionPostInitializeController().push([this]() { bind_class_to_script_engine(); }, full_name(),
 													  {parent_class->full_name()});
 		}
 		else
 		{
-			ScriptBindingsInitializeController().push([this]() { bind_class_to_script_engine(); }, full_name());
+			ReflectionPostInitializeController().push([this]() { bind_class_to_script_engine(); }, full_name());
 		}
 	}
 
@@ -160,5 +160,5 @@ namespace Engine::Refl
 	}
 
 	static PreInitializeController pre_initializer(on_pre_init, "Engine::Class");
-	static auto reflection_init = ScriptBindingsInitializeController(on_reflection_init);
+	static auto reflection_init = ReflectionPostInitializeController(on_reflection_init);
 }// namespace Engine::Refl

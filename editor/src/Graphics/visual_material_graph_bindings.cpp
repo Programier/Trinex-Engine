@@ -201,7 +201,7 @@ namespace Engine::VisualMaterialGraph
 			}
 		};
 
-		ScriptBindingsInitializeController initializer(register_behaviour);
+		ReflectionPostInitializeController initializer(register_behaviour);
 	}
 
 	static Expression& expression_opAssign(Expression* self, const Expression& other)

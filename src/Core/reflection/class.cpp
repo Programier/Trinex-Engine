@@ -13,7 +13,7 @@ namespace Engine::Refl
 		return vector;
 	}
 
-	Class::Class(Class* parent, BitMask flags, StringView type_name) : Struct(parent, type_name), flags(flags)
+	Class::Class(Class* parent, BitMask flags, StringView type_name) : Struct(parent, flags, type_name)
 	{
 		m_size = 0;
 		info_log("Class", "Created class instance '%s'", this->full_name().c_str());
@@ -24,11 +24,6 @@ namespace Engine::Refl
 		{
 			get_asset_class_table().push_back(this);
 		}
-	}
-
-	Class* Class::create_internal(StringView decl, Class* parent, BitMask flags, StringView type_name)
-	{
-		return Object::new_instance<Class>(decl, parent, flags, type_name);
 	}
 
 	void Class::on_create_call(Engine::Object* object) const
@@ -200,7 +195,7 @@ namespace Engine::Refl
 
 		ScriptClassRegistrar::reference_class("Engine::Class", info);
 
-		ScriptBindingsInitializeController().push([]() {
+		ReflectionPostInitializeController().push([]() {
 			auto reg = ScriptClassRegistrar::existing_class("Engine::Class");
 			reg.method("Class@ parent() const", &Class::parent);
 			//reg.method("string full_name() const", &method_of<String>(&Class::full_name));
