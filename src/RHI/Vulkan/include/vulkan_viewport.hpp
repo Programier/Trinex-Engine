@@ -91,8 +91,9 @@ namespace Engine
 		~VulkanSwapchain();
 		VulkanSwapchain& vsync(bool flag, bool is_init = false);
 
-		VulkanSwapchain& create();
+		VulkanSwapchain& create(vk::SwapchainKHR* old = nullptr);
 		VulkanSwapchain& release();
+		VulkanSwapchain& recreate();
 
 		int_t acquire_image_index();
 		int_t do_present();

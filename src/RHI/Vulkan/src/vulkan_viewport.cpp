@@ -279,7 +279,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanSwapchain& VulkanSwapchain::create()
+	VulkanSwapchain& VulkanSwapchain::create(vk::SwapchainKHR* old)
 	{
 		vulkan_info_log("Vulkan API", "Creating new swapchain");
 		m_need_recreate = false;
@@ -303,6 +303,11 @@ namespace Engine
 		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 		f.format     = VK_FORMAT_B8G8R8A8_UNORM;
 		builder.set_desired_format(f);
+
+		if (old)
+		{
+			builder.set_old_swapchain(*old);
+		}
 
 		auto swapchain = builder.build();
 
@@ -359,10 +364,24 @@ namespace Engine
 
 		m_backbuffers.clear();
 
-		API->m_device.destroySwapchainKHR(m_swapchain);
+		if (m_swapchain)
+			API->m_device.destroySwapchainKHR(m_swapchain);
 
 		m_buffer_index = 0;
 		m_image_index  = -1;
+		return *this;
+	}
+
+	VulkanSwapchain& VulkanSwapchain::recreate()
+	{
+		vk::SwapchainKHR swapchain = m_swapchain;
+		m_swapchain                = VK_NULL_HANDLE;
+
+		release();
+		create(&swapchain);
+
+		API->m_device.destroySwapchainKHR(swapchain);
+
 		return *this;
 	}
 
@@ -458,8 +477,7 @@ namespace Engine
 	{
 		if (m_need_recreate)
 		{
-			release();
-			create();
+			recreate();
 			return try_present(callback, skip_on_out_of_date);
 		}
 
@@ -482,8 +500,7 @@ namespace Engine
 			}
 
 			Thread::this_thread()->sleep_for(0.1);
-			release();
-			create();
+			recreate();
 
 			status = (this->*callback)();
 		}
