@@ -20,9 +20,8 @@ namespace Engine
 			int_t execute() override;
 		};
 
-
 	private:
-		bool m_is_fully_created = false;
+		bool m_is_initialized = false;
 
 		static void on_create_fail();
 		static void on_new_system(System* system);
@@ -38,6 +37,7 @@ namespace Engine
 		virtual System& wait();
 		virtual System& update(float dt);
 		virtual System& shutdown();
+		System& begin_destroy() override;
 		static System* new_system(const String& name);
 		static System* new_system(class Refl::Class* class_instance);
 

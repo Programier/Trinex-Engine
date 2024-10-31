@@ -21,7 +21,7 @@
 
 namespace Engine
 {
-	implement_struct(Engine::Pipeline::DepthTestInfo)
+	implement_struct(Engine::Pipeline::DepthTestInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -31,7 +31,7 @@ namespace Engine
 							 new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
 	}
 
-	implement_struct(Engine::Pipeline::StencilTestInfo)
+	implement_struct(Engine::Pipeline::StencilTestInfo, 0)
 	{
 		auto* self                    = static_struct_instance();
 		Refl::Enum* stencil_op_enum   = Refl::Enum::static_find("Engine::StencilOp", Refl::FindFlags::IsRequired);
@@ -46,7 +46,7 @@ namespace Engine
 		                     new ClassProperty("Write mask", "Stencil write mask", &This::write_mask));
 	}
 
-	implement_struct(Engine::Pipeline::AssemblyInfo)
+	implement_struct(Engine::Pipeline::AssemblyInfo, 0)
 	{
 		auto* self = static_struct_instance();
 		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
@@ -54,7 +54,7 @@ namespace Engine
 											  Refl::Enum::static_find("Engine::PrimitiveTopology", Refl::FindFlags::IsRequired)));
 	}
 
-	implement_struct(Engine::Pipeline::RasterizerInfo)
+	implement_struct(Engine::Pipeline::RasterizerInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -68,7 +68,7 @@ namespace Engine
 		        new ClassProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
 	}
 
-	implement_struct(Engine::Pipeline::ColorBlendingInfo)
+	implement_struct(Engine::Pipeline::ColorBlendingInfo, 0)
 	{
 		auto* self = static_struct_instance();
 

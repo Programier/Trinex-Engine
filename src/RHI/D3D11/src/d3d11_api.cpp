@@ -17,7 +17,7 @@ namespace Engine
 	extern HWND extract_d3dx11_hwnd(class Window* main_window);
 	D3D11* D3D11::m_instance = nullptr;
 
-	implement_struct_default_init(Engine::RHI, D3D11);
+	implement_struct_default_init(Engine::RHI, D3D11, 0);
 
 	D3D11* D3D11::static_constructor()
 	{

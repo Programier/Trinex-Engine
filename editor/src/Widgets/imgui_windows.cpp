@@ -146,9 +146,9 @@ namespace Engine
 		{
 			for (Refl::Class* class_instance : Refl::Class::asset_classes())
 			{
-				for (auto& [id, filter] : filters.callbacks())
+				for (auto* filter : filters.callbacks())
 				{
-					if (filter(class_instance))
+					if ((*filter)(class_instance))
 					{
 						m_filtered_classes.push_back(class_instance);
 						break;

@@ -36,7 +36,7 @@ namespace Engine::Refl
 			IsAsset         = BIT(6),
 		};
 
-		Flags<Flag> flags;
+		const Flags<Flag> flags;
 		ScriptTypeInfo script_type_info;
 
 	private:
@@ -44,68 +44,62 @@ namespace Engine::Refl
 		Set<Struct*> m_childs;
 		mutable Struct* m_parent = nullptr;
 
-		class Group* m_group      = nullptr;
-		void* (*m_alloc)()        = nullptr;
-		void (*m_free)(void* mem) = nullptr;
-		StringView m_type_name;
-
-		template<typename T>
-		inline static Struct* super_of()
-			requires(has_super_type_v<T> && !std::is_same_v<typename T::Super, void>)
-		{
-			return T::Super::static_struct_instance();
-		}
-
-		template<typename T>
-		inline static Struct* super_of()
-		{
-			return nullptr;
-		}
+		class Group* m_group = nullptr;
 
 	protected:
 		void destroy_childs();
 
-	public:
-		Struct(Struct* parent = nullptr, BitMask flags = 0, StringView type_name = "");
-
 		template<typename T>
-		static Struct* create(StringView decl)
+		static consteval BitMask native_type_flags()
 		{
-			Struct* parent = super_of<T>();
+			BitMask mask = Flag::IsNative;
 
-			if (Struct* self = Object::new_instance<Struct>(decl, parent, 0, type_info<T>::name()))
+			if constexpr (std::is_final_v<T>)
 			{
-				if constexpr (Concepts::struct_with_custom_allocation<T>)
-				{
-					if (self->m_alloc == nullptr)
-						self->m_alloc = []() -> void* { return T::static_constructor(); };
-					if (self->m_free == nullptr)
-						self->m_free = [](void* mem) { T::static_destructor(reinterpret_cast<T*>(mem)); };
-				}
-				else
-				{
-					if (self->m_alloc == nullptr)
-						self->m_alloc = []() -> void* { return new T(); };
-					if (self->m_free == nullptr)
-						self->m_free = [](void* mem) { delete reinterpret_cast<T*>(mem); };
-				}
-				return self;
+				mask |= Flag::IsFinal;
 			}
 
-			return nullptr;
+			if constexpr (std::is_abstract_v<T>)
+			{
+				mask |= Flag::IsAbstract;
+			}
+
+			if constexpr (is_singletone_v<T>)
+			{
+				mask |= Flag::IsSingletone;
+			}
+
+			if constexpr (!(std::is_abstract_v<T> || (!std::is_constructible_v<T> && !Engine::is_singletone_v<T>) ))
+			{
+				mask |= Flag::IsConstructible;
+			}
+
+			return mask;
 		}
 
-		virtual void* create_struct() const;
-		virtual const Struct& destroy_struct(void* obj) const;
+		Struct& construct() override;
+		virtual Struct& register_scriptable_instance();
+		Struct& initialize() override;
+
+	public:
+		Struct(Struct* parent = nullptr, BitMask flags = 0);
+
+		virtual void* create_struct();
+		virtual Struct& destroy_struct(void* obj);
+		virtual StringView type_name() const;
+		virtual size_t size() const;
 
 		Struct* parent() const;
 		size_t abstraction_level() const;
 		Vector<Name> hierarchy(size_t offset = 0) const;
 		const Set<Struct*>& childs() const;
+		bool is_asset() const;
+		bool is_native() const;
+		bool is_class() const;
+		bool is_scriptable() const;
 
 		using Super::is_a;
 		bool is_a(const Struct* other) const;
-		bool is_class() const;
 
 		Struct& add_property(Property* prop);
 		const Vector<Property*>& properties() const;
@@ -113,11 +107,6 @@ namespace Engine::Refl
 
 		Struct& group(class Group*);
 		class Group* group() const;
-
-		FORCE_INLINE StringView type_name() const
-		{
-			return m_type_name;
-		}
 
 		template<typename... Args>
 		Struct& add_properties(Args&&... args)
@@ -129,15 +118,115 @@ namespace Engine::Refl
 		~Struct();
 	};
 
-#define implement_struct(decl)                                                                                                   \
+	template<typename T, void (*binder)(Struct*) = nullptr>
+	class NativeStruct : public Struct
+	{
+		template<typename F>
+		using initializer_detector = decltype(F::static_initialize_struct());
+
+		inline static Struct* super_of()
+			requires(has_super_type_v<T> && !std::is_same_v<typename T::Super, void> && !std::is_base_of_v<Object, T>)
+		{
+			return T::Super::static_struct_instance();
+		}
+
+		inline static Struct* super_of()
+		{
+			return nullptr;
+		}
+
+		NativeStruct& register_scriptable_instance() override
+		{
+			if constexpr (binder)
+			{
+				binder(this);
+			}
+			return *this;
+		}
+
+	public:
+		NativeStruct(Struct* parent = nullptr, BitMask flags = 0) : Struct(parent, flags)
+		{
+			bind_type_name(type_info<T>::name());
+		}
+
+		static Struct* create(StringView decl, BitMask flags = 0)
+		{
+			return Object::new_instance<NativeStruct<T, binder>>(decl, super_of(), flags | native_type_flags<T>());
+		}
+
+		void* create_struct() override
+		{
+			if constexpr (Concepts::struct_with_custom_allocation<T>)
+			{
+				return T::static_constructor();
+			}
+			else
+			{
+				if constexpr (std::is_default_constructible_v<T>)
+				{
+					return new T();
+				}
+				else
+				{
+					return nullptr;
+				}
+			}
+		}
+
+		NativeStruct& destroy_struct(void* mem) override
+		{
+			if constexpr (Concepts::struct_with_custom_allocation<T>)
+			{
+				T::static_destructor(reinterpret_cast<T*>(mem));
+			}
+			else
+			{
+				if constexpr (std::is_default_constructible_v<T>)
+				{
+					delete reinterpret_cast<T*>(mem);
+				}
+			}
+
+			return *this;
+		}
+
+		NativeStruct& initialize() override
+		{
+			Struct::initialize();
+
+			if constexpr (is_detected_v<T, initializer_detector>)
+			{
+				T::static_initialize_struct();
+			}
+
+			return *this;
+		}
+
+		StringView type_name() const override
+		{
+			return Engine::type_info<T>::name();
+		}
+
+		size_t size() const override
+		{
+			return sizeof(T);
+		}
+
+		~NativeStruct()
+		{
+			unbind_type_name(type_info<T>::name());
+		}
+	};
+
+#define implement_struct(decl, flags, ...)                                                                                       \
     class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
     class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
     {                                                                                                                            \
         if (!m_static_struct)                                                                                                    \
         {                                                                                                                        \
-            m_static_struct = Engine::Refl::Struct::create<decl>(#decl);                                                         \
-            decl::static_initialize_struct();                                                                                    \
+            m_static_struct = Engine::Refl::NativeStruct<decl __VA_OPT__(, ) __VA_ARGS__>::create(#decl, flags);                 \
         }                                                                                                                        \
         return m_static_struct;                                                                                                  \
     }                                                                                                                            \
@@ -147,7 +236,7 @@ namespace Engine::Refl
                                                                                                                                  \
     void decl::static_initialize_struct()
 
-#define implement_struct_default_init(decl)                                                                                      \
-	implement_struct(decl)                                                                                                       \
+#define implement_struct_default_init(decl, flags)                                                                               \
+	implement_struct(decl, flags)                                                                                                \
 	{}
 }// namespace Engine::Refl

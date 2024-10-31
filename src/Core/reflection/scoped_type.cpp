@@ -7,27 +7,63 @@ namespace Engine::Refl
 {
 	implement_reflect_type(ScopedType);
 
+	static ScopedType* root = nullptr;
+
 	Object* Object::static_root()
 	{
-		static ScopedType* root = nullptr;
-
 		if (root == nullptr)
 		{
 			root = Object::new_instance<ScopedType>("Root");
-			root->on_destroy += [](Object*) { root = nullptr; };
 		}
 
 		return root;
 	}
 
+	static inline void static_initialize_childs(Object* root, bool force_recursive)
+	{
+		if (auto scope = Object::instance_cast<ScopedType>(root))
+		{
+			ScopedType::Locker lock(scope);
+
+			for (auto& [name, child] : scope->childs())
+			{
+				if (child)
+				{
+					Object::static_initialize(child, force_recursive);
+				}
+			}
+		}
+	}
+
+	void Object::static_initialize(Object* root, bool force_recursive)
+	{
+		if (root == nullptr)
+			root = static_root();
+
+		if (!root->m_is_initialized)
+		{
+			root->m_is_initialized = true;
+			root->initialize();
+			root->on_initialize(root);
+			static_initialize_childs(root, force_recursive);
+		}
+
+		if (force_recursive)
+		{
+			static_initialize_childs(root, force_recursive);
+		}
+	}
+
 	ScopedType& ScopedType::unregister_subobject(Object* subobject)
 	{
+		trinex_always_check(!is_locked(), "Object must be unlocked");
 		m_childs.erase(subobject->name());
 		return *this;
 	}
 
 	ScopedType& ScopedType::register_subobject(Object* subobject)
 	{
+		trinex_always_check(!is_locked(), "Object must be unlocked");
 		m_childs.insert({subobject->name(), subobject});
 		return *this;
 	}
@@ -78,6 +114,19 @@ namespace Engine::Refl
 		return m_childs;
 	}
 
+	void ScopedType::lock() const
+	{
+		++m_lock_count;
+	}
+
+	void ScopedType::unlock() const
+	{
+		if (m_lock_count > 0)
+		{
+			--m_lock_count;
+		}
+	}
+
 	ScopedType::~ScopedType()
 	{
 		auto childs = std::move(m_childs);
@@ -86,5 +135,8 @@ namespace Engine::Refl
 		{
 			Object::destroy_instance(child);
 		}
+
+		if (this == root)
+			root = nullptr;
 	}
 }// namespace Engine::Refl

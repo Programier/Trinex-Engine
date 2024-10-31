@@ -211,7 +211,7 @@ namespace Engine
 		info.implicit_handle = true;
 		info.extra_flags     = asOBJ_APP_NATIVE_INHERITANCE;
 
-		auto res = ScriptClassRegistrar(class_instance->full_name(), class_instance->sizeof_class(), create_flags(info));
+		auto res = ScriptClassRegistrar(class_instance->full_name(), class_instance->size(), create_flags(info));
 		auto ti  = res.type_info();
 		class_instance->script_type_info = ti;
 		ti.info()->SetNativeClassUserData(class_instance);
@@ -221,6 +221,11 @@ namespace Engine
 	ScriptClassRegistrar ScriptClassRegistrar::existing_class(const String& name)
 	{
 		return ScriptClassRegistrar(name);
+	}
+
+	ScriptClassRegistrar ScriptClassRegistrar::existing_class(Refl::Class* class_instance)
+	{
+		return existing_class(class_instance->full_name());
 	}
 
 	const String& ScriptClassRegistrar::class_name() const

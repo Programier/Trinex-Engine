@@ -32,7 +32,7 @@ namespace Engine
 		using NONE = NoneApi;
 	}
 
-	implement_struct_default_init(Engine::TRINEX_RHI::NONE);
+	implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
 
 	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
 		void bind(BindLocation location) override

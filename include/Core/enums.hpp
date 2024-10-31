@@ -146,6 +146,8 @@ namespace Engine
 		A = 8,
 	};
 
+	declare_enum_operators(ColorComponent);
+
 	enum class CompareFunc : EnumerateType
 	{
 		Always   = 0,
@@ -291,21 +293,21 @@ namespace Engine
 
 	enum class ColorComponentMask : EnumerateType
 	{
-		RGBA = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A),
-		RGB  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B),
-		RGA  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::A),
-		RG   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G),
-		RBA  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B, ColorComponent::A),
-		RB   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B),
-		RA   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::A),
-		R    = mask_of<EnumerateType>(ColorComponent::R),
-		GBA  = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B, ColorComponent::A),
-		GB   = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B),
-		GA   = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::A),
-		G    = mask_of<EnumerateType>(ColorComponent::G),
-		BA   = mask_of<EnumerateType>(ColorComponent::B, ColorComponent::A),
-		B    = mask_of<EnumerateType>(ColorComponent::B),
-		A    = mask_of<EnumerateType>(ColorComponent::A)
+		RGBA = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::G | ColorComponent::B | ColorComponent::A),
+		RGB  = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::G | ColorComponent::B),
+		RGA  = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::G | ColorComponent::A),
+		RG   = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::G),
+		RBA  = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::B | ColorComponent::A),
+		RB   = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::B),
+		RA   = static_cast<EnumerateType>(ColorComponent::R | ColorComponent::A),
+		R    = static_cast<EnumerateType>(ColorComponent::R),
+		GBA  = static_cast<EnumerateType>(ColorComponent::G | ColorComponent::B | ColorComponent::A),
+		GB   = static_cast<EnumerateType>(ColorComponent::G | ColorComponent::B),
+		GA   = static_cast<EnumerateType>(ColorComponent::G | ColorComponent::A),
+		G    = static_cast<EnumerateType>(ColorComponent::G),
+		BA   = static_cast<EnumerateType>(ColorComponent::B | ColorComponent::A),
+		B    = static_cast<EnumerateType>(ColorComponent::B),
+		A    = static_cast<EnumerateType>(ColorComponent::A)
 	};
 
 	enum class SerializationFlags : EnumerateType

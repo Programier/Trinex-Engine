@@ -13,7 +13,7 @@ namespace Engine
 {
 	const Transform Transform::transform_zero;
 
-	implement_struct(Engine::Transform)
+	implement_struct(Engine::Transform, 0)
 	{
 		auto* self                  = static_struct_instance();
 		static auto on_prop_changed = [](void* object) {
@@ -299,8 +299,10 @@ namespace Engine
 		                 ScriptCallConv::CDeclObjFirst);
 
 		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
+
+		Transform::static_struct_instance()->script_type_info = registrar.type_info();
 	}
 
 	static ReflectionInitializeController init(on_init, "Engine::Transform",
-	                                           {"Engine::Matrix", "Engine::Vector", "Engine::Quaternion"});
+											   {"Engine::Matrix", "Engine::Vector", "Engine::Quaternion"});
 }// namespace Engine

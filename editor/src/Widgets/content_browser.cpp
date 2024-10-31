@@ -154,9 +154,9 @@ namespace Engine
 
 		if (!in_filter)
 		{
-			for (auto& [name, callback] : filters.callbacks())
+			for (auto* callback : filters.callbacks())
 			{
-				in_filter = callback(object->class_instance());
+				in_filter = (*callback)(object->class_instance());
 				if (in_filter)
 					break;
 			}

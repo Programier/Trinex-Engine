@@ -53,31 +53,32 @@ namespace Engine::VisualMaterialGraph
 
 	implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			node_header_color = r->method("Vector4D header_color() const", &This::scoped_header_color<This>);
-			node_render       = r->method("Node@ render()", &This::scoped_render<This>);
-			node_signature    = r->method("const NodeSignature& signature() const", &This::scoped_signature<This>);
-			node_compile_out =
-			        r->method("Expression compile(OutputPin@ pin, CompilerState@ state)", &This::scoped_compile_out<This>);
-			node_compile_in =
-			        r->method("Expression compile(InputPin@ pin, CompilerState@ state)", &This::scoped_compile_in<This>);
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
-			r->method("bool can_connect(OutputPin@ pin, PinType type) final", &This::can_connect);
-			r->method("bool is_root_node() const final", &This::is_root_node);
-			r->method("bool has_error() const final", &This::has_error);
-			r->method("const string& error_message() const final", &This::error_message);
-			r->method("Node& clear_error_message() const final", &This::clear_error_message);
-			r->method("void add_pin(InputPin@ pin) final", method_of<void, InputPin*>(&This::add_pin));
-			r->method("void add_pin(OutputPin@ pin) final", method_of<void, OutputPin*>(&This::add_pin));
-			r->method("InputPin@ input_pin(uint64 index) const final", &This::input_pin);
-			r->method("OutputPin@ output_pin(uint64 index) const final", &This::output_pin);
-			r->method("uint64 find_pin_index(OutputPin@ pin) const final", method_of<Index, OutputPin*>(&This::find_pin_index));
-			r->method("uint64 find_pin_index(InputPin@ pin) const final", method_of<Index, InputPin*>(&This::find_pin_index));
-			r->method("PinType in_pin_type(InputPin@ pin) const final", &This::in_pin_type);
-			r->method("PinType out_pin_type(OutputPin@ pin) const final", &This::out_pin_type);
-			r->method("uint64 id() const final", &This::id);
-			r->property("Vector2D position", &This::position);
-		};
+		node_header_color = r.method("Vector4D header_color() const", trinex_scoped_method(This, header_color));
+		node_render       = r.method("Node@ render()", trinex_scoped_method(This, render));
+		node_signature    = r.method("const NodeSignature& signature() const", trinex_scoped_method(This, signature));
+
+		node_compile_out = r.method("Expression compile(OutputPin@ pin, CompilerState@ state)",
+									trinex_scoped_method(This, compile, Expression, OutputPin*, CompilerState&));
+		node_compile_in  = r.method("Expression compile(InputPin@ pin, CompilerState@ state)",
+									trinex_scoped_method(This, compile, Expression, InputPin*, CompilerState&));
+
+		r.method("bool can_connect(OutputPin@ pin, PinType type) final", &This::can_connect);
+		r.method("bool is_root_node() const final", &This::is_root_node);
+		r.method("bool has_error() const final", &This::has_error);
+		r.method("const string& error_message() const final", &This::error_message);
+		r.method("Node& clear_error_message() const final", &This::clear_error_message);
+		r.method("void add_pin(InputPin@ pin) final", method_of<void, InputPin*>(&This::add_pin));
+		r.method("void add_pin(OutputPin@ pin) final", method_of<void, OutputPin*>(&This::add_pin));
+		r.method("InputPin@ input_pin(uint64 index) const final", &This::input_pin);
+		r.method("OutputPin@ output_pin(uint64 index) const final", &This::output_pin);
+		r.method("uint64 find_pin_index(OutputPin@ pin) const final", method_of<Index, OutputPin*>(&This::find_pin_index));
+		r.method("uint64 find_pin_index(InputPin@ pin) const final", method_of<Index, InputPin*>(&This::find_pin_index));
+		r.method("PinType in_pin_type(InputPin@ pin) const final", &This::in_pin_type);
+		r.method("PinType out_pin_type(OutputPin@ pin) const final", &This::out_pin_type);
+		r.method("uint64 id() const final", &This::id);
+		r.property("Vector2D position", &This::position);
 
 		ScriptEngine::on_terminate.push([]() {
 			node_header_color.release();
@@ -90,14 +91,15 @@ namespace Engine::VisualMaterialGraph
 
 	implement_class(Engine::VisualMaterialGraph::SignaturedNode, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			signatured_node_make_expression =
-			        r->method("Expression make_expression(OutputPin@ pin, const NodeSignature::Signature& signature, const "
-			                  "Vector<Expression>& args)",
-			                  &This::scoped_make_expression<This>);
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
-			r->method("Expression compile(OutputPin@ pin, CompilerState@ state)", &This::scoped_compile_out<This>);
-		};
+		signatured_node_make_expression =
+				r.method("Expression make_expression(OutputPin@ pin, const NodeSignature::Signature& signature, const "
+						 "Vector<Expression>& args)",
+						 trinex_scoped_method(This, make_expression));
+
+		node_compile_out = r.method("Expression compile(OutputPin@ pin, CompilerState@ state)",
+									trinex_scoped_method(This, compile, Expression, OutputPin*, CompilerState&));
 
 		ScriptEngine::on_terminate.push([]() { signatured_node_make_expression.release(); });
 	}

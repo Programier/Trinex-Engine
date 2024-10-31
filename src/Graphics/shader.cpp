@@ -16,7 +16,7 @@
 
 namespace Engine
 {
-	implement_struct(Engine::VertexShader::Attribute)
+	implement_struct(Engine::VertexShader::Attribute, 0)
 	{
 		auto self = static_struct_instance();
 

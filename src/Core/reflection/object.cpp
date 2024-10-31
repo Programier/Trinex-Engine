@@ -7,9 +7,11 @@
 namespace Engine::Refl
 {
 	static Set<Object*> m_instances;
-	static bool m_check_exiting_instance           = true;
-	static thread_local StringView m_accepted_name = "";
 	static Map<StringView, Object*> m_type_name_map;
+
+	static bool m_check_exiting_instance = true;
+	static StringView m_accepted_name    = "";
+	static Object* m_accepted_owner      = nullptr;
 
 	static void destroy_reflection_instances()
 	{
@@ -51,14 +53,32 @@ namespace Engine::Refl
 
 	void Object::accept_next_object(StringView name)
 	{
+		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
+
 		if (name != "Root")
 		{
 			trinex_always_check(static_find(name, FindFlags::DisableReflectionCheck) == nullptr,
 								"Object with same name already exist");
 		}
 
-		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
-		m_accepted_name = name;
+		m_accepted_name  = name;
+		m_accepted_owner = nullptr;
+	}
+
+	void Object::accept_next_object(Object* owner, StringView name)
+	{
+		if (owner)
+		{
+			trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
+			trinex_always_check(owner->find(name, FindFlags::DisableReflectionCheck) == nullptr,
+								"Object with same name already exist");
+			m_accepted_name  = name;
+			m_accepted_owner = owner;
+		}
+		else
+		{
+			accept_next_object(name);
+		}
 	}
 
 	Object::Object() : m_owner(nullptr), m_name(Strings::class_name_of(m_accepted_name))
@@ -67,22 +87,30 @@ namespace Engine::Refl
 		trinex_always_check(m_name.is_valid(), "Reflection object name cannot be empty!");
 		m_name_splitted = Strings::make_sentence(m_name);
 
-		auto owner_name = Strings::namespace_sv_of(m_accepted_name);
-
-		if (owner_name.empty())
+		if (m_accepted_owner)
 		{
-			if (m_name != "Root")
-			{
-				owner(static_root());
-			}
+			owner(m_accepted_owner);
 		}
 		else
 		{
-			owner(static_find(owner_name, FindFlags::CreateScope));
+			auto owner_name = Strings::namespace_sv_of(m_accepted_name);
+
+			if (owner_name.empty())
+			{
+				if (m_name != "Root")
+				{
+					owner(static_root());
+				}
+			}
+			else
+			{
+				owner(static_find(owner_name, FindFlags::CreateScope));
+			}
 		}
 
 		m_instances.insert(this);
-		m_accepted_name = "";
+		m_accepted_name  = "";
+		m_accepted_owner = nullptr;
 	}
 
 	Object::~Object()
@@ -109,6 +137,16 @@ namespace Engine::Refl
 	Object& Object::register_subobject(Object* subobject)
 	{
 		throw EngineException("Cannot register object to non-scoped object");
+		return *this;
+	}
+
+	Object& Object::initialize()
+	{
+		return *this;
+	}
+
+	Object& Object::construct()
+	{
 		return *this;
 	}
 
@@ -180,12 +218,17 @@ namespace Engine::Refl
 
 	String Object::scope_name() const
 	{
-		if (m_owner)
+		if (m_owner && m_owner != static_root())
 		{
 			return m_owner->full_name();
 		}
 
 		return "";
+	}
+
+	bool Object::is_initialized() const
+	{
+		return m_is_initialized;
 	}
 
 	Object* Object::find(StringView name, FindFlags flags)
@@ -223,7 +266,6 @@ namespace Engine::Refl
 			bool check_exiting_instance_tmp = m_check_exiting_instance;
 			m_check_exiting_instance        = true;
 
-			object->on_destroy(object);
 			delete object;
 
 			m_check_exiting_instance = check_exiting_instance_tmp;

@@ -108,6 +108,8 @@ namespace Engine
 		bool is_array() const;
 		bool is_object(bool handle_is_object = false) const;
 		bool is_handle() const;
+		bool is_value() const;
+		bool is_ref() const;
 
 		~ScriptTypeInfo();
 	};

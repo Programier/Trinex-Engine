@@ -110,19 +110,6 @@ namespace Engine
 		static ENGINE_EXPORT void* operator new(size_t size, void*) noexcept;
 		static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
 
-
-		template<typename Scope = Object>
-		auto scoped_preload() -> decltype(Scope::preload())
-		{
-			return Scope::preload();
-		}
-
-		template<typename Scope = Object>
-		auto scoped_postload() -> decltype(Scope::postload())
-		{
-			return Scope::postload();
-		}
-
 	public:
 		using This  = Object;
 		using Super = Object;
@@ -182,6 +169,7 @@ namespace Engine
 		virtual Object& preload();
 		virtual Object& postload();
 		virtual Object& apply_changes();
+		virtual Object& begin_destroy();
 
 		Object* owner() const;
 		bool owner(Object* new_owner);
@@ -370,9 +358,7 @@ private:
     {                                                                                                                            \
         if (!m_static_class)                                                                                                     \
         {                                                                                                                        \
-            m_static_class = Engine::Refl::Class::create<decl>(#decl, flags);                                                    \
-            decl::static_initialize_class();                                                                                     \
-            m_static_class->post_initialize();                                                                                   \
+            m_static_class = Engine::Refl::NativeClass<decl>::create(#decl, flags);                                              \
         }                                                                                                                        \
         return m_static_class;                                                                                                   \
     }                                                                                                                            \

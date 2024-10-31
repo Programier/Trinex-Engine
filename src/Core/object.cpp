@@ -56,19 +56,25 @@ namespace Engine
 		next_object_info.reset();
 	}
 
+#define trinex_scoped_method2(class_name, method_name, ...)                                                                      \
+	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::FuncTypePtr>(               \
+			[]<typename Instance, typename... Args>(Instance* instance, Args... args) -> float {                                 \
+				return instance->class_name::method_name(args...);                                                               \
+			})
+
+
 	implement_engine_class(Object, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			r->method("const string& string_name() const final", &Object::string_name);
-			r->static_function("Package@ root_package()", &Object::root_package);
-			r->method("string as_string() const final", &Object::as_string);
-			r->method("const Name& name() const final", method_of<const Name&>(&Object::name));
-			r->method("Class@ class_instance() const final", &Object::class_instance);
-			r->method("string opConv() const", &Object::as_string);
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		r.method("const string& string_name() const final", &Object::string_name);
+		r.static_function("Package@ root_package()", &Object::root_package);
+		r.method("string as_string() const final", &Object::as_string);
+		r.method("const Name& name() const final", method_of<const Name&>(&Object::name));
+		r.method("Refl::Class@ class_instance() const final", &Object::class_instance);
+		r.method("string opConv() const", &Object::as_string);
 
-			script_object_preload  = r->method("void preload()", &Object::scoped_preload<Object>);
-			script_object_postload = r->method("void postload()", &Object::scoped_postload<Object>);
-		};
+		script_object_preload  = r.method("void preload()", trinex_scoped_method(Object, preload));
+		script_object_postload = r.method("void postload()", trinex_scoped_method(Object, postload));
 
 		ScriptEngine::on_terminate.push([]() {
 			script_object_preload.release();
@@ -420,6 +426,11 @@ namespace Engine
 	}
 
 	Object& Object::apply_changes()
+	{
+		return *this;
+	}
+
+	Object& Object::begin_destroy()
 	{
 		return *this;
 	}

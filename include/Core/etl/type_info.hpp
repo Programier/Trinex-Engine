@@ -71,6 +71,7 @@ namespace Engine
 		static constexpr inline bool is_enum                            = std::is_enum_v<T>;
 		static constexpr inline bool is_function                        = std::is_function_v<T>;
 		static constexpr inline bool is_member_pointer                  = std::is_member_pointer_v<T>;
+		static constexpr inline bool is_member_function_pointer         = std::is_member_function_pointer_v<T>;
 		static constexpr inline bool is_fundamental                     = std::is_fundamental_v<T>;
 		static constexpr inline bool is_arithmetic                      = std::is_arithmetic_v<T>;
 		static constexpr inline bool is_scalar                          = std::is_scalar_v<T>;

@@ -518,42 +518,6 @@ namespace Engine::VisualMaterialGraph
 		Node& script_override_parameter(VisualMaterial* material);
 
 	public:
-		template<typename Scope = Node>
-		Vector4D scoped_header_color() const
-		{
-			return reinterpret_cast<const Scope*>(this)->Scope::header_color();
-		}
-
-		template<typename Scope = Node>
-		const NodeSignature& scoped_signature() const
-		{
-			return reinterpret_cast<const Scope*>(this)->Scope::signature();
-		}
-
-		template<typename Scope>
-		Expression scoped_compile_out(OutputPin* pin, CompilerState& state)
-		{
-			return reinterpret_cast<Scope*>(this)->Scope::compile(pin, state);
-		}
-
-		template<typename Scope>
-		Expression scoped_compile_in(InputPin* pin, CompilerState& state)
-		{
-			return reinterpret_cast<Scope*>(this)->Scope::compile(pin, state);
-		}
-
-		template<typename Scope>
-		Node& scoped_render()
-		{
-			return reinterpret_cast<Scope*>(this)->Scope::render();
-		}
-
-		template<typename Scope>
-		Node& scoped_override_parameter(VisualMaterial* material)
-		{
-			return reinterpret_cast<Scope*>(this)->Scope::override_parameter(material);
-		}
-
 		template<typename NativeClass>
 		struct Scriptable : Super::Scriptable<NativeClass> {
 			Vector4D header_color() const override
@@ -631,13 +595,6 @@ namespace Engine::VisualMaterialGraph
 		declare_class(SignaturedNode, Node);
 
 	protected:
-		template<typename Scope>
-		Expression scoped_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
-		                                  const Vector<Expression>& args)
-		{
-			return Scope::make_expression(pin, signature, args);
-		}
-
 		Expression script_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
 		                                  const Vector<Expression>& args);
 

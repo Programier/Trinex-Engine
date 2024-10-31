@@ -495,6 +495,18 @@ namespace Engine
 		return ScriptEngine::is_handle_type(type_id());
 	}
 
+	bool ScriptTypeInfo::is_value() const
+	{
+		check_info(false);
+		return (m_info->GetFlags() & asOBJ_VALUE) == asOBJ_VALUE;
+	}
+
+	bool ScriptTypeInfo::is_ref() const
+	{
+		check_info(false);
+		return (m_info->GetFlags() & asOBJ_REF) == asOBJ_REF;
+	}
+
 	ScriptTypeInfo::~ScriptTypeInfo()
 	{
 		release();

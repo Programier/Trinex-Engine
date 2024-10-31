@@ -3,6 +3,11 @@
 
 namespace Engine
 {
+	template<typename... Args>
+	struct SignatureArgs {
+		static constexpr inline unsigned int count = sizeof...(Args);
+	};
+
 	template<typename T>
 	struct SignatureParser {
 		using Type = T;
@@ -10,19 +15,85 @@ namespace Engine
 
 	template<typename ReturnType, typename... ArgsType>
 	struct SignatureParser<ReturnType(ArgsType...)> {
-		using Type = ReturnType (*)(ArgsType...);
+		using Type    = ReturnType(ArgsType...);
+		using TypePtr = Type*;
+		using TypeRef = Type&;
+
+		using Args = SignatureArgs<ArgsType...>;
+
+		using Return = ReturnType;
 	};
 
+	template<typename ReturnType, typename... ArgsType>
+	struct SignatureParser<ReturnType (*)(ArgsType...)> {
+		using Type    = ReturnType(ArgsType...);
+		using TypePtr = Type*;
+		using TypeRef = Type&;
+
+		using Args = SignatureArgs<ArgsType...>;
+
+		using Return = ReturnType;
+	};
+
+	template<typename ReturnType, typename... ArgsType>
+	struct SignatureParser<ReturnType (&)(ArgsType...)> {
+		using Type    = ReturnType(ArgsType...);
+		using TypePtr = Type*;
+		using TypeRef = Type&;
+
+		using Args = SignatureArgs<ArgsType...>;
+
+		using Return = ReturnType;
+	};
+
+	template<typename ClassType, typename ReturnType, typename... ArgsType>
+	struct SignatureParser<ReturnType (ClassType::*)(ArgsType...)> {
+		using Type    = ReturnType (ClassType::*)(ArgsType...);
+		using TypePtr = Type*;
+		using TypeRef = Type&;
+
+		using Args = SignatureArgs<ArgsType...>;
+
+		using FuncType    = ReturnType(ClassType*, ArgsType...);
+		using FuncTypePtr = FuncType*;
+		using FuncTypeRef = FuncType&;
+
+		using FuncArgs = SignatureArgs<ClassType*, ArgsType...>;
+
+		using Return = ReturnType;
+		using Class  = ClassType;
+	};
+
+
+	template<typename ClassType, typename ReturnType, typename... ArgsType>
+	struct SignatureParser<ReturnType (ClassType::*)(ArgsType...) const> {
+		using Type    = ReturnType (ClassType::*)(ArgsType...) const;
+		using TypePtr = Type*;
+		using TypeRef = Type&;
+
+		using Args = SignatureArgs<ArgsType...>;
+
+		using FuncType    = ReturnType(const ClassType*, ArgsType...);
+		using FuncTypePtr = FuncType*;
+		using FuncTypeRef = FuncType&;
+
+		using FuncArgs = SignatureArgs<ClassType*, ArgsType...>;
+
+		using Return = ReturnType;
+		using Class  = ClassType;
+	};
+
+
 	template<typename Signature>
-	constexpr typename SignatureParser<Signature>::Type func_of(typename SignatureParser<Signature>::Type func)
+	constexpr typename SignatureParser<Signature>::TypePtr func_of(typename SignatureParser<Signature>::TypePtr func)
 	{
 		return func;
 	}
 
 	template<typename Signature, typename T>
-	constexpr typename SignatureParser<Signature>::Type func_of(T func)
+	constexpr typename SignatureParser<Signature>::TypePtr func_of(T func)
 	{
-		return static_cast<typename SignatureParser<Signature>::Type>(func);
+		return static_cast<typename SignatureParser<Signature>::TypePtr>(func);
 	}
 
 	template<typename Return, typename... Args, typename Instance>
@@ -37,11 +108,12 @@ namespace Engine
 		return function;
 	}
 
-	template<typename OutType, typename... Args>
-	constexpr OutType mask_of(Args&&... args)
-	{
-		return (static_cast<OutType>(args) | ...);
-	}
+#define trinex_scoped_method(class_name, method_name, ...)                                                                       \
+	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::FuncTypePtr>(               \
+			[]<typename Instance, typename... Args>(Instance* instance,                                                          \
+													Args... args) -> decltype(instance->method_name(args...)) {                  \
+				return instance->class_name::method_name(args...);                                                               \
+			})
 
 	template<typename EnumType>
 	FORCE_INLINE EnumerateType enum_value_of(EnumType value)
@@ -71,24 +143,6 @@ namespace Engine
 	inline constexpr bool is_not_in(ValueType&& value)
 	{
 		return ((value != values) && ...);
-	}
-
-	template<typename OutType = size_t>
-	inline constexpr OutType fill_bits(byte count)
-	{
-		if (count == 0)
-			return 0;
-
-		size_t result = 0;
-
-		while (count > 0)
-		{
-			result <<= 1;
-			result += 1;
-			--count;
-		}
-
-		return static_cast<OutType>(result);
 	}
 
 	template<typename FieldType, typename ClassType>

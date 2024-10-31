@@ -73,37 +73,6 @@ namespace Engine
 		Actor& add_component(ActorComponent* component);
 		Actor& remove_component(ActorComponent* component);
 
-
-		template<typename Scope = Actor>
-		auto scoped_update(float dt) -> decltype(Scope::update(dt))
-		{
-			return Scope::update(dt);
-		}
-
-		template<typename Scope = Actor>
-		auto scoped_start_play() -> decltype(Scope::start_play())
-		{
-			return Scope::start_play();
-		}
-
-		template<typename Scope = Actor>
-		auto scoped_stop_play() -> decltype(Scope::stop_play())
-		{
-			return Scope::stop_play();
-		}
-
-		template<typename Scope = Actor>
-		auto scoped_spawned() -> decltype(Scope::spawned())
-		{
-			return Scope::spawned();
-		}
-
-		template<typename Scope = Actor>
-		auto scoped_destroyed() -> decltype(Scope::destroyed())
-		{
-			return Scope::destroyed();
-		}
-
 	public:
 		ActorComponent* create_component(Refl::Class* self, const Name& name = {});
 

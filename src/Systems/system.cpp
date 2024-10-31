@@ -28,7 +28,7 @@ namespace Engine
 	void System::on_new_system(System* system)
 	{
 		system->create();
-		if (!system->m_is_fully_created)
+		if (!system->m_is_initialized)
 		{
 			on_create_fail();
 		}
@@ -52,7 +52,7 @@ namespace Engine
 		rename(_class->name().c_str(), static_find_package("Engine::Systems", true));
 
 		debug_log("System", "Created system '%s'", string_name().c_str());
-		m_is_fully_created = true;
+		m_is_initialized = true;
 		return *this;
 	}
 
@@ -206,7 +206,7 @@ namespace Engine
 
 	bool System::is_shutdowned() const
 	{
-		return !m_is_fully_created;
+		return !m_is_initialized;
 	}
 
 	System& System::shutdown()
@@ -226,7 +226,15 @@ namespace Engine
 			system->shutdown();
 		}
 
-		m_is_fully_created = false;
+		m_is_initialized = false;
+		return *this;
+	}
+
+	System& System::begin_destroy()
+	{
+		Super::begin_destroy();
+		if (m_is_initialized)
+			shutdown();
 		return *this;
 	}
 
@@ -235,7 +243,7 @@ namespace Engine
 		if (class_instance && class_instance->is_a(System::static_class_instance()))
 		{
 			System* system = class_instance->create_object()->instance_cast<System>();
-			if (system && system->m_is_fully_created == false)
+			if (system && system->m_is_initialized == false)
 			{
 				on_new_system(system);
 			}
@@ -262,26 +270,12 @@ namespace Engine
 
 	System::~System()
 	{
-		if (m_is_fully_created)
+		if (m_is_initialized)
 		{
 			error_log("System", "You must call shutdown method before destroy system! System address %p", this);
 		}
 	}
 
-	static void on_system_destroy(Object* object)
-	{
-		if (System* system = object->instance_cast<System>())
-		{
-			if (!system->is_shutdowned())
-			{
-				system->shutdown();
-			}
-		}
-	}
-
 	implement_engine_class(System, Refl::Class::IsScriptable)
-	{
-		Refl::Class* self = static_class_instance();
-		self->on_destroy.push(on_system_destroy);
-	}
+	{}
 }// namespace Engine

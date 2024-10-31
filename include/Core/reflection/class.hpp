@@ -17,132 +17,105 @@ namespace Engine
 		private:
 			mutable Engine::Object* m_singletone_object;
 
-			Engine::Object* (*m_script_factory)(StringView, Engine::Object*)                              = nullptr;
-			Engine::Object* (*m_script_placement_constructor)(Class*, void*, StringView, Engine::Object*) = nullptr;
+		protected:
+			static bool is_script_class(Class* self);
+			using ObjectFactory = Engine::Object*(StringView name, Engine::Object* owner);
 
-			void (*m_destroy_func)(Engine::Object*)                                                       = nullptr;
-			Engine::Object* (*m_static_constructor)(Class*, StringView, Engine::Object*)                  = nullptr;
-			Engine::Object* (*m_static_placement_constructor)(Class*, void*, StringView, Engine::Object*) = nullptr;
+			virtual Engine::Object* object_constructor(Class* class_overload, StringView name = "",
+													   Engine::Object* owner = nullptr);
+			virtual Engine::Object* object_placement_constructor(void* mem, Class* class_overload, StringView name = "",
+																 Engine::Object* owner = nullptr);
+			virtual ObjectFactory* script_object_factory() const;
 
-			size_t m_size;
-
-			void on_create_call(Engine::Object* object) const;
-			void bind_class_to_script_engine();
-			void register_scriptable_class();
+			Class& register_scriptable_instance() override;
+			Class& initialize() override;
 
 		public:
-			CallBacks<void(Engine::Object*)> on_create;
-			CallBacks<void(Engine::Object*)> on_destroy;
-			CallBacks<void(Class*)> on_class_destroy;
-			Function<void(ScriptClassRegistrar*, Class*)> script_registration_callback;
-
-			Class(Class* parent = nullptr, BitMask flags = 0, StringView type_name = "");
+			Class(Class* parent = nullptr, BitMask flags = 0);
 
 			Class* parent() const;
 
-			void (*destroy_func() const)(Engine::Object*);
-			Class& destroy_func(void (*)(Engine::Object*));
+			void* create_struct() override;
+			Class& destroy_struct(void* obj) override;
 
-			void* create_struct() const override;
-			const Struct& destroy_struct(void* obj) const override;
-			Engine::Object* create_object(StringView name = "", Engine::Object* owner = nullptr,
-										  const Class* class_overload = nullptr) const;
+			Engine::Object* create_object(StringView name = "", Engine::Object* owner = nullptr, Class* class_overload = nullptr);
 			Engine::Object* create_placement_object(void* place, StringView name = "", Engine::Object* owner = nullptr,
-													const Class* class_overload = nullptr) const;
-
-			size_t sizeof_class() const;
-			bool is_scriptable() const;
-			Class& static_constructor(Engine::Object* (*new_static_constructor)(Class*, StringView, Engine::Object*) );
+													Class* class_overload = nullptr);
+			virtual Class& destroy_object(Engine::Object* object);
 			Engine::Object* singletone_instance() const;
-			Class& post_initialize();
 
 			using Struct::is_a;
-			bool is_asset() const;
-			bool is_native() const;
-
 			const ScriptTypeInfo& find_valid_script_type_info() const;
 			static const Vector<Class*>& asset_classes();
 
-			~Class();
-
 			template<typename Type>
 			bool is_a() const
+				requires(std::is_base_of_v<Engine::Object, Type>)
 			{
 				return is_a(Type::static_class_instance());
 			}
 
-			template<typename ObjectClass>
-			void setup_class()
+			friend class Engine::ScriptClassRegistrar;
+			friend class Engine::SingletoneBase;
+		};
+
+		template<typename T>
+		class NativeClass : public Class
+		{
+			using ScriptableType = T::template Scriptable<T>;
+
+			ObjectFactory* script_object_factory() const override
 			{
-				if (m_size == 0)
+				if constexpr (!is_singletone_v<T>)
 				{
-					m_size = sizeof(ObjectClass);
-					flags(Flag::IsNative, true);
-
-					if constexpr (!is_singletone_v<ObjectClass>)
+					if constexpr (std::is_final_v<T>)
 					{
-						if (flags(Flag::IsScriptable))
-						{
-							if constexpr (std::is_final_v<ObjectClass>)
-							{
-								m_script_factory = [](StringView name, Engine::Object* owner) -> Engine::Object* {
-									return Engine::Object::new_instance<ObjectClass, true>(name, owner);
-								};
-
-								m_script_placement_constructor = [](Class* self, void* place, StringView name,
-																	Engine::Object* owner) -> Engine::Object* {
-									return Engine::Object::new_placement_instance<ObjectClass, true>(place, name, owner);
-								};
-							}
-							else
-							{
-								using ScriptableType = typename ObjectClass::template Scriptable<ObjectClass>;
-
-								m_script_factory = [](StringView name, Engine::Object* owner) -> Engine::Object* {
-									return Engine::Object::new_instance<ScriptableType, true>(name, owner);
-								};
-
-								m_script_placement_constructor = [](Class* self, void* place, StringView name,
-																	Engine::Object* owner) -> Engine::Object* {
-									return Engine::Object::new_placement_instance<ScriptableType, true>(place, name, owner);
-								};
-							}
-						}
+						return [](StringView name, Engine::Object* owner) -> Engine::Object* {
+							return Engine::Object::new_instance<T, true>(name, owner);
+						};
 					}
-
-					m_static_constructor = [](Class* self, StringView name, Engine::Object* owner) -> Engine::Object* {
-						return Engine::Object::new_instance<ObjectClass, true>(name, owner);
-					};
-
-					m_static_placement_constructor = [](Class* self, void* place, StringView name,
-														Engine::Object* owner) -> Engine::Object* {
-						return Engine::Object::new_placement_instance<ObjectClass, true>(place, name, owner);
-					};
-
-					if constexpr (std::is_final_v<ObjectClass>)
+					else
 					{
-						flags(Flag::IsFinal, true);
-					}
-
-					if constexpr (std::is_abstract_v<ObjectClass>)
-					{
-						flags(Flag::IsAbstract, true);
-					}
-
-					if constexpr (is_singletone_v<ObjectClass>)
-					{
-						flags(Flag::IsSingletone, true);
-					}
-
-					if constexpr (!(std::is_abstract_v<ObjectClass> ||
-									(!std::is_constructible_v<ObjectClass> && !Engine::is_singletone_v<ObjectClass>) ))
-					{
-						flags(IsConstructible, true);
+						return [](StringView name, Engine::Object* owner) -> Engine::Object* {
+							return Engine::Object::new_instance<ScriptableType, true>(name, owner);
+						};
 					}
 				}
+
+				return nullptr;
 			}
 
-			template<typename T>
+			Engine::Object* object_constructor(Class* class_overload, StringView name, Engine::Object* owner) override
+			{
+				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
+				{
+					if (is_script_class(class_overload))
+					{
+						return Engine::Object::new_instance<ScriptableType, true>(name, owner);
+					}
+				}
+				return Engine::Object::new_instance<T, true>(name, owner);
+			}
+
+			Engine::Object* object_placement_constructor(void* mem, Class* class_overload, StringView name,
+														 Engine::Object* owner) override
+			{
+				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
+				{
+					if (is_script_class(class_overload))
+					{
+						return Engine::Object::new_placement_instance<ScriptableType, true>(mem, name, owner);
+					}
+				}
+				return Engine::Object::new_placement_instance<T, true>(mem, name, owner);
+			}
+
+		public:
+			NativeClass(Class* parent = nullptr, BitMask flags = 0) : Class(parent, flags)
+			{
+				bind_type_name(type_info<T>::name());
+			}
+
 			static Class* create(StringView decl, BitMask flags = 0)
 			{
 				Class* parent = nullptr;
@@ -152,16 +125,35 @@ namespace Engine
 					parent = T::Super::static_class_instance();
 				}
 
-				if (Class* self = Object::new_instance<Class>(decl, parent, flags, type_info<T>::name()))
+				if (NativeClass* self = Object::new_instance<NativeClass<T>>(decl, parent, flags | native_type_flags<T>()))
 				{
-					self->setup_class<T>();
 					return self;
 				}
+
 				return nullptr;
 			}
 
-			friend class Engine::ScriptClassRegistrar;
-			friend class Engine::SingletoneBase;
+			NativeClass& initialize() override
+			{
+				Class::initialize();
+				T::static_initialize_class();
+				return *this;
+			}
+
+			StringView type_name() const override
+			{
+				return Engine::type_info<T>::name();
+			}
+
+			size_t size() const override
+			{
+				return sizeof(T);
+			}
+
+			~NativeClass()
+			{
+				unbind_type_name(type_info<T>::name());
+			}
 		};
 	}// namespace Refl
 }// namespace Engine

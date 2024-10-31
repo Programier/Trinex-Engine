@@ -6,15 +6,38 @@ namespace Engine::Refl
 {
 	implement_reflect_type(Struct);
 
-	Struct::Struct(Struct* parent, BitMask flags, StringView type_name) : flags(flags), m_parent(parent), m_type_name(type_name)
+	Struct::Struct(Struct* parent, BitMask flags) : flags(flags), m_parent(parent)
 	{
 		if (parent)
 		{
 			parent->m_childs.insert(this);
 		}
+	}
 
-		if (!m_type_name.empty())
-			bind_type_name(m_type_name);
+	Struct& Struct::construct()
+	{
+		Super::construct();
+
+		if (is_scriptable() && is_native())
+		{
+			register_scriptable_instance();
+		}
+		return *this;
+	}
+
+	Struct& Struct::register_scriptable_instance()
+	{
+		return *this;
+	}
+
+	Struct& Struct::initialize()
+	{
+		Super::initialize();
+		if (m_parent && !m_parent->is_initialized())
+		{
+			static_initialize(m_parent);
+		}
+		return *this;
 	}
 
 	void Struct::destroy_childs()
@@ -26,15 +49,27 @@ namespace Engine::Refl
 		}
 	}
 
-	void* Struct::create_struct() const
+	void* Struct::create_struct()
 	{
-		return m_alloc();
+		throw EngineException("Unimplemented method");
 	}
 
-	const Struct& Struct::destroy_struct(void* obj) const
+	Struct& Struct::destroy_struct(void* obj)
 	{
-		m_free(obj);
+		throw EngineException("Unimplemented method");
 		return *this;
+	}
+
+	StringView Struct::type_name() const
+	{
+		throw EngineException("Unimplemented method");
+		return "";
+	}
+
+	size_t Struct::size() const
+	{
+		throw EngineException("Unimplemented method");
+		return 0;
 	}
 
 	Struct* Struct::parent() const
@@ -84,6 +119,21 @@ namespace Engine::Refl
 		return m_childs;
 	}
 
+	bool Struct::is_asset() const
+	{
+		return flags(Struct::IsAsset);
+	}
+
+	bool Struct::is_native() const
+	{
+		return flags(IsNative);
+	}
+
+	bool Struct::is_scriptable() const
+	{
+		return flags(IsScriptable);
+	}
+
 	bool Struct::is_a(const Struct* other) const
 	{
 		const Struct* current = this;
@@ -92,11 +142,6 @@ namespace Engine::Refl
 			current = current->parent();
 		}
 		return current != nullptr;
-	}
-
-	bool Struct::is_class() const
-	{
-		return false;
 	}
 
 	Struct& Struct::add_property(Property* prop)
@@ -180,8 +225,5 @@ namespace Engine::Refl
 		{
 			m_parent->m_childs.erase(this);
 		}
-
-		if (!m_type_name.empty())
-			unbind_type_name(m_type_name);
 	}
 }// namespace Engine::Refl

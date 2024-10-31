@@ -113,6 +113,12 @@ namespace Engine
 	};
 
 
+	namespace Refl
+	{
+		template<typename T>
+		class NativeClass;
+	}
+
 	class ImGuiWindow final : private Object
 	{
 		declare_class(ImGuiWindow, Object);
@@ -145,7 +151,9 @@ namespace Engine
 		static void make_current(ImGuiWindow*);
 
 		friend class Object;
-		friend class Refl::Class;
+
+		template<typename T>
+		friend class Refl::NativeClass;
 	};
 }// namespace Engine
 

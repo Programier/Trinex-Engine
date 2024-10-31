@@ -19,12 +19,11 @@ namespace Engine
 
 	implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			r->method("Vector2D size() const final", &This::size);
-			r->method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
-			r->method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
-			r->method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
-		};
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		r.method("Vector2D size() const final", &This::size);
+		r.method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
+		r.method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
+		r.method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
 	}
 
 	implement_engine_class_default_init(WindowRenderViewport, 0);
@@ -32,14 +31,15 @@ namespace Engine
 
 	implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			vc_update             = r->method("void update(RenderViewport viewport, float dt)", &This::update);
-			vc_on_bind_viewport   = r->method("void on_bind_viewport(RenderViewport)", &This::on_bind_viewport);
-			vc_on_unbind_viewport = r->method("void on_unbind_viewport(RenderViewport)", &This::on_unbind_viewport);
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
-			// Need to check, can we use script engine in multi-thread mode?
-			// vc_render = r->method("void render(RenderViewport viewport)", &This::render);
-		};
+		vc_update           = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
+		vc_on_bind_viewport = r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
+		vc_on_unbind_viewport =
+				r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
+
+		// Need to check, can we use script engine in multi-thread mode?
+		//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));
 
 		ScriptEngine::on_terminate.push([]() {
 			vc_update.release();

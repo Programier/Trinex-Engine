@@ -7,6 +7,11 @@
 
 namespace Engine
 {
+	namespace Refl
+	{
+		class ScriptClass;
+	}
+
 	class Script;
 
 	class ENGINE_EXPORT ScriptFolder final
@@ -64,7 +69,7 @@ namespace Engine
 		String m_name;
 		String m_code;
 		ScriptFolder* m_folder;
-		Set<Refl::Class*> m_classes;
+		Set<Refl::ScriptClass*> m_classes;
 
 		// Metadata info
 		TreeMap<int_t, TreeSet<String>> m_func_metadata_map;
@@ -152,5 +157,6 @@ namespace Engine
 
 		~Script();
 		friend class ScriptFolder;
+		friend class Refl::ScriptClass;
 	};
 }// namespace Engine

@@ -84,6 +84,17 @@ namespace Engine
 	template<typename T>
 	inline constexpr bool is_singletone_v = std::is_base_of_v<SingletoneBase, T>;
 
+	template<class, template<class> class, class = std::void_t<>>
+	struct is_detected : std::false_type {
+	};
+
+	template<class T, template<class> class Op>
+	struct is_detected<T, Op, std::void_t<Op<T>>> : std::true_type {
+	};
+
+	template<class T, template<class> class Op>
+	inline constexpr bool is_detected_v = is_detected<T, Op>::value;
+
 	namespace Concepts
 	{
 		template<typename T>
@@ -106,13 +117,8 @@ namespace Engine
 
 		template<typename T>
 		concept struct_with_custom_allocation = requires(T* mem) {
-			{
-				T::static_constructor()
-			} -> std::same_as<T*>;
-
-			{
-				T::static_destructor(mem)
-			};
+			{ T::static_constructor() } -> std::same_as<T*>;
+			{ T::static_destructor(mem) };
 		};
 
 	}// namespace Concepts

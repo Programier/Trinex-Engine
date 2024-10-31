@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	implement_struct(Engine::MeshMaterial)
+	implement_struct(Engine::MeshMaterial, 0)
 	{
 		auto* self = static_struct_instance();
 		self->add_properties(new ClassProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),

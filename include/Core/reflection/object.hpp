@@ -20,6 +20,8 @@ namespace Engine::Refl
 		Name m_name;
 		String m_name_splitted;
 
+		bool m_is_initialized : 1 = false;
+
 	protected:
 		struct ENGINE_EXPORT Link {
 			Name class_name;
@@ -32,6 +34,7 @@ namespace Engine::Refl
 		static const Link* static_link();
 		static String concat_scoped_name(StringView scope, StringView name);
 		static void accept_next_object(StringView name);
+		static void accept_next_object(Object* owner, StringView name);
 
 		void full_name(String& out) const;
 		void bind_type_name(StringView name);
@@ -40,7 +43,8 @@ namespace Engine::Refl
 		virtual const Link* link() const;
 		virtual Object& unregister_subobject(Object* subobject);
 		virtual Object& register_subobject(Object* subobject);
-
+		virtual Object& initialize();
+		virtual Object& construct();
 
 		virtual ~Object();
 
@@ -48,7 +52,7 @@ namespace Engine::Refl
 		using This  = Object;
 		using Super = void;
 
-		CallBacks<void(Object*)> on_destroy;
+		CallBacks<void(Object*)> on_initialize;
 
 		Object();
 
@@ -59,12 +63,14 @@ namespace Engine::Refl
 		const String& name_splitted() const;
 		String full_name() const;
 		String scope_name() const;
+		bool is_initialized() const;
 
 		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);
 
 		static Object* static_root();
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_find_by_type_name(StringView name);
+		static void static_initialize(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
 		static bool is_valid(Object* object);
 
@@ -101,13 +107,42 @@ namespace Engine::Refl
 			requires(std::is_base_of_v<Object, T>)
 		{
 			accept_next_object(name);
-			return new T(std::forward<Args>(args)...);
+			T* instance = new T(std::forward<Args>(args)...);
+			static_cast<Object*>(instance)->construct();
+			return instance;
+		}
+
+		template<typename T, typename... Args>
+		static T* new_instance(Object* owner, StringView name, Args&&... args)
+			requires(std::is_base_of_v<Object, T>)
+		{
+			accept_next_object(owner, name);
+			T* instance = new T(std::forward<Args>(args)...);
+			static_cast<Object*>(instance)->construct();
+			return instance;
+		}
+
+		template<typename T, typename... Args>
+		T* new_child(StringView name, Args&&... args)
+			requires(std::is_base_of_v<Object, T>)
+		{
+			return new_instance<T>(this, name, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		static T* static_find(StringView name, FindFlags flags = FindFlags::None)
 		{
 			return instance_cast<T>(static_find(name, flags));
+		}
+
+		template<typename Type>
+		bool leaf_is() const
+			requires(std::is_base_of_v<Object, Type>)
+		{
+			const void* self = this;
+			if (self == nullptr)
+				return false;
+			return link() == Type::static_link();
 		}
 	};
 

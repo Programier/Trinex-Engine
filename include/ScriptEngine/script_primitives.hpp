@@ -8,7 +8,7 @@
                                                                                                                                  \
 	public:                                                                                                                      \
 		type value;                                                                                                              \
-		name(type initial);                                                                                                      \
+		name(type initial = type());                                                                                             \
 		name(const name&);                                                                                                       \
 		name& operator=(const name&);                                                                                            \
 		void add_ref() const;                                                                                                    \

@@ -1,7 +1,8 @@
 #include <Core/group.hpp>
 #include <Core/property.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/script_class.hpp>
 #include <ScriptEngine/script.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
@@ -417,5 +418,36 @@ namespace Engine
 		register_class_metadata(self, class_metadata.class_metadata);
 
 		return *this;
+	}
+
+	bool Script::load_classes(asITypeInfo* info)
+	{
+		if (info == nullptr)
+			return false;
+
+		if (info->GetNativeClassUserData())
+			return true;
+
+		auto base = info->GetBaseType();
+
+		if (base == nullptr)
+			return (info->GetFlags() & asOBJ_APP_NATIVE_INHERITANCE) != 0;
+
+		if (!load_classes(base))
+			return false;
+
+		auto base_class = reinterpret_cast<Refl::Class*>(base->GetNativeClassUserData());
+
+		auto decl = Strings::concat_scoped_name(Strings::make_string_view(info->GetNamespace()),
+												Strings::make_string_view(info->GetName()));
+		Refl::Class* script_class =
+				Refl::Object::new_instance<Refl::ScriptClass>(decl, base_class, this, Refl::Class::IsScriptable);
+
+		info->SetNativeClassUserData(script_class);
+
+		script_class->script_type_info = info;
+
+		register_reflection(script_class);
+		return true;
 	}
 }// namespace Engine

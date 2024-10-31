@@ -4,19 +4,31 @@
 #include <Core/theme.hpp>
 #include <Graphics/imgui.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_object.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
 namespace Engine
 {
+	static ScriptFunction m_ic_script_update;
+	static ScriptFunction m_ic_script_select;
+
 	implement_engine_class(ImGuiEditorClient, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			r->method("void update(float dt)", method_of<ImGuiEditorClient&, float>(&This::update));
-			r->method("void on_bind_viewport(RenderViewport)", &This::on_bind_viewport);
-			r->method("void on_unbind_viewport(RenderViewport)", &This::on_unbind_viewport);
-			r->method("RenderViewport viewport() const final", &This::viewport);
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+
+		m_ic_script_update = r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiEditorClient&, float));
+		r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
+		r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
+		m_ic_script_select = r.method("void select(Object@ object)", trinex_scoped_method(This, select));
+		r.method("RenderViewport viewport() const final", &This::viewport);
+
+		ScriptEngine::on_terminate += []() {
+			m_ic_script_update.release();
+			m_ic_script_select.release();
 		};
 	}
 
@@ -53,6 +65,18 @@ namespace Engine
 				draw_available_clients_for_opening_internal(class_instance, skip);
 			}
 		}
+	}
+
+	void ImGuiEditorClient::scriptable_update(float dt)
+	{
+		ScriptObject obj(this);
+		obj.execute(m_ic_script_update, dt);
+	}
+
+	void ImGuiEditorClient::scriptable_select(Object* object)
+	{
+		ScriptObject obj(this);
+		obj.execute(m_ic_script_update, object);
 	}
 
 	bool ImGuiEditorClient::register_client(Refl::Class* object_type, Refl::Class* renderer)

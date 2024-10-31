@@ -3,7 +3,7 @@
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/script_class.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -372,87 +372,6 @@ namespace Engine
 		return *this;
 	}
 
-	static Object* script_object_constructor(Refl::Class* self, StringView name, Object* owner)
-	{
-		asITypeInfo* type = self->script_type_info.info();
-
-		asIScriptFunction* factory = nullptr;
-		{
-			auto factories = type->GetFactoryCount();
-			for (asUINT i = 0; i < factories; ++i)
-			{
-				auto current_factory = type->GetFactoryByIndex(i);
-				if (current_factory->GetParamCount() == 0)
-				{
-					factory = current_factory;
-					break;
-				}
-			}
-
-			if (factory == nullptr)
-			{
-				throw EngineException("The script class does not contain a default constructor");
-			}
-		}
-
-		auto obj = ScriptContext::execute(factory).address_as<Object>();
-
-		if (obj == nullptr)
-		{
-			throw EngineException("Failed to create new instance");
-		}
-
-		if (!name.empty() || owner)
-		{
-			obj->rename(name.empty() ? obj->name().to_string() : name, owner);
-		}
-
-		return obj;
-	}
-
-	static void script_object_destructor(Object* object)
-	{
-		auto script_object = reinterpret_cast<asIScriptObject*>(object);
-		script_object->Destroy();
-		std::destroy_at(object);
-
-		script_object->FreeObjectMemory();
-	}
-
-	bool Script::load_classes(asITypeInfo* info)
-	{
-		if (info == nullptr)
-			return false;
-
-		if (info->GetNativeClassUserData())
-			return true;
-
-		auto base = info->GetBaseType();
-
-		if (base == nullptr)
-			return (info->GetFlags() & asOBJ_APP_NATIVE_INHERITANCE) != 0;
-
-		if (!load_classes(base))
-			return false;
-
-		auto base_class = reinterpret_cast<Refl::Class*>(base->GetNativeClassUserData());
-
-		auto decl                 = Strings::concat_scoped_name(Strings::make_string_view(info->GetNamespace()),
-																Strings::make_string_view(info->GetName()));
-		Refl::Class* script_class = Refl::Object::new_instance<Refl::Class>(decl, base_class, Refl::Class::IsScriptable);
-
-		info->SetNativeClassUserData(script_class);
-
-		script_class->script_type_info = info;
-		script_class->static_constructor(script_object_constructor);
-		script_class->destroy_func(script_object_destructor);
-
-		m_classes.insert(script_class);
-		script_class->on_class_destroy.push([this](Refl::Class* self) { m_classes.erase(self); });
-
-		register_reflection(script_class);
-		return true;
-	}
 
 	Script& Script::load_classes()
 	{
@@ -471,7 +390,7 @@ namespace Engine
 	{
 		auto classes = std::move(m_classes);
 
-		for (Refl::Class* class_instance : classes)
+		for (Refl::ScriptClass* class_instance : classes)
 		{
 			Refl::Object::destroy_instance(class_instance);
 		}

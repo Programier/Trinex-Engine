@@ -30,38 +30,6 @@ namespace Engine
 		void script_spawned();
 		void script_destroyed();
 
-	protected:
-		template<typename Scope = ActorComponent>
-		auto scoped_update(float dt) -> decltype(Scope::update(dt))
-		{
-			return Scope::update(dt);
-		}
-
-		template<typename Scope = ActorComponent>
-		auto scoped_start_play() -> decltype(Scope::start_play())
-		{
-			return Scope::start_play();
-		}
-
-		template<typename Scope = ActorComponent>
-		auto scoped_stop_play() -> decltype(Scope::stop_play())
-		{
-			return Scope::stop_play();
-		}
-
-		template<typename Scope = ActorComponent>
-		auto scoped_spawned() -> decltype(Scope::spawned())
-		{
-			return Scope::spawned();
-		}
-
-		template<typename Scope = ActorComponent>
-		auto scoped_destroyed() -> decltype(Scope::destroyed())
-		{
-			return Scope::destroyed();
-		}
-
-
 	public:
 		template<typename NativeType>
 		struct Scriptable : public Super::Scriptable<NativeType> {

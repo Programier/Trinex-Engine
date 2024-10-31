@@ -50,7 +50,7 @@ namespace Engine
 	    : type(nullptr), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
 	{}
 
-	implement_struct(Engine::ShaderDefinition)
+	implement_struct(Engine::ShaderDefinition, 0)
 	{
 		Refl::Struct* self = static_struct_instance();
 		self->add_property(new ClassProperty("Key", "Key of definition", &ShaderDefinition::key));

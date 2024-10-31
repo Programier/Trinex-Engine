@@ -145,6 +145,7 @@ namespace Engine
 		static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo(), size_t size = 0);
 		static ScriptClassRegistrar reference_class(Refl::Class* class_instance);
 		static ScriptClassRegistrar existing_class(const String& name);
+		static ScriptClassRegistrar existing_class(Refl::Class* class_instance);
 
 		const String& class_name() const;
 		const String& class_base_name() const;

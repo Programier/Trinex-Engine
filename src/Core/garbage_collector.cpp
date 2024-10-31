@@ -29,7 +29,6 @@ namespace Engine
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
 	CallBacks<void(Object*)> GarbageCollector::on_destroy;
 
-
 	static FORCE_INLINE ByteAllocator& allocator()
 	{
 		static ByteAllocator object_allocator;
@@ -98,13 +97,9 @@ namespace Engine
 			}
 		}
 
-		for (Refl::Class* self = object->class_instance(); self; self = self->parent())
-		{
-			self->on_destroy(object);
-		}
-
+		object->begin_destroy();
 		on_destroy(object);
-		object->class_instance()->destroy_func()(object);
+		object->class_instance()->destroy_object(object);
 	}
 
 	void GarbageCollector::update(float dt)

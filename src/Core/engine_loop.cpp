@@ -113,6 +113,8 @@ namespace Engine
 		Project::initialize();
 
 		ReflectionInitializeController().execute();
+		Refl::Object::static_initialize();
+
 		ReflectionPostInitializeController().execute();
 
 		ConfigManager::initialize();

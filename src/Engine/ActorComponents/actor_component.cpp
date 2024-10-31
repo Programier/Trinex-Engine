@@ -15,16 +15,16 @@ namespace Engine
 
 	implement_engine_class(ActorComponent, Refl::Class::IsScriptable)
 	{
-		static_class_instance()->script_registration_callback = [](ScriptClassRegistrar* r, Refl::Class*) {
-			script_actor_comp_start_play = r->method("void start_play()", &This::scoped_start_play<ActorComponent>);
-			script_actor_comp_stop_play  = r->method("void stop_play()", &This::scoped_stop_play<ActorComponent>);
-			script_actor_comp_update     = r->method("void update(float dt)", &This::scoped_update<ActorComponent>);
-			script_actor_comp_spawned    = r->method("void spawned()", &This::scoped_spawned<ActorComponent>);
-			script_actor_comp_destroyed  = r->method("void destroyed()", &This::scoped_destroyed<ActorComponent>);
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
-			r->method("Actor actor() const final", method_of<Actor*>(&This::actor));
-			r->method("void actor(Actor actor) const final", method_of<ActorComponent&, Actor*>(&This::actor));
-		};
+		script_actor_comp_start_play = r.method("void start_play()", trinex_scoped_method(This, start_play));
+		script_actor_comp_stop_play  = r.method("void stop_play()", trinex_scoped_method(This, stop_play));
+		script_actor_comp_update     = r.method("void update(float dt)", trinex_scoped_method(This, update));
+		script_actor_comp_spawned    = r.method("void spawned()", trinex_scoped_method(This, spawned));
+		script_actor_comp_destroyed  = r.method("void destroyed()", trinex_scoped_method(This, destroyed));
+
+		r.method("Actor actor() const final", method_of<Actor*>(&This::actor));
+		r.method("void actor(Actor actor) const final", method_of<ActorComponent&, Actor*>(&This::actor));
 
 		ScriptEngine::on_terminate.push([]() {
 			script_actor_comp_update.release();
