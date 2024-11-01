@@ -5,6 +5,13 @@
 
 namespace Engine::Refl
 {
+	namespace Meta
+	{
+		extern ENGINE_EXPORT Name display_name;
+		extern ENGINE_EXPORT Name tooltip;
+		extern ENGINE_EXPORT Name description;
+	}// namespace Meta
+
 	enum class FindFlags
 	{
 		None                   = 0,
@@ -15,32 +22,37 @@ namespace Engine::Refl
 
 	class ENGINE_EXPORT Object
 	{
-	private:
-		Object* m_owner = nullptr;
-		Name m_name;
-		String m_name_splitted;
+	public:
+		struct ENGINE_EXPORT ReflClassInfo {
+			const Name class_name;
+			const ReflClassInfo* const parent;
 
+			ReflClassInfo(const char* name, const ReflClassInfo* const parent = nullptr);
+			bool is_a(const ReflClassInfo* const info) const;
+		};
+
+	private:
+		using MetaData       = Map<Name, String, Name::HashFunction>;
+		MetaData* m_metadata = nullptr;
+		Object* m_owner      = nullptr;
+
+		Name m_name;
 		bool m_is_initialized : 1 = false;
 
 	protected:
-		struct ENGINE_EXPORT Link {
-			Name class_name;
-			const Link* const parent;
-
-			Link(const char* name, const Link* const parent = nullptr);
-			bool is_a(const Link* const link) const;
-		};
-
-		static const Link* static_link();
 		static String concat_scoped_name(StringView scope, StringView name);
-		static void accept_next_object(StringView name);
-		static void accept_next_object(Object* owner, StringView name);
+		static void initialize_next_object(StringView name);
+		static void initialize_next_object(Object* owner, StringView name);
 
 		void full_name(String& out) const;
 		void bind_type_name(StringView name);
 		void unbind_type_name(StringView name);
 
-		virtual const Link* link() const;
+		FORCE_INLINE bool has_metadata(const Name& name) const
+		{
+			return find_metadata(name) != nullptr;
+		}
+
 		virtual Object& unregister_subobject(Object* subobject);
 		virtual Object& register_subobject(Object* subobject);
 		virtual Object& initialize();
@@ -55,18 +67,26 @@ namespace Engine::Refl
 		CallBacks<void(Object*)> on_initialize;
 
 		Object();
-
-		const Name& class_name() const;
 		Object& owner(Object* object);
 		Object* owner() const;
 		const Name& name() const;
-		const String& name_splitted() const;
 		String full_name() const;
 		String scope_name() const;
 		bool is_initialized() const;
 
-		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);
+		const String& display_name() const;
+		const String& tooltip() const;
+		const String& description() const;
 
+		const String* find_metadata(const Name& name) const;
+		const String& metadata(const Name& name) const;
+		const String& metadata(const Name& name, StringView meta);
+		Object& remove_metadata(const Name& name);
+
+		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);
+		virtual const ReflClassInfo* refl_class_info() const;
+
+		static const ReflClassInfo* static_refl_class_info();
 		static Object* static_root();
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_find_by_type_name(StringView name);
@@ -78,7 +98,7 @@ namespace Engine::Refl
 		bool is_a() const
 			requires(std::is_base_of_v<Object, T>)
 		{
-			return link()->is_a(T::static_link());
+			return refl_class_info()->is_a(T::static_refl_class_info());
 		}
 
 		template<typename T, typename ObjectType>
@@ -106,7 +126,7 @@ namespace Engine::Refl
 		static T* new_instance(StringView name, Args&&... args)
 			requires(std::is_base_of_v<Object, T>)
 		{
-			accept_next_object(name);
+			initialize_next_object(name);
 			T* instance = new T(std::forward<Args>(args)...);
 			static_cast<Object*>(instance)->construct();
 			return instance;
@@ -116,10 +136,17 @@ namespace Engine::Refl
 		static T* new_instance(Object* owner, StringView name, Args&&... args)
 			requires(std::is_base_of_v<Object, T>)
 		{
-			accept_next_object(owner, name);
+			initialize_next_object(owner, name);
 			T* instance = new T(std::forward<Args>(args)...);
 			static_cast<Object*>(instance)->construct();
 			return instance;
+		}
+
+		template<typename T, typename... Args>
+		static T* new_instance(Object* owner, const char* name, Args&&... args)
+			requires(std::is_base_of_v<Object, T>)
+		{
+			return new_instance<T>(owner, StringView(name), std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>
@@ -142,21 +169,21 @@ namespace Engine::Refl
 			const void* self = this;
 			if (self == nullptr)
 				return false;
-			return link() == Type::static_link();
+			return refl_class_info() == Type::static_refl_class_info();
 		}
 	};
 
 	declare_enum_operators(FindFlags);
 
 #define declare_reflect_type(name, base)                                                                                         \
-protected:                                                                                                                       \
-	static const Link* static_link();                                                                                            \
-	virtual const Link* link() const override;                                                                                   \
-                                                                                                                                 \
 public:                                                                                                                          \
 	using This  = name;                                                                                                          \
 	using Super = base;                                                                                                          \
 	friend class Engine::Refl::Object;                                                                                           \
+																																 \
+	static const ReflClassInfo* static_refl_class_info();                                                                        \
+	virtual const ReflClassInfo* refl_class_info() const override;                                                               \
+																																 \
 	static name* static_find(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);             \
 	template<typename T>                                                                                                         \
 	static T* static_find(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None)                 \
@@ -166,15 +193,15 @@ public:                                                                         
 
 
 #define implement_reflect_type(name)                                                                                             \
-	const Engine::Refl::Object::Link* name::static_link()                                                                        \
+	const Engine::Refl::Object::ReflClassInfo* name::static_refl_class_info()                                                    \
 	{                                                                                                                            \
-		static const Engine::Refl::Object::Link link(#name, Super::static_link());                                               \
-		return &link;                                                                                                            \
+		static const Engine::Refl::Object::ReflClassInfo info(#name, Super::static_refl_class_info());                           \
+		return &info;                                                                                                            \
 	}                                                                                                                            \
 																																 \
-	const Engine::Refl::Object::Link* name::link() const                                                                         \
+	const Engine::Refl::Object::ReflClassInfo* name::refl_class_info() const                                                     \
 	{                                                                                                                            \
-		return name::static_link();                                                                                              \
+		return name::static_refl_class_info();                                                                                   \
 	}                                                                                                                            \
 	name* name::static_find(StringView object_name, Engine::Refl::FindFlags flags)                                               \
 	{                                                                                                                            \

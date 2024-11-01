@@ -241,7 +241,7 @@ namespace Engine
 
 				if (imgui_texture == Icons::default_texture())
 				{
-					const char* class_name = object->class_instance()->name_splitted().c_str();
+					const char* class_name = object->class_instance()->display_name().c_str();
 					ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
 
 					ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,
@@ -266,7 +266,7 @@ namespace Engine
 
 			if (imgui_texture == Icons::default_texture())
 			{
-				const char* class_name = object->class_instance()->name_splitted().c_str();
+				const char* class_name = object->class_instance()->display_name().c_str();
 				ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
 
 				ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,

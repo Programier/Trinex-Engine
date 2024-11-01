@@ -50,7 +50,7 @@ namespace Engine
 
 		if (self != skip && self != ImGuiEditorClient::static_class_instance())
 		{
-			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->name_splitted()));
+			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->display_name()));
 
 			if (ImGui::MenuItem(fmt.c_str(), nullptr, false, !m_opened_clients.contains(self)))
 			{

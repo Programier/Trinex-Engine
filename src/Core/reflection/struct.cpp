@@ -189,6 +189,11 @@ namespace Engine::Refl
 		return nullptr;
 	}
 
+	bool Struct::archive_process(void* object, Archive& ar)
+	{
+		return true;
+	}
+
 	Struct& Struct::group(class Group* group)
 	{
 		if (m_group)

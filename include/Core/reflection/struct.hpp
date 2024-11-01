@@ -9,6 +9,7 @@ namespace Engine
 {
 	class Property;
 	class Group;
+	class Archive;
 }// namespace Engine
 
 namespace Engine::Refl
@@ -104,6 +105,7 @@ namespace Engine::Refl
 		Struct& add_property(Property* prop);
 		const Vector<Property*>& properties() const;
 		Property* find_property(const Name& name, bool recursive = false);
+		bool archive_process(void* object, Archive& ar);
 
 		Struct& group(class Group*);
 		class Group* group() const;

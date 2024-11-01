@@ -95,6 +95,17 @@ namespace Engine
 	template<class T, template<class> class Op>
 	inline constexpr bool is_detected_v = is_detected<T, Op>::value;
 
+	template<typename T, typename = void>
+	struct is_incomplete : std::true_type {
+	};
+
+	template<typename T>
+	struct is_incomplete<T, std::void_t<decltype(sizeof(T))>> : std::false_type {
+	};
+
+	template<typename T>
+	inline constexpr bool is_incomplete_v = is_incomplete<T>::value;
+
 	namespace Concepts
 	{
 		template<typename T>
@@ -120,6 +131,5 @@ namespace Engine
 			{ T::static_constructor() } -> std::same_as<T*>;
 			{ T::static_destructor(mem) };
 		};
-
 	}// namespace Concepts
 }// namespace Engine

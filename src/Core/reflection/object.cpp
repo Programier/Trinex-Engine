@@ -1,17 +1,27 @@
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/reflection/object.hpp>
 #include <Core/string_functions.hpp>
 
 namespace Engine::Refl
 {
+	namespace Meta
+	{
+		ENGINE_EXPORT Name display_name = "display_name";
+		ENGINE_EXPORT Name tooltip      = "tooltip";
+		ENGINE_EXPORT Name description  = "description";
+	}// namespace Meta
+
 	static Set<Object*> m_instances;
 	static Map<StringView, Object*> m_type_name_map;
 
 	static bool m_check_exiting_instance = true;
-	static StringView m_accepted_name    = "";
-	static Object* m_accepted_owner      = nullptr;
+
+	static bool m_has_next_object_info   = false;
+	static StringView m_next_object_name = "";
+	static Object* m_next_object_owner   = nullptr;
 
 	static void destroy_reflection_instances()
 	{
@@ -27,21 +37,21 @@ namespace Engine::Refl
 
 	static PostDestroyController destroy_controller(destroy_reflection_instances);
 
-	Object::Link::Link(const char* name, const Link* const parent) : class_name(Strings::class_name_sv_of(name)), parent(parent)
+	Object::ReflClassInfo::ReflClassInfo(const char* name, const ReflClassInfo* const parent)
+		: class_name(Strings::class_name_sv_of(name)), parent(parent)
 	{}
 
-	bool Object::Link::is_a(const Link* const link) const
+	bool Object::ReflClassInfo::is_a(const ReflClassInfo* const info) const
 	{
-		const Link* self = this;
-		while (self && self != link) self = self->parent;
+		const ReflClassInfo* self = this;
+		while (self && self != info) self = self->parent;
 		return self != nullptr;
 	}
 
-	const Object::Link* Object::static_link()
+	const Object::ReflClassInfo* Object::static_refl_class_info()
 	{
-		static const Link link("Type", nullptr);
-
-		return &link;
+		static const ReflClassInfo info("Object", nullptr);
+		return &info;
 	}
 
 	String Object::concat_scoped_name(StringView scope, StringView name)
@@ -51,7 +61,7 @@ namespace Engine::Refl
 		return Strings::concat_scoped_name(scope, name);
 	}
 
-	void Object::accept_next_object(StringView name)
+	void Object::initialize_next_object(StringView name)
 	{
 		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
 
@@ -61,71 +71,67 @@ namespace Engine::Refl
 								"Object with same name already exist");
 		}
 
-		m_accepted_name  = name;
-		m_accepted_owner = nullptr;
+		auto owner_name = Strings::namespace_sv_of(name);
+
+		if (owner_name.empty())
+		{
+			if (name != "Root")
+			{
+				m_next_object_owner = static_root();
+			}
+		}
+		else
+		{
+			m_next_object_owner = static_find(owner_name, FindFlags::CreateScope);
+		}
+
+		m_next_object_name     = Strings::class_name_sv_of(name);
+		m_has_next_object_info = true;
 	}
 
-	void Object::accept_next_object(Object* owner, StringView name)
+	void Object::initialize_next_object(Object* owner, StringView name)
 	{
+		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
+
 		if (owner)
 		{
-			trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
 			trinex_always_check(owner->find(name, FindFlags::DisableReflectionCheck) == nullptr,
 								"Object with same name already exist");
-			m_accepted_name  = name;
-			m_accepted_owner = owner;
 		}
-		else
-		{
-			accept_next_object(name);
-		}
+
+		m_next_object_name     = Strings::class_name_of(name);
+		m_next_object_owner    = owner;
+		m_has_next_object_info = true;
 	}
 
-	Object::Object() : m_owner(nullptr), m_name(Strings::class_name_of(m_accepted_name))
+	Object::Object() : m_owner(nullptr), m_name(m_next_object_name)
 	{
-		trinex_always_check(!m_accepted_name.empty(), "Reflection object name cannot be empty!");
-		trinex_always_check(m_name.is_valid(), "Reflection object name cannot be empty!");
-		m_name_splitted = Strings::make_sentence(m_name);
+		trinex_always_check(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
 
-		if (m_accepted_owner)
+		if (m_next_object_owner)
 		{
-			owner(m_accepted_owner);
-		}
-		else
-		{
-			auto owner_name = Strings::namespace_sv_of(m_accepted_name);
-
-			if (owner_name.empty())
-			{
-				if (m_name != "Root")
-				{
-					owner(static_root());
-				}
-			}
-			else
-			{
-				owner(static_find(owner_name, FindFlags::CreateScope));
-			}
+			owner(m_next_object_owner);
 		}
 
 		m_instances.insert(this);
-		m_accepted_name  = "";
-		m_accepted_owner = nullptr;
+		m_next_object_name     = "";
+		m_next_object_owner    = nullptr;
+		m_has_next_object_info = false;
 	}
 
 	Object::~Object()
 	{
 		m_instances.erase(this);
+
+		if (m_metadata)
+		{
+			delete m_metadata;
+		}
 	}
 
-	const Object::Link* Object::link() const
+	const Object::ReflClassInfo* Object::refl_class_info() const
 	{
-		return This::static_link();
-	}
-
-	const Name& Object::class_name() const
-	{
-		return link()->class_name;
+		return This::static_refl_class_info();
 	}
 
 	Object& Object::unregister_subobject(Object* subobject)
@@ -177,9 +183,25 @@ namespace Engine::Refl
 		return m_name;
 	}
 
-	const String& Object::name_splitted() const
+	const String& Object::display_name() const
 	{
-		return m_name_splitted;
+		if (auto* meta = find_metadata(Meta::display_name))
+			return *meta;
+
+		return m_name.to_string();
+	}
+
+	const String& Object::tooltip() const
+	{
+		return metadata(Meta::tooltip);
+	}
+
+	const String& Object::description() const
+	{
+		if (auto* meta = find_metadata(Meta::description))
+			return *meta;
+
+		return m_name.to_string();
 	}
 
 	void Object::full_name(String& out) const
@@ -206,6 +228,49 @@ namespace Engine::Refl
 	void Object::unbind_type_name(StringView name)
 	{
 		m_type_name_map.erase(name);
+	}
+
+	const String* Object::find_metadata(const Name& name) const
+	{
+		if (m_metadata)
+		{
+			auto it = m_metadata->find(name);
+			if (it == m_metadata->end())
+				return nullptr;
+			return &it->second;
+		}
+
+		return nullptr;
+	}
+
+	const String& Object::metadata(const Name& name) const
+	{
+		if (auto meta = find_metadata(name))
+		{
+			return *meta;
+		}
+		return default_value_of<String>();
+	}
+
+	const String& Object::metadata(const Name& name, StringView meta)
+	{
+		if (m_metadata == nullptr)
+		{
+			m_metadata = new MetaData();
+		}
+
+		auto& entry = (*m_metadata)[name];
+		entry       = String(meta);
+		return entry;
+	}
+
+	Object& Object::remove_metadata(const Name& name)
+	{
+		if (m_metadata)
+		{
+			m_metadata->erase(name);
+		}
+		return *this;
 	}
 
 	String Object::full_name() const

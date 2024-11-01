@@ -30,7 +30,7 @@ namespace Engine
 			}
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", object->class_name().c_str());
+			ImGui::Text("%s", object->refl_class_info()->class_name.c_str());
 
 			ImGui::TableSetColumnIndex(2);
 			ImGui::Text("%p", object);
