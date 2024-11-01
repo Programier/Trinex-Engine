@@ -235,7 +235,23 @@ namespace Engine::Refl
 
 	bool ArrayProperty::archive_process(void* object, Archive& ar)
 	{
-		return true;
+		size_t elements = length(object);
+		ar & elements;
+
+		if (ar.is_reading())
+		{
+			resize(object, elements);
+		}
+
+		auto element_prop = element_property();
+
+		for (size_t i = 0; i < elements; ++i)
+		{
+			void* element = element_address(object, i);
+			element_prop->archive_process(element, ar);
+		}
+
+		return ar;
 	}
 
 	String ArrayProperty::script_type_name() const
