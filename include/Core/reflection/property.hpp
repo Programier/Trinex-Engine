@@ -193,13 +193,13 @@ private:
 				constexpr Object* owner = nullptr;
 
 				if constexpr (len >= 1)
-					properties[0] = Object::new_instance<NativeProperty<&T::x>>(owner, "X");
+					props.properties[0] = Object::new_instance<NativeProperty<&T::x>>(owner, "X");
 				if constexpr (len >= 2)
-					properties[1] = Object::new_instance<NativeProperty<&T::y>>(owner, "Y");
+					props.properties[1] = Object::new_instance<NativeProperty<&T::y>>(owner, "Y");
 				if constexpr (len >= 3)
-					properties[2] = Object::new_instance<NativeProperty<&T::z>>(owner, "Z");
+					props.properties[2] = Object::new_instance<NativeProperty<&T::z>>(owner, "Z");
 				if constexpr (len >= 4)
-					properties[3] = Object::new_instance<NativeProperty<&T::w>>(owner, "W");
+					props.properties[3] = Object::new_instance<NativeProperty<&T::w>>(owner, "W");
 
 				return props;
 			}();
