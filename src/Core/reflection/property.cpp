@@ -20,17 +20,18 @@ namespace Engine::Refl
 	implement_reflect_type(StructProperty);
 	implement_reflect_type(ArrayProperty);
 
+	void Property::trigger_object_event(const PropertyChangedEvent& event)
+	{
+		Engine::Object* object = reinterpret_cast<Engine::Object*>(event.context);
+		object->on_property_changed(event);
+	}
+
 	Property::Property(BitMask flags) : m_flags(flags)
 	{}
 
-	bool Property::is_const() const
+	bool Property::is_read_only() const
 	{
-		return (m_flags & IsConst) == IsConst;
-	}
-
-	bool Property::is_private() const
-	{
-		return (m_flags & IsPrivate) == IsPrivate;
+		return (m_flags & IsReadOnly) == IsReadOnly;
 	}
 
 	bool Property::is_serializable() const
@@ -46,6 +47,23 @@ namespace Engine::Refl
 	bool Property::is_color() const
 	{
 		return (m_flags & IsColor) == IsColor;
+	}
+
+	Identifier Property::add_change_listener(const EditListener& listener)
+	{
+		return m_change_listeners.push(listener);
+	}
+
+	Property& Property::remove_change_listener(Identifier id)
+	{
+		m_change_listeners.remove(id);
+		return *this;
+	}
+
+	Property& Property::on_property_changed(const PropertyChangedEvent& event)
+	{
+		m_change_listeners(event);
+		return *this;
 	}
 
 	Property::~Property()
@@ -134,7 +152,6 @@ namespace Engine::Refl
 	{
 		return m_enum->full_name();
 	}
-
 
 	bool StringProperty::archive_process(void* object, Archive& ar)
 	{

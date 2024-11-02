@@ -67,6 +67,7 @@ namespace Engine::Refl
 		CallBacks<void(Object*)> on_initialize;
 
 		Object();
+		Object(const Object&) = delete;
 		Object& owner(Object* object);
 		Object* owner() const;
 		const Name& name() const;
@@ -78,9 +79,13 @@ namespace Engine::Refl
 		const String& tooltip() const;
 		const String& description() const;
 
+		Object& display_name(StringView name);
+		Object& tooltip(StringView text);
+		Object& description(StringView text);
+
 		const String* find_metadata(const Name& name) const;
 		const String& metadata(const Name& name) const;
-		const String& metadata(const Name& name, StringView meta);
+		Object& metadata(const Name& name, StringView meta);
 		Object& remove_metadata(const Name& name);
 
 		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);

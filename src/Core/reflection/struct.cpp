@@ -144,18 +144,18 @@ namespace Engine::Refl
 		return current != nullptr;
 	}
 
-	Struct& Struct::add_property(Property* prop)
+	Struct& Struct::add_property(Engine::Property* prop)
 	{
 		m_properties.push_back(prop);
 		return *this;
 	}
 
-	const Vector<class Property*>& Struct::properties() const
+	const Vector<class Engine::Property*>& Struct::properties() const
 	{
 		return m_properties;
 	}
 
-	static FORCE_INLINE Property* find_prop_internal(Struct* self, const Name& name)
+	static FORCE_INLINE Engine::Property* find_prop_internal(Struct* self, const Name& name)
 	{
 		for (auto& prop : self->properties())
 		{
@@ -168,12 +168,12 @@ namespace Engine::Refl
 		return nullptr;
 	}
 
-	class Property* Struct::find_property(const Name& name, bool recursive)
+	class Engine::Property* Struct::find_property(const Name& name, bool recursive)
 	{
 		if (recursive)
 		{
-			Struct* self   = this;
-			Property* prop = nullptr;
+			Struct* self           = this;
+			Engine::Property* prop = nullptr;
 
 			while (self && (prop = find_prop_internal(self, name)) == nullptr)
 			{

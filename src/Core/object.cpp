@@ -435,6 +435,11 @@ namespace Engine
 		return *this;
 	}
 
+	Object& Object::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		return *this;
+	}
+
 	Object* Object::owner() const
 	{
 		return m_owner;

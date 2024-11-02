@@ -41,7 +41,7 @@ namespace Engine::Refl
 		ScriptTypeInfo script_type_info;
 
 	private:
-		Vector<Property*> m_properties;
+		Vector<Engine::Property*> m_properties;
 		Set<Struct*> m_childs;
 		mutable Struct* m_parent = nullptr;
 
@@ -102,9 +102,9 @@ namespace Engine::Refl
 		using Super::is_a;
 		bool is_a(const Struct* other) const;
 
-		Struct& add_property(Property* prop);
-		const Vector<Property*>& properties() const;
-		Property* find_property(const Name& name, bool recursive = false);
+		Struct& add_property(Engine::Property* prop);
+		const Vector<Engine::Property*>& properties() const;
+		Engine::Property* find_property(const Name& name, bool recursive = false);
 		bool archive_process(void* object, Archive& ar);
 
 		Struct& group(class Group*);

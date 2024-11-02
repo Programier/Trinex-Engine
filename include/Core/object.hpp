@@ -170,6 +170,7 @@ namespace Engine
 		virtual Object& postload();
 		virtual Object& apply_changes();
 		virtual Object& begin_destroy();
+		virtual Object& on_property_changed(const Refl::PropertyChangedEvent& event);
 
 		Object* owner() const;
 		bool owner(Object* new_owner);

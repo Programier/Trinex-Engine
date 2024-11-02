@@ -99,7 +99,7 @@ namespace Engine::Refl
 								"Object with same name already exist");
 		}
 
-		m_next_object_name     = Strings::class_name_of(name);
+		m_next_object_name     = Strings::class_name_sv_of(name);
 		m_next_object_owner    = owner;
 		m_has_next_object_info = true;
 	}
@@ -204,6 +204,21 @@ namespace Engine::Refl
 		return m_name.to_string();
 	}
 
+	Object& Object::display_name(StringView name)
+	{
+		return metadata(Meta::display_name, name);
+	}
+
+	Object& Object::tooltip(StringView text)
+	{
+		return metadata(Meta::tooltip, text);
+	}
+
+	Object& Object::description(StringView text)
+	{
+		return metadata(Meta::description, text);
+	}
+
 	void Object::full_name(String& out) const
 	{
 		if (m_owner && m_owner != static_root())
@@ -252,16 +267,15 @@ namespace Engine::Refl
 		return default_value_of<String>();
 	}
 
-	const String& Object::metadata(const Name& name, StringView meta)
+	Object& Object::metadata(const Name& name, StringView meta)
 	{
 		if (m_metadata == nullptr)
 		{
 			m_metadata = new MetaData();
 		}
 
-		auto& entry = (*m_metadata)[name];
-		entry       = String(meta);
-		return entry;
+		(*m_metadata)[name] = String(meta);
+		return *this;
 	}
 
 	Object& Object::remove_metadata(const Name& name)

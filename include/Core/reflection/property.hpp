@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/etl/type_traits.hpp>
 #include <Core/reflection/object.hpp>
-#include <type_traits>
 
 namespace Engine
 {
@@ -9,6 +9,31 @@ namespace Engine
 
 namespace Engine::Refl
 {
+	namespace PropertyChangeType
+	{
+		using Type = BitMask;
+
+		constexpr inline const Type unspecified  = BIT(0);
+		constexpr inline const Type array_add    = BIT(1);
+		constexpr inline const Type array_remove = BIT(2);
+		constexpr inline const Type array_clear  = BIT(3);
+		constexpr inline const Type value_set    = BIT(4);
+		constexpr inline const Type duplicate    = BIT(5);
+		constexpr inline const Type interactive  = BIT(6);
+	};// namespace PropertyChangeType
+
+	struct PropertyChangedEvent {
+		void* context;
+		PropertyChangeType::Type type;
+		Property* property;
+		Property* member_property;
+
+		PropertyChangedEvent(void* context, PropertyChangeType::Type type, Property* property)
+			: context(context), type(type), property(property), member_property(property)
+		{}
+	};
+
+
 #define trinex_refl_prop_type_filter(...)                                                                                        \
 public:                                                                                                                          \
 	template<typename T>                                                                                                         \
@@ -47,31 +72,42 @@ private:
 	public:
 		enum Flag
 		{
-			IsPrivate         = BIT(0),
-			IsConst           = BIT(1),
-			IsNativeConst     = BIT(2),
-			IsNotSerializable = BIT(3),
-			IsHidden          = BIT(4),
-			IsColor           = BIT(5),
+			IsReadOnly        = BIT(0),
+			IsNotSerializable = BIT(1),
+			IsHidden          = BIT(2),
+			IsColor           = BIT(3),
 		};
 
+		using EditListener = Function<void(const PropertyChangedEvent&)>;
+
 	private:
+		CallBacks<void(const PropertyChangedEvent&)> m_change_listeners;
 		const BitMask m_flags = 0;
+
+	protected:
+		template<size_t size>
+		struct InnerProperties {
+			Property* properties[size];
+		};
+
+		static void trigger_object_event(const PropertyChangedEvent& event);
 
 	public:
 		Property(BitMask flags = 0);
 
-		bool is_const() const;
-		bool is_private() const;
+		bool is_read_only() const;
 		bool is_serializable() const;
 		bool is_hidden() const;
 		bool is_color() const;
+		Identifier add_change_listener(const EditListener& listener);
+		Property& remove_change_listener(Identifier id);
 
 		virtual void* address(void* context)                    = 0;
 		virtual const void* address(const void* context) const  = 0;
 		virtual size_t size() const                             = 0;
 		virtual bool archive_process(void* object, Archive& ar) = 0;
 		virtual String script_type_name() const                 = 0;
+		virtual Property& on_property_changed(const PropertyChangedEvent& event);
 
 		template<typename T>
 		T* address_as(void* context)
@@ -103,6 +139,7 @@ private:
 		trinex_refl_prop_type_filter(std::is_same_v<T, bool>);
 
 	public:
+		using PrimitiveProperty::PrimitiveProperty;
 		String script_type_name() const override;
 	};
 
@@ -112,6 +149,7 @@ private:
 		trinex_refl_prop_type_filter(!std::is_same_v<T, bool> && std::is_integral_v<T> && !std::is_enum_v<T>);
 
 	public:
+		using PrimitiveProperty::PrimitiveProperty;
 		String script_type_name() const override;
 		bool is_unsigned() const;
 		virtual bool is_signed() const = 0;
@@ -123,6 +161,7 @@ private:
 		trinex_refl_prop_type_filter(std::is_floating_point_v<T>);
 
 	public:
+		using PrimitiveProperty::PrimitiveProperty;
 		String script_type_name() const override;
 	};
 
@@ -141,7 +180,36 @@ private:
 
 		trinex_refl_prop_type_filter(IsVector<T>::value);
 
+	protected:
+		template<typename T>
+		static Property** construct_element_properties()
+		{
+			constexpr size_t len = T::length();
+			static_assert(len > 0, "Lenght of the vector must be greater than 0");
+
+			static InnerProperties<len> properties = []() -> InnerProperties<len> {
+				InnerProperties<len> props;
+
+				constexpr Object* owner = nullptr;
+
+				if constexpr (len >= 1)
+					properties[0] = Object::new_instance<NativeProperty<&T::x>>(owner, "X");
+				if constexpr (len >= 2)
+					properties[1] = Object::new_instance<NativeProperty<&T::y>>(owner, "Y");
+				if constexpr (len >= 3)
+					properties[2] = Object::new_instance<NativeProperty<&T::z>>(owner, "Z");
+				if constexpr (len >= 4)
+					properties[3] = Object::new_instance<NativeProperty<&T::w>>(owner, "W");
+
+				return props;
+			}();
+
+			return properties.properties;
+		}
+
 	public:
+		using PrimitiveProperty::PrimitiveProperty;
+
 		String script_type_name() const override;
 
 		virtual size_t length() const                              = 0;
@@ -239,7 +307,12 @@ private:
 	class ENGINE_EXPORT StructProperty : public Property
 	{
 		declare_reflect_type(StructProperty, Property);
-		trinex_refl_prop_type_filter(std::is_class_v<T>&& std::is_same_v<decltype(T::static_struct_instance()), Refl::Struct*>);
+
+	private:
+		template<typename T>
+		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_struct_instance()), Refl::Struct*>>;
+
+		trinex_refl_prop_type_filter(std::is_class_v<T>&& is_detected_v<T, refl_detector>);
 
 	public:
 		using Property::Property;
@@ -270,6 +343,18 @@ private:
 		template<typename T>
 		struct IsScriptableArray<Engine::Vector<T>> : std::true_type {
 		};
+
+		template<typename T>
+		static Property* construct_element_property()
+		{
+			static Property* instance = []() -> Property* {
+				using Value                               = typename T::value_type;
+				constexpr Value ArrayProperty::*null_prop = nullptr;
+				return Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Element"));
+			}();
+
+			return instance;
+		}
 
 		trinex_refl_prop_type_filter(IsArray<T>::value);
 
@@ -338,6 +423,16 @@ private:
 		{
 			return sizeof(Type);
 		}
+
+		TypedProperty& on_property_changed(const PropertyChangedEvent& event) override
+		{
+			if constexpr (std::is_base_of_v<Engine::Object, Instance>)
+			{
+				Property::trigger_object_event(event);
+			}
+			Super::on_property_changed(event);
+			return *this;
+		}
 	};
 
 	template<auto prop, typename T>
@@ -370,26 +465,6 @@ private:
 		requires(VectorProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, VectorProperty> {
 	private:
-		static Property** construct_element_properties()
-		{
-			constexpr size_t len = T::length();
-			static_assert(len > 0, "Lenght of the vector must be greater than 0");
-			static Property* properties[len];
-
-			constexpr Object* owner = nullptr;
-
-			if constexpr (len >= 1)
-				properties[0] = Object::new_instance<NativeProperty<&T::x>>(owner, "X");
-			if constexpr (len >= 2)
-				properties[1] = Object::new_instance<NativeProperty<&T::y>>(owner, "Y");
-			if constexpr (len >= 3)
-				properties[2] = Object::new_instance<NativeProperty<&T::z>>(owner, "Z");
-			if constexpr (len >= 4)
-				properties[3] = Object::new_instance<NativeProperty<&T::w>>(owner, "W");
-
-			return properties;
-		}
-
 	public:
 		using Super = TypedProperty<prop, VectorProperty>;
 		using Super::Super;
@@ -404,8 +479,7 @@ private:
 			if (index >= static_cast<size_t>(T::length()))
 				return nullptr;
 
-			static Property** properties = construct_element_properties();
-			return properties[index];
+			return VectorProperty::construct_element_properties<T>()[index];
 		}
 
 		size_t element_size() const override
@@ -476,6 +550,17 @@ private:
 		}
 	};
 
+	template<auto prop, typename T>
+		requires(StructProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, StructProperty> {
+		using Super = TypedProperty<prop, StructProperty>;
+		using Super::Super;
+
+		Struct* struct_instance() const override
+		{
+			return T::static_struct_instance();
+		}
+	};
 
 	template<auto prop, typename T>
 		requires(ArrayProperty::is_supported<T>)
@@ -484,11 +569,10 @@ private:
 		using Super::Super;
 		using Value = typename T::value_type;
 
+	public:
 		Property* element_property() const override
 		{
-			constexpr Value NativePropertyTyped::*null_prop = nullptr;
-			static Property* instance = Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Element"));
-			return instance;
+			return ArrayProperty::construct_element_property<T>();
 		}
 
 		size_t element_size() const override
@@ -569,6 +653,6 @@ private:
 	};
 
 #undef trinex_refl_prop_type_filter
-#define trinex_refl_prop(self, class_name, prop_name)                                                                            \
-	self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name)
+#define trinex_refl_prop(self, class_name, prop_name, ...)                                                                       \
+	(*(self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)))
 }// namespace Engine::Refl

@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
+	static void renderer(class ImGuiObjectProperties* window, void* object, Refl::Struct* self, bool editable)
 	{
 		//        SceneComponent* component  = reinterpret_cast<SceneComponent*>(object);
 		//        const Transform& transform = component->local_transform();
