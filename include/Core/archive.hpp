@@ -2,7 +2,6 @@
 #include <Core/enums.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
-#include <Core/serializable_object.hpp>
 
 namespace Engine
 {
@@ -21,20 +20,20 @@ namespace Engine
 		bool m_is_saving      = false;
 		bool m_process_status = true;
 
-
 		template<typename Type>
-		FORCE_INLINE void process_serializable_object(Type& data)
+		static auto address_of(Type& value)
 		{
 			if constexpr (std::is_pointer_v<Type>)
 			{
-				data->archive_process(*this);
+				return value;
 			}
 			else
 			{
-				data.archive_process(*this);
+				return std::addressof(value);
 			}
 		}
 
+		bool serialize_struct(Refl::Struct* self, void* obj);
 		class Object* load_object(const StringView& name, class Refl::Class* self);
 
 	public:
@@ -64,9 +63,15 @@ namespace Engine
 		template<typename Type>
 		bool operator&(Type& value)
 		{
-			if constexpr (std::is_base_of_v<std::decay_t<SerializableObject>, Type>)
+			using DecayType = std::decay_t<std::remove_pointer_t<Type>>;
+
+			if constexpr (Concepts::is_serializable<DecayType>)
 			{
-				process_serializable_object(value);
+				address_of(value)->serialize(*this);
+			}
+			else if constexpr (Concepts::is_reflected_struct<DecayType>)
+			{
+				serialize_struct(DecayType::static_struct_instance(), address_of(value));
 			}
 			else
 			{

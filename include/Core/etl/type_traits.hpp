@@ -5,35 +5,7 @@
 
 namespace Engine
 {
-	template<typename T, typename _ = void>
-	struct is_container : std::false_type {
-	};
-
-	template<typename... Ts>
-	struct is_container_helper {
-	};
-
-	template<typename T>
-	struct is_container<
-	        T, std::conditional_t<false,
-	                              is_container_helper<decltype(std::declval<T>().size()), decltype(std::declval<T>().begin()),
-	                                                  decltype(std::declval<T>().end()), typename T::value_type>,
-	                              void>> : public std::true_type {
-	};
-
-	template<typename T>
-	inline constexpr bool is_container_v = is_container<T>::value;
-
-	template<typename T>
-	struct add_pointer_unique {
-		using type = T*;
-	};
-
-	template<typename T>
-	struct add_pointer_unique<T*> {
-		using type = T*;
-	};
-
+	class Archive;
 	class Object;
 	class SingletoneBase;
 
@@ -130,6 +102,21 @@ namespace Engine
 		concept struct_with_custom_allocation = requires(T* mem) {
 			{ T::static_constructor() } -> std::same_as<T*>;
 			{ T::static_destructor(mem) };
+		};
+
+		template<typename T>
+		concept is_serializable = requires(T* obj, Engine::Archive& ar) {
+			{ obj->serialize(ar) } -> std::same_as<bool>;
+		};
+
+		template<typename T>
+		concept is_reflected_struct = requires(T* obj) {
+			{ obj->static_struct_instance() } -> std::same_as<Engine::Refl::Struct*>;
+		};
+
+		template<typename T>
+		concept is_reflected_class = requires(T* obj) {
+			{ obj->static_class_instance() } -> std::same_as<Engine::Refl::Class*>;
 		};
 	}// namespace Concepts
 }// namespace Engine

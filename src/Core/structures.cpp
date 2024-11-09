@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/structures.hpp>
 
@@ -9,10 +9,10 @@ namespace Engine
 {
 	const BindLocation BindLocation::undefined = BindLocation();
 
-	ENGINE_EXPORT bool operator&(class Archive& ar, ShaderDefinition& definition)
+	bool ShaderDefinition::serialize(class Archive& ar)
 	{
-		ar & definition.key;
-		ar & definition.value;
+		ar & key;
+		ar & value;
 		return ar;
 	}
 
@@ -53,7 +53,7 @@ namespace Engine
 	implement_struct(Engine::ShaderDefinition, 0)
 	{
 		Refl::Struct* self = static_struct_instance();
-		self->add_property(new ClassProperty("Key", "Key of definition", &ShaderDefinition::key));
-		self->add_property(new ClassProperty("Value", "Value of definition", &ShaderDefinition::value));
+		trinex_refl_prop(self, This, key)->display_name("Key").tooltip("Key of definition");
+		trinex_refl_prop(self, This, value)->display_name("Value").tooltip("Value of definition");
 	}
 }// namespace Engine

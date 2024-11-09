@@ -35,6 +35,7 @@ namespace Engine
 		PointLightComponent& render(class SceneRenderer*) override;
 		ActorComponentProxy* create_proxy() override;
 		PointLightComponentProxy* proxy() const;
+		PointLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 	};
 
 }// namespace Engine

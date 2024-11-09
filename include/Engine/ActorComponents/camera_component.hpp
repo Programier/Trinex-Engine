@@ -18,7 +18,7 @@ namespace Engine
 		float far_clip_plane                 = 100000.f;
 		float aspect_ratio                   = 1.f;
 
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 		const CameraComponent& camera_view(CameraView& out) const;
 		CameraView camera_view() const;
 		Matrix4f projection_matrix();

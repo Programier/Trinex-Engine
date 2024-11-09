@@ -49,7 +49,7 @@ namespace Engine
 		virtual class Material* material();
 		virtual bool apply(SceneComponent* component = nullptr);
 
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 
 		~MaterialInterface();
 	};
@@ -75,7 +75,7 @@ namespace Engine
 		virtual bool shader_source(String& out_source) = 0;
 
 		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors);
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 		~Material();
 	};
 
@@ -89,7 +89,7 @@ namespace Engine
 		class Material* material() override;
 		MaterialInterface* parent() const override;
 		bool apply(SceneComponent* component = nullptr) override;
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 		~MaterialInstance();
 	};
 }// namespace Engine

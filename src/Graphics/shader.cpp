@@ -5,9 +5,9 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/name.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -20,58 +20,31 @@ namespace Engine
 	{
 		auto self = static_struct_instance();
 
-		Refl::Enum* type_enum = Refl::Enum::static_find("Engine::VertexBufferElementType", Refl::FindFlags::IsRequired);
-		Refl::Enum* vertex_attribute_rate_enum =
-				Refl::Enum::static_find("Engine::VertexAttributeInputRate", Refl::FindFlags::IsRequired);
-		Refl::Enum* vertex_buffer_semantic_enum =
-				Refl::Enum::static_find("Engine::VertexBufferSemantic", Refl::FindFlags::IsRequired);
+		Refl::Enum* type_enum     = Refl::Enum::static_require("Engine::VertexBufferElementType");
+		Refl::Enum* rate_enum     = Refl::Enum::static_require("Engine::VertexAttributeInputRate");
+		Refl::Enum* semantic_enum = Refl::Enum::static_require("Engine::VertexBufferSemantic");
 
-		self->add_property(new ClassProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
-											 Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new EnumProperty("Element Type", "Type of element of this attribute", &VertexShader::Attribute::type,
-		                                    type_enum, Name::none, Property::IsNotSerializable));
-		self->add_property(new EnumProperty("Rate", "Rate of this attribute", &VertexShader::Attribute::rate,
-		                                    vertex_attribute_rate_enum, Name::none, Property::IsNotSerializable));
-		self->add_property(new EnumProperty("Semantic", "Semantic of this attribute", &VertexShader::Attribute::semantic,
-		                                    vertex_buffer_semantic_enum, Name::none,
-		                                    Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new ClassProperty("Semantic Index", "Semantic index of this attribute",
-		                                     &VertexShader::Attribute::semantic_index, Name::none,
-		                                     Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new ClassProperty("Location Index", "Location index of this attribute",
-		                                     &VertexShader::Attribute::location, Name::none,
-		                                     Property::IsConst | Property::IsNotSerializable));
-		self->add_property(new ClassProperty("Stream Index", "The stream index from which to read this attribute",
-		                                     &VertexShader::Attribute::stream_index, Name::none, Property::IsNotSerializable));
-		self->add_property(new ClassProperty("Offset", "Offset of this attribute in vertex struct",
-		                                     &VertexShader::Attribute::offset, Name::none, Property::IsNotSerializable));
+		auto default_flags   = Refl::Property::IsNotSerializable;
+		auto read_only_flags = default_flags | Refl::Property::IsReadOnly;
+
+		trinex_refl_prop(self, This, name, read_only_flags)->tooltip("Name of this attribute");
+		trinex_refl_prop(self, This, type, type_enum, default_flags)->tooltip("Type of element of this attribute");
+		trinex_refl_prop(self, This, rate, rate_enum, default_flags)->tooltip("Rate of this attribute");
+		trinex_refl_prop(self, This, semantic, semantic_enum, read_only_flags)->tooltip("Semantic of this attribute");
+		trinex_refl_prop(self, This, semantic_index, read_only_flags)->tooltip("Semantic index of this attribute");
+		trinex_refl_prop(self, This, location, read_only_flags)->tooltip("Location index of this attribute");
+		trinex_refl_prop(self, This, stream_index, default_flags)->tooltip("The stream index from which to read this attribute");
+		trinex_refl_prop(self, This, offset, default_flags)->tooltip("Offset of this attribute in vertex struct");
 	}
 
 	implement_engine_class_default_init(Shader, 0);
 
-	static Name get_name_of_attribute(class ArrayPropertyInterface* interface, void* object, size_t index)
-	{
-		if (index >= interface->elements_count(object))
-		{
-			return Name::out_of_range;
-		}
-
-		VertexShader::Attribute* attribute = reinterpret_cast<VertexShader::Attribute*>(interface->at(object, index));
-		return attribute->name;
-	}
-
 	implement_engine_class(VertexShader, 0)
 	{
-		auto* self             = This::static_class_instance();
-		auto* attribute_struct = Refl::Struct::static_find("Engine::VertexShader::Attribute", Refl::FindFlags::IsRequired);
-
-		auto attributes_prop =
-		        new StructProperty<This, Attribute>("", "", nullptr, attribute_struct, Name::none, Property::IsNotSerializable);
-		auto attributes_array_prop =
-		        new ArrayProperty("Vertex Attributes", "Vertex attributes of this pipeline", &This::attributes, attributes_prop,
-		                          Name::none, Property::IsConst | Property::IsNotSerializable);
-		attributes_array_prop->element_name_callback(get_name_of_attribute);
-		self->add_property(attributes_array_prop);
+		auto* self = This::static_class_instance();
+		trinex_refl_prop(self, This, attributes, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly)
+				->display_name("Vertex Attributes")
+				.tooltip("Vertex attributes of this pipeline");
 	}
 
 	implement_engine_class_default_init(TessellationControlShader, 0);
@@ -79,14 +52,14 @@ namespace Engine
 	implement_engine_class_default_init(GeometryShader, 0);
 	implement_engine_class_default_init(FragmentShader, 0);
 
-	bool Shader::archive_process(Archive& ar)
+	bool Shader::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 		return ar;
 	}
 
-	bool Shader::archive_process_source_code(Archive& ar)
+	bool Shader::serialize_source_code(Archive& ar)
 	{
 		return ar & source_code;
 	}
@@ -97,9 +70,9 @@ namespace Engine
 		return *this;
 	}
 
-	bool VertexShader::archive_process(Archive& ar)
+	bool VertexShader::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 
 		ar & attributes;

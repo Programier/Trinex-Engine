@@ -6,7 +6,6 @@
 #include <Core/flags.hpp>
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
-#include <Core/serializable_object.hpp>
 
 namespace Engine
 {
@@ -17,7 +16,7 @@ namespace Engine
 	ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
 
 	// Head of all classes in the Engine
-	class ENGINE_EXPORT Object : public SerializableObject
+	class ENGINE_EXPORT Object
 	{
 	public:
 		template<typename NativeType>
@@ -77,7 +76,6 @@ namespace Engine
 
 		static void create_default_package();
 		const Object& remove_from_instances_array() const;
-		bool serialize_object_properties(Archive& ar);
 
 		template<typename T>
 		static FORCE_INLINE T* setup_new_object(T* object, StringView name, Object* owner)
@@ -151,7 +149,7 @@ namespace Engine
 		bool is_noname() const;
 		String as_string() const;
 		Index instance_index() const;
-		bool archive_process(Archive& archive) override;
+		virtual bool serialize(Archive& archive);
 		Path filepath() const;
 		bool is_editable() const;
 		bool is_serializable() const;

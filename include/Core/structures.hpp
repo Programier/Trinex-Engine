@@ -149,9 +149,9 @@ namespace Engine
 
 		String key;
 		String value;
-	};
 
-	ENGINE_EXPORT bool operator&(class Archive& ar, ShaderDefinition& definition);
+		bool serialize(class Archive& ar);
+	};
 
 	class ENGINE_EXPORT MaterialScalarParametersInfo final
 	{

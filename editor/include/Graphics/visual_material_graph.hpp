@@ -2,9 +2,11 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/exception.hpp>
 #include <Core/flags.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
+#include <Core/string_functions.hpp>
 
 namespace Engine
 {
@@ -251,7 +253,7 @@ namespace Engine::VisualMaterialGraph
 		const Signature& signature(size_t index) const;
 	};
 
-	class Pin : public SerializableObject
+	class Pin
 	{
 	private:
 		Node* m_node;
@@ -276,6 +278,7 @@ namespace Engine::VisualMaterialGraph
 
 		virtual PinType type() const;
 		virtual void* default_value();
+		virtual bool serialize(Archive& ar);
 
 		template<typename Out>
 		Out* default_value_as()
@@ -358,9 +361,9 @@ namespace Engine::VisualMaterialGraph
 			return &value;
 		}
 
-		bool archive_process(Archive& ar) override
+		bool serialize(Archive& ar) override
 		{
-			if (!TypedPinNoDefault<m_pin_type, BaseClass>::archive_process(ar))
+			if (!TypedPinNoDefault<m_pin_type, BaseClass>::serialize(ar))
 				return false;
 
 			ar & value;
@@ -583,7 +586,7 @@ namespace Engine::VisualMaterialGraph
 		bool has_error() const;
 		const String& error_message() const;
 		Node& clear_error_message();
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 
 		virtual ~Node();
 		virtual const char* name() const;

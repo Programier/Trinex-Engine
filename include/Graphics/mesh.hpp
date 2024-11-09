@@ -62,7 +62,7 @@ namespace Engine
 		StaticMesh();
 		StaticMesh& init_resources();
 		StaticMesh& apply_changes() override;
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 		StaticMesh& postload() override;
 	};
 

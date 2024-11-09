@@ -41,9 +41,9 @@ namespace Engine
 
 	implement_engine_class_default_init(CameraComponent, 0);
 
-	bool CameraComponent::archive_process(Archive& archive)
+	bool CameraComponent::serialize(Archive& archive)
 	{
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 
 		archive & projection_mode;

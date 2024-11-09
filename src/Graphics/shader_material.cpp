@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/shader_material.hpp>
 
@@ -10,15 +10,13 @@ namespace Engine
 {
 	implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
 	{
-		auto* self     = This::static_class_instance();
-		auto path_prop = new ClassProperty("Shader Path", "Path to slang file", &This::shader_path, "Shader Material");
+		auto* self           = This::static_class_instance();
+		auto change_callback = [](const Refl::PropertyChangedEvent& event) {
+			auto self         = event.context_as<This>();
+			self->shader_path = self->shader_path.relative(Project::shaders_dir);
+		};
 
-		path_prop->on_prop_changed.push([](void* object) {
-			ShaderMaterial* material = reinterpret_cast<ShaderMaterial*>(object);
-			material->shader_path    = material->shader_path.relative(Project::shaders_dir);
-		});
-
-		self->add_property(path_prop);
+		trinex_refl_prop(self, This, shader_path)->push_change_listener(change_callback).tooltip("Path to slang file");
 	}
 
 	bool ShaderMaterial::shader_source(String& out_source)
@@ -32,9 +30,9 @@ namespace Engine
 		return false;
 	}
 
-	bool ShaderMaterial::archive_process(Archive& archive)
+	bool ShaderMaterial::serialize(Archive& archive)
 	{
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 		return archive;
 	}

@@ -1,6 +1,7 @@
 ﻿#include <VkBootstrap.h>
 
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/exception.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Graphics/render_viewport.hpp>

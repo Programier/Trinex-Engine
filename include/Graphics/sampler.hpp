@@ -24,7 +24,7 @@ namespace Engine
 		bool unnormalized_coordinates = false;
 
 		Sampler& rhi_create() override;
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 		Sampler& apply_changes() override;
 	};
 }// namespace Engine

@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
@@ -15,18 +15,15 @@ namespace Engine
 	implement_struct(Engine::MeshMaterial, 0)
 	{
 		auto* self = static_struct_instance();
-		self->add_properties(new ClassProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
-		                     new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
-		                                                 &MeshMaterial::material));
+
+		trinex_refl_prop(self, This, surface_index);
+		trinex_refl_prop(self, This, material)->tooltip("Material which used for rendering this primitive");
 	}
 
 	implement_engine_class(StaticMesh, Refl::Class::IsAsset)
 	{
-		auto* self                  = StaticMesh::static_class_instance();
-		auto* mesh_materials_struct = Refl::Struct::static_find("Engine::MeshMaterial", Refl::FindFlags::IsRequired);
-		auto mesh_material_prop     = new StructProperty<This, MeshMaterial>("", "", nullptr, mesh_materials_struct);
-		self->add_property(new ArrayProperty<This, decltype(materials)>("Materials", "Array of materials for this primitive",
-		                                                                &This::materials, mesh_material_prop));
+		auto* self = StaticMesh::static_class_instance();
+		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");
 	}
 
 	implement_engine_class_default_init(DynamicMesh, 0);
@@ -143,7 +140,7 @@ namespace Engine
 				buffer = Object::new_instance<Type>();
 			}
 
-			buffer.ptr()->archive_process(ar);
+			buffer.ptr()->serialize(ar);
 		}
 	}
 
@@ -188,10 +185,9 @@ namespace Engine
 		return ar;
 	}
 
-
-	bool StaticMesh::archive_process(Archive& ar)
+	bool StaticMesh::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 
 		ar & bounds;

@@ -15,8 +15,8 @@ namespace Engine
 	public:
 		Buffer source_code;
 
-		bool archive_process(Archive& ar) override;
-		bool archive_process_source_code(Archive& ar);
+		bool serialize(Archive& ar) override;
+		bool serialize_source_code(Archive& ar);
 		virtual ShaderType type() const = 0;
 	};
 
@@ -28,7 +28,7 @@ namespace Engine
 	public:
 		struct Attribute {
 			declare_struct(Attribute, void);
-			
+
 			Name name;
 			VertexBufferElementType type;
 			VertexAttributeInputRate rate;
@@ -49,7 +49,7 @@ namespace Engine
 
 	public:
 		VertexShader& rhi_create() override;
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 		ShaderType type() const override;
 	};
 

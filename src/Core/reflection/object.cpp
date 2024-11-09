@@ -12,6 +12,7 @@ namespace Engine::Refl
 		ENGINE_EXPORT Name display_name = "display_name";
 		ENGINE_EXPORT Name tooltip      = "tooltip";
 		ENGINE_EXPORT Name description  = "description";
+		ENGINE_EXPORT Name group        = "group";
 	}// namespace Meta
 
 	static Set<Object*> m_instances;
@@ -104,19 +105,22 @@ namespace Engine::Refl
 		m_has_next_object_info = true;
 	}
 
-	Object::Object() : m_owner(nullptr), m_name(m_next_object_name)
+	void Object::setup_owner()
 	{
-		trinex_always_check(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
-
 		if (m_next_object_owner)
 		{
 			owner(m_next_object_owner);
+			m_next_object_owner    = nullptr;
 		}
 
+		m_has_next_object_info = false;
+	}
+
+	Object::Object() : m_owner(nullptr), m_name(m_next_object_name)
+	{
+		trinex_always_check(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
 		m_instances.insert(this);
 		m_next_object_name     = "";
-		m_next_object_owner    = nullptr;
-		m_has_next_object_info = false;
 	}
 
 	Object::~Object()
@@ -204,6 +208,11 @@ namespace Engine::Refl
 		return m_name.to_string();
 	}
 
+	const String& Object::group() const
+	{
+		return metadata(Meta::group);
+	}
+
 	Object& Object::display_name(StringView name)
 	{
 		return metadata(Meta::display_name, name);
@@ -217,6 +226,11 @@ namespace Engine::Refl
 	Object& Object::description(StringView text)
 	{
 		return metadata(Meta::description, text);
+	}
+
+	Object& Object::group(StringView text)
+	{
+		return metadata(Meta::group, text);
 	}
 
 	void Object::full_name(String& out) const
@@ -328,6 +342,11 @@ namespace Engine::Refl
 	Object* Object::static_find(StringView name, FindFlags flags)
 	{
 		return static_root()->find(name, flags);
+	}
+
+	Object* Object::static_require(StringView name, FindFlags flags)
+	{
+		return static_find(name, flags | FindFlags::IsRequired);
 	}
 
 	Object* Object::static_find_by_type_name(StringView name)

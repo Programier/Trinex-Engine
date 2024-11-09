@@ -1,3 +1,4 @@
+#include <Core/exception.hpp>
 #include <Core/memory.hpp>
 #include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>

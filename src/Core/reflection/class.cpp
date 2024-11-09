@@ -1,6 +1,8 @@
+#include <Core/exception.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
@@ -228,7 +230,7 @@ namespace Engine::Refl
 		info.no_count        = true;
 
 		auto reg               = ScriptClassRegistrar::reference_class("Engine::Refl::Class", info);
-		auto refl              = NativeStruct<Class>::create("Engine::Refl::Class");
+		auto refl              = Refl::Object::new_instance<NativeStruct<Class>>("Engine::Refl::Class");
 		refl->script_type_info = reg.type_info();
 
 		refl->on_initialize += [](Refl::Object* self) {

@@ -21,5 +21,6 @@ namespace Engine
 		ActorComponentProxy* create_proxy() override;
 		DirectionalLightComponentProxy* proxy() const;
 		DirectionalLightComponent& render(class SceneRenderer*) override;
+		DirectionalLightComponent& update(float dt) override;
 	};
 }// namespace Engine

@@ -263,6 +263,10 @@ namespace Engine::VisualMaterialGraph
 		return nullptr;
 	}
 
+	bool Pin::serialize(Archive& ar)
+	{
+		return true;
+	}
 
 	PinKind InputPin::kind() const
 	{
@@ -484,21 +488,21 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	bool Node::archive_process(Archive& ar)
+	bool Node::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 
 		ar & position;
 
 		for (auto input : m_inputs)
 		{
-			input->archive_process(ar);
+			input->serialize(ar);
 		}
 
 		for (auto output : m_outputs)
 		{
-			output->archive_process(ar);
+			output->serialize(ar);
 		}
 
 		return ar;

@@ -1,11 +1,11 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
-#include <Core/property.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/property.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
@@ -23,11 +23,11 @@ namespace Engine
 
 	implement_engine_class(Texture2D, Refl::Class::IsAsset)
 	{
-		auto* self_class = static_class_instance();
-		self_class->add_properties(new ClassProperty("Path", "Path to texture", &Texture2D::path));
-		self_class->add_property(new EnumProperty("Format", "Color format of this texture", &This::m_format,
-												  Refl::Enum::static_find("Engine::ColorFormat", Refl::FindFlags::IsRequired),
-												  Name::none, Property::IsConst | Property::IsPrivate));
+		auto* self = static_class_instance();
+		trinex_refl_prop(self, This, path)->tooltip("Path to texture");
+
+		trinex_refl_prop(self, This, m_format, Refl::Enum::static_require("Engine::ColorFormat"), Refl::Property::IsReadOnly)
+				->tooltip("Color format of this texture");
 	}
 
 	Texture2D& Texture2D::init(ColorFormat format, Size2D size, const Buffer& data, bool need_generate_mips)
@@ -126,9 +126,9 @@ namespace Engine
 		return *this;
 	}
 
-	bool Texture2D::archive_process(Archive& archive)
+	bool Texture2D::serialize(Archive& archive)
 	{
-		if (!Texture::archive_process(archive))
+		if (!Texture::serialize(archive))
 		{
 			return false;
 		}

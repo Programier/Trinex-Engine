@@ -31,5 +31,6 @@ namespace Engine
 		LocalLightComponent& start_play() override;
 		ActorComponentProxy* create_proxy() override;
 		LocalLightComponent& render(class SceneRenderer*) override;
+		LocalLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 	};
 }// namespace Engine

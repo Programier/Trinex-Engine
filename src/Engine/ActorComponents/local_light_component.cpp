@@ -1,5 +1,5 @@
 #include <Core/reflection/class.hpp>
-#include <Core/property.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/local_light_component.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -21,16 +21,9 @@ namespace Engine
 	{
 		auto* self = static_class_instance();
 
-		static auto on_prop_changed = [](void* object) {
-			LocalLightComponent* component = reinterpret_cast<LocalLightComponent*>(object);
-			component->submit_local_light_info();
-		};
-
-		auto attenuation_property =
-		        new ClassProperty("Attenuation radius", "Attenuation radius of this light", &This::m_attenuation_radius);
-		attenuation_property->on_prop_changed.push(on_prop_changed);
-
-		self->add_property(attenuation_property);
+		trinex_refl_prop(self, This, m_attenuation_radius)
+				->display_name("Attenuation radius")
+				.tooltip("Attenuation radius of this light");
 	}
 
 	LocalLightComponent::LocalLightComponent() : m_attenuation_radius(30.f)
@@ -75,6 +68,18 @@ namespace Engine
 	LocalLightComponent& LocalLightComponent::render(class SceneRenderer* renderer)
 	{
 		renderer->render_component(this);
+		return *this;
+	}
+
+	LocalLightComponent& LocalLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		Super::on_property_changed(event);
+
+		if (event.property->owner() == static_class_instance())
+		{
+			submit_local_light_info();
+		}
+
 		return *this;
 	}
 }// namespace Engine

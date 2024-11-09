@@ -58,9 +58,9 @@ namespace Engine
 			return sizeof(Type);
 		}
 
-		bool archive_process(Archive& ar) override
+		bool serialize(Archive& ar) override
 		{
-			if (!Super::archive_process(ar))
+			if (!Super::serialize(ar))
 				return false;
 			ar & buffer;
 			return ar;
@@ -132,9 +132,9 @@ namespace Engine
 			return sizeof(Type);
 		}
 
-		bool archive_process(Archive& ar) override
+		bool serialize(Archive& ar) override
 		{
-			if (!Super::archive_process(ar))
+			if (!Super::serialize(ar))
 				return false;
 			ar & buffer;
 			return ar;
@@ -205,7 +205,7 @@ namespace Engine
 		const byte* data() const override;
 		size_t size() const override;
 		size_t element_size() const override;
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 	};
 
 	class ENGINE_EXPORT UInt16IndexBuffer : public IndexBuffer
@@ -221,7 +221,7 @@ namespace Engine
 		const byte* data() const override;
 		size_t size() const override;
 		size_t element_size() const override;
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 	};
 
 	class ENGINE_EXPORT UInt32DynamicIndexBuffer : public IndexBuffer
@@ -237,7 +237,7 @@ namespace Engine
 		const byte* data() const override;
 		size_t size() const override;
 		size_t element_size() const override;
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 	};
 
 	class ENGINE_EXPORT UInt16DynamicIndexBuffer : public IndexBuffer
@@ -253,7 +253,7 @@ namespace Engine
 		const byte* data() const override;
 		size_t size() const override;
 		size_t element_size() const override;
-		bool archive_process(Archive& ar) override;
+		bool serialize(Archive& ar) override;
 	};
 
 

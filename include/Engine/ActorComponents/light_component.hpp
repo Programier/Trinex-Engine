@@ -76,6 +76,7 @@ namespace Engine
 		LightComponent& start_play() override;
 		LightComponent& stop_play() override;
 		LightComponent& update_bounding_box();
+		LightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		~LightComponent();
 
 		friend class LightingSceneLayer;

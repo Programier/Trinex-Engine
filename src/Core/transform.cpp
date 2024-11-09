@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/property.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/transform.hpp>
@@ -15,28 +15,29 @@ namespace Engine
 
 	implement_struct(Engine::Transform, 0)
 	{
-		auto* self                  = static_struct_instance();
-		static auto on_prop_changed = [](void* object) {
-			Transform* transform  = reinterpret_cast<Transform*>(object);
-			transform->m_is_dirty = true;
-		};
+		auto* self = static_struct_instance();
 
-		auto location_prop = new ClassProperty("Location", "Location component of transform", &Transform::m_location);
-		auto rotation_prop = new ClassProperty("Rotation", "Rotation component of transform", &Transform::m_rotation);
-		auto scale_prop    = new ClassProperty("Scale", "Scale component of transform", &Transform::m_scale);
+		auto on_prop_changed = [](const Refl::PropertyChangedEvent& event) { event.context_as<Transform>()->m_is_dirty = true; };
 
-		location_prop->on_prop_changed.push(on_prop_changed);
-		rotation_prop->on_prop_changed.push(on_prop_changed);
-		scale_prop->on_prop_changed.push(on_prop_changed);
-		self->add_properties(location_prop, rotation_prop, scale_prop);
+		auto& location = *trinex_refl_prop(self, This, m_location);
+		auto& rotation = *trinex_refl_prop(self, This, m_rotation);
+		auto& scale    = *trinex_refl_prop(self, This, m_scale);
+
+		location.display_name("Location").tooltip("Location component of transform");
+		rotation.display_name("Rotation").tooltip("Rotation component of transform");
+		scale.display_name("Scale").tooltip("Scale component of transform");
+
+		location.add_change_listener(on_prop_changed);
+		rotation.add_change_listener(on_prop_changed);
+		scale.add_change_listener(on_prop_changed);
 	}
 
 	Transform::Transform(const Vector3D& location, const Vector3D& rotation, const Vector3D& scale)
-	    : m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
+		: m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
 	{}
 
 	Transform::Transform(const Vector3D& location, const Quaternion& rotation, const Vector3D& scale)
-	    : Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
+		: Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
 	{}
 
 
@@ -254,11 +255,11 @@ namespace Engine
 	String Transform::as_string() const
 	{
 		return Strings::format("Location: {}, {}, {}\n"
-		                       "Rotation: {}, {}, {}\n"
-		                       "Scale: {}, {}, {}",                     //
-		                       m_location.x, m_location.y, m_location.z,//
-		                       m_rotation.x, m_rotation.y, m_rotation.z,//
-		                       m_scale.x, m_scale.y, m_scale.z);
+							   "Rotation: {}, {}, {}\n"
+							   "Scale: {}, {}, {}",                     //
+							   m_location.x, m_location.y, m_location.z,//
+							   m_rotation.x, m_rotation.y, m_rotation.z,//
+							   m_scale.x, m_scale.y, m_scale.z);
 	}
 
 	bool Transform::is_dirty() const
@@ -292,11 +293,11 @@ namespace Engine
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform));
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
-		                 ScriptCallConv::CDeclObjFirst);
+						 ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform&)",
-		                 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
+						 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
-		                 ScriptCallConv::CDeclObjFirst);
+						 ScriptCallConv::CDeclObjFirst);
 
 		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
 

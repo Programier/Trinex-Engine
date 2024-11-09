@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
@@ -16,7 +16,6 @@ namespace Engine
 	static ScriptFunction script_actor_stop_play;
 	static ScriptFunction script_actor_spawned;
 	static ScriptFunction script_actor_destroyed;
-
 
 	void Actor::scriptable_update(float dt)
 	{
@@ -233,9 +232,9 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool Actor::archive_process(Archive& archive)
+	bool Actor::serialize(Archive& archive)
 	{
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 		return static_cast<bool>(archive);
 	}
@@ -263,11 +262,14 @@ namespace Engine
 			script_actor_destroyed.release();
 		});
 
-		auto components = new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
-		                                    new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
-		                                    Property::Flag::IsConst);
-		components->element_name_callback(default_array_object_element_name);
-		self->add_property(components);
-		self->add_property(new ClassProperty("Is Visible", "If true, actor is visible in the scene", &This::m_is_visible));
+		auto components = trinex_refl_prop(self, This, m_owned_components, Refl::Property::IsReadOnly);
+
+		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
+		{
+			element->is_composite(true);
+		}
+
+		components->display_name("Components").tooltip("Array of components of this actor");
+		trinex_refl_prop(self, This, m_is_visible)->display_name("Is Visible").tooltip("If true, actor is visible in the scene");
 	}
 }// namespace Engine

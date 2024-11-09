@@ -102,7 +102,7 @@ namespace Engine
 
 		class World* world() const;
 		class Scene* scene() const;
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 
 		friend class World;
 	};

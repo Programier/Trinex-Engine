@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Render/command_buffer.hpp>
@@ -19,15 +19,9 @@ namespace Engine
 	{
 		auto* self = static_class_instance();
 
-		auto update_data = [](void* object) {
-			PointLightComponent* component = reinterpret_cast<PointLightComponent*>(object);
-			component->submit_point_light_data();
-		};
-
-		auto fall_off_exponent_prop =
-		        new ClassProperty("Fall Off Exponent", "Fall Off Exponent of this light", &This::m_fall_off_exponent);
-		fall_off_exponent_prop->on_prop_changed.push(update_data);
-		self->add_property(fall_off_exponent_prop);
+		trinex_refl_prop(self, This, m_fall_off_exponent)
+				->display_name("Fall Off Exponent")
+				.tooltip("Fall Off Exponent of this light");
 	}
 
 	PointLightComponent::PointLightComponent() : m_fall_off_exponent(8.f)
@@ -141,5 +135,16 @@ namespace Engine
 	PointLightComponentProxy* PointLightComponent::proxy() const
 	{
 		return typed_proxy<PointLightComponentProxy>();
+	}
+
+	PointLightComponent& PointLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		Super::on_property_changed(event);
+
+		if (event.property->owner() == static_class_instance())
+		{
+			submit_point_light_data();
+		}
+		return *this;
 	}
 }// namespace Engine

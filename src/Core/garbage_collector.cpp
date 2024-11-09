@@ -3,8 +3,8 @@
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Engine/settings.hpp>
 
 #define DISABLE_GC 1
@@ -190,10 +190,9 @@ namespace Engine
 						continue;
 					}
 
-					auto type = prop->type();
-					if (type == PropertyType::Object || type == PropertyType::ObjectReference)
+					if (auto object_prop = Refl::Object::instance_cast<Refl::ObjectProperty>(prop))
 					{
-						Object* prop_object = prop->property_value(object).cast<Object*>();
+						Object* prop_object = object_prop->object(object);
 						if (prop_object)
 						{
 							prop_object->flags(Object::IsUnreachable, false);

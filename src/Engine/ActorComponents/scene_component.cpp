@@ -1,6 +1,6 @@
 #include <Core/exception.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 
@@ -8,17 +8,15 @@ namespace Engine
 {
 	implement_engine_class(SceneComponent, 0)
 	{
-		auto* self              = static_class_instance();
-		auto* transform_struct  = Refl::Struct::static_find("Engine::Transform", Refl::FindFlags::IsRequired);
-		auto transform_property = new StructProperty<This, Transform>("Transform", "Transform of this component", &This::m_local,
-																	  transform_struct, Name::none, 0);
-		transform_property->on_prop_changed.push([](void* object) {
-			SceneComponent* component = reinterpret_cast<SceneComponent*>(object);
+		auto* self  = static_class_instance();
+		auto& local = *trinex_refl_prop(self, This, m_local);
+		local.display_name("Transform").tooltip("Local transform of this component");
+
+		local.add_change_listener([](const Refl::PropertyChangedEvent& event) {
+			SceneComponent* component = reinterpret_cast<SceneComponent*>(event.context);
 			component->m_is_dirty     = true;
 			component->on_transform_changed();
 		});
-
-		self->add_property(transform_property);
 	}
 
 	const Transform& SceneComponentProxy::world_transform() const

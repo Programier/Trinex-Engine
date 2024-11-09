@@ -1,3 +1,4 @@
+#include <Core/exception.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/window.hpp>

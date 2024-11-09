@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <codecvt>
 #include <locale>
+#include <regex>
 #include <stdarg.h>
 #include <string>
 
@@ -93,33 +94,32 @@ namespace Engine::Strings
 	        },
 	};
 
-
-	ENGINE_EXPORT String make_sentence(const StringView& line)
+	ENGINE_EXPORT String capitalize_words(const StringView& sentence)
 	{
-		String result;
-		result.reserve(line.size());
-		char prev_char = '\0';
+		std::regex word_regex(R"(\b[^\W\d_]*([A-Za-z])[^\W\d_]*\b)");
+		String result = String(sentence);
 
-		for (char ch : line)
+		auto words_begin = std::sregex_iterator(result.begin(), result.end(), word_regex);
+		auto words_end   = std::sregex_iterator();
+
+		for (std::sregex_iterator i = words_begin; i != words_end; ++i)
 		{
-			bool inserted = false;
-			if (ch != ' ')
-			{
-				for (size_t i = 0; i < ARRAY_SIZE(insert_space) && !inserted; ++i)
-				{
-					inserted = insert_space[i](prev_char, ch, result);
-				}
-			}
-
-			if (!inserted)
-			{
-				result.push_back(ch);
-			}
-
-			prev_char = ch;
+			auto pos    = i->position();
+			result[pos] = std::toupper(result[pos]);
+			std::transform(result.begin() + pos + 1, result.begin() + pos + i->length(), result.begin() + pos + 1,
+						   [](char ch) { return std::tolower(ch); });
 		}
 
 		return result;
+	}
+
+	ENGINE_EXPORT String make_sentence(String line)
+	{
+		String temp = std::regex_replace(line, std::regex(R"(^[msgkp]_)"), "");
+		temp        = std::regex_replace(temp, std::regex("([a-z])([A-Z0-9])"), "$1 $2");
+		temp        = std::regex_replace(temp, std::regex("([A-Z])([A-Z0-9][a-z])"), "$1 $2");
+		temp        = std::regex_replace(temp, std::regex("[-_]"), " ");
+		return capitalize_words(temp);
 	}
 
 	ENGINE_EXPORT HashIndex hash_of(const StringView& str)
@@ -266,7 +266,7 @@ namespace Engine::Strings
 			sentence.remove_prefix(name.length() + Constants::name_separator.length());
 			*out = sentence;
 		}
-		
+
 		return name;
 	}
 

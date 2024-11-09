@@ -445,13 +445,8 @@ namespace Engine
 		return ColorFormat::Undefined;
 	}
 
-	bool Image::archive_process(Archive& archive)
+	bool Image::serialize(Archive& archive)
 	{
-		if (!SerializableObject::archive_process(archive))
-		{
-			return false;
-		}
-
 		//        if (archive.is_saving() && m_data.empty())
 		//        {
 		//            error_log("Image", "Failed to serialize image. Data is empty!");

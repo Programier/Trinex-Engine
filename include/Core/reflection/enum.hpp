@@ -40,6 +40,7 @@ namespace Engine::Refl
 
 		template<typename EnumType, auto... enum_values>
 		static Enum* create(const StringView& name)
+			requires(std::is_enum_v<EnumType> && sizeof(EnumType) <= sizeof(EnumerateType))
 		{
 			auto name_of = extract_enum_value_name;
 			return create_internal(name, {Entry(name_of(value_info<enum_values>::name()), enum_values)...},

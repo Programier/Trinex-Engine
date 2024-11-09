@@ -280,7 +280,7 @@ namespace Engine
 			}
 
 
-			String object_name = Strings::make_sentence(name);
+			String object_name = Strings::make_sentence(String(name));
 			float offset       = (item_size.x - ImGui::CalcTextSize(object_name.c_str(), nullptr, false, item_size.x).x) / 2.f;
 			current_pos.x += offset;
 			ImGui::SetCursorPos(current_pos);

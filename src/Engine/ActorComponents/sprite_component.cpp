@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -16,10 +16,8 @@ namespace Engine
 {
 	implement_engine_class(SpriteComponent, 0)
 	{
-		auto* self     = This::static_class_instance();
-		Property* prop = new ObjectReferenceProperty("Texture", "Sprite texture", &This::m_texture);
-		prop->on_prop_changed.push([](void* object) { reinterpret_cast<SpriteComponent*>(object)->on_transform_changed(); });
-		self->add_property(prop);
+		auto* self = This::static_class_instance();
+		trinex_refl_prop(self, This, m_texture)->display_name("Texture").tooltip("Sprite texture");
 	}
 
 	implement_empty_rendering_methods_for(SpriteComponent);
@@ -98,5 +96,15 @@ namespace Engine
 		return *this;
 	}
 
+	SpriteComponent& SpriteComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		Super::on_property_changed(event);
+
+		if (event.property->owner() == static_class_instance())
+		{
+			on_transform_changed();
+		}
+		return *this;
+	}
 
 }// namespace Engine

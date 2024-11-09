@@ -1,6 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/property.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -18,8 +18,7 @@ namespace Engine
 {
 	implement_engine_class(StaticMeshComponent, 0)
 	{
-		auto mesh = new ObjectReferenceProperty("Mesh", "Mesh object of this component", &This::mesh);
-		static_class_instance()->add_property(mesh);
+		trinex_refl_prop(static_class_instance(), This, mesh)->tooltip("Mesh object of this component");
 	}
 
 	StaticMeshComponent& StaticMeshComponent::update(float dt)

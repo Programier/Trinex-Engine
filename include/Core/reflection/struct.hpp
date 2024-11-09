@@ -7,7 +7,6 @@
 
 namespace Engine
 {
-	class Property;
 	class Group;
 	class Archive;
 }// namespace Engine
@@ -41,7 +40,7 @@ namespace Engine::Refl
 		ScriptTypeInfo script_type_info;
 
 	private:
-		Vector<Engine::Property*> m_properties;
+		Vector<Property*> m_properties;
 		Set<Struct*> m_childs;
 		mutable Struct* m_parent = nullptr;
 
@@ -81,6 +80,8 @@ namespace Engine::Refl
 		Struct& construct() override;
 		virtual Struct& register_scriptable_instance();
 		Struct& initialize() override;
+		Struct& unregister_subobject(Object* subobject) override;
+		Struct& register_subobject(Object* subobject) override;
 
 	public:
 		Struct(Struct* parent = nullptr, BitMask flags = 0);
@@ -89,6 +90,7 @@ namespace Engine::Refl
 		virtual Struct& destroy_struct(void* obj);
 		virtual StringView type_name() const;
 		virtual size_t size() const;
+		virtual bool serialize(void* object, Archive& ar);
 
 		Struct* parent() const;
 		size_t abstraction_level() const;
@@ -102,25 +104,17 @@ namespace Engine::Refl
 		using Super::is_a;
 		bool is_a(const Struct* other) const;
 
-		Struct& add_property(Engine::Property* prop);
-		const Vector<Engine::Property*>& properties() const;
-		Engine::Property* find_property(const Name& name, bool recursive = false);
-		bool archive_process(void* object, Archive& ar);
+		const Vector<Property*>& properties() const;
+		Property* find_property(StringView name);
+		bool serialize_properties(void* object, Archive& ar);
 
 		Struct& group(class Group*);
 		class Group* group() const;
 
-		template<typename... Args>
-		Struct& add_properties(Args&&... args)
-		{
-			(add_property(std::forward<Args>(args)), ...);
-			return *this;
-		}
-
 		~Struct();
 	};
 
-	template<typename T, void (*binder)(Struct*) = nullptr>
+	template<typename T>
 	class NativeStruct : public Struct
 	{
 		template<typename F>
@@ -139,22 +133,18 @@ namespace Engine::Refl
 
 		NativeStruct& register_scriptable_instance() override
 		{
-			if constexpr (binder)
-			{
-				binder(this);
-			}
 			return *this;
 		}
 
 	public:
-		NativeStruct(Struct* parent = nullptr, BitMask flags = 0) : Struct(parent, flags)
+		NativeStruct(BitMask flags = 0) : Struct(super_of(), flags | native_type_flags<T>())
 		{
 			bind_type_name(type_info<T>::name());
 		}
 
 		static Struct* create(StringView decl, BitMask flags = 0)
 		{
-			return Object::new_instance<NativeStruct<T, binder>>(decl, super_of(), flags | native_type_flags<T>());
+			return Object::new_instance<NativeStruct<T>>(decl, flags);
 		}
 
 		void* create_struct() override
@@ -215,20 +205,32 @@ namespace Engine::Refl
 			return sizeof(T);
 		}
 
+		bool serialize(void* object, Archive& ar) override
+		{
+			if constexpr (Concepts::is_serializable<T>)
+			{
+				return reinterpret_cast<T*>(object)->serialize(ar);
+			}
+			else
+			{
+				return Struct::serialize(object, ar);
+			}
+		}
+
 		~NativeStruct()
 		{
 			unbind_type_name(type_info<T>::name());
 		}
 	};
 
-#define implement_struct(decl, flags, ...)                                                                                       \
+#define implement_struct(decl, flags)                                                                                            \
     class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
     class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
     {                                                                                                                            \
         if (!m_static_struct)                                                                                                    \
         {                                                                                                                        \
-            m_static_struct = Engine::Refl::NativeStruct<decl __VA_OPT__(, ) __VA_ARGS__>::create(#decl, flags);                 \
+            m_static_struct = Engine::Refl::NativeStruct<decl>::create(#decl, flags);                                            \
         }                                                                                                                        \
         return m_static_struct;                                                                                                  \
     }                                                                                                                            \

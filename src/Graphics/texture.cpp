@@ -3,9 +3,9 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -18,10 +18,11 @@ namespace Engine
 	{
 		auto* self         = static_class_instance();
 		auto* swizzle_enum = Refl::Enum::static_find("Engine::Swizzle", Refl::FindFlags::IsRequired);
-		self->add_properties(new EnumProperty("Swizze R", "Swizze R of texture", &This::swizzle_r, swizzle_enum),
-		                     new EnumProperty("Swizze G", "Swizze G of texture", &This::swizzle_g, swizzle_enum),
-		                     new EnumProperty("Swizze B", "Swizze B of texture", &This::swizzle_b, swizzle_enum),
-		                     new EnumProperty("Swizze A", "Swizze A of texture", &This::swizzle_a, swizzle_enum));
+
+		trinex_refl_prop(self, This, swizzle_r, swizzle_enum)->display_name("Swizze R").tooltip("Swizze R of texture");
+		trinex_refl_prop(self, This, swizzle_g, swizzle_enum)->display_name("Swizze G").tooltip("Swizze G of texture");
+		trinex_refl_prop(self, This, swizzle_b, swizzle_enum)->display_name("Swizze B").tooltip("Swizze B of texture");
+		trinex_refl_prop(self, This, swizzle_a, swizzle_enum)->display_name("Swizze A").tooltip("Swizze A of texture");
 	}
 
 

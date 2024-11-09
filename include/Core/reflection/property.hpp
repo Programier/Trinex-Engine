@@ -13,13 +13,14 @@ namespace Engine::Refl
 	{
 		using Type = BitMask;
 
-		constexpr inline const Type unspecified  = BIT(0);
-		constexpr inline const Type array_add    = BIT(1);
-		constexpr inline const Type array_remove = BIT(2);
-		constexpr inline const Type array_clear  = BIT(3);
-		constexpr inline const Type value_set    = BIT(4);
-		constexpr inline const Type duplicate    = BIT(5);
-		constexpr inline const Type interactive  = BIT(6);
+		constexpr inline const Type unspecified   = BIT(0);
+		constexpr inline const Type array_add     = BIT(1);
+		constexpr inline const Type array_remove  = BIT(2);
+		constexpr inline const Type array_clear   = BIT(3);
+		constexpr inline const Type value_set     = BIT(4);
+		constexpr inline const Type duplicate     = BIT(5);
+		constexpr inline const Type interactive   = BIT(6);
+		constexpr inline const Type member_change = BIT(7);
 	};// namespace PropertyChangeType
 
 	struct PropertyChangedEvent {
@@ -31,6 +32,12 @@ namespace Engine::Refl
 		PropertyChangedEvent(void* context, PropertyChangeType::Type type, Property* property)
 			: context(context), type(type), property(property), member_property(property)
 		{}
+
+		template<typename T>
+		T* context_as() const
+		{
+			return reinterpret_cast<T*>(context);
+		}
 	};
 
 
@@ -78,7 +85,7 @@ private:
 			IsColor           = BIT(3),
 		};
 
-		using EditListener = Function<void(const PropertyChangedEvent&)>;
+		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
 
 	private:
 		CallBacks<void(const PropertyChangedEvent&)> m_change_listeners;
@@ -99,14 +106,15 @@ private:
 		bool is_serializable() const;
 		bool is_hidden() const;
 		bool is_color() const;
-		Identifier add_change_listener(const EditListener& listener);
+		Identifier add_change_listener(const ChangeListener& listener);
+		Property& push_change_listener(const ChangeListener& listener);
 		Property& remove_change_listener(Identifier id);
 
-		virtual void* address(void* context)                    = 0;
-		virtual const void* address(const void* context) const  = 0;
-		virtual size_t size() const                             = 0;
-		virtual bool archive_process(void* object, Archive& ar) = 0;
-		virtual String script_type_name() const                 = 0;
+		virtual void* address(void* context)                   = 0;
+		virtual const void* address(const void* context) const = 0;
+		virtual size_t size() const                            = 0;
+		virtual bool serialize(void* object, Archive& ar)      = 0;
+		virtual String script_type_name() const                = 0;
 		virtual Property& on_property_changed(const PropertyChangedEvent& event);
 
 		template<typename T>
@@ -130,7 +138,7 @@ private:
 
 	public:
 		using Property::Property;
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 	};
 
 	class ENGINE_EXPORT BooleanProperty : public PrimitiveProperty
@@ -182,29 +190,11 @@ private:
 
 	protected:
 		template<typename T>
-		static Property** construct_element_properties()
+		static Property* construct_element_properties()
 		{
-			constexpr size_t len = T::length();
-			static_assert(len > 0, "Lenght of the vector must be greater than 0");
-
-			static InnerProperties<len> properties = []() -> InnerProperties<len> {
-				InnerProperties<len> props;
-
-				constexpr Object* owner = nullptr;
-
-				if constexpr (len >= 1)
-					props.properties[0] = Object::new_instance<NativeProperty<&T::x>>(owner, "X");
-				if constexpr (len >= 2)
-					props.properties[1] = Object::new_instance<NativeProperty<&T::y>>(owner, "Y");
-				if constexpr (len >= 3)
-					props.properties[2] = Object::new_instance<NativeProperty<&T::z>>(owner, "Z");
-				if constexpr (len >= 4)
-					props.properties[3] = Object::new_instance<NativeProperty<&T::w>>(owner, "W");
-
-				return props;
-			}();
-
-			return properties.properties;
+			constexpr typename T::value_type T::*prop = nullptr;
+			static auto result                        = Object::new_instance<NativeProperty<prop>>(nullptr, "Value");
+			return result;
 		}
 
 	public:
@@ -212,9 +202,9 @@ private:
 
 		String script_type_name() const override;
 
-		virtual size_t length() const                              = 0;
-		virtual Property* element_property(size_t index = 0) const = 0;
-		virtual size_t element_size() const                        = 0;
+		virtual size_t length() const              = 0;
+		virtual Property* element_property() const = 0;
+		virtual size_t element_size() const        = 0;
 
 		virtual void* element_address(void* context, size_t index, bool is_vector_context = false)                   = 0;
 		virtual const void* element_address(const void* context, size_t index, bool is_vector_context = false) const = 0;
@@ -235,7 +225,7 @@ private:
 	class ENGINE_EXPORT EnumProperty : public PrimitiveProperty
 	{
 		declare_reflect_type(EnumProperty, PrimitiveProperty);
-		trinex_refl_prop_type_filter(std::is_enum_v<T>);
+		trinex_refl_prop_type_filter(std::is_enum_v<T> && sizeof(T) <= sizeof(EnumerateType));
 
 	private:
 		class Enum* m_enum;
@@ -244,6 +234,9 @@ private:
 		EnumProperty(Enum* enum_instance, BitMask flags = 0);
 		Enum* enum_instance() const;
 		String script_type_name() const override;
+
+		EnumerateType value(const void* context) const;
+		EnumProperty& value(void* context, EnumerateType value);
 	};
 
 	class ENGINE_EXPORT StringProperty : public Property
@@ -254,7 +247,7 @@ private:
 	public:
 		using Property::Property;
 
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
 	};
 
@@ -266,7 +259,7 @@ private:
 	public:
 		using Property::Property;
 
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
 	};
 
@@ -278,7 +271,7 @@ private:
 	public:
 		using Property::Property;
 
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
 	};
 
@@ -288,18 +281,18 @@ private:
 		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Engine::Object, std::remove_pointer_t<T>>);
 
 	private:
-		bool m_inline_serialization = false;
+		bool m_is_composite = false;
 
 	public:
 		using Property::Property;
 
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
 
 		Engine::Object* object(void* context);
 		const Engine::Object* object(const void* context) const;
-		bool inline_serialization() const;
-		ObjectProperty& inline_serialization(bool flag);
+		bool is_composite() const;
+		ObjectProperty& is_composite(bool flag);
 
 		virtual Class* class_instance() const = 0;
 	};
@@ -317,9 +310,8 @@ private:
 	public:
 		using Property::Property;
 
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
-
 		virtual Struct* struct_instance() const = 0;
 	};
 
@@ -361,14 +353,14 @@ private:
 	public:
 		using Property::Property;
 
-		bool archive_process(void* object, Archive& ar) override;
+		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
 
 		virtual Property* element_property() const = 0;
 		virtual size_t element_size() const        = 0;
 
-		virtual void* element_address(void* context, size_t index, bool is_vector_context = false)                   = 0;
-		virtual const void* element_address(const void* context, size_t index, bool is_vector_context = false) const = 0;
+		virtual void* at(void* context, size_t index, bool is_vector_context = false)                   = 0;
+		virtual const void* at(const void* context, size_t index, bool is_vector_context = false) const = 0;
 
 		virtual size_t length(const void* context, bool is_vector_context = false) const                             = 0;
 		virtual ArrayProperty& emplace_back(void* context, bool is_vector_context = false)                           = 0;
@@ -378,15 +370,15 @@ private:
 		virtual ArrayProperty& resize(void* context, size_t new_size, bool is_vector_context = false)                = 0;
 
 		template<typename T>
-		T* element_address_as(void* context, size_t index, bool is_vector_context = false)
+		T* at_as(void* context, size_t index, bool is_vector_context = false)
 		{
-			return reinterpret_cast<T*>(element_address(context, index, is_vector_context));
+			return reinterpret_cast<T*>(at(context, index, is_vector_context));
 		}
 
 		template<typename T>
-		const T* element_address_as(const void* context, size_t index, bool is_vector_context = false) const
+		const T* at_as(const void* context, size_t index, bool is_vector_context = false) const
 		{
-			return reinterpret_cast<const T*>(element_address(context, index, is_vector_context));
+			return reinterpret_cast<const T*>(at(context, index, is_vector_context));
 		}
 	};
 
@@ -465,21 +457,29 @@ private:
 		requires(VectorProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, VectorProperty> {
 	private:
+		Property* m_inner_property = nullptr;
+
 	public:
 		using Super = TypedProperty<prop, VectorProperty>;
 		using Super::Super;
+
+		NativePropertyTyped& construct() override
+		{
+			Super::construct();
+			constexpr typename T::value_type T::*inner_prop = nullptr;
+
+			m_inner_property = Object::new_instance<NativeProperty<inner_prop>>(nullptr, "Value");
+			return *this;
+		}
 
 		size_t length() const override
 		{
 			return T::length();
 		}
 
-		Property* element_property(size_t index = 0) const override
+		Property* element_property() const override
 		{
-			if (index >= static_cast<size_t>(T::length()))
-				return nullptr;
-
-			return VectorProperty::construct_element_properties<T>()[index];
+			return m_inner_property;
 		}
 
 		size_t element_size() const override
@@ -507,6 +507,11 @@ private:
 				context = this->address(context);
 
 			return reinterpret_cast<const byte*>(context) + sizeof(typename T::value_type) * index;
+		}
+
+		~NativePropertyTyped() override
+		{
+			Refl::Object::destroy_instance(m_inner_property);
 		}
 	};
 
@@ -594,7 +599,7 @@ private:
 			return *reinterpret_cast<const T*>(context);
 		}
 
-		void* element_address(void* context, size_t index, bool is_vector_context = false) override
+		void* at(void* context, size_t index, bool is_vector_context = false) override
 		{
 			T& array = array_of(context, is_vector_context);
 
@@ -604,7 +609,7 @@ private:
 			return array.data() + index;
 		}
 
-		const void* element_address(const void* context, size_t index, bool is_vector_context = false) const override
+		const void* at(const void* context, size_t index, bool is_vector_context = false) const override
 		{
 			const T& array = array_of(context, is_vector_context);
 
@@ -654,5 +659,5 @@ private:
 
 #undef trinex_refl_prop_type_filter
 #define trinex_refl_prop(self, class_name, prop_name, ...)                                                                       \
-	(*(self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)))
+	self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
 }// namespace Engine::Refl

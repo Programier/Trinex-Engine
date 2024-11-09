@@ -43,6 +43,6 @@ namespace Engine
 		TextureType type() const override;
 		Texture2D& apply_changes() override;
 
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

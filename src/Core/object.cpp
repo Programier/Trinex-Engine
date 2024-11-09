@@ -520,19 +520,14 @@ namespace Engine
 		return m_instance_index;
 	}
 
-	bool Object::archive_process(Archive& archive)
+	bool Object::serialize(Archive& archive)
 	{
-		if (!SerializableObject::archive_process(archive))
-		{
-			return false;
-		}
-
 		if (!flags(Flag::IsSerializable))
 		{
 			return false;
 		}
 
-		return serialize_object_properties(archive);
+		return class_instance()->serialize_properties(this, archive);
 	}
 
 	bool Object::is_valid() const
@@ -620,7 +615,7 @@ namespace Engine
 		auto hierarchy = class_instance()->hierarchy(1);
 		raw_ar & hierarchy;
 
-		status = archive_process(raw_ar);
+		status = serialize(raw_ar);
 
 		if (!status)
 		{
@@ -729,7 +724,7 @@ namespace Engine
 		}
 
 		object->preload();
-		bool valid = object->archive_process(raw_ar);
+		bool valid = object->serialize(raw_ar);
 
 		if (!valid)
 		{

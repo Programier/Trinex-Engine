@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/command_buffer.hpp>
@@ -17,26 +17,26 @@ namespace Engine
 {
 	static FORCE_INLINE Vector3D calc_spot_light_direction(const Transform& transform)
 	{
-		// Using down vector for direction
 		return transform.up_vector() * -1.f;
 	}
 
 	implement_engine_class(SpotLightComponent, 0)
 	{
-		auto* self                  = static_class_instance();
-		static auto on_data_changed = [](void* object) {
-			SpotLightComponent* component = reinterpret_cast<SpotLightComponent*>(object);
-			component->submit_spot_light_data();
+		auto* self = static_class_instance();
+
+		auto on_data_changed = [](const Refl::PropertyChangedEvent& event) {
+			event.context_as<SpotLightComponent>()->submit_spot_light_data();
 		};
 
-		auto outer_angle_property =
-		        new ClassProperty("Outer Cone Angle", "Outer Cone Angle of this spot light", &This::m_outer_cone_angle);
-		auto inner_angle_property =
-		        new ClassProperty("Inner Cone Angle", "Inner Cone Angle of this spot light", &This::m_inner_cone_angle);
-		outer_angle_property->on_prop_changed.push(on_data_changed);
-		inner_angle_property->on_prop_changed.push(on_data_changed);
+		trinex_refl_prop(self, This, m_outer_cone_angle)
+				->push_change_listener(on_data_changed)
+				.display_name("Outer Cone Angle")
+				.tooltip("Outer Cone Angle of this spot light");
 
-		self->add_properties(outer_angle_property, inner_angle_property);
+		trinex_refl_prop(self, This, m_inner_cone_angle)
+				->push_change_listener(on_data_changed)
+				.display_name("Inner Cone Angle")
+				.tooltip("Inner Cone Angle of this spot light");
 	}
 
 	SpotLightComponentProxy& SpotLightComponentProxy::update_spot_angles()
@@ -96,8 +96,8 @@ namespace Engine
 
 	public:
 		UpdateSpotLightDataCommand(SpotLightComponent* component)
-		    : m_outer_cone_angle(glm::radians(component->outer_cone_angle())),
-		      m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
+			: m_outer_cone_angle(glm::radians(component->outer_cone_angle())),
+			  m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
 		{}
 
 		int_t execute() override
@@ -171,7 +171,7 @@ namespace Engine
 		SpotLightComponentProxy* proxy = component->proxy();
 
 		if (!(scene_view().show_flags() & ShowFlags::SpotLights) || !proxy->is_enabled() ||
-		    !component->leaf_class_is<SpotLightComponent>())
+			!component->leaf_class_is<SpotLightComponent>())
 			return *this;
 
 		auto layer = deferred_lighting_layer();
@@ -209,7 +209,7 @@ namespace Engine
 		if (spot_angles_parameter)
 		{
 			layer->update_variable(spot_angles_parameter->value,
-			                       Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
+								   Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
 		}
 
 		if (radius_parameter)

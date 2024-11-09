@@ -1,8 +1,8 @@
 #include <Core/file_manager.hpp>
 #include <Core/group.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/property.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -26,14 +26,14 @@ namespace Engine
 	implement_engine_class(VisualMaterial, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
 		auto* self              = This::static_class_instance();
-		Refl::Enum* domain_enum = Refl::Enum::static_find("Engine::MaterialDomain", Refl::FindFlags::IsRequired);
-		self->add_property(new EnumProperty("Domain", "Domain of this material", &This::domain, domain_enum));
+		Refl::Enum* domain_enum = Refl::Enum::static_require("Engine::MaterialDomain");
+		trinex_refl_prop(self, This, domain, domain_enum);
 	}
 
 
 	VisualMaterial::VisualMaterial() : domain(MaterialDomain::Surface)
 	{
-		create_node(Refl::Class::static_find("Engine::VisualMaterialGraph::Root", Refl::FindFlags::IsRequired));
+		create_node(Refl::Class::static_require("Engine::VisualMaterialGraph::Root"));
 	}
 
 	const Vector<Pointer<VisualMaterialGraph::Node>>& VisualMaterial::nodes() const

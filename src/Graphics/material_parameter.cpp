@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/structures.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -19,7 +19,7 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	bool PrimitiveBase::serialize(Archive& ar, void* data, size_t size)
+	bool PrimitiveBase::serialize_internal(Archive& ar, void* data, size_t size)
 	{
 		if (ar.is_reading())
 			ar.read_data(reinterpret_cast<byte*>(data), size);
@@ -52,11 +52,11 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	bool Sampler::archive_process(Archive& ar)
+	bool Sampler::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
-		return sampler.archive_process(ar);
+		return sampler.serialize(ar);
 	}
 
 	Sampler2D::Sampler2D()
@@ -70,9 +70,9 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	bool Sampler2D::archive_process(Archive& ar)
+	bool Sampler2D::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 
 		ar.serialize_reference(sampler);
@@ -90,9 +90,9 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	bool Texture2D::archive_process(Archive& ar)
+	bool Texture2D::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 		ar.serialize_reference(texture);
 		return true;
@@ -103,22 +103,22 @@ namespace Engine::MaterialParameters
 
 	implement_parameter(Bool)
 	{
-		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
+		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Int)
 	{
-		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
+		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(UInt)
 	{
-		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
+		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float)
 	{
-		static_class_instance()->add_property(new ClassProperty("Value", "", &This::value));
+		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Bool2)
@@ -168,12 +168,12 @@ namespace Engine::MaterialParameters
 
 	implement_parameter(Sampler2D)
 	{
-		static_class_instance()->add_property(new ObjectReferenceProperty("Texture", "", &This::texture));
-		static_class_instance()->add_property(new ObjectReferenceProperty("Sampler", "", &This::sampler));
+		trinex_refl_prop(static_class_instance(), This, texture);
+		trinex_refl_prop(static_class_instance(), This, sampler);
 	}
 
 	implement_parameter(Texture2D)
 	{
-		static_class_instance()->add_property(new ObjectReferenceProperty("Texture", "", &This::texture));
+		trinex_refl_prop(static_class_instance(), This, texture);
 	}
 }// namespace Engine::MaterialParameters

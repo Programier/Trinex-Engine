@@ -1,6 +1,6 @@
 #include <Core/base_engine.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -73,23 +73,18 @@ namespace Engine
 	{
 		Refl::Class* self = static_class_instance();
 
-		static auto on_props_changed = [](void* object) {
-			LightComponent* component = reinterpret_cast<LightComponent*>(object);
-			component->submit_light_info_render_thread();
-		};
+		trinex_refl_prop(self, This, m_light_color)->tooltip("Color of this light");
+		trinex_refl_prop(self, This, m_is_enabled)//
+				->display_name("Is Enabled")
+				.tooltip("Is light enabled");
 
-		auto is_enabled_prop = new ClassProperty("Is Enabled", "Is light enabled", &This::m_is_enabled);
-		auto shadows_prop =
-		        new ClassProperty("Enable Shadows", "The light source can cast real-time shadows", &This::m_is_shadows_enabled);
-		auto color_prop = new ClassProperty("Color", "Color of this light", &This::m_light_color, Name::none, Property::IsColor);
-		auto intensivity_prop = new ClassProperty("Intensivity", "Intensivity of this light", &This::m_intensivity);
+		trinex_refl_prop(self, This, m_is_shadows_enabled)
+				->display_name("Enable Shadows")
+				.tooltip("The light source can cast real-time shadows");
 
-		is_enabled_prop->on_prop_changed.push(on_props_changed);
-		shadows_prop->on_prop_changed.push(on_props_changed);
-		color_prop->on_prop_changed.push(on_props_changed);
-		intensivity_prop->on_prop_changed.push(on_props_changed);
-
-		self->add_properties(is_enabled_prop, shadows_prop, color_prop, intensivity_prop);
+		trinex_refl_prop(self, This, m_intensivity)//
+				->display_name("Intensivity")
+				.tooltip("Intensivity of this light");
 	}
 
 	LightComponent::LightComponent()
@@ -235,6 +230,18 @@ namespace Engine
 	{
 		m_bounds = AABB_3Df(light_bounds).center(world_transform().location());
 		return submit_light_info_render_thread();
+	}
+
+	LightComponent& LightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		Super::on_property_changed(event);
+
+		if (event.property->owner() == static_class_instance())
+		{
+			submit_light_info_render_thread();
+		}
+
+		return *this;
 	}
 
 	LightComponent::~LightComponent()

@@ -2,6 +2,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine::Refl
@@ -27,7 +28,9 @@ namespace Engine::Refl
 	}
 
 	Property::Property(BitMask flags) : m_flags(flags)
-	{}
+	{
+		display_name(Strings::make_sentence(name().to_string()));
+	}
 
 	bool Property::is_read_only() const
 	{
@@ -49,9 +52,15 @@ namespace Engine::Refl
 		return (m_flags & IsColor) == IsColor;
 	}
 
-	Identifier Property::add_change_listener(const EditListener& listener)
+	Identifier Property::add_change_listener(const ChangeListener& listener)
 	{
 		return m_change_listeners.push(listener);
+	}
+
+	Property& Property::push_change_listener(const ChangeListener& listener)
+	{
+		m_change_listeners.push(listener);
+		return *this;
 	}
 
 	Property& Property::remove_change_listener(Identifier id)
@@ -69,7 +78,7 @@ namespace Engine::Refl
 	Property::~Property()
 	{}
 
-	bool PrimitiveProperty::archive_process(void* object, Archive& ar)
+	bool PrimitiveProperty::serialize(void* object, Archive& ar)
 	{
 		byte* prop = reinterpret_cast<byte*>(address(object));
 
@@ -109,7 +118,7 @@ namespace Engine::Refl
 
 	String VectorProperty::script_type_name() const
 	{
-		String element_name = element_property(0)->script_type_name();
+		String element_name = element_property()->script_type_name();
 
 		if (length() == 1)
 			return element_name;
@@ -153,7 +162,20 @@ namespace Engine::Refl
 		return m_enum->full_name();
 	}
 
-	bool StringProperty::archive_process(void* object, Archive& ar)
+	EnumerateType EnumProperty::value(const void* context) const
+	{
+		EnumerateType result = 0;
+		std::memcpy(&result, address(context), size());
+		return result;
+	}
+
+	EnumProperty& EnumProperty::value(void* context, EnumerateType value)
+	{
+		std::memcpy(address(context), &value, size());
+		return *this;
+	}
+
+	bool StringProperty::serialize(void* object, Archive& ar)
 	{
 		String& value = *address_as<String>(object);
 		return (ar & value);
@@ -164,7 +186,7 @@ namespace Engine::Refl
 		return "string";
 	}
 
-	bool NameProperty::archive_process(void* object, Archive& ar)
+	bool NameProperty::serialize(void* object, Archive& ar)
 	{
 		Name& value = *address_as<Name>(object);
 		return (ar & value);
@@ -175,7 +197,7 @@ namespace Engine::Refl
 		return "Engine::Name";
 	}
 
-	bool PathProperty::archive_process(void* object, Archive& ar)
+	bool PathProperty::serialize(void* object, Archive& ar)
 	{
 		Path& value = *address_as<Path>(object);
 		return ar & value;
@@ -186,13 +208,13 @@ namespace Engine::Refl
 		return "";
 	}
 
-	bool ObjectProperty::archive_process(void* object, Archive& ar)
+	bool ObjectProperty::serialize(void* object, Archive& ar)
 	{
 		Engine::Object*& instance = *address_as<Engine::Object*>(object);
 
-		if (m_inline_serialization)
+		if (m_is_composite)
 		{
-			return instance->archive_process(ar);
+			return instance->serialize(ar);
 		}
 		else
 		{
@@ -222,20 +244,20 @@ namespace Engine::Refl
 		return *address_as<Engine::Object*>(context);
 	}
 
-	bool ObjectProperty::inline_serialization() const
+	bool ObjectProperty::is_composite() const
 	{
-		return m_inline_serialization;
+		return m_is_composite;
 	}
 
-	ObjectProperty& ObjectProperty::inline_serialization(bool flag)
+	ObjectProperty& ObjectProperty::is_composite(bool flag)
 	{
-		m_inline_serialization = flag;
+		m_is_composite = flag;
 		return *this;
 	}
 
-	bool StructProperty::archive_process(void* object, Archive& ar)
+	bool StructProperty::serialize(void* object, Archive& ar)
 	{
-		return struct_instance()->archive_process(object, ar);
+		return struct_instance()->serialize(address(object), ar);
 	}
 
 	String StructProperty::script_type_name() const
@@ -250,7 +272,7 @@ namespace Engine::Refl
 		return "";
 	}
 
-	bool ArrayProperty::archive_process(void* object, Archive& ar)
+	bool ArrayProperty::serialize(void* object, Archive& ar)
 	{
 		size_t elements = length(object);
 		ar & elements;
@@ -264,8 +286,8 @@ namespace Engine::Refl
 
 		for (size_t i = 0; i < elements; ++i)
 		{
-			void* element = element_address(object, i);
-			element_prop->archive_process(element, ar);
+			void* element = at(object, i);
+			element_prop->serialize(element, ar);
 		}
 
 		return ar;

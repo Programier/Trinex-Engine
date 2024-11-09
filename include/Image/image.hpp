@@ -1,10 +1,10 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/serializable_object.hpp>
-
 
 namespace Engine
 {
+	class Archive;
+
 	enum class ImageType : EnumerateType
 	{
 		PNG = 0,
@@ -13,7 +13,7 @@ namespace Engine
 		TGA = 3,
 	};
 
-	class ENGINE_EXPORT Image : public SerializableObject
+	class ENGINE_EXPORT Image
 	{
 		Buffer m_data;
 		int_t m_height = 0, m_width = 0, m_channels = 0;
@@ -71,7 +71,7 @@ namespace Engine
 		void compress();
 		~Image();
 
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive);
 		friend class ENGINE_EXPORT Texture2D;
 	};
 }// namespace Engine

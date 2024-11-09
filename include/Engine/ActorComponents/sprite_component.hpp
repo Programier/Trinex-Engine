@@ -16,5 +16,6 @@ namespace Engine
 		SpriteComponent& update_bounding_box() override;
 
 		SpriteComponent& render(class SceneRenderer*) override;
+		SpriteComponent& on_property_changed(const Refl::PropertyChangedEvent& event);
 	};
 }// namespace Engine

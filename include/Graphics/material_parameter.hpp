@@ -27,7 +27,7 @@ namespace Engine
 		{
 		protected:
 			PrimitiveBase& update(const void* data, size_t size, MaterialParameterInfo* info);
-			bool serialize(Archive& ar, void* data, size_t size);
+			bool serialize_internal(Archive& ar, void* data, size_t size);
 		};
 
 		template<typename T>
@@ -46,11 +46,11 @@ namespace Engine
 				return *this;
 			}
 
-			bool archive_process(Archive& ar) override
+			bool serialize(Archive& ar) override
 			{
-				if (!Super::archive_process(ar))
+				if (!Super::serialize(ar))
 					return false;
-				return serialize(ar, &value, sizeof(T));
+				return serialize_internal(ar, &value, sizeof(T));
 			}
 		};
 
@@ -165,7 +165,7 @@ namespace Engine
 
 			Sampler();
 			Sampler& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
-			bool archive_process(Archive& ar) override;
+			bool serialize(Archive& ar) override;
 		};
 
 		class ENGINE_EXPORT Sampler2D : public Parameter
@@ -178,7 +178,7 @@ namespace Engine
 
 			Sampler2D();
 			Sampler2D& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
-			bool archive_process(Archive& ar) override;
+			bool serialize(Archive& ar) override;
 		};
 
 		class ENGINE_EXPORT Texture2D : public Parameter
@@ -190,7 +190,7 @@ namespace Engine
 
 			Texture2D();
 			Texture2D& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
-			bool archive_process(Archive& ar) override;
+			bool serialize(Archive& ar) override;
 		};
 	}// namespace MaterialParameters
 }// namespace Engine

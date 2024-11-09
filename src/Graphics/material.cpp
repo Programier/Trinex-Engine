@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/logger.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -22,31 +22,28 @@ namespace Engine
 
 	implement_engine_class(MaterialInterface, 0)
 	{
-		auto element_type = new ObjectProperty<This, Parameter>("", "", nullptr, Name::none, Property::IsNotSerializable);
-		auto array_type   = new ArrayProperty<This, Vector<Parameter*>>("Parameters", "Array of parammeters of this material",
-																		&This::m_parameters, element_type, Name::none,
-																		Property::IsNotSerializable);
-		array_type->element_name_callback(default_array_object_element_name);
-		static_class_instance()->add_property(array_type);
+		auto self = static_class_instance();
+		trinex_refl_prop(self, This, m_parameters, Refl::Property::IsNotSerializable)
+				->display_name("Parameters")
+				.tooltip("Array of parammeters of this material");
 	}
 
 	implement_engine_class(Material, Refl::Class::IsAsset)
 	{
-		auto* self              = static_class_instance();
-		auto* definition_struct = Refl::Struct::static_find("Engine::ShaderDefinition", Refl::FindFlags::IsRequired);
+		auto* self = static_class_instance();
+		trinex_refl_prop(self, This, compile_definitions);
 
-		auto definitions_prop = new ArrayProperty("Definitions", "Compile definitions", &This::compile_definitions,
-		                                          new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
-		self->add_property(definitions_prop);
-		self->add_properties(new ObjectProperty("Pipeline", "Pipeline settings for this material", &Material::pipeline,
-		                                        Name::none, Property::IsNotSerializable));
+		trinex_refl_prop(self, This, pipeline, Refl::Property::IsNotSerializable)
+				->is_composite(true)
+				.tooltip("Pipeline settings for this material");
 	}
 
 	implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
 		auto* self = MaterialInstance::static_class_instance();
-		self->add_property(new ObjectReferenceProperty("Parent Material", "Parent Material of this instance",
-		                                               &MaterialInstance::parent_material));
+		trinex_refl_prop(self, This, parent_material)
+				->display_name("Parent Material")
+				.tooltip("Parent Material of this instance");
 	}
 
 	static Vector<Parameter*>::iterator lower_bound(Vector<Parameter*>& params, const Name& name)
@@ -183,9 +180,9 @@ namespace Engine
 		return false;
 	}
 
-	bool MaterialInterface::archive_process(Archive& archive)
+	bool MaterialInterface::serialize(Archive& archive)
 	{
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 
 		size_t size = m_parameters.size();
@@ -386,13 +383,13 @@ namespace Engine
 		return status;
 	}
 
-	bool Material::archive_process(Archive& archive)
+	bool Material::serialize(Archive& archive)
 	{
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 
 		archive & compile_definitions;
-		return pipeline->archive_process(archive);
+		return pipeline->serialize(archive);
 	}
 
 	Material::~Material()
@@ -425,9 +422,9 @@ namespace Engine
 		return mat->apply(this, component);
 	}
 
-	bool MaterialInstance::archive_process(Archive& archive)
+	bool MaterialInstance::serialize(Archive& archive)
 	{
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 		return true;
 	}

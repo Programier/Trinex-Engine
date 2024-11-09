@@ -4,9 +4,9 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
-#include <Core/property.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
@@ -25,67 +25,61 @@ namespace Engine
 	{
 		auto* self = static_struct_instance();
 
-		self->add_properties(new EnumProperty("Func", "Depth compare function", &This::func,
-											  Refl::Enum::static_find("Engine::CompareFunc", Refl::FindFlags::IsRequired)),
-							 new ClassProperty("Enable", "Enable depth test", &This::enable),
-							 new ClassProperty("Write Enable", "Enable write to depth buffer", &This::write_enable));
+		trinex_refl_prop(self, This, func, Refl::Enum::static_require("Engine::CompareFunc"))->tooltip("Depth compare function");
+		trinex_refl_prop(self, This, enable)->tooltip("Enable depth test");
+		trinex_refl_prop(self, This, write_enable)->tooltip("Enable write to depth buffer");
 	}
 
 	implement_struct(Engine::Pipeline::StencilTestInfo, 0)
 	{
 		auto* self                    = static_struct_instance();
-		Refl::Enum* stencil_op_enum   = Refl::Enum::static_find("Engine::StencilOp", Refl::FindFlags::IsRequired);
-		Refl::Enum* compare_func_enum = Refl::Enum::static_find("Engine::CompareFunc", Refl::FindFlags::IsRequired);
+		Refl::Enum* stencil_op_enum   = Refl::Enum::static_require("Engine::StencilOp", Refl::FindFlags::IsRequired);
+		Refl::Enum* compare_func_enum = Refl::Enum::static_require("Engine::CompareFunc", Refl::FindFlags::IsRequired);
 
-		self->add_properties(new ClassProperty("Enable", "Enable stencil test", &This::enable),
-		                     new EnumProperty("Fail", "Operation on fail", &This::fail, stencil_op_enum),
-		                     new EnumProperty("Depth pass", "Operation on depth pass", &This::depth_pass, stencil_op_enum),
-		                     new EnumProperty("Depth Fail", "Operation on depth fail", &This::depth_fail, stencil_op_enum),
-		                     new EnumProperty("Compare func", "Stencil compare function", &This::compare, compare_func_enum),
-		                     new ClassProperty("Compare mask", "Stencil compare mask", &This::compare_mask),
-		                     new ClassProperty("Write mask", "Stencil write mask", &This::write_mask));
+		trinex_refl_prop(self, This, enable)->tooltip("Enable stencil test");
+		trinex_refl_prop(self, This, fail, stencil_op_enum)->tooltip("Operation on fail");
+		trinex_refl_prop(self, This, depth_pass, stencil_op_enum)->tooltip("Operation on depth pass");
+		trinex_refl_prop(self, This, depth_fail, stencil_op_enum)->tooltip("Operation on depth fail");
+		trinex_refl_prop(self, This, compare, compare_func_enum)
+				->display_name("Compare func")
+				.tooltip("Stencil compare function");
+		trinex_refl_prop(self, This, compare_mask)->tooltip("Stencil compare mask");
+		trinex_refl_prop(self, This, write_mask)->tooltip("Stencil write mask");
 	}
 
 	implement_struct(Engine::Pipeline::AssemblyInfo, 0)
 	{
 		auto* self = static_struct_instance();
-		self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-											  &This::primitive_topology,
-											  Refl::Enum::static_find("Engine::PrimitiveTopology", Refl::FindFlags::IsRequired)));
+		trinex_refl_prop(self, This, primitive_topology, Refl::Enum::static_require("Engine::PrimitiveTopology"))
+				->tooltip("Primitive types which will be rendered by this pipeline");
 	}
 
 	implement_struct(Engine::Pipeline::RasterizerInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
-		self->add_properties(
-		        new EnumProperty("Polygon mode", "Polygon Mode", &This::polygon_mode,
-								 Refl::Enum::static_find("Engine::PolygonMode", Refl::FindFlags::IsRequired)),
-				new EnumProperty("Cull mode", "Cull Mode", &This::cull_mode,
-								 Refl::Enum::static_find("Engine::CullMode", Refl::FindFlags::IsRequired)),
-				new EnumProperty("Front face", "Front face", &This::front_face,
-								 Refl::Enum::static_find("Engine::FrontFace", Refl::FindFlags::IsRequired)),
-		        new ClassProperty("Line width", "Width of line which will be rendered by this material", &This::line_width));
+		trinex_refl_prop(self, This, polygon_mode, Refl::Enum::static_require("Engine::PolygonMode"));
+		trinex_refl_prop(self, This, cull_mode, Refl::Enum::static_require("Engine::CullMode"));
+		trinex_refl_prop(self, This, front_face, Refl::Enum::static_require("Engine::FrontFace"));
+		trinex_refl_prop(self, This, line_width);
 	}
 
 	implement_struct(Engine::Pipeline::ColorBlendingInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
-		auto* blend_func = Refl::Enum::static_find("Engine::BlendFunc", Refl::FindFlags::IsRequired);
-		auto* blend_op   = Refl::Enum::static_find("Engine::BlendOp", Refl::FindFlags::IsRequired);
+		auto* blend_func = Refl::Enum::static_require("Engine::BlendFunc", Refl::FindFlags::IsRequired);
+		auto* blend_op   = Refl::Enum::static_require("Engine::BlendOp", Refl::FindFlags::IsRequired);
 
-		self->add_properties(
-				new ClassProperty("Enable", "Enable blending", &This::enable),
-				new EnumProperty("Src color func", "Src color func", &This::src_color_func, blend_func),
-				new EnumProperty("Dst color func", "Dst color func", &This::dst_color_func, blend_func),
-				new EnumProperty("Color operator", "Color operator", &This::color_op, blend_op),
+		trinex_refl_prop(self, This, enable);
+		trinex_refl_prop(self, This, src_color_func, blend_func);
+		trinex_refl_prop(self, This, dst_color_func, blend_func);
+		trinex_refl_prop(self, This, color_op, blend_op)->display_name("Color Operator");
 
-				new EnumProperty("Src alpha func", "Src alpha func", &This::src_alpha_func, blend_func),
-				new EnumProperty("Dst alpha func", "Dst alpha func", &This::dst_alpha_func, blend_func),
-				new EnumProperty("Alpha operator", "Alpha operator", &This::alpha_op, blend_op),
-				new EnumProperty("Color mask", "Color mask", &This::color_mask,
-								 Refl::Enum::static_find("Engine::ColorComponentMask", Refl::FindFlags::IsRequired)));
+		trinex_refl_prop(self, This, src_alpha_func, blend_func);
+		trinex_refl_prop(self, This, dst_alpha_func, blend_func);
+		trinex_refl_prop(self, This, alpha_op, blend_op)->display_name("Alpha Operator");
+		trinex_refl_prop(self, This, color_mask, Refl::Enum::static_require("Engine::ColorComponentMask"));
 	}
 
 	Pipeline::Pipeline()
@@ -507,12 +501,12 @@ namespace Engine
 		return count;
 	}
 
-	bool Pipeline::archive_process(class Archive& archive)
+	bool Pipeline::serialize(class Archive& archive)
 	{
 		static auto serialize_shader_internal = [](Shader* shader, Archive& archive) {
 			if (shader)
 			{
-				shader->archive_process(archive);
+				shader->serialize(archive);
 			}
 		};
 
@@ -523,7 +517,7 @@ namespace Engine
 			return false;
 		}
 
-		if (!Super::archive_process(archive))
+		if (!Super::serialize(archive))
 			return false;
 
 		auto flags = shader_type_flags();
@@ -581,18 +575,12 @@ namespace Engine
 
 	implement_engine_class(Pipeline, 0)
 	{
-		auto* self    = static_class_instance();
-		auto required = Refl::FindFlags::IsRequired;
+		auto* self = static_class_instance();
 
-		self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
-												Refl::Struct::static_find("Engine::Pipeline::DepthTestInfo", required)),
-		                     new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
-												Refl::Struct::static_find("Engine::Pipeline::StencilTestInfo", required)),
-		                     new StructProperty("Assembly Input", "Assembly Input", &Pipeline::input_assembly,
-												Refl::Struct::static_find("Engine::Pipeline::AssemblyInfo", required)),
-		                     new StructProperty("Rasterizer", "Rasterizer properties", &Pipeline::rasterizer,
-												Refl::Struct::static_find("Engine::Pipeline::RasterizerInfo", required)),
-		                     new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
-												Refl::Struct::static_find("Engine::Pipeline::ColorBlendingInfo", required)));
+		trinex_refl_prop(self, This, depth_test);
+		trinex_refl_prop(self, This, stencil_test);
+		trinex_refl_prop(self, This, input_assembly);
+		trinex_refl_prop(self, This, rasterizer);
+		trinex_refl_prop(self, This, color_blending);
 	}
 }// namespace Engine

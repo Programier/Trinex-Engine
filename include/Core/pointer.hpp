@@ -14,7 +14,7 @@ namespace Engine
 		PointerBase& remove_reference(Object* object);
 		PointerBase();
 
-		bool archive_process(class Archive& ar, Object*& object, bool is_reference);
+		bool serialize(class Archive& ar, Object*& object, bool is_reference);
 	};
 
 
@@ -126,9 +126,9 @@ namespace Engine
 		}
 
 
-		bool archive_process(class Archive& ar, bool is_reference = true)
+		bool serialize(class Archive& ar, bool is_reference = true)
 		{
-			return PointerBase::archive_process(ar, m_object, is_reference);
+			return PointerBase::serialize(ar, m_object, is_reference);
 		}
 	};
 }// namespace Engine

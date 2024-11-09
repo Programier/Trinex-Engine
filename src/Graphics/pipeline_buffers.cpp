@@ -1,9 +1,9 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
@@ -128,9 +128,9 @@ namespace Engine
 		return sizeof(uint32_t);
 	}
 
-	bool UInt32IndexBuffer::archive_process(Archive& ar)
+	bool UInt32IndexBuffer::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 		ar & buffer;
 		return ar;
@@ -151,9 +151,9 @@ namespace Engine
 		return sizeof(uint16_t);
 	}
 
-	bool UInt16IndexBuffer::archive_process(Archive& ar)
+	bool UInt16IndexBuffer::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 		ar & buffer;
 		return ar;
@@ -174,9 +174,9 @@ namespace Engine
 		return sizeof(uint32_t);
 	}
 
-	bool UInt32DynamicIndexBuffer::archive_process(Archive& ar)
+	bool UInt32DynamicIndexBuffer::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 		ar & buffer;
 		return ar;
@@ -197,9 +197,9 @@ namespace Engine
 		return sizeof(uint16_t);
 	}
 
-	bool UInt16DynamicIndexBuffer::archive_process(Archive& ar)
+	bool UInt16DynamicIndexBuffer::serialize(Archive& ar)
 	{
-		if (!Super::archive_process(ar))
+		if (!Super::serialize(ar))
 			return false;
 		ar & buffer;
 		return ar;

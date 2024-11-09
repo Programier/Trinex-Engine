@@ -1,18 +1,11 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/object.hpp>
+#include <Core/reflection/class.hpp>
+#include <Core/reflection/struct.hpp>
 
 namespace Engine
 {
-	class Object* Archive::load_object(const StringView& name, class Refl::Class* self)
-	{
-		Object* object = Object::load_object(name);
-		if (object && object->class_instance()->is_a(self))
-			return object;
-		return nullptr;
-	}
-
 	Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false)
 	{}
 
@@ -57,6 +50,19 @@ namespace Engine
 		other.m_is_saving      = false;
 
 		return *this;
+	}
+
+	class Object* Archive::load_object(const StringView& name, class Refl::Class* self)
+	{
+		Object* object = Object::load_object(name);
+		if (object && object->class_instance()->is_a(self))
+			return object;
+		return nullptr;
+	}
+
+	bool Archive::serialize_struct(Refl::Struct* self, void* obj)
+	{
+		self->serialize(obj, *this);
 	}
 
 	bool Archive::is_saving() const

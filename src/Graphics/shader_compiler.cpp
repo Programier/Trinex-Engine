@@ -1,6 +1,7 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader_compiler.hpp>
 

@@ -11,6 +11,6 @@ namespace Engine
 		Path shader_path;
 
 		bool shader_source(String& out_source) override;
-		bool archive_process(Archive& archive) override;
+		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

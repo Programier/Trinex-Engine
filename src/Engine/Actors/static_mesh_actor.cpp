@@ -1,5 +1,5 @@
 #include <Core/reflection/class.hpp>
-#include <Core/property.hpp>
+#include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/static_mesh_actor.hpp>
 
@@ -8,7 +8,7 @@ namespace Engine
 	implement_engine_class(StaticMeshActor, 0)
 	{
 		auto* self = This::static_class_instance();
-		self->add_property(new ObjectProperty("StaticMeshComponent", "StaticMeshComponent", &This::m_mesh_component));
+		trinex_refl_prop(self, This, m_mesh_component)->display_name("Static Mesh Component");
 	}
 
 	StaticMeshActor::StaticMeshActor()

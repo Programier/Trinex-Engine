@@ -138,6 +138,6 @@ namespace Engine
 
 		ShadersArray shader_array() const;
 
-		bool archive_process(class Archive& archive) override;
+		bool serialize(class Archive& archive) override;
 	};
 }// namespace Engine

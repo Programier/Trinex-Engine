@@ -37,6 +37,7 @@ namespace Engine::Refl
 			}
 		};
 
+		using Super::find;
 		Object* find(StringView name, FindFlags flags = FindFlags::None) override;
 		const Map<String, Object*>& childs() const;
 

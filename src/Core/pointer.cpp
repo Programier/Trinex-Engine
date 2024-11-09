@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/exception.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 
@@ -32,7 +33,7 @@ namespace Engine
 		return *this;
 	}
 
-	bool PointerBase::archive_process(class Archive& ar, Object*& object, bool is_reference)
+	bool PointerBase::serialize(class Archive& ar, Object*& object, bool is_reference)
 	{
 		if (is_reference)
 		{
@@ -41,7 +42,7 @@ namespace Engine
 		else
 		{
 			trinex_always_check(object, "Cannot serialize nullptr object!");
-			object->archive_process(ar);
+			object->serialize(ar);
 		}
 
 		return ar;
