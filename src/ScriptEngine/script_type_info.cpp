@@ -4,7 +4,6 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
-#include <ScriptEngine/script_handle.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_primitives.hpp>
 #include <ScriptEngine/script_type_info.hpp>

@@ -21,9 +21,12 @@ namespace Engine
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
 		m_ic_script_update = r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiEditorClient&, float));
+		m_ic_script_select = r.method("void select(Object@ object)", trinex_scoped_method(This, select));
+
+		r.method("void update(RenderViewport viewport, float dt)",
+				 trinex_scoped_method(This, update, ImGuiEditorClient&, RenderViewport*, float));
 		r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
 		r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
-		m_ic_script_select = r.method("void select(Object@ object)", trinex_scoped_method(This, select));
 		r.method("RenderViewport viewport() const final", &This::viewport);
 
 		ScriptEngine::on_terminate += []() {

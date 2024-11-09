@@ -8,22 +8,14 @@ namespace Engine
 	class ENGINE_EXPORT ScriptPointer
 	{
 	private:
-		mutable int_t m_refs;
-		void* m_address;
-		int_t m_type_id;
-		mutable bool m_gc_flag;
-
-		ScriptPointer();
+		void* m_address = nullptr;
 
 	public:
-		static ScriptPointer* create(asITypeInfo* ti);
-		static ScriptPointer* create(asITypeInfo* ti, void* address);
-
-		void add_ref() const;
-		void release() const;
+		ScriptPointer(void* address = nullptr);
+		ScriptPointer(const ScriptPointer& other);
+		ScriptPointer& operator=(const ScriptPointer& other);
 
 		void* address() const;
-		int_t type_id() const;
 		bool is_null() const;
 
 		template<typename T>

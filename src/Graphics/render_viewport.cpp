@@ -257,7 +257,7 @@ namespace Engine
 			else
 			{
 				ScriptObject obj(tmp);
-				obj.execute(vc_on_unbind_viewport, ScriptObject(this));
+				obj.execute(vc_on_unbind_viewport, this);
 			}
 		}
 
@@ -272,7 +272,7 @@ namespace Engine
 			else
 			{
 				ScriptObject obj(new_client);
-				obj.execute(vc_on_bind_viewport, ScriptObject(this));
+				obj.execute(vc_on_bind_viewport, this);
 			}
 		}
 		return *this;
@@ -291,7 +291,7 @@ namespace Engine
 			else
 			{
 				ScriptObject obj(m_client);
-				obj.execute(vc_update, ScriptObject(this), dt);
+				obj.execute(vc_update, this, dt);
 			}
 			m_current_render_viewport = nullptr;
 		}
