@@ -105,7 +105,7 @@ struct asCExprValue
 	int   stackOffset; // used both for stack offset and indexing global variables
 
 private:
-	// These values must not be accessed directly in order to avoid problems with endianess. 
+	// These values must not be accessed directly in order to avoid problems with endianess.
 	// Use the appropriate accessor methods instead
 	union
 	{
@@ -132,7 +132,7 @@ struct asSDeferredParam
 	asCExprContext *origExpr;
 };
 
-// TODO: refactor: asCExprContext should have indicators to inform where the value is, 
+// TODO: refactor: asCExprContext should have indicators to inform where the value is,
 //                 i.e. if the reference to an object is pushed on the stack or not, etc
 
 // This class holds information about an expression that is being evaluated, e.g.
@@ -249,6 +249,7 @@ protected:
 	void CompileSwitchStatement(asCScriptNode *node, bool *hasReturn, asCByteCode *bc);
 	void CompileCase(asCScriptNode *node, asCByteCode *bc, bool *hasReturn, bool *hasBreak);
 	void CompileForStatement(asCScriptNode *node, asCByteCode *bc);
+	void CompileForEachStatement(asCScriptNode* node, asCByteCode* bc);
 	void CompileWhileStatement(asCScriptNode *node, asCByteCode *bc);
 	void CompileDoWhileStatement(asCScriptNode *node, asCByteCode *bc);
 	void CompileBreakStatement(asCScriptNode *node, asCByteCode *bc);
@@ -293,6 +294,7 @@ protected:
 	void CompileMemberInitializationCopy(asCByteCode* bc);
 	bool CompileAutoType(asCDataType &autoType, asCExprContext &compiledCtx, asCScriptNode *exprNode, asCScriptNode *errNode);
 	bool CompileInitialization(asCScriptNode *node, asCByteCode *bc, const asCDataType &type, asCScriptNode *errNode, int offset, asQWORD *constantValue, EVarGlobOrMem isVarGlobOrMem, asCExprContext *preCompiled = 0);
+	bool CompileInitializationWithAssignment(asCByteCode* bc, const asCDataType &type, asCScriptNode *errNode, int offset, asQWORD* constantValue, EVarGlobOrMem isVarGlobOrMem, asCScriptNode* rnode, asCExprContext* rexpr);
 	void CompileInitAsCopy(asCDataType &type, int offset, asCExprContext *ctx, asCExprContext *arg, asCScriptNode *node, bool derefDestination, EVarGlobOrMem isVarGlobOrMem = asVGM_VARIABLE);
 
 	// Helper functions
@@ -398,10 +400,13 @@ protected:
 	asCScriptCode     *script;
 	asCScriptFunction *outFunc;
 
-	bool                        m_isConstructor;
-	bool                        m_isConstructorCalled;
-	sClassDeclaration          *m_classDecl;
-	sGlobalVariableDescription *m_globalVar;
+	bool                         m_isConstructor;
+	bool                         m_isConstructorCalled;
+	bool                         m_hasReturned;
+	asCArray<asCObjectProperty*> m_initializedProperties; // Doesn't hold reference
+	asCMap<asCObjectProperty*, asUINT> m_propertyAccessCount; // Doesn't hold reference
+	sClassDeclaration           *m_classDecl;
+	sGlobalVariableDescription  *m_globalVar;
 
 	asCArray<int> breakLabels;
 	asCArray<int> continueLabels;
@@ -414,6 +419,7 @@ protected:
 	void ReleaseTemporaryVariable(asCExprValue &t, asCByteCode *bc);
 	void ReleaseTemporaryVariable(int offset, asCByteCode *bc);
 	bool IsVariableOnHeap(int offset);
+	int DeclareVariable(const asCString &name, const asCDataType &type, int offset, asCByteCode *bc, asCScriptNode *node);
 
 	// This ordered array indicates the type of each variable
 	asCArray<asCDataType> variableAllocations;

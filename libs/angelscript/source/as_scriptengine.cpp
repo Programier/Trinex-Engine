@@ -479,6 +479,26 @@ int asCScriptEngine::SetEngineProperty(asEEngineProp property, asPWORD value)
 		ep.alwaysImplDefaultCopyConstruct = (int)value;
 		break;
 
+	case asEP_MEMBER_INIT_MODE:
+		if (value > 1)
+			return asINVALID_ARG;
+		ep.memberInitMode = (asUINT)value;
+		break;
+
+	case asEP_BOOL_CONVERSION_MODE:
+		if (value > 1)
+			return asINVALID_ARG;
+		ep.boolConversionMode = (asUINT)value;
+		break;
+
+	case asEP_FOREACH_SUPPORT:
+		if (value > 1)
+			return asINVALID_ARG;
+		ep.foreachSupport = value ? true : false;
+		// TODO: funcdef: Make sure there is no compilation currently in progress
+		tok.InitJumpTable();
+		break;
+
 	default:
 		return asINVALID_ARG;
 	}
@@ -602,6 +622,15 @@ asPWORD asCScriptEngine::GetEngineProperty(asEEngineProp property) const
 	case asEP_ALWAYS_IMPL_DEFAULT_COPY_CONSTRUCT:
 		return ep.alwaysImplDefaultCopyConstruct;
 
+	case asEP_MEMBER_INIT_MODE:
+		return ep.memberInitMode;
+
+	case asEP_BOOL_CONVERSION_MODE:
+		return ep.boolConversionMode;
+	
+	case asEP_FOREACH_SUPPORT:
+		return ep.foreachSupport;
+
 	default:
 		return 0;
 	}
@@ -677,6 +706,9 @@ asCScriptEngine::asCScriptEngine()
 		ep.jitInterfaceVersion           = 1;         // 1 = JIT compiler uses asJITCompiler, 2 = JIT compiler uses asJITCompilerV2
 		ep.alwaysImplDefaultCopy         = 0;         // 0 = as per language spec, 1 = always implement it, 2, never implement
 		ep.alwaysImplDefaultCopyConstruct = 0;        // 0 = as per language spec, 1 = always implement it, 2, never implement
+		ep.memberInitMode                = 1;         // 0 = pre 2.38.0, members with init expr in declaration are initialized after super(), 1 = all members initialized in beginning, except if explicitly initialized in body
+		ep.boolConversionMode            = 0;         // 0 = only do use opImplConv for registered value type, 1 = use also opConv in contextual conversion even for reference types
+		ep.foreachSupport                = true;
 	}
 
 	gc.engine = this;
@@ -3317,6 +3349,11 @@ int asCScriptEngine::GetTemplateFunctionInstance(asCScriptFunction* baseFunc, co
 	for (asUINT p = 0; p < baseFunc->parameterTypes.GetLength(); p++)
 		newFunc->parameterTypes[p] = DetermineTypeForTemplate(baseFunc->parameterTypes[p], baseFunc->templateSubTypes, types, 0, 0, 0);
 
+	newFunc->templateSubTypes = types;
+	for (asUINT t = 0; t < newFunc->templateSubTypes.GetLength(); t++)
+		if (newFunc->templateSubTypes[t].GetTypeInfo())
+			newFunc->templateSubTypes[t].GetTypeInfo()->AddRef();
+
 	newFunc->id = GetNextScriptFunctionId();
 	AddScriptFunction(newFunc);
 
@@ -5166,7 +5203,7 @@ int asCScriptEngine::GetTypeIdFromDataType(const asCDataType &dtIn) const
 		case ttDouble: return asTYPEID_DOUBLE;
 		default:
 			// All types should be covered by the above. The variable type is not really a type
-			asASSERT(dtIn.GetTokenType() == ttQuestion);
+			asASSERT(dtIn.GetTokenType() == ttQuestion || dtIn.IsAuto());
 			return -1;
 		}
 	}

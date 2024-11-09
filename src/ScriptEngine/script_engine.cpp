@@ -91,6 +91,7 @@ namespace Engine
 		m_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
 		m_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
 		m_engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
+		m_engine->SetEngineProperty(asEP_FOREACH_SUPPORT, false);
 		m_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
 
 #if ARCH_X86_64 || ARCH_ARM

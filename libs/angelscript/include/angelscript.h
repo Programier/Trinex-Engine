@@ -188,6 +188,9 @@ enum asEEngineProp
 	asEP_JIT_INTERFACE_VERSION              = 35,
 	asEP_ALWAYS_IMPL_DEFAULT_COPY           = 36,
 	asEP_ALWAYS_IMPL_DEFAULT_COPY_CONSTRUCT = 37,
+	asEP_MEMBER_INIT_MODE                   = 38,
+	asEP_BOOL_CONVERSION_MODE               = 39,
+	asEP_FOREACH_SUPPORT                    = 40,
 
 	asEP_LAST_PROPERTY
 };
@@ -1196,6 +1199,11 @@ public:
 	virtual asUINT           GetParamCount() const = 0;
 	virtual int              GetParam(asUINT index, int *typeId, asDWORD *flags = 0, const char **name = 0, const char **defaultArg = 0) const = 0;
 	virtual int              GetReturnTypeId(asDWORD *flags = 0) const = 0;
+
+	// Template functions
+	virtual asUINT           GetSubTypeCount() const = 0;
+	virtual int              GetSubTypeId(asUINT subTypeIndex = 0) const = 0;
+	virtual asITypeInfo     *GetSubType(asUINT subTypeIndex = 0) const = 0;
 
 	// Type id for function pointers
 	virtual int              GetTypeId() const = 0;

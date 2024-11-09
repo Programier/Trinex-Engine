@@ -183,6 +183,11 @@ public:
 	int                  GetParam(asUINT index, int *typeId, asDWORD *flags = 0, const char **name = 0, const char **defaultArg = 0) const;
 	int                  GetReturnTypeId(asDWORD *flags = 0) const;
 
+	// Template functions
+	asUINT       GetSubTypeCount() const;
+	int          GetSubTypeId(asUINT subTypeIndex = 0) const;
+	asITypeInfo* GetSubType(asUINT subTypeIndex = 0) const;
+
 	// Type id for function pointers
 	int                  GetTypeId() const;
 	bool                 IsCompatibleWithTypeId(int typeId) const;
@@ -242,7 +247,7 @@ public:
 
 	void      DestroyInternal();
 
-	void      AddVariable(const asCString &name, asCDataType &type, int stackOffset, bool onHeap);
+	void      AddVariable(const asCString &name, const asCDataType &type, int stackOffset, bool onHeap);
 
 	int       GetSpaceNeededForArguments();
 	int       GetSpaceNeededForReturnValue();
