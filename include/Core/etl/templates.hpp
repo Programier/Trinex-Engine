@@ -84,8 +84,8 @@ namespace Engine
 	};
 
 
-	template<typename Signature>
-	constexpr typename SignatureParser<Signature>::TypePtr func_of(typename SignatureParser<Signature>::TypePtr func)
+	template<typename Return, typename... Args>
+	constexpr Return (*func_of(Return (*func)(Args...)))(Args...)
 	{
 		return func;
 	}
