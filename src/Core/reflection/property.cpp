@@ -77,6 +77,23 @@ namespace Engine::Refl
 		return *this;
 	}
 
+	const ScriptFunction& Property::renderer() const
+	{
+		auto* meta = find_metadata(Meta::renderer);
+		if (meta && meta->is_a<ScriptFunction>())
+		{
+			return meta->cast<const ScriptFunction&>();
+		}
+
+		return default_value_of<ScriptFunction>();
+	}
+
+	Property& Property::renderer(const ScriptFunction& func)
+	{
+		metadata(Meta::renderer, func);
+		return *this;
+	}
+
 	Property::~Property()
 	{}
 

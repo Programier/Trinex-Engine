@@ -5,6 +5,7 @@
 namespace Engine
 {
 	class Object;
+	class ScriptFunction;
 }
 
 namespace Engine::Refl
@@ -110,6 +111,8 @@ private:
 		Identifier add_change_listener(const ChangeListener& listener);
 		Property& push_change_listener(const ChangeListener& listener);
 		Property& remove_change_listener(Identifier id);
+		const ScriptFunction& renderer() const;
+		Property& renderer(const ScriptFunction& func);
 
 		virtual void* address(void* context)                   = 0;
 		virtual const void* address(const void* context) const = 0;

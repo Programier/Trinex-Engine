@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/any.hpp>
 #include <Core/name.hpp>
 
 namespace Engine
@@ -16,6 +17,7 @@ namespace Engine::Refl
 		extern ENGINE_EXPORT Name tooltip;
 		extern ENGINE_EXPORT Name description;
 		extern ENGINE_EXPORT Name group;
+		extern ENGINE_EXPORT Name renderer;
 	}// namespace Meta
 
 	enum class FindFlags
@@ -38,7 +40,7 @@ namespace Engine::Refl
 	class ENGINE_EXPORT Object
 	{
 	private:
-		using MetaData       = Map<Name, String, Name::HashFunction>;
+		using MetaData       = Map<Name, Any, Name::HashFunction>;
 		MetaData* m_metadata = nullptr;
 		Object* m_owner      = nullptr;
 
@@ -92,9 +94,9 @@ namespace Engine::Refl
 		Object& description(StringView text);
 		Object& group(StringView text);
 
-		const String* find_metadata(const Name& name) const;
-		const String& metadata(const Name& name) const;
-		Object& metadata(const Name& name, StringView meta);
+		const Any* find_metadata(const Name& name) const;
+		const Any& metadata(const Name& name) const;
+		Object& metadata(const Name& name, const Any& any);
 		Object& remove_metadata(const Name& name);
 
 		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);

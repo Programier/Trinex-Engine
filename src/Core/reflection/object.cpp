@@ -15,6 +15,7 @@ namespace Engine::Refl
 		ENGINE_EXPORT Name tooltip      = "tooltip";
 		ENGINE_EXPORT Name description  = "description";
 		ENGINE_EXPORT Name group        = "group";
+		ENGINE_EXPORT Name renderer     = "renderer";
 	}// namespace Meta
 
 	static Set<Object*> m_instances;
@@ -187,30 +188,44 @@ namespace Engine::Refl
 		return m_name;
 	}
 
+	static inline const String& string_meta(const Any& any)
+	{
+		if (any.is_a<String>())
+			return any.cast<const String&>();
+		return default_value_of<String>();
+	}
+
+	static inline const String& string_meta(const Any& any, const String& default_value)
+	{
+		if (any.is_a<String>())
+			return any.cast<const String&>();
+		return default_value;
+	}
+
 	const String& Object::display_name() const
 	{
 		if (auto* meta = find_metadata(Meta::display_name))
-			return *meta;
+			return string_meta(*meta, m_name.to_string());
 
 		return m_name.to_string();
 	}
 
 	const String& Object::tooltip() const
 	{
-		return metadata(Meta::tooltip);
+		return string_meta(metadata(Meta::tooltip));
 	}
 
 	const String& Object::description() const
 	{
 		if (auto* meta = find_metadata(Meta::description))
-			return *meta;
+			return string_meta(*meta, m_name.to_string());
 
 		return m_name.to_string();
 	}
 
 	const String& Object::group() const
 	{
-		return metadata(Meta::group);
+		return string_meta(metadata(Meta::group));
 	}
 
 	Object& Object::display_name(StringView name)
@@ -248,7 +263,7 @@ namespace Engine::Refl
 		out += m_name;
 	}
 
-	const String* Object::find_metadata(const Name& name) const
+	const Any* Object::find_metadata(const Name& name) const
 	{
 		if (m_metadata)
 		{
@@ -261,23 +276,23 @@ namespace Engine::Refl
 		return nullptr;
 	}
 
-	const String& Object::metadata(const Name& name) const
+	const Any& Object::metadata(const Name& name) const
 	{
 		if (auto meta = find_metadata(name))
 		{
 			return *meta;
 		}
-		return default_value_of<String>();
+		return default_value_of<Any>();
 	}
 
-	Object& Object::metadata(const Name& name, StringView meta)
+	Object& Object::metadata(const Name& name, const Any& any)
 	{
 		if (m_metadata == nullptr)
 		{
 			m_metadata = new MetaData();
 		}
 
-		(*m_metadata)[name] = String(meta);
+		(*m_metadata)[name] = any;
 		return *this;
 	}
 
@@ -395,8 +410,6 @@ namespace Engine::Refl
 		r.method("Engine::Refl::Object@ description(Engine::StringView description)", method_of<Object&>(&T::description));
 		r.method("Engine::Refl::Object@ group(Engine::StringView group)", method_of<Object&>(&T::group));
 
-		r.method("const string& metadata(const Engine::Name& name) const", method_of<const String&>(&T::metadata));
-		r.method("Engine::Refl::Object@ metadata(const Engine::Name& name)", method_of<Object&>(&T::metadata));
 		r.method("Engine::Refl::Object@ remove_metadata(const Engine::Name& name)", &T::remove_metadata);
 
 		r.method("Engine::Refl::Object@ find(const Engine::Name& name)", &T::find<Object>);
