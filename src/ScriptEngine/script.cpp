@@ -303,6 +303,11 @@ namespace Engine
 		return *this;
 	}
 
+	const ScriptModule& Script::module() const
+	{
+		return m_module;
+	}
+
 	const String& Script::name() const
 	{
 		return m_name;

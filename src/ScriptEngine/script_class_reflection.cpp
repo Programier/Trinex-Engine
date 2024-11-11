@@ -9,10 +9,136 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
+#include <regex>
 
 namespace Engine
 {
 	static Map<String, Script::PropertyReflectionParser> m_custom_parsers;
+
+	enum class MetaType
+	{
+		Unknown,
+		Flags,
+		Assignment,
+		FunctionCall
+	};
+
+	static bool is_child_of_object(const ScriptTypeInfo& info)
+	{
+		auto p_info      = info.info();
+		auto object_info = Engine::Object::static_class_instance()->script_type_info.info();
+
+		while (p_info && p_info != object_info)
+		{
+			p_info = p_info->GetBaseType();
+		}
+
+		return p_info == object_info;
+	}
+
+	static MetaType determine_metadata_type(const String& str)
+	{
+		std::regex flags_regex(R"(^[a-zA-Z_][a-zA-Z0-9_]*$)");
+		std::regex assignment_regex(R"(^[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*.+$)");
+		std::regex function_call_regex(R"(^[a-zA-Z_][a-zA-Z0-9_]*\s*\(.*\)$)");
+
+		if (std::regex_match(str, flags_regex))
+		{
+			return MetaType::Flags;
+		}
+		else if (std::regex_match(str, assignment_regex))
+		{
+			return MetaType::Assignment;
+		}
+		else if (std::regex_match(str, function_call_regex))
+		{
+			return MetaType::FunctionCall;
+		}
+
+		return MetaType::Unknown;
+	}
+
+	static void register_flags_meta(Refl::Property* prop, const String& meta)
+	{
+		struct Accessor : public Refl::Property {
+			static void add_flag(Refl::Property* prop, BitMask mask)
+			{
+				constexpr BitMask Property::*address = &Accessor::m_flags;
+				auto& flags                          = prop->*address;
+				flags |= mask;
+			}
+		};
+
+		static asITypeInfo* enum_type = ScriptEngine::engine()->GetTypeInfoByDecl("Engine::Refl::Property::Flag");
+
+		asUINT count = enum_type->GetEnumValueCount();
+
+		for (asUINT i = 0; i < count; i++)
+		{
+			int value = 0;
+
+			if (meta == enum_type->GetEnumValueByIndex(i, &value))
+			{
+				Accessor::add_flag(prop, value);
+				return;
+			}
+		}
+
+		throw EngineException(Strings::format("Failed to find property flag with name '{}'", meta));
+	}
+
+	static void register_expression_meta(Script* script, Refl::Property* prop, const String& meta)
+	{
+		const Refl::ClassInfo* prop_info = prop->refl_class_info();
+		while (!prop_info->is_scriptable) prop_info = prop_info->parent;
+
+		if (prop_info == nullptr)
+			throw EngineException(Strings::format("Cannot find scriptable property type for prop '{}'", prop->full_name()));
+
+		String code = Strings::format("void __trinex_engine_execute_meta__(Engine::Refl::{}@ prop) {{ prop.{}; }}",
+									  prop_info->class_name.to_string(), meta);
+
+		auto module    = script->module().as_module();
+		const char* ns = module->GetDefaultNamespace();
+
+		{
+			String func_ns = prop->owner()->scope_name();
+			module->SetDefaultNamespace(func_ns.c_str());
+		}
+
+		String section              = Strings::format("{}: {}: MetaData", script->name(), prop->full_name());
+		asIScriptFunction* function = nullptr;
+		if (module->CompileFunction(section.c_str(), code.c_str(), 0, 0, &function) < 0)
+			throw EngineException(Strings::format("Failed to bind meta '{}'", meta));
+
+		ScriptContext::prepare(function);
+		ScriptContext::arg_address(0, prop);
+		ScriptContext::execute();
+		ScriptContext::unprepare();
+
+		function->Release();
+		module->SetDefaultNamespace(ns);
+	}
+
+	static void register_metadata(Script* script, Refl::Property* prop, const TreeSet<String>& metadata)
+	{
+		for (auto& meta : metadata)
+		{
+			auto type = determine_metadata_type(meta);
+
+			switch (type)
+			{
+				case MetaType::Flags:
+					register_flags_meta(prop, meta);
+					break;
+				case MetaType::Assignment:
+				case MetaType::FunctionCall:
+					register_expression_meta(script, prop, meta);
+				default:
+					break;
+			}
+		}
+	}
 
 	static Refl::Property* register_enum_property(Script* script, Refl::Struct* self, const String& prop_name,
 												  ScriptTypeInfo info, size_t offset)
@@ -90,20 +216,6 @@ namespace Engine
 		return prop;
 	}
 
-
-	static bool is_child_of_object(const ScriptTypeInfo& info)
-	{
-		auto p_info      = info.info();
-		auto object_info = Engine::Object::static_class_instance()->script_type_info.info();
-
-		while (p_info && p_info != object_info)
-		{
-			p_info = p_info->GetBaseType();
-		}
-
-		return p_info == object_info;
-	}
-
 	static Refl::Property* register_class_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, uint_t prop_idx,
 												   bool has_property_meta)
 	{
@@ -162,17 +274,21 @@ namespace Engine
 					auto prop_type_id = type.property_type_id(i);
 					auto& metadata    = class_metadata.metadata_for_property(i);
 
+					Refl::Property* prop = nullptr;
+
 					if (ScriptEngine::is_primitive_type(prop_type_id) && metadata.contains("property"))
 					{
-						register_primitive_property(script, self, prop_type_id, i);
-						continue;
+						prop = register_primitive_property(script, self, prop_type_id, i);
 					}
-
-					if (ScriptEngine::is_object_type(prop_type_id, true))
+					else if (ScriptEngine::is_object_type(prop_type_id, true))
 					{
 						ScriptTypeInfo info = ScriptEngine::type_info_by_id(prop_type_id);
-						register_class_property(script, self, info, i, metadata.contains("property"));
-						continue;
+						prop                = register_class_property(script, self, info, i, metadata.contains("property"));
+					}
+
+					if (prop)
+					{
+						register_metadata(script, prop, metadata);
 					}
 				}
 			}

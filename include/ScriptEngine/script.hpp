@@ -94,6 +94,7 @@ namespace Engine
 		CallBacks<void(Script*)> on_discard;
 		CallBacks<void(Script*)> on_exception;
 
+		const ScriptModule& module() const;
 		const String& name() const;
 		const String& code() const;
 		Script& code(const String& code);

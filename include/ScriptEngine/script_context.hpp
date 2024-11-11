@@ -53,6 +53,7 @@ namespace Engine
 		static uint_t nest_count();
 
 		static bool object(const ScriptObject& object);
+		static bool object(void* address);
 
 		static bool arg_bool(uint_t arg, bool value);
 		static bool arg_byte(uint_t arg, byte value);

@@ -237,10 +237,14 @@ namespace Engine
 
 	bool ScriptContext::object(const ScriptObject& object)
 	{
-		void* obj = object.address();
-		if (obj == nullptr)
+		return ScriptContext::object(object.address());
+	}
+
+	bool ScriptContext::object(void* address)
+	{
+		if (address == nullptr)
 			return false;
-		return m_context->SetObject(obj) >= 0;
+		return m_context->SetObject(address) >= 0;
 	}
 
 	bool ScriptContext::arg_bool(uint_t arg, bool value)

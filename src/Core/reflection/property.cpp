@@ -332,6 +332,17 @@ namespace Engine::Refl
 
 	static void on_init()
 	{
+		{
+			using T = Property::Flag;
+
+			ScriptEnumRegistrar r("Engine::Refl::Property::Flag");
+			r.set("property", 0);
+			r.set("is_read_only", T::IsReadOnly);
+			r.set("is_not_serializable", T::IsNotSerializable);
+			r.set("is_hidden", T::IsHidden);
+			r.set("is_color", T::IsColor);
+		}
+
 		ScriptClassRegistrar::RefInfo info;
 		info.implicit_handle = true;
 		info.no_count        = true;
