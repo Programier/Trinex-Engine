@@ -1,8 +1,10 @@
 #include <Core/archive.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
+#include <ScriptEngine/registrar.hpp>
 
 namespace Engine::Refl
 {
@@ -87,12 +89,6 @@ namespace Engine::Refl
 	{
 		throw EngineException("Unimplemented method");
 		return *this;
-	}
-
-	StringView Struct::type_name() const
-	{
-		throw EngineException("Unimplemented method");
-		return "";
 	}
 
 	size_t Struct::size() const
@@ -180,7 +176,7 @@ namespace Engine::Refl
 
 	class Property* Struct::find_property(StringView name)
 	{
-		Struct* scope = this;
+		const Struct* scope = this;
 
 		while (scope)
 		{
@@ -315,4 +311,43 @@ namespace Engine::Refl
 			m_parent->m_childs.erase(this);
 		}
 	}
+
+	static bool is_a_scriptable(const Struct* self, const Struct* other)
+	{
+		return self->is_a(other);
+	}
+
+	void Struct::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	{
+		Super::register_layout(r, info, downcast);
+		ReflectionInitializeController().require("Engine::Refl::Property").require("Engine::ScriptVector");
+
+		using T = Struct;
+		r.method("uint64 size() const", &T::size);
+		r.method("uint64 abstraction_level() const", &T::parent);
+		r.method("Vector<Name> hierarchy(uint64 offset = 0) const", &T::hierarchy);
+		r.method("bool is_asset() const", &T::is_asset);
+		r.method("bool is_native() const", &T::is_native);
+		r.method("bool is_class() const", &T::is_class);
+		r.method("bool is_scriptable() const", &T::is_scriptable);
+		r.method("bool is_a(const Struct@ other) const", is_a_scriptable);
+		r.method("const Vector<Property@>& properties() const", &T::properties);
+		r.method("Property find_property(StringView name)", &T::find_property);
+	}
+
+	static void on_init()
+	{
+		ScriptClassRegistrar::RefInfo info;
+		info.implicit_handle = true;
+		info.no_count        = true;
+
+		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Struct", info);
+		Struct::register_layout(r, Struct::static_refl_class_info(), script_downcast<Struct>);
+
+		r.method("Struct@ parent() const", &Struct::parent);
+		r.static_function("Struct@ static_find(Engine::StringView name, int flags = 0)", Struct::static_find<Struct>);
+		r.static_function("Struct@ static_require(StringView name, int flags = 0)", Struct::static_require<Struct>);
+	}
+
+	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Struct");
 }// namespace Engine::Refl

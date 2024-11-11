@@ -3,36 +3,34 @@
 #include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_type_info.hpp>
+#include <angelscript.h>
 
 namespace Engine::Refl
 {
 	implement_reflect_type(Enum);
 
-	Enum::Enum(const Vector<Enum::Entry>& entries, StringView type_name) : m_type_name(type_name)
+	Enum::Enum()
+	{}
+
+	Enum& Enum::register_enum_with_entries(const Vector<Enum::Entry>& entries)
 	{
 		String name = full_name();
 		info_log("Enum", "Register enum '%s'", name.c_str());
 
-
 		ScriptEnumRegistrar registrar(name, true);
+		m_info = registrar.type_info();
 
 		for (auto& entry : entries)
 		{
 			create_entry(&registrar, entry.name, entry.value);
 		}
-
-		if (!m_type_name.empty())
-			bind_type_name(m_type_name);
+		return *this;
 	}
 
 	StringView Enum::extract_enum_value_name(StringView full_name)
 	{
 		return Strings::class_name_sv_of(full_name);
-	}
-
-	ENGINE_EXPORT Enum* Enum::create_internal(const StringView& name, const Vector<Enum::Entry>& entries, StringView type_name)
-	{
-		return Object::new_instance<Enum>(name, entries, type_name);
 	}
 
 	Index Enum::index_of(const Name& name) const
@@ -70,7 +68,6 @@ namespace Engine::Refl
 		if (const Entry* e = entry(value))
 			return e;
 
-		ScriptEnumRegistrar& registrar = *reinterpret_cast<ScriptEnumRegistrar*>(registrar_ptr);
 
 		Entry new_entry;
 		new_entry.name  = name;
@@ -82,7 +79,11 @@ namespace Engine::Refl
 		m_entries_by_name.insert({name, index});
 		m_entries_by_value.insert({value, index});
 
-		registrar.set(name.c_str(), static_cast<int_t>(value));
+		if (registrar_ptr)
+		{
+			ScriptEnumRegistrar* registrar = reinterpret_cast<ScriptEnumRegistrar*>(registrar_ptr);
+			registrar->set(name.c_str(), static_cast<int_t>(value));
+		}
 
 		return &m_entries.back();
 	}
@@ -96,11 +97,5 @@ namespace Engine::Refl
 	const Vector<Enum::Entry>& Enum::entries() const
 	{
 		return m_entries;
-	}
-
-	Enum::~Enum()
-	{
-		if (!m_type_name.empty())
-			unbind_type_name(m_type_name);
 	}
 }// namespace Engine::Refl

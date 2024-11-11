@@ -1,6 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Graphics/imgui.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binder.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_pointer.hpp>
 #include <angelscript.h>
@@ -68,7 +69,7 @@ namespace Engine
 #define new_enum_v(a, b) new_enum.set(#b, a##_##b)
 #define new_enum_v2(a, b) new_enum.set(#b, a##b)
 	template<typename T>
-	struct TypeRemapper {
+	struct ImGuiRemapper {
 		using ArgType = T;
 		using RetType = T;
 
@@ -79,13 +80,13 @@ namespace Engine
 	};
 
 	template<>
-	struct TypeRemapper<void> {
+	struct ImGuiRemapper<void> {
 		using ArgType = void;
 		using RetType = void;
 	};
 
 	template<>
-	struct TypeRemapper<const char*> {
+	struct ImGuiRemapper<const char*> {
 		using ArgType = const String&;
 		using RetType = String;
 
@@ -96,7 +97,7 @@ namespace Engine
 	};
 
 	template<>
-	struct TypeRemapper<NullableString> {
+	struct ImGuiRemapper<NullableString> {
 		using ArgType = const String&;
 		using RetType = String;
 
@@ -109,7 +110,7 @@ namespace Engine
 	};
 
 	template<typename T>
-	struct TypeRemapper<T*> {
+	struct ImGuiRemapper<T*> {
 		using ArgType = ScriptPointer;
 		using RetType = ScriptPointer;
 
@@ -120,7 +121,7 @@ namespace Engine
 	};
 
 	template<typename T, std::size_t N>
-	struct TypeRemapper<T[N]> {
+	struct ImGuiRemapper<T[N]> {
 		struct Value {
 			T values[N];
 		};
@@ -134,78 +135,11 @@ namespace Engine
 		}
 	};
 
-	template<int index, typename T>
-	struct Arg {
-		static constexpr int idx = index;
-		using Type               = T;
-	};
-
-	template<typename Default, int index, typename... Arguments>
-	struct ArgAt;
-
-	template<typename Default, int index>
-	struct ArgAt<Default, index> {
-		using Type = Default;
-	};
-
-	template<typename Default, int index, int idx, typename T, typename... Rest>
-	struct ArgAt<Default, index, Arg<idx, T>, Rest...> {
-		using Type = std::conditional_t<index == idx, T, typename ArgAt<Default, index, Rest...>::Type>;
-	};
-
-	template<auto func, typename Decl = decltype(func), typename... Override>
-	struct BinderImpl;
-
-	template<auto func, typename Ret, typename... Args, typename... Override>
-	struct BinderImpl<func, Ret (*)(Args...), Override...> {
-		using MappedRet = typename ArgAt<Ret, -1, Override...>::Type;
-		using OutRet    = typename TypeRemapper<MappedRet>::RetType;
-
-		template<std::size_t... idx>
-		static consteval bool is_same_args(std::index_sequence<idx...>)
-		{
-			return (std::is_same_v<Args, typename TypeRemapper<typename ArgAt<Args, idx, Override...>::Type>::ArgType> && ...);
-		}
-
-		static consteval bool is_same_args()
-		{
-			return is_same_args(std::make_index_sequence<sizeof...(Args)>());
-		}
-
-		template<typename... OverrideArgs>
-		static consteval auto bind_internal()
-		{
-			using Func = OutRet (*)(typename TypeRemapper<OverrideArgs>::ArgType...);
-			return static_cast<Func>([](typename TypeRemapper<OverrideArgs>::ArgType... args) -> OutRet {
-				if constexpr (std::is_same_v<Ret, void>)
-					func(TypeRemapper<OverrideArgs>::convert(args)...);
-				else
-					return TypeRemapper<MappedRet>::convert(func(TypeRemapper<OverrideArgs>::convert(args)...));
-			});
-		}
-
-		template<std::size_t... idx>
-		static consteval auto bind(std::index_sequence<idx...> seq)
-		{
-			return bind_internal<typename ArgAt<Args, idx, Override...>::Type...>();
-		}
-
-		static consteval auto bind()
-		{
-			if constexpr (std::is_same_v<OutRet, Ret> && is_same_args())
-			{
-				return func;
-			}
-			else
-			{
-				return bind(std::make_index_sequence<sizeof...(Args)>());
-			}
-		}
-	};
-
 	template<auto func, typename... Overrides>
-	struct Binder : BinderImpl<func, decltype(func), Overrides...> {
-	};
+	using ImBinder = Binder::ScriptBinder<ImGuiRemapper, func, Overrides...>;
+
+	template<int idx, typename T>
+	using ImArg = Binder::Arg<idx, T>;
 
 	static void register_enums()
 	{
@@ -1536,229 +1470,229 @@ namespace Engine
 		};
 
 		// clang-format off
-		e.register_function("void ShowDemoWindow(Ptr<bool> p_open = nullptr)", Binder<&ImGui::ShowDemoWindow>::bind());
-		e.register_function("void ShowMetricsWindow(Ptr<bool> p_open = nullptr)", Binder<&ImGui::ShowMetricsWindow>::bind());
-		e.register_function("void ShowDebugLogWindow(Ptr<bool> p_open = nullptr)", Binder<&ImGui::ShowDebugLogWindow>::bind());
-		e.register_function("void ShowIDStackToolWindow(Ptr<bool> p_open = nullptr)", Binder<&ImGui::ShowIDStackToolWindow>::bind());
-		e.register_function("void ShowAboutWindow(Ptr<bool> p_open = nullptr)", Binder<func_of<void, bool *>(&ImGui::ShowAboutWindow)>::bind());
-		e.register_function("void ShowStyleEditor(Ptr<ImGuiStyle> ref = nullptr)", Binder<func_of<void, ImGuiStyle *>(&ImGui::ShowStyleEditor)>::bind());
-		e.register_function("bool ShowStyleSelector(const string& label)", Binder<func_of<bool, const char *>(&ImGui::ShowStyleSelector)>::bind());
-		e.register_function("void ShowFontSelector(const string& label)", Binder<func_of<void, const char *>(&ImGui::ShowFontSelector)>::bind());
-		e.register_function("void ShowUserGuide()", Binder<func_of<void>(&ImGui::ShowUserGuide)>::bind());
-		e.register_function("string GetVersion()", Binder<func_of<const char *>(&ImGui::GetVersion)>::bind());
-		e.register_function("void StyleColorsDark(Ptr<ImGuiStyle> dst = nullptr)", Binder<func_of<void, ImGuiStyle *>(&ImGui::StyleColorsDark)>::bind());
-		e.register_function("void StyleColorsLight(Ptr<ImGuiStyle> dst = nullptr)", Binder<func_of<void, ImGuiStyle *>(&ImGui::StyleColorsLight)>::bind());
-		e.register_function("void StyleColorsClassic(Ptr<ImGuiStyle> dst = nullptr)", Binder<func_of<void, ImGuiStyle *>(&ImGui::StyleColorsClassic)>::bind());
-		e.register_function("bool Begin(const string& name, Ptr<bool> p_open = nullptr, int flags = 0)", Binder<func_of<bool, const char *, bool *, ImGuiWindowFlags>(&ImGui::Begin)>::bind());
-		e.register_function("void End()", Binder<func_of<void>(&ImGui::End)>::bind());
-		e.register_function("bool BeginChild(const string& str_id, const ImVec2& size, int child_flags = 0, int window_flags = 0)", Binder<func_of<bool, const char *, const ImVec2 &, ImGuiChildFlags, ImGuiWindowFlags>(&ImGui::BeginChild)>::bind());
-		e.register_function("bool BeginChild(uint id, const ImVec2& size, int child_flags = 0, int window_flags = 0)", Binder<func_of<bool, ImGuiID, const ImVec2 &, ImGuiChildFlags, ImGuiWindowFlags>(&ImGui::BeginChild)>::bind());
-		e.register_function("void EndChild()", Binder<func_of<void>(&ImGui::EndChild)>::bind());
-		e.register_function("bool IsWindowAppearing()", Binder<func_of<bool>(&ImGui::IsWindowAppearing)>::bind());
-		e.register_function("bool IsWindowCollapsed()", Binder<func_of<bool>(&ImGui::IsWindowCollapsed)>::bind());
-		e.register_function("bool IsWindowFocused(int flags = 0)", Binder<func_of<bool, ImGuiFocusedFlags>(&ImGui::IsWindowFocused)>::bind());
-		e.register_function("bool IsWindowHovered(int flags = 0)", Binder<func_of<bool, ImGuiHoveredFlags>(&ImGui::IsWindowHovered)>::bind());
-		// e.register_function("ImDrawList@ GetWindowDrawList()", Binder<func_of<ImDrawList *>(&ImGui::GetWindowDrawList)>::bind());
-		e.register_function("float GetWindowDpiScale()", Binder<func_of<float>(&ImGui::GetWindowDpiScale)>::bind());
-		e.register_function("ImVec2 GetWindowPos()", Binder<func_of<ImVec2>(&ImGui::GetWindowPos)>::bind());
-		e.register_function("ImVec2 GetWindowSize()", Binder<func_of<ImVec2>(&ImGui::GetWindowSize)>::bind());
-		e.register_function("float GetWindowWidth()", Binder<func_of<float>(&ImGui::GetWindowWidth)>::bind());
-		e.register_function("float GetWindowHeight()", Binder<func_of<float>(&ImGui::GetWindowHeight)>::bind());
-		// e.register_function("ImGuiViewport@ GetWindowViewport()", Binder<func_of<ImGuiViewport *>(&ImGui::GetWindowViewport)>::bind());
-		e.register_function("void SetNextWindowPos(const ImVec2& pos, int cond = 0, const ImVec2& pivot = ImVec2())", Binder<func_of<void, const ImVec2 &, ImGuiCond, const ImVec2 &>(&ImGui::SetNextWindowPos)>::bind());
-		e.register_function("void SetNextWindowSize(const ImVec2 & size, int cond = 0)", Binder<func_of<void, const ImVec2 &, ImGuiCond>(&ImGui::SetNextWindowSize)>::bind());
-		// e.register_function("void SetNextWindowSizeConstraints(const ImVec2 & size_min, const ImVec2 & size_max)", Binder<func_of<void, const ImVec2 &, const ImVec2 &, ImGuiSizeCallback, void *>(&ImGui::SetNextWindowSizeConstraints)>::bind());
-		e.register_function("void SetNextWindowContentSize(const ImVec2 & size)", Binder<func_of<void, const ImVec2 &>(&ImGui::SetNextWindowContentSize)>::bind());
-		e.register_function("void SetNextWindowCollapsed(bool collapsed, int cond = 0)", Binder<func_of<void, bool, ImGuiCond>(&ImGui::SetNextWindowCollapsed)>::bind());
-		e.register_function("void SetNextWindowFocus()", Binder<func_of<void>(&ImGui::SetNextWindowFocus)>::bind());
-		e.register_function("void SetNextWindowScroll(const ImVec2 & scroll)", Binder<func_of<void, const ImVec2 &>(&ImGui::SetNextWindowScroll)>::bind());
-		e.register_function("void SetNextWindowBgAlpha(float alpha)", Binder<func_of<void, float>(&ImGui::SetNextWindowBgAlpha)>::bind());
-		e.register_function("void SetNextWindowViewport(uint viewport_id)", Binder<func_of<void, ImGuiID>(&ImGui::SetNextWindowViewport)>::bind());
-		e.register_function("void SetWindowPos(const ImVec2 & pos, int cond = 0)", Binder<func_of<void, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowPos)>::bind());
-		e.register_function("void SetWindowSize(const ImVec2 & size, int cond = 0)", Binder<func_of<void, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowSize)>::bind());
-		e.register_function("void SetWindowCollapsed(bool collapsed, int cond = 0)", Binder<func_of<void, bool, ImGuiCond>(&ImGui::SetWindowCollapsed)>::bind());
-		e.register_function("void SetWindowFocus()", Binder<func_of<void>(&ImGui::SetWindowFocus)>::bind());
-		e.register_function("void SetWindowFontScale(float scale)", Binder<func_of<void, float>(&ImGui::SetWindowFontScale)>::bind());
-		e.register_function("void SetWindowPos(const string& name, const ImVec2 & pos, int cond = 0)", Binder<func_of<void, const char *, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowPos)>::bind());
-		e.register_function("void SetWindowSize(const string& name, const ImVec2 & size, int cond = 0)", Binder<func_of<void, const char *, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowSize)>::bind());
-		e.register_function("void SetWindowCollapsed(const string& name, bool collapsed, int cond = 0)", Binder<func_of<void, const char *, bool, ImGuiCond>(&ImGui::SetWindowCollapsed)>::bind());
-		e.register_function("void SetWindowFocus(const string& name)", Binder<func_of<void, const char *>(&ImGui::SetWindowFocus)>::bind());
-		e.register_function("ImVec2 GetContentRegionAvail()", Binder<func_of<ImVec2>(&ImGui::GetContentRegionAvail)>::bind());
-		e.register_function("ImVec2 GetContentRegionMax()", Binder<func_of<ImVec2>(&ImGui::GetContentRegionMax)>::bind());
-		e.register_function("ImVec2 GetWindowContentRegionMin()", Binder<func_of<ImVec2>(&ImGui::GetWindowContentRegionMin)>::bind());
-		e.register_function("ImVec2 GetWindowContentRegionMax()", Binder<func_of<ImVec2>(&ImGui::GetWindowContentRegionMax)>::bind());
-		e.register_function("float GetScrollX()", Binder<func_of<float>(&ImGui::GetScrollX)>::bind());
-		e.register_function("float GetScrollY()", Binder<func_of<float>(&ImGui::GetScrollY)>::bind());
-		e.register_function("void SetScrollX(float scroll_x)", Binder<func_of<void, float>(&ImGui::SetScrollX)>::bind());
-		e.register_function("void SetScrollY(float scroll_y)", Binder<func_of<void, float>(&ImGui::SetScrollY)>::bind());
-		e.register_function("float GetScrollMaxX()", Binder<func_of<float>(&ImGui::GetScrollMaxX)>::bind());
-		e.register_function("float GetScrollMaxY()", Binder<func_of<float>(&ImGui::GetScrollMaxY)>::bind());
-		e.register_function("void SetScrollHereX(float center_x_ratio = 0.5f)", Binder<func_of<void, float>(&ImGui::SetScrollHereX)>::bind());
-		e.register_function("void SetScrollHereY(float center_y_ratio = 0.5f)", Binder<func_of<void, float>(&ImGui::SetScrollHereY)>::bind());
-		e.register_function("void SetScrollFromPosX(float local_x, float center_x_ratio = 0.5f)", Binder<func_of<void, float, float>(&ImGui::SetScrollFromPosX)>::bind());
-		e.register_function("void SetScrollFromPosY(float local_y, float center_y_ratio = 0.5f)", Binder<func_of<void, float, float>(&ImGui::SetScrollFromPosY)>::bind());
-		//e.register_function("void PushFont(Ptr<ImFont> font)", Binder<func_of<void, ImFont *>(&ImGui::PushFont)>::bind());
-		e.register_function("void PopFont()", Binder<func_of<void>(&ImGui::PopFont)>::bind());
-		e.register_function("void PushStyleColor(int idx, uint col)", Binder<func_of<void, ImGuiCol, ImU32>(&ImGui::PushStyleColor)>::bind());
-		e.register_function("void PushStyleColor(int idx, const ImVec4 & col)", Binder<func_of<void, ImGuiCol, const ImVec4 &>(&ImGui::PushStyleColor)>::bind());
-		e.register_function("void PopStyleColor(int count = 1)", Binder<func_of<void, int>(&ImGui::PopStyleColor)>::bind());
-		e.register_function("void PushStyleVar(int idx, float val)", Binder<func_of<void, ImGuiStyleVar, float>(&ImGui::PushStyleVar)>::bind());
-		e.register_function("void PushStyleVar(int idx, const ImVec2 & val)", Binder<func_of<void, ImGuiStyleVar, const ImVec2 &>(&ImGui::PushStyleVar)>::bind());
-		e.register_function("void PopStyleVar(int count = 1)", Binder<func_of<void, int>(&ImGui::PopStyleVar)>::bind());
-		e.register_function("void PushTabStop(bool tab_stop)", Binder<func_of<void, bool>(&ImGui::PushTabStop)>::bind());
-		e.register_function("void PopTabStop()", Binder<func_of<void>(&ImGui::PopTabStop)>::bind());
-		e.register_function("void PushButtonRepeat(bool repeat)", Binder<func_of<void, bool>(&ImGui::PushButtonRepeat)>::bind());
-		e.register_function("void PopButtonRepeat()", Binder<func_of<void>(&ImGui::PopButtonRepeat)>::bind());
-		e.register_function("void PushItemWidth(float item_width)", Binder<func_of<void, float>(&ImGui::PushItemWidth)>::bind());
-		e.register_function("void PopItemWidth()", Binder<func_of<void>(&ImGui::PopItemWidth)>::bind());
-		e.register_function("void SetNextItemWidth(float item_width)", Binder<func_of<void, float>(&ImGui::SetNextItemWidth)>::bind());
-		e.register_function("float CalcItemWidth()", Binder<func_of<float>(&ImGui::CalcItemWidth)>::bind());
-		e.register_function("void PushTextWrapPos(float wrap_local_pos_x = 0.0f)", Binder<func_of<void, float>(&ImGui::PushTextWrapPos)>::bind());
-		e.register_function("void PopTextWrapPos()", Binder<func_of<void>(&ImGui::PopTextWrapPos)>::bind());
-		// e.register_function("Ptr<ImFont> GetFont()", Binder<func_of<ImFont *>(&ImGui::GetFont)>::bind());
-		e.register_function("float GetFontSize()", Binder<func_of<float>(&ImGui::GetFontSize)>::bind());
-		e.register_function("ImVec2 GetFontTexUvWhitePixel()", Binder<func_of<ImVec2>(&ImGui::GetFontTexUvWhitePixel)>::bind());
-		e.register_function("uint GetColorU32(int idx, float alpha_mul = 1.0f)", Binder<func_of<ImU32, ImGuiCol, float>(&ImGui::GetColorU32)>::bind());
-		e.register_function("uint GetColorU32(const ImVec4 & col)", Binder<func_of<ImU32, const ImVec4 &>(&ImGui::GetColorU32)>::bind());
-		e.register_function("uint GetColorU32(uint col)", Binder<func_of<ImU32, ImU32>(&ImGui::GetColorU32)>::bind());
-		e.register_function("const ImVec4 & GetStyleColorVec4(int idx)", Binder<func_of<const ImVec4 &, ImGuiCol>(&ImGui::GetStyleColorVec4)>::bind());
-		e.register_function("ImVec2 GetCursorScreenPos()", Binder<func_of<ImVec2>(&ImGui::GetCursorScreenPos)>::bind());
-		e.register_function("void SetCursorScreenPos(const ImVec2 & pos)", Binder<func_of<void, const ImVec2 &>(&ImGui::SetCursorScreenPos)>::bind());
-		e.register_function("ImVec2 GetCursorPos()", Binder<func_of<ImVec2>(&ImGui::GetCursorPos)>::bind());
-		e.register_function("float GetCursorPosX()", Binder<func_of<float>(&ImGui::GetCursorPosX)>::bind());
-		e.register_function("float GetCursorPosY()", Binder<func_of<float>(&ImGui::GetCursorPosY)>::bind());
-		e.register_function("void SetCursorPos(const ImVec2 & local_pos)", Binder<func_of<void, const ImVec2 &>(&ImGui::SetCursorPos)>::bind());
-		e.register_function("void SetCursorPosX(float local_x)", Binder<func_of<void, float>(&ImGui::SetCursorPosX)>::bind());
-		e.register_function("void SetCursorPosY(float local_y)", Binder<func_of<void, float>(&ImGui::SetCursorPosY)>::bind());
-		e.register_function("ImVec2 GetCursorStartPos()", Binder<func_of<ImVec2>(&ImGui::GetCursorStartPos)>::bind());
-		e.register_function("void Separator()", Binder<func_of<void>(&ImGui::Separator)>::bind());
-		e.register_function("void SameLine(float offset_from_start_x = 0.0f, float spacing = -1.0f)", Binder<func_of<void, float, float>(&ImGui::SameLine)>::bind());
-		e.register_function("void NewLine()", Binder<func_of<void>(&ImGui::NewLine)>::bind());
-		e.register_function("void Spacing()", Binder<func_of<void>(&ImGui::Spacing)>::bind());
-		e.register_function("void Dummy(const ImVec2 & size)", Binder<func_of<void, const ImVec2 &>(&ImGui::Dummy)>::bind());
-		e.register_function("void Indent(float indent_w = 0.0f)", Binder<func_of<void, float>(&ImGui::Indent)>::bind());
-		e.register_function("void Unindent(float indent_w = 0.0f)", Binder<func_of<void, float>(&ImGui::Unindent)>::bind());
-		e.register_function("void BeginGroup()", Binder<func_of<void>(&ImGui::BeginGroup)>::bind());
-		e.register_function("void EndGroup()", Binder<func_of<void>(&ImGui::EndGroup)>::bind());
-		e.register_function("void AlignTextToFramePadding()", Binder<func_of<void>(&ImGui::AlignTextToFramePadding)>::bind());
-		e.register_function("float GetTextLineHeight()", Binder<func_of<float>(&ImGui::GetTextLineHeight)>::bind());
-		e.register_function("float GetTextLineHeightWithSpacing()", Binder<func_of<float>(&ImGui::GetTextLineHeightWithSpacing)>::bind());
-		e.register_function("float GetFrameHeight()", Binder<func_of<float>(&ImGui::GetFrameHeight)>::bind());
-		e.register_function("float GetFrameHeightWithSpacing()", Binder<func_of<float>(&ImGui::GetFrameHeightWithSpacing)>::bind());
-		e.register_function("void PushID(const string& str_id)", Binder<func_of<void, const char *>(&ImGui::PushID)>::bind());
-		e.register_function("void PushID(int int_id)", Binder<func_of<void, int>(&ImGui::PushID)>::bind());
-		e.register_function("void PushID(Ptr<void> ptr_id)", Binder<func_of<void, const void *>(&ImGui::PushID)>::bind());
-		e.register_function("void PopID()", Binder<func_of<void>(&ImGui::PopID)>::bind());;
-		e.register_function("uint GetID(const string& str_id)", Binder<func_of<ImGuiID, const char *>(&ImGui::GetID)>::bind());
-		e.register_function("uint GetID(Ptr<void> ptr_id)", Binder<func_of<ImGuiID, const void *>(&ImGui::GetID)>::bind());
+		e.register_function("void ShowDemoWindow(Ptr<bool> p_open = nullptr)", ImBinder<&ImGui::ShowDemoWindow>::bind());
+		e.register_function("void ShowMetricsWindow(Ptr<bool> p_open = nullptr)", ImBinder<&ImGui::ShowMetricsWindow>::bind());
+		e.register_function("void ShowDebugLogWindow(Ptr<bool> p_open = nullptr)", ImBinder<&ImGui::ShowDebugLogWindow>::bind());
+		e.register_function("void ShowIDStackToolWindow(Ptr<bool> p_open = nullptr)", ImBinder<&ImGui::ShowIDStackToolWindow>::bind());
+		e.register_function("void ShowAboutWindow(Ptr<bool> p_open = nullptr)", ImBinder<func_of<void, bool *>(&ImGui::ShowAboutWindow)>::bind());
+		e.register_function("void ShowStyleEditor(Ptr<ImGuiStyle> ref = nullptr)", ImBinder<func_of<void, ImGuiStyle *>(&ImGui::ShowStyleEditor)>::bind());
+		e.register_function("bool ShowStyleSelector(const string& label)", ImBinder<func_of<bool, const char *>(&ImGui::ShowStyleSelector)>::bind());
+		e.register_function("void ShowFontSelector(const string& label)", ImBinder<func_of<void, const char *>(&ImGui::ShowFontSelector)>::bind());
+		e.register_function("void ShowUserGuide()", ImBinder<func_of<void>(&ImGui::ShowUserGuide)>::bind());
+		e.register_function("string GetVersion()", ImBinder<func_of<const char *>(&ImGui::GetVersion)>::bind());
+		e.register_function("void StyleColorsDark(Ptr<ImGuiStyle> dst = nullptr)", ImBinder<func_of<void, ImGuiStyle *>(&ImGui::StyleColorsDark)>::bind());
+		e.register_function("void StyleColorsLight(Ptr<ImGuiStyle> dst = nullptr)", ImBinder<func_of<void, ImGuiStyle *>(&ImGui::StyleColorsLight)>::bind());
+		e.register_function("void StyleColorsClassic(Ptr<ImGuiStyle> dst = nullptr)", ImBinder<func_of<void, ImGuiStyle *>(&ImGui::StyleColorsClassic)>::bind());
+		e.register_function("bool Begin(const string& name, Ptr<bool> p_open = nullptr, int flags = 0)", ImBinder<func_of<bool, const char *, bool *, ImGuiWindowFlags>(&ImGui::Begin)>::bind());
+		e.register_function("void End()", ImBinder<func_of<void>(&ImGui::End)>::bind());
+		e.register_function("bool BeginChild(const string& str_id, const ImVec2& size, int child_flags = 0, int window_flags = 0)", ImBinder<func_of<bool, const char *, const ImVec2 &, ImGuiChildFlags, ImGuiWindowFlags>(&ImGui::BeginChild)>::bind());
+		e.register_function("bool BeginChild(uint id, const ImVec2& size, int child_flags = 0, int window_flags = 0)", ImBinder<func_of<bool, ImGuiID, const ImVec2 &, ImGuiChildFlags, ImGuiWindowFlags>(&ImGui::BeginChild)>::bind());
+		e.register_function("void EndChild()", ImBinder<func_of<void>(&ImGui::EndChild)>::bind());
+		e.register_function("bool IsWindowAppearing()", ImBinder<func_of<bool>(&ImGui::IsWindowAppearing)>::bind());
+		e.register_function("bool IsWindowCollapsed()", ImBinder<func_of<bool>(&ImGui::IsWindowCollapsed)>::bind());
+		e.register_function("bool IsWindowFocused(int flags = 0)", ImBinder<func_of<bool, ImGuiFocusedFlags>(&ImGui::IsWindowFocused)>::bind());
+		e.register_function("bool IsWindowHovered(int flags = 0)", ImBinder<func_of<bool, ImGuiHoveredFlags>(&ImGui::IsWindowHovered)>::bind());
+		// e.register_function("ImDrawList@ GetWindowDrawList()", ImBinder<func_of<ImDrawList *>(&ImGui::GetWindowDrawList)>::bind());
+		e.register_function("float GetWindowDpiScale()", ImBinder<func_of<float>(&ImGui::GetWindowDpiScale)>::bind());
+		e.register_function("ImVec2 GetWindowPos()", ImBinder<func_of<ImVec2>(&ImGui::GetWindowPos)>::bind());
+		e.register_function("ImVec2 GetWindowSize()", ImBinder<func_of<ImVec2>(&ImGui::GetWindowSize)>::bind());
+		e.register_function("float GetWindowWidth()", ImBinder<func_of<float>(&ImGui::GetWindowWidth)>::bind());
+		e.register_function("float GetWindowHeight()", ImBinder<func_of<float>(&ImGui::GetWindowHeight)>::bind());
+		// e.register_function("ImGuiViewport@ GetWindowViewport()", ImBinder<func_of<ImGuiViewport *>(&ImGui::GetWindowViewport)>::bind());
+		e.register_function("void SetNextWindowPos(const ImVec2& pos, int cond = 0, const ImVec2& pivot = ImVec2())", ImBinder<func_of<void, const ImVec2 &, ImGuiCond, const ImVec2 &>(&ImGui::SetNextWindowPos)>::bind());
+		e.register_function("void SetNextWindowSize(const ImVec2 & size, int cond = 0)", ImBinder<func_of<void, const ImVec2 &, ImGuiCond>(&ImGui::SetNextWindowSize)>::bind());
+		// e.register_function("void SetNextWindowSizeConstraints(const ImVec2 & size_min, const ImVec2 & size_max)", ImBinder<func_of<void, const ImVec2 &, const ImVec2 &, ImGuiSizeCallback, void *>(&ImGui::SetNextWindowSizeConstraints)>::bind());
+		e.register_function("void SetNextWindowContentSize(const ImVec2 & size)", ImBinder<func_of<void, const ImVec2 &>(&ImGui::SetNextWindowContentSize)>::bind());
+		e.register_function("void SetNextWindowCollapsed(bool collapsed, int cond = 0)", ImBinder<func_of<void, bool, ImGuiCond>(&ImGui::SetNextWindowCollapsed)>::bind());
+		e.register_function("void SetNextWindowFocus()", ImBinder<func_of<void>(&ImGui::SetNextWindowFocus)>::bind());
+		e.register_function("void SetNextWindowScroll(const ImVec2 & scroll)", ImBinder<func_of<void, const ImVec2 &>(&ImGui::SetNextWindowScroll)>::bind());
+		e.register_function("void SetNextWindowBgAlpha(float alpha)", ImBinder<func_of<void, float>(&ImGui::SetNextWindowBgAlpha)>::bind());
+		e.register_function("void SetNextWindowViewport(uint viewport_id)", ImBinder<func_of<void, ImGuiID>(&ImGui::SetNextWindowViewport)>::bind());
+		e.register_function("void SetWindowPos(const ImVec2 & pos, int cond = 0)", ImBinder<func_of<void, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowPos)>::bind());
+		e.register_function("void SetWindowSize(const ImVec2 & size, int cond = 0)", ImBinder<func_of<void, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowSize)>::bind());
+		e.register_function("void SetWindowCollapsed(bool collapsed, int cond = 0)", ImBinder<func_of<void, bool, ImGuiCond>(&ImGui::SetWindowCollapsed)>::bind());
+		e.register_function("void SetWindowFocus()", ImBinder<func_of<void>(&ImGui::SetWindowFocus)>::bind());
+		e.register_function("void SetWindowFontScale(float scale)", ImBinder<func_of<void, float>(&ImGui::SetWindowFontScale)>::bind());
+		e.register_function("void SetWindowPos(const string& name, const ImVec2 & pos, int cond = 0)", ImBinder<func_of<void, const char *, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowPos)>::bind());
+		e.register_function("void SetWindowSize(const string& name, const ImVec2 & size, int cond = 0)", ImBinder<func_of<void, const char *, const ImVec2 &, ImGuiCond>(&ImGui::SetWindowSize)>::bind());
+		e.register_function("void SetWindowCollapsed(const string& name, bool collapsed, int cond = 0)", ImBinder<func_of<void, const char *, bool, ImGuiCond>(&ImGui::SetWindowCollapsed)>::bind());
+		e.register_function("void SetWindowFocus(const string& name)", ImBinder<func_of<void, const char *>(&ImGui::SetWindowFocus)>::bind());
+		e.register_function("ImVec2 GetContentRegionAvail()", ImBinder<func_of<ImVec2>(&ImGui::GetContentRegionAvail)>::bind());
+		e.register_function("ImVec2 GetContentRegionMax()", ImBinder<func_of<ImVec2>(&ImGui::GetContentRegionMax)>::bind());
+		e.register_function("ImVec2 GetWindowContentRegionMin()", ImBinder<func_of<ImVec2>(&ImGui::GetWindowContentRegionMin)>::bind());
+		e.register_function("ImVec2 GetWindowContentRegionMax()", ImBinder<func_of<ImVec2>(&ImGui::GetWindowContentRegionMax)>::bind());
+		e.register_function("float GetScrollX()", ImBinder<func_of<float>(&ImGui::GetScrollX)>::bind());
+		e.register_function("float GetScrollY()", ImBinder<func_of<float>(&ImGui::GetScrollY)>::bind());
+		e.register_function("void SetScrollX(float scroll_x)", ImBinder<func_of<void, float>(&ImGui::SetScrollX)>::bind());
+		e.register_function("void SetScrollY(float scroll_y)", ImBinder<func_of<void, float>(&ImGui::SetScrollY)>::bind());
+		e.register_function("float GetScrollMaxX()", ImBinder<func_of<float>(&ImGui::GetScrollMaxX)>::bind());
+		e.register_function("float GetScrollMaxY()", ImBinder<func_of<float>(&ImGui::GetScrollMaxY)>::bind());
+		e.register_function("void SetScrollHereX(float center_x_ratio = 0.5f)", ImBinder<func_of<void, float>(&ImGui::SetScrollHereX)>::bind());
+		e.register_function("void SetScrollHereY(float center_y_ratio = 0.5f)", ImBinder<func_of<void, float>(&ImGui::SetScrollHereY)>::bind());
+		e.register_function("void SetScrollFromPosX(float local_x, float center_x_ratio = 0.5f)", ImBinder<func_of<void, float, float>(&ImGui::SetScrollFromPosX)>::bind());
+		e.register_function("void SetScrollFromPosY(float local_y, float center_y_ratio = 0.5f)", ImBinder<func_of<void, float, float>(&ImGui::SetScrollFromPosY)>::bind());
+		//e.register_function("void PushFont(Ptr<ImFont> font)", ImBinder<func_of<void, ImFont *>(&ImGui::PushFont)>::bind());
+		e.register_function("void PopFont()", ImBinder<func_of<void>(&ImGui::PopFont)>::bind());
+		e.register_function("void PushStyleColor(int idx, uint col)", ImBinder<func_of<void, ImGuiCol, ImU32>(&ImGui::PushStyleColor)>::bind());
+		e.register_function("void PushStyleColor(int idx, const ImVec4 & col)", ImBinder<func_of<void, ImGuiCol, const ImVec4 &>(&ImGui::PushStyleColor)>::bind());
+		e.register_function("void PopStyleColor(int count = 1)", ImBinder<func_of<void, int>(&ImGui::PopStyleColor)>::bind());
+		e.register_function("void PushStyleVar(int idx, float val)", ImBinder<func_of<void, ImGuiStyleVar, float>(&ImGui::PushStyleVar)>::bind());
+		e.register_function("void PushStyleVar(int idx, const ImVec2 & val)", ImBinder<func_of<void, ImGuiStyleVar, const ImVec2 &>(&ImGui::PushStyleVar)>::bind());
+		e.register_function("void PopStyleVar(int count = 1)", ImBinder<func_of<void, int>(&ImGui::PopStyleVar)>::bind());
+		e.register_function("void PushTabStop(bool tab_stop)", ImBinder<func_of<void, bool>(&ImGui::PushTabStop)>::bind());
+		e.register_function("void PopTabStop()", ImBinder<func_of<void>(&ImGui::PopTabStop)>::bind());
+		e.register_function("void PushButtonRepeat(bool repeat)", ImBinder<func_of<void, bool>(&ImGui::PushButtonRepeat)>::bind());
+		e.register_function("void PopButtonRepeat()", ImBinder<func_of<void>(&ImGui::PopButtonRepeat)>::bind());
+		e.register_function("void PushItemWidth(float item_width)", ImBinder<func_of<void, float>(&ImGui::PushItemWidth)>::bind());
+		e.register_function("void PopItemWidth()", ImBinder<func_of<void>(&ImGui::PopItemWidth)>::bind());
+		e.register_function("void SetNextItemWidth(float item_width)", ImBinder<func_of<void, float>(&ImGui::SetNextItemWidth)>::bind());
+		e.register_function("float CalcItemWidth()", ImBinder<func_of<float>(&ImGui::CalcItemWidth)>::bind());
+		e.register_function("void PushTextWrapPos(float wrap_local_pos_x = 0.0f)", ImBinder<func_of<void, float>(&ImGui::PushTextWrapPos)>::bind());
+		e.register_function("void PopTextWrapPos()", ImBinder<func_of<void>(&ImGui::PopTextWrapPos)>::bind());
+		// e.register_function("Ptr<ImFont> GetFont()", ImBinder<func_of<ImFont *>(&ImGui::GetFont)>::bind());
+		e.register_function("float GetFontSize()", ImBinder<func_of<float>(&ImGui::GetFontSize)>::bind());
+		e.register_function("ImVec2 GetFontTexUvWhitePixel()", ImBinder<func_of<ImVec2>(&ImGui::GetFontTexUvWhitePixel)>::bind());
+		e.register_function("uint GetColorU32(int idx, float alpha_mul = 1.0f)", ImBinder<func_of<ImU32, ImGuiCol, float>(&ImGui::GetColorU32)>::bind());
+		e.register_function("uint GetColorU32(const ImVec4 & col)", ImBinder<func_of<ImU32, const ImVec4 &>(&ImGui::GetColorU32)>::bind());
+		e.register_function("uint GetColorU32(uint col)", ImBinder<func_of<ImU32, ImU32>(&ImGui::GetColorU32)>::bind());
+		e.register_function("const ImVec4 & GetStyleColorVec4(int idx)", ImBinder<func_of<const ImVec4 &, ImGuiCol>(&ImGui::GetStyleColorVec4)>::bind());
+		e.register_function("ImVec2 GetCursorScreenPos()", ImBinder<func_of<ImVec2>(&ImGui::GetCursorScreenPos)>::bind());
+		e.register_function("void SetCursorScreenPos(const ImVec2 & pos)", ImBinder<func_of<void, const ImVec2 &>(&ImGui::SetCursorScreenPos)>::bind());
+		e.register_function("ImVec2 GetCursorPos()", ImBinder<func_of<ImVec2>(&ImGui::GetCursorPos)>::bind());
+		e.register_function("float GetCursorPosX()", ImBinder<func_of<float>(&ImGui::GetCursorPosX)>::bind());
+		e.register_function("float GetCursorPosY()", ImBinder<func_of<float>(&ImGui::GetCursorPosY)>::bind());
+		e.register_function("void SetCursorPos(const ImVec2 & local_pos)", ImBinder<func_of<void, const ImVec2 &>(&ImGui::SetCursorPos)>::bind());
+		e.register_function("void SetCursorPosX(float local_x)", ImBinder<func_of<void, float>(&ImGui::SetCursorPosX)>::bind());
+		e.register_function("void SetCursorPosY(float local_y)", ImBinder<func_of<void, float>(&ImGui::SetCursorPosY)>::bind());
+		e.register_function("ImVec2 GetCursorStartPos()", ImBinder<func_of<ImVec2>(&ImGui::GetCursorStartPos)>::bind());
+		e.register_function("void Separator()", ImBinder<func_of<void>(&ImGui::Separator)>::bind());
+		e.register_function("void SameLine(float offset_from_start_x = 0.0f, float spacing = -1.0f)", ImBinder<func_of<void, float, float>(&ImGui::SameLine)>::bind());
+		e.register_function("void NewLine()", ImBinder<func_of<void>(&ImGui::NewLine)>::bind());
+		e.register_function("void Spacing()", ImBinder<func_of<void>(&ImGui::Spacing)>::bind());
+		e.register_function("void Dummy(const ImVec2 & size)", ImBinder<func_of<void, const ImVec2 &>(&ImGui::Dummy)>::bind());
+		e.register_function("void Indent(float indent_w = 0.0f)", ImBinder<func_of<void, float>(&ImGui::Indent)>::bind());
+		e.register_function("void Unindent(float indent_w = 0.0f)", ImBinder<func_of<void, float>(&ImGui::Unindent)>::bind());
+		e.register_function("void BeginGroup()", ImBinder<func_of<void>(&ImGui::BeginGroup)>::bind());
+		e.register_function("void EndGroup()", ImBinder<func_of<void>(&ImGui::EndGroup)>::bind());
+		e.register_function("void AlignTextToFramePadding()", ImBinder<func_of<void>(&ImGui::AlignTextToFramePadding)>::bind());
+		e.register_function("float GetTextLineHeight()", ImBinder<func_of<float>(&ImGui::GetTextLineHeight)>::bind());
+		e.register_function("float GetTextLineHeightWithSpacing()", ImBinder<func_of<float>(&ImGui::GetTextLineHeightWithSpacing)>::bind());
+		e.register_function("float GetFrameHeight()", ImBinder<func_of<float>(&ImGui::GetFrameHeight)>::bind());
+		e.register_function("float GetFrameHeightWithSpacing()", ImBinder<func_of<float>(&ImGui::GetFrameHeightWithSpacing)>::bind());
+		e.register_function("void PushID(const string& str_id)", ImBinder<func_of<void, const char *>(&ImGui::PushID)>::bind());
+		e.register_function("void PushID(int int_id)", ImBinder<func_of<void, int>(&ImGui::PushID)>::bind());
+		e.register_function("void PushID(Ptr<void> ptr_id)", ImBinder<func_of<void, const void *>(&ImGui::PushID)>::bind());
+		e.register_function("void PopID()", ImBinder<func_of<void>(&ImGui::PopID)>::bind());;
+		e.register_function("uint GetID(const string& str_id)", ImBinder<func_of<ImGuiID, const char *>(&ImGui::GetID)>::bind());
+		e.register_function("uint GetID(Ptr<void> ptr_id)", ImBinder<func_of<ImGuiID, const void *>(&ImGui::GetID)>::bind());
 		e.register_function("void Text(const string& text)", Custom::Text);
 		e.register_function("void TextColored(const ImVec4 & col, const string& text)", Custom::TextColored);
 		e.register_function("void TextDisabled(const string& text)", Custom::TextDisabled);
 		e.register_function("void TextWrapped(const string& text)", Custom::TextWrapped);
 		e.register_function("void LabelText(const string& label, const string& text)", Custom::LabelText);
 		e.register_function("void BulletText(const string& text)", Custom::BulletText);
-		e.register_function("void SeparatorText(const string& label)", Binder<func_of<void, const char *>(&ImGui::SeparatorText)>::bind());
-		e.register_function("bool Button(const string& label, const ImVec2& size = ImVec2())", Binder<func_of<bool, const char *, const ImVec2 &>(&ImGui::Button)>::bind());
-		e.register_function("bool SmallButton(const string& label)", Binder<func_of<bool, const char *>(&ImGui::SmallButton)>::bind());
-		e.register_function("bool InvisibleButton(const string& str_id, const ImVec2 & size, int flags = 0)", Binder<func_of<bool, const char *, const ImVec2 &, ImGuiButtonFlags>(&ImGui::InvisibleButton)>::bind());
-		e.register_function("bool ArrowButton(const string& str_id, int dir)", Binder<func_of<bool, const char *, ImGuiDir>(&ImGui::ArrowButton)>::bind());
+		e.register_function("void SeparatorText(const string& label)", ImBinder<func_of<void, const char *>(&ImGui::SeparatorText)>::bind());
+		e.register_function("bool Button(const string& label, const ImVec2& size = ImVec2())", ImBinder<func_of<bool, const char *, const ImVec2 &>(&ImGui::Button)>::bind());
+		e.register_function("bool SmallButton(const string& label)", ImBinder<func_of<bool, const char *>(&ImGui::SmallButton)>::bind());
+		e.register_function("bool InvisibleButton(const string& str_id, const ImVec2 & size, int flags = 0)", ImBinder<func_of<bool, const char *, const ImVec2 &, ImGuiButtonFlags>(&ImGui::InvisibleButton)>::bind());
+		e.register_function("bool ArrowButton(const string& str_id, int dir)", ImBinder<func_of<bool, const char *, ImGuiDir>(&ImGui::ArrowButton)>::bind());
 		e.register_function("bool Checkbox(const string& label, bool& v)", Custom::Checkbox);
 		e.register_function("bool CheckboxFlags(const string& label, uint64& flags, uint64 flags_value)", Custom::CheckboxFlags);
-		e.register_function("bool RadioButton(const string& label, bool active)", Binder<func_of<bool, const char *, bool>(&ImGui::RadioButton)>::bind());
+		e.register_function("bool RadioButton(const string& label, bool active)", ImBinder<func_of<bool, const char *, bool>(&ImGui::RadioButton)>::bind());
 		e.register_function("bool RadioButton(const string& label, int& v, int v_button)", Custom::RadioButton);
-		e.register_function("void ProgressBar(float fraction, const ImVec2 & size_arg, const string& overlay = nullptr)", Binder<func_of<void, float, const ImVec2 &, const char *>(&ImGui::ProgressBar)>::bind());
-		e.register_function("void Bullet()", Binder<func_of<void>(&ImGui::Bullet)>::bind());
-		// e.register_function("void Image(ImTextureID user_texture_id, const ImVec2 & size, const ImVec2 & uv0, const ImVec2 & uv1, const ImVec4 & tint_col, const ImVec4 & border_col)", Binder<func_of<void, ImTextureID, const ImVec2 &, const ImVec2 &, const ImVec2 &, const ImVec4 &, const ImVec4 &>(&ImGui::Image)>::bind());
-		// e.register_function("bool ImageButton(const string& str_id, ImTextureID user_texture_id, const ImVec2 & image_size, const ImVec2 & uv0, const ImVec2 & uv1, const ImVec4 & bg_col, const ImVec4 & tint_col)", Binder<func_of<bool, const char *, ImTextureID, const ImVec2 &, const ImVec2 &, const ImVec2 &, const ImVec4 &, const ImVec4 &>(&ImGui::ImageButton)>::bind());
-		e.register_function("bool BeginCombo(const string& label, const string& preview_value, int flags = 0)", Binder<func_of<bool, const char *, const char *, ImGuiComboFlags>(&ImGui::BeginCombo)>::bind());
-		e.register_function("void EndCombo()", Binder<func_of<void>(&ImGui::EndCombo)>::bind());
+		e.register_function("void ProgressBar(float fraction, const ImVec2 & size_arg, const string& overlay = nullptr)", ImBinder<func_of<void, float, const ImVec2 &, const char *>(&ImGui::ProgressBar)>::bind());
+		e.register_function("void Bullet()", ImBinder<func_of<void>(&ImGui::Bullet)>::bind());
+		// e.register_function("void Image(ImTextureID user_texture_id, const ImVec2 & size, const ImVec2 & uv0, const ImVec2 & uv1, const ImVec4 & tint_col, const ImVec4 & border_col)", ImBinder<func_of<void, ImTextureID, const ImVec2 &, const ImVec2 &, const ImVec2 &, const ImVec4 &, const ImVec4 &>(&ImGui::Image)>::bind());
+		// e.register_function("bool ImageButton(const string& str_id, ImTextureID user_texture_id, const ImVec2 & image_size, const ImVec2 & uv0, const ImVec2 & uv1, const ImVec4 & bg_col, const ImVec4 & tint_col)", ImBinder<func_of<bool, const char *, ImTextureID, const ImVec2 &, const ImVec2 &, const ImVec2 &, const ImVec4 &, const ImVec4 &>(&ImGui::ImageButton)>::bind());
+		e.register_function("bool BeginCombo(const string& label, const string& preview_value, int flags = 0)", ImBinder<func_of<bool, const char *, const char *, ImGuiComboFlags>(&ImGui::BeginCombo)>::bind());
+		e.register_function("void EndCombo()", ImBinder<func_of<void>(&ImGui::EndCombo)>::bind());
 		e.register_function("bool Combo(const string &in label, int &inout current_item, const array<string> &in items, int popup_max_height_in_items = -1)", Custom::Combo);
 		e.register_function("bool Combo(const string& label, int& current_item, const string& items_separated_by_zeros, int popup_max_height_in_items = -1)", Custom::Combo2);
-		e.register_function("bool DragFloat(const string& label, float& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", Binder<ImGui::DragFloat, Arg<1, float[1]>>::bind());
-		e.register_function("bool DragFloat2(const string& label, ImVec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", Binder<ImGui::DragFloat2, Arg<1, float[2]>>::bind());
-		e.register_function("bool DragFloat3(const string& label, ImVec3& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", Binder<ImGui::DragFloat3, Arg<1, float[3]>>::bind());
-		e.register_function("bool DragFloat4(const string& label, ImVec4& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", Binder<ImGui::DragFloat4, Arg<1, float[4]>>::bind());
-		e.register_function("bool DragFloatRange2(const string& label, float& v_current_min, float& v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", const string& format_max = \"\", int flags = 0)", Binder<&ImGui::DragFloatRange2, Arg<1, float[1]>, Arg<2, float[1]>>::bind());
-		e.register_function("bool DragInt(const string& label, int& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::DragInt, Arg<1, int[1]>>::bind());
-		e.register_function("bool DragInt2(const string& label, ImIVec2& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::DragInt2, Arg<1, int[2]>>::bind());
-		e.register_function("bool DragInt3(const string& label, ImIVec3& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::DragInt3, Arg<1, int[3]>>::bind());
-		e.register_function("bool DragInt4(const string& label, ImIVec4& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::DragInt4, Arg<1, int[4]>>::bind());
-		e.register_function("bool DragIntRange2(const string& label, int& v_current_min, int& v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", const string& format_max = \"\", int flags = 0)", Binder<&ImGui::DragIntRange2, Arg<1, int[1]>, Arg<2, int[1]>>::bind());
-		e.register_function("bool DragScalar(const string& label, int data_type, Ptr<void> p_data, float v_speed = 1.0f, Ptr<void> p_min = nullptr, Ptr<void> p_max = nullptr, const string& format = \"\", int flags = 0)", Binder<&ImGui::DragScalar, Arg<6, NullableString>>::bind());
-		e.register_function("bool DragScalarN(const string& label, int data_type, Ptr<void> p_data, int components, float v_speed = 1.0f, Ptr<void> p_min = nullptr, Ptr<void> p_max = nullptr, const string& format = \"\", int flags = 0)", Binder<&ImGui::DragScalarN, Arg<7, NullableString>>::bind());
-		e.register_function("bool SliderFloat(const string& label, float& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::SliderFloat, Arg<1, float[1]>>::bind());
-		e.register_function("bool SliderFloat2(const string& label, ImVec2& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::SliderFloat2, Arg<1, float[2]>>::bind());
-		e.register_function("bool SliderFloat3(const string& label, ImVec3& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::SliderFloat3, Arg<1, float[3]>>::bind());
-		e.register_function("bool SliderFloat4(const string& label, ImVec4& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::SliderFloat4, Arg<1, float[4]>>::bind());
-		e.register_function("bool SliderAngle(const string& label, float& v_rad, float v_degrees_min, float v_degrees_max, const string& format = \"%.0f deg\", int flags = 0)", Binder<&ImGui::SliderAngle>::bind());
-		e.register_function("bool SliderInt(const string& label, int& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::SliderInt, Arg<1, int[1]>>::bind());
-		e.register_function("bool SliderInt2(const string& label, ImIVec2& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::SliderInt2, Arg<1, int[2]>>::bind());
-		e.register_function("bool SliderInt3(const string& label, ImIVec3& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::SliderInt3, Arg<1, int[3]>>::bind());
-		e.register_function("bool SliderInt4(const string& label, ImIVec4& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::SliderInt4, Arg<1, int[4]>>::bind());
-		e.register_function("bool SliderScalar(const string& label, int data_type, Ptr<void> p_data, Ptr<void> p_min, Ptr<void> p_max, const string& format = \"\", int flags = 0)", Binder<&ImGui::SliderScalar, Arg<5 ,NullableString>>::bind());
-		e.register_function("bool SliderScalarN(const string& label, int data_type, Ptr<void> p_data, int components, Ptr<void> p_min, Ptr<void> p_max, const string& format = \"\", int flags = 0)", Binder<&ImGui::SliderScalarN, Arg<6 ,NullableString>>::bind());
-		e.register_function("bool VSliderFloat(const string& label, const ImVec2& size, float& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::VSliderFloat, Arg<2, float[1]>, Arg<5 ,NullableString>>::bind());
-		e.register_function("bool VSliderInt(const string& label, const ImVec2& size, int& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", Binder<&ImGui::VSliderInt, Arg<2, int[1]>, Arg<5 ,NullableString>>::bind());
-		e.register_function("bool VSliderScalar(const string& label, const ImVec2& size, int data_type, Ptr<void> p_data, Ptr<void> p_min, Ptr<void> p_max, const string& format = \"\", int flags = 0)", Binder<&ImGui::VSliderScalar, Arg<6, NullableString>>::bind());
+		e.register_function("bool DragFloat(const string& label, float& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat, ImArg<1, float[1]>>::bind());
+		e.register_function("bool DragFloat2(const string& label, ImVec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat2, ImArg<1, float[2]>>::bind());
+		e.register_function("bool DragFloat3(const string& label, ImVec3& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat3, ImArg<1, float[3]>>::bind());
+		e.register_function("bool DragFloat4(const string& label, ImVec4& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat4, ImArg<1, float[4]>>::bind());
+		e.register_function("bool DragFloatRange2(const string& label, float& v_current_min, float& v_current_max, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", const string& format_max = \"\", int flags = 0)", ImBinder<&ImGui::DragFloatRange2, ImArg<1, float[1]>, ImArg<2, float[1]>>::bind());
+		e.register_function("bool DragInt(const string& label, int& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::DragInt, ImArg<1, int[1]>>::bind());
+		e.register_function("bool DragInt2(const string& label, ImIVec2& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::DragInt2, ImArg<1, int[2]>>::bind());
+		e.register_function("bool DragInt3(const string& label, ImIVec3& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::DragInt3, ImArg<1, int[3]>>::bind());
+		e.register_function("bool DragInt4(const string& label, ImIVec4& v, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::DragInt4, ImArg<1, int[4]>>::bind());
+		e.register_function("bool DragIntRange2(const string& label, int& v_current_min, int& v_current_max, float v_speed = 1.0f, int v_min = 0, int v_max = 0, const string& format = \"%d\", const string& format_max = \"\", int flags = 0)", ImBinder<&ImGui::DragIntRange2, ImArg<1, int[1]>, ImArg<2, int[1]>>::bind());
+		e.register_function("bool DragScalar(const string& label, int data_type, Ptr<void> p_data, float v_speed = 1.0f, Ptr<void> p_min = nullptr, Ptr<void> p_max = nullptr, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::DragScalar, ImArg<6, NullableString>>::bind());
+		e.register_function("bool DragScalarN(const string& label, int data_type, Ptr<void> p_data, int components, float v_speed = 1.0f, Ptr<void> p_min = nullptr, Ptr<void> p_max = nullptr, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::DragScalarN, ImArg<7, NullableString>>::bind());
+		e.register_function("bool SliderFloat(const string& label, float& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::SliderFloat, ImArg<1, float[1]>>::bind());
+		e.register_function("bool SliderFloat2(const string& label, ImVec2& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::SliderFloat2, ImArg<1, float[2]>>::bind());
+		e.register_function("bool SliderFloat3(const string& label, ImVec3& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::SliderFloat3, ImArg<1, float[3]>>::bind());
+		e.register_function("bool SliderFloat4(const string& label, ImVec4& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::SliderFloat4, ImArg<1, float[4]>>::bind());
+		e.register_function("bool SliderAngle(const string& label, float& v_rad, float v_degrees_min, float v_degrees_max, const string& format = \"%.0f deg\", int flags = 0)", ImBinder<&ImGui::SliderAngle>::bind());
+		e.register_function("bool SliderInt(const string& label, int& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::SliderInt, ImArg<1, int[1]>>::bind());
+		e.register_function("bool SliderInt2(const string& label, ImIVec2& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::SliderInt2, ImArg<1, int[2]>>::bind());
+		e.register_function("bool SliderInt3(const string& label, ImIVec3& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::SliderInt3, ImArg<1, int[3]>>::bind());
+		e.register_function("bool SliderInt4(const string& label, ImIVec4& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::SliderInt4, ImArg<1, int[4]>>::bind());
+		e.register_function("bool SliderScalar(const string& label, int data_type, Ptr<void> p_data, Ptr<void> p_min, Ptr<void> p_max, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::SliderScalar, ImArg<5 ,NullableString>>::bind());
+		e.register_function("bool SliderScalarN(const string& label, int data_type, Ptr<void> p_data, int components, Ptr<void> p_min, Ptr<void> p_max, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::SliderScalarN, ImArg<6 ,NullableString>>::bind());
+		e.register_function("bool VSliderFloat(const string& label, const ImVec2& size, float& v, float v_min, float v_max, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::VSliderFloat, ImArg<2, float[1]>, ImArg<5 ,NullableString>>::bind());
+		e.register_function("bool VSliderInt(const string& label, const ImVec2& size, int& v, int v_min, int v_max, const string& format = \"%d\", int flags = 0)", ImBinder<&ImGui::VSliderInt, ImArg<2, int[1]>, ImArg<5 ,NullableString>>::bind());
+		e.register_function("bool VSliderScalar(const string& label, const ImVec2& size, int data_type, Ptr<void> p_data, Ptr<void> p_min, Ptr<void> p_max, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::VSliderScalar, ImArg<6, NullableString>>::bind());
 		e.register_function("bool InputText(const string& label, string& buf, int flags = 0)", Custom::InputText);
 		e.register_function("bool InputTextMultiline(const string& label, string& buf, const ImVec2& size = ImVec2(), int flags = 0)", Custom::InputTextMultiline);
 		e.register_function("bool InputTextWithHint(const string& label, const string& hint, string& buf, int flags = 0)", Custom::InputTextWithHint);
-		e.register_function("bool InputFloat(const string& label, float& v, float step = 0.0f, float step_fast = 0.0f, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::InputFloat, Arg<1, float[1]>>::bind());
-		e.register_function("bool InputFloat2(const string& label, ImVec2& v, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::InputFloat2, Arg<1, float[2]>>::bind());
-		e.register_function("bool InputFloat3(const string& label, ImVec3& v, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::InputFloat3, Arg<1, float[3]>>::bind());
-		e.register_function("bool InputFloat4(const string& label, ImVec4& v, const string& format = \"%.3f\", int flags = 0)", Binder<&ImGui::InputFloat4, Arg<1, float[4]>>::bind());
-		e.register_function("bool InputInt(const string& label, int& v, int step = 1, int step_fast = 100, int flags = 0)", Binder<&ImGui::InputInt, Arg<1, int[1]>>::bind());
-		e.register_function("bool InputInt2(const string& label, ImIVec2& v, int flags = 0)", Binder<&ImGui::InputInt2, Arg<1, int[2]>>::bind());
-		e.register_function("bool InputInt3(const string& label, ImIVec3& v, int flags = 0)", Binder<&ImGui::InputInt3, Arg<1, int[3]>>::bind());
-		e.register_function("bool InputInt4(const string& label, ImIVec4& v, int flags = 0)", Binder<&ImGui::InputInt4, Arg<1, int[4]>>::bind());
-		e.register_function("bool InputDouble(const string& label, double& v, double step = 0.0, double step_fast = 0.0, const string& format = \"%.6f\", int flags = 0)", Binder<&ImGui::InputDouble, Arg<1, double[1]>>::bind());
-		e.register_function("bool InputScalar(const string& label, int data_type, Ptr<void> p_data, Ptr<void> p_step = nullptr, Ptr<void> p_step_fast = nullptr, const string& format = \"\", int flags = 0)", Binder<&ImGui::InputScalar, Arg<5, NullableString>>::bind());
-		e.register_function("bool InputScalarN(const string& label, int data_type, Ptr<void> p_data, int components, Ptr<void> p_step = nullptr, Ptr<void> p_step_fast = nullptr, const string& format = \"\", int flags = 0)", Binder<&ImGui::InputScalarN, Arg<6, NullableString>>::bind());
-		e.register_function("bool ColorEdit3(const string& label, ImVec3& col, int flags = 0)", Binder<&ImGui::ColorEdit3, Arg<1, float[3]>>::bind());
-		e.register_function("bool ColorEdit4(const string& label, ImVec4& col, int flags = 0)", Binder<&ImGui::ColorEdit4, Arg<1, float[4]>>::bind());
-		e.register_function("bool ColorPicker3(const string& label, ImVec3& col, int flags = 0)", Binder<&ImGui::ColorPicker3, Arg<1, float[3]>>::bind());
-		e.register_function("bool ColorPicker4(const string& label, ImVec4& col, int flags = 0, Ptr<ImVec4> ref_col = nullptr)", Binder<&ImGui::ColorPicker4, Arg<1, float[4]>>::bind());
-		e.register_function("bool ColorButton(const string& desc_id, const ImVec4& col, int flags = 0, const ImVec2& size = ImVec2())", Binder<&ImGui::ColorButton>::bind());
-		e.register_function("void SetColorEditOptions(int flags)", Binder<&ImGui::SetColorEditOptions>::bind());
-		e.register_function("bool TreeNode(const string& label)", Binder<func_of<bool, const char *>(&ImGui::TreeNode)>::bind());
+		e.register_function("bool InputFloat(const string& label, float& v, float step = 0.0f, float step_fast = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::InputFloat, ImArg<1, float[1]>>::bind());
+		e.register_function("bool InputFloat2(const string& label, ImVec2& v, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::InputFloat2, ImArg<1, float[2]>>::bind());
+		e.register_function("bool InputFloat3(const string& label, ImVec3& v, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::InputFloat3, ImArg<1, float[3]>>::bind());
+		e.register_function("bool InputFloat4(const string& label, ImVec4& v, const string& format = \"%.3f\", int flags = 0)", ImBinder<&ImGui::InputFloat4, ImArg<1, float[4]>>::bind());
+		e.register_function("bool InputInt(const string& label, int& v, int step = 1, int step_fast = 100, int flags = 0)", ImBinder<&ImGui::InputInt, ImArg<1, int[1]>>::bind());
+		e.register_function("bool InputInt2(const string& label, ImIVec2& v, int flags = 0)", ImBinder<&ImGui::InputInt2, ImArg<1, int[2]>>::bind());
+		e.register_function("bool InputInt3(const string& label, ImIVec3& v, int flags = 0)", ImBinder<&ImGui::InputInt3, ImArg<1, int[3]>>::bind());
+		e.register_function("bool InputInt4(const string& label, ImIVec4& v, int flags = 0)", ImBinder<&ImGui::InputInt4, ImArg<1, int[4]>>::bind());
+		e.register_function("bool InputDouble(const string& label, double& v, double step = 0.0, double step_fast = 0.0, const string& format = \"%.6f\", int flags = 0)", ImBinder<&ImGui::InputDouble, ImArg<1, double[1]>>::bind());
+		e.register_function("bool InputScalar(const string& label, int data_type, Ptr<void> p_data, Ptr<void> p_step = nullptr, Ptr<void> p_step_fast = nullptr, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::InputScalar, ImArg<5, NullableString>>::bind());
+		e.register_function("bool InputScalarN(const string& label, int data_type, Ptr<void> p_data, int components, Ptr<void> p_step = nullptr, Ptr<void> p_step_fast = nullptr, const string& format = \"\", int flags = 0)", ImBinder<&ImGui::InputScalarN, ImArg<6, NullableString>>::bind());
+		e.register_function("bool ColorEdit3(const string& label, ImVec3& col, int flags = 0)", ImBinder<&ImGui::ColorEdit3, ImArg<1, float[3]>>::bind());
+		e.register_function("bool ColorEdit4(const string& label, ImVec4& col, int flags = 0)", ImBinder<&ImGui::ColorEdit4, ImArg<1, float[4]>>::bind());
+		e.register_function("bool ColorPicker3(const string& label, ImVec3& col, int flags = 0)", ImBinder<&ImGui::ColorPicker3, ImArg<1, float[3]>>::bind());
+		e.register_function("bool ColorPicker4(const string& label, ImVec4& col, int flags = 0, Ptr<ImVec4> ref_col = nullptr)", ImBinder<&ImGui::ColorPicker4, ImArg<1, float[4]>>::bind());
+		e.register_function("bool ColorButton(const string& desc_id, const ImVec4& col, int flags = 0, const ImVec2& size = ImVec2())", ImBinder<&ImGui::ColorButton>::bind());
+		e.register_function("void SetColorEditOptions(int flags)", ImBinder<&ImGui::SetColorEditOptions>::bind());
+		e.register_function("bool TreeNode(const string& label)", ImBinder<func_of<bool, const char *>(&ImGui::TreeNode)>::bind());
 		e.register_function("bool TreeNode(Ptr<void> ptr_id, const string& fmt)", Custom::TreeNode);
-		e.register_function("bool TreeNodeEx(const string& label, int flags = 0)", Binder<func_of<bool, const char *, ImGuiTreeNodeFlags>(&ImGui::TreeNodeEx)>::bind());
+		e.register_function("bool TreeNodeEx(const string& label, int flags = 0)", ImBinder<func_of<bool, const char *, ImGuiTreeNodeFlags>(&ImGui::TreeNodeEx)>::bind());
 		e.register_function("bool TreeNodeEx(const string& str_id, const string& text, int flags)", Custom::TreeNodeEx);
 		e.register_function("bool TreeNodeEx(Ptr<void> ptr_id, const string& text, int flags = 0)", Custom::TreeNodeEx2);
-		e.register_function("void TreePush(const string& str_id)", Binder<func_of<void, const char *>(&ImGui::TreePush)>::bind());
-		e.register_function("void TreePush(Ptr<void> ptr_id)", Binder<func_of<void, const void *>(&ImGui::TreePush)>::bind());
-		e.register_function("void TreePop()", Binder<&ImGui::TreePop>::bind());
-		e.register_function("float GetTreeNodeToLabelSpacing()", Binder<&ImGui::GetTreeNodeToLabelSpacing>::bind());
-		e.register_function("bool CollapsingHeader(const string& label, int flags = 0)", Binder<func_of<bool, const char *, ImGuiTreeNodeFlags>(&ImGui::CollapsingHeader)>::bind());
-		e.register_function("bool CollapsingHeader(const string& label, bool& p_visible, int flags = 0)", Binder<func_of<bool, const char *, bool *, ImGuiTreeNodeFlags>(&ImGui::CollapsingHeader), Arg<1, bool[1]>>::bind());
-		e.register_function("void SetNextItemOpen(bool is_open, int cond = 0)", Binder<&ImGui::SetNextItemOpen>::bind());
-		e.register_function("bool Selectable(const string& label, bool selected = false, int flags = 0, const ImVec2& size = ImVec2())", Binder<func_of<bool, const char *, bool, ImGuiSelectableFlags, const ImVec2 &>(&ImGui::Selectable)>::bind());
-		e.register_function("bool SelectableToggle(const string& label, bool& p_selected, int flags = 0, const ImVec2& size = ImVec2())", Binder<func_of<bool, const char *, bool *, ImGuiSelectableFlags, const ImVec2&>(&ImGui::Selectable), Arg<1, bool[1]>>::bind());
-		e.register_function("bool BeginListBox(const string& label, const ImVec2& size = ImVec2())", Binder<&ImGui::BeginListBox>::bind());
-		e.register_function("void EndListBox()", Binder<&ImGui::EndListBox>::bind());
+		e.register_function("void TreePush(const string& str_id)", ImBinder<func_of<void, const char *>(&ImGui::TreePush)>::bind());
+		e.register_function("void TreePush(Ptr<void> ptr_id)", ImBinder<func_of<void, const void *>(&ImGui::TreePush)>::bind());
+		e.register_function("void TreePop()", ImBinder<&ImGui::TreePop>::bind());
+		e.register_function("float GetTreeNodeToLabelSpacing()", ImBinder<&ImGui::GetTreeNodeToLabelSpacing>::bind());
+		e.register_function("bool CollapsingHeader(const string& label, int flags = 0)", ImBinder<func_of<bool, const char *, ImGuiTreeNodeFlags>(&ImGui::CollapsingHeader)>::bind());
+		e.register_function("bool CollapsingHeader(const string& label, bool& p_visible, int flags = 0)", ImBinder<func_of<bool, const char *, bool *, ImGuiTreeNodeFlags>(&ImGui::CollapsingHeader), ImArg<1, bool[1]>>::bind());
+		e.register_function("void SetNextItemOpen(bool is_open, int cond = 0)", ImBinder<&ImGui::SetNextItemOpen>::bind());
+		e.register_function("bool Selectable(const string& label, bool selected = false, int flags = 0, const ImVec2& size = ImVec2())", ImBinder<func_of<bool, const char *, bool, ImGuiSelectableFlags, const ImVec2 &>(&ImGui::Selectable)>::bind());
+		e.register_function("bool SelectableToggle(const string& label, bool& p_selected, int flags = 0, const ImVec2& size = ImVec2())", ImBinder<func_of<bool, const char *, bool *, ImGuiSelectableFlags, const ImVec2&>(&ImGui::Selectable), ImArg<1, bool[1]>>::bind());
+		e.register_function("bool BeginListBox(const string& label, const ImVec2& size = ImVec2())", ImBinder<&ImGui::BeginListBox>::bind());
+		e.register_function("void EndListBox()", ImBinder<&ImGui::EndListBox>::bind());
 
-		// e.register_function("void PlotLines(const string& label, Ptr<float> values, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size, int stride)", Binder<func_of<void, const char *, const float *, int, int, const char *, float, float, ImVec2, int>(&ImGui::PlotLines)>::bind());
-		// e.register_function("void PlotLines(const string& label, Ptr<int)> values_getter, Ptr<void> data, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size)", Binder<func_of<void, const char *, float (*)(void *, int), void *, int, int, const char *, float, float, ImVec2>(&ImGui::PlotLines)>::bind());
-		// e.register_function("void PlotHistogram(const string& label, Ptr<float> values, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size, int stride)", Binder<func_of<void, const char *, const float *, int, int, const char *, float, float, ImVec2, int>(&ImGui::PlotHistogram)>::bind());
-		// e.register_function("void PlotHistogram(const string& label, Ptr<int)> values_getter, Ptr<void> data, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size)", Binder<func_of<void, const char *, float (*)(void *, int), void *, int, int, const char *, float, float, ImVec2>(&ImGui::PlotHistogram)>::bind());
-		// e.register_function("void Value(const string& prefix, bool b)", Binder<func_of<void, const char *, bool>(&ImGui::Value)>::bind());
-		// e.register_function("void Value(const string& prefix, int v)", Binder<func_of<void, const char *, int>(&ImGui::Value)>::bind());
-		// e.register_function("void Value(const string& prefix, unsigned int v)", Binder<func_of<void, const char *, unsigned int>(&ImGui::Value)>::bind());
-		// e.register_function("void Value(const string& prefix, float v, const string& float_format = nullptr)", Binder<func_of<void, const char *, float, const char *>(&ImGui::Value)>::bind());
-		e.register_function("bool BeginMenuBar()", Binder<&ImGui::BeginMenuBar>::bind());
-		e.register_function("void EndMenuBar()", Binder<&ImGui::EndMenuBar>::bind());
-		e.register_function("bool BeginMainMenuBar()", Binder<&ImGui::BeginMainMenuBar>::bind());
-		e.register_function("void EndMainMenuBar()", Binder<&ImGui::EndMainMenuBar>::bind());
-		e.register_function("bool BeginMenu(const string& label, bool enabled = true)", Binder<&ImGui::BeginMenu>::bind());
-		e.register_function("void EndMenu()", Binder<&ImGui::EndMenu>::bind());
-		// e.register_function("bool MenuItem(const string& label, const string& shortcut = nullptr, bool selected = false, bool enabled = true)", Binder<func_of<bool, const char *, const char *, bool, bool>(&ImGui::MenuItem)>::bind());
-		// e.register_function("bool MenuItem(const string& label, const string& shortcut, Ptr<bool> p_selected, bool enabled = true)", Binder<func_of<bool, const char *, const char *, bool *, bool>(&ImGui::MenuItem)>::bind());
-		e.register_function("bool BeginTooltip()", Binder<&ImGui::BeginTooltip>::bind());
-		e.register_function("void EndTooltip()", Binder<&ImGui::EndTooltip>::bind());
-		// e.register_function("void SetTooltip(const string& fmt)", Binder<&ImGui::SetTooltip>::bind());
-		// e.register_function("void SetTooltipV(const string& fmt, int args)", Binder<&ImGui::SetTooltipV>::bind());
-		e.register_function("bool BeginItemTooltip()", Binder<&ImGui::BeginItemTooltip>::bind());
-		// e.register_function("void SetItemTooltip(const string& fmt)", Binder<&ImGui::SetItemTooltip>::bind());
+		// e.register_function("void PlotLines(const string& label, Ptr<float> values, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size, int stride)", ImBinder<func_of<void, const char *, const float *, int, int, const char *, float, float, ImVec2, int>(&ImGui::PlotLines)>::bind());
+		// e.register_function("void PlotLines(const string& label, Ptr<int)> values_getter, Ptr<void> data, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size)", ImBinder<func_of<void, const char *, float (*)(void *, int), void *, int, int, const char *, float, float, ImVec2>(&ImGui::PlotLines)>::bind());
+		// e.register_function("void PlotHistogram(const string& label, Ptr<float> values, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size, int stride)", ImBinder<func_of<void, const char *, const float *, int, int, const char *, float, float, ImVec2, int>(&ImGui::PlotHistogram)>::bind());
+		// e.register_function("void PlotHistogram(const string& label, Ptr<int)> values_getter, Ptr<void> data, int values_count, int values_offset = 0, const string& overlay_text = nullptr, float scale_min, float scale_max, ImVec2 graph_size)", ImBinder<func_of<void, const char *, float (*)(void *, int), void *, int, int, const char *, float, float, ImVec2>(&ImGui::PlotHistogram)>::bind());
+		// e.register_function("void Value(const string& prefix, bool b)", ImBinder<func_of<void, const char *, bool>(&ImGui::Value)>::bind());
+		// e.register_function("void Value(const string& prefix, int v)", ImBinder<func_of<void, const char *, int>(&ImGui::Value)>::bind());
+		// e.register_function("void Value(const string& prefix, unsigned int v)", ImBinder<func_of<void, const char *, unsigned int>(&ImGui::Value)>::bind());
+		// e.register_function("void Value(const string& prefix, float v, const string& float_format = nullptr)", ImBinder<func_of<void, const char *, float, const char *>(&ImGui::Value)>::bind());
+		e.register_function("bool BeginMenuBar()", ImBinder<&ImGui::BeginMenuBar>::bind());
+		e.register_function("void EndMenuBar()", ImBinder<&ImGui::EndMenuBar>::bind());
+		e.register_function("bool BeginMainMenuBar()", ImBinder<&ImGui::BeginMainMenuBar>::bind());
+		e.register_function("void EndMainMenuBar()", ImBinder<&ImGui::EndMainMenuBar>::bind());
+		e.register_function("bool BeginMenu(const string& label, bool enabled = true)", ImBinder<&ImGui::BeginMenu>::bind());
+		e.register_function("void EndMenu()", ImBinder<&ImGui::EndMenu>::bind());
+		// e.register_function("bool MenuItem(const string& label, const string& shortcut = nullptr, bool selected = false, bool enabled = true)", ImBinder<func_of<bool, const char *, const char *, bool, bool>(&ImGui::MenuItem)>::bind());
+		// e.register_function("bool MenuItem(const string& label, const string& shortcut, Ptr<bool> p_selected, bool enabled = true)", ImBinder<func_of<bool, const char *, const char *, bool *, bool>(&ImGui::MenuItem)>::bind());
+		e.register_function("bool BeginTooltip()", ImBinder<&ImGui::BeginTooltip>::bind());
+		e.register_function("void EndTooltip()", ImBinder<&ImGui::EndTooltip>::bind());
+		// e.register_function("void SetTooltip(const string& fmt)", ImBinder<&ImGui::SetTooltip>::bind());
+		// e.register_function("void SetTooltipV(const string& fmt, int args)", ImBinder<&ImGui::SetTooltipV>::bind());
+		e.register_function("bool BeginItemTooltip()", ImBinder<&ImGui::BeginItemTooltip>::bind());
+		// e.register_function("void SetItemTooltip(const string& fmt)", ImBinder<&ImGui::SetItemTooltip>::bind());
 		// clang-format on
 	}
 

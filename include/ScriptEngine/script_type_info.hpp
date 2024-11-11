@@ -111,6 +111,11 @@ namespace Engine
 		bool is_value() const;
 		bool is_ref() const;
 
+		bool operator == (const ScriptTypeInfo& info);
+		bool operator == (const asITypeInfo* info);
+		bool operator != (const ScriptTypeInfo& info);
+		bool operator != (const asITypeInfo* info);
+
 		~ScriptTypeInfo();
 	};
 }// namespace Engine

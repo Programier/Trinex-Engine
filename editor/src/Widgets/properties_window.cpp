@@ -8,10 +8,14 @@
 #include <Core/object.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Core/reflection/object.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Graphics/imgui.hpp>
+#include <ScriptEngine/script_context.hpp>
+#include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_module.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
 #include <imfilebrowser.h>
@@ -23,7 +27,7 @@
 namespace Engine
 {
 	Map<Refl::Struct*, void (*)(ImGuiObjectProperties*, void*, Refl::Struct*, bool)> special_class_properties_renderers;
-	static Map<const Refl::Object::ReflClassInfo*, ImGuiObjectProperties::PropertyRenderer> m_renderers;
+	static Map<const Refl::ClassInfo*, ImGuiObjectProperties::PropertyRenderer> m_renderers;
 
 	template<typename T>
 	static FORCE_INLINE T* prop_cast(Refl::Property* prop)
@@ -269,12 +273,10 @@ namespace Engine
 		return "editor/Properties Title"_localized;
 	}
 
-	void ImGuiObjectProperties::register_prop_renderer(const Refl::Object::ReflClassInfo* refl_class,
-													   const PropertyRenderer& renderer)
+	void ImGuiObjectProperties::register_prop_renderer(const Refl::ClassInfo* refl_class, const PropertyRenderer& renderer)
 	{
 		m_renderers[refl_class] = renderer;
 	}
-
 
 	//////////////////////// PROPERTY RENDERERS ////////////////////////
 
@@ -308,19 +310,28 @@ namespace Engine
 		return false;
 	}
 
+	static ImGuiDataType find_imgui_data_type(Refl::IntegerProperty* prop)
+	{
+		return (std::countr_zero(prop->size()) * 2) + static_cast<ImGuiDataType>(prop->is_unsigned());
+	}
+
+	static ImGuiDataType find_imgui_data_type(Refl::FloatProperty* prop)
+	{
+		return prop->size() == 4 ? ImGuiDataType_Float : ImGuiDataType_Double;
+	}
+
 	static bool render_integer_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop = prop_cast_checked<Refl::IntegerProperty>(prop_base);
 		render_prop_name(prop_base);
-		auto type = ((prop->size() - 1) * 2) + static_cast<ImGuiDataType>(prop->is_unsigned());
-		return render_scalar_property(context, prop, type, 1, read_only);
+		return render_scalar_property(context, prop, find_imgui_data_type(prop), 1, read_only);
 	}
 
 	static bool render_float_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
 	{
 		render_prop_name(prop);
-		auto type = prop->size() == 4 ? ImGuiDataType_Float : ImGuiDataType_Double;
-		return render_scalar_property(context, prop, type, 1, read_only);
+		auto float_prop = prop_cast_checked<Refl::FloatProperty>(prop);
+		return render_scalar_property(context, prop, find_imgui_data_type(float_prop), 1, read_only);
 	}
 
 	static bool render_vector_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
@@ -360,13 +371,11 @@ namespace Engine
 		}
 		else if (auto integer = prop_cast<Refl::IntegerProperty>(element))
 		{
-			auto type = ((integer->size() - 1) * 2) + static_cast<ImGuiDataType>(integer->is_unsigned());
-			return render_scalar(type);
+			return render_scalar(find_imgui_data_type(integer));
 		}
-		else if (element->is_a<Refl::FloatProperty>())
+		else if (auto floating = prop_cast<Refl::FloatProperty>(element))
 		{
-			auto type = element->size() == 4 ? ImGuiDataType_Float : ImGuiDataType_Double;
-			return render_scalar(type);
+			return render_scalar(find_imgui_data_type(floating));
 		}
 		else
 		{
@@ -492,12 +501,13 @@ namespace Engine
 		}
 		else
 		{
-			auto* self       = object->class_instance();
+			auto* self       = object ? object->class_instance() : prop->class_instance();
 			const float size = ImGui::GetFrameHeight();
 			auto object      = prop->object(context);
 
 			bool changed = false;
 
+			render_prop_name(prop);
 			ImGui::TableSetColumnIndex(1);
 
 			ImGui::PushID("##Image");

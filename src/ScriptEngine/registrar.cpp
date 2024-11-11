@@ -308,24 +308,11 @@ namespace Engine
 		return *this;
 	}
 
-
-	ScriptEnumRegistrar::ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init)
-	    : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
-	{
-		if (init)
-		{
-			prepare_namespace();
-
-			SCRIPT_CHECK(script_engine()->RegisterEnum(m_enum_base_name.c_str()) >= 0);
-			release_namespace();
-		}
-	}
-
 	ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-		                                                   *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
+														   *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
 		return *this;
 	}
 
@@ -333,9 +320,21 @@ namespace Engine
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-		                                                   *reinterpret_cast<asSFuncPtr*>(function),
-		                                                   create_call_conv(conv)) >= 0);
+														   *reinterpret_cast<asSFuncPtr*>(function),
+														   create_call_conv(conv)) >= 0);
 		return *this;
+	}
+
+
+	ScriptEnumRegistrar::ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init)
+	    : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
+	{
+		if (init)
+		{
+			prepare_namespace();
+			SCRIPT_CHECK(script_engine()->RegisterEnum(m_enum_base_name.c_str()) >= 0);
+			release_namespace();
+		}
 	}
 
 	ScriptEnumRegistrar::ScriptEnumRegistrar(const StringView& full_name, bool init)
@@ -361,5 +360,21 @@ namespace Engine
 		SCRIPT_CHECK(script_engine()->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
 		release_namespace();
 		return *this;
+	}
+
+	int_t ScriptEnumRegistrar::type_id()
+	{
+		prepare_namespace();
+		auto id = script_engine()->GetTypeIdByDecl(m_enum_base_name.c_str());
+		release_namespace();
+		return id;
+	}
+
+	ScriptTypeInfo ScriptEnumRegistrar::type_info()
+	{
+		prepare_namespace();
+		auto info = script_engine()->GetTypeInfoByDecl(m_enum_base_name.c_str());
+		release_namespace();
+		return info;
 	}
 }// namespace Engine

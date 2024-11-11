@@ -309,6 +309,11 @@ namespace Engine::Strings
 		return static_cast<int_t>(::strtof(text, nullptr));
 	}
 
+	ENGINE_EXPORT void* pointer_of(const char* text)
+	{
+		return reinterpret_cast<void*>(std::stoul(text, nullptr, 16));
+	}
+
 	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out)
 	{
 		if (stream.empty())

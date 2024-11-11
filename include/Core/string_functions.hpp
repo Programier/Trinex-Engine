@@ -80,6 +80,7 @@ namespace Engine::Strings
 	ENGINE_EXPORT bool boolean_of(const char* text, size_t len = 0);
 	ENGINE_EXPORT int_t integer_of(const char* text);
 	ENGINE_EXPORT float float_of(const char* text);
+	ENGINE_EXPORT void* pointer_of(const char* text);
 	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out);
 	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator);
 

@@ -6,7 +6,7 @@ namespace Engine::Settings
 {
 	String ed_font_path        = "resources/editor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	float ed_font_size         = 18.f;
-	float ed_collapsing_indent = 5.f;
+	float ed_collapsing_indent = 10.f;
 	bool ed_show_grid          = true;
 
 	static ReflectionInitializeController initialize([]() {

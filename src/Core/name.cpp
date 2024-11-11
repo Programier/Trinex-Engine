@@ -324,6 +324,7 @@ namespace Engine
 		registrar.method("bool opEquals(const Name&) const", method_of<bool, const Name&>(&Name::operator==));
 
 		registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
+		registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);
 	}
 
 	static ReflectionInitializeController controller(on_init, "Engine::Name");

@@ -14,9 +14,11 @@ namespace Engine::Refl
 		return instance_cast<ScriptClass>(self) != nullptr;
 	}
 
-	ScriptClass::ScriptClass(Class* parent, Script* script, BitMask flags) : Class(parent, flags), m_script(script)
+	ScriptClass::ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags)
+		: Class(parent, flags | IsScriptable), m_script(script)
 	{
-		script->m_classes.insert(this);
+		script_type_info = info;
+		script->m_refl_objects.insert(this);
 	}
 
 	Engine::Object* ScriptClass::object_constructor(Class* class_overload, StringView name, Engine::Object* owner)
@@ -67,8 +69,18 @@ namespace Engine::Refl
 		return *this;
 	}
 
+	Script* ScriptClass::script() const
+	{
+		return m_script;
+	}
+
+	size_t ScriptClass::size() const
+	{
+		return script_type_info.size();
+	}
+
 	ScriptClass::~ScriptClass()
 	{
-		m_script->m_classes.erase(this);
+		m_script->m_refl_objects.erase(this);
 	}
 }// namespace Engine::Refl

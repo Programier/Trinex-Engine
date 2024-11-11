@@ -271,8 +271,9 @@ namespace Engine
 	public:
 		ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init = true);
 		ScriptEnumRegistrar(const StringView& full_name, bool init = true);
-
 		ScriptEnumRegistrar& set(const char* name, int_t value);
+		int_t type_id();
+		ScriptTypeInfo type_info();
 
 		template<typename T>
 		ScriptEnumRegistrar& set(const char* name, T value)

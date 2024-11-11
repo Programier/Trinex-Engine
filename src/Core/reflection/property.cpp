@@ -1,8 +1,10 @@
 #include <Core/archive.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine::Refl
@@ -99,6 +101,11 @@ namespace Engine::Refl
 		return "bool";
 	}
 
+	size_t BooleanProperty::size() const
+	{
+		return sizeof(bool);
+	}
+
 	String IntegerProperty::script_type_name() const
 	{
 		return Strings::format("{}{}", is_signed() ? "int" : "uint", size() * 8);
@@ -157,6 +164,12 @@ namespace Engine::Refl
 		return m_enum;
 	}
 
+	EnumProperty& EnumProperty::bind_enum(Enum* instance)
+	{
+		m_enum = instance;
+		return *this;
+	}
+
 	String EnumProperty::script_type_name() const
 	{
 		return m_enum->full_name();
@@ -186,6 +199,11 @@ namespace Engine::Refl
 		return "string";
 	}
 
+	size_t StringProperty::size() const
+	{
+		return sizeof(String);
+	}
+
 	bool NameProperty::serialize(void* object, Archive& ar)
 	{
 		Name& value = *address_as<Name>(object);
@@ -206,6 +224,11 @@ namespace Engine::Refl
 	String PathProperty::script_type_name() const
 	{
 		return "";
+	}
+
+	size_t ObjectProperty::size() const
+	{
+		return sizeof(Engine::Object*);
 	}
 
 	bool ObjectProperty::serialize(void* object, Archive& ar)
@@ -301,4 +324,21 @@ namespace Engine::Refl
 
 		return Strings::format("Engine::Vector<{}>", element_name);
 	}
+
+	void Property::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	{
+		Super::register_layout(r, info, downcast);
+	}
+
+	static void on_init()
+	{
+		ScriptClassRegistrar::RefInfo info;
+		info.implicit_handle = true;
+		info.no_count        = true;
+
+		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Property", info);
+		Property::register_layout(r, Property::static_refl_class_info(), script_downcast<Property>);
+	}
+
+	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Property");
 }// namespace Engine::Refl

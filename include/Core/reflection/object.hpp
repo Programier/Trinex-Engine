@@ -3,6 +3,11 @@
 #include <Core/engine_types.hpp>
 #include <Core/name.hpp>
 
+namespace Engine
+{
+	class ScriptClassRegistrar;
+}
+
 namespace Engine::Refl
 {
 	namespace Meta
@@ -21,17 +26,17 @@ namespace Engine::Refl
 		DisableReflectionCheck = BIT(3),
 	};
 
+	struct ENGINE_EXPORT ClassInfo {
+		const Name class_name;
+		const ClassInfo* const parent;
+		bool is_scriptable;
+
+		ClassInfo(const char* name, const ClassInfo* const parent = nullptr);
+		bool is_a(const ClassInfo* const info) const;
+	};
+
 	class ENGINE_EXPORT Object
 	{
-	public:
-		struct ENGINE_EXPORT ReflClassInfo {
-			const Name class_name;
-			const ReflClassInfo* const parent;
-
-			ReflClassInfo(const char* name, const ReflClassInfo* const parent = nullptr);
-			bool is_a(const ReflClassInfo* const info) const;
-		};
-
 	private:
 		using MetaData       = Map<Name, String, Name::HashFunction>;
 		MetaData* m_metadata = nullptr;
@@ -48,8 +53,6 @@ namespace Engine::Refl
 		static void initialize_next_object(Object* owner, StringView name);
 
 		void full_name(String& out) const;
-		void bind_type_name(StringView name);
-		void unbind_type_name(StringView name);
 
 		FORCE_INLINE bool has_metadata(const Name& name) const
 		{
@@ -64,8 +67,9 @@ namespace Engine::Refl
 		virtual ~Object();
 
 	public:
-		using This  = Object;
-		using Super = void;
+		using This     = Object;
+		using Super    = void;
+		using DownCast = void* (*) (Object*);
 
 		CallBacks<void(Object*)> on_initialize;
 
@@ -94,16 +98,16 @@ namespace Engine::Refl
 		Object& remove_metadata(const Name& name);
 
 		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);
-		virtual const ReflClassInfo* refl_class_info() const;
+		virtual ClassInfo* refl_class_info() const;
 
-		static const ReflClassInfo* static_refl_class_info();
+		static ClassInfo* static_refl_class_info();
 		static Object* static_root();
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_require(StringView name, FindFlags flags = FindFlags::None);
-		static Object* static_find_by_type_name(StringView name);
 		static void static_initialize(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
 		static bool is_valid(Object* object);
+		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
 
 		template<typename T>
 		bool is_a() const
@@ -198,6 +202,12 @@ namespace Engine::Refl
 		}
 	};
 
+	template<typename T>
+	void* script_downcast(Object* object)
+	{
+		return Object::instance_cast<T>(object);
+	}
+
 	declare_enum_operators(FindFlags);
 
 #define declare_reflect_type(name, base)                                                                                         \
@@ -206,8 +216,8 @@ public:                                                                         
 	using Super = base;                                                                                                          \
 	friend class Engine::Refl::Object;                                                                                           \
 																																 \
-	static const Engine::Refl::Object::ReflClassInfo* static_refl_class_info();                                                  \
-	virtual const Engine::Refl::Object::ReflClassInfo* refl_class_info() const override;                                         \
+	static Engine::Refl::ClassInfo* static_refl_class_info();                                                                    \
+	virtual Engine::Refl::ClassInfo* refl_class_info() const override;                                                           \
 																																 \
 	static name* static_find(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);             \
 	static name* static_require(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);          \
@@ -224,13 +234,13 @@ public:                                                                         
 
 
 #define implement_reflect_type(name)                                                                                             \
-	const Engine::Refl::Object::ReflClassInfo* name::static_refl_class_info()                                                    \
+	Engine::Refl::ClassInfo* name::static_refl_class_info()                                                                      \
 	{                                                                                                                            \
-		static const Engine::Refl::Object::ReflClassInfo info(#name, Super::static_refl_class_info());                           \
+		static Engine::Refl::ClassInfo info(#name, Super::static_refl_class_info());                                             \
 		return &info;                                                                                                            \
 	}                                                                                                                            \
 																																 \
-	const Engine::Refl::Object::ReflClassInfo* name::refl_class_info() const                                                     \
+	Engine::Refl::ClassInfo* name::refl_class_info() const                                                                       \
 	{                                                                                                                            \
 		return name::static_refl_class_info();                                                                                   \
 	}                                                                                                                            \

@@ -62,7 +62,7 @@ namespace Engine
 
 	bool Archive::serialize_struct(Refl::Struct* self, void* obj)
 	{
-		self->serialize(obj, *this);
+		return self->serialize(obj, *this);
 	}
 
 	bool Archive::is_saving() const

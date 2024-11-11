@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/etl/type_info.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/reflection/scoped_type.hpp>
@@ -88,7 +87,6 @@ namespace Engine::Refl
 
 		virtual void* create_struct();
 		virtual Struct& destroy_struct(void* obj);
-		virtual StringView type_name() const;
 		virtual size_t size() const;
 		virtual bool serialize(void* object, Archive& ar);
 
@@ -110,6 +108,8 @@ namespace Engine::Refl
 
 		Struct& group(class Group*);
 		class Group* group() const;
+
+		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
 
 		~Struct();
 	};
@@ -138,9 +138,7 @@ namespace Engine::Refl
 
 	public:
 		NativeStruct(BitMask flags = 0) : Struct(super_of(), flags | native_type_flags<T>())
-		{
-			bind_type_name(type_info<T>::name());
-		}
+		{}
 
 		static Struct* create(StringView decl, BitMask flags = 0)
 		{
@@ -195,11 +193,6 @@ namespace Engine::Refl
 			return *this;
 		}
 
-		StringView type_name() const override
-		{
-			return Engine::type_info<T>::name();
-		}
-
 		size_t size() const override
 		{
 			return sizeof(T);
@@ -215,11 +208,6 @@ namespace Engine::Refl
 			{
 				return Struct::serialize(object, ar);
 			}
-		}
-
-		~NativeStruct()
-		{
-			unbind_type_name(type_info<T>::name());
 		}
 	};
 

@@ -86,15 +86,6 @@ namespace Engine
 		return *this;
 	}
 
-	DirectionalLightComponent& DirectionalLightComponent::update(float dt)
-	{
-		Super::update(dt);
-		auto& local = local_transform();
-
-		printf("%f, %f, %f\n", local.scale().x, local.scale().y, local.scale().z);
-		return *this;
-	}
-
 	DirectionalLightComponent& DirectionalLightComponent::render(class SceneRenderer* renderer)
 	{
 		renderer->render_component(this);

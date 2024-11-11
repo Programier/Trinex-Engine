@@ -1,4 +1,5 @@
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
@@ -43,14 +44,15 @@ namespace Engine::Refl
 
 			ti = ti->GetSubType(0);
 
-			asITypeInfo* is_object_ti = ti;
-			auto object_ti            = Engine::Object::static_class_instance()->script_type_info.info();
+			asITypeInfo* current = ti;
+			auto target          = Engine::Object::static_class_instance()->script_type_info.info();
 
-			while (is_object_ti && is_object_ti != object_ti) is_object_ti = is_object_ti->GetBaseType();
+			while (current && current != target) current = current->GetBaseType();
 
-			if (is_object_ti)
+			if (current)
 			{
-				self = reinterpret_cast<Class*>(ti->GetNativeClassUserData());
+				String fullname = Strings::concat_scoped_name(current->GetNamespace(), current->GetName());
+				self            = Refl::Class::static_find(fullname);
 			}
 		}
 

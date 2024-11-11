@@ -506,6 +506,26 @@ namespace Engine
 		return (m_info->GetFlags() & asOBJ_REF) == asOBJ_REF;
 	}
 
+	bool ScriptTypeInfo::operator==(const ScriptTypeInfo& info)
+	{
+		return m_info == info.m_info;
+	}
+
+	bool ScriptTypeInfo::operator==(const asITypeInfo* info)
+	{
+		return m_info == info;
+	}
+
+	bool ScriptTypeInfo::operator!=(const ScriptTypeInfo& info)
+	{
+		return m_info != info.m_info;
+	}
+
+	bool ScriptTypeInfo::operator!=(const asITypeInfo* info)
+	{
+		return m_info != info;
+	}
+
 	ScriptTypeInfo::~ScriptTypeInfo()
 	{
 		release();

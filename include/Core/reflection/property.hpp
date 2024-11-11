@@ -89,9 +89,10 @@ private:
 
 	private:
 		CallBacks<void(const PropertyChangedEvent&)> m_change_listeners;
-		const BitMask m_flags = 0;
 
 	protected:
+		BitMask m_flags = 0;
+
 		template<size_t size>
 		struct InnerProperties {
 			Property* properties[size];
@@ -116,6 +117,8 @@ private:
 		virtual bool serialize(void* object, Archive& ar)      = 0;
 		virtual String script_type_name() const                = 0;
 		virtual Property& on_property_changed(const PropertyChangedEvent& event);
+
+		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
 
 		template<typename T>
 		T* address_as(void* context)
@@ -149,6 +152,7 @@ private:
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 		String script_type_name() const override;
+		size_t size() const override;
 	};
 
 	class ENGINE_EXPORT IntegerProperty : public PrimitiveProperty
@@ -231,8 +235,9 @@ private:
 		class Enum* m_enum;
 
 	public:
-		EnumProperty(Enum* enum_instance, BitMask flags = 0);
+		EnumProperty(Enum* enum_instance = nullptr, BitMask flags = 0);
 		Enum* enum_instance() const;
+		EnumProperty& bind_enum(Enum* instance);
 		String script_type_name() const override;
 
 		EnumerateType value(const void* context) const;
@@ -249,6 +254,7 @@ private:
 
 		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
+		size_t size() const override;
 	};
 
 	class ENGINE_EXPORT NameProperty : public Property
@@ -286,6 +292,7 @@ private:
 	public:
 		using Property::Property;
 
+		size_t size() const override;
 		bool serialize(void* object, Archive& ar) override;
 		String script_type_name() const override;
 

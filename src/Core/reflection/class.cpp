@@ -42,17 +42,14 @@ namespace Engine::Refl
 	static void native_object_constructor(asIScriptObject* object, StringView name, Engine::Object* owner)
 	{
 		asITypeInfo* type = object->GetObjectType();
-		auto* self        = reinterpret_cast<Refl::Class*>(type->GetNativeClassUserData());
+		auto* self        = Class::static_find(Strings::concat_scoped_name(type->GetNamespace(), type->GetName()));
 		auto* native      = self;
 
 		while (native && !native->is_native()) native = native->parent();
 
 		if (native)
 		{
-			if (Engine::Object* res = native->create_placement_object(object, name, owner, self))
-			{
-				res->flags(Refl::Class::IsScriptable, true);
-			}
+			native->create_placement_object(object, name, owner, self);
 		}
 	}
 
@@ -213,14 +210,10 @@ namespace Engine::Refl
 		return get_asset_class_table();
 	}
 
-	static Class* static_find_class(const StringView& name)
+	void Class::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
 	{
-		return Class::static_find(name);
-	}
-
-	static bool static_is_a(Class* self, Class* obj)
-	{
-		return self->is_a(obj);
+		Super::register_layout(r, info, downcast);
+		r.method("Engine::Object@ singletone_instance() const", &Class::singletone_instance);
 	}
 
 	static void on_init()
@@ -229,24 +222,11 @@ namespace Engine::Refl
 		info.implicit_handle = true;
 		info.no_count        = true;
 
-		auto reg               = ScriptClassRegistrar::reference_class("Engine::Refl::Class", info);
-		auto refl              = Refl::Object::new_instance<NativeStruct<Class>>("Engine::Refl::Class");
-		refl->script_type_info = reg.type_info();
-
-		refl->on_initialize += [](Refl::Object* self) {
-			auto reg = ScriptClassRegistrar::existing_class("Engine::Refl::Class");
-			reg.method("Class@ parent() const", &Class::parent);
-			reg.method("string full_name() const", method_of<String>(&Class::full_name));
-			reg.method("const Name& namespace_name() const", &Class::scope_name);
-			reg.method("const Name& name() const", &Class::name);
-			reg.method("bool is_scriptable() const", &Class::is_scriptable);
-			reg.method("Object@ singletone_instance() const", &Class::singletone_instance);
-			reg.method("bool is_asset() const", &Class::is_asset);
-			reg.method("bool is_native() const", &Class::is_native);
-			reg.static_function("Class@ static_find(const StringView& in)", static_find_class);
-			reg.method("bool is_a(const Class@) const", static_is_a);
-			reg.method("uint64 size() const", &Class::size);
-		};
+		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Class", info);
+		Class::register_layout(r, Class::static_refl_class_info(), script_downcast<Class>);
+		r.method("Class@ parent() const", &Class::parent);
+		r.static_function("Class@ static_find(Engine::StringView name, int flags = 0)", Class::static_find<Class>);
+		r.static_function("Class@ static_require(StringView name, int flags = 0)", Class::static_require<Class>);
 	}
 
 	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Class");

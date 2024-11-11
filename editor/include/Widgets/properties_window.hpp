@@ -1,10 +1,16 @@
 #pragma once
 #include <Core/etl/type_info.hpp>
-#include <Core/reflection/object.hpp>
 #include <Graphics/imgui.hpp>
 
 namespace Engine
 {
+	namespace Refl
+	{
+		struct ClassInfo;
+	}
+
+	class ScriptFunction;
+
 	class ImGuiObjectProperties : public ImGuiWidget
 	{
 	public:
@@ -39,7 +45,7 @@ namespace Engine
 		virtual const char* name() const;
 		static const char* static_name();
 
-		static void register_prop_renderer(const Refl::Object::ReflClassInfo*, const PropertyRenderer& renderer);
+		static void register_prop_renderer(const Refl::ClassInfo*, const PropertyRenderer& renderer);
 		template<typename T>
 		static void register_prop_renderer(const PropertyRenderer& renderer)
 		{

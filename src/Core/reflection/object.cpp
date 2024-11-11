@@ -4,6 +4,8 @@
 #include <Core/exception.hpp>
 #include <Core/reflection/object.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine::Refl
 {
@@ -16,8 +18,6 @@ namespace Engine::Refl
 	}// namespace Meta
 
 	static Set<Object*> m_instances;
-	static Map<StringView, Object*> m_type_name_map;
-
 	static bool m_check_exiting_instance = true;
 
 	static bool m_has_next_object_info   = false;
@@ -38,20 +38,20 @@ namespace Engine::Refl
 
 	static PostDestroyController destroy_controller(destroy_reflection_instances);
 
-	Object::ReflClassInfo::ReflClassInfo(const char* name, const ReflClassInfo* const parent)
-		: class_name(Strings::class_name_sv_of(name)), parent(parent)
+	ClassInfo::ClassInfo(const char* name, const ClassInfo* const parent)
+		: class_name(Strings::class_name_sv_of(name)), parent(parent), is_scriptable(false)
 	{}
 
-	bool Object::ReflClassInfo::is_a(const ReflClassInfo* const info) const
+	bool ClassInfo::is_a(const ClassInfo* const info) const
 	{
-		const ReflClassInfo* self = this;
+		const ClassInfo* self = this;
 		while (self && self != info) self = self->parent;
 		return self != nullptr;
 	}
 
-	const Object::ReflClassInfo* Object::static_refl_class_info()
+	ClassInfo* Object::static_refl_class_info()
 	{
-		static const ReflClassInfo info("Object", nullptr);
+		static ClassInfo info("Object", nullptr);
 		return &info;
 	}
 
@@ -110,7 +110,7 @@ namespace Engine::Refl
 		if (m_next_object_owner)
 		{
 			owner(m_next_object_owner);
-			m_next_object_owner    = nullptr;
+			m_next_object_owner = nullptr;
 		}
 
 		m_has_next_object_info = false;
@@ -120,7 +120,7 @@ namespace Engine::Refl
 	{
 		trinex_always_check(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
 		m_instances.insert(this);
-		m_next_object_name     = "";
+		m_next_object_name = "";
 	}
 
 	Object::~Object()
@@ -133,7 +133,7 @@ namespace Engine::Refl
 		}
 	}
 
-	const Object::ReflClassInfo* Object::refl_class_info() const
+	ClassInfo* Object::refl_class_info() const
 	{
 		return This::static_refl_class_info();
 	}
@@ -248,17 +248,6 @@ namespace Engine::Refl
 		out += m_name;
 	}
 
-	void Object::bind_type_name(StringView name)
-	{
-		trinex_always_check(static_find_by_type_name(name) == nullptr, "Type id currently in use");
-		m_type_name_map[name] = this;
-	}
-
-	void Object::unbind_type_name(StringView name)
-	{
-		m_type_name_map.erase(name);
-	}
-
 	const String* Object::find_metadata(const Name& name) const
 	{
 		if (m_metadata)
@@ -349,14 +338,6 @@ namespace Engine::Refl
 		return static_find(name, flags | FindFlags::IsRequired);
 	}
 
-	Object* Object::static_find_by_type_name(StringView name)
-	{
-		auto it = m_type_name_map.find(name);
-		if (it == m_type_name_map.end())
-			return nullptr;
-		return it->second;
-	}
-
 	bool Object::destroy_instance(Object* object)
 	{
 		if (!m_check_exiting_instance || m_instances.find(object) != m_instances.end())
@@ -376,4 +357,110 @@ namespace Engine::Refl
 	{
 		return m_instances.contains(object);
 	}
+
+	static Object* self_address(Object* object)
+	{
+		return object;
+	}
+
+	void Object::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	{
+		using T = Object;
+		ReflectionInitializeController().require("Engine::Name");
+
+		info->is_scriptable = true;
+
+		for (auto i = info->parent; i; i = i->parent)
+		{
+			if (!i->is_scriptable)
+			{
+				ReflectionInitializeController().require(Strings::format("Engine::Refl::{}", i->class_name.to_string()));
+			}
+		}
+
+		r.method("Engine::Refl::Object@ owner(Engine::Refl::Object@ new_owner)", method_of<Object&>(&T::owner));
+		r.method("Engine::Refl::Object@ owner()", method_of<Object*>(&T::owner));
+		r.method("const Engine::Name& name() const", &T::name);
+		r.method("string full_name() const", method_of<String>(&T::full_name));
+		r.method("string scope_name() const", &T::scope_name);
+		r.method("bool is_initialized() const", &T::is_initialized);
+
+		r.method("const string& display_name() const", method_of<const String&>(&T::display_name));
+		r.method("const string& tooltip() const", method_of<const String&>(&T::tooltip));
+		r.method("const string& description() const", method_of<const String&>(&T::description));
+		r.method("const string& group() const", method_of<const String&>(&T::group));
+
+		r.method("Engine::Refl::Object@ display_name(Engine::StringView name)", method_of<Object&>(&T::display_name));
+		r.method("Engine::Refl::Object@ tooltip(Engine::StringView tooltip)", method_of<Object&>(&T::tooltip));
+		r.method("Engine::Refl::Object@ description(Engine::StringView description)", method_of<Object&>(&T::description));
+		r.method("Engine::Refl::Object@ group(Engine::StringView group)", method_of<Object&>(&T::group));
+
+		r.method("const string& metadata(const Engine::Name& name) const", method_of<const String&>(&T::metadata));
+		r.method("Engine::Refl::Object@ metadata(const Engine::Name& name)", method_of<Object&>(&T::metadata));
+		r.method("Engine::Refl::Object@ remove_metadata(const Engine::Name& name)", &T::remove_metadata);
+
+		r.method("Engine::Refl::Object@ find(const Engine::Name& name)", &T::find<Object>);
+		r.method("Engine::Refl::ClassInfo@ refl_class_info() const", &T::refl_class_info);
+
+
+		String current_type = r.class_name();
+		for (auto i = info->parent; i; i = i->parent)
+		{
+			if (!i->is_scriptable)
+			{
+				continue;
+			}
+
+			// upcast
+			String opconv           = Strings::format("Engine::Refl::{}@ opConv()", i->class_name.to_string());
+			String const_opconv     = Strings::format("const Engine::Refl::{}@ opConv() const", i->class_name.to_string());
+			String opimplconv       = Strings::format("Engine::Refl::{}@ opImplConv()", i->class_name.to_string());
+			String const_opimplconv = Strings::format("const Engine::Refl::{}@ opImplConv() const", i->class_name.to_string());
+
+			r.method(opconv.c_str(), self_address);
+			r.method(const_opconv.c_str(), self_address);
+			r.method(opimplconv.c_str(), self_address);
+			r.method(const_opimplconv.c_str(), self_address);
+
+			// downcast
+			String opcast       = Strings::format("{}@ opCast()", current_type);
+			String const_opcast = Strings::format("const {}@ opCast() const", current_type);
+
+			auto r = ScriptClassRegistrar::existing_class(Strings::format("Engine::Refl::{}", i->class_name.to_string()));
+			r.method(opcast.c_str(), downcast);
+			r.method(const_opcast.c_str(), downcast);
+		}
+	}
+
+	static void on_init()
+	{
+		ScriptClassRegistrar::RefInfo info;
+		info.implicit_handle = true;
+		info.no_count        = true;
+
+		{
+			ScriptEnumRegistrar r("Engine::Refl::FindFlags");
+			r.set("None", FindFlags::None);
+			r.set("CreateScope", FindFlags::CreateScope);
+			r.set("IsRequired", FindFlags::IsRequired);
+			r.set("DisableReflectionCheck", FindFlags::DisableReflectionCheck);
+		}
+		{
+			auto r = ScriptClassRegistrar::reference_class("Engine::Refl::ClassInfo", info);
+			r.property("const Name class_name", &ClassInfo::class_name);
+			r.property("const ClassInfo@ parent", &ClassInfo::parent);
+			r.method("bool is_a(const ClassInfo@ info) const", &ClassInfo::is_a);
+		}
+
+		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Object", info);
+		r.static_function("Engine::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
+		r.static_function("bool is_valid(Object@ object)", Object::is_valid);
+		r.static_function("Object@ static_root()", Object::static_root);
+
+		r.static_function("Object@ static_find(Engine::StringView name, int flags = 0)", Object::static_find<Object>);
+		r.static_function("Object@ static_require(StringView name, int flags = 0)", Object::static_require<Object>);
+		Object::register_layout(r, Object::static_refl_class_info(), script_downcast<Object>);
+	}
+
+	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Object");
 }// namespace Engine::Refl

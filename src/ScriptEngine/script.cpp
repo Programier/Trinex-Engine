@@ -292,7 +292,7 @@ namespace Engine
 
 	Script::~Script()
 	{
-		unload_classes();
+		delete_reflection();
 		m_module.discard();
 		m_folder->m_scripts.erase(m_name);
 	}
@@ -372,27 +372,43 @@ namespace Engine
 		return *this;
 	}
 
+	static bool is_child_of_object(const ScriptTypeInfo& info)
+	{
+		auto p_info      = info.info();
+		auto object_info = Engine::Object::static_class_instance()->script_type_info.info();
 
-	Script& Script::load_classes()
+		while (p_info && p_info != object_info)
+		{
+			p_info = p_info->GetBaseType();
+		}
+
+		return p_info == object_info;
+	}
+
+	Script& Script::create_reflection()
 	{
 		auto count = m_module.object_type_count();
 
 		for (uint_t i = 0; i < count; ++i)
 		{
 			auto type = m_module.object_type_by_index(i);
-			load_classes(type.info());
+
+			if (is_child_of_object(type))
+			{
+				create_reflection(type.info());
+			}
 		}
 
 		return *this;
 	}
 
-	Script& Script::unload_classes()
+	Script& Script::delete_reflection()
 	{
-		auto classes = std::move(m_classes);
+		auto refls = std::move(m_refl_objects);
 
-		for (Refl::ScriptClass* class_instance : classes)
+		for (auto instance : refls)
 		{
-			Refl::Object::destroy_instance(class_instance);
+			Refl::Object::destroy_instance(instance);
 		}
 
 		return *this;
@@ -424,7 +440,7 @@ namespace Engine
 
 		ScriptEngine::exception_on_error = old_exception_on_error;
 
-		unload_classes();
+		delete_reflection();
 
 		if (m_module.is_valid())
 		{
@@ -436,7 +452,7 @@ namespace Engine
 		m_module.name(path().str());
 		m_module.as_module()->SetUserData(this, Constants::script_userdata_id);
 		load_metadata(builder);
-		load_classes();
+		create_reflection();
 
 		for (auto& [id, metadata] : m_func_metadata_map)
 		{

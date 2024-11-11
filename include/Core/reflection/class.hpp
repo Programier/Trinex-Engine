@@ -47,6 +47,7 @@ namespace Engine
 			using Struct::is_a;
 			const ScriptTypeInfo& find_valid_script_type_info() const;
 			static const Vector<Class*>& asset_classes();
+			static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
 
 			template<typename Type>
 			bool is_a() const
@@ -112,9 +113,7 @@ namespace Engine
 
 		public:
 			NativeClass(Class* parent = nullptr, BitMask flags = 0) : Class(parent, flags)
-			{
-				bind_type_name(type_info<T>::name());
-			}
+			{}
 
 			static Class* create(StringView decl, BitMask flags = 0)
 			{
@@ -140,19 +139,9 @@ namespace Engine
 				return *this;
 			}
 
-			StringView type_name() const override
-			{
-				return Engine::type_info<T>::name();
-			}
-
 			size_t size() const override
 			{
 				return sizeof(T);
-			}
-
-			~NativeClass()
-			{
-				unbind_type_name(type_info<T>::name());
 			}
 		};
 	}// namespace Refl
