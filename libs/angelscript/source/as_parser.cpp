@@ -2612,6 +2612,8 @@ asCScriptNode *asCParser::ParseScript(bool inBlock)
 			}
 			else if( t1.type == ttNamespace )
 				node->AddChildLast(ParseNamespace());
+			else if( t1.type == ttUsing )
+				node->AddChildLast(ParseUsing());
 			else if( t1.type == ttEnd )
 				return node;
 			else if( inBlock && t1.type == ttEndStatementBlock )
@@ -2729,6 +2731,42 @@ asCScriptNode *asCParser::ParseNamespace()
 			Info(TXT_WHILE_PARSING_NAMESPACE, &start);
 			return node;
 		}
+	}
+
+	return node;
+}
+
+asCScriptNode *asCParser::ParseUsing()
+{
+	asCScriptNode *node = CreateNode(snUsing);
+	if( node == 0 ) return 0;
+
+	sToken t;
+	GetToken(&t);
+	node->UpdateSourcePos(t.pos, t.length);
+
+	GetToken(&t);
+	if( t.type != ttNamespace )
+	{
+		Error(ExpectedToken(asCTokenizer::GetDefinition(ttNamespace)), &t);
+		Error(InsteadFound(t), &t);
+		return node;
+	}
+
+	do
+	{
+		node->AddChildLast(ParseIdentifier());
+		if (isSyntaxError)
+			return node;
+
+		GetToken(&t);
+	} while (t.type == ttScope);
+
+	if( t.type != ttEndStatement )
+	{
+		Error(ExpectedToken(asCTokenizer::GetDefinition(ttEndStatement)), &t);
+		Error(InsteadFound(t), &t);
+		return node;
 	}
 
 	return node;
@@ -3888,6 +3926,11 @@ asCScriptNode *asCParser::ParseStatementBlock()
 
 				// Statement block is finished
 				return node;
+			}
+			else if( t1.type == ttUsing )
+			{
+				RewindTo(&t1);
+				node->AddChildLast(ParseUsing());
 			}
 			else
 			{

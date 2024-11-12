@@ -177,7 +177,8 @@ enum eTokenType
 	ttMixin,               // mixin
 	ttAuto,                // auto
 	ttTry,                 // try
-	ttCatch                // catch
+	ttCatch,               // catch
+	ttUsing                // using
 };
 
 struct sTokenWord
@@ -299,6 +300,7 @@ sTokenWord const tokenWords[] =
 	asTokenDef("void"      , ttVoid),
 	asTokenDef("while"     , ttWhile),
 	asTokenDef("xor"       , ttXor),
+	asTokenDef("using"     , ttUsing),
 };
 
 const unsigned int numTokenWords = sizeof(tokenWords)/sizeof(sTokenWord);

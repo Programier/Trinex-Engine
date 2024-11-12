@@ -235,6 +235,7 @@
 #define TXT_NOT_VALID_REFERENCE                    "Not a valid reference"
 #define TXT_NOT_VALID_LVALUE                       "Not a valid lvalue"
 #define TXT_NOTHING_WAS_BUILT                      "Nothing was built in the module"
+#define TXT_AMBIGUOUS_SYMBOL_NAME_s                "Ambiguous symbol name '%s'"
 
 #define TXT_OBJECT_DOESNT_SUPPORT_INDEX_OP          "Type '%s' doesn't support the indexing operator"
 #define TXT_OBJECT_HANDLE_NOT_SUPPORTED             "Object handle is not supported for this type"
