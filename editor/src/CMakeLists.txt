@@ -35,4 +35,4 @@ else()
     
 endif()
 
-set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
+set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-O3" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")

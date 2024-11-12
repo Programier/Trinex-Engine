@@ -221,7 +221,6 @@ target_compile_options(TrinexEngine PUBLIC "-fno-rtti")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(TrinexEngine PRIVATE "-O3")
-    target_compile_options(TrinexEngine PRIVATE "-Os")
     target_compile_options(TrinexEngine PRIVATE "-finline-functions")
     target_compile_options(TrinexEngine PRIVATE "-funroll-loops")
     target_compile_options(TrinexEngine PRIVATE "-fomit-frame-pointer")
