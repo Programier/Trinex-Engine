@@ -1,3 +1,4 @@
+#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/shader.hpp>
 #include <d3d11_api.hpp>

@@ -230,22 +230,22 @@ namespace Engine::Refl
 
 	Object& Object::display_name(StringView name)
 	{
-		return metadata(Meta::display_name, name);
+		return metadata(Meta::display_name, String(name));
 	}
 
 	Object& Object::tooltip(StringView text)
 	{
-		return metadata(Meta::tooltip, text);
+		return metadata(Meta::tooltip, String(text));
 	}
 
 	Object& Object::description(StringView text)
 	{
-		return metadata(Meta::description, text);
+		return metadata(Meta::description, String(text));
 	}
 
 	Object& Object::group(StringView text)
 	{
-		return metadata(Meta::group, text);
+		return metadata(Meta::group, String(text));
 	}
 
 	void Object::full_name(String& out) const

@@ -1,3 +1,4 @@
+#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/texture_2D.hpp>

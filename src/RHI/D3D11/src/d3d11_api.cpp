@@ -1,7 +1,8 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/struct.hpp>
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <d3d11_api.hpp>
@@ -17,7 +18,12 @@ namespace Engine
 	extern HWND extract_d3dx11_hwnd(class Window* main_window);
 	D3D11* D3D11::m_instance = nullptr;
 
-	implement_struct_default_init(Engine::RHI, D3D11, 0);
+	namespace TRINEX_RHI
+	{
+		using D3D11 = Engine::D3D11;
+	}
+
+	implement_struct_default_init(Engine::TRINEX_RHI::D3D11, 0);
 
 	D3D11* D3D11::static_constructor()
 	{
@@ -25,7 +31,7 @@ namespace Engine
 		{
 			D3D11::m_instance                       = new D3D11();
 			D3D11::m_instance->info.name            = "D3D11";
-			D3D11::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::D3D11", true);
+			D3D11::m_instance->info.struct_instance = static_struct_instance();
 		}
 		return D3D11::m_instance;
 	}
