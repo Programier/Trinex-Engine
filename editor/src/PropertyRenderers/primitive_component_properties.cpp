@@ -15,7 +15,7 @@ namespace Engine
 		if (component && window->collapsing_header(reinterpret_cast<const void*>(&renderer), "editor/Bounds"_localized))
 		{
 			AABB_3Df bounds = component->bounding_box();
-			ImGui::Indent(Settings::ed_collapsing_indent);
+			ImGui::Indent();
 
 			ImGui::TableNextRow();
 			ImGui::TableSetColumnIndex(0);
@@ -35,7 +35,7 @@ namespace Engine
 			ImGui::SetNextItemWidth(item_width);
 			ImGui::InputFloat3("##MaxValue", const_cast<float*>(&bounds.max().x), "%.3f", ImGuiInputTextFlags_ReadOnly);
 
-			ImGui::Unindent(Settings::ed_collapsing_indent);
+			ImGui::Unindent();
 		}
 	}
 

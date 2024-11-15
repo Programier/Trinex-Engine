@@ -327,7 +327,7 @@ namespace Engine
 
 		if (folder == ScriptEngine::scripts_folder() || ImGui::CollapsingHeader(folder->name().c_str()))
 		{
-			ImGui::Indent(Settings::ed_collapsing_indent);
+			ImGui::Indent();
 
 			for (auto [name, sub_folder] : folder->sub_folders())
 			{
@@ -353,7 +353,7 @@ namespace Engine
 				}
 			}
 
-			ImGui::Unindent(Settings::ed_collapsing_indent);
+			ImGui::Unindent();
 		}
 
 		return *this;
