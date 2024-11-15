@@ -768,11 +768,11 @@ namespace Engine::ShaderCompiler
 		submit_compiled_source(code, glsl_code.data(), glsl_code.size() + 1);
 	}
 
-
 	struct VulkanRequestSetup : RequestSetupInterface {
 		void setup(SlangCompileRequest* request) const override
 		{
 			request->setCodeGenTarget(SLANG_SPIRV);
+			request->addPreprocessorDefine("TRINEX_VULKAN_RHI", "1");
 
 			Vector<const char*> arguments;
 
@@ -801,37 +801,27 @@ namespace Engine::ShaderCompiler
 
 
 			request->processCommandLineArguments(arguments.data(),
-			                                     arguments.size());// TODO: Maybe it can be optimized to avoid parsing arguments?
+												 arguments.size());// TODO: Maybe it can be optimized to avoid parsing arguments?
 		}
 	};
 
-	static ShaderSource create_vulkan_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-	                                         MessageList& errors)
-	{
-		static VulkanRequestSetup setup;
-		return compile_shader(slang_source, definitions, errors, &setup);
-	}
+	struct OpenGLRequestSetup : RequestSetupInterface {
+		void setup(SlangCompileRequest* request) const override
+		{
+			request->setCodeGenTarget(SLANG_SPIRV);
+			request->addPreprocessorDefine("TRINEX_OPENGL_RHI", "1");
 
-	static ShaderSource create_opengles_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-	                                           MessageList& errors)
-	{
-		ShaderSource source = create_vulkan_shader(slang_source, definitions, errors);
+			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 
-		compile_spirv_to_glsl_es(source.vertex_code);
-		compile_spirv_to_glsl_es(source.tessellation_control_code);
-		compile_spirv_to_glsl_es(source.tessellation_code);
-		compile_spirv_to_glsl_es(source.geometry_code);
-		compile_spirv_to_glsl_es(source.fragment_code);
-		compile_spirv_to_glsl_es(source.compute_code);
+			auto profile = global_session()->findProfile("spirv_1_0");
+			request->setTargetProfile(0, profile);
 
-		return source;
-	}
-
-	static ShaderSource create_opengl_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-	                                         MessageList& errors)
-	{
-		return create_opengles_shader(slang_source, definitions, errors);
-	}
+			const char* argument = "-emit-spirv-via-glsl";
+			request->processCommandLineArguments(&argument, 1);// TODO: Maybe it can be optimized to avoid parsing arguments?
+		}
+	};
 
 	struct D3D11RequestSetup : RequestSetupInterface {
 		void setup(SlangCompileRequest* request) const override
@@ -847,15 +837,11 @@ namespace Engine::ShaderCompiler
 
 			auto profile = global_session()->findProfile("sm_4_0");
 			request->setTargetProfile(0, profile);
+			request->addPreprocessorDefine("TRINEX_INVERT_UV", "1");
+			request->addPreprocessorDefine("TRINEX_D3D11_RHI", "1");
+			request->addPreprocessorDefine("TRINEX_DIRECT_X_RHI", "1");
 		}
 	};
-
-	static ShaderSource create_d3d11_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
-	                                        MessageList& errors)
-	{
-		static D3D11RequestSetup setup;
-		return compile_shader(slang_source, definitions, errors, &setup);
-	}
 
 	implement_class_default_init(Engine::ShaderCompiler::OPENGL_Compiler, 0);
 	implement_class_default_init(Engine::ShaderCompiler::VULKAN_Compiler, 0);
@@ -864,7 +850,15 @@ namespace Engine::ShaderCompiler
 
 	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
-		auto source = create_opengl_shader(slang_source, material->compile_definitions, errors);
+		OpenGLRequestSetup setup;
+		auto source = compile_shader(slang_source, material->compile_definitions, errors, &setup);
+
+		compile_spirv_to_glsl_es(source.vertex_code);
+		compile_spirv_to_glsl_es(source.tessellation_control_code);
+		compile_spirv_to_glsl_es(source.tessellation_code);
+		compile_spirv_to_glsl_es(source.geometry_code);
+		compile_spirv_to_glsl_es(source.fragment_code);
+		compile_spirv_to_glsl_es(source.compute_code);
 
 		if (errors.empty())
 		{
@@ -876,7 +870,8 @@ namespace Engine::ShaderCompiler
 
 	bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
-		auto source = create_vulkan_shader(slang_source, material->compile_definitions, errors);
+		VulkanRequestSetup setup;
+		auto source = compile_shader(slang_source, material->compile_definitions, errors, &setup);
 
 		if (errors.empty())
 		{
@@ -893,15 +888,8 @@ namespace Engine::ShaderCompiler
 
 	bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
 	{
-		auto definitions = material->compile_definitions;
-		{
-			ShaderDefinition def;
-			def.key   = "TRINEX_INVERT_UV";
-			def.value = "1";
-			definitions.push_back(def);
-		}
-
-		auto source = create_d3d11_shader(slang_source, definitions, errors);
+		D3D11RequestSetup setup;
+		auto source = compile_shader(slang_source, material->compile_definitions, errors, &setup);
 
 		if (errors.empty())
 		{

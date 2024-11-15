@@ -12,6 +12,7 @@ struct VertexOutput
 uniform float4 mask;
 uniform Sampler2D texture;
 uniform uint mip_level;
+uniform float power;
 
 [shader("vertex")]
 void vs_main(in VertexInput input, out VertexOutput out)
@@ -30,5 +31,5 @@ float4 fs_main(in VertexOutput input) : SV_Target
 		discard;
 	}
 
-    return float4( out_color.xyz, 1.f );
+    return float4(pow(out_color.xyz, power), 1.f);
 }

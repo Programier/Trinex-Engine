@@ -14,20 +14,22 @@ namespace Engine
 		Pointer<Texture2D> m_texture;
 		Pointer<RenderSurface> m_surface;
 		ImGuiObjectProperties* m_properties = nullptr;
-
-		uint_t m_mip_index = 0;
+		uint_t m_mip_index                  = 0;
 
 		union
 		{
 			struct {
-				bool red   = true;
-				bool green = true;
-				bool blue  = true;
-				bool alpha = true;
+				bool m_red   = true;
+				bool m_green = true;
+				bool m_blue  = true;
+				bool m_alpha = true;
 			};
 
-			bool channels_status[4];
+			bool m_channels_status[4];
 		};
+
+		float m_pow        = 1.f;
+		bool m_live_update = false;
 
 		TextureEditorClient& render_menu_bar();
 		TextureEditorClient& render_dock();

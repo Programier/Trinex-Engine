@@ -107,7 +107,13 @@ float3 unproject_point(float x, float y, float z)
 float compute_depth(float3 pos) 
 {
     float4 clip_space_pos = mul(globals.projview, float4(pos, 1.0));
-    return (clip_space_pos.z / clip_space_pos.w);
+    float result = (clip_space_pos.z / clip_space_pos.w);
+
+#ifdef TRINEX_OPENGL_RHI
+    result = (result + 1.0) / 2.0;
+#endif
+
+    return result;
 }
 
 [shader("vertex")]
@@ -131,3 +137,4 @@ float4 fs_main(in VertexOutput input, out float depth : SV_Depth) : SV_Target
     GridDrawer drawer = GridDrawer(frag_pos);
     return drawer.draw() * float4(t > 0.0);
 }
+

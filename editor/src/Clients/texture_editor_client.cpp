@@ -60,9 +60,9 @@ namespace Engine
 
 		for (int i = 0; const char* name : channel_names)
 		{
-			if (ImGui::Selectable(name, channels_status[i], 0, {height, height}))
+			if (ImGui::Selectable(name, m_channels_status[i], 0, {height, height}))
 			{
-				channels_status[i] = !channels_status[i];
+				m_channels_status[i] = !m_channels_status[i];
 				on_object_parameters_changed();
 			}
 
@@ -71,13 +71,22 @@ namespace Engine
 
 			auto center = (max + min) * 0.5f;
 
-			if (channels_status[i])
+			if (m_channels_status[i])
 				draw_list->AddCircleFilled(center, height / 2.f, colors[i]);
 			else
 				draw_list->AddCircle(center, height / 2.f, colors[i], 0, 2.f);
 
 			++i;
 		}
+
+		ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+		if (ImGui::InputFloat("Pow", &m_pow))
+		{
+			m_pow = glm::clamp(m_pow, 0.001f, 100.f);
+			on_object_parameters_changed();
+		}
+
+		ImGui::Checkbox("Live Update", &m_live_update);
 
 		ImGui::EndMainMenuBar();
 		return *this;
@@ -124,7 +133,7 @@ namespace Engine
 		return *this;
 	}
 
-	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4D mask)
+	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4D mask, float pow = 1.f)
 	{
 		RenderSurface* surfaces[] = {surface};
 
@@ -145,16 +154,19 @@ namespace Engine
 		rhi->bind_render_target(surfaces, nullptr);
 
 		static Name mip_level_name = "mip_level";
+		static Name power          = "power";
 		auto mat                   = EditorResources::texture_editor_material;
 
 		auto p_mask      = mat->find_parameter<MaterialParameters::Float4>(Name::mask);
 		auto p_texture   = mat->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
 		auto p_mip_level = mat->find_parameter<MaterialParameters::UInt>(mip_level_name);
+		auto p_power     = mat->find_parameter<MaterialParameters::Float>(power);
 
 		p_mask->value      = mask;
 		p_texture->texture = texture;
 		p_texture->sampler = EditorResources::default_sampler;
 		p_mip_level->value = mip;
+		p_power->value     = pow;
 
 		mat->apply();
 		DefaultResources::Buffers::screen_position->rhi_bind(0);
@@ -169,13 +181,18 @@ namespace Engine
 		if (!m_texture)
 			return *this;
 
+		if (!reinit && glm::any(glm::epsilonNotEqual(m_surface->size(), m_texture->size(), {0.001, 0.001})))
+		{
+			reinit = true;
+		}
+
 		if (reinit)
 		{
 			m_surface->init(ColorFormat::R8G8B8A8, m_texture->size(m_mip_index));
 		}
 
-		Vector4D mask = Vector4D(red ? 1.f : 0.f, green ? 1.f : 0.f, blue ? 1.f : 0.f, alpha ? 1.f : 0.f);
-		render_thread()->call_function(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask);
+		Vector4D mask = Vector4D(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
+		render_thread()->call_function(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask, m_pow);
 		return *this;
 	}
 
@@ -210,8 +227,8 @@ namespace Engine
 
 		ImGui::End();
 
-		Vector4D mask = Vector4D(red ? 1.f : 0.f, green ? 1.f : 0.f, blue ? 1.f : 0.f, alpha ? 1.f : 0.f);
-		render_thread()->call_function(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask);
+		if (m_live_update)
+			on_object_parameters_changed();
 
 		return *this;
 	}
@@ -229,6 +246,7 @@ namespace Engine
 			m_properties->update(object);
 
 			on_object_parameters_changed(true);
+			m_live_update = texture->is_instance_of<RenderSurface>();
 		}
 		return *this;
 	}
