@@ -16,6 +16,7 @@ namespace Engine::Refl
 	implement_reflect_type(FloatProperty);
 	implement_reflect_type(EnumProperty);
 	implement_reflect_type(VectorProperty);
+	implement_reflect_type(MatrixProperty);
 	implement_reflect_type(StringProperty);
 	implement_reflect_type(NameProperty);
 	implement_reflect_type(PathProperty);
@@ -171,6 +172,11 @@ namespace Engine::Refl
 		}
 
 		return Strings::format("{}{}D", vector_name, length());
+	}
+
+	String MatrixProperty::script_type_name() const
+	{
+		return "";
 	}
 
 	EnumProperty::EnumProperty(Enum* enum_instance, BitMask flags) : Super(flags), m_enum(enum_instance)

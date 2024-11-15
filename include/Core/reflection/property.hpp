@@ -6,7 +6,7 @@ namespace Engine
 {
 	class Object;
 	class ScriptFunction;
-}
+}// namespace Engine
 
 namespace Engine::Refl
 {
@@ -195,15 +195,6 @@ private:
 
 		trinex_refl_prop_type_filter(IsVector<T>::value);
 
-	protected:
-		template<typename T>
-		static Property* construct_element_properties()
-		{
-			constexpr typename T::value_type T::*prop = nullptr;
-			static auto result                        = Object::new_instance<NativeProperty<prop>>(nullptr, "Value");
-			return result;
-		}
-
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 
@@ -213,19 +204,60 @@ private:
 		virtual Property* element_property() const = 0;
 		virtual size_t element_size() const        = 0;
 
-		virtual void* element_address(void* context, size_t index, bool is_vector_context = false)                   = 0;
-		virtual const void* element_address(const void* context, size_t index, bool is_vector_context = false) const = 0;
+		virtual void* element_address(void* context, size_t index, bool is_matrix_context = false)                   = 0;
+		virtual const void* element_address(const void* context, size_t index, bool is_matrix_context = false) const = 0;
 
 		template<typename T>
-		T* element_address_as(void* context, size_t index, bool is_vector_context = false)
+		T* element_address_as(void* context, size_t index, bool is_matrix_context = false)
 		{
-			return reinterpret_cast<T*>(element_address(context, index, is_vector_context));
+			return reinterpret_cast<T*>(element_address(context, index, is_matrix_context));
 		}
 
 		template<typename T>
 		const T* element_address_as(const void* context, size_t index, bool is_vector_context = false) const
 		{
 			return reinterpret_cast<const T*>(element_address(context, index, is_vector_context));
+		}
+	};
+
+	class ENGINE_EXPORT MatrixProperty : public PrimitiveProperty
+	{
+		declare_reflect_type(MatrixProperty, PrimitiveProperty);
+
+	private:
+		template<typename T>
+		struct IsMatrix : std::false_type {
+		};
+
+		template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
+		struct IsMatrix<glm::mat<C, R, T, Q>> : std::true_type {
+		};
+
+		trinex_refl_prop_type_filter(IsMatrix<T>::value);
+
+	public:
+		using PrimitiveProperty::PrimitiveProperty;
+
+		String script_type_name() const override;
+
+		virtual size_t columns() const         = 0;
+		virtual size_t rows() const            = 0;
+		virtual Property* row_property() const = 0;
+		virtual size_t row_size() const        = 0;
+
+		virtual void* row_address(void* context, size_t index, bool is_vector_context = false)                   = 0;
+		virtual const void* row_address(const void* context, size_t index, bool is_vector_context = false) const = 0;
+
+		template<typename T>
+		T* row_address_as(void* context, size_t index, bool is_vector_context = false)
+		{
+			return reinterpret_cast<T*>(row_address(context, index, is_vector_context));
+		}
+
+		template<typename T>
+		const T* row_address_as(const void* context, size_t index, bool is_vector_context = false) const
+		{
+			return reinterpret_cast<const T*>(row_address(context, index, is_vector_context));
 		}
 	};
 
@@ -517,6 +549,72 @@ private:
 				context = this->address(context);
 
 			return reinterpret_cast<const byte*>(context) + sizeof(typename T::value_type) * index;
+		}
+
+		~NativePropertyTyped() override
+		{
+			Refl::Object::destroy_instance(m_inner_property);
+		}
+	};
+
+	template<auto prop, typename T>
+		requires(MatrixProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, MatrixProperty> {
+	private:
+		Property* m_inner_property = nullptr;
+
+	public:
+		using Super = TypedProperty<prop, MatrixProperty>;
+		using Super::Super;
+
+		NativePropertyTyped& construct() override
+		{
+			Super::construct();
+			constexpr typename T::row_type T::*inner_prop = nullptr;
+			m_inner_property                              = Object::new_instance<NativeProperty<inner_prop>>(nullptr, "Value");
+			return *this;
+		}
+
+		size_t columns() const override
+		{
+			return T::col_type::length();
+		}
+
+		size_t rows() const override
+		{
+			return T::row_type::length();
+		}
+
+		Property* row_property() const override
+		{
+			return m_inner_property;
+		}
+
+		size_t row_size() const override
+		{
+			return sizeof(typename T::row_type);
+		}
+
+		void* row_address(void* context, size_t index, bool is_vector_context = false) override
+		{
+			if (index >= static_cast<size_t>(T::row_type::length()))
+				return nullptr;
+
+			if (!is_vector_context)
+				context = this->address(context);
+
+			return reinterpret_cast<byte*>(context) + sizeof(typename T::row_type) * index;
+		}
+
+		const void* row_address(const void* context, size_t index, bool is_vector_context = false) const override
+		{
+			if (index >= static_cast<size_t>(T::row_type::length()))
+				return nullptr;
+
+			if (!is_vector_context)
+				context = this->address(context);
+
+			return reinterpret_cast<const byte*>(context) + sizeof(typename T::row_type) * index;
 		}
 
 		~NativePropertyTyped() override

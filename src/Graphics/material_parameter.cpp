@@ -182,10 +182,14 @@ namespace Engine::MaterialParameters
 	}
 
 	implement_parameter(Float3x3)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Float4x4)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Sampler)
 	{

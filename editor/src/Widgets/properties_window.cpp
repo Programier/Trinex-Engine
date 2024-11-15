@@ -427,6 +427,43 @@ namespace Engine
 		return false;
 	}
 
+	static bool render_matrix_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	{
+		auto prop         = prop_cast_checked<Refl::MatrixProperty>(prop_base);
+		auto row_prop     = prop->row_property();
+		const size_t rows = prop->rows();
+
+		read_only = read_only | row_prop->is_read_only();
+
+		bool is_changed = false;
+
+
+		if (window->collapsing_header(prop))
+		{
+			ImGui::Indent();
+			const char* names[] = {"rX", "rY", "rZ", "rW"};
+
+			for (size_t i = 0; i < rows; i++)
+			{
+				ImGui::TableNextRow();
+
+				window->next_prop_name(names[i]);
+
+				void* address = prop->row_address(context, i);
+				bool changed  = window->render_property(address, row_prop, read_only);
+
+				if (changed)
+				{
+					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
+					is_changed = changed;
+				}
+			}
+			ImGui::Unindent();
+		}
+
+		return is_changed;
+	}
+
 	static bool render_enum_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop      = prop_cast_checked<Refl::EnumProperty>(prop_base);
@@ -628,6 +665,8 @@ namespace Engine
 
 			size_t count = prop->length(context);
 
+			static Vector<String> index_names;
+
 			for (size_t i = 0; i < count; ++i)
 			{
 				ImGui::TableNextRow();
@@ -644,6 +683,11 @@ namespace Engine
 				}
 
 				void* array_object = prop->at(context, i);
+
+				if (i >= index_names.size())
+					index_names.push_back(Strings::format("{}", i + 1));
+
+				window->next_prop_name(index_names[i]);
 
 				if (window->render_property(array_object, element_prop, element_prop->is_read_only()))
 				{
@@ -668,6 +712,7 @@ namespace Engine
 		T::register_prop_renderer<Refl::IntegerProperty>(render_integer_property);
 		T::register_prop_renderer<Refl::FloatProperty>(render_float_property);
 		T::register_prop_renderer<Refl::VectorProperty>(render_vector_property);
+		T::register_prop_renderer<Refl::MatrixProperty>(render_matrix_property);
 		T::register_prop_renderer<Refl::EnumProperty>(render_enum_property);
 		T::register_prop_renderer<Refl::StringProperty>(render_string_property);
 		T::register_prop_renderer<Refl::NameProperty>(render_name_property);
