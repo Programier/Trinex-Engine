@@ -413,6 +413,12 @@ namespace Engine
 		return ScriptFunction(m_info->GetFuncdefSignature());
 	}
 
+	bool ScriptTypeInfo::is_implicit_handle() const
+	{
+		check_info(false);
+		return (m_info->GetFlags() & asOBJ_IMPLICIT_HANDLE) == asOBJ_IMPLICIT_HANDLE;
+	}
+
 	bool ScriptTypeInfo::is_script_object() const
 	{
 		check_info(false);

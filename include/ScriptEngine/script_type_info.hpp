@@ -93,6 +93,7 @@ namespace Engine
 		ScriptFunction funcdef_signature() const;
 
 		// Flags processing
+		bool is_implicit_handle() const;
 		bool is_script_object() const;
 		bool is_native() const;
 		bool is_native_inheritable() const;

@@ -56,7 +56,7 @@ namespace Engine::MaterialParameters
 	{
 		if (!Super::serialize(ar))
 			return false;
-		return sampler.serialize(ar);
+		return ar.serialize_reference(sampler);
 	}
 
 	Sampler2D::Sampler2D()
@@ -122,40 +122,64 @@ namespace Engine::MaterialParameters
 	}
 
 	implement_parameter(Bool2)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Bool3)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Bool4)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Int2)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Int3)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Int4)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(UInt2)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(UInt3)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(UInt4)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Float2)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Float3)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Float4)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, value);
+	}
 
 	implement_parameter(Float3x3)
 	{}
@@ -164,7 +188,9 @@ namespace Engine::MaterialParameters
 	{}
 
 	implement_parameter(Sampler)
-	{}
+	{
+		trinex_refl_prop(static_class_instance(), This, sampler);
+	}
 
 	implement_parameter(Sampler2D)
 	{

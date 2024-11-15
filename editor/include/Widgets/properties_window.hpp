@@ -18,6 +18,7 @@ namespace Engine
 		using PropertyRenderer = Function<bool(ImGuiObjectProperties* wnd, void* obj, Refl::Property* prop, bool read_only)>;
 
 	private:
+		String m_next_prop_name;
 		Object* m_object;
 		Identifier m_destroy_id;
 
@@ -37,9 +38,14 @@ namespace Engine
 
 		ImGuiObjectProperties& update(Object* object);
 		const PropertiesMap& properties_map(Refl::Struct* self);
+
+		bool collapsing_header(Refl::Property* prop);
 		static bool collapsing_header(const void* id, const char* format, ...);
 
-		bool render_property(void* object, Refl::Property* prop, bool read_only = false);
+		void next_prop_name(const String& name);
+		const String& next_prop_name() const;
+		void render_name(Refl::Property* prop);
+		bool render_property(void* object, Refl::Property* prop, bool read_only = false, bool allow_script_call = true);
 		bool render_struct_properties(void* object, class Refl::Struct* struct_class, bool read_only = false);
 
 		virtual const char* name() const;

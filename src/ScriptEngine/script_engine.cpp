@@ -47,6 +47,10 @@ namespace Engine
 		}
 	}
 
+	static void angel_script_translate_exception(asIScriptContext* ctx, void*)
+	{
+		throw;
+	}
 
 	Vector<class Script*> ScriptEngine::m_scripts;
 	asIScriptEngine* ScriptEngine::m_engine      = nullptr;
@@ -93,6 +97,7 @@ namespace Engine
 		m_engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
 		m_engine->SetEngineProperty(asEP_FOREACH_SUPPORT, false);
 		m_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
+		m_engine->SetTranslateAppExceptionCallback(asFUNCTION(angel_script_translate_exception), nullptr, asCALL_CDECL);
 
 #if ARCH_X86_64 || ARCH_ARM
 		if constexpr (enable_jit)

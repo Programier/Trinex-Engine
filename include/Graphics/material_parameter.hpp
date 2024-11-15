@@ -161,7 +161,7 @@ namespace Engine
 			declare_class(Sampler, Parameter);
 
 		public:
-			Pointer<Engine::Sampler> sampler;
+			Engine::Sampler* sampler;
 
 			Sampler();
 			Sampler& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
