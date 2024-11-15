@@ -26,7 +26,7 @@ namespace Engine::ShaderCompiler
 		return                                                                                                                   \
 		{}
 
-	static Vector<Refl::Class* (*) (slang::TypeReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)>
+	static Vector<Refl::Class* (*) (slang::VariableLayoutReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)>
 			m_param_parsers;
 
 #define return_nullptr_if_not(cond)                                                                                              \
@@ -35,9 +35,26 @@ namespace Engine::ShaderCompiler
 
 	struct ParamParser {
 		using Scalar = slang::TypeReflection::ScalarType;
+		using SVR    = slang::VariableReflection;
+		using SVLR   = slang ::VariableLayoutReflection;
+
+		static bool has_model_attribute(SVR* var)
+		{
+			auto count = var->getUserAttributeCount();
+			for (unsigned int i = 0; i < count; ++i)
+			{
+				if (auto attrib = var->getUserAttributeByIndex(i))
+				{
+					if (std::strcmp(attrib->getName(), "is_model") == 0)
+						return true;
+				}
+			}
+
+			return false;
+		}
 
 		template<typename Type, Scalar required_scalar>
-		static Refl::Class* primitive(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		static Refl::Class* primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			return_nullptr_if_not(rows == 1);
 			return_nullptr_if_not(columns == 1);
@@ -47,7 +64,7 @@ namespace Engine::ShaderCompiler
 		}
 
 		template<typename Type, Scalar required_scalar>
-		static Refl::Class* vector(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		static Refl::Class* vector(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			auto len = static_cast<uint_t>(decltype(Type::value)::length());
 			return_nullptr_if_not(rows == 1);
@@ -57,9 +74,11 @@ namespace Engine::ShaderCompiler
 			return Type::static_class_instance();
 		}
 
-		template<typename Type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
-		static Refl::Class* matrix(slang::TypeReflection* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<typename Type, Scalar required_scalar, uint_t required_rows, uint_t required_columns, bool allow_model = false>
+		static Refl::Class* matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
+			return_nullptr_if_not(!has_model_attribute(var->getVariable()) || allow_model);
+			return_nullptr_if_not(rows == required_rows);
 			return_nullptr_if_not(rows == required_rows);
 			return_nullptr_if_not(columns == required_columns);
 			return_nullptr_if_not(elements == 0);
@@ -97,6 +116,7 @@ namespace Engine::ShaderCompiler
 
 		m_param_parsers.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
 		m_param_parsers.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
+		m_param_parsers.push_back(T::matrix<MP::Model4x4, Scalar::Float32, 4, 4, true>);
 	}
 
 	static PreInitializeController preinit(setup_parsers);
@@ -275,16 +295,17 @@ namespace Engine::ShaderCompiler
 		return true;
 	}
 
-	static Refl::Class* find_scalar_parameter_type(slang::TypeReflection* reflection)
+	static Refl::Class* find_scalar_parameter_type(slang::VariableLayoutReflection* var)
 	{
-		auto rows     = reflection->getRowCount();
-		auto colums   = reflection->getColumnCount();
-		auto elements = reflection->getElementCount();
-		auto scalar   = reflection->getScalarType();
+		auto reflection = var->getType();
+		auto rows       = reflection->getRowCount();
+		auto colums     = reflection->getColumnCount();
+		auto elements   = reflection->getElementCount();
+		auto scalar     = reflection->getScalarType();
 
 		for (auto& parser : m_param_parsers)
 		{
-			if (auto type = parser(reflection, rows, colums, elements, scalar))
+			if (auto type = parser(var, rows, colums, elements, scalar))
 			{
 				return type;
 			}
@@ -329,7 +350,7 @@ namespace Engine::ShaderCompiler
 			auto name = param->getName();
 			trinex_always_check(name, "Failed to get parameter name!");
 			MaterialParameterInfo info;
-			info.type = find_scalar_parameter_type(param->getType());
+			info.type = find_scalar_parameter_type(param);
 
 			if (info.type == nullptr)
 			{

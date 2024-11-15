@@ -10,7 +10,6 @@ namespace Engine
 	}
 
 	class ScriptFunction;
-
 	class ImGuiObjectProperties : public ImGuiWidget
 	{
 	public:
@@ -21,6 +20,7 @@ namespace Engine
 		String m_next_prop_name;
 		Object* m_object;
 		Identifier m_destroy_id;
+		bool m_is_property_skipped;
 
 		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
 		PropertiesMap& build_props_map(Refl::Struct* self);
@@ -42,6 +42,9 @@ namespace Engine
 		bool collapsing_header(Refl::Property* prop);
 		static bool collapsing_header(const void* id, const char* format, ...);
 
+		void mark_property_skipped();
+		bool is_property_skipped() const;
+		void create_row();
 		void next_prop_name(const String& name);
 		const String& next_prop_name() const;
 		void render_name(Refl::Property* prop);

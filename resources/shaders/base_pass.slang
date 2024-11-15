@@ -14,13 +14,12 @@ struct VertexOutput
 };
 
 uniform Sampler2D base_color;
-uniform Sampler2D emissive;
-uniform Sampler2D opacity;
-uniform Sampler2D metalic;
-uniform Sampler2D specular;
-uniform Sampler2D roughness;
-uniform Sampler2D AO;
-
+uniform float3 emissive;
+uniform float opacity;
+uniform float metalic;
+uniform float specular;
+uniform float roughness;
+uniform float ao;
 
 [shader("vertex")]
 VertexOutput vs_main(in VertexFactory input)
@@ -42,10 +41,10 @@ GBufferFragmentOutput fs_main(in VertexOutput input, in bool IsFrontFace : SV_Is
 	GBufferFragmentOutput output;
 	float2 uv = input.uv;
 
-	output.base_color = float4(base_color.Sample(uv).rgb, opacity.Sample(uv).r);
+	output.base_color = float4(base_color.Sample(uv).rgb, opacity);
     output.position = input.world_position;
     output.normal = float4(input.world_normal, IsFrontFace ? 1.0 : -1.0);
-    output.emissive = emissive.Sample(uv);
-    output.msra = float4(metalic.Sample(uv).r, specular.Sample(uv).r, roughness.Sample(uv).r, AO.Sample(uv).r);
+    output.emissive = float4(emissive, 1.0);
+    output.msra = float4(metalic, specular, roughness, ao);
 	return output;
 }

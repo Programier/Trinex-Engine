@@ -69,7 +69,7 @@ namespace Engine
 		}
 	};
 
-	ImGuiObjectProperties::ImGuiObjectProperties() : m_object(nullptr)
+	ImGuiObjectProperties::ImGuiObjectProperties() : m_object(nullptr), m_is_property_skipped(false)
 	{
 		m_destroy_id = GarbageCollector::on_destroy.push([this](Object* object) {
 			if (object == m_object)
@@ -170,6 +170,28 @@ namespace Engine
 		return map;
 	}
 
+	void ImGuiObjectProperties::mark_property_skipped()
+	{
+		m_is_property_skipped = true;
+	}
+
+	bool ImGuiObjectProperties::is_property_skipped() const
+	{
+		return m_is_property_skipped;
+	}
+
+	void ImGuiObjectProperties::create_row()
+	{
+		if (m_is_property_skipped)
+		{
+			m_is_property_skipped = false;
+		}
+		else
+		{
+			ImGui::TableNextRow();
+		}
+	}
+
 	void ImGuiObjectProperties::next_prop_name(const String& name)
 	{
 		m_next_prop_name = name;
@@ -238,9 +260,9 @@ namespace Engine
 
 			if (!group.empty())
 			{
-				ImGui::TableNextRow();
+				create_row();
 				open = collapsing_header(group.c_str(), "%s", group.c_str());
-				ImGui::Indent(Settings::ed_collapsing_indent);
+				ImGui::Indent();
 			}
 
 			if (open)
@@ -249,7 +271,7 @@ namespace Engine
 				{
 					if (!prop->is_hidden())
 					{
-						ImGui::TableNextRow();
+						create_row();
 						if (render_property(object, prop, read_only))
 							has_changed_props = true;
 					}
@@ -258,7 +280,7 @@ namespace Engine
 
 			if (!group.empty())
 			{
-				ImGui::Unindent(Settings::ed_collapsing_indent);
+				ImGui::Unindent();
 			}
 		}
 
@@ -445,7 +467,7 @@ namespace Engine
 
 			for (size_t i = 0; i < rows; i++)
 			{
-				ImGui::TableNextRow();
+				window->create_row();
 
 				window->next_prop_name(names[i]);
 
@@ -557,9 +579,9 @@ namespace Engine
 		if (window->collapsing_header(prop))
 		{
 			push_props_id(struct_address, prop);
-			ImGui::Indent(Settings::ed_collapsing_indent);
+			ImGui::Indent();
 			is_changed = window->render_struct_properties(struct_address, struct_instance, read_only);
-			ImGui::Unindent(Settings::ed_collapsing_indent);
+			ImGui::Unindent();
 			pop_props_id();
 
 			if (is_changed)
@@ -660,7 +682,7 @@ namespace Engine
 
 		if (window->collapsing_header(prop))
 		{
-			ImGui::Indent(Settings::ed_collapsing_indent);
+			ImGui::Indent();
 			Refl::Property* element_prop = prop->element_property();
 
 			size_t count = prop->length(context);
@@ -669,7 +691,7 @@ namespace Engine
 
 			for (size_t i = 0; i < count; ++i)
 			{
-				ImGui::TableNextRow();
+				window->create_row();
 				ImGui::PushID(i);
 
 				ImGui::TableSetColumnIndex(2);
@@ -698,7 +720,7 @@ namespace Engine
 				ImGui::PopID();
 			}
 
-			ImGui::Unindent(Settings::ed_collapsing_indent);
+			ImGui::Unindent();
 		}
 
 		return is_changed;

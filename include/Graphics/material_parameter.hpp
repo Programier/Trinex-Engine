@@ -156,6 +156,14 @@ namespace Engine
 			Float4x4& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
 		};
 
+		class ENGINE_EXPORT Model4x4 : public Parameter
+		{
+			declare_class(Model4x4, Parameter);
+
+		public:
+			Model4x4& apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info) override;
+		};
+
 		class ENGINE_EXPORT Sampler : public Parameter
 		{
 			declare_class(Sampler, Parameter);

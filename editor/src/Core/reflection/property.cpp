@@ -76,7 +76,10 @@ namespace Engine::Refl
 		auto properties_count  = class_instance->properties().size();
 
 		if (properties_count == 0)
+		{
+			renderer->mark_property_skipped();
 			return false;
+		}
 
 		renderer->next_prop_name((*address)->name().to_string());
 

@@ -42,6 +42,13 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
+	Model4x4& Model4x4::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
+	{
+		auto matrix = component->proxy()->world_transform().matrix();
+		rhi->update_local_parameter(&matrix, sizeof(matrix), info->offset);
+		return *this;
+	}
+
 	Sampler::Sampler() : sampler(DefaultResources::Samplers::default_sampler)
 	{}
 
@@ -190,6 +197,9 @@ namespace Engine::MaterialParameters
 	{
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
+
+	implement_parameter(Model4x4)
+	{}
 
 	implement_parameter(Sampler)
 	{
