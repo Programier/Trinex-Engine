@@ -101,7 +101,7 @@ namespace Engine
 		static auto* domain_enum = Refl::Enum::static_find("Engine::MaterialDomain", Refl::FindFlags::IsRequired);
 		Name name                = domain_enum->entry(static_cast<EnumerateType>(domain))->name;
 
-		Path file_path = Path(Project::shaders_dir) / "editor/material_templates" / name.c_str() + ".slang";
+		Path file_path = Path("[shaders_dir]:/TrinexEditor/material_templates") / name.c_str() + ".slang";
 		FileReader reader(file_path);
 
 		if (reader.is_open())

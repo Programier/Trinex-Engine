@@ -101,6 +101,9 @@ namespace Engine
 			}
 			ImGui::Separator();
 
+			m_is_property_skipped = false;
+			m_next_prop_name      = "";
+
 			ImGui::BeginTable("##PropTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
 			auto width = ImGui::GetContentRegionAvail().x;
 			ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, width * 0.45);
@@ -551,22 +554,21 @@ namespace Engine
 	static bool render_path_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
 	{
 		window->render_name(prop);
+		Path* value = prop->address_as<Path>(context);
 
-		if (Path* value = prop->address_as<Path>(context))
+		ImGuiWindow* imgui_window = ImGuiWindow::current();
+		const char* text          = value->empty() ? "None" : value->c_str();
+
+		if (ImGui::Selectable(text) && !read_only)
 		{
-			ImGuiWindow* imgui_window = ImGuiWindow::current();
-			const char* text          = value->empty() ? "None" : value->c_str();
+			Function<void(const Path&)> callback = [context, prop, value](const Path& path) {
+				*value = path;
+				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			};
 
-			if (ImGui::Selectable(text) && !read_only)
-			{
-				Function<void(const Path&)> callback = [context, prop, value](const Path& path) {
-					*value = path;
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
-				};
-
-				imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
-			}
+			imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
 		}
+
 		return false;
 	}
 
@@ -597,6 +599,12 @@ namespace Engine
 	{
 		Refl::ObjectProperty* prop = prop_cast_checked<Refl::ObjectProperty>(prop_base);
 		auto object                = prop->object(context);
+
+		if (object == nullptr)
+		{
+			window->mark_property_skipped();
+			return false;
+		}
 
 		if (prop->is_composite())
 		{

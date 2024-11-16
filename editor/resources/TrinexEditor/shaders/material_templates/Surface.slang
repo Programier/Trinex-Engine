@@ -135,6 +135,6 @@ VertexOutput vs_main(in VertexFactory vertex_factory)
 	return output;
 }
 
-#include "editor/material_templates/gbuffer.slang"
+#include "material_templates/gbuffer.slang"
 
 #endif

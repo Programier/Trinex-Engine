@@ -10,13 +10,8 @@ namespace Engine
 {
 	implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
 	{
-		auto* self           = This::static_class_instance();
-		auto change_callback = [](const Refl::PropertyChangedEvent& event) {
-			auto self         = event.context_as<This>();
-			self->shader_path = self->shader_path.relative(Project::shaders_dir);
-		};
-
-		trinex_refl_prop(self, This, shader_path)->push_change_listener(change_callback).tooltip("Path to slang file");
+		auto* self = This::static_class_instance();
+		trinex_refl_prop(self, This, shader_path)->tooltip("Path to slang file");
 	}
 
 	bool ShaderMaterial::shader_source(String& out_source)
