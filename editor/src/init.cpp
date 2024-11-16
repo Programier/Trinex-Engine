@@ -13,6 +13,8 @@
 #include <Graphics/pipeline_buffers.hpp>
 #include <Platform/platform.hpp>
 
+#include <Graphics/shader_material.hpp>
+
 namespace Engine
 {
 	static void skip_destroy_assets(Object* object)
@@ -45,6 +47,7 @@ namespace Engine
 		Material* point_light_overlay_material              = nullptr;
 		Material* spot_light_overlay_material               = nullptr;
 		Material* texture_editor_material                   = nullptr;
+		Material* imgui                                     = nullptr;
 		PositionVertexBuffer* spot_light_overlay_positions  = nullptr;
 		PositionVertexBuffer* point_light_overlay_positions = nullptr;
 	}// namespace EditorResources
@@ -106,7 +109,7 @@ namespace Engine
 
 		using FS = VFS::NativeFileSystem;
 
-		fs->mount("[assets_dir]:/Editor", "Editor Assets", new FS(exec_dir / "resources/TrinexEditor/assets"));
+		fs->mount("[assets_dir]:/TrinexEditor", "Editor Assets", new FS(exec_dir / "resources/TrinexEditor/assets"));
 		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/TrinexEditor/configs"));
 		fs->mount("[shaders_dir]:/TrinexEditor", "Editor Shaders", new FS(exec_dir / "resources/TrinexEditor/shaders"));
 	}
@@ -125,22 +128,25 @@ namespace Engine
 	        reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
 	reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
-		EditorResources::default_icon      = load_object<Texture2D>("Editor::Textures::DefaultIcon");
-		EditorResources::add_icon          = load_object<Texture2D>("Editor::Textures::AddIcon");
-		EditorResources::move_icon         = load_object<Texture2D>("Editor::Textures::MoveIcon");
-		EditorResources::remove_icon       = load_object<Texture2D>("Editor::Textures::RemoveIcon");
-		EditorResources::rotate_icon       = load_object<Texture2D>("Editor::Textures::RotateIcon");
-		EditorResources::scale_icon        = load_object<Texture2D>("Editor::Textures::ScaleIcon");
-		EditorResources::select_icon       = load_object<Texture2D>("Editor::Textures::SelectIcon");
-		EditorResources::more_icon         = load_object<Texture2D>("Editor::Textures::MoreIcon");
-		EditorResources::blueprint_texture = load_object<Texture2D>("Editor::Textures::BlueprintBackground");
-		EditorResources::light_sprite      = load_object<Texture2D>("Editor::Textures::PointLightSprite");
+		EditorResources::default_icon      = load_object<Texture2D>("TrinexEditor::Textures::DefaultIcon");
+		EditorResources::add_icon          = load_object<Texture2D>("TrinexEditor::Textures::AddIcon");
+		EditorResources::move_icon         = load_object<Texture2D>("TrinexEditor::Textures::MoveIcon");
+		EditorResources::remove_icon       = load_object<Texture2D>("TrinexEditor::Textures::RemoveIcon");
+		EditorResources::rotate_icon       = load_object<Texture2D>("TrinexEditor::Textures::RotateIcon");
+		EditorResources::scale_icon        = load_object<Texture2D>("TrinexEditor::Textures::ScaleIcon");
+		EditorResources::select_icon       = load_object<Texture2D>("TrinexEditor::Textures::SelectIcon");
+		EditorResources::more_icon         = load_object<Texture2D>("TrinexEditor::Textures::MoreIcon");
+		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
+		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
 
-		EditorResources::default_sampler              = load_object<Sampler>("Editor::Samplers::DefaultSampler");
-		EditorResources::grid_material                = load_object<Material>("Editor::Materials::GridMaterial");
-		EditorResources::point_light_overlay_material = load_object<Material>("Editor::Materials::PointLightOverlay");
-		EditorResources::spot_light_overlay_material  = load_object<Material>("Editor::Materials::SpotLightOverlay");
-		EditorResources::texture_editor_material      = load_object<Material>("Editor::Materials::TextureEditorMaterial");
+		EditorResources::default_sampler              = load_object<Sampler>("TrinexEditor::Samplers::DefaultSampler");
+		EditorResources::grid_material                = load_object<Material>("TrinexEditor::Materials::GridMaterial");
+		EditorResources::point_light_overlay_material = load_object<Material>("TrinexEditor::Materials::PointLightOverlay");
+		EditorResources::spot_light_overlay_material  = load_object<Material>("TrinexEditor::Materials::SpotLightOverlay");
+		EditorResources::texture_editor_material      = load_object<Material>("TrinexEditor::Materials::TextureEditorMaterial");
+		EditorResources::imgui                        = load_object<Material>("TrinexEditor::Materials::ImGuiMaterial");
+
+		reinterpret_cast<ShaderMaterial*>(EditorResources::imgui)->shader_path = "[shaders_dir]:/TrinexEditor/imgui.slang";
 
 		create_point_light_overlay_positions();
 		create_spot_light_overlay_positions();

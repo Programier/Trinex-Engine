@@ -20,7 +20,7 @@ namespace Engine
 		{
 			Surface type              = static_cast<Surface>(texture_index);
 			m_surfaces[texture_index] = Object::new_instance<RenderSurface>(
-			        name_of(type), Object::static_find_package("Engine::EngineRenderTargets", true));
+					name_of(type), Object::static_find_package("TrinexEngine::RenderTargets", true));
 		}
 	}
 

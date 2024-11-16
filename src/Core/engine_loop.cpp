@@ -76,7 +76,7 @@ namespace Engine
 
 		using FS = VFS::NativeFileSystem;
 
-		vfs->mount("[assets_dir]:/DefaultPackage", "Editor Assets", new FS(exec_dir / "resources/TrinexEngine/assets"));
+		vfs->mount("[assets_dir]:/TrinexEngine", "Editor Assets", new FS(exec_dir / "resources/TrinexEngine/assets"));
 		vfs->mount("[configs_dir]:/engine", "Editor Configs", new FS(exec_dir / "resources/TrinexEngine/configs"));
 		vfs->mount("[shaders_dir]:/TrinexEngine", "Editor Shaders", new FS(exec_dir / "resources/TrinexEngine/shaders"));
 

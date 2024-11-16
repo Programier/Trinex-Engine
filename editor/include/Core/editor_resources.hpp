@@ -26,6 +26,7 @@ namespace Engine
 		extern Material* point_light_overlay_material;
 		extern Material* spot_light_overlay_material;
 		extern Material* texture_editor_material;
+		extern Material* imgui;
 		extern PositionVertexBuffer* spot_light_overlay_positions;
 		extern PositionVertexBuffer* point_light_overlay_positions;
 	}// namespace EditorResources

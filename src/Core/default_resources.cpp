@@ -36,7 +36,6 @@ namespace Engine
 			ENGINE_EXPORT Material* spot_light        = nullptr;
 			ENGINE_EXPORT Material* directional_light = nullptr;
 			ENGINE_EXPORT Material* ambient_light     = nullptr;
-			ENGINE_EXPORT Material* imgui             = nullptr;
 		}// namespace Materials
 
 		namespace Meshes
@@ -70,21 +69,20 @@ namespace Engine
 	void load_default_resources()
 	{
 		using namespace DefaultResources;
-		Samplers::default_sampler    = load_object<Sampler>("DefaultPackage::Samplers::DefaultSampler");
-		Textures::default_texture    = load_object<Texture2D>("DefaultPackage::Textures::DefaultTexture");
-		Buffers::screen_position     = load_object<PositionVertexBuffer>("DefaultPackage::Buffers::ScreenPositionBuffer");
-		Materials::sprite            = load_object<Material>("DefaultPackage::Materials::SpriteMaterial");
-		Materials::screen            = load_object<Material>("DefaultPackage::Materials::ScreenMaterial");
-		Materials::base_pass         = load_object<Material>("DefaultPackage::Materials::BasePassMaterial");
-		Materials::batched_lines     = load_object<Material>("DefaultPackage::Materials::BatchedLinesMaterial");
-		Materials::batched_triangles = load_object<Material>("DefaultPackage::Materials::BatchedTrianglesMaterial");
-		Materials::point_light       = load_object<Material>("DefaultPackage::Materials::PointLightMaterial");
-		Materials::spot_light        = load_object<Material>("DefaultPackage::Materials::SpotLightMaterial");
-		Materials::directional_light = load_object<Material>("DefaultPackage::Materials::DirectionalLightMaterial");
-		Materials::ambient_light     = load_object<Material>("DefaultPackage::Materials::AmbientLightMaterial");
-		Materials::imgui             = load_object<Material>("DefaultPackage::Materials::ImGuiMaterial");
-		Meshes::cube                 = load_object<StaticMesh>("DefaultPackage::Meshes::Cube");
-		Meshes::sphere               = load_object<StaticMesh>("DefaultPackage::Meshes::Sphere");
-		Meshes::cylinder             = load_object<StaticMesh>("DefaultPackage::Meshes::Cylinder");
+		Samplers::default_sampler    = load_object<Sampler>("TrinexEngine::Samplers::DefaultSampler");
+		Textures::default_texture    = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
+		Buffers::screen_position     = load_object<PositionVertexBuffer>("TrinexEngine::Buffers::ScreenPositionBuffer");
+		Materials::sprite            = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
+		Materials::screen            = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
+		Materials::base_pass         = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
+		Materials::batched_lines     = load_object<Material>("TrinexEngine::Materials::BatchedLinesMaterial");
+		Materials::batched_triangles = load_object<Material>("TrinexEngine::Materials::BatchedTrianglesMaterial");
+		Materials::point_light       = load_object<Material>("TrinexEngine::Materials::PointLightMaterial");
+		Materials::spot_light        = load_object<Material>("TrinexEngine::Materials::SpotLightMaterial");
+		Materials::directional_light = load_object<Material>("TrinexEngine::Materials::DirectionalLightMaterial");
+		Materials::ambient_light     = load_object<Material>("TrinexEngine::Materials::AmbientLightMaterial");
+		Meshes::cube                 = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
+		Meshes::sphere               = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
+		Meshes::cylinder             = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
 	}
 }// namespace Engine

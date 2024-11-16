@@ -38,7 +38,6 @@ namespace Engine
 			ENGINE_EXPORT extern Material* spot_light;
 			ENGINE_EXPORT extern Material* directional_light;
 			ENGINE_EXPORT extern Material* ambient_light;
-			ENGINE_EXPORT extern Material* imgui;
 		}// namespace Materials
 
 		namespace Meshes

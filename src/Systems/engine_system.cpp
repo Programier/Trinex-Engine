@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/thread.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/rhi.hpp>
@@ -13,7 +13,7 @@ namespace Engine
 	{
 		Super::create();
 
-		Package* package = Package::static_find_package("Engine::Systems", false);
+		Package* package = Package::static_find_package("TrinexEngine::Systems", false);
 		if (package)
 		{
 			package->flags(Object::IsSerializable, false);

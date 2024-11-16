@@ -48,7 +48,7 @@ namespace Engine
 			throw EngineException("Each class based from Engine::System must be registered!");
 		}
 
-		rename(_class->name().c_str(), static_find_package("Engine::Systems", true));
+		rename(_class->name().c_str(), static_find_package("TrinexEngine::Systems", true));
 
 		debug_log("System", "Created system '%s'", string_name().c_str());
 		m_is_initialized = true;

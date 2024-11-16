@@ -1,5 +1,5 @@
 #include <Core/base_engine.hpp>
-#include <Core/default_resources.hpp>
+#include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
@@ -352,7 +352,7 @@ namespace Engine
 			        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 			texture.texture->init(ColorFormat::R8G8B8A8, Size2D(static_cast<float>(width), static_cast<float>(height)), pixels,
 			                      static_cast<size_t>(width * height * 4));
-			auto package = Package::static_find_package("Engine::ImGui", true);
+			auto package = Package::static_find_package("TrinexEditor::ImGui", true);
 			package->add_object(texture.texture);
 
 			texture.sampler = Object::new_instance<EngineResource<Sampler>>(
@@ -395,7 +395,7 @@ namespace Engine
 			if (bd->font_texture)
 				imgui_trinex_destroy_device_objects();
 
-			bd->material          = DefaultResources::Materials::imgui;
+			bd->material          = EditorResources::imgui;
 			bd->texture_parameter = bd->material->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
 			bd->model_parameter   = bd->material->find_parameter<MaterialParameters::Float4x4>(Name::model);
 
