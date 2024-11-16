@@ -22,13 +22,13 @@ else()
         add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC})
     endif()
 
-				if(TRINEX_ENGINE_EDITOR_LINK_DIRECTORIES)
-								target_link_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_LINK_DIRECTORIES})
-				endif()
-				
-				if(TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES)
-								target_include_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES})
-				endif()
+    if(TRINEX_ENGINE_EDITOR_LINK_DIRECTORIES)
+        target_link_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_LINK_DIRECTORIES})
+    endif()
+
+    if(TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES)
+        target_include_directories(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_INCLUDE_DIRECTORIES})
+    endif()
 				
     target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine ${TRINEX_ENGINE_EDITOR_LIBRARIES})
     install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})

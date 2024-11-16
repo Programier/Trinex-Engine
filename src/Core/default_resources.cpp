@@ -4,7 +4,6 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/package.hpp>
-#include <DefaultResources/default.hpp>
 
 namespace Engine
 {
@@ -61,29 +60,31 @@ namespace Engine
 		return nullptr;
 	}
 
-#define load_default_asset(name, object, class_name, group_name)                                                                 \
-	DefaultResources::group_name::object = reinterpret_cast<class_name*>(                                                        \
-	        load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));                        \
-	reinterpret_cast<Object*>(DefaultResources::group_name::object)->add_reference()
-
+	template<typename T>
+	static T* load_object(const char* name)
+	{
+		Object* obj = Object::load_object(name);
+		return reinterpret_cast<T*>(obj);
+	}
 
 	void load_default_resources()
 	{
-		load_default_asset(DefaultSampler, default_sampler, Sampler, Samplers);
-		load_default_asset(DefaultTexture, default_texture, Texture2D, Textures);
-		load_default_asset(ScreenPositionBuffer, screen_position, PositionVertexBuffer, Buffers);
-		load_default_asset(SpriteMaterial, sprite, Material, Materials);
-		load_default_asset(ScreenMaterial, screen, Material, Materials);
-		load_default_asset(BasePassMaterial, base_pass, Material, Materials);
-		load_default_asset(BatchedLinesMaterial, batched_lines, Material, Materials);
-		load_default_asset(BatchedTrianglesMaterial, batched_triangles, Material, Materials);
-		load_default_asset(PointLightMaterial, point_light, Material, Materials);
-		load_default_asset(SpotLightMaterial, spot_light, Material, Materials);
-		load_default_asset(DirectionalLightMaterial, directional_light, Material, Materials);
-		load_default_asset(AmbientLightMaterial, ambient_light, Material, Materials);
-		load_default_asset(ImGuiMaterial, imgui, Material, Materials);
-		load_default_asset(Cube, cube, StaticMesh, Meshes);
-		load_default_asset(Sphere, sphere, StaticMesh, Meshes);
-		load_default_asset(Cylinder, cylinder, StaticMesh, Meshes);
+		using namespace DefaultResources;
+		Samplers::default_sampler    = load_object<Sampler>("DefaultPackage::Samplers::DefaultSampler");
+		Textures::default_texture    = load_object<Texture2D>("DefaultPackage::Textures::DefaultTexture");
+		Buffers::screen_position     = load_object<PositionVertexBuffer>("DefaultPackage::Buffers::ScreenPositionBuffer");
+		Materials::sprite            = load_object<Material>("DefaultPackage::Materials::SpriteMaterial");
+		Materials::screen            = load_object<Material>("DefaultPackage::Materials::ScreenMaterial");
+		Materials::base_pass         = load_object<Material>("DefaultPackage::Materials::BasePassMaterial");
+		Materials::batched_lines     = load_object<Material>("DefaultPackage::Materials::BatchedLinesMaterial");
+		Materials::batched_triangles = load_object<Material>("DefaultPackage::Materials::BatchedTrianglesMaterial");
+		Materials::point_light       = load_object<Material>("DefaultPackage::Materials::PointLightMaterial");
+		Materials::spot_light        = load_object<Material>("DefaultPackage::Materials::SpotLightMaterial");
+		Materials::directional_light = load_object<Material>("DefaultPackage::Materials::DirectionalLightMaterial");
+		Materials::ambient_light     = load_object<Material>("DefaultPackage::Materials::AmbientLightMaterial");
+		Materials::imgui             = load_object<Material>("DefaultPackage::Materials::ImGuiMaterial");
+		Meshes::cube                 = load_object<StaticMesh>("DefaultPackage::Meshes::Cube");
+		Meshes::sphere               = load_object<StaticMesh>("DefaultPackage::Meshes::Sphere");
+		Meshes::cylinder             = load_object<StaticMesh>("DefaultPackage::Meshes::Cylinder");
 	}
 }// namespace Engine

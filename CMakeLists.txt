@@ -10,7 +10,6 @@ if(WIN32)
 endif()
 
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
-option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" OFF)
 option(TRINEX_AS_EXECUTABLE "Compile trinex engine to executable file instead of shared library" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -39,7 +38,7 @@ endif()
 
 ######################## ENGINE COMPILATION FUNCTIONS ########################
 set_property(GLOBAL PROPERTY trinex_private_libraries freetype asmjit zlib_library lz4_static)
-set_property(GLOBAL PROPERTY trinex_private_headers_dir "${TRINEX_ENGINE_ROOT}/include-internal/")
+set_property(GLOBAL PROPERTY trinex_private_headers_dir)
 set_property(GLOBAL PROPERTY trinex_public_libraries fmt-header-only stb_library)
 set_property(GLOBAL PROPERTY trinex_public_headers_dir ${TRINEX_ENGINE_ROOT}/include)
 set_property(GLOBAL PROPERTY trinex_link_directories)
@@ -167,33 +166,6 @@ add_trinex_sources( ${TRINEX_SRC_WINDOW_SRC}
 add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
 add_subdirectory(${TRINEX_SRC_RHI_DIR})
 
-# Rebuild headers
-if(TRINEX_REBUILD_HEADERS)
-    add_executable(header_generator header_generator/main.cpp)
-    set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BasePassMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultSampler.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BatchedLinesMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BatchedTrianglesMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenPositionBuffer.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpriteMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultTexture.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/PointLightMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpotLightMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DirectionalLightMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/AmbientLightMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ImGuiMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Cube.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Cylinder.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Sphere.tasset)
-    add_custom_target(
-        TrinexEngineHeaders ALL
-        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" ${TRINEX_INTERNAL_ASSETS}
-        COMMENT "Generating default package header"
-    )
-    add_trinex_dependencies(TrinexEngineHeaders)
-endif()
-
 # Collect sources of editor, if engine builds to executable file
 if (TRINEX_WITH_EDITOR AND TRINEX_AS_EXECUTABLE)
     add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
@@ -253,7 +225,9 @@ get_property(TRINEX_ENGINE_PUBLIC_INCLUDE_DIRS GLOBAL PROPERTY trinex_public_hea
 target_include_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_PUBLIC_INCLUDE_DIRS})
 
 get_property(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS GLOBAL PROPERTY trinex_private_headers_dir)
-target_include_directories(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS})
+if(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS)
+    target_include_directories(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS})
+endif()
 
 get_property(TRINEX_ENGINE_LINK_DIRECTORIES GLOBAL PROPERTY trinex_link_directories)
 target_link_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_LINK_DIRECTORIES})

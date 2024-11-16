@@ -106,9 +106,9 @@ namespace Engine
 
 		using FS = VFS::NativeFileSystem;
 
-		fs->mount("[assets_dir]:/Editor", "Editor Assets", new FS(exec_dir / "resources/editor/assets"));
-		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/editor/configs"));
-		fs->mount("[shaders_dir]:/editor", "Editor Shaders", new FS(exec_dir / "resources/editor/shaders"));
+		fs->mount("[assets_dir]:/Editor", "Editor Assets", new FS(exec_dir / "resources/TrinexEditor/assets"));
+		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/TrinexEditor/configs"));
+		fs->mount("[shaders_dir]:/TrinexEditor", "Editor Shaders", new FS(exec_dir / "resources/TrinexEditor/shaders"));
 	}
 
 	template<typename T>
@@ -150,7 +150,6 @@ namespace Engine
 	}
 
 	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
-
 
 	static void load_configs()
 	{

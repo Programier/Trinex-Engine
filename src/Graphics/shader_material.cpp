@@ -21,7 +21,7 @@ namespace Engine
 
 	bool ShaderMaterial::shader_source(String& out_source)
 	{
-		FileReader reader(Path(Project::shaders_dir) / shader_path);
+		FileReader reader(shader_path);
 		if (reader.is_open())
 		{
 			out_source = reader.read_string();

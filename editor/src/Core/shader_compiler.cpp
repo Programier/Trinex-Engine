@@ -457,6 +457,12 @@ namespace Engine::ShaderCompiler
 	static void host_setup_request(SlangCompileRequest* request, const Vector<ShaderDefinition>& definitions)
 	{
 		Path shaders_dir = rootfs()->native_path(Project::shaders_dir);
+
+		auto engine_path = rootfs()->native_path("[shaders_dir]:/TrinexEditor");
+		auto editor_path = rootfs()->native_path("[shaders_dir]:/TrinexEngine");
+
+		request->addSearchPath(engine_path.c_str());
+		request->addSearchPath(editor_path.c_str());
 		request->addSearchPath(shaders_dir.c_str());
 
 		for (const auto& definition : definitions)

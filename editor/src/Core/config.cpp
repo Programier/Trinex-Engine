@@ -4,7 +4,7 @@
 
 namespace Engine::Settings
 {
-	String ed_font_path = "resources/editor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+	String ed_font_path = "resources/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	float ed_font_size  = 18.f;
 	bool ed_show_grid   = true;
 

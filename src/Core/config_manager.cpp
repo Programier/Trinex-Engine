@@ -368,7 +368,7 @@ namespace Engine
 
 	void ConfigManager::initialize()
 	{
-		load_config_from_file("engine.config");
+		load_config_from_file("engine/engine.config");
 		ConfigsInitializeController().execute();
 	}
 }// namespace Engine
