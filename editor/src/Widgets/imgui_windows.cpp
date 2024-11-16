@@ -31,8 +31,9 @@ namespace Engine
 		bool open                     = true;
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
-		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		auto size = ImGui::GetFontSize();
+		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
 
 		if (ImGui::Begin(name(), &open, window_flags))
 		{
@@ -88,8 +89,9 @@ namespace Engine
 	{
 		bool open = true;
 
-		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		auto size = ImGui::GetFontSize();
+		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -166,9 +168,10 @@ namespace Engine
 	bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
 	{
 		bool open = true;
+		auto size = ImGui::GetFontSize();
 
-		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -194,7 +197,7 @@ namespace Engine
 		{
 			ImGui::Separator();
 
-			if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
+			if (ImGui::Button("editor/Create"_localized))
 			{
 				Refl::Class* class_instance = m_filtered_classes[current_index];
 				Object* created_object      = class_instance->create_object(new_asset_name);
@@ -230,8 +233,9 @@ namespace Engine
 
 		bool open = true;
 
-		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+		auto size = ImGui::GetFontSize();
+		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Object: %s", m_object->full_name().c_str());
@@ -489,9 +493,10 @@ namespace Engine
 
 	bool ImGuiSpawnNewActor::render(RenderViewport* viewport)
 	{
-		m_is_open = true;
+		m_is_open      = true;
+		auto font_size = ImGui::GetFontSize();
 		ImGui::SetNextWindowPos(ImGui::ImVecFrom(m_monitor_size / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
-		ImGui::SetNextWindowSize({900, 450}, ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize({50 * font_size, 25 * font_size}, ImGuiCond_Appearing);
 		ImGui::Begin(name(), &m_is_open);
 
 		begin_dock_space();
