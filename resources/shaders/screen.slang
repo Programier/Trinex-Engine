@@ -6,7 +6,7 @@ uniform float2 min_point;
 uniform float2 max_point;
 
 [shader("vertex")]
-float2 vs_main(uint vertex : SV_VertexID, out float4 out_position : SV_Position) : TEXCOORD0
+float2 vs_main(in uint vertex : SV_VertexID, out float4 out_position : SV_Position) : TEXCOORD0
 {
 	out_position = FullScreenQuad::vertex_by_index(vertex);
 	return platform_validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_point - min_point)) + min_point);

@@ -1,14 +1,20 @@
+#include "trinex/quad.slang"
 #include "platform.slang"
+#include "common.slang"
 
 Sampler2D base_color;
 Sampler2D msra;
 uniform float3 ambient_color;
 
 [shader("vertex")]
-float2 vs_main(in float3 position : POSITION0, out float4 out_position : SV_Position) : TEXCOORD0
+float2 vs_main(in uint vertex : SV_VertexID, out float4 out_position : SV_Position) : TEXCOORD0
 {
-    out_position = float4(position, 1.0);
-    return platform_validate_uv((float2(position.x, position.y) * 0.5) + float2(0.5, 0.5));
+    out_position = FullScreenQuad::vertex_by_index(vertex);
+    float2 uv = FullScreenQuad::uv_by_index(vertex);
+    float2 min = globals.viewport.xy / globals.size;
+    float2 max = (globals.viewport.xy + globals.viewport.zw) / globals.size;
+
+    return platform_validate_uv((uv * (max - min)) + min);
 }
 
 

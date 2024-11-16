@@ -116,7 +116,6 @@ namespace Engine
 		}
 
 		layer->bind_material(material);
-		layer->bind_vertex_buffer(DefaultResources::Buffers::screen_position, 0, 0);
 		layer->draw(6, 0);
 		return *this;
 	}

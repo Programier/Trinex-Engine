@@ -163,7 +163,6 @@ namespace Engine
 			}
 
 			material->apply();
-			DefaultResources::Buffers::screen_position->rhi_bind(0, 0);
 			rhi->draw(6, 0);
 		}
 	}

@@ -1,3 +1,4 @@
+#include "trinex/quad.slang"
 #include "common.slang"
 #include "math.slang"
 #include "platform.slang"
@@ -81,10 +82,13 @@ float3 fresnel_schlick(in float cos_theta, in float3 F0)
 }
 
 [shader("vertex")]
-float4 vs_main(in float3 position : POSITION0, out float2 uv : TEXCOORD0) : SV_Position
+float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0) : SV_Position
 {
-    uv = platform_validate_uv((float2(1, 1) + position.xy) / float2(2, 2));
-    return float4(position, 1.0);
+    float2 min_v = globals.viewport.xy / globals.size;
+    float2 max_v = (globals.viewport.xy + globals.viewport.zw) / globals.size;
+    uv = platform_validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_v - min_v)) + min_v);
+
+    return FullScreenQuad::vertex_by_index(vertex);
 }
 
 [shader("fragment")]
@@ -96,7 +100,6 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     float4 emissive = emissive_texture.Sample(uv); 
     float4 msra = msra_texture.Sample(uv);
 
-
     float3 light_out_color;
     if (length(normal.rgb) < 0.1)
     {
@@ -105,7 +108,11 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     else
     {
         float3 view_direction = normalize(globals.camera_location - position.xyz); // Using view direction from fragment location to camera location
-        float3 surface_normal = normalize(normal.xyz) * normal.w;
+        float3 surface_normal = normalize(normal.xyz);
+
+        if(dot(surface_normal, view_direction) < 0.0)
+            surface_normal = -surface_normal;
+
         float3 f0 = lerp(float3(0.04), base_color.rgb, float3(msra.r));
 
 #if POINT_LIGHT || SPOT_LIGHT

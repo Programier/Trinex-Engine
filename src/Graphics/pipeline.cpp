@@ -577,6 +577,7 @@ namespace Engine
 	{
 		auto* self = static_class_instance();
 
+		trinex_refl_prop(self, This, m_vertex_shader, Refl::Property::IsNotSerializable)->is_composite(true);
 		trinex_refl_prop(self, This, depth_test);
 		trinex_refl_prop(self, This, stencil_test);
 		trinex_refl_prop(self, This, input_assembly);
