@@ -1274,10 +1274,6 @@ namespace Engine
 				monitor.WorkSize = monitor.MainSize = ImVec2(info.size.x, info.size.y);
 				monitor.DpiScale                    = info.dpi / 96.0f;
 
-				if (n == 0)
-				{
-				}
-
 				monitor.PlatformHandle = reinterpret_cast<void*>(n);
 				platform_io.Monitors.push_back(monitor);
 			}
