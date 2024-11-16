@@ -539,8 +539,6 @@ namespace Engine
 			m_state.viewport.size = ImGui::EngineVecFrom(size);
 			camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
-			//auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
-
 			auto k = viewport()->size() / SceneRenderTargets::instance()->size();
 
 			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, k.y}, {k.x, 0.f});
@@ -638,7 +636,6 @@ namespace Engine
 
 		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
 							 m_camera_speed);
-		camera->on_transform_changed();
 
 		struct UpdateView : ExecutableObject {
 			CameraView view;
