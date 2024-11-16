@@ -145,6 +145,18 @@ namespace Engine
 		return ((value != values) && ...);
 	}
 
+	template<typename... Args>
+	inline constexpr bool all_of(Args&&... args)
+	{
+		return (args && ...);
+	}
+
+	template<typename... Args>
+	inline constexpr bool any_of(Args&&... args)
+	{
+		return (args || ...);
+	}
+
 	template<typename FieldType, typename ClassType>
 	inline size_t offset_of(FieldType ClassType::*field)
 	{

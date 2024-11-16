@@ -1,12 +1,15 @@
+#include "trinex/quad.slang"
 #include "platform.slang"
 
 Sampler2D screen_texture;
+uniform float2 min_point;
+uniform float2 max_point;
 
 [shader("vertex")]
-float2 vs_main(in float3 position : POSITION0, out float4 out_position : SV_Position) : TEXCOORD0
+float2 vs_main(uint vertex : SV_VertexID, out float4 out_position : SV_Position) : TEXCOORD0
 {
-	out_position = float4(position, 1.0);
-	return platform_validate_uv((float2(position.x, position.y) * 0.5) + float2(0.5, 0.5));
+	out_position = FullScreenQuad::vertex_by_index(vertex);
+	return platform_validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_point - min_point)) + min_point);
 }
 
 [shader("fragment")]

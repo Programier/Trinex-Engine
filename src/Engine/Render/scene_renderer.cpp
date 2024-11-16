@@ -60,6 +60,33 @@ namespace Engine
 		return SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR);
 	}
 
+	SceneRenderer& SceneRenderer::blit(class Texture2D* texture, const Vector2D& min, const Vector2D& max)
+	{
+		static Name screen_texture = "screen_texture";
+		static Name min_point      = "min_point";
+		static Name max_point      = "max_point";
+
+		Material* material = DefaultResources::Materials::screen;
+
+		if (material == nullptr)
+			return *this;
+
+		auto* texture_param  = Object::instance_cast<MaterialParameters::Sampler2D>(material->find_parameter(screen_texture));
+		auto min_point_param = Object::instance_cast<MaterialParameters::Float2>(material->find_parameter(min_point));
+		auto max_point_param = Object::instance_cast<MaterialParameters::Float2>(material->find_parameter(max_point));
+
+		if (!all_of(texture_param, min_point_param, max_point_param))
+			return *this;
+
+		texture_param->texture = texture;
+		min_point_param->value = min;
+		max_point_param->value = max;
+
+		material->apply();
+		rhi->draw(6, 0);
+		return *this;
+	}
+
 	SceneRenderer& SceneRenderer::render(const SceneView& view, RenderViewport* viewport)
 	{
 		if (scene == nullptr)
@@ -121,26 +148,6 @@ namespace Engine
 
 #define declare_rendering_function() [](SceneRenderer * self, RenderViewport * viewport, SceneLayer * layer)
 
-	static void copy_gbuffer_to_scene_output()
-	{
-		static Name screen_texture      = "screen_texture";
-		Material* material              = DefaultResources::Materials::screen;
-		PositionVertexBuffer* positions = DefaultResources::Buffers::screen_position;
-
-		if (material && positions)
-		{
-			if (auto* texture = Object::instance_cast<MaterialParameters::Sampler2D>(material->find_parameter(screen_texture)))
-			{
-				Texture2D* base_color = reinterpret_cast<class Texture2D*>(
-				        SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor));
-				texture->texture = base_color;
-				material->apply();
-				positions->rhi_bind(0, 0);
-				rhi->draw(6, 0);
-			}
-		}
-	}
-
 	static void render_ambient_light_only(Scene* scene)
 	{
 		static Name name_ambient_color = "ambient_color";
@@ -167,7 +174,13 @@ namespace Engine
 
 		if (self->view_mode() == ViewMode::Unlit)
 		{
-			copy_gbuffer_to_scene_output();
+			auto texture = SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor);
+			auto& params = self->global_shader_parameters();
+			auto& vp     = params.viewport;
+
+			auto min = Vector2D(vp.x, vp.y) / params.size;
+			auto max = Vector2D(vp.x + vp.z, vp.y + vp.w) / params.size;
+			self->blit(reinterpret_cast<Texture2D*>(texture), min, max);
 		}
 		else if (self->view_mode() == ViewMode::Lit)
 		{

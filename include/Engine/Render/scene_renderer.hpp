@@ -61,6 +61,8 @@ namespace Engine
 		virtual SceneRenderer& render(const SceneView& view, class RenderViewport* viewport);
 		virtual RenderSurface* output_surface() const;
 
+		SceneRenderer& blit(class Texture2D* texture, const Vector2D& min = {0, 0}, const Vector2D& max = {1, 1});
+
 		// Components rendering
 		template<typename ComponentType>
 		FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component)
