@@ -170,4 +170,21 @@ namespace Engine
 		static T value{};
 		return value;
 	}
+
+	template<typename Type>
+	void fake_delete(Type*)
+	{}
+
+	template<typename Type>
+	void delete_value(Type* value)
+	{
+		delete value;
+	}
+
+	template<typename Type>
+	void delete_array(Type* array)
+	{
+		delete[] array;
+	}
+
 }// namespace Engine

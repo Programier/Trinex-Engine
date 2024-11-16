@@ -67,18 +67,22 @@ namespace Engine
 
 	static void initialize_filesystem()
 	{
+		auto callback = delete_value<VFS::FileSystem>;
+
 		auto vfs                       = VFS::RootFS::create_instance();
 		auto exec_dir                  = Platform::find_exec_directory();
 		VFS::NativeFileSystem* exec_fs = new VFS::NativeFileSystem(exec_dir);
 
-		vfs->mount("[exec_dir]:", "Executable Dir", exec_fs, [](VFS::FileSystem* system) { delete system; });
+		vfs->mount("[exec_dir]:", "Executable Dir", exec_fs, callback);
 		vfs->mount("", "Root", exec_fs);// Temporary root directory is mounted to exec directory
 
 		using FS = VFS::NativeFileSystem;
 
-		vfs->mount("[assets_dir]:/TrinexEngine", "Editor Assets", new FS(exec_dir / "resources/TrinexEngine/assets"));
-		vfs->mount("[configs_dir]:/engine", "Editor Configs", new FS(exec_dir / "resources/TrinexEngine/configs"));
-		vfs->mount("[shaders_dir]:/TrinexEngine", "Editor Shaders", new FS(exec_dir / "resources/TrinexEngine/shaders"));
+		// clang-format off
+		vfs->mount("[assets_dir]:/TrinexEngine", "Editor Assets", new FS(exec_dir / "resources/TrinexEngine/assets"), callback);
+		vfs->mount("[configs_dir]:/engine", "Editor Configs", new FS(exec_dir / "resources/TrinexEngine/configs"), callback);
+		vfs->mount("[shaders_dir]:/TrinexEngine", "Editor Shaders", new FS(exec_dir / "resources/TrinexEngine/shaders"), callback);
+		// clang-format on
 
 		Platform::bind_platform_mount_points();
 	}

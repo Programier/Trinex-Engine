@@ -69,7 +69,6 @@ namespace Engine
 	template<typename... Args>
 	using Tuple = std::tuple<Args...>;
 
-
 	template<size_t size>
 	using BitSet = std::bitset<size>;
 
@@ -81,22 +80,6 @@ namespace Engine
 
 	template<typename Type>
 	using Atomic = std::atomic<Type>;
-
-	template<typename Type>
-	void fake_delete(Type*)
-	{}
-
-	template<typename Type>
-	void delete_value(Type* value)
-	{
-		delete value;
-	}
-
-	template<typename Type>
-	void delete_array(Type* array)
-	{
-		delete[] array;
-	}
 
 	template<typename Type, typename Dp = std::default_delete<Type>>
 	using ScopedPtr = std::unique_ptr<Type, Dp>;
