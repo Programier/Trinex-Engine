@@ -19,6 +19,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <ImGuizmo.h>
+#include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
@@ -71,6 +72,9 @@ namespace Engine
 		auto wd          = window();
 		String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
 		wd->title(new_title);
+
+		auto monitor_info = Platform::monitor_info(wd->monitor_index());
+		wd->size(monitor_info.size);
 
 		EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 		m_world                       = World::new_system<World>();
@@ -381,7 +385,7 @@ namespace Engine
 
 	EditorClient& EditorClient::render_viewport_menu()
 	{
-		const float height           = 24.f * EditorTheme::editor_scale_factor();
+		const float height           = ImGui::GetFontSize();
 		ImVec2 screen_pos            = ImGui::GetCursorScreenPos();
 		static auto render_separator = []() {
 			ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));

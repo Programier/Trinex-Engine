@@ -125,9 +125,10 @@ namespace Engine
 	{
 		ImGui::Begin("##ContentBrowserPackages"_localized, nullptr, ImGuiWindowFlags_NoTitleBar);
 
-		auto icon = Icons::icon(Icons::IconType::Add);
+		auto icon      = Icons::icon(Icons::IconType::Add);
+		auto icon_size = ImGui::GetFontSize();
 
-		if (ImGui::ImageButton(icon, {18, 18}))
+		if (ImGui::ImageButton(icon, {icon_size, icon_size}))
 		{
 			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
 			auto window                      = ImGuiWindow::current()->widgets_list.create_identified<ImGuiOpenFile>(this, flags);
@@ -319,7 +320,7 @@ namespace Engine
 
 	void ContentBrowser::render_content_window()
 	{
-		const ImVec2 item_size = ImVec2(100, 100) * EditorTheme::editor_scale_factor();
+		const ImVec2 item_size = ImVec2(5, 5) * ImGui::GetFontSize();
 
 		ImGui::Begin("##ContentBrowserItems", nullptr, ImGuiWindowFlags_MenuBar);
 

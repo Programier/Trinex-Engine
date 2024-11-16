@@ -529,7 +529,7 @@ namespace Engine
 
 		if (ImGui::Begin(name(), &is_open))
 		{
-			ImGui::BeginTable("##LevelTable", 3, ImGuiTableFlags_Resizable);
+			ImGui::BeginTable("##LevelTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg);
 
 			ImGui::TableSetupColumn("editor/Visibility"_localized);
 			ImGui::TableSetupColumn("editor/Name"_localized);
@@ -545,10 +545,6 @@ namespace Engine
 						ImGui::PushID(i);
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
-
-						ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
-						                       !(i % 2) ? ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color1)
-						                                : ImGui::ColorConvertFloat4ToU32(EditorTheme::table_row_color2));
 
 						bool is_visible = actor->is_visible();
 

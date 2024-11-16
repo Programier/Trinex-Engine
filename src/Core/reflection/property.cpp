@@ -31,9 +31,7 @@ namespace Engine::Refl
 	}
 
 	Property::Property(BitMask flags) : m_flags(flags)
-	{
-		display_name(Strings::make_sentence(name().to_string()));
-	}
+	{}
 
 	bool Property::is_read_only() const
 	{

@@ -5,19 +5,6 @@
 
 namespace Engine::EditorTheme
 {
-	ImVec4 table_row_color1 = ImVec4(0.10f, 0.10f, 0.15f, 1.00f);
-	ImVec4 table_row_color2 = ImVec4(0.08f, 0.08f, 0.12f, 1.00f);
-
-	float editor_scale_factor()
-	{
-		return 1.0f;
-	}
-
-	float editor_font_size()
-	{
-		return Settings::ed_font_size;
-	}
-
 	void initialize_theme(ImGuiContext* ctx)
 	{
 		// Initialize fonts
@@ -31,7 +18,7 @@ namespace Engine::EditorTheme
 			ImFontConfig config;
 			config.FontDataOwnedByAtlas = false;
 
-			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), editor_font_size(), &config,
+			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::ed_font_size, &config,
 			                               io.Fonts->GetGlyphRangesCyrillic());
 		}
 
@@ -107,7 +94,5 @@ namespace Engine::EditorTheme
 
 		style.AntiAliasedLines = true;
 		style.AntiAliasedFill  = true;
-
-		style.ScaleAllSizes(editor_scale_factor());
 	}
 }// namespace Engine::EditorTheme

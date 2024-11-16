@@ -122,6 +122,8 @@ namespace Engine::Refl
 		trinex_always_check(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
 		m_instances.insert(this);
 		m_next_object_name = "";
+
+		display_name(Strings::make_sentence(name().to_string()));
 	}
 
 	Object::~Object()

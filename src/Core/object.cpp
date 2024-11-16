@@ -22,7 +22,6 @@
 
 namespace Engine
 {
-
 	static ScriptFunction script_object_preload;
 	static ScriptFunction script_object_postload;
 
