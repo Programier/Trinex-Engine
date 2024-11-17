@@ -12,6 +12,7 @@
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
+#include <Widgets/content_browser.hpp>
 #include <Window/window.hpp>
 #include <imgui_internal.h>
 
@@ -34,6 +35,8 @@ namespace Engine
 		m_view.camera_view(m_camera->camera_view());
 		m_renderer.scene = m_world->scene();
 
+		m_browser           = imgui_window()->widgets_list.create<ContentBrowser>();
+		m_browser->closable = false;
 		return *this;
 	}
 
@@ -41,6 +44,7 @@ namespace Engine
 	{
 		Super::on_unbind_viewport(vp);
 
+		m_browser = nullptr;
 		for (auto& listener : m_listeners)
 		{
 			EventSystem::instance()->remove_listener(listener);
@@ -62,10 +66,12 @@ namespace Engine
 			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
-			auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.35f, nullptr, &dock_id);
+			auto dock_id_right  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.35f, nullptr, &dock_id);
+			auto dock_id_botton = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.35f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow("###Viewport", dock_id);
 			ImGui::DockBuilderDockWindow(m_properties.name(), dock_id_right);
+			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_botton);
 			ImGui::DockBuilderFinish(dock_id);
 		}
 		return *this;

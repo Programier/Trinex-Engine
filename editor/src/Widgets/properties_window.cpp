@@ -639,9 +639,10 @@ namespace Engine
 
 					Object* new_object = *reinterpret_cast<Object**>(payload->Data);
 
-					if (new_object->class_instance()->is_a(self))
+					if (new_object->class_instance()->is_a(prop->class_instance()))
 					{
-						object  = new_object;
+						prop->object(context, new_object);
+						prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
 						changed = true;
 					}
 				}

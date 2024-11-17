@@ -55,7 +55,7 @@ namespace Engine
 			declare_struct(RasterizerInfo, void);
 
 			PolygonMode polygon_mode = PolygonMode::Fill;
-			CullMode cull_mode       = CullMode::Back;
+			CullMode cull_mode       = CullMode::None;
 			FrontFace front_face     = FrontFace::ClockWise;
 			float line_width         = 1.f;
 		} rasterizer;

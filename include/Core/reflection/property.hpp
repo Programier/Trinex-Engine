@@ -332,6 +332,7 @@ private:
 		String script_type_name() const override;
 
 		Engine::Object* object(void* context);
+		ObjectProperty& object(void* context, Engine::Object* object);
 		const Engine::Object* object(const void* context) const;
 		bool is_composite() const;
 		ObjectProperty& is_composite(bool flag);

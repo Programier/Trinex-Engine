@@ -283,6 +283,12 @@ namespace Engine::Refl
 		return *address_as<Engine::Object*>(context);
 	}
 
+	ObjectProperty& ObjectProperty::object(void* context, Engine::Object* object)
+	{
+		(*address_as<Engine::Object*>(context)) = object;
+		return *this;
+	}
+
 	const Engine::Object* ObjectProperty::object(const void* context) const
 	{
 		return *address_as<Engine::Object*>(context);

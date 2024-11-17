@@ -204,11 +204,6 @@ namespace Engine
 					create_properties_window();
 				}
 
-				if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
-				{
-					create_properties_window();
-				}
-
 				ImGui::EndMenu();
 			}
 

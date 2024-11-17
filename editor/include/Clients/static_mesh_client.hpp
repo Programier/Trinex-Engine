@@ -1,11 +1,11 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
 #include <Core/pointer.hpp>
+#include <Event/event.hpp>
+#include <Event/listener_id.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
-#include <Event/listener_id.hpp>
-#include <Event/event.hpp>
 
 namespace Engine
 {
@@ -25,6 +25,7 @@ namespace Engine
 		Pointer<CameraComponent> m_camera;
 		Pointer<World> m_world;
 
+		class ContentBrowser* m_browser = nullptr;
 		ImGuiObjectProperties m_properties;
 		SceneView m_view;
 		EditorSceneRenderer m_renderer;
