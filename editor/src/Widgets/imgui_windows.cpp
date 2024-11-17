@@ -55,8 +55,9 @@ namespace Engine
 
 			text_wrapped_colored(text_color, "%s", m_message.c_str());
 
-			static constexpr float button_width  = 80.0f;
-			static constexpr float button_height = 25.0f;
+			float button_width  = 4.5 * ImGui::GetFontSize();
+			float button_height = ImGui::GetFrameHeight();
+
 			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - button_width) * 0.5f);
 			ImGui::SetCursorPosY(ImGui::GetWindowSize().y - button_height - 10.0f);
 
@@ -112,8 +113,7 @@ namespace Engine
 		else
 		{
 			ImGui::Separator();
-
-			if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
+			if (ImGui::Button("editor/Create"_localized))
 			{
 				Package* new_package = Object::new_instance<Package>(new_package_name, m_parent);
 				open                 = false;

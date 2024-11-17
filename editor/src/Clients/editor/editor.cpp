@@ -315,6 +315,7 @@ namespace Engine
 				m_world->destroy_actor(*selected.begin());
 			}
 		}
+
 		return *this;
 	}
 
@@ -451,7 +452,7 @@ namespace Engine
 			Vector3D rotation    = transfom.rotation();
 
 			ImGui::BeginGroup();
-			ImGui::PushItemWidth(height * 10.f);
+			ImGui::PushItemWidth(height * 15.f);
 			bool changed = ImGui::InputFloat3("editor/Loc"_localized, &location.x);
 			ImGui::SameLine();
 			changed = ImGui::InputFloat3("editor/Rot"_localized, &rotation.x) || changed;

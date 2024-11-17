@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/pointer.hpp>
 #include <Systems/system.hpp>
 
 namespace Engine
@@ -10,7 +11,7 @@ namespace Engine
 		declare_class(World, System);
 
 		struct ENGINE_EXPORT DestroyActorInfo {
-			class Actor* actor;
+			Pointer<class Actor> actor;
 			byte skip_frames;
 		};
 

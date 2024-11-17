@@ -45,6 +45,9 @@ namespace Engine
 	TextureEditorClient::TextureEditorClient()
 	{
 		m_surface = Object::new_instance<RenderSurface>();
+		m_surface->init(ColorFormat::R8G8B8A8, {1, 1});
+
+		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
 	}
 
 	TextureEditorClient& TextureEditorClient::render_menu_bar()
@@ -123,7 +126,8 @@ namespace Engine
 		{
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
 			ImGui::Spring(1.f, 0.5);
-			auto size = max_texture_size_in_viewport(m_texture->size(), ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
+			auto size = max_texture_size_in_viewport(glm::min(m_texture->size(), {1, 1}),
+													 ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
 			ImGui::Image(ImTextureID(m_surface.ptr(), EditorResources::default_sampler), ImGui::ImVecFrom(size));
 			ImGui::Spring(1.f, 0.5);
 			ImGui::EndHorizontal();
@@ -178,7 +182,7 @@ namespace Engine
 
 	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)
 	{
-		if (!m_texture)
+		if (!m_texture || !m_texture->has_object())
 			return *this;
 
 		if (!reinit && glm::any(glm::epsilonNotEqual(m_surface->size(), m_texture->size(), {0.001, 0.001})))
@@ -245,6 +249,7 @@ namespace Engine
 			m_texture = texture;
 			m_properties->update(object);
 
+			call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
 			on_object_parameters_changed(true);
 			m_live_update = texture->is_instance_of<RenderSurface>();
 		}
