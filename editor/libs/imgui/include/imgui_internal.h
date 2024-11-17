@@ -192,8 +192,7 @@ typedef void (*ImGuiErrorLogCallback)(void* user_data, const char* fmt, ...);
 //-----------------------------------------------------------------------------
 
 #ifndef GImGui
-IMGUI_API ImGuiContext*& get_current_imgui_context();
-#define GImGui get_current_imgui_context()
+extern IMGUI_API ImGuiContext* GImGui;
 #endif
 
 //-------------------------------------------------------------------------

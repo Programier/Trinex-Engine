@@ -228,17 +228,7 @@ typedef int ImGuiWindowFlags;       // -> enum ImGuiWindowFlags_     // Flags: f
 // - To use something else than an opaque void* pointer: override with e.g. '#define ImTextureID MyTextureType*' in your imconfig.h file.
 // - This can be whatever to you want it to be! read the FAQ about ImTextureID for details.
 #ifndef ImTextureID
-struct ImTextureID
-{
-    Engine::Texture2D* texture;
-    Engine::Sampler* sampler;
-
-    constexpr ImTextureID(Engine::Texture2D* texture = nullptr, Engine::Sampler* sampler = nullptr) : texture(texture), sampler(sampler) {}
-    inline bool operator ==(const ImTextureID& other) const { return other.texture == texture && other.sampler == sampler; }
-    inline bool operator !=(const ImTextureID& other) const { return other.texture != texture || other.sampler != sampler; }
-    inline void* id() const { return texture; }
-    inline operator bool() const { return texture != nullptr; }
-};
+typedef void* ImTextureID;
 #endif
 
 // ImDrawIdx: vertex index. [Compile-time configurable type]
