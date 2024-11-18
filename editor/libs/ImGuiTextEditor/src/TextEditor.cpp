@@ -2816,7 +2816,7 @@ namespace ImGui
             ImGui::EndChild();
 
             ImGui::SetWindowFocus();
-            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
                 mFunctionDeclarationTooltip = false;
         }
 
@@ -2844,7 +2844,7 @@ namespace ImGui
             ImGui::EndChild();
 
             ImGui::SetWindowFocus();
-            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
             {
                 mACOpened = false;
                 mACObject = "";
@@ -3926,7 +3926,7 @@ namespace ImGui
 
             ImGui::EndChild();
 
-            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
                 mFindOpened = false;
         }
 

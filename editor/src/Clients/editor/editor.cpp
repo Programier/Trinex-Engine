@@ -418,7 +418,7 @@ namespace Engine
 			{
 				ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 
-				if (ImGui::ImageButton({imgui_texture, EditorResources::default_sampler}, {height, height}, {0, 1}, {1, 0}, -1,
+				if (ImGui::ImageButton({imgui_texture, EditorResources::default_sampler}, {height, height}, {0, 1}, {1, 0},
 									   color))
 				{
 					m_guizmo_operation = control.first;

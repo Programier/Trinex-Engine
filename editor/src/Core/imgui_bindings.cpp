@@ -640,34 +640,12 @@ namespace Engine
 			new_enum_v(ImGuiKey, NamedKey_BEGIN);
 			new_enum_v(ImGuiKey, NamedKey_END);
 			new_enum_v(ImGuiKey, NamedKey_COUNT);
-			new_enum_v(ImGuiKey, KeysData_SIZE);
-			new_enum_v(ImGuiKey, KeysData_OFFSET);
 			new_enum_v(ImGuiKey, ModCtrl);
 			new_enum_v(ImGuiKey, ModShift);
 			new_enum_v(ImGuiKey, ModAlt);
 			new_enum_v(ImGuiKey, ModSuper);
-			new_enum_v(ImGuiKey, KeyPadEnter);
 		}
-		{
-			ScriptEnumRegistrar new_enum("ImGuiNavInput");
-			new_enum_v(ImGuiNavInput, Activate);
-			new_enum_v(ImGuiNavInput, Cancel);
-			new_enum_v(ImGuiNavInput, Input);
-			new_enum_v(ImGuiNavInput, Menu);
-			new_enum_v(ImGuiNavInput, DpadLeft);
-			new_enum_v(ImGuiNavInput, DpadRight);
-			new_enum_v(ImGuiNavInput, DpadUp);
-			new_enum_v(ImGuiNavInput, DpadDown);
-			new_enum_v(ImGuiNavInput, LStickLeft);
-			new_enum_v(ImGuiNavInput, LStickRight);
-			new_enum_v(ImGuiNavInput, LStickUp);
-			new_enum_v(ImGuiNavInput, LStickDown);
-			new_enum_v(ImGuiNavInput, FocusPrev);
-			new_enum_v(ImGuiNavInput, FocusNext);
-			new_enum_v(ImGuiNavInput, TweakSlow);
-			new_enum_v(ImGuiNavInput, TweakFast);
-			new_enum_v(ImGuiNavInput, COUNT);
-		}
+
 		{
 			ScriptEnumRegistrar new_enum("ImGuiConfigFlags");
 			new_enum_v(ImGuiConfigFlags, None);
@@ -796,7 +774,6 @@ namespace Engine
 			new_enum_v(ImGuiButtonFlags, MouseButtonRight);
 			new_enum_v(ImGuiButtonFlags, MouseButtonMiddle);
 			new_enum_v(ImGuiButtonFlags, MouseButtonMask_);
-			new_enum_v(ImGuiButtonFlags, MouseButtonDefault_);
 		}
 		{
 			ScriptEnumRegistrar new_enum("ImGuiColorEditFlags");
@@ -925,14 +902,6 @@ namespace Engine
 			new_enum_v(ImGuiViewportFlags, IsMinimized);
 			new_enum_v(ImGuiViewportFlags, IsFocused);
 		}
-		{
-			ScriptEnumRegistrar new_enum("ImGuiModFlags");
-			new_enum_v(ImGuiModFlags, None);
-			new_enum_v(ImGuiModFlags, Ctrl);
-			new_enum_v(ImGuiModFlags, Shift);
-			new_enum_v(ImGuiModFlags, Alt);
-			new_enum_v(ImGuiModFlags, Super);
-		}
 
 		// imgui_internal.h
 		{
@@ -943,7 +912,6 @@ namespace Engine
 			new_enum_v(ImGuiItemFlags, Disabled);
 			new_enum_v(ImGuiItemFlags, NoNav);
 			new_enum_v(ImGuiItemFlags, NoNavDefaultFocus);
-			new_enum_v(ImGuiItemFlags, SelectableDontClosePopup);
 			new_enum_v(ImGuiItemFlags, MixedValue);
 			new_enum_v(ImGuiItemFlags, ReadOnly);
 			new_enum_v(ImGuiItemFlags, NoWindowHoverableCheck);
@@ -962,7 +930,6 @@ namespace Engine
 			new_enum_v(ImGuiItemStatusFlags, HasDeactivated);
 			new_enum_v(ImGuiItemStatusFlags, Deactivated);
 			new_enum_v(ImGuiItemStatusFlags, HoveredWindow);
-			new_enum_v(ImGuiItemStatusFlags, FocusedByTabbing);
 			new_enum_v(ImGuiItemStatusFlags, Visible);
 			new_enum_v(ImGuiItemStatusFlags, HasClipRect);
 		}
@@ -998,14 +965,6 @@ namespace Engine
 			ScriptEnumRegistrar new_enum("ImGuiLayoutItemType");
 			new_enum_v(ImGuiLayoutItemType, Item);
 			new_enum_v(ImGuiLayoutItemType, Spring);
-		}
-		{
-			ScriptEnumRegistrar new_enum("ImGuiLogType");
-			new_enum_v(ImGuiLogType, None);
-			new_enum_v(ImGuiLogType, TTY);
-			new_enum_v(ImGuiLogType, File);
-			new_enum_v(ImGuiLogType, Buffer);
-			new_enum_v(ImGuiLogType, Clipboard);
 		}
 		{
 			ScriptEnumRegistrar new_enum("ImGuiAxis");
@@ -1064,7 +1023,6 @@ namespace Engine
 			new_enum_v(ImGuiInputSource, Mouse);
 			new_enum_v(ImGuiInputSource, Keyboard);
 			new_enum_v(ImGuiInputSource, Gamepad);
-			new_enum_v(ImGuiInputSource, Clipboard);
 			new_enum_v(ImGuiInputSource, COUNT);
 		}
 		{
@@ -1082,13 +1040,9 @@ namespace Engine
 			new_enum_v(ImGuiInputFlags, LockThisFrame);
 			new_enum_v(ImGuiInputFlags, LockUntilRelease);
 			new_enum_v(ImGuiInputFlags, RouteFocused);
-			new_enum_v(ImGuiInputFlags, RouteGlobalLow);
 			new_enum_v(ImGuiInputFlags, RouteGlobal);
-			new_enum_v(ImGuiInputFlags, RouteGlobalHigh);
-			new_enum_v(ImGuiInputFlags, RouteMask_);
 			new_enum_v(ImGuiInputFlags, RouteAlways);
 			new_enum_v(ImGuiInputFlags, RouteUnlessBgFocused);
-			new_enum_v(ImGuiInputFlags, RouteExtraMask_);
 			new_enum_v(ImGuiInputFlags, SupportedByIsKeyPressed);
 			new_enum_v(ImGuiInputFlags, SupportedByShortcut);
 			new_enum_v(ImGuiInputFlags, SupportedBySetKeyOwner);
@@ -1117,8 +1071,6 @@ namespace Engine
 		{
 			ScriptEnumRegistrar new_enum("ImGuiNavHighlightFlags");
 			new_enum_v(ImGuiNavHighlightFlags, None);
-			new_enum_v(ImGuiNavHighlightFlags, TypeDefault);
-			new_enum_v(ImGuiNavHighlightFlags, TypeThin);
 			new_enum_v(ImGuiNavHighlightFlags, AlwaysDraw);
 			new_enum_v(ImGuiNavHighlightFlags, NoRounding);
 		}
@@ -1140,7 +1092,6 @@ namespace Engine
 			new_enum_v(ImGuiNavMoveFlags, IsPageMove);
 			new_enum_v(ImGuiNavMoveFlags, Activate);
 			new_enum_v(ImGuiNavMoveFlags, NoSelect);
-			new_enum_v(ImGuiNavMoveFlags, NoSetNavHighlight);
 		}
 		{
 			ScriptEnumRegistrar new_enum("ImGuiNavLayer");
@@ -1170,11 +1121,7 @@ namespace Engine
 		{
 			ScriptEnumRegistrar new_enum("ImGuiWindowDockStyleCol");
 			new_enum_v(ImGuiWindowDockStyleCol, Text);
-			new_enum_v(ImGuiWindowDockStyleCol, Tab);
 			new_enum_v(ImGuiWindowDockStyleCol, TabHovered);
-			new_enum_v(ImGuiWindowDockStyleCol, TabActive);
-			new_enum_v(ImGuiWindowDockStyleCol, TabUnfocused);
-			new_enum_v(ImGuiWindowDockStyleCol, TabUnfocusedActive);
 			new_enum_v(ImGuiWindowDockStyleCol, COUNT);
 		}
 		{
@@ -1554,7 +1501,7 @@ namespace Engine
 		e.register_function("ImVec2 GetFontTexUvWhitePixel()", ImBinder<func_of<ImVec2>(&ImGui::GetFontTexUvWhitePixel)>::bind());
 		e.register_function("uint GetColorU32(int idx, float alpha_mul = 1.0f)", ImBinder<func_of<ImU32, ImGuiCol, float>(&ImGui::GetColorU32)>::bind());
 		e.register_function("uint GetColorU32(const ImVec4 & col)", ImBinder<func_of<ImU32, const ImVec4 &>(&ImGui::GetColorU32)>::bind());
-		e.register_function("uint GetColorU32(uint col)", ImBinder<func_of<ImU32, ImU32>(&ImGui::GetColorU32)>::bind());
+		e.register_function("uint GetColorU32(uint col, float alpha_mul = 1.0f)", ImBinder<func_of<ImU32, ImU32, float>(&ImGui::GetColorU32)>::bind());
 		e.register_function("const ImVec4 & GetStyleColorVec4(int idx)", ImBinder<func_of<const ImVec4 &, ImGuiCol>(&ImGui::GetStyleColorVec4)>::bind());
 		e.register_function("ImVec2 GetCursorScreenPos()", ImBinder<func_of<ImVec2>(&ImGui::GetCursorScreenPos)>::bind());
 		e.register_function("void SetCursorScreenPos(const ImVec2 & pos)", ImBinder<func_of<void, const ImVec2 &>(&ImGui::SetCursorScreenPos)>::bind());

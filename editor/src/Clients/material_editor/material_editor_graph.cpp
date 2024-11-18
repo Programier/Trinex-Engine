@@ -791,7 +791,7 @@ namespace Engine
 		auto& io = ImGui::GetIO();
 
 		// Select All
-		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_A))
 		{
 			ed::ClearSelection();
 			for (auto node : material->nodes())
@@ -800,19 +800,19 @@ namespace Engine
 			}
 		}
 
-		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_X)))
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_X))
 		{
 			m_graph_state.m_nodes = cut_selected_nodes(material);
 		}
 
 		// Copy command
-		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)))
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_C))
 		{
 			m_graph_state.m_nodes = copy_selected_nodes({0, 0});
 		}
 
 		// Paste command
-		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)))
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_V))
 		{
 			if (!m_graph_state.m_nodes.empty())
 			{
@@ -841,7 +841,7 @@ namespace Engine
 		}
 
 		// Duplicate command
-		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_D)))
+		if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_D))
 		{
 			auto new_nodes = copy_selected_nodes({20, 20});
 

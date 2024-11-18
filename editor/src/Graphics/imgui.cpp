@@ -275,12 +275,6 @@ namespace Engine
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
 						}
-						else if (pcmd->UpdateImageCallback)
-						{
-							ImTextureID next_texture       = pcmd->UpdateImageCallback(pcmd->UserCallbackData);
-							bd->texture_parameter->texture = next_texture.texture;
-							bd->texture_parameter->sampler = next_texture.sampler;
-						}
 						else
 						{
 							ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
@@ -1743,6 +1737,16 @@ namespace ImGui
 
 		flags |= ImGuiInputTextFlags_CallbackResize;
 		return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
+	}
+
+	bool ImageButton(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiWindow* window = g.CurrentWindow;
+		if (window->SkipItems)
+			return false;
+
+		return ImageButtonEx(window->GetID(static_cast<const void*>(user_texture_id)), user_texture_id, image_size, uv0, uv1, bg_col, tint_col);
 	}
 }// namespace ImGui
 

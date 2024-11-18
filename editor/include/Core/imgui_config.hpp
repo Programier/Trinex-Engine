@@ -29,7 +29,8 @@ struct ImGuiTrinexTextureId {
 	{
 		return texture != nullptr;
 	}
-	inline operator void*() const
+
+	inline operator const void*() const
 	{
 		return id();
 	}
