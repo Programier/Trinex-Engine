@@ -254,7 +254,6 @@ namespace Engine
 		ImGui::EndHorizontal();
 	}
 
-
 	void BlueprintBuilder::begin_footer(const ImVec4& color)
 	{
 		transition_to_stage(Stage::Footer);
