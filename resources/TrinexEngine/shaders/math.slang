@@ -73,4 +73,9 @@ float3 rotate_vector(in float3 normal, in float4x4 model)
     return normalize(mul(transpose(inverse((float3x3)model)), normal));
 }
 
+float square(float x)
+{
+    return x * x;
+}
+
 #endif

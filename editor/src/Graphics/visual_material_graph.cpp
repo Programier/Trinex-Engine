@@ -913,7 +913,7 @@ namespace Engine::VisualMaterialGraph
 		m_inputs.push_back(new Color3InputPin(this, "Base Color"));
 		m_inputs.push_back(new FloatInputPin(this, "Opacity", 1.f));
 		m_inputs.push_back(new Color3InputPin(this, "Emissive"));
-		m_inputs.push_back(new FloatInputPin(this, "Specular"));
+		m_inputs.push_back(new FloatInputPin(this, "Specular", 0.5f));
 		m_inputs.push_back(new FloatInputPin(this, "Metalness"));
 		m_inputs.push_back(new FloatInputPin(this, "Roughness"));
 		m_inputs.push_back(new FloatInputPin(this, "AO", 1.f));

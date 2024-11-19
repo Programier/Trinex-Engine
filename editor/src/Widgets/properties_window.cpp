@@ -367,7 +367,7 @@ namespace Engine
 
 	static bool render_scalar_property(void* context, Refl::Property* prop, ImGuiDataType type, int_t components, bool read_only)
 	{
-		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0) | ImGuiInputTextFlags_EnterReturnsTrue;
+		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
 		void* address             = prop->address(context);
 
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -613,7 +613,6 @@ namespace Engine
 		}
 		else
 		{
-			auto* self       = object ? object->class_instance() : prop->class_instance();
 			const float size = ImGui::GetFrameHeight();
 			auto object      = prop->object(context);
 
