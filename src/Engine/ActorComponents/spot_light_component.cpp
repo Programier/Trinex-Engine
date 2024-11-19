@@ -4,8 +4,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
-#include <Engine/Render/command_buffer.hpp>
-#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
@@ -174,7 +173,7 @@ namespace Engine
 			!component->leaf_class_is<SpotLightComponent>())
 			return *this;
 
-		auto layer = deferred_lighting_layer();
+		auto pass = deferred_pass();
 
 		Material* material = DefaultResources::Materials::spot_light;
 
@@ -188,43 +187,43 @@ namespace Engine
 
 		if (color_parameter)
 		{
-			layer->update_variable(color_parameter->value, proxy->light_color());
+			pass->update_variable(color_parameter->value, proxy->light_color());
 		}
 
 		if (intensivity_parameter)
 		{
-			layer->update_variable(intensivity_parameter->value, proxy->intensivity());
+			pass->update_variable(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		if (location_parameter)
 		{
-			layer->update_variable(location_parameter->value, proxy->world_transform().location());
+			pass->update_variable(location_parameter->value, proxy->world_transform().location());
 		}
 
 		if (direction_parameter)
 		{
-			layer->update_variable(direction_parameter->value, proxy->direction());
+			pass->update_variable(direction_parameter->value, proxy->direction());
 		}
 
 		if (spot_angles_parameter)
 		{
-			layer->update_variable(spot_angles_parameter->value,
-								   Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
+			pass->update_variable(spot_angles_parameter->value,
+								  Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
 		}
 
 		if (radius_parameter)
 		{
-			layer->update_variable(radius_parameter->value, proxy->attenuation_radius());
+			pass->update_variable(radius_parameter->value, proxy->attenuation_radius());
 		}
 
 		if (fall_off_parameter)
 		{
-			layer->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
+			pass->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
 		}
 
-		layer->bind_material(material, nullptr);
-		layer->bind_vertex_buffer(DefaultResources::Buffers::screen_position, 0, 0);
-		layer->draw(6, 0);
+		pass->bind_material(material, nullptr);
+		pass->bind_vertex_buffer(DefaultResources::Buffers::screen_position, 0, 0);
+		pass->draw(6, 0);
 		return *this;
 	}
 

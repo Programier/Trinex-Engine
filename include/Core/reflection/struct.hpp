@@ -137,12 +137,12 @@ namespace Engine::Refl
 		}
 
 	public:
-		NativeStruct(BitMask flags = 0) : Struct(super_of(), flags | native_type_flags<T>())
+		NativeStruct(Struct* parent, BitMask flags = 0) : Struct(parent, flags | native_type_flags<T>())
 		{}
 
 		static Struct* create(StringView decl, BitMask flags = 0)
 		{
-			return Object::new_instance<NativeStruct<T>>(decl, flags);
+			return Object::new_instance<NativeStruct<T>>(decl, super_of(), flags);
 		}
 
 		void* create_struct() override

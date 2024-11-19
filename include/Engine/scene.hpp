@@ -15,8 +15,6 @@ namespace Engine
 	class SceneRenderer;
 	class RenderViewport;
 	class RenderTargetBase;
-	class SceneLayer;
-
 
 	class ENGINE_EXPORT Scene final
 	{

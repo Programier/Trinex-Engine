@@ -1,12 +1,11 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
-#include <Engine/Render/command_buffer.hpp>
-#include <Engine/Render/scene_layer.hpp>
-#include <Engine/Render/scene_output_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
@@ -20,9 +19,7 @@
 namespace Engine
 {
 	SceneRenderer::SceneRenderer() : scene(nullptr)
-	{
-		m_root_layer = new RootLayer();
-	}
+	{}
 
 	const GlobalShaderParameters& SceneRenderer::global_shader_parameters() const
 	{
@@ -38,7 +35,6 @@ namespace Engine
 		return m_scene_views.back();
 	}
 
-
 	SceneRenderer& SceneRenderer::push_global_shader_parameters()
 	{
 		const SceneView& view = scene_view();
@@ -53,6 +49,79 @@ namespace Engine
 		rhi->pop_global_params();
 		m_global_shader_params.pop_back();
 		return *this;
+	}
+
+	SceneRenderer& SceneRenderer::view_mode(ViewMode new_mode)
+	{
+		if (is_in_render_thread())
+		{
+			m_view_mode = new_mode;
+		}
+		else
+		{
+			call_in_render_thread([this, new_mode]() { m_view_mode = new_mode; });
+		}
+		return *this;
+	}
+
+
+	RenderPass* SceneRenderer::create_pass_internal(RenderPass* next, const Function<RenderPass*()>& alloc)
+	{
+		if (next && next->m_renderer != this)
+		{
+			return nullptr;
+		}
+
+		RenderPass* pass = alloc();
+		pass->m_renderer = this;
+		pass->m_next     = next;
+
+		if (next == m_first_pass)
+		{
+			m_first_pass = pass;
+		}
+
+		if (next == nullptr)
+		{
+			if (m_last_pass)
+			{
+				m_last_pass->m_next = pass;
+			}
+			m_last_pass = pass;
+		}
+
+		return pass;
+	}
+
+	bool SceneRenderer::destroy_pass(RenderPass* pass)
+	{
+		if (pass->m_renderer != this)
+			return false;
+
+		if (pass == m_first_pass)
+		{
+			m_first_pass = pass->m_next;
+		}
+		else
+		{
+			for (auto current = m_first_pass; current->m_next; current = current->m_next)
+			{
+				if (current->m_next == pass)
+				{
+					current->m_next = pass->m_next;
+
+					if (m_last_pass == pass)
+					{
+						m_last_pass = current;
+					}
+
+					break;
+				}
+			}
+		}
+
+		delete pass;
+		return true;
 	}
 
 	RenderSurface* SceneRenderer::output_surface() const
@@ -103,21 +172,23 @@ namespace Engine
 
 		push_global_shader_parameters();
 
-		for (auto layer = root_layer(); layer; layer = layer->next())
+		for (auto pass = first_pass(); pass; pass = pass->next())
 		{
-			layer->clear();
+			pass->clear();
 		}
 
 		scene->build_views(this);
 
-		for (auto layer = root_layer(); layer; layer = layer->next())
+		for (auto pass = first_pass(); pass; pass = pass->next())
 		{
+			if (pass->is_empty())
+				continue;
+
 #if TRINEX_DEBUG_BUILD
-			rhi->push_debug_stage(layer->name().c_str());
+			rhi->push_debug_stage(pass->struct_instance()->name().c_str());
 #endif
-			layer->begin_render(this, viewport);
-			layer->render(this, viewport);
-			layer->end_render(this, viewport);
+			pass->render(viewport);
+			pass->on_render(viewport, pass);
 
 #if TRINEX_DEBUG_BUILD
 			rhi->pop_debug_stage();
@@ -142,115 +213,17 @@ namespace Engine
 
 	SceneRenderer::~SceneRenderer()
 	{
-		delete m_root_layer;
-		m_root_layer = nullptr;
-	}
-
-#define declare_rendering_function() [](SceneRenderer * self, RenderViewport * viewport, SceneLayer * layer)
-
-	static void render_ambient_light_only(Scene* scene)
-	{
-		static Name name_ambient_color = "ambient_color";
-		Material* material             = DefaultResources::Materials::ambient_light;
-
-		if (material)
-		{
-			auto ambient_param = Object::instance_cast<MaterialParameters::Float3>(material->find_parameter(name_ambient_color));
-
-			if (ambient_param)
-			{
-				ambient_param->value = scene->environment.ambient_color;
-			}
-
-			material->apply();
-			rhi->draw(6, 0);
-		}
-	}
-
-	static void begin_deferred_lighting_pass(SceneRenderer* _self, RenderViewport* rt, SceneLayer* layer)
-	{
-		ColorSceneRenderer* self = reinterpret_cast<ColorSceneRenderer*>(_self);
-
-		if (self->view_mode() == ViewMode::Unlit)
-		{
-			auto texture = SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor);
-			auto& params = self->global_shader_parameters();
-			auto& vp     = params.viewport;
-
-			auto min = Vector2D(vp.x, vp.y) / params.size;
-			auto max = Vector2D(vp.x + vp.z, vp.y + vp.w) / params.size;
-			self->blit(reinterpret_cast<Texture2D*>(texture), min, max);
-		}
-		else if (self->view_mode() == ViewMode::Lit)
-		{
-			render_ambient_light_only(self->scene);
-		}
-	}
-
-	class DeferredLightingLayer : public CommandBufferLayer
-	{
-	public:
-		DeferredLightingLayer& render(SceneRenderer* renderer, RenderViewport* viewport)
-		{
-			if (reinterpret_cast<ColorSceneRenderer*>(renderer)->view_mode() == ViewMode::Lit)
-			{
-				CommandBufferLayer::render(renderer, viewport);
-			}
-
-			return *this;
-		}
-	};
-
-	ColorSceneRenderer::ColorSceneRenderer() : m_view_mode(ViewMode::Lit)
-	{
-		m_clear_layer = root_layer()->create_next(Name::clear_render_targets);
-		m_clear_layer->on_begin_render.push_back(declare_rendering_function() { SceneRenderTargets::instance()->clear(); });
-
-
-		m_depth_layer = m_clear_layer->create_next<DepthRenderingLayer>(Name::depth_pass);
-
-		m_base_pass_layer = m_depth_layer->create_next<CommandBufferLayer>(Name::base_pass);
-		m_base_pass_layer->on_begin_render.push_back(
-		        declare_rendering_function() { SceneRenderTargets::instance()->begin_rendering_gbuffer(); });
-		m_base_pass_layer->on_end_render.push_back(
-		        declare_rendering_function() { SceneRenderTargets::instance()->end_rendering_gbuffer(); });
-
-		m_deferred_lighting_layer = m_base_pass_layer->create_next<DeferredLightingLayer>(Name::deferred_light_pass);
-		m_deferred_lighting_layer->on_begin_render.push_back(
-		        declare_rendering_function() { SceneRenderTargets::instance()->begin_rendering_scene_color_ldr(); });
-		m_deferred_lighting_layer->on_begin_render.push_back(begin_deferred_lighting_pass);
-		m_base_pass_layer->on_end_render.push_back(
-		        declare_rendering_function() { SceneRenderTargets::instance()->end_rendering_scene_color_ldr(); });
-
-		m_scene_output       = m_deferred_lighting_layer->create_next<SceneOutputLayer>(Name::scene_output_pass);
-		m_post_process_layer = m_scene_output->create_next(Name::post_process);
-	}
-
-	DepthSceneRenderer* ColorSceneRenderer::create_depth_renderer()
-	{
-		return new DepthSceneRenderer();
-	}
-
-	ColorSceneRenderer::~ColorSceneRenderer()
-	{
-		if (m_depth_renderer)
-		{
-			delete m_depth_renderer;
-		}
-	}
-
-	ColorSceneRenderer& ColorSceneRenderer::view_mode(ViewMode new_mode)
-	{
-		if (is_in_render_thread())
-		{
-			m_view_mode = new_mode;
-		}
-		else
-		{
-			call_in_render_thread([this, new_mode]() { m_view_mode = new_mode; });
-		}
-		return *this;
+		delete m_first_pass;
+		m_first_pass = nullptr;
 	}
 
 
+	ColorSceneRenderer::ColorSceneRenderer()
+	{
+		m_clear_pass        = create_pass<ClearPass>();
+		m_geometry_pass     = create_pass<GeometryPass>();
+		m_deferred_pass     = create_pass<DeferredPass>();
+		m_post_process_pass = create_pass<PostProcessPass>();
+		m_overlay_pass      = create_pass<OverlayPass>();
+	}
 }// namespace Engine

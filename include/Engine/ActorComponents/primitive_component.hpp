@@ -43,6 +43,5 @@ namespace Engine
 
 		PrimitiveComponentProxy* proxy() const;
 		~PrimitiveComponent();
-		friend class SceneLayer;
 	};
 }// namespace Engine

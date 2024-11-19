@@ -4,8 +4,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
-#include <Engine/Render/command_buffer.hpp>
-#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
@@ -76,7 +75,7 @@ namespace Engine
 		render_base_component(component);
 
 		PointLightComponentProxy* proxy = component->proxy();
-		auto layer                      = deferred_lighting_layer();
+		auto pass                       = deferred_pass();
 
 		if (!(scene_view().show_flags() & ShowFlags::PointLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<PointLightComponent>())
@@ -92,31 +91,31 @@ namespace Engine
 
 		if (color_parameter)
 		{
-			layer->update_variable(color_parameter->value, proxy->light_color());
+			pass->update_variable(color_parameter->value, proxy->light_color());
 		}
 
 		if (location_parameter)
 		{
-			layer->update_variable(location_parameter->value, proxy->world_transform().location());
+			pass->update_variable(location_parameter->value, proxy->world_transform().location());
 		}
 
 		if (intensivity_parameter)
 		{
-			layer->update_variable(intensivity_parameter->value, proxy->intensivity());
+			pass->update_variable(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		if (radius_parameter)
 		{
-			layer->update_variable(radius_parameter->value, proxy->attenuation_radius());
+			pass->update_variable(radius_parameter->value, proxy->attenuation_radius());
 		}
 
 		if (fall_off_parameter)
 		{
-			layer->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
+			pass->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
 		}
 
-		layer->bind_material(material);
-		layer->draw(6, 0);
+		pass->bind_material(material);
+		pass->draw(6, 0);
 		return *this;
 	}
 

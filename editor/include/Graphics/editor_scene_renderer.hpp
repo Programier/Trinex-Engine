@@ -3,16 +3,18 @@
 
 namespace Engine
 {
-	class OverlaySceneLayer;
+	class EditorOverlayPass;
+
 	class EditorSceneRenderer : public ColorSceneRenderer
 	{
 	private:
-		OverlaySceneLayer* m_overlay_layer;
+		EditorOverlayPass* m_overlay_pass;
 
 	public:
 		EditorSceneRenderer();
 
 		// Components rendering
+		using ColorSceneRenderer::render_component;
 		EditorSceneRenderer& render_component(LightComponent* component) override;
 		EditorSceneRenderer& render_component(PrimitiveComponent* component) override;
 	};

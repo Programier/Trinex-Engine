@@ -2,6 +2,7 @@
 #include <Core/colors.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/editor_resources.hpp>
+#include <Core/reflection/struct.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
@@ -9,7 +10,7 @@
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/batched_primitives.hpp>
-#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -121,33 +122,32 @@ namespace Engine
 		rhi->draw(EditorResources::point_light_overlay_positions->buffer.size(), 0);
 	}
 
-	class OverlaySceneLayer : public SceneLayer
+	class EditorOverlayPass : public OverlayPass
 	{
-	public:
-		BatchedLines lines;
-		BatchedTriangles triangles;
+		trinex_render_pass(EditorOverlayPass, OverlayPass);
 
+	public:
 		Set<LightComponent*> m_light_components;
 
-		OverlaySceneLayer& clear() override
+		bool is_empty() const override
 		{
-			SceneLayer::clear();
+			return false;
+		}
+
+		EditorOverlayPass& clear() override
+		{
+			RenderPass::clear();
 			m_light_components.clear();
-			triangles.clear();
-			lines.clear();
 			return *this;
 		}
 
-		OverlaySceneLayer& render(SceneRenderer* renderer, RenderViewport* rt) override
+		EditorOverlayPass& render(RenderViewport* rt) override
 		{
 			SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
 
-			triangles.render(renderer->scene_view());
-			lines.render(renderer->scene_view());
-
 			for (LightComponent* component : m_light_components)
 			{
-				render_light_sprite(EditorResources::light_sprite, component, renderer->scene_view());
+				render_light_sprite(EditorResources::light_sprite, component, scene_renderer()->scene_view());
 
 				if (component->actor()->is_selected())
 				{
@@ -162,14 +162,16 @@ namespace Engine
 				}
 			}
 
-			render_editor_grid(renderer->scene_view().camera_view());
+			render_editor_grid(scene_renderer()->scene_view().camera_view());
 
 			SceneRenderTargets::instance()->end_rendering_scene_color_ldr();
 			return *this;
 		}
 	};
 
-	static void create_directional_arrow(DirectionalLightComponent* component, OverlaySceneLayer* layer)
+	trinex_implement_render_pass(EditorOverlayPass);
+
+	static void create_directional_arrow(DirectionalLightComponent* component, EditorOverlayPass* pass)
 	{
 		DirectionalLightComponentProxy* proxy = component->proxy();
 		auto& transform                       = proxy->world_transform();
@@ -194,8 +196,8 @@ namespace Engine
 		        arrow_base_point + right_vector * -offset / 2.f,
 		};
 
-		layer->lines.add_line(location, end_point);
-		auto& triangles = layer->triangles;
+		pass->lines.add_line(location, end_point);
+		auto& triangles = pass->triangles;
 
 		triangles.add_triangle(arrow_points[0], end_point, arrow_points[1], white, red, white);
 		triangles.add_triangle(arrow_points[1], end_point, arrow_points[2], white, red, white);
@@ -208,19 +210,19 @@ namespace Engine
 
 	EditorSceneRenderer::EditorSceneRenderer()
 	{
-		m_overlay_layer = post_process_layer()->create_next<OverlaySceneLayer>("Overlay Layer");
+		m_overlay_pass = create_pass<EditorOverlayPass>();
 	}
 
 	EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component)
 	{
 		ColorSceneRenderer::render_component(component);
-		m_overlay_layer->m_light_components.insert(component);
+		m_overlay_pass->m_light_components.insert(component);
 
 		if (component->actor()->is_selected())
 		{
 			if (DirectionalLightComponent* directional_light = component->instance_cast<DirectionalLightComponent>())
 			{
-				create_directional_arrow(directional_light, m_overlay_layer);
+				create_directional_arrow(directional_light, m_overlay_pass);
 			}
 		}
 
@@ -237,7 +239,7 @@ namespace Engine
 
 		if (owner->is_selected() && owner->scene_component() == component)
 		{
-			component->proxy()->bounding_box().write_to_batcher(m_overlay_layer->lines, {255, 0, 0, 255});
+			component->proxy()->bounding_box().write_to_batcher(m_overlay_pass->lines, {255, 0, 0, 255});
 		}
 
 		return *this;

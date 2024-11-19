@@ -4,8 +4,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <Engine/Render/command_buffer.hpp>
-#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
@@ -51,8 +50,8 @@ namespace Engine
 				continue;
 			}
 
-			auto layer = base_pass_layer();
-			layer->bind_material(material.material, component);
+			auto pass = geometry_pass();
+			pass->bind_material(material.material, component);
 
 			VertexShader* shader = material.material->material()->pipeline->vertex_shader();
 
@@ -63,7 +62,7 @@ namespace Engine
 
 				if (buffer)
 				{
-					layer->bind_vertex_buffer(buffer, attribute.stream_index, 0);
+					pass->bind_vertex_buffer(buffer, attribute.stream_index, 0);
 				}
 			}
 
@@ -71,12 +70,12 @@ namespace Engine
 
 			if (lod.indices->elements_count() > 0)
 			{
-				layer->bind_index_buffer(lod.indices, 0);
-				layer->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
+				pass->bind_index_buffer(lod.indices, 0);
+				pass->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
 			}
 			else
 			{
-				layer->draw(surface.vertices_count, surface.base_vertex_index);
+				pass->draw(surface.vertices_count, surface.base_vertex_index);
 			}
 		}
 

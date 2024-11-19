@@ -27,15 +27,6 @@ namespace Engine
 	declare_name(location);
 	declare_name(direction);
 	declare_name(mask);
-	declare_custom_name(clear_render_targets, ClearRenderTargets);
-	declare_custom_name(base_pass, BasePass);
-	declare_custom_name(depth_pass, DepthPass);
-	declare_custom_name(deferred_light_pass, DeferredLightPass);
-	declare_custom_name(light_pass, LightPass);
-	declare_custom_name(scene_output_pass, SceneOutputPass);
-	declare_custom_name(post_process, PostProcess);
-	declare_custom_name(color_scene_rendering, ColorSceneRendering);
-	declare_custom_name(depth_scene_rendering, DepthSceneRendering);
 
 	static Vector<Name::Entry>& name_entries()
 	{

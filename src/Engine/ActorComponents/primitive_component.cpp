@@ -3,7 +3,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>

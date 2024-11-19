@@ -9,10 +9,6 @@
 namespace Engine
 {
 	class Scene;
-	class SceneLayer;
-	class DepthRenderingLayer;
-	class CommandBufferLayer;
-	class SceneOutputLayer;
 	class SpotLightComponent;
 	class StaticMeshComponent;
 	class SpriteComponent;
@@ -24,6 +20,12 @@ namespace Engine
 	class RenderSurface;
 	class RenderViewport;
 
+	class RenderPass;
+	class ClearPass;
+	class GeometryPass;
+	class DeferredPass;
+	class PostProcessPass;
+	class OverlayPass;
 
 #define implement_empty_rendering_methods_for(type)                                                                              \
 	SceneRenderer& SceneRenderer::render_component(type* component)                                                              \
@@ -44,10 +46,14 @@ namespace Engine
 	class ENGINE_EXPORT SceneRenderer
 	{
 	protected:
-		SceneLayer* m_root_layer = nullptr;
-
 		Vector<GlobalShaderParameters> m_global_shader_params;
 		Vector<SceneView> m_scene_views;
+
+		RenderPass* m_first_pass = nullptr;
+		RenderPass* m_last_pass  = nullptr;
+		ViewMode m_view_mode     = ViewMode::Lit;
+
+		RenderPass* create_pass_internal(RenderPass* next, const Function<RenderPass*()>& alloc);
 
 	public:
 		RenderStatistics statistics;
@@ -58,12 +64,42 @@ namespace Engine
 		SceneRenderer& pop_global_shader_parameters();
 		const GlobalShaderParameters& global_shader_parameters() const;
 		const SceneView& scene_view() const;
-		virtual SceneRenderer& render(const SceneView& view, class RenderViewport* viewport);
+
+		FORCE_INLINE ViewMode view_mode() const
+		{
+			return m_view_mode;
+		}
+
+		FORCE_INLINE RenderPass* first_pass() const
+		{
+			return m_first_pass;
+		}
+
+		FORCE_INLINE RenderPass* last_pass() const
+		{
+			return m_last_pass;
+		}
+
+		SceneRenderer& view_mode(ViewMode new_mode);
+
+		template<typename T = RenderPass, typename... Args, typename = std::enable_if<std::is_base_of_v<RenderPass, T>>>
+		inline T* create_pass(RenderPass* next = nullptr, Args&&... args)
+		{
+			return reinterpret_cast<T*>(create_pass_internal(next, [&]() -> RenderPass* {
+				auto pass = new T(std::forward<Args>(args)...);
+				return pass;
+			}));
+		}
+
+		bool destroy_pass(RenderPass* pass);
+
 		virtual RenderSurface* output_surface() const;
+		virtual SceneRenderer& render(const SceneView& view, class RenderViewport* viewport);
+
+		// Rendering part
 
 		SceneRenderer& blit(class Texture2D* texture, const Vector2D& min = {0, 0}, const Vector2D& max = {1, 1});
 
-		// Components rendering
 		template<typename ComponentType>
 		FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component)
 		{
@@ -79,80 +115,47 @@ namespace Engine
 		virtual SceneRenderer& render_component(SpotLightComponent* component);
 		virtual SceneRenderer& render_component(DirectionalLightComponent* component);
 
-		FORCE_INLINE SceneLayer* root_layer() const
-		{
-			return m_root_layer;
-		}
-
 		virtual ~SceneRenderer();
 	};
 
 
-	class DepthSceneRenderer : public SceneRenderer
-	{
-	};
-
 	class ENGINE_EXPORT ColorSceneRenderer : public SceneRenderer
 	{
 	private:
-		DepthSceneRenderer* m_depth_renderer = nullptr;
-
-		// Layers
-		SceneLayer* m_clear_layer                     = nullptr;
-		DepthRenderingLayer* m_depth_layer            = nullptr;
-		CommandBufferLayer* m_base_pass_layer         = nullptr;
-		CommandBufferLayer* m_deferred_lighting_layer = nullptr;
-		SceneOutputLayer* m_scene_output              = nullptr;
-		SceneLayer* m_post_process_layer              = nullptr;
-
-
-		ViewMode m_view_mode;
-
-		void copy_gbuffer_to_scene_output();
+		ClearPass* m_clear_pass              = nullptr;
+		GeometryPass* m_geometry_pass        = nullptr;
+		DeferredPass* m_deferred_pass        = nullptr;
+		PostProcessPass* m_post_process_pass = nullptr;
+		OverlayPass* m_overlay_pass          = nullptr;
 
 	public:
 		ColorSceneRenderer();
-		~ColorSceneRenderer();
 		delete_copy_constructors(ColorSceneRenderer);
 
-		// Layers getters
-
-		FORCE_INLINE SceneLayer* root_layer() const
+		FORCE_INLINE ClearPass* clear_pass() const
 		{
-			return m_root_layer;
+			return m_clear_pass;
 		}
 
-		FORCE_INLINE SceneLayer* clear_layer() const
+		FORCE_INLINE GeometryPass* geometry_pass() const
 		{
-			return m_clear_layer;
+			return m_geometry_pass;
 		}
 
-		FORCE_INLINE DepthRenderingLayer* depth_layer() const
+		FORCE_INLINE DeferredPass* deferred_pass() const
 		{
-			return m_depth_layer;
+			return m_deferred_pass;
 		}
 
-		FORCE_INLINE CommandBufferLayer* base_pass_layer() const
+		FORCE_INLINE PostProcessPass* post_process_pass() const
 		{
-			return m_base_pass_layer;
+			return m_post_process_pass;
 		}
 
-		FORCE_INLINE CommandBufferLayer* deferred_lighting_layer() const
+		FORCE_INLINE OverlayPass* overlay_pass() const
 		{
-			return m_deferred_lighting_layer;
+			return m_overlay_pass;
 		}
-
-		FORCE_INLINE SceneOutputLayer* scene_output_layer() const
-		{
-			return m_scene_output;
-		}
-
-		FORCE_INLINE SceneLayer* post_process_layer() const
-		{
-			return m_post_process_layer;
-		}
-
-		virtual DepthSceneRenderer* create_depth_renderer();
 
 		// Components rendering
 		using SceneRenderer::render_component;
@@ -161,13 +164,6 @@ namespace Engine
 		ColorSceneRenderer& render_component(PointLightComponent* component) override;
 		ColorSceneRenderer& render_component(SpotLightComponent* component) override;
 		ColorSceneRenderer& render_component(DirectionalLightComponent* component) override;
-
-		FORCE_INLINE ViewMode view_mode() const
-		{
-			return m_view_mode;
-		}
-
-		ColorSceneRenderer& view_mode(ViewMode new_mode);
 	};
 
 }// namespace Engine

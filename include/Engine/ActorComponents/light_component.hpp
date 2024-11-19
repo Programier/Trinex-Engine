@@ -2,7 +2,6 @@
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/aabb.hpp>
 
-
 namespace Engine
 {
 	class ENGINE_EXPORT LightComponentProxy : public SceneComponentProxy
@@ -78,7 +77,5 @@ namespace Engine
 		LightComponent& update_bounding_box();
 		LightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		~LightComponent();
-
-		friend class LightingSceneLayer;
 	};
 }// namespace Engine

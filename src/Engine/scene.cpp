@@ -1,7 +1,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
-#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
@@ -54,11 +54,11 @@ namespace Engine
 
 
 	template<typename Node>
-	static void build_views_internal(SceneRenderer* renderer, Node* node, const Frustum& frustum)
+	static void build_views_internal(SceneRenderer* renderer, Node* node, const Frustum& frustum, bool always_render = false)
 	{
 		for (auto component : node->values)
 		{
-			if (frustum.in_frustum(component->bounding_box()))
+			if (always_render || frustum.in_frustum(component->bounding_box()))
 			{
 				component->render(renderer);
 				++renderer->statistics.visible_objects;
@@ -80,7 +80,7 @@ namespace Engine
 	{
 		Frustum frustum = renderer->scene_view().camera_view();
 		build_views_internal(renderer, m_octree_render_thread.root_node(), frustum);
-		build_views_internal(renderer, m_light_octree_render_thread.root_node(), frustum);
+		build_views_internal(renderer, m_light_octree_render_thread.root_node(), frustum, true);
 		return *this;
 	}
 

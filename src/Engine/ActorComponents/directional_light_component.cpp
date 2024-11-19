@@ -2,7 +2,7 @@
 #include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
-#include <Engine/Render/command_buffer.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -43,7 +43,6 @@ namespace Engine
 		return typed_proxy<DirectionalLightComponentProxy>();
 	}
 
-
 	implement_empty_rendering_methods_for(DirectionalLightComponent);
 
 #define get_param(param_name, type) reinterpret_cast<MaterialParameters::type*>(material->find_parameter(Name::param_name));
@@ -51,7 +50,7 @@ namespace Engine
 	{
 		render_base_component(component);
 
-		CommandBufferLayer* layer             = deferred_lighting_layer();
+		RenderPass* pass                      = deferred_pass();
 		DirectionalLightComponentProxy* proxy = component->proxy();
 
 
@@ -67,21 +66,21 @@ namespace Engine
 
 		if (color_parameter)
 		{
-			layer->update_variable(color_parameter->value, proxy->light_color());
+			pass->update_variable(color_parameter->value, proxy->light_color());
 		}
 
 		if (direction_parameter)
 		{
-			layer->update_variable(direction_parameter->value, proxy->direction());
+			pass->update_variable(direction_parameter->value, proxy->direction());
 		}
 
 		if (intensivity_parameter)
 		{
-			layer->update_variable(intensivity_parameter->value, proxy->intensivity());
+			pass->update_variable(intensivity_parameter->value, proxy->intensivity());
 		}
 
-		layer->bind_material(material, nullptr);
-		layer->draw(6, 0);
+		pass->bind_material(material, nullptr);
+		pass->draw(6, 0);
 		return *this;
 	}
 

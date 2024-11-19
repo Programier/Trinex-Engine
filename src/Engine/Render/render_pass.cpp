@@ -1,20 +1,95 @@
-#include <Core/base_engine.hpp>
-#include <Engine/Render/command_buffer.hpp>
+#include <Core/default_resources.hpp>
+#include <Core/reflection/struct.hpp>
+#include <Engine/ActorComponents/light_component.hpp>
+#include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene_renderer.hpp>
+#include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 
 namespace Engine
 {
+	implement_struct_default_init(Engine::RenderPass, 0);
+
+	RenderPass::RenderPass()
+	{}
+
+	RenderPass::~RenderPass()
+	{
+		if (m_next)
+			delete m_next;
+	}
+
+	Refl::Struct* RenderPass::struct_instance() const
+	{
+		return static_struct_instance();
+	}
+
+	bool RenderPass::is_empty() const
+	{
+		return m_allocated == 0;
+	}
+
+	RenderPass& RenderPass::clear()
+	{
+		m_allocated = 0;
+		return *this;
+	}
+
+	template<typename NodeType>
+	static void render_octree_bounding_box(NodeType* node, BatchedLines& lines)
+	{
+		if (node == nullptr)
+			return;
+
+		node->box().write_to_batcher(lines);
+
+		for (byte i = 0; i < 8; i++)
+		{
+			render_octree_bounding_box(node->child_at(i), lines);
+		}
+	}
+
+
+	RenderPass& RenderPass::render(RenderViewport* render_target)
+	{
+		size_t offset = 0;
+		byte* data    = m_commands.data();
+
+		while (offset < m_allocated)
+		{
+			ExecutableObject* object = reinterpret_cast<ExecutableObject*>(data + offset);
+			offset += static_cast<size_t>(object->execute());
+		}
+
+		return *this;
+	}
+
+	SceneRenderer* RenderPass::scene_renderer() const
+	{
+		return m_renderer;
+	}
+
+	RenderPass* RenderPass::next() const
+	{
+		return m_next;
+	}
+
+	// RENDER COMMANDS IMPLEMENTATION
+
 #define declare_command_one_param(command_name, type1, name1, code)                                                              \
 	class command_name##Command : public ExecutableObject                                                                        \
 	{                                                                                                                            \
 		type1 name1;                                                                                                             \
-                                                                                                                                 \
+																																 \
 	public:                                                                                                                      \
 		command_name##Command(type1 var1) : name1(var1)                                                                          \
 		{}                                                                                                                       \
-                                                                                                                                 \
+																																 \
 		int_t execute() override                                                                                                 \
 		{                                                                                                                        \
 			code;                                                                                                                \
@@ -27,11 +102,11 @@ namespace Engine
 	{                                                                                                                            \
 		type1 name1;                                                                                                             \
 		type2 name2;                                                                                                             \
-                                                                                                                                 \
+																																 \
 	public:                                                                                                                      \
 		command_name##Command(type1 var1, type2 var2) : name1(var1), name2(var2)                                                 \
 		{}                                                                                                                       \
-                                                                                                                                 \
+																																 \
 		int_t execute() override                                                                                                 \
 		{                                                                                                                        \
 			code;                                                                                                                \
@@ -45,11 +120,11 @@ namespace Engine
 		type1 name1;                                                                                                             \
 		type2 name2;                                                                                                             \
 		type3 name3;                                                                                                             \
-                                                                                                                                 \
+																																 \
 	public:                                                                                                                      \
 		command_name##Command(type1 var1, type2 var2, type3 var3) : name1(var1), name2(var2), name3(var3)                        \
 		{}                                                                                                                       \
-                                                                                                                                 \
+																																 \
 		int_t execute() override                                                                                                 \
 		{                                                                                                                        \
 			code;                                                                                                                \
@@ -64,12 +139,12 @@ namespace Engine
 		type2 name2;                                                                                                             \
 		type3 name3;                                                                                                             \
 		type4 name4;                                                                                                             \
-                                                                                                                                 \
+																																 \
 	public:                                                                                                                      \
 		command_name##Command(type1 var1, type2 var2, type3 var3, type4 var4)                                                    \
-		    : name1(var1), name2(var2), name3(var3), name4(var4)                                                                 \
+			: name1(var1), name2(var2), name3(var3), name4(var4)                                                                 \
 		{}                                                                                                                       \
-                                                                                                                                 \
+																																 \
 		int_t execute() override                                                                                                 \
 		{                                                                                                                        \
 			code;                                                                                                                \
@@ -79,81 +154,174 @@ namespace Engine
 
 	declare_command_two_param(Draw, size_t, vertices_count, size_t, vertices_offset, rhi->draw(vertices_count, vertices_offset));
 	declare_command_three_param(DrawIndexed, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-	                            rhi->draw_indexed(indices_count, indices_offset, vertices_offset));
+								rhi->draw_indexed(indices_count, indices_offset, vertices_offset));
 	declare_command_three_param(DrawInstanced, size_t, vertices_count, size_t, vertices_offset, size_t, instances,
-	                            rhi->draw_instanced(vertices_count, vertices_offset, instances));
+								rhi->draw_instanced(vertices_count, vertices_offset, instances));
 	declare_command_four_param(DrawIndexedInstanced, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-	                           size_t, instances,
-	                           rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
+							   size_t, instances,
+							   rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
 	declare_command_two_param(BindMaterial, MaterialInterface*, interface, SceneComponent*, component,
-	                          interface->apply(component));
+							  interface->apply(component));
 
 	declare_command_three_param(BindVertexBuffer, VertexBuffer*, buffer, byte, stream, size_t, offset,
-	                            buffer->rhi_bind(stream, offset));
+								buffer->rhi_bind(stream, offset));
 
 	declare_command_two_param(BindIndexBuffer, IndexBuffer*, buffer, size_t, offset, buffer->rhi_bind(offset));
 
-	CommandBufferLayer& CommandBufferLayer::draw(size_t vertices_count, size_t vertices_offset)
+	RenderPass& RenderPass::draw(size_t vertices_count, size_t vertices_offset)
 	{
 		create_command<DrawCommand>(vertices_count, vertices_offset);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
+	RenderPass& RenderPass::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
 	{
 		create_command<DrawIndexedCommand>(indices_count, indices_offset, vertices_offset);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
+	RenderPass& RenderPass::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
 		create_command<DrawInstancedCommand>(vertex_count, vertices_offset, instances);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::draw_indexed_instanced(size_t indices_count, size_t indices_offset,
-	                                                               size_t vertices_offset, size_t instances)
+	RenderPass& RenderPass::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+												   size_t instances)
 	{
 		create_command<DrawIndexedInstancedCommand>(indices_count, indices_offset, vertices_offset, instances);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::bind_material(class MaterialInterface* material, SceneComponent* component)
+	RenderPass& RenderPass::bind_material(class MaterialInterface* material, SceneComponent* component)
 	{
 		create_command<BindMaterialCommand>(material, component);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset)
+	RenderPass& RenderPass::bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset)
 	{
 		create_command<BindVertexBufferCommand>(buffer, stream, offset);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::bind_index_buffer(class IndexBuffer* buffer, size_t offset)
+	RenderPass& RenderPass::bind_index_buffer(class IndexBuffer* buffer, size_t offset)
 	{
 		create_command<BindIndexBufferCommand>(buffer, offset);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::clear()
+
+	// IMPLEMENTATION OF RENDER PASSES
+
+
+	trinex_implement_render_pass(Engine::ClearPass);
+	trinex_implement_render_pass(Engine::DepthPass);
+	trinex_implement_render_pass(Engine::ShadowPass);
+	trinex_implement_render_pass(Engine::GeometryPass);
+	trinex_implement_render_pass(Engine::ForwardPass);
+	trinex_implement_render_pass(Engine::DeferredPass);
+	trinex_implement_render_pass(Engine::TransparencyPass);
+	trinex_implement_render_pass(Engine::PostProcessPass);
+	trinex_implement_render_pass(Engine::OverlayPass);
+
+	bool ClearPass::is_empty() const
 	{
-		SceneLayer::clear();
-		m_allocated = 0;
+		return false;
+	}
+
+	ClearPass& ClearPass::render(RenderViewport* vp)
+	{
+		SceneRenderTargets::instance()->clear();
+		Super::render(vp);
 		return *this;
 	}
 
-	CommandBufferLayer& CommandBufferLayer::render(SceneRenderer* renderer, RenderViewport* rt)
+	GeometryPass& GeometryPass::render(RenderViewport* vp)
 	{
-		size_t offset = 0;
-		byte* data    = m_commands.data();
+		SceneRenderTargets::instance()->begin_rendering_gbuffer();
+		Super::render(vp);
+		return *this;
+	}
 
-		while (offset < m_allocated)
+	bool DeferredPass::is_empty() const
+	{
+		return false;
+	}
+
+	DeferredPass& DeferredPass::render(RenderViewport* vp)
+	{
+		SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+
+		auto renderer = scene_renderer();
+
+		if (renderer->view_mode() == ViewMode::Unlit)
 		{
-			ExecutableObject* object = reinterpret_cast<ExecutableObject*>(data + offset);
-			offset += static_cast<size_t>(object->execute());
+			auto texture = SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor);
+			auto& params = renderer->global_shader_parameters();
+			auto& vp     = params.viewport;
+
+			auto min = Vector2D(vp.x, vp.y) / params.size;
+			auto max = Vector2D(vp.x + vp.z, vp.y + vp.w) / params.size;
+			renderer->blit(reinterpret_cast<Texture2D*>(texture), min, max);
 		}
+		else if (renderer->view_mode() == ViewMode::Lit)
+		{
+			static Name name_ambient_color = "ambient_color";
+			Material* material             = DefaultResources::Materials::ambient_light;
+
+			if (material)
+			{
+				auto ambient_param =
+						Object::instance_cast<MaterialParameters::Float3>(material->find_parameter(name_ambient_color));
+
+				if (ambient_param)
+				{
+					ambient_param->value = renderer->scene->environment.ambient_color;
+				}
+
+				material->apply();
+				rhi->draw(6, 0);
+			}
+		}
+
+		Super::render(vp);
 		return *this;
 	}
 
+	PostProcessPass& PostProcessPass::render(RenderViewport* vp)
+	{
+		SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+		Super::render(vp);
+		return *this;
+	}
+
+	OverlayPass& OverlayPass::clear()
+	{
+		Super::clear();
+		lines.clear();
+		triangles.clear();
+		return *this;
+	}
+
+	OverlayPass& OverlayPass::render(RenderViewport* vp)
+	{
+		Super::render(vp);
+
+		auto renderer = scene_renderer();
+
+		if ((renderer->scene_view().show_flags() & ShowFlags::LightOctree) != ShowFlags::None)
+		{
+			render_octree_bounding_box(renderer->scene->primitive_octree().root_node(), lines);
+		}
+
+		if ((renderer->scene_view().show_flags() & ShowFlags::PrimitiveOctree) != ShowFlags::None)
+		{
+			render_octree_bounding_box(renderer->scene->light_octree().root_node(), lines);
+		}
+
+		lines.render(renderer->scene_view());
+		triangles.render(renderer->scene_view());
+		return *this;
+	}
 }// namespace Engine
