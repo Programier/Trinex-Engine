@@ -6,10 +6,7 @@
 namespace Engine
 {
 	implement_engine_class(StaticMeshActor, 0)
-	{
-		auto* self = This::static_class_instance();
-		trinex_refl_prop(self, This, m_mesh_component)->display_name("Static Mesh Component");
-	}
+	{}
 
 	StaticMeshActor::StaticMeshActor()
 	{
