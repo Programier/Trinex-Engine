@@ -164,6 +164,8 @@ namespace Engine
 		if (!actor || actor->world() != this)
 			return *this;
 
+		unselect_actor(actor);
+
 		if (!ignore_playing && actor->is_playing())
 		{
 			actor->stop_play();
@@ -175,7 +177,6 @@ namespace Engine
 			return *this;
 		}
 
-		unselect_actor(actor);
 
 		if (actor->is_playing())
 			actor->stop_play();

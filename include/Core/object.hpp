@@ -59,7 +59,7 @@ namespace Engine
 	private:
 		Refl::Class* m_class;
 		Object* m_owner;
-		mutable Counter m_references;
+		mutable Atomic<Counter> m_references;
 		Name m_name;
 		mutable Index m_instance_index;
 
