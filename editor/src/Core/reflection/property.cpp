@@ -7,7 +7,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_type_info.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 #include <angelscript.h>
 
 namespace Engine::Refl
@@ -61,14 +61,14 @@ namespace Engine::Refl
 		prop->renderer(func);
 	}
 
-	static bool render_object_array_element(Engine::Object** object, Refl::Property* prop, ImGuiObjectProperties* renderer,
+	static bool render_object_array_element(Engine::Object** object, Refl::Property* prop, PropertyRenderer* renderer,
 											bool is_read_only)
 	{
 		renderer->next_prop_name((*object)->name().to_string());
 		return renderer->render_property(object, prop, is_read_only, false);
 	}
 
-	static bool render_material_parameter(Engine::Object** address, Refl::Property* prop, ImGuiObjectProperties* renderer,
+	static bool render_material_parameter(Engine::Object** address, Refl::Property* prop, PropertyRenderer* renderer,
 										  bool is_read_only)
 	{
 		Engine::Object* object = *address;

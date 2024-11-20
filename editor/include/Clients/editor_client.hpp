@@ -7,7 +7,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 
 #include <Clients/imgui_client.hpp>
 
@@ -42,7 +42,7 @@ namespace Engine
 		SceneView m_scene_view;
 
 		class ContentBrowser* m_content_browser = nullptr;
-		ImGuiObjectProperties* m_properties     = nullptr;
+		PropertyRenderer* m_properties          = nullptr;
 		ImGuiLevelExplorer* m_level_explorer    = nullptr;
 
 		Pointer<CameraComponent> camera;

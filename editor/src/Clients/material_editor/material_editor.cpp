@@ -1,10 +1,10 @@
 #include <Clients/material_editor_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/blueprints.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/shader_compiler.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
@@ -20,7 +20,7 @@
 #include <Graphics/visual_material_graph.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 #include <Window/window.hpp>
 #include <imgui_internal.h>
 #include <imgui_node_editor.h>
@@ -92,7 +92,7 @@ namespace Engine
 		}
 	};
 
-	class ImGuiNodeProperties : public ImGuiObjectProperties
+	class ImGuiNodeProperties : public PropertyRenderer
 	{
 	public:
 		const char* name() const override
@@ -141,7 +141,7 @@ namespace Engine
 
 	MaterialEditorClient& MaterialEditorClient::create_properties_window()
 	{
-		m_properties_window = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
+		m_properties_window = imgui_window()->widgets_list.create<PropertyRenderer>();
 		m_properties_window->on_close.push([this]() { m_properties_window = nullptr; });
 		return *this;
 	}
@@ -295,7 +295,7 @@ namespace Engine
 			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
 			ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::static_name(), dock_id_left_up);
 			ImGui::DockBuilderDockWindow(ImGuiNodeProperties::static_name(), dock_id_left_down);
-			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::static_name(), dock_id_right);
+			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
 			ImGui::DockBuilderDockWindow("###Material Source", dock_id);
 
 			ImGui::DockBuilderFinish(dock_id);

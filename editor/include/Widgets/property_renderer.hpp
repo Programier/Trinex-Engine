@@ -10,11 +10,11 @@ namespace Engine
 	}
 
 	class ScriptFunction;
-	class ImGuiObjectProperties : public ImGuiWidget
+	class PropertyRenderer : public ImGuiWidget
 	{
 	public:
-		using PropertiesMap    = TreeMap<String, Vector<Refl::Property*>>;
-		using PropertyRenderer = Function<bool(ImGuiObjectProperties* wnd, void* obj, Refl::Property* prop, bool read_only)>;
+		using PropertiesMap = TreeMap<String, Vector<Refl::Property*>>;
+		using RendererFunc  = Function<bool(PropertyRenderer* wnd, void* obj, Refl::Property* prop, bool read_only)>;
 
 	private:
 		String m_next_prop_name;
@@ -29,14 +29,14 @@ namespace Engine
 	public:
 		CallBacks<void(Object*)> on_begin_render;
 
-		ImGuiObjectProperties();
-		~ImGuiObjectProperties();
+		PropertyRenderer();
+		~PropertyRenderer();
 
 		bool render(RenderViewport* viewport) override;
 		Refl::Struct* struct_instance() const;
 		Object* object() const;
 
-		ImGuiObjectProperties& update(Object* object);
+		PropertyRenderer& update(Object* object);
 		const PropertiesMap& properties_map(Refl::Struct* self);
 
 		bool collapsing_header(Refl::Property* prop);
@@ -54,9 +54,9 @@ namespace Engine
 		virtual const char* name() const;
 		static const char* static_name();
 
-		static void register_prop_renderer(const Refl::ClassInfo*, const PropertyRenderer& renderer);
+		static void register_prop_renderer(const Refl::ClassInfo*, const RendererFunc& renderer);
 		template<typename T>
-		static void register_prop_renderer(const PropertyRenderer& renderer)
+		static void register_prop_renderer(const RendererFunc& renderer)
 		{
 			register_prop_renderer(T::static_refl_class_info(), renderer);
 		}

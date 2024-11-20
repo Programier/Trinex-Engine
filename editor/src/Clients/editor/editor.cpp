@@ -53,7 +53,7 @@ namespace Engine
 
 	EditorClient& EditorClient::create_properties_window()
 	{
-		m_properties = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
+		m_properties = imgui_window()->widgets_list.create<PropertyRenderer>();
 		m_properties->on_close.push([this]() { m_properties = nullptr; });
 		return *this;
 	}
@@ -267,7 +267,7 @@ namespace Engine
 			auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
-			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::static_name(), dock_id_right_up);
+			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
 			ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
 			ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport Title").c_str(), dock_id);
 

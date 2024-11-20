@@ -5,7 +5,7 @@ namespace Engine
 {
 	class Texture2D;
 	class RenderSurface;
-	class ImGuiObjectProperties;
+	class PropertyRenderer;
 
 	class TextureEditorClient : public ImGuiEditorClient
 	{
@@ -13,8 +13,8 @@ namespace Engine
 
 		Pointer<Texture2D> m_texture;
 		Pointer<RenderSurface> m_surface;
-		ImGuiObjectProperties* m_properties = nullptr;
-		uint_t m_mip_index                  = 0;
+		PropertyRenderer* m_properties = nullptr;
+		uint_t m_mip_index             = 0;
 
 		union
 		{

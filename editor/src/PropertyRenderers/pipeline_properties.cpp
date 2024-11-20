@@ -2,11 +2,11 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 
 namespace Engine
 {
-	static void renderer(class ImGuiObjectProperties* window, void* object, Refl::Struct* self, bool editable)
+	static void renderer(class PropertyRenderer* window, void* object, Refl::Struct* self, bool editable)
 	{
 		Pipeline* pipeline          = reinterpret_cast<Pipeline*>(object);
 		VertexShader* vertex_shader = pipeline->vertex_shader();

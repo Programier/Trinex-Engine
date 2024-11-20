@@ -19,7 +19,7 @@
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 #include <imfilebrowser.h>
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -28,8 +28,8 @@
 
 namespace Engine
 {
-	Map<Refl::Struct*, void (*)(ImGuiObjectProperties*, void*, Refl::Struct*, bool)> special_class_properties_renderers;
-	static Map<const Refl::ClassInfo*, ImGuiObjectProperties::PropertyRenderer> m_renderers;
+	Map<Refl::Struct*, void (*)(PropertyRenderer*, void*, Refl::Struct*, bool)> special_class_properties_renderers;
+	static Map<const Refl::ClassInfo*, PropertyRenderer::RendererFunc> m_renderers;
 
 	template<typename T>
 	static FORCE_INLINE T* prop_cast(Refl::Property* prop)
@@ -69,7 +69,7 @@ namespace Engine
 		}
 	};
 
-	ImGuiObjectProperties::ImGuiObjectProperties() : m_object(nullptr), m_is_property_skipped(false)
+	PropertyRenderer::PropertyRenderer() : m_object(nullptr), m_is_property_skipped(false)
 	{
 		m_destroy_id = GarbageCollector::on_destroy.push([this](Object* object) {
 			if (object == m_object)
@@ -79,12 +79,12 @@ namespace Engine
 		});
 	}
 
-	ImGuiObjectProperties::~ImGuiObjectProperties()
+	PropertyRenderer::~PropertyRenderer()
 	{
 		GarbageCollector::on_destroy.remove(m_destroy_id);
 	}
 
-	bool ImGuiObjectProperties::render(RenderViewport* viewport)
+	bool PropertyRenderer::render(RenderViewport* viewport)
 	{
 		bool open = true;
 		ImGui::Begin(name(), closable ? &open : nullptr);
@@ -118,17 +118,17 @@ namespace Engine
 		return open;
 	}
 
-	Refl::Struct* ImGuiObjectProperties::struct_instance() const
+	Refl::Struct* PropertyRenderer::struct_instance() const
 	{
 		return m_object ? m_object->class_instance() : nullptr;
 	}
 
-	Object* ImGuiObjectProperties::object() const
+	Object* PropertyRenderer::object() const
 	{
 		return m_object;
 	}
 
-	ImGuiObjectProperties::PropertiesMap& ImGuiObjectProperties::build_props_map(Refl::Struct* self)
+	PropertyRenderer::PropertiesMap& PropertyRenderer::build_props_map(Refl::Struct* self)
 	{
 		auto& map = m_properties[self];
 		map.clear();
@@ -144,14 +144,14 @@ namespace Engine
 		return map;
 	}
 
-	ImGuiObjectProperties& ImGuiObjectProperties::update(Object* object)
+	PropertyRenderer& PropertyRenderer::update(Object* object)
 	{
 		m_object = object;
 		build_props_map(struct_instance());
 		return *this;
 	}
 
-	const ImGuiObjectProperties::PropertiesMap& ImGuiObjectProperties::properties_map(Refl::Struct* self)
+	const PropertyRenderer::PropertiesMap& PropertyRenderer::properties_map(Refl::Struct* self)
 	{
 		auto& map = m_properties[self];
 
@@ -173,17 +173,17 @@ namespace Engine
 		return map;
 	}
 
-	void ImGuiObjectProperties::mark_property_skipped()
+	void PropertyRenderer::mark_property_skipped()
 	{
 		m_is_property_skipped = true;
 	}
 
-	bool ImGuiObjectProperties::is_property_skipped() const
+	bool PropertyRenderer::is_property_skipped() const
 	{
 		return m_is_property_skipped;
 	}
 
-	void ImGuiObjectProperties::create_row()
+	void PropertyRenderer::create_row()
 	{
 		if (m_is_property_skipped)
 		{
@@ -195,17 +195,17 @@ namespace Engine
 		}
 	}
 
-	void ImGuiObjectProperties::next_prop_name(const String& name)
+	void PropertyRenderer::next_prop_name(const String& name)
 	{
 		m_next_prop_name = name;
 	}
 
-	const String& ImGuiObjectProperties::next_prop_name() const
+	const String& PropertyRenderer::next_prop_name() const
 	{
 		return m_next_prop_name;
 	}
 
-	void ImGuiObjectProperties::render_name(Refl::Property* prop)
+	void PropertyRenderer::render_name(Refl::Property* prop)
 	{
 		ImGui::TableSetColumnIndex(0);
 		if (m_next_prop_name.empty())
@@ -228,7 +228,7 @@ namespace Engine
 		}
 	}
 
-	bool ImGuiObjectProperties::render_property(void* object, Refl::Property* prop, bool read_only, bool allow_script_call)
+	bool PropertyRenderer::render_property(void* object, Refl::Property* prop, bool read_only, bool allow_script_call)
 	{
 		read_only = read_only || prop->is_read_only();
 		ScopedPropID prop_id(object, prop);
@@ -253,7 +253,7 @@ namespace Engine
 		return false;
 	}
 
-	bool ImGuiObjectProperties::render_struct_properties(void* object, Refl::Struct* struct_class, bool read_only)
+	bool PropertyRenderer::render_struct_properties(void* object, Refl::Struct* struct_class, bool read_only)
 	{
 		bool has_changed_props = false;
 
@@ -290,7 +290,7 @@ namespace Engine
 		return has_changed_props;
 	}
 
-	bool ImGuiObjectProperties::collapsing_header(Refl::Property* prop)
+	bool PropertyRenderer::collapsing_header(Refl::Property* prop)
 	{
 		const char* name = m_next_prop_name.empty() ? prop->display_name().c_str() : m_next_prop_name.c_str();
 		bool res         = collapsing_header(prop, "%s", name);
@@ -301,7 +301,7 @@ namespace Engine
 		return res;
 	}
 
-	bool ImGuiObjectProperties::collapsing_header(const void* id, const char* format, ...)
+	bool PropertyRenderer::collapsing_header(const void* id, const char* format, ...)
 	{
 		::ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImGuiTable* table     = ImGui::GetCurrentContext()->CurrentTable;
@@ -332,26 +332,26 @@ namespace Engine
 		return result;
 	}
 
-	const char* ImGuiObjectProperties::name() const
+	const char* PropertyRenderer::name() const
 	{
 		return static_name();
 	}
 
-	const char* ImGuiObjectProperties::static_name()
+	const char* PropertyRenderer::static_name()
 	{
 		return "editor/Properties Title"_localized;
 	}
 
-	void ImGuiObjectProperties::register_prop_renderer(const Refl::ClassInfo* refl_class, const PropertyRenderer& renderer)
+	void PropertyRenderer::register_prop_renderer(const Refl::ClassInfo* refl_class, const RendererFunc& renderer)
 	{
 		m_renderers[refl_class] = renderer;
 	}
 
 	//////////////////////// PROPERTY RENDERERS ////////////////////////
 
-	static bool render_boolean_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
+	static bool render_boolean_property(PropertyRenderer* renderer, void* context, Refl::Property* prop, bool read_only)
 	{
-		window->render_name(prop);
+		renderer->render_name(prop);
 		bool* value_address = prop->address_as<bool>(context);
 		bool value          = *value_address;
 
@@ -389,27 +389,27 @@ namespace Engine
 		return prop->size() == 4 ? ImGuiDataType_Float : ImGuiDataType_Double;
 	}
 
-	static bool render_integer_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_integer_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop = prop_cast_checked<Refl::IntegerProperty>(prop_base);
-		window->render_name(prop_base);
+		renderer->render_name(prop_base);
 		return render_scalar_property(context, prop, find_imgui_data_type(prop), 1, read_only);
 	}
 
-	static bool render_float_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
+	static bool render_float_property(PropertyRenderer* renderer, void* context, Refl::Property* prop, bool read_only)
 	{
-		window->render_name(prop);
+		renderer->render_name(prop);
 		auto float_prop = prop_cast_checked<Refl::FloatProperty>(prop);
 		return render_scalar_property(context, prop, find_imgui_data_type(float_prop), 1, read_only);
 	}
 
-	static bool render_vector_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_vector_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop    = prop_cast_checked<Refl::VectorProperty>(prop_base);
 		auto element = prop->element_property();
 
 		auto render_scalar = [&](ImGuiDataType type) -> bool {
-			window->render_name(prop);
+			renderer->render_name(prop);
 			bool is_changed = render_scalar_property(prop->address(context), element, type, prop->length(),
 													 read_only || element->is_read_only());
 			if (is_changed)
@@ -420,7 +420,7 @@ namespace Engine
 
 		if (element->is_a<Refl::BooleanProperty>())
 		{
-			window->render_name(prop);
+			renderer->render_name(prop);
 			bool* value_address = prop->address_as<bool>(context);
 
 			char name[] = "##value0";
@@ -452,7 +452,7 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_matrix_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_matrix_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop         = prop_cast_checked<Refl::MatrixProperty>(prop_base);
 		auto row_prop     = prop->row_property();
@@ -463,19 +463,19 @@ namespace Engine
 		bool is_changed = false;
 
 
-		if (window->collapsing_header(prop))
+		if (renderer->collapsing_header(prop))
 		{
 			ImGui::Indent();
 			const char* names[] = {"rX", "rY", "rZ", "rW"};
 
 			for (size_t i = 0; i < rows; i++)
 			{
-				window->create_row();
+				renderer->create_row();
 
-				window->next_prop_name(names[i]);
+				renderer->next_prop_name(names[i]);
 
 				void* address = prop->row_address(context, i);
-				bool changed  = window->render_property(address, row_prop, read_only);
+				bool changed  = renderer->render_property(address, row_prop, read_only);
 
 				if (changed)
 				{
@@ -489,12 +489,12 @@ namespace Engine
 		return is_changed;
 	}
 
-	static bool render_enum_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_enum_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop      = prop_cast_checked<Refl::EnumProperty>(prop_base);
 		auto enum_inst = prop->enum_instance();
 
-		window->render_name(prop);
+		renderer->render_name(prop);
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
 		EnumerateType value       = prop->value(context);
@@ -522,9 +522,9 @@ namespace Engine
 		return is_changed;
 	}
 
-	static bool render_string_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
+	static bool render_string_property(PropertyRenderer* renderer, void* context, Refl::Property* prop, bool read_only)
 	{
-		window->render_name(prop);
+		renderer->render_name(prop);
 
 		if (String* value = prop->address_as<String>(context))
 		{
@@ -539,9 +539,9 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_name_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
+	static bool render_name_property(PropertyRenderer* renderer, void* context, Refl::Property* prop, bool read_only)
 	{
-		window->render_name(prop);
+		renderer->render_name(prop);
 
 		if (Name* value = prop->address_as<Name>(context))
 		{
@@ -551,9 +551,9 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_path_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop, bool read_only)
+	static bool render_path_property(PropertyRenderer* renderer, void* context, Refl::Property* prop, bool read_only)
 	{
-		window->render_name(prop);
+		renderer->render_name(prop);
 		Path* value = prop->address_as<Path>(context);
 
 		ImGuiWindow* imgui_window = ImGuiWindow::current();
@@ -572,17 +572,17 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_struct_property_internal(ImGuiObjectProperties* window, void* context, void* struct_address,
+	static bool render_struct_property_internal(PropertyRenderer* renderer, void* context, void* struct_address,
 												Refl::Property* prop, Refl::Struct* struct_instance, bool read_only)
 	{
 		bool is_changed = false;
 
 
-		if (window->collapsing_header(prop))
+		if (renderer->collapsing_header(prop))
 		{
 			push_props_id(struct_address, prop);
 			ImGui::Indent();
-			is_changed = window->render_struct_properties(struct_address, struct_instance, read_only);
+			is_changed = renderer->render_struct_properties(struct_address, struct_instance, read_only);
 			ImGui::Unindent();
 			pop_props_id();
 
@@ -595,20 +595,20 @@ namespace Engine
 		return is_changed;
 	}
 
-	static bool render_object_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_object_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		Refl::ObjectProperty* prop = prop_cast_checked<Refl::ObjectProperty>(prop_base);
 		auto object                = prop->object(context);
 
 		if (object == nullptr)
 		{
-			window->mark_property_skipped();
+			renderer->mark_property_skipped();
 			return false;
 		}
 
 		if (prop->is_composite())
 		{
-			return render_struct_property_internal(window, context, prop->object(context), prop, object->class_instance(),
+			return render_struct_property_internal(renderer, context, prop->object(context), prop, object->class_instance(),
 												   read_only || prop->is_read_only());
 		}
 		else
@@ -618,7 +618,7 @@ namespace Engine
 
 			bool changed = false;
 
-			window->render_name(prop);
+			renderer->render_name(prop);
 			ImGui::TableSetColumnIndex(1);
 
 			ImGui::PushID("##Image");
@@ -666,14 +666,14 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_struct_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_struct_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		Refl::StructProperty* prop = prop_cast_checked<Refl::StructProperty>(prop_base);
-		return render_struct_property_internal(window, context, prop->address(context), prop, prop->struct_instance(),
+		return render_struct_property_internal(renderer, context, prop->address(context), prop, prop->struct_instance(),
 											   read_only || prop->is_read_only());
 	}
 
-	static bool render_array_property(ImGuiObjectProperties* window, void* context, Refl::Property* prop_base, bool read_only)
+	static bool render_array_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop = prop_cast_checked<Refl::ArrayProperty>(prop_base);
 
@@ -688,7 +688,7 @@ namespace Engine
 			is_changed = true;
 		}
 
-		if (window->collapsing_header(prop))
+		if (renderer->collapsing_header(prop))
 		{
 			ImGui::Indent();
 			Refl::Property* element_prop = prop->element_property();
@@ -699,7 +699,7 @@ namespace Engine
 
 			for (size_t i = 0; i < count; ++i)
 			{
-				window->create_row();
+				renderer->create_row();
 				ImGui::PushID(i);
 
 				ImGui::TableSetColumnIndex(2);
@@ -717,9 +717,9 @@ namespace Engine
 				if (i >= index_names.size())
 					index_names.push_back(Strings::format("{}", i + 1));
 
-				window->next_prop_name(index_names[i]);
+				renderer->next_prop_name(index_names[i]);
 
-				if (window->render_property(array_object, element_prop, element_prop->is_read_only()))
+				if (renderer->render_property(array_object, element_prop, element_prop->is_read_only()))
 				{
 					is_changed = true;
 					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
@@ -736,7 +736,7 @@ namespace Engine
 
 	static void on_preinit()
 	{
-		using T = ImGuiObjectProperties;
+		using T = PropertyRenderer;
 
 		T::register_prop_renderer<Refl::BooleanProperty>(render_boolean_property);
 		T::register_prop_renderer<Refl::IntegerProperty>(render_integer_property);
@@ -752,7 +752,7 @@ namespace Engine
 		T::register_prop_renderer<Refl::ArrayProperty>(render_array_property);
 	}
 
-	static bool script_render_property(ImGuiObjectProperties* renderer, void* object, int type_id, Refl::Property* prop,
+	static bool script_render_property(PropertyRenderer* renderer, void* object, int type_id, Refl::Property* prop,
 									   bool read_only, bool allow_script_call)
 	{
 		if (ScriptEngine::is_handle_type(type_id))
@@ -765,7 +765,7 @@ namespace Engine
 
 	static void on_init()
 	{
-		using T = ImGuiObjectProperties;
+		using T = PropertyRenderer;
 
 		ScriptClassRegistrar::RefInfo info;
 		info.no_count        = true;

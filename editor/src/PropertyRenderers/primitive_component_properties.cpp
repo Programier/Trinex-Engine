@@ -2,11 +2,11 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Graphics/imgui.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 
 namespace Engine
 {
-	static void renderer(class ImGuiObjectProperties* window, void* object, Refl::Struct* self, bool editable)
+	static void renderer(class PropertyRenderer* window, void* object, Refl::Struct* self, bool editable)
 	{
 		PrimitiveComponent* component = reinterpret_cast<PrimitiveComponent*>(object);
 

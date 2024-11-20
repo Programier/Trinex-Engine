@@ -39,7 +39,7 @@ namespace Engine
 
 		class ContentBrowser* m_content_browser             = nullptr;
 		class ImGuiMaterialPreview* m_preview_window        = nullptr;
-		class ImGuiObjectProperties* m_properties_window    = nullptr;
+		class PropertyRenderer* m_properties_window         = nullptr;
 		class ImGuiNodeProperties* m_node_properties_window = nullptr;
 		class ImGuiMaterialCode* m_material_code            = nullptr;
 

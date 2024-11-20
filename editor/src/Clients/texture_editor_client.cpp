@@ -10,7 +10,7 @@
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
@@ -111,7 +111,7 @@ namespace Engine
 			auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow("###texture", dock_id);
-			ImGui::DockBuilderDockWindow(ImGuiObjectProperties::static_name(), dock_id_right);
+			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
 
 			ImGui::DockBuilderFinish(dock_id);
 		}
@@ -205,7 +205,7 @@ namespace Engine
 		Super::on_bind_viewport(vp);
 		auto current = ImGuiWindow::current();
 		ImGuiWindow::make_current(imgui_window());
-		m_properties           = imgui_window()->widgets_list.create<ImGuiObjectProperties>();
+		m_properties           = imgui_window()->widgets_list.create<PropertyRenderer>();
 		m_properties->closable = false;
 
 		ImGuiWindow::make_current(current);

@@ -5,7 +5,7 @@
 #include <Event/listener_id.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <Widgets/properties_window.hpp>
+#include <Widgets/property_renderer.hpp>
 
 namespace Engine
 {
@@ -26,7 +26,7 @@ namespace Engine
 		Pointer<World> m_world;
 
 		class ContentBrowser* m_browser = nullptr;
-		ImGuiObjectProperties m_properties;
+		PropertyRenderer m_property_renderer;
 		SceneView m_view;
 		EditorSceneRenderer m_renderer;
 

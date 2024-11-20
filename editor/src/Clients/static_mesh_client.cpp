@@ -70,7 +70,7 @@ namespace Engine
 			auto dock_id_botton = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.35f, nullptr, &dock_id);
 
 			ImGui::DockBuilderDockWindow("###Viewport", dock_id);
-			ImGui::DockBuilderDockWindow(m_properties.name(), dock_id_right);
+			ImGui::DockBuilderDockWindow(m_property_renderer.name(), dock_id_right);
 			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_botton);
 			ImGui::DockBuilderFinish(dock_id);
 		}
@@ -96,7 +96,7 @@ namespace Engine
 
 	StaticMeshClient& StaticMeshClient::render_properties()
 	{
-		m_properties.render(viewport());
+		m_property_renderer.render(viewport());
 		return *this;
 	}
 
@@ -126,7 +126,7 @@ namespace Engine
 		if (auto mesh = instance_cast<StaticMesh>(object))
 		{
 			m_mesh = mesh;
-			m_properties.update(object);
+			m_property_renderer.update(object);
 
 			if (m_actor)
 			{
