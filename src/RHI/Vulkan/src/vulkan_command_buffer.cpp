@@ -106,7 +106,7 @@ namespace Engine
 
 	VulkanCommandBuffer& VulkanCommandBuffer::submit(vk::Semaphore* signal_semaphore)
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
 		trinex_check(has_ended(), "Command Buffer must be in ended state!");
 
 		API->m_graphics_queue->submit(this, signal_semaphore ? 1 : 0, signal_semaphore);
@@ -119,7 +119,7 @@ namespace Engine
 
 	VulkanCommandBuffer& VulkanCommandBuffer::wait()
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
 		if (m_state == State::Submitted && !m_fence->is_signaled())
 			m_fence->wait();
 		return *this;

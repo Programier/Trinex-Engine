@@ -100,7 +100,7 @@ namespace Engine
 	VulkanRenderTarget* VulkanRenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
 	                                                       RenderSurface* depth_stencil)
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanRenderTarget::find_or_create");
 		Key key;
 		key.init(color_attachments, depth_stencil);
 		VulkanRenderTarget*& render_target = m_render_targets[key];

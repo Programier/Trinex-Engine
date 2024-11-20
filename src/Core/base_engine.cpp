@@ -58,7 +58,7 @@ namespace Engine
 	int_t BaseEngine::update()
 	{
 		trinex_profile_frame_mark();
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("BaseEngine::update");
 
 		auto current_time = time_seconds();
 

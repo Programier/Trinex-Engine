@@ -363,7 +363,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanAPI::begin_render_pass");
 
 		if (m_state.m_next_render_target)
 		{
@@ -383,7 +383,7 @@ namespace Engine
 	{
 		if (m_state.m_render_pass)
 		{
-			trinex_profile_cpu();
+			trinex_profile_cpu_n("VulkanAPI::end_render_pass");
 			current_command_buffer()->end_render_pass();
 
 			if (unlock)
@@ -449,7 +449,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::prepare_draw()
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanAPI::prepare_draw");
 
 		trinex_check(m_state.m_pipeline, "Pipeline can't be nullptr");
 		trinex_check(m_state.render_target(), "Render target can't be nullptr");

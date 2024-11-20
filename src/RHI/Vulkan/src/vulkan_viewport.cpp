@@ -387,7 +387,7 @@ namespace Engine
 
 	int_t VulkanSwapchain::acquire_image_index()
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanSwapchain::acquire_image_index");
 
 		const auto prev_buffer_index = m_buffer_index;
 		m_buffer_index               = (m_buffer_index + 1) % m_backbuffers.size();
@@ -449,7 +449,7 @@ namespace Engine
 
 		try
 		{
-			trinex_profile_cpu_n("Present KHR");
+			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
 			result = API->m_present_queue->m_queue.presentKHR(present_info);
 		}
 		catch (const vk::OutOfDateKHRError& e)
@@ -524,7 +524,7 @@ namespace Engine
 	{
 		if (m_image_index == -1)
 		{
-			trinex_profile_cpu();
+			trinex_profile_cpu_n("VulkanSwapchain::backbuffer");
 
 			if (try_present(&VulkanSwapchain::acquire_image_index, false) < 0)
 			{
@@ -589,7 +589,7 @@ namespace Engine
 
 	void VulkanWindowViewport::end_render()
 	{
-		trinex_profile_cpu();
+		trinex_profile_cpu_n("VulkanWindowViewport::end_render");
 		auto cmd = API->current_command_buffer();
 		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, *m_swapchain->image_present_semaphore());
 		API->m_cmd_manager->submit_active_cmd_buffer(m_swapchain->render_finished_semaphore());
