@@ -8,8 +8,8 @@ namespace Engine
 	ENGINE_EXPORT void destroy_threads();
 
 	ENGINE_EXPORT Thread* render_thread();
-	ENGINE_EXPORT Thread* logic_thread();
-	ENGINE_EXPORT ThreadBase* this_thread();
+	ENGINE_EXPORT MainThread* logic_thread();
+	ENGINE_EXPORT Thread* this_thread();
 
 	ENGINE_EXPORT bool is_in_render_thread();
 	ENGINE_EXPORT bool is_in_logic_thread();
@@ -57,7 +57,7 @@ namespace Engine
 		};
 
 		Thread* rt = render_thread();
-		if (Thread::this_thread() == rt)
+		if (ThisThread::self() == rt)
 		{
 			callable();
 		}
@@ -84,7 +84,7 @@ namespace Engine
 		};
 
 		Thread* rt = logic_thread();
-		if (Thread::this_thread() == rt)
+		if (ThisThread::self() == rt)
 		{
 			callable();
 		}

@@ -164,13 +164,6 @@ namespace Engine
 	{
 		create_threads();
 
-		if (!is_in_logic_thread())
-		{
-			call_in_logic_thread([this, argc, argv]() { init(argc, argv); });
-			logic_thread()->wait_all();
-			return;
-		}
-
 		{
 			int result = preinit(argc, argv);
 			if (result != 0 || engine_instance->is_requesting_exit())
@@ -200,7 +193,7 @@ namespace Engine
 
 		if (wait_time > 0.f)
 		{
-			Thread::sleep_for(wait_time);
+			ThisThread::sleep_for(wait_time);
 		}
 
 		if (show_splash)
@@ -216,40 +209,12 @@ namespace Engine
 
 	void EngineLoop::update()
 	{
-		struct UpdateEngine : public ExecutableObject {
-		public:
-			int_t execute() override
-			{
-				engine_instance->update();
-				return sizeof(UpdateEngine);
-			}
-		};
-
-		if (is_in_logic_thread())
-		{
-			engine_instance->update();
-		}
-		else
-		{
-			logic_thread()->insert_new_task<UpdateEngine>();
-			logic_thread()->wait_all();
-		}
+		engine_instance->update();
+		logic_thread()->execute_commands();
 	}
 
 	void EngineLoop::terminate()
 	{
-		static bool need_destroy_threads = true;
-
-		if (!is_in_logic_thread())
-		{
-			need_destroy_threads = false;
-			call_in_logic_thread([this]() { terminate(); });
-			logic_thread()->wait_all();
-
-			destroy_threads();
-			return;
-		}
-
 		info_log("EngineInstance", "Terminate Engine");
 		DestroyController().execute();
 
@@ -285,10 +250,6 @@ namespace Engine
 		engine_instance = nullptr;
 
 		PostDestroyController().execute();
-
-		if (need_destroy_threads)
-		{
-			destroy_threads();
-		}
+		destroy_threads();
 	}
 }// namespace Engine

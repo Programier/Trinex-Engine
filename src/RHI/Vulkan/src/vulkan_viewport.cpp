@@ -499,7 +499,7 @@ namespace Engine
 				throw EngineException("Failed to present swapchain");
 			}
 
-			Thread::this_thread()->sleep_for(0.1);
+			ThisThread::sleep_for(0.1);
 			recreate();
 
 			status = (this->*callback)();

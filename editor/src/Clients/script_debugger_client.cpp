@@ -141,8 +141,7 @@ namespace Engine
 	implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
-	    : m_debugging_thread(new Thread("Debugging")), m_action(ImGui::TextEditor::DebugAction::Continue),
-	      m_is_in_debug_loop(false)
+		: m_debugging_thread(new Thread()), m_action(ImGui::TextEditor::DebugAction::Continue), m_is_in_debug_loop(false)
 	{
 		build_language_definition();
 	}

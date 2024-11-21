@@ -1,15 +1,14 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/threading.hpp>
 
-
 namespace Engine
 {
-	static Thread* m_logic_thread  = nullptr;
-	static Thread* m_render_thread = nullptr;
+	static MainThread* m_logic_thread = nullptr;
+	static Thread* m_render_thread    = nullptr;
 
-	ENGINE_EXPORT ThreadBase* this_thread()
+	ENGINE_EXPORT Thread* this_thread()
 	{
-		return ThreadBase::this_thread();
+		return ThisThread::self();
 	}
 
 	ENGINE_EXPORT Thread* render_thread()
@@ -17,19 +16,19 @@ namespace Engine
 		return m_render_thread;
 	}
 
-	ENGINE_EXPORT Thread* logic_thread()
+	ENGINE_EXPORT MainThread* logic_thread()
 	{
 		return m_logic_thread;
 	}
 
 	ENGINE_EXPORT bool is_in_render_thread()
 	{
-		return Thread::this_thread() == render_thread();
+		return this_thread() == render_thread();
 	}
 
 	ENGINE_EXPORT bool is_in_logic_thread()
 	{
-		return Thread::this_thread() == m_logic_thread;
+		return this_thread() == m_logic_thread;
 	}
 
 
@@ -37,19 +36,19 @@ namespace Engine
 	{
 		if (m_logic_thread == nullptr)
 		{
-			m_logic_thread = new Thread("Logic");
+			m_logic_thread = new MainThread();
 		}
 
 		if (m_render_thread == nullptr)
 		{
-			m_render_thread = new Thread("Render");
+			m_render_thread = new Thread();
 		}
 	}
 
 	template<typename ThreadType>
 	static void destroy_thread(ThreadType*& thread)
 	{
-		if (thread && thread->is_destroyable())
+		if (thread)
 		{
 			delete thread;
 			thread = nullptr;

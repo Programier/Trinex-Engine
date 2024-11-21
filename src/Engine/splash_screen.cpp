@@ -187,7 +187,7 @@ namespace Engine
 		while (m_splash_data->is_active)
 		{
 			m_splash_data->exec_thread->insert_new_task<SplashUpdate>();
-			Thread::sleep_for(0.033f);
+			ThisThread::sleep_for(0.033f);
 		}
 
 		m_splash_data->exec_thread->wait_all();
@@ -225,8 +225,8 @@ namespace Engine
 		m_splash_data->window = WindowManager::instance()->create_window(window_config);
 		//m_splash_data->window->render_viewport()->client(Object::new_instance<SplashClient>());
 
-		m_splash_data->thread      = new Thread("Splash");
-		m_splash_data->exec_thread = new Thread("Splash Exec");
+		m_splash_data->thread      = new Thread();
+		m_splash_data->exec_thread = new Thread();
 		m_splash_data->is_active   = true;
 
 		struct SplashMain : public ExecutableObject {

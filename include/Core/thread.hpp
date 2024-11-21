@@ -3,40 +3,13 @@
 #include <Core/exception.hpp>
 #include <Core/executable_object.hpp>
 #include <Core/memory.hpp>
-#include <mutex>
 #include <thread>
 
 namespace Engine
 {
-	class ENGINE_EXPORT ThreadBase
+	class ENGINE_EXPORT Thread
 	{
 	protected:
-		Identifier m_id;
-		String m_name;
-		std::recursive_mutex m_edit_mutex;
-		std::thread::native_handle_type m_native_handle;
-
-		ThreadBase();
-
-		void update_id();
-		void update_name();
-
-
-	public:
-		static void sleep_for(float seconds);
-		static ThreadBase* this_thread();
-
-		const String& name() const;
-		ThreadBase& name(const String& thread_name);
-		virtual bool is_destroyable();
-		Identifier id();
-		virtual ~ThreadBase();
-	};
-
-
-	class ENGINE_EXPORT Thread : public ThreadBase
-	{
-	private:
 		template<typename Func>
 		struct FunctionCaller : public ExecutableObject {
 			std::decay_t<Func> m_func;
@@ -63,11 +36,14 @@ namespace Engine
 			}
 		};
 
+		struct NoThreadContext {
+		};
+
 		static constexpr inline size_t m_buffer_size = 1024 * 1024 * 1;
 		static constexpr inline size_t m_align       = 16;
 
 		alignas(m_align) byte m_buffer[m_buffer_size];
-		std::thread m_thread;
+		std::thread* m_thread = nullptr;
 
 		Atomic<byte*> m_read_pointer;
 		Atomic<byte*> m_write_pointer;
@@ -78,6 +54,7 @@ namespace Engine
 		std::atomic_flag m_exec_flag      = ATOMIC_FLAG_INIT;
 		std::atomic_flag m_push_task_flag = ATOMIC_FLAG_INIT;
 
+		Thread& execute_commands();
 		void thread_loop();
 
 		inline size_t free_size() const
@@ -107,13 +84,13 @@ namespace Engine
 			}
 		}
 
+		Thread(NoThreadContext ctx);
+
 	public:
 		Thread();
-		Thread(const String& name);
 
 		bool is_busy() const;
 		Thread& wait_all();
-		bool is_destroyable() override;
 
 		template<typename CommandType, typename... Args>
 		inline Thread& insert_new_task(Args&&... args)
@@ -164,4 +141,19 @@ namespace Engine
 
 		virtual ~Thread();
 	};
+
+	class ENGINE_EXPORT MainThread : public Thread
+	{
+		static NoThreadContext no_thead_context();
+
+	public:
+		MainThread();
+		using Thread::execute_commands;
+	};
+
+	namespace ThisThread
+	{
+		ENGINE_EXPORT void sleep_for(float seconds);
+		ENGINE_EXPORT Thread* self();
+	}// namespace ThisThread
 }// namespace Engine
