@@ -91,6 +91,8 @@ namespace Engine
 		initialize_ubo();
 
 		glEnable(GL_SCISSOR_TEST);
+
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &m_uniform_alignment);
 		return *this;
 	}
 

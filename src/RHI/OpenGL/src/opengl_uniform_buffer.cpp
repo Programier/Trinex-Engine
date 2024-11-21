@@ -157,7 +157,7 @@ namespace Engine
 			buffer->update(m_used_data_size, m_shadow_data_size, m_shadow_data.data());
 			buffer->bind(binding_index, m_used_data_size, m_shadow_data_size);
 
-			m_used_data_size   = align_memory(m_used_data_size + m_shadow_data_size, 32);
+			m_used_data_size   = align_memory(m_used_data_size + m_shadow_data_size, OPENGL_API->m_uniform_alignment);
 			m_shadow_data_size = 0;
 		}
 

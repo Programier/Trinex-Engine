@@ -26,6 +26,7 @@ namespace Engine
 		void* m_context = nullptr;
 
 		Vector<BindingIndex> m_sampler_units;// TODO: Maybe we can remove this variable?
+		GLint m_uniform_alignment                              = 0;
 		struct OpenGL_GlobalUniformBufferManager* m_global_ubo = nullptr;
 		struct OpenGL_LocalUniformBufferManager* m_local_ubo   = nullptr;
 
