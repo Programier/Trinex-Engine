@@ -1,6 +1,4 @@
 #pragma once
-#include <Graphics/material.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
 
 namespace Engine
@@ -9,12 +7,6 @@ namespace Engine
 	class ENGINE_EXPORT DefaultClient : public ViewportClient
 	{
 		declare_class(DefaultClient, ViewportClient);
-
-		using VB = TypedVertexBuffer<Vector2D>;
-
-		Pointer<Material> material;
-		Pointer<VB> vb;
-		Pointer<ColorVertexBuffer> cb;
 
 	public:
 		DefaultClient();

@@ -1,7 +1,5 @@
+#include <Core/memory.hpp>
 #include <Core/thread.hpp>
-#include <chrono>
-#include <thread>
-
 
 namespace Engine
 {
@@ -12,14 +10,6 @@ namespace Engine
 #else
 	static constexpr inline std::size_t max_thread_name_length = 16;
 #endif
-
-	SkipThreadCommand::SkipThreadCommand(size_t bytes) : m_skip_bytes(bytes)
-	{}
-
-	int_t SkipThreadCommand::execute()
-	{
-		return static_cast<int>(m_skip_bytes);
-	}
 
 	ThreadBase::ThreadBase()
 	{
@@ -44,7 +34,6 @@ namespace Engine
 			m_name = thread_name;
 		}
 	}
-
 
 	void ThreadBase::sleep_for(float seconds)
 	{
@@ -88,92 +77,71 @@ namespace Engine
 	ThreadBase::~ThreadBase()
 	{}
 
-	void Thread::thread_loop(Thread* self)
+	void Thread::thread_loop()
 	{
-		this_thread_instance = self;
-		self->update_id();
-		while (!self->m_is_shuting_down.load())
+		this_thread_instance = this;
+		update_id();
+
+		while (m_running)
 		{
-			bool contains_tasks = false;
-
+			while (!m_exec_flag.test_and_set(std::memory_order_acquire))
 			{
-				std::unique_lock lock(self->m_exec_mutex);
-
-				self->m_is_thread_busy.store(false);
-				self->m_wait_cv.notify_all();
-				using namespace std::chrono_literals;
-
-				if (self->m_exec_cv.wait_until(lock, std::chrono::system_clock::now() + 1ms, [self]() -> bool {
-					    return self->m_command_buffer.unreaded_buffer_size() != 0 || self->m_is_shuting_down;
-				    }))
-				{
-					self->m_is_thread_busy.store(true);
-					contains_tasks = true;
-				}
-
-				if (self->m_is_shuting_down.load())
+				if (!m_running)
 					return;
+				std::this_thread::yield();
 			}
 
-			if (contains_tasks)
+			m_is_busy = true;
+			byte* wp  = m_write_pointer;
+			byte* rp  = m_read_pointer;
+
+			while (wp != rp)
 			{
-				ExecutableObject* object = nullptr;
+				auto* task = reinterpret_cast<ExecutableObject*>(rp);
+				auto size  = task->execute();
 
-				while ((object = reinterpret_cast<ExecutableObject*>(self->m_command_buffer.reading_pointer())))
-				{
-					int_t size = object->execute();
-					std::destroy_at(object);
-					self->m_command_buffer.finish_read(size);
-				}
+				rp = align_memory(rp + size, m_align);
+
+				if (rp >= m_buffer + m_buffer_size)
+					rp = m_buffer;
+
+				m_read_pointer = rp;
 			}
+
+			m_is_busy = false;
+			m_exec_flag.clear(std::memory_order_release);
 		}
-
-		self->m_wait_cv.notify_all();
 	}
 
-
-	int_t Thread::NewTaskEvent::execute()
+	Thread::Thread()
 	{
-		return 0;
-	}
+		m_read_pointer  = m_buffer;
+		m_write_pointer = m_buffer;
 
-
-	Thread::Thread(size_t size)
-	{
-		m_is_shuting_down.store(false);
-		m_event.m_thread = this;
-
-		m_command_buffer.init(size, 16, &m_event);
-		m_thread        = new std::thread(&Thread::thread_loop, this);
-		m_native_handle = m_thread->native_handle();
+		m_thread        = std::thread([this]() { thread_loop(); });
+		m_native_handle = m_thread.native_handle();
 
 		update_name();
 	}
 
-	Thread::Thread(const String& thread_name, size_t size) : Thread(size)
+	Thread::Thread(const String& thread_name) : Thread()
 	{
 		name(thread_name);
 	}
 
-	bool Thread::is_thread_sleep() const
-	{
-		return !is_busy();
-	}
-
 	bool Thread::is_busy() const
 	{
-		return m_is_thread_busy.load();
+		return m_is_busy;
 	}
 
 	Thread& Thread::wait_all()
 	{
 		if (Thread::this_thread() != this)
 		{
-			std::unique_lock lock(m_wait_mutex);
-
-			m_wait_cv.wait(lock, [this]() -> bool {
-				return m_is_shuting_down || (is_thread_sleep() && m_command_buffer.unreaded_buffer_size() == 0);
-			});
+			while (is_busy() || (m_read_pointer != m_write_pointer))
+			{
+				std::this_thread::yield();
+			}
 		}
 		return *this;
 	}
@@ -183,17 +151,14 @@ namespace Engine
 		return true;
 	}
 
-	const RingBuffer& Thread::command_buffer() const
-	{
-		return m_command_buffer;
-	}
-
 	Thread::~Thread()
 	{
-		m_is_shuting_down.store(true);
-		m_exec_cv.notify_all();
+		m_running = false;
+		m_exec_flag.test_and_set(std::memory_order_release);
 
-		m_thread->join();
-		delete m_thread;
+		if (m_thread.joinable())
+		{
+			m_thread.join();
+		}
 	}
 }// namespace Engine

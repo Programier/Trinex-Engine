@@ -2,26 +2,12 @@
 #include <Core/engine_types.hpp>
 #include <Core/exception.hpp>
 #include <Core/executable_object.hpp>
-#include <Core/ring_buffer.hpp>
-#include <condition_variable>
+#include <Core/memory.hpp>
+#include <mutex>
 #include <thread>
 
 namespace Engine
 {
-	static constexpr inline size_t default_thread_command_buffer_size = 1024 * 1024 * 1;// 1 MB
-
-
-	class ENGINE_EXPORT SkipThreadCommand : public ExecutableObject
-	{
-	private:
-		size_t m_skip_bytes;
-
-	public:
-		SkipThreadCommand(size_t bytes);
-		int_t execute() override;
-	};
-
-
 	class ENGINE_EXPORT ThreadBase
 	{
 	protected:
@@ -66,84 +52,100 @@ namespace Engine
 			}
 		};
 
+		struct SkipBytes : public ExecutableObject {
+			int_t m_bytes;
+			SkipBytes(int_t bytes) : m_bytes(bytes)
+			{}
 
-		std::mutex m_exec_mutex;
-		std::condition_variable m_exec_cv;
-
-		std::mutex m_wait_mutex;
-		std::condition_variable m_wait_cv;
-
-		RingBuffer m_command_buffer;
-		std::thread* m_thread;
-
-		std::atomic<bool> m_is_shuting_down;
-		std::atomic<bool> m_is_thread_busy;
-
-		struct ENGINE_EXPORT NewTaskEvent : public ExecutableObject {
-		public:
-			Thread* m_thread;
-			int_t execute() override;
+			int_t execute() override
+			{
+				return m_bytes;
+			}
 		};
 
-		NewTaskEvent m_event;
+		static constexpr inline size_t m_buffer_size = 1024 * 1024 * 1;
+		static constexpr inline size_t m_align       = 16;
 
-		static void thread_loop(Thread* self);
+		alignas(m_align) byte m_buffer[m_buffer_size];
+		std::thread m_thread;
+
+		Atomic<byte*> m_read_pointer;
+		Atomic<byte*> m_write_pointer;
+
+		Atomic<bool> m_running = true;
+		Atomic<bool> m_is_busy = false;
+
+		std::atomic_flag m_exec_flag      = ATOMIC_FLAG_INIT;
+		std::atomic_flag m_push_task_flag = ATOMIC_FLAG_INIT;
+
+		void thread_loop();
+
+		inline size_t free_size() const
+		{
+			byte* rp = m_read_pointer;
+			byte* wp = m_write_pointer;
+
+			if (rp < wp)
+			{
+				return (rp - m_buffer) + ((m_buffer + m_buffer_size) - wp);
+			}
+			else if (rp == wp)
+			{
+				return m_buffer_size;
+			}
+			else
+			{
+				return rp - wp;
+			}
+		}
+
+		FORCE_INLINE void wait_for_size(size_t size)
+		{
+			while (free_size() < size)
+			{
+				std::this_thread::yield();
+			}
+		}
 
 	public:
-		Thread(size_t command_buffer_size = default_thread_command_buffer_size);
-		Thread(const String& name, size_t command_buffer_size = default_thread_command_buffer_size);
+		Thread();
+		Thread(const String& name);
 
-		bool is_thread_sleep() const;
 		bool is_busy() const;
 		Thread& wait_all();
 		bool is_destroyable() override;
-		const RingBuffer& command_buffer() const;
-
-		template<typename CommandType, typename Function, typename... Args>
-		FORCE_INLINE Thread& insert_new_task_with_initializer(Function&& initializer, Args&&... args)
-		{
-			RingBuffer::AllocationContext context(m_command_buffer, sizeof(CommandType));
-			if (context.size() < sizeof(CommandType))
-			{
-				new (context.data()) SkipThreadCommand(context.size());
-				context.submit();
-				RingBuffer::AllocationContext new_context(m_command_buffer, sizeof(CommandType));
-				if (new_context.size() < sizeof(CommandType))
-				{
-					throw EngineException("Cannot push new task to thread");
-				}
-
-				CommandType* command = new (new_context.data()) CommandType(std::forward<Args>(args)...);
-				initializer(command);
-			}
-			else
-			{
-				CommandType* command = new (context.data()) CommandType(std::forward<Args>(args)...);
-				initializer(command);
-			}
-			return *this;
-		}
 
 		template<typename CommandType, typename... Args>
-		FORCE_INLINE Thread& insert_new_task(Args&&... args)
+		inline Thread& insert_new_task(Args&&... args)
 		{
-			RingBuffer::AllocationContext context(m_command_buffer, sizeof(CommandType));
-			if (context.size() < sizeof(CommandType))
+			while (m_push_task_flag.test_and_set(std::memory_order_acquire))
 			{
-				new (context.data()) SkipThreadCommand(context.size());
-				context.submit();
-				RingBuffer::AllocationContext new_context(m_command_buffer, sizeof(CommandType));
-				if (new_context.size() < sizeof(CommandType))
-				{
-					throw EngineException("Cannot push new task to thread");
-				}
+				std::this_thread::yield();
+			}
 
-				new (new_context.data()) CommandType(std::forward<Args>(args)...);
-			}
-			else
+			size_t task_size = sizeof(CommandType);
+			byte* wp         = m_write_pointer;
+
+			if (wp + task_size > m_buffer + m_buffer_size)
 			{
-				new (context.data()) CommandType(std::forward<Args>(args)...);
+				wait_for_size(sizeof(SkipBytes));
+				new (wp) SkipBytes((m_buffer + m_buffer_size) - wp);
+				wp = m_buffer;
 			}
+
+			wait_for_size(task_size);
+
+			new (wp) CommandType(std::forward<Args>(args)...);
+			wp = align_memory(wp + task_size, m_align);
+
+			if (wp >= m_buffer + m_buffer_size)
+			{
+				wp = m_buffer;
+			}
+
+			m_write_pointer = wp;
+			m_exec_flag.test_and_set(std::memory_order_release);
+			m_push_task_flag.clear(std::memory_order_release);
 			return *this;
 		}
 
@@ -162,6 +164,4 @@ namespace Engine
 
 		virtual ~Thread();
 	};
-
-
 }// namespace Engine

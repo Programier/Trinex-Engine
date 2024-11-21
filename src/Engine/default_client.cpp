@@ -12,42 +12,28 @@
 
 namespace Engine
 {
-
-
 	DefaultClient::DefaultClient()
 	{}
 
 	DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
 	{
-		material = Object::load_object("Example::Example")->instance_cast<Material>();
-		vb       = Object::new_instance<VB>();
-		cb       = Object::new_instance<ColorVertexBuffer>();
-
-		vb->buffer = {{-1, -1}, {-1, 1}, {1, 1}};
-		cb->buffer = {{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}};
-
-		vb->init_resource();
-		cb->init_resource();
-
 		return *this;
 	}
 
 	DefaultClient& DefaultClient::render(class RenderViewport* viewport)
 	{
-		viewport->rhi_bind();
-
-		viewport->rhi_clear_color(Color(0.0, 0.0, 0.0, 1.0));
-		material->apply();
-		vb->rhi_bind(0);
-		cb->rhi_bind(1);
-
-		rhi->draw(3, 0);
-
 		return *this;
 	}
 
 	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
 	{
+		static int frame = 0;
+		++frame;
+
+		if (frame % 100 == 0)
+		{
+			printf("FPS: %f\n", 1.0 / dt);
+		}
 		return *this;
 	}
 
