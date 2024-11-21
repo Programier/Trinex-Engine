@@ -1,9 +1,11 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 #include <android/native_window.h>
+
 #include <vulkan_headers.hpp>
 
 #include <vulkan/vulkan_android.h>
+#include <Core/exception.hpp>
 
 namespace Engine
 {

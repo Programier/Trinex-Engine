@@ -103,18 +103,11 @@ if(ANDROID)
     include_directories(${ANDROID_NDK}/sources/android/native_app_glue/)
     add_library(native_app_glue STATIC ${NATIVE_APP_GLUE_SRC})
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
+    add_trinex_public_libraries(android native_app_glue log EGL)
 endif()
 
 
 ######################## ENGINE LIBRARY COMPILATION ########################
-
-# List of libraries, which TrinexEngine use
-if(ANDROID)
-    find_library(glesv3-lib GLESv3)
-    find_library(vulkan-lib vulkan)
-    add_trinex_public_libraries(android native_app_glue log EGL ${glesv3-lib} ${vulkan-lib})
-endif()
-
 
 # Set source directories
 set(TRINEX_SRC_WINDOW_DIR "${TRINEX_ENGINE_SRC}/Window/")

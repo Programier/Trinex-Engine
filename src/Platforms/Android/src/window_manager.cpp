@@ -1,5 +1,6 @@
+#include <Core/exception.hpp>
 #include <Core/logger.hpp>
-#include <Core/struct.hpp>
+#include <Core/reflection/struct.hpp>
 #include <EGL/egl.h>
 #include <Event/event_data.hpp>
 #include <Graphics/rhi.hpp>
@@ -474,7 +475,7 @@ namespace Engine::Platform
 				throw EngineException("Cannot create two windows on android!");
 			}
 
-			if (rhi->info.struct_instance->base_name() == "VULKAN")
+			if (rhi->info.struct_instance->name() == "VULKAN")
 			{
 				m_window = new AndroidVulkanWindow(config);
 			}
