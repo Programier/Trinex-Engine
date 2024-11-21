@@ -118,10 +118,7 @@ namespace Engine
 		template<typename CommandType, typename... Args>
 		inline Thread& insert_new_task(Args&&... args)
 		{
-			while (m_push_task_flag.test_and_set(std::memory_order_acquire))
-			{
-				std::this_thread::yield();
-			}
+			m_push_task_flag.wait(true, std::memory_order_acquire);
 
 			size_t task_size = sizeof(CommandType);
 			byte* wp         = m_write_pointer;
@@ -145,7 +142,10 @@ namespace Engine
 
 			m_write_pointer = wp;
 			m_exec_flag.test_and_set(std::memory_order_release);
+			m_exec_flag.notify_all();
+
 			m_push_task_flag.clear(std::memory_order_release);
+			m_push_task_flag.notify_all();
 			return *this;
 		}
 

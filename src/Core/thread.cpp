@@ -84,12 +84,13 @@ namespace Engine
 
 		while (m_running)
 		{
-			while (!m_exec_flag.test_and_set(std::memory_order_acquire))
+			while (m_running && m_read_pointer == m_write_pointer)
 			{
-				if (!m_running)
-					return;
-				std::this_thread::yield();
+				m_exec_flag.wait(false, std::memory_order_acquire);
 			}
+
+			if (!m_running)
+				return;
 
 			m_is_busy = true;
 			byte* wp  = m_write_pointer;
@@ -110,6 +111,7 @@ namespace Engine
 
 			m_is_busy = false;
 			m_exec_flag.clear(std::memory_order_release);
+			m_exec_flag.notify_all();
 		}
 	}
 
@@ -140,7 +142,7 @@ namespace Engine
 		{
 			while (is_busy() || (m_read_pointer != m_write_pointer))
 			{
-				std::this_thread::yield();
+				m_exec_flag.wait(true, std::memory_order_release);
 			}
 		}
 		return *this;
@@ -155,6 +157,7 @@ namespace Engine
 	{
 		m_running = false;
 		m_exec_flag.test_and_set(std::memory_order_release);
+		m_exec_flag.notify_all();
 
 		if (m_thread.joinable())
 		{
