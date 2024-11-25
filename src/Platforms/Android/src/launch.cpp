@@ -7,8 +7,6 @@
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
 
-
-// This method will be called from android_main or
 FORCE_ENGINE_EXPORT extern "C" int trinex_engine_android_main(int argc, const char** argv)
 try
 {

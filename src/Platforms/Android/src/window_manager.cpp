@@ -545,32 +545,4 @@ namespace Engine::Platform
 		app->onAppCmd     = handle_app_cmd;
 		app->onInputEvent = handle_input_event;
 	}
-
-	static void on_preinit()
-	{
-		// So, this method is called from logic thread, but app->looper is setuped for main thread.
-		// We need to create a new looper on this thread and setup him like in android_native_app_glue.c
-
-		auto looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-		auto app    = android_application();
-		ALooper_removeFd(app->looper, app->msgread);
-		ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
-
-		pthread_mutex_lock(&app->mutex);
-		AInputQueue_detachLooper(app->inputQueue);
-
-		app->inputQueue = app->pendingInputQueue;
-
-		if (app->inputQueue != NULL)
-		{
-			AInputQueue_attachLooper(app->inputQueue, looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
-		}
-
-		pthread_cond_broadcast(&app->cond);
-		pthread_mutex_unlock(&app->mutex);
-
-		app->looper = looper;
-	}
-
-	static PreInitializeController preinit(on_preinit);
 }// namespace Engine::Platform

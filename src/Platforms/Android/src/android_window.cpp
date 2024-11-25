@@ -340,25 +340,4 @@ namespace Engine
 
 	AndroidVulkanWindow::AndroidVulkanWindow(const WindowConfig* config) : AndroidWindow(config)
 	{}
-
-	// void* AndroidVulkanWindow::create_api_context(const char* any_text, ...)
-	// {
-	//     va_list args;
-	//     va_start(args, any_text);
-	//     VkInstance instance = va_arg(args, VkInstance);
-	//     va_end(args);
-
-	//     ANativeWindow* window = static_native_window();
-	//     VkSurfaceKHR surface;
-	//     VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
-	//     surfaceCreateInfo.sType                         = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
-	//     surfaceCreateInfo.window                        = window;
-
-	//     if (vkCreateAndroidSurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS)
-	//     {
-	//         throw EngineException("Android: Failed to create Vulkan Surface");
-	//     }
-
-	//     return reinterpret_cast<void*>(surface);
-	// }
 }// namespace Engine
