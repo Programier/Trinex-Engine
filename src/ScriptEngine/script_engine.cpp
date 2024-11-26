@@ -83,6 +83,21 @@ namespace Engine
 		ScriptEngine::default_namespace(m_prev_namespace);
 	}
 
+	static void trigger_addons_initialization()
+	{
+		const char* addons[] = {
+				"Engine::DefaultScriptAddons",
+				"Engine::ScriptVector",
+				"Engine::ScriptPointer",
+				"Engine::PrimitiveWrappers",
+		};
+
+		for (auto addon : addons)
+		{
+			PreInitializeController().require(addon);
+		}
+	}
+
 	ScriptEngine& ScriptEngine::initialize()
 	{
 		if (m_engine != nullptr)
@@ -112,8 +127,8 @@ namespace Engine
 		PostDestroyController controller(ScriptEngine::terminate, "Engine::ScriptEngine");
 		ScriptContext::initialize();
 
-		ScriptAddonsInitializeController().execute();
 		m_script_folder = new ScriptFolder("[scripts_dir]:");
+		trigger_addons_initialization();
 		return instance();
 	}
 
@@ -750,12 +765,6 @@ namespace Engine
 		generic->SetReturnObject(&name);
 	}
 
-
-	static void on_init()
-	{
-		ScriptEngine::initialize();
-	}
-
 	static void reflection_init()
 	{
 		ScriptEngine::default_namespace("Engine::ScriptEngine");
@@ -764,6 +773,5 @@ namespace Engine
 		ScriptEngine::default_namespace("");
 	}
 
-	static PreInitializeController on_preinit([]() { on_init(); }, "Engine::ScriptEngine");
 	static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptEngine");
 }// namespace Engine

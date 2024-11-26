@@ -8,6 +8,7 @@
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 #include <scriptbuilder.h>
 
@@ -218,6 +219,14 @@ namespace Engine
 	void ConfigManager::register_property(const Name& name, ConfigIntArray& property, const StringView& group,
 	                                      const char* type_name)
 	{
+		if (!ScriptEngine::instance().type_info_by_name(type_name).is_enum())
+		{
+			ReflectionInitializeController().require(type_name);
+
+			if (!ScriptEngine::instance().type_info_by_name(type_name).is_enum())
+				throw EngineException(Strings::format("Failed to find enum '{}'", type_name));
+		}
+
 		if (type_name)
 		{
 			static String tmp;

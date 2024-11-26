@@ -31,7 +31,7 @@ namespace Engine
 		virtual ~LoadingControllerBase();
 	};
 
-#define IMPLEMENT_CONTROLLER(ControllerName)                                                                                     \
+#define IMPLEMENT_CONTROLLER(ControllerName, ...)                                                                                \
 	class ENGINE_EXPORT ControllerName : public LoadingControllerBase                                                            \
 	{                                                                                                                            \
 	public:                                                                                                                      \
@@ -41,9 +41,9 @@ namespace Engine
 		ControllerName& push(const ControllerCallback& callback, const String& name = "",                                        \
 		                     const std::initializer_list<String>& require_initializers = {});                                    \
 		ControllerName& require(const String& name);                                                                             \
-		ControllerName& execute();                                                                                               \
 		Identifier id() const override;                                                                                          \
 		static bool is_triggered();                                                                                              \
+		__VA_ARGS__                                                                                                              \
 	}
 
 	IMPLEMENT_CONTROLLER(PreInitializeController);
@@ -55,9 +55,6 @@ namespace Engine
 	IMPLEMENT_CONTROLLER(StartupResourcesInitializeController);
 	IMPLEMENT_CONTROLLER(ConfigsInitializeController);
 
-	IMPLEMENT_CONTROLLER(ReflectionInitializeController);
-	IMPLEMENT_CONTROLLER(ReflectionPostInitializeController);
-
-	IMPLEMENT_CONTROLLER(ScriptAddonsInitializeController);
+	IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInitializeController& execute(););
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

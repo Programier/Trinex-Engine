@@ -119,7 +119,8 @@ namespace Engine
 			info.template_type = "";
 			auto r             = ScriptClassRegistrar::value_class("Ptr<void>", sizeof(ScriptPointer), info);
 			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ScriptPointer>);
-			r.behave(ScriptClassBehave::Construct, "void f(const Ptr<void>& ptr)", r.constructor<ScriptPointer, const ScriptPointer&>);
+			r.behave(ScriptClassBehave::Construct, "void f(const Ptr<void>& ptr)",
+					 r.constructor<ScriptPointer, const ScriptPointer&>);
 			r.behave(ScriptClassBehave::Construct, "void f(const NullPtr& nullptr)", nullptr_constructor_void);
 			register_base_methods(r);
 		};
@@ -144,5 +145,5 @@ namespace Engine
 		}
 	}
 
-	static ScriptAddonsInitializeController init(on_init, "Engine::ScriptPointer");
+	static PreInitializeController init(on_init, "Engine::ScriptPointer");
 }// namespace Engine

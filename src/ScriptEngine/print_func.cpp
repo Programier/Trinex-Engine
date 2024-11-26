@@ -410,4 +410,4 @@ static void Print::asRegister()
 	assert(r == asALREADY_REGISTERED || r >= 0);
 }
 
-static Engine::ScriptAddonsInitializeController on_init(Print::asRegister, "Engine::PrintFunction", {"Engine::DefaultAddons"});
+static Engine::PreInitializeController on_init(Print::asRegister, "Engine::PrintFunction", {"Engine::DefaultScriptAddons"});

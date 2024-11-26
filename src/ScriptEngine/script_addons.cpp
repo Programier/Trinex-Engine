@@ -42,5 +42,5 @@ namespace Engine
 		ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
 	}
 
-	static ScriptAddonsInitializeController init(on_init, "Engine::DefaultAddons");
+	static PreInitializeController init(on_init, "Engine::DefaultScriptAddons");
 }// namespace Engine

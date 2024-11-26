@@ -80,5 +80,5 @@ namespace Engine
 		register_base_type<Double, double>("Double", "double", "0.0");
 	}
 
-	static ScriptAddonsInitializeController on_init(init_primitive_wrappers, "Engine::PrimitiveWrappers");
+	static PreInitializeController on_init(init_primitive_wrappers, "Engine::PrimitiveWrappers");
 }// namespace Engine

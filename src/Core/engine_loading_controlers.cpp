@@ -4,6 +4,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/flags.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/object.hpp>
 #include <Core/threading.hpp>
 
 namespace Engine
@@ -12,15 +13,13 @@ namespace Engine
 	{
 		InitializerMask = BIT(63),
 
-		PreInit                = BIT(0) | InitializerMask,
-		Init                   = BIT(1) | InitializerMask,
-		Destroy                = BIT(2),
-		PostDestroy            = BIT(3),
-		ReflectionInit         = BIT(4) | InitializerMask,
-		ResourcesInit          = BIT(5) | InitializerMask,
-		ConfigsInitialize      = BIT(6) | InitializerMask,
-		ScriptAddonsInitialize = BIT(7) | InitializerMask,
-		ReflectionPostInit     = BIT(8) | InitializerMask,
+		PreInit           = BIT(0) | InitializerMask,
+		Init              = BIT(1) | InitializerMask,
+		Destroy           = BIT(2),
+		PostDestroy       = BIT(3),
+		ReflectionInit    = BIT(4) | InitializerMask,
+		ResourcesInit     = BIT(5) | InitializerMask,
+		ConfigsInitialize = BIT(6) | InitializerMask,
 	};
 
 	struct CallbackEntry {
@@ -51,24 +50,14 @@ namespace Engine
 			PreInitializeController().execute();
 		}
 
-		if (ScriptAddonsInitializeController::is_triggered())
+		if (ConfigsInitializeController::is_triggered())
 		{
-			ScriptAddonsInitializeController().execute();
+			ConfigsInitializeController().execute();
 		}
 
 		if (ReflectionInitializeController::is_triggered())
 		{
 			ReflectionInitializeController().execute();
-		}
-
-		if (ReflectionPostInitializeController::is_triggered())
-		{
-			ReflectionPostInitializeController().execute();
-		}
-
-		if (ConfigsInitializeController::is_triggered())
-		{
-			ConfigsInitializeController().execute();
 		}
 
 		if (StartupResourcesInitializeController::is_triggered())
@@ -136,6 +125,7 @@ namespace Engine
 	LoadingControllerBase& LoadingControllerBase::execute()
 	{
 		info_log(m_name, "Executing command list!");
+		mark_triggered(id());
 
 		while (!list_of(m_list).empty())
 		{
@@ -163,16 +153,15 @@ namespace Engine
 #define IMPLEMENT_CONTROLLER(ControllerName, type)                                                                               \
 	ControllerName::ControllerName() : LoadingControllerBase(callbacks_list<ControllerName>(), #ControllerName)                  \
 	{}                                                                                                                           \
-                                                                                                                                 \
-                                                                                                                                 \
+																																 \
 	ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                                       \
-	                               const std::initializer_list<String>& require_initializers)                                    \
-	    : ControllerName()                                                                                                       \
+								   const std::initializer_list<String>& require_initializers)                                    \
+		: ControllerName()                                                                                                       \
 	{                                                                                                                            \
 		push(callback, name, require_initializers);                                                                              \
 	}                                                                                                                            \
 	ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                                 \
-	                                     const std::initializer_list<String>& require_initializers)                              \
+										 const std::initializer_list<String>& require_initializers)                              \
 	{                                                                                                                            \
 		LoadingControllerBase::push(callback, name, require_initializers);                                                       \
 		return *this;                                                                                                            \
@@ -180,12 +169,6 @@ namespace Engine
 	ControllerName& ControllerName::require(const String& name)                                                                  \
 	{                                                                                                                            \
 		LoadingControllerBase::require(name);                                                                                    \
-		return *this;                                                                                                            \
-	}                                                                                                                            \
-	ControllerName& ControllerName::execute()                                                                                    \
-	{                                                                                                                            \
-		LoadingControllerBase::execute();                                                                                        \
-		LoadingControllerBase::mark_triggered(static_cast<BitMask>(ControllerType::type));                                       \
 		return *this;                                                                                                            \
 	}                                                                                                                            \
 	bool ControllerName::is_triggered()                                                                                          \
@@ -204,8 +187,13 @@ namespace Engine
 	IMPLEMENT_CONTROLLER(PostDestroyController, PostDestroy);
 
 	IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInit);
+	ReflectionInitializeController& ReflectionInitializeController::execute()
+	{
+		LoadingControllerBase::execute();
+		Refl::Object::static_initialize();
+		return *this;
+	}
+
 	IMPLEMENT_CONTROLLER(StartupResourcesInitializeController, ResourcesInit);
 	IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
-	IMPLEMENT_CONTROLLER(ScriptAddonsInitializeController, ScriptAddonsInitialize);
-	IMPLEMENT_CONTROLLER(ReflectionPostInitializeController, ReflectionPostInit);
 }// namespace Engine

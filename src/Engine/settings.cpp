@@ -4,7 +4,7 @@
 
 namespace Engine::Settings
 {
-	ENGINE_EXPORT String e_engine                = "Engine::EngineInstance";
+	ENGINE_EXPORT String e_engine                = "Engine::BaseEngine";
 	ENGINE_EXPORT String e_api                   = "OpenGL";
 	ENGINE_EXPORT String e_default_language      = "eng";
 	ENGINE_EXPORT String e_current_language      = "eng";
@@ -75,5 +75,5 @@ namespace Engine::Settings
 		bind_value(e_splash_game_name_text_size, engine);
 	}
 
-	static ReflectionInitializeController on_init(init, "Engine::Settings", {"Engine::WindowAttribute", "Engine::Orientation"});
+	static PreInitializeController on_init(init, "Engine::Settings");
 }// namespace Engine::Settings

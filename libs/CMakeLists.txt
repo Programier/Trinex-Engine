@@ -21,7 +21,7 @@ set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")
 
 add_subdirectory(zlib EXCLUDE_FROM_ALL)
 
-add_subdirectory(fmt)
+add_subdirectory(fmt EXCLUDE_FROM_ALL)
 set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
 
 if (WIN32 OR LINUX)

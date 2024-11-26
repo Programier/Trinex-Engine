@@ -936,5 +936,5 @@ namespace Engine
 		r.method("void erase(uint64 p, uint64 n = 1)", T::erase, ScriptCallConv::Generic);
 	}
 
-	static ReflectionInitializeController initializer(initialize, "Engine::ScriptVector");
+	static PreInitializeController initializer(initialize, "Engine::ScriptVector");
 }// namespace Engine

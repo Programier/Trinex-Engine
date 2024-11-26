@@ -118,14 +118,10 @@ namespace Engine
 		Arguments arguments;
 		arguments.init(argc, argv);
 		initialize_filesystem();
+		ScriptEngine::initialize();
 
 		PreInitializeController().execute();
 		Project::initialize();
-
-		ReflectionInitializeController().execute();
-		Refl::Object::static_initialize();
-
-		ReflectionPostInitializeController().execute();
 
 		ConfigManager::initialize();
 
@@ -136,6 +132,8 @@ namespace Engine
 				Library().load(library);
 			}
 		}
+
+		ReflectionInitializeController().execute();
 
 		Refl::Class* engine_class = Refl::Class::static_find(Settings::e_engine, Refl::FindFlags::IsRequired);
 		engine_instance           = Object::instance_cast<BaseEngine>(engine_class->create_object());

@@ -11,3 +11,7 @@ add_subdirectory(imgui-node-editor EXCLUDE_FROM_ALL)
 add_subdirectory(imgui-filebrowser EXCLUDE_FROM_ALL)
 add_subdirectory(ImGuiTextEditor EXCLUDE_FROM_ALL)
 add_subdirectory("ImGuizmo" EXCLUDE_FROM_ALL)
+
+
+target_compile_options(spirv-cross-core PRIVATE "-fPIC")
+target_compile_options(spirv-cross-glsl PRIVATE "-fPIC")

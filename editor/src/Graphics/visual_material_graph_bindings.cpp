@@ -186,24 +186,19 @@ namespace Engine::VisualMaterialGraph
 			}
 		}
 
-		auto register_behaviour = [reg]() mutable {
-			String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& name)", reg.class_base_name());
-			reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(), factory_of<Type, Node*, const Name&>,
-			           ScriptCallConv::CDecl);
+		String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& name)", reg.class_base_name());
+		reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(), factory_of<Type, Node*, const Name&>, ScriptCallConv::CDecl);
 
-			if constexpr (pin_has_default_value<Type>::value)
+		if constexpr (pin_has_default_value<Type>::value)
+		{
+			if (const char* default_type_name = typename_of<typename Type::ValueType>())
 			{
-				if (const char* default_type_name = typename_of<typename Type::ValueType>())
-				{
-					String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& name, const {}& default_value)",
-					                                      reg.class_base_name(), default_type_name);
-					reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(),
-					           factory_of<Type, Node*, const Name&, const typename Type::ValueType&>, ScriptCallConv::CDecl);
-				}
+				String factory_decl = Strings::format("{}@ f(Node node, const Engine::Name& name, const {}& default_value)",
+													  reg.class_base_name(), default_type_name);
+				reg.behave(ScriptClassBehave::Factory, factory_decl.c_str(),
+						   factory_of<Type, Node*, const Name&, const typename Type::ValueType&>, ScriptCallConv::CDecl);
 			}
-		};
-
-		ReflectionPostInitializeController initializer(register_behaviour);
+		}
 	}
 
 	static Expression& expression_opAssign(Expression* self, const Expression& other)
@@ -482,6 +477,6 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	static ReflectionInitializeController on_init(initilize, "Engine::VisualMaterialGraph::Bindings",
-	                                              {"Engine::VisualMaterialGraph::Node"});
+												  {"Engine::VisualMaterialGraph::Node", "Engine::Name"});
 
 }// namespace Engine::VisualMaterialGraph

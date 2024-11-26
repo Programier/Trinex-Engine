@@ -8,7 +8,7 @@ namespace Engine::Settings
 	float ed_font_size  = 18.f;
 	bool ed_show_grid   = true;
 
-	static ReflectionInitializeController initialize([]() {
+	static PreInitializeController initialize([]() {
 		ConfigManager::register_property("ed_font_path", ed_font_path, "editor");
 		ConfigManager::register_property("ed_font_size", ed_font_size, "editor");
 		ConfigManager::register_property("ed_show_grid", ed_show_grid, "editor");
