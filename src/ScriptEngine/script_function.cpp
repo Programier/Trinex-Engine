@@ -139,7 +139,14 @@ namespace Engine
 
 	StringView ScriptFunction::namespace_name() const
 	{
-		check_function("";) return Strings::make_string_view(m_function->GetNamespace());
+		check_function("");
+		return Strings::make_string_view(m_function->GetNamespace());
+	}
+
+	StringView ScriptFunction::config_group() const
+	{
+		check_function("");
+		return Strings::make_string_view(m_function->GetConfigGroup());
 	}
 
 	String ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const

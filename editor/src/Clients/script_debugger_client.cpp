@@ -575,7 +575,7 @@ namespace Engine
 				int_t type_id = 0;
 				byte* address = nullptr;
 
-				if (ScriptEngine::global_property(i, &name, &ns, &type_id, nullptr, &address))
+				if (ScriptEngine::global_property(i, &name, &ns, nullptr, &type_id, nullptr, &address))
 				{
 					draw_variable(ns, name, type_id, address);
 				}

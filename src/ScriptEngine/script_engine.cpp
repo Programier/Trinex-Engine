@@ -354,14 +354,16 @@ namespace Engine
 		return global_property_index_by_decl(declaration.c_str());
 	}
 
-	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const,
-	                                   byte** pointer)
+	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, StringView* config_group,
+									   int_t* type_id, bool* is_const, byte** pointer)
 	{
 		const char* c_name       = nullptr;
 		const char* c_name_space = nullptr;
+		const char* c_group      = nullptr;
 
 		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
-		                                                 type_id, is_const, nullptr, reinterpret_cast<void**>(pointer));
+														 type_id, is_const, config_group ? &c_group : nullptr,
+														 reinterpret_cast<void**>(pointer));
 
 		if (result)
 		{
@@ -374,11 +376,40 @@ namespace Engine
 			{
 				*name_space = c_name_space;
 			}
+
+			if (config_group)
+			{
+				*config_group = c_group ? c_group : "";
+			}
 		}
 
 		return result;
 	}
 
+	bool ScriptEngine::begin_config_group(const char* group)
+	{
+		return m_engine->BeginConfigGroup(group) >= 0;
+	}
+
+	bool ScriptEngine::begin_config_group(const String& group)
+	{
+		return begin_config_group(group.c_str());
+	}
+
+	bool ScriptEngine::end_config_group()
+	{
+		return m_engine->EndConfigGroup() >= 0;
+	}
+
+	bool ScriptEngine::remove_config_group(const char* group)
+	{
+		return m_engine->RemoveConfigGroup(group) >= 0;
+	}
+
+	bool ScriptEngine::remove_config_group(const String& group)
+	{
+		return remove_config_group(group.c_str());
+	}
 
 	ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, size_t iterations)
 	{

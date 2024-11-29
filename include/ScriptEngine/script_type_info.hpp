@@ -32,6 +32,7 @@ namespace Engine
 		// Type info
 		StringView name() const;
 		StringView namespace_name() const;
+		StringView config_group() const;
 		ScriptTypeInfo base_type() const;
 		ScriptTypeInfo native_base_type() const;
 		bool derives_from(const ScriptTypeInfo& info) const;

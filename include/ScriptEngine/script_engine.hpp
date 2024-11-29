@@ -89,7 +89,14 @@ namespace Engine
 		static int_t global_property_index_by_decl(const char* declaration);
 		static int_t global_property_index_by_decl(const String& declaration);
 		static bool global_property(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr,
-		                            int_t* type_id = nullptr, bool* is_const = nullptr, byte** pointer = nullptr);
+									StringView* config_group = nullptr, int_t* type_id = nullptr, bool* is_const = nullptr,
+									byte** pointer = nullptr);
+
+		static bool begin_config_group(const char* group);
+		static bool begin_config_group(const String& group);
+		static bool end_config_group();
+		static bool remove_config_group(const char* group);
+		static bool remove_config_group(const String& group);
 
 		static ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
 

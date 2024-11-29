@@ -55,6 +55,7 @@ namespace Engine
 		StringView object_name() const;
 		StringView name() const;
 		StringView namespace_name() const;
+		StringView config_group() const;
 		String declaration(bool include_object_name = true, bool include_namespace = false,
 		                   bool include_param_names = false) const;
 		bool is_read_only() const;

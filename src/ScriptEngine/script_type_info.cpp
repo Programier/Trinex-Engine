@@ -107,6 +107,12 @@ namespace Engine
 		return Strings::make_string_view(m_info->GetNamespace());
 	}
 
+	StringView ScriptTypeInfo::config_group() const
+	{
+		check_info("");
+		return Strings::make_string_view(m_info->GetConfigGroup());
+	}
+
 	ScriptTypeInfo ScriptTypeInfo::base_type() const
 	{
 		check_info({});
