@@ -27,12 +27,9 @@ namespace Engine
 
 	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
 	{
-		static int frame = 0;
-		++frame;
-
-		if (frame % 100 == 0)
+		if (engine_instance->frame_index() % 100 == 0)
 		{
-			printf("FPS: %f\n", 1.0 / dt);
+			info_log("FPS", "%f\n", 1.0 / dt);
 		}
 		return *this;
 	}

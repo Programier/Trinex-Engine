@@ -97,7 +97,8 @@ namespace Engine
 			if (std::find(modes.begin(), modes.end(), mode) != modes.end())
 				return mode;
 		}
-		return modes[0];
+
+		return vk::PresentModeKHR::eFifo;
 	}
 
 	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync, vk::SurfaceKHR surface)
