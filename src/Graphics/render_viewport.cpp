@@ -385,7 +385,7 @@ namespace Engine
 		if (is_in_render_thread())
 			return Super::size();
 
-		return m_window->size() * Settings::e_screen_percentage;
+		return m_window->size() * Settings::screen_percentage;
 	}
 
 	WindowRenderViewport& WindowRenderViewport::rhi_create()

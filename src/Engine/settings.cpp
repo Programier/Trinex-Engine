@@ -1,78 +1,102 @@
-#include <Core/config_manager.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Engine/settings.hpp>
+#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine::Settings
 {
-	ENGINE_EXPORT String e_engine                = "Engine::BaseEngine";
-	ENGINE_EXPORT String e_api                   = "OpenGL";
-	ENGINE_EXPORT String e_default_language      = "eng";
-	ENGINE_EXPORT String e_current_language      = "eng";
-	ENGINE_EXPORT int_t e_lz4_compression_level  = 0;
-	ENGINE_EXPORT int_t e_gc_max_object_per_tick = 1;
-	ENGINE_EXPORT int_t e_fps_limit              = 60;
+	ENGINE_EXPORT String engine_class          = "Engine::BaseEngine";
+	ENGINE_EXPORT String rhi                   = "Vulkan";
+	ENGINE_EXPORT String default_language      = "eng";
+	ENGINE_EXPORT String current_language      = "eng";
+	ENGINE_EXPORT int_t lz4_compression_level  = 0;
+	ENGINE_EXPORT int_t gc_max_object_per_tick = 1;
+	ENGINE_EXPORT int_t fps_limit              = 60;
+	ENGINE_EXPORT float screen_percentage      = 1.f;
+	ENGINE_EXPORT Vector<String> languages     = {"eng"};
+	ENGINE_EXPORT Vector<String> systems;
+	ENGINE_EXPORT Vector<String> plugins;
+	ENGINE_EXPORT bool debug_shaders = false;
 
-#if PLATFORM_ANDROID
-	ENGINE_EXPORT float e_screen_percentage = 1.f;
-#else
-	ENGINE_EXPORT float e_screen_percentage = 1.f;
-#endif
-	ENGINE_EXPORT Vector<String> e_languages = {"eng"};
-	ENGINE_EXPORT Vector<String> e_systems;
-	ENGINE_EXPORT Vector<String> e_libs;
-	ENGINE_EXPORT bool e_debug_shaders = false;
+	namespace Window
+	{
+		ENGINE_EXPORT String title = "Trinex Engine";
+		ENGINE_EXPORT String client;
+		ENGINE_EXPORT int_t size_x                       = 1280;
+		ENGINE_EXPORT int_t size_y                       = 720;
+		ENGINE_EXPORT int_t pos_x                        = -1;
+		ENGINE_EXPORT int_t pos_y                        = -1;
+		ENGINE_EXPORT bool vsync                         = true;
+		ENGINE_EXPORT Vector<WindowAttribute> attributes = {WindowAttribute::Resizable};
+		ENGINE_EXPORT Vector<Orientation> orientations;
+	}// namespace Window
 
-	ENGINE_EXPORT String w_title = "Trinex Engine";
-	ENGINE_EXPORT String w_client;
-	ENGINE_EXPORT int_t w_size_x                       = 1280;
-	ENGINE_EXPORT int_t w_size_y                       = 720;
-	ENGINE_EXPORT int_t w_pos_x                        = -1;
-	ENGINE_EXPORT int_t w_pos_y                        = -1;
-	ENGINE_EXPORT bool w_vsync                         = true;
-	ENGINE_EXPORT Vector<WindowAttribute> w_attributes = {WindowAttribute::Resizable};
-	ENGINE_EXPORT Vector<Orientation> w_orientations;
-
-	ENGINE_EXPORT bool e_show_splash                 = true;
-	ENGINE_EXPORT String e_splash_image              = "resources/splash/splash.png";
-	ENGINE_EXPORT String e_splash_font               = "";
-	ENGINE_EXPORT int_t e_splash_startup_text_size   = 14;
-	ENGINE_EXPORT int_t e_splash_version_text_size   = 14;
-	ENGINE_EXPORT int_t e_splash_copyright_text_size = 14;
-	ENGINE_EXPORT int_t e_splash_game_name_text_size = 32;
+	namespace Splash
+	{
+		ENGINE_EXPORT bool show                 = true;
+		ENGINE_EXPORT String image              = "resources/splash/splash.png";
+		ENGINE_EXPORT String font               = "";
+		ENGINE_EXPORT int_t startup_text_size   = 14;
+		ENGINE_EXPORT int_t version_text_size   = 14;
+		ENGINE_EXPORT int_t copyright_text_size = 14;
+		ENGINE_EXPORT int_t game_name_text_size = 32;
+	}// namespace Splash
 
 
 	static void init()
 	{
-#define bind_value(name, group) ConfigManager::register_property("Engine::Settings::" #name, name, #group)
-#define bind_enum(name, group, enum_name) ConfigManager::register_property("Engine::Settings::" #name, name, #group, #enum_name)
+		ReflectionInitializeController().require("Engine::WindowAttribute").require("Engine::Orientation");
 
-		bind_value(e_engine, engine);
-		bind_value(e_api, engine);
-		bind_value(e_default_language, engine);
-		bind_value(e_current_language, engine);
-		bind_value(e_lz4_compression_level, engine);
-		bind_value(e_gc_max_object_per_tick, engine);
-		bind_value(e_fps_limit, engine);
-		bind_value(e_languages, engine);
-		bind_value(e_systems, engine);
-		bind_value(e_libs, engine);
-		bind_value(e_debug_shaders, engine);
-		bind_value(w_title, engine);
-		bind_value(w_client, engine);
-		bind_value(w_size_x, engine);
-		bind_value(w_size_y, engine);
-		bind_value(w_pos_x, engine);
-		bind_value(w_pos_y, engine);
-		bind_value(w_vsync, engine);
-		bind_enum(w_attributes, engine, Engine::WindowAttribute);
-		bind_enum(w_orientations, engine, Engine::Orientation);
-		bind_value(e_show_splash, engine);
-		bind_value(e_splash_image, engine);
-		bind_value(e_splash_font, engine);
-		bind_value(e_splash_startup_text_size, engine);
-		bind_value(e_splash_version_text_size, engine);
-		bind_value(e_splash_copyright_text_size, engine);
-		bind_value(e_splash_game_name_text_size, engine);
+#define bind_value(type, name) e.register_property(#type " " #name, &name)
+
+		auto& e = ScriptEngine::instance();
+		e.begin_config_group("engine/engine.config");
+
+		{
+			ScriptNamespaceScopedChanger changer("Engine::Settings");
+
+			bind_value(string, engine_class);
+			bind_value(string, rhi);
+			bind_value(string, default_language);
+			bind_value(string, current_language);
+			bind_value(int, lz4_compression_level);
+			bind_value(int, gc_max_object_per_tick);
+			bind_value(float, fps_limit);
+			bind_value(Engine::Vector<string>, languages);
+			bind_value(Engine::Vector<string>, systems);
+			bind_value(Engine::Vector<string>, plugins);
+			bind_value(Engine::Vector<string>, debug_shaders);
+		}
+
+		{
+			ScriptNamespaceScopedChanger changer("Engine::Settings::Window");
+
+			using namespace Window;
+
+			bind_value(string, title);
+			bind_value(string, client);
+			bind_value(int, size_x);
+			bind_value(int, size_y);
+			bind_value(int, pos_x);
+			bind_value(int, pos_y);
+			bind_value(bool, vsync);
+			bind_value(Engine::Vector<Engine::WindowAttribute>, attributes);
+			bind_value(Engine::Vector<Engine::Orientation>, orientations);
+		}
+
+		{
+			ScriptNamespaceScopedChanger changer("Engine::Settings::Splash");
+			using namespace Splash;
+
+			bind_value(bool, show);
+			bind_value(string, image);
+			bind_value(string, font);
+			bind_value(int, startup_text_size);
+			bind_value(int, version_text_size);
+			bind_value(int, copyright_text_size);
+			bind_value(int, game_name_text_size);
+		}
+
+		e.end_config_group();
 	}
 
 	static PreInitializeController on_init(init, "Engine::Settings");

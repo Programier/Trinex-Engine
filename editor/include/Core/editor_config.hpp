@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine::Settings
+namespace Engine::Settings::Editor
 {
-	extern String ed_font_path;
-	extern float ed_font_size;
-	extern bool ed_show_grid;
-}// namespace Engine::Settings
+	extern String font_path;
+	extern float font_size;
+	extern bool show_grid;
+}// namespace Engine::EditorSettings

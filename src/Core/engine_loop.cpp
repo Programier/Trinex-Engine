@@ -38,13 +38,13 @@ namespace Engine
 
 	static void init_api(bool force_no_api = false)
 	{
-		if (Settings::e_api.empty() || force_no_api)
+		if (Settings::rhi.empty() || force_no_api)
 		{
-			Settings::e_api         = "None";
-			Settings::e_show_splash = false;
+			Settings::rhi          = "None";
+			Settings::Splash::show = false;
 		}
 
-		String api = Settings::e_api;
+		String api = Settings::rhi;
 		auto decl  = Strings::format("Engine::TRINEX_RHI::{}", Strings::to_upper(api));
 		rhi        = reinterpret_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
 
@@ -80,7 +80,6 @@ namespace Engine
 
 		// clang-format off
 		vfs->mount("[assets_dir]:/TrinexEngine", "Editor Assets", new FS(exec_dir / "resources/TrinexEngine/assets"), callback);
-		vfs->mount("[configs_dir]:/engine", "Editor Configs", new FS(exec_dir / "resources/TrinexEngine/configs"), callback);
 		vfs->mount("[shaders_dir]:/TrinexEngine", "Editor Shaders", new FS(exec_dir / "resources/TrinexEngine/shaders"), callback);
 		// clang-format on
 
@@ -127,15 +126,15 @@ namespace Engine
 
 		// Load libraries
 		{
-			for (const String& library : Settings::e_libs)
+			for (const String& plugin : Settings::plugins)
 			{
-				Library().load(library);
+				Library().load(plugin);
 			}
 		}
 
 		ReflectionInitializeController().execute();
 
-		Refl::Class* engine_class = Refl::Class::static_find(Settings::e_engine, Refl::FindFlags::IsRequired);
+		Refl::Class* engine_class = Refl::Class::static_find(Settings::engine_class, Refl::FindFlags::IsRequired);
 		engine_instance           = Object::instance_cast<BaseEngine>(engine_class->create_object());
 
 		if (engine_instance == nullptr)
@@ -168,7 +167,7 @@ namespace Engine
 				return;
 		}
 
-		const bool show_splash = Settings::e_show_splash;
+		const bool show_splash = Settings::Splash::show;
 
 		float wait_time = engine_instance->time_seconds();
 		engine_instance->init();

@@ -24,7 +24,7 @@ namespace Engine
 
 	EngineSystem& EngineSystem::create_systems_from_config()
 	{
-		for (const String& system_name : Settings::e_systems)
+		for (const String& system_name : Settings::systems)
 		{
 			System* system = System::new_system(system_name);
 			if (system && system->parent_system() == nullptr)

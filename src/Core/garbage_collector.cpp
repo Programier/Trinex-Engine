@@ -54,7 +54,7 @@ namespace Engine
 
 	static FORCE_INLINE uint32_t get_max_objects_per_tick()
 	{
-		return glm::max<uint32_t>(1, Settings::e_gc_max_object_per_tick);
+		return glm::max<uint32_t>(1, Settings::gc_max_object_per_tick);
 	}
 
 

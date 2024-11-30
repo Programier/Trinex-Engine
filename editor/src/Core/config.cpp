@@ -1,16 +1,24 @@
-#include <Core/config_manager.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <ScriptEngine/script_engine.hpp>
 
-namespace Engine::Settings
+namespace Engine::Settings::Editor
 {
-	String ed_font_path = "resources/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
-	float ed_font_size  = 18.f;
-	bool ed_show_grid   = true;
+	String font_path = "resources/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+	float font_size  = 18.f;
+	bool show_grid   = true;
 
 	static PreInitializeController initialize([]() {
-		ConfigManager::register_property("ed_font_path", ed_font_path, "editor");
-		ConfigManager::register_property("ed_font_size", ed_font_size, "editor");
-		ConfigManager::register_property("ed_show_grid", ed_show_grid, "editor");
+		auto& e = ScriptEngine::instance();
+
+		e.begin_config_group("editor/editor.config");
+		{
+			ScriptNamespaceScopedChanger changer("Engine::Settings::Editor");
+
+			e.register_property("string font_path", &font_path);
+			e.register_property("float font_size", &font_size);
+			e.register_property("bool show_grid", &show_grid);
+		}
+		e.end_config_group();
 	});
-}// namespace Engine::Settings
+}// namespace Engine::Settings::Editor

@@ -11,6 +11,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_config.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
@@ -21,9 +22,6 @@
 #include <vulkan_types.hpp>
 #include <vulkan_uniform_buffer.hpp>
 #include <vulkan_viewport.hpp>
-
-#define VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT 2
-#define VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT 3
 
 namespace Engine
 {
@@ -158,19 +156,26 @@ namespace Engine
 			}
 		}
 
-		phys_device_selector.allow_any_gpu_device_type(false);
-#if USE_INTEGRATED_GPU
-		phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
-#else
-		phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
-#endif
 		phys_device_selector.defer_surface_initialization();
+
+		phys_device_selector.allow_any_gpu_device_type(VulkanConfig::allow_any_gpu_type);
+		phys_device_selector.require_present(VulkanConfig::require_present);
+		phys_device_selector.prefer_gpu_device_type(VulkanConfig::device_type);
+
+		if(VulkanConfig::require_dedicated_transfer_queue)
+			phys_device_selector.require_dedicated_transfer_queue();
+		if(VulkanConfig::require_dedicated_compute_queue)
+			phys_device_selector.require_dedicated_compute_queue();
+		if(VulkanConfig::require_separate_transfer_queue)
+			phys_device_selector.require_separate_transfer_queue();
+		if(VulkanConfig::require_separate_compute_queue)
+			phys_device_selector.require_separate_compute_queue();
 
 		auto selected_device = phys_device_selector.select();
 		if (!selected_device.has_value())
 		{
 			auto msg = selected_device.error().message();
-			vulkan_error_log("Vulkan", "%s", msg.c_str());
+			error_log("Vulkan", "%s", msg.c_str());
 			throw std::runtime_error(msg);
 		}
 
@@ -228,7 +233,7 @@ namespace Engine
 
 		for (auto& extension : required_extensions)
 		{
-			vulkan_info_log("VulkanAPI", "Enable extention %s", extension.c_str());
+			info_log("VulkanAPI", "Enable extention %s", extension.c_str());
 			instance_builder.enable_extension(extension.c_str());
 		}
 
@@ -246,7 +251,7 @@ namespace Engine
 		if (!instance_ret)
 		{
 			auto message = instance_ret.error().message();
-			vulkan_error_log("Vulkan", "%s", message.c_str());
+			error_log("Vulkan", "%s", message.c_str());
 			throw EngineException(message);
 		}
 

@@ -240,7 +240,7 @@ namespace Engine
 
 				if (ImGui::BeginMenu("editor/Change language"_localized))
 				{
-					for (const String& lang : Settings::e_languages)
+					for (const String& lang : Settings::languages)
 					{
 						const char* localized = Object::localize("editor/" + lang).c_str();
 						if (ImGui::MenuItem(localized))

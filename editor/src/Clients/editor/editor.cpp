@@ -216,7 +216,7 @@ namespace Engine
 
 				if (ImGui::BeginMenu("editor/Change language"_localized))
 				{
-					for (const String& lang : Settings::e_languages)
+					for (const String& lang : Settings::languages)
 					{
 						const char* localized = Object::localize("editor/" + lang).c_str();
 						if (ImGui::MenuItem(localized))
@@ -229,7 +229,7 @@ namespace Engine
 					ImGui::EndMenu();
 				}
 
-				ImGui::SliderFloat("Screen Percentage", &Settings::e_screen_percentage, 0.f, 2.f);
+				ImGui::SliderFloat("Screen Percentage", &Settings::screen_percentage, 0.f, 2.f);
 
 				ImGui::EndMenu();
 			}
@@ -501,7 +501,7 @@ namespace Engine
 						render_show_flag(m_show_flags, ShowFlags::PostProcess, "Post Process");
 						render_show_flag(m_show_flags, ShowFlags::LightOctree, "Light Octree");
 						render_show_flag(m_show_flags, ShowFlags::PrimitiveOctree, "Primitive Octree");
-						ImGui::Checkbox("Show Grid", &Settings::ed_show_grid);
+						ImGui::Checkbox("Show Grid", &Settings::Editor::show_grid);
 						ImGui::EndMenu();
 					}
 				}

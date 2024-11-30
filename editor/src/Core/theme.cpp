@@ -10,7 +10,7 @@ namespace Engine::EditorTheme
 		// Initialize fonts
 		auto& io = ImGui::GetIO();
 
-		FileReader reader(Settings::ed_font_path);
+		FileReader reader(Settings::Editor::font_path);
 
 		if (reader.is_open())
 		{
@@ -18,7 +18,7 @@ namespace Engine::EditorTheme
 			ImFontConfig config;
 			config.FontDataOwnedByAtlas = false;
 
-			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::ed_font_size, &config,
+			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::font_size, &config,
 			                               io.Fonts->GetGlyphRangesCyrillic());
 		}
 

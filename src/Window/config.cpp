@@ -16,15 +16,15 @@ namespace Engine
 	{
 		attributes.clear();
 		orientations.clear();
-		attributes.insert(Settings::w_attributes.begin(), Settings::w_attributes.end());
-		orientations.insert(Settings::w_orientations.begin(), Settings::w_orientations.end());
-		title      = Settings::w_title;
-		client     = Settings::w_client;
-		size.x     = Settings::w_size_x;
-		size.y     = Settings::w_size_y;
-		position.x = Settings::w_pos_x;
-		position.y = Settings::w_pos_y;
-		vsync      = Settings::w_vsync;
+		attributes.insert(Settings::Window::attributes.begin(), Settings::Window::attributes.end());
+		orientations.insert(Settings::Window::orientations.begin(), Settings::Window::orientations.end());
+		title      = Settings::Window::title;
+		client     = Settings::Window::client;
+		size.x     = Settings::Window::size_x;
+		size.y     = Settings::Window::size_y;
+		position.x = Settings::Window::pos_x;
+		position.y = Settings::Window::pos_y;
+		vsync      = Settings::Window::vsync;
 		return *this;
 	}
 

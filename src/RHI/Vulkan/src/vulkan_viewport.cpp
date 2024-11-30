@@ -281,7 +281,7 @@ namespace Engine
 
 	VulkanSwapchain& VulkanSwapchain::create(vk::SwapchainKHR* old)
 	{
-		vulkan_info_log("Vulkan API", "Creating new swapchain");
+		info_log("Vulkan API", "Creating new swapchain");
 		m_need_recreate = false;
 
 		vkb::SwapchainBuilder builder(API->m_physical_device, API->m_device, m_surface, API->m_graphics_queue->m_index,

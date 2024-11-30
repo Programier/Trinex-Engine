@@ -363,7 +363,7 @@ namespace Engine
 
 		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
 														 type_id, is_const, config_group ? &c_group : nullptr,
-														 reinterpret_cast<void**>(pointer));
+														 reinterpret_cast<void**>(pointer)) >= 0;
 
 		if (result)
 		{

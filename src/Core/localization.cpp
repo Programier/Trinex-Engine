@@ -48,14 +48,14 @@ namespace Engine
 
 	const String& Localization::language() const
 	{
-		return Settings::e_current_language;
+		return Settings::current_language;
 	}
 
 	Localization& Localization::language(const StringView& lang)
 	{
 		if (language() == lang)
 			return *this;
-		Settings::e_current_language = lang;
+		Settings::current_language = lang;
 		reload();
 		on_language_changed.trigger();
 		return *this;
@@ -126,7 +126,7 @@ namespace Engine
 			if (clear)
 				m_default_translation_map.clear();
 
-			Path path = localization_dir / Path(Settings::e_default_language);
+			Path path = localization_dir / Path(Settings::default_language);
 			load_localization(m_default_translation_map, path);
 		}
 

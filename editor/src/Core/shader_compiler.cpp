@@ -782,7 +782,7 @@ namespace Engine::ShaderCompiler
 
 			Vector<const char*> arguments;
 
-			if (Settings::e_debug_shaders)
+			if (Settings::debug_shaders)
 			{
 				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
 				request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_NONE);
@@ -836,7 +836,7 @@ namespace Engine::ShaderCompiler
 			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 
-			if (Settings::e_debug_shaders)
+			if (Settings::debug_shaders)
 				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
 			else
 				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);

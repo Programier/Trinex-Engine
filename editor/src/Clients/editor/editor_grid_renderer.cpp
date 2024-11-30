@@ -7,7 +7,7 @@ namespace Engine
 {
 	void render_editor_grid(const struct CameraView& view)
 	{
-		if (Settings::ed_show_grid == false)
+		if (Settings::Editor::show_grid == false)
 			return;
 
 		EditorResources::grid_material->apply();
