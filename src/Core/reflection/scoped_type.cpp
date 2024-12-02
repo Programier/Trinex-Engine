@@ -90,6 +90,11 @@ namespace Engine::Refl
 			}
 			else
 			{
+				if ((flags & FindFlags::IsRequired) == FindFlags::IsRequired)
+				{
+					auto msg = Strings::format("Failed to find reflection for '{}'", concat_scoped_name(full_name(), name));
+					throw EngineException(msg);
+				}
 				return nullptr;
 			}
 		}

@@ -145,7 +145,7 @@ namespace Engine
 
 		ScriptEngine::load_scripts();
 
-		auto entry_param = Arguments::find("e_entry");
+		auto entry_param = Arguments::find("entry");
 		if (entry_param && entry_param->type == Arguments::Type::String)
 		{
 			return execute_entry(entry_param->get<const String&>());
