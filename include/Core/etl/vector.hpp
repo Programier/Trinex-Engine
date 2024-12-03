@@ -1,4 +1,6 @@
 #pragma once
+#include <Core/etl/allocator.hpp>
+#include <Core/etl/archive_predef.hpp>
 #include <algorithm>
 #include <iterator>
 #include <limits>
@@ -906,3 +908,24 @@ namespace Engine::Containers
 		}
 	};
 }// namespace Engine::Containers
+
+
+namespace Engine
+{
+	template<typename Type>
+	using Vector = Containers::Vector<Type, Allocator<Type>>;
+	using Buffer = Vector<unsigned char>;
+
+	template<typename Type, typename ArchiveType>
+	inline bool trinex_serialize_vector(ArchiveType& ar, Vector<Type>& vector)
+		requires(is_complete_archive_type<ArchiveType>)
+	{
+		return ar.process_vector(vector, nullptr);
+	}
+
+	template<typename Type>
+	inline bool operator&(Archive& ar, Vector<Type>& vector)
+	{
+		return trinex_serialize_vector(ar, vector);
+	}
+}// namespace Engine

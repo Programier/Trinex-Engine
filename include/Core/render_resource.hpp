@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/smart_ptr.hpp>
 #include <Core/executable_object.hpp>
 #include <Core/object.hpp>
 #include <Core/structures.hpp>
@@ -30,8 +31,7 @@ namespace Engine
 			void operator()(RHI_Object* object) const;
 		};
 
-		ScopedPtr<RHI_Object, DestroyRenderResource> m_rhi_object;
-
+		UniquePtr<RHI_Object, DestroyRenderResource> m_rhi_object;
 
 	public:
 		RenderResource();

@@ -361,33 +361,6 @@ namespace Engine
 			}
 		}
 
-		template<typename OutVector = Vector<value_type>>
-		OutVector to_vector() const
-		{
-			OutVector result;
-			result.reserve(size());
-
-			for (const value_type& value : (*this))
-			{
-				result.push_back(static_cast<typename OutVector::value_type>(value));
-			}
-
-			return result;
-		}
-
-		template<typename OutSet = Set<value_type>>
-		OutSet to_set() const
-		{
-			OutSet result;
-
-			for (const value_type& value : (*this))
-			{
-				result.insert(static_cast<typename OutSet::value_type>(value));
-			}
-
-			return result;
-		}
-
 		void clear()
 		{
 			resize(0);

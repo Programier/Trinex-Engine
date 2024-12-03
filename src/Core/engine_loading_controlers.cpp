@@ -2,6 +2,7 @@
 #include <Core/demangle.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/list.hpp>
 #include <Core/flags.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/object.hpp>

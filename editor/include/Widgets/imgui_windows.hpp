@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
+#include <Core/etl/set.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/imgui.hpp>
 

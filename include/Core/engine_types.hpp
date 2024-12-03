@@ -1,7 +1,5 @@
 #pragma once
-
 #include <Core/definitions.hpp>
-#include <Core/etl/stl_wrapper.hpp>
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -85,7 +83,6 @@ namespace Engine
 
 	using AssimpObject = const void*;
 	using BitMask      = size_t;
-	using MessageList  = List<String>;
 	using PixelRGB     = glm::vec<3, byte, glm::defaultp>;
 	using PixelRGBA    = glm::vec<4, byte, glm::defaultp>;
 
@@ -138,9 +135,6 @@ namespace Engine
 	using SampleMask = size_t;
 
 	using ScriptObjectAddress = void*;
-	using Buffer              = Vector<byte>;
-	using FileBuffer          = Buffer;
-	using ObjectArray         = Vector<class Object*>;
 
 	template<size_t length, typename Type>
 	using TypedVector = glm::vec<length, Type, glm::defaultp>;
@@ -237,5 +231,3 @@ namespace glm
 		return print_glm_object(stream, value);
 	}
 }// namespace glm
-
-#include <Core/filesystem/path.hpp>

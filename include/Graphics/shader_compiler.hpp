@@ -4,6 +4,7 @@
 
 namespace Engine
 {
+	class Logger;
 	class Material;
 
 	namespace ShaderCompiler
@@ -94,8 +95,7 @@ namespace Engine
 		public:
 			static Compiler* static_create_compiler(const StringView& api_name = "");
 
-			virtual bool compile(Material* material, const String& slang_source, ShaderSource& out_source,
-			                     MessageList& errors) = 0;
+			virtual bool compile(Material* material, const String& slang_source, ShaderSource& out_source) = 0;
 		};
 	}// namespace ShaderCompiler
 }// namespace Engine

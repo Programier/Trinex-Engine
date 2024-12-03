@@ -1,4 +1,5 @@
 #include <Clients/imgui_client.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/pointer.hpp>
 #include <Core/thread.hpp>
 #include <ScriptEngine/script_function.hpp>

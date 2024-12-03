@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/filesystem/path.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Event/listener_id.hpp>
 #include <Systems/system.hpp>

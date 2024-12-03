@@ -132,10 +132,10 @@ namespace Engine
 			throw EngineException("Next object class is invalid!");
 		}
 
-		m_owner                    = nullptr;
-		m_class                    = next_object_info.class_instance;
-		ObjectArray& objects_array = get_instances_array();
-		m_instance_index           = objects_array.size();
+		m_owner                        = nullptr;
+		m_class                        = next_object_info.class_instance;
+		Vector<Object*>& objects_array = get_instances_array();
+		m_instance_index               = objects_array.size();
 
 		if (!get_free_indexes_array().empty())
 		{
@@ -217,7 +217,7 @@ namespace Engine
 		return *this;
 	}
 
-	ENGINE_EXPORT const ObjectArray& Object::all_objects()
+	ENGINE_EXPORT const Vector<Object*>& Object::all_objects()
 	{
 		return get_instances_array();
 	}

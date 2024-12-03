@@ -4,8 +4,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
-#include <fstream>
-#include <memory>
 
 namespace Engine
 {
@@ -13,6 +11,7 @@ namespace Engine
 	{
 		class File;
 	}
+	class Path;
 
 	class ENGINE_EXPORT FileWriter : public BufferWriter
 	{

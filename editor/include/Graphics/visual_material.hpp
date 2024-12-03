@@ -35,6 +35,6 @@ namespace Engine
 
 		VisualMaterial& destroy_node(VisualMaterialGraph::Node* node, bool destroy_links = true);
 		bool shader_source(String& out_source) override;
-		bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr) override;
+		bool compile(ShaderCompiler::Compiler* compiler = nullptr) override;
 	};
 }// namespace Engine

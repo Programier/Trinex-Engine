@@ -1,8 +1,8 @@
 #pragma once
+#include <Core/etl/set.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_color_format.hpp>
 #include <opengl_headers.hpp>
-
 
 namespace Engine
 {

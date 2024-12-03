@@ -63,27 +63,80 @@ namespace Engine
 {
 	Logger* Logger::logger = Logger::standart();
 
+	static String dynamic_format(const char* format, va_list list)
+	{
+		va_list list_copy;
+		va_copy(list_copy, list);
+
+		int size = vsnprintf(nullptr, 0, format, list_copy);
+		va_end(list_copy);
+
+		if (size < 0)
+		{
+			return "";
+		}
+
+		String result(size, '\0');
+		vsnprintf(result.data(), size + 1, format, list);
+		return result;
+	}
+
 	Logger& Logger::log(const char* tag, const char* format, ...)
 	{
-		return *this;
+		va_list args;
+		va_start(args, format);
+		auto msg = dynamic_format(format, args);
+		va_end(args);
+
+		return log_msg(tag, msg.c_str());
 	}
 
 	Logger& Logger::debug(const char* tag, const char* format, ...)
 	{
-		return *this;
+		va_list args;
+		va_start(args, format);
+		auto msg = dynamic_format(format, args);
+		va_end(args);
+
+		return debug_msg(tag, msg.c_str());
 	}
 
 	Logger& Logger::warning(const char* tag, const char* format, ...)
 	{
-		return *this;
+		va_list args;
+		va_start(args, format);
+		auto msg = dynamic_format(format, args);
+		va_end(args);
+
+		return warning_msg(tag, msg.c_str());
 	}
 
 	Logger& Logger::error(const char* tag, const char* format, ...)
 	{
+		va_list args;
+		va_start(args, format);
+		auto msg = dynamic_format(format, args);
+		va_end(args);
+
+		return error_msg(tag, msg.c_str());
+	}
+
+	Logger& Logger::log_msg(const char* tag, const char* msg)
+	{
 		return *this;
 	}
 
-	Logger& Logger::error(const char* tag, const String& msg, const MessageList& messages)
+	Logger& Logger::debug_msg(const char* tag, const char* msg)
+	{
+		return *this;
+	}
+
+	Logger& Logger::warning_msg(const char* tag, const char* msg)
+	{
+		return *this;
+	}
+
+	Logger& Logger::error_msg(const char* tag, const char* msg)
 	{
 		return *this;
 	}
@@ -105,78 +158,54 @@ namespace Engine
 			return ((first == args) || ...);
 		}
 
-		void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out, ConsoleColor color)
+		BasicLogger& write_message(PrioType prio_type, const char* tag, const char* msg, FILE* out, ConsoleColor color)
 		{
 			m_mutex.lock();
-			static char buffer[512];
 #if PLATFORM_ANDROID
 			sprintf(buffer, "Trinex Engine [%s]", tag);
 			__android_log_vprint(prio_type, buffer, format, args);
 #else
+			char buffer[64];
 			std::time_t now = std::time(nullptr);
 			std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
 			set_output_color(color, out);
-			fprintf(out, "[%6s][%s][%s]: ", prio_type, buffer, tag);
-
-			vfprintf(out, format, args);
+			fprintf(out, "[%8s][%s][%s]: ", prio_type, buffer, tag);
+			fprintf(out, "%s", msg);
 			set_output_color(RESET_COLOR, out);
 			fflush(out);
 
-			auto len = std::strlen(format);
-			while (len > 0 && or_operator(format[len - 1], '\0', ' ', '\t', '\r')) --len;
-			if (len > 0 && format[len - 1] != '\n')
+			auto len = std::strlen(msg);
+			while (len > 0 && or_operator(msg[len - 1], '\0', ' ', '\t', '\r')) --len;
+			if (len > 0 && msg[len - 1] != '\n')
 			{
 				fprintf(out, "\n");
 			}
 #endif
 			m_mutex.unlock();
+			return *this;
 		}
 
 
 	public:
-		BasicLogger& log(const char* tag, const char* format, ...)
+		BasicLogger& log_msg(const char* tag, const char* msg) override
 		{
-			va_list args;
-			va_start(args, format);
-			write_message(INFO_PRIO, tag, format, args, stdout, GREEN);
-			va_end(args);
-
-			return *this;
+			return write_message(INFO_PRIO, tag, msg, stdout, GREEN);
 		}
 
-		BasicLogger& debug(const char* tag, const char* format, ...)
+		BasicLogger& debug_msg(const char* tag, const char* msg) override
 		{
-			va_list args;
-			va_start(args, format);
-			write_message(DEBUG_PRIO, tag, format, args, stdout, GREEN);
-			va_end(args);
-
-			return *this;
+			return write_message(DEBUG_PRIO, tag, msg, stdout, GREEN);
 		}
 
-		BasicLogger& warning(const char* tag, const char* format, ...)
+		BasicLogger& warning_msg(const char* tag, const char* msg) override
 		{
-			va_list args;
-			va_start(args, format);
-			write_message(WARNING_PRIO, tag, format, args, stdout, BLUE);
-			va_end(args);
-			return *this;
+			return write_message(WARNING_PRIO, tag, msg, stdout, BLUE);
 		}
 
-
-		BasicLogger& error(const char* tag, const char* format, ...)
+		BasicLogger& error_msg(const char* tag, const char* msg) override
 		{
-			va_list args;
-			va_start(args, format);
-			write_message(ERROR_PRIO, tag, format, args, stderr, RED);
-			va_end(args);
-			return *this;
-		}
-
-		BasicLogger& error(const char* tag, const String& msg, const MessageList& messages)
-		{
-			return *this;
+			return write_message(ERROR_PRIO, tag, msg, stderr, RED);
 		}
 	};
 

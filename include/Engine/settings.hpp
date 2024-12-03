@@ -1,5 +1,6 @@
 #include <Core/enums.hpp>
-
+#include <Core/etl/string.hpp>
+#include <Core/etl/vector.hpp>
 
 namespace Engine::Settings
 {

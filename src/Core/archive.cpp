@@ -163,13 +163,4 @@ namespace Engine
 		}
 		return ar;
 	}
-
-	ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
-	{
-		String str = path.str();
-		ar & str;
-		if (ar.is_reading())
-			path = str;
-		return ar;
-	}
 }// namespace Engine

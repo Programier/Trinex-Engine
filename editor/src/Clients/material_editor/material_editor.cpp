@@ -260,7 +260,7 @@ namespace Engine
 			{
 				if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr && m_compiler != 0))
 				{
-					m_material->compile(m_compiler, &m_shader_compile_error_list);
+					m_material->compile(m_compiler);
 				}
 
 				if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))

@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/enums.hpp>
+#include <Core/etl/map.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
 #include <ScriptEngine/script_function.hpp>
 

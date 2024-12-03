@@ -353,8 +353,11 @@ namespace Engine
 		       attr1.location == attr2.location;
 	}
 
-	bool Pipeline::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
+	bool Pipeline::submit_compiled_source(const ShaderCompiler::ShaderSource& source, Logger* logger)
 	{
+		if (!logger)
+			logger = Logger::standart();
+
 		bool status = false;
 
 		bool has_valid_graphical_pipeline = source.has_valid_graphical_pipeline();

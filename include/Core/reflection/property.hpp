@@ -6,6 +6,7 @@ namespace Engine
 {
 	class Object;
 	class ScriptFunction;
+	class Path;
 }// namespace Engine
 
 namespace Engine::Refl

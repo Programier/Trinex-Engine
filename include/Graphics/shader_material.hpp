@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/filesystem/path.hpp>
 #include <Graphics/material.hpp>
 
 namespace Engine

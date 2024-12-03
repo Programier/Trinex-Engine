@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
+#include <Core/etl/array.hpp>
 #include <stdexcept>
 #include <vulkan_headers.hpp>
 

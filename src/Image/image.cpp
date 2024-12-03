@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Image/image.hpp>

@@ -1,4 +1,6 @@
 #pragma once
+#include <Core/etl/array.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/pointer.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/structures.hpp>
@@ -11,6 +13,7 @@ namespace Engine
 	class GeometryShader;
 	class FragmentShader;
 	class RenderPass;
+	class Logger;
 
 	namespace ShaderCompiler
 	{
@@ -128,7 +131,7 @@ namespace Engine
 		Pipeline& allocate_shaders(Flags<ShaderType> flags = 0);
 		Pipeline& remove_shaders(Flags<ShaderType> flags = 0);
 		const MaterialParameterInfo* find_param_info(const Name& name) const;
-		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors);
+		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, Logger* logger = nullptr);
 		size_t stages_count() const;
 
 		FORCE_INLINE Pipeline& remove_all_shaders()

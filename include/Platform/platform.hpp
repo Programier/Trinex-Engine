@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
-
+#include <Core/etl/pair.hpp>
+#include <Core/etl/vector.hpp>
 
 namespace Engine
 {
@@ -9,6 +10,7 @@ namespace Engine
 	struct MonitorInfo;
 	struct Rect2D;
 	class Event;
+	class Path;
 
 	namespace Platform
 	{
@@ -45,5 +47,5 @@ namespace Engine
 			ENGINE_EXPORT void close_library(void* handle);
 			ENGINE_EXPORT void* find_function(void* handle, const String& name);
 		}// namespace LibraryLoader
-	}    // namespace Platform
+	}// namespace Platform
 }// namespace Engine

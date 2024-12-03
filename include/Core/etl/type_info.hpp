@@ -10,8 +10,6 @@ namespace Engine
 
 	struct ENGINE_EXPORT type_info_base {
 	protected:
-		static std::size_t generate_id(const char* name);
-
 		template<std::size_t... indices>
 		static consteval auto substring_as_array(std::string_view str, std::index_sequence<indices...>)
 		{

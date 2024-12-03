@@ -3,6 +3,8 @@
 
 namespace Engine
 {
+	class Logger;
+
 	namespace ShaderCompiler
 	{
 		class Compiler;
@@ -71,10 +73,10 @@ namespace Engine
 		bool apply(SceneComponent* component = nullptr) override;
 		bool apply(MaterialInterface* head, SceneComponent* component = nullptr);
 
-		virtual bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
+		virtual bool compile(ShaderCompiler::Compiler* compiler = nullptr);
 		virtual bool shader_source(String& out_source) = 0;
 
-		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors);
+		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source);
 		bool serialize(Archive& archive) override;
 		~Material();
 	};

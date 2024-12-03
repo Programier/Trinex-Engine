@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/build.hpp>
+#include <Core/etl/map.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_headers.hpp>
 
@@ -26,7 +27,7 @@ namespace Engine
 	struct VulkanRenderTarget : VulkanRenderTargetBase {
 		struct Key {
 			struct VulkanSurface* m_color_attachments[RHI_MAX_RT_BINDED] = {};
-			struct VulkanSurface* m_depth_stencil = nullptr;
+			struct VulkanSurface* m_depth_stencil                        = nullptr;
 
 			void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
 			void init(const Span<VulkanSurface*>& attachments);

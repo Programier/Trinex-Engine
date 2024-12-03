@@ -269,17 +269,8 @@ namespace Engine
 		return this;
 	}
 
-	bool Material::compile(ShaderCompiler::Compiler* compiler, MessageList* errors)
+	bool Material::compile(ShaderCompiler::Compiler* compiler)
 	{
-		static MessageList dummy_message_list;
-
-		if (errors == nullptr)
-		{
-			errors = &dummy_message_list;
-		}
-
-		errors->clear();
-
 		bool need_delete_compiler = compiler == nullptr;
 
 		if (need_delete_compiler)
@@ -303,16 +294,16 @@ namespace Engine
 		if (status == true)
 		{
 			ShaderCompiler::ShaderSource source;
-			auto status = compiler->compile(this, slang_source, source, *errors);
+			auto status = compiler->compile(this, slang_source, source);
 
 			if (status)
 			{
-				status = submit_compiled_source(source, *errors);
+				status = submit_compiled_source(source);
 			}
 		}
 		else
 		{
-			errors->push_back("Failed to get shader source");
+			error_log("Material", "Failed to get shader source");
 		}
 
 		if (need_delete_compiler)
@@ -328,9 +319,9 @@ namespace Engine
 		return postload();
 	}
 
-	bool Material::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
+	bool Material::submit_compiled_source(const ShaderCompiler::ShaderSource& source)
 	{
-		bool status = pipeline->submit_compiled_source(source, errors);
+		bool status = pipeline->submit_compiled_source(source);
 		if (!status)
 			return status;
 

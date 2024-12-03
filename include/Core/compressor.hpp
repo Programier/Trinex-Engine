@@ -1,4 +1,5 @@
 #include <Core/engine_types.hpp>
+#include <Core/etl/vector.hpp>
 
 namespace Engine::Compressor
 {

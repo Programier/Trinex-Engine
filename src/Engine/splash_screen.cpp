@@ -1,5 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/config_manager.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/garbage_collector.hpp>

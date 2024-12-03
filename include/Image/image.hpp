@@ -1,9 +1,11 @@
 #pragma once
 #include <Core/enums.hpp>
+#include <Core/etl/vector.hpp>
 
 namespace Engine
 {
 	class Archive;
+	class Path;
 
 	enum class ImageType : EnumerateType
 	{

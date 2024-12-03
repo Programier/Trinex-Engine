@@ -223,7 +223,7 @@ namespace Engine
 
 	void GarbageCollector::destroy_all_objects()
 	{
-		auto& objects = const_cast<ObjectArray&>(Object::all_objects());
+		auto& objects = const_cast<Vector<Object*>&>(Object::all_objects());
 
 		for (Object* object : objects)
 		{

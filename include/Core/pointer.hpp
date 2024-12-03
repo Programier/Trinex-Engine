@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/etl/stl_wrapper.hpp>
+#include <Core/etl/hash.hpp>
 #include <Core/export.hpp>
 
 namespace Engine

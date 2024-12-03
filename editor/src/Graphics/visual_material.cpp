@@ -1,4 +1,5 @@
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
@@ -229,9 +230,9 @@ namespace Engine
 		return status;
 	}
 
-	bool VisualMaterial::compile(ShaderCompiler::Compiler* compiler, MessageList* errors)
+	bool VisualMaterial::compile(ShaderCompiler::Compiler* compiler)
 	{
-		if (!Super::compile(compiler, errors))
+		if (!Super::compile(compiler))
 			return false;
 
 		for (auto& node : m_nodes)

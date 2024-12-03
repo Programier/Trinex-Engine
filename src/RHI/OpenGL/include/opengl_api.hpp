@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/vector.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader_parameters.hpp>

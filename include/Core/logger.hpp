@@ -1,5 +1,6 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/export.hpp>
+#include <cstdarg>
 
 namespace Engine
 {
@@ -8,11 +9,15 @@ namespace Engine
 	public:
 		static Logger* logger;
 
-		virtual Logger& log(const char* tag, const char* format, ...);
-		virtual Logger& debug(const char* tag, const char* format, ...);
-		virtual Logger& warning(const char* tag, const char* format, ...);
-		virtual Logger& error(const char* tag, const char* format, ...);
-		virtual Logger& error(const char* tag, const String& msg, const MessageList& messages);
+		Logger& log(const char* tag, const char* format, ...);
+		Logger& debug(const char* tag, const char* format, ...);
+		Logger& warning(const char* tag, const char* format, ...);
+		Logger& error(const char* tag, const char* format, ...);
+
+		virtual Logger& log_msg(const char* tag, const char* msg);
+		virtual Logger& debug_msg(const char* tag, const char* msg);
+		virtual Logger& warning_msg(const char* tag, const char* msg);
+		virtual Logger& error_msg(const char* tag, const char* msg);
 
 		static Logger* null();
 		static Logger* standart();

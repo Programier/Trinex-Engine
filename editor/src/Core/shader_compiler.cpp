@@ -21,10 +21,49 @@
 
 namespace Engine::ShaderCompiler
 {
+	class CompileLogHandler : public Logger
+	{
+	public:
+		Logger* base   = nullptr;
+		bool has_error = false;
+
+		CompileLogHandler()
+		{
+			base           = Logger::logger;
+			Logger::logger = this;
+		}
+
+		~CompileLogHandler()
+		{
+			Logger::logger = base;
+		}
+
+		Logger& log_msg(const char* tag, const char* msg) override
+		{
+			return base->log_msg(tag, msg);
+		}
+
+		Logger& debug_msg(const char* tag, const char* msg) override
+		{
+			return base->debug_msg(tag, msg);
+		}
+
+		Logger& warning_msg(const char* tag, const char* msg) override
+		{
+			return base->warning_msg(tag, msg);
+		}
+
+		Logger& error_msg(const char* tag, const char* msg) override
+		{
+			has_error = true;
+			return base->error_msg(tag, msg);
+		}
+	};
+
+
 #define RETURN_ON_FAIL(code)                                                                                                     \
 	if (SLANG_FAILED(code))                                                                                                      \
-		return                                                                                                                   \
-		{}
+	return false
 
 	static Vector<Refl::Class* (*) (slang::VariableLayoutReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)>
 			m_param_parsers;
@@ -136,7 +175,7 @@ namespace Engine::ShaderCompiler
 	}
 
 
-	static bool find_semantic(String name, VertexBufferSemantic& out_semantic, const Function<void(const char*)>& print_error)
+	static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
 	{
 		Strings::to_lower(name);
 
@@ -159,7 +198,7 @@ namespace Engine::ShaderCompiler
 		}
 		else
 		{
-			print_error(Strings::format("Failed to find semantic '{}'", name).c_str());
+			error_log("ShaderCompiler", "Failed to find semantic '%s'", name.c_str());
 			return false;
 		}
 	}
@@ -224,8 +263,7 @@ namespace Engine::ShaderCompiler
 		return VertexBufferElementType::Undefined;
 	}
 
-	static bool parse_vertex_semantic(slang::VariableLayoutReflection* var, ShaderReflection& out_reflection,
-	                                  const Function<void(const char*)>& print_error)
+	static bool parse_vertex_semantic(slang::VariableLayoutReflection* var, ShaderReflection& out_reflection)
 	{
 		auto kind     = var->getType()->getKind();
 		auto category = var->getCategory();
@@ -241,7 +279,7 @@ namespace Engine::ShaderCompiler
 			{
 				auto field = layout->getFieldByIndex(field_index);
 
-				if (!parse_vertex_semantic(field, out_reflection, print_error))
+				if (!parse_vertex_semantic(field, out_reflection))
 				{
 					out_reflection.clear();
 					return false;
@@ -256,11 +294,11 @@ namespace Engine::ShaderCompiler
 
 			if (semantic_name == nullptr)
 			{
-				print_error(Strings::format("Cannot find semantic for vertex input '{}'", var->getName()).c_str());
+				error_log("ShaderCompiler", "Cannot find semantic for vertex input '%s'", var->getName());
 				return false;
 			}
 
-			if (!find_semantic(var->getSemanticName(), attribute.semantic, print_error))
+			if (!find_semantic(var->getSemanticName(), attribute.semantic))
 			{
 				return false;
 			}
@@ -273,7 +311,7 @@ namespace Engine::ShaderCompiler
 			              VertexBufferSemantic::Binormal,//
 			              VertexBufferSemantic::BlendWeight>(attribute.semantic))
 			{
-				print_error(Strings::format("Semantic '{}' doesn't support vector type!", var->getSemanticName()).c_str());
+				error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
 				return false;
 			}
 
@@ -288,7 +326,7 @@ namespace Engine::ShaderCompiler
 		}
 		else
 		{
-			print_error("Unsupported input variable type!");
+			error_log("ShaderCompiler", "Unsupported input variable type!");
 			return false;
 		}
 
@@ -339,8 +377,8 @@ namespace Engine::ShaderCompiler
 		return {};
 	}
 
-	static void parse_shader_parameter(ShaderReflection& out_reflection, const Function<void(const char*)>& print_error,
-	                                   slang::VariableLayoutReflection* param, size_t offset = 0)
+	static void parse_shader_parameter(ShaderReflection& out_reflection, slang::VariableLayoutReflection* param,
+									   size_t offset = 0)
 	{
 		auto kind = param->getTypeLayout()->getKind();
 
@@ -354,7 +392,7 @@ namespace Engine::ShaderCompiler
 
 			if (info.type == nullptr)
 			{
-				print_error("Failed to get parameter type!");
+				error_log("ShaderCompiler", "Failed to get parameter type!");
 				out_reflection.clear();
 				return;
 			}
@@ -368,7 +406,7 @@ namespace Engine::ShaderCompiler
 			}
 			else
 			{
-				print_error("Failed to get parameter layout info!");
+				error_log("ShaderCompiler", "Failed to get parameter layout info!");
 				out_reflection.clear();
 				return;
 			}
@@ -405,13 +443,12 @@ namespace Engine::ShaderCompiler
 			for (decltype(fields) i = 0; i < fields; i++)
 			{
 				auto var = layout->getFieldByIndex(i);
-				parse_shader_parameter(out_reflection, print_error, var, offset + struct_offset);
+				parse_shader_parameter(out_reflection, var, offset + struct_offset);
 			}
 		}
 	}
 
-	static void create_reflection(slang::ShaderReflection* reflection, ShaderReflection& out_reflection,
-	                              const Function<void(const char*)>& print_error)
+	static void create_reflection(slang::ShaderReflection* reflection, ShaderReflection& out_reflection)
 	{
 		out_reflection.clear();
 
@@ -435,7 +472,7 @@ namespace Engine::ShaderCompiler
 			uint32_t parameter_count = entry_point->getParameterCount();
 			for (uint32_t i = 0; i < parameter_count; i++)
 			{
-				if (!parse_vertex_semantic(entry_point->getParameterByIndex(i), out_reflection, print_error))
+				if (!parse_vertex_semantic(entry_point->getParameterByIndex(i), out_reflection))
 				{
 					out_reflection.clear();
 					return;
@@ -449,7 +486,7 @@ namespace Engine::ShaderCompiler
 		for (int i = 0; i < count; i++)
 		{
 			auto param = reflection->getParameterByIndex(i);
-			parse_shader_parameter(out_reflection, print_error, param, 0);
+			parse_shader_parameter(out_reflection, param, 0);
 		}
 	}
 
@@ -475,10 +512,8 @@ namespace Engine::ShaderCompiler
 	}
 
 #define check_compile_errors()                                                                                                   \
-	if (!errors.empty())                                                                                                         \
-		return                                                                                                                   \
-		{}
-
+	if (log_handler.has_error)                                                                                                   \
+	return false
 
 	static void submit_compiled_source(Buffer& out_buffer, const void* _data, size_t size)
 	{
@@ -493,25 +528,18 @@ namespace Engine::ShaderCompiler
 
 	using SetupRequestFunction = void (*)(SlangCompileRequest*);
 
-	static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList& errors,
-	                                   const RequestSetupInterface* setup_request)
+	static bool compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, ShaderSource& out_source,
+							   const RequestSetupInterface* setup_request)
 	{
-		errors.clear();
+		CompileLogHandler log_handler;
 
-
-		auto print_error = [&errors](const char* msg) {
-			errors.push_back(Strings::format("{}", msg));
-			error_log("ShaderCompiler", "%s", msg);
-		};
-
-		auto diagnose_if_needed = [print_error](slang::IBlob* diagnostics_blob) {
+		auto diagnose_if_needed = [](slang::IBlob* diagnostics_blob) {
 			if (diagnostics_blob != nullptr)
 			{
-				print_error((const char*) diagnostics_blob->getBufferPointer());
+				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
 			}
 		};
 
-		ShaderSource out_source;
 		using Slang::ComPtr;
 
 		slang::SessionDesc session_desc      = {};
@@ -541,7 +569,7 @@ namespace Engine::ShaderCompiler
 
 			if (!request)
 			{
-				print_error("Failed to create compile request");
+				error_log("ShaderCompiler", "Failed to create compile request");
 				return {};
 			}
 
@@ -562,7 +590,7 @@ namespace Engine::ShaderCompiler
 					spGetDiagnosticFlags(request);
 					if (strlen(diagnostics) > 0)
 					{
-						print_error(diagnostics);
+						error_log("ShaderCompiler", diagnostics);
 					}
 				}
 
@@ -579,7 +607,7 @@ namespace Engine::ShaderCompiler
 
 			if (!vertex_entry_point)
 			{
-				print_error("Failed to find vs_main. Skipping!");
+				error_log("ShaderCompiler", "Failed to find vs_main. Skipping!");
 			}
 			else
 			{
@@ -596,7 +624,7 @@ namespace Engine::ShaderCompiler
 
 			if (!fragment_entry_point)
 			{
-				print_error("Failed to find fs_main. Skipping compiling fragment code");
+				error_log("ShaderCompiler", "Failed to find fs_main. Skipping compiling fragment code");
 			}
 			else
 			{
@@ -656,11 +684,11 @@ namespace Engine::ShaderCompiler
 			diagnose_if_needed(diagnostics_blob);
 			if (!reflection)
 			{
-				print_error("Failed to get shader reflection!");
+				error_log("ShaderCompiler", "Failed to get shader reflection!");
 				return {};
 			}
 
-			create_reflection(reflection, out_source.reflection, print_error);
+			create_reflection(reflection, out_source.reflection);
 			check_compile_errors();
 		}
 
@@ -736,8 +764,7 @@ namespace Engine::ShaderCompiler
 			}
 		}
 
-
-		return out_source;
+		return true;
 	}
 
 	static std::vector<uint32_t> to_spirv_buffer(const Buffer& spirv)
@@ -854,55 +881,44 @@ namespace Engine::ShaderCompiler
 	implement_class_default_init(Engine::ShaderCompiler::NONE_Compiler, 0);
 	implement_class_default_init(Engine::ShaderCompiler::D3D11_Compiler, 0);
 
-	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source)
 	{
 		OpenGLRequestSetup setup;
-		auto source = compile_shader(slang_source, material->compile_definitions, errors, &setup);
+		ShaderSource source;
 
-		compile_spirv_to_glsl_es(source.vertex_code);
-		compile_spirv_to_glsl_es(source.tessellation_control_code);
-		compile_spirv_to_glsl_es(source.tessellation_code);
-		compile_spirv_to_glsl_es(source.geometry_code);
-		compile_spirv_to_glsl_es(source.fragment_code);
-		compile_spirv_to_glsl_es(source.compute_code);
+		if (!compile_shader(slang_source, material->compile_definitions, source, &setup))
+			return false;
 
-		if (errors.empty())
-		{
-			out_source = std::move(source);
-			return true;
-		}
-		return false;
+		CompileLogHandler handler;
+		compile_spirv_to_glsl_es(out_source.vertex_code);
+		compile_spirv_to_glsl_es(out_source.tessellation_control_code);
+		compile_spirv_to_glsl_es(out_source.tessellation_code);
+		compile_spirv_to_glsl_es(out_source.geometry_code);
+		compile_spirv_to_glsl_es(out_source.fragment_code);
+		compile_spirv_to_glsl_es(out_source.compute_code);
+
+		if (handler.has_error)
+			return false;
+
+		out_source = std::move(source);
+		return true;
 	}
 
-	bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+	bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source)
 	{
 		VulkanRequestSetup setup;
-		auto source = compile_shader(slang_source, material->compile_definitions, errors, &setup);
-
-		if (errors.empty())
-		{
-			out_source = std::move(source);
-			return true;
-		}
-		return false;
+		return compile_shader(slang_source, material->compile_definitions, out_source, &setup);
 	}
 
-	bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+	bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_sources)
 	{
 		return false;
 	}
 
-	bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+	bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source)
 	{
 		D3D11RequestSetup setup;
-		auto source = compile_shader(slang_source, material->compile_definitions, errors, &setup);
-
-		if (errors.empty())
-		{
-			out_source = std::move(source);
-			return true;
-		}
-		return false;
+		return compile_shader(slang_source, material->compile_definitions, out_source, &setup);
 	}
 }// namespace Engine::ShaderCompiler
 

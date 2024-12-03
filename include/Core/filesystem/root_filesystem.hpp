@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/filesystem/filesystem.hpp>
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/executable_object.hpp>
 #include <Core/pointer.hpp>

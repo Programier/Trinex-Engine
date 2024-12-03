@@ -30,6 +30,8 @@ namespace Engine
 		                       Constants::shader_extention);
 	}
 
+#define TRINEX_ARCHIVE_INCLUDED 1
+
 	static bool serialize(Archive& ar, ShaderCache* cache)
 	{
 		if (!(ar & cache->parameters))

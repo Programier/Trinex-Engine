@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/map.hpp>
 
 namespace Engine
 {

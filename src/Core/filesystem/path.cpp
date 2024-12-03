@@ -1,3 +1,5 @@
+#include <Core/archive.hpp>
+#include <Core/etl/hash.hpp>
 #include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/string_functions.hpp>
@@ -215,5 +217,14 @@ namespace Engine
 		}
 
 		return result;
+	}
+
+	ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
+	{
+		String str = path.str();
+		ar & str;
+		if (ar.is_reading())
+			path = str;
+		return ar;
 	}
 }// namespace Engine

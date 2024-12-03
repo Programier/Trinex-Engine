@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
 
 namespace Engine

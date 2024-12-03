@@ -1,3 +1,4 @@
+#include <Core/etl/map.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_variable.hpp>
 

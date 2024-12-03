@@ -1,8 +1,12 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/string.hpp>
+#include <Core/etl/vector.hpp>
 
 namespace Engine
 {
+	class Archive;
+
 	class ENGINE_EXPORT Path final
 	{
 	private:
@@ -149,6 +153,8 @@ namespace Engine
 			return m_path.starts_with(path.m_path);
 		}
 	};
+
+	ENGINE_EXPORT bool operator&(Archive&, Path&);
 }// namespace Engine
 
 namespace std

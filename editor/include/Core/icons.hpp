@@ -4,6 +4,7 @@ namespace Engine
 {
 	class Sampler;
 	class Texture2D;
+	class Object;
 
 	namespace Icons
 	{
@@ -24,6 +25,6 @@ namespace Engine
 		Sampler* default_sampler();
 		Texture2D* default_texture();
 
-		Texture2D* find_imgui_icon(class Object* object);
+		Texture2D* find_imgui_icon(Object* object);
 	}// namespace Icons
 }// namespace Engine

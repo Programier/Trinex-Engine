@@ -1,8 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/atomic.hpp>
 #include <Core/exception.hpp>
 #include <Core/executable_object.hpp>
 #include <Core/memory.hpp>
+#include <functional>
 #include <thread>
 
 namespace Engine

@@ -35,8 +35,6 @@ namespace Engine
 		};
 
 	private:
-		MessageList m_shader_compile_error_list;
-
 		class ContentBrowser* m_content_browser             = nullptr;
 		class ImGuiMaterialPreview* m_preview_window        = nullptr;
 		class PropertyRenderer* m_properties_window         = nullptr;

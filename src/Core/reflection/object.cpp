@@ -1,5 +1,6 @@
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/set.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/reflection/object.hpp>

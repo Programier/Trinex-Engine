@@ -2,11 +2,11 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/icons.hpp>
+#include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
-
 
 namespace Engine::Icons
 {
@@ -28,7 +28,7 @@ namespace Engine::Icons
 		return m_icons[type];
 	}
 
-	Texture2D* find_imgui_icon(class Object* object)
+	Texture2D* find_imgui_icon(Object* object)
 	{
 		if (object)
 		{

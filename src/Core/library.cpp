@@ -2,6 +2,7 @@
 #include <Core/config_manager.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/set.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>

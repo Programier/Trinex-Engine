@@ -1,5 +1,6 @@
 #include <Core/editor_config.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/theme.hpp>
 #include <imgui.h>
 

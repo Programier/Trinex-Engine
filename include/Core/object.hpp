@@ -2,7 +2,9 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
+#include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/flags.hpp>
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
@@ -11,7 +13,7 @@ namespace Engine
 {
 	class Package;
 	class Object;
-	using MessageList = List<String>;
+	class Path;
 
 	ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
 
@@ -125,7 +127,7 @@ namespace Engine
 		static String object_name_of(const StringView& name);
 		static StringView package_name_sv_of(const StringView& name);
 		static StringView object_name_sv_of(const StringView& name);
-		static const ObjectArray& all_objects();
+		static const Vector<Object*>& all_objects();
 		static Package* root_package();
 
 		static const String& language();

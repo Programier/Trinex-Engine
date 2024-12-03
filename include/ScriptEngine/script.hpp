@@ -1,6 +1,10 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/map.hpp>
+#include <Core/etl/set.hpp>
+#include <Core/etl/span.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/name.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>

@@ -2,6 +2,7 @@
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/exception.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/icons.hpp>
 #include <Core/logger.hpp>

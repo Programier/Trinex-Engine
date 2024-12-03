@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/span.hpp>
 #include <Core/structures.hpp>
 
 struct ImGuiContext;

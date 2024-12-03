@@ -1,11 +1,11 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/transform.hpp>
 
 namespace Engine
 {
 	class Package;
-}
+	class Path;
+}// namespace Engine
 
 namespace Engine::Importer
 {

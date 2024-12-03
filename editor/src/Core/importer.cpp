@@ -1,5 +1,6 @@
 #include "Core/default_resources.hpp"
 #include <Core/default_resources.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>

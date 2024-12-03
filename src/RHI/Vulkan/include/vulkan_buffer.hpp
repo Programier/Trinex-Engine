@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/set.hpp>
 #include <Graphics/rhi.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_headers.hpp>
@@ -28,7 +29,7 @@ namespace Engine
 
 		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager);
 		void destroy() const override;
-		
+
 		friend struct VulkanStaggingBufferManager;
 	};
 

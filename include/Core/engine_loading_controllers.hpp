@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
+#include <Core/etl/function.hpp>
+#include <Core/etl/string.hpp>
 #include <initializer_list>
 
 namespace Engine

@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
+#include <Core/etl/atomic.hpp>
 #include <Core/flags.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>

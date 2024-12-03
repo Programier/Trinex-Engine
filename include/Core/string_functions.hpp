@@ -2,6 +2,9 @@
 
 #include <Core/build.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/pair.hpp>
+#include <Core/etl/string.hpp>
+#include <Core/etl/vector.hpp>
 #include <fmt/format.h>
 #include <numeric>
 
