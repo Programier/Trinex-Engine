@@ -39,7 +39,7 @@ endif()
 ######################## ENGINE COMPILATION FUNCTIONS ########################
 set_property(GLOBAL PROPERTY trinex_private_libraries freetype asmjit zlib_library lz4_static)
 set_property(GLOBAL PROPERTY trinex_private_headers_dir)
-set_property(GLOBAL PROPERTY trinex_public_libraries fmt-header-only stb_library)
+set_property(GLOBAL PROPERTY trinex_public_libraries stb_library)
 set_property(GLOBAL PROPERTY trinex_public_headers_dir ${TRINEX_ENGINE_ROOT}/include)
 set_property(GLOBAL PROPERTY trinex_link_directories)
 set_property(GLOBAL PROPERTY trinex_sources)

@@ -29,5 +29,10 @@ if (WIN32 OR LINUX)
 endif()
 
 if (TRINEX_WITH_TRACY_PROFILER)
-				add_subdirectory(tracy)
+	add_subdirectory(tracy)
 endif()
+
+add_subdirectory(glm)
+
+
+add_trinex_public_libraries(glm fmt-header-only)
