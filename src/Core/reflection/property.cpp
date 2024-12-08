@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>

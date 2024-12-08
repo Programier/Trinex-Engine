@@ -1,22 +1,18 @@
 #pragma once
 #include <Core/definitions.hpp>
-#include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <iomanip>
 
 namespace Engine
-{
+{ 
 	using byte  = std::uint8_t;
 	using word  = std::uint16_t;
 	using dword = std::uint32_t;
 	using qword = std::uint64_t;
 
-
 	using signed_byte = std::int8_t;
 	using size_t      = std::uint64_t;
 	using ptrdiff_t   = std::int64_t;
-
 
 	using Point1D      = float;
 	using Offset1D     = float;
@@ -148,86 +144,3 @@ namespace Engine
 		struct PropertyChangedEvent;
 	}// namespace Refl
 }// namespace Engine
-
-
-// PRINTING GLM OBJECT
-template<typename T, typename = void>
-struct is_member_of_glm : std::false_type {
-};
-
-template<typename T>
-struct is_member_of_glm<T, decltype(adl_member_of_glm(std::declval<T>()))> : std::true_type {
-};
-
-
-namespace glm
-{
-	template<typename T>
-	auto adl_member_of_glm(T&&) -> void;
-}
-
-template<typename Number>
-typename std::enable_if<std::is_arithmetic<Number>::value, int>::type digits_of_number(const Number& number)
-{
-	signed long int value = static_cast<signed long int>(number);
-	int digits            = value <= 0 ? 1 : 0;
-	while (value != 0)
-	{
-		digits++;
-		value /= 10;
-	}
-	return digits;
-}
-
-template<typename Type>
-typename std::enable_if<is_member_of_glm<Type>::value, int>::type digits_of_number(const Type& value)
-{
-	int length = value.length();
-	int digits = 0;
-	for (int i = 0; i < length; i++) digits = std::max(digits, digits_of_number(value[i]));
-	return digits;
-}
-
-// Printing glm value
-
-template<typename Type>
-typename std::enable_if<!is_member_of_glm<Type>::value, std::ostream&>::type
-print_glm_object(std::ostream& stream, const Type& value, const std::size_t& glm_print_width = 0)
-{
-	return stream << std::fixed << std::setw(glm_print_width) << value << std::flush;
-}
-
-template<typename Type>
-typename std::enable_if<is_member_of_glm<Type>::value && !std::is_pointer<Type>::value, std::ostream&>::type
-print_glm_object(std::ostream& stream, const Type& value, std::size_t glm_print_width = 0)
-
-{
-
-	if (glm_print_width == 1)
-		glm_print_width = 7 + digits_of_number(value);
-	int length       = value.length();
-	bool contain_glm = is_member_of_glm<decltype(value[0])>::value;
-
-	if (!contain_glm)
-		stream << "{";
-	for (int i = 0; i < length; i++)
-	{
-		print_glm_object(stream, value[i], glm_print_width);
-
-		if (!contain_glm)
-			stream << (i == length - 1 ? "}" : ", ") << std::flush;
-		else
-			stream << std::endl;
-	}
-	return stream;
-}
-
-namespace glm
-{
-	template<typename Type>
-	typename std::enable_if<is_member_of_glm<Type>::value && !std::is_pointer<Type>::value, std::ostream&>::type
-	operator<<(std::ostream& stream, const Type& value)
-	{
-		return print_glm_object(stream, value);
-	}
-}// namespace glm

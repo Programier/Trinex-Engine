@@ -6,6 +6,7 @@
 #include <Core/icons.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture_2D.hpp>

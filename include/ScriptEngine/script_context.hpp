@@ -1,5 +1,4 @@
 #pragma once
-#include "angelscript.h"
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
 #include <Core/etl/function.hpp>
@@ -8,6 +7,7 @@
 #include <Core/exception.hpp>
 #include <Core/flags.hpp>
 #include <ScriptEngine/script_variable.hpp>
+#include <angelscript.h>
 
 class asIScriptContext;
 class asIScriptFunction;

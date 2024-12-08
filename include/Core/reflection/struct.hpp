@@ -225,7 +225,7 @@ namespace Engine::Refl
     }                                                                                                                            \
                                                                                                                                  \
     static Engine::byte TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::byte>(                         \
-            Engine::ReflectionInitializeController([]() { decl::static_struct_instance(); }, #decl).id());                       \
+            Engine::Refl::Object::static_register_initializer([]() { decl::static_struct_instance(); }, #decl));                 \
                                                                                                                                  \
     void decl::static_initialize_struct()
 

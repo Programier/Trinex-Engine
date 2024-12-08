@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene_view.hpp>

@@ -1,3 +1,4 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>

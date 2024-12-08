@@ -2,6 +2,7 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>

@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/flags.hpp>
-#include <Core/implement.hpp>
 
 namespace Engine
 {

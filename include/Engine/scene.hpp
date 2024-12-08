@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>

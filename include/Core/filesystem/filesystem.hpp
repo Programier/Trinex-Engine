@@ -3,7 +3,6 @@
 #include <Core/etl/function.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/flags.hpp>
-#include <Core/implement.hpp>
 
 namespace Engine::VFS
 {

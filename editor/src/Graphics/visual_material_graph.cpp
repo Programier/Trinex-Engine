@@ -1,4 +1,5 @@
 #include <Core/constants.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>

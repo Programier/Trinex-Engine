@@ -1,6 +1,8 @@
 #include <Core/constants.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/garbage_collector.hpp>
@@ -26,10 +28,8 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-
 namespace Engine
 {
-	Map<Refl::Struct*, void (*)(PropertyRenderer*, void*, Refl::Struct*, bool)> special_class_properties_renderers;
 	static Map<const Refl::ClassInfo*, PropertyRenderer::RendererFunc> m_renderers;
 
 	template<typename T>

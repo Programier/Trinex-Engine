@@ -2,6 +2,7 @@
 #include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
@@ -1739,14 +1740,16 @@ namespace ImGui
 		return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 
-	bool ImageButton(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
+	bool ImageButton(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1,
+					 const ImVec4& bg_col, const ImVec4& tint_col)
 	{
-		ImGuiContext& g = *GImGui;
+		ImGuiContext& g     = *GImGui;
 		ImGuiWindow* window = g.CurrentWindow;
 		if (window->SkipItems)
 			return false;
 
-		return ImageButtonEx(window->GetID(static_cast<const void*>(user_texture_id)), user_texture_id, image_size, uv0, uv1, bg_col, tint_col);
+		return ImageButtonEx(window->GetID(static_cast<const void*>(user_texture_id)), user_texture_id, image_size, uv0, uv1,
+							 bg_col, tint_col);
 	}
 }// namespace ImGui
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/constants.hpp>
-#include <Core/implement.hpp>
 
 namespace Engine
 {

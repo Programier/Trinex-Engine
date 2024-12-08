@@ -1,3 +1,5 @@
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Graphics/visual_material_graph.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -469,7 +471,6 @@ namespace Engine::VisualMaterialGraph
 		register_pin_type<Mat4OutputPin>("Mat4OutputPin");
 		register_pin_type<SamplerOutputPin>("SamplerOutputPin");
 		register_pin_type<Texture2DOutputPin>("Texture2DOutputPin");
-
 
 		register_expression_class();
 		register_compiler_state();

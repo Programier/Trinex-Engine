@@ -1,3 +1,4 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -85,6 +86,6 @@ namespace Engine::Refl
 		reg.method("Engine::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}
 
-	static PreInitializeController pre_initializer(on_pre_init);
-	static auto reflection_init = ReflectionInitializeController(on_reflection_init, "Engine::class_of", {"Engine::Refl::Class"});
+	static PreInitializeController pre_init(on_pre_init);
+	static ReflectionInitializeController reflection_init(on_reflection_init, "Engine::class_of", {"Engine::Refl::Class"});
 }// namespace Engine::Refl

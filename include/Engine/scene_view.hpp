@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/flags.hpp>
-#include <Core/implement.hpp>
 #include <Core/structures.hpp>
 #include <Engine/camera_types.hpp>
 

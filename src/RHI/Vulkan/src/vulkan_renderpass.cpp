@@ -1,3 +1,4 @@
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/memory.hpp>
 #include <Graphics/render_surface.hpp>

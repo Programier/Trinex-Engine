@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
 #include <Core/etl/set.hpp>
+#include <Core/etl/string.hpp>
 
 namespace Engine
 {

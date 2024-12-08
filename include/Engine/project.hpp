@@ -1,8 +1,10 @@
 #pragma once
-#include <Core/etl/script_array.hpp>
+#include <Core/etl/string.hpp>
+#include <Core/export.hpp>
 
 namespace Engine
 {
+	class Path;
 	struct ENGINE_EXPORT Project {
 		static String name;
 		static String version;

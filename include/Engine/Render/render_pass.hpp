@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/executable_object.hpp>
-#include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 

@@ -4,6 +4,7 @@
 #include <Core/constants.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/entry_point.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>

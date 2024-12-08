@@ -1,3 +1,4 @@
+#include <Core/etl/templates.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>

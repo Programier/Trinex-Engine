@@ -1,12 +1,10 @@
 #pragma once
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/flags.hpp>
-#include <Core/implement.hpp>
 #include <Core/name.hpp>
 
 namespace Engine
@@ -364,7 +362,7 @@ private:
         return m_static_class;                                                                                                   \
     }                                                                                                                            \
     static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
-            Engine::ReflectionInitializeController([]() { decl::static_class_instance(); }, #decl).id());                        \
+            Engine::Refl::Object::static_register_initializer([]() { decl::static_class_instance(); }, #decl));                  \
     void decl::static_initialize_class()
 
 

@@ -67,33 +67,6 @@ namespace Engine::Strings
 		return line.substr(0, pos + 1);
 	}
 
-	static bool (*insert_space[])(char, char, String& to) = {
-	        [](char, char ch, String& to) {
-		        if (ch == '_')
-		        {
-			        to.push_back(' ');
-			        return true;
-		        }
-		        return false;
-	        },
-	        [](char prev, char ch, String& to) -> bool {
-		        if (std::isdigit(ch) && !isdigit(prev))
-		        {
-			        to.push_back(' ');
-			        to.push_back(ch);
-			        return true;
-		        }
-		        else if (std::isupper(ch) && std::islower(prev) && !std::isdigit(prev))
-		        {
-			        to.push_back(' ');
-			        to.push_back(ch);
-			        return true;
-		        }
-
-		        return false;
-	        },
-	};
-
 	ENGINE_EXPORT String capitalize_words(const StringView& sentence)
 	{
 		std::regex word_regex(R"(\b[^\W\d_]*([A-Za-z])[^\W\d_]*\b)");

@@ -4,7 +4,6 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/implement.hpp>
 
 namespace Engine
 {

@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/list.hpp>
+#include <Core/etl/set.hpp>
 #include <Core/pointer.hpp>
 #include <Systems/system.hpp>
 

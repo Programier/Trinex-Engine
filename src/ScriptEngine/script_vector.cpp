@@ -1,5 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>

@@ -18,6 +18,7 @@ static constexpr PrioType ERROR_PRIO   = ANDROID_LOG_ERROR;
 
 #else
 
+#include <ctime>
 using PrioType = const char*;
 
 static PrioType DEBUG_PRIO   = "DEBUG";

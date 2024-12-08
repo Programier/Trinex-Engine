@@ -2,6 +2,7 @@
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/map.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
 #include <ScriptEngine/registrar.hpp>

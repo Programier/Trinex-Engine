@@ -1,4 +1,5 @@
 #include <Core/constants.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>

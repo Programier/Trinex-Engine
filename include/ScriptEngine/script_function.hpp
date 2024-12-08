@@ -2,7 +2,6 @@
 #include <Core/enums.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/flags.hpp>
-#include <Core/implement.hpp>
 
 class asIScriptContext;
 class asIScriptFunction;

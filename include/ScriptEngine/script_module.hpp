@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/implement.hpp>
-
+#include <Core/etl/string.hpp>
 
 class asIScriptModule;
 class asITypeInfo;

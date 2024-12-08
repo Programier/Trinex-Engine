@@ -1,4 +1,5 @@
 #include <Clients/imgui_client.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>

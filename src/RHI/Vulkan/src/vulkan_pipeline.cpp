@@ -1,3 +1,4 @@
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>

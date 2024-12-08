@@ -107,6 +107,8 @@ namespace Engine::Refl
 		static Object* static_root();
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_require(StringView name, FindFlags flags = FindFlags::None);
+		static Identifier static_register_initializer(const Function<void()>& func, const String& name = "",
+													  const std::initializer_list<String>& required = {});
 		static void static_initialize(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
 		static bool is_valid(Object* object);

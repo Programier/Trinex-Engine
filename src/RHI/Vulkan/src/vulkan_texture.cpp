@@ -1,4 +1,5 @@
 #include <Core/default_resources.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>

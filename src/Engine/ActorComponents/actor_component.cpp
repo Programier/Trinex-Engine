@@ -1,3 +1,4 @@
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/actor_component.hpp>
 #include <Engine/Actors/actor.hpp>

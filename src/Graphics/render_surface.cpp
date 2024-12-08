@@ -1,9 +1,9 @@
 #include <Core/base_engine.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/etl/templates.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
-
 
 namespace Engine
 {

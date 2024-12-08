@@ -2,7 +2,6 @@
 
 #include <Core/callback.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/implement.hpp>
 #include <Core/object.hpp>
 
 namespace Engine

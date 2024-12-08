@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>

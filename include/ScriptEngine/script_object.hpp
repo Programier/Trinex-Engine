@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/implement.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_type_info.hpp>

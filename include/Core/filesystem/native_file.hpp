@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/filesystem/file.hpp>
-#include <Core/implement.hpp>
 #include <fstream>
 
 namespace Engine::VFS

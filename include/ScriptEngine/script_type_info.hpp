@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
-#include <Core/implement.hpp>
+#include <Core/etl/string.hpp>
 
 class asITypeInfo;
 
@@ -113,10 +113,10 @@ namespace Engine
 		bool is_value() const;
 		bool is_ref() const;
 
-		bool operator == (const ScriptTypeInfo& info);
-		bool operator == (const asITypeInfo* info);
-		bool operator != (const ScriptTypeInfo& info);
-		bool operator != (const asITypeInfo* info);
+		bool operator==(const ScriptTypeInfo& info);
+		bool operator==(const asITypeInfo* info);
+		bool operator!=(const ScriptTypeInfo& info);
+		bool operator!=(const asITypeInfo* info);
 
 		~ScriptTypeInfo();
 	};

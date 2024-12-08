@@ -1,6 +1,7 @@
 #include <Core/definitions.hpp>
 
 #if !PLATFORM_ANDROID
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>

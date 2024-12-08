@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/logger.hpp>
 #include <chrono>
 

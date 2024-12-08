@@ -1,3 +1,4 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/script_class.hpp>

@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
