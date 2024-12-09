@@ -75,7 +75,7 @@ namespace Engine
 		render_base_component(component);
 
 		PointLightComponentProxy* proxy = component->proxy();
-		auto pass                       = deferred_pass();
+		auto pass                       = deferred_lighting_pass();
 
 		if (!(scene_view().show_flags() & ShowFlags::PointLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<PointLightComponent>())

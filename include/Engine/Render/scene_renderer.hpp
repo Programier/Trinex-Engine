@@ -22,7 +22,7 @@ namespace Engine
 	class RenderPass;
 	class ClearPass;
 	class GeometryPass;
-	class DeferredPass;
+	class DeferredLightingPass;
 	class PostProcessPass;
 	class OverlayPass;
 
@@ -121,11 +121,11 @@ namespace Engine
 	class ENGINE_EXPORT ColorSceneRenderer : public SceneRenderer
 	{
 	private:
-		ClearPass* m_clear_pass              = nullptr;
-		GeometryPass* m_geometry_pass        = nullptr;
-		DeferredPass* m_deferred_pass        = nullptr;
-		PostProcessPass* m_post_process_pass = nullptr;
-		OverlayPass* m_overlay_pass          = nullptr;
+		ClearPass* m_clear_pass                        = nullptr;
+		GeometryPass* m_geometry_pass                  = nullptr;
+		DeferredLightingPass* m_deferred_lighting_pass = nullptr;
+		PostProcessPass* m_post_process_pass           = nullptr;
+		OverlayPass* m_overlay_pass                    = nullptr;
 
 	public:
 		ColorSceneRenderer();
@@ -141,9 +141,9 @@ namespace Engine
 			return m_geometry_pass;
 		}
 
-		FORCE_INLINE DeferredPass* deferred_pass() const
+		FORCE_INLINE DeferredLightingPass* deferred_lighting_pass() const
 		{
-			return m_deferred_pass;
+			return m_deferred_lighting_pass;
 		}
 
 		FORCE_INLINE PostProcessPass* post_process_pass() const

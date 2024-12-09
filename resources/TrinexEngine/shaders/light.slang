@@ -134,7 +134,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     float ggx      = distribution_ggx(normal, halfway_direction, msra.b);
     float geometry = geometry_smith(normal, halfway_direction, light_direction, msra.b);
     float3 fresnel = fresnel_schlick(max(dot(halfway_direction, view_direction), 0.0), f0);
-    float3 specular = (ggx * geometry * fresnel) / (4.0 * max(dot(normal, view_direction), 0.0) * max(dot(normal, light_direction), 0.0) + 0.0001);
+    float3 specular = (ggx * geometry * fresnel) / (4.0 * max(dot(normal, view_direction), 0.0) * max(dot(normal, light_direction), 0.0) + 0.001);
 
     float3 k_s = fresnel;
     float3 k_d = float3(1.0, 1.0, 1.0) - k_s;

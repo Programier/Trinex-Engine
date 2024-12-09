@@ -221,10 +221,10 @@ namespace Engine
 
 	ColorSceneRenderer::ColorSceneRenderer()
 	{
-		m_clear_pass        = create_pass<ClearPass>();
-		m_geometry_pass     = create_pass<GeometryPass>();
-		m_deferred_pass     = create_pass<DeferredPass>();
-		m_post_process_pass = create_pass<PostProcessPass>();
-		m_overlay_pass      = create_pass<OverlayPass>();
+		m_clear_pass             = create_pass<ClearPass>();
+		m_geometry_pass          = create_pass<GeometryPass>();
+		m_deferred_lighting_pass = create_pass<DeferredLightingPass>();
+		m_post_process_pass      = create_pass<PostProcessPass>();
+		m_overlay_pass           = create_pass<OverlayPass>();
 	}
 }// namespace Engine

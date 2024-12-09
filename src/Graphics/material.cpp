@@ -176,7 +176,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool MaterialInterface::apply(SceneComponent* component)
+	bool MaterialInterface::apply(SceneComponent* component, RenderPass* render_pass)
 	{
 		return false;
 	}
@@ -242,12 +242,12 @@ namespace Engine
 		return *this;
 	}
 
-	bool Material::apply(SceneComponent* component)
+	bool Material::apply(SceneComponent* component, RenderPass* render_pass)
 	{
-		return apply(this, component);
+		return apply(this, component, render_pass);
 	}
 
-	bool Material::apply(MaterialInterface* head, SceneComponent* component)
+	bool Material::apply(MaterialInterface* head, SceneComponent* component, RenderPass* render_pass)
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
@@ -403,7 +403,7 @@ namespace Engine
 		return parent_material;
 	}
 
-	bool MaterialInstance::apply(SceneComponent* component)
+	bool MaterialInstance::apply(SceneComponent* component, RenderPass* render_pass)
 	{
 		Material* mat = material();
 		if (!mat)
@@ -411,7 +411,7 @@ namespace Engine
 			return false;
 		}
 
-		return mat->apply(this, component);
+		return mat->apply(this, component, render_pass);
 	}
 
 	bool MaterialInstance::serialize(Archive& archive)

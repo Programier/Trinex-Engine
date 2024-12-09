@@ -115,9 +115,10 @@ namespace Engine::Refl
 		~Struct();
 	};
 
-	template<typename T>
-	class NativeStruct : public Struct
+	template<typename T, typename Base = Struct>
+	class NativeStruct : public Base
 	{
+	protected:
 		template<typename F>
 		using initializer_detector = decltype(F::static_initialize_struct());
 
@@ -138,12 +139,12 @@ namespace Engine::Refl
 		}
 
 	public:
-		NativeStruct(Struct* parent, BitMask flags = 0) : Struct(parent, flags | native_type_flags<T>())
+		NativeStruct(Struct* parent, BitMask flags = 0) : Base(parent, flags | Struct::native_type_flags<T>())
 		{}
 
 		static Struct* create(StringView decl, BitMask flags = 0)
 		{
-			return Object::new_instance<NativeStruct<T>>(decl, super_of(), flags);
+			return Object::new_instance<NativeStruct<T, Base>>(decl, super_of(), flags);
 		}
 
 		void* create_struct() override
@@ -184,7 +185,7 @@ namespace Engine::Refl
 
 		NativeStruct& initialize() override
 		{
-			Struct::initialize();
+			Base::initialize();
 
 			if constexpr (is_detected_v<T, initializer_detector>)
 			{

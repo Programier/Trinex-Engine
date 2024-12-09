@@ -1,5 +1,5 @@
 #include <Core/default_resources.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/render_pass_info.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_pass.hpp>
@@ -27,6 +27,11 @@ namespace Engine
 	Refl::Struct* RenderPass::struct_instance() const
 	{
 		return static_struct_instance();
+	}
+
+	Refl::RenderPassInfo* RenderPass::info() const
+	{
+		return Refl::Object::instance_cast<Refl::RenderPassInfo>(struct_instance());
 	}
 
 	bool RenderPass::is_empty() const
@@ -160,8 +165,8 @@ namespace Engine
 	declare_command_four_param(DrawIndexedInstanced, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
 							   size_t, instances,
 							   rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
-	declare_command_two_param(BindMaterial, MaterialInterface*, interface, SceneComponent*, component,
-							  interface->apply(component));
+	declare_command_three_param(BindMaterial, RenderPass*, render_pass, MaterialInterface*, interface, SceneComponent*, component,
+								interface->apply(component, render_pass));
 
 	declare_command_three_param(BindVertexBuffer, VertexBuffer*, buffer, byte, stream, size_t, offset,
 								buffer->rhi_bind(stream, offset));
@@ -195,7 +200,7 @@ namespace Engine
 
 	RenderPass& RenderPass::bind_material(class MaterialInterface* material, SceneComponent* component)
 	{
-		create_command<BindMaterialCommand>(material, component);
+		create_command<BindMaterialCommand>(this, material, component);
 		return *this;
 	}
 
@@ -211,19 +216,44 @@ namespace Engine
 		return *this;
 	}
 
-
 	// IMPLEMENTATION OF RENDER PASSES
 
+	trinex_impl_render_pass(Engine::ClearPass)
+	{}
 
-	trinex_implement_render_pass(Engine::ClearPass);
-	trinex_implement_render_pass(Engine::DepthPass);
-	trinex_implement_render_pass(Engine::ShadowPass);
-	trinex_implement_render_pass(Engine::GeometryPass);
-	trinex_implement_render_pass(Engine::ForwardPass);
-	trinex_implement_render_pass(Engine::DeferredPass);
-	trinex_implement_render_pass(Engine::TransparencyPass);
-	trinex_implement_render_pass(Engine::PostProcessPass);
-	trinex_implement_render_pass(Engine::OverlayPass);
+	trinex_impl_render_pass(Engine::DepthPass)
+	{
+		info.entry     = "depth";
+		info.has_depth = true;
+	}
+
+	trinex_impl_render_pass(Engine::ShadowPass)
+	{}
+
+	trinex_impl_render_pass(Engine::GeometryPass)
+	{}
+
+	trinex_impl_render_pass(Engine::ForwardPass)
+	{}
+
+	trinex_impl_render_pass(Engine::DeferredLightingPass)
+	{
+		info.shader_definitions = {
+				{"TRINEX_DEFERRED_LIGHTING_PASS", "1"},
+		};
+
+		info.entry                   = "deferred_light";
+		info.color_attachments_count = 1;
+	}
+
+	trinex_impl_render_pass(Engine::TransparencyPass)
+	{}
+
+	trinex_impl_render_pass(Engine::PostProcessPass)
+	{}
+
+	trinex_impl_render_pass(Engine::OverlayPass)
+	{}
 
 	bool ClearPass::is_empty() const
 	{
@@ -244,12 +274,12 @@ namespace Engine
 		return *this;
 	}
 
-	bool DeferredPass::is_empty() const
+	bool DeferredLightingPass::is_empty() const
 	{
 		return false;
 	}
 
-	DeferredPass& DeferredPass::render(RenderViewport* vp)
+	DeferredLightingPass& DeferredLightingPass::render(RenderViewport* vp)
 	{
 		SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
 

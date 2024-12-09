@@ -19,6 +19,7 @@ namespace Engine
 	class SceneComponent;
 	class Pipeline;
 	struct ShaderDefinition;
+	class RenderPass;
 
 	class ENGINE_EXPORT MaterialInterface : public Object
 	{
@@ -49,7 +50,7 @@ namespace Engine
 
 		virtual MaterialInterface* parent() const;
 		virtual class Material* material();
-		virtual bool apply(SceneComponent* component = nullptr);
+		virtual bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
 
 		bool serialize(Archive& archive) override;
 
@@ -70,8 +71,8 @@ namespace Engine
 		Material& postload() override;
 		class Material* material() override;
 		Material& apply_changes() override;
-		bool apply(SceneComponent* component = nullptr) override;
-		bool apply(MaterialInterface* head, SceneComponent* component = nullptr);
+		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
+		bool apply(MaterialInterface* head, SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
 
 		virtual bool compile(ShaderCompiler::Compiler* compiler = nullptr);
 		virtual bool shader_source(String& out_source) = 0;
@@ -90,7 +91,7 @@ namespace Engine
 
 		class Material* material() override;
 		MaterialInterface* parent() const override;
-		bool apply(SceneComponent* component = nullptr) override;
+		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
 		bool serialize(Archive& archive) override;
 		~MaterialInstance();
 	};

@@ -50,7 +50,7 @@ namespace Engine
 	{
 		render_base_component(component);
 
-		RenderPass* pass                      = deferred_pass();
+		RenderPass* pass                      = deferred_lighting_pass();
 		DirectionalLightComponentProxy* proxy = component->proxy();
 
 

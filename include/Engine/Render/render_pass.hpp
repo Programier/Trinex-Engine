@@ -48,6 +48,7 @@ namespace Engine
 		delete_copy_constructors(RenderPass);
 		SceneRenderer* scene_renderer() const;
 		RenderPass* next() const;
+		Refl::RenderPassInfo* info() const;
 
 		virtual Refl::Struct* struct_instance() const;
 
@@ -95,14 +96,8 @@ namespace Engine
 public:                                                                                                                          \
     virtual Engine::Refl::Struct* struct_instance() const override;                                                              \
                                                                                                                                  \
-private:
-
-#define trinex_implement_render_pass(name)                                                                                       \
-	implement_struct_default_init(name, 0);                                                                                      \
-	Engine::Refl::Struct* name::struct_instance() const                                                                          \
-	{                                                                                                                            \
-		return static_struct_instance();                                                                                         \
-	}
+private:                                                                                                                         \
+    void static_initialize_render_pass()
 
 	class ENGINE_EXPORT ClearPass : public RenderPass
 	{
@@ -136,13 +131,13 @@ private:
 		trinex_render_pass(ForwardPass, RenderPass);
 	};
 
-	class ENGINE_EXPORT DeferredPass : public RenderPass
+	class ENGINE_EXPORT DeferredLightingPass : public RenderPass
 	{
-		trinex_render_pass(DeferredPass, RenderPass);
+		trinex_render_pass(DeferredLightingPass, RenderPass);
 
 	public:
 		bool is_empty() const override;
-		DeferredPass& render(RenderViewport*) override;
+		DeferredLightingPass& render(RenderViewport*) override;
 	};
 
 	class ENGINE_EXPORT TransparencyPass : public RenderPass

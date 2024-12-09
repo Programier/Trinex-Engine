@@ -173,7 +173,7 @@ namespace Engine
 			!component->leaf_class_is<SpotLightComponent>())
 			return *this;
 
-		auto pass = deferred_pass();
+		auto pass = deferred_lighting_pass();
 
 		Material* material = DefaultResources::Materials::spot_light;
 

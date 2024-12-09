@@ -4,7 +4,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 namespace Engine
-{ 
+{
 	using byte  = std::uint8_t;
 	using word  = std::uint16_t;
 	using dword = std::uint32_t;
@@ -142,5 +142,6 @@ namespace Engine
 		class Class;
 		class Property;
 		struct PropertyChangedEvent;
+		class RenderPassInfo;
 	}// namespace Refl
 }// namespace Engine

@@ -2,7 +2,7 @@
 #include <Core/colors.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/render_pass_info.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
@@ -169,7 +169,8 @@ namespace Engine
 		}
 	};
 
-	trinex_implement_render_pass(EditorOverlayPass);
+	trinex_impl_render_pass(EditorOverlayPass)
+	{}
 
 	static void create_directional_arrow(DirectionalLightComponent* component, EditorOverlayPass* pass)
 	{
