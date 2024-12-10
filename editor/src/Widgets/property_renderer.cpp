@@ -735,6 +735,99 @@ namespace Engine
 		return is_changed;
 	}
 
+	static Refl::Object* refl_object_property_selector(Refl::Object* node, Refl::ClassInfo* info)
+	{
+		Refl::Object* result = nullptr;
+		if (node->refl_class_info()->is_a(info))
+		{
+			if (ImGui::Selectable(node->display_name().c_str()))
+			{
+				result = node;
+			}
+		}
+
+		if (auto scope = Refl::Object::instance_cast<Refl::ScopedType>(node))
+		{
+			for (auto& [name, child] : scope->childs())
+			{
+				auto child_result = refl_object_property_selector(child, info);
+
+				if (!result)
+					result = child_result;
+			}
+		}
+		return result;
+	}
+
+	static bool render_refl_object_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
+	{
+		auto prop = prop_cast_checked<Refl::ReflObjectProperty>(prop_base);
+		renderer->render_name(prop);
+
+		auto current = prop->object(context);
+		bool changed = false;
+
+		if (ImGui::BeginCombo("##Combo", current ? current->display_name().c_str() : "None"))
+		{
+			bool use_none = ImGui::Selectable("None");
+
+			if (use_none || (current = refl_object_property_selector(Refl::Object::static_root(), prop->info())))
+			{
+				prop->object(context, use_none ? nullptr : current);
+				changed = true;
+				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			}
+			ImGui::EndCombo();
+		}
+		return changed;
+	}
+
+	static Refl::Class* refl_sub_class_property_selector(Refl::Class* node)
+	{
+		Refl::Class* result = nullptr;
+
+		if (ImGui::Selectable(node->display_name().c_str()))
+		{
+			result = node;
+		}
+
+		for (auto& derived : node->derived_structs())
+		{
+			if (auto derived_class = Refl::Object::instance_cast<Refl::Class>(derived))
+			{
+				auto child_result = refl_sub_class_property_selector(derived_class);
+
+				if (!result)
+					result = child_result;
+			}
+		}
+
+		return result;
+	}
+
+	static bool render_sub_class_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
+	{
+		auto prop = prop_cast_checked<Refl::SubClassProperty>(prop_base);
+		renderer->render_name(prop);
+
+		auto current = prop->class_instance(context);
+		bool changed = false;
+
+		if (ImGui::BeginCombo("##Combo", current ? current->display_name().c_str() : "None"))
+		{
+			bool use_none = ImGui::Selectable("None");
+
+			if (use_none || (current = refl_sub_class_property_selector(prop->base_class())))
+			{
+				prop->class_instance(context, use_none ? nullptr : current);
+				changed = true;
+				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			}
+			ImGui::EndCombo();
+		}
+		return changed;
+	}
+
 	static void on_preinit()
 	{
 		using T = PropertyRenderer;
@@ -751,6 +844,8 @@ namespace Engine
 		T::register_prop_renderer<Refl::StructProperty>(render_struct_property);
 		T::register_prop_renderer<Refl::ObjectProperty>(render_object_property);
 		T::register_prop_renderer<Refl::ArrayProperty>(render_array_property);
+		T::register_prop_renderer<Refl::ReflObjectProperty>(render_refl_object_property);
+		T::register_prop_renderer<Refl::SubClassProperty>(render_sub_class_property);
 	}
 
 	static bool script_render_property(PropertyRenderer* renderer, void* object, int type_id, Refl::Property* prop,

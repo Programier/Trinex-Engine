@@ -407,7 +407,7 @@ namespace Engine
 	{
 		node->self = self;
 
-		for (Refl::Struct* child : self->childs())
+		for (Refl::Struct* child : self->derived_structs())
 		{
 			if (child->parent() == self)
 			{

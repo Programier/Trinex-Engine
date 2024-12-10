@@ -2,6 +2,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/path.hpp>
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
@@ -25,6 +26,8 @@ namespace Engine::Refl
 	implement_reflect_type(ObjectProperty);
 	implement_reflect_type(StructProperty);
 	implement_reflect_type(ArrayProperty);
+	implement_reflect_type(ReflObjectProperty);
+	implement_reflect_type(SubClassProperty);
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
@@ -114,69 +117,14 @@ namespace Engine::Refl
 		return ar;
 	}
 
-	String BooleanProperty::script_type_name() const
-	{
-		return "bool";
-	}
-
 	size_t BooleanProperty::size() const
 	{
 		return sizeof(bool);
 	}
 
-	String IntegerProperty::script_type_name() const
-	{
-		return Strings::format("{}{}", is_signed() ? "int" : "uint", size() * 8);
-	}
-
 	bool IntegerProperty::is_unsigned() const
 	{
 		return !is_signed();
-	}
-
-	String FloatProperty::script_type_name() const
-	{
-		if (size() == sizeof(float))
-			return "float";
-		return "double";
-	}
-
-	String VectorProperty::script_type_name() const
-	{
-		String element_name = element_property()->script_type_name();
-
-		if (length() == 1)
-			return element_name;
-
-		String vector_name = "Engine::";
-
-		if (element_name == "bool")
-		{
-			vector_name += "BoolVector";
-		}
-		else if (element_name == "int32")
-		{
-			vector_name += "IntVector";
-		}
-		else if (element_name == "uint32")
-		{
-			vector_name += "UIntVector";
-		}
-		else if (element_name == "float")
-		{
-			vector_name += "Vector";
-		}
-		else
-		{
-			return "";
-		}
-
-		return Strings::format("{}{}D", vector_name, length());
-	}
-
-	String MatrixProperty::script_type_name() const
-	{
-		return "";
 	}
 
 	EnumProperty::EnumProperty(Enum* enum_instance, BitMask flags) : Super(flags), m_enum(enum_instance)
@@ -191,11 +139,6 @@ namespace Engine::Refl
 	{
 		m_enum = instance;
 		return *this;
-	}
-
-	String EnumProperty::script_type_name() const
-	{
-		return m_enum->full_name();
 	}
 
 	EnumerateType EnumProperty::value(const void* context) const
@@ -217,11 +160,6 @@ namespace Engine::Refl
 		return (ar & value);
 	}
 
-	String StringProperty::script_type_name() const
-	{
-		return "string";
-	}
-
 	size_t StringProperty::size() const
 	{
 		return sizeof(String);
@@ -233,20 +171,10 @@ namespace Engine::Refl
 		return (ar & value);
 	}
 
-	String NameProperty::script_type_name() const
-	{
-		return "Engine::Name";
-	}
-
 	bool PathProperty::serialize(void* object, Archive& ar)
 	{
 		Path& value = *address_as<Path>(object);
 		return ar & value;
-	}
-
-	String PathProperty::script_type_name() const
-	{
-		return "";
 	}
 
 	size_t ObjectProperty::size() const
@@ -268,27 +196,19 @@ namespace Engine::Refl
 		}
 	}
 
-	String ObjectProperty::script_type_name() const
-	{
-		auto& ti = class_instance()->script_type_info;
-
-		if (ti.is_valid())
-		{
-			return Strings::concat_scoped_name(ti.namespace_name(), ti.name()) + "@";
-		}
-
-		return "";
-	}
-
 	Engine::Object* ObjectProperty::object(void* context)
 	{
 		return *address_as<Engine::Object*>(context);
 	}
 
-	ObjectProperty& ObjectProperty::object(void* context, Engine::Object* object)
+	bool ObjectProperty::object(void* context, Engine::Object* object)
 	{
-		(*address_as<Engine::Object*>(context)) = object;
-		return *this;
+		if (object == nullptr || object->class_instance()->is_a(class_instance()))
+		{
+			(*address_as<Engine::Object*>(context)) = object;
+			return true;
+		}
+		return false;
 	}
 
 	const Engine::Object* ObjectProperty::object(const void* context) const
@@ -312,18 +232,6 @@ namespace Engine::Refl
 		return struct_instance()->serialize(address(object), ar);
 	}
 
-	String StructProperty::script_type_name() const
-	{
-		auto& ti = struct_instance()->script_type_info;
-
-		if (ti.is_valid() && ti.is_value())
-		{
-			return Strings::concat_scoped_name(ti.namespace_name(), ti.name());
-		}
-
-		return "";
-	}
-
 	bool ArrayProperty::serialize(void* object, Archive& ar)
 	{
 		size_t elements = length(object);
@@ -345,13 +253,86 @@ namespace Engine::Refl
 		return ar;
 	}
 
-	String ArrayProperty::script_type_name() const
+	size_t ReflObjectProperty::size() const
 	{
-		auto element_name = element_property()->script_type_name();
-		if (element_name.empty())
-			return "";
+		return sizeof(Refl::Object*);
+	}
 
-		return Strings::format("Engine::Vector<{}>", element_name);
+	bool ReflObjectProperty::serialize(void* context, Archive& ar)
+	{
+		if (ar.is_reading())
+		{
+			String name;
+			ar & name;
+
+			Object* obj = nullptr;
+
+			if (!name.empty())
+			{
+				obj = static_find(name);
+
+				if (!obj)
+				{
+					error_log("ReflObjectProperty", "Failed to find reflection object '%s'", name.c_str());
+					return false;
+				}
+			}
+			object(context, obj);
+			return true;
+		}
+		else
+		{
+			String name = "";
+			Object* obj = object(context);
+
+			if (obj)
+			{
+				name = obj->full_name().c_str();
+			}
+			ar & name;
+		}
+		return true;
+	}
+
+	Refl::Object* ReflObjectProperty::object(void* context)
+	{
+		return *address_as<Refl::ObjectProperty*>(context);
+	}
+
+	bool ReflObjectProperty::object(void* context, Refl::Object* object)
+	{
+		if (object == nullptr || object->refl_class_info()->is_a(info()))
+		{
+			(*address_as<Refl::Object*>(context)) = object;
+			return true;
+		}
+
+		return false;
+	}
+
+	const Engine::Refl::Object* ReflObjectProperty::object(const void* context) const
+	{
+		return *address_as<const Refl::ObjectProperty*>(context);
+	}
+
+	Class* SubClassProperty::class_instance(void* context)
+	{
+		return *address_as<Refl::Class*>(context);
+	}
+
+	bool SubClassProperty::class_instance(void* context, Refl::Class* instance)
+	{
+		return object(context, instance);
+	}
+
+	const Class* SubClassProperty::class_instance(const void* context) const
+	{
+		return *address_as<const Refl::Class*>(context);
+	}
+
+	Refl::ClassInfo* SubClassProperty::info() const
+	{
+		return Class::static_refl_class_info();
 	}
 
 	void Property::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)

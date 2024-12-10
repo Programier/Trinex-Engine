@@ -11,6 +11,9 @@ namespace Engine
 
 namespace Engine::Refl
 {
+	template<typename T>
+	class SubClassOf;
+
 	namespace PropertyChangeType
 	{
 		using Type = BitMask;
@@ -119,7 +122,6 @@ private:
 		virtual const void* address(const void* context) const = 0;
 		virtual size_t size() const                            = 0;
 		virtual bool serialize(void* object, Archive& ar)      = 0;
-		virtual String script_type_name() const                = 0;
 		virtual Property& on_property_changed(const PropertyChangedEvent& event);
 
 		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
@@ -155,7 +157,6 @@ private:
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
-		String script_type_name() const override;
 		size_t size() const override;
 	};
 
@@ -166,7 +167,6 @@ private:
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
-		String script_type_name() const override;
 		bool is_unsigned() const;
 		virtual bool is_signed() const = 0;
 	};
@@ -178,7 +178,6 @@ private:
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
-		String script_type_name() const override;
 	};
 
 	class ENGINE_EXPORT VectorProperty : public PrimitiveProperty
@@ -198,8 +197,6 @@ private:
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
-
-		String script_type_name() const override;
 
 		virtual size_t length() const              = 0;
 		virtual Property* element_property() const = 0;
@@ -239,8 +236,6 @@ private:
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 
-		String script_type_name() const override;
-
 		virtual size_t columns() const         = 0;
 		virtual size_t rows() const            = 0;
 		virtual Property* row_property() const = 0;
@@ -274,7 +269,6 @@ private:
 		EnumProperty(Enum* enum_instance = nullptr, BitMask flags = 0);
 		Enum* enum_instance() const;
 		EnumProperty& bind_enum(Enum* instance);
-		String script_type_name() const override;
 
 		EnumerateType value(const void* context) const;
 		EnumProperty& value(void* context, EnumerateType value);
@@ -289,7 +283,6 @@ private:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
-		String script_type_name() const override;
 		size_t size() const override;
 	};
 
@@ -302,7 +295,6 @@ private:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
-		String script_type_name() const override;
 	};
 
 	class ENGINE_EXPORT PathProperty : public Property
@@ -314,7 +306,6 @@ private:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
-		String script_type_name() const override;
 	};
 
 	class ENGINE_EXPORT ObjectProperty : public Property
@@ -330,10 +321,9 @@ private:
 
 		size_t size() const override;
 		bool serialize(void* object, Archive& ar) override;
-		String script_type_name() const override;
 
 		Engine::Object* object(void* context);
-		ObjectProperty& object(void* context, Engine::Object* object);
+		bool object(void* context, Engine::Object* object);
 		const Engine::Object* object(const void* context) const;
 		bool is_composite() const;
 		ObjectProperty& is_composite(bool flag);
@@ -347,7 +337,7 @@ private:
 
 	private:
 		template<typename T>
-		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_struct_instance()), Refl::Struct*>>;
+		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_struct_instance()), Struct*>>;
 
 		trinex_refl_prop_type_filter(std::is_class_v<T>&& is_detected_v<T, refl_detector>);
 
@@ -355,7 +345,6 @@ private:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
-		String script_type_name() const override;
 		virtual Struct* struct_instance() const = 0;
 	};
 
@@ -398,7 +387,6 @@ private:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
-		String script_type_name() const override;
 
 		virtual Property* element_property() const = 0;
 		virtual size_t element_size() const        = 0;
@@ -424,6 +412,51 @@ private:
 		{
 			return reinterpret_cast<const T*>(at(context, index, is_vector_context));
 		}
+	};
+
+	class ENGINE_EXPORT ReflObjectProperty : public Property
+	{
+		declare_reflect_type(ReflObjectProperty, Property);
+		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Engine::Refl::Object, std::remove_pointer_t<T>>);
+
+	public:
+		using Property::Property;
+
+		size_t size() const override;
+		bool serialize(void* object, Archive& ar) override;
+
+		Refl::Object* object(void* context);
+		bool object(void* context, Refl::Object* object);
+		const Engine::Refl::Object* object(const void* context) const;
+
+		virtual Refl::ClassInfo* info() const = 0;
+	};
+
+	class ENGINE_EXPORT SubClassProperty : public ReflObjectProperty
+	{
+		declare_reflect_type(SubClassProperty, ReflObjectProperty);
+
+		template<typename T>
+		struct IsSubClassProp {
+			static constexpr inline bool value = false;
+		};
+
+		template<typename T>
+		struct IsSubClassProp<SubClassOf<T>> {
+			static constexpr inline bool value = true;
+		};
+
+		trinex_refl_prop_type_filter(IsSubClassProp<T>::value);
+
+	public:
+		using ReflObjectProperty::ReflObjectProperty;
+
+		Class* class_instance(void* context);
+		bool class_instance(void* context, Refl::Class* instance);
+		const Class* class_instance(const void* context) const;
+		Refl::ClassInfo* info() const override;
+
+		virtual Refl::Class* base_class() const = 0;
 	};
 
 	//////////////////// SPECIALIZATIONS ////////////////////
@@ -766,6 +799,31 @@ private:
 			return *this;
 		}
 	};
+
+	template<auto prop, typename T>
+		requires(ReflObjectProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, ReflObjectProperty> {
+		using Super = TypedProperty<prop, ReflObjectProperty>;
+		using Super::Super;
+
+		Refl::ClassInfo* info() const override
+		{
+			return std::remove_pointer_t<T>::static_refl_class_info();
+		}
+	};
+
+	template<auto prop, typename T>
+		requires(SubClassProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, SubClassProperty> {
+		using Super = TypedProperty<prop, SubClassProperty>;
+		using Super::Super;
+
+		Class* base_class() const override
+		{
+			return T::Type::static_class_instance();
+		}
+	};
+
 
 #undef trinex_refl_prop_type_filter
 #define trinex_refl_prop(self, class_name, prop_name, ...)                                                                       \

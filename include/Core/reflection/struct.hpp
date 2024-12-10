@@ -41,13 +41,13 @@ namespace Engine::Refl
 
 	private:
 		Vector<Property*> m_properties;
-		Set<Struct*> m_childs;
+		Set<Struct*> m_derived_structs;
 		mutable Struct* m_parent = nullptr;
 
 		class Group* m_group = nullptr;
 
 	protected:
-		void destroy_childs();
+		void destroy_derived_structs();
 
 		template<typename T>
 		static consteval BitMask native_type_flags()
@@ -94,7 +94,7 @@ namespace Engine::Refl
 		Struct* parent() const;
 		size_t abstraction_level() const;
 		Vector<Name> hierarchy(size_t offset = 0) const;
-		const Set<Struct*>& childs() const;
+		const Set<Struct*>& derived_structs() const;
 		bool is_asset() const;
 		bool is_native() const;
 		bool is_class() const;

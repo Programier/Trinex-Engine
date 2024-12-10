@@ -14,7 +14,7 @@ namespace Engine::Refl
 	{
 		if (parent)
 		{
-			parent->m_childs.insert(this);
+			parent->m_derived_structs.insert(this);
 		}
 	}
 
@@ -71,12 +71,12 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	void Struct::destroy_childs()
+	void Struct::destroy_derived_structs()
 	{
-		while (!m_childs.empty())
+		while (!m_derived_structs.empty())
 		{
-			Struct* child_struct = *m_childs.begin();
-			delete child_struct;
+			Struct* derived_struct = *m_derived_structs.begin();
+			delete derived_struct;
 		}
 	}
 
@@ -139,9 +139,9 @@ namespace Engine::Refl
 		return result;
 	}
 
-	const Set<Struct*>& Struct::childs() const
+	const Set<Struct*>& Struct::derived_structs() const
 	{
-		return m_childs;
+		return m_derived_structs;
 	}
 
 	bool Struct::is_asset() const
@@ -304,11 +304,11 @@ namespace Engine::Refl
 	{
 		m_properties.clear();
 
-		destroy_childs();
+		destroy_derived_structs();
 
 		if (m_parent)
 		{
-			m_parent->m_childs.erase(this);
+			m_parent->m_derived_structs.erase(this);
 		}
 	}
 

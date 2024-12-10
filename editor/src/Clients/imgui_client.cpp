@@ -62,7 +62,7 @@ namespace Engine
 			}
 		}
 
-		for (Refl::Struct* child : self->childs())
+		for (Refl::Struct* child : self->derived_structs())
 		{
 			if (auto class_instance = Refl::Object::instance_cast<Refl::Class>(child))
 			{
