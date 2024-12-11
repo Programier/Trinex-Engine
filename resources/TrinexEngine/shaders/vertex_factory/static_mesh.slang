@@ -1,5 +1,5 @@
 #include "vertex_factory/vertex_factory.slang"
-#include "vertex_factory/local_to_world.slang"
+#include "trinex/local_to_world.slang"
 #include "math.slang"
 
 #ifndef DISABLE_TANGENT_AND_BITANGENT

@@ -10,9 +10,10 @@
 
 namespace Engine
 {
-	static inline constexpr const char* global_variables_attribute         = "@0";
-	static inline constexpr const char* vertex_material_source_attribute   = "@1";
-	static inline constexpr const char* fragment_material_source_attribute = "@2";
+	static inline constexpr const char* vertex_attribute_section         = "// @trinex_vertex_attributes";
+	static inline constexpr const char* global_variables_section         = "// @trinex_global_parameters";
+	static inline constexpr const char* vertex_material_source_section   = "// @trinex_vertex_shader";
+	static inline constexpr const char* fragment_material_source_section = "// @trinex_fragment_shader";
 
 	static inline constexpr size_t base_color_index      = 0;
 	static inline constexpr size_t opacity_index         = 1;
@@ -118,11 +119,9 @@ namespace Engine
 		VisualMaterialGraph::CompilerState compiler(gs);
 
 
-		static constexpr const char* format = "Material material = (Material)0;\n\n"
-											  "{0}\n"
+		static constexpr const char* format = "{0}\n"
 											  "\tmaterial.normal = {1};\n"
-											  "\tmaterial.position_offset = {2};\n"
-											  "\treturn material;";
+											  "\tmaterial.position_offset = {2};\n";
 
 		auto normal          = root->compile(root->inputs()[normal_index], compiler);
 		auto position_offset = root->compile(root->inputs()[position_offset_index], compiler);
@@ -132,7 +131,7 @@ namespace Engine
 
 		String header     = compiler.create_header("\t");
 		String out_source = Strings::format(format, header, normal.code, position_offset.code);
-		template_source.replace(position, std::strlen(vertex_material_source_attribute), out_source);
+		template_source.replace(position, std::strlen(vertex_material_source_section), out_source);
 		return true;
 	}
 
@@ -148,8 +147,7 @@ namespace Engine
 	{
 		VisualMaterialGraph::CompilerState compiler(gs);
 
-		static constexpr const char* format = "Material material = (Material)0;\n\n"
-											  "{0}\n"
+		static constexpr const char* format = "{0}\n"
 											  "\tmaterial.base_color = {1};\n"
 											  "\tmaterial.emissive = {2};\n"
 											  "\tmaterial.normal = input.world_normal;\n"
@@ -158,8 +156,7 @@ namespace Engine
 											  "\tmaterial.metalness = {4};\n"
 											  "\tmaterial.roughness = {5};\n"
 											  "\tmaterial.opacity = {6};\n"
-											  "\tmaterial.AO = {7};\n"
-											  "\treturn material;";
+											  "\tmaterial.AO = {7};\n";
 
 		auto base_color = root->compile(root->inputs()[base_color_index], compiler);
 		auto emissive   = root->compile(root->inputs()[emissive_index], compiler);
@@ -175,7 +172,7 @@ namespace Engine
 		String header     = compiler.create_header("\t");
 		String out_source = Strings::format(format, header, base_color.code, emissive.code, specular.code, metalness.code,
 		                                    roughness.code, opacity.code, AO.code);
-		template_source.replace(position, std::strlen(vertex_material_source_attribute), out_source);
+		template_source.replace(position, std::strlen(fragment_material_source_section), out_source);
 		return true;
 	}
 
@@ -187,7 +184,7 @@ namespace Engine
 
 		// Compile vertex shader
 		{
-			auto pos = template_source.find(vertex_material_source_attribute);
+			auto pos = template_source.find(vertex_material_source_section);
 			if (pos != String::npos)
 			{
 				status = compile_vertex_shader(global_state, template_source, pos, nodes()[0], domain);
@@ -201,7 +198,7 @@ namespace Engine
 		// Compile fragment shader
 		if (status)
 		{
-			auto pos = template_source.find(fragment_material_source_attribute);
+			auto pos = template_source.find(fragment_material_source_section);
 			if (pos != String::npos)
 			{
 				status = compile_fragment_shader(global_state, template_source, pos, nodes()[0], domain);
@@ -211,10 +208,10 @@ namespace Engine
 		if (status)
 		{
 			String globals = global_state.compile();
-			auto pos       = template_source.find(global_variables_attribute);
+			auto pos       = template_source.find(global_variables_section);
 			if (pos != String::npos)
 			{
-				template_source.replace(pos, std::strlen(vertex_material_source_attribute), globals);
+				template_source.replace(pos, std::strlen(global_variables_section), globals);
 			}
 			else
 			{

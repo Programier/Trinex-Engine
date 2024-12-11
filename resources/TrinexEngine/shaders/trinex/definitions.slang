@@ -1,0 +1,20 @@
+#ifndef TRINEX_DEFINITIONS_SLANG
+#define TRINEX_DEFINITIONS_SLANG 1
+
+#ifndef TRINEX_VULKAN_RHI
+#define TRINEX_VULKAN_RHI 0
+#endif
+
+#ifndef TRINEX_OPENGL_RHI
+#define TRINEX_OPENGL_RHI 0
+#endif
+
+#ifndef TRINEX_D3D11_RHI
+#define TRINEX_D3D11_RHI 0
+#endif
+
+#ifndef TRINEX_DIRECT_X_RHI
+#define TRINEX_DIRECT_X_RHI 0
+#endif
+
+#endif

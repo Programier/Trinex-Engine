@@ -1,6 +1,6 @@
 #ifndef MATERIAL_COMMON
 #define MATERIAL_COMMON
-
+#include "trinex/definitions.slang"
 
 struct Material
 {
@@ -29,17 +29,23 @@ float3x3 calc_tangent_basis(float3 normal, float3 pos, float2 uv)
     return float3x3(tangent, bitangent, normal);
 }
 
-float3x3 calc_tangent_basis_from_world_normal(float3 normal)
+float3x3 calc_tangent_basis(float3 normal, float3 tangent, float3 bitangent)
 {
-    float3 tangent = cross(normal, float3(1, 0, 0));
-    float3 bitangent = cross(normal, tangent);
-    return float3x3(tangent, bitangent, normal);
+    float3x3 result = float3x3(normal, tangent, bitangent);
+#if TRINEX_VULKAN_RHI || TRINEX_OPENGL_RHI
+    return transpose(result);
+#else
+    return result;
+#endif
 }
 
 float3x3 calc_tangent_basis(float3 normal, float3 tangent)
 {
-    float3 bitangent = cross(normal, tangent);
-    return float3x3(tangent, bitangent, normal);
+    return calc_tangent_basis(normal, tangent, cross(normal, tangent));
 }
 
+float3x3 calc_tangent_basis(float3 normal)
+{
+    return calc_tangent_basis(normal, cross(normal, float3(1, 0, 0)));
+}
 #endif

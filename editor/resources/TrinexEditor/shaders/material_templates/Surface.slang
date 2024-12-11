@@ -2,7 +2,8 @@
 #define SURFACE_TEMPLATE
 
 #include "common.slang"
-#include "vertex_factory/static_mesh.slang"
+#include "math.slang"
+#include "trinex/local_to_world.slang"
 #include "material_common.slang"
 #include "platform.slang"
 
@@ -11,8 +12,39 @@
 #define USE_VERTEX_COLOR 0
 #endif 
 
+struct VertexFactory
+{
+	float3 	position        : POSITION0;
+	float2 	uv              : TEXCOORD0;
+	float3	normal          : NORMAL0;
+	float3	tangent         : TANGENT0;
+
+#if USE_VERTEX_COLOR
+	float4 vertex_color : COLOR0;
+#endif
+
+	// @trinex_vertex_attributes
+
+	float3 get_world_position()
+	{
+		float4 result = mul(local_to_world, float4(position, 1.0));
+		result /= result.w;
+		return result.xyz;
+	}
+
+	float3 get_world_normal()
+	{
+		return rotate_vector(normal, local_to_world);
+	}
+
+	float3 get_world_tangent()
+	{
+		return rotate_vector(tangent, local_to_world);
+	}
+};
+
 // Global parameters
-@0
+// @trinex_global_parameters
 
 struct GeometryData
 {
@@ -24,8 +56,7 @@ struct GeometryData
 	float3	world_normal	: NORMAL1;
 	float3	world_tangent	: TANGENT1;
 	float3	world_bitangent	: BITANGENT1;
-
-	float2 	uv[8]			: TEXCOORD0;
+	float2 	uv				: TEXCOORD0;
 };
 
 struct VertexOutput
@@ -53,8 +84,7 @@ struct MaterialInput
 	float3	world_normal;
 	float3	world_tangent;
 	float3	world_bitangent;
-
-	float2 	uv[8];
+	float2 	uv;
 };
 
 struct VertexMaterialInput : MaterialInput
@@ -65,21 +95,15 @@ struct VertexMaterialInput : MaterialInput
 		world_position 	= vertex_factory.get_world_position();
 		world_normal 	= vertex_factory.get_world_normal();
 		world_tangent 	= vertex_factory.get_world_tangent();
-		world_bitangent 	= vertex_factory.get_world_bitangent();
-
-		TBN = calc_tangent_basis(world_normal, world_tangent);
-
-		for(uint i = 0, count = vertex_factory.get_uv_count(); i < count; ++i)
-		{
-			uv[i] = platform_validate_uv(vertex_factory.get_uv(i));
-		}
+		world_bitangent = cross(world_normal, world_tangent);
+		uv 				= vertex_factory.uv;
 
 #if USE_VERTEX_COLOR
-		vertex_color = vertex_factory.get_color();
+		vertex_color = vertex_factory.vertex_color;
 #endif
+		TBN = calc_tangent_basis(world_normal, world_tangent, world_bitangent);
 	}
 
-	[mutating]
 	VertexOutput apply_material(in Material material)
 	{
 		VertexOutput output = (VertexOutput)0;
@@ -88,11 +112,7 @@ struct VertexMaterialInput : MaterialInput
 		output.geometry.world_normal = mul(TBN, material.normal);
 		output.geometry.world_tangent = world_tangent;
 		output.geometry.world_bitangent = world_bitangent;
-
-		for(uint i = 0; i < 8; ++i)
-		{
-			output.geometry.uv[i] = uv[i];
-		}
+		output.geometry.uv = uv;
 
 		output.position = mul(globals.projview, float4(output.geometry.world_position, 1.0));
 		return output;
@@ -114,12 +134,8 @@ struct FragmentMaterialInput : MaterialInput
 		world_position 	= data.world_position;
 		world_normal 	= data.world_normal;
 		world_tangent 	= data.world_tangent;
-		world_bitangent 	= data.world_bitangent;
-
-		for(uint i = 0; i < 8; ++i)
-		{
-			uv[i] = data.uv[i];
-		}
+		world_bitangent = data.world_bitangent;
+		uv 				= data.uv;
 	}
 
 	[mutating]
@@ -133,12 +149,16 @@ struct FragmentMaterialInput : MaterialInput
 
 Material get_material_vs(in VertexMaterialInput input)
 {
-	@1
+	Material material = (Material)0;
+	// @trinex_vertex_shader
+	return material;
 }
 
 Material get_material_fs(in FragmentMaterialInput input)
 {
-	@2
+	Material material = (Material)0;
+	// @trinex_fragment_shader
+	return material;
 }
 
 [shader("vertex")]

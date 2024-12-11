@@ -597,6 +597,13 @@ namespace Engine::ShaderCompiler
 
 				return {};
 			}
+			else if (auto diagnostics = request->getDiagnosticOutput())
+			{
+				if (strlen(diagnostics) > 0)
+				{
+					warn_log("ShaderCompiler", diagnostics);
+				}
+			}
 
 			spCompileRequest_getModule(request, unit, slang_module.writeRef());
 			component_types.push_back(slang_module);
@@ -827,7 +834,7 @@ namespace Engine::ShaderCompiler
 				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
 				request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 
-				auto profile = global_session()->findProfile("spirv_1_0");
+				auto profile = global_session()->findProfile("glsl_330");
 				request->setTargetProfile(0, profile);
 
 				arguments.push_back("-emit-spirv-via-glsl");
