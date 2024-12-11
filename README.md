@@ -5,7 +5,7 @@
 </div>
 
 # Trinex Engine
-**Trinex Engine** is a simple game engine targeting platforms such as Windows, Linux and Android. This project was developed with the aim of studying the work of modern game engines and studying the graphics api such as OpenGL and Vulkan.
+**Trinex Engine** is a simple game engine targeting platforms such as Windows, Linux and Android. This project was developed with the aim of learning the work of modern game engines and studying the graphics api such as OpenGL and Vulkan.
 
 ## Requirements
 To use Trinex Engine, you need to have the following software installed:
@@ -33,7 +33,7 @@ cmake ..
 ```bash
 make install -j<num threads>
 ```
-6. **Find the built engine**: After the build process completes, the built engine will be located in the `build/Game/` directory.
+6. **Find the built engine**: After the build process completes, the built engine will be located in the `build/Engine/` directory.
 Now you're ready to explore the built engine and start developing your own projects with Trinex Engine!
 
 ## Current Status
