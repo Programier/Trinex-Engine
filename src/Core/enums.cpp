@@ -18,7 +18,7 @@ namespace Engine
 
 	implement_engine_enum(VertexBufferSemantic, VertexBufferSemantic::Position, VertexBufferSemantic::TexCoord,
 						  VertexBufferSemantic::Color, VertexBufferSemantic::Normal, VertexBufferSemantic::Tangent,
-						  VertexBufferSemantic::Binormal, VertexBufferSemantic::BlendWeight, VertexBufferSemantic::BlendIndices);
+						  VertexBufferSemantic::Bitangent, VertexBufferSemantic::BlendWeight, VertexBufferSemantic::BlendIndices);
 
 	implement_engine_enum(Coord, Coord::X, Coord::Y, Coord::Z);
 

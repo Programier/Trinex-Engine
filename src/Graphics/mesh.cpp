@@ -53,9 +53,9 @@ namespace Engine
 		return tangents.size() <= index ? nullptr : tangents[index].ptr();
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_binormal_buffer(Index index) const
+	VertexBuffer* StaticMesh::LOD::find_bitangent_buffer(Index index) const
 	{
-		return binormals.size() <= index ? nullptr : binormals[index].ptr();
+		return bitangents.size() <= index ? nullptr : bitangents[index].ptr();
 	}
 
 
@@ -101,10 +101,10 @@ namespace Engine
 					tangent->init_resource();
 			}
 
-			for (auto& binormal : lod.binormals)
+			for (auto& bitangent : lod.bitangents)
 			{
-				if (binormal)
-					binormal->init_resource();
+				if (bitangent)
+					bitangent->init_resource();
 			}
 
 			if (lod.indices)
@@ -179,7 +179,7 @@ namespace Engine
 		serialize_buffers(ar, lod.colors);
 		serialize_buffers(ar, lod.normals);
 		serialize_buffers(ar, lod.tangents);
-		serialize_buffers(ar, lod.binormals);
+		serialize_buffers(ar, lod.bitangents);
 		serialize_buffer(ar, lod.indices);
 		ar & lod.surfaces;
 		return ar;
@@ -199,7 +199,7 @@ namespace Engine
 	VertexBuffer* StaticMesh::LOD::find_vertex_buffer(VertexBufferSemantic semantic, Index index) const
 	{
 		Index semantic_index = static_cast<Index>(semantic);
-		if (semantic_index > static_cast<Index>(VertexBufferSemantic::Binormal))
+		if (semantic_index > static_cast<Index>(VertexBufferSemantic::Bitangent))
 		{
 			return nullptr;
 		}
@@ -207,7 +207,7 @@ namespace Engine
 		static VertexBuffer* (StaticMesh::LOD::*find_buffer_private[])(Index) const = {
 		        &StaticMesh::LOD::find_position_buffer, &StaticMesh::LOD::find_tex_coord_buffer,
 		        &StaticMesh::LOD::find_color_buffer,    &StaticMesh::LOD::find_normal_buffer,
-		        &StaticMesh::LOD::find_tangent_buffer,  &StaticMesh::LOD::find_binormal_buffer,
+				&StaticMesh::LOD::find_tangent_buffer,  &StaticMesh::LOD::find_bitangent_buffer,
 		};
 
 		return ((*this).*(find_buffer_private[semantic_index]))(index);

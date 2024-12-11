@@ -59,7 +59,7 @@ namespace Engine
 		Color        = 2,
 		Normal       = 3,
 		Tangent      = 4,
-		Binormal     = 5,
+		Bitangent    = 5,
 		BlendWeight  = 6,
 		BlendIndices = 7,
 	};

@@ -36,7 +36,7 @@ namespace Engine
 			Vector<Pointer<class ColorVertexBuffer>> colors;
 			Vector<Pointer<class NormalVertexBuffer>> normals;
 			Vector<Pointer<class TangentVertexBuffer>> tangents;
-			Vector<Pointer<class BinormalVertexBuffer>> binormals;
+			Vector<Pointer<class BitangentVertexBuffer>> bitangents;
 			Pointer<UInt32IndexBuffer> indices;
 
 			Vector<MeshSurface> surfaces;
@@ -47,7 +47,7 @@ namespace Engine
 			VertexBuffer* find_color_buffer(Index index) const;
 			VertexBuffer* find_normal_buffer(Index index) const;
 			VertexBuffer* find_tangent_buffer(Index index) const;
-			VertexBuffer* find_binormal_buffer(Index index) const;
+			VertexBuffer* find_bitangent_buffer(Index index) const;
 
 		public:
 			VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;

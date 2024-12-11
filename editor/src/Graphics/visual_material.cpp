@@ -119,10 +119,10 @@ namespace Engine
 
 
 		static constexpr const char* format = "Material material = (Material)0;\n\n"
-		                                      "{0}\n"
-		                                      "\tmaterial.world_normal      = {1};\n"
-		                                      "\tmaterial.position_offset   = {2};\n"
-		                                      "\treturn material;";
+											  "{0}\n"
+											  "\tmaterial.normal = {1};\n"
+											  "\tmaterial.position_offset = {2};\n"
+											  "\treturn material;";
 
 		auto normal          = root->compile(root->inputs()[normal_index], compiler);
 		auto position_offset = root->compile(root->inputs()[position_offset_index], compiler);
@@ -149,17 +149,17 @@ namespace Engine
 		VisualMaterialGraph::CompilerState compiler(gs);
 
 		static constexpr const char* format = "Material material = (Material)0;\n\n"
-		                                      "{0}\n"
-		                                      "\tmaterial.base_color        = {1};\n"
-		                                      "\tmaterial.emissive          = {2};\n"
-		                                      "\tmaterial.world_normal      = input.world_normal;\n"
-		                                      "\tmaterial.position_offset   = float3(0.f, 0.f, 0.f);\n"
-		                                      "\tmaterial.specular = {3};\n"
-		                                      "\tmaterial.metalness = {4};\n"
-		                                      "\tmaterial.roughness = {5};\n"
-		                                      "\tmaterial.opacity = {6};\n"
-		                                      "\tmaterial.AO = {7};\n"
-		                                      "\treturn material;";
+											  "{0}\n"
+											  "\tmaterial.base_color = {1};\n"
+											  "\tmaterial.emissive = {2};\n"
+											  "\tmaterial.normal = input.world_normal;\n"
+											  "\tmaterial.position_offset   = float3(0.f, 0.f, 0.f);\n"
+											  "\tmaterial.specular = {3};\n"
+											  "\tmaterial.metalness = {4};\n"
+											  "\tmaterial.roughness = {5};\n"
+											  "\tmaterial.opacity = {6};\n"
+											  "\tmaterial.AO = {7};\n"
+											  "\treturn material;";
 
 		auto base_color = root->compile(root->inputs()[base_color_index], compiler);
 		auto emissive   = root->compile(root->inputs()[emissive_index], compiler);

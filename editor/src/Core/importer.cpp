@@ -145,15 +145,15 @@ namespace Engine::Importer
 		if (tangents.size() > 0)
 		{
 			TangentVertexBuffer* tangent_vertex_buffer = Object::new_instance<TangentVertexBuffer>();
-			tangent_vertex_buffer->buffer              = std::move(normals);
+			tangent_vertex_buffer->buffer              = std::move(tangents);
 			lod.tangents.push_back(tangent_vertex_buffer);
 		}
 
 		if (bitangents.size() > 0)
 		{
-			BinormalVertexBuffer* binormal_vertex_buffer = Object::new_instance<BinormalVertexBuffer>();
-			binormal_vertex_buffer->buffer               = std::move(normals);
-			lod.binormals.push_back(binormal_vertex_buffer);
+			BitangentVertexBuffer* bitangent_vertex_buffer = Object::new_instance<BitangentVertexBuffer>();
+			bitangent_vertex_buffer->buffer                = std::move(bitangents);
+			lod.bitangents.push_back(bitangent_vertex_buffer);
 		}
 
 		if (uv.size() > 0)
@@ -204,7 +204,8 @@ namespace Engine::Importer
 		Assimp::Importer importer;
 
 		unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-		                     aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes;
+							 aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
+							 aiProcess_CalcTangentSpace;
 		const aiScene* scene = importer.ReadFile(file.c_str(), flags);
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

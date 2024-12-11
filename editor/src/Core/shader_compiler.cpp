@@ -181,14 +181,14 @@ namespace Engine::ShaderCompiler
 		Strings::to_lower(name);
 
 		static const TreeMap<String, VertexBufferSemantic> semantics = {
-		        {"position", VertexBufferSemantic::Position},       //
-		        {"texcoord", VertexBufferSemantic::TexCoord},       //
-		        {"color", VertexBufferSemantic::Color},             //
-		        {"normal", VertexBufferSemantic::Normal},           //
-		        {"tangent", VertexBufferSemantic::Tangent},         //
-		        {"binormal", VertexBufferSemantic::Binormal},       //
-		        {"blendweight", VertexBufferSemantic::BlendWeight}, //
-		        {"blendindices", VertexBufferSemantic::BlendIndices}//
+				{"position", VertexBufferSemantic::Position},       //
+				{"texcoord", VertexBufferSemantic::TexCoord},       //
+				{"color", VertexBufferSemantic::Color},             //
+				{"normal", VertexBufferSemantic::Normal},           //
+				{"tangent", VertexBufferSemantic::Tangent},         //
+				{"bitangent", VertexBufferSemantic::Bitangent},     //
+				{"blendweight", VertexBufferSemantic::BlendWeight}, //
+				{"blendindices", VertexBufferSemantic::BlendIndices}//
 		};
 
 		auto it = semantics.find(name);
@@ -304,13 +304,13 @@ namespace Engine::ShaderCompiler
 				return false;
 			}
 
-			if (is_not_in<VertexBufferSemantic::Position,//
-			              VertexBufferSemantic::TexCoord,//
-			              VertexBufferSemantic::Color,   //
-			              VertexBufferSemantic::Normal,  //
-			              VertexBufferSemantic::Tangent, //
-			              VertexBufferSemantic::Binormal,//
-			              VertexBufferSemantic::BlendWeight>(attribute.semantic))
+			if (is_not_in<VertexBufferSemantic::Position, //
+						  VertexBufferSemantic::TexCoord, //
+						  VertexBufferSemantic::Color,    //
+						  VertexBufferSemantic::Normal,   //
+						  VertexBufferSemantic::Tangent,  //
+						  VertexBufferSemantic::Bitangent,//
+						  VertexBufferSemantic::BlendWeight>(attribute.semantic))
 			{
 				error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
 				return false;

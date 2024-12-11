@@ -2,8 +2,8 @@
 #include "vertex_factory/local_to_world.slang"
 #include "math.slang"
 
-#ifndef DISABLE_TANGENT_AND_BINORMAL
-#define DISABLE_TANGENT_AND_BINORMAL 1
+#ifndef DISABLE_TANGENT_AND_BITANGENT
+#define DISABLE_TANGENT_AND_BITANGENT 1
 #endif
 
 struct VertexFactory : IVertexFactory
@@ -12,9 +12,9 @@ struct VertexFactory : IVertexFactory
 	float2 	uv				: TEXCOORD0;
 	float3	normal			: NORMAL0;
 
-#if !DISABLE_TANGENT_AND_BINORMAL
+#if !DISABLE_TANGENT_AND_BITANGENT
 	float3	tangent			: TANGENT0;
-	float3	binormal		: BINORMAL0;
+	float3	bitangent		: BITANGENT0;
 #endif
 
 	float3 get_position()
@@ -29,19 +29,19 @@ struct VertexFactory : IVertexFactory
 
 	float3 get_tangent()
 	{
-#if DISABLE_TANGENT_AND_BINORMAL
+#if DISABLE_TANGENT_AND_BITANGENT
 		return float3(1.0, 0.0, 0.0);
 #else
 		return tangent;
 #endif
 	}
 
-	float3 get_binormal()
+	float3 get_bitangent()
 	{
-#if DISABLE_TANGENT_AND_BINORMAL
+#if DISABLE_TANGENT_AND_BITANGENT
 		return float3(0.0, 0.0, 1.0);
 #else
-		return binormal;
+		return bitangent;
 #endif
 	}
 
@@ -55,9 +55,11 @@ struct VertexFactory : IVertexFactory
 		return float4(1.0, 1.0, 1.0, 1.0);
 	}
 
-	float4 get_world_position()
+	float3 get_world_position()
 	{
-		return mul(local_to_world, float4(position, 1.0));
+		float4 result = mul(local_to_world, float4(position, 1.0));
+		result /= result.w;
+		return result.xyz;
 	}
 
 	float3 get_world_normal()
@@ -70,12 +72,12 @@ struct VertexFactory : IVertexFactory
 		return rotate_vector(get_tangent(), local_to_world);
 	}
 
-	float3 get_world_binormal()
+	float3 get_world_bitangent()
 	{
-		return rotate_vector(get_binormal(), local_to_world);
+		return rotate_vector(get_bitangent(), local_to_world);
 	}
 
-	uint	get_uv_count()
+	uint get_uv_count()
 	{
 		return 1;
 	}

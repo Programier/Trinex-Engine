@@ -918,26 +918,13 @@ namespace Engine::VisualMaterialGraph
 		m_inputs.push_back(new FloatInputPin(this, "Metalness"));
 		m_inputs.push_back(new FloatInputPin(this, "Roughness"));
 		m_inputs.push_back(new FloatInputPin(this, "AO", 1.f));
-		m_inputs.push_back(new Vec3InputPinND(this, "Normal"));
+		m_inputs.push_back(new Vec3InputPin(this, "Normal", {0.5, 0.5, 1.0}));
 		m_inputs.push_back(new Vec3InputPin(this, "Position Offset"));
 	}
 
 	Expression Root::compile(InputPin* pin, CompilerState& state)
 	{
-		Index index = find_pin_index(pin);
-		Expression expression;
-
-		if (index == 7 && !m_inputs[7]->has_links())
-		{
-			expression = Expression("input.world_normal", PinType::Vec3, true);
-		}
-
-		if (!expression.is_valid())
-		{
-			expression = Node::compile(pin, state);
-		}
-
-		return state.expression_cast(expression, pin->type());
+		return state.expression_cast(Node::compile(pin, state), pin->type());
 	}
 
 	const NodeSignature& Root::signature() const

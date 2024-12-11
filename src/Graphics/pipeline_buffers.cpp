@@ -61,7 +61,7 @@ namespace Engine
 	implement_engine_class_default_init(ColorVertexBuffer, 0);
 	implement_engine_class_default_init(NormalVertexBuffer, 0);
 	implement_engine_class_default_init(TangentVertexBuffer, 0);
-	implement_engine_class_default_init(BinormalVertexBuffer, 0);
+	implement_engine_class_default_init(BitangentVertexBuffer, 0);
 	implement_engine_class_default_init(DynamicVertexBuffer, 0);
 
 	RHIBufferType DynamicVertexBuffer::buffer_type() const
@@ -74,7 +74,7 @@ namespace Engine
 	implement_engine_class_default_init(ColorDynamicVertexBuffer, 0);
 	implement_engine_class_default_init(NormalDynamicVertexBuffer, 0);
 	implement_engine_class_default_init(TangentDynamicVertexBuffer, 0);
-	implement_engine_class_default_init(BinormalDynamicVertexBuffer, 0);
+	implement_engine_class_default_init(BitangentDynamicVertexBuffer, 0);
 
 	//////////////////////////// INDEX BUFFER ////////////////////////////
 

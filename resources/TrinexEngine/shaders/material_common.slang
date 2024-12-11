@@ -6,7 +6,7 @@ struct Material
 {
 	float3 base_color;
 	float3 emissive;
-	float3 world_normal;
+	float3 normal;
 	float3 position_offset;
 
 	float specular;
@@ -39,7 +39,7 @@ float3x3 calc_tangent_basis_from_world_normal(float3 normal)
 float3x3 calc_tangent_basis(float3 normal, float3 tangent)
 {
     float3 bitangent = cross(normal, tangent);
-    return float3x3(tangent.xyz, bitangent, normal);
+    return float3x3(tangent, bitangent, normal);
 }
 
 #endif

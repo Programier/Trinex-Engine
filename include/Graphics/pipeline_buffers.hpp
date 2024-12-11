@@ -92,11 +92,10 @@ namespace Engine
 		declare_class(TangentVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT BinormalVertexBuffer : public TypedVertexBuffer<Vector3D>
+	class ENGINE_EXPORT BitangentVertexBuffer : public TypedVertexBuffer<Vector3D>
 	{
-		declare_class(BinormalVertexBuffer, VertexBuffer);
+		declare_class(BitangentVertexBuffer, VertexBuffer);
 	};
-
 
 	class ENGINE_EXPORT DynamicVertexBuffer : public VertexBuffer
 	{
@@ -166,11 +165,10 @@ namespace Engine
 		declare_class(TangentDynamicVertexBuffer, DynamicVertexBuffer);
 	};
 
-	class ENGINE_EXPORT BinormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+	class ENGINE_EXPORT BitangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
 	{
-		declare_class(BinormalDynamicVertexBuffer, DynamicVertexBuffer);
+		declare_class(BitangentDynamicVertexBuffer, DynamicVertexBuffer);
 	};
-
 
 	///////////////// INDEX BUFFER /////////////////
 

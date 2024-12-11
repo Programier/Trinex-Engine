@@ -1,4 +1,4 @@
-#define DISABLE_TANGENT_AND_BINORMAL 1
+#define DISABLE_TANGENT_AND_BITANGENT 1
 
 #include "common.slang"
 #include "platform.slang"
@@ -26,7 +26,7 @@ VertexOutput vs_main(in VertexFactory input)
 {
 	VertexOutput output;
 
-	float4 world_position = input.get_world_position();
+	float4 world_position = float4(input.get_world_position(), 1.0);
 	output.world_position = world_position;
 	output.position = mul(globals.projview, world_position);
 	output.world_normal = input.get_world_normal();
