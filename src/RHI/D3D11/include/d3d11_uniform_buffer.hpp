@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/vector.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <d3d11.h>
 

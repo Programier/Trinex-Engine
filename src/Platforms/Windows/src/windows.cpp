@@ -1,5 +1,6 @@
 #include <Core/arguments.hpp>
 #include <Core/definitions.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Platform/platform.hpp>
 
 namespace Engine::Platform

@@ -1,3 +1,4 @@
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <d3d11_enums.hpp>
 

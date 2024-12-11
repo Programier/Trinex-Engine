@@ -20,7 +20,7 @@ namespace Engine
 				return "NORMAL";
 			case VertexBufferSemantic::Tangent:
 				return "TANGENT";
-			case VertexBufferSemantic::Binormal:
+			case VertexBufferSemantic::Bitangent:
 				return "BINORMAL";
 			case VertexBufferSemantic::BlendWeight:
 				return "BLENDWEIGHT";
