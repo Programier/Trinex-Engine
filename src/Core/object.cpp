@@ -239,7 +239,7 @@ namespace Engine
 		return m_name.to_string();
 	}
 
-	Object* Object::find_child_object(StringView name, bool recursive) const
+	Object* Object::find_child_object(StringView name) const
 	{
 		return nullptr;
 	}
@@ -255,6 +255,9 @@ namespace Engine
 		if (new_owner == nullptr)
 			new_owner = m_owner;
 
+		if (name == m_name && new_owner == m_owner)
+			return true;
+
 		Object* old_owner = m_owner;
 		Name old_name     = m_name;
 
@@ -264,17 +267,13 @@ namespace Engine
 		{
 			result = owner(nullptr);
 		}
-		else if (m_owner)
-		{
-			result = m_owner->rename_child_object(this, name);
-		}
 
 		if (result)
 		{
 			m_name = name;
 		}
 
-		if (new_owner != m_owner)
+		if (new_owner)
 		{
 			result = owner(new_owner);
 		}
@@ -318,22 +317,17 @@ namespace Engine
 		return true;
 	}
 
-	bool Object::rename_child_object(Object* object, StringView new_name)
-	{
-		return true;
-	}
-
 	Package* Object::package(bool recursive) const
 	{
 		if (recursive)
 		{
-			const Object* self = this;
+			const Object* self = m_owner;
 			Package* pkg       = nullptr;
 
 			while (self && !pkg)
 			{
-				pkg  = instance_cast<Package>(m_owner);
-				self = m_owner;
+				pkg  = instance_cast<Package>(self->m_owner);
+				self = self->m_owner;
 			}
 
 			return pkg;
@@ -412,7 +406,7 @@ namespace Engine
 
 	ENGINE_EXPORT Object* Object::static_find_object(StringView object_name)
 	{
-		return m_root_package->find_child_object(object_name, true);
+		return m_root_package->find_child_object(object_name);
 	}
 
 	Object& Object::preload()
@@ -482,7 +476,7 @@ namespace Engine
 
 	static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
 	{
-		Package* next_package = package->find_child_object_checked<Package>(name, false);
+		Package* next_package = package->find_child_object_checked<Package>(name);
 		if (next_package == nullptr && create && !name.empty())
 		{
 			next_package = Object::new_instance<Package>(name, package);

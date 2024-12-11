@@ -72,6 +72,7 @@ namespace Engine
 
 		bool is_valid() const;
 		HashIndex hash() const;
+		Index index() const;
 		bool operator==(const StringView& name) const;
 		bool operator!=(const StringView& name) const;
 		bool operator==(const char* name) const;

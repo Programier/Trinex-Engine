@@ -100,7 +100,6 @@ namespace Engine
 		virtual Object& on_owner_update(Object* new_owner);
 		virtual bool register_child(Object* child);
 		virtual bool unregister_child(Object* child);
-		virtual bool rename_child_object(Object* object, StringView new_name);
 		virtual Object& post_rename(Object* old_owner, Name old_name);
 
 		// Override new and delete operators
@@ -137,7 +136,7 @@ namespace Engine
 
 		static Object* static_find_object(StringView object_name);
 		static Package* static_find_package(StringView name, bool create = false);
-		virtual Object* find_child_object(StringView name, bool recursive = true) const;
+		virtual Object* find_child_object(StringView name) const;
 
 		const String& string_name() const;
 		HashIndex hash_index() const;
@@ -316,9 +315,9 @@ namespace Engine
 		}
 
 		template<typename ObjectInstanceType>
-		ObjectInstanceType* find_child_object_checked(StringView object_name, bool recursive = true) const
+		ObjectInstanceType* find_child_object_checked(StringView object_name) const
 		{
-			Object* object = find_child_object(object_name, recursive);
+			Object* object = find_child_object(object_name);
 			if (object)
 			{
 				return instance_cast<ObjectInstanceType>(object);

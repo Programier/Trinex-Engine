@@ -1,24 +1,11 @@
 #pragma once
-#include <Core/executable_object.hpp>
-#include <Core/package.hpp>
+#include <Core/object.hpp>
 
 namespace Engine
 {
 	class ENGINE_EXPORT System : public Object
 	{
 		declare_class(System, Object);
-
-	public:
-		class UpdateTask : public ExecutableObject
-		{
-		private:
-			System* m_system;
-			float m_dt;
-
-		public:
-			UpdateTask(System* system, float dt);
-			int_t execute() override;
-		};
 
 	private:
 		bool m_is_initialized = false;

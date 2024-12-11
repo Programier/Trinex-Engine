@@ -22,8 +22,9 @@ namespace Engine
 
 	implement_engine_class(MaterialInterface, 0)
 	{
-		auto self   = static_class_instance();
-		auto params = trinex_refl_prop(self, This, m_parameters, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly);
+		auto self = static_class_instance();
+		auto params =
+				trinex_refl_prop(self, This, m_child_objects, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly);
 
 		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);
 		params->tooltip("Array of parammeters of this material");
@@ -47,96 +48,20 @@ namespace Engine
 				.tooltip("Parent Material of this instance");
 	}
 
-	static Vector<Parameter*>::iterator lower_bound(Vector<Parameter*>& params, const Name& name)
+	Refl::Class* MaterialInterface::object_tree_child_class() const
 	{
-		return std::lower_bound(params.begin(), params.end(), name,
-		                        [](Parameter* param, const Name& name) -> bool { return param->name() < name; });
-	}
-
-	static Vector<Parameter*>::iterator search(Vector<Parameter*>& params, const Name& name)
-	{
-		auto it  = lower_bound(params, name);
-		auto end = params.end();
-
-		if (it == end)
-			return end;
-
-		if ((*it)->name() == name)
-			return it;
-		return end;
-	}
-
-	bool MaterialInterface::register_child_internal(Object* child, const Name& name)
-	{
-		auto param = Object::instance_cast<Parameter>(child);
-
-		if (param == nullptr)
-			return Super::register_child(child);
-
-		if (find_parameter(name) != nullptr)
-		{
-			error_log("MaterialInterface", "Failed to register new parameter. Parameter with name '%s' already exist!",
-			          name.c_str());
-			return false;
-		}
-
-		m_parameters.insert(lower_bound(m_parameters, name), param);
-		return true;
-	}
-
-	bool MaterialInterface::register_child(Object* object)
-	{
-		return register_child_internal(object, object->name());
+		return MaterialParameters::Parameter::static_class_instance();
 	}
 
 	bool MaterialInterface::unregister_child(Object* child)
 	{
-		if (!Object::instance_cast<Parameter>(child))
-			return Super::unregister_child(child);
-
-		m_parameters.erase(search(m_parameters, child->name()));
-		return true;
-	}
-
-	bool MaterialInterface::rename_child_object(Object* object, StringView new_name)
-	{
-		return unregister_child(object) && register_child_internal(object, new_name);
-	}
-
-	Object* MaterialInterface::find_child_object(StringView name, bool recursive) const
-	{
-		if (recursive)
-		{
-			StringView current_name = Strings::parse_name_identifier(name, &name);
-
-			if (Object* object = find_child_object(current_name, false))
-			{
-				if (!name.empty())
-				{
-					object = object->find_child_object(name, true);
-				}
-				return object;
-			}
-
-			return nullptr;
-		}
-		else
-		{
-			auto it = search(const_cast<Vector<Parameter*>&>(m_parameters), name);
-
-			if (it == m_parameters.end())
-				return nullptr;
-			return *it;
-		}
+		bool result = ObjectTreeNode::unregister_child(child);
+		return result || child->is_instance_of<MaterialParameters::Parameter>();
 	}
 
 	Parameter* MaterialInterface::find_parameter(const Name& name) const
 	{
-		auto params = const_cast<Vector<Parameter*>&>(m_parameters);
-		auto it     = search(params, name);
-		if (it == params.end())
-			return nullptr;
-		return *it;
+		return instance_cast<Parameter>(find_child_object(name));
 	}
 
 	MaterialInterface& MaterialInterface::remove_parameter(const Name& name)
@@ -151,7 +76,7 @@ namespace Engine
 
 	MaterialInterface& MaterialInterface::clear_parameters()
 	{
-		auto params = std::move(m_parameters);
+		auto params = std::move(m_child_objects);
 
 		for (auto& param : params)
 		{
@@ -163,7 +88,7 @@ namespace Engine
 
 	const Vector<Parameter*>& MaterialInterface::parameters() const
 	{
-		return m_parameters;
+		return m_child_objects;
 	}
 
 	MaterialInterface* MaterialInterface::parent() const
@@ -186,7 +111,7 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		size_t size = m_parameters.size();
+		size_t size = m_child_objects.size();
 		archive & size;
 
 		if (archive.is_reading())
@@ -207,7 +132,7 @@ namespace Engine
 		}
 		else
 		{
-			for (auto param : m_parameters)
+			for (auto param : m_child_objects)
 			{
 				String name = param->name().to_string();
 				archive & name;
@@ -218,16 +143,25 @@ namespace Engine
 		return true;
 	}
 
-	MaterialInterface::~MaterialInterface()
-	{
-		clear_parameters();
-	}
-
 	Material::Material()
 	{
 		pipeline = Object::new_instance<Pipeline>("Pipeline");
 		pipeline->flags(Object::IsAvailableForGC, false);
 		pipeline->owner(this);
+	}
+
+	bool Material::register_child(Object* child)
+	{
+		if (child == pipeline)
+			return true;
+		return ObjectTreeNode::register_child(child);
+	}
+
+	bool Material::unregister_child(Object* child)
+	{
+		if (child == pipeline)
+			return true;
+		return ObjectTreeNode::unregister_child(child);
 	}
 
 	Material& Material::preload()
@@ -419,15 +353,5 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 		return true;
-	}
-
-	MaterialInstance::~MaterialInstance()
-	{
-		auto params = std::move(m_parameters);
-
-		for (auto& param : params)
-		{
-			param->owner(nullptr);
-		}
 	}
 }// namespace Engine

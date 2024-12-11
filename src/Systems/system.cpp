@@ -3,22 +3,13 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Systems/system.hpp>
 
 namespace Engine
 {
-
-	System::UpdateTask::UpdateTask(System* system, float dt) : m_system(system), m_dt(dt)
-	{}
-
-	int_t System::UpdateTask::execute()
-	{
-		m_system->update(m_dt);
-		return sizeof(System::UpdateTask);
-	}
-
 	void System::on_create_fail()
 	{
 		throw EngineException("Cannot create new system. Please, call Super::create(); in the overrided method 'create'");

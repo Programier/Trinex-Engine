@@ -163,6 +163,11 @@ namespace Engine
 		return is_valid() ? name_entries()[m_index].hash : Constants::invalid_hash;
 	}
 
+	Index Name::index() const
+	{
+		return m_index;
+	}
+
 	bool Name::operator==(const StringView& name) const
 	{
 		return equals(name);

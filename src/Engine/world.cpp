@@ -12,6 +12,8 @@ namespace Engine
 {
 	implement_engine_class_default_init(World, 0);
 
+	World* World::current = nullptr;
+
 	World& World::create()
 	{
 		Super::create();
@@ -35,6 +37,8 @@ namespace Engine
 
 		if (!m_is_playing)
 			return *this;
+
+		current = this;
 
 		if (!m_actors_to_destroy.empty())
 		{
@@ -65,6 +69,8 @@ namespace Engine
 				m_actors[index]->update(dt);
 			}
 		}
+
+		current = nullptr;
 
 		return *this;
 	}

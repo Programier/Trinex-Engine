@@ -109,7 +109,7 @@ namespace Engine
 			if (!is_root_package)
 				ImGui::Indent(10.f);
 
-			for (auto& [name, child] : node->objects())
+			for (auto child : node->objects())
 			{
 				if (Package* pkg = child->instance_cast<Package>())
 				{
@@ -351,9 +351,9 @@ namespace Engine
 
 		size_t rendered = 0;
 
-		for (auto& [name, object] : package->objects())
+		for (auto& object : package->objects())
 		{
-			if (render_content_item(object, name, item_size, content_size, not_first_item))
+			if (render_content_item(object, object->name(), item_size, content_size, not_first_item))
 			{
 				++rendered;
 			}

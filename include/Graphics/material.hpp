@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/object_tree_node.hpp>
 #include <Core/object.hpp>
 
 namespace Engine
@@ -21,7 +22,7 @@ namespace Engine
 	struct ShaderDefinition;
 	class RenderPass;
 
-	class ENGINE_EXPORT MaterialInterface : public Object
+	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
 		declare_class(MaterialInterface, Object);
 
@@ -29,14 +30,10 @@ namespace Engine
 		using Parameter = MaterialParameters::Parameter;
 
 	protected:
-		Vector<Parameter*> m_parameters;
-		bool register_child_internal(Object* child, const Name& name);
-		bool register_child(Object* child) override;
+		Refl::Class* object_tree_child_class() const override;
 		bool unregister_child(Object* child) override;
-		bool rename_child_object(Object* object, StringView new_name) override;
 
 	public:
-		Object* find_child_object(StringView name, bool recursive = true) const override;
 		Parameter* find_parameter(const Name& name) const;
 		MaterialInterface& remove_parameter(const Name& name);
 		MaterialInterface& clear_parameters();
@@ -53,13 +50,15 @@ namespace Engine
 		virtual bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
 
 		bool serialize(Archive& archive) override;
-
-		~MaterialInterface();
 	};
 
 	class ENGINE_EXPORT Material : public MaterialInterface
 	{
 		declare_class(Material, MaterialInterface);
+
+	protected:
+		bool register_child(Object* child) override;
+		bool unregister_child(Object* child) override;
 
 	public:
 		Pipeline* pipeline;
@@ -93,6 +92,5 @@ namespace Engine
 		MaterialInterface* parent() const override;
 		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
 		bool serialize(Archive& archive) override;
-		~MaterialInstance();
 	};
 }// namespace Engine

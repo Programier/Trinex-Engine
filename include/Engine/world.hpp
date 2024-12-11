@@ -29,6 +29,8 @@ namespace Engine
 		World& destroy_all_actors();
 
 	public:
+		static World* current;
+
 		CallBacks<void(World*, Actor*)> on_actor_select;
 		CallBacks<void(World*, Actor*)> on_actor_unselect;
 

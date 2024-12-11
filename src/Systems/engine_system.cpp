@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
+#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/thread.hpp>
 #include <Engine/settings.hpp>
