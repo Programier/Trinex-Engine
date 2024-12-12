@@ -31,7 +31,7 @@ float3x3 calc_tangent_basis(float3 normal, float3 pos, float2 uv)
 
 float3x3 calc_tangent_basis(float3 normal, float3 tangent, float3 bitangent)
 {
-    float3x3 result = float3x3(normal, tangent, bitangent);
+    float3x3 result = float3x3(tangent, bitangent, normal);
 #if TRINEX_VULKAN_RHI || TRINEX_OPENGL_RHI
     return transpose(result);
 #else

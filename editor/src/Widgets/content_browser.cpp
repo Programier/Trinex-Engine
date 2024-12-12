@@ -134,7 +134,7 @@ namespace Engine
 			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
 			auto window                      = ImGuiWindow::current()->widgets_list.create_identified<ImGuiOpenFile>(this, flags);
 			window->on_select.push([](const Path& path) {
-				Path relative = path.relative(Project::assets_dir);
+				Path relative = path.relative(rootfs()->native_path(Project::assets_dir));
 				Object::load_object_from_file(relative);
 			});
 			window->type_filters({Constants::asset_extention});

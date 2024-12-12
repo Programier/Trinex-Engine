@@ -939,6 +939,8 @@ namespace Engine::VisualMaterialGraph
 			using enum PinType;
 			root.add_input_types(0, {Bool, Int, UInt, Float, BVec2, IVec2, UVec2, Vec2, BVec3, IVec3, UVec3, Vec3, Color3, BVec4,
 			                         IVec4, UVec4, Vec4, Color4});
+			root.add_input_types(7, {Bool, Int, UInt, Float, BVec2, IVec2, UVec2, Vec2, BVec3, IVec3, UVec3, Vec3, Color3, BVec4,
+									 IVec4, UVec4, Vec4, Color4});
 		}
 
 		return root;
@@ -1021,8 +1023,8 @@ namespace Engine::VisualMaterialGraph
 
 	Expression UV::compile(OutputPin* pin, CompilerState& state)
 	{
-		String expression = Strings::format("input.uv[{}]", m_index);
-		return Expression(expression, PinType::Vec2, true);
+		//String expression = Strings::format("input.uv[{}]", m_index);
+		return Expression("input.uv", PinType::Vec2, true);
 	}
 
 	UV& UV::render()
@@ -1344,7 +1346,7 @@ namespace Engine::VisualMaterialGraph
 			}
 			else
 			{
-				expression = Expression("input.uv[0]", PinType::Vec2, false);
+				expression = Expression("input.uv", PinType::Vec2, false);
 			}
 			sampled_image = Strings::format("{}.Sample({})", m_name, expression.code);
 

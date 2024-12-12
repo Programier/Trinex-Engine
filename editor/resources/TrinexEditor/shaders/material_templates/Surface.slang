@@ -96,7 +96,7 @@ struct VertexMaterialInput : MaterialInput
 		world_normal 	= vertex_factory.get_world_normal();
 		world_tangent 	= vertex_factory.get_world_tangent();
 		world_bitangent = cross(world_normal, world_tangent);
-		uv 				= vertex_factory.uv;
+		uv 				= platform_validate_uv(vertex_factory.uv);
 
 #if USE_VERTEX_COLOR
 		vertex_color = vertex_factory.vertex_color;
