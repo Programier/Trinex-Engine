@@ -1,11 +1,15 @@
 <div align="center">
   <p>
-      <img src="logo/trinex.svg" width="500" height="500" />
+      <img src="images/trinex.svg" width="500" height="500" />
   </p>
 </div>
 
 # Trinex Engine
 **Trinex Engine** is a simple game engine targeting platforms such as Windows, Linux and Android. This project was developed with the aim of learning the work of modern game engines and studying the graphics api such as OpenGL and Vulkan.
+
+## Screenshots
+<img src="images/editor.png"/>
+<img src="images/material editor.png"/>
 
 ## Requirements
 To use Trinex Engine, you need to have the following software installed:
