@@ -109,7 +109,7 @@ struct VertexMaterialInput : MaterialInput
 		VertexOutput output = (VertexOutput)0;
 		output.geometry.world_position = world_position + material.position_offset;
 
-		output.geometry.world_normal = mul(TBN, material.normal);
+		output.geometry.world_normal = mul(TBN, material.normal * 2.0 - 1.0);
 		output.geometry.world_tangent = world_tangent;
 		output.geometry.world_bitangent = world_bitangent;
 		output.geometry.uv = uv;

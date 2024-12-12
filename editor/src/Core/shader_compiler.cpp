@@ -856,7 +856,7 @@ namespace Engine::ShaderCompiler
 			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
 			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
 
-			auto profile = global_session()->findProfile("spirv_1_0");
+			auto profile = global_session()->findProfile("glsl_330");
 			request->setTargetProfile(0, profile);
 
 			const char* argument = "-emit-spirv-via-glsl";
