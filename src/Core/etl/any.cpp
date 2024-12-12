@@ -30,12 +30,23 @@ namespace Engine
 		copy      = nullptr;
 		move      = nullptr;
 		swap      = nullptr;
+		address   = nullptr;
 		type_name = "";
+	}
+
+	void* Any::Manager::stack_address(Storage& storage) noexcept
+	{
+		return &storage.stack;
+	}
+
+	void* Any::Manager::dynamic_address(Storage& storage) noexcept
+	{
+		return storage.dynamic;
 	}
 
 	bool Any::Manager::is_valid() const
 	{
-		return destroy && copy && move && swap && !type_name.empty();
+		return destroy && copy && move && swap && !type_name.empty() && address;
 	}
 
 	Any::Any() = default;
@@ -76,7 +87,7 @@ namespace Engine
 
 	Any& Any::swap(Any& any)
 	{
-		if (this->m_manager != any.m_manager)
+		if (m_manager != any.m_manager)
 		{
 			Any tmp(std::move(any));
 			any.m_manager = m_manager;
@@ -92,8 +103,8 @@ namespace Engine
 		}
 		else
 		{
-			if (this->m_manager != nullptr)
-				this->m_manager->swap(m_storage, any.m_storage);
+			if (m_manager != nullptr)
+				m_manager->swap(m_storage, any.m_storage);
 		}
 
 		return *this;
@@ -103,11 +114,28 @@ namespace Engine
 	{
 		if (has_value())
 		{
-			this->m_manager->destroy(m_storage);
-			this->m_manager = nullptr;
+			m_manager->destroy(m_storage);
+			m_manager = nullptr;
 		}
 
 		return *this;
+	}
+
+	void* Any::address()
+	{
+		if (m_manager && m_manager->address)
+			return m_manager->address(m_storage);
+		return nullptr;
+	}
+
+	const void* Any::address() const
+	{
+		if (m_manager && m_manager->address)
+		{
+			Storage& storage = const_cast<Storage&>(m_storage);
+			return m_manager->address(storage);
+		}
+		return nullptr;
 	}
 
 	Any::~Any()

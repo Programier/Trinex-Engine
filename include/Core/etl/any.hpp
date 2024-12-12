@@ -34,11 +34,15 @@ namespace Engine
 			void (*copy)(const Storage& src, Storage& dest);
 			void (*move)(Storage& src, Storage& dest) noexcept;
 			void (*swap)(Storage& lhs, Storage& rhs) noexcept;
+			void* (*address)(Storage& storage) noexcept;
 			std::string_view type_name;
 
 			Manager();
 			bool is_valid() const;
 			void reset();
+
+			static void* stack_address(Storage& storage) noexcept;
+			static void* dynamic_address(Storage& storage) noexcept;
 		};
 
 		template<typename T>
@@ -104,6 +108,7 @@ namespace Engine
 					manager.copy    = StackManager<Type>::copy;
 					manager.move    = StackManager<Type>::move;
 					manager.swap    = StackManager<Type>::swap;
+					manager.address = Manager::stack_address;
 				}
 				else
 				{
@@ -111,6 +116,7 @@ namespace Engine
 					manager.copy    = DynamicManager<Type>::copy;
 					manager.move    = DynamicManager<Type>::move;
 					manager.swap    = DynamicManager<Type>::swap;
+					manager.address = Manager::dynamic_address;
 				}
 
 				manager.type_name = type_info<Type>::name();
@@ -178,18 +184,25 @@ namespace Engine
 		bool has_value() const;
 		Any& swap(Any& other);
 		Any& reset();
+		void* address();
+		const void* address() const;
+
+		template<typename T>
+		T* address_as()
+		{
+			return reinterpret_cast<T*>(address());
+		}
+
+		template<typename T>
+		const T* address_as() const
+		{
+			return reinterpret_cast<const T*>(address());
+		}
 
 		template<typename T>
 		bool is_a() const
 		{
-			if constexpr (std::is_same_v<T, void*>)
-			{
-				return has_value();
-			}
-			else
-			{
-				return has_value() && m_manager->type_name == type_info<T>::name();
-			}
+			return has_value() && m_manager->type_name == type_info<T>::name();
 		}
 
 		template<typename T>
@@ -198,8 +211,7 @@ namespace Engine
 			using DecayT = std::decay_t<T>;
 			if (is_a<DecayT>())
 			{
-				return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&m_storage.stack)
-				                             : *reinterpret_cast<DecayT*>(m_storage.dynamic);
+				return *address_as<DecayT>();
 			}
 			throw bad_any_cast();
 		}
@@ -210,8 +222,7 @@ namespace Engine
 			using DecayT = std::decay_t<T>;
 			if (is_a<DecayT>())
 			{
-				return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
-				                             : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
+				return *address_as<DecayT>();
 			}
 			throw bad_any_cast();
 		}
@@ -222,8 +233,7 @@ namespace Engine
 			using DecayT = std::decay_t<T>;
 			if (has_value())
 			{
-				return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&m_storage.stack)
-											 : *reinterpret_cast<DecayT*>(m_storage.dynamic);
+				return *address_as<DecayT>();
 			}
 			throw bad_any_cast();
 		}
@@ -234,8 +244,7 @@ namespace Engine
 			using DecayT = std::decay_t<T>;
 			if (has_value())
 			{
-				return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
-											 : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
+				return *address_as<DecayT>();
 			}
 			throw bad_any_cast();
 		}
