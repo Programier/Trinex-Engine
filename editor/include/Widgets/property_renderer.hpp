@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/type_info.hpp>
+#include <Core/userdata.hpp>
 #include <Graphics/imgui.hpp>
 
 namespace Engine
@@ -18,6 +19,7 @@ namespace Engine
 		using RendererFunc  = Function<bool(PropertyRenderer* wnd, void* obj, Refl::Property* prop, bool read_only)>;
 
 	private:
+		UserData m_userdata;
 		String m_next_prop_name;
 		Object* m_object;
 		Identifier m_destroy_id;

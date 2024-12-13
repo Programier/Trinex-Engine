@@ -148,6 +148,8 @@ namespace Engine
 	PropertyRenderer& PropertyRenderer::update(Object* object)
 	{
 		m_object = object;
+		m_properties.clear();
+		m_userdata.clear();
 		build_props_map(struct_instance());
 		return *this;
 	}
