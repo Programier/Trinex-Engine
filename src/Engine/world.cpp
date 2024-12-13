@@ -279,18 +279,6 @@ namespace Engine
 		return m_actors;
 	}
 
-	size_t World::actors_count() const
-	{
-		return m_actors.size();
-	}
-
-	class Actor* World::actor_by_index(size_t index) const
-	{
-		if (index >= m_actors.size())
-			return nullptr;
-		return m_actors[index];
-	}
-
 	World::~World()
 	{
 		if (!is_shutdowned())

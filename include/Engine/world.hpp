@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/etl/list.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/pointer.hpp>
@@ -55,8 +56,6 @@ namespace Engine
 		bool is_selected(Actor* actor) const;
 
 		const Vector<class Actor*>& actors() const;
-		size_t actors_count() const;
-		class Actor* actor_by_index(size_t index) const;
 		~World();
 
 		static World* global();

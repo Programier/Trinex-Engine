@@ -71,7 +71,7 @@ namespace Engine
 
 			if (child)
 			{
-				build_views_internal(renderer, child, frustum);
+				build_views_internal(renderer, child, frustum, always_render);
 			}
 		}
 	}

@@ -115,7 +115,7 @@ namespace Engine::Refl
 		ArrayProperty* prop = Object::instance_cast<ArrayProperty>(Property::static_require("Engine::Actor::m_owned_components"));
 		prop->element_property()->renderer(object_ell);
 
-		prop = Object::instance_cast<ArrayProperty>(Property::static_require("Engine::MaterialInterface::m_child_objects"));
+		prop = Object::instance_cast<ArrayProperty>(Property::static_require("Engine::MaterialInterface::m_parameters"));
 		prop->element_property()->renderer(material_prop_ell);
 	}
 

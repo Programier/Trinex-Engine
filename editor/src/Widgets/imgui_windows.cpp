@@ -543,9 +543,10 @@ namespace Engine
 
 			if (m_world)
 			{
-				for (size_t i = 0, count = m_world->actors_count(); i < count; ++i)
+				auto& actors = m_world->actors();
+				for (size_t i = 0, count = actors.size(); i < count; ++i)
 				{
-					if (Actor* actor = m_world->actor_by_index(i))
+					if (Actor* actor = actors[i])
 					{
 						ImGui::PushID(i);
 						ImGui::TableNextRow();

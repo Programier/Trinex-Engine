@@ -5,6 +5,9 @@
 #include <Core/package.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/texture_2D.hpp>
+#include <Graphics/visual_material.hpp>
+#include <Graphics/visual_material_graph.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -12,218 +15,256 @@
 
 namespace Engine::Importer
 {
-	static Vector3D vector_from_assimp_vec(const aiVector3D& vector)
-	{
-		Vector3D result;
-		result.x = vector.x;
-		result.y = vector.y;
-		result.z = vector.z;
-		return result;
-	}
+	struct ImporterContext {
+		Package* package;
+		Package* resources;
+		Matrix4f transform;
+		Matrix3f rotation;
+		Map<StringView, Pointer<Texture2D>> textures;
+		Path dir;
 
-
-	static void load_static_meshes(Package* package, const aiScene* scene, const aiMesh* mesh, const Transform& transform)
-	{
-		if (package->contains_object(mesh->mName.C_Str()))
+		ImporterContext(Package* package, const Transform& transform)
+			: package(package), transform(transform.matrix()), rotation(transform.rotation_matrix())
 		{
-			error_log("Importer", "Cannot load mesh '%s', because package '%s' already contains object '%'", mesh->mName.C_Str(),
-			          package->name().c_str(), mesh->mName.C_Str());
-			return;
+			resources = Object::new_instance<Package>("Resources", package);
 		}
 
-		StaticMesh* static_mesh = Object::new_instance<StaticMesh>(mesh->mName.C_Str(), package);
-
-
-		Vector<Vector3D> positions;
-		Vector<Vector3D> normals;
-		Vector<Vector3D> tangents;
-		Vector<Vector3D> bitangents;
-		Vector<Vector<Vector2D>> uv;
-		Vector<uint_t> indices;
-
-
-		Matrix4f model          = transform.matrix();
-		Matrix3f rotation_model = glm::transpose(glm::inverse(model));
-
-
+		static inline Vector3D vector_from_assimp_vec(const aiVector3D& vector)
 		{
-			positions.resize(mesh->mNumVertices);
+			Vector3D result;
+			result.x = vector.x;
+			result.y = vector.y;
+			result.z = vector.z;
+			return result;
+		}
 
-			if (mesh->mNormals)
+		static inline Vector3D vector_cast(const Vector4D& vector)
+		{
+			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
+		}
+
+		template<typename T, typename BufferType>
+		static T* create_gpu_buffer(BufferType& buffer)
+		{
+			buffer.shrink_to_fit();
+			T* result      = Object::new_instance<T>();
+			result->buffer = std::move(buffer);
+			return result;
+		}
+
+		Texture2D* load_texture(StringView path)
+		{
+			Pointer<Texture2D>& texture_ref = textures[path];
+
+			if (texture_ref != nullptr)
+				return texture_ref.ptr();
+
+			Path texture_path = dir / path;
+			StringView name   = texture_path.stem();
+			info_log("Importer", "Loading texture: %s\n", texture_path.c_str());
+
+			auto texture  = Object::new_instance<Texture2D>(name, resources);
+			texture_ref   = texture;
+			texture->path = texture_path;
+			texture->apply_changes();
+
+			return texture;
+		}
+
+		Material* create_material(Package* pkg, const aiScene* scene, aiMaterial* ai_material)
+		{
+			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), resources);
+			auto* root               = Object::instance_cast<VisualMaterialGraph::Root>(material->nodes()[0].ptr());
+
+			aiColor4D diffuse;
+			if (ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
 			{
-				normals.resize(mesh->mNumVertices);
+				root->base_color()->value = {diffuse.r, diffuse.g, diffuse.b};
+				root->opacity()->value    = diffuse.a;
 			}
 
-			if (mesh->mTangents)
-			{
-				tangents.resize(mesh->mNumVertices);
-			}
+			aiString texture_path;
 
-			if (mesh->mBitangents)
-			{
-				bitangents.resize(mesh->mNumVertices);
-			}
 
-			for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
+			if (ai_material->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) == AI_SUCCESS)
 			{
-				positions[i] = model * Vector4D(vector_from_assimp_vec(mesh->mVertices[i]), 1.f);
-
-				if (mesh->mNormals)
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				if (texture)
 				{
-					normals[i] = glm::normalize(rotation_model * vector_from_assimp_vec(mesh->mNormals[i]));
+					auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+					node->texture = texture;
+					root->base_color()->create_link(node->output_pin(0));
+					node->name("base_color");
+				}
+			}
+
+			if (ai_material->GetTexture(aiTextureType_METALNESS, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+					node->texture = texture;
+					root->metalness()->create_link(node->output_pin(1));
+					node->name("metalness");
+				}
+			}
+
+			if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+					node->texture = texture;
+					root->roughness()->create_link(node->output_pin(0));
+					node->name("roughness");
+				}
+			}
+
+
+			if (ai_material->GetTexture(aiTextureType_NORMALS, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+					node->texture = texture;
+					root->normal()->create_link(node->output_pin(0));
+					node->name("normal_map");
+				}
+			}
+
+			material->compile();
+
+			return material;
+		}
+
+		void load_static_meshes(const aiScene* scene, const aiNode* node)
+		{
+			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
+			{
+				auto child = node->mChildren[i];
+				load_static_meshes(scene, child);
+			}
+
+			unsigned int meshes_count = node->mNumMeshes;
+			if (meshes_count == 0 || node->mMeshes == nullptr)
+				return;
+
+			unsigned int vertex_count = 0;
+			unsigned int faces_count  = 0;
+
+			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
+			{
+				unsigned int scene_mesh_index = node->mMeshes[mesh_index];
+				aiMesh* mesh                  = scene->mMeshes[scene_mesh_index];
+				vertex_count += mesh->mNumVertices;
+				faces_count += mesh->mNumFaces;
+			}
+
+			StaticMesh* static_mesh = Object::new_instance<StaticMesh>(node->mName.C_Str(), package);
+			static_mesh->materials.resize(meshes_count);
+
+			static_mesh->lods.resize(1);
+			auto& lod = static_mesh->lods[0];
+			lod.surfaces.resize(meshes_count);
+
+			auto& bounds = static_mesh->bounds;
+
+			Vector<Vector3D> positions;
+			Vector<Vector3D> normals;
+			Vector<Vector3D> tangents;
+			Vector<Vector3D> bitangents;
+			Vector<Vector2D> uvs;
+			Vector<uint_t> indices;
+
+			positions.reserve(vertex_count);
+			normals.reserve(vertex_count);
+			tangents.reserve(vertex_count);
+			bitangents.reserve(vertex_count);
+			uvs.reserve(vertex_count);
+			indices.reserve(faces_count * 3);
+
+
+			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
+			{
+				unsigned int scene_mesh_index = node->mMeshes[mesh_index];
+				aiMesh* mesh                  = scene->mMeshes[scene_mesh_index];
+				aiVector3D* texture_coords    = mesh->mTextureCoords[0];
+
+				MeshSurface& surface      = lod.surfaces[mesh_index];
+				surface.base_vertex_index = positions.size();
+				surface.first_index       = indices.size();
+
+				for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
+				{
+					positions.push_back(vector_cast(transform * Vector4D(vector_from_assimp_vec(mesh->mVertices[i]), 1.f)));
+					normals.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mNormals[i])));
+					tangents.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mTangents[i])));
+					bitangents.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mBitangents[i])));
+					uvs.push_back(vector_from_assimp_vec(texture_coords[i]));
 				}
 
-				if (mesh->mTangents)
+				for (unsigned int face_index = 0; face_index < mesh->mNumFaces; ++face_index)
 				{
-					tangents[i] = glm::normalize(rotation_model * vector_from_assimp_vec(mesh->mTangents[i]));
-				}
-
-				if (mesh->mBitangents)
-				{
-					bitangents[i] = glm::normalize(rotation_model * vector_from_assimp_vec(mesh->mBitangents[i]));
-				}
-			}
-
-			int uv_slots = AI_MAX_NUMBER_OF_TEXTURECOORDS - 1;
-
-			while (uv_slots >= 0 && mesh->mTextureCoords[uv_slots] == nullptr) --uv_slots;
-
-			++uv_slots;
-
-			if (uv_slots > 0)
-			{
-				uv.resize(uv_slots);
-
-				for (int i = 0; i < uv_slots; ++i)
-				{
-					auto& slot        = uv[i];
-					auto& assimp_slot = mesh->mTextureCoords[i];
-
-					if (assimp_slot)
+					auto& face = mesh->mFaces[face_index];
+					for (unsigned int index = 0; index < face.mNumIndices; ++index)
 					{
-						slot.resize(mesh->mNumVertices);
-
-						for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-						{
-							slot[j] = vector_from_assimp_vec(assimp_slot[j]);
-						}
+						indices.push_back(face.mIndices[index]);
 					}
 				}
+
+				surface.vertices_count = indices.size() - surface.first_index;
+
+				auto& material         = static_mesh->materials[mesh_index];
+				material.surface_index = mesh_index;
+				material.material      = create_material(package, scene, scene->mMaterials[mesh->mMaterialIndex]);
+
+				auto min_pos = vector_from_assimp_vec(mesh->mAABB.mMin);
+				auto max_pos = vector_from_assimp_vec(mesh->mAABB.mMax);
+
+				bounds.min(glm::min(min_pos, bounds.min()));
+				bounds.max(glm::max(max_pos, bounds.max()));
 			}
+
+			lod.positions.push_back(create_gpu_buffer<PositionVertexBuffer>(positions));
+			lod.normals.push_back(create_gpu_buffer<NormalVertexBuffer>(normals));
+			lod.tangents.push_back(create_gpu_buffer<TangentVertexBuffer>(tangents));
+			lod.bitangents.push_back(create_gpu_buffer<BitangentVertexBuffer>(bitangents));
+			lod.tex_coords.push_back(create_gpu_buffer<TexCoordVertexBuffer>(uvs));
+			lod.indices = create_gpu_buffer<UInt32IndexBuffer>(indices);
+
+			static_mesh->init_resources();
 		}
 
-		// Generate indices
+		void import(const Path& path)
 		{
-			indices.reserve(mesh->mNumFaces * 3);
-			for (unsigned int i = 0; i < mesh->mNumFaces; ++i)
+			info_log("Importer", "Loading resources from file '%s'", path.c_str());
+
+			Assimp::Importer importer;
+
+			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
+								 aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
+								 aiProcess_CalcTangentSpace | aiProcess_GenUVCoords;
+			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
+
+			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 			{
-				auto& face = mesh->mFaces[i];
-				for (unsigned int j = 0; j < face.mNumIndices; ++j)
-				{
-					indices.push_back(face.mIndices[j]);
-				}
+				error_log("Importer", "Failed to load resource: %s", importer.GetErrorString());
+				return;
 			}
+
+			dir = path.base_path();
+			load_static_meshes(scene, scene->mRootNode);
+			importer.FreeScene();
 		}
+	};
 
-		static_mesh->lods.resize(1);
-		auto& lod = static_mesh->lods[0];
-
-		if (positions.size() > 0)
-		{
-			PositionVertexBuffer* position_vertex_buffer = Object::new_instance<PositionVertexBuffer>();
-			position_vertex_buffer->buffer               = std::move(positions);
-			lod.positions.push_back(position_vertex_buffer);
-		}
-
-		if (normals.size() > 0)
-		{
-			NormalVertexBuffer* normal_vertex_buffer = Object::new_instance<NormalVertexBuffer>();
-			normal_vertex_buffer->buffer             = std::move(normals);
-			lod.normals.push_back(normal_vertex_buffer);
-		}
-
-		if (tangents.size() > 0)
-		{
-			TangentVertexBuffer* tangent_vertex_buffer = Object::new_instance<TangentVertexBuffer>();
-			tangent_vertex_buffer->buffer              = std::move(tangents);
-			lod.tangents.push_back(tangent_vertex_buffer);
-		}
-
-		if (bitangents.size() > 0)
-		{
-			BitangentVertexBuffer* bitangent_vertex_buffer = Object::new_instance<BitangentVertexBuffer>();
-			bitangent_vertex_buffer->buffer                = std::move(bitangents);
-			lod.bitangents.push_back(bitangent_vertex_buffer);
-		}
-
-		if (uv.size() > 0)
-		{
-			lod.tex_coords.reserve(uv.size());
-			for (auto& uv_slot : uv)
-			{
-				if (uv_slot.size() > 0)
-				{
-					TexCoordVertexBuffer* uv_vertex_buffer = Object::new_instance<TexCoordVertexBuffer>();
-					uv_vertex_buffer->buffer               = std::move(uv_slot);
-					lod.tex_coords.push_back(uv_vertex_buffer);
-				}
-				else
-				{
-					lod.tex_coords.push_back(nullptr);
-				}
-			}
-		}
-
-		if (indices.size() > 0)
-		{
-			UInt32IndexBuffer* index_buffer = Object::new_instance<UInt32IndexBuffer>();
-			index_buffer->buffer            = std::move(indices);
-			lod.indices                     = index_buffer;
-		}
-
-		lod.surfaces.emplace_back();
-		auto& surface             = lod.surfaces.back();
-		surface.base_vertex_index = 0;
-		surface.first_index       = 0;
-		surface.vertices_count    = mesh->mNumFaces * 3;
-
-		auto& material         = static_mesh->materials.back();
-		material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::Materials::base_pass);
-		material.policy        = 0;
-		material.surface_index = 0;
-
-		static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))
-		                              .apply_transform(model);
-		static_mesh->init_resources();
-	}
 
 	void import_resource(Package* package, const Path& file, const Transform& transform)
 	{
-		info_log("Importer", "Loading resources from file '%s'", file.c_str());
-
-		Assimp::Importer importer;
-
-		unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-							 aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
-							 aiProcess_CalcTangentSpace;
-		const aiScene* scene = importer.ReadFile(file.c_str(), flags);
-
-		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-		{
-			error_log("Importer", "Failed to load resource: %s", importer.GetErrorString());
-			return;
-		}
-
-		for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
-		{
-			const aiMesh* mesh = scene->mMeshes[i];
-
-			if (mesh->mNumBones == 0)
-			{
-				load_static_meshes(package, scene, mesh, transform);
-			}
-		}
-
-		importer.FreeScene();
+		ImporterContext context(package, transform);
+		context.import(file);
 	}
 }// namespace Engine::Importer

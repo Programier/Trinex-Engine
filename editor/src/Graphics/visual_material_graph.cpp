@@ -922,6 +922,51 @@ namespace Engine::VisualMaterialGraph
 		m_inputs.push_back(new Vec3InputPin(this, "Position Offset"));
 	}
 
+	Color3InputPin* Root::base_color() const
+	{
+		return reinterpret_cast<Color3InputPin*>(m_inputs[0]);
+	}
+
+	FloatInputPin* Root::opacity() const
+	{
+		return reinterpret_cast<FloatInputPin*>(m_inputs[1]);
+	}
+
+	Color3InputPin* Root::emissive() const
+	{
+		return reinterpret_cast<Color3InputPin*>(m_inputs[2]);
+	}
+
+	FloatInputPin* Root::specular() const
+	{
+		return reinterpret_cast<FloatInputPin*>(m_inputs[3]);
+	}
+
+	FloatInputPin* Root::metalness() const
+	{
+		return reinterpret_cast<FloatInputPin*>(m_inputs[4]);
+	}
+
+	FloatInputPin* Root::roughness() const
+	{
+		return reinterpret_cast<FloatInputPin*>(m_inputs[5]);
+	}
+
+	FloatInputPin* Root::ao() const
+	{
+		return reinterpret_cast<FloatInputPin*>(m_inputs[6]);
+	}
+
+	Vec3InputPin* Root::normal() const
+	{
+		return reinterpret_cast<Vec3InputPin*>(m_inputs[7]);
+	}
+
+	Vec3InputPin* Root::position_offset() const
+	{
+		return reinterpret_cast<Vec3InputPin*>(m_inputs[8]);
+	}
+
 	Expression Root::compile(InputPin* pin, CompilerState& state)
 	{
 		return state.expression_cast(Node::compile(pin, state), pin->type());
@@ -1417,6 +1462,12 @@ namespace Engine::VisualMaterialGraph
 				texture_parameter->sampler = DefaultResources::Samplers::default_sampler;
 		}
 
+		return *this;
+	}
+
+	Texture2D& Texture2D::name(const StringView& new_name)
+	{
+		m_name = new_name;
 		return *this;
 	}
 }// namespace Engine::VisualMaterialGraph

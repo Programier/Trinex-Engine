@@ -2,6 +2,9 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/any.hpp>
+#include <Core/etl/map.hpp>
+#include <Core/etl/set.hpp>
 #include <Core/exception.hpp>
 #include <Core/flags.hpp>
 #include <Core/object.hpp>
@@ -655,6 +658,16 @@ public:                                                                         
 		Root();
 		Expression compile(InputPin* pin, CompilerState& state) override;
 		const NodeSignature& signature() const override;
+
+		Color3InputPin* base_color() const;
+		FloatInputPin* opacity() const;
+		Color3InputPin* emissive() const;
+		FloatInputPin* specular() const;
+		FloatInputPin* metalness() const;
+		FloatInputPin* roughness() const;
+		FloatInputPin* ao() const;
+		Vec3InputPin* normal() const;
+		Vec3InputPin* position_offset() const;
 	};
 
 
@@ -802,5 +815,6 @@ public:                                                                         
 		Texture2D& render() override;
 		Expression compile(OutputPin* pin, CompilerState& state) override;
 		Texture2D& override_parameter(VisualMaterial* material) override;
+		Texture2D& name(const StringView& new_name);
 	};
 }// namespace Engine::VisualMaterialGraph

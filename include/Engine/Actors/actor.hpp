@@ -47,7 +47,6 @@ namespace Engine
 			}
 		};
 
-
 		enum Flag
 		{
 			Selected = BIT(0),

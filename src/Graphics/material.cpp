@@ -23,8 +23,10 @@ namespace Engine
 	implement_engine_class(MaterialInterface, 0)
 	{
 		auto self = static_class_instance();
-		auto params =
-				trinex_refl_prop(self, This, m_child_objects, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly);
+
+#define m_parameters m_child_objects
+		auto params = trinex_refl_prop(self, This, m_parameters, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly);
+#undef m_parameters
 
 		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);
 		params->tooltip("Array of parammeters of this material");
