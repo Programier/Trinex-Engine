@@ -7,20 +7,24 @@ namespace Engine
 	class ContentBrowser : public ImGuiWidget
 	{
 	private:
+		void selecte_new_object(Object* object);
+		void begin_renaming(Object* object = nullptr);
+
 		bool render_package_popup(void* data);
 		void render_package_tree(Package* node);
 		void render_package_popup();
 		void render_packages();
 
-		bool render_content_item(Object* object, const StringView& name, const ImVec2& item_size, const ImVec2& content_size,
-		                         bool& not_first_item);
+		bool render_content_item(Object* object, const ImVec2& item_size);
 		void render_content_window();
 
 		void create_dock_space();
 
+		String m_new_object_name;
 		Package* m_show_popup_for   = nullptr;
 		Package* m_selected_package = nullptr;
 		ImGuiID m_dock_window_id;
+		bool m_is_renaming : 1 = false;
 
 
 	public:
@@ -33,7 +37,7 @@ namespace Engine
 		void init(RenderViewport* viewport) override;
 		bool render(RenderViewport* viewport) override;
 		Package* selected_package() const;
-		
+
 		virtual const char* name() const;
 		static const char* static_name();
 		~ContentBrowser();

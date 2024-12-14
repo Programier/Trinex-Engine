@@ -19,13 +19,17 @@ namespace Engine::EditorTheme
 			ImFontConfig config;
 			config.FontDataOwnedByAtlas = false;
 
-			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::font_size, &config,
-			                               io.Fonts->GetGlyphRangesCyrillic());
+			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::small_font_size, &config,
+										   io.Fonts->GetGlyphRangesCyrillic());
+			auto default_font = io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::normal_font_size,
+															   &config, io.Fonts->GetGlyphRangesCyrillic());
+			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::large_font_size, &config,
+										   io.Fonts->GetGlyphRangesCyrillic());
+			io.FontDefault = default_font;
 		}
 
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
-
 
 		ImGuiStyle& style = ImGui::GetStyle();
 
@@ -95,5 +99,26 @@ namespace Engine::EditorTheme
 
 		style.AntiAliasedLines = true;
 		style.AntiAliasedFill  = true;
+	}
+
+	static inline ImFont* font_by_index(int_t index)
+	{
+		auto& io = ImGui::GetIO();
+		return io.Fonts->Fonts[index];
+	}
+
+	ImFont* small_font()
+	{
+		return font_by_index(0);
+	}
+
+	ImFont* normal_font()
+	{
+		return font_by_index(1);
+	}
+
+	ImFont* large_font()
+	{
+		return font_by_index(2);
 	}
 }// namespace Engine::EditorTheme

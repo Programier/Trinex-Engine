@@ -246,10 +246,13 @@ namespace Engine
 
 	bool Object::rename(StringView name, Object* new_owner)
 	{
-		if (name.find(Constants::name_separator) != StringView::npos)
 		{
-			error_log("Object", "Failed to rename object. Name can't contains '%s'", Constants::name_separator.c_str());
-			return false;
+			String validation;
+			if (!static_validate_object_name(name, &validation))
+			{
+				error_log("Object", "%s", validation.c_str());
+				return false;
+			}
 		}
 
 		if (new_owner == nullptr)
@@ -276,6 +279,12 @@ namespace Engine
 		if (new_owner)
 		{
 			result = owner(new_owner);
+
+			if (!result)
+			{
+				m_name = old_name;
+				owner(old_owner);
+			}
 		}
 
 		if (result)
@@ -782,6 +791,29 @@ namespace Engine
 	{
 		Object::create_default_package();
 		return m_root_package;
+	}
+
+	bool Object::static_validate_object_name(StringView name, String* msg)
+	{
+		auto create_msg = [msg](const char* message) {
+			if (msg)
+				*msg = message;
+		};
+
+		if (name.empty())
+		{
+			create_msg("The object name can't be empty!");
+			return false;
+		}
+
+		auto non_supported_symbol = name.find_first_of("/\\:*?\"<>|., ");
+		if (non_supported_symbol != StringView::npos)
+		{
+			create_msg(Strings::format("The object name cannot contain the character '{}'", name[non_supported_symbol]).c_str());
+			return false;
+		}
+
+		return true;
 	}
 
 	ENGINE_EXPORT Object* Object::copy_from(Object* src)

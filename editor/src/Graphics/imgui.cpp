@@ -1704,6 +1704,37 @@ namespace ImGui
 		return 0;
 	}
 
+	void TextEllipsis(const char* text, float max_width)
+	{
+		if (!text || max_width <= 0.0f)
+			return;
+
+		const char* end_ptr   = text + strlen(text);
+		float text_full_width = ImGui::CalcTextSize(text, end_ptr).x;
+
+		if (text_full_width <= max_width)
+		{
+			ImGui::TextUnformatted(text);
+			return;
+		}
+
+		const char* ellipsis = "...";
+		float ellipsis_width = ImGui::CalcTextSize(ellipsis).x;
+		const char* cut_ptr  = text;
+
+		while (cut_ptr < end_ptr)
+		{
+			float current_width = ImGui::CalcTextSize(text, cut_ptr + 1).x;
+			if (current_width + ellipsis_width > max_width)
+				break;
+			++cut_ptr;
+		}
+
+		ImGui::TextUnformatted(text, cut_ptr);
+		ImGui::SameLine(0, 0);
+		ImGui::TextUnformatted(ellipsis);
+	}
+
 	bool InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
 	               void* user_data)
 	{

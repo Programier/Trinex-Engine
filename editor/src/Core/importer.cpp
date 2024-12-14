@@ -17,7 +17,6 @@ namespace Engine::Importer
 {
 	struct ImporterContext {
 		Package* package;
-		Package* resources;
 		Matrix4f transform;
 		Matrix3f rotation;
 		Map<StringView, Pointer<Texture2D>> textures;
@@ -25,9 +24,7 @@ namespace Engine::Importer
 
 		ImporterContext(Package* package, const Transform& transform)
 			: package(package), transform(transform.matrix()), rotation(transform.rotation_matrix())
-		{
-			resources = Object::new_instance<Package>("Resources", package);
-		}
+		{}
 
 		static inline Vector3D vector_from_assimp_vec(const aiVector3D& vector)
 		{
@@ -63,7 +60,7 @@ namespace Engine::Importer
 			StringView name   = texture_path.stem();
 			info_log("Importer", "Loading texture: %s\n", texture_path.c_str());
 
-			auto texture  = Object::new_instance<Texture2D>(name, resources);
+			auto texture  = Object::new_instance<Texture2D>(name, package);
 			texture_ref   = texture;
 			texture->path = texture_path;
 			texture->apply_changes();
@@ -71,9 +68,9 @@ namespace Engine::Importer
 			return texture;
 		}
 
-		Material* create_material(Package* pkg, const aiScene* scene, aiMaterial* ai_material)
+		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
 		{
-			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), resources);
+			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
 			auto* root               = Object::instance_cast<VisualMaterialGraph::Root>(material->nodes()[0].ptr());
 
 			aiColor4D diffuse;
@@ -219,7 +216,7 @@ namespace Engine::Importer
 
 				auto& material         = static_mesh->materials[mesh_index];
 				material.surface_index = mesh_index;
-				material.material      = create_material(package, scene, scene->mMaterials[mesh->mMaterialIndex]);
+				material.material      = create_material(scene, scene->mMaterials[mesh->mMaterialIndex]);
 
 				auto min_pos = vector_from_assimp_vec(mesh->mAABB.mMin);
 				auto max_pos = vector_from_assimp_vec(mesh->mAABB.mMax);

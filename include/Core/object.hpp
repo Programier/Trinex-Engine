@@ -126,6 +126,7 @@ namespace Engine
 		static StringView object_name_sv_of(const StringView& name);
 		static const Vector<Object*>& all_objects();
 		static Package* root_package();
+		static bool static_validate_object_name(StringView name, String* msg = nullptr);
 
 		static const String& language();
 		static void language(const StringView& new_language);

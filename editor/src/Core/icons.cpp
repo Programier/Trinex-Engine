@@ -4,9 +4,11 @@
 #include <Core/icons.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
+#include <Core/pointer.hpp>
+#include <Core/reflection/class.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
-#include <Graphics/texture_2D.hpp>
 
 namespace Engine::Icons
 {
@@ -28,7 +30,7 @@ namespace Engine::Icons
 		return m_icons[type];
 	}
 
-	Texture2D* find_imgui_icon(Object* object)
+	Texture2D* find_icon(Object* object)
 	{
 		if (object)
 		{
@@ -37,11 +39,23 @@ namespace Engine::Icons
 				if (texture->has_object())
 					return texture;
 			}
+
+			return find_icon(object->class_instance());
 		}
 
 		return default_texture();
 	}
 
+	Texture2D* find_icon(Refl::Class* class_instance)
+	{
+		static Name meta = "__trinex_editor_class_icon__";
+		auto& data       = class_instance->metadata(meta);
+
+		if (data.has_value())
+			return data.cast<const Pointer<Texture2D>&>().ptr();
+
+		return default_texture();
+	}
 
 	void on_editor_package_loaded()
 	{

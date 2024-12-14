@@ -6,6 +6,11 @@ namespace Engine
 	class Texture2D;
 	class Object;
 
+	namespace Refl
+	{
+		class Class;
+	}
+
 	namespace Icons
 	{
 		enum IconType
@@ -25,6 +30,7 @@ namespace Engine
 		Sampler* default_sampler();
 		Texture2D* default_texture();
 
-		Texture2D* find_imgui_icon(Object* object);
+		Texture2D* find_icon(Object* object);
+		Texture2D* find_icon(Refl::Class* class_instance);
 	}// namespace Icons
 }// namespace Engine

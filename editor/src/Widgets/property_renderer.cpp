@@ -625,7 +625,7 @@ namespace Engine
 			ImGui::TableSetColumnIndex(1);
 
 			ImGui::PushID("##Image");
-			ImGui::Image(Icons::find_imgui_icon(object), {100, 100});
+			ImGui::Image(Icons::find_icon(object), {100, 100});
 
 			if (object && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 			{

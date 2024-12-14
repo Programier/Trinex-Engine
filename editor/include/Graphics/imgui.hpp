@@ -159,6 +159,8 @@ namespace Engine
 
 namespace ImGui
 {
+	void TextEllipsis(const char* text, float max_width);
+
 	bool InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags = 0,
 	               ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 

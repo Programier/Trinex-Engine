@@ -13,12 +13,35 @@
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imgui_internal.h>
+#include <imgui_stacklayout.h>
 
 namespace Engine
 {
 	void ContentBrowser::init(RenderViewport* viewport)
 	{
 		m_selected_package = Object::root_package();
+	}
+
+	void ContentBrowser::selecte_new_object(Object* object)
+	{
+		selected_object = object;
+		on_object_select(object);
+		m_is_renaming = false;
+	}
+
+	void ContentBrowser::begin_renaming(Object* object)
+	{
+		if (object == nullptr)
+		{
+			object = selected_object;
+		}
+
+		if (!object->is_editable())
+			return;
+
+		m_is_renaming     = true;
+		selected_object   = object;
+		m_new_object_name = selected_object->name();
 	}
 
 	bool ContentBrowser::render_package_popup(void* data)
@@ -147,12 +170,10 @@ namespace Engine
 		ImGui::End();
 	}
 
-	bool ContentBrowser::render_content_item(Object* object, const StringView& name, const ImVec2& item_size,
-	                                         const ImVec2& content_size, bool& not_first_item)
+	bool ContentBrowser::render_content_item(Object* object, const ImVec2& item_size)
 	{
-		float padding = ImGui::GetStyle().FramePadding.x;
-
-		bool in_filter = filters.empty();
+		bool in_filter  = filters.empty();
+		StringView name = object->name();
 
 		if (!in_filter)
 		{
@@ -167,146 +188,130 @@ namespace Engine
 		if (!in_filter)
 			return false;
 
+		Texture2D* imgui_texture      = Icons::find_icon(object);
+		const float image_side_length = item_size.x * 0.93f;
+		const ImVec2 image_size       = ImVec2(image_side_length, image_side_length);
 
-		if (not_first_item)
+		const auto start_pos = ImGui::GetCursorScreenPos();
+
+		bool is_pressed        = ImGui::InvisibleButton("##Button", item_size, ImGuiButtonFlags_AllowOverlap);
+		bool is_hovered        = ImGui::IsItemHovered();
+		bool is_double_pressed = is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+
+		if (is_pressed && !is_double_pressed)
 		{
-			ImGui::SameLine();
-
-			if (ImGui::GetCursorPosX() + item_size.x >= content_size.x)
+			selecte_new_object(object);
+		}
+		else if (is_double_pressed)
+		{
+			if (Package* new_package = object->instance_cast<Package>())
 			{
-				ImGui::NewLine();
-				ImGui::NewLine();
+				m_selected_package = new_package;
+			}
+			else
+			{
+				if (auto client = ImGuiEditorClient::client_of(object->class_instance(), true))
+				{
+					client->select(object);
+				}
+			}
+
+			on_object_double_click(object);
+		}
+		else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::BeginDragDropSource())
+		{
+			ImGui::SetDragDropPayload("ContentBrowser->Object", &object, sizeof(Object**));
+			ImGui::Image(imgui_texture, image_size);
+			ImGui::EndDragDropSource();
+		}
+
+		ImU32 color = 4283187259;// ImGui::GetColorU32({.230, .250, .298, 1.0});
+
+		if (object == selected_object)
+		{
+			color = is_hovered ? 4293495410 //ImGui::GetColorU32(ImVec4(0.4471, 0.5412, 0.9137, 1.0))
+							   : 4293356879;//ImGui::GetColorU32(ImVec4(0.3098, 0.4275, 0.9059, 1.0));
+		}
+		else if (is_hovered)
+		{
+			color = 4284042567;// ImGui::GetColorU32(ImVec4(0.280f, 0.300f, 0.348f, 1.0f));
+		}
+
+		ImGui::SetCursorScreenPos(start_pos);
+		ImGui::GetWindowDrawList()->AddRectFilled(start_pos, start_pos + item_size, color, ImGui::GetStyle().FrameRounding);
+		{
+			float border   = (item_size.x - image_size.x) / 2.f;
+			auto image_min = start_pos + ImVec2(border, border);
+			ImGui::GetWindowDrawList()->AddImageRounded(ImTextureID(imgui_texture), image_min, image_min + image_size, {0, 1},
+														{1, 0}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
+		}
+
+		ImGui::BeginVertical(object, item_size, 0.5);
+		ImGui::Spring(0.f);
+		ImGui::Dummy({item_size.x, item_size.x});
+
+		ImGui::Spring(0.f);
+
+		ImGui::BeginVertical(0, {image_size.x, 0}, 0.5);
+
+		if (m_is_renaming && selected_object == object)
+		{
+			ImGui::SetNextItemWidth(image_size.x);
+			bool modify = ImGui::InputText("##ObjectName", m_new_object_name, ImGuiInputTextFlags_EnterReturnsTrue);
+
+			String validation;
+
+			if (m_new_object_name == object->name().to_string())
+			{
+				// Nothing
+			}
+			else if (m_new_object_name.empty())
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
+				ImGui::SetTooltip("Please, provide a name for the asset!");
+				ImGui::PopStyleColor();
+			}
+			else if (m_selected_package->contains_object(m_new_object_name))
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
+				ImGui::SetTooltip("An asset already exist at this location with the name '%s'!", m_new_object_name.c_str());
+				ImGui::PopStyleColor();
+			}
+			else if (!Object::static_validate_object_name(m_new_object_name, &validation))
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
+				ImGui::SetTooltip("%s", validation.c_str());
+				ImGui::PopStyleColor();
+			}
+			else if (modify)
+			{
+				bool status = selected_object->rename(m_new_object_name);
+				if (status)
+				{
+					m_is_renaming = false;
+				}
 			}
 		}
 		else
 		{
-			not_first_item = true;
+			ImGui::TextEllipsis(name.data(), image_size.x);
 		}
 
-		ImGui::BeginGroup();
+		ImGui::EndVertical();
 
-		Texture2D* imgui_texture = Icons::find_imgui_icon(object);
+		ImGui::Spring(1.0);
 
-		if (imgui_texture)
-		{
-			ImGui::PushID(name.data());
+		ImGui::BeginVertical(1, {image_size.x, 0}, 0.0);
+		ImGui::PushFont(EditorTheme::small_font());
+		ImGui::TextEllipsis(object->class_instance()->name().c_str(), image_size.x);
+		ImGui::PopFont();
+		ImGui::EndVertical();
 
-			bool is_selected = selected_object == object;
-
-			if (is_selected)
-			{
-				static ImVec4 color1 = ImVec4(79.f / 255.f, 109.f / 255.f, 231.f / 255.f, 1.0),
-				              color2 = ImVec4(114.f / 255.f, 138.f / 255.f, 233.f / 255.f, 1.0);
-
-				ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(color1));
-				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetColorU32(color2));
-			}
-
-			ImVec2 item_start = ImGui::GetCursorPos();
-
-			bool is_single_press = ImGui::ImageButton(imgui_texture, item_size);
-			bool is_double_press = false;
-			bool is_item_hovered = ImGui::IsItemHovered();
-
-			if (is_item_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-			{
-				is_single_press = false;
-				is_double_press = true;
-			}
-
-			if (is_single_press)
-			{
-				selected_object = object;
-				on_object_select(object);
-			}
-			else if (is_double_press)
-			{
-				if (Package* new_package = object->instance_cast<Package>())
-				{
-					m_selected_package = new_package;
-				}
-				else
-				{
-					if (auto client = ImGuiEditorClient::client_of(object->class_instance(), true))
-					{
-						client->select(object);
-					}
-				}
-
-				on_object_double_click(object);
-			}
-			else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::BeginDragDropSource())
-			{
-				ImGui::SetDragDropPayload("ContentBrowser->Object", &object, sizeof(Object**));
-				ImVec2 item_start = ImGui::GetCursorPos();
-				ImGui::Image(imgui_texture, item_size);
-
-				if (imgui_texture == Icons::default_texture())
-				{
-					const char* class_name = object->class_instance()->display_name().c_str();
-					ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
-
-					ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,
-					                                      (item_size.y / 2) - (text_size.y / 2));
-
-					ImGui::SetCursorPos(text_pos);
-					ImGui::PushTextWrapPos(text_pos.x + item_size.x);
-
-					ImGui::TextWrapped("%s", class_name);
-					ImGui::PopTextWrapPos();
-				}
-
-				ImGui::EndDragDropSource();
-			}
-
-			if (is_selected)
-			{
-				ImGui::PopStyleColor(2);
-			}
-
-			ImVec2 current_pos = ImGui::GetCursorPos();
-
-			if (imgui_texture == Icons::default_texture())
-			{
-				const char* class_name = object->class_instance()->display_name().c_str();
-				ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
-
-				ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,
-				                                      (item_size.y / 2) - (text_size.y / 2));
-
-				ImGui::SetCursorPos(text_pos);
-				ImGui::PushTextWrapPos(text_pos.x + item_size.x);
-
-				ImGui::TextWrapped("%s", class_name);
-				ImGui::PopTextWrapPos();
-			}
-
-
-			String object_name = Strings::make_sentence(String(name));
-			float offset       = (item_size.x - ImGui::CalcTextSize(object_name.c_str(), nullptr, false, item_size.x).x) / 2.f;
-			current_pos.x += offset;
-			ImGui::SetCursorPos(current_pos);
-
-			ImGui::PushTextWrapPos(current_pos.x + item_size.x - offset);
-			ImGui::TextWrapped("%s", object_name.c_str());
-			ImGui::PopTextWrapPos();
-
-			ImGui::PopID();
-		}
-		else
-		{
-			if (ImGui::Selectable(name.data(), selected_object == object, 0, item_size))
-			{
-				selected_object = object;
-				on_object_select(object);
-			}
-		}
-
-		ImGui::EndGroup();
+		ImGui::Spring(0.f);
+		ImGui::EndVertical();
 
 		return true;
 	}
-
 
 	static Package* render_package_path(Package* package)
 	{
@@ -321,8 +326,6 @@ namespace Engine
 
 	void ContentBrowser::render_content_window()
 	{
-		const ImVec2 item_size = ImVec2(5, 5) * ImGui::GetFontSize();
-
 		ImGui::Begin("##ContentBrowserItems", nullptr, ImGuiWindowFlags_MenuBar);
 
 		ImGui::BeginMenuBar();
@@ -331,6 +334,7 @@ namespace Engine
 			m_selected_package = new_package;
 		}
 		ImGui::EndMenuBar();
+
 
 		Package* package = m_selected_package;
 
@@ -346,23 +350,40 @@ namespace Engine
 			ImGui::OpenPopup("###ContentContextMenu");
 		}
 
-		ImVec2 content_size = ImGui::GetContentRegionAvail();
-		bool not_first_item = false;
+		auto& objects = package->objects();
 
-		size_t rendered = 0;
+		const ImVec2 region     = ImGui::GetContentRegionAvail();
+		const float font_size   = ImGui::GetFontSize();
+		const ImVec2 item_size  = ImVec2(6.8, 6.8) * font_size + ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 3);
+		const ImVec2 spacing    = ImGui::GetStyle().ItemSpacing;
+		const int_t columns     = glm::max(static_cast<int_t>(region.x / (item_size.x + spacing.x)), 1);
+		const int_t items_count = static_cast<int_t>(objects.size());
+		const int_t rows        = (items_count + columns - 1) / columns;
 
-		for (auto& object : package->objects())
+		ImGuiListClipper clipper;
+		clipper.Begin(rows, item_size.y + spacing.y + font_size);
+
+		while (clipper.Step())
 		{
-			if (render_content_item(object, object->name(), item_size, content_size, not_first_item))
+			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
-				++rendered;
+				ImGui::BeginHorizontal(row, ImVec2(region.x, item_size.y));
+				int_t idx     = row * columns;
+				int_t end_idx = glm::min(idx + columns, items_count);
+
+				for (; idx < end_idx; ++idx)
+				{
+					auto object = objects[idx];
+					ImGui::PushID(object);
+					render_content_item(object, item_size);
+					ImGui::PopID();
+				}
+				ImGui::EndHorizontal();
+				ImGui::NewLine();
 			}
 		}
 
-		if (rendered == 0)
-		{
-			ImGui::Text("%s", "editor/No objects found"_localized);
-		}
+		clipper.End();
 
 		if (ImGui::BeginPopup("###ContentContextMenu"))
 		{
@@ -378,7 +399,7 @@ namespace Engine
 
 			if (is_editable_object && ImGui::Button("editor/Rename"_localized))
 			{
-				ImGuiWindow::current()->widgets_list.create<ImGuiRenameObject>(selected_object);
+				begin_renaming(selected_object);
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -429,6 +450,14 @@ namespace Engine
 		bool open = true;
 		ImGui::Begin(name(), closable ? &open : nullptr);
 		create_dock_space();
+
+		if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
+		{
+			if (!m_is_renaming && selected_object)
+			{
+				begin_renaming(selected_object);
+			}
+		}
 
 		render_packages();
 		render_content_window();
