@@ -6,7 +6,7 @@ namespace Engine
 {
 	class Object;
 
-	class ObjectTreeNodeStatics
+	class ENGINE_EXPORT ObjectTreeNodeStatics
 	{
 	private:
 		using iterator       = Object**;
