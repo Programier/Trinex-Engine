@@ -17,4 +17,8 @@
 #define TRINEX_DIRECT_X_RHI 0
 #endif
 
+#ifndef TRINEX_INVERT_UV
+#define TRINEX_INVERT_UV 0
+#endif
+
 #endif

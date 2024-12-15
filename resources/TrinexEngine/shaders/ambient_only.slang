@@ -14,7 +14,7 @@ float2 vs_main(in uint vertex : SV_VertexID, out float4 out_position : SV_Positi
     float2 min = globals.viewport.xy / globals.size;
     float2 max = (globals.viewport.xy + globals.viewport.zw) / globals.size;
 
-    return platform_validate_uv((uv * (max - min)) + min);
+    return Platform::validate_uv((uv * (max - min)) + min);
 }
 
 

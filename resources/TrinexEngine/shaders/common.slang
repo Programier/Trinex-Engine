@@ -36,9 +36,8 @@ ConstantBuffer<GlobalParameters> globals;
 struct GBufferFragmentOutput
 {
     [vk::location(0)] float4 base_color   : SV_TARGET0;
-    [vk::location(1)] float4 position     : SV_TARGET1;
-    [vk::location(2)] float4 normal       : SV_TARGET2;
-    [vk::location(3)] float4 emissive     : SV_TARGET3;
-    [vk::location(4)] float4 msra         : SV_TARGET4;
+    [vk::location(1)] float4 normal       : SV_TARGET1;
+    [vk::location(2)] float4 emissive     : SV_TARGET2;
+    [vk::location(3)] float4 msra         : SV_TARGET3;
 };
 #endif

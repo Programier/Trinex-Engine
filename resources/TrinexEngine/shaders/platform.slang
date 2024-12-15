@@ -1,14 +1,24 @@
 #ifndef PLATFORM_SLANG
-#define PLATFORM_SLANG 0
+#define PLATFORM_SLANG 1
 
-float2 platform_validate_uv(in float2 uv)
+#include "trinex/definitions.slang"
+
+namespace Platform
 {
-#ifdef TRINEX_INVERT_UV
-    return float2(uv.x, 1.0 - uv.y);
+#if TRINEX_OPENGL_RHI
+    static const float2 ndc_depth_range = float2(-1.f, 1.f);
 #else
-    return uv;
+    static const float2 ndc_depth_range = float2(0.f, 1.f);
 #endif
-}
 
+    float2 validate_uv(in float2 uv)
+    {
+#if TRINEX_INVERT_UV
+        return float2(uv.x, 1.0 - uv.y);
+#else
+        return uv;
+#endif
+    }
+}
 
 #endif

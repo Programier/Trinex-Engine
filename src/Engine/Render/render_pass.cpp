@@ -269,7 +269,7 @@ namespace Engine
 
 	GeometryPass& GeometryPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->begin_rendering_gbuffer();
+		SceneRenderTargets::instance()->bind_gbuffer();
 		Super::render(vp);
 		return *this;
 	}
@@ -281,7 +281,7 @@ namespace Engine
 
 	DeferredLightingPass& DeferredLightingPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
 
 		auto renderer = scene_renderer();
 
@@ -321,7 +321,7 @@ namespace Engine
 
 	PostProcessPass& PostProcessPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
 		Super::render(vp);
 		return *this;
 	}

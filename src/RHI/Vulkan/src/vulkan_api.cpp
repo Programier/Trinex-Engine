@@ -4,6 +4,7 @@
 #include <Core/exception.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
 #include <Window/config.hpp>
@@ -162,13 +163,13 @@ namespace Engine
 		phys_device_selector.require_present(VulkanConfig::require_present);
 		phys_device_selector.prefer_gpu_device_type(VulkanConfig::device_type);
 
-		if(VulkanConfig::require_dedicated_transfer_queue)
+		if (VulkanConfig::require_dedicated_transfer_queue)
 			phys_device_selector.require_dedicated_transfer_queue();
-		if(VulkanConfig::require_dedicated_compute_queue)
+		if (VulkanConfig::require_dedicated_compute_queue)
 			phys_device_selector.require_dedicated_compute_queue();
-		if(VulkanConfig::require_separate_transfer_queue)
+		if (VulkanConfig::require_separate_transfer_queue)
 			phys_device_selector.require_separate_transfer_queue();
-		if(VulkanConfig::require_separate_compute_queue)
+		if (VulkanConfig::require_separate_compute_queue)
 			phys_device_selector.require_separate_compute_queue();
 
 		auto selected_device = phys_device_selector.select();
@@ -225,7 +226,11 @@ namespace Engine
 	VulkanAPI& VulkanAPI::initialize(Window* window)
 	{
 		vkb::InstanceBuilder instance_builder;
-		instance_builder.require_api_version(VK_API_VERSION_1_0);
+
+		if (Settings::debug_shaders)
+			instance_builder.require_api_version(VK_API_VERSION_1_3);
+		else
+			instance_builder.require_api_version(VK_API_VERSION_1_0);
 
 		Vector<String> required_extensions;
 		extern void load_required_extensions(void* native_window, Vector<String>& required_extensions);

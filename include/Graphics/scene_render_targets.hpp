@@ -20,12 +20,11 @@ namespace Engine
 			SceneDepthZ     = 2, /**< Render target for scene depths */
 			HitProxies      = 3, /**< Render target for hit proxies */
 			BaseColor       = 4, /**< Render target for base color */
-			Position        = 5, /**< Render target for position */
-			Normal          = 6, /**< Render target for normal */
-			Emissive        = 7, /**< Render target for emissive */
-			MSRA            = 8, /**< Render target for MSRA */
-			LightPassDepthZ = 9, /**< Render target for light pass depths */
-			__COUNT__       = 10,
+			Normal          = 5, /**< Render target for normal */
+			Emissive        = 6, /**< Render target for emissive */
+			MSRA            = 7, /**< Render target for MSRA */
+			LightPassDepthZ = 8, /**< Render target for light pass depths */
+			__COUNT__       = 9,
 		};
 
 		static constexpr inline size_t textures_count = static_cast<size_t>(Surface::__COUNT__);
@@ -48,15 +47,9 @@ namespace Engine
 		float width() const;
 		float height() const;
 
-		const SceneRenderTargets& begin_rendering_scene_color_hdr() const;
-		const SceneRenderTargets& end_rendering_scene_color_hdr() const;
-
-		const SceneRenderTargets& begin_rendering_scene_color_ldr() const;
-		const SceneRenderTargets& end_rendering_scene_color_ldr() const;
-
-		const SceneRenderTargets& begin_rendering_gbuffer() const;
-		const SceneRenderTargets& end_rendering_gbuffer() const;
-
+		const SceneRenderTargets& bind_scene_color_hdr(bool with_depth = true) const;
+		const SceneRenderTargets& bind_scene_color_ldr(bool with_depth = true) const;
+		const SceneRenderTargets& bind_gbuffer() const;
 		const SceneRenderTargets& clear() const;
 
 		friend class Singletone<SceneRenderTargets, EmptyClass>;

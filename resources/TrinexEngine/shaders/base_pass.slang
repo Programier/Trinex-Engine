@@ -30,7 +30,7 @@ VertexOutput vs_main(in VertexFactory input)
 	output.world_position = world_position;
 	output.position = mul(globals.projview, world_position);
 	output.world_normal = input.get_world_normal();
-	output.uv =	platform_validate_uv(input.get_uv(0));
+	output.uv =	Platform::validate_uv(input.get_uv(0));
 
 	return output;
 }
@@ -42,7 +42,6 @@ GBufferFragmentOutput fs_main(in VertexOutput input, in bool IsFrontFace : SV_Is
 	float2 uv = input.uv;
 
 	output.base_color = float4(base_color.Sample(uv).rgb, opacity);
-    output.position = input.world_position;
     output.normal = float4(input.world_normal, IsFrontFace ? 1.0 : -1.0);
     output.emissive = float4(emissive, 1.0);
     output.msra = float4(metalic, specular, roughness, ao);

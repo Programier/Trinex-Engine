@@ -143,7 +143,7 @@ namespace Engine
 
 		EditorOverlayPass& render(RenderViewport* rt) override
 		{
-			SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+			SceneRenderTargets::instance()->bind_scene_color_ldr();
 
 			for (LightComponent* component : m_light_components)
 			{
@@ -163,8 +163,6 @@ namespace Engine
 			}
 
 			render_editor_grid(scene_renderer()->scene_view().camera_view());
-
-			SceneRenderTargets::instance()->end_rendering_scene_color_ldr();
 			return *this;
 		}
 	};

@@ -4,10 +4,10 @@
 #include "platform.slang"
 
 uniform Sampler2D base_color_texture;  
-uniform Sampler2D position_texture;
 uniform Sampler2D normal_texture;
 uniform Sampler2D emissive_texture;
 uniform Sampler2D msra_texture;
+uniform Sampler2D depth_texture;
 
 struct LightData
 {
@@ -91,21 +91,31 @@ float fresnel_zero_reflectance(in float specular)
     return square((IOR - 1.0) / (IOR + 1.0));
 }
 
+float3 reconstruct_position(in float2 ndc, in float2 uv) 
+{
+    float depth = depth_texture.Sample(uv).r;
+    float4 clip_space_pos = float4(ndc, lerp(Platform::ndc_depth_range.x, Platform::ndc_depth_range.y, depth), 1.0);
+    float4 view_space_pos = mul(globals.inv_projview, clip_space_pos);
+    return view_space_pos.xyz /= view_space_pos.w;
+}
+
 [shader("vertex")]
-float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0) : SV_Position
+float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
 {
     float2 min_v = globals.viewport.xy / globals.size;
     float2 max_v = (globals.viewport.xy + globals.viewport.zw) / globals.size;
-    uv = platform_validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_v - min_v)) + min_v);
-
-    return FullScreenQuad::vertex_by_index(vertex);
+    uv = Platform::validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_v - min_v)) + min_v);
+    
+    float4 vertex = FullScreenQuad::vertex_by_index(vertex);
+    ndc = vertex.xy;
+    return vertex;
 }
 
 [shader("fragment")]
-float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
+float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
 {
     float4 base_color =  base_color_texture.Sample(uv);
-    float4 position = position_texture.Sample(uv);
+    float3 position = reconstruct_position(ndc, uv);
     float3 normal = normal_texture.Sample(uv).xyz;
     float4 msra = msra_texture.Sample(uv);
 
@@ -114,13 +124,13 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
         return float4(0.0, 0.0, 0.0, 1.0);
     }
     
-    float3 view_direction = normalize(globals.camera_location - position.xyz); // Using view direction from fragment location to camera location
+    float3 view_direction = normalize(globals.camera_location - position); // Using view direction from fragment location to camera location
     normal =  normalize_normal(normal, view_direction);
 
     float3 f0 = lerp(float3(fresnel_zero_reflectance(msra.g)), base_color.rgb, float3(msra.r));
 
 #if POINT_LIGHT || SPOT_LIGHT
-    float3 light_direction = light_data.location.rgb - position.rgb;           // Using light direction from fragment location to light location
+    float3 light_direction = light_data.location.rgb - position;           // Using light direction from fragment location to light location
     float attenuation = calc_attenuation(light_direction);
     light_direction   = normalize(light_direction);
 #else

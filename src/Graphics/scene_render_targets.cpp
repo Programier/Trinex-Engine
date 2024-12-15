@@ -48,8 +48,6 @@ namespace Engine
 				return "HitProxies";
 			case Surface::BaseColor:
 				return "BaseColor";
-			case Surface::Position:
-				return "Position";
 			case Surface::Normal:
 				return "Normal";
 			case Surface::Emissive:
@@ -78,8 +76,6 @@ namespace Engine
 				return ColorFormat::R8G8B8A8;
 			case Surface::BaseColor:
 				return ColorFormat::R8G8B8A8;
-			case Surface::Position:
-				return ColorFormat::FloatRGBA;
 			case Surface::Normal:
 				return ColorFormat::FloatRGBA;
 			case Surface::Emissive:
@@ -122,41 +118,26 @@ namespace Engine
 		return m_size.y;
 	}
 
-	const SceneRenderTargets& SceneRenderTargets::begin_rendering_scene_color_hdr() const
+	const SceneRenderTargets& SceneRenderTargets::bind_scene_color_hdr(bool with_depth) const
 	{
 		RenderSurface* m_surface[] = {surface_of(Surface::SceneColorHDR)};
-		rhi->bind_render_target(m_surface, surface_of(Surface::SceneDepthZ));
+		rhi->bind_render_target(m_surface, with_depth ? surface_of(Surface::SceneDepthZ) : nullptr);
 		return *this;
 	}
 
-	const SceneRenderTargets& SceneRenderTargets::end_rendering_scene_color_hdr() const
-	{
-		return *this;
-	}
-
-	const SceneRenderTargets& SceneRenderTargets::begin_rendering_scene_color_ldr() const
+	const SceneRenderTargets& SceneRenderTargets::bind_scene_color_ldr(bool with_depth) const
 	{
 		RenderSurface* m_surface[] = {surface_of(Surface::SceneColorLDR)};
-		rhi->bind_render_target(m_surface, surface_of(Surface::SceneDepthZ));
+		rhi->bind_render_target(m_surface, with_depth ? surface_of(Surface::SceneDepthZ) : nullptr);
 		return *this;
 	}
 
-	const SceneRenderTargets& SceneRenderTargets::end_rendering_scene_color_ldr() const
+	const SceneRenderTargets& SceneRenderTargets::bind_gbuffer() const
 	{
-		return *this;
-	}
-
-	const SceneRenderTargets& SceneRenderTargets::begin_rendering_gbuffer() const
-	{
-		RenderSurface* m_surfaces[] = {surface_of(Surface::BaseColor), surface_of(Surface::Position), surface_of(Surface::Normal),
-		                               surface_of(Surface::Emissive), surface_of(Surface::MSRA)};
+		RenderSurface* m_surfaces[] = {surface_of(Surface::BaseColor), surface_of(Surface::Normal), surface_of(Surface::Emissive),
+									   surface_of(Surface::MSRA)};
 
 		rhi->bind_render_target(m_surfaces, surface_of(Surface::SceneDepthZ));
-		return *this;
-	}
-
-	const SceneRenderTargets& SceneRenderTargets::end_rendering_gbuffer() const
-	{
 		return *this;
 	}
 
@@ -165,7 +146,6 @@ namespace Engine
 		surface_of(SceneColorHDR)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
 		surface_of(SceneColorLDR)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
 		surface_of(BaseColor)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(Position)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
 		surface_of(Normal)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
 		surface_of(Emissive)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
 		surface_of(MSRA)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
