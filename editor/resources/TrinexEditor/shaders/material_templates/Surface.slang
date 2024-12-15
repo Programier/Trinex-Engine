@@ -34,12 +34,12 @@ struct VertexFactory
 
 	float3 get_world_normal()
 	{
-		return rotate_vector(normal, local_to_world);
+		return normalize(rotate_vector(normal, local_to_world));
 	}
 
 	float3 get_world_tangent()
 	{
-		return rotate_vector(tangent, local_to_world);
+		return normalize(rotate_vector(tangent, local_to_world));
 	}
 };
 
@@ -109,7 +109,7 @@ struct VertexMaterialInput : MaterialInput
 		VertexOutput output = (VertexOutput)0;
 		output.geometry.world_position = world_position + material.position_offset;
 
-		output.geometry.world_normal = mul(TBN, material.normal * 2.0 - 1.0);
+		output.geometry.world_normal = world_normal;
 		output.geometry.world_tangent = world_tangent;
 		output.geometry.world_bitangent = world_bitangent;
 		output.geometry.uv = uv;

@@ -150,6 +150,7 @@ private:                                                                        
 		trinex_render_pass(PostProcessPass, RenderPass);
 
 	public:
+		bool is_empty() const override;
 		PostProcessPass& render(RenderViewport*) override;
 	};
 
@@ -157,10 +158,13 @@ private:                                                                        
 	{
 		trinex_render_pass(OverlayPass, RenderPass);
 
+		OverlayPass& copy_view_texture(ViewMode mode);
+
 	public:
 		BatchedLines lines;
 		BatchedTriangles triangles;
 
+		bool is_empty() const override;
 		OverlayPass& clear() override;
 		OverlayPass& render(RenderViewport*) override;
 	};

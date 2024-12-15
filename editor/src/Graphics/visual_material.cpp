@@ -120,17 +120,15 @@ namespace Engine
 
 
 		static constexpr const char* format = "{0}\n"
-											  "\tmaterial.normal = {1};\n"
-											  "\tmaterial.position_offset = {2};\n";
+											  "\tmaterial.position_offset = {1};\n";
 
-		auto normal          = root->compile(root->inputs()[normal_index], compiler);
 		auto position_offset = root->compile(root->inputs()[position_offset_index], compiler);
 
-		if (!(normal.is_valid() && position_offset.is_valid()))
+		if (!(position_offset.is_valid()))
 			return false;
 
 		String header     = compiler.create_header("\t");
-		String out_source = Strings::format(format, header, normal.code, position_offset.code);
+		String out_source = Strings::format(format, header, position_offset.code);
 		template_source.replace(position, std::strlen(vertex_material_source_section), out_source);
 		return true;
 	}
@@ -156,7 +154,8 @@ namespace Engine
 											  "\tmaterial.metalness = {4};\n"
 											  "\tmaterial.roughness = {5};\n"
 											  "\tmaterial.opacity = {6};\n"
-											  "\tmaterial.AO = {7};\n";
+											  "\tmaterial.AO = {7};\n"
+											  "\tmaterial.normal = {8};\n";
 
 		auto base_color = root->compile(root->inputs()[base_color_index], compiler);
 		auto emissive   = root->compile(root->inputs()[emissive_index], compiler);
@@ -165,13 +164,14 @@ namespace Engine
 		auto roughness  = root->compile(root->inputs()[roughness_index], compiler);
 		auto opacity    = root->compile(root->inputs()[opacity_index], compiler);
 		auto AO         = root->compile(root->inputs()[ao_index], compiler);
+		auto normal     = root->compile(root->inputs()[normal_index], compiler);
 
-		if (!is_valid_expressions(base_color, emissive, specular, metalness, roughness, opacity, AO))
+		if (!is_valid_expressions(base_color, emissive, specular, metalness, roughness, opacity, AO, normal))
 			return false;
 
 		String header     = compiler.create_header("\t");
 		String out_source = Strings::format(format, header, base_color.code, emissive.code, specular.code, metalness.code,
-		                                    roughness.code, opacity.code, AO.code);
+											roughness.code, opacity.code, AO.code, normal.code);
 		template_source.replace(position, std::strlen(fragment_material_source_section), out_source);
 		return true;
 	}

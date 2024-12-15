@@ -28,8 +28,9 @@ GBufferFragmentOutput fs_main(in FragmentInput input)
 	Material material = get_material_fs(material_input);
 	
 	GBufferFragmentOutput output;
+	float3 result_normal = normalize(mul(material_input.TBN, material.normal));
 	output.base_color = float4(material.base_color, 1.0);
-	output.normal   =  float4(input.geometry.world_normal, material_input.front_face);  
+	output.normal   =  float4(result_normal, material_input.front_face);  
 	output.emissive = float4(material.emissive, 1.0);      
 	output.msra = float4(material.metalness, material.specular, material.roughness, material.AO);
 	return output;	

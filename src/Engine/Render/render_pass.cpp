@@ -1,4 +1,5 @@
 #include <Core/default_resources.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/render_pass_info.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -276,7 +277,7 @@ namespace Engine
 
 	bool DeferredLightingPass::is_empty() const
 	{
-		return false;
+		return is_not_in<ViewMode::Lit>(scene_renderer()->view_mode());
 	}
 
 	DeferredLightingPass& DeferredLightingPass::render(RenderViewport* vp)
@@ -287,13 +288,6 @@ namespace Engine
 
 		if (renderer->view_mode() == ViewMode::Unlit)
 		{
-			auto texture = SceneRenderTargets::instance()->surface_of(SceneRenderTargets::BaseColor);
-			auto& params = renderer->global_shader_parameters();
-			auto& vp     = params.viewport;
-
-			auto min = Vector2D(vp.x, vp.y) / params.size;
-			auto max = Vector2D(vp.x + vp.z, vp.y + vp.w) / params.size;
-			renderer->blit(reinterpret_cast<Texture2D*>(texture), min, max);
 		}
 		else if (renderer->view_mode() == ViewMode::Lit)
 		{
@@ -319,11 +313,21 @@ namespace Engine
 		return *this;
 	}
 
+	bool PostProcessPass::is_empty() const
+	{
+		return is_not_in<ViewMode::Lit>(scene_renderer()->view_mode());
+	}
+
 	PostProcessPass& PostProcessPass::render(RenderViewport* vp)
 	{
 		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
 		Super::render(vp);
 		return *this;
+	}
+
+	bool OverlayPass::is_empty() const
+	{
+		return false;
 	}
 
 	OverlayPass& OverlayPass::clear()
@@ -334,8 +338,49 @@ namespace Engine
 		return *this;
 	}
 
+	OverlayPass& OverlayPass::copy_view_texture(ViewMode mode)
+	{
+		RenderSurface* surface = nullptr;
+		auto render_targets    = SceneRenderTargets::instance();
+
+		switch (mode)
+		{
+			case ViewMode::Unlit:
+				surface = render_targets->surface_of(SceneRenderTargets::BaseColor);
+				break;
+
+			case ViewMode::WorldNormal:
+				surface = render_targets->surface_of(SceneRenderTargets::Normal);
+				break;
+
+			default:
+				return *this;
+		}
+
+		auto renderer = scene_renderer();
+		auto& params  = renderer->global_shader_parameters();
+		auto& vp      = params.viewport;
+
+		auto min = Vector2D(vp.x, vp.y) / params.size;
+		auto max = Vector2D(vp.x + vp.z, vp.y + vp.w) / params.size;
+		renderer->blit(reinterpret_cast<Texture2D*>(surface), min, max);
+
+		return *this;
+	}
+
 	OverlayPass& OverlayPass::render(RenderViewport* vp)
 	{
+		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
+
+		{
+			auto mode = scene_renderer()->view_mode();
+
+			if (mode != ViewMode::Lit)
+			{
+				copy_view_texture(mode);
+			}
+		}
+
 		Super::render(vp);
 
 		auto renderer = scene_renderer();
