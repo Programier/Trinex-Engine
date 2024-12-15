@@ -114,7 +114,7 @@ namespace Engine::Importer
 				{
 					auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
 					node->texture = texture;
-					root->roughness()->create_link(node->output_pin(0));
+					root->roughness()->create_link(node->output_pin(2));
 					node->name("roughness");
 				}
 			}

@@ -42,7 +42,6 @@ namespace Engine
 						  BlendFunc::DstAlpha, BlendFunc::OneMinusDstAlpha, BlendFunc::BlendFactor,
 						  BlendFunc::OneMinusBlendFactor);
 
-
 	implement_engine_enum(BlendOp, BlendOp::Add, BlendOp::Subtract, BlendOp::ReverseSubtract, BlendOp::Min, BlendOp::Max);
 
 	implement_engine_enum(Primitive, Primitive::Triangle, Primitive::Line, Primitive::Point);
@@ -53,7 +52,6 @@ namespace Engine
 	implement_engine_enum(PolygonMode, PolygonMode::Fill, PolygonMode::Line, PolygonMode::Point);
 
 	implement_engine_enum(CullMode, CullMode::None, CullMode::Front, CullMode::Back);
-
 
 	implement_engine_enum(FrontFace, FrontFace::ClockWise, FrontFace::CounterClockWise);
 
@@ -72,7 +70,6 @@ namespace Engine
 
 	implement_engine_enum(VertexAttributeInputRate, VertexAttributeInputRate::Vertex, VertexAttributeInputRate::Instance);
 
-
 	implement_engine_enum(ColorComponentMask, ColorComponentMask::RGBA, ColorComponentMask::RGB, ColorComponentMask::RGA,
 						  ColorComponentMask::RG, ColorComponentMask::RBA, ColorComponentMask::RB, ColorComponentMask::RA,
 						  ColorComponentMask::R, ColorComponentMask::GBA, ColorComponentMask::GB, ColorComponentMask::GA,
@@ -81,8 +78,8 @@ namespace Engine
 	implement_engine_enum(RenderPassType, RenderPassType::Undefined, RenderPassType::Window, RenderPassType::SceneColor,
 						  RenderPassType::GBuffer);
 
-	implement_engine_enum(ViewMode, ViewMode::Lit, ViewMode::Unlit);
-
+	implement_engine_enum(ViewMode, ViewMode::Lit, ViewMode::Unlit, ViewMode::Wireframe, ViewMode::WorldNormal, ViewMode::Metalic,
+						  ViewMode::Roughness, ViewMode::Specular, ViewMode::AO);
 
 	implement_engine_enum(VertexBufferElementType, VertexBufferElementType::Undefined, VertexBufferElementType::Float1,
 						  VertexBufferElementType::Float2, VertexBufferElementType::Float3, VertexBufferElementType::Float4,

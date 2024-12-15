@@ -346,8 +346,14 @@ namespace Engine
 
 	enum class ViewMode : EnumerateType
 	{
-		Lit   = 0,
-		Unlit = 1
+		Lit         = 0,
+		Unlit       = 1,
+		Wireframe   = 2,
+		WorldNormal = 3,
+		Metalic     = 4,
+		Roughness   = 5,
+		Specular    = 6,
+		AO          = 7,
 	};
 
 	enum class ShaderType : EnumerateType
