@@ -9,6 +9,7 @@
 
 ## Screenshots
 <img src="images/editor.png"/>
+<img src="images/editor2.png"/>
 <img src="images/material editor.png"/>
 
 ## Requirements
