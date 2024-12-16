@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/executable_object.hpp>
 #include <Core/name.hpp>
+#include <Core/task.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 
 namespace Engine
@@ -67,7 +67,7 @@ namespace Engine
 		template<typename VariableType>
 		RenderPass& update_variable(VariableType& out, const VariableType& in)
 		{
-			class UpdateVar : public ExecutableObject
+			class UpdateVar : public Task<UpdateVar>
 			{
 			private:
 				VariableType input;
@@ -77,10 +77,9 @@ namespace Engine
 				UpdateVar(const VariableType& in, VariableType& out) : input(in), m_output(&out)
 				{}
 
-				int_t execute() override
+				void execute() override
 				{
 					(*m_output) = std::move(input);
-					return sizeof(UpdateVar);
 				}
 			};
 

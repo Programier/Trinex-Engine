@@ -169,8 +169,8 @@ namespace Engine
 
 	// implement_engine_class_default_init(SplashClient, 0);
 
-	struct SplashUpdate : public ExecutableObject {
-		int_t execute() override
+	struct SplashUpdate : public Task<SplashUpdate> {
+		void execute() override
 		{
 			RenderViewport* viewport = m_splash_data->window->render_viewport();
 			viewport->update(0.033f);
@@ -178,8 +178,6 @@ namespace Engine
 			engine_instance->begin_render();
 			viewport->render();
 			engine_instance->end_render();
-
-			return sizeof(SplashUpdate);
 		}
 	};
 
@@ -230,11 +228,10 @@ namespace Engine
 		m_splash_data->exec_thread = new Thread();
 		m_splash_data->is_active   = true;
 
-		struct SplashMain : public ExecutableObject {
-			int_t execute()
+		struct SplashMain : public Task<SplashMain> {
+			void execute()
 			{
 				splash_main();
-				return sizeof(SplashMain);
 			}
 		};
 
@@ -244,7 +241,7 @@ namespace Engine
 	ENGINE_EXPORT void splash_screen_text(SplashTextType type, const StringView& text)
 	{
 		return;
-		class UpdateText : public ExecutableObject
+		class UpdateText : public Task<UpdateText>
 		{
 			SplashTextType m_type;
 			String m_text;
@@ -253,12 +250,11 @@ namespace Engine
 			UpdateText(SplashTextType type, const StringView& text) : m_type(type), m_text(text)
 			{}
 
-			int_t execute() override
+			void execute() override
 			{
 				auto& info                 = m_splash_data->text_info_of(m_type);
 				info.text                  = m_text;
 				info.need_update_text_size = true;
-				return sizeof(UpdateText);
 			}
 		};
 

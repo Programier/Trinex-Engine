@@ -14,19 +14,17 @@
 
 namespace Engine
 {
-	struct BeginRenderCommand : public ExecutableObject {
-		int_t execute() override
+	struct BeginRenderCommand : public Task<BeginRenderCommand> {
+		void execute() override
 		{
 			rhi->begin_render();
-			return sizeof(BeginRenderCommand);
 		}
 	};
 
-	struct EndRenderCommand : public ExecutableObject {
-		int_t execute() override
+	struct EndRenderCommand : public Task<EndRenderCommand> {
+		void execute() override
 		{
 			rhi->end_render();
-			return sizeof(EndRenderCommand);
 		}
 	};
 

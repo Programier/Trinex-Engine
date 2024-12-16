@@ -68,8 +68,9 @@ namespace Engine
 
 		while (offset < m_allocated)
 		{
-			ExecutableObject* object = reinterpret_cast<ExecutableObject*>(data + offset);
-			offset += static_cast<size_t>(object->execute());
+			TaskInterface* task = reinterpret_cast<TaskInterface*>(data + offset);
+			offset += task->size();
+			task->execute();
 		}
 
 		return *this;
@@ -88,7 +89,7 @@ namespace Engine
 	// RENDER COMMANDS IMPLEMENTATION
 
 #define declare_command_one_param(command_name, type1, name1, code)                                                              \
-	class command_name##Command : public ExecutableObject                                                                        \
+	class command_name##Command : public Task<command_name##Command>                                                             \
 	{                                                                                                                            \
 		type1 name1;                                                                                                             \
 																																 \
@@ -96,15 +97,14 @@ namespace Engine
 		command_name##Command(type1 var1) : name1(var1)                                                                          \
 		{}                                                                                                                       \
 																																 \
-		int_t execute() override                                                                                                 \
+		void execute() override                                                                                                  \
 		{                                                                                                                        \
 			code;                                                                                                                \
-			return sizeof(command_name##Command);                                                                                \
 		}                                                                                                                        \
 	};
 
 #define declare_command_two_param(command_name, type1, name1, type2, name2, code)                                                \
-	class command_name##Command : public ExecutableObject                                                                        \
+	class command_name##Command : public Task<command_name##Command>                                                             \
 	{                                                                                                                            \
 		type1 name1;                                                                                                             \
 		type2 name2;                                                                                                             \
@@ -113,15 +113,14 @@ namespace Engine
 		command_name##Command(type1 var1, type2 var2) : name1(var1), name2(var2)                                                 \
 		{}                                                                                                                       \
 																																 \
-		int_t execute() override                                                                                                 \
+		void execute() override                                                                                                  \
 		{                                                                                                                        \
 			code;                                                                                                                \
-			return sizeof(command_name##Command);                                                                                \
 		}                                                                                                                        \
 	};
 
 #define declare_command_three_param(command_name, type1, name1, type2, name2, type3, name3, code)                                \
-	class command_name##Command : public ExecutableObject                                                                        \
+	class command_name##Command : public Task<command_name##Command>                                                             \
 	{                                                                                                                            \
 		type1 name1;                                                                                                             \
 		type2 name2;                                                                                                             \
@@ -131,15 +130,14 @@ namespace Engine
 		command_name##Command(type1 var1, type2 var2, type3 var3) : name1(var1), name2(var2), name3(var3)                        \
 		{}                                                                                                                       \
 																																 \
-		int_t execute() override                                                                                                 \
+		void execute() override                                                                                                  \
 		{                                                                                                                        \
 			code;                                                                                                                \
-			return sizeof(command_name##Command);                                                                                \
 		}                                                                                                                        \
 	};
 
 #define declare_command_four_param(command_name, type1, name1, type2, name2, type3, name3, type4, name4, code)                   \
-	class command_name##Command : public ExecutableObject                                                                        \
+	class command_name##Command : public Task<command_name##Command>                                                             \
 	{                                                                                                                            \
 		type1 name1;                                                                                                             \
 		type2 name2;                                                                                                             \
@@ -151,10 +149,9 @@ namespace Engine
 			: name1(var1), name2(var2), name3(var3), name4(var4)                                                                 \
 		{}                                                                                                                       \
 																																 \
-		int_t execute() override                                                                                                 \
+		void execute() override                                                                                                  \
 		{                                                                                                                        \
 			code;                                                                                                                \
-			return sizeof(command_name##Command);                                                                                \
 		}                                                                                                                        \
 	};
 

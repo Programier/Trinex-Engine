@@ -198,7 +198,7 @@ namespace Engine
 		return *this;
 	}
 
-	class StartRenderingViewport : public ExecutableObject
+	class StartRenderingViewport : public Task<StartRenderingViewport>
 	{
 	public:
 		Size2D m_size;
@@ -210,7 +210,7 @@ namespace Engine
 		    : m_size(size), m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			m_viewport->m_size = m_size;
 
@@ -221,8 +221,6 @@ namespace Engine
 			m_client->render(m_viewport);
 
 			m_rhi_viewport->end_render();
-
-			return sizeof(StartRenderingViewport);
 		}
 	};
 

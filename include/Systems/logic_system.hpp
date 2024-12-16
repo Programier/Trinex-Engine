@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/etl/singletone.hpp>
-#include <Core/executable_object.hpp>
 #include <Systems/system.hpp>
 
 namespace Engine

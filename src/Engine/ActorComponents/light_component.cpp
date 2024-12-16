@@ -192,7 +192,7 @@ namespace Engine
 		return submit_light_info_render_thread();
 	}
 
-	class UpdateLightInfoCommand : public ExecutableObject
+	class UpdateLightInfoCommand : public Task<UpdateLightInfoCommand>
 	{
 	private:
 		AABB_3Df m_bounds;
@@ -209,14 +209,13 @@ namespace Engine
 		      m_is_shadows_enabled(component->is_shadows_enabled()), m_proxy(component->proxy())
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			m_proxy->bounding_box(m_bounds)
 			        .light_color(m_light_color)
 			        .intensivity(m_intensivity)
 			        .is_enabled(m_is_enabled)
 			        .is_shadows_enabled(m_is_shadows_enabled);
-			return sizeof(UpdateLightInfoCommand);
 		}
 	};
 

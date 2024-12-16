@@ -1297,30 +1297,28 @@ namespace Engine
 	}// namespace ImGuiBackend_Window
 
 
-	struct InitContext : public ExecutableObject {
+	struct InitContext : public Task<InitContext> {
 		ImGuiContext* m_ctx;
 
 		InitContext(ImGuiContext* ctx) : m_ctx(ctx)
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			ImGuiBackend_RHI::imgui_trinex_rhi_init(m_ctx);
-			return sizeof(InitContext);
 		}
 	};
 
 
-	struct TerminateContext : public ExecutableObject {
+	struct TerminateContext : public Task<TerminateContext> {
 		ImGuiContext* m_ctx;
 
 		TerminateContext(ImGuiContext* ctx) : m_ctx(ctx)
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			ImGuiBackend_RHI::imgui_trinex_rhi_shutdown(m_ctx);
-			return sizeof(TerminateContext);
 		}
 	};
 

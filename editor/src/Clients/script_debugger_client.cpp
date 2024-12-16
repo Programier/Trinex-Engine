@@ -946,17 +946,16 @@ namespace Engine
 	{
 		if (is_in_logic_thread())
 		{
-			struct RunDebugLoop : public ExecutableObject {
+			struct RunDebugLoop : public Task<RunDebugLoop> {
 				ScriptDebuggerClient* m_client;
 				ScriptDebuggerClient& (ScriptDebuggerClient::*m_method)();
 				RunDebugLoop(ScriptDebuggerClient* client, ScriptDebuggerClient& (ScriptDebuggerClient::*method)())
 				    : m_client(client), m_method(method)
 				{}
 
-				int_t execute() override
+				void execute() override
 				{
 					(m_client->*m_method)();
-					return sizeof(*this);
 				}
 			};
 

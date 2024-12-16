@@ -633,7 +633,7 @@ namespace Engine
 		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
 							 m_camera_speed);
 
-		struct UpdateView : ExecutableObject {
+		struct UpdateView : Task<UpdateView> {
 			CameraView view;
 			SceneView& out;
 			ShowFlags show_flags;
@@ -641,11 +641,10 @@ namespace Engine
 			UpdateView(const CameraView& in, SceneView& out, ShowFlags show_flags) : view(in), out(out), show_flags(show_flags)
 			{}
 
-			int_t execute() override
+			void execute() override
 			{
 				out.camera_view(view);
 				out.show_flags(show_flags);
-				return sizeof(UpdateView);
 			}
 		};
 

@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/atomic.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/exception.hpp>
-#include <Core/executable_object.hpp>
 #include <Core/memory.hpp>
+#include <Core/task.hpp>
 #include <functional>
 #include <thread>
 
@@ -13,29 +13,31 @@ namespace Engine
 	{
 	protected:
 		template<typename Func>
-		struct FunctionCaller : public ExecutableObject {
+		struct FunctionCaller : public Task<FunctionCaller<Func>> {
 			std::decay_t<Func> m_func;
 
 		public:
 			FunctionCaller(Func&& func) : m_func(std::forward<Func>(func))
 			{}
 
-			int_t execute() override
+			void execute() override
 			{
 				m_func();
-				return sizeof(*this);
 			}
 		};
 
-		struct SkipBytes : public ExecutableObject {
+		struct SkipBytes : public Task<SkipBytes> {
 			int_t m_bytes;
 			SkipBytes(int_t bytes) : m_bytes(bytes)
 			{}
 
-			int_t execute() override
+			size_t size() const override
 			{
 				return m_bytes;
 			}
+
+			void execute() override
+			{}
 		};
 
 		struct NoThreadContext {
@@ -53,8 +55,8 @@ namespace Engine
 		Atomic<bool> m_running = true;
 		Atomic<bool> m_is_busy = false;
 
-		std::atomic_flag m_exec_flag      = ATOMIC_FLAG_INIT;
-		std::atomic_flag m_push_task_flag = ATOMIC_FLAG_INIT;
+		std::atomic_flag m_exec_flag = ATOMIC_FLAG_INIT;
+		CriticalSection m_push_section;
 
 		Thread& execute_commands();
 		void thread_loop();
@@ -97,7 +99,7 @@ namespace Engine
 		template<typename CommandType, typename... Args>
 		inline Thread& insert_new_task(Args&&... args)
 		{
-			m_push_task_flag.wait(true, std::memory_order_acquire);
+			m_push_section.lock();
 
 			size_t task_size = sizeof(CommandType);
 			byte* wp         = m_write_pointer;
@@ -120,11 +122,10 @@ namespace Engine
 			}
 
 			m_write_pointer = wp;
-			m_exec_flag.test_and_set(std::memory_order_release);
+			m_exec_flag.test_and_set();
 			m_exec_flag.notify_all();
 
-			m_push_task_flag.clear(std::memory_order_release);
-			m_push_task_flag.notify_all();
+			m_push_section.unlock();
 			return *this;
 		}
 

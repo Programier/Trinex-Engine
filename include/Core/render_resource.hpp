@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/smart_ptr.hpp>
-#include <Core/executable_object.hpp>
 #include <Core/object.hpp>
 #include <Core/structures.hpp>
+#include <Core/task.hpp>
 
 namespace Engine
 {
@@ -63,11 +63,11 @@ namespace Engine
 		const BindedRenderResource& rhi_bind(BindLocation location) const;
 	};
 
-	struct ENGINE_EXPORT InitRenderResourceTask : public ExecutableObject {
+	struct ENGINE_EXPORT InitRenderResourceTask : public Task<InitRenderResourceTask> {
 	public:
 		RenderResource* resource = nullptr;
 
 		InitRenderResourceTask(RenderResource* object = nullptr);
-		int_t execute() override;
+		void execute() override;
 	};
 }// namespace Engine

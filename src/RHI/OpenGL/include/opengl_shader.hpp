@@ -1,5 +1,6 @@
 #pragma once
-#include <Core/executable_object.hpp>
+#include <Core/etl/vector.hpp>
+#include <Core/task.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_headers.hpp>
 
@@ -35,21 +36,20 @@ namespace Engine
 
 
 	template<typename Func>
-	struct OpenGL_StateCommand : public ExecutableObject {
+	struct OpenGL_StateCommand : public Task<OpenGL_StateCommand<Func>> {
 		Func m_func;
 
 		OpenGL_StateCommand(Func func) : m_func(func)
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			m_func();
-			return 0;
 		}
 	};
 
 	struct OpenGL_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
-		Vector<ExecutableObject*> m_apply_state;
+		Vector<TaskInterface*> m_apply_state;
 		MaterialScalarParametersInfo m_global_parameters;
 		MaterialScalarParametersInfo m_local_parameters;
 

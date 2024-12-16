@@ -10,7 +10,7 @@
 namespace Engine
 {
 	template<typename OctreeType>
-	class AddPrimitiveTask : public ExecutableObject
+	class AddPrimitiveTask : public Task<AddPrimitiveTask<OctreeType>>
 	{
 		OctreeType* m_octree;
 		typename OctreeType::ValueType m_primitive;
@@ -21,15 +21,14 @@ namespace Engine
 		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			m_octree->push(m_box, m_primitive);
-			return sizeof(AddPrimitiveTask);
 		}
 	};
 
 	template<typename OctreeType>
-	class RemovePrimitiveTask : public ExecutableObject
+	class RemovePrimitiveTask : public Task<RemovePrimitiveTask<OctreeType>>
 	{
 		OctreeType* m_octree;
 		typename OctreeType::ValueType m_primitive;
@@ -40,10 +39,9 @@ namespace Engine
 		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			m_octree->remove(m_box, m_primitive);
-			return sizeof(RemovePrimitiveTask);
 		}
 	};
 

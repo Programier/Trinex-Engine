@@ -25,8 +25,10 @@ namespace Engine
 
 		while (wp != rp)
 		{
-			auto* task = reinterpret_cast<ExecutableObject*>(rp);
-			auto size  = task->execute();
+			auto* task = reinterpret_cast<TaskInterface*>(rp);
+			auto size  = task->size();
+			task->execute();
+			std::destroy_at(task);
 
 			rp = align_memory(rp + size, m_align);
 
@@ -37,7 +39,7 @@ namespace Engine
 		}
 
 		m_is_busy = false;
-		m_exec_flag.clear(std::memory_order_release);
+		m_exec_flag.clear();
 		m_exec_flag.notify_all();
 
 		return *this;
@@ -51,7 +53,7 @@ namespace Engine
 		{
 			while (m_running && m_read_pointer == m_write_pointer)
 			{
-				m_exec_flag.wait(false, std::memory_order_acquire);
+				m_exec_flag.wait(false);
 			}
 
 			if (!m_running)
@@ -72,7 +74,7 @@ namespace Engine
 		{
 			while (is_busy() || (m_read_pointer != m_write_pointer))
 			{
-				m_exec_flag.wait(true, std::memory_order_release);
+				m_exec_flag.wait(true);
 			}
 		}
 		return *this;
@@ -81,7 +83,7 @@ namespace Engine
 	Thread::~Thread()
 	{
 		m_running = false;
-		m_exec_flag.test_and_set(std::memory_order_release);
+		m_exec_flag.test_and_set();
 		m_exec_flag.notify_all();
 
 		if (m_thread)

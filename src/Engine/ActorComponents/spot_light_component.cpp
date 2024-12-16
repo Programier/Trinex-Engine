@@ -86,7 +86,7 @@ namespace Engine
 	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f)
 	{}
 
-	class UpdateSpotLightDataCommand : public ExecutableObject
+	class UpdateSpotLightDataCommand : public Task<UpdateSpotLightDataCommand>
 	{
 	private:
 		float m_outer_cone_angle;
@@ -99,11 +99,10 @@ namespace Engine
 			  m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
 		{}
 
-		int_t execute() override
+		void execute() override
 		{
 			m_proxy->outer_cone_angle(m_outer_cone_angle);
 			m_proxy->inner_cone_angle(m_inner_cone_angle);
-			return sizeof(UpdateSpotLightDataCommand);
 		}
 	};
 

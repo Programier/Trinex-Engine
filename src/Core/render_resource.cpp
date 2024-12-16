@@ -1,6 +1,6 @@
 #include <Core/base_engine.hpp>
-#include <Core/reflection/class.hpp>
 #include <Core/exception.hpp>
+#include <Core/reflection/class.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
@@ -10,16 +10,15 @@ namespace Engine
 	implement_engine_class_default_init(RenderResource, 0);
 	implement_engine_class_default_init(BindedRenderResource, 0);
 
-	struct DestroyRenderResourceTask : public ExecutableObject {
+	struct DestroyRenderResourceTask : public Task<DestroyRenderResourceTask> {
 		RHI_Object* object;
 
 		DestroyRenderResourceTask(RHI_Object* obj) : object(obj)
 		{}
 
-		int_t execute()
+		void execute() override
 		{
 			object->release();
-			return sizeof(DestroyRenderResourceTask);
 		}
 	};
 
@@ -109,9 +108,8 @@ namespace Engine
 		}
 	}
 
-	int_t InitRenderResourceTask::execute()
+	void InitRenderResourceTask::execute()
 	{
 		resource->rhi_create();
-		return sizeof(InitRenderResourceTask);
 	}
 }// namespace Engine

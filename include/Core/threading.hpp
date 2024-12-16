@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/executable_object.hpp>
+#include <Core/task.hpp>
 #include <Core/thread.hpp>
 
 namespace Engine
@@ -24,7 +24,7 @@ namespace Engine
 		throw EngineException("Not in render thread");
 
 	template<typename Variable>
-	class UpdateVariableCommand : public ExecutableObject
+	class UpdateVariableCommand : public Task<UpdateVariableCommand<Variable>>
 	{
 		Variable src_variable;
 		Variable& dst_variable;
@@ -33,26 +33,24 @@ namespace Engine
 		UpdateVariableCommand(const Variable& src, Variable& dst) : src_variable(src), dst_variable(dst)
 		{}
 
-		int_t execute()
+		void execute() override
 		{
 			dst_variable = src_variable;
-			return sizeof(UpdateVariableCommand<Variable>);
 		}
 	};
 
 	template<typename Callable>
 	FORCE_INLINE void call_in_render_thread(Callable&& callable)
 	{
-		struct Command : public ExecutableObject {
+		struct Command : public Task<Command> {
 			Callable m_callable;
 
 			Command(Callable&& callable) : m_callable(std::forward<Callable>(callable))
 			{}
 
-			int_t execute() override
+			void execute() override
 			{
 				m_callable();
-				return sizeof(Command);
 			}
 		};
 
@@ -70,16 +68,15 @@ namespace Engine
 	template<typename Callable>
 	FORCE_INLINE void call_in_logic_thread(Callable&& callable)
 	{
-		struct Command : public ExecutableObject {
+		struct Command : public Task<Command> {
 			Callable m_callable;
 
 			Command(Callable&& callable) : m_callable(std::forward<Callable>(callable))
 			{}
 
-			int_t execute() override
+			void execute() override
 			{
 				m_callable();
-				return sizeof(Command);
 			}
 		};
 

@@ -161,7 +161,7 @@ namespace Engine
 	}
 
 
-	static ExecutableObject* apply_stencil(const Pipeline::StencilTestInfo& face_info)
+	static TaskInterface* apply_stencil(const Pipeline::StencilTestInfo& face_info)
 	{
 		GLuint fail         = stencil_op(face_info.fail);
 		GLuint depth_pass   = stencil_op(face_info.depth_pass);
@@ -179,7 +179,7 @@ namespace Engine
 	}
 
 	template<typename Func, typename... Args>
-	static ExecutableObject* wrap_command(Func func, Args... args)
+	static TaskInterface* wrap_command(Func func, Args... args)
 	{
 		return new OpenGL_StateCommand([=]() { func(args...); });
 	}
@@ -536,7 +536,7 @@ namespace Engine
 			glBindProgramPipeline(m_pipeline);
 			glBindVertexArray(m_vao);
 
-			for (ExecutableObject* object : m_apply_state)
+			for (auto* object : m_apply_state)
 			{
 				object->execute();
 			}
@@ -555,7 +555,7 @@ namespace Engine
 			glDeleteVertexArrays(1, &m_vao);
 		}
 
-		for (ExecutableObject* object : m_apply_state)
+		for (auto* object : m_apply_state)
 		{
 			delete object;
 		}
