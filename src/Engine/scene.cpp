@@ -84,16 +84,16 @@ namespace Engine
 
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->insert_new_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
-		                                                                           primitive->bounding_box());
+		render_thread()->create_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+																			   primitive->bounding_box());
 		m_octree.push(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->insert_new_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
-		                                                                              primitive->bounding_box());
+		render_thread()->create_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+																				  primitive->bounding_box());
 		m_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}
@@ -116,16 +116,16 @@ namespace Engine
 
 	Scene& Scene::add_light(LightComponent* light)
 	{
-		render_thread()->insert_new_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-		                                                                       light->bounding_box());
+		render_thread()->create_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
+																		   light->bounding_box());
 		m_light_octree.push(light->bounding_box(), light);
 		return *this;
 	}
 
 	Scene& Scene::remove_light(LightComponent* light)
 	{
-		render_thread()->insert_new_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-		                                                                          light->bounding_box());
+		render_thread()->create_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
+																			  light->bounding_box());
 		m_light_octree.remove(light->bounding_box(), light);
 		return *this;
 	}

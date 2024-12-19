@@ -44,7 +44,7 @@ namespace Engine
 		{
 			if (rhi)
 			{
-				render_thread()->wait_all();
+				render_thread()->wait();
 			}
 
 			if (window == m_main_window)

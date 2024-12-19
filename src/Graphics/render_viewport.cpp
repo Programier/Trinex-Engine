@@ -233,7 +233,7 @@ namespace Engine
 		if (viewport == nullptr)
 			return *this;
 
-		render_thread()->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport, size());
+		render_thread()->create_task<StartRenderingViewport>(m_client.ptr(), this, viewport, size());
 		return *this;
 	}
 

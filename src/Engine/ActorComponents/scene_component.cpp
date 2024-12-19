@@ -134,8 +134,8 @@ namespace Engine
 		if (SceneComponentProxy* component_proxy = proxy())
 		{
 			Thread* thread = render_thread();
-			thread->insert_new_task<UpdateVariableCommand<Transform>>(local_transform(), component_proxy->m_local_transform);
-			thread->insert_new_task<UpdateVariableCommand<Transform>>(world_transform(), component_proxy->m_world_transform);
+			thread->create_task<UpdateVariableCommand<Transform>>(local_transform(), component_proxy->m_local_transform);
+			thread->create_task<UpdateVariableCommand<Transform>>(world_transform(), component_proxy->m_world_transform);
 		}
 	}
 

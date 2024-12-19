@@ -79,7 +79,7 @@ namespace Engine
 
 	const char* ImGuiNotificationMessage::static_name()
 	{
-		return "editor/Notification Title"_localized;
+		return "editor/Notification"_localized;
 	}
 
 	ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent, const CallBack<void(Package*)>& on_create)
@@ -134,7 +134,7 @@ namespace Engine
 
 	const char* ImGuiCreateNewPackage::static_name()
 	{
-		return "editor/New Package Title"_localized;
+		return "editor/New Package"_localized;
 	}
 
 	ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Class*)>& filters)
@@ -217,7 +217,7 @@ namespace Engine
 
 	const char* ImGuiCreateNewAsset::static_name()
 	{
-		return "editor/New Asset Title"_localized;
+		return "editor/New Asset"_localized;
 	}
 
 	ImGuiRenameObject::ImGuiRenameObject(Object* object) : m_object(object)
@@ -284,7 +284,7 @@ namespace Engine
 
 	const char* ImGuiRenameObject::static_name()
 	{
-		return "editor/Rename Object Title"_localized;
+		return "editor/Rename Object"_localized;
 	}
 
 

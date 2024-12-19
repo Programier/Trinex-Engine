@@ -61,7 +61,7 @@ namespace Engine
 		}
 		else
 		{
-			rt->insert_new_task<Command>(std::forward<Callable>(callable));
+			rt->create_task<Command>(std::forward<Callable>(callable));
 		}
 	}
 
@@ -87,7 +87,7 @@ namespace Engine
 		}
 		else
 		{
-			rt->insert_new_task<Command>(std::forward<Callable>(callable));
+			rt->create_task<Command>(std::forward<Callable>(callable));
 		}
 	}
 

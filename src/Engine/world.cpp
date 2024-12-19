@@ -97,7 +97,7 @@ namespace Engine
 		Super::shutdown();
 		stop_play();
 		destroy_all_actors();
-		render_thread()->wait_all();
+		render_thread()->wait();
 		delete m_scene;
 		return *this;
 	}

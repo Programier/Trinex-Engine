@@ -31,7 +31,7 @@ namespace Engine
 		}
 		else
 		{
-			render_thread()->insert_new_task<DestroyRenderResourceTask>(object);
+			render_thread()->create_task<DestroyRenderResourceTask>(object);
 		}
 	}
 
@@ -58,11 +58,11 @@ namespace Engine
 		}
 		else
 		{
-			render_thread()->insert_new_task<InitRenderResourceTask>(this);
+			render_thread()->create_task<InitRenderResourceTask>(this);
 
 			if (wait_initialize)
 			{
-				render_thread()->wait_all();
+				render_thread()->wait();
 			}
 		}
 

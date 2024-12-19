@@ -269,7 +269,7 @@ namespace Engine
 			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
 			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
 			ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
-			ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport Title").c_str(), dock_id);
+			ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport").c_str(), dock_id);
 
 			ImGui::DockBuilderFinish(dock_id);
 		}
@@ -283,7 +283,7 @@ namespace Engine
 		{
 			static const ImVec4 color = {0.f, 1.f, 0.f, 1.f};
 			ImGui::TextColored(color, "Delta Time: %f", dt);
-			ImGui::TextColored(color, "FPS: %f", 1.f / dt);
+			ImGui::TextColored(color, "FPS: %f", m_average_fps.average());
 			ImGui::TextColored(color, "Visible objects: %zu", m_statistics.visible_objects);
 		}
 		ImGui::EndVertical();
@@ -292,6 +292,7 @@ namespace Engine
 
 	EditorClient& EditorClient::update(float dt)
 	{
+		m_average_fps.push(dt);
 		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
@@ -515,7 +516,7 @@ namespace Engine
 
 	EditorClient& EditorClient::render_viewport_window(float dt)
 	{
-		if (!ImGui::Begin(Object::localize("editor/Viewport Title").c_str(), nullptr))
+		if (!ImGui::Begin(Object::localize("editor/Viewport").c_str(), nullptr))
 		{
 			ImGui::End();
 			return *this;
@@ -625,7 +626,6 @@ namespace Engine
 		move.x += keyboard->is_pressed(Keyboard::D) ? 1.f : 0.f;
 	}
 
-
 	EditorClient& EditorClient::update_camera(float dt)
 	{
 		move_camera(m_camera_move, window());
@@ -648,7 +648,7 @@ namespace Engine
 			}
 		};
 
-		render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, m_show_flags);
+		render_thread()->create_task<UpdateView>(camera->camera_view(), m_scene_view, m_show_flags);
 		return *this;
 	}
 

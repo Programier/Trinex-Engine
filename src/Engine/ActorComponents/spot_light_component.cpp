@@ -110,7 +110,7 @@ namespace Engine
 	{
 		m_outer_cone_angle = glm::clamp(m_outer_cone_angle, 0.f, 89.f);
 		m_inner_cone_angle = glm::clamp(m_inner_cone_angle, 0.f, m_outer_cone_angle);
-		render_thread()->insert_new_task<UpdateSpotLightDataCommand>(this);
+		render_thread()->create_task<UpdateSpotLightDataCommand>(this);
 		return *this;
 	}
 

@@ -94,10 +94,10 @@ namespace Engine
 		Thread();
 
 		bool is_busy() const;
-		Thread& wait_all();
+		Thread& wait();
 
 		template<typename CommandType, typename... Args>
-		inline Thread& insert_new_task(Args&&... args)
+		inline Thread& create_task(Args&&... args)
 		{
 			m_push_section.lock();
 
@@ -132,14 +132,14 @@ namespace Engine
 		template<typename Function>
 		FORCE_INLINE Thread& call_function(Function&& function)
 		{
-			return insert_new_task<FunctionCaller<Function>>(std::forward<Function>(function));
+			return create_task<FunctionCaller<Function>>(std::forward<Function>(function));
 		}
 
 		template<typename Function, typename... Args>
 		FORCE_INLINE Thread& call_function(Function&& function, Args&&... args)
 		{
 			auto new_function = std::bind(std::forward<Function>(function), std::forward<Args>(args)...);
-			return insert_new_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));
+			return create_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));
 		}
 
 		virtual ~Thread();

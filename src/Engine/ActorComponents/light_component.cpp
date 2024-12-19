@@ -73,7 +73,7 @@ namespace Engine
 	{
 		Refl::Class* self = static_class_instance();
 
-		trinex_refl_prop(self, This, m_light_color)->tooltip("Color of this light");
+		trinex_refl_prop(self, This, m_light_color, Refl::Property::IsColor)->tooltip("Color of this light");
 		trinex_refl_prop(self, This, m_is_enabled)//
 				->display_name("Is Enabled")
 				.tooltip("Is light enabled");
@@ -221,7 +221,7 @@ namespace Engine
 
 	LightComponent& LightComponent::submit_light_info_render_thread()
 	{
-		render_thread()->insert_new_task<UpdateLightInfoCommand>(this);
+		render_thread()->create_task<UpdateLightInfoCommand>(this);
 		return *this;
 	}
 

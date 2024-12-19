@@ -478,7 +478,7 @@ namespace Engine
 
 	const char* ContentBrowser::static_name()
 	{
-		return "editor/Content Browser Title"_localized;
+		return "editor/Content Browser"_localized;
 	}
 
 	ContentBrowser::~ContentBrowser()

@@ -220,18 +220,18 @@ namespace Engine
 
 		if (rhi)
 		{
-			render_thread()->wait_all();
+			render_thread()->wait();
 		}
 
 		GarbageCollector::destroy_all_objects();
-		render_thread()->wait_all();
+		render_thread()->wait();
 
 		if (rhi)
 		{
 			// Cannot delete rhi in logic thread, because the gpu resources can be used now
 			// So, delete it on render thread
 			render_thread()->call_function([]() { rhi->info.struct_instance->destroy_struct(rhi); });
-			render_thread()->wait_all();
+			render_thread()->wait();
 			rhi = nullptr;
 		}
 

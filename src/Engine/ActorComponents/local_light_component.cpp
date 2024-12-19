@@ -31,7 +31,7 @@ namespace Engine
 
 	LocalLightComponent& LocalLightComponent::submit_local_light_info()
 	{
-		render_thread()->insert_new_task<UpdateVariableCommand<float>>(m_attenuation_radius, proxy()->m_attenuation_radius);
+		render_thread()->create_task<UpdateVariableCommand<float>>(m_attenuation_radius, proxy()->m_attenuation_radius);
 		return *this;
 	}
 

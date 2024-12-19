@@ -1,4 +1,6 @@
 #pragma once
+#include <Clients/imgui_client.hpp>
+#include <Core/etl/average.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
@@ -8,8 +10,6 @@
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/property_renderer.hpp>
-
-#include <Clients/imgui_client.hpp>
 
 namespace Engine
 {
@@ -50,6 +50,7 @@ namespace Engine
 		Vector3D m_camera_move   = {0, 0, 0};
 		int_t m_guizmo_operation = 0;
 		EditorState m_state;
+		Average<float, 200> m_average_fps;
 
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);

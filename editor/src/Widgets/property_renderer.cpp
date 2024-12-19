@@ -342,7 +342,7 @@ namespace Engine
 
 	const char* PropertyRenderer::static_name()
 	{
-		return "editor/Properties Title"_localized;
+		return "editor/Properties"_localized;
 	}
 
 	void PropertyRenderer::register_prop_renderer(const Refl::ClassInfo* refl_class, const RendererFunc& renderer)
@@ -368,18 +368,41 @@ namespace Engine
 		return false;
 	}
 
-	static bool render_scalar_property(void* context, Refl::Property* prop, ImGuiDataType type, int_t components, bool read_only)
+	static bool render_scalar_property_colored(void* context, Refl::Property* prop, ImGuiDataType type, int_t components,
+											   bool read_only, bool is_color = false)
 	{
 		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
 		void* address             = prop->address(context);
 
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-		if (ImGui::InputScalarN("##value", type, address, components, nullptr, nullptr, nullptr, flags))
+		bool changed = false;
+
+		if (is_color && (components == 3 || components == 4) && type == ImGuiDataType_Float)
+		{
+			if (components == 3)
+			{
+				changed = ImGui::ColorEdit3("##value", reinterpret_cast<float*>(address), ImGuiColorEditFlags_Float);
+			}
+			else
+			{
+				changed = ImGui::ColorEdit4("##value", reinterpret_cast<float*>(address), ImGuiColorEditFlags_Float);
+			}
+		}
+		else
+		{
+			changed = ImGui::InputScalarN("##value", type, address, components, nullptr, nullptr, nullptr, flags);
+		}
+
+		if (changed)
 		{
 			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
-			return true;
 		}
-		return false;
+		return changed;
+	}
+
+	static bool render_scalar_property(void* context, Refl::Property* prop, ImGuiDataType type, int_t components, bool read_only)
+	{
+		return render_scalar_property_colored(context, prop, type, components, read_only, false);
 	}
 
 	static ImGuiDataType find_imgui_data_type(Refl::IntegerProperty* prop)
@@ -413,8 +436,8 @@ namespace Engine
 
 		auto render_scalar = [&](ImGuiDataType type) -> bool {
 			renderer->render_name(prop);
-			bool is_changed = render_scalar_property(prop->address(context), element, type, prop->length(),
-													 read_only || element->is_read_only());
+			bool is_changed = render_scalar_property_colored(prop->address(context), element, type, prop->length(),
+															 read_only || element->is_read_only(), prop->is_color());
 			if (is_changed)
 				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
 

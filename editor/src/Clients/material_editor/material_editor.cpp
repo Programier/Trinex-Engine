@@ -162,7 +162,7 @@ namespace Engine
 		String new_title = Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str());
 		wd->title(new_title);
 
-		render_thread()->wait_all();
+		render_thread()->wait();
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
 		ImGuiWindow::make_current(imgui_window());

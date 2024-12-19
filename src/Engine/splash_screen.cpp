@@ -185,11 +185,11 @@ namespace Engine
 	{
 		while (m_splash_data->is_active)
 		{
-			m_splash_data->exec_thread->insert_new_task<SplashUpdate>();
+			m_splash_data->exec_thread->create_task<SplashUpdate>();
 			ThisThread::sleep_for(0.033f);
 		}
 
-		m_splash_data->exec_thread->wait_all();
+		m_splash_data->exec_thread->wait();
 	}
 
 	ENGINE_EXPORT void show_splash_screen()
@@ -235,7 +235,7 @@ namespace Engine
 			}
 		};
 
-		m_splash_data->thread->insert_new_task<SplashMain>();
+		m_splash_data->thread->create_task<SplashMain>();
 	}
 
 	ENGINE_EXPORT void splash_screen_text(SplashTextType type, const StringView& text)
@@ -260,7 +260,7 @@ namespace Engine
 
 		if (m_splash_data)
 		{
-			m_splash_data->exec_thread->insert_new_task<UpdateText>(type, text);
+			m_splash_data->exec_thread->create_task<UpdateText>(type, text);
 		}
 	}
 
@@ -269,7 +269,7 @@ namespace Engine
 	{
 		if (thread)
 		{
-			thread->wait_all();
+			thread->wait();
 			delete thread;
 			thread = nullptr;
 		}

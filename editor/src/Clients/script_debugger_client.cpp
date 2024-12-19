@@ -959,8 +959,8 @@ namespace Engine
 				}
 			};
 
-			m_debugging_thread->insert_new_task<RunDebugLoop>(this, &This::debugger_thread_loop);
-			m_debugging_thread->wait_all();
+			m_debugging_thread->create_task<RunDebugLoop>(this, &This::debugger_thread_loop);
+			m_debugging_thread->wait();
 
 			if (!m_recieved_events.empty())
 			{

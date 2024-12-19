@@ -3,13 +3,13 @@
 
 namespace Engine
 {
-	class CriticalSection
+	class CriticalSection final
 	{
 	private:
 		AtomicFlag m_flag = ATOMIC_FLAG_INIT;
 
 	public:
-		void lock()
+		inline void lock()
 		{
 			while (m_flag.test_and_set())
 			{
@@ -17,10 +17,30 @@ namespace Engine
 			}
 		}
 
-		void unlock()
+		inline void unlock()
 		{
 			m_flag.clear();
 			m_flag.notify_one();
+		}
+	};
+
+	class ScopeLock final
+	{
+	private:
+		CriticalSection& m_criticalSection;
+
+	public:
+		explicit inline ScopeLock(CriticalSection& criticalSection) : m_criticalSection(criticalSection)
+		{
+			m_criticalSection.lock();
+		}
+
+		ScopeLock(const ScopeLock&)            = delete;
+		ScopeLock& operator=(const ScopeLock&) = delete;
+
+		inline ~ScopeLock()
+		{
+			m_criticalSection.unlock();
 		}
 	};
 }// namespace Engine

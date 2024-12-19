@@ -22,9 +22,15 @@ namespace Engine
 	};
 
 	struct EndRenderCommand : public Task<EndRenderCommand> {
+		CriticalSection* m_signal;
+
+		EndRenderCommand(CriticalSection* signal) : m_signal(signal)
+		{}
+
 		void execute() override
 		{
 			rhi->end_render();
+			m_signal->unlock();
 		}
 	};
 
@@ -108,14 +114,14 @@ namespace Engine
 
 	BaseEngine& BaseEngine::begin_render()
 	{
-		render_thread()->wait_all();
-		render_thread()->insert_new_task<BeginRenderCommand>();
+		m_render_end_signal.lock();
+		render_thread()->create_task<BeginRenderCommand>();
 		return *this;
 	}
 
 	BaseEngine& BaseEngine::end_render()
 	{
-		render_thread()->insert_new_task<EndRenderCommand>();
+		render_thread()->create_task<EndRenderCommand>(&m_render_end_signal);
 		return *this;
 	}
 

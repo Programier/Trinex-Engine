@@ -384,7 +384,7 @@ namespace Engine
 
 		if (has_valid_graphical_pipeline)
 		{
-			render_thread()->wait_all();
+			render_thread()->wait();
 
 			auto v_shader = vertex_shader(true);
 			auto f_shader = fragment_shader(true);

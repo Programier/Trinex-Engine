@@ -6,6 +6,18 @@ namespace Engine
 {
 	static thread_local Thread* this_thread_instance = nullptr;
 
+	struct WaitTask : public Task<WaitTask> {
+		CriticalSection* section;
+
+		WaitTask(CriticalSection* section) : section(section)
+		{}
+
+		void execute() override
+		{
+			section->unlock();
+		}
+	};
+
 	Thread::Thread(NoThreadContext ctx)
 	{
 		m_read_pointer  = m_buffer;
@@ -68,14 +80,14 @@ namespace Engine
 		return m_is_busy;
 	}
 
-	Thread& Thread::wait_all()
+	Thread& Thread::wait()
 	{
 		if (ThisThread::self() != this)
 		{
-			while (is_busy() || (m_read_pointer != m_write_pointer))
-			{
-				m_exec_flag.wait(true);
-			}
+			CriticalSection m_section;
+			m_section.lock();
+			create_task<WaitTask>(&m_section);
+			m_section.lock();
 		}
 		return *this;
 	}

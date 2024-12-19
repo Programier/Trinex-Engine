@@ -3,7 +3,8 @@
 
 namespace Engine
 {
-	template<typename Type, typename = typename std::enable_if<std::is_arithmetic<Type>::value>::type>
+	template<typename Type, std::size_t max_count = ~static_cast<std::size_t>(0),
+			 typename = typename std::enable_if<std::is_arithmetic<Type>::value>::type>
 	class Average
 	{
 		std::size_t m_count = 0;
@@ -12,7 +13,8 @@ namespace Engine
 	public:
 		Average& push(const Type& value)
 		{
-			++m_count;
+			if (m_count < max_count)
+				++m_count;
 
 			if (m_count > 1)
 			{

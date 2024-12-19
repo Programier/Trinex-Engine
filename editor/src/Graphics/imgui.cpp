@@ -408,7 +408,7 @@ namespace Engine
 		{
 			if (ImGuiTrinexViewportData* vd = (ImGuiTrinexViewportData*) viewport->RendererUserData)
 			{
-				render_thread()->wait_all();
+				render_thread()->wait();
 				IM_DELETE(vd);
 			}
 			viewport->RendererUserData = nullptr;
@@ -1526,16 +1526,16 @@ namespace Engine
 
 		ImGuiBackend_Window::imgui_trinex_window_init(window);
 
-		rt->insert_new_task<InitContext>(context);
-		rt->wait_all();
+		rt->create_task<InitContext>(context);
+		rt->wait();
 		return context;
 	}
 
 	static void imgui_destroy_context(ImGuiContext* context)
 	{
 		Thread* rt = render_thread();
-		rt->insert_new_task<TerminateContext>(context);
-		rt->wait_all();
+		rt->create_task<TerminateContext>(context);
+		rt->wait();
 
 		ImGui::SetCurrentContext(context);
 		ImGuiBackend_Window::imgui_trinex_window_shutdown();
