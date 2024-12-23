@@ -29,7 +29,7 @@ namespace Engine
 	{
 		if (m_rhi_object && sampler)
 		{
-			rhi_object<RHI_Texture>()->bind_combined(sampler->rhi_object<RHI_Sampler>(), location);
+			rhi_object<RHI_Texture2D>()->bind_combined(sampler->rhi_object<RHI_Sampler>(), location);
 		}
 		return *this;
 	}

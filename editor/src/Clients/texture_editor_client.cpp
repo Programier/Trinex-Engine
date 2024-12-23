@@ -141,9 +141,6 @@ namespace Engine
 	{
 		RenderSurface* surfaces[] = {surface};
 
-		rhi->begin_render();
-		SurfaceRenderViewport::dummy()->rhi_begin_render();
-
 		ViewPort vp;
 		vp.size = texture->size(0);
 		vp.pos  = {0, 0};
@@ -176,8 +173,7 @@ namespace Engine
 		DefaultResources::Buffers::screen_position->rhi_bind(0);
 		rhi->draw(6, 0);
 
-		SurfaceRenderViewport::dummy()->rhi_end_render();
-		rhi->end_render();
+		rhi->submit();
 	}
 
 	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)
@@ -196,7 +192,7 @@ namespace Engine
 		}
 
 		Vector4D mask = Vector4D(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
-		render_thread()->call_function(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask, m_pow);
+		render_thread()->call(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask, m_pow);
 		return *this;
 	}
 

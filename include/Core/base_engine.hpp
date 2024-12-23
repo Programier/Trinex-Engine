@@ -47,8 +47,6 @@ namespace Engine
 		bool is_shuting_down() const;
 		bool is_inited() const;
 		BaseEngine& make_inited();
-		BaseEngine& begin_render();
-		BaseEngine& end_render();
 	};
 
 	ENGINE_EXPORT extern BaseEngine* engine_instance;

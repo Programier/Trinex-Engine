@@ -32,7 +32,7 @@ namespace Engine
 		}
 	}
 
-	bool VulkanRenderTargetBase::is_main_render_target()
+	bool VulkanRenderTargetBase::is_swapchain_render_target()
 	{
 		return false;
 	}
@@ -247,7 +247,7 @@ namespace Engine
 		post_init({view});
 	}
 
-	bool VulkanSwapchainRenderTarget::is_main_render_target()
+	bool VulkanSwapchainRenderTarget::is_swapchain_render_target()
 	{
 		return true;
 	}
@@ -317,7 +317,7 @@ namespace Engine
 				if (new_mode == VulkanViewportMode::Flipped)
 				{
 					vp_height               = -vp_height;
-					auto render_target_size = m_state.m_current_viewport->render_target()->m_size;
+					auto render_target_size = m_state.render_target()->m_size;
 					vp_y                    = render_target_size.y - vp_y;
 				}
 

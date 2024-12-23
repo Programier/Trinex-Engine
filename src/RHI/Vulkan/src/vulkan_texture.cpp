@@ -9,6 +9,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_sampler.hpp>
@@ -44,12 +45,6 @@ namespace Engine
 	{
 		return 0;
 	}
-
-	void VulkanTexture::clear_color(const Color& color)
-	{}
-
-	void VulkanTexture::clear_depth_stencil(float depth, byte stencil)
-	{}
 
 	VulkanTexture& VulkanTexture::create(const Texture* texture)
 	{
@@ -370,6 +365,42 @@ namespace Engine
 		}
 	}
 
+	void VulkanSurface::blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	{
+		auto cmd            = API->current_command_buffer();
+		bool in_render_pass = cmd->is_inside_render_pass();
+
+		if (in_render_pass)
+			API->end_render_pass();
+
+		auto src = surface->rhi_object<VulkanSurface>();
+
+		auto src_layout = src->layout();
+		auto dst_layout = layout();
+
+		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd->m_cmd);
+		change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
+
+		auto src_end = src_rect.position + src_rect.size;
+		auto dst_end = dst_rect.position + dst_rect.size;
+
+		vk::ImageBlit blit;
+		blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
+		blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
+
+		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
+		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
+		cmd->m_cmd.blitImage(src->image(), src->layout(), image(), vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
+
+		change_layout(dst_layout, cmd->m_cmd);
+		src->change_layout(src_layout, cmd->m_cmd);
+
+		if (in_render_pass)
+		{
+			API->begin_render_pass();
+		}
+	}
+
 	VulkanSurface::~VulkanSurface()
 	{
 		while (!m_render_targets.empty())
@@ -379,12 +410,12 @@ namespace Engine
 		}
 	}
 
-	RHI_Texture* VulkanAPI::create_texture_2d(const Texture2D* texture)
+	RHI_Texture2D* VulkanAPI::create_texture_2d(const Texture2D* texture)
 	{
 		return &(new VulkanTexture2D())->create(texture);
 	}
 
-	RHI_Texture* VulkanAPI::create_render_surface(const RenderSurface* surface)
+	RHI_Texture2D* VulkanAPI::create_render_surface(const RenderSurface* surface)
 	{
 		return &(new VulkanSurface())->create(surface);
 	}

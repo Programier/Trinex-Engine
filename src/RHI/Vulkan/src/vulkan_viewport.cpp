@@ -12,6 +12,7 @@
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_texture.hpp>
+#include <vulkan_types.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -30,31 +31,26 @@ namespace Engine
 		Barrier::transition_image_layout(cmd, barrier);
 	}
 
-	static vk::Filter filter_of(SamplerFilter filter)
+	vk::Image VulkanViewport::current_image()
 	{
-		switch (filter)
-		{
-			case SamplerFilter::Bilinear:
-			case SamplerFilter::Trilinear:
-				return vk::Filter::eLinear;
-
-			default:
-				return vk::Filter::eNearest;
-		}
+		return m_swapchain->backbuffer()->m_render_target->m_image;
 	}
 
-	vk::Semaphore* VulkanViewport::SyncObject::image_present()
+	vk::ImageLayout VulkanViewport::default_image_layout()
 	{
-		return nullptr;
+		return vk::ImageLayout::ePresentSrcKHR;
 	}
 
-	vk::Semaphore* VulkanViewport::SyncObject::render_finished()
+	VulkanRenderTargetBase* VulkanViewport::render_target()
 	{
-		return nullptr;
+		return m_swapchain->backbuffer()->m_render_target;
 	}
 
-	VulkanViewport::SyncObject::~SyncObject()
-	{}
+	VulkanViewport* VulkanViewport::init(WindowRenderViewport* viewport, bool vsync)
+	{
+		m_swapchain = new VulkanSwapchain(viewport->window(), vsync);
+		return this;
+	}
 
 	void VulkanViewport::destroy_image_views()
 	{
@@ -66,33 +62,31 @@ namespace Engine
 		m_image_views.clear();
 	}
 
-	void VulkanViewport::before_begin_render()
+	void VulkanViewport::present()
 	{
+		trinex_profile_cpu_n("VulkanWindowViewport::end_render");
+		auto cmd = API->current_command_buffer();
+		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, *m_swapchain->image_present_semaphore());
+		API->m_cmd_manager->submit_active_cmd_buffer(m_swapchain->render_finished_semaphore());
+		m_swapchain->try_present(&VulkanSwapchain::do_present, cmd, true);
+
 		API->m_state.reset();
-		API->m_state.m_current_viewport = this;
-	}
-
-	void VulkanViewport::after_end_render()
-	{
-		API->m_state.m_current_viewport = nullptr;
-	}
-
-	void VulkanViewport::begin_render()
-	{}
-
-	void VulkanViewport::end_render()
-	{
-		API->m_cmd_manager->submit_active_cmd_buffer(current_sync_object()->render_finished());
 	}
 
 	void VulkanViewport::on_resize(const Size2D& new_size)
-	{}
+	{
+		m_swapchain->m_need_recreate = true;
+	}
 
 	void VulkanViewport::on_orientation_changed(Orientation orientation)
-	{}
+	{
+		m_swapchain->m_need_recreate = true;
+	}
 
 	void VulkanViewport::vsync(bool flag)
-	{}
+	{
+		m_swapchain->vsync(flag);
+	}
 
 	void VulkanViewport::bind()
 	{
@@ -159,63 +153,10 @@ namespace Engine
 			API->begin_render_pass();
 	}
 
-	// Surface Viewport
-	VulkanSurfaceViewport::VulkanSurfaceViewport()
-	{
-		m_sync_object   = new SyncObject();
-		m_render_target = nullptr;
-	}
-
-	VulkanSurfaceViewport::~VulkanSurfaceViewport()
+	VulkanViewport::~VulkanViewport()
 	{
 		API->wait_idle();
-		delete m_sync_object;
-	}
-
-	VulkanSurfaceViewport::SyncObject* VulkanSurfaceViewport::current_sync_object()
-	{
-		return m_sync_object;
-	}
-
-	vk::Image VulkanSurfaceViewport::current_image()
-	{
-		return m_surface[0]->rhi_object<VulkanSurface>()->image();
-	}
-
-	vk::ImageLayout VulkanSurfaceViewport::default_image_layout()
-	{
-		return vk::ImageLayout::eShaderReadOnlyOptimal;
-	}
-
-	VulkanRenderTargetBase* VulkanSurfaceViewport::render_target()
-	{
-		return m_render_target;
-	}
-
-	bool VulkanSurfaceViewport::is_window_viewport()
-	{
-		return false;
-	}
-
-	VulkanViewport* VulkanSurfaceViewport::init(SurfaceRenderViewport* viewport)
-	{
-		m_surface[0] = viewport->render_surface();
-
-		if (m_surface[0])
-			m_render_target = VulkanRenderTarget::find_or_create(m_surface, nullptr);
-		return this;
-	}
-
-	void VulkanSurfaceViewport::begin_render()
-	{
-		VulkanViewport::before_begin_render();
-		VulkanViewport::begin_render();
-	}
-
-	void VulkanSurfaceViewport::end_render()
-	{
-		VulkanViewport::end_render();
-		VulkanViewport::after_end_render();
+		delete m_swapchain;
 	}
 
 	// Window Viewport
@@ -385,7 +326,7 @@ namespace Engine
 		return *this;
 	}
 
-	int_t VulkanSwapchain::acquire_image_index()
+	int_t VulkanSwapchain::acquire_image_index(VulkanCommandBuffer* cmd_buffer)
 	{
 		trinex_profile_cpu_n("VulkanSwapchain::acquire_image_index");
 
@@ -435,7 +376,7 @@ namespace Engine
 		return m_image_index;
 	}
 
-	int_t VulkanSwapchain::do_present()
+	int_t VulkanSwapchain::do_present(VulkanCommandBuffer* cmd_buffer)
 	{
 		if (m_image_index == -1)
 			return Status::Success;
@@ -445,7 +386,7 @@ namespace Engine
 		vk::Result result;
 		m_image_index = -1;
 
-		m_backbuffers[m_buffer_index].m_command_buffer = API->current_command_buffer();
+		m_backbuffers[m_buffer_index].m_command_buffer = cmd_buffer;
 
 		try
 		{
@@ -473,15 +414,16 @@ namespace Engine
 		return Status::Success;
 	}
 
-	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)
+	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandBuffer*), VulkanCommandBuffer* cmd_buffer,
+									   bool skip_on_out_of_date)
 	{
 		if (m_need_recreate)
 		{
 			recreate();
-			return try_present(callback, skip_on_out_of_date);
+			return try_present(callback, cmd_buffer, skip_on_out_of_date);
 		}
 
-		int_t status = (this->*callback)();
+		int_t status = (this->*callback)(cmd_buffer);
 
 		while (status < 0)
 		{
@@ -502,7 +444,7 @@ namespace Engine
 			ThisThread::sleep_for(0.1);
 			recreate();
 
-			status = (this->*callback)();
+			status = (this->*callback)(cmd_buffer);
 		}
 
 		return status;
@@ -526,7 +468,7 @@ namespace Engine
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::backbuffer");
 
-			if (try_present(&VulkanSwapchain::acquire_image_index, false) < 0)
+			if (try_present(&VulkanSwapchain::acquire_image_index, nullptr, false) < 0)
 			{
 				throw EngineException("Failed to acquire image index");
 			}
@@ -535,81 +477,10 @@ namespace Engine
 		return &m_backbuffers[m_image_index];
 	}
 
-	vk::Image VulkanWindowViewport::current_image()
-	{
-		return m_swapchain->backbuffer()->m_render_target->m_image;
-	}
-
-	vk::ImageLayout VulkanWindowViewport::default_image_layout()
-	{
-		return vk::ImageLayout::ePresentSrcKHR;
-	}
-
-	VulkanRenderTargetBase* VulkanWindowViewport::render_target()
-	{
-		return m_swapchain->backbuffer()->m_render_target;
-	}
-
-	bool VulkanWindowViewport::is_window_viewport()
-	{
-		return true;
-	}
-
-	VulkanViewport* VulkanWindowViewport::init(WindowRenderViewport* viewport, bool vsync)
-	{
-		m_swapchain = new VulkanSwapchain(viewport->window(), vsync);
-		return this;
-	}
-
-	void VulkanWindowViewport::on_resize(const Size2D& new_size)
-	{
-		m_swapchain->m_need_recreate = true;
-	}
-
-	void VulkanWindowViewport::on_orientation_changed(Orientation orientation)
-	{
-		m_swapchain->m_need_recreate = true;
-	}
-
-	void VulkanWindowViewport::vsync(bool flag)
-	{
-		m_swapchain->vsync(flag);
-	}
-
-	VulkanWindowViewport::~VulkanWindowViewport()
-	{
-		API->wait_idle();
-		delete m_swapchain;
-	}
-
-	void VulkanWindowViewport::begin_render()
-	{
-		before_begin_render();
-	}
-
-	void VulkanWindowViewport::end_render()
-	{
-		trinex_profile_cpu_n("VulkanWindowViewport::end_render");
-		auto cmd = API->current_command_buffer();
-		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, *m_swapchain->image_present_semaphore());
-		API->m_cmd_manager->submit_active_cmd_buffer(m_swapchain->render_finished_semaphore());
-		m_swapchain->try_present(&VulkanSwapchain::do_present, true);
-
-		after_end_render();
-	}
-
-	// Creating Viewports
-
-	RHI_Viewport* VulkanAPI::create_viewport(SurfaceRenderViewport* viewport)
-	{
-		VulkanSurfaceViewport* vulkan_viewport = new VulkanSurfaceViewport();
-		vulkan_viewport->init(viewport);
-		return vulkan_viewport;
-	}
 
 	RHI_Viewport* VulkanAPI::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
-		VulkanWindowViewport* vulkan_viewport = new VulkanWindowViewport();
+		VulkanViewport* vulkan_viewport = new VulkanViewport();
 		vulkan_viewport->init(viewport, vsync);
 		return vulkan_viewport;
 	}

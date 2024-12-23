@@ -88,7 +88,7 @@ namespace Engine
 			if (submit_command)
 			{
 				submit_command = false;
-				logic_thread()->call_function([]() {
+				logic_thread()->call([]() {
 					submit_command = true;
 					exec_all_if_already_triggered();
 				});

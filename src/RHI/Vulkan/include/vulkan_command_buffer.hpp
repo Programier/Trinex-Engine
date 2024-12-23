@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/vector.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace Engine

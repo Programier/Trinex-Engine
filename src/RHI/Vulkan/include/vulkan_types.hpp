@@ -94,5 +94,17 @@ namespace Engine
 		}
 	}
 
+	static inline vk::Filter filter_of(SamplerFilter filter)
+	{
+		switch (filter)
+		{
+			case SamplerFilter::Bilinear:
+			case SamplerFilter::Trilinear:
+				return vk::Filter::eLinear;
+
+			default:
+				return vk::Filter::eNearest;
+		}
+	}
 #undef DECLARE_GETTER
 }// namespace Engine

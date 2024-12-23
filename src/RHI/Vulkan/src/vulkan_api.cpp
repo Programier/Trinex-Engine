@@ -349,15 +349,14 @@ namespace Engine
 
 	VulkanViewportMode VulkanAPI::find_current_viewport_mode()
 	{
-		auto vp = m_state.m_current_viewport;
 		auto rt = m_state.render_target();
 
-		if (vp == nullptr || rt == nullptr)
+		if (rt == nullptr)
 		{
 			return VulkanViewportMode::Undefined;
 		}
 
-		if (vp->is_window_viewport() && vp->render_target() == rt)
+		if (rt->is_swapchain_render_target())
 			return VulkanViewportMode::Flipped;
 		return VulkanViewportMode::Normal;
 	}
@@ -375,6 +374,7 @@ namespace Engine
 	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
 	{
 		trinex_profile_cpu_n("VulkanAPI::begin_render_pass");
+		auto cmd = current_command_buffer();
 
 		if (m_state.m_next_render_target)
 		{
@@ -386,7 +386,7 @@ namespace Engine
 			m_state.m_render_target->lock_surfaces();
 
 		m_state.m_render_pass = m_state.m_render_target->m_render_pass;
-		current_command_buffer()->begin_render_pass(m_state.m_render_target);
+		cmd->begin_render_pass(m_state.m_render_target);
 		return *this;
 	}
 
@@ -405,19 +405,16 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::begin_render()
+	VulkanAPI& VulkanAPI::submit()
 	{
-		return *this;
-	}
+		m_stagging_manager->update();
 
-	VulkanAPI& VulkanAPI::end_render()
-	{
-		if (m_state.m_current_viewport)
+		if (m_cmd_manager->has_pending_active_cmd_buffer())
 		{
-			m_state.m_current_viewport->end_render();
+			m_cmd_manager->submit_active_cmd_buffer();
 		}
 
-		m_stagging_manager->update();
+		API->m_state.reset();
 		return *this;
 	}
 

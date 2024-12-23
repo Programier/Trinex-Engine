@@ -1,3 +1,5 @@
+#include <Core/exception.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -19,7 +21,10 @@ namespace Engine
 
 		if (m_references == 0)
 		{
-			destroy();
+			if (is_in_render_thread())
+				destroy();
+			else
+				render_thread()->call([this]() { destroy(); });
 		}
 	}
 
@@ -30,4 +35,19 @@ namespace Engine
 
 	RHI_Object::~RHI_Object()
 	{}
+
+	void RHI_Texture2D::clear_color(const Color& color)
+	{
+		throw EngineException("Surface only method is called on non-surface object!");
+	}
+
+	void RHI_Texture2D::clear_depth_stencil(float depth, byte stencil)
+	{
+		throw EngineException("Surface only method is called on non-surface object!");
+	}
+
+	void RHI_Texture2D::blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	{
+		throw EngineException("Surface only method is called on non-surface object!");
+	}
 }// namespace Engine

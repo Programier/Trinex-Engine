@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	struct VulkanTexture : RHI_DefaultDestroyable<RHI_Texture> {
+	struct VulkanTexture : RHI_DefaultDestroyable<RHI_Texture2D> {
 	private:
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
 
@@ -25,9 +25,6 @@ namespace Engine
 		virtual ColorFormat engine_format() const                = 0;
 		virtual vk::ImageType image_type() const                 = 0;
 		virtual vk::Extent3D extent(MipMapLevel level = 0) const = 0;
-
-		void clear_color(const Color& color) override;
-		void clear_depth_stencil(float depth, byte stencil) override;
 
 		vk::Image image() const;
 		vk::ImageView image_view() const;
@@ -80,6 +77,7 @@ namespace Engine
 		Size2D size(MipMapLevel level = 0) const override;
 		void clear_color(const Color& color) override;
 		void clear_depth_stencil(float depth, byte stencil) override;
+		void blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
 
 		~VulkanSurface();
 	};

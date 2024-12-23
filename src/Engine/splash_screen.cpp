@@ -9,6 +9,7 @@
 #include <Engine/splash_config.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Platform/platform.hpp>
 #include <Window/config.hpp>
@@ -174,10 +175,8 @@ namespace Engine
 		{
 			RenderViewport* viewport = m_splash_data->window->render_viewport();
 			viewport->update(0.033f);
-
-			engine_instance->begin_render();
 			viewport->render();
-			engine_instance->end_render();
+			render_thread()->call([]() { rhi->submit(); });
 		}
 	};
 

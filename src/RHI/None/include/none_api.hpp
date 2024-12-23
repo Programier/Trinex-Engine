@@ -22,9 +22,7 @@ namespace Engine
 		NoneApi& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
 		NoneApi& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 		                                size_t instances) override;
-
-		NoneApi& begin_render() override;
-		NoneApi& end_render() override;
+		NoneApi& submit() override;
 
 		NoneApi& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 		NoneApi& viewport(const ViewPort& viewport) override;
@@ -32,8 +30,8 @@ namespace Engine
 		NoneApi& scissor(const Scissor& scissor) override;
 		Scissor scissor() override;
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture* create_texture_2d(const Texture2D*) override;
-		RHI_Texture* create_render_surface(const RenderSurface*) override;
+		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
+		RHI_Texture2D* create_render_surface(const RenderSurface*) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
@@ -43,7 +41,6 @@ namespace Engine
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 
 		NoneApi& push_global_params(const GlobalShaderParameters& params) override;

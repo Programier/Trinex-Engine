@@ -8,6 +8,7 @@
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/rhi.hpp>
 #include <Platform/platform.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -117,7 +118,7 @@ namespace Engine
 					{
 						if (m_function.is_valid())
 						{
-							logic_thread()->call_function([func = m_function]() { ScriptContext::execute(func); });
+							logic_thread()->call([func = m_function]() { ScriptContext::execute(func); });
 						}
 
 						is_open = false;
@@ -933,9 +934,10 @@ namespace Engine
 			if (m_is_in_debug_loop)
 			{
 				viewport()->update(dt);
-				engine_instance->begin_render();
+
+				m_render_finished.lock();
 				viewport()->render();
-				engine_instance->end_render();
+				render_thread()->call([]() { rhi->submit(); });
 			}
 		}
 

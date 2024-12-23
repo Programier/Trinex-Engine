@@ -130,13 +130,13 @@ namespace Engine
 		}
 
 		template<typename Function>
-		FORCE_INLINE Thread& call_function(Function&& function)
+		FORCE_INLINE Thread& call(Function&& function)
 		{
 			return create_task<FunctionCaller<Function>>(std::forward<Function>(function));
 		}
 
 		template<typename Function, typename... Args>
-		FORCE_INLINE Thread& call_function(Function&& function, Args&&... args)
+		FORCE_INLINE Thread& call(Function&& function, Args&&... args)
 		{
 			auto new_function = std::bind(std::forward<Function>(function), std::forward<Args>(args)...);
 			return create_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));

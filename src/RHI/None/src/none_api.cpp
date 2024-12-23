@@ -39,17 +39,11 @@ namespace Engine
 		{}
 	};
 
-	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture> {
+	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture2D> {
 		void bind(BindLocation location) override
 		{}
 
 		void bind_combined(RHI_Sampler* sampler, BindLocation location) override
-		{}
-
-		void clear_color(const Color& color) override
-		{}
-
-		void clear_depth_stencil(float depth, byte stencil) override
 		{}
 	};
 
@@ -83,9 +77,7 @@ namespace Engine
 	};
 
 	struct NoneViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
-		void begin_render() override
-		{}
-		void end_render() override
+		void present() override
 		{}
 
 		void vsync(bool flag) override
@@ -139,12 +131,7 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::begin_render()
-	{
-		return *this;
-	}
-
-	NoneApi& NoneApi::end_render()
+	NoneApi& NoneApi::submit()
 	{
 		return *this;
 	}
@@ -179,12 +166,12 @@ namespace Engine
 		return new NoneSampler();
 	}
 
-	RHI_Texture* NoneApi::create_texture_2d(const Texture2D*)
+	RHI_Texture2D* NoneApi::create_texture_2d(const Texture2D*)
 	{
 		return new NoneTexture();
 	}
 
-	RHI_Texture* NoneApi::create_render_surface(const RenderSurface* surface)
+	RHI_Texture2D* NoneApi::create_render_surface(const RenderSurface* surface)
 	{
 		return create_texture_2d(nullptr);
 	}
@@ -232,11 +219,6 @@ namespace Engine
 	RHI_SSBO* NoneApi::create_ssbo(size_t size, const byte* data, RHIBufferType type)
 	{
 		return new NoneSSBOBuffer();
-	}
-
-	RHI_Viewport* NoneApi::create_viewport(SurfaceRenderViewport* viewport)
-	{
-		return new NoneViewport();
 	}
 
 	RHI_Viewport* NoneApi::create_viewport(WindowRenderViewport* viewport, bool vsync)

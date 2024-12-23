@@ -184,7 +184,6 @@ namespace Engine
 	void Window::initialize(const WindowConfig& config)
 	{
 		m_render_viewport = Object::new_instance<WindowRenderViewport>("", nullptr, this, config.vsync);
-		m_render_viewport->init_resource(true);
 
 		if (!InitializeController().is_triggered())
 		{

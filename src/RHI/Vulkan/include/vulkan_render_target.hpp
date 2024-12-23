@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/build.hpp>
 #include <Core/etl/map.hpp>
+#include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_headers.hpp>
 
@@ -15,7 +16,7 @@ namespace Engine
 		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
 		void bind();
-		virtual bool is_main_render_target();
+		virtual bool is_swapchain_render_target();
 		virtual VulkanRenderTargetBase& lock_surfaces()   = 0;
 		virtual VulkanRenderTargetBase& unlock_surfaces() = 0;
 
@@ -57,7 +58,7 @@ namespace Engine
 
 		VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format);
 
-		virtual bool is_main_render_target() override;
+		virtual bool is_swapchain_render_target() override;
 		VulkanSwapchainRenderTarget& lock_surfaces() override;
 		VulkanSwapchainRenderTarget& unlock_surfaces() override;
 

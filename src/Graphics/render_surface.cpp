@@ -27,7 +27,7 @@ namespace Engine
 		    !is_in<ColorFormat::D32F, ColorFormat::DepthStencil, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
 		            format()))
 		{
-			rhi_object<RHI_Texture>()->clear_color(color);
+			rhi_object<RHI_Texture2D>()->clear_color(color);
 		}
 		return *this;
 	}
@@ -38,9 +38,17 @@ namespace Engine
 		    is_in<ColorFormat::D32F, ColorFormat::DepthStencil, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
 		            format()))
 		{
-			rhi_object<RHI_Texture>()->clear_depth_stencil(depth, stencil);
+			rhi_object<RHI_Texture2D>()->clear_depth_stencil(depth, stencil);
 		}
 		return *this;
 	}
 
+	RenderSurface& RenderSurface::rhi_blit(RenderSurface* surface, const Rect2D& src, const Rect2D& dst, SamplerFilter filter)
+	{
+		if (auto self_surface = rhi_object<RHI_Texture2D>())
+		{
+			self_surface->blit(surface, src, dst, filter);
+		}
+		return *this;
+	}
 }// namespace Engine

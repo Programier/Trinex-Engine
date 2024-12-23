@@ -14,22 +14,15 @@
 
 namespace Engine
 {
-	struct BeginRenderCommand : public Task<BeginRenderCommand> {
-		void execute() override
-		{
-			rhi->begin_render();
-		}
-	};
-
-	struct EndRenderCommand : public Task<EndRenderCommand> {
+	struct SubmitCommand : public Task<SubmitCommand> {
 		CriticalSection* m_signal;
 
-		EndRenderCommand(CriticalSection* signal) : m_signal(signal)
+		SubmitCommand(CriticalSection* signal) : m_signal(signal)
 		{}
 
 		void execute() override
 		{
-			rhi->end_render();
+			rhi->submit();
 			m_signal->unlock();
 		}
 	};
@@ -87,42 +80,22 @@ namespace Engine
 			for (size_t i = 0; i < viewports.size(); ++i)
 			{
 				auto viewport = viewports[i];
-
-				if (viewport->is_active())
-				{
-					viewport->update(m_delta_time);
-					max_vp_size = glm::max(max_vp_size, viewport->size());
-				}
+				viewport->update(m_delta_time);
+				max_vp_size = glm::max(max_vp_size, viewport->size());
 			}
 
-			begin_render();
-
+			m_render_end_signal.lock();
 			SceneRenderTargets::instance()->initialize(max_vp_size);
 
 			for (size_t i = 0; i < viewports.size(); ++i)
 			{
 				auto viewport = viewports[i];
-
-				if (viewport->is_active())
-					viewport->render();
+				viewport->render();
 			}
 
-			end_render();
+			render_thread()->create_task<SubmitCommand>(&m_render_end_signal);
 		}
 		return 0;
-	}
-
-	BaseEngine& BaseEngine::begin_render()
-	{
-		m_render_end_signal.lock();
-		render_thread()->create_task<BeginRenderCommand>();
-		return *this;
-	}
-
-	BaseEngine& BaseEngine::end_render()
-	{
-		render_thread()->create_task<EndRenderCommand>(&m_render_end_signal);
-		return *this;
 	}
 
 	int_t BaseEngine::terminate()

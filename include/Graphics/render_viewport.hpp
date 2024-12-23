@@ -1,14 +1,14 @@
 #pragma once
+#include <Core/etl/string.hpp>
+#include <Core/object.hpp>
 #include <Core/pointer.hpp>
-#include <Core/render_resource.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {
-
 	class Window;
 	class RenderTarget;
 	class RenderSurface;
-
 
 	class ENGINE_EXPORT ViewportClient : public Object
 	{
@@ -19,42 +19,39 @@ namespace Engine
 		virtual ViewportClient& on_unbind_viewport(class RenderViewport* viewport);
 		virtual ViewportClient& render(class RenderViewport* viewport);
 		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
+
 		virtual ViewPort viewport_info(Size2D size) const;
 		virtual Scissor scissor_info(Size2D size) const;
-
 
 		static ViewportClient* create(const StringView& name);
 	};
 
-	class ENGINE_EXPORT RenderViewport : public RenderResource
+	class ENGINE_EXPORT RenderViewport : public Object
 	{
-		declare_class(RenderViewport, RenderResource);
+		declare_class(RenderViewport, Object);
 
 	protected:
-		Size2D m_size;
 		Pointer<ViewportClient> m_client;
-		bool m_is_active = true;
-
+		Size2D m_size;
 		static Vector<RenderViewport*> m_viewports;
 
 	public:
+		bool disable_update : 1 = false;
+		bool disable_render : 1 = false;
+
 		RenderViewport();
 		~RenderViewport();
 
-		virtual Window* window() const;
-		virtual RenderSurface* render_surface() const;
+		virtual RenderViewport& render()                                                         = 0;
+		virtual RenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
+												SamplerFilter filter = SamplerFilter::Trilinear) = 0;
+		virtual RenderViewport& rhi_clear_color(const Color& color)                              = 0;
+		virtual RenderViewport& rhi_bind()                                                       = 0;
+		virtual RenderViewport& update(float dt);
 		virtual Size2D size() const;
-		virtual bool is_active() const;
-
-		RenderViewport& is_active(bool active);
-		RenderViewport& vsync(bool flag);
-		RenderViewport& on_resize(const Size2D& new_size);
-		RenderViewport& on_orientation_changed(Orientation orientation);
-		RenderViewport& render();
 
 		ViewportClient* client() const;
 		RenderViewport& client(ViewportClient* client);
-		RenderViewport& update(float dt);
 
 		ViewPort viewport_info(Size2D size) const;
 		Scissor scissor_info(Size2D size) const;
@@ -69,32 +66,30 @@ namespace Engine
 			return scissor_info(size());
 		}
 
-		RenderViewport& rhi_bind();
-		RenderViewport& rhi_begin_render();
-		RenderViewport& rhi_end_render();
-		RenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
-		                                SamplerFilter filter = SamplerFilter::Trilinear);
-		RenderViewport& rhi_clear_color(const Color& color);
-
-
 		static RenderViewport* current();
 		static const Vector<RenderViewport*>& viewports();
-		friend class StartRenderingViewport;
 	};
 
 	class ENGINE_EXPORT WindowRenderViewport : public RenderViewport
 	{
 		declare_class(WindowRenderViewport, RenderViewport);
-
-		bool m_vsync = true;
 		class Window* m_window;
+		struct RHI_Viewport* m_viewport;
 
 	public:
 		WindowRenderViewport(Window* window, bool vsync);
 		~WindowRenderViewport();
-		Window* window() const override;
+		Window* window() const;
 		Size2D size() const override;
-		WindowRenderViewport& rhi_create() override;
+		WindowRenderViewport& render() override;
+		WindowRenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
+											  SamplerFilter filter = SamplerFilter::Trilinear) override;
+		WindowRenderViewport& rhi_clear_color(const Color& color) override;
+		WindowRenderViewport& rhi_bind() override;
+
+		WindowRenderViewport& vsync(bool flag);
+		WindowRenderViewport& on_resize(const Size2D& new_size);
+		WindowRenderViewport& on_orientation_changed(Orientation orientation);
 	};
 
 	class ENGINE_EXPORT SurfaceRenderViewport : public RenderViewport
@@ -104,11 +99,13 @@ namespace Engine
 
 	public:
 		SurfaceRenderViewport(RenderSurface* surface);
-		~SurfaceRenderViewport();
-		RenderSurface* render_surface() const override;
+		RenderSurface* render_surface() const;
 		Size2D size() const override;
-		SurfaceRenderViewport& rhi_create() override;
-
-		static SurfaceRenderViewport* dummy();
+		SurfaceRenderViewport& render() override;
+		SurfaceRenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
+											   SamplerFilter filter = SamplerFilter::Trilinear) override;
+		SurfaceRenderViewport& rhi_clear_color(const Color& color) override;
+		SurfaceRenderViewport& rhi_clear_depth_stencil(float depth, byte stencil);
+		SurfaceRenderViewport& rhi_bind() override;
 	};
 }// namespace Engine

@@ -8,6 +8,13 @@
 
 namespace Engine
 {
+	static OpenGL_Viewport* m_current_viewport = nullptr;
+
+	void make_window_current(Window* window, void* context);
+	bool has_window_vsync(Window* window, void* context);
+	void set_window_vsync(Window* window, void* context, bool flag);
+	void swap_window_buffers(Window* window, void* context);
+
 	static FORCE_INLINE GLenum filter_of(SamplerFilter filter)
 	{
 		switch (filter)
@@ -19,6 +26,29 @@ namespace Engine
 			default:
 				return GL_NEAREST;
 		}
+	}
+
+	void OpenGL_Viewport::present()
+	{
+		make_current();
+		swap_window_buffers(m_viewport->window(), OPENGL_API->context());
+		OPENGL_API->reset_state();
+	}
+
+	void OpenGL_Viewport::make_current()
+	{
+		if (m_current_viewport != this)
+		{
+			m_current_viewport = this;
+			make_window_current(m_viewport->window(), OPENGL_API->context());
+			vsync(m_vsync);
+		}
+	}
+
+	void OpenGL_Viewport::init(WindowRenderViewport* viewport, bool vsync)
+	{
+		m_viewport = viewport;
+		m_vsync    = vsync;
 	}
 
 	void OpenGL_Viewport::on_resize(const Size2D& new_size)
@@ -69,69 +99,12 @@ namespace Engine
 		}
 	}
 
-
-	// Surface Viewport
-	void OpenGL_SurfaceViewport::begin_render()
-	{}
-
-	void OpenGL_SurfaceViewport::end_render()
-	{}
-
-
-	void OpenGL_SurfaceViewport::init(SurfaceRenderViewport* viewport)
+	int_t OpenGL_Viewport::framebuffer_id()
 	{
-		m_surface[0] = viewport->rhi_object<OpenGL_RenderSurface>();
+		return 0;
 	}
 
-	void OpenGL_SurfaceViewport::vsync(bool flag)
-	{}
-
-	void OpenGL_SurfaceViewport::bind()
-	{
-		if (m_surface[0])
-			OPENGL_API->bind_render_target(m_surface, nullptr);
-	}
-
-	int_t OpenGL_SurfaceViewport::framebuffer_id()
-	{
-		if (!m_surface[0])
-			throw EngineException("Invalid framebuffer!");
-
-		return OpenGL_RenderTarget::find_or_create(m_surface, nullptr)->m_framebuffer;
-	}
-
-	// Window Viewport
-
-	void make_window_current(Window* window, void* context);
-	bool has_window_vsync(Window* window, void* context);
-	void set_window_vsync(Window* window, void* context, bool flag);
-	void swap_window_buffers(Window* window, void* context);
-
-	void OpenGL_WindowViewport::init(WindowRenderViewport* viewport, bool vsync)
-	{
-		m_viewport = viewport;
-		m_vsync    = vsync;
-	}
-
-
-	static OpenGL_WindowViewport* m_current_viewport = nullptr;
-
-	void OpenGL_WindowViewport::make_current()
-	{
-		if (m_current_viewport != this)
-		{
-			m_current_viewport = this;
-			make_window_current(m_viewport->window(), OPENGL_API->context());
-			vsync(m_vsync);
-		}
-	}
-
-	OpenGL_WindowViewport* OpenGL_WindowViewport::current()
-	{
-		return m_current_viewport;
-	}
-
-	void OpenGL_WindowViewport::vsync(bool flag)
+	void OpenGL_Viewport::vsync(bool flag)
 	{
 		static bool current = !flag;
 
@@ -142,41 +115,16 @@ namespace Engine
 		}
 	}
 
-	void OpenGL_WindowViewport::begin_render()
-	{
-		OPENGL_API->reset_state();
-		make_current();
-	}
-
-	void OpenGL_WindowViewport::end_render()
-	{
-		swap_window_buffers(m_viewport->window(), OPENGL_API->context());
-	}
-
-	void OpenGL_WindowViewport::bind()
+	void OpenGL_Viewport::bind()
 	{
 		OPENGL_API->m_state.render_target = nullptr;
+		make_current();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	int_t OpenGL_WindowViewport::framebuffer_id()
-	{
-		return 0;
-	}
-
-	OpenGL_WindowViewport::~OpenGL_WindowViewport()
-	{}
-
-	RHI_Viewport* OpenGL::create_viewport(SurfaceRenderViewport* engine_viewport)
-	{
-		OpenGL_SurfaceViewport* viewport = new OpenGL_SurfaceViewport();
-		viewport->init(engine_viewport);
-		return viewport;
 	}
 
 	RHI_Viewport* OpenGL::create_viewport(WindowRenderViewport* engine_viewport, bool vsync)
 	{
-		OpenGL_WindowViewport* viewport = new OpenGL_WindowViewport();
+		auto* viewport = new OpenGL_Viewport();
 		viewport->init(engine_viewport, vsync);
 		return viewport;
 	}

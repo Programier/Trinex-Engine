@@ -159,12 +159,7 @@ namespace Engine
 		return *this;
 	}
 
-	OpenGL& OpenGL::begin_render()
-	{
-		return *this;
-	}
-
-	OpenGL& OpenGL::end_render()
+	OpenGL& OpenGL::submit()
 	{
 		m_global_ubo->submit();
 		m_local_ubo->submit();

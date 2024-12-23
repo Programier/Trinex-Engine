@@ -1,4 +1,5 @@
 #include <Clients/imgui_client.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/pointer.hpp>
 #include <Core/thread.hpp>
@@ -21,6 +22,7 @@ namespace Engine
 		ImGui::TextEditor::LanguageDefinition m_lang;
 		TreeMap<String, Editor> m_text_editors;
 		Editor* m_current_editor = nullptr;
+		CriticalSection m_render_finished;
 
 		Vector<class Event> m_recieved_events;
 		Thread* m_debugging_thread;

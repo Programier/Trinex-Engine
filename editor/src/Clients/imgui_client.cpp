@@ -135,17 +135,18 @@ namespace Engine
 
 	ImGuiEditorClient& ImGuiEditorClient::on_bind_viewport(class RenderViewport* viewport)
 	{
+		m_viewport = instance_cast<WindowRenderViewport>(viewport);
+		trinex_always_check(m_viewport, "Viewport is invalid");
+
 		m_opened_clients.insert({class_instance(), this});
 		Super::on_bind_viewport(viewport);
-		auto window = viewport->window();
+		auto window = m_viewport->window();
 
 		if (window == nullptr)
 			throw EngineException("ImGuiEditorClient requires valid window object!");
 
 		m_window = Object::new_instance<ImGuiWindow>();
 		m_window->initialize(window, EditorTheme::initialize_theme);
-		m_viewport = viewport;
-
 		return *this;
 	}
 
@@ -190,7 +191,7 @@ namespace Engine
 		return m_window ? m_window->window() : nullptr;
 	}
 
-	RenderViewport* ImGuiEditorClient::viewport() const
+	WindowRenderViewport* ImGuiEditorClient::viewport() const
 	{
 		return m_viewport;
 	}

@@ -20,7 +20,6 @@ namespace Engine
 		vk::Pipeline m_vk_pipeline                           = {};
 		struct RHI_VertexBuffer* m_current_vertex_buffer[15] = {};
 		struct RHI_IndexBuffer* m_current_index_buffer       = nullptr;
-		struct VulkanViewport* m_current_viewport            = nullptr;
 		VulkanViewportMode m_viewport_mode                   = VulkanViewportMode::Undefined;
 		ViewPort m_viewport;
 		Scissor m_scissor;

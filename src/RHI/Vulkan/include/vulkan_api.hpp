@@ -69,7 +69,6 @@ namespace Engine
 
 		// API METHODS
 
-
 		vk::SurfaceKHR create_surface(Window* interface);
 		VulkanAPI& setup_present_queue(vk::SurfaceKHR surface);
 		void initialize_pfn();
@@ -97,8 +96,7 @@ namespace Engine
 		VulkanAPI& initialize(Window* window) override;
 		void* context() override;
 
-		VulkanAPI& begin_render() override;
-		VulkanAPI& end_render() override;
+		VulkanAPI& submit() override;
 		VulkanAPI& wait_idle();
 
 		VulkanAPI& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
@@ -117,8 +115,8 @@ namespace Engine
 		                                  size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture* create_texture_2d(const Texture2D*) override;
-		RHI_Texture* create_render_surface(const RenderSurface*) override;
+		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
+		RHI_Texture2D* create_render_surface(const RenderSurface*) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
@@ -128,7 +126,6 @@ namespace Engine
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 
 		VulkanAPI& push_global_params(const GlobalShaderParameters& params) override;

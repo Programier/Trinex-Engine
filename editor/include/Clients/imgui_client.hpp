@@ -13,7 +13,7 @@ namespace Engine
 
 	private:
 		Pointer<ImGuiWindow> m_window;
-		RenderViewport* m_viewport = nullptr;
+		WindowRenderViewport* m_viewport = nullptr;
 
 		ImGuiEditorClient& update(class RenderViewport* viewport, float dt) final override;
 
@@ -48,7 +48,7 @@ namespace Engine
 
 		ImGuiWindow* imgui_window() const;
 		Window* window() const;
-		RenderViewport* viewport() const;
+		WindowRenderViewport* viewport() const;
 
 
 		virtual ImGuiEditorClient& update(float dt);

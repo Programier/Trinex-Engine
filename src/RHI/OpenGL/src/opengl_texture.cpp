@@ -6,6 +6,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <opengl_api.hpp>
+#include <opengl_enums_convertor.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_sampler.hpp>
 #include <opengl_texture.hpp>
@@ -118,13 +119,6 @@ namespace Engine
 		glBindTexture(m_type, 0);
 	}
 
-
-	void OpenGL_Texture::clear_color(const Color& color)
-	{}
-
-	void OpenGL_Texture::clear_depth_stencil(float depth, byte stencil)
-	{}
-
 	OpenGL_Texture::~OpenGL_Texture()
 	{
 		if (m_id)
@@ -166,6 +160,44 @@ namespace Engine
 		}
 	}
 
+	static FORCE_INLINE GLenum filter_of(SamplerFilter filter)
+	{
+		switch (filter)
+		{
+			case SamplerFilter::Bilinear:
+			case SamplerFilter::Trilinear:
+				return GL_LINEAR;
+
+			default:
+				return GL_NEAREST;
+		}
+	}
+
+	void OpenGL_RenderSurface::blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	{
+		RenderSurface* read_surfaces[]         = {surface};
+		OpenGL_RenderSurface* write_surfaces[] = {this};
+
+		auto read  = OpenGL_RenderTarget::find_or_create(read_surfaces, nullptr);
+		auto write = OpenGL_RenderTarget::find_or_create(write_surfaces, nullptr);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, write->m_framebuffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, read->m_framebuffer);
+
+		auto src_start = src_rect.position;
+		auto src_end   = src_start + src_rect.size;
+		auto dst_start = dst_rect.position;
+		auto dst_end   = dst_start + dst_rect.size;
+
+		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
+						  GL_COLOR_BUFFER_BIT, filter_of(filter));
+
+		if (OPENGL_API->m_state.render_target)
+		{
+			OPENGL_API->m_state.render_target->bind();
+		}
+	}
+
 	OpenGL_RenderSurface::~OpenGL_RenderSurface()
 	{
 		while (!m_render_targets.empty())
@@ -175,14 +207,14 @@ namespace Engine
 		}
 	}
 
-	RHI_Texture* OpenGL::create_texture_2d(const Texture2D* texture)
+	RHI_Texture2D* OpenGL::create_texture_2d(const Texture2D* texture)
 	{
 		OpenGL_Texture* opengl_texture = new OpenGL_Texture();
 		opengl_texture->init(texture);
 		return opengl_texture;
 	}
 
-	RHI_Texture* OpenGL::create_render_surface(const RenderSurface* surface)
+	RHI_Texture2D* OpenGL::create_render_surface(const RenderSurface* surface)
 	{
 		OpenGL_RenderSurface* opengl_texture = new OpenGL_RenderSurface();
 		opengl_texture->init(surface);
