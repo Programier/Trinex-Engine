@@ -47,10 +47,7 @@ namespace Engine
 		m_surface = Object::new_instance<RenderSurface>();
 		m_surface->init(ColorFormat::R8G8B8A8, {1, 1});
 
-		call_in_render_thread([self = Pointer(this)]() {
-			self->m_surface->rhi_clear_color(Color(0, 0, 0, 1));
-			rhi->submit();
-		});
+		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
 	}
 
 	TextureEditorClient& TextureEditorClient::render_menu_bar()
@@ -248,10 +245,7 @@ namespace Engine
 			m_texture = texture;
 			m_properties->update(object);
 
-			call_in_render_thread([self = Pointer(this)]() {
-				self->m_surface->rhi_clear_color(Color(0, 0, 0, 1));
-				rhi->submit();
-			});
+			call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
 			on_object_parameters_changed(true);
 			m_live_update = texture->is_instance_of<RenderSurface>();
 		}

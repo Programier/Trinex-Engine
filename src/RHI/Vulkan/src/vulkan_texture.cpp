@@ -323,8 +323,8 @@ namespace Engine
 		if (is_color_image())
 		{
 			auto current_layout = layout();
-			auto& cmd           = API->current_command_buffer_handle();
-			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
+			auto cmd            = API->current_command_buffer();
+			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
 			vk::ClearColorValue value;
 			value.setFloat32({color.r, color.g, color.b, color.a});
@@ -338,7 +338,9 @@ namespace Engine
 
 
 			API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
-			change_layout(current_layout, cmd);
+			change_layout(current_layout, cmd->m_cmd);
+
+			cmd->add_object(this);
 		}
 	}
 
@@ -347,8 +349,8 @@ namespace Engine
 		if (is_depth_stencil_image())
 		{
 			auto current_layout = layout();
-			auto& cmd           = API->current_command_buffer_handle();
-			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
+			auto cmd            = API->current_command_buffer();
+			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
 			vk::ClearDepthStencilValue value;
 			value.setDepth(depth).setStencil(stencil);
@@ -361,7 +363,9 @@ namespace Engine
 
 
 			API->current_command_buffer_handle().clearDepthStencilImage(image(), layout(), value, range);
-			change_layout(current_layout, cmd);
+			change_layout(current_layout, cmd->m_cmd);
+
+			cmd->add_object(this);
 		}
 	}
 
@@ -399,6 +403,9 @@ namespace Engine
 		{
 			API->begin_render_pass();
 		}
+
+		cmd->add_object(this);
+		cmd->add_object(src);
 	}
 
 	VulkanSurface::~VulkanSurface()
