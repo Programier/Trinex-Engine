@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/etl/atomic.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/structures.hpp>
 
@@ -33,7 +32,7 @@ namespace Engine
 
 	struct ENGINE_EXPORT RHI_Object {
 	protected:
-		mutable Atomic<size_t> m_references;
+		mutable size_t m_references;
 		virtual void destroy() const = 0;
 
 	public:

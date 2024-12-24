@@ -1,5 +1,4 @@
 #include <Core/exception.hpp>
-#include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -21,10 +20,7 @@ namespace Engine
 
 		if (m_references == 0)
 		{
-			if (is_in_render_thread())
-				destroy();
-			else
-				render_thread()->call([this]() { destroy(); });
+			destroy();
 		}
 	}
 

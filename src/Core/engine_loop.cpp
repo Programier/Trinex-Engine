@@ -241,7 +241,6 @@ namespace Engine
 		if (WindowManager::instance())
 			delete WindowManager::instance();
 
-		rhi = nullptr;
 		Library::close_all();
 
 		GarbageCollector::destroy(engine_instance);

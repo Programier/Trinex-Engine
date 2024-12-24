@@ -226,7 +226,7 @@ namespace Engine
 		m_window->m_render_viewport = nullptr;
 		m_window                    = nullptr;
 
-		m_viewport->release();
+		render_thread()->call([vp = m_viewport]() { vp->release(); });
 		m_viewport = nullptr;
 	}
 
