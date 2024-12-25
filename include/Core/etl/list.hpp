@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/allocator.hpp>
+#include <Core/etl/archive_predef.hpp>
 #include <forward_list>
 #include <list>
 
@@ -13,25 +14,29 @@ namespace Engine
 	template<typename Type>
 	using ForwardList = std::forward_list<Type, Allocator<Type>>;
 
+	template<typename Type, typename ArchiveType>
+	inline bool trinex_serialize_list(ArchiveType& ar, List<Type>& list)
+		requires(is_complete_archive_type<ArchiveType>)
+	{
+		return ar.write_container(list);
+	}
+
+	template<typename Type, typename ArchiveType>
+	inline bool trinex_serialize_list(ArchiveType& ar, ForwardList<Type>& list)
+		requires(is_complete_archive_type<ArchiveType>)
+	{
+		return ar.write_container(list);
+	}
+
 	template<typename Type, typename ArchiveType = Archive>
 	inline bool operator&(ArchiveType& ar, List<Type>& list)
 	{
-#if TRINEX_ARCHIVE_INCLUDED
-		return ar.write_container(list);
-#else
-		static_assert(false, "Archive class is incomplete. Please, include <Core/archive.hpp> first");
-		return false;
-#endif
+		return trinex_serialize_list(ar, list);
 	}
 
 	template<typename Type, typename ArchiveType = Archive>
 	inline bool operator&(ArchiveType& ar, ForwardList<Type>& list)
 	{
-#if TRINEX_ARCHIVE_INCLUDED
-		return ar.write_container(list);
-#else
-		static_assert(false, "Archive class is incomplete. Please, include <Core/archive.hpp> first");
-		return false;
-#endif
+		return trinex_serialize_list(ar, list);
 	}
 }// namespace Engine
