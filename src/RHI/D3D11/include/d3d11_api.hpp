@@ -37,10 +37,10 @@ namespace Engine
 	{
 	public:
 		declare_struct(D3D11, void);
-		
+
 		static D3D11* static_constructor();
 		static void static_destructor(D3D11* d3d11);
-		
+
 		static D3D11* m_instance;
 		D3D11_State m_state;
 
@@ -70,10 +70,8 @@ namespace Engine
 
 		D3D11& initialize(Window* window) override;
 		void* context() override;
-		D3D11& begin_render() override;
-		D3D11& end_render() override;
-		
-		RHI_Viewport* create_viewport(SurfaceRenderViewport* viewport) override;
+		D3D11& submit() override;
+
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 		D3D11& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
@@ -91,8 +89,8 @@ namespace Engine
 		                              size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture* create_texture_2d(const Texture2D*) override;
-		RHI_Texture* create_render_surface(const RenderSurface* surface) override;
+		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
+		RHI_Texture2D* create_render_surface(const RenderSurface* surface) override;
 
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;

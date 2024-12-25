@@ -11,27 +11,12 @@ namespace Engine
 		virtual Size2D render_target_size() const             = 0;
 		virtual ID3D11RenderTargetView* render_target() const = 0;
 
-		void begin_render() override;
-
 		void bind() override;
 		void vsync(bool flag) override;
 		void on_orientation_changed(Orientation orientation) override;
 		void on_resize(const Size2D& new_size) override;
 		void clear_color(const Color& color) override;
 		void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
-	};
-
-	class D3D11_SurfaceViewport : public D3D11_Viewport
-	{
-	public:
-		RenderSurface* m_surface = nullptr;
-
-		bool is_window_viewport() const override;
-		Size2D render_target_size() const override;
-		ID3D11RenderTargetView* render_target() const override;
-
-		void init(class RenderSurface* surface);
-		void end_render() override;
 	};
 
 	class D3D11_WindowViewport : public D3D11_Viewport
@@ -52,7 +37,7 @@ namespace Engine
 		void init(class Window* window, bool vsync);
 		void create_swapchain(const Size2D& size);
 
-		void end_render() override;
+		void present() override;
 		void vsync(bool flag) override;
 		void on_resize(const Size2D& new_size) override;
 

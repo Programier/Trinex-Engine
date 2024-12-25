@@ -876,7 +876,7 @@ namespace Engine::ShaderCompiler
 			else
 				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
 
-			auto profile = global_session()->findProfile("sm_4_0");
+			auto profile = global_session()->findProfile("sm_5_0");
 			request->setTargetProfile(0, profile);
 			request->addPreprocessorDefine("TRINEX_INVERT_UV", "1");
 			request->addPreprocessorDefine("TRINEX_D3D11_RHI", "1");

@@ -4,14 +4,7 @@
 
 namespace Engine
 {
-	class D3D11_Texture : public RHI_Texture
-	{
-	public:
-		void clear_color(const Color& color) override;
-		void clear_depth_stencil(float depth, byte stencil) override;
-	};
-
-	class D3D11_Texture2D : public RHI_DefaultDestroyable<D3D11_Texture>
+	class D3D11_Texture2D : public RHI_DefaultDestroyable<RHI_Texture2D>
 	{
 	public:
 		ID3D11Texture2D* m_texture       = nullptr;

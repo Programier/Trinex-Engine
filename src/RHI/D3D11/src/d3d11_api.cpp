@@ -94,12 +94,7 @@ namespace Engine
 		return m_context;
 	}
 
-	D3D11& D3D11::begin_render()
-	{
-		return *this;
-	}
-
-	D3D11& D3D11::end_render()
+	D3D11& D3D11::submit()
 	{
 		return *this;
 	}

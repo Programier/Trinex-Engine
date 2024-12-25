@@ -12,12 +12,6 @@
 
 namespace Engine
 {
-	void D3D11_Texture::clear_color(const Color& color)
-	{}
-
-	void D3D11_Texture::clear_depth_stencil(float depth, byte stencil)
-	{}
-
 	static UINT format_block_size(DXGI_FORMAT format)
 	{
 		switch (format)
@@ -237,7 +231,7 @@ namespace Engine
 		d3d11_release(m_depth_stencil_view);
 	}
 
-	RHI_Texture* D3D11::create_texture_2d(const Texture2D* texture)
+	RHI_Texture2D* D3D11::create_texture_2d(const Texture2D* texture)
 	{
 		D3D11_Texture2D* d3d11_texture = new D3D11_Texture2D();
 
@@ -250,7 +244,7 @@ namespace Engine
 		return d3d11_texture;
 	}
 
-	RHI_Texture* D3D11::create_render_surface(const RenderSurface* surface)
+	RHI_Texture2D* D3D11::create_render_surface(const RenderSurface* surface)
 	{
 		D3D11_RenderSurface* d3d11_surface = new D3D11_RenderSurface();
 

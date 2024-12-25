@@ -10,23 +10,6 @@
 namespace Engine
 {
 	extern HWND extract_d3dx11_hwnd(class Window* window);
-	void D3D11_Viewport::begin_render()
-	{
-		auto size = render_target_size();
-
-		if (size.x > 0.f && size.y > 0.f)
-		{
-			ViewPort viewport;
-			viewport.pos       = {0, 0};
-			viewport.size      = size;
-			viewport.min_depth = 0.f;
-			viewport.max_depth = 1.f;
-
-			DXAPI->m_state.render_viewport = this;
-			DXAPI->m_state.viewport_mode   = D3D11_ViewportMode::Undefined;
-			DXAPI->viewport(viewport);
-		}
-	}
 
 	void D3D11_Viewport::bind()
 	{
@@ -56,38 +39,6 @@ namespace Engine
 	}
 
 	void D3D11_Viewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
-	{}
-
-
-	bool D3D11_SurfaceViewport::is_window_viewport() const
-	{
-		return false;
-	}
-
-	Size2D D3D11_SurfaceViewport::render_target_size() const
-	{
-		if (m_surface)
-		{
-			return m_surface->size();
-		}
-		return {-1.f, -1.f};
-	}
-
-	ID3D11RenderTargetView* D3D11_SurfaceViewport::render_target() const
-	{
-		if (m_surface)
-		{
-			return m_surface->rhi_object<D3D11_RenderSurface>()->m_render_target;
-		}
-		return nullptr;
-	}
-
-	void D3D11_SurfaceViewport::init(class RenderSurface* surface)
-	{
-		m_surface = surface;
-	}
-
-	void D3D11_SurfaceViewport::end_render()
 	{}
 
 	bool D3D11_WindowViewport::is_window_viewport() const
@@ -140,7 +91,7 @@ namespace Engine
 		m_size = size;
 	}
 
-	void D3D11_WindowViewport::end_render()
+	void D3D11_WindowViewport::present()
 	{
 		m_swap_chain->Present(m_with_vsync ? 1 : 0, 0);
 	}
@@ -181,13 +132,6 @@ namespace Engine
 		d3d11_release(m_swap_chain);
 		d3d11_release(m_back_buffer);
 		d3d11_release(m_view);
-	}
-
-	RHI_Viewport* D3D11::create_viewport(SurfaceRenderViewport* viewport)
-	{
-		D3D11_SurfaceViewport* result = new D3D11_SurfaceViewport();
-		result->init(viewport->render_surface());
-		return result;
 	}
 
 	RHI_Viewport* D3D11::create_viewport(WindowRenderViewport* viewport, bool vsync)
