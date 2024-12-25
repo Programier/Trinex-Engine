@@ -295,6 +295,12 @@ namespace Engine
 		return *this;
 	}
 
+	WindowRenderViewport& WindowRenderViewport::rhi_present()
+	{
+		m_viewport->present();
+		return *this;
+	}
+
 	WindowRenderViewport& WindowRenderViewport::vsync(bool flag)
 	{
 		if (is_in_render_thread())

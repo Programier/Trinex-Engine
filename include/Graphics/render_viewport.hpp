@@ -86,6 +86,7 @@ namespace Engine
 											  SamplerFilter filter = SamplerFilter::Trilinear) override;
 		WindowRenderViewport& rhi_clear_color(const Color& color) override;
 		WindowRenderViewport& rhi_bind() override;
+		WindowRenderViewport& rhi_present();
 
 		WindowRenderViewport& vsync(bool flag);
 		WindowRenderViewport& on_resize(const Size2D& new_size);
