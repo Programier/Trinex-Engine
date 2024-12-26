@@ -1,3 +1,5 @@
+#include "platform.slang"
+
 struct VertexInput
 {
 	float3 position : POSITION0;	
@@ -18,7 +20,7 @@ uniform float power;
 void vs_main(in VertexInput input, out VertexOutput out)
 {
 	out.position = float4(input.position.x, input.position.y, input.position.z, 1.f);
-	out.uv = (input.position.xy + float2(1.f, 1.f)) * float2(0.5f, 0.5f);
+	out.uv = Platform::validate_uv((input.position.xy + float2(1.f, 1.f)) * float2(0.5f, 0.5f));
 }
 
 [shader("fragment")]

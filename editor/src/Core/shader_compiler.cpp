@@ -56,21 +56,22 @@ namespace Engine::ShaderCompiler
 
 		Logger& error_msg(const char* tag, const char* msg) override
 		{
-			has_error = true;
+			if (std::strcmp(tag, "ShaderCompiler") == 0)
+				has_error = true;
 			return base->error_msg(tag, msg);
 		}
 	};
 
 
-#define RETURN_ON_FAIL(code)                                                                                                     \
-	if (SLANG_FAILED(code))                                                                                                      \
+#define RETURN_ON_FAIL(code)                                                                                                          \
+	if (SLANG_FAILED(code))                                                                                                           \
 	return false
 
 	static Vector<Refl::Class* (*) (slang::VariableLayoutReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)>
 			m_param_parsers;
 
-#define return_nullptr_if_not(cond)                                                                                              \
-	if (!(cond))                                                                                                                 \
+#define return_nullptr_if_not(cond)                                                                                                   \
+	if (!(cond))                                                                                                                      \
 	return nullptr
 
 	struct ParamParser {
@@ -249,7 +250,7 @@ namespace Engine::ShaderCompiler
 				return VertexBufferElementType::Undefined;
 
 			if (components_offset == 3 &&
-			    !is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
+				!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
 			{
 				--components_offset;
 			}
@@ -378,13 +379,11 @@ namespace Engine::ShaderCompiler
 		return {};
 	}
 
-	static void parse_shader_parameter(ShaderReflection& out_reflection, slang::VariableLayoutReflection* param,
-									   size_t offset = 0)
+	static void parse_shader_parameter(ShaderReflection& out_reflection, slang::VariableLayoutReflection* param, size_t offset = 0)
 	{
 		auto kind = param->getTypeLayout()->getKind();
 
-		if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(
-		            kind))
+		if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(kind))
 		{
 			auto name = param->getName();
 			trinex_always_check(name, "Failed to get parameter name!");
@@ -428,8 +427,8 @@ namespace Engine::ShaderCompiler
 					object.name             = param->getName();
 					object.location.binding = param->getOffset(SLANG_PARAMETER_CATEGORY_SHADER_RESOURCE);
 					object.type             = binding_type == slang::BindingType::CombinedTextureSampler
-					                                  ? MaterialParameters::Sampler2D::static_class_instance()
-					                                  : MaterialParameters::Texture2D::static_class_instance();
+													  ? MaterialParameters::Sampler2D::static_class_instance()
+													  : MaterialParameters::Texture2D::static_class_instance();
 					out_reflection.uniform_member_infos.push_back(object);
 				}
 			}
@@ -512,8 +511,8 @@ namespace Engine::ShaderCompiler
 		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 	}
 
-#define check_compile_errors()                                                                                                   \
-	if (log_handler.has_error)                                                                                                   \
+#define check_compile_errors()                                                                                                        \
+	if (log_handler.has_error)                                                                                                        \
 	return false
 
 	static void submit_compiled_source(Buffer& out_buffer, const void* _data, size_t size)
@@ -681,7 +680,7 @@ namespace Engine::ShaderCompiler
 		{
 			ComPtr<slang::IBlob> diagnostics_blob;
 			SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
-			                                                           program.writeRef(), diagnostics_blob.writeRef());
+																	   program.writeRef(), diagnostics_blob.writeRef());
 			diagnose_if_needed(diagnostics_blob);
 			RETURN_ON_FAIL(result);
 		}
@@ -706,7 +705,7 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-				        program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+						program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
@@ -720,7 +719,7 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-				        program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+						program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
@@ -733,13 +732,13 @@ namespace Engine::ShaderCompiler
 			ComPtr<slang::IBlob> result_code;
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = program->getEntryPointCode(tessellation_control_index, 0, result_code.writeRef(),
-				                                                diagnostics_blob.writeRef());
+				SlangResult result =
+						program->getEntryPointCode(tessellation_control_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
 				submit_compiled_source(out_source.tessellation_control_code, result_code->getBufferPointer(),
-				                       result_code->getBufferSize());
+									   result_code->getBufferSize());
 			}
 		}
 
@@ -749,12 +748,11 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-				        program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+						program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 
-				submit_compiled_source(out_source.tessellation_code, result_code->getBufferPointer(),
-				                       result_code->getBufferSize());
+				submit_compiled_source(out_source.tessellation_code, result_code->getBufferPointer(), result_code->getBufferSize());
 			}
 		}
 
@@ -764,7 +762,7 @@ namespace Engine::ShaderCompiler
 			{
 				ComPtr<slang::IBlob> diagnostics_blob;
 				SlangResult result =
-				        program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+						program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 				diagnose_if_needed(diagnostics_blob);
 				RETURN_ON_FAIL(result);
 

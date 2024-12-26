@@ -88,7 +88,7 @@ namespace Engine
 		desc.DepthBiasClamp        = 0.f;
 		desc.SlopeScaledDepthBias  = 0.f;
 		desc.DepthClipEnable       = TRUE;
-		desc.ScissorEnable         = FALSE;
+		desc.ScissorEnable         = TRUE;
 		desc.MultisampleEnable     = FALSE;
 		desc.AntialiasedLineEnable = FALSE;
 		return desc;

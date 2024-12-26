@@ -45,6 +45,14 @@ namespace Engine
 		}
 	}
 
+	D3D11_State::D3D11_State()
+	{}
+
+	void D3D11_State::reset()
+	{
+		new (this) D3D11_State();
+	}
+
 	D3D11::D3D11()
 	{
 		info_log("D3D11", "Creating RHI");
@@ -77,7 +85,7 @@ namespace Engine
 
 		D3D_FEATURE_LEVEL max_feature_level = D3D_FEATURE_LEVEL_11_0;
 		result = D3D11CreateDevice(m_dxgi_adapter, driver_type, nullptr, device_flags, &max_feature_level, 1, D3D11_SDK_VERSION,
-		                           &m_device, &m_feature_level, &m_context);
+								   &m_device, &m_feature_level, &m_context);
 		trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
 
 		m_global_uniform_buffer.initialize();
@@ -96,6 +104,7 @@ namespace Engine
 
 	D3D11& D3D11::submit()
 	{
+		m_state.reset();
 		return *this;
 	}
 
@@ -135,26 +144,19 @@ namespace Engine
 		{
 			if (new_mode != D3D11_ViewportMode::Undefined)
 			{
-				float vp_y = viewport.pos.y;
-				float vp_h = viewport.size.y;
-
-				if (false && new_mode == D3D11_ViewportMode::Flipped)
+				D3D11_VIEWPORT vp = {};
+				vp.Width          = viewport.size.x;
+				vp.Height         = viewport.size.y;
+				vp.TopLeftX       = viewport.pos.x;
+				vp.TopLeftY       = m_state.render_target_size.y - viewport.pos.y - viewport.size.y;
+				if(glm::epsilonEqual<float>(vp.TopLeftY, 63.f, 0.01f))
 				{
-					auto render_target_size = m_state.render_viewport->render_target_size();
-					vp_y                    = render_target_size.y - viewport.pos.y;
-					vp_h                    = -vp_h;
+					int i = 0;
+					++i;
 				}
-
-				{
-					D3D11_VIEWPORT vp = {};
-					vp.Width          = viewport.size.x;
-					vp.Height         = vp_h;
-					vp.TopLeftX       = viewport.pos.x;
-					vp.TopLeftY       = vp_y;
-					vp.MinDepth       = viewport.min_depth;
-					vp.MaxDepth       = viewport.max_depth;
-					m_context->RSSetViewports(1, &vp);
-				}
+				vp.MinDepth       = viewport.min_depth;
+				vp.MaxDepth       = viewport.max_depth;
+				m_context->RSSetViewports(1, &vp);
 			}
 
 			m_viewport = viewport;
@@ -169,10 +171,24 @@ namespace Engine
 
 	D3D11& D3D11::scissor(const Scissor& scissor)
 	{
-		m_state.scissor = scissor;
-		// if (m_state.render_target_size.y > 0.f)
-		// {
-		// }
+		auto& m_scissor = m_state.scissor;
+		auto new_mode   = current_viewport_mode();
+
+		if (new_mode != m_state.viewport_mode || m_scissor != scissor)
+		{
+			if (new_mode != D3D11_ViewportMode::Undefined)
+			{
+				D3D11_RECT rect = {};
+				rect.left       = scissor.pos.x;
+				rect.right      = scissor.pos.x + scissor.size.x;
+
+				rect.top    = m_state.render_target_size.y - scissor.pos.y - scissor.size.y;
+				rect.bottom = m_state.render_target_size.y - scissor.pos.y;
+				m_context->RSSetScissorRects(1, &rect);
+			}
+
+			m_scissor = scissor;
+		}
 		return *this;
 	}
 
@@ -183,17 +199,11 @@ namespace Engine
 
 	D3D11_ViewportMode D3D11::current_viewport_mode()
 	{
-		auto vp = m_state.render_viewport;
-		ComPtr<ID3D11RenderTargetView> rt;
-		m_context->OMGetRenderTargets(1, &rt, nullptr);
-
-		if (vp == nullptr || rt == nullptr)
+		if (m_state.render_target_size.x < 0.0f || m_state.render_target_size.y < 0.0f)
 		{
 			return D3D11_ViewportMode::Undefined;
 		}
 
-		if (vp->is_window_viewport() && vp->render_target() == rt.Get())
-			return D3D11_ViewportMode::Flipped;
 		return D3D11_ViewportMode::Normal;
 	}
 

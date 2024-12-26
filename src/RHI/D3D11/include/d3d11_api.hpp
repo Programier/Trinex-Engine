@@ -22,15 +22,17 @@ namespace Engine
 	{
 		Undefined = 0,
 		Normal    = 1,
-		Flipped   = 2,
 	};
 
 	struct D3D11_State {
 		ViewPort viewport;
 		Scissor scissor;
-		class D3D11_Viewport* render_viewport = nullptr;
-		class D3D11_Pipeline* pipeline        = nullptr;
-		D3D11_ViewportMode viewport_mode      = D3D11_ViewportMode::Undefined;
+		Vector2D render_target_size      = {-1, -1};
+		class D3D11_Pipeline* pipeline   = nullptr;
+		D3D11_ViewportMode viewport_mode = D3D11_ViewportMode::Undefined;
+
+		D3D11_State();
+		void reset();
 	};
 
 	class D3D11 : public NoneApi
@@ -85,8 +87,7 @@ namespace Engine
 		D3D11& draw(size_t vertex_count, size_t vertices_offset) override;
 		D3D11& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
 		D3D11& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
-		D3D11& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-		                              size_t instances) override;
+		D3D11& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
 		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
