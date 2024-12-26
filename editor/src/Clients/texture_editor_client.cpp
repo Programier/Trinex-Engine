@@ -126,7 +126,7 @@ namespace Engine
 		{
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
 			ImGui::Spring(1.f, 0.5);
-			auto size = max_texture_size_in_viewport(glm::min(m_texture->size(), {1, 1}),
+			auto size = max_texture_size_in_viewport(glm::max(m_texture->size(), {1, 1}),
 													 ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
 			ImGui::Image(ImTextureID(m_surface.ptr(), EditorResources::default_sampler), ImGui::ImVecFrom(size));
 			ImGui::Spring(1.f, 0.5);

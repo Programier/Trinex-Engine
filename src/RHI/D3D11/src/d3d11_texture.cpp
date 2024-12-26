@@ -95,7 +95,10 @@ namespace Engine
 		}
 
 		Vector<D3D11_SUBRESOURCE_DATA> sub_resource_data;
+		Vector<Buffer> flipped_mip_data;
+
 		sub_resource_data.resize(texture->mipmap_count());
+		flipped_mip_data.resize(texture->mipmap_count());
 
 		for (size_t i = 0, count = texture->mipmap_count(); i < count; ++i)
 		{
@@ -103,8 +106,8 @@ namespace Engine
 			const auto& mip              = texture->mip(i);
 			int_t pitch                  = static_cast<int_t>(mip->data.size()) / static_cast<int_t>(mip->size.y);
 
-			Buffer buffer = flip_texture_buffer(mip->data, static_cast<int_t>(mip->size.y), pitch);
-			data.pSysMem  = buffer.data();
+			flipped_mip_data[i] = flip_texture_buffer(mip->data, static_cast<int_t>(mip->size.y), pitch);
+			data.pSysMem        = flipped_mip_data[i].data();
 
 			if (data.pSysMem == nullptr)
 			{
