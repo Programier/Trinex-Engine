@@ -678,11 +678,19 @@ namespace Engine::ShaderCompiler
 			}
 		}
 
-		ComPtr<slang::IComponentType> program;
+		ComPtr<slang::IComponentType> composite;
 		{
 			ComPtr<slang::IBlob> diagnostics_blob;
 			SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
-																	   program.writeRef(), diagnostics_blob.writeRef());
+																	   composite.writeRef(), diagnostics_blob.writeRef());
+			diagnose_if_needed(diagnostics_blob);
+			RETURN_ON_FAIL(result);
+		}
+
+		ComPtr<slang::IComponentType> program;
+		{
+			ComPtr<slang::IBlob> diagnostics_blob;
+			SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
 			diagnose_if_needed(diagnostics_blob);
 			RETURN_ON_FAIL(result);
 		}

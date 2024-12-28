@@ -175,8 +175,7 @@ namespace Engine
 
 	bool VulkanTexture::is_depth_stencil_image(ColorFormat format)
 	{
-		return is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-		        format);
+		return is_in<ColorFormat::DepthStencil, ColorFormat::Depth, ColorFormat::ShadowDepth>(format);
 	}
 
 	vk::ImageView VulkanTexture::create_image_view(const vk::ImageSubresourceRange& range)

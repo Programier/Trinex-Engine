@@ -96,9 +96,8 @@ namespace Engine
 						  VertexBufferElementType::UInt2, VertexBufferElementType::UInt3, VertexBufferElementType::UInt4);
 
 	implement_engine_enum(ColorFormat, ColorFormat::Undefined, ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8,
-						  ColorFormat::R8G8B8A8, ColorFormat::DepthStencil, ColorFormat::ShadowDepth,
-						  ColorFormat::FilteredShadowDepth, ColorFormat::D32F, ColorFormat::BC1, ColorFormat::BC2,
-						  ColorFormat::BC3);
+						  ColorFormat::R8G8B8A8, ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth,
+						  ColorFormat::BC1, ColorFormat::BC2, ColorFormat::BC3);
 
 	implement_engine_enum(MaterialDomain, MaterialDomain::Surface);
 

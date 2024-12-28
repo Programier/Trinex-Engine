@@ -216,39 +216,7 @@ namespace Engine
 		}
 	}
 
-	/*
-        switch (format)
-        {
-            case ColorFormat::Undefined:
-                return vk::Format::eUndefined;
-            case ColorFormat::FloatR:
-                return vk::Format::eR32Sfloat;
-            case ColorFormat::FloatRGBA:
-                return vk::Format::eR32G32B32A32Sfloat;
-            case ColorFormat::R8:
-                return vk::Format::eR8Unorm;
-            case ColorFormat::R8G8B8A8:
-                return vk::Format::eR8G8B8A8Unorm;
-            case ColorFormat::DepthStencil:
-                return vk::Format::eD32SfloatS8Uint;
-            case ColorFormat::ShadowDepth:
-                return vk::Format::eD32Sfloat;
-            case ColorFormat::FilteredShadowDepth:
-                return vk::Format::eD32Sfloat;
-            case ColorFormat::D32F:
-                return vk::Format::eD32Sfloat;
-            case ColorFormat::BC1:
-                return vk::Format::eBc1RgbaUnormBlock;
-            case ColorFormat::BC2:
-                return vk::Format::eBc2UnormBlock;
-            case ColorFormat::BC3:
-                return vk::Format::eBc3UnormBlock;
-
-            default:
-                return vk::Format::eUndefined;
-        }
-*/
-	DXGI_FORMAT format_of(ColorFormat format)
+	DXGI_FORMAT texture_format_of(ColorFormat format)
 	{
 		switch (format)
 		{
@@ -261,13 +229,12 @@ namespace Engine
 			case ColorFormat::R8G8B8A8:
 				return DXGI_FORMAT_R8G8B8A8_UNORM;
 			case ColorFormat::DepthStencil:
-				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+				return DXGI_FORMAT_R24G8_TYPELESS;
+
 			case ColorFormat::ShadowDepth:
-				return DXGI_FORMAT_D32_FLOAT;
-			case ColorFormat::FilteredShadowDepth:
-				return DXGI_FORMAT_D32_FLOAT;
-			case ColorFormat::D32F:
-				return DXGI_FORMAT_D32_FLOAT;
+			case ColorFormat::Depth:
+				return DXGI_FORMAT_R32_TYPELESS;
+
 			case ColorFormat::BC1:
 				return DXGI_FORMAT_BC1_UNORM;
 			case ColorFormat::BC2:
@@ -276,6 +243,34 @@ namespace Engine
 				return DXGI_FORMAT_BC3_UNORM;
 			default:
 				throw EngineException("Undefined color format");
+		}
+	}
+
+	DXGI_FORMAT view_format_of(ColorFormat format)
+	{
+		switch (format)
+		{
+			case ColorFormat::DepthStencil:
+				return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+			case ColorFormat::ShadowDepth:
+			case ColorFormat::Depth:
+				return DXGI_FORMAT_R32_FLOAT;
+			default:
+				return texture_format_of(format);
+		}
+	}
+
+	DXGI_FORMAT render_view_format_of(ColorFormat format)
+	{
+		switch (format)
+		{
+			case ColorFormat::DepthStencil:
+				return DXGI_FORMAT_D24_UNORM_S8_UINT;
+			case ColorFormat::ShadowDepth:
+			case ColorFormat::Depth:
+				return DXGI_FORMAT_D32_FLOAT;
+			default:
+				return texture_format_of(format);
 		}
 	}
 }// namespace Engine

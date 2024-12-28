@@ -67,8 +67,7 @@ namespace Engine
 				switch (depth_stencil->format())
 				{
 					case ColorFormat::ShadowDepth:
-					case ColorFormat::FilteredShadowDepth:
-					case ColorFormat::D32F:
+					case ColorFormat::Depth:
 						layout = vk::ImageLayout::eDepthAttachmentOptimal;
 						break;
 

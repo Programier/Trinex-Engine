@@ -23,9 +23,7 @@ namespace Engine
 
 	RenderSurface& RenderSurface::rhi_clear_color(const Color& color)
 	{
-		if (has_object() &&
-		    !is_in<ColorFormat::D32F, ColorFormat::DepthStencil, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-		            format()))
+		if (has_object() && !is_in<ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth>(format()))
 		{
 			rhi_object<RHI_Texture2D>()->clear_color(color);
 		}
@@ -34,9 +32,7 @@ namespace Engine
 
 	RenderSurface& RenderSurface::rhi_clear_depth_stencil(float depth, byte stencil)
 	{
-		if (has_object() &&
-		    is_in<ColorFormat::D32F, ColorFormat::DepthStencil, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-		            format()))
+		if (has_object() && is_in<ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth>(format()))
 		{
 			rhi_object<RHI_Texture2D>()->clear_depth_stencil(depth, stencil);
 		}

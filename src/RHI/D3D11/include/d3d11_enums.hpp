@@ -14,5 +14,8 @@ namespace Engine
 	D3D11_CULL_MODE cull_mode_of(CullMode mode);
 	D3D11_TEXTURE_ADDRESS_MODE address_mode_of(SamplerAddressMode value);
 	D3D11_FILTER filter_of(SamplerFilter filter, bool comparison_enabled);
-	DXGI_FORMAT format_of(ColorFormat format);
+
+	DXGI_FORMAT texture_format_of(ColorFormat format);
+	DXGI_FORMAT view_format_of(ColorFormat format);
+	DXGI_FORMAT render_view_format_of(ColorFormat format);
 }// namespace Engine

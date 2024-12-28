@@ -375,18 +375,17 @@ namespace Engine
 
 	enum class ColorFormat : EnumerateType
 	{
-		Undefined           = 0,
-		FloatR              = 1,
-		FloatRGBA           = 2,
-		R8                  = 3,
-		R8G8B8A8            = 4,
-		DepthStencil        = 5,
-		ShadowDepth         = 6,
-		FilteredShadowDepth = 7,
-		D32F                = 8,
-		BC1                 = 9,
-		BC2                 = 10,
-		BC3                 = 11,
+		Undefined    = 0,
+		FloatR       = 1,
+		FloatRGBA    = 2,
+		R8           = 3,
+		R8G8B8A8     = 4,
+		Depth        = 5,
+		DepthStencil = 6,
+		ShadowDepth  = 7,
+		BC1          = 8,
+		BC2          = 9,
+		BC3          = 10,
 	};
 
 	enum class ShowFlags : EnumerateType

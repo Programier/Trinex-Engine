@@ -156,9 +156,7 @@ namespace Engine
 				return vk::Format::eD24UnormS8Uint;
 			case ColorFormat::ShadowDepth:
 				return vk::Format::eD32Sfloat;
-			case ColorFormat::FilteredShadowDepth:
-				return vk::Format::eD32Sfloat;
-			case ColorFormat::D32F:
+			case ColorFormat::Depth:
 				return vk::Format::eD32Sfloat;
 			case ColorFormat::BC1:
 				return vk::Format::eBc1RgbaUnormBlock;

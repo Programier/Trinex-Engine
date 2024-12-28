@@ -19,9 +19,7 @@ namespace Engine
 				return OpenGL_ColorInfo(GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
 			case ColorFormat::ShadowDepth:
 				return OpenGL_ColorInfo(GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-			case ColorFormat::FilteredShadowDepth:
-				return OpenGL_ColorInfo(GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-			case ColorFormat::D32F:
+			case ColorFormat::Depth:
 				return OpenGL_ColorInfo(GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 			case ColorFormat::BC1:
 				return OpenGL_ColorInfo(0x83F1, 0, 0);

@@ -253,13 +253,9 @@ namespace Engine
 		{
 		public:
 			Size2D m_size;
-			ViewportClient* m_client;
 			WindowRenderViewport* m_viewport;
-			RHI_Viewport* m_rhi_viewport;
 
-			StartRenderingViewport(ViewportClient* client, WindowRenderViewport* viewport, RHI_Viewport* rhi_viewport,
-								   Size2D size)
-				: m_size(size), m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
+			StartRenderingViewport(WindowRenderViewport* viewport) : m_size(viewport->size()), m_viewport(viewport)
 			{}
 
 			void execute() override
@@ -267,12 +263,13 @@ namespace Engine
 				m_viewport->m_size = m_size;
 				rhi->viewport(m_viewport->viewport_info(m_size));
 				rhi->scissor(m_viewport->scissor_info(m_size));
-				m_client->render(m_viewport);
-				m_rhi_viewport->present();
+
+				m_viewport->m_client->render(m_viewport);
+				m_viewport->m_viewport->present();
 			}
 		};
 
-		render_thread()->create_task<StartRenderingViewport>(m_client.ptr(), this, m_viewport, size());
+		render_thread()->create_task<StartRenderingViewport>(this);
 		return *this;
 	}
 

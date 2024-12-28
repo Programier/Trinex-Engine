@@ -73,7 +73,7 @@ namespace Engine
 		desc.Height             = static_cast<UINT>(texture->height());
 		desc.MipLevels          = static_cast<UINT>(texture->mipmap_count());
 		desc.ArraySize          = 1;
-		desc.Format             = format_of(texture->format());
+		desc.Format             = texture_format_of(texture->format());
 		desc.SampleDesc.Count   = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Usage              = D3D11_USAGE_DEFAULT;
@@ -83,8 +83,7 @@ namespace Engine
 
 		if (is_render_surface)
 		{
-			if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-						texture->format()))
+			if (is_in<ColorFormat::DepthStencil, ColorFormat::Depth, ColorFormat::ShadowDepth>(texture->format()))
 			{
 				desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
 			}
@@ -119,8 +118,8 @@ namespace Engine
 			data.SysMemPitch      = static_cast<UINT>(mip->size.x) * format_block_size(desc.Format);
 		}
 
-		HRESULT hr =
-				DXAPI->m_device->CreateTexture2D(&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(), &m_texture);
+		HRESULT hr = DXAPI->m_device->CreateTexture2D(&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(),
+													  &m_texture);
 
 		if (hr != S_OK)
 		{
@@ -128,21 +127,17 @@ namespace Engine
 			return false;
 		}
 
+		D3D11_SHADER_RESOURCE_VIEW_DESC view_desc{};
+		view_desc.Format                    = view_format_of(texture->format());
+		view_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+		view_desc.Texture2D.MostDetailedMip = 0;
+		view_desc.Texture2D.MipLevels       = desc.MipLevels;
 
-		if (desc.Format != DXGI_FORMAT_D24_UNORM_S8_UINT)
+		hr = DXAPI->m_device->CreateShaderResourceView(m_texture, &view_desc, &m_view);
+		if (hr != S_OK)
 		{
-			D3D11_SHADER_RESOURCE_VIEW_DESC view_desc{};
-			view_desc.Format                    = desc.Format;
-			view_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-			view_desc.Texture2D.MostDetailedMip = 0;
-			view_desc.Texture2D.MipLevels       = desc.MipLevels;
-
-			hr = DXAPI->m_device->CreateShaderResourceView(m_texture, &view_desc, &m_view);
-			if (hr != S_OK)
-			{
-				error_log("D3D11", "Failed to texture view!");
-				return false;
-			}
+			error_log("D3D11", "Failed to texture view!");
+			return false;
 		}
 
 		return true;
@@ -186,10 +181,9 @@ namespace Engine
 			return false;
 		}
 
-		if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
-					surface->format()))
+		if (is_in<ColorFormat::DepthStencil, ColorFormat::Depth, ColorFormat::ShadowDepth>(surface->format()))
 		{
-			m_depth_stencil_view = DXAPI->create_depth_stencil_view(m_texture, format_of(surface->format()));
+			m_depth_stencil_view = DXAPI->create_depth_stencil_view(m_texture, render_view_format_of(surface->format()));
 
 			if (m_depth_stencil_view == nullptr)
 			{
@@ -199,7 +193,7 @@ namespace Engine
 		}
 		else
 		{
-			m_render_target = DXAPI->create_render_target_view(m_texture, format_of(surface->format()));
+			m_render_target = DXAPI->create_render_target_view(m_texture, render_view_format_of(surface->format()));
 
 			if (m_render_target == nullptr)
 			{
@@ -223,7 +217,8 @@ namespace Engine
 	{
 		if (m_depth_stencil_view)
 		{
-			DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, stencil);
+			DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth,
+													stencil);
 		}
 	}
 
