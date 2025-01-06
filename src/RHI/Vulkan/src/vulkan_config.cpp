@@ -16,7 +16,7 @@ namespace Engine::VulkanConfig
 {
 	vkb::PreferredDeviceType device_type  = vkb::PreferredDeviceType::discrete;
 	bool enable_validation                = false;
-	bool allow_any_gpu_type               = true;
+	bool allow_any_gpu_type               = false;
 	bool require_present                  = true;
 	bool require_dedicated_transfer_queue = false;
 	bool require_dedicated_compute_queue  = false;

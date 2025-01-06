@@ -64,7 +64,8 @@ namespace Engine
 			API->end_render_pass();
 
 		{
-			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead);
+			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
+											vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, barrier,
 			                           {}, {});
 		}
@@ -95,7 +96,7 @@ namespace Engine
 				dst_stage = vk::PipelineStageFlagBits::eAllCommands;
 
 			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
-			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryRead);
+											vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, dst_stage, {}, barrier, {}, {});
 		}
 

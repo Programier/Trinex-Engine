@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/set.hpp>
+#include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_headers.hpp>
@@ -16,7 +17,6 @@ namespace Engine
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlags usage,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 		VulkanBuffer& copy(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
-		VulkanBuffer& copy(vk::DeviceSize offset, VulkanBuffer* buffer, vk::DeviceSize size);
 		VulkanBuffer& update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
 		byte* map_memory();
 		VulkanBuffer& unmap_memory();
