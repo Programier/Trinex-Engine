@@ -50,7 +50,7 @@ namespace Engine
 		Vector3D m_camera_move   = {0, 0, 0};
 		int_t m_guizmo_operation = 0;
 		EditorState m_state;
-		Average<float, 200> m_average_fps;
+		Average<float, 60> m_average_fps = Average<float, 60>(60.f, 1);
 
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);

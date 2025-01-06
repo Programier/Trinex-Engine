@@ -11,6 +11,13 @@ namespace Engine
 		Type m_value        = static_cast<Type>(0);
 
 	public:
+		Average(Type value = Type(0), std::size_t initial_count = 0)
+			: m_count(initial_count < max_count ? initial_count : max_count), m_value(value)
+		{}
+
+		Average(const Average&)            = default;
+		Average& operator=(const Average&) = default;
+
 		Average& push(const Type& value)
 		{
 			if (m_count < max_count)
@@ -57,6 +64,12 @@ namespace Engine
 		std::size_t count() const
 		{
 			return m_count;
+		}
+
+		template<typename OutType, std::size_t out_max_cout>
+		operator Average<OutType, out_max_cout>() const
+		{
+			return Average<OutType, out_max_cout>(static_cast<OutType>(m_value), m_count);
 		}
 	};
 }// namespace Engine

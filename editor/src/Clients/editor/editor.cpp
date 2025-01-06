@@ -248,9 +248,11 @@ namespace Engine
 				ImGui::EndMenu();
 			}
 
-			ImGui::Text("FPS: %.2f\n", 1.f / dt);
+			ImGui::Text("FPS: %.2f\n", m_average_fps.average());
 			ImGui::Spacing();
 			ImGui::Text("RHI: %s\n", rhi->info.name.c_str());
+			ImGui::Spacing();
+			ImGui::Text("GPU: %s\n", rhi->info.renderer.c_str());
 			ImGui::EndMenuBar();
 		}
 
@@ -292,7 +294,7 @@ namespace Engine
 
 	EditorClient& EditorClient::update(float dt)
 	{
-		m_average_fps.push(dt);
+		m_average_fps.push(1.0 / dt);
 		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 
 		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
