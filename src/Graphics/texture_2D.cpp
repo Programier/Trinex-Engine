@@ -119,7 +119,7 @@ namespace Engine
 		return *this;
 	}
 
-	Texture2D& Texture2D::rhi_create()
+	Texture2D& Texture2D::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_texture_2d(this));
 		return *this;

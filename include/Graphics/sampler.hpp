@@ -23,7 +23,7 @@ namespace Engine
 		CompareFunc compare_func      = CompareFunc::Always;
 		bool unnormalized_coordinates = false;
 
-		Sampler& rhi_create() override;
+		Sampler& rhi_init() override;
 		bool serialize(Archive& archive) override;
 		Sampler& apply_changes() override;
 	};

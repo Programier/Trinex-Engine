@@ -35,17 +35,12 @@ namespace Engine
 		}
 	}
 
-	void RenderResource::release_render_resouce(RHI_Object* object)
-	{
-		DestroyRenderResource()(object);
-	}
-
 	RenderResource::RenderResource()
 	{
 		m_rhi_object = nullptr;
 	}
 
-	RenderResource& RenderResource::rhi_create()
+	RenderResource& RenderResource::rhi_init()
 	{
 		return *this;
 	}
@@ -54,7 +49,7 @@ namespace Engine
 	{
 		if (is_in_render_thread())
 		{
-			rhi_create();
+			rhi_init();
 		}
 		else
 		{
@@ -69,12 +64,6 @@ namespace Engine
 		return *this;
 	}
 
-	RenderResource& RenderResource::rhi_destroy()
-	{
-		m_rhi_object = nullptr;
-		return *this;
-	}
-
 	RenderResource& RenderResource::postload()
 	{
 		Super::postload();
@@ -84,11 +73,6 @@ namespace Engine
 	bool RenderResource::has_object() const
 	{
 		return m_rhi_object != nullptr;
-	}
-
-	RenderResource::~RenderResource()
-	{
-		rhi_destroy();
 	}
 
 	const BindedRenderResource& BindedRenderResource::rhi_bind(BindLocation location) const
@@ -110,6 +94,6 @@ namespace Engine
 
 	void InitRenderResourceTask::execute()
 	{
-		resource->rhi_create();
+		resource->rhi_init();
 	}
 }// namespace Engine

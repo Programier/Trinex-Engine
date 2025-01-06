@@ -15,7 +15,7 @@ namespace Engine
 		flags(IsEditable, false);
 	}
 
-	RenderSurface& RenderSurface::rhi_create()
+	RenderSurface& RenderSurface::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_render_surface(this));
 		return *this;

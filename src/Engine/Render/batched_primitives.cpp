@@ -20,7 +20,7 @@ namespace Engine
 		}
 		else
 		{
-			buffer->rhi_create();
+			buffer->rhi_init();
 			current_size = buffer->buffer.size();
 		}
 	}

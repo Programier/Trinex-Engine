@@ -33,7 +33,7 @@ namespace Engine
 		trinex_refl_prop(self, This, unnormalized_coordinates);
 	}
 
-	Sampler& Sampler::rhi_create()
+	Sampler& Sampler::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_sampler(this));
 		return *this;

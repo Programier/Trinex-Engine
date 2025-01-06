@@ -104,7 +104,7 @@ namespace Engine
 	public:
 		Pipeline();
 		~Pipeline();
-		Pipeline& rhi_create() override;
+		Pipeline& rhi_init() override;
 		Pipeline& postload() override;
 		const Pipeline& rhi_bind() const;
 		class Material* material() const;

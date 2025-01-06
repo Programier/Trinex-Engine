@@ -45,7 +45,7 @@ namespace Engine
 		Vector<Attribute> attributes;
 
 	public:
-		VertexShader& rhi_create() override;
+		VertexShader& rhi_init() override;
 		bool serialize(Archive& ar) override;
 		ShaderType type() const override;
 	};
@@ -55,7 +55,7 @@ namespace Engine
 		declare_class(FragmentShader, Shader);
 
 	public:
-		FragmentShader& rhi_create() override;
+		FragmentShader& rhi_init() override;
 		ShaderType type() const override;
 	};
 
@@ -64,7 +64,7 @@ namespace Engine
 		declare_class(TessellationControlShader, Shader);
 
 	public:
-		TessellationControlShader& rhi_create() override;
+		TessellationControlShader& rhi_init() override;
 		ShaderType type() const override;
 	};
 
@@ -73,7 +73,7 @@ namespace Engine
 		declare_class(TessellationShader, Shader);
 
 	public:
-		TessellationShader& rhi_create() override;
+		TessellationShader& rhi_init() override;
 		ShaderType type() const override;
 	};
 
@@ -82,7 +82,7 @@ namespace Engine
 		declare_class(GeometryShader, Shader);
 
 	public:
-		GeometryShader& rhi_create() override;
+		GeometryShader& rhi_init() override;
 		ShaderType type() const override;
 	};
 

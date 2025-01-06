@@ -44,14 +44,9 @@ namespace Engine
 			return reinterpret_cast<T*>(m_rhi_object.get());
 		}
 
-		virtual RenderResource& rhi_create();
-		virtual RenderResource& rhi_destroy();
-
+		virtual RenderResource& rhi_init();
 		RenderResource& init_resource(bool wait_initialize = false);
 		RenderResource& postload() override;
-
-		static void release_render_resouce(RHI_Object* object);
-		~RenderResource();
 	};
 
 

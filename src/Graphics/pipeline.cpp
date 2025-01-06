@@ -92,9 +92,9 @@ namespace Engine
 
 #define init_shader(sdr)                                                                                                         \
 	if (sdr)                                                                                                                     \
-	sdr->rhi_create()
+	sdr->rhi_init()
 
-	Pipeline& Pipeline::rhi_create()
+	Pipeline& Pipeline::rhi_init()
 	{
 		init_shader(m_vertex_shader);
 		init_shader(m_tessellation_control_shader);

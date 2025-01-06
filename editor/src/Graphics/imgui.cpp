@@ -221,13 +221,13 @@ namespace Engine
 			if (!vd->vertex_buffer || vd->vertex_buffer->m_size < draw_data->TotalVtxCount)
 			{
 				vd->vertex_buffer->m_size = draw_data->TotalVtxCount + 5000;
-				vd->vertex_buffer->rhi_create();
+				vd->vertex_buffer->rhi_init();
 			}
 
 			if (!vd->index_buffer || vd->index_buffer->m_size < draw_data->TotalIdxCount)
 			{
 				vd->index_buffer->m_size = draw_data->TotalIdxCount + 10000;
-				vd->index_buffer->rhi_create();
+				vd->index_buffer->rhi_init();
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer
@@ -353,7 +353,7 @@ namespace Engine
 			texture.sampler = Object::new_instance<EngineResource<Sampler>>(
 			        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 			texture.sampler->filter = SamplerFilter::Trilinear;
-			texture.sampler->rhi_create();
+			texture.sampler->rhi_init();
 			package->add_object(texture.sampler);
 
 			// Store our identifier
@@ -546,7 +546,6 @@ namespace Engine
 				ImGui::SetCurrentContext(ctx);
 			}
 		};
-
 
 		static ImGuiMouseButton imgui_button_of(Mouse::Button button)
 		{

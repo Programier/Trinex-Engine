@@ -32,7 +32,7 @@ namespace Engine
 	VertexBuffer::VertexBuffer()
 	{}
 
-	VertexBuffer& VertexBuffer::rhi_create()
+	VertexBuffer& VertexBuffer::rhi_init()
 	{
 		size_t buffer_size = size();
 		if (buffer_size > 0)
@@ -85,7 +85,7 @@ namespace Engine
 	implement_engine_class_default_init(UInt32DynamicIndexBuffer, 0);
 	implement_engine_class_default_init(UInt16DynamicIndexBuffer, 0);
 
-	IndexBuffer& IndexBuffer::rhi_create()
+	IndexBuffer& IndexBuffer::rhi_init()
 	{
 		size_t e_size = element_size();
 		trinex_always_check(e_size == 4 || e_size == 2, "Size of index buffer element must be equal 16 or 32 bytes");
@@ -205,7 +205,7 @@ namespace Engine
 		return ar;
 	}
 
-	SSBO& SSBO::rhi_create()
+	SSBO& SSBO::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_ssbo(init_size, init_data, RHIBufferType::Static));
 		return *this;

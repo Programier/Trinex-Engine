@@ -28,7 +28,7 @@ namespace Engine
 
 	public:
 		VertexBuffer();
-		VertexBuffer& rhi_create() override;
+		VertexBuffer& rhi_init() override;
 		VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
 		RHIBufferType buffer_type() const override;
 	};
@@ -177,7 +177,7 @@ namespace Engine
 		declare_class(IndexBuffer, PipelineBuffer);
 
 	public:
-		IndexBuffer& rhi_create() override;
+		IndexBuffer& rhi_init() override;
 		IndexBuffer& rhi_bind(size_t offset = 0);
 		RHIBufferType buffer_type() const override;
 	};
@@ -263,7 +263,7 @@ namespace Engine
 		size_t init_size      = 0;
 		const byte* init_data = nullptr;
 
-		SSBO& rhi_create() override;
+		SSBO& rhi_init() override;
 		SSBO& rhi_bind(BindLocation location);
 	};
 }// namespace Engine

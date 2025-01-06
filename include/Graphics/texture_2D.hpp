@@ -40,7 +40,7 @@ namespace Engine
 		const Texture2DMip* mip(MipMapLevel level = 0) const;
 
 		Texture2D& generate_mipmaps();
-		Texture2D& rhi_create() override;
+		Texture2D& rhi_init() override;
 		TextureType type() const override;
 		Texture2D& apply_changes() override;
 

@@ -64,7 +64,7 @@ namespace Engine
 		return ar & source_code;
 	}
 
-	VertexShader& VertexShader::rhi_create()
+	VertexShader& VertexShader::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_vertex_shader(this));
 		return *this;
@@ -84,7 +84,7 @@ namespace Engine
 		return ShaderType::Vertex;
 	}
 
-	FragmentShader& FragmentShader::rhi_create()
+	FragmentShader& FragmentShader::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_fragment_shader(this));
 		return *this;
@@ -95,7 +95,7 @@ namespace Engine
 		return ShaderType::Fragment;
 	}
 
-	TessellationControlShader& TessellationControlShader::rhi_create()
+	TessellationControlShader& TessellationControlShader::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_tesselation_control_shader(this));
 		return *this;
@@ -106,7 +106,7 @@ namespace Engine
 		return ShaderType::TessellationControl;
 	}
 
-	TessellationShader& TessellationShader::rhi_create()
+	TessellationShader& TessellationShader::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_tesselation_shader(this));
 		return *this;
@@ -117,7 +117,7 @@ namespace Engine
 		return ShaderType::Tessellation;
 	}
 
-	GeometryShader& GeometryShader::rhi_create()
+	GeometryShader& GeometryShader::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_geometry_shader(this));
 		return *this;
