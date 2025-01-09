@@ -114,7 +114,7 @@ namespace Engine
 			return false;
 
 		size_t size = m_child_objects.size();
-		archive & size;
+		archive.serialize(size);
 
 		if (archive.is_reading())
 		{
@@ -124,7 +124,7 @@ namespace Engine
 			{
 				--size;
 				String name;
-				archive & name;
+				archive.serialize(name);
 
 				if (auto param = Object::load_object(name, archive.reader(), SerializationFlags::SkipObjectSearch))
 				{
@@ -137,7 +137,7 @@ namespace Engine
 			for (auto param : m_child_objects)
 			{
 				String name = param->name().to_string();
-				archive & name;
+				archive.serialize(name);
 				param->save(archive.writer());
 			}
 		}
@@ -316,7 +316,7 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		archive & compile_definitions;
+		archive.serialize(compile_definitions);
 		return pipeline->serialize(archive);
 	}
 

@@ -22,5 +22,6 @@ namespace Engine
 		void apply_to(class Pipeline* pipeline);
 		bool load(const StringView& object_path, StringView rhi_name = {});
 		bool store(const StringView& object_path, StringView rhi_name = {}) const;
+		bool serialize(Archive& ar);
 	};
 }// namespace Engine

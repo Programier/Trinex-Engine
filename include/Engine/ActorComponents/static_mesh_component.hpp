@@ -2,7 +2,7 @@
 #include <Core/constants.hpp>
 #include <Core/pointer.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
-#include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/gpu_buffers.hpp>
 
 
 namespace Engine

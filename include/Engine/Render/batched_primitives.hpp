@@ -1,27 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/pointer.hpp>
-#include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/gpu_buffers.hpp>
 
 namespace Engine
 {
-	class ENGINE_EXPORT BatchedPrimitive
-	{
-	protected:
-		Pointer<PositionDynamicVertexBuffer> m_position_buffer = nullptr;
-		Pointer<ColorDynamicVertexBuffer> m_color_buffer       = nullptr;
-		size_t m_position_buffer_size                          = 0;
-		size_t m_color_buffer_size                             = 0;
-
-		bool begin_render();
-
-	public:
-		BatchedPrimitive();
-		delete_copy_constructors(BatchedPrimitive);
-		BatchedPrimitive& clear();
-		~BatchedPrimitive();
-	};
-
 	class ENGINE_EXPORT BatchedLines final
 	{
 	public:
@@ -75,7 +58,6 @@ namespace Engine
 
 	private:
 		Pointer<LinesVertexBuffer> m_lines;
-		size_t m_vertex_count;
 
 	public:
 		BatchedLines();
@@ -86,9 +68,16 @@ namespace Engine
 		BatchedLines& clear();
 	};
 
-	class ENGINE_EXPORT BatchedTriangles : public BatchedPrimitive
+	class ENGINE_EXPORT BatchedTriangles final
 	{
+		Pointer<PositionDynamicVertexBuffer> m_position_buffer = nullptr;
+		Pointer<ColorDynamicVertexBuffer> m_color_buffer       = nullptr;
+
 	public:
+		BatchedTriangles();
+		delete_copy_constructors(BatchedTriangles);
+		BatchedTriangles& clear();
+
 		BatchedTriangles& add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
 		                               ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 		                               ByteColor color3 = {255, 255, 255, 255});

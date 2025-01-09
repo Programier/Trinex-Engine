@@ -5,7 +5,6 @@
 namespace Engine::Settings
 {
 	extern ENGINE_EXPORT String engine_class;
-	extern ENGINE_EXPORT String rhi;
 	extern ENGINE_EXPORT String default_language;
 	extern ENGINE_EXPORT String current_language;
 	extern ENGINE_EXPORT int_t lz4_compression_level;
@@ -16,6 +15,12 @@ namespace Engine::Settings
 	extern ENGINE_EXPORT Vector<String> systems;
 	extern ENGINE_EXPORT Vector<String> plugins;
 	extern ENGINE_EXPORT bool debug_shaders;
+
+	namespace GPU
+	{
+		extern ENGINE_EXPORT String rhi;
+		extern ENGINE_EXPORT bool force_keep_cpu_resources;
+	}// namespace GPU
 
 	namespace Window
 	{

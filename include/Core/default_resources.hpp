@@ -25,7 +25,7 @@ namespace Engine
 
 		namespace Buffers
 		{
-			ENGINE_EXPORT extern PositionVertexBuffer* screen_position;
+			ENGINE_EXPORT extern PositionVertexBuffer* screen_quad;
 		}
 
 		namespace Materials

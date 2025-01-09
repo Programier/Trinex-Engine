@@ -53,11 +53,13 @@ namespace Engine
 			VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
 			size_t vertex_count() const;
 			size_t indices_count() const;
+			bool serialize(Archive& ar, bool allow_cpu_access = false);
 		};
 
 		Vector<MeshMaterial> materials;
 		AABB_3Df bounds;
 		Vector<LOD> lods;
+		bool allow_cpu_access = false;
 
 		StaticMesh();
 		StaticMesh& init_resources();
@@ -66,16 +68,12 @@ namespace Engine
 		StaticMesh& postload() override;
 	};
 
-	ENGINE_EXPORT bool operator&(Archive& ar, StaticMesh::LOD& lod);
-	ENGINE_EXPORT bool operator&(Archive& ar, MeshSurface& surface);
-
 	class ENGINE_EXPORT DynamicMesh : public Object
 	{
 		declare_class(DynamicMesh, Object);
 
 	public:
-		struct ENGINE_EXPORT RenderData {
-		};
+		struct ENGINE_EXPORT RenderData{};
 
 		struct ENGINE_EXPORT LOD {
 			RenderData render_data;

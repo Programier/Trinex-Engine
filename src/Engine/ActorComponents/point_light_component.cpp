@@ -7,9 +7,9 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine

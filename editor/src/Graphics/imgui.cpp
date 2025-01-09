@@ -16,10 +16,10 @@
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Event/listener_id.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -78,46 +78,12 @@ namespace Engine
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
 
-		class ImGuiVertexBuffer : public DynamicVertexBuffer
+		class ImGuiVertexBuffer : public TypedDynamicVertexBuffer<ImDrawVert>
 		{
-		public:
-			int m_size = 0;
-
-			const byte* data() const override
-			{
-				return nullptr;
-			}
-
-			size_t size() const override
-			{
-				return static_cast<size_t>(m_size) * element_size();
-			}
-
-			size_t element_size() const override
-			{
-				return sizeof(ImDrawVert);
-			}
 		};
 
-		class ImGuiIndexBuffer : public DynamicIndexBuffer
+		class ImGuiIndexBuffer : public TypedDynamicIndexBuffer<ImDrawIdx, IndexBufferFormat::UInt16>
 		{
-		public:
-			int m_size = 0;
-
-			const byte* data() const override
-			{
-				return nullptr;
-			}
-
-			size_t size() const override
-			{
-				return static_cast<size_t>(m_size) * element_size();
-			}
-
-			size_t element_size() const override
-			{
-				return sizeof(ImDrawIdx);
-			}
 		};
 
 		struct ImGuiTrinexData {
@@ -218,15 +184,15 @@ namespace Engine
 			const ViewPort backup_viewport = rhi->viewport();
 			const Scissor backup_scissor   = rhi->scissor();
 
-			if (!vd->vertex_buffer || vd->vertex_buffer->m_size < draw_data->TotalVtxCount)
+			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_buffer->vertex_count()) < draw_data->TotalVtxCount)
 			{
-				vd->vertex_buffer->m_size = draw_data->TotalVtxCount + 5000;
+				vd->vertex_buffer->init(draw_data->TotalVtxCount + 5000);
 				vd->vertex_buffer->rhi_init();
 			}
 
-			if (!vd->index_buffer || vd->index_buffer->m_size < draw_data->TotalIdxCount)
+			if (!vd->index_buffer || static_cast<int>(vd->index_buffer->index_count()) < draw_data->TotalIdxCount)
 			{
-				vd->index_buffer->m_size = draw_data->TotalIdxCount + 10000;
+				vd->index_buffer->init(draw_data->TotalIdxCount + 10000);
 				vd->index_buffer->rhi_init();
 			}
 

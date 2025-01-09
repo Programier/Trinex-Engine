@@ -616,7 +616,7 @@ namespace Engine
 		raw_ar.flags            = serialization_flags;
 
 		auto hierarchy = class_instance()->hierarchy(1);
-		raw_ar & hierarchy;
+		raw_ar.serialize(hierarchy);
 
 		status = serialize(raw_ar);
 
@@ -640,8 +640,8 @@ namespace Engine
 
 		Archive ar(writer);
 		FileFlag flag = FileFlag::asset_flag();
-		ar & flag;
-		ar & compressed_buffer;
+		ar.serialize(flag);
+		ar.serialize(compressed_buffer);
 
 		if (need_destroy_writer)
 		{
@@ -650,7 +650,6 @@ namespace Engine
 
 		return ar;
 	}
-
 
 	static FORCE_INLINE Refl::Class* find_class(const Vector<Name>& hierarchy)
 	{
@@ -686,7 +685,7 @@ namespace Engine
 
 		Archive ar(reader);
 		FileFlag flag = FileFlag::asset_flag();
-		ar & flag;
+		ar.serialize(flag);
 		if (flag != FileFlag::asset_flag())
 		{
 			error_log("Object", "Cannot load object. Asset flag mismatch!");
@@ -694,7 +693,7 @@ namespace Engine
 		}
 
 		Vector<byte> compressed_buffer;
-		if (!(ar & compressed_buffer))
+		if (!(ar.serialize(compressed_buffer)))
 		{
 			error_log("Object", "Failed to read compressed buffer!");
 			return nullptr;
@@ -706,7 +705,7 @@ namespace Engine
 		Archive raw_ar          = &raw_reader;
 
 		Vector<Name> hierarchy;
-		raw_ar & hierarchy;
+		raw_ar.serialize(hierarchy);
 
 		Refl::Class* self = find_class(hierarchy);
 

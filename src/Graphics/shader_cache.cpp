@@ -3,8 +3,8 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_functions.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
@@ -30,29 +30,10 @@ namespace Engine
 		                       Constants::shader_extention);
 	}
 
-#define TRINEX_ARCHIVE_INCLUDED 1
-
-	static bool serialize(Archive& ar, ShaderCache* cache)
+	bool ShaderCache::serialize(Archive& ar)
 	{
-		if (!(ar & cache->parameters))
-			return false;
-		if (!(ar & cache->vertex))
-			return false;
-		if (!(ar & cache->tessellation_control))
-			return false;
-		if (!(ar & cache->tessellation))
-			return false;
-		if (!(ar & cache->geometry))
-			return false;
-		if (!(ar & cache->fragment))
-			return false;
-		if (!(ar & cache->compute))
-			return false;
-		if (!(ar & cache->global_parameters))
-			return false;
-		if (!(ar & cache->local_parameters))
-			return false;
-		return ar;
+		return ar.serialize(parameters, vertex, tessellation_control, tessellation, geometry, fragment, compute,
+							global_parameters, local_parameters);
 	}
 
 	bool ShaderCache::load(const StringView& object_path, StringView rhi_name)
@@ -68,7 +49,7 @@ namespace Engine
 		}
 
 		Archive ar(&reader);
-		return serialize(ar, this);
+		return serialize(ar);
 	}
 
 	bool ShaderCache::store(const StringView& object_path, StringView rhi_name) const
@@ -85,7 +66,7 @@ namespace Engine
 		}
 
 		Archive ar(&writer);
-		return serialize(ar, const_cast<ShaderCache*>(this));
+		return const_cast<ShaderCache*>(this)->serialize(ar);
 	}
 
 	static inline void copy_buffer(Buffer& buffer, Shader* shader)

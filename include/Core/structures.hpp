@@ -180,11 +180,7 @@ namespace Engine
 			m_binding_index = 255;
 			return *this;
 		}
-
-		friend bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
 	};
-
-	ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
 
 	struct ENGINE_EXPORT MaterialParameterInfo {
 		class Refl::Class* type = nullptr;
@@ -194,8 +190,6 @@ namespace Engine
 		BindLocation location;
 
 		MaterialParameterInfo();
+		bool serialize(Archive& ar);
 	};
-
-	ENGINE_EXPORT bool operator&(Archive& ar, MaterialParameterInfo& info);
-
 }// namespace Engine

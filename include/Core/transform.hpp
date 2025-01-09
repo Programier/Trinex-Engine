@@ -74,9 +74,7 @@ namespace Engine
 		String as_string() const;
 		bool is_dirty() const;
 		const Transform& mark_dirty() const;
-		friend bool operator&(Archive& ar, Transform& t);
+
+		bool serialize(Archive& ar);
 	};
-
-	bool operator&(Archive& ar, Transform& t);
-
 }// namespace Engine

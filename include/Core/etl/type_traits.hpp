@@ -104,9 +104,9 @@ namespace Engine
 			{ T::static_destructor(mem) };
 		};
 
-		template<typename T>
-		concept is_serializable = requires(T* obj, Engine::Archive& ar) {
-			{ obj->serialize(ar) } -> std::same_as<bool>;
+		template<typename T, typename... Args>
+		concept is_serializable = requires(T* obj, Args&&... args, Engine::Archive& ar) {
+			{ obj->serialize(ar, std::forward<Args>(args)...) } -> std::same_as<bool>;
 		};
 
 		template<typename T>

@@ -5,9 +5,9 @@
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/static_mesh_actor.hpp>
 #include <Engine/world.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/mesh.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>

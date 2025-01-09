@@ -3,8 +3,8 @@
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/mesh.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -44,8 +44,8 @@ namespace Engine::Importer
 		static T* create_gpu_buffer(BufferType& buffer)
 		{
 			buffer.shrink_to_fit();
-			T* result      = Object::new_instance<T>();
-			result->buffer = std::move(buffer);
+			T* result                    = Object::new_instance<T>();
+			result->allocate_data(false) = std::move(buffer);
 			return result;
 		}
 

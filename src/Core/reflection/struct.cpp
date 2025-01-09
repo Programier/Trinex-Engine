@@ -214,7 +214,7 @@ namespace Engine::Refl
 			auto properties = collect_serializable_properties(this);
 
 			size_t count = properties.size();
-			ar & count;
+			ar.serialize(count);
 
 			Vector<size_t> offsets(count + 1, 0);
 			auto start_pos = ar.position();
@@ -225,7 +225,7 @@ namespace Engine::Refl
 			{
 				Name name      = prop->name();
 				offsets[count] = ar.position() - start_pos;
-				ar & name;
+				ar.serialize(name);
 				prop->serialize(object, ar);
 				++count;
 			}
@@ -240,7 +240,7 @@ namespace Engine::Refl
 		else if (ar.is_reading())
 		{
 			size_t count = 0;
-			ar & count;
+			ar.serialize(count);
 
 			Vector<size_t> offsets(count + 1, 0);
 			auto start_pos = ar.position();
@@ -252,7 +252,7 @@ namespace Engine::Refl
 			{
 				ar.position(start_pos + offsets[i]);
 
-				ar & name;
+				name.serialize(ar);
 				Property* prop = find_property(name);
 
 				if (prop && prop->is_serializable())

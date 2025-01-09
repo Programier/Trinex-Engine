@@ -61,7 +61,7 @@ namespace Engine
 
 	bool Shader::serialize_source_code(Archive& ar)
 	{
-		return ar & source_code;
+		return ar.serialize(source_code);
 	}
 
 	VertexShader& VertexShader::rhi_init()
@@ -75,7 +75,7 @@ namespace Engine
 		if (!Super::serialize(ar))
 			return false;
 
-		ar & attributes;
+		ar.serialize(attributes);
 		return ar;
 	}
 
@@ -128,17 +128,17 @@ namespace Engine
 		return ShaderType::Geometry;
 	}
 
-	ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
+
+	bool VertexShader::Attribute::serialize(Archive& ar)
 	{
-		ar & attrib.name;
-		ar & attrib.type;
-		ar & attrib.semantic;
-		ar & attrib.semantic_index;
-		ar & attrib.rate;
-		ar & attrib.location;
-		ar & attrib.stream_index;
-		ar & attrib.offset;
-		return ar;
+		ar.serialize(name);
+		ar.serialize(type);
+		ar.serialize(semantic);
+		ar.serialize(semantic_index);
+		ar.serialize(rate);
+		ar.serialize(location);
+		ar.serialize(stream_index);
+		return ar.serialize(offset);
 	}
 
 }// namespace Engine

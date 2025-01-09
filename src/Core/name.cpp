@@ -270,25 +270,24 @@ namespace Engine
 		return name_entries();
 	}
 
-	ENGINE_EXPORT bool operator&(class Archive& ar, Name& name)
+	bool Name::serialize(class Archive& ar)
 	{
-		bool is_valid = name.is_valid();
-		ar & is_valid;
+		bool valid = is_valid();
+		ar.serialize(valid);
 
-		if (is_valid)
+		if (valid)
 		{
-			String string_name = name.to_string();
-			ar & string_name;
+			String string_name = to_string();
+			ar.serialize(string_name);
 
 			if (ar.is_reading())
 			{
-				name = string_name;
+				(*this) = string_name;
 			}
 		}
 
 		return ar;
 	}
-
 
 	static void on_init()
 	{

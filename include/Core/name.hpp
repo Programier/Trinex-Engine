@@ -124,7 +124,7 @@ namespace Engine
 		{
 			return m_index >= name.m_index;
 		}
-	};
 
-	ENGINE_EXPORT bool operator&(class Archive&, Name& name);
+		bool serialize(class Archive& ar);
+	};
 }// namespace Engine

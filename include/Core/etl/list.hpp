@@ -18,25 +18,29 @@ namespace Engine
 	inline bool trinex_serialize_list(ArchiveType& ar, List<Type>& list)
 		requires(is_complete_archive_type<ArchiveType>)
 	{
-		return ar.write_container(list);
+		return ar.serialize_container(list);
 	}
 
 	template<typename Type, typename ArchiveType>
 	inline bool trinex_serialize_list(ArchiveType& ar, ForwardList<Type>& list)
 		requires(is_complete_archive_type<ArchiveType>)
 	{
-		return ar.write_container(list);
+		return ar.serialize_container(list);
 	}
 
-	template<typename Type, typename ArchiveType = Archive>
-	inline bool operator&(ArchiveType& ar, List<Type>& list)
-	{
-		return trinex_serialize_list(ar, list);
-	}
+	template<typename T>
+	struct Serializer<ForwardList<T>> {
+		bool serialize(Archive& ar, ForwardList<T>& list)
+		{
+			return trinex_serialize_list(ar, list);
+		}
+	};
 
-	template<typename Type, typename ArchiveType = Archive>
-	inline bool operator&(ArchiveType& ar, ForwardList<Type>& list)
-	{
-		return trinex_serialize_list(ar, list);
-	}
+	template<typename T>
+	struct Serializer<List<T>> {
+		bool serialize(Archive& ar, List<T>& list)
+		{
+			return trinex_serialize_list(ar, list);
+		}
+	};
 }// namespace Engine

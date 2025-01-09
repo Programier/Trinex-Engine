@@ -4,12 +4,12 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/package.hpp>
+#include <Graphics/gpu_buffers.hpp>
 
 namespace Engine
 {
 	namespace DefaultResources
 	{
-
 		namespace Samplers
 		{
 			ENGINE_EXPORT Sampler* default_sampler = nullptr;
@@ -22,7 +22,7 @@ namespace Engine
 
 		namespace Buffers
 		{
-			ENGINE_EXPORT PositionVertexBuffer* screen_position = nullptr;
+			ENGINE_EXPORT PositionVertexBuffer* screen_quad = nullptr;
 		}
 
 		namespace Materials
@@ -71,7 +71,6 @@ namespace Engine
 		using namespace DefaultResources;
 		Samplers::default_sampler    = load_object<Sampler>("TrinexEngine::Samplers::DefaultSampler");
 		Textures::default_texture    = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
-		Buffers::screen_position     = load_object<PositionVertexBuffer>("TrinexEngine::Buffers::ScreenPositionBuffer");
 		Materials::sprite            = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
 		Materials::screen            = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
 		Materials::base_pass         = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
@@ -84,5 +83,14 @@ namespace Engine
 		Meshes::cube                 = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
 		Meshes::sphere               = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
 		Meshes::cylinder             = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
+
+		{
+			auto buffers         = Object::static_find_package("TrinexEngine::Buffers", true);
+			Buffers::screen_quad = Object::new_instance<PositionVertexBuffer>("ScreenQuad", buffers);
+			Buffers::screen_quad->init({Vector3D{-1.f, -1.f, 0.0f}, Vector3D{-1.f, 1.f, 0.0f}, Vector3D{1.f, 1.f, 0.0f},
+										Vector3D{-1.f, -1.f, 0.0f}, Vector3D{1.f, 1.f, 0.0f}, Vector3D{1.f, -1.f, 0.0f}},
+									   false);
+			Buffers::screen_quad->init_resource();
+		}
 	}
 }// namespace Engine

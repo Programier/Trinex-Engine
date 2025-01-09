@@ -42,23 +42,10 @@ namespace Engine
 	bool Sampler::serialize(Archive& archive)
 	{
 		if (!Super::serialize(archive))
-		{
 			return false;
-		}
 
-		archive & filter;
-		archive & address_u;
-		archive & address_w;
-		archive & address_w;
-		archive & mip_lod_bias;
-		archive & anisotropy;
-		archive & compare_mode;
-		archive & min_lod;
-		archive & max_lod;
-		archive & compare_func;
-		archive & unnormalized_coordinates;
-
-		return archive;
+		return archive.serialize(filter, address_u, address_v, address_w, mip_lod_bias, anisotropy, compare_mode, min_lod,
+								 max_lod, compare_func, unnormalized_coordinates);
 	}
 
 	Sampler& Sampler::apply_changes()

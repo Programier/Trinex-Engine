@@ -494,7 +494,7 @@ namespace Engine::VisualMaterialGraph
 		if (!Super::serialize(ar))
 			return false;
 
-		ar & position;
+		ar.serialize(position);
 
 		for (auto input : m_inputs)
 		{

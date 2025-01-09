@@ -62,17 +62,22 @@ namespace Engine
 		bool is_open() const;
 
 		template<typename Type>
-		bool operator&(Type& value)
+		bool serialize(Type& value)
 		{
 			using DecayType = std::decay_t<std::remove_pointer_t<Type>>;
 
 			if constexpr (Concepts::is_serializable<DecayType>)
 			{
-				address_of(value)->serialize(*this);
+				return address_of(value)->serialize(*this);
+			}
+			else if constexpr (Concepts::is_serializable<Serializer<DecayType>, DecayType&>)
+			{
+				Serializer<DecayType> serializer;
+				return serializer.serialize(*this, *address_of(value));
 			}
 			else if constexpr (Concepts::is_reflected_struct<DecayType>)
 			{
-				serialize_struct(DecayType::static_struct_instance(), address_of(value));
+				return serialize_struct(DecayType::static_struct_instance(), address_of(value));
 			}
 			else
 			{
@@ -92,6 +97,12 @@ namespace Engine
 			return *this;
 		}
 
+		template<typename... Types>
+		bool serialize(Types&... values)
+		{
+			return (serialize(values) && ...);
+		}
+
 		inline operator bool()
 		{
 			return m_process_status;
@@ -104,14 +115,14 @@ namespace Engine
 			{
 				String name = object ? object->full_name() : "";
 				size_t size = name.length();
-				(*this) & size;
+				serialize(size);
 				write_data(reinterpret_cast<const byte*>(name.data()), size);
 			}
 			else if (is_reading())
 			{
 				String name;
 				size_t size;
-				(*this) & size;
+				serialize(size);
 				name.resize(size);
 				read_data(reinterpret_cast<byte*>(name.data()), size);
 
@@ -129,20 +140,18 @@ namespace Engine
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool process_vector(Type& vector,
-		                                 bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
-		                                 void* userdata                                                        = nullptr)
+		FORCE_INLINE bool serialize_vector(Type& vector)
 		{
 			size_t size = vector.size();
 			Archive& ar = *this;
+			serialize(size);
 
-			ar & size;
 			if (ar.is_reading())
 			{
 				vector.resize(size);
 			}
 
-			if constexpr (std::is_fundamental_v<Type>)
+			if constexpr (std::is_trivially_copyable_v<Type>)
 			{
 				byte* data   = reinterpret_cast<byte*>(vector.data());
 				size_t bytes = size * sizeof(Type);
@@ -158,23 +167,9 @@ namespace Engine
 			}
 			else
 			{
-				if (on_item_processed)
+				for (auto& ell : vector)
 				{
-					for (auto& ell : vector)
-					{
-						ar & ell;
-						if (!on_item_processed(ell, userdata))
-						{
-							return ar;
-						}
-					}
-				}
-				else
-				{
-					for (auto& ell : vector)
-					{
-						ar & ell;
-					}
+					serialize(ell);
 				}
 			}
 
@@ -182,74 +177,42 @@ namespace Engine
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool process_set(Type& set, bool (*on_item_processed)(typename Type::value_type&, void* userdata) = nullptr,
-		                              void* userdata = nullptr)
+		FORCE_INLINE bool serialize_set(Type& set)
 		{
 			size_t size = set.size();
 			Archive& ar = *this;
 
-			ar & size;
+			serialize(size);
 
 			if (ar.is_reading())
 			{
 				set.clear();
 				typename Type::value_type value;
-				if (on_item_processed)
+
+				while (size-- > 0)
 				{
-					while (size-- > 0)
-					{
-						ar & value;
-						on_item_processed(value, userdata);
-						if (!set.insert(std::move(value)))
-						{
-							return ar;
-						}
-					}
-				}
-				else
-				{
-					while (size-- > 0)
-					{
-						ar & value;
-						set.insert(std::move(value));
-					}
+					serialize(value);
+					set.insert(std::move(value));
 				}
 			}
 			else if (ar.is_saving())
 			{
-				if (on_item_processed)
+				for (const typename Type::value_type& ell : set)
 				{
-					for (const typename Type::value_type& ell : set)
-					{
-						ar& const_cast<typename Type::value_type&>(ell);
-						if (!on_item_processed(const_cast<typename Type::value_type&>(ell), userdata))
-						{
-							return ar;
-						}
-					}
-				}
-				else
-				{
-					for (const typename Type::value_type& ell : set)
-					{
-						ar& const_cast<typename Type::value_type&>(ell);
-					}
+					serialize(const_cast<typename Type::value_type&>(ell));
 				}
 			}
 
 			return *this;
 		}
 
-
 		template<typename Type>
-		FORCE_INLINE bool write_map(Type& map)
+		FORCE_INLINE bool serialize_map(Type& map)
 		{
 			size_t size = map.size();
-			Archive& ar = *this;
+			serialize(size);
 
-			ar & size;
-
-			if (ar.is_reading())
+			if (is_reading())
 			{
 				map.clear();
 				std::remove_const_t<typename Type::key_type> key;
@@ -257,43 +220,47 @@ namespace Engine
 
 				while (size-- > 0)
 				{
-					ar & key;
-					ar & value;
+					serialize(key);
+					serialize(value);
 					map.insert_or_assign(std::move(key), std::move(value));
 				}
 			}
-			else if (ar.is_saving())
+			else if (is_saving())
 			{
 				for (auto& [key, value] : map)
 				{
-					ar& const_cast<typename Type::key_type&>(key);
-					ar & value;
+					serialize(const_cast<typename Type::key_type&>(key));
+					serialize(value);
 				}
 			}
 
-			return ar;
+			return *this;
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool write_container(Type& container)
+		FORCE_INLINE bool serialize_container(Type& container)
 		{
 			size_t size = container.size();
-			Archive& ar = *this;
-
-			ar & size;
-			if (ar.is_reading())
+			serialize(size);
+			if (is_reading())
 			{
 				container.resize(size);
 			}
 
 			for (auto& ell : container)
 			{
-				ar & ell;
+				serialize(ell);
 			}
 
-			return ar;
+			return *this;
 		}
+
+		bool serialize_string(String& value);
 	};
 
-	ENGINE_EXPORT bool operator&(Archive&, String&);
+	template<>
+	inline bool Archive::serialize<String>(String& value)
+	{
+		return serialize_string(value);
+	}
 }// namespace Engine

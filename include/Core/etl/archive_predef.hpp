@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/serializer.hpp>
 
 namespace Engine
 {

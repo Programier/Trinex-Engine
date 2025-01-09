@@ -6,8 +6,8 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <glm/gtx/matrix_decompose.hpp>

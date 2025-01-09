@@ -254,8 +254,8 @@ namespace Engine
 	{
 		path += extension_of_type(type);
 
-		static bool (Engine::Image::*write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
-		                                                                &Image::write_tga};
+		static bool (Engine::Image::* write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
+																		 &Image::write_tga};
 
 		auto method = write_methods[static_cast<EnumerateType>(type)];
 		stbi_flip_vertically_on_write(static_cast<int>(invert));
@@ -454,10 +454,7 @@ namespace Engine
 		//            return false;
 		//        }
 
-		archive & m_width;
-		archive & m_height;
-		archive & m_channels;
-		archive & m_is_compressed;
+		archive.serialize(m_width, m_height, m_channels, m_is_compressed);
 
 		if (!archive)
 		{
@@ -465,7 +462,7 @@ namespace Engine
 			return false;
 		}
 
-		archive & m_data;
+		archive.serialize(m_data);
 		return static_cast<bool>(archive);
 	}
 }// namespace Engine

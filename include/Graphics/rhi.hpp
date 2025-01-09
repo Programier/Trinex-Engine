@@ -29,7 +29,6 @@ namespace Engine
 		class Struct;
 	}
 
-
 	struct ENGINE_EXPORT RHI_Object {
 	protected:
 		mutable size_t m_references;

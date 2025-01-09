@@ -146,21 +146,20 @@ namespace Engine
 		return false;
 	}
 
-
-	ENGINE_EXPORT bool operator&(Archive& ar, String& str)
+	bool Archive::serialize_string(String& str)
 	{
 		size_t size = str.length();
-		ar & size;
+		serialize(size);
 
-		if (ar.is_reading())
+		if (is_reading())
 		{
 			str.resize(size);
-			ar.read_data(reinterpret_cast<byte*>(str.data()), size);
+			read_data(reinterpret_cast<byte*>(str.data()), size);
 		}
-		else if (ar.is_saving())
+		else if (is_saving())
 		{
-			ar.write_data(reinterpret_cast<byte*>(str.data()), size);
+			write_data(reinterpret_cast<byte*>(str.data()), size);
 		}
-		return ar;
+		return *this;
 	}
 }// namespace Engine

@@ -68,7 +68,7 @@ namespace Engine
 
 			auto& surface = lod.surfaces[material.surface_index];
 
-			if (lod.indices->elements_count() > 0)
+			if (lod.indices->size() > 0)
 			{
 				pass->bind_index_buffer(lod.indices, 0);
 				pass->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);

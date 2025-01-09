@@ -11,9 +11,9 @@ namespace Engine
 
 		Texture2DMip(Size2D init_size = {}, const Buffer& buffer = {}) : size(glm::abs(init_size)), data(buffer)
 		{}
-	};
 
-	ENGINE_EXPORT bool operator&(Archive& ar, Texture2DMip& mip);
+		bool serialize(Archive& ar);
+	};
 
 	class ENGINE_EXPORT Texture2D : public Texture
 	{

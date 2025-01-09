@@ -28,25 +28,29 @@ namespace Engine
 	inline bool trinex_serialize_map(ArchiveType& ar, Map<Key, Value, HashType, Pred>& map)
 		requires(is_complete_archive_type<ArchiveType>)
 	{
-		return ar.write_map(map);
+		return ar.serialize_map(map);
 	}
 
 	template<typename Key, typename Value, typename Compare = std::less<Key>, typename ArchiveType>
 	inline bool trinex_serialize_map(ArchiveType& ar, TreeMap<Key, Value, Compare>& map)
 		requires(is_complete_archive_type<ArchiveType>)
 	{
-		return ar.write_map(map);
+		return ar.serialize_map(map);
 	}
 
-	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>>
-	inline bool operator&(Archive& ar, Map<Key, Value, HashType, Pred>& map)
-	{
-		return trinex_serialize_map(ar, map);
-	}
+	template<typename Key, typename Value, typename HashType, typename Pred>
+	struct Serializer<Map<Key, Value, HashType, Pred>> {
+		bool serialize(Archive& ar, Map<Key, Value, HashType, Pred>& map)
+		{
+			return trinex_serialize_map(ar, map);
+		}
+	};
 
-	template<typename Key, typename Value, typename Compare = std::less<Key>>
-	inline bool operator&(Archive& ar, TreeMap<Key, Value, Compare>& map)
-	{
-		return trinex_serialize_map(ar, map);
-	}
+	template<typename Key, typename Value, typename Compare>
+	struct Serializer<TreeMap<Key, Value, Compare>> {
+		bool serialize(Archive& ar, TreeMap<Key, Value, Compare>& map)
+		{
+			return trinex_serialize_map(ar, map);
+		}
+	};
 }// namespace Engine

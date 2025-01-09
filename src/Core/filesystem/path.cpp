@@ -219,12 +219,8 @@ namespace Engine
 		return result;
 	}
 
-	ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
+	bool Path::serialize(Archive& ar)
 	{
-		String str = path.str();
-		ar & str;
-		if (ar.is_reading())
-			path = str;
-		return ar;
+		return ar.serialize(m_path);
 	}
 }// namespace Engine

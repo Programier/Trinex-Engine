@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/definitions.hpp>
+#include <Core/serializer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -106,7 +107,6 @@ namespace Engine
 	using BufferType                = size_t;
 	using FrameBufferOutputLocation = byte;
 	using ColorClearValue           = Vector4D;
-
 
 	using Identifier    = std::uint64_t;
 	using MipMapLevel   = byte;

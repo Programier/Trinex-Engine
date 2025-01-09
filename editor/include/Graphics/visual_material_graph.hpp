@@ -369,7 +369,7 @@ namespace Engine::VisualMaterialGraph
 			if (!TypedPinNoDefault<m_pin_type, BaseClass>::serialize(ar))
 				return false;
 
-			ar & value;
+			ar.serialize(value);
 			return ar;
 		}
 	};

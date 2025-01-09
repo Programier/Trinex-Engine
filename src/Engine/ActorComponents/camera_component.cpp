@@ -46,16 +46,7 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		archive & projection_mode;
-		archive & fov;
-		archive & ortho_width;
-		archive & ortho_height;
-		archive & near_clip_plane;
-		archive & far_clip_plane;
-		archive & aspect_ratio;
-
-
-		return static_cast<bool>(archive);
+		return archive.serialize(projection_mode, fov, ortho_width, ortho_height, near_clip_plane, far_clip_plane, aspect_ratio);
 	}
 
 	Matrix4f CameraComponent::projection_matrix()

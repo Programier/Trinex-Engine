@@ -5,9 +5,9 @@
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Engine/Render/scene_renderer.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -24,6 +24,7 @@ namespace Engine
 	{
 		auto* self = StaticMesh::static_class_instance();
 		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");
+		trinex_refl_prop(self, This, allow_cpu_access);
 	}
 
 	implement_engine_class_default_init(DynamicMesh, 0);
@@ -128,10 +129,10 @@ namespace Engine
 
 
 	template<typename Type>
-	static void serialize_buffer(Archive& ar, Pointer<Type>& buffer)
+	static void serialize_buffer(Archive& ar, Pointer<Type>& buffer, bool allow_cpu_access)
 	{
 		bool is_valid = buffer;
-		ar & is_valid;
+		ar.serialize(is_valid);
 
 		if (is_valid)
 		{
@@ -145,10 +146,10 @@ namespace Engine
 	}
 
 	template<typename Type>
-	static void serialize_buffers(Archive& ar, Vector<Pointer<Type>>& buffers)
+	static void serialize_buffers(Archive& ar, Vector<Pointer<Type>>& buffers, bool allow_cpu_access)
 	{
 		size_t size = buffers.size();
-		ar & size;
+		ar.serialize(size);
 
 		if (size > 0)
 		{
@@ -159,30 +160,21 @@ namespace Engine
 
 			for (auto& buffer : buffers)
 			{
-				serialize_buffer(ar, buffer);
+				serialize_buffer(ar, buffer, allow_cpu_access);
 			}
 		}
 	}
 
-	ENGINE_EXPORT bool operator&(Archive& ar, MeshSurface& surface)
+	bool StaticMesh::LOD::serialize(Archive& ar, bool allow_cpu_access)
 	{
-		ar & surface.base_vertex_index;
-		ar & surface.first_index;
-		ar & surface.vertices_count;
-		return ar;
-	}
-
-	ENGINE_EXPORT bool operator&(Archive& ar, StaticMesh::LOD& lod)
-	{
-		serialize_buffers(ar, lod.positions);
-		serialize_buffers(ar, lod.tex_coords);
-		serialize_buffers(ar, lod.colors);
-		serialize_buffers(ar, lod.normals);
-		serialize_buffers(ar, lod.tangents);
-		serialize_buffers(ar, lod.bitangents);
-		serialize_buffer(ar, lod.indices);
-		ar & lod.surfaces;
-		return ar;
+		serialize_buffers(ar, positions, allow_cpu_access);
+		serialize_buffers(ar, tex_coords, allow_cpu_access);
+		serialize_buffers(ar, colors, allow_cpu_access);
+		serialize_buffers(ar, normals, allow_cpu_access);
+		serialize_buffers(ar, tangents, allow_cpu_access);
+		serialize_buffers(ar, bitangents, allow_cpu_access);
+		serialize_buffer(ar, indices, allow_cpu_access);
+		return ar.serialize(surfaces);
 	}
 
 	bool StaticMesh::serialize(Archive& ar)
@@ -190,9 +182,20 @@ namespace Engine
 		if (!Super::serialize(ar))
 			return false;
 
-		ar & bounds;
-		ar & lods;
+		ar.serialize(bounds);
 
+		size_t lods_count = lods.size();
+		ar.serialize(lods_count);
+
+		if (ar.is_reading())
+		{
+			lods.resize(lods_count);
+		}
+
+		for (auto& lod : lods)
+		{
+			lod.serialize(ar, allow_cpu_access);
+		}
 		return ar;
 	}
 
@@ -204,7 +207,7 @@ namespace Engine
 			return nullptr;
 		}
 
-		static VertexBuffer* (StaticMesh::LOD::*find_buffer_private[])(Index) const = {
+		static VertexBuffer* (StaticMesh::LOD::* find_buffer_private[])(Index) const = {
 		        &StaticMesh::LOD::find_position_buffer, &StaticMesh::LOD::find_tex_coord_buffer,
 		        &StaticMesh::LOD::find_color_buffer,    &StaticMesh::LOD::find_normal_buffer,
 				&StaticMesh::LOD::find_tangent_buffer,  &StaticMesh::LOD::find_bitangent_buffer,
@@ -219,7 +222,7 @@ namespace Engine
 		{
 			if (buffer.ptr())
 			{
-				return buffer->elements_count();
+				return buffer->vertex_count();
 			}
 		}
 		return 0;
@@ -227,6 +230,6 @@ namespace Engine
 
 	size_t StaticMesh::LOD::indices_count() const
 	{
-		return indices.ptr() ? indices->elements_count() : 0;
+		return indices.ptr() ? indices->index_count() : 0;
 	}
 }// namespace Engine

@@ -157,7 +157,7 @@ namespace Engine::Refl
 	bool StringProperty::serialize(void* object, Archive& ar)
 	{
 		String& value = *address_as<String>(object);
-		return (ar & value);
+		return ar.serialize(value);
 	}
 
 	size_t StringProperty::size() const
@@ -168,13 +168,13 @@ namespace Engine::Refl
 	bool NameProperty::serialize(void* object, Archive& ar)
 	{
 		Name& value = *address_as<Name>(object);
-		return (ar & value);
+		return ar.serialize(value);
 	}
 
 	bool PathProperty::serialize(void* object, Archive& ar)
 	{
 		Path& value = *address_as<Path>(object);
-		return ar & value;
+		return ar.serialize(value);
 	}
 
 	size_t ObjectProperty::size() const
@@ -235,7 +235,7 @@ namespace Engine::Refl
 	bool ArrayProperty::serialize(void* object, Archive& ar)
 	{
 		size_t elements = length(object);
-		ar & elements;
+		ar.serialize(elements);
 
 		if (ar.is_reading())
 		{
@@ -263,7 +263,7 @@ namespace Engine::Refl
 		if (ar.is_reading())
 		{
 			String name;
-			ar & name;
+			ar.serialize_string(name);
 
 			Object* obj = nullptr;
 
@@ -289,7 +289,7 @@ namespace Engine::Refl
 			{
 				name = obj->full_name().c_str();
 			}
-			ar & name;
+			ar.serialize_string(name);
 		}
 		return true;
 	}

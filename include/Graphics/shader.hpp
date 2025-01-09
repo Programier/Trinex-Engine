@@ -40,6 +40,8 @@ namespace Engine
 			                       byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
 			    : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location), offset(offset)
 			{}
+
+			bool serialize(Archive& ar);
 		};
 
 		Vector<Attribute> attributes;
@@ -85,6 +87,4 @@ namespace Engine
 		GeometryShader& rhi_init() override;
 		ShaderType type() const override;
 	};
-
-	ENGINE_EXPORT bool operator&(Archive&, VertexShader::Attribute&);
 }// namespace Engine

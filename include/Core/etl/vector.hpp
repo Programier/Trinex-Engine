@@ -920,12 +920,14 @@ namespace Engine
 	inline bool trinex_serialize_vector(ArchiveType& ar, Vector<Type>& vector)
 		requires(is_complete_archive_type<ArchiveType>)
 	{
-		return ar.process_vector(vector, nullptr);
+		return ar.serialize_vector(vector);
 	}
 
-	template<typename Type>
-	inline bool operator&(Archive& ar, Vector<Type>& vector)
-	{
-		return trinex_serialize_vector(ar, vector);
-	}
+	template<typename Type, typename Alloc>
+	struct Serializer<Containers::Vector<Type, Alloc>> {
+		bool serialize(Archive& ar, Containers::Vector<Type, Alloc>& vector)
+		{
+			return trinex_serialize_vector(ar, vector);
+		}
+	};
 }// namespace Engine

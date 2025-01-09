@@ -152,9 +152,9 @@ namespace Engine
 		{
 			return m_path.starts_with(path.m_path);
 		}
-	};
 
-	ENGINE_EXPORT bool operator&(Archive&, Path&);
+		bool serialize(Archive& ar);
+	};
 }// namespace Engine
 
 namespace std

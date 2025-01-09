@@ -273,14 +273,10 @@ namespace Engine
 		return *this;
 	}
 
-	bool operator&(Archive& ar, Transform& t)
+	bool Transform::serialize(Archive& ar)
 	{
-		ar & t.m_location;
-		ar & t.m_scale;
-		ar & t.m_rotation;
-		return static_cast<bool>(ar);
+		return ar.serialize(m_location, m_scale, m_rotation);
 	}
-
 
 	static Transform& op_assign(Transform* _this, const Transform& obj)
 	{

@@ -11,7 +11,7 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/settings.hpp>
-#include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Platform/platform.hpp>
 
 #include <Graphics/shader_material.hpp>
@@ -71,36 +71,38 @@ namespace Engine
 	static void create_spot_light_overlay_positions()
 	{
 		EditorResources::spot_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		auto buffer                                   = EditorResources::spot_light_overlay_positions;
+		auto positions                                = EditorResources::spot_light_overlay_positions;
+		auto& buffer                                  = positions->allocate_data(false);
 
 		static constexpr float circle_y = -1.f;
 
 		// Create circle
-		create_circle([buffer](float x, float z) { buffer->buffer.push_back(Vector3D(x, circle_y, z)); });
+		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3D(x, circle_y, z)); });
 
-		buffer->buffer.push_back({0, 0, 0});
-		buffer->buffer.push_back({1, circle_y, 0});
+		buffer.push_back({0, 0, 0});
+		buffer.push_back({1, circle_y, 0});
 
-		buffer->buffer.push_back({0, 0, 0});
-		buffer->buffer.push_back({-1, circle_y, 0});
+		buffer.push_back({0, 0, 0});
+		buffer.push_back({-1, circle_y, 0});
 
-		buffer->buffer.push_back({0, 0, 0});
-		buffer->buffer.push_back({0, circle_y, 1});
+		buffer.push_back({0, 0, 0});
+		buffer.push_back({0, circle_y, 1});
 
-		buffer->buffer.push_back({0, 0, 0});
-		buffer->buffer.push_back({0, circle_y, -1});
-		buffer->init_resource();
+		buffer.push_back({0, 0, 0});
+		buffer.push_back({0, circle_y, -1});
+		positions->init_resource();
 	}
 
 	static void create_point_light_overlay_positions()
 	{
 		EditorResources::point_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		auto buffer                                    = EditorResources::point_light_overlay_positions;
+		auto positions                                 = EditorResources::point_light_overlay_positions;
+		auto& buffer                                   = positions->allocate_data(false);
 
-		create_circle([buffer](float y, float z) { buffer->buffer.push_back(Vector3D(0, y, z)); });
-		create_circle([buffer](float x, float z) { buffer->buffer.push_back(Vector3D(x, 0, z)); });
-		create_circle([buffer](float x, float y) { buffer->buffer.push_back(Vector3D(x, y, 0)); });
-		buffer->init_resource();
+		create_circle([&buffer](float y, float z) { buffer.push_back(Vector3D(0, y, z)); });
+		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3D(x, 0, z)); });
+		create_circle([&buffer](float x, float y) { buffer.push_back(Vector3D(x, y, 0)); });
+		positions->init_resource();
 	}
 
 	static void preinit()
@@ -114,6 +116,8 @@ namespace Engine
 		fs->mount("[assets_dir]:/TrinexEditor", "Editor Assets", new FS(exec_dir / "resources/TrinexEditor/assets"), callback);
 		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/TrinexEditor/configs"), callback);
 		fs->mount("[shaders_dir]:/TrinexEditor", "Editor Shaders", new FS(exec_dir / "resources/TrinexEditor/shaders"), callback);
+
+		Settings::GPU::force_keep_cpu_resources = true;
 	}
 
 	template<typename T>

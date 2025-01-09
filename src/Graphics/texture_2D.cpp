@@ -11,11 +11,9 @@
 
 namespace Engine
 {
-	ENGINE_EXPORT bool operator&(Archive& ar, Texture2DMip& mip)
+	bool Texture2DMip::serialize(Archive& ar)
 	{
-		ar & mip.size;
-		ar & mip.data;
-		return ar;
+		return ar.serialize(size, data);
 	}
 
 	void (*Texture2D::generate_mips)(ColorFormat format, Vector<Texture2DMip>&) = nullptr;
@@ -132,7 +130,7 @@ namespace Engine
 			return false;
 		}
 
-		archive & m_mips;
+		archive.serialize(m_mips);
 		return static_cast<bool>(archive);
 	}
 

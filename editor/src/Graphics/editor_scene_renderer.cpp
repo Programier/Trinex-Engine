@@ -12,9 +12,9 @@
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 
@@ -24,7 +24,7 @@ namespace Engine
 	static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
 	{
 		Material* material                 = DefaultResources::Materials::sprite;
-		PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_position;
+		PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_quad;
 
 		if (auto* parameter = material->find_parameter<MaterialParameters::Float4x4>(Name::model))
 		{
@@ -83,7 +83,7 @@ namespace Engine
 		material->apply();
 
 		EditorResources::spot_light_overlay_positions->rhi_bind(0);
-		rhi->draw(EditorResources::spot_light_overlay_positions->buffer.size(), 0);
+		rhi->draw(EditorResources::spot_light_overlay_positions->vertex_count(), 0);
 	}
 
 	static void render_spot_light_overlay(SpotLightComponent* component)
@@ -119,7 +119,7 @@ namespace Engine
 
 		material->apply();
 		EditorResources::point_light_overlay_positions->rhi_bind(0, 0);
-		rhi->draw(EditorResources::point_light_overlay_positions->buffer.size(), 0);
+		rhi->draw(EditorResources::point_light_overlay_positions->vertex_count(), 0);
 	}
 
 	class EditorOverlayPass : public OverlayPass

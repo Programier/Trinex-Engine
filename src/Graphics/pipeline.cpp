@@ -11,9 +11,9 @@
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
@@ -525,7 +525,7 @@ namespace Engine
 
 		auto flags = shader_type_flags();
 
-		archive & flags;
+		archive.serialize(flags);
 		allocate_shaders(flags);
 
 		serialize_shader_internal(m_vertex_shader, archive);

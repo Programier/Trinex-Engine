@@ -4,10 +4,10 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Widgets/property_renderer.hpp>
@@ -170,7 +170,7 @@ namespace Engine
 		p_power->value     = pow;
 
 		mat->apply();
-		DefaultResources::Buffers::screen_position->rhi_bind(0);
+		DefaultResources::Buffers::screen_quad->rhi_bind(0);
 		rhi->draw(6, 0);
 
 		rhi->submit();

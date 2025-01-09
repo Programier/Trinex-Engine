@@ -20,7 +20,4 @@ namespace Engine
 		static const FileFlag& package_flag();
 		static const FileFlag& asset_flag();
 	};
-
-	class Archive;
-	ENGINE_EXPORT bool operator&(Archive& ar, FileFlag& flag);
 }// namespace Engine

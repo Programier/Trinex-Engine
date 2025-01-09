@@ -5,7 +5,6 @@
 namespace Engine::Settings
 {
 	ENGINE_EXPORT String engine_class          = "Engine::BaseEngine";
-	ENGINE_EXPORT String rhi                   = "Vulkan";
 	ENGINE_EXPORT String default_language      = "eng";
 	ENGINE_EXPORT String current_language      = "eng";
 	ENGINE_EXPORT int_t lz4_compression_level  = 0;
@@ -16,6 +15,12 @@ namespace Engine::Settings
 	ENGINE_EXPORT Vector<String> systems;
 	ENGINE_EXPORT Vector<String> plugins;
 	ENGINE_EXPORT bool debug_shaders = false;
+
+	namespace GPU
+	{
+		ENGINE_EXPORT String rhi                    = "Vulkan";
+		ENGINE_EXPORT bool force_keep_cpu_resources = false;
+	}// namespace GPU
 
 	namespace Window
 	{
@@ -55,7 +60,6 @@ namespace Engine::Settings
 			ScriptNamespaceScopedChanger changer("Engine::Settings");
 
 			bind_value(string, engine_class);
-			bind_value(string, rhi);
 			bind_value(string, default_language);
 			bind_value(string, current_language);
 			bind_value(int, lz4_compression_level);
@@ -65,6 +69,14 @@ namespace Engine::Settings
 			bind_value(Engine::Vector<string>, systems);
 			bind_value(Engine::Vector<string>, plugins);
 			bind_value(Engine::Vector<string>, debug_shaders);
+		}
+
+		{
+			ScriptNamespaceScopedChanger changer("Engine::Settings::GPU");
+
+			using namespace GPU;
+
+			bind_value(string, rhi);
 		}
 
 		{
