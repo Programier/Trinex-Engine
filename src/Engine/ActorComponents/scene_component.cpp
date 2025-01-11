@@ -1,12 +1,32 @@
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
+#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_object.hpp>
 
 namespace Engine
 {
-	implement_engine_class(SceneComponent, 0)
+	static ScriptFunction script_scene_comp_transform_changed;
+	static size_t childs_count(const SceneComponent* component)
+	{
+		return component->childs().size();
+	}
+
+	static SceneComponent* child_at(const SceneComponent* component, size_t index)
+	{
+		auto& childs = component->childs();
+		if (childs.size() <= index)
+			return nullptr;
+		return childs[index];
+	}
+
+	implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
 	{
 		auto* self  = static_class_instance();
 		auto& local = *trinex_refl_prop(self, This, m_local);
@@ -17,6 +37,43 @@ namespace Engine
 			component->m_is_dirty     = true;
 			component->on_transform_changed();
 		});
+
+		auto r = ScriptClassRegistrar::existing_class(self);
+
+		r.method("SceneComponent@ attach(SceneComponent@ child) final", &This::attach);
+		r.method("SceneComponent@ detach_from_parent() final", &This::detach_from_parent);
+		r.method("bool is_attached_to(SceneComponent@ component) const final", &This::is_attached_to);
+		r.method("SceneComponent@ parent() const final", &This::parent);
+
+		r.method("uint64 childs_count() const final", childs_count);
+		r.method("SceneComponent@ child_at(uint64 index) const final", child_at);
+
+		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
+		r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
+
+		r.method("const Transform& local_transform() const final", method_of<SceneComponent&>(&This::local_transform));
+		r.method("const Transform& world_transform() const final", &This::world_transform);
+		r.method("SceneComponent@ local_transform(const Transform&) final",
+				 method_of<SceneComponent&, const Transform&>(&This::local_transform));
+		r.method("SceneComponent@ add_local_transform(const Transform&) final", &This::add_local_transform);
+		r.method("SceneComponent@ remove_local_transform(const Transform&) final", &This::remove_local_transform);
+		r.method("SceneComponent@ location(const Vector3D& new_location) final", &This::location);
+		r.method("SceneComponent@ rotation(const Vector3D& new_rotation) final",
+				 method_of<SceneComponent&, const Vector3D&>(&This::rotation));
+		r.method("SceneComponent@ rotation(const Quaternion& new_rotation) final",
+				 method_of<SceneComponent&, const Quaternion&>(&This::rotation));
+		r.method("SceneComponent@ scale(const Vector3D& new_scale) final", &This::scale);
+		r.method("SceneComponent@ add_location(const Vector3D& delta) final", &This::add_location);
+		r.method("SceneComponent@ add_rotation(const Vector3D& delta) final",
+				 method_of<SceneComponent&, const Vector3D&>(&This::add_rotation));
+		r.method("SceneComponent@ add_rotation(const Quaternion& delta) final",
+				 method_of<SceneComponent&, const Quaternion&>(&This::add_rotation));
+		r.method("SceneComponent@ add_scale(const Vector3D& delta) final", &This::add_scale);
+
+		script_scene_comp_transform_changed =
+				r.method("void on_transform_changed()", trinex_scoped_void_method(This, on_transform_changed));
+
+		ScriptEngine::on_terminate.push([]() { script_scene_comp_transform_changed.release(); });
 	}
 
 	const Transform& SceneComponentProxy::world_transform() const
@@ -44,12 +101,17 @@ namespace Engine
 	SceneComponent::SceneComponent()
 	{}
 
+	void SceneComponent::script_on_transform_changed()
+	{
+		ScriptObject(this).execute(script_scene_comp_transform_changed);
+	}
+
 	SceneComponent& SceneComponent::attach(SceneComponent* child)
 	{
 		trinex_check(child != this, "Cannot attach a component to itself");
 		trinex_check(child && !is_attached_to(child), "Setting up attachment would create a cycle");
 
-		detach_from_parent();
+		child->detach_from_parent();
 
 		child->m_parent = this;
 		m_childs.push_back(child);

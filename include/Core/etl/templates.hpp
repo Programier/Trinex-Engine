@@ -19,6 +19,14 @@ namespace Engine
 		using TypePtr = Type*;
 		using TypeRef = Type&;
 
+		using FuncType    = ReturnType(ArgsType...);
+		using FuncTypePtr = FuncType*;
+		using FuncTypeRef = FuncType&;
+
+		using VoidFuncType    = void(ArgsType...);
+		using VoidFuncTypePtr = VoidFuncType*;
+		using VoidFuncTypeRef = VoidFuncType&;
+
 		using Args = SignatureArgs<ArgsType...>;
 
 		using Return = ReturnType;
@@ -30,6 +38,14 @@ namespace Engine
 		using TypePtr = Type*;
 		using TypeRef = Type&;
 
+		using FuncType    = ReturnType(ArgsType...);
+		using FuncTypePtr = FuncType*;
+		using FuncTypeRef = FuncType&;
+
+		using VoidFuncType    = void(ArgsType...);
+		using VoidFuncTypePtr = VoidFuncType*;
+		using VoidFuncTypeRef = VoidFuncType&;
+
 		using Args = SignatureArgs<ArgsType...>;
 
 		using Return = ReturnType;
@@ -40,6 +56,14 @@ namespace Engine
 		using Type    = ReturnType(ArgsType...);
 		using TypePtr = Type*;
 		using TypeRef = Type&;
+
+		using FuncType    = ReturnType(ArgsType...);
+		using FuncTypePtr = FuncType*;
+		using FuncTypeRef = FuncType&;
+
+		using VoidFuncType    = void(ArgsType...);
+		using VoidFuncTypePtr = VoidFuncType*;
+		using VoidFuncTypeRef = VoidFuncType&;
 
 		using Args = SignatureArgs<ArgsType...>;
 
@@ -57,6 +81,10 @@ namespace Engine
 		using FuncType    = ReturnType(ClassType*, ArgsType...);
 		using FuncTypePtr = FuncType*;
 		using FuncTypeRef = FuncType&;
+
+		using VoidFuncType    = void(ClassType*, ArgsType...);
+		using VoidFuncTypePtr = VoidFuncType*;
+		using VoidFuncTypeRef = VoidFuncType&;
 
 		using FuncArgs = SignatureArgs<ClassType*, ArgsType...>;
 
@@ -76,6 +104,10 @@ namespace Engine
 		using FuncType    = ReturnType(const ClassType*, ArgsType...);
 		using FuncTypePtr = FuncType*;
 		using FuncTypeRef = FuncType&;
+
+		using VoidFuncType    = void(const ClassType*, ArgsType...);
+		using VoidFuncTypePtr = VoidFuncType*;
+		using VoidFuncTypeRef = VoidFuncType&;
 
 		using FuncArgs = SignatureArgs<ClassType*, ArgsType...>;
 
@@ -97,13 +129,13 @@ namespace Engine
 	}
 
 	template<typename Return, typename... Args, typename Instance>
-	constexpr Return (Instance::*method_of(Return (Instance::*function)(Args...)))(Args...)
+	constexpr Return (Instance::* method_of(Return (Instance::*function)(Args...)))(Args...)
 	{
 		return function;
 	}
 
 	template<typename Return, typename... Args, typename Instance>
-	constexpr Return (Instance::*method_of(Return (Instance::*function)(Args...) const))(Args...) const
+	constexpr Return (Instance::* method_of(Return (Instance::*function)(Args...) const))(Args...) const
 	{
 		return function;
 	}
@@ -113,6 +145,12 @@ namespace Engine
 			[]<typename Instance, typename... Args>(Instance* instance,                                                          \
 													Args... args) -> decltype(instance->method_name(args...)) {                  \
 				return instance->class_name::method_name(args...);                                                               \
+			})
+
+#define trinex_scoped_void_method(class_name, method_name, ...)                                                                  \
+	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::VoidFuncTypePtr>(           \
+			[]<typename Instance, typename... Args>(Instance* instance, Args... args) {                                          \
+				instance->class_name::method_name(args...);                                                                      \
 			})
 
 	template<typename EnumType>
@@ -158,7 +196,7 @@ namespace Engine
 	}
 
 	template<typename FieldType, typename ClassType>
-	inline size_t offset_of(FieldType ClassType::*field)
+	inline size_t offset_of(FieldType ClassType::* field)
 	{
 		ClassType* instance = reinterpret_cast<ClassType*>(1024);
 		return reinterpret_cast<size_t>(&(instance->*field)) - reinterpret_cast<size_t>(instance);

@@ -160,9 +160,9 @@ namespace Engine
 		// Functions register
 
 		static ScriptFunction register_function(const char* declaration, ScriptFuncPtr* func,
-		                                        ScriptCallConv conv = ScriptCallConv::CDecl);
+												ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 		static ScriptFunction register_function(const String& declaration, ScriptFuncPtr* func,
-		                                        ScriptCallConv conv = ScriptCallConv::CDecl);
+												ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 
 		// Variable to string
 		static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);

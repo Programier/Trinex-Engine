@@ -20,7 +20,7 @@ namespace Engine
 		trinex_refl_prop(self, This, material)->tooltip("Material which used for rendering this primitive");
 	}
 
-	implement_engine_class(StaticMesh, Refl::Class::IsAsset)
+	implement_engine_class(StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
 		auto* self = StaticMesh::static_class_instance();
 		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");

@@ -268,10 +268,11 @@ namespace Engine
 		return script_engine()->GetFunctionById(r);
 	}
 
-	ScriptFunction ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
+	ScriptFunction ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv,
+														 void* auxiliary)
 	{
 		ScriptNamespaceScopedChanger ns(m_class_name);
-		return ScriptEngine::register_function(declaration, function, conv);
+		return ScriptEngine::register_function(declaration, function, conv, auxiliary);
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, size_t offset)

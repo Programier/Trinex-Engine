@@ -194,17 +194,20 @@ namespace Engine
 		}
 	}
 
-	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv)
+	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv,
+												   void* auxiliary)
 	{
-		int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv));
+		int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv),
+													auxiliary);
 		if (id < 0)
 			return {};
 		return function_by_id(id);
 	}
 
-	ScriptFunction ScriptEngine::register_function(const String& declaration, ScriptFuncPtr* func, ScriptCallConv conv)
+	ScriptFunction ScriptEngine::register_function(const String& declaration, ScriptFuncPtr* func, ScriptCallConv conv,
+												   void* auxiliary)
 	{
-		return register_function(declaration.c_str(), func, conv);
+		return register_function(declaration.c_str(), func, conv, auxiliary);
 	}
 
 	const ScriptEngine& ScriptEngine::release_context(asIScriptContext* context)

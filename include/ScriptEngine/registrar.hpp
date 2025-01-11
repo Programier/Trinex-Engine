@@ -179,20 +179,20 @@ namespace Engine
 		}
 
 		ScriptFunction static_function(const char* declaration, ScriptFuncPtr* function,
-		                               ScriptCallConv conv = ScriptCallConv::CDecl);
+									   ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 
 		template<typename ReturnType, typename... Args>
 		ScriptFunction static_function(const char* declaration, ReturnType (*function)(Args...),
-		                               ScriptCallConv conv = ScriptCallConv::CDecl)
+									   ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr)
 		{
-			return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv);
+			return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv, auxiliary);
 		}
 
 		// Property registration
 		ScriptClassRegistrar& property(const char* declaration, size_t offset);
 
 		template<typename T, typename C>
-		ScriptClassRegistrar& property(const char* declaration, T C::*prop)
+		ScriptClassRegistrar& property(const char* declaration, T C::* prop)
 		{
 			return property(declaration, offset_of(prop));
 		}

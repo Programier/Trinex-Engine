@@ -52,7 +52,7 @@ namespace Engine::Refl
 
 			if (current)
 			{
-				String fullname = Strings::concat_scoped_name(current->GetNamespace(), current->GetName());
+				String fullname = Strings::concat_scoped_name(ti->GetNamespace(), ti->GetName());
 				self            = Refl::Class::static_find(fullname);
 			}
 		}

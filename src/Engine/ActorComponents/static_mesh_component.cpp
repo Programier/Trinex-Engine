@@ -1,4 +1,5 @@
 #include <Core/base_engine.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -12,12 +13,16 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
+#include <ScriptEngine/registrar.hpp>
 
 namespace Engine
 {
-	implement_engine_class(StaticMeshComponent, 0)
+	implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
 	{
 		trinex_refl_prop(static_class_instance(), This, mesh)->tooltip("Mesh object of this component");
+
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		r.property("StaticMesh@ mesh", &This::mesh);
 	}
 
 	StaticMeshComponent& StaticMeshComponent::update(float dt)
@@ -84,7 +89,8 @@ namespace Engine
 
 	StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer)
 	{
-		renderer->render_component(this);
+		if (mesh)
+			renderer->render_component(this);
 		return *this;
 	}
 

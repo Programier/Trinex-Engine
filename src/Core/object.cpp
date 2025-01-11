@@ -12,6 +12,7 @@
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
+#include <Core/pointer.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
@@ -19,7 +20,7 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_object.hpp>
-
+#include <angelscript.h>
 
 namespace Engine
 {
@@ -56,13 +57,6 @@ namespace Engine
 		next_object_info.reset();
 	}
 
-#define trinex_scoped_method2(class_name, method_name, ...)                                                                      \
-	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::FuncTypePtr>(               \
-			[]<typename Instance, typename... Args>(Instance* instance, Args... args) -> float {                                 \
-				return instance->class_name::method_name(args...);                                                               \
-			})
-
-
 	implement_engine_class(Object, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
@@ -80,6 +74,11 @@ namespace Engine
 			script_object_preload.release();
 			script_object_postload.release();
 		});
+
+		{
+			ScriptNamespaceScopedChanger changer("Engine::Object");
+			ScriptEngine::register_function("Object@ static_find_object(StringView object_name)", static_find_object);
+		}
 	}
 
 	static Vector<Index>& get_free_indexes_array()
@@ -246,6 +245,7 @@ namespace Engine
 
 	bool Object::rename(StringView name, Object* new_owner)
 	{
+		if (!name.empty())
 		{
 			String validation;
 			if (!static_validate_object_name(name, &validation))

@@ -245,11 +245,11 @@ namespace Engine
 		auto self = static_class_instance();
 		auto r    = ScriptClassRegistrar::existing_class(self);
 
-		script_actor_update     = r.method("void update(float dt)", trinex_scoped_method(Actor, update));
-		script_actor_start_play = r.method("void start_play()", trinex_scoped_method(Actor, start_play));
-		script_actor_stop_play  = r.method("void stop_play()", trinex_scoped_method(Actor, stop_play));
-		script_actor_spawned    = r.method("void spawned()", trinex_scoped_method(Actor, spawned));
-		script_actor_destroyed  = r.method("void destroyed()", trinex_scoped_method(Actor, destroyed));
+		script_actor_update     = r.method("void update(float dt)", trinex_scoped_void_method(Actor, update));
+		script_actor_start_play = r.method("void start_play()", trinex_scoped_void_method(Actor, start_play));
+		script_actor_stop_play  = r.method("void stop_play()", trinex_scoped_void_method(Actor, stop_play));
+		script_actor_spawned    = r.method("void spawned()", trinex_scoped_void_method(Actor, spawned));
+		script_actor_destroyed  = r.method("void destroyed()", trinex_scoped_void_method(Actor, destroyed));
 
 		constexpr ActorComponent* (*create_component)(Actor*, Refl::Class*, const Name&) =
 				[](Actor* actor, Refl::Class* self, const Name& name) { return actor->create_component(self, name); };

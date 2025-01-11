@@ -32,9 +32,19 @@ namespace Engine
 		Vector<Pointer<SceneComponent>> m_childs;
 
 	protected:
+		void script_on_transform_changed();
 		void submit_transform_to_render_thread();
 
 	public:
+		template<typename Native>
+		struct Scriptable : Super::Scriptable<Native> {
+			Scriptable& on_transform_changed() override
+			{
+				SceneComponent::script_on_transform_changed();
+				return *this;
+			}
+		};
+
 		SceneComponent();
 
 		SceneComponent& attach(SceneComponent* child);
