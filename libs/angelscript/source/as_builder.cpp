@@ -667,13 +667,6 @@ void asCBuilder::ParseScripts()
 
 	if (numErrors == 0)
 	{
-		// Register namespace visibility
-		for (n = 0; n < scripts.GetLength(); n++)
-		{
-			asCScriptNode* node = parsers[n]->GetScriptNode();
-			RegisterNamespaceVisibility(node, scripts[n], engine->nameSpaces[0]);
-		}
-
 		// Find all type declarations
 		for (n = 0; n < scripts.GetLength(); n++)
 		{
@@ -878,77 +871,6 @@ void asCBuilder::RegisterTypesFromScript(asCScriptNode *node, asCScriptCode *scr
 
 		node = next;
 	}
-}
-
-void asCBuilder::RegisterNamespaceVisibility(asCScriptNode* node, asCScriptCode* script, asSNameSpace* ns)
-{
-	asASSERT(node->nodeType == snScript);
-
-	node = node->firstChild;
-	// First, register all namespaces
-	while ( node )
-	{
-		asCScriptNode* next = node->next;
-		if ( node->nodeType == snNamespace )
-		{
-			asCString nsName;
-			nsName.Assign(&script->code[node->firstChild->tokenPos], node->firstChild->tokenLength);
-			if ( ns->name != "" )
-				nsName = ns->name + "::" + nsName;
-
-			asSNameSpace* nsChild = engine->AddNameSpace(nsName.AddressOf());
-			RegisterNamespaceVisibility(node->lastChild, script, nsChild);
-		}
-		else if ( node->nodeType == snUsing )
-		{
-			node->DisconnectParent();
-			RegisterUsingNamespace(node, script, ns);
-		}
-		node = next;
-	}
-}
-
-void asCBuilder::AddVisibleNamespaces(asSNameSpace *ns, const asCArray<asSNameSpace*>& visited, asCArray<asSNameSpace*>& pending)
-{
-	asSMapNode<asSNameSpace*, asCArray<asSNameSpace*>>* cursor = 0;
-
-	if (namespaceVisibility.MoveTo(&cursor, ns))
-	{
-		asCArray<asSNameSpace*>& visibilityBuffer = namespaceVisibility.GetValue(cursor);
-		asUINT count = visibilityBuffer.GetLength();
-
-		for (asUINT i = 0; i < count; ++i)
-		{
-			asSNameSpace* visibleNameSpace = visibilityBuffer[i];
-			if (!visited.Exists(visibleNameSpace) && !pending.Exists(visibleNameSpace))
-			{
-				pending.PushLast(visibleNameSpace);
-			}
-		}
-	}
-}
-
-asSNameSpace *asCBuilder::FindNextVisibleNamespace(asSNameSpace *ns, const asCArray<asSNameSpace*>& visited, asCArray<asSNameSpace*>& pending, bool* checkAmbiguous)
-{
-	if (ns)
-	{
-		do
-		{
-			ns = engine->GetParentNameSpace(ns);
-		} while (ns && visited.Exists(ns));
-	}
-
-	while ((ns == 0 || visited.Exists(ns)) && pending.GetLength() != 0)
-	{
-		ns = pending.PopLast();
-	}
-
-	if (checkAmbiguous && !(*checkAmbiguous))
-	{
-		*checkAmbiguous = ns == engine->nameSpaces[0];
-	}
-
-	return ns;
 }
 
 void asCBuilder::RegisterNonTypesFromScript(asCScriptNode *node, asCScriptCode *script, asSNameSpace *ns)
@@ -1386,6 +1308,9 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 	n = paramList->firstChild;
 	while( n )
 	{
+		if (n && n->nodeType == snVariadic)
+			break; // Should be the last argument
+		
 		paramCount++;
 		n = n->next->next;
 		if( n && n->nodeType == snIdentifier )
@@ -1439,6 +1364,11 @@ int asCBuilder::ParseFunctionDeclaration(asCObjectType *objType, const char *dec
 
 		// Move to next parameter
 		n = n->next->next;
+		if (n && n->nodeType == snVariadic)
+		{
+			func->SetVariadic(true);
+			break;
+		}
 		if( n && n->nodeType == snIdentifier )
 		{
 			func->parameterNames[index] = asCString(&source.code[n->tokenPos], n->tokenLength);
@@ -2243,37 +2173,6 @@ int asCBuilder::RegisterGlobalVar(asCScriptNode *node, asCScriptCode *file, asSN
 
 	node->Destroy(engine);
 
-	return 0;
-}
-
-int asCBuilder::RegisterUsingNamespace(asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns)
-{
-	asCScriptNode* n = node->firstChild;
-	asCString name(&file->code[n->tokenPos], n->tokenLength);
-
-	while (n->next)
-	{
-	    n = n->next;
-	    name += "::" + asCString(&file->code[n->tokenPos], n->tokenLength);
-	}
-
-	asSNameSpace* visibleNamespace = engine->AddNameSpace(name.AddressOf());
-	asSMapNode<asSNameSpace*, asCArray<asSNameSpace*>>* cursor = 0;
-
-	if (namespaceVisibility.MoveTo(&cursor, ns))
-	{
-		asCArray<asSNameSpace*>& visibleNamespaces = namespaceVisibility.GetValue(cursor);
-		if (!visibleNamespaces.Exists(visibleNamespace))
-			namespaceVisibility.GetValue(cursor).PushLast(visibleNamespace);
-	}
-	else
-	{
-		asCArray<asSNameSpace*> tmp;
-		tmp.PushLast(visibleNamespace);
-		namespaceVisibility.Insert(ns, tmp);
-	}
-
-	node->Destroy(engine);
 	return 0;
 }
 
@@ -3237,40 +3136,14 @@ void asCBuilder::DetermineTypeRelations()
 				continue;
 			}
 
-			asCArray<asSNameSpace*> pendingNamespaces;
-			asCArray<asSNameSpace*> visitedNamespaces;
-			bool checkAmbiguousSymbols = ns == engine->nameSpaces[0];
-
 			// Find the object type for the interface
 			asCObjectType *objType = 0;
 			while (ns)
 			{
-				visitedNamespaces.PushLast(ns);
+				objType = GetObjectType(name.AddressOf(), ns);
+				if (objType) break;
 
-				if (!checkAmbiguousSymbols)
-				{
-					objType = GetObjectType(name.AddressOf(), ns);
-					if (objType)
-						break;
-				}
-				else
-				{
-					asCObjectType* ot = GetObjectType(name.AddressOf(), ns);
-
-					if (objType && ot)
-					{
-						asCString msg;
-						msg.Format(TXT_AMBIGUOUS_SYMBOL_NAME_s, name.AddressOf());
-						WriteError(msg, intfDecl->script, node);
-						objType = 0;
-						break;
-					}
-
-					objType = ot;
-				}
-
-				AddVisibleNamespaces(ns, visitedNamespaces, pendingNamespaces);
-				ns = FindNextVisibleNamespace(ns, visitedNamespaces, pendingNamespaces, &checkAmbiguousSymbols);
+				ns = engine->GetParentNameSpace(ns);
 			}
 
 			// Check that the object type is an interface
@@ -3360,50 +3233,16 @@ void asCBuilder::DetermineTypeRelations()
 			asCObjectType *objType = 0;
 			sMixinClass *mixin = 0;
 			asSNameSpace *origNs = ns;
-
-			asCArray<asSNameSpace*> pendingNamespaces;
-			asCArray<asSNameSpace*> visitedNamespaces;
-
-			bool checkAmbiguousTypes = ns == engine->nameSpaces[0];
-
 			while (ns)
 			{
-				visitedNamespaces.PushLast(ns);
+				objType = GetObjectType(name.AddressOf(), ns);
+				if (objType == 0)
+					mixin = GetMixinClass(name.AddressOf(), ns);
 
-				if (!checkAmbiguousTypes)
-				{
-					objType = GetObjectType(name.AddressOf(), ns);
-					if (objType == 0)
-						mixin = GetMixinClass(name.AddressOf(), ns);
+				if (objType || mixin)
+					break;
 
-					if (objType || mixin)
-						break;
-				}
-				else
-				{
-					asCObjectType* resultObjType = GetObjectType(name.AddressOf(), ns);
-					sMixinClass* resultMixin     = 0;
-
-					if (resultObjType == 0)
-						resultMixin = GetMixinClass(name.AddressOf(), ns);
-
-					if ((objType || mixin) && (resultObjType || resultObjType))
-					{
-					    asCString msg;
-					    msg.Format(TXT_AMBIGUOUS_SYMBOL_NAME_s, name.AddressOf());
-					    WriteError(msg, file, node);
-
-					    objType = 0;
-					    mixin = 0;
-					    break;
-					}
-
-					objType = resultObjType;
-					mixin   = resultMixin;
-				}
-
-				AddVisibleNamespaces(ns, visitedNamespaces, pendingNamespaces);
-				ns = FindNextVisibleNamespace(ns, visitedNamespaces, pendingNamespaces, &checkAmbiguousTypes);
+				ns = engine->GetParentNameSpace(ns);
 			}
 
 			if (objType == 0 && mixin == 0)
@@ -6337,7 +6176,7 @@ asSNameSpace *asCBuilder::GetNameSpaceByString(const asCString &nsName, asSNameS
 	return ns;
 }
 
-asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCode *file, asSNameSpace *implicitNamespace, bool acceptHandleForScope, asCObjectType *currentType, bool reportError, bool *isValid, asCArray<asCDataType> *templSubTypes, asCArray<asSNameSpace*>* scopeVisibleNamespaces)
+asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCode *file, asSNameSpace *implicitNamespace, bool acceptHandleForScope, asCObjectType *currentType, bool reportError, bool *isValid, asCArray<asCDataType> *templSubTypes)
 {
 	asASSERT(node->nodeType == snDataType || node->nodeType == snIdentifier || node->nodeType == snScope );
 
@@ -6383,21 +6222,9 @@ asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCod
 		// Recursively search parent namespaces for matching type
 		asSNameSpace *origNs = ns;
 		asCObjectType *origParentType = parentType;
-
-		asCArray<asSNameSpace*> pendingNamespaces;
-		asCArray<asSNameSpace*> visitedNamespaces;
-		bool checkAmbiguousSymbols = ns == engine->nameSpaces[0];
-
-		if (scopeVisibleNamespaces)
+		while( (ns || parentType) && !found )
 		{
-			pendingNamespaces = *scopeVisibleNamespaces;
-		}
-
-		while( (ns || parentType) && (!found || checkAmbiguousSymbols))
-		{
-			visitedNamespaces.PushLast(ns);
 			asCTypeInfo *ti = 0;
-			bool canContinue = true;
 
 			if (templSubTypes)
 			{
@@ -6435,19 +6262,8 @@ asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCod
 					ti = GetFuncDef(str.AddressOf(), 0, currentType);
 					if (ti)
 					{
-						if (dt.GetTypeInfo() != 0)
-						{
-							asCString msg;
-							msg.Format(TXT_AMBIGUOUS_SYMBOL_NAME_s, str.AddressOf());
-							WriteError(msg, file, node);
-
-							// Return a dummy
-							return asCDataType::CreatePrimitive(ttInt, isConst);
-						}
-
-						dt    = asCDataType::CreateType(ti, false);
+						dt = asCDataType::CreateType(ti, false);
 						found = true;
-						canContinue = false;
 					}
 				}
 			}
@@ -6457,18 +6273,8 @@ asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCod
 			if( ti == 0 && !module && currentType )
 				ti = GetTypeFromTypesKnownByObject(str.AddressOf(), currentType);
 
-			if( ti && (!found || checkAmbiguousSymbols) && canContinue)
+			if( ti && !found )
 			{
-				if (dt.GetTypeInfo() != 0)
-				{
-					asCString msg;
-					msg.Format(TXT_AMBIGUOUS_SYMBOL_NAME_s, str.AddressOf());
-					WriteError(msg, file, node);
-
-					// Return a dummy
-					return asCDataType::CreatePrimitive(ttInt, isConst);
-				}
-
 				found = true;
 
 				if( ti->flags & asOBJ_IMPLICIT_HANDLE )
@@ -6538,13 +6344,11 @@ asCDataType asCBuilder::CreateDataTypeFromNode(asCScriptNode *node, asCScriptCod
 				}
 			}
 
-			if( !found || checkAmbiguousSymbols )
+			if( !found )
 			{
-				AddVisibleNamespaces(ns, visitedNamespaces, pendingNamespaces);
-
 				// Try to find it in the parent namespace
-				ns = FindNextVisibleNamespace(ns, visitedNamespaces, pendingNamespaces, &checkAmbiguousSymbols);
-
+				if( ns )
+					ns = engine->GetParentNameSpace(ns);
 				if (parentType)
 					parentType = 0;
 			}

@@ -171,7 +171,6 @@ struct asCExprContext
 	asCString methodName;
 	asCString enumValue;
 	asSNameSpace *symbolNamespace; // The namespace in which the ambiguous symbol was found
-	asCExprContext* next;
 	bool isAnonymousInitList; // Set to true if the expression is an init list for which the type has not yet been determined
 };
 
@@ -357,8 +356,7 @@ protected:
 		SL_ERROR = -1
 	};
 
-	bool isAmbiguousSymbol(const asCString &name, asCScriptNode* errNode, SYMBOLTYPE& currentType, SYMBOLTYPE nextType);
-	SYMBOLTYPE SymbolLookup(const asCString &name, const asCString &scope, asCObjectType *objType, asCExprContext *outResult, asCScriptNode* errNode);
+	SYMBOLTYPE SymbolLookup(const asCString &name, const asCString &scope, asCObjectType *objType, asCExprContext *outResult);
 	SYMBOLTYPE SymbolLookupLocalVar(const asCString &name, asCExprContext *outResult);
 	SYMBOLTYPE SymbolLookupMember(const asCString &name, asCObjectType *objType, asCExprContext *outResult);
 
@@ -406,7 +404,6 @@ protected:
 	bool                         m_isConstructorCalled;
 	bool                         m_hasReturned;
 	asCArray<asCObjectProperty*> m_initializedProperties; // Doesn't hold reference
-	asCArray<asSNameSpace*>      m_namespaceVisibility;
 	asCMap<asCObjectProperty*, asUINT> m_propertyAccessCount; // Doesn't hold reference
 	sClassDeclaration           *m_classDecl;
 	sGlobalVariableDescription  *m_globalVar;

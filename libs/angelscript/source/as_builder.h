@@ -187,7 +187,7 @@ protected:
 	asCObjectType     *GetObjectType(const char *type, asSNameSpace *ns);
 	asCFuncdefType    *GetFuncDef(const char *type, asSNameSpace *ns, asCObjectType *parentType);
 	asCTypeInfo       *GetTypeFromTypesKnownByObject(const char *type, asCObjectType *currentType);
-	asCDataType        CreateDataTypeFromNode(asCScriptNode *node, asCScriptCode *file, asSNameSpace *implicitNamespace, bool acceptHandleForScope = false, asCObjectType *currentType = 0, bool reportError = true, bool *isValid = 0, asCArray<asCDataType> *templateSubType = 0, asCArray<asSNameSpace*>* scopeVisibleNamespaces = 0);
+	asCDataType        CreateDataTypeFromNode(asCScriptNode *node, asCScriptCode *file, asSNameSpace *implicitNamespace, bool acceptHandleForScope = false, asCObjectType *currentType = 0, bool reportError = true, bool *isValid = 0, asCArray<asCDataType> *templateSubType = 0);
 	asCObjectType     *GetTemplateInstanceFromNode(asCScriptNode *node, asCScriptCode *file, asCObjectType *templateType, asSNameSpace *implicitNamespace, asCObjectType *currentType, asCScriptNode **next = 0);
 	asCDataType        ModifyDataTypeFromNode(const asCDataType &type, asCScriptNode *node, asCScriptCode *file, asETypeModifiers *inOutFlag, bool *autoHandle);
 
@@ -216,7 +216,6 @@ protected:
 	int                RegisterVirtualProperty(asCScriptNode *node, asCScriptCode *file, asCObjectType *object = 0, bool isInterface = false, bool isGlobalFunction = false, asSNameSpace *ns = 0, bool isExistingShared = false);
 	int                RegisterImportedFunction(int funcID, asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns);
 	int                RegisterGlobalVar(asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns);
-	int                RegisterUsingNamespace(asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns);
 	int                RegisterClass(asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns);
 	int                RegisterInterface(asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns);
 	int                RegisterEnum(asCScriptNode *node, asCScriptCode *file, asSNameSpace *ns);
@@ -235,9 +234,6 @@ protected:
 	int                CreateVirtualFunction(asCScriptFunction *func, int idx);
 	void               ParseScripts();
 	void               RegisterTypesFromScript(asCScriptNode *node, asCScriptCode *script, asSNameSpace *ns);
-	void               RegisterNamespaceVisibility(asCScriptNode *node, asCScriptCode *script, asSNameSpace *ns);
-	void               AddVisibleNamespaces(asSNameSpace *ns, const asCArray<asSNameSpace*>& visited, asCArray<asSNameSpace*>& pending);
-	asSNameSpace      *FindNextVisibleNamespace(asSNameSpace *ns, const asCArray<asSNameSpace*>& visited, asCArray<asSNameSpace*>& pending, bool* checkAmbiguous = 0);
 	void               RegisterNonTypesFromScript(asCScriptNode *node, asCScriptCode *script, asSNameSpace *ns);
 	void               CompileFunctions();
 	void               CompileGlobalVariables();
@@ -251,15 +247,14 @@ protected:
 	void               EvaluateTemplateInstances(asUINT startIdx, bool keepSilent);
 	void               CleanupEnumValues();
 
-	asCArray<asCScriptCode *>                         scripts;
-	asCArray<sFunctionDescription *>                  functions;
-	asCSymbolTable<sGlobalVariableDescription>        globVariables;
-	asCMap<asSNameSpace*, asCArray<asSNameSpace*>>    namespaceVisibility;
-	asCArray<sClassDeclaration *>                     classDeclarations;
-	asCArray<sClassDeclaration *>                     interfaceDeclarations;
-	asCArray<sClassDeclaration *>                     namedTypeDeclarations;
-	asCArray<sFuncDef *>                              funcDefs;
-	asCArray<sMixinClass *>                           mixinClasses;
+	asCArray<asCScriptCode *>                  scripts;
+	asCArray<sFunctionDescription *>           functions;
+	asCSymbolTable<sGlobalVariableDescription> globVariables;
+	asCArray<sClassDeclaration *>              classDeclarations;
+	asCArray<sClassDeclaration *>              interfaceDeclarations;
+	asCArray<sClassDeclaration *>              namedTypeDeclarations;
+	asCArray<sFuncDef *>                       funcDefs;
+	asCArray<sMixinClass *>                    mixinClasses;
 
 	// For use with the DoesTypeExists() method
 	bool                    hasCachedKnownTypes;

@@ -202,6 +202,12 @@ namespace Engine
 		return m_function->IsProperty();
 	}
 
+	bool ScriptFunction::is_variadic() const
+	{
+		check_function(false);
+		return m_function->IsVariadic();
+	}
+
 	uint_t ScriptFunction::param_count() const
 	{
 		check_function(0);

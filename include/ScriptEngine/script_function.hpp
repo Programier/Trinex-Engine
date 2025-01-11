@@ -66,6 +66,7 @@ namespace Engine
 		bool is_shared() const;
 		bool is_explicit() const;
 		bool is_property() const;
+		bool is_variadic() const;
 
 		uint_t param_count() const;
 		bool param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,

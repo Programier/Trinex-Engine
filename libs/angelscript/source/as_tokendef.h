@@ -93,6 +93,7 @@ enum eTokenType
 	ttDec,                 // --
 
 	ttDot,                 // .
+	ttVariadic,            // ...
 	ttScope,               // ::
 
 	// Statement tokens
@@ -177,8 +178,7 @@ enum eTokenType
 	ttMixin,               // mixin
 	ttAuto,                // auto
 	ttTry,                 // try
-	ttCatch,               // catch
-	ttUsing                // using
+	ttCatch                // catch
 };
 
 struct sTokenWord
@@ -209,6 +209,7 @@ sTokenWord const tokenWords[] =
 	asTokenDef("="         , ttAssignment),
 	asTokenDef("=="        , ttEqual),
 	asTokenDef("."         , ttDot),
+	asTokenDef("..."       , ttVariadic),
 	asTokenDef("|"         , ttBitOr),
 	asTokenDef("|="        , ttOrAssign),
 	asTokenDef("||"        , ttOr),
@@ -300,7 +301,6 @@ sTokenWord const tokenWords[] =
 	asTokenDef("void"      , ttVoid),
 	asTokenDef("while"     , ttWhile),
 	asTokenDef("xor"       , ttXor),
-	asTokenDef("using"     , ttUsing),
 };
 
 const unsigned int numTokenWords = sizeof(tokenWords)/sizeof(sTokenWord);

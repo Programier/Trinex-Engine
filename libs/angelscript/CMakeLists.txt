@@ -46,17 +46,17 @@ set(ANGELSCRIPT_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/source/as_tokenizer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/as_typeinfo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/as_variablescope.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptmath/scriptmath.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptdictionary/scriptdictionary.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scripthelper/scripthelper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptany/scriptany.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptarray/scriptarray.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptgrid/scriptgrid.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/datetime/datetime.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/serializer/serializer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptstdstring/scriptstdstring_utils.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptstdstring/scriptstdstring.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptbuilder/scriptbuilder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptmath.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptdictionary.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scripthelper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptany.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptarray.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptgrid.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/datetime.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/serializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptstdstring_utils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptstdstring.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptbuilder.cpp
 )
 
 if(MSVC AND CMAKE_CL_64)
