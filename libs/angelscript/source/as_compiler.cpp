@@ -839,7 +839,14 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 					asCByteCode tmpBC(engine);
 					tmpBC.InstrSHORT(asBC_PSF, 0);
 					tmpBC.Instr(asBC_RDSPtr);
-					tmpBC.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+					if (outFunc->objectType->derivedFrom->flags & asOBJ_APP_NATIVE_INHERITANCE)
+					{
+						tmpBC.Call(asBC_CALLSYS, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+					}
+					else
+					{
+						tmpBC.Call(asBC_CALL, outFunc->objectType->derivedFrom->beh.construct, AS_PTR_SIZE);
+					}
 					tmpBC.OptimizeLocally(tempVariableOffsets);
 					byteCode.AddCode(&tmpBC);
 				}
