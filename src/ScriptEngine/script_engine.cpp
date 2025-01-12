@@ -712,13 +712,13 @@ namespace Engine
 		return nullptr;
 	}
 
-	String ScriptEngine::to_string(const byte* address, int_t type_id)
+	String ScriptEngine::to_string(const byte* address, int_t type_id, size_t depth)
 	{
 		if (address == nullptr)
 			return "null";
 
 		if (auto parser = custom_variable_parser(type_id))
-			return parser(address, type_id);
+			return parser(address, type_id, depth);
 
 		if (ScriptEngine::is_primitive_type(type_id))
 		{

@@ -248,6 +248,11 @@ namespace Engine
 		return ScriptEngine::type_info_by_name(m_class_base_name);
 	}
 
+	int_t ScriptClassRegistrar::type_id() const
+	{
+		return type_info().type_id();
+	}
+
 	ScriptFunction ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv,
 												void* auxiliary)
 	{

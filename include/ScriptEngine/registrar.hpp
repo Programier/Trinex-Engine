@@ -151,6 +151,7 @@ namespace Engine
 		const String& class_base_name() const;
 		const String& namespace_name() const;
 		class ScriptTypeInfo type_info() const;
+		int_t type_id() const;
 
 		// Method registration
 		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall,

@@ -18,7 +18,7 @@
 
 namespace Engine
 {
-	static String parse_string_value(const byte* address, int_t type_id)
+	static String parse_string_value(const byte* address, int_t type_id, size_t depth)
 	{
 		return Strings::format("\"{}\"", *reinterpret_cast<const String*>(address));
 	}

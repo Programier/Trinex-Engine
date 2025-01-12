@@ -32,7 +32,7 @@ namespace Engine
 	class ENGINE_EXPORT ScriptEngine
 	{
 	public:
-		using VariableToStringFunction = String (*)(const byte* object, int_t type_id);
+		using VariableToStringFunction = String (*)(const byte* object, int_t type_id, size_t depth);
 
 	private:
 		static Vector<class Script*> m_scripts;
@@ -168,7 +168,7 @@ namespace Engine
 		static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);
 		static ScriptEngine& unregister_custom_variable(int_t type_id);
 		static VariableToStringFunction custom_variable_parser(int_t type_id);
-		static String to_string(const byte* object, int_t type_id);
+		static String to_string(const byte* object, int_t type_id, size_t depth = 0);
 
 		template<typename ReturnValue, typename... Args>
 		static ScriptFunction register_function(const char* declaration, ReturnValue (*func)(Args...),
