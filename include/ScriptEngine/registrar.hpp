@@ -153,29 +153,30 @@ namespace Engine
 		class ScriptTypeInfo type_info() const;
 
 		// Method registration
-		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall);
+		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall,
+							  void* auxiliary = nullptr);
 		ScriptFunction method(const char* declaration, ScriptFuncPtr* function,
-		                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-		                      ScriptCallConv conv = ScriptCallConv::ThisCall)
+							  ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
-			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
+			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-		                      ScriptCallConv conv = ScriptCallConv::ThisCall)
+							  ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
-			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
+			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (*function_address)(Args...),
-		                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr)
 		{
-			return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv);
+			return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv, auxiliary);
 		}
 
 		ScriptFunction static_function(const char* declaration, ScriptFuncPtr* function,
@@ -201,59 +202,32 @@ namespace Engine
 
 		// Behaviour registration
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptFuncPtr* function,
-		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
+									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr);
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptMethodPtr* method,
-		                             ScriptCallConv conv = ScriptCallConv::ThisCall);
+									 ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
 		                             ReturnType (ClassType::*method_address)(Args...),
-		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
+									 ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
-			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
+			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
 		                             ReturnType (ClassType::*method_address)(Args...) const,
-		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
+									 ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
-			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
+			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-		                             ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
+									 ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst,
+									 void* auxiliary = nullptr)
 		{
-			return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv);
-		}
-
-		// Operator registration
-
-		ScriptClassRegistrar& opfunc(const char* declaration, ScriptMethodPtr* method,
-		                             ScriptCallConv conv = ScriptCallConv::ThisCall);
-		ScriptClassRegistrar& opfunc(const char* declaration, ScriptFuncPtr* function,
-		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst);
-
-		template<typename ReturnType, typename ClassType, typename... Args>
-		ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
-		{
-			return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
-		}
-
-		template<typename ReturnType, typename ClassType, typename... Args>
-		ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-		                             ScriptCallConv conv = ScriptCallConv::ThisCall)
-		{
-			return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
-		}
-
-		template<typename ReturnType, typename... Args>
-		ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (*function)(Args...),
-		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst)
-		{
-			return opfunc(declaration, ScriptFuncPtr::function_ptr(function), conv);
+			return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv, auxiliary);
 		}
 	};
 

@@ -21,8 +21,9 @@ namespace Engine::Refl
 		script->m_refl_objects.insert(this);
 	}
 
-	Engine::Object* ScriptClass::object_constructor(Class* class_overload, StringView name, Engine::Object* owner)
+	Engine::Object* ScriptClass::object_constructor(StringView name, Engine::Object* owner, bool scriptable)
 	{
+		trinex_always_check(scriptable, "Cannot create non-scriptable object from scriptable class");
 		asITypeInfo* type = script_type_info.info();
 
 		asIScriptFunction* factory = nullptr;
@@ -63,9 +64,6 @@ namespace Engine::Refl
 	{
 		auto script_object = reinterpret_cast<asIScriptObject*>(object);
 		script_object->Destroy();
-		std::destroy_at(object);
-
-		script_object->FreeObjectMemory();
 		return *this;
 	}
 

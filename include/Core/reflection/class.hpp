@@ -21,10 +21,10 @@ namespace Engine
 			static bool is_script_class(Class* self);
 			using ObjectFactory = Engine::Object*(StringView name, Engine::Object* owner);
 
-			virtual Engine::Object* object_constructor(Class* class_overload, StringView name = "",
-													   Engine::Object* owner = nullptr);
-			virtual Engine::Object* object_placement_constructor(void* mem, Class* class_overload, StringView name = "",
-																 Engine::Object* owner = nullptr);
+			virtual Engine::Object* object_constructor(StringView name = "", Engine::Object* owner = nullptr,
+													   bool scriptable = false);
+			virtual Engine::Object* object_placement_constructor(void* mem, StringView name = "", Engine::Object* owner = nullptr,
+																 bool scriptable = false);
 			virtual ObjectFactory* script_object_factory() const;
 
 			Class& register_scriptable_instance() override;
@@ -38,9 +38,8 @@ namespace Engine
 			void* create_struct() override;
 			Class& destroy_struct(void* obj) override;
 
-			Engine::Object* create_object(StringView name = "", Engine::Object* owner = nullptr, Class* class_overload = nullptr);
-			Engine::Object* create_placement_object(void* place, StringView name = "", Engine::Object* owner = nullptr,
-													Class* class_overload = nullptr);
+			Engine::Object* create_object(StringView name = "", Engine::Object* owner = nullptr);
+			Engine::Object* create_placement_object(void* place, StringView name = "", Engine::Object* owner = nullptr);
 			virtual Class& destroy_object(Engine::Object* object);
 			Engine::Object* singletone_instance() const;
 
@@ -86,11 +85,11 @@ namespace Engine
 				return nullptr;
 			}
 
-			Engine::Object* object_constructor(Class* class_overload, StringView name, Engine::Object* owner) override
+			Engine::Object* object_constructor(StringView name, Engine::Object* owner, bool scriptable = false) override
 			{
 				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
 				{
-					if (is_script_class(class_overload))
+					if (scriptable)
 					{
 						return Engine::Object::new_instance<ScriptableType, true>(name, owner);
 					}
@@ -98,12 +97,12 @@ namespace Engine
 				return Engine::Object::new_instance<T, true>(name, owner);
 			}
 
-			Engine::Object* object_placement_constructor(void* mem, Class* class_overload, StringView name,
-														 Engine::Object* owner) override
+			Engine::Object* object_placement_constructor(void* mem, StringView name, Engine::Object* owner,
+														 bool scriptable = false) override
 			{
 				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
 				{
-					if (is_script_class(class_overload))
+					if (scriptable)
 					{
 						return Engine::Object::new_placement_instance<ScriptableType, true>(mem, name, owner);
 					}

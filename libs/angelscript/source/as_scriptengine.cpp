@@ -274,8 +274,6 @@ AS_API asIScriptEngine *asCreateScriptEngine(asDWORD version)
 
 } // extern "C"
 
-std::unordered_map<const asCScriptObject*, const asCObjectType*> asCScriptEngine::objectTypeAddressMap;
-
 // interface
 int asCScriptEngine::SetEngineProperty(asEEngineProp property, asPWORD value)
 {
@@ -2645,19 +2643,6 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 
 		func.id = beh->getWeakRefFlag = AddBehaviourFunction(func, internal);
 	}
-	else if (behaviour == asBEHAVE_GET_TYPE_INFO)
-	{
-		if (!(func.objectType->flags & asOBJ_APP_NATIVE_INHERITANCE))
-			return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
-
-		if (func.parameterTypes.GetLength() != 0)
-			return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
-
-		if (!(func.returnType.IsReference() && func.returnType.IsPrimitive()))
-			return ConfigError(asILLEGAL_BEHAVIOUR_FOR_TYPE, "RegisterObjectBehaviour", objectType->name.AddressOf(), decl);
-
-		func.id = beh->getTypeId = AddBehaviourFunction(func, internal);
-	}
 	else
 	{
 		asASSERT(false);
@@ -3553,12 +3538,6 @@ void asCScriptEngine::PrepareEngine()
 					infoMsg = TXT_NON_POD_REQUIRE_CONSTR_DESTR_BEHAVIOUR;
 					missingBehaviour = true;
 				}
-			}
-
-			if (type->flags & asOBJ_APP_NATIVE_INHERITANCE)
-			{
-				if (type->beh.getTypeId == 0)
-					missingBehaviour = true;
 			}
 
 			if( missingBehaviour )
@@ -5102,25 +5081,11 @@ void *asCScriptEngine::CallAlloc(const asCObjectType *type)
 	ptr = userAllocAligned(size, type->alignment);
 #endif
 #endif
-	
-	if(type->flags & asOBJ_SCRIPT_OBJECT)
-	{
-		ptr = reinterpret_cast<asBYTE*>(ptr) + sizeof(asCScriptObjectData);
-		StaticRegisterScriptObjectType(reinterpret_cast<const asCScriptObject*>(ptr), type);
-	}
 	return ptr;
 }
 
 void asCScriptEngine::CallFree(void *obj)
 {
-	auto ot = StaticFindScriptObjectType(reinterpret_cast<asCScriptObject*>(obj));
-	
-	if(ot)
-	{
-		StaticUnregisterScriptObjectType(reinterpret_cast<asCScriptObject*>(obj));
-		obj = reinterpret_cast<asBYTE*>(obj) - sizeof(asCScriptObjectData);
-	}
-
 #ifndef WIP_16BYTE_ALIGN
 	userFree(obj);
 #else
@@ -6859,25 +6824,6 @@ int asCScriptEngine::SetTranslateAppExceptionCallback(asSFuncPtr callback, void 
 
 	return r;
 #endif
-}
-
-void asCScriptEngine::StaticRegisterScriptObjectType(const class asCScriptObject* object, const class asCObjectType* ot)
-{
-	if(object && ot)
-		objectTypeAddressMap.insert_or_assign(object, ot);		
-}
-
-void asCScriptEngine::StaticUnregisterScriptObjectType(const class asCScriptObject* object)
-{
-	objectTypeAddressMap.erase(object);
-}
-
-const class asCObjectType* asCScriptEngine::StaticFindScriptObjectType(const class asCScriptObject* object)
-{
-	auto it = objectTypeAddressMap.find(object);
-	if(it == objectTypeAddressMap.end())
-		return nullptr;
-	return it->second;
 }
 
 // internal

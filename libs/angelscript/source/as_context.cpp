@@ -1590,16 +1590,7 @@ asCScriptFunction *asCContext::GetRealFunc(asCScriptFunction * currentFunction, 
 		}
 		else
 		{
-			asCObjectType* objType = nullptr;
-
-			if (currentFunction->objectType && currentFunction->objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
-			{
-				objType = reinterpret_cast<asCObjectType*>(m_engine->CallObjectMethodRetPtr(obj, currentFunction->objectType->beh.getTypeId));
-			}
-			else
-			{
-				objType = obj->objType();
-			}
+			asCObjectType* objType = obj->objType();
 
 			asCScriptFunction * realFunc = 0;
 
@@ -2152,16 +2143,7 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 		return;
 	}
 
-	asCObjectType *objType = nullptr;
-   
-	if(func->objectType && func->objectType->flags & asOBJ_APP_NATIVE_INHERITANCE)
-	{
-		objType = reinterpret_cast<asCObjectType*>(m_engine->CallObjectMethodRetPtr(obj, func->objectType->beh.getTypeId));
-	}
-	else
-	{
-		objType = obj->objType();
-	}
+	asCObjectType *objType = obj->objType();
 
 	// Search the object type for a function that matches the interface function
 	asCScriptFunction *realFunc = 0;
@@ -3990,8 +3972,8 @@ static const void *const dispatch_table[256] = {
 				asCObjectType *to = m_engine->GetObjectTypeFromTypeId(typeId);
 
 				// This instruction can only be used with script classes and interfaces
-				asASSERT( objType->flags & asOBJ_SCRIPT_OBJECT );
-				asASSERT( to->flags & asOBJ_SCRIPT_OBJECT );
+				asASSERT( objType->flags & (asOBJ_SCRIPT_OBJECT | asOBJ_APP_NATIVE_INHERITANCE) );
+				asASSERT( to->flags & (asOBJ_SCRIPT_OBJECT | asOBJ_APP_NATIVE_INHERITANCE));
 
 				if( objType->Implements(to) || objType->DerivesFrom(to) )
 				{

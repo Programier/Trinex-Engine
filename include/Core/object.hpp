@@ -6,6 +6,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/flags.hpp>
 #include <Core/name.hpp>
+#include <angelscript_object.h>
 
 namespace Engine
 {
@@ -16,7 +17,7 @@ namespace Engine
 	ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
 
 	// Head of all classes in the Engine
-	class ENGINE_EXPORT Object
+	class ENGINE_EXPORT Object : private asIScriptObject
 	{
 	public:
 		template<typename NativeType>
@@ -71,7 +72,7 @@ namespace Engine
 
 	private:
 		// Setup object info
-		static void setup_next_object_info(Refl::Class* self, bool override = true);
+		static Refl::Class* setup_next_object_info(Refl::Class* self);
 		static void reset_next_object_info();
 
 		static void create_default_package();
@@ -106,6 +107,17 @@ namespace Engine
 		static ENGINE_EXPORT void* operator new(size_t size) noexcept;
 		static ENGINE_EXPORT void* operator new(size_t size, void*) noexcept;
 		static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
+
+	private:
+		// AngelScript integration
+		int AddRef() const override;
+		int Release() const override;
+		asILockableSharedBool* GetWeakRefFlag() const override;
+		int GetRefCount() override;
+		void SetGCFlag() override;
+		bool GetGCFlag() override;
+		asITypeInfo* GetObjectType() const override;
+		int CopyFrom(const asIScriptObject* other) override;
 
 	public:
 		using This  = Object;
@@ -200,13 +212,13 @@ namespace Engine
 					}
 
 					if constexpr (std::is_base_of_v<Object, Type>)
-						setup_next_object_info(Type::static_class_instance(), false);
+						setup_next_object_info(Type::static_class_instance());
 					return setup_new_object(Type::create_instance(std::forward<Args>(args)...), name, owner);
 				}
 				else
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
-						setup_next_object_info(Type::static_class_instance(), false);
+						setup_next_object_info(Type::static_class_instance());
 					return setup_new_object(new Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
@@ -235,13 +247,13 @@ namespace Engine
 					}
 
 					if constexpr (std::is_base_of_v<Object, Type>)
-						setup_next_object_info(Type::static_class_instance(), false);
+						setup_next_object_info(Type::static_class_instance());
 					return setup_new_object(Type::create_placement_instance(place, std::forward<Args>(args)...), name, owner);
 				}
 				else
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
-						setup_next_object_info(Type::static_class_instance(), false);
+						setup_next_object_info(Type::static_class_instance());
 					return setup_new_object(new (place) Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
@@ -333,7 +345,6 @@ namespace Engine
 		friend class Archive;
 		friend class MemoryManager;
 		friend class GarbageCollector;
-		friend class Class;
 		friend class Refl::Class;
 	};
 

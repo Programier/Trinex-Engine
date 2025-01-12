@@ -651,8 +651,8 @@ asCObjectProperty *asCObjectType::AddPropertyToClass(const asCString &propName, 
 
 	asASSERT((size % alignment) == 0);
 #endif
-	
-	prop->byteOffset = size - sizeof(asCScriptObjectData);
+
+	prop->byteOffset = size;
 	size += propSize;
 
 	properties.PushLast(prop);
@@ -814,10 +814,6 @@ void asCObjectType::ReleaseAllFunctions()
 	if ( beh.getWeakRefFlag )
 		engine->scriptFunctions[beh.getWeakRefFlag]->ReleaseInternal();
 	beh.getWeakRefFlag = 0;
-	
-	if (beh.getTypeId)
-		engine->scriptFunctions[beh.getTypeId]->ReleaseInternal();
-	beh.getTypeId = 0;
 }
 
 END_AS_NAMESPACE

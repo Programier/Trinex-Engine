@@ -40,29 +40,19 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	static void native_object_constructor(asIScriptObject* object, StringView name, Engine::Object* owner)
+	class NativeObjectContructor : public Class
 	{
-		asITypeInfo* type = object->GetObjectType();
-		auto* self        = Class::static_find(Strings::concat_scoped_name(type->GetNamespace(), type->GetName()));
-		auto* native      = self;
-
-		while (native && !native->is_native()) native = native->parent();
-
-		if (native)
+	public:
+		void f(asIScriptObject* object, StringView name, Engine::Object* owner)
 		{
-			native->create_placement_object(object, name, owner, self);
+			create_placement_object(object, name, owner);
 		}
-	}
 
-	static void native_default_object_constructor(asIScriptObject* object)
-	{
-		native_object_constructor(object, "", nullptr);
-	}
-
-	static asITypeInfo* get_object_type_info(Engine::Object* object)
-	{
-		return object->class_instance()->find_valid_script_type_info().info();
-	}
+		void f_default(asIScriptObject* object)
+		{
+			f(object, "", nullptr);
+		}
+	};
 
 	Class& Class::initialize()
 	{
@@ -86,25 +76,24 @@ namespace Engine::Refl
 				auto factory =
 						Strings::format(R"({}@ f(Engine::StringView name = "", Engine::Object owner = null))", full_name());
 
-				registrar.behave(ScriptClassBehave::Construct, "void f()", native_default_object_constructor);
+				registrar.behave(ScriptClassBehave::Construct, "void f()", &NativeObjectContructor::f_default,
+								 ScriptCallConv::ThisCall_ObjFirst, this);
 				registrar.behave(ScriptClassBehave::Construct, R"(void f(Engine::StringView name, Engine::Object owner = null))",
-								 native_object_constructor);
+								 &NativeObjectContructor::f, ScriptCallConv::ThisCall_ObjFirst, this);
 				registrar.behave(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
 			}
-
-			registrar.behave(ScriptClassBehave::GetTypeInfo, "int& f()", get_object_type_info);
 		}
 
 		return *this;
 	}
 
-	Engine::Object* Class::object_constructor(Class*, StringView name, Engine::Object* owner)
+	Engine::Object* Class::object_constructor(StringView name, Engine::Object* owner, bool scriptable)
 	{
 		throw EngineException("Unimplemented method");
 		return nullptr;
 	}
 
-	Engine::Object* Class::object_placement_constructor(void* mem, Class* class_overload, StringView name, Engine::Object* owner)
+	Engine::Object* Class::object_placement_constructor(void* mem, StringView name, Engine::Object* owner, bool scriptable)
 	{
 		throw EngineException("Unimplemented method");
 		return nullptr;
@@ -131,51 +120,33 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	Engine::Object* Class::create_object(StringView name, Engine::Object* owner, Class* class_overload)
+	Engine::Object* Class::create_object(StringView name, Engine::Object* owner)
 	{
-		if (class_overload)
-		{
-			trinex_check(class_overload->is_a(this), "Overload class must be instance of this class");
-		}
-		else
-		{
-			class_overload = this;
-		}
-
 		if (flags(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
-				Engine::Object::setup_next_object_info(const_cast<Class*>(this));
-				m_singletone_object = object_constructor(this, name, owner);
+				bool scriptable     = !Engine::Object::setup_next_object_info(this)->is_native();
+				m_singletone_object = object_constructor(name, owner, scriptable);
 				Engine::Object::reset_next_object_info();
 			}
 
 			return m_singletone_object;
 		}
 
-		Engine::Object::setup_next_object_info(const_cast<Class*>(this));
-		Engine::Object* object = object_constructor(this, name, owner);
+		bool scriptable        = !Engine::Object::setup_next_object_info(this)->is_native();
+		Engine::Object* object = object_constructor(name, owner, scriptable);
 		return object;
 	}
 
-	Engine::Object* Class::create_placement_object(void* place, StringView name, Engine::Object* owner, Class* class_overload)
+	Engine::Object* Class::create_placement_object(void* place, StringView name, Engine::Object* owner)
 	{
-		if (class_overload)
-		{
-			trinex_check(class_overload->is_a(this), "Overload class must be instance of this class");
-		}
-		else
-		{
-			class_overload = this;
-		}
-
 		if (flags(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
-				Engine::Object::setup_next_object_info(const_cast<Class*>(class_overload));
-				m_singletone_object = object_placement_constructor(place, class_overload, name, owner);
+				bool scriptable     = !Engine::Object::setup_next_object_info(this)->is_native();
+				m_singletone_object = object_placement_constructor(place, name, owner, scriptable);
 				Engine::Object::reset_next_object_info();
 				return m_singletone_object;
 			}
@@ -183,8 +154,8 @@ namespace Engine::Refl
 			return nullptr;
 		}
 
-		Engine::Object::setup_next_object_info(const_cast<Class*>(class_overload));
-		Engine::Object* object = object_placement_constructor(place, class_overload, name, owner);
+		bool scriptable        = !Engine::Object::setup_next_object_info(this)->is_native();
+		Engine::Object* object = object_placement_constructor(place, name, owner, scriptable);
 		return object;
 	}
 

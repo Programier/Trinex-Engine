@@ -295,7 +295,7 @@ namespace Engine
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
 						 ScriptCallConv::CDeclObjFirst);
 
-		registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
+		registrar.method("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
 
 		Transform::static_struct_instance()->script_type_info = registrar.type_info();
 	}

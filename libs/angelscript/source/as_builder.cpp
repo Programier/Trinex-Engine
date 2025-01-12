@@ -3454,11 +3454,6 @@ void asCBuilder::CompileClasses(asUINT numTempl)
 
 			ot->size = baseType->size;
 			
-			if(baseType->flags & asOBJ_APP_NATIVE_INHERITANCE)
-			{
-				ot->size += sizeof(asCScriptObjectData);
-			}
-
 			// Copy methods from base class to derived class
 			for( asUINT m = 0; m < baseType->methods.GetLength(); m++ )
 			{

@@ -97,7 +97,7 @@ namespace Engine
 			world_scene->update_primitive_transform(this);
 		}
 
-		return *this;
+		return update_bounding_box();
 	}
 
 

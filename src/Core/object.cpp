@@ -42,14 +42,15 @@ namespace Engine
 
 	} next_object_info;
 
-	void Object::setup_next_object_info(Refl::Class* self, bool override)
+	Refl::Class* Object::setup_next_object_info(Refl::Class* self)
 	{
-		if (next_object_info.class_instance && !override)
+		if (!next_object_info.class_instance)
 		{
-			return;
+			next_object_info.class_instance = self;
+			return self;
 		}
 
-		next_object_info.class_instance = self;
+		return next_object_info.class_instance;
 	}
 
 	void Object::reset_next_object_info()
@@ -123,6 +124,44 @@ namespace Engine
 
 		auto _class = class_instance();
 		return _class != nullptr && _class->is_a(check_class);
+	}
+
+	int Object::AddRef() const
+	{
+		return 1;
+	}
+
+	int Object::Release() const
+	{
+		return 1;
+	}
+
+	asILockableSharedBool* Object::GetWeakRefFlag() const
+	{
+		return nullptr;
+	}
+
+	int Object::GetRefCount()
+	{
+		return 1;
+	}
+
+	void Object::SetGCFlag()
+	{}
+
+	bool Object::GetGCFlag()
+	{
+		return false;
+	}
+
+	asITypeInfo* Object::GetObjectType() const
+	{
+		return m_class->script_type_info.info();
+	}
+
+	int Object::CopyFrom(const asIScriptObject* other)
+	{
+		return 0;
 	}
 
 	Object::Object() : m_references(0), m_instance_index(Constants::index_none)

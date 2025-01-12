@@ -291,8 +291,6 @@ enum asEBehaviours
 	 asBEHAVE_ENUMREFS,
 	 asBEHAVE_RELEASEREFS,
 	asBEHAVE_LAST_GC = asBEHAVE_RELEASEREFS,
-	
-	asBEHAVE_GET_TYPE_INFO,
 
 	asBEHAVE_MAX
 };
@@ -1037,46 +1035,6 @@ public:
 
 protected:
 	virtual ~asIScriptGeneric() {}
-};
-
-class AS_API asIScriptObject
-{
-public:
-	// Memory management
-	int                    AddRef() const;
-	int                    Release() const;
-	asILockableSharedBool *GetWeakRefFlag() const;
-
-	// Type info
-	int            GetTypeId() const;
-	asITypeInfo   *GetObjectType() const;
-
-	// Class properties
-	asUINT      GetPropertyCount() const;
-	int         GetPropertyTypeId(asUINT prop) const;
-	const char *GetPropertyName(asUINT prop) const;
-	void       *GetAddressOfProperty(asUINT prop);
-
-	// Miscellaneous
-	asIScriptEngine *GetEngine() const;
-	int              CopyFrom(const asIScriptObject *other);
-
-	// User data
-	void *SetUserData(void *data, asPWORD type = 0);
-	void *GetUserData(asPWORD type = 0) const;
-	
-	void Destroy();
-	void FreeObjectMemory();
-	
-protected:
-	class asCObjectType* objType() const;
-	class asCObjectType* nativeObjType() const;
-	struct asCScriptObjectData* GetDataBlock();
-	const struct asCScriptObjectData* GetDataBlock() const;
-	asUINT GetScriptDataOffset() const;
-	asUINT GetNativeObjectSize() const;
-	
-	~asIScriptObject();
 };
 
 class asITypeInfo
@@ -2043,4 +2001,5 @@ const asSBCInfo asBCInfo[256] =
 
 END_AS_NAMESPACE
 
+#include <angelscript_object.h>
 #endif

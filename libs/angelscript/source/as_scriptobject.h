@@ -47,6 +47,7 @@
 BEGIN_AS_NAMESPACE
 
 class asCObjectType;
+class asCScriptEngine;
 
 // TODO: Add const overload for GetAddressOfProperty
 
@@ -70,7 +71,7 @@ protected:
 	DECLARECRITICALSECTION(mutable lock)
 };
 
-struct alignas(8) asCScriptObjectData
+struct alignas(8) asCScriptObjectData : public asIScriptObject
 {
 private:
 	// Most script classes instances won't have neither the weakRefFlags nor
@@ -81,7 +82,6 @@ private:
 	{
 		SExtra() : weakRefFlag(0) {};
 		asCLockableSharedBool *weakRefFlag;
-		asCArray<asPWORD>      userData;
 	};
 	
 	asCObjectType*	  objectType;
@@ -91,9 +91,20 @@ private:
 	mutable asBYTE    gcFlag:1;
 	mutable asBYTE    hasRefCountReachedZero:1;
 	bool              isDestructCalled;
-	
+
+public:
+    asCScriptObjectData(asCObjectType* ot);
+    int AddRef() const override;
+    int Release() const override;
+    asILockableSharedBool* GetWeakRefFlag() const override;
+    int GetRefCount() override;
+    void SetGCFlag() override;
+    bool GetGCFlag() override;
+    asITypeInfo* GetObjectType() const override;
+    int CopyFrom(const asIScriptObject* other) override;
+
+    ~asCScriptObjectData();
 	friend class asCScriptObject;
-	friend class asIScriptObject;
 };
 
 class asCScriptObject : public asIScriptObject
@@ -102,15 +113,12 @@ public:
 //====================================
 // Internal
 //====================================
-	asCScriptObject(asCObjectType *objType, bool doInitialize = true);
+	void init(asCObjectType* objType, bool doInitialize = true);
 
 	asCScriptObject &operator=(const asCScriptObject &other);
 
 	// GC methods
 	void Destruct();
-	int  GetRefCount();
-	void SetFlag();
-	bool GetFlag();
 	void EnumReferences(asIScriptEngine *engine);
 	void ReleaseAllHandles(asIScriptEngine *engine);
 
@@ -120,17 +128,21 @@ public:
 	void CopyObject(const void *src, void *dst, asCObjectType *objType, asCScriptEngine *engine);
 	void CopyHandle(asPWORD *src, asPWORD *dst, asCObjectType *objType, asCScriptEngine *engine);
 	int  CopyFromAs(const asCScriptObject *other, asCObjectType *objType);
-	
 	void CallDestructor(asCObjectType* ot);
-	using asIScriptObject::objType;	
+	asCObjectType* objType() const;
+
+private:
+	void ExecDestructor();
 };
+
+static_assert(sizeof(asCScriptObject) == sizeof(asIScriptObject));
 
 void ScriptObject_Construct(asCObjectType *objType, asCScriptObject *self);
 asCScriptObject &ScriptObject_Assignment(asCScriptObject *other, asCScriptObject *self);
 
 void ScriptObject_ConstructUnitialized(asCObjectType *objType, asCScriptObject *self);
 
-void RegisterScriptObject(asCScriptEngine *engine);
+void RegisterScriptObject(class asCScriptEngine *engine);
 
 asIScriptObject *ScriptObjectFactory(const asCObjectType *objType, asCScriptEngine *engine);
 asIScriptObject *ScriptObjectCopyFactory(const asCObjectType *objType, void *origObj, asCScriptEngine *engine);

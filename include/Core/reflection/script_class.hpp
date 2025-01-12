@@ -16,7 +16,7 @@ namespace Engine::Refl
 	private:
 		Script* m_script;
 
-		Engine::Object* object_constructor(Class* class_overload, StringView name, Engine::Object* owner) override;
+		Engine::Object* object_constructor(StringView name, Engine::Object* owner, bool scriptable) override;
 
 	public:
 		ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags = 0);
