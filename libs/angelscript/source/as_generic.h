@@ -119,7 +119,7 @@ public:
 	void*   GetArgAddress(asUINT arg);
 	void*   GetArgObject(asUINT arg);
 	void*   GetAddressOfArg(asUINT arg);
-
+	int     SetReturnObject(void *obj);
 	void* GetAddressOfReturnLocation();
 
 //------------------------

@@ -5846,6 +5846,15 @@ int asCContext::CallGeneric(asCScriptFunction *descr)
 
 		args += 1;
 		popSize += 1;
+
+		// Calculate the size of variatic arguments on the stack
+		if (varArgCount > 1)
+		{
+			asUINT idx = descr->parameterTypes.GetLength() - 1;
+			// Size of first variadic argument is included in sysFunc->paramSize value,
+			// So, using (varArgCount - 1) * variadicParamSize for calculating the size of variadic arguments
+			popSize += descr->parameterTypes[idx].GetSizeOnStackDWords() * (varArgCount - 1);
+		}
 	}
 
 	// TODO: variadic: Put them in different branch. Do we really need a separate object for variadics?
