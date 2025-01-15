@@ -242,7 +242,9 @@ namespace Engine
 
 			if (specific_renderer.is_valid())
 			{
-				return ScriptContext::execute(specific_renderer, object, prop, this, read_only).bool_value();
+				bool result = false;
+				bool status = ScriptContext::execute(specific_renderer, &result, object, prop, this, read_only);
+				return result && status;
 			}
 		}
 

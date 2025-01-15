@@ -7,7 +7,6 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -73,14 +72,12 @@ namespace Engine
 
 	void ImGuiEditorClient::scriptable_update(float dt)
 	{
-		ScriptObject obj(this);
-		obj.execute(m_ic_script_update, dt);
+		ScriptContext::execute(this, m_ic_script_update, nullptr, dt);
 	}
 
 	void ImGuiEditorClient::scriptable_select(Object* object)
 	{
-		ScriptObject obj(this);
-		obj.execute(m_ic_script_update, object);
+		ScriptContext::execute(this, m_ic_script_select);
 	}
 
 	bool ImGuiEditorClient::register_client(Refl::Class* object_type, Refl::Class* renderer)

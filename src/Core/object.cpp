@@ -63,10 +63,8 @@ namespace Engine
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 		r.method("const string& string_name() const final", &Object::string_name);
 		r.static_function("Package@ root_package()", &Object::root_package);
-		r.method("string as_string() const final", &Object::as_string);
 		r.method("const Name& name() const final", method_of<const Name&>(&Object::name));
 		r.method("Refl::Class@ class_instance() const final", &Object::class_instance);
-		r.method("string opConv() const", &Object::as_string);
 
 		script_object_preload  = r.method("void preload()", trinex_scoped_method(Object, preload));
 		script_object_postload = r.method("void postload()", trinex_scoped_method(Object, postload));
@@ -549,12 +547,6 @@ namespace Engine
 		}
 
 		return package ? find_next_package(package, name, create) : nullptr;
-	}
-
-	String Object::as_string() const
-	{
-		return Strings::format("{}: {}", class_instance()->full_name().c_str(),
-		                       m_name.is_valid() ? m_name.to_string().c_str() : "NoName");
 	}
 
 	Index Object::instance_index() const

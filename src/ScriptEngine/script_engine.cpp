@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
@@ -712,13 +713,89 @@ namespace Engine
 		return nullptr;
 	}
 
-	String ScriptEngine::to_string(const byte* address, int_t type_id, size_t depth)
+	static String script_object_to_string_ref(const byte* object, asIScriptFunction* func)
+	{
+		String* result = nullptr;
+		ScriptContext::execute(object, ScriptFunction(func), &result);
+		return *result;
+	}
+
+	static String script_object_to_string_value(const byte* object, asIScriptFunction* func)
+	{
+		String result;
+		ScriptContext::execute(object, ScriptFunction(func), &result);
+		return result;
+	}
+
+	template<bool repr>
+	static Array<const char*, 6> static_object_to_string_operator_names()
+	{
+		return {"const string& opRepr() const", "string& opRepr() const", "string opRepr() const", nullptr, nullptr, nullptr};
+	}
+
+	template<>
+	Array<const char*, 6> static_object_to_string_operator_names<false>()
+	{
+		return {"const string& opConv() const",     "string& opConv() const",     "string opConv() const",
+				"const string& opImplConv() const", "string& opImplConv() const", "string opImplConv() const"};
+	}
+
+	template<bool repr>
+	static const Pair<String (*)(const byte*, asIScriptFunction*), asIScriptFunction*>
+	static_find_string_op(const ScriptTypeInfo& info)
+	{
+		static Map<int_t, Pair<String (*)(const byte*, asIScriptFunction*), asIScriptFunction*>> func_map;
+		auto it = func_map.find(info.type_id());
+
+		if (it != func_map.end())
+			return it->second;
+
+		Array<const char*, 6> funcs = static_object_to_string_operator_names<repr>();
+
+		for (const char* name : funcs)
+		{
+			if (name == nullptr)
+				break;
+
+			auto func = info.method_by_decl(name);
+
+			if (!func.is_valid())
+				continue;
+
+			Flags<ScriptTypeModifiers> modifiers;
+			if (func.return_type_id(&modifiers) < 0)
+				continue;
+
+			if (!info.is_native())
+			{
+				auto module = info.module();
+				if (Script* script = ScriptEngine::scripts_folder()->find_script(module.name()))
+					script->on_discard.push([id = info.type_id()](Script*) { func_map.erase(id); });
+			}
+
+			if (modifiers.has_any(ScriptTypeModifiers::OutRef))
+			{
+				auto ref = func_map.insert({info.type_id(), {&script_object_to_string_ref, func.function()}});
+				return ref.first->second;
+			}
+			else
+			{
+				auto ref = func_map.insert({info.type_id(), {&script_object_to_string_value, func.function()}});
+				return ref.first->second;
+			}
+		}
+
+		func_map.insert({info.type_id(), {nullptr, nullptr}});
+		return {nullptr, nullptr};
+	}
+
+	String ScriptEngine::to_string(const byte* address, int_t type_id, bool repr)
 	{
 		if (address == nullptr)
 			return "null";
 
 		if (auto parser = custom_variable_parser(type_id))
-			return parser(address, type_id, depth);
+			return parser(address, type_id, repr);
 
 		if (ScriptEngine::is_primitive_type(type_id))
 		{
@@ -750,7 +827,7 @@ namespace Engine
 
 		ScriptTypeInfo info = ScriptEngine::type_info_by_id(type_id);
 		if (!info.is_valid())
-			return Strings::format("{}", reinterpret_cast<const void*>(address));
+			return Strings::format("<undefined object at {}>", reinterpret_cast<const void*>(address));
 
 		if (info.funcdef_signature().is_valid())
 		{
@@ -785,7 +862,27 @@ namespace Engine
 		{
 			address = *reinterpret_cast<const byte* const*>(address);
 		}
-		return address ? Strings::format("{}", reinterpret_cast<const void*>(address)) : "null";
+
+		if (address)
+		{
+			auto op = repr ? static_find_string_op<true>(info) : static_find_string_op<false>(info);
+			if (op.first && op.second)
+			{
+				return op.first(address, op.second);
+			}
+		}
+
+		String str_address = address ? Strings::format("{}", static_cast<const void*>(address)) : "null";
+		if (repr)
+			return str_address;
+
+		String full_class_name = Strings::concat_scoped_name(info.namespace_name(), info.name());
+		return Strings::format("<{} at {}>", full_class_name, str_address);
+	}
+
+	bool ScriptEngine::assign_script_object(void* dst, void* src, const ScriptTypeInfo& info)
+	{
+		return m_engine->AssignScriptObject(dst, src, info.info()) >= 0;
 	}
 
 	static void variable_name_generic(asIScriptGeneric* generic)

@@ -45,7 +45,8 @@ namespace Engine::Refl
 			}
 		}
 
-		auto obj = ScriptContext::execute(factory).address_as<Engine::Object>();
+		Engine::Object* obj = nullptr;
+		ScriptContext::execute(factory, &obj);
 
 		if (obj == nullptr)
 		{

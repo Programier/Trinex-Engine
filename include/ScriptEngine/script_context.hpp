@@ -40,7 +40,7 @@ namespace Engine
 
 		static ScriptContext& instance();
 		static bool begin_execute(const ScriptFunction& function);
-		static ScriptVariable end_execute(bool need_execute);
+		static bool end_execute(bool execute, void* return_value = nullptr);
 
 		static asIScriptContext* context();
 		static bool prepare(const ScriptFunction& func);
@@ -54,7 +54,7 @@ namespace Engine
 		static uint_t nest_count();
 
 		static bool object(const ScriptObject& object);
-		static bool object(void* address);
+		static bool object(const void* address);
 
 		static bool arg_bool(uint_t arg, bool value);
 		static bool arg_byte(uint_t arg, byte value);
@@ -138,43 +138,62 @@ namespace Engine
 		static double return_double();
 		static void* return_address();
 		static ScriptObject return_object();
+		static void* return_object_ptr();
 		static void* address_of_return_value();
 
 		// Function execution
 		template<typename... Args>
-		static inline ScriptVariable execute(const ScriptFunction& function, const Args&... args)
+		static inline bool execute(const ScriptFunction& function, void* return_value = nullptr, const Args&... args)
 		{
 			if (!begin_execute(function))
-				return {};
-			uint_t argument            = 0;
-			bool bind_arguments_status = (arg(argument++, args) && ...);
+				return false;
 
-			if (!bind_arguments_status)
+			uint_t argument = 0;
+			if ((arg(argument++, args) && ...))
 			{
-				end_execute(false);
-				throw EngineException("Failed to bind arguments to script function!");
+				return end_execute(true, return_value);
 			}
 
-			return end_execute(true);
+			end_execute(false);
+			throw EngineException("Failed to bind arguments to script function!");
 		}
 
 		template<typename... Args>
-		static inline ScriptVariable execute(const ScriptObject& self, const ScriptFunction& function, const Args&... args)
+		static inline bool execute(const ScriptObject& self, const ScriptFunction& function, void* return_value = nullptr,
+								   const Args&... args)
 		{
 			if (!begin_execute(function))
-				return {};
-			object(self);
+				return false;
 
-			uint_t argument            = 0;
-			bool bind_arguments_status = (arg(argument++, args) && ...);
-
-			if (!bind_arguments_status)
+			uint_t argument = 0;
+			if (object(self) && (arg(argument++, args) && ...))
 			{
-				end_execute(false);
-				throw EngineException("Failed to bind arguments to script function!");
+				return end_execute(true, return_value);
 			}
 
-			return end_execute(true);
+			end_execute(false);
+			if (argument == 0)
+				throw EngineException("Failed to bind script object");
+			throw EngineException("Failed to bind arguments to script function!");
+		}
+
+		template<typename... Args>
+		static inline bool execute(const void* self, const ScriptFunction& function, void* return_value = nullptr,
+								   const Args&... args)
+		{
+			if (!begin_execute(function))
+				return false;
+
+			uint_t argument = 0;
+			if (object(self) && (arg(argument++, args) && ...))
+			{
+				return end_execute(true, return_value);
+			}
+
+			end_execute(false);
+			if (argument == 0)
+				throw EngineException("Failed to bind script object");
+			throw EngineException("Failed to bind arguments to script function!");
 		}
 
 		// Exception handling

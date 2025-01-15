@@ -62,15 +62,15 @@ namespace Engine
 		// Method execution
 
 		template<typename... Args>
-		ScriptVariable execute(const ScriptFunction& function, const Args&... args) const
+		bool execute(const ScriptFunction& function, void* return_value = nullptr, const Args&... args) const
 		{
-			return ScriptContext::execute<Args...>(*this, function, args...);
+			return ScriptContext::execute<Args...>(*this, function, return_value, args...);
 		}
 
 		template<typename... Args>
-		ScriptVariable execute(const char* method_name, const Args&... args) const
+		bool execute(const char* method_name, void* return_value = nullptr, const Args&... args) const
 		{
-			return execute(method_by_name(method_name), args...);
+			return execute(method_by_name(method_name), return_value, args...);
 		}
 
 		// Properties

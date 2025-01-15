@@ -295,6 +295,7 @@ namespace Engine
 	{
 		delete_reflection();
 		m_module.discard();
+		on_discard.trigger(this);
 		m_folder->m_scripts.erase(m_name);
 	}
 

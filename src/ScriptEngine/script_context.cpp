@@ -114,7 +114,7 @@ namespace Engine
 		return true;
 	}
 
-	ScriptVariable ScriptContext::end_execute(bool need_execute)
+	bool ScriptContext::end_execute(bool is_valid, void* return_value)
 	{
 		if (m_exec_info.empty())
 			throw EngineException("ScriptContext::end_execute: call begin_execute before calling this method!");
@@ -122,9 +122,9 @@ namespace Engine
 		ExecInfo info = m_exec_info.back();
 		m_exec_info.pop_back();
 
-		if (need_execute)
+		if (is_valid)
 		{
-			if (!execute())
+			if (!(is_valid = execute()))
 			{
 				unprepare();
 
@@ -137,11 +137,22 @@ namespace Engine
 			}
 		}
 
-		ScriptVariable return_variable;
-
-		if (info.return_type_id != 0)
+		if (is_valid && info.return_type_id != 0 && return_value)
 		{
-			return_variable.create(address_of_return_value(), info.return_type_id, false, info.return_type_modifiers);
+			if (info.return_type_modifiers.has_all(ScriptTypeModifiers::OutRef) ||
+				ScriptEngine::is_handle_type(info.return_type_id))
+			{
+				(*static_cast<void**>(return_value)) = return_address();
+			}
+			else if (ScriptEngine::is_primitive_type(info.return_type_id))
+			{
+				std::memcpy(return_value, address_of_return_value(), ScriptEngine::sizeof_primitive_type(info.return_type_id));
+			}
+			else
+			{
+				ScriptEngine::assign_script_object(return_value, return_object_ptr(),
+												   ScriptEngine::type_info_by_id(info.return_type_id));
+			}
 		}
 
 		if (!info.is_active && !unprepare())
@@ -154,7 +165,7 @@ namespace Engine
 			throw EngineException("Failed to pop state!");
 		}
 
-		return return_variable;
+		return is_valid;
 	}
 
 	asIScriptContext* ScriptContext::context()
@@ -240,11 +251,11 @@ namespace Engine
 		return ScriptContext::object(object.address());
 	}
 
-	bool ScriptContext::object(void* address)
+	bool ScriptContext::object(const void* address)
 	{
 		if (address == nullptr)
 			return false;
-		return m_context->SetObject(address) >= 0;
+		return m_context->SetObject(const_cast<void*>(address)) >= 0;
 	}
 
 	bool ScriptContext::arg_bool(uint_t arg, bool value)
@@ -338,6 +349,16 @@ namespace Engine
 	void* ScriptContext::return_address()
 	{
 		return m_context->GetReturnAddress();
+	}
+
+	void* ScriptContext::return_object_ptr()
+	{
+		int_t return_typeid = function(0).return_type_id();
+		if (return_typeid & asTYPEID_MASK_OBJECT)
+		{
+			return m_context->GetReturnObject();
+		}
+		return nullptr;
 	}
 
 	ScriptObject ScriptContext::return_object()

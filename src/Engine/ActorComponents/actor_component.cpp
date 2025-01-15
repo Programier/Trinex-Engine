@@ -3,8 +3,8 @@
 #include <Engine/ActorComponents/actor_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 
 namespace Engine
 {
@@ -44,27 +44,27 @@ namespace Engine
 
 	void ActorComponent::script_update(float dt)
 	{
-		ScriptObject(this).execute(script_actor_comp_update, dt);
+		ScriptContext::execute(this, script_actor_comp_update, nullptr, dt);
 	}
 
 	void ActorComponent::script_start_play()
 	{
-		ScriptObject(this).execute(script_actor_comp_start_play);
+		ScriptContext::execute(this, script_actor_comp_start_play);
 	}
 
 	void ActorComponent::script_stop_play()
 	{
-		ScriptObject(this).execute(script_actor_comp_stop_play);
+		ScriptContext::execute(this, script_actor_comp_stop_play);
 	}
 
 	void ActorComponent::script_spawned()
 	{
-		ScriptObject(this).execute(script_actor_comp_spawned);
+		ScriptContext::execute(this, script_actor_comp_spawned);
 	}
 
 	void ActorComponent::script_destroyed()
 	{
-		ScriptObject(this).execute(script_actor_comp_destroyed);
+		ScriptContext::execute(this, script_actor_comp_destroyed);
 	}
 
 	ActorComponent::ActorComponent() : m_proxy(nullptr)

@@ -40,7 +40,7 @@ namespace Engine
 			}
 
 
-			ScriptFunction function = module.function_by_name("main");
+			ScriptFunction function = module.function_by_decl("int main()");
 
 			if (!function.is_valid())
 			{
@@ -48,7 +48,9 @@ namespace Engine
 				return -1;
 			}
 
-			return ScriptContext::execute(function).int32_value();
+			int_t result;
+			ScriptContext::execute(function, &result);
+			return result;
 		}
 
 		int_t execute() override

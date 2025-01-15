@@ -159,7 +159,6 @@ namespace Engine
 		size_t add_reference() const;
 		size_t remove_reference() const;
 		bool is_noname() const;
-		String as_string() const;
 		Index instance_index() const;
 		virtual bool serialize(Archive& archive);
 		Path filepath() const;

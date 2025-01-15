@@ -20,7 +20,7 @@ namespace Engine
 
 	void Actor::scriptable_update(float dt)
 	{
-		ScriptObject(this).execute(script_actor_update, dt);
+		ScriptObject(this).execute(script_actor_update, nullptr, dt);
 	}
 
 	void Actor::scriptable_start_play()

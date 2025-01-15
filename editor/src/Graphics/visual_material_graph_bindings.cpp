@@ -3,8 +3,8 @@
 #include <Core/reflection/class.hpp>
 #include <Graphics/visual_material_graph.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <scriptarray.h>
 
 namespace Engine::VisualMaterialGraph
@@ -18,27 +18,35 @@ namespace Engine::VisualMaterialGraph
 
 	Vector4D Node::script_header_color() const
 	{
-		return *ScriptObject(this).execute(node_header_color).address_as<Vector4D>();
+		Vector4D result;
+		ScriptContext::execute(this, node_header_color, &result);
+		return result;
 	}
 
 	const NodeSignature& Node::script_signature() const
 	{
-		return **ScriptObject(this).execute(node_signature).address_as<NodeSignature*>();
+		NodeSignature* signature = nullptr;
+		ScriptContext::execute(this, node_signature, &signature);
+		return *signature;
 	}
 
 	Expression Node::script_compile(OutputPin* pin, CompilerState& state)
 	{
-		return *ScriptObject(this).execute(node_compile_out, pin, &state).address_as<Expression>();
+		Expression expr;
+		ScriptContext::execute(this, node_compile_out, &expr, pin, &state);
+		return expr;
 	}
 
 	Expression Node::script_compile(InputPin* pin, CompilerState& state)
 	{
-		return *ScriptObject(this).execute(node_compile_in, pin, &state).address_as<Expression>();
+		Expression expr;
+		ScriptContext::execute(this, node_compile_in, &expr, pin, &state);
+		return expr;
 	}
 
 	Node& Node::script_render()
 	{
-		ScriptObject(this).execute(node_render);
+		ScriptContext::execute(this, node_render);
 		return *this;
 	}
 
@@ -50,7 +58,9 @@ namespace Engine::VisualMaterialGraph
 	Expression SignaturedNode::script_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
 	                                                  const Vector<Expression>& args)
 	{
-		return *ScriptObject(this).execute(signatured_node_make_expression, pin, &signature, &args).address_as<Expression>();
+		Expression expr;
+		ScriptContext::execute(this, signatured_node_make_expression, &expr, pin, &signature, &args);
+		return expr;
 	}
 
 	implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
@@ -58,7 +68,7 @@ namespace Engine::VisualMaterialGraph
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
 		node_header_color = r.method("Vector4D header_color() const", trinex_scoped_method(This, header_color));
-		node_render       = r.method("Node@ render()", trinex_scoped_method(This, render));
+		node_render       = r.method("void render()", trinex_scoped_void_method(This, render));
 		node_signature    = r.method("const NodeSignature& signature() const", trinex_scoped_method(This, signature));
 
 		node_compile_out = r.method("Expression compile(OutputPin@ pin, CompilerState@ state)",

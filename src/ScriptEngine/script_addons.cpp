@@ -18,11 +18,12 @@
 
 namespace Engine
 {
-	static String parse_string_value(const byte* address, int_t type_id, size_t depth)
+	static String parse_string_value(const byte* address, int_t type_id, bool repr)
 	{
-		return Strings::format("\"{}\"", *reinterpret_cast<const String*>(address));
+		if (repr)
+			return Strings::format("\"{}\"", *reinterpret_cast<const String*>(address));
+		return *reinterpret_cast<const String*>(address);
 	}
-
 
 	static void on_init()
 	{

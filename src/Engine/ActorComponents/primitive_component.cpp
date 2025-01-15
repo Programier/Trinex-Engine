@@ -1,4 +1,5 @@
 #include <Core/base_engine.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -7,10 +8,17 @@
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
+#include <ScriptEngine/registrar.hpp>
 
 namespace Engine
 {
-	implement_engine_class_default_init(PrimitiveComponent, Refl::Class::IsScriptable);
+	implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable)
+	{
+		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+
+		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
+		r.method("void stop_play()", trinex_scoped_void_method(This, stop_play));
+	}
 	static const AABB_3Df default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
 	PrimitiveComponentProxy& PrimitiveComponentProxy::bounding_box(const AABB_3Df& bounds)
