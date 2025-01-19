@@ -1,6 +1,9 @@
+#include "trinex/attributes.slang"
 #include "common.slang"
 #include "platform.slang"
 
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 uniform Sampler2D texture;
 uniform float4x4 model;
 

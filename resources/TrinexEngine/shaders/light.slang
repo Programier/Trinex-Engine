@@ -1,7 +1,11 @@
+#include "trinex/attributes.slang"
 #include "trinex/quad.slang"
 #include "common.slang"
 #include "math.slang"
 #include "platform.slang"
+
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 
 uniform Sampler2D base_color_texture;  
 uniform Sampler2D normal_texture;

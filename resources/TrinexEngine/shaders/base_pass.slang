@@ -1,5 +1,6 @@
 #define DISABLE_TANGENT_AND_BITANGENT 1
 
+#include "trinex/attributes.slang"
 #include "common.slang"
 #include "platform.slang"
 
@@ -12,6 +13,9 @@ struct VertexOutput
 	float3 world_normal 	: NORMAL0;
 	float2 uv 				: TEXCOORD0;
 };
+
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 
 uniform Sampler2D base_color;
 uniform float3 emissive;

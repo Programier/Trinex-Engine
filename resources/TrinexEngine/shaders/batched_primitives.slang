@@ -1,4 +1,8 @@
+#include "trinex/attributes.slang"
 #include "common.slang"
+
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 
 [shader("vertex")]
 float4 vs_main(	in float3 position : POSITION0, in float4 color : COLOR0, out float4 out_color : COLOR0) : SV_Position

@@ -1,6 +1,10 @@
+#include "trinex/attributes.slang"
 #include "trinex/quad.slang"
 #include "platform.slang"
 #include "common.slang"
+
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 
 Sampler2D base_color;
 Sampler2D msra;

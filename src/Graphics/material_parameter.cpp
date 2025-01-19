@@ -28,7 +28,7 @@ namespace Engine::MaterialParameters
 		return ar;
 	}
 
-	Float4x4& Float4x4::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
+	Float4x4& Float4x4::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass, MaterialParameterInfo* info)
 	{
 		if (is_model)
 		{
@@ -42,7 +42,7 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	Model4x4& Model4x4::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
+	Model4x4& Model4x4::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass, MaterialParameterInfo* info)
 	{
 		auto matrix = component->proxy()->world_transform().matrix();
 		rhi->update_scalar_parameter(&matrix, sizeof(matrix), info->offset);
@@ -52,7 +52,7 @@ namespace Engine::MaterialParameters
 	Sampler::Sampler() : sampler(DefaultResources::Samplers::default_sampler)
 	{}
 
-	Sampler& Sampler::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
+	Sampler& Sampler::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass, MaterialParameterInfo* info)
 	{
 		if (sampler)
 			sampler->rhi_bind(info->location);
@@ -70,7 +70,8 @@ namespace Engine::MaterialParameters
 	    : sampler(DefaultResources::Samplers::default_sampler), texture(DefaultResources::Textures::default_texture)
 	{}
 
-	Sampler2D& Sampler2D::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
+	Sampler2D& Sampler2D::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
+								MaterialParameterInfo* info)
 	{
 		if (sampler && texture)
 			texture->rhi_bind_combined(sampler, info->location);
@@ -90,7 +91,8 @@ namespace Engine::MaterialParameters
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
 	{}
 
-	Texture2D& Texture2D::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
+	Texture2D& Texture2D::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
+								MaterialParameterInfo* info)
 	{
 		if (texture)
 			texture->rhi_bind(info->location);

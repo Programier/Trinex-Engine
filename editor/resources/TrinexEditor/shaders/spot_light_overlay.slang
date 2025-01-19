@@ -1,4 +1,8 @@
+#include "trinex/attributes.slang"
 #include "common.slang"
+
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 
 uniform float4x4 model;
 uniform float4 color;

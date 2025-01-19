@@ -1,16 +1,19 @@
 #ifndef SURFACE_TEMPLATE
 #define SURFACE_TEMPLATE
 
+#include "trinex/attributes.slang"
 #include "common.slang"
 #include "math.slang"
 #include "trinex/local_to_world.slang"
 #include "material_common.slang"
 #include "platform.slang"
 
-
 #ifndef USE_VERTEX_COLOR
 #define USE_VERTEX_COLOR 0
 #endif 
+
+[is_globals()]
+ConstantBuffer<GlobalParameters> globals;
 
 struct VertexFactory
 {

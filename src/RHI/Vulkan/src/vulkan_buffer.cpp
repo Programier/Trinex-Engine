@@ -270,6 +270,7 @@ namespace Engine
 		{
 			pipeline->bind_uniform_buffer(vk::DescriptorBufferInfo(m_buffer.m_buffer, 0, m_buffer.m_size), location,
 										  vk::DescriptorType::eUniformBuffer);
+			API->current_command_buffer()->add_object(this);
 		}
 	}
 

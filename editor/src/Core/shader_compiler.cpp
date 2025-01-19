@@ -462,7 +462,6 @@ namespace Engine::ShaderCompiler
 			}
 		}
 
-
 		if (reflection->getGlobalConstantBufferSize() > 0)
 		{
 			out_reflection.local_parameters_info.bind_index(reflection->getGlobalParamsVarLayout()->getBindingIndex());

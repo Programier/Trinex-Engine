@@ -31,8 +31,6 @@ struct GlobalParameters
     int camera_projection_mode;
 };
 
-ConstantBuffer<GlobalParameters> globals; 
-
 struct GBufferFragmentOutput
 {
     [vk::location(0)] float4 base_color   : SV_TARGET0;

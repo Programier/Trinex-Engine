@@ -197,7 +197,7 @@ namespace Engine
 			Parameter* parameter = head->find_parameter(name);
 
 			if (parameter)
-				parameter->apply(component, pipeline, &info);
+				parameter->apply(component, pipeline, render_pass, &info);
 		}
 
 		if (pipeline->global_parameters.has_parameters() && render_pass)
