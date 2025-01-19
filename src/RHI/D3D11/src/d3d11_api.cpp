@@ -88,9 +88,6 @@ namespace Engine
 								   &m_device, &m_feature_level, &m_context);
 		trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
 
-		m_global_uniform_buffer.initialize();
-		m_local_unifor_buffer.initialize();
-
 #if D3D11_WITH_DEBUG
 		m_device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&m_debug));
 #endif
@@ -149,11 +146,6 @@ namespace Engine
 				vp.Height         = viewport.size.y;
 				vp.TopLeftX       = viewport.pos.x;
 				vp.TopLeftY       = m_state.render_target_size.y - viewport.pos.y - viewport.size.y;
-				if(glm::epsilonEqual<float>(vp.TopLeftY, 63.f, 0.01f))
-				{
-					int i = 0;
-					++i;
-				}
 				vp.MinDepth       = viewport.min_depth;
 				vp.MaxDepth       = viewport.max_depth;
 				m_context->RSSetViewports(1, &vp);
@@ -209,7 +201,6 @@ namespace Engine
 
 	D3D11& D3D11::prepare_draw()
 	{
-		m_global_uniform_buffer.bind();
 		m_local_unifor_buffer.bind();
 		return *this;
 	}
@@ -264,7 +255,6 @@ namespace Engine
 
 	D3D11::~D3D11()
 	{
-		m_global_uniform_buffer.release();
 		m_local_unifor_buffer.release();
 
 		m_context->ClearState();

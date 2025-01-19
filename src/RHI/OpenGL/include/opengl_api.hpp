@@ -27,9 +27,8 @@ namespace Engine
 		void* m_context = nullptr;
 
 		Vector<BindingIndex> m_sampler_units;// TODO: Maybe we can remove this variable?
-		GLint m_uniform_alignment                              = 0;
-		struct OpenGL_GlobalUniformBufferManager* m_global_ubo = nullptr;
-		struct OpenGL_LocalUniformBufferManager* m_local_ubo   = nullptr;
+		GLint m_uniform_alignment                            = 0;
+		struct OpenGL_LocalUniformBufferManager* m_local_ubo = nullptr;
 
 		OpenGL_State m_state;
 
@@ -67,11 +66,9 @@ namespace Engine
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
+		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
-
-		OpenGL& push_global_params(const GlobalShaderParameters& params) override;
-		OpenGL& pop_global_params() override;
-		OpenGL& update_local_parameter(const void* data, size_t size, size_t offset) override;
+		OpenGL& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
 
 		OpenGL& push_debug_stage(const char* stage, const Color& color = {}) override;
 		OpenGL& pop_debug_stage() override;

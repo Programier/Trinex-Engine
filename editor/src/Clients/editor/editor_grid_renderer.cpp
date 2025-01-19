@@ -5,12 +5,12 @@
 
 namespace Engine
 {
-	void render_editor_grid(const struct CameraView& view)
+	void render_editor_grid(const struct CameraView& view, RenderPass* pass)
 	{
 		if (Settings::Editor::show_grid == false)
 			return;
 
-		EditorResources::grid_material->apply();
+		EditorResources::grid_material->apply(nullptr, pass);
 		rhi->draw(6, 0);
 	}
 }// namespace Engine

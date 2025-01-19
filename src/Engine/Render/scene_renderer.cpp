@@ -19,14 +19,125 @@
 
 namespace Engine
 {
-	SceneRenderer::SceneRenderer() : scene(nullptr)
+	struct GlobalUniformBuffer final {
+		GlobalShaderParameters storage;
+		GlobalUniformBuffer* prev         = nullptr;
+		RHI_UniformBuffer* uniform_buffer = nullptr;
+
+		GlobalUniformBuffer()
+		{
+			uniform_buffer = rhi->create_uniform_buffer(sizeof(GlobalShaderParameters), nullptr, RHIBufferType::Dynamic);
+		}
+
+		delete_copy_constructors(GlobalUniformBuffer);
+
+		inline void rhi_update()
+		{
+			uniform_buffer->update(0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&storage));
+		}
+
+		~GlobalUniformBuffer()
+		{
+			uniform_buffer->release();
+		}
+	};
+
+	class GlobalShaderParametersManager
+	{
+		Vector<GlobalUniformBuffer*> m_uniform_buffers;
+		Vector<GlobalUniformBuffer*> m_used_buffers;
+		GlobalUniformBuffer* m_current = nullptr;
+
+		GlobalUniformBuffer* setup_buffer(GlobalUniformBuffer* buffer)
+		{
+			buffer->prev = m_current;
+			m_current    = buffer;
+			return buffer;
+		}
+
+	public:
+		GlobalUniformBuffer* push()
+		{
+			if (!m_uniform_buffers.empty())
+			{
+				GlobalUniformBuffer* buffer = m_uniform_buffers.back();
+				m_uniform_buffers.pop_back();
+				m_used_buffers.push_back(buffer);
+				return setup_buffer(buffer);
+			}
+
+			GlobalUniformBuffer* buffer = new GlobalUniformBuffer();
+			m_used_buffers.push_back(buffer);
+			return setup_buffer(buffer);
+		}
+
+		GlobalUniformBuffer* push(const GlobalShaderParameters& params)
+		{
+			auto buffer     = push();
+			buffer->storage = params;
+			buffer->rhi_update();
+			return buffer;
+		}
+
+		GlobalUniformBuffer* pop()
+		{
+			if (m_current)
+			{
+				GlobalUniformBuffer* tmp = m_current;
+				m_current                = tmp->prev;
+				tmp->prev                = nullptr;
+			}
+
+			return m_current;
+		}
+
+		GlobalUniformBuffer* current()
+		{
+			return m_current;
+		}
+
+		GlobalShaderParametersManager& reset()
+		{
+			for (GlobalUniformBuffer* buffer : m_used_buffers)
+			{
+				m_uniform_buffers.push_back(buffer);
+			}
+			m_uniform_buffers.clear();
+			return *this;
+		}
+
+		~GlobalShaderParametersManager()
+		{
+			for (auto buffer : m_uniform_buffers)
+			{
+				delete buffer;
+			}
+
+			for (auto buffer : m_used_buffers)
+			{
+				delete buffer;
+			}
+		}
+	};
+
+	SceneRenderer::SceneRenderer() : m_global_shader_params(new GlobalShaderParametersManager()), scene(nullptr)
 	{}
 
-	const GlobalShaderParameters& SceneRenderer::global_shader_parameters() const
+	const GlobalShaderParameters& SceneRenderer::global_parameters() const
 	{
-		if (m_global_shader_params.empty())
+		GlobalUniformBuffer* buffer = m_global_shader_params->current();
+		if (!buffer)
 			throw EngineException("Shader parameters stack is empty!");
-		return m_global_shader_params.back();
+		return buffer->storage;
+	}
+
+	const SceneRenderer& SceneRenderer::bind_global_parameters(BindingIndex index) const
+	{
+		GlobalUniformBuffer* buffer = m_global_shader_params->current();
+		if (!buffer)
+			throw EngineException("Shader parameters stack is empty!");
+		buffer->uniform_buffer->bind(index);
+		return *this;
 	}
 
 	const SceneView& SceneRenderer::scene_view() const
@@ -36,19 +147,24 @@ namespace Engine
 		return m_scene_views.back();
 	}
 
-	SceneRenderer& SceneRenderer::push_global_shader_parameters()
+	SceneRenderer& SceneRenderer::push_global_parameters(GlobalShaderParameters* parameters)
 	{
+		if (parameters)
+		{
+			m_global_shader_params->push(*parameters);
+			return *this;
+		}
+
 		const SceneView& view = scene_view();
-		m_global_shader_params.emplace_back();
-		m_global_shader_params.back().update(&view);
-		rhi->push_global_params(m_global_shader_params.back());
+		auto buffer           = m_global_shader_params->push();
+		buffer->storage.update(&view, SceneRenderTargets::instance()->size());
+		buffer->rhi_update();
 		return *this;
 	}
 
-	SceneRenderer& SceneRenderer::pop_global_shader_parameters()
+	SceneRenderer& SceneRenderer::pop_global_parameters()
 	{
-		rhi->pop_global_params();
-		m_global_shader_params.pop_back();
+		m_global_shader_params->pop();
 		return *this;
 	}
 
@@ -164,14 +280,14 @@ namespace Engine
 
 		statistics.reset();
 
-		m_global_shader_params.clear();
+		m_global_shader_params->reset();
 		m_scene_views.clear();
 		m_scene_views.push_back(view);
 
 		rhi->viewport(view.viewport());
 		rhi->scissor(view.scissor());
 
-		push_global_shader_parameters();
+		push_global_parameters();
 
 		for (auto pass = first_pass(); pass; pass = pass->next())
 		{
@@ -196,7 +312,7 @@ namespace Engine
 #endif
 		}
 
-		pop_global_shader_parameters();
+		pop_global_parameters();
 		m_scene_views.pop_back();
 
 		return *this;
@@ -216,6 +332,7 @@ namespace Engine
 	{
 		delete m_first_pass;
 		m_first_pass = nullptr;
+		delete m_global_shader_params;
 	}
 
 

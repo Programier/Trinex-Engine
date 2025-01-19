@@ -257,6 +257,27 @@ namespace Engine
 		m_buffer.update(offset, data, size);
 	}
 
+	VulkanUniformBuffer& VulkanUniformBuffer::create(const byte* data, size_t size)
+	{
+		m_buffer.create(size, data, vk::BufferUsageFlagBits::eUniformBuffer);
+		return *this;
+	}
+
+	void VulkanUniformBuffer::bind(BindingIndex location)
+	{
+		auto pipeline = API->m_state.m_pipeline;
+		if (pipeline)
+		{
+			pipeline->bind_uniform_buffer(vk::DescriptorBufferInfo(m_buffer.m_buffer, 0, m_buffer.m_size), location,
+										  vk::DescriptorType::eUniformBuffer);
+		}
+	}
+
+	void VulkanUniformBuffer::update(size_t offset, size_t size, const byte* data)
+	{
+		m_buffer.update(offset, data, size);
+	}
+
 	VulkanSSBO& VulkanSSBO::create(const byte* data, size_t size)
 	{
 		m_buffer.create(size, data, vk::BufferUsageFlagBits::eStorageBuffer);
@@ -289,5 +310,10 @@ namespace Engine
 	RHI_SSBO* VulkanAPI::create_ssbo(size_t size, const byte* data, RHIBufferType type)
 	{
 		return &(new VulkanSSBO())->create(data, size);
+	}
+
+	RHI_UniformBuffer* VulkanAPI::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
+	{
+		return &(new VulkanUniformBuffer())->create(data, size);
 	}
 }// namespace Engine

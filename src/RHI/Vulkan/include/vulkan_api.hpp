@@ -18,7 +18,7 @@ namespace Engine
 {
 	struct VulkanTexture;
 	struct VulkanViewport;
-	struct VulkanUniformBuffer;
+	struct VulkanUniformBufferManager;
 	class Window;
 
 	struct VulkanExtention {
@@ -85,7 +85,7 @@ namespace Engine
 
 		struct VulkanCommandBuffer* current_command_buffer();
 		vk::CommandBuffer& current_command_buffer_handle();
-		VulkanUniformBuffer* uniform_buffer();
+		VulkanUniformBufferManager* uniform_buffer_manager();
 
 		VulkanAPI& begin_render_pass(bool lock_resources = true);
 		VulkanAPI& end_render_pass(bool unlock_resources = true);
@@ -126,11 +126,9 @@ namespace Engine
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
+		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
-
-		VulkanAPI& push_global_params(const GlobalShaderParameters& params) override;
-		VulkanAPI& pop_global_params() override;
-		VulkanAPI& update_local_parameter(const void* data, size_t size, size_t offset) override;
+		VulkanAPI& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
 
 		VulkanAPI& push_debug_stage(const char* stage, const Color& color) override;
 		VulkanAPI& pop_debug_stage() override;

@@ -19,7 +19,7 @@ namespace Engine
 		m_fence = VulkanFence::create(false);
 
 		m_descriptor_set_manager = new VulkanDescriptorSetManager();
-		m_uniform_buffer         = new VulkanUniformBuffer();
+		m_uniform_buffer         = new VulkanUniformBufferManager();
 	}
 
 	VulkanCommandBuffer& VulkanCommandBuffer::add_object(RHI_Object* object)
@@ -52,7 +52,7 @@ namespace Engine
 				m_cmd.reset();
 				m_fence->reset();
 				m_uniform_buffer->reset();
-				release_references();				
+				release_references();
 			}
 		}
 
@@ -228,8 +228,8 @@ namespace Engine
 		return m_cmd_manager->command_buffer()->m_cmd;
 	}
 
-	VulkanUniformBuffer* VulkanAPI::uniform_buffer()
+	VulkanUniformBufferManager* VulkanAPI::uniform_buffer_manager()
 	{
-		return current_command_buffer()->uniform_buffer();
+		return current_command_buffer()->uniform_buffer_manager();
 	}
 }// namespace Engine

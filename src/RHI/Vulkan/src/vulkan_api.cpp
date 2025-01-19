@@ -480,7 +480,7 @@ namespace Engine
 		if (cmd->is_outside_render_pass())
 			begin_render_pass();
 
-		uniform_buffer()->bind();
+		uniform_buffer_manager()->bind();
 		m_state.m_pipeline->bind_descriptor_set();
 		return *this;
 	}

@@ -72,6 +72,15 @@ namespace Engine
 		void update(size_t offset, size_t size, const byte* data) override;
 	};
 
+	struct VulkanUniformBuffer : public RHI_DefaultDestroyable<RHI_UniformBuffer> {
+		VulkanBuffer m_buffer;
+
+		VulkanUniformBuffer& create(const byte* data, size_t size);
+
+		void bind(BindingIndex location) override;
+		void update(size_t offset, size_t size, const byte* data) override;
+	};
+
 	struct VulkanSSBO : public RHI_DefaultDestroyable<RHI_SSBO> {
 		VulkanBuffer m_buffer;
 

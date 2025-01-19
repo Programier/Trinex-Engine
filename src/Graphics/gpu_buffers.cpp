@@ -193,6 +193,27 @@ namespace Engine
 		return find_index_address<byte>(this, index);
 	}
 
+	// UNIFORM BUFFERS
+	implement_engine_class_default_init(UniformBuffer, 0);
+	implement_engine_class_default_init(UntypedUniformBuffer, 0);
+
+	UniformBuffer& UniformBuffer::rhi_init()
+	{
+		trinex_check(m_size != 0, "Size of uniform buffer can't be 0");
+		return rhi_init(size(), data());
+	}
+
+	UniformBuffer& UniformBuffer::rhi_init(size_t size, const byte* data)
+	{
+		m_rhi_object.reset(rhi->create_uniform_buffer(size, data, buffer_type()));
+		return *this;
+	}
+
+	RHIBufferType UniformBuffer::buffer_type() const
+	{
+		return RHIBufferType::Dynamic;
+	}
+
 	SSBO& SSBO::rhi_init()
 	{
 		m_rhi_object.reset(rhi->create_ssbo(init_size, init_data, RHIBufferType::Static));

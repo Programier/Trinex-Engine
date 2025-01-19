@@ -90,6 +90,10 @@ namespace Engine
 		virtual void bind(BindLocation location) = 0;
 	};
 
+	struct ENGINE_EXPORT RHI_UniformBuffer : RHI_Buffer {
+		virtual void bind(BindingIndex location) = 0;
+	};
+
 	struct ENGINE_EXPORT RHI_Viewport : RHI_Object {
 		virtual void present() = 0;
 
@@ -138,11 +142,9 @@ namespace Engine
 		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
 		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;
 		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;
+		virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)                  = 0;
 		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;
-
-		virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
-		virtual RHI& pop_global_params()                                                  = 0;
-		virtual RHI& update_local_parameter(const void* data, size_t size, size_t offset) = 0;
+		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset)                                   = 0;
 
 		virtual RHI& push_debug_stage(const char* stage, const Color& color = {}) = 0;
 		virtual RHI& pop_debug_stage()                                            = 0;

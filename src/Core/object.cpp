@@ -16,6 +16,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/threading.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -164,15 +165,22 @@ namespace Engine
 
 	Object::Object() : m_references(0), m_instance_index(Constants::index_none)
 	{
+		trinex_always_check(is_in_logic_thread(), "Cannot create new object instance outside logic thread!");
 		if (next_object_info.class_instance == nullptr)
 		{
 			throw EngineException("Next object class is invalid!");
 		}
 
-		m_owner                        = nullptr;
-		m_class                        = next_object_info.class_instance;
+		flags(Flag::IsSerializable, true);
+		flags(Flag::IsEditable, true);
+		flags(Flag::IsAvailableForGC, true);
+
+		m_owner = nullptr;
+		m_class = next_object_info.class_instance;
+		next_object_info.reset();
+
+
 		Vector<Object*>& objects_array = get_instances_array();
-		m_instance_index               = objects_array.size();
 
 		if (!get_free_indexes_array().empty())
 		{
@@ -182,14 +190,9 @@ namespace Engine
 		}
 		else
 		{
+			m_instance_index = objects_array.size();
 			objects_array.push_back(this);
 		}
-
-		flags(Flag::IsSerializable, true);
-		flags(Flag::IsEditable, true);
-		flags(Flag::IsAvailableForGC, true);
-
-		next_object_info.reset();
 	}
 
 	class Refl::Class* Object::class_instance() const
@@ -413,10 +416,10 @@ namespace Engine
 		while (current)
 		{
 			result =
-			        Strings::format("{}{}{}",
-			                        (current->m_name.is_valid() ? current->m_name.to_string()
-			                                                    : Strings::format("Noname object {}", current->m_instance_index)),
-			                        Constants::name_separator, result);
+					Strings::format("{}{}{}",
+									(current->m_name.is_valid() ? current->m_name.to_string()
+																: Strings::format("Noname object {}", current->m_instance_index)),
+									Constants::name_separator, result);
 			current = parent_object_of(current, override_by_owner);
 		}
 
@@ -626,7 +629,7 @@ namespace Engine
 		else
 		{
 			error_log("Object", "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
-			          path.c_str());
+					  path.c_str());
 		}
 
 		return nullptr;
@@ -698,7 +701,7 @@ namespace Engine
 	}
 
 	ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
-	                                          Flags<SerializationFlags> serialization_flags)
+											  Flags<SerializationFlags> serialization_flags)
 	{
 		if (reader == nullptr)
 		{
@@ -793,7 +796,7 @@ namespace Engine
 		}
 
 		Path path = Path(Project::assets_dir) /
-		            Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
+					Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
 		return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
 	}
 

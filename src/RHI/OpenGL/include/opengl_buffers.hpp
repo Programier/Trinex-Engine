@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_headers.hpp>
 
@@ -26,6 +27,14 @@ namespace Engine
 		~OpenGL_IndexBuffer();
 	};
 
+	struct OpenGL_UniformBuffer : public RHI_DefaultDestroyable<RHI_UniformBuffer> {
+		GLuint m_id;
+
+		OpenGL_UniformBuffer(size_t size, const byte* data, RHIBufferType type);
+		void bind(BindingIndex location) override;
+		void update(size_t offset, size_t size, const byte* data) override;
+	};
+
 	struct OpenGL_SSBO : public RHI_DefaultDestroyable<RHI_SSBO> {
 		GLuint m_id;
 
@@ -36,22 +45,7 @@ namespace Engine
 
 		~OpenGL_SSBO();
 	};
-	
-	struct OpenGL_GlobalUniformBufferManager {
-	private:
-		Vector<struct OpenGL_GlobalUniformBuffer*> m_buffers;
-		int_t m_index = -1;
-		
-		struct OpenGL_GlobalUniformBuffer* buffer();
-		
-	public:
-		void bind(BindingIndex index);
-		void push(const GlobalShaderParameters& params);
-		void pop();
-		void submit();
-		~OpenGL_GlobalUniformBufferManager();
-	};
-	
+
 	struct OpenGL_LocalUniformBufferManager {
 	private:
 		Vector<struct OpenGL_LocalUniformBuffer*> m_buffers;

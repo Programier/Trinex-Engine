@@ -76,6 +76,11 @@ namespace Engine
 		{}
 	};
 
+	struct NoneUniformBuffer : public NoneBuffer<RHI_UniformBuffer> {
+		void bind(BindingIndex location) override
+		{}
+	};
+
 	struct NoneViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
 		void present() override
 		{}
@@ -221,22 +226,17 @@ namespace Engine
 		return new NoneSSBOBuffer();
 	}
 
+	RHI_UniformBuffer* NoneApi::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
+	{
+		return new NoneUniformBuffer();
+	}
+
 	RHI_Viewport* NoneApi::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
 		return new NoneViewport();
 	}
 
-	NoneApi& NoneApi::push_global_params(const GlobalShaderParameters& params)
-	{
-		return *this;
-	}
-
-	NoneApi& NoneApi::pop_global_params()
-	{
-		return *this;
-	}
-
-	NoneApi& NoneApi::update_local_parameter(const void* data, size_t size, size_t offset)
+	NoneApi& NoneApi::update_scalar_parameter(const void* data, size_t size, size_t offset)
 	{
 		return *this;
 	}

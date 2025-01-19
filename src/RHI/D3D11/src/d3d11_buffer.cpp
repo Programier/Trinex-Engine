@@ -1,5 +1,7 @@
+#include <cstring>
 #include <d3d11_api.hpp>
 #include <d3d11_buffer.hpp>
+#include <d3d11_pipeline.hpp>
 
 namespace Engine
 {
@@ -82,6 +84,54 @@ namespace Engine
 		d3d11_release(m_buffer);
 	}
 
+	bool D3D11_UniformBuffer::init(size_t size, const byte* data, RHIBufferType type)
+	{
+		D3D11_BUFFER_DESC desc = {};
+		desc.Usage             = D3D11_USAGE_DYNAMIC;
+		desc.ByteWidth         = size;
+		desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+		desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+
+		HRESULT hr = DXAPI->m_device->CreateBuffer(&desc, nullptr, &m_buffer);
+		return hr == S_OK;
+	}
+
+	void D3D11_UniformBuffer::bind(BindingIndex location)
+	{
+		auto& pipeline = DXAPI->m_state.pipeline;
+
+		if (pipeline == nullptr)
+			return;
+
+		if (pipeline->m_vertex_shader)
+			DXAPI->m_context->VSSetConstantBuffers(location, 1, &m_buffer);
+		if (pipeline->m_tsc_shader)
+			DXAPI->m_context->HSSetConstantBuffers(location, 1, &m_buffer);
+		if (pipeline->m_ts_shader)
+			DXAPI->m_context->DSSetConstantBuffers(location, 1, &m_buffer);
+		if (pipeline->m_geometry_shader)
+			DXAPI->m_context->GSSetConstantBuffers(location, 1, &m_buffer);
+		if (pipeline->m_fragment_shader)
+			DXAPI->m_context->PSSetConstantBuffers(location, 1, &m_buffer);
+	}
+
+	void D3D11_UniformBuffer::update(size_t offset, size_t size, const byte* data)
+	{
+		D3D11_MAPPED_SUBRESOURCE mapped_resource{};
+		HRESULT hr = DXAPI->m_context->Map(m_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+
+		if (hr == S_OK)
+		{
+			std::memcpy(mapped_resource.pData, data, size);
+			DXAPI->m_context->Unmap(m_buffer, 0);
+		}
+	}
+
+	D3D11_UniformBuffer::~D3D11_UniformBuffer()
+	{
+		d3d11_release(m_buffer);
+	}
+
 	RHI_VertexBuffer* D3D11::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
 	{
 		D3D11_VertexBuffer* buffer = new D3D11_VertexBuffer();
@@ -108,5 +158,17 @@ namespace Engine
 	RHI_SSBO* D3D11::create_ssbo(size_t size, const byte* data, RHIBufferType type)
 	{
 		return NoneApi::create_ssbo(size, data, type);
+	}
+
+	RHI_UniformBuffer* D3D11::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
+	{
+		D3D11_UniformBuffer* buffer = new D3D11_UniformBuffer();
+		if (!buffer->init(size, data, type))
+		{
+			delete buffer;
+			buffer = nullptr;
+		}
+
+		return buffer;
 	}
 }// namespace Engine

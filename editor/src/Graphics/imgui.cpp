@@ -319,7 +319,7 @@ namespace Engine
 			texture.sampler = Object::new_instance<EngineResource<Sampler>>(
 			        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 			texture.sampler->filter = SamplerFilter::Trilinear;
-			texture.sampler->rhi_init();
+			texture.sampler->init_resource();
 			package->add_object(texture.sampler);
 
 			// Store our identifier
@@ -1261,32 +1261,6 @@ namespace Engine
 		}
 	}// namespace ImGuiBackend_Window
 
-
-	struct InitContext : public Task<InitContext> {
-		ImGuiContext* m_ctx;
-
-		InitContext(ImGuiContext* ctx) : m_ctx(ctx)
-		{}
-
-		void execute() override
-		{
-			ImGuiBackend_RHI::imgui_trinex_rhi_init(m_ctx);
-		}
-	};
-
-
-	struct TerminateContext : public Task<TerminateContext> {
-		ImGuiContext* m_ctx;
-
-		TerminateContext(ImGuiContext* ctx) : m_ctx(ctx)
-		{}
-
-		void execute() override
-		{
-			ImGuiBackend_RHI::imgui_trinex_rhi_shutdown(m_ctx);
-		}
-	};
-
 	ImDrawData* ImGuiDrawData::draw_data()
 	{
 		return &m_draw_data[m_render_index];
@@ -1477,7 +1451,6 @@ namespace Engine
 	{
 		ImGuiContext* context = ImGui::CreateContext();
 
-		Thread* rt = render_thread();
 		ImGui::SetCurrentContext(context);
 
 		if (callback)
@@ -1490,17 +1463,13 @@ namespace Engine
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		ImGuiBackend_Window::imgui_trinex_window_init(window);
-
-		rt->create_task<InitContext>(context);
-		rt->wait();
+		ImGuiBackend_RHI::imgui_trinex_rhi_init(context);
 		return context;
 	}
 
 	static void imgui_destroy_context(ImGuiContext* context)
 	{
-		Thread* rt = render_thread();
-		rt->create_task<TerminateContext>(context);
-		rt->wait();
+		ImGuiBackend_RHI::imgui_trinex_rhi_shutdown(context);
 
 		ImGui::SetCurrentContext(context);
 		ImGuiBackend_Window::imgui_trinex_window_shutdown();

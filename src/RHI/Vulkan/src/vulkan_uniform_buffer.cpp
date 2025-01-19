@@ -23,43 +23,6 @@ namespace Engine
 		buffers.clear();
 	}
 
-	void GlobalUniformBufferPool::push(const GlobalShaderParameters* params)
-	{
-		++index;
-		if (index >= static_cast<int64_t>(buffers.size()))
-			allocate_new();
-
-		buffers[index]->copy(0, reinterpret_cast<const byte*>(params), sizeof(GlobalShaderParameters));
-	}
-
-	void GlobalUniformBufferPool::pop()
-	{
-		if (index > -1)
-		{
-			--index;
-		}
-		else
-		{
-			error_log("VulkanAPI", "Cannot pop global variables, because stack is already empty!");
-		}
-	}
-
-	void GlobalUniformBufferPool::bind()
-	{
-		VulkanPipeline* pipeline = API->m_state.m_pipeline;
-		if (index >= 0 && pipeline && pipeline->global_parameters_info().has_parameters())
-		{
-			API->m_state.m_pipeline->bind_uniform_buffer(
-			        vk::DescriptorBufferInfo(buffers[index]->m_buffer, 0, sizeof(GlobalShaderParameters)),
-			        pipeline->global_parameters_info().bind_index(), vk::DescriptorType::eUniformBuffer);
-		}
-	}
-
-	void GlobalUniformBufferPool::reset()
-	{
-		index = -1;
-	}
-
 	LocalUniformBufferPool::LocalUniformBufferPool()
 	{
 		allocate_new();
@@ -117,34 +80,19 @@ namespace Engine
 		used_data        = 0;
 	}
 
-	void VulkanUniformBuffer::reset()
+	void VulkanUniformBufferManager::reset()
 	{
-		global_pool.reset();
 		local_pool.reset();
 	}
 
-	void VulkanUniformBuffer::bind()
+	void VulkanUniformBufferManager::bind()
 	{
-		global_pool.bind();
 		local_pool.bind();
 	}
 
-
-	VulkanAPI& VulkanAPI::push_global_params(const GlobalShaderParameters& params)
+	VulkanAPI& VulkanAPI::update_scalar_parameter(const void* data, size_t size, size_t offset)
 	{
-		API->uniform_buffer()->global_pool.push(&params);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::pop_global_params()
-	{
-		API->uniform_buffer()->global_pool.pop();
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::update_local_parameter(const void* data, size_t size, size_t offset)
-	{
-		API->uniform_buffer()->local_pool.update(data, size, offset);
+		API->uniform_buffer_manager()->local_pool.update(data, size, offset);
 		return *this;
 	}
 }// namespace Engine

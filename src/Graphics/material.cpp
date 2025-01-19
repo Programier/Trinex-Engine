@@ -6,6 +6,8 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -196,6 +198,11 @@ namespace Engine
 
 			if (parameter)
 				parameter->apply(component, pipeline, &info);
+		}
+
+		if (pipeline->global_parameters.has_parameters() && render_pass)
+		{
+			render_pass->scene_renderer()->bind_global_parameters(pipeline->global_parameters.bind_index());
 		}
 		return true;
 	}

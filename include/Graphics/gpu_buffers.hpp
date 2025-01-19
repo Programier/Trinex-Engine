@@ -336,6 +336,57 @@ namespace Engine
 		declare_class(UInt16DynamicIndexBuffer, IndexBuffer);
 	};
 
+	// UNIFORM BUFFER
+
+	class ENGINE_EXPORT UniformBuffer : public GPUBuffer
+	{
+		declare_class(UniformBuffer, GPUBuffer);
+
+	public:
+		UniformBuffer& rhi_init() override;
+		UniformBuffer& rhi_init(size_t size, const byte* data);
+		RHIBufferType buffer_type() const override;
+	};
+
+	template<typename StorageType>
+	class ENGINE_EXPORT StructuredUniformBuffer : public UniformBuffer
+	{
+	public:
+		StorageType storage;
+
+		StructuredUniformBuffer& rhi_init() override
+		{
+			m_size = sizeof(StorageType);
+			UniformBuffer::rhi_init();
+			return *this;
+		}
+
+		byte* data() override
+		{
+			return reinterpret_cast<byte*>(&storage);
+		}
+
+		const byte* data() const override
+		{
+			return reinterpret_cast<const byte*>(&storage);
+		}
+
+		using UniformBuffer::rhi_update;
+
+		StructuredUniformBuffer& rhi_update(size_t offset, size_t size)
+		{
+			offset = glm::clamp(offset, static_cast<size_t>(0), static_cast<size_t>(sizeof(StorageType)));
+			size   = glm::min(size, static_cast<size_t>(sizeof(StorageType)) - offset);
+			UniformBuffer::rhi_update(offset, size, data() + offset);
+			return *this;
+		}
+	};
+
+	class ENGINE_EXPORT UntypedUniformBuffer : public TypedGPUBuffer<byte, UniformBuffer>
+	{
+		declare_class(UntypedUniformBuffer, UniformBuffer);
+	};
+
 	class ENGINE_EXPORT SSBO : public GPUBuffer
 	{
 		declare_class(SSBO, GPUBuffer);

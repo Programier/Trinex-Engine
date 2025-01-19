@@ -59,7 +59,6 @@ namespace Engine
 	OpenGL::~OpenGL()
 	{
 		OpenGL_RenderTarget::release_all();
-		delete m_global_ubo;
 		delete m_local_ubo;
 
 		extern void destroy_opengl_context(void* context);
@@ -105,11 +104,6 @@ namespace Engine
 	{
 		if (OPENGL_API->m_state.pipeline)
 		{
-			if (OPENGL_API->m_state.pipeline->m_global_parameters.has_parameters())
-			{
-				m_global_ubo->bind(OPENGL_API->m_state.pipeline->m_global_parameters.bind_index());
-			}
-
 			if (OPENGL_API->m_state.pipeline->m_local_parameters.has_parameters())
 			{
 				m_local_ubo->bind(OPENGL_API->m_state.pipeline->m_local_parameters.bind_index());
@@ -161,7 +155,6 @@ namespace Engine
 
 	OpenGL& OpenGL::submit()
 	{
-		m_global_ubo->submit();
 		m_local_ubo->submit();
 		return *this;
 	}

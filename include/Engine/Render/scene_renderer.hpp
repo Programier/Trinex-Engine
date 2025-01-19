@@ -45,7 +45,7 @@ namespace Engine
 	class ENGINE_EXPORT SceneRenderer
 	{
 	protected:
-		Vector<GlobalShaderParameters> m_global_shader_params;
+		class GlobalShaderParametersManager* m_global_shader_params;
 		Vector<SceneView> m_scene_views;
 
 		RenderPass* m_first_pass = nullptr;
@@ -59,9 +59,11 @@ namespace Engine
 		Scene* scene;
 
 		SceneRenderer();
-		SceneRenderer& push_global_shader_parameters();
-		SceneRenderer& pop_global_shader_parameters();
-		const GlobalShaderParameters& global_shader_parameters() const;
+		delete_copy_constructors(SceneRenderer);
+		SceneRenderer& push_global_parameters(GlobalShaderParameters* parameters = nullptr);
+		SceneRenderer& pop_global_parameters();
+		const GlobalShaderParameters& global_parameters() const;
+		const SceneRenderer& bind_global_parameters(BindingIndex index) const;
 		const SceneView& scene_view() const;
 
 		FORCE_INLINE ViewMode view_mode() const

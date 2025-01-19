@@ -301,7 +301,7 @@ namespace Engine
 					ambient_param->value = renderer->scene->environment.ambient_color;
 				}
 
-				material->apply();
+				material->apply(nullptr, this);
 				rhi->draw(6, 0);
 			}
 		}
@@ -355,7 +355,7 @@ namespace Engine
 		}
 
 		auto renderer = scene_renderer();
-		auto& params  = renderer->global_shader_parameters();
+		auto& params  = renderer->global_parameters();
 		auto& vp      = params.viewport;
 
 		auto min = Vector2D(vp.x, vp.y) / params.size;

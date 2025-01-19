@@ -82,6 +82,24 @@ namespace Engine
 		}
 	}
 
+	OpenGL_UniformBuffer::OpenGL_UniformBuffer(size_t size, const byte* data, RHIBufferType type)
+	{
+		glGenBuffers(1, &m_id);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_id);
+		glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STREAM_COPY);
+	}
+
+	void OpenGL_UniformBuffer::bind(BindingIndex location)
+	{
+		glBindBufferBase(GL_UNIFORM_BUFFER, location, m_id);
+	}
+
+	void OpenGL_UniformBuffer::update(size_t offset, size_t size, const byte* data)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, m_id);
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
+	}
+
 	RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
 	{
 		return new OpenGL_IndexBuffer(size, data, format, type);
@@ -113,5 +131,10 @@ namespace Engine
 	RHI_SSBO* OpenGL::create_ssbo(size_t size, const byte* data, RHIBufferType type)
 	{
 		return new OpenGL_SSBO(size, data);
+	}
+
+	RHI_UniformBuffer* OpenGL::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
+	{
+		return new OpenGL_UniformBuffer(size, data, type);
 	}
 }// namespace Engine

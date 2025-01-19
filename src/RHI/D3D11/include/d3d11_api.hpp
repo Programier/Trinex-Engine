@@ -57,18 +57,13 @@ namespace Engine
 #endif
 
 		D3D_FEATURE_LEVEL m_feature_level = D3D_FEATURE_LEVEL_11_0;
-
-		D3D11_GlobalUniforms m_global_uniform_buffer;
 		D3D11_LocalUniforms m_local_unifor_buffer;
 
 		D3D11();
 
 		ID3D11RenderTargetView* create_render_target_view(ID3D11Texture2D* buffer, DXGI_FORMAT format);
 		ID3D11DepthStencilView* create_depth_stencil_view(ID3D11Texture2D* buffer, DXGI_FORMAT format);
-
-		D3D11& push_global_params(const GlobalShaderParameters& params) override;
-		D3D11& pop_global_params() override;
-		D3D11& update_local_parameter(const void* data, size_t size, size_t offset) override;
+		D3D11& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
 
 		D3D11& initialize(Window* window) override;
 		void* context() override;
@@ -87,7 +82,8 @@ namespace Engine
 		D3D11& draw(size_t vertex_count, size_t vertices_offset) override;
 		D3D11& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
 		D3D11& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
-		D3D11& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances) override;
+		D3D11& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+									  size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
 		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
@@ -96,6 +92,7 @@ namespace Engine
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
+		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;

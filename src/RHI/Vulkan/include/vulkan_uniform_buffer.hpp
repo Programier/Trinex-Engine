@@ -23,16 +23,6 @@ namespace Engine
 		}
 	};
 
-	struct GlobalUniformBufferPool : public UniformBufferPool<sizeof(GlobalShaderParameters)> {
-		int64_t index = -1;
-
-		void push(const GlobalShaderParameters* params = nullptr);
-		void pop();
-
-		void bind();
-		void reset();
-	};
-
 	struct LocalUniformBufferPool : public UniformBufferPool<4096> {
 		Vector<byte> shadow_data;
 		size_t shadow_data_size = 0;
@@ -46,8 +36,7 @@ namespace Engine
 		void reset();
 	};
 
-	struct VulkanUniformBuffer {
-		GlobalUniformBufferPool global_pool;
+	struct VulkanUniformBufferManager {
 		LocalUniformBufferPool local_pool;
 
 		void reset();

@@ -15,7 +15,7 @@ namespace Engine::MaterialParameters
 
 	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, MaterialParameterInfo* info)
 	{
-		rhi->update_local_parameter(data, size, info->offset);
+		rhi->update_scalar_parameter(data, size, info->offset);
 		return *this;
 	}
 
@@ -45,7 +45,7 @@ namespace Engine::MaterialParameters
 	Model4x4& Model4x4::apply(SceneComponent* component, Pipeline* pipeline, MaterialParameterInfo* info)
 	{
 		auto matrix = component->proxy()->world_transform().matrix();
-		rhi->update_local_parameter(&matrix, sizeof(matrix), info->offset);
+		rhi->update_scalar_parameter(&matrix, sizeof(matrix), info->offset);
 		return *this;
 	}
 
