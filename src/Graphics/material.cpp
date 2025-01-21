@@ -199,11 +199,6 @@ namespace Engine
 			if (parameter)
 				parameter->apply(component, pipeline, render_pass, &info);
 		}
-
-		if (pipeline->global_parameters.has_parameters() && render_pass)
-		{
-			render_pass->scene_renderer()->bind_global_parameters(pipeline->global_parameters.bind_index());
-		}
 		return true;
 	}
 

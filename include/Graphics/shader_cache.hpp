@@ -15,7 +15,6 @@ namespace Engine
 		Buffer fragment;
 		Buffer compute;
 
-		MaterialScalarParametersInfo global_parameters;
 		MaterialScalarParametersInfo local_parameters;
 
 		void init_from(const class Pipeline* pipeline);

@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/map.hpp>
+#include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_descript_set_layout.hpp>
 #include <vulkan_headers.hpp>
@@ -42,7 +43,6 @@ namespace Engine
 
 		bool create(const Pipeline* pipeline);
 		VulkanDescriptorSet* current_descriptor_set();
-		const MaterialScalarParametersInfo& global_parameters_info() const;
 		const MaterialScalarParametersInfo& local_parameters_info() const;
 
 		void bind() override;

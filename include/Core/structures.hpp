@@ -187,7 +187,7 @@ namespace Engine
 		String name;
 		size_t size;
 		size_t offset;
-		BindLocation location;
+		BindingIndex location;
 
 		MaterialParameterInfo();
 		bool serialize(Archive& ar);

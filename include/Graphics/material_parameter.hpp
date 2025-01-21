@@ -208,5 +208,14 @@ namespace Engine
 							 MaterialParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
+
+		class ENGINE_EXPORT Globals : public Parameter
+		{
+			declare_class(Globals, Parameter);
+
+		public:
+			Globals& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
+						   MaterialParameterInfo* info) override;
+		};
 	}// namespace MaterialParameters
 }// namespace Engine

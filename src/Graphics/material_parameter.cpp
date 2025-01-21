@@ -4,6 +4,8 @@
 #include <Core/reflection/property.hpp>
 #include <Core/structures.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
+#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -105,6 +107,12 @@ namespace Engine::MaterialParameters
 			return false;
 		ar.serialize_reference(texture);
 		return true;
+	}
+
+	Globals& Globals::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass, MaterialParameterInfo* info)
+	{
+		render_pass->scene_renderer()->bind_global_parameters(info->location);
+		return *this;
 	}
 
 	implement_parameter(Parameter)
@@ -218,4 +226,7 @@ namespace Engine::MaterialParameters
 	{
 		trinex_refl_prop(static_class_instance(), This, texture);
 	}
+
+	implement_parameter(Globals)
+	{}
 }// namespace Engine::MaterialParameters

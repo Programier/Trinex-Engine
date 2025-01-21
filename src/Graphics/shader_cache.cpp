@@ -33,7 +33,7 @@ namespace Engine
 	bool ShaderCache::serialize(Archive& ar)
 	{
 		return ar.serialize(parameters, vertex, tessellation_control, tessellation, geometry, fragment, compute,
-							global_parameters, local_parameters);
+							local_parameters);
 	}
 
 	bool ShaderCache::load(const StringView& object_path, StringView rhi_name)
@@ -101,8 +101,7 @@ namespace Engine
 		copy_buffer(fragment, pipeline->fragment_shader());
 		copy_buffer(compute, nullptr);
 
-		global_parameters = pipeline->global_parameters;
-		local_parameters  = pipeline->local_parameters;
+		local_parameters = pipeline->local_parameters;
 	}
 
 	void ShaderCache::apply_to(class Pipeline* pipeline)
@@ -116,7 +115,6 @@ namespace Engine
 		apply_buffer(fragment, pipeline->fragment_shader());
 		apply_buffer(compute, nullptr);
 
-		pipeline->global_parameters = global_parameters;
-		pipeline->local_parameters  = local_parameters;
+		pipeline->local_parameters = local_parameters;
 	}
 }// namespace Engine

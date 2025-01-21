@@ -19,6 +19,21 @@
 #include <slang.h>
 #include <spirv_glsl.hpp>
 
+#define RETURN_ON_FAIL(code)                                                                                                     \
+	if (SLANG_FAILED(code))                                                                                                      \
+	return false
+
+#define return_nullptr_if_not(cond)                                                                                              \
+	if (!(cond))                                                                                                                 \
+	return nullptr
+
+#define check_compile_errors()                                                                                                   \
+	if (log_handler.has_error)                                                                                                   \
+	return false
+
+#define return_if_false(cond)                                                                                                    \
+	if (!(cond))                                                                                                                 \
+	return
 
 namespace Engine::ShaderCompiler
 {
@@ -62,36 +77,373 @@ namespace Engine::ShaderCompiler
 		}
 	};
 
+	static slang::IGlobalSession* global_session()
+	{
+		static Slang::ComPtr<slang::IGlobalSession> slang_global_session;
+		if (slang_global_session.get() == nullptr)
+		{
+			if (SLANG_FAILED(slang::createGlobalSession(slang_global_session.writeRef())))
+			{
+				throw EngineException("Cannot create global session");
+			}
 
-#define RETURN_ON_FAIL(code)                                                                                                     \
-	if (SLANG_FAILED(code))                                                                                                      \
-	return false
+			DestroyController().push([]() { slang_global_session = nullptr; });
+		}
 
-	static Vector<Refl::Class* (*) (slang::VariableLayoutReflection*, uint_t, uint_t, uint_t, slang::TypeReflection::ScalarType)>
-			m_param_parsers;
+		return slang_global_session.get();
+	}
 
-#define return_nullptr_if_not(cond)                                                                                              \
-	if (!(cond))                                                                                                                 \
-	return nullptr
+	class ReflectionParser
+	{
+	public:
+		using TypeDetector = Refl::Class*(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
+										  slang::TypeReflection::ScalarType);
+		static Vector<TypeDetector*> type_detectors;
 
-	struct ParamParser {
-		using Scalar = slang::TypeReflection::ScalarType;
-		using SVR    = slang::VariableReflection;
-		using SVLR   = slang ::VariableLayoutReflection;
+		ShaderReflection out;
 
-		static bool has_model_attribute(SVR* var)
+		static bool has_attribute(slang::VariableReflection* var, const char* attribute, size_t args = 0)
 		{
 			auto count = var->getUserAttributeCount();
 			for (unsigned int i = 0; i < count; ++i)
 			{
 				if (auto attrib = var->getUserAttributeByIndex(i))
 				{
-					if (std::strcmp(attrib->getName(), "is_model") == 0)
-						return true;
+					if (std::strcmp(attrib->getName(), attribute) != 0)
+						continue;
+
+					if (attrib->getArgumentCount() != args)
+						continue;
+
+					return true;
 				}
 			}
 
 			return false;
+		}
+
+		static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
+		{
+			Strings::to_lower(name);
+
+			static const TreeMap<String, VertexBufferSemantic> semantics = {
+					{"position", VertexBufferSemantic::Position},       //
+					{"texcoord", VertexBufferSemantic::TexCoord},       //
+					{"color", VertexBufferSemantic::Color},             //
+					{"normal", VertexBufferSemantic::Normal},           //
+					{"tangent", VertexBufferSemantic::Tangent},         //
+					{"bitangent", VertexBufferSemantic::Bitangent},     //
+					{"blendweight", VertexBufferSemantic::BlendWeight}, //
+					{"blendindices", VertexBufferSemantic::BlendIndices}//
+			};
+
+			auto it = semantics.find(name);
+			if (it != semantics.end())
+			{
+				out_semantic = it->second;
+				return true;
+			}
+			else
+			{
+				error_log("ShaderCompiler", "Failed to find semantic '%s'", name.c_str());
+				return false;
+			}
+		}
+
+		static VertexBufferElementType find_vertex_element_type(slang::TypeLayoutReflection* var, VertexBufferSemantic semantic)
+		{
+			if (var == nullptr)
+				return VertexBufferElementType::Undefined;
+
+			auto kind = var->getKind();
+
+			if (kind == slang::TypeReflection::Kind::Scalar)
+			{
+				switch (var->getScalarType())
+				{
+					case slang::TypeReflection::ScalarType::Int8:
+						return VertexBufferElementType::Byte1;
+
+					case slang::TypeReflection::ScalarType::UInt8:
+						return VertexBufferElementType::UByte1;
+
+					case slang::TypeReflection::ScalarType::Int16:
+						return VertexBufferElementType::Short1;
+
+					case slang::TypeReflection::ScalarType::UInt16:
+						return VertexBufferElementType::UShort1;
+
+					case slang::TypeReflection::ScalarType::Int32:
+						return VertexBufferElementType::Int1;
+
+					case slang::TypeReflection::ScalarType::UInt32:
+						return VertexBufferElementType::UInt1;
+
+					case slang::TypeReflection::ScalarType::Float32:
+						return VertexBufferElementType::Float1;
+
+					default:
+						return VertexBufferElementType::Undefined;
+				}
+			}
+			else if (kind == slang::TypeReflection::Kind::Vector)
+			{
+				auto base_type         = find_vertex_element_type(var->getElementTypeLayout(), semantic);
+				auto components_offset = var->getElementCount() - 1;
+
+				if (components_offset > 3)
+					return VertexBufferElementType::Undefined;
+
+				if (components_offset == 3 &&
+					!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(
+							base_type))
+				{
+					--components_offset;
+				}
+
+				auto result = static_cast<VertexBufferElementType>(static_cast<EnumerateType>(base_type) + components_offset);
+
+				if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
+					return VertexBufferElementType::Color;
+				return result;
+			}
+
+			return VertexBufferElementType::Undefined;
+		}
+
+		bool parse_vertex_semantic(slang::VariableLayoutReflection* var)
+		{
+			auto kind     = var->getType()->getKind();
+			auto category = var->getCategory();
+			if (category != slang::ParameterCategory::VaryingInput)
+				return true;
+
+			if (kind == slang::TypeReflection::Kind::Struct)
+			{
+				auto layout       = var->getTypeLayout();
+				auto fields_count = layout->getFieldCount();
+
+				for (uint32_t field_index = 0; field_index < fields_count; ++field_index)
+				{
+					auto field = layout->getFieldByIndex(field_index);
+
+					if (!parse_vertex_semantic(field))
+					{
+						return false;
+					}
+				}
+			}
+			else if (kind == slang::TypeReflection::Kind::Vector || kind == slang::TypeReflection::Kind::Scalar)
+			{
+				ShaderReflection::VertexAttribute attribute;
+
+				const char* semantic_name = var->getSemanticName();
+
+				if (semantic_name == nullptr)
+				{
+					error_log("ShaderCompiler", "Cannot find semantic for vertex input '%s'", var->getName());
+					return false;
+				}
+
+				if (!find_semantic(var->getSemanticName(), attribute.semantic))
+				{
+					return false;
+				}
+
+				if (is_not_in<VertexBufferSemantic::Position, //
+							  VertexBufferSemantic::TexCoord, //
+							  VertexBufferSemantic::Color,    //
+							  VertexBufferSemantic::Normal,   //
+							  VertexBufferSemantic::Tangent,  //
+							  VertexBufferSemantic::Bitangent,//
+							  VertexBufferSemantic::BlendWeight>(attribute.semantic))
+				{
+					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
+					return false;
+				}
+
+				attribute.semantic_index = var->getSemanticIndex();
+				attribute.name           = var->getName();
+				attribute.rate           = VertexAttributeInputRate::Vertex;
+				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
+				attribute.location       = var->getBindingIndex();
+				attribute.stream_index   = attribute.location;
+				attribute.offset         = 0;
+				out.attributes.push_back(attribute);
+			}
+			else
+			{
+				error_log("ShaderCompiler", "Unsupported input variable type!");
+				return false;
+			}
+
+			return true;
+		}
+
+		static bool is_global_parameters(slang::TypeLayoutReflection* type)
+		{
+			return_if_false(type->getKind() == slang::TypeReflection::Kind::Struct) false;
+			return_if_false(std::strcmp(type->getName(), "GlobalParameters") == 0) false;
+			return_if_false(sizeof(GlobalShaderParameters) == type->getSize(SLANG_PARAMETER_CATEGORY_UNIFORM)) false;
+			return true;
+		}
+
+		Refl::Class* find_scalar_parameter_type(slang::VariableLayoutReflection* var)
+		{
+			auto reflection = var->getType();
+			auto rows       = reflection->getRowCount();
+			auto colums     = reflection->getColumnCount();
+			auto elements   = reflection->getElementCount();
+			auto scalar     = reflection->getScalarType();
+
+			for (auto& detector : type_detectors)
+			{
+				if (auto type = detector(var, rows, colums, elements, scalar))
+				{
+					return type;
+				}
+			}
+
+			return nullptr;
+		}
+
+		bool parse_shader_parameter(slang::VariableLayoutReflection* param, size_t offset = 0)
+		{
+			auto kind = param->getTypeLayout()->getKind();
+
+			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
+					  slang::TypeReflection::Kind::Matrix>(kind))
+			{
+				auto name = param->getName();
+				trinex_always_check(name, "Failed to get parameter name!");
+				MaterialParameterInfo info;
+				info.type = find_scalar_parameter_type(param);
+
+				if (info.type == nullptr)
+				{
+					error_log("ShaderCompiler", "Failed to get parameter type!");
+					return false;
+				}
+
+				info.name   = name;
+				info.offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
+
+				if (auto layout = param->getTypeLayout())
+				{
+					info.size = layout->getSize();
+				}
+				else
+				{
+					error_log("ShaderCompiler", "Failed to get parameter layout info!");
+					return false;
+				}
+
+				out.uniform_member_infos.push_back(info);
+			}
+			else if (is_in<slang::TypeReflection::Kind::Resource>(kind))
+			{
+				if (auto type_layout = param->getTypeLayout())
+				{
+					SlangResourceShape shape = type_layout->getResourceShape();
+
+					if (shape == SLANG_TEXTURE_2D)
+					{
+						auto binding_type = type_layout->getBindingRangeType(0);
+
+						MaterialParameterInfo object;
+						object.name     = param->getName();
+						object.location = param->getOffset(SLANG_PARAMETER_CATEGORY_SHADER_RESOURCE);
+						object.type     = binding_type == slang::BindingType::CombinedTextureSampler
+												  ? MaterialParameters::Sampler2D::static_class_instance()
+												  : MaterialParameters::Texture2D::static_class_instance();
+						out.uniform_member_infos.push_back(object);
+					}
+				}
+			}
+			else if (is_in<slang::TypeReflection::Kind::Struct>(kind))
+			{
+				auto layout = param->getTypeLayout();
+				auto fields = layout->getFieldCount();
+
+				auto struct_offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
+
+
+				for (decltype(fields) i = 0; i < fields; i++)
+				{
+					auto var = layout->getFieldByIndex(i);
+					return_if_false(parse_shader_parameter(var, offset + struct_offset)) false;
+				}
+			}
+			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(kind))
+			{
+				auto layout = param->getTypeLayout()->getElementTypeLayout();
+
+				if (is_global_parameters(layout))
+				{
+					MaterialParameterInfo object;
+					object.name     = param->getName();
+					object.location = param->getBindingIndex();
+					object.type     = MaterialParameters::Globals::static_class_instance();
+					object.size     = sizeof(GlobalShaderParameters);
+					object.offset   = 0;
+					out.uniform_member_infos.push_back(object);
+				}
+				else
+				{
+					auto fields        = layout->getFieldCount();
+					auto struct_offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
+
+					for (decltype(fields) i = 0; i < fields; i++)
+					{
+						auto var = layout->getFieldByIndex(i);
+						return_if_false(parse_shader_parameter(var, offset + struct_offset)) false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		bool create_reflection(slang::ShaderReflection* reflection)
+		{
+			if (reflection->getGlobalConstantBufferSize() > 0)
+			{
+				out.local_parameters_info.bind_index(reflection->getGlobalParamsVarLayout()->getBindingIndex());
+			}
+
+			// Parse vertex attributes
+			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
+			{
+				uint32_t parameter_count = entry_point->getParameterCount();
+				for (uint32_t i = 0; i < parameter_count; i++)
+				{
+					return_if_false(parse_vertex_semantic(entry_point->getParameterByIndex(i))) false;
+				}
+			}
+
+			// Parse parameters
+			int count = reflection->getParameterCount();
+
+			for (int i = 0; i < count; i++)
+			{
+				auto param = reflection->getParameterByIndex(i);
+				return_if_false(parse_shader_parameter(param, 0)) false;
+			}
+
+			return true;
+		}
+	};
+
+	Vector<ReflectionParser::TypeDetector*> ReflectionParser::type_detectors;
+
+	struct TypeDetector {
+		using Scalar = slang::TypeReflection::ScalarType;
+		using SVR    = slang::VariableReflection;
+		using SVLR   = slang ::VariableLayoutReflection;
+
+		static bool has_model_attribute(SVR* var)
+		{
+			return ReflectionParser::has_attribute(var, "is_model");
 		}
 
 		template<typename Type, Scalar required_scalar>
@@ -128,368 +480,39 @@ namespace Engine::ShaderCompiler
 		}
 	};
 
-	static void setup_parsers()
+	static void setup_detectors()
 	{
-		using T      = ParamParser;
+		using T      = TypeDetector;
 		using Scalar = slang::TypeReflection::ScalarType;
 		namespace MP = MaterialParameters;
 
-		m_param_parsers.push_back(T::primitive<MP::Bool, Scalar::Bool>);
-		m_param_parsers.push_back(T::primitive<MP::Int, Scalar::Int32>);
-		m_param_parsers.push_back(T::primitive<MP::UInt, Scalar::UInt32>);
-		m_param_parsers.push_back(T::primitive<MP::Float, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::primitive<MP::Bool, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::primitive<MP::Int, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::primitive<MP::UInt, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::primitive<MP::Float, Scalar::Float32>);
 
-		m_param_parsers.push_back(T::vector<MP::Bool2, Scalar::Bool>);
-		m_param_parsers.push_back(T::vector<MP::Bool3, Scalar::Bool>);
-		m_param_parsers.push_back(T::vector<MP::Bool4, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool2, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool3, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool4, Scalar::Bool>);
 
-		m_param_parsers.push_back(T::vector<MP::Int2, Scalar::Int32>);
-		m_param_parsers.push_back(T::vector<MP::Int3, Scalar::Int32>);
-		m_param_parsers.push_back(T::vector<MP::Int4, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Int2, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Int3, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Int4, Scalar::Int32>);
 
-		m_param_parsers.push_back(T::vector<MP::UInt2, Scalar::UInt32>);
-		m_param_parsers.push_back(T::vector<MP::UInt3, Scalar::UInt32>);
-		m_param_parsers.push_back(T::vector<MP::UInt4, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt2, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt3, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt4, Scalar::UInt32>);
 
-		m_param_parsers.push_back(T::vector<MP::Float2, Scalar::Float32>);
-		m_param_parsers.push_back(T::vector<MP::Float3, Scalar::Float32>);
-		m_param_parsers.push_back(T::vector<MP::Float4, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Float2, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Float3, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Float4, Scalar::Float32>);
 
-		m_param_parsers.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
-		m_param_parsers.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
-		m_param_parsers.push_back(T::matrix<MP::Model4x4, Scalar::Float32, 4, 4, true>);
+		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
+		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
+		ReflectionParser::type_detectors.push_back(T::matrix<MP::Model4x4, Scalar::Float32, 4, 4, true>);
 	}
 
-	static PreInitializeController preinit(setup_parsers);
-
-	static slang::IGlobalSession* global_session()
-	{
-		static Slang::ComPtr<slang::IGlobalSession> slang_global_session;
-		if (slang_global_session.get() == nullptr)
-		{
-			if (SLANG_FAILED(slang::createGlobalSession(slang_global_session.writeRef())))
-			{
-				throw EngineException("Cannot create global session");
-			}
-		}
-
-		return slang_global_session.get();
-	}
-
-
-	static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
-	{
-		Strings::to_lower(name);
-
-		static const TreeMap<String, VertexBufferSemantic> semantics = {
-				{"position", VertexBufferSemantic::Position},       //
-				{"texcoord", VertexBufferSemantic::TexCoord},       //
-				{"color", VertexBufferSemantic::Color},             //
-				{"normal", VertexBufferSemantic::Normal},           //
-				{"tangent", VertexBufferSemantic::Tangent},         //
-				{"bitangent", VertexBufferSemantic::Bitangent},     //
-				{"blendweight", VertexBufferSemantic::BlendWeight}, //
-				{"blendindices", VertexBufferSemantic::BlendIndices}//
-		};
-
-		auto it = semantics.find(name);
-		if (it != semantics.end())
-		{
-			out_semantic = it->second;
-			return true;
-		}
-		else
-		{
-			error_log("ShaderCompiler", "Failed to find semantic '%s'", name.c_str());
-			return false;
-		}
-	}
-
-	static VertexBufferElementType parse_vertex_element_type(slang::TypeLayoutReflection* var, VertexBufferSemantic semantic)
-	{
-		if (var == nullptr)
-			return VertexBufferElementType::Undefined;
-
-		auto kind = var->getKind();
-
-		if (kind == slang::TypeReflection::Kind::Scalar)
-		{
-			switch (var->getScalarType())
-			{
-				case slang::TypeReflection::ScalarType::Int8:
-					return VertexBufferElementType::Byte1;
-
-				case slang::TypeReflection::ScalarType::UInt8:
-					return VertexBufferElementType::UByte1;
-
-				case slang::TypeReflection::ScalarType::Int16:
-					return VertexBufferElementType::Short1;
-
-				case slang::TypeReflection::ScalarType::UInt16:
-					return VertexBufferElementType::UShort1;
-
-				case slang::TypeReflection::ScalarType::Int32:
-					return VertexBufferElementType::Int1;
-
-				case slang::TypeReflection::ScalarType::UInt32:
-					return VertexBufferElementType::UInt1;
-
-				case slang::TypeReflection::ScalarType::Float32:
-					return VertexBufferElementType::Float1;
-
-				default:
-					return VertexBufferElementType::Undefined;
-			}
-		}
-		else if (kind == slang::TypeReflection::Kind::Vector)
-		{
-			auto base_type         = parse_vertex_element_type(var->getElementTypeLayout(), semantic);
-			auto components_offset = var->getElementCount() - 1;
-
-			if (components_offset > 3)
-				return VertexBufferElementType::Undefined;
-
-			if (components_offset == 3 &&
-				!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(base_type))
-			{
-				--components_offset;
-			}
-
-			auto result = static_cast<VertexBufferElementType>(static_cast<EnumerateType>(base_type) + components_offset);
-
-			if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
-				return VertexBufferElementType::Color;
-			return result;
-		}
-
-		return VertexBufferElementType::Undefined;
-	}
-
-	static bool parse_vertex_semantic(slang::VariableLayoutReflection* var, ShaderReflection& out_reflection)
-	{
-		auto kind     = var->getType()->getKind();
-		auto category = var->getCategory();
-		if (category != slang::ParameterCategory::VaryingInput)
-			return true;
-
-		if (kind == slang::TypeReflection::Kind::Struct)
-		{
-			auto layout       = var->getTypeLayout();
-			auto fields_count = layout->getFieldCount();
-
-			for (uint32_t field_index = 0; field_index < fields_count; ++field_index)
-			{
-				auto field = layout->getFieldByIndex(field_index);
-
-				if (!parse_vertex_semantic(field, out_reflection))
-				{
-					out_reflection.clear();
-					return false;
-				}
-			}
-		}
-		else if (kind == slang::TypeReflection::Kind::Vector || kind == slang::TypeReflection::Kind::Scalar)
-		{
-			ShaderReflection::VertexAttribute attribute;
-
-			const char* semantic_name = var->getSemanticName();
-
-			if (semantic_name == nullptr)
-			{
-				error_log("ShaderCompiler", "Cannot find semantic for vertex input '%s'", var->getName());
-				return false;
-			}
-
-			if (!find_semantic(var->getSemanticName(), attribute.semantic))
-			{
-				return false;
-			}
-
-			if (is_not_in<VertexBufferSemantic::Position, //
-						  VertexBufferSemantic::TexCoord, //
-						  VertexBufferSemantic::Color,    //
-						  VertexBufferSemantic::Normal,   //
-						  VertexBufferSemantic::Tangent,  //
-						  VertexBufferSemantic::Bitangent,//
-						  VertexBufferSemantic::BlendWeight>(attribute.semantic))
-			{
-				error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
-				return false;
-			}
-
-			attribute.semantic_index = var->getSemanticIndex();
-			attribute.name           = var->getName();
-			attribute.rate           = VertexAttributeInputRate::Vertex;
-			attribute.type           = parse_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-			attribute.location       = var->getBindingIndex();
-			attribute.stream_index   = attribute.location;
-			attribute.offset         = 0;
-			out_reflection.attributes.push_back(attribute);
-		}
-		else
-		{
-			error_log("ShaderCompiler", "Unsupported input variable type!");
-			return false;
-		}
-
-		return true;
-	}
-
-	static Refl::Class* find_scalar_parameter_type(slang::VariableLayoutReflection* var)
-	{
-		auto reflection = var->getType();
-		auto rows       = reflection->getRowCount();
-		auto colums     = reflection->getColumnCount();
-		auto elements   = reflection->getElementCount();
-		auto scalar     = reflection->getScalarType();
-
-		for (auto& parser : m_param_parsers)
-		{
-			if (auto type = parser(var, rows, colums, elements, scalar))
-			{
-				return type;
-			}
-		}
-
-		return nullptr;
-	}
-
-	static BindLocation find_global_ubo_location(slang::ShaderReflection* reflection)
-	{
-		auto count = reflection->getParameterCount();
-		for (uint_t i = 0; i < count; i++)
-		{
-			auto parameter = reflection->getParameterByIndex(i);
-
-			if (parameter == nullptr)
-				continue;
-
-			auto type = parameter->getType();
-			if (type->getKind() != slang::TypeReflection::Kind::ConstantBuffer)
-				continue;
-
-			StringView struct_name = Strings::make_string_view(type->getElementType()->getName());
-			StringView var_name    = Strings::make_string_view(parameter->getName());
-
-			if (var_name == "globals" && struct_name == "GlobalParameters")
-			{
-				return parameter->getBindingIndex();
-			}
-		}
-		return {};
-	}
-
-	static void parse_shader_parameter(ShaderReflection& out_reflection, slang::VariableLayoutReflection* param,
-									   size_t offset = 0)
-	{
-		auto kind = param->getTypeLayout()->getKind();
-
-		if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(
-					kind))
-		{
-			auto name = param->getName();
-			trinex_always_check(name, "Failed to get parameter name!");
-			MaterialParameterInfo info;
-			info.type = find_scalar_parameter_type(param);
-
-			if (info.type == nullptr)
-			{
-				error_log("ShaderCompiler", "Failed to get parameter type!");
-				out_reflection.clear();
-				return;
-			}
-
-			info.name   = name;
-			info.offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
-
-			if (auto layout = param->getTypeLayout())
-			{
-				info.size = layout->getSize();
-			}
-			else
-			{
-				error_log("ShaderCompiler", "Failed to get parameter layout info!");
-				out_reflection.clear();
-				return;
-			}
-
-			out_reflection.uniform_member_infos.push_back(info);
-		}
-		else if (is_in<slang::TypeReflection::Kind::Resource>(kind))
-		{
-			if (auto type_layout = param->getTypeLayout())
-			{
-				SlangResourceShape shape = type_layout->getResourceShape();
-
-				if (shape == SLANG_TEXTURE_2D)
-				{
-					auto binding_type = type_layout->getBindingRangeType(0);
-
-					MaterialParameterInfo object;
-					object.name             = param->getName();
-					object.location.binding = param->getOffset(SLANG_PARAMETER_CATEGORY_SHADER_RESOURCE);
-					object.type             = binding_type == slang::BindingType::CombinedTextureSampler
-													  ? MaterialParameters::Sampler2D::static_class_instance()
-													  : MaterialParameters::Texture2D::static_class_instance();
-					out_reflection.uniform_member_infos.push_back(object);
-				}
-			}
-		}
-		else if (is_in<slang::TypeReflection::Kind::Struct>(kind))
-		{
-			auto layout = param->getTypeLayout();
-			auto fields = layout->getFieldCount();
-
-			auto struct_offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
-
-			for (decltype(fields) i = 0; i < fields; i++)
-			{
-				auto var = layout->getFieldByIndex(i);
-				parse_shader_parameter(out_reflection, var, offset + struct_offset);
-			}
-		}
-	}
-
-	static void create_reflection(slang::ShaderReflection* reflection, ShaderReflection& out_reflection)
-	{
-		out_reflection.clear();
-
-		{
-			BindLocation location = find_global_ubo_location(reflection);
-			if (location.is_valid())
-			{
-				out_reflection.global_parameters_info.bind_index(location.binding);
-			}
-		}
-
-		if (reflection->getGlobalConstantBufferSize() > 0)
-		{
-			out_reflection.local_parameters_info.bind_index(reflection->getGlobalParamsVarLayout()->getBindingIndex());
-		}
-
-		// Parse vertex attributes
-		if (auto entry_point = reflection->findEntryPointByName("vs_main"))
-		{
-			uint32_t parameter_count = entry_point->getParameterCount();
-			for (uint32_t i = 0; i < parameter_count; i++)
-			{
-				if (!parse_vertex_semantic(entry_point->getParameterByIndex(i), out_reflection))
-				{
-					out_reflection.clear();
-					return;
-				}
-			}
-		}
-
-		// Parse parameters
-		int count = reflection->getParameterCount();
-
-		for (int i = 0; i < count; i++)
-		{
-			auto param = reflection->getParameterByIndex(i);
-			parse_shader_parameter(out_reflection, param, 0);
-		}
-	}
+	static PreInitializeController preinit(setup_detectors);
 
 
 	static void host_setup_request(SlangCompileRequest* request, const Vector<ShaderDefinition>& definitions)
@@ -511,10 +534,6 @@ namespace Engine::ShaderCompiler
 		request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
 		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 	}
-
-#define check_compile_errors()                                                                                                   \
-	if (log_handler.has_error)                                                                                                   \
-	return false
 
 	static void submit_compiled_source(Buffer& out_buffer, const void* _data, size_t size)
 	{
@@ -704,7 +723,10 @@ namespace Engine::ShaderCompiler
 				return {};
 			}
 
-			create_reflection(reflection, out_source.reflection);
+			ReflectionParser parser;
+			if (!parser.create_reflection(reflection))
+				return false;
+			out_source.reflection = parser.out;
 			check_compile_errors();
 		}
 

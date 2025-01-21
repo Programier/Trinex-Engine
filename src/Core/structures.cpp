@@ -41,8 +41,7 @@ namespace Engine
 		return ar;
 	}
 
-	MaterialParameterInfo::MaterialParameterInfo()
-	    : type(nullptr), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
+	MaterialParameterInfo::MaterialParameterInfo() : type(nullptr), name(""), size(0), offset(0), location(BindLocation())
 	{}
 
 	implement_struct(Engine::ShaderDefinition, 0)

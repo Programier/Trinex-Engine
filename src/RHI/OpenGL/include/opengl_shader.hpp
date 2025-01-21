@@ -50,7 +50,6 @@ namespace Engine
 
 	struct OpenGL_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
 		Vector<TaskInterface*> m_apply_state;
-		MaterialScalarParametersInfo m_global_parameters;
 		MaterialScalarParametersInfo m_local_parameters;
 
 		GLuint m_pipeline = 0;

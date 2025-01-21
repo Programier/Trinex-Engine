@@ -24,13 +24,10 @@ namespace Engine
 
 			Vector<VertexAttribute> attributes;
 			Vector<MaterialParameterInfo> uniform_member_infos;
-
-			MaterialScalarParametersInfo global_parameters_info;
 			MaterialScalarParametersInfo local_parameters_info;
 
 			FORCE_INLINE ShaderReflection& clear()
 			{
-				global_parameters_info.remove_parameters();
 				local_parameters_info.remove_parameters();
 				uniform_member_infos.clear();
 				attributes.clear();

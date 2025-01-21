@@ -79,7 +79,6 @@ namespace Engine
 		} ALIGNED(4) color_blending;
 
 		TreeMap<Name, MaterialParameterInfo> parameters;
-		MaterialScalarParametersInfo global_parameters;
 		MaterialScalarParametersInfo local_parameters;
 
 	private:
