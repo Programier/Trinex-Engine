@@ -44,7 +44,7 @@ namespace Engine
 		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 
-		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
+		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 		NoneApi& push_debug_stage(const char* stage, const Color& color = {}) override;
 		NoneApi& pop_debug_stage() override;
 	};

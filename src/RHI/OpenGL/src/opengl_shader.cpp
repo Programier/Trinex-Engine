@@ -431,8 +431,7 @@ namespace Engine
 
 	void OpenGL_Pipeline::init(const Pipeline* pipeline)
 	{
-		m_topology         = convert_topology(pipeline->input_assembly.primitive_topology);
-		m_local_parameters = pipeline->local_parameters;
+		m_topology = convert_topology(pipeline->input_assembly.primitive_topology);
 
 		glGenVertexArrays(1, &m_vao);
 		glGenProgramPipelines(1, &m_pipeline);

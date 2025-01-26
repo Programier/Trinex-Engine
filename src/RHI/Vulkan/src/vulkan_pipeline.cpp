@@ -174,12 +174,6 @@ namespace Engine
 			++(descriptor_set_layout.*counter);
 		};
 
-		if (pipeline->local_parameters.has_parameters())
-		{
-			push_layout_binding(pipeline->local_parameters.bind_index(), vk::DescriptorType::eUniformBuffer,
-			                    &VulkanDescriptorSetLayout::uniform_buffers);
-		}
-
 		for (auto& [name, param] : pipeline->parameters)
 		{
 			namespace MP = MaterialParameters;
@@ -197,7 +191,7 @@ namespace Engine
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eSampler, &VulkanDescriptorSetLayout::samplers);
 			}
-			else if (param.type->is_a<MP::Globals>())
+			else if (param.type->is_a<MP::Globals>() || param.type->is_a<MP::PrimitiveBase>())
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eUniformBuffer,
 									&VulkanDescriptorSetLayout::uniform_buffers);
@@ -394,11 +388,6 @@ namespace Engine
 	VulkanDescriptorSet* VulkanPipeline::current_descriptor_set()
 	{
 		return m_descriptor_set_layout->has_layouts() ? m_descriptor_set : nullptr;
-	}
-
-	const MaterialScalarParametersInfo& VulkanPipeline::local_parameters_info() const
-	{
-		return m_engine_pipeline->local_parameters;
 	}
 
 	static FORCE_INLINE void check_pipeline(const Pipeline* pipeline)

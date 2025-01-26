@@ -257,18 +257,23 @@ namespace Engine
 		m_buffer.update(offset, data, size);
 	}
 
-	VulkanUniformBuffer& VulkanUniformBuffer::create(const byte* data, size_t size)
+	VulkanUniformBuffer& VulkanUniformBuffer::create(const byte* data, size_t size, VmaMemoryUsage usage)
 	{
-		m_buffer.create(size, data, vk::BufferUsageFlagBits::eUniformBuffer);
+		m_buffer.create(size, data, vk::BufferUsageFlagBits::eUniformBuffer, usage);
 		return *this;
 	}
 
 	void VulkanUniformBuffer::bind(BindingIndex location)
 	{
+		bind(location, 0, m_buffer.m_size);
+	}
+
+	void VulkanUniformBuffer::bind(BindingIndex location, size_t offset, size_t size)
+	{
 		auto pipeline = API->m_state.m_pipeline;
 		if (pipeline)
 		{
-			pipeline->bind_uniform_buffer(vk::DescriptorBufferInfo(m_buffer.m_buffer, 0, m_buffer.m_size), location,
+			pipeline->bind_uniform_buffer(vk::DescriptorBufferInfo(m_buffer.m_buffer, offset, size), location,
 										  vk::DescriptorType::eUniformBuffer);
 			API->current_command_buffer()->add_object(this);
 		}

@@ -2,7 +2,6 @@
 
 #include <d3d11.h>
 #include <d3d11_definitions.hpp>
-#include <d3d11_uniform_buffer.hpp>
 #include <none_api.hpp>
 
 namespace Engine
@@ -55,15 +54,14 @@ namespace Engine
 #if D3D11_WITH_DEBUG
 		ID3D11Debug* m_debug = nullptr;
 #endif
-
-		D3D_FEATURE_LEVEL m_feature_level = D3D_FEATURE_LEVEL_11_0;
-		D3D11_LocalUniforms m_local_unifor_buffer;
+		D3D_FEATURE_LEVEL m_feature_level                         = D3D_FEATURE_LEVEL_11_0;
+		class D3D11_UniformBufferManager* m_unifor_buffer_manager = nullptr;
 
 		D3D11();
 
 		ID3D11RenderTargetView* create_render_target_view(ID3D11Texture2D* buffer, DXGI_FORMAT format);
 		ID3D11DepthStencilView* create_depth_stencil_view(ID3D11Texture2D* buffer, DXGI_FORMAT format);
-		D3D11& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
+		D3D11& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		D3D11& initialize(Window* window) override;
 		void* context() override;

@@ -144,7 +144,7 @@ namespace Engine
 		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;
 		virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)                  = 0;
 		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;
-		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset)                                   = 0;
+		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)        = 0;
 
 		virtual RHI& push_debug_stage(const char* stage, const Color& color = {}) = 0;
 		virtual RHI& pop_debug_stage()                                            = 0;

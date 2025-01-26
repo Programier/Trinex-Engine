@@ -5,9 +5,12 @@
 #include <Core/string_functions.hpp>
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include <codecvt>
 #include <d3d11_api.hpp>
+#include <d3d11_uniform_buffer.hpp>
 #include <d3d11_viewport.hpp>
 #include <d3d9.h>
+#include <locale>
 #include <tchar.h>
 #include <wrl/client.h>
 
@@ -88,9 +91,19 @@ namespace Engine
 								   &m_device, &m_feature_level, &m_context);
 		trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
 
+		DXGI_ADAPTER_DESC adapter_desc;
+
+		if (m_dxgi_adapter->GetDesc(&adapter_desc) != DXGI_ERROR_NOT_FOUND)
+		{
+			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+			info.renderer = converter.to_bytes(adapter_desc.Description);
+		}
+
 #if D3D11_WITH_DEBUG
 		m_device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&m_debug));
 #endif
+
+		m_unifor_buffer_manager = new D3D11_UniformBufferManager();
 		return *this;
 	}
 
@@ -201,7 +214,7 @@ namespace Engine
 
 	D3D11& D3D11::prepare_draw()
 	{
-		m_local_unifor_buffer.bind();
+		m_unifor_buffer_manager->bind();
 		return *this;
 	}
 
@@ -255,7 +268,8 @@ namespace Engine
 
 	D3D11::~D3D11()
 	{
-		m_local_unifor_buffer.release();
+		delete m_unifor_buffer_manager;
+		m_unifor_buffer_manager = nullptr;
 
 		m_context->ClearState();
 		m_context->Flush();
@@ -282,7 +296,8 @@ namespace Engine
 		d3d11_release(m_device);
 
 #if D3D11_WITH_DEBUG
-		m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		if (m_debug)
+			m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 		d3d11_release(m_debug);
 #endif
 	}

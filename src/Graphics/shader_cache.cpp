@@ -100,8 +100,6 @@ namespace Engine
 		copy_buffer(geometry, pipeline->geometry_shader());
 		copy_buffer(fragment, pipeline->fragment_shader());
 		copy_buffer(compute, nullptr);
-
-		local_parameters = pipeline->local_parameters;
 	}
 
 	void ShaderCache::apply_to(class Pipeline* pipeline)
@@ -114,7 +112,5 @@ namespace Engine
 		apply_buffer(geometry, pipeline->geometry_shader());
 		apply_buffer(fragment, pipeline->fragment_shader());
 		apply_buffer(compute, nullptr);
-
-		pipeline->local_parameters = local_parameters;
 	}
 }// namespace Engine

@@ -43,8 +43,6 @@ namespace Engine
 
 		bool create(const Pipeline* pipeline);
 		VulkanDescriptorSet* current_descriptor_set();
-		const MaterialScalarParametersInfo& local_parameters_info() const;
-
 		void bind() override;
 
 		VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);

@@ -102,13 +102,7 @@ namespace Engine
 
 	OpenGL& OpenGL::prepare_render()
 	{
-		if (OPENGL_API->m_state.pipeline)
-		{
-			if (OPENGL_API->m_state.pipeline->m_local_parameters.has_parameters())
-			{
-				m_local_ubo->bind(OPENGL_API->m_state.pipeline->m_local_parameters.bind_index());
-			}
-		}
+		m_local_ubo->bind();
 		return *this;
 	}
 

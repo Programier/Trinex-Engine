@@ -2,69 +2,106 @@
 #include <Core/logger.hpp>
 #include <Graphics/pipeline.hpp>
 #include <d3d11_api.hpp>
+#include <d3d11_buffer.hpp>
 #include <d3d11_pipeline.hpp>
 #include <d3d11_uniform_buffer.hpp>
 
 namespace Engine
 {
-	D3D11_LocalUniforms& D3D11_LocalUniforms::create(size_t size)
+	class D3D11_LocalUniformBuffer
 	{
-		if (size > m_current_size)
+		D3D11_UniformBuffer m_uniform_buffer;
+		Vector<byte> m_shadow_data;
+		size_t m_buffer_size = 0;
+		size_t m_shadow_size = 0;
+
+	public:
+		void create()
 		{
-			release();
-			m_uniform_buffer.init(size, nullptr, RHIBufferType::Dynamic);
-			m_current_size = size;
-		}
-		return *this;
-	}
-
-	D3D11_LocalUniforms& D3D11_LocalUniforms::release()
-	{
-		d3d11_release(m_uniform_buffer.m_buffer);
-		return *this;
-	}
-
-	D3D11_LocalUniforms& D3D11_LocalUniforms::update(const void* data, size_t size, size_t offset)
-	{
-		size_t max_size = offset + size;
-		if (m_shadow_data.size() < max_size)
-		{
-			m_shadow_data.resize(max_size);
-		}
-
-		std::memcpy(m_shadow_data.data() + offset, data, size);
-		return *this;
-	}
-
-	D3D11_LocalUniforms& D3D11_LocalUniforms::bind()
-	{
-		if (!m_shadow_data.empty())
-		{
-			if (D3D11_Pipeline* pipeline = DXAPI->m_state.pipeline)
+			if (m_shadow_size > m_buffer_size)
 			{
-				auto locals = pipeline->m_engine_pipeline->local_parameters;
-				if (locals.has_parameters())
-				{
-					size_t shadow_data_size = m_shadow_data.size();
+				release();
+				m_buffer_size = glm::max(m_shadow_size, static_cast<size_t>(1024));
+				m_uniform_buffer.init(m_buffer_size, nullptr, RHIBufferType::Dynamic);
+			}
+		}
 
-					if (m_current_size < shadow_data_size)
-					{
-						create(shadow_data_size);
-					}
+		void update(const void* data, size_t size, size_t offset)
+		{
+			size_t max_size = offset + size;
 
-					m_uniform_buffer.update(0, shadow_data_size, m_shadow_data.data());
-					m_uniform_buffer.bind(locals.bind_index());
-				}
+			if (m_shadow_data.size() < max_size)
+			{
+				m_shadow_data.resize(max_size);
 			}
 
-			m_shadow_data.clear();
+			m_shadow_size = glm::max(m_shadow_size, max_size);
+			std::memcpy(m_shadow_data.data() + offset, data, size);
 		}
+
+		void bind(BindingIndex index)
+		{
+			if (m_shadow_size > 0)
+			{
+				if (m_buffer_size < m_shadow_size)
+				{
+					create();
+				}
+
+				m_uniform_buffer.update(0, m_shadow_size, m_shadow_data.data());
+				m_uniform_buffer.bind(index);
+
+				m_shadow_size = 0;
+			}
+		}
+
+		void release()
+		{
+			d3d11_release(m_uniform_buffer.m_buffer);
+			m_buffer_size = 0;
+		}
+	};
+
+	D3D11_UniformBufferManager& D3D11_UniformBufferManager::update(const void* data, size_t size, size_t offset,
+																   BindingIndex buffer_index)
+	{
+		if (m_buffers.size() <= static_cast<size_t>(buffer_index))
+			m_buffers.resize(static_cast<size_t>(buffer_index) + 1, nullptr);
+
+		D3D11_LocalUniformBuffer*& buffer = m_buffers[buffer_index];
+
+		if (buffer == nullptr)
+			buffer = new D3D11_LocalUniformBuffer();
+		buffer->update(data, size, offset);
 		return *this;
 	}
 
-	D3D11& D3D11::update_scalar_parameter(const void* data, size_t size, size_t offset)
+	D3D11_UniformBufferManager& D3D11_UniformBufferManager::bind()
 	{
-		m_local_unifor_buffer.update(data, size, offset);
+		BindingIndex index = 0;
+
+		for (auto* buffer : m_buffers)
+		{
+			if (buffer)
+				buffer->bind(index);
+			++index;
+		}
+
+		return *this;
+	}
+
+	D3D11_UniformBufferManager::~D3D11_UniformBufferManager()
+	{
+		for (auto* buffer : m_buffers)
+		{
+			if (buffer)
+				delete buffer;
+		}
+	}
+
+	D3D11& D3D11::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
+	{
+		m_unifor_buffer_manager->update(data, size, offset, buffer_index);
 		return *this;
 	}
 }// namespace Engine

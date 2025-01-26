@@ -236,7 +236,7 @@ namespace Engine
 		return new NoneViewport();
 	}
 
-	NoneApi& NoneApi::update_scalar_parameter(const void* data, size_t size, size_t offset)
+	NoneApi& NoneApi::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
 		return *this;
 	}

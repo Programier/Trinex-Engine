@@ -29,6 +29,8 @@ struct GlobalParameters
     float far_clip_plane;
     float aspect_ratio;
     int camera_projection_mode;
+
+    float2 padding;
 };
 
 struct GBufferFragmentOutput

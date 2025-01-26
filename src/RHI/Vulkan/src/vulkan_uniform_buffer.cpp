@@ -1,98 +1,149 @@
+#include <Core/memory.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_buffer.hpp>
 #include <vulkan_pipeline.hpp>
-#include <vulkan_state.hpp>
 #include <vulkan_uniform_buffer.hpp>
 
 namespace Engine
 {
-	UniformBufferPoolBase& UniformBufferPoolBase::allocate_new(size_t size)
-	{
-		VulkanBuffer* buffer = new VulkanBuffer();
-		buffer->create(size, nullptr, vk::BufferUsageFlagBits::eUniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU);
-		buffers.push_back(buffer);
-		return *this;
-	}
+	static constexpr size_t default_uniform_buffer_size = 4096;
 
-	UniformBufferPoolBase::~UniformBufferPoolBase()
+	class VulkanDynamicUniformBuffer
 	{
-		for (VulkanBuffer* buffer : buffers)
+	private:
+		Vector<VulkanUniformBuffer*> m_buffers;
+		Vector<byte> m_shadow_data;
+
+		size_t m_shadow_data_size = 0;
+		size_t m_index            = 0;
+		size_t m_used_data        = 0;
+
+		void allocate(size_t size)
 		{
-			buffer->release();
+			VulkanUniformBuffer* buffer = new VulkanUniformBuffer();
+
+			if (size < default_uniform_buffer_size)
+				size = default_uniform_buffer_size;
+
+			buffer->create(nullptr, size, VMA_MEMORY_USAGE_CPU_TO_GPU);
+			m_buffers.push_back(buffer);
 		}
 
-		buffers.clear();
-	}
-
-	LocalUniformBufferPool::LocalUniformBufferPool()
-	{
-		allocate_new();
-	}
-
-	void LocalUniformBufferPool::bind()
-	{
-		if (shadow_data_size == 0)
-			return;
-
-		VulkanPipeline* pipeline = API->m_state.m_pipeline;
-
-		if (pipeline && pipeline->local_parameters_info().has_parameters())
+	public:
+		VulkanDynamicUniformBuffer()
 		{
-			if (buffers[index]->m_size < used_data + shadow_data_size)
+			allocate(default_uniform_buffer_size);
+		}
+
+		void update(const void* data, size_t size, size_t offset)
+		{
+			m_shadow_data_size = glm::max(size + offset, m_shadow_data_size);
+
+			if (m_shadow_data.size() < m_shadow_data_size)
+			{
+				m_shadow_data.resize(m_shadow_data_size);
+			}
+
+			std::memcpy(m_shadow_data.data() + offset, data, size);
+		}
+
+		void bind(BindingIndex index)
+		{
+			if (m_shadow_data_size == 0)
+				return;
+
+			while (m_buffers[index]->m_buffer.m_size < m_used_data + m_shadow_data_size)
 			{
 				++index;
-				used_data = 0;
+				m_used_data = 0;
 
-				if (buffers.size() <= index)
+				if (m_buffers.size() <= index)
 				{
-					allocate_new(shadow_data_size);
+					allocate(m_shadow_data_size);
 				}
 			}
 
-			auto& current_buffer = buffers[index];
-			current_buffer->copy(used_data, shadow_data.data(), shadow_data_size);
+			auto& current_buffer = m_buffers[index];
+			current_buffer->m_buffer.copy(m_used_data, m_shadow_data.data(), m_shadow_data_size);
 
-			BindLocation local_params_location = pipeline->local_parameters_info().bind_index();
-			API->m_state.m_pipeline->bind_uniform_buffer(
-			        vk::DescriptorBufferInfo(current_buffer->m_buffer, used_data, shadow_data_size), local_params_location,
-			        vk::DescriptorType::eUniformBuffer);
-			used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
+			current_buffer->bind(index, m_used_data, m_shadow_data_size);
+			m_used_data =
+					align_memory(m_used_data + m_shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
+
+			m_shadow_data_size = 0;
 		}
 
-		shadow_data_size = 0;
-	}
-
-	void LocalUniformBufferPool::update(const void* data, size_t size, size_t offset)
-	{
-		shadow_data_size = glm::max(size + offset, shadow_data_size);
-
-		if (shadow_data.size() < shadow_data_size)
+		void reset()
 		{
-			shadow_data.resize(shadow_data_size);
+			m_shadow_data_size = 0;
+			m_index            = 0;
+			m_used_data        = 0;
 		}
 
-		std::memcpy(shadow_data.data() + offset, data, size);
-	}
-
-	void LocalUniformBufferPool::reset()
-	{
-		shadow_data_size = 0;
-		index            = 0;
-		used_data        = 0;
-	}
+		~VulkanDynamicUniformBuffer()
+		{
+			for (VulkanUniformBuffer* buffer : m_buffers)
+			{
+				buffer->release();
+			}
+		}
+	};
 
 	void VulkanUniformBufferManager::reset()
 	{
-		local_pool.reset();
+		for (VulkanDynamicUniformBuffer* buffer : m_buffers)
+		{
+			if (buffer)
+			{
+				buffer->reset();
+			}
+		}
+	}
+
+	void VulkanUniformBufferManager::update(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
+	{
+		if (static_cast<size_t>(buffer_index) >= m_buffers.size())
+		{
+			m_buffers.resize(static_cast<size_t>(buffer_index) + 1, nullptr);
+		}
+
+		VulkanDynamicUniformBuffer*& buffer = m_buffers[buffer_index];
+
+		if (!buffer)
+		{
+			buffer = new VulkanDynamicUniformBuffer();
+		}
+
+		buffer->update(data, size, offset);
 	}
 
 	void VulkanUniformBufferManager::bind()
 	{
-		local_pool.bind();
+		BindingIndex index = 0;
+		for (VulkanDynamicUniformBuffer* buffer : m_buffers)
+		{
+			if (buffer)
+			{
+				buffer->bind(index);
+				++index;
+			}
+		}
 	}
 
-	VulkanAPI& VulkanAPI::update_scalar_parameter(const void* data, size_t size, size_t offset)
+	VulkanUniformBufferManager::~VulkanUniformBufferManager()
 	{
-		API->uniform_buffer_manager()->local_pool.update(data, size, offset);
+		for (VulkanDynamicUniformBuffer* buffer : m_buffers)
+		{
+			if (buffer)
+			{
+				delete buffer;
+			}
+		}
+	}
+
+	VulkanAPI& VulkanAPI::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
+	{
+		API->uniform_buffer_manager()->update(data, size, offset, buffer_index);
 		return *this;
 	}
 }// namespace Engine

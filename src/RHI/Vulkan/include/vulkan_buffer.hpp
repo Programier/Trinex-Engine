@@ -75,9 +75,10 @@ namespace Engine
 	struct VulkanUniformBuffer : public RHI_DefaultDestroyable<RHI_UniformBuffer> {
 		VulkanBuffer m_buffer;
 
-		VulkanUniformBuffer& create(const byte* data, size_t size);
+		VulkanUniformBuffer& create(const byte* data, size_t size, VmaMemoryUsage usage = VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 		void bind(BindingIndex location) override;
+		void bind(BindingIndex location, size_t offset, size_t size);
 		void update(size_t offset, size_t size, const byte* data) override;
 	};
 

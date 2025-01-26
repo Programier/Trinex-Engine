@@ -18,7 +18,7 @@ namespace Engine
 {
 	struct VulkanTexture;
 	struct VulkanViewport;
-	struct VulkanUniformBufferManager;
+	class VulkanUniformBufferManager;
 	class Window;
 
 	struct VulkanExtention {
@@ -128,7 +128,7 @@ namespace Engine
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
-		VulkanAPI& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
+		VulkanAPI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		VulkanAPI& push_debug_stage(const char* stage, const Color& color) override;
 		VulkanAPI& pop_debug_stage() override;

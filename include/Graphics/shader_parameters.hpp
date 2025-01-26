@@ -34,6 +34,8 @@ namespace Engine
 		alignas(4) float aspect_ratio;
 		alignas(4) int camera_projection_mode;
 
+		alignas(8) Vector2D padding;
+
 		GlobalShaderParameters& update(const class SceneView* scene_view, Size2D render_target_size = {-1.f, -1.f});
 	};
 }// namespace Engine

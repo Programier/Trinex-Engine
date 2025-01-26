@@ -68,7 +68,7 @@ namespace Engine
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
-		OpenGL& update_scalar_parameter(const void* data, size_t size, size_t offset) override;
+		OpenGL& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		OpenGL& push_debug_stage(const char* stage, const Color& color = {}) override;
 		OpenGL& pop_debug_stage() override;

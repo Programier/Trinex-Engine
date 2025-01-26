@@ -75,7 +75,6 @@ namespace Engine
 		{
 			if (m_shadow_data_size == 0)
 			{
-				glBindBufferBase(GL_UNIFORM_BUFFER, binding_index, 0);
 				return;
 			}
 
@@ -132,48 +131,94 @@ namespace Engine
 		}
 	};
 
-	template<typename BufferType>
-	BufferType* find_buffer_internal(Vector<BufferType*>& buffers, int_t& index)
-	{
-		if (index != -1)
-			return buffers[index];
+	struct OpenGL_LocalUniformBufferPool {
+	private:
+		Vector<struct OpenGL_LocalUniformBuffer*> m_buffers;
+		int_t m_index = -1;
 
-		for (auto buffer : buffers)
+		OpenGL_LocalUniformBuffer* buffer()
 		{
-			++index;
+			if (m_index != -1)
+				return m_buffers[m_index];
 
-			if (!buffer->is_busy())
+			for (auto buffer : m_buffers)
 			{
-				return buffer;
+				++m_index;
+
+				if (!buffer->is_busy())
+				{
+					return buffer;
+				}
+			}
+
+			++m_index;
+			m_buffers.push_back(new OpenGL_LocalUniformBuffer());
+			return m_buffers.back();
+		}
+
+	public:
+		void bind(BindingIndex index)
+		{
+			if (m_index != -1)
+			{
+				buffer()->bind(index);
 			}
 		}
 
-		++index;
-		buffers.push_back(new BufferType());
-		return buffers.back();
+		void update(const void* data, size_t size, size_t offset)
+		{
+			buffer()->update(data, size, offset);
+		}
+
+		void submit()
+		{
+			if (m_index != -1)
+			{
+				buffer()->submit();
+				m_index = -1;
+			}
+		}
+
+		~OpenGL_LocalUniformBufferPool()
+		{
+			for (auto buffer : m_buffers)
+			{
+				delete buffer;
+			}
+		}
+	};
+
+
+	void OpenGL_LocalUniformBufferManager::bind()
+	{
+		BindingIndex index = 0;
+
+		for (auto buffer : m_buffers)
+		{
+			if (buffer)
+				buffer->bind(index);
+			++index;
+		}
 	}
 
-	OpenGL_LocalUniformBuffer* OpenGL_LocalUniformBufferManager::buffer()
+	void OpenGL_LocalUniformBufferManager::update(const void* data, size_t size, size_t offset, BindingIndex index)
 	{
-		return find_buffer_internal(m_buffers, m_index);
-	}
+		if (m_buffers.size() <= static_cast<size_t>(index))
+			m_buffers.resize(static_cast<size_t>(index) + 1, nullptr);
 
-	void OpenGL_LocalUniformBufferManager::bind(BindingIndex index)
-	{
-		buffer()->bind(index);
-	}
+		OpenGL_LocalUniformBufferPool*& pool = m_buffers[index];
 
-	void OpenGL_LocalUniformBufferManager::update(const void* data, size_t size, size_t offset)
-	{
-		buffer()->update(data, size, offset);
+		if (pool == nullptr)
+			pool = new OpenGL_LocalUniformBufferPool();
+		pool->update(data, size, offset);
 	}
 
 	void OpenGL_LocalUniformBufferManager::submit()
 	{
-		if (m_index != -1)
+		for (auto buffer : m_buffers)
 		{
-			buffer()->submit();
-			m_index = -1;
+			if (buffer)
+				buffer->submit();
 		}
 	}
 
@@ -181,13 +226,14 @@ namespace Engine
 	{
 		for (auto buffer : m_buffers)
 		{
-			delete buffer;
+			if (buffer)
+				delete buffer;
 		}
 	}
 
-	OpenGL& OpenGL::update_scalar_parameter(const void* data, size_t size, size_t offset)
+	OpenGL& OpenGL::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
-		m_local_ubo->update(data, size, offset);
+		m_local_ubo->update(data, size, offset, buffer_index);
 		return *this;
 	}
 

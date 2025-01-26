@@ -48,14 +48,11 @@ namespace Engine
 
 	struct OpenGL_LocalUniformBufferManager {
 	private:
-		Vector<struct OpenGL_LocalUniformBuffer*> m_buffers;
-		int_t m_index = -1;
-
-		struct OpenGL_LocalUniformBuffer* buffer();
+		Vector<struct OpenGL_LocalUniformBufferPool*> m_buffers;
 
 	public:
-		void bind(BindingIndex index);
-		void update(const void* data, size_t size, size_t offset);
+		void bind();
+		void update(const void* data, size_t size, size_t offset, BindingIndex index);
 		void submit();
 		~OpenGL_LocalUniformBufferManager();
 	};

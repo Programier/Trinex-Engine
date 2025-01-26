@@ -374,7 +374,6 @@ namespace Engine
 
 			remove_all_shaders();
 			parameters.clear();
-			local_parameters.remove_parameters();
 		}
 		else
 		{
@@ -481,8 +480,7 @@ namespace Engine
 				parameters[parameter.name] = parameter;
 			}
 
-			local_parameters = source.reflection.local_parameters_info;
-			status           = true;
+			status = true;
 		}
 
 		return status;

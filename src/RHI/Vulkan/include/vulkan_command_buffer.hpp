@@ -23,7 +23,7 @@ namespace Engine
 		std::vector<vk::Semaphore> m_wait_semaphores;
 		std::vector<vk::PipelineStageFlags> m_wait_flags;
 		VulkanDescriptorSetManager* m_descriptor_set_manager = nullptr;
-		struct VulkanUniformBufferManager* m_uniform_buffer  = nullptr;
+		class VulkanUniformBufferManager* m_uniform_buffer   = nullptr;
 
 		State m_state = State::IsReadyForBegin;
 
