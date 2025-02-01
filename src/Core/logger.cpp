@@ -1,5 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/logger.hpp>
 #include <cstdarg>
 #include <cstdio>
@@ -151,7 +152,7 @@ namespace Engine
 	class BasicLogger : public Logger
 	{
 	private:
-		std::mutex m_mutex;
+		CriticalSection m_critical_section;
 
 		template<typename T, typename... Args>
 		bool or_operator(T first, Args... args)
@@ -161,14 +162,21 @@ namespace Engine
 
 		BasicLogger& write_message(PrioType prio_type, const char* tag, const char* msg, FILE* out, ConsoleColor color)
 		{
-			m_mutex.lock();
+
 #if PLATFORM_ANDROID
+			m_critical_section.lock();
+
 			sprintf(buffer, "Trinex Engine [%s]", tag);
 			__android_log_vprint(prio_type, buffer, format, args);
+
+			m_critical_section.unlock();
 #else
+
 			char buffer[64];
 			std::time_t now = std::time(nullptr);
 			std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+			m_critical_section.lock();
 
 			set_output_color(color, out);
 			fprintf(out, "[%8s][%s][%s]: ", prio_type, buffer, tag);
@@ -178,12 +186,14 @@ namespace Engine
 
 			auto len = std::strlen(msg);
 			while (len > 0 && or_operator(msg[len - 1], '\0', ' ', '\t', '\r')) --len;
-			if (len > 0 && msg[len - 1] != '\n')
+			if (len == 0 || msg[len - 1] != '\n')
 			{
 				fprintf(out, "\n");
 			}
+
+			m_critical_section.unlock();
 #endif
-			m_mutex.unlock();
+
 			return *this;
 		}
 
