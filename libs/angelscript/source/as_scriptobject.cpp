@@ -91,14 +91,16 @@ asIScriptEngine* asIScriptObject::GetEngine() const
 unsigned int asIScriptObject::GetScriptDataOffset(asITypeInfo* ot) const
 {
 	if (!ot)
-		ot = GetObjectType()->GetNativeBaseType();
+		ot = GetObjectType();
+	ot = ot->GetNativeBaseType();
 	return ot ? ot->GetSize() : sizeof(asCScriptObjectData);
 }
 
 unsigned int asIScriptObject::GetNativeObjectSize(asITypeInfo* ot) const
 {
-	if(!ot)
-		ot = GetObjectType()->GetNativeBaseType();
+	if (!ot)
+		ot = GetObjectType();
+	ot = ot->GetNativeBaseType();
 	return ot ? ot->GetSize() : 0;
 }
 
