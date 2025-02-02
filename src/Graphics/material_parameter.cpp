@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/structures.hpp>
@@ -10,6 +11,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <cstring>
 
 namespace Engine::MaterialParameters
 {
@@ -111,7 +113,19 @@ namespace Engine::MaterialParameters
 
 	Globals& Globals::apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass, MaterialParameterInfo* info)
 	{
-		render_pass->scene_renderer()->bind_global_parameters(info->location);
+		if (render_pass)
+		{
+			render_pass->scene_renderer()->bind_global_parameters(info->location);
+		}
+		else
+		{
+			warn_log("Material Parameter",
+					 "The Render Pass is not valid, so the data passed to the material will be filled with zeros");
+
+			GlobalShaderParameters params;
+			std::memset(&params, 0, sizeof(params));
+			rhi->update_scalar_parameter(&params, sizeof(params), 0, info->location);
+		}
 		return *this;
 	}
 

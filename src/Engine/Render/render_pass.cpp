@@ -382,18 +382,18 @@ namespace Engine
 
 		auto renderer = scene_renderer();
 
-		if ((renderer->scene_view().show_flags() & ShowFlags::LightOctree) != ShowFlags::None)
+		if ((renderer->scene_view().show_flags() & ShowFlags::PrimitiveOctree) != ShowFlags::None)
 		{
 			render_octree_bounding_box(renderer->scene->primitive_octree().root_node(), lines);
 		}
 
-		if ((renderer->scene_view().show_flags() & ShowFlags::PrimitiveOctree) != ShowFlags::None)
+		if ((renderer->scene_view().show_flags() & ShowFlags::LightOctree) != ShowFlags::None)
 		{
 			render_octree_bounding_box(renderer->scene->light_octree().root_node(), lines);
 		}
 
-		lines.render(renderer->scene_view());
-		triangles.render(renderer->scene_view());
+		lines.render(this);
+		triangles.render(this);
 		return *this;
 	}
 }// namespace Engine

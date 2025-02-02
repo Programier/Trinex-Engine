@@ -839,7 +839,7 @@ namespace Engine
 			return false;
 		}
 
-		auto non_supported_symbol = name.find_first_of("/\\:*?\"<>|., ");
+		auto non_supported_symbol = name.find_first_of("/\\:*?\"<>|, ");
 		if (non_supported_symbol != StringView::npos)
 		{
 			create_msg(Strings::format("The object name cannot contain the character '{}'", name[non_supported_symbol]).c_str());

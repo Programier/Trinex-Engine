@@ -45,7 +45,8 @@ namespace Engine
 
 	implement_empty_rendering_methods_for(DirectionalLightComponent);
 
-#define get_param(param_name, type) reinterpret_cast<MaterialParameters::type*>(material->find_parameter(Name::param_name));
+#define get_param(param_name, type)                                                                                              \
+	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));
 	ColorSceneRenderer& ColorSceneRenderer::render_component(DirectionalLightComponent* component)
 	{
 		render_base_component(component);

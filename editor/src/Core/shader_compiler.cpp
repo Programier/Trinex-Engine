@@ -97,52 +97,60 @@ namespace Engine::ShaderCompiler
 	{
 	private:
 		struct VarTraceEntry {
+			String name;
 			slang::VariableLayoutReflection* var = nullptr;
 			const VarTraceEntry* const prev      = nullptr;
+			slang::TypeReflection::Kind kind;
 
 			VarTraceEntry(slang::VariableLayoutReflection* const var, const VarTraceEntry* const prev = nullptr)
-				: var(var), prev(prev)
-			{}
+				: var(var), prev(prev), kind(var->getTypeLayout()->getKind())
+			{
+				name = Strings::make_string(var->getName());
+
+				if (prev && !prev->name.empty())
+				{
+					name = Strings::format("{}.{}", prev->name, name);
+				}
+			}
 
 			size_t trace_offset(SlangParameterCategory category) const
 			{
 				const VarTraceEntry* current = this;
 				size_t result                = 0;
 
-				while (current)
+				if (var->getCategory() == slang::ParameterCategory::Uniform)
 				{
-					auto variable = current->var;
-
-					for (unsigned int i = 0, count = variable->getCategoryCount(); i < count; ++i)
+					while (current)
 					{
-						if (variable->getCategoryByIndex(i) == static_cast<slang::ParameterCategory>(category))
+						result += current->var->getOffset(category);
+
+						if (current->kind == slang::TypeReflection::Kind::ConstantBuffer)
 						{
-							result += current->var->getOffset(category);
 							break;
 						}
+						current = current->prev;
 					}
-
-					current = current->prev;
+				}
+				else
+				{
+					while (current)
+					{
+						result += current->var->getOffset(category);
+						current = current->prev;
+					}
 				}
 
 				return result;
 			}
 
-			const VarTraceEntry* firts_node() const
-			{
-				const VarTraceEntry* node = this;
-				while (node->prev) node = node->prev;
-				return node;
-			}
-
-			BindingIndex binding_index() const
-			{
-				return firts_node()->var->getBindingIndex();
-			}
-
 			size_t trace_offset(slang::ParameterCategory category) const
 			{
 				return trace_offset(static_cast<SlangParameterCategory>(category));
+			}
+
+			slang::ParameterCategory category() const
+			{
+				return var->getCategory();
 			}
 		};
 
@@ -335,7 +343,8 @@ namespace Engine::ShaderCompiler
 		static bool is_global_parameters(slang::TypeLayoutReflection* type)
 		{
 			return_if_false(type->getKind() == slang::TypeReflection::Kind::Struct) false;
-			return_if_false(std::strcmp(type->getName(), "GlobalParameters") == 0) false;
+			const char* name = type->getName();
+			return_if_false(name != nullptr && std::strcmp(name, "GlobalParameters") == 0) false;
 			return_if_false(sizeof(GlobalShaderParameters) == type->getSize(SLANG_PARAMETER_CATEGORY_UNIFORM)) false;
 			return true;
 		}
@@ -361,13 +370,9 @@ namespace Engine::ShaderCompiler
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
 		{
-			auto kind = param.var->getTypeLayout()->getKind();
-
 			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
-					  slang::TypeReflection::Kind::Matrix>(kind))
+					  slang::TypeReflection::Kind::Matrix>(param.kind))
 			{
-				auto name = param.var->getName();
-				trinex_always_check(name, "Failed to get parameter name!");
 				MaterialParameterInfo info;
 				info.type = find_scalar_parameter_type(param.var);
 
@@ -387,12 +392,12 @@ namespace Engine::ShaderCompiler
 					return false;
 				}
 
-				info.name     = name;
-				info.offset   = param.trace_offset(SLANG_PARAMETER_CATEGORY_UNIFORM);
-				info.location = param.binding_index();
+				info.name     = param.name;
+				info.offset   = param.trace_offset(slang::ParameterCategory::Uniform);
+				info.location = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
 				out.uniform_member_infos.push_back(info);
 			}
-			else if (is_in<slang::TypeReflection::Kind::Resource>(kind))
+			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind))
 			{
 				if (auto type_layout = param.var->getTypeLayout())
 				{
@@ -403,8 +408,8 @@ namespace Engine::ShaderCompiler
 						auto binding_type = type_layout->getBindingRangeType(0);
 
 						MaterialParameterInfo object;
-						object.name     = param.var->getName();
-						object.location = param.binding_index();
+						object.name     = param.name;
+						object.location = param.trace_offset(param.category());
 						object.type     = binding_type == slang::BindingType::CombinedTextureSampler
 												  ? MaterialParameters::Sampler2D::static_class_instance()
 												  : MaterialParameters::Texture2D::static_class_instance();
@@ -412,7 +417,7 @@ namespace Engine::ShaderCompiler
 					}
 				}
 			}
-			else if (is_in<slang::TypeReflection::Kind::Struct>(kind))
+			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind))
 			{
 				auto layout = param.var->getTypeLayout();
 				auto fields = layout->getFieldCount();
@@ -423,15 +428,15 @@ namespace Engine::ShaderCompiler
 					return_if_false(parse_shader_parameter(var)) false;
 				}
 			}
-			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(kind))
+			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(param.kind))
 			{
 				auto layout = param.var->getTypeLayout()->getElementTypeLayout();
 
 				if (is_global_parameters(layout))
 				{
 					MaterialParameterInfo object;
-					object.name     = param.var->getName();
-					object.location = param.binding_index();
+					object.name     = param.name;
+					object.location = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
 					object.type     = MaterialParameters::Globals::static_class_instance();
 					object.size     = sizeof(GlobalShaderParameters);
 					object.offset   = 0;
@@ -454,6 +459,8 @@ namespace Engine::ShaderCompiler
 
 		bool create_reflection(slang::ShaderReflection* reflection)
 		{
+			CompileLogHandler log_handler;
+
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
 			{
@@ -465,15 +472,14 @@ namespace Engine::ShaderCompiler
 			}
 
 			// Parse parameters
-			int count = reflection->getParameterCount();
 
-			for (int i = 0; i < count; i++)
+			if (auto layout = reflection->getGlobalParamsVarLayout())
 			{
-				VarTraceEntry var(reflection->getParameterByIndex(i));
+				VarTraceEntry var(layout);
 				return_if_false(parse_shader_parameter(var)) false;
 			}
 
-			return true;
+			return log_handler.has_error == false;
 		}
 	};
 

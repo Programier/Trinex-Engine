@@ -20,8 +20,11 @@ namespace Engine
 		template<typename Super, typename Element = Object>
 		class DataHolder : public Super
 		{
+		public:
+			using ChildsArray = Vector<Element*>;
+
 		protected:
-			Vector<Element*> m_child_objects;
+			ChildsArray m_child_objects;
 
 			bool register_child(Object* child) override
 			{
@@ -34,7 +37,7 @@ namespace Engine
 			}
 
 		public:
-			const Vector<Element*>& child_objects() const
+			const ChildsArray& child_objects() const
 			{
 				return m_child_objects;
 			}

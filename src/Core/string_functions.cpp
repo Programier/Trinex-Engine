@@ -220,24 +220,29 @@ namespace Engine::Strings
 
 	ENGINE_EXPORT StringView parse_name_identifier(StringView sentence, StringView* out)
 	{
-		auto pos = sentence.find(Constants::name_separator);
+		return parse_token(sentence, Constants::name_separator, out);
+	}
+
+	ENGINE_EXPORT StringView parse_token(StringView expression, StringView separator, StringView* out)
+	{
+		auto pos = expression.find(separator);
 
 		if (pos == StringView::npos)
 		{
 			if (out)
 			{
-				*out = StringView(sentence.data() + sentence.size(), 0);
+				*out = StringView(expression.data() + expression.size(), 0);
 			}
 
-			return sentence;
+			return expression;
 		}
 
-		StringView name = sentence.substr(0, pos);
+		StringView name = expression.substr(0, pos);
 
 		if (out)
 		{
-			sentence.remove_prefix(name.length() + Constants::name_separator.length());
-			*out = sentence;
+			expression.remove_prefix(name.length() + separator.length());
+			*out = expression;
 		}
 
 		return name;

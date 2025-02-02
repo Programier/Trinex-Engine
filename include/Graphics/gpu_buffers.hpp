@@ -93,11 +93,19 @@ namespace Engine
 
 		byte* data() override final
 		{
+			if (m_buffer)
+			{
+				return reinterpret_cast<byte*>(m_buffer->m_buffer.data());
+			}
 			return nullptr;
 		}
 
 		const byte* data() const override final
 		{
+			if (m_buffer)
+			{
+				return reinterpret_cast<const byte*>(m_buffer->m_buffer.data());
+			}
 			return nullptr;
 		}
 

@@ -69,7 +69,8 @@ namespace Engine
 		return *this;
 	}
 
-#define get_param(param_name, type) reinterpret_cast<MaterialParameters::type*>(material->find_parameter(Name::param_name));
+#define get_param(param_name, type)                                                                                              \
+	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));
 	ColorSceneRenderer& ColorSceneRenderer::render_component(PointLightComponent* component)
 	{
 		render_base_component(component);

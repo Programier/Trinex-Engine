@@ -21,7 +21,7 @@
 namespace Engine
 {
 	extern void render_editor_grid(const CameraView& view, RenderPass*);
-	static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
+	static void render_light_sprite(RenderPass* pass, Texture2D* texture, LightComponent* component, const SceneView& view)
 	{
 		Material* material                 = DefaultResources::Materials::sprite;
 		PositionVertexBuffer* vertex_bufer = DefaultResources::Buffers::screen_quad;
@@ -46,7 +46,7 @@ namespace Engine
 			texture_parameter->sampler = EditorResources::default_sampler;
 		}
 
-		material->apply(component);
+		material->apply(component, pass);
 		vertex_bufer->rhi_bind(0, 0);
 		rhi->draw(6, 0);
 
@@ -57,7 +57,7 @@ namespace Engine
 		}
 	}
 
-	static void render_spot_light_overlay_colored(SpotLightComponent* component, float angle, Vector4D color)
+	static void render_spot_light_overlay_colored(RenderPass* pass, SpotLightComponent* component, float angle, Vector4D color)
 	{
 		auto proxy         = component->proxy();
 		Material* material = EditorResources::spot_light_overlay_material;
@@ -80,20 +80,20 @@ namespace Engine
 		auto color_param   = material->find_parameter<MaterialParameters::Float4>(Name::color);
 		color_param->value = color;
 
-		material->apply();
+		material->apply(component, pass);
 
 		EditorResources::spot_light_overlay_positions->rhi_bind(0);
 		rhi->draw(EditorResources::spot_light_overlay_positions->vertex_count(), 0);
 	}
 
-	static void render_spot_light_overlay(SpotLightComponent* component)
+	static void render_spot_light_overlay(RenderPass* pass, SpotLightComponent* component)
 	{
 		auto proxy = component->proxy();
-		render_spot_light_overlay_colored(component, proxy->outer_cone_angle(), {1.0, 1.0, 1.0, 1.0});
-		render_spot_light_overlay_colored(component, proxy->inner_cone_angle(), {0.7, 0.7, 0.7, 1.0});
+		render_spot_light_overlay_colored(pass, component, proxy->outer_cone_angle(), {1.0, 1.0, 1.0, 1.0});
+		render_spot_light_overlay_colored(pass, component, proxy->inner_cone_angle(), {0.7, 0.7, 0.7, 1.0});
 	}
 
-	static void render_point_light_overlay(PointLightComponent* component)
+	static void render_point_light_overlay(RenderPass* pass, PointLightComponent* component)
 	{
 		auto proxy         = component->proxy();
 		Material* material = EditorResources::point_light_overlay_material;
@@ -117,7 +117,7 @@ namespace Engine
 			radius_parameter->value = proxy->attenuation_radius();
 		}
 
-		material->apply();
+		material->apply(component, pass);
 		EditorResources::point_light_overlay_positions->rhi_bind(0, 0);
 		rhi->draw(EditorResources::point_light_overlay_positions->vertex_count(), 0);
 	}
@@ -136,7 +136,7 @@ namespace Engine
 
 		EditorOverlayPass& clear() override
 		{
-			RenderPass::clear();
+			Super::clear();
 			m_light_components.clear();
 			return *this;
 		}
@@ -147,22 +147,23 @@ namespace Engine
 
 			for (LightComponent* component : m_light_components)
 			{
-				render_light_sprite(EditorResources::light_sprite, component, scene_renderer()->scene_view());
+				render_light_sprite(this, EditorResources::light_sprite, component, scene_renderer()->scene_view());
 
 				if (component->actor()->is_selected())
 				{
 					if (component->leaf_class_is<SpotLightComponent>())
 					{
-						render_spot_light_overlay(reinterpret_cast<SpotLightComponent*>(component));
+						render_spot_light_overlay(this, reinterpret_cast<SpotLightComponent*>(component));
 					}
 					else if (component->leaf_class_is<PointLightComponent>())
 					{
-						render_point_light_overlay(reinterpret_cast<PointLightComponent*>(component));
+						render_point_light_overlay(this, reinterpret_cast<PointLightComponent*>(component));
 					}
 				}
 			}
 
 			render_editor_grid(scene_renderer()->scene_view().camera_view(), this);
+			Super::render(rt);
 			return *this;
 		}
 	};

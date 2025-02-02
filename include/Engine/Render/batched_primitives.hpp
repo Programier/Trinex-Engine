@@ -64,7 +64,7 @@ namespace Engine
 		delete_copy_constructors(BatchedLines);
 
 		BatchedLines& add_line(const Vertex& point1, const Vertex& point2);
-		BatchedLines& render(const class SceneView& view);
+		BatchedLines& render(class RenderPass* pass);
 		BatchedLines& clear();
 	};
 
@@ -84,6 +84,6 @@ namespace Engine
 		BatchedTriangles& override_triangle(Index index, const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
 		                                    ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 		                                    ByteColor color3 = {255, 255, 255, 255});
-		BatchedTriangles& render(const class SceneView& view);
+		BatchedTriangles& render(class RenderPass* pass);
 	};
 }// namespace Engine

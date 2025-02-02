@@ -42,6 +42,14 @@ namespace Engine
 			Num         = 3
 		};
 
+		static Name name_color;
+		static Name name_intensivity;
+		static Name name_location;
+		static Name name_radius;
+		static Name name_fall_off_exponent;
+		static Name name_direction;
+		static Name name_spot_angles;
+
 	private:
 		AABB_3Df m_bounds;
 		Color3 m_light_color;

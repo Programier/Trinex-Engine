@@ -19,7 +19,6 @@ namespace Engine
 		using RendererFunc  = Function<bool(PropertyRenderer* wnd, void* obj, Refl::Property* prop, bool read_only)>;
 
 	private:
-		UserData m_userdata;
 		String m_next_prop_name;
 		Object* m_object;
 		Identifier m_destroy_id;
@@ -28,9 +27,9 @@ namespace Engine
 		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
 		PropertiesMap& build_props_map(Refl::Struct* self);
 
-
 	public:
 		CallBacks<void(Object*)> on_begin_render;
+		UserData userdata;
 
 		PropertyRenderer();
 		~PropertyRenderer();

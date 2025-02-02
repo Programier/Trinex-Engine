@@ -68,31 +68,6 @@ namespace Engine::Refl
 		return renderer->render_property(object, prop, is_read_only, false);
 	}
 
-	static bool render_material_parameter(Engine::Object** address, Refl::Property* prop, PropertyRenderer* renderer,
-										  bool is_read_only)
-	{
-		Engine::Object* object = *address;
-		auto class_instance    = object->class_instance();
-		auto properties_count  = class_instance->properties().size();
-
-		if (properties_count == 0)
-		{
-			renderer->mark_property_skipped();
-			return false;
-		}
-
-		renderer->next_prop_name((*address)->name().to_string());
-
-		if (properties_count == 1)
-		{
-			auto child_prop = class_instance->properties()[0];
-			return renderer->render_property(object, child_prop, is_read_only | child_prop->is_read_only());
-		}
-		else
-		{
-			return renderer->render_property(address, prop, is_read_only, false);
-		}
-	}
 
 	static void on_refl_init()
 	{
@@ -108,15 +83,8 @@ namespace Engine::Refl
 														  "Engine::Refl::Property@, Engine::PropertyRenderer@, bool)",
 														  render_object_array_element);
 
-		auto material_prop_ell = ScriptEngine::register_function("bool render_material_property_element(Engine::Object@, "
-																 "Engine::Refl::Property@, Engine::PropertyRenderer@, bool)",
-																 render_material_parameter);
-
 		ArrayProperty* prop = Object::instance_cast<ArrayProperty>(Property::static_require("Engine::Actor::m_owned_components"));
 		prop->element_property()->renderer(object_ell);
-
-		prop = Object::instance_cast<ArrayProperty>(Property::static_require("Engine::MaterialInterface::m_parameters"));
-		prop->element_property()->renderer(material_prop_ell);
 	}
 
 	static ReflectionInitializeController refl_init(on_refl_init, "Engine::Refl::Property", {"Engine::Actor"});

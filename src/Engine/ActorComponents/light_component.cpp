@@ -14,6 +14,14 @@ namespace Engine
 {
 	static const AABB_3Df light_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
+	Name LightComponent::name_color             = "light_data->color";
+	Name LightComponent::name_intensivity       = "light_data->intensivity";
+	Name LightComponent::name_location          = "light_data->location";
+	Name LightComponent::name_radius            = "light_data->radius";
+	Name LightComponent::name_fall_off_exponent = "light_data->fall_off_exponent";
+	Name LightComponent::name_direction         = "light_data->direction";
+	Name LightComponent::name_spot_angles       = "light_data->spot_angles";
+
 	const AABB_3Df& LightComponentProxy::bounding_box() const
 	{
 		return m_bounds;

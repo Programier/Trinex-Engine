@@ -15,7 +15,7 @@ namespace Engine
 	{
 		auto cpu_buffer = buffer->buffer();
 
-		if (cpu_buffer->size() * sizeof(typename T::ElementType) < buffer->size())
+		if (cpu_buffer->size() * sizeof(typename T::ElementType) <= buffer->size())
 		{
 			buffer->rhi_update(0, cpu_buffer->size() * sizeof(typename T::ElementType), buffer->data());
 		}
@@ -41,7 +41,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedLines& BatchedLines::render(const class SceneView& view)
+	BatchedLines& BatchedLines::render(class RenderPass* pass)
 	{
 		if (m_lines->buffer()->size() == 0)
 			return *this;
@@ -55,7 +55,7 @@ namespace Engine
 #if TRINEX_DEBUG_BUILD
 			rhi->push_debug_stage("Lines Rendering");
 #endif
-			material->apply();
+			material->apply(nullptr, pass);
 			m_lines->rhi_bind(0);
 
 			rhi->draw(m_lines->buffer()->size(), 0);
@@ -130,7 +130,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedTriangles& BatchedTriangles::render(const class SceneView& view)
+	BatchedTriangles& BatchedTriangles::render(class RenderPass* pass)
 	{
 		if (m_position_buffer->buffer()->size() == 0)
 			return *this;
@@ -145,7 +145,7 @@ namespace Engine
 #if TRINEX_DEBUG_BUILD
 			rhi->push_debug_stage("Triangles Rendering");
 #endif
-			material->apply();
+			material->apply(nullptr, pass);
 			m_position_buffer->rhi_bind(0);
 			m_color_buffer->rhi_bind(1);
 

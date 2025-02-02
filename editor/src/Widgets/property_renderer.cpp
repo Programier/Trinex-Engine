@@ -149,7 +149,7 @@ namespace Engine
 	{
 		m_object = object;
 		m_properties.clear();
-		m_userdata.clear();
+		userdata.clear();
 		build_props_map(struct_instance());
 		return *this;
 	}
@@ -636,7 +636,7 @@ namespace Engine
 
 		if (prop->is_composite())
 		{
-			return render_struct_property_internal(renderer, context, prop->object(context), prop, object->class_instance(),
+			return render_struct_property_internal(renderer, context, object, prop, object->class_instance(),
 												   read_only || prop->is_read_only());
 		}
 		else
