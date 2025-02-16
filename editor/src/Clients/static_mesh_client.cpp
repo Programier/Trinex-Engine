@@ -27,7 +27,7 @@ namespace Engine
 	{
 		Super::on_bind_viewport(vp);
 
-		m_world = System::new_system<World>();
+		m_world = System::system_of<World>();
 
 		m_camera = new_instance<CameraComponent>();
 		m_camera->location({0, 3, 5});

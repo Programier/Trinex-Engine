@@ -3,7 +3,7 @@
 #include <Core/etl/list.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Event/listener_id.hpp>
+#include <Core/event.hpp>
 #include <Systems/system.hpp>
 
 
@@ -26,23 +26,39 @@ namespace Engine
 
 
 	private:
-		ListenerMap m_listeners;
+		struct ListenerNode {
+			Listener listener;
+			EventType type;
+			ListenerNode* next = nullptr;
+			ListenerNode* prev = nullptr;
+
+			inline size_t index() const
+			{
+				return static_cast<size_t>(type);
+			}
+
+			inline Identifier id() const
+			{
+				return reinterpret_cast<Identifier>(this);
+			}
+		};
+
+		ListenerNode* m_listeners[static_cast<size_t>(EventType::COUNT)];
+
 		EventSystem& (EventSystem::*m_process_events)() = nullptr;
-		List<Identifier> m_windows_to_destroy;
-		List<EventSystemListenerID> m_listeners_to_remove;
-		bool m_is_in_events_pooling;
 
 		EventSystem& wait_events();
 		EventSystem& pool_events();
 		EventSystem();
 
-		void on_window_close(const Event& event, bool is_quit);
+		EventSystem& execute_listeners(ListenerNode* node, const Event& event);
+
+	protected:
+		EventSystem& create() override;
 
 	public:
-		const ListenerMap& listeners() const;
-		EventSystemListenerID add_listener(EventType event_type, const Listener& listener);
-		EventSystem& remove_listener(const EventSystemListenerID&);
-		EventSystem& create() override;
+		Identifier add_listener(EventType event_type, const Listener& listener);
+		EventSystem& remove_listener(Identifier);
 		EventSystem& update(float dt) override;
 		EventSystem& push_event(const Event& event);
 		EventSystem& shutdown() override;

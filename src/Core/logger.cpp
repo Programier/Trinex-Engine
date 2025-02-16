@@ -166,8 +166,9 @@ namespace Engine
 #if PLATFORM_ANDROID
 			m_critical_section.lock();
 
+			char buffer[64];
 			sprintf(buffer, "Trinex Engine [%s]", tag);
-			__android_log_vprint(prio_type, buffer, format, args);
+			__android_log_print(prio_type, buffer, "%s", msg);
 
 			m_critical_section.unlock();
 #else

@@ -1,13 +1,13 @@
 #pragma once
-#include <Core/etl/array.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
 
 
 namespace Engine
 {
 	class Window;
+	struct Event;
 
 	class ENGINE_EXPORT TouchScreenSystem : public Singletone<TouchScreenSystem, System>
 	{
@@ -25,14 +25,16 @@ namespace Engine
 	private:
 		mutable TreeMap<Window*, Vector<Finger>> m_fingers;
 		Vector<Finger>& find_fingers_data(Window* window) const;
-		Array<EventSystemListenerID, 3> m_listeners;
+		Identifier m_listeners[3];
 
 		void on_finger_up(const Event& event);
 		void on_finger_down(const Event& event);
 		void on_finger_motion(const Event& event);
 
-	public:
+	protected:
 		TouchScreenSystem& create() override;
+
+	public:
 		TouchScreenSystem& update(float dt) override;
 		TouchScreenSystem& shutdown() override;
 

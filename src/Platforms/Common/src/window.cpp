@@ -1,6 +1,5 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/struct.hpp>
-#include <Event/event_data.hpp>
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>

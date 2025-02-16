@@ -9,6 +9,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Systems/engine_system.hpp>
+#include <Systems/event_system.hpp>
 #include <Window/window_manager.hpp>
 #include <chrono>
 
@@ -44,11 +45,18 @@ namespace Engine
 
 		flags(StandAlone, true);
 		flags(IsAvailableForGC, false);
+
+		System::system_of<EventSystem>()->add_listener(EventType::Quit, [](const Event&) {
+			if (engine_instance)
+			{
+				engine_instance->request_exit();
+			}
+		});
 	}
 
 	int_t BaseEngine::init()
 	{
-		EngineSystem::new_system<EngineSystem>();
+		EngineSystem::system_of<EngineSystem>();
 		return 0;
 	}
 

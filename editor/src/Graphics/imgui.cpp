@@ -3,6 +3,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>
+#include <Core/event.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
@@ -13,9 +14,6 @@
 #include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
-#include <Event/event.hpp>
-#include <Event/event_data.hpp>
-#include <Event/listener_id.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -496,7 +494,7 @@ namespace Engine
 
 		static FORCE_INLINE Engine::Window* window_from(const Event& event)
 		{
-			return WindowManager::instance()->find(event.window_id());
+			return WindowManager::instance()->find(event.window_id);
 		}
 
 		struct ImGuiContextSaver {
@@ -833,7 +831,7 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			auto& data = event.get<const MouseMotionEvent&>();
+			auto& data = event.mouse.motion;
 			auto& io   = ImGui::GetIO();
 			io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 
@@ -844,7 +842,7 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			auto& data        = event.get<const MouseButtonEvent&>();
+			auto& data        = event.mouse.button;
 			auto& io          = ImGui::GetIO();
 			auto imgui_button = imgui_button_of(data.button);
 			if (imgui_button != -1)
@@ -858,7 +856,7 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			auto& data = event.get<const MouseWheelEvent&>();
+			auto& data = event.mouse.wheel;
 			auto& io   = ImGui::GetIO();
 			io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 			io.AddMouseWheelEvent(data.x, data.y);
@@ -868,7 +866,7 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			auto& data        = event.get<const KeyEvent&>();
+			auto& data        = event.keyboard;
 			auto& io          = ImGui::GetIO();
 			auto imgui_button = imgui_button_of(data.key);
 
@@ -889,10 +887,10 @@ namespace Engine
 		static void on_text_input(const Event& event)
 		{
 			IMGUI_EVENT_FUNC_HEADER();
-			auto& data = event.get<const TextInputEvent&>();
+			auto& data = event.text_input;
 			auto& io   = ImGui::GetIO();
 
-			io.AddInputCharactersUTF8(data.text.c_str());
+			io.AddInputCharactersUTF8(data.text);
 		}
 
 		static void on_window_close(const Event& event)
@@ -929,8 +927,8 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			const FingerDownEvent& data = event.get<const FingerDownEvent&>();
-			if (data.finger_index == 0)
+			const auto& data = event.touchscreen.finger;
+			if (data.index == 0)
 			{
 				auto& io = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
@@ -942,8 +940,8 @@ namespace Engine
 		static void on_finger_up(const Event& event)
 		{
 			IMGUI_EVENT_FUNC_HEADER();
-			const FingerUpEvent& data = event.get<const FingerUpEvent&>();
-			if (data.finger_index == 0)
+			const auto& data = event.touchscreen.finger;
+			if (data.index == 0)
 			{
 				auto& io = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
@@ -956,8 +954,8 @@ namespace Engine
 		{
 			IMGUI_EVENT_FUNC_HEADER();
 
-			const FingerMotionEvent& data = event.get<const FingerMotionEvent&>();
-			if (data.finger_index == 0)
+			const auto& data = event.touchscreen.finger_motion;
+			if (data.index == 0)
 			{
 				auto& io = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
@@ -967,7 +965,7 @@ namespace Engine
 
 		void on_event_recieved(const Event& event)
 		{
-			auto type = event.type();
+			auto type = event.type;
 
 			switch (type)
 			{
@@ -1007,21 +1005,21 @@ namespace Engine
 			}
 		}
 
-		static EventSystemListenerID m_listener_id;
+		static Identifier m_listener_id = 0;
 
 		void disable_events()
 		{
-			if (!m_listener_id.is_valid())
+			if (m_listener_id == 0)
 				return;
 
 			EventSystem* system = EventSystem::instance();
 			system->remove_listener(m_listener_id);
-			m_listener_id = EventSystemListenerID();
+			m_listener_id = 0;
 		}
 
 		void enable_events()
 		{
-			if (m_listener_id.is_valid())
+			if (m_listener_id)
 				return;
 
 			EventSystem* system = EventSystem::instance();

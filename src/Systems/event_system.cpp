@@ -5,11 +5,10 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/threading.hpp>
-#include <Event/event.hpp>
-#include <Event/event_data.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
+#include <Platform/platform.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -19,87 +18,57 @@
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Systems/touchscreen_system.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
-#include <angelscript.h>
 
 
 namespace Engine
 {
-	// Basic callbacks
-
-	void EventSystem::on_window_close(const Event& event, bool is_quit)
-	{
-		WindowManager* manager = WindowManager::instance();
-		Window* window         = manager->find(event.window_id());
-
-		if (manager->main_window() == window || is_quit)
-		{
-			engine_instance->request_exit();
-		}
-		else if (window)
-		{
-			m_windows_to_destroy.push_back(window->id());
-		}
-	}
-
-	static void on_resize(const Event& event)
-	{
-		WindowManager* manager = WindowManager::instance();
-		Window* window         = manager->find(event.window_id());
-		if (!window)
-			return;
-
-		const WindowEvent& window_event = event.get<const WindowEvent&>();
-
-		{
-			auto x                                = window_event.x;
-			auto y                                = window_event.y;
-			WindowRenderViewport* render_viewport = window->render_viewport();
-			if (render_viewport)
-			{
-				render_viewport->on_resize({x, y});
-			}
-		}
-	}
-
-	static void on_orientation_changed(const Event& event)
-	{
-		WindowManager* manager = WindowManager::instance();
-		Window* window         = manager->find(event.window_id());
-		if (!window)
-			return;
-
-		const DisplayOrientationChangedEvent& display_event = event.get<const DisplayOrientationChangedEvent&>();
-		{
-			WindowRenderViewport* render_viewport = window->render_viewport();
-			if (render_viewport)
-			{
-				render_viewport->on_orientation_changed(display_event.orientation);
-			}
-		}
-	}
-
 	EventSystem::EventSystem()
-	{}
-
-	const EventSystem::ListenerMap& EventSystem::listeners() const
 	{
-		return m_listeners;
+		std::memset(m_listeners, 0, sizeof(m_listeners));
 	}
 
-	EventSystemListenerID EventSystem::add_listener(EventType type, const Listener& listener)
+	Identifier EventSystem::add_listener(EventType type, const Listener& listener)
 	{
-		return EventSystemListenerID(type, m_listeners[static_cast<Identifier>(type)].push(listener));
+		size_t index       = static_cast<size_t>(type);
+		ListenerNode* node = new ListenerNode();
+		node->type         = type;
+		node->listener     = listener;
+
+		ListenerNode*& current = m_listeners[index];
+
+		if (current)
+		{
+			current->prev = node;
+			node->next    = current;
+		}
+
+		current = node;
+		return node->id();
 	}
 
-	EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
+	EventSystem& EventSystem::remove_listener(Identifier id)
 	{
-		if (m_is_in_events_pooling)
-			m_listeners_to_remove.push_back(id);
-		else
-			m_listeners[static_cast<EnumerateType>(id.m_type)].remove(id.m_id);
+		logic_thread()->call([node = reinterpret_cast<ListenerNode*>(id)]() {
+			if (EventSystem* system = EventSystem::instance())
+			{
+				if (node->prev)
+				{
+					node->prev->next = node->next;
+				}
+
+				if (node->next)
+				{
+					node->next->prev = node->prev;
+				}
+
+				if (system->m_listeners[node->index()] == node)
+				{
+					system->m_listeners[node->index()] = node->next;
+				}
+
+				delete node;
+			}
+		});
 
 		return *this;
 	}
@@ -108,18 +77,13 @@ namespace Engine
 	{
 		Super::create();
 
-		m_is_in_events_pooling = false;
-		System::new_system<EngineSystem>()->register_subsystem(this);
-		add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
-		add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, false));
-		add_listener(EventType::WindowResized, on_resize);
-		add_listener(EventType::DisplayOrientationChanged, on_orientation_changed);
+		System::system_of<EngineSystem>()->register_subsystem(this);
 
 		// Register subsystems
-		new_system<KeyboardSystem>();
-		new_system<MouseSystem>();
-		new_system<TouchScreenSystem>();
-		new_system<GameControllerSystem>();
+		system_of<KeyboardSystem>();
+		system_of<MouseSystem>();
+		system_of<TouchScreenSystem>();
+		system_of<GameControllerSystem>();
 
 		process_event_method(ProcessEventMethod::PoolEvents);
 
@@ -130,63 +94,42 @@ namespace Engine
 	{
 		Super::update(dt);
 		(this->*m_process_events)();
+		return *this;
+	}
 
-		if (!m_windows_to_destroy.empty())
+	EventSystem& EventSystem::execute_listeners(ListenerNode* node, const Event& event)
+	{
+		while (node)
 		{
-			WindowManager* manager = WindowManager::instance();
-
-			if (manager)
-			{
-				for (Identifier id : m_windows_to_destroy)
-				{
-					if (auto window = manager->find(id))
-					{
-						manager->destroy_window(window);
-					}
-				}
-			}
-
-			m_windows_to_destroy.clear();
+			node->listener(event);
+			node = node->next;
 		}
 		return *this;
 	}
 
 	EventSystem& EventSystem::push_event(const Event& event)
 	{
-		bool is_nested = m_is_in_events_pooling;
-
-		m_is_in_events_pooling = true;
-		auto it                = m_listeners.find(static_cast<EnumerateType>(event.type()));
-		if (it != m_listeners.end())
-		{
-			it->second.trigger(event);
-		}
-
-		it = m_listeners.find(static_cast<EnumerateType>(EventType::Undefined));
-
-		if (it != m_listeners.end())
-		{
-			it->second.trigger(event);
-		}
-
-		m_is_in_events_pooling = is_nested;
-
-		if (!m_listeners_to_remove.empty())
-		{
-			for (auto& id : m_listeners_to_remove)
-			{
-				remove_listener(id);
-			}
-			m_listeners_to_remove.clear();
-		}
-
+		size_t index  = static_cast<size_t>(event.type);
+		size_t index2 = static_cast<size_t>(EventType::Undefined);
+		execute_listeners(m_listeners[index], event);
+		execute_listeners(m_listeners[index2], event);
 		return *this;
 	}
 
 	EventSystem& EventSystem::shutdown()
 	{
 		Super::shutdown();
-		m_listeners.clear();
+
+		for (auto& listener : m_listeners)
+		{
+			while (listener)
+			{
+				ListenerNode* next = listener->next;
+				delete listener;
+				listener = next;
+			}
+		}
+
 		return *this;
 	}
 
@@ -210,13 +153,13 @@ namespace Engine
 
 	EventSystem& EventSystem::wait_events()
 	{
-		WindowManager::instance()->wait_for_events(push_event_internal, this);
+		Platform::EventSystem::wait_for_events(push_event_internal, this);
 		return *this;
 	}
 
 	EventSystem& EventSystem::pool_events()
 	{
-		WindowManager::instance()->pool_events(push_event_internal, this);
+		Platform::EventSystem::pool_events(push_event_internal, this);
 		return *this;
 	}
 

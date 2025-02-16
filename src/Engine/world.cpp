@@ -17,7 +17,7 @@ namespace Engine
 	World& World::create()
 	{
 		Super::create();
-		LogicSystem::new_system<LogicSystem>()->register_subsystem(this);
+		LogicSystem::system_of<LogicSystem>()->register_subsystem(this);
 		m_is_playing = false;
 
 		m_scene = new Scene();

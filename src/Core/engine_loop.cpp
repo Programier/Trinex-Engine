@@ -37,7 +37,7 @@ namespace Engine
 	EngineLoop::~EngineLoop()
 	{}
 
-	static void init_api(bool force_no_api = false)
+	static void initialize_graphics_api(bool force_no_api = false)
 	{
 		if (Settings::GPU::rhi.empty() || force_no_api)
 		{
@@ -53,17 +53,6 @@ namespace Engine
 		{
 			throw EngineException("Failed to init API");
 		}
-	}
-
-	static void create_main_window()
-	{
-		WindowConfig config;
-		config.attributes.insert(WindowAttribute::Hidden);
-		WindowManager::create_instance();
-		EventSystem::new_system<EventSystem>();
-		WindowManager::instance()->create_window(config, nullptr)->hide();
-
-		SceneRenderTargets::create_instance();
 	}
 
 	static void initialize_filesystem()
@@ -89,7 +78,7 @@ namespace Engine
 
 	static int_t execute_entry(const StringView& entry_name)
 	{
-		init_api(true);
+		initialize_graphics_api(true);
 
 		int_t result = 0;
 		if (Object* entry_object = Refl::Class::static_find(entry_name, Refl::FindFlags::IsRequired)->create_object())
@@ -153,9 +142,15 @@ namespace Engine
 			return execute_entry(entry_param->get<const String&>());
 		}
 
-		init_api();
-		create_main_window();
+		System::system_of<EngineSystem>();
 
+		initialize_graphics_api();
+
+		// Setup main window
+		WindowConfig config;
+		config.attributes.insert(WindowAttribute::Hidden);
+		WindowManager::create_instance()->create_window(config, nullptr)->hide();
+		SceneRenderTargets::create_instance();
 		return 0;
 	}
 

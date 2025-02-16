@@ -55,13 +55,13 @@ namespace Engine
 		return *this;
 	}
 
-	Window& AndroidWindow::width(const Size1D& value)
+	Window& AndroidWindow::width(float_t value)
 	{
 		size(Size2D(value, height()));
 		return *this;
 	}
 
-	Window& AndroidWindow::height(const Size1D& value)
+	Window& AndroidWindow::height(float_t value)
 	{
 		size(Size2D(height(), value));
 		return *this;

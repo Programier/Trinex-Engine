@@ -14,7 +14,6 @@
 #include <Engine/ray.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
-#include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -76,8 +75,8 @@ namespace Engine
 		auto monitor_info = Platform::monitor_info(wd->monitor_index());
 		wd->size(monitor_info.size);
 
-		EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
-		m_world                       = World::new_system<World>();
+		EventSystem::system_of<EventSystem>()->process_event_method(EventSystem::PoolEvents);
+		m_world                       = World::system_of<World>();
 		m_on_actor_select_callback_id = m_world->on_actor_select.push(
 				std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
 		m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
@@ -99,7 +98,7 @@ namespace Engine
 		camera->near_clip_plane = 0.1f;
 		camera->far_clip_plane  = 1000.f;
 
-		EventSystem* event_system = EventSystem::new_system<EventSystem>();
+		EventSystem* event_system = EventSystem::system_of<EventSystem>();
 		m_event_system_listeners.push_back(event_system->add_listener(
 				EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(
@@ -572,7 +571,7 @@ namespace Engine
 
 	void EditorClient::on_mouse_press(const Event& event)
 	{
-		const MouseButtonEvent& button = event.get<const MouseButtonEvent&>();
+		const auto& button = event.mouse.button;
 
 		if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
 		{
@@ -582,7 +581,7 @@ namespace Engine
 
 	void EditorClient::on_mouse_release(const Event& event)
 	{
-		const MouseButtonEvent& button = event.get<const MouseButtonEvent&>();
+		const auto& button = event.mouse.button;
 
 		if (button.button == Mouse::Button::Right)
 		{
@@ -593,7 +592,7 @@ namespace Engine
 
 	void EditorClient::on_mouse_move(const Event& event)
 	{
-		const MouseMotionEvent& motion = event.get<const MouseMotionEvent&>();
+		const auto& motion = event.mouse.motion;
 
 		if (MouseSystem::instance()->is_relative_mode(window()))
 		{
@@ -605,8 +604,8 @@ namespace Engine
 
 	void EditorClient::on_finger_move(const Event& event)
 	{
-		const FingerMotionEvent& motion = event.get<const FingerMotionEvent&>();
-		if (motion.finger_index == 0 && m_state.viewport.is_hovered)
+		const auto& motion = event.touchscreen.finger_motion;
+		if (motion.index == 0 && m_state.viewport.is_hovered)
 		{
 			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
 								  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),

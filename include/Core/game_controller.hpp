@@ -8,7 +8,7 @@ namespace Engine
 	public:
 		enum Axis : EnumerateType
 		{
-			None = 0,
+			Unknown = 0,
 			LeftX,
 			LeftY,
 			RightX,

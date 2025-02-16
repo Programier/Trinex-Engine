@@ -4,7 +4,6 @@
 #include <Core/reflection/enum.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
-#include <Event/listener_id.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
@@ -32,7 +31,7 @@ namespace Engine
 	private:
 		class World* m_world = nullptr;
 
-		Vector<EventSystemListenerID> m_event_system_listeners;
+		Vector<Identifier> m_event_system_listeners;
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;
 

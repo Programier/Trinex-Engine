@@ -1,8 +1,8 @@
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/struct.hpp>
 #include <EGL/egl.h>
-#include <Event/event_data.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/touchscreen_system.hpp>
@@ -136,7 +136,7 @@ namespace Engine::Platform
 	        {AKEYCODE_MENU, Keyboard::Key::Menu},
 	};
 
-	static FORCE_INLINE Identifier window_id()
+	static FORCE_INLINE Identifier android_window_id()
 	{
 		if (m_window)
 		{
@@ -146,10 +146,21 @@ namespace Engine::Platform
 		return 0;
 	}
 
-	static inline void push_event(const Event& e)
-	{
-		m_event_callback(e, m_event_userdata);
-	}
+	struct AndroidEvent : Event {
+		AndroidEvent()
+		{
+			window_id = android_window_id();
+		}
+	};
+
+
+#define push_event(t)                                                                                                            \
+	android_event.type = EventType::t;                                                                                           \
+	m_event_callback(android_event, m_event_userdata)
+
+#define push_event_v(t)                                                                                                          \
+	android_event.type = t;                                                                                                      \
+	m_event_callback(android_event, m_event_userdata)
 
 	static void handle_app_cmd(struct android_app* app, int32_t cmd)
 	{
@@ -163,10 +174,12 @@ namespace Engine::Platform
 		}
 		else
 		{
+			AndroidEvent android_event;
+
 			switch (cmd)
 			{
 				case APP_CMD_TERM_WINDOW:
-					push_event(Event(window_id(), EventType::AppTerminating, AppTerminatingEvent()));
+					push_event(AppTerminating);
 					break;
 
 				case APP_CMD_WINDOW_RESIZED:
@@ -176,12 +189,12 @@ namespace Engine::Platform
 					m_window->resized();
 
 					{
-						WindowResizedEvent e;
+						auto& e  = android_event.window;
 						e.x      = 0.f;
 						e.y      = 0.f;
 						e.width  = new_size.x;
 						e.height = new_size.y;
-						push_event(Event(window_id(), EventType::WindowResized, e));
+						push_event(WindowResized);
 					}
 
 					break;
@@ -191,37 +204,36 @@ namespace Engine::Platform
 					break;
 
 				case APP_CMD_GAINED_FOCUS:
-					push_event(Event(window_id(), EventType::WindowFocusGained, WindowFocusGainedEvent()));
+					push_event(WindowFocusGained);
 					break;
 
 				case APP_CMD_LOST_FOCUS:
-					push_event(Event(window_id(), EventType::WindowFocusLost, WindowFocusLostEvent()));
+					push_event(WindowFocusLost);
 					break;
 
 				case APP_CMD_LOW_MEMORY:
-					push_event(Event(window_id(), EventType::AppLowMemory, AppLowMemoryEvent()));
+					push_event(AppLowMemory);
 					break;
 
 				case APP_CMD_RESUME:
-					push_event(Event(window_id(), EventType::AppResume, AppResumeEvent()));
+					push_event(AppResume);
 					break;
 
 				case APP_CMD_PAUSE:
-					push_event(Event(window_id(), EventType::AppPause, AppPauseEvent()));
+					push_event(AppPause);
 					break;
 
 				case APP_CMD_STOP:
 				case APP_CMD_DESTROY:
-					push_event(Event(window_id(), EventType::Quit, QuitEvent()));
+					push_event(Quit);
 					break;
 
 				case APP_CMD_CONFIG_CHANGED:
 				{
 					if (m_android_platform_info.is_orientation_updated)
 					{
-						DisplayOrientationChangedEvent e;
-						e.orientation = m_android_platform_info.orientation;
-						push_event(Event(window_id(), EventType::DisplayOrientationChanged, e));
+						android_event.display.orientation = m_android_platform_info.orientation;
+						push_event(DisplayOrientationChanged);
 					}
 					break;
 				}
@@ -242,24 +254,21 @@ namespace Engine::Platform
 		auto it           = keys.find(event_key_code);
 		Keyboard::Key key = it == keys.end() ? Keyboard::Key::Unknown : it->second;
 
+		AndroidEvent android_event;
+		android_event.keyboard.key = key;
 
 		if (event_action == AKEY_EVENT_ACTION_DOWN)
 		{
-			KeyDownEvent event;
-			event.key = key;
-			push_event(Event(window_id(), EventType::KeyDown, event));
+			push_event(KeyDown);
 		}
 		else
 		{
-			KeyUpEvent event;
-			event.key = key;
-			push_event(Event(window_id(), EventType::KeyUp, event));
+			push_event(KeyUp);
 		}
 
 		return 1;
 	}
 
-	template<typename EventDataType>
 	static int32_t handle_mouse_button_event(AInputEvent* input_event, EventType type, int32_t event_pointer_index)
 	{
 		static int32_t pressed_buttons = 0;
@@ -268,8 +277,8 @@ namespace Engine::Platform
 		int_t button    = pressed_buttons ^ buttons;
 		pressed_buttons = buttons;
 
-
-		EventDataType event_data;
+		AndroidEvent android_event;
+		auto& event_data = android_event.mouse.button;
 
 		switch (button)
 		{
@@ -294,7 +303,7 @@ namespace Engine::Platform
 		event_data.x = AMotionEvent_getX(input_event, event_pointer_index);
 		event_data.y = h - AMotionEvent_getY(input_event, event_pointer_index);
 
-		push_event(Event(window_id(), type, event_data));
+		push_event_v(type);
 		return 1;
 	}
 
@@ -302,9 +311,11 @@ namespace Engine::Platform
 	{
 		int32_t result = 0;
 
+		AndroidEvent android_event;
+
 		if (action == AMOTION_EVENT_ACTION_MOVE || action == AMOTION_EVENT_ACTION_HOVER_MOVE)
 		{
-			static MouseMotionEvent event;
+			static Event::Mouse::MouseMotionEvent event;
 
 			float h = Engine::WindowManager::instance()->main_window()->size().y;
 			float x = AMotionEvent_getX(input_event, event_pointer_index);
@@ -323,29 +334,30 @@ namespace Engine::Platform
 
 			event.x = x;
 			event.y = y;
-			push_event(Event(window_id(), EventType::MouseMotion, event));
+
+			android_event.mouse.motion = event;
+			push_event(MouseMotion);
 			result = 1;
 		}
 		else if (action == AMOTION_EVENT_ACTION_SCROLL)
 		{
-			MouseWheelEvent event;
-			event.x = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, event_pointer_index);
-			event.y = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_VSCROLL, event_pointer_index);
+			auto& event = android_event.mouse.wheel;
+			event.x     = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, event_pointer_index);
+			event.y     = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_VSCROLL, event_pointer_index);
 
 			if (glm::epsilonNotEqual(event.x, 0.f, 0.01f) || glm::epsilonNotEqual(event.y, 0.f, 0.01f))
 			{
-				push_event(Event(window_id(), EventType::MouseWheel, event));
+				push_event(MouseWheel);
 				result = 1;
 			}
 		}
 		else if (action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
 		{
-			result =
-			        handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown, event_pointer_index);
+			result = handle_mouse_button_event(input_event, EventType::MouseButtonDown, event_pointer_index);
 		}
 		else if (action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
 		{
-			result = handle_mouse_button_event<MouseButtonUpEvent>(input_event, EventType::MouseButtonUp, event_pointer_index);
+			result = handle_mouse_button_event(input_event, EventType::MouseButtonUp, event_pointer_index);
 		}
 
 		return result;
@@ -355,63 +367,51 @@ namespace Engine::Platform
 	{
 		int32_t result = 0;
 
+		AndroidEvent android_event;
 		if (action == AMOTION_EVENT_ACTION_MOVE)
 		{
-			static FingerMotionEvent event;
+			static Event::TouchScreen::FingerMotionEvent event;
 
 			for (int32_t i = 0, count = AMotionEvent_getPointerCount(input_event); i < count; ++i)
 			{
-				event.finger_index = static_cast<Index>(i);
-				auto window        = Engine::WindowManager::instance()->main_window();
-				float h            = window->size().y;
-				event.x            = AMotionEvent_getX(input_event, i);
-				event.y            = h - AMotionEvent_getY(input_event, i);
+				event.index = static_cast<Index>(i);
+				auto window = Engine::WindowManager::instance()->main_window();
+				float h     = window->size().y;
+				event.x     = AMotionEvent_getX(input_event, i);
+				event.y     = h - AMotionEvent_getY(input_event, i);
 
-				Size2D prev_pos = TouchScreenSystem::instance()->finger_location(event.finger_index, window);
+				Size2D prev_pos = TouchScreenSystem::instance()->finger_location(event.index, window);
 				event.xrel      = event.x - prev_pos.x;
 				event.yrel      = event.y - prev_pos.y;
 
 				if (glm::epsilonNotEqual(event.xrel, 0.f, 0.001f) || glm::epsilonNotEqual(event.yrel, 0.f, 0.001f))
 				{
-					push_event(Event(window_id(), EventType::FingerMotion, event));
+					android_event.touchscreen.finger_motion = event;
+					push_event(FingerMotion);
 				}
 			}
 
 			result = 1;
 		}
-		else if (action == AMOTION_EVENT_ACTION_DOWN)
+		else if (is_in<AMOTION_EVENT_ACTION_DOWN, AMOTION_EVENT_ACTION_UP>(action))
 		{
-			static FingerDownEvent event;
+			static Event::TouchScreen::FingerEvent event;
 
 			if (event_pointer_index >= 0)
 			{
-				event.finger_index = static_cast<Index>(event_pointer_index);
-				auto window        = Engine::WindowManager::instance()->main_window();
-				float h            = window->size().y;
-				event.x            = AMotionEvent_getX(input_event, event_pointer_index);
-				event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
+				event.index = static_cast<Index>(event_pointer_index);
+				auto window = Engine::WindowManager::instance()->main_window();
+				float h     = window->size().y;
+				event.x     = AMotionEvent_getX(input_event, event_pointer_index);
+				event.y     = h - AMotionEvent_getY(input_event, event_pointer_index);
 
-				push_event(Event(window_id(), EventType::FingerDown, event));
+				android_event.touchscreen.finger = event;
+				push_event_v(action == AMOTION_EVENT_ACTION_DOWN ? EventType::FingerDown : EventType::FingerUp);
 			}
 
 			result = 1;
 		}
-		else if (action == AMOTION_EVENT_ACTION_UP)
-		{
-			static FingerUpEvent event;
 
-			if (event_pointer_index >= 0)
-			{
-				event.finger_index = static_cast<Index>(event_pointer_index);
-				auto window        = Engine::WindowManager::instance()->main_window();
-				float h            = window->size().y;
-				event.x            = AMotionEvent_getX(input_event, event_pointer_index);
-				event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
-				push_event(Event(window_id(), EventType::FingerUp, event));
-			}
-
-			result = 1;
-		}
 		return result;
 	}
 
@@ -497,7 +497,10 @@ namespace Engine::Platform
 			Platform::m_android_platform_info.mouse_in_relative_mode = flag;
 			Engine::WindowManager::instance()->main_window()->cursor_mode(flag ? CursorMode::Hidden : CursorMode::Normal);
 		}
+	}// namespace WindowManager
 
+	namespace EventSystem
+	{
 		static void execute_pool_source(struct android_poll_source* source, void (*callback)(const Event&, void*), void* userdata)
 		{
 			m_event_callback = callback;
@@ -508,7 +511,9 @@ namespace Engine::Platform
 
 			if (android_application()->destroyRequested != 0)
 			{
-				callback(Event(0, EventType::Quit), userdata);
+				AndroidEvent event;
+				event.type = EventType::Quit;
+				callback(event, userdata);
 			}
 
 			m_event_callback = nullptr;
@@ -538,7 +543,7 @@ namespace Engine::Platform
 		{
 			android_get_events(-1, callback, userdata);
 		}
-	}// namespace WindowManager
+	}// namespace EventSystem
 
 	void initialize_android_events_callbacks(struct android_app* app)
 	{

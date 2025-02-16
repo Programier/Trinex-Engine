@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/definitions.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <android_native_app_glue.h>
@@ -98,7 +99,7 @@ namespace Engine::Platform
 
 		while (m_android_platform_info.is_inited == false)
 		{
-			WindowManager::wait_for_events([](const Event& e, void*) {}, nullptr);
+			Platform::EventSystem::wait_for_events([](const Event& e, void*) {}, nullptr);
 		}
 
 		Path exec_dir = find_exec_directory();

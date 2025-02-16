@@ -13,6 +13,7 @@ namespace Engine::Mouse
 
 	enum Button : EnumerateType
 	{
+		Unknown,
 		Left,
 		Middle,
 		Right,

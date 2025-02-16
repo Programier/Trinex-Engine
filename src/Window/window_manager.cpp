@@ -12,6 +12,7 @@
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
+#include <Systems/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -31,11 +32,82 @@ namespace Engine
 		return image;
 	}
 
+	static void on_window_close(const Event& event)
+	{
+		WindowManager* manager = WindowManager::instance();
+
+		if (manager == nullptr)
+			return;
+
+		Window* window = manager->find(event.window_id);
+
+		if (manager->main_window() == window)
+		{
+			engine_instance->request_exit();
+		}
+		else if (window)
+		{
+			// Maybe the EventSystem will still send information about closing the window to other listeners.
+			// Therefore, we will postpone the deletion of the window until the beginning of the next frame
+
+			logic_thread()->call([id = window->id()]() {
+				// Let's check if the manager and the window still exist before deleting the window
+				if (auto manager = WindowManager::instance())
+				{
+					if (auto window = manager->find(id))
+					{
+						manager->destroy_window(window);
+					}
+				}
+			});
+		}
+	}
+
+	static void on_resize(const Event& event)
+	{
+		WindowManager* manager = WindowManager::instance();
+		Window* window         = manager->find(event.window_id);
+		if (!window)
+			return;
+
+		{
+			auto x                                = event.window.x;
+			auto y                                = event.window.y;
+			WindowRenderViewport* render_viewport = window->render_viewport();
+			if (render_viewport)
+			{
+				render_viewport->on_resize({x, y});
+			}
+		}
+	}
+
+	static void on_orientation_changed(const Event& event)
+	{
+		WindowManager* manager = WindowManager::instance();
+		Window* window         = manager->find(event.window_id);
+		if (!window)
+			return;
+
+		{
+			WindowRenderViewport* render_viewport = window->render_viewport();
+			if (render_viewport)
+			{
+				render_viewport->on_orientation_changed(event.display.orientation);
+			}
+		}
+	}
+
+
 	WindowManager* WindowManager::m_instance = nullptr;
 
 	WindowManager::WindowManager()
 	{
 		Platform::WindowManager::initialize();
+		EventSystem* event_system = System::system_of<EventSystem>();
+
+		event_system->add_listener(EventType::WindowClose, &on_window_close);
+		event_system->add_listener(EventType::WindowResized, on_resize);
+		event_system->add_listener(EventType::DisplayOrientationChanged, on_orientation_changed);
 	}
 
 	WindowManager& WindowManager::destroy_window(Window* window)
@@ -68,7 +140,7 @@ namespace Engine
 					}
 				}
 			}
-			
+
 			window->on_destroy(window);
 			Platform::WindowManager::destroy_window(window);
 		}
@@ -125,18 +197,6 @@ namespace Engine
 	WindowManager& WindowManager::mouse_relative_mode(bool flag)
 	{
 		Platform::WindowManager::mouse_relative_mode(flag);
-		return *this;
-	}
-
-	WindowManager& WindowManager::pool_events(void (*callback)(const Event& event, void* userdata), void* userdata)
-	{
-		Platform::WindowManager::pool_events(callback, userdata);
-		return *this;
-	}
-
-	WindowManager& WindowManager::wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata)
-	{
-		Platform::WindowManager::wait_for_events(callback, userdata);
 		return *this;
 	}
 

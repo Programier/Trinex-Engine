@@ -1,12 +1,13 @@
 #pragma once
+#include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
 
 
 namespace Engine
 {
 	class GameController;
+	struct Event;
 
 	class GameControllerSystem : public Singletone<GameControllerSystem, System>
 	{
@@ -15,7 +16,7 @@ namespace Engine
 
 	private:
 		Map<Identifier, GameController*> m_controllers;
-		Vector<EventSystemListenerID> m_callbacks_id;
+		Vector<Identifier> m_callbacks_id;
 
 		void on_controller_added(const Event& event);
 		void on_controller_removed(const Event& event);
@@ -24,8 +25,10 @@ namespace Engine
 
 		GameControllerSystem();
 
-	public:
+	protected:
 		virtual GameControllerSystem& create() override;
+
+	public:
 		virtual GameControllerSystem& wait() override;
 		virtual GameControllerSystem& update(float dt) override;
 		virtual GameControllerSystem& shutdown() override;

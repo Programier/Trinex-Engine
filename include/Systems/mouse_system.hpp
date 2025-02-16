@@ -1,12 +1,14 @@
 #pragma once
+#include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/mouse.hpp>
-#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
 
 namespace Engine
 {
 	class Window;
+	struct Event;
+
 	class ENGINE_EXPORT MouseSystem : public Singletone<MouseSystem, System>
 	{
 		declare_class(MouseSystem, System);
@@ -41,7 +43,7 @@ namespace Engine
 
 		mutable Map<Window*, MouseState> m_mouse_state;
 		static MouseSystem* m_instance;
-		Vector<EventSystemListenerID> m_callbacks_identifier;
+		Vector<Identifier> m_callbacks_identifier;
 
 		void on_motion_event(const Event& e);
 		void on_button_down_event(const Event& e);
@@ -52,8 +54,10 @@ namespace Engine
 		MouseSystem& process_buttons(MouseState& state);
 		MouseState& state_of(Window* window) const;
 
-	public:
+	protected:
 		MouseSystem& create() override;
+
+	public:
 		MouseSystem& wait() override;
 		MouseSystem& update(float dt) override;
 		MouseSystem& shutdown() override;

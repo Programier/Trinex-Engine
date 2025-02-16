@@ -8,9 +8,10 @@ namespace Engine
 	{
 		declare_class(EngineSystem, System);
 
-	private:
-	public:
+	protected:
 		EngineSystem& create() override;
+
+	public:
 		EngineSystem& update(float dt) override;
 		EngineSystem& create_systems_from_config();
 

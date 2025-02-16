@@ -1,8 +1,7 @@
 #include <Core/base_engine.hpp>
+#include <Core/event.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
-#include <Event/event.hpp>
-#include <Event/event_data.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window.hpp>
@@ -34,13 +33,52 @@ namespace Engine::Platform
 	}
 }// namespace Engine::Platform
 
+
 namespace Engine::Platform::WindowManager
+{
+	static Map<Sint32, SDL_GameController*> m_game_controllers;
+
+	ENGINE_EXPORT void initialize()
+	{
+		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS | SDL_INIT_SENSOR);
+	}
+
+	ENGINE_EXPORT void terminate()
+	{
+		for (auto& pair : m_game_controllers)
+		{
+			info_log("WindowSDL", "Force close controller with id %d", pair.first);
+			SDL_GameControllerClose(pair.second);
+		}
+
+		m_game_controllers.clear();
+
+		SDL_Quit();
+	}
+
+	ENGINE_EXPORT Window* create_window(const WindowConfig* config)
+	{
+		return (new WindowSDL())->sdl_initialize(config);
+	}
+
+	ENGINE_EXPORT void destroy_window(Window* window)
+	{
+		delete window;
+	}
+
+	ENGINE_EXPORT void mouse_relative_mode(bool flag)
+	{
+		SDL_SetRelativeMouseMode(static_cast<SDL_bool>(flag));
+	}
+}// namespace Engine::Platform::WindowManager
+
+namespace Engine::Platform::EventSystem
 {
 	template<typename Type>
 	using ValueMap = const Map<Uint8, Type>;
 
 	static ValueMap<GameController::Axis> axis_type = {
-	        {SDL_CONTROLLER_AXIS_INVALID, GameController::Axis::None},
+			{SDL_CONTROLLER_AXIS_INVALID, GameController::Axis::Unknown},
 	        {SDL_CONTROLLER_AXIS_LEFTX, GameController::Axis::LeftX},
 	        {SDL_CONTROLLER_AXIS_LEFTY, GameController::Axis::LeftY},
 	        {SDL_CONTROLLER_AXIS_TRIGGERLEFT, GameController::Axis::TriggerLeft},
@@ -177,44 +215,13 @@ namespace Engine::Platform::WindowManager
 	        {SDL_SCANCODE_MENU, Keyboard::Key::Menu},
 	};
 
+	static Event m_engine_event;
 	static SDL_Event m_event;
-	static Map<Sint32, SDL_GameController*> m_game_controllers;
 
-	ENGINE_EXPORT void initialize()
-	{
-		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS | SDL_INIT_SENSOR);
-	}
-
-	ENGINE_EXPORT void terminate()
-	{
-		for (auto& pair : m_game_controllers)
-		{
-			info_log("WindowSDL", "Force close controller with id %d", pair.first);
-			SDL_GameControllerClose(pair.second);
-		}
-
-		m_game_controllers.clear();
-
-		SDL_Quit();
-	}
-
-	ENGINE_EXPORT Window* create_window(const WindowConfig* config)
-	{
-		return (new WindowSDL())->sdl_initialize(config);
-	}
-
-	ENGINE_EXPORT void destroy_window(Window* window)
-	{
-		delete window;
-	}
-
-	ENGINE_EXPORT void mouse_relative_mode(bool flag)
-	{
-		SDL_SetRelativeMouseMode(static_cast<SDL_bool>(flag));
-	}
-
-#define new_event(a, b) callback(Event(m_event.window.windowID, EventType::a, b), userdata)
-#define new_event_typed(a, b) callback(Event(m_event.window.windowID, a, b), userdata)
+#define new_event(t)                                                                                                             \
+	m_engine_event.type = EventType::t;                                                                                          \
+	callback(m_engine_event, userdata);                                                                                          \
+	return
 
 	static void process_window_event(void (*callback)(const Event& event, void* userdata), void* userdata)
 	{
@@ -224,23 +231,22 @@ namespace Engine::Platform::WindowManager
 		switch (m_event.window.event)
 		{
 			case SDL_WINDOWEVENT_SHOWN:
-				new_event(WindowShown, WindowShownEvent());
-				break;
+				new_event(WindowShown);
+
 			case SDL_WINDOWEVENT_HIDDEN:
-				new_event(WindowHidden, WindowHiddenEvent());
-				break;
+				new_event(WindowHidden);
+
 
 			case SDL_WINDOWEVENT_MOVED:
 			{
-				WindowMovedEvent e;
-				e.x            = x;
-				Window* window = Engine::WindowManager::instance()->find(m_event.window.windowID);
+				m_engine_event.window.x = x;
+				Window* window          = Engine::WindowManager::instance()->find(m_event.window.windowID);
 				if (window)
 				{
-					size_t index = window->monitor_index();
-					auto info    = Platform::monitor_info(index);
-					e.y          = info.size.y - (y + window->size().y);
-					new_event(WindowMoved, e);
+					size_t index            = window->monitor_index();
+					auto info               = Platform::monitor_info(index);
+					m_engine_event.window.y = info.size.y - (y + window->size().y);
+					new_event(WindowMoved);
 				}
 				break;
 			}
@@ -250,45 +256,40 @@ namespace Engine::Platform::WindowManager
 			{
 				WindowSDL* window =
 				        reinterpret_cast<WindowSDL*>(Engine::WindowManager::instance()->find(m_event.window.windowID));
-				WindowResizedEvent e;
-				e.x = x;
-				e.y = y;
+
+				m_engine_event.window.x = x;
+				m_engine_event.window.y = y;
 
 				window->m_size.store({x, y});
-				new_event(WindowResized, e);
-				break;
+				new_event(WindowResized);
 			}
 
 			case SDL_WINDOWEVENT_MINIMIZED:
-				new_event(WindowMinimized, WindowMinimizedEvent());
-				break;
+				new_event(WindowMinimized);
+
 			case SDL_WINDOWEVENT_MAXIMIZED:
-				new_event(WindowMaximized, WindowMaximizedEvent());
-				break;
+				new_event(WindowMaximized);
+
 			case SDL_WINDOWEVENT_RESTORED:
-				new_event(WindowRestored, WindowResizedEvent());
-				break;
+				new_event(WindowRestored);
 
 			case SDL_WINDOWEVENT_TAKE_FOCUS:
 			case SDL_WINDOWEVENT_FOCUS_GAINED:
-				new_event(WindowFocusGained, WindowFocusGainedEvent());
-				break;
+				new_event(WindowFocusGained);
 
 			case SDL_WINDOWEVENT_FOCUS_LOST:
-				new_event(WindowFocusLost, WindowFocusLostEvent());
-				break;
+				new_event(WindowFocusLost);
 
 			case SDL_WINDOWEVENT_CLOSE:
-				new_event(WindowClose, WindowCloseEvent());
-				break;
+				new_event(WindowClose);
 		}
 	}
 
 	static void process_mouse_button(void (*callback)(const Event& event, void* userdata), void* userdata)
 	{
-		MouseButtonEvent button_event;
-		button_event.x = m_event.button.x;
-		button_event.y = m_event.button.y;
+		auto& button_event = m_engine_event.mouse.button;
+		button_event.x     = m_event.button.x;
+		button_event.y     = m_event.button.y;
 
 		auto it = mouse_buttons.find(m_event.button.button);
 		if (it != mouse_buttons.end())
@@ -298,37 +299,35 @@ namespace Engine::Platform::WindowManager
 
 		if (m_event.type == SDL_MOUSEBUTTONDOWN)
 		{
-			new_event(MouseButtonDown, button_event);
+			new_event(MouseButtonDown);
 		}
 		else
 		{
-			new_event(MouseButtonUp, button_event);
+			new_event(MouseButtonUp);
 		}
 	}
 
 	static void process_event(void (*callback)(const Event& event, void* userdata), void* userdata)
 	{
+		new (&m_engine_event) Event();
+		m_engine_event.window_id = m_event.window.windowID;
+
 		switch (m_event.type)
 		{
 			case SDL_QUIT:
-				new_event(Quit, QuitEvent());
-				break;
+				new_event(Quit);
 
 			case SDL_APP_TERMINATING:
-				new_event(AppTerminating, AppTerminatingEvent());
-				break;
+				new_event(AppTerminating);
 
 			case SDL_APP_LOWMEMORY:
-				new_event(Quit, AppLowMemoryEvent());
-				break;
+				new_event(Quit);
 
 			case SDL_APP_WILLENTERBACKGROUND:
-				new_event(AppPause, AppPauseEvent());
-				break;
+				new_event(AppPause);
 
 			case SDL_APP_DIDENTERFOREGROUND:
-				new_event(AppResume, AppResumeEvent());
-				break;
+				new_event(AppResume);
 
 			case SDL_DISPLAYEVENT:
 			{
@@ -345,12 +344,13 @@ namespace Engine::Platform::WindowManager
 			{
 				if (m_event.key.repeat == 0)
 				{
-					KeyEvent key_event;
+					auto& key_event = m_engine_event.keyboard;
+
 					auto it = keys.find(m_event.key.keysym.scancode);
 					if (it != keys.end())
 					{
 						key_event.key = it->second;
-						new_event(KeyDown, key_event);
+						new_event(KeyDown);
 					}
 					else
 					{
@@ -364,12 +364,13 @@ namespace Engine::Platform::WindowManager
 			{
 				if (m_event.key.repeat == 0)
 				{
-					KeyEvent key_event;
+					auto& key_event = m_engine_event.keyboard;
+
 					auto it = keys.find(m_event.key.keysym.scancode);
 					if (it != keys.end())
 					{
 						key_event.key = it->second;
-						new_event(KeyUp, key_event);
+						new_event(KeyUp);
 					}
 					else
 					{
@@ -385,38 +386,34 @@ namespace Engine::Platform::WindowManager
 				int w, h;
 				SDL_GetWindowSize(SDL_GetWindowFromID(m_event.window.windowID), &w, &h);
 
-				MouseMotionEvent mouse_motion;
-				mouse_motion.x    = m_event.motion.x;
-				mouse_motion.y    = h - m_event.motion.y;
-				mouse_motion.xrel = m_event.motion.xrel;
-				mouse_motion.yrel = -m_event.motion.yrel;
+				auto& mouse_motion = m_engine_event.mouse.motion;
+				mouse_motion.x     = m_event.motion.x;
+				mouse_motion.y     = h - m_event.motion.y;
+				mouse_motion.xrel  = m_event.motion.xrel;
+				mouse_motion.yrel  = -m_event.motion.yrel;
 
-				new_event(MouseMotion, mouse_motion);
-				break;
+				new_event(MouseMotion);
 			}
 
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 			{
 				process_mouse_button(callback, userdata);
-				break;
 			}
 
 			case SDL_MOUSEWHEEL:
 			{
-				MouseWheelEvent wheel_event;
-				wheel_event.x = m_event.wheel.preciseX;
-				wheel_event.y = m_event.wheel.preciseY;
-				new_event(MouseWheel, wheel_event);
-				break;
+				auto& wheel_event = m_engine_event.mouse.wheel;
+				wheel_event.x     = m_event.wheel.preciseX;
+				wheel_event.y     = m_event.wheel.preciseY;
+				new_event(MouseWheel);
 			}
 
 			case SDL_TEXTINPUT:
 			{
-				TextInputEvent text_event;
-				text_event.text = m_event.text.text;
-				new_event(TextInput, text_event);
-				break;
+				static_assert(SDL_TEXTINPUTEVENT_TEXT_SIZE == Event::TextInput::max_tex_len + 1);
+				std::memcpy(m_engine_event.text_input.text, m_event.text.text, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+				new_event(TextInput);
 			}
 
 				// case SDL_CONTROLLERDEVICEADDED:
@@ -477,4 +474,4 @@ namespace Engine::Platform::WindowManager
 		process_event(callback, userdata);
 		pool_events_loop(callback, userdata);
 	}
-}// namespace Engine::Platform::WindowManager
+}// namespace Engine::Platform::EventSystem

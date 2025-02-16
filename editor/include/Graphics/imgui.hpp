@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	class Event;
+	struct Event;
 	class RenderViewport;
 	class Window;
 }// namespace Engine

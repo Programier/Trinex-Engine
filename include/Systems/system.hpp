@@ -18,15 +18,17 @@ namespace Engine
 		Vector<System*> m_subsystems;
 		System* m_parent_system;
 
+		virtual System& create();
+
 	public:
 		System();
-		virtual System& create();
+
 		virtual System& wait();
 		virtual System& update(float dt);
 		virtual System& shutdown();
 		System& begin_destroy() override;
-		static System* new_system(const String& name);
-		static System* new_system(class Refl::Class* class_instance);
+		static System* system_of(const String& name);
+		static System* system_of(class Refl::Class* class_instance);
 
 		const Vector<System*>& subsystems() const;
 		System& register_subsystem(System* system);
@@ -40,9 +42,9 @@ namespace Engine
 		bool is_shutdowned() const;
 
 		template<typename SystemType>
-		static SystemType* new_system()
+		static SystemType* system_of()
 		{
-			return reinterpret_cast<SystemType*>(new_system(SystemType::static_class_instance()));
+			return reinterpret_cast<SystemType*>(system_of(SystemType::static_class_instance()));
 		}
 		~System();
 		Identifier id() const;

@@ -1,6 +1,5 @@
-#include <Core/reflection/class.hpp>
 #include <Core/game_controller.hpp>
-#include <Event/event_data.hpp>
+#include <Core/reflection/class.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/game_controller_system.hpp>
 
@@ -25,13 +24,8 @@ namespace Engine
 
 	void GameControllerSystem::on_axis_motion(const Event& event)
 	{
-		try
-		{
-			const ControllerAxisMotionEvent& e            = event.get<const ControllerAxisMotionEvent&>();
-			m_controllers.at(e.id)->m_axis_values[e.axis] = e.value;
-		}
-		catch (...)
-		{}
+		auto& motion                                            = event.gamepad.axis_motion;
+		m_controllers.at(motion.id)->m_axis_values[motion.axis] = motion.value;
 	}
 
 
@@ -42,7 +36,7 @@ namespace Engine
 	{
 		Super::create();
 
-		EventSystem* event_system = System::new_system<EventSystem>();
+		EventSystem* event_system = System::system_of<EventSystem>();
 		event_system->register_subsystem(this);
 
 		new_id(event_system->add_listener(EventType::ControllerDeviceAdded,

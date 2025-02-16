@@ -228,7 +228,7 @@ namespace Engine
 		return *this;
 	}
 
-	System* System::new_system(class Refl::Class* class_instance)
+	System* System::system_of(class Refl::Class* class_instance)
 	{
 		if (class_instance && class_instance->is_a(System::static_class_instance()))
 		{
@@ -243,9 +243,9 @@ namespace Engine
 		return nullptr;
 	}
 
-	System* System::new_system(const String& name)
+	System* System::system_of(const String& name)
 	{
-		return new_system(Refl::Class::static_find(name));
+		return system_of(Refl::Class::static_find(name));
 	}
 
 	const Vector<System*>& System::subsystems() const

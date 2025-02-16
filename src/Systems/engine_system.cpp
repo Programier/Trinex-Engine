@@ -27,7 +27,7 @@ namespace Engine
 	{
 		for (const String& system_name : Settings::systems)
 		{
-			System* system = System::new_system(system_name);
+			System* system = System::system_of(system_name);
 			if (system && system->parent_system() == nullptr)
 			{
 				register_subsystem(system);

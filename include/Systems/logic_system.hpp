@@ -8,8 +8,10 @@ namespace Engine
 	{
 		declare_class(LogicSystem, System);
 
-	public:
+	protected:
 		LogicSystem& create() override;
+
+	public:
 		LogicSystem& update(float dt) override;
 		LogicSystem& shutdown() override;
 		LogicSystem& wait() override;

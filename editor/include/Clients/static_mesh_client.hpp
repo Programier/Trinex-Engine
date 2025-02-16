@@ -1,8 +1,6 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
 #include <Core/pointer.hpp>
-#include <Event/event.hpp>
-#include <Event/listener_id.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/property_renderer.hpp>
@@ -19,7 +17,7 @@ namespace Engine
 		declare_class(StaticMeshClient, ImGuiEditorClient);
 
 		Vector3f m_camera_move;
-		Vector<EventSystemListenerID> m_listeners;
+		Vector<Identifier> m_listeners;
 		Pointer<StaticMesh> m_mesh;
 		StaticMeshActor* m_actor = nullptr;
 		Pointer<CameraComponent> m_camera;

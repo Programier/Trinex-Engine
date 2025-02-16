@@ -36,7 +36,7 @@ namespace Engine
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::reference_class("Engine::GameController");
 		ScriptEnumRegistrar axis_enum("Engine::GameController::Axis");
 
-		axis_enum.set("None", GameController::None);
+		axis_enum.set("Unknown", GameController::Unknown);
 		axis_enum.set("LeftX", GameController::LeftX);
 		axis_enum.set("LeftY", GameController::LeftY);
 		axis_enum.set("RightX", GameController::RightX);

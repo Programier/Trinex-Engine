@@ -1,9 +1,8 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/event.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Event/event.hpp>
-#include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Window/window.hpp>
@@ -16,7 +15,7 @@ namespace Engine
 	MouseSystem& MouseSystem::create()
 	{
 		Super::create();
-		EventSystem* event_system = System::new_system<EventSystem>();
+		EventSystem* event_system = System::system_of<EventSystem>();
 		event_system->register_subsystem(this);
 
 		m_callbacks_identifier.push_back(event_system->add_listener(
@@ -42,45 +41,44 @@ namespace Engine
 
 	void MouseSystem::on_motion_event(const Event& e)
 	{
-		const MouseMotionEvent& motion = e.get<const MouseMotionEvent&>();
-		if (Window* window = find_window(e.window_id()))
+		if (Window* window = find_window(e.window_id))
 		{
 			auto& state               = state_of(window);
-			state.m_pos_info.x_offset = motion.xrel;
-			state.m_pos_info.y_offset = motion.yrel;
-			state.m_pos_info.x        = motion.x;
-			state.m_pos_info.y        = motion.y;
+			state.m_pos_info.x_offset = e.mouse.motion.xrel;
+			state.m_pos_info.y_offset = e.mouse.motion.yrel;
+			state.m_pos_info.x        = e.mouse.motion.x;
+			state.m_pos_info.y        = e.mouse.motion.y;
 		}
 	}
 
 	void MouseSystem::on_button_down_event(const Event& e)
 	{
-		const MouseButtonEvent& button_event = e.get<const MouseButtonEvent&>();
-		if (Window* window = find_window(e.window_id()))
+		if (Window* window = find_window(e.window_id))
 		{
-			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(button_event.button)];
+			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(e.mouse.button.button)];
 			info.status      = Mouse::JustPressed;
-			info.x           = button_event.x;
-			info.y           = button_event.y;
+
+			info.x = e.mouse.button.x;
+			info.y = e.mouse.button.y;
 		}
 	}
 
 	void MouseSystem::on_button_up_event(const Event& e)
 	{
-		const MouseButtonEvent& button_event = e.get<const MouseButtonEvent&>();
-		if (Window* window = find_window(e.window_id()))
+
+		if (Window* window = find_window(e.window_id))
 		{
-			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(button_event.button)];
+			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(e.mouse.button.button)];
 			info.status      = Mouse::JustReleased;
 
-			info.x = button_event.x;
-			info.y = button_event.y;
+			info.x = e.mouse.button.x;
+			info.y = e.mouse.button.y;
 		}
 	}
 
 	void MouseSystem::on_window_close(const Event& e)
 	{
-		if (Window* window = find_window(e.window_id()))
+		if (Window* window = find_window(e.window_id))
 		{
 			m_mouse_state.erase(window);
 		}
@@ -88,12 +86,11 @@ namespace Engine
 
 	void MouseSystem::on_wheel_event(const Event& e)
 	{
-		if (Window* window = find_window(e.window_id()))
+		if (Window* window = find_window(e.window_id))
 		{
-			const MouseWheelEvent& wheel = e.get<const MouseWheelEvent&>();
-			auto& state                  = state_of(window);
-			state.m_wheel_info.x         = wheel.x;
-			state.m_wheel_info.y         = wheel.y;
+			auto& state          = state_of(window);
+			state.m_wheel_info.x = e.mouse.wheel.x;
+			state.m_wheel_info.y = e.mouse.wheel.y;
 		}
 	}
 

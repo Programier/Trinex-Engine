@@ -1,11 +1,11 @@
 #pragma once
 #include <Core/etl/singletone.hpp>
 #include <Core/keyboard.hpp>
-#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
 
 namespace Engine
 {
+	struct Event;
 	class ENGINE_EXPORT KeyboardSystem : public Singletone<KeyboardSystem, System>
 	{
 		declare_class(KeyboardSystem, System);
@@ -15,16 +15,17 @@ namespace Engine
 		Vector<Keyboard::Key> m_last_pressed_keys;
 		Vector<Keyboard::Key> m_last_released_keys;
 
-
-		EventSystemListenerID m_key_press_id, m_key_release_id;
+		Identifier m_key_press_id, m_key_release_id;
 
 		void on_key_pressed(const Event& event);
 		void on_key_released(const Event& event);
 		void process_last_keys(Vector<Keyboard::Key>& vector, Keyboard::Status status);
 		KeyboardSystem& set(Keyboard::Key key, Keyboard::Status status);
 
-	public:
+	protected:
 		KeyboardSystem& create() override;
+
+	public:
 		KeyboardSystem& wait() override;
 		KeyboardSystem& update(float dt) override;
 		KeyboardSystem& shutdown() override;

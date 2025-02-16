@@ -1,12 +1,11 @@
 #include <Clients/script_debuger_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/editor_config.hpp>
+#include <Core/event.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
-#include <Event/event.hpp>
-#include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Platform/platform.hpp>
@@ -866,8 +865,7 @@ namespace Engine
 	{
 		ScriptDebuggerClient* self = reinterpret_cast<ScriptDebuggerClient*>(userdata);
 
-		if (event.type() == EventType::Quit ||
-		    (event.type() == EventType::WindowClose && event.window_id() == self->window()->id()))
+		if (event.type == EventType::Quit || (event.type == EventType::WindowClose && event.window_id == self->window()->id()))
 		{
 			self->m_is_in_debug_loop = false;
 		}
@@ -881,9 +879,9 @@ namespace Engine
 		bool push_to_recieved_events = true;
 		ImGuiBackend_Window::on_event_recieved(event);
 
-		if (event.type() == EventType::KeyUp)
+		if (event.type == EventType::KeyUp)
 		{
-			auto& data = event.get<const KeyUpEvent&>();
+			auto& data = event.keyboard;
 
 			switch (data.key)
 			{
@@ -901,11 +899,11 @@ namespace Engine
 					break;
 			}
 		}
-		else if (event.type() == EventType::WindowResized && self->window()->id() == event.window_id())
+		else if (event.type == EventType::WindowResized && self->window()->id() == event.window_id)
 		{
-			const WindowEvent& window_event = event.get<const WindowEvent&>();
-			auto x                          = window_event.x;
-			auto y                          = window_event.y;
+			const auto& window_event = event.window;
+			auto x                   = window_event.x;
+			auto y                   = window_event.y;
 			self->viewport()->on_resize({x, y});
 
 			push_to_recieved_events = false;
@@ -929,7 +927,7 @@ namespace Engine
 			prev_time          = current_time;
 
 
-			Platform::WindowManager::pool_events(on_event_recieved, this);
+			Platform::EventSystem::pool_events(on_event_recieved, this);
 
 			if (m_is_in_debug_loop)
 			{

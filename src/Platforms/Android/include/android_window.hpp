@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/set.hpp>
 #include <EGL/egl.h>
 #include <Window/window.hpp>
 
@@ -25,15 +26,15 @@ namespace Engine
 		using Window::height;
 		using Window::size;
 		using Window::width;
-		
+
 		Size2D calc_size() const;
 
 		String title() override;
 		Window& title(const String& title) override;
 		Point2D position() override;
 		Window& position(const Point2D& position) override;
-		Window& width(const Size1D& width) override;
-		Window& height(const Size1D& height) override;
+		Window& width(float_t width) override;
+		Window& height(float_t height) override;
 		Window& size(const Size2D& size) override;
 		bool resizable() override;
 		Window& resizable(bool value) override;
@@ -51,7 +52,7 @@ namespace Engine
 		Window& opacity(float value) override;
 		float opacity() override;
 		void* native_window() override;
-		
+
 		virtual void resized();
 
 		Window& icon(const Image& image) override;

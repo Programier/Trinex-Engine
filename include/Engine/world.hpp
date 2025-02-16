@@ -29,13 +29,15 @@ namespace Engine
 		World& destroy_actor(Actor* actor, bool ignore_playing);
 		World& destroy_all_actors();
 
+	protected:
+		World& create() override;
+
 	public:
 		static World* current;
 
 		CallBacks<void(World*, Actor*)> on_actor_select;
 		CallBacks<void(World*, Actor*)> on_actor_unselect;
 
-		World& create() override;
 		World& wait() override;
 		World& update(float dt) override;
 		World& shutdown() override;

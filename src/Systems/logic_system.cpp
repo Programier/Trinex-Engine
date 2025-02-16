@@ -12,7 +12,7 @@ namespace Engine
 	LogicSystem& LogicSystem::create()
 	{
 		Super::create();
-		EngineSystem::new_system<EngineSystem>()->register_subsystem(this);
+		EngineSystem::system_of<EngineSystem>()->register_subsystem(this);
 		return *this;
 	}
 

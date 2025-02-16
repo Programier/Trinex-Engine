@@ -1,6 +1,5 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/touchscreen_system.hpp>
 #include <Window/window_manager.hpp>
@@ -13,15 +12,16 @@ namespace Engine
 	{
 		Super::create();
 
-		EventSystem* event_system = System::new_system<EventSystem>();
+		EventSystem* event_system = System::system_of<EventSystem>();
 		event_system->register_subsystem(this);
 
-		m_listeners = {
-		        event_system->add_listener(EventType::FingerDown, std::bind(&This::on_finger_down, this, std::placeholders::_1)),
-		        event_system->add_listener(EventType::FingerUp, std::bind(&This::on_finger_up, this, std::placeholders::_1)),
-		        event_system->add_listener(EventType::FingerMotion,
-		                                   std::bind(&This::on_finger_motion, this, std::placeholders::_1)),
-		};
+		m_listeners[0] =
+				event_system->add_listener(EventType::FingerDown, std::bind(&This::on_finger_down, this, std::placeholders::_1));
+		m_listeners[1] =
+				event_system->add_listener(EventType::FingerUp, std::bind(&This::on_finger_up, this, std::placeholders::_1));
+		m_listeners[2] = event_system->add_listener(EventType::FingerMotion,
+													std::bind(&This::on_finger_motion, this, std::placeholders::_1));
+
 		return *this;
 	}
 
@@ -103,10 +103,10 @@ namespace Engine
 
 	void TouchScreenSystem::on_finger_up(const Event& event)
 	{
-		if (auto window = WindowManager::instance()->find(event.window_id()))
+		if (auto window = WindowManager::instance()->find(event.window_id))
 		{
-			const FingerUpEvent& event_data = event.get<const FingerUpEvent&>();
-			auto& data   = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
+			auto& finger = event.touchscreen.finger;
+			auto& data   = validate_fingers(find_fingers_data(window), finger.index)[finger.index];
 			data.is_down = false;
 			data.x = data.y = -1.f;
 			data.x_offset = data.y_offset = 0.f;
@@ -115,28 +115,28 @@ namespace Engine
 
 	void TouchScreenSystem::on_finger_down(const Event& event)
 	{
-		if (auto window = WindowManager::instance()->find(event.window_id()))
+		if (auto window = WindowManager::instance()->find(event.window_id))
 		{
-			const FingerDownEvent& event_data = event.get<const FingerDownEvent&>();
-			auto& data    = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
+			auto& finger  = event.touchscreen.finger;
+			auto& data    = validate_fingers(find_fingers_data(window), finger.index)[finger.index];
 			data.is_down  = true;
-			data.x        = event_data.x;
-			data.y        = event_data.y;
+			data.x        = finger.x;
+			data.y        = finger.y;
 			data.x_offset = data.y_offset = 0.f;
 		}
 	}
 
 	void TouchScreenSystem::on_finger_motion(const Event& event)
 	{
-		if (auto window = WindowManager::instance()->find(event.window_id()))
+		if (auto window = WindowManager::instance()->find(event.window_id))
 		{
-			const FingerMotionEvent& event_data = event.get<const FingerMotionEvent&>();
-			auto& data    = validate_fingers(find_fingers_data(window), event_data.finger_index)[event_data.finger_index];
+			auto& finger  = event.touchscreen.finger_motion;
+			auto& data    = validate_fingers(find_fingers_data(window), finger.index)[finger.index];
 			data.is_down  = true;
-			data.x        = event_data.x;
-			data.y        = event_data.y;
-			data.x_offset = event_data.xrel;
-			data.y_offset = event_data.yrel;
+			data.x        = finger.x;
+			data.y        = finger.y;
+			data.x_offset = finger.xrel;
+			data.y_offset = finger.yrel;
 		}
 	}
 }// namespace Engine

@@ -1,8 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/event.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Event/event.hpp>
-#include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 
@@ -10,17 +9,14 @@ namespace Engine
 {
 	void KeyboardSystem::on_key_pressed(const Event& event)
 	{
-		const KeyEvent& key_event = event.get<const KeyEvent&>();
-		m_last_pressed_keys.push_back(key_event.key);
-		set(key_event.key, Keyboard::JustPressed);
+		m_last_pressed_keys.push_back(event.keyboard.key);
+		set(event.keyboard.key, Keyboard::JustPressed);
 	}
 
 	void KeyboardSystem::on_key_released(const Event& event)
 	{
-		const KeyEvent& key_event = event.get<const KeyEvent&>();
-
-		m_last_released_keys.push_back(key_event.key);
-		set(key_event.key, Keyboard::JustReleased);
+		m_last_released_keys.push_back(event.keyboard.key);
+		set(event.keyboard.key, Keyboard::JustReleased);
 	}
 
 	KeyboardSystem& KeyboardSystem::set(Keyboard::Key key, Keyboard::Status status)
@@ -34,7 +30,7 @@ namespace Engine
 		Super::create();
 
 		std::fill(m_key_status, m_key_status + Keyboard::__COUNT__, Keyboard::Released);
-		EventSystem* event_system = System::new_system<EventSystem>();
+		EventSystem* event_system = System::system_of<EventSystem>();
 		event_system->register_subsystem(this);
 
 		m_key_press_id = event_system->add_listener(EventType::KeyDown,
