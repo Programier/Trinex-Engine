@@ -5,14 +5,11 @@
 
 // Addons
 #include <Core/string_functions.hpp>
-#include <datetime.h>
 #include <scriptany.h>
 #include <scriptarray.h>
 #include <scriptbuilder.h>
 #include <scriptdictionary.h>
-#include <scriptgrid.h>
 #include <scripthelper.h>
-#include <scriptmath.h>
 #include <scriptstdstring.h>
 
 
@@ -29,13 +26,10 @@ namespace Engine
 	{
 		asIScriptEngine* engine = ScriptEngine::engine();
 
-		RegisterScriptDateTime(engine);
 		RegisterStdString(engine);
 		RegisterScriptArray(engine, true);
 		RegisterScriptAny(engine);
-		RegisterScriptMath(engine);
 		RegisterExceptionRoutines(engine);
-		RegisterScriptGrid(engine);
 		RegisterScriptDictionary(engine);
 		RegisterStdStringUtils(engine);
 

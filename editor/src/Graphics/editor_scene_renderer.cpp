@@ -57,7 +57,7 @@ namespace Engine
 		}
 	}
 
-	static void render_spot_light_overlay_colored(RenderPass* pass, SpotLightComponent* component, float angle, Vector4D color)
+	static void render_spot_light_overlay_colored(RenderPass* pass, SpotLightComponent* component, float angle, Vector4f color)
 	{
 		auto proxy         = component->proxy();
 		Material* material = EditorResources::spot_light_overlay_material;
@@ -179,17 +179,17 @@ namespace Engine
 		auto direction                        = proxy->direction();
 
 		constexpr float offset        = 0.5f;
-		const Vector3D forward_vector = transform.forward_vector();
-		const Vector3D right_vector   = transform.right_vector();
+		const Vector3f forward_vector = transform.forward_vector();
+		const Vector3f right_vector   = transform.right_vector();
 
-		Vector3D end_point        = location + direction * 3.f;
-		Vector3D arrow_base_point = end_point - direction * offset;
+		Vector3f end_point        = location + direction * 3.f;
+		Vector3f arrow_base_point = end_point - direction * offset;
 
 
 		static const ByteColor white = {255, 150, 150, 255};
 		static const ByteColor red   = {255, 0, 0, 255};
 
-		Vector3D arrow_points[4] = {
+		Vector3f arrow_points[4] = {
 		        arrow_base_point + forward_vector * offset / 2.f,
 		        arrow_base_point + right_vector * offset / 2.f,
 		        arrow_base_point + forward_vector * -offset / 2.f,

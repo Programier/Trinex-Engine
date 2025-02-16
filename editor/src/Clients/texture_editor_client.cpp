@@ -21,12 +21,12 @@ namespace Engine
 		register_client(Texture::static_class_instance(), static_class_instance());
 	}
 
-	static Vector2D max_texture_size_in_viewport(const Vector2D& texture_size, const Vector2D& viewport_size)
+	static Vector2f max_texture_size_in_viewport(const Vector2f& texture_size, const Vector2f& viewport_size)
 	{
 		float texture_aspect_ratio  = texture_size.x / texture_size.y;
 		float viewport_aspect_ratio = viewport_size.x / viewport_size.y;
 
-		Vector2D result_size;
+		Vector2f result_size;
 
 		if (texture_aspect_ratio > viewport_aspect_ratio)
 		{
@@ -137,7 +137,7 @@ namespace Engine
 		return *this;
 	}
 
-	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4D mask, float pow = 1.f)
+	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4f mask, float pow = 1.f)
 	{
 		RenderSurface* surfaces[] = {surface};
 
@@ -191,7 +191,7 @@ namespace Engine
 			m_surface->init(ColorFormat::R8G8B8A8, m_texture->size(m_mip_index));
 		}
 
-		Vector4D mask = Vector4D(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
+		Vector4f mask = Vector4f(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
 		render_thread()->call(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask, m_pow);
 		return *this;
 	}

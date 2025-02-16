@@ -246,7 +246,7 @@ namespace Engine
 		return SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR);
 	}
 
-	SceneRenderer& SceneRenderer::blit(class Texture2D* texture, const Vector2D& min, const Vector2D& max)
+	SceneRenderer& SceneRenderer::blit(class Texture2D* texture, const Vector2f& min, const Vector2f& max)
 	{
 		static Name screen_texture = "screen_texture";
 		static Name min_point      = "min_point";

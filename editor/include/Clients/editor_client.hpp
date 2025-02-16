@@ -16,7 +16,7 @@ namespace Engine
 	struct EditorState {
 		struct {
 			const Refl::Enum::Entry* view_mode_entry = nullptr;
-			Vector2D size                            = {0.f, 0.f};
+			Vector2f size                            = {0.f, 0.f};
 			bool show_additional_menu                = false;
 			bool is_hovered                          = false;
 			bool is_using_guizmo                     = false;
@@ -47,7 +47,7 @@ namespace Engine
 
 		Pointer<CameraComponent> camera;
 		float m_camera_speed     = 10.f;
-		Vector3D m_camera_move   = {0, 0, 0};
+		Vector3f m_camera_move   = {0, 0, 0};
 		int_t m_guizmo_operation = 0;
 		EditorState m_state;
 		Average<float, 60> m_average_fps = Average<float, 60>(60.f, 1);
@@ -76,7 +76,7 @@ namespace Engine
 		EditorClient& update_drag_and_drop();
 
 		EditorClient& update_camera(float dt);
-		EditorClient& raycast_objects(const Vector2D& coords);
+		EditorClient& raycast_objects(const Vector2f& coords);
 
 		// Inputs
 		void on_mouse_press(const Event& event);

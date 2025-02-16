@@ -559,7 +559,7 @@ namespace Engine
 					auto pos       = ed::ScreenToCanvas(ImGui::GetMousePos());
 					auto node      = material->create_node<VisualMaterialGraph::Texture2D>();
 					node->texture  = texture;
-					node->position = Vector2D(pos.x, pos.y);
+					node->position = Vector2f(pos.x, pos.y);
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -672,7 +672,7 @@ namespace Engine
 		ed::EndCreate();
 	}
 
-	static NodesSet copy_nodes(const NodesSet& nodes, const Vector2D& position_offset = {0, 0})
+	static NodesSet copy_nodes(const NodesSet& nodes, const Vector2f& position_offset = {0, 0})
 	{
 		Map<VisualMaterialGraph::Node*, VisualMaterialGraph::Node*> m_nodes_map;
 		NodesSet result;
@@ -710,7 +710,7 @@ namespace Engine
 		return result;
 	}
 
-	static NodesSet copy_selected_nodes(const Vector2D& position_offset = {0, 0})
+	static NodesSet copy_selected_nodes(const Vector2f& position_offset = {0, 0})
 	{
 		NodesSet m_nodes;
 
@@ -819,7 +819,7 @@ namespace Engine
 				ed::ClearSelection();
 				auto nodes = copy_nodes(m_graph_state.m_nodes);
 
-				Vector2D mid_point = {0, 0};
+				Vector2f mid_point = {0, 0};
 
 				for (auto& node : nodes)
 				{
@@ -829,7 +829,7 @@ namespace Engine
 
 				mid_point /= static_cast<float>(m_graph_state.m_nodes.size());
 
-				Vector2D difference = ImGui::EngineVecFrom(ImGui::GetMousePos()) - mid_point;
+				Vector2f difference = ImGui::EngineVecFrom(ImGui::GetMousePos()) - mid_point;
 
 				for (auto& node : nodes)
 				{

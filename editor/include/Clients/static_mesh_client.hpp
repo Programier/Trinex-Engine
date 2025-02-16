@@ -18,7 +18,7 @@ namespace Engine
 	{
 		declare_class(StaticMeshClient, ImGuiEditorClient);
 
-		Vector3D m_camera_move;
+		Vector3f m_camera_move;
 		Vector<EventSystemListenerID> m_listeners;
 		Pointer<StaticMesh> m_mesh;
 		StaticMeshActor* m_actor = nullptr;

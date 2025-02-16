@@ -6,11 +6,11 @@
 //namespace Engine
 //{
 //    struct ENGINE_EXPORT Plane {
-//        Vector3D normal = Constants::zero_vector;
+//        Vector3f normal = Constants::zero_vector;
 //        float distance = 0.f;
 
 //        Plane();
-//        Plane(const Vector3D& p1, const Vector3D& norm);
+//        Plane(const Vector3f& p1, const Vector3f& norm);
 //        float get_signed_distance_to_plan(const Point3D& point) const;
 //    };
 

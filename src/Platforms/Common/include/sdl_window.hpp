@@ -8,7 +8,7 @@ namespace Engine
 {
 	struct ENGINE_EXPORT WindowSDL : public Window {
 		using Window::m_size;
-		
+
 		Buffer m_icon_buffer;
 		Buffer m_cursor_icon_buffer;
 
@@ -21,14 +21,14 @@ namespace Engine
 		SDL_Event m_event;
 
 		Identifier m_id;
-		
-		using Window::width;
+
 		using Window::height;
 		using Window::size;
-		
+		using Window::width;
+
 		WindowSDL* sdl_initialize(const WindowConfig* config);
-		WindowSDL& width(const Size1D& width) override;
-		WindowSDL& height(const Size1D& height) override;
+		WindowSDL& width(float_t width) override;
+		WindowSDL& height(float_t height) override;
 		WindowSDL& size(const Size2D& size) override;
 		String title() override;
 		WindowSDL& title(const String& title) override;
@@ -48,7 +48,7 @@ namespace Engine
 		WindowSDL& opacity(float value) override;
 		float opacity() override;
 		WindowSDL& icon(const Image& image) override;
-		WindowSDL& cursor(const Image& image, IntVector2D hotspot) override;
+		WindowSDL& cursor(const Image& image, Vector2i hotspot) override;
 		WindowSDL& attribute(const WindowAttribute& attrib, bool value) override;
 		bool attribute(const WindowAttribute& attrib) override;
 		WindowSDL& cursor_mode(const CursorMode& mode) override;

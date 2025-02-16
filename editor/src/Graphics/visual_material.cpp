@@ -50,7 +50,7 @@ namespace Engine
 		return *this;
 	}
 
-	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2D& position)
+	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2f& position)
 	{
 		if (node_class->is_a<VisualMaterialGraph::Node>())
 		{

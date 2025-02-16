@@ -137,9 +137,9 @@ namespace Engine
 		ImGuiID m_dock_id;
 
 		Size2D m_monitor_size;
-		Vector3D m_location = {0, 0, 0};
-		Vector3D m_rotation = {0, 0, 0};
-		Vector3D m_scale    = {1, 1, 1};
+		Vector3f m_location = {0, 0, 0};
+		Vector3f m_rotation = {0, 0, 0};
+		Vector3f m_scale    = {1, 1, 1};
 		String m_name;
 		bool m_is_open = false;
 

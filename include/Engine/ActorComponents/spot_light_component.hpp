@@ -22,7 +22,7 @@ namespace Engine
 
 		SpotLightComponentProxy& inner_cone_angle(float value);
 		SpotLightComponentProxy& outer_cone_angle(float value);
-		Vector3D direction() const;
+		Vector3f direction() const;
 
 		friend class SpotLightComponent;
 	};
@@ -45,7 +45,7 @@ namespace Engine
 		SpotLightComponent& inner_cone_angle(float value);
 		SpotLightComponent& outer_cone_angle(float value);
 
-		Vector3D direction() const;
+		Vector3f direction() const;
 		SpotLightComponentProxy* proxy() const;
 
 		Type light_type() const override;

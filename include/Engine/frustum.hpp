@@ -7,11 +7,11 @@ namespace Engine
 	class AABB_3Df;
 
 	struct ENGINE_EXPORT Plane {
-		Vector3D normal;
+		Vector3f normal;
 		float distance;
 
 		Plane();
-		Plane(const Vector3D& p1, const Vector3D& norm);
+		Plane(const Vector3f& p1, const Vector3f& norm);
 		float signed_distance_to_plane(const Point3D& point) const;
 		bool is_on_or_forward(const Point3D& point) const;
 		bool is_on_or_forward(const AABB_3Df& box) const;

@@ -27,12 +27,12 @@ namespace Engine
 
 	public:
 		virtual void initialize(const WindowConfig&);
-		Size1D width();
-		Size1D height();
+		float_t width();
+		float_t height();
 		Size2D size();
 
-		virtual Window& width(const Size1D& width);
-		virtual Window& height(const Size1D& height);
+		virtual Window& width(float_t width);
+		virtual Window& height(float_t height);
 		virtual Window& size(const Size2D& size);
 		virtual String title();
 		virtual Window& title(const String& title);
@@ -52,7 +52,7 @@ namespace Engine
 		virtual Window& opacity(float value);
 		virtual float opacity();
 		virtual Window& icon(const Image& image);
-		virtual Window& cursor(const Image& image, IntVector2D hotspot = {0, 0});
+		virtual Window& cursor(const Image& image, Vector2i hotspot = {0, 0});
 		virtual Window& attribute(const WindowAttribute& attrib, bool value);
 		virtual bool attribute(const WindowAttribute& attrib);
 		virtual Window& cursor_mode(const CursorMode& mode);

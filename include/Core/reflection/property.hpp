@@ -339,7 +339,7 @@ private:
 		template<typename T>
 		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_struct_instance()), Struct*>>;
 
-		trinex_refl_prop_type_filter(std::is_class_v<T>&& is_detected_v<T, refl_detector>);
+		trinex_refl_prop_type_filter(std::is_class_v<T>&& is_detected_v<refl_detector, T>);
 
 	public:
 		using Property::Property;
@@ -373,8 +373,8 @@ private:
 		static Property* construct_element_property()
 		{
 			static Property* instance = []() -> Property* {
-				using Value                               = typename T::value_type;
-				constexpr Value ArrayProperty::*null_prop = nullptr;
+				using Value                                = typename T::value_type;
+				constexpr Value ArrayProperty::* null_prop = nullptr;
 				return Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Element"));
 			}();
 
@@ -543,7 +543,7 @@ private:
 		NativePropertyTyped& construct() override
 		{
 			Super::construct();
-			constexpr typename T::value_type T::*inner_prop = nullptr;
+			constexpr typename T::value_type T::* inner_prop = nullptr;
 
 			m_inner_property = Object::new_instance<NativeProperty<inner_prop>>(nullptr, "Value");
 			return *this;
@@ -605,8 +605,8 @@ private:
 		NativePropertyTyped& construct() override
 		{
 			Super::construct();
-			constexpr typename T::row_type T::*inner_prop = nullptr;
-			m_inner_property                              = Object::new_instance<NativeProperty<inner_prop>>(nullptr, "Value");
+			constexpr typename T::row_type T::* inner_prop = nullptr;
+			m_inner_property                               = Object::new_instance<NativeProperty<inner_prop>>(nullptr, "Value");
 			return *this;
 		}
 

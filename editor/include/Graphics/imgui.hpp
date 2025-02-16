@@ -174,22 +174,22 @@ namespace ImGui
 					 const ImVec2& uv1 = ImVec2(1, 0), const ImVec4& bg_col = ImVec4(0, 0, 0, 0),
 					 const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 
-	FORCE_INLINE ImVec2 ImVecFrom(const Engine::Vector2D& vec)
+	FORCE_INLINE ImVec2 ImVecFrom(const Engine::Vector2f& vec)
 	{
 		return {vec.x, vec.y};
 	}
 
-	FORCE_INLINE ImVec4 ImVecFrom(const Engine::Vector4D& vec)
+	FORCE_INLINE ImVec4 ImVecFrom(const Engine::Vector4f& vec)
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}
 
-	FORCE_INLINE Engine::Vector2D EngineVecFrom(const ImVec2& vec)
+	FORCE_INLINE Engine::Vector2f EngineVecFrom(const ImVec2& vec)
 	{
 		return {vec.x, vec.y};
 	}
 
-	FORCE_INLINE Engine::Vector4D EngineVecFrom(const ImVec4& vec)
+	FORCE_INLINE Engine::Vector4f EngineVecFrom(const ImVec4& vec)
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}

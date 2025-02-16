@@ -58,8 +58,8 @@ namespace Engine
 		return *this;
 	}
 
-	const SceneView& SceneView::screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
-	                                            Vector3D& world_direction) const
+	const SceneView& SceneView::screen_to_world(const Vector2f& screen_point, Vector3f& world_origin,
+	                                            Vector3f& world_direction) const
 	{
 		int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
 
@@ -70,14 +70,14 @@ namespace Engine
 
 		float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
 		float screen_space_y                = (y - m_size.y / 2.f) / (m_size.y / 2.f);
-		Vector4D ray_start_projection_space = Vector4D(screen_space_x, screen_space_y, 0.f, 1.0f);
-		Vector4D ray_end_projection_space   = Vector4D(screen_space_x, screen_space_y, 0.5f, 1.0f);
+		Vector4f ray_start_projection_space = Vector4f(screen_space_x, screen_space_y, 0.f, 1.0f);
+		Vector4f ray_end_projection_space   = Vector4f(screen_space_x, screen_space_y, 0.5f, 1.0f);
 
-		Vector4D hg_ray_start_view_space = inverse_projection * ray_start_projection_space;
-		Vector4D hg_ray_end_view_space   = inverse_projection * ray_end_projection_space;
+		Vector4f hg_ray_start_view_space = inverse_projection * ray_start_projection_space;
+		Vector4f hg_ray_end_view_space   = inverse_projection * ray_end_projection_space;
 
-		Vector3D ray_start_view_space(hg_ray_start_view_space.x, hg_ray_start_view_space.y, hg_ray_start_view_space.z);
-		Vector3D ray_end_view_space(hg_ray_end_view_space.x, hg_ray_end_view_space.y, hg_ray_end_view_space.z);
+		Vector3f ray_start_view_space(hg_ray_start_view_space.x, hg_ray_start_view_space.y, hg_ray_start_view_space.z);
+		Vector3f ray_end_view_space(hg_ray_end_view_space.x, hg_ray_end_view_space.y, hg_ray_end_view_space.z);
 
 		if (hg_ray_start_view_space.w != 0.0f)
 		{
@@ -88,19 +88,19 @@ namespace Engine
 			ray_end_view_space /= hg_ray_end_view_space.w;
 		}
 
-		Vector3D ray_dir_view_space = ray_end_view_space - ray_start_view_space;
+		Vector3f ray_dir_view_space = ray_end_view_space - ray_start_view_space;
 		ray_dir_view_space          = glm::normalize(ray_dir_view_space);
 
-		Vector3D ray_dir_world_space = inverse_view * Vector4D(ray_dir_view_space, 0.f);
+		Vector3f ray_dir_world_space = inverse_view * Vector4f(ray_dir_view_space, 0.f);
 
 		world_origin    = m_camera_view.location;
 		world_direction = glm::normalize(ray_dir_world_space);
 		return *this;
 	}
 
-	Vector4D SceneView::world_to_screen(const Vector3D& world_point) const
+	Vector4f SceneView::world_to_screen(const Vector3f& world_point) const
 	{
-		return m_projview * Vector4D(world_point, 1.f);
+		return m_projview * Vector4f(world_point, 1.f);
 	}
 
 }// namespace Engine

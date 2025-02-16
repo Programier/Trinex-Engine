@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
+#include <Core/etl/templates.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
 #include <ScriptEngine/script_function.hpp>
 
@@ -111,7 +112,6 @@ namespace Engine
 		template<typename T, typename... Args>
 		static void constructor(T* memory, Args... args)
 		{
-			std::fill(reinterpret_cast<byte*>(memory), reinterpret_cast<byte*>(memory) + sizeof(T), 0);
 			new (memory) T(args...);
 		}
 

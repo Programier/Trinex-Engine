@@ -401,20 +401,20 @@ namespace Engine::VisualMaterialGraph
 	using IntInputPin       = TypedPin<PinType::Int, int_t, InputPin>;
 	using UIntInputPin      = TypedPin<PinType::UInt, uint_t, InputPin>;
 	using FloatInputPin     = TypedPin<PinType::Float, float, InputPin>;
-	using BVec2InputPin     = TypedPin<PinType::BVec2, BoolVector2D, InputPin>;
-	using BVec3InputPin     = TypedPin<PinType::BVec3, BoolVector3D, InputPin>;
-	using BVec4InputPin     = TypedPin<PinType::BVec4, BoolVector4D, InputPin>;
-	using IVec2InputPin     = TypedPin<PinType::IVec2, IntVector2D, InputPin>;
-	using IVec3InputPin     = TypedPin<PinType::IVec3, IntVector3D, InputPin>;
-	using IVec4InputPin     = TypedPin<PinType::IVec4, IntVector4D, InputPin>;
-	using UVec2InputPin     = TypedPin<PinType::UVec2, UIntVector2D, InputPin>;
-	using UVec3InputPin     = TypedPin<PinType::UVec3, UIntVector3D, InputPin>;
-	using UVec4InputPin     = TypedPin<PinType::UVec4, UIntVector4D, InputPin>;
-	using Vec2InputPin      = TypedPin<PinType::Vec2, Vector2D, InputPin>;
-	using Vec3InputPin      = TypedPin<PinType::Vec3, Vector3D, InputPin>;
-	using Color3InputPin    = TypedPin<PinType::Color3, Vector3D, InputPin>;
-	using Vec4InputPin      = TypedPin<PinType::Vec4, Vector4D, InputPin>;
-	using Color4InputPin    = TypedPin<PinType::Color4, Vector4D, InputPin>;
+	using BVec2InputPin     = TypedPin<PinType::BVec2, Vector2b, InputPin>;
+	using BVec3InputPin     = TypedPin<PinType::BVec3, Vector3b, InputPin>;
+	using BVec4InputPin     = TypedPin<PinType::BVec4, Vector4b, InputPin>;
+	using IVec2InputPin     = TypedPin<PinType::IVec2, Vector2i, InputPin>;
+	using IVec3InputPin     = TypedPin<PinType::IVec3, Vector3i, InputPin>;
+	using IVec4InputPin     = TypedPin<PinType::IVec4, Vector4i, InputPin>;
+	using UVec2InputPin     = TypedPin<PinType::UVec2, Vector2u, InputPin>;
+	using UVec3InputPin     = TypedPin<PinType::UVec3, Vector3u, InputPin>;
+	using UVec4InputPin     = TypedPin<PinType::UVec4, Vector4u, InputPin>;
+	using Vec2InputPin      = TypedPin<PinType::Vec2, Vector2f, InputPin>;
+	using Vec3InputPin      = TypedPin<PinType::Vec3, Vector3f, InputPin>;
+	using Color3InputPin    = TypedPin<PinType::Color3, Vector3f, InputPin>;
+	using Vec4InputPin      = TypedPin<PinType::Vec4, Vector4f, InputPin>;
+	using Color4InputPin    = TypedPin<PinType::Color4, Vector4f, InputPin>;
 	using Mat3InputPin      = TypedPin<PinType::Mat3, Matrix3f, InputPin>;
 	using Mat4InputPin      = TypedPin<PinType::Mat4, Matrix4f, InputPin>;
 	using SamplerInputPin   = TypedPin<PinType::Sampler, Pointer<Engine::Sampler>, InputPin>;
@@ -447,20 +447,20 @@ namespace Engine::VisualMaterialGraph
 	using IntOutputPin       = TypedPin<PinType::Int, int_t, OutputPin>;
 	using UIntOutputPin      = TypedPin<PinType::UInt, uint_t, OutputPin>;
 	using FloatOutputPin     = TypedPin<PinType::Float, float, OutputPin>;
-	using BVec2OutputPin     = TypedPin<PinType::BVec2, BoolVector2D, OutputPin>;
-	using BVec3OutputPin     = TypedPin<PinType::BVec3, BoolVector3D, OutputPin>;
-	using BVec4OutputPin     = TypedPin<PinType::BVec4, BoolVector4D, OutputPin>;
-	using IVec2OutputPin     = TypedPin<PinType::IVec2, IntVector2D, OutputPin>;
-	using IVec3OutputPin     = TypedPin<PinType::IVec3, IntVector3D, OutputPin>;
-	using IVec4OutputPin     = TypedPin<PinType::IVec4, IntVector4D, OutputPin>;
-	using UVec2OutputPin     = TypedPin<PinType::UVec2, UIntVector2D, OutputPin>;
-	using UVec3OutputPin     = TypedPin<PinType::UVec3, UIntVector3D, OutputPin>;
-	using UVec4OutputPin     = TypedPin<PinType::UVec4, UIntVector4D, OutputPin>;
-	using Vec2OutputPin      = TypedPin<PinType::Vec2, Vector2D, OutputPin>;
-	using Vec3OutputPin      = TypedPin<PinType::Vec3, Vector3D, OutputPin>;
-	using Color3OutputPin    = TypedPin<PinType::Color3, Vector3D, OutputPin>;
-	using Vec4OutputPin      = TypedPin<PinType::Vec4, Vector4D, OutputPin>;
-	using Color4OutputPin    = TypedPin<PinType::Color4, Vector4D, OutputPin>;
+	using BVec2OutputPin     = TypedPin<PinType::BVec2, Vector2b, OutputPin>;
+	using BVec3OutputPin     = TypedPin<PinType::BVec3, Vector3b, OutputPin>;
+	using BVec4OutputPin     = TypedPin<PinType::BVec4, Vector4b, OutputPin>;
+	using IVec2OutputPin     = TypedPin<PinType::IVec2, Vector2i, OutputPin>;
+	using IVec3OutputPin     = TypedPin<PinType::IVec3, Vector3i, OutputPin>;
+	using IVec4OutputPin     = TypedPin<PinType::IVec4, Vector4i, OutputPin>;
+	using UVec2OutputPin     = TypedPin<PinType::UVec2, Vector2u, OutputPin>;
+	using UVec3OutputPin     = TypedPin<PinType::UVec3, Vector3u, OutputPin>;
+	using UVec4OutputPin     = TypedPin<PinType::UVec4, Vector4u, OutputPin>;
+	using Vec2OutputPin      = TypedPin<PinType::Vec2, Vector2f, OutputPin>;
+	using Vec3OutputPin      = TypedPin<PinType::Vec3, Vector3f, OutputPin>;
+	using Color3OutputPin    = TypedPin<PinType::Color3, Vector3f, OutputPin>;
+	using Vec4OutputPin      = TypedPin<PinType::Vec4, Vector4f, OutputPin>;
+	using Color4OutputPin    = TypedPin<PinType::Color4, Vector4f, OutputPin>;
 	using Mat3OutputPin      = TypedPin<PinType::Mat3, Matrix3f, OutputPin>;
 	using Mat4OutputPin      = TypedPin<PinType::Mat4, Matrix4f, OutputPin>;
 	using SamplerOutputPin   = TypedPin<PinType::Sampler, Pointer<Engine::Sampler>, OutputPin>;
@@ -516,7 +516,7 @@ namespace Engine::VisualMaterialGraph
 		void add_pin(InputPin* pin);
 		void add_pin(OutputPin* pin);
 
-		Vector4D script_header_color() const;
+		Vector4f script_header_color() const;
 		const NodeSignature& script_signature() const;
 		Expression script_compile(OutputPin* pin, CompilerState& state);
 		Expression script_compile(InputPin* pin, CompilerState& state);
@@ -526,7 +526,7 @@ namespace Engine::VisualMaterialGraph
 	public:
 		template<typename NativeClass>
 		struct Scriptable : Super::Scriptable<NativeClass> {
-			Vector4D header_color() const override
+			Vector4f header_color() const override
 			{
 				return static_cast<const Node*>(this)->script_header_color();
 			}
@@ -560,7 +560,7 @@ namespace Engine::VisualMaterialGraph
 		};
 
 
-		Vector2D position = {0, 0};
+		Vector2f position = {0, 0};
 
 		FORCE_INLINE Identifier id() const
 		{
@@ -568,7 +568,7 @@ namespace Engine::VisualMaterialGraph
 		}
 
 		bool is_root_node() const;
-		virtual Vector4D header_color() const;
+		virtual Vector4f header_color() const;
 
 		virtual const NodeSignature& signature() const;
 		virtual Expression compile(OutputPin* pin, CompilerState& state);

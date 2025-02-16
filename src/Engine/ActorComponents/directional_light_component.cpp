@@ -13,17 +13,17 @@ namespace Engine
 {
 	implement_engine_class_default_init(DirectionalLightComponent, 0);
 
-	static Vector3D get_direction(const Transform& world_transform)
+	static Vector3f get_direction(const Transform& world_transform)
 	{
 		return -world_transform.up_vector();
 	}
 
-	Vector3D DirectionalLightComponentProxy::direction() const
+	Vector3f DirectionalLightComponentProxy::direction() const
 	{
 		return get_direction(world_transform());
 	}
 
-	Vector3D DirectionalLightComponent::direction() const
+	Vector3f DirectionalLightComponent::direction() const
 	{
 		return get_direction(world_transform());
 	}

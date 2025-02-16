@@ -119,7 +119,7 @@ namespace Engine
 		}
 	}
 
-	Size2D Font::calc_text_size(const StringView& text, UIntVector2D font_size) const
+	Size2D Font::calc_text_size(const StringView& text, Vector2u font_size) const
 	{
 		if (!is_valid() || text.empty())
 			return {0, 0};

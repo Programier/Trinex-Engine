@@ -130,7 +130,7 @@ namespace Engine
 		return *this;
 	}
 
-	Actor* World::spawn_actor(class Refl::Class* self, const Vector3D& location, const Vector3D& rotation, const Vector3D& scale,
+	Actor* World::spawn_actor(class Refl::Class* self, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale,
 	                          const Name& actor_name)
 	{
 		if (!self)

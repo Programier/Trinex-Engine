@@ -51,24 +51,24 @@ namespace Engine
 		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
 		r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
 
-		r.method("const Transform& local_transform() const final", method_of<SceneComponent&>(&This::local_transform));
+		r.method("const Transform& local_transform() const final", method_of<const Transform&>(&This::local_transform));
 		r.method("const Transform& world_transform() const final", &This::world_transform);
 		r.method("SceneComponent@ local_transform(const Transform&) final",
 				 method_of<SceneComponent&, const Transform&>(&This::local_transform));
 		r.method("SceneComponent@ add_local_transform(const Transform&) final", &This::add_local_transform);
 		r.method("SceneComponent@ remove_local_transform(const Transform&) final", &This::remove_local_transform);
-		r.method("SceneComponent@ location(const Vector3D& new_location) final", &This::location);
-		r.method("SceneComponent@ rotation(const Vector3D& new_rotation) final",
-				 method_of<SceneComponent&, const Vector3D&>(&This::rotation));
+		r.method("SceneComponent@ location(const Vector3f& new_location) final", &This::location);
+		r.method("SceneComponent@ rotation(const Vector3f& new_rotation) final",
+				 method_of<SceneComponent&, const Vector3f&>(&This::rotation));
 		r.method("SceneComponent@ rotation(const Quaternion& new_rotation) final",
 				 method_of<SceneComponent&, const Quaternion&>(&This::rotation));
-		r.method("SceneComponent@ scale(const Vector3D& new_scale) final", &This::scale);
-		r.method("SceneComponent@ add_location(const Vector3D& delta) final", &This::add_location);
-		r.method("SceneComponent@ add_rotation(const Vector3D& delta) final",
-				 method_of<SceneComponent&, const Vector3D&>(&This::add_rotation));
+		r.method("SceneComponent@ scale(const Vector3f& new_scale) final", &This::scale);
+		r.method("SceneComponent@ add_location(const Vector3f& delta) final", &This::add_location);
+		r.method("SceneComponent@ add_rotation(const Vector3f& delta) final",
+				 method_of<SceneComponent&, const Vector3f&>(&This::add_rotation));
 		r.method("SceneComponent@ add_rotation(const Quaternion& delta) final",
 				 method_of<SceneComponent&, const Quaternion&>(&This::add_rotation));
-		r.method("SceneComponent@ add_scale(const Vector3D& delta) final", &This::add_scale);
+		r.method("SceneComponent@ add_scale(const Vector3f& delta) final", &This::add_scale);
 
 		script_scene_comp_transform_changed =
 				r.method("void on_transform_changed()", trinex_scoped_void_method(This, on_transform_changed));
@@ -265,7 +265,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::location(const Vector3D& new_location)
+	SceneComponent& SceneComponent::location(const Vector3f& new_location)
 	{
 		is_in_logic_thread_checked();
 		m_local.location(new_location);
@@ -283,7 +283,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::rotation(const Vector3D& new_rotation)
+	SceneComponent& SceneComponent::rotation(const Vector3f& new_rotation)
 	{
 		is_in_logic_thread_checked();
 		m_local.rotation(new_rotation);
@@ -291,7 +291,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::scale(const Vector3D& new_scale)
+	SceneComponent& SceneComponent::scale(const Vector3f& new_scale)
 	{
 		is_in_logic_thread_checked();
 		m_local.scale(new_scale);
@@ -299,7 +299,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::add_location(const Vector3D& delta)
+	SceneComponent& SceneComponent::add_location(const Vector3f& delta)
 	{
 		is_in_logic_thread_checked();
 		m_local.add_location(delta);
@@ -307,7 +307,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::add_rotation(const Vector3D& delta)
+	SceneComponent& SceneComponent::add_rotation(const Vector3f& delta)
 	{
 		is_in_logic_thread_checked();
 		m_local.add_rotation(delta);
@@ -323,7 +323,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::add_scale(const Vector3D& delta)
+	SceneComponent& SceneComponent::add_scale(const Vector3f& delta)
 	{
 		is_in_logic_thread_checked();
 		m_local.add_scale(delta);

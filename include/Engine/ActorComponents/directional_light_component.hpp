@@ -6,7 +6,7 @@ namespace Engine
 	class ENGINE_EXPORT DirectionalLightComponentProxy : public LightComponentProxy
 	{
 	public:
-		Vector3D direction() const;
+		Vector3f direction() const;
 		friend class DirectionalLightComponent;
 	};
 
@@ -15,7 +15,7 @@ namespace Engine
 		declare_class(DirectionalLightComponent, LightComponent);
 
 	public:
-		Vector3D direction() const;
+		Vector3f direction() const;
 
 		Type light_type() const override;
 		ActorComponentProxy* create_proxy() override;

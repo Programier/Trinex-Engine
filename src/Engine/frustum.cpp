@@ -8,7 +8,7 @@ namespace Engine
 	Plane::Plane() : normal(Constants::zero_vector), distance(0.f)
 	{}
 
-	Plane::Plane(const Vector3D& _p1, const Vector3D& _normal) : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
+	Plane::Plane(const Vector3f& _p1, const Vector3f& _normal) : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
 	{}
 
 	float Plane::signed_distance_to_plane(const Point3D& point) const
@@ -38,7 +38,7 @@ namespace Engine
 		const float half_v_side = view.far_clip_plane * glm::tan(glm::radians(view.fov) * 0.5f);
 		const float half_h_side = half_v_side * view.aspect_ratio;
 
-		const Vector3D front_mult_far = view.far_clip_plane * view.forward_vector;
+		const Vector3f front_mult_far = view.far_clip_plane * view.forward_vector;
 
 		near = {view.location + view.near_clip_plane * view.forward_vector, view.forward_vector};
 		far  = {view.location + front_mult_far, -view.forward_vector};

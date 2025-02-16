@@ -29,7 +29,7 @@ namespace Engine
 				return (x << 2) | (y << 1) | z;
 			}
 
-			FORCE_INLINE Vector3D factor() const
+			FORCE_INLINE Vector3f factor() const
 			{
 				return {x == 1 ? 1.0f : -1.0f, y == 1 ? 1.0f : -1.0f, z == 1 ? 1.0f : -1.0f};
 			}

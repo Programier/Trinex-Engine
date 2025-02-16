@@ -34,7 +34,7 @@ namespace Engine
 		return view_matrix(location, forward_vector, up_vector);
 	}
 
-	ENGINE_EXPORT Matrix4f CameraView::view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector)
+	ENGINE_EXPORT Matrix4f CameraView::view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector)
 	{
 		return glm::lookAt(position, position + direction, up_vector);
 	}
@@ -75,7 +75,7 @@ namespace Engine
 		return view_matrix(global_transfrom.location(), global_transfrom.forward_vector(), global_transfrom.up_vector());
 	}
 
-	Matrix4f CameraComponent::view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector)
+	Matrix4f CameraComponent::view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector)
 	{
 		return glm::lookAt(position, position + direction, up_vector);
 	}

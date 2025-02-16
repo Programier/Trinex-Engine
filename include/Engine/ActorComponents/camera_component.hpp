@@ -23,6 +23,6 @@ namespace Engine
 		CameraView camera_view() const;
 		Matrix4f projection_matrix();
 		Matrix4f view_matrix();
-		static Matrix4f view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector);
+		static Matrix4f view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector);
 	};
 }// namespace Engine

@@ -12,15 +12,15 @@ namespace Engine
 		alignas(16) Matrix4f projview;
 		alignas(16) Matrix4f inv_projview;
 
-		alignas(16) Vector4D viewport;
+		alignas(16) Vector4f viewport;
 
-		alignas(16) Vector3D camera_location;
-		alignas(16) Vector3D camera_forward;
-		alignas(16) Vector3D camera_right;
-		alignas(16) Vector3D camera_up;
+		alignas(16) Vector3f camera_location;
+		alignas(16) Vector3f camera_forward;
+		alignas(16) Vector3f camera_right;
+		alignas(16) Vector3f camera_up;
 
-		alignas(8) Vector2D size;
-		alignas(8) Vector2D depth_range;
+		alignas(8) Vector2f size;
+		alignas(8) Vector2f depth_range;
 
 		alignas(4) float gamma;
 		alignas(4) float time;
@@ -34,7 +34,7 @@ namespace Engine
 		alignas(4) float aspect_ratio;
 		alignas(4) int camera_projection_mode;
 
-		alignas(8) Vector2D padding;
+		alignas(8) Vector2f padding;
 
 		GlobalShaderParameters& update(const class SceneView* scene_view, Size2D render_target_size = {-1.f, -1.f});
 	};

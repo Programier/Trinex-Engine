@@ -32,11 +32,11 @@ namespace Engine
 		scale.add_change_listener(on_prop_changed);
 	}
 
-	Transform::Transform(const Vector3D& location, const Vector3D& rotation, const Vector3D& scale)
+	Transform::Transform(const Vector3f& location, const Vector3f& rotation, const Vector3f& scale)
 		: m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
 	{}
 
-	Transform::Transform(const Vector3D& location, const Quaternion& rotation, const Vector3D& scale)
+	Transform::Transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale)
 		: Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
 	{}
 
@@ -51,8 +51,8 @@ namespace Engine
 	Transform& Transform::operator=(const Matrix4f& matrix)
 	{
 		static Quaternion quat;
-		static Vector3D skew;
-		static Vector4D perspective;
+		static Vector3f skew;
+		static Vector4f perspective;
 		glm::decompose(matrix, m_scale, quat, m_location, skew, perspective);
 		rotation(quat);
 		m_matrix   = matrix;
@@ -75,12 +75,12 @@ namespace Engine
 		return glm::scale(Matrix4f(1.f), m_scale);
 	}
 
-	const Vector3D& Transform::location() const
+	const Vector3f& Transform::location() const
 	{
 		return m_location;
 	}
 
-	const Vector3D& Transform::rotation() const
+	const Vector3f& Transform::rotation() const
 	{
 		return m_rotation;
 	}
@@ -90,17 +90,17 @@ namespace Engine
 		return angles_to_quaternion(m_rotation);
 	}
 
-	Quaternion Transform::angles_to_quaternion(const Vector3D& angles)
+	Quaternion Transform::angles_to_quaternion(const Vector3f& angles)
 	{
 		return Quaternion(glm::radians(angles));
 	}
 
-	Vector3D Transform::quaternion_to_angles(const Quaternion& quat)
+	Vector3f Transform::quaternion_to_angles(const Quaternion& quat)
 	{
 		return glm::degrees(glm::eulerAngles(quat));
 	}
 
-	Transform& Transform::location(const Vector3D& new_location)
+	Transform& Transform::location(const Vector3f& new_location)
 	{
 		m_location = new_location;
 		m_is_dirty = true;
@@ -112,33 +112,33 @@ namespace Engine
 		return rotation(glm::degrees(glm::eulerAngles(new_rotation)));
 	}
 
-	Transform& Transform::rotation(const Vector3D& new_rotation)
+	Transform& Transform::rotation(const Vector3f& new_rotation)
 	{
 		m_rotation = new_rotation;
 		m_is_dirty = true;
 		return *this;
 	}
 
-	Transform& Transform::scale(const Vector3D& new_scale)
+	Transform& Transform::scale(const Vector3f& new_scale)
 	{
 		m_scale    = new_scale;
 		m_is_dirty = true;
 		return *this;
 	}
 
-	const Vector3D& Transform::scale() const
+	const Vector3f& Transform::scale() const
 	{
 		return m_scale;
 	}
 
-	Transform& Transform::add_location(const Vector3D& delta)
+	Transform& Transform::add_location(const Vector3f& delta)
 	{
 		m_location += delta;
 		m_is_dirty = true;
 		return *this;
 	}
 
-	Transform& Transform::add_rotation(const Vector3D& delta)
+	Transform& Transform::add_rotation(const Vector3f& delta)
 	{
 		m_rotation += delta;
 		m_is_dirty = true;
@@ -150,14 +150,14 @@ namespace Engine
 		return add_rotation(glm::degrees(glm::eulerAngles(delta)));
 	}
 
-	Transform& Transform::add_scale(const Vector3D& delta)
+	Transform& Transform::add_scale(const Vector3f& delta)
 	{
 		m_scale *= delta;
 		m_is_dirty = true;
 		return *this;
 	}
 
-	Transform& Transform::look_at(const Vector3D& position, const Vector3D& up)
+	Transform& Transform::look_at(const Vector3f& position, const Vector3f& up)
 	{
 		Transform::operator=(glm::inverse(glm::lookAt(location(), position, up)) * scale_matrix());
 		return *this;
@@ -232,22 +232,22 @@ namespace Engine
 		return m_matrix;
 	}
 
-	Vector3D Transform::vector_of(const Vector3D& dir) const
+	Vector3f Transform::vector_of(const Vector3f& dir) const
 	{
 		return glm::normalize(glm::mat3_cast(Quaternion(glm::radians(m_rotation))) * dir);
 	}
 
-	Vector3D Transform::forward_vector() const
+	Vector3f Transform::forward_vector() const
 	{
 		return vector_of(Constants::forward_vector);
 	}
 
-	Vector3D Transform::right_vector() const
+	Vector3f Transform::right_vector() const
 	{
 		return vector_of(Constants::right_vector);
 	}
 
-	Vector3D Transform::up_vector() const
+	Vector3f Transform::up_vector() const
 	{
 		return vector_of(Constants::up_vector);
 	}
@@ -286,7 +286,10 @@ namespace Engine
 
 	static void on_init()
 	{
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform));
+		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<Transform>();
+		info.pod                             = true;
+
+		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform), info);
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
 						 ScriptCallConv::CDeclObjFirst);
@@ -296,10 +299,17 @@ namespace Engine
 						 ScriptCallConv::CDeclObjFirst);
 
 		registrar.method("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
+		registrar.method("const Engine::Matrix4f& matrix() const final", &Transform::matrix);
+		registrar.method("Engine::Matrix4f translation_matrix() const final", &Transform::translation_matrix);
+		registrar.method("Engine::Matrix4f rotation_matrix() const final", &Transform::rotation_matrix);
+		registrar.method("Engine::Matrix4f scale_matrix() const final", &Transform::scale_matrix);
+		registrar.method("const Engine::Vector3f& location() const final", method_of<const Vector3f&>(&Transform::location));
+		registrar.method("const Engine::Vector3f& rotation() const final", method_of<const Vector3f&>(&Transform::rotation));
+		registrar.method("const Engine::Vector3f& scale() const final", method_of<const Vector3f&>(&Transform::scale));
+		registrar.method("const Engine::Quaternion& quaternion() const final", method_of<Quaternion>(&Transform::quaternion));
 
 		Transform::static_struct_instance()->script_type_info = registrar.type_info();
 	}
 
-	static ReflectionInitializeController init(on_init, "Engine::Transform",
-											   {"Engine::Matrix", "Engine::Vector", "Engine::Quaternion"});
+	static ReflectionInitializeController init(on_init);
 }// namespace Engine

@@ -10,6 +10,13 @@ namespace Engine
 	class SingletoneBase;
 
 	template<typename T>
+	struct is_valid_type : std::true_type {
+	};
+
+	template<typename T>
+	inline constexpr bool is_valid_type_v = is_valid_type<T>::value;
+
+	template<typename T>
 	using is_object_based = std::is_base_of<Object, T>;
 
 	template<typename T>
@@ -56,16 +63,17 @@ namespace Engine
 	template<typename T>
 	inline constexpr bool is_singletone_v = std::is_base_of_v<SingletoneBase, T>;
 
-	template<class, template<class> class, class = std::void_t<>>
+	template<template<class...> class, typename...>
 	struct is_detected : std::false_type {
 	};
 
-	template<class T, template<class> class Op>
-	struct is_detected<T, Op, std::void_t<Op<T>>> : std::true_type {
+	template<template<class...> class Op, typename... Args>
+		requires(is_valid_type_v<Op<Args...>>)
+	struct is_detected<Op, Args...> : std::true_type {
 	};
 
-	template<class T, template<class> class Op>
-	inline constexpr bool is_detected_v = is_detected<T, Op>::value;
+	template<template<class...> class Op, typename... Args>
+	inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
 	template<typename T, typename = void>
 	struct is_incomplete : std::true_type {

@@ -358,8 +358,8 @@ namespace Engine
 		auto& params  = renderer->global_parameters();
 		auto& vp      = params.viewport;
 
-		auto min = Vector2D(vp.x, vp.y) / params.size;
-		auto max = Vector2D(vp.x + vp.z, vp.y + vp.w) / params.size;
+		auto min = Vector2f(vp.x, vp.y) / params.size;
+		auto max = Vector2f(vp.x + vp.z, vp.y + vp.w) / params.size;
 		renderer->blit(reinterpret_cast<Texture2D*>(surface), min, max);
 
 		return *this;

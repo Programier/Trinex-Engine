@@ -18,8 +18,8 @@ namespace Engine::Refl
 		declare_reflect_type(Struct, ScopedType);
 
 	public:
-		struct ENGINE_EXPORT StructCompare {
-			bool operator()(const Struct* a, const Struct* b) const
+		struct StructCompare {
+			inline bool operator()(const Struct* a, const Struct* b) const
 			{
 				return a->name().to_string() < b->name().to_string();
 			}
@@ -187,7 +187,7 @@ namespace Engine::Refl
 		{
 			Base::initialize();
 
-			if constexpr (is_detected_v<T, initializer_detector>)
+			if constexpr (is_detected_v<initializer_detector, T>)
 			{
 				T::static_initialize_struct();
 			}

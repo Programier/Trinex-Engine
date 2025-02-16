@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-	static FORCE_INLINE Vector3D calc_spot_light_direction(const Transform& transform)
+	static FORCE_INLINE Vector3f calc_spot_light_direction(const Transform& transform)
 	{
 		return transform.up_vector() * -1.f;
 	}
@@ -78,7 +78,7 @@ namespace Engine
 		return update_spot_angles();
 	}
 
-	Vector3D SpotLightComponentProxy::direction() const
+	Vector3f SpotLightComponentProxy::direction() const
 	{
 		return calc_spot_light_direction(world_transform());
 	}
@@ -136,7 +136,7 @@ namespace Engine
 		return submit_spot_light_data();
 	}
 
-	Vector3D SpotLightComponent::direction() const
+	Vector3f SpotLightComponent::direction() const
 	{
 		return calc_spot_light_direction(world_transform());
 	}
@@ -208,7 +208,7 @@ namespace Engine
 		if (spot_angles_parameter)
 		{
 			pass->update_variable(spot_angles_parameter->value,
-								  Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
+								  Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
 		}
 
 		if (radius_parameter)

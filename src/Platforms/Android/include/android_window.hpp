@@ -55,7 +55,7 @@ namespace Engine
 		virtual void resized();
 
 		Window& icon(const Image& image) override;
-		Window& cursor(const Image& image, IntVector2D hotspot = {0, 0}) override;
+		Window& cursor(const Image& image, Vector2i hotspot = {0, 0}) override;
 		Window& attribute(const WindowAttribute& attrib, bool value) override;
 		bool attribute(const WindowAttribute& attrib) override;
 		Window& cursor_mode(const CursorMode& mode) override;

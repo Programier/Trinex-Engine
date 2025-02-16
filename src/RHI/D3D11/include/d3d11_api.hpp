@@ -26,7 +26,7 @@ namespace Engine
 	struct D3D11_State {
 		ViewPort viewport;
 		Scissor scissor;
-		Vector2D render_target_size      = {-1, -1};
+		Vector2f render_target_size      = {-1, -1};
 		class D3D11_Pipeline* pipeline   = nullptr;
 		D3D11_ViewportMode viewport_mode = D3D11_ViewportMode::Undefined;
 

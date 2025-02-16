@@ -5,7 +5,7 @@
 //namespace Engine
 //{
 //    Plane::Plane() = default;
-//    Plane::Plane(const Vector3D& _p1, const Vector3D& _normal)
+//    Plane::Plane(const Vector3f& _p1, const Vector3f& _normal)
 //        : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
 //    {}
 
@@ -39,7 +39,7 @@
 //        const float half_v_side = camera.max_render_distance() * glm::tan(view_angle * 0.5f);
 //        const float half_h_side = half_v_side * aspect;
 
-//        const Vector3D front_mult_far = camera.max_render_distance() * front_vector;
+//        const Vector3f front_mult_far = camera.max_render_distance() * front_vector;
 
 //        near = {pos + _near * front_vector, front_vector};
 //        far  = {pos + front_mult_far, -front_vector};

@@ -1,8 +1,92 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace Engine
 {
+	template<typename... Types>
+	struct TypesList {
+		using Type = TypesList<Types...>;
+
+		constexpr TypesList()
+		{}
+		constexpr TypesList(Types&&... values)
+			requires(sizeof...(Types) > 0)
+		{}
+		constexpr TypesList(const TypesList& list)
+		{}
+
+		template<typename Func, typename... Args>
+		static void for_each(Func&& func, Args&&... args)
+		{
+			(func.template operator()<Types>(std::forward<Args>(args)...), ...);
+		}
+
+		consteval static size_t size()
+		{
+			return sizeof...(Types);
+		}
+
+		template<size_t Index, typename... Rest>
+		struct type_at_impl;
+
+		template<size_t Index, typename First, typename... Rest>
+		struct type_at_impl<Index, First, Rest...> {
+			using type = typename type_at_impl<Index - 1, Rest...>::type;
+		};
+
+		template<typename First, typename... Rest>
+		struct type_at_impl<0, First, Rest...> {
+			using type = First;
+		};
+
+		template<size_t Index>
+		using type_at = typename type_at_impl<Index, Types...>::type;
+
+		template<typename Type>
+		static constexpr bool contains_type()
+		{
+			return (std::is_same_v<Type, Types> || ...);
+		}
+
+		template<typename Type, size_t Index = 0>
+		static consteval int32_t index_of()
+		{
+			if constexpr (Index == sizeof...(Types))
+			{
+				return -1;
+			}
+			else if constexpr (std::is_same_v<Type, type_at<Index>>)
+			{
+				return Index;
+			}
+			else
+			{
+				return index_of<Type, Index + 1>();
+			}
+		}
+
+		template<typename... AppendTypes>
+		static consteval TypesList<Types..., AppendTypes...> append()
+		{
+			return TypesList<Types..., AppendTypes...>();
+		}
+
+		template<typename... AppendTypes>
+		static consteval TypesList<Types..., AppendTypes...> append(AppendTypes&&... values)
+		{
+			return TypesList<Types..., AppendTypes...>();
+		}
+
+		template<typename... AppendTypes>
+		static consteval TypesList<Types..., AppendTypes...> merge(const TypesList<AppendTypes...>& obj)
+		{
+			return TypesList<Types..., AppendTypes...>();
+		}
+	};
+
+
 	template<typename... Args>
 	struct SignatureArgs {
 		static constexpr inline unsigned int count = sizeof...(Args);

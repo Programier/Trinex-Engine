@@ -354,9 +354,9 @@ namespace Engine::VisualMaterialGraph
 		return class_instance()->is_a(Root::static_class_instance());
 	}
 
-	Vector4D Node::header_color() const
+	Vector4f Node::header_color() const
 	{
-		return Vector4D(1.0, 0.0, 0.0, 1.0);
+		return Vector4f(1.0, 0.0, 0.0, 1.0);
 	}
 
 	const NodeSignature& Node::signature() const

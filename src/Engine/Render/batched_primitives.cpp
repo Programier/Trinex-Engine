@@ -93,7 +93,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
+	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 	                                                 ByteColor color1, ByteColor color2, ByteColor color3)
 	{
 		auto pos_cpu_buffer   = m_position_buffer->buffer();
@@ -109,8 +109,8 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedTriangles& BatchedTriangles::override_triangle(Index index, const Vector3D& point1, const Vector3D& point2,
-	                                                      const Vector3D& point3, ByteColor color1, ByteColor color2,
+	BatchedTriangles& BatchedTriangles::override_triangle(Index index, const Vector3f& point1, const Vector3f& point2,
+	                                                      const Vector3f& point3, ByteColor color1, ByteColor color2,
 	                                                      ByteColor color3)
 	{
 		auto& pos_cpu_buffer   = *m_position_buffer->buffer();

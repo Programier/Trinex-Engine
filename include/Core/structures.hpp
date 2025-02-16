@@ -68,33 +68,6 @@ namespace Engine
 	{
 	};
 
-	template<typename Type>
-	class SizeLimits
-	{
-	public:
-		Type min;
-		Type max;
-
-		SizeLimits() = default;
-		SizeLimits(const Type& _min, const Type& _max) : min(_min), max(_max)
-		{}
-
-		SizeLimits(Type&& _min, Type&& _max) : min(std::move(_min)), max(std::move(_max))
-		{}
-
-		SizeLimits(SizeLimits&&)      = default;
-		SizeLimits(const SizeLimits&) = default;
-
-
-		SizeLimits& operator=(const SizeLimits&) = default;
-		SizeLimits& operator=(SizeLimits&&)      = default;
-	};
-
-	using SizeLimits1D = SizeLimits<Size1D>;
-	using SizeLimits2D = SizeLimits<Size2D>;
-	using SizeLimits3D = SizeLimits<Size3D>;
-
-
 	struct ENGINE_EXPORT BindLocation {
 		static const BindLocation undefined;
 

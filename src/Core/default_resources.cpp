@@ -87,8 +87,8 @@ namespace Engine
 		{
 			auto buffers         = Object::static_find_package("TrinexEngine::Buffers", true);
 			Buffers::screen_quad = Object::new_instance<PositionVertexBuffer>("ScreenQuad", buffers);
-			Buffers::screen_quad->init({Vector3D{-1.f, -1.f, 0.0f}, Vector3D{-1.f, 1.f, 0.0f}, Vector3D{1.f, 1.f, 0.0f},
-										Vector3D{-1.f, -1.f, 0.0f}, Vector3D{1.f, 1.f, 0.0f}, Vector3D{1.f, -1.f, 0.0f}},
+			Buffers::screen_quad->init({Vector3f{-1.f, -1.f, 0.0f}, Vector3f{-1.f, 1.f, 0.0f}, Vector3f{1.f, 1.f, 0.0f},
+										Vector3f{-1.f, -1.f, 0.0f}, Vector3f{1.f, 1.f, 0.0f}, Vector3f{1.f, -1.f, 0.0f}},
 									   false);
 			Buffers::screen_quad->init_resource();
 		}

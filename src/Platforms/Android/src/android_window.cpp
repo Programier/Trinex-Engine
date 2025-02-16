@@ -167,7 +167,7 @@ namespace Engine
 		return *this;
 	}
 
-	Window& AndroidWindow::cursor(const Image& image, IntVector2D hotspot)
+	Window& AndroidWindow::cursor(const Image& image, Vector2i hotspot)
 	{
 		return *this;
 	}

@@ -82,7 +82,7 @@ namespace Engine
 		}
 		else
 		{
-			const Vector3D& location = world_transform().location();
+			const Vector3f& location = world_transform().location();
 			m_bounding_box.minmax(location, location);
 		}
 

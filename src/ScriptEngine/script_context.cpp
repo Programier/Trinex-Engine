@@ -386,9 +386,9 @@ namespace Engine
 		return exception(info.c_str(), allow_catch);
 	}
 
-	IntVector2D ScriptContext::exception_line_position(StringView* section)
+	Vector2i ScriptContext::exception_line_position(StringView* section)
 	{
-		IntVector2D result = {-1, -1};
+		Vector2i result = {-1, -1};
 		const char* name   = nullptr;
 		result.y           = m_context->GetExceptionLineNumber(&result.x, section ? &name : nullptr);
 
@@ -461,9 +461,9 @@ namespace Engine
 		return ScriptFunction(m_context->GetSystemFunction());
 	}
 
-	IntVector2D ScriptContext::line_position(uint_t stack_level, StringView* section_name)
+	Vector2i ScriptContext::line_position(uint_t stack_level, StringView* section_name)
 	{
-		IntVector2D result  = {-1, -1};
+		Vector2i result  = {-1, -1};
 		const char* section = nullptr;
 		result.y            = m_context->GetLineNumber(stack_level, &result.x, (section_name ? &section : nullptr));
 

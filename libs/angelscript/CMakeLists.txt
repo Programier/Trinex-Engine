@@ -46,13 +46,10 @@ set(ANGELSCRIPT_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/source/as_tokenizer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/as_typeinfo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/as_variablescope.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptmath.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptdictionary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scripthelper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptany.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptarray.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptgrid.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/datetime.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/serializer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptstdstring_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/add_on/scriptstdstring.cpp

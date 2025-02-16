@@ -77,62 +77,62 @@ namespace Engine
 			declare_class(Float, Parameter);
 		};
 
-		class ENGINE_EXPORT Bool2 : public Primitive<BoolVector2D>
+		class ENGINE_EXPORT Bool2 : public Primitive<Vector2b>
 		{
 			declare_class(Bool2, Parameter);
 		};
 
-		class ENGINE_EXPORT Bool3 : public Primitive<BoolVector3D>
+		class ENGINE_EXPORT Bool3 : public Primitive<Vector3b>
 		{
 			declare_class(Bool3, Parameter);
 		};
 
-		class ENGINE_EXPORT Bool4 : public Primitive<BoolVector4D>
+		class ENGINE_EXPORT Bool4 : public Primitive<Vector4b>
 		{
 			declare_class(Bool2, Parameter);
 		};
 
-		class ENGINE_EXPORT Int2 : public Primitive<IntVector2D>
+		class ENGINE_EXPORT Int2 : public Primitive<Vector2i>
 		{
 			declare_class(Int2, Parameter);
 		};
 
-		class ENGINE_EXPORT Int3 : public Primitive<IntVector3D>
+		class ENGINE_EXPORT Int3 : public Primitive<Vector3i>
 		{
 			declare_class(Int3, Parameter);
 		};
 
-		class ENGINE_EXPORT Int4 : public Primitive<IntVector4D>
+		class ENGINE_EXPORT Int4 : public Primitive<Vector4i>
 		{
 			declare_class(Int4, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt2 : public Primitive<UIntVector2D>
+		class ENGINE_EXPORT UInt2 : public Primitive<Vector2u>
 		{
 			declare_class(UInt2, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt3 : public Primitive<UIntVector3D>
+		class ENGINE_EXPORT UInt3 : public Primitive<Vector3u>
 		{
 			declare_class(UInt3, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt4 : public Primitive<UIntVector4D>
+		class ENGINE_EXPORT UInt4 : public Primitive<Vector4u>
 		{
 			declare_class(UInt4, Parameter);
 		};
 
-		class ENGINE_EXPORT Float2 : public Primitive<Vector2D>
+		class ENGINE_EXPORT Float2 : public Primitive<Vector2f>
 		{
 			declare_class(Float2, Parameter);
 		};
 
-		class ENGINE_EXPORT Float3 : public Primitive<Vector3D>
+		class ENGINE_EXPORT Float3 : public Primitive<Vector3f>
 		{
 			declare_class(Float3, Parameter);
 		};
 
-		class ENGINE_EXPORT Float4 : public Primitive<Vector4D>
+		class ENGINE_EXPORT Float4 : public Primitive<Vector4f>
 		{
 			declare_class(Float4, Parameter);
 		};

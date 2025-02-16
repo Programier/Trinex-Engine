@@ -10,7 +10,7 @@ namespace Engine
 		declare_class(Sampler, BindedRenderResource);
 
 	public:
-		Vector4D border_color         = {0.f, 0.f, 0.f, 1.f};
+		Vector4f border_color         = {0.f, 0.f, 0.f, 1.f};
 		SamplerFilter filter          = SamplerFilter::Point;
 		SamplerAddressMode address_u  = SamplerAddressMode::Repeat;
 		SamplerAddressMode address_v  = SamplerAddressMode::Repeat;

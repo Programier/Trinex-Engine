@@ -77,7 +77,7 @@ namespace Engine
 		static constexpr float circle_y = -1.f;
 
 		// Create circle
-		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3D(x, circle_y, z)); });
+		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3f(x, circle_y, z)); });
 
 		buffer.push_back({0, 0, 0});
 		buffer.push_back({1, circle_y, 0});
@@ -99,9 +99,9 @@ namespace Engine
 		auto positions                                 = EditorResources::point_light_overlay_positions;
 		auto& buffer                                   = positions->allocate_data(false);
 
-		create_circle([&buffer](float y, float z) { buffer.push_back(Vector3D(0, y, z)); });
-		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3D(x, 0, z)); });
-		create_circle([&buffer](float x, float y) { buffer.push_back(Vector3D(x, y, 0)); });
+		create_circle([&buffer](float y, float z) { buffer.push_back(Vector3f(0, y, z)); });
+		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3f(x, 0, z)); });
+		create_circle([&buffer](float x, float y) { buffer.push_back(Vector3f(x, y, 0)); });
 		positions->init_resource();
 	}
 

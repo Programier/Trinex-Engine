@@ -10,17 +10,17 @@ namespace Engine
 	public:
 		struct ENGINE_EXPORT Vertex {
 		private:
-			ALIGNED(4) Vector3D m_position;
+			ALIGNED(4) Vector3f m_position;
 			ALIGNED(4) ByteColor4 m_color;
 			ALIGNED(4) float m_thickness;
 
 		public:
-			FORCE_INLINE constexpr Vertex(const Vector3D& position = {0, 0, 0}, const ByteColor4& color = {255, 255, 255, 255},
+			FORCE_INLINE constexpr Vertex(const Vector3f& position = {0, 0, 0}, const ByteColor4& color = {255, 255, 255, 255},
 			                              float thickness = 1.f)
 			    : m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
-			FORCE_INLINE const Vector3D& position() const
+			FORCE_INLINE const Vector3f& position() const
 			{
 				return m_position;
 			}
@@ -35,7 +35,7 @@ namespace Engine
 				return m_thickness;
 			}
 
-			FORCE_INLINE Vertex& position(const Vector3D& position)
+			FORCE_INLINE Vertex& position(const Vector3f& position)
 			{
 				m_position = position;
 				return *this;
@@ -78,10 +78,10 @@ namespace Engine
 		delete_copy_constructors(BatchedTriangles);
 		BatchedTriangles& clear();
 
-		BatchedTriangles& add_triangle(const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
+		BatchedTriangles& add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 		                               ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 		                               ByteColor color3 = {255, 255, 255, 255});
-		BatchedTriangles& override_triangle(Index index, const Vector3D& point1, const Vector3D& point2, const Vector3D& point3,
+		BatchedTriangles& override_triangle(Index index, const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 		                                    ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 		                                    ByteColor color3 = {255, 255, 255, 255});
 		BatchedTriangles& render(class RenderPass* pass);

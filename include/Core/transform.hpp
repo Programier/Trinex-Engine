@@ -15,18 +15,18 @@ namespace Engine
 
 	private:
 		mutable Matrix4f m_matrix;
-		Vector3D m_location;
-		Vector3D m_rotation;
-		Vector3D m_scale;
+		Vector3f m_location;
+		Vector3f m_rotation;
+		Vector3f m_scale;
 		mutable bool m_is_dirty;
 
 	private:
-		Vector3D vector_of(const Vector3D& dir) const;
+		Vector3f vector_of(const Vector3f& dir) const;
 
 	public:
-		Transform(const Vector3D& location = Vector3D(0.0f), const Vector3D& rotation = Vector3D(0.f),
-		          const Vector3D& scale = Vector3D(1.0f));
-		Transform(const Vector3D& location, const Quaternion& rotation, const Vector3D& scale = Vector3D(1.0f));
+		Transform(const Vector3f& location = Vector3f(0.0f), const Vector3f& rotation = Vector3f(0.f),
+		          const Vector3f& scale = Vector3f(1.0f));
+		Transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale = Vector3f(1.0f));
 		Transform(const Matrix4f& matrix);
 
 		copy_constructors_hpp(Transform);
@@ -37,24 +37,24 @@ namespace Engine
 		Matrix4f rotation_matrix() const;
 		Matrix4f scale_matrix() const;
 
-		const Vector3D& location() const;
-		const Vector3D& rotation() const;
-		const Vector3D& scale() const;
+		const Vector3f& location() const;
+		const Vector3f& rotation() const;
+		const Vector3f& scale() const;
 		Quaternion quaternion() const;
 
-		static Quaternion angles_to_quaternion(const Vector3D& angles);
-		static Vector3D quaternion_to_angles(const Quaternion& quat);
+		static Quaternion angles_to_quaternion(const Vector3f& angles);
+		static Vector3f quaternion_to_angles(const Quaternion& quat);
 
-		Transform& location(const Vector3D&);
+		Transform& location(const Vector3f&);
 		Transform& rotation(const Quaternion&);
-		Transform& rotation(const Vector3D&);
-		Transform& scale(const Vector3D&);
+		Transform& rotation(const Vector3f&);
+		Transform& scale(const Vector3f&);
 
-		Transform& add_location(const Vector3D& delta);
-		Transform& add_rotation(const Vector3D& delta);
+		Transform& add_location(const Vector3f& delta);
+		Transform& add_rotation(const Vector3f& delta);
 		Transform& add_rotation(const Quaternion& delta);
-		Transform& add_scale(const Vector3D& delta);
-		Transform& look_at(const Vector3D& position, const Vector3D& up = {0.0f, 1.0f, 0.f});
+		Transform& add_scale(const Vector3f& delta);
+		Transform& look_at(const Vector3f& position, const Vector3f& up = {0.0f, 1.0f, 0.f});
 
 
 		Transform& operator+=(const Transform&);
@@ -67,9 +67,9 @@ namespace Engine
 		Transform operator*(const Transform&) const;
 		Transform operator/(const Transform&) const;
 
-		Vector3D forward_vector() const;
-		Vector3D right_vector() const;
-		Vector3D up_vector() const;
+		Vector3f forward_vector() const;
+		Vector3f right_vector() const;
+		Vector3f up_vector() const;
 
 		String as_string() const;
 		bool is_dirty() const;

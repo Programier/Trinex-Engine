@@ -132,13 +132,13 @@ namespace Engine
 		return this;
 	}
 
-	WindowSDL& WindowSDL::width(const Size1D& w)
+	WindowSDL& WindowSDL::width(float_t w)
 	{
 		size({w, height()});
 		return *this;
 	}
 
-	WindowSDL& WindowSDL::height(const Size1D& h)
+	WindowSDL& WindowSDL::height(float_t h)
 	{
 		size({width(), h});
 		return *this;
@@ -326,7 +326,7 @@ namespace Engine
 		return *this;
 	}
 
-	WindowSDL& WindowSDL::cursor(const Image& image, IntVector2D hotspot)
+	WindowSDL& WindowSDL::cursor(const Image& image, Vector2i hotspot)
 	{
 		int_t channels = image.channels();
 		if (channels == 3 || channels == 4)

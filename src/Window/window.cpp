@@ -11,22 +11,22 @@
 namespace Engine
 {
 
-	Size1D Window::width()
+	float_t Window::width()
 	{
 		return m_size.load().x;
 	}
 
-	Window& Window::width(const Size1D& width)
+	Window& Window::width(float_t width)
 	{
 		return *this;
 	}
 
-	Size1D Window::height()
+	float_t Window::height()
 	{
 		return m_size.load().y;
 	}
 
-	Window& Window::height(const Size1D& height)
+	Window& Window::height(float_t height)
 	{
 		return *this;
 	}
@@ -131,7 +131,7 @@ namespace Engine
 		return *this;
 	}
 
-	Window& Window::cursor(const Image& image, IntVector2D hotspot)
+	Window& Window::cursor(const Image& image, Vector2i hotspot)
 	{
 		return *this;
 	}

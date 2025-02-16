@@ -220,12 +220,12 @@ namespace Engine
 		}
 	};
 
-	class ENGINE_EXPORT PositionVertexBuffer : public TypedVertexBuffer<Vector3D>
+	class ENGINE_EXPORT PositionVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
 		declare_class(PositionVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT TexCoordVertexBuffer : public TypedVertexBuffer<Vector2D>
+	class ENGINE_EXPORT TexCoordVertexBuffer : public TypedVertexBuffer<Vector2f>
 	{
 		declare_class(TexCoordVertexBuffer, VertexBuffer);
 	};
@@ -235,27 +235,27 @@ namespace Engine
 		declare_class(ColorVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT NormalVertexBuffer : public TypedVertexBuffer<Vector3D>
+	class ENGINE_EXPORT NormalVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
 		declare_class(NormalVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT TangentVertexBuffer : public TypedVertexBuffer<Vector3D>
+	class ENGINE_EXPORT TangentVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
 		declare_class(TangentVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT BitangentVertexBuffer : public TypedVertexBuffer<Vector3D>
+	class ENGINE_EXPORT BitangentVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
 		declare_class(BitangentVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT PositionDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+	class ENGINE_EXPORT PositionDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
 		declare_class(PositionDynamicVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT TexCoordDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector2D>
+	class ENGINE_EXPORT TexCoordDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector2f>
 	{
 		declare_class(TexCoordDynamicVertexBuffer, VertexBuffer);
 	};
@@ -265,17 +265,17 @@ namespace Engine
 		declare_class(ColorDynamicVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT NormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+	class ENGINE_EXPORT NormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
 		declare_class(NormalDynamicVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT TangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+	class ENGINE_EXPORT TangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
 		declare_class(TangentDynamicVertexBuffer, VertexBuffer);
 	};
 
-	class ENGINE_EXPORT BitangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+	class ENGINE_EXPORT BitangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
 		declare_class(BitangentDynamicVertexBuffer, VertexBuffer);
 	};

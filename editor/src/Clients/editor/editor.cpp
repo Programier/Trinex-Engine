@@ -451,8 +451,8 @@ namespace Engine
 			ImGui::SameLine();
 			render_separator();
 			const auto& transfom = camera->local_transform();
-			Vector3D location    = transfom.location();
-			Vector3D rotation    = transfom.rotation();
+			Vector3f location    = transfom.location();
+			Vector3f rotation    = transfom.rotation();
 
 			ImGui::BeginGroup();
 			ImGui::PushItemWidth(height * 15.f);
@@ -614,7 +614,7 @@ namespace Engine
 		}
 	}
 
-	static FORCE_INLINE void move_camera(Vector3D& move, Window* window)
+	static FORCE_INLINE void move_camera(Vector3f& move, Window* window)
 	{
 		move = {0, 0, 0};
 
@@ -632,7 +632,7 @@ namespace Engine
 	{
 		move_camera(m_camera_move, window());
 
-		camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
+		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) * dt *
 							 m_camera_speed);
 
 		struct UpdateView : Task<UpdateView> {
@@ -697,11 +697,11 @@ namespace Engine
 		return result;
 	}
 
-	EditorClient& EditorClient::raycast_objects(const Vector2D& coords)
+	EditorClient& EditorClient::raycast_objects(const Vector2f& coords)
 	{
 		SceneView view(camera->camera_view(), m_state.viewport.size);
-		Vector3D origin;
-		Vector3D direction;
+		Vector3f origin;
+		Vector3f direction;
 
 		view.screen_to_world(coords, origin, direction);
 		Ray ray(origin, direction);

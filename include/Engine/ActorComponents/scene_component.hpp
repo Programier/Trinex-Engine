@@ -64,14 +64,14 @@ namespace Engine
 		SceneComponent& local_transform(const Transform&);
 		SceneComponent& add_local_transform(const Transform&);
 		SceneComponent& remove_local_transform(const Transform&);
-		SceneComponent& location(const Vector3D&);
+		SceneComponent& location(const Vector3f&);
 		SceneComponent& rotation(const Quaternion&);
-		SceneComponent& rotation(const Vector3D&);
-		SceneComponent& scale(const Vector3D&);
-		SceneComponent& add_location(const Vector3D& delta);
-		SceneComponent& add_rotation(const Vector3D& delta);
+		SceneComponent& rotation(const Vector3f&);
+		SceneComponent& scale(const Vector3f&);
+		SceneComponent& add_location(const Vector3f& delta);
+		SceneComponent& add_rotation(const Vector3f& delta);
 		SceneComponent& add_rotation(const Quaternion& delta);
-		SceneComponent& add_scale(const Vector3D& delta);
+		SceneComponent& add_scale(const Vector3f& delta);
 
 		virtual SceneComponent& on_transform_changed();
 	};

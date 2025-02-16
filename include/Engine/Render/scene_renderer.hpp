@@ -99,7 +99,7 @@ namespace Engine
 
 		// Rendering part
 
-		SceneRenderer& blit(class Texture2D* texture, const Vector2D& min = {0, 0}, const Vector2D& max = {1, 1});
+		SceneRenderer& blit(class Texture2D* texture, const Vector2f& min = {0, 0}, const Vector2f& max = {1, 1});
 
 		template<typename ComponentType>
 		FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component)

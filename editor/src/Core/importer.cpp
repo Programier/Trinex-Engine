@@ -26,16 +26,16 @@ namespace Engine::Importer
 			: package(package), transform(transform.matrix()), rotation(transform.rotation_matrix())
 		{}
 
-		static inline Vector3D vector_from_assimp_vec(const aiVector3D& vector)
+		static inline Vector3f vector_from_assimp_vec(const aiVector3f& vector)
 		{
-			Vector3D result;
+			Vector3f result;
 			result.x = vector.x;
 			result.y = vector.y;
 			result.z = vector.z;
 			return result;
 		}
 
-		static inline Vector3D vector_cast(const Vector4D& vector)
+		static inline Vector3f vector_cast(const Vector4f& vector)
 		{
 			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
 		}
@@ -169,11 +169,11 @@ namespace Engine::Importer
 
 			auto& bounds = static_mesh->bounds;
 
-			Vector<Vector3D> positions;
-			Vector<Vector3D> normals;
-			Vector<Vector3D> tangents;
-			Vector<Vector3D> bitangents;
-			Vector<Vector2D> uvs;
+			Vector<Vector3f> positions;
+			Vector<Vector3f> normals;
+			Vector<Vector3f> tangents;
+			Vector<Vector3f> bitangents;
+			Vector<Vector2f> uvs;
 			Vector<uint_t> indices;
 
 			positions.reserve(vertex_count);
@@ -188,7 +188,7 @@ namespace Engine::Importer
 			{
 				unsigned int scene_mesh_index = node->mMeshes[mesh_index];
 				aiMesh* mesh                  = scene->mMeshes[scene_mesh_index];
-				aiVector3D* texture_coords    = mesh->mTextureCoords[0];
+				aiVector3f* texture_coords    = mesh->mTextureCoords[0];
 
 				MeshSurface& surface      = lod.surfaces[mesh_index];
 				surface.base_vertex_index = positions.size();
@@ -196,7 +196,7 @@ namespace Engine::Importer
 
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
 				{
-					positions.push_back(vector_cast(transform * Vector4D(vector_from_assimp_vec(mesh->mVertices[i]), 1.f)));
+					positions.push_back(vector_cast(transform * Vector4f(vector_from_assimp_vec(mesh->mVertices[i]), 1.f)));
 					normals.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mNormals[i])));
 					tangents.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mTangents[i])));
 					bitangents.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mBitangents[i])));

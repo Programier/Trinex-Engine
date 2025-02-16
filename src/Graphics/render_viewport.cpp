@@ -21,7 +21,7 @@ namespace Engine
 	implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
-		// r.method("Vector2D size() const final", &This::size);
+		// r.method("Vector2f size() const final", &This::size);
 		// r.method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
 		// r.method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
 		// r.method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));

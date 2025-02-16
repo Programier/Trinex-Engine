@@ -16,9 +16,9 @@ namespace Engine::VisualMaterialGraph
 	static ScriptFunction node_signature;
 	static ScriptFunction signatured_node_make_expression;
 
-	Vector4D Node::script_header_color() const
+	Vector4f Node::script_header_color() const
 	{
-		Vector4D result;
+		Vector4f result;
 		ScriptContext::execute(this, node_header_color, &result);
 		return result;
 	}
@@ -67,7 +67,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
-		node_header_color = r.method("Vector4D header_color() const", trinex_scoped_method(This, header_color));
+		node_header_color = r.method("Vector4f header_color() const", trinex_scoped_method(This, header_color));
 		node_render       = r.method("void render()", trinex_scoped_void_method(This, render));
 		node_signature    = r.method("const NodeSignature& signature() const", trinex_scoped_method(This, signature));
 
@@ -90,7 +90,7 @@ namespace Engine::VisualMaterialGraph
 		r.method("PinType in_pin_type(InputPin@ pin) const final", &This::in_pin_type);
 		r.method("PinType out_pin_type(OutputPin@ pin) const final", &This::out_pin_type);
 		r.method("uint64 id() const final", &This::id);
-		r.property("Vector2D position", &This::position);
+		r.property("Vector2f position", &This::position);
 
 		ScriptEngine::on_terminate.push([]() {
 			node_header_color.release();
@@ -134,18 +134,18 @@ namespace Engine::VisualMaterialGraph
 	declare_typename(int, int);
 	declare_typename(uint_t, uint);
 	declare_typename(float, float);
-	declare_typename(BoolVector2D, BoolVector2D);
-	declare_typename(BoolVector3D, BoolVector3D);
-	declare_typename(BoolVector4D, BoolVector4D);
-	declare_typename(IntVector2D, IntVector2D);
-	declare_typename(IntVector3D, IntVector3D);
-	declare_typename(IntVector4D, IntVector4D);
-	declare_typename(UIntVector2D, UIntVector2D);
-	declare_typename(UIntVector3D, UIntVector3D);
-	declare_typename(UIntVector4D, UIntVector4D);
-	declare_typename(Vector2D, Vector2D);
-	declare_typename(Vector3D, Vector3D);
-	declare_typename(Vector4D, Vector4D);
+	declare_typename(Vector2b, Vector2b);
+	declare_typename(Vector3b, Vector3b);
+	declare_typename(Vector4b, Vector4b);
+	declare_typename(Vector2i, Vector2i);
+	declare_typename(Vector3i, Vector3i);
+	declare_typename(Vector4i, Vector4i);
+	declare_typename(Vector2u, Vector2u);
+	declare_typename(Vector3u, Vector3u);
+	declare_typename(Vector4u, Vector4u);
+	declare_typename(Vector2f, Vector2f);
+	declare_typename(Vector3f, Vector3f);
+	declare_typename(Vector4f, Vector4f);
 	declare_typename(Matrix3f, Matrix3f);
 	declare_typename(Matrix4f, Matrix4f);
 

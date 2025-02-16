@@ -140,7 +140,7 @@ namespace Engine
 		return *this;
 	}
 
-	static FORCE_INLINE void move_camera(Vector3D& move, Window* window)
+	static FORCE_INLINE void move_camera(Vector3f& move, Window* window)
 	{
 		move = {0, 0, 0};
 
@@ -159,7 +159,7 @@ namespace Engine
 	StaticMeshClient& StaticMeshClient::update_camera(float dt)
 	{
 		move_camera(m_camera_move, window());
-		m_camera->add_location(Vector3D((m_camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt);
+		m_camera->add_location(Vector3f((m_camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) * dt);
 		call_in_render_thread([cam_view = m_camera->camera_view(), this]() { m_view.camera_view(cam_view); });
 		return *this;
 	}

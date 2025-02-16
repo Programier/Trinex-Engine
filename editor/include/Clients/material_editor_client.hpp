@@ -29,7 +29,7 @@ namespace Engine
 		struct GraphState {
 			Set<Pointer<VisualMaterialGraph::Node>, Pointer<VisualMaterialGraph::Node>::HashStruct> m_nodes;
 
-			Vector2D m_node_spawn_position;
+			Vector2f m_node_spawn_position;
 			void* m_create_node_from_pin = nullptr;
 			String m_nodes_filter        = "";
 		};

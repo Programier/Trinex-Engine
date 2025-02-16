@@ -66,7 +66,7 @@ namespace Engine
 		return data[finger_index].is_down;
 	}
 
-	Vector2D TouchScreenSystem::finger_location(size_t finger_index, Window* window) const
+	Vector2f TouchScreenSystem::finger_location(size_t finger_index, Window* window) const
 	{
 		auto& data = find_fingers_data(window);
 		if (data.size() <= finger_index)
@@ -74,7 +74,7 @@ namespace Engine
 		return {data[finger_index].x, data[finger_index].y};
 	}
 
-	Vector2D TouchScreenSystem::finger_offset(size_t finger_index, Window* window) const
+	Vector2f TouchScreenSystem::finger_offset(size_t finger_index, Window* window) const
 	{
 		auto& data = find_fingers_data(window);
 		if (data.size() <= finger_index)
