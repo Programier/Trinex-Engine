@@ -78,25 +78,21 @@ namespace Engine
 			Orientation orientation;
 		};
 
-		union Window
-		{
-			struct {
-				union
-				{
-					float x;
-					float width;
-				};
+		struct Window {
+			union
+			{
+				float x;
+				float width;
+			};
 
-				union
-				{
-					float y;
-					float height;
-				};
+			union
+			{
+				float y;
+				float height;
 			};
 		};
 
-		union Keyboard
-		{
+		struct Keyboard {
 			Engine::Keyboard::Key key;
 		};
 
@@ -121,16 +117,18 @@ namespace Engine
 			} button;
 		};
 
-		union Gamepad
-		{
-			struct ControllerEvent {
-				Identifier id;
+		struct Gamepad {
+			Identifier id;
+
+			struct AxisMotionEvent {
+				Engine::GameController::Axis axis;
+				float value;
 			};
 
-			struct ControllerAxisMotionEvent : ControllerEvent {
-				Engine::GameController::Axis axis;
-				short_t value;
-			} axis_motion;
+			union
+			{
+				AxisMotionEvent axis_motion;
+			};
 		};
 
 		union TouchScreen

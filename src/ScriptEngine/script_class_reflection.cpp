@@ -64,8 +64,8 @@ namespace Engine
 		struct Accessor : public Refl::Property {
 			static void add_flag(Refl::Property* prop, BitMask mask)
 			{
-				constexpr BitMask Property::*address = &Accessor::m_flags;
-				auto& flags                          = prop->*address;
+				constexpr BitMask Property::* address = &Accessor::m_flags;
+				auto& flags                           = prop->*address;
 				flags |= mask;
 			}
 		};
@@ -198,11 +198,11 @@ namespace Engine
 		}
 		else if (ScriptEngine::is_float(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<float>>(name, offset);
+			prop = self->new_child<Refl::ScriptFloatProperty<float>>(name, offset);
 		}
 		else if (ScriptEngine::is_double(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<double>>(name, offset);
+			prop = self->new_child<Refl::ScriptFloatProperty<double>>(name, offset);
 		}
 
 		ScriptTypeInfo info = ScriptEngine::type_info_by_id(type_id);

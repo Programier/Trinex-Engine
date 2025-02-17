@@ -10,6 +10,7 @@
 #include <Graphics/scene_render_targets.hpp>
 #include <Platform/platform.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <Systems/engine_system.hpp>
@@ -176,6 +177,35 @@ namespace Engine
 		return *this;
 	}
 
+	static Identifier script_add_listener(EventSystem* system, EventType type, asIScriptFunction* script_func)
+	{
+		Pointer<Object> object;
+
+		if (auto obj_type = script_func->GetDelegateObjectType())
+		{
+			if (obj_type->DerivesFrom(Object::static_class_instance()->script_type_info.info()))
+			{
+				object = reinterpret_cast<Object*>(script_func->GetDelegateObject());
+			}
+		}
+
+		auto listener = [function = ScriptFunction(script_func), object](const Event& event) {
+			ScriptContext::execute(function, nullptr, &event);
+		};
+
+		script_func->Release();
+		return system->add_listener(type, listener);
+	}
+
 	implement_engine_class(EventSystem, Refl::Class::IsScriptable)
-	{}
+	{
+		ReflectionInitializeController().require("Engine::Event");
+
+		auto reg = ScriptClassRegistrar::existing_class(static_class_instance());
+
+		reg.funcdef("void Listener(const Engine::Event&)");
+		reg.static_function("EventSystem@ instance()", instance);
+		reg.method("uint64 add_listener(EventType type, EventSystem::Listener@ listener) final", script_add_listener);
+		reg.method("void remove_listener(uint64 listener)", &EventSystem::remove_listener);
+	}
 }// namespace Engine

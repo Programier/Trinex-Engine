@@ -1,33 +1,47 @@
 #include <Core/game_controller.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/threading.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/game_controller_system.hpp>
 
 namespace Engine
 {
-	implement_engine_class_default_init(GameControllerSystem, 0);
-
-#define new_id(x) m_callbacks_id.push_back(x)
+#define new_listener(type, func)                                                                                                 \
+	m_listener_ids[listener_index] = event_system->add_listener(                                                                 \
+			EventType::Controller##type, std::bind(&GameControllerSystem::func, this, std::placeholders::_1))
 
 	void GameControllerSystem::on_controller_added(const Event& event)
 	{
-		//const ControllerDeviceAddedEvent& e = event.get<const ControllerDeviceAddedEvent&>();
-		//m_controllers[e.id]                = new GameController(e.id);
+		m_controllers[event.gamepad.id] = new GameController(event.gamepad.id);
 	}
 
 	void GameControllerSystem::on_controller_removed(const Event& event)
 	{
-		// const ControllerDeviceRemovedEvent& e = event.get<const ControllerDeviceRemovedEvent&>();
-		// delete m_controllers[e.id];
-		// m_controllers.erase(e.id);
+		auto controller = m_controllers.at(event.gamepad.id);
+
+		if (controller)
+		{
+			controller->controller_removed_listener();
+
+			logic_thread()->call([controller]() {
+				GameControllerSystem* system = GameControllerSystem::instance();
+				if (system)
+				{
+					system->m_controllers.erase(controller->id());
+					delete controller;
+				}
+			});
+		}
 	}
 
 	void GameControllerSystem::on_axis_motion(const Event& event)
 	{
-		auto& motion                                            = event.gamepad.axis_motion;
-		m_controllers.at(motion.id)->m_axis_values[motion.axis] = motion.value;
+		if (auto device = controller(event.gamepad.id))
+		{
+			device->axis_motion_listener(event);
+		}
 	}
-
 
 	GameControllerSystem::GameControllerSystem()
 	{}
@@ -39,21 +53,12 @@ namespace Engine
 		EventSystem* event_system = System::system_of<EventSystem>();
 		event_system->register_subsystem(this);
 
-		new_id(event_system->add_listener(EventType::ControllerDeviceAdded,
-		                                  std::bind(&GameControllerSystem::on_controller_added, this, std::placeholders::_1)));
 
-		new_id(event_system->add_listener(EventType::ControllerDeviceRemoved,
-		                                  std::bind(&GameControllerSystem::on_controller_removed, this, std::placeholders::_1)));
+		int listener_index = 0;
+		new_listener(DeviceAdded, on_controller_added);
+		new_listener(DeviceRemoved, on_controller_removed);
+		new_listener(AxisMotion, on_axis_motion);
 
-		new_id(event_system->add_listener(EventType::ControllerAxisMotion,
-		                                  std::bind(&GameControllerSystem::on_axis_motion, this, std::placeholders::_1)));
-
-		return *this;
-	}
-
-	GameControllerSystem& GameControllerSystem::wait()
-	{
-		Super::wait();
 		return *this;
 	}
 
@@ -79,5 +84,8 @@ namespace Engine
 
 		return nullptr;
 	}
+
+	implement_engine_class(GameControllerSystem, Refl::Class::IsScriptable)
+	{}
 
 }// namespace Engine

@@ -74,8 +74,8 @@ namespace Engine
 		static ScriptEngine& load_scripts();
 
 		static ScriptEngine& bind_imports();
-		static ScriptEngine& funcdef(const char* declaration);
-		static ScriptEngine& funcdef(const String& declaration);
+		static ScriptEngine& register_funcdef(const char* declaration);
+		static ScriptEngine& register_funcdef(const String& declaration);
 		static ScriptEngine& register_typedef(const char* new_type_name, const char* type);
 		static ScriptEngine& register_typedef(const String& new_type_name, const String& type);
 

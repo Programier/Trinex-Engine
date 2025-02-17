@@ -230,6 +230,8 @@ namespace Engine
 		{
 			return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv, auxiliary);
 		}
+
+		ScriptClassRegistrar& funcdef(const String& def);
 	};
 
 

@@ -1,9 +1,12 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 
 namespace Engine
 {
-	class ENGINE_EXPORT GameController
+	struct Event;
+
+	class ENGINE_EXPORT GameController final
 	{
 	public:
 		enum Axis : EnumerateType
@@ -19,17 +22,23 @@ namespace Engine
 		};
 
 	private:
-		short_t m_axis_values[Axis::__COUNT__];
+		float m_axis_values[Axis::__COUNT__];
 		Identifier m_ID;
 
 		GameController(Identifier m_id);
 
-	public:
-		Identifier id() const;
-		short_t axis_value(Axis axis) const;
-		float axis_value_normalized(Axis axis) const;
+		void axis_motion_listener(const Event& e);
+		void controller_removed_listener();
 
-		~GameController();
+	public:
+		CallBacks<void(GameController*)> on_destroy;
+		CallBacks<void(GameController*, const Event&)> on_axis_motion;
+
+		Identifier id() const;
+		float axis_value(Axis axis, float dead_zone = 0.0f) const;
+
+		static GameController* find(Identifier id);
+
 		friend class GameControllerSystem;
 	};
 }// namespace Engine

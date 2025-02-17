@@ -315,6 +315,13 @@ namespace Engine
 		return *this;
 	}
 
+	ScriptClassRegistrar& ScriptClassRegistrar::funcdef(const String& def)
+	{
+		ScriptNamespaceScopedChanger ns(m_class_name);
+		ScriptEngine::register_funcdef(def);
+		return *this;
+	}
+
 	ScriptEnumRegistrar::ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init)
 	    : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name)
 	{

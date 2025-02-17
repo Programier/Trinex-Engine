@@ -16,20 +16,19 @@ namespace Engine
 
 	private:
 		Map<Identifier, GameController*> m_controllers;
-		Vector<Identifier> m_callbacks_id;
+		Identifier m_listener_ids[3];
 
 		void on_controller_added(const Event& event);
 		void on_controller_removed(const Event& event);
-		void on_axis_motion(const Event& event);
-
 
 		GameControllerSystem();
+
+		void on_axis_motion(const Event& event);
 
 	protected:
 		virtual GameControllerSystem& create() override;
 
 	public:
-		virtual GameControllerSystem& wait() override;
 		virtual GameControllerSystem& update(float dt) override;
 		virtual GameControllerSystem& shutdown() override;
 		GameController* controller(Identifier id) const;

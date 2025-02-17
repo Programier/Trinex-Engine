@@ -285,15 +285,15 @@ namespace Engine
 		return instance();
 	}
 
-	ScriptEngine& ScriptEngine::funcdef(const char* declaration)
+	ScriptEngine& ScriptEngine::register_funcdef(const char* declaration)
 	{
 		m_engine->RegisterFuncdef(declaration);
 		return instance();
 	}
 
-	ScriptEngine& ScriptEngine::funcdef(const String& declaration)
+	ScriptEngine& ScriptEngine::register_funcdef(const String& declaration)
 	{
-		return funcdef(declaration.c_str());
+		return register_funcdef(declaration.c_str());
 	}
 
 	ScriptEngine& ScriptEngine::register_typedef(const char* type, const char* declaration)
