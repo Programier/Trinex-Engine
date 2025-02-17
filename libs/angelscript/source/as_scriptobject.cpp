@@ -106,7 +106,9 @@ unsigned int asIScriptObject::GetNativeObjectSize(asITypeInfo* ot) const
 
 void asIScriptObject::Destroy()
 {
-    reinterpret_cast<asCScriptObject*>(this)->Destruct();
+	asCScriptObject* obj = reinterpret_cast<asCScriptObject*>(this);
+	obj->CallDestructor(obj->objType());
+	obj->Destruct();
 }
 
 asCScriptObjectData::asCScriptObjectData(asCObjectType* ot)
