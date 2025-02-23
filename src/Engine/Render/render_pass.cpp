@@ -60,7 +60,6 @@ namespace Engine
 		}
 	}
 
-
 	RenderPass& RenderPass::render(RenderViewport* render_target)
 	{
 		size_t offset = 0;
@@ -69,7 +68,7 @@ namespace Engine
 		while (offset < m_allocated)
 		{
 			TaskInterface* task = reinterpret_cast<TaskInterface*>(data + offset);
-			offset += task->size();
+			offset += align_up(task->size(), command_alignment);
 			task->execute();
 		}
 

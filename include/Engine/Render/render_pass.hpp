@@ -70,11 +70,32 @@ namespace Engine
 			return add_callabble([&]() { dst = std::forward<Src>(src); });
 		}
 
-		template<typename Callable>
-		Callable* add_callabble(Callable&& callable)
+		template<typename Task, typename... Args>
+		Task* add_task(Args&&... args)
 		{
-			static_assert(alignof(Callable) <= command_alignment);
-			return new (allocate(sizeof(Callable))) Callable(std::forward<Callable>(callable));
+			static_assert(alignof(Task) <= command_alignment);
+			static_assert(std::is_base_of_v<TaskInterface, Task>);
+
+			void* place = allocate(sizeof(Task));
+			return new (place) Task(std::forward<Args>(args)...);
+		}
+
+		template<typename Callable>
+		TaskInterface* add_callabble(Callable&& callable)
+		{
+			struct CallableTask : public Task<CallableTask> {
+				Callable func;
+
+				CallableTask(Callable&& callable) : func(std::forward<Callable>(callable))
+				{}
+
+				void execute() override
+				{
+					func();
+				}
+			};
+
+			return add_task<CallableTask>(std::forward<Callable>(callable));
 		}
 
 		friend class SceneRenderer;
