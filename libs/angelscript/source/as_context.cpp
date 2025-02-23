@@ -2206,7 +2206,7 @@ void asCContext::CallInterfaceMethod(asCScriptFunction *func)
 
 #if AS_USE_COMPUTED_GOTOS
 #define INSTRUCTION(x) case_##x
-#define NEXT_INSTRUCTION() goto *dispatch_table[*(asBYTE*)l_bc]
+#define NEXT_INSTRUCTION() goto *(void*) dispatch_table[*(asBYTE*)l_bc]
 #define BEGIN() NEXT_INSTRUCTION();
 #else
 #define INSTRUCTION(x) case x
@@ -5987,6 +5987,12 @@ int asCContext::GetVar(asUINT varIndex, asUINT stackLevel, const char** name, in
 			}
 			else
 				*typeModifiers = asTM_INOUTREF;
+		}
+
+		if (func->scriptData &&
+			func->scriptData->variables[varIndex]->type.IsReadOnly())
+		{
+			*typeModifiers = (asETypeModifiers)(*typeModifiers | asTM_CONST);
 		}
 	}
 
