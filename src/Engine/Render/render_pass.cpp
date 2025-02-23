@@ -86,131 +86,46 @@ namespace Engine
 		return m_next;
 	}
 
-	// RENDER COMMANDS IMPLEMENTATION
-
-#define declare_command_one_param(command_name, type1, name1, code)                                                              \
-	class command_name##Command : public Task<command_name##Command>                                                             \
-	{                                                                                                                            \
-		type1 name1;                                                                                                             \
-																																 \
-	public:                                                                                                                      \
-		command_name##Command(type1 var1) : name1(var1)                                                                          \
-		{}                                                                                                                       \
-																																 \
-		void execute() override                                                                                                  \
-		{                                                                                                                        \
-			code;                                                                                                                \
-		}                                                                                                                        \
-	};
-
-#define declare_command_two_param(command_name, type1, name1, type2, name2, code)                                                \
-	class command_name##Command : public Task<command_name##Command>                                                             \
-	{                                                                                                                            \
-		type1 name1;                                                                                                             \
-		type2 name2;                                                                                                             \
-																																 \
-	public:                                                                                                                      \
-		command_name##Command(type1 var1, type2 var2) : name1(var1), name2(var2)                                                 \
-		{}                                                                                                                       \
-																																 \
-		void execute() override                                                                                                  \
-		{                                                                                                                        \
-			code;                                                                                                                \
-		}                                                                                                                        \
-	};
-
-#define declare_command_three_param(command_name, type1, name1, type2, name2, type3, name3, code)                                \
-	class command_name##Command : public Task<command_name##Command>                                                             \
-	{                                                                                                                            \
-		type1 name1;                                                                                                             \
-		type2 name2;                                                                                                             \
-		type3 name3;                                                                                                             \
-																																 \
-	public:                                                                                                                      \
-		command_name##Command(type1 var1, type2 var2, type3 var3) : name1(var1), name2(var2), name3(var3)                        \
-		{}                                                                                                                       \
-																																 \
-		void execute() override                                                                                                  \
-		{                                                                                                                        \
-			code;                                                                                                                \
-		}                                                                                                                        \
-	};
-
-#define declare_command_four_param(command_name, type1, name1, type2, name2, type3, name3, type4, name4, code)                   \
-	class command_name##Command : public Task<command_name##Command>                                                             \
-	{                                                                                                                            \
-		type1 name1;                                                                                                             \
-		type2 name2;                                                                                                             \
-		type3 name3;                                                                                                             \
-		type4 name4;                                                                                                             \
-																																 \
-	public:                                                                                                                      \
-		command_name##Command(type1 var1, type2 var2, type3 var3, type4 var4)                                                    \
-			: name1(var1), name2(var2), name3(var3), name4(var4)                                                                 \
-		{}                                                                                                                       \
-																																 \
-		void execute() override                                                                                                  \
-		{                                                                                                                        \
-			code;                                                                                                                \
-		}                                                                                                                        \
-	};
-
-	declare_command_two_param(Draw, size_t, vertices_count, size_t, vertices_offset, rhi->draw(vertices_count, vertices_offset));
-	declare_command_three_param(DrawIndexed, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-								rhi->draw_indexed(indices_count, indices_offset, vertices_offset));
-	declare_command_three_param(DrawInstanced, size_t, vertices_count, size_t, vertices_offset, size_t, instances,
-								rhi->draw_instanced(vertices_count, vertices_offset, instances));
-	declare_command_four_param(DrawIndexedInstanced, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-							   size_t, instances,
-							   rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
-	declare_command_three_param(BindMaterial, RenderPass*, render_pass, MaterialInterface*, interface, SceneComponent*, component,
-								interface->apply(component, render_pass));
-
-	declare_command_three_param(BindVertexBuffer, VertexBuffer*, buffer, byte, stream, size_t, offset,
-								buffer->rhi_bind(stream, offset));
-
-	declare_command_two_param(BindIndexBuffer, IndexBuffer*, buffer, size_t, offset, buffer->rhi_bind(offset));
-
 	RenderPass& RenderPass::draw(size_t vertices_count, size_t vertices_offset)
 	{
-		create_command<DrawCommand>(vertices_count, vertices_offset);
+		add_callabble([=]() { rhi->draw(vertices_count, vertices_offset); });
 		return *this;
 	}
 
 	RenderPass& RenderPass::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
 	{
-		create_command<DrawIndexedCommand>(indices_count, indices_offset, vertices_offset);
+		add_callabble([=]() { rhi->draw_indexed(indices_count, indices_offset, vertices_offset); });
 		return *this;
 	}
 
 	RenderPass& RenderPass::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
-		create_command<DrawInstancedCommand>(vertex_count, vertices_offset, instances);
+		add_callabble([=]() { rhi->draw_instanced(vertex_count, vertices_offset, instances); });
 		return *this;
 	}
 
 	RenderPass& RenderPass::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 												   size_t instances)
 	{
-		create_command<DrawIndexedInstancedCommand>(indices_count, indices_offset, vertices_offset, instances);
+		add_callabble([=]() { rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances); });
 		return *this;
 	}
 
 	RenderPass& RenderPass::bind_material(class MaterialInterface* material, SceneComponent* component)
 	{
-		create_command<BindMaterialCommand>(this, material, component);
+		add_callabble([=, self = this]() { material->apply(component, self); });
 		return *this;
 	}
 
 	RenderPass& RenderPass::bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset)
 	{
-		create_command<BindVertexBufferCommand>(buffer, stream, offset);
+		add_callabble([=]() { buffer->rhi_bind(stream, offset); });
 		return *this;
 	}
 
 	RenderPass& RenderPass::bind_index_buffer(class IndexBuffer* buffer, size_t offset)
 	{
-		create_command<BindIndexBufferCommand>(buffer, offset);
+		add_callabble([=]() { buffer->rhi_bind(offset); });
 		return *this;
 	}
 
@@ -221,8 +136,8 @@ namespace Engine
 
 	trinex_impl_render_pass(Engine::DepthPass)
 	{
-		info.entry     = "depth";
-		info.has_depth = true;
+		m_entry     = "depth";
+		m_has_depth = true;
 	}
 
 	trinex_impl_render_pass(Engine::ShadowPass)
@@ -236,12 +151,12 @@ namespace Engine
 
 	trinex_impl_render_pass(Engine::DeferredLightingPass)
 	{
-		info.shader_definitions = {
+		m_shader_definitions = {
 				{"TRINEX_DEFERRED_LIGHTING_PASS", "1"},
 		};
 
-		info.entry                   = "deferred_light";
-		info.color_attachments_count = 1;
+		m_entry                   = "deferred_light";
+		m_color_attachments_count = 1;
 	}
 
 	trinex_impl_render_pass(Engine::TransparencyPass)

@@ -187,38 +187,37 @@ namespace Engine
 
 		if (color_parameter)
 		{
-			pass->update_variable(color_parameter->value, proxy->light_color());
+			pass->assign(color_parameter->value, proxy->light_color());
 		}
 
 		if (intensivity_parameter)
 		{
-			pass->update_variable(intensivity_parameter->value, proxy->intensivity());
+			pass->assign(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		if (location_parameter)
 		{
-			pass->update_variable(location_parameter->value, proxy->world_transform().location());
+			pass->assign(location_parameter->value, proxy->world_transform().location());
 		}
 
 		if (direction_parameter)
 		{
-			pass->update_variable(direction_parameter->value, proxy->direction());
+			pass->assign(direction_parameter->value, proxy->direction());
 		}
 
 		if (spot_angles_parameter)
 		{
-			pass->update_variable(spot_angles_parameter->value,
-								  Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
+			pass->assign(spot_angles_parameter->value, Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
 		}
 
 		if (radius_parameter)
 		{
-			pass->update_variable(radius_parameter->value, proxy->attenuation_radius());
+			pass->assign(radius_parameter->value, proxy->attenuation_radius());
 		}
 
 		if (fall_off_parameter)
 		{
-			pass->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
+			pass->assign(fall_off_parameter->value, proxy->fall_off_exponent());
 		}
 
 		pass->bind_material(material, nullptr);

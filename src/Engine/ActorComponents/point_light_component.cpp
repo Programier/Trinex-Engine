@@ -92,27 +92,27 @@ namespace Engine
 
 		if (color_parameter)
 		{
-			pass->update_variable(color_parameter->value, proxy->light_color());
+			pass->assign(color_parameter->value, proxy->light_color());
 		}
 
 		if (location_parameter)
 		{
-			pass->update_variable(location_parameter->value, proxy->world_transform().location());
+			pass->assign(location_parameter->value, proxy->world_transform().location());
 		}
 
 		if (intensivity_parameter)
 		{
-			pass->update_variable(intensivity_parameter->value, proxy->intensivity());
+			pass->assign(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		if (radius_parameter)
 		{
-			pass->update_variable(radius_parameter->value, proxy->attenuation_radius());
+			pass->assign(radius_parameter->value, proxy->attenuation_radius());
 		}
 
 		if (fall_off_parameter)
 		{
-			pass->update_variable(fall_off_parameter->value, proxy->fall_off_exponent());
+			pass->assign(fall_off_parameter->value, proxy->fall_off_exponent());
 		}
 
 		pass->bind_material(material);

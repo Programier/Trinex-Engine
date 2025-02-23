@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
+#include <Core/memory.hpp>
 #include <Core/name.hpp>
 #include <Core/task.hpp>
 #include <Engine/Render/batched_primitives.hpp>
@@ -15,7 +16,8 @@ namespace Engine
 		declare_struct(RenderPass, void);
 
 	public:
-		using FunctionCallback = void(RenderViewport*, RenderPass*);
+		static constexpr size_t command_alignment = 16;
+		using FunctionCallback                    = void(RenderViewport*, RenderPass*);
 		CallBacks<FunctionCallback> on_render;
 
 	private:
@@ -25,19 +27,17 @@ namespace Engine
 		Buffer m_commands;
 		size_t m_allocated = 0;
 
-		template<typename Type, typename... Args>
-		Type* create_command(Args&&... args)
+		inline byte* allocate(size_t size)
 		{
 			size_t start = m_allocated;
-			m_allocated += sizeof(Type);
+			m_allocated += align_up(size, command_alignment);
 
 			if (m_allocated > m_commands.size())
 			{
 				m_commands.resize(m_allocated);
 			}
 
-			byte* data = m_commands.data() + start;
-			return new (data) Type(std::forward<Args>(args)...);
+			return m_commands.data() + start;
 		}
 
 	protected:
@@ -64,27 +64,17 @@ namespace Engine
 		RenderPass& bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset = 0);
 		RenderPass& bind_index_buffer(class IndexBuffer* buffer, size_t offset = 0);
 
-		template<typename VariableType>
-		RenderPass& update_variable(VariableType& out, const VariableType& in)
+		template<typename Dst, typename Src>
+		auto assign(Dst& dst, Src&& src)
 		{
-			class UpdateVar : public Task<UpdateVar>
-			{
-			private:
-				VariableType input;
-				VariableType* m_output;
+			return add_callabble([&]() { dst = std::forward<Src>(src); });
+		}
 
-			public:
-				UpdateVar(const VariableType& in, VariableType& out) : input(in), m_output(&out)
-				{}
-
-				void execute() override
-				{
-					(*m_output) = std::move(input);
-				}
-			};
-
-			create_command<UpdateVar>(in, out);
-			return *this;
+		template<typename Callable>
+		Callable* add_callabble(Callable&& callable)
+		{
+			static_assert(alignof(Callable) <= command_alignment);
+			return new (allocate(sizeof(Callable))) Callable(std::forward<Callable>(callable));
 		}
 
 		friend class SceneRenderer;

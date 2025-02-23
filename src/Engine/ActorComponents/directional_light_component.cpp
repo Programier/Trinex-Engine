@@ -67,17 +67,17 @@ namespace Engine
 
 		if (color_parameter)
 		{
-			pass->update_variable(color_parameter->value, proxy->light_color());
+			pass->assign(color_parameter->value, proxy->light_color());
 		}
 
 		if (direction_parameter)
 		{
-			pass->update_variable(direction_parameter->value, proxy->direction());
+			pass->assign(direction_parameter->value, proxy->direction());
 		}
 
 		if (intensivity_parameter)
 		{
-			pass->update_variable(intensivity_parameter->value, proxy->intensivity());
+			pass->assign(intensivity_parameter->value, proxy->intensivity());
 		}
 
 		pass->bind_material(material, nullptr);
