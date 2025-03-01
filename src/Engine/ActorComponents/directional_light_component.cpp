@@ -43,7 +43,10 @@ namespace Engine
 		return typed_proxy<DirectionalLightComponentProxy>();
 	}
 
-	implement_empty_rendering_methods_for(DirectionalLightComponent);
+	SceneRenderer& SceneRenderer::render_component(DirectionalLightComponent* component)
+	{
+		return *this;
+	}
 
 #define get_param(param_name, type)                                                                                              \
 	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));

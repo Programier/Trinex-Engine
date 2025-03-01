@@ -16,7 +16,7 @@ namespace Engine
 
 	bool GPUBuffer::force_keep_cpu_data()
 	{
-		return Settings::GPU::force_keep_cpu_resources;
+		return Settings::Rendering::force_keep_cpu_resources;
 	}
 
 	GPUBuffer& GPUBuffer::rhi_update(size_t offset, size_t size, const byte* data)

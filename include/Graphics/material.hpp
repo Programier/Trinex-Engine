@@ -73,6 +73,7 @@ namespace Engine
 
 	public:
 		Vector<ShaderDefinition> compile_definitions;
+		bool default_pass_only = false;
 
 		Material();
 		Pipeline* pipeline(Refl::RenderPassInfo* pass) const;

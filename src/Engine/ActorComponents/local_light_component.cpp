@@ -63,8 +63,6 @@ namespace Engine
 		return typed_proxy<LocalLightComponentProxy>();
 	}
 
-	implement_empty_rendering_methods_for(LocalLightComponent);
-
 	LocalLightComponent& LocalLightComponent::render(class SceneRenderer* renderer)
 	{
 		renderer->render_component(this);
@@ -80,6 +78,12 @@ namespace Engine
 			submit_local_light_info();
 		}
 
+		return *this;
+	}
+
+	SceneRenderer& SceneRenderer::render_component(LocalLightComponent* component)
+	{
+		render_base_component(component);
 		return *this;
 	}
 }// namespace Engine

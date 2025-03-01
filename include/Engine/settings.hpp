@@ -16,11 +16,13 @@ namespace Engine::Settings
 	extern ENGINE_EXPORT Vector<String> plugins;
 	extern ENGINE_EXPORT bool debug_shaders;
 
-	namespace GPU
+	namespace Rendering
 	{
 		extern ENGINE_EXPORT String rhi;
 		extern ENGINE_EXPORT bool force_keep_cpu_resources;
-	}// namespace GPU
+
+		extern ENGINE_EXPORT uint_t shadow_map_size;
+	}// namespace Rendering
 
 	namespace Window
 	{

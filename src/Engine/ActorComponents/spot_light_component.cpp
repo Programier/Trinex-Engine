@@ -151,8 +151,6 @@ namespace Engine
 		return LightComponent::Type::Spot;
 	}
 
-	implement_empty_rendering_methods_for(SpotLightComponent);
-
 	SpotLightComponent& SpotLightComponent::start_play()
 	{
 		Super::start_play();
@@ -160,6 +158,10 @@ namespace Engine
 		return *this;
 	}
 
+	SceneRenderer& SceneRenderer::render_component(SpotLightComponent* component)
+	{
+		return *this;
+	}
 
 #define get_param(param_name, type)                                                                                              \
 	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));

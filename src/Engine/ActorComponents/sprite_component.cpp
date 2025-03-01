@@ -20,15 +20,12 @@ namespace Engine
 		trinex_refl_prop(self, This, m_texture)->display_name("Texture").tooltip("Sprite texture");
 	}
 
-	implement_empty_rendering_methods_for(SpriteComponent);
-
-
 	static FORCE_INLINE Matrix4f rotate_sprite(Transform input_transform, const SceneView& view)
 	{
 		return input_transform.look_at(view.camera_view().location, Constants::OY).matrix();
 	}
 
-	ColorSceneRenderer& ColorSceneRenderer::render_component(SpriteComponent* component)
+	SceneRenderer& SceneRenderer::render_component(SpriteComponent* component)
 	{
 		render_base_component(component);
 		//        Material* material                 = DefaultResources::sprite_material;

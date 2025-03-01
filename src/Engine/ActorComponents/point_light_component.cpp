@@ -60,12 +60,15 @@ namespace Engine
 		return *this;
 	}
 
-	implement_empty_rendering_methods_for(PointLightComponent);
-
 	PointLightComponent& PointLightComponent::start_play()
 	{
 		Super::start_play();
 		submit_point_light_data();
+		return *this;
+	}
+
+	SceneRenderer& SceneRenderer::render_component(PointLightComponent* component)
+	{
 		return *this;
 	}
 

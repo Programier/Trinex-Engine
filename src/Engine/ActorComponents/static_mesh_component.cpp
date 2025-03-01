@@ -31,9 +31,7 @@ namespace Engine
 		return *this;
 	}
 
-	implement_empty_rendering_methods_for(StaticMeshComponent);
-
-	ColorSceneRenderer& ColorSceneRenderer::render_component(StaticMeshComponent* component)
+	SceneRenderer& SceneRenderer::render_component(StaticMeshComponent* component)
 	{
 		render_base_component(component);
 

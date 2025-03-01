@@ -39,13 +39,13 @@ namespace Engine
 
 	static void initialize_graphics_api(bool force_no_api = false)
 	{
-		if (Settings::GPU::rhi.empty() || force_no_api)
+		if (Settings::Rendering::rhi.empty() || force_no_api)
 		{
-			Settings::GPU::rhi     = "None";
-			Settings::Splash::show = false;
+			Settings::Rendering::rhi = "None";
+			Settings::Splash::show   = false;
 		}
 
-		String api = Settings::GPU::rhi;
+		String api = Settings::Rendering::rhi;
 		auto decl  = Strings::format("Engine::TRINEX_RHI::{}", Strings::to_upper(api));
 		rhi        = reinterpret_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
 
@@ -85,8 +85,9 @@ namespace Engine
 		{
 			if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
 			{
-				Settings::GPU::force_keep_cpu_resources = true;
-				result                                  = entry->execute();
+				Settings::Rendering::force_keep_cpu_resources = true;
+
+				result = entry->execute();
 			}
 			else
 			{

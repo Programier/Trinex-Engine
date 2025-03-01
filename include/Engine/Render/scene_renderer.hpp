@@ -26,12 +26,6 @@ namespace Engine
 	class PostProcessPass;
 	class OverlayPass;
 
-#define implement_empty_rendering_methods_for(type)                                                                              \
-	SceneRenderer& SceneRenderer::render_component(type* component)                                                              \
-	{                                                                                                                            \
-		return render_base_component(component);                                                                                 \
-	}
-
 	struct ENGINE_EXPORT RenderStatistics final {
 		size_t visible_objects;
 
@@ -160,8 +154,6 @@ namespace Engine
 
 		// Components rendering
 		using SceneRenderer::render_component;
-		ColorSceneRenderer& render_component(StaticMeshComponent* component) override;
-		ColorSceneRenderer& render_component(SpriteComponent* component) override;
 		ColorSceneRenderer& render_component(PointLightComponent* component) override;
 		ColorSceneRenderer& render_component(SpotLightComponent* component) override;
 		ColorSceneRenderer& render_component(DirectionalLightComponent* component) override;

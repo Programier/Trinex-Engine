@@ -16,11 +16,12 @@ namespace Engine::Settings
 	ENGINE_EXPORT Vector<String> plugins;
 	ENGINE_EXPORT bool debug_shaders = false;
 
-	namespace GPU
+	namespace Rendering
 	{
 		ENGINE_EXPORT String rhi                    = "Vulkan";
 		ENGINE_EXPORT bool force_keep_cpu_resources = false;
-	}// namespace GPU
+		ENGINE_EXPORT uint_t shadow_map_size        = 1024;
+	}// namespace Rendering
 
 	namespace Window
 	{
@@ -74,9 +75,10 @@ namespace Engine::Settings
 		{
 			ScriptNamespaceScopedChanger changer("Engine::Settings::GPU");
 
-			using namespace GPU;
+			using namespace Rendering;
 
 			bind_value(string, rhi);
+			bind_value(uint, shadow_map_size);
 		}
 
 		{
