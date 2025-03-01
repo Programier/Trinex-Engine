@@ -13,7 +13,7 @@ namespace Engine
 	class ENGINE_EXPORT WindowManager final : public Singletone<WindowManager, EmptyClass>
 	{
 	private:
-		static WindowManager* m_instance;
+		static WindowManager* s_instance;
 		TreeMap<Identifier, Window*> m_windows;
 		Window* m_main_window = nullptr;
 

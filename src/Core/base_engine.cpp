@@ -164,7 +164,7 @@ namespace Engine
 		return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
 	}
 
-	Index BaseEngine::frame_index() const
+	uint64_t BaseEngine::frame_index() const
 	{
 		return m_frame_index;
 	}

@@ -1,9 +1,12 @@
 #pragma once
+#include <Core/pointer.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/aabb.hpp>
 
 namespace Engine
 {
+	class RenderSurface;
+
 	class ENGINE_EXPORT LightComponentProxy : public SceneComponentProxy
 	{
 	protected:
@@ -13,6 +16,8 @@ namespace Engine
 		bool m_is_enabled;
 		bool m_is_shadows_enabled;
 
+		Pointer<RenderSurface> m_shadow_map;
+
 	public:
 		const AABB_3Df& bounding_box() const;
 		const Color3& light_color() const;
@@ -20,11 +25,17 @@ namespace Engine
 		bool is_enabled() const;
 		bool is_shadows_enabled() const;
 
+		inline RenderSurface* shadow_map() const
+		{
+			return m_shadow_map;
+		}
+
 		LightComponentProxy& bounding_box(const AABB_3Df& bounds);
 		LightComponentProxy& light_color(const Color3& color);
 		LightComponentProxy& intensivity(float value);
 		LightComponentProxy& is_enabled(bool enabled);
 		LightComponentProxy& is_shadows_enabled(bool enabled);
+		LightComponentProxy& shadow_map(RenderSurface* map);
 		friend class LightComponent;
 	};
 
@@ -51,12 +62,13 @@ namespace Engine
 		static Name name_spot_angles;
 
 	private:
+		Pointer<RenderSurface> m_shadow_map;
+
 		AABB_3Df m_bounds;
 		Color3 m_light_color;
 		float m_intensivity;
 		bool m_is_enabled;
 		bool m_is_shadows_enabled;
-
 
 		LightComponent& submit_light_info_render_thread();
 
@@ -72,7 +84,6 @@ namespace Engine
 		LightComponent& intensivity(float value);
 		LightComponent& is_enabled(bool enabled);
 		LightComponent& is_shadows_enabled(bool enabled);
-
 
 		virtual Type light_type() const = 0;
 		virtual LightComponent& render(class SceneRenderer*);

@@ -136,11 +136,44 @@ namespace Engine
 
 	// IMPLEMENTATION OF RENDER PASSES
 
+	static bool is_opaque_material(const Material* material)
+	{
+		auto desc = material->graphics_description();
+
+		if (desc == nullptr)
+			return false;
+
+		if (desc->color_blending.enable)
+		{
+			return false;
+		}
+
+		if (!desc->depth_test.enable || !desc->depth_test.write_enable)
+		{
+			return false;
+		}
+
+		if (desc->rasterizer.polygon_mode != PolygonMode::Fill)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	trinex_impl_render_pass(Engine::ClearPass)
 	{}
 
 	trinex_impl_render_pass(Engine::DepthPass)
-	{}
+	{
+		m_attachments_count = 0;
+
+		m_shader_definitions = {
+				{"TRINEX_DEPTH_PASS", "1"},
+		};
+
+		m_is_material_compatible = is_opaque_material;
+	}
 
 	trinex_impl_render_pass(Engine::ShadowPass)
 	{}
@@ -153,29 +186,7 @@ namespace Engine
 				{"TRINEX_GEOMETRY_PASS", "1"},
 		};
 
-		m_is_material_compatible = [](const Material* material) -> bool {
-			auto desc = material->graphics_description();
-
-			if (desc == nullptr)
-				return false;
-
-			if (desc->color_blending.enable)
-			{
-				return false;
-			}
-
-			if (!desc->depth_test.enable || !desc->depth_test.write_enable)
-			{
-				return false;
-			}
-
-			if (desc->rasterizer.polygon_mode != PolygonMode::Fill)
-			{
-				return false;
-			}
-
-			return true;
-		};
+		m_is_material_compatible = is_opaque_material;
 	}
 
 	trinex_impl_render_pass(Engine::ForwardPass)

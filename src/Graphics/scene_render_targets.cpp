@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	SceneRenderTargets* SceneRenderTargets::m_instance;
+	SceneRenderTargets* SceneRenderTargets::s_instance = nullptr;
 
 	SceneRenderTargets::SceneRenderTargets()
 	{

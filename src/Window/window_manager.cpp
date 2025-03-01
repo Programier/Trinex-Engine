@@ -98,7 +98,7 @@ namespace Engine
 	}
 
 
-	WindowManager* WindowManager::m_instance = nullptr;
+	WindowManager* WindowManager::s_instance = nullptr;
 
 	WindowManager::WindowManager()
 	{

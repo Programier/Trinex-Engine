@@ -36,15 +36,15 @@ namespace Engine
 				}
 				else
 				{
-					Type::m_instance = new Type(std::forward<Args>(args)...);
+					Type::s_instance = new Type(std::forward<Args>(args)...);
 
 					if constexpr (with_destroy_controller)
 					{
 						PostDestroyController post_destroy([]() {
-							if (Type::m_instance)
+							if (Type::s_instance)
 							{
-								delete Type::m_instance;
-								Type::m_instance = nullptr;
+								delete Type::s_instance;
+								Type::s_instance = nullptr;
 							}
 						});
 					}
@@ -65,7 +65,7 @@ namespace Engine
 				}
 				else
 				{
-					Type::m_instance = new (place) Type(std::forward<Args>(args)...);
+					Type::s_instance = new (place) Type(std::forward<Args>(args)...);
 				}
 			}
 
@@ -87,7 +87,7 @@ namespace Engine
 			}
 			else
 			{
-				return Type::m_instance;
+				return Type::s_instance;
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace Engine
 		{
 			if constexpr (!singletone_based_on_object)
 			{
-				Type::m_instance = nullptr;
+				Type::s_instance = nullptr;
 			}
 			else
 			{

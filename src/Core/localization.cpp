@@ -13,7 +13,7 @@
 
 namespace Engine
 {
-	Localization* Localization::m_instance = nullptr;
+	Localization* Localization::s_instance = nullptr;
 
 	const String& Localization::localize(const StringView& line) const
 	{

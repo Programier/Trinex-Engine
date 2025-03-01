@@ -29,7 +29,7 @@ namespace Engine
 		static constexpr inline size_t textures_count = static_cast<size_t>(Surface::__COUNT__);
 
 	private:
-		static SceneRenderTargets* m_instance;
+		static SceneRenderTargets* s_instance;
 
 		Array<Pointer<RenderSurface>, textures_count> m_surfaces;
 		Size2D m_size;

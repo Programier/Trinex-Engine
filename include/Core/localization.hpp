@@ -9,7 +9,7 @@ namespace Engine
 	class ENGINE_EXPORT Localization : public Singletone<Localization, EmptySingletoneParent>
 	{
 	private:
-		static Localization* m_instance;
+		static Localization* s_instance;
 		Map<HashIndex, String> m_translation_map;
 		mutable Map<HashIndex, String> m_default_translation_map;
 

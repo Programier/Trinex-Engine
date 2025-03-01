@@ -21,7 +21,7 @@ namespace Engine::VFS
 		return first > second;
 	}
 
-	RootFS* RootFS::m_instance = nullptr;
+	RootFS* RootFS::s_instance = nullptr;
 
 	RootFS::RootFS()
 	{}

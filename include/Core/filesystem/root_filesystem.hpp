@@ -23,7 +23,7 @@ namespace Engine::VFS
 	private:
 		FileSystemMap m_file_systems;
 
-		static RootFS* m_instance;
+		static RootFS* s_instance;
 
 		RootFS();
 		~RootFS();

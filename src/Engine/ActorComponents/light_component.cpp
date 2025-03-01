@@ -5,6 +5,7 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/shadow_map_pool.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -74,6 +75,12 @@ namespace Engine
 	LightComponentProxy& LightComponentProxy::is_shadows_enabled(bool enabled)
 	{
 		m_is_shadows_enabled = enabled;
+		return *this;
+	}
+
+	LightComponentProxy& LightComponentProxy::shadow_map(RenderSurface* map)
+	{
+		m_shadow_map = map;
 		return *this;
 	}
 
@@ -197,6 +204,16 @@ namespace Engine
 	LightComponent& LightComponent::is_shadows_enabled(bool enabled)
 	{
 		m_is_shadows_enabled = enabled;
+
+		if (enabled && m_shadow_map == nullptr)
+		{
+			m_shadow_map = ShadowMapPool::instance()->request_surface();
+		}
+		else if (!enabled && m_shadow_map != nullptr)
+		{
+			ShadowMapPool::instance()->return_surface(m_shadow_map.ptr());
+		}
+
 		return submit_light_info_render_thread();
 	}
 
@@ -245,7 +262,14 @@ namespace Engine
 
 		if (event.property->owner() == static_class_instance())
 		{
-			submit_light_info_render_thread();
+			if (event.property->address(this) == &m_is_shadows_enabled)
+			{
+				is_shadows_enabled(m_is_shadows_enabled);
+			}
+			else
+			{
+				submit_light_info_render_thread();
+			}
 		}
 
 		return *this;

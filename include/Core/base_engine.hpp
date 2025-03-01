@@ -11,7 +11,7 @@ namespace Engine
 	{
 		declare_class(BaseEngine, Object);
 
-		Index m_frame_index;
+		uint64_t m_frame_index;
 		float m_delta_time;
 		float m_prev_time;
 
@@ -43,7 +43,7 @@ namespace Engine
 		bool is_requesting_exit() const;
 		float delta_time() const;
 		float time_seconds() const;
-		Index frame_index() const;
+		uint64_t frame_index() const;
 		bool is_shuting_down() const;
 		bool is_inited() const;
 		BaseEngine& make_inited();
