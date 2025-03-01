@@ -397,6 +397,7 @@ namespace Engine::Platform
 				case SDL_MOUSEBUTTONUP:
 				{
 					process_mouse_button(callback, userdata);
+					break;
 				}
 
 				case SDL_MOUSEWHEEL:
