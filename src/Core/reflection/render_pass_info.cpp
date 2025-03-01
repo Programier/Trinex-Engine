@@ -54,34 +54,9 @@ namespace Engine::Refl
 		return m_shader_definitions;
 	}
 
-	const String& RenderPassInfo::entry() const
+	uint_t RenderPassInfo::attachment_count() const
 	{
-		return m_entry;
-	}
-
-	uint_t RenderPassInfo::color_attachment_count() const
-	{
-		return m_color_attachments_count;
-	}
-
-	bool RenderPassInfo::has_color_attachments() const
-	{
-		return m_color_attachments_count > 0;
-	}
-
-	bool RenderPassInfo::has_depth_attachment() const
-	{
-		return m_has_depth;
-	}
-
-	bool RenderPassInfo::has_stencil_attachment() const
-	{
-		return m_has_stencil;
-	}
-
-	bool RenderPassInfo::has_depth_stencil_attachment() const
-	{
-		return m_has_depth && m_has_stencil && m_has_depth_stencil;
+		return m_attachments_count;
 	}
 
 	bool RenderPassInfo::is_material_compatible(const Material* material)

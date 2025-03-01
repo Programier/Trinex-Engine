@@ -40,48 +40,61 @@ namespace Engine
 		if (!(scene_view().show_flags() & ShowFlags::StaticMesh))
 			return *this;
 
-		StaticMesh* mesh   = component->mesh;
-		auto& camera_view  = scene_view().camera_view();
-		float inv_distance = 1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
-		                                    camera_view.far_clip_plane);
-		auto& lods         = mesh->lods;
-		Index lod_index    = glm::min<Index>(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
-		auto& lod          = lods[lod_index];
+		StaticMesh* mesh = component->mesh;
 
-		for (auto& material : mesh->materials)
+		if (mesh->lods.empty())
+			return *this;
+
+		auto& camera_view = scene_view().camera_view();
+		auto& lod = mesh->lods[camera_view.compute_lod(component->proxy()->world_transform().location(), mesh->lods.size())];
+
+		for (auto& surface_info : mesh->materials)
 		{
-			if (material.material == nullptr || static_cast<Index>(material.surface_index) > lod.surfaces.size())
+			if (surface_info.material == nullptr || static_cast<Index>(surface_info.surface_index) > lod.surfaces.size())
 			{
 				continue;
 			}
 
-			auto pass = geometry_pass();
-			pass->bind_material(material.material, component);
+			Material* material = surface_info.material->material();
 
-			VertexShader* shader = Object::instance_cast<VertexShader>(
-					material.material->material()->pipeline(nullptr)->shader(ShaderType::Vertex));
-
-			for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
+			for (auto pass = first_pass(); pass; pass = pass->next())
 			{
-				auto& attribute      = shader->attributes[i];
-				VertexBuffer* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
+				GraphicsPipeline* pipeline = Object::instance_cast<GraphicsPipeline>(material->pipeline(pass->info()));
 
-				if (buffer)
+				if (pipeline == nullptr)
 				{
-					pass->bind_vertex_buffer(buffer, attribute.stream_index, 0);
+					// Pass is not supported by this material
+					continue;
 				}
-			}
 
-			auto& surface = lod.surfaces[material.surface_index];
+				VertexShader* shader = pipeline->vertex_shader();
 
-			if (lod.indices->size() > 0)
-			{
-				pass->bind_index_buffer(lod.indices, 0);
-				pass->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
-			}
-			else
-			{
-				pass->draw(surface.vertices_count, surface.base_vertex_index);
+				pass->bind_material(surface_info.material, component);
+
+				for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
+				{
+					auto& attribute      = shader->attributes[i];
+					VertexBuffer* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
+
+					if (buffer)
+					{
+						pass->bind_vertex_buffer(buffer, attribute.stream_index, 0);
+					}
+				}
+
+				auto& surface = lod.surfaces[surface_info.surface_index];
+
+				pass->predraw(component, surface_info.material, pipeline);
+
+				if (lod.indices->size() > 0)
+				{
+					pass->bind_index_buffer(lod.indices, 0);
+					pass->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
+				}
+				else
+				{
+					pass->draw(surface.vertices_count, surface.base_vertex_index);
+				}
 			}
 		}
 

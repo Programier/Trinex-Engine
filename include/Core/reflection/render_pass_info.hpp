@@ -19,12 +19,8 @@ namespace Engine::Refl
 
 		Vector<ShaderDefinition> m_shader_definitions;
 		Function<bool(const Material*)> m_is_material_compatible;
-		String m_entry                   = "main";
-		RenderPassInfo* m_next           = nullptr;
-		uint_t m_color_attachments_count = 0;
-		bool m_has_depth                 = false;
-		bool m_has_stencil               = false;
-		bool m_has_depth_stencil         = false;
+		RenderPassInfo* m_next     = nullptr;
+		uint_t m_attachments_count = 1;
 
 	public:
 		static RenderPassInfo* static_find_pass(Name name);
@@ -34,12 +30,7 @@ namespace Engine::Refl
 		RenderPassInfo& initialize() override;
 
 		const Vector<ShaderDefinition>& shader_definitions() const;
-		const String& entry() const;
-		uint_t color_attachment_count() const;
-		bool has_color_attachments() const;
-		bool has_depth_attachment() const;
-		bool has_stencil_attachment() const;
-		bool has_depth_stencil_attachment() const;
+		uint_t attachment_count() const;
 		bool is_material_compatible(const Material* material);
 
 		inline RenderPassInfo* next_pass()

@@ -32,6 +32,9 @@ namespace Engine::Strings
 	}
 
 	ENGINE_EXPORT String replace_all(StringView line, StringView old, StringView new_line);
+	ENGINE_EXPORT uint_t replace_symbol(String& str, char old_symbol, char new_symbol);
+	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol);
+	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol, uint_t len);
 	ENGINE_EXPORT String& to_lower(String& line);
 	ENGINE_EXPORT String to_lower(const String& line);
 	ENGINE_EXPORT String& to_upper(String& line);

@@ -117,6 +117,58 @@ namespace Engine::Strings
 		return result;
 	}
 
+	ENGINE_EXPORT uint_t replace_symbol(String& str, char old_symbol, char new_symbol)
+	{
+		uint_t count = 0;
+
+		for (char& ch : str)
+		{
+			if (ch == old_symbol)
+			{
+				++count;
+				ch = new_symbol;
+			}
+		}
+
+		return count;
+	}
+
+	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol)
+	{
+		uint_t count = 0;
+
+		while (*str != '\0')
+		{
+			if (*str == old_symbol)
+			{
+				++count;
+				*str = new_symbol;
+			}
+
+			++str;
+		}
+
+		return count;
+	}
+
+	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol, uint_t len)
+	{
+		uint_t count = 0;
+
+		while (len > 0)
+		{
+			if (*str == old_symbol)
+			{
+				++count;
+				*str = new_symbol;
+			}
+
+			++str;
+			--len;
+		}
+
+		return count;
+	}
 
 	ENGINE_EXPORT String& to_lower(String& line)
 	{

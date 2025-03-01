@@ -10,6 +10,9 @@ namespace Engine
 	class SceneRenderer;
 	class RenderViewport;
 	class SceneComponent;
+	class PrimitiveComponent;
+	class MaterialInterface;
+	class Pipeline;
 
 	class ENGINE_EXPORT RenderPass
 	{
@@ -55,8 +58,9 @@ namespace Engine
 		virtual bool is_empty() const;
 		virtual RenderPass& clear();
 		virtual RenderPass& render(RenderViewport*);
+		virtual RenderPass& predraw(PrimitiveComponent* primitive, MaterialInterface* material, Pipeline* pipeline);
 
-		RenderPass& draw(size_t vertices_count, size_t vertices_offset);
+				RenderPass& draw(size_t vertices_count, size_t vertices_offset);
 		RenderPass& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset);
 		RenderPass& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances);
 		RenderPass& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances);

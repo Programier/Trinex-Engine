@@ -9,6 +9,7 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
+#include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 
@@ -75,6 +76,11 @@ namespace Engine
 		return *this;
 	}
 
+	RenderPass& RenderPass::predraw(PrimitiveComponent* primitive, MaterialInterface* material, Pipeline* pipeline)
+	{
+		return *this;
+	}
+
 	SceneRenderer* RenderPass::scene_renderer() const
 	{
 		return m_renderer;
@@ -134,29 +140,49 @@ namespace Engine
 	{}
 
 	trinex_impl_render_pass(Engine::DepthPass)
-	{
-		m_entry     = "depth";
-		m_has_depth = true;
-	}
+	{}
 
 	trinex_impl_render_pass(Engine::ShadowPass)
 	{}
 
 	trinex_impl_render_pass(Engine::GeometryPass)
-	{}
+	{
+		m_attachments_count = 4;
+
+		m_shader_definitions = {
+				{"TRINEX_GEOMETRY_PASS", "1"},
+		};
+
+		m_is_material_compatible = [](const Material* material) -> bool {
+			auto desc = material->graphics_description();
+
+			if (desc == nullptr)
+				return false;
+
+			if (desc->color_blending.enable)
+			{
+				return false;
+			}
+
+			if (!desc->depth_test.enable || !desc->depth_test.write_enable)
+			{
+				return false;
+			}
+
+			if (desc->rasterizer.polygon_mode != PolygonMode::Fill)
+			{
+				return false;
+			}
+
+			return true;
+		};
+	}
 
 	trinex_impl_render_pass(Engine::ForwardPass)
 	{}
 
 	trinex_impl_render_pass(Engine::DeferredLightingPass)
-	{
-		m_shader_definitions = {
-				{"TRINEX_DEFERRED_LIGHTING_PASS", "1"},
-		};
-
-		m_entry                   = "deferred_light";
-		m_color_attachments_count = 1;
-	}
+	{}
 
 	trinex_impl_render_pass(Engine::TransparencyPass)
 	{}

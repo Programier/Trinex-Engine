@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
+#include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_headers.hpp>
 

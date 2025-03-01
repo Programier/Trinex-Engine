@@ -273,6 +273,34 @@ namespace Engine
 
 	Material& Material::postload()
 	{
+		// Checking that all registered passes supported by this material are compiled
+		if (MaterialCompiler* compiler = MaterialCompiler::instance())
+		{
+			uint_t count         = 0;
+			String material_name = full_name();
+
+			for (auto pass = Refl::RenderPassInfo::first_pass(); pass; pass = pass->next_pass())
+			{
+				if (pass->is_material_compatible(this) && pipeline(pass) == nullptr)
+				{
+					warn_log("Material", "Material '%s' should support pass '%s', however no pipeline was found. Recompiling...",
+							 material_name.c_str(), pass->name().c_str());
+
+					if (compiler->compile_pass(this, pass))
+					{
+						++count;
+					}
+				}
+			}
+
+			if (count > 0)
+			{
+				info_log("Material", "'%d' pipelines have been compiled. Saving the material...", count);
+				remove_unreferenced_parameters();
+				save();
+			}
+		}
+
 		for (auto& pipeline : m_pipelines)
 		{
 			pipeline.second->postload();
