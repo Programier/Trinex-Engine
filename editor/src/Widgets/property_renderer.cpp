@@ -585,13 +585,31 @@ namespace Engine
 		Path* value = prop->address_as<Path>(context);
 
 		ImGuiWindow* imgui_window = ImGuiWindow::current();
-		const char* text          = value->empty() ? "None" : value->c_str();
+		const float size          = ImGui::GetTextLineHeight() - ImGui::GetStyle().FramePadding.y;
 
-		if (ImGui::Selectable(text) && !read_only)
+		Any& data = renderer->userdata.get(context);
+
+		if (!data.has_value())
 		{
-			Function<void(const Path&)> callback = [context, prop, value](const Path& path) {
+			data = value->str();
+		}
+
+		String& str = data.cast<String&>();
+
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		if (ImGui::InputText("##Path", str, read_only ? ImGuiInputTextFlags_ReadOnly : 0))
+		{
+			*value = str;
+			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+		}
+
+		ImGui::TableSetColumnIndex(2);
+		if (ImGui::ImageButton(Icons::icon(Icons::Select), {size, size}))
+		{
+			Function<void(const Path&)> callback = [context, prop, value, &str](const Path& path) {
 				*value = path;
 				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+				str = value->str();
 			};
 
 			imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
@@ -706,10 +724,11 @@ namespace Engine
 		auto prop = prop_cast_checked<Refl::ArrayProperty>(prop_base);
 
 		ImGui::TableSetColumnIndex(2);
-		const float size = ImGui::GetFrameHeight();
-		bool is_changed  = false;
+		const float size = ImGui::GetTextLineHeight() - ImGui::GetStyle().FramePadding.y;
 
-		if (!read_only && ImGui::Button("+", {size, size}))
+		bool is_changed = false;
+
+		if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Add), {size, size}))
 		{
 			prop->emplace_back(context);
 			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::array_add, prop));
@@ -732,7 +751,7 @@ namespace Engine
 
 				ImGui::TableSetColumnIndex(2);
 
-				if (!read_only && ImGui::Button("-", {size, size}))
+				if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Remove), {size, size}))
 				{
 					prop->erase(context, i);
 					--count;
