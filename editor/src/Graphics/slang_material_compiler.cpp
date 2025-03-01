@@ -5,19 +5,18 @@
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/shader_compiler.hpp>
+#include <Core/reflection/render_pass_info.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/slang_material_compiler.hpp>
 #include <cstring>
-#include <slang-com-ptr.h>
-#include <slang.h>
-#include <spirv_glsl.hpp>
 
 #define RETURN_ON_FAIL(code)                                                                                                     \
 	if (SLANG_FAILED(code))                                                                                                      \
@@ -35,7 +34,7 @@
 	if (!(cond))                                                                                                                 \
 	return
 
-namespace Engine::ShaderCompiler
+namespace Engine
 {
 	class CompileLogHandler : public Logger
 	{
@@ -160,7 +159,7 @@ namespace Engine::ShaderCompiler
 										  slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
-		ShaderReflection out;
+		Pipeline* out;
 
 		static bool has_attribute(slang::VariableReflection* var, const char* attribute, size_t args = 0)
 		{
@@ -295,7 +294,7 @@ namespace Engine::ShaderCompiler
 			}
 			else if (kind == slang::TypeReflection::Kind::Vector || kind == slang::TypeReflection::Kind::Scalar)
 			{
-				ShaderReflection::VertexAttribute attribute;
+				VertexShader::Attribute attribute;
 
 				const char* semantic_name = var->getSemanticName();
 
@@ -329,7 +328,7 @@ namespace Engine::ShaderCompiler
 				attribute.location       = var->getBindingIndex();
 				attribute.stream_index   = attribute.location;
 				attribute.offset         = 0;
-				out.attributes.push_back(attribute);
+				Object::instance_cast<GraphicsPipeline>(out)->vertex_shader()->attributes.push_back(attribute);
 			}
 			else
 			{
@@ -392,10 +391,10 @@ namespace Engine::ShaderCompiler
 					return false;
 				}
 
-				info.name     = param.name;
-				info.offset   = param.trace_offset(slang::ParameterCategory::Uniform);
-				info.location = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
-				out.uniform_member_infos.push_back(info);
+				info.name                  = param.name;
+				info.offset                = param.trace_offset(slang::ParameterCategory::Uniform);
+				info.location              = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+				out->parameters[info.name] = info;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind))
 			{
@@ -408,12 +407,12 @@ namespace Engine::ShaderCompiler
 						auto binding_type = type_layout->getBindingRangeType(0);
 
 						MaterialParameterInfo object;
-						object.name     = param.name;
-						object.location = param.trace_offset(param.category());
-						object.type     = binding_type == slang::BindingType::CombinedTextureSampler
-												  ? MaterialParameters::Sampler2D::static_class_instance()
-												  : MaterialParameters::Texture2D::static_class_instance();
-						out.uniform_member_infos.push_back(object);
+						object.name                  = param.name;
+						object.location              = param.trace_offset(param.category());
+						object.type                  = binding_type == slang::BindingType::CombinedTextureSampler
+															   ? MaterialParameters::Sampler2D::static_class_instance()
+															   : MaterialParameters::Texture2D::static_class_instance();
+						out->parameters[object.name] = object;
 					}
 				}
 			}
@@ -435,12 +434,12 @@ namespace Engine::ShaderCompiler
 				if (is_global_parameters(layout))
 				{
 					MaterialParameterInfo object;
-					object.name     = param.name;
-					object.location = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
-					object.type     = MaterialParameters::Globals::static_class_instance();
-					object.size     = sizeof(GlobalShaderParameters);
-					object.offset   = 0;
-					out.uniform_member_infos.push_back(object);
+					object.name                  = param.name;
+					object.location              = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
+					object.type                  = MaterialParameters::Globals::static_class_instance();
+					object.size                  = sizeof(GlobalShaderParameters);
+					object.offset                = 0;
+					out->parameters[object.name] = object;
 				}
 				else
 				{
@@ -457,9 +456,10 @@ namespace Engine::ShaderCompiler
 			return true;
 		}
 
-		bool create_reflection(slang::ShaderReflection* reflection)
+		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* pipeline)
 		{
 			CompileLogHandler log_handler;
+			out = pipeline;
 
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
@@ -479,6 +479,7 @@ namespace Engine::ShaderCompiler
 				return_if_false(parse_shader_parameter(var)) false;
 			}
 
+			out = nullptr;
 			return log_handler.has_error == false;
 		}
 	};
@@ -563,311 +564,390 @@ namespace Engine::ShaderCompiler
 
 	static PreInitializeController preinit(setup_detectors);
 
+	implement_class_default_init(Engine::SLANG_MaterialCompiler, 0);
+	implement_class_default_init(Engine::OPENGL_MaterialCompiler, 0);
+	implement_class_default_init(Engine::VULKAN_MaterialCompiler, 0);
+	implement_class_default_init(Engine::NONE_MaterialCompiler, 0);
+	implement_class_default_init(Engine::D3D11_MaterialCompiler, 0);
 
-	static void host_setup_request(SlangCompileRequest* request, const Vector<ShaderDefinition>& definitions)
+	SLANG_MaterialCompiler::Context::Context(SLANG_MaterialCompiler* compiler, Material* material, Refl::RenderPassInfo* pass)
+		: compiler(compiler), prev_ctx(compiler->m_ctx), material(material), pass(pass)
 	{
-		Path shaders_dir = rootfs()->native_path(Project::shaders_dir);
+		compiler->m_ctx = this;
+	}
 
-		auto engine_path = rootfs()->native_path("[shaders_dir]:/TrinexEditor");
-		auto editor_path = rootfs()->native_path("[shaders_dir]:/TrinexEngine");
+	Refl::Class* SLANG_MaterialCompiler::Context::static_find_pipeline_class(ShaderInfo* infos)
+	{
+		const bool graphics = static_cast<bool>(infos[0].entry) && static_cast<bool>(infos[4].entry);
+		const bool compute  = static_cast<bool>(infos[5].entry);
 
-		request->addSearchPath(engine_path.c_str());
-		request->addSearchPath(editor_path.c_str());
-		request->addSearchPath(shaders_dir.c_str());
-
-		for (const auto& definition : definitions)
+		if (graphics && compute)
 		{
-			request->addPreprocessorDefine(definition.key.c_str(), definition.value.c_str());
+			error_log("MaterialCompiler", "Ambigous pipeline type");
+			return nullptr;
 		}
 
-		request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
-		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-	}
-
-	static void submit_compiled_source(Buffer& out_buffer, const void* _data, size_t size)
-	{
-		std::destroy_at(&out_buffer);
-		const byte* data = reinterpret_cast<const byte*>(_data);
-		new (&out_buffer) Buffer(data, data + size);
-	}
-
-	struct RequestSetupInterface {
-		virtual void setup(SlangCompileRequest*) const = 0;
-	};
-
-	using SetupRequestFunction = void (*)(SlangCompileRequest*);
-
-	static bool compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, ShaderSource& out_source,
-							   const RequestSetupInterface* setup_request)
-	{
-		CompileLogHandler log_handler;
-
-		auto diagnose_if_needed = [](slang::IBlob* diagnostics_blob) {
-			if (diagnostics_blob != nullptr)
+		if (graphics)
+		{
+			infos[5].index = -1;
+			infos[5].entry.setNull();
+			return GraphicsPipeline::static_class_instance();
+		}
+		else if (compute)
+		{
+			for (int i = 0; i < 5; ++i)
 			{
-				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				infos[i].index = -1;
+				infos[i].entry.setNull();
 			}
+			return nullptr;
+		}
+
+		return nullptr;
+	}
+
+	Pipeline* SLANG_MaterialCompiler::Context::create_pipeline(Refl::Class* pipeline_class)
+	{
+		Pipeline* pipeline = material->pipeline(pass);
+
+		if (pipeline && pipeline->class_instance() == pipeline_class)
+		{
+			material->remove_pipeline(pass);
+			pipeline->parameters.clear();
+			return pipeline;
+		}
+
+		Name name      = pass ? pass->name() : "Default";
+		Object* object = pipeline_class->create_object(name);
+
+		if ((pipeline = instance_cast<Pipeline>(object)))
+		{
+			return pipeline;
+		}
+
+		error_log("MaterialCompiler", "Failed to create pipeline!");
+
+		if (object)
+		{
+			GarbageCollector::destroy(object);
+		}
+		return nullptr;
+	}
+
+	bool SLANG_MaterialCompiler::Context::initialize(const String& source)
+	{
+		if (SLANG_FAILED(compiler->session->createCompileRequest(compile_request.writeRef())))
+		{
+			error_log("MaterialCompiler", "Failed to create slang compile request");
+			return false;
+		}
+
+		for (auto& definition : material->compile_definitions)
+		{
+			add_definition(definition);
+		}
+
+		if (pass)
+		{
+			for (auto& definition : pass->shader_definitions())
+			{
+				add_definition(definition);
+			}
+		}
+
+		unit = compile_request->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
+		compile_request->addTranslationUnitSourceString(unit, "main_unit_source", source.c_str());
+
+		compiler->initialize_context();
+		return true;
+	}
+
+	Pipeline* SLANG_MaterialCompiler::Context::compile()
+	{
+		static auto error_pipeline = [](Pipeline* pipeline) -> Pipeline* {
+			GarbageCollector::destroy(pipeline);
+			return nullptr;
 		};
 
-		using Slang::ComPtr;
+		ShaderInfo shader_infos[] = {
+				{ShaderType::Vertex, "vs_main", {}, -1},              //
+				{ShaderType::TessellationControl, "tsc_main", {}, -1},//
+				{ShaderType::Tessellation, "ts_main", {}, -1},        //
+				{ShaderType::Geometry, "gs_main", {}, -1},            //
+				{ShaderType::Fragment, "fs_main", {}, -1},            //
+				{ShaderType::Compute, "cs_main", {}, -1},             //
+		};
+
+
+		// Compile source
+		auto compile_result = compile_request->compile();
+
+		if (SLANG_FAILED(compile_result))
+		{
+			if (auto diagnostics = compile_request->getDiagnosticOutput())
+			{
+				if (strlen(diagnostics) > 0)
+				{
+					error_log("ShaderCompiler", diagnostics);
+				}
+			}
+
+			return nullptr;
+		}
+		else if (auto diagnostics = compile_request->getDiagnosticOutput())
+		{
+			if (strlen(diagnostics) > 0)
+			{
+				warn_log("ShaderCompiler", diagnostics);
+			}
+		}
+
+		Vector<slang::IComponentType*> component_types;
+		Slang::ComPtr<slang::IModule> slang_module;
+
+		compile_request->getModule(unit, slang_module.writeRef());
+		component_types.push_back(slang_module);
+
+		for (auto& info : shader_infos)
+		{
+			slang_module->findEntryPointByName(info.entry_name, info.entry.writeRef());
+
+			if (info.entry)
+			{
+				info.index = component_types.size() - 1;
+				component_types.push_back(info.entry);
+			}
+		}
+
+		Refl::Class* pipeline_class = static_find_pipeline_class(shader_infos);
+
+		if (pipeline_class == nullptr)
+			return nullptr;
+
+		Slang::ComPtr<slang::IComponentType> composite;
+		{
+			Slang::ComPtr<slang::IBlob> diagnostics_blob;
+			SlangResult result = compiler->session->createCompositeComponentType(
+					component_types.data(), component_types.size(), composite.writeRef(), diagnostics_blob.writeRef());
+
+			if (diagnostics_blob != nullptr)
+			{
+				error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+			}
+
+			if (SLANG_FAILED(result))
+				return nullptr;
+		}
+
+		Slang::ComPtr<slang::IComponentType> program;
+		{
+			Slang::ComPtr<slang::IBlob> diagnostics_blob;
+			SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
+
+			if (diagnostics_blob != nullptr)
+			{
+				error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+			}
+
+			if (SLANG_FAILED(result))
+				return nullptr;
+		}
+
+		// Construct pipeline
+		Pipeline* pipeline = create_pipeline(pipeline_class);
+
+		if (pipeline == nullptr)
+			return nullptr;
+
+		ShaderType remove_shader = ShaderType::Undefined;
+
+		for (auto& info : shader_infos)
+		{
+			if (info.index != -1)
+			{
+				Slang::ComPtr<slang::IBlob> result_code;
+				Slang::ComPtr<slang::IBlob> diagnostics_blob;
+
+				SlangResult result =
+						program->getEntryPointCode(info.index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+
+				if (diagnostics_blob != nullptr)
+				{
+					error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				}
+
+				if (SLANG_FAILED(result))
+					return error_pipeline(pipeline);
+
+				if (auto shader = pipeline->shader(info.type, true))
+				{
+					const byte* src = static_cast<const byte*>(result_code->getBufferPointer());
+					compiler->submit_source(shader, src, result_code->getBufferSize());
+				}
+				else
+				{
+					error_log("MaterialCompiler", "Failed to create shader");
+					return error_pipeline(pipeline);
+				}
+			}
+			else
+			{
+				remove_shader |= info.type;
+			}
+		}
+
+		if (remove_shader != ShaderType::Undefined)
+		{
+			pipeline->remove_shaders(remove_shader);
+		}
+
+		// Generate reflection
+		{
+			Slang::ComPtr<slang::IBlob> diagnostics_blob;
+			slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
+
+			if (diagnostics_blob != nullptr)
+			{
+				error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+			}
+
+			if (!reflection)
+			{
+				error_log("ShaderCompiler", "Failed to get shader reflection!");
+				return error_pipeline(pipeline);
+			}
+
+			ReflectionParser parser;
+
+			if (!parser.create_reflection(reflection, pipeline))
+				return error_pipeline(pipeline);
+		}
+
+		return pipeline;
+	}
+
+	SLANG_MaterialCompiler::Context::~Context()
+	{
+		compiler->m_ctx = prev_ctx;
+	}
+
+	SLANG_MaterialCompiler::SLANG_MaterialCompiler()
+	{
+		flags(StandAlone, true);
+		flags(IsAvailableForGC, false);
+
+		Path shaders_dir = rootfs()->native_path(Project::shaders_dir);
+		Path engine_path = rootfs()->native_path("[shaders_dir]:/TrinexEditor");
+		Path editor_path = rootfs()->native_path("[shaders_dir]:/TrinexEngine");
+
+		const char* search_paths[] = {shaders_dir.c_str(), engine_path.c_str(), editor_path.c_str()};
 
 		slang::SessionDesc session_desc      = {};
 		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 		session_desc.allowGLSLSyntax         = false;
+		session_desc.searchPaths             = search_paths;
+		session_desc.searchPathCount         = sizeof(search_paths) / sizeof(search_paths[0]);
+		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
-
-		ComPtr<slang::ISession> session;
-		RETURN_ON_FAIL(global_session()->createSession(session_desc, session.writeRef()));
-		Vector<slang::IComponentType*> component_types = {};
-
-		// Compile current module
-		ComPtr<slang::IModule> slang_module;
-
-		int_t current_entry_index = 0;
-
-		int_t vertex_entry_index         = -1;
-		int_t tessellation_control_index = -1;
-		int_t tessellation_index         = -1;
-		int_t geometry_index             = -1;
-		int_t fragment_entry_index       = -1;
-
-
+		if (SLANG_FAILED(global_session()->createSession(session_desc, session.writeRef())))
 		{
-			ComPtr<SlangCompileRequest> request;
-			session->createCompileRequest(request.writeRef());
-
-			if (!request)
-			{
-				error_log("ShaderCompiler", "Failed to create compile request");
-				return {};
-			}
-
-			host_setup_request(request, definitions);
-			if (setup_request)
-			{
-				setup_request->setup(request);
-			}
-
-			auto unit = request->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
-			request->addTranslationUnitSourceString(unit, "main_unit_source", source.c_str());
-
-			auto compile_result = request->compile();
-
-			if (SLANG_FAILED(compile_result))
-			{
-				if (auto diagnostics = request->getDiagnosticOutput())
-				{
-					if (strlen(diagnostics) > 0)
-					{
-						error_log("ShaderCompiler", diagnostics);
-					}
-				}
-
-				return {};
-			}
-			else if (auto diagnostics = request->getDiagnosticOutput())
-			{
-				if (strlen(diagnostics) > 0)
-				{
-					warn_log("ShaderCompiler", diagnostics);
-				}
-			}
-
-			request->getModule(unit, slang_module.writeRef());
-			component_types.push_back(slang_module);
+			throw EngineException("Failed to create slang session");
 		}
-
-		ComPtr<slang::IEntryPoint> vertex_entry_point;
-		{
-			slang_module->findEntryPointByName("vs_main", vertex_entry_point.writeRef());
-
-			if (!vertex_entry_point)
-			{
-				error_log("ShaderCompiler", "Failed to find vs_main. Skipping!");
-			}
-			else
-			{
-				component_types.push_back(vertex_entry_point);
-				vertex_entry_index = current_entry_index++;
-			}
-		}
-
-		check_compile_errors();
-
-		ComPtr<slang::IEntryPoint> fragment_entry_point;
-		{
-			slang_module->findEntryPointByName("fs_main", fragment_entry_point.writeRef());
-
-			if (!fragment_entry_point)
-			{
-				error_log("ShaderCompiler", "Failed to find fs_main. Skipping compiling fragment code");
-			}
-			else
-			{
-				component_types.push_back(fragment_entry_point);
-				fragment_entry_index = current_entry_index++;
-			}
-		}
-
-		check_compile_errors();
-
-
-		ComPtr<slang::IEntryPoint> tessellation_control_entry_point;
-		{
-			slang_module->findEntryPointByName("tsc_main", tessellation_control_entry_point.writeRef());
-
-			if (tessellation_control_entry_point)
-			{
-				component_types.push_back(tessellation_control_entry_point);
-				tessellation_control_index = current_entry_index++;
-			}
-		}
-
-		ComPtr<slang::IEntryPoint> tessellation_entry_point;
-		{
-			slang_module->findEntryPointByName("ts_main", tessellation_entry_point.writeRef());
-
-			if (tessellation_entry_point)
-			{
-				component_types.push_back(tessellation_entry_point);
-				tessellation_index = current_entry_index++;
-			}
-		}
-
-		ComPtr<slang::IEntryPoint> geometry_entry_point;
-		{
-			slang_module->findEntryPointByName("gs_main", geometry_entry_point.writeRef());
-
-			if (geometry_entry_point)
-			{
-				component_types.push_back(geometry_entry_point);
-				geometry_index = current_entry_index++;
-			}
-		}
-
-		ComPtr<slang::IComponentType> composite;
-		{
-			ComPtr<slang::IBlob> diagnostics_blob;
-			SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
-																	   composite.writeRef(), diagnostics_blob.writeRef());
-			diagnose_if_needed(diagnostics_blob);
-			RETURN_ON_FAIL(result);
-		}
-
-		ComPtr<slang::IComponentType> program;
-		{
-			ComPtr<slang::IBlob> diagnostics_blob;
-			SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
-			diagnose_if_needed(diagnostics_blob);
-			RETURN_ON_FAIL(result);
-		}
-
-		{
-			ComPtr<slang::IBlob> diagnostics_blob;
-			slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
-			diagnose_if_needed(diagnostics_blob);
-			if (!reflection)
-			{
-				error_log("ShaderCompiler", "Failed to get shader reflection!");
-				return {};
-			}
-
-			ReflectionParser parser;
-			if (!parser.create_reflection(reflection))
-				return false;
-			out_source.reflection = parser.out;
-			check_compile_errors();
-		}
-
-		if (vertex_entry_point)
-		{
-			ComPtr<slang::IBlob> result_code;
-			{
-				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result =
-						program->getEntryPointCode(vertex_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
-				diagnose_if_needed(diagnostics_blob);
-				RETURN_ON_FAIL(result);
-
-				submit_compiled_source(out_source.vertex_code, result_code->getBufferPointer(), result_code->getBufferSize());
-			}
-		}
-
-		if (fragment_entry_point)
-		{
-			ComPtr<slang::IBlob> result_code;
-			{
-				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result =
-						program->getEntryPointCode(fragment_entry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
-				diagnose_if_needed(diagnostics_blob);
-				RETURN_ON_FAIL(result);
-
-				submit_compiled_source(out_source.fragment_code, result_code->getBufferPointer(), result_code->getBufferSize());
-			}
-		}
-
-		if (tessellation_control_entry_point)
-		{
-			ComPtr<slang::IBlob> result_code;
-			{
-				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = program->getEntryPointCode(tessellation_control_index, 0, result_code.writeRef(),
-																diagnostics_blob.writeRef());
-				diagnose_if_needed(diagnostics_blob);
-				RETURN_ON_FAIL(result);
-
-				submit_compiled_source(out_source.tessellation_control_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
-			}
-		}
-
-		if (tessellation_entry_point)
-		{
-			ComPtr<slang::IBlob> result_code;
-			{
-				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result =
-						program->getEntryPointCode(tessellation_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
-				diagnose_if_needed(diagnostics_blob);
-				RETURN_ON_FAIL(result);
-
-				submit_compiled_source(out_source.tessellation_code, result_code->getBufferPointer(),
-									   result_code->getBufferSize());
-			}
-		}
-
-		if (geometry_entry_point)
-		{
-			ComPtr<slang::IBlob> result_code;
-			{
-				ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result =
-						program->getEntryPointCode(geometry_index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
-				diagnose_if_needed(diagnostics_blob);
-				RETURN_ON_FAIL(result);
-
-				submit_compiled_source(out_source.geometry_code, result_code->getBufferPointer(), result_code->getBufferSize());
-			}
-		}
-
-		return true;
 	}
 
-	static std::vector<uint32_t> to_spirv_buffer(const Buffer& spirv)
+	void SLANG_MaterialCompiler::initialize_context()
 	{
-		const uint32_t* data = reinterpret_cast<const uint32_t*>(spirv.data());
-		const uint32_t size  = spirv.size() / 4;
-		return std::vector<uint32_t>(data, data + size);
+		m_ctx->compile_request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 	}
 
-	static void compile_spirv_to_glsl_es(Buffer& code)
+	bool SLANG_MaterialCompiler::compile(Material* material)
 	{
-		if (code.empty())
-			return;
+		String source;
 
-		std::vector<uint32_t> spirv_binary = to_spirv_buffer(code);
-		spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
+		if (!material->shader_source(source))
+		{
+			error_log("MaterialCompiler", "Failed to get shader source");
+			return false;
+		}
+
+		bool success = compile_pass(material, nullptr, source);
+
+		for (auto pass = Refl::RenderPassInfo::first_pass(); pass && success; pass = pass->next_pass())
+		{
+			if (pass->is_material_compatible(material))
+			{
+				success = compile_pass(material, pass, source);
+			}
+		}
+		return success;
+	}
+
+	void SLANG_MaterialCompiler::submit_source(Shader* shader, const byte* src, size_t size)
+	{
+		Buffer& out = shader->source_code;
+		std::destroy_at(&out);
+		new (&out) Buffer(src, src + size);
+	}
+
+	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass)
+	{
+		String source;
+
+		if (!material->shader_source(source))
+		{
+			error_log("MaterialCompiler", "Failed to get shader source");
+			return false;
+		}
+
+		return compile_pass(material, pass, source);
+	}
+
+	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
+	{
+		Context ctx(this, material, pass);
+
+		if (!ctx.initialize(source))
+			return false;
+
+		Pipeline* pipeline = ctx.compile();
+
+		if (pipeline)
+		{
+			material->add_pipeline(pass, pipeline);
+			material->remove_unreferenced_parameters();
+			return true;
+		}
+
+		return false;
+	}
+
+	void NONE_MaterialCompiler::initialize_context()
+	{
+		Super::initialize_context();
+	}
+
+	void OPENGL_MaterialCompiler::initialize_context()
+	{
+		Super::initialize_context();
+		auto& request = m_ctx->compile_request;
+
+		request->setCodeGenTarget(SLANG_SPIRV);
+		request->addPreprocessorDefine("TRINEX_OPENGL_RHI", "1");
+
+		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+		request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+		request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
+
+		auto profile = global_session()->findProfile("glsl_330");
+		request->setTargetProfile(0, profile);
+
+		const char* argument = "-emit-spirv-via-glsl";
+		request->processCommandLineArguments(&argument, 1);// TODO: Maybe it can be optimized to avoid parsing arguments?
+	}
+
+	void OPENGL_MaterialCompiler::submit_source(Shader* shader, const byte* src, size_t size)
+	{
+		spirv_cross::CompilerGLSL glsl(reinterpret_cast<const uint32_t*>(src), size / 4);
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
 
 		for (auto& resource : resources.sampled_images)
@@ -885,52 +965,32 @@ namespace Engine::ShaderCompiler
 		glsl.set_common_options(options);
 
 		String glsl_code = glsl.compile();
-		submit_compiled_source(code, glsl_code.data(), glsl_code.size() + 1);
+		Super::submit_source(shader, reinterpret_cast<const byte*>(glsl_code.data()), glsl_code.size() + 1);
 	}
 
-	struct VulkanRequestSetup : RequestSetupInterface {
-		void setup(SlangCompileRequest* request) const override
+	void VULKAN_MaterialCompiler::initialize_context()
+	{
+		Super::initialize_context();
+		auto& request = m_ctx->compile_request;
+
+		request->setCodeGenTarget(SLANG_SPIRV);
+		request->addPreprocessorDefine("TRINEX_VULKAN_RHI", "1");
+
+		Vector<const char*> arguments;
+
+		if (Settings::debug_shaders)
 		{
-			request->setCodeGenTarget(SLANG_SPIRV);
-			request->addPreprocessorDefine("TRINEX_VULKAN_RHI", "1");
+			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
+			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_NONE);
+			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_STANDARD);
 
-			Vector<const char*> arguments;
+			auto profile = global_session()->findProfile("spirv_1_3");
+			request->setTargetProfile(0, profile);
 
-			if (Settings::debug_shaders)
-			{
-				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
-				request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_NONE);
-				request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_STANDARD);
-
-				auto profile = global_session()->findProfile("spirv_1_3");
-				request->setTargetProfile(0, profile);
-
-				arguments.push_back("-emit-spirv-directly");
-			}
-			else
-			{
-				request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-				request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-
-				auto profile = global_session()->findProfile("glsl_330");
-				request->setTargetProfile(0, profile);
-
-				arguments.push_back("-emit-spirv-via-glsl");
-			}
-
-
-			request->processCommandLineArguments(arguments.data(),
-												 arguments.size());// TODO: Maybe it can be optimized to avoid parsing arguments?
+			arguments.push_back("-emit-spirv-directly");
 		}
-	};
-
-	struct OpenGLRequestSetup : RequestSetupInterface {
-		void setup(SlangCompileRequest* request) const override
+		else
 		{
-			request->setCodeGenTarget(SLANG_SPIRV);
-			request->addPreprocessorDefine("TRINEX_OPENGL_RHI", "1");
-
 			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
 			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
@@ -938,75 +998,33 @@ namespace Engine::ShaderCompiler
 			auto profile = global_session()->findProfile("glsl_330");
 			request->setTargetProfile(0, profile);
 
-			const char* argument = "-emit-spirv-via-glsl";
-			request->processCommandLineArguments(&argument, 1);// TODO: Maybe it can be optimized to avoid parsing arguments?
+			arguments.push_back("-emit-spirv-via-glsl");
 		}
-	};
 
-	struct D3D11RequestSetup : RequestSetupInterface {
-		void setup(SlangCompileRequest* request) const override
-		{
-			request->setCodeGenTarget(SLANG_DXBC);
-			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-
-			if (Settings::debug_shaders)
-				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
-			else
-				request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-
-			auto profile = global_session()->findProfile("sm_5_0");
-			request->setTargetProfile(0, profile);
-			request->addPreprocessorDefine("TRINEX_INVERT_UV", "1");
-			request->addPreprocessorDefine("TRINEX_D3D11_RHI", "1");
-			request->addPreprocessorDefine("TRINEX_DIRECT_X_RHI", "1");
-		}
-	};
-
-	implement_class_default_init(Engine::ShaderCompiler::OPENGL_Compiler, 0);
-	implement_class_default_init(Engine::ShaderCompiler::VULKAN_Compiler, 0);
-	implement_class_default_init(Engine::ShaderCompiler::NONE_Compiler, 0);
-	implement_class_default_init(Engine::ShaderCompiler::D3D11_Compiler, 0);
-
-	bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source)
-	{
-		OpenGLRequestSetup setup;
-		ShaderSource source;
-
-		if (!compile_shader(slang_source, material->compile_definitions, source, &setup))
-			return false;
-
-		CompileLogHandler handler;
-		compile_spirv_to_glsl_es(source.vertex_code);
-		compile_spirv_to_glsl_es(source.tessellation_control_code);
-		compile_spirv_to_glsl_es(source.tessellation_code);
-		compile_spirv_to_glsl_es(source.geometry_code);
-		compile_spirv_to_glsl_es(source.fragment_code);
-		compile_spirv_to_glsl_es(source.compute_code);
-
-		if (handler.has_error)
-			return false;
-
-		out_source = std::move(source);
-		return true;
+		request->processCommandLineArguments(arguments.data(),
+											 arguments.size());// TODO: Maybe it can be optimized to avoid parsing arguments?
 	}
 
-	bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source)
+	void D3D11_MaterialCompiler::initialize_context()
 	{
-		VulkanRequestSetup setup;
-		return compile_shader(slang_source, material->compile_definitions, out_source, &setup);
-	}
+		Super::initialize_context();
+		auto& request = m_ctx->compile_request;
 
-	bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_sources)
-	{
-		return false;
-	}
+		request->setCodeGenTarget(SLANG_DXBC);
+		request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
+		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 
-	bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source)
-	{
-		D3D11RequestSetup setup;
-		return compile_shader(slang_source, material->compile_definitions, out_source, &setup);
+		if (Settings::debug_shaders)
+			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+		else
+			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
+
+		auto profile = global_session()->findProfile("sm_5_0");
+		request->setTargetProfile(0, profile);
+		request->addPreprocessorDefine("TRINEX_INVERT_UV", "1");
+		request->addPreprocessorDefine("TRINEX_D3D11_RHI", "1");
+		request->addPreprocessorDefine("TRINEX_DIRECT_X_RHI", "1");
 	}
-}// namespace Engine::ShaderCompiler
+}// namespace Engine
 
 #endif

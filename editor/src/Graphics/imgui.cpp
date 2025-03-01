@@ -47,7 +47,8 @@ namespace Engine
 		public:
 			ImGuiMaterial& postload() override
 			{
-				auto shader = pipeline->vertex_shader();
+				auto pipeline = instance_cast<GraphicsPipeline>(Material::pipeline(nullptr));
+				auto shader   = pipeline->vertex_shader();
 
 				for (auto& attribute : shader->attributes)
 				{
@@ -66,6 +67,31 @@ namespace Engine
 						attribute.offset = offsetof(ImDrawVert, uv);
 					}
 				}
+
+				auto& blend          = pipeline->color_blending;
+				blend.enable         = true;
+				blend.src_color_func = BlendFunc::SrcAlpha;
+				blend.dst_color_func = BlendFunc::OneMinusSrcAlpha;
+				blend.color_op       = BlendOp::Add;
+				blend.src_alpha_func = BlendFunc::One;
+				blend.dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
+				blend.alpha_op       = BlendOp::Add;
+				blend.color_mask     = ColorComponentMask::RGBA;
+
+				auto& depth        = pipeline->depth_test;
+				depth.enable       = false;
+				depth.write_enable = false;
+				depth.func         = CompareFunc::Always;
+
+				auto& stencil      = pipeline->stencil_test;
+				stencil.enable     = false;
+				stencil.depth_fail = stencil.depth_pass = stencil.fail = StencilOp::Keep;
+				stencil.compare                                        = CompareFunc::Always;
+
+				auto& rasterizer        = pipeline->rasterizer;
+				rasterizer.cull_mode    = CullMode::None;
+				rasterizer.polygon_mode = PolygonMode::Fill;
+				rasterizer.line_width   = 1.0;
 
 				Super::postload();
 				return *this;

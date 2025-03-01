@@ -33,9 +33,9 @@ namespace Engine
 		return vk::FrontFace::eClockwise;
 	}
 
-	VulkanPipeline::State& VulkanPipeline::State::init(const Pipeline* in_state, bool with_flipped_viewport)
+	VulkanPipeline::State& VulkanPipeline::State::init(const GraphicsPipeline* in_state, bool with_flipped_viewport)
 	{
-		static auto get_stencil_op_state = [](const Pipeline::StencilTestInfo& in_state) {
+		static auto get_stencil_op_state = [](const GraphicsPipelineDescription::StencilTestInfo& in_state) {
 			vk::StencilOpState out_state;
 			out_state.setReference(0)
 			        .setWriteMask(in_state.write_mask)
@@ -202,40 +202,36 @@ namespace Engine
 	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const Pipeline* pipeline)
 	{
 		vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
+		ShaderType types            = pipeline->shader_types();
 
-		for (auto& shader : pipeline->shader_array())
+		if ((types & ShaderType::Vertex) == ShaderType::Vertex)
 		{
-			if (shader)
-			{
-				auto type = shader->type();
+			stages |= vk::ShaderStageFlagBits::eVertex;
+		}
 
-				if (type != ShaderType::Undefined)
-				{
-					switch (type)
-					{
-						case ShaderType::Vertex:
-							stages |= vk::ShaderStageFlagBits::eVertex;
-							break;
-						case ShaderType::TessellationControl:
-							stages |= vk::ShaderStageFlagBits::eTessellationControl;
-							break;
-						case ShaderType::Tessellation:
-							stages |= vk::ShaderStageFlagBits::eTessellationEvaluation;
-							break;
-						case ShaderType::Geometry:
-							stages |= vk::ShaderStageFlagBits::eGeometry;
-							break;
-						case ShaderType::Fragment:
-							stages |= vk::ShaderStageFlagBits::eFragment;
-							break;
-						case ShaderType::Compute:
-							stages |= vk::ShaderStageFlagBits::eCompute;
-							break;
-						default:
-							break;
-					}
-				}
-			}
+		if ((types & ShaderType::TessellationControl) == ShaderType::TessellationControl)
+		{
+			stages |= vk::ShaderStageFlagBits::eTessellationControl;
+		}
+
+		if ((types & ShaderType::Tessellation) == ShaderType::Tessellation)
+		{
+			stages |= vk::ShaderStageFlagBits::eTessellationEvaluation;
+		}
+
+		if ((types & ShaderType::Geometry) == ShaderType::Geometry)
+		{
+			stages |= vk::ShaderStageFlagBits::eGeometry;
+		}
+
+		if ((types & ShaderType::Fragment) == ShaderType::Fragment)
+		{
+			stages |= vk::ShaderStageFlagBits::eFragment;
+		}
+
+		if ((types & ShaderType::Compute) == ShaderType::Compute)
+		{
+			stages |= vk::ShaderStageFlagBits::eCompute;
 		}
 
 		return stages;
@@ -403,7 +399,7 @@ namespace Engine
 		return state;
 	}
 
-	bool VulkanPipeline::create(const Pipeline* pipeline)
+	bool VulkanPipeline::create(const GraphicsPipeline* pipeline)
 	{
 		check_pipeline(pipeline);
 		m_engine_pipeline = pipeline;
@@ -502,7 +498,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Pipeline* VulkanAPI::create_pipeline(const Pipeline* pipeline)
+	RHI_Pipeline* VulkanAPI::create_graphics_pipeline(const GraphicsPipeline* pipeline)
 	{
 		auto vulkan_pipeline = new VulkanPipeline();
 		if (vulkan_pipeline->create(pipeline))

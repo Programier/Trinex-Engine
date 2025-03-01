@@ -56,7 +56,7 @@ namespace Engine
 		GLuint m_vao      = 0;
 
 		void init_pipeline_shader(Shader* shader, GLbitfield stage);
-		void init(const Pipeline* pipeline);
+		void init(const GraphicsPipeline* pipeline);
 		void bind() override;
 		~OpenGL_Pipeline();
 	};

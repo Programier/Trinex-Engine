@@ -1,6 +1,9 @@
 #pragma once
+#include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/object.hpp>
+#include <Core/structures.hpp>
+#include <Graphics/material_parameter.hpp>
 
 namespace Engine
 {
@@ -19,8 +22,9 @@ namespace Engine
 
 	class SceneComponent;
 	class Pipeline;
-	struct ShaderDefinition;
+	class GraphicsPipeline;
 	class RenderPass;
+	class GraphicsPipelineDescription;
 
 	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
@@ -37,6 +41,7 @@ namespace Engine
 		Parameter* find_parameter(const Name& name) const;
 		MaterialInterface& remove_parameter(const Name& name);
 		MaterialInterface& clear_parameters();
+		uint16_t remove_unreferenced_parameters();
 		const Vector<Parameter*>& parameters() const;
 
 		template<typename T>
@@ -60,24 +65,27 @@ namespace Engine
 		bool register_child(Object* child) override;
 		bool unregister_child(Object* child) override;
 
+		Map<Refl::RenderPassInfo*, Pipeline*> m_pipelines;
+		GraphicsPipelineDescription* m_graphics_options = nullptr;
+
+	private:
+		bool register_pipeline_parameters(Pipeline* pipeline);
+
 	public:
-		Pipeline* pipeline;
 		Vector<ShaderDefinition> compile_definitions;
 
 		Material();
-
-		Material& preload() override;
+		Pipeline* pipeline(Refl::RenderPassInfo* pass) const;
+		bool add_pipeline(Refl::RenderPassInfo* pass, Pipeline* pipeline);
+		Pipeline* remove_pipeline(Refl::RenderPassInfo* pass);
 		Material& postload() override;
 		class Material* material() override;
 		Material& apply_changes() override;
 		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
 		bool apply(MaterialInterface* head, SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
-
-		virtual bool compile(ShaderCompiler::Compiler* compiler = nullptr);
 		virtual bool shader_source(String& out_source) = 0;
-
-		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source);
 		bool serialize(Archive& archive) override;
+		Material& setup_pipeline(GraphicsPipeline* pipeline);
 		~Material();
 	};
 

@@ -90,7 +90,7 @@ namespace Engine
 		}
 	}
 
-	void ShaderCache::init_from(const class Pipeline* pipeline)
+	void ShaderCache::init_from(const class GraphicsPipeline* pipeline)
 	{
 		parameters = pipeline->parameters;
 
@@ -102,7 +102,7 @@ namespace Engine
 		copy_buffer(compute, nullptr);
 	}
 
-	void ShaderCache::apply_to(class Pipeline* pipeline)
+	void ShaderCache::apply_to(class GraphicsPipeline* pipeline)
 	{
 		pipeline->parameters = parameters;
 

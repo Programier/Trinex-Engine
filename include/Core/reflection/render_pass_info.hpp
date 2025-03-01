@@ -14,16 +14,24 @@ namespace Engine::Refl
 		declare_reflect_type(RenderPassInfo, Struct);
 
 	protected:
+		static RenderPassInfo* s_head;
+		static RenderPassInfo* s_tail;
+
 		Vector<ShaderDefinition> m_shader_definitions;
-		Function<bool(const Material*)> m_is_material_support;
+		Function<bool(const Material*)> m_is_material_compatible;
 		String m_entry                   = "main";
+		RenderPassInfo* m_next           = nullptr;
 		uint_t m_color_attachments_count = 0;
 		bool m_has_depth                 = false;
 		bool m_has_stencil               = false;
 		bool m_has_depth_stencil         = false;
 
 	public:
+		static RenderPassInfo* static_find_pass(Name name);
+
 		RenderPassInfo(Struct* parent = nullptr, BitMask flags = 0);
+		~RenderPassInfo();
+		RenderPassInfo& initialize() override;
 
 		const Vector<ShaderDefinition>& shader_definitions() const;
 		const String& entry() const;
@@ -32,7 +40,22 @@ namespace Engine::Refl
 		bool has_depth_attachment() const;
 		bool has_stencil_attachment() const;
 		bool has_depth_stencil_attachment() const;
-		bool is_material_support(const Material* material);
+		bool is_material_compatible(const Material* material);
+
+		inline RenderPassInfo* next_pass()
+		{
+			return m_next;
+		}
+
+		static inline RenderPassInfo* first_pass()
+		{
+			return s_head;
+		}
+
+		static inline RenderPassInfo* last_pass()
+		{
+			return s_tail;
+		}
 	};
 
 
@@ -42,9 +65,12 @@ namespace Engine::Refl
 		class TRINEX_CONCAT(RenderPass, __LINE__) : public Engine::Refl::RenderPassInfo                                          \
 		{                                                                                                                        \
 		public:                                                                                                                  \
+			using This  = TRINEX_CONCAT(RenderPass, __LINE__);                                                                   \
+			using Super = Engine::Refl::RenderPassInfo;                                                                          \
 			using RenderPassInfo::RenderPassInfo;                                                                                \
 			void initialize_render_pass();                                                                                       \
-			Super& initialize() override                                                                                         \
+																																 \
+			This& initialize() override                                                                                          \
 			{                                                                                                                    \
 				Super::initialize();                                                                                             \
 				initialize_render_pass();                                                                                        \

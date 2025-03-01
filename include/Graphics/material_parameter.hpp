@@ -1,15 +1,17 @@
+#pragma once
+
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 
 namespace Engine
 {
 	class SceneComponent;
-	class Pipeline;
 	struct MaterialParameterInfo;
 	class Sampler;
 	class Texture2D;
 	class Material;
 	class RenderPass;
+	class MaterialInterface;
 
 	namespace MaterialParameters
 	{
@@ -17,12 +19,15 @@ namespace Engine
 		{
 			declare_class(Parameter, Object);
 
+		private:
+			uint16_t m_pipeline_refs = 0;
+
 		protected:
-			virtual Parameter& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-									 MaterialParameterInfo* info) = 0;
+			virtual Parameter& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) = 0;
 
 		public:
 			friend class Engine::Material;
+			friend class Engine::MaterialInterface;
 		};
 
 		class ENGINE_EXPORT PrimitiveBase : public Parameter
@@ -42,8 +47,7 @@ namespace Engine
 			Primitive(const T& value = T()) : value(value)
 			{}
 
-			Primitive& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-							 MaterialParameterInfo* info) override
+			Primitive& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override
 			{
 				update(&value, sizeof(T), info);
 				return *this;
@@ -156,8 +160,7 @@ namespace Engine
 			Float4x4() : Primitive<Matrix4f>(Matrix3f(1.f))
 			{}
 
-			Float4x4& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-							MaterialParameterInfo* info) override;
+			Float4x4& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Model4x4 : public Parameter
@@ -165,8 +168,7 @@ namespace Engine
 			declare_class(Model4x4, Parameter);
 
 		public:
-			Model4x4& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-							MaterialParameterInfo* info) override;
+			Model4x4& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Sampler : public Parameter
@@ -177,8 +179,7 @@ namespace Engine
 			Engine::Sampler* sampler;
 
 			Sampler();
-			Sampler& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-						   MaterialParameterInfo* info) override;
+			Sampler& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -191,8 +192,7 @@ namespace Engine
 			Engine::Texture2D* texture;
 
 			Sampler2D();
-			Sampler2D& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-							 MaterialParameterInfo* info) override;
+			Sampler2D& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -204,8 +204,7 @@ namespace Engine
 			Engine::Texture2D* texture;
 
 			Texture2D();
-			Texture2D& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-							 MaterialParameterInfo* info) override;
+			Texture2D& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -214,8 +213,7 @@ namespace Engine
 			declare_class(Globals, Parameter);
 
 		public:
-			Globals& apply(SceneComponent* component, Pipeline* pipeline, RenderPass* render_pass,
-						   MaterialParameterInfo* info) override;
+			Globals& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
 		};
 	}// namespace MaterialParameters
 }// namespace Engine

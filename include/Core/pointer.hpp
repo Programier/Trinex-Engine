@@ -30,6 +30,8 @@ namespace Engine
 
 
 	public:
+		using Type = InstanceClass;
+
 		struct HashStruct : public Hash<InstanceClass*> {
 			size_t operator()(const Pointer<InstanceClass>& instance) const
 			{

@@ -4,13 +4,14 @@
 #include <Core/editor_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/shader_compiler.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -170,7 +171,6 @@ namespace Engine
 		create_content_browser().create_preview_window().create_properties_window().create_node_properties_window();
 
 		ImGuiWindow::make_current(prev_window);
-		m_compiler = ShaderCompiler::Compiler::static_create_compiler();
 		return *this;
 	}
 
@@ -258,9 +258,16 @@ namespace Engine
 
 			if (ImGui::BeginMenu("editor/Material"_localized))
 			{
-				if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr && m_compiler != 0))
+				if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr))
 				{
-					m_material->compile(m_compiler);
+					if (auto compiler = MaterialCompiler::instance())
+					{
+						compiler->compile(m_material);
+					}
+					else
+					{
+						error_log("MaterialEditor", "Failed to get material compiler");
+					}
 				}
 
 				if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))
@@ -284,7 +291,6 @@ namespace Engine
 			ImGui::DockBuilderRemoveNode(dock_id);
 			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
-
 
 			auto dock_id_down      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
 			auto dock_id_left      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);

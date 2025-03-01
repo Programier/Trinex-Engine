@@ -161,7 +161,7 @@ namespace Engine
 	}
 
 
-	static TaskInterface* apply_stencil(const Pipeline::StencilTestInfo& face_info)
+	static TaskInterface* apply_stencil(const GraphicsPipelineDescription::StencilTestInfo& face_info)
 	{
 		GLuint fail         = stencil_op(face_info.fail);
 		GLuint depth_pass   = stencil_op(face_info.depth_pass);
@@ -429,7 +429,7 @@ namespace Engine
 		}
 	}
 
-	void OpenGL_Pipeline::init(const Pipeline* pipeline)
+	void OpenGL_Pipeline::init(const GraphicsPipeline* pipeline)
 	{
 		m_topology = convert_topology(pipeline->input_assembly.primitive_topology);
 
@@ -559,7 +559,7 @@ namespace Engine
 		}
 	}
 
-	RHI_Pipeline* OpenGL::create_pipeline(const Pipeline* pipeline)
+	RHI_Pipeline* OpenGL::create_graphics_pipeline(const GraphicsPipeline* pipeline)
 	{
 		OpenGL_Pipeline* opengl_pipeline = new OpenGL_Pipeline();
 		opengl_pipeline->init(pipeline);

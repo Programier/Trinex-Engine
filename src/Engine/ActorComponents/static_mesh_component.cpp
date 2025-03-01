@@ -58,7 +58,8 @@ namespace Engine
 			auto pass = geometry_pass();
 			pass->bind_material(material.material, component);
 
-			VertexShader* shader = material.material->material()->pipeline->vertex_shader();
+			VertexShader* shader = Object::instance_cast<VertexShader>(
+					material.material->material()->pipeline(nullptr)->shader(ShaderType::Vertex));
 
 			for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
 			{

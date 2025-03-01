@@ -17,8 +17,8 @@ namespace Engine
 
 		MaterialScalarParametersInfo local_parameters;
 
-		void init_from(const class Pipeline* pipeline);
-		void apply_to(class Pipeline* pipeline);
+		void init_from(const class GraphicsPipeline* pipeline);
+		void apply_to(class GraphicsPipeline* pipeline);
 		bool load(const StringView& object_path, StringView rhi_name = {});
 		bool store(const StringView& object_path, StringView rhi_name = {}) const;
 		bool serialize(Archive& ar);

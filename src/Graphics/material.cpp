@@ -3,6 +3,7 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -10,12 +11,12 @@
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_compiler.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
-#include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
 
 namespace Engine
@@ -38,10 +39,7 @@ namespace Engine
 	{
 		auto* self = static_class_instance();
 		trinex_refl_prop(self, This, compile_definitions);
-
-		trinex_refl_prop(self, This, pipeline, Refl::Property::IsNotSerializable)
-				->is_composite(true)
-				.tooltip("Pipeline settings for this material");
+		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsNotSerializable)->is_composite(true);
 	}
 
 	implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
@@ -72,6 +70,7 @@ namespace Engine
 	{
 		if (auto param = find_parameter(name))
 		{
+			param->m_pipeline_refs = 0;
 			param->owner(nullptr);
 		}
 
@@ -88,6 +87,24 @@ namespace Engine
 		}
 
 		return *this;
+	}
+
+	uint16_t MaterialInterface::remove_unreferenced_parameters()
+	{
+		uint16_t count = 0;
+
+		for (ptrdiff_t i = static_cast<ptrdiff_t>(m_child_objects.size()) - 1; i >= 0; --i)
+		{
+			Parameter* parameter = m_child_objects[i];
+
+			if (parameter->m_pipeline_refs == 0)
+			{
+				++count;
+				parameter->owner(nullptr);
+			}
+		}
+
+		return count;
 	}
 
 	const Vector<Parameter*>& MaterialInterface::parameters() const
@@ -149,34 +166,117 @@ namespace Engine
 
 	Material::Material()
 	{
-		pipeline = Object::new_instance<Pipeline>("Pipeline");
-		pipeline->flags(Object::IsAvailableForGC, false);
-		pipeline->owner(this);
+		m_graphics_options = new_instance<GraphicsPipelineDescription>();
+		m_graphics_options->add_reference();
+	}
+
+	Pipeline* Material::pipeline(Refl::RenderPassInfo* pass) const
+	{
+		auto it = m_pipelines.find(pass);
+		if (it == m_pipelines.end())
+			return nullptr;
+		return it->second;
+	}
+
+	bool Material::register_pipeline_parameters(Pipeline* pipeline)
+	{
+		for (auto& [name, info] : pipeline->parameters)
+		{
+			if (Parameter* param = find_parameter(name))
+			{
+				if (param->class_instance() == info.type)
+				{
+					++param->m_pipeline_refs;
+				}
+				else
+				{
+					error_log("Material", "Parameter type mismatch. Name: %s, Current Type: %s, New Type: %s", name.c_str(),
+							  param->class_instance()->name().c_str(), info.type->name().c_str());
+					return false;
+				}
+			}
+			else
+			{
+				auto parameter = Object::instance_cast<Parameter>(info.type->create_object(name, this));
+				if (!parameter)
+				{
+					error_log("Material", "Failed to create material parameter '%s'", name.c_str());
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	bool Material::add_pipeline(Refl::RenderPassInfo* pass, Pipeline* pipeline)
+	{
+		if (Material::pipeline(pass) == pipeline)
+		{
+			error_log("Material", "Cannot add pipeline, because current pipeline already exist in material!");
+			return false;
+		}
+
+		if (pipeline == nullptr)
+		{
+			remove_pipeline(pass);
+			return true;
+		}
+
+		Name name = pass ? pass->name() : "Default";
+
+		if (!pipeline->rename(name, this))
+			return false;
+
+		if (!register_pipeline_parameters(pipeline))
+			return false;
+
+		m_pipelines[pass] = pipeline;
+		return true;
+	}
+
+	Pipeline* Material::remove_pipeline(Refl::RenderPassInfo* pass)
+	{
+		auto it = m_pipelines.find(pass);
+		if (it == m_pipelines.end())
+			return nullptr;
+
+		Pipeline* pipeline = it->second;
+		m_pipelines.erase(it);
+		pipeline->owner(nullptr);
+
+		for (auto& [name, info] : pipeline->parameters)
+		{
+			if (Parameter* param = find_parameter(name))
+			{
+				--param->m_pipeline_refs;
+			}
+		}
+
+		return pipeline;
 	}
 
 	bool Material::register_child(Object* child)
 	{
-		if (child == pipeline)
+		if (child && child->is_instance_of<Pipeline>())
 			return true;
+
 		return ObjectTreeNode::register_child(child);
 	}
 
 	bool Material::unregister_child(Object* child)
 	{
-		if (child == pipeline)
+		if (child && child->is_instance_of<Pipeline>())
 			return true;
-		return ObjectTreeNode::unregister_child(child);
-	}
 
-	Material& Material::preload()
-	{
-		pipeline->preload();
-		return *this;
+		return ObjectTreeNode::unregister_child(child);
 	}
 
 	Material& Material::postload()
 	{
-		pipeline->postload();
+		for (auto& pipeline : m_pipelines)
+		{
+			pipeline.second->postload();
+		}
 		return *this;
 	}
 
@@ -189,15 +289,19 @@ namespace Engine
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
-		// TODO: We need to find pipeline here using current render pass as id?
-		pipeline->rhi_bind();
+		auto pipeline_object = pipeline(nullptr);
 
-		for (auto& [name, info] : pipeline->parameters)
+		if (pipeline_object == nullptr)
+			return false;
+
+		pipeline_object->rhi_bind();
+
+		for (auto& [name, info] : pipeline_object->parameters)
 		{
 			Parameter* parameter = head->find_parameter(name);
 
 			if (parameter)
-				parameter->apply(component, pipeline, render_pass, &info);
+				parameter->apply(component, render_pass, &info);
 		}
 		return true;
 	}
@@ -207,110 +311,9 @@ namespace Engine
 		return this;
 	}
 
-	bool Material::compile(ShaderCompiler::Compiler* compiler)
-	{
-		bool need_delete_compiler = compiler == nullptr;
-
-		if (need_delete_compiler)
-		{
-			compiler = ShaderCompiler::Compiler::static_create_compiler();
-
-			if (!compiler)
-			{
-				error_log("Material", "Failed to create material compiler!");
-
-				if (need_delete_compiler)
-				{
-					delete compiler;
-				}
-			}
-		}
-
-		String slang_source;
-		bool status = shader_source(slang_source);
-
-		if (status == true)
-		{
-			ShaderCompiler::ShaderSource source;
-			auto status = compiler->compile(this, slang_source, source);
-
-			if (status)
-			{
-				status = submit_compiled_source(source);
-			}
-		}
-		else
-		{
-			error_log("Material", "Failed to get shader source");
-		}
-
-		if (need_delete_compiler)
-		{
-			delete compiler;
-		}
-
-		return status;
-	}
-
 	Material& Material::apply_changes()
 	{
 		return postload();
-	}
-
-	bool Material::submit_compiled_source(const ShaderCompiler::ShaderSource& source)
-	{
-		bool status = pipeline->submit_compiled_source(source);
-		if (!status)
-			return status;
-
-
-		TreeSet<Name> names_to_remove;
-
-		for (auto& entry : parameters())
-		{
-			names_to_remove.insert(entry->name());
-		}
-
-		auto create_material_parameter = [&](Name name, Refl::Class* type) -> Parameter* {
-			names_to_remove.erase(name);
-			Parameter* material_parameter = find_parameter(name);
-
-			if (material_parameter && material_parameter->class_instance() != type)
-			{
-				remove_parameter(name);
-				material_parameter = nullptr;
-			}
-
-			if (!material_parameter)
-			{
-				if (!(material_parameter = Object::instance_cast<Parameter>(type->create_object(name, this))))
-				{
-					error_log("Material", "Failed to create material parameter '%s'", name.c_str());
-					return nullptr;
-				}
-			}
-
-			return material_parameter;
-		};
-
-		for (auto& [name, parameter] : pipeline->parameters)
-		{
-			trinex_always_check(parameter.type != nullptr, "Parameter type is nullptr");
-			trinex_always_check(parameter.type->is_a<Parameter>(),
-			                    "Material parameter type must be Engine::MaterialParameters::Parameter");
-			create_material_parameter(name, parameter.type);
-		}
-
-		for (auto& name : names_to_remove)
-		{
-			remove_parameter(name);
-		}
-
-		apply_changes();
-		status = true;
-
-
-		return status;
 	}
 
 	bool Material::serialize(Archive& archive)
@@ -319,12 +322,81 @@ namespace Engine
 			return false;
 
 		archive.serialize(compile_definitions);
-		return pipeline->serialize(archive);
+
+		bool with_graphics_options = m_graphics_options != nullptr;
+		archive.serialize(with_graphics_options);
+
+		if (with_graphics_options)
+		{
+			m_graphics_options->serialize(archive);
+		}
+
+		// Serialize pipelines
+
+		size_t pipelines_count = m_pipelines.size();
+		archive.serialize(pipelines_count);
+
+		if (archive.is_saving())
+		{
+			for (auto& pipeline : m_pipelines)
+			{
+				Name name           = pipeline.first ? pipeline.first->name() : "Default";
+				Pipeline::Type type = pipeline.second->type();
+
+				archive.serialize(name);
+				archive.serialize(type);
+
+				pipeline.second->serialize(archive, this);
+			}
+		}
+		else
+		{
+			while (pipelines_count > 0)
+			{
+				Name name;
+				Pipeline::Type type;
+
+				archive.serialize(name);
+				archive.serialize(type);
+
+				if (name == Name::none)
+				{
+					name = "Default";
+				}
+
+				auto pass     = Refl::RenderPassInfo::static_find_pass(name);
+				auto pipeline = Pipeline::static_create_pipeline(type);
+
+				add_pipeline(pass, pipeline);
+				pipeline->serialize(archive, this);
+				--pipelines_count;
+			}
+		}
+
+		return archive;
+	}
+
+	Material& Material::setup_pipeline(GraphicsPipeline* pipeline)
+	{
+		if (m_graphics_options)
+		{
+			pipeline->depth_test     = m_graphics_options->depth_test;
+			pipeline->stencil_test   = m_graphics_options->stencil_test;
+			pipeline->input_assembly = m_graphics_options->input_assembly;
+			pipeline->rasterizer     = m_graphics_options->rasterizer;
+			pipeline->color_blending = m_graphics_options->color_blending;
+		}
+		return *this;
 	}
 
 	Material::~Material()
 	{
-		delete pipeline;
+		for (auto& pipeline : m_pipelines)
+		{
+			pipeline.second->owner(nullptr);
+		}
+
+		m_graphics_options->remove_reference();
 	}
 
 	class Material* MaterialInstance::material()
@@ -344,6 +416,7 @@ namespace Engine
 	bool MaterialInstance::apply(SceneComponent* component, RenderPass* render_pass)
 	{
 		Material* mat = material();
+
 		if (!mat)
 		{
 			return false;

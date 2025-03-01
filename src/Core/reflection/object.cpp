@@ -363,6 +363,11 @@ namespace Engine::Refl
 			bool check_exiting_instance_tmp = m_check_exiting_instance;
 			m_check_exiting_instance        = true;
 
+			if (object->m_owner)
+			{
+				object->m_owner->unregister_subobject(object);
+			}
+
 			delete object;
 
 			m_check_exiting_instance = check_exiting_instance_tmp;

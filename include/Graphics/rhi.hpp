@@ -18,7 +18,7 @@ namespace Engine
 	class TessellationShader;
 	class GeometryShader;
 	class Shader;
-	class Pipeline;
+	class GraphicsPipeline;
 	class Sampler;
 	class RenderSurface;
 	class Texture2D;
@@ -138,7 +138,7 @@ namespace Engine
 		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                      = 0;
 		virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                                             = 0;
 		virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                             = 0;
-		virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                                      = 0;
+		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                     = 0;
 		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
 		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;
 		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;

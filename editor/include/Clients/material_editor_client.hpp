@@ -45,7 +45,6 @@ namespace Engine
 		ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
 		class Material* m_material                            = nullptr;
 		class VisualMaterialGraph::Node* m_selected_node      = nullptr;
-		Pointer<ShaderCompiler::Compiler> m_compiler          = nullptr;
 
 		bool m_open_select_node_window   = false;
 		bool m_is_open_create_node_popup = false;

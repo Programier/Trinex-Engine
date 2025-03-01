@@ -367,6 +367,8 @@ namespace Engine
 		Compute             = BIT(5),
 	};
 
+	declare_enum_operators(ShaderType);
+
 	enum class RHIBufferType : EnumerateType
 	{
 		Static  = 0,

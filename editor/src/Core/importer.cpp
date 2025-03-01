@@ -4,6 +4,7 @@
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Graphics/gpu_buffers.hpp>
+#include <Graphics/material_compiler.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
@@ -132,7 +133,7 @@ namespace Engine::Importer
 				}
 			}
 
-			material->compile();
+			MaterialCompiler::instance()->compile(material);
 
 			return material;
 		}

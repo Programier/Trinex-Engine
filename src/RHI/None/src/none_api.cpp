@@ -206,7 +206,7 @@ namespace Engine
 		return new NoneShader();
 	}
 
-	RHI_Pipeline* NoneApi::create_pipeline(const Pipeline* pipeline)
+	RHI_Pipeline* NoneApi::create_graphics_pipeline(const GraphicsPipeline* pipeline)
 	{
 		return new NonePipeline();
 	}

@@ -14,20 +14,14 @@ namespace Engine
 	class FragmentShader;
 	class RenderPass;
 	class Logger;
+	class Shader;
 
-	namespace ShaderCompiler
+	class GraphicsPipelineDescription : public Object
 	{
-		struct ShaderSource;
-	}
-
-	class ENGINE_EXPORT Pipeline : public RenderResource
-	{
-		declare_class(Pipeline, RenderResource);
+		declare_class(GraphicsPipelineDescription, Object);
 
 	public:
-		using ShadersArray = Array<class Shader*, 6>;
-
-		struct ALIGNED(4) DepthTestInfo {
+		struct DepthTestInfo {
 			declare_struct(DepthTestInfo, void);
 
 			CompareFunc func  = CompareFunc::Less;
@@ -35,11 +29,10 @@ namespace Engine
 			bool write_enable = true;
 		} depth_test;
 
-		struct ALIGNED(4) StencilTestInfo {
+		struct StencilTestInfo {
 			declare_struct(StencilTestInfo, void);
 
-			bool enable = false;
-
+			bool enable          = false;
 			StencilOp fail       = StencilOp::Decr;
 			StencilOp depth_pass = StencilOp::Decr;
 			StencilOp depth_fail = StencilOp::Decr;
@@ -48,13 +41,13 @@ namespace Engine
 			byte write_mask      = 0;
 		} stencil_test;
 
-		struct ALIGNED(4) AssemblyInfo {
+		struct AssemblyInfo {
 			declare_struct(AssemblyInfo, void);
 
 			PrimitiveTopology primitive_topology = PrimitiveTopology::TriangleList;
 		} input_assembly;
 
-		struct ALIGNED(4) RasterizerInfo {
+		struct RasterizerInfo {
 			declare_struct(RasterizerInfo, void);
 
 			PolygonMode polygon_mode = PolygonMode::Fill;
@@ -63,12 +56,10 @@ namespace Engine
 			float line_width         = 1.f;
 		} rasterizer;
 
-		struct ALIGNED(4) ColorBlendingInfo {
+		struct ColorBlendingInfo {
 			declare_struct(ColorBlendingInfo, void);
 
-			bool enable = false;
-
-
+			bool enable                   = false;
 			BlendFunc src_color_func      = BlendFunc::SrcAlpha;
 			BlendFunc dst_color_func      = BlendFunc::OneMinusSrcAlpha;
 			BlendOp color_op              = BlendOp::Add;
@@ -76,9 +67,50 @@ namespace Engine
 			BlendFunc dst_alpha_func      = BlendFunc::Zero;
 			BlendOp alpha_op              = BlendOp::Add;
 			ColorComponentMask color_mask = ColorComponentMask::RGBA;
-		} ALIGNED(4) color_blending;
+		} color_blending;
+
+		bool serialize(Archive& ar) override;
+	};
+
+	class ENGINE_EXPORT Pipeline : public RenderResource
+	{
+		declare_class(Pipeline, RenderResource);
+
+	public:
+		enum Type
+		{
+			Graphics,
+			Compute,
+		};
 
 		TreeMap<Name, MaterialParameterInfo> parameters;
+
+		static Pipeline* static_create_pipeline(Type type);
+
+		class Material* material() const;
+		const MaterialParameterInfo* find_param_info(const Name& name) const;
+		const Pipeline& rhi_bind() const;
+		virtual bool serialize(Archive& ar) final override;
+		virtual bool serialize(Archive& ar, Material* material);
+
+		virtual Shader* shader(ShaderType type) const                                = 0;
+		virtual Shader* shader(ShaderType type, bool create = false)                 = 0;
+		virtual ShaderType shader_types() const                                      = 0;
+		virtual Pipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) = 0;
+		virtual Pipeline& remove_shaders(ShaderType flags = ShaderType::Undefined)   = 0;
+		virtual Type type() const                                                    = 0;
+	};
+
+	class ENGINE_EXPORT GraphicsPipeline : public Pipeline
+	{
+		declare_class(GraphicsPipeline, Pipeline);
+
+	public:
+		GraphicsPipelineDescription::DepthTestInfo depth_test;
+		GraphicsPipelineDescription::StencilTestInfo stencil_test;
+		GraphicsPipelineDescription::AssemblyInfo input_assembly;
+		GraphicsPipelineDescription::RasterizerInfo rasterizer;
+		GraphicsPipelineDescription::ColorBlendingInfo color_blending;
 
 	private:
 		VertexShader* m_vertex_shader                            = nullptr;
@@ -100,13 +132,13 @@ namespace Engine
 		}
 
 	public:
-		Pipeline();
-		~Pipeline();
-		Pipeline& rhi_init() override;
-		Pipeline& postload() override;
-		const Pipeline& rhi_bind() const;
-		class Material* material() const;
+		GraphicsPipeline();
+		~GraphicsPipeline();
+		GraphicsPipeline& rhi_init() override;
+		GraphicsPipeline& postload() override;
 
+		Shader* shader(ShaderType type) const override;
+		Shader* shader(ShaderType type, bool create = false) override;
 		VertexShader* vertex_shader() const;
 		FragmentShader* fragment_shader() const;
 		TessellationControlShader* tessellation_control_shader() const;
@@ -119,26 +151,16 @@ namespace Engine
 		TessellationShader* tessellation_shader(bool create = false);
 		GeometryShader* geometry_shader(bool create = false);
 
-		Pipeline& remove_vertex_shader();
-		Pipeline& remove_fragment_shader();
-		Pipeline& remove_tessellation_control_shader();
-		Pipeline& remove_tessellation_shader();
-		Pipeline& remove_geometry_shader();
+		GraphicsPipeline& remove_vertex_shader();
+		GraphicsPipeline& remove_fragment_shader();
+		GraphicsPipeline& remove_tessellation_control_shader();
+		GraphicsPipeline& remove_tessellation_shader();
+		GraphicsPipeline& remove_geometry_shader();
 
-		Flags<ShaderType> shader_type_flags() const;
-		Pipeline& allocate_shaders(Flags<ShaderType> flags = 0);
-		Pipeline& remove_shaders(Flags<ShaderType> flags = 0);
-		const MaterialParameterInfo* find_param_info(const Name& name) const;
-		bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, Logger* logger = nullptr);
-		size_t stages_count() const;
-
-		FORCE_INLINE Pipeline& remove_all_shaders()
-		{
-			return remove_shaders(Flags<ShaderType>(~static_cast<BitMask>(0)));
-		}
-
-		ShadersArray shader_array() const;
-
-		bool serialize(class Archive& archive) override;
+		ShaderType shader_types() const override;
+		GraphicsPipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
+		GraphicsPipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
+		Type type() const override;
+		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 }// namespace Engine

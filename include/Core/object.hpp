@@ -154,7 +154,7 @@ namespace Engine
 		const String& string_name() const;
 		HashIndex hash_index() const;
 		Package* package(bool recursive = false) const;
-		String full_name(bool override_by_owner = false) const;
+		String full_name() const;
 		Counter references() const;
 		size_t add_reference() const;
 		size_t remove_reference() const;

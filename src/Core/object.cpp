@@ -285,6 +285,12 @@ namespace Engine
 
 	bool Object::rename(StringView name, Object* new_owner)
 	{
+		if (new_owner == nullptr)
+			new_owner = m_owner;
+
+		if (name == m_name && new_owner == m_owner)
+			return true;
+
 		if (!name.empty())
 		{
 			String validation;
@@ -294,12 +300,6 @@ namespace Engine
 				return false;
 			}
 		}
-
-		if (new_owner == nullptr)
-			new_owner = m_owner;
-
-		if (name == m_name && new_owner == m_owner)
-			return true;
 
 		Object* old_owner = m_owner;
 		Name old_name     = m_name;
@@ -370,7 +370,7 @@ namespace Engine
 	{
 		if (recursive)
 		{
-			const Object* self = m_owner;
+			const Object* self = this;
 			Package* pkg       = nullptr;
 
 			while (self && !pkg)
@@ -385,8 +385,7 @@ namespace Engine
 		return instance_cast<Package>(m_owner);
 	}
 
-
-	String Object::full_name(bool override_by_owner) const
+	String Object::full_name() const
 	{
 		static auto object_name_of = [](const Object* object) -> String {
 			if (object->m_name.is_valid())
@@ -395,23 +394,8 @@ namespace Engine
 			return Strings::format("Noname object {}", object->m_instance_index);
 		};
 
-		static auto parent_object_of = [](const Object* object, bool override_by_owner) -> Object* {
-			if (override_by_owner)
-			{
-				Object* parent = object->owner();
-				if (parent)
-					return parent;
-			}
-
-			Object* parent = object->package();
-			if (parent != Object::root_package())
-				return parent;
-
-			return nullptr;
-		};
-
 		String result         = object_name_of(this);
-		const Object* current = parent_object_of(this, override_by_owner);
+		const Object* current = m_owner;
 
 		while (current)
 		{
@@ -420,7 +404,7 @@ namespace Engine
 									(current->m_name.is_valid() ? current->m_name.to_string()
 																: Strings::format("Noname object {}", current->m_instance_index)),
 									Constants::name_separator, result);
-			current = parent_object_of(current, override_by_owner);
+			current = current->m_owner;
 		}
 
 		return result;
@@ -576,13 +560,13 @@ namespace Engine
 	{
 		Path path = m_name.to_string() + Constants::asset_extention;
 
-		const Package* pkg  = package(true);
-		const Package* root = root_package();
+		const Object* entry = m_owner;
+		const Object* root  = root_package();
 
-		while (pkg && pkg != root)
+		while (entry && entry != root)
 		{
-			path = Path(pkg->string_name()) / path;
-			pkg  = pkg->package();
+			path  = Path(entry->string_name()) / path;
+			entry = entry->m_owner;
 		}
 
 		return path;

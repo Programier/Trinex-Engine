@@ -14,7 +14,6 @@ namespace Engine
 	struct VulkanDescriptorSetLayout;
 
 	struct VulkanPipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
-
 		struct State {
 			vk::PipelineInputAssemblyStateCreateInfo input_assembly;
 			vk::PipelineRasterizationStateCreateInfo rasterizer;
@@ -25,10 +24,10 @@ namespace Engine
 			vk::SampleMask sample_mask;
 			vk::PipelineDynamicStateCreateInfo dynamic_state_info;
 
-			State& init(const Pipeline* m_engine_pipeline, bool with_flipped_viewport);
+			State& init(const GraphicsPipeline* m_engine_pipeline, bool with_flipped_viewport);
 		};
 
-		const Pipeline* m_engine_pipeline;
+		const GraphicsPipeline* m_engine_pipeline;
 		VulkanDescriptorSetLayout* m_descriptor_set_layout;
 		vk::PipelineLayout m_pipeline_layout;
 		TreeMap<Identifier, vk::Pipeline> m_pipelines;
@@ -41,7 +40,7 @@ namespace Engine
 		bool create_pipeline_layout();
 		vk::Pipeline find_or_create_pipeline();
 
-		bool create(const Pipeline* pipeline);
+		bool create(const GraphicsPipeline* pipeline);
 		VulkanDescriptorSet* current_descriptor_set();
 		void bind() override;
 

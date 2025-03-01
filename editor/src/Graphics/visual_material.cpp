@@ -226,17 +226,4 @@ namespace Engine
 
 		return status;
 	}
-
-	bool VisualMaterial::compile(ShaderCompiler::Compiler* compiler)
-	{
-		if (!Super::compile(compiler))
-			return false;
-
-		for (auto& node : m_nodes)
-		{
-			node->override_parameter(this);
-		}
-
-		return true;
-	}
 }// namespace Engine
