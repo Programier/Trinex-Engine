@@ -1,7 +1,7 @@
 #ifndef WIDE_LINES_SLANG
 #define WIDE_LINES_SLANG
 
-#include "math.slang"
+#include "trinex/math.slang"
 #define WIDE_LINE_TRIANGLES_COUNT 6
 
 namespace WideLines

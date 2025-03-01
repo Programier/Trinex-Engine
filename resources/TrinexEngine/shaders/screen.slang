@@ -1,5 +1,5 @@
 #include "trinex/quad.slang"
-#include "platform.slang"
+#include "trinex/platform.slang"
 
 Sampler2D screen_texture;
 uniform float2 min_point;

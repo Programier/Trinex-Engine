@@ -1,7 +1,7 @@
 #include "trinex/attributes.slang"
 #include "trinex/quad.slang"
-#include "platform.slang"
-#include "common.slang"
+#include "trinex/platform.slang"
+#include "trinex/common.slang"
 
 [is_globals()]
 ConstantBuffer<GlobalParameters> globals;

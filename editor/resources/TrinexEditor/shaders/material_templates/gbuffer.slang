@@ -1,7 +1,7 @@
 #ifndef GBUFFER_MATERIAL_TEMPLATE
 #define GBUFFER_MATERIAL_TEMPLATE 1
 
-#include "common.slang"
+#include "trinex/common.slang"
 
 
 /*

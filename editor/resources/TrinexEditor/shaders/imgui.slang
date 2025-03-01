@@ -1,4 +1,4 @@
-#include "platform.slang"
+#include "trinex/platform.slang"
 
 struct VS_INPUT
 {

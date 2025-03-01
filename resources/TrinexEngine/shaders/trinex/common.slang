@@ -1,5 +1,5 @@
-#ifndef COMMON_SLANG
-#define COMMON_SLANG
+#ifndef TRINEX_COMMON_SLANG
+#define TRINEX_COMMON_SLANG
 
 struct GlobalParameters
 {

@@ -1,8 +1,8 @@
 #define DISABLE_TANGENT_AND_BITANGENT 1
 
 #include "trinex/attributes.slang"
-#include "common.slang"
-#include "platform.slang"
+#include "trinex/common.slang"
+#include "trinex/platform.slang"
 
 #include VERTEX_FACTORY_FILE
 

@@ -1,5 +1,5 @@
 #include "trinex/attributes.slang"
-#include "common.slang"
+#include "trinex/common.slang"
 
 static float3 grid_plane[6] = {
     float3(1, 1, 0), float3(-1, -1, 0), float3(-1, 1, 0),

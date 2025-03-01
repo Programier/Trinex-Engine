@@ -1,5 +1,5 @@
 #include "trinex/attributes.slang"
-#include "common.slang"
+#include "trinex/common.slang"
 #include "wide_lines.slang"
 
 struct VertexInput 
