@@ -35,7 +35,7 @@ namespace Engine
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;
 
-		EditorSceneRenderer m_renderer;
+		Renderer<EditorSceneRenderer> m_renderer;
 		RenderStatistics m_statistics;
 		ShowFlags m_show_flags = ShowFlags::DefaultFlags;
 		SceneView m_scene_view;

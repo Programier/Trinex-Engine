@@ -187,7 +187,7 @@ namespace Engine::MaterialParameters
 			}
 
 			ImGui::Indent();
-			auto res = tree->render(array, prop, renderer, is_read_only);
+			auto res = tree->render(array, prop, renderer, false);
 			ImGui::Unindent();
 			return res;
 		}

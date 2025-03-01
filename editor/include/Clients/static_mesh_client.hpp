@@ -26,7 +26,7 @@ namespace Engine
 		class ContentBrowser* m_browser = nullptr;
 		PropertyRenderer m_property_renderer;
 		SceneView m_view;
-		EditorSceneRenderer m_renderer;
+		Renderer<EditorSceneRenderer> m_renderer;
 
 		StaticMeshClient& render_dock();
 		StaticMeshClient& render_viewport(float dt);

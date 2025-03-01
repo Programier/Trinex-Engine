@@ -207,10 +207,11 @@ namespace Engine
 		triangles.add_triangle(arrow_points[2], arrow_points[3], arrow_points[0], white, white, white);
 	}
 
-
-	EditorSceneRenderer::EditorSceneRenderer()
+	EditorSceneRenderer& EditorSceneRenderer::initialize()
 	{
+		ColorSceneRenderer::initialize();
 		m_overlay_pass = create_pass<EditorOverlayPass>();
+		return *this;
 	}
 
 	EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component)

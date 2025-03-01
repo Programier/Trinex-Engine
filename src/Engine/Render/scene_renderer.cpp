@@ -123,6 +123,16 @@ namespace Engine
 	SceneRenderer::SceneRenderer() : m_global_shader_params(new GlobalShaderParametersManager()), scene(nullptr)
 	{}
 
+	SceneRenderer& SceneRenderer::initialize()
+	{
+		return *this;
+	}
+
+	SceneRenderer& SceneRenderer::finalize()
+	{
+		return *this;
+	}
+
 	const GlobalShaderParameters& SceneRenderer::global_parameters() const
 	{
 		GlobalUniformBuffer* buffer = m_global_shader_params->current();
@@ -335,13 +345,34 @@ namespace Engine
 		delete m_global_shader_params;
 	}
 
-
-	ColorSceneRenderer::ColorSceneRenderer()
+	ColorSceneRenderer& ColorSceneRenderer::initialize()
 	{
 		m_clear_pass             = create_pass<ClearPass>();
 		m_geometry_pass          = create_pass<GeometryPass>();
 		m_deferred_lighting_pass = create_pass<DeferredLightingPass>();
 		m_post_process_pass      = create_pass<PostProcessPass>();
 		m_overlay_pass           = create_pass<OverlayPass>();
+
+		initialize_subrenderers();
+		return *this;
+	}
+
+	ColorSceneRenderer& ColorSceneRenderer::finalize()
+	{
+		finalize_subrenderers();
+		return *this;
+	}
+
+	ColorSceneRenderer& ColorSceneRenderer::initialize_subrenderers()
+	{
+		m_depth_renderer = new Renderer<DepthSceneRenderer>();
+		return *this;
+	}
+
+	ColorSceneRenderer& ColorSceneRenderer::finalize_subrenderers()
+	{
+		delete m_depth_renderer;
+		m_depth_renderer = nullptr;
+		return *this;
 	}
 }// namespace Engine

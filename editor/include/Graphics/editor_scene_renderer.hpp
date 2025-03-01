@@ -11,7 +11,7 @@ namespace Engine
 		EditorOverlayPass* m_overlay_pass;
 
 	public:
-		EditorSceneRenderer();
+		EditorSceneRenderer& initialize() override;
 
 		// Components rendering
 		using ColorSceneRenderer::render_component;

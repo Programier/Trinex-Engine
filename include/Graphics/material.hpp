@@ -79,6 +79,7 @@ namespace Engine
 		Pipeline* pipeline(Refl::RenderPassInfo* pass) const;
 		bool add_pipeline(Refl::RenderPassInfo* pass, Pipeline* pipeline);
 		Pipeline* remove_pipeline(Refl::RenderPassInfo* pass);
+		Material& remove_all_pipelines();
 		Material& postload() override;
 		class Material* material() override;
 		Material& apply_changes() override;

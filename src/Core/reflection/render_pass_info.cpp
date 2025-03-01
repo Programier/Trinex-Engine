@@ -1,6 +1,7 @@
 #include <Core/exception.hpp>
 #include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
+#include <Graphics/material.hpp>
 
 namespace Engine::Refl
 {
@@ -61,6 +62,9 @@ namespace Engine::Refl
 
 	bool RenderPassInfo::is_material_compatible(const Material* material)
 	{
+		if (material->default_pass_only)
+			return false;
+
 		if (m_is_material_compatible)
 		{
 			return m_is_material_compatible(material);

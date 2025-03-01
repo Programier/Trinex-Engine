@@ -396,14 +396,14 @@ namespace Engine
 
 		String result         = object_name_of(this);
 		const Object* current = m_owner;
+		const Object* root    = root_package();
 
-		while (current)
+		while (current && current != root)
 		{
-			result =
-					Strings::format("{}{}{}",
-									(current->m_name.is_valid() ? current->m_name.to_string()
-																: Strings::format("Noname object {}", current->m_instance_index)),
-									Constants::name_separator, result);
+			String current_name = (current->m_name.is_valid() ? current->m_name.to_string()
+															  : Strings::format("Noname object {}", current->m_instance_index));
+
+			result  = Strings::format("{}{}{}", current_name, Constants::name_separator, result);
 			current = current->m_owner;
 		}
 

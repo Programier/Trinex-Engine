@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
 #include <Core/name.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene_view.hpp>
 #include <Graphics/shader_parameters.hpp>
@@ -21,6 +22,7 @@ namespace Engine
 
 	class RenderPass;
 	class ClearPass;
+	class DepthPass;
 	class GeometryPass;
 	class DeferredLightingPass;
 	class PostProcessPass;
@@ -54,6 +56,9 @@ namespace Engine
 
 		SceneRenderer();
 		delete_copy_constructors(SceneRenderer);
+
+		virtual SceneRenderer& initialize();
+		virtual SceneRenderer& finalize();
 		SceneRenderer& push_global_parameters(GlobalShaderParameters* parameters = nullptr);
 		SceneRenderer& pop_global_parameters();
 		const GlobalShaderParameters& global_parameters() const;
@@ -113,9 +118,20 @@ namespace Engine
 		virtual ~SceneRenderer();
 	};
 
+	class DepthSceneRenderer : public SceneRenderer
+	{
+	private:
+		ClearPass* m_clear_pass = nullptr;
+		DepthPass* m_depth_pass = nullptr;
+
+	public:
+	};
 
 	class ENGINE_EXPORT ColorSceneRenderer : public SceneRenderer
 	{
+	protected:
+		DepthSceneRenderer* m_depth_renderer = nullptr;
+
 	private:
 		ClearPass* m_clear_pass                        = nullptr;
 		GeometryPass* m_geometry_pass                  = nullptr;
@@ -124,8 +140,10 @@ namespace Engine
 		OverlayPass* m_overlay_pass                    = nullptr;
 
 	public:
-		ColorSceneRenderer();
-		delete_copy_constructors(ColorSceneRenderer);
+		ColorSceneRenderer& initialize() override;
+		ColorSceneRenderer& finalize() override;
+		virtual ColorSceneRenderer& initialize_subrenderers();
+		virtual ColorSceneRenderer& finalize_subrenderers();
 
 		FORCE_INLINE ClearPass* clear_pass() const
 		{

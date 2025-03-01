@@ -864,6 +864,8 @@ namespace Engine
 	{
 		String source;
 
+		material->remove_all_pipelines();
+
 		if (!material->shader_source(source))
 		{
 			error_log("MaterialCompiler", "Failed to get shader source");

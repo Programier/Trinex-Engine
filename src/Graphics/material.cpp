@@ -201,8 +201,11 @@ namespace Engine
 			}
 			else
 			{
-				auto parameter = Object::instance_cast<Parameter>(info.type->create_object(name, this));
-				if (!parameter)
+				if (auto parameter = Object::instance_cast<Parameter>(info.type->create_object(name, this)))
+				{
+					parameter->m_pipeline_refs = 1;
+				}
+				else
 				{
 					error_log("Material", "Failed to create material parameter '%s'", name.c_str());
 					return false;
@@ -257,6 +260,25 @@ namespace Engine
 		}
 
 		return pipeline;
+	}
+
+	Material& Material::remove_all_pipelines()
+	{
+		for (auto& [pass, pipeline] : m_pipelines)
+		{
+			pipeline->owner(nullptr);
+
+			for (auto& [name, info] : pipeline->parameters)
+			{
+				if (Parameter* param = find_parameter(name))
+				{
+					--param->m_pipeline_refs;
+				}
+			}
+		}
+
+		m_pipelines.clear();
+		return *this;
 	}
 
 	bool Material::register_child(Object* child)

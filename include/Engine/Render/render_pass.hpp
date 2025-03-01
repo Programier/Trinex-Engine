@@ -60,7 +60,7 @@ namespace Engine
 		virtual RenderPass& render(RenderViewport*);
 		virtual RenderPass& predraw(PrimitiveComponent* primitive, MaterialInterface* material, Pipeline* pipeline);
 
-				RenderPass& draw(size_t vertices_count, size_t vertices_offset);
+		RenderPass& draw(size_t vertices_count, size_t vertices_offset);
 		RenderPass& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset);
 		RenderPass& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances);
 		RenderPass& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances);
@@ -71,7 +71,8 @@ namespace Engine
 		template<typename Dst, typename Src>
 		auto assign(Dst& dst, Src&& src)
 		{
-			return add_callabble([&]() { dst = std::forward<Src>(src); });
+			using SrcT = std::decay_t<Src>;
+			return add_callabble([&dst, src_copy = SrcT(std::forward<Src>(src))]() { dst = src_copy; });
 		}
 
 		template<typename Task, typename... Args>
