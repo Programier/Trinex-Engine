@@ -12,7 +12,11 @@ namespace Engine
 
 
 	template<typename FlagsType = BitMask, typename ValueType = BitMask>
-	struct Flags {
+	struct Flags final {
+	public:
+		using Type  = FlagsType;
+		using Value = ValueType;
+
 	private:
 		ValueType m_flags;
 

@@ -99,10 +99,12 @@ namespace Engine
 						  ColorFormat::R8G8B8A8, ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth,
 						  ColorFormat::BC1, ColorFormat::BC2, ColorFormat::BC3);
 
-	implement_engine_enum(MaterialDomain, MaterialDomain::Surface);
-
+	implement_engine_enum(MaterialDomain, MaterialDomain::Surface, MaterialDomain::Lighting);
 
 	implement_engine_enum(SplashTextType, SplashTextType::StartupProgress, SplashTextType::VersionInfo,
 						  SplashTextType::CopyrightInfo, SplashTextType::GameName);
+
+	implement_engine_enum(MaterialOptions, MaterialOptions::DefaultPassOnly, MaterialOptions::DisableDefaultPass,
+						  MaterialOptions::LightMaterial);
 
 }// namespace Engine

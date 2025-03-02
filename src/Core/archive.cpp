@@ -105,6 +105,20 @@ namespace Engine
 		return *this;
 	}
 
+	Archive& Archive::serialize_memory(byte* data, size_t size)
+	{
+		if (is_reading())
+		{
+			return read_data(data, size);
+		}
+
+		if (is_saving())
+		{
+			return write_data(data, size);
+		}
+		return *this;
+	}
+
 	size_t Archive::position() const
 	{
 		if (is_saving())

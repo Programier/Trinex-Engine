@@ -56,6 +56,7 @@ namespace Engine
 
 		Archive& write_data(const byte* data, size_t size);
 		Archive& read_data(byte* data, size_t size);
+		Archive& serialize_memory(byte* data, size_t size);
 
 		size_t position() const;
 		Archive& position(size_t position);

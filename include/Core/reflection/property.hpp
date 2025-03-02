@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/type_traits.hpp>
+#include <Core/flags.hpp>
 #include <Core/reflection/object.hpp>
 
 namespace Engine
@@ -459,6 +460,42 @@ private:
 		virtual Refl::Class* base_class() const = 0;
 	};
 
+	class ENGINE_EXPORT FlagsProperty : public Property
+	{
+		declare_reflect_type(FlagsProperty, Property);
+
+		template<typename T>
+		static constexpr inline bool is_integral_value =
+				(std::is_integral<T>::value || std::is_enum<T>::value) && sizeof(T) == sizeof(uint32_t);
+
+		template<typename T>
+		struct IsFlags : std::false_type {
+		};
+
+		template<typename FlagsType, typename ValueType>
+		struct IsFlags<Flags<FlagsType, ValueType>> : std::integral_constant<bool, is_integral_value<ValueType>> {
+		};
+
+		trinex_refl_prop_type_filter(IsFlags<T>::value);
+
+	private:
+		class Enum* m_enum;
+
+	public:
+		inline FlagsProperty& bind_enum(Enum* enum_refl)
+		{
+			m_enum = enum_refl;
+			return *this;
+		}
+
+		inline Refl::Enum* enum_instance() const
+		{
+			return m_enum;
+		}
+
+		bool serialize(void* object, Archive& ar) override;
+	};
+
 	//////////////////// SPECIALIZATIONS ////////////////////
 
 	template<auto prop, typename Super, typename = std::enable_if_t<std::is_base_of_v<Property, Super>>>
@@ -822,6 +859,13 @@ private:
 		{
 			return T::Type::static_class_instance();
 		}
+	};
+
+	template<auto prop, typename T>
+		requires(FlagsProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, FlagsProperty> {
+		using Super = TypedProperty<prop, FlagsProperty>;
+		using Super::Super;
 	};
 
 

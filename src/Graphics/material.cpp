@@ -2,6 +2,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
@@ -40,7 +41,9 @@ namespace Engine
 		auto* self = static_class_instance();
 		trinex_refl_prop(self, This, compile_definitions);
 		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsNotSerializable)->is_composite(true);
-		trinex_refl_prop(self, This, default_pass_only);
+
+		trinex_refl_prop(self, This, domain)->bind_enum(Refl::Enum::static_require("Engine::MaterialDomain"));
+		trinex_refl_prop(self, This, options)->bind_enum(Refl::Enum::static_require("Engine::MaterialOptions"));
 	}
 
 	implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
@@ -173,7 +176,7 @@ namespace Engine
 
 	Pipeline* Material::pipeline(Refl::RenderPassInfo* pass) const
 	{
-		if (default_pass_only)
+		if (options(MaterialOptions::DefaultPassOnly))
 			pass = nullptr;
 
 		auto it = m_pipelines.find(pass);
@@ -331,6 +334,7 @@ namespace Engine
 		{
 			pipeline.second->postload();
 		}
+
 		return *this;
 	}
 

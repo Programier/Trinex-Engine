@@ -414,7 +414,8 @@ namespace Engine
 
 	enum class MaterialDomain : EnumerateType
 	{
-		Surface = 0,
+		Surface  = 0,
+		Lighting = 1,
 	};
 
 	enum class SplashTextType : EnumerateType
@@ -471,4 +472,13 @@ namespace Engine
 		InOutRef = 3,
 		Const    = 4
 	};
+
+	enum class MaterialOptions : EnumerateType
+	{
+		DefaultPassOnly    = BIT(0),
+		DisableDefaultPass = BIT(1),
+		LightMaterial      = BIT(2),
+	};
+
+	declare_enum_operators(MaterialOptions);
 }// namespace Engine

@@ -50,6 +50,7 @@ namespace Engine
 		void next_prop_name(const String& name);
 		const String& next_prop_name() const;
 		void render_name(Refl::Property* prop);
+		void render_name(const char* str);
 		bool render_property(void* object, Refl::Property* prop, bool read_only = false, bool allow_script_call = true);
 		bool render_struct_properties(void* object, class Refl::Struct* struct_class, bool read_only = false);
 

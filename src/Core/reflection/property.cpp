@@ -28,6 +28,7 @@ namespace Engine::Refl
 	implement_reflect_type(ArrayProperty);
 	implement_reflect_type(ReflObjectProperty);
 	implement_reflect_type(SubClassProperty);
+	implement_reflect_type(FlagsProperty);
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
@@ -98,22 +99,18 @@ namespace Engine::Refl
 		return *this;
 	}
 
+	void Property::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	{
+		Super::register_layout(r, info, downcast);
+	}
+
 	Property::~Property()
 	{}
 
 	bool PrimitiveProperty::serialize(void* object, Archive& ar)
 	{
 		byte* prop = reinterpret_cast<byte*>(address(object));
-
-		if (ar.is_reading())
-		{
-			ar.read_data(prop, size());
-		}
-		else if (ar.is_saving())
-		{
-			ar.write_data(prop, size());
-		}
-
+		ar.serialize_memory(prop, size());
 		return ar;
 	}
 
@@ -335,9 +332,10 @@ namespace Engine::Refl
 		return Class::static_refl_class_info();
 	}
 
-	void Property::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	bool FlagsProperty::serialize(void* object, Archive& ar)
 	{
-		Super::register_layout(r, info, downcast);
+		byte* flags = address_as<byte>(object);
+		return ar.serialize_memory(flags, size());
 	}
 
 	static void on_init()

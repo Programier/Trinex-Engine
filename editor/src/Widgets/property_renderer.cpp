@@ -231,6 +231,22 @@ namespace Engine
 		}
 	}
 
+	void PropertyRenderer::render_name(const char* str)
+	{
+		ImGui::TableSetColumnIndex(0);
+		if (m_next_prop_name.empty())
+		{
+			ImGui::Text("%s", str);
+		}
+		else
+		{
+			ImGui::Text("%s", str);
+			m_next_prop_name.clear();
+		}
+
+		ImGui::TableSetColumnIndex(1);
+	}
+
 	bool PropertyRenderer::render_property(void* object, Refl::Property* prop, bool read_only, bool allow_script_call)
 	{
 		read_only = read_only || prop->is_read_only();
@@ -874,6 +890,59 @@ namespace Engine
 		return changed;
 	}
 
+	static bool render_flags_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
+	{
+		auto prop = prop_cast_checked<Refl::FlagsProperty>(prop_base);
+
+		bool changed = false;
+
+		struct Entry {
+			String name;
+			EnumerateType value;
+		};
+
+		if (renderer->collapsing_header(prop))
+		{
+			uint32_t* flags = prop->address_as<uint32_t>(context);
+			auto& userdata  = renderer->userdata.get(flags);
+
+			if (!userdata.has_value())
+			{
+				auto& enum_entries = prop->enum_instance()->entries();
+
+				userdata               = Vector<Entry>();
+				Vector<Entry>& entries = userdata.cast<Vector<Entry>&>();
+				entries.reserve(enum_entries.size());
+
+				for (auto& entry : enum_entries)
+				{
+					entries.emplace_back(Strings::make_sentence(entry.name.to_string()), entry.value);
+				}
+			}
+
+			Vector<Entry>& entries = userdata.cast<Vector<Entry>&>();
+
+			ImGui::Indent();
+			{
+				for (auto& entry : entries)
+				{
+					renderer->create_row();
+					renderer->render_name(entry.name.c_str());
+					ImGui::PushID(entry.value);
+					if (ImGui::CheckboxFlags("##Flags", flags, entry.value))
+					{
+						changed = true;
+						prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+					}
+					ImGui::PopID();
+				}
+			}
+			ImGui::Unindent();
+		}
+
+		return changed;
+	}
+
 	static void on_preinit()
 	{
 		using T = PropertyRenderer;
@@ -892,6 +961,7 @@ namespace Engine
 		T::register_prop_renderer<Refl::ArrayProperty>(render_array_property);
 		T::register_prop_renderer<Refl::ReflObjectProperty>(render_refl_object_property);
 		T::register_prop_renderer<Refl::SubClassProperty>(render_sub_class_property);
+		T::register_prop_renderer<Refl::FlagsProperty>(render_flags_property);
 	}
 
 	static bool script_render_property(PropertyRenderer* renderer, void* object, int type_id, Refl::Property* prop,
@@ -903,6 +973,11 @@ namespace Engine
 		}
 
 		return renderer->render_property(object, prop, read_only, allow_script_call);
+	}
+
+	static void script_renderer_render_name(PropertyRenderer* renderer, const String& str)
+	{
+		renderer->render_name(str.c_str());
 	}
 
 	static void on_init()
@@ -917,7 +992,8 @@ namespace Engine
 		ReflectionInitializeController().require("Engine::Refl::Property");
 
 		r.method("void next_prop_name(const string&)", method_of<void>(&T::next_prop_name));
-		r.method("void render_name(Refl::Property@ prop)", &T::render_name);
+		r.method("void render_name(Refl::Property@ prop)", method_of<void, Refl::Property*>(&T::render_name));
+		r.method("void render_name(const string& str)", script_renderer_render_name);
 
 		r.method("bool render_property(?& object, Refl::Property@ prop, bool read_only = false, bool allow_script_call = true)",
 				 script_render_property);

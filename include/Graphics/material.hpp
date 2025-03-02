@@ -1,25 +1,19 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
+#include <Core/flags.hpp>
 #include <Core/object.hpp>
 #include <Core/structures.hpp>
 #include <Graphics/material_parameter.hpp>
 
 namespace Engine
 {
-	class Logger;
-
-	namespace ShaderCompiler
-	{
-		class Compiler;
-		struct ShaderSource;
-	}// namespace ShaderCompiler
-
 	namespace MaterialParameters
 	{
 		class Parameter;
 	}
 
+	class Logger;
 	class SceneComponent;
 	class Pipeline;
 	class GraphicsPipeline;
@@ -72,8 +66,10 @@ namespace Engine
 		bool register_pipeline_parameters(Pipeline* pipeline);
 
 	public:
+		MaterialDomain domain;
+		Flags<MaterialOptions, uint32_t> options;
+
 		Vector<ShaderDefinition> compile_definitions;
-		bool default_pass_only = false;
 
 		Material();
 		Pipeline* pipeline(Refl::RenderPassInfo* pass) const;
