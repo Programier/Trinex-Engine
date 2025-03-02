@@ -21,6 +21,7 @@ namespace Engine
 	class RenderViewport;
 
 	class RenderPass;
+	class ShadowPass;
 	class ClearPass;
 	class DepthPass;
 	class GeometryPass;
@@ -120,11 +121,8 @@ namespace Engine
 
 	class DepthSceneRenderer : public SceneRenderer
 	{
-	private:
-		ClearPass* m_clear_pass = nullptr;
-		DepthPass* m_depth_pass = nullptr;
-
 	public:
+		DepthSceneRenderer& initialize() override;
 	};
 
 	class ENGINE_EXPORT ColorSceneRenderer : public SceneRenderer
@@ -133,6 +131,7 @@ namespace Engine
 		DepthSceneRenderer* m_depth_renderer = nullptr;
 
 	private:
+		ShadowPass* m_shadow_pass                      = nullptr;
 		ClearPass* m_clear_pass                        = nullptr;
 		GeometryPass* m_geometry_pass                  = nullptr;
 		DeferredLightingPass* m_deferred_lighting_pass = nullptr;
@@ -144,6 +143,11 @@ namespace Engine
 		ColorSceneRenderer& finalize() override;
 		virtual ColorSceneRenderer& initialize_subrenderers();
 		virtual ColorSceneRenderer& finalize_subrenderers();
+
+		FORCE_INLINE ShadowPass* shadow_pass() const
+		{
+			return m_shadow_pass;
+		}
 
 		FORCE_INLINE ClearPass* clear_pass() const
 		{

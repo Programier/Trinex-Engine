@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/etl/span.hpp>
 #include <Core/structures.hpp>
 
 struct ImGuiContext;
@@ -124,11 +123,41 @@ namespace Engine
 
 		virtual RHI& submit() = 0;
 
-		virtual RHI& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) = 0;
-		virtual RHI& viewport(const ViewPort& viewport)                                                              = 0;
-		virtual ViewPort viewport()                                                                                  = 0;
-		virtual RHI& scissor(const Scissor& scissor)                                                                 = 0;
-		virtual Scissor scissor()                                                                                    = 0;
+		virtual RHI& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+										const RenderSurface* rt4, RenderSurface* depth_stencil) = 0;
+
+		inline RHI& bind_depth_stencil_target(RenderSurface* depth_stencil)
+		{
+			return bind_render_target(nullptr, nullptr, nullptr, nullptr, depth_stencil);
+		}
+
+		inline RHI& bind_render_target1(const RenderSurface* rt1, RenderSurface* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, nullptr, nullptr, nullptr, depth_stencil);
+		}
+
+		inline RHI& bind_render_target2(const RenderSurface* rt1, const RenderSurface* rt2,
+										RenderSurface* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, rt2, nullptr, nullptr, depth_stencil);
+		}
+
+		inline RHI& bind_render_target3(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+										RenderSurface* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, rt2, rt3, nullptr, depth_stencil);
+		}
+
+		inline RHI& bind_render_target4(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+										const RenderSurface* rt4, RenderSurface* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
+		}
+
+		virtual RHI& viewport(const ViewPort& viewport) = 0;
+		virtual ViewPort viewport()                     = 0;
+		virtual RHI& scissor(const Scissor& scissor)    = 0;
+		virtual Scissor scissor()                       = 0;
 
 		virtual RHI_Sampler* create_sampler(const Sampler*)                                                                  = 0;
 		virtual RHI_Texture2D* create_texture_2d(const Texture2D*)                                                           = 0;

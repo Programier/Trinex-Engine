@@ -217,36 +217,22 @@ namespace Engine
 		return submit_light_info_render_thread();
 	}
 
-	class UpdateLightInfoCommand : public Task<UpdateLightInfoCommand>
-	{
-	private:
-		AABB_3Df m_bounds;
-		Color3 m_light_color;
-		float m_intensivity;
-		bool m_is_enabled;
-		bool m_is_shadows_enabled;
-		LightComponentProxy* m_proxy;
-
-	public:
-		UpdateLightInfoCommand(LightComponent* component)
-		    : m_bounds(component->bounding_box()), m_light_color(component->light_color()),
-		      m_intensivity(component->intensivity()), m_is_enabled(component->is_enabled()),
-		      m_is_shadows_enabled(component->is_shadows_enabled()), m_proxy(component->proxy())
-		{}
-
-		void execute() override
-		{
-			m_proxy->bounding_box(m_bounds)
-			        .light_color(m_light_color)
-			        .intensivity(m_intensivity)
-			        .is_enabled(m_is_enabled)
-			        .is_shadows_enabled(m_is_shadows_enabled);
-		}
-	};
-
 	LightComponent& LightComponent::submit_light_info_render_thread()
 	{
-		render_thread()->create_task<UpdateLightInfoCommand>(this);
+		render_thread()->call([proxy           = proxy(),             //
+							   bounds          = m_bounds,            //
+							   color           = m_light_color,       //
+							   intensivity     = m_intensivity,       //
+							   enabled         = m_is_enabled,        //
+							   shadows_enabled = m_is_shadows_enabled,//
+							   map             = m_shadow_map]() {
+			proxy->bounding_box(bounds)
+					.light_color(color)
+					.intensivity(intensivity)
+					.is_enabled(enabled)
+					.is_shadows_enabled(shadows_enabled)
+					.shadow_map(map);
+		});
 		return *this;
 	}
 
@@ -277,4 +263,9 @@ namespace Engine
 
 	LightComponent::~LightComponent()
 	{}
+
+	SceneRenderer& SceneRenderer::render_component(LightComponent* component)
+	{
+		return *this;
+	}
 }// namespace Engine

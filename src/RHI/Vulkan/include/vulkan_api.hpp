@@ -99,7 +99,8 @@ namespace Engine
 		VulkanAPI& submit() override;
 		VulkanAPI& wait_idle();
 
-		VulkanAPI& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+		VulkanAPI& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+									  const RenderSurface* rt4, RenderSurface* depth_stencil) override;
 		VulkanAPI& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		VulkanAPI& scissor(const Scissor& scissor) override;

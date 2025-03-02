@@ -40,51 +40,29 @@ namespace Engine
 		return OPENGL_API->m_state.render_target;
 	}
 
-	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
-	                                                         RenderSurface* depth_stencil)
+	inline OpenGL_RenderSurface* opengl_render_target(const RenderSurface* surface)
 	{
-		HashIndex hash = 0;
-
-		for (auto& texture : color_attachments)
-		{
-			RHI_Object* object = texture->rhi_object<RHI_Object>();
-			hash               = memory_hash_fast(&object, sizeof(object), hash);
-		}
-
-		if (depth_stencil)
-		{
-			RHI_Object* object = depth_stencil->rhi_object<RHI_Object>();
-			hash               = memory_hash_fast(&object, sizeof(object), hash);
-		}
-
-		auto it = m_render_targets.find(hash);
-		if (it != m_render_targets.end())
-		{
-			return it->second;
-		}
-		OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
-		rt->m_index             = hash;
-		m_render_targets[hash]  = rt;
-
-		rt->init(color_attachments, depth_stencil);
-		return rt;
+		return surface ? surface->rhi_object<OpenGL_RenderSurface>() : nullptr;
 	}
 
-	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<OpenGL_RenderSurface*>& color_attachments,
-	                                                         OpenGL_RenderSurface* depth_stencil)
+	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const RenderSurface* rt1, const RenderSurface* rt2,
+															 const RenderSurface* rt3, const RenderSurface* rt4,
+															 RenderSurface* depth_stencil)
 	{
+		return find_or_create(opengl_render_target(rt1), opengl_render_target(rt2), opengl_render_target(rt3),
+							  opengl_render_target(rt4), opengl_render_target(depth_stencil));
+	}
 
-		HashIndex hash = 0;
-		for (RHI_Object* texture : color_attachments)
-		{
-			hash = memory_hash_fast(&texture, sizeof(texture), hash);
-		}
+	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const OpenGL_RenderSurface* rt1,//
+															 const OpenGL_RenderSurface* rt2,//
+															 const OpenGL_RenderSurface* rt3,//
+															 const OpenGL_RenderSurface* rt4,//
+															 struct OpenGL_RenderSurface* depth_stencil)
+	{
+		const OpenGL_RenderSurface* targets[4] = {rt1, rt2, rt3, rt4};
 
-		if (depth_stencil)
-		{
-			hash = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
-		}
-
+		HashIndex hash = memory_hash_fast(targets, sizeof(targets));
+		hash           = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
 
 		auto it = m_render_targets.find(hash);
 		if (it != m_render_targets.end())
@@ -95,7 +73,7 @@ namespace Engine
 		rt->m_index             = hash;
 		m_render_targets[hash]  = rt;
 
-		rt->init(color_attachments, depth_stencil);
+		rt->init(targets, depth_stencil);
 		return rt;
 	}
 
@@ -106,54 +84,35 @@ namespace Engine
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 	}
 
-	template<typename T>
-	static GLuint create_framebuffer(OpenGL_RenderTarget* self, const Span<T*>& color_attachments, T* depth_stencil,
-	                                 OpenGL_RenderSurface* (*callback)(T*) )
+	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const OpenGL_RenderSurface** color_targets,
+												   struct OpenGL_RenderSurface* depth_stencil)
 	{
-		GLuint m_framebuffer = 0;
 		glGenFramebuffers(1, &m_framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
 		size_t index = 0;
 
-		Vector<GLenum> color_attachment_indices;
-		color_attachment_indices.reserve(color_attachments.size());
+		GLenum color_attachment_indices[4];
 
-		for (const auto& color_attachment : color_attachments)
+		for (int i = 0; i < 4; ++i)
 		{
-			auto color_texture = color_attachment;
-			info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_texture, self);
-			self->attach_texture(callback(color_texture), GL_COLOR_ATTACHMENT0 + index);
-			color_attachment_indices.push_back(GL_COLOR_ATTACHMENT0 + index);
-			index++;
+			if (color_targets[i])
+			{
+				attach_texture(color_targets[i], GL_COLOR_ATTACHMENT0 + i);
+				color_attachment_indices[index] = i;
+				++index;
+			}
 		}
 
 		if (depth_stencil)
 		{
-			self->attach_texture(callback(depth_stencil), get_attachment_type(callback(depth_stencil)->m_format.m_format));
+			attach_texture(depth_stencil, get_attachment_type(depth_stencil->m_format.m_format));
 		}
 
-		if (color_attachment_indices.size() > 0)
+		if (index > 0)
 		{
-			glDrawBuffers(color_attachment_indices.size(), color_attachment_indices.data());
+			glDrawBuffers(index, color_attachment_indices);
 		}
-		return m_framebuffer;
-	}
-
-	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
-	{
-		m_framebuffer = create_framebuffer<RenderSurface>(
-		        this, color_attachments, depth_stencil,
-		        [](RenderSurface* texture) -> OpenGL_RenderSurface* { return texture->rhi_object<OpenGL_RenderSurface>(); });
-		return *this;
-	}
-
-	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-	                                               struct OpenGL_RenderSurface* depth_stencil)
-	{
-		m_framebuffer = create_framebuffer<OpenGL_RenderSurface>(
-		        this, color_attachments, depth_stencil,
-		        [](OpenGL_RenderSurface* texture) -> OpenGL_RenderSurface* { return texture; });
 		return *this;
 	}
 
@@ -221,17 +180,21 @@ namespace Engine
 		OPENGL_API->viewport(m_viewport);
 	}
 
-	OpenGL& OpenGL::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+	OpenGL& OpenGL::bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+									   const RenderSurface* rt4, RenderSurface* depth_stencil)
 	{
-		auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
+		auto rt = OpenGL_RenderTarget::find_or_create(rt1, rt2, rt3, rt4, depth_stencil);
 		rt->bind();
 		return *this;
 	}
 
-	OpenGL_RenderTarget* OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-	                                                struct OpenGL_RenderSurface* depth_stencil)
+	OpenGL_RenderTarget* OpenGL::bind_render_target(const OpenGL_RenderSurface* rt1,//
+													const OpenGL_RenderSurface* rt2,//
+													const OpenGL_RenderSurface* rt3,//
+													const OpenGL_RenderSurface* rt4,//
+													struct OpenGL_RenderSurface* depth_stencil)
 	{
-		auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
+		auto rt = OpenGL_RenderTarget::find_or_create(rt1, rt2, rt3, rt4, depth_stencil);
 		rt->bind();
 		return rt;
 	}

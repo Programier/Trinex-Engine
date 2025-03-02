@@ -112,7 +112,8 @@ public:                                                                         
     virtual Engine::Refl::Struct* struct_instance() const override;                                                              \
                                                                                                                                  \
 private:                                                                                                                         \
-    void static_initialize_render_pass()
+	void static_initialize_render_pass()
+
 
 	class ENGINE_EXPORT ClearPass : public RenderPass
 	{
@@ -124,11 +125,6 @@ private:                                                                        
 	};
 
 	class ENGINE_EXPORT DepthPass : public RenderPass
-	{
-		trinex_render_pass(DepthPass, RenderPass);
-	};
-
-	class ENGINE_EXPORT ShadowPass : public RenderPass
 	{
 		trinex_render_pass(DepthPass, RenderPass);
 	};

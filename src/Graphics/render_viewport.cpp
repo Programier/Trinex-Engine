@@ -408,8 +408,7 @@ namespace Engine
 
 	SurfaceRenderViewport& SurfaceRenderViewport::rhi_bind()
 	{
-		RenderSurface* surfaces[] = {m_surface};
-		rhi->bind_render_target(surfaces, nullptr);
+		rhi->bind_render_target1(m_surface);
 		return *this;
 	}
 }// namespace Engine

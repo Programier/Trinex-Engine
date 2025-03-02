@@ -27,22 +27,21 @@ namespace Engine
 
 	struct VulkanRenderTarget : VulkanRenderTargetBase {
 		struct Key {
-			struct VulkanSurface* m_color_attachments[RHI_MAX_RT_BINDED] = {};
-			struct VulkanSurface* m_depth_stencil                        = nullptr;
+			struct VulkanSurface* m_surfaces[5] = {};
 
-			void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-			void init(const Span<VulkanSurface*>& attachments);
+			void init(const RenderSurface* targets[5]);
+			void init(VulkanSurface* targets[5]);
 			bool operator<(const Key& key) const;
 		};
 
 		static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
-		Vector<struct VulkanSurface*> m_surfaces;
+		Key m_key;
 		Vector<vk::ImageView> m_attachments;
 
-		static VulkanRenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+		static VulkanRenderTarget* find_or_create(const RenderSurface** targets);
 
 		VulkanRenderTarget();
-		VulkanRenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+		VulkanRenderTarget& init(const RenderSurface** targets);
 
 		VulkanRenderTargetBase& lock_surfaces() override;
 		VulkanRenderTargetBase& unlock_surfaces() override;

@@ -54,75 +54,55 @@ namespace Engine
 
 	TreeMap<VulkanRenderTarget::Key, VulkanRenderTarget*> VulkanRenderTarget::m_render_targets;
 
-	void VulkanRenderTarget::Key::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+	static FORCE_INLINE VulkanSurface* vulkan_surface_from(const RenderSurface* rt)
 	{
-		size_t index = 0;
-
-		for (size_t count = color_attachments.size(); index < count; ++index)
-		{
-			m_color_attachments[index] = color_attachments[index]->rhi_object<VulkanSurface>();
-		}
-
-		for (; index < RHI_MAX_RT_BINDED; ++index)
-		{
-			m_color_attachments[index] = nullptr;
-		}
-
-		m_depth_stencil = depth_stencil ? depth_stencil->rhi_object<VulkanSurface>() : nullptr;
+		return rt ? rt->rhi_object<VulkanSurface>() : nullptr;
 	}
 
-	void VulkanRenderTarget::Key::init(const Span<VulkanSurface*>& attachments)
+	void VulkanRenderTarget::Key::init(const RenderSurface* targets[5])
 	{
-		size_t index = 0;
+		m_surfaces[0] = vulkan_surface_from(targets[0]);
+		m_surfaces[1] = vulkan_surface_from(targets[1]);
+		m_surfaces[2] = vulkan_surface_from(targets[2]);
+		m_surfaces[3] = vulkan_surface_from(targets[3]);
+		m_surfaces[4] = vulkan_surface_from(targets[4]);
+	}
 
-		for (auto surface : attachments)
-		{
-			if (surface->is_render_target_color_image())
-			{
-				m_color_attachments[index++] = surface;
-			}
-			else if (surface->is_depth_stencil_image())
-			{
-				m_depth_stencil = surface;
-			}
-		}
-
-		for (; index < RHI_MAX_RT_BINDED; ++index)
-		{
-			m_color_attachments[index] = nullptr;
-		}
+	void VulkanRenderTarget::Key::init(VulkanSurface* targets[5])
+	{
+		m_surfaces[0] = targets[0];
+		m_surfaces[1] = targets[1];
+		m_surfaces[2] = targets[2];
+		m_surfaces[3] = targets[3];
+		m_surfaces[4] = targets[4];
 	}
 
 	bool VulkanRenderTarget::Key::operator<(const Key& key) const
 	{
-		return std::memcmp(this, &key, sizeof(*this)) < 0;
+		return std::memcmp(m_surfaces, key.m_surfaces, sizeof(m_surfaces)) < 0;
 	}
 
-	VulkanRenderTarget* VulkanRenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
-	                                                       RenderSurface* depth_stencil)
+	VulkanRenderTarget* VulkanRenderTarget::find_or_create(const RenderSurface* targets[5])
 	{
 		trinex_profile_cpu_n("VulkanRenderTarget::find_or_create");
 		Key key;
-		key.init(color_attachments, depth_stencil);
+		key.init(targets);
 		VulkanRenderTarget*& render_target = m_render_targets[key];
 
 		if (render_target != nullptr)
 			return render_target;
 
-		if (API->m_properties.limits.maxColorAttachments < static_cast<uint32_t>(color_attachments.size()))
-		{
-			throw EngineException(Strings::format("Max color attachments is {}", API->m_properties.limits.maxColorAttachments));
-		}
 		render_target = new VulkanRenderTarget();
-		render_target->init(color_attachments, depth_stencil);
+		render_target->init(targets);
 
 		return render_target;
 	}
 
-	VulkanRenderTarget& VulkanRenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+	VulkanRenderTarget& VulkanRenderTarget::init(const RenderSurface* targets[5])
 	{
-		m_render_pass               = VulkanRenderPass::find_or_create(color_attachments, depth_stencil);
-		RenderSurface* base_surface = color_attachments.empty() ? depth_stencil : color_attachments[0];
+		m_key.init(targets);
+		m_render_pass                     = VulkanRenderPass::find_or_create(targets);
+		const RenderSurface* base_surface = targets[0] ? targets[0] : targets[4];
 
 		if (base_surface == nullptr)
 		{
@@ -131,14 +111,13 @@ namespace Engine
 
 		m_size = base_surface->rhi_object<VulkanSurface>()->size();
 
-
-		m_attachments.resize(color_attachments.size() + (depth_stencil ? 1 : 0));
-		m_surfaces.resize(m_attachments.size());
+		m_attachments.resize(color_attachments_count() + depth_stencil_attachments_count());
 
 		Index index = 0;
-		for (auto& attachment : color_attachments)
+
+		for (int i = 0; i < 4 && targets[i]; ++i)
 		{
-			const Texture2D* color_binding = attachment;
+			const Texture2D* color_binding = targets[i];
 			VulkanSurface* texture         = color_binding->rhi_object<VulkanSurface>();
 
 			trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
@@ -147,14 +126,13 @@ namespace Engine
 
 			vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 			m_attachments[index] = texture->create_image_view(range);
-			m_surfaces[index]    = texture;
 			texture->m_render_targets.insert(this);
 			++index;
 		}
 
-		if (depth_stencil)
+		if (targets[4])
 		{
-			const Texture2D* binding = depth_stencil;
+			const Texture2D* binding = targets[4];
 			VulkanSurface* texture   = binding->rhi_object<VulkanSurface>();
 			trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
@@ -163,8 +141,6 @@ namespace Engine
 
 			vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
 			m_attachments[index] = texture->create_image_view(range);
-			m_surfaces[index]    = texture;
-
 			texture->m_render_targets.insert(this);
 		}
 
@@ -175,8 +151,11 @@ namespace Engine
 	VulkanRenderTargetBase& VulkanRenderTarget::lock_surfaces()
 	{
 		auto& cmd = API->current_command_buffer_handle();
-		for (auto& surface : m_surfaces)
+		for (auto& surface : m_key.m_surfaces)
 		{
+			if (surface == nullptr)
+				continue;
+
 			if (surface->is_depth_stencil_image())
 			{
 				if (is_in<ColorFormat::DepthStencil>(surface->engine_format()))
@@ -199,9 +178,10 @@ namespace Engine
 	VulkanRenderTargetBase& VulkanRenderTarget::unlock_surfaces()
 	{
 		auto& cmd = API->current_command_buffer_handle();
-		for (auto& surface : m_surfaces)
+		for (auto& surface : m_key.m_surfaces)
 		{
-			surface->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
+			if (surface)
+				surface->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
 		}
 
 		return *this;
@@ -209,31 +189,33 @@ namespace Engine
 
 	size_t VulkanRenderTarget::color_attachments_count() const
 	{
-		return m_surfaces.size() - depth_stencil_attachments_count();
+		size_t count = 0;
+		for (int i = 0; i < 4; ++i)
+		{
+			if (m_key.m_surfaces[i])
+				++count;
+		}
+		return count;
 	}
 
 	size_t VulkanRenderTarget::depth_stencil_attachments_count() const
 	{
-		if (m_surfaces.empty())
-			return 0;
-
-		return m_surfaces.back()->is_depth_stencil_image() ? 1 : 0;
+		return m_key.m_surfaces[4] ? 1 : 0;
 	}
 
 	VulkanRenderTarget::~VulkanRenderTarget()
 	{
-		Key key;
-		key.init(m_surfaces);
-		m_render_targets.erase(key);
+		m_render_targets.erase(m_key);
 
 		for (auto& image_view : m_attachments)
 		{
 			DESTROY_CALL(destroyImageView, image_view);
 		}
 
-		for (VulkanSurface* surface : m_surfaces)
+		for (VulkanSurface* surface : m_key.m_surfaces)
 		{
-			surface->m_render_targets.erase(this);
+			if (surface)
+				surface->m_render_targets.erase(this);
 		}
 	}
 
@@ -295,9 +277,11 @@ namespace Engine
 		DESTROY_CALL(destroyImageView, m_view);
 	}
 
-	VulkanAPI& VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+	VulkanAPI& VulkanAPI::bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+											 const RenderSurface* rt4, RenderSurface* depth_stencil)
 	{
-		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(color_attachments, depth_stencil);
+		const RenderSurface* surfaces[5] = {rt1, rt2, rt3, rt4, depth_stencil};
+		VulkanRenderTarget* rt           = VulkanRenderTarget::find_or_create(surfaces);
 		rt->bind();
 		return *this;
 	}

@@ -139,8 +139,6 @@ namespace Engine
 
 	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4f mask, float pow = 1.f)
 	{
-		RenderSurface* surfaces[] = {surface};
-
 		ViewPort vp;
 		vp.size = texture->size(0);
 		vp.pos  = {0, 0};
@@ -152,7 +150,7 @@ namespace Engine
 		rhi->scissor(scissor);
 
 		surface->rhi_clear_color(Color(0.f, 0.f, 0.f, 0.f));
-		rhi->bind_render_target(surfaces, nullptr);
+		rhi->bind_render_target1(surface);
 
 		static Name mip_level_name = "mip_level";
 		static Name power          = "power";

@@ -6,8 +6,8 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
-#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/shadow_pass.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -333,11 +333,6 @@ namespace Engine
 		return *this;
 	}
 
-	SceneRenderer& SceneRenderer::render_component(LightComponent* component)
-	{
-		return *this;
-	}
-
 	SceneRenderer::~SceneRenderer()
 	{
 		delete m_first_pass;
@@ -345,8 +340,15 @@ namespace Engine
 		delete m_global_shader_params;
 	}
 
+	DepthSceneRenderer& DepthSceneRenderer::initialize()
+	{
+		create_pass<DepthPass>();
+		return *this;
+	}
+
 	ColorSceneRenderer& ColorSceneRenderer::initialize()
 	{
+		m_shadow_pass            = create_pass<ShadowPass>();
 		m_clear_pass             = create_pass<ClearPass>();
 		m_geometry_pass          = create_pass<GeometryPass>();
 		m_deferred_lighting_pass = create_pass<DeferredLightingPass>();

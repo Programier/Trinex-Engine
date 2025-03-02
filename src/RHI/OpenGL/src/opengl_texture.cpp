@@ -131,8 +131,7 @@ namespace Engine
 	{
 		if (!is_in<GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL>(m_format.m_format))
 		{
-			OpenGL_RenderSurface* texture[] = {this};
-			OPENGL_API->bind_render_target(texture, nullptr);
+			OPENGL_API->bind_render_target(this, nullptr, nullptr, nullptr, nullptr);
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 			glClearColor(color.r, color.g, color.b, color.a);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -144,7 +143,7 @@ namespace Engine
 		if (is_in<GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL>(m_format.m_format))
 		{
 			glDepthMask(GL_TRUE);
-			OPENGL_API->bind_render_target({}, this);
+			OPENGL_API->bind_render_target(nullptr, nullptr, nullptr, nullptr, this);
 
 			glClearDepthf(depth);
 			GLbitfield field = GL_DEPTH_BUFFER_BIT;
@@ -175,11 +174,8 @@ namespace Engine
 
 	void OpenGL_RenderSurface::blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
 	{
-		RenderSurface* read_surfaces[]         = {surface};
-		OpenGL_RenderSurface* write_surfaces[] = {this};
-
-		auto read  = OpenGL_RenderTarget::find_or_create(read_surfaces, nullptr);
-		auto write = OpenGL_RenderTarget::find_or_create(write_surfaces, nullptr);
+		auto read  = OpenGL_RenderTarget::find_or_create(surface, nullptr, nullptr, nullptr, nullptr);
+		auto write = OpenGL_RenderTarget::find_or_create(this, nullptr, nullptr, nullptr, nullptr);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, write->m_framebuffer);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, read->m_framebuffer);

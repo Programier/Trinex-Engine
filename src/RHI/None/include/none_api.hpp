@@ -24,7 +24,8 @@ namespace Engine
 		                                size_t instances) override;
 		NoneApi& submit() override;
 
-		NoneApi& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+		NoneApi& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+								const RenderSurface* rt4, RenderSurface* depth_stencil) override;
 		NoneApi& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		NoneApi& scissor(const Scissor& scissor) override;

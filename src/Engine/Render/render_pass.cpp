@@ -175,9 +175,6 @@ namespace Engine
 		m_is_material_compatible = is_opaque_material;
 	}
 
-	trinex_impl_render_pass(Engine::ShadowPass)
-	{}
-
 	trinex_impl_render_pass(Engine::GeometryPass)
 	{
 		m_attachments_count = 4;

@@ -12,7 +12,7 @@ uniform float height;
 [shader("vertex")]
 float4 vs_main(in float3 base_position : POSITION0) : SV_Position
 {	
-	float3 position = float3(base_position.x * radius, base_position.y * height, base_position.z * radius);
+	float3 position = float3(base_position.x * radius, base_position.z * radius, base_position.y * height);
 	return mul(globals.projview, mul(model, float4(position, 1.0)));
 }
 

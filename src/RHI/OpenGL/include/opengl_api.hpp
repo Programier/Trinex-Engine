@@ -10,6 +10,8 @@
 
 namespace Engine
 {
+	struct OpenGL_RenderSurface;
+
 	struct OpenGL_State {
 		ViewPort viewport                         = {};
 		Scissor scissor                           = {};
@@ -46,9 +48,15 @@ namespace Engine
 		OpenGL& submit() override;
 		OpenGL& reset_state();
 
-		OpenGL& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-		OpenGL_RenderTarget* bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+		OpenGL& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+								   const RenderSurface* rt4, RenderSurface* depth_stencil) override;
+
+		OpenGL_RenderTarget* bind_render_target(const OpenGL_RenderSurface* rt1,//
+												const OpenGL_RenderSurface* rt2,//
+												const OpenGL_RenderSurface* rt3,//
+												const OpenGL_RenderSurface* rt4,//
 		                                        struct OpenGL_RenderSurface* depth_stencil);
+
 		OpenGL& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		OpenGL& scissor(const Scissor& scissor) override;

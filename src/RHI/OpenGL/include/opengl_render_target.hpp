@@ -1,11 +1,12 @@
 #pragma once
 #include <Core/etl/map.hpp>
+#include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_headers.hpp>
 
-
 namespace Engine
 {
+	struct OpenGL_RenderSurface;
 	struct OpenGL_RenderTarget {
 		static TreeMap<HashIndex, OpenGL_RenderTarget*> m_render_targets;
 
@@ -16,14 +17,17 @@ namespace Engine
 
 		static void release_all();
 		static OpenGL_RenderTarget* current();
-		static OpenGL_RenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-		static OpenGL_RenderTarget* find_or_create(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-		                                           struct OpenGL_RenderSurface* depth_stencil);
+		static OpenGL_RenderTarget* find_or_create(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
+												   const RenderSurface* rt4, RenderSurface* depth_stencil);
+
+		static OpenGL_RenderTarget* find_or_create(const OpenGL_RenderSurface* rt1,//
+												   const OpenGL_RenderSurface* rt2,//
+												   const OpenGL_RenderSurface* rt3,//
+												   const OpenGL_RenderSurface* rt4,//
+												   struct OpenGL_RenderSurface* depth_stencil);
 
 		void bind(bool override = true);
-		OpenGL_RenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
-		OpenGL_RenderTarget& init(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-		                          struct OpenGL_RenderSurface* depth_stencil);
+		OpenGL_RenderTarget& init(const OpenGL_RenderSurface** targets, struct OpenGL_RenderSurface* depth_stencil);
 		OpenGL_RenderTarget& attach_texture(const struct OpenGL_RenderSurface* texture_attachmend, GLuint attachment);
 
 		~OpenGL_RenderTarget();

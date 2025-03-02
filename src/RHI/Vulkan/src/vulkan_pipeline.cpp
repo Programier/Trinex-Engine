@@ -362,6 +362,9 @@ namespace Engine
 
 		State& out_state = create_pipeline_state(viewport_mode == VulkanViewportMode::Flipped);
 
+
+		auto pass = rt->m_render_pass;
+
 		auto pipeline_stage_create_infos                         = create_pipeline_stage_infos();
 		vk::PipelineVertexInputStateCreateInfo vertex_input_info = create_vertex_input_info();
 

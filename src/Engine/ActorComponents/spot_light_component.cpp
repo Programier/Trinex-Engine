@@ -6,6 +6,7 @@
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/shadow_pass.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -14,11 +15,6 @@
 
 namespace Engine
 {
-	static FORCE_INLINE Vector3f calc_spot_light_direction(const Transform& transform)
-	{
-		return transform.up_vector() * -1.f;
-	}
-
 	implement_engine_class(SpotLightComponent, 0)
 	{
 		auto* self = static_class_instance();
@@ -80,7 +76,7 @@ namespace Engine
 
 	Vector3f SpotLightComponentProxy::direction() const
 	{
-		return calc_spot_light_direction(world_transform());
+		return world_transform().forward_vector();
 	}
 
 	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f)
@@ -138,7 +134,7 @@ namespace Engine
 
 	Vector3f SpotLightComponent::direction() const
 	{
-		return calc_spot_light_direction(world_transform());
+		return world_transform().forward_vector();
 	}
 
 	SpotLightComponentProxy* SpotLightComponent::proxy() const
@@ -174,6 +170,11 @@ namespace Engine
 		if (!(scene_view().show_flags() & ShowFlags::SpotLights) || !proxy->is_enabled() ||
 			!component->leaf_class_is<SpotLightComponent>())
 			return *this;
+
+		if (component->is_shadows_enabled())
+		{
+			shadow_pass()->add_light(m_depth_renderer, component);
+		}
 
 		auto pass = deferred_lighting_pass();
 

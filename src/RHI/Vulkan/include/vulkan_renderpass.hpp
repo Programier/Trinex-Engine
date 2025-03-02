@@ -8,11 +8,10 @@ namespace Engine
 {
 	struct VulkanRenderPass {
 		struct Key {
-			vk::Format m_color_attachments[RHI_MAX_RT_BINDED + 1];
-			vk::Format m_depth_stencil;
+			vk::Format m_attachments[6];
 
 			void init(vk::Format format);
-			void init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+			void init(const RenderSurface** targets);
 			bool operator<(const Key& key) const;
 		};
 
@@ -20,7 +19,7 @@ namespace Engine
 
 		vk::RenderPass m_render_pass;
 
-		static VulkanRenderPass* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+		static VulkanRenderPass* find_or_create(const RenderSurface** targets);
 		static VulkanRenderPass* swapchain_render_pass(vk::Format format);
 		static void destroy_all();
 

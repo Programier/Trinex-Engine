@@ -79,8 +79,7 @@ namespace Engine
 	void OpenGL_Viewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 	                                  SamplerFilter filter)
 	{
-		RenderSurface* surface_array[] = {surface};
-		auto render_target             = OpenGL_RenderTarget::find_or_create(surface_array, nullptr);
+		auto render_target = OpenGL_RenderTarget::find_or_create(surface, nullptr, nullptr, nullptr, nullptr);
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id());
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);
