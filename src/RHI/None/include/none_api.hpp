@@ -25,7 +25,7 @@ namespace Engine
 		NoneApi& submit() override;
 
 		NoneApi& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-								const RenderSurface* rt4, RenderSurface* depth_stencil) override;
+									const RenderSurface* rt4, RenderSurface* depth_stencil) override;
 		NoneApi& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		NoneApi& scissor(const Scissor& scissor) override;
@@ -38,6 +38,7 @@ namespace Engine
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
 		RHI_Shader* create_geometry_shader(const GeometryShader* shader) override;
 		RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
+		RHI_Shader* create_compute_shader(const ComputeShader* shader) override;
 		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;

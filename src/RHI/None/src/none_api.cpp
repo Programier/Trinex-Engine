@@ -35,73 +35,57 @@ namespace Engine
 	implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
 
 	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
-		void bind(BindLocation location) override
-		{}
+		void bind(BindLocation location) override {}
 	};
 
 	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture2D> {
-		void bind(BindLocation location) override
-		{}
+		void bind(BindLocation location) override {}
 
-		void bind_combined(RHI_Sampler* sampler, BindLocation location) override
-		{}
+		void bind_combined(RHI_Sampler* sampler, BindLocation location) override {}
 	};
 
 	struct NoneShader : public RHI_DefaultDestroyable<RHI_Shader> {
 	};
 
 	struct NonePipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
-		void bind() override
-		{}
+		void bind() override {}
 	};
 
 	template<typename BufferType>
 	struct NoneBuffer : public RHI_DefaultDestroyable<BufferType> {
-		void update(size_t offset, size_t size, const byte* data) override
-		{}
+		void update(size_t offset, size_t size, const byte* data) override {}
 	};
 
 	struct NoneIndexBuffer : public NoneBuffer<RHI_IndexBuffer> {
-		void bind(size_t offset) override
-		{}
+		void bind(size_t offset) override {}
 	};
 
 	struct NoneVertexBuffer : public NoneBuffer<RHI_VertexBuffer> {
-		void bind(byte stream_index, size_t stride, size_t offset) override
-		{}
+		void bind(byte stream_index, size_t stride, size_t offset) override {}
 	};
 
 	struct NoneSSBOBuffer : public NoneBuffer<RHI_SSBO> {
-		void bind(BindLocation location) override
-		{}
+		void bind(BindLocation location) override {}
 	};
 
 	struct NoneUniformBuffer : public NoneBuffer<RHI_UniformBuffer> {
-		void bind(BindingIndex location) override
-		{}
+		void bind(BindingIndex location) override {}
 	};
 
 	struct NoneViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
-		void present() override
-		{}
+		void present() override {}
 
-		void vsync(bool flag) override
-		{}
+		void vsync(bool flag) override {}
 
-		void on_resize(const Size2D& new_size) override
-		{}
+		void on_resize(const Size2D& new_size) override {}
 
-		void on_orientation_changed(Orientation orientation) override
-		{}
+		void on_orientation_changed(Orientation orientation) override {}
 
-		void bind() override
-		{}
+		void bind() override {}
 
-		void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override
-		{}
+		void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
 
-		void clear_color(const Color& color) override
-		{}
+		void clear_color(const Color& color) override {}
 	};
 
 
@@ -203,6 +187,11 @@ namespace Engine
 	}
 
 	RHI_Shader* NoneApi::create_fragment_shader(const FragmentShader* shader)
+	{
+		return new NoneShader();
+	}
+
+	RHI_Shader* NoneApi::create_compute_shader(const ComputeShader* shader)
 	{
 		return new NoneShader();
 	}

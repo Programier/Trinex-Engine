@@ -302,4 +302,9 @@ namespace Engine
 	{
 		return create_shader<VulkanFragmentShader>(shader);
 	}
+
+	RHI_Shader* VulkanAPI::create_compute_shader(const ComputeShader* shader)
+	{
+		return create_shader<VulkanComputeShader>(shader);
+	}
 }// namespace Engine

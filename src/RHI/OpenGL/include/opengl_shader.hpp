@@ -34,18 +34,18 @@ namespace Engine
 		virtual GLuint type() override;
 	};
 
+	struct OpenGL_ComputeShader : public OpenGL_Shader {
+		virtual GLuint type() override;
+	};
+
 
 	template<typename Func>
 	struct OpenGL_StateCommand : public Task<OpenGL_StateCommand<Func>> {
 		Func m_func;
 
-		OpenGL_StateCommand(Func func) : m_func(func)
-		{}
+		OpenGL_StateCommand(Func func) : m_func(func) {}
 
-		void execute() override
-		{
-			m_func();
-		}
+		void execute() override { m_func(); }
 	};
 
 	struct OpenGL_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {

@@ -16,6 +16,7 @@ namespace Engine
 	class TessellationControlShader;
 	class TessellationShader;
 	class GeometryShader;
+	class ComputeShader;
 	class Shader;
 	class GraphicsPipeline;
 	class Sampler;
@@ -44,10 +45,7 @@ namespace Engine
 	template<typename Base>
 	struct RHI_DefaultDestroyable : public Base {
 	protected:
-		void destroy() const override
-		{
-			delete this;
-		}
+		void destroy() const override { delete this; }
 	};
 
 	struct ENGINE_EXPORT RHI_BindingObject : RHI_Object {
@@ -167,6 +165,7 @@ namespace Engine
 		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                      = 0;
 		virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                                             = 0;
 		virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                             = 0;
+		virtual RHI_Shader* create_compute_shader(const ComputeShader* shader)                                               = 0;
 		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                     = 0;
 		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
 		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;

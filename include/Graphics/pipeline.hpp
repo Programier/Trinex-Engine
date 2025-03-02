@@ -163,4 +163,11 @@ namespace Engine
 		Type type() const override;
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
+
+	class ENGINE_EXPORT ComputePipeline : public Pipeline
+	{
+		declare_class(ComputePipeline, Pipeline);
+
+	public:
+	};
 }// namespace Engine

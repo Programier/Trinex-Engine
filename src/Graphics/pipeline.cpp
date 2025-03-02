@@ -94,8 +94,7 @@ namespace Engine
 		return ar;
 	}
 
-	GraphicsPipeline::GraphicsPipeline()
-	{}
+	GraphicsPipeline::GraphicsPipeline() {}
 
 	GraphicsPipeline::~GraphicsPipeline()
 	{
@@ -513,34 +512,7 @@ namespace Engine
 	}
 
 	implement_engine_class_default_init(Pipeline, 0);
-
-	implement_engine_class(GraphicsPipeline, 0)
-	{
-		auto* self = static_class_instance();
-
-		auto a = trinex_refl_prop(self, This, depth_test);
-		auto b = trinex_refl_prop(self, This, stencil_test);
-		auto c = trinex_refl_prop(self, This, input_assembly);
-		auto d = trinex_refl_prop(self, This, rasterizer);
-		auto e = trinex_refl_prop(self, This, color_blending);
-
-		static Function<void(int)> func;
-
-		func = [a, b, c, d, e](int frame) {
-			if (frame > 0)
-			{
-				logic_thread()->call(func, frame - 1);
-				return;
-			}
-
-			Refl::Object::destroy_instance(a);
-			Refl::Object::destroy_instance(b);
-			Refl::Object::destroy_instance(c);
-			Refl::Object::destroy_instance(d);
-			Refl::Object::destroy_instance(e);
-		};
-
-		logic_thread()->call(func, 20);
-	}
+	implement_engine_class_default_init(GraphicsPipeline, 0);
+	implement_engine_class_default_init(ComputePipeline, 0);
 
 }// namespace Engine

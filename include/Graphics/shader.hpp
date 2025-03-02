@@ -87,4 +87,13 @@ namespace Engine
 		GeometryShader& rhi_init() override;
 		ShaderType type() const override;
 	};
+
+	class ENGINE_EXPORT ComputeShader : public Shader
+	{
+		declare_class(ComputeShader, Shader);
+
+	public:
+		ComputeShader& rhi_init() override;
+		ShaderType type() const override;
+	};
 }// namespace Engine

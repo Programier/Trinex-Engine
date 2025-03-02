@@ -37,4 +37,7 @@ namespace Engine
 
 	struct VulkanFragmentShader : public VulkanShaderBase {
 	};
+
+	struct VulkanComputeShader : public VulkanShaderBase {
+	};
 }// namespace Engine

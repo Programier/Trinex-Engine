@@ -128,6 +128,15 @@ namespace Engine
 		return ShaderType::Geometry;
 	}
 
+	ComputeShader& ComputeShader::rhi_init()
+	{
+		return *this;
+	}
+
+	ShaderType ComputeShader::type() const
+	{
+		return ShaderType::Compute;
+	}
 
 	bool VertexShader::Attribute::serialize(Archive& ar)
 	{

@@ -119,6 +119,10 @@ namespace Engine
 		return GL_FRAGMENT_SHADER;
 	}
 
+	GLuint OpenGL_ComputeShader::type()
+	{
+		return GL_COMPUTE_SHADER;
+	}
 
 	template<typename ShaderType, GLenum type>
 	static RHI_Shader* create_opengl_shader(const Shader* shader)
@@ -160,6 +164,10 @@ namespace Engine
 		return create_opengl_shader<OpenGL_GeometryShader, GL_GEOMETRY_SHADER>(shader);
 	}
 
+	RHI_Shader* OpenGL::create_compute_shader(const ComputeShader* shader)
+	{
+		return create_opengl_shader<OpenGL_ComputeShader, GL_COMPUTE_SHADER>(shader);
+	}
 
 	static TaskInterface* apply_stencil(const GraphicsPipelineDescription::StencilTestInfo& face_info)
 	{
