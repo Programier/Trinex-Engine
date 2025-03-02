@@ -7,8 +7,10 @@
 #include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 
@@ -22,12 +24,14 @@ namespace Engine
 		return false;
 	}
 
-	trinex_impl_render_pass(Engine::ShadowlessLightingPass)
+	trinex_impl_render_pass(Engine::ShadowPass) {}
+
+	trinex_impl_render_pass(Engine::ShadowedLightingPass)
 	{
 		m_attachments_count = 1;
 
 		m_shader_definitions = {
-				{"TRINEX_SHADOWLESS_LIGHTING_PASS", "1"},
+				{"TRINEX_SHADOWED_LIGHTING_PASS", "1"},
 		};
 
 		m_is_material_compatible = is_support_lighting_pass;
@@ -44,22 +48,74 @@ namespace Engine
 		m_is_material_compatible = is_support_lighting_pass;
 	}
 
-	trinex_impl_render_pass(Engine::DeferredLightingPass)
-	{}
+	trinex_impl_render_pass(Engine::DeferredLightingPass) {}
+
+	static CameraView camera_view(SpotLightComponentProxy* component)
+	{
+		CameraView view;
+		const Transform& transform = component->world_transform();
+
+		view.location        = transform.location();
+		view.rotation        = transform.rotation();
+		view.forward_vector  = transform.forward_vector();
+		view.up_vector       = transform.up_vector();
+		view.right_vector    = transform.right_vector();
+		view.projection_mode = CameraProjectionMode::Perspective;
+		view.fov             = glm::degrees(component->outer_cone_angle()) * 2.f;
+		view.near_clip_plane = 1.f;
+		view.far_clip_plane  = component->attenuation_radius();
+		view.aspect_ratio    = 1.0f;
+
+		return view;
+	}
+
+	bool ShadowPass::is_empty() const
+	{
+		return false;
+	}
+
+	ShadowPass& ShadowPass::render(RenderViewport* vp)
+	{
+		auto viewport = rhi->viewport();
+		auto scissors = rhi->scissor();
+
+		Super::render(vp);
+
+		rhi->viewport(viewport);
+		rhi->scissor(scissors);
+		return *this;
+	}
+
+	ShadowPass& ShadowPass::add_light(DepthSceneRenderer* renderer, SpotLightComponent* component)
+	{
+		add_callabble([=, scene = scene_renderer()->scene]() {
+			auto shadow_map = component->proxy()->shadow_map();
+
+			shadow_map->rhi_clear_depth_stencil(1.0, 255);
+			rhi->bind_depth_stencil_target(shadow_map);
+
+			Vector2f size = {Settings::Rendering::shadow_map_size, Settings::Rendering::shadow_map_size};
+			SceneView view(camera_view(component->proxy()), size);
+
+			renderer->scene = scene;
+			renderer->render(view, nullptr);
+		});
+		return *this;
+	}
 
 	DeferredLightingPass& DeferredLightingPass::initialize()
 	{
 		Super::initialize();
-		m_shadowless_lighting_pass = create_subpass<ShadowlessLightingPass>();
-		m_lighting_pass            = create_subpass<LightingPass>();
+		m_shadowed_lighting_pass = create_subpass<ShadowedLightingPass>();
+		m_lighting_pass          = create_subpass<LightingPass>();
 		return *this;
 	}
 
 	inline RenderPass* DeferredLightingPass::find_render_pass(LightComponentProxy* light)
 	{
 		if (light->is_shadows_enabled())
-			return m_lighting_pass;
-		return m_shadowless_lighting_pass;
+			return m_shadowed_lighting_pass;
+		return m_lighting_pass;
 	}
 
 	bool DeferredLightingPass::is_empty() const
@@ -100,7 +156,7 @@ namespace Engine
 		return *this;
 	}
 
-#define get_param(param_name, type)                                                                                              \
+#define lighting_param(param_name, type)                                                                                         \
 	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));
 
 	DeferredLightingPass& DeferredLightingPass::add_light(SpotLightComponent* spotlight)
@@ -112,47 +168,36 @@ namespace Engine
 			auto proxy         = spotlight->proxy();
 			Material* material = DefaultResources::Materials::spot_light;
 
-			auto* color_parameter       = get_param(color, Float3);
-			auto* intensivity_parameter = get_param(intensivity, Float);
-			auto* spot_angles_parameter = get_param(spot_angles, Float2);
-			auto* location_parameter    = get_param(location, Float3);
-			auto* direction_parameter   = get_param(direction, Float3);
-			auto* radius_parameter      = get_param(radius, Float);
-			auto* fall_off_parameter    = get_param(fall_off_exponent, Float);
+			auto* color_parameter           = lighting_param(color, Float3);
+			auto* intensivity_parameter     = lighting_param(intensivity, Float);
+			auto* spot_angles_parameter     = lighting_param(spot_angles, Float2);
+			auto* location_parameter        = lighting_param(location, Float3);
+			auto* direction_parameter       = lighting_param(direction, Float3);
+			auto* radius_parameter          = lighting_param(radius, Float);
+			auto* fall_off_parameter        = lighting_param(fall_off_exponent, Float);
+			auto* shadow_map_parameter      = lighting_param(shadow_map_texture, Sampler2D);
+			auto* shadow_projview_parameter = lighting_param(shadow_map_projview, Float4x4);
+			auto* depth_bias_parameter      = lighting_param(depth_bias, Float);
+			auto* slope_scale_parameter     = lighting_param(slope_scale, Float);
 
-			if (color_parameter)
-			{
-				color_parameter->value = proxy->light_color();
-			}
+			color_parameter->value        = proxy->light_color();
+			intensivity_parameter->value  = proxy->intensivity();
+			location_parameter->value     = proxy->world_transform().location();
+			direction_parameter->value    = proxy->direction();
+			spot_angles_parameter->value  = Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference());
+			radius_parameter->value       = proxy->attenuation_radius();
+			fall_off_parameter->value     = proxy->fall_off_exponent();
 
-			if (intensivity_parameter)
+			if (proxy->is_shadows_enabled())
 			{
-				intensivity_parameter->value = proxy->intensivity();
-			}
+				float shadow_map_size        = proxy->shadow_map()->width();
+				depth_bias_parameter->value  = proxy->depth_bias() / shadow_map_size;
+				slope_scale_parameter->value = proxy->slope_scale() / shadow_map_size;
+				shadow_map_parameter->sampler = DefaultResources::Samplers::default_sampler;
+				shadow_map_parameter->texture = proxy->shadow_map();
 
-			if (location_parameter)
-			{
-				location_parameter->value = proxy->world_transform().location();
-			}
-
-			if (direction_parameter)
-			{
-				direction_parameter->value = proxy->direction();
-			}
-
-			if (spot_angles_parameter)
-			{
-				spot_angles_parameter->value = Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference());
-			}
-
-			if (radius_parameter)
-			{
-				radius_parameter->value = proxy->attenuation_radius();
-			}
-
-			if (fall_off_parameter)
-			{
-				fall_off_parameter->value = proxy->fall_off_exponent();
+				auto view                        = camera_view(proxy);
+				shadow_projview_parameter->value = view.projection_matrix() * view.view_matrix();
 			}
 
 			if (material->apply(spotlight, pass))

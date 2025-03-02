@@ -28,6 +28,7 @@ namespace Engine
 				int32_t index = -1;
 			};
 
+			Slang::ComPtr<slang::ISession> session;
 			Slang::ComPtr<SlangCompileRequest> compile_request;
 			SLANG_MaterialCompiler* const compiler;
 			Context* const prev_ctx;
@@ -56,7 +57,7 @@ namespace Engine
 			~Context();
 		};
 
-		Slang::ComPtr<slang::ISession> session;
+		Vector<Path> m_include_directories;
 		Context* m_ctx = nullptr;
 
 	public:

@@ -35,12 +35,17 @@ struct VertexFactory
 	{
 		return rotate_vector(normal, local_to_world);
 	}
+
+	float2 get_uv()
+	{
+		return uv;
+	}
 };
 
 struct VertexOutput
 {
 	float4 position 		: SV_Position;
-#if !TRINEX_DEPTH_PASS
+#if TRINEX_GEOMETRY_PASS
 	float4 world_position 	: POSITION0;
 	float3 world_normal 	: NORMAL0;
 	float2 uv 				: TEXCOORD0;
@@ -51,10 +56,10 @@ struct DepthOutput
 {
 };
 
-#if TRINEX_DEPTH_PASS
-typedef DepthOutput FragmentOutput;
-#else
+#if TRINEX_GEOMETRY_PASS
 typedef GBufferFragmentOutput FragmentOutput;
+#else
+typedef DepthOutput FragmentOutput;
 #endif
 
 
@@ -66,10 +71,10 @@ VertexOutput vs_main(in VertexFactory input)
 	float4 world_position = float4(input.get_world_position(), 1.0);
 	output.position = mul(globals.projview, world_position);
 
-#if !TRINEX_DEPTH_PASS
+#if TRINEX_GEOMETRY_PASS
 	output.world_position = world_position;
 	output.world_normal = input.get_world_normal();
-	output.uv =	Platform::validate_uv(input.get_uv(0));
+	output.uv =	Platform::validate_uv(input.get_uv());
 #endif
 
 	return output;

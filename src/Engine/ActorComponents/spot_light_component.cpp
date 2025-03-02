@@ -4,7 +4,6 @@
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
-#include <Engine/Render/shadow_pass.hpp>
 
 namespace Engine
 {

@@ -8,22 +8,35 @@ namespace Engine
 	class PointLightComponent;
 	class DirectionalLightComponent;
 
-	class ENGINE_EXPORT ShadowlessLightingPass : public RenderPass
+	class SpotLightComponent;
+	class DepthSceneRenderer;
+
+	class ENGINE_EXPORT ShadowPass : public RenderPass
 	{
-		trinex_render_pass(ShadowlessLightingPass, RenderPass);
+		trinex_render_pass(ShadowPass, RenderPass);
+
+	public:
+		bool is_empty() const override;
+		ShadowPass& render(RenderViewport* vp) override;
+		ShadowPass& add_light(DepthSceneRenderer* renderer, SpotLightComponent* component);
+	};
+
+	class ENGINE_EXPORT ShadowedLightingPass : public RenderPass
+	{
+		trinex_render_pass(ShadowedLightingPass, RenderPass);
 	};
 
 	class LightingPass : public RenderPass
 	{
-		trinex_render_pass(ShadowlessLightingPass, RenderPass);
+		trinex_render_pass(LightingPass, RenderPass);
 	};
 
 	class ENGINE_EXPORT DeferredLightingPass : public RenderPass
 	{
 		trinex_render_pass(DeferredLightingPass, RenderPass);
 
-		ShadowlessLightingPass* m_shadowless_lighting_pass = nullptr;
-		LightingPass* m_lighting_pass                      = nullptr;
+		ShadowedLightingPass* m_shadowed_lighting_pass = nullptr;
+		LightingPass* m_lighting_pass                  = nullptr;
 
 		RenderPass* find_render_pass(LightComponentProxy* light);
 

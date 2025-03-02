@@ -8,7 +8,6 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
-#include <Engine/Render/shadow_pass.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>

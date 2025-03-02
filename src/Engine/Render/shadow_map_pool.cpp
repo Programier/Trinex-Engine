@@ -1,5 +1,7 @@
 #include <Core/base_engine.hpp>
+#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Engine/Render/shadow_map_pool.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
@@ -9,12 +11,20 @@ namespace Engine
 {
 	static constexpr uint64_t s_shadow_map_live_threshold = 60 * 3;
 
+#if TRINEX_DEBUG_BUILD
+	static Package* s_pool_package = nullptr;
+#endif
+
 	implement_engine_class_default_init(ShadowMapPool, 0);
 
 	ShadowMapPool& ShadowMapPool::create()
 	{
 		Super::create();
 		system_of<EngineSystem>()->register_subsystem(this);
+
+#if TRINEX_DEBUG_BUILD
+		s_pool_package = Package::static_find_package("TrinexEngine::ShadowMapPool", true);
+#endif
 		return *this;
 	}
 
@@ -54,6 +64,11 @@ namespace Engine
 
 		RenderSurface* surface = Object::new_instance<RenderSurface>();
 		surface->init(ColorFormat::ShadowDepth, {Settings::Rendering::shadow_map_size, Settings::Rendering::shadow_map_size});
+
+#if TRINEX_DEBUG_BUILD
+		surface->rename(Strings::format("ShadowSurface.{}", static_cast<void*>(surface)));
+		s_pool_package->add_object(surface);
+#endif
 		return surface;
 	}
 

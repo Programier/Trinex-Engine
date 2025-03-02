@@ -13,7 +13,7 @@ namespace Engine
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			return glm::perspective(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
+			return glm::perspectiveZO(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
 		}
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{

@@ -636,10 +636,25 @@ namespace Engine
 
 	bool SLANG_MaterialCompiler::Context::initialize(const String& source)
 	{
-		if (SLANG_FAILED(compiler->session->createCompileRequest(compile_request.writeRef())))
+		slang::SessionDesc session_desc      = {};
+		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+		session_desc.allowGLSLSyntax         = false;
+		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+
+		if (SLANG_FAILED(global_session()->createSession(session_desc, session.writeRef())))
+		{
+			throw EngineException("Failed to create slang session");
+		}
+
+		if (SLANG_FAILED(session->createCompileRequest(compile_request.writeRef())))
 		{
 			error_log("MaterialCompiler", "Failed to create slang compile request");
 			return false;
+		}
+
+		for (auto& include_dir : compiler->m_include_directories)
+		{
+			compile_request->addSearchPath(include_dir.c_str());
 		}
 
 		for (auto& definition : material->compile_definitions)
@@ -727,8 +742,8 @@ namespace Engine
 		Slang::ComPtr<slang::IComponentType> composite;
 		{
 			Slang::ComPtr<slang::IBlob> diagnostics_blob;
-			SlangResult result = compiler->session->createCompositeComponentType(
-					component_types.data(), component_types.size(), composite.writeRef(), diagnostics_blob.writeRef());
+			SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
+																	   composite.writeRef(), diagnostics_blob.writeRef());
 
 			if (diagnostics_blob != nullptr)
 			{
@@ -836,23 +851,11 @@ namespace Engine
 		flags(StandAlone, true);
 		flags(IsAvailableForGC, false);
 
-		Path shaders_dir = rootfs()->native_path(Project::shaders_dir);
-		Path engine_path = rootfs()->native_path("[shaders_dir]:/TrinexEditor");
-		Path editor_path = rootfs()->native_path("[shaders_dir]:/TrinexEngine");
-
-		const char* search_paths[] = {shaders_dir.c_str(), engine_path.c_str(), editor_path.c_str()};
-
-		slang::SessionDesc session_desc      = {};
-		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-		session_desc.allowGLSLSyntax         = false;
-		session_desc.searchPaths             = search_paths;
-		session_desc.searchPathCount         = sizeof(search_paths) / sizeof(search_paths[0]);
-		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-
-		if (SLANG_FAILED(global_session()->createSession(session_desc, session.writeRef())))
-		{
-			throw EngineException("Failed to create slang session");
-		}
+		m_include_directories = {
+				rootfs()->native_path(Project::shaders_dir),
+				rootfs()->native_path("[shaders_dir]:/TrinexEditor"),
+				rootfs()->native_path("[shaders_dir]:/TrinexEngine"),
+		};
 	}
 
 	void SLANG_MaterialCompiler::initialize_context()

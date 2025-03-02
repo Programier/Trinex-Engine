@@ -13,29 +13,23 @@ namespace Engine
 		AABB_3Df m_bounds;
 		Color3 m_light_color;
 		float m_intensivity;
+		float m_depth_bias;
+		float m_slope_scale;
 		bool m_is_enabled;
 		bool m_is_shadows_enabled;
 
 		Pointer<RenderSurface> m_shadow_map;
 
 	public:
-		const AABB_3Df& bounding_box() const;
-		const Color3& light_color() const;
-		float intensivity() const;
-		bool is_enabled() const;
-		bool is_shadows_enabled() const;
+		inline const AABB_3Df& bounding_box() const { return m_bounds; };
+		inline const Color3& light_color() const { return m_light_color; }
+		inline float intensivity() const { return m_intensivity; }
+		inline float depth_bias() const { return m_depth_bias; }
+		inline float slope_scale() const { return m_slope_scale; }
+		inline bool is_enabled() const { return m_is_enabled; }
+		inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
+		inline RenderSurface* shadow_map() const { return m_shadow_map; }
 
-		inline RenderSurface* shadow_map() const
-		{
-			return m_shadow_map;
-		}
-
-		LightComponentProxy& bounding_box(const AABB_3Df& bounds);
-		LightComponentProxy& light_color(const Color3& color);
-		LightComponentProxy& intensivity(float value);
-		LightComponentProxy& is_enabled(bool enabled);
-		LightComponentProxy& is_shadows_enabled(bool enabled);
-		LightComponentProxy& shadow_map(RenderSurface* map);
 		friend class LightComponent;
 	};
 
@@ -60,6 +54,10 @@ namespace Engine
 		static Name name_fall_off_exponent;
 		static Name name_direction;
 		static Name name_spot_angles;
+		static Name name_depth_bias;
+		static Name name_slope_scale;
+		static Name name_shadow_map_texture;
+		static Name name_shadow_map_projview;
 
 	private:
 		Pointer<RenderSurface> m_shadow_map;
@@ -67,6 +65,8 @@ namespace Engine
 		AABB_3Df m_bounds;
 		Color3 m_light_color;
 		float m_intensivity;
+		float m_depth_bias;
+		float m_slope_scale;
 		bool m_is_enabled;
 		bool m_is_shadows_enabled;
 
@@ -74,11 +74,13 @@ namespace Engine
 
 	public:
 		LightComponent();
-		const AABB_3Df& bounding_box() const;
-		const Color3& light_color() const;
-		float intensivity() const;
-		bool is_enabled() const;
-		bool is_shadows_enabled() const;
+		inline const AABB_3Df& bounding_box() const { return m_bounds; };
+		inline const Color3& light_color() const { return m_light_color; }
+		inline float intensivity() const { return m_intensivity; }
+		inline float depth_bias() const { return m_depth_bias; }
+		inline float slope_scale() const { return m_slope_scale; }
+		inline bool is_enabled() const { return m_is_enabled; }
+		inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
 
 		LightComponent& light_color(const Color3& color);
 		LightComponent& intensivity(float value);

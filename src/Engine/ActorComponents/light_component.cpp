@@ -15,74 +15,17 @@ namespace Engine
 {
 	static const AABB_3Df light_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
-	Name LightComponent::name_color             = "light_data.color";
-	Name LightComponent::name_intensivity       = "light_data.intensivity";
-	Name LightComponent::name_location          = "light_data.location";
-	Name LightComponent::name_radius            = "light_data.radius";
-	Name LightComponent::name_fall_off_exponent = "light_data.fall_off_exponent";
-	Name LightComponent::name_direction         = "light_data.direction";
-	Name LightComponent::name_spot_angles       = "light_data.spot_angles";
-
-	const AABB_3Df& LightComponentProxy::bounding_box() const
-	{
-		return m_bounds;
-	}
-
-	const Color3& LightComponentProxy::light_color() const
-	{
-		return m_light_color;
-	}
-
-	float LightComponentProxy::intensivity() const
-	{
-		return m_intensivity;
-	}
-
-	bool LightComponentProxy::is_enabled() const
-	{
-		return m_is_enabled;
-	}
-
-	bool LightComponentProxy::is_shadows_enabled() const
-	{
-		return m_is_shadows_enabled;
-	}
-
-	LightComponentProxy& LightComponentProxy::bounding_box(const AABB_3Df& bounds)
-	{
-		m_bounds = bounds;
-		return *this;
-	}
-
-	LightComponentProxy& LightComponentProxy::light_color(const Color3& color)
-	{
-		m_light_color = color;
-		return *this;
-	}
-
-	LightComponentProxy& LightComponentProxy::intensivity(float value)
-	{
-		m_intensivity = value;
-		return *this;
-	}
-
-	LightComponentProxy& LightComponentProxy::is_enabled(bool enabled)
-	{
-		m_is_enabled = enabled;
-		return *this;
-	}
-
-	LightComponentProxy& LightComponentProxy::is_shadows_enabled(bool enabled)
-	{
-		m_is_shadows_enabled = enabled;
-		return *this;
-	}
-
-	LightComponentProxy& LightComponentProxy::shadow_map(RenderSurface* map)
-	{
-		m_shadow_map = map;
-		return *this;
-	}
+	Name LightComponent::name_color               = "light_data.color";
+	Name LightComponent::name_intensivity         = "light_data.intensivity";
+	Name LightComponent::name_location            = "light_data.location";
+	Name LightComponent::name_radius              = "light_data.radius";
+	Name LightComponent::name_fall_off_exponent   = "light_data.fall_off_exponent";
+	Name LightComponent::name_direction           = "light_data.direction";
+	Name LightComponent::name_spot_angles         = "light_data.spot_angles";
+	Name LightComponent::name_depth_bias          = "light_data.depth_bias";
+	Name LightComponent::name_slope_scale         = "light_data.slope_scale";
+	Name LightComponent::name_shadow_map_texture  = "shadow_map_texture";
+	Name LightComponent::name_shadow_map_projview = "shadow_map_projview";
 
 	implement_engine_class(LightComponent, 0)
 	{
@@ -100,10 +43,14 @@ namespace Engine
 		trinex_refl_prop(self, This, m_intensivity)//
 				->display_name("Intensivity")
 				.tooltip("Intensivity of this light");
+
+		trinex_refl_prop(self, This, m_depth_bias);
+		trinex_refl_prop(self, This, m_slope_scale);
 	}
 
 	LightComponent::LightComponent()
-	    : m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_is_enabled(true), m_is_shadows_enabled(false)
+		: m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
+		  m_is_shadows_enabled(false)
 	{}
 
 	LightComponent& LightComponent::on_transform_changed()
@@ -158,31 +105,6 @@ namespace Engine
 		return *this;
 	}
 
-	const AABB_3Df& LightComponent::bounding_box() const
-	{
-		return m_bounds;
-	}
-
-	const Color3& LightComponent::light_color() const
-	{
-		return m_light_color;
-	}
-
-	float LightComponent::intensivity() const
-	{
-		return m_intensivity;
-	}
-
-	bool LightComponent::is_enabled() const
-	{
-		return m_is_enabled;
-	}
-
-	bool LightComponent::is_shadows_enabled() const
-	{
-		return m_is_shadows_enabled;
-	}
-
 	LightComponent& LightComponent::light_color(const Color3& color)
 	{
 		m_light_color = color;
@@ -223,15 +145,19 @@ namespace Engine
 							   bounds          = m_bounds,            //
 							   color           = m_light_color,       //
 							   intensivity     = m_intensivity,       //
+							   depth_bias      = m_depth_bias,        //
+							   slope_scale     = m_slope_scale,       //
 							   enabled         = m_is_enabled,        //
 							   shadows_enabled = m_is_shadows_enabled,//
 							   map             = m_shadow_map]() {
-			proxy->bounding_box(bounds)
-					.light_color(color)
-					.intensivity(intensivity)
-					.is_enabled(enabled)
-					.is_shadows_enabled(shadows_enabled)
-					.shadow_map(map);
+			proxy->m_bounds             = bounds;
+			proxy->m_light_color        = color;
+			proxy->m_intensivity        = intensivity;
+			proxy->m_depth_bias         = depth_bias;
+			proxy->m_slope_scale        = slope_scale;
+			proxy->m_is_enabled         = enabled;
+			proxy->m_is_shadows_enabled = shadows_enabled;
+			proxy->m_shadow_map         = map;
 		});
 		return *this;
 	}
@@ -261,8 +187,7 @@ namespace Engine
 		return *this;
 	}
 
-	LightComponent::~LightComponent()
-	{}
+	LightComponent::~LightComponent() {}
 
 	SceneRenderer& SceneRenderer::render_component(LightComponent* component)
 	{
