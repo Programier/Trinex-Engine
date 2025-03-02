@@ -102,9 +102,15 @@ namespace Engine
 					   ShaderType::Fragment);
 	}
 
-#define init_shader(sdr)                                                                                                         \
-	if (sdr)                                                                                                                     \
-	sdr->rhi_init()
+	static FORCE_INLINE bool init_shader(Shader* shader)
+	{
+		if (shader)
+		{
+			shader->rhi_init();
+			return true;
+		}
+		return false;
+	}
 
 	const Pipeline& Pipeline::rhi_bind() const
 	{
@@ -498,6 +504,68 @@ namespace Engine
 		}
 
 		return archive && cache_serialize_result;
+	}
+
+	ComputePipeline& ComputePipeline::rhi_init()
+	{
+		if (init_shader(m_shader))
+			m_rhi_object.reset(rhi->create_compute_pipeline(this));
+		return *this;
+	}
+
+	Shader* ComputePipeline::shader(ShaderType type) const
+	{
+		if ((type & ShaderType::Compute) == ShaderType::Compute)
+			return m_shader;
+		return nullptr;
+	}
+
+	Shader* ComputePipeline::shader(ShaderType type, bool create)
+	{
+		if ((type & ShaderType::Compute) == ShaderType::Compute)
+		{
+			if (m_shader == nullptr)
+			{
+				m_shader = create_new_shader<ComputeShader>("Compute", m_shader);
+			}
+			return m_shader;
+		}
+		return nullptr;
+	}
+
+	ShaderType ComputePipeline::shader_types() const
+	{
+		return m_shader ? ShaderType::Compute : ShaderType::Undefined;
+	}
+
+	ComputePipeline& ComputePipeline::allocate_shaders(ShaderType type)
+	{
+		if ((type & ShaderType::Compute) == ShaderType::Compute)
+		{
+			if (m_shader == nullptr)
+			{
+				m_shader = create_new_shader<ComputeShader>("Compute", m_shader);
+			}
+		}
+		return *this;
+	}
+
+	ComputePipeline& ComputePipeline::remove_shaders(ShaderType type)
+	{
+		if ((type & ShaderType::Compute) == ShaderType::Compute)
+		{
+			if (m_shader)
+			{
+				GarbageCollector::destroy(m_shader);
+				m_shader = nullptr;
+			}
+		}
+		return *this;
+	}
+
+	Pipeline::Type ComputePipeline::type() const
+	{
+		return Pipeline::Type::Compute;
 	}
 
 	implement_engine_class(GraphicsPipelineDescription, 0)

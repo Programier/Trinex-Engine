@@ -48,25 +48,13 @@ namespace Engine
 			Logger::logger = this;
 		}
 
-		~CompileLogHandler()
-		{
-			Logger::logger = base;
-		}
+		~CompileLogHandler() { Logger::logger = base; }
 
-		Logger& log_msg(const char* tag, const char* msg) override
-		{
-			return base->log_msg(tag, msg);
-		}
+		Logger& log_msg(const char* tag, const char* msg) override { return base->log_msg(tag, msg); }
 
-		Logger& debug_msg(const char* tag, const char* msg) override
-		{
-			return base->debug_msg(tag, msg);
-		}
+		Logger& debug_msg(const char* tag, const char* msg) override { return base->debug_msg(tag, msg); }
 
-		Logger& warning_msg(const char* tag, const char* msg) override
-		{
-			return base->warning_msg(tag, msg);
-		}
+		Logger& warning_msg(const char* tag, const char* msg) override { return base->warning_msg(tag, msg); }
 
 		Logger& error_msg(const char* tag, const char* msg) override
 		{
@@ -147,10 +135,7 @@ namespace Engine
 				return trace_offset(static_cast<SlangParameterCategory>(category));
 			}
 
-			slang::ParameterCategory category() const
-			{
-				return var->getCategory();
-			}
+			slang::ParameterCategory category() const { return var->getCategory(); }
 		};
 
 
@@ -407,11 +392,23 @@ namespace Engine
 						auto binding_type = type_layout->getBindingRangeType(0);
 
 						MaterialParameterInfo object;
-						object.name                  = param.name;
-						object.location              = param.trace_offset(param.category());
-						object.type                  = binding_type == slang::BindingType::CombinedTextureSampler
-															   ? MaterialParameters::Sampler2D::static_class_instance()
-															   : MaterialParameters::Texture2D::static_class_instance();
+						object.name     = param.name;
+						object.location = param.trace_offset(param.category());
+
+						switch (binding_type)
+						{
+							case slang::BindingType::CombinedTextureSampler:
+								object.type = MaterialParameters::Sampler2D::static_class_instance();
+								break;
+
+							case slang::BindingType::Texture:
+								object.type = MaterialParameters::Texture2D::static_class_instance();
+								break;
+
+							default:
+								return false;
+						}
+
 						out->parameters[object.name] = object;
 					}
 				}
@@ -491,10 +488,7 @@ namespace Engine
 		using SVR    = slang::VariableReflection;
 		using SVLR   = slang ::VariableLayoutReflection;
 
-		static bool has_model_attribute(SVR* var)
-		{
-			return ReflectionParser::has_attribute(var, "is_model");
-		}
+		static bool has_model_attribute(SVR* var) { return ReflectionParser::has_attribute(var, "is_model"); }
 
 		template<typename Type, Scalar required_scalar>
 		static Refl::Class* primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
@@ -600,7 +594,7 @@ namespace Engine
 				infos[i].index = -1;
 				infos[i].entry.setNull();
 			}
-			return nullptr;
+			return ComputePipeline::static_class_instance();
 		}
 
 		return nullptr;

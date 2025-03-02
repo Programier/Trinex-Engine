@@ -40,6 +40,7 @@ namespace Engine
 		RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
 		RHI_Shader* create_compute_shader(const ComputeShader* shader) override;
 		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
+		RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline) override;
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;

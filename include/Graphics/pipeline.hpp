@@ -12,6 +12,7 @@ namespace Engine
 	class TessellationShader;
 	class GeometryShader;
 	class FragmentShader;
+	class ComputeShader;
 	class RenderPass;
 	class Logger;
 	class Shader;
@@ -76,6 +77,19 @@ namespace Engine
 	{
 		declare_class(Pipeline, RenderResource);
 
+	protected:
+		template<typename Type>
+		Type* create_new_shader(const char* name, Type*& out)
+		{
+			if (out)
+				return out;
+
+			out = Object::new_instance<Type>(name);
+			out->flags(Object::IsAvailableForGC, false);
+			out->owner(this);
+			return out;
+		}
+
 	public:
 		enum Type
 		{
@@ -119,18 +133,6 @@ namespace Engine
 		GeometryShader* m_geometry_shader                        = nullptr;
 		FragmentShader* m_fragment_shader                        = nullptr;
 
-		template<typename Type>
-		Type* create_new_shader(const char* name, Type*& out)
-		{
-			if (out)
-				return out;
-
-			out = Object::new_instance<Type>(name);
-			out->flags(Object::IsAvailableForGC, false);
-			out->owner(this);
-			return out;
-		}
-
 	public:
 		GraphicsPipeline();
 		~GraphicsPipeline();
@@ -168,6 +170,15 @@ namespace Engine
 	{
 		declare_class(ComputePipeline, Pipeline);
 
+		ComputeShader* m_shader = nullptr;
+
 	public:
+		ComputePipeline& rhi_init() override;
+		Shader* shader(ShaderType type) const override;
+		Shader* shader(ShaderType type, bool create = false) override;
+		ShaderType shader_types() const override;
+		ComputePipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
+		ComputePipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
+		Type type() const override;
 	};
 }// namespace Engine

@@ -1,4 +1,5 @@
 #include <Core/etl/templates.hpp>
+#include <Core/exception.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>
@@ -572,5 +573,10 @@ namespace Engine
 		OpenGL_Pipeline* opengl_pipeline = new OpenGL_Pipeline();
 		opengl_pipeline->init(pipeline);
 		return opengl_pipeline;
+	}
+
+	RHI_Pipeline* OpenGL::create_compute_pipeline(const ComputePipeline* pipeline)
+	{
+		throw EngineException("NOT IMPLEMENTED");
 	}
 }// namespace Engine

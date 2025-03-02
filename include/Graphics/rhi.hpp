@@ -19,6 +19,7 @@ namespace Engine
 	class ComputeShader;
 	class Shader;
 	class GraphicsPipeline;
+	class ComputePipeline;
 	class Sampler;
 	class RenderSurface;
 	class Texture2D;
@@ -167,6 +168,7 @@ namespace Engine
 		virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                             = 0;
 		virtual RHI_Shader* create_compute_shader(const ComputeShader* shader)                                               = 0;
 		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                     = 0;
+		virtual RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline)                                       = 0;
 		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
 		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;
 		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;

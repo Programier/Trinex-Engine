@@ -51,6 +51,7 @@ namespace Engine
 	implement_engine_class_default_init(TessellationShader, 0);
 	implement_engine_class_default_init(GeometryShader, 0);
 	implement_engine_class_default_init(FragmentShader, 0);
+	implement_engine_class_default_init(ComputeShader, 0);
 
 	bool Shader::serialize(Archive& ar)
 	{

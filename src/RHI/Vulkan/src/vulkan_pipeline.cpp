@@ -502,4 +502,9 @@ namespace Engine
 		delete vulkan_pipeline;
 		return nullptr;
 	}
+
+	RHI_Pipeline* VulkanAPI::create_compute_pipeline(const ComputePipeline* pipeline)
+	{
+		throw EngineException("NOT IMPLEMENTED");
+	}
 }// namespace Engine

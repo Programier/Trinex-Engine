@@ -201,6 +201,11 @@ namespace Engine
 		return new NonePipeline();
 	}
 
+	RHI_Pipeline* NoneApi::create_compute_pipeline(const ComputePipeline* pipeline)
+	{
+		return new NonePipeline();
+	}
+
 	RHI_VertexBuffer* NoneApi::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
 	{
 		return new NoneVertexBuffer();
