@@ -323,6 +323,10 @@ namespace Engine
 		{
 			auto current_layout = layout();
 			auto cmd            = API->current_command_buffer();
+
+			if (cmd->is_inside_render_pass())
+				API->end_render_pass();
+
 			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
 			vk::ClearColorValue value;
@@ -349,6 +353,10 @@ namespace Engine
 		{
 			auto current_layout = layout();
 			auto cmd            = API->current_command_buffer();
+
+			if (cmd->is_inside_render_pass())
+				API->end_render_pass();
+
 			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
 			vk::ClearDepthStencilValue value;

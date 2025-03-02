@@ -23,7 +23,7 @@ namespace Engine
 		view.up_vector       = transform.up_vector();
 		view.right_vector    = transform.right_vector();
 		view.projection_mode = CameraProjectionMode::Perspective;
-		view.fov             = component->outer_cone_angle();
+		view.fov             = glm::degrees(component->outer_cone_angle());
 		view.near_clip_plane = 0.05f;
 		view.far_clip_plane  = component->attenuation_radius();
 		view.aspect_ratio    = 1.0f;

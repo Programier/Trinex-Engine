@@ -19,12 +19,13 @@ namespace Engine
 			vk::SubpassDescription m_subpass;
 			vk::SubpassDependency m_dependency;
 
-			Vector<vk::AttachmentDescription> m_attachment_descriptions;
-			Vector<vk::AttachmentReference> m_color_attachment_references;
-			vk::AttachmentReference m_depth_attachment_renference;
+			vk::AttachmentDescription m_descriptions[5];
+			vk::AttachmentReference m_references[5];
 
-			static inline vk::AttachmentDescription create_attachment_desctiption(vk::Format format, vk::ImageLayout layout,
-																				  bool has_stencil)
+			uint_t m_attachments_count = 0;
+
+			static inline vk::AttachmentDescription create_desctiption(vk::Format format, vk::ImageLayout layout,
+																	   bool has_stencil)
 			{
 				return vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1,
 												 vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
@@ -35,21 +36,25 @@ namespace Engine
 
 			VulkanRenderPassBuilder& create_attachment_descriptions(const RenderSurface** targets)
 			{
-				for (int i = 0; i < 4 && targets[i]; ++i)
+				for (int i = 0; i < 4; ++i)
 				{
-					vk::Format format = surface_format_of(targets[i]);
-					m_attachment_descriptions.push_back(
-							create_attachment_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false));
+					if (targets[i])
+					{
+						vk::Format format = surface_format_of(targets[i]);
+						m_descriptions[m_attachments_count] =
+								create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
+						++m_attachments_count;
+					}
 				}
 
 				if (targets[4])
 				{
 					const bool has_stencil = is_in<ColorFormat::DepthStencil>(targets[4]->format());
-					vk::ImageLayout layout = has_stencil ? vk::ImageLayout::eDepthStencilAttachmentOptimal
-														 : vk::ImageLayout::eDepthAttachmentOptimal;
+					vk::ImageLayout layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
-					vk::Format format = surface_format_of(targets[4]);
-					m_attachment_descriptions.push_back(create_attachment_desctiption(format, layout, has_stencil));
+					vk::Format format                   = surface_format_of(targets[4]);
+					m_descriptions[m_attachments_count] = create_desctiption(format, layout, has_stencil);
+					++m_attachments_count;
 				}
 
 				return *this;
@@ -57,33 +62,24 @@ namespace Engine
 
 			VulkanRenderPassBuilder& create_attachment_references(const RenderSurface** targets)
 			{
-				for (int_t index = 0; index < 4 && targets[index]; ++index)
+				for (int_t index = 0, attachment = 0; index < 4; ++index)
 				{
-					m_color_attachment_references.push_back(
-							vk::AttachmentReference(index, vk::ImageLayout::eColorAttachmentOptimal));
+					if (targets[index])
+					{
+						m_references[index] = vk::AttachmentReference(attachment++, vk::ImageLayout::eColorAttachmentOptimal);
+					}
+					else
+					{
+						// clang-format off
+						m_references[index] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
+						// clang-format on
+					}
 				}
 
 				if (targets[4])
 				{
-					vk::ImageLayout layout;
-
-					switch (targets[4]->format())
-					{
-						case ColorFormat::ShadowDepth:
-						case ColorFormat::Depth:
-							layout = vk::ImageLayout::eDepthAttachmentOptimal;
-							break;
-
-						case ColorFormat::DepthStencil:
-							layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-							break;
-
-						default:
-							layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-							break;
-					}
-
-					m_depth_attachment_renference = vk::AttachmentReference(m_attachment_descriptions.size() - 1, layout);
+					vk::ImageLayout layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+					m_references[4]        = vk::AttachmentReference(m_attachments_count - 1, layout);
 				}
 				return *this;
 			}
@@ -99,12 +95,10 @@ namespace Engine
 			{
 				info_log("Vulkan", "New Render Pass");
 
-				bool has_depth_attachment = m_depth_attachment_renference.layout != vk::ImageLayout::eUndefined;
+				bool has_depth_attachment = m_references[4].layout != vk::ImageLayout::eUndefined;
 
-				m_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, {},
-												   m_color_attachment_references, {},
-												   has_depth_attachment ? &m_depth_attachment_renference : nullptr);
-
+				m_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, 0, nullptr, 4,
+												   m_references, nullptr, has_depth_attachment ? m_references + 4 : nullptr);
 
 				vk::PipelineStageFlags src_pipeline_flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 				vk::PipelineStageFlags dst_pipeline_flags =
@@ -124,8 +118,8 @@ namespace Engine
 				m_dependency = vk::SubpassDependency(0, VK_SUBPASS_EXTERNAL, src_pipeline_flags, dst_pipeline_flags,
 													 src_access_flags, dst_access_flags, vk::DependencyFlagBits::eByRegion);
 
-				return API->m_device.createRenderPass(vk::RenderPassCreateInfo(
-						vk::RenderPassCreateFlags(), m_attachment_descriptions, m_subpass, m_dependency));
+				return API->m_device.createRenderPass(vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), m_attachments_count,
+																			   m_descriptions, 1, &m_subpass, 1, &m_dependency));
 			}
 		};
 
@@ -145,7 +139,6 @@ namespace Engine
 
 	void VulkanRenderPass::Key::init(const RenderSurface** targets)
 	{
-
 		for (int i = 0; i < 5; ++i)
 		{
 			m_attachments[i] = surface_format_of(targets[i]);
@@ -161,7 +154,6 @@ namespace Engine
 
 	VulkanRenderPass* VulkanRenderPass::find_or_create(const RenderSurface** targets)
 	{
-
 		Key key;
 		key.init(targets);
 
@@ -193,11 +185,14 @@ namespace Engine
 		{
 			VulkanRenderPassBuilder builder;
 
-			builder.m_attachment_descriptions.push_back(VulkanRenderPassBuilder::create_attachment_desctiption(
-			        format, vk::ImageLayout::eColorAttachmentOptimal, false));
+			builder.m_descriptions[0] =
+					VulkanRenderPassBuilder::create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
+			builder.m_attachments_count = 1;
 
-			builder.m_color_attachment_references = {vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal)};
-
+			builder.m_references[0] = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
+			builder.m_references[1] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
+			builder.m_references[2] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
+			builder.m_references[3] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
 
 			if (auto vk_pass = builder.build())
 			{

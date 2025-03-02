@@ -19,7 +19,7 @@ namespace Engine
 			vk::PipelineRasterizationStateCreateInfo rasterizer;
 			vk::PipelineMultisampleStateCreateInfo multisampling;
 			vk::PipelineDepthStencilStateCreateInfo depth_stencil;
-			Vector<vk::PipelineColorBlendAttachmentState> color_blend_attachment;
+			vk::PipelineColorBlendAttachmentState color_blend_attachment[4];
 			vk::PipelineColorBlendStateCreateInfo color_blending;
 			vk::SampleMask sample_mask;
 			vk::PipelineDynamicStateCreateInfo dynamic_state_info;

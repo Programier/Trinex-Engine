@@ -99,12 +99,6 @@ namespace Engine
 		        .setFront(stencil_state)
 		        .setBack(stencil_state);
 
-
-		auto rt                      = API->m_state.render_target();
-		auto color_attachments_count = rt->color_attachments_count();
-		color_blend_attachment.resize(color_attachments_count);
-
-
 		for (auto& attachment : color_blend_attachment)
 		{
 			attachment.setBlendEnable(in_state->color_blending.enable)
@@ -361,9 +355,6 @@ namespace Engine
 		static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
 		State& out_state = create_pipeline_state(viewport_mode == VulkanViewportMode::Flipped);
-
-
-		auto pass = rt->m_render_pass;
 
 		auto pipeline_stage_create_infos                         = create_pipeline_stage_infos();
 		vk::PipelineVertexInputStateCreateInfo vertex_input_info = create_vertex_input_info();

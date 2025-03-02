@@ -11,10 +11,10 @@
 
 namespace Engine
 {
-	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(const Vector<vk::ImageView>& image_views)
+	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(vk::ImageView* image_views, uint32_t count)
 	{
-		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->m_render_pass,
-		                                                  image_views, m_size.x, m_size.y, 1);
+		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->m_render_pass, count,
+														  image_views, m_size.x, m_size.y, 1);
 		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
 		return *this;
@@ -109,42 +109,39 @@ namespace Engine
 			throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
 		}
 
-		m_size = base_surface->rhi_object<VulkanSurface>()->size();
-
-		m_attachments.resize(color_attachments_count() + depth_stencil_attachments_count());
-
+		m_size      = base_surface->rhi_object<VulkanSurface>()->size();
 		Index index = 0;
+		std::fill(m_attachments, m_attachments + 5, VK_NULL_HANDLE);
 
-		for (int i = 0; i < 4 && targets[i]; ++i)
+		for (int i = 0; i < 4; ++i)
 		{
-			const Texture2D* color_binding = targets[i];
-			VulkanSurface* texture         = color_binding->rhi_object<VulkanSurface>();
+			if (targets[i] == nullptr)
+				continue;
 
+			VulkanSurface* texture = targets[i]->rhi_object<VulkanSurface>();
 			trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
 			bool usage_check = texture->is_render_target_color_image();
 			trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
 
 			vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-			m_attachments[index] = texture->create_image_view(range);
+			m_attachments[index++] = texture->create_image_view(range);
 			texture->m_render_targets.insert(this);
-			++index;
 		}
 
 		if (targets[4])
 		{
-			const Texture2D* binding = targets[4];
-			VulkanSurface* texture   = binding->rhi_object<VulkanSurface>();
+			VulkanSurface* texture = targets[4]->rhi_object<VulkanSurface>();
 			trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
 			bool check_status = texture->is_depth_stencil_image();
 			trinex_check(check_status, "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
 
 			vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
-			m_attachments[index] = texture->create_image_view(range);
+			m_attachments[index++] = texture->create_image_view(range);
 			texture->m_render_targets.insert(this);
 		}
 
-		post_init(m_attachments);
+		post_init(m_attachments, index);
 		return *this;
 	}
 
@@ -158,14 +155,7 @@ namespace Engine
 
 			if (surface->is_depth_stencil_image())
 			{
-				if (is_in<ColorFormat::DepthStencil>(surface->engine_format()))
-				{
-					surface->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal, cmd);
-				}
-				else
-				{
-					surface->change_layout(vk::ImageLayout::eDepthAttachmentOptimal, cmd);
-				}
+				surface->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal, cmd);
 			}
 			else
 			{
@@ -185,22 +175,6 @@ namespace Engine
 		}
 
 		return *this;
-	}
-
-	size_t VulkanRenderTarget::color_attachments_count() const
-	{
-		size_t count = 0;
-		for (int i = 0; i < 4; ++i)
-		{
-			if (m_key.m_surfaces[i])
-				++count;
-		}
-		return count;
-	}
-
-	size_t VulkanRenderTarget::depth_stencil_attachments_count() const
-	{
-		return m_key.m_surfaces[4] ? 1 : 0;
 	}
 
 	VulkanRenderTarget::~VulkanRenderTarget()
@@ -226,7 +200,7 @@ namespace Engine
 
 		m_size        = size;
 		m_render_pass = VulkanRenderPass::swapchain_render_pass(format);
-		post_init({view});
+		post_init(&view, 1);
 	}
 
 	bool VulkanSwapchainRenderTarget::is_swapchain_render_target()
@@ -260,16 +234,6 @@ namespace Engine
 
 		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
 		return *this;
-	}
-
-	size_t VulkanSwapchainRenderTarget::color_attachments_count() const
-	{
-		return 1;
-	}
-
-	size_t VulkanSwapchainRenderTarget::depth_stencil_attachments_count() const
-	{
-		return 0;
 	}
 
 	VulkanSwapchainRenderTarget::~VulkanSwapchainRenderTarget()

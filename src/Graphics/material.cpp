@@ -343,7 +343,7 @@ namespace Engine
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
-		auto pipeline_object = pipeline(nullptr);
+		auto pipeline_object = pipeline(render_pass ? render_pass->info() : nullptr);
 
 		if (pipeline_object == nullptr)
 			return false;

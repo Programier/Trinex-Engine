@@ -12,16 +12,13 @@ namespace Engine
 		struct VulkanRenderPass* m_render_pass = nullptr;
 		Size2D m_size;
 
-		VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
+		VulkanRenderTargetBase& post_init(vk::ImageView* image_views, uint32_t count);
 		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
 		void bind();
 		virtual bool is_swapchain_render_target();
 		virtual VulkanRenderTargetBase& lock_surfaces()   = 0;
 		virtual VulkanRenderTargetBase& unlock_surfaces() = 0;
-
-		virtual size_t color_attachments_count() const         = 0;
-		virtual size_t depth_stencil_attachments_count() const = 0;
 		virtual ~VulkanRenderTargetBase();
 	};
 
@@ -36,7 +33,7 @@ namespace Engine
 
 		static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
 		Key m_key;
-		Vector<vk::ImageView> m_attachments;
+		vk::ImageView m_attachments[5];
 
 		static VulkanRenderTarget* find_or_create(const RenderSurface** targets);
 
@@ -45,9 +42,6 @@ namespace Engine
 
 		VulkanRenderTargetBase& lock_surfaces() override;
 		VulkanRenderTargetBase& unlock_surfaces() override;
-		size_t color_attachments_count() const override;
-		size_t depth_stencil_attachments_count() const override;
-
 		~VulkanRenderTarget();
 	};
 
@@ -60,9 +54,6 @@ namespace Engine
 		virtual bool is_swapchain_render_target() override;
 		VulkanSwapchainRenderTarget& lock_surfaces() override;
 		VulkanSwapchainRenderTarget& unlock_surfaces() override;
-
-		size_t color_attachments_count() const override;
-		size_t depth_stencil_attachments_count() const override;
 		~VulkanSwapchainRenderTarget();
 	};
 }// namespace Engine
