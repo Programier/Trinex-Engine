@@ -436,12 +436,7 @@ namespace Engine
 		if (!Super::serialize(archive, material))
 			return false;
 
-		if (material)
-		{
-			if (archive.is_reading())
-				material->setup_pipeline(this);
-		}
-		else
+		if (!material)
 		{
 			archive.serialize(depth_test);
 			archive.serialize(stencil_test);

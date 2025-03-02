@@ -22,8 +22,16 @@ namespace Engine
 
 	RenderPass::~RenderPass()
 	{
+		if (m_childs)
+			delete m_childs;
+
 		if (m_next)
 			delete m_next;
+	}
+
+	RenderPass& RenderPass::initialize()
+	{
+		return *this;
 	}
 
 	Refl::Struct* RenderPass::struct_instance() const
@@ -36,6 +44,36 @@ namespace Engine
 		return Refl::Object::instance_cast<Refl::RenderPassInfo>(struct_instance());
 	}
 
+	void RenderPass::initialize_subpass(RenderPass* pass)
+	{
+		pass->m_owner    = this;
+		pass->m_renderer = m_renderer;
+
+		RenderPass** node = &m_childs;
+		while (*node) node = &(*node)->m_next;
+		*node = pass;
+
+		pass->initialize();
+	}
+
+	bool RenderPass::destroy_subpass(RenderPass* pass)
+	{
+		if (pass->m_owner != this)
+			return false;
+
+		RenderPass** node = &m_childs;
+		while (*node && *node != pass) node = &(*node)->m_next;
+
+		if (*node)
+		{
+			*node = pass->m_next;
+			delete pass;
+			return true;
+		}
+
+		return false;
+	}
+
 	bool RenderPass::is_empty() const
 	{
 		return m_allocated == 0;
@@ -43,6 +81,11 @@ namespace Engine
 
 	RenderPass& RenderPass::clear()
 	{
+		for (auto child = m_childs; child; child = child->m_next)
+		{
+			child->clear();
+		}
+
 		m_allocated = 0;
 		return *this;
 	}
@@ -61,10 +104,24 @@ namespace Engine
 		}
 	}
 
-	RenderPass& RenderPass::render(RenderViewport* render_target)
+	RenderPass& RenderPass::render(RenderViewport* vp)
 	{
 		size_t offset = 0;
 		byte* data    = m_commands.data();
+
+		// Render child passes
+
+		for (auto child = m_childs; child; child = child->m_next)
+		{
+#if TRINEX_DEBUG_BUILD
+			rhi->push_debug_stage(child->struct_instance()->name().c_str());
+#endif
+			child->render(vp);
+
+#if TRINEX_DEBUG_BUILD
+			rhi->pop_debug_stage();
+#endif
+		}
 
 		while (offset < m_allocated)
 		{
@@ -79,16 +136,6 @@ namespace Engine
 	RenderPass& RenderPass::predraw(PrimitiveComponent* primitive, MaterialInterface* material, Pipeline* pipeline)
 	{
 		return *this;
-	}
-
-	SceneRenderer* RenderPass::scene_renderer() const
-	{
-		return m_renderer;
-	}
-
-	RenderPass* RenderPass::next() const
-	{
-		return m_next;
 	}
 
 	RenderPass& RenderPass::draw(size_t vertices_count, size_t vertices_offset)
@@ -138,6 +185,9 @@ namespace Engine
 
 	static bool is_opaque_material(const Material* material)
 	{
+		if (material->domain != MaterialDomain::Surface)
+			return false;
+
 		auto desc = material->graphics_description();
 
 		if (desc == nullptr)
@@ -186,12 +236,6 @@ namespace Engine
 		m_is_material_compatible = is_opaque_material;
 	}
 
-	trinex_impl_render_pass(Engine::ForwardPass)
-	{}
-
-	trinex_impl_render_pass(Engine::DeferredLightingPass)
-	{}
-
 	trinex_impl_render_pass(Engine::TransparencyPass)
 	{}
 
@@ -216,44 +260,6 @@ namespace Engine
 	GeometryPass& GeometryPass::render(RenderViewport* vp)
 	{
 		SceneRenderTargets::instance()->bind_gbuffer();
-		Super::render(vp);
-		return *this;
-	}
-
-	bool DeferredLightingPass::is_empty() const
-	{
-		return is_not_in<ViewMode::Lit>(scene_renderer()->view_mode());
-	}
-
-	DeferredLightingPass& DeferredLightingPass::render(RenderViewport* vp)
-	{
-		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
-
-		auto renderer = scene_renderer();
-
-		if (renderer->view_mode() == ViewMode::Unlit)
-		{
-		}
-		else if (renderer->view_mode() == ViewMode::Lit)
-		{
-			static Name name_ambient_color = "ambient_color";
-			Material* material             = DefaultResources::Materials::ambient_light;
-
-			if (material)
-			{
-				auto ambient_param =
-						Object::instance_cast<MaterialParameters::Float3>(material->find_parameter(name_ambient_color));
-
-				if (ambient_param)
-				{
-					ambient_param->value = renderer->scene->environment.ambient_color;
-				}
-
-				material->apply(nullptr, this);
-				rhi->draw(6, 0);
-			}
-		}
-
 		Super::render(vp);
 		return *this;
 	}

@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/callback.hpp>
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
 #include <Core/task.hpp>
@@ -20,11 +19,11 @@ namespace Engine
 
 	public:
 		static constexpr size_t command_alignment = 16;
-		using FunctionCallback                    = void(RenderViewport*, RenderPass*);
-		CallBacks<FunctionCallback> on_render;
 
 	private:
 		SceneRenderer* m_renderer = nullptr;
+		RenderPass* m_owner       = nullptr;
+		RenderPass* m_childs      = nullptr;
 		RenderPass* m_next        = nullptr;
 
 		Buffer m_commands;
@@ -43,18 +42,35 @@ namespace Engine
 			return m_commands.data() + start;
 		}
 
+		void initialize_subpass(RenderPass* pass);
+
 	protected:
 		RenderPass();
 		virtual ~RenderPass();
 
 	public:
 		delete_copy_constructors(RenderPass);
-		SceneRenderer* scene_renderer() const;
-		RenderPass* next() const;
+
 		Refl::RenderPassInfo* info() const;
+		bool destroy_subpass(RenderPass* pass);
 
+		inline SceneRenderer* scene_renderer() const
+		{
+			return m_renderer;
+		}
+
+		inline RenderPass* next() const
+		{
+			return m_next;
+		}
+
+		inline RenderPass* owner() const
+		{
+			return m_owner;
+		}
+
+		virtual RenderPass& initialize();
 		virtual Refl::Struct* struct_instance() const;
-
 		virtual bool is_empty() const;
 		virtual RenderPass& clear();
 		virtual RenderPass& render(RenderViewport*);
@@ -103,13 +119,25 @@ namespace Engine
 			return add_task<CallableTask>(std::forward<Callable>(callable));
 		}
 
+
+		template<typename T = RenderPass, typename... Args, typename = std::enable_if<std::is_base_of_v<RenderPass, T>>>
+		T* create_subpass(Args&&... args)
+		{
+			T* pass = new T(std::forward<Args>(args)...);
+			initialize_subpass(pass);
+			return pass;
+		}
+
+
 		friend class SceneRenderer;
 	};
 #define trinex_render_pass(name, parent)                                                                                         \
     declare_struct(name, parent);                                                                                                \
                                                                                                                                  \
 public:                                                                                                                          \
-    virtual Engine::Refl::Struct* struct_instance() const override;                                                              \
+	virtual Engine::Refl::Struct* struct_instance() const override;                                                              \
+	friend class Engine::RenderPass;                                                                                             \
+	friend class Engine::SceneRenderer;                                                                                          \
                                                                                                                                  \
 private:                                                                                                                         \
 	void static_initialize_render_pass()
@@ -135,20 +163,6 @@ private:                                                                        
 
 	public:
 		GeometryPass& render(RenderViewport*) override;
-	};
-
-	class ENGINE_EXPORT ForwardPass : public RenderPass
-	{
-		trinex_render_pass(ForwardPass, RenderPass);
-	};
-
-	class ENGINE_EXPORT DeferredLightingPass : public RenderPass
-	{
-		trinex_render_pass(DeferredLightingPass, RenderPass);
-
-	public:
-		bool is_empty() const override;
-		DeferredLightingPass& render(RenderViewport*) override;
 	};
 
 	class ENGINE_EXPORT TransparencyPass : public RenderPass

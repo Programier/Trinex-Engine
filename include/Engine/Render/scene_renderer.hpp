@@ -49,7 +49,8 @@ namespace Engine
 		RenderPass* m_last_pass  = nullptr;
 		ViewMode m_view_mode     = ViewMode::Lit;
 
-		RenderPass* create_pass_internal(RenderPass* next, const Function<RenderPass*()>& alloc);
+		static SceneRenderer* static_scene_renderer_of(RenderPass* pass);
+		void create_pass_internal(RenderPass* next, RenderPass* current);
 
 	public:
 		RenderStatistics statistics;
@@ -86,10 +87,15 @@ namespace Engine
 		template<typename T = RenderPass, typename... Args, typename = std::enable_if<std::is_base_of_v<RenderPass, T>>>
 		inline T* create_pass(RenderPass* next = nullptr, Args&&... args)
 		{
-			return reinterpret_cast<T*>(create_pass_internal(next, [&]() -> RenderPass* {
-				auto pass = new T(std::forward<Args>(args)...);
-				return pass;
-			}));
+			if (SceneRenderer* renderer = static_scene_renderer_of(next))
+			{
+				if (renderer != this)
+					return nullptr;
+			}
+
+			auto pass = new T(std::forward<Args>(args)...);
+			create_pass_internal(next, pass);
+			return pass;
 		}
 
 		bool destroy_pass(RenderPass* pass);

@@ -72,6 +72,7 @@ namespace Engine
 
 	MaterialInterface& MaterialInterface::remove_parameter(const Name& name)
 	{
+		render_thread()->wait();
 		if (auto param = find_parameter(name))
 		{
 			param->m_pipeline_refs = 0;
@@ -83,6 +84,7 @@ namespace Engine
 
 	MaterialInterface& MaterialInterface::clear_parameters()
 	{
+		render_thread()->wait();
 		auto params = std::move(m_child_objects);
 
 		for (auto& param : params)
@@ -220,6 +222,8 @@ namespace Engine
 
 	bool Material::add_pipeline(Refl::RenderPassInfo* pass, Pipeline* pipeline)
 	{
+		render_thread()->wait();
+
 		if (Material::pipeline(pass) == pipeline)
 		{
 			error_log("Material", "Cannot add pipeline, because current pipeline already exist in material!");
@@ -241,6 +245,11 @@ namespace Engine
 			return false;
 
 		m_pipelines[pass] = pipeline;
+
+		if (auto graphics_pipeline = instance_cast<GraphicsPipeline>(pipeline))
+		{
+			setup_pipeline(graphics_pipeline);
+		}
 		return true;
 	}
 
@@ -250,6 +259,7 @@ namespace Engine
 		if (it == m_pipelines.end())
 			return nullptr;
 
+		render_thread()->wait();
 		Pipeline* pipeline = it->second;
 		m_pipelines.erase(it);
 		pipeline->owner(nullptr);
@@ -267,6 +277,7 @@ namespace Engine
 
 	Material& Material::remove_all_pipelines()
 	{
+		render_thread()->wait();
 		for (auto& [pass, pipeline] : m_pipelines)
 		{
 			pipeline->owner(nullptr);
@@ -275,6 +286,7 @@ namespace Engine
 			{
 				if (Parameter* param = find_parameter(name))
 				{
+					trinex_check(param->m_pipeline_refs > 0, "Parameter is referenced by pipeline, but reference count == 0");
 					--param->m_pipeline_refs;
 				}
 			}
@@ -427,6 +439,7 @@ namespace Engine
 
 				add_pipeline(pass, pipeline);
 				pipeline->serialize(archive, this);
+				register_pipeline_parameters(pipeline);
 				--pipelines_count;
 			}
 		}

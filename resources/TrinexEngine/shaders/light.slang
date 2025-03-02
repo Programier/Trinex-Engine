@@ -95,34 +95,8 @@ float fresnel_zero_reflectance(in float specular)
     return square((IOR - 1.0) / (IOR + 1.0));
 }
 
-float3 reconstruct_position(in float2 ndc, in float2 uv) 
+float4 calculate_light(float4 base_color, float3 position, float3 normal, float4 msra, float shadow_map_depth)
 {
-    float depth = depth_texture.Sample(uv).r;
-    float4 clip_space_pos = float4(ndc, lerp(Platform::ndc_depth_range.x, Platform::ndc_depth_range.y, depth), 1.0);
-    float4 view_space_pos = mul(globals.inv_projview, clip_space_pos);
-    return view_space_pos.xyz /= view_space_pos.w;
-}
-
-[shader("vertex")]
-float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
-{
-    float2 min_v = globals.viewport.xy / globals.size;
-    float2 max_v = (globals.viewport.xy + globals.viewport.zw) / globals.size;
-    uv = Platform::validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_v - min_v)) + min_v);
-    
-    float4 vertex = FullScreenQuad::vertex_by_index(vertex);
-    ndc = vertex.xy;
-    return vertex;
-}
-
-[shader("fragment")]
-float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
-{
-    float4 base_color =  base_color_texture.Sample(uv);
-    float3 position = reconstruct_position(ndc, uv);
-    float3 normal = normal_texture.Sample(uv).xyz;
-    float4 msra = msra_texture.Sample(uv);
-
     if (length(normal) < 0.1)
     {
         return float4(0.0, 0.0, 0.0, 1.0);
@@ -157,4 +131,34 @@ float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
     float normal_dot_l = max(dot(normal, light_direction), 0.0);
     float3 reflectance = (k_d * base_color.xyz / M_PI + specular) * radiance * normal_dot_l;
     return float4(reflectance, 1.0);
+}
+
+[shader("vertex")]
+float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
+{
+    float2 min_v = globals.viewport.xy / globals.size;
+    float2 max_v = (globals.viewport.xy + globals.viewport.zw) / globals.size;
+    uv = Platform::validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_v - min_v)) + min_v);
+    
+    float4 vertex = FullScreenQuad::vertex_by_index(vertex);
+    ndc = vertex.xy;
+    return vertex;
+}
+
+float3 reconstruct_position(in float2 ndc, in float2 uv) 
+{
+    float depth = depth_texture.Sample(uv).r;
+    float4 clip_space_pos = float4(ndc, lerp(Platform::ndc_depth_range.x, Platform::ndc_depth_range.y, depth), 1.0);
+    float4 view_space_pos = mul(globals.inv_projview, clip_space_pos);
+    return view_space_pos.xyz /= view_space_pos.w;
+}
+
+[shader("fragment")]
+float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
+{
+    float4 base_color =  base_color_texture.Sample(uv);
+    float3 position = reconstruct_position(ndc, uv);
+    float3 normal = normal_texture.Sample(uv).xyz;
+    float4 msra = msra_texture.Sample(uv);
+    return calculate_light(base_color, position, normal, msra, 1.0);
 }

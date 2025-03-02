@@ -2,11 +2,12 @@
 #include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
-#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
+
 #include <Graphics/rhi.hpp>
 
 namespace Engine

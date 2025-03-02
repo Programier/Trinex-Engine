@@ -6,6 +6,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/Render/shadow_pass.hpp>
 #include <Engine/scene.hpp>
@@ -191,33 +192,31 @@ namespace Engine
 		return *this;
 	}
 
-
-	RenderPass* SceneRenderer::create_pass_internal(RenderPass* next, const Function<RenderPass*()>& alloc)
+	SceneRenderer* SceneRenderer::static_scene_renderer_of(RenderPass* pass)
 	{
-		if (next && next->m_renderer != this)
-		{
-			return nullptr;
-		}
+		return pass ? pass->scene_renderer() : nullptr;
+	}
 
-		RenderPass* pass = alloc();
-		pass->m_renderer = this;
-		pass->m_next     = next;
+	void SceneRenderer::create_pass_internal(RenderPass* next, RenderPass* current)
+	{
+		current->m_renderer = this;
+		current->m_next     = next;
 
 		if (next == m_first_pass)
 		{
-			m_first_pass = pass;
+			m_first_pass = current;
 		}
 
 		if (next == nullptr)
 		{
 			if (m_last_pass)
 			{
-				m_last_pass->m_next = pass;
+				m_last_pass->m_next = current;
 			}
-			m_last_pass = pass;
+			m_last_pass = current;
 		}
 
-		return pass;
+		current->initialize();
 	}
 
 	bool SceneRenderer::destroy_pass(RenderPass* pass)
@@ -315,7 +314,6 @@ namespace Engine
 			rhi->push_debug_stage(pass->struct_instance()->name().c_str());
 #endif
 			pass->render(viewport);
-			pass->on_render(viewport, pass);
 
 #if TRINEX_DEBUG_BUILD
 			rhi->pop_debug_stage();

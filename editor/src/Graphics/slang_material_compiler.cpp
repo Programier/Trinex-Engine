@@ -872,7 +872,10 @@ namespace Engine
 			return false;
 		}
 
-		bool success = compile_pass(material, nullptr, source);
+		bool success = true;
+
+		if (!material->options(MaterialOptions::DisableDefaultPass))
+			success = compile_pass(material, nullptr, source);
 
 		for (auto pass = Refl::RenderPassInfo::first_pass(); pass && success; pass = pass->next_pass())
 		{
@@ -881,6 +884,8 @@ namespace Engine
 				success = compile_pass(material, pass, source);
 			}
 		}
+
+		material->remove_unreferenced_parameters();
 		return success;
 	}
 
@@ -901,7 +906,9 @@ namespace Engine
 			return false;
 		}
 
-		return compile_pass(material, pass, source);
+		bool result = compile_pass(material, pass, source);
+		material->remove_unreferenced_parameters();
+		return result;
 	}
 
 	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
@@ -916,7 +923,7 @@ namespace Engine
 		if (pipeline)
 		{
 			material->add_pipeline(pass, pipeline);
-			material->remove_unreferenced_parameters();
+			pipeline->init_resource();
 			return true;
 		}
 

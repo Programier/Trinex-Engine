@@ -1,17 +1,10 @@
-#include <Core/base_engine.hpp>
-#include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
-#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/Render/shadow_pass.hpp>
-#include <Engine/scene.hpp>
-#include <Graphics/gpu_buffers.hpp>
-#include <Graphics/material.hpp>
-#include <Graphics/material_parameter.hpp>
-#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
@@ -159,8 +152,6 @@ namespace Engine
 		return *this;
 	}
 
-#define get_param(param_name, type)                                                                                              \
-	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));
 	ColorSceneRenderer& ColorSceneRenderer::render_component(SpotLightComponent* component)
 	{
 		render_base_component(component);
@@ -176,56 +167,10 @@ namespace Engine
 			shadow_pass()->add_light(m_depth_renderer, component);
 		}
 
-		auto pass = deferred_lighting_pass();
-
-		Material* material = DefaultResources::Materials::spot_light;
-
-		auto* color_parameter       = get_param(color, Float3);
-		auto* intensivity_parameter = get_param(intensivity, Float);
-		auto* spot_angles_parameter = get_param(spot_angles, Float2);
-		auto* location_parameter    = get_param(location, Float3);
-		auto* direction_parameter   = get_param(direction, Float3);
-		auto* radius_parameter      = get_param(radius, Float);
-		auto* fall_off_parameter    = get_param(fall_off_exponent, Float);
-
-		if (color_parameter)
+		if (auto pass = deferred_lighting_pass())
 		{
-			pass->assign(color_parameter->value, proxy->light_color());
+			pass->add_light(component);
 		}
-
-		if (intensivity_parameter)
-		{
-			pass->assign(intensivity_parameter->value, proxy->intensivity());
-		}
-
-		if (location_parameter)
-		{
-			pass->assign(location_parameter->value, proxy->world_transform().location());
-		}
-
-		if (direction_parameter)
-		{
-			pass->assign(direction_parameter->value, proxy->direction());
-		}
-
-		if (spot_angles_parameter)
-		{
-			pass->assign(spot_angles_parameter->value, Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference()));
-		}
-
-		if (radius_parameter)
-		{
-			pass->assign(radius_parameter->value, proxy->attenuation_radius());
-		}
-
-		if (fall_off_parameter)
-		{
-			pass->assign(fall_off_parameter->value, proxy->fall_off_exponent());
-		}
-
-		pass->bind_material(material, nullptr);
-		pass->bind_vertex_buffer(DefaultResources::Buffers::screen_quad, 0, 0);
-		pass->draw(6, 0);
 		return *this;
 	}
 

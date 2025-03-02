@@ -4,7 +4,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
-#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
