@@ -172,20 +172,20 @@ namespace Engine
 		{
 			namespace MP = MaterialParameters;
 
-			if (param.type->is_a<MP::Sampler2D>())
+			if ((param.type & ShaderParameterType::META_CombinedImageSampler) == ShaderParameterType::META_CombinedImageSampler)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eCombinedImageSampler,
 				                    &VulkanDescriptorSetLayout::combined_image_sampler);
 			}
-			else if (param.type->is_a<MP::Texture2D>())
+			else if ((param.type & ShaderParameterType::META_Texture) == ShaderParameterType::META_Texture)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eSampledImage, &VulkanDescriptorSetLayout::textures);
 			}
-			else if (param.type->is_a<MP::Sampler>())
+			else if ((param.type & ShaderParameterType::META_Sampler) == ShaderParameterType::META_Sampler)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eSampler, &VulkanDescriptorSetLayout::samplers);
 			}
-			else if (param.type->is_a<MP::Globals>() || param.type->is_a<MP::PrimitiveBase>())
+			else if ((param.type & ShaderParameterType::META_UniformBuffer) == ShaderParameterType::META_UniformBuffer)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eUniformBuffer,
 									&VulkanDescriptorSetLayout::uniform_buffers);

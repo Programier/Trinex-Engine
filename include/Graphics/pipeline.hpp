@@ -97,12 +97,12 @@ namespace Engine
 			Compute,
 		};
 
-		TreeMap<Name, MaterialParameterInfo> parameters;
+		TreeMap<Name, ShaderParameterInfo> parameters;
 
 		static Pipeline* static_create_pipeline(Type type);
 
 		class Material* material() const;
-		const MaterialParameterInfo* find_param_info(const Name& name) const;
+		const ShaderParameterInfo* find_param_info(const Name& name) const;
 		const Pipeline& rhi_bind() const;
 		virtual bool serialize(Archive& ar) final override;
 		virtual bool serialize(Archive& ar, Material* material);

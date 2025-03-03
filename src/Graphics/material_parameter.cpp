@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
@@ -15,9 +16,25 @@
 
 namespace Engine::MaterialParameters
 {
+	static Map<ShaderParameterType, Refl::Class*> s_parameter_class_map;
+
+	template<typename T>
+	static void register_parameter()
+	{
+		s_parameter_class_map[T::static_type()] = T::static_class_instance();
+	}
+
+	Refl::Class* Parameter::static_find_class(ShaderParameterType type)
+	{
+		auto it = s_parameter_class_map.find(type);
+		if (it == s_parameter_class_map.end())
+			return nullptr;
+		return it->second;
+	}
+
 #define implement_parameter(name) implement_class(Engine::MaterialParameters::name, 0)
 
-	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, MaterialParameterInfo* info)
+	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, ShaderParameterInfo* info)
 	{
 		rhi->update_scalar_parameter(data, size, info->offset, info->location);
 		return *this;
@@ -32,7 +49,7 @@ namespace Engine::MaterialParameters
 		return ar;
 	}
 
-	Float4x4& Float4x4::apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info)
+	Float4x4& Float4x4::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (is_model)
 		{
@@ -46,17 +63,16 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	Model4x4& Model4x4::apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info)
+	Model4x4& Model4x4::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		auto matrix = component->proxy()->world_transform().matrix();
 		rhi->update_scalar_parameter(&matrix, sizeof(matrix), info->offset, info->location);
 		return *this;
 	}
 
-	Sampler::Sampler() : sampler(DefaultResources::Samplers::default_sampler)
-	{}
+	Sampler::Sampler() : sampler(DefaultResources::Samplers::default_sampler) {}
 
-	Sampler& Sampler::apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info)
+	Sampler& Sampler::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (sampler)
 			sampler->rhi_bind(info->location);
@@ -74,7 +90,7 @@ namespace Engine::MaterialParameters
 	    : sampler(DefaultResources::Samplers::default_sampler), texture(DefaultResources::Textures::default_texture)
 	{}
 
-	Sampler2D& Sampler2D::apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info)
+	Sampler2D& Sampler2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (sampler && texture)
 			texture->rhi_bind_combined(sampler, info->location);
@@ -91,10 +107,9 @@ namespace Engine::MaterialParameters
 		return ar;
 	}
 
-	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
-	{}
+	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture) {}
 
-	Texture2D& Texture2D::apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info)
+	Texture2D& Texture2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (texture)
 			texture->rhi_bind(info->location);
@@ -109,7 +124,7 @@ namespace Engine::MaterialParameters
 		return true;
 	}
 
-	Globals& Globals::apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info)
+	Globals& Globals::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (render_pass)
 		{
@@ -127,8 +142,7 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	implement_parameter(Parameter)
-	{}
+	implement_parameter(Parameter) {}
 
 	implement_parameter(Bool)
 	{
@@ -137,108 +151,132 @@ namespace Engine::MaterialParameters
 
 	implement_parameter(Int)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(UInt)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Bool2)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Bool3)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Bool4)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Int2)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Int3)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Int4)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(UInt2)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(UInt3)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(UInt4)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float2)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float3)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float4)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float3x3)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Float4x4)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
 	implement_parameter(Model4x4)
-	{}
+	{
+		register_parameter<This>();
+	}
 
 	implement_parameter(Sampler)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, sampler);
 	}
 
 	implement_parameter(Sampler2D)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, texture);
 		trinex_refl_prop(static_class_instance(), This, sampler);
 	}
 
 	implement_parameter(Texture2D)
 	{
+		register_parameter<This>();
 		trinex_refl_prop(static_class_instance(), This, texture);
 	}
 
 	implement_parameter(Globals)
-	{}
+	{
+		register_parameter<This>();
+	}
 }// namespace Engine::MaterialParameters

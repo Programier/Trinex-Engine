@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/etl/string.hpp>
+#include <Core/name.hpp>
 
 namespace Engine
 {
@@ -16,10 +16,7 @@ namespace Engine
 		float max_depth = 1.0f;
 
 
-		FORCE_INLINE float aspect() const
-		{
-			return size.x / size.y;
-		}
+		FORCE_INLINE float aspect() const { return size.x / size.y; }
 
 		FORCE_INLINE bool operator==(const ViewPort& v) const
 		{
@@ -28,10 +25,7 @@ namespace Engine
 			       glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) && glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
 		}
 
-		FORCE_INLINE bool operator!=(const ViewPort& v) const
-		{
-			return !((*this) == v);
-		}
+		FORCE_INLINE bool operator!=(const ViewPort& v) const { return !((*this) == v); }
 	};
 
 	struct Scissor {
@@ -44,10 +38,7 @@ namespace Engine
 			       glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f}));
 		}
 
-		FORCE_INLINE bool operator!=(const Scissor& v) const
-		{
-			return !((*this) == v);
-		}
+		FORCE_INLINE bool operator!=(const Scissor& v) const { return !((*this) == v); }
 	};
 
 	struct DepthStencilClearValue {
@@ -73,49 +64,24 @@ namespace Engine
 
 		BindingIndex binding;
 
-		constexpr BindLocation(BindingIndex in_binding = 255) : binding(in_binding)
-		{}
+		constexpr BindLocation(BindingIndex in_binding = 255) : binding(in_binding) {}
 
-		FORCE_INLINE bool operator==(const BindLocation& location) const
-		{
-			return location.binding == binding;
-		}
+		FORCE_INLINE bool operator==(const BindLocation& location) const { return location.binding == binding; }
 
-		FORCE_INLINE bool operator!=(const BindLocation& location) const
-		{
-			return location.binding != binding;
-		}
+		FORCE_INLINE bool operator!=(const BindLocation& location) const { return location.binding != binding; }
 
-		FORCE_INLINE bool operator<(const BindLocation& location) const
-		{
-			return binding < location.binding;
-		}
+		FORCE_INLINE bool operator<(const BindLocation& location) const { return binding < location.binding; }
 
-		FORCE_INLINE bool operator<=(const BindLocation& location) const
-		{
-			return binding <= location.binding;
-		}
+		FORCE_INLINE bool operator<=(const BindLocation& location) const { return binding <= location.binding; }
 
-		FORCE_INLINE bool operator>(const BindLocation& location) const
-		{
-			return binding > location.binding;
-		}
+		FORCE_INLINE bool operator>(const BindLocation& location) const { return binding > location.binding; }
 
-		FORCE_INLINE bool operator>=(const BindLocation& location) const
-		{
-			return binding >= location.binding;
-		}
+		FORCE_INLINE bool operator>=(const BindLocation& location) const { return binding >= location.binding; }
 
 
-		FORCE_INLINE bool is_valid() const
-		{
-			return binding < 255;
-		}
+		FORCE_INLINE bool is_valid() const { return binding < 255; }
 
-		FORCE_INLINE operator BindingIndex() const
-		{
-			return binding;
-		}
+		FORCE_INLINE operator BindingIndex() const { return binding; }
 	};
 
 	struct ENGINE_EXPORT ShaderDefinition {
@@ -132,15 +98,9 @@ namespace Engine
 		BindingIndex m_binding_index = 255;
 
 	public:
-		FORCE_INLINE bool has_parameters() const
-		{
-			return m_binding_index < 255;
-		}
+		FORCE_INLINE bool has_parameters() const { return m_binding_index < 255; }
 
-		FORCE_INLINE BindingIndex bind_index() const
-		{
-			return m_binding_index;
-		}
+		FORCE_INLINE BindingIndex bind_index() const { return m_binding_index; }
 
 		FORCE_INLINE MaterialScalarParametersInfo& bind_index(BindingIndex index)
 		{
@@ -155,14 +115,13 @@ namespace Engine
 		}
 	};
 
-	struct ENGINE_EXPORT MaterialParameterInfo {
-		class Refl::Class* type = nullptr;
-		String name;
-		size_t size;
-		size_t offset;
-		BindingIndex location;
+	struct ENGINE_EXPORT ShaderParameterInfo {
+		ShaderParameterType type = ShaderParameterType::Undefined;
+		Name name;
+		size_t size           = 0;
+		size_t offset         = 0;
+		BindingIndex location = 255;
 
-		MaterialParameterInfo();
 		bool serialize(Archive& ar);
 	};
 }// namespace Engine

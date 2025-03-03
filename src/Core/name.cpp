@@ -3,6 +3,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -115,17 +116,13 @@ namespace Engine
 		return *this;
 	}
 
-	Name::Name() : m_index(Constants::index_none)
-	{}
+	Name::Name() : m_index(Constants::index_none) {}
 
-	Name::Name(const char* name) : Name(StringView(name))
-	{}
+	Name::Name(const char* name) : Name(StringView(name)) {}
 
-	Name::Name(const char* name, size_t len) : Name(StringView(name, len))
-	{}
+	Name::Name(const char* name, size_t len) : Name(StringView(name, len)) {}
 
-	Name::Name(const String& name) : Name(StringView(name))
-	{}
+	Name::Name(const String& name) : Name(StringView(name)) {}
 
 	Name::Name(const StringView& name)
 	{
@@ -263,11 +260,6 @@ namespace Engine
 	Name::operator const String&() const
 	{
 		return to_string();
-	}
-
-	const Vector<Name::Entry>& Name::entries()
-	{
-		return name_entries();
 	}
 
 	bool Name::serialize(class Archive& ar)

@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
 
 namespace Engine
 {
@@ -33,10 +32,7 @@ namespace Engine
 		};
 
 		struct HashFunction {
-			FORCE_INLINE HashIndex operator()(const Name& name) const
-			{
-				return name.m_index;
-			}
+			FORCE_INLINE HashIndex operator()(const Name& name) const { return name.m_index; }
 		};
 
 		struct Less {
@@ -93,37 +89,12 @@ namespace Engine
 		operator const String&() const;
 		operator StringView() const;
 
-		static const Vector<Name::Entry>& entries();
-
-		FORCE_INLINE bool operator==(const Name& name) const
-		{
-			return name.m_index == m_index;
-		}
-
-		FORCE_INLINE bool operator!=(const Name& name) const
-		{
-			return name.m_index != m_index;
-		}
-
-		FORCE_INLINE bool operator<(const Name& name) const
-		{
-			return m_index < name.m_index;
-		}
-
-		FORCE_INLINE bool operator<=(const Name& name) const
-		{
-			return m_index <= name.m_index;
-		}
-
-		FORCE_INLINE bool operator>(const Name& name) const
-		{
-			return m_index > name.m_index;
-		}
-
-		FORCE_INLINE bool operator>=(const Name& name) const
-		{
-			return m_index >= name.m_index;
-		}
+		FORCE_INLINE bool operator==(const Name& name) const { return name.m_index == m_index; }
+		FORCE_INLINE bool operator!=(const Name& name) const { return name.m_index != m_index; }
+		FORCE_INLINE bool operator<(const Name& name) const { return m_index < name.m_index; }
+		FORCE_INLINE bool operator<=(const Name& name) const { return m_index <= name.m_index; }
+		FORCE_INLINE bool operator>(const Name& name) const { return m_index > name.m_index; }
+		FORCE_INLINE bool operator>=(const Name& name) const { return m_index >= name.m_index; }
 
 		bool serialize(class Archive& ar);
 	};

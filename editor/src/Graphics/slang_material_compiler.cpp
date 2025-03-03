@@ -22,9 +22,9 @@
 	if (SLANG_FAILED(code))                                                                                                      \
 	return false
 
-#define return_nullptr_if_not(cond)                                                                                              \
+#define return_undefined_if_not(cond)                                                                                            \
 	if (!(cond))                                                                                                                 \
-	return nullptr
+	return ShaderParameterType::Undefined
 
 #define check_compile_errors()                                                                                                   \
 	if (log_handler.has_error)                                                                                                   \
@@ -140,8 +140,8 @@ namespace Engine
 
 
 	public:
-		using TypeDetector = Refl::Class*(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
-										  slang::TypeReflection::ScalarType);
+		using TypeDetector = ShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
+												 slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
 		Pipeline* out;
@@ -333,7 +333,7 @@ namespace Engine
 			return true;
 		}
 
-		static Refl::Class* find_scalar_parameter_type(slang::VariableLayoutReflection* var)
+		static ShaderParameterType find_scalar_parameter_type(slang::VariableLayoutReflection* var)
 		{
 			auto reflection = var->getType();
 			auto rows       = reflection->getRowCount();
@@ -343,13 +343,14 @@ namespace Engine
 
 			for (auto& detector : type_detectors)
 			{
-				if (auto type = detector(var, rows, colums, elements, scalar))
+				auto type = detector(var, rows, colums, elements, scalar);
+				if (type != ShaderParameterType::Undefined)
 				{
 					return type;
 				}
 			}
 
-			return nullptr;
+			return ShaderParameterType::Undefined;
 		}
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
@@ -357,10 +358,10 @@ namespace Engine
 			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
 					  slang::TypeReflection::Kind::Matrix>(param.kind))
 			{
-				MaterialParameterInfo info;
+				ShaderParameterInfo info;
 				info.type = find_scalar_parameter_type(param.var);
 
-				if (info.type == nullptr)
+				if (info.type == ShaderParameterType::Undefined)
 				{
 					error_log("ShaderCompiler", "Failed to get parameter type!");
 					return false;
@@ -391,18 +392,18 @@ namespace Engine
 					{
 						auto binding_type = type_layout->getBindingRangeType(0);
 
-						MaterialParameterInfo object;
+						ShaderParameterInfo object;
 						object.name     = param.name;
 						object.location = param.trace_offset(param.category());
 
 						switch (binding_type)
 						{
 							case slang::BindingType::CombinedTextureSampler:
-								object.type = MaterialParameters::Sampler2D::static_class_instance();
+								object.type = ShaderParameterType::Sampler2D;
 								break;
 
 							case slang::BindingType::Texture:
-								object.type = MaterialParameters::Texture2D::static_class_instance();
+								object.type = ShaderParameterType::Texture2D;
 								break;
 
 							default:
@@ -430,10 +431,10 @@ namespace Engine
 
 				if (is_global_parameters(layout))
 				{
-					MaterialParameterInfo object;
+					ShaderParameterInfo object;
 					object.name                  = param.name;
 					object.location              = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
-					object.type                  = MaterialParameters::Globals::static_class_instance();
+					object.type                  = ShaderParameterType::Globals;
 					object.size                  = sizeof(GlobalShaderParameters);
 					object.offset                = 0;
 					out->parameters[object.name] = object;
@@ -461,6 +462,7 @@ namespace Engine
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
 			{
+				Object::instance_cast<GraphicsPipeline>(out)->vertex_shader()->attributes.clear();
 				uint32_t parameter_count = entry_point->getParameterCount();
 				for (uint32_t i = 0; i < parameter_count; i++)
 				{
@@ -490,37 +492,37 @@ namespace Engine
 
 		static bool has_model_attribute(SVR* var) { return ReflectionParser::has_attribute(var, "is_model"); }
 
-		template<typename Type, Scalar required_scalar>
-		static Refl::Class* primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<ShaderParameterType type, Scalar required_scalar>
+		static ShaderParameterType primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
-			return_nullptr_if_not(rows == 1);
-			return_nullptr_if_not(columns == 1);
-			return_nullptr_if_not(elements == 0);
-			return_nullptr_if_not(scalar == required_scalar);
-			return Type::static_class_instance();
+			return_undefined_if_not(rows == 1);
+			return_undefined_if_not(columns == 1);
+			return_undefined_if_not(elements == 0);
+			return_undefined_if_not(scalar == required_scalar);
+			return type;
 		}
 
-		template<typename Type, Scalar required_scalar>
-		static Refl::Class* vector(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<ShaderParameterType type, uint32_t len, Scalar required_scalar>
+		static ShaderParameterType vector(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
-			auto len = static_cast<uint_t>(decltype(Type::value)::length());
-			return_nullptr_if_not(rows == 1);
-			return_nullptr_if_not(columns == len);
-			return_nullptr_if_not(elements == len);
-			return_nullptr_if_not(scalar == required_scalar);
-			return Type::static_class_instance();
+			return_undefined_if_not(rows == 1);
+			return_undefined_if_not(columns == len);
+			return_undefined_if_not(elements == len);
+			return_undefined_if_not(scalar == required_scalar);
+			return type;
 		}
 
-		template<typename Type, Scalar required_scalar, uint_t required_rows, uint_t required_columns, bool allow_model = false>
-		static Refl::Class* matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<ShaderParameterType type, Scalar required_scalar, uint_t required_rows, uint_t required_columns,
+				 bool allow_model = false>
+		static ShaderParameterType matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
-			return_nullptr_if_not(!has_model_attribute(var->getVariable()) || allow_model);
-			return_nullptr_if_not(rows == required_rows);
-			return_nullptr_if_not(rows == required_rows);
-			return_nullptr_if_not(columns == required_columns);
-			return_nullptr_if_not(elements == 0);
-			return_nullptr_if_not(scalar == required_scalar);
-			return Type::static_class_instance();
+			return_undefined_if_not(!has_model_attribute(var->getVariable()) || allow_model);
+			return_undefined_if_not(rows == required_rows);
+			return_undefined_if_not(rows == required_rows);
+			return_undefined_if_not(columns == required_columns);
+			return_undefined_if_not(elements == 0);
+			return_undefined_if_not(scalar == required_scalar);
+			return type;
 		}
 	};
 
@@ -528,28 +530,28 @@ namespace Engine
 	{
 		using T      = TypeDetector;
 		using Scalar = slang::TypeReflection::ScalarType;
-		namespace MP = MaterialParameters;
+		using MP     = ShaderParameterType;
 
 		ReflectionParser::type_detectors.push_back(T::primitive<MP::Bool, Scalar::Bool>);
 		ReflectionParser::type_detectors.push_back(T::primitive<MP::Int, Scalar::Int32>);
 		ReflectionParser::type_detectors.push_back(T::primitive<MP::UInt, Scalar::UInt32>);
 		ReflectionParser::type_detectors.push_back(T::primitive<MP::Float, Scalar::Float32>);
 
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool2, Scalar::Bool>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool3, Scalar::Bool>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool4, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool2, 2, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool3, 3, Scalar::Bool>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Bool4, 4, Scalar::Bool>);
 
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Int2, Scalar::Int32>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Int3, Scalar::Int32>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Int4, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Int2, 2, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Int3, 3, Scalar::Int32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Int4, 4, Scalar::Int32>);
 
-		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt2, Scalar::UInt32>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt3, Scalar::UInt32>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt4, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt2, 2, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt3, 3, Scalar::UInt32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::UInt4, 4, Scalar::UInt32>);
 
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Float2, Scalar::Float32>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Float3, Scalar::Float32>);
-		ReflectionParser::type_detectors.push_back(T::vector<MP::Float4, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Float2, 2, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Float3, 3, Scalar::Float32>);
+		ReflectionParser::type_detectors.push_back(T::vector<MP::Float4, 4, Scalar::Float32>);
 
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);

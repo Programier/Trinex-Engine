@@ -481,4 +481,52 @@ namespace Engine
 	};
 
 	declare_enum_operators(MaterialOptions);
+
+	enum class ShaderParameterType : EnumerateType
+	{
+		Undefined = 0,
+
+		// Meta
+		META_UniformBuffer        = BIT(16),
+		META_CombinedImageSampler = BIT(17),
+		META_Sampler              = BIT(18),
+		META_Texture              = BIT(19),
+		META_RWTexture            = BIT(20),
+		META_TexelBuffer          = BIT(21),
+		META_RWTexelBuffer        = BIT(22),
+		META_Buffer               = BIT(23),
+		META_RWBuffer             = BIT(24),
+
+		META_Scalar = BIT(25),
+		META_Vector = BIT(26),
+		META_Matrix = BIT(27),
+
+		// Values
+		Bool      = 1 | META_Scalar | META_UniformBuffer,
+		Bool2     = 2 | META_Vector | META_UniformBuffer,
+		Bool3     = 3 | META_Vector | META_UniformBuffer,
+		Bool4     = 4 | META_Vector | META_UniformBuffer,
+		Int       = 5 | META_Scalar | META_UniformBuffer,
+		Int2      = 6 | META_Vector | META_UniformBuffer,
+		Int3      = 7 | META_Vector | META_UniformBuffer,
+		Int4      = 8 | META_Vector | META_UniformBuffer,
+		UInt      = 9 | META_Scalar | META_UniformBuffer,
+		UInt2     = 10 | META_Vector | META_UniformBuffer,
+		UInt3     = 11 | META_Vector | META_UniformBuffer,
+		UInt4     = 12 | META_Vector | META_UniformBuffer,
+		Float     = 13 | META_Scalar | META_UniformBuffer,
+		Float2    = 14 | META_Vector | META_UniformBuffer,
+		Float3    = 15 | META_Vector | META_UniformBuffer,
+		Float4    = 16 | META_Vector | META_UniformBuffer,
+		Float3x3  = 17 | META_Matrix | META_UniformBuffer,
+		Float4x4  = 18 | META_Matrix | META_UniformBuffer,
+		Model4x4  = 19 | META_Matrix | META_UniformBuffer,
+		Sampler   = 20 | META_Sampler,
+		Sampler2D = 21 | META_CombinedImageSampler,
+		Texture2D = 22 | META_Texture,
+		Globals   = 23 | META_UniformBuffer,
+	};
+
+	declare_enum_operators(ShaderParameterType);
+
 }// namespace Engine

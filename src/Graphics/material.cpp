@@ -193,20 +193,27 @@ namespace Engine
 		{
 			if (Parameter* param = find_parameter(name))
 			{
-				if (param->class_instance() == info.type)
+				if (param->type() == info.type)
 				{
 					++param->m_pipeline_refs;
 				}
 				else
 				{
-					error_log("Material", "Parameter type mismatch. Name: %s, Current Type: %s, New Type: %s", name.c_str(),
-							  param->class_instance()->name().c_str(), info.type->name().c_str());
+					error_log("Material", "Ambiguous parameter type with name '%s'", name.c_str());
 					return false;
 				}
 			}
 			else
 			{
-				if (auto parameter = Object::instance_cast<Parameter>(info.type->create_object(name, this)))
+				auto class_instance = Parameter::static_find_class(info.type);
+
+				if (class_instance == nullptr)
+				{
+					error_log("Material", "Failed to find material parameter class");
+					return false;
+				}
+
+				if (auto parameter = Object::instance_cast<Parameter>(class_instance->create_object(name, this)))
 				{
 					parameter->m_pipeline_refs = 1;
 				}

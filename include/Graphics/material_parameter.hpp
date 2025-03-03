@@ -6,7 +6,7 @@
 namespace Engine
 {
 	class SceneComponent;
-	struct MaterialParameterInfo;
+	struct ShaderParameterInfo;
 	class Sampler;
 	class Texture2D;
 	class Material;
@@ -15,6 +15,20 @@ namespace Engine
 
 	namespace MaterialParameters
 	{
+#define trinex_material_parameter(self, super)                                                                                   \
+    declare_class(self, super);                                                                                                  \
+                                                                                                                                 \
+public:                                                                                                                          \
+	static Engine::ShaderParameterType static_type()                                                                             \
+	{                                                                                                                            \
+		return Engine::ShaderParameterType::self;                                                                                \
+	}                                                                                                                            \
+																																 \
+	inline Engine::ShaderParameterType type() const override                                                                     \
+	{                                                                                                                            \
+		return Engine::ShaderParameterType::self;                                                                                \
+	}
+
 		class ENGINE_EXPORT Parameter : public Object
 		{
 			declare_class(Parameter, Object);
@@ -23,9 +37,12 @@ namespace Engine
 			uint16_t m_pipeline_refs = 0;
 
 		protected:
-			virtual Parameter& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) = 0;
+			virtual Parameter& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) = 0;
 
 		public:
+			static Refl::Class* static_find_class(ShaderParameterType type);
+
+			virtual ShaderParameterType type() const = 0;
 			friend class Engine::Material;
 			friend class Engine::MaterialInterface;
 		};
@@ -33,7 +50,7 @@ namespace Engine
 		class ENGINE_EXPORT PrimitiveBase : public Parameter
 		{
 		protected:
-			PrimitiveBase& update(const void* data, size_t size, MaterialParameterInfo* info);
+			PrimitiveBase& update(const void* data, size_t size, ShaderParameterInfo* info);
 			bool serialize_internal(Archive& ar, void* data, size_t size);
 		};
 
@@ -44,10 +61,9 @@ namespace Engine
 			T value;
 
 		protected:
-			Primitive(const T& value = T()) : value(value)
-			{}
+			Primitive(const T& value = T()) : value(value) {}
 
-			Primitive& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override
+			Primitive& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override
 			{
 				update(&value, sizeof(T), info);
 				return *this;
@@ -63,157 +79,155 @@ namespace Engine
 
 		class ENGINE_EXPORT Bool : public Primitive<bool>
 		{
-			declare_class(Bool, Parameter);
+			trinex_material_parameter(Bool, Parameter);
 		};
 
 		class ENGINE_EXPORT Int : public Primitive<int32_t>
 		{
-			declare_class(Int, Parameter);
+			trinex_material_parameter(Int, Parameter);
 		};
 
 		class ENGINE_EXPORT UInt : public Primitive<uint32_t>
 		{
-			declare_class(UInt, Parameter);
+			trinex_material_parameter(UInt, Parameter);
 		};
 
 		class ENGINE_EXPORT Float : public Primitive<float>
 		{
-			declare_class(Float, Parameter);
+			trinex_material_parameter(Float, Parameter);
 		};
 
 		class ENGINE_EXPORT Bool2 : public Primitive<Vector2b>
 		{
-			declare_class(Bool2, Parameter);
+			trinex_material_parameter(Bool2, Parameter);
 		};
 
 		class ENGINE_EXPORT Bool3 : public Primitive<Vector3b>
 		{
-			declare_class(Bool3, Parameter);
+			trinex_material_parameter(Bool3, Parameter);
 		};
 
 		class ENGINE_EXPORT Bool4 : public Primitive<Vector4b>
 		{
-			declare_class(Bool2, Parameter);
+			trinex_material_parameter(Bool2, Parameter);
 		};
 
 		class ENGINE_EXPORT Int2 : public Primitive<Vector2i>
 		{
-			declare_class(Int2, Parameter);
+			trinex_material_parameter(Int2, Parameter);
 		};
 
 		class ENGINE_EXPORT Int3 : public Primitive<Vector3i>
 		{
-			declare_class(Int3, Parameter);
+			trinex_material_parameter(Int3, Parameter);
 		};
 
 		class ENGINE_EXPORT Int4 : public Primitive<Vector4i>
 		{
-			declare_class(Int4, Parameter);
+			trinex_material_parameter(Int4, Parameter);
 		};
 
 		class ENGINE_EXPORT UInt2 : public Primitive<Vector2u>
 		{
-			declare_class(UInt2, Parameter);
+			trinex_material_parameter(UInt2, Parameter);
 		};
 
 		class ENGINE_EXPORT UInt3 : public Primitive<Vector3u>
 		{
-			declare_class(UInt3, Parameter);
+			trinex_material_parameter(UInt3, Parameter);
 		};
 
 		class ENGINE_EXPORT UInt4 : public Primitive<Vector4u>
 		{
-			declare_class(UInt4, Parameter);
+			trinex_material_parameter(UInt4, Parameter);
 		};
 
 		class ENGINE_EXPORT Float2 : public Primitive<Vector2f>
 		{
-			declare_class(Float2, Parameter);
+			trinex_material_parameter(Float2, Parameter);
 		};
 
 		class ENGINE_EXPORT Float3 : public Primitive<Vector3f>
 		{
-			declare_class(Float3, Parameter);
+			trinex_material_parameter(Float3, Parameter);
 		};
 
 		class ENGINE_EXPORT Float4 : public Primitive<Vector4f>
 		{
-			declare_class(Float4, Parameter);
+			trinex_material_parameter(Float4, Parameter);
 		};
 
 		class ENGINE_EXPORT Float3x3 : public Primitive<Matrix3f>
 		{
-			declare_class(Float3x3, Parameter);
+			trinex_material_parameter(Float3x3, Parameter);
 
 		public:
-			Float3x3() : Primitive<Matrix3f>(Matrix3f(1.f))
-			{}
+			Float3x3() : Primitive<Matrix3f>(Matrix3f(1.f)) {}
 		};
 
 		class ENGINE_EXPORT Float4x4 : public Primitive<Matrix4f>
 		{
-			declare_class(Float4x4, Parameter);
+			trinex_material_parameter(Float4x4, Parameter);
 
 		public:
 			bool is_model = false;
 
-			Float4x4() : Primitive<Matrix4f>(Matrix3f(1.f))
-			{}
+			Float4x4() : Primitive<Matrix4f>(Matrix3f(1.f)) {}
 
-			Float4x4& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
+			Float4x4& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Model4x4 : public Parameter
 		{
-			declare_class(Model4x4, Parameter);
+			trinex_material_parameter(Model4x4, Parameter);
 
 		public:
-			Model4x4& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
+			Model4x4& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Sampler : public Parameter
 		{
-			declare_class(Sampler, Parameter);
+			trinex_material_parameter(Sampler, Parameter);
 
 		public:
 			Engine::Sampler* sampler;
 
 			Sampler();
-			Sampler& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
+			Sampler& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
 		class ENGINE_EXPORT Sampler2D : public Parameter
 		{
-			declare_class(Sampler2D, Parameter);
+			trinex_material_parameter(Sampler2D, Parameter);
 
 		public:
 			Engine::Sampler* sampler;
 			Engine::Texture2D* texture;
 
 			Sampler2D();
-			Sampler2D& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
+			Sampler2D& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
 		class ENGINE_EXPORT Texture2D : public Parameter
 		{
-			declare_class(Texture2D, Parameter);
+			trinex_material_parameter(Texture2D, Parameter);
 
 		public:
 			Engine::Texture2D* texture;
 
 			Texture2D();
-			Texture2D& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
+			Texture2D& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
 		class ENGINE_EXPORT Globals : public Parameter
 		{
-			declare_class(Globals, Parameter);
+			trinex_material_parameter(Globals, Parameter);
 
 		public:
-			Globals& apply(SceneComponent* component, RenderPass* render_pass, MaterialParameterInfo* info) override;
+			Globals& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 		};
 	}// namespace MaterialParameters
 }// namespace Engine

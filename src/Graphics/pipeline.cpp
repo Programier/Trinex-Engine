@@ -138,7 +138,7 @@ namespace Engine
 		return Object::instance_cast<Material>(owner());
 	}
 
-	const MaterialParameterInfo* Pipeline::find_param_info(const Name& name) const
+	const ShaderParameterInfo* Pipeline::find_param_info(const Name& name) const
 	{
 		auto it = parameters.find(name);
 		if (it == parameters.end())

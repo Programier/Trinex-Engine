@@ -16,33 +16,15 @@ namespace Engine
 		return ar;
 	}
 
-
-	bool MaterialParameterInfo::serialize(Archive& ar)
+	bool ShaderParameterInfo::serialize(Archive& ar)
 	{
-		if (ar.is_reading())
-		{
-			Name name;
-			name.serialize(ar);
-			type = Refl::Class::static_find(name, Refl::FindFlags::IsRequired);
-		}
-		else
-		{
-			Name name;
-
-			if (type)
-				name = type->full_name();
-			name.serialize(ar);
-		}
-
+		ar.serialize(type);
 		ar.serialize(name);
 		ar.serialize(size);
 		ar.serialize(offset);
 		ar.serialize(location);
 		return ar;
 	}
-
-	MaterialParameterInfo::MaterialParameterInfo() : type(nullptr), name(""), size(0), offset(0), location(BindLocation())
-	{}
 
 	implement_struct(Engine::ShaderDefinition, 0)
 	{

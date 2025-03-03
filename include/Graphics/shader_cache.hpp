@@ -6,7 +6,7 @@
 namespace Engine
 {
 	struct ENGINE_EXPORT ShaderCache {
-		TreeMap<Name, MaterialParameterInfo> parameters;
+		TreeMap<Name, ShaderParameterInfo> parameters;
 
 		Buffer vertex;
 		Buffer tessellation_control;
