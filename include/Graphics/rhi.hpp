@@ -53,6 +53,29 @@ namespace Engine
 		virtual void bind(BindLocation location) = 0;
 	};
 
+	struct ENGINE_EXPORT RHI_ResourceView : RHI_BindingObject {
+		RHI_Object* const viewed_object;
+
+		inline RHI_ResourceView(RHI_Object* object) : viewed_object(object) { object->add_reference(); }
+		inline ~RHI_ResourceView() { viewed_object->release(); }
+	};
+
+	struct ENGINE_EXPORT RHI_ShaderResourceView : RHI_ResourceView {
+		inline RHI_ShaderResourceView(RHI_Object* object) : RHI_ResourceView(object) {}
+	};
+
+	struct ENGINE_EXPORT RHI_UnorderedAccessView : RHI_ResourceView {
+		inline RHI_UnorderedAccessView(RHI_Object* object) : RHI_ResourceView(object) {}
+	};
+
+	struct ENGINE_EXPORT RHI_RenderTargetView : RHI_ResourceView {
+		inline RHI_RenderTargetView(RHI_Object* object) : RHI_ResourceView(object) {}
+	};
+
+	struct ENGINE_EXPORT RHI_DepthStencilView : RHI_ResourceView {
+		inline RHI_DepthStencilView(RHI_Object* object) : RHI_ResourceView(object) {}
+	};
+
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
 	};
 

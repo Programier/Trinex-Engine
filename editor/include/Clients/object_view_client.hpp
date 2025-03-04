@@ -1,6 +1,6 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
-
+#include <Core/pointer.hpp>
 
 namespace Engine
 {
@@ -12,14 +12,16 @@ namespace Engine
 
 	private:
 		PropertyRenderer* m_property_renderer = nullptr;
+		Pointer<Object> m_object;
 
-	private:
+	public:
+		ObjectViewClient();
 		ObjectViewClient& create_properties_window();
 		ObjectViewClient& on_bind_viewport(RenderViewport* vp) override;
 		ObjectViewClient& build_dock(uint32_t dock_id) override;
 		ObjectViewClient& update(float dt) override;
 		ObjectViewClient& select(Object* object) override;
 
-		virtual ObjectViewClient& render_menu_bar();
+		inline Object* selected_object() const { return m_object.ptr(); }
 	};
 }// namespace Engine

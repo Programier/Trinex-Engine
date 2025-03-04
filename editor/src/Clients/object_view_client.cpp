@@ -10,12 +10,29 @@ namespace Engine
 		register_client(Object::static_class_instance(), static_class_instance());
 	}
 
+	ObjectViewClient::ObjectViewClient()
+	{
+		menu_bar.create("editor/View")->actions.push([this]() {
+			draw_available_clients_for_opening();
+
+			if (ImGui::MenuItem(PropertyRenderer::static_name(), nullptr, false, m_property_renderer == nullptr))
+			{
+				create_properties_window();
+			}
+		});
+	}
+
 	ObjectViewClient& ObjectViewClient::create_properties_window()
 	{
 		if (m_property_renderer == nullptr)
 		{
 			m_property_renderer = imgui_window()->widgets_list.create<PropertyRenderer>();
 			m_property_renderer->on_close.push([this]() { m_property_renderer = nullptr; });
+
+			if (m_object)
+			{
+				m_property_renderer->update(m_object);
+			}
 		}
 		return *this;
 	}
@@ -42,16 +59,12 @@ namespace Engine
 	ObjectViewClient& ObjectViewClient::select(Object* object)
 	{
 		Super::select(object);
+		m_object = object;
 
 		if (m_property_renderer)
 		{
 			m_property_renderer->update(object);
 		}
-		return *this;
-	}
-
-	ObjectViewClient& ObjectViewClient::render_menu_bar()
-	{
 		return *this;
 	}
 }// namespace Engine

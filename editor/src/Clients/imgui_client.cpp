@@ -86,9 +86,6 @@ namespace Engine
 		if (object_type == nullptr || renderer == nullptr)
 			return false;
 
-		if (!object_type->is_asset() && object_type != Object::static_class_instance())
-			return false;
-
 		m_viewports_map.insert({object_type, renderer});
 		return true;
 	}

@@ -527,6 +527,9 @@ namespace Engine
 		Sampler2D = 21 | META_CombinedImageSampler,
 		Texture2D = 22 | META_Texture,
 		Globals   = 23 | META_UniformBuffer,
+
+		// RW Resources
+		RWTexture2D = 24 | META_RWTexture,
 	};
 
 	declare_enum_operators(ShaderParameterType);

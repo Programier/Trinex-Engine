@@ -406,6 +406,10 @@ namespace Engine
 								object.type = ShaderParameterType::Texture2D;
 								break;
 
+							case slang::BindingType::MutableTexture:
+								object.type = ShaderParameterType::RWTexture2D;
+								break;
+
 							default:
 								return false;
 						}
@@ -906,11 +910,19 @@ namespace Engine
 
 		if (pipeline->is_instance_of<GraphicsPipeline>())
 		{
-			return ctx.compile_graphics(pipeline);
+			if (ctx.compile_graphics(pipeline))
+			{
+				pipeline->init_resource();
+				return true;
+			}
 		}
 		else if (pipeline->is_instance_of<ComputePipeline>())
 		{
-			return ctx.compile_compute(pipeline);
+			if (ctx.compile_compute(pipeline))
+			{
+				pipeline->init_resource();
+				return true;
+			}
 		}
 		return false;
 	}
