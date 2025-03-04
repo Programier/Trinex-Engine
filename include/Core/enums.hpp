@@ -365,6 +365,8 @@ namespace Engine
 		Geometry            = BIT(3),
 		Fragment            = BIT(4),
 		Compute             = BIT(5),
+
+		All = Vertex | TessellationControl | Tessellation | Geometry | Fragment | Compute
 	};
 
 	declare_enum_operators(ShaderType);

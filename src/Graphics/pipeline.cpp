@@ -98,8 +98,7 @@ namespace Engine
 
 	GraphicsPipeline::~GraphicsPipeline()
 	{
-		remove_shaders(ShaderType::Vertex | ShaderType::TessellationControl | ShaderType::Tessellation | ShaderType::Geometry |
-					   ShaderType::Fragment);
+		GraphicsPipeline::remove_shaders(ShaderType::All);
 	}
 
 	static FORCE_INLINE bool init_shader(Shader* shader)
@@ -131,6 +130,19 @@ namespace Engine
 		if (!Super::serialize(ar))
 			return false;
 		return true;
+	}
+
+	Pipeline& Pipeline::clear()
+	{
+		m_rhi_object.reset(nullptr);
+		parameters.clear();
+		remove_shaders(ShaderType::All);
+		return *this;
+	}
+
+	bool Pipeline::shader_source(String& source)
+	{
+		return false;
 	}
 
 	class Material* Pipeline::material() const
@@ -416,6 +428,15 @@ namespace Engine
 		return Pipeline::Type::Graphics;
 	}
 
+	bool GraphicsPipeline::shader_source(String& source)
+	{
+		if (auto mat = material())
+		{
+			return mat->shader_source(source);
+		}
+		return false;
+	}
+
 	bool GraphicsPipeline::serialize(class Archive& archive, Material* material)
 	{
 		static auto serialize_shader_internal = [](Shader* shader, Archive& archive) {
@@ -568,6 +589,17 @@ namespace Engine
 		return Pipeline::Type::Compute;
 	}
 
+	bool ComputePipeline::shader_source(String& source)
+	{
+		FileReader reader(shader_path);
+		if (reader.is_open())
+		{
+			source = reader.read_string();
+			return true;
+		}
+		return false;
+	}
+
 	implement_engine_class(GraphicsPipelineDescription, 0)
 	{
 		auto* self = static_class_instance();
@@ -581,6 +613,11 @@ namespace Engine
 
 	implement_engine_class_default_init(Pipeline, 0);
 	implement_engine_class_default_init(GraphicsPipeline, 0);
-	implement_engine_class_default_init(ComputePipeline, 0);
+
+	implement_engine_class(ComputePipeline, Refl::Class::IsAsset)
+	{
+		auto self = static_class_instance();
+		trinex_refl_prop(self, This, shader_path);
+	}
 
 }// namespace Engine

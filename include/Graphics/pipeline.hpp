@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/pointer.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/structures.hpp>
@@ -106,6 +107,8 @@ namespace Engine
 		const Pipeline& rhi_bind() const;
 		virtual bool serialize(Archive& ar) final override;
 		virtual bool serialize(Archive& ar, Material* material);
+		virtual Pipeline& clear();
+		virtual bool shader_source(String& source);
 
 		virtual Shader* shader(ShaderType type) const                                = 0;
 		virtual Shader* shader(ShaderType type, bool create = false)                 = 0;
@@ -163,6 +166,7 @@ namespace Engine
 		GraphicsPipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
 		GraphicsPipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
 		Type type() const override;
+		bool shader_source(String& source) override;
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 
@@ -173,6 +177,8 @@ namespace Engine
 		ComputeShader* m_shader = nullptr;
 
 	public:
+		Path shader_path;
+
 		ComputePipeline& rhi_init() override;
 		Shader* shader(ShaderType type) const override;
 		Shader* shader(ShaderType type, bool create = false) override;
@@ -180,5 +186,6 @@ namespace Engine
 		ComputePipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
 		ComputePipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
 		Type type() const override;
+		bool shader_source(String& source) override;
 	};
 }// namespace Engine

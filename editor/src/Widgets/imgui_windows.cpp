@@ -23,8 +23,7 @@ namespace Engine
 	ImGui::PopStyleColor()
 
 
-	ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : m_message(msg), m_type(type)
-	{}
+	ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : m_message(msg), m_type(type) {}
 
 	bool ImGuiNotificationMessage::render(RenderViewport* viewport)
 	{
@@ -148,9 +147,9 @@ namespace Engine
 		{
 			for (Refl::Class* class_instance : Refl::Class::asset_classes())
 			{
-				for (auto* filter : filters.callbacks())
+				for (auto& filter : filters)
 				{
-					if ((*filter)(class_instance))
+					if (filter(class_instance))
 					{
 						m_filtered_classes.push_back(class_instance);
 						break;
@@ -525,8 +524,7 @@ namespace Engine
 		return "editor/Spawn Actor"_localized;
 	}
 
-	ImGuiLevelExplorer::ImGuiLevelExplorer(World* world) : m_world(world)
-	{}
+	ImGuiLevelExplorer::ImGuiLevelExplorer(World* world) : m_world(world) {}
 
 	bool ImGuiLevelExplorer::render(RenderViewport* viewport)
 	{

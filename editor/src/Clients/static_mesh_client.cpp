@@ -53,30 +53,6 @@ namespace Engine
 		return *this;
 	}
 
-	StaticMeshClient& StaticMeshClient::render_dock()
-	{
-		auto dock_id                       = ImGui::GetID("StaticMeshClient##Dock");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags | ImGuiDockNodeFlags_NoTabBar);
-
-		if (imgui_window()->frame_index() == 1)
-		{
-
-			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
-
-			auto dock_id_right  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.35f, nullptr, &dock_id);
-			auto dock_id_botton = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.35f, nullptr, &dock_id);
-
-			ImGui::DockBuilderDockWindow("###Viewport", dock_id);
-			ImGui::DockBuilderDockWindow(m_property_renderer.name(), dock_id_right);
-			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_botton);
-			ImGui::DockBuilderFinish(dock_id);
-		}
-		return *this;
-	}
-
 	StaticMeshClient& StaticMeshClient::render_viewport(float dt)
 	{
 		if (!ImGui::Begin("Viewport###Viewport", nullptr))
@@ -103,20 +79,10 @@ namespace Engine
 	StaticMeshClient& StaticMeshClient::update(float dt)
 	{
 		Super::update(dt);
-		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
 
-		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
-		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
-		ImGui::Begin("StaticMeshClient", nullptr,
-					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-							 ImGuiWindowFlags_MenuBar);
-		render_dock();
 		render_viewport(dt);
 		render_properties();
 		update_camera(dt);
-
-		ImGui::End();
 
 		return *this;
 	}
@@ -171,6 +137,17 @@ namespace Engine
 		m_renderer.render(m_view, vp);
 
 		Super::render(vp);
+		return *this;
+	}
+
+	StaticMeshClient& StaticMeshClient::build_dock(uint32_t dock_id)
+	{
+		auto dock_id_right  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.35f, nullptr, &dock_id);
+		auto dock_id_botton = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.35f, nullptr, &dock_id);
+
+		ImGui::DockBuilderDockWindow("###Viewport", dock_id);
+		ImGui::DockBuilderDockWindow(m_property_renderer.name(), dock_id_right);
+		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_botton);
 		return *this;
 	}
 

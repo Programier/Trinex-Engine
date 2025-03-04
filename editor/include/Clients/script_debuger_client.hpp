@@ -8,9 +8,9 @@
 
 namespace Engine
 {
-	class ScriptDebuggerClient : public ImGuiEditorClient
+	class ScriptDebuggerClient : public ImGuiViewportClient
 	{
-		declare_class(ScriptDebuggerClient, ImGuiEditorClient);
+		declare_class(ScriptDebuggerClient, ImGuiViewportClient);
 
 		struct Editor {
 			ImGui::TextEditor m_editor;

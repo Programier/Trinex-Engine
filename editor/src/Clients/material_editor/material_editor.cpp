@@ -40,8 +40,7 @@ namespace Engine
 	class ImGuiMaterialPreview : public ImGuiWidget
 	{
 	public:
-		void init(RenderViewport* viewport)
-		{}
+		void init(RenderViewport* viewport) {}
 
 		bool render(RenderViewport* viewport)
 		{
@@ -51,25 +50,17 @@ namespace Engine
 			return is_open;
 		}
 
-		static const char* name()
-		{
-			return static_name();
-		}
+		static const char* name() { return static_name(); }
 
-		static const char* static_name()
-		{
-			return "editor/MaterialPreview"_localized;
-		}
+		static const char* static_name() { return "editor/MaterialPreview"_localized; }
 	};
-
 
 	class ImGuiMaterialCode : public ImGuiWidget
 	{
 	public:
 		String code;
 
-		void init(RenderViewport* viewport)
-		{}
+		void init(RenderViewport* viewport) {}
 
 		bool render(RenderViewport* viewport)
 		{
@@ -82,29 +73,17 @@ namespace Engine
 			return is_open;
 		}
 
-		virtual const char* name() const
-		{
-			return static_name();
-		}
+		virtual const char* name() const { return static_name(); }
 
-		static const char* static_name()
-		{
-			return "editor/Material Code"_localized;
-		}
+		static const char* static_name() { return "editor/Material Code"_localized; }
 	};
 
 	class ImGuiNodeProperties : public PropertyRenderer
 	{
 	public:
-		const char* name() const override
-		{
-			return static_name();
-		}
+		const char* name() const override { return static_name(); }
 
-		static const char* static_name()
-		{
-			return "editor/Node Properties"_localized;
-		}
+		static const char* static_name() { return "editor/Node Properties"_localized; }
 	};
 
 	MaterialEditorClient::MaterialEditorClient()
@@ -112,6 +91,70 @@ namespace Engine
 		ax::NodeEditor::Config config;
 		config.SettingsFile    = nullptr;
 		m_graph_editor_context = ax::NodeEditor::CreateEditor(&config);
+
+		menu_bar.create("editor/View")->actions.push([this]() {
+			draw_available_clients_for_opening();
+
+			if (ImGui::BeginMenu("editor/Material Editor"))
+			{
+				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
+				{
+					create_content_browser();
+				}
+
+				if (ImGui::MenuItem("editor/Open Material Code"_localized, nullptr, nullptr, m_material_code == nullptr))
+				{
+					create_material_code_window();
+				}
+				ImGui::EndMenu();
+			}
+		});
+
+		menu_bar.create("editor/Edit")->actions.push([]() {
+			if (ImGui::MenuItem("editor/Reload localization"_localized))
+			{
+				Localization::instance()->reload();
+			}
+
+			if (ImGui::BeginMenu("editor/Change language"_localized))
+			{
+				for (const String& lang : Settings::languages)
+				{
+					const char* localized = Object::localize("editor/" + lang).c_str();
+					if (ImGui::MenuItem(localized))
+					{
+						Object::language(lang);
+						break;
+					}
+				}
+
+				ImGui::EndMenu();
+			}
+		});
+
+		menu_bar.create("editor/Material")->actions.push([this]() {
+			if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr))
+			{
+				if (auto compiler = MaterialCompiler::instance())
+				{
+					compiler->compile(m_material);
+				}
+				else
+				{
+					error_log("MaterialEditor", "Failed to get material compiler");
+				}
+			}
+
+			if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))
+			{
+				m_material->apply_changes();
+			}
+
+			if (ImGui::MenuItem("Update Source", nullptr, false, m_material != nullptr && m_material_code != nullptr))
+			{
+				m_material->shader_source(m_material_code->code);
+			}
+		});
 	}
 
 	MaterialEditorClient::~MaterialEditorClient()
@@ -207,129 +250,10 @@ namespace Engine
 			m_node_properties_window->update(m_selected_node);
 	}
 
-	void MaterialEditorClient::render_dock_window()
-	{
-		auto dock_id                       = ImGui::GetID("MaterialEditorDock##Dock");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("editor/View"_localized))
-			{
-				draw_available_clients_for_opening();
-
-				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
-				{
-					create_content_browser();
-				}
-
-				if (ImGui::MenuItem("editor/Open Material Code"_localized, nullptr, nullptr, m_material_code == nullptr))
-				{
-					create_material_code_window();
-				}
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("editor/Edit"_localized))
-			{
-				if (ImGui::MenuItem("editor/Reload localization"_localized))
-				{
-					Localization::instance()->reload();
-				}
-
-				if (ImGui::BeginMenu("editor/Change language"_localized))
-				{
-					for (const String& lang : Settings::languages)
-					{
-						const char* localized = Object::localize("editor/" + lang).c_str();
-						if (ImGui::MenuItem(localized))
-						{
-							Object::language(lang);
-							break;
-						}
-					}
-
-					ImGui::EndMenu();
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("editor/Material"_localized))
-			{
-				if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr))
-				{
-					if (auto compiler = MaterialCompiler::instance())
-					{
-						compiler->compile(m_material);
-					}
-					else
-					{
-						error_log("MaterialEditor", "Failed to get material compiler");
-					}
-				}
-
-				if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))
-				{
-					m_material->apply_changes();
-				}
-
-				if (ImGui::MenuItem("Update Source", nullptr, false, m_material != nullptr && m_material_code != nullptr))
-				{
-					m_material->shader_source(m_material_code->code);
-				}
-				ImGui::EndMenu();
-			}
-
-
-			ImGui::EndMenuBar();
-		}
-
-		if (ImGui::IsWindowAppearing())
-		{
-			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
-
-			auto dock_id_down      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
-			auto dock_id_left      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
-			auto dock_id_left_up   = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Up, 0.5f, nullptr, &dock_id_left);
-			auto dock_id_left_down = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.5f, nullptr, &dock_id_left);
-			auto dock_id_right     = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.2f, nullptr, &dock_id);
-
-			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
-			ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::static_name(), dock_id_left_up);
-			ImGui::DockBuilderDockWindow(ImGuiNodeProperties::static_name(), dock_id_left_down);
-			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
-			ImGui::DockBuilderDockWindow("###Material Source", dock_id);
-
-			ImGui::DockBuilderFinish(dock_id);
-		}
-	}
-
 	MaterialEditorClient& MaterialEditorClient::update(float dt)
 	{
 		Super::update(dt);
 
-		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
-		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
-
-		ImGui::Begin("MaterialEditorDock", nullptr,
-		             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-		                     ImGuiWindowFlags_MenuBar);
-		render_dock_window();
-
-		render_viewport(dt);
-
-		ImGui::End();
-		return *this;
-	}
-
-	MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
-	{
 		ImGui::Begin("editor/Material Source###Material Source"_localized);
 		render_visual_material_graph(Object::instance_cast<VisualMaterial>(m_material));
 		ImGui::End();
@@ -342,8 +266,23 @@ namespace Engine
 		return *this;
 	}
 
-	void MaterialEditorClient::on_object_dropped(Object* object)
-	{}
+	MaterialEditorClient& MaterialEditorClient::build_dock(uint32_t dock)
+	{
+		auto dock_id_down      = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Down, 0.3f, nullptr, &dock);
+		auto dock_id_left      = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.2f, nullptr, &dock);
+		auto dock_id_left_up   = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Up, 0.5f, nullptr, &dock_id_left);
+		auto dock_id_left_down = ImGui::DockBuilderSplitNode(dock_id_left, ImGuiDir_Down, 0.5f, nullptr, &dock_id_left);
+		auto dock_id_right     = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Right, 0.2f, nullptr, &dock);
+
+		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
+		ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::static_name(), dock_id_left_up);
+		ImGui::DockBuilderDockWindow(ImGuiNodeProperties::static_name(), dock_id_left_down);
+		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
+		ImGui::DockBuilderDockWindow("###Material Source", dock);
+		return *this;
+	}
+
+	void MaterialEditorClient::on_object_dropped(Object* object) {}
 
 	MaterialEditorClient& MaterialEditorClient::update_drag_and_drop()
 	{

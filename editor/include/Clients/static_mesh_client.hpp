@@ -12,9 +12,9 @@ namespace Engine
 	class World;
 	class StaticMeshActor;
 
-	class StaticMeshClient : public ImGuiEditorClient
+	class StaticMeshClient : public ImGuiViewportClient
 	{
-		declare_class(StaticMeshClient, ImGuiEditorClient);
+		declare_class(StaticMeshClient, ImGuiViewportClient);
 
 		Vector3f m_camera_move;
 		Vector<Identifier> m_listeners;
@@ -28,7 +28,6 @@ namespace Engine
 		SceneView m_view;
 		Renderer<EditorSceneRenderer> m_renderer;
 
-		StaticMeshClient& render_dock();
 		StaticMeshClient& render_viewport(float dt);
 		StaticMeshClient& render_properties();
 		StaticMeshClient& update_camera(float dt);
@@ -39,5 +38,6 @@ namespace Engine
 		StaticMeshClient& update(float dt) override;
 		StaticMeshClient& select(Object* object) override;
 		StaticMeshClient& render(RenderViewport* vp) override;
+		StaticMeshClient& build_dock(uint32_t dock_id) override;
 	};
 }// namespace Engine

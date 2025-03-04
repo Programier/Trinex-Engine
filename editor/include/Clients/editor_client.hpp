@@ -24,9 +24,9 @@ namespace Engine
 		EditorState();
 	};
 
-	class EditorClient : public ImGuiEditorClient
+	class EditorClient : public ImGuiViewportClient
 	{
-		declare_class(EditorClient, ImGuiEditorClient);
+		declare_class(EditorClient, ImGuiViewportClient);
 
 	private:
 		class World* m_world = nullptr;
@@ -55,7 +55,8 @@ namespace Engine
 		void on_actor_unselect(World* world, class Actor* actor);
 
 	public:
-		// Window manipulation
+		EditorClient();
+
 		EditorClient& create_content_browser();
 		EditorClient& create_properties_window();
 		EditorClient& create_level_explorer();
@@ -65,10 +66,10 @@ namespace Engine
 		EditorClient& render(class RenderViewport* viewport) override;
 		EditorClient& update(float dt) override;
 
+		EditorClient& build_dock(uint32_t dock_id) override;
 		EditorClient& render_viewport_window(float dt);
 		EditorClient& render_guizmo(float dt);
 		EditorClient& render_viewport_menu();
-		EditorClient& render_dock_window(float dt);
 		EditorClient& render_statistics(float dt);
 
 		EditorClient& on_object_dropped(Object* object);

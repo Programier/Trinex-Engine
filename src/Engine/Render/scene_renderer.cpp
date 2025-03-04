@@ -36,10 +36,7 @@ namespace Engine
 			uniform_buffer->update(0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&storage));
 		}
 
-		~GlobalUniformBuffer()
-		{
-			uniform_buffer->release();
-		}
+		~GlobalUniformBuffer() { uniform_buffer->release(); }
 	};
 
 	class GlobalShaderParametersManager
@@ -91,10 +88,7 @@ namespace Engine
 			return m_current;
 		}
 
-		GlobalUniformBuffer* current()
-		{
-			return m_current;
-		}
+		GlobalUniformBuffer* current() { return m_current; }
 
 		GlobalShaderParametersManager& reset()
 		{
@@ -102,7 +96,7 @@ namespace Engine
 			{
 				m_uniform_buffers.push_back(buffer);
 			}
-			m_uniform_buffers.clear();
+			m_used_buffers.clear();
 			return *this;
 		}
 
@@ -120,8 +114,7 @@ namespace Engine
 		}
 	};
 
-	SceneRenderer::SceneRenderer() : m_global_shader_params(new GlobalShaderParametersManager()), scene(nullptr)
-	{}
+	SceneRenderer::SceneRenderer() : m_global_shader_params(new GlobalShaderParametersManager()), scene(nullptr) {}
 
 	SceneRenderer& SceneRenderer::initialize()
 	{

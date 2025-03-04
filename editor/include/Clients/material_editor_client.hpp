@@ -21,9 +21,9 @@ namespace Engine
 		class Node;
 	}
 
-	class MaterialEditorClient : public ImGuiEditorClient
+	class MaterialEditorClient : public ImGuiViewportClient
 	{
-		declare_class(MaterialEditorClient, ImGuiEditorClient);
+		declare_class(MaterialEditorClient, ImGuiViewportClient);
 
 	public:
 		struct GraphState {
@@ -68,11 +68,10 @@ namespace Engine
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(float dt) override;
+		MaterialEditorClient& build_dock(uint32_t dock) override;
 
-		void render_dock_window();
 		void* editor_context() const;
 		MaterialEditorClient& update_drag_and_drop();
-		MaterialEditorClient& render_viewport(float dt);
 		MaterialEditorClient& render_visual_material_graph(class VisualMaterial* material);
 	};
 }// namespace Engine

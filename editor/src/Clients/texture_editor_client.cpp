@@ -48,80 +48,51 @@ namespace Engine
 		m_surface->init(ColorFormat::R8G8B8A8, {1, 1});
 
 		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
-	}
 
-	TextureEditorClient& TextureEditorClient::render_menu_bar()
-	{
-		ImGui::BeginMainMenuBar();
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		menu_bar.create("")->actions.push([this]() {
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-		static ImU32 colors[4] = {IM_COL32(255, 0, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(0, 0, 255, 255),
-		                          IM_COL32(255, 255, 255, 255)};
+			static ImU32 colors[4] = {IM_COL32(255, 0, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(0, 0, 255, 255),
+									  IM_COL32(255, 255, 255, 255)};
 
-		float height                       = ImGui::GetContentRegionAvail().y;
-		static const char* channel_names[] = {"###red", "###green", "###blue", "###alpha"};
+			float height                       = ImGui::GetContentRegionAvail().y;
+			static const char* channel_names[] = {"###red", "###green", "###blue", "###alpha"};
 
-		for (int i = 0; const char* name : channel_names)
-		{
-			if (ImGui::Selectable(name, m_channels_status[i], 0, {height, height}))
+			for (int i = 0; const char* name : channel_names)
 			{
-				m_channels_status[i] = !m_channels_status[i];
+				if (ImGui::Selectable(name, m_channels_status[i], 0, {height, height}))
+				{
+					m_channels_status[i] = !m_channels_status[i];
+					on_object_parameters_changed();
+				}
+
+				auto min = ImGui::GetItemRectMin();
+				auto max = ImGui::GetItemRectMax();
+
+				auto center = (max + min) * 0.5f;
+
+				if (m_channels_status[i])
+					draw_list->AddCircleFilled(center, height / 2.f, colors[i]);
+				else
+					draw_list->AddCircle(center, height / 2.f, colors[i], 0, 2.f);
+
+				++i;
+			}
+
+			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+			if (ImGui::InputFloat("Pow", &m_pow))
+			{
+				m_pow = glm::clamp(m_pow, 0.001f, 100.f);
 				on_object_parameters_changed();
 			}
 
-			auto min = ImGui::GetItemRectMin();
-			auto max = ImGui::GetItemRectMax();
-
-			auto center = (max + min) * 0.5f;
-
-			if (m_channels_status[i])
-				draw_list->AddCircleFilled(center, height / 2.f, colors[i]);
-			else
-				draw_list->AddCircle(center, height / 2.f, colors[i], 0, 2.f);
-
-			++i;
-		}
-
-		ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
-		if (ImGui::InputFloat("Pow", &m_pow))
-		{
-			m_pow = glm::clamp(m_pow, 0.001f, 100.f);
-			on_object_parameters_changed();
-		}
-
-		ImGui::Checkbox("Live Update", &m_live_update);
-
-		ImGui::EndMainMenuBar();
-		return *this;
-	}
-
-	TextureEditorClient& TextureEditorClient::render_dock()
-	{
-		auto dock_id                       = ImGui::GetID("TextureEditorDock##Dock");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags | ImGuiDockNodeFlags_NoTabBar);
-
-		if (imgui_window()->frame_index() == 1)
-		{
-
-			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
-
-			auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
-
-			ImGui::DockBuilderDockWindow("###texture", dock_id);
-			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
-
-			ImGui::DockBuilderFinish(dock_id);
-		}
-
-		return *this;
+			ImGui::Checkbox("Live Update", &m_live_update);
+		});
 	}
 
 	TextureEditorClient& TextureEditorClient::render_texture()
 	{
-		ImGui::Begin("###texture");
+		ImGui::Begin("Texture View###texture");
 		if (m_surface->has_object())
 		{
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
@@ -209,21 +180,7 @@ namespace Engine
 	TextureEditorClient& TextureEditorClient::update(float dt)
 	{
 		Super::update(dt);
-
-		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
-
-		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
-		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
-
-		ImGui::Begin("Texture Editor", nullptr,
-		             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
-
-		render_menu_bar();
-		render_dock();
 		render_texture();
-
-		ImGui::End();
 
 		if (m_live_update)
 			on_object_parameters_changed();
@@ -247,6 +204,14 @@ namespace Engine
 			on_object_parameters_changed(true);
 			m_live_update = texture->is_instance_of<RenderSurface>();
 		}
+		return *this;
+	}
+
+	TextureEditorClient& TextureEditorClient::build_dock(uint32_t dock_id)
+	{
+		auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
+		ImGui::DockBuilderDockWindow("Texture View###texture", dock_id);
+		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
 		return *this;
 	}
 }// namespace Engine

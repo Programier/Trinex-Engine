@@ -144,7 +144,7 @@ namespace Engine
 												 slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
-		Pipeline* out;
+		Pipeline* pipeline;
 
 		static bool has_attribute(slang::VariableReflection* var, const char* attribute, size_t args = 0)
 		{
@@ -313,7 +313,7 @@ namespace Engine
 				attribute.location       = var->getBindingIndex();
 				attribute.stream_index   = attribute.location;
 				attribute.offset         = 0;
-				Object::instance_cast<GraphicsPipeline>(out)->vertex_shader()->attributes.push_back(attribute);
+				Object::instance_cast<GraphicsPipeline>(pipeline)->vertex_shader()->attributes.push_back(attribute);
 			}
 			else
 			{
@@ -377,10 +377,10 @@ namespace Engine
 					return false;
 				}
 
-				info.name                  = param.name;
-				info.offset                = param.trace_offset(slang::ParameterCategory::Uniform);
-				info.location              = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
-				out->parameters[info.name] = info;
+				info.name                       = param.name;
+				info.offset                     = param.trace_offset(slang::ParameterCategory::Uniform);
+				info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+				pipeline->parameters[info.name] = info;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind))
 			{
@@ -410,7 +410,7 @@ namespace Engine
 								return false;
 						}
 
-						out->parameters[object.name] = object;
+						pipeline->parameters[object.name] = object;
 					}
 				}
 			}
@@ -432,12 +432,12 @@ namespace Engine
 				if (is_global_parameters(layout))
 				{
 					ShaderParameterInfo object;
-					object.name                  = param.name;
-					object.location              = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
-					object.type                  = ShaderParameterType::Globals;
-					object.size                  = sizeof(GlobalShaderParameters);
-					object.offset                = 0;
-					out->parameters[object.name] = object;
+					object.name                       = param.name;
+					object.location                   = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
+					object.type                       = ShaderParameterType::Globals;
+					object.size                       = sizeof(GlobalShaderParameters);
+					object.offset                     = 0;
+					pipeline->parameters[object.name] = object;
 				}
 				else
 				{
@@ -454,15 +454,14 @@ namespace Engine
 			return true;
 		}
 
-		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* pipeline)
+		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* out)
 		{
 			CompileLogHandler log_handler;
-			out = pipeline;
+			pipeline = out;
 
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
 			{
-				Object::instance_cast<GraphicsPipeline>(out)->vertex_shader()->attributes.clear();
 				uint32_t parameter_count = entry_point->getParameterCount();
 				for (uint32_t i = 0; i < parameter_count; i++)
 				{
@@ -566,68 +565,9 @@ namespace Engine
 	implement_class_default_init(Engine::NONE_MaterialCompiler, 0);
 	implement_class_default_init(Engine::D3D11_MaterialCompiler, 0);
 
-	SLANG_MaterialCompiler::Context::Context(SLANG_MaterialCompiler* compiler, Material* material, Refl::RenderPassInfo* pass)
-		: compiler(compiler), prev_ctx(compiler->m_ctx), material(material), pass(pass)
+	SLANG_MaterialCompiler::Context::Context(SLANG_MaterialCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
 	{
 		compiler->m_ctx = this;
-	}
-
-	Refl::Class* SLANG_MaterialCompiler::Context::static_find_pipeline_class(ShaderInfo* infos)
-	{
-		const bool graphics = static_cast<bool>(infos[0].entry) && static_cast<bool>(infos[4].entry);
-		const bool compute  = static_cast<bool>(infos[5].entry);
-
-		if (graphics && compute)
-		{
-			error_log("MaterialCompiler", "Ambigous pipeline type");
-			return nullptr;
-		}
-
-		if (graphics)
-		{
-			infos[5].index = -1;
-			infos[5].entry.setNull();
-			return GraphicsPipeline::static_class_instance();
-		}
-		else if (compute)
-		{
-			for (int i = 0; i < 5; ++i)
-			{
-				infos[i].index = -1;
-				infos[i].entry.setNull();
-			}
-			return ComputePipeline::static_class_instance();
-		}
-
-		return nullptr;
-	}
-
-	Pipeline* SLANG_MaterialCompiler::Context::create_pipeline(Refl::Class* pipeline_class)
-	{
-		Pipeline* pipeline = material->pipeline(pass);
-
-		if (pipeline && pipeline->class_instance() == pipeline_class)
-		{
-			material->remove_pipeline(pass);
-			pipeline->parameters.clear();
-			return pipeline;
-		}
-
-		Name name      = pass ? pass->name() : "Default";
-		Object* object = pipeline_class->create_object(name);
-
-		if ((pipeline = instance_cast<Pipeline>(object)))
-		{
-			return pipeline;
-		}
-
-		error_log("MaterialCompiler", "Failed to create pipeline!");
-
-		if (object)
-		{
-			GarbageCollector::destroy(object);
-		}
-		return nullptr;
 	}
 
 	bool SLANG_MaterialCompiler::Context::initialize(const String& source)
@@ -653,19 +593,6 @@ namespace Engine
 			compile_request->addSearchPath(include_dir.c_str());
 		}
 
-		for (auto& definition : material->compile_definitions)
-		{
-			add_definition(definition);
-		}
-
-		if (pass)
-		{
-			for (auto& definition : pass->shader_definitions())
-			{
-				add_definition(definition);
-			}
-		}
-
 		unit = compile_request->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
 		compile_request->addTranslationUnitSourceString(unit, "main_unit_source", source.c_str());
 
@@ -673,23 +600,8 @@ namespace Engine
 		return true;
 	}
 
-	Pipeline* SLANG_MaterialCompiler::Context::compile()
+	bool SLANG_MaterialCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
-		static auto error_pipeline = [](Pipeline* pipeline) -> Pipeline* {
-			GarbageCollector::destroy(pipeline);
-			return nullptr;
-		};
-
-		ShaderInfo shader_infos[] = {
-				{ShaderType::Vertex, "vs_main", {}, -1},              //
-				{ShaderType::TessellationControl, "tsc_main", {}, -1},//
-				{ShaderType::Tessellation, "ts_main", {}, -1},        //
-				{ShaderType::Geometry, "gs_main", {}, -1},            //
-				{ShaderType::Fragment, "fs_main", {}, -1},            //
-				{ShaderType::Compute, "cs_main", {}, -1},             //
-		};
-
-
 		// Compile source
 		auto compile_result = compile_request->compile();
 
@@ -703,7 +615,7 @@ namespace Engine
 				}
 			}
 
-			return nullptr;
+			return false;
 		}
 		else if (auto diagnostics = compile_request->getDiagnosticOutput())
 		{
@@ -719,8 +631,10 @@ namespace Engine
 		compile_request->getModule(unit, slang_module.writeRef());
 		component_types.push_back(slang_module);
 
-		for (auto& info : shader_infos)
+		for (size_t i = 0; i < infos_len; ++i)
 		{
+			auto& info = infos[i];
+
 			slang_module->findEntryPointByName(info.entry_name, info.entry.writeRef());
 
 			if (info.entry)
@@ -730,10 +644,8 @@ namespace Engine
 			}
 		}
 
-		Refl::Class* pipeline_class = static_find_pipeline_class(shader_infos);
-
-		if (pipeline_class == nullptr)
-			return nullptr;
+		if (!checker(infos))
+			return false;
 
 		Slang::ComPtr<slang::IComponentType> composite;
 		{
@@ -747,7 +659,7 @@ namespace Engine
 			}
 
 			if (SLANG_FAILED(result))
-				return nullptr;
+				return false;
 		}
 
 		Slang::ComPtr<slang::IComponentType> program;
@@ -761,19 +673,13 @@ namespace Engine
 			}
 
 			if (SLANG_FAILED(result))
-				return nullptr;
+				return false;
 		}
 
-		// Construct pipeline
-		Pipeline* pipeline = create_pipeline(pipeline_class);
-
-		if (pipeline == nullptr)
-			return nullptr;
-
-		ShaderType remove_shader = ShaderType::Undefined;
-
-		for (auto& info : shader_infos)
+		for (size_t i = 0; i < infos_len; ++i)
 		{
+			auto& info = infos[i];
+
 			if (info.index != -1)
 			{
 				Slang::ComPtr<slang::IBlob> result_code;
@@ -788,7 +694,7 @@ namespace Engine
 				}
 
 				if (SLANG_FAILED(result))
-					return error_pipeline(pipeline);
+					return false;
 
 				if (auto shader = pipeline->shader(info.type, true))
 				{
@@ -798,18 +704,9 @@ namespace Engine
 				else
 				{
 					error_log("MaterialCompiler", "Failed to create shader");
-					return error_pipeline(pipeline);
+					return false;
 				}
 			}
-			else
-			{
-				remove_shader |= info.type;
-			}
-		}
-
-		if (remove_shader != ShaderType::Undefined)
-		{
-			pipeline->remove_shaders(remove_shader);
 		}
 
 		// Generate reflection
@@ -825,16 +722,96 @@ namespace Engine
 			if (!reflection)
 			{
 				error_log("ShaderCompiler", "Failed to get shader reflection!");
-				return error_pipeline(pipeline);
+				return false;
 			}
 
 			ReflectionParser parser;
 
 			if (!parser.create_reflection(reflection, pipeline))
-				return error_pipeline(pipeline);
+				return false;
 		}
 
 		return pipeline;
+	}
+
+	bool SLANG_MaterialCompiler::Context::compile_graphics(Material* material, Refl::RenderPassInfo* pass)
+	{
+		if (material)
+		{
+			for (auto& definition : material->compile_definitions)
+			{
+				add_definition(definition);
+			}
+		}
+
+		if (pass)
+		{
+			for (auto& definition : pass->shader_definitions())
+			{
+				add_definition(definition);
+			}
+		}
+
+		Pipeline* pipeline      = material->remove_pipeline(pass);
+		const bool new_pipeline = pipeline;
+
+		if (new_pipeline)
+		{
+			String name = pass ? pass->name() : "Default";
+			pipeline    = new_instance<GraphicsPipeline>(name);
+		}
+		else
+		{
+			pipeline->clear();
+		}
+
+		if (compile_graphics(pipeline))
+		{
+			material->add_pipeline(pass, pipeline);
+			pipeline->init_resource();
+			return true;
+		}
+
+		if (new_pipeline)
+		{
+			GarbageCollector::destroy(pipeline);
+		}
+
+		return false;
+	}
+
+	bool SLANG_MaterialCompiler::Context::compile_graphics(Pipeline* pipeline)
+	{
+		ShaderInfo shader_infos[] = {
+				{ShaderType::Vertex, "vs_main", {}, -1},              //
+				{ShaderType::TessellationControl, "tsc_main", {}, -1},//
+				{ShaderType::Tessellation, "ts_main", {}, -1},        //
+				{ShaderType::Geometry, "gs_main", {}, -1},            //
+				{ShaderType::Fragment, "fs_main", {}, -1},            //
+		};
+
+		CheckStages checker = [](ShaderInfo* infos) -> bool {
+			bool result = infos[0].index != -1 && infos[4].index != -1;
+			if (!result)
+				error_log("MaterialCompiler", "Graphics pipeline is not valid!");
+			return result;
+		};
+
+		return compile(shader_infos, 5, pipeline, checker);
+	}
+
+	bool SLANG_MaterialCompiler::Context::compile_compute(Pipeline* pipeline)
+	{
+		ShaderInfo shader_infos[] = {{ShaderType::Compute, "cs_main", {}, -1}};
+
+		CheckStages checker = [](ShaderInfo* infos) -> bool {
+			bool result = infos[0].index != -1;
+			if (!result)
+				error_log("MaterialCompiler", "Compute pipeline is not valid!");
+			return result;
+		};
+
+		return compile(shader_infos, 1, pipeline, checker);
 	}
 
 	SLANG_MaterialCompiler::Context::~Context()
@@ -912,20 +889,29 @@ namespace Engine
 
 	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
 	{
-		Context ctx(this, material, pass);
+		Context ctx(this);
 
 		if (!ctx.initialize(source))
 			return false;
 
-		Pipeline* pipeline = ctx.compile();
+		return ctx.compile_graphics(material, pass);
+	}
 
-		if (pipeline)
+	bool SLANG_MaterialCompiler::compile(const String& source, Pipeline* pipeline)
+	{
+		Context ctx(this);
+
+		if (!ctx.initialize(source))
+			return false;
+
+		if (pipeline->is_instance_of<GraphicsPipeline>())
 		{
-			material->add_pipeline(pass, pipeline);
-			pipeline->init_resource();
-			return true;
+			return ctx.compile_graphics(pipeline);
 		}
-
+		else if (pipeline->is_instance_of<ComputePipeline>())
+		{
+			return ctx.compile_compute(pipeline);
+		}
 		return false;
 	}
 

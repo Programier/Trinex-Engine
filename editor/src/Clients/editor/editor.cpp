@@ -43,6 +43,70 @@ namespace Engine
 		register_client(Actor::static_class_instance(), static_class_instance());
 	}
 
+	EditorClient::EditorClient()
+	{
+		menu_bar.create("editor/View")->actions.push([this]() {
+			draw_available_clients_for_opening();
+
+			if (ImGui::BeginMenu("editor/Editor"_localized))
+			{
+				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
+				{
+					create_content_browser();
+				}
+
+				if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
+				{
+					create_properties_window();
+				}
+				ImGui::EndMenu();
+			}
+		});
+
+		menu_bar.create("editor/Edit")->actions.push([]() {
+			if (ImGui::MenuItem("editor/Reload localization"_localized))
+			{
+				Localization::instance()->reload();
+			}
+
+			if (ImGui::BeginMenu("editor/Change language"_localized))
+			{
+				for (const String& lang : Settings::languages)
+				{
+					const char* localized = Object::localize("editor/" + lang).c_str();
+					if (ImGui::MenuItem(localized))
+					{
+						Object::language(lang);
+						break;
+					}
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::SliderFloat("Screen Percentage", &Settings::screen_percentage, 0.f, 2.f);
+		});
+
+		menu_bar.create("editor/Import")->actions.push([this]() {
+			bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
+			if (ImGui::MenuItem("editor/Import resource"_localized,
+								"editor/Import resource from file to selected package"_localized, false, enable_import))
+			{
+				Package* package = m_content_browser->selected_package();
+				imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
+						[package](const Path& path) { Importer::import_resource(package, path); });
+			}
+		});
+
+		menu_bar.create("")->actions.push([this]() {
+			ImGui::Text("FPS: %.2f\n", m_average_fps.average());
+			ImGui::Spacing();
+			ImGui::Text("RHI: %s\n", rhi->info.name.c_str());
+			ImGui::Spacing();
+			ImGui::Text("GPU: %s\n", rhi->info.renderer.c_str());
+		});
+	}
+
 	EditorClient& EditorClient::create_content_browser()
 	{
 		m_content_browser = imgui_window()->widgets_list.create<ContentBrowser>();
@@ -132,6 +196,7 @@ namespace Engine
 
 		return *this;
 	}
+
 	void EditorClient::on_actor_select(World* world, class Actor* actor)
 	{
 		if (m_properties)
@@ -181,103 +246,6 @@ namespace Engine
 		return *this;
 	}
 
-	EditorClient& EditorClient::render_dock_window(float dt)
-	{
-		auto dock_id                       = ImGui::GetID("EditorDock##Dock");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::BeginMenu("editor/View"_localized))
-			{
-				draw_available_clients_for_opening();
-
-				if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
-				{
-					create_content_browser();
-				}
-
-				if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
-				{
-					create_properties_window();
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("editor/Edit"_localized))
-			{
-				if (ImGui::MenuItem("editor/Reload localization"_localized))
-				{
-					Localization::instance()->reload();
-				}
-
-				if (ImGui::BeginMenu("editor/Change language"_localized))
-				{
-					for (const String& lang : Settings::languages)
-					{
-						const char* localized = Object::localize("editor/" + lang).c_str();
-						if (ImGui::MenuItem(localized))
-						{
-							Object::language(lang);
-							break;
-						}
-					}
-
-					ImGui::EndMenu();
-				}
-
-				ImGui::SliderFloat("Screen Percentage", &Settings::screen_percentage, 0.f, 2.f);
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("editor/Import"_localized))
-			{
-				bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
-				if (ImGui::MenuItem("editor/Import resource"_localized,
-									"editor/Import resource from file to selected package"_localized, false, enable_import))
-				{
-					Package* package = m_content_browser->selected_package();
-					imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
-							[package](const Path& path) { Importer::import_resource(package, path); });
-				}
-
-				ImGui::EndMenu();
-			}
-
-			ImGui::Text("FPS: %.2f\n", m_average_fps.average());
-			ImGui::Spacing();
-			ImGui::Text("RHI: %s\n", rhi->info.name.c_str());
-			ImGui::Spacing();
-			ImGui::Text("GPU: %s\n", rhi->info.renderer.c_str());
-			ImGui::EndMenuBar();
-		}
-
-		if (imgui_window()->frame_index() == 1)
-		{
-			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
-
-			auto dock_id_right      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
-			auto dock_id_right_up   = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
-			auto dock_id_right_down = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
-
-			auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
-
-			ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
-			ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
-			ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
-			ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport").c_str(), dock_id);
-
-			ImGui::DockBuilderFinish(dock_id);
-		}
-
-		return *this;
-	}
-
 	EditorClient& EditorClient::render_statistics(float dt)
 	{
 		ImGui::BeginVertical(1, ImGui::GetContentRegionAvail() - ImVec2(100, 0.f), 1.f);
@@ -294,20 +262,8 @@ namespace Engine
 	EditorClient& EditorClient::update(float dt)
 	{
 		m_average_fps.push(1.0 / dt);
-		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
-
-		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
-		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
-		ImGui::Begin("EditorDock", nullptr,
-					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-							 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
-							 ImGuiWindowFlags_MenuBar);
-		render_dock_window(dt);
-
 		update_camera(dt);
 		render_viewport_window(dt);
-
-		ImGui::End();
 
 		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
 		{
@@ -515,6 +471,21 @@ namespace Engine
 		return *this;
 	}
 
+	EditorClient& EditorClient::build_dock(uint32_t dock_id)
+	{
+		auto dock_id_right      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
+		auto dock_id_right_up   = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
+		auto dock_id_right_down = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
+
+		auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
+
+		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
+		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
+		ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
+		ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport").c_str(), dock_id);
+		return *this;
+	}
+
 	EditorClient& EditorClient::render_viewport_window(float dt)
 	{
 		if (!ImGui::Begin(Object::localize("editor/Viewport").c_str(), nullptr))
@@ -639,8 +610,7 @@ namespace Engine
 			SceneView& out;
 			ShowFlags show_flags;
 
-			UpdateView(const CameraView& in, SceneView& out, ShowFlags show_flags) : view(in), out(out), show_flags(show_flags)
-			{}
+			UpdateView(const CameraView& in, SceneView& out, ShowFlags show_flags) : view(in), out(out), show_flags(show_flags) {}
 
 			void execute() override
 			{

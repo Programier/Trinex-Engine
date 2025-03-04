@@ -28,21 +28,21 @@ namespace Engine
 				int32_t index = -1;
 			};
 
+			using CheckStages = bool (*)(ShaderInfo*);
+
 			Slang::ComPtr<slang::ISession> session;
 			Slang::ComPtr<SlangCompileRequest> compile_request;
 			SLANG_MaterialCompiler* const compiler;
 			Context* const prev_ctx;
-			Material* const material;
-			Refl::RenderPassInfo* const pass;
 			int32_t unit = 0;
 
 		public:
-			static Refl::Class* static_find_pipeline_class(ShaderInfo* infos);
-			Pipeline* create_pipeline(Refl::Class* pipeline_class);
-
-			Context(SLANG_MaterialCompiler* compiler, Material* material, Refl::RenderPassInfo* pass);
+			Context(SLANG_MaterialCompiler* compiler);
 			bool initialize(const String& source);
-			Pipeline* compile();
+			bool compile(ShaderInfo* infos, size_t len, Pipeline* pipeline, CheckStages checker);
+			bool compile_graphics(Material* material, Refl::RenderPassInfo* pass);
+			bool compile_graphics(Pipeline* pipeline);
+			bool compile_compute(Pipeline* pipeline);
 
 			FORCE_INLINE void add_definition(const char* key, const char* value)
 			{
@@ -67,6 +67,7 @@ namespace Engine
 		bool compile(Material* material) override;
 		bool compile_pass(Material* material, Refl::RenderPassInfo* pass) override;
 		bool compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source);
+		bool compile(const String& source, Pipeline* pipeline) override;
 	};
 
 	class NONE_MaterialCompiler : public Singletone<NONE_MaterialCompiler, SLANG_MaterialCompiler>

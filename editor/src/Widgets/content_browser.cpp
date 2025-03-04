@@ -177,9 +177,9 @@ namespace Engine
 
 		if (!in_filter)
 		{
-			for (auto* callback : filters.callbacks())
+			for (auto& callback : filters)
 			{
-				in_filter = (*callback)(object->class_instance());
+				in_filter = callback(object->class_instance());
 				if (in_filter)
 					break;
 			}
@@ -210,7 +210,7 @@ namespace Engine
 			}
 			else
 			{
-				if (auto client = ImGuiEditorClient::client_of(object->class_instance(), true))
+				if (auto client = ImGuiViewportClient::client_of(object->class_instance(), true))
 				{
 					client->select(object);
 				}
@@ -481,6 +481,5 @@ namespace Engine
 		return "editor/Content Browser"_localized;
 	}
 
-	ContentBrowser::~ContentBrowser()
-	{}
+	ContentBrowser::~ContentBrowser() {}
 }// namespace Engine

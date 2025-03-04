@@ -91,8 +91,7 @@ namespace Engine
 			bool* bool_ptr;
 			float* float_ptr;
 
-			Storage(void* data) : ptr(data)
-			{}
+			Storage(void* data) : ptr(data) {}
 		} storage(data);
 
 		ImGui::BeginGroup();
@@ -860,7 +859,6 @@ namespace Engine
 
 		return *this;
 	}
-
 
 	MaterialEditorClient& MaterialEditorClient::render_visual_material_graph(class VisualMaterial* material)
 	{

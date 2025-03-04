@@ -4,12 +4,13 @@
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/scoped_type.hpp>
 #include <Graphics/imgui.hpp>
+#include <imgui_internal.h>
 
 namespace Engine
 {
-	class ReflInspector : public ImGuiEditorClient
+	class ReflInspector : public ImGuiViewportClient
 	{
-		declare_class(ReflInspector, ImGuiEditorClient);
+		declare_class(ReflInspector, ImGuiViewportClient);
 
 	public:
 		static bool draw_object_info(Refl::Object* object)
@@ -80,15 +81,9 @@ namespace Engine
 			}
 		}
 
-
-		ImGuiEditorClient& update(float dt) override
+		ReflInspector& update(float dt) override
 		{
-			ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
-
-			ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
-			ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
-
-			ImGui::Begin("View");
+			ImGui::Begin("View", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
 			if (ImGui::BeginTable("TreeTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
 			{
@@ -102,6 +97,12 @@ namespace Engine
 			}
 			ImGui::End();
 
+			return *this;
+		}
+
+		ReflInspector& build_dock(uint32_t dock) override
+		{
+			ImGui::DockBuilderDockWindow("View", dock);
 			return *this;
 		}
 	};
