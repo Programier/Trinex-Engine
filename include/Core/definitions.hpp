@@ -113,6 +113,121 @@
 	scope_name::class_name& scope_name::class_name::operator=(scope_name::class_name&&)      = default;                          \
 	scope_name::class_name& scope_name::class_name::operator=(const scope_name::class_name&) = default;
 
+#define trinex_enum_struct(struct_type)                                                                                          \
+	static constexpr bool is_enum          = true;                                                                               \
+	static constexpr bool is_bitfield_enum = false;                                                                              \
+	constexpr struct_type() : value(Enum()) {}                                                                                   \
+	constexpr struct_type(Enum other) : value(other) {}                                                                          \
+	constexpr operator struct_type::Enum() const                                                                                 \
+	{                                                                                                                            \
+		return value;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline bool operator==(const struct_type& other) const                                                             \
+	{                                                                                                                            \
+		return value == other.value;                                                                                             \
+	}                                                                                                                            \
+	constexpr inline bool operator!=(const struct_type& other) const                                                             \
+	{                                                                                                                            \
+		return value != other.value;                                                                                             \
+	}                                                                                                                            \
+	constexpr inline bool operator==(const Enum& other) const                                                                    \
+	{                                                                                                                            \
+		return value == other;                                                                                                   \
+	}                                                                                                                            \
+	constexpr inline bool operator!=(const Enum& other) const                                                                    \
+	{                                                                                                                            \
+		return value != other;                                                                                                   \
+	}                                                                                                                            \
+																																 \
+	Enum value
+
+
+#define trinex_bitfield_enum_struct(struct_type, type)                                                                           \
+	static constexpr bool is_enum          = true;                                                                               \
+	static constexpr bool is_bitfield_enum = true;                                                                               \
+	constexpr struct_type() : value(Enum()) {}                                                                                   \
+	constexpr explicit struct_type(type other) : bitfield(other) {}                                                              \
+	constexpr struct_type(Enum other) : value(other) {}                                                                          \
+	constexpr operator Enum() const                                                                                              \
+	{                                                                                                                            \
+		return value;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline bool operator==(const struct_type& other) const                                                             \
+	{                                                                                                                            \
+		return value == other.value;                                                                                             \
+	}                                                                                                                            \
+	constexpr inline bool operator!=(const struct_type& other) const                                                             \
+	{                                                                                                                            \
+		return bitfield != other.bitfield;                                                                                       \
+	}                                                                                                                            \
+	constexpr inline bool operator==(const Enum& other) const                                                                    \
+	{                                                                                                                            \
+		return bitfield == type(other);                                                                                          \
+	}                                                                                                                            \
+	constexpr inline bool operator!=(const Enum& other) const                                                                    \
+	{                                                                                                                            \
+		return bitfield != type(other);                                                                                          \
+	}                                                                                                                            \
+	constexpr inline struct_type operator|(const struct_type& other) const                                                       \
+	{                                                                                                                            \
+		return struct_type(bitfield | other.bitfield);                                                                           \
+	}                                                                                                                            \
+	constexpr inline struct_type operator&(const struct_type& other) const                                                       \
+	{                                                                                                                            \
+		return struct_type(bitfield & other.bitfield);                                                                           \
+	}                                                                                                                            \
+	constexpr inline struct_type operator^(const struct_type& other) const                                                       \
+	{                                                                                                                            \
+		return struct_type(bitfield ^ other.bitfield);                                                                           \
+	}                                                                                                                            \
+	constexpr inline struct_type& operator|=(const struct_type& other)                                                           \
+	{                                                                                                                            \
+		bitfield |= other.bitfield;                                                                                              \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline struct_type& operator&=(const struct_type& other)                                                           \
+	{                                                                                                                            \
+		bitfield &= other.bitfield;                                                                                              \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline struct_type& operator^=(const struct_type& other)                                                           \
+	{                                                                                                                            \
+		bitfield ^= other.bitfield;                                                                                              \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline struct_type operator|(const Enum& other) const                                                              \
+	{                                                                                                                            \
+		return struct_type(bitfield | type(other));                                                                              \
+	}                                                                                                                            \
+	constexpr inline struct_type operator&(const Enum& other) const                                                              \
+	{                                                                                                                            \
+		return struct_type(bitfield & type(other));                                                                              \
+	}                                                                                                                            \
+	constexpr inline struct_type operator^(const Enum& other) const                                                              \
+	{                                                                                                                            \
+		return struct_type(bitfield ^ type(other));                                                                              \
+	}                                                                                                                            \
+	constexpr inline struct_type& operator|=(const Enum& other)                                                                  \
+	{                                                                                                                            \
+		bitfield |= other;                                                                                                       \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline struct_type& operator&=(const Enum& other)                                                                  \
+	{                                                                                                                            \
+		bitfield &= other;                                                                                                       \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	constexpr inline struct_type& operator^=(const Enum& other)                                                                  \
+	{                                                                                                                            \
+		bitfield ^= other;                                                                                                       \
+		return *this;                                                                                                            \
+	}                                                                                                                            \
+	union                                                                                                                        \
+	{                                                                                                                            \
+		type bitfield;                                                                                                           \
+		Enum value;                                                                                                              \
+	}
+
 #define property_hpp(class_name, type, name, _default)                                                                           \
 private:                                                                                                                         \
     type m_##name = _default;                                                                                                    \
@@ -142,6 +257,19 @@ public:                                                                         
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_struct();                                                                                      \
 	static class Engine::Refl::Struct* static_struct_instance();
+
+#define trinex_declare_enum(enum_name)                                                                                           \
+    static constexpr bool is_enum_reflected = true;                                                                              \
+                                                                                                                                 \
+private:                                                                                                                         \
+    static Engine::Refl::Enum* s_enum;                                                                                           \
+                                                                                                                                 \
+public:                                                                                                                          \
+	static inline class Engine::Refl::Enum* static_enum_instance()                                                               \
+	{                                                                                                                            \
+		return s_enum;                                                                                                           \
+	}                                                                                                                            \
+	static void static_initialize_enum()
 
 
 #define declare_enum_operators(T)                                                                                                \

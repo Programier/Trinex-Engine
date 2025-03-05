@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
-#include <Core/flags.hpp>
 #include <Core/object.hpp>
 #include <Core/structures.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -67,7 +66,7 @@ namespace Engine
 
 	public:
 		MaterialDomain domain;
-		Flags<MaterialOptions, uint32_t> options;
+		MaterialOptions options;
 
 		Vector<ShaderDefinition> compile_definitions;
 
@@ -85,10 +84,7 @@ namespace Engine
 		bool serialize(Archive& archive) override;
 		Material& setup_pipeline(GraphicsPipeline* pipeline);
 
-		inline GraphicsPipelineDescription* graphics_description() const
-		{
-			return m_graphics_options;
-		}
+		inline GraphicsPipelineDescription* graphics_description() const { return m_graphics_options; }
 
 		~Material();
 	};

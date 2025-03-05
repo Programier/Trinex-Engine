@@ -18,8 +18,7 @@ namespace Engine::Refl
 		return it == s_render_pass_table.end() ? nullptr : it->second;
 	}
 
-	RenderPassInfo::RenderPassInfo(Struct* parent, BitMask flags) : Super(parent, flags)
-	{}
+	RenderPassInfo::RenderPassInfo(Struct* parent, BitMask flags) : Super(parent, flags) {}
 
 	RenderPassInfo::~RenderPassInfo()
 	{
@@ -62,7 +61,7 @@ namespace Engine::Refl
 
 	bool RenderPassInfo::is_material_compatible(const Material* material)
 	{
-		if (material->options(MaterialOptions::DefaultPassOnly))
+		if (material->options & MaterialOptions::DefaultPassOnly)
 			return false;
 
 		if (m_is_material_compatible)

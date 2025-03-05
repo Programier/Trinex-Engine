@@ -42,8 +42,8 @@ namespace Engine
 		trinex_refl_prop(self, This, compile_definitions);
 		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsNotSerializable)->is_composite(true);
 
-		trinex_refl_prop(self, This, domain)->bind_enum(Refl::Enum::static_require("Engine::MaterialDomain"));
-		trinex_refl_prop(self, This, options)->bind_enum(Refl::Enum::static_require("Engine::MaterialOptions"));
+		trinex_refl_prop(self, This, domain);
+		trinex_refl_prop(self, This, options);
 	}
 
 	implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
@@ -178,7 +178,7 @@ namespace Engine
 
 	Pipeline* Material::pipeline(Refl::RenderPassInfo* pass) const
 	{
-		if (options(MaterialOptions::DefaultPassOnly))
+		if (options & MaterialOptions::DefaultPassOnly)
 			pass = nullptr;
 
 		auto it = m_pipelines.find(pass);

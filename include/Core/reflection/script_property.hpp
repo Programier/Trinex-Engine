@@ -41,15 +41,9 @@ namespace Engine::Refl
 	public:
 		using ScriptProperty::ScriptProperty;
 
-		size_t size() const override
-		{
-			return sizeof(T);
-		}
+		size_t size() const override { return sizeof(T); }
 
-		bool is_signed() const override
-		{
-			return std::is_signed_v<T>;
-		}
+		bool is_signed() const override { return std::is_signed_v<T>; }
 	};
 
 	template<typename T>
@@ -58,16 +52,19 @@ namespace Engine::Refl
 	public:
 		using ScriptProperty::ScriptProperty;
 
-		size_t size() const override
-		{
-			return sizeof(T);
-		}
+		size_t size() const override { return sizeof(T); }
 	};
 
 	class ScriptEnumProperty : public ScriptProperty<EnumProperty>
 	{
+		Enum* m_enum_instance;
+
 	public:
-		using ScriptProperty::ScriptProperty;
+		inline ScriptEnumProperty(size_t offset, Enum* enum_instance, BitMask flags = 0)
+			: ScriptProperty<EnumProperty>(offset, flags), m_enum_instance(enum_instance)
+		{}
+
+		inline Enum* enum_instance() const override { return m_enum_instance; }
 		size_t size() const override;
 	};
 

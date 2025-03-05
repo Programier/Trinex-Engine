@@ -2,7 +2,6 @@
 #include <Core/enums.hpp>
 #include <Core/etl/function.hpp>
 #include <Core/filesystem/path.hpp>
-#include <Core/flags.hpp>
 
 namespace Engine::VFS
 {
@@ -33,23 +32,20 @@ namespace Engine::VFS
 		FORCE_INLINE virtual ~FileSystem() = default;
 		delete_copy_constructors(FileSystem);
 
-		FORCE_INLINE const Path& mount_point() const
-		{
-			return m_mount_point;
-		}
+		FORCE_INLINE const Path& mount_point() const { return m_mount_point; }
 
-		virtual const Path& path() const                               = 0;
-		virtual bool is_read_only() const                              = 0;
-		virtual File* open(const Path& path, Flags<FileOpenMode> mode) = 0;
-		virtual bool create_dir(const Path& path)                      = 0;
-		virtual bool remove(const Path& path)                          = 0;
-		virtual bool copy(const Path& src, const Path& dest)           = 0;
-		virtual bool rename(const Path& src, const Path& dest)         = 0;
-		virtual bool is_file_exist(const Path& path) const             = 0;
-		virtual bool is_file(const Path& file) const                   = 0;
-		virtual bool is_dir(const Path& dir) const                     = 0;
-		virtual Type type() const                                      = 0;
-		virtual Path native_path(const Path& path) const               = 0;
+		virtual const Path& path() const                        = 0;
+		virtual bool is_read_only() const                       = 0;
+		virtual File* open(const Path& path, FileOpenMode mode) = 0;
+		virtual bool create_dir(const Path& path)               = 0;
+		virtual bool remove(const Path& path)                   = 0;
+		virtual bool copy(const Path& src, const Path& dest)    = 0;
+		virtual bool rename(const Path& src, const Path& dest)  = 0;
+		virtual bool is_file_exist(const Path& path) const      = 0;
+		virtual bool is_file(const Path& file) const            = 0;
+		virtual bool is_dir(const Path& dir) const              = 0;
+		virtual Type type() const                               = 0;
+		virtual Path native_path(const Path& path) const        = 0;
 
 		friend class RootFS;
 	};

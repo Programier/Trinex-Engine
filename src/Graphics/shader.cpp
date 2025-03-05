@@ -18,19 +18,14 @@ namespace Engine
 {
 	implement_struct(Engine::VertexShader::Attribute, 0)
 	{
-		auto self = static_struct_instance();
-
-		Refl::Enum* type_enum     = Refl::Enum::static_require("Engine::VertexBufferElementType");
-		Refl::Enum* rate_enum     = Refl::Enum::static_require("Engine::VertexAttributeInputRate");
-		Refl::Enum* semantic_enum = Refl::Enum::static_require("Engine::VertexBufferSemantic");
-
+		auto self            = static_struct_instance();
 		auto default_flags   = Refl::Property::IsNotSerializable;
 		auto read_only_flags = default_flags | Refl::Property::IsReadOnly;
 
 		trinex_refl_prop(self, This, name, read_only_flags)->tooltip("Name of this attribute");
-		trinex_refl_prop(self, This, type, type_enum, default_flags)->tooltip("Type of element of this attribute");
-		trinex_refl_prop(self, This, rate, rate_enum, default_flags)->tooltip("Rate of this attribute");
-		trinex_refl_prop(self, This, semantic, semantic_enum, read_only_flags)->tooltip("Semantic of this attribute");
+		trinex_refl_prop(self, This, type, default_flags)->tooltip("Type of element of this attribute");
+		trinex_refl_prop(self, This, rate, default_flags)->tooltip("Rate of this attribute");
+		trinex_refl_prop(self, This, semantic, read_only_flags)->tooltip("Semantic of this attribute");
 		trinex_refl_prop(self, This, semantic_index, read_only_flags)->tooltip("Semantic index of this attribute");
 		trinex_refl_prop(self, This, location, read_only_flags)->tooltip("Location index of this attribute");
 		trinex_refl_prop(self, This, stream_index, default_flags)->tooltip("The stream index from which to read this attribute");

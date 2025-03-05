@@ -261,16 +261,16 @@ private:
 	class ENGINE_EXPORT EnumProperty : public PrimitiveProperty
 	{
 		declare_reflect_type(EnumProperty, PrimitiveProperty);
-		trinex_refl_prop_type_filter(std::is_enum_v<T> && sizeof(T) <= sizeof(EnumerateType));
 
-	private:
-		class Enum* m_enum;
+		template<typename T>
+		using enum_detector =
+				std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && !T::is_bitfield_enum && T::is_enum_reflected>;
+		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
-		EnumProperty(Enum* enum_instance = nullptr, BitMask flags = 0);
-		Enum* enum_instance() const;
-		EnumProperty& bind_enum(Enum* instance);
+		using PrimitiveProperty::PrimitiveProperty;
 
+		virtual Enum* enum_instance() const = 0;
 		EnumerateType value(const void* context) const;
 		EnumProperty& value(void* context, EnumerateType value);
 	};
@@ -465,34 +465,12 @@ private:
 		declare_reflect_type(FlagsProperty, Property);
 
 		template<typename T>
-		static constexpr inline bool is_integral_value =
-				(std::is_integral<T>::value || std::is_enum<T>::value) && sizeof(T) == sizeof(uint32_t);
-
-		template<typename T>
-		struct IsFlags : std::false_type {
-		};
-
-		template<typename FlagsType, typename ValueType>
-		struct IsFlags<Flags<FlagsType, ValueType>> : std::integral_constant<bool, is_integral_value<ValueType>> {
-		};
-
-		trinex_refl_prop_type_filter(IsFlags<T>::value);
-
-	private:
-		class Enum* m_enum;
+		using enum_detector =
+				std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && T::is_bitfield_enum && T::is_enum_reflected>;
+		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
-		inline FlagsProperty& bind_enum(Enum* enum_refl)
-		{
-			m_enum = enum_refl;
-			return *this;
-		}
-
-		inline Refl::Enum* enum_instance() const
-		{
-			return m_enum;
-		}
-
+		virtual Refl::Enum* enum_instance() const = 0;
 		bool serialize(void* object, Archive& ar) override;
 	};
 
@@ -525,10 +503,7 @@ private:
 			return &(instance->*prop);
 		}
 
-		size_t size() const override
-		{
-			return sizeof(Type);
-		}
+		size_t size() const override { return sizeof(Type); }
 
 		TypedProperty& on_property_changed(const PropertyChangedEvent& event) override
 		{
@@ -554,10 +529,7 @@ private:
 		using Super = TypedProperty<prop, IntegerProperty>;
 		using Super::Super;
 
-		bool is_signed() const override
-		{
-			return std::is_signed_v<T>;
-		}
+		bool is_signed() const override { return std::is_signed_v<T>; }
 	};
 
 	template<auto prop, typename T>
@@ -586,20 +558,11 @@ private:
 			return *this;
 		}
 
-		size_t length() const override
-		{
-			return T::length();
-		}
+		size_t length() const override { return T::length(); }
 
-		Property* element_property() const override
-		{
-			return m_inner_property;
-		}
+		Property* element_property() const override { return m_inner_property; }
 
-		size_t element_size() const override
-		{
-			return sizeof(typename T::value_type);
-		}
+		size_t element_size() const override { return sizeof(typename T::value_type); }
 
 		void* element_address(void* context, size_t index, bool is_vector_context = false) override
 		{
@@ -623,10 +586,7 @@ private:
 			return reinterpret_cast<const byte*>(context) + sizeof(typename T::value_type) * index;
 		}
 
-		~NativePropertyTyped() override
-		{
-			Refl::Object::destroy_instance(m_inner_property);
-		}
+		~NativePropertyTyped() override { Refl::Object::destroy_instance(m_inner_property); }
 	};
 
 	template<auto prop, typename T>
@@ -647,25 +607,13 @@ private:
 			return *this;
 		}
 
-		size_t columns() const override
-		{
-			return T::col_type::length();
-		}
+		size_t columns() const override { return T::col_type::length(); }
 
-		size_t rows() const override
-		{
-			return T::row_type::length();
-		}
+		size_t rows() const override { return T::row_type::length(); }
 
-		Property* row_property() const override
-		{
-			return m_inner_property;
-		}
+		Property* row_property() const override { return m_inner_property; }
 
-		size_t row_size() const override
-		{
-			return sizeof(typename T::row_type);
-		}
+		size_t row_size() const override { return sizeof(typename T::row_type); }
 
 		void* row_address(void* context, size_t index, bool is_vector_context = false) override
 		{
@@ -689,10 +637,7 @@ private:
 			return reinterpret_cast<const byte*>(context) + sizeof(typename T::row_type) * index;
 		}
 
-		~NativePropertyTyped() override
-		{
-			Refl::Object::destroy_instance(m_inner_property);
-		}
+		~NativePropertyTyped() override { Refl::Object::destroy_instance(m_inner_property); }
 	};
 
 	template<auto prop, typename T>
@@ -700,6 +645,8 @@ private:
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, EnumProperty> {
 		using Super = TypedProperty<prop, EnumProperty>;
 		using Super::Super;
+
+		Enum* enum_instance() const override { return T::static_enum_instance(); }
 	};
 
 	template<auto prop, typename T>
@@ -729,10 +676,7 @@ private:
 		using Super = TypedProperty<prop, ObjectProperty>;
 		using Super::Super;
 
-		Class* class_instance() const override
-		{
-			return std::remove_pointer_t<T>::static_class_instance();
-		}
+		Class* class_instance() const override { return std::remove_pointer_t<T>::static_class_instance(); }
 	};
 
 	template<auto prop, typename T>
@@ -741,10 +685,7 @@ private:
 		using Super = TypedProperty<prop, StructProperty>;
 		using Super::Super;
 
-		Struct* struct_instance() const override
-		{
-			return T::static_struct_instance();
-		}
+		Struct* struct_instance() const override { return T::static_struct_instance(); }
 	};
 
 	template<auto prop, typename T>
@@ -755,15 +696,9 @@ private:
 		using Value = typename T::value_type;
 
 	public:
-		Property* element_property() const override
-		{
-			return ArrayProperty::construct_element_property<T>();
-		}
+		Property* element_property() const override { return ArrayProperty::construct_element_property<T>(); }
 
-		size_t element_size() const override
-		{
-			return sizeof(Value);
-		}
+		size_t element_size() const override { return sizeof(Value); }
 
 		T& array_of(void* context, bool is_vector_context)
 		{
@@ -843,10 +778,7 @@ private:
 		using Super = TypedProperty<prop, ReflObjectProperty>;
 		using Super::Super;
 
-		Refl::ClassInfo* info() const override
-		{
-			return std::remove_pointer_t<T>::static_refl_class_info();
-		}
+		Refl::ClassInfo* info() const override { return std::remove_pointer_t<T>::static_refl_class_info(); }
 	};
 
 	template<auto prop, typename T>
@@ -855,10 +787,7 @@ private:
 		using Super = TypedProperty<prop, SubClassProperty>;
 		using Super::Super;
 
-		Class* base_class() const override
-		{
-			return T::Type::static_class_instance();
-		}
+		Class* base_class() const override { return T::Type::static_class_instance(); }
 	};
 
 	template<auto prop, typename T>
@@ -866,6 +795,8 @@ private:
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, FlagsProperty> {
 		using Super = TypedProperty<prop, FlagsProperty>;
 		using Super::Super;
+
+		Enum* enum_instance() const override { return T::static_enum_instance(); }
 	};
 
 

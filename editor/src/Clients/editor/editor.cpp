@@ -440,7 +440,7 @@ namespace Engine
 							if (ImGui::Selectable(entry.name.c_str(), &entry == m_state.viewport.view_mode_entry))
 							{
 								m_state.viewport.view_mode_entry = &entry;
-								m_renderer.view_mode(static_cast<ViewMode>(entry.value));
+								m_renderer.view_mode(static_cast<ViewMode::Enum>(entry.value));
 							}
 						}
 						ImGui::EndCombo();

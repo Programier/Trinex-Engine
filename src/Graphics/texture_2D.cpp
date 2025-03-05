@@ -21,10 +21,9 @@ namespace Engine
 	implement_engine_class(Texture2D, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
-		trinex_refl_prop(self, This, path)->tooltip("Path to texture");
 
-		trinex_refl_prop(self, This, m_format, Refl::Enum::static_require("Engine::ColorFormat"), Refl::Property::IsReadOnly)
-				->tooltip("Color format of this texture");
+		trinex_refl_prop(self, This, path)->tooltip("Path to texture");
+		trinex_refl_prop(self, This, m_format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
 	}
 
 	Texture2D& Texture2D::init(ColorFormat format, Size2D size, const Buffer& data, bool need_generate_mips)

@@ -36,8 +36,7 @@ namespace Engine::Refl
 		object->on_property_changed(event);
 	}
 
-	Property::Property(BitMask flags) : m_flags(flags)
-	{}
+	Property::Property(BitMask flags) : m_flags(flags) {}
 
 	bool Property::is_read_only() const
 	{
@@ -104,8 +103,7 @@ namespace Engine::Refl
 		Super::register_layout(r, info, downcast);
 	}
 
-	Property::~Property()
-	{}
+	Property::~Property() {}
 
 	bool PrimitiveProperty::serialize(void* object, Archive& ar)
 	{
@@ -122,20 +120,6 @@ namespace Engine::Refl
 	bool IntegerProperty::is_unsigned() const
 	{
 		return !is_signed();
-	}
-
-	EnumProperty::EnumProperty(Enum* enum_instance, BitMask flags) : Super(flags), m_enum(enum_instance)
-	{}
-
-	Enum* EnumProperty::enum_instance() const
-	{
-		return m_enum;
-	}
-
-	EnumProperty& EnumProperty::bind_enum(Enum* instance)
-	{
-		m_enum = instance;
-		return *this;
 	}
 
 	EnumerateType EnumProperty::value(const void* context) const

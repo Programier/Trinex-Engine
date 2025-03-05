@@ -16,7 +16,7 @@
 
 namespace Engine::MaterialParameters
 {
-	static Map<ShaderParameterType, Refl::Class*> s_parameter_class_map;
+	static Map<ShaderParameterType::Enum, Refl::Class*> s_parameter_class_map;
 
 	template<typename T>
 	static void register_parameter()
@@ -26,7 +26,7 @@ namespace Engine::MaterialParameters
 
 	Refl::Class* Parameter::static_find_class(ShaderParameterType type)
 	{
-		auto it = s_parameter_class_map.find(type);
+		auto it = s_parameter_class_map.find(type.value);
 		if (it == s_parameter_class_map.end())
 			return nullptr;
 		return it->second;

@@ -76,7 +76,8 @@ namespace Engine
 				blend.src_alpha_func = BlendFunc::One;
 				blend.dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
 				blend.alpha_op       = BlendOp::Add;
-				blend.color_mask     = ColorComponentMask::RGBA;
+				blend.color_mask = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G | ColorComponent::B |
+																	 ColorComponent::A);
 
 				auto& depth        = pipeline->depth_test;
 				depth.enable       = false;
@@ -116,10 +117,7 @@ namespace Engine
 			MaterialParameters::Sampler2D* texture_parameter;
 			MaterialParameters::Float4x4* model_parameter;
 
-			ImGuiTrinexData()
-			{
-				memset((void*) this, 0, sizeof(*this));
-			}
+			ImGuiTrinexData() { memset((void*) this, 0, sizeof(*this)); }
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -474,8 +472,7 @@ namespace Engine
 			float time;
 			bool update_monitors;
 
-			ImGuiTrinexWindowData() : window(nullptr), time(engine_instance->time_seconds()), update_monitors(true)
-			{}
+			ImGuiTrinexWindowData() : window(nullptr), time(engine_instance->time_seconds()), update_monitors(true) {}
 		};
 
 		class ImGuiViewportClient : public ViewportClient
@@ -531,10 +528,7 @@ namespace Engine
 				ImGui::SetCurrentContext(new_context);
 			}
 
-			~ImGuiContextSaver()
-			{
-				ImGui::SetCurrentContext(ctx);
-			}
+			~ImGuiContextSaver() { ImGui::SetCurrentContext(ctx); }
 		};
 
 		static ImGuiMouseButton imgui_button_of(Mouse::Button button)
@@ -1349,11 +1343,9 @@ namespace Engine
 		release(true);
 	}
 
-	ImGuiWidget::ImGuiWidget()
-	{}
+	ImGuiWidget::ImGuiWidget() {}
 
-	void ImGuiWidget::init(class RenderViewport* viewport)
-	{}
+	void ImGuiWidget::init(class RenderViewport* viewport) {}
 
 	ImGuiWidgetsList::Node* ImGuiWidgetsList::close_window_internal(Node* node)
 	{

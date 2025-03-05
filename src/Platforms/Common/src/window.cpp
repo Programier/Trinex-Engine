@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	static const Map<WindowAttribute, SDL_WindowFlags> window_attributes = {
+	static const Map<WindowAttribute::Enum, SDL_WindowFlags> window_attributes = {
 	        {WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE},
 	        {WindowAttribute::FullScreen, SDL_WINDOW_FULLSCREEN},
 	        {WindowAttribute::Shown, SDL_WINDOW_SHOWN},
@@ -29,7 +29,7 @@ namespace Engine
 
 
 #define has_flag(flag) static_cast<bool>(SDL_GetWindowFlags(m_window) & flag)
-	static uint32_t to_sdl_attrib(const Set<WindowAttribute>& attrib)
+	static uint32_t to_sdl_attrib(const Set<WindowAttribute::Enum>& attrib)
 	{
 		uint32_t value = 0;
 		for (auto ell : attrib)

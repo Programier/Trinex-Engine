@@ -82,7 +82,7 @@ namespace Engine
 		return find_child_object(Strings::parse_name_identifier(name)) != nullptr;
 	}
 
-	bool Package::save(BufferWriter* writer, Flags<SerializationFlags> serialization_flags)
+	bool Package::save(BufferWriter* writer, SerializationFlags serialization_flags)
 	{
 		if (!flags(Object::IsSerializable))
 		{
@@ -110,6 +110,5 @@ namespace Engine
 		return result;
 	}
 
-	implement_engine_class(Package, Refl::Class::IsScriptable)
-	{}
+	implement_engine_class(Package, Refl::Class::IsScriptable) {}
 }// namespace Engine

@@ -168,11 +168,10 @@ namespace Engine
 		virtual const Object& mark_dirty() const;
 		bool is_dirty() const;
 
-		virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});
-		ENGINE_EXPORT static Object* load_object(StringView fullname, class BufferReader* reader,
-		                                         Flags<SerializationFlags> flags = {});
-		ENGINE_EXPORT static Object* load_object(StringView fullname, Flags<SerializationFlags> flags = {});
-		ENGINE_EXPORT static Object* load_object_from_file(const Path& path, Flags<SerializationFlags> flags = {});
+		virtual bool save(class BufferWriter* writer = nullptr, SerializationFlags flags = {});
+		ENGINE_EXPORT static Object* load_object(StringView fullname, class BufferReader* reader, SerializationFlags flags = {});
+		ENGINE_EXPORT static Object* load_object(StringView fullname, SerializationFlags flags = {});
+		ENGINE_EXPORT static Object* load_object_from_file(const Path& path, SerializationFlags flags = {});
 
 
 		virtual Object& preload();
@@ -377,11 +376,9 @@ private:
 
 
 #define implement_class_default_init(decl, flags)                                                                                \
-	implement_class(decl, flags)                                                                                                 \
-	{}
+    implement_class(decl, flags) {}
 
 #define implement_engine_class(decl, flags) implement_class(Engine::decl, flags)
 #define implement_engine_class_default_init(decl, flags)                                                                         \
-	implement_engine_class(decl, flags)                                                                                          \
-	{}
+    implement_engine_class(decl, flags) {}
 }// namespace Engine

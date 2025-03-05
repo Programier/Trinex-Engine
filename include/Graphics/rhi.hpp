@@ -31,6 +31,9 @@ namespace Engine
 	}
 
 	struct ENGINE_EXPORT RHI_Object {
+	private:
+		static void static_release_internal(RHI_Object* object);
+
 	protected:
 		mutable size_t m_references;
 		virtual void destroy() const = 0;
@@ -41,6 +44,16 @@ namespace Engine
 		virtual void release() const;
 		size_t references() const;
 		virtual ~RHI_Object();
+
+		template<typename T>
+		static inline void static_release(T*& object)
+		{
+			if (object)
+			{
+				static_release_internal(object);
+				object = nullptr;
+			}
+		}
 	};
 
 	template<typename Base>
@@ -54,26 +67,20 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_ResourceView : RHI_BindingObject {
-		RHI_Object* const viewed_object;
-
-		inline RHI_ResourceView(RHI_Object* object) : viewed_object(object) { object->add_reference(); }
-		inline ~RHI_ResourceView() { viewed_object->release(); }
 	};
 
 	struct ENGINE_EXPORT RHI_ShaderResourceView : RHI_ResourceView {
-		inline RHI_ShaderResourceView(RHI_Object* object) : RHI_ResourceView(object) {}
 	};
 
 	struct ENGINE_EXPORT RHI_UnorderedAccessView : RHI_ResourceView {
-		inline RHI_UnorderedAccessView(RHI_Object* object) : RHI_ResourceView(object) {}
 	};
 
 	struct ENGINE_EXPORT RHI_RenderTargetView : RHI_ResourceView {
-		inline RHI_RenderTargetView(RHI_Object* object) : RHI_ResourceView(object) {}
+		virtual void clear(const Color& color) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_DepthStencilView : RHI_ResourceView {
-		inline RHI_DepthStencilView(RHI_Object* object) : RHI_ResourceView(object) {}
+		virtual void clear(float depth, byte stencil) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
@@ -86,6 +93,13 @@ namespace Engine
 		virtual void clear_color(const Color& color);
 		virtual void clear_depth_stencil(float depth, byte stencil);
 		virtual void blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter);
+	};
+
+	struct ENGINE_EXPORT RHI_Surface : RHI_Object {
+		virtual RHI_RenderTargetView* create_rtv()    = 0;
+		virtual RHI_RenderTargetView* create_dsv()    = 0;
+		virtual RHI_ShaderResourceView* create_srv()  = 0;
+		virtual RHI_UnorderedAccessView* create_uav() = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Shader : RHI_Object {

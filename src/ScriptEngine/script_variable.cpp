@@ -19,8 +19,7 @@ namespace Engine
 		return *reinterpret_cast<void**>(address);
 	}
 
-	ScriptVariableBase::ScriptVariableBase() : m_address(nullptr), m_type_id(0)
-	{}
+	ScriptVariableBase::ScriptVariableBase() : m_address(nullptr), m_type_id(0) {}
 
 	ScriptVariableBase::ScriptVariableBase(const ScriptTypeInfo& info, bool is_uninitialized) : ScriptVariableBase()
 	{
@@ -31,7 +30,7 @@ namespace Engine
 	}
 
 	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool handle_is_object,
-	                                       const Flags<ScriptTypeModifiers>& modifiers)
+										   const ScriptTypeModifiers& modifiers)
 	    : ScriptVariableBase()
 	{
 		if (!create(src_address, info, handle_is_object, modifiers))
@@ -40,8 +39,7 @@ namespace Engine
 		}
 	}
 
-	ScriptVariableBase::ScriptVariableBase(const ScriptVariableBase& object) : ScriptVariableBase()
-	{}
+	ScriptVariableBase::ScriptVariableBase(const ScriptVariableBase& object) : ScriptVariableBase() {}
 
 	ScriptVariableBase::ScriptVariableBase(ScriptVariableBase&& object) : ScriptVariableBase()
 	{
@@ -245,7 +243,7 @@ namespace Engine
 	}
 
 	bool ScriptVariableBase::create(void* address, const ScriptTypeInfo& info, bool handle_is_object,
-	                                const Flags<ScriptTypeModifiers>& modifiers)
+									const ScriptTypeModifiers& modifiers)
 	{
 		release();
 		m_type_id   = info.type_id();
@@ -351,8 +349,7 @@ namespace Engine
 		}
 	}
 
-	ScriptVariable::ScriptVariable(const char* declaration) : ScriptVariable(ScriptEngine::type_id_by_decl(declaration))
-	{}
+	ScriptVariable::ScriptVariable(const char* declaration) : ScriptVariable(ScriptEngine::type_id_by_decl(declaration)) {}
 
 	static int_t find_type_id_internal(const char* declaration, const char* module_name)
 	{
@@ -368,8 +365,7 @@ namespace Engine
 	    : ScriptVariable(find_type_id_internal(declaration, module))
 	{}
 
-	ScriptVariable::ScriptVariable(void* address, int_t type_id, bool handle_is_object,
-	                               const Flags<ScriptTypeModifiers>& modifiers)
+	ScriptVariable::ScriptVariable(void* address, int_t type_id, bool handle_is_object, const ScriptTypeModifiers& modifiers)
 	{
 		if (!create(address, type_id, handle_is_object, modifiers))
 		{
@@ -378,12 +374,12 @@ namespace Engine
 	}
 
 	ScriptVariable::ScriptVariable(void* address, const char* declaration, bool handle_is_object,
-	                               const Flags<ScriptTypeModifiers>& modifiers)
+								   const ScriptTypeModifiers& modifiers)
 	    : ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), handle_is_object, modifiers)
 	{}
 
 	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool handle_is_object,
-	                               const Flags<ScriptTypeModifiers>& modifiers)
+								   const ScriptTypeModifiers& modifiers)
 	    : ScriptVariable(address, find_type_id_internal(declaration, module), handle_is_object, modifiers)
 	{}
 
@@ -391,8 +387,7 @@ namespace Engine
 	    : ScriptVariable(object.address(), object.type_id(), true, object.m_modifiers)
 	{}
 
-	ScriptVariable::ScriptVariable(ScriptVariable&& object) : ScriptVariableBase(std::move(object))
-	{}
+	ScriptVariable::ScriptVariable(ScriptVariable&& object) : ScriptVariableBase(std::move(object)) {}
 
 	ScriptVariable& ScriptVariable::operator=(ScriptVariable&& object)
 	{
@@ -443,7 +438,7 @@ namespace Engine
 		return true;
 	}
 
-	bool ScriptVariable::create(void* address, int_t type_id, bool handle_is_object, const Flags<ScriptTypeModifiers>& modifiers)
+	bool ScriptVariable::create(void* address, int_t type_id, bool handle_is_object, const ScriptTypeModifiers& modifiers)
 	{
 		release();
 		m_type_id   = type_id;
@@ -487,7 +482,7 @@ namespace Engine
 	}
 
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, bool handle_is_object,
-	                            const Flags<ScriptTypeModifiers>& modifiers)
+								const ScriptTypeModifiers& modifiers)
 	{
 		int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
@@ -499,7 +494,7 @@ namespace Engine
 	}
 
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object,
-	                            const Flags<ScriptTypeModifiers>& modifiers)
+								const ScriptTypeModifiers& modifiers)
 	{
 		int_t type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)

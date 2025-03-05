@@ -23,8 +23,7 @@ namespace Engine::VFS
 
 	RootFS* RootFS::s_instance = nullptr;
 
-	RootFS::RootFS()
-	{}
+	RootFS::RootFS() {}
 
 	RootFS::~RootFS()
 	{
@@ -138,7 +137,7 @@ namespace Engine::VFS
 		return false;
 	}
 
-	File* RootFS::open(const Path& path, Flags<FileOpenMode> mode)
+	File* RootFS::open(const Path& path, FileOpenMode mode)
 	{
 		auto entry = find_filesystem(path);
 		if (entry.first)

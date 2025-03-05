@@ -27,24 +27,20 @@ namespace Engine
 	{
 		auto* self = static_struct_instance();
 
-		trinex_refl_prop(self, This, func, Refl::Enum::static_require("Engine::CompareFunc"))->tooltip("Depth compare function");
+		trinex_refl_prop(self, This, func)->tooltip("Depth compare function");
 		trinex_refl_prop(self, This, enable)->tooltip("Enable depth test");
 		trinex_refl_prop(self, This, write_enable)->tooltip("Enable write to depth buffer");
 	}
 
 	implement_struct(Engine::GraphicsPipelineDescription::StencilTestInfo, 0)
 	{
-		auto* self                    = static_struct_instance();
-		Refl::Enum* stencil_op_enum   = Refl::Enum::static_require("Engine::StencilOp", Refl::FindFlags::IsRequired);
-		Refl::Enum* compare_func_enum = Refl::Enum::static_require("Engine::CompareFunc", Refl::FindFlags::IsRequired);
+		auto* self = static_struct_instance();
 
 		trinex_refl_prop(self, This, enable)->tooltip("Enable stencil test");
-		trinex_refl_prop(self, This, fail, stencil_op_enum)->tooltip("Operation on fail");
-		trinex_refl_prop(self, This, depth_pass, stencil_op_enum)->tooltip("Operation on depth pass");
-		trinex_refl_prop(self, This, depth_fail, stencil_op_enum)->tooltip("Operation on depth fail");
-		trinex_refl_prop(self, This, compare, compare_func_enum)
-				->display_name("Compare func")
-				.tooltip("Stencil compare function");
+		trinex_refl_prop(self, This, fail)->tooltip("Operation on fail");
+		trinex_refl_prop(self, This, depth_pass)->tooltip("Operation on depth pass");
+		trinex_refl_prop(self, This, depth_fail)->tooltip("Operation on depth fail");
+		trinex_refl_prop(self, This, compare)->display_name("Compare func").tooltip("Stencil compare function");
 		trinex_refl_prop(self, This, compare_mask)->tooltip("Stencil compare mask");
 		trinex_refl_prop(self, This, write_mask)->tooltip("Stencil write mask");
 	}
@@ -52,17 +48,16 @@ namespace Engine
 	implement_struct(Engine::GraphicsPipelineDescription::AssemblyInfo, 0)
 	{
 		auto* self = static_struct_instance();
-		trinex_refl_prop(self, This, primitive_topology, Refl::Enum::static_require("Engine::PrimitiveTopology"))
-				->tooltip("Primitive types which will be rendered by this pipeline");
+		trinex_refl_prop(self, This, primitive_topology)->tooltip("Primitive types which will be rendered by this pipeline");
 	}
 
 	implement_struct(Engine::GraphicsPipelineDescription::RasterizerInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
-		trinex_refl_prop(self, This, polygon_mode, Refl::Enum::static_require("Engine::PolygonMode"));
-		trinex_refl_prop(self, This, cull_mode, Refl::Enum::static_require("Engine::CullMode"));
-		trinex_refl_prop(self, This, front_face, Refl::Enum::static_require("Engine::FrontFace"));
+		trinex_refl_prop(self, This, polygon_mode);
+		trinex_refl_prop(self, This, cull_mode);
+		trinex_refl_prop(self, This, front_face);
 		trinex_refl_prop(self, This, line_width);
 	}
 
@@ -70,18 +65,15 @@ namespace Engine
 	{
 		auto* self = static_struct_instance();
 
-		auto* blend_func = Refl::Enum::static_require("Engine::BlendFunc", Refl::FindFlags::IsRequired);
-		auto* blend_op   = Refl::Enum::static_require("Engine::BlendOp", Refl::FindFlags::IsRequired);
-
 		trinex_refl_prop(self, This, enable);
-		trinex_refl_prop(self, This, src_color_func, blend_func);
-		trinex_refl_prop(self, This, dst_color_func, blend_func);
-		trinex_refl_prop(self, This, color_op, blend_op)->display_name("Color Operator");
+		trinex_refl_prop(self, This, src_color_func);
+		trinex_refl_prop(self, This, dst_color_func);
+		trinex_refl_prop(self, This, color_op)->display_name("Color Operator");
 
-		trinex_refl_prop(self, This, src_alpha_func, blend_func);
-		trinex_refl_prop(self, This, dst_alpha_func, blend_func);
-		trinex_refl_prop(self, This, alpha_op, blend_op)->display_name("Alpha Operator");
-		trinex_refl_prop(self, This, color_mask, Refl::Enum::static_require("Engine::ColorComponentMask"));
+		trinex_refl_prop(self, This, src_alpha_func);
+		trinex_refl_prop(self, This, dst_alpha_func);
+		trinex_refl_prop(self, This, alpha_op)->display_name("Alpha Operator");
+		trinex_refl_prop(self, This, color_mask);
 	}
 
 	bool GraphicsPipelineDescription::serialize(Archive& ar)
@@ -346,7 +338,7 @@ namespace Engine
 
 	ShaderType GraphicsPipeline::shader_types() const
 	{
-		ShaderType result = ShaderType::Vertex | ShaderType::Fragment;
+		ShaderType result(ShaderType::Vertex | ShaderType::Fragment);
 
 		if (m_vertex_shader)
 			result |= ShaderType::Vertex;

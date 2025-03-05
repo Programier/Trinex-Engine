@@ -23,7 +23,7 @@ namespace Engine::VFS
 		Path native_path(const Path& path) const override;
 
 		bool is_read_only() const override;
-		File* open(const Path& path, Flags<FileOpenMode> mode) override;
+		File* open(const Path& path, FileOpenMode mode) override;
 		bool create_dir(const Path& path) override;
 		bool remove(const Path& path) override;
 		bool copy(const Path& src, const Path& dest) override;

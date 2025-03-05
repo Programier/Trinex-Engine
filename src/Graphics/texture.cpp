@@ -15,13 +15,11 @@ namespace Engine
 {
 	implement_engine_class(Texture, Refl::Class::IsAsset)
 	{
-		auto* self         = static_class_instance();
-		auto* swizzle_enum = Refl::Enum::static_find("Engine::Swizzle", Refl::FindFlags::IsRequired);
-
-		trinex_refl_prop(self, This, swizzle_r, swizzle_enum)->display_name("Swizze R").tooltip("Swizze R of texture");
-		trinex_refl_prop(self, This, swizzle_g, swizzle_enum)->display_name("Swizze G").tooltip("Swizze G of texture");
-		trinex_refl_prop(self, This, swizzle_b, swizzle_enum)->display_name("Swizze B").tooltip("Swizze B of texture");
-		trinex_refl_prop(self, This, swizzle_a, swizzle_enum)->display_name("Swizze A").tooltip("Swizze A of texture");
+		auto* self = static_class_instance();
+		trinex_refl_prop(self, This, swizzle_r)->display_name("Swizze R").tooltip("Swizze R of texture");
+		trinex_refl_prop(self, This, swizzle_g)->display_name("Swizze G").tooltip("Swizze G of texture");
+		trinex_refl_prop(self, This, swizzle_b)->display_name("Swizze B").tooltip("Swizze B of texture");
+		trinex_refl_prop(self, This, swizzle_a)->display_name("Swizze A").tooltip("Swizze A of texture");
 	}
 
 

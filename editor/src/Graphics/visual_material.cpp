@@ -27,9 +27,8 @@ namespace Engine
 
 	implement_engine_class(VisualMaterial, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
-		auto* self              = This::static_class_instance();
-		Refl::Enum* domain_enum = Refl::Enum::static_require("Engine::MaterialDomain");
-		trinex_refl_prop(self, This, domain, domain_enum);
+		auto* self = This::static_class_instance();
+		trinex_refl_prop(self, This, domain);
 	}
 
 

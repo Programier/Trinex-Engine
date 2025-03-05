@@ -17,11 +17,11 @@ namespace Engine
 	{
 		close();
 
-		Flags<FileOpenMode> flags = FileOpenMode::Out;
+		FileOpenMode flags = FileOpenMode::Out;
 
 		if (clear)
 		{
-			flags(FileOpenMode::Trunc, true);
+			flags |= FileOpenMode::Trunc;
 		}
 
 		m_file = rootfs()->open(filename, flags);

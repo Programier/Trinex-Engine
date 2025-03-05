@@ -166,5 +166,11 @@ namespace Engine
 
 		Identifier window_id = 0;
 		EventType type       = EventType::Undefined;
+
+		Event();
+		Event(const Event&)            = default;
+		Event(Event&&)                 = default;
+		Event& operator=(const Event&) = default;
+		Event& operator=(Event&&)      = default;
 	};
 }// namespace Engine

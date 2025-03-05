@@ -61,14 +61,15 @@ namespace Engine
 		struct ColorBlendingInfo {
 			declare_struct(ColorBlendingInfo, void);
 
-			bool enable                   = false;
-			BlendFunc src_color_func      = BlendFunc::SrcAlpha;
-			BlendFunc dst_color_func      = BlendFunc::OneMinusSrcAlpha;
-			BlendOp color_op              = BlendOp::Add;
-			BlendFunc src_alpha_func      = BlendFunc::One;
-			BlendFunc dst_alpha_func      = BlendFunc::Zero;
-			BlendOp alpha_op              = BlendOp::Add;
-			ColorComponentMask color_mask = ColorComponentMask::RGBA;
+			bool enable               = false;
+			BlendFunc src_color_func  = BlendFunc::SrcAlpha;
+			BlendFunc dst_color_func  = BlendFunc::OneMinusSrcAlpha;
+			BlendOp color_op          = BlendOp::Add;
+			BlendFunc src_alpha_func  = BlendFunc::One;
+			BlendFunc dst_alpha_func  = BlendFunc::Zero;
+			BlendOp alpha_op          = BlendOp::Add;
+			ColorComponent color_mask = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G |
+																		  ColorComponent::B | ColorComponent::A);
 		} color_blending;
 
 		bool serialize(Archive& ar) override;

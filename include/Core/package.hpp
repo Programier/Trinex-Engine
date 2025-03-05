@@ -26,7 +26,7 @@ namespace Engine
 		const Vector<Object*>& objects() const;
 		bool contains_object(const Object* object) const;
 		bool contains_object(const StringView& name) const;
-		bool save(BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {}) override;
+		bool save(BufferWriter* writer = nullptr, SerializationFlags flags = {}) override;
 		friend class Object;
 	};
 }// namespace Engine

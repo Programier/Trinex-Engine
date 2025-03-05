@@ -7,20 +7,10 @@
 
 namespace Engine
 {
-	implement_engine_enum(EventType, EventType::Quit, EventType::AppTerminating, EventType::AppLowMemory, EventType::AppPause,
-						  EventType::AppResume, EventType::DisplayAdded, EventType::DisplayRemoved,
-						  EventType::DisplayOrientationChanged, EventType::WindowShown, EventType::WindowHidden,
-						  EventType::WindowMoved, EventType::WindowResized, EventType::WindowMinimized,
-						  EventType::WindowMaximized, EventType::WindowRestored, EventType::WindowFocusGained,
-						  EventType::WindowFocusLost, EventType::WindowClose, EventType::TextInput, EventType::KeyDown,
-						  EventType::KeyUp, EventType::MouseMotion, EventType::MouseButtonUp, EventType::MouseButtonDown,
-						  EventType::MouseWheel, EventType::ControllerAxisMotion, EventType::ControllerButtonUp,
-						  EventType::ControllerButtonDown, EventType::ControllerDeviceAdded, EventType::ControllerDeviceRemoved,
-						  EventType::ControllerDeviceRemapped, EventType::ControllerTouchPadDown,
-						  EventType::ControllerTouchPadMotion, EventType::ControllerTouchPadUp, EventType::ControllerSensorUpdate,
-						  EventType::FingerDown, EventType::FingerUp, EventType::FingerMotion, EventType::DropFile,
-						  EventType::DropText, EventType::DropBegin, EventType::DropComplete);
-
+	Event::Event()
+	{
+		std::memset(static_cast<void*>(this), 0, sizeof(Event));
+	}
 
 	template<typename T>
 	ScriptClassRegistrar::ValueInfo info_of(bool all_ints = false, bool all_floats = false)
@@ -33,6 +23,57 @@ namespace Engine
 		info.all_ints                        = all_ints;
 		return info;
 	}
+
+	static void register_event_type()
+	{
+		ScriptEnumRegistrar r("Engine::EventType");
+		using enum EventType;
+
+		r.set("Quit", Quit);
+		r.set("AppTerminating", AppTerminating);
+		r.set("AppLowMemory", AppLowMemory);
+		r.set("AppPause", AppPause);
+		r.set("AppResume", AppResume);
+		r.set("DisplayAdded", DisplayAdded);
+		r.set("DisplayRemoved", DisplayRemoved);
+		r.set("DisplayOrientationChanged", DisplayOrientationChanged);
+		r.set("WindowShown", WindowShown);
+		r.set("WindowHidden", WindowHidden);
+		r.set("WindowMoved", WindowMoved);
+		r.set("WindowResized", WindowResized);
+		r.set("WindowMinimized", WindowMinimized);
+		r.set("WindowMaximized", WindowMaximized);
+		r.set("WindowRestored", WindowRestored);
+		r.set("WindowFocusGained", WindowFocusGained);
+		r.set("WindowFocusLost", WindowFocusLost);
+		r.set("WindowClose", WindowClose);
+		r.set("TextInput", TextInput);
+		r.set("KeyDown", KeyDown);
+		r.set("KeyUp", KeyUp);
+		r.set("MouseMotion", MouseMotion);
+		r.set("MouseButtonUp", MouseButtonUp);
+		r.set("MouseButtonDown", MouseButtonDown);
+		r.set("MouseWheel", MouseWheel);
+		r.set("ControllerAxisMotion", ControllerAxisMotion);
+		r.set("ControllerButtonUp", ControllerButtonUp);
+		r.set("ControllerButtonDown", ControllerButtonDown);
+		r.set("ControllerDeviceAdded", ControllerDeviceAdded);
+		r.set("ControllerDeviceRemoved", ControllerDeviceRemoved);
+		r.set("ControllerDeviceRemapped", ControllerDeviceRemapped);
+		r.set("ControllerTouchPadDown", ControllerTouchPadDown);
+		r.set("ControllerTouchPadMotion", ControllerTouchPadMotion);
+		r.set("ControllerTouchPadUp", ControllerTouchPadUp);
+		r.set("ControllerSensorUpdate", ControllerSensorUpdate);
+		r.set("FingerDown", FingerDown);
+		r.set("FingerUp", FingerUp);
+		r.set("FingerMotion", FingerMotion);
+		r.set("DropFile", DropFile);
+		r.set("DropText", DropText);
+		r.set("DropBegin", DropBegin);
+		r.set("DropComplete", DropComplete);
+	}
+
+	static ReflectionInitializeController enum_initializer(register_event_type, "Engine::EventType");
 
 	static void on_init()
 	{

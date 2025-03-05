@@ -31,15 +31,9 @@ namespace Engine
 	static thread_local struct NextObjectInfo {
 		Refl::Class* class_instance;
 
-		NextObjectInfo()
-		{
-			reset();
-		}
+		NextObjectInfo() { reset(); }
 
-		void reset()
-		{
-			class_instance = nullptr;
-		}
+		void reset() { class_instance = nullptr; }
 
 	} next_object_info;
 
@@ -145,8 +139,7 @@ namespace Engine
 		return 1;
 	}
 
-	void Object::SetGCFlag()
-	{}
+	void Object::SetGCFlag() {}
 
 	bool Object::GetGCFlag()
 	{
@@ -619,7 +612,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool Object::save(class BufferWriter* writer, Flags<SerializationFlags> serialization_flags)
+	bool Object::save(class BufferWriter* writer, SerializationFlags serialization_flags)
 	{
 		if (!flags(Object::IsSerializable))
 		{
@@ -685,7 +678,7 @@ namespace Engine
 	}
 
 	ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
-											  Flags<SerializationFlags> serialization_flags)
+											  SerializationFlags serialization_flags)
 	{
 		if (reader == nullptr)
 		{
@@ -693,7 +686,7 @@ namespace Engine
 			return nullptr;
 		}
 
-		if (!serialization_flags(SerializationFlags::SkipObjectSearch))
+		if (!(serialization_flags & SerializationFlags::SkipObjectSearch))
 		{
 			if (Object* object = static_find_object(fullname))
 			{
@@ -771,9 +764,9 @@ namespace Engine
 		return nullptr;
 	}
 
-	ENGINE_EXPORT Object* Object::load_object(StringView name, Flags<SerializationFlags> flags)
+	ENGINE_EXPORT Object* Object::load_object(StringView name, SerializationFlags flags)
 	{
-		if (!flags(SerializationFlags::SkipObjectSearch))
+		if (!(flags & SerializationFlags::SkipObjectSearch))
 		{
 			if (Object* object = static_find_object(name))
 				return object;
@@ -784,13 +777,13 @@ namespace Engine
 		return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
 	}
 
-	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, Flags<SerializationFlags> flags)
+	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, SerializationFlags flags)
 	{
 		String package_name = Strings::replace_all(path.base_path(), Path::sv_separator, Constants::name_separator);
 		StringView name     = path.stem();
 		String full_name    = package_name + Constants::name_separator + String(name);
 
-		if (!flags(SerializationFlags::SkipObjectSearch))
+		if (!(flags & SerializationFlags::SkipObjectSearch))
 		{
 			if (Object* object = static_find_object(full_name))
 				return object;

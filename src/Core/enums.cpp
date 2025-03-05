@@ -4,107 +4,56 @@
 
 namespace Engine
 {
-	implement_engine_enum(TextureType, TextureType::Texture2D, TextureType::TextureCubeMap);
-	implement_engine_enum(CompareMode, CompareMode::None, CompareMode::RefToTexture);
-	implement_engine_enum(SamplerFilter, SamplerFilter::Point, SamplerFilter::Bilinear, SamplerFilter::Trilinear);
-	implement_engine_enum(Swizzle, Swizzle::Identity, Swizzle::Zero, Swizzle::One, Swizzle::R, Swizzle::G, Swizzle::B,
-						  Swizzle::A);
+	trinex_implement_enum(TextureType, Texture2D, TextureCubeMap);
 
-	implement_engine_enum(SamplerAddressMode, SamplerAddressMode::Repeat, SamplerAddressMode::ClampToEdge,
-						  SamplerAddressMode::ClampToBorder, SamplerAddressMode::MirroredRepeat,
-						  SamplerAddressMode::MirrorClampToEdge);
-	implement_engine_enum(TextureCubeMapFace, TextureCubeMapFace::Front, TextureCubeMapFace::Back, TextureCubeMapFace::Up,
-						  TextureCubeMapFace::Down, TextureCubeMapFace::Left, TextureCubeMapFace::Right);
+	trinex_implement_engine_enum(CompareMode, None, RefToTexture);
+	trinex_implement_engine_enum(SamplerFilter, Point, Bilinear, Trilinear);
+	trinex_implement_engine_enum(Swizzle, Identity, Zero, One, R, G, B, A);
 
-	implement_engine_enum(VertexBufferSemantic, VertexBufferSemantic::Position, VertexBufferSemantic::TexCoord,
-						  VertexBufferSemantic::Color, VertexBufferSemantic::Normal, VertexBufferSemantic::Tangent,
-						  VertexBufferSemantic::Bitangent, VertexBufferSemantic::BlendWeight, VertexBufferSemantic::BlendIndices);
+	trinex_implement_engine_enum(SamplerAddressMode, Repeat, ClampToEdge, ClampToBorder, MirroredRepeat, MirrorClampToEdge);
+	trinex_implement_engine_enum(TextureCubeMapFace, Front, Back, Up, Down, Left, Right);
 
-	implement_engine_enum(Coord, Coord::X, Coord::Y, Coord::Z);
+	trinex_implement_engine_enum(VertexBufferSemantic, Position, TexCoord, Color, Normal, Tangent, Bitangent, BlendWeight,
+								 BlendIndices);
 
-	implement_engine_enum(DataType, DataType::Text, DataType::Binary);
+	trinex_implement_engine_enum(Coord, X, Y, Z);
+	trinex_implement_engine_enum(DataType, Text, Binary);
+	trinex_implement_engine_enum(OperationSystemType, Linux, Windows, Android);
+	trinex_implement_engine_enum(ColorComponent, R, G, B, A);
+	trinex_implement_engine_enum(CompareFunc, Always, Lequal, Gequal, Less, Greater, Equal, NotEqual, Never);
+	trinex_implement_engine_enum(PhysicalSizeMetric, Inch, Сentimeters);
+	trinex_implement_engine_enum(StencilOp, Keep, Zero, Replace, Incr, IncrWrap, Decr, DecrWrap, Invert);
 
-	implement_engine_enum(OperationSystemType, OperationSystemType::Linux, OperationSystemType::Windows,
-						  OperationSystemType::Android);
+	trinex_implement_engine_enum(BlendFunc, Zero, One, SrcColor, OneMinusSrcColor, DstColor, OneMinusDstColor, SrcAlpha,
+								 OneMinusSrcAlpha, DstAlpha, OneMinusDstAlpha, BlendFactor, OneMinusBlendFactor);
 
-	implement_engine_enum(ColorComponent, ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A);
+	trinex_implement_engine_enum(BlendOp, Add, Subtract, ReverseSubtract, Min, Max);
+	trinex_implement_engine_enum(Primitive, Triangle, Line, Point);
+	trinex_implement_engine_enum(PrimitiveTopology, TriangleList, PointList, LineList, LineStrip, TriangleStrip);
+	trinex_implement_engine_enum(PolygonMode, Fill, Line, Point);
+	trinex_implement_engine_enum(CullMode, None, Front, Back);
+	trinex_implement_engine_enum(FrontFace, ClockWise, CounterClockWise);
 
-	implement_engine_enum(CompareFunc, CompareFunc::Always, CompareFunc::Lequal, CompareFunc::Gequal, CompareFunc::Less,
-						  CompareFunc::Greater, CompareFunc::Equal, CompareFunc::NotEqual, CompareFunc::Never);
+	trinex_implement_engine_enum(WindowAttribute, None, Resizable, FullScreen, Shown, Hidden, BorderLess, MouseFocus, InputFocus,
+								 InputGrabbed, Minimized, Maximized, MouseCapture, MouseGrabbed, KeyboardGrabbed);
 
-	implement_engine_enum(PhysicalSizeMetric, PhysicalSizeMetric::Inch, PhysicalSizeMetric::Сentimeters);
+	trinex_implement_engine_enum(CursorMode, Normal, Hidden);
+	trinex_implement_engine_enum(Orientation, Landscape, LandscapeFlipped, Portrait, PortraitFlipped);
+	trinex_implement_engine_enum(MessageBoxType, Error, Warning, Info);
+	trinex_implement_engine_enum(VertexAttributeInputRate, Vertex, Instance);
+	trinex_implement_engine_enum(RenderPassType, Undefined, Window, SceneColor, GBuffer);
+	trinex_implement_engine_enum(ViewMode, Lit, Unlit, Wireframe, WorldNormal, Metalic, Roughness, Specular, AO);
 
-	implement_engine_enum(StencilOp, StencilOp::Keep, StencilOp::Zero, StencilOp::Replace, StencilOp::Incr, StencilOp::IncrWrap,
-						  StencilOp::Decr, StencilOp::DecrWrap, StencilOp::Invert);
+	trinex_implement_engine_enum(VertexBufferElementType, Undefined, Float1, Float2, Float3, Float4, Byte1, Byte2, Byte4, Byte1,
+								 Byte2N, Byte4N, UByte1, UByte2, UByte4, UByte1N, UByte2N, UByte4N, Color, Short1, Short2, Short4,
+								 Short1N, Short2N, Short4N, UShort1, UShort2, UShort4, UShort1N, UShort2N, UShort4N, Int1, Int2,
+								 Int3, Int4, UInt1, UInt2, UInt3, UInt4);
 
-	implement_engine_enum(BlendFunc, BlendFunc::Zero, BlendFunc::One, BlendFunc::SrcColor, BlendFunc::OneMinusSrcColor,
-						  BlendFunc::DstColor, BlendFunc::OneMinusDstColor, BlendFunc::SrcAlpha, BlendFunc::OneMinusSrcAlpha,
-						  BlendFunc::DstAlpha, BlendFunc::OneMinusDstAlpha, BlendFunc::BlendFactor,
-						  BlendFunc::OneMinusBlendFactor);
+	trinex_implement_engine_enum(ColorFormat, Undefined, FloatR, FloatRGBA, R8, R8G8B8A8, Depth, DepthStencil, ShadowDepth, BC1,
+								 BC2, BC3);
 
-	implement_engine_enum(BlendOp, BlendOp::Add, BlendOp::Subtract, BlendOp::ReverseSubtract, BlendOp::Min, BlendOp::Max);
-
-	implement_engine_enum(Primitive, Primitive::Triangle, Primitive::Line, Primitive::Point);
-
-	implement_engine_enum(PrimitiveTopology, PrimitiveTopology::TriangleList, PrimitiveTopology::PointList,
-						  PrimitiveTopology::LineList, PrimitiveTopology::LineStrip, PrimitiveTopology::TriangleStrip);
-
-	implement_engine_enum(PolygonMode, PolygonMode::Fill, PolygonMode::Line, PolygonMode::Point);
-
-	implement_engine_enum(CullMode, CullMode::None, CullMode::Front, CullMode::Back);
-
-	implement_engine_enum(FrontFace, FrontFace::ClockWise, FrontFace::CounterClockWise);
-
-	implement_engine_enum(WindowAttribute, WindowAttribute::None, WindowAttribute::Resizable, WindowAttribute::FullScreen,
-						  WindowAttribute::Shown, WindowAttribute::Hidden, WindowAttribute::BorderLess,
-						  WindowAttribute::MouseFocus, WindowAttribute::InputFocus, WindowAttribute::InputGrabbed,
-						  WindowAttribute::Minimized, WindowAttribute::Maximized, WindowAttribute::MouseCapture,
-						  WindowAttribute::MouseGrabbed, WindowAttribute::KeyboardGrabbed);
-
-	implement_engine_enum(CursorMode, CursorMode::Normal, CursorMode::Hidden);
-
-	implement_engine_enum(Orientation, Orientation::Landscape, Orientation::LandscapeFlipped, Orientation::Portrait,
-						  Orientation::PortraitFlipped);
-
-	implement_engine_enum(MessageBoxType, MessageBoxType::Error, MessageBoxType::Warning, MessageBoxType::Info);
-
-	implement_engine_enum(VertexAttributeInputRate, VertexAttributeInputRate::Vertex, VertexAttributeInputRate::Instance);
-
-	implement_engine_enum(ColorComponentMask, ColorComponentMask::RGBA, ColorComponentMask::RGB, ColorComponentMask::RGA,
-						  ColorComponentMask::RG, ColorComponentMask::RBA, ColorComponentMask::RB, ColorComponentMask::RA,
-						  ColorComponentMask::R, ColorComponentMask::GBA, ColorComponentMask::GB, ColorComponentMask::GA,
-						  ColorComponentMask::G, ColorComponentMask::BA, ColorComponentMask::B, ColorComponentMask::A);
-
-	implement_engine_enum(RenderPassType, RenderPassType::Undefined, RenderPassType::Window, RenderPassType::SceneColor,
-						  RenderPassType::GBuffer);
-
-	implement_engine_enum(ViewMode, ViewMode::Lit, ViewMode::Unlit, ViewMode::Wireframe, ViewMode::WorldNormal, ViewMode::Metalic,
-						  ViewMode::Roughness, ViewMode::Specular, ViewMode::AO);
-
-	implement_engine_enum(VertexBufferElementType, VertexBufferElementType::Undefined, VertexBufferElementType::Float1,
-						  VertexBufferElementType::Float2, VertexBufferElementType::Float3, VertexBufferElementType::Float4,
-						  VertexBufferElementType::Byte1, VertexBufferElementType::Byte2, VertexBufferElementType::Byte4,
-						  VertexBufferElementType::Byte1, VertexBufferElementType::Byte2N, VertexBufferElementType::Byte4N,
-						  VertexBufferElementType::UByte1, VertexBufferElementType::UByte2, VertexBufferElementType::UByte4,
-						  VertexBufferElementType::UByte1N, VertexBufferElementType::UByte2N, VertexBufferElementType::UByte4N,
-						  VertexBufferElementType::Color, VertexBufferElementType::Short1, VertexBufferElementType::Short2,
-						  VertexBufferElementType::Short4, VertexBufferElementType::Short1N, VertexBufferElementType::Short2N,
-						  VertexBufferElementType::Short4N, VertexBufferElementType::UShort1, VertexBufferElementType::UShort2,
-						  VertexBufferElementType::UShort4, VertexBufferElementType::UShort1N, VertexBufferElementType::UShort2N,
-						  VertexBufferElementType::UShort4N, VertexBufferElementType::Int1, VertexBufferElementType::Int2,
-						  VertexBufferElementType::Int3, VertexBufferElementType::Int4, VertexBufferElementType::UInt1,
-						  VertexBufferElementType::UInt2, VertexBufferElementType::UInt3, VertexBufferElementType::UInt4);
-
-	implement_engine_enum(ColorFormat, ColorFormat::Undefined, ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8,
-						  ColorFormat::R8G8B8A8, ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth,
-						  ColorFormat::BC1, ColorFormat::BC2, ColorFormat::BC3);
-
-	implement_engine_enum(MaterialDomain, MaterialDomain::Surface, MaterialDomain::Lighting);
-
-	implement_engine_enum(SplashTextType, SplashTextType::StartupProgress, SplashTextType::VersionInfo,
-						  SplashTextType::CopyrightInfo, SplashTextType::GameName);
-
-	implement_engine_enum(MaterialOptions, MaterialOptions::DefaultPassOnly, MaterialOptions::DisableDefaultPass,
-						  MaterialOptions::LightMaterial);
+	trinex_implement_engine_enum(MaterialDomain, Surface, Lighting);
+	trinex_implement_engine_enum(SplashTextType, StartupProgress, VersionInfo, CopyrightInfo, GameName);
+	trinex_implement_engine_enum(MaterialOptions, DefaultPassOnly, DisableDefaultPass, LightMaterial);
 
 }// namespace Engine

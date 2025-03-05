@@ -245,7 +245,8 @@ namespace Engine
 					--components_offset;
 				}
 
-				auto result = static_cast<VertexBufferElementType>(static_cast<EnumerateType>(base_type) + components_offset);
+				VertexBufferElementType result(
+						static_cast<VertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
 
 				if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
 					return VertexBufferElementType::Color;
@@ -854,7 +855,7 @@ namespace Engine
 
 		bool success = true;
 
-		if (!material->options(MaterialOptions::DisableDefaultPass))
+		if (!(material->options & MaterialOptions::DisableDefaultPass))
 			success = compile_pass(material, nullptr, source);
 
 		for (auto pass = Refl::RenderPassInfo::first_pass(); pass && success; pass = pass->next_pass())

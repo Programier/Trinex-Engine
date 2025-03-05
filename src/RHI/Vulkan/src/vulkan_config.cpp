@@ -1,16 +1,13 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/reflection/enum.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <VkBootstrap.h>
 #include <vulkan_config.hpp>
 
 namespace vkb
 {
-    using DeviceType = PreferredDeviceType;
+	using DeviceType = PreferredDeviceType;
 }
-
-implement_enum(vkb::DeviceType, vkb::DeviceType::other, vkb::DeviceType::integrated, vkb::DeviceType::discrete,
-               vkb::DeviceType::virtual_gpu, vkb::DeviceType::cpu);
 
 namespace Engine::VulkanConfig
 {
@@ -26,14 +23,19 @@ namespace Engine::VulkanConfig
 	unsigned int desired_mem_size         = 0;
 
 	static PreInitializeController on_init([]() {
-		ReflectionInitializeController().require("vkb::DeviceType");
+		ScriptEnumRegistrar reg("Engine::VulkanGPU");
+		reg.set("other", vkb::DeviceType::other);
+		reg.set("integrated", vkb::DeviceType::integrated);
+		reg.set("discrete", vkb::DeviceType::discrete);
+		reg.set("virtual_gpu", vkb::DeviceType::virtual_gpu);
+		reg.set("cpu", vkb::DeviceType::cpu);
 
 		auto& e = ScriptEngine::instance();
 
 		e.begin_config_group("engine/vulkan.config");
 		{
 			ScriptNamespaceScopedChanger changer("Engine::Vulkan");
-			e.register_property("vkb::DeviceType device_type", &device_type);
+			e.register_property("Engine::VulkanGPU device_type", &device_type);
 			e.register_property("bool enable_validation", &enable_validation);
 			e.register_property("bool allow_any_gpu_type", &allow_any_gpu_type);
 			e.register_property("bool require_present", &require_present);

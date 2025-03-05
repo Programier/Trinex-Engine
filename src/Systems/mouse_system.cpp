@@ -56,7 +56,7 @@ namespace Engine
 		if (Window* window = find_window(e.window_id))
 		{
 			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(e.mouse.button.button)];
-			info.status      = Mouse::JustPressed;
+			info.status      = Mouse::Status::JustPressed;
 
 			info.x = e.mouse.button.x;
 			info.y = e.mouse.button.y;
@@ -69,7 +69,7 @@ namespace Engine
 		if (Window* window = find_window(e.window_id))
 		{
 			ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(e.mouse.button.button)];
-			info.status      = Mouse::JustReleased;
+			info.status      = Mouse::Status::JustReleased;
 
 			info.x = e.mouse.button.x;
 			info.y = e.mouse.button.y;
@@ -98,13 +98,13 @@ namespace Engine
 	{
 		for (auto& info : state.m_button_status)
 		{
-			if (info.status == Mouse::JustPressed)
+			if (info.status == Mouse::Status::JustPressed)
 			{
-				info.status = Mouse::Pressed;
+				info.status = Mouse::Status::Pressed;
 			}
-			else if (info.status == Mouse::JustReleased)
+			else if (info.status == Mouse::Status::JustReleased)
 			{
-				info.status = Mouse::Released;
+				info.status = Mouse::Status::Released;
 			}
 
 			info.x = -1;
@@ -180,22 +180,22 @@ namespace Engine
 
 	bool MouseSystem::is_pressed(Mouse::Button button, Window* window) const
 	{
-		return state_of(window).m_button_status[button].status == Mouse::Pressed || is_just_pressed(button);
+		return state_of(window).m_button_status[button].status == Mouse::Status::Pressed || is_just_pressed(button);
 	}
 
 	bool MouseSystem::is_released(Mouse::Button button, Window* window) const
 	{
-		return state_of(window).m_button_status[button].status == Mouse::Released || is_just_released(button);
+		return state_of(window).m_button_status[button].status == Mouse::Status::Released || is_just_released(button);
 	}
 
 	bool MouseSystem::is_just_pressed(Mouse::Button button, Window* window) const
 	{
-		return state_of(window).m_button_status[button].status == Mouse::JustPressed;
+		return state_of(window).m_button_status[button].status == Mouse::Status::JustPressed;
 	}
 
 	bool MouseSystem::is_just_released(Mouse::Button button, Window* window) const
 	{
-		return state_of(window).m_button_status[button].status == Mouse::JustReleased;
+		return state_of(window).m_button_status[button].status == Mouse::Status::JustReleased;
 	}
 
 	const MouseSystem::ButtonInfo& MouseSystem::button_info(Mouse::Button button, Window* window) const

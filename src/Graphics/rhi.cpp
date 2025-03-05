@@ -1,12 +1,24 @@
 #include <Core/exception.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
 {
 	ENGINE_EXPORT RHI* rhi = nullptr;
 
-	RHI_Object::RHI_Object(size_t init_ref_count) : m_references(init_ref_count)
-	{}
+	RHI_Object::RHI_Object(size_t init_ref_count) : m_references(init_ref_count) {}
+
+	void RHI_Object::static_release_internal(RHI_Object* object)
+	{
+		if (is_in_render_thread())
+		{
+			object->release();
+		}
+		else
+		{
+			render_thread()->call([object]() { object->release(); });
+		}
+	}
 
 	void RHI_Object::add_reference() const
 	{
@@ -29,8 +41,7 @@ namespace Engine
 		return m_references;
 	}
 
-	RHI_Object::~RHI_Object()
-	{}
+	RHI_Object::~RHI_Object() {}
 
 	void RHI_Texture2D::clear_color(const Color& color)
 	{

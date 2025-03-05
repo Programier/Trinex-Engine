@@ -34,10 +34,7 @@ namespace Engine::VFS
 			update_path();
 		}
 
-		const Path& path() override
-		{
-			return m_path;
-		}
+		const Path& path() override { return m_path; }
 
 		bool is_valid() const override
 		{
@@ -54,10 +51,7 @@ namespace Engine::VFS
 			return new_iterator;
 		}
 
-		Type type() const override
-		{
-			return Native;
-		}
+		Type type() const override { return Native; }
 
 		bool is_equal(DirectoryIteratorInterface* other) override
 		{
@@ -120,7 +114,7 @@ namespace Engine::VFS
 		return (fs::status(m_path.str()).permissions() & fs::perms::owner_write) != fs::perms::owner_write;
 	}
 
-	File* NativeFileSystem::open(const Path& path, Flags<FileOpenMode> mode)
+	File* NativeFileSystem::open(const Path& path, FileOpenMode mode)
 	{
 		if (is_dir(path))
 			return nullptr;
@@ -128,8 +122,8 @@ namespace Engine::VFS
 		Path full_path = m_path / path;
 
 		std::ios_base::openmode open_mode = std::ios_base::binary;
-		bool is_read_only                 = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
 
+		bool is_read_only = (mode & (FileOpenMode::Out | FileOpenMode::Append)) == 0;
 
 		if (mode & FileOpenMode::In)
 			open_mode |= std::ios_base::in;

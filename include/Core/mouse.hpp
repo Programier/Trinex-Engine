@@ -3,22 +3,32 @@
 
 namespace Engine::Mouse
 {
-	enum Status : EnumerateType
-	{
-		Released = 0,
-		JustReleased,
-		JustPressed,
-		Pressed,
+	struct Status {
+		enum Enum : EnumerateType
+		{
+			Released = 0,
+			JustReleased,
+			JustPressed,
+			Pressed,
+		};
+
+		trinex_enum_struct(Status);
+		trinex_declare_enum(Status);
 	};
 
-	enum Button : EnumerateType
-	{
-		Unknown,
-		Left,
-		Middle,
-		Right,
-		Forward,
-		Back,
-		__COUNT__
+	struct Button {
+		enum Enum : EnumerateType
+		{
+			Unknown,
+			Left,
+			Middle,
+			Right,
+			Forward,
+			Back,
+			__COUNT__
+		};
+
+		trinex_enum_struct(Button);
+		trinex_declare_enum(Button);
 	};
 }// namespace Engine::Mouse

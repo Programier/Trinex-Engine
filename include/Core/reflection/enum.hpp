@@ -14,8 +14,7 @@ namespace Engine::Refl
 			Name name;
 			EnumerateType value;
 
-			FORCE_INLINE Entry() : name(Name::none), value(0)
-			{}
+			FORCE_INLINE Entry() : name(Name::none), value(0) {}
 
 			template<typename EnumValue = EnumerateType>
 			FORCE_INLINE Entry(const Name& name, EnumValue value) : name(name), value(static_cast<EnumerateType>(value))
@@ -53,15 +52,17 @@ namespace Engine::Refl
 		const Entry* entry(EnumerateType value) const;
 		const Entry* entry(const Name& name) const;
 		const Entry* create_entry(const Name& name, EnumerateType value);
-
 		const Vector<Enum::Entry>& entries() const;
 	};
 
-#define implement_enum(enum_name, ...)                                                                                           \
+#define trinex_implement_enum(enum_name, ...)                                                                                    \
+	Engine::Refl::Enum* enum_name::s_enum = nullptr;                                                                             \
+	void enum_name::static_initialize_enum()                                                                                     \
+	{                                                                                                                            \
+		s_enum = Engine::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name);                                           \
+	}                                                                                                                            \
 	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::byte>(                           \
-			Engine::ReflectionInitializeController([]() { Engine::Refl::Enum::create<enum_name, __VA_ARGS__>(#enum_name); },     \
-												   #enum_name)                                                                   \
-					.id())
+			Engine::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
 
-#define implement_engine_enum(enum_name, ...) implement_enum(Engine::enum_name, __VA_ARGS__)
+#define trinex_implement_engine_enum(enum_name, ...) trinex_implement_enum(Engine::enum_name, __VA_ARGS__)
 }// namespace Engine::Refl
