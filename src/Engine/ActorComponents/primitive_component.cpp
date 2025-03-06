@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 

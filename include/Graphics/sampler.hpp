@@ -7,7 +7,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Sampler : public BindedRenderResource
 	{
-		declare_class(Sampler, BindedRenderResource);
+		trinex_declare_class(Sampler, BindedRenderResource);
 
 	public:
 		Vector4f border_color         = {0.f, 0.f, 0.f, 1.f};

@@ -16,7 +16,7 @@
 
 namespace Engine
 {
-	implement_engine_class(TextureEditorClient, 0)
+	trinex_implement_engine_class(TextureEditorClient, 0)
 	{
 		register_client(Texture::static_class_instance(), static_class_instance());
 	}

@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-	implement_engine_class(SpriteComponent, 0)
+	trinex_implement_engine_class(SpriteComponent, 0)
 	{
 		auto* self = This::static_class_instance();
 		trinex_refl_prop(self, This, m_texture)->display_name("Texture").tooltip("Sprite texture");

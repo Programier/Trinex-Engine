@@ -8,7 +8,7 @@ namespace Engine
 	struct Event;
 	class ENGINE_EXPORT KeyboardSystem : public Singletone<KeyboardSystem, System>
 	{
-		declare_class(KeyboardSystem, System);
+		trinex_declare_class(KeyboardSystem, System);
 
 	private:
 		Keyboard::Status m_key_status[Keyboard::__COUNT__];

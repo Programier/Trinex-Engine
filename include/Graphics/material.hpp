@@ -21,7 +21,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
-		declare_class(MaterialInterface, Object);
+		trinex_declare_class(MaterialInterface, Object);
 
 	public:
 		using Parameter = MaterialParameters::Parameter;
@@ -52,7 +52,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Material : public MaterialInterface
 	{
-		declare_class(Material, MaterialInterface);
+		trinex_declare_class(Material, MaterialInterface);
 
 	protected:
 		bool register_child(Object* child) override;
@@ -91,7 +91,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MaterialInstance : public MaterialInterface
 	{
-		declare_class(MaterialInstance, MaterialInterface);
+		trinex_declare_class(MaterialInstance, MaterialInterface);
 
 	public:
 		MaterialInterface* parent_material = nullptr;

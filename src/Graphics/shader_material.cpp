@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
+	trinex_implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
 	{
 		auto* self = This::static_class_instance();
 		trinex_refl_prop(self, This, shader_path)->tooltip("Path to slang file");

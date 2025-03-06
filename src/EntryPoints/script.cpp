@@ -16,7 +16,7 @@ namespace Engine
 {
 	class ScriptExec : public EntryPoint
 	{
-		declare_class(ScriptExec, EntryPoint);
+		trinex_declare_class(ScriptExec, EntryPoint);
 
 	public:
 		static inline String read_content(std::istream& stream)
@@ -85,7 +85,7 @@ namespace Engine
 
 	class ScriptConfigDump : public EntryPoint
 	{
-		declare_class(ScriptConfigDump, EntryPoint);
+		trinex_declare_class(ScriptConfigDump, EntryPoint);
 
 	public:
 		int_t execute() override
@@ -99,6 +99,6 @@ namespace Engine
 		}
 	};
 
-	implement_engine_class_default_init(ScriptExec, 0);
-	implement_engine_class_default_init(ScriptConfigDump, 0);
+	trinex_implement_engine_class_default_init(ScriptExec, 0);
+	trinex_implement_engine_class_default_init(ScriptConfigDump, 0);
 }// namespace Engine

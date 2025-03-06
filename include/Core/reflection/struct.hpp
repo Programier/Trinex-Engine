@@ -128,19 +128,12 @@ namespace Engine::Refl
 			return T::Super::static_struct_instance();
 		}
 
-		inline static Struct* super_of()
-		{
-			return nullptr;
-		}
+		inline static Struct* super_of() { return nullptr; }
 
-		NativeStruct& register_scriptable_instance() override
-		{
-			return *this;
-		}
+		NativeStruct& register_scriptable_instance() override { return *this; }
 
 	public:
-		NativeStruct(Struct* parent, BitMask flags = 0) : Base(parent, flags | Struct::native_type_flags<T>())
-		{}
+		NativeStruct(Struct* parent, BitMask flags = 0) : Base(parent, flags | Struct::native_type_flags<T>()) {}
 
 		static Struct* create(StringView decl, BitMask flags = 0)
 		{
@@ -195,10 +188,7 @@ namespace Engine::Refl
 			return *this;
 		}
 
-		size_t size() const override
-		{
-			return sizeof(T);
-		}
+		size_t size() const override { return sizeof(T); }
 
 		bool serialize(void* object, Archive& ar) override
 		{
@@ -213,7 +203,7 @@ namespace Engine::Refl
 		}
 	};
 
-#define implement_struct(decl, flags)                                                                                            \
+#define trinex_implement_struct(decl, flags)                                                                                     \
     class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
     class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
@@ -230,7 +220,6 @@ namespace Engine::Refl
                                                                                                                                  \
     void decl::static_initialize_struct()
 
-#define implement_struct_default_init(decl, flags)                                                                               \
-	implement_struct(decl, flags)                                                                                                \
-	{}
+#define trinex_implement_struct_default_init(decl, flags)                                                                        \
+    trinex_implement_struct(decl, flags) {}
 }// namespace Engine::Refl

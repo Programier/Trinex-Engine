@@ -63,7 +63,7 @@ namespace Engine::VisualMaterialGraph
 		return expr;
 	}
 
-	implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
+	trinex_implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 
@@ -101,7 +101,7 @@ namespace Engine::VisualMaterialGraph
 		});
 	}
 
-	implement_class(Engine::VisualMaterialGraph::SignaturedNode, Refl::Class::IsScriptable)
+	trinex_implement_class(Engine::VisualMaterialGraph::SignaturedNode, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 

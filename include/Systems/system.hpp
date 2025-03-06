@@ -5,7 +5,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT System : public Object
 	{
-		declare_class(System, Object);
+		trinex_declare_class(System, Object);
 
 	private:
 		bool m_is_initialized = false;

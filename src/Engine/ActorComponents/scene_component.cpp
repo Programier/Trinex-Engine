@@ -26,7 +26,7 @@ namespace Engine
 		return childs[index];
 	}
 
-	implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
 	{
 		auto* self  = static_class_instance();
 		auto& local = *trinex_refl_prop(self, This, m_local);

@@ -9,7 +9,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT StaticMeshComponent : public PrimitiveComponent
 	{
-		declare_class(StaticMeshComponent, PrimitiveComponent);
+		trinex_declare_class(StaticMeshComponent, PrimitiveComponent);
 
 	public:
 		class StaticMesh* mesh = nullptr;

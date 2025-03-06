@@ -11,7 +11,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MouseSystem : public Singletone<MouseSystem, System>
 	{
-		declare_class(MouseSystem, System);
+		trinex_declare_class(MouseSystem, System);
 
 	public:
 		struct PosInfo {

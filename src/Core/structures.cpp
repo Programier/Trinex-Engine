@@ -26,7 +26,7 @@ namespace Engine
 		return ar;
 	}
 
-	implement_struct(Engine::ShaderDefinition, 0)
+	trinex_implement_struct(Engine::ShaderDefinition, 0)
 	{
 		Refl::Struct* self = static_struct_instance();
 		trinex_refl_prop(self, This, key)->display_name("Key").tooltip("Key of definition");

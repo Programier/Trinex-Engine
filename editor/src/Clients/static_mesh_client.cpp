@@ -18,7 +18,7 @@
 
 namespace Engine
 {
-	implement_engine_class(StaticMeshClient, 0)
+	trinex_implement_engine_class(StaticMeshClient, 0)
 	{
 		register_client(StaticMesh::static_class_instance(), static_class_instance());
 	}

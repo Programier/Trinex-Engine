@@ -7,8 +7,8 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(RenderResource, 0);
-	implement_engine_class_default_init(BindedRenderResource, 0);
+	trinex_implement_engine_class_default_init(RenderResource, 0);
+	trinex_implement_engine_class_default_init(BindedRenderResource, 0);
 
 	struct DestroyRenderResourceTask : public Task<DestroyRenderResourceTask> {
 		RHI_Object* object;

@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(DirectionalLightComponent, 0);
+	trinex_implement_engine_class_default_init(DirectionalLightComponent, 0);
 
 	static Vector3f get_direction(const Transform& world_transform)
 	{

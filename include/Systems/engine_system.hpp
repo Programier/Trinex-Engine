@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT EngineSystem : public Singletone<EngineSystem, System>
 	{
-		declare_class(EngineSystem, System);
+		trinex_declare_class(EngineSystem, System);
 
 	protected:
 		EngineSystem& create() override;

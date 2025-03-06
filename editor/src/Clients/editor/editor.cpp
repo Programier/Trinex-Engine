@@ -38,7 +38,7 @@ namespace Engine
 										   ->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
-	implement_engine_class(EditorClient, 0)
+	trinex_implement_engine_class(EditorClient, 0)
 	{
 		register_client(Actor::static_class_instance(), static_class_instance());
 	}

@@ -14,7 +14,7 @@ namespace Engine
 
 	class StaticMeshClient : public ImGuiViewportClient
 	{
-		declare_class(StaticMeshClient, ImGuiViewportClient);
+		trinex_declare_class(StaticMeshClient, ImGuiViewportClient);
 
 		Vector3f m_camera_move;
 		Vector<Identifier> m_listeners;

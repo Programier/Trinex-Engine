@@ -6,7 +6,7 @@ namespace Engine
 {
 	class PipelineEditorClient : public ObjectViewClient
 	{
-		declare_class(PipelineEditorClient, ObjectViewClient);
+		trinex_declare_class(PipelineEditorClient, ObjectViewClient);
 
 	public:
 		PipelineEditorClient();

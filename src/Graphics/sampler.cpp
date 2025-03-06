@@ -10,7 +10,7 @@
 
 namespace Engine
 {
-	implement_engine_class(Sampler, Refl::Class::IsAsset)
+	trinex_implement_engine_class(Sampler, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
 

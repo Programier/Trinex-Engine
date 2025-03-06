@@ -14,7 +14,7 @@ namespace Engine
 	static ScriptFunction script_actor_comp_spawned;
 	static ScriptFunction script_actor_comp_destroyed;
 
-	implement_engine_class(ActorComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(ActorComponent, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 

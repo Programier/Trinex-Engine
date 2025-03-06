@@ -23,7 +23,7 @@ namespace Engine
 
 	class MaterialEditorClient : public ImGuiViewportClient
 	{
-		declare_class(MaterialEditorClient, ImGuiViewportClient);
+		trinex_declare_class(MaterialEditorClient, ImGuiViewportClient);
 
 	public:
 		struct GraphState {

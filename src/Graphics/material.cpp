@@ -24,7 +24,7 @@ namespace Engine
 {
 	using Parameter = MaterialInterface::Parameter;
 
-	implement_engine_class(MaterialInterface, 0)
+	trinex_implement_engine_class(MaterialInterface, 0)
 	{
 		auto self = static_class_instance();
 
@@ -36,7 +36,7 @@ namespace Engine
 		params->tooltip("Array of parammeters of this material");
 	}
 
-	implement_engine_class(Material, Refl::Class::IsAsset)
+	trinex_implement_engine_class(Material, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
 		trinex_refl_prop(self, This, compile_definitions);
@@ -46,7 +46,7 @@ namespace Engine
 		trinex_refl_prop(self, This, options);
 	}
 
-	implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
+	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
 		auto* self = MaterialInstance::static_class_instance();
 		trinex_refl_prop(self, This, parent_material)

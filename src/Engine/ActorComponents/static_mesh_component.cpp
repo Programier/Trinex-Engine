@@ -17,7 +17,7 @@
 
 namespace Engine
 {
-	implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
 	{
 		trinex_refl_prop(static_class_instance(), This, mesh)->tooltip("Mesh object of this component");
 

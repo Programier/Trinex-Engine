@@ -10,7 +10,7 @@ namespace Engine
 	class ENGINE_EXPORT Transform
 	{
 	public:
-		declare_struct(Transform, void);
+		trinex_declare_struct(Transform, void);
 		static const Transform transform_zero;
 
 	private:

@@ -8,7 +8,7 @@ namespace Engine
 	class NoneApi : public RHI
 	{
 	public:
-		declare_struct(NoneApi, void);
+		trinex_declare_struct(NoneApi, void);
 		static NoneApi* static_constructor();
 		static void static_destructor(NoneApi* api);
 

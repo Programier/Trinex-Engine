@@ -106,5 +106,5 @@ namespace Engine
 		return status_of(key) == Keyboard::JustReleased;
 	}
 
-	implement_engine_class_default_init(KeyboardSystem, 0);
+	trinex_implement_engine_class_default_init(KeyboardSystem, 0);
 }// namespace Engine

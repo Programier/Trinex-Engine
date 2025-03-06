@@ -266,6 +266,6 @@ namespace Engine
 		}
 	}
 
-	implement_engine_class(System, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(System, Refl::Class::IsScriptable)
 	{}
 }// namespace Engine

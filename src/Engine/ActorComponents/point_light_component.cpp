@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-	implement_engine_class(PointLightComponent, 0)
+	trinex_implement_engine_class(PointLightComponent, 0)
 	{
 		auto* self = static_class_instance();
 

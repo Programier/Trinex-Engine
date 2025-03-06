@@ -14,7 +14,7 @@ namespace Engine
 		using OPENGL = OpenGL;
 	}
 
-	implement_struct_default_init(Engine::TRINEX_RHI::OPENGL, 0);
+	trinex_implement_struct_default_init(Engine::TRINEX_RHI::OPENGL, 0);
 
 	OpenGL* OpenGL::static_constructor()
 	{

@@ -240,7 +240,7 @@ namespace Engine
 		return static_cast<bool>(archive);
 	}
 
-	implement_engine_class(Actor, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(Actor, Refl::Class::IsScriptable)
 	{
 		auto self = static_class_instance();
 		auto r    = ScriptClassRegistrar::existing_class(self);

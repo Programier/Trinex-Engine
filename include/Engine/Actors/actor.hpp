@@ -11,7 +11,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Actor : public Object
 	{
-		declare_class(Actor, Object);
+		trinex_declare_class(Actor, Object);
 
 	public:
 		template<typename NativeType>

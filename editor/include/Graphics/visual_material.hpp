@@ -12,7 +12,7 @@ namespace Engine
 
 	class VisualMaterial : public Material
 	{
-		declare_class(VisualMaterial, Material);
+		trinex_declare_class(VisualMaterial, Material);
 
 	private:
 		Vector<Pointer<VisualMaterialGraph::Node>> m_nodes;

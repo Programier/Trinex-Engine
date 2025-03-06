@@ -20,11 +20,11 @@ namespace Engine
 
 	class GraphicsPipelineDescription : public Object
 	{
-		declare_class(GraphicsPipelineDescription, Object);
+		trinex_declare_class(GraphicsPipelineDescription, Object);
 
 	public:
 		struct DepthTestInfo {
-			declare_struct(DepthTestInfo, void);
+			trinex_declare_struct(DepthTestInfo, void);
 
 			CompareFunc func  = CompareFunc::Less;
 			bool enable       = true;
@@ -32,7 +32,7 @@ namespace Engine
 		} depth_test;
 
 		struct StencilTestInfo {
-			declare_struct(StencilTestInfo, void);
+			trinex_declare_struct(StencilTestInfo, void);
 
 			bool enable          = false;
 			StencilOp fail       = StencilOp::Decr;
@@ -44,13 +44,13 @@ namespace Engine
 		} stencil_test;
 
 		struct AssemblyInfo {
-			declare_struct(AssemblyInfo, void);
+			trinex_declare_struct(AssemblyInfo, void);
 
 			PrimitiveTopology primitive_topology = PrimitiveTopology::TriangleList;
 		} input_assembly;
 
 		struct RasterizerInfo {
-			declare_struct(RasterizerInfo, void);
+			trinex_declare_struct(RasterizerInfo, void);
 
 			PolygonMode polygon_mode = PolygonMode::Fill;
 			CullMode cull_mode       = CullMode::None;
@@ -59,7 +59,7 @@ namespace Engine
 		} rasterizer;
 
 		struct ColorBlendingInfo {
-			declare_struct(ColorBlendingInfo, void);
+			trinex_declare_struct(ColorBlendingInfo, void);
 
 			bool enable               = false;
 			BlendFunc src_color_func  = BlendFunc::SrcAlpha;
@@ -77,7 +77,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Pipeline : public RenderResource
 	{
-		declare_class(Pipeline, RenderResource);
+		trinex_declare_class(Pipeline, RenderResource);
 
 	protected:
 		template<typename Type>
@@ -121,7 +121,7 @@ namespace Engine
 
 	class ENGINE_EXPORT GraphicsPipeline : public Pipeline
 	{
-		declare_class(GraphicsPipeline, Pipeline);
+		trinex_declare_class(GraphicsPipeline, Pipeline);
 
 	public:
 		GraphicsPipelineDescription::DepthTestInfo depth_test;
@@ -173,7 +173,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ComputePipeline : public Pipeline
 	{
-		declare_class(ComputePipeline, Pipeline);
+		trinex_declare_class(ComputePipeline, Pipeline);
 
 		ComputeShader* m_shader = nullptr;
 

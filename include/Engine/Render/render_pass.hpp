@@ -15,7 +15,7 @@ namespace Engine
 
 	class ENGINE_EXPORT RenderPass
 	{
-		declare_struct(RenderPass, void);
+		trinex_declare_struct(RenderPass, void);
 
 	public:
 		static constexpr size_t command_alignment = 16;
@@ -54,20 +54,11 @@ namespace Engine
 		Refl::RenderPassInfo* info() const;
 		bool destroy_subpass(RenderPass* pass);
 
-		inline SceneRenderer* scene_renderer() const
-		{
-			return m_renderer;
-		}
+		inline SceneRenderer* scene_renderer() const { return m_renderer; }
 
-		inline RenderPass* next() const
-		{
-			return m_next;
-		}
+		inline RenderPass* next() const { return m_next; }
 
-		inline RenderPass* owner() const
-		{
-			return m_owner;
-		}
+		inline RenderPass* owner() const { return m_owner; }
 
 		virtual RenderPass& initialize();
 		virtual Refl::Struct* struct_instance() const;
@@ -107,13 +98,9 @@ namespace Engine
 			struct CallableTask : public Task<CallableTask> {
 				Callable func;
 
-				CallableTask(Callable&& callable) : func(std::forward<Callable>(callable))
-				{}
+				CallableTask(Callable&& callable) : func(std::forward<Callable>(callable)) {}
 
-				void execute() override
-				{
-					func();
-				}
+				void execute() override { func(); }
 			};
 
 			return add_task<CallableTask>(std::forward<Callable>(callable));
@@ -132,7 +119,7 @@ namespace Engine
 		friend class SceneRenderer;
 	};
 #define trinex_render_pass(name, parent)                                                                                         \
-    declare_struct(name, parent);                                                                                                \
+    trinex_declare_struct(name, parent);                                                                                         \
                                                                                                                                  \
 public:                                                                                                                          \
 	virtual Engine::Refl::Struct* struct_instance() const override;                                                              \

@@ -16,7 +16,7 @@ namespace Engine
 	namespace MaterialParameters
 	{
 #define trinex_material_parameter(self, super)                                                                                   \
-    declare_class(self, super);                                                                                                  \
+    trinex_declare_class(self, super);                                                                                                  \
                                                                                                                                  \
 public:                                                                                                                          \
 	static Engine::ShaderParameterType static_type()                                                                             \
@@ -31,7 +31,7 @@ public:                                                                         
 
 		class ENGINE_EXPORT Parameter : public Object
 		{
-			declare_class(Parameter, Object);
+			trinex_declare_class(Parameter, Object);
 
 		private:
 			uint16_t m_pipeline_refs = 0;

@@ -23,7 +23,7 @@
 
 namespace Engine
 {
-	implement_struct(Engine::GraphicsPipelineDescription::DepthTestInfo, 0)
+	trinex_implement_struct(Engine::GraphicsPipelineDescription::DepthTestInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -32,7 +32,7 @@ namespace Engine
 		trinex_refl_prop(self, This, write_enable)->tooltip("Enable write to depth buffer");
 	}
 
-	implement_struct(Engine::GraphicsPipelineDescription::StencilTestInfo, 0)
+	trinex_implement_struct(Engine::GraphicsPipelineDescription::StencilTestInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -45,13 +45,13 @@ namespace Engine
 		trinex_refl_prop(self, This, write_mask)->tooltip("Stencil write mask");
 	}
 
-	implement_struct(Engine::GraphicsPipelineDescription::AssemblyInfo, 0)
+	trinex_implement_struct(Engine::GraphicsPipelineDescription::AssemblyInfo, 0)
 	{
 		auto* self = static_struct_instance();
 		trinex_refl_prop(self, This, primitive_topology)->tooltip("Primitive types which will be rendered by this pipeline");
 	}
 
-	implement_struct(Engine::GraphicsPipelineDescription::RasterizerInfo, 0)
+	trinex_implement_struct(Engine::GraphicsPipelineDescription::RasterizerInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -61,7 +61,7 @@ namespace Engine
 		trinex_refl_prop(self, This, line_width);
 	}
 
-	implement_struct(Engine::GraphicsPipelineDescription::ColorBlendingInfo, 0)
+	trinex_implement_struct(Engine::GraphicsPipelineDescription::ColorBlendingInfo, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -592,7 +592,7 @@ namespace Engine
 		return false;
 	}
 
-	implement_engine_class(GraphicsPipelineDescription, 0)
+	trinex_implement_engine_class(GraphicsPipelineDescription, 0)
 	{
 		auto* self = static_class_instance();
 
@@ -603,10 +603,10 @@ namespace Engine
 		trinex_refl_prop(self, This, color_blending);
 	}
 
-	implement_engine_class_default_init(Pipeline, 0);
-	implement_engine_class_default_init(GraphicsPipeline, 0);
+	trinex_implement_engine_class_default_init(Pipeline, 0);
+	trinex_implement_engine_class_default_init(GraphicsPipeline, 0);
 
-	implement_engine_class(ComputePipeline, Refl::Class::IsAsset)
+	trinex_implement_engine_class(ComputePipeline, Refl::Class::IsAsset)
 	{
 		auto self = static_class_instance();
 		trinex_refl_prop(self, This, shader_path);

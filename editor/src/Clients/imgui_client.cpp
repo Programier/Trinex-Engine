@@ -17,7 +17,7 @@ namespace Engine
 	static ScriptFunction m_ic_script_update;
 	static ScriptFunction m_ic_script_select;
 
-	implement_engine_class(ImGuiViewportClient, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(ImGuiViewportClient, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 

@@ -11,7 +11,7 @@ namespace Engine
 	class UInt32IndexBuffer;
 
 	struct ENGINE_EXPORT MeshMaterial {
-		declare_struct(MeshMaterial, void);
+		trinex_declare_struct(MeshMaterial, void);
 
 		MaterialInterface* material = nullptr;
 		PolicyID policy;
@@ -27,7 +27,7 @@ namespace Engine
 
 	class ENGINE_EXPORT StaticMesh : public Object
 	{
-		declare_class(StaticMesh, Object);
+		trinex_declare_class(StaticMesh, Object);
 
 	public:
 		struct ENGINE_EXPORT LOD {
@@ -70,7 +70,7 @@ namespace Engine
 
 	class ENGINE_EXPORT DynamicMesh : public Object
 	{
-		declare_class(DynamicMesh, Object);
+		trinex_declare_class(DynamicMesh, Object);
 
 	public:
 		struct ENGINE_EXPORT RenderData{};

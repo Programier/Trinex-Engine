@@ -564,11 +564,11 @@ namespace Engine
 
 	static PreInitializeController preinit(setup_detectors);
 
-	implement_class_default_init(Engine::SLANG_MaterialCompiler, 0);
-	implement_class_default_init(Engine::OPENGL_MaterialCompiler, 0);
-	implement_class_default_init(Engine::VULKAN_MaterialCompiler, 0);
-	implement_class_default_init(Engine::NONE_MaterialCompiler, 0);
-	implement_class_default_init(Engine::D3D11_MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::SLANG_MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::OPENGL_MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::VULKAN_MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::NONE_MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::D3D11_MaterialCompiler, 0);
 
 	SLANG_MaterialCompiler::Context::Context(SLANG_MaterialCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
 	{

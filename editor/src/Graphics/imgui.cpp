@@ -42,7 +42,7 @@ namespace Engine
 
 		class ImGuiMaterial : public ShaderMaterial
 		{
-			declare_class(ImGuiMaterial, ShaderMaterial);
+			trinex_declare_class(ImGuiMaterial, ShaderMaterial);
 
 		public:
 			ImGuiMaterial& postload() override
@@ -477,7 +477,7 @@ namespace Engine
 
 		class ImGuiViewportClient : public ViewportClient
 		{
-			declare_class(ImGuiViewportClient, ViewportClient);
+			trinex_declare_class(ImGuiViewportClient, ViewportClient);
 			ImGuiDrawData m_draw_data;
 			class ImGuiWindow* m_window;
 
@@ -1459,7 +1459,7 @@ namespace Engine
 		}
 	}
 
-	implement_engine_class_default_init(ImGuiWindow, 0);
+	trinex_implement_engine_class_default_init(ImGuiWindow, 0);
 
 	static ImGuiWindow* m_current_window = nullptr;
 
@@ -1735,8 +1735,8 @@ namespace ImGui
 
 namespace Engine
 {
-	implement_class_default_init(Engine::ImGuiBackend_RHI::ImGuiMaterial, Refl::Class::IsAsset);
-	implement_class_default_init(Engine::ImGuiBackend_Window::ImGuiViewportClient, 0);
+	trinex_implement_class_default_init(Engine::ImGuiBackend_RHI::ImGuiMaterial, Refl::Class::IsAsset);
+	trinex_implement_class_default_init(Engine::ImGuiBackend_Window::ImGuiViewportClient, 0);
 
 
 	static ReflectionInitializeController on_init([]() {

@@ -12,7 +12,7 @@ namespace Engine
 
 	class ENGINE_EXPORT DirectionalLightComponent : public LightComponent
 	{
-		declare_class(DirectionalLightComponent, LightComponent);
+		trinex_declare_class(DirectionalLightComponent, LightComponent);
 
 	public:
 		Vector3f direction() const;

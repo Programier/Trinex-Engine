@@ -110,5 +110,5 @@ namespace Engine
 		return result;
 	}
 
-	implement_engine_class(Package, Refl::Class::IsScriptable) {}
+	trinex_implement_engine_class(Package, Refl::Class::IsScriptable) {}
 }// namespace Engine

@@ -197,7 +197,7 @@ namespace Engine
 		return system->add_listener(type, listener);
 	}
 
-	implement_engine_class(EventSystem, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(EventSystem, Refl::Class::IsScriptable)
 	{
 		ReflectionInitializeController().require("Engine::Event");
 

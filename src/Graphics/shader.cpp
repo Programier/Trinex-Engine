@@ -16,7 +16,7 @@
 
 namespace Engine
 {
-	implement_struct(Engine::VertexShader::Attribute, 0)
+	trinex_implement_struct(Engine::VertexShader::Attribute, 0)
 	{
 		auto self            = static_struct_instance();
 		auto default_flags   = Refl::Property::IsNotSerializable;
@@ -32,9 +32,9 @@ namespace Engine
 		trinex_refl_prop(self, This, offset, default_flags)->tooltip("Offset of this attribute in vertex struct");
 	}
 
-	implement_engine_class_default_init(Shader, 0);
+	trinex_implement_engine_class_default_init(Shader, 0);
 
-	implement_engine_class(VertexShader, 0)
+	trinex_implement_engine_class(VertexShader, 0)
 	{
 		auto* self = This::static_class_instance();
 		trinex_refl_prop(self, This, attributes, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly)
@@ -42,11 +42,11 @@ namespace Engine
 				.tooltip("Vertex attributes of this pipeline");
 	}
 
-	implement_engine_class_default_init(TessellationControlShader, 0);
-	implement_engine_class_default_init(TessellationShader, 0);
-	implement_engine_class_default_init(GeometryShader, 0);
-	implement_engine_class_default_init(FragmentShader, 0);
-	implement_engine_class_default_init(ComputeShader, 0);
+	trinex_implement_engine_class_default_init(TessellationControlShader, 0);
+	trinex_implement_engine_class_default_init(TessellationShader, 0);
+	trinex_implement_engine_class_default_init(GeometryShader, 0);
+	trinex_implement_engine_class_default_init(FragmentShader, 0);
+	trinex_implement_engine_class_default_init(ComputeShader, 0);
 
 	bool Shader::serialize(Archive& ar)
 	{

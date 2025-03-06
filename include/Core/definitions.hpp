@@ -248,7 +248,7 @@ public:                                                                         
 		return *this;                                                                                                            \
 	}
 
-#define declare_struct(struct_name, base_name)                                                                                   \
+#define trinex_declare_struct(struct_name, base_name)                                                                            \
 protected:                                                                                                                       \
     static Engine::Refl::Struct* m_static_struct;                                                                                \
                                                                                                                                  \

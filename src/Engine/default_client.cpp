@@ -34,5 +34,5 @@ namespace Engine
 		return *this;
 	}
 
-	implement_engine_class_default_init(DefaultClient, 0);
+	trinex_implement_engine_class_default_init(DefaultClient, 0);
 }// namespace Engine

@@ -228,11 +228,9 @@ namespace Engine::VisualMaterialGraph
 		return m_signatures[index];
 	}
 
-	Pin::Pin(Node* node, Name name) : m_node(node), m_name(name)
-	{}
+	Pin::Pin(Node* node, Name name) : m_node(node), m_name(name) {}
 
-	Pin::~Pin()
-	{}
+	Pin::~Pin() {}
 
 	Node* Pin::node() const
 	{
@@ -300,8 +298,7 @@ namespace Engine::VisualMaterialGraph
 		m_linked_to = pin;
 	}
 
-	OutputPin::OutputPin(Node* node, Name name) : Pin(node, name)
-	{}
+	OutputPin::OutputPin(Node* node, Name name) : Pin(node, name) {}
 
 	PinKind OutputPin::kind() const
 	{
@@ -602,8 +599,7 @@ namespace Engine::VisualMaterialGraph
 		return m_global_names.size();
 	}
 
-	CompilerState::CompilerState(GlobalCompilerState& global_state) : global_state(&global_state)
-	{}
+	CompilerState::CompilerState(GlobalCompilerState& global_state) : global_state(&global_state) {}
 
 	Expression CompilerState::create_variable(const Expression& in_expression)
 	{
@@ -833,8 +829,7 @@ namespace Engine::VisualMaterialGraph
 			const uint_t* uint_ptr;
 			const float* float_ptr;
 
-			Storage(const void* ptr) : ptr(ptr)
-			{}
+			Storage(const void* ptr) : ptr(ptr) {}
 		} storage(data);
 
 		static auto bool_to_string = [](bool v) -> const char* { return v ? "true" : "false"; };
@@ -1093,7 +1088,7 @@ namespace Engine::VisualMaterialGraph
 	implement_visual_material_node(Sin, Math);
 	implement_visual_material_node(Cos, Math);
 
-	implement_class_default_init(Engine::VisualMaterialGraph::BinaryOperatorNode, 0);
+	trinex_implement_class_default_init(Engine::VisualMaterialGraph::BinaryOperatorNode, 0);
 
 	const NodeSignature& BinaryOperatorNode::signature() const
 	{

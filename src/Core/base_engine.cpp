@@ -28,7 +28,7 @@ namespace Engine
 		}
 	};
 
-	implement_engine_class_default_init(BaseEngine, 0);
+	trinex_implement_engine_class_default_init(BaseEngine, 0);
 
 	FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
 	{

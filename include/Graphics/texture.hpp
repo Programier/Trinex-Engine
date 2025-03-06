@@ -9,7 +9,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Texture : public BindedRenderResource
 	{
-		declare_class(Texture, BindedRenderResource);
+		trinex_declare_class(Texture, BindedRenderResource);
 
 	public:
 		Swizzle swizzle_r = Swizzle::Identity;

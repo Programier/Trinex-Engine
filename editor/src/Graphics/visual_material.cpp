@@ -25,7 +25,7 @@ namespace Engine
 	static inline constexpr size_t normal_index          = 7;
 	static inline constexpr size_t position_offset_index = 8;
 
-	implement_engine_class(VisualMaterial, Refl::Class::IsAsset | Refl::Class::IsScriptable)
+	trinex_implement_engine_class(VisualMaterial, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
 		auto* self = This::static_class_instance();
 		trinex_refl_prop(self, This, domain);

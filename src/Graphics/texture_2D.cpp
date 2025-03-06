@@ -18,7 +18,7 @@ namespace Engine
 
 	void (*Texture2D::generate_mips)(ColorFormat format, Vector<Texture2DMip>&) = nullptr;
 
-	implement_engine_class(Texture2D, Refl::Class::IsAsset)
+	trinex_implement_engine_class(Texture2D, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
 

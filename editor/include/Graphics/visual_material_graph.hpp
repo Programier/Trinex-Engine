@@ -505,7 +505,7 @@ namespace Engine::VisualMaterialGraph
 
 	class Node : public Object
 	{
-		declare_class(Node, Object);
+		trinex_declare_class(Node, Object);
 
 	protected:
 		Vector<InputPin*> m_inputs;
@@ -598,7 +598,7 @@ namespace Engine::VisualMaterialGraph
 
 	class SignaturedNode : public Node
 	{
-		declare_class(SignaturedNode, Node);
+		trinex_declare_class(SignaturedNode, Node);
 
 	protected:
 		Expression script_make_expression(OutputPin* pin, const NodeSignature::Signature& signature,
@@ -630,7 +630,7 @@ public:                                                                         
 
 #define declare_visual_material_simple_node(NodeName)                                                                            \
 	struct NodeName : public Node {                                                                                              \
-		declare_class(NodeName, Node);                                                                                           \
+		trinex_declare_class(NodeName, Node);                                                                                           \
 		declare_visual_material_node(NodeName);                                                                                  \
                                                                                                                                  \
 		NodeName();                                                                                                              \
@@ -642,7 +642,7 @@ public:                                                                         
 	{                                                                                                                            \
 		return #NodeName;                                                                                                        \
 	}                                                                                                                            \
-	implement_class(Engine::VisualMaterialGraph::NodeName, 0)                                                                    \
+	trinex_implement_class(Engine::VisualMaterialGraph::NodeName, 0)                                                                    \
 	{                                                                                                                            \
 		if constexpr (!std::is_same_v<Root, NodeName>)                                                                           \
 		{                                                                                                                        \
@@ -652,7 +652,7 @@ public:                                                                         
 
 	class Root : public Node
 	{
-		declare_class(Root, Node);
+		trinex_declare_class(Root, Node);
 		declare_visual_material_node(Root);
 
 		Root();
@@ -716,7 +716,7 @@ public:                                                                         
 	declare_visual_material_simple_node(AspectRatio);
 
 	struct UV : public Node {
-		declare_class(UV, Node);
+		trinex_declare_class(UV, Node);
 		declare_visual_material_node(UV);
 		int_t m_index = 0;
 
@@ -733,7 +733,7 @@ public:                                                                         
 
 
 	struct BinaryOperatorNode : public SignaturedNode {
-		declare_class(BinaryOperatorNode, SignaturedNode);
+		trinex_declare_class(BinaryOperatorNode, SignaturedNode);
 		const NodeSignature& signature() const override;
 	};
 
@@ -747,28 +747,28 @@ public:                                                                         
 	};
 
 	struct Add : public OperatorNode<'+'> {
-		declare_class(Add, BinaryOperatorNode);
+		trinex_declare_class(Add, BinaryOperatorNode);
 		declare_visual_material_node(Add);
 
 		Add();
 	};
 
 	struct Sub : public OperatorNode<'-'> {
-		declare_class(Sub, BinaryOperatorNode);
+		trinex_declare_class(Sub, BinaryOperatorNode);
 		declare_visual_material_node(Sub);
 
 		Sub();
 	};
 
 	struct Mul : public OperatorNode<'*'> {
-		declare_class(Mul, BinaryOperatorNode);
+		trinex_declare_class(Mul, BinaryOperatorNode);
 		declare_visual_material_node(Mul);
 
 		Mul();
 	};
 
 	struct Div : public OperatorNode<'/'> {
-		declare_class(Div, BinaryOperatorNode);
+		trinex_declare_class(Div, BinaryOperatorNode);
 		declare_visual_material_node(Div);
 
 		Div();
@@ -793,14 +793,14 @@ public:                                                                         
 
 	class Sampler : public Node
 	{
-		declare_class(Sampler, Node);
+		trinex_declare_class(Sampler, Node);
 		declare_visual_material_node(Sampler);
 		Sampler();
 	};
 
 	class Texture2D : public Node
 	{
-		declare_class(Texture2D, Node);
+		trinex_declare_class(Texture2D, Node);
 		declare_visual_material_node(Texture2D);
 
 	private:

@@ -15,7 +15,7 @@ namespace Engine
 
 	class SLANG_MaterialCompiler : public MaterialCompiler
 	{
-		declare_class(SLANG_MaterialCompiler, MaterialCompiler);
+		trinex_declare_class(SLANG_MaterialCompiler, MaterialCompiler);
 
 	protected:
 		class Context
@@ -72,7 +72,7 @@ namespace Engine
 
 	class NONE_MaterialCompiler : public Singletone<NONE_MaterialCompiler, SLANG_MaterialCompiler>
 	{
-		declare_class(NONE_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(NONE_MaterialCompiler, SLANG_MaterialCompiler);
 
 	public:
 		void initialize_context() override;
@@ -80,7 +80,7 @@ namespace Engine
 
 	class VULKAN_MaterialCompiler : public Singletone<VULKAN_MaterialCompiler, SLANG_MaterialCompiler>
 	{
-		declare_class(VULKAN_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(VULKAN_MaterialCompiler, SLANG_MaterialCompiler);
 
 	public:
 		void initialize_context() override;
@@ -88,7 +88,7 @@ namespace Engine
 
 	class OPENGL_MaterialCompiler : public Singletone<OPENGL_MaterialCompiler, SLANG_MaterialCompiler>
 	{
-		declare_class(OPENGL_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(OPENGL_MaterialCompiler, SLANG_MaterialCompiler);
 
 	public:
 		void submit_source(Shader* shader, const byte* src, size_t size) override;
@@ -97,7 +97,7 @@ namespace Engine
 
 	class D3D11_MaterialCompiler : public Singletone<D3D11_MaterialCompiler, SLANG_MaterialCompiler>
 	{
-		declare_class(D3D11_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(D3D11_MaterialCompiler, SLANG_MaterialCompiler);
 
 	public:
 		void initialize_context() override;

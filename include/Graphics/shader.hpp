@@ -7,7 +7,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT Shader : public RenderResource
 	{
-		declare_class(Shader, RenderResource);
+		trinex_declare_class(Shader, RenderResource);
 
 	public:
 		Buffer source_code;
@@ -20,11 +20,11 @@ namespace Engine
 
 	class ENGINE_EXPORT VertexShader : public Shader
 	{
-		declare_class(VertexShader, Shader);
+		trinex_declare_class(VertexShader, Shader);
 
 	public:
 		struct Attribute {
-			declare_struct(Attribute, void);
+			trinex_declare_struct(Attribute, void);
 
 			Name name;
 			VertexBufferElementType type;
@@ -54,7 +54,7 @@ namespace Engine
 
 	class ENGINE_EXPORT FragmentShader : public Shader
 	{
-		declare_class(FragmentShader, Shader);
+		trinex_declare_class(FragmentShader, Shader);
 
 	public:
 		FragmentShader& rhi_init() override;
@@ -63,7 +63,7 @@ namespace Engine
 
 	class ENGINE_EXPORT TessellationControlShader : public Shader
 	{
-		declare_class(TessellationControlShader, Shader);
+		trinex_declare_class(TessellationControlShader, Shader);
 
 	public:
 		TessellationControlShader& rhi_init() override;
@@ -72,7 +72,7 @@ namespace Engine
 
 	class ENGINE_EXPORT TessellationShader : public Shader
 	{
-		declare_class(TessellationShader, Shader);
+		trinex_declare_class(TessellationShader, Shader);
 
 	public:
 		TessellationShader& rhi_init() override;
@@ -81,7 +81,7 @@ namespace Engine
 
 	class ENGINE_EXPORT GeometryShader : public Shader
 	{
-		declare_class(GeometryShader, Shader);
+		trinex_declare_class(GeometryShader, Shader);
 
 	public:
 		GeometryShader& rhi_init() override;
@@ -90,7 +90,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ComputeShader : public Shader
 	{
-		declare_class(ComputeShader, Shader);
+		trinex_declare_class(ComputeShader, Shader);
 
 	public:
 		ComputeShader& rhi_init() override;

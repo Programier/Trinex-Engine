@@ -138,7 +138,7 @@ namespace Engine
 	};
 
 
-	implement_engine_class_default_init(ScriptDebuggerClient, 0);
+	trinex_implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
 		: m_debugging_thread(new Thread()), m_action(ImGui::TextEditor::DebugAction::Continue), m_is_in_debug_loop(false)

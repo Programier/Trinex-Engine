@@ -12,7 +12,7 @@ namespace Engine
 
 	class ImGuiViewportClient : public ViewportClient
 	{
-		declare_class(ImGuiViewportClient, ViewportClient);
+		trinex_declare_class(ImGuiViewportClient, ViewportClient);
 
 	private:
 		Pointer<ImGuiWindow> m_window;

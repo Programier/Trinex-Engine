@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT RenderSurface : public Texture2D
 	{
-		declare_class(RenderSurface, Texture2D);
+		trinex_declare_class(RenderSurface, Texture2D);
 
 	public:
 		RenderSurface();

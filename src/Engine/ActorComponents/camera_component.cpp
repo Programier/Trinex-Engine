@@ -39,7 +39,7 @@ namespace Engine
 		return glm::lookAt(position, position + direction, up_vector);
 	}
 
-	implement_engine_class_default_init(CameraComponent, 0);
+	trinex_implement_engine_class_default_init(CameraComponent, 0);
 
 	bool CameraComponent::serialize(Archive& archive)
 	{

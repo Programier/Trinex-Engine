@@ -18,7 +18,7 @@ namespace Engine
 	static ScriptFunction vc_on_unbind_viewport;
 	static ScriptFunction vc_render;
 
-	implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 		// r.method("Vector2f size() const final", &This::size);
@@ -27,10 +27,10 @@ namespace Engine
 		// r.method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
 	}
 
-	implement_engine_class_default_init(WindowRenderViewport, 0);
-	implement_engine_class_default_init(SurfaceRenderViewport, 0);
+	trinex_implement_engine_class_default_init(WindowRenderViewport, 0);
+	trinex_implement_engine_class_default_init(SurfaceRenderViewport, 0);
 
-	implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 

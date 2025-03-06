@@ -35,7 +35,7 @@ namespace Engine
 
 	class ENGINE_EXPORT LightComponent : public SceneComponent
 	{
-		declare_class(LightComponent, SceneComponent);
+		trinex_declare_class(LightComponent, SceneComponent);
 
 	public:
 		enum Type

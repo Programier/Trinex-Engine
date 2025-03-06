@@ -208,5 +208,5 @@ namespace Engine
 		return state_of(window).m_wheel_info;
 	}
 
-	implement_engine_class_default_init(MouseSystem, 0);
+	trinex_implement_engine_class_default_init(MouseSystem, 0);
 }// namespace Engine

@@ -19,7 +19,7 @@ namespace Engine
 
 	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
 	{
-		declare_class(PrimitiveComponent, SceneComponent);
+		trinex_declare_class(PrimitiveComponent, SceneComponent);
 
 	protected:
 		bool m_is_visible;

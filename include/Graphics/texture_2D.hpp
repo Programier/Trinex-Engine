@@ -17,7 +17,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Texture2D : public Texture
 	{
-		declare_class(Texture2D, Texture);
+		trinex_declare_class(Texture2D, Texture);
 
 		Vector<Texture2DMip> m_mips;
 		ColorFormat m_format;

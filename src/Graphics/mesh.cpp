@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-	implement_struct(Engine::MeshMaterial, 0)
+	trinex_implement_struct(Engine::MeshMaterial, 0)
 	{
 		auto* self = static_struct_instance();
 
@@ -20,14 +20,14 @@ namespace Engine
 		trinex_refl_prop(self, This, material)->tooltip("Material which used for rendering this primitive");
 	}
 
-	implement_engine_class(StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
+	trinex_implement_engine_class(StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
 		auto* self = StaticMesh::static_class_instance();
 		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");
 		trinex_refl_prop(self, This, allow_cpu_access);
 	}
 
-	implement_engine_class_default_init(DynamicMesh, 0);
+	trinex_implement_engine_class_default_init(DynamicMesh, 0);
 
 	VertexBuffer* StaticMesh::LOD::find_position_buffer(Index index) const
 	{

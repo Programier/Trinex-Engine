@@ -26,7 +26,7 @@ namespace Engine
 
 	class EditorClient : public ImGuiViewportClient
 	{
-		declare_class(EditorClient, ImGuiViewportClient);
+		trinex_declare_class(EditorClient, ImGuiViewportClient);
 
 	private:
 		class World* m_world = nullptr;

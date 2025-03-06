@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(TouchScreenSystem, 0);
+	trinex_implement_engine_class_default_init(TouchScreenSystem, 0);
 
 	TouchScreenSystem& TouchScreenSystem::create()
 	{

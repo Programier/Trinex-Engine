@@ -9,7 +9,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ShadowMapPool : public Singletone<ShadowMapPool, Engine::System>
 	{
-		declare_class(ShadowMapPool, System);
+		trinex_declare_class(ShadowMapPool, System);
 
 	private:
 		struct Entry {

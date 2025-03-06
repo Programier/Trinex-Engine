@@ -7,7 +7,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT GPUBuffer : public RenderResource
 	{
-		declare_class(GPUBuffer, RenderResource);
+		trinex_declare_class(GPUBuffer, RenderResource);
 
 	protected:
 		size_t m_size = 0;
@@ -187,7 +187,7 @@ namespace Engine
 
 	class ENGINE_EXPORT VertexBuffer : public GPUBuffer
 	{
-		declare_class(VertexBuffer, GPUBuffer);
+		trinex_declare_class(VertexBuffer, GPUBuffer);
 
 	public:
 		VertexBuffer& rhi_init() override;
@@ -222,69 +222,69 @@ namespace Engine
 
 	class ENGINE_EXPORT PositionVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
-		declare_class(PositionVertexBuffer, VertexBuffer);
+		trinex_declare_class(PositionVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT TexCoordVertexBuffer : public TypedVertexBuffer<Vector2f>
 	{
-		declare_class(TexCoordVertexBuffer, VertexBuffer);
+		trinex_declare_class(TexCoordVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT ColorVertexBuffer : public TypedVertexBuffer<ByteColor>
 	{
-		declare_class(ColorVertexBuffer, VertexBuffer);
+		trinex_declare_class(ColorVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT NormalVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
-		declare_class(NormalVertexBuffer, VertexBuffer);
+		trinex_declare_class(NormalVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT TangentVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
-		declare_class(TangentVertexBuffer, VertexBuffer);
+		trinex_declare_class(TangentVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT BitangentVertexBuffer : public TypedVertexBuffer<Vector3f>
 	{
-		declare_class(BitangentVertexBuffer, VertexBuffer);
+		trinex_declare_class(BitangentVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT PositionDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
-		declare_class(PositionDynamicVertexBuffer, VertexBuffer);
+		trinex_declare_class(PositionDynamicVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT TexCoordDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector2f>
 	{
-		declare_class(TexCoordDynamicVertexBuffer, VertexBuffer);
+		trinex_declare_class(TexCoordDynamicVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT ColorDynamicVertexBuffer : public TypedDynamicVertexBuffer<ByteColor>
 	{
-		declare_class(ColorDynamicVertexBuffer, VertexBuffer);
+		trinex_declare_class(ColorDynamicVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT NormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
-		declare_class(NormalDynamicVertexBuffer, VertexBuffer);
+		trinex_declare_class(NormalDynamicVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT TangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
-		declare_class(TangentDynamicVertexBuffer, VertexBuffer);
+		trinex_declare_class(TangentDynamicVertexBuffer, VertexBuffer);
 	};
 
 	class ENGINE_EXPORT BitangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
 	{
-		declare_class(BitangentDynamicVertexBuffer, VertexBuffer);
+		trinex_declare_class(BitangentDynamicVertexBuffer, VertexBuffer);
 	};
 
 	///////////////// INDEX BUFFER /////////////////
 
 	class ENGINE_EXPORT IndexBuffer : public GPUBuffer
 	{
-		declare_class(IndexBuffer, GPUBuffer);
+		trinex_declare_class(IndexBuffer, GPUBuffer);
 
 	public:
 		IndexBuffer& rhi_init() override;
@@ -326,29 +326,29 @@ namespace Engine
 
 	class ENGINE_EXPORT UInt32IndexBuffer : public TypedIndexBuffer<uint32_t, IndexBufferFormat::UInt32>
 	{
-		declare_class(UInt32IndexBuffer, IndexBuffer);
+		trinex_declare_class(UInt32IndexBuffer, IndexBuffer);
 	};
 
 	class ENGINE_EXPORT UInt16IndexBuffer : public TypedIndexBuffer<uint32_t, IndexBufferFormat::UInt16>
 	{
-		declare_class(UInt16IndexBuffer, IndexBuffer);
+		trinex_declare_class(UInt16IndexBuffer, IndexBuffer);
 	};
 
 	class ENGINE_EXPORT UInt32DynamicIndexBuffer : public TypedDynamicIndexBuffer<uint32_t, IndexBufferFormat::UInt32>
 	{
-		declare_class(UInt32DynamicIndexBuffer, IndexBuffer);
+		trinex_declare_class(UInt32DynamicIndexBuffer, IndexBuffer);
 	};
 
 	class ENGINE_EXPORT UInt16DynamicIndexBuffer : public TypedDynamicIndexBuffer<uint32_t, IndexBufferFormat::UInt16>
 	{
-		declare_class(UInt16DynamicIndexBuffer, IndexBuffer);
+		trinex_declare_class(UInt16DynamicIndexBuffer, IndexBuffer);
 	};
 
 	// UNIFORM BUFFER
 
 	class ENGINE_EXPORT UniformBuffer : public GPUBuffer
 	{
-		declare_class(UniformBuffer, GPUBuffer);
+		trinex_declare_class(UniformBuffer, GPUBuffer);
 
 	public:
 		UniformBuffer& rhi_init() override;
@@ -392,12 +392,12 @@ namespace Engine
 
 	class ENGINE_EXPORT UntypedUniformBuffer : public TypedGPUBuffer<byte, UniformBuffer>
 	{
-		declare_class(UntypedUniformBuffer, UniformBuffer);
+		trinex_declare_class(UntypedUniformBuffer, UniformBuffer);
 	};
 
 	class ENGINE_EXPORT SSBO : public GPUBuffer
 	{
-		declare_class(SSBO, GPUBuffer);
+		trinex_declare_class(SSBO, GPUBuffer);
 
 	public:
 		size_t init_size      = 0;

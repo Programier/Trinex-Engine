@@ -13,7 +13,7 @@
 
 namespace Engine
 {
-	implement_engine_class(Texture, Refl::Class::IsAsset)
+	trinex_implement_engine_class(Texture, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
 		trinex_refl_prop(self, This, swizzle_r)->display_name("Swizze R").tooltip("Swizze R of texture");

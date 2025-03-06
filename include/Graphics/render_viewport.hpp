@@ -12,7 +12,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ViewportClient : public Object
 	{
-		declare_class(ViewportClient, Object);
+		trinex_declare_class(ViewportClient, Object);
 
 	public:
 		virtual ViewportClient& on_bind_viewport(class RenderViewport* viewport);
@@ -28,7 +28,7 @@ namespace Engine
 
 	class ENGINE_EXPORT RenderViewport : public Object
 	{
-		declare_class(RenderViewport, Object);
+		trinex_declare_class(RenderViewport, Object);
 
 	protected:
 		Pointer<ViewportClient> m_client;
@@ -72,7 +72,7 @@ namespace Engine
 
 	class ENGINE_EXPORT WindowRenderViewport : public RenderViewport
 	{
-		declare_class(WindowRenderViewport, RenderViewport);
+		trinex_declare_class(WindowRenderViewport, RenderViewport);
 		class Window* m_window;
 		struct RHI_Viewport* m_viewport;
 
@@ -95,7 +95,7 @@ namespace Engine
 
 	class ENGINE_EXPORT SurfaceRenderViewport : public RenderViewport
 	{
-		declare_class(SurfaceRenderViewport, RenderViewport);
+		trinex_declare_class(SurfaceRenderViewport, RenderViewport);
 		Pointer<RenderSurface> m_surface;
 
 	public:

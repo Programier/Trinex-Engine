@@ -32,7 +32,7 @@ namespace Engine::MaterialParameters
 		return it->second;
 	}
 
-#define implement_parameter(name) implement_class(Engine::MaterialParameters::name, 0)
+#define implement_parameter(name) trinex_implement_class(Engine::MaterialParameters::name, 0)
 
 	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, ShaderParameterInfo* info)
 	{

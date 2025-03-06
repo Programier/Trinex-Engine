@@ -120,7 +120,7 @@ namespace Engine
 
 	class ImGuiWindow final : private Object
 	{
-		declare_class(ImGuiWindow, Object);
+		trinex_declare_class(ImGuiWindow, Object);
 
 	private:
 		ImGuiDrawData m_draw_data;

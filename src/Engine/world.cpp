@@ -10,7 +10,7 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(World, 0);
+	trinex_implement_engine_class_default_init(World, 0);
 
 	World* World::current = nullptr;
 

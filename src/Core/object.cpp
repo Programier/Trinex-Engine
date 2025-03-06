@@ -53,7 +53,7 @@ namespace Engine
 		next_object_info.reset();
 	}
 
-	implement_engine_class(Object, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(Object, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
 		r.method("const string& string_name() const final", &Object::string_name);

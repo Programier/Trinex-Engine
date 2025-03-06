@@ -18,7 +18,7 @@ namespace Engine
 
 	class ENGINE_EXPORT PointLightComponent : public LocalLightComponent
 	{
-		declare_class(PointLightComponent, LocalLightComponent);
+		trinex_declare_class(PointLightComponent, LocalLightComponent);
 
 		float m_fall_off_exponent;
 

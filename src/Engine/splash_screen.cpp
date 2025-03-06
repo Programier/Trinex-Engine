@@ -168,7 +168,7 @@ namespace Engine
 	// 	}
 	// };
 
-	// implement_engine_class_default_init(SplashClient, 0);
+	// trinex_implement_engine_class_default_init(SplashClient, 0);
 
 	struct SplashUpdate : public Task<SplashUpdate> {
 		void execute() override

@@ -7,7 +7,7 @@
 
 namespace Engine
 {
-	implement_engine_class(PipelineEditorClient, 0)
+	trinex_implement_engine_class(PipelineEditorClient, 0)
 	{
 		register_client(Pipeline::static_class_instance(), This::static_class_instance());
 	}

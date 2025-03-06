@@ -33,7 +33,7 @@ namespace Engine
 		using VULKAN = VulkanAPI;
 	}
 
-	implement_struct_default_init(Engine::TRINEX_RHI::VULKAN, 0);
+	trinex_implement_struct_default_init(Engine::TRINEX_RHI::VULKAN, 0);
 
 	VulkanAPI* VulkanAPI::static_constructor()
 	{

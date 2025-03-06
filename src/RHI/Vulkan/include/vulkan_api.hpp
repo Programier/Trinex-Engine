@@ -34,7 +34,7 @@ namespace Engine
 
 
 	struct VulkanAPI : public RHI {
-		declare_struct(VulkanAPI, void);
+		trinex_declare_struct(VulkanAPI, void);
 		static VulkanAPI* static_constructor();
 		static void static_destructor(VulkanAPI* vulkan);
 

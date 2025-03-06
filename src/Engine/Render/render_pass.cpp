@@ -15,10 +15,9 @@
 
 namespace Engine
 {
-	implement_struct_default_init(Engine::RenderPass, 0);
+	trinex_implement_struct_default_init(Engine::RenderPass, 0);
 
-	RenderPass::RenderPass()
-	{}
+	RenderPass::RenderPass() {}
 
 	RenderPass::~RenderPass()
 	{
@@ -211,8 +210,7 @@ namespace Engine
 		return true;
 	}
 
-	trinex_impl_render_pass(Engine::ClearPass)
-	{}
+	trinex_impl_render_pass(Engine::ClearPass) {}
 
 	trinex_impl_render_pass(Engine::DepthPass)
 	{
@@ -236,14 +234,11 @@ namespace Engine
 		m_is_material_compatible = is_opaque_material;
 	}
 
-	trinex_impl_render_pass(Engine::TransparencyPass)
-	{}
+	trinex_impl_render_pass(Engine::TransparencyPass) {}
 
-	trinex_impl_render_pass(Engine::PostProcessPass)
-	{}
+	trinex_impl_render_pass(Engine::PostProcessPass) {}
 
-	trinex_impl_render_pass(Engine::OverlayPass)
-	{}
+	trinex_impl_render_pass(Engine::OverlayPass) {}
 
 	bool ClearPass::is_empty() const
 	{

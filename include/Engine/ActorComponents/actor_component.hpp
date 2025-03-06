@@ -17,7 +17,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ActorComponent : public Object
 	{
-		declare_class(ActorComponent, Object);
+		trinex_declare_class(ActorComponent, Object);
 
 	private:
 		ActorComponentProxy* m_proxy;

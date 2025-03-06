@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT SpriteComponent : public PrimitiveComponent
 	{
-		declare_class(SpriteComponent, PrimitiveComponent);
+		trinex_declare_class(SpriteComponent, PrimitiveComponent);
 
 		class Texture2D* m_texture = nullptr;
 

@@ -24,7 +24,7 @@ namespace Engine
 
 	class ENGINE_EXPORT RenderResource : public Object
 	{
-		declare_class(RenderResource, Object);
+		trinex_declare_class(RenderResource, Object);
 
 	protected:
 		struct ENGINE_EXPORT DestroyRenderResource {
@@ -52,7 +52,7 @@ namespace Engine
 
 	class ENGINE_EXPORT BindedRenderResource : public RenderResource
 	{
-		declare_class(BindedRenderResource, RenderResource);
+		trinex_declare_class(BindedRenderResource, RenderResource);
 
 	public:
 		const BindedRenderResource& rhi_bind(BindLocation location) const;

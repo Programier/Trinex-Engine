@@ -7,7 +7,7 @@
 
 namespace Engine
 {
-	implement_class_default_init(Engine::MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::MaterialCompiler, 0);
 
 	MaterialCompiler* MaterialCompiler::instance(const StringView& api_name)
 	{

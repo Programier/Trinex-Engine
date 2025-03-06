@@ -9,7 +9,7 @@ namespace Engine
 
 	class TextureEditorClient : public ImGuiViewportClient
 	{
-		declare_class(TextureEditorClient, ImGuiViewportClient);
+		trinex_declare_class(TextureEditorClient, ImGuiViewportClient);
 
 		Pointer<Texture2D> m_texture;
 		Pointer<RenderSurface> m_surface;

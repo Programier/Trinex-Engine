@@ -10,7 +10,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MaterialCompiler : public Object
 	{
-		declare_class(MaterialCompiler, Object);
+		trinex_declare_class(MaterialCompiler, Object);
 
 	public:
 		static MaterialCompiler* instance(const StringView& api_name = "");

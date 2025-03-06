@@ -17,7 +17,7 @@ namespace Engine
 		return *this;
 	}
 
-	implement_engine_class(LocalLightComponent, 0)
+	trinex_implement_engine_class(LocalLightComponent, 0)
 	{
 		auto* self = static_class_instance();
 

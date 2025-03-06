@@ -85,7 +85,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	implement_engine_class(GameControllerSystem, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(GameControllerSystem, Refl::Class::IsScriptable)
 	{}
 
 }// namespace Engine

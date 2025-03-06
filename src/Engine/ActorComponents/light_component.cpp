@@ -27,7 +27,7 @@ namespace Engine
 	Name LightComponent::name_shadow_map_texture  = "shadow_map_texture";
 	Name LightComponent::name_shadow_map_projview = "shadow_map_projview";
 
-	implement_engine_class(LightComponent, 0)
+	trinex_implement_engine_class(LightComponent, 0)
 	{
 		Refl::Class* self = static_class_instance();
 

@@ -15,7 +15,7 @@ namespace Engine
 	static Package* s_pool_package = nullptr;
 #endif
 
-	implement_engine_class_default_init(ShadowMapPool, 0);
+	trinex_implement_engine_class_default_init(ShadowMapPool, 0);
 
 	ShadowMapPool& ShadowMapPool::create()
 	{

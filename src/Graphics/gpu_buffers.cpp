@@ -11,8 +11,8 @@
 
 namespace Engine
 {
-	implement_engine_class_default_init(GPUBuffer, 0);
-	implement_engine_class_default_init(SSBO, 0);
+	trinex_implement_engine_class_default_init(GPUBuffer, 0);
+	trinex_implement_engine_class_default_init(SSBO, 0);
 
 	bool GPUBuffer::force_keep_cpu_data()
 	{
@@ -110,27 +110,27 @@ namespace Engine
 		return find_vertex_address<byte>(this, index);
 	}
 
-	implement_engine_class_default_init(VertexBuffer, 0);
-	implement_engine_class_default_init(PositionVertexBuffer, 0);
-	implement_engine_class_default_init(TexCoordVertexBuffer, 0);
-	implement_engine_class_default_init(ColorVertexBuffer, 0);
-	implement_engine_class_default_init(NormalVertexBuffer, 0);
-	implement_engine_class_default_init(TangentVertexBuffer, 0);
-	implement_engine_class_default_init(BitangentVertexBuffer, 0);
-	implement_engine_class_default_init(PositionDynamicVertexBuffer, 0);
-	implement_engine_class_default_init(TexCoordDynamicVertexBuffer, 0);
-	implement_engine_class_default_init(ColorDynamicVertexBuffer, 0);
-	implement_engine_class_default_init(NormalDynamicVertexBuffer, 0);
-	implement_engine_class_default_init(TangentDynamicVertexBuffer, 0);
-	implement_engine_class_default_init(BitangentDynamicVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(VertexBuffer, 0);
+	trinex_implement_engine_class_default_init(PositionVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(TexCoordVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(ColorVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(NormalVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(TangentVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(BitangentVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(PositionDynamicVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(TexCoordDynamicVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(ColorDynamicVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(NormalDynamicVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(TangentDynamicVertexBuffer, 0);
+	trinex_implement_engine_class_default_init(BitangentDynamicVertexBuffer, 0);
 
 	//////////////////////////// INDEX BUFFER ////////////////////////////
 
-	implement_engine_class_default_init(IndexBuffer, 0);
-	implement_engine_class_default_init(UInt32IndexBuffer, 0);
-	implement_engine_class_default_init(UInt16IndexBuffer, 0);
-	implement_engine_class_default_init(UInt32DynamicIndexBuffer, 0);
-	implement_engine_class_default_init(UInt16DynamicIndexBuffer, 0);
+	trinex_implement_engine_class_default_init(IndexBuffer, 0);
+	trinex_implement_engine_class_default_init(UInt32IndexBuffer, 0);
+	trinex_implement_engine_class_default_init(UInt16IndexBuffer, 0);
+	trinex_implement_engine_class_default_init(UInt32DynamicIndexBuffer, 0);
+	trinex_implement_engine_class_default_init(UInt16DynamicIndexBuffer, 0);
 
 	IndexBuffer& IndexBuffer::rhi_init()
 	{
@@ -194,8 +194,8 @@ namespace Engine
 	}
 
 	// UNIFORM BUFFERS
-	implement_engine_class_default_init(UniformBuffer, 0);
-	implement_engine_class_default_init(UntypedUniformBuffer, 0);
+	trinex_implement_engine_class_default_init(UniformBuffer, 0);
+	trinex_implement_engine_class_default_init(UntypedUniformBuffer, 0);
 
 	UniformBuffer& UniformBuffer::rhi_init()
 	{

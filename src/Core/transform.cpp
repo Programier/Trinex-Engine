@@ -13,7 +13,7 @@ namespace Engine
 {
 	const Transform Transform::transform_zero;
 
-	implement_struct(Engine::Transform, 0)
+	trinex_implement_struct(Engine::Transform, 0)
 	{
 		auto* self = static_struct_instance();
 
