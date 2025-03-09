@@ -662,14 +662,14 @@ namespace Engine
 		Refl::ObjectProperty* prop = prop_cast_checked<Refl::ObjectProperty>(prop_base);
 		auto object                = prop->object(context);
 
-		if (object == nullptr)
-		{
-			renderer->mark_property_skipped();
-			return false;
-		}
-
 		if (prop->is_composite())
 		{
+			if (object == nullptr)
+			{
+				renderer->mark_property_skipped();
+				return false;
+			}
+
 			return render_struct_property_internal(renderer, context, object, prop, object->class_instance(),
 												   read_only || prop->is_read_only());
 		}

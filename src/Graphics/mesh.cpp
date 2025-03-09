@@ -68,49 +68,49 @@ namespace Engine
 		entry.material = Object::static_find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
 	}
 
-	StaticMesh& StaticMesh::init_resources()
+	StaticMesh& StaticMesh::init_render_resources()
 	{
 		for (auto& lod : lods)
 		{
 			for (auto& position : lod.positions)
 			{
 				if (position)
-					position->init_resource();
+					position->init_render_resources();
 			}
 
 			for (auto& coord : lod.tex_coords)
 			{
 				if (coord)
-					coord->init_resource();
+					coord->init_render_resources();
 			}
 
 			for (auto& color : lod.colors)
 			{
 				if (color)
-					color->init_resource();
+					color->init_render_resources();
 			}
 
 			for (auto& normal : lod.normals)
 			{
 				if (normal)
-					normal->init_resource();
+					normal->init_render_resources();
 			}
 
 			for (auto& tangent : lod.tangents)
 			{
 				if (tangent)
-					tangent->init_resource();
+					tangent->init_render_resources();
 			}
 
 			for (auto& bitangent : lod.bitangents)
 			{
 				if (bitangent)
-					bitangent->init_resource();
+					bitangent->init_render_resources();
 			}
 
 			if (lod.indices)
 			{
-				lod.indices->init_resource();
+				lod.indices->init_render_resources();
 			}
 		}
 
@@ -119,12 +119,12 @@ namespace Engine
 
 	StaticMesh& StaticMesh::apply_changes()
 	{
-		return init_resources();
+		return init_render_resources();
 	}
 
 	StaticMesh& StaticMesh::postload()
 	{
-		return init_resources();
+		return init_render_resources();
 	}
 
 

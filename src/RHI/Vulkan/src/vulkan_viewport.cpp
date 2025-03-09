@@ -11,7 +11,7 @@
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_texture.hpp>
+#include <vulkan_surface.hpp>
 #include <vulkan_types.hpp>
 #include <vulkan_viewport.hpp>
 
@@ -93,7 +93,8 @@ namespace Engine
 		return render_target()->bind();
 	}
 
-	void VulkanViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	void VulkanViewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+									 SamplerFilter filter)
 	{
 		auto cmd            = API->current_command_buffer();
 		bool in_render_pass = cmd->is_inside_render_pass();
@@ -101,8 +102,7 @@ namespace Engine
 		if (in_render_pass)
 			API->end_render_pass();
 
-		auto src = surface->rhi_object<VulkanSurface>();
-
+		auto src        = static_cast<VulkanSurfaceRTV*>(surface);
 		auto src_layout = src->layout();
 		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd->m_cmd);
 
@@ -110,14 +110,14 @@ namespace Engine
 		auto layout = default_image_layout();
 		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
 
-		auto src_end = src_rect.position + src_rect.size;
-		auto dst_end = dst_rect.position + dst_rect.size;
+		Vector2i src_end = src_rect.pos + Vector2i(src_rect.size);
+		Vector2i dst_end = dst_rect.pos + Vector2i(dst_rect.size);
 
 		vk::ImageBlit blit;
-		blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
+		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
+		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.pos.y, 1)});
 
-		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
+		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		cmd->m_cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
 

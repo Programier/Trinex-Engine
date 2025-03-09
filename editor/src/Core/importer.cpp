@@ -233,7 +233,7 @@ namespace Engine::Importer
 			lod.tex_coords.push_back(create_gpu_buffer<TexCoordVertexBuffer>(uvs));
 			lod.indices = create_gpu_buffer<UInt32IndexBuffer>(indices);
 
-			static_mesh->init_resources();
+			static_mesh->init_render_resources();
 		}
 
 		void import(const Path& path)

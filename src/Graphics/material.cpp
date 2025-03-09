@@ -196,6 +196,11 @@ namespace Engine
 				if (param->type() == info.type)
 				{
 					++param->m_pipeline_refs;
+					continue;
+				}
+				else if (param->m_pipeline_refs == 0)
+				{
+					param->owner(nullptr);
 				}
 				else
 				{
@@ -203,25 +208,23 @@ namespace Engine
 					return false;
 				}
 			}
+
+			auto class_instance = Parameter::static_find_class(info.type);
+
+			if (class_instance == nullptr)
+			{
+				error_log("Material", "Failed to find material parameter class");
+				return false;
+			}
+
+			if (auto parameter = Object::instance_cast<Parameter>(class_instance->create_object(name, this)))
+			{
+				parameter->m_pipeline_refs = 1;
+			}
 			else
 			{
-				auto class_instance = Parameter::static_find_class(info.type);
-
-				if (class_instance == nullptr)
-				{
-					error_log("Material", "Failed to find material parameter class");
-					return false;
-				}
-
-				if (auto parameter = Object::instance_cast<Parameter>(class_instance->create_object(name, this)))
-				{
-					parameter->m_pipeline_refs = 1;
-				}
-				else
-				{
-					error_log("Material", "Failed to create material parameter '%s'", name.c_str());
-					return false;
-				}
+				error_log("Material", "Failed to create material parameter '%s'", name.c_str());
+				return false;
 			}
 		}
 		return true;

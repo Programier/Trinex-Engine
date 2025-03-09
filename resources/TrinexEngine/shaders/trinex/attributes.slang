@@ -2,13 +2,9 @@
 #define TRINEX_ATTRIBUTES_SLANG
 
 [__AttributeUsage(_AttributeTargets.Var)]
-struct is_modelAttribute
+struct parameter_typeAttribute
 {
-};
-
-[__AttributeUsage(_AttributeTargets.Var)]
-struct is_globalsAttribute
-{
+	string type;
 };
 
 #endif

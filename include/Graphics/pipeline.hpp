@@ -92,6 +92,8 @@ namespace Engine
 			return out;
 		}
 
+		RenderResourcePtr<RHI_Pipeline> m_pipeline;
+
 	public:
 		enum Type
 		{
@@ -106,10 +108,13 @@ namespace Engine
 		class Material* material() const;
 		const ShaderParameterInfo* find_param_info(const Name& name) const;
 		const Pipeline& rhi_bind() const;
+		Pipeline& release_render_resources() override;
 		virtual bool serialize(Archive& ar) final override;
 		virtual bool serialize(Archive& ar, Material* material);
 		virtual Pipeline& clear();
 		virtual bool shader_source(String& source);
+
+		inline RHI_Pipeline* rhi_pipeline() const { return m_pipeline; }
 
 		virtual Shader* shader(ShaderType type) const                                = 0;
 		virtual Shader* shader(ShaderType type, bool create = false)                 = 0;
@@ -140,7 +145,7 @@ namespace Engine
 	public:
 		GraphicsPipeline();
 		~GraphicsPipeline();
-		GraphicsPipeline& rhi_init() override;
+		GraphicsPipeline& init_render_resources() override;
 		GraphicsPipeline& postload() override;
 
 		Shader* shader(ShaderType type) const override;
@@ -180,7 +185,7 @@ namespace Engine
 	public:
 		Path shader_path;
 
-		ComputePipeline& rhi_init() override;
+		ComputePipeline& init_render_resources() override;
 		Shader* shader(ShaderType type) const override;
 		Shader* shader(ShaderType type, bool create = false) override;
 		ShaderType shader_types() const override;

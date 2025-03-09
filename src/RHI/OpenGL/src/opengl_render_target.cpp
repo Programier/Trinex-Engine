@@ -3,7 +3,7 @@
 #include <Graphics/render_surface.hpp>
 #include <opengl_api.hpp>
 #include <opengl_render_target.hpp>
-#include <opengl_texture.hpp>
+#include <opengl_surface.hpp>
 
 namespace Engine
 {
@@ -28,7 +28,8 @@ namespace Engine
 	{
 		for (auto& rt : m_render_targets)
 		{
-			rt.second->m_textures.clear();
+			for (int i = 0; i < 4; ++i) rt.second->m_RTVs[i] = nullptr;
+			rt.second->m_DSV = nullptr;
 			delete rt.second;
 		}
 
@@ -40,26 +41,11 @@ namespace Engine
 		return OPENGL_API->m_state.render_target;
 	}
 
-	inline OpenGL_RenderSurface* opengl_render_target(const RenderSurface* surface)
+	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(OpenGL_SurfaceRTV* rt1, OpenGL_SurfaceRTV* rt2,
+															 OpenGL_SurfaceRTV* rt3, OpenGL_SurfaceRTV* rt4,
+															 OpenGL_SurfaceDSV* depth_stencil)
 	{
-		return surface ? surface->rhi_object<OpenGL_RenderSurface>() : nullptr;
-	}
-
-	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const RenderSurface* rt1, const RenderSurface* rt2,
-															 const RenderSurface* rt3, const RenderSurface* rt4,
-															 RenderSurface* depth_stencil)
-	{
-		return find_or_create(opengl_render_target(rt1), opengl_render_target(rt2), opengl_render_target(rt3),
-							  opengl_render_target(rt4), opengl_render_target(depth_stencil));
-	}
-
-	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const OpenGL_RenderSurface* rt1,//
-															 const OpenGL_RenderSurface* rt2,//
-															 const OpenGL_RenderSurface* rt3,//
-															 const OpenGL_RenderSurface* rt4,//
-															 struct OpenGL_RenderSurface* depth_stencil)
-	{
-		const OpenGL_RenderSurface* targets[4] = {rt1, rt2, rt3, rt4};
+		OpenGL_SurfaceRTV* targets[4] = {rt1, rt2, rt3, rt4};
 
 		HashIndex hash = memory_hash_fast(targets, sizeof(targets));
 		hash           = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
@@ -84,8 +70,7 @@ namespace Engine
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 	}
 
-	OpenGL_RenderTarget& OpenGL_RenderTarget::init(const OpenGL_RenderSurface** color_targets,
-												   struct OpenGL_RenderSurface* depth_stencil)
+	OpenGL_RenderTarget& OpenGL_RenderTarget::init(OpenGL_SurfaceRTV** color_targets, OpenGL_SurfaceDSV* depth_stencil)
 	{
 		glGenFramebuffers(1, &m_framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
@@ -98,15 +83,19 @@ namespace Engine
 		{
 			if (color_targets[i])
 			{
-				attach_texture(color_targets[i], GL_COLOR_ATTACHMENT0 + i);
-				color_attachment_indices[index] = i;
+				m_RTVs[i] = color_targets[i];
+				color_targets[i]->m_render_targets.insert(this);
+				attach_texture(color_targets[i]->m_surface, GL_COLOR_ATTACHMENT0 + i);
+				color_attachment_indices[index] = GL_COLOR_ATTACHMENT0 + i;
 				++index;
 			}
 		}
 
 		if (depth_stencil)
 		{
-			attach_texture(depth_stencil, get_attachment_type(depth_stencil->m_format.m_format));
+			m_DSV = depth_stencil;
+			depth_stencil->m_render_targets.insert(this);
+			attach_texture(depth_stencil->m_surface, get_attachment_type(depth_stencil->m_surface->m_format));
 		}
 
 		if (index > 0)
@@ -116,9 +105,9 @@ namespace Engine
 		return *this;
 	}
 
-	OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const OpenGL_RenderSurface* texture, GLuint attachment)
+	OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(OpenGL_Surface* texture, GLuint attachment)
 	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->m_type, texture->m_id, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->m_id, 0);
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -145,9 +134,6 @@ namespace Engine
 		{
 			info_log("Framebuffer", "Attach success!\n");
 		}
-
-		m_textures.push_back(texture);
-		texture->m_render_targets.insert(this);
 		return *this;
 	}
 
@@ -158,17 +144,20 @@ namespace Engine
 			glDeleteFramebuffers(1, &m_framebuffer);
 		}
 
-		for (auto& surface : m_textures)
+		for (auto& surface : m_RTVs)
 		{
-			surface->m_render_targets.erase(this);
+			if (surface)
+				surface->m_render_targets.erase(this);
 		}
+
+		if (m_DSV)
+			m_DSV->m_render_targets.erase(this);
 
 		m_render_targets.erase(m_index);
 	}
 
 
-	OpenGL_RenderTarget::Saver::Saver() : m_viewport(OPENGL_API->viewport()), m_rt(OpenGL_RenderTarget::current())
-	{}
+	OpenGL_RenderTarget::Saver::Saver() : m_viewport(OPENGL_API->viewport()), m_rt(OpenGL_RenderTarget::current()) {}
 
 	OpenGL_RenderTarget::Saver::~Saver()
 	{
@@ -180,23 +169,14 @@ namespace Engine
 		OPENGL_API->viewport(m_viewport);
 	}
 
-	OpenGL& OpenGL::bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-									   const RenderSurface* rt4, RenderSurface* depth_stencil)
+	OpenGL& OpenGL::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+									   RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
-		auto rt = OpenGL_RenderTarget::find_or_create(rt1, rt2, rt3, rt4, depth_stencil);
+		auto rt = OpenGL_RenderTarget::find_or_create(static_cast<OpenGL_SurfaceRTV*>(rt1), static_cast<OpenGL_SurfaceRTV*>(rt2),
+													  static_cast<OpenGL_SurfaceRTV*>(rt3), static_cast<OpenGL_SurfaceRTV*>(rt4),
+													  static_cast<OpenGL_SurfaceDSV*>(depth_stencil));
 		rt->bind();
 		return *this;
-	}
-
-	OpenGL_RenderTarget* OpenGL::bind_render_target(const OpenGL_RenderSurface* rt1,//
-													const OpenGL_RenderSurface* rt2,//
-													const OpenGL_RenderSurface* rt3,//
-													const OpenGL_RenderSurface* rt4,//
-													struct OpenGL_RenderSurface* depth_stencil)
-	{
-		auto rt = OpenGL_RenderTarget::find_or_create(rt1, rt2, rt3, rt4, depth_stencil);
-		rt->bind();
-		return rt;
 	}
 
 	OpenGL& OpenGL::viewport(const ViewPort& viewport)

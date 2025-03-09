@@ -48,7 +48,6 @@ namespace Engine
 		Material* point_light_overlay_material              = nullptr;
 		Material* spot_light_overlay_material               = nullptr;
 		Material* texture_editor_material                   = nullptr;
-		Material* imgui                                     = nullptr;
 		PositionVertexBuffer* spot_light_overlay_positions  = nullptr;
 		PositionVertexBuffer* point_light_overlay_positions = nullptr;
 	}// namespace EditorResources
@@ -90,7 +89,7 @@ namespace Engine
 
 		buffer.push_back({0, 0, 0});
 		buffer.push_back({0, circle_y, -1});
-		positions->init_resource();
+		positions->init_render_resources();
 	}
 
 	static void create_point_light_overlay_positions()
@@ -102,7 +101,7 @@ namespace Engine
 		create_circle([&buffer](float y, float z) { buffer.push_back(Vector3f(0, y, z)); });
 		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3f(x, 0, z)); });
 		create_circle([&buffer](float x, float y) { buffer.push_back(Vector3f(x, y, 0)); });
-		positions->init_resource();
+		positions->init_render_resources();
 	}
 
 	static void preinit()
@@ -150,9 +149,6 @@ namespace Engine
 		EditorResources::point_light_overlay_material = load_object<Material>("TrinexEditor::Materials::PointLightOverlay");
 		EditorResources::spot_light_overlay_material  = load_object<Material>("TrinexEditor::Materials::SpotLightOverlay");
 		EditorResources::texture_editor_material      = load_object<Material>("TrinexEditor::Materials::TextureEditorMaterial");
-		EditorResources::imgui                        = load_object<Material>("TrinexEditor::Materials::ImGuiMaterial");
-
-		reinterpret_cast<ShaderMaterial*>(EditorResources::imgui)->shader_path = "[shaders_dir]:/TrinexEditor/imgui.slang";
 
 		create_point_light_overlay_positions();
 		create_spot_light_overlay_positions();

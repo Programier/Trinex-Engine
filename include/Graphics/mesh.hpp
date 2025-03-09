@@ -62,7 +62,7 @@ namespace Engine
 		bool allow_cpu_access = false;
 
 		StaticMesh();
-		StaticMesh& init_resources();
+		StaticMesh& init_render_resources();
 		StaticMesh& apply_changes() override;
 		bool serialize(Archive& ar) override;
 		StaticMesh& postload() override;

@@ -38,10 +38,35 @@ namespace Engine
 		void bind(BindLocation location) override {}
 	};
 
-	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture2D> {
-		void bind(BindLocation location) override {}
+	struct NoneRTV : public RHI_DefaultDestroyable<RHI_RenderTargetView> {
+		void clear(const Color& color) override {}
+		void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
+	};
 
-		void bind_combined(RHI_Sampler* sampler, BindLocation location) override {}
+	struct NoneDSV : public RHI_DefaultDestroyable<RHI_DepthStencilView> {
+		void clear(float, byte) override {}
+		void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
+	};
+
+	struct NoneSRV : public RHI_DefaultDestroyable<RHI_ShaderResourceView> {
+		void bind(BindLocation location) override {}
+		void bind_combined(byte location, struct RHI_Sampler* sampler) override {};
+	};
+
+	struct NoneUAV : public RHI_DefaultDestroyable<RHI_UnorderedAccessView> {
+		void bind(BindLocation location) override {}
+	};
+
+	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture> {
+		RHI_ShaderResourceView* create_srv() override { return new NoneSRV(); }
+		RHI_UnorderedAccessView* create_uav() override { return new NoneUAV(); }
+	};
+
+	struct NoneSurface : public RHI_DefaultDestroyable<RHI_Surface> {
+		RHI_RenderTargetView* create_rtv() override { return new NoneRTV(); }
+		RHI_DepthStencilView* create_dsv() override { return new NoneDSV(); }
+		RHI_ShaderResourceView* create_srv() override { return new NoneSRV(); }
+		RHI_UnorderedAccessView* create_uav() override { return new NoneUAV(); }
 	};
 
 	struct NoneShader : public RHI_DefaultDestroyable<RHI_Shader> {
@@ -83,7 +108,9 @@ namespace Engine
 
 		void bind() override {}
 
-		void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
+		void blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+						 SamplerFilter filter) override
+		{}
 
 		void clear_color(const Color& color) override {}
 	};
@@ -125,8 +152,8 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-										 const RenderSurface* rt4, RenderSurface* depth_stencil)
+	NoneApi& NoneApi::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+										 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
 		return *this;
 	}
@@ -156,14 +183,14 @@ namespace Engine
 		return new NoneSampler();
 	}
 
-	RHI_Texture2D* NoneApi::create_texture_2d(const Texture2D*)
+	RHI_Texture* NoneApi::create_texture_2d(const Texture2D*)
 	{
 		return new NoneTexture();
 	}
 
-	RHI_Texture2D* NoneApi::create_render_surface(const RenderSurface* surface)
+	RHI_Surface* NoneApi::create_render_surface(ColorFormat format, Vector2u size)
 	{
-		return create_texture_2d(nullptr);
+		return new NoneSurface();
 	}
 
 	RHI_Shader* NoneApi::create_vertex_shader(const VertexShader* shader)

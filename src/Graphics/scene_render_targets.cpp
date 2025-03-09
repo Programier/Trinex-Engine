@@ -29,9 +29,19 @@ namespace Engine
 		return m_surfaces;
 	}
 
-	RenderSurface* SceneRenderTargets::surface_of(Surface type) const
+	inline RenderSurface* SceneRenderTargets::surface_of(Surface type) const
 	{
 		return m_surfaces.at(static_cast<size_t>(type)).ptr();
+	}
+
+	inline RHI_RenderTargetView* SceneRenderTargets::rtv_of(Surface type) const
+	{
+		return surface_of(type)->rhi_render_target_view();
+	}
+
+	inline RHI_DepthStencilView* SceneRenderTargets::dsv_of(Surface type) const
+	{
+		return surface_of(type)->rhi_depth_stencil_view();
 	}
 
 	StringView SceneRenderTargets::name_of(Surface type) const
@@ -121,33 +131,35 @@ namespace Engine
 	const SceneRenderTargets& SceneRenderTargets::bind_scene_color_hdr(bool with_depth) const
 	{
 
-		rhi->bind_render_target1(surface_of(Surface::SceneColorHDR), with_depth ? surface_of(Surface::SceneDepthZ) : nullptr);
+		rhi->bind_render_target1(rtv_of(SceneColorHDR), with_depth ? dsv_of(Surface::SceneDepthZ) : nullptr);
 		return *this;
 	}
 
 	const SceneRenderTargets& SceneRenderTargets::bind_scene_color_ldr(bool with_depth) const
 	{
-		rhi->bind_render_target1(surface_of(Surface::SceneColorLDR), with_depth ? surface_of(Surface::SceneDepthZ) : nullptr);
+		rhi->bind_render_target1(rtv_of(Surface::SceneColorLDR), with_depth ? dsv_of(Surface::SceneDepthZ) : nullptr);
 		return *this;
 	}
 
 	const SceneRenderTargets& SceneRenderTargets::bind_gbuffer() const
 	{
-		rhi->bind_render_target(surface_of(Surface::BaseColor), surface_of(Surface::Normal), surface_of(Surface::Emissive),
-								surface_of(Surface::MSRA), surface_of(Surface::SceneDepthZ));
+		rhi->bind_render_target(rtv_of(Surface::BaseColor), rtv_of(Surface::Normal), rtv_of(Surface::Emissive),
+								rtv_of(Surface::MSRA), dsv_of(Surface::SceneDepthZ));
 		return *this;
 	}
 
 	const SceneRenderTargets& SceneRenderTargets::clear() const
 	{
-		surface_of(SceneColorHDR)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(SceneColorLDR)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(BaseColor)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(Normal)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(Emissive)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(MSRA)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-		surface_of(SceneDepthZ)->rhi_clear_depth_stencil(1.f, 0);
-		surface_of(LightPassDepthZ)->rhi_clear_depth_stencil(1.f, 0);
+		Color color = {0.f, 0.f, 0.f, 1.f};
+
+		surface_of(SceneColorHDR)->rhi_render_target_view()->clear(color);
+		surface_of(SceneColorLDR)->rhi_render_target_view()->clear(color);
+		surface_of(BaseColor)->rhi_render_target_view()->clear(color);
+		surface_of(Normal)->rhi_render_target_view()->clear(color);
+		surface_of(Emissive)->rhi_render_target_view()->clear(color);
+		surface_of(MSRA)->rhi_render_target_view()->clear(color);
+		surface_of(SceneDepthZ)->rhi_depth_stencil_view()->clear(1.0, 0);
+		surface_of(LightPassDepthZ)->rhi_depth_stencil_view()->clear(1.0, 0);
 		return *this;
 	}
 }// namespace Engine

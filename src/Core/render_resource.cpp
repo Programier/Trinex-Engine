@@ -8,92 +8,32 @@
 namespace Engine
 {
 	trinex_implement_engine_class_default_init(RenderResource, 0);
-	trinex_implement_engine_class_default_init(BindedRenderResource, 0);
 
-	struct DestroyRenderResourceTask : public Task<DestroyRenderResourceTask> {
-		RHI_Object* object;
-
-		DestroyRenderResourceTask(RHI_Object* obj) : object(obj)
-		{}
-
-		void execute() override
-		{
-			object->release();
-		}
-	};
-
-
-	void RenderResource::DestroyRenderResource::operator()(RHI_Object* object) const
+	void RenderResourcePtrBase::release(void* object)
 	{
-		if (is_in_render_thread())
-		{
-			object->release();
-		}
-		else
-		{
-			render_thread()->create_task<DestroyRenderResourceTask>(object);
-		}
+		RHI_Object::static_release(static_cast<RHI_Object*>(object));
 	}
 
-	RenderResource::RenderResource()
-	{
-		m_rhi_object = nullptr;
-	}
-
-	RenderResource& RenderResource::rhi_init()
+	RenderResource& RenderResource::init_render_resources()
 	{
 		return *this;
 	}
 
-	RenderResource& RenderResource::init_resource(bool wait_initialize)
+	RenderResource& RenderResource::release_render_resources()
 	{
-		if (is_in_render_thread())
-		{
-			rhi_init();
-		}
-		else
-		{
-			render_thread()->create_task<InitRenderResourceTask>(this);
-
-			if (wait_initialize)
-			{
-				render_thread()->wait();
-			}
-		}
-
 		return *this;
 	}
 
 	RenderResource& RenderResource::postload()
 	{
 		Super::postload();
-		return init_resource();
+		return init_render_resources();
 	}
 
-	bool RenderResource::has_object() const
+	RenderResource& RenderResource::on_destroy()
 	{
-		return m_rhi_object != nullptr;
-	}
-
-	const BindedRenderResource& BindedRenderResource::rhi_bind(BindLocation location) const
-	{
-		if (m_rhi_object)
-		{
-			rhi_object<RHI_BindingObject>()->bind(location);
-		}
+		Super::on_destroy();
+		release_render_resources();
 		return *this;
-	}
-
-	InitRenderResourceTask::InitRenderResourceTask(RenderResource* object) : resource(object)
-	{
-		if (object == nullptr)
-		{
-			throw EngineException("Cannot init render resource! Resource is null!");
-		}
-	}
-
-	void InitRenderResourceTask::execute()
-	{
-		resource->rhi_init();
 	}
 }// namespace Engine

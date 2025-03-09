@@ -91,8 +91,8 @@ namespace Engine
 		add_callabble([=, scene = scene_renderer()->scene]() {
 			auto shadow_map = component->proxy()->shadow_map();
 
-			shadow_map->rhi_clear_depth_stencil(1.0, 255);
-			rhi->bind_depth_stencil_target(shadow_map);
+			shadow_map->rhi_depth_stencil_view()->clear(1.0, 255);
+			rhi->bind_depth_stencil_target(shadow_map->rhi_depth_stencil_view());
 
 			Vector2f size = {Settings::Rendering::shadow_map_size, Settings::Rendering::shadow_map_size};
 			SceneView view(camera_view(component->proxy()), size);
@@ -180,21 +180,21 @@ namespace Engine
 			auto* depth_bias_parameter      = lighting_param(depth_bias, Float);
 			auto* slope_scale_parameter     = lighting_param(slope_scale, Float);
 
-			color_parameter->value        = proxy->light_color();
-			intensivity_parameter->value  = proxy->intensivity();
-			location_parameter->value     = proxy->world_transform().location();
-			direction_parameter->value    = proxy->direction();
-			spot_angles_parameter->value  = Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference());
-			radius_parameter->value       = proxy->attenuation_radius();
-			fall_off_parameter->value     = proxy->fall_off_exponent();
+			color_parameter->value       = proxy->light_color();
+			intensivity_parameter->value = proxy->intensivity();
+			location_parameter->value    = proxy->world_transform().location();
+			direction_parameter->value   = proxy->direction();
+			spot_angles_parameter->value = Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference());
+			radius_parameter->value      = proxy->attenuation_radius();
+			fall_off_parameter->value    = proxy->fall_off_exponent();
 
 			if (proxy->is_shadows_enabled())
 			{
-				float shadow_map_size        = proxy->shadow_map()->width();
-				depth_bias_parameter->value  = proxy->depth_bias() / shadow_map_size;
-				slope_scale_parameter->value = proxy->slope_scale() / shadow_map_size;
+				float shadow_map_size         = static_cast<float>(proxy->shadow_map()->size().x);
+				depth_bias_parameter->value   = proxy->depth_bias() / shadow_map_size;
+				slope_scale_parameter->value  = proxy->slope_scale() / shadow_map_size;
 				shadow_map_parameter->sampler = DefaultResources::Samplers::default_sampler;
-				shadow_map_parameter->texture = proxy->shadow_map();
+				//shadow_map_parameter->texture = proxy->shadow_map();
 
 				auto view                        = camera_view(proxy);
 				shadow_projview_parameter->value = view.projection_matrix() * view.view_matrix();

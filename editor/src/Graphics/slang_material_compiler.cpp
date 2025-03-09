@@ -166,6 +166,40 @@ namespace Engine
 			return false;
 		}
 
+		static ShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
+		{
+			static Map<StringView, ShaderParameterType::Enum> map = {
+					{"LocalToWorld", ShaderParameterType::LocalToWorld},      //
+					{"Globals", ShaderParameterType::Globals},                //
+					{"Surface", ShaderParameterType::Surface},                //
+					{"CombinedSurface", ShaderParameterType::CombinedSurface},//
+			};
+
+			auto count = var->getUserAttributeCount();
+
+			for (unsigned int i = 0; i < count; ++i)
+			{
+				if (auto attrib = var->getUserAttributeByIndex(i))
+				{
+					if (std::strcmp(attrib->getName(), "parameter_type") != 0)
+						continue;
+
+					if (attrib->getArgumentCount() != 1)
+						continue;
+
+					size_t size;
+					const char* name = attrib->getArgumentValueString(0, &size);
+					if (name && size > 2)
+					{
+						auto it = map.find(StringView(name + 1, size - 2));
+						if (it != map.end())
+							return it->second;
+					}
+				}
+			}
+			return ShaderParameterType::Undefined;
+		}
+
 		static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
 		{
 			Strings::to_lower(name);
@@ -280,7 +314,7 @@ namespace Engine
 			}
 			else if (kind == slang::TypeReflection::Kind::Vector || kind == slang::TypeReflection::Kind::Scalar)
 			{
-				VertexShader::Attribute attribute;
+				VertexAttribute attribute;
 
 				const char* semantic_name = var->getSemanticName();
 
@@ -336,6 +370,11 @@ namespace Engine
 
 		static ShaderParameterType find_scalar_parameter_type(slang::VariableLayoutReflection* var)
 		{
+			auto type = find_parameter_type_from_attributes(var->getVariable());
+
+			if (type != ShaderParameterType::Undefined)
+				return type;
+
 			auto reflection = var->getType();
 			auto rows       = reflection->getRowCount();
 			auto colums     = reflection->getColumnCount();
@@ -385,6 +424,8 @@ namespace Engine
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind))
 			{
+				auto type = find_parameter_type_from_attributes(param.var->getVariable());
+
 				if (auto type_layout = param.var->getTypeLayout())
 				{
 					SlangResourceShape shape = type_layout->getResourceShape();
@@ -396,23 +437,27 @@ namespace Engine
 						ShaderParameterInfo object;
 						object.name     = param.name;
 						object.location = param.trace_offset(param.category());
+						object.type     = type;
 
-						switch (binding_type)
+						if (type == ShaderParameterType::Undefined)
 						{
-							case slang::BindingType::CombinedTextureSampler:
-								object.type = ShaderParameterType::Sampler2D;
-								break;
+							switch (binding_type)
+							{
+								case slang::BindingType::CombinedTextureSampler:
+									object.type = ShaderParameterType::Sampler2D;
+									break;
 
-							case slang::BindingType::Texture:
-								object.type = ShaderParameterType::Texture2D;
-								break;
+								case slang::BindingType::Texture:
+									object.type = ShaderParameterType::Texture2D;
+									break;
 
-							case slang::BindingType::MutableTexture:
-								object.type = ShaderParameterType::RWTexture2D;
-								break;
+								case slang::BindingType::MutableTexture:
+									object.type = ShaderParameterType::RWTexture2D;
+									break;
 
-							default:
-								return false;
+								default:
+									return false;
+							}
 						}
 
 						pipeline->parameters[object.name] = object;
@@ -494,8 +539,6 @@ namespace Engine
 		using SVR    = slang::VariableReflection;
 		using SVLR   = slang ::VariableLayoutReflection;
 
-		static bool has_model_attribute(SVR* var) { return ReflectionParser::has_attribute(var, "is_model"); }
-
 		template<ShaderParameterType type, Scalar required_scalar>
 		static ShaderParameterType primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
@@ -516,11 +559,9 @@ namespace Engine
 			return type;
 		}
 
-		template<ShaderParameterType type, Scalar required_scalar, uint_t required_rows, uint_t required_columns,
-				 bool allow_model = false>
+		template<ShaderParameterType type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
 		static ShaderParameterType matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
-			return_undefined_if_not(!has_model_attribute(var->getVariable()) || allow_model);
 			return_undefined_if_not(rows == required_rows);
 			return_undefined_if_not(rows == required_rows);
 			return_undefined_if_not(columns == required_columns);
@@ -559,7 +600,6 @@ namespace Engine
 
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
-		ReflectionParser::type_detectors.push_back(T::matrix<MP::Model4x4, Scalar::Float32, 4, 4, true>);
 	}
 
 	static PreInitializeController preinit(setup_detectors);
@@ -758,7 +798,7 @@ namespace Engine
 		}
 
 		Pipeline* pipeline      = material->remove_pipeline(pass);
-		const bool new_pipeline = pipeline;
+		const bool new_pipeline = pipeline == nullptr;
 
 		if (new_pipeline)
 		{
@@ -773,7 +813,7 @@ namespace Engine
 		if (compile_graphics(pipeline))
 		{
 			material->add_pipeline(pass, pipeline);
-			pipeline->init_resource();
+			pipeline->init_render_resources();
 			return true;
 		}
 
@@ -913,7 +953,7 @@ namespace Engine
 		{
 			if (ctx.compile_graphics(pipeline))
 			{
-				pipeline->init_resource();
+				pipeline->init_render_resources();
 				return true;
 			}
 		}
@@ -921,7 +961,7 @@ namespace Engine
 		{
 			if (ctx.compile_compute(pipeline))
 			{
-				pipeline->init_resource();
+				pipeline->init_render_resources();
 				return true;
 			}
 		}

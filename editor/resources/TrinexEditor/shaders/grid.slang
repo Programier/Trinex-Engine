@@ -1,13 +1,11 @@
 #include "trinex/attributes.slang"
 #include "trinex/common.slang"
+#include "trinex/globals.slang"
 
 static float3 grid_plane[6] = {
     float3(1, 1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
     float3(-1, -1, 0), float3(1, 1, 0), float3(1, -1, 0)
 };
-
-[is_globals()]
-ConstantBuffer<GlobalParameters> globals;
 
 struct VertexOutput
 {

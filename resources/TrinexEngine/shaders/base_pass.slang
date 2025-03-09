@@ -2,11 +2,9 @@
 #include "trinex/common.slang"
 #include "trinex/platform.slang"
 #include "trinex/math.slang"
+#include "trinex/globals.slang"
 
-[is_globals()]
-ConstantBuffer<GlobalParameters> globals;
-
-[is_model()]
+[parameter_type("LocalToWorld")]
 uniform float4x4 local_to_world;
 
 uniform Sampler2D base_color;

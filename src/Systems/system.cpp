@@ -220,9 +220,9 @@ namespace Engine
 		return *this;
 	}
 
-	System& System::begin_destroy()
+	System& System::on_destroy()
 	{
-		Super::begin_destroy();
+		Super::on_destroy();
 		if (m_is_initialized)
 			shutdown();
 		return *this;
@@ -266,6 +266,5 @@ namespace Engine
 		}
 	}
 
-	trinex_implement_engine_class(System, Refl::Class::IsScriptable)
-	{}
+	trinex_implement_engine_class(System, Refl::Class::IsScriptable) {}
 }// namespace Engine

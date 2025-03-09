@@ -66,14 +66,14 @@ namespace Engine
 		return result;
 	}
 
-	bool D3D11_Texture2D::init(const Texture2D* texture, bool is_render_surface)
+	bool D3D11_Texture2D::init(const Texture2D* texture)
 	{
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width              = static_cast<UINT>(texture->width());
 		desc.Height             = static_cast<UINT>(texture->height());
-		desc.MipLevels          = static_cast<UINT>(texture->mipmap_count());
+		desc.MipLevels          = static_cast<UINT>(texture->mips.size());
 		desc.ArraySize          = 1;
-		desc.Format             = texture_format_of(texture->format());
+		desc.Format             = texture_format_of(texture->format);
 		desc.SampleDesc.Count   = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Usage              = D3D11_USAGE_DEFAULT;
@@ -81,31 +81,19 @@ namespace Engine
 		desc.CPUAccessFlags     = 0;
 		desc.MiscFlags          = 0;
 
-		if (is_render_surface)
-		{
-			if (is_in<ColorFormat::DepthStencil, ColorFormat::Depth, ColorFormat::ShadowDepth>(texture->format()))
-			{
-				desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
-			}
-			else
-			{
-				desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-			}
-		}
-
 		Vector<D3D11_SUBRESOURCE_DATA> sub_resource_data;
 		Vector<Buffer> flipped_mip_data;
 
-		sub_resource_data.resize(texture->mipmap_count());
-		flipped_mip_data.resize(texture->mipmap_count());
+		sub_resource_data.resize(texture->mips.size());
+		flipped_mip_data.resize(texture->mips.size());
 
-		for (size_t i = 0, count = texture->mipmap_count(); i < count; ++i)
+		for (size_t i = 0, count = texture->mips.size(); i < count; ++i)
 		{
 			D3D11_SUBRESOURCE_DATA& data = sub_resource_data[i];
-			const auto& mip              = texture->mip(i);
-			int_t pitch                  = static_cast<int_t>(mip->data.size()) / static_cast<int_t>(mip->size.y);
+			const auto& mip              = texture->mips[i];
+			int_t pitch                  = static_cast<int_t>(mip.data.size()) / static_cast<int_t>(mip.size.y);
 
-			flipped_mip_data[i] = flip_texture_buffer(mip->data, static_cast<int_t>(mip->size.y), pitch);
+			flipped_mip_data[i] = flip_texture_buffer(mip.data, static_cast<int_t>(mip.size.y), pitch);
 			data.pSysMem        = flipped_mip_data[i].data();
 
 			if (data.pSysMem == nullptr)
@@ -115,7 +103,7 @@ namespace Engine
 			}
 
 			data.SysMemSlicePitch = 0;
-			data.SysMemPitch      = static_cast<UINT>(mip->size.x) * format_block_size(desc.Format);
+			data.SysMemPitch      = static_cast<UINT>(mip.size.x) * format_block_size(desc.Format);
 		}
 
 		HRESULT hr = DXAPI->m_device->CreateTexture2D(&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(),
@@ -127,23 +115,73 @@ namespace Engine
 			return false;
 		}
 
+		return true;
+	}
+
+	RHI_ShaderResourceView* D3D11_Texture2D::static_create_srv(RHI_Object* owner, ID3D11Texture2D* texture)
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		texture->GetDesc(&desc);
+
 		D3D11_SHADER_RESOURCE_VIEW_DESC view_desc{};
-		view_desc.Format                    = view_format_of(texture->format());
+		view_desc.Format                    = view_format_of(desc.Format);
 		view_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
 		view_desc.Texture2D.MostDetailedMip = 0;
 		view_desc.Texture2D.MipLevels       = desc.MipLevels;
 
-		hr = DXAPI->m_device->CreateShaderResourceView(m_texture, &view_desc, &m_view);
+		ID3D11ShaderResourceView* view = nullptr;
+		auto hr                        = DXAPI->m_device->CreateShaderResourceView(texture, &view_desc, &view);
 		if (hr != S_OK)
 		{
-			error_log("D3D11", "Failed to texture view!");
-			return false;
+			error_log("D3D11", "Failed to SRV!");
+			return nullptr;
 		}
 
-		return true;
+		return new D3D11_TextureSRV(owner, view);
 	}
 
-	void D3D11_Texture2D::bind(BindLocation location)
+	RHI_UnorderedAccessView* D3D11_Texture2D::static_create_uav(RHI_Object* owner, ID3D11Texture2D* texture)
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		texture->GetDesc(&desc);
+
+		D3D11_UNORDERED_ACCESS_VIEW_DESC view_desc{};
+		view_desc.Format             = view_format_of(desc.Format);
+		view_desc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
+		view_desc.Texture2D.MipSlice = 0;
+
+		ID3D11UnorderedAccessView* view = nullptr;
+		auto hr                         = DXAPI->m_device->CreateUnorderedAccessView(texture, &view_desc, &view);
+		if (hr != S_OK)
+		{
+			error_log("D3D11", "Failed to UAV!");
+			return nullptr;
+		}
+
+		return new D3D11_TextureUAV(owner, view);
+	}
+
+	RHI_ShaderResourceView* D3D11_Texture2D::create_srv()
+	{
+		return static_create_srv(this, m_texture);
+	}
+
+	RHI_UnorderedAccessView* D3D11_Texture2D::create_uav()
+	{
+		return static_create_uav(this, m_texture);
+	}
+
+	D3D11_Texture2D::~D3D11_Texture2D()
+	{
+		d3d11_release(m_texture);
+	}
+
+	D3D11_TextureSRV::D3D11_TextureSRV(RHI_Object* owner, ID3D11ShaderResourceView* view) : m_owner(owner), m_view(view)
+	{
+		owner->add_reference();
+	}
+
+	void D3D11_TextureSRV::bind(BindLocation location)
 	{
 		auto& pipeline = DXAPI->m_state.pipeline;
 
@@ -162,73 +200,32 @@ namespace Engine
 			DXAPI->m_context->PSSetShaderResources(location.binding, 1, &m_view);
 	}
 
-	void D3D11_Texture2D::bind_combined(RHI_Sampler* sampler, BindLocation location)
+	void D3D11_TextureSRV::bind_combined(byte location, struct RHI_Sampler* sampler)
 	{
 		bind(location);
 		reinterpret_cast<D3D11_Sampler*>(sampler)->bind(location);
 	}
 
-	D3D11_Texture2D::~D3D11_Texture2D()
+	D3D11_TextureSRV::~D3D11_TextureSRV()
 	{
 		d3d11_release(m_view);
-		d3d11_release(m_texture);
+		m_owner->release();
 	}
 
-	bool D3D11_RenderSurface::init(const RenderSurface* surface)
+	D3D11_TextureUAV::D3D11_TextureUAV(RHI_Object* owner, ID3D11UnorderedAccessView* view) : m_owner(owner), m_view(view)
 	{
-		if (!D3D11_Texture2D::init(surface, true))
-		{
-			return false;
-		}
-
-		if (is_in<ColorFormat::DepthStencil, ColorFormat::Depth, ColorFormat::ShadowDepth>(surface->format()))
-		{
-			m_depth_stencil_view = DXAPI->create_depth_stencil_view(m_texture, render_view_format_of(surface->format()));
-
-			if (m_depth_stencil_view == nullptr)
-			{
-				error_log("D3D11 Render Surface", "Failed ot create depth stencil view");
-				return false;
-			}
-		}
-		else
-		{
-			m_render_target = DXAPI->create_render_target_view(m_texture, render_view_format_of(surface->format()));
-
-			if (m_render_target == nullptr)
-			{
-				error_log("D3D11 Render Surface", "Failed ot create render target view");
-				return false;
-			}
-		}
-
-		return true;
+		owner->add_reference();
 	}
 
-	void D3D11_RenderSurface::clear_color(const Color& color)
+	void D3D11_TextureUAV::bind(BindLocation location) {}
+
+	D3D11_TextureUAV::~D3D11_TextureUAV()
 	{
-		if (m_render_target)
-		{
-			DXAPI->m_context->ClearRenderTargetView(m_render_target, &color.x);
-		}
+		d3d11_release(m_view);
+		m_owner->release();
 	}
 
-	void D3D11_RenderSurface::clear_depth_stencil(float depth, byte stencil)
-	{
-		if (m_depth_stencil_view)
-		{
-			DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth,
-													stencil);
-		}
-	}
-
-	D3D11_RenderSurface::~D3D11_RenderSurface()
-	{
-		d3d11_release(m_render_target);
-		d3d11_release(m_depth_stencil_view);
-	}
-
-	RHI_Texture2D* D3D11::create_texture_2d(const Texture2D* texture)
+	RHI_Texture* D3D11::create_texture_2d(const Texture2D* texture)
 	{
 		D3D11_Texture2D* d3d11_texture = new D3D11_Texture2D();
 
@@ -240,41 +237,4 @@ namespace Engine
 
 		return d3d11_texture;
 	}
-
-	RHI_Texture2D* D3D11::create_render_surface(const RenderSurface* surface)
-	{
-		D3D11_RenderSurface* d3d11_surface = new D3D11_RenderSurface();
-
-		if (!d3d11_surface->init(surface))
-		{
-			delete d3d11_surface;
-			d3d11_surface = nullptr;
-		}
-
-		return d3d11_surface;
-	}
-
-	D3D11& D3D11::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
-	{
-		static ID3D11RenderTargetView* render_target_views[RHI_MAX_RT_BINDED];
-
-		size_t size = 0;
-
-		for (auto& surface : color_attachments)
-		{
-			render_target_views[size] = surface->rhi_object<D3D11_RenderSurface>()->m_render_target;
-			++size;
-		}
-
-		D3D11_Pipeline::unbind();
-
-		m_context->OMSetRenderTargets(size, render_target_views,
-									  depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view
-													: nullptr);
-		m_state.render_target_size = color_attachments.empty() ? depth_stencil->size() : color_attachments[0]->size();
-		viewport(m_state.viewport);
-		scissor(m_state.scissor);
-		return *this;
-	}
-
 }// namespace Engine

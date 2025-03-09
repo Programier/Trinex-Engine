@@ -10,6 +10,7 @@
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -47,7 +48,7 @@ namespace Engine
 		m_surface = Object::new_instance<RenderSurface>();
 		m_surface->init(ColorFormat::R8G8B8A8, {1, 1});
 
-		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
+		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_render_target_view()->clear(Color(0, 0, 0, 1)); });
 
 		menu_bar.create("")->actions.push([this]() {
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -93,13 +94,13 @@ namespace Engine
 	TextureEditorClient& TextureEditorClient::render_texture()
 	{
 		ImGui::Begin("Texture View###texture");
-		if (m_surface->has_object())
+		if (m_surface->rhi_surface())
 		{
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
 			ImGui::Spring(1.f, 0.5);
 			auto size = max_texture_size_in_viewport(glm::max(m_texture->size(), {1, 1}),
 													 ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
-			ImGui::Image(ImTextureID(m_surface.ptr(), EditorResources::default_sampler), ImGui::ImVecFrom(size));
+			ImGui::Image(ImTextureID(m_surface, EditorResources::default_sampler), ImGui::ImVecFrom(size));
 			ImGui::Spring(1.f, 0.5);
 			ImGui::EndHorizontal();
 		}
@@ -120,8 +121,8 @@ namespace Engine
 		scissor.pos  = {0, 0};
 		rhi->scissor(scissor);
 
-		surface->rhi_clear_color(Color(0.f, 0.f, 0.f, 0.f));
-		rhi->bind_render_target1(surface);
+		surface->rhi_render_target_view()->clear(Color(0.f, 0.f, 0.f, 0.f));
+		rhi->bind_render_target1(surface->rhi_render_target_view());
 
 		static Name mip_level_name = "mip_level";
 		static Name power          = "power";
@@ -147,10 +148,10 @@ namespace Engine
 
 	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)
 	{
-		if (!m_texture || !m_texture->has_object())
+		if (!m_texture || !m_texture->rhi_texture())
 			return *this;
 
-		if (!reinit && glm::any(glm::epsilonNotEqual(m_surface->size(), m_texture->size(), {0.001, 0.001})))
+		if (!reinit && m_surface->size() != m_texture->size())
 		{
 			reinit = true;
 		}
@@ -200,7 +201,8 @@ namespace Engine
 			m_texture = texture;
 			m_properties->update(object);
 
-			call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_clear_color(Color(0, 0, 0, 1)); });
+			call_in_render_thread(
+					[self = Pointer(this)]() { self->m_surface->rhi_render_target_view()->clear(Color(0, 0, 0, 1)); });
 			on_object_parameters_changed(true);
 			m_live_update = texture->is_instance_of<RenderSurface>();
 		}

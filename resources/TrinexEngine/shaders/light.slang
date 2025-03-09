@@ -147,14 +147,19 @@ namespace Lighting
 	}
 }// namespace Lighting
 
-
+[parameter_type("CombinedSurface")]
 uniform Sampler2D base_color_texture;
+[parameter_type("CombinedSurface")]
 uniform Sampler2D normal_texture;
+[parameter_type("CombinedSurface")]
 uniform Sampler2D emissive_texture;
+[parameter_type("CombinedSurface")]
 uniform Sampler2D msra_texture;
+[parameter_type("CombinedSurface")]
 uniform Sampler2D depth_texture;
 
 #if TRINEX_SHADOWED_LIGHTING_PASS
+[parameter_type("CombinedSurface")]
 uniform Sampler2D shadow_map_texture;
 uniform float4x4 shadow_map_projview;
 #endif

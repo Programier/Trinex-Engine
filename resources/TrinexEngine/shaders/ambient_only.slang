@@ -2,12 +2,14 @@
 #include "trinex/quad.slang"
 #include "trinex/platform.slang"
 #include "trinex/common.slang"
+#include "trinex/globals.slang"
 
-[is_globals()]
-ConstantBuffer<GlobalParameters> globals;
-
+[parameter_type("CombinedSurface")]
 Sampler2D base_color;
+
+[parameter_type("CombinedSurface")]
 Sampler2D msra;
+
 uniform float3 ambient_color;
 
 [shader("vertex")]

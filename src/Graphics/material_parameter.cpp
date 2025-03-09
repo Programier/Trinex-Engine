@@ -9,6 +9,7 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material_parameter.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -63,7 +64,7 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	Model4x4& Model4x4::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	LocalToWorld& LocalToWorld::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		auto matrix = component->proxy()->world_transform().matrix();
 		rhi->update_scalar_parameter(&matrix, sizeof(matrix), info->offset, info->location);
@@ -93,7 +94,7 @@ namespace Engine::MaterialParameters
 	Sampler2D& Sampler2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (sampler && texture)
-			texture->rhi_bind_combined(sampler, info->location);
+			texture->rhi_shader_resource_view()->bind_combined(info->location, sampler->rhi_sampler());
 		return *this;
 	}
 
@@ -112,7 +113,7 @@ namespace Engine::MaterialParameters
 	Texture2D& Texture2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (texture)
-			texture->rhi_bind(info->location);
+			texture->rhi_shader_resource_view()->bind(info->location);
 		return *this;
 	}
 
@@ -140,6 +141,40 @@ namespace Engine::MaterialParameters
 			rhi->update_scalar_parameter(&params, sizeof(params), 0, info->location);
 		}
 		return *this;
+	}
+
+	Surface::Surface() : surface(nullptr) {}
+
+	Surface& Surface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	{
+		auto srv = surface ? surface->rhi_shader_resource_view()
+						   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
+		srv->bind(info->location);
+		return *this;
+	}
+
+	bool Surface::serialize(Archive& ar)
+	{
+		if (!Super::serialize(ar))
+			return false;
+		return ar.serialize_reference(surface);
+	}
+
+	CombinedSurface::CombinedSurface() : surface(nullptr), sampler(DefaultResources::Samplers::default_sampler) {}
+
+	CombinedSurface& CombinedSurface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	{
+		auto srv = surface ? surface->rhi_shader_resource_view()
+						   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
+		srv->bind_combined(info->location, sampler->rhi_sampler());
+		return *this;
+	}
+
+	bool CombinedSurface::serialize(Archive& ar)
+	{
+		if (!Super::serialize(ar))
+			return false;
+		return ar.serialize_reference(surface) && ar.serialize_reference(sampler);
 	}
 
 	implement_parameter(Parameter) {}
@@ -251,7 +286,7 @@ namespace Engine::MaterialParameters
 		trinex_refl_prop(static_class_instance(), This, value);
 	}
 
-	implement_parameter(Model4x4)
+	implement_parameter(LocalToWorld)
 	{
 		register_parameter<This>();
 	}
@@ -278,5 +313,18 @@ namespace Engine::MaterialParameters
 	implement_parameter(Globals)
 	{
 		register_parameter<This>();
+	}
+
+	implement_parameter(Surface)
+	{
+		register_parameter<This>();
+		trinex_refl_prop(static_class_instance(), This, surface);
+	}
+
+	implement_parameter(CombinedSurface)
+	{
+		register_parameter<This>();
+		trinex_refl_prop(static_class_instance(), This, surface);
+		trinex_refl_prop(static_class_instance(), This, sampler);
 	}
 }// namespace Engine::MaterialParameters

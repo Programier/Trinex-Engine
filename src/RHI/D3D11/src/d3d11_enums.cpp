@@ -74,29 +74,24 @@ namespace Engine
 		}
 	}
 
-	UINT8 component_mask_of(ColorComponentMask component_mask)
+	UINT8 component_mask_of(ColorComponent component_mask)
 	{
-		UINT8 value     = 0;
-		EnumerateType R = enum_value_of(ColorComponent::R);
-		EnumerateType G = enum_value_of(ColorComponent::G);
-		EnumerateType B = enum_value_of(ColorComponent::B);
-		EnumerateType A = enum_value_of(ColorComponent::A);
+		UINT8 value = 0;
+		auto mask   = enum_value_of(component_mask);
 
-		auto mask = enum_value_of(component_mask);
-
-		if ((mask & R) == R)
+		if ((mask & ColorComponent::R))
 		{
 			value |= D3D11_COLOR_WRITE_ENABLE_RED;
 		}
-		if ((mask & G) == G)
+		if ((mask & ColorComponent::G))
 		{
 			value |= D3D11_COLOR_WRITE_ENABLE_GREEN;
 		}
-		if ((mask & B) == B)
+		if ((mask & ColorComponent::B))
 		{
 			value |= D3D11_COLOR_WRITE_ENABLE_BLUE;
 		}
-		if ((mask & A) == A)
+		if ((mask & ColorComponent::A))
 		{
 			value |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 		}
@@ -246,31 +241,29 @@ namespace Engine
 		}
 	}
 
-	DXGI_FORMAT view_format_of(ColorFormat format)
+	DXGI_FORMAT view_format_of(DXGI_FORMAT format)
 	{
 		switch (format)
 		{
-			case ColorFormat::DepthStencil:
+			case DXGI_FORMAT_R24G8_TYPELESS:
 				return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-			case ColorFormat::ShadowDepth:
-			case ColorFormat::Depth:
+			case DXGI_FORMAT_R32_TYPELESS:
 				return DXGI_FORMAT_R32_FLOAT;
 			default:
-				return texture_format_of(format);
+				return format;
 		}
 	}
 
-	DXGI_FORMAT render_view_format_of(ColorFormat format)
+	DXGI_FORMAT render_view_format_of(DXGI_FORMAT format)
 	{
 		switch (format)
 		{
-			case ColorFormat::DepthStencil:
+			case DXGI_FORMAT_R24G8_TYPELESS:
 				return DXGI_FORMAT_D24_UNORM_S8_UINT;
-			case ColorFormat::ShadowDepth:
-			case ColorFormat::Depth:
+			case DXGI_FORMAT_R32_TYPELESS:
 				return DXGI_FORMAT_D32_FLOAT;
 			default:
-				return texture_format_of(format);
+				return format;
 		}
 	}
 }// namespace Engine

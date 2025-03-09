@@ -9,6 +9,7 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
+#include <Graphics/texture_2D.hpp>
 
 namespace Engine::Icons
 {
@@ -36,7 +37,7 @@ namespace Engine::Icons
 		{
 			if (Texture2D* texture = object->instance_cast<Texture2D>())
 			{
-				if (texture->has_object())
+				if (texture->rhi_texture())
 					return texture;
 			}
 

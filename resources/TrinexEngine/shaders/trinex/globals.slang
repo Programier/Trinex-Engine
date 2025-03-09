@@ -3,7 +3,7 @@
 #include "trinex/common.slang"
 #include "trinex/attributes.slang"
 
-[is_globals()]
+[parameter_type("Globals")]
 ConstantBuffer<GlobalParameters> globals;
 
 #endif

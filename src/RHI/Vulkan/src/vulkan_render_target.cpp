@@ -6,6 +6,7 @@
 #include <vulkan_barriers.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
+#include <vulkan_surface.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
 
@@ -39,8 +40,8 @@ namespace Engine
 
 	VulkanRenderTargetBase& VulkanRenderTargetBase::size(uint32_t width, uint32_t height)
 	{
-		m_size.x = static_cast<float>(width);
-		m_size.y = static_cast<float>(height);
+		m_size.x = width;
+		m_size.y = height;
 		return *this;
 	}
 
@@ -49,32 +50,17 @@ namespace Engine
 		DESTROY_CALL(destroyFramebuffer, m_framebuffer);
 	}
 
-	VulkanRenderTarget::VulkanRenderTarget()
-	{}
+	VulkanRenderTarget::VulkanRenderTarget() {}
 
 	TreeMap<VulkanRenderTarget::Key, VulkanRenderTarget*> VulkanRenderTarget::m_render_targets;
 
-	static FORCE_INLINE VulkanSurface* vulkan_surface_from(const RenderSurface* rt)
-	{
-		return rt ? rt->rhi_object<VulkanSurface>() : nullptr;
-	}
-
-	void VulkanRenderTarget::Key::init(const RenderSurface* targets[5])
-	{
-		m_surfaces[0] = vulkan_surface_from(targets[0]);
-		m_surfaces[1] = vulkan_surface_from(targets[1]);
-		m_surfaces[2] = vulkan_surface_from(targets[2]);
-		m_surfaces[3] = vulkan_surface_from(targets[3]);
-		m_surfaces[4] = vulkan_surface_from(targets[4]);
-	}
-
-	void VulkanRenderTarget::Key::init(VulkanSurface* targets[5])
+	void VulkanRenderTarget::Key::init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 	{
 		m_surfaces[0] = targets[0];
 		m_surfaces[1] = targets[1];
 		m_surfaces[2] = targets[2];
 		m_surfaces[3] = targets[3];
-		m_surfaces[4] = targets[4];
+		m_depth       = depth;
 	}
 
 	bool VulkanRenderTarget::Key::operator<(const Key& key) const
@@ -82,66 +68,55 @@ namespace Engine
 		return std::memcmp(m_surfaces, key.m_surfaces, sizeof(m_surfaces)) < 0;
 	}
 
-	VulkanRenderTarget* VulkanRenderTarget::find_or_create(const RenderSurface* targets[5])
+	VulkanRenderTarget* VulkanRenderTarget::find_or_create(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 	{
 		trinex_profile_cpu_n("VulkanRenderTarget::find_or_create");
 		Key key;
-		key.init(targets);
+		key.init(targets, depth);
 		VulkanRenderTarget*& render_target = m_render_targets[key];
 
 		if (render_target != nullptr)
 			return render_target;
 
 		render_target = new VulkanRenderTarget();
-		render_target->init(targets);
+		render_target->init(targets, depth);
 
 		return render_target;
 	}
 
-	VulkanRenderTarget& VulkanRenderTarget::init(const RenderSurface* targets[5])
+	VulkanRenderTarget& VulkanRenderTarget::init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 	{
-		m_key.init(targets);
-		m_render_pass                     = VulkanRenderPass::find_or_create(targets);
-		const RenderSurface* base_surface = targets[0] ? targets[0] : targets[4];
+		m_key.init(targets, depth);
+		m_render_pass                  = VulkanRenderPass::find_or_create(targets, depth);
+		VulkanSurfaceRTV* base_surface = targets[0] ? targets[0] : targets[4];
 
 		if (base_surface == nullptr)
 		{
 			throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
 		}
 
-		m_size      = base_surface->rhi_object<VulkanSurface>()->size();
+		m_size      = base_surface->size();
 		Index index = 0;
-		std::fill(m_attachments, m_attachments + 5, VK_NULL_HANDLE);
+
+		vk::ImageView attachments[5] = {VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE};
 
 		for (int i = 0; i < 4; ++i)
 		{
 			if (targets[i] == nullptr)
 				continue;
 
-			VulkanSurface* texture = targets[i]->rhi_object<VulkanSurface>();
-			trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
-			bool usage_check = texture->is_render_target_color_image();
-			trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
-
-			vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-			m_attachments[index++] = texture->create_image_view(range);
-			texture->m_render_targets.insert(this);
+			VulkanSurfaceRTV* rtv = targets[i];
+			attachments[index++]  = rtv->m_view;
+			rtv->m_render_targets.insert(this);
 		}
 
-		if (targets[4])
+		if (depth)
 		{
-			VulkanSurface* texture = targets[4]->rhi_object<VulkanSurface>();
-			trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
-
-			bool check_status = texture->is_depth_stencil_image();
-			trinex_check(check_status, "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
-
-			vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
-			m_attachments[index++] = texture->create_image_view(range);
-			texture->m_render_targets.insert(this);
+			attachments[index++] = depth->m_view;
+			depth->m_render_targets.insert(this);
 		}
 
-		post_init(m_attachments, index);
+		post_init(attachments, index);
 		return *this;
 	}
 
@@ -153,14 +128,12 @@ namespace Engine
 			if (surface == nullptr)
 				continue;
 
-			if (surface->is_depth_stencil_image())
-			{
-				surface->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal, cmd);
-			}
-			else
-			{
-				surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal, cmd);
-			}
+			surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal, cmd);
+		}
+
+		if (m_key.m_depth)
+		{
+			m_key.m_depth->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal, cmd);
 		}
 		return *this;
 	}
@@ -174,6 +147,10 @@ namespace Engine
 				surface->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
 		}
 
+		if (m_key.m_depth)
+		{
+			m_key.m_depth->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
+		}
 		return *this;
 	}
 
@@ -181,15 +158,15 @@ namespace Engine
 	{
 		m_render_targets.erase(m_key);
 
-		for (auto& image_view : m_attachments)
-		{
-			DESTROY_CALL(destroyImageView, image_view);
-		}
-
-		for (VulkanSurface* surface : m_key.m_surfaces)
+		for (VulkanSurfaceRTV* surface : m_key.m_surfaces)
 		{
 			if (surface)
 				surface->m_render_targets.erase(this);
+		}
+
+		if (m_key.m_depth)
+		{
+			m_key.m_depth->m_render_targets.erase(this);
 		}
 	}
 
@@ -241,11 +218,13 @@ namespace Engine
 		DESTROY_CALL(destroyImageView, m_view);
 	}
 
-	VulkanAPI& VulkanAPI::bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-											 const RenderSurface* rt4, RenderSurface* depth_stencil)
+	VulkanAPI& VulkanAPI::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+											 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
-		const RenderSurface* surfaces[5] = {rt1, rt2, rt3, rt4, depth_stencil};
-		VulkanRenderTarget* rt           = VulkanRenderTarget::find_or_create(surfaces);
+		VulkanSurfaceRTV* surfaces[4] = {static_cast<VulkanSurfaceRTV*>(rt1), static_cast<VulkanSurfaceRTV*>(rt2),
+										 static_cast<VulkanSurfaceRTV*>(rt3), static_cast<VulkanSurfaceRTV*>(rt4)};
+
+		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(surfaces, static_cast<VulkanSurfaceDSV*>(depth_stencil));
 		rt->bind();
 		return *this;
 	}
@@ -259,8 +238,8 @@ namespace Engine
 		{
 			if (new_mode != VulkanViewportMode::Undefined)
 			{
-				float vp_height = viewport.size.y;
-				float vp_y      = viewport.pos.y;
+				int_t vp_height = viewport.size.y;
+				int_t vp_y      = viewport.pos.y;
 
 				if (new_mode == VulkanViewportMode::Flipped)
 				{
@@ -301,7 +280,7 @@ namespace Engine
 			if (new_mode != VulkanViewportMode::Undefined)
 			{
 				const auto& render_target_size = m_state.render_target()->m_size;
-				float sc_y                     = scissor.pos.y;
+				int_t sc_y                     = scissor.pos.y;
 
 				if (new_mode == VulkanViewportMode::Flipped)
 				{
@@ -309,10 +288,12 @@ namespace Engine
 				}
 
 				vk::Rect2D vulkan_scissor;
-				vulkan_scissor.offset.setX(glm::clamp(scissor.pos.x, 0.f, render_target_size.x));
-				vulkan_scissor.offset.setY(glm::clamp(sc_y, 0.f, render_target_size.y));
-				vulkan_scissor.extent.setWidth(glm::clamp(scissor.size.x, 0.f, render_target_size.x - vulkan_scissor.offset.x));
-				vulkan_scissor.extent.setHeight(glm::clamp(scissor.size.y, 0.f, render_target_size.y - vulkan_scissor.offset.y));
+
+				constexpr auto& clamp = glm::clamp<int_t>;
+				vulkan_scissor.offset.setX(clamp(scissor.pos.x, 0, render_target_size.x));
+				vulkan_scissor.offset.setY(clamp(sc_y, 0, render_target_size.y));
+				vulkan_scissor.extent.setWidth(clamp(scissor.size.x, 0, render_target_size.x - vulkan_scissor.offset.x));
+				vulkan_scissor.extent.setHeight(clamp(scissor.size.y, 0, render_target_size.y - vulkan_scissor.offset.y));
 				current_command_buffer_handle().setScissor(0, vulkan_scissor);
 			}
 

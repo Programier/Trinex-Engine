@@ -6,6 +6,8 @@
 #include <Core/reflection/struct.hpp>
 #include <ScriptEngine/registrar.hpp>
 
+#include <Graphics/gpu_buffers.hpp>
+
 namespace Engine::Refl
 {
 	implement_reflect_type(Struct);
@@ -205,7 +207,6 @@ namespace Engine::Refl
 		}
 		return result;
 	}
-
 
 	bool Struct::serialize_properties(void* object, Archive& ar)
 	{

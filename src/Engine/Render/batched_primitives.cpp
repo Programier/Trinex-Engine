@@ -21,7 +21,7 @@ namespace Engine
 		}
 		else
 		{
-			buffer->rhi_init();
+			buffer->init_render_resources();
 		}
 	}
 

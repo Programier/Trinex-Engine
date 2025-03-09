@@ -16,13 +16,14 @@
 #include <Core/threading.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/material_parameter.hpp>
+#include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
-#include <Graphics/shader_material.hpp>
+#include <Graphics/shader_cache.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
@@ -40,15 +41,81 @@ namespace Engine
 	{
 		float rendering_scale_factor = 1.f;
 
-		class ImGuiMaterial : public ShaderMaterial
-		{
-			trinex_declare_class(ImGuiMaterial, ShaderMaterial);
+		static String imgui_shader_source = R"(
+#include "trinex/platform.slang"
 
+struct VS_INPUT
+{
+    float2 pos : TEXCOORD0;
+    float4 col : COLOR0;
+    float2 uv  : TEXCOORD1;
+};
+
+struct PS_INPUT
+{
+    float4 pos : SV_Position;
+    float4 col : COLOR0;
+    float2 uv  : TEXCOORD0;
+};
+
+uniform float4x4 model;
+Sampler2D texture;
+
+[shader("vertex")]
+PS_INPUT vs_main(in VS_INPUT input)
+{
+    PS_INPUT output;
+    output.pos = mul(model, float4(input.pos.xy, 0.f, 1.f));
+    output.col = input.col;
+    output.uv  = Platform::validate_uv(input.uv);
+    return output;
+}
+
+[shader("fragment")]
+float4 fs_main(in PS_INPUT input) : SV_Target
+{
+    float4 out_col = input.col * texture.Sample(input.uv);
+    return out_col;
+}
+)";
+		class ImGuiPipeline : public GraphicsPipeline
+		{
 		public:
-			ImGuiMaterial& postload() override
+			static ImGuiPipeline* instance;
+			ShaderParameterInfo* texture_parameter = nullptr;
+			ShaderParameterInfo* model_parameter   = nullptr;
+
+			Matrix4f model;
+			Sampler* sampler            = nullptr;
+			RHI_ShaderResourceView* srv = nullptr;
+
+			bool apply()
 			{
-				auto pipeline = instance_cast<GraphicsPipeline>(Material::pipeline(nullptr));
-				auto shader   = pipeline->vertex_shader();
+				if (!(srv && sampler))
+					return false;
+
+				rhi_bind();
+				srv->bind_combined(texture_parameter->location, sampler->rhi_sampler());
+				rhi->update_scalar_parameter(&model, sizeof(model), model_parameter->offset, model_parameter->location);
+				return true;
+			}
+
+			void initialize()
+			{
+				GraphicsShaderCache cache;
+
+				if (!cache.load("TrinexEditor::Pipelines::ImGui"))
+				{
+					if (MaterialCompiler::instance()->compile(imgui_shader_source, this))
+					{
+						cache.init_from(this);
+						cache.store("TrinexEditor::Pipelines::ImGui");
+					}
+				}
+
+				auto shader = vertex_shader(true);
+				fragment_shader(true);
+				cache.apply_to(this);
 
 				for (auto& attribute : shader->attributes)
 				{
@@ -68,7 +135,7 @@ namespace Engine
 					}
 				}
 
-				auto& blend          = pipeline->color_blending;
+				auto& blend          = color_blending;
 				blend.enable         = true;
 				blend.src_color_func = BlendFunc::SrcAlpha;
 				blend.dst_color_func = BlendFunc::OneMinusSrcAlpha;
@@ -79,25 +146,44 @@ namespace Engine
 				blend.color_mask = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G | ColorComponent::B |
 																	 ColorComponent::A);
 
-				auto& depth        = pipeline->depth_test;
+				auto& depth        = depth_test;
 				depth.enable       = false;
 				depth.write_enable = false;
 				depth.func         = CompareFunc::Always;
 
-				auto& stencil      = pipeline->stencil_test;
+				auto& stencil      = stencil_test;
 				stencil.enable     = false;
 				stencil.depth_fail = stencil.depth_pass = stencil.fail = StencilOp::Keep;
 				stencil.compare                                        = CompareFunc::Always;
 
-				auto& rasterizer        = pipeline->rasterizer;
 				rasterizer.cull_mode    = CullMode::None;
 				rasterizer.polygon_mode = PolygonMode::Fill;
 				rasterizer.line_width   = 1.0;
 
+				for (auto& param : parameters)
+				{
+					if (param.second.type == ShaderParameterType::Sampler2D)
+						texture_parameter = &param.second;
+					else if (param.second.type == ShaderParameterType::Float4x4)
+						model_parameter = &param.second;
+				}
+
 				Super::postload();
-				return *this;
 			}
-		};
+
+			static ImGuiPipeline* create()
+			{
+				if (instance)
+					return instance;
+
+				instance = new_instance<ImGuiPipeline>("TrinexEditor::Pipelines::ImGui");
+				instance->add_reference();
+				instance->initialize();
+				return instance;
+			}
+		};// namespace ImGuiBackend_RHI
+
+		ImGuiPipeline* ImGuiPipeline::instance = nullptr;
 
 		bool imgui_trinex_rhi_init(ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
@@ -112,45 +198,16 @@ namespace Engine
 		};
 
 		struct ImGuiTrinexData {
-			ImTextureID font_texture;
-			Material* material;
-			MaterialParameters::Sampler2D* texture_parameter;
-			MaterialParameters::Float4x4* model_parameter;
-
+			Texture2D* font_texture;
+			Sampler* sampler;
 			ImGuiTrinexData() { memset((void*) this, 0, sizeof(*this)); }
 		};
 
 		struct ImGuiTrinexViewportData {
-			ImGuiVertexBuffer* vertex_buffer;
-			ImGuiIndexBuffer* index_buffer;
-
-			ImGuiTrinexViewportData()
-			{
-				vertex_buffer = Object::new_instance<EngineResource<ImGuiVertexBuffer>>();
-				index_buffer  = Object::new_instance<EngineResource<ImGuiIndexBuffer>>();
-			}
-
-			~ImGuiTrinexViewportData()
-			{
-				bool call_garbage_collector = !engine_instance->is_shuting_down();
-				if (index_buffer)
-				{
-					if (call_garbage_collector)
-					{
-						GarbageCollector::destroy(index_buffer);
-					}
-					index_buffer = nullptr;
-				}
-
-				if (vertex_buffer)
-				{
-					if (call_garbage_collector)
-					{
-						GarbageCollector::destroy(vertex_buffer);
-					}
-					vertex_buffer = nullptr;
-				}
-			}
+			RenderResourcePtr<RHI_VertexBuffer> vertex_buffer;
+			RenderResourcePtr<RHI_IndexBuffer> index_buffer;
+			uint64_t vertex_count = 0;
+			uint64_t index_count  = 0;
 		};
 
 		static ImGuiTrinexData* imgui_trinex_backend_data()
@@ -162,19 +219,18 @@ namespace Engine
 
 		static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
 		{
-			ImGuiTrinexData* bd = imgui_trinex_backend_data();
-
 			ViewPort viewport;
 			viewport.size = {draw_data->DisplaySize.x * rendering_scale_factor,
-			                 draw_data->DisplaySize.y * rendering_scale_factor};
+							 draw_data->DisplaySize.y * rendering_scale_factor};
 			rhi->viewport(viewport);
 
-			float L                        = draw_data->DisplayPos.x;
-			float R                        = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-			float T                        = draw_data->DisplayPos.y;
-			float B                        = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-			bd->model_parameter->value     = glm::ortho(L, R, B, T);
-			bd->texture_parameter->texture = nullptr;
+			float L                          = draw_data->DisplayPos.x;
+			float R                          = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+			float T                          = draw_data->DisplayPos.y;
+			float B                          = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+			ImGuiPipeline::instance->model   = glm::ortho(L, R, B, T);
+			ImGuiPipeline::instance->srv     = nullptr;
+			ImGuiPipeline::instance->sampler = nullptr;
 		}
 
 		// Render function
@@ -206,16 +262,18 @@ namespace Engine
 			const ViewPort backup_viewport = rhi->viewport();
 			const Scissor backup_scissor   = rhi->scissor();
 
-			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_buffer->vertex_count()) < draw_data->TotalVtxCount)
+			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
-				vd->vertex_buffer->init(draw_data->TotalVtxCount + 5000);
-				vd->vertex_buffer->rhi_init();
+				vd->vertex_count  = draw_data->TotalVtxCount + 5000;
+				auto len          = vd->vertex_count * sizeof(ImDrawVert);
+				vd->vertex_buffer = rhi->create_vertex_buffer(len, nullptr, RHIBufferType::Dynamic);
 			}
 
-			if (!vd->index_buffer || static_cast<int>(vd->index_buffer->index_count()) < draw_data->TotalIdxCount)
+			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
-				vd->index_buffer->init(draw_data->TotalIdxCount + 10000);
-				vd->index_buffer->rhi_init();
+				vd->index_count  = draw_data->TotalIdxCount + 10000;
+				auto len         = vd->index_count * sizeof(ImDrawIdx);
+				vd->index_buffer = rhi->create_index_buffer(len, nullptr, IndexBufferFormat::UInt16, RHIBufferType::Dynamic);
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer
@@ -231,8 +289,8 @@ namespace Engine
 					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
 					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-					vd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
-					vd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+					vd->vertex_buffer->update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+					vd->index_buffer->update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
 
 					vtx_offset += vtx_size;
 					idx_offset += idx_size;
@@ -244,6 +302,8 @@ namespace Engine
 			int global_idx_offset = 0;
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
+
+			auto pipeline = ImGuiPipeline::instance;
 
 			rhi->pop_debug_stage();
 			{
@@ -279,32 +339,31 @@ namespace Engine
 
 							rhi->scissor(scissor);
 
-							if (!bd->texture_parameter->texture)
+							if (!pipeline->srv)
 							{
-								bd->texture_parameter->texture = pcmd->TextureId.texture;
-								bd->texture_parameter->sampler = pcmd->TextureId.sampler;
+								pipeline->srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
+																			: pcmd->TextureId.surface->rhi_shader_resource_view();
+								pipeline->sampler = pcmd->TextureId.sampler;
 							}
 
-							if (bd->texture_parameter->sampler == nullptr)
+							if (!pipeline->sampler)
 							{
-								bd->texture_parameter->sampler = bd->font_texture.sampler;
-							}
-
-							{
-								trinex_profile_cpu_n("Bindings");
-								bd->material->apply();
-								vd->vertex_buffer->rhi_bind(0);
-								vd->index_buffer->rhi_bind();
+								pipeline->sampler = bd->sampler;
 							}
 
 							{
 								trinex_profile_cpu_n("Drawing");
-								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
-								                  pcmd->VtxOffset + global_vtx_offset);
+								if (pipeline->apply())
+								{
+									vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
+									vd->index_buffer->bind(0);
+									rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
+													  pcmd->VtxOffset + global_vtx_offset);
+								}
 							}
 
-							bd->texture_parameter->texture = nullptr;
-							bd->texture_parameter->sampler = nullptr;
+							pipeline->srv     = nullptr;
+							pipeline->sampler = nullptr;
 						}
 
 						rhi->pop_debug_stage();
@@ -329,20 +388,23 @@ namespace Engine
 			int width, height;
 			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-			ImTextureID& texture = bd->font_texture;
+			bd->font_texture = Object::new_instance<EngineResource<Texture2D>>(
+					Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+			bd->font_texture->format = ColorFormat::R8G8B8A8;
+			bd->font_texture->mips.emplace_back();
+			auto& mip = bd->font_texture->mips[0];
+			mip.size  = {width, height};
+			mip.data  = Buffer(pixels, pixels + width * height * 4);
+			bd->font_texture->init_render_resources();
 
-			texture.texture = Object::new_instance<EngineResource<Texture2D>>(
-			        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-			texture.texture->init(ColorFormat::R8G8B8A8, Size2D(static_cast<float>(width), static_cast<float>(height)), pixels,
-			                      static_cast<size_t>(width * height * 4));
 			auto package = Package::static_find_package("TrinexEditor::ImGui", true);
-			package->add_object(texture.texture);
+			package->add_object(bd->sampler);
 
-			texture.sampler = Object::new_instance<EngineResource<Sampler>>(
-			        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-			texture.sampler->filter = SamplerFilter::Trilinear;
-			texture.sampler->init_resource();
-			package->add_object(texture.sampler);
+			bd->sampler = Object::new_instance<EngineResource<Sampler>>(
+					Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+			bd->sampler->filter = SamplerFilter::Trilinear;
+			bd->sampler->init_render_resources();
+			package->add_object(bd->sampler);
 
 			// Store our identifier
 			io.Fonts->SetTexID(bd->font_texture);
@@ -357,18 +419,11 @@ namespace Engine
 			{
 				if (call_garbage_collector)
 				{
-					GarbageCollector::destroy(bd->font_texture.texture);
-					GarbageCollector::destroy(bd->font_texture.sampler);
+					GarbageCollector::destroy(bd->font_texture);
+					GarbageCollector::destroy(bd->sampler);
 				}
 				ImGui::GetIO().Fonts->SetTexID(0);
 				bd->font_texture = {};
-			}
-
-			if (bd->material)
-			{
-				bd->material          = nullptr;
-				bd->texture_parameter = nullptr;
-				bd->model_parameter   = nullptr;
 			}
 		}
 
@@ -378,10 +433,7 @@ namespace Engine
 			if (bd->font_texture)
 				imgui_trinex_destroy_device_objects();
 
-			bd->material          = EditorResources::imgui;
-			bd->texture_parameter = bd->material->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
-			bd->model_parameter   = bd->material->find_parameter<MaterialParameters::Float4x4>(Name::model);
-
+			ImGuiPipeline::create();
 			imgui_trinex_create_fonts_texture();
 		}
 
@@ -512,7 +564,7 @@ namespace Engine
 		static ImGuiTrinexWindowData* imgui_trinex_backend_data()
 		{
 			return ImGui::GetCurrentContext() ? reinterpret_cast<ImGuiTrinexWindowData*>(ImGui::GetIO().BackendPlatformUserData)
-			                                  : nullptr;
+											  : nullptr;
 		}
 
 		static FORCE_INLINE Engine::Window* window_from(const Event& event)
@@ -1735,12 +1787,5 @@ namespace ImGui
 
 namespace Engine
 {
-	trinex_implement_class_default_init(Engine::ImGuiBackend_RHI::ImGuiMaterial, Refl::Class::IsAsset);
 	trinex_implement_class_default_init(Engine::ImGuiBackend_Window::ImGuiViewportClient, 0);
-
-
-	static ReflectionInitializeController on_init([]() {
-		auto owner = Refl::ScopedType::static_find("Engine::ImGuiBackend", Refl::FindFlags::CreateScope);
-		ImGuiBackend_RHI::ImGuiMaterial::static_class_instance()->owner(owner);
-	});
 }// namespace Engine

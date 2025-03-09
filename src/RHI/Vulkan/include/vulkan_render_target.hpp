@@ -10,7 +10,7 @@ namespace Engine
 	struct VulkanRenderTargetBase {
 		vk::Framebuffer m_framebuffer;
 		struct VulkanRenderPass* m_render_pass = nullptr;
-		Size2D m_size;
+		Vector2u m_size;
 
 		VulkanRenderTargetBase& post_init(vk::ImageView* image_views, uint32_t count);
 		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
@@ -24,22 +24,20 @@ namespace Engine
 
 	struct VulkanRenderTarget : VulkanRenderTargetBase {
 		struct Key {
-			struct VulkanSurface* m_surfaces[5] = {};
+			struct VulkanSurfaceRTV* m_surfaces[4];
+			struct VulkanSurfaceDSV* m_depth;
 
-			void init(const RenderSurface* targets[5]);
-			void init(VulkanSurface* targets[5]);
+			void init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth);
 			bool operator<(const Key& key) const;
 		};
 
 		static TreeMap<Key, VulkanRenderTarget*> m_render_targets;
 		Key m_key;
-		vk::ImageView m_attachments[5];
 
-		static VulkanRenderTarget* find_or_create(const RenderSurface** targets);
+		static VulkanRenderTarget* find_or_create(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth);
 
 		VulkanRenderTarget();
-		VulkanRenderTarget& init(const RenderSurface** targets);
-
+		VulkanRenderTarget& init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth);
 		VulkanRenderTargetBase& lock_surfaces() override;
 		VulkanRenderTargetBase& unlock_surfaces() override;
 		~VulkanRenderTarget();

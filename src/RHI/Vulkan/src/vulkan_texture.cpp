@@ -25,47 +25,17 @@ namespace Engine
 		return m_image;
 	}
 
-	vk::ImageView VulkanTexture::image_view() const
-	{
-		return m_image_view;
-	}
-
 	vk::ImageLayout VulkanTexture::layout() const
 	{
 		return m_layout;
 	}
 
-
-	vk::ComponentMapping VulkanTexture::swizzle() const
+	VulkanTexture& VulkanTexture::create(vk::ImageCreateFlagBits flags, vk::ImageUsageFlags usage)
 	{
-		return m_swizzle;
-	}
+		m_layout = vk::ImageLayout::eUndefined;
+		usage |= vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc;
 
-	MipMapLevel VulkanTexture::base_mipmap()
-	{
-		return 0;
-	}
-
-	VulkanTexture& VulkanTexture::create(const Texture* texture)
-	{
-		m_layout                  = vk::ImageLayout::eUndefined;
-		vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-
-		if (texture->class_instance()->is_a<RenderSurface>())
-		{
-			if (is_depth_stencil_image())
-			{
-				usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
-			}
-			else if (is_color_image())
-			{
-				usage |= vk::ImageUsageFlagBits::eColorAttachment;
-			}
-
-			usage |= vk::ImageUsageFlagBits::eTransferSrc;
-		}
-
-		vk::ImageCreateInfo info(create_flags(), image_type(), format(), extent(), mipmap_count(), layer_count(),
+		vk::ImageCreateInfo info(flags, image_type(), format(), extent(), mipmap_count(), layer_count(),
 		                         vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
 
 		VmaAllocationCreateInfo alloc_info = {};
@@ -76,18 +46,11 @@ namespace Engine
 		                                   &m_allocation, nullptr);
 		trinex_check(res == VK_SUCCESS, "Failed to create texture!");
 		m_image = out_image;
-
-		// Creating image view
-		m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
-		                                 get_type(texture->swizzle_a));
-		m_image_view = create_image_view(vk::ImageSubresourceRange(aspect(true), 0, mipmap_count(), 0, layer_count()));
-
-
 		change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 		return *this;
 	}
 
-	void VulkanTexture::update_texture(const Size2D& size, MipMapLevel level, uint_t layer, const byte* data, size_t data_size)
+	void VulkanTexture::update_texture(const Vector2u& size, MipMapLevel level, uint_t layer, const byte* data, size_t data_size)
 	{
 		if (data == nullptr || data_size == 0)
 			return;
@@ -119,71 +82,19 @@ namespace Engine
 		Barrier::transition_image_layout(barrier);
 	}
 
-	void VulkanTexture::bind(BindLocation location)
+	vk::ImageAspectFlags VulkanTexture::aspect() const
 	{
-		if (API->m_state.m_pipeline)
-		{
-			API->m_state.m_pipeline->bind_texture(this, location);
-		}
-	}
-
-	void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindLocation location)
-	{
-		if (API->m_state.m_pipeline)
-		{
-			trinex_always_check(sampler, "Sampler can't be null!");
-			API->m_state.m_pipeline->bind_texture_combined(this, reinterpret_cast<VulkanSampler*>(sampler), location);
-		}
-	}
-
-	vk::ImageAspectFlags VulkanTexture::aspect(bool use_for_shader_attachment) const
-	{
-		if (is_color_image())
+		ColorFormat format = engine_format();
+		if (format.is_color())
 		{
 			return vk::ImageAspectFlagBits::eColor;
 		}
-		else if (is_in<parse_engine_format(ColorFormat::DepthStencil)>(format()))
+		else if (format.is_depth_stencil())
 		{
-			if (use_for_shader_attachment)
-			{
-				return vk::ImageAspectFlagBits::eDepth;
-			}
-			else
-			{
-				return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-			}
+			return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
 		}
-
 		return vk::ImageAspectFlagBits::eDepth;
 	}
-
-	bool VulkanTexture::is_color_image() const
-	{
-		return is_in<ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8, ColorFormat::R8G8B8A8, ColorFormat::BC1,
-		             ColorFormat::BC2, ColorFormat::BC3>(engine_format());
-	}
-
-	bool VulkanTexture::is_render_target_color_image() const
-	{
-		return is_in<ColorFormat::R8G8B8A8, ColorFormat::FloatRGBA>(engine_format());
-	}
-
-	bool VulkanTexture::is_depth_stencil_image() const
-	{
-		return is_depth_stencil_image(engine_format());
-	}
-
-	bool VulkanTexture::is_depth_stencil_image(ColorFormat format)
-	{
-		return is_in<ColorFormat::DepthStencil, ColorFormat::Depth, ColorFormat::ShadowDepth>(format);
-	}
-
-	vk::ImageView VulkanTexture::create_image_view(const vk::ImageSubresourceRange& range)
-	{
-		vk::ImageViewCreateInfo view_info({}, m_image, view_type(), format(), m_swizzle, range);
-		return API->m_device.createImageView(view_info);
-	}
-
 
 	VulkanTexture& VulkanTexture::layout(vk::ImageLayout layout)
 	{
@@ -191,12 +102,10 @@ namespace Engine
 		return *this;
 	}
 
-	vk::ImageLayout VulkanTexture::change_layout(vk::ImageLayout new_layout)
+	void VulkanTexture::change_layout(vk::ImageLayout new_layout)
 	{
 		if (layout() != new_layout)
 		{
-			auto base_mip = base_mipmap();
-
 			vk::ImageMemoryBarrier barrier;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -204,22 +113,19 @@ namespace Engine
 			barrier.newLayout           = new_layout;
 			barrier.image               = m_image;
 
-			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
+			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), 0, mipmap_count(), 0, layer_count());
 			m_layout                 = barrier.newLayout;
 
 			Barrier::transition_image_layout(barrier);
 
 			m_layout = new_layout;
 		}
-		return new_layout;
 	}
 
-	vk::ImageLayout VulkanTexture::change_layout(vk::ImageLayout new_layout, vk::CommandBuffer& cmd)
+	void VulkanTexture::change_layout(vk::ImageLayout new_layout, vk::CommandBuffer& cmd)
 	{
 		if (layout() != new_layout)
 		{
-			auto base_mip = base_mipmap();
-
 			vk::ImageMemoryBarrier barrier;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -227,34 +133,30 @@ namespace Engine
 			barrier.newLayout           = new_layout;
 			barrier.image               = m_image;
 
-			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
+			barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), 0, mipmap_count(), 0, layer_count());
 			m_layout                 = barrier.newLayout;
 
 			Barrier::transition_image_layout(cmd, barrier);
 
 			m_layout = new_layout;
 		}
-		return new_layout;
 	}
 
 
 	VulkanTexture::~VulkanTexture()
 	{
-		DESTROY_CALL(destroyImageView, m_image_view);
 		vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
 	VulkanTexture2D& VulkanTexture2D::create(const Texture2D* texture)
 	{
 		m_texture = texture;
-		VulkanTexture::create(texture);
+		VulkanTexture::create({}, {});
 
-		for (MipMapLevel i = 0, count = texture->mipmap_count(); i < count; ++i)
+		size_t index = 0;
+		for (auto& mip : texture->mips)
 		{
-			if (auto mip = texture->mip(i))
-			{
-				update_texture(mip->size, i, 0, mip->data.data(), mip->data.size());
-			}
+			update_texture(mip.size, index, 0, mip.data.data(), mip.data.size());
 		}
 		return *this;
 	}
@@ -264,24 +166,19 @@ namespace Engine
 		return 1;
 	}
 
-	vk::ImageCreateFlagBits VulkanTexture2D::create_flags() const
-	{
-		return {};
-	}
-
 	vk::ImageViewType VulkanTexture2D::view_type() const
 	{
 		return vk::ImageViewType::e2D;
 	}
 
-	Size2D VulkanTexture2D::size(MipMapLevel level) const
+	Vector2u VulkanTexture2D::size(MipMapLevel level) const
 	{
 		return m_texture->size(level);
 	}
 
 	MipMapLevel VulkanTexture2D::mipmap_count() const
 	{
-		return m_texture->mipmap_count();
+		return m_texture->mips.size();
 	}
 
 	vk::Format VulkanTexture2D::format() const
@@ -291,7 +188,7 @@ namespace Engine
 
 	ColorFormat VulkanTexture2D::engine_format() const
 	{
-		return m_texture->format();
+		return m_texture->format;
 	}
 
 	vk::ImageType VulkanTexture2D::image_type() const
@@ -301,136 +198,61 @@ namespace Engine
 
 	vk::Extent3D VulkanTexture2D::extent(MipMapLevel level) const
 	{
-		auto texture_size = size();
+		auto texture_size = size(level);
 		return vk::Extent3D(texture_size.x, texture_size.y, 1.f);
 	}
 
-	VulkanSurface& VulkanSurface::create(const Texture2D* texture)
+	RHI_ShaderResourceView* VulkanTexture2D::create_srv()
 	{
-		m_size = texture->size();
-		VulkanTexture2D::create(texture);
-		return *this;
+		vk::ImageSubresourceRange range(aspect(), 0, mipmap_count(), 0, layer_count());
+		vk::ImageViewCreateInfo view_info({}, image(), view_type(), format(), {}, range);
+		vk::ImageView view = API->m_device.createImageView(view_info);
+		return new VulkanTextureSRV(this, view);
 	}
 
-	Size2D VulkanSurface::size(MipMapLevel level) const
+	RHI_UnorderedAccessView* VulkanTexture2D::create_uav()
 	{
-		return m_size;
+		return nullptr;
 	}
 
-	void VulkanSurface::clear_color(const Color& color)
+	VulkanTextureSRV::VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
 	{
-		if (is_color_image())
-		{
-			auto current_layout = layout();
-			auto cmd            = API->current_command_buffer();
-
-			if (cmd->is_inside_render_pass())
-				API->end_render_pass();
-
-			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
-
-			vk::ClearColorValue value;
-			value.setFloat32({color.r, color.g, color.b, color.a});
-
-			vk::ImageSubresourceRange range;
-			range.setAspectMask(aspect(false))
-			        .setBaseArrayLayer(0)
-			        .setBaseMipLevel(0)
-			        .setLayerCount(layer_count())
-			        .setLevelCount(mipmap_count());
-
-
-			API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
-			change_layout(current_layout, cmd->m_cmd);
-
-			cmd->add_object(this);
-		}
+		m_texture->add_reference();
 	}
 
-	void VulkanSurface::clear_depth_stencil(float depth, byte stencil)
+	VulkanTextureSRV::~VulkanTextureSRV()
 	{
-		if (is_depth_stencil_image())
-		{
-			auto current_layout = layout();
-			auto cmd            = API->current_command_buffer();
-
-			if (cmd->is_inside_render_pass())
-				API->end_render_pass();
-
-			change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
-
-			vk::ClearDepthStencilValue value;
-			value.setDepth(depth).setStencil(stencil);
-			vk::ImageSubresourceRange range;
-			range.setAspectMask(aspect(false))
-			        .setBaseArrayLayer(0)
-			        .setBaseMipLevel(0)
-			        .setLayerCount(layer_count())
-			        .setLevelCount(mipmap_count());
-
-
-			API->current_command_buffer_handle().clearDepthStencilImage(image(), layout(), value, range);
-			change_layout(current_layout, cmd->m_cmd);
-
-			cmd->add_object(this);
-		}
+		DESTROY_CALL(destroyImageView, m_view);
+		m_texture->release();
 	}
 
-	void VulkanSurface::blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	void VulkanTextureSRV::bind(BindLocation location)
 	{
-		auto cmd            = API->current_command_buffer();
-		bool in_render_pass = cmd->is_inside_render_pass();
-
-		if (in_render_pass)
-			API->end_render_pass();
-
-		auto src = surface->rhi_object<VulkanSurface>();
-
-		auto src_layout = src->layout();
-		auto dst_layout = layout();
-
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd->m_cmd);
-		change_layout(vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
-
-		auto src_end = src_rect.position + src_rect.size;
-		auto dst_end = dst_rect.position + dst_rect.size;
-
-		vk::ImageBlit blit;
-		blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
-
-		blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
-		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		cmd->m_cmd.blitImage(src->image(), src->layout(), image(), vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
-
-		change_layout(dst_layout, cmd->m_cmd);
-		src->change_layout(src_layout, cmd->m_cmd);
-
-		if (in_render_pass)
-		{
-			API->begin_render_pass();
-		}
-
-		cmd->add_object(this);
-		cmd->add_object(src);
+		if (API->m_state.m_pipeline)
+			API->m_state.m_pipeline->bind_texture(this, location);
 	}
 
-	VulkanSurface::~VulkanSurface()
+	void VulkanTextureSRV::bind_combined(byte location, struct RHI_Sampler* sampler)
 	{
-		while (!m_render_targets.empty())
-		{
-			VulkanRenderTarget* rt = *m_render_targets.begin();
-			delete rt;
-		}
+		if (API->m_state.m_pipeline)
+			API->m_state.m_pipeline->bind_texture_combined(this, static_cast<VulkanSampler*>(sampler), location);
 	}
 
-	RHI_Texture2D* VulkanAPI::create_texture_2d(const Texture2D* texture)
+	VulkanTextureUAV::VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
+	{
+		texture->add_reference();
+	}
+
+	VulkanTextureUAV::~VulkanTextureUAV()
+	{
+		DESTROY_CALL(destroyImageView, m_view);
+		m_texture->release();
+	}
+
+	void VulkanTextureUAV::bind(BindLocation location) {}
+
+	RHI_Texture* VulkanAPI::create_texture_2d(const Texture2D* texture)
 	{
 		return &(new VulkanTexture2D())->create(texture);
-	}
-
-	RHI_Texture2D* VulkanAPI::create_render_surface(const RenderSurface* surface)
-	{
-		return &(new VulkanSurface())->create(surface);
 	}
 }// namespace Engine

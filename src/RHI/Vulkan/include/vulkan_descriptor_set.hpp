@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/map.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/structures.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
@@ -7,7 +8,7 @@
 namespace Engine
 {
 	struct VulkanSampler;
-	struct VulkanTexture;
+	struct VulkanTextureSRV;
 	struct VulkanSSBO;
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSetLayout;
@@ -23,8 +24,8 @@ namespace Engine
 		VulkanDescriptorSet& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,
 		                                         vk::DescriptorType type);
 		VulkanDescriptorSet& bind_sampler(VulkanSampler* sampler, BindLocation location);
-		VulkanDescriptorSet& bind_texture(VulkanTexture* texture, BindLocation location);
-		VulkanDescriptorSet& bind_texture_combined(VulkanTexture*, VulkanSampler*, BindLocation location);
+		VulkanDescriptorSet& bind_texture(VulkanTextureSRV* texture, BindLocation location);
+		VulkanDescriptorSet& bind_texture_combined(VulkanTextureSRV*, VulkanSampler*, BindLocation location);
 	};
 
 	struct VulkanDescriptorSetList {

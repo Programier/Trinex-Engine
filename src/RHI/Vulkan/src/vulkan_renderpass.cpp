@@ -4,15 +4,20 @@
 #include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_texture.hpp>
+#include <vulkan_surface.hpp>
 
 namespace Engine
 {
 	namespace
 	{
-		static FORCE_INLINE vk::Format surface_format_of(const RenderSurface* surface)
+		static FORCE_INLINE vk::Format surface_format_of(const VulkanSurfaceRTV* surface)
 		{
-			return surface ? surface->rhi_object<VulkanSurface>()->format() : vk::Format::eUndefined;
+			return surface ? surface->format() : vk::Format::eUndefined;
+		}
+
+		static FORCE_INLINE vk::Format surface_format_of(const VulkanSurfaceDSV* surface)
+		{
+			return surface ? surface->format() : vk::Format::eUndefined;
 		}
 
 		struct VulkanRenderPassBuilder {
@@ -34,7 +39,7 @@ namespace Engine
 												 layout, layout);
 			}
 
-			VulkanRenderPassBuilder& create_attachment_descriptions(const RenderSurface** targets)
+			VulkanRenderPassBuilder& create_attachment_descriptions(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 			{
 				for (int i = 0; i < 4; ++i)
 				{
@@ -47,20 +52,18 @@ namespace Engine
 					}
 				}
 
-				if (targets[4])
+				if (depth)
 				{
-					const bool has_stencil = is_in<ColorFormat::DepthStencil>(targets[4]->format());
-					vk::ImageLayout layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-
-					vk::Format format                   = surface_format_of(targets[4]);
-					m_descriptions[m_attachments_count] = create_desctiption(format, layout, has_stencil);
+					vk::ImageLayout layout              = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+					vk::Format format                   = surface_format_of(depth);
+					m_descriptions[m_attachments_count] = create_desctiption(format, layout, depth->m_with_stencil);
 					++m_attachments_count;
 				}
 
 				return *this;
 			}
 
-			VulkanRenderPassBuilder& create_attachment_references(const RenderSurface** targets)
+			VulkanRenderPassBuilder& create_attachment_references(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 			{
 				for (int_t index = 0, attachment = 0; index < 4; ++index)
 				{
@@ -76,7 +79,7 @@ namespace Engine
 					}
 				}
 
-				if (targets[4])
+				if (depth)
 				{
 					vk::ImageLayout layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 					m_references[4]        = vk::AttachmentReference(m_attachments_count - 1, layout);
@@ -84,10 +87,10 @@ namespace Engine
 				return *this;
 			}
 
-			vk::RenderPass build(const RenderSurface** targets)
+			vk::RenderPass build(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 			{
-				create_attachment_descriptions(targets);
-				create_attachment_references(targets);
+				create_attachment_descriptions(targets, depth);
+				create_attachment_references(targets, depth);
 				return build();
 			}
 
@@ -137,12 +140,13 @@ namespace Engine
 		}
 	}
 
-	void VulkanRenderPass::Key::init(const RenderSurface** targets)
+	void VulkanRenderPass::Key::init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 	{
-		for (int i = 0; i < 5; ++i)
-		{
-			m_attachments[i] = surface_format_of(targets[i]);
-		}
+		m_attachments[0] = surface_format_of(targets[0]);
+		m_attachments[1] = surface_format_of(targets[1]);
+		m_attachments[2] = surface_format_of(targets[2]);
+		m_attachments[3] = surface_format_of(targets[3]);
+		m_attachments[4] = surface_format_of(depth);
 
 		m_attachments[5] = vk::Format::eUndefined;
 	}
@@ -152,10 +156,10 @@ namespace Engine
 		return std::memcmp(m_attachments, key.m_attachments, sizeof(m_attachments)) < 0;
 	}
 
-	VulkanRenderPass* VulkanRenderPass::find_or_create(const RenderSurface** targets)
+	VulkanRenderPass* VulkanRenderPass::find_or_create(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
 	{
 		Key key;
-		key.init(targets);
+		key.init(targets, depth);
 
 		VulkanRenderPass*& pass = m_render_passes[key];
 
@@ -165,7 +169,7 @@ namespace Engine
 
 		VulkanRenderPassBuilder builder;
 
-		if (auto vk_pass = builder.build(targets))
+		if (auto vk_pass = builder.build(targets, depth))
 		{
 			(pass = new VulkanRenderPass(vk_pass));
 			return pass;
@@ -218,8 +222,7 @@ namespace Engine
 		m_render_passes.clear();
 	}
 
-	VulkanRenderPass::VulkanRenderPass(vk::RenderPass rp) : m_render_pass(rp)
-	{}
+	VulkanRenderPass::VulkanRenderPass(vk::RenderPass rp) : m_render_pass(rp) {}
 
 	VulkanRenderPass::~VulkanRenderPass()
 	{

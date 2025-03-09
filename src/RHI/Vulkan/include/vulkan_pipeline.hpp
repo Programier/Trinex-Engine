@@ -10,7 +10,7 @@ namespace Engine
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSet;
 	struct VulkanSampler;
-	struct VulkanTexture;
+	struct VulkanTextureSRV;
 	struct VulkanDescriptorSetLayout;
 
 	struct VulkanPipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
@@ -47,8 +47,8 @@ namespace Engine
 		VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
 		VulkanPipeline& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location, vk::DescriptorType type);
 		VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);
-		VulkanPipeline& bind_texture(VulkanTexture* texture, BindLocation location);
-		VulkanPipeline& bind_texture_combined(VulkanTexture*, VulkanSampler*, BindLocation);
+		VulkanPipeline& bind_texture(VulkanTextureSRV* texture, BindLocation location);
+		VulkanPipeline& bind_texture_combined(VulkanTextureSRV*, VulkanSampler*, BindLocation);
 		VulkanPipeline& bind_descriptor_set();
 
 		~VulkanPipeline();

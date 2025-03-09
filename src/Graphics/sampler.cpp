@@ -1,10 +1,8 @@
 #include <Core/archive.hpp>
-#include <Core/base_engine.hpp>
-#include <Core/buffer_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 
@@ -30,9 +28,26 @@ namespace Engine
 		trinex_refl_prop(self, This, unnormalized_coordinates);
 	}
 
-	Sampler& Sampler::rhi_init()
+	Sampler& Sampler::init_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_sampler(this));
+		Super::init_render_resources();
+		render_thread()->call([this]() { m_sampler = rhi->create_sampler(this); });
+		return *this;
+	}
+
+	Sampler& Sampler::release_render_resources()
+	{
+		Super::release_render_resources();
+		m_sampler = nullptr;
+		return *this;
+	}
+
+	Sampler& Sampler::rhi_bind(byte location)
+	{
+		if (RHI_Sampler* sampler = m_sampler)
+		{
+			sampler->bind(location);
+		}
 		return *this;
 	}
 
@@ -47,7 +62,7 @@ namespace Engine
 
 	Sampler& Sampler::apply_changes()
 	{
-		init_resource();
+		init_render_resources();
 		return *this;
 	}
 }// namespace Engine

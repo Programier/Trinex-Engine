@@ -51,43 +51,38 @@ namespace Engine
 		m_vsync    = vsync;
 	}
 
-	void OpenGL_Viewport::on_resize(const Size2D& new_size)
-	{}
+	void OpenGL_Viewport::on_resize(const Size2D& new_size) {}
 
-	void OpenGL_Viewport::on_orientation_changed(Orientation orientation)
-	{}
+	void OpenGL_Viewport::on_orientation_changed(Orientation orientation) {}
 
 	void OpenGL_Viewport::clear_color(const Color& color)
 	{
 		GLint current_fbo;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &current_fbo);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_id());
+		if (current_fbo != 0)
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glClearColor(color.r, color.g, color.b, color.a);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		if (OPENGL_API->m_state.render_target)
-		{
-			OPENGL_API->m_state.render_target->bind();
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+		if (current_fbo != 0)
+			glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 	}
 
-	void OpenGL_Viewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+	void OpenGL_Viewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 	                                  SamplerFilter filter)
 	{
-		auto render_target = OpenGL_RenderTarget::find_or_create(surface, nullptr, nullptr, nullptr, nullptr);
+		auto render_target = OpenGL_RenderTarget::find_or_create(reinterpret_cast<OpenGL_SurfaceRTV*>(surface));
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id());
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);
 
-		auto src_start = src_rect.position;
-		auto src_end   = src_start + src_rect.size;
-		auto dst_start = dst_rect.position;
-		auto dst_end   = dst_start + dst_rect.size;
+		auto src_start = src_rect.pos;
+		auto src_end   = src_start + Vector2i(src_rect.size);
+		auto dst_start = dst_rect.pos;
+		auto dst_end   = dst_start + Vector2i(dst_rect.size);
 
 		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
 		                  GL_COLOR_BUFFER_BIT, filter_of(filter));

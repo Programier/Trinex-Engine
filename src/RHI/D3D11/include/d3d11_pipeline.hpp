@@ -10,11 +10,9 @@ namespace Engine
 	class D3D11_GeometryShader;
 	class D3D11_FragmentShader;
 
-	class D3D11_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline>
+	class D3D11_GraphicsPipeline : public RHI_DefaultDestroyable<RHI_Pipeline>
 	{
 	public:
-		const Pipeline* m_engine_pipeline = nullptr;
-
 		D3D11_VertexShader* m_vertex_shader          = nullptr;
 		D3D11_TesselationControlShader* m_tsc_shader = nullptr;
 		D3D11_TesselationShader* m_ts_shader         = nullptr;
@@ -28,9 +26,9 @@ namespace Engine
 		ID3D11RasterizerState* m_rasterizer_state      = nullptr;
 
 
-		bool init(const class Pipeline* pipeline);
+		bool init(const class GraphicsPipeline* pipeline);
 		void bind() override;
 		static void unbind();
-		~D3D11_Pipeline();
+		~D3D11_GraphicsPipeline();
 	};
 }// namespace Engine

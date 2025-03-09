@@ -1,34 +1,26 @@
-#include <Core/archive.hpp>
-#include <Core/base_engine.hpp>
-#include <Core/buffer_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
-#include <Image/image.hpp>
 
 namespace Engine
 {
-	trinex_implement_engine_class(Texture, Refl::Class::IsAsset)
+	trinex_implement_engine_class(Texture, Refl::Class::IsAsset) {}
+
+	RHI_UnorderedAccessView* Texture::rhi_unordered_access_view() const
 	{
-		auto* self = static_class_instance();
-		trinex_refl_prop(self, This, swizzle_r)->display_name("Swizze R").tooltip("Swizze R of texture");
-		trinex_refl_prop(self, This, swizzle_g)->display_name("Swizze G").tooltip("Swizze G of texture");
-		trinex_refl_prop(self, This, swizzle_b)->display_name("Swizze B").tooltip("Swizze B of texture");
-		trinex_refl_prop(self, This, swizzle_a)->display_name("Swizze A").tooltip("Swizze A of texture");
+		if (!m_uav && m_texture)
+		{
+			m_uav = m_texture->create_uav();
+		}
+		return m_uav;
 	}
 
-
-	Texture& Texture::rhi_bind_combined(Sampler* sampler, BindLocation location)
+	Texture& Texture::release_render_resources()
 	{
-		if (m_rhi_object && sampler)
-		{
-			rhi_object<RHI_Texture2D>()->bind_combined(sampler->rhi_object<RHI_Sampler>(), location);
-		}
+		Super::release_render_resources();
+		m_uav     = nullptr;
+		m_srv     = nullptr;
+		m_texture = nullptr;
 		return *this;
 	}
 }// namespace Engine

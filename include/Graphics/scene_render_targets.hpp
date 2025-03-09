@@ -7,7 +7,8 @@
 namespace Engine
 {
 	class RenderSurface;
-
+	struct RHI_RenderTargetView;
+	struct RHI_DepthStencilView;
 
 	class ENGINE_EXPORT SceneRenderTargets : public Singletone<SceneRenderTargets, EmptyClass>
 	{
@@ -39,6 +40,8 @@ namespace Engine
 
 		const Array<Pointer<RenderSurface>, textures_count>& surfaces() const;
 		RenderSurface* surface_of(Surface type) const;
+		RHI_RenderTargetView* rtv_of(Surface type) const;
+		RHI_DepthStencilView* dsv_of(Surface type) const;
 		ColorFormat format_of(Surface type) const;
 		StringView name_of(Surface type) const;
 		void initialize(Size2D new_size);

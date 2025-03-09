@@ -5,13 +5,13 @@
 namespace Engine
 {
 	struct Rect2D {
-		Point2D position = {0.f, 0.f};
-		Size2D size      = {0.f, 0.f};
+		Vector2i pos  = {0, 0};
+		Vector2u size = {0, 0};
 	};
 
 	struct ViewPort {
-		Point2D pos = {0.0f, 0.0f};
-		Size2D size;
+		Vector2i pos    = {0, 0};
+		Vector2u size   = {0, 0};
 		float min_depth = 0.0f;
 		float max_depth = 1.0f;
 
@@ -20,24 +20,18 @@ namespace Engine
 
 		FORCE_INLINE bool operator==(const ViewPort& v) const
 		{
-			return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
-			       glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f})) &&
-			       glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) && glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
+			return pos == v.pos && size == v.size && glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) &&
+				   glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
 		}
 
 		FORCE_INLINE bool operator!=(const ViewPort& v) const { return !((*this) == v); }
 	};
 
 	struct Scissor {
-		Point2D pos = {0.0f, 0.0f};
-		Size2D size = {0.f, 0.f};
+		Vector2i pos  = {0, 0};
+		Vector2u size = {0, 0};
 
-		FORCE_INLINE bool operator==(const Scissor& v) const
-		{
-			return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
-			       glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f}));
-		}
-
+		FORCE_INLINE bool operator==(const Scissor& v) const { return pos == v.pos && size == v.size; }
 		FORCE_INLINE bool operator!=(const Scissor& v) const { return !((*this) == v); }
 	};
 
@@ -121,6 +115,25 @@ namespace Engine
 		size_t size           = 0;
 		size_t offset         = 0;
 		BindingIndex location = 255;
+
+		bool serialize(Archive& ar);
+	};
+
+	struct VertexAttribute {
+		Name name;
+		VertexBufferElementType type;
+		VertexAttributeInputRate rate;
+		VertexBufferSemantic semantic;
+		byte semantic_index;
+		byte location;
+		byte stream_index;
+		uint16_t offset;
+
+		FORCE_INLINE VertexAttribute(VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex,
+									 VertexBufferSemantic semantic = VertexBufferSemantic::Position, byte semantic_index = 0,
+									 byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
+			: name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location), offset(offset)
+		{}
 
 		bool serialize(Archive& ar);
 	};

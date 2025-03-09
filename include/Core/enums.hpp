@@ -546,6 +546,13 @@ namespace Engine
 
 		trinex_enum_struct(ColorFormat);
 		trinex_declare_enum(ColorFormat);
+
+		inline bool is_color() const { return static_cast<EnumerateType>(value) & META_Color; }
+		inline bool is_depth() const { return static_cast<EnumerateType>(value) & META_Depth; }
+		inline bool is_depth_stencil() const
+		{
+			return (static_cast<EnumerateType>(value) & META_DepthStencil) == META_DepthStencil;
+		}
 	};
 
 	struct ShowFlags {
@@ -712,14 +719,17 @@ namespace Engine
 			Float4    = 16 | META_Vector | META_UniformBuffer,
 			Float3x3  = 17 | META_Matrix | META_UniformBuffer,
 			Float4x4  = 18 | META_Matrix | META_UniformBuffer,
-			Model4x4  = 19 | META_Matrix | META_UniformBuffer,
-			Sampler   = 20 | META_Sampler,
-			Sampler2D = 21 | META_CombinedImageSampler,
-			Texture2D = 22 | META_Texture,
-			Globals   = 23 | META_UniformBuffer,
+			Sampler   = 19 | META_Sampler,
+			Sampler2D = 20 | META_CombinedImageSampler,
+			Texture2D = 21 | META_Texture,
 
 			// RW Resources
-			RWTexture2D = 24 | META_RWTexture,
+			RWTexture2D = 22 | META_RWTexture,
+
+			Globals         = 256 | META_UniformBuffer,
+			LocalToWorld    = 257 | META_Matrix | META_UniformBuffer,
+			Surface         = 258 | META_Texture,
+			CombinedSurface = 259 | META_CombinedImageSampler,
 		};
 
 		trinex_bitfield_enum_struct(ShaderParameterType, EnumerateType);

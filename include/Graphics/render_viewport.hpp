@@ -56,15 +56,9 @@ namespace Engine
 		ViewPort viewport_info(Size2D size) const;
 		Scissor scissor_info(Size2D size) const;
 
-		FORCE_INLINE ViewPort viewport_info() const
-		{
-			return viewport_info(size());
-		}
+		FORCE_INLINE ViewPort viewport_info() const { return viewport_info(size()); }
 
-		FORCE_INLINE Scissor scissor_info() const
-		{
-			return scissor_info(size());
-		}
+		FORCE_INLINE Scissor scissor_info() const { return scissor_info(size()); }
 
 		static RenderViewport* current();
 		static const Vector<RenderViewport*>& viewports();
@@ -103,10 +97,5 @@ namespace Engine
 		RenderSurface* render_surface() const;
 		Size2D size() const override;
 		SurfaceRenderViewport& render() override;
-		SurfaceRenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
-											   SamplerFilter filter = SamplerFilter::Trilinear) override;
-		SurfaceRenderViewport& rhi_clear_color(const Color& color) override;
-		SurfaceRenderViewport& rhi_clear_depth_stencil(float depth, byte stencil);
-		SurfaceRenderViewport& rhi_bind() override;
 	};
 }// namespace Engine

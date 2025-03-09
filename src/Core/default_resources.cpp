@@ -90,7 +90,7 @@ namespace Engine
 			Buffers::screen_quad->init({Vector3f{-1.f, -1.f, 0.0f}, Vector3f{-1.f, 1.f, 0.0f}, Vector3f{1.f, 1.f, 0.0f},
 										Vector3f{-1.f, -1.f, 0.0f}, Vector3f{1.f, 1.f, 0.0f}, Vector3f{1.f, -1.f, 0.0f}},
 									   false);
-			Buffers::screen_quad->init_resource();
+			Buffers::screen_quad->init_render_resources();
 		}
 	}
 }// namespace Engine

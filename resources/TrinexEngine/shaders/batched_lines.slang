@@ -1,5 +1,6 @@
 #include "trinex/attributes.slang"
 #include "trinex/common.slang"
+#include "trinex/globals.slang"
 #include "wide_lines.slang"
 
 struct VertexInput 
@@ -41,9 +42,6 @@ struct GeometryOutput : WideLines::OutputVertex
         }
     }
 };
-
-[is_globals()]
-ConstantBuffer<GlobalParameters> globals;
 
 [shader("vertex")]
 VertexOutput vs_main(in VertexInput input) 

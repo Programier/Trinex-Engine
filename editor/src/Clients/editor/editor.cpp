@@ -15,8 +15,10 @@
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <ImGuizmo.h>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
@@ -510,7 +512,9 @@ namespace Engine
 
 			auto k = viewport()->size() / SceneRenderTargets::instance()->size();
 
-			ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, k.y}, {k.x, 0.f});
+			{
+				ImGui::Image(ImTextureID{m_renderer.output_surface(), nullptr}, size, {0.f, k.y}, {k.x, 0.f});
+			}
 			m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
 			ImGui::SetCursorPos(current_pos);

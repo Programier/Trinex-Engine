@@ -249,11 +249,15 @@ namespace Engine
 	}
 
 #define check_shader(var, name)                                                                                                  \
-	if (!var->has_object())                                                                                                      \
+	if (!var->rhi_shader())                                                                                                      \
 	{                                                                                                                            \
 		throw EngineException("Cannot init pipeline, because " #name " shader is not valid");                                    \
 	}
 
+	static inline vk::ShaderModule& vulkan_shader_of(Shader* shader)
+	{
+		return static_cast<VulkanShaderBase*>(shader->rhi_shader())->m_shader;
+	}
 
 	Vector<vk::PipelineShaderStageCreateInfo> VulkanPipeline::create_pipeline_stage_infos()
 	{
@@ -263,15 +267,15 @@ namespace Engine
 		{
 			check_shader(vertex_shader, vertex);
 			pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-			                                         vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
+													 vulkan_shader_of(vertex_shader), "main");
 		}
 
 		if (TessellationControlShader* tsc_shader = m_engine_pipeline->tessellation_control_shader())
 		{
 			check_shader(tsc_shader, tessellation control);
 			pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
-			                                         vk::ShaderStageFlagBits::eTessellationControl,
-			                                         tsc_shader->rhi_object<VulkanTessellationControlShader>()->m_shader, "main");
+													 vk::ShaderStageFlagBits::eTessellationControl, vulkan_shader_of(tsc_shader),
+													 "main");
 		}
 
 		if (TessellationShader* ts_shader = m_engine_pipeline->tessellation_shader())
@@ -279,21 +283,21 @@ namespace Engine
 			check_shader(ts_shader, tessellation);
 			pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
 			                                         vk::ShaderStageFlagBits::eTessellationEvaluation,
-			                                         ts_shader->rhi_object<VulkanTessellationShader>()->m_shader, "main");
+													 vulkan_shader_of(ts_shader), "main");
 		}
 
 		if (GeometryShader* geo_shader = m_engine_pipeline->geometry_shader())
 		{
 			check_shader(geo_shader, geometry);
 			pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eGeometry,
-			                                         geo_shader->rhi_object<VulkanGeometryShader>()->m_shader, "main");
+													 vulkan_shader_of(geo_shader), "main");
 		}
 
 		if (FragmentShader* fragment_shader = m_engine_pipeline->fragment_shader())
 		{
 			check_shader(fragment_shader, fragment);
 			pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
-			                                         fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader, "main");
+													 vulkan_shader_of(fragment_shader), "main");
 		}
 
 		if (pipeline_stage_create_infos.empty())
@@ -312,9 +316,9 @@ namespace Engine
 
 			vk::PipelineVertexInputStateCreateInfo vertex_input_info;
 			vertex_input_info.setVertexBindingDescriptions(
-			        vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
+					vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_binding_description);
 			vertex_input_info.setVertexAttributeDescriptions(
-			        vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
+					vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_attribute_description);
 			return vertex_input_info;
 		}
 
@@ -464,7 +468,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanPipeline& VulkanPipeline::bind_texture(VulkanTexture* texture, BindLocation location)
+	VulkanPipeline& VulkanPipeline::bind_texture(VulkanTextureSRV* texture, BindLocation location)
 	{
 		if (auto current_set = current_descriptor_set())
 		{
@@ -474,7 +478,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanPipeline& VulkanPipeline::bind_texture_combined(VulkanTexture* texture, VulkanSampler* sampler, BindLocation location)
+	VulkanPipeline& VulkanPipeline::bind_texture_combined(VulkanTextureSRV* texture, VulkanSampler* sampler,
+														  BindLocation location)
 	{
 		if (auto current_set = current_descriptor_set())
 		{

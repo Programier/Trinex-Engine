@@ -12,11 +12,12 @@ namespace Engine
 	class Material;
 	class RenderPass;
 	class MaterialInterface;
+	class RenderSurface;
 
 	namespace MaterialParameters
 	{
 #define trinex_material_parameter(self, super)                                                                                   \
-    trinex_declare_class(self, super);                                                                                                  \
+    trinex_declare_class(self, super);                                                                                           \
                                                                                                                                  \
 public:                                                                                                                          \
 	static Engine::ShaderParameterType static_type()                                                                             \
@@ -177,12 +178,12 @@ public:                                                                         
 			Float4x4& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 		};
 
-		class ENGINE_EXPORT Model4x4 : public Parameter
+		class ENGINE_EXPORT LocalToWorld : public Parameter
 		{
-			trinex_material_parameter(Model4x4, Parameter);
+			trinex_material_parameter(LocalToWorld, Parameter);
 
 		public:
-			Model4x4& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			LocalToWorld& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Sampler : public Parameter
@@ -228,6 +229,31 @@ public:                                                                         
 
 		public:
 			Globals& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+		};
+
+		class ENGINE_EXPORT Surface : public Parameter
+		{
+			trinex_material_parameter(Surface, Parameter);
+
+		public:
+			Engine::RenderSurface* surface;
+
+			Surface();
+			Surface& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			bool serialize(Archive& ar) override;
+		};
+
+		class ENGINE_EXPORT CombinedSurface : public Parameter
+		{
+			trinex_material_parameter(CombinedSurface, Parameter);
+
+		public:
+			Engine::RenderSurface* surface;
+			Engine::Sampler* sampler;
+
+			CombinedSurface();
+			CombinedSurface& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			bool serialize(Archive& ar) override;
 		};
 	}// namespace MaterialParameters
 }// namespace Engine

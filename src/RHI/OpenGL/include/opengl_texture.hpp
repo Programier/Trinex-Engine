@@ -3,28 +3,36 @@
 #include <Graphics/rhi.hpp>
 #include <opengl_color_format.hpp>
 #include <opengl_headers.hpp>
+#include <opengl_resource.hpp>
 
 namespace Engine
 {
-	struct OpenGL_Texture : public RHI_DefaultDestroyable<RHI_Texture2D> {
+	struct OpenGL_Texture : public RHI_DefaultDestroyable<RHI_Texture> {
 		OpenGL_ColorInfo m_format;
 		GLuint m_type = 0;
 		GLuint m_id   = 0;
 		Size2D m_size;
 
-		void bind(BindLocation location) override;
-		void bind_combined(RHI_Sampler* sampler, BindLocation location) override;
 		void init(const Texture2D* texture);
-
+		RHI_ShaderResourceView* create_srv() override;
+		RHI_UnorderedAccessView* create_uav() override;
 		~OpenGL_Texture();
 	};
 
-	struct OpenGL_RenderSurface : public OpenGL_Texture {
-		mutable Set<struct OpenGL_RenderTarget*> m_render_targets;
+	struct OpenGL_TextureSRV : OpenGL_SRV {
+		OpenGL_Texture* m_texture;
 
-		void clear_color(const Color& color) override;
-		void clear_depth_stencil(float depth, byte stencil) override;
-		void blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
-		~OpenGL_RenderSurface();
+		OpenGL_TextureSRV(OpenGL_Texture* texture);
+		void bind(BindLocation location) override;
+		void bind_combined(byte location, struct RHI_Sampler* sampler) override;
+		~OpenGL_TextureSRV();
+	};
+
+	struct OpenGL_TextureUAV : OpenGL_UAV {
+		OpenGL_Texture* m_texture;
+
+		OpenGL_TextureUAV(OpenGL_Texture* texture);
+		void bind(BindLocation location) override;
+		~OpenGL_TextureUAV();
 	};
 }// namespace Engine

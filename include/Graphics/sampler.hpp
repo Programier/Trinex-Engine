@@ -3,11 +3,11 @@
 
 namespace Engine
 {
-
-
-	class ENGINE_EXPORT Sampler : public BindedRenderResource
+	class ENGINE_EXPORT Sampler : public RenderResource
 	{
-		trinex_declare_class(Sampler, BindedRenderResource);
+		trinex_declare_class(Sampler, RenderResource);
+
+		RenderResourcePtr<RHI_Sampler> m_sampler;
 
 	public:
 		Vector4f border_color         = {0.f, 0.f, 0.f, 1.f};
@@ -23,8 +23,12 @@ namespace Engine
 		CompareFunc compare_func      = CompareFunc::Always;
 		bool unnormalized_coordinates = false;
 
-		Sampler& rhi_init() override;
+		Sampler& init_render_resources() override;
+		Sampler& release_render_resources() override;
+		Sampler& rhi_bind(byte location);
 		bool serialize(Archive& archive) override;
 		Sampler& apply_changes() override;
+
+		inline RHI_Sampler* rhi_sampler() const { return m_sampler; }
 	};
 }// namespace Engine

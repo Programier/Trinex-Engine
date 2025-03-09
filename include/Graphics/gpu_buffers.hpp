@@ -11,16 +11,19 @@ namespace Engine
 
 	protected:
 		size_t m_size = 0;
-
 		static bool force_keep_cpu_data();
+
+		void execute_discard();
 
 	public:
 		GPUBuffer& rhi_update(size_t offset, size_t size, const byte* data);
 		size_t size() const;
 
+		virtual GPUBuffer& discard();
 		virtual byte* data();
 		virtual const byte* data() const;
 		virtual RHIBufferType buffer_type() const;
+		virtual RHI_Buffer* rhi_buffer() const = 0;
 	};
 
 	template<typename Type, typename Super>
@@ -37,7 +40,7 @@ namespace Engine
 		using ElementType = Type;
 
 	public:
-		using Super::rhi_init;
+		using Super::init_render_resources;
 
 		TypedGPUBuffer& init(size_t buffer_size, const ElementType* buffer_data = nullptr, bool with_cpu_access = false)
 		{
@@ -71,23 +74,11 @@ namespace Engine
 			return m_buffer->m_buffer;
 		}
 
-		bool with_cpu_access() const
-		{
-			return m_buffer ? m_buffer->m_with_cpu_access : false;
-		}
+		bool with_cpu_access() const { return m_buffer ? m_buffer->m_with_cpu_access : false; }
 
-		TypedGPUBuffer& rhi_init() override final
+		TypedGPUBuffer& init_render_resources() override final
 		{
-			if (m_buffer)
-			{
-				Super::rhi_init(m_buffer->m_buffer.size() * sizeof(Type),
-								reinterpret_cast<const byte*>(m_buffer->m_buffer.data()));
-				discard();
-			}
-			else
-			{
-				Super::rhi_init();
-			}
+			Super::init_render_resources();
 			return *this;
 		}
 
@@ -109,17 +100,11 @@ namespace Engine
 			return nullptr;
 		}
 
-		Vector<Type>* buffer()
-		{
-			return m_buffer ? &m_buffer->m_buffer : nullptr;
-		}
+		Vector<Type>* buffer() { return m_buffer ? &m_buffer->m_buffer : nullptr; }
 
-		const Vector<Type>* buffer() const
-		{
-			return m_buffer ? &m_buffer->m_buffer : nullptr;
-		}
+		const Vector<Type>* buffer() const { return m_buffer ? &m_buffer->m_buffer : nullptr; }
 
-		TypedGPUBuffer& discard()
+		TypedGPUBuffer& discard() override
 		{
 			if (m_buffer && !m_buffer->m_with_cpu_access && !GPUBuffer::force_keep_cpu_data())
 			{
@@ -129,10 +114,7 @@ namespace Engine
 			return *this;
 		}
 
-		bool serialize(Archive& ar) override final
-		{
-			return serialize(ar, false);
-		}
+		bool serialize(Archive& ar) override final { return serialize(ar, false); }
 
 		virtual bool serialize(Archive& ar, bool allow_cpu_access)
 		{
@@ -189,35 +171,34 @@ namespace Engine
 	{
 		trinex_declare_class(VertexBuffer, GPUBuffer);
 
+		RenderResourcePtr<RHI_VertexBuffer> m_buffer;
+
 	public:
-		VertexBuffer& rhi_init() override;
-		VertexBuffer& rhi_init(size_t size, const byte* data);
+		VertexBuffer& init_render_resources() override;
+		VertexBuffer& release_render_resources() override;
 		VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
 		size_t vertex_count() const;
 		const byte* vertex_address(size_t index) const;
 		byte* vertex_address(size_t index);
+		RHI_Buffer* rhi_buffer() const override;
 
 		virtual size_t stride() const = 0;
+
+		inline RHI_VertexBuffer* rhi_vertex_buffer() const { return m_buffer; }
 	};
 
 	template<typename Type>
 	class TypedVertexBuffer : public TypedGPUBuffer<Type, VertexBuffer>
 	{
 	public:
-		size_t stride() const override
-		{
-			return sizeof(Type);
-		}
+		size_t stride() const override { return sizeof(Type); }
 	};
 
 	template<typename Type>
 	class TypedDynamicVertexBuffer : public TypedVertexBuffer<Type>
 	{
 	public:
-		RHIBufferType buffer_type() const override
-		{
-			return RHIBufferType::Dynamic;
-		}
+		RHIBufferType buffer_type() const override { return RHIBufferType::Dynamic; }
 	};
 
 	class ENGINE_EXPORT PositionVertexBuffer : public TypedVertexBuffer<Vector3f>
@@ -286,42 +267,38 @@ namespace Engine
 	{
 		trinex_declare_class(IndexBuffer, GPUBuffer);
 
+		RenderResourcePtr<RHI_IndexBuffer> m_buffer;
+
 	public:
-		IndexBuffer& rhi_init() override;
-		IndexBuffer& rhi_init(size_t size, const byte* data);
+		IndexBuffer& init_render_resources() override;
+		IndexBuffer& release_render_resources() override;
 		IndexBuffer& rhi_bind(size_t offset = 0);
 
 		size_t index_count() const;
 		const byte* index_address(size_t index) const;
 		byte* index_address(size_t index);
+		RHI_Buffer* rhi_buffer() const override;
 
 		virtual IndexBufferFormat index_type() const = 0;
 		virtual size_t index_size() const            = 0;
+
+		inline RHI_IndexBuffer* rhi_index_buffer() const { return m_buffer; }
 	};
 
 	template<typename Type, IndexBufferFormat format>
 	class TypedIndexBuffer : public TypedGPUBuffer<Type, IndexBuffer>
 	{
 	public:
-		IndexBufferFormat index_type() const override
-		{
-			return format;
-		}
+		IndexBufferFormat index_type() const override { return format; }
 
-		size_t index_size() const override
-		{
-			return sizeof(Type);
-		}
+		size_t index_size() const override { return sizeof(Type); }
 	};
 
 	template<typename Type, IndexBufferFormat format>
 	class TypedDynamicIndexBuffer : public TypedIndexBuffer<Type, format>
 	{
 	public:
-		RHIBufferType buffer_type() const override
-		{
-			return RHIBufferType::Dynamic;
-		}
+		RHIBufferType buffer_type() const override { return RHIBufferType::Dynamic; }
 	};
 
 	class ENGINE_EXPORT UInt32IndexBuffer : public TypedIndexBuffer<uint32_t, IndexBufferFormat::UInt32>
@@ -350,10 +327,15 @@ namespace Engine
 	{
 		trinex_declare_class(UniformBuffer, GPUBuffer);
 
+		RenderResourcePtr<RHI_UniformBuffer> m_buffer;
+
 	public:
-		UniformBuffer& rhi_init() override;
-		UniformBuffer& rhi_init(size_t size, const byte* data);
+		UniformBuffer& init_render_resources() override;
+		UniformBuffer& release_render_resources() override;
 		RHIBufferType buffer_type() const override;
+		RHI_Buffer* rhi_buffer() const override;
+
+		inline RHI_UniformBuffer* rhi_uniform_buffer() const { return m_buffer; }
 	};
 
 	template<typename StorageType>
@@ -362,23 +344,15 @@ namespace Engine
 	public:
 		StorageType storage;
 
-		StructuredUniformBuffer& rhi_init() override
+		StructuredUniformBuffer& init_render_resources() override
 		{
 			m_size = sizeof(StorageType);
-			UniformBuffer::rhi_init();
+			UniformBuffer::init_render_resources();
 			return *this;
 		}
 
-		byte* data() override
-		{
-			return reinterpret_cast<byte*>(&storage);
-		}
-
-		const byte* data() const override
-		{
-			return reinterpret_cast<const byte*>(&storage);
-		}
-
+		byte* data() override { return reinterpret_cast<byte*>(&storage); }
+		const byte* data() const override { return reinterpret_cast<const byte*>(&storage); }
 		using UniformBuffer::rhi_update;
 
 		StructuredUniformBuffer& rhi_update(size_t offset, size_t size)
@@ -403,7 +377,7 @@ namespace Engine
 		size_t init_size      = 0;
 		const byte* init_data = nullptr;
 
-		SSBO& rhi_init() override;
+		SSBO& init_render_resources() override;
 		SSBO& rhi_bind(BindLocation location);
 	};
 }// namespace Engine

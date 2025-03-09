@@ -46,13 +46,24 @@ namespace Engine
 		virtual ~RHI_Object();
 
 		template<typename T>
-		static inline void static_release(T*& object)
+		static inline void static_release(T* object)
 		{
 			if (object)
 			{
 				static_release_internal(object);
-				object = nullptr;
 			}
+		}
+
+		template<typename T>
+		T* as()
+		{
+			return static_cast<T*>(this);
+		}
+
+		template<typename T>
+		const T* as() const
+		{
+			return static_cast<const T*>(this);
 		}
 	};
 
@@ -66,38 +77,41 @@ namespace Engine
 		virtual void bind(BindLocation location) = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_ResourceView : RHI_BindingObject {
+	struct ENGINE_EXPORT RHI_ResourceView : RHI_Object {
 	};
 
 	struct ENGINE_EXPORT RHI_ShaderResourceView : RHI_ResourceView {
+		virtual void bind(BindLocation location)                               = 0;
+		virtual void bind_combined(byte location, struct RHI_Sampler* sampler) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_UnorderedAccessView : RHI_ResourceView {
+		virtual void bind(BindLocation location) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_RenderTargetView : RHI_ResourceView {
-		virtual void clear(const Color& color) = 0;
+		virtual void clear(const Color& color)  = 0;
+		virtual void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+						  SamplerFilter filter) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_DepthStencilView : RHI_ResourceView {
 		virtual void clear(float depth, byte stencil) = 0;
+		virtual void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+						  SamplerFilter filter)       = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
 	};
 
-	struct ENGINE_EXPORT RHI_Texture2D : RHI_BindingObject {
-		virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
-
-		// Surface only methods, calling these methods on non-surface objects will result in exceptions!
-		virtual void clear_color(const Color& color);
-		virtual void clear_depth_stencil(float depth, byte stencil);
-		virtual void blit(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter);
+	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
+		virtual RHI_ShaderResourceView* create_srv()  = 0;
+		virtual RHI_UnorderedAccessView* create_uav() = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Surface : RHI_Object {
 		virtual RHI_RenderTargetView* create_rtv()    = 0;
-		virtual RHI_RenderTargetView* create_dsv()    = 0;
+		virtual RHI_DepthStencilView* create_dsv()    = 0;
 		virtual RHI_ShaderResourceView* create_srv()  = 0;
 		virtual RHI_UnorderedAccessView* create_uav() = 0;
 	};
@@ -136,7 +150,7 @@ namespace Engine
 		virtual void on_resize(const Size2D& new_size)               = 0;
 		virtual void on_orientation_changed(Orientation orientation) = 0;
 		virtual void bind()                                          = 0;
-		virtual void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+		virtual void blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 		                         SamplerFilter filter)               = 0;
 		virtual void clear_color(const Color& color)                 = 0;
 	};
@@ -159,33 +173,33 @@ namespace Engine
 
 		virtual RHI& submit() = 0;
 
-		virtual RHI& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-										const RenderSurface* rt4, RenderSurface* depth_stencil) = 0;
+		virtual RHI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+										RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) = 0;
 
-		inline RHI& bind_depth_stencil_target(RenderSurface* depth_stencil)
+		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)
 		{
 			return bind_render_target(nullptr, nullptr, nullptr, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target1(const RenderSurface* rt1, RenderSurface* depth_stencil = nullptr)
+		inline RHI& bind_render_target1(RHI_RenderTargetView* rt1, RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, nullptr, nullptr, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target2(const RenderSurface* rt1, const RenderSurface* rt2,
-										RenderSurface* depth_stencil = nullptr)
+		inline RHI& bind_render_target2(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2,
+										RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, nullptr, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target3(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-										RenderSurface* depth_stencil = nullptr)
+		inline RHI& bind_render_target3(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+										RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, rt3, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target4(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-										const RenderSurface* rt4, RenderSurface* depth_stencil = nullptr)
+		inline RHI& bind_render_target4(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+										RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
 		}
@@ -196,8 +210,8 @@ namespace Engine
 		virtual Scissor scissor()                       = 0;
 
 		virtual RHI_Sampler* create_sampler(const Sampler*)                                                                  = 0;
-		virtual RHI_Texture2D* create_texture_2d(const Texture2D*)                                                           = 0;
-		virtual RHI_Texture2D* create_render_surface(const RenderSurface*)                                                   = 0;
+		virtual RHI_Texture* create_texture_2d(const Texture2D*)                                                             = 0;
+		virtual RHI_Surface* create_render_surface(ColorFormat format, Vector2u size)                                        = 0;
 		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                                 = 0;
 		virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                       = 0;
 		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                      = 0;

@@ -6,12 +6,15 @@
 
 namespace Engine
 {
+	struct VulkanSurfaceRTV;
+	struct VulkanSurfaceDSV;
+
 	struct VulkanRenderPass {
 		struct Key {
 			vk::Format m_attachments[6];
 
 			void init(vk::Format format);
-			void init(const RenderSurface** targets);
+			void init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth);
 			bool operator<(const Key& key) const;
 		};
 
@@ -19,7 +22,7 @@ namespace Engine
 
 		vk::RenderPass m_render_pass;
 
-		static VulkanRenderPass* find_or_create(const RenderSurface** targets);
+		static VulkanRenderPass* find_or_create(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth);
 		static VulkanRenderPass* swapchain_render_pass(vk::Format format);
 		static void destroy_all();
 

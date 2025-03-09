@@ -13,7 +13,7 @@ namespace Engine
 
 	void D3D11_Viewport::bind()
 	{
-		D3D11_Pipeline::unbind();
+		D3D11_GraphicsPipeline::unbind();
 		auto rt = render_target();
 		DXAPI->m_context->OMSetRenderTargets(1, &rt, nullptr);
 		DXAPI->m_state.render_target_size = render_target_size();
@@ -21,21 +21,19 @@ namespace Engine
 		DXAPI->scissor(DXAPI->m_state.scissor);
 	}
 
-	void D3D11_Viewport::vsync(bool flag)
-	{}
+	void D3D11_Viewport::vsync(bool flag) {}
 
-	void D3D11_Viewport::on_orientation_changed(Orientation orientation)
-	{}
+	void D3D11_Viewport::on_orientation_changed(Orientation orientation) {}
 
-	void D3D11_Viewport::on_resize(const Size2D& new_size)
-	{}
+	void D3D11_Viewport::on_resize(const Size2D& new_size) {}
 
 	void D3D11_Viewport::clear_color(const Color& color)
 	{
 		DXAPI->m_context->ClearRenderTargetView(render_target(), &color.x);
 	}
 
-	void D3D11_Viewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	void D3D11_Viewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+									 SamplerFilter filter)
 	{}
 
 	bool D3D11_WindowViewport::is_window_viewport() const

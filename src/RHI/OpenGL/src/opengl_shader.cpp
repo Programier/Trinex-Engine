@@ -198,9 +198,9 @@ namespace Engine
 
 	void OpenGL_Pipeline::init_pipeline_shader(Shader* shader, GLbitfield stage)
 	{
-		if (shader && shader->rhi_object<OpenGL_Shader>())
+		if (shader && shader->rhi_shader())
 		{
-			glUseProgramStages(m_pipeline, stage, shader->rhi_object<OpenGL_Shader>()->m_id);
+			glUseProgramStages(m_pipeline, stage, shader->rhi_shader()->as<OpenGL_Shader>()->m_id);
 		}
 	}
 
@@ -211,7 +211,7 @@ namespace Engine
 		GLboolean normalized;
 	};
 
-	static FORCE_INLINE void parse_vertex_input(OpenGL_VertexInput& out, const VertexShader::Attribute& attribute)
+	static FORCE_INLINE void parse_vertex_input(OpenGL_VertexInput& out, const VertexAttribute& attribute)
 	{
 		switch (attribute.type)
 		{
@@ -448,9 +448,9 @@ namespace Engine
 
 		auto vertex_shader = pipeline->vertex_shader();
 
-		if (vertex_shader->rhi_object<OpenGL_Shader>())
+		if (vertex_shader->rhi_shader())
 		{
-			glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, vertex_shader->rhi_object<OpenGL_Shader>()->m_id);
+			glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, vertex_shader->rhi_shader()->as<OpenGL_Shader>()->m_id);
 
 			for (auto& attribute : vertex_shader->attributes)
 			{

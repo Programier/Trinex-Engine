@@ -24,15 +24,15 @@ namespace Engine
 		                                size_t instances) override;
 		NoneApi& submit() override;
 
-		NoneApi& bind_render_target(const RenderSurface* rt1, const RenderSurface* rt2, const RenderSurface* rt3,
-									const RenderSurface* rt4, RenderSurface* depth_stencil) override;
+		NoneApi& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+									RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
 		NoneApi& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		NoneApi& scissor(const Scissor& scissor) override;
 		Scissor scissor() override;
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
-		RHI_Texture2D* create_render_surface(const RenderSurface*) override;
+		RHI_Texture* create_texture_2d(const Texture2D*) override;
+		RHI_Surface* create_render_surface(ColorFormat format, Vector2u size) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;

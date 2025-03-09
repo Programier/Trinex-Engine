@@ -450,7 +450,7 @@ namespace Engine
 		return *this;
 	}
 
-	Object& Object::begin_destroy()
+	Object& Object::on_destroy()
 	{
 		return *this;
 	}

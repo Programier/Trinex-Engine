@@ -1,21 +1,19 @@
 #pragma once
 #include <Core/etl/map.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
 {
-	struct ENGINE_EXPORT ShaderCache {
+	struct ENGINE_EXPORT GraphicsShaderCache {
 		TreeMap<Name, ShaderParameterInfo> parameters;
-
+		Vector<VertexAttribute> vertex_attributes;
 		Buffer vertex;
 		Buffer tessellation_control;
 		Buffer tessellation;
 		Buffer geometry;
 		Buffer fragment;
-		Buffer compute;
-
-		MaterialScalarParametersInfo local_parameters;
 
 		void init_from(const class GraphicsPipeline* pipeline);
 		void apply_to(class GraphicsPipeline* pipeline);

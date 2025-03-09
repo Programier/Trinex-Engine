@@ -6,15 +6,13 @@
 #include "trinex/math.slang"
 #include "trinex/material_common.slang"
 #include "trinex/platform.slang"
+#include "trinex/globals.slang"
 
 #ifndef USE_VERTEX_COLOR
 #define USE_VERTEX_COLOR 0
 #endif 
 
-[is_globals()]
-ConstantBuffer<GlobalParameters> globals;
-
-[is_model()]
+[parameter_type("LocalToWorld")]
 uniform float4x4 local_to_world;
 
 struct VertexFactory

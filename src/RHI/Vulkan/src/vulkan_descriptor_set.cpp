@@ -11,8 +11,7 @@ namespace Engine
 {
 	static constexpr inline uint32_t max_sets = 49152;
 
-	VulkanDescriptorSet::VulkanDescriptorSet()
-	{}
+	VulkanDescriptorSet::VulkanDescriptorSet() {}
 
 	VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point)
 	{
@@ -48,9 +47,9 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture(VulkanTexture* texture, BindLocation location)
+	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture(VulkanTextureSRV* texture, BindLocation location)
 	{
-		vk::DescriptorImageInfo image_info({}, texture->image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+		vk::DescriptorImageInfo image_info({}, texture->m_view, vk::ImageLayout::eShaderReadOnlyOptimal);
 		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampledImage,
 		                                        image_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
@@ -58,10 +57,10 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture_combined(VulkanTexture* texture, VulkanSampler* sampler,
+	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture_combined(VulkanTextureSRV* texture, VulkanSampler* sampler,
 	                                                                BindLocation location)
 	{
-		vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+		vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->m_view, vk::ImageLayout::eShaderReadOnlyOptimal);
 		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eCombinedImageSampler,
 		                                        image_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
@@ -138,10 +137,7 @@ namespace Engine
 			return *this;
 		}
 
-		~VulkanDescriptorPool()
-		{
-			DESTROY_CALL(destroyDescriptorPool, pool);
-		}
+		~VulkanDescriptorPool() { DESTROY_CALL(destroyDescriptorPool, pool); }
 	};
 
 

@@ -17,7 +17,7 @@ namespace Engine
 	{
 		if (shader == nullptr)
 			return nullptr;
-		return shader->rhi_object<ShaderType>();
+		return shader->rhi_shader()->as<ShaderType>();
 	}
 
 	template<typename ShaderType>
@@ -27,7 +27,7 @@ namespace Engine
 	}
 
 
-	static D3D11_DEPTH_STENCIL_DESC create_depth_stencil_description(const Pipeline* pipeline)
+	static D3D11_DEPTH_STENCIL_DESC create_depth_stencil_description(const GraphicsPipeline* pipeline)
 	{
 		D3D11_DEPTH_STENCIL_DESC desc{};
 
@@ -49,7 +49,7 @@ namespace Engine
 		return desc;
 	}
 
-	static D3D11_BLEND_DESC create_blend_description(const Pipeline* pipeline)
+	static D3D11_BLEND_DESC create_blend_description(const GraphicsPipeline* pipeline)
 	{
 		D3D11_BLEND_DESC desc{};
 		auto& blend = pipeline->color_blending;
@@ -77,7 +77,7 @@ namespace Engine
 		return desc;
 	}
 
-	static D3D11_RASTERIZER_DESC create_rasterizer_description(const Pipeline* pipeline)
+	static D3D11_RASTERIZER_DESC create_rasterizer_description(const GraphicsPipeline* pipeline)
 	{
 		D3D11_RASTERIZER_DESC desc{};
 		auto& rasterizer           = pipeline->rasterizer;
@@ -94,9 +94,8 @@ namespace Engine
 		return desc;
 	}
 
-	bool D3D11_Pipeline::init(const class Pipeline* pipeline)
+	bool D3D11_GraphicsPipeline::init(const class GraphicsPipeline* pipeline)
 	{
-		m_engine_pipeline = pipeline;
 		m_vertex_shader   = extract_shader<D3D11_VertexShader>(pipeline->vertex_shader());
 		m_tsc_shader      = extract_shader<D3D11_TesselationControlShader>(pipeline->tessellation_control_shader());
 		m_ts_shader       = extract_shader<D3D11_TesselationShader>(pipeline->tessellation_shader());
@@ -135,7 +134,7 @@ namespace Engine
 		return true;
 	}
 
-	void D3D11_Pipeline::bind()
+	void D3D11_GraphicsPipeline::bind()
 	{
 		bind_shader(m_vertex_shader);
 		bind_shader(m_tsc_shader);
@@ -151,7 +150,7 @@ namespace Engine
 		DXAPI->m_state.pipeline = this;
 	}
 
-	void D3D11_Pipeline::unbind()
+	void D3D11_GraphicsPipeline::unbind()
 	{
 		if (DXAPI->m_state.pipeline)
 		{
@@ -164,16 +163,16 @@ namespace Engine
 		}
 	}
 
-	D3D11_Pipeline::~D3D11_Pipeline()
+	D3D11_GraphicsPipeline::~D3D11_GraphicsPipeline()
 	{
 		d3d11_release(m_depth_stencil_state);
 		d3d11_release(m_blend_state);
 		d3d11_release(m_rasterizer_state);
 	}
 
-	RHI_Pipeline* D3D11::create_pipeline(const Pipeline* pipeline)
+	RHI_Pipeline* D3D11::create_graphics_pipeline(const GraphicsPipeline* pipeline)
 	{
-		D3D11_Pipeline* d3d11_pipeline = new D3D11_Pipeline();
+		D3D11_GraphicsPipeline* d3d11_pipeline = new D3D11_GraphicsPipeline();
 		if (!d3d11_pipeline->init(pipeline))
 		{
 			delete d3d11_pipeline;

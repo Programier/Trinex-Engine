@@ -3,7 +3,9 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/pointer.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/rhi.hpp>
@@ -21,9 +23,9 @@ namespace Engine
 
 	GPUBuffer& GPUBuffer::rhi_update(size_t offset, size_t size, const byte* data)
 	{
-		if (m_rhi_object)
+		if (auto buf = rhi_buffer())
 		{
-			rhi_object<RHI_Buffer>()->update(offset, size, data);
+			buf->update(offset, size, data);
 		}
 		return *this;
 	}
@@ -31,6 +33,23 @@ namespace Engine
 	size_t GPUBuffer::size() const
 	{
 		return m_size;
+	}
+
+	void GPUBuffer::execute_discard()
+	{
+		if (is_in_logic_thread())
+		{
+			discard();
+		}
+		else
+		{
+			logic_thread()->call([self = Pointer(this)]() { self->discard(); });
+		}
+	}
+
+	GPUBuffer& GPUBuffer::discard()
+	{
+		return *this;
 	}
 
 	byte* GPUBuffer::data()
@@ -48,32 +67,36 @@ namespace Engine
 		return RHIBufferType::Static;
 	}
 
-	VertexBuffer& VertexBuffer::rhi_init()
+	VertexBuffer& VertexBuffer::init_render_resources()
 	{
-		size_t s                 = size();
-		RHI_VertexBuffer* buffer = nullptr;
-
-		if (s > 0)
-		{
-			buffer = rhi->create_vertex_buffer(s, data(), buffer_type());
-		}
-
-		m_rhi_object.reset(buffer);
+		Super::init_render_resources();
+		render_thread()->call([self = Pointer(this)]() {
+			size_t s = self->size();
+			if (s > 0)
+			{
+				self->m_buffer = rhi->create_vertex_buffer(s, self->data(), self->buffer_type());
+			}
+			else
+			{
+				self->m_buffer = nullptr;
+			}
+			self->execute_discard();
+		});
 		return *this;
 	}
 
-	VertexBuffer& VertexBuffer::rhi_init(size_t size, const byte* data)
+	VertexBuffer& VertexBuffer::release_render_resources()
 	{
-		m_size = size;
-		m_rhi_object.reset(rhi->create_vertex_buffer(size, data, buffer_type()));
+		Super::release_render_resources();
+		m_buffer = nullptr;
 		return *this;
 	}
 
 	VertexBuffer& VertexBuffer::rhi_bind(byte stream_index, size_t offset)
 	{
-		if (m_rhi_object)
+		if (RHI_VertexBuffer* vert = m_buffer)
 		{
-			rhi_object<RHI_VertexBuffer>()->bind(stream_index, stride(), offset);
+			vert->bind(stream_index, stride(), offset);
 		}
 
 		return *this;
@@ -110,6 +133,11 @@ namespace Engine
 		return find_vertex_address<byte>(this, index);
 	}
 
+	RHI_Buffer* VertexBuffer::rhi_buffer() const
+	{
+		return rhi_vertex_buffer();
+	}
+
 	trinex_implement_engine_class_default_init(VertexBuffer, 0);
 	trinex_implement_engine_class_default_init(PositionVertexBuffer, 0);
 	trinex_implement_engine_class_default_init(TexCoordVertexBuffer, 0);
@@ -132,32 +160,38 @@ namespace Engine
 	trinex_implement_engine_class_default_init(UInt32DynamicIndexBuffer, 0);
 	trinex_implement_engine_class_default_init(UInt16DynamicIndexBuffer, 0);
 
-	IndexBuffer& IndexBuffer::rhi_init()
+	IndexBuffer& IndexBuffer::init_render_resources()
 	{
-		size_t s                = size();
-		RHI_IndexBuffer* buffer = nullptr;
+		Super::init_render_resources();
+		render_thread()->call([self = Pointer(this)]() {
+			size_t s = self->size();
 
-		if (s > 0)
-		{
-			buffer = rhi->create_index_buffer(s, data(), index_type(), buffer_type());
-		}
+			if (s > 0)
+			{
+				self->m_buffer = rhi->create_index_buffer(s, self->data(), self->index_type(), self->buffer_type());
+			}
+			else
+			{
+				self->m_buffer = nullptr;
+			}
+			self->execute_discard();
+		});
 
-		m_rhi_object.reset(buffer);
 		return *this;
 	}
 
-	IndexBuffer& IndexBuffer::rhi_init(size_t size, const byte* data)
+	IndexBuffer& IndexBuffer::release_render_resources()
 	{
-		m_size = size;
-		m_rhi_object.reset(rhi->create_index_buffer(size, data, index_type(), buffer_type()));
+		Super::release_render_resources();
+		m_buffer = nullptr;
 		return *this;
 	}
 
 	IndexBuffer& IndexBuffer::rhi_bind(size_t offset)
 	{
-		if (m_rhi_object)
+		if (RHI_IndexBuffer* idx = m_buffer)
 		{
-			rhi_object<RHI_IndexBuffer>()->bind(offset);
+			idx->bind(offset);
 		}
 		return *this;
 	}
@@ -193,19 +227,30 @@ namespace Engine
 		return find_index_address<byte>(this, index);
 	}
 
+	RHI_Buffer* IndexBuffer::rhi_buffer() const
+	{
+		return rhi_index_buffer();
+	}
+
 	// UNIFORM BUFFERS
 	trinex_implement_engine_class_default_init(UniformBuffer, 0);
 	trinex_implement_engine_class_default_init(UntypedUniformBuffer, 0);
 
-	UniformBuffer& UniformBuffer::rhi_init()
+	UniformBuffer& UniformBuffer::init_render_resources()
 	{
 		trinex_check(m_size != 0, "Size of uniform buffer can't be 0");
-		return rhi_init(size(), data());
+		Super::init_render_resources();
+		render_thread()->call([self = Pointer(this)]() {
+			self->m_buffer = rhi->create_uniform_buffer(self->size(), self->data(), self->buffer_type());
+			self->execute_discard();
+		});
+		return *this;
 	}
 
-	UniformBuffer& UniformBuffer::rhi_init(size_t size, const byte* data)
+	UniformBuffer& UniformBuffer::release_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_uniform_buffer(size, data, buffer_type()));
+		Super::release_render_resources();
+		m_buffer = nullptr;
 		return *this;
 	}
 
@@ -214,19 +259,19 @@ namespace Engine
 		return RHIBufferType::Dynamic;
 	}
 
-	SSBO& SSBO::rhi_init()
+	RHI_Buffer* UniformBuffer::rhi_buffer() const
 	{
-		m_rhi_object.reset(rhi->create_ssbo(init_size, init_data, RHIBufferType::Static));
+		return rhi_uniform_buffer();
+	}
+
+	SSBO& SSBO::init_render_resources()
+	{
+		Super::init_render_resources();
 		return *this;
 	}
 
 	SSBO& SSBO::rhi_bind(BindLocation location)
 	{
-		if (m_rhi_object)
-		{
-			rhi_object<RHI_SSBO>()->bind(location);
-		}
-
 		return *this;
 	}
 }// namespace Engine

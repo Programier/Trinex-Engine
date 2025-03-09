@@ -26,9 +26,9 @@ namespace Engine
 	struct D3D11_State {
 		ViewPort viewport;
 		Scissor scissor;
-		Vector2f render_target_size      = {-1, -1};
-		class D3D11_Pipeline* pipeline   = nullptr;
-		D3D11_ViewportMode viewport_mode = D3D11_ViewportMode::Undefined;
+		Vector2i render_target_size            = {-1, -1};
+		class D3D11_GraphicsPipeline* pipeline = nullptr;
+		D3D11_ViewportMode viewport_mode       = D3D11_ViewportMode::Undefined;
 
 		D3D11_State();
 		void reset();
@@ -37,7 +37,7 @@ namespace Engine
 	class D3D11 : public NoneApi
 	{
 	public:
-		declare_struct(D3D11, void);
+		trinex_declare_struct(D3D11, void);
 
 		static D3D11* static_constructor();
 		static void static_destructor(D3D11* d3d11);
@@ -73,7 +73,8 @@ namespace Engine
 		D3D11& scissor(const Scissor& scissor) override;
 		Scissor scissor() override;
 
-		D3D11& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+		D3D11& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
+								  RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
 
 		D3D11& prepare_draw();
 		D3D11_ViewportMode current_viewport_mode();
@@ -84,14 +85,14 @@ namespace Engine
 									  size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture2D* create_texture_2d(const Texture2D*) override;
-		RHI_Texture2D* create_render_surface(const RenderSurface* surface) override;
+		RHI_Texture* create_texture_2d(const Texture2D*) override;
+		RHI_Surface* create_render_surface(ColorFormat format, Vector2u size) override;
 
 		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
 		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
 		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
+		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;

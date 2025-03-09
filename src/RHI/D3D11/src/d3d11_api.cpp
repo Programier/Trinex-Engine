@@ -26,7 +26,7 @@ namespace Engine
 		using D3D11 = Engine::D3D11;
 	}
 
-	implement_struct_default_init(Engine::TRINEX_RHI::D3D11, 0);
+	trinex_implement_struct_default_init(Engine::TRINEX_RHI::D3D11, 0);
 
 	D3D11* D3D11::static_constructor()
 	{
@@ -48,8 +48,7 @@ namespace Engine
 		}
 	}
 
-	D3D11_State::D3D11_State()
-	{}
+	D3D11_State::D3D11_State() {}
 
 	void D3D11_State::reset()
 	{

@@ -1,19 +1,12 @@
 #include <Core/archive.hpp>
-#include <Core/base_engine.hpp>
-#include <Core/constants.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/render_pass_info.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/structures.hpp>
 #include <Core/threading.hpp>
-#include <Engine/project.hpp>
-#include <Engine/settings.hpp>
-#include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
@@ -97,17 +90,24 @@ namespace Engine
 	{
 		if (shader)
 		{
-			shader->rhi_init();
+			shader->init_render_resources();
 			return true;
 		}
 		return false;
 	}
 
+	Pipeline& Pipeline::release_render_resources()
+	{
+		Super::release_render_resources();
+		m_pipeline = nullptr;
+		return *this;
+	}
+
 	const Pipeline& Pipeline::rhi_bind() const
 	{
-		if (m_rhi_object)
+		if (RHI_Pipeline* pipeline = m_pipeline)
 		{
-			rhi_object<RHI_Pipeline>()->bind();
+			pipeline->bind();
 		}
 		return *this;
 	}
@@ -126,7 +126,7 @@ namespace Engine
 
 	Pipeline& Pipeline::clear()
 	{
-		m_rhi_object.reset(nullptr);
+		m_pipeline = nullptr;
 		parameters.clear();
 		remove_shaders(ShaderType::All);
 		return *this;
@@ -161,14 +161,15 @@ namespace Engine
 		}
 	}
 
-	GraphicsPipeline& GraphicsPipeline::rhi_init()
+	GraphicsPipeline& GraphicsPipeline::init_render_resources()
 	{
 		init_shader(m_vertex_shader);
 		init_shader(m_tessellation_control_shader);
 		init_shader(m_tessellation_shader);
 		init_shader(m_geometry_shader);
 		init_shader(m_fragment_shader);
-		m_rhi_object.reset(rhi->create_graphics_pipeline(this));
+
+		render_thread()->call([this]() { m_pipeline = rhi->create_graphics_pipeline(this); });
 		return *this;
 	}
 
@@ -176,7 +177,6 @@ namespace Engine
 	{
 		// Initialize shaders first!
 		Super::postload();
-
 		return *this;
 	}
 
@@ -477,7 +477,7 @@ namespace Engine
 		// Loading shaders from shader cache
 		String pipeline_name = full_name();
 
-		ShaderCache cache;
+		GraphicsShaderCache cache;
 
 		bool cache_serialize_result = false;
 
@@ -519,10 +519,10 @@ namespace Engine
 		return archive && cache_serialize_result;
 	}
 
-	ComputePipeline& ComputePipeline::rhi_init()
+	ComputePipeline& ComputePipeline::init_render_resources()
 	{
-		if (init_shader(m_shader))
-			m_rhi_object.reset(rhi->create_compute_pipeline(this));
+		init_shader(m_shader);
+		render_thread()->call([this]() { m_pipeline = rhi->create_compute_pipeline(this); });
 		return *this;
 	}
 

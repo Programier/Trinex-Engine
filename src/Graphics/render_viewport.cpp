@@ -255,8 +255,7 @@ namespace Engine
 			Size2D m_size;
 			WindowRenderViewport* m_viewport;
 
-			StartRenderingViewport(WindowRenderViewport* viewport) : m_size(viewport->size()), m_viewport(viewport)
-			{}
+			StartRenderingViewport(WindowRenderViewport* viewport) : m_size(viewport->size()), m_viewport(viewport) {}
 
 			void execute() override
 			{
@@ -276,7 +275,7 @@ namespace Engine
 	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
 																SamplerFilter filter)
 	{
-		m_viewport->blit_target(surface, src, dst, filter);
+		m_viewport->blit_target(surface->rhi_render_target_view(), src, dst, filter);
 		return *this;
 	}
 
@@ -384,31 +383,6 @@ namespace Engine
 		};
 
 		render_thread()->create_task<StartRenderingViewport>(m_client.ptr(), this, size());
-		return *this;
-	}
-
-	SurfaceRenderViewport& SurfaceRenderViewport::rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
-																  SamplerFilter filter)
-	{
-		m_surface->rhi_blit(surface, src, dst, filter);
-		return *this;
-	}
-
-	SurfaceRenderViewport& SurfaceRenderViewport::rhi_clear_color(const Color& color)
-	{
-		m_surface->rhi_clear_color(color);
-		return *this;
-	}
-
-	SurfaceRenderViewport& SurfaceRenderViewport::rhi_clear_depth_stencil(float depth, byte stencil)
-	{
-		m_surface->rhi_clear_depth_stencil(depth, stencil);
-		return *this;
-	}
-
-	SurfaceRenderViewport& SurfaceRenderViewport::rhi_bind()
-	{
-		rhi->bind_render_target1(m_surface);
 		return *this;
 	}
 }// namespace Engine

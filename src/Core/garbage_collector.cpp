@@ -97,7 +97,7 @@ namespace Engine
 			}
 		}
 
-		object->begin_destroy();
+		object->on_destroy();
 		on_destroy(object);
 		object->class_instance()->destroy_object(object);
 	}

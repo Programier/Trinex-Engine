@@ -30,13 +30,12 @@ namespace Engine
 		                       Constants::shader_extention);
 	}
 
-	bool ShaderCache::serialize(Archive& ar)
+	bool GraphicsShaderCache::serialize(Archive& ar)
 	{
-		return ar.serialize(parameters, vertex, tessellation_control, tessellation, geometry, fragment, compute,
-							local_parameters);
+		return ar.serialize(parameters, vertex_attributes, vertex, tessellation_control, tessellation, geometry, fragment);
 	}
 
-	bool ShaderCache::load(const StringView& object_path, StringView rhi_name)
+	bool GraphicsShaderCache::load(const StringView& object_path, StringView rhi_name)
 	{
 		rhi_name  = find_rhi_name(rhi_name);
 		Path path = find_path(object_path, rhi_name);
@@ -44,7 +43,7 @@ namespace Engine
 
 		if (!reader.is_open())
 		{
-			error_log("ShaderCache", "Failed to open file '%s'", path.c_str());
+			error_log("GraphicsShaderCache", "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
@@ -52,7 +51,7 @@ namespace Engine
 		return serialize(ar);
 	}
 
-	bool ShaderCache::store(const StringView& object_path, StringView rhi_name) const
+	bool GraphicsShaderCache::store(const StringView& object_path, StringView rhi_name) const
 	{
 		rhi_name  = find_rhi_name(rhi_name);
 		Path path = find_path(object_path, rhi_name);
@@ -61,12 +60,12 @@ namespace Engine
 
 		if (!writer.is_open())
 		{
-			error_log("ShaderCache", "Failed to open file '%s'", path.c_str());
+			error_log("GraphicsShaderCache", "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
 		Archive ar(&writer);
-		return const_cast<ShaderCache*>(this)->serialize(ar);
+		return const_cast<GraphicsShaderCache*>(this)->serialize(ar);
 	}
 
 	static inline void copy_buffer(Buffer& buffer, Shader* shader)
@@ -90,27 +89,36 @@ namespace Engine
 		}
 	}
 
-	void ShaderCache::init_from(const class GraphicsPipeline* pipeline)
+	void GraphicsShaderCache::init_from(const class GraphicsPipeline* pipeline)
 	{
 		parameters = pipeline->parameters;
 
-		copy_buffer(vertex, pipeline->vertex_shader());
+		auto vs = pipeline->vertex_shader();
+		if (vs)
+			vertex_attributes = vs->attributes;
+		else
+			vertex_attributes = {};
+
+		copy_buffer(vertex, vs);
 		copy_buffer(tessellation_control, pipeline->tessellation_control_shader());
 		copy_buffer(tessellation, pipeline->tessellation_shader());
 		copy_buffer(geometry, pipeline->geometry_shader());
 		copy_buffer(fragment, pipeline->fragment_shader());
-		copy_buffer(compute, nullptr);
 	}
 
-	void ShaderCache::apply_to(class GraphicsPipeline* pipeline)
+	void GraphicsShaderCache::apply_to(class GraphicsPipeline* pipeline)
 	{
 		pipeline->parameters = parameters;
 
-		apply_buffer(vertex, pipeline->vertex_shader());
+		auto vs = pipeline->vertex_shader();
+		if (vs)
+		{
+			vs->attributes = vertex_attributes;
+		}
+		apply_buffer(vertex, vs);
 		apply_buffer(tessellation_control, pipeline->tessellation_control_shader());
 		apply_buffer(tessellation, pipeline->tessellation_shader());
 		apply_buffer(geometry, pipeline->geometry_shader());
 		apply_buffer(fragment, pipeline->fragment_shader());
-		apply_buffer(compute, nullptr);
 	}
 }// namespace Engine

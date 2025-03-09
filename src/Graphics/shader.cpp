@@ -1,52 +1,26 @@
 #include <Core/archive.hpp>
-#include <Core/base_engine.hpp>
-#include <Core/buffer_manager.hpp>
-#include <Core/engine_types.hpp>
-#include <Core/file_manager.hpp>
-#include <Core/logger.hpp>
-#include <Core/name.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace Engine
 {
-	trinex_implement_struct(Engine::VertexShader::Attribute, 0)
-	{
-		auto self            = static_struct_instance();
-		auto default_flags   = Refl::Property::IsNotSerializable;
-		auto read_only_flags = default_flags | Refl::Property::IsReadOnly;
-
-		trinex_refl_prop(self, This, name, read_only_flags)->tooltip("Name of this attribute");
-		trinex_refl_prop(self, This, type, default_flags)->tooltip("Type of element of this attribute");
-		trinex_refl_prop(self, This, rate, default_flags)->tooltip("Rate of this attribute");
-		trinex_refl_prop(self, This, semantic, read_only_flags)->tooltip("Semantic of this attribute");
-		trinex_refl_prop(self, This, semantic_index, read_only_flags)->tooltip("Semantic index of this attribute");
-		trinex_refl_prop(self, This, location, read_only_flags)->tooltip("Location index of this attribute");
-		trinex_refl_prop(self, This, stream_index, default_flags)->tooltip("The stream index from which to read this attribute");
-		trinex_refl_prop(self, This, offset, default_flags)->tooltip("Offset of this attribute in vertex struct");
-	}
-
 	trinex_implement_engine_class_default_init(Shader, 0);
-
-	trinex_implement_engine_class(VertexShader, 0)
-	{
-		auto* self = This::static_class_instance();
-		trinex_refl_prop(self, This, attributes, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly)
-				->display_name("Vertex Attributes")
-				.tooltip("Vertex attributes of this pipeline");
-	}
+	trinex_implement_engine_class_default_init(VertexShader, 0);
 
 	trinex_implement_engine_class_default_init(TessellationControlShader, 0);
 	trinex_implement_engine_class_default_init(TessellationShader, 0);
 	trinex_implement_engine_class_default_init(GeometryShader, 0);
 	trinex_implement_engine_class_default_init(FragmentShader, 0);
 	trinex_implement_engine_class_default_init(ComputeShader, 0);
+
+	Shader& Shader::release_render_resources()
+	{
+		Super::release_render_resources();
+		m_shader = nullptr;
+		return *this;
+	}
 
 	bool Shader::serialize(Archive& ar)
 	{
@@ -60,9 +34,9 @@ namespace Engine
 		return ar.serialize(source_code);
 	}
 
-	VertexShader& VertexShader::rhi_init()
+	VertexShader& VertexShader::init_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_vertex_shader(this));
+		render_thread()->call([this] { m_shader = rhi->create_vertex_shader(this); });
 		return *this;
 	}
 
@@ -70,8 +44,6 @@ namespace Engine
 	{
 		if (!Super::serialize(ar))
 			return false;
-
-		ar.serialize(attributes);
 		return ar;
 	}
 
@@ -80,9 +52,9 @@ namespace Engine
 		return ShaderType::Vertex;
 	}
 
-	FragmentShader& FragmentShader::rhi_init()
+	FragmentShader& FragmentShader::init_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_fragment_shader(this));
+		render_thread()->call([this] { m_shader = rhi->create_fragment_shader(this); });
 		return *this;
 	}
 
@@ -91,9 +63,9 @@ namespace Engine
 		return ShaderType::Fragment;
 	}
 
-	TessellationControlShader& TessellationControlShader::rhi_init()
+	TessellationControlShader& TessellationControlShader::init_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_tesselation_control_shader(this));
+		render_thread()->call([this] { m_shader = rhi->create_tesselation_control_shader(this); });
 		return *this;
 	}
 
@@ -102,9 +74,9 @@ namespace Engine
 		return ShaderType::TessellationControl;
 	}
 
-	TessellationShader& TessellationShader::rhi_init()
+	TessellationShader& TessellationShader::init_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_tesselation_shader(this));
+		render_thread()->call([this] { m_shader = rhi->create_tesselation_shader(this); });
 		return *this;
 	}
 
@@ -113,9 +85,9 @@ namespace Engine
 		return ShaderType::Tessellation;
 	}
 
-	GeometryShader& GeometryShader::rhi_init()
+	GeometryShader& GeometryShader::init_render_resources()
 	{
-		m_rhi_object.reset(rhi->create_geometry_shader(this));
+		render_thread()->call([this] { m_shader = rhi->create_geometry_shader(this); });
 		return *this;
 	}
 
@@ -124,8 +96,9 @@ namespace Engine
 		return ShaderType::Geometry;
 	}
 
-	ComputeShader& ComputeShader::rhi_init()
+	ComputeShader& ComputeShader::init_render_resources()
 	{
+		render_thread()->call([this] { m_shader = rhi->create_compute_shader(this); });
 		return *this;
 	}
 
@@ -133,17 +106,4 @@ namespace Engine
 	{
 		return ShaderType::Compute;
 	}
-
-	bool VertexShader::Attribute::serialize(Archive& ar)
-	{
-		ar.serialize(name);
-		ar.serialize(type);
-		ar.serialize(semantic);
-		ar.serialize(semantic_index);
-		ar.serialize(rate);
-		ar.serialize(location);
-		ar.serialize(stream_index);
-		return ar.serialize(offset);
-	}
-
 }// namespace Engine

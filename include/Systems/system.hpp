@@ -26,7 +26,7 @@ namespace Engine
 		virtual System& wait();
 		virtual System& update(float dt);
 		virtual System& shutdown();
-		System& begin_destroy() override;
+		System& on_destroy() override;
 		static System* system_of(const String& name);
 		static System* system_of(class Refl::Class* class_instance);
 

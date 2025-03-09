@@ -1,7 +1,5 @@
-#include <Core/base_engine.hpp>
-#include <Core/etl/engine_resource.hpp>
-#include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 
@@ -15,36 +13,51 @@ namespace Engine
 		flags(IsEditable, false);
 	}
 
-	RenderSurface& RenderSurface::rhi_init()
+	RenderSurface& RenderSurface::init(ColorFormat format, Vector2i size)
 	{
-		m_rhi_object.reset(rhi->create_render_surface(this));
+		m_format = format;
+		m_size   = size;
+
+		render_thread()->call([this]() {
+			m_surface = rhi->create_render_surface(m_format, m_size);
+			if (m_format.is_color())
+				m_rtv = m_surface->create_rtv();
+			else if (m_format.is_depth())
+				m_dsv = m_surface->create_dsv();
+		});
+
 		return *this;
 	}
 
-	RenderSurface& RenderSurface::rhi_clear_color(const Color& color)
+	RenderSurface& RenderSurface::release_render_resources()
 	{
-		if (has_object() && !is_in<ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth>(format()))
-		{
-			rhi_object<RHI_Texture2D>()->clear_color(color);
-		}
+		Super::release_render_resources();
+		m_uav     = nullptr;
+		m_srv     = nullptr;
+		m_dsv     = nullptr;
+		m_rtv     = nullptr;
+		m_surface = nullptr;
+
+		m_format = ColorFormat::Undefined;
+		m_size   = {0, 0};
 		return *this;
 	}
 
-	RenderSurface& RenderSurface::rhi_clear_depth_stencil(float depth, byte stencil)
+	RHI_ShaderResourceView* RenderSurface::rhi_shader_resource_view() const
 	{
-		if (has_object() && is_in<ColorFormat::Depth, ColorFormat::DepthStencil, ColorFormat::ShadowDepth>(format()))
+		if (!m_srv && m_surface)
 		{
-			rhi_object<RHI_Texture2D>()->clear_depth_stencil(depth, stencil);
+			m_srv = m_surface->create_srv();
 		}
-		return *this;
+		return m_srv;
 	}
 
-	RenderSurface& RenderSurface::rhi_blit(RenderSurface* surface, const Rect2D& src, const Rect2D& dst, SamplerFilter filter)
+	RHI_UnorderedAccessView* RenderSurface::rhi_unordered_access_view() const
 	{
-		if (auto self_surface = rhi_object<RHI_Texture2D>())
+		if (!m_uav && m_surface)
 		{
-			self_surface->blit(surface, src, dst, filter);
+			m_uav = m_surface->create_uav();
 		}
-		return *this;
+		return m_uav;
 	}
 }// namespace Engine

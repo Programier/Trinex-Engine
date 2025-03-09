@@ -33,50 +33,14 @@ namespace Engine
 		const SceneView& screen_to_world(const Vector2f& screen_point, Vector3f& world_origin, Vector3f& world_direction) const;
 		Vector4f world_to_screen(const Vector3f& world_point) const;
 
-
-		FORCE_INLINE const ViewPort& viewport() const
-		{
-			return m_viewport;
-		}
-
-		FORCE_INLINE const Scissor& scissor() const
-		{
-			return m_scissor;
-		}
-
-		FORCE_INLINE const Matrix4f& view_matrix() const
-		{
-			return m_view;
-		}
-
-		FORCE_INLINE const Matrix4f& projection_matrix() const
-		{
-			return m_projection;
-		}
-
-		FORCE_INLINE const Matrix4f& projview_matrix() const
-		{
-			return m_projview;
-		}
-
-		FORCE_INLINE const Matrix4f& inv_projview_matrix() const
-		{
-			return m_inv_projview;
-		}
-
-		FORCE_INLINE const CameraView& camera_view() const
-		{
-			return m_camera_view;
-		}
-
-		FORCE_INLINE const Size2D& view_size() const
-		{
-			return m_viewport.size;
-		}
-
-		FORCE_INLINE ShowFlags show_flags() const
-		{
-			return m_show_flags;
-		}
+		FORCE_INLINE const ViewPort& viewport() const { return m_viewport; }
+		FORCE_INLINE const Scissor& scissor() const { return m_scissor; }
+		FORCE_INLINE const Matrix4f& view_matrix() const { return m_view; }
+		FORCE_INLINE const Matrix4f& projection_matrix() const { return m_projection; }
+		FORCE_INLINE const Matrix4f& projview_matrix() const { return m_projview; }
+		FORCE_INLINE const Matrix4f& inv_projview_matrix() const { return m_inv_projview; }
+		FORCE_INLINE const CameraView& camera_view() const { return m_camera_view; }
+		FORCE_INLINE const Vector2u& view_size() const { return m_viewport.size; }
+		FORCE_INLINE ShowFlags show_flags() const { return m_show_flags; }
 	};
 }// namespace Engine

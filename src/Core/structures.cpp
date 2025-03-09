@@ -26,10 +26,23 @@ namespace Engine
 		return ar;
 	}
 
+	bool VertexAttribute::serialize(Archive& ar)
+	{
+		ar.serialize(name);
+		ar.serialize(type);
+		ar.serialize(semantic);
+		ar.serialize(semantic_index);
+		ar.serialize(rate);
+		ar.serialize(location);
+		ar.serialize(stream_index);
+		return ar.serialize(offset);
+	}
+
 	trinex_implement_struct(Engine::ShaderDefinition, 0)
 	{
 		Refl::Struct* self = static_struct_instance();
 		trinex_refl_prop(self, This, key)->display_name("Key").tooltip("Key of definition");
 		trinex_refl_prop(self, This, value)->display_name("Value").tooltip("Value of definition");
 	}
+
 }// namespace Engine
