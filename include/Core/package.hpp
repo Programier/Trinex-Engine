@@ -26,6 +26,7 @@ namespace Engine
 		const Vector<Object*>& objects() const;
 		bool contains_object(const Object* object) const;
 		bool contains_object(const StringView& name) const;
+		Package* find_package(StringView child, bool create = false);
 		bool save(BufferWriter* writer = nullptr, SerializationFlags flags = {}) override;
 		friend class Object;
 	};

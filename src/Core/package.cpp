@@ -1,3 +1,4 @@
+#include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
@@ -109,6 +110,34 @@ namespace Engine
 		}
 		return result;
 	}
+
+	static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
+	{
+		Package* next_package = package->find_child_object_checked<Package>(name);
+		if (next_package == nullptr && create && !name.empty())
+		{
+			next_package = Object::new_instance<Package>(name, package);
+		}
+		return next_package;
+	}
+
+	Package* Package::find_package(StringView name, bool create)
+	{
+		if (name.empty())
+			return nullptr;
+
+		Package* package        = this;
+		StringView package_name = Strings::parse_name_identifier(name, &name);
+
+		while (!package_name.empty())
+		{
+			package      = find_next_package(package, package_name, create);
+			package_name = Strings::parse_name_identifier(name, &name);
+		}
+
+		return package;
+	}
+
 
 	trinex_implement_engine_class(Package, Refl::Class::IsScriptable) {}
 }// namespace Engine

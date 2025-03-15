@@ -41,149 +41,52 @@ namespace Engine
 	{
 		float rendering_scale_factor = 1.f;
 
-		static String imgui_shader_source = R"(
-#include "trinex/platform.slang"
-
-struct VS_INPUT
-{
-    float2 pos : TEXCOORD0;
-    float4 col : COLOR0;
-    float2 uv  : TEXCOORD1;
-};
-
-struct PS_INPUT
-{
-    float4 pos : SV_Position;
-    float4 col : COLOR0;
-    float2 uv  : TEXCOORD0;
-};
-
-uniform float4x4 model;
-Sampler2D texture;
-
-[shader("vertex")]
-PS_INPUT vs_main(in VS_INPUT input)
-{
-    PS_INPUT output;
-    output.pos = mul(model, float4(input.pos.xy, 0.f, 1.f));
-    output.col = input.col;
-    output.uv  = Platform::validate_uv(input.uv);
-    return output;
-}
-
-[shader("fragment")]
-float4 fs_main(in PS_INPUT input) : SV_Target
-{
-    float4 out_col = input.col * texture.Sample(input.uv);
-    return out_col;
-}
-)";
-		class ImGuiPipeline : public GraphicsPipeline
+		trinex_declare_graphics_pipeline(ImGuiPipeline);
+		trinex_implement_graphics_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
+										   ShaderType::Vertex | ShaderType::Fragment)
 		{
-		public:
-			static ImGuiPipeline* instance;
-			ShaderParameterInfo* texture_parameter = nullptr;
-			ShaderParameterInfo* model_parameter   = nullptr;
+			auto shader = vertex_shader();
 
-			Matrix4f model;
-			Sampler* sampler            = nullptr;
-			RHI_ShaderResourceView* srv = nullptr;
-
-			bool apply()
+			for (auto& attribute : shader->attributes)
 			{
-				if (!(srv && sampler))
-					return false;
+				attribute.stream_index = 0;
 
-				rhi_bind();
-				srv->bind_combined(texture_parameter->location, sampler->rhi_sampler());
-				rhi->update_scalar_parameter(&model, sizeof(model), model_parameter->offset, model_parameter->location);
-				return true;
+				if (attribute.name == "pos")
+				{
+					attribute.offset = offsetof(ImDrawVert, pos);
+				}
+				else if (attribute.name == "col")
+				{
+					attribute.offset = offsetof(ImDrawVert, col);
+				}
+				else if (attribute.name == "uv")
+				{
+					attribute.offset = offsetof(ImDrawVert, uv);
+				}
 			}
 
-			void initialize()
-			{
-				GraphicsShaderCache cache;
+			color_blending.enable         = true;
+			color_blending.src_color_func = BlendFunc::SrcAlpha;
+			color_blending.dst_color_func = BlendFunc::OneMinusSrcAlpha;
+			color_blending.color_op       = BlendOp::Add;
+			color_blending.src_alpha_func = BlendFunc::One;
+			color_blending.dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
+			color_blending.alpha_op       = BlendOp::Add;
+			color_blending.color_mask     = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G |
+																			  ColorComponent::B | ColorComponent::A);
+			depth_test.enable             = false;
+			depth_test.write_enable       = false;
+			depth_test.func               = CompareFunc::Always;
 
-				if (!cache.load("TrinexEditor::Pipelines::ImGui"))
-				{
-					if (MaterialCompiler::instance()->compile(imgui_shader_source, this))
-					{
-						cache.init_from(this);
-						cache.store("TrinexEditor::Pipelines::ImGui");
-					}
-				}
+			stencil_test.enable     = false;
+			stencil_test.depth_fail = stencil_test.depth_pass = stencil_test.fail = StencilOp::Keep;
+			stencil_test.compare                                                  = CompareFunc::Always;
 
-				auto shader = vertex_shader(true);
-				fragment_shader(true);
-				cache.apply_to(this);
+			rasterizer.cull_mode    = CullMode::None;
+			rasterizer.polygon_mode = PolygonMode::Fill;
+			rasterizer.line_width   = 1.0;
+		}
 
-				for (auto& attribute : shader->attributes)
-				{
-					attribute.stream_index = 0;
-
-					if (attribute.name == "pos")
-					{
-						attribute.offset = offsetof(ImDrawVert, pos);
-					}
-					else if (attribute.name == "col")
-					{
-						attribute.offset = offsetof(ImDrawVert, col);
-					}
-					else if (attribute.name == "uv")
-					{
-						attribute.offset = offsetof(ImDrawVert, uv);
-					}
-				}
-
-				auto& blend          = color_blending;
-				blend.enable         = true;
-				blend.src_color_func = BlendFunc::SrcAlpha;
-				blend.dst_color_func = BlendFunc::OneMinusSrcAlpha;
-				blend.color_op       = BlendOp::Add;
-				blend.src_alpha_func = BlendFunc::One;
-				blend.dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
-				blend.alpha_op       = BlendOp::Add;
-				blend.color_mask = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G | ColorComponent::B |
-																	 ColorComponent::A);
-
-				auto& depth        = depth_test;
-				depth.enable       = false;
-				depth.write_enable = false;
-				depth.func         = CompareFunc::Always;
-
-				auto& stencil      = stencil_test;
-				stencil.enable     = false;
-				stencil.depth_fail = stencil.depth_pass = stencil.fail = StencilOp::Keep;
-				stencil.compare                                        = CompareFunc::Always;
-
-				rasterizer.cull_mode    = CullMode::None;
-				rasterizer.polygon_mode = PolygonMode::Fill;
-				rasterizer.line_width   = 1.0;
-
-				for (auto& param : parameters)
-				{
-					if (param.second.type == ShaderParameterType::Sampler2D)
-						texture_parameter = &param.second;
-					else if (param.second.type == ShaderParameterType::Float4x4)
-						model_parameter = &param.second;
-				}
-
-				Super::postload();
-			}
-
-			static ImGuiPipeline* create()
-			{
-				if (instance)
-					return instance;
-
-				instance = new_instance<ImGuiPipeline>("TrinexEditor::Pipelines::ImGui");
-				instance->add_reference();
-				instance->initialize();
-				return instance;
-			}
-		};// namespace ImGuiBackend_RHI
-
-		ImGuiPipeline* ImGuiPipeline::instance = nullptr;
 
 		bool imgui_trinex_rhi_init(ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
@@ -200,7 +103,24 @@ float4 fs_main(in PS_INPUT input) : SV_Target
 		struct ImGuiTrinexData {
 			Texture2D* font_texture;
 			Sampler* sampler;
-			ImGuiTrinexData() { memset((void*) this, 0, sizeof(*this)); }
+
+			struct {
+				const ShaderParameterInfo* texture_parameter = nullptr;
+				const ShaderParameterInfo* model_parameter   = nullptr;
+
+				Matrix4f model;
+				Sampler* sampler            = nullptr;
+				RHI_ShaderResourceView* srv = nullptr;
+			} ctx;
+
+			ImGuiTrinexData()
+			{
+				memset((void*) this, 0, sizeof(*this));
+				auto pipeline = ImGuiPipeline::create();
+
+				ctx.texture_parameter = pipeline->find_param_info("texture");
+				ctx.model_parameter   = pipeline->find_param_info("model");
+			}
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -224,13 +144,15 @@ float4 fs_main(in PS_INPUT input) : SV_Target
 							 draw_data->DisplaySize.y * rendering_scale_factor};
 			rhi->viewport(viewport);
 
-			float L                          = draw_data->DisplayPos.x;
-			float R                          = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-			float T                          = draw_data->DisplayPos.y;
-			float B                          = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-			ImGuiPipeline::instance->model   = glm::ortho(L, R, B, T);
-			ImGuiPipeline::instance->srv     = nullptr;
-			ImGuiPipeline::instance->sampler = nullptr;
+			float L = draw_data->DisplayPos.x;
+			float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+			float T = draw_data->DisplayPos.y;
+			float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+
+			auto& ctx   = imgui_trinex_backend_data()->ctx;
+			ctx.model   = glm::ortho(L, R, B, T);
+			ctx.srv     = nullptr;
+			ctx.sampler = nullptr;
 		}
 
 		// Render function
@@ -303,8 +225,6 @@ float4 fs_main(in PS_INPUT input) : SV_Target
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
-			auto pipeline = ImGuiPipeline::instance;
-
 			rhi->pop_debug_stage();
 			{
 				trinex_profile_cpu_n("Render");
@@ -339,31 +259,34 @@ float4 fs_main(in PS_INPUT input) : SV_Target
 
 							rhi->scissor(scissor);
 
-							if (!pipeline->srv)
+							if (!bd->ctx.srv)
 							{
-								pipeline->srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
-																			: pcmd->TextureId.surface->rhi_shader_resource_view();
-								pipeline->sampler = pcmd->TextureId.sampler;
+								bd->ctx.srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
+																		  : pcmd->TextureId.surface->rhi_shader_resource_view();
+								bd->ctx.sampler = pcmd->TextureId.sampler;
 							}
 
-							if (!pipeline->sampler)
+							if (!bd->ctx.sampler)
 							{
-								pipeline->sampler = bd->sampler;
+								bd->ctx.sampler = bd->sampler;
 							}
 
 							{
 								trinex_profile_cpu_n("Drawing");
-								if (pipeline->apply())
-								{
-									vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
-									vd->index_buffer->bind(0);
-									rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
-													  pcmd->VtxOffset + global_vtx_offset);
-								}
+								ImGuiPipeline::instance()->rhi_bind();
+
+								bd->ctx.srv->bind_combined(bd->ctx.texture_parameter->location, bd->ctx.sampler->rhi_sampler());
+								rhi->update_scalar_parameter(&bd->ctx.model, sizeof(bd->ctx.model), 0,
+															 bd->ctx.model_parameter->location);
+
+								vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
+								vd->index_buffer->bind(0);
+								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
+												  pcmd->VtxOffset + global_vtx_offset);
 							}
 
-							pipeline->srv     = nullptr;
-							pipeline->sampler = nullptr;
+							bd->ctx.srv     = nullptr;
+							bd->ctx.sampler = nullptr;
 						}
 
 						rhi->pop_debug_stage();

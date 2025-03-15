@@ -176,6 +176,22 @@ namespace Engine
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 
+	class ENGINE_EXPORT GlobalGraphicsPipeline : public GraphicsPipeline
+	{
+	protected:
+		static StringView pipeline_name_of(StringView name);
+		static Package* package_of(StringView name);
+
+		GlobalGraphicsPipeline& load_pipeline();
+
+	public:
+		GlobalGraphicsPipeline(StringView name = "", ShaderType types = {});
+
+		bool serialize(Archive& ar, Material* material) override;
+		virtual Path shader_path() const = 0;
+		virtual void initialize()        = 0;
+	};
+
 	class ENGINE_EXPORT ComputePipeline : public Pipeline
 	{
 		trinex_declare_class(ComputePipeline, Pipeline);
@@ -194,4 +210,52 @@ namespace Engine
 		Type type() const override;
 		bool shader_source(String& source) override;
 	};
+
+#define trinex_declare_graphics_pipeline(class_name)                                                                             \
+	class class_name : public Engine::GlobalGraphicsPipeline                                                                     \
+	{                                                                                                                            \
+		static class_name* s_instance;                                                                                           \
+																																 \
+		class_name();                                                                                                            \
+																																 \
+	public:                                                                                                                      \
+		static class_name* create();                                                                                             \
+		static inline class_name* instance()                                                                                     \
+		{                                                                                                                        \
+			return s_instance;                                                                                                   \
+		}                                                                                                                        \
+		Path shader_path() const override;                                                                                       \
+		void initialize() override;                                                                                              \
+		~class_name();                                                                                                           \
+		friend class Engine::Object;                                                                                             \
+	}
+
+#define trinex_implement_graphics_pipeline(class_name, path, shaders)                                                            \
+	static Engine::byte TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                       \
+			static_cast<Engine::byte>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());           \
+																																 \
+	class_name* class_name::s_instance = nullptr;                                                                                \
+	class_name::class_name() : Engine::GlobalGraphicsPipeline(#class_name, static_cast<Engine::ShaderType::Enum>(shaders))       \
+	{                                                                                                                            \
+		s_instance = this;                                                                                                       \
+	}                                                                                                                            \
+	class_name::~class_name()                                                                                                    \
+	{                                                                                                                            \
+		s_instance = nullptr;                                                                                                    \
+	}                                                                                                                            \
+	class_name* class_name::create()                                                                                             \
+	{                                                                                                                            \
+		if (!s_instance)                                                                                                         \
+		{                                                                                                                        \
+			Object::new_instance<class_name>(pipeline_name_of(#class_name), package_of(#class_name));                            \
+			s_instance->add_reference();                                                                                         \
+			s_instance->load_pipeline();                                                                                         \
+		}                                                                                                                        \
+		return s_instance;                                                                                                       \
+	}                                                                                                                            \
+	Path class_name::shader_path() const                                                                                         \
+	{                                                                                                                            \
+		return path;                                                                                                             \
+	}                                                                                                                            \
+	void class_name::initialize()
 }// namespace Engine

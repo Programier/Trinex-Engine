@@ -2,6 +2,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
+#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/render_pass_info.hpp>
@@ -517,6 +518,72 @@ namespace Engine
 		}
 
 		return archive && cache_serialize_result;
+	}
+
+	GlobalGraphicsPipeline::GlobalGraphicsPipeline(StringView name, ShaderType types)
+	{
+		allocate_shaders(types);
+	}
+
+	StringView GlobalGraphicsPipeline::pipeline_name_of(StringView name)
+	{
+		return Strings::class_name_sv_of(name);
+	}
+
+	Package* GlobalGraphicsPipeline::package_of(StringView name)
+	{
+		Package* package         = Package::static_find_package("TrinexEngine::GlobalPipelines", true);
+		StringView child_package = Strings::namespace_sv_of(name);
+
+		if (!child_package.empty())
+		{
+			package = package->find_package(child_package, true);
+		}
+
+		return package;
+	}
+
+	GlobalGraphicsPipeline& GlobalGraphicsPipeline::load_pipeline()
+	{
+		GraphicsShaderCache cache;
+
+		String cache_path = full_name();
+
+		if (!cache.load(cache_path))
+		{
+			String source_code;
+			FileReader reader(shader_path());
+
+			if (reader.is_open())
+			{
+				source_code = reader.read_string();
+			}
+			else
+			{
+				throw EngineException("Failed to read global shader");
+			}
+
+			if (MaterialCompiler::instance()->compile(source_code, this))
+			{
+				cache.init_from(this);
+				cache.store(cache_path);
+			}
+			else
+			{
+				throw EngineException("Failed to compile global shader");
+			}
+		}
+
+		cache.apply_to(this);
+
+		initialize();
+		init_render_resources();
+		return *this;
+	}
+
+	bool GlobalGraphicsPipeline::serialize(Archive& ar, Material* material)
+	{
+		return ar;
 	}
 
 	ComputePipeline& ComputePipeline::init_render_resources()
