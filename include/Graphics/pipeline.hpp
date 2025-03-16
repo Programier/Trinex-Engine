@@ -80,6 +80,9 @@ namespace Engine
 		trinex_declare_class(Pipeline, RenderResource);
 
 	protected:
+		static StringView pipeline_name_of(StringView name);
+		static Object* package_of(StringView name);
+
 		template<typename Type>
 		Type* create_new_shader(const char* name, Type*& out)
 		{
@@ -176,12 +179,27 @@ namespace Engine
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 
+	class ENGINE_EXPORT ComputePipeline : public Pipeline
+	{
+		trinex_declare_class(ComputePipeline, Pipeline);
+
+		ComputeShader* m_shader = nullptr;
+
+	public:
+		ComputePipeline& init_render_resources() override;
+		Shader* shader(ShaderType type) const override;
+		Shader* shader(ShaderType type, bool create = false) override;
+		ShaderType shader_types() const override;
+		ComputePipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
+		ComputePipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
+		Type type() const override;
+
+		inline ComputeShader* compute_shader() const { return m_shader; }
+	};
+
 	class ENGINE_EXPORT GlobalGraphicsPipeline : public GraphicsPipeline
 	{
 	protected:
-		static StringView pipeline_name_of(StringView name);
-		static Package* package_of(StringView name);
-
 		GlobalGraphicsPipeline& load_pipeline();
 
 	public:
@@ -192,33 +210,31 @@ namespace Engine
 		virtual void initialize()        = 0;
 	};
 
-	class ENGINE_EXPORT ComputePipeline : public Pipeline
+	class ENGINE_EXPORT GlobalComputePipeline : public ComputePipeline
 	{
-		trinex_declare_class(ComputePipeline, Pipeline);
-
-		ComputeShader* m_shader = nullptr;
+	protected:
+		GlobalComputePipeline& load_pipeline();
 
 	public:
-		Path shader_path;
+		GlobalComputePipeline(StringView name = "", ShaderType types = {});
 
-		ComputePipeline& init_render_resources() override;
-		Shader* shader(ShaderType type) const override;
-		Shader* shader(ShaderType type, bool create = false) override;
-		ShaderType shader_types() const override;
-		ComputePipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
-		ComputePipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
-		Type type() const override;
-		bool shader_source(String& source) override;
+		bool serialize(Archive& ar, Material* material) override;
+		virtual Path shader_path() const = 0;
+		virtual void initialize()        = 0;
 	};
 
-#define trinex_declare_graphics_pipeline(class_name)                                                                             \
-	class class_name : public Engine::GlobalGraphicsPipeline                                                                     \
+#define trinex_declare_global_pipeline(class_name, base_class, ...)                                                              \
+	class class_name : public base_class                                                                                         \
 	{                                                                                                                            \
 		static class_name* s_instance;                                                                                           \
 																																 \
 		class_name();                                                                                                            \
 																																 \
 	public:                                                                                                                      \
+		using Super = base_class;                                                                                                \
+		using This  = class_name;                                                                                                \
+																																 \
+		__VA_ARGS__                                                                                                              \
 		static class_name* create();                                                                                             \
 		static inline class_name* instance()                                                                                     \
 		{                                                                                                                        \
@@ -230,12 +246,19 @@ namespace Engine
 		friend class Engine::Object;                                                                                             \
 	}
 
-#define trinex_implement_graphics_pipeline(class_name, path, shaders)                                                            \
+#define trinex_declare_graphics_pipeline(class_name, ...)                                                                        \
+	trinex_declare_global_pipeline(class_name, Engine::GlobalGraphicsPipeline, __VA_ARGS__)
+
+#define trinex_declare_compute_pipeline(class_name, ...)                                                                         \
+	trinex_declare_global_pipeline(class_name, Engine::GlobalComputePipeline, __VA_ARGS__)
+
+
+#define trinex_implement_pipeline(class_name, path, shaders)                                                                     \
 	static Engine::byte TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                       \
 			static_cast<Engine::byte>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());           \
 																																 \
 	class_name* class_name::s_instance = nullptr;                                                                                \
-	class_name::class_name() : Engine::GlobalGraphicsPipeline(#class_name, static_cast<Engine::ShaderType::Enum>(shaders))       \
+	class_name::class_name() : Super(#class_name, static_cast<Engine::ShaderType::Enum>(shaders))                                \
 	{                                                                                                                            \
 		s_instance = this;                                                                                                       \
 	}                                                                                                                            \

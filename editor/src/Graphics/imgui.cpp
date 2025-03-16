@@ -42,8 +42,8 @@ namespace Engine
 		float rendering_scale_factor = 1.f;
 
 		trinex_declare_graphics_pipeline(ImGuiPipeline);
-		trinex_implement_graphics_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
-										   ShaderType::Vertex | ShaderType::Fragment)
+		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
+								  ShaderType::Vertex | ShaderType::Fragment)
 		{
 			auto shader = vertex_shader();
 

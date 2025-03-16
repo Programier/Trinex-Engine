@@ -21,4 +21,16 @@ namespace Engine
 		bool store(const StringView& object_path, StringView rhi_name = {}) const;
 		bool serialize(Archive& ar);
 	};
+
+	struct ENGINE_EXPORT ComputeShaderCache {
+		TreeMap<Name, ShaderParameterInfo> parameters;
+
+		Buffer compute;
+
+		void init_from(const class ComputePipeline* pipeline);
+		void apply_to(class ComputePipeline* pipeline);
+		bool load(const StringView& object_path, StringView rhi_name = {});
+		bool store(const StringView& object_path, StringView rhi_name = {}) const;
+		bool serialize(Archive& ar);
+	};
 }// namespace Engine

@@ -30,12 +30,8 @@ namespace Engine
 		                       Constants::shader_extention);
 	}
 
-	bool GraphicsShaderCache::serialize(Archive& ar)
-	{
-		return ar.serialize(parameters, vertex_attributes, vertex, tessellation_control, tessellation, geometry, fragment);
-	}
-
-	bool GraphicsShaderCache::load(const StringView& object_path, StringView rhi_name)
+	template<typename T>
+	static bool load_shader_cache(T* cache, const StringView& object_path, StringView rhi_name, const char* tag)
 	{
 		rhi_name  = find_rhi_name(rhi_name);
 		Path path = find_path(object_path, rhi_name);
@@ -43,15 +39,16 @@ namespace Engine
 
 		if (!reader.is_open())
 		{
-			error_log("GraphicsShaderCache", "Failed to open file '%s'", path.c_str());
+			error_log(tag, "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
 		Archive ar(&reader);
-		return serialize(ar);
+		return cache->serialize(ar);
 	}
 
-	bool GraphicsShaderCache::store(const StringView& object_path, StringView rhi_name) const
+	template<typename T>
+	static bool store_shader_cache(const T* cache, const StringView& object_path, StringView rhi_name, const char* tag)
 	{
 		rhi_name  = find_rhi_name(rhi_name);
 		Path path = find_path(object_path, rhi_name);
@@ -60,12 +57,27 @@ namespace Engine
 
 		if (!writer.is_open())
 		{
-			error_log("GraphicsShaderCache", "Failed to open file '%s'", path.c_str());
+			error_log(tag, "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
 		Archive ar(&writer);
-		return const_cast<GraphicsShaderCache*>(this)->serialize(ar);
+		return const_cast<T*>(cache)->serialize(ar);
+	}
+
+	bool GraphicsShaderCache::serialize(Archive& ar)
+	{
+		return ar.serialize(parameters, vertex_attributes, vertex, tessellation_control, tessellation, geometry, fragment);
+	}
+
+	bool GraphicsShaderCache::load(const StringView& object_path, StringView rhi_name)
+	{
+		return load_shader_cache(this, object_path, rhi_name, "GraphicsShaderCache");
+	}
+
+	bool GraphicsShaderCache::store(const StringView& object_path, StringView rhi_name) const
+	{
+		return store_shader_cache(this, object_path, rhi_name, "GraphicsShaderCache");
 	}
 
 	static inline void copy_buffer(Buffer& buffer, Shader* shader)
@@ -120,5 +132,32 @@ namespace Engine
 		apply_buffer(tessellation, pipeline->tessellation_shader());
 		apply_buffer(geometry, pipeline->geometry_shader());
 		apply_buffer(fragment, pipeline->fragment_shader());
+	}
+
+	void ComputeShaderCache::init_from(const class ComputePipeline* pipeline)
+	{
+		parameters = pipeline->parameters;
+		copy_buffer(compute, pipeline->compute_shader());
+	}
+
+	void ComputeShaderCache::apply_to(class ComputePipeline* pipeline)
+	{
+		pipeline->parameters = parameters;
+		apply_buffer(compute, pipeline->compute_shader());
+	}
+
+	bool ComputeShaderCache::load(const StringView& object_path, StringView rhi_name)
+	{
+		return load_shader_cache(this, object_path, rhi_name, "ComputeShaderCache");
+	}
+
+	bool ComputeShaderCache::store(const StringView& object_path, StringView rhi_name) const
+	{
+		return store_shader_cache(this, object_path, rhi_name, "ComputeShaderCache");
+	}
+
+	bool ComputeShaderCache::serialize(Archive& ar)
+	{
+		return ar.serialize(parameters, compute);
 	}
 }// namespace Engine

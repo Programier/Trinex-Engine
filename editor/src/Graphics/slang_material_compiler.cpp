@@ -464,6 +464,14 @@ namespace Engine
 					}
 				}
 			}
+			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind))
+			{
+				ShaderParameterInfo object;
+				object.name                       = param.name;
+				object.location                   = param.trace_offset(param.category());
+				object.type                       = ShaderParameterType::Sampler;
+				pipeline->parameters[object.name] = object;
+			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind))
 			{
 				auto layout = param.var->getTypeLayout();
