@@ -28,10 +28,9 @@ namespace Engine
 	};
 
 	static constexpr inline vk::PipelineStageFlags all_shaders_stage =
-	        vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
-	        vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eFragmentShader |
-	        vk::PipelineStageFlagBits::eGeometryShader;
-
+			vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
+			vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eGeometryShader |
+			vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader;
 
 	struct VulkanAPI : public RHI {
 		trinex_declare_struct(VulkanAPI, void);
@@ -75,20 +74,14 @@ namespace Engine
 
 		VulkanViewportMode find_current_viewport_mode();
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
-
-		vk::CommandBuffer begin_single_time_command_buffer();
-		VulkanAPI& end_single_time_command_buffer(const vk::CommandBuffer& buffer);
-
-		VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size, vk::DeviceSize src_offset = 0,
-		                       vk::DeviceSize dst_offset = 0);
 		bool has_stencil_component(vk::Format format);
 
 		struct VulkanCommandBuffer* current_command_buffer();
 		vk::CommandBuffer& current_command_buffer_handle();
 		VulkanUniformBufferManager* uniform_buffer_manager();
 
-		VulkanAPI& begin_render_pass(bool lock_resources = true);
-		VulkanAPI& end_render_pass(bool unlock_resources = true);
+		VulkanCommandBuffer* begin_render_pass();
+		VulkanCommandBuffer* end_render_pass();
 
 		//////////////////////////////////////////////////////////////
 
@@ -109,15 +102,17 @@ namespace Engine
 		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);
 
 		VulkanAPI& prepare_draw();
+		VulkanAPI& prepare_dispatch();
 		VulkanAPI& draw(size_t vertex_count, size_t vertices_offset) override;
 		VulkanAPI& draw_indexed(size_t indices, size_t offset, size_t vertices_offset) override;
 		VulkanAPI& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
 		VulkanAPI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 		                                  size_t instances) override;
 
+		VulkanAPI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
+
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture* create_texture_2d(const Texture2D*) override;
-		RHI_Surface* create_render_surface(ColorFormat format, Vector2u size) override;
+		RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;

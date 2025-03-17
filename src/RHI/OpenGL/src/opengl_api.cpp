@@ -141,6 +141,12 @@ namespace Engine
 		return *this;
 	}
 
+	OpenGL& OpenGL::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	{
+		glDispatchCompute(group_x, group_y, group_z);
+		return *this;
+	}
+
 	OpenGL& OpenGL::reset_state()
 	{
 		new (&m_state) OpenGL_State();

@@ -9,6 +9,7 @@ namespace Engine
 {
 	struct VulkanSampler;
 	struct VulkanTextureSRV;
+	struct VulkanTextureUAV;
 	struct VulkanSSBO;
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSetLayout;
@@ -25,6 +26,7 @@ namespace Engine
 		                                         vk::DescriptorType type);
 		VulkanDescriptorSet& bind_sampler(VulkanSampler* sampler, BindLocation location);
 		VulkanDescriptorSet& bind_texture(VulkanTextureSRV* texture, BindLocation location);
+		VulkanDescriptorSet& bind_texture(VulkanTextureUAV* texture, BindLocation location);
 		VulkanDescriptorSet& bind_texture_combined(VulkanTextureSRV*, VulkanSampler*, BindLocation location);
 	};
 

@@ -4,25 +4,24 @@
 #include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_surface.hpp>
+#include <vulkan_texture.hpp>
 
 namespace Engine
 {
 	namespace
 	{
-		static FORCE_INLINE vk::Format surface_format_of(const VulkanSurfaceRTV* surface)
+		static FORCE_INLINE vk::Format surface_format_of(const VulkanTextureRTV* surface)
 		{
 			return surface ? surface->format() : vk::Format::eUndefined;
 		}
 
-		static FORCE_INLINE vk::Format surface_format_of(const VulkanSurfaceDSV* surface)
+		static FORCE_INLINE vk::Format surface_format_of(const VulkanTextureDSV* surface)
 		{
 			return surface ? surface->format() : vk::Format::eUndefined;
 		}
 
 		struct VulkanRenderPassBuilder {
 			vk::SubpassDescription m_subpass;
-			vk::SubpassDependency m_dependency;
 
 			vk::AttachmentDescription m_descriptions[5];
 			vk::AttachmentReference m_references[5];
@@ -39,7 +38,7 @@ namespace Engine
 												 layout, layout);
 			}
 
-			VulkanRenderPassBuilder& create_attachment_descriptions(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+			VulkanRenderPassBuilder& create_attachment_descriptions(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 			{
 				for (int i = 0; i < 4; ++i)
 				{
@@ -63,7 +62,7 @@ namespace Engine
 				return *this;
 			}
 
-			VulkanRenderPassBuilder& create_attachment_references(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+			VulkanRenderPassBuilder& create_attachment_references(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 			{
 				for (int_t index = 0, attachment = 0; index < 4; ++index)
 				{
@@ -87,7 +86,7 @@ namespace Engine
 				return *this;
 			}
 
-			vk::RenderPass build(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+			vk::RenderPass build(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 			{
 				create_attachment_descriptions(targets, depth);
 				create_attachment_references(targets, depth);
@@ -100,29 +99,11 @@ namespace Engine
 
 				bool has_depth_attachment = m_references[4].layout != vk::ImageLayout::eUndefined;
 
-				m_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, 0, nullptr, 4,
-												   m_references, nullptr, has_depth_attachment ? m_references + 4 : nullptr);
+				m_subpass = vk::SubpassDescription({}, vk::PipelineBindPoint::eGraphics, 0, nullptr, 4, m_references, nullptr,
+												   has_depth_attachment ? m_references + 4 : nullptr);
 
-				vk::PipelineStageFlags src_pipeline_flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-				vk::PipelineStageFlags dst_pipeline_flags =
-						vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eFragmentShader |
-						vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eTransfer;
-
-				vk::AccessFlags src_access_flags =
-						vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead;
-				vk::AccessFlags dst_access_flags = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eTransferRead;
-
-				if (has_depth_attachment)
-				{
-					src_pipeline_flags |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
-					src_access_flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-				}
-
-				m_dependency = vk::SubpassDependency(0, VK_SUBPASS_EXTERNAL, src_pipeline_flags, dst_pipeline_flags,
-													 src_access_flags, dst_access_flags, vk::DependencyFlagBits::eByRegion);
-
-				return API->m_device.createRenderPass(vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), m_attachments_count,
-																			   m_descriptions, 1, &m_subpass, 1, &m_dependency));
+				vk::RenderPassCreateInfo info(vk::RenderPassCreateFlags(), m_attachments_count, m_descriptions, 1, &m_subpass);
+				return API->m_device.createRenderPass(info);
 			}
 		};
 
@@ -140,7 +121,7 @@ namespace Engine
 		}
 	}
 
-	void VulkanRenderPass::Key::init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+	void VulkanRenderPass::Key::init(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		m_attachments[0] = surface_format_of(targets[0]);
 		m_attachments[1] = surface_format_of(targets[1]);
@@ -156,7 +137,7 @@ namespace Engine
 		return std::memcmp(m_attachments, key.m_attachments, sizeof(m_attachments)) < 0;
 	}
 
-	VulkanRenderPass* VulkanRenderPass::find_or_create(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+	VulkanRenderPass* VulkanRenderPass::find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		Key key;
 		key.init(targets, depth);

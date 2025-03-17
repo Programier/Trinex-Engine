@@ -4,6 +4,7 @@
 #include <Window/window.hpp>
 #include <opengl_api.hpp>
 #include <opengl_render_target.hpp>
+#include <opengl_texture.hpp>
 #include <opengl_viewport.hpp>
 
 namespace Engine
@@ -74,7 +75,7 @@ namespace Engine
 	void OpenGL_Viewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 	                                  SamplerFilter filter)
 	{
-		auto render_target = OpenGL_RenderTarget::find_or_create(reinterpret_cast<OpenGL_SurfaceRTV*>(surface));
+		auto render_target = OpenGL_RenderTarget::find_or_create(static_cast<OpenGL_TextureRTV*>(surface));
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id());
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);

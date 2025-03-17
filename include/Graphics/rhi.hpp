@@ -105,15 +105,14 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
-		virtual RHI_ShaderResourceView* create_srv()  = 0;
-		virtual RHI_UnorderedAccessView* create_uav() = 0;
-	};
-
-	struct ENGINE_EXPORT RHI_Surface : RHI_Object {
 		virtual RHI_RenderTargetView* create_rtv()    = 0;
 		virtual RHI_DepthStencilView* create_dsv()    = 0;
 		virtual RHI_ShaderResourceView* create_srv()  = 0;
 		virtual RHI_UnorderedAccessView* create_uav() = 0;
+	};
+
+	struct RHI_Texture2D : RHI_Texture {
+		virtual void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Shader : RHI_Object {
@@ -171,6 +170,8 @@ namespace Engine
 		virtual RHI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 		                                    size_t instances)                                          = 0;
 
+		virtual RHI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) = 0;
+
 		virtual RHI& submit() = 0;
 
 		virtual RHI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
@@ -210,8 +211,7 @@ namespace Engine
 		virtual Scissor scissor()                       = 0;
 
 		virtual RHI_Sampler* create_sampler(const Sampler*)                                                                  = 0;
-		virtual RHI_Texture* create_texture_2d(const Texture2D*)                                                             = 0;
-		virtual RHI_Surface* create_render_surface(ColorFormat format, Vector2u size)                                        = 0;
+		virtual RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) = 0;
 		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                                 = 0;
 		virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                       = 0;
 		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                      = 0;

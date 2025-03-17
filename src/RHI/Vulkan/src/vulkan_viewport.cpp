@@ -11,26 +11,12 @@
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_surface.hpp>
+#include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
 {
-	static void transition_image_layout(vk::Image image, vk::ImageLayout current, vk::ImageLayout new_layout,
-	                                    vk::CommandBuffer& cmd)
-	{
-		vk::ImageMemoryBarrier barrier;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout           = current;
-		barrier.newLayout           = new_layout;
-		barrier.image               = image;
-		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		Barrier::transition_image_layout(cmd, barrier);
-	}
-
 	vk::Image VulkanViewport::current_image()
 	{
 		return m_swapchain->backbuffer()->m_render_target->m_image;
@@ -41,7 +27,7 @@ namespace Engine
 		return vk::ImageLayout::ePresentSrcKHR;
 	}
 
-	VulkanRenderTargetBase* VulkanViewport::render_target()
+	VulkanSwapchainRenderTarget* VulkanViewport::render_target()
 	{
 		return m_swapchain->backbuffer()->m_render_target;
 	}
@@ -66,6 +52,7 @@ namespace Engine
 	{
 		trinex_profile_cpu_n("VulkanWindowViewport::end_render");
 		auto cmd = API->current_command_buffer();
+		render_target()->change_layout(vk::ImageLayout::ePresentSrcKHR);
 		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, *m_swapchain->image_present_semaphore());
 		API->m_cmd_manager->submit_active_cmd_buffer(m_swapchain->render_finished_semaphore());
 		m_swapchain->try_present(&VulkanSwapchain::do_present, cmd, true);
@@ -96,19 +83,13 @@ namespace Engine
 	void VulkanViewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 									 SamplerFilter filter)
 	{
-		auto cmd            = API->current_command_buffer();
-		bool in_render_pass = cmd->is_inside_render_pass();
+		auto cmd = API->end_render_pass();
 
-		if (in_render_pass)
-			API->end_render_pass();
+		auto src = static_cast<VulkanTextureRTV*>(surface);
+		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
 
-		auto src        = static_cast<VulkanSurfaceRTV*>(surface);
-		auto src_layout = src->layout();
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd->m_cmd);
-
-		auto dst    = current_image();
-		auto layout = default_image_layout();
-		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
+		auto dst = render_target();
+		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
 		Vector2i src_end = src_rect.pos + Vector2i(src_rect.size);
 		Vector2i dst_end = dst_rect.pos + Vector2i(dst_rect.size);
@@ -119,38 +100,20 @@ namespace Engine
 
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		cmd->m_cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
-
-		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, default_image_layout(), cmd->m_cmd);
-		src->change_layout(src_layout, cmd->m_cmd);
-
-		if (in_render_pass)
-		{
-			API->begin_render_pass();
-		}
+		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->m_image, vk::ImageLayout::eTransferDstOptimal, blit,
+							 filter_of(filter));
 	}
 
 	void VulkanViewport::clear_color(const Color& color)
 	{
-		auto cmd            = API->current_command_buffer();
-		bool in_render_pass = cmd->is_inside_render_pass();
+		auto cmd = API->end_render_pass();
 
-		if (in_render_pass)
-			API->end_render_pass();
+		auto dst = render_target();
+		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		auto dst    = current_image();
-		auto layout = default_image_layout();
-
-		transition_image_layout(dst, layout, vk::ImageLayout::eTransferDstOptimal, cmd->m_cmd);
-
-		cmd->m_cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal,
+		cmd->m_cmd.clearColorImage(dst->m_image, vk::ImageLayout::eTransferDstOptimal,
 		                           vk::ClearColorValue(color.r, color.g, color.b, color.a),
 		                           vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-
-		transition_image_layout(dst, vk::ImageLayout::eTransferDstOptimal, layout, cmd->m_cmd);
-
-		if (in_render_pass)
-			API->begin_render_pass();
 	}
 
 	VulkanViewport::~VulkanViewport()
@@ -277,15 +240,12 @@ namespace Engine
 			++i;
 		}
 
-		auto cmd = API->begin_single_time_command_buffer();
-
-		for (VkImage image : images)
-		{
-			transition_image_layout(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
-		}
-
-		API->end_single_time_command_buffer(cmd);
 		m_swapchain = swapchain->swapchain;
+		auto cmd    = API->current_command_buffer();
+		cmd->end();
+		cmd->submit();
+		cmd->wait();
+		cmd->begin();
 		return *this;
 	}
 

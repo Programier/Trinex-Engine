@@ -734,4 +734,17 @@ namespace Engine
 
 		trinex_bitfield_enum_struct(ShaderParameterType, EnumerateType);
 	};
+
+	struct TextureCreateFlags {
+		enum Enum
+		{
+			None               = 0,
+			ShaderResource     = BIT(0),
+			UnorderedAccess    = BIT(1),
+			RenderTarget       = BIT(2),
+			DepthStencilTarget = BIT(3),
+		};
+
+		trinex_bitfield_enum_struct(TextureCreateFlags, byte);
+	};
 }// namespace Engine

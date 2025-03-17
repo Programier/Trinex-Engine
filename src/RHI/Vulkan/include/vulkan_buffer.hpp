@@ -39,8 +39,7 @@ namespace Engine
 			struct VulkanStaggingBuffer* m_buffer = nullptr;
 			size_t m_frame_number                 = 0;
 
-			FreeEntry(VulkanStaggingBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames)
-			{}
+			FreeEntry(VulkanStaggingBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames) {}
 		};
 
 		Set<VulkanStaggingBuffer*> m_buffers;

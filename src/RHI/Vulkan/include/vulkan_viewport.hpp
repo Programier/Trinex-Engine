@@ -60,7 +60,7 @@ namespace Engine
 
 		vk::Image current_image();
 		vk::ImageLayout default_image_layout();
-		VulkanRenderTargetBase* render_target();
+		VulkanSwapchainRenderTarget* render_target();
 
 		VulkanViewport* init(WindowRenderViewport* viewport, bool vsync);
 

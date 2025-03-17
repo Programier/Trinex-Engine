@@ -94,7 +94,7 @@ namespace Engine
 	TextureEditorClient& TextureEditorClient::render_texture()
 	{
 		ImGui::Begin("Texture View###texture");
-		if (m_surface->rhi_surface())
+		if (m_surface->rhi_texture())
 		{
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
 			ImGui::Spring(1.f, 0.5);
@@ -148,7 +148,7 @@ namespace Engine
 
 	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)
 	{
-		if (!m_texture || !m_texture->rhi_texture())
+		if (!m_texture || !m_texture->rhi_shader_resource_view())
 			return *this;
 
 		if (!reinit && m_surface->size() != m_texture->size())

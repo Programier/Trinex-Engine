@@ -18,6 +18,8 @@ namespace Engine
 				return "vertex";
 			case GL_FRAGMENT_SHADER:
 				return "fragment";
+			case GL_COMPUTE_SHADER:
+				return "compute";
 
 			default:
 				return "undefined";

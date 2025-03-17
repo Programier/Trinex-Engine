@@ -48,20 +48,18 @@ namespace Engine
 			auto buffer = API->m_stagging_manager->allocate(size, vk::BufferUsageFlagBits::eTransferSrc);
 			buffer->copy(offset, data, size);
 
-			auto cmd = API->begin_single_time_command_buffer();
+			auto cmd = API->end_render_pass();
 
 			vk::BufferCopy region(0, offset, size);
-			cmd.copyBuffer(buffer->m_buffer, m_buffer, region);
-			API->end_single_time_command_buffer(cmd);
+			cmd->m_cmd.copyBuffer(buffer->m_buffer, m_buffer, region);
+			cmd->add_object(buffer);
 		}
 		return *this;
 	}
 
 	VulkanBuffer& VulkanBuffer::update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size)
 	{
-		auto cmd = API->current_command_buffer();
-		if (cmd->is_inside_render_pass())
-			API->end_render_pass();
+		auto cmd = API->end_render_pass();
 
 		{
 			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,

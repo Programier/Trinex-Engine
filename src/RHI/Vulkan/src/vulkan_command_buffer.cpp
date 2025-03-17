@@ -120,8 +120,13 @@ namespace Engine
 	VulkanCommandBuffer& VulkanCommandBuffer::wait()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
-		if (m_state == State::Submitted && !m_fence->is_signaled())
-			m_fence->wait();
+		if(m_state == State::Submitted)
+		{
+			if(!m_fence->is_signaled())
+				m_fence->wait();
+
+			refresh_fence_status();
+		}
 		return *this;
 	}
 

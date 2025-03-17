@@ -146,7 +146,6 @@ namespace Engine
 		FragmentShader* m_fragment_shader                        = nullptr;
 
 	public:
-		GraphicsPipeline();
 		~GraphicsPipeline();
 		GraphicsPipeline& init_render_resources() override;
 		GraphicsPipeline& postload() override;
@@ -186,6 +185,7 @@ namespace Engine
 		ComputeShader* m_shader = nullptr;
 
 	public:
+		~ComputePipeline();
 		ComputePipeline& init_render_resources() override;
 		Shader* shader(ShaderType type) const override;
 		Shader* shader(ShaderType type, bool create = false) override;

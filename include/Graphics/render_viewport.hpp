@@ -9,6 +9,7 @@ namespace Engine
 	class Window;
 	class RenderTarget;
 	class RenderSurface;
+	struct RHI_RenderTargetView;
 
 	class ENGINE_EXPORT ViewportClient : public Object
 	{
@@ -43,7 +44,7 @@ namespace Engine
 		~RenderViewport();
 
 		virtual RenderViewport& render()                                                         = 0;
-		virtual RenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
+		virtual RenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
 												SamplerFilter filter = SamplerFilter::Trilinear) = 0;
 		virtual RenderViewport& rhi_clear_color(const Color& color)                              = 0;
 		virtual RenderViewport& rhi_bind()                                                       = 0;
@@ -76,7 +77,7 @@ namespace Engine
 		Window* window() const;
 		Size2D size() const override;
 		WindowRenderViewport& render() override;
-		WindowRenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
+		WindowRenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
 											  SamplerFilter filter = SamplerFilter::Trilinear) override;
 		WindowRenderViewport& rhi_clear_color(const Color& color) override;
 		WindowRenderViewport& rhi_bind() override;

@@ -371,7 +371,7 @@ namespace Engine
 		return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 	}
 
-	VulkanAPI& VulkanAPI::begin_render_pass(bool lock)
+	VulkanCommandBuffer* VulkanAPI::begin_render_pass()
 	{
 		trinex_profile_cpu_n("VulkanAPI::begin_render_pass");
 		auto cmd = current_command_buffer();
@@ -382,27 +382,22 @@ namespace Engine
 			m_state.m_next_render_target = nullptr;
 		}
 
-		if (lock)
-			m_state.m_render_target->lock_surfaces();
-
+		m_state.m_render_target->lock_surfaces();
 		m_state.m_render_pass = m_state.m_render_target->m_render_pass;
 		cmd->begin_render_pass(m_state.m_render_target);
-		return *this;
+		return cmd;
 	}
 
-	VulkanAPI& VulkanAPI::end_render_pass(bool unlock)
+	VulkanCommandBuffer* VulkanAPI::end_render_pass()
 	{
+		auto cmd = current_command_buffer();
 		if (m_state.m_render_pass)
 		{
 			trinex_profile_cpu_n("VulkanAPI::end_render_pass");
-			current_command_buffer()->end_render_pass();
-
-			if (unlock)
-				m_state.m_render_target->unlock_surfaces();
-
+			cmd->end_render_pass();
 			m_state.m_render_pass = nullptr;
 		}
-		return *this;
+		return cmd;
 	}
 
 	VulkanAPI& VulkanAPI::submit()
@@ -416,34 +411,6 @@ namespace Engine
 
 		API->m_state.reset();
 		return *this;
-	}
-
-	vk::CommandBuffer VulkanAPI::begin_single_time_command_buffer()
-	{
-		vk::CommandBufferAllocateInfo alloc_info(m_cmd_manager->m_pool.m_pool, vk::CommandBufferLevel::ePrimary, 1);
-		vk::CommandBuffer command_buffer = m_device.allocateCommandBuffers(alloc_info).front();
-		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-		command_buffer.begin(begin_info);
-		return command_buffer;
-	}
-
-	VulkanAPI& VulkanAPI::end_single_time_command_buffer(const vk::CommandBuffer& command_buffer)
-	{
-		command_buffer.end();
-		vk::SubmitInfo submit_info({}, {}, command_buffer);
-		m_graphics_queue->submit(submit_info);
-		m_graphics_queue->wait_idle();
-		m_device.freeCommandBuffers(m_cmd_manager->m_pool.m_pool, command_buffer);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
-	                                  vk::DeviceSize src_offset, vk::DeviceSize dst_offset)
-	{
-		auto command_buffer = begin_single_time_command_buffer();
-		vk::BufferCopy copy_region(src_offset, dst_offset, size);
-		command_buffer.copyBuffer(src_buffer, dst_buffer, copy_region);
-		return end_single_time_command_buffer(command_buffer);
 	}
 
 	VulkanAPI& VulkanAPI::wait_idle()
@@ -481,7 +448,17 @@ namespace Engine
 			begin_render_pass();
 
 		uniform_buffer_manager()->bind();
-		m_state.m_pipeline->bind_descriptor_set();
+		m_state.m_pipeline->bind_descriptor_set(vk::PipelineBindPoint::eGraphics);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::prepare_dispatch()
+	{
+		trinex_profile_cpu_n("VulkanAPI::prepare_dispatch");
+		trinex_check(m_state.m_pipeline, "Pipeline can't be nullptr");
+
+		uniform_buffer_manager()->bind();
+		m_state.m_pipeline->bind_descriptor_set(vk::PipelineBindPoint::eCompute);
 		return *this;
 	}
 
@@ -507,6 +484,12 @@ namespace Engine
 	                                             size_t instances)
 	{
 		prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	{
+		prepare_dispatch().current_command_buffer_handle().dispatch(group_x, group_y, group_z);
 		return *this;
 	}
 

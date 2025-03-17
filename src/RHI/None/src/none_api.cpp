@@ -57,16 +57,12 @@ namespace Engine
 		void bind(BindLocation location) override {}
 	};
 
-	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture> {
-		RHI_ShaderResourceView* create_srv() override { return new NoneSRV(); }
-		RHI_UnorderedAccessView* create_uav() override { return new NoneUAV(); }
-	};
-
-	struct NoneSurface : public RHI_DefaultDestroyable<RHI_Surface> {
+	struct NoneTexture2D : public RHI_DefaultDestroyable<RHI_Texture2D> {
 		RHI_RenderTargetView* create_rtv() override { return new NoneRTV(); }
 		RHI_DepthStencilView* create_dsv() override { return new NoneDSV(); }
 		RHI_ShaderResourceView* create_srv() override { return new NoneSRV(); }
 		RHI_UnorderedAccessView* create_uav() override { return new NoneUAV(); }
+		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) override {}
 	};
 
 	struct NoneShader : public RHI_DefaultDestroyable<RHI_Shader> {
@@ -147,6 +143,11 @@ namespace Engine
 		return *this;
 	}
 
+	NoneApi& NoneApi::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	{
+		return *this;
+	}
+
 	NoneApi& NoneApi::submit()
 	{
 		return *this;
@@ -183,14 +184,9 @@ namespace Engine
 		return new NoneSampler();
 	}
 
-	RHI_Texture* NoneApi::create_texture_2d(const Texture2D*)
+	RHI_Texture2D* NoneApi::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
-		return new NoneTexture();
-	}
-
-	RHI_Surface* NoneApi::create_render_surface(ColorFormat format, Vector2u size)
-	{
-		return new NoneSurface();
+		return new NoneTexture2D();
 	}
 
 	RHI_Shader* NoneApi::create_vertex_shader(const VertexShader* shader)

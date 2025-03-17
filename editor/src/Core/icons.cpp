@@ -37,7 +37,7 @@ namespace Engine::Icons
 		{
 			if (Texture2D* texture = object->instance_cast<Texture2D>())
 			{
-				if (texture->rhi_texture())
+				if (texture->rhi_shader_resource_view())
 					return texture;
 			}
 

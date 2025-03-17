@@ -80,8 +80,6 @@ namespace Engine
 		return ar;
 	}
 
-	GraphicsPipeline::GraphicsPipeline() {}
-
 	GraphicsPipeline::~GraphicsPipeline()
 	{
 		GraphicsPipeline::remove_shaders(ShaderType::All);
@@ -538,6 +536,10 @@ namespace Engine
 		return archive && cache_serialize_result;
 	}
 
+	ComputePipeline::~ComputePipeline()
+	{
+		remove_shaders(ShaderType::Compute);
+	}
 
 	ComputePipeline& ComputePipeline::init_render_resources()
 	{

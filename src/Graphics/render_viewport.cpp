@@ -272,10 +272,10 @@ namespace Engine
 		return *this;
 	}
 
-	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
-																SamplerFilter filter)
+	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src,
+																const Rect2D& dst, SamplerFilter filter)
 	{
-		m_viewport->blit_target(surface->rhi_render_target_view(), src, dst, filter);
+		m_viewport->blit_target(surface, src, dst, filter);
 		return *this;
 	}
 

@@ -1,3 +1,4 @@
+
 #pragma once
 #include <Core/etl/vector.hpp>
 #include <Core/logger.hpp>
@@ -45,6 +46,7 @@ namespace Engine
 		OpenGL& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
 		OpenGL& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 		                               size_t instances) override;
+		OpenGL& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
 		OpenGL& submit() override;
 		OpenGL& reset_state();
 
@@ -60,8 +62,7 @@ namespace Engine
 		Scissor scissor() override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
-		RHI_Texture* create_texture_2d(const Texture2D*) override;
-		RHI_Surface* create_render_surface(ColorFormat format, Vector2u size) override;
+		RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;

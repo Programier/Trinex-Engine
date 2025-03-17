@@ -5,6 +5,8 @@
 
 namespace Engine
 {
+	struct RHI_Texture2D;
+
 	struct ENGINE_EXPORT Texture2DMip {
 		Vector2u size;
 		Buffer data;
@@ -16,6 +18,8 @@ namespace Engine
 	class ENGINE_EXPORT Texture2D : public Texture
 	{
 		trinex_declare_class(Texture2D, Texture);
+
+		RenderResourcePtr<RHI_Texture2D> m_texture;
 
 	public:
 		Vector<Texture2DMip> mips;

@@ -25,8 +25,13 @@ namespace Engine
 	Texture2D& Texture2D::init_render_resources()
 	{
 		render_thread()->call([this]() {
-			m_texture = rhi->create_texture_2d(this);
+			m_texture = rhi->create_texture_2d(m_format, size(), mips.size(), TextureCreateFlags::ShaderResource);
 			m_srv     = m_texture->create_srv();
+
+			for (byte index = 0; auto& mip : mips)
+			{
+				m_texture->update(index, Rect2D({0, 0}, mip.size), mip.data.data(), mip.data.size());
+			}
 		});
 		return *this;
 	}

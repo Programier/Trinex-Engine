@@ -19,11 +19,29 @@ namespace Engine
 		m_size   = size;
 
 		render_thread()->call([this]() {
-			m_surface = rhi->create_render_surface(m_format, m_size);
+			TextureCreateFlags flags;
+			flags |= TextureCreateFlags::ShaderResource;
+
 			if (m_format.is_color())
-				m_rtv = m_surface->create_rtv();
+			{
+				flags |= TextureCreateFlags::RenderTarget;
+				flags |= TextureCreateFlags::UnorderedAccess;
+			}
 			else if (m_format.is_depth())
-				m_dsv = m_surface->create_dsv();
+			{
+				flags |= TextureCreateFlags::DepthStencilTarget;
+			}
+
+			m_texture = rhi->create_texture_2d(m_format, m_size, 1, flags);
+
+			if (flags & TextureCreateFlags::ShaderResource)
+				m_srv = m_texture->create_srv();
+			if (flags & TextureCreateFlags::UnorderedAccess)
+				m_uav = m_texture->create_uav();
+			if (flags & TextureCreateFlags::RenderTarget)
+				m_rtv = m_texture->create_rtv();
+			if (flags & TextureCreateFlags::DepthStencilTarget)
+				m_dsv = m_texture->create_dsv();
 		});
 
 		return *this;
@@ -36,28 +54,10 @@ namespace Engine
 		m_srv     = nullptr;
 		m_dsv     = nullptr;
 		m_rtv     = nullptr;
-		m_surface = nullptr;
+		m_texture = nullptr;
 
 		m_format = ColorFormat::Undefined;
 		m_size   = {0, 0};
 		return *this;
-	}
-
-	RHI_ShaderResourceView* RenderSurface::rhi_shader_resource_view() const
-	{
-		if (!m_srv && m_surface)
-		{
-			m_srv = m_surface->create_srv();
-		}
-		return m_srv;
-	}
-
-	RHI_UnorderedAccessView* RenderSurface::rhi_unordered_access_view() const
-	{
-		if (!m_uav && m_surface)
-		{
-			m_uav = m_surface->create_uav();
-		}
-		return m_uav;
 	}
 }// namespace Engine

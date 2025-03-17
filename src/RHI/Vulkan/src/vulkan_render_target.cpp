@@ -6,7 +6,6 @@
 #include <vulkan_barriers.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_surface.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
 
@@ -54,7 +53,7 @@ namespace Engine
 
 	TreeMap<VulkanRenderTarget::Key, VulkanRenderTarget*> VulkanRenderTarget::m_render_targets;
 
-	void VulkanRenderTarget::Key::init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+	void VulkanRenderTarget::Key::init(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		m_surfaces[0] = targets[0];
 		m_surfaces[1] = targets[1];
@@ -68,7 +67,7 @@ namespace Engine
 		return std::memcmp(m_surfaces, key.m_surfaces, sizeof(m_surfaces)) < 0;
 	}
 
-	VulkanRenderTarget* VulkanRenderTarget::find_or_create(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+	VulkanRenderTarget* VulkanRenderTarget::find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		trinex_profile_cpu_n("VulkanRenderTarget::find_or_create");
 		Key key;
@@ -84,18 +83,19 @@ namespace Engine
 		return render_target;
 	}
 
-	VulkanRenderTarget& VulkanRenderTarget::init(VulkanSurfaceRTV** targets, VulkanSurfaceDSV* depth)
+	VulkanRenderTarget& VulkanRenderTarget::init(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		m_key.init(targets, depth);
 		m_render_pass                  = VulkanRenderPass::find_or_create(targets, depth);
-		VulkanSurfaceRTV* base_surface = targets[0] ? targets[0] : targets[4];
+		VulkanTextureRTV* base_surface = targets[0] ? targets[0] : targets[4];
 
 		if (base_surface == nullptr)
 		{
 			throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
 		}
 
-		m_size      = base_surface->size();
+		auto extent = base_surface->extent();
+		m_size      = {extent.width, extent.height};
 		Index index = 0;
 
 		vk::ImageView attachments[5] = {VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE};
@@ -105,7 +105,7 @@ namespace Engine
 			if (targets[i] == nullptr)
 				continue;
 
-			VulkanSurfaceRTV* rtv = targets[i];
+			VulkanTextureRTV* rtv = targets[i];
 			attachments[index++]  = rtv->m_view;
 			rtv->m_render_targets.insert(this);
 		}
@@ -122,34 +122,17 @@ namespace Engine
 
 	VulkanRenderTargetBase& VulkanRenderTarget::lock_surfaces()
 	{
-		auto& cmd = API->current_command_buffer_handle();
 		for (auto& surface : m_key.m_surfaces)
 		{
 			if (surface == nullptr)
 				continue;
 
-			surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal, cmd);
+			surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal);
 		}
 
 		if (m_key.m_depth)
 		{
-			m_key.m_depth->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal, cmd);
-		}
-		return *this;
-	}
-
-	VulkanRenderTargetBase& VulkanRenderTarget::unlock_surfaces()
-	{
-		auto& cmd = API->current_command_buffer_handle();
-		for (auto& surface : m_key.m_surfaces)
-		{
-			if (surface)
-				surface->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
-		}
-
-		if (m_key.m_depth)
-		{
-			m_key.m_depth->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
+			m_key.m_depth->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 		}
 		return *this;
 	}
@@ -158,7 +141,7 @@ namespace Engine
 	{
 		m_render_targets.erase(m_key);
 
-		for (VulkanSurfaceRTV* surface : m_key.m_surfaces)
+		for (VulkanTextureRTV* surface : m_key.m_surfaces)
 		{
 			if (surface)
 				surface->m_render_targets.erase(this);
@@ -172,12 +155,15 @@ namespace Engine
 
 	VulkanSwapchainRenderTarget::VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format)
 	{
-		m_image = image;
-		m_view  = view;
+		m_image  = image;
+		m_view   = view;
+		m_layout = vk::ImageLayout::eUndefined;
 
 		m_size        = size;
 		m_render_pass = VulkanRenderPass::swapchain_render_pass(format);
 		post_init(&view, 1);
+
+		change_layout(vk::ImageLayout::ePresentSrcKHR);
 	}
 
 	bool VulkanSwapchainRenderTarget::is_swapchain_render_target()
@@ -187,29 +173,25 @@ namespace Engine
 
 	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::lock_surfaces()
 	{
-		vk::ImageMemoryBarrier barrier;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout           = vk::ImageLayout::ePresentSrcKHR;
-		barrier.newLayout           = vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.image               = m_image;
-		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
+		change_layout(vk::ImageLayout::eColorAttachmentOptimal);
 		return *this;
 	}
 
-	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::unlock_surfaces()
+	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::change_layout(vk::ImageLayout new_layout)
 	{
-		vk::ImageMemoryBarrier barrier;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout           = vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.newLayout           = vk::ImageLayout::ePresentSrcKHR;
-		barrier.image               = m_image;
-		barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		if (m_layout != new_layout)
+		{
+			vk::ImageMemoryBarrier barrier;
+			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.oldLayout           = m_layout;
+			barrier.newLayout           = new_layout;
+			barrier.image               = m_image;
+			barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
-		Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
+			Barrier::transition_image_layout(barrier);
+			m_layout = new_layout;
+		}
 		return *this;
 	}
 
@@ -221,10 +203,10 @@ namespace Engine
 	VulkanAPI& VulkanAPI::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
 											 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
-		VulkanSurfaceRTV* surfaces[4] = {static_cast<VulkanSurfaceRTV*>(rt1), static_cast<VulkanSurfaceRTV*>(rt2),
-										 static_cast<VulkanSurfaceRTV*>(rt3), static_cast<VulkanSurfaceRTV*>(rt4)};
+		VulkanTextureRTV* surfaces[4] = {static_cast<VulkanTextureRTV*>(rt1), static_cast<VulkanTextureRTV*>(rt2),
+										 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};
 
-		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(surfaces, static_cast<VulkanSurfaceDSV*>(depth_stencil));
+		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(surfaces, static_cast<VulkanTextureDSV*>(depth_stencil));
 		rt->bind();
 		return *this;
 	}
