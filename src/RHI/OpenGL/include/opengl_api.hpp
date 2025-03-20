@@ -40,7 +40,8 @@ namespace Engine
 		OpenGL& initialize_ubo();
 		void* context() override;
 
-		OpenGL& prepare_render();
+		OpenGL& on_draw();
+		OpenGL& on_dispatch();
 		OpenGL& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
 		OpenGL& draw(size_t vertex_count, size_t vertices_offset) override;
 		OpenGL& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;

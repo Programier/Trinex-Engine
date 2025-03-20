@@ -49,15 +49,24 @@ namespace Engine
 	};
 
 	struct OpenGL_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
-		Vector<TaskInterface*> m_apply_state;
-
 		GLuint m_pipeline = 0;
+
+		void init_pipeline_shader(Shader* shader, GLbitfield stage);
+		void bind() override;
+		~OpenGL_Pipeline();
+	};
+
+	struct OpenGL_GraphicsPipeline : public OpenGL_Pipeline {
+		Vector<TaskInterface*> m_apply_state;
 		GLuint m_topology = 0;
 		GLuint m_vao      = 0;
 
-		void init_pipeline_shader(Shader* shader, GLbitfield stage);
 		void init(const GraphicsPipeline* pipeline);
 		void bind() override;
-		~OpenGL_Pipeline();
+		~OpenGL_GraphicsPipeline();
+	};
+
+	struct OpenGL_ComputePipeline : public OpenGL_Pipeline {
+		void init(const ComputePipeline* pipeline);
 	};
 }// namespace Engine

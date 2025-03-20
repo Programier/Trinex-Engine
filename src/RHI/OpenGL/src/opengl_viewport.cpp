@@ -34,6 +34,8 @@ namespace Engine
 		make_current();
 		swap_window_buffers(m_viewport->window(), OPENGL_API->context());
 		OPENGL_API->reset_state();
+
+		glFlush();
 	}
 
 	void OpenGL_Viewport::make_current()

@@ -100,7 +100,13 @@ namespace Engine
 		return m_context;
 	}
 
-	OpenGL& OpenGL::prepare_render()
+	OpenGL& OpenGL::on_draw()
+	{
+		m_local_ubo->bind();
+		return *this;
+	}
+
+	OpenGL& OpenGL::on_dispatch()
 	{
 		m_local_ubo->bind();
 		return *this;
@@ -108,25 +114,25 @@ namespace Engine
 
 	OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
 	{
-		prepare_render();
+		on_draw();
 		indices_offset *= (m_state.index_buffer->m_format == GL_UNSIGNED_SHORT ? 2 : 4);
-		glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
-		                         reinterpret_cast<void*>(indices_offset), vertices_offset);
+		glDrawElementsBaseVertex(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, indices_count,
+								 m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), vertices_offset);
 		reset_samplers();
 		return *this;
 	}
 
 	OpenGL& OpenGL::draw(size_t vertex_count, size_t vertices_offset)
 	{
-		prepare_render();
-		glDrawArrays(OPENGL_API->m_state.pipeline->m_topology, vertices_offset, vertex_count);
+		on_draw();
+		glDrawArrays(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, vertices_offset, vertex_count);
 		reset_samplers();
 		return *this;
 	}
 
 	OpenGL& OpenGL::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
-		prepare_render();
+		on_draw();
 		glDrawArraysInstanced(OPENGL_API->m_state.pipeline->m_pipeline, vertices_offset, vertex_count, instances);
 		reset_samplers();
 		return *this;
@@ -134,15 +140,17 @@ namespace Engine
 
 	OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
 	{
-		prepare_render();
-		glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
-		                                  reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
+		on_draw();
+		glDrawElementsInstancedBaseVertex(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, indices_count,
+										  m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), instances,
+										  vertices_offset);
 		reset_samplers();
 		return *this;
 	}
 
 	OpenGL& OpenGL::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
 	{
+		on_dispatch();
 		glDispatchCompute(group_x, group_y, group_z);
 		return *this;
 	}
@@ -156,6 +164,7 @@ namespace Engine
 	OpenGL& OpenGL::submit()
 	{
 		m_local_ubo->submit();
+		glFlush();
 		return *this;
 	}
 

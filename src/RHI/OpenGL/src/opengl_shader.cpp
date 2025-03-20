@@ -206,6 +206,23 @@ namespace Engine
 		}
 	}
 
+	void OpenGL_Pipeline::bind()
+	{
+		if (OPENGL_API->m_state.pipeline != this)
+		{
+			OPENGL_API->m_state.pipeline = this;
+			glBindProgramPipeline(m_pipeline);
+		}
+	}
+
+	OpenGL_Pipeline::~OpenGL_Pipeline()
+	{
+		if (m_pipeline)
+		{
+			glDeleteProgramPipelines(1, &m_pipeline);
+		}
+	}
+
 	struct OpenGL_VertexInput {
 		size_t count;
 		size_t size;
@@ -440,7 +457,7 @@ namespace Engine
 		}
 	}
 
-	void OpenGL_Pipeline::init(const GraphicsPipeline* pipeline)
+	void OpenGL_GraphicsPipeline::init(const GraphicsPipeline* pipeline)
 	{
 		m_topology = convert_topology(pipeline->input_assembly.primitive_topology);
 
@@ -537,13 +554,11 @@ namespace Engine
 		info_log("OpenGL", "Writed %zu commands for pipeline '%s'", m_apply_state.size(), pipeline->full_name().c_str());
 	}
 
-	void OpenGL_Pipeline::bind()
+	void OpenGL_GraphicsPipeline::bind()
 	{
 		if (OPENGL_API->m_state.pipeline != this)
 		{
-			OPENGL_API->m_state.pipeline = this;
-			glBindProgramPipeline(m_pipeline);
-			glBindVertexArray(m_vao);
+			OpenGL_Pipeline::bind();
 
 			for (auto* object : m_apply_state)
 			{
@@ -552,13 +567,8 @@ namespace Engine
 		}
 	}
 
-	OpenGL_Pipeline::~OpenGL_Pipeline()
+	OpenGL_GraphicsPipeline::~OpenGL_GraphicsPipeline()
 	{
-		if (m_pipeline)
-		{
-			glDeleteProgramPipelines(1, &m_pipeline);
-		}
-
 		if (m_vao)
 		{
 			glDeleteVertexArrays(1, &m_vao);
@@ -570,15 +580,23 @@ namespace Engine
 		}
 	}
 
+	void OpenGL_ComputePipeline::init(const ComputePipeline* pipeline)
+	{
+		glGenProgramPipelines(1, &m_pipeline);
+		init_pipeline_shader(pipeline->compute_shader(), GL_COMPUTE_SHADER_BIT);
+	}
+
 	RHI_Pipeline* OpenGL::create_graphics_pipeline(const GraphicsPipeline* pipeline)
 	{
-		OpenGL_Pipeline* opengl_pipeline = new OpenGL_Pipeline();
+		OpenGL_GraphicsPipeline* opengl_pipeline = new OpenGL_GraphicsPipeline();
 		opengl_pipeline->init(pipeline);
 		return opengl_pipeline;
 	}
 
 	RHI_Pipeline* OpenGL::create_compute_pipeline(const ComputePipeline* pipeline)
 	{
-		throw EngineException("NOT IMPLEMENTED");
+		OpenGL_ComputePipeline* opengl_pipeline = new OpenGL_ComputePipeline();
+		opengl_pipeline->init(pipeline);
+		return opengl_pipeline;
 	}
 }// namespace Engine

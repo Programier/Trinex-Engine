@@ -169,7 +169,10 @@ namespace Engine
 		texture->m_owner->add_reference();
 	}
 
-	void OpenGL_TextureUAV::bind(BindLocation location) {}
+	void OpenGL_TextureUAV::bind(BindLocation location)
+	{
+		glBindImageTexture(location, m_texture->m_id, 0, GL_FALSE, 0, GL_READ_WRITE, m_texture->m_format.m_internal_format);
+	}
 
 	OpenGL_TextureUAV::~OpenGL_TextureUAV()
 	{
