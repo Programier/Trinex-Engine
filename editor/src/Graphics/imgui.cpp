@@ -41,7 +41,18 @@ namespace Engine
 	{
 		float rendering_scale_factor = 1.f;
 
-		trinex_declare_graphics_pipeline(ImGuiPipeline);
+		// clang-format off
+		trinex_declare_graphics_pipeline(ImGuiPipeline,
+			const ShaderParameterInfo* texture_parameter = nullptr;
+			const ShaderParameterInfo* model_parameter   = nullptr;
+			Matrix4f model;
+			Sampler* sampler            = nullptr;
+			RHI_ShaderResourceView* srv = nullptr;
+
+			void apply();
+		);
+		// clang-format on
+
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
 								  ShaderType::Vertex | ShaderType::Fragment)
 		{
@@ -85,6 +96,19 @@ namespace Engine
 			rasterizer.cull_mode    = CullMode::None;
 			rasterizer.polygon_mode = PolygonMode::Fill;
 			rasterizer.line_width   = 1.0;
+
+			texture_parameter = find_param_info("texture");
+			model_parameter   = find_param_info("model");
+		}
+
+		void ImGuiPipeline::apply()
+		{
+			rhi_bind();
+			srv->bind_combined(texture_parameter->location, sampler->rhi_sampler());
+			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->location);
+
+			srv     = nullptr;
+			sampler = nullptr;
 		}
 
 
@@ -104,23 +128,7 @@ namespace Engine
 			Texture2D* font_texture;
 			Sampler* sampler;
 
-			struct {
-				const ShaderParameterInfo* texture_parameter = nullptr;
-				const ShaderParameterInfo* model_parameter   = nullptr;
-
-				Matrix4f model;
-				Sampler* sampler            = nullptr;
-				RHI_ShaderResourceView* srv = nullptr;
-			} ctx;
-
-			ImGuiTrinexData()
-			{
-				memset((void*) this, 0, sizeof(*this));
-				auto pipeline = ImGuiPipeline::create();
-
-				ctx.texture_parameter = pipeline->find_param_info("texture");
-				ctx.model_parameter   = pipeline->find_param_info("model");
-			}
+			ImGuiTrinexData() { memset((void*) this, 0, sizeof(*this)); }
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -149,10 +157,10 @@ namespace Engine
 			float T = draw_data->DisplayPos.y;
 			float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
 
-			auto& ctx   = imgui_trinex_backend_data()->ctx;
-			ctx.model   = glm::ortho(L, R, B, T);
-			ctx.srv     = nullptr;
-			ctx.sampler = nullptr;
+			auto pipeline     = ImGuiPipeline::instance();
+			pipeline->model   = glm::ortho(L, R, B, T);
+			pipeline->srv     = nullptr;
+			pipeline->sampler = nullptr;
 		}
 
 		// Render function
@@ -229,6 +237,7 @@ namespace Engine
 			{
 				trinex_profile_cpu_n("Render");
 
+				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
 				{
 					rhi->push_debug_stage("ImGui Command list");
@@ -259,34 +268,28 @@ namespace Engine
 
 							rhi->scissor(scissor);
 
-							if (!bd->ctx.srv)
+							if (!pipeline->srv)
 							{
-								bd->ctx.srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
-																		  : pcmd->TextureId.surface->rhi_shader_resource_view();
-								bd->ctx.sampler = pcmd->TextureId.sampler;
+								pipeline->srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
+																			: pcmd->TextureId.surface->rhi_shader_resource_view();
+								pipeline->sampler = pcmd->TextureId.sampler;
 							}
 
-							if (!bd->ctx.sampler)
+							if (!pipeline->sampler)
 							{
-								bd->ctx.sampler = bd->sampler;
+								pipeline->sampler = bd->sampler;
 							}
 
 							{
 								trinex_profile_cpu_n("Drawing");
-								ImGuiPipeline::instance()->rhi_bind();
+								pipeline->apply();
 
-								bd->ctx.srv->bind_combined(bd->ctx.texture_parameter->location, bd->ctx.sampler->rhi_sampler());
-								rhi->update_scalar_parameter(&bd->ctx.model, sizeof(bd->ctx.model), 0,
-															 bd->ctx.model_parameter->location);
 
 								vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
 								vd->index_buffer->bind(0);
 								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
 												  pcmd->VtxOffset + global_vtx_offset);
 							}
-
-							bd->ctx.srv     = nullptr;
-							bd->ctx.sampler = nullptr;
 						}
 
 						rhi->pop_debug_stage();
