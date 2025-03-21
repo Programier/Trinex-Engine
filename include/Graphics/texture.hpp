@@ -17,7 +17,7 @@ namespace Engine
 		RenderResourcePtr<RHI_ShaderResourceView> m_srv;
 
 	public:
-		Texture& rhi_bind(BindLocation location);
+		Texture& rhi_bind(byte location);
 		Texture& rhi_bind_combined(byte location, RHI_Sampler* sampler);
 		Texture& rhi_bind_combined(byte location, Sampler* sampler);
 		Texture& release_render_resources() override;

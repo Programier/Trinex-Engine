@@ -270,7 +270,7 @@ namespace Engine
 		return *this;
 	}
 
-	SSBO& SSBO::rhi_bind(BindLocation location)
+	SSBO& SSBO::rhi_bind(byte location)
 	{
 		return *this;
 	}

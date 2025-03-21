@@ -1,3 +1,4 @@
+#include <Core/etl/allocator.hpp>
 #include <Core/memory.hpp>
 #include <cstring>
 
@@ -58,6 +59,16 @@ namespace Engine
 	        0x913f6188692d6f4bull, 0xd3cf8063c0c759d8ull, 0x5dedc41a34bbeeb2ull, 0x1f1d25f19d51d821ull, 0xd80c07cd676f8394ull,
 	        0x9afce626ce85b507ull};
 
+
+	ENGINE_EXPORT byte* allocate_memory(size_t size, size_t alignment)
+	{
+		return ByteAllocator().allocate_aligned(size, alignment);
+	}
+
+	ENGINE_EXPORT void release_memory(void* ptr)
+	{
+		return ByteAllocator().deallocate(static_cast<ByteAllocator::pointer>(ptr));
+	}
 
 	ENGINE_EXPORT HashIndex memory_hash_fast(const void* memory, const size_t size, HashIndex start_hash)
 	{

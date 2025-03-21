@@ -7,7 +7,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(Texture, Refl::Class::IsAsset) {}
 
-	Texture& Texture::rhi_bind(BindLocation location)
+	Texture& Texture::rhi_bind(byte location)
 	{
 		m_srv->bind(location);
 		return *this;
@@ -28,7 +28,7 @@ namespace Engine
 	Texture& Texture::release_render_resources()
 	{
 		Super::release_render_resources();
-		m_srv     = nullptr;
+		m_srv = nullptr;
 		return *this;
 	}
 }// namespace Engine

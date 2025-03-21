@@ -49,7 +49,7 @@ namespace Engine
 	void Object::operator delete(void* _memory, size_t size) noexcept
 	{
 		byte* memory = reinterpret_cast<byte*>(_memory);
-		allocator().deallocate(memory, size);
+		allocator().deallocate(memory);
 	}
 
 	static FORCE_INLINE uint32_t get_max_objects_per_tick()

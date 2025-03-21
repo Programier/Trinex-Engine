@@ -378,6 +378,6 @@ namespace Engine
 		const byte* init_data = nullptr;
 
 		SSBO& init_render_resources() override;
-		SSBO& rhi_bind(BindLocation location);
+		SSBO& rhi_bind(byte location);
 	};
 }// namespace Engine

@@ -24,7 +24,6 @@ namespace Engine
 	{
 		auto* self = StaticMesh::static_class_instance();
 		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");
-		trinex_refl_prop(self, This, allow_cpu_access);
 	}
 
 	trinex_implement_engine_class_default_init(DynamicMesh, 0);
@@ -129,7 +128,7 @@ namespace Engine
 
 
 	template<typename Type>
-	static void serialize_buffer(Archive& ar, Pointer<Type>& buffer, bool allow_cpu_access)
+	static void serialize_buffer(Archive& ar, Pointer<Type>& buffer)
 	{
 		bool is_valid = buffer;
 		ar.serialize(is_valid);
@@ -146,7 +145,7 @@ namespace Engine
 	}
 
 	template<typename Type>
-	static void serialize_buffers(Archive& ar, Vector<Pointer<Type>>& buffers, bool allow_cpu_access)
+	static void serialize_buffers(Archive& ar, Vector<Pointer<Type>>& buffers)
 	{
 		size_t size = buffers.size();
 		ar.serialize(size);
@@ -160,20 +159,20 @@ namespace Engine
 
 			for (auto& buffer : buffers)
 			{
-				serialize_buffer(ar, buffer, allow_cpu_access);
+				serialize_buffer(ar, buffer);
 			}
 		}
 	}
 
-	bool StaticMesh::LOD::serialize(Archive& ar, bool allow_cpu_access)
+	bool StaticMesh::LOD::serialize(Archive& ar)
 	{
-		serialize_buffers(ar, positions, allow_cpu_access);
-		serialize_buffers(ar, tex_coords, allow_cpu_access);
-		serialize_buffers(ar, colors, allow_cpu_access);
-		serialize_buffers(ar, normals, allow_cpu_access);
-		serialize_buffers(ar, tangents, allow_cpu_access);
-		serialize_buffers(ar, bitangents, allow_cpu_access);
-		serialize_buffer(ar, indices, allow_cpu_access);
+		serialize_buffers(ar, positions);
+		serialize_buffers(ar, tex_coords);
+		serialize_buffers(ar, colors);
+		serialize_buffers(ar, normals);
+		serialize_buffers(ar, tangents);
+		serialize_buffers(ar, bitangents);
+		serialize_buffer(ar, indices);
 		return ar.serialize(surfaces);
 	}
 
@@ -194,7 +193,7 @@ namespace Engine
 
 		for (auto& lod : lods)
 		{
-			lod.serialize(ar, allow_cpu_access);
+			lod.serialize(ar);
 		}
 		return ar;
 	}

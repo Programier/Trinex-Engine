@@ -1,15 +1,15 @@
 #include <Core/etl/allocator.hpp>
-#include <memory>
+#include <cstdlib>
 
 namespace Engine
 {
-	unsigned char* ByteAllocator::allocate(size_type size)
+	unsigned char* ByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
-		return std::allocator<unsigned char>().allocate(size);
+		return static_cast<unsigned char*>(std::aligned_alloc(align, size));
 	}
 
-	void ByteAllocator::deallocate(unsigned char* ptr, size_type size) noexcept
+	void ByteAllocator::deallocate(unsigned char* ptr) noexcept
 	{
-		std::allocator<unsigned char>().deallocate(ptr, size);
+		std::free(ptr);
 	}
 }// namespace Engine

@@ -53,13 +53,12 @@ namespace Engine
 			VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
 			size_t vertex_count() const;
 			size_t indices_count() const;
-			bool serialize(Archive& ar, bool allow_cpu_access = false);
+			bool serialize(Archive& ar);
 		};
 
 		Vector<MeshMaterial> materials;
 		AABB_3Df bounds;
 		Vector<LOD> lods;
-		bool allow_cpu_access = false;
 
 		StaticMesh();
 		StaticMesh& init_render_resources();

@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
 #include <Core/render_resource.hpp>
+#include <Core/structures.hpp>
 #include <Graphics/shader_parameters.hpp>
 
 namespace Engine

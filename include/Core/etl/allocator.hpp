@@ -27,8 +27,9 @@ namespace Engine
 		using size_type       = std::size_t;
 		using difference_type = std::ptrdiff_t;
 
-		unsigned char* allocate(size_type size);
-		void deallocate(unsigned char* ptr, size_type size) noexcept;
+		inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
+		unsigned char* allocate_aligned(size_type size, size_type align);
+		void deallocate(unsigned char* ptr) noexcept;
 	};
 
 	template<typename T>
@@ -55,17 +56,16 @@ namespace Engine
 
 		Allocator& operator=(const Allocator& other) = default;
 
-		~Allocator()
-		{}
+		~Allocator() {}
 
 		pointer allocate(size_type size)
 		{
-			return reinterpret_cast<pointer>(ByteAllocator().allocate(size * sizeof(T)));
+			return reinterpret_cast<pointer>(ByteAllocator().allocate_aligned(size * sizeof(T), alignof(T)));
 		}
 
 		void deallocate(pointer ptr, size_type size) noexcept
 		{
-			ByteAllocator().deallocate(reinterpret_cast<unsigned char*>(ptr), size * sizeof(T));
+			ByteAllocator().deallocate(reinterpret_cast<unsigned char*>(ptr));
 		}
 	};
 
