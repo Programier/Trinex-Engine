@@ -168,7 +168,7 @@ namespace Engine
 		return *this;
 	}
 
-	RenderPass& RenderPass::bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset)
+	RenderPass& RenderPass::bind_vertex_buffer(class VertexBufferBase* buffer, byte stream, size_t offset)
 	{
 		add_callabble([=]() { buffer->rhi_bind(stream, offset); });
 		return *this;

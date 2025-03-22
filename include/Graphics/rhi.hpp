@@ -221,7 +221,7 @@ namespace Engine
 		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                     = 0;
 		virtual RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline)                                       = 0;
 		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
-		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;
+		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type)    = 0;
 		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;
 		virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)                  = 0;
 		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;

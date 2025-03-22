@@ -7,4 +7,16 @@ struct parameter_typeAttribute
 	string type;
 };
 
+[__AttributeUsage(_AttributeTargets.Var)]
+struct vertex_streamAttribute
+{
+	int stream;
+};
+
+[__AttributeUsage(_AttributeTargets.Var)]
+struct vertex_offsetAttribute
+{
+	uint offset;
+};
+
 #endif

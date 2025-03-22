@@ -83,7 +83,7 @@ namespace Engine
 		material->apply(component, pass);
 
 		EditorResources::spot_light_overlay_positions->rhi_bind(0);
-		rhi->draw(EditorResources::spot_light_overlay_positions->vertex_count(), 0);
+		rhi->draw(EditorResources::spot_light_overlay_positions->vertices(), 0);
 	}
 
 	static void render_spot_light_overlay(RenderPass* pass, SpotLightComponent* component)
@@ -119,7 +119,7 @@ namespace Engine
 
 		material->apply(component, pass);
 		EditorResources::point_light_overlay_positions->rhi_bind(0, 0);
-		rhi->draw(EditorResources::point_light_overlay_positions->vertex_count(), 0);
+		rhi->draw(EditorResources::point_light_overlay_positions->vertices(), 0);
 	}
 
 	class EditorOverlayPass : public OverlayPass
@@ -129,10 +129,7 @@ namespace Engine
 	public:
 		Set<LightComponent*> m_light_components;
 
-		bool is_empty() const override
-		{
-			return false;
-		}
+		bool is_empty() const override { return false; }
 
 		EditorOverlayPass& clear() override
 		{
@@ -168,8 +165,7 @@ namespace Engine
 		}
 	};
 
-	trinex_impl_render_pass(EditorOverlayPass)
-	{}
+	trinex_impl_render_pass(EditorOverlayPass) {}
 
 	static void create_directional_arrow(DirectionalLightComponent* component, EditorOverlayPass* pass)
 	{

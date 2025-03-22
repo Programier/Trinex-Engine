@@ -231,9 +231,9 @@ namespace Engine
 		m_buffer.update(offset, data, size);
 	}
 
-	VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size, IndexBufferFormat format)
+	VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size, RHIIndexFormat format)
 	{
-		m_type = format == IndexBufferFormat::UInt32 ? vk::IndexType::eUint32 : vk::IndexType::eUint16;
+		m_type = format == RHIIndexFormat::UInt32 ? vk::IndexType::eUint32 : vk::IndexType::eUint16;
 		m_buffer.create(size, data, vk::BufferUsageFlagBits::eIndexBuffer);
 		return *this;
 	}
@@ -306,7 +306,7 @@ namespace Engine
 		return &(new VulkanVertexBuffer())->create(data, size);
 	}
 
-	RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
+	RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, RHIIndexFormat format, RHIBufferType type)
 	{
 		return &(new VulkanIndexBuffer())->create(data, size, format);
 	}

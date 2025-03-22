@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/vector.hpp>
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
 #include <Core/task.hpp>
@@ -72,7 +73,7 @@ namespace Engine
 		RenderPass& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances);
 		RenderPass& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances);
 		RenderPass& bind_material(class MaterialInterface* material, SceneComponent* component = nullptr);
-		RenderPass& bind_vertex_buffer(class VertexBuffer* buffer, byte stream, size_t offset = 0);
+		RenderPass& bind_vertex_buffer(class VertexBufferBase* buffer, byte stream, size_t offset = 0);
 		RenderPass& bind_index_buffer(class IndexBuffer* buffer, size_t offset = 0);
 
 		template<typename Dst, typename Src>

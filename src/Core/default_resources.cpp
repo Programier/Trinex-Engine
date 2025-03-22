@@ -3,6 +3,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
@@ -30,8 +31,6 @@ namespace Engine
 			ENGINE_EXPORT Material* sprite            = nullptr;
 			ENGINE_EXPORT Material* screen            = nullptr;
 			ENGINE_EXPORT Material* base_pass         = nullptr;
-			ENGINE_EXPORT Material* batched_lines     = nullptr;
-			ENGINE_EXPORT Material* batched_triangles = nullptr;
 			ENGINE_EXPORT Material* point_light       = nullptr;
 			ENGINE_EXPORT Material* spot_light        = nullptr;
 			ENGINE_EXPORT Material* directional_light = nullptr;
@@ -74,23 +73,28 @@ namespace Engine
 		Materials::sprite            = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
 		Materials::screen            = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
 		Materials::base_pass         = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
-		Materials::batched_lines     = load_object<Material>("TrinexEngine::Materials::BatchedLinesMaterial");
-		Materials::batched_triangles = load_object<Material>("TrinexEngine::Materials::BatchedTrianglesMaterial");
 		Materials::point_light       = load_object<Material>("TrinexEngine::Materials::PointLightMaterial");
 		Materials::spot_light        = load_object<Material>("TrinexEngine::Materials::SpotLightMaterial");
 		Materials::directional_light = load_object<Material>("TrinexEngine::Materials::DirectionalLightMaterial");
 		Materials::ambient_light     = load_object<Material>("TrinexEngine::Materials::AmbientLightMaterial");
-		Meshes::cube                 = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
-		Meshes::sphere               = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
-		Meshes::cylinder             = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
+		//Meshes::cube                 = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
+		//Meshes::sphere               = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
+		//Meshes::cylinder             = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
 
-		{
-			auto buffers         = Object::static_find_package("TrinexEngine::Buffers", true);
-			Buffers::screen_quad = Object::new_instance<PositionVertexBuffer>("ScreenQuad", buffers);
-			Buffers::screen_quad->init({Vector3f{-1.f, -1.f, 0.0f}, Vector3f{-1.f, 1.f, 0.0f}, Vector3f{1.f, 1.f, 0.0f},
-										Vector3f{-1.f, -1.f, 0.0f}, Vector3f{1.f, 1.f, 0.0f}, Vector3f{1.f, -1.f, 0.0f}},
-									   false);
-			Buffers::screen_quad->init_render_resources();
-		}
+		Buffers::screen_quad = allocate<PositionVertexBuffer>(std::initializer_list<Vector3f>{
+				Vector3f{-1.f, -1.f, 0.0f},
+				Vector3f{-1.f, 1.f, 0.0f},
+				Vector3f{1.f, 1.f, 0.0f},
+				Vector3f{-1.f, -1.f, 0.0f},
+				Vector3f{1.f, 1.f, 0.0f},
+				Vector3f{1.f, -1.f, 0.0f},
+		});
 	}
+
+	static void on_destroy()
+	{
+		release(DefaultResources::Buffers::screen_quad);
+	}
+
+	static byte destroy_id = DestroyController(on_destroy).id();
 }// namespace Engine

@@ -13,10 +13,57 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-
 namespace Engine::Importer
 {
 	struct ImporterContext {
+		template<typename T>
+		struct VtxBuffer {
+			T* ptr;
+			size_t size = 0;
+
+			VtxBuffer(T* ptr, byte stride = sizeof(T)) : ptr(ptr) {}
+
+			inline void push_back(T&& value)
+			{
+				new (ptr++) T(std::move(value));
+				++size;
+			}
+
+			inline void push_back(const T& value)
+			{
+				new (ptr++) T(value);
+				++size;
+			}
+		};
+
+		struct IdxBuffer {
+		private:
+			byte* (*m_push)(byte*, uint32_t);
+
+			template<typename T>
+			static byte* push(byte* ptr, uint32_t value)
+			{
+				new (ptr) T(static_cast<T>(value));
+				return ptr + sizeof(T);
+			}
+
+		public:
+			byte* ptr;
+			size_t size = 0;
+
+			IdxBuffer(void* ptr, byte stride) : ptr(static_cast<byte*>(ptr))
+			{
+				m_push = stride == 2 ? push<uint16_t> : push<uint32_t>;
+			}
+
+			inline void push_back(uint32_t value)
+			{
+				ptr = m_push(ptr, value);
+				++size;
+			}
+		};
+
+
 		Package* package;
 		Matrix4f transform;
 		Matrix3f rotation;
@@ -41,15 +88,6 @@ namespace Engine::Importer
 			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
 		}
 
-		template<typename T, typename BufferType>
-		static T* create_gpu_buffer(BufferType& buffer)
-		{
-			buffer.shrink_to_fit();
-			T* result                    = Object::new_instance<T>();
-			result->allocate_data(false) = std::move(buffer);
-			return result;
-		}
-
 		Texture2D* load_texture(StringView path)
 		{
 			Pointer<Texture2D>& texture_ref = textures[path];
@@ -71,6 +109,7 @@ namespace Engine::Importer
 
 		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
 		{
+			return DefaultResources::Materials::base_pass;
 			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
 			auto* root               = Object::instance_cast<VisualMaterialGraph::Root>(material->nodes()[0].ptr());
 
@@ -168,22 +207,16 @@ namespace Engine::Importer
 			auto& lod = static_mesh->lods[0];
 			lod.surfaces.resize(meshes_count);
 
-			auto& bounds = static_mesh->bounds;
+			auto& bounds                = static_mesh->bounds;
+			RHIIndexFormat index_format = vertex_count > 65535 ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
+			byte index_size             = vertex_count > 65535 ? 4 : 2;
 
-			Vector<Vector3f> positions;
-			Vector<Vector3f> normals;
-			Vector<Vector3f> tangents;
-			Vector<Vector3f> bitangents;
-			Vector<Vector2f> uvs;
-			Vector<uint_t> indices;
-
-			positions.reserve(vertex_count);
-			normals.reserve(vertex_count);
-			tangents.reserve(vertex_count);
-			bitangents.reserve(vertex_count);
-			uvs.reserve(vertex_count);
-			indices.reserve(faces_count * 3);
-
+			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
+			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
+			VtxBuffer<Vector3f> tangents   = lod.tangents.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
+			VtxBuffer<Vector3f> bitangents = lod.bitangents.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
+			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
+			IdxBuffer indices(lod.indices.allocate_data(RHIBufferType::Static, index_format, faces_count * 3), index_size);
 
 			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
 			{
@@ -192,8 +225,8 @@ namespace Engine::Importer
 				aiVector3f* texture_coords    = mesh->mTextureCoords[0];
 
 				MeshSurface& surface      = lod.surfaces[mesh_index];
-				surface.base_vertex_index = positions.size();
-				surface.first_index       = indices.size();
+				surface.base_vertex_index = positions.size;
+				surface.first_index       = indices.size;
 
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
 				{
@@ -213,7 +246,7 @@ namespace Engine::Importer
 					}
 				}
 
-				surface.vertices_count = indices.size() - surface.first_index;
+				surface.vertices_count = indices.size - surface.first_index;
 
 				auto& material         = static_mesh->materials[mesh_index];
 				material.surface_index = mesh_index;
@@ -225,13 +258,6 @@ namespace Engine::Importer
 				bounds.min(glm::min(min_pos, bounds.min()));
 				bounds.max(glm::max(max_pos, bounds.max()));
 			}
-
-			lod.positions.push_back(create_gpu_buffer<PositionVertexBuffer>(positions));
-			lod.normals.push_back(create_gpu_buffer<NormalVertexBuffer>(normals));
-			lod.tangents.push_back(create_gpu_buffer<TangentVertexBuffer>(tangents));
-			lod.bitangents.push_back(create_gpu_buffer<BitangentVertexBuffer>(bitangents));
-			lod.tex_coords.push_back(create_gpu_buffer<TexCoordVertexBuffer>(uvs));
-			lod.indices = create_gpu_buffer<UInt32IndexBuffer>(indices);
 
 			static_mesh->init_render_resources();
 		}

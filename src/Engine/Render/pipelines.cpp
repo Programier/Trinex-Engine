@@ -1,8 +1,10 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Engine/Render/pipelines.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
+#include <Graphics/shader.hpp>
 
 namespace Engine::Pipelines
 {
@@ -34,5 +36,27 @@ namespace Engine::Pipelines
 		// Shader uses 8x8x1 threads per group
 		Vector2u groups = {(dst_size.x + 7) / 8, (dst_size.y + 7) / 8};
 		rhi->dispatch(groups.x, groups.y, 1);
+	}
+
+	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang",
+							  ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
+	{
+		input_assembly.primitive_topology = PrimitiveTopology::LineList;
+		color_blending.enable             = true;
+
+		m_globals = find_param_info("globals");
+	}
+
+	void BatchedLines::apply(SceneRenderer* renderer)
+	{
+		rhi_bind();
+		renderer->bind_global_parameters(m_globals->location);
+	}
+
+	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
+							  ShaderType::Vertex | ShaderType::Fragment)
+	{
+		input_assembly.primitive_topology = PrimitiveTopology::TriangleList;
+		color_blending.enable             = true;
 	}
 }// namespace Engine::Pipelines

@@ -8,13 +8,12 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Platform/platform.hpp>
-
-#include <Graphics/shader_material.hpp>
 
 namespace Engine
 {
@@ -69,39 +68,39 @@ namespace Engine
 
 	static void create_spot_light_overlay_positions()
 	{
-		EditorResources::spot_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		auto positions                                = EditorResources::spot_light_overlay_positions;
-		auto& buffer                                  = positions->allocate_data(false);
+		EditorResources::spot_light_overlay_positions = allocate<PositionVertexBuffer>();
+		auto write_ptr = EditorResources::spot_light_overlay_positions->allocate_data(RHIBufferType::Static, 1080 + 8);
 
 		static constexpr float circle_y = -1.f;
 
 		// Create circle
-		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3f(x, circle_y, z)); });
+		create_circle([&write_ptr](float x, float z) { new (write_ptr++) Vector3f(x, circle_y, z); });
 
-		buffer.push_back({0, 0, 0});
-		buffer.push_back({1, circle_y, 0});
+		new (write_ptr++) Vector3f(0, 0, 0);
+		new (write_ptr++) Vector3f(1, circle_y, 0);
 
-		buffer.push_back({0, 0, 0});
-		buffer.push_back({-1, circle_y, 0});
+		new (write_ptr++) Vector3f(0, 0, 0);
+		new (write_ptr++) Vector3f(-1, circle_y, 0);
 
-		buffer.push_back({0, 0, 0});
-		buffer.push_back({0, circle_y, 1});
+		new (write_ptr++) Vector3f(0, 0, 0);
+		new (write_ptr++) Vector3f(0, circle_y, 1);
 
-		buffer.push_back({0, 0, 0});
-		buffer.push_back({0, circle_y, -1});
-		positions->init_render_resources();
+		new (write_ptr++) Vector3f(0, 0, 0);
+		new (write_ptr++) Vector3f(0, circle_y, -1);
+
+		EditorResources::spot_light_overlay_positions->init();
 	}
 
 	static void create_point_light_overlay_positions()
 	{
-		EditorResources::point_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-		auto positions                                 = EditorResources::point_light_overlay_positions;
-		auto& buffer                                   = positions->allocate_data(false);
+		EditorResources::point_light_overlay_positions = allocate<PositionVertexBuffer>();
+		auto write_ptr = EditorResources::point_light_overlay_positions->allocate_data(RHIBufferType::Static, 1080 * 3);
 
-		create_circle([&buffer](float y, float z) { buffer.push_back(Vector3f(0, y, z)); });
-		create_circle([&buffer](float x, float z) { buffer.push_back(Vector3f(x, 0, z)); });
-		create_circle([&buffer](float x, float y) { buffer.push_back(Vector3f(x, y, 0)); });
-		positions->init_render_resources();
+		create_circle([&write_ptr](float y, float z) { new (write_ptr++) Vector3f(0, y, z); });
+		create_circle([&write_ptr](float x, float z) { new (write_ptr++) Vector3f(x, 0, z); });
+		create_circle([&write_ptr](float x, float y) { new (write_ptr++) Vector3f(x, y, 0); });
+
+		EditorResources::point_light_overlay_positions->init();
 	}
 
 	static void preinit()
@@ -157,13 +156,20 @@ namespace Engine
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}
 
-	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
 
 	static void load_configs()
 	{
 		Engine::Settings::Splash::font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	}
 
+	static void destroy()
+	{
+		release(EditorResources::spot_light_overlay_positions);
+		release(EditorResources::point_light_overlay_positions);
+	}
+
+	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
 	static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
 	static Engine::PreInitializeController on_preinit(preinit, "EditorPreinit");
+	static Engine::DestroyController on_destroy(destroy);
 }// namespace Engine

@@ -116,14 +116,6 @@ namespace Engine
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
 
-		class ImGuiVertexBuffer : public TypedDynamicVertexBuffer<ImDrawVert>
-		{
-		};
-
-		class ImGuiIndexBuffer : public TypedDynamicIndexBuffer<ImDrawIdx, IndexBufferFormat::UInt16>
-		{
-		};
-
 		struct ImGuiTrinexData {
 			Texture2D* font_texture;
 			Sampler* sampler;
@@ -203,7 +195,7 @@ namespace Engine
 			{
 				vd->index_count  = draw_data->TotalIdxCount + 10000;
 				auto len         = vd->index_count * sizeof(ImDrawIdx);
-				vd->index_buffer = rhi->create_index_buffer(len, nullptr, IndexBufferFormat::UInt16, RHIBufferType::Dynamic);
+				vd->index_buffer = rhi->create_index_buffer(len, nullptr, RHIIndexFormat::UInt16, RHIBufferType::Dynamic);
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer

@@ -28,34 +28,34 @@ namespace Engine
 
 	trinex_implement_engine_class_default_init(DynamicMesh, 0);
 
-	VertexBuffer* StaticMesh::LOD::find_position_buffer(Index index) const
+	PositionVertexBuffer* StaticMesh::LOD::find_position_buffer(Index index)
 	{
-		return positions.size() <= index ? nullptr : positions[index].ptr();
+		return positions.size() <= index ? nullptr : &positions[index];
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_tex_coord_buffer(Index index) const
+	TexCoordVertexBuffer* StaticMesh::LOD::find_tex_coord_buffer(Index index)
 	{
-		return tex_coords.size() <= index ? nullptr : tex_coords[index].ptr();
+		return tex_coords.size() <= index ? nullptr : &tex_coords[index];
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_color_buffer(Index index) const
+	ColorVertexBuffer* StaticMesh::LOD::find_color_buffer(Index index)
 	{
-		return colors.size() <= index ? nullptr : colors[index].ptr();
+		return colors.size() <= index ? nullptr : &colors[index];
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_normal_buffer(Index index) const
+	NormalVertexBuffer* StaticMesh::LOD::find_normal_buffer(Index index)
 	{
-		return normals.size() <= index ? nullptr : normals[index].ptr();
+		return normals.size() <= index ? nullptr : &normals[index];
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_tangent_buffer(Index index) const
+	TangentVertexBuffer* StaticMesh::LOD::find_tangent_buffer(Index index)
 	{
-		return tangents.size() <= index ? nullptr : tangents[index].ptr();
+		return tangents.size() <= index ? nullptr : &tangents[index];
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_bitangent_buffer(Index index) const
+	BitangentVertexBuffer* StaticMesh::LOD::find_bitangent_buffer(Index index)
 	{
-		return bitangents.size() <= index ? nullptr : bitangents[index].ptr();
+		return bitangents.size() <= index ? nullptr : &bitangents[index];
 	}
 
 
@@ -71,46 +71,13 @@ namespace Engine
 	{
 		for (auto& lod : lods)
 		{
-			for (auto& position : lod.positions)
-			{
-				if (position)
-					position->init_render_resources();
-			}
-
-			for (auto& coord : lod.tex_coords)
-			{
-				if (coord)
-					coord->init_render_resources();
-			}
-
-			for (auto& color : lod.colors)
-			{
-				if (color)
-					color->init_render_resources();
-			}
-
-			for (auto& normal : lod.normals)
-			{
-				if (normal)
-					normal->init_render_resources();
-			}
-
-			for (auto& tangent : lod.tangents)
-			{
-				if (tangent)
-					tangent->init_render_resources();
-			}
-
-			for (auto& bitangent : lod.bitangents)
-			{
-				if (bitangent)
-					bitangent->init_render_resources();
-			}
-
-			if (lod.indices)
-			{
-				lod.indices->init_render_resources();
-			}
+			for (auto& position : lod.positions) position.init();
+			for (auto& coord : lod.tex_coords) coord.init();
+			for (auto& color : lod.colors) color.init();
+			for (auto& normal : lod.normals) normal.init();
+			for (auto& tangent : lod.tangents) tangent.init();
+			for (auto& bitangent : lod.bitangents) bitangent.init();
+			lod.indices.init();
 		}
 
 		return *this;
@@ -126,26 +93,8 @@ namespace Engine
 		return init_render_resources();
 	}
 
-
 	template<typename Type>
-	static void serialize_buffer(Archive& ar, Pointer<Type>& buffer)
-	{
-		bool is_valid = buffer;
-		ar.serialize(is_valid);
-
-		if (is_valid)
-		{
-			if (ar.is_reading())
-			{
-				buffer = Object::new_instance<Type>();
-			}
-
-			buffer.ptr()->serialize(ar);
-		}
-	}
-
-	template<typename Type>
-	static void serialize_buffers(Archive& ar, Vector<Pointer<Type>>& buffers)
+	static void serialize_buffers(Archive& ar, Vector<Type>& buffers)
 	{
 		size_t size = buffers.size();
 		ar.serialize(size);
@@ -159,7 +108,7 @@ namespace Engine
 
 			for (auto& buffer : buffers)
 			{
-				serialize_buffer(ar, buffer);
+				buffer.serialize(ar);
 			}
 		}
 	}
@@ -172,7 +121,7 @@ namespace Engine
 		serialize_buffers(ar, normals);
 		serialize_buffers(ar, tangents);
 		serialize_buffers(ar, bitangents);
-		serialize_buffer(ar, indices);
+		indices.serialize(ar);
 		return ar.serialize(surfaces);
 	}
 
@@ -198,7 +147,7 @@ namespace Engine
 		return ar;
 	}
 
-	VertexBuffer* StaticMesh::LOD::find_vertex_buffer(VertexBufferSemantic semantic, Index index) const
+	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(VertexBufferSemantic semantic, Index index)
 	{
 		Index semantic_index = static_cast<Index>(semantic);
 		if (semantic_index > static_cast<Index>(VertexBufferSemantic::Bitangent))
@@ -206,29 +155,33 @@ namespace Engine
 			return nullptr;
 		}
 
-		static VertexBuffer* (StaticMesh::LOD::* find_buffer_private[])(Index) const = {
-		        &StaticMesh::LOD::find_position_buffer, &StaticMesh::LOD::find_tex_coord_buffer,
-		        &StaticMesh::LOD::find_color_buffer,    &StaticMesh::LOD::find_normal_buffer,
-				&StaticMesh::LOD::find_tangent_buffer,  &StaticMesh::LOD::find_bitangent_buffer,
+		using Func = VertexBufferBase* (*) (LOD* lod, size_t);
+
+		static Func funcs[6] = {
+				static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_position_buffer(index); }),
+				static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tex_coord_buffer(index); }),
+				static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_color_buffer(index); }),
+				static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_normal_buffer(index); }),
+				static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tangent_buffer(index); }),
+				static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_bitangent_buffer(index); }),
 		};
 
-		return ((*this).*(find_buffer_private[semantic_index]))(index);
+		return funcs[semantic](this, index);
 	}
 
 	size_t StaticMesh::LOD::vertex_count() const
 	{
 		for (auto& buffer : positions)
 		{
-			if (buffer.ptr())
-			{
-				return buffer->vertex_count();
-			}
+			auto size = buffer.size();
+			if (size > 0)
+				return size;
 		}
 		return 0;
 	}
 
 	size_t StaticMesh::LOD::indices_count() const
 	{
-		return indices.ptr() ? indices->index_count() : 0;
+		return indices.indices_count();
 	}
 }// namespace Engine

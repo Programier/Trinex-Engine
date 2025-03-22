@@ -20,20 +20,11 @@ namespace Engine
 			    : m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
-			FORCE_INLINE const Vector3f& position() const
-			{
-				return m_position;
-			}
+			FORCE_INLINE const Vector3f& position() const { return m_position; }
 
-			FORCE_INLINE const ByteColor4& color() const
-			{
-				return m_color;
-			}
+			FORCE_INLINE const ByteColor4& color() const { return m_color; }
 
-			FORCE_INLINE float thickness() const
-			{
-				return m_thickness;
-			}
+			FORCE_INLINE float thickness() const { return m_thickness; }
 
 			FORCE_INLINE Vertex& position(const Vector3f& position)
 			{
@@ -54,10 +45,9 @@ namespace Engine
 			}
 		};
 
-		using LinesVertexBuffer = TypedDynamicVertexBuffer<Vertex>;
-
 	private:
-		Pointer<LinesVertexBuffer> m_lines;
+		VertexBuffer<Vertex> m_vtx_buffer;
+		size_t m_vtx_count = 0;
 
 	public:
 		BatchedLines();
@@ -70,8 +60,9 @@ namespace Engine
 
 	class ENGINE_EXPORT BatchedTriangles final
 	{
-		Pointer<PositionDynamicVertexBuffer> m_position_buffer = nullptr;
-		Pointer<ColorDynamicVertexBuffer> m_color_buffer       = nullptr;
+		PositionVertexBuffer m_position_buffer;
+		ColorVertexBuffer m_color_buffer;
+		size_t m_vtx_count = 0;
 
 	public:
 		BatchedTriangles();
@@ -81,9 +72,6 @@ namespace Engine
 		BatchedTriangles& add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 		                               ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
 		                               ByteColor color3 = {255, 255, 255, 255});
-		BatchedTriangles& override_triangle(Index index, const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
-		                                    ByteColor color1 = {255, 255, 255, 255}, ByteColor color2 = {255, 255, 255, 255},
-		                                    ByteColor color3 = {255, 255, 255, 255});
 		BatchedTriangles& render(class RenderPass* pass);
 	};
 }// namespace Engine

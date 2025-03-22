@@ -65,7 +65,7 @@ namespace Engine
 		VulkanBuffer m_buffer;
 		vk::IndexType m_type;
 
-		VulkanIndexBuffer& create(const byte* data, size_t size, IndexBufferFormat format);
+		VulkanIndexBuffer& create(const byte* data, size_t size, RHIIndexFormat format);
 
 		void bind(size_t offset) override;
 		void update(size_t offset, size_t size, const byte* data) override;

@@ -514,14 +514,13 @@ namespace Engine
 	};
 
 	struct RHIBufferType {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Static  = 0,
 			Dynamic = 1,
 		};
 
 		trinex_enum_struct(RHIBufferType);
-		trinex_declare_enum(RHIBufferType);
 	};
 
 	struct ColorFormat {
@@ -603,15 +602,14 @@ namespace Engine
 		trinex_declare_enum(SplashTextType);
 	};
 
-	struct IndexBufferFormat {
-		enum Enum
+	struct RHIIndexFormat {
+		enum Enum : byte
 		{
 			UInt32 = 0,
 			UInt16 = 1,
 		};
 
-		trinex_enum_struct(IndexBufferFormat);
-		trinex_declare_enum(IndexBufferFormat);
+		trinex_enum_struct(RHIIndexFormat);
 	};
 
 	struct ScriptCallConv {

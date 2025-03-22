@@ -200,6 +200,34 @@ namespace Engine
 			return ShaderParameterType::Undefined;
 		}
 
+		static uint32_t find_vertex_stream(slang::VariableReflection* var, uint32_t default_stream)
+		{
+			auto attrib = var->findAttributeByName(global_session(), "vertex_stream");
+			if (attrib && attrib->getArgumentCount() == 1)
+			{
+				int value = 0;
+				if (SLANG_SUCCEEDED(attrib->getArgumentValueInt(0, &value)))
+				{
+					return static_cast<uint32_t>(value);
+				}
+			}
+			return default_stream;
+		}
+
+		static uint32_t find_vertex_offset(slang::VariableReflection* var)
+		{
+			auto attrib = var->findAttributeByName(global_session(), "vertex_offset");
+			if (attrib && attrib->getArgumentCount() == 1)
+			{
+				int value = 0;
+				if (SLANG_SUCCEEDED(attrib->getArgumentValueInt(0, &value)))
+				{
+					return static_cast<uint32_t>(value);
+				}
+			}
+			return 0;
+		}
+
 		static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
 		{
 			Strings::to_lower(name);
@@ -346,8 +374,8 @@ namespace Engine
 				attribute.rate           = VertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
 				attribute.location       = var->getBindingIndex();
-				attribute.stream_index   = attribute.location;
-				attribute.offset         = 0;
+				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
+				attribute.offset         = find_vertex_offset(var->getVariable());
 				Object::instance_cast<GraphicsPipeline>(pipeline)->vertex_shader()->attributes.push_back(attribute);
 			}
 			else
@@ -900,6 +928,8 @@ namespace Engine
 			error_log("MaterialCompiler", "Failed to get shader source");
 			return false;
 		}
+
+		printf("%s\n", source.c_str());
 
 		bool success = true;
 

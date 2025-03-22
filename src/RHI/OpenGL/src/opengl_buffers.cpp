@@ -39,9 +39,9 @@ namespace Engine
 	}
 
 
-	OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
+	OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data, RHIIndexFormat format, RHIBufferType type)
 	{
-		m_format = format == IndexBufferFormat::UInt32 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+		m_format = format == RHIIndexFormat::UInt32 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
 
 		glGenBuffers(1, &m_id);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
@@ -100,7 +100,7 @@ namespace Engine
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
 	}
 
-	RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
+	RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, RHIIndexFormat format, RHIBufferType type)
 	{
 		return new OpenGL_IndexBuffer(size, data, format, type);
 	}

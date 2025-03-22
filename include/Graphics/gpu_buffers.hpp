@@ -1,383 +1,195 @@
 #pragma once
 #include <Core/archive.hpp>
 #include <Core/engine_types.hpp>
-#include <Core/render_resource.hpp>
+#include <Core/render_resource_ptr.hpp>
+#include <Graphics/rhi.hpp>
+#include <initializer_list>
 
 namespace Engine
 {
-	class ENGINE_EXPORT GPUBuffer : public RenderResource
+	// VERTEX BUFFER IMPLEMENTATION
+
+	class ENGINE_EXPORT VertexBufferBase
 	{
-		trinex_declare_class(GPUBuffer, RenderResource);
-
-	protected:
-		size_t m_size = 0;
-		static bool force_keep_cpu_data();
-
-		void execute_discard();
-
-	public:
-		GPUBuffer& rhi_update(size_t offset, size_t size, const byte* data);
-		size_t size() const;
-
-		virtual GPUBuffer& discard();
-		virtual byte* data();
-		virtual const byte* data() const;
-		virtual RHIBufferType buffer_type() const;
-		virtual RHI_Buffer* rhi_buffer() const = 0;
-	};
-
-	template<typename Type, typename Super>
-	class TypedGPUBuffer : public Super
-	{
-		struct Buffer {
-			bool m_with_cpu_access;
-			Vector<Type> m_buffer;
-		};
-
-		Buffer* m_buffer = nullptr;
-
-	public:
-		using ElementType = Type;
-
-	public:
-		using Super::init_render_resources;
-
-		TypedGPUBuffer& init(size_t buffer_size, const ElementType* buffer_data = nullptr, bool with_cpu_access = false)
-		{
-			auto& buffer = allocate_data(with_cpu_access);
-
-			if (buffer_data)
-			{
-				buffer.assign(buffer_data, buffer_data + buffer_size);
-			}
-			else
-			{
-				buffer.resize(buffer_size);
-			}
-			return *this;
-		}
-
-		TypedGPUBuffer& init(const Vector<ElementType>& buffer, bool with_cpu_access = false)
-		{
-			return init(buffer.size(), buffer.data(), with_cpu_access);
-		}
-
-		Vector<Type>& allocate_data(bool with_cpu_access)
-		{
-			if (m_buffer)
-			{
-				delete m_buffer;
-			}
-
-			m_buffer                    = new Buffer();
-			m_buffer->m_with_cpu_access = with_cpu_access;
-			return m_buffer->m_buffer;
-		}
-
-		bool with_cpu_access() const { return m_buffer ? m_buffer->m_with_cpu_access : false; }
-
-		TypedGPUBuffer& init_render_resources() override final
-		{
-			Super::init_render_resources();
-			return *this;
-		}
-
-		byte* data() override final
-		{
-			if (m_buffer)
-			{
-				return reinterpret_cast<byte*>(m_buffer->m_buffer.data());
-			}
-			return nullptr;
-		}
-
-		const byte* data() const override final
-		{
-			if (m_buffer)
-			{
-				return reinterpret_cast<const byte*>(m_buffer->m_buffer.data());
-			}
-			return nullptr;
-		}
-
-		Vector<Type>* buffer() { return m_buffer ? &m_buffer->m_buffer : nullptr; }
-
-		const Vector<Type>* buffer() const { return m_buffer ? &m_buffer->m_buffer : nullptr; }
-
-		TypedGPUBuffer& discard() override
-		{
-			if (m_buffer && !m_buffer->m_with_cpu_access && !GPUBuffer::force_keep_cpu_data())
-			{
-				delete m_buffer;
-				m_buffer = nullptr;
-			}
-			return *this;
-		}
-
-		bool serialize(Archive& ar) override final { return serialize(ar, false); }
-
-		virtual bool serialize(Archive& ar, bool allow_cpu_access)
-		{
-			if (!Super::serialize(ar))
-				return false;
-
-			if (ar.is_reading())
-			{
-				bool has_data      = false;
-				size_t buffer_size = 0;
-
-				ar.serialize(has_data);
-				ar.serialize(buffer_size);
-
-				auto& buffer = allocate_data(allow_cpu_access);
-				buffer.resize(buffer_size / sizeof(Type));
-
-				if (has_data)
-				{
-					byte* ptr = reinterpret_cast<byte*>(buffer.data());
-					ar.read_data(ptr, buffer_size);
-				}
-			}
-			else
-			{
-				bool has_data      = m_buffer != nullptr;
-				size_t buffer_size = has_data ? m_buffer->m_buffer.size() * sizeof(Type) : Super::size();
-
-				ar.serialize(has_data);
-				ar.serialize(buffer_size);
-
-				if (has_data)
-				{
-					byte* ptr = reinterpret_cast<byte*>(m_buffer->m_buffer.data());
-					ar.write_data(ptr, buffer_size);
-				}
-			}
-			return ar;
-		}
-
-		~TypedGPUBuffer()
-		{
-			if (m_buffer)
-			{
-				delete m_buffer;
-				m_buffer = nullptr;
-			}
-		}
-	};
-
-	///////////////// VERTEX BUFFERS /////////////////
-
-	class ENGINE_EXPORT VertexBuffer : public GPUBuffer
-	{
-		trinex_declare_class(VertexBuffer, GPUBuffer);
-
+	private:
 		RenderResourcePtr<RHI_VertexBuffer> m_buffer;
+		byte* m_data         = nullptr;
+		uint32_t m_vtx_count = 0;
+		uint16_t m_stride    = 0;
+		RHIBufferType m_type = RHIBufferType::Static;
 
 	public:
-		VertexBuffer& init_render_resources() override;
-		VertexBuffer& release_render_resources() override;
-		VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
-		size_t vertex_count() const;
-		const byte* vertex_address(size_t index) const;
-		byte* vertex_address(size_t index);
-		RHI_Buffer* rhi_buffer() const override;
+		VertexBufferBase();
+		// clang-format off
+		VertexBufferBase(RHIBufferType type, uint16_t stride, size_t count, const void* data = nullptr, bool keep_cpu_data = false);
+		VertexBufferBase(const VertexBufferBase& buffer);
+		VertexBufferBase(VertexBufferBase&& buffer);
+		VertexBufferBase& operator=(const VertexBufferBase& buffer);
+		VertexBufferBase& operator=(VertexBufferBase&& buffer);
 
-		virtual size_t stride() const = 0;
+		VertexBufferBase& init(RHIBufferType type, size_t stride, size_t count, const void* data = nullptr, bool keep_cpu_data = false);
+		// clang-format on
 
-		inline RHI_VertexBuffer* rhi_vertex_buffer() const { return m_buffer; }
+		VertexBufferBase& init(bool keep_cpu_data = false);
+		byte* allocate_data(RHIBufferType type, uint16_t stride, size_t count);
+		VertexBufferBase& release();
+
+		VertexBufferBase& rhi_bind(byte stream_index, size_t offset = 0);
+		VertexBufferBase& rhi_update(size_t size, size_t offset = 0);
+
+		bool serialize(Archive& ar);
+
+		inline RHI_VertexBuffer* rhi_vertex_buffer() { return m_buffer; }
+		inline byte* data() { return m_data; }
+		inline const byte* data() const { return m_data; }
+		inline RHIBufferType type() const { return m_type; }
+		inline size_t size() const { return static_cast<size_t>(m_vtx_count) * static_cast<size_t>(m_stride); }
+		inline size_t stride() const { return static_cast<size_t>(m_stride); }
+		inline size_t vertices() const { return static_cast<size_t>(m_vtx_count); }
 	};
 
-	template<typename Type>
-	class TypedVertexBuffer : public TypedGPUBuffer<Type, VertexBuffer>
+	template<typename T>
+	class VertexBuffer : public VertexBufferBase
 	{
 	public:
-		size_t stride() const override { return sizeof(Type); }
+		VertexBuffer() = default;
+		VertexBuffer(const std::initializer_list<T>& list, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
+			: VertexBufferBase(type, sizeof(T), list.size(), reinterpret_cast<const byte*>(list.begin()), keep_cpu_data)
+		{}
+
+		VertexBuffer(const T* data, size_t count, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
+			: VertexBufferBase(type, sizeof(T), count, reinterpret_cast<const byte*>(data), keep_cpu_data)
+		{}
+
+		VertexBuffer(const T* begin, const T* end, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
+			: VertexBufferBase(type, sizeof(T), end - begin, reinterpret_cast<const byte*>(begin), keep_cpu_data)
+		{}
+
+		inline VertexBuffer& init(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
+		{
+			VertexBufferBase::init(type, sizeof(T), count, reinterpret_cast<const byte*>(data), keep_cpu_data);
+			return *this;
+		}
+
+		inline VertexBuffer& init(bool keep_cpu_data = false)
+		{
+			VertexBufferBase::init(keep_cpu_data);
+			return *this;
+		}
+
+		inline T* allocate_data(RHIBufferType type, size_t size)
+		{
+			return reinterpret_cast<T*>(VertexBufferBase::allocate_data(type, sizeof(T), size));
+		}
+
+		inline VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0)
+		{
+			VertexBufferBase::rhi_bind(stream_index, offset);
+			return *this;
+		}
+
+		inline T* data() { return reinterpret_cast<T*>(VertexBufferBase::data()); }
+		inline const T* data() const { return reinterpret_cast<T*>(VertexBufferBase::data()); }
 	};
 
-	template<typename Type>
-	class TypedDynamicVertexBuffer : public TypedVertexBuffer<Type>
+	// clang-format off
+	class PositionVertexBuffer  : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
+	class TexCoordVertexBuffer  : public VertexBuffer<Vector2f>	 { using VertexBuffer::VertexBuffer; };
+	class ColorVertexBuffer     : public VertexBuffer<ByteColor> { using VertexBuffer::VertexBuffer; };
+	class NormalVertexBuffer    : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
+	class TangentVertexBuffer   : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
+	class BitangentVertexBuffer : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
+	// clang-format on
+
+
+	// INDEX BUFFER IMPLEMENTATION
+
+	class ENGINE_EXPORT IndexBuffer
 	{
-	public:
-		RHIBufferType buffer_type() const override { return RHIBufferType::Dynamic; }
-	};
-
-	class ENGINE_EXPORT PositionVertexBuffer : public TypedVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(PositionVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT TexCoordVertexBuffer : public TypedVertexBuffer<Vector2f>
-	{
-		trinex_declare_class(TexCoordVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT ColorVertexBuffer : public TypedVertexBuffer<ByteColor>
-	{
-		trinex_declare_class(ColorVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT NormalVertexBuffer : public TypedVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(NormalVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT TangentVertexBuffer : public TypedVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(TangentVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT BitangentVertexBuffer : public TypedVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(BitangentVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT PositionDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(PositionDynamicVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT TexCoordDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector2f>
-	{
-		trinex_declare_class(TexCoordDynamicVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT ColorDynamicVertexBuffer : public TypedDynamicVertexBuffer<ByteColor>
-	{
-		trinex_declare_class(ColorDynamicVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT NormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(NormalDynamicVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT TangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(TangentDynamicVertexBuffer, VertexBuffer);
-	};
-
-	class ENGINE_EXPORT BitangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3f>
-	{
-		trinex_declare_class(BitangentDynamicVertexBuffer, VertexBuffer);
-	};
-
-	///////////////// INDEX BUFFER /////////////////
-
-	class ENGINE_EXPORT IndexBuffer : public GPUBuffer
-	{
-		trinex_declare_class(IndexBuffer, GPUBuffer);
-
+	private:
 		RenderResourcePtr<RHI_IndexBuffer> m_buffer;
+		byte* m_data            = nullptr;
+		uint32_t m_idx_count    = 0;
+		RHIBufferType m_type    = RHIBufferType::Static;
+		RHIIndexFormat m_format = RHIIndexFormat::UInt16;
 
 	public:
-		IndexBuffer& init_render_resources() override;
-		IndexBuffer& release_render_resources() override;
+		IndexBuffer();
+		// clang-format off
+		IndexBuffer(RHIBufferType type, size_t count, const uint16_t* data = nullptr, bool keep_cpu_data = false);
+		IndexBuffer(RHIBufferType type, size_t count, const uint32_t* data = nullptr, bool keep_cpu_data = false);
+		IndexBuffer(const std::initializer_list<uint16_t>& list, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false);
+		IndexBuffer(const std::initializer_list<uint32_t>& list, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false);
+		IndexBuffer(const uint16_t* start, const uint16_t* end, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false);
+		IndexBuffer(const uint32_t* start, const uint32_t* end, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false);
+		IndexBuffer(const IndexBuffer& buffer);
+		IndexBuffer(IndexBuffer&& buffer);
+		IndexBuffer& operator=(const IndexBuffer& buffer);
+		IndexBuffer& operator=(IndexBuffer&& buffer);
+		// clang-format on
+
+		IndexBuffer& init(RHIBufferType type, size_t count, const uint16_t* data = nullptr, bool keep_cpu_data = false);
+		IndexBuffer& init(RHIBufferType type, size_t count, const uint32_t* data = nullptr, bool keep_cpu_data = false);
+		IndexBuffer& init(bool keep_cpu_data = false);
+		byte* allocate_data(RHIBufferType type, RHIIndexFormat format, size_t count);
+		IndexBuffer& release();
 		IndexBuffer& rhi_bind(size_t offset = 0);
 
-		size_t index_count() const;
-		const byte* index_address(size_t index) const;
-		byte* index_address(size_t index);
-		RHI_Buffer* rhi_buffer() const override;
+		bool serialize(Archive& ar);
 
-		virtual IndexBufferFormat index_type() const = 0;
-		virtual size_t index_size() const            = 0;
-
-		inline RHI_IndexBuffer* rhi_index_buffer() const { return m_buffer; }
+		inline RHI_IndexBuffer* rhi_index_buffer() { return m_buffer; }
+		inline byte* data() { return m_data; }
+		inline const byte* data() const { return m_data; }
+		inline RHIBufferType type() const { return m_type; }
+		inline RHIIndexFormat format() const { return m_format; }
+		inline size_t stride() const { return m_format == RHIIndexFormat::UInt16 ? 2 : 4; }
+		inline size_t size() const { return static_cast<size_t>(m_idx_count) * stride(); }
+		inline size_t indices_count() const { return static_cast<size_t>(m_idx_count); }
 	};
 
-	template<typename Type, IndexBufferFormat format>
-	class TypedIndexBuffer : public TypedGPUBuffer<Type, IndexBuffer>
+	template<typename T>
+	class TypedIndexBuffer : public IndexBuffer
 	{
 	public:
-		IndexBufferFormat index_type() const override { return format; }
+		TypedIndexBuffer() = default;
 
-		size_t index_size() const override { return sizeof(Type); }
-	};
+		TypedIndexBuffer(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
+			: IndexBuffer(type, size, data, keep_cpu_data)
+		{}
 
-	template<typename Type, IndexBufferFormat format>
-	class TypedDynamicIndexBuffer : public TypedIndexBuffer<Type, format>
-	{
-	public:
-		RHIBufferType buffer_type() const override { return RHIBufferType::Dynamic; }
-	};
+		TypedIndexBuffer(const std::initializer_list<T>& list, RHIBufferType type = RHIBufferType::Static,
+						 bool keep_cpu_data = false)
+			: IndexBuffer(list, type, keep_cpu_data)
+		{}
 
-	class ENGINE_EXPORT UInt32IndexBuffer : public TypedIndexBuffer<uint32_t, IndexBufferFormat::UInt32>
-	{
-		trinex_declare_class(UInt32IndexBuffer, IndexBuffer);
-	};
+		TypedIndexBuffer(const T* start, const T* end, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
+			: IndexBuffer(start, end, type, keep_cpu_data)
+		{}
 
-	class ENGINE_EXPORT UInt16IndexBuffer : public TypedIndexBuffer<uint32_t, IndexBufferFormat::UInt16>
-	{
-		trinex_declare_class(UInt16IndexBuffer, IndexBuffer);
-	};
-
-	class ENGINE_EXPORT UInt32DynamicIndexBuffer : public TypedDynamicIndexBuffer<uint32_t, IndexBufferFormat::UInt32>
-	{
-		trinex_declare_class(UInt32DynamicIndexBuffer, IndexBuffer);
-	};
-
-	class ENGINE_EXPORT UInt16DynamicIndexBuffer : public TypedDynamicIndexBuffer<uint32_t, IndexBufferFormat::UInt16>
-	{
-		trinex_declare_class(UInt16DynamicIndexBuffer, IndexBuffer);
-	};
-
-	// UNIFORM BUFFER
-
-	class ENGINE_EXPORT UniformBuffer : public GPUBuffer
-	{
-		trinex_declare_class(UniformBuffer, GPUBuffer);
-
-		RenderResourcePtr<RHI_UniformBuffer> m_buffer;
-
-	public:
-		UniformBuffer& init_render_resources() override;
-		UniformBuffer& release_render_resources() override;
-		RHIBufferType buffer_type() const override;
-		RHI_Buffer* rhi_buffer() const override;
-
-		inline RHI_UniformBuffer* rhi_uniform_buffer() const { return m_buffer; }
-	};
-
-	template<typename StorageType>
-	class ENGINE_EXPORT StructuredUniformBuffer : public UniformBuffer
-	{
-	public:
-		StorageType storage;
-
-		StructuredUniformBuffer& init_render_resources() override
+		TypedIndexBuffer& init(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
 		{
-			m_size = sizeof(StorageType);
-			UniformBuffer::init_render_resources();
+			IndexBuffer::init(type, count, data, keep_cpu_data);
 			return *this;
 		}
 
-		byte* data() override { return reinterpret_cast<byte*>(&storage); }
-		const byte* data() const override { return reinterpret_cast<const byte*>(&storage); }
-		using UniformBuffer::rhi_update;
-
-		StructuredUniformBuffer& rhi_update(size_t offset, size_t size)
+		TypedIndexBuffer& init(bool keep_cpu_data = false)
 		{
-			offset = glm::clamp(offset, static_cast<size_t>(0), static_cast<size_t>(sizeof(StorageType)));
-			size   = glm::min(size, static_cast<size_t>(sizeof(StorageType)) - offset);
-			UniformBuffer::rhi_update(offset, size, data() + offset);
+			IndexBuffer::init(keep_cpu_data);
 			return *this;
 		}
+
+		T* allocate_data(RHIBufferType type, size_t count)
+		{
+			constexpr RHIIndexFormat format = sizeof(T) == 2 ? RHIIndexFormat::UInt16 : RHIIndexFormat::UInt32;
+			return reinterpret_cast<T*>(IndexBuffer::allocate_data(type, format, count));
+		}
+
+		T* data() { return reinterpret_cast<T*>(IndexBuffer::data()); }
+		const T* data() const { return reinterpret_cast<T*>(IndexBuffer::data()); }
 	};
 
-	class ENGINE_EXPORT UntypedUniformBuffer : public TypedGPUBuffer<byte, UniformBuffer>
-	{
-		trinex_declare_class(UntypedUniformBuffer, UniformBuffer);
-	};
-
-	class ENGINE_EXPORT SSBO : public GPUBuffer
-	{
-		trinex_declare_class(SSBO, GPUBuffer);
-
-	public:
-		size_t init_size      = 0;
-		const byte* init_data = nullptr;
-
-		SSBO& init_render_resources() override;
-		SSBO& rhi_bind(byte location);
-	};
+	// clang-format off
+	class IndexBuffer16 : public TypedIndexBuffer<uint16_t> { using TypedIndexBuffer::TypedIndexBuffer; };
+	class IndexBuffer32 : public TypedIndexBuffer<uint32_t> { using TypedIndexBuffer::TypedIndexBuffer; };
+	// clang-format on
 }// namespace Engine

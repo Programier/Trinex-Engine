@@ -3,12 +3,11 @@
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Engine/aabb.hpp>
+#include <Graphics/gpu_buffers.hpp>
 
 namespace Engine
 {
 	class MaterialInterface;
-	class VertexBuffer;
-	class UInt32IndexBuffer;
 
 	struct ENGINE_EXPORT MeshMaterial {
 		trinex_declare_struct(MeshMaterial, void);
@@ -17,7 +16,6 @@ namespace Engine
 		PolicyID policy;
 		byte surface_index;
 	};
-
 
 	struct ENGINE_EXPORT MeshSurface {
 		uint32_t base_vertex_index;
@@ -31,26 +29,26 @@ namespace Engine
 
 	public:
 		struct ENGINE_EXPORT LOD {
-			Vector<Pointer<class PositionVertexBuffer>> positions;
-			Vector<Pointer<class TexCoordVertexBuffer>> tex_coords;
-			Vector<Pointer<class ColorVertexBuffer>> colors;
-			Vector<Pointer<class NormalVertexBuffer>> normals;
-			Vector<Pointer<class TangentVertexBuffer>> tangents;
-			Vector<Pointer<class BitangentVertexBuffer>> bitangents;
-			Pointer<UInt32IndexBuffer> indices;
+			Vector<PositionVertexBuffer> positions;
+			Vector<TexCoordVertexBuffer> tex_coords;
+			Vector<ColorVertexBuffer> colors;
+			Vector<NormalVertexBuffer> normals;
+			Vector<TangentVertexBuffer> tangents;
+			Vector<BitangentVertexBuffer> bitangents;
 
+			IndexBuffer indices;
 			Vector<MeshSurface> surfaces;
 
 		private:
-			VertexBuffer* find_position_buffer(Index index) const;
-			VertexBuffer* find_tex_coord_buffer(Index index) const;
-			VertexBuffer* find_color_buffer(Index index) const;
-			VertexBuffer* find_normal_buffer(Index index) const;
-			VertexBuffer* find_tangent_buffer(Index index) const;
-			VertexBuffer* find_bitangent_buffer(Index index) const;
+			PositionVertexBuffer* find_position_buffer(Index index);
+			TexCoordVertexBuffer* find_tex_coord_buffer(Index index);
+			ColorVertexBuffer* find_color_buffer(Index index);
+			NormalVertexBuffer* find_normal_buffer(Index index);
+			TangentVertexBuffer* find_tangent_buffer(Index index);
+			BitangentVertexBuffer* find_bitangent_buffer(Index index);
 
 		public:
-			VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
+			VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0);
 			size_t vertex_count() const;
 			size_t indices_count() const;
 			bool serialize(Archive& ar);

@@ -5,8 +5,16 @@
 
 struct VertexInput 
 {
+    [vertex_stream(0)]
+    [vertex_offset(0)]
     float3 position : POSITION0;
+
+    [vertex_stream(0)]
+    [vertex_offset(12)]
     float4 color : COLOR0;
+
+    [vertex_stream(0)]
+    [vertex_offset(16)]
     float thickness : POSITION1;
 };
 

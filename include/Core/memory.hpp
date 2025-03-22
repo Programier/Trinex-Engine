@@ -5,6 +5,7 @@
 namespace Engine
 {
 	ENGINE_EXPORT byte* allocate_memory(size_t size, size_t alignment = 16);
+	ENGINE_EXPORT byte* allocate_memory(size_t size, size_t alignment, const void* src);
 	ENGINE_EXPORT void release_memory(void* ptr);
 
 	template<typename T, typename... Args>

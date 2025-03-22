@@ -234,7 +234,7 @@ namespace Engine
 		return new NoneVertexBuffer();
 	}
 
-	RHI_IndexBuffer* NoneApi::create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type)
+	RHI_IndexBuffer* NoneApi::create_index_buffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type)
 	{
 		return new NoneIndexBuffer();
 	}

@@ -71,8 +71,8 @@ namespace Engine
 
 				for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
 				{
-					auto& attribute      = shader->attributes[i];
-					VertexBuffer* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
+					auto& attribute          = shader->attributes[i];
+					VertexBufferBase* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
 
 					if (buffer)
 					{
@@ -84,9 +84,9 @@ namespace Engine
 
 				pass->predraw(component, surface_info.material, pipeline);
 
-				if (lod.indices->size() > 0)
+				if (lod.indices.size() > 0)
 				{
-					pass->bind_index_buffer(lod.indices, 0);
+					pass->bind_index_buffer(&lod.indices, 0);
 					pass->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
 				}
 				else

@@ -3,22 +3,6 @@
 
 #include "trinex/common.slang"
 
-
-/*
-struct Material
-{
-	float3 base_color;
-	float3 emissive;
-	float3 world_normal;
-	float3 position_offset;
-
-	float specular;
-	float metalness;
-	float roughness;
-	float opacity;
-    float AO;
-};
-*/
 [shader("fragment")]
 GBufferFragmentOutput fs_main(in FragmentInput input)
 {
