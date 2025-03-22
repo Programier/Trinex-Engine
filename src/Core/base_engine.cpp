@@ -1,5 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/config_manager.hpp>
+#include <Core/etl/allocator.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
@@ -18,8 +19,7 @@ namespace Engine
 	struct SubmitCommand : public Task<SubmitCommand> {
 		CriticalSection* m_signal;
 
-		SubmitCommand(CriticalSection* signal) : m_signal(signal)
-		{}
+		SubmitCommand(CriticalSection* signal) : m_signal(signal) {}
 
 		void execute() override
 		{
@@ -73,6 +73,7 @@ namespace Engine
 		++m_frame_index;
 
 		GarbageCollector::update(m_delta_time);
+		StackByteAllocator::flush();
 
 		if (auto instance = EngineSystem::instance())
 		{

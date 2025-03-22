@@ -32,8 +32,38 @@ namespace Engine
 		void deallocate(unsigned char* ptr) noexcept;
 	};
 
-	template<typename T>
-	struct Allocator : ByteAllocator {
+	struct ENGINE_EXPORT StackByteAllocator : AllocatorBase {
+		class ENGINE_EXPORT Mark final
+		{
+		private:
+			void* m_datas[2];
+
+		public:
+			Mark();
+			Mark(const Mark&)            = delete;
+			Mark(Mark&&)                 = delete;
+			Mark& operator=(const Mark&) = delete;
+			Mark& operator=(Mark&&)      = delete;
+			~Mark();
+		};
+
+		using value_type      = unsigned char;
+		using pointer         = value_type*;
+		using const_pointer   = const value_type*;
+		using reference       = value_type&;
+		using const_reference = const value_type&;
+		using size_type       = std::size_t;
+		using difference_type = std::ptrdiff_t;
+
+		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
+		static inline void deallocate(unsigned char* ptr) noexcept {}
+
+		static unsigned char* allocate_aligned(size_type size, size_type align);
+		static void flush();
+	};
+
+	template<typename T, typename Type>
+	struct TypedAllocator : Type {
 		using value_type      = T;
 		using pointer         = value_type*;
 		using const_pointer   = const value_type*;
@@ -44,41 +74,48 @@ namespace Engine
 
 		template<typename U>
 		struct rebind {
-			using other = Allocator<U>;
+			using other = TypedAllocator<U, Type>;
 		};
 
-		Allocator()                 = default;
-		Allocator(const Allocator&) = default;
+		TypedAllocator()                      = default;
+		TypedAllocator(const TypedAllocator&) = default;
 
 		template<typename U>
-		Allocator(const Allocator<U>&)
+		TypedAllocator(const TypedAllocator<U, Type>&)
 		{}
 
-		Allocator& operator=(const Allocator& other) = default;
+		TypedAllocator& operator=(const TypedAllocator& other) = default;
 
-		~Allocator() {}
+		~TypedAllocator() {}
 
 		pointer allocate(size_type size)
 		{
-			return reinterpret_cast<pointer>(ByteAllocator().allocate_aligned(size * sizeof(T), alignof(T)));
+			return reinterpret_cast<pointer>(Type::allocate_aligned(size * sizeof(T), alignof(T)));
 		}
 
-		void deallocate(pointer ptr, size_type size) noexcept
+		void deallocate(pointer ptr, size_type unused = 0) noexcept
 		{
-			ByteAllocator().deallocate(reinterpret_cast<unsigned char*>(ptr));
+			static_cast<void>(unused);
+			Type::deallocate(reinterpret_cast<unsigned char*>(ptr));
 		}
 	};
 
 
-	template<typename T, typename U>
-	inline bool operator==(const Allocator<T>&, const Allocator<U>&)
+	template<typename T, typename U, typename Type>
+	inline bool operator==(const TypedAllocator<T, Type>&, const TypedAllocator<U, Type>&)
 	{
 		return true;
 	}
 
-	template<typename T, typename U>
-	inline bool operator!=(const Allocator<T>&, const Allocator<U>&)
+	template<typename T, typename U, typename Type>
+	inline bool operator!=(const TypedAllocator<T, Type>&, const TypedAllocator<U, Type>&)
 	{
 		return false;
 	}
+
+	template<typename T>
+	using Allocator = TypedAllocator<T, ByteAllocator>;
+
+	template<typename T>
+	using StackAllocator = TypedAllocator<T, StackByteAllocator>;
 }// namespace Engine
