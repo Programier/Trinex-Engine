@@ -154,6 +154,11 @@ namespace Engine
 		return false;
 	}
 
+	Pipeline& Pipeline::modify_compilation_env(ShaderCompilationEnvironment* env)
+	{
+		return *this;
+	}
+
 	class Material* Pipeline::material() const
 	{
 		return Object::instance_cast<Material>(owner());

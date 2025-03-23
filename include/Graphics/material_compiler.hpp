@@ -7,6 +7,14 @@ namespace Engine
 	class Logger;
 	class Material;
 	class Pipeline;
+	class Path;
+
+	class ShaderCompilationEnvironment
+	{
+	public:
+		virtual ShaderCompilationEnvironment& add_definition(const char* key, const char* value)        = 0;
+		virtual ShaderCompilationEnvironment& add_definition_nocopy(const char* key, const char* value) = 0;
+	};
 
 	class ENGINE_EXPORT MaterialCompiler : public Object
 	{

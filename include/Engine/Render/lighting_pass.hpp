@@ -38,8 +38,6 @@ namespace Engine
 		ShadowedLightingPass* m_shadowed_lighting_pass = nullptr;
 		LightingPass* m_lighting_pass                  = nullptr;
 
-		RenderPass* find_render_pass(LightComponentProxy* light);
-
 	public:
 		DeferredLightingPass& initialize() override;
 		bool is_empty() const override;

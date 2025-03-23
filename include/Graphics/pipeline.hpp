@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/pointer.hpp>
@@ -17,6 +16,7 @@ namespace Engine
 	class RenderPass;
 	class Logger;
 	class Shader;
+	class ShaderCompilationEnvironment;
 
 	class GraphicsPipelineDescription : public Object
 	{
@@ -116,6 +116,7 @@ namespace Engine
 		virtual bool serialize(Archive& ar, Material* material);
 		virtual Pipeline& clear();
 		virtual bool shader_source(String& source);
+		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
 
 		inline RHI_Pipeline* rhi_pipeline() const { return m_pipeline; }
 

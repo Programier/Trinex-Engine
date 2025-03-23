@@ -507,7 +507,8 @@ namespace Engine
 			Fragment            = BIT(4),
 			Compute             = BIT(5),
 
-			All = Vertex | TessellationControl | Tessellation | Geometry | Fragment | Compute,
+			All           = Vertex | TessellationControl | Tessellation | Geometry | Fragment | Compute,
+			BasicGraphics = Vertex | Fragment,
 		};
 
 		trinex_bitfield_enum_struct(ShaderType, EnumerateType);

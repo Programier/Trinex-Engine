@@ -2,6 +2,7 @@
 #include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_compiler.hpp>
 
 namespace Engine::Refl
 {
@@ -69,5 +70,14 @@ namespace Engine::Refl
 			return m_is_material_compatible(material);
 		}
 		return false;
+	}
+
+	RenderPassInfo& RenderPassInfo::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+	{
+		for (auto& def : m_shader_definitions)
+		{
+			env->add_definition_nocopy(def.key.c_str(), def.value.c_str());
+		}
+		return *this;
 	}
 }// namespace Engine::Refl

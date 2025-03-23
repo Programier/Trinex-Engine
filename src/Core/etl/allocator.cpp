@@ -88,9 +88,11 @@ namespace Engine
 						return ptr;
 					}
 
-					prev               = m_current;
-					m_current          = m_current->m_next;
-					m_current->m_stack = m_current->m_begin;
+					prev      = m_current;
+					m_current = m_current->m_next;
+
+					if (m_current)
+						m_current->m_stack = m_current->m_begin;
 				}
 
 				m_current    = allocate_block(size, align);

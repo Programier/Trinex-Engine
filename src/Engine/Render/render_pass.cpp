@@ -17,6 +17,11 @@ namespace Engine
 {
 	trinex_implement_struct_default_init(Engine::RenderPass, 0);
 
+	Refl::RenderPassInfo* RenderPass::static_cast_to_render_pass_info(Refl::Struct* info)
+	{
+		return Refl::Object::instance_cast<Refl::RenderPassInfo>(info);
+	}
+
 	RenderPass::RenderPass() {}
 
 	RenderPass::~RenderPass()

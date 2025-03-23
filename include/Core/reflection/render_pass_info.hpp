@@ -5,6 +5,7 @@
 namespace Engine
 {
 	class Material;
+	class ShaderCompilationEnvironment;
 }
 
 namespace Engine::Refl
@@ -32,6 +33,7 @@ namespace Engine::Refl
 		const Vector<ShaderDefinition>& shader_definitions() const;
 		uint_t attachment_count() const;
 		bool is_material_compatible(const Material* material);
+		RenderPassInfo& modify_shader_compilation_env(ShaderCompilationEnvironment* env);
 
 		inline RenderPassInfo* next_pass()
 		{

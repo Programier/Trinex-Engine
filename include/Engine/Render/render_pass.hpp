@@ -46,6 +46,8 @@ namespace Engine
 		void initialize_subpass(RenderPass* pass);
 
 	protected:
+		static Refl::RenderPassInfo* static_cast_to_render_pass_info(Refl::Struct* info);
+
 		RenderPass();
 		virtual ~RenderPass();
 
@@ -123,6 +125,10 @@ namespace Engine
     trinex_declare_struct(name, parent);                                                                                         \
                                                                                                                                  \
 public:                                                                                                                          \
+	static Engine::Refl::RenderPassInfo* static_info()                                                                           \
+	{                                                                                                                            \
+		return Engine::RenderPass::static_cast_to_render_pass_info(static_struct_instance());                                    \
+	}                                                                                                                            \
 	virtual Engine::Refl::Struct* struct_instance() const override;                                                              \
 	friend class Engine::RenderPass;                                                                                             \
 	friend class Engine::SceneRenderer;                                                                                          \

@@ -646,16 +646,46 @@ namespace Engine
 	trinex_implement_class_default_init(Engine::NONE_MaterialCompiler, 0);
 	trinex_implement_class_default_init(Engine::D3D11_MaterialCompiler, 0);
 
+
+	class SLANG_CompilationEnv : public ShaderCompilationEnvironment
+	{
+		SLANG_MaterialCompiler::Context* m_ctx = nullptr;
+
+	public:
+		SLANG_CompilationEnv(SLANG_MaterialCompiler::Context* ctx) : m_ctx(ctx) {}
+
+		static const char* copy_str(const char* str)
+		{
+			auto len   = std::strlen(str) + 1;
+			char* copy = FrameAllocator<char>().allocate(len);
+			std::memcpy(copy, str, len);
+			return copy;
+		}
+
+		SLANG_CompilationEnv& add_definition(const char* key, const char* value) override
+		{
+			m_ctx->definitions.push_back({copy_str(key), copy_str(value)});
+			return *this;
+		}
+
+		SLANG_CompilationEnv& add_definition_nocopy(const char* key, const char* value) override
+		{
+			m_ctx->definitions.push_back({key, value});
+			return *this;
+		}
+	};
+
 	SLANG_MaterialCompiler::Context::Context(SLANG_MaterialCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
 	{
 		compiler->m_ctx = this;
+		definitions.reserve(64);
 	}
 
-	size_t SLANG_MaterialCompiler::Context::calculate_source_len(const String& source, const DefinitionsArray* definitions)
+	size_t SLANG_MaterialCompiler::Context::calculate_source_len(const String& source)
 	{
 		size_t len = source.size();
 
-		for (auto& definition : *definitions)
+		for (auto& definition : definitions)
 		{
 			len += definition.key.size();
 			len += definition.value.size();
@@ -664,9 +694,9 @@ namespace Engine
 		return len;
 	}
 
-	char* SLANG_MaterialCompiler::Context::initialize_definitions(char* dst, const DefinitionsArray* definitions)
+	char* SLANG_MaterialCompiler::Context::initialize_definitions(char* dst)
 	{
-		for (auto& definition : *definitions)
+		for (auto& definition : definitions)
 		{
 			std::memcpy(dst, "#define ", 8);
 			dst += 8;
@@ -684,8 +714,7 @@ namespace Engine
 		return dst;
 	}
 
-	bool SLANG_MaterialCompiler::Context::initialize(const String& source, Pipeline* pipeline,
-													 const DefinitionsArray* definitions)
+	bool SLANG_MaterialCompiler::Context::initialize(const String& source, Pipeline* pipeline)
 	{
 		auto& session = compiler->m_session;
 
@@ -695,17 +724,15 @@ namespace Engine
 			return false;
 		}
 
-		StackByteAllocator::Mark mark;
-
 		const char* source_ptr = source.data();
 
-		if (definitions)
+		if (definitions.size() > 0)
 		{
-			size_t len = calculate_source_len(source, definitions);
-			char* dst  = StackAllocator<char>().allocate(len + 1);
+			size_t len = calculate_source_len(source);
+			char* dst  = FrameAllocator<char>().allocate(len + 1);
 			source_ptr = dst;
 
-			dst = initialize_definitions(dst, definitions);
+			dst = initialize_definitions(dst);
 			std::memcpy(dst, source.c_str(), source.size());
 			dst[source.size()] = '\0';
 		}
@@ -733,7 +760,7 @@ namespace Engine
 
 	bool SLANG_MaterialCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
-		Containers::Vector<slang::IComponentType*, StackAllocator<slang::IComponentType*>> component_types;
+		Containers::Vector<slang::IComponentType*, FrameAllocator<slang::IComponentType*>> component_types;
 		component_types.push_back(module);
 
 		for (size_t i = 0; i < infos_len; ++i)
@@ -841,13 +868,6 @@ namespace Engine
 
 	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass)
 	{
-		DefinitionsArray definitions;
-		const size_t definitions_count =
-				(material ? material->compile_definitions.size() : 0) + (pass ? pass->shader_definitions().size() : 0);
-
-		if (definitions_count > 0)
-			definitions.reserve(definitions_count);
-
 		if (material)
 		{
 			for (auto& definition : material->compile_definitions)
@@ -858,10 +878,8 @@ namespace Engine
 
 		if (pass)
 		{
-			for (auto& definition : pass->shader_definitions())
-			{
-				definitions.push_back(definition);
-			}
+			SLANG_CompilationEnv env(this);
+			pass->modify_shader_compilation_env(&env);
 		}
 
 		Pipeline* pipeline      = material->remove_pipeline(pass);
@@ -877,7 +895,7 @@ namespace Engine
 			pipeline->clear();
 		}
 
-		if (compile_graphics(source, pipeline, definitions_count == 0 ? nullptr : &definitions))
+		if (compile_graphics(source, pipeline))
 		{
 			material->add_pipeline(pass, pipeline);
 			pipeline->init_render_resources();
@@ -892,10 +910,12 @@ namespace Engine
 		return false;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline,
-														   const DefinitionsArray* definitions)
+	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline)
 	{
-		if (!initialize(source, pipeline, definitions))
+		SLANG_CompilationEnv env(this);
+		pipeline->modify_compilation_env(&env);
+
+		if (!initialize(source, pipeline))
 			return false;
 
 		ShaderInfo shader_infos[] = {
@@ -916,10 +936,12 @@ namespace Engine
 		return compile(shader_infos, 5, pipeline, checker);
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_compute(const String& source, Pipeline* pipeline,
-														  const DefinitionsArray* definitions)
+	bool SLANG_MaterialCompiler::Context::compile_compute(const String& source, Pipeline* pipeline)
 	{
-		if (!initialize(source, pipeline, definitions))
+		SLANG_CompilationEnv env(this);
+		pipeline->modify_compilation_env(&env);
+
+		if (!initialize(source, pipeline))
 			return false;
 
 		ShaderInfo shader_infos[] = {{ShaderType::Compute, "cs_main", {}, -1}};
@@ -948,8 +970,6 @@ namespace Engine
 	SLANG_MaterialCompiler& SLANG_MaterialCompiler::on_create()
 	{
 		Super::on_create();
-
-		StackByteAllocator::Mark mark;
 
 		Path include_directories[] = {
 				rootfs()->native_path(Project::shaders_dir),
@@ -1044,14 +1064,12 @@ namespace Engine
 
 	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
 	{
-		StackByteAllocator::Mark mark;
 		Context ctx(this);
 		return ctx.compile_graphics(source, material, pass);
 	}
 
 	bool SLANG_MaterialCompiler::compile(const String& source, Pipeline* pipeline)
 	{
-		StackByteAllocator::Mark mark;
 		Context ctx(this);
 
 		if (pipeline->is_instance_of<GraphicsPipeline>())

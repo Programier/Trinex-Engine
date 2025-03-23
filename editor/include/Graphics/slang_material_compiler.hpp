@@ -13,11 +13,13 @@ namespace Engine
 	class Pipeline;
 	class Shader;
 
+	using SLANG_DefinitionsArray = Containers::Vector<ShaderDefinition, FrameAllocator<ShaderDefinition>>;
+
 	class SLANG_MaterialCompiler : public MaterialCompiler
 	{
 		trinex_declare_class(SLANG_MaterialCompiler, MaterialCompiler);
 
-	protected:
+	public:
 		class Context
 		{
 		public:
@@ -28,31 +30,31 @@ namespace Engine
 				int32_t index = -1;
 			};
 
-			using DefinitionsArray = Containers::Vector<ShaderDefinition, StackAllocator<ShaderDefinition>>;
-			using CheckStages      = bool (*)(ShaderInfo*);
+			using CheckStages = bool (*)(ShaderInfo*);
 
+			SLANG_DefinitionsArray definitions;
 			Slang::ComPtr<slang::IModule> module;
 			SLANG_MaterialCompiler* const compiler;
 			Context* const prev_ctx;
 
-			static size_t calculate_source_len(const String& source, const DefinitionsArray* definitions);
-			char* initialize_definitions(char* dst, const DefinitionsArray* definitions);
-			bool initialize(const String& source, Pipeline* pipeline, const DefinitionsArray* definitions = nullptr);
+			size_t calculate_source_len(const String& source);
+			char* initialize_definitions(char* dst);
+			bool initialize(const String& source, Pipeline* pipeline);
 			bool compile(ShaderInfo* infos, size_t len, Pipeline* pipeline, CheckStages checker);
 
 		public:
 			Context(SLANG_MaterialCompiler* compiler);
 			bool compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass);
-			bool compile_graphics(const String& source, Pipeline* pipeline, const DefinitionsArray* definitions = nullptr);
-			bool compile_compute(const String& source, Pipeline* pipeline, const DefinitionsArray* definitions = nullptr);
+			bool compile_graphics(const String& source, Pipeline* pipeline);
+			bool compile_compute(const String& source, Pipeline* pipeline);
 			~Context();
 		};
 
 		struct SessionInitializer {
-			Containers::Vector<const char*, StackAllocator<const char*>> search_paths;
-			Containers::Vector<slang::PreprocessorMacroDesc, StackAllocator<slang::PreprocessorMacroDesc>> definitions;
-			Containers::Vector<slang::CompilerOptionEntry, StackAllocator<slang::CompilerOptionEntry>> options;
-			Containers::Vector<slang::CompilerOptionEntry, StackAllocator<slang::CompilerOptionEntry>> target_options;
+			Containers::Vector<const char*, FrameAllocator<const char*>> search_paths;
+			Containers::Vector<slang::PreprocessorMacroDesc, FrameAllocator<slang::PreprocessorMacroDesc>> definitions;
+			Containers::Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> options;
+			Containers::Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> target_options;
 
 			slang::SessionDesc session_desc;
 			slang::TargetDesc target_desc;
@@ -125,6 +127,7 @@ namespace Engine
 			}
 		};
 
+	protected:
 		Slang::ComPtr<slang::ISession> m_session;
 		Context* m_ctx = nullptr;
 

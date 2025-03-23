@@ -30,8 +30,131 @@ namespace Engine
 			void apply(SceneRenderer* renderer);
 		);
 
-		// clang-format on
 		trinex_declare_graphics_pipeline(BatchedTriangles);
 
+		trinex_declare_graphics_pipeline(DeferredPointLightShadowed,
+		public:
+			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* base_color_texture = nullptr;
+			const ShaderParameterInfo* normal_texture     = nullptr;
+			const ShaderParameterInfo* emissive_texture   = nullptr;
+			const ShaderParameterInfo* msra_texture       = nullptr;
+			const ShaderParameterInfo* depth_texture      = nullptr;
+			const ShaderParameterInfo* color              = nullptr;
+			const ShaderParameterInfo* intensivity        = nullptr;
+
+			const ShaderParameterInfo* shadow_map_texture  = nullptr;
+			const ShaderParameterInfo* shadow_map_projview = nullptr;
+			const ShaderParameterInfo* depth_bias          = nullptr;
+			const ShaderParameterInfo* slope_scale         = nullptr;
+
+			const ShaderParameterInfo* location          = nullptr;
+			const ShaderParameterInfo* radius            = nullptr;
+			const ShaderParameterInfo* fall_off_exponent = nullptr;
+
+			DeferredPointLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+		);
+
+		trinex_declare_graphics_pipeline(DeferredPointLight,
+		public:
+			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* base_color_texture = nullptr;
+			const ShaderParameterInfo* normal_texture     = nullptr;
+			const ShaderParameterInfo* emissive_texture   = nullptr;
+			const ShaderParameterInfo* msra_texture       = nullptr;
+			const ShaderParameterInfo* depth_texture      = nullptr;
+			const ShaderParameterInfo* color              = nullptr;
+			const ShaderParameterInfo* intensivity        = nullptr;
+
+			const ShaderParameterInfo* location          = nullptr;
+			const ShaderParameterInfo* radius            = nullptr;
+			const ShaderParameterInfo* fall_off_exponent = nullptr;
+
+			DeferredPointLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+		);
+
+		trinex_declare_graphics_pipeline(DeferredSpotLightShadowed,
+		public:
+			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* base_color_texture = nullptr;
+			const ShaderParameterInfo* normal_texture     = nullptr;
+			const ShaderParameterInfo* emissive_texture   = nullptr;
+			const ShaderParameterInfo* msra_texture       = nullptr;
+			const ShaderParameterInfo* depth_texture      = nullptr;
+			const ShaderParameterInfo* color              = nullptr;
+			const ShaderParameterInfo* intensivity        = nullptr;
+
+			const ShaderParameterInfo* shadow_map_texture  = nullptr;
+			const ShaderParameterInfo* shadow_map_projview = nullptr;
+			const ShaderParameterInfo* depth_bias          = nullptr;
+			const ShaderParameterInfo* slope_scale         = nullptr;
+
+			const ShaderParameterInfo* location          = nullptr;
+			const ShaderParameterInfo* radius            = nullptr;
+			const ShaderParameterInfo* fall_off_exponent = nullptr;
+
+			const ShaderParameterInfo* direction         = nullptr;
+			const ShaderParameterInfo* spot_angles       = nullptr;
+
+			DeferredSpotLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+		);
+
+		trinex_declare_graphics_pipeline(DeferredSpotLight,
+		public:
+			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* base_color_texture = nullptr;
+			const ShaderParameterInfo* normal_texture     = nullptr;
+			const ShaderParameterInfo* emissive_texture   = nullptr;
+			const ShaderParameterInfo* msra_texture       = nullptr;
+			const ShaderParameterInfo* depth_texture      = nullptr;
+			const ShaderParameterInfo* color              = nullptr;
+			const ShaderParameterInfo* intensivity        = nullptr;
+
+			const ShaderParameterInfo* location          = nullptr;
+			const ShaderParameterInfo* radius            = nullptr;
+			const ShaderParameterInfo* fall_off_exponent = nullptr;
+
+			const ShaderParameterInfo* direction         = nullptr;
+			const ShaderParameterInfo* spot_angles       = nullptr;
+
+			DeferredSpotLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+		);
+
+		trinex_declare_graphics_pipeline(DeferredDirectionalLightShadowed,
+		public:
+			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* base_color_texture = nullptr;
+			const ShaderParameterInfo* normal_texture     = nullptr;
+			const ShaderParameterInfo* emissive_texture   = nullptr;
+			const ShaderParameterInfo* msra_texture       = nullptr;
+			const ShaderParameterInfo* depth_texture      = nullptr;
+			const ShaderParameterInfo* color              = nullptr;
+			const ShaderParameterInfo* intensivity        = nullptr;
+
+			const ShaderParameterInfo* shadow_map_texture  = nullptr;
+			const ShaderParameterInfo* shadow_map_projview = nullptr;
+			const ShaderParameterInfo* depth_bias          = nullptr;
+			const ShaderParameterInfo* slope_scale         = nullptr;
+			const ShaderParameterInfo* direction			= nullptr;
+
+			DeferredDirectionalLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+		);
+
+		trinex_declare_graphics_pipeline(DeferredDirectionalLight,
+		public:
+			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* base_color_texture = nullptr;
+			const ShaderParameterInfo* normal_texture     = nullptr;
+			const ShaderParameterInfo* emissive_texture   = nullptr;
+			const ShaderParameterInfo* msra_texture       = nullptr;
+			const ShaderParameterInfo* depth_texture      = nullptr;
+			const ShaderParameterInfo* color              = nullptr;
+			const ShaderParameterInfo* intensivity        = nullptr;
+			const ShaderParameterInfo* direction			= nullptr;
+
+			DeferredDirectionalLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+		);
+
+		// clang-format on
 	}// namespace Pipelines
 }// namespace Engine
