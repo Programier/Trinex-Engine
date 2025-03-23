@@ -43,15 +43,9 @@ namespace Engine::Refl
 	class NativeObjectContructor : public Class
 	{
 	public:
-		void f(asIScriptObject* object, StringView name, Engine::Object* owner)
-		{
-			create_placement_object(object, name, owner);
-		}
+		void f(asIScriptObject* object, StringView name, Engine::Object* owner) { create_placement_object(object, name, owner); }
 
-		void f_default(asIScriptObject* object)
-		{
-			f(object, "", nullptr);
-		}
+		void f_default(asIScriptObject* object) { f(object, "", nullptr); }
 	};
 
 	Class& Class::initialize()
@@ -126,15 +120,14 @@ namespace Engine::Refl
 		{
 			if (m_singletone_object == nullptr)
 			{
-				bool scriptable     = !Engine::Object::setup_next_object_info(this)->is_native();
+				bool scriptable     = !Engine::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_constructor(name, owner, scriptable);
-				Engine::Object::reset_next_object_info();
 			}
 
 			return m_singletone_object;
 		}
 
-		bool scriptable        = !Engine::Object::setup_next_object_info(this)->is_native();
+		bool scriptable        = !Engine::Object::static_setup_next_object_info(this)->is_native();
 		Engine::Object* object = object_constructor(name, owner, scriptable);
 		return object;
 	}
@@ -145,16 +138,15 @@ namespace Engine::Refl
 		{
 			if (m_singletone_object == nullptr)
 			{
-				bool scriptable     = !Engine::Object::setup_next_object_info(this)->is_native();
+				bool scriptable     = !Engine::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_placement_constructor(place, name, owner, scriptable);
-				Engine::Object::reset_next_object_info();
 				return m_singletone_object;
 			}
 
 			return nullptr;
 		}
 
-		bool scriptable        = !Engine::Object::setup_next_object_info(this)->is_native();
+		bool scriptable        = !Engine::Object::static_setup_next_object_info(this)->is_native();
 		Engine::Object* object = object_placement_constructor(place, name, owner, scriptable);
 		return object;
 	}

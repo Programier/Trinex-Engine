@@ -37,7 +37,7 @@ namespace Engine
 
 	} next_object_info;
 
-	Refl::Class* Object::setup_next_object_info(Refl::Class* self)
+	Refl::Class* Object::static_setup_next_object_info(Refl::Class* self)
 	{
 		if (!next_object_info.class_instance)
 		{
@@ -48,8 +48,11 @@ namespace Engine
 		return next_object_info.class_instance;
 	}
 
-	void Object::reset_next_object_info()
+	void Object::static_setup_new_object(Object* object, StringView name, Object* owner)
 	{
+		object->m_name = name;
+		object->owner(owner);
+		object->on_create();
 		next_object_info.reset();
 	}
 
@@ -87,15 +90,15 @@ namespace Engine
 		return array;
 	}
 
-	static Package* m_root_package = nullptr;
+	static Package* s_root_package = nullptr;
 
-	void Object::create_default_package()
+	static void create_default_package()
 	{
-		if (m_root_package == nullptr)
+		if (s_root_package == nullptr)
 		{
-			m_root_package = new_instance<Package>("Content");
-			m_root_package->flags(IsSerializable, false);
-			m_root_package->add_reference();
+			s_root_package = Object::new_instance<Package>("Content");
+			s_root_package->flags(Object::IsSerializable, false);
+			s_root_package->add_reference();
 		}
 	}
 
@@ -427,12 +430,12 @@ namespace Engine
 
 	ENGINE_EXPORT const Package* root_package()
 	{
-		return m_root_package;
+		return s_root_package;
 	}
 
 	ENGINE_EXPORT Object* Object::static_find_object(StringView object_name)
 	{
-		return m_root_package->find_child_object(object_name);
+		return s_root_package->find_child_object(object_name);
 	}
 
 	Object& Object::preload()
@@ -446,6 +449,11 @@ namespace Engine
 	}
 
 	Object& Object::apply_changes()
+	{
+		return *this;
+	}
+
+	Object& Object::on_create()
 	{
 		return *this;
 	}
@@ -799,8 +807,8 @@ namespace Engine
 
 	Package* Object::root_package()
 	{
-		Object::create_default_package();
-		return m_root_package;
+		create_default_package();
+		return s_root_package;
 	}
 
 	bool Object::static_validate_object_name(StringView name, String* msg)

@@ -651,72 +651,96 @@ namespace Engine
 		compiler->m_ctx = this;
 	}
 
-	bool SLANG_MaterialCompiler::Context::initialize(const String& source)
+	size_t SLANG_MaterialCompiler::Context::calculate_source_len(const String& source, const DefinitionsArray* definitions)
 	{
-		slang::SessionDesc session_desc      = {};
-		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-		session_desc.allowGLSLSyntax         = false;
-		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+		size_t len = source.size();
 
-		if (SLANG_FAILED(global_session()->createSession(session_desc, session.writeRef())))
+		for (auto& definition : *definitions)
 		{
-			throw EngineException("Failed to create slang session");
+			len += definition.key.size();
+			len += definition.value.size();
+			len += 10;// "<#define >{key}< >{value}<\n>", 10 is sum of string lengths in <>
 		}
+		return len;
+	}
 
-		if (SLANG_FAILED(session->createCompileRequest(compile_request.writeRef())))
+	char* SLANG_MaterialCompiler::Context::initialize_definitions(char* dst, const DefinitionsArray* definitions)
+	{
+		for (auto& definition : *definitions)
 		{
-			error_log("MaterialCompiler", "Failed to create slang compile request");
+			std::memcpy(dst, "#define ", 8);
+			dst += 8;
+
+			std::memcpy(dst, definition.key.data(), definition.key.size());
+			dst += definition.key.size();
+
+			*(dst++) = ' ';
+
+			std::memcpy(dst, definition.value.data(), definition.value.size());
+			dst += definition.value.size();
+
+			*(dst++) = '\n';
+		}
+		return dst;
+	}
+
+	bool SLANG_MaterialCompiler::Context::initialize(const String& source, Pipeline* pipeline,
+													 const DefinitionsArray* definitions)
+	{
+		auto& session = compiler->m_session;
+
+		if (!session)
+		{
+			error_log("ShaderCompiler", "Failed to compile shader, because compiler session is invalid!");
 			return false;
 		}
 
-		for (auto& include_dir : compiler->m_include_directories)
+		StackByteAllocator::Mark mark;
+
+		const char* source_ptr = source.data();
+
+		if (definitions)
 		{
-			compile_request->addSearchPath(include_dir.c_str());
+			size_t len = calculate_source_len(source, definitions);
+			char* dst  = StackAllocator<char>().allocate(len + 1);
+			source_ptr = dst;
+
+			dst = initialize_definitions(dst, definitions);
+			std::memcpy(dst, source.c_str(), source.size());
+			dst[source.size()] = '\0';
 		}
 
-		unit = compile_request->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
-		compile_request->addTranslationUnitSourceString(unit, "main_unit_source", source.c_str());
+		String name = Strings::format("Module<{}> '{}'", static_cast<void*>(pipeline), pipeline->name().c_str());
+		Slang::ComPtr<slang::IBlob> diagnostics;
+		module = session->loadModuleFromSourceString(name.c_str(), name.c_str(), source_ptr, diagnostics.writeRef());
 
-		compiler->initialize_context();
-		return true;
+		if (diagnostics && diagnostics->getBufferSize() > 0)
+		{
+			if (module)
+			{
+				warn_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+				return true;
+			}
+			else
+			{
+				error_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+				return false;
+			}
+		}
+
+		return module != nullptr;
 	}
 
 	bool SLANG_MaterialCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
-		// Compile source
-		auto compile_result = compile_request->compile();
-
-		if (SLANG_FAILED(compile_result))
-		{
-			if (auto diagnostics = compile_request->getDiagnosticOutput())
-			{
-				if (strlen(diagnostics) > 0)
-				{
-					error_log("ShaderCompiler", diagnostics);
-				}
-			}
-
-			return false;
-		}
-		else if (auto diagnostics = compile_request->getDiagnosticOutput())
-		{
-			if (strlen(diagnostics) > 0)
-			{
-				warn_log("ShaderCompiler", diagnostics);
-			}
-		}
-
-		Vector<slang::IComponentType*> component_types;
-		Slang::ComPtr<slang::IModule> slang_module;
-
-		compile_request->getModule(unit, slang_module.writeRef());
-		component_types.push_back(slang_module);
+		Containers::Vector<slang::IComponentType*, StackAllocator<slang::IComponentType*>> component_types;
+		component_types.push_back(module);
 
 		for (size_t i = 0; i < infos_len; ++i)
 		{
 			auto& info = infos[i];
 
-			slang_module->findEntryPointByName(info.entry_name, info.entry.writeRef());
+			module->findEntryPointByName(info.entry_name, info.entry.writeRef());
 
 			if (info.entry)
 			{
@@ -731,8 +755,8 @@ namespace Engine
 		Slang::ComPtr<slang::IComponentType> composite;
 		{
 			Slang::ComPtr<slang::IBlob> diagnostics_blob;
-			SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
-																	   composite.writeRef(), diagnostics_blob.writeRef());
+			SlangResult result = compiler->m_session->createCompositeComponentType(
+					component_types.data(), component_types.size(), composite.writeRef(), diagnostics_blob.writeRef());
 
 			if (diagnostics_blob != nullptr)
 			{
@@ -815,13 +839,20 @@ namespace Engine
 		return pipeline;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_graphics(Material* material, Refl::RenderPassInfo* pass)
+	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass)
 	{
+		DefinitionsArray definitions;
+		const size_t definitions_count =
+				(material ? material->compile_definitions.size() : 0) + (pass ? pass->shader_definitions().size() : 0);
+
+		if (definitions_count > 0)
+			definitions.reserve(definitions_count);
+
 		if (material)
 		{
 			for (auto& definition : material->compile_definitions)
 			{
-				add_definition(definition);
+				definitions.push_back(definition);
 			}
 		}
 
@@ -829,7 +860,7 @@ namespace Engine
 		{
 			for (auto& definition : pass->shader_definitions())
 			{
-				add_definition(definition);
+				definitions.push_back(definition);
 			}
 		}
 
@@ -846,7 +877,7 @@ namespace Engine
 			pipeline->clear();
 		}
 
-		if (compile_graphics(pipeline))
+		if (compile_graphics(source, pipeline, definitions_count == 0 ? nullptr : &definitions))
 		{
 			material->add_pipeline(pass, pipeline);
 			pipeline->init_render_resources();
@@ -861,8 +892,12 @@ namespace Engine
 		return false;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_graphics(Pipeline* pipeline)
+	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline,
+														   const DefinitionsArray* definitions)
 	{
+		if (!initialize(source, pipeline, definitions))
+			return false;
+
 		ShaderInfo shader_infos[] = {
 				{ShaderType::Vertex, "vs_main", {}, -1},              //
 				{ShaderType::TessellationControl, "tsc_main", {}, -1},//
@@ -881,8 +916,12 @@ namespace Engine
 		return compile(shader_infos, 5, pipeline, checker);
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_compute(Pipeline* pipeline)
+	bool SLANG_MaterialCompiler::Context::compile_compute(const String& source, Pipeline* pipeline,
+														  const DefinitionsArray* definitions)
 	{
+		if (!initialize(source, pipeline, definitions))
+			return false;
+
 		ShaderInfo shader_infos[] = {{ShaderType::Compute, "cs_main", {}, -1}};
 
 		CheckStages checker = [](ShaderInfo* infos) -> bool {
@@ -904,17 +943,52 @@ namespace Engine
 	{
 		flags(StandAlone, true);
 		flags(IsAvailableForGC, false);
+	}
 
-		m_include_directories = {
+	SLANG_MaterialCompiler& SLANG_MaterialCompiler::on_create()
+	{
+		Super::on_create();
+
+		StackByteAllocator::Mark mark;
+
+		Path include_directories[] = {
 				rootfs()->native_path(Project::shaders_dir),
 				rootfs()->native_path("[shaders_dir]:/TrinexEditor"),
 				rootfs()->native_path("[shaders_dir]:/TrinexEngine"),
 		};
+
+		SessionInitializer desc;
+
+		desc.session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+		desc.session_desc.allowGLSLSyntax         = false;
+		desc.session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+		desc.session_desc.targetCount             = 1;
+		desc.session_desc.targets                 = &desc.target_desc;
+
+		for (auto& include_dir : include_directories) desc.add_search_path(include_dir.c_str());
+		initialize_context(&desc);
+
+		desc.session_desc.searchPathCount          = desc.search_paths.size();
+		desc.session_desc.searchPaths              = desc.search_paths.data();
+		desc.session_desc.preprocessorMacroCount   = desc.definitions.size();
+		desc.session_desc.preprocessorMacros       = desc.definitions.data();
+		desc.session_desc.compilerOptionEntryCount = desc.options.size();
+		desc.session_desc.compilerOptionEntries    = desc.options.data();
+
+		desc.target_desc.compilerOptionEntryCount = desc.target_options.size();
+		desc.target_desc.compilerOptionEntries    = desc.target_options.data();
+
+		if (SLANG_FAILED(global_session()->createSession(desc.session_desc, m_session.writeRef())))
+		{
+			error_log("Shader Compiler", "Failed to create session");
+			m_session = nullptr;
+		}
+		return *this;
 	}
 
-	void SLANG_MaterialCompiler::initialize_context()
+	void SLANG_MaterialCompiler::initialize_context(SessionInitializer* session)
 	{
-		m_ctx->compile_request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+		session->add_option(slang::CompilerOptionName::DisableWarning, "15205");
 	}
 
 	bool SLANG_MaterialCompiler::compile(Material* material)
@@ -928,8 +1002,6 @@ namespace Engine
 			error_log("MaterialCompiler", "Failed to get shader source");
 			return false;
 		}
-
-		printf("%s\n", source.c_str());
 
 		bool success = true;
 
@@ -972,24 +1044,19 @@ namespace Engine
 
 	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
 	{
+		StackByteAllocator::Mark mark;
 		Context ctx(this);
-
-		if (!ctx.initialize(source))
-			return false;
-
-		return ctx.compile_graphics(material, pass);
+		return ctx.compile_graphics(source, material, pass);
 	}
 
 	bool SLANG_MaterialCompiler::compile(const String& source, Pipeline* pipeline)
 	{
+		StackByteAllocator::Mark mark;
 		Context ctx(this);
-
-		if (!ctx.initialize(source))
-			return false;
 
 		if (pipeline->is_instance_of<GraphicsPipeline>())
 		{
-			if (ctx.compile_graphics(pipeline))
+			if (ctx.compile_graphics(source, pipeline))
 			{
 				pipeline->init_render_resources();
 				return true;
@@ -997,7 +1064,7 @@ namespace Engine
 		}
 		else if (pipeline->is_instance_of<ComputePipeline>())
 		{
-			if (ctx.compile_compute(pipeline))
+			if (ctx.compile_compute(source, pipeline))
 			{
 				pipeline->init_render_resources();
 				return true;
@@ -1006,28 +1073,23 @@ namespace Engine
 		return false;
 	}
 
-	void NONE_MaterialCompiler::initialize_context()
+	void NONE_MaterialCompiler::initialize_context(SessionInitializer* session)
 	{
-		Super::initialize_context();
+		throw EngineException("Something is wrong! Cannot compile shaders for None API!");
 	}
 
-	void OPENGL_MaterialCompiler::initialize_context()
+	void OPENGL_MaterialCompiler::initialize_context(SessionInitializer* session)
 	{
-		Super::initialize_context();
-		auto& request = m_ctx->compile_request;
+		Super::initialize_context(session);
 
-		request->setCodeGenTarget(SLANG_SPIRV);
-		request->addPreprocessorDefine("TRINEX_OPENGL_RHI", "1");
+		session->target_desc.profile = global_session()->findProfile("glsl_330");
+		session->target_desc.format  = SLANG_SPIRV;
+		session->add_definition("TRINEX_OPENGL_RHI", "1");
 
-		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-		request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-		request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-
-		auto profile = global_session()->findProfile("glsl_330");
-		request->setTargetProfile(0, profile);
-
-		const char* argument = "-emit-spirv-via-glsl";
-		request->processCommandLineArguments(&argument, 1);// TODO: Maybe it can be optimized to avoid parsing arguments?
+		session->add_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+		session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
+		session->add_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
+		session->add_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
 	}
 
 	void OPENGL_MaterialCompiler::submit_source(Shader* shader, const byte* src, size_t size)
@@ -1053,62 +1115,51 @@ namespace Engine
 		Super::submit_source(shader, reinterpret_cast<const byte*>(glsl_code.data()), glsl_code.size() + 1);
 	}
 
-	void VULKAN_MaterialCompiler::initialize_context()
+	void VULKAN_MaterialCompiler::initialize_context(SessionInitializer* session)
 	{
-		Super::initialize_context();
-		auto& request = m_ctx->compile_request;
+		Super::initialize_context(session);
 
-		request->setCodeGenTarget(SLANG_SPIRV);
-		request->addPreprocessorDefine("TRINEX_VULKAN_RHI", "1");
-
-		Vector<const char*> arguments;
+		session->target_desc.format = SLANG_SPIRV;
+		session->add_definition("TRINEX_VULKAN_RHI", "1");
 
 		if (Settings::debug_shaders)
 		{
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_STANDARD);
-			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_NONE);
-			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_STANDARD);
+			session->add_target_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_NONE);
+			session->add_target_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_STANDARD);
+			session->add_target_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_STANDARD);
+			session->add_target_option(slang::CompilerOptionName::EmitSpirvDirectly, true);
 
-			auto profile = global_session()->findProfile("spirv_1_3");
-			request->setTargetProfile(0, profile);
-
-			arguments.push_back("-emit-spirv-directly");
+			session->target_desc.profile = global_session()->findProfile("spirv_1_3");
 		}
 		else
 		{
-			request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-			request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
+			session->add_target_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+			session->add_target_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
+			session->add_target_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
+			session->add_target_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
 
-			auto profile = global_session()->findProfile("glsl_330");
-			request->setTargetProfile(0, profile);
-
-			arguments.push_back("-emit-spirv-via-glsl");
+			session->target_desc.profile = global_session()->findProfile("glsl_330");
 		}
-
-		request->processCommandLineArguments(arguments.data(),
-											 arguments.size());// TODO: Maybe it can be optimized to avoid parsing arguments?
 	}
 
-	void D3D11_MaterialCompiler::initialize_context()
+	void D3D11_MaterialCompiler::initialize_context(SessionInitializer* session)
 	{
-		Super::initialize_context();
-		auto& request = m_ctx->compile_request;
+		Super::initialize_context(session);
 
-		request->setCodeGenTarget(SLANG_DXBC);
-		request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-		request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+		session->target_desc.format  = SLANG_DXBC;
+		session->target_desc.profile = global_session()->findProfile("sm_5_0");
+
+		session->add_definition("TRINEX_INVERT_UV", "1");
+		session->add_definition("TRINEX_D3D11_RHI", "1");
+		session->add_definition("TRINEX_DIRECT_X_RHI", "1");
+
+		session->add_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
+		session->add_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
 
 		if (Settings::debug_shaders)
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
+			session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
 		else
-			request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_NONE);
-
-		auto profile = global_session()->findProfile("sm_5_0");
-		request->setTargetProfile(0, profile);
-		request->addPreprocessorDefine("TRINEX_INVERT_UV", "1");
-		request->addPreprocessorDefine("TRINEX_D3D11_RHI", "1");
-		request->addPreprocessorDefine("TRINEX_DIRECT_X_RHI", "1");
+			session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
 	}
 }// namespace Engine
 

@@ -31,11 +31,9 @@
 
 namespace Engine
 {
-	EngineLoop::EngineLoop()
-	{}
+	EngineLoop::EngineLoop() {}
 
-	EngineLoop::~EngineLoop()
-	{}
+	EngineLoop::~EngineLoop() {}
 
 	static void initialize_graphics_api(bool force_no_api = false)
 	{
@@ -211,14 +209,10 @@ namespace Engine
 	void EngineLoop::terminate()
 	{
 		info_log("EngineInstance", "Terminate Engine");
+		render_thread()->wait();
+
 		DestroyController().execute();
-
 		engine_instance->terminate();
-
-		if (rhi)
-		{
-			render_thread()->wait();
-		}
 
 		GarbageCollector::destroy_all_objects();
 		render_thread()->wait();
