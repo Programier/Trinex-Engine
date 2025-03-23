@@ -62,6 +62,22 @@ namespace Engine
 		static void flush();
 	};
 
+	struct ENGINE_EXPORT FrameByteAllocator : AllocatorBase {
+		using value_type      = unsigned char;
+		using pointer         = value_type*;
+		using const_pointer   = const value_type*;
+		using reference       = value_type&;
+		using const_reference = const value_type&;
+		using size_type       = std::size_t;
+		using difference_type = std::ptrdiff_t;
+
+		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
+		static inline void deallocate(unsigned char* ptr) noexcept {}
+
+		static unsigned char* allocate_aligned(size_type size, size_type align);
+		static void flush();
+	};
+
 	template<typename T, typename Type>
 	struct TypedAllocator : Type {
 		using value_type      = T;
@@ -118,4 +134,7 @@ namespace Engine
 
 	template<typename T>
 	using StackAllocator = TypedAllocator<T, StackByteAllocator>;
+
+	template<typename T>
+	using FrameAllocator = TypedAllocator<T, FrameByteAllocator>;
 }// namespace Engine

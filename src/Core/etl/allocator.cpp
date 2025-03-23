@@ -1,3 +1,4 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/pair.hpp>
@@ -10,13 +11,34 @@ namespace Engine
 {
 	namespace
 	{
-		struct StackAllocatorData {
+		struct TempAllocatorData;
+
+		struct TempAllocatorSync {
+			Vector<TempAllocatorData*> stacks;
+			CriticalSection critical_section;
+
+			inline void lock() { critical_section.lock(); }
+			inline void unlock() { critical_section.unlock(); }
+
+			inline void push(TempAllocatorData* data)
+			{
+				lock();
+				stacks.push_back(data);
+				unlock();
+			}
+
+			inline void pop(TempAllocatorData* data)
+			{
+				lock();
+				stacks.erase(std::find(stacks.begin(), stacks.end(), data));
+				unlock();
+			}
+		};
+
+		struct TempAllocatorData {
 			using size_type                                = StackByteAllocator::size_type;
 			static constexpr size_type min_block_size      = 1024 * 32;
 			static constexpr size_type min_block_alignment = 16;
-
-			static CriticalSection s_critical_section;
-			static Vector<StackAllocatorData*> s_stacks;
 
 			struct Node {
 				Node* m_next = nullptr;
@@ -35,16 +57,14 @@ namespace Engine
 				~Node() { release_memory(m_begin); }
 			};
 
+			TempAllocatorSync* const m_sync;
 			Thread* const m_thread;
 			Node* m_head    = nullptr;
 			Node* m_current = nullptr;
 
-			StackAllocatorData() : m_thread(ThisThread::self())
+			TempAllocatorData(TempAllocatorSync* sync) : m_sync(sync), m_thread(ThisThread::self())
 			{
-				s_critical_section.lock();
-				s_stacks.push_back(this);
-				s_critical_section.unlock();
-
+				sync->push(this);
 				m_head    = allocate_block();
 				m_current = m_head;
 			}
@@ -91,11 +111,9 @@ namespace Engine
 				m_current->m_stack = m_current->m_begin;
 			}
 
-			~StackAllocatorData()
+			~TempAllocatorData()
 			{
-				s_critical_section.lock();
-				s_stacks.erase(std::find(s_stacks.begin(), s_stacks.end(), this));
-				s_critical_section.unlock();
+				m_sync->pop(this);
 
 				while (m_head)
 				{
@@ -106,9 +124,11 @@ namespace Engine
 			}
 		};
 
-		Vector<StackAllocatorData*> StackAllocatorData::s_stacks;
-		CriticalSection StackAllocatorData::s_critical_section;
-		static thread_local StackAllocatorData s_stack_allocator;
+		static TempAllocatorSync s_stack_sync;
+		static TempAllocatorSync s_frame_sync;
+
+		static thread_local TempAllocatorData s_stack_allocator(&s_stack_sync);
+		static thread_local TempAllocatorData s_frame_allocator(&s_frame_sync);
 	}// namespace
 
 
@@ -131,7 +151,7 @@ namespace Engine
 
 	StackByteAllocator::Mark::~Mark()
 	{
-		s_stack_allocator.m_current          = static_cast<StackAllocatorData::Node*>(m_datas[0]);
+		s_stack_allocator.m_current          = static_cast<TempAllocatorData::Node*>(m_datas[0]);
 		s_stack_allocator.m_current->m_stack = static_cast<byte*>(m_datas[1]);
 	}
 
@@ -142,13 +162,31 @@ namespace Engine
 
 	void StackByteAllocator::flush()
 	{
-		StackAllocatorData::s_critical_section.lock();
+		s_stack_sync.lock();
 
-		for (StackAllocatorData* stack : StackAllocatorData::s_stacks)
+		for (TempAllocatorData* stack : s_stack_sync.stacks)
 		{
 			stack->flush();
 		}
 
-		StackAllocatorData::s_critical_section.unlock();
+		s_stack_sync.unlock();
 	}
+
+	unsigned char* FrameByteAllocator::allocate_aligned(size_type size, size_type align)
+	{
+		return s_frame_allocator.allocate_aligned(size, align);
+	}
+
+	void FrameByteAllocator::flush()
+	{
+		s_frame_sync.lock();
+
+		for (TempAllocatorData* stack : s_frame_sync.stacks)
+		{
+			stack->flush();
+		}
+
+		s_frame_sync.unlock();
+	}
+
 }// namespace Engine

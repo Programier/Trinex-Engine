@@ -74,6 +74,7 @@ namespace Engine
 
 		GarbageCollector::update(m_delta_time);
 		StackByteAllocator::flush();
+		FrameByteAllocator::flush();
 
 		if (auto instance = EngineSystem::instance())
 		{
