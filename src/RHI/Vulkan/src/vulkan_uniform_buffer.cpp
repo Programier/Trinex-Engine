@@ -30,10 +30,7 @@ namespace Engine
 		}
 
 	public:
-		VulkanDynamicUniformBuffer()
-		{
-			allocate(default_uniform_buffer_size);
-		}
+		VulkanDynamicUniformBuffer() { allocate(default_uniform_buffer_size); }
 
 		void update(const void* data, size_t size, size_t offset)
 		{
@@ -52,18 +49,18 @@ namespace Engine
 			if (m_shadow_data_size == 0)
 				return;
 
-			while (m_buffers[index]->m_buffer.m_size < m_used_data + m_shadow_data_size)
+			while (m_buffers[m_index]->m_buffer.m_size < m_used_data + m_shadow_data_size)
 			{
-				++index;
+				++m_index;
 				m_used_data = 0;
 
-				if (m_buffers.size() <= index)
+				if (m_buffers.size() <= m_index)
 				{
 					allocate(m_shadow_data_size);
 				}
 			}
 
-			auto& current_buffer = m_buffers[index];
+			auto& current_buffer = m_buffers[m_index];
 			current_buffer->m_buffer.copy(m_used_data, m_shadow_data.data(), m_shadow_data_size);
 
 			current_buffer->bind(index, m_used_data, m_shadow_data_size);

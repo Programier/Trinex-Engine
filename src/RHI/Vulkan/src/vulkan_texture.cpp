@@ -9,6 +9,7 @@
 #include <vulkan_barriers.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_sampler.hpp>
@@ -99,7 +100,11 @@ namespace Engine
 
 	RHI_ShaderResourceView* VulkanTexture::create_srv()
 	{
-		vk::ImageSubresourceRange range(aspect(), 0, mipmap_count(), 0, layer_count());
+		vk::ImageSubresourceRange range(VulkanEnums::srv_aspect(aspect()), 0, mipmap_count(), 0, layer_count());
+
+		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+			return nullptr;
+
 		vk::ImageViewCreateInfo view_info({}, image(), view_type(), format(), {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureSRV(this, view);
@@ -107,7 +112,11 @@ namespace Engine
 
 	RHI_UnorderedAccessView* VulkanTexture::create_uav()
 	{
-		vk::ImageSubresourceRange range(aspect(), 0, mipmap_count(), 0, layer_count());
+		vk::ImageSubresourceRange range(VulkanEnums::uav_aspect(aspect()), 0, mipmap_count(), 0, layer_count());
+
+		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+			return nullptr;
+
 		vk::ImageViewCreateInfo view_info({}, image(), view_type(), format(), {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureUAV(this, view);
@@ -115,7 +124,11 @@ namespace Engine
 
 	RHI_RenderTargetView* VulkanTexture::create_rtv()
 	{
-		vk::ImageSubresourceRange range(aspect(), 0, 1, 0, 1);
+		vk::ImageSubresourceRange range(VulkanEnums::rtv_aspect(aspect()), 0, 1, 0, 1);
+
+		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+			return nullptr;
+
 		vk::ImageViewCreateInfo view_info({}, image(), vk::ImageViewType::e2D, format(), {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureRTV(this, view);
@@ -123,7 +136,11 @@ namespace Engine
 
 	RHI_DepthStencilView* VulkanTexture::create_dsv()
 	{
-		vk::ImageSubresourceRange range(aspect(), 0, 1, 0, 1);
+		vk::ImageSubresourceRange range(VulkanEnums::dsv_aspect(aspect()), 0, 1, 0, 1);
+
+		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+			return nullptr;
+
 		vk::ImageViewCreateInfo view_info({}, image(), vk::ImageViewType::e2D, format(), {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureDSV(this, view);
@@ -317,7 +334,7 @@ namespace Engine
 
 	vk::Format VulkanTexture2D::format() const
 	{
-		return parse_engine_format(engine_format());
+		return VulkanEnums::from_color_format(engine_format());
 	}
 
 	ColorFormat VulkanTexture2D::engine_format() const
