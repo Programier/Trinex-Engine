@@ -64,7 +64,7 @@ namespace Engine
 
 	bool VulkanRenderTarget::Key::operator<(const Key& key) const
 	{
-		return std::memcmp(m_surfaces, key.m_surfaces, sizeof(m_surfaces)) < 0;
+		return std::memcmp(this, &key, sizeof(Key)) < 0;
 	}
 
 	VulkanRenderTarget* VulkanRenderTarget::find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
