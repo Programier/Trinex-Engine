@@ -66,9 +66,9 @@ namespace Engine::Pipelines
 
 	static void setup_lighting_pipeline_state(GraphicsPipeline* pipeline)
 	{
-		pipeline->depth_test.enable             = false;
-		pipeline->depth_test.write_enable       = false;
-		pipeline->color_blending.enable         = true;
+		pipeline->depth_test.enable       = false;
+		pipeline->depth_test.write_enable = false;
+		pipeline->color_blending.enable   = true;
 
 		pipeline->color_blending.src_color_func = BlendFunc::One;
 		pipeline->color_blending.dst_color_func = BlendFunc::One;
@@ -122,12 +122,6 @@ namespace Engine::Pipelines
 		emissive_texture   = find_param_info("emissive_texture");
 		msra_texture       = find_param_info("msra_texture");
 		depth_texture      = find_param_info("depth_texture");
-
-		color             = find_param_info("light_data.color");
-		intensivity       = find_param_info("light_data.intensivity");
-		location          = find_param_info("light_data.location");
-		radius            = find_param_info("light_data.radius");
-		fall_off_exponent = find_param_info("light_data.fall_off_exponent");
 	}
 
 	DeferredPointLight& DeferredPointLight::modify_compilation_env(ShaderCompilationEnvironment* env)
@@ -184,14 +178,6 @@ namespace Engine::Pipelines
 		emissive_texture   = find_param_info("emissive_texture");
 		msra_texture       = find_param_info("msra_texture");
 		depth_texture      = find_param_info("depth_texture");
-
-		color             = find_param_info("light_data.color");
-		intensivity       = find_param_info("light_data.intensivity");
-		location          = find_param_info("light_data.location");
-		radius            = find_param_info("light_data.radius");
-		fall_off_exponent = find_param_info("light_data.fall_off_exponent");
-		direction         = find_param_info("light_data.direction");
-		spot_angles       = find_param_info("light_data.spot_angles");
 	}
 
 	DeferredSpotLight& DeferredSpotLight::modify_compilation_env(ShaderCompilationEnvironment* env)
@@ -244,10 +230,6 @@ namespace Engine::Pipelines
 		emissive_texture   = find_param_info("emissive_texture");
 		msra_texture       = find_param_info("msra_texture");
 		depth_texture      = find_param_info("depth_texture");
-
-		color       = find_param_info("light_data.color");
-		intensivity = find_param_info("light_data.intensivity");
-		direction   = find_param_info("light_data.direction");
 	}
 
 	DeferredDirectionalLight& DeferredDirectionalLight::modify_compilation_env(ShaderCompilationEnvironment* env)

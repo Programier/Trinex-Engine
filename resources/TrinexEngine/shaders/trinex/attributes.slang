@@ -19,4 +19,9 @@ struct vertex_offsetAttribute
 	uint offset;
 };
 
+[__AttributeUsage(_AttributeTargets.Var)]
+struct per_instanceAttribute
+{
+};
+
 #endif

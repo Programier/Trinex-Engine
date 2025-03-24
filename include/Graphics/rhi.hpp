@@ -234,4 +234,12 @@ namespace Engine
 	};
 
 	ENGINE_EXPORT extern RHI* rhi;
+
+#if TRINEX_DEBUG_BUILD
+#define trinex_rhi_push_stage Engine::rhi->push_debug_stage
+#define trinex_rhi_pop_stage Engine::rhi->pop_debug_stage
+#else
+#define trinex_rhi_push_stage(...)
+#define trinex_rhi_pop_stage(...)
+#endif
 }// namespace Engine

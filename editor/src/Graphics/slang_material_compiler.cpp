@@ -322,7 +322,7 @@ namespace Engine
 		{
 			auto kind     = var->getType()->getKind();
 			auto category = var->getCategory();
-			if (category != slang::ParameterCategory::VaryingInput)
+			if (category != slang::ParameterCategory::VaryingInput && category != slang::ParameterCategory::Mixed)
 				return true;
 
 			if (kind == slang::TypeReflection::Kind::Struct)
@@ -371,9 +371,11 @@ namespace Engine
 
 				attribute.semantic_index = var->getSemanticIndex();
 				attribute.name           = var->getName();
-				attribute.rate           = VertexAttributeInputRate::Vertex;
+				attribute.rate           = var->getVariable()->findAttributeByName(global_session(), "per_instance")
+												   ? VertexAttributeInputRate::Instance
+												   : VertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-				attribute.location       = var->getBindingIndex();
+				attribute.location       = var->getOffset(slang::ParameterCategory::VertexInput);
 				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
 				attribute.offset         = find_vertex_offset(var->getVariable());
 				Object::instance_cast<GraphicsPipeline>(pipeline)->vertex_shader()->attributes.push_back(attribute);
@@ -535,6 +537,12 @@ namespace Engine
 						return_if_false(parse_shader_parameter(var)) false;
 					}
 				}
+			}
+			else
+			{
+				error_log("ShaderCompiler", "Resource type with name '%s' is not supported as uniform parameters",
+						  param.name.c_str());
+				return false;
 			}
 
 			return true;

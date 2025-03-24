@@ -63,12 +63,18 @@ namespace Engine
 			const ShaderParameterInfo* emissive_texture   = nullptr;
 			const ShaderParameterInfo* msra_texture       = nullptr;
 			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* color              = nullptr;
-			const ShaderParameterInfo* intensivity        = nullptr;
 
-			const ShaderParameterInfo* location          = nullptr;
-			const ShaderParameterInfo* radius            = nullptr;
-			const ShaderParameterInfo* fall_off_exponent = nullptr;
+			struct LightData {
+				Vector4f param1;
+				Vector4f param2;
+				float param3;
+
+				inline void color(const Vector3f& col) { param1.x = col.x; param1.y = col.y; param1.z = col.z; }
+				inline void intensivity(float value) { param1.w = value; }
+				inline void location(const Vector3f& loc) { param2.x = loc.x; param2.y = loc.y; param2.z = loc.z; }
+				inline void radius(float value) { param2.w = value; }
+				inline void fall_off_exponent(float value) { param3 = value; }
+			};
 
 			DeferredPointLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
@@ -107,15 +113,21 @@ namespace Engine
 			const ShaderParameterInfo* emissive_texture   = nullptr;
 			const ShaderParameterInfo* msra_texture       = nullptr;
 			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* color              = nullptr;
-			const ShaderParameterInfo* intensivity        = nullptr;
 
-			const ShaderParameterInfo* location          = nullptr;
-			const ShaderParameterInfo* radius            = nullptr;
-			const ShaderParameterInfo* fall_off_exponent = nullptr;
+			struct LightData {
+				Vector4f param1;
+				Vector4f param2;
+				Vector4f param3;
+				Vector2f param4;
 
-			const ShaderParameterInfo* direction         = nullptr;
-			const ShaderParameterInfo* spot_angles       = nullptr;
+				inline void color(const Vector3f& col) { param1.x = col.x; param1.y = col.y; param1.z = col.z; }
+				inline void intensivity(float value) { param1.w = value; }
+				inline void direction(const Vector3f& dir) { param2.x = dir.x; param2.y = dir.y; param2.z = dir.z; }
+				inline void radius(float value) { param2.w = value; }
+				inline void location(const Vector3f& loc) { param3.x = loc.x; param3.y = loc.y; param3.z = loc.z; }
+				inline void fall_off_exponent(float value) { param3.w = value; }
+				inline void spot_angles(const Vector2f& angles) { param4 = angles; }
+			};
 
 			DeferredSpotLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
@@ -148,13 +160,18 @@ namespace Engine
 			const ShaderParameterInfo* emissive_texture   = nullptr;
 			const ShaderParameterInfo* msra_texture       = nullptr;
 			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* color              = nullptr;
-			const ShaderParameterInfo* intensivity        = nullptr;
-			const ShaderParameterInfo* direction			= nullptr;
+
+			struct LightData {
+				Vector4f param1;
+				Vector3f param2;
+
+				inline void color(const Vector3f& col) { param1.x = col.x; param1.y = col.y; param1.z = col.z; }
+				inline void intensivity(float value) { param1.w = value; }
+				inline void direction(const Vector3f& dir) { param2 = dir; }
+			};
 
 			DeferredDirectionalLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
-
 		// clang-format on
 	}// namespace Pipelines
 }// namespace Engine

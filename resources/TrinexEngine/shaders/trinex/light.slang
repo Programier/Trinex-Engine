@@ -6,7 +6,7 @@
 namespace Lighting
 {
 	struct LightData {
-		float4 color;
+		float3 color;
 		float intensivity;
 #if TRINEX_POINT_LIGHT || TRINEX_SPOT_LIGHT
 		float3 location;
@@ -130,7 +130,7 @@ namespace Lighting
 #endif
 
 		float3 halfway_direction = normalize(view_direction + light_direction);
-		float3 radiance          = light.color.rgb * light.intensivity * attenuation;
+		float3 radiance          = light.color * light.intensivity * attenuation;
 
 		float ggx       = distribution_ggx(normal, halfway_direction, primitive.msra.b);
 		float geometry  = geometry_smith(normal, halfway_direction, light_direction, primitive.msra.b);

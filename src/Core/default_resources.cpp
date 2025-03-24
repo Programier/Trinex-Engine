@@ -28,13 +28,10 @@ namespace Engine
 
 		namespace Materials
 		{
-			ENGINE_EXPORT Material* sprite            = nullptr;
-			ENGINE_EXPORT Material* screen            = nullptr;
-			ENGINE_EXPORT Material* base_pass         = nullptr;
-			ENGINE_EXPORT Material* point_light       = nullptr;
-			ENGINE_EXPORT Material* spot_light        = nullptr;
-			ENGINE_EXPORT Material* directional_light = nullptr;
-			ENGINE_EXPORT Material* ambient_light     = nullptr;
+			ENGINE_EXPORT Material* sprite        = nullptr;
+			ENGINE_EXPORT Material* screen        = nullptr;
+			ENGINE_EXPORT Material* base_pass     = nullptr;
+			ENGINE_EXPORT Material* ambient_light = nullptr;
 		}// namespace Materials
 
 		namespace Meshes
@@ -68,15 +65,12 @@ namespace Engine
 	void load_default_resources()
 	{
 		using namespace DefaultResources;
-		Samplers::default_sampler    = load_object<Sampler>("TrinexEngine::Samplers::DefaultSampler");
-		Textures::default_texture    = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
-		Materials::sprite            = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
-		Materials::screen            = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
-		Materials::base_pass         = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
-		Materials::point_light       = load_object<Material>("TrinexEngine::Materials::PointLightMaterial");
-		Materials::spot_light        = load_object<Material>("TrinexEngine::Materials::SpotLightMaterial");
-		Materials::directional_light = load_object<Material>("TrinexEngine::Materials::DirectionalLightMaterial");
-		Materials::ambient_light     = load_object<Material>("TrinexEngine::Materials::AmbientLightMaterial");
+		Samplers::default_sampler = load_object<Sampler>("TrinexEngine::Samplers::DefaultSampler");
+		Textures::default_texture = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
+		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
+		Materials::screen         = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
+		Materials::base_pass      = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
+		Materials::ambient_light  = load_object<Material>("TrinexEngine::Materials::AmbientLightMaterial");
 		//Meshes::cube                 = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
 		//Meshes::sphere               = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
 		//Meshes::cylinder             = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");

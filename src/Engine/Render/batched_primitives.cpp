@@ -8,33 +8,14 @@
 
 namespace Engine
 {
-	template<typename T>
-	static void grow_buffer(T& dst)
-	{
-		T old    = std::move(dst);
-		auto ptr = dst.allocate_data(RHIBufferType::Dynamic, old.size() * 2);
-		std::memcpy(ptr, old.data(), old.size());
-	}
-
-	static inline void submit_vertex_buffer(VertexBufferBase& buffer, size_t vertices)
-	{
-		if (buffer.rhi_vertex_buffer() == nullptr)
-			buffer.init(true);
-		else
-			buffer.rhi_update(vertices * buffer.stride());
-	}
-
 	//// Lines
 
-	BatchedLines::BatchedLines()
-	{
-		m_vtx_buffer.allocate_data(RHIBufferType::Dynamic, 64);
-	}
+	BatchedLines::BatchedLines() : m_vtx_buffer(RHIBufferType::Dynamic, 64, nullptr, true) {}
 
 	BatchedLines& BatchedLines::add_line(const Vertex& point1, const Vertex& point2)
 	{
 		if (m_vtx_count + 2 > m_vtx_buffer.size())
-			grow_buffer(m_vtx_buffer);
+			m_vtx_buffer.grow();
 
 		auto dst = m_vtx_buffer.data() + m_vtx_count;
 		new (dst) Vertex(point1);
@@ -48,7 +29,7 @@ namespace Engine
 		if (m_vtx_count == 0)
 			return *this;
 
-		submit_vertex_buffer(m_vtx_buffer, m_vtx_count);
+		m_vtx_buffer.rhi_update(m_vtx_count * m_vtx_buffer.stride());
 
 #if TRINEX_DEBUG_BUILD
 		rhi->push_debug_stage("Lines Rendering");
@@ -74,10 +55,8 @@ namespace Engine
 	// TRIANGLES
 
 	BatchedTriangles::BatchedTriangles()
-	{
-		m_position_buffer.allocate_data(RHIBufferType::Dynamic, 64);
-		m_color_buffer.allocate_data(RHIBufferType::Dynamic, 64);
-	}
+		: m_position_buffer(RHIBufferType::Dynamic, 64, nullptr, true), m_color_buffer(RHIBufferType::Dynamic, 64, nullptr, true)
+	{}
 
 	BatchedTriangles& BatchedTriangles::clear()
 	{
@@ -90,8 +69,8 @@ namespace Engine
 	{
 		if (m_vtx_count + 3 > m_position_buffer.size())
 		{
-			grow_buffer(m_position_buffer);
-			grow_buffer(m_color_buffer);
+			m_position_buffer.grow();
+			m_color_buffer.grow();
 		}
 
 		auto pos_dst = m_position_buffer.data() + m_vtx_count;
@@ -114,8 +93,8 @@ namespace Engine
 		if (m_vtx_count == 0)
 			return *this;
 
-		submit_vertex_buffer(m_position_buffer, m_vtx_count);
-		submit_vertex_buffer(m_color_buffer, m_vtx_count);
+		m_position_buffer.rhi_update(m_vtx_count * m_position_buffer.stride());
+		m_color_buffer.rhi_update(m_vtx_count * m_color_buffer.stride());
 
 #if TRINEX_DEBUG_BUILD
 		rhi->push_debug_stage("Triangles Rendering");

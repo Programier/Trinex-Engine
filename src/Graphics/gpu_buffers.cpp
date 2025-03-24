@@ -59,7 +59,8 @@ namespace Engine
 											 bool keep_cpu_data)
 	{
 		allocate_data(type, stride, count);
-		std::memcpy(m_data, data, count * stride);
+		if (data)
+			std::memcpy(m_data, data, count * stride);
 		return init(keep_cpu_data);
 	}
 
@@ -109,6 +110,28 @@ namespace Engine
 		m_vtx_count = 0;
 		m_stride    = 0;
 		m_buffer    = nullptr;
+		return *this;
+	}
+
+	VertexBufferBase& VertexBufferBase::grow(uint32_t factor)
+	{
+		factor = glm::max<uint32_t>(factor, 2);
+
+		VertexBufferBase new_buffer;
+		byte* ptr = new_buffer.allocate_data(m_type, m_stride, m_vtx_count * factor);
+
+		const bool keep_cpu_data       = m_data != nullptr;
+		const bool need_initialization = m_buffer != nullptr;
+
+		if (keep_cpu_data)
+			std::memcpy(ptr, m_data, size());
+
+		(*this) = std::move(new_buffer);
+
+		if (need_initialization)
+		{
+			init(keep_cpu_data);
+		}
 		return *this;
 	}
 
@@ -230,16 +253,17 @@ namespace Engine
 	IndexBuffer& IndexBuffer::init(RHIBufferType type, size_t size, const uint16_t* data, bool keep_cpu_data)
 	{
 		allocate_data(type, RHIIndexFormat::UInt16, sizeof(uint16_t) * size);
-		std::memcpy(m_data, data, sizeof(uint16_t) * size);
+		if (data)
+			std::memcpy(m_data, data, sizeof(uint16_t) * size);
 		return init(keep_cpu_data);
 	}
 
 	IndexBuffer& IndexBuffer::init(RHIBufferType type, size_t size, const uint32_t* data, bool keep_cpu_data)
 	{
 		allocate_data(type, RHIIndexFormat::UInt32, sizeof(uint32_t) * size);
-		std::memcpy(m_data, data, sizeof(uint32_t) * size);
+		if (data)
+			std::memcpy(m_data, data, sizeof(uint32_t) * size);
 		return init(keep_cpu_data);
-		return *this;
 	}
 
 	IndexBuffer& IndexBuffer::init(bool keep_cpu_data)

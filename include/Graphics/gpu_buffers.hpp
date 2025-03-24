@@ -33,6 +33,7 @@ namespace Engine
 		VertexBufferBase& init(bool keep_cpu_data = false);
 		byte* allocate_data(RHIBufferType type, uint16_t stride, size_t count);
 		VertexBufferBase& release();
+		VertexBufferBase& grow(uint32_t factor = 2);
 
 		VertexBufferBase& rhi_bind(byte stream_index, size_t offset = 0);
 		VertexBufferBase& rhi_update(size_t size, size_t offset = 0);
@@ -57,7 +58,7 @@ namespace Engine
 			: VertexBufferBase(type, sizeof(T), list.size(), reinterpret_cast<const byte*>(list.begin()), keep_cpu_data)
 		{}
 
-		VertexBuffer(const T* data, size_t count, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
+		VertexBuffer(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
 			: VertexBufferBase(type, sizeof(T), count, reinterpret_cast<const byte*>(data), keep_cpu_data)
 		{}
 

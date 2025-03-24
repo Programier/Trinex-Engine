@@ -47,18 +47,6 @@ namespace Engine
 			Num         = 3
 		};
 
-		static Name name_color;
-		static Name name_intensivity;
-		static Name name_location;
-		static Name name_radius;
-		static Name name_fall_off_exponent;
-		static Name name_direction;
-		static Name name_spot_angles;
-		static Name name_depth_bias;
-		static Name name_slope_scale;
-		static Name name_shadow_map_texture;
-		static Name name_shadow_map_projview;
-
 	private:
 		Pointer<RenderSurface> m_shadow_map;
 

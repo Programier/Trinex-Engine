@@ -1,16 +1,9 @@
-#include <Core/base_engine.hpp>
-#include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
-#include <Engine/scene.hpp>
-#include <Graphics/gpu_buffers.hpp>
-#include <Graphics/material.hpp>
-#include <Graphics/material_parameter.hpp>
-#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
@@ -23,8 +16,7 @@ namespace Engine
 				.tooltip("Fall Off Exponent of this light");
 	}
 
-	PointLightComponent::PointLightComponent() : m_fall_off_exponent(8.f)
-	{}
+	PointLightComponent::PointLightComponent() : m_fall_off_exponent(8.f) {}
 
 	float PointLightComponent::fall_off_exponent() const
 	{
@@ -72,54 +64,26 @@ namespace Engine
 		return *this;
 	}
 
-#define get_param(param_name, type)                                                                                              \
-	reinterpret_cast<MaterialParameters::type*>(material->find_parameter(LightComponent::name_##param_name));
 	ColorSceneRenderer& ColorSceneRenderer::render_component(PointLightComponent* component)
 	{
 		render_base_component(component);
 
 		PointLightComponentProxy* proxy = component->proxy();
-		auto pass                       = deferred_lighting_pass();
 
 		if (!(scene_view().show_flags() & ShowFlags::PointLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<PointLightComponent>())
 			return *this;
 
-		Material* material = DefaultResources::Materials::point_light;
-
-		auto* color_parameter       = get_param(color, Float3);
-		auto* location_parameter    = get_param(location, Float3);
-		auto* intensivity_parameter = get_param(intensivity, Float);
-		auto* radius_parameter      = get_param(radius, Float);
-		auto* fall_off_parameter    = get_param(fall_off_exponent, Float);
-
-		if (color_parameter)
+		if (component->is_shadows_enabled())
 		{
-			pass->assign(color_parameter->value, proxy->light_color());
+			shadow_pass()->add_light(m_depth_renderer, component);
 		}
 
-		if (location_parameter)
+		if (auto pass = deferred_lighting_pass())
 		{
-			pass->assign(location_parameter->value, proxy->world_transform().location());
+			pass->add_light(component);
 		}
 
-		if (intensivity_parameter)
-		{
-			pass->assign(intensivity_parameter->value, proxy->intensivity());
-		}
-
-		if (radius_parameter)
-		{
-			pass->assign(radius_parameter->value, proxy->attenuation_radius());
-		}
-
-		if (fall_off_parameter)
-		{
-			pass->assign(fall_off_parameter->value, proxy->fall_off_exponent());
-		}
-
-		pass->bind_material(material);
-		pass->draw(6, 0);
 		return *this;
 	}
 
