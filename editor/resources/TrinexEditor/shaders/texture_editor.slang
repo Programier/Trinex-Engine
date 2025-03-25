@@ -1,9 +1,5 @@
 #include "trinex/platform.slang"
-
-struct VertexInput
-{
-	float3 position : POSITION0;	
-};
+#include "trinex/quad.slang"
 
 struct VertexOutput
 {
@@ -17,10 +13,10 @@ uniform uint mip_level;
 uniform float power;
 
 [shader("vertex")]
-void vs_main(in VertexInput input, out VertexOutput out)
+void vs_main(in uint vertex : SV_VertexID, out VertexOutput out)
 {
-	out.position = float4(input.position.x, input.position.y, input.position.z, 1.f);
-	out.uv = Platform::validate_uv((input.position.xy + float2(1.f, 1.f)) * float2(0.5f, 0.5f));
+	out.position = FullScreenQuad::vertex_by_index(vertex);
+	out.uv = Platform::validate_uv(FullScreenQuad::uv_by_index(vertex));
 }
 
 [shader("fragment")]

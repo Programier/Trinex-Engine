@@ -1,15 +1,17 @@
 #include <Clients/texture_editor_client.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/editor_resources.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/material.hpp>
-#include <Graphics/material_parameter.hpp>
+#include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
@@ -17,9 +19,64 @@
 
 namespace Engine
 {
-	trinex_implement_engine_class(TextureEditorClient, 0)
+	// clang-format off
+	trinex_declare_graphics_pipeline(TextureEditor,
+	private:
+		const ShaderParameterInfo* m_mask;
+		const ShaderParameterInfo* m_texture;
+		const ShaderParameterInfo* m_mip_level;
+		const ShaderParameterInfo* m_power;
+
+	public:
+		void draw(RenderSurface* dst, RHI_ShaderResourceView* srv, const Vector4f& mask, uint32_t mip_index, float power);
+	);
+	// clang-format on
+
+	trinex_implement_pipeline(TextureEditor, "[shaders_dir]:/TrinexEditor/texture_editor.slang", ShaderType::BasicGraphics)
+	{
+		m_mask      = find_param_info("mask");
+		m_texture   = find_param_info("texture");
+		m_mip_level = find_param_info("mip_level");
+		m_power     = find_param_info("power");
+	}
+
+	inline void TextureEditor::draw(RenderSurface* dst, RHI_ShaderResourceView* srv, const Vector4f& mask, uint32_t mip_index,
+									float power)
+	{
+		ViewPort vp;
+		vp.size = dst->size();
+		vp.pos  = {0, 0};
+		rhi->viewport(vp);
+
+		Scissor scissor;
+		scissor.size = vp.size;
+		scissor.pos  = {0, 0};
+		rhi->scissor(scissor);
+
+		dst->rhi_render_target_view()->clear(Color(0.f, 0.f, 0.f, 0.f));
+		rhi->bind_render_target1(dst->rhi_render_target_view());
+
+		rhi_bind();
+
+		rhi->update_scalar_parameter(&mask, sizeof(mask), m_mask);
+		rhi->update_scalar_parameter(&mip_index, sizeof(mip_index), m_mip_level);
+		rhi->update_scalar_parameter(&power, sizeof(power), m_power);
+		srv->bind_combined(m_texture->location, DefaultResources::Samplers::default_sampler->rhi_sampler());
+
+		rhi->draw(6, 0);
+		rhi->submit();
+	}
+
+	trinex_implement_engine_class_default_init(TextureEditorClient, 0);
+
+	trinex_implement_engine_class(Texture2DEditorClient, 0)
 	{
 		register_client(Texture::static_class_instance(), static_class_instance());
+	}
+
+	trinex_implement_engine_class(RenderSurfaceEditorClient, 0)
+	{
+		register_client(RenderSurface::static_class_instance(), static_class_instance());
 	}
 
 	static Vector2f max_texture_size_in_viewport(const Vector2f& texture_size, const Vector2f& viewport_size)
@@ -64,7 +121,7 @@ namespace Engine
 				if (ImGui::Selectable(name, m_channels_status[i], 0, {height, height}))
 				{
 					m_channels_status[i] = !m_channels_status[i];
-					on_object_parameters_changed();
+					request_render();
 				}
 
 				auto min = ImGui::GetItemRectMin();
@@ -81,88 +138,25 @@ namespace Engine
 			}
 
 			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+
 			if (ImGui::InputFloat("Pow", &m_pow))
 			{
 				m_pow = glm::clamp(m_pow, 0.001f, 100.f);
-				on_object_parameters_changed();
+				request_render();
 			}
-
-			ImGui::Checkbox("Live Update", &m_live_update);
 		});
 	}
 
-	TextureEditorClient& TextureEditorClient::render_texture()
+	TextureEditorClient& TextureEditorClient::request_render()
 	{
-		ImGui::Begin("Texture View###texture");
-		if (m_surface->rhi_texture())
+		size_t index = engine_instance->frame_index();
+
+		if (m_last_render_frame_index != index)
 		{
-			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
-			ImGui::Spring(1.f, 0.5);
-			auto size = max_texture_size_in_viewport(glm::max(m_texture->size(), {1, 1}),
-													 ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
-			ImGui::Image(ImTextureID(m_surface, EditorResources::default_sampler), ImGui::ImVecFrom(size));
-			ImGui::Spring(1.f, 0.5);
-			ImGui::EndHorizontal();
+			m_last_render_frame_index = index;
+			setup_surface(m_surface);
+			render_thread()->call([self = Pointer(this)]() { self->rhi_render_surface(self->m_surface); });
 		}
-		ImGui::End();
-
-		return *this;
-	}
-
-	static void render_texture_to_surface(RenderSurface* surface, Texture2D* texture, uint_t mip, Vector4f mask, float pow = 1.f)
-	{
-		ViewPort vp;
-		vp.size = texture->size(0);
-		vp.pos  = {0, 0};
-		rhi->viewport(vp);
-
-		Scissor scissor;
-		scissor.size = texture->size(0);
-		scissor.pos  = {0, 0};
-		rhi->scissor(scissor);
-
-		surface->rhi_render_target_view()->clear(Color(0.f, 0.f, 0.f, 0.f));
-		rhi->bind_render_target1(surface->rhi_render_target_view());
-
-		static Name mip_level_name = "mip_level";
-		static Name power          = "power";
-		auto mat                   = EditorResources::texture_editor_material;
-
-		auto p_mask      = mat->find_parameter<MaterialParameters::Float4>(Name::mask);
-		auto p_texture   = mat->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
-		auto p_mip_level = mat->find_parameter<MaterialParameters::UInt>(mip_level_name);
-		auto p_power     = mat->find_parameter<MaterialParameters::Float>(power);
-
-		p_mask->value      = mask;
-		p_texture->texture = texture;
-		p_texture->sampler = EditorResources::default_sampler;
-		p_mip_level->value = mip;
-		p_power->value     = pow;
-
-		mat->apply();
-		DefaultResources::Buffers::screen_quad->rhi_bind(0);
-		rhi->draw(6, 0);
-
-		rhi->submit();
-	}
-
-	TextureEditorClient& TextureEditorClient::on_object_parameters_changed(bool reinit)
-	{
-		if (!m_texture || !m_texture->rhi_shader_resource_view())
-			return *this;
-
-		if (!reinit && m_surface->size() != m_texture->size())
-		{
-			reinit = true;
-		}
-
-		if (reinit)
-		{
-			m_surface->init(ColorFormat::R8G8B8A8, m_texture->size(m_mip_index));
-		}
-
-		Vector4f mask = Vector4f(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
-		render_thread()->call(render_texture_to_surface, m_surface.ptr(), m_texture.ptr(), m_mip_index, mask, m_pow);
 		return *this;
 	}
 
@@ -181,31 +175,25 @@ namespace Engine
 	TextureEditorClient& TextureEditorClient::update(float dt)
 	{
 		Super::update(dt);
-		render_texture();
 
-		if (m_live_update)
-			on_object_parameters_changed();
+		ImGui::Begin("Texture View###texture");
+		if (m_surface->rhi_texture())
+		{
+			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
+			ImGui::Spring(1.f, 0.5);
+			auto size = max_texture_size_in_viewport(m_surface->size(), ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
+			ImGui::Image(ImTextureID(m_surface, DefaultResources::Samplers::default_sampler), ImGui::ImVecFrom(size));
+			ImGui::Spring(1.f, 0.5);
+			ImGui::EndHorizontal();
+		}
+		ImGui::End();
 
 		return *this;
 	}
 
 	TextureEditorClient& TextureEditorClient::select(Object* object)
 	{
-		Super::select(object);
-
-		if (m_texture.ptr() == object)
-			return *this;
-
-		if (Texture2D* texture = Object::instance_cast<Texture2D>(object))
-		{
-			m_texture = texture;
-			m_properties->update(object);
-
-			call_in_render_thread(
-					[self = Pointer(this)]() { self->m_surface->rhi_render_target_view()->clear(Color(0, 0, 0, 1)); });
-			on_object_parameters_changed(true);
-			m_live_update = texture->is_instance_of<RenderSurface>();
-		}
+		m_properties->update(object);
 		return *this;
 	}
 
@@ -214,6 +202,94 @@ namespace Engine
 		auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 		ImGui::DockBuilderDockWindow("Texture View###texture", dock_id);
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
+		return *this;
+	}
+
+	// TEXTURE 2D RENDERING
+
+	Texture2DEditorClient& Texture2DEditorClient::setup_surface(RenderSurface* dst)
+	{
+		Vector2u size = m_texture->size(m_mip_index);
+
+		if (size != dst->size())
+		{
+			dst->init(ColorFormat::R8G8B8A8, size);
+		}
+		return *this;
+	}
+
+	Texture2DEditorClient& Texture2DEditorClient::rhi_render_surface(RenderSurface* surface)
+	{
+		if (!m_texture)
+			return *this;
+
+		TextureEditor::instance()->draw(surface, m_texture->rhi_shader_resource_view(), color_mask(), m_mip_index, pow_factor());
+		return *this;
+	}
+
+	Texture2DEditorClient& Texture2DEditorClient::select(Object* object)
+	{
+		if (m_texture == object)
+			return *this;
+
+		if (Texture2D* texture = instance_cast<Texture2D>(object))
+		{
+			m_texture = texture;
+			Super::select(object);
+
+			request_render();
+		}
+
+		return *this;
+	}
+
+	// RENDER SURFACE RENDERING
+
+	RenderSurfaceEditorClient::RenderSurfaceEditorClient()
+	{
+		menu_bar.create("")->actions.push([this]() { ImGui::Checkbox("Live Update", &m_live_update); });
+	}
+
+	RenderSurfaceEditorClient& RenderSurfaceEditorClient::setup_surface(RenderSurface* dst)
+	{
+		Vector2u size = m_surface->size();
+
+		if (size != dst->size())
+		{
+			dst->init(ColorFormat::R8G8B8A8, size);
+		}
+		return *this;
+	}
+
+	RenderSurfaceEditorClient& RenderSurfaceEditorClient::rhi_render_surface(RenderSurface* surface)
+	{
+		if (!m_surface)
+			return *this;
+
+		TextureEditor::instance()->draw(surface, m_surface->rhi_shader_resource_view(), color_mask(), 0, pow_factor());
+		return *this;
+	}
+
+	RenderSurfaceEditorClient& RenderSurfaceEditorClient::select(Object* object)
+	{
+		if (m_surface == object)
+			return *this;
+
+		if (RenderSurface* surface = instance_cast<RenderSurface>(object))
+		{
+			m_surface = surface;
+			Super::select(object);
+			request_render();
+		}
+
+		return *this;
+	}
+
+	RenderSurfaceEditorClient& RenderSurfaceEditorClient::update(float dt)
+	{
+		Super::update(dt);
+		if (m_live_update)
+			request_render();
 		return *this;
 	}
 }// namespace Engine
