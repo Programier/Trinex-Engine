@@ -6,9 +6,9 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Engine/Render/pipelines.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -19,64 +19,22 @@
 
 namespace Engine
 {
-	// clang-format off
-	trinex_declare_graphics_pipeline(TextureEditor,
-	private:
-		const ShaderParameterInfo* m_mask;
-		const ShaderParameterInfo* m_texture;
-		const ShaderParameterInfo* m_mip_level;
-		const ShaderParameterInfo* m_power;
-
-	public:
-		void draw(RenderSurface* dst, RHI_ShaderResourceView* srv, const Vector4f& mask, uint32_t mip_index, float power);
-	);
-	// clang-format on
-
-	trinex_implement_pipeline(TextureEditor, "[shaders_dir]:/TrinexEditor/texture_editor.slang", ShaderType::BasicGraphics)
+	static inline void copy_texture_to_surface(RenderSurface* dst, RHI_ShaderResourceView* srv,
+											   const Pipelines::Blit2DGamma::Args& args)
 	{
-		m_mask      = find_param_info("mask");
-		m_texture   = find_param_info("texture");
-		m_mip_level = find_param_info("mip_level");
-		m_power     = find_param_info("power");
+		Rect2D rect;
+		rect.pos  = {0, 0};
+		rect.size = dst->size();
+
+		auto pipeline = Pipelines::Blit2DGamma::instance();
+		pipeline->blit(srv, dst->rhi_unordered_access_view(), rect, rect, args);
 	}
 
-	inline void TextureEditor::draw(RenderSurface* dst, RHI_ShaderResourceView* srv, const Vector4f& mask, uint32_t mip_index,
-									float power)
+	static inline Vector4u calculate_swizzle(ColorFormat format)
 	{
-		ViewPort vp;
-		vp.size = dst->size();
-		vp.pos  = {0, 0};
-		rhi->viewport(vp);
-
-		Scissor scissor;
-		scissor.size = vp.size;
-		scissor.pos  = {0, 0};
-		rhi->scissor(scissor);
-
-		dst->rhi_render_target_view()->clear(Color(0.f, 0.f, 0.f, 0.f));
-		rhi->bind_render_target1(dst->rhi_render_target_view());
-
-		rhi_bind();
-
-		rhi->update_scalar_parameter(&mask, sizeof(mask), m_mask);
-		rhi->update_scalar_parameter(&mip_index, sizeof(mip_index), m_mip_level);
-		rhi->update_scalar_parameter(&power, sizeof(power), m_power);
-		srv->bind_combined(m_texture->location, DefaultResources::Samplers::default_sampler->rhi_sampler());
-
-		rhi->draw(6, 0);
-		rhi->submit();
-	}
-
-	trinex_implement_engine_class_default_init(TextureEditorClient, 0);
-
-	trinex_implement_engine_class(Texture2DEditorClient, 0)
-	{
-		register_client(Texture::static_class_instance(), static_class_instance());
-	}
-
-	trinex_implement_engine_class(RenderSurfaceEditorClient, 0)
-	{
-		register_client(RenderSurface::static_class_instance(), static_class_instance());
+		if (format.is_depth())
+			return {0, 0, 0, 3};
+		return {0, 1, 2, 3};
 	}
 
 	static Vector2f max_texture_size_in_viewport(const Vector2f& texture_size, const Vector2f& viewport_size)
@@ -98,6 +56,18 @@ namespace Engine
 		}
 
 		return result_size;
+	}
+
+	trinex_implement_engine_class_default_init(TextureEditorClient, 0);
+
+	trinex_implement_engine_class(Texture2DEditorClient, 0)
+	{
+		register_client(Texture::static_class_instance(), static_class_instance());
+	}
+
+	trinex_implement_engine_class(RenderSurfaceEditorClient, 0)
+	{
+		register_client(RenderSurface::static_class_instance(), static_class_instance());
 	}
 
 	TextureEditorClient::TextureEditorClient()
@@ -223,7 +193,13 @@ namespace Engine
 		if (!m_texture)
 			return *this;
 
-		TextureEditor::instance()->draw(surface, m_texture->rhi_shader_resource_view(), color_mask(), m_mip_index, pow_factor());
+		Pipelines::Blit2DGamma::Args args;
+		args.gamma   = pow_factor();
+		args.level   = m_mip_index;
+		args.blend   = color_mask();
+		args.swizzle = calculate_swizzle(m_texture->format);
+
+		copy_texture_to_surface(surface, m_texture->rhi_shader_resource_view(), args);
 		return *this;
 	}
 
@@ -266,7 +242,12 @@ namespace Engine
 		if (!m_surface)
 			return *this;
 
-		TextureEditor::instance()->draw(surface, m_surface->rhi_shader_resource_view(), color_mask(), 0, pow_factor());
+		Pipelines::Blit2DGamma::Args args;
+		args.gamma   = pow_factor();
+		args.blend   = color_mask();
+		args.swizzle = calculate_swizzle(m_surface->format());
+
+		copy_texture_to_surface(surface, m_surface->rhi_shader_resource_view(), args);
 		return *this;
 	}
 

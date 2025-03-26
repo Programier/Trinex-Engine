@@ -12,16 +12,10 @@
 
 namespace Engine::Pipelines
 {
-	static FORCE_INLINE Vector4f rect_to_vec4(const Rect2D& rect)
+	static FORCE_INLINE Vector4i rect_to_vec4(const Rect2D& rect)
 	{
-		return {
-				static_cast<float>(rect.pos.x),
-				static_cast<float>(rect.pos.y),
-				static_cast<float>(rect.size.x),
-				static_cast<float>(rect.size.y),
-		};
+		return {rect.pos.x, rect.pos.y, rect.size.x, rect.size.y};
 	}
-
 
 	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/compute/gaussian_blur.slang", ShaderType::Compute)
 	{
@@ -64,28 +58,23 @@ namespace Engine::Pipelines
 					  const Args& args)
 	{
 		struct ShaderArgs {
-			alignas(16) Vector4f src_rect;
-			alignas(16) Vector4f dst_rect;
-			alignas(16) Vector4f src_blend;
-			alignas(16) Vector4f dst_blend;
+			alignas(16) Vector4i src_rect;
+			alignas(16) Vector4i dst_rect;
+			alignas(16) Vector4f blend;
+			alignas(16) Vector4u swizzle;
 			alignas(4) uint32_t level;
 		};
 
-		auto sampler = args.sampler;
-
-		if (sampler == nullptr)
-			sampler = DefaultResources::Samplers::default_sampler->rhi_sampler();
-
 		ShaderArgs shader_args;
-		shader_args.src_rect  = rect_to_vec4(src_rect);
-		shader_args.dst_rect  = rect_to_vec4(dst_rect);
-		shader_args.src_blend = args.src_blend;
-		shader_args.dst_blend = args.dst_blend;
-		shader_args.level     = args.level;
+		shader_args.src_rect = rect_to_vec4(src_rect);
+		shader_args.dst_rect = rect_to_vec4(dst_rect);
+		shader_args.blend    = args.blend;
+		shader_args.swizzle  = glm::min(args.swizzle, Vector4u(3, 3, 3, 3));
+		shader_args.level    = args.level;
 
 		rhi_bind();
 
-		src->bind_combined(m_src->location, sampler);
+		src->bind(m_src->location);
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
@@ -93,6 +82,52 @@ namespace Engine::Pipelines
 		// Shader uses 8x8x1 threads per group
 		Vector2u groups = {(glm::abs(dst_rect.size.x) + 7) / 8, (glm::abs(dst_rect.size.y) + 7) / 8};
 		rhi->dispatch(groups.x, groups.y, 1);
+	}
+
+	trinex_implement_pipeline(Blit2DGamma, "[shaders_dir]:/TrinexEngine/trinex/compute/blit.slang", ShaderType::Compute)
+	{
+		m_src  = find_param_info("src");
+		m_dst  = find_param_info("dst");
+		m_args = find_param_info("args");
+	}
+
+	void Blit2DGamma::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect,
+						   const Rect2D& dst_rect, const Args& args)
+	{
+		struct ShaderArgs {
+			alignas(16) Vector4i src_rect;
+			alignas(16) Vector4i dst_rect;
+			alignas(16) Vector4f blend;
+			alignas(16) Vector4u swizzle;
+			alignas(4) float gamma;
+			alignas(4) uint32_t level;
+		};
+
+		ShaderArgs shader_args;
+		shader_args.src_rect = rect_to_vec4(src_rect);
+		shader_args.dst_rect = rect_to_vec4(dst_rect);
+		shader_args.blend    = args.blend;
+		shader_args.swizzle  = glm::min(args.swizzle, Vector4u(3, 3, 3, 3));
+		shader_args.level    = args.level;
+		shader_args.gamma    = args.gamma;
+
+		rhi_bind();
+
+		src->bind(m_src->location);
+		dst->bind(m_dst->location);
+
+		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
+
+		// Shader uses 8x8x1 threads per group
+		Vector2u groups = {(glm::abs(dst_rect.size.x) + 7) / 8, (glm::abs(dst_rect.size.y) + 7) / 8};
+		rhi->dispatch(groups.x, groups.y, 1);
+	}
+
+	Blit2DGamma& Blit2DGamma::modify_compilation_env(ShaderCompilationEnvironment* env)
+	{
+		Super::modify_compilation_env(env);
+		env->add_definition_nocopy("TRINEX_BLIT_GAMMA", "1");
+		return *this;
 	}
 
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang",

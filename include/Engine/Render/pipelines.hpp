@@ -30,14 +30,32 @@ namespace Engine
 
 		public:
 			struct Args {
-				Vector4f src_blend;
-				Vector4f dst_blend;
+				Vector4f blend;
+				Vector4u swizzle;
 				uint_t level;
-				RHI_Sampler* sampler;
-				Args() : src_blend(1.f, 1.f, 1.f, 1.f), dst_blend(0.f, 0.f, 0.f, 0.f), level(0), sampler(nullptr) {}
+				Args() : blend(1.f, 1.f, 1.f, 1.f), swizzle(0, 1, 2, 3), level(0) {}
 			};
 
 			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect, const Args& args = Args());
+		);
+
+		trinex_declare_compute_pipeline(Blit2DGamma,
+		private:
+			const ShaderParameterInfo* m_src;
+			const ShaderParameterInfo* m_dst;
+			const ShaderParameterInfo* m_args;
+
+		public:
+			struct Args {
+				Vector4f blend;
+				Vector4u swizzle;
+				float gamma;
+				uint_t level;
+				Args() : blend(1.f, 1.f, 1.f, 1.f), swizzle(0, 1, 2, 3), gamma(1.f), level(0) {}
+			};
+
+			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect, const Args& args = Args());
+			Blit2DGamma& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 
 		trinex_declare_graphics_pipeline(BatchedLines,

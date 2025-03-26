@@ -296,7 +296,6 @@ namespace Engine
 		RenderSurface* src  = nullptr;
 		auto render_targets = SceneRenderTargets::instance();
 		Pipelines::Blit2D::Args args;
-		args.src_blend = {0.2, 0.2, 0.2, 1.f};
 
 		switch (mode)
 		{
@@ -305,9 +304,26 @@ namespace Engine
 				break;
 
 			case ViewMode::WorldNormal:
-				src              = render_targets->surface_of(SceneRenderTargets::Normal);
-				args.dst_blend.w = 1.f;
-				args.src_blend.w = 0.f;
+				src          = render_targets->surface_of(SceneRenderTargets::Normal);
+				args.blend.a = 0.f;
+				break;
+
+			case ViewMode::Metalic:
+				src          = render_targets->surface_of(SceneRenderTargets::MSRA);
+				args.swizzle = {0, 0, 0, 3};
+				args.blend.a = 0.f;
+				break;
+
+			case ViewMode::Specular:
+				src          = render_targets->surface_of(SceneRenderTargets::MSRA);
+				args.swizzle = {1, 1, 1, 3};
+				args.blend.a = 0.f;
+				break;
+
+			case ViewMode::Roughness:
+				src          = render_targets->surface_of(SceneRenderTargets::MSRA);
+				args.swizzle = {2, 2, 2, 3};
+				args.blend.a = 0.f;
 				break;
 
 			default:
