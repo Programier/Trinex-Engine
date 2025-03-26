@@ -40,7 +40,7 @@ namespace Engine
 		FORCE_INLINE const Matrix4f& projview_matrix() const { return m_projview; }
 		FORCE_INLINE const Matrix4f& inv_projview_matrix() const { return m_inv_projview; }
 		FORCE_INLINE const CameraView& camera_view() const { return m_camera_view; }
-		FORCE_INLINE const Vector2u& view_size() const { return m_viewport.size; }
+		FORCE_INLINE const Vector2i& view_size() const { return m_viewport.size; }
 		FORCE_INLINE ShowFlags show_flags() const { return m_show_flags; }
 	};
 }// namespace Engine

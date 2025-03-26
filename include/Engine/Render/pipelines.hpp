@@ -22,6 +22,24 @@ namespace Engine
 			void blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel = 5, float sigma = 2.f, RHI_Sampler* sampler = nullptr);
 		);
 
+		trinex_declare_compute_pipeline(Blit2D,
+		private:
+			const ShaderParameterInfo* m_src;
+			const ShaderParameterInfo* m_dst;
+			const ShaderParameterInfo* m_args;
+
+		public:
+			struct Args {
+				Vector4f src_blend;
+				Vector4f dst_blend;
+				uint_t level;
+				RHI_Sampler* sampler;
+				Args() : src_blend(1.f, 1.f, 1.f, 1.f), dst_blend(0.f, 0.f, 0.f, 0.f), level(0), sampler(nullptr) {}
+			};
+
+			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect, const Args& args = Args());
+		);
+
 		trinex_declare_graphics_pipeline(BatchedLines,
 		private:
 			const ShaderParameterInfo* m_globals;

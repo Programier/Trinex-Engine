@@ -6,17 +6,16 @@ namespace Engine
 {
 	struct Rect2D {
 		Vector2i pos  = {0, 0};
-		Vector2u size = {0, 0};
+		Vector2i size = {0, 0};
 	};
 
 	struct ViewPort {
 		Vector2i pos    = {0, 0};
-		Vector2u size   = {0, 0};
+		Vector2i size   = {0, 0};
 		float min_depth = 0.0f;
 		float max_depth = 1.0f;
 
-
-		FORCE_INLINE float aspect() const { return size.x / size.y; }
+		FORCE_INLINE float aspect() const { return static_cast<float>(size.x) / static_cast<float>(size.y); }
 
 		FORCE_INLINE bool operator==(const ViewPort& v) const
 		{
@@ -29,7 +28,7 @@ namespace Engine
 
 	struct Scissor {
 		Vector2i pos  = {0, 0};
-		Vector2u size = {0, 0};
+		Vector2i size = {0, 0};
 
 		FORCE_INLINE bool operator==(const Scissor& v) const { return pos == v.pos && size == v.size; }
 		FORCE_INLINE bool operator!=(const Scissor& v) const { return !((*this) == v); }

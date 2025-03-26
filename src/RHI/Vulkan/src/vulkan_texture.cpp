@@ -80,7 +80,7 @@ namespace Engine
 
 	void VulkanTexture::change_layout(vk::ImageLayout new_layout)
 	{
-		if (layout() != new_layout)
+		if (layout() != new_layout || new_layout == vk::ImageLayout::eTransferDstOptimal)
 		{
 			vk::ImageMemoryBarrier barrier;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -244,12 +244,12 @@ namespace Engine
 		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
 		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		auto src_end = src_rect.pos + Vector2i(src_rect.size);
-		auto dst_end = dst_rect.pos + Vector2i(dst_rect.size);
+		auto src_end = src_rect.pos + src_rect.size;
+		auto dst_end = dst_rect.pos + dst_rect.size;
 
 		vk::ImageBlit blit;
 		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.pos.y, 1)});
+		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_rect.pos.y, 0), vk::Offset3D(dst_end.x, dst_end.y, 1)});
 
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));

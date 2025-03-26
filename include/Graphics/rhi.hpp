@@ -235,6 +235,11 @@ namespace Engine
 			return update_scalar_parameter(data, size, info->offset, info->location);
 		}
 
+		inline RHI& update_scalar_parameter(const void* data, const ShaderParameterInfo* info)
+		{
+			return update_scalar_parameter(data, info->size, info->offset, info->location);
+		}
+
 		virtual ~RHI() {};
 	};
 

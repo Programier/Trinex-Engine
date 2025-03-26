@@ -67,20 +67,11 @@ namespace Engine
 		const SceneRenderer& bind_global_parameters(BindingIndex index) const;
 		const SceneView& scene_view() const;
 
-		FORCE_INLINE ViewMode view_mode() const
-		{
-			return m_view_mode;
-		}
+		FORCE_INLINE ViewMode view_mode() const { return m_view_mode; }
 
-		FORCE_INLINE RenderPass* first_pass() const
-		{
-			return m_first_pass;
-		}
+		FORCE_INLINE RenderPass* first_pass() const { return m_first_pass; }
 
-		FORCE_INLINE RenderPass* last_pass() const
-		{
-			return m_last_pass;
-		}
+		FORCE_INLINE RenderPass* last_pass() const { return m_last_pass; }
 
 		SceneRenderer& view_mode(ViewMode new_mode);
 
@@ -104,9 +95,6 @@ namespace Engine
 		virtual SceneRenderer& render(const SceneView& view, class RenderViewport* viewport);
 
 		// Rendering part
-
-		SceneRenderer& blit(class Texture2D* texture, const Vector2f& min = {0, 0}, const Vector2f& max = {1, 1});
-
 		template<typename ComponentType>
 		FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component)
 		{
@@ -150,35 +138,17 @@ namespace Engine
 		virtual ColorSceneRenderer& initialize_subrenderers();
 		virtual ColorSceneRenderer& finalize_subrenderers();
 
-		FORCE_INLINE ShadowPass* shadow_pass() const
-		{
-			return m_shadow_pass;
-		}
+		FORCE_INLINE ShadowPass* shadow_pass() const { return m_shadow_pass; }
 
-		FORCE_INLINE ClearPass* clear_pass() const
-		{
-			return m_clear_pass;
-		}
+		FORCE_INLINE ClearPass* clear_pass() const { return m_clear_pass; }
 
-		FORCE_INLINE GeometryPass* geometry_pass() const
-		{
-			return m_geometry_pass;
-		}
+		FORCE_INLINE GeometryPass* geometry_pass() const { return m_geometry_pass; }
 
-		FORCE_INLINE DeferredLightingPass* deferred_lighting_pass() const
-		{
-			return m_deferred_lighting_pass;
-		}
+		FORCE_INLINE DeferredLightingPass* deferred_lighting_pass() const { return m_deferred_lighting_pass; }
 
-		FORCE_INLINE PostProcessPass* post_process_pass() const
-		{
-			return m_post_process_pass;
-		}
+		FORCE_INLINE PostProcessPass* post_process_pass() const { return m_post_process_pass; }
 
-		FORCE_INLINE OverlayPass* overlay_pass() const
-		{
-			return m_overlay_pass;
-		}
+		FORCE_INLINE OverlayPass* overlay_pass() const { return m_overlay_pass; }
 
 		// Components rendering
 		using SceneRenderer::render_component;

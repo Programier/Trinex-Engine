@@ -36,9 +36,9 @@ namespace Engine
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, read->m_framebuffer);
 
 		auto src_start = src_rect.pos;
-		auto src_end   = src_start + Vector2i(src_rect.size);
+		auto src_end   = src_start + src_rect.size;
 		auto dst_start = dst_rect.pos;
-		auto dst_end   = dst_start + Vector2i(dst_rect.size);
+		auto dst_end   = dst_start + dst_rect.size;
 
 		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
 						  GL_COLOR_BUFFER_BIT, filter_of(filter));

@@ -91,8 +91,8 @@ namespace Engine
 		auto dst = render_target();
 		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		Vector2i src_end = src_rect.pos + Vector2i(src_rect.size);
-		Vector2i dst_end = dst_rect.pos + Vector2i(dst_rect.size);
+		Vector2i src_end = src_rect.pos + src_rect.size;
+		Vector2i dst_end = dst_rect.pos + dst_rect.size;
 
 		vk::ImageBlit blit;
 		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});

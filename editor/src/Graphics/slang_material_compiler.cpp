@@ -84,13 +84,22 @@ namespace Engine
 	{
 	private:
 		struct VarTraceEntry {
+			static constexpr size_t exclude_scalar          = BIT(0);
+			static constexpr size_t exclude_vector          = BIT(1);
+			static constexpr size_t exclude_matrix          = BIT(2);
+			static constexpr size_t exclude_resource        = BIT(3);
+			static constexpr size_t exclude_sampler         = BIT(4);
+			static constexpr size_t exclude_struct          = BIT(5);
+			static constexpr size_t exclude_constant_buffer = BIT(6);
+
 			String name;
 			slang::VariableLayoutReflection* var = nullptr;
 			const VarTraceEntry* const prev      = nullptr;
 			slang::TypeReflection::Kind kind;
+			size_t exclude_flags;
 
 			VarTraceEntry(slang::VariableLayoutReflection* const var, const VarTraceEntry* const prev = nullptr)
-				: var(var), prev(prev), kind(var->getTypeLayout()->getKind())
+				: var(var), prev(prev), kind(var->getTypeLayout()->getKind()), exclude_flags(prev ? prev->exclude_flags : 0)
 			{
 				name = Strings::make_string(var->getName());
 
@@ -135,7 +144,14 @@ namespace Engine
 				return trace_offset(static_cast<SlangParameterCategory>(category));
 			}
 
-			slang::ParameterCategory category() const { return var->getCategory(); }
+			inline slang::UserAttribute* find_attribute(const char* attribute) const
+			{
+				return var->getVariable()->findAttributeByName(global_session(), attribute);
+			}
+
+			inline bool has_attribute(const char* attribute) { return find_attribute(attribute) != nullptr; }
+			inline slang::ParameterCategory category() const { return var->getCategory(); }
+			inline bool is_excluded(size_t flags) const { return (exclude_flags & flags) == flags; }
 		};
 
 
@@ -146,25 +162,15 @@ namespace Engine
 
 		Pipeline* pipeline;
 
-		static bool has_attribute(slang::VariableReflection* var, const char* attribute, size_t args = 0)
+		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, uint index)
 		{
-			auto count = var->getUserAttributeCount();
-			for (unsigned int i = 0; i < count; ++i)
-			{
-				if (auto attrib = var->getUserAttributeByIndex(i))
-				{
-					if (std::strcmp(attrib->getName(), attribute) != 0)
-						continue;
-
-					if (attrib->getArgumentCount() != args)
-						continue;
-
-					return true;
-				}
-			}
-
-			return false;
+			size_t size;
+			const char* name = attribute->getArgumentValueString(0, &size);
+			if (name && size > 2)
+				return StringView(name + 1, size - 2);
+			return StringView();
 		}
+
 
 		static ShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
 		{
@@ -175,28 +181,14 @@ namespace Engine
 					{"CombinedSurface", ShaderParameterType::CombinedSurface},//
 			};
 
-			auto count = var->getUserAttributeCount();
-
-			for (unsigned int i = 0; i < count; ++i)
+			if (auto attrib = var->findAttributeByName(global_session(), "parameter_type"))
 			{
-				if (auto attrib = var->getUserAttributeByIndex(i))
-				{
-					if (std::strcmp(attrib->getName(), "parameter_type") != 0)
-						continue;
+				auto it = map.find(parse_string_attribute(attrib, 0));
 
-					if (attrib->getArgumentCount() != 1)
-						continue;
-
-					size_t size;
-					const char* name = attrib->getArgumentValueString(0, &size);
-					if (name && size > 2)
-					{
-						auto it = map.find(StringView(name + 1, size - 2));
-						if (it != map.end())
-							return it->second;
-					}
-				}
+				if (it != map.end())
+					return it->second;
 			}
+
 			return ShaderParameterType::Undefined;
 		}
 
@@ -411,16 +403,19 @@ namespace Engine
 			auto elements   = reflection->getElementCount();
 			auto scalar     = reflection->getScalarType();
 
-			for (auto& detector : type_detectors)
+			if (scalar != slang::TypeReflection::ScalarType::None)
 			{
-				auto type = detector(var, rows, colums, elements, scalar);
-				if (type != ShaderParameterType::Undefined)
+				for (auto& detector : type_detectors)
 				{
-					return type;
+					auto type = detector(var, rows, colums, elements, scalar);
+					if (type != ShaderParameterType::Undefined)
+					{
+						return type;
+					}
 				}
 			}
 
-			return ShaderParameterType::Undefined;
+			return ShaderParameterType::MemoryBlock;
 		}
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
@@ -428,6 +423,13 @@ namespace Engine
 			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
 					  slang::TypeReflection::Kind::Matrix>(param.kind))
 			{
+				if (param.kind == slang::TypeReflection::Kind::Scalar && param.is_excluded(VarTraceEntry::exclude_scalar))
+					return true;
+				if (param.kind == slang::TypeReflection::Kind::Vector && param.is_excluded(VarTraceEntry::exclude_vector))
+					return true;
+				if (param.kind == slang::TypeReflection::Kind::Matrix && param.is_excluded(VarTraceEntry::exclude_matrix))
+					return true;
+
 				ShaderParameterInfo info;
 				info.type = find_scalar_parameter_type(param.var);
 
@@ -452,7 +454,8 @@ namespace Engine
 				info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
 				pipeline->parameters[info.name] = info;
 			}
-			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind))
+			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
+					 !param.is_excluded(VarTraceEntry::exclude_resource))
 			{
 				auto type = find_parameter_type_from_attributes(param.var->getVariable());
 
@@ -494,7 +497,8 @@ namespace Engine
 					}
 				}
 			}
-			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind))
+			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind) &&
+					 !param.is_excluded(VarTraceEntry::exclude_sampler))
 			{
 				ShaderParameterInfo object;
 				object.name                       = param.name;
@@ -502,18 +506,50 @@ namespace Engine
 				object.type                       = ShaderParameterType::Sampler;
 				pipeline->parameters[object.name] = object;
 			}
-			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind))
+			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))
 			{
 				auto layout = param.var->getTypeLayout();
 				auto fields = layout->getFieldCount();
 
+				size_t additional_exclude = 0;
+
+				if (auto attr = param.find_attribute("parameter_type"))
+				{
+					if (parse_string_attribute(attr, 0) == "MemoryBlock")
+					{
+						additional_exclude |= VarTraceEntry::exclude_scalar;
+						additional_exclude |= VarTraceEntry::exclude_vector;
+						additional_exclude |= VarTraceEntry::exclude_matrix;
+
+						ShaderParameterInfo info;
+
+						if (auto layout = param.var->getTypeLayout())
+						{
+							info.size = layout->getSize();
+						}
+						else
+						{
+							error_log("ShaderCompiler", "Failed to get parameter layout info!");
+							return false;
+						}
+
+						info.type                       = ShaderParameterType::MemoryBlock;
+						info.name                       = param.name;
+						info.offset                     = param.trace_offset(slang::ParameterCategory::Uniform);
+						info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+						pipeline->parameters[info.name] = info;
+					}
+				}
+
 				for (decltype(fields) i = 0; i < fields; i++)
 				{
 					VarTraceEntry var(layout->getFieldByIndex(i), &param);
+					var.exclude_flags |= additional_exclude;
 					return_if_false(parse_shader_parameter(var)) false;
 				}
 			}
-			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(param.kind))
+			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(param.kind) &&
+					 !param.is_excluded(VarTraceEntry::exclude_constant_buffer))
 			{
 				auto layout = param.var->getTypeLayout()->getElementTypeLayout();
 

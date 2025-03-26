@@ -24,7 +24,6 @@ namespace Engine
 		inline RHI_Shader* rhi_shader() const { return m_shader; }
 	};
 
-
 	class ENGINE_EXPORT VertexShader : public Shader
 	{
 		trinex_declare_class(VertexShader, Shader);

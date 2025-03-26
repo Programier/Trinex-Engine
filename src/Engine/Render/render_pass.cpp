@@ -3,6 +3,7 @@
 #include <Core/reflection/render_pass_info.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
@@ -10,6 +11,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 
@@ -291,31 +293,33 @@ namespace Engine
 
 	OverlayPass& OverlayPass::copy_view_texture(ViewMode mode)
 	{
-		RenderSurface* surface = nullptr;
-		auto render_targets    = SceneRenderTargets::instance();
+		RenderSurface* src  = nullptr;
+		auto render_targets = SceneRenderTargets::instance();
+		Pipelines::Blit2D::Args args;
+		args.src_blend = {0.2, 0.2, 0.2, 1.f};
 
 		switch (mode)
 		{
 			case ViewMode::Unlit:
-				surface = render_targets->surface_of(SceneRenderTargets::BaseColor);
+				src = render_targets->surface_of(SceneRenderTargets::BaseColor);
 				break;
 
 			case ViewMode::WorldNormal:
-				surface = render_targets->surface_of(SceneRenderTargets::Normal);
+				src              = render_targets->surface_of(SceneRenderTargets::Normal);
+				args.dst_blend.w = 1.f;
+				args.src_blend.w = 0.f;
 				break;
 
 			default:
 				return *this;
 		}
 
-		auto renderer = scene_renderer();
-		auto& params  = renderer->global_parameters();
-		auto& vp      = params.viewport;
+		Rect2D rect;
+		rect.pos  = {0, 0};
+		rect.size = src->size();
 
-		auto min = Vector2f(vp.x, vp.y) / params.size;
-		auto max = Vector2f(vp.x + vp.z, vp.y + vp.w) / params.size;
-		renderer->blit(reinterpret_cast<Texture2D*>(surface), min, max);
-
+		auto dst = render_targets->surface_of(SceneRenderTargets::SceneColorLDR)->rhi_unordered_access_view();
+		Pipelines::Blit2D::instance()->blit(src->rhi_shader_resource_view(), dst, rect, rect, args);
 		return *this;
 	}
 

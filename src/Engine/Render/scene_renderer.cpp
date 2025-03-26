@@ -247,33 +247,6 @@ namespace Engine
 		return SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR);
 	}
 
-	SceneRenderer& SceneRenderer::blit(class Texture2D* texture, const Vector2f& min, const Vector2f& max)
-	{
-		static Name screen_texture = "screen_texture";
-		static Name min_point      = "min_point";
-		static Name max_point      = "max_point";
-
-		Material* material = DefaultResources::Materials::screen;
-
-		if (material == nullptr)
-			return *this;
-
-		auto* texture_param  = Object::instance_cast<MaterialParameters::Sampler2D>(material->find_parameter(screen_texture));
-		auto min_point_param = Object::instance_cast<MaterialParameters::Float2>(material->find_parameter(min_point));
-		auto max_point_param = Object::instance_cast<MaterialParameters::Float2>(material->find_parameter(max_point));
-
-		if (!all_of(texture_param, min_point_param, max_point_param))
-			return *this;
-
-		texture_param->texture = texture;
-		min_point_param->value = min;
-		max_point_param->value = max;
-
-		material->apply();
-		rhi->draw(6, 0);
-		return *this;
-	}
-
 	SceneRenderer& SceneRenderer::render(const SceneView& view, RenderViewport* viewport)
 	{
 		if (scene == nullptr)
