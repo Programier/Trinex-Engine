@@ -2,7 +2,7 @@
 #include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/material_compiler.hpp>
+#include <Graphics/shader_compiler.hpp>
 
 namespace Engine::Refl
 {

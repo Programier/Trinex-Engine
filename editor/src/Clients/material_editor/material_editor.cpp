@@ -11,11 +11,11 @@
 #include <Engine/settings.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -135,7 +135,7 @@ namespace Engine
 		menu_bar.create("editor/Material")->actions.push([this]() {
 			if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr))
 			{
-				if (auto compiler = MaterialCompiler::instance())
+				if (auto compiler = ShaderCompiler::instance())
 				{
 					compiler->compile(m_material);
 				}

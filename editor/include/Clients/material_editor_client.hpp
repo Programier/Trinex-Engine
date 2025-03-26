@@ -10,12 +10,6 @@ namespace ax::NodeEditor
 
 namespace Engine
 {
-	namespace ShaderCompiler
-	{
-		class Compiler;
-		struct ShaderSource;
-	};// namespace ShaderCompiler
-
 	namespace VisualMaterialGraph
 	{
 		class Node;

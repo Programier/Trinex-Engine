@@ -9,11 +9,11 @@
 #include <Core/structures.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
+#include <Graphics/shader_compiler.hpp>
 
 namespace Engine
 {
@@ -466,7 +466,7 @@ namespace Engine
 		};
 
 		static auto compile_pipeline = [](Material* material, GraphicsPipeline* GraphicsPipeline) -> bool {
-			MaterialCompiler* compiler = MaterialCompiler::instance();
+			ShaderCompiler* compiler = ShaderCompiler::instance();
 
 			if (compiler == nullptr)
 			{
@@ -638,7 +638,7 @@ namespace Engine
 				throw EngineException("Failed to read global shader");
 			}
 
-			if (MaterialCompiler::instance()->compile(source_code, self))
+			if (ShaderCompiler::instance()->compile(source_code, self))
 			{
 				cache.init_from(self);
 				cache.store(cache_path);

@@ -4,8 +4,8 @@
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Graphics/gpu_buffers.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/mesh.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -183,7 +183,7 @@ namespace Engine::Importer
 				}
 			}
 
-			MaterialCompiler::instance()->compile(material);
+			ShaderCompiler::instance()->compile(material);
 
 			return material;
 		}

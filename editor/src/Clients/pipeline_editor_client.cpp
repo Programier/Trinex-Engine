@@ -1,8 +1,8 @@
 #include <Clients/pipeline_editor_client.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <imgui.h>
 
 namespace Engine
@@ -28,7 +28,7 @@ namespace Engine
 						return;
 					}
 
-					MaterialCompiler* compiler = MaterialCompiler::instance();
+					ShaderCompiler* compiler = ShaderCompiler::instance();
 					if (!compiler)
 					{
 						error_log("PipelineEditorClient", "Failed to get compiler!");

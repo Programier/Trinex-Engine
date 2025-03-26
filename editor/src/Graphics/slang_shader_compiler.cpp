@@ -15,7 +15,7 @@
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
-#include <Graphics/slang_material_compiler.hpp>
+#include <Graphics/slang_shader_compiler.hpp>
 #include <cstring>
 
 #define RETURN_ON_FAIL(code)                                                                                                     \
@@ -684,19 +684,19 @@ namespace Engine
 
 	static PreInitializeController preinit(setup_detectors);
 
-	trinex_implement_class_default_init(Engine::SLANG_MaterialCompiler, 0);
-	trinex_implement_class_default_init(Engine::OPENGL_MaterialCompiler, 0);
-	trinex_implement_class_default_init(Engine::VULKAN_MaterialCompiler, 0);
-	trinex_implement_class_default_init(Engine::NONE_MaterialCompiler, 0);
-	trinex_implement_class_default_init(Engine::D3D11_MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::SLANG_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Engine::OPENGL_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Engine::VULKAN_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Engine::D3D11_ShaderCompiler, 0);
 
 
 	class SLANG_CompilationEnv : public ShaderCompilationEnvironment
 	{
-		SLANG_MaterialCompiler::Context* m_ctx = nullptr;
+		SLANG_ShaderCompiler::Context* m_ctx = nullptr;
 
 	public:
-		SLANG_CompilationEnv(SLANG_MaterialCompiler::Context* ctx) : m_ctx(ctx) {}
+		SLANG_CompilationEnv(SLANG_ShaderCompiler::Context* ctx) : m_ctx(ctx) {}
 
 		static const char* copy_str(const char* str)
 		{
@@ -719,13 +719,13 @@ namespace Engine
 		}
 	};
 
-	SLANG_MaterialCompiler::Context::Context(SLANG_MaterialCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
+	SLANG_ShaderCompiler::Context::Context(SLANG_ShaderCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
 	{
 		compiler->m_ctx = this;
 		definitions.reserve(64);
 	}
 
-	size_t SLANG_MaterialCompiler::Context::calculate_source_len(const String& source)
+	size_t SLANG_ShaderCompiler::Context::calculate_source_len(const String& source)
 	{
 		size_t len = source.size();
 
@@ -738,7 +738,7 @@ namespace Engine
 		return len;
 	}
 
-	char* SLANG_MaterialCompiler::Context::initialize_definitions(char* dst)
+	char* SLANG_ShaderCompiler::Context::initialize_definitions(char* dst)
 	{
 		for (auto& definition : definitions)
 		{
@@ -758,7 +758,7 @@ namespace Engine
 		return dst;
 	}
 
-	bool SLANG_MaterialCompiler::Context::initialize(const String& source, Pipeline* pipeline)
+	bool SLANG_ShaderCompiler::Context::initialize(const String& source, Pipeline* pipeline)
 	{
 		auto& session = compiler->m_session;
 
@@ -802,7 +802,7 @@ namespace Engine
 		return module != nullptr;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
+	bool SLANG_ShaderCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
 		Containers::Vector<slang::IComponentType*, FrameAllocator<slang::IComponentType*>> component_types;
 		component_types.push_back(module);
@@ -831,7 +831,7 @@ namespace Engine
 
 			if (diagnostics_blob != nullptr)
 			{
-				error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
 			}
 
 			if (SLANG_FAILED(result))
@@ -845,7 +845,7 @@ namespace Engine
 
 			if (diagnostics_blob != nullptr)
 			{
-				error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
 			}
 
 			if (SLANG_FAILED(result))
@@ -866,7 +866,7 @@ namespace Engine
 
 				if (diagnostics_blob != nullptr)
 				{
-					error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
 				}
 
 				if (SLANG_FAILED(result))
@@ -879,7 +879,7 @@ namespace Engine
 				}
 				else
 				{
-					error_log("MaterialCompiler", "Failed to create shader");
+					error_log("ShaderCompiler", "Failed to create shader");
 					return false;
 				}
 			}
@@ -892,7 +892,7 @@ namespace Engine
 
 			if (diagnostics_blob != nullptr)
 			{
-				error_log("MaterialCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
 			}
 
 			if (!reflection)
@@ -910,7 +910,7 @@ namespace Engine
 		return pipeline;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass)
+	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass)
 	{
 		if (material)
 		{
@@ -955,7 +955,7 @@ namespace Engine
 		return false;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass)
+	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass)
 	{
 		SLANG_CompilationEnv env(this);
 		pipeline->modify_compilation_env(&env);
@@ -974,7 +974,7 @@ namespace Engine
 		CheckStages checker = [](ShaderInfo* infos) -> bool {
 			bool result = infos[0].index != -1 && infos[4].index != -1;
 			if (!result)
-				error_log("MaterialCompiler", "Graphics pipeline is not valid!");
+				error_log("ShaderCompiler", "Graphics pipeline is not valid!");
 			return result;
 		};
 
@@ -986,7 +986,7 @@ namespace Engine
 		return false;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_compute(const String& source, Pipeline* pipeline)
+	bool SLANG_ShaderCompiler::Context::compile_compute(const String& source, Pipeline* pipeline)
 	{
 		SLANG_CompilationEnv env(this);
 		pipeline->modify_compilation_env(&env);
@@ -999,25 +999,25 @@ namespace Engine
 		CheckStages checker = [](ShaderInfo* infos) -> bool {
 			bool result = infos[0].index != -1;
 			if (!result)
-				error_log("MaterialCompiler", "Compute pipeline is not valid!");
+				error_log("ShaderCompiler", "Compute pipeline is not valid!");
 			return result;
 		};
 
 		return compile(shader_infos, 1, pipeline, checker);
 	}
 
-	SLANG_MaterialCompiler::Context::~Context()
+	SLANG_ShaderCompiler::Context::~Context()
 	{
 		compiler->m_ctx = prev_ctx;
 	}
 
-	SLANG_MaterialCompiler::SLANG_MaterialCompiler()
+	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{
 		flags(StandAlone, true);
 		flags(IsAvailableForGC, false);
 	}
 
-	SLANG_MaterialCompiler& SLANG_MaterialCompiler::on_create()
+	SLANG_ShaderCompiler& SLANG_ShaderCompiler::on_create()
 	{
 		Super::on_create();
 
@@ -1056,12 +1056,12 @@ namespace Engine
 		return *this;
 	}
 
-	void SLANG_MaterialCompiler::initialize_context(SessionInitializer* session)
+	void SLANG_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		session->add_option(slang::CompilerOptionName::DisableWarning, "15205");
 	}
 
-	bool SLANG_MaterialCompiler::compile(Material* material)
+	bool SLANG_ShaderCompiler::compile(Material* material)
 	{
 		String source;
 
@@ -1069,7 +1069,7 @@ namespace Engine
 
 		if (!material->shader_source(source))
 		{
-			error_log("MaterialCompiler", "Failed to get shader source");
+			error_log("ShaderCompiler", "Failed to get shader source");
 			return false;
 		}
 
@@ -1090,20 +1090,20 @@ namespace Engine
 		return success;
 	}
 
-	void SLANG_MaterialCompiler::submit_source(Shader* shader, const byte* src, size_t size)
+	void SLANG_ShaderCompiler::submit_source(Shader* shader, const byte* src, size_t size)
 	{
 		Buffer& out = shader->source_code;
 		std::destroy_at(&out);
 		new (&out) Buffer(src, src + size);
 	}
 
-	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass)
+	bool SLANG_ShaderCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass)
 	{
 		String source;
 
 		if (!material->shader_source(source))
 		{
-			error_log("MaterialCompiler", "Failed to get shader source");
+			error_log("ShaderCompiler", "Failed to get shader source");
 			return false;
 		}
 
@@ -1112,13 +1112,13 @@ namespace Engine
 		return result;
 	}
 
-	bool SLANG_MaterialCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
+	bool SLANG_ShaderCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
 	{
 		Context ctx(this);
 		return ctx.compile_graphics(source, material, pass);
 	}
 
-	bool SLANG_MaterialCompiler::compile(const String& source, Pipeline* pipeline)
+	bool SLANG_ShaderCompiler::compile(const String& source, Pipeline* pipeline)
 	{
 		Context ctx(this);
 
@@ -1141,12 +1141,17 @@ namespace Engine
 		return false;
 	}
 
-	void NONE_MaterialCompiler::initialize_context(SessionInitializer* session)
+	slang::IModule* SLANG_ShaderCompiler::load_module(const char* module)
+	{
+		return m_session->loadModule(module);
+	}
+
+	void NONE_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		throw EngineException("Something is wrong! Cannot compile shaders for None API!");
 	}
 
-	void OPENGL_MaterialCompiler::initialize_context(SessionInitializer* session)
+	void OPENGL_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		Super::initialize_context(session);
 
@@ -1160,7 +1165,7 @@ namespace Engine
 		session->add_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
 	}
 
-	void OPENGL_MaterialCompiler::submit_source(Shader* shader, const byte* src, size_t size)
+	void OPENGL_ShaderCompiler::submit_source(Shader* shader, const byte* src, size_t size)
 	{
 		spirv_cross::CompilerGLSL glsl(reinterpret_cast<const uint32_t*>(src), size / 4);
 		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
@@ -1183,7 +1188,7 @@ namespace Engine
 		Super::submit_source(shader, reinterpret_cast<const byte*>(glsl_code.data()), glsl_code.size() + 1);
 	}
 
-	void VULKAN_MaterialCompiler::initialize_context(SessionInitializer* session)
+	void VULKAN_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		Super::initialize_context(session);
 
@@ -1210,7 +1215,7 @@ namespace Engine
 		}
 	}
 
-	void D3D11_MaterialCompiler::initialize_context(SessionInitializer* session)
+	void D3D11_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		Super::initialize_context(session);
 

@@ -12,12 +12,12 @@
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
 
 namespace Engine
@@ -325,7 +325,7 @@ namespace Engine
 	Material& Material::postload()
 	{
 		// Checking that all registered passes supported by this material are compiled
-		if (MaterialCompiler* compiler = MaterialCompiler::instance())
+		if (ShaderCompiler* compiler = ShaderCompiler::instance())
 		{
 			uint_t count         = 0;
 			String material_name = full_name();

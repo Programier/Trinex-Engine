@@ -2,14 +2,14 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/shader_compiler.hpp>
 
 namespace Engine
 {
-	trinex_implement_class_default_init(Engine::MaterialCompiler, 0);
+	trinex_implement_class_default_init(Engine::ShaderCompiler, 0);
 
-	MaterialCompiler* MaterialCompiler::instance(const StringView& api_name)
+	ShaderCompiler* ShaderCompiler::instance(const StringView& api_name)
 	{
 		if (api_name.empty())
 		{
@@ -19,7 +19,7 @@ namespace Engine
 			return instance(new_name);
 		}
 
-		String full_class_name = Strings::format("Engine::{}_MaterialCompiler", api_name);
+		String full_class_name = Strings::format("Engine::{}_ShaderCompiler", api_name);
 		auto* compiler_class   = Refl::Class::static_find(full_class_name);
 
 		if (compiler_class == nullptr)
@@ -27,7 +27,7 @@ namespace Engine
 
 		if (compiler_class->flags(Refl::Struct::IsSingletone))
 		{
-			if (MaterialCompiler* compiler = instance_cast<MaterialCompiler>(compiler_class->singletone_instance()))
+			if (ShaderCompiler* compiler = instance_cast<ShaderCompiler>(compiler_class->singletone_instance()))
 			{
 				return compiler;
 			}
@@ -40,7 +40,7 @@ namespace Engine
 			return nullptr;
 		}
 
-		MaterialCompiler* compiler = instance_cast<MaterialCompiler>(compiler_object);
+		ShaderCompiler* compiler = instance_cast<ShaderCompiler>(compiler_object);
 
 		if (compiler == nullptr)
 		{

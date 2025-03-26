@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/singletone.hpp>
 #include <Core/structures.hpp>
-#include <Graphics/material_compiler.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <slang-com-ptr.h>
 #include <slang.h>
 #include <spirv_glsl.hpp>
@@ -15,9 +15,9 @@ namespace Engine
 
 	using SLANG_DefinitionsArray = Containers::Vector<ShaderDefinition, FrameAllocator<ShaderDefinition>>;
 
-	class SLANG_MaterialCompiler : public MaterialCompiler
+	class SLANG_ShaderCompiler : public ShaderCompiler
 	{
-		trinex_declare_class(SLANG_MaterialCompiler, MaterialCompiler);
+		trinex_declare_class(SLANG_ShaderCompiler, ShaderCompiler);
 
 	public:
 		class Context
@@ -34,7 +34,7 @@ namespace Engine
 
 			SLANG_DefinitionsArray definitions;
 			Slang::ComPtr<slang::IModule> module;
-			SLANG_MaterialCompiler* const compiler;
+			SLANG_ShaderCompiler* const compiler;
 			Context* const prev_ctx;
 
 			size_t calculate_source_len(const String& source);
@@ -43,7 +43,7 @@ namespace Engine
 			bool compile(ShaderInfo* infos, size_t len, Pipeline* pipeline, CheckStages checker);
 
 		public:
-			Context(SLANG_MaterialCompiler* compiler);
+			Context(SLANG_ShaderCompiler* compiler);
 			bool compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass);
 			bool compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass = nullptr);
 			bool compile_compute(const String& source, Pipeline* pipeline);
@@ -132,44 +132,45 @@ namespace Engine
 		Context* m_ctx = nullptr;
 
 	public:
-		SLANG_MaterialCompiler();
-		SLANG_MaterialCompiler& on_create() override;
+		SLANG_ShaderCompiler();
+		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
 		virtual void submit_source(Shader* shader, const byte* src, size_t size);
 		bool compile(Material* material) override;
 		bool compile_pass(Material* material, Refl::RenderPassInfo* pass) override;
 		bool compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source);
 		bool compile(const String& source, Pipeline* pipeline) override;
+		slang::IModule* load_module(const char* module);
 	};
 
-	class NONE_MaterialCompiler : public Singletone<NONE_MaterialCompiler, SLANG_MaterialCompiler>
+	class NONE_ShaderCompiler : public Singletone<NONE_ShaderCompiler, SLANG_ShaderCompiler>
 	{
-		trinex_declare_class(NONE_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(NONE_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class VULKAN_MaterialCompiler : public Singletone<VULKAN_MaterialCompiler, SLANG_MaterialCompiler>
+	class VULKAN_ShaderCompiler : public Singletone<VULKAN_ShaderCompiler, SLANG_ShaderCompiler>
 	{
-		trinex_declare_class(VULKAN_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class OPENGL_MaterialCompiler : public Singletone<OPENGL_MaterialCompiler, SLANG_MaterialCompiler>
+	class OPENGL_ShaderCompiler : public Singletone<OPENGL_ShaderCompiler, SLANG_ShaderCompiler>
 	{
-		trinex_declare_class(OPENGL_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(OPENGL_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void submit_source(Shader* shader, const byte* src, size_t size) override;
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class D3D11_MaterialCompiler : public Singletone<D3D11_MaterialCompiler, SLANG_MaterialCompiler>
+	class D3D11_ShaderCompiler : public Singletone<D3D11_ShaderCompiler, SLANG_ShaderCompiler>
 	{
-		trinex_declare_class(D3D11_MaterialCompiler, SLANG_MaterialCompiler);
+		trinex_declare_class(D3D11_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;

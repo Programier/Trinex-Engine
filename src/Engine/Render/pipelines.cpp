@@ -5,10 +5,10 @@
 #include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/scene_renderer.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_compiler.hpp>
 
 namespace Engine::Pipelines
 {

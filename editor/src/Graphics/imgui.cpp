@@ -16,7 +16,6 @@
 #include <Core/threading.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/material_compiler.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
