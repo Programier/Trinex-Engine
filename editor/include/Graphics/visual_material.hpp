@@ -24,6 +24,7 @@ namespace Engine
 		const Vector<Pointer<VisualMaterialGraph::Node>>& nodes() const;
 		VisualMaterial& register_node(VisualMaterialGraph::Node* node);
 		VisualMaterialGraph::Node* create_node(class Refl::Class* node_class, const Vector2f& position = {});
+		VisualMaterial& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline) override;
 
 		template<typename T>
 		T* create_node()

@@ -109,7 +109,7 @@ struct VertexMaterialInput : MaterialInput
 
 	VertexOutput apply_material(in Material material)
 	{
-		VertexOutput output = (VertexOutput)0;
+		VertexOutput output;
 		output.geometry.world_position = world_position + material.position_offset;
 
 		output.geometry.world_normal = world_normal;
@@ -152,14 +152,14 @@ struct FragmentMaterialInput : MaterialInput
 
 Material get_material_vs(in VertexMaterialInput input)
 {
-	Material material = (Material)0;
+	Material material;
 	// @trinex_vertex_shader
 	return material;
 }
 
 Material get_material_fs(in FragmentMaterialInput input)
 {
-	Material material = (Material)0;
+	Material material;
 	// @trinex_fragment_shader
 	return material;
 }
@@ -167,7 +167,7 @@ Material get_material_fs(in FragmentMaterialInput input)
 [shader("vertex")]
 VertexOutput vs_main(in VertexFactory vertex_factory)
 {
-	VertexMaterialInput material_input = (VertexMaterialInput)0;
+	VertexMaterialInput material_input;
 	material_input.init(vertex_factory);
 
 	Material material = get_material_vs(material_input);

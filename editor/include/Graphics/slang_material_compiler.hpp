@@ -45,7 +45,7 @@ namespace Engine
 		public:
 			Context(SLANG_MaterialCompiler* compiler);
 			bool compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass);
-			bool compile_graphics(const String& source, Pipeline* pipeline);
+			bool compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass = nullptr);
 			bool compile_compute(const String& source, Pipeline* pipeline);
 			~Context();
 		};

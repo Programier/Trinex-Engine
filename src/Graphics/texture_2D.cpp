@@ -16,8 +16,6 @@ namespace Engine
 	trinex_implement_engine_class(Texture2D, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
-
-		trinex_refl_prop(self, This, path)->tooltip("Path to texture");
 #define m_format format
 		trinex_refl_prop(self, This, m_format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
 	}
@@ -54,11 +52,6 @@ namespace Engine
 	TextureType Texture2D::type() const
 	{
 		return TextureType::Texture2D;
-	}
-
-	Texture2D& Texture2D::apply_changes()
-	{
-		return *this;
 	}
 
 	bool Texture2D::serialize(Archive& archive)

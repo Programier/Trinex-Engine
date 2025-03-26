@@ -117,6 +117,7 @@ namespace Engine
 		virtual Pipeline& clear();
 		virtual bool shader_source(String& source);
 		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
+		virtual Pipeline& post_compile(Refl::RenderPassInfo* pass);
 
 		inline RHI_Pipeline* rhi_pipeline() const { return m_pipeline; }
 

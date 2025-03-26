@@ -6,7 +6,7 @@
 [shader("fragment")]
 GBufferFragmentOutput fs_main(in FragmentInput input)
 {
-	FragmentMaterialInput material_input = (FragmentMaterialInput)0;
+	FragmentMaterialInput material_input;
 	material_input.init(input);
 
 	Material material = get_material_fs(material_input);

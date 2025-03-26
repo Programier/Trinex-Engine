@@ -159,6 +159,11 @@ namespace Engine
 		return *this;
 	}
 
+	Pipeline& Pipeline::post_compile(Refl::RenderPassInfo* pass)
+	{
+		return *this;
+	}
+
 	class Material* Pipeline::material() const
 	{
 		return Object::instance_cast<Material>(owner());

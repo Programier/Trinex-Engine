@@ -9,6 +9,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
+#include <Image/image.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -99,17 +100,27 @@ namespace Engine::Importer
 			StringView name   = texture_path.stem();
 			info_log("Importer", "Loading texture: %s\n", texture_path.c_str());
 
-			auto texture  = Object::new_instance<Texture2D>(name, package);
-			texture_ref   = texture;
-			texture->path = texture_path;
-			texture->apply_changes();
+			Image image;
+
+			if (image.load(texture_path).empty())
+			{
+				error_log("Importer", "Failed to load texture: %s\n", texture_path.c_str());
+				return nullptr;
+			}
+
+			auto texture    = Object::new_instance<Texture2D>(name, package);
+			texture_ref     = texture;
+			texture->format = image.format();
+			auto& mip       = texture->mips.emplace_back();
+			mip.size        = image.size();
+			mip.data        = image.buffer();
+			texture->init_render_resources();
 
 			return texture;
 		}
 
 		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
 		{
-			return DefaultResources::Materials::base_pass;
 			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
 			auto* root               = Object::instance_cast<VisualMaterialGraph::Root>(material->nodes()[0].ptr());
 

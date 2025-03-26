@@ -391,11 +391,6 @@ namespace Engine
 		return this;
 	}
 
-	Material& Material::apply_changes()
-	{
-		return postload();
-	}
-
 	bool Material::serialize(Archive& archive)
 	{
 		if (!Super::serialize(archive))
@@ -467,6 +462,11 @@ namespace Engine
 			pipeline->rasterizer     = m_graphics_options->rasterizer;
 			pipeline->color_blending = m_graphics_options->color_blending;
 		}
+		return *this;
+	}
+
+	Material& Material::post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline)
+	{
 		return *this;
 	}
 

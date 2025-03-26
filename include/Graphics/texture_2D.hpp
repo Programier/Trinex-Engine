@@ -24,14 +24,12 @@ namespace Engine
 	public:
 		Vector<Texture2DMip> mips;
 		ColorFormat format;
-		Path path;
 
 		Texture2D& init_render_resources() override;
 		uint_t width(byte mip = 0) const;
 		uint_t height(byte mip = 0) const;
 		Vector2u size(byte mip = 0) const;
 		TextureType type() const override;
-		Texture2D& apply_changes() override;
 		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

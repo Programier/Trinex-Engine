@@ -64,6 +64,19 @@ namespace Engine
 		return nullptr;
 	}
 
+	VisualMaterial& VisualMaterial::post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline)
+	{
+		Super::post_compile(pass, pipeline);
+		for (auto& node : m_nodes)
+		{
+			if (node)
+			{
+				node->override_parameter(this);
+			}
+		}
+		return *this;
+	}
+
 	VisualMaterial& VisualMaterial::destroy_node(VisualMaterialGraph::Node* node, bool destroy_links)
 	{
 		if (!node->is_root_node())

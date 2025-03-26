@@ -76,13 +76,15 @@ namespace Engine
 		Pipeline* remove_pipeline(Refl::RenderPassInfo* pass);
 		Material& remove_all_pipelines();
 		Material& postload() override;
+		Material& setup_pipeline(GraphicsPipeline* pipeline);
+
 		class Material* material() override;
-		Material& apply_changes() override;
 		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
 		bool apply(MaterialInterface* head, SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
-		virtual bool shader_source(String& out_source) = 0;
 		bool serialize(Archive& archive) override;
-		Material& setup_pipeline(GraphicsPipeline* pipeline);
+
+		virtual Material& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline);
+		virtual bool shader_source(String& out_source) = 0;
 
 		inline GraphicsPipelineDescription* graphics_description() const { return m_graphics_options; }
 

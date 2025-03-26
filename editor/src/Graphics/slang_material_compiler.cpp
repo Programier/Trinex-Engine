@@ -942,6 +942,7 @@ namespace Engine
 		if (compile_graphics(source, pipeline))
 		{
 			material->add_pipeline(pass, pipeline);
+			material->post_compile(pass, pipeline);
 			pipeline->init_render_resources();
 			return true;
 		}
@@ -954,7 +955,7 @@ namespace Engine
 		return false;
 	}
 
-	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline)
+	bool SLANG_MaterialCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass)
 	{
 		SLANG_CompilationEnv env(this);
 		pipeline->modify_compilation_env(&env);
@@ -977,7 +978,12 @@ namespace Engine
 			return result;
 		};
 
-		return compile(shader_infos, 5, pipeline, checker);
+		if (compile(shader_infos, 5, pipeline, checker))
+		{
+			pipeline->post_compile(pass);
+			return true;
+		}
+		return false;
 	}
 
 	bool SLANG_MaterialCompiler::Context::compile_compute(const String& source, Pipeline* pipeline)
