@@ -8,8 +8,6 @@ namespace Engine
 
 	trinex_implement_engine_enum(CompareMode, None, RefToTexture);
 	trinex_implement_engine_enum(SamplerFilter, Point, Bilinear, Trilinear);
-	trinex_implement_engine_enum(Swizzle, Identity, Zero, One, R, G, B, A);
-
 	trinex_implement_engine_enum(SamplerAddressMode, Repeat, ClampToEdge, ClampToBorder, MirroredRepeat, MirrorClampToEdge);
 	trinex_implement_engine_enum(TextureCubeMapFace, Front, Back, Up, Down, Left, Right);
 

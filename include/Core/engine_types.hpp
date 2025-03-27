@@ -51,6 +51,9 @@ namespace Engine
 	using Color3     = glm::vec3;
 	using ByteColor3 = glm::vec<3, byte, glm::defaultp>;
 
+	template<size_t N, typename T>
+	using VectorNT = glm::vec<N, T, glm::defaultp>;
+
 	using Matrix4f = glm::mat<4, 4, float_t, glm::defaultp>;
 	using Matrix3f = glm::mat<3, 3, float_t, glm::defaultp>;
 	using Matrix2f = glm::mat<2, 2, float_t, glm::defaultp>;
@@ -115,12 +118,8 @@ namespace Engine
 	using EnumerateType = std::uint32_t;
 	using PolicyID      = EnumerateType;
 
-	using SampleMask = size_t;
-
+	using SampleMask          = size_t;
 	using ScriptObjectAddress = void*;
-
-	template<size_t length, typename Type>
-	using TypedVector = glm::vec<length, Type, glm::defaultp>;
 
 	namespace Refl
 	{

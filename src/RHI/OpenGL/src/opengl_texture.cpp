@@ -55,6 +55,7 @@ namespace Engine
 	{
 		m_format = color_format_from_engine_format(format);
 		m_size   = size;
+		m_flags  = flags;
 
 		glGenTextures(1, &m_id);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -171,7 +172,7 @@ namespace Engine
 
 	void OpenGL_TextureUAV::bind(BindLocation location)
 	{
-		glBindImageTexture(location, m_texture->m_id, 0, GL_FALSE, 0, GL_READ_WRITE, m_texture->m_format.m_internal_format);
+		glBindImageTexture(location, m_texture->m_id, 0, GL_FALSE, 0, GL_WRITE_ONLY, m_texture->m_format.m_internal_format);
 	}
 
 	OpenGL_TextureUAV::~OpenGL_TextureUAV()

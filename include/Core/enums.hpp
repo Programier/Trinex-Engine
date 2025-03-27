@@ -37,20 +37,19 @@ namespace Engine
 		trinex_declare_enum(SamplerFilter);
 	};
 
-	struct Swizzle {
-		enum Enum : EnumerateType
+	struct Swizzle : VectorNT<4, byte> {
+		enum Enum : byte
 		{
-			Identity = 0,
-			Zero     = 1,
-			One      = 2,
-			R        = 3,
-			G        = 4,
-			B        = 5,
-			A        = 6,
+			R    = 0,
+			G    = 1,
+			B    = 2,
+			A    = 3,
+			Zero = 4,
+			One  = 5,
 		};
 
-		trinex_enum_struct(Swizzle);
-		trinex_declare_enum(Swizzle);
+		inline Swizzle() : VectorNT<4, byte>(R, G, B, A) {}
+		using VectorNT<4, byte>::VectorNT;
 	};
 
 	struct SamplerAddressMode {

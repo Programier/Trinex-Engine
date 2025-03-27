@@ -16,16 +16,6 @@ namespace Engine
 		return out_array;
 	}
 
-	const Array<vk::ComponentSwizzle, 7> m_swizzle_components = {
-	        vk::ComponentSwizzle::eIdentity,// Identity = 0
-	        vk::ComponentSwizzle::eZero,    // Zero = 1
-	        vk::ComponentSwizzle::eOne,     // One = 2
-	        vk::ComponentSwizzle::eR,       // R = 3
-	        vk::ComponentSwizzle::eG,       // G = 4
-	        vk::ComponentSwizzle::eB,       // B = 5
-	        vk::ComponentSwizzle::eA,       // A = 6
-	};
-
 	const Array<vk::SamplerAddressMode, 5> m_address_modes = {
 	        vk::SamplerAddressMode::eRepeat,           // Repeat = 0
 	        vk::SamplerAddressMode::eClampToEdge,      // ClampToEdge = 1

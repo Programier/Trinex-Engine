@@ -560,6 +560,8 @@ namespace Engine
 		{
 			OpenGL_Pipeline::bind();
 
+			glBindVertexArray(m_vao);
+
 			for (auto* object : m_apply_state)
 			{
 				object->execute();

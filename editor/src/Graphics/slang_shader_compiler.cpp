@@ -684,11 +684,11 @@ namespace Engine
 
 	static PreInitializeController preinit(setup_detectors);
 
-	trinex_implement_class_default_init(Engine::SLANG_ShaderCompiler, 0);
-	trinex_implement_class_default_init(Engine::OPENGL_ShaderCompiler, 0);
-	trinex_implement_class_default_init(Engine::VULKAN_ShaderCompiler, 0);
-	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, 0);
-	trinex_implement_class_default_init(Engine::D3D11_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Engine::SLANG_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Engine::OPENGL_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Engine::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Engine::D3D11_ShaderCompiler, Refl::Class::IsSingletone);
 
 
 	class SLANG_CompilationEnv : public ShaderCompilationEnvironment
@@ -1059,6 +1059,19 @@ namespace Engine
 	void SLANG_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		session->add_option(slang::CompilerOptionName::DisableWarning, "15205");
+		session->target_desc.format = SLANG_TARGET_NONE;
+		session->add_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
+
+		if (Settings::debug_shaders)
+		{
+			session->add_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_NONE);
+			session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_STANDARD);
+		}
+		else
+		{
+			session->add_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+			session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
+		}
 	}
 
 	bool SLANG_ShaderCompiler::compile(Material* material)
@@ -1158,11 +1171,7 @@ namespace Engine
 		session->target_desc.profile = global_session()->findProfile("glsl_330");
 		session->target_desc.format  = SLANG_SPIRV;
 		session->add_definition("TRINEX_OPENGL_RHI", "1");
-
-		session->add_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-		session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
-		session->add_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
-		session->add_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
+		session->add_target_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
 	}
 
 	void OPENGL_ShaderCompiler::submit_source(Shader* shader, const byte* src, size_t size)
@@ -1180,10 +1189,12 @@ namespace Engine
 
 		// Set some options.
 		spirv_cross::CompilerGLSL::Options options;
-		options.version = 310;
-		options.es      = true;
+		options.version                 = 310;
+		options.es                      = true;
+		options.separate_shader_objects = true;
 		glsl.set_common_options(options);
-
+		glsl.build_dummy_sampler_for_combined_images();
+		glsl.build_combined_image_samplers();
 		String glsl_code = glsl.compile();
 		Super::submit_source(shader, reinterpret_cast<const byte*>(glsl_code.data()), glsl_code.size() + 1);
 	}
@@ -1197,20 +1208,12 @@ namespace Engine
 
 		if (Settings::debug_shaders)
 		{
-			session->add_target_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_NONE);
-			session->add_target_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_STANDARD);
-			session->add_target_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_STANDARD);
 			session->add_target_option(slang::CompilerOptionName::EmitSpirvDirectly, true);
-
 			session->target_desc.profile = global_session()->findProfile("spirv_1_3");
 		}
 		else
 		{
-			session->add_target_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-			session->add_target_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
-			session->add_target_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
 			session->add_target_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
-
 			session->target_desc.profile = global_session()->findProfile("glsl_330");
 		}
 	}
@@ -1225,14 +1228,6 @@ namespace Engine
 		session->add_definition("TRINEX_INVERT_UV", "1");
 		session->add_definition("TRINEX_D3D11_RHI", "1");
 		session->add_definition("TRINEX_DIRECT_X_RHI", "1");
-
-		session->add_option(slang::CompilerOptionName::LineDirectiveMode, SLANG_LINE_DIRECTIVE_MODE_NONE);
-		session->add_option(slang::CompilerOptionName::Optimization, SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-
-		if (Settings::debug_shaders)
-			session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
-		else
-			session->add_option(slang::CompilerOptionName::DebugInformation, SLANG_DEBUG_INFO_LEVEL_NONE);
 	}
 }// namespace Engine
 

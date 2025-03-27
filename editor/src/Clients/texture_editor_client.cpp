@@ -19,22 +19,36 @@
 
 namespace Engine
 {
-	static inline void copy_texture_to_surface(RenderSurface* dst, RHI_ShaderResourceView* srv,
-											   const Pipelines::Blit2DGamma::Args& args)
+	static inline void copy_texture_to_surface(RenderSurface* dst, RHI_ShaderResourceView* srv, float power, uint_t level,
+											   Swizzle swizzle)
 	{
 		Rect2D rect;
 		rect.pos  = {0, 0};
 		rect.size = dst->size();
 
 		auto pipeline = Pipelines::Blit2DGamma::instance();
-		pipeline->blit(srv, dst->rhi_unordered_access_view(), rect, rect, args);
+		pipeline->blit(srv, dst->rhi_unordered_access_view(), rect, rect, power, level, swizzle);
 	}
 
-	static inline Vector4u calculate_swizzle(ColorFormat format)
+	static inline Swizzle modify_swizzle(Swizzle swizzle, ColorFormat format)
 	{
 		if (format.is_depth())
-			return {0, 0, 0, 3};
-		return {0, 1, 2, 3};
+		{
+			static const Swizzle::Enum depth_swizzle[] = {
+					Swizzle::R,
+					Swizzle::R,
+					Swizzle::R,
+					Swizzle::One,
+			};
+
+			byte* values = &swizzle.r;
+			for (uint_t i = 0; i < 4; ++i)
+			{
+				if (values[i] != Swizzle::Zero)
+					values[i] = depth_swizzle[i];
+			}
+		}
+		return swizzle;
 	}
 
 	static Vector2f max_texture_size_in_viewport(const Vector2f& texture_size, const Vector2f& viewport_size)
@@ -83,14 +97,16 @@ namespace Engine
 			static ImU32 colors[4] = {IM_COL32(255, 0, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(0, 0, 255, 255),
 									  IM_COL32(255, 255, 255, 255)};
 
-			float height                       = ImGui::GetContentRegionAvail().y;
-			static const char* channel_names[] = {"###red", "###green", "###blue", "###alpha"};
+			float height                                = ImGui::GetContentRegionAvail().y;
+			static const char* channel_names[]          = {"###red", "###green", "###blue", "###alpha"};
+			static const Swizzle::Enum swizzle_values[] = {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 
 			for (int i = 0; const char* name : channel_names)
 			{
-				if (ImGui::Selectable(name, m_channels_status[i], 0, {height, height}))
+				byte* swizzle = &m_swizzle.x;
+				if (ImGui::Selectable(name, swizzle[i] != Swizzle::Zero, 0, {height, height}))
 				{
-					m_channels_status[i] = !m_channels_status[i];
+					swizzle[i] = swizzle[i] == Swizzle::Zero ? swizzle_values[i] : Swizzle::Zero;
 					request_render();
 				}
 
@@ -99,10 +115,10 @@ namespace Engine
 
 				auto center = (max + min) * 0.5f;
 
-				if (m_channels_status[i])
-					draw_list->AddCircleFilled(center, height / 2.f, colors[i]);
-				else
+				if (swizzle[i] == Swizzle::Zero)
 					draw_list->AddCircle(center, height / 2.f, colors[i], 0, 2.f);
+				else
+					draw_list->AddCircleFilled(center, height / 2.f, colors[i]);
 
 				++i;
 			}
@@ -193,13 +209,8 @@ namespace Engine
 		if (!m_texture)
 			return *this;
 
-		Pipelines::Blit2DGamma::Args args;
-		args.gamma   = pow_factor();
-		args.level   = m_mip_index;
-		args.blend   = color_mask();
-		args.swizzle = calculate_swizzle(m_texture->format);
-
-		copy_texture_to_surface(surface, m_texture->rhi_shader_resource_view(), args);
+		copy_texture_to_surface(surface, m_texture->rhi_shader_resource_view(), pow_factor(), m_mip_index,
+								modify_swizzle(swizzle(), m_texture->format));
 		return *this;
 	}
 
@@ -242,12 +253,8 @@ namespace Engine
 		if (!m_surface)
 			return *this;
 
-		Pipelines::Blit2DGamma::Args args;
-		args.gamma   = pow_factor();
-		args.blend   = color_mask();
-		args.swizzle = calculate_swizzle(m_surface->format());
-
-		copy_texture_to_surface(surface, m_surface->rhi_shader_resource_view(), args);
+		copy_texture_to_surface(surface, m_surface->rhi_shader_resource_view(), pow_factor(), 0,
+								modify_swizzle(swizzle(), m_surface->format()));
 		return *this;
 	}
 

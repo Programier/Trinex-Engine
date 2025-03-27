@@ -295,35 +295,33 @@ namespace Engine
 	{
 		RenderSurface* src  = nullptr;
 		auto render_targets = SceneRenderTargets::instance();
-		Pipelines::Blit2D::Args args;
+		Swizzle swizzle;
 
 		switch (mode)
 		{
 			case ViewMode::Unlit:
-				src = render_targets->surface_of(SceneRenderTargets::BaseColor);
+				src     = render_targets->surface_of(SceneRenderTargets::BaseColor);
+				swizzle = {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 				break;
 
 			case ViewMode::WorldNormal:
-				src          = render_targets->surface_of(SceneRenderTargets::Normal);
-				args.blend.a = 0.f;
+				src     = render_targets->surface_of(SceneRenderTargets::Normal);
+				swizzle = {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One};
 				break;
 
 			case ViewMode::Metalic:
-				src          = render_targets->surface_of(SceneRenderTargets::MSRA);
-				args.swizzle = {0, 0, 0, 3};
-				args.blend.a = 0.f;
+				src     = render_targets->surface_of(SceneRenderTargets::MSRA);
+				swizzle = {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One};
 				break;
 
 			case ViewMode::Specular:
-				src          = render_targets->surface_of(SceneRenderTargets::MSRA);
-				args.swizzle = {1, 1, 1, 3};
-				args.blend.a = 0.f;
+				src     = render_targets->surface_of(SceneRenderTargets::MSRA);
+				swizzle = {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One};
 				break;
 
 			case ViewMode::Roughness:
-				src          = render_targets->surface_of(SceneRenderTargets::MSRA);
-				args.swizzle = {2, 2, 2, 3};
-				args.blend.a = 0.f;
+				src     = render_targets->surface_of(SceneRenderTargets::MSRA);
+				swizzle = {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One};
 				break;
 
 			default:
@@ -335,7 +333,7 @@ namespace Engine
 		rect.size = src->size();
 
 		auto dst = render_targets->surface_of(SceneRenderTargets::SceneColorLDR)->rhi_unordered_access_view();
-		Pipelines::Blit2D::instance()->blit(src->rhi_shader_resource_view(), dst, rect, rect, args);
+		Pipelines::Blit2D::instance()->blit(src->rhi_shader_resource_view(), dst, rect, rect, 0, swizzle);
 		return *this;
 	}
 

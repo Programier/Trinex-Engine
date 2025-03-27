@@ -55,12 +55,11 @@ namespace Engine::Pipelines
 	}
 
 	void Blit2D::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect,
-					  const Args& args)
+					  uint_t level, Swizzle swizzle)
 	{
 		struct ShaderArgs {
 			alignas(16) Vector4i src_rect;
 			alignas(16) Vector4i dst_rect;
-			alignas(16) Vector4f blend;
 			alignas(16) Vector4u swizzle;
 			alignas(4) uint32_t level;
 		};
@@ -68,13 +67,12 @@ namespace Engine::Pipelines
 		ShaderArgs shader_args;
 		shader_args.src_rect = rect_to_vec4(src_rect);
 		shader_args.dst_rect = rect_to_vec4(dst_rect);
-		shader_args.blend    = args.blend;
-		shader_args.swizzle  = glm::min(args.swizzle, Vector4u(3, 3, 3, 3));
-		shader_args.level    = args.level;
+		shader_args.swizzle  = swizzle;
+		shader_args.level    = level;
 
 		rhi_bind();
 
-		src->bind(m_src->location);
+		src->bind_combined(m_src->location, DefaultResources::Samplers::default_sampler->rhi_sampler());
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
@@ -92,12 +90,11 @@ namespace Engine::Pipelines
 	}
 
 	void Blit2DGamma::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect,
-						   const Rect2D& dst_rect, const Args& args)
+						   const Rect2D& dst_rect, float gamma, uint_t level, Swizzle swizzle)
 	{
 		struct ShaderArgs {
 			alignas(16) Vector4i src_rect;
 			alignas(16) Vector4i dst_rect;
-			alignas(16) Vector4f blend;
 			alignas(16) Vector4u swizzle;
 			alignas(4) float gamma;
 			alignas(4) uint32_t level;
@@ -106,14 +103,13 @@ namespace Engine::Pipelines
 		ShaderArgs shader_args;
 		shader_args.src_rect = rect_to_vec4(src_rect);
 		shader_args.dst_rect = rect_to_vec4(dst_rect);
-		shader_args.blend    = args.blend;
-		shader_args.swizzle  = glm::min(args.swizzle, Vector4u(3, 3, 3, 3));
-		shader_args.level    = args.level;
-		shader_args.gamma    = args.gamma;
+		shader_args.swizzle  = swizzle;
+		shader_args.level    = level;
+		shader_args.gamma    = gamma;
 
 		rhi_bind();
 
-		src->bind(m_src->location);
+		src->bind_combined(m_src->location, DefaultResources::Samplers::default_sampler->rhi_sampler());
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);

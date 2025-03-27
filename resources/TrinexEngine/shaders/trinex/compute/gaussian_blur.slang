@@ -1,4 +1,4 @@
-uniform RWTexture2D<float4> output;
+uniform writeonly RWTexture2D<float4> output;
 uniform Sampler2D<float4> input;
 
 uniform float sigma;

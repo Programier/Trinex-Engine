@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/etl/singletone.hpp>
 #include <Core/structures.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <slang-com-ptr.h>
@@ -132,6 +131,11 @@ namespace Engine
 		Context* m_ctx = nullptr;
 
 	public:
+		static inline SLANG_ShaderCompiler* instance(const StringView& rhi = "")
+		{
+			return instance_cast<SLANG_ShaderCompiler>(Super::instance(rhi));
+		}
+
 		SLANG_ShaderCompiler();
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
@@ -143,7 +147,7 @@ namespace Engine
 		slang::IModule* load_module(const char* module);
 	};
 
-	class NONE_ShaderCompiler : public Singletone<NONE_ShaderCompiler, SLANG_ShaderCompiler>
+	class NONE_ShaderCompiler : public SLANG_ShaderCompiler
 	{
 		trinex_declare_class(NONE_ShaderCompiler, SLANG_ShaderCompiler);
 
@@ -151,7 +155,7 @@ namespace Engine
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class VULKAN_ShaderCompiler : public Singletone<VULKAN_ShaderCompiler, SLANG_ShaderCompiler>
+	class VULKAN_ShaderCompiler : public SLANG_ShaderCompiler
 	{
 		trinex_declare_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
 
@@ -159,7 +163,7 @@ namespace Engine
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class OPENGL_ShaderCompiler : public Singletone<OPENGL_ShaderCompiler, SLANG_ShaderCompiler>
+	class OPENGL_ShaderCompiler : public SLANG_ShaderCompiler
 	{
 		trinex_declare_class(OPENGL_ShaderCompiler, SLANG_ShaderCompiler);
 
@@ -168,7 +172,7 @@ namespace Engine
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class D3D11_ShaderCompiler : public Singletone<D3D11_ShaderCompiler, SLANG_ShaderCompiler>
+	class D3D11_ShaderCompiler : public SLANG_ShaderCompiler
 	{
 		trinex_declare_class(D3D11_ShaderCompiler, SLANG_ShaderCompiler);
 

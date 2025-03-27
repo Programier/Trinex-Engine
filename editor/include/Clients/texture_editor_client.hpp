@@ -15,17 +15,7 @@ namespace Engine
 		PropertyRenderer* m_properties   = nullptr;
 		size_t m_last_render_frame_index = 0;
 
-		union
-		{
-			struct {
-				bool m_red   = true;
-				bool m_green = true;
-				bool m_blue  = true;
-				bool m_alpha = true;
-			};
-
-			bool m_channels_status[4];
-		};
+		Swizzle m_swizzle;
 
 		float m_pow = 1.f;
 
@@ -41,11 +31,7 @@ namespace Engine
 		TextureEditorClient& select(Object* object) override;
 		TextureEditorClient& build_dock(uint32_t dock_id) override;
 
-		inline Vector4f color_mask() const
-		{
-			return Vector4f(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
-		}
-
+		inline Swizzle swizzle() const { return m_swizzle; }
 		inline float pow_factor() const { return m_pow; }
 	};
 
