@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2024 Andreas Jonsson
+   Copyright (c) 2003-2025 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -79,6 +79,7 @@ public:
 
 	// Compiler messages
 	virtual int SetMessageCallback(const asSFuncPtr &callback, void *obj, asDWORD callConv);
+	virtual int GetMessageCallback(asSFuncPtr* callback, void** obj, asDWORD* callConv);
 	virtual int ClearMessageCallback();
 	virtual int WriteMessage(const char *section, int row, int col, asEMsgType type, const char *message);
 
@@ -207,7 +208,7 @@ public:
 	virtual void  SetScriptObjectUserDataCleanupCallback(asCLEANSCRIPTOBJECTFUNC_t callback, asPWORD type);
 
 	// Exception handling
-	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv);
+	virtual int SetTranslateAppExceptionCallback(const asSFuncPtr &callback, void *param, int callConv);
 
 //===========================================================
 // internal methods
@@ -277,6 +278,7 @@ public:
 
 	int AddBehaviourFunction(asCScriptFunction &func, asSSystemFunctionInterface &internal);
 
+	int ParseNamespace(const char* ns, asCArray<asCString>& nsStrings) const;
 	asCString GetFunctionDeclaration(int funcId);
 
 	asCScriptFunction *GetScriptFunction(int funcId) const;
@@ -439,6 +441,8 @@ public:
 	// Message callback
 	bool                        msgCallback;
 	asSSystemFunctionInterface  msgCallbackFunc;
+	asSFuncPtr                  msgCallbackOriginalFuncPtr;
+	asDWORD                     msgCallbackOriginalCallConv;
 	void                       *msgCallbackObj;
 	struct preMessage_t
 	{

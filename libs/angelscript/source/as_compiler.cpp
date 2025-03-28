@@ -774,6 +774,10 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 
 	int stackPos = SetupParametersAndReturnVariable(in_parameterNames, in_func);
 
+	// If there are compile errors, there is no reason to build the final code
+	if (hasCompileErrors || builder->numErrors != buildErrors)
+		return -1;
+
 	//--------------------------------------------
 	// Compile the statement block
 
@@ -856,9 +860,25 @@ int asCCompiler::CompileFunction(asCBuilder *in_builder, asCScriptCode *in_scrip
 
 			// Add the initialization of the members with explicit expressions
 			CompileMemberInitialization(&byteCode, false);
+
+			// If the base class' constructor was explicitly called it must be validated 
+			// that the inherited properties weren't accessed before the constructor
+			if (m_isConstructorCalled)
+			{
+				asSMapNode<asCObjectProperty*, asCScriptNode*>* node;
+				m_inheritedPropertyAccess.MoveFirst(&node);
+				while( node )
+				{
+					asCString msg;
+					msg.Format(TXT_MEMBER_s_ACCESSED_BEFORE_INIT, node->key->name.AddressOf());
+					Error(msg, node->value);
+					m_inheritedPropertyAccess.MoveNext(&node, node);
+				}
+			}
 		}
 		else
 		{
+			// Pre 2.38.0, members with init expr in declaration are initialized after super()
 			if (outFunc->objectType->derivedFrom)
 			{
 				// Call the base class' default constructor unless called manually in the code
@@ -1699,6 +1719,10 @@ void asCCompiler::CompileInitAsCopy(asCDataType &dt, int offset, asCExprContext 
 		if (func->traits.GetTrait(asTRAIT_EXPLICIT))
 			Error(TXT_CANNOT_IMPLICITLY_CALL_EXPLICIT_COPY_CONSTR, node);
 
+		// Consider the argument as non-const already to avoid PrepareForAssignment 
+		// trying to make another copy, leading to infinite recursive loop
+		arg->type.dataType.MakeReadOnly(false);
+		
 		PrepareForAssignment(&dt, arg, node, true);
 		int r = CallCopyConstructor(dt, offset, isObjectOnHeap, ctx, arg, node, isVarGlobOrMem, derefDestination);
 		if( r < 0 && tempVariables.Exists(offset) )
@@ -1721,6 +1745,10 @@ void asCCompiler::CompileInitAsCopy(asCDataType &dt, int offset, asCExprContext 
 
 		tmpBC.AddCode(&ctx->bc);
 		ctx->bc.AddCode(&tmpBC);
+
+		// Consider the argument as non-const already to avoid PrepareForAssignment 
+		// trying to make another copy, leading to infinite recursive loop
+		arg->type.dataType.MakeReadOnly(false);
 
 		// Assign the evaluated expression to the temporary variable
 		PrepareForAssignment(&dt, arg, node, true);
@@ -1785,7 +1813,7 @@ int asCCompiler::PrepareArgument(asCDataType *paramType, asCExprContext *ctx, as
 
 		// Since the function is expecting a var type ?, then we don't want to convert the argument to anything else
 		param = ctx->type.dataType;
-		param.MakeHandle(ctx->type.isExplicitHandle || ctx->type.IsNullConstant());
+		param.MakeHandle(ctx->type.isExplicitHandle || ctx->type.IsNullConstant() || CastToFuncdefType(ctx->type.dataType.GetTypeInfo()));
 
 		// Treat the void expression like a null handle when working with var types
 		if( ctx->IsVoidExpression() )
@@ -1798,6 +1826,9 @@ int asCCompiler::PrepareArgument(asCDataType *paramType, asCExprContext *ctx, as
 		{
 			param.MakeHandle(true);
 		}
+		
+		// Ensure the expression is treated as an explicit handle
+		ctx->type.isExplicitHandle = param.IsObjectHandle();
 
 		param.MakeReference(paramType->IsReference());
 		param.MakeReadOnly(paramType->IsReadOnly());
@@ -1823,6 +1854,13 @@ int asCCompiler::PrepareArgument(asCDataType *paramType, asCExprContext *ctx, as
 			if( paramType->GetTokenType() == ttQuestion )
 			{
 				asCByteCode tmpBC(engine);
+
+				// Make sure the type is deterministic
+				if (param.GetTypeInfo() == &engine->functionBehaviours)
+				{
+					Error(TXT_INVALID_EXPRESSION_LAMBDA, node);
+					return -1;
+				}
 
 				// Place the type id on the stack as a hidden parameter
 				tmpBC.InstrDWORD(asBC_TYPEID, engine->GetTypeIdFromDataType(param));
@@ -4121,6 +4159,13 @@ int asCCompiler::CompileInitListElement(asSListPatternNode *&patternNode, asCScr
 					// When value assignment for reference types us disabled, make sure all ref types are passed in as handles
 					if (engine->ep.disallowValueAssignForRefType && dt.SupportHandles())
 						dt.MakeHandle(true);
+
+					// Make sure the type is deterministic
+					if (dt.GetTypeInfo() == &engine->functionBehaviours)
+					{
+						Error(TXT_INVALID_EXPRESSION_LAMBDA, valueNode);
+						return -1;
+					}
 
 					// Place the type id in the buffer
 					bcInit.InstrSHORT_DW_DW(asBC_SetListType, bufferVar, bufferSize, engine->GetTypeIdFromDataType(dt));
@@ -8198,6 +8243,7 @@ asUINT asCCompiler::ImplicitConvObjectValue(asCExprContext *ctx, const asCDataTy
 				asCArray<asCExprContext *> args;
 				args.PushLast(ctx);
 
+				// Don't allow making copy of argument here, else the compiler can enter an infinite recursive loop
 				cost = asCC_TO_OBJECT_CONV + MatchFunctions(funcs, args, node, 0, 0, 0, false, true, false);
 
 				// Did we find a matching constructor?
@@ -8587,8 +8633,7 @@ asUINT asCCompiler::ImplicitConvObjectToObject(asCExprContext *ctx, const asCDat
 			}
 
 			// A const object can be converted to a non-const object through a copy
-			if( ctx->type.dataType.IsReadOnly() && !to.IsReadOnly() &&
-				allowObjectConstruct )
+			if( ctx->type.dataType.IsReadOnly() && !to.IsReadOnly() )
 			{
 				// Does the object type allow a copy to be made?
 				if( ctx->type.dataType.CanBeCopied() )
@@ -9542,7 +9587,11 @@ int asCCompiler::DoAssignment(asCExprContext *ctx, asCExprContext *lctx, asCExpr
 					// Give an error if the member has been accessed before
 					asSMapNode<asCObjectProperty*, asUINT>* node;
 					if (m_propertyAccessCount.MoveTo(&node, prop) && node->value > 1)
-						Error(TXT_MEMBER_ACCESSED_BEFORE_INIT, opNode);
+					{
+						asCString msg;
+						msg.Format(TXT_MEMBER_s_ACCESSED_BEFORE_INIT, prop->name.AddressOf());
+						Error(msg, opNode);
+					}
 
 					// Give error if a return has already been compiled
 					if (m_hasReturned)
@@ -10689,33 +10738,33 @@ asCCompiler::SYMBOLTYPE asCCompiler::SymbolLookup(const asCString &name, const a
 
 			// If the scope contains ::identifier, then use the last identifier as the class name and the rest of it as the namespace
 			// TODO: child funcdef: A scope can include a template type, e.g. array<ns::type>
-				int n = currScope.FindLast("::");
-				asCString typeName = n >= 0 ? currScope.SubString(n + 2) : currScope;
-				asCString nsName = n >= 0 ? currScope.SubString(0, n) : asCString("");
+			int n = currScope.FindLast("::");
+			asCString typeName = n >= 0 ? currScope.SubString(n + 2) : currScope;
+			asCString nsName = n >= 0 ? currScope.SubString(0, n) : asCString("");
 
-				// If the scope represents a type that the current class inherits
-				// from then that should be used instead of going through the namespaces
-				if (nsName == "" && (outFunc && outFunc->objectType))
+			// If the scope represents a type that the current class inherits
+			// from then that should be used instead of going through the namespaces
+			if (nsName == "" && (outFunc && outFunc->objectType))
+			{
+				asCObjectType* ot = outFunc->objectType;
+				while (ot)
 				{
-					asCObjectType* ot = outFunc->objectType;
-					while (ot)
+					if (ot->name == typeName)
 					{
-						if (ot->name == typeName)
+						SYMBOLTYPE r = SymbolLookupMember(name, ot, outResult);
+						if (r != 0)
 						{
-							SYMBOLTYPE r = SymbolLookupMember(name, ot, outResult);
-							if (r != 0)
-							{
-								if (!checkAmbiguousSymbols)
-									return r;
+							if (!checkAmbiguousSymbols)
+								return r;
 
-								if (isAmbiguousSymbol(name, errNode, resultSymbolType, r))
-									return SL_ERROR;
-							}
+							if (isAmbiguousSymbol(name, errNode, resultSymbolType, r))
+								return SL_ERROR;
 						}
-
-						ot = ot->derivedFrom;
 					}
+
+					ot = ot->derivedFrom;
 				}
+			}
 
 			// If the scope starts with :: then search from the global scope
 			if (currScope.GetLength() < 2 || currScope[0] != ':')
@@ -11160,6 +11209,16 @@ int asCCompiler::CompileVariableAccess(const asCString &name, const asCString &s
 					node->value++;
 				else
 					m_propertyAccessCount.Insert(prop, 1);
+
+				// Give error if attempting to access inherited property before the parent constructor is called
+				// This validation will be deferred to later, since it is not known with the parent constructor will
+				// be called implicitly at the beginning of the constructor or explicitly later
+				if (prop->isInherited && !m_isConstructorCalled)
+				{
+					asSMapNode<asCObjectProperty*, asCScriptNode*> *node2;
+					if (!m_inheritedPropertyAccess.MoveTo(&node2, prop))
+						m_inheritedPropertyAccess.Insert(prop, errNode);
+				}
 			}
 
 			// Is the property access allowed?
@@ -12660,6 +12719,7 @@ int asCCompiler::CompileConstructCall(asCScriptNode *node, asCExprContext *ctx)
 
 int asCCompiler::InstantiateTemplateFunctions(asCArray<int>& funcs, asCScriptNode* types)
 {
+	asCScriptNode* startNode = types;
 	for ( asUINT i = 0; i < funcs.GetLength(); i++ )
 	{
 		asCScriptFunction* func = builder->GetFunctionDescription(funcs[i]);
@@ -12667,13 +12727,29 @@ int asCCompiler::InstantiateTemplateFunctions(asCArray<int>& funcs, asCScriptNod
 		// TODO: If types for template instance has been given in the node, and no matching template function exists then an error must be given
 		if (numTypes == 0) continue;
 		asCArray<asCDataType> dataTypes;
-		// TODO: If the number of types doesn't match the template then give an error 
-		// (or if there is more than one template function with the same name, then use only the one that matches)
+		// TODO: If there is more than one template function with the same name, then use only the one that matches
 		for (asUINT j = 0; j < numTypes; j++)
 		{
+			// If the number of types doesn't match the template then give an error 
+			if (types == 0 || types->nodeType == snArgList)
+			{
+				asCString msg;
+				msg.Format(TXT_TMPL_s_EXPECTS_d_SUBTYPES, func->GetName(), numTypes);
+				Error(msg, startNode);
+				return -1;
+			}
 			dataTypes.PushLast(builder->CreateDataTypeFromNode(types, script, func->nameSpace, func->objectType, 0, true, 0, 0, &m_namespaceVisibility));
 			types = types->next;
 		}
+		// Check that there isn't additional types
+		if (types == 0 || types->nodeType != snArgList)
+		{
+			asCString msg;
+			msg.Format(TXT_TMPL_s_EXPECTS_d_SUBTYPES, func->GetName(), numTypes);
+			Error(msg, startNode);
+			return -1;
+		}
+
 		funcs[i] = engine->GetTemplateFunctionInstance(func, dataTypes);
 	}
 
@@ -12806,11 +12882,10 @@ int asCCompiler::CompileFunctionCall(asCScriptNode *node, asCExprContext *ctx, a
 				// If a break label is set we are either in a loop or a switch statements
 				Error(TXT_CANNOT_CALL_CONSTRUCTOR_IN_SWITCH, node);
 			}
-			else if (m_isConstructorCalled)
-			{
-				Error(TXT_CANNOT_CALL_CONSTRUCTOR_TWICE, node);
-			}
-			m_isConstructorCalled = true;
+
+			// Only set the m_isConstructorCalled after the call is actually made, so that we 
+			// can detect if the arguments access any inherited members too early
+			// m_isConstructorCalled = true;
 
 			// We need to initialize the class members, but only after all the deferred arguments have been completed
 			initializeMembers = true;
@@ -12969,6 +13044,13 @@ int asCCompiler::CompileFunctionCall(asCScriptNode *node, asCExprContext *ctx, a
 				{
 					ctx->type.SetDummy();
 					isOK = false;
+				}
+				
+				if (m_isConstructor && name == SUPER_TOKEN)
+				{
+					if (m_isConstructorCalled)
+						Error(TXT_CANNOT_CALL_CONSTRUCTOR_TWICE, node);
+					m_isConstructorCalled = true;
 				}
 			}
 			else
