@@ -42,6 +42,8 @@ namespace Engine
 		ScriptFolder* find(const Span<String>& path, bool create_if_not_exists = false);
 		Script* find_script(const Path& script_path, bool create_if_not_exists = false);
 		Script* find_script(const Span<String>& path, bool create_if_not_exists = false);
+		ScriptFolder& load_scripts();
+		ScriptFolder& unload_scripts();
 
 		ScriptFolder* parent() const;
 		const String& name() const;

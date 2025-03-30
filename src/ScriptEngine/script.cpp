@@ -162,6 +162,47 @@ namespace Engine
 		return nullptr;
 	}
 
+	ScriptFolder& ScriptFolder::load_scripts()
+	{
+		unload_scripts();
+		auto fs = rootfs();
+
+		for (const auto& entry : VFS::DirectoryIterator(m_path))
+		{
+			if (rootfs()->is_file(entry))
+			{
+				if (entry.extension() == Constants::script_extension)
+				{
+					auto script = find_script(entry.filename(), true);
+					if (script->load())
+						script->build();
+				}
+			}
+			else if (fs->is_dir(entry))
+			{
+				find(entry.filename(), true)->load_scripts();
+			}
+		}
+
+		return *this;
+	}
+
+	ScriptFolder& ScriptFolder::unload_scripts()
+	{
+		for (auto& [path, folder] : m_folders)
+		{
+			folder->unload_scripts();
+		}
+
+		auto scripts = std::move(m_scripts);
+
+		for (auto& script : scripts)
+		{
+			delete script.second;
+		}
+		return *this;
+	}
+
 	ScriptFolder* ScriptFolder::parent() const
 	{
 		return m_parent;
@@ -176,7 +217,6 @@ namespace Engine
 	{
 		return m_path;
 	}
-
 
 	class Script::Builder : public CScriptBuilder
 	{
@@ -243,15 +283,9 @@ namespace Engine
 			return result;
 		}
 
-		TreeMap<int_t, TreeSet<String>> func_metadata_map()
-		{
-			return parse_func_metadata(funcMetadataMap);
-		}
+		TreeMap<int_t, TreeSet<String>> func_metadata_map() { return parse_func_metadata(funcMetadataMap); }
 
-		TreeMap<String, TreeSet<String>> var_metadata_map()
-		{
-			return parse_var_metadata(varMetadataMap);
-		}
+		TreeMap<String, TreeSet<String>> var_metadata_map() { return parse_var_metadata(varMetadataMap); }
 
 		TreeMap<String, Script::ClassMetadata> class_metadata_map()
 		{
@@ -724,30 +758,9 @@ namespace Engine
 		return m_module.typedef_by_index(index);
 	}
 
-	static void static_load_scripts(ScriptFolder* folder)
-	{
-		auto fs = rootfs();
-		for (const auto& entry : VFS::DirectoryIterator(folder->path()))
-		{
-			if (rootfs()->is_file(entry))
-			{
-				if (entry.extension() == Constants::script_extension)
-				{
-					auto script = folder->find_script(entry.filename(), true);
-					if (script->load())
-						script->build();
-				}
-			}
-			else if (fs->is_dir(entry))
-			{
-				static_load_scripts(folder->find(entry.filename(), true));
-			}
-		}
-	}
-
 	ScriptEngine& ScriptEngine::load_scripts()
 	{
-		static_load_scripts(m_script_folder);
+		m_script_folder->load_scripts();
 		return instance();
 	}
 }// namespace Engine

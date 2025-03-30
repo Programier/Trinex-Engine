@@ -698,9 +698,10 @@ namespace Engine
 			META_Buffer               = BIT(23),
 			META_RWBuffer             = BIT(24),
 
-			META_Scalar = BIT(25),
-			META_Vector = BIT(26),
-			META_Matrix = BIT(27),
+			META_Scalar  = BIT(25),
+			META_Vector  = BIT(26),
+			META_Matrix  = BIT(27),
+			META_Numeric = META_Scalar | META_Vector | META_Matrix,
 
 			// Values
 			Bool        = 1 | META_Scalar | META_UniformBuffer,
@@ -736,6 +737,22 @@ namespace Engine
 		};
 
 		trinex_bitfield_enum_struct(ShaderParameterType, EnumerateType);
+		trinex_declare_enum(ShaderParameterType);
+
+		ShaderParameterType make_vector(byte len);
+
+		inline bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
+		inline bool is_vector() const { return (value & META_Vector) == META_Vector; }
+		inline bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
+		inline bool is_numeric() const { return (value & META_Numeric) != 0; }
+		inline bool is_meta() const { return (value & 0xFFFF) == 0; }
+
+		inline byte vector_length() const
+		{
+			if (!is_vector() && !is_scalar())
+				return 0;
+			return (((value & 0xFFFF) - 1) % 4) + 1;
+		}
 	};
 
 	struct TextureCreateFlags {

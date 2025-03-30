@@ -114,6 +114,7 @@ namespace Engine
 		fs->mount("[assets_dir]:/TrinexEditor", "Editor Assets", new FS(exec_dir / "resources/TrinexEditor/assets"), callback);
 		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/TrinexEditor/configs"), callback);
 		fs->mount("[shaders_dir]:/TrinexEditor", "Editor Shaders", new FS(exec_dir / "resources/TrinexEditor/shaders"), callback);
+		fs->mount("[scripts_dir]:/TrinexEditor", "Editor Scripts", new FS(exec_dir / "resources/TrinexEditor/scripts"), callback);
 
 		Settings::Rendering::force_keep_cpu_resources = true;
 	}

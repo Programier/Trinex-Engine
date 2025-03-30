@@ -238,8 +238,8 @@ namespace Engine
 		return *this;
 	}
 
-	ImGuiViewportClient& ImGuiViewportClient::build_dock(uint32_t dock_id)
+	uint32_t ImGuiViewportClient::build_dock(uint32_t dock)
 	{
-		return *this;
+		return dock;
 	}
 }// namespace Engine

@@ -66,7 +66,7 @@ namespace Engine
 		EditorClient& render(class RenderViewport* viewport) override;
 		EditorClient& update(float dt) override;
 
-		EditorClient& build_dock(uint32_t dock_id) override;
+		uint32_t build_dock(uint32_t dock_id) override;
 		EditorClient& render_viewport_window(float dt);
 		EditorClient& render_guizmo(float dt);
 		EditorClient& render_viewport_menu();

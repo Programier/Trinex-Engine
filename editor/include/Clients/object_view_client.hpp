@@ -18,7 +18,7 @@ namespace Engine
 		ObjectViewClient();
 		ObjectViewClient& create_properties_window();
 		ObjectViewClient& on_bind_viewport(RenderViewport* vp) override;
-		ObjectViewClient& build_dock(uint32_t dock_id) override;
+		uint32_t build_dock(uint32_t dock) override;
 		ObjectViewClient& update(float dt) override;
 		ObjectViewClient& select(Object* object) override;
 

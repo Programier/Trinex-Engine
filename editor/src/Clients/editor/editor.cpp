@@ -473,19 +473,18 @@ namespace Engine
 		return *this;
 	}
 
-	EditorClient& EditorClient::build_dock(uint32_t dock_id)
+	uint32_t EditorClient::build_dock(uint32_t dock_id)
 	{
 		auto dock_id_right      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 		auto dock_id_right_up   = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
 		auto dock_id_right_down = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
-
-		auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
+		auto dock_id_down       = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
 
 		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
 		ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
 		ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport").c_str(), dock_id);
-		return *this;
+		return dock_id;
 	}
 
 	EditorClient& EditorClient::render_viewport_window(float dt)

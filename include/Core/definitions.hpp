@@ -113,10 +113,11 @@
 	scope_name::class_name& scope_name::class_name::operator=(scope_name::class_name&&)      = default;                          \
 	scope_name::class_name& scope_name::class_name::operator=(const scope_name::class_name&) = default;
 
+
 #define trinex_enum_struct(struct_type)                                                                                          \
 	static constexpr bool is_enum          = true;                                                                               \
 	static constexpr bool is_bitfield_enum = false;                                                                              \
-	constexpr struct_type() : value(Enum()) {}                                                                                   \
+	constexpr struct_type()                = default;                                                                            \
 	constexpr struct_type(Enum other) : value(other) {}                                                                          \
 	constexpr operator struct_type::Enum() const                                                                                 \
 	{                                                                                                                            \
@@ -145,7 +146,7 @@
 #define trinex_bitfield_enum_struct(struct_type, type)                                                                           \
 	static constexpr bool is_enum          = true;                                                                               \
 	static constexpr bool is_bitfield_enum = true;                                                                               \
-	constexpr struct_type() : value(Enum()) {}                                                                                   \
+	constexpr struct_type()                = default;                                                                            \
 	constexpr explicit struct_type(type other) : bitfield(other) {}                                                              \
 	constexpr struct_type(Enum other) : value(other) {}                                                                          \
 	constexpr operator Enum() const                                                                                              \

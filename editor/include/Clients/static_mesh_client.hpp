@@ -38,6 +38,6 @@ namespace Engine
 		StaticMeshClient& update(float dt) override;
 		StaticMeshClient& select(Object* object) override;
 		StaticMeshClient& render(RenderViewport* vp) override;
-		StaticMeshClient& build_dock(uint32_t dock_id) override;
+		uint32_t build_dock(uint32_t dock) override;
 	};
 }// namespace Engine

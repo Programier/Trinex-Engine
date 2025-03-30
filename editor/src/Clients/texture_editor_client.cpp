@@ -183,12 +183,12 @@ namespace Engine
 		return *this;
 	}
 
-	TextureEditorClient& TextureEditorClient::build_dock(uint32_t dock_id)
+	uint32_t TextureEditorClient::build_dock(uint32_t dock_id)
 	{
 		auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 		ImGui::DockBuilderDockWindow("Texture View###texture", dock_id);
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right);
-		return *this;
+		return dock_id;
 	}
 
 	// TEXTURE 2D RENDERING

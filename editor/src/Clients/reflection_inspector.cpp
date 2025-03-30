@@ -100,10 +100,10 @@ namespace Engine
 			return *this;
 		}
 
-		ReflInspector& build_dock(uint32_t dock) override
+		uint32_t build_dock(uint32_t dock) override
 		{
 			ImGui::DockBuilderDockWindow("View", dock);
-			return *this;
+			return dock;
 		}
 	};
 

@@ -57,6 +57,6 @@ namespace Engine
 
 		virtual ImGuiViewportClient& update(float dt);
 		virtual ImGuiViewportClient& select(Object* object);
-		virtual ImGuiViewportClient& build_dock(uint32_t dock_id);
+		virtual uint32_t build_dock(uint32_t dock);
 	};
 }// namespace Engine

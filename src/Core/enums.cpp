@@ -54,4 +54,45 @@ namespace Engine
 	trinex_implement_engine_enum(SplashTextType, StartupProgress, VersionInfo, CopyrightInfo, GameName);
 	trinex_implement_engine_enum(MaterialOptions, DefaultPassOnly, DisableDefaultPass, LightMaterial);
 
+	trinex_implement_engine_enum(ShaderParameterType, Undefined, META_UniformBuffer, META_CombinedImageSampler, META_Sampler,
+								 META_Texture, META_Scalar, META_Vector, META_Matrix, META_Numeric, Bool, Bool2, Bool3, Bool4,
+								 Int, Int2, Int3, Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3,
+								 Float4x4, MemoryBlock, Sampler, Sampler2D, Texture2D);
+
+	ShaderParameterType ShaderParameterType::make_vector(byte len)
+	{
+		len = glm::clamp<byte>(len, 1, 4);
+
+		if (is_scalar())
+		{
+			ShaderParameterType result = *this;
+			result &= ShaderParameterType(~META_Scalar);
+			result |= META_Vector;
+			result.bitfield += static_cast<EnumerateType>(len);
+			return result;
+		}
+		else if (is_vector())
+		{
+			ShaderParameterType result = *this;
+			byte current_len           = vector_length();
+
+			if (current_len > len)
+			{
+				result.bitfield -= static_cast<EnumerateType>(current_len - len);
+
+				if (len == 1)
+				{
+					result &= ShaderParameterType(~META_Vector);
+					result |= META_Scalar;
+				}
+			}
+			else if (current_len < len)
+			{
+				result.bitfield += static_cast<EnumerateType>(len - current_len);
+			}
+			return result;
+		}
+
+		return ShaderParameterType();
+	}
 }// namespace Engine

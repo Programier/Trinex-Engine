@@ -19,19 +19,21 @@ namespace Engine::VFS
 		Iterator m_it;
 		Path m_path;
 
-		void update_path()
+		bool update_path()
 		{
 			if (is_valid())
 			{
 				const std::filesystem::path& path = *m_it;
 				m_path                            = m_base->mount_point() / Path(path.string()).relative(m_base->path());
+				return true;
 			}
+			return false;
 		}
 
-		void next() override
+		bool next() override
 		{
 			++m_it;
-			update_path();
+			return update_path();
 		}
 
 		const Path& path() override { return m_path; }
@@ -51,7 +53,11 @@ namespace Engine::VFS
 			return new_iterator;
 		}
 
-		Type type() const override { return Native; }
+		Identifier id() const override
+		{
+			static const byte value = 0;
+			return reinterpret_cast<Identifier>(&value);
+		}
 
 		bool is_equal(DirectoryIteratorInterface* other) override
 		{

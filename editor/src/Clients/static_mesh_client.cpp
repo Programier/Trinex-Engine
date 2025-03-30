@@ -140,15 +140,15 @@ namespace Engine
 		return *this;
 	}
 
-	StaticMeshClient& StaticMeshClient::build_dock(uint32_t dock_id)
+	uint32_t StaticMeshClient::build_dock(uint32_t dock)
 	{
-		auto dock_id_right  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.35f, nullptr, &dock_id);
-		auto dock_id_botton = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.35f, nullptr, &dock_id);
+		auto dock_right  = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Right, 0.35f, nullptr, &dock);
+		auto dock_botton = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Down, 0.35f, nullptr, &dock);
 
-		ImGui::DockBuilderDockWindow("###Viewport", dock_id);
-		ImGui::DockBuilderDockWindow(m_property_renderer.name(), dock_id_right);
-		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_botton);
-		return *this;
+		ImGui::DockBuilderDockWindow("###Viewport", dock);
+		ImGui::DockBuilderDockWindow(m_property_renderer.name(), dock_right);
+		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_botton);
+		return dock;
 	}
 
 }// namespace Engine

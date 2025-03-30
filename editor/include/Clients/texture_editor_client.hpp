@@ -29,7 +29,7 @@ namespace Engine
 		TextureEditorClient& on_bind_viewport(RenderViewport* vp) override;
 		TextureEditorClient& update(float dt) override;
 		TextureEditorClient& select(Object* object) override;
-		TextureEditorClient& build_dock(uint32_t dock_id) override;
+		uint32_t build_dock(uint32_t dock_id) override;
 
 		inline Swizzle swizzle() const { return m_swizzle; }
 		inline float pow_factor() const { return m_pow; }

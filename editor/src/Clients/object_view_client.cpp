@@ -44,10 +44,10 @@ namespace Engine
 		return *this;
 	}
 
-	ObjectViewClient& ObjectViewClient::build_dock(uint32_t dock_id)
+	uint32_t ObjectViewClient::build_dock(uint32_t dock)
 	{
-		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id);
-		return *this;
+		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock);
+		return dock;
 	}
 
 	ObjectViewClient& ObjectViewClient::update(float dt)

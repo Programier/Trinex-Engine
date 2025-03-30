@@ -1,4 +1,5 @@
 #include "vfs_log.hpp"
+#include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -16,6 +17,98 @@ namespace Engine
 
 namespace Engine::VFS
 {
+	class FileSystemIterator : public DirectoryIteratorInterface
+	{
+	public:
+		Vector<DirectoryIteratorInterface*> m_iterators;
+		mutable size_t m_index = 0;
+
+		bool next() override
+		{
+			if (m_index < m_iterators.size())
+			{
+				if (m_iterators[m_index]->next())
+					return true;
+
+				++m_index;
+				return is_valid();
+			}
+			return false;
+		}
+
+		const Path& path() override { return m_iterators[m_index]->path(); }
+
+		bool is_valid() const override
+		{
+			while (m_index < m_iterators.size())
+			{
+				DirectoryIteratorInterface* it = m_iterators[m_index];
+				if (it->is_valid())
+					return true;
+				++m_index;
+			}
+			return false;
+		}
+
+		DirectoryIteratorInterface* copy() override
+		{
+			FileSystemIterator* new_iterator = new FileSystemIterator();
+			new_iterator->m_iterators.reserve(m_iterators.size() - m_index);
+
+			for (size_t index = m_index, count = m_iterators.size(); index < count; ++index)
+				new_iterator->m_iterators.push_back(m_iterators[index]->copy());
+
+			return new_iterator;
+		}
+
+		Identifier id() const override { return m_iterators[m_index]->id(); }
+
+		bool is_equal(DirectoryIteratorInterface* interface) override
+		{
+			if (m_index < m_iterators.size())
+			{
+				return m_iterators[m_index]->is_equal(interface);
+			}
+			return false;
+		}
+
+		~FileSystemIterator()
+		{
+			for (auto* it : m_iterators)
+			{
+				delete it;
+			}
+		}
+	};
+
+	class MountPointIterator : public DirectoryIteratorInterface
+	{
+	public:
+		Vector<FileSystem*> m_file_systems;
+		mutable size_t m_index = 0;
+
+		bool next() override { return ++m_index < m_file_systems.size(); }
+		const Path& path() override { return m_file_systems[m_index]->mount_point(); }
+		bool is_valid() const override { return m_index < m_file_systems.size(); }
+
+		DirectoryIteratorInterface* copy() override
+		{
+			MountPointIterator* new_iterator = new MountPointIterator();
+			new_iterator->m_file_systems.reserve(m_file_systems.size() - m_index);
+			for (size_t index = m_index, count = m_file_systems.size(); index < count; ++index)
+				new_iterator->m_file_systems.push_back(m_file_systems[index]);
+			return new_iterator;
+		}
+
+		Identifier id() const override
+		{
+			static const byte id = 0;
+			return reinterpret_cast<Identifier>(&id);
+		}
+
+		bool is_equal(DirectoryIteratorInterface* iterator) override { return false; }
+	};
+
 	bool RootFS::FileSystemCompare::operator()(const String& first, const String& second) const
 	{
 		return first > second;
@@ -38,7 +131,31 @@ namespace Engine::VFS
 		auto entry = find_filesystem(path);
 		if (entry.first)
 		{
-			return entry.first->create_directory_iterator(entry.second);
+			DirectoryIteratorInterface* iterator = entry.first->create_directory_iterator(entry.second);
+
+			if (entry.second.empty())
+			{
+				FileSystemIterator* fs_iterator = new FileSystemIterator();
+				fs_iterator->m_iterators.push_back(iterator);
+				iterator = fs_iterator;
+
+				MountPointIterator* mount_point_iterator = nullptr;
+
+				for (auto& [fs_path, mount] : filesystems())
+				{
+					if (mount.mount.starts_with(entry.first->mount_point()) && mount.mount != entry.first->mount_point())
+					{
+						if (mount_point_iterator == nullptr)
+							mount_point_iterator = new MountPointIterator();
+						mount_point_iterator->m_file_systems.push_back(mount.fs);
+					}
+				}
+
+				if (mount_point_iterator)
+					fs_iterator->m_iterators.push_back(mount_point_iterator);
+			}
+
+			return iterator;
 		}
 		return nullptr;
 	}
@@ -48,7 +165,22 @@ namespace Engine::VFS
 		auto entry = find_filesystem(path);
 		if (entry.first)
 		{
-			return entry.first->create_recursive_directory_iterator(entry.second);
+			DirectoryIteratorInterface* iterator = entry.first->create_recursive_directory_iterator(entry.second);
+
+			if (entry.second.empty())
+			{
+				FileSystemIterator* fs_iterator = new FileSystemIterator();
+				fs_iterator->m_iterators.push_back(iterator);
+				iterator = fs_iterator;
+
+				for (auto& [fs_path, mount] : filesystems())
+				{
+					if (mount.mount.starts_with(entry.first->mount_point()) && mount.mount != entry.first->mount_point())
+						fs_iterator->m_iterators.push_back(mount.fs->create_recursive_directory_iterator(""));
+				}
+			}
+
+			return iterator;
 		}
 		return nullptr;
 	}

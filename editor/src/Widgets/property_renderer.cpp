@@ -59,15 +59,9 @@ namespace Engine
 	}
 
 	struct ScopedPropID {
-		ScopedPropID(const void* object, Refl::Property* prop)
-		{
-			push_props_id(object, prop);
-		}
+		ScopedPropID(const void* object, Refl::Property* prop) { push_props_id(object, prop); }
 
-		~ScopedPropID()
-		{
-			pop_props_id();
-		}
+		~ScopedPropID() { pop_props_id(); }
 	};
 
 	PropertyRenderer::PropertyRenderer() : m_object(nullptr), m_is_property_skipped(false)
@@ -546,7 +540,7 @@ namespace Engine
 
 		bool is_changed = false;
 
-		if (ImGui::BeginCombo("##ComboValue", current_entry->name.c_str()))
+		if (current_entry && ImGui::BeginCombo("##ComboValue", current_entry->name.c_str()))
 		{
 			for (auto& entry : enum_inst->entries())
 			{
