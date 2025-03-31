@@ -92,7 +92,7 @@ namespace Engine
 		if (auto mesh = instance_cast<StaticMesh>(object))
 		{
 			m_mesh = mesh;
-			m_property_renderer.update(object);
+			m_property_renderer.object(object);
 
 			if (m_actor)
 			{

@@ -20,7 +20,6 @@ namespace Engine
 
 	public:
 		VisualMaterial();
-		VisualMaterial& register_node(VisualMaterialGraph::Node* node);
 		VisualMaterialGraph::Node* create_node(class Refl::Class* node_class, const Vector2f& position = {});
 		VisualMaterial& destroy_node(VisualMaterialGraph::Node* node, bool destroy_links = true);
 		// VisualMaterial& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline) override;

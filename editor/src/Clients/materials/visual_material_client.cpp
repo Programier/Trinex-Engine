@@ -1,6 +1,8 @@
 #include <Clients/material/visual_material_client.hpp>
 #include <Core/blueprints.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
+#include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
@@ -23,6 +25,167 @@ namespace Engine
 		static const char* static_name() { return "editor/Node Properties"_localized; }
 	};
 
+	struct HorizontalLayout {
+		HorizontalLayout() { ImGui::BeginHorizontal(this); }
+		~HorizontalLayout() { ImGui::EndHorizontal(); }
+	};
+
+	struct VerticalLayout {
+		VerticalLayout() { ImGui::BeginVertical(this); }
+		~VerticalLayout() { ImGui::EndVertical(); }
+	};
+
+	static inline void render_default_vector1b(VisualMaterialGraph::Pin* pin)
+	{
+		ImGui::Checkbox("##vector1b", reinterpret_cast<bool*>(pin->default_value()->address()));
+	}
+
+	static void render_default_vector_nb(const char* label, bool* data, int components)
+	{
+		auto* window = ImGui::GetCurrentWindow();
+
+		if (window->SkipItems)
+			return;
+
+		auto& style = ImGui::GetStyle();
+
+		ImGui::BeginGroup();
+		ImGui::PushID(label);
+		ImGui::PushMultiItemsWidths(components, ImGui::CalcItemWidth());
+
+		for (int i = 0; i < components; i++)
+		{
+			ImGui::PushID(i);
+			if (i > 0)
+				ImGui::SameLine(0, style.ItemInnerSpacing.x);
+
+			ImGui::Checkbox("##vectornb", data);
+			ImGui::PopID();
+			ImGui::PopItemWidth();
+			++data;
+		}
+
+		ImGui::PopID();
+		ImGui::EndGroup();
+	}
+
+	static inline void render_default_vector2b(VisualMaterialGraph::Pin* pin)
+	{
+		render_default_vector_nb("##vector2b", reinterpret_cast<bool*>(pin->default_value()->address()), 2);
+	}
+
+	static inline void render_default_vector3b(VisualMaterialGraph::Pin* pin)
+	{
+		render_default_vector_nb("##vector3b", reinterpret_cast<bool*>(pin->default_value()->address()), 3);
+	}
+
+	static inline void render_default_vector4b(VisualMaterialGraph::Pin* pin)
+	{
+		render_default_vector_nb("##vector4b", reinterpret_cast<bool*>(pin->default_value()->address()), 4);
+	}
+
+	static void render_default_vector1i(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector1i", ImGuiDataType_S32, ptr, 1);
+	}
+
+	static void render_default_vector2i(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector2i", ImGuiDataType_S32, ptr, 2);
+	}
+
+	static void render_default_vector3i(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector3i", ImGuiDataType_S32, ptr, 3);
+	}
+
+	static void render_default_vector4i(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector4i", ImGuiDataType_S32, ptr, 4);
+	}
+
+	static void render_default_vector1u(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector1u", ImGuiDataType_U32, ptr, 1);
+	}
+
+	static void render_default_vector2u(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector2u", ImGuiDataType_U32, ptr, 2);
+	}
+
+	static void render_default_vector3u(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector3u", ImGuiDataType_U32, ptr, 3);
+	}
+
+	static void render_default_vector4u(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector4u", ImGuiDataType_U32, ptr, 4);
+	}
+
+	static void render_default_vector1f(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector1f", ImGuiDataType_Float, ptr, 1);
+	}
+
+	static void render_default_vector2f(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector2f", ImGuiDataType_Float, ptr, 2);
+	}
+
+	static void render_default_vector3f(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector3f", ImGuiDataType_Float, ptr, 3);
+	}
+
+	static void render_default_vector4f(VisualMaterialGraph::Pin* pin)
+	{
+		void* ptr = pin->default_value()->address();
+		ImGui::InputScalarN("###vector4f", ImGuiDataType_Float, ptr, 4);
+	}
+
+	static void render_default_matrix3f(VisualMaterialGraph::Pin* pin)
+	{
+		ImGui::InputScalarN("", ImGuiDataType_Float, pin->default_value()->address(), 1);
+	}
+
+	static void render_default_matrix4f(VisualMaterialGraph::Pin* pin)
+	{
+		ImGui::InputScalarN("", ImGuiDataType_Float, pin->default_value()->address(), 1);
+	}
+
+	static void (*s_default_type_renderers[17])(VisualMaterialGraph::Pin* pin) = {nullptr};
+
+	// static void render_default_matrix3f(VisualMaterialGraph::Pin* pin)
+	// {
+	// 	float* value = static_cast<float*>(pin->default_value());
+	// 	for (int i = 0; i < 3; ++i)
+	// 	{
+	// 		ImGui::InputFloat3(("##matrix3f_row" + std::to_string(i)).c_str(), &value[i * 3]);
+	// 	}
+	// }
+
+	// static void render_default_matrix4f(VisualMaterialGraph::Pin* pin)
+	// {
+	// 	float* value = static_cast<float*>(pin->default_value());
+	// 	for (int i = 0; i < 4; ++i)
+	// 	{
+	// 		ImGui::InputFloat4(("##matrix4f_row" + std::to_string(i)).c_str(), &value[i * 4]);
+	// 	}
+	// }
+
 	static void show_label(const char* label, ImColor color)
 	{
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - ImGui::GetTextLineHeight());
@@ -41,194 +204,6 @@ namespace Engine
 		ImGui::TextUnformatted(label);
 	};
 
-	static inline bool is_compatible_types(ShaderParameterType src, ShaderParameterType dst)
-	{
-		if (src == dst)
-			return true;
-
-		if ((src.is_scalar() || src.is_vector()) && (dst.is_scalar() || dst.is_vector()))
-			return true;
-
-		if (src.is_matrix() && dst.is_matrix())
-			return true;
-		return false;
-	}
-
-	VisualMaterialEditorClient& VisualMaterialEditorClient::render_graph()
-	{
-		static BlueprintBuilder builder;
-
-		float text_height                        = ImGui::GetTextLineHeightWithSpacing();
-		float item_spacing                       = ImGui::GetStyle().ItemSpacing.x;
-		VisualMaterialGraph::Node* selected_node = nullptr;
-
-		auto selected_items = ed::GetSelectedObjectCount();
-
-		for (auto& node : m_material->nodes())
-		{
-			auto pos = ed::GetNodePosition(node->id());
-
-			if (pos.x == FLT_MAX || pos.y == FLT_MAX)
-			{
-				pos = {node->position.x, node->position.y};
-				ed::SetNodePosition(node->id(), pos);
-			}
-			else
-			{
-				node->position = ImGui::EngineVecFrom(pos);
-			}
-
-			builder.begin(node->id());
-
-			if (selected_items == 1 && ed::IsNodeSelected(node->id()))
-			{
-				selected_node = node;
-			}
-
-			builder.begin_header(ImVec4(1.0, 0.0, 0.0, 1.f));
-			ImGui::Spring(1.f);
-			ImGui::TextUnformatted(node->class_instance()->display_name().c_str());
-			ImGui::Dummy({0, ImGui::GetTextLineHeightWithSpacing()});
-			ImGui::Spring(1.f);
-			builder.end_header();
-
-			// Inputs rendering
-			for (auto* input : node->inputs())
-			{
-				builder.begin_input(input->id());
-
-				builder.begin_input_pin(input->id());
-				ed::PinPivotAlignment({0.5, 0.5f});
-
-				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->links_count() > 0,
-									   ImVec4(1.0, 0.0, 0.0, 1.0));
-				builder.end_input_pin();
-
-				ImGui::Text("%s", input->name().c_str());
-				builder.end_input();
-			}
-
-			// Outputs rendering
-			for (auto* output : node->outputs())
-			{
-				builder.begin_output(output->id());
-				ImGui::Text("%s", output->name().c_str());
-
-				builder.begin_output_pin(output->id());
-				ed::PinPivotAlignment({0.5, 0.5f});
-
-				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->links_count() > 0,
-									   ImVec4(0.0, 1.0, 0.0, 1.0));
-				builder.end_input_pin();
-				builder.end_input();
-			}
-
-			// {
-			// 	float max_len = 0.f;
-			// 	static Vector<float> sizes;
-			// 	sizes.clear();
-
-			// 	for (auto& input : node->inputs())
-			// 	{
-			// 		float len = ImGui::CalcTextSize(input->name().c_str()).x;
-			// 		max_len   = glm::max(max_len, len);
-			// 		sizes.push_back(len);
-			// 	}
-
-			// 	Index index = 0;
-			// 	for (auto& input : node->inputs())
-			// 	{
-			// 		builder.begin_input(input->id());
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		builder.begin_input_pin(input->id());
-			// 		ed::PinPivotAlignment({0.5, 0.5f});
-			// 		const VisualMaterialGraph::PinType type = input->node()->in_pin_type(input);
-			// 		BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->has_links(),
-			// 		                       pin_colors.at(type));
-			// 		ImGui::SetItemTooltip("%s", pin_type_names.at(type));
-			// 		builder.end_input_pin();
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		ImGui::TextUnformatted(input->name().c_str());
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		ImGui::Dummy({item_spacing + max_len - sizes[index], 0.f});
-			// 		ImGui::Spring(0.f, 0.f);
-
-			// 		ImGui::SuspendLayout();
-			// 		float width = render_default_value(input->default_value(), input->type());
-			// 		ImGui::ResumeLayout();
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		ImGui::Dummy({width, 0.f});
-			// 		ImGui::Spring(1.f, 0.f);
-
-			// 		builder.end_input();
-
-			// 		++index;
-			// 	}
-			// }
-
-			// ImGui::Spring();
-			// builder.begin_middle();
-			// node->render();
-			// ImGui::Spring();
-
-
-			// for (auto& output : node->outputs())
-			// {
-			// 	builder.begin_output(output->id());
-
-			// 	ImGui::Spring(0.f, 0.f);
-			// 	ImGui::SuspendLayout();
-			// 	float width = render_default_value(output->default_value(), output->type());
-			// 	ImGui::ResumeLayout();
-
-			// 	ImGui::Spring(0.f, 0.f);
-			// 	ImGui::Dummy({width, 0.f});
-			// 	ImGui::Spring(1.f, 0.f);
-
-			// 	ImGui::TextUnformatted(output->name().c_str());
-			// 	ImGui::Spring(0.f, 0.f);
-
-			// 	builder.begin_output_pin(output->id());
-			// 	ed::PinPivotAlignment({0.9, 0.5f});
-			// 	const VisualMaterialGraph::PinType type = output->node()->out_pin_type(output);
-			// 	BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
-			// 	                       pin_colors.at(type));
-			// 	ImGui::SetItemTooltip("%s", pin_type_names.at(type));
-			// 	builder.end_output_pin();
-
-			// 	ImGui::Spring(0.f, 0.f);
-			// 	builder.end_output();
-			// }
-
-			// if (node->has_error())
-			// {
-			// 	ImGui::Spring();
-			// 	builder.begin_footer(ImVec4(1.f, 0.f, 0.f, 1.f));
-			// 	ImGui::Spring(1.f);
-			// 	ImGui::Text("%s", node->error_message().c_str());
-			// 	ImGui::Spring(1.f);
-			// }
-
-			builder.end();
-		}
-
-		for (VisualMaterialGraph::Node* node : m_material->nodes())
-		{
-			for (auto* input : node->inputs())
-			{
-				if (auto* output = input->as_input()->linked_pin())
-				{
-					ed::Link(input->id() + 1, input->id(), output->id(), ImColor(0, 149, 220), 3.f);
-				}
-			}
-		}
-
-		return *this;
-	}
 
 	static bool match_filter(Refl::Struct* self, const String& filter)
 	{
@@ -374,31 +349,310 @@ namespace Engine
 
 	// 	// }
 
-	VisualMaterialEditorClient& VisualMaterialEditorClient::open_spawn_node_window()
+	inline VisualMaterialEditorClient& VisualMaterialEditorClient::on_node_select(VisualMaterialGraph::Node* node)
 	{
-		ed::Suspend();
-		ImGui::OpenPopup("###SpawnNode");
-		ed::Resume();
+		return *this;
+	}
+
+	inline VisualMaterialEditorClient& VisualMaterialEditorClient::on_node_create(VisualMaterialGraph::Node* node)
+	{
+		if (auto input = m_create_node_ctx.pin->as_input())
+		{
+			for (auto* output : node->outputs())
+			{
+				if (output->type() == input->type())
+				{
+					input->link(output);
+					return *this;
+				}
+			}
+
+			for (auto* output : node->outputs())
+			{
+				if (VisualMaterialGraph::Expression::is_compatible_types(output->type(), input->type()))
+				{
+					input->link(output);
+					return *this;
+				}
+			}
+		}
+		else if (auto output = m_create_node_ctx.pin->as_output())
+		{
+			for (auto* input : node->inputs())
+			{
+				if (output->type() == input->type())
+				{
+					input->link(output);
+					return *this;
+				}
+			}
+
+			for (auto* input : node->inputs())
+			{
+				if (VisualMaterialGraph::Expression::is_compatible_types(output->type(), input->type()))
+				{
+					input->link(output);
+					return *this;
+				}
+			}
+		}
+		return *this;
+	}
+
+	inline VisualMaterialEditorClient& VisualMaterialEditorClient::on_node_destroy(VisualMaterialGraph::Node* node)
+	{
+		return *this;
+	}
+
+	VisualMaterialEditorClient& VisualMaterialEditorClient::open_spawn_node_window(VisualMaterialGraph::Pin* pin)
+	{
+		if (!m_create_node_ctx.is_active)
+		{
+			ed::Suspend();
+			ImGui::OpenPopup("###SpawnNode");
+
+			m_create_node_ctx.pos       = ImGui::EngineVecFrom(ed::ScreenToCanvas(ImGui::GetMousePos()));
+			m_create_node_ctx.filter    = "";
+			m_create_node_ctx.pin       = pin;
+			m_create_node_ctx.is_active = true;
+
+			ed::Resume();
+		}
+		return *this;
+	}
+
+	VisualMaterialEditorClient& VisualMaterialEditorClient::render_default_pin_value(VisualMaterialGraph::Pin* pin)
+	{
+		return *this;
+	}
+
+	VisualMaterialEditorClient& VisualMaterialEditorClient::render_graph()
+	{
+		static BlueprintBuilder builder;
+
+		float text_height                        = ImGui::GetTextLineHeightWithSpacing();
+		float item_spacing                       = ImGui::GetStyle().ItemSpacing.x;
+		VisualMaterialGraph::Node* selected_node = nullptr;
+
+		auto selected_items = ed::GetSelectedObjectCount();
+
+		for (auto& node : m_material->nodes())
+		{
+			auto pos = ed::GetNodePosition(node->id());
+
+			if (pos.x == FLT_MAX || pos.y == FLT_MAX)
+			{
+				pos = {node->position.x, node->position.y};
+				ed::SetNodePosition(node->id(), pos);
+			}
+			else
+			{
+				node->position = ImGui::EngineVecFrom(pos);
+			}
+
+			builder.begin(node->id());
+
+			if (selected_items == 1 && ed::IsNodeSelected(node->id()))
+			{
+				selected_node = node;
+			}
+
+			builder.begin_header(ImVec4(1.0, 0.0, 0.0, 1.f));
+			ImGui::Spring(1.f);
+			ImGui::TextUnformatted(node->class_instance()->display_name().c_str());
+			ImGui::Dummy({0, ImGui::GetTextLineHeightWithSpacing()});
+			ImGui::Spring(1.f);
+			builder.end_header();
+
+			// Inputs rendering
+			for (auto* input : node->inputs())
+			{
+				builder.begin_input(input->id());
+
+				builder.begin_input_pin(input->id());
+				ed::PinPivotAlignment({0.5, 0.5f});
+
+				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->links_count() > 0,
+									   ImVec4(1.0, 0.0, 0.0, 1.0));
+				builder.end_input_pin();
+
+				ImGui::Text("%s", input->name().c_str());
+
+				if (input->linked_pin() == nullptr)
+				{
+					if (auto default_value = input->default_value())
+					{
+						VerticalLayout layout;
+						ImGui::PushItemWidth(180.f);
+						s_default_type_renderers[default_value->type().type_index()](input);
+						ImGui::PopItemWidth();
+					}
+				}
+				builder.end_input();
+			}
+
+			// Content rendering
+			builder.begin_middle();
+			{
+			}
+
+			// Outputs rendering
+			for (auto* output : node->outputs())
+			{
+				builder.begin_output(output->id());
+
+				if (auto default_value = output->default_value())
+				{
+					VerticalLayout layout;
+					ImGui::PushItemWidth(180.f);
+					s_default_type_renderers[default_value->type().type_index()](output);
+					ImGui::PopItemWidth();
+				}
+
+				ImGui::Text("%s", output->name().c_str());
+
+				builder.begin_output_pin(output->id());
+				ed::PinPivotAlignment({0.5, 0.5f});
+
+				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->links_count() > 0,
+									   ImVec4(0.0, 1.0, 0.0, 1.0));
+				builder.end_input_pin();
+				builder.end_input();
+			}
+
+			// {
+			// 	float max_len = 0.f;
+			// 	static Vector<float> sizes;
+			// 	sizes.clear();
+
+			// 	for (auto& input : node->inputs())
+			// 	{
+			// 		float len = ImGui::CalcTextSize(input->name().c_str()).x;
+			// 		max_len   = glm::max(max_len, len);
+			// 		sizes.push_back(len);
+			// 	}
+
+			// 	Index index = 0;
+			// 	for (auto& input : node->inputs())
+			// 	{
+			// 		builder.begin_input(input->id());
+
+			// 		ImGui::Spring(0.f, 0.f);
+			// 		builder.begin_input_pin(input->id());
+			// 		ed::PinPivotAlignment({0.5, 0.5f});
+			// 		const VisualMaterialGraph::PinType type = input->node()->in_pin_type(input);
+			// 		BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->has_links(),
+			// 		                       pin_colors.at(type));
+			// 		ImGui::SetItemTooltip("%s", pin_type_names.at(type));
+			// 		builder.end_input_pin();
+
+			// 		ImGui::Spring(0.f, 0.f);
+			// 		ImGui::TextUnformatted(input->name().c_str());
+
+			// 		ImGui::Spring(0.f, 0.f);
+			// 		ImGui::Dummy({item_spacing + max_len - sizes[index], 0.f});
+			// 		ImGui::Spring(0.f, 0.f);
+
+			// 		ImGui::SuspendLayout();
+			// 		float width = render_default_value(input->default_value(), input->type());
+			// 		ImGui::ResumeLayout();
+
+			// 		ImGui::Spring(0.f, 0.f);
+			// 		ImGui::Dummy({width, 0.f});
+			// 		ImGui::Spring(1.f, 0.f);
+
+			// 		builder.end_input();
+
+			// 		++index;
+			// 	}
+			// }
+
+			// ImGui::Spring();
+			// builder.begin_middle();
+			// node->render();
+			// ImGui::Spring();
+
+
+			// for (auto& output : node->outputs())
+			// {
+			// 	builder.begin_output(output->id());
+
+			// 	ImGui::Spring(0.f, 0.f);
+			// 	ImGui::SuspendLayout();
+			// 	float width = render_default_value(output->default_value(), output->type());
+			// 	ImGui::ResumeLayout();
+
+			// 	ImGui::Spring(0.f, 0.f);
+			// 	ImGui::Dummy({width, 0.f});
+			// 	ImGui::Spring(1.f, 0.f);
+
+			// 	ImGui::TextUnformatted(output->name().c_str());
+			// 	ImGui::Spring(0.f, 0.f);
+
+			// 	builder.begin_output_pin(output->id());
+			// 	ed::PinPivotAlignment({0.9, 0.5f});
+			// 	const VisualMaterialGraph::PinType type = output->node()->out_pin_type(output);
+			// 	BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
+			// 	                       pin_colors.at(type));
+			// 	ImGui::SetItemTooltip("%s", pin_type_names.at(type));
+			// 	builder.end_output_pin();
+
+			// 	ImGui::Spring(0.f, 0.f);
+			// 	builder.end_output();
+			// }
+
+			// if (node->has_error())
+			// {
+			// 	ImGui::Spring();
+			// 	builder.begin_footer(ImVec4(1.f, 0.f, 0.f, 1.f));
+			// 	ImGui::Spring(1.f);
+			// 	ImGui::Text("%s", node->error_message().c_str());
+			// 	ImGui::Spring(1.f);
+			// }
+
+			builder.end();
+		}
+
+		for (VisualMaterialGraph::Node* node : m_material->nodes())
+		{
+			for (auto* input : node->inputs())
+			{
+				if (auto* output = input->as_input()->linked_pin())
+				{
+					ed::Link(input->id() + 1, input->id(), output->id(), ImColor(0, 149, 220), 3.f);
+				}
+			}
+		}
+
 		return *this;
 	}
 
 	VisualMaterialEditorClient& VisualMaterialEditorClient::render_spawn_node_window()
 	{
+		if (!m_create_node_ctx.is_active)
+			return *this;
+
 		ed::Suspend();
 
 		ImGui::SetNextWindowSizeConstraints({}, {300, 500});
-		if (ImGui::BeginPopup("###SpawnNode"))
+		if ((m_create_node_ctx.is_active = ImGui::BeginPopup("###SpawnNode")))
 		{
 			ImGui::Dummy({200, 0});
 
-			bool filter_changed = ImGui::InputTextWithHint("##SearchLine", "Search...", m_nodes_filter);
+			bool filter_changed = ImGui::InputTextWithHint("##SearchLine", "Search...", m_create_node_ctx.filter);
 			filter_changed      = filter_changed || ImGui::IsWindowAppearing();
 
 			ImGui::Separator();
 
 			static Group* root_group = Group::find("Engine::VisualMaterialGraph::Nodes");
-			if (Refl::Class* self = render_node_types(root_group, m_nodes_filter, filter_changed))
+			if (Refl::Class* self = render_node_types(root_group, m_create_node_ctx.filter, filter_changed))
 			{
+				auto node = m_material->create_node(self, m_create_node_ctx.pos);
+
+				if (m_create_node_ctx.pin)
+				{
+					on_node_create(node);
+				}
 			}
 			ImGui::EndPopup();
 		}
@@ -436,7 +690,7 @@ namespace Engine
 					show_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0));
 					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
 				}
-				else if (!is_compatible_types(output_pin->type(), input_pin->type()))
+				else if (!VisualMaterialGraph::Expression::is_compatible_types(output_pin->type(), input_pin->type()))
 				{
 					show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
 					ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
@@ -463,8 +717,7 @@ namespace Engine
 
 				if (ed::AcceptNewItem() && !ImGui::IsPopupOpen("Create New Node"))
 				{
-					//open_nodes_popup(state, false);
-					m_graph_state.m_create_node_from_pin = pin;
+					open_spawn_node_window(pin);
 				}
 			}
 		}
@@ -497,7 +750,7 @@ namespace Engine
 			ed::LinkId link_id = 0;
 			while (ed::QueryDeletedLink(&link_id))
 			{
-				VisualMaterialGraph::Pin* pin = reinterpret_cast<VisualMaterialGraph::Pin*>(static_cast<Identifier>(link_id));
+				VisualMaterialGraph::Pin* pin = link_id.AsPointer<VisualMaterialGraph::Pin>();
 				if (pin)
 				{
 					ed::AcceptDeletedItem();
@@ -619,18 +872,6 @@ namespace Engine
 	// 	// 	return m_nodes;
 	// 	// }
 
-	VisualMaterialEditorClient& VisualMaterialEditorClient::on_node_select(VisualMaterialGraph::Node* node)
-	{
-		// if (m_selected_node == node)
-		// 	return;
-
-		// m_selected_node = node;
-
-		// if (m_node_properties_window)
-		// 	m_node_properties_window->update(m_selected_node);
-		return *this;
-	}
-
 	VisualMaterialEditorClient& VisualMaterialEditorClient::update_events()
 	{
 		if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
@@ -716,6 +957,15 @@ namespace Engine
 		ax::NodeEditor::Config config;
 		config.SettingsFile = nullptr;
 		m_context           = ax::NodeEditor::CreateEditor(&config);
+
+		menu_bar.create("")->actions.push([this]() {
+			if (m_material && ImGui::MenuItem("Dump Source"))
+			{
+				String source;
+				m_material->shader_source(source);
+				printf("%s\n", source.c_str());
+			}
+		});
 	}
 
 	VisualMaterialEditorClient::~VisualMaterialEditorClient()
@@ -770,4 +1020,31 @@ namespace Engine
 		ImGui::DockBuilderDockWindow("###Graph", center);
 		return center;
 	}
+
+	static void pre_initialize()
+	{
+		using T = ShaderParameterType;
+
+		s_default_type_renderers[T(T::Bool).type_index()]  = render_default_vector1b;
+		s_default_type_renderers[T(T::Bool2).type_index()] = render_default_vector2b;
+		s_default_type_renderers[T(T::Bool3).type_index()] = render_default_vector3b;
+		s_default_type_renderers[T(T::Bool4).type_index()] = render_default_vector4b;
+
+		s_default_type_renderers[T(T::Int).type_index()]  = render_default_vector1i;
+		s_default_type_renderers[T(T::Int2).type_index()] = render_default_vector2i;
+		s_default_type_renderers[T(T::Int3).type_index()] = render_default_vector3i;
+		s_default_type_renderers[T(T::Int4).type_index()] = render_default_vector4i;
+
+		s_default_type_renderers[T(T::UInt).type_index()]  = render_default_vector1u;
+		s_default_type_renderers[T(T::UInt2).type_index()] = render_default_vector2u;
+		s_default_type_renderers[T(T::UInt3).type_index()] = render_default_vector3u;
+		s_default_type_renderers[T(T::UInt4).type_index()] = render_default_vector4u;
+
+		s_default_type_renderers[T(T::Float).type_index()]  = render_default_vector1f;
+		s_default_type_renderers[T(T::Float2).type_index()] = render_default_vector2f;
+		s_default_type_renderers[T(T::Float3).type_index()] = render_default_vector3f;
+		s_default_type_renderers[T(T::Float4).type_index()] = render_default_vector4f;
+	}
+
+	static PreInitializeController preinit(pre_initialize);
 }// namespace Engine

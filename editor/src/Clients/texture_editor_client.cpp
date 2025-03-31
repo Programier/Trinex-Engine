@@ -179,7 +179,7 @@ namespace Engine
 
 	TextureEditorClient& TextureEditorClient::select(Object* object)
 	{
-		m_properties->update(object);
+		m_properties->object(object);
 		return *this;
 	}
 

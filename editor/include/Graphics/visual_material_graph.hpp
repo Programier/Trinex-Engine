@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/object.hpp>
@@ -6,6 +7,7 @@
 
 namespace Engine::VisualMaterialGraph
 {
+	class Pin;
 	class OutputPin;
 	class InputPin;
 	class Node;
@@ -26,6 +28,7 @@ namespace Engine::VisualMaterialGraph
 		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2);
 		static String static_typename_of(ShaderParameterType type);
 		static Expression static_convert(const Expression& expression, ShaderParameterType type);
+		static bool is_compatible_types(ShaderParameterType src, ShaderParameterType dst);
 
 
 		inline Expression() : type(ShaderParameterType::Undefined) {}
@@ -56,15 +59,38 @@ namespace Engine::VisualMaterialGraph
 
 	class Compiler
 	{
+		Map<Pin*, Expression> m_expression;
+
+		Vector<String> m_globals;
+		Vector<String> m_locals;
+
+		static String compile_expressions(const Vector<String>& expression, size_t tabs);
+
 	public:
+		Expression make_variable(const Expression& expression);
+		Expression compile_default(Pin* pin);
 		Expression compile(InputPin* pin);
 		Expression compile(OutputPin* pin);
+
+		String compile_global_expressions(size_t tabs = 0) const;
+		String compile_local_expressions(size_t tabs = 1) const;
 	};
 
 	class Pin
 	{
+	public:
+		struct DefaultValue {
+			virtual byte* address()                  = 0;
+			virtual ShaderParameterType type() const = 0;
+			virtual Expression compile() const       = 0;
+			virtual ~DefaultValue()                  = default;
+		};
+
+	private:
 		String m_name;
-		Node* m_node               = nullptr;
+		Node* m_node                  = nullptr;
+		DefaultValue* m_default_value = nullptr;
+
 		ShaderParameterType m_type = ShaderParameterType::Undefined;
 		uint16_t m_index           = 0;
 
@@ -77,6 +103,7 @@ namespace Engine::VisualMaterialGraph
 
 		inline const String& name() const { return m_name; }
 		inline Node* node() const { return m_node; }
+		inline DefaultValue* default_value() const { return m_default_value; }
 		inline ShaderParameterType type() const { return m_type; }
 		inline uint16_t index() const { return m_index; }
 		inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
@@ -84,10 +111,9 @@ namespace Engine::VisualMaterialGraph
 		virtual Pin& unlink() = 0;
 		virtual inline OutputPin* as_output() { return nullptr; };
 		virtual inline InputPin* as_input() { return nullptr; };
-		virtual inline void* default_value() { return nullptr; }
-		virtual inline ShaderParameterType default_value_type() const { return ShaderParameterType::Undefined; }
 		virtual inline size_t links_count() const { return 0; }
 		virtual inline Kind kind() const = 0;
+		virtual ~Pin();
 
 		friend class Node;
 	};
@@ -148,6 +174,9 @@ namespace Engine::VisualMaterialGraph
 
 		InputPin* new_input(const String& name, ShaderParameterType type);
 		OutputPin* new_output(const String& name, ShaderParameterType type);
+
+		InputPin* new_input(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
+		OutputPin* new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
 
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
 

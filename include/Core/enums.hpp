@@ -701,7 +701,7 @@ namespace Engine
 			META_Scalar  = BIT(25),
 			META_Vector  = BIT(26),
 			META_Matrix  = BIT(27),
-			META_Numeric = META_Scalar | META_Vector | META_Matrix,
+			META_Numeric = META_Scalar | META_Vector,
 
 			// Values
 			Bool        = 1 | META_Scalar | META_UniformBuffer,
@@ -730,24 +730,26 @@ namespace Engine
 			// RW Resources
 			RWTexture2D = 23 | META_RWTexture,
 
-			Globals         = 256 | META_UniformBuffer,
-			LocalToWorld    = 257 | META_Matrix | META_UniformBuffer,
-			Surface         = 258 | META_Texture,
-			CombinedSurface = 259 | META_CombinedImageSampler,
+			Globals         = 24 | META_UniformBuffer,
+			LocalToWorld    = 25 | META_Matrix | META_UniformBuffer,
+			Surface         = 26 | META_Texture,
+			CombinedSurface = 27 | META_CombinedImageSampler,
 		};
 
 		trinex_bitfield_enum_struct(ShaderParameterType, EnumerateType);
 		trinex_declare_enum(ShaderParameterType);
 
 		ShaderParameterType make_vector(byte len);
+		ShaderParameterType make_scalar();
 
-		inline bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
-		inline bool is_vector() const { return (value & META_Vector) == META_Vector; }
-		inline bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
-		inline bool is_numeric() const { return (value & META_Numeric) != 0; }
-		inline bool is_meta() const { return (value & 0xFFFF) == 0; }
+		inline constexpr bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
+		inline constexpr bool is_vector() const { return (value & META_Vector) == META_Vector; }
+		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
+		inline constexpr bool is_numeric() const { return (value & META_Numeric) != 0; }
+		inline constexpr bool is_meta() const { return (value & 0xFFFF) == 0; }
+		inline constexpr uint16_t type_index() const { return (value & 0xFFFF) - 1; }
 
-		inline byte vector_length() const
+		inline constexpr byte vector_length() const
 		{
 			if (!is_vector() && !is_scalar())
 				return 0;

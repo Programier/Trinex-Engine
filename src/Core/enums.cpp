@@ -68,7 +68,7 @@ namespace Engine
 			ShaderParameterType result = *this;
 			result &= ShaderParameterType(~META_Scalar);
 			result |= META_Vector;
-			result.bitfield += static_cast<EnumerateType>(len);
+			result.bitfield += static_cast<EnumerateType>(len - 1);
 			return result;
 		}
 		else if (is_vector())
@@ -90,6 +90,26 @@ namespace Engine
 			{
 				result.bitfield += static_cast<EnumerateType>(len - current_len);
 			}
+			return result;
+		}
+
+		return ShaderParameterType();
+	}
+
+	ShaderParameterType ShaderParameterType::make_scalar()
+	{
+		if (is_scalar())
+			return *this;
+
+		if (is_vector())
+		{
+			ShaderParameterType result = *this;
+			byte current_len           = vector_length();
+
+			result.bitfield -= static_cast<EnumerateType>(current_len - 1);
+			result &= ShaderParameterType(~META_Vector);
+			result |= META_Scalar;
+
 			return result;
 		}
 

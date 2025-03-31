@@ -27,9 +27,9 @@ namespace Engine
 		using size_type       = std::size_t;
 		using difference_type = std::ptrdiff_t;
 
-		inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
-		unsigned char* allocate_aligned(size_type size, size_type align);
-		void deallocate(unsigned char* ptr) noexcept;
+		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
+		static unsigned char* allocate_aligned(size_type size, size_type align);
+		static void deallocate(unsigned char* ptr) noexcept;
 	};
 
 	struct ENGINE_EXPORT StackByteAllocator : AllocatorBase {
@@ -104,12 +104,12 @@ namespace Engine
 
 		~TypedAllocator() {}
 
-		pointer allocate(size_type size)
+		static pointer allocate(size_type size)
 		{
 			return reinterpret_cast<pointer>(Type::allocate_aligned(size * sizeof(T), alignof(T)));
 		}
 
-		void deallocate(pointer ptr, size_type unused = 0) noexcept
+		static void deallocate(pointer ptr, size_type unused = 0) noexcept
 		{
 			static_cast<void>(unused);
 			Type::deallocate(reinterpret_cast<unsigned char*>(ptr));

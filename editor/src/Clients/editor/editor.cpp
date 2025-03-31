@@ -203,7 +203,7 @@ namespace Engine
 	{
 		if (m_properties)
 		{
-			m_properties->update(actor);
+			m_properties->object(actor);
 		}
 	}
 
@@ -213,7 +213,7 @@ namespace Engine
 		{
 			if (m_properties->object() == actor || actor == nullptr)
 			{
-				m_properties->update(nullptr);
+				m_properties->object(nullptr);
 			}
 		}
 	}

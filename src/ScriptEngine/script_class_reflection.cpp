@@ -88,32 +88,32 @@ namespace Engine
 		throw EngineException(Strings::format("Failed to find property flag with name '{}'", meta));
 	}
 
-	static void register_expression_meta(Script* script, Refl::Property* prop, const String& meta)
+	static void register_expression_meta(Script* script, Refl::Object* self, const String& meta)
 	{
-		const Refl::ClassInfo* prop_info = prop->refl_class_info();
-		while (!prop_info->is_scriptable) prop_info = prop_info->parent;
+		const Refl::ClassInfo* refl_info = self->refl_class_info();
+		while (!refl_info->is_scriptable) refl_info = refl_info->parent;
 
-		if (prop_info == nullptr)
-			throw EngineException(Strings::format("Cannot find scriptable property type for prop '{}'", prop->full_name()));
+		if (refl_info == nullptr)
+			throw EngineException(Strings::format("Cannot find scriptable property type for prop '{}'", self->full_name()));
 
 		String code = Strings::format("void __trinex_engine_execute_meta__(Engine::Refl::{}@ prop) {{ prop.{}; }}",
-									  prop_info->class_name.to_string(), meta);
+									  refl_info->class_name.to_string(), meta);
 
 		auto module    = script->module().as_module();
 		const char* ns = module->GetDefaultNamespace();
 
 		{
-			String func_ns = prop->owner()->scope_name();
+			String func_ns = self->owner()->scope_name();
 			module->SetDefaultNamespace(func_ns.c_str());
 		}
 
-		String section              = Strings::format("{}: {}: MetaData", script->name(), prop->full_name());
+		String section              = Strings::format("{}: {}: MetaData", script->name(), self->full_name());
 		asIScriptFunction* function = nullptr;
 		if (module->CompileFunction(section.c_str(), code.c_str(), 0, 0, &function) < 0)
 			throw EngineException(Strings::format("Failed to bind meta '{}'", meta));
 
 		ScriptContext::prepare(function);
-		ScriptContext::arg_address(0, prop);
+		ScriptContext::arg_address(0, self);
 		ScriptContext::execute();
 		ScriptContext::unprepare();
 
@@ -135,6 +135,23 @@ namespace Engine
 				case MetaType::Assignment:
 				case MetaType::FunctionCall:
 					register_expression_meta(script, prop, meta);
+				default:
+					break;
+			}
+		}
+	}
+
+	static void register_metadata(Script* script, Refl::Struct* self, const TreeSet<String>& metadata)
+	{
+		for (auto& meta : metadata)
+		{
+			auto type = determine_metadata_type(meta);
+
+			switch (type)
+			{
+				case MetaType::Assignment:
+				case MetaType::FunctionCall:
+					register_expression_meta(script, self, meta);
 				default:
 					break;
 			}
@@ -266,31 +283,30 @@ namespace Engine
 		String type_name     = Strings::concat_scoped_name(type.namespace_name(), type.name());
 		auto& class_metadata = script->metadata_for_class(type_name);
 
-		if (prop_count > 0)
+		register_metadata(script, self, class_metadata.class_metadata);
+
+		for (uint_t i = 0; i < prop_count; ++i)
 		{
-			for (uint_t i = 0; i < prop_count; ++i)
+			if (!type.is_property_native(i))
 			{
-				if (!type.is_property_native(i))
+				auto prop_type_id = type.property_type_id(i);
+				auto& metadata    = class_metadata.metadata_for_property(i);
+
+				Refl::Property* prop = nullptr;
+
+				if (ScriptEngine::is_primitive_type(prop_type_id) && metadata.contains("property"))
 				{
-					auto prop_type_id = type.property_type_id(i);
-					auto& metadata    = class_metadata.metadata_for_property(i);
+					prop = register_primitive_property(script, self, prop_type_id, i);
+				}
+				else if (ScriptEngine::is_object_type(prop_type_id, true))
+				{
+					ScriptTypeInfo info = ScriptEngine::type_info_by_id(prop_type_id);
+					prop                = register_class_property(script, self, info, i, metadata.contains("property"));
+				}
 
-					Refl::Property* prop = nullptr;
-
-					if (ScriptEngine::is_primitive_type(prop_type_id) && metadata.contains("property"))
-					{
-						prop = register_primitive_property(script, self, prop_type_id, i);
-					}
-					else if (ScriptEngine::is_object_type(prop_type_id, true))
-					{
-						ScriptTypeInfo info = ScriptEngine::type_info_by_id(prop_type_id);
-						prop                = register_class_property(script, self, info, i, metadata.contains("property"));
-					}
-
-					if (prop)
-					{
-						register_metadata(script, prop, metadata);
-					}
+				if (prop)
+				{
+					register_metadata(script, prop, metadata);
 				}
 			}
 		}

@@ -9,6 +9,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <algorithm>
+#include <imgui.h>
 
 namespace Engine::MaterialParameters
 {

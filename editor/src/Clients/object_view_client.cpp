@@ -31,7 +31,7 @@ namespace Engine
 
 			if (m_object)
 			{
-				m_property_renderer->update(m_object);
+				m_property_renderer->object(m_object);
 			}
 		}
 		return *this;
@@ -63,7 +63,7 @@ namespace Engine
 
 		if (m_property_renderer)
 		{
-			m_property_renderer->update(object);
+			m_property_renderer->object(object);
 		}
 		return *this;
 	}

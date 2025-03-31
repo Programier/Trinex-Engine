@@ -19,26 +19,26 @@ namespace Engine
 		using RendererFunc  = Function<bool(PropertyRenderer* wnd, void* obj, Refl::Property* prop, bool read_only)>;
 
 	private:
+		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
 		String m_next_prop_name;
 		Object* m_object;
 		Identifier m_destroy_id;
 		bool m_is_property_skipped;
 
-		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
 		PropertiesMap& build_props_map(Refl::Struct* self);
 
 	public:
-		CallBacks<void(Object*)> on_begin_render;
 		UserData userdata;
 
 		PropertyRenderer();
 		~PropertyRenderer();
 
-		bool render(RenderViewport* viewport) override;
-		Refl::Struct* struct_instance() const;
 		Object* object() const;
+		PropertyRenderer& object(Object* object);
 
-		PropertyRenderer& update(Object* object);
+		bool render(RenderViewport* viewport) override;
+		PropertyRenderer& render();
+		Refl::Struct* struct_instance() const;
 		const PropertiesMap& properties_map(Refl::Struct* self);
 
 		bool collapsing_header(Refl::Property* prop);

@@ -22,16 +22,6 @@ namespace Engine
 		create_node(VisualMaterialGraph::MaterialRoot::static_class_instance());
 	}
 
-	VisualMaterial& VisualMaterial::register_node(VisualMaterialGraph::Node* node)
-	{
-		if (node->owner() != this)
-		{
-			node->owner(this);
-			m_nodes.push_back(node);
-		}
-		return *this;
-	}
-
 	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2f& position)
 	{
 		if (!node_class->is_a<VisualMaterialGraph::Node>())
@@ -41,7 +31,7 @@ namespace Engine
 		if (node)
 		{
 			node->position = position;
-			register_node(node);
+			m_nodes.push_back(node);
 		}
 		return node;
 	}
@@ -217,6 +207,10 @@ namespace Engine
 		// 	out_source = std::move(template_source);
 		// }
 
-		return false;
+		VisualMaterialGraph::MaterialRoot* root = instance_cast<VisualMaterialGraph::MaterialRoot>(m_nodes[0].ptr());
+
+		VisualMaterialGraph::Compiler compiler;
+		out_source = compiler.compile(root->base_color).value;
+		return true;
 	}
 }// namespace Engine

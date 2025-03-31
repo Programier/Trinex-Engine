@@ -167,7 +167,7 @@ namespace Engine
 
 			if (m_properties_window)
 			{
-				m_properties_window->update(material);
+				m_properties_window->object(material);
 			}
 		}
 

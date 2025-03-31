@@ -10,7 +10,8 @@ namespace Engine
 	namespace VisualMaterialGraph
 	{
 		class Node;
-	}
+		class Pin;
+	}// namespace VisualMaterialGraph
 
 	class VisualMaterial;
 
@@ -18,26 +19,30 @@ namespace Engine
 	{
 		trinex_declare_class(VisualMaterialEditorClient, MaterialEditorClient);
 
-	public:
-		struct GraphState {
-			Vector2f m_node_spawn_position;
-			void* m_create_node_from_pin = nullptr;
-		};
-
 	private:
 		ax::NodeEditor::EditorContext* m_context = nullptr;
 		Pointer<VisualMaterial> m_material;
-		String m_nodes_filter = "";
 
-		GraphState m_graph_state;
+		struct {
+			String filter                 = "";
+			Vector2f pos                  = {0.f, 0.f};
+			VisualMaterialGraph::Pin* pin = nullptr;
+			bool is_active                = false;
+		} m_create_node_ctx;
 
-		VisualMaterialEditorClient& open_spawn_node_window();
+		VisualMaterialEditorClient& on_node_select(VisualMaterialGraph::Node* node);
+		VisualMaterialEditorClient& on_node_create(VisualMaterialGraph::Node* node);
+		VisualMaterialEditorClient& on_node_destroy(VisualMaterialGraph::Node* node);
+
+		VisualMaterialEditorClient& open_spawn_node_window(VisualMaterialGraph::Pin* pin = nullptr);
+
+		VisualMaterialEditorClient& render_default_pin_value(VisualMaterialGraph::Pin* pin);
+		VisualMaterialEditorClient& render_graph();
 		VisualMaterialEditorClient& render_spawn_node_window();
+
 		VisualMaterialEditorClient& update_create_events();
 		VisualMaterialEditorClient& update_delete_events();
 		VisualMaterialEditorClient& update_events();
-		VisualMaterialEditorClient& on_node_select(VisualMaterialGraph::Node* node);
-		VisualMaterialEditorClient& render_graph();
 
 	public:
 		VisualMaterialEditorClient();

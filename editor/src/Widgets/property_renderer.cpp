@@ -83,19 +83,16 @@ namespace Engine
 	{
 		bool open = true;
 		ImGui::Begin(name(), closable ? &open : nullptr);
+		render();
+		ImGui::End();
 
-		on_begin_render.trigger(m_object);
+		return open;
+	}
 
+	PropertyRenderer& PropertyRenderer::render()
+	{
 		if (m_object)
 		{
-			ImGui::Text("editor/Object: %s"_localized, m_object->name().to_string().c_str());
-			ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->full_name().c_str());
-			if (ImGui::Button("editor/Apply changes"_localized))
-			{
-				m_object->apply_changes();
-			}
-			ImGui::Separator();
-
 			m_is_property_skipped = false;
 			m_next_prop_name      = "";
 
@@ -108,9 +105,8 @@ namespace Engine
 			render_struct_properties(m_object, m_object->class_instance(), false);
 			ImGui::EndTable();
 		}
-		ImGui::End();
 
-		return open;
+		return *this;
 	}
 
 	Refl::Struct* PropertyRenderer::struct_instance() const
@@ -139,7 +135,7 @@ namespace Engine
 		return map;
 	}
 
-	PropertyRenderer& PropertyRenderer::update(Object* object)
+	PropertyRenderer& PropertyRenderer::object(Object* object)
 	{
 		m_object = object;
 		m_properties.clear();

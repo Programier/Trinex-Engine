@@ -8,8 +8,7 @@ namespace Engine
 {
 	using namespace ax::NodeEditor;
 
-	BlueprintBuilder::BlueprintBuilder() : m_stage(Stage::Invalid), m_has_header(false)
-	{}
+	BlueprintBuilder::BlueprintBuilder() : m_stage(Stage::Invalid), m_has_header(false) {}
 
 	void BlueprintBuilder::transition_to_stage(Stage new_stage)
 	{
@@ -41,6 +40,7 @@ namespace Engine
 				break;
 
 			case Stage::Middle:
+				ImGui::Spring(0.f, 0.5f);
 				ImGui::EndVertical();
 				break;
 
@@ -65,13 +65,18 @@ namespace Engine
 				break;
 			case Stage::Begin:
 				ImGui::BeginVertical("Node");
+				ImGui::Spring(0.f, 0.f);
 				break;
 			case Stage::End:
 				if (old != Stage::Begin && old != Stage::Footer)
+				{
+					ImGui::Spring(0.f, 1.f);
 					ImGui::EndHorizontal();
+				}
 				m_content_min = ImGui::GetItemRectMin();
 				m_content_max = ImGui::GetItemRectMax();
 
+				ImGui::Spring(0.f, 1.f);
 				ImGui::EndVertical();
 				m_node_min = ImGui::GetItemRectMin();
 				m_node_max = ImGui::GetItemRectMax();
@@ -82,6 +87,7 @@ namespace Engine
 				break;
 			case Stage::Content:
 				ImGui::BeginHorizontal("Content");
+				ImGui::Spring(0.f, 0.f);
 				break;
 
 			case Stage::Input:
@@ -91,10 +97,14 @@ namespace Engine
 				break;
 
 			case Stage::Middle:
+				if (old == Stage::Input)
+					ImGui::Spring(1.f, 0.5f);
 				ImGui::BeginVertical("Middle");
+				ImGui::Spring(0.f, 0.5f);
 				break;
 
 			case Stage::Output:
+				ImGui::Spring(1.f, 1.f);
 				ImGui::BeginVertical("Outputs");
 				ed::PushStyleVar(ed::StyleVar_PivotAlignment, ImVec2(0, 0.5f));
 				ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));

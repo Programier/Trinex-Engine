@@ -1,5 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
+#include <Core/group.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
@@ -18,15 +19,124 @@ namespace Engine::VisualMaterialGraph
 		auto r = ScriptClassRegistrar::reference_class(static_class_instance());
 
 		s_node_compile_output =
-				r.method("Expression compile(InputPin@ pin, Compiler& compiler)", trinex_scoped_void_method(This, compile));
+				r.method("Expression compile(OutputPin@ pin, Compiler@ compiler)", trinex_scoped_void_method(This, compile));
 
-		r.method("InputPin@ new_input(const string& name, ShaderParameterType type) final", &This::new_input);
-		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type) final", &This::new_output);
+
+		InputPin* (This::*method1)(const String&, ShaderParameterType)                       = &This::new_input;
+		OutputPin* (This::*method2)(const String&, ShaderParameterType)                      = &This::new_output;
+		InputPin* (This::*method3)(const String&, ShaderParameterType, ShaderParameterType)  = &This::new_input;
+		OutputPin* (This::*method4)(const String&, ShaderParameterType, ShaderParameterType) = &This::new_output;
+
+		// clang-format off
+		r.method("InputPin@ new_input(const string& name, ShaderParameterType type) final", method1);
+		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type) final", method2);
+		r.method("InputPin@ new_input(const string& name, ShaderParameterType type, ShaderParameterType default_type) final",method3);
+		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type, ShaderParameterType default_type) final", method4);
+		// clang-format on
 
 		ScriptEngine::on_terminate.push([]() { s_node_compile_output.release(); });
 	}
 
 	trinex_implement_class(Engine::VisualMaterialGraph::MaterialRoot, 0) {}
+
+	template<typename T>
+	struct DataTypeFormatter {
+		static String format(const T& value, ShaderParameterType type, uint_t depth = 0)
+		{
+			if (depth == 0)
+				return Strings::format("{}({})", Expression::static_typename_of(type), value);
+			return Strings::format("{}", value);
+		}
+	};
+
+	template<glm::length_t L, typename T, glm::qualifier Q>
+	struct DataTypeFormatter<glm::vec<L, T, Q>> {
+		static String format(const glm::vec<L, T, Q>& value, ShaderParameterType type, uint_t depth = 0)
+		{
+			String result = Expression::static_typename_of(type);
+			result.push_back('(');
+
+			type = type.make_scalar();
+			result += DataTypeFormatter<T>::format(value.x, type, depth + 1);
+
+
+			for (size_t i = 1; i < L; ++i)
+			{
+				result += ", ";
+				result += DataTypeFormatter<T>::format(value[i], type, depth + 1);
+			}
+
+			result.push_back(')');
+			return result;
+		};
+	};
+
+	template<>
+	struct DataTypeFormatter<Matrix3f> {
+		static String format(const Matrix3f& value, ShaderParameterType type, uint_t depth = 0) { return {}; }
+	};
+
+	template<>
+	struct DataTypeFormatter<Matrix4f> {
+		static String format(const Matrix4f& value, ShaderParameterType type, uint_t depth = 0) { return {}; }
+	};
+
+	template<typename T, ShaderParameterType type_value>
+	struct DefaultValueHolder : public Pin::DefaultValue {
+		T value = T();
+
+		byte* address() override { return reinterpret_cast<byte*>(&value); }
+		ShaderParameterType type() const override { return type_value; };
+		Expression compile() const override { return Expression(type_value, DataTypeFormatter<T>::format(value, type_value)); }
+	};
+
+	static Pin::DefaultValue* create_default_value_holder(ShaderParameterType type)
+	{
+		using T = ShaderParameterType;
+
+		switch (type.value)
+		{
+			case T::Bool:
+				return allocate<DefaultValueHolder<Vector1b, T::Bool>>();
+			case T::Bool2:
+				return allocate<DefaultValueHolder<Vector2b, T::Bool2>>();
+			case T::Bool3:
+				return allocate<DefaultValueHolder<Vector3b, T::Bool3>>();
+			case T::Bool4:
+				return allocate<DefaultValueHolder<Vector4b, T::Bool4>>();
+			case T::Int:
+				return allocate<DefaultValueHolder<Vector1i, T::Int>>();
+			case T::Int2:
+				return allocate<DefaultValueHolder<Vector2i, T::Int2>>();
+			case T::Int3:
+				return allocate<DefaultValueHolder<Vector3i, T::Int3>>();
+			case T::Int4:
+				return allocate<DefaultValueHolder<Vector4i, T::Int4>>();
+			case T::UInt:
+				return allocate<DefaultValueHolder<Vector1u, T::UInt>>();
+			case T::UInt2:
+				return allocate<DefaultValueHolder<Vector2u, T::UInt2>>();
+			case T::UInt3:
+				return allocate<DefaultValueHolder<Vector3u, T::UInt3>>();
+			case T::UInt4:
+				return allocate<DefaultValueHolder<Vector4u, T::UInt4>>();
+			case T::Float:
+				return allocate<DefaultValueHolder<Vector1f, T::Float>>();
+			case T::Float2:
+				return allocate<DefaultValueHolder<Vector2f, T::Float2>>();
+			case T::Float3:
+				return allocate<DefaultValueHolder<Vector3f, T::Float3>>();
+			case T::Float4:
+				return allocate<DefaultValueHolder<Vector4f, T::Float4>>();
+			case T::Float3x3:
+				return allocate<DefaultValueHolder<Matrix3f, T::Float3x3>>();
+			case T::Float4x4:
+				return allocate<DefaultValueHolder<Matrix4f, T::Float4x4>>();
+			default:
+				return nullptr;
+		}
+		return nullptr;
+	}
 
 	const char* Expression::s_swizzle[4] = {".x", ".y", ".z", ".w"};
 
@@ -320,6 +430,19 @@ namespace Engine::VisualMaterialGraph
 		throw EngineException("Unsupported expression type for cast");
 	}
 
+	bool Expression::is_compatible_types(ShaderParameterType src, ShaderParameterType dst)
+	{
+		if (src == dst)
+			return true;
+
+		if ((src.is_scalar() || src.is_vector()) && (dst.is_scalar() || dst.is_vector()))
+			return true;
+
+		if (src.is_matrix() && dst.is_matrix())
+			return true;
+		return false;
+	}
+
 	Expression Expression::x() const
 	{
 		auto component = static_component_type_of(type);
@@ -368,14 +491,103 @@ namespace Engine::VisualMaterialGraph
 		return static_zero(component);
 	}
 
+	Expression Compiler::make_variable(const Expression& expression)
+	{
+		if (expression.value.starts_with("trx_var_"))
+			return expression;
+
+		Identifier id = m_locals.size() + m_globals.size();
+
+		String type     = Expression::static_typename_of(expression.type);
+		String var_name = Strings::format("trx_var_{}", id);
+		String var      = Strings::format("{} {} = {}", type, var_name, expression.value);
+		m_locals.push_back(var);
+
+		return Expression(expression.type, var_name);
+	}
+
+	Expression Compiler::compile_default(Pin* pin)
+	{
+		if (auto default_value = pin->default_value())
+		{
+			return default_value->compile();
+		}
+
+		return {};
+	}
+
 	Expression Compiler::compile(InputPin* pin)
 	{
+		OutputPin* output_pin = pin->linked_pin();
+
+		if (output_pin)
+		{
+			Expression expression = compile(output_pin);
+			if (!pin->type().is_meta())
+				expression = expression.convert(pin->type());
+			return expression;
+		}
+
+		if (auto default_value = pin->default_value())
+		{
+			return default_value->compile();
+		}
+
 		return {};
 	}
 
 	Expression Compiler::compile(OutputPin* pin)
 	{
-		return {};
+		auto it = m_expression.find(pin);
+
+		if (it != m_expression.end())
+			return it->second;
+
+		Expression expression = pin->node()->compile(pin, *this);
+
+		if (pin->links_count() > 1)
+			expression = make_variable(expression);
+
+		m_expression[pin] = expression;
+		return expression;
+	}
+
+	String Compiler::compile_expressions(const Vector<String>& expression, size_t tabs)
+	{
+		const String spacing(tabs, '\t');
+
+		String source;
+		size_t required_size = 0;
+
+		for (const String& expression : expression) required_size += spacing.size() + expression.size() + 1;
+		source.reserve(required_size);
+
+		for (const String& expression : expression)
+		{
+			source += spacing;
+			source += expression;
+			source += '\n';
+		}
+
+		return source;
+	}
+
+	String Compiler::compile_global_expressions(size_t tabs) const
+	{
+		return compile_expressions(m_globals, tabs);
+	}
+
+	String Compiler::compile_local_expressions(size_t tabs) const
+	{
+		return compile_expressions(m_locals, tabs);
+	}
+
+	Pin::~Pin()
+	{
+		if (m_default_value)
+		{
+			release(m_default_value);
+		}
 	}
 
 	OutputPin& OutputPin::link(InputPin* pin)
@@ -435,10 +647,24 @@ namespace Engine::VisualMaterialGraph
 		return pin;
 	}
 
+	InputPin* Node::new_input(const String& name, ShaderParameterType type, ShaderParameterType default_value_type)
+	{
+		auto pin                                = new_input(name, type);
+		static_cast<Pin*>(pin)->m_default_value = create_default_value_holder(default_value_type);
+		return pin;
+	}
+
+	OutputPin* Node::new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type)
+	{
+		auto pin                                = new_output(name, type);
+		static_cast<Pin*>(pin)->m_default_value = create_default_value_holder(default_value_type);
+		return pin;
+	}
+
 	Expression Node::script_compile(OutputPin* pin, Compiler& compiler)
 	{
 		Expression result;
-		ScriptContext::execute(s_node_compile_output, &result, pin, &compiler);
+		ScriptContext::execute(this, s_node_compile_output, &result, pin, &compiler);
 		return result;
 	}
 
@@ -472,8 +698,28 @@ namespace Engine::VisualMaterialGraph
 		  position_offset(new_input("Position Offset", ShaderParameterType::Float3))
 	{}
 
+	static void script_class_node_group(Refl::Class* self, const String& group_name)
+	{
+		if (!self->is_a<Node>())
+		{
+			throw EngineException(
+					"Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
+		}
+
+		String full_group_name = Strings::format("Engine::VisualMaterialGraph::Nodes::{}", group_name);
+		Group::find(full_group_name, true)->add_struct(self);
+	}
+
+	static void register_metadata_functions()
+	{
+		ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Engine::Refl::Class");
+		r.method("void node_group(const string& group_name) const final", script_class_node_group);
+	}
+
 	static void reflection_init()
 	{
+		register_metadata_functions();
+
 		using Reg = ScriptClassRegistrar;
 
 		auto ref_class_info            = Reg::RefInfo();
@@ -493,6 +739,8 @@ namespace Engine::VisualMaterialGraph
 		auto expression = Reg::value_class("Engine::VisualMaterialGraph::Expression", sizeof(Expression), value_class_info);
 
 		// Compiler class
+		compiler.method("Expression compile_default(InputPin@ pin) final", &Compiler::compile_default);
+		compiler.method("Expression compile_default(OutputPin@ pin) final", &Compiler::compile_default);
 		compiler.method("Expression compile(InputPin@ pin) final", method_of<Expression, InputPin*>(&Compiler::compile));
 		compiler.method("Expression compile(OutputPin@ pin) final", method_of<Expression, OutputPin*>(&Compiler::compile));
 
@@ -538,5 +786,6 @@ namespace Engine::VisualMaterialGraph
 		// static ShaderParameterType component_type(ShaderParameterType type);
 	}
 
-	static ReflectionInitializeController init(reflection_init, "Engine::VisualMaterialGraph", {"Engine::ShaderParameterType"});
+	static ReflectionInitializeController init(reflection_init, "Engine::VisualMaterialGraph",
+											   {"Engine::ShaderParameterType", "Engine::Refl::Class"});
 }// namespace Engine::VisualMaterialGraph
