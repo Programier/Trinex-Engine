@@ -174,6 +174,8 @@ namespace ImGui
 					 const ImVec2& uv1 = ImVec2(1, 0), const ImVec4& bg_col = ImVec4(0, 0, 0, 0),
 					 const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 
+	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0);
+
 	FORCE_INLINE ImVec2 ImVecFrom(const Engine::Vector2f& vec)
 	{
 		return {vec.x, vec.y};

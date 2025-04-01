@@ -38,8 +38,6 @@ namespace Engine
 
 	namespace ImGuiBackend_RHI
 	{
-		float rendering_scale_factor = 1.f;
-
 		// clang-format off
 		trinex_declare_graphics_pipeline(ImGuiPipeline,
 			const ShaderParameterInfo* texture_parameter = nullptr;
@@ -111,13 +109,16 @@ namespace Engine
 		}
 
 
-		bool imgui_trinex_rhi_init(ImGuiContext* ctx);
+		bool imgui_trinex_rhi_init(Engine::Window*, ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
 
 		struct ImGuiTrinexData {
 			Texture2D* font_texture;
 			Sampler* sampler;
+			RenderSurface* surface;
+			Engine::Window* window;
+			Vector2f vp_scale;
 
 			ImGuiTrinexData() { memset((void*) this, 0, sizeof(*this)); }
 		};
@@ -134,19 +135,30 @@ namespace Engine
 			return ImGui::GetCurrentContext() ? (ImGuiTrinexData*) ImGui::GetIO().BackendRendererUserData : nullptr;
 		}
 
-		// Functions
+		// RENDERING FUNCTIONS
 
 		static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
 		{
+			auto bd = imgui_trinex_backend_data();
+
+			if (bd->surface)
+			{
+				rhi->bind_render_target1(bd->surface->rhi_render_target_view());
+			}
+			else
+			{
+				bd->window->render_viewport()->rhi_bind();
+			}
+
+			const Vector2f target_size = bd->surface ? Vector2f(bd->surface->size()) : Vector2f(bd->window->size());
 			ViewPort viewport;
-			viewport.size = {draw_data->DisplaySize.x * rendering_scale_factor,
-							 draw_data->DisplaySize.y * rendering_scale_factor};
+			viewport.size = Vector2i(target_size * bd->vp_scale);
 			rhi->viewport(viewport);
 
 			float L = draw_data->DisplayPos.x;
-			float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+			float R = draw_data->DisplayPos.x + target_size.x;
 			float T = draw_data->DisplayPos.y;
-			float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+			float B = draw_data->DisplayPos.y + target_size.y;
 
 			auto pipeline     = ImGuiPipeline::instance();
 			pipeline->model   = glm::ortho(L, R, B, T);
@@ -154,7 +166,13 @@ namespace Engine
 			pipeline->sampler = nullptr;
 		}
 
-		// Render function
+		static void set_render_target_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
+		{
+			auto bd      = imgui_trinex_backend_data();
+			bd->surface  = static_cast<RenderSurface*>(cmd->UserCallbackData);
+			bd->vp_scale = Vector2f(bd->surface->size()) / Vector2f(bd->window->size());
+		}
+
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
 		{
 			trinex_profile_cpu_n("ImGui");
@@ -218,6 +236,9 @@ namespace Engine
 				}
 			}
 
+			bd->vp_scale = {1.f, 1.f};
+			bd->surface  = nullptr;
+
 			imgui_trinex_setup_render_state(draw_data);
 
 			int global_idx_offset = 0;
@@ -233,6 +254,7 @@ namespace Engine
 				{
 					rhi->push_debug_stage("ImGui Command list");
 					const ImDrawList* cmd_list = draw_data->CmdLists[n];
+
 					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
 						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -252,10 +274,10 @@ namespace Engine
 								continue;
 
 							Scissor scissor;
-							scissor.pos.x  = clip_min.x * rendering_scale_factor;
-							scissor.pos.y  = (fb_height - clip_max.y) * rendering_scale_factor;
-							scissor.size.x = (clip_max.x - clip_min.x) * rendering_scale_factor;
-							scissor.size.y = (clip_max.y - clip_min.y) * rendering_scale_factor;
+							scissor.pos.x  = clip_min.x * bd->vp_scale.x;
+							scissor.pos.y  = (fb_height - clip_max.y) * bd->vp_scale.y;
+							scissor.size.x = (clip_max.x - clip_min.x) * bd->vp_scale.x;
+							scissor.size.y = (clip_max.y - clip_min.y) * bd->vp_scale.y;
 
 							rhi->scissor(scissor);
 
@@ -285,6 +307,14 @@ namespace Engine
 
 						rhi->pop_debug_stage();
 					}
+
+					if (bd->surface)
+					{
+						bd->surface  = nullptr;
+						bd->vp_scale = {1.f, 1.f};
+						imgui_trinex_setup_render_state(draw_data);
+					}
+
 					global_idx_offset += cmd_list->IdxBuffer.Size;
 					global_vtx_offset += cmd_list->VtxBuffer.Size;
 					rhi->pop_debug_stage();
@@ -383,14 +413,16 @@ namespace Engine
 			// Do not destroy from render thread!
 		}
 
-		bool imgui_trinex_rhi_init(ImGuiContext* ctx)
+		bool imgui_trinex_rhi_init(Engine::Window* window, ImGuiContext* ctx)
 		{
 			ImGui::SetCurrentContext(ctx);
 			ImGuiIO& io = ImGui::GetIO();
 			IMGUI_CHECKVERSION();
 			IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
 
-			ImGuiTrinexData* bd        = IM_NEW(ImGuiTrinexData)();
+			ImGuiTrinexData* bd = IM_NEW(ImGuiTrinexData)();
+			bd->window          = window;
+
 			io.BackendRendererUserData = (void*) bd;
 			io.BackendRendererName     = "imgui_impl_trinex";
 			io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
@@ -1448,7 +1480,7 @@ namespace Engine
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		ImGuiBackend_Window::imgui_trinex_window_init(window);
-		ImGuiBackend_RHI::imgui_trinex_rhi_init(context);
+		ImGuiBackend_RHI::imgui_trinex_rhi_init(window, context);
 		return context;
 	}
 
@@ -1698,6 +1730,47 @@ namespace ImGui
 
 		return ImageButtonEx(window->GetID(static_cast<const void*>(user_texture_id)), user_texture_id, image_size, uv0, uv1,
 							 bg_col, tint_col);
+	}
+
+	static FORCE_INLINE void write_callback(ImDrawCmd* cmd, ImDrawCallback callback, void* userdata)
+	{
+		cmd->UserCallback           = callback;
+		cmd->UserCallbackData       = userdata;
+		cmd->UserCallbackDataSize   = 0;
+		cmd->UserCallbackDataOffset = -1;
+	}
+
+	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open, ImGuiWindowFlags flags)
+	{
+		bool status = ImGui::Begin(name, p_open, flags);
+
+		if (status)
+		{
+			surface->add_reference();
+
+			ImDrawList* draw_list     = GetWindowDrawList();
+			ImVector<ImDrawCmd>& list = draw_list->CmdBuffer;
+
+			int size = list.size();
+			list.resize(size + 2);
+			memmove(list.Data + 2, list.Data, size * sizeof(ImDrawCmd));
+			size = list.size();
+
+			list.Size = 0;
+			draw_list->AddDrawCmd();
+			draw_list->AddDrawCmd();
+			list.Size = size;
+
+			write_callback(list.Data, Engine::ImGuiBackend_RHI::set_render_target_cmd, surface);
+			write_callback(list.Data + 1, ImDrawCallback_ResetRenderState, nullptr);
+
+			if (size == 2)
+			{
+				draw_list->AddDrawCmd();
+			}
+		}
+
+		return status;
 	}
 }// namespace ImGui
 
