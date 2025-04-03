@@ -114,13 +114,15 @@ namespace Engine
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
 
 		struct ImGuiTrinexData {
-			Texture2D* font_texture;
-			Sampler* sampler;
-			RenderSurface* surface;
-			Engine::Window* window;
-			Vector2f vp_scale;
+			Texture2D* font_texture = nullptr;
+			Sampler* sampler        = nullptr;
 
-			ImGuiTrinexData() { memset((void*) this, 0, sizeof(*this)); }
+			Engine::RenderViewport* window = nullptr;
+			RenderSurface* surface         = nullptr;
+			ImVec2 cursor                  = {0.f, 0.f};
+			ImVec2 uv0                     = {0.f, 0.f};
+			ImVec2 uv1                     = {1.f, 1.f};
+			ImVec4 viewport                = {0.f, 0.f, 0.f, 0.f};
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -139,38 +141,83 @@ namespace Engine
 
 		static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
 		{
-			auto bd = imgui_trinex_backend_data();
+			auto bd           = imgui_trinex_backend_data();
+			auto pipeline     = ImGuiPipeline::instance();
+			pipeline->srv     = nullptr;
+			pipeline->sampler = nullptr;
+
+			Vector2f target_size;
 
 			if (bd->surface)
 			{
 				rhi->bind_render_target1(bd->surface->rhi_render_target_view());
+				target_size = bd->surface->size();
 			}
 			else
 			{
-				bd->window->render_viewport()->rhi_bind();
+				bd->window->rhi_bind();
+				target_size = bd->window->size();
 			}
 
-			const Vector2f target_size = bd->surface ? Vector2f(bd->surface->size()) : Vector2f(bd->window->size());
 			ViewPort viewport;
-			viewport.size = Vector2i(target_size * bd->vp_scale);
+			viewport.size.x = static_cast<int_t>(target_size.x * (bd->uv1.x - bd->uv0.x));
+			viewport.size.y = static_cast<int_t>(target_size.y * (bd->uv1.y - bd->uv0.y));
+			viewport.pos.x  = static_cast<int_t>(glm::mix<float>(0.f, target_size.x, bd->uv0.x));
+			viewport.pos.y  = static_cast<int_t>(glm::mix<float>(target_size.y, 0.f, bd->uv0.y)) - viewport.size.y;
+
+			float L         = draw_data->DisplayPos.x + bd->cursor.x;
+			float R         = L + static_cast<float>(viewport.size.x);
+			float T         = draw_data->DisplayPos.y + bd->cursor.y;
+			float B         = T + static_cast<float>(viewport.size.y);
+			pipeline->model = glm::ortho(L, R, B, T);
+
+			if (viewport.size.x < 0)
+			{
+				viewport.pos.x += viewport.size.x;
+				viewport.size.x = -viewport.size.x;
+			}
+
+			if (viewport.size.y < 0)
+			{
+				viewport.pos.y += viewport.size.y;
+				viewport.size.y = -viewport.size.y;
+			}
+
 			rhi->viewport(viewport);
-
-			float L = draw_data->DisplayPos.x;
-			float R = draw_data->DisplayPos.x + target_size.x;
-			float T = draw_data->DisplayPos.y;
-			float B = draw_data->DisplayPos.y + target_size.y;
-
-			auto pipeline     = ImGuiPipeline::instance();
-			pipeline->model   = glm::ortho(L, R, B, T);
-			pipeline->srv     = nullptr;
-			pipeline->sampler = nullptr;
+			bd->viewport.x = viewport.pos.x;
+			bd->viewport.y = viewport.pos.y;
+			bd->viewport.z = viewport.size.x;
+			bd->viewport.w = viewport.size.y;
 		}
 
 		static void set_render_target_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
 		{
-			auto bd      = imgui_trinex_backend_data();
-			bd->surface  = static_cast<RenderSurface*>(cmd->UserCallbackData);
-			bd->vp_scale = Vector2f(bd->surface->size()) / Vector2f(bd->window->size());
+			auto bd     = imgui_trinex_backend_data();
+			bd->uv0.x   = cmd->ClipRect.x;
+			bd->uv0.y   = cmd->ClipRect.y;
+			bd->uv1.x   = cmd->ClipRect.z;
+			bd->uv1.y   = cmd->ClipRect.w;
+			bd->surface = static_cast<RenderSurface*>(cmd->UserCallbackData);
+		}
+
+		static void set_render_target_cursor_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
+		{
+			auto bd    = imgui_trinex_backend_data();
+			bd->cursor = *reinterpret_cast<const ImVec2*>(&cmd->UserCallbackData);
+		}
+
+		static FORCE_INLINE void unset_render_target(ImDrawData* draw_data, ImGuiTrinexData* bd)
+		{
+			if (bd->surface)
+			{
+				bd->surface->remove_reference();
+				bd->surface = nullptr;
+				bd->cursor  = {0.f, 0.f};
+				bd->uv0     = {0.f, 0.f};
+				bd->uv1     = {1.f, 1.f};
+
+				imgui_trinex_setup_render_state(draw_data);
+			}
 		}
 
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
@@ -178,12 +225,12 @@ namespace Engine
 			trinex_profile_cpu_n("ImGui");
 
 			ImGui::SetCurrentContext(ctx);
-			rhi->push_debug_stage("ImGui Render");
+			trinex_rhi_push_stage("ImGui Render");
 
 			// Avoid rendering when minimized
 			if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
 			{
-				rhi->pop_debug_stage();
+				trinex_rhi_pop_stage();
 				return;
 			}
 
@@ -192,12 +239,11 @@ namespace Engine
 
 			if (bd == nullptr || vd == nullptr)
 			{
-				rhi->pop_debug_stage();
+				trinex_rhi_pop_stage();
 				return;
 			}
 
-			rhi->push_debug_stage("ImGui Setup state");
-			const float fb_height          = draw_data->DisplaySize.y * draw_data->FramebufferScale.y;
+			trinex_rhi_push_stage("ImGui Setup state");
 			const ViewPort backup_viewport = rhi->viewport();
 			const Scissor backup_scissor   = rhi->scissor();
 
@@ -236,29 +282,26 @@ namespace Engine
 				}
 			}
 
-			bd->vp_scale = {1.f, 1.f};
-			bd->surface  = nullptr;
-
 			imgui_trinex_setup_render_state(draw_data);
 
 			int global_idx_offset = 0;
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
-			rhi->pop_debug_stage();
+			trinex_rhi_pop_stage();
 			{
 				trinex_profile_cpu_n("Render");
 
 				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
 				{
-					rhi->push_debug_stage("ImGui Command list");
+					trinex_rhi_push_stage("ImGui Command list");
 					const ImDrawList* cmd_list = draw_data->CmdLists[n];
 
 					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
 						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-						rhi->push_debug_stage("ImGui Draw Command");
+						trinex_rhi_push_stage("ImGui Draw Command");
 						if (pcmd->UserCallback != nullptr)
 						{
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
@@ -274,10 +317,10 @@ namespace Engine
 								continue;
 
 							Scissor scissor;
-							scissor.pos.x  = clip_min.x * bd->vp_scale.x;
-							scissor.pos.y  = (fb_height - clip_max.y) * bd->vp_scale.y;
-							scissor.size.x = (clip_max.x - clip_min.x) * bd->vp_scale.x;
-							scissor.size.y = (clip_max.y - clip_min.y) * bd->vp_scale.y;
+							scissor.pos.x  = (clip_min.x - bd->cursor.x) + bd->viewport.x;
+							scissor.pos.y  = (bd->viewport.w - clip_max.y) + bd->cursor.y + bd->viewport.y;
+							scissor.size.x = (clip_max.x - clip_min.x);
+							scissor.size.y = (clip_max.y - clip_min.y);
 
 							rhi->scissor(scissor);
 
@@ -305,25 +348,20 @@ namespace Engine
 							}
 						}
 
-						rhi->pop_debug_stage();
+						trinex_rhi_pop_stage();
 					}
 
-					if (bd->surface)
-					{
-						bd->surface  = nullptr;
-						bd->vp_scale = {1.f, 1.f};
-						imgui_trinex_setup_render_state(draw_data);
-					}
+					unset_render_target(draw_data, bd);
 
 					global_idx_offset += cmd_list->IdxBuffer.Size;
 					global_vtx_offset += cmd_list->VtxBuffer.Size;
-					rhi->pop_debug_stage();
+					trinex_rhi_pop_stage();
 				}
 			}
 
 			rhi->viewport(backup_viewport);
 			rhi->scissor(backup_scissor);
-			rhi->pop_debug_stage();
+			trinex_rhi_pop_stage();
 		}
 
 		static void imgui_trinex_create_fonts_texture()
@@ -421,7 +459,7 @@ namespace Engine
 			IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
 
 			ImGuiTrinexData* bd = IM_NEW(ImGuiTrinexData)();
-			bd->window          = window;
+			bd->window          = window->render_viewport();
 
 			io.BackendRendererUserData = (void*) bd;
 			io.BackendRendererName     = "imgui_impl_trinex";
@@ -494,11 +532,15 @@ namespace Engine
 
 			ViewportClient& render(class RenderViewport* viewport) override
 			{
-				viewport->rhi_bind();
-				rhi->push_debug_stage("ImGuiViewportClient");
+				auto bd = ImGuiBackend_RHI::imgui_trinex_backend_data();
+				std::swap(viewport, bd->window);// Temporary set as main viewport
+
+				trinex_rhi_push_stage("ImGuiViewportClient");
 				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(m_window->context(), m_draw_data.draw_data());
 				m_draw_data.swap_render_index();
-				rhi->pop_debug_stage();
+				trinex_rhi_pop_stage();
+
+				std::swap(viewport, bd->window);// Restore main viewport
 				return *this;
 			}
 
@@ -1740,7 +1782,8 @@ namespace ImGui
 		cmd->UserCallbackDataOffset = -1;
 	}
 
-	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open, ImGuiWindowFlags flags)
+
+	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open, ImGuiWindowFlags flags, ImVec2 uv0, ImVec2 uv1)
 	{
 		bool status = ImGui::Begin(name, p_open, flags);
 
@@ -1752,8 +1795,8 @@ namespace ImGui
 			ImVector<ImDrawCmd>& list = draw_list->CmdBuffer;
 
 			int size = list.size();
-			list.resize(size + 2);
-			memmove(list.Data + 2, list.Data, size * sizeof(ImDrawCmd));
+			list.resize(size + 3);
+			memmove(list.Data + 3, list.Data, size * sizeof(ImDrawCmd));
 			size = list.size();
 
 			list.Size = 0;
@@ -1761,10 +1804,20 @@ namespace ImGui
 			draw_list->AddDrawCmd();
 			list.Size = size;
 
-			write_callback(list.Data, Engine::ImGuiBackend_RHI::set_render_target_cmd, surface);
-			write_callback(list.Data + 1, ImDrawCallback_ResetRenderState, nullptr);
+			ImVec2 cursor = ImGui::GetCurrentWindow()->Pos - ImGui::GetMainViewport()->Pos;
 
-			if (size == 2)
+			// clang-format off
+			write_callback(list.Data, Engine::ImGuiBackend_RHI::set_render_target_cmd, surface);
+			write_callback(list.Data + 1, Engine::ImGuiBackend_RHI::set_render_target_cursor_cmd, *reinterpret_cast<void**>(&cursor));
+			write_callback(list.Data + 2, ImDrawCallback_ResetRenderState, nullptr);
+			// clang-format on
+
+			list.Data->ClipRect.x = uv0.x;
+			list.Data->ClipRect.y = uv0.y;
+			list.Data->ClipRect.z = uv1.x;
+			list.Data->ClipRect.w = uv1.y;
+
+			if (size == 3)
 			{
 				draw_list->AddDrawCmd();
 			}
