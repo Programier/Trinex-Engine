@@ -5,10 +5,10 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene_renderer.hpp>
-#include <Engine/Render/shadow_map_pool.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/render_surface_pool.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -117,11 +117,11 @@ namespace Engine
 
 		if (enabled && m_shadow_map == nullptr)
 		{
-			m_shadow_map = ShadowMapPool::instance()->request_surface();
+			m_shadow_map = RenderSurfacePool::global_instance()->request_surface(ColorFormat::ShadowDepth, {1024, 1024});
 		}
 		else if (!enabled && m_shadow_map != nullptr)
 		{
-			ShadowMapPool::instance()->return_surface(m_shadow_map.ptr());
+			RenderSurfacePool::global_instance()->return_surface(m_shadow_map.ptr());
 		}
 
 		return submit_light_info_render_thread();

@@ -306,3 +306,11 @@ public:                                                                         
 	{                                                                                                                            \
 		return a = (T) ((__underlying_type(T)) a ^ (__underlying_type(T)) b);                                                    \
 	}
+
+#define trinex_non_copyable(class_name)                                                                                          \
+	class_name(const class_name&)            = delete;                                                                           \
+	class_name& operator=(const class_name&) = delete
+
+#define trinex_non_moveable(class_name)                                                                                          \
+	class_name(class_name&&)            = delete;                                                                                \
+	class_name& operator=(class_name&&) = delete

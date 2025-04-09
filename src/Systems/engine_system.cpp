@@ -4,6 +4,7 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/thread.hpp>
+#include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
@@ -40,6 +41,14 @@ namespace Engine
 	EngineSystem& EngineSystem::update(float dt)
 	{
 		Super::update(dt);
+
+		for (auto object = TickableObject::static_first(); object; object = object->next())
+		{
+			if (object->is_tickable())
+			{
+				object->update(dt);
+			}
+		}
 		return *this;
 	}
 
