@@ -55,8 +55,8 @@ namespace Engine
 	trinex_implement_engine_enum(MaterialOptions, DefaultPassOnly, DisableDefaultPass, LightMaterial);
 
 	trinex_implement_engine_enum(ShaderParameterType, Undefined, META_UniformBuffer, META_CombinedImageSampler, META_Sampler,
-								 META_Texture, META_Scalar, META_Vector, META_Matrix, META_Numeric, Bool, Bool2, Bool3, Bool4,
-								 Int, Int2, Int3, Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3,
+								 META_Texture, META_Scalar, META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3,
+								 Bool4, Int, Int2, Int3, Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3,
 								 Float4x4, MemoryBlock, Sampler, Sampler2D, Texture2D);
 
 	ShaderParameterType ShaderParameterType::make_vector(byte len)
@@ -65,6 +65,9 @@ namespace Engine
 
 		if (is_scalar())
 		{
+			if (len == 1)
+				return *this;
+
 			ShaderParameterType result = *this;
 			result &= ShaderParameterType(~META_Scalar);
 			result |= META_Vector;

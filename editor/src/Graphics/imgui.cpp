@@ -123,6 +123,7 @@ namespace Engine
 			ImVec2 uv0                     = {0.f, 0.f};
 			ImVec2 uv1                     = {1.f, 1.f};
 			ImVec4 viewport                = {0.f, 0.f, 0.f, 0.f};
+			bool is_custom_surface         = false;
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -192,12 +193,13 @@ namespace Engine
 
 		static void set_render_target_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
 		{
-			auto bd     = imgui_trinex_backend_data();
-			bd->uv0.x   = cmd->ClipRect.x;
-			bd->uv0.y   = cmd->ClipRect.y;
-			bd->uv1.x   = cmd->ClipRect.z;
-			bd->uv1.y   = cmd->ClipRect.w;
-			bd->surface = static_cast<RenderSurface*>(cmd->UserCallbackData);
+			auto bd               = imgui_trinex_backend_data();
+			bd->uv0.x             = cmd->ClipRect.x;
+			bd->uv0.y             = cmd->ClipRect.y;
+			bd->uv1.x             = cmd->ClipRect.z;
+			bd->uv1.y             = cmd->ClipRect.w;
+			bd->surface           = static_cast<RenderSurface*>(cmd->UserCallbackData);
+			bd->is_custom_surface = true;
 		}
 
 		static void set_render_target_cursor_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
@@ -208,13 +210,15 @@ namespace Engine
 
 		static FORCE_INLINE void unset_render_target(ImDrawData* draw_data, ImGuiTrinexData* bd)
 		{
-			if (bd->surface)
+			if (bd->is_custom_surface)
 			{
-				bd->surface->remove_reference();
-				bd->surface = nullptr;
-				bd->cursor  = {0.f, 0.f};
-				bd->uv0     = {0.f, 0.f};
-				bd->uv1     = {1.f, 1.f};
+				if (bd->surface)
+					bd->surface->remove_reference();
+				bd->surface           = nullptr;
+				bd->cursor            = {0.f, 0.f};
+				bd->uv0               = {0.f, 0.f};
+				bd->uv1               = {1.f, 1.f};
+				bd->is_custom_surface = false;
 
 				imgui_trinex_setup_render_state(draw_data);
 			}
@@ -1785,11 +1789,13 @@ namespace ImGui
 
 	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open, ImGuiWindowFlags flags, ImVec2 uv0, ImVec2 uv1)
 	{
+		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 		bool status = ImGui::Begin(name, p_open, flags);
 
 		if (status)
 		{
-			surface->add_reference();
+			if (surface)
+				surface->add_reference();
 
 			ImDrawList* draw_list     = GetWindowDrawList();
 			ImVector<ImDrawCmd>& list = draw_list->CmdBuffer;
@@ -1822,8 +1828,100 @@ namespace ImGui
 				draw_list->AddDrawCmd();
 			}
 		}
-
 		return status;
+	}
+
+	void SetWindowSurface(Engine::RenderSurface* surface, ImVec2 uv0, ImVec2 uv1)
+	{
+		SetWindowSurface(ImGui::GetCurrentWindow(), surface, uv0, uv1);
+	}
+
+	void SetWindowSurface(ImGuiWindow* window, Engine::RenderSurface* surface, ImVec2 uv0, ImVec2 uv1)
+	{
+		ImGui::SetWindowViewport(window, static_cast<ImGuiViewportP*>(ImGui::GetMainViewport()));
+
+		if (surface)
+			surface->add_reference();
+		ImDrawList* draw_list     = &window->DrawListInst;
+		ImVector<ImDrawCmd>& list = draw_list->CmdBuffer;
+
+		const bool is_first_setup = list[0].UserCallback != Engine::ImGuiBackend_RHI::set_render_target_cmd;
+
+		if (is_first_setup)
+		{
+			int size = list.size();
+			list.resize(size + 3);
+			memmove(list.Data + 3, list.Data, size * sizeof(ImDrawCmd));
+			size = list.size();
+
+			list.Size = 0;
+			draw_list->AddDrawCmd();
+			draw_list->AddDrawCmd();
+			list.Size = size;
+		}
+
+		ImVec2 cursor = window->Pos - ImGui::GetMainViewport()->Pos;
+
+		// clang-format off
+		write_callback(list.Data, Engine::ImGuiBackend_RHI::set_render_target_cmd, surface);
+		write_callback(list.Data + 1, Engine::ImGuiBackend_RHI::set_render_target_cursor_cmd, *reinterpret_cast<void**>(&cursor));
+		write_callback(list.Data + 2, ImDrawCallback_ResetRenderState, nullptr);
+		// clang-format on
+
+		list.Data->ClipRect.x = uv0.x;
+		list.Data->ClipRect.y = uv0.y;
+		list.Data->ClipRect.z = uv1.x;
+		list.Data->ClipRect.w = uv1.y;
+
+		if (is_first_setup && list.size() == 3)
+		{
+			draw_list->AddDrawCmd();
+		}
+	}
+
+	float TableGetAutoWidth(const char* name)
+	{
+		return TableGetAutoWidth(ImGui::GetID(name));
+	}
+
+	float TableGetAutoWidth(ImGuiID table_id)
+	{
+		ImGuiContext& g   = *GImGui;
+		ImGuiTable* table = g.Tables.GetByKey(table_id);
+
+		if (table == nullptr)
+			return 0.f;
+
+		const ImGuiStyle& style = g.Style;
+		const int columnCount   = table->ColumnsCount;
+
+		float width = 0.f;
+
+		if (columnCount > 0)
+		{
+			width = table->Columns[columnCount - 1].WidthAuto;
+
+			for (int i = 0, end = columnCount - 1; i < end; ++i)
+			{
+				width += table->Columns[i].WidthGiven;
+			}
+		}
+
+		width += static_cast<float>(columnCount) * style.CellPadding.x * 2.0f;
+
+		float spacing = (table->Flags & ImGuiTableFlags_BordersInnerV) ? table->CellSpacingX2 : table->CellSpacingX1;
+		if (columnCount > 1)
+			width += columnCount * spacing;
+
+		width += table->OuterPaddingX * 2.0f;
+
+		if (table->Flags & ImGuiTableFlags_BordersInnerV)
+			width += (columnCount - 1) * style.FrameBorderSize;
+
+		if (table->Flags & ImGuiTableFlags_BordersOuterV)
+			width += 2.0f * style.FrameBorderSize;
+
+		return width;
 	}
 }// namespace ImGui
 

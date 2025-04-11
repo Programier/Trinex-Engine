@@ -83,30 +83,26 @@ namespace Engine
 	{
 		bool open = true;
 		ImGui::Begin(name(), closable ? &open : nullptr);
-		render();
-		ImGui::End();
 
-		return open;
-	}
-
-	PropertyRenderer& PropertyRenderer::render()
-	{
 		if (m_object)
 		{
 			m_is_property_skipped = false;
 			m_next_prop_name      = "";
 
-			ImGui::BeginTable("##PropTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
-			auto width = ImGui::GetContentRegionAvail().x;
-			ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, width * 0.45);
-			ImGui::TableSetupColumn("##Column2", ImGuiTableColumnFlags_WidthStretch, width * 0.45);
-			ImGui::TableSetupColumn("##Column3", ImGuiTableColumnFlags_WidthStretch, width * 0.1);
+			ImGui::BeginTable("###properties", 3,
+							  ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
+
+			ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, 0.45);
+			ImGui::TableSetupColumn("##Column2", ImGuiTableColumnFlags_WidthStretch, 0.45);
+			ImGui::TableSetupColumn("##Column3", ImGuiTableColumnFlags_WidthStretch, 0.1);
 
 			render_struct_properties(m_object, m_object->class_instance(), false);
 			ImGui::EndTable();
 		}
 
-		return *this;
+		ImGui::End();
+
+		return open;
 	}
 
 	Refl::Struct* PropertyRenderer::struct_instance() const
@@ -135,12 +131,16 @@ namespace Engine
 		return map;
 	}
 
-	PropertyRenderer& PropertyRenderer::object(Object* object)
+	PropertyRenderer& PropertyRenderer::object(Object* object, bool reset)
 	{
 		m_object = object;
-		m_properties.clear();
-		userdata.clear();
-		build_props_map(struct_instance());
+
+		if (reset)
+		{
+			m_properties.clear();
+			userdata.clear();
+			build_props_map(struct_instance());
+		}
 		return *this;
 	}
 
@@ -609,16 +609,19 @@ namespace Engine
 			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
 		}
 
-		ImGui::TableSetColumnIndex(2);
-		if (ImGui::ImageButton(Icons::icon(Icons::Select), {size, size}))
+		if (ImGui::TableGetColumnCount() > 2)
 		{
-			Function<void(const Path&)> callback = [context, prop, value, &str](const Path& path) {
-				*value = path;
-				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
-				str = value->str();
-			};
+			ImGui::TableSetColumnIndex(2);
+			if (ImGui::ImageButton(Icons::icon(Icons::Select), {size, size}))
+			{
+				Function<void(const Path&)> callback = [context, prop, value, &str](const Path& path) {
+					*value = path;
+					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+					str = value->str();
+				};
 
-			imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
+				imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
+			}
 		}
 
 		return false;
@@ -701,7 +704,7 @@ namespace Engine
 			}
 			ImGui::PopID();
 
-			if (!read_only)
+			if (!read_only && ImGui::TableGetColumnCount() > 2)
 			{
 				ImGui::TableSetColumnIndex(2);
 				if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
@@ -727,18 +730,20 @@ namespace Engine
 
 	static bool render_array_property(PropertyRenderer* renderer, void* context, Refl::Property* prop_base, bool read_only)
 	{
-		auto prop = prop_cast_checked<Refl::ArrayProperty>(prop_base);
-
-		ImGui::TableSetColumnIndex(2);
+		auto prop        = prop_cast_checked<Refl::ArrayProperty>(prop_base);
+		bool is_changed  = false;
 		const float size = ImGui::GetTextLineHeight() - ImGui::GetStyle().FramePadding.y;
 
-		bool is_changed = false;
-
-		if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Add), {size, size}))
+		if (ImGui::TableGetColumnCount() > 2)
 		{
-			prop->emplace_back(context);
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::array_add, prop));
-			is_changed = true;
+			ImGui::TableSetColumnIndex(2);
+
+			if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Add), {size, size}))
+			{
+				prop->emplace_back(context);
+				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::array_add, prop));
+				is_changed = true;
+			}
 		}
 
 		if (renderer->collapsing_header(prop))
@@ -755,14 +760,17 @@ namespace Engine
 				renderer->create_row();
 				ImGui::PushID(i);
 
-				ImGui::TableSetColumnIndex(2);
-
-				if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Remove), {size, size}))
+				if (ImGui::TableGetColumnCount() > 2)
 				{
-					prop->erase(context, i);
-					--count;
-					ImGui::PopID();
-					continue;
+					ImGui::TableSetColumnIndex(2);
+
+					if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Remove), {size, size}))
+					{
+						prop->erase(context, i);
+						--count;
+						ImGui::PopID();
+						continue;
+					}
 				}
 
 				void* array_object = prop->at(context, i);

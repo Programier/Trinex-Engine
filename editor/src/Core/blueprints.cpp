@@ -1,5 +1,6 @@
 #include <Core/blueprints.hpp>
 #include <Core/editor_resources.hpp>
+#include <Core/etl/templates.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -8,7 +9,7 @@ namespace Engine
 {
 	using namespace ax::NodeEditor;
 
-	BlueprintBuilder::BlueprintBuilder() : m_stage(Stage::Invalid), m_has_header(false) {}
+	BlueprintBuilder::BlueprintBuilder() : m_stage(Stage::Invalid), m_has_header(false), m_require_spacing(false) {}
 
 	void BlueprintBuilder::transition_to_stage(Stage new_stage)
 	{
@@ -57,6 +58,12 @@ namespace Engine
 
 			default:
 				break;
+		}
+
+		if (m_require_spacing && is_in<Stage::Middle, Stage::Output>(new_stage))
+		{
+			ImGui::Dummy({ImGui::GetTextLineHeightWithSpacing(), 0.f});
+			m_require_spacing = false;
 		}
 
 		switch (new_stage)
@@ -127,8 +134,9 @@ namespace Engine
 		m_id         = id;
 		m_footer_min = m_footer_max = m_header_min = m_header_max = ImVec2();
 
-		m_has_header = false;
-		m_has_footer = false;
+		m_has_header      = false;
+		m_has_footer      = false;
+		m_require_spacing = false;
 
 		//ed::PushStyleVar(StyleVar_NodePadding, ImVec4(8, 4, 8, 8));
 		ed::BeginNode(id);
@@ -215,6 +223,7 @@ namespace Engine
 
 		transition_to_stage(Stage::Input);
 		ImGui::BeginHorizontal(id);
+		m_require_spacing = true;
 	}
 
 	void BlueprintBuilder::begin_input_pin(Identifier id)
@@ -238,6 +247,7 @@ namespace Engine
 			transition_to_stage(Stage::Content);
 
 		transition_to_stage(Stage::Middle);
+		m_require_spacing = true;
 	}
 
 	void BlueprintBuilder::begin_output(Identifier id)

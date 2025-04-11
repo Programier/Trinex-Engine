@@ -34,10 +34,9 @@ namespace Engine
 		~PropertyRenderer();
 
 		Object* object() const;
-		PropertyRenderer& object(Object* object);
+		PropertyRenderer& object(Object* object, bool reset = true);
 
 		bool render(RenderViewport* viewport) override;
-		PropertyRenderer& render();
 		Refl::Struct* struct_instance() const;
 		const PropertiesMap& properties_map(Refl::Struct* self);
 

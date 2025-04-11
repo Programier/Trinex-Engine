@@ -374,62 +374,6 @@ namespace Engine::VisualMaterialGraph
 		throw EngineException("Unsupported type!");
 	}
 
-	Expression Expression::static_convert(const Expression& expression, ShaderParameterType type)
-	{
-		if (expression.type == type || expression.value.empty())
-			return expression;
-
-		if ((type.is_vector() || type.is_scalar()) && (expression.type.is_vector() || expression.type.is_scalar()))
-		{
-			size_t src_components = expression.type.vector_length();
-			size_t dst_components = type.vector_length();
-
-			const auto src_component_type = static_component_type_of(expression.type);
-			const auto dst_component_type = static_component_type_of(type);
-
-			String result;
-
-			const bool need_wrap = !(src_component_type == dst_component_type && src_components > dst_components);
-
-			if (need_wrap)
-				result = Strings::format("{}({}", static_typename_of(type), expression.value);
-			else
-				result = expression.value;
-
-
-			if (src_components != 1)
-			{
-				if (dst_components < src_components)
-				{
-					StringView swizzle = StringView("xyzw").substr(0, dst_components);
-					result.push_back('.');
-					result += swizzle;
-				}
-
-				if (dst_components > src_components)
-				{
-					size_t push_count = dst_components - src_components;
-					Expression zero   = static_zero(dst_component_type);
-
-					while (push_count > 0)
-					{
-						result += ", ";
-						result += zero.value;
-						--push_count;
-					}
-				}
-			}
-
-			if (need_wrap)
-				result.push_back(')');
-
-			return Expression(type, result);
-		}
-
-
-		throw EngineException("Unsupported expression type for cast");
-	}
-
 	bool Expression::is_compatible_types(ShaderParameterType src, ShaderParameterType dst)
 	{
 		if (src == dst)
@@ -441,6 +385,35 @@ namespace Engine::VisualMaterialGraph
 		if (src.is_matrix() && dst.is_matrix())
 			return true;
 		return false;
+	}
+
+	ShaderParameterType Expression::static_make_float(ShaderParameterType self)
+	{
+		if (self.is_numeric())
+		{
+			byte len = self.vector_length();
+			return ShaderParameterType(ShaderParameterType::Float).make_vector(len);
+		}
+
+		if (self.is_matrix())
+			return self;
+
+		return ShaderParameterType::Undefined;
+	}
+
+	ShaderParameterType Expression::static_vector_clamp(ShaderParameterType self, byte min, byte max)
+	{
+		if (self.is_numeric())
+		{
+			byte len        = self.vector_length();
+			byte normalized = glm::clamp<byte>(glm::clamp(len, min, max), 1, 4);
+
+			if (normalized != len)
+				return self.make_vector(normalized);
+			return self;
+		}
+
+		return ShaderParameterType::Undefined;
 	}
 
 	Expression Expression::x() const
@@ -491,17 +464,104 @@ namespace Engine::VisualMaterialGraph
 		return static_zero(component);
 	}
 
+	Expression Expression::convert(ShaderParameterType dst) const
+	{
+		if (type == dst || value.empty())
+			return *this;
+
+		if ((dst.is_vector() || dst.is_scalar()) && (type.is_vector() || type.is_scalar()))
+		{
+			size_t src_components = type.vector_length();
+			size_t dst_components = dst.vector_length();
+
+			const auto src_component_type = static_component_type_of(type);
+			const auto dst_component_type = static_component_type_of(dst);
+
+			String result;
+
+			const bool need_wrap = !(src_component_type == dst_component_type && src_components > dst_components);
+
+			if (need_wrap)
+				result = Strings::format("{}({}", static_typename_of(dst), value);
+			else
+				result = value;
+
+
+			if (src_components != 1)
+			{
+				if (dst_components < src_components)
+				{
+					StringView swizzle = StringView("xyzw").substr(0, dst_components);
+					result.push_back('.');
+					result += swizzle;
+				}
+
+				if (dst_components > src_components)
+				{
+					size_t push_count = dst_components - src_components;
+					Expression zero   = static_zero(dst_component_type);
+
+					while (push_count > 0)
+					{
+						result += ", ";
+						result += zero.value;
+						--push_count;
+					}
+				}
+			}
+
+			if (need_wrap)
+				result.push_back(')');
+
+			return Expression(dst, result);
+		}
+
+
+		throw EngineException("Unsupported expression type for cast");
+	}
+
+	Expression Expression::vector_length() const
+	{
+		if (type.is_vector())
+		{
+			Expression result = to_floating();
+			result.type       = ShaderParameterType::Float;
+			result.value      = Strings::format("length({})", result.value);
+			return result;
+		}
+
+		if (type.is_scalar())
+			return to_floating();
+		return Expression();
+	}
+
+	Compiler& Compiler::add_include(const StringView& include)
+	{
+		m_includes.insert(String(include));
+		return *this;
+	}
+
+	Expression Compiler::make_variable(ShaderParameterType type)
+	{
+		Identifier id   = m_stage_locals[m_stage].size() + m_globals.size();
+		String var_name = Strings::format("trx_var_{}", id);
+
+		String var = Strings::format("{} {}", Expression::static_typename_of(type), var_name);
+		m_stage_locals[m_stage].push_back(var);
+		return Expression(type, var_name);
+	}
+
 	Expression Compiler::make_variable(const Expression& expression)
 	{
 		if (expression.value.starts_with("trx_var_"))
 			return expression;
 
-		Identifier id = m_locals.size() + m_globals.size();
+		Identifier id = m_stage_locals[m_stage].size() + m_globals.size();
 
 		String type     = Expression::static_typename_of(expression.type);
 		String var_name = Strings::format("trx_var_{}", id);
 		String var      = Strings::format("{} {} = {}", type, var_name, expression.value);
-		m_locals.push_back(var);
+		m_stage_locals[m_stage].push_back(var);
 
 		return Expression(expression.type, var_name);
 	}
@@ -552,7 +612,8 @@ namespace Engine::VisualMaterialGraph
 		return expression;
 	}
 
-	String Compiler::compile_expressions(const Vector<String>& expression, size_t tabs)
+	template<typename T>
+	static String compile_expressions(const T& expression, size_t tabs)
 	{
 		const String spacing(tabs, '\t');
 
@@ -572,6 +633,11 @@ namespace Engine::VisualMaterialGraph
 		return source;
 	}
 
+	String Compiler::compile_includes(size_t tabs) const
+	{
+		return compile_expressions(m_includes, tabs);
+	}
+
 	String Compiler::compile_global_expressions(size_t tabs) const
 	{
 		return compile_expressions(m_globals, tabs);
@@ -579,7 +645,7 @@ namespace Engine::VisualMaterialGraph
 
 	String Compiler::compile_local_expressions(size_t tabs) const
 	{
-		return compile_expressions(m_locals, tabs);
+		return compile_expressions(m_stage_locals[m_stage], tabs);
 	}
 
 	Pin::~Pin()
@@ -687,16 +753,25 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	MaterialRoot::MaterialRoot()
-		: Node(), base_color(new_input("Base Color", ShaderParameterType::Float3)),//
-		  opacity(new_input("Opacity", ShaderParameterType::Float3)),              //
-		  emissive(new_input("Emissive", ShaderParameterType::Float)),             //
-		  specular(new_input("Specular", ShaderParameterType::Float)),             //
-		  metalness(new_input("Metalness", ShaderParameterType::Float)),           //
-		  roughness(new_input("Roughness", ShaderParameterType::Float)),           //
-		  ao(new_input("AO", ShaderParameterType::Float)),                         //
-		  normal(new_input("Normal", ShaderParameterType::Float3)),                //
-		  position_offset(new_input("Position Offset", ShaderParameterType::Float3))
-	{}
+		: Node(), base_color(new_input("Base Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),//
+		  opacity(new_input("Opacity", ShaderParameterType::Float, ShaderParameterType::Float)),                //
+		  emissive(new_input("Emissive Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),      //
+		  specular(new_input("Specular", ShaderParameterType::Float, ShaderParameterType::Float)),              //
+		  metalness(new_input("Metalness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
+		  roughness(new_input("Roughness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
+		  ao(new_input("AO", ShaderParameterType::Float, ShaderParameterType::Float)),                          //
+		  normal(new_input("Normal", ShaderParameterType::Float3, ShaderParameterType::Float3)),                //
+		  position_offset(new_input("Position Offset", ShaderParameterType::Float3, ShaderParameterType::Float3))
+	{
+		opacity->default_value()->ref<float>()   = 1.0f;
+		specular->default_value()->ref<float>()  = 0.5f;
+		normal->default_value()->ref<Vector3f>() = {0.5f, 0.5f, 1.0f};
+	}
+
+	Expression MaterialRoot::compile(InputPin* pin, Compiler& compiler)
+	{
+		return compiler.compile(pin);
+	}
 
 	static void script_class_node_group(Refl::Class* self, const String& group_name)
 	{
@@ -714,6 +789,17 @@ namespace Engine::VisualMaterialGraph
 	{
 		ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Engine::Refl::Class");
 		r.method("void node_group(const string& group_name) const final", script_class_node_group);
+	}
+
+	template<typename T>
+	static void register_pin_methods(ScriptClassRegistrar& r)
+	{
+		r.method("const string& name() const", &Pin::name);
+		r.method("Node@ node() const", &Pin::node);
+		r.method("ShaderParameterType type() const", &Pin::type);
+		r.method("uint16 index() const", &Pin::index);
+		r.method("uint64 id() const", &Pin::id);
+		r.method("uint64 links_count() const", &T::links_count);
 	}
 
 	static void reflection_init()
@@ -738,7 +824,16 @@ namespace Engine::VisualMaterialGraph
 		auto output_pin = Reg::reference_class("Engine::VisualMaterialGraph::OutputPin", ref_class_info);
 		auto expression = Reg::value_class("Engine::VisualMaterialGraph::Expression", sizeof(Expression), value_class_info);
 
+		register_pin_methods<InputPin>(input_pin);
+		register_pin_methods<OutputPin>(output_pin);
+
 		// Compiler class
+		compiler.method("Expression make_variable(ShaderParameterType type) final",
+						method_of<Expression, ShaderParameterType>(&Compiler::make_variable));
+		compiler.method("Expression make_variable(const Expression& expression) final",
+						method_of<Expression, const Expression&>(&Compiler::make_variable));
+
+		compiler.method("Compiler& add_include(const StringView& file) final", &Compiler::add_include);
 		compiler.method("Expression compile_default(InputPin@ pin) final", &Compiler::compile_default);
 		compiler.method("Expression compile_default(OutputPin@ pin) final", &Compiler::compile_default);
 		compiler.method("Expression compile(InputPin@ pin) final", method_of<Expression, InputPin*>(&Compiler::compile));
@@ -754,11 +849,6 @@ namespace Engine::VisualMaterialGraph
 		expression.behave(ScriptClassBehave::Construct, "void f()", Reg::constructor<Expression>);
 		expression.behave(ScriptClassBehave::Construct, "void f(const Expression&)", Reg::constructor<Expression, const Expression&>);
 		expression.behave(ScriptClassBehave::Construct, "void f(ShaderParameterType type, const string& expression)", Reg::constructor<Expression, ShaderParameterType, const String&>);
-		expression.behave(ScriptClassBehave::Construct, "void f(bool value)", Reg::constructor<Expression, bool>);
-		expression.behave(ScriptClassBehave::Construct, "void f(float value)", Reg::constructor<Expression, float>);
-		expression.behave(ScriptClassBehave::Construct, "void f(double value)", Reg::constructor<Expression, double>);
-		expression.behave(ScriptClassBehave::Construct, "void f(int32 value)", Reg::constructor<Expression, int32_t>);
-		expression.behave(ScriptClassBehave::Construct, "void f(uint32 value)", Reg::constructor<Expression, uint32_t>);
 		expression.behave(ScriptClassBehave::Destruct, "void f()", Reg::destructor<Expression>);
 		// clang-format on
 
@@ -773,6 +863,8 @@ namespace Engine::VisualMaterialGraph
 		expression.method("Expression& clear()", &Expression::clear);
 		expression.method("bool is_valid() const", &Expression::is_valid);
 		expression.method("Expression convert(ShaderParameterType type) const", &Expression::convert);
+		expression.method("Expression to_floating() const", &Expression::to_floating);
+		expression.method("Expression vector_length() const", &Expression::vector_length);
 
 		// clang-format off
 		expression.static_function("Expression static_zero(ShaderParameterType type)", &Expression::static_zero);
@@ -781,11 +873,25 @@ namespace Engine::VisualMaterialGraph
 		expression.static_function("ShaderParameterType static_component_type_of(ShaderParameterType type)", &Expression::static_component_type_of);
 		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2)", &Expression::static_resolve);
 		expression.static_function("string static_typename_of(ShaderParameterType type)", &Expression::static_typename_of);
+
+		expression.static_function("ShaderParameterType static_make_float(ShaderParameterType self)", &Expression::static_make_float);
+		expression.static_function("ShaderParameterType static_vector_clamp(ShaderParameterType self, uint8 min, uint8 max)", &Expression::static_vector_clamp);
+		expression.static_function("ShaderParameterType static_make_vector(ShaderParameterType self, uint8 len)", &Expression::static_make_vector);
+		expression.static_function("ShaderParameterType static_make_scalar(ShaderParameterType self)", &Expression::static_make_scalar);
+		expression.static_function("bool static_is_scalar(ShaderParameterType self)", &Expression::static_is_scalar);
+		expression.static_function("bool static_is_vector(ShaderParameterType self)", &Expression::static_is_vector);
+		expression.static_function("bool static_is_matrix(ShaderParameterType self)", &Expression::static_is_matrix);
+		expression.static_function("bool static_is_numeric(ShaderParameterType self)", &Expression::static_is_numeric);
+		expression.static_function("bool static_is_meta(ShaderParameterType self)", &Expression::static_is_meta);
+		expression.static_function("uint16 static_type_index(ShaderParameterType self)", &Expression::static_type_index);
+		expression.static_function("uint8 static_vector_length(ShaderParameterType self)", &Expression::static_vector_length);
+
 		// clang-format on
 
 		// static ShaderParameterType component_type(ShaderParameterType type);
 	}
 
 	static ReflectionInitializeController init(reflection_init, "Engine::VisualMaterialGraph",
-											   {"Engine::ShaderParameterType", "Engine::Refl::Class"});
+											   {"Engine::ShaderParameterType", "Engine::Refl::Class",
+												"Engine::VisualMaterialGraph::Node"});
 }// namespace Engine::VisualMaterialGraph

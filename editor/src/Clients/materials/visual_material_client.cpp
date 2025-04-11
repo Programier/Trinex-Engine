@@ -4,6 +4,11 @@
 #include <Core/group.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/property.hpp>
+#include <Core/threading.hpp>
+#include <Graphics/render_surface.hpp>
+#include <Graphics/render_surface_pool.hpp>
+#include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
@@ -35,156 +40,54 @@ namespace Engine
 		~VerticalLayout() { ImGui::EndVertical(); }
 	};
 
-	static inline void render_default_vector1b(VisualMaterialGraph::Pin* pin)
-	{
-		ImGui::Checkbox("##vector1b", reinterpret_cast<bool*>(pin->default_value()->address()));
-	}
+	struct EditorSuspend {
+		EditorSuspend() { ed::Suspend(); }
+		~EditorSuspend() { ed::Resume(); }
+	};
 
-	static void render_default_vector_nb(const char* label, bool* data, int components)
+	template<int N>
+	static void render_vector_nb(void* data)
 	{
+		static_assert(N > 0);
 		auto* window = ImGui::GetCurrentWindow();
 
 		if (window->SkipItems)
 			return;
 
-		auto& style = ImGui::GetStyle();
-
-		ImGui::BeginGroup();
-		ImGui::PushID(label);
-		ImGui::PushMultiItemsWidths(components, ImGui::CalcItemWidth());
-
-		for (int i = 0; i < components; i++)
+		if constexpr (N == 1)
 		{
-			ImGui::PushID(i);
-			if (i > 0)
-				ImGui::SameLine(0, style.ItemInnerSpacing.x);
-
-			ImGui::Checkbox("##vectornb", data);
-			ImGui::PopID();
-			ImGui::PopItemWidth();
-			++data;
+			ImGui::Checkbox("##vector1b", reinterpret_cast<bool*>(data));
 		}
+		else
+		{
+			auto& style = ImGui::GetStyle();
 
-		ImGui::PopID();
-		ImGui::EndGroup();
+			ImGui::BeginGroup();
+			ImGui::PushMultiItemsWidths(N, ImGui::CalcItemWidth());
+
+			for (int i = 0; i < N; i++)
+			{
+				ImGui::PushID(i);
+				if (i > 0)
+					ImGui::SameLine(0, style.ItemInnerSpacing.x);
+
+				ImGui::Checkbox("##vectornb", reinterpret_cast<bool*>(data) + i);
+				ImGui::PopID();
+				ImGui::PopItemWidth();
+			}
+
+			ImGui::PopID();
+			ImGui::EndGroup();
+		}
 	}
 
-	static inline void render_default_vector2b(VisualMaterialGraph::Pin* pin)
+	template<int N, ImGuiDataType T>
+	static void render_vector_nt(void* data)
 	{
-		render_default_vector_nb("##vector2b", reinterpret_cast<bool*>(pin->default_value()->address()), 2);
+		ImGui::InputScalarN("###vector_nt", T, data, N);
 	}
 
-	static inline void render_default_vector3b(VisualMaterialGraph::Pin* pin)
-	{
-		render_default_vector_nb("##vector3b", reinterpret_cast<bool*>(pin->default_value()->address()), 3);
-	}
-
-	static inline void render_default_vector4b(VisualMaterialGraph::Pin* pin)
-	{
-		render_default_vector_nb("##vector4b", reinterpret_cast<bool*>(pin->default_value()->address()), 4);
-	}
-
-	static void render_default_vector1i(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector1i", ImGuiDataType_S32, ptr, 1);
-	}
-
-	static void render_default_vector2i(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector2i", ImGuiDataType_S32, ptr, 2);
-	}
-
-	static void render_default_vector3i(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector3i", ImGuiDataType_S32, ptr, 3);
-	}
-
-	static void render_default_vector4i(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector4i", ImGuiDataType_S32, ptr, 4);
-	}
-
-	static void render_default_vector1u(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector1u", ImGuiDataType_U32, ptr, 1);
-	}
-
-	static void render_default_vector2u(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector2u", ImGuiDataType_U32, ptr, 2);
-	}
-
-	static void render_default_vector3u(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector3u", ImGuiDataType_U32, ptr, 3);
-	}
-
-	static void render_default_vector4u(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector4u", ImGuiDataType_U32, ptr, 4);
-	}
-
-	static void render_default_vector1f(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector1f", ImGuiDataType_Float, ptr, 1);
-	}
-
-	static void render_default_vector2f(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector2f", ImGuiDataType_Float, ptr, 2);
-	}
-
-	static void render_default_vector3f(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector3f", ImGuiDataType_Float, ptr, 3);
-	}
-
-	static void render_default_vector4f(VisualMaterialGraph::Pin* pin)
-	{
-		void* ptr = pin->default_value()->address();
-		ImGui::InputScalarN("###vector4f", ImGuiDataType_Float, ptr, 4);
-	}
-
-	static void render_default_matrix3f(VisualMaterialGraph::Pin* pin)
-	{
-		ImGui::InputScalarN("", ImGuiDataType_Float, pin->default_value()->address(), 1);
-	}
-
-	static void render_default_matrix4f(VisualMaterialGraph::Pin* pin)
-	{
-		ImGui::InputScalarN("", ImGuiDataType_Float, pin->default_value()->address(), 1);
-	}
-
-	static void (*s_default_type_renderers[17])(VisualMaterialGraph::Pin* pin) = {nullptr};
-
-	// static void render_default_matrix3f(VisualMaterialGraph::Pin* pin)
-	// {
-	// 	float* value = static_cast<float*>(pin->default_value());
-	// 	for (int i = 0; i < 3; ++i)
-	// 	{
-	// 		ImGui::InputFloat3(("##matrix3f_row" + std::to_string(i)).c_str(), &value[i * 3]);
-	// 	}
-	// }
-
-	// static void render_default_matrix4f(VisualMaterialGraph::Pin* pin)
-	// {
-	// 	float* value = static_cast<float*>(pin->default_value());
-	// 	for (int i = 0; i < 4; ++i)
-	// 	{
-	// 		ImGui::InputFloat4(("##matrix4f_row" + std::to_string(i)).c_str(), &value[i * 4]);
-	// 	}
-	// }
+	static void (*s_default_type_renderers[17])(void* value) = {nullptr};
 
 	static void show_label(const char* label, ImColor color)
 	{
@@ -203,7 +106,6 @@ namespace Engine
 		drawList->AddRectFilled(rectMin, rectMax, color, size.y * 0.15f);
 		ImGui::TextUnformatted(label);
 	};
-
 
 	static bool match_filter(Refl::Struct* self, const String& filter)
 	{
@@ -421,15 +323,9 @@ namespace Engine
 		return *this;
 	}
 
-	VisualMaterialEditorClient& VisualMaterialEditorClient::render_default_pin_value(VisualMaterialGraph::Pin* pin)
-	{
-		return *this;
-	}
-
 	VisualMaterialEditorClient& VisualMaterialEditorClient::render_graph()
 	{
 		static BlueprintBuilder builder;
-
 		float text_height                        = ImGui::GetTextLineHeightWithSpacing();
 		float item_spacing                       = ImGui::GetStyle().ItemSpacing.x;
 		VisualMaterialGraph::Node* selected_node = nullptr;
@@ -478,22 +374,28 @@ namespace Engine
 
 				ImGui::Text("%s", input->name().c_str());
 
+				ImGui::Spring(1.f, 0.f);
+				ImGui::Dummy({ImGui::GetTextLineHeight(), 0.f});
+
 				if (input->linked_pin() == nullptr)
 				{
 					if (auto default_value = input->default_value())
 					{
 						VerticalLayout layout;
-						ImGui::PushItemWidth(180.f);
-						s_default_type_renderers[default_value->type().type_index()](input);
-						ImGui::PopItemWidth();
+						s_default_type_renderers[default_value->type().type_index()](input->default_value()->address());
 					}
 				}
+
+				ImGui::Spring(0.f, 0.f);
 				builder.end_input();
 			}
+
+			ImGui::Dummy({ImGui::GetTextLineHeightWithSpacing(), 0.f});
 
 			// Content rendering
 			builder.begin_middle();
 			{
+				render_properties(node);
 			}
 
 			// Outputs rendering
@@ -505,7 +407,7 @@ namespace Engine
 				{
 					VerticalLayout layout;
 					ImGui::PushItemWidth(180.f);
-					s_default_type_renderers[default_value->type().type_index()](output);
+					s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
 					ImGui::PopItemWidth();
 				}
 
@@ -627,14 +529,29 @@ namespace Engine
 		return *this;
 	}
 
+	bool VisualMaterialEditorClient::render_properties(VisualMaterialGraph::Node* node)
+	{
+		if (!m_property_renderer.properties_map(node->class_instance()).empty())
+		{
+			float width = glm::max(ImGui::TableGetAutoWidth("###properties"), 1.f);
+
+			ImGui::BeginTable("###properties", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders, {width, 0.f});
+			m_property_renderer.render_struct_properties(node, node->class_instance(), false);
+			ImGui::EndTable();
+			return false;
+		}
+
+		return false;
+	}
+
 	VisualMaterialEditorClient& VisualMaterialEditorClient::render_spawn_node_window()
 	{
 		if (!m_create_node_ctx.is_active)
 			return *this;
 
 		ed::Suspend();
-
 		ImGui::SetNextWindowSizeConstraints({}, {300, 500});
+
 		if ((m_create_node_ctx.is_active = ImGui::BeginPopup("###SpawnNode")))
 		{
 			ImGui::Dummy({200, 0});
@@ -1025,25 +942,25 @@ namespace Engine
 	{
 		using T = ShaderParameterType;
 
-		s_default_type_renderers[T(T::Bool).type_index()]  = render_default_vector1b;
-		s_default_type_renderers[T(T::Bool2).type_index()] = render_default_vector2b;
-		s_default_type_renderers[T(T::Bool3).type_index()] = render_default_vector3b;
-		s_default_type_renderers[T(T::Bool4).type_index()] = render_default_vector4b;
+		s_default_type_renderers[T(T::Bool).type_index()]  = render_vector_nb<1>;
+		s_default_type_renderers[T(T::Bool2).type_index()] = render_vector_nb<2>;
+		s_default_type_renderers[T(T::Bool3).type_index()] = render_vector_nb<3>;
+		s_default_type_renderers[T(T::Bool4).type_index()] = render_vector_nb<4>;
 
-		s_default_type_renderers[T(T::Int).type_index()]  = render_default_vector1i;
-		s_default_type_renderers[T(T::Int2).type_index()] = render_default_vector2i;
-		s_default_type_renderers[T(T::Int3).type_index()] = render_default_vector3i;
-		s_default_type_renderers[T(T::Int4).type_index()] = render_default_vector4i;
+		s_default_type_renderers[T(T::Int).type_index()]  = render_vector_nt<1, ImGuiDataType_S32>;
+		s_default_type_renderers[T(T::Int2).type_index()] = render_vector_nt<2, ImGuiDataType_S32>;
+		s_default_type_renderers[T(T::Int3).type_index()] = render_vector_nt<3, ImGuiDataType_S32>;
+		s_default_type_renderers[T(T::Int4).type_index()] = render_vector_nt<4, ImGuiDataType_S32>;
 
-		s_default_type_renderers[T(T::UInt).type_index()]  = render_default_vector1u;
-		s_default_type_renderers[T(T::UInt2).type_index()] = render_default_vector2u;
-		s_default_type_renderers[T(T::UInt3).type_index()] = render_default_vector3u;
-		s_default_type_renderers[T(T::UInt4).type_index()] = render_default_vector4u;
+		s_default_type_renderers[T(T::UInt).type_index()]  = render_vector_nt<1, ImGuiDataType_U32>;
+		s_default_type_renderers[T(T::UInt2).type_index()] = render_vector_nt<2, ImGuiDataType_U32>;
+		s_default_type_renderers[T(T::UInt3).type_index()] = render_vector_nt<3, ImGuiDataType_U32>;
+		s_default_type_renderers[T(T::UInt4).type_index()] = render_vector_nt<4, ImGuiDataType_U32>;
 
-		s_default_type_renderers[T(T::Float).type_index()]  = render_default_vector1f;
-		s_default_type_renderers[T(T::Float2).type_index()] = render_default_vector2f;
-		s_default_type_renderers[T(T::Float3).type_index()] = render_default_vector3f;
-		s_default_type_renderers[T(T::Float4).type_index()] = render_default_vector4f;
+		s_default_type_renderers[T(T::Float).type_index()]  = render_vector_nt<1, ImGuiDataType_Float>;
+		s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float>;
+		s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float>;
+		s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float>;
 	}
 
 	static PreInitializeController preinit(pre_initialize);

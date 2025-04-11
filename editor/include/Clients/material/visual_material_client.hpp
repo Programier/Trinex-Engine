@@ -1,4 +1,5 @@
 #include <Clients/material/material_client.hpp>
+#include <Widgets/property_renderer.hpp>
 
 namespace ax::NodeEditor
 {
@@ -20,6 +21,7 @@ namespace Engine
 		trinex_declare_class(VisualMaterialEditorClient, MaterialEditorClient);
 
 	private:
+		PropertyRenderer m_property_renderer;
 		ax::NodeEditor::EditorContext* m_context = nullptr;
 		Pointer<VisualMaterial> m_material;
 
@@ -36,8 +38,8 @@ namespace Engine
 
 		VisualMaterialEditorClient& open_spawn_node_window(VisualMaterialGraph::Pin* pin = nullptr);
 
-		VisualMaterialEditorClient& render_default_pin_value(VisualMaterialGraph::Pin* pin);
 		VisualMaterialEditorClient& render_graph();
+		bool render_properties(VisualMaterialGraph::Node* node);
 		VisualMaterialEditorClient& render_spawn_node_window();
 
 		VisualMaterialEditorClient& update_create_events();

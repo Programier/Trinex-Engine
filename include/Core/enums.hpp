@@ -702,6 +702,7 @@ namespace Engine
 			META_Vector  = BIT(26),
 			META_Matrix  = BIT(27),
 			META_Numeric = META_Scalar | META_Vector,
+			META_Any     = 65535U << 16,
 
 			// Values
 			Bool        = 1 | META_Scalar | META_UniformBuffer,

@@ -157,6 +157,8 @@ namespace Engine
 }// namespace Engine
 
 
+struct ImGuiWindow;
+
 namespace ImGui
 {
 	void TextEllipsis(const char* text, float max_width);
@@ -176,6 +178,12 @@ namespace ImGui
 
 	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open = NULL, ImGuiWindowFlags flags = 0,
 			   ImVec2 uv0 = ImVec2(0, 0), ImVec2 uv1 = ImVec2(1, 1));
+	void SetWindowSurface(Engine::RenderSurface* surface, ImVec2 uv0 = ImVec2(0, 0), ImVec2 uv1 = ImVec2(1, 1));
+	void SetWindowSurface(ImGuiWindow* window, Engine::RenderSurface* surface, ImVec2 uv0 = ImVec2(0, 0),
+						  ImVec2 uv1 = ImVec2(1, 1));
+
+	float TableGetAutoWidth(const char* name);
+	float TableGetAutoWidth(ImGuiID table_id);
 
 	FORCE_INLINE ImVec2 ImVecFrom(const Engine::Vector2f& vec)
 	{

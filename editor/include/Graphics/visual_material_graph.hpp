@@ -24,30 +24,39 @@ namespace Engine::VisualMaterialGraph
 		static Expression static_zero(ShaderParameterType type);
 		static Expression static_half(ShaderParameterType type);
 		static Expression static_one(ShaderParameterType type);
+		static Expression static_convert(const Expression& expression, ShaderParameterType type);
+
 		static ShaderParameterType static_component_type_of(ShaderParameterType type);
 		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2);
 		static String static_typename_of(ShaderParameterType type);
-		static Expression static_convert(const Expression& expression, ShaderParameterType type);
 		static bool is_compatible_types(ShaderParameterType src, ShaderParameterType dst);
 
+		static ShaderParameterType static_make_float(ShaderParameterType self);
+		static ShaderParameterType static_vector_clamp(ShaderParameterType self, byte min, byte max);
+		static inline ShaderParameterType static_make_vector(ShaderParameterType self, byte len) { return self.make_vector(len); }
+		static inline ShaderParameterType static_make_scalar(ShaderParameterType self) { return self.make_scalar(); }
+		static inline bool static_is_scalar(ShaderParameterType self) { return self.is_scalar(); }
+		static inline bool static_is_vector(ShaderParameterType self) { return self.is_vector(); }
+		static inline bool static_is_matrix(ShaderParameterType self) { return self.is_matrix(); }
+		static inline bool static_is_numeric(ShaderParameterType self) { return self.is_numeric(); }
+		static inline bool static_is_meta(ShaderParameterType self) { return self.is_meta(); }
+		static inline uint16_t static_type_index(ShaderParameterType self) { return self.type_index(); }
+		static inline byte static_vector_length(ShaderParameterType self) { return self.vector_length(); }
 
 		inline Expression() : type(ShaderParameterType::Undefined) {}
 		Expression(ShaderParameterType type, const char* value) : type(type), value(value) {}
 		Expression(ShaderParameterType type, String&& value) : type(type), value(std::move(value)) {}
 		Expression(ShaderParameterType type, const String& value) : type(type), value(value) {}
 
-		explicit Expression(bool value) : type(ShaderParameterType::Bool), value(value ? "true" : "false") {}
-		explicit Expression(float value) : type(ShaderParameterType::Float), value(Strings::format("{:.f}f", value)) {}
-		explicit Expression(double value) : type(ShaderParameterType::Float), value(Strings::format("{:.f}f", value)) {}
-		explicit Expression(int32_t value) : type(ShaderParameterType::Int), value(Strings::format("{}", value)) {}
-		explicit Expression(uint32_t value) : type(ShaderParameterType::UInt), value(Strings::format("{}", value)) {}
-
 		Expression x() const;
 		Expression y() const;
 		Expression z() const;
 		Expression w() const;
 
-		FORCE_INLINE Expression convert(ShaderParameterType type) const { return static_convert(*this, type); }
+		Expression convert(ShaderParameterType dst) const;
+		Expression vector_length() const;
+		inline Expression to_floating() const { return convert(static_make_float(type)); }
+
 		FORCE_INLINE bool is_valid() const { return type != ShaderParameterType::Undefined; }
 		FORCE_INLINE Expression& clear()
 		{
@@ -59,21 +68,40 @@ namespace Engine::VisualMaterialGraph
 
 	class Compiler
 	{
+	public:
+		enum Stage
+		{
+			Vertex   = 0,
+			Fragment = 1,
+		};
+
+	private:
 		Map<Pin*, Expression> m_expression;
 
-		Vector<String> m_globals;
-		Vector<String> m_locals;
-
-		static String compile_expressions(const Vector<String>& expression, size_t tabs);
+		Set<String> m_includes;
+		Set<String> m_globals;
+		Vector<String> m_stage_locals[2];
+		Stage m_stage = Vertex;
 
 	public:
+		Compiler& add_include(const StringView& include);
+		Expression make_variable(ShaderParameterType type);
 		Expression make_variable(const Expression& expression);
 		Expression compile_default(Pin* pin);
 		Expression compile(InputPin* pin);
 		Expression compile(OutputPin* pin);
 
+		String compile_includes(size_t tabs = 0) const;
 		String compile_global_expressions(size_t tabs = 0) const;
 		String compile_local_expressions(size_t tabs = 1) const;
+
+		inline Compiler& stage(Stage stage)
+		{
+			m_stage = stage;
+			return *this;
+		}
+
+		inline Stage stage() const { return m_stage; }
 	};
 
 	class Pin
@@ -84,6 +112,12 @@ namespace Engine::VisualMaterialGraph
 			virtual ShaderParameterType type() const = 0;
 			virtual Expression compile() const       = 0;
 			virtual ~DefaultValue()                  = default;
+
+			template<typename T>
+			inline T& ref()
+			{
+				return *reinterpret_cast<T*>(address());
+			}
 		};
 
 	private:
@@ -203,5 +237,7 @@ namespace Engine::VisualMaterialGraph
 		InputPin* const position_offset;
 
 		MaterialRoot();
+		using Node::compile;
+		Expression compile(InputPin* pin, Compiler& compiler);
 	};
 }// namespace Engine::VisualMaterialGraph
