@@ -29,8 +29,8 @@ namespace Engine
 			alignas(4) float fov;
 			alignas(4) float ortho_width;
 			alignas(4) float ortho_height;
-			alignas(4) float near_clip_plane;
-			alignas(4) float far_clip_plane;
+			alignas(4) float near;
+			alignas(4) float far;
 			alignas(4) float aspect_ratio;
 			alignas(4) int projection_mode;
 		};

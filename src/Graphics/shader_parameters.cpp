@@ -37,8 +37,8 @@ namespace Engine
 			camera.fov             = camera_view.fov;
 			camera.ortho_width     = camera_view.ortho_width;
 			camera.ortho_height    = camera_view.ortho_height;
-			camera.near_clip_plane = camera_view.near_clip_plane;
-			camera.far_clip_plane  = camera_view.far_clip_plane;
+			camera.near            = camera_view.near_clip_plane;
+			camera.far             = camera_view.far_clip_plane;
 			camera.aspect_ratio    = camera_view.aspect_ratio;
 			camera.projection_mode = static_cast<Camera::Projection>(camera_view.projection_mode);
 		}

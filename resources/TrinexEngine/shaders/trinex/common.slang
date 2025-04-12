@@ -25,8 +25,8 @@ struct GlobalParameters
 		float fov;
 		float ortho_width;
 		float ortho_height;
-		float near_clip_plane;
-		float far_clip_plane;
+		float near;
+		float far;
 		float aspect_ratio;
 		Projection projection_mode;
 	};
@@ -46,8 +46,8 @@ struct GlobalParameters
 
 	float2 normalize_screen_space_uv(float2 uv)
     {
-        float2 uv0 = viewport.size / render_target_size;
-		float2 uv1 = (viewport.size + viewport.pos) / render_target_size;
+        float2 uv0 = viewport.pos / render_target_size;
+		float2 uv1 = (viewport.pos + viewport.size) / render_target_size;
 		return (uv * (uv1 - uv0)) + uv0;
     }
 };

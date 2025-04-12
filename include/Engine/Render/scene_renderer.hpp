@@ -25,6 +25,7 @@ namespace Engine
 	class ClearPass;
 	class DepthPass;
 	class GeometryPass;
+	class AmbientLightingPass;
 	class DeferredLightingPass;
 	class PostProcessPass;
 	class OverlayPass;
@@ -128,6 +129,7 @@ namespace Engine
 		ShadowPass* m_shadow_pass                      = nullptr;
 		ClearPass* m_clear_pass                        = nullptr;
 		GeometryPass* m_geometry_pass                  = nullptr;
+		AmbientLightingPass* m_ambient_lighting_pass   = nullptr;
 		DeferredLightingPass* m_deferred_lighting_pass = nullptr;
 		PostProcessPass* m_post_process_pass           = nullptr;
 		OverlayPass* m_overlay_pass                    = nullptr;
@@ -139,15 +141,11 @@ namespace Engine
 		virtual ColorSceneRenderer& finalize_subrenderers();
 
 		FORCE_INLINE ShadowPass* shadow_pass() const { return m_shadow_pass; }
-
 		FORCE_INLINE ClearPass* clear_pass() const { return m_clear_pass; }
-
+		FORCE_INLINE AmbientLightingPass* ambient_lighting_pass() const { return m_ambient_lighting_pass; }
 		FORCE_INLINE GeometryPass* geometry_pass() const { return m_geometry_pass; }
-
 		FORCE_INLINE DeferredLightingPass* deferred_lighting_pass() const { return m_deferred_lighting_pass; }
-
 		FORCE_INLINE PostProcessPass* post_process_pass() const { return m_post_process_pass; }
-
 		FORCE_INLINE OverlayPass* overlay_pass() const { return m_overlay_pass; }
 
 		// Components rendering

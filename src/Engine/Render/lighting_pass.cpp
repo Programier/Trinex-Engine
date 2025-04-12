@@ -211,6 +211,36 @@ namespace Engine
 		return *this;
 	}
 
+	trinex_impl_render_pass(Engine::AmbientLightingPass) {}
+
+	bool AmbientLightingPass::is_empty() const
+	{
+		return scene_renderer()->view_mode() != ViewMode::Lit;
+	}
+
+
+	AmbientLightingPass& AmbientLightingPass::render(RenderViewport* vp)
+	{
+		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
+
+		auto pipeline = Pipelines::AmbientLight::instance();
+		pipeline->rhi_bind();
+
+		auto rt       = SceneRenderTargets::instance();
+		auto renderer = scene_renderer();
+
+		renderer->bind_global_parameters(pipeline->globals->location);
+		rhi->update_scalar_parameter(&renderer->scene->environment.ambient_color, pipeline->ambient_color);
+
+		bind_scene_render_target(rt, SceneRenderTargets::BaseColor, pipeline->base_color->location);
+		bind_scene_render_target(rt, SceneRenderTargets::MSRA, pipeline->msra->location);
+
+		rhi->draw(6, 0);
+
+		Super::render(vp);
+		return *this;
+	}
+
 	LightingPass& LightingPass::initialize()
 	{
 		using namespace Pipelines;
@@ -341,32 +371,6 @@ namespace Engine
 	DeferredLightingPass& DeferredLightingPass::render(RenderViewport* vp)
 	{
 		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
-
-		auto renderer = scene_renderer();
-
-		if (renderer->view_mode() == ViewMode::Unlit)
-		{
-		}
-		else if (renderer->view_mode() == ViewMode::Lit)
-		{
-			static Name name_ambient_color = "ambient_color";
-			Material* material             = DefaultResources::Materials::ambient_light;
-
-			if (material)
-			{
-				auto ambient_param =
-						Object::instance_cast<MaterialParameters::Float3>(material->find_parameter(name_ambient_color));
-
-				if (ambient_param)
-				{
-					ambient_param->value = renderer->scene->environment.ambient_color;
-				}
-
-				material->apply(nullptr, this);
-				rhi->draw(6, 0);
-			}
-		}
-
 		Super::render(vp);
 		return *this;
 	}

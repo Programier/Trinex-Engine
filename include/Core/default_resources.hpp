@@ -33,7 +33,6 @@ namespace Engine
 			ENGINE_EXPORT extern Material* sprite;
 			ENGINE_EXPORT extern Material* screen;
 			ENGINE_EXPORT extern Material* base_pass;
-			ENGINE_EXPORT extern Material* ambient_light;
 		}// namespace Materials
 
 		namespace Meshes

@@ -195,6 +195,14 @@ namespace Engine
 
 			DeferredDirectionalLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
+
+		trinex_declare_graphics_pipeline(AmbientLight,
+		public:
+			const ShaderParameterInfo* globals       = nullptr;
+			const ShaderParameterInfo* base_color    = nullptr;
+			const ShaderParameterInfo* msra          = nullptr;
+			const ShaderParameterInfo* ambient_color = nullptr;
+		);
 		// clang-format on
 	}// namespace Pipelines
 }// namespace Engine

@@ -324,4 +324,15 @@ namespace Engine::Pipelines
 		LightingPass::static_info()->modify_shader_compilation_env(env);
 		return *this;
 	}
+
+	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/ambient_light.slang",
+							  ShaderType::BasicGraphics)
+	{
+		setup_lighting_pipeline_state(this);
+
+		globals       = find_param_info("globals");
+		base_color    = find_param_info("base_color");
+		msra          = find_param_info("msra");
+		ambient_color = find_param_info("ambient_color");
+	}
 }// namespace Engine::Pipelines

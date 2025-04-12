@@ -314,6 +314,7 @@ namespace Engine
 		m_shadow_pass            = create_pass<ShadowPass>();
 		m_clear_pass             = create_pass<ClearPass>();
 		m_geometry_pass          = create_pass<GeometryPass>();
+		m_ambient_lighting_pass  = create_pass<AmbientLightingPass>();
 		m_deferred_lighting_pass = create_pass<DeferredLightingPass>();
 		m_post_process_pass      = create_pass<PostProcessPass>();
 		m_overlay_pass           = create_pass<OverlayPass>();

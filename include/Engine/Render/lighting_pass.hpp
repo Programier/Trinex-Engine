@@ -34,6 +34,15 @@ namespace Engine
 		ShadowedLightingPass& add_deferred_light(DirectionalLightComponent* spotlight);
 	};
 
+	class AmbientLightingPass : public RenderPass
+	{
+		trinex_render_pass(AmbientLightingPass, RenderPass);
+
+	public:
+		bool is_empty() const override;
+		AmbientLightingPass& render(RenderViewport* vp) override;
+	};
+
 	class LightingPass : public RenderPass
 	{
 		trinex_render_pass(LightingPass, RenderPass);
