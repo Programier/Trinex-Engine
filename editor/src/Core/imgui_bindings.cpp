@@ -1287,7 +1287,8 @@ namespace Engine
 			r.property("float LogSliderDeadzone", &ImGuiStyle::LogSliderDeadzone);
 			r.property("float TabRounding", &ImGuiStyle::TabRounding);
 			r.property("float TabBorderSize", &ImGuiStyle::TabBorderSize);
-			r.property("float TabMinWidthForCloseButton", &ImGuiStyle::TabMinWidthForCloseButton);
+			r.property("float TabCloseButtonMinWidthSelected", &ImGuiStyle::TabCloseButtonMinWidthSelected);
+			r.property("float TabCloseButtonMinWidthUnselected", &ImGuiStyle::TabCloseButtonMinWidthUnselected);
 			r.property("float TabBarBorderSize", &ImGuiStyle::TabBarBorderSize);
 			r.property("float TableAngledHeadersAngle", &ImGuiStyle::TableAngledHeadersAngle);
 			r.property("ImGuiDir ColorButtonPosition", &ImGuiStyle::ColorButtonPosition);

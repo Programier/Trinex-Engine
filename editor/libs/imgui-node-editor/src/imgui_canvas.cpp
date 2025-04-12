@@ -158,7 +158,7 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
         auto canvas = reinterpret_cast< Canvas * >( hook->UserData );
         if ( canvas->m_SuspendCounter == 0 )
         {
-            if ( ( context->NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos ) != 0 )
+            if ( ( context->NextWindowData.HasFlags & ImGuiNextWindowDataFlags_HasPos ) != 0 )
             {
                 auto pos = canvas->FromLocal( context->NextWindowData.PosVal );
                 ImGui::SetNextWindowPos( pos, context->NextWindowData.PosCond, context->NextWindowData.PosPivotVal );
