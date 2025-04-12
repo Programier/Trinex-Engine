@@ -584,8 +584,8 @@ namespace Engine
 	struct MaterialDomain {
 		enum Enum : EnumerateType
 		{
-			Surface  = 0,
-			Lighting = 1,
+			Surface     = 0,
+			PostProcess = 1,
 		};
 
 		trinex_enum_struct(MaterialDomain);

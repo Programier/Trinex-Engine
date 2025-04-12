@@ -69,9 +69,9 @@ namespace Engine
 		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
 		Materials::screen         = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
 		Materials::base_pass      = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
-		//Meshes::cube                 = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
-		//Meshes::sphere               = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
-		//Meshes::cylinder             = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
+		Meshes::cube              = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
+		Meshes::sphere            = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
+		Meshes::cylinder          = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
 
 		Buffers::screen_quad = allocate<PositionVertexBuffer>(std::initializer_list<Vector3f>{
 				Vector3f{-1.f, -1.f, 0.0f},

@@ -155,6 +155,18 @@ namespace Engine
 
 	bool VertexBufferBase::serialize(Archive& ar)
 	{
+		bool has_data = m_data != nullptr;
+		ar.serialize(m_type, m_stride, m_vtx_count, has_data);
+
+		if (has_data)
+		{
+			if (ar.is_reading())
+			{
+				allocate_data(m_type, m_stride, m_vtx_count);
+			}
+
+			ar.serialize_memory(m_data, size());
+		}
 		return ar;
 	}
 
@@ -338,7 +350,7 @@ namespace Engine
 				allocate_data(m_type, m_format, m_idx_count);
 			}
 
-			ar.write_data(m_data, size());
+			ar.serialize_memory(m_data, size());
 		}
 		return ar;
 	}

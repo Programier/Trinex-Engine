@@ -21,9 +21,6 @@ namespace Engine
 {
 	static bool is_support_lighting_pass(const Material* material)
 	{
-		if (material->domain == MaterialDomain::Lighting)
-			return true;
-
 		return false;
 	}
 

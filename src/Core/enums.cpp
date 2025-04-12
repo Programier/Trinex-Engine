@@ -50,7 +50,7 @@ namespace Engine
 	trinex_implement_engine_enum(ColorFormat, Undefined, FloatR, FloatRGBA, R8, R8G8B8A8, Depth, DepthStencil, ShadowDepth, BC1,
 								 BC2, BC3);
 
-	trinex_implement_engine_enum(MaterialDomain, Surface, Lighting);
+	trinex_implement_engine_enum(MaterialDomain, Surface, PostProcess);
 	trinex_implement_engine_enum(SplashTextType, StartupProgress, VersionInfo, CopyrightInfo, GameName);
 	trinex_implement_engine_enum(MaterialOptions, DefaultPassOnly, DisableDefaultPass, LightMaterial);
 
