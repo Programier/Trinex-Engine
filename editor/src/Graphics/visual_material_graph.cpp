@@ -766,11 +766,7 @@ namespace Engine::VisualMaterialGraph
 		opacity->default_value()->ref<float>()   = 1.0f;
 		specular->default_value()->ref<float>()  = 0.5f;
 		normal->default_value()->ref<Vector3f>() = {0.5f, 0.5f, 1.0f};
-	}
-
-	Expression MaterialRoot::compile(InputPin* pin, Compiler& compiler)
-	{
-		return compiler.compile(pin);
+		ao->default_value()->ref<float>()        = 1.f;
 	}
 
 	static void script_class_node_group(Refl::Class* self, const String& group_name)

@@ -1,5 +1,20 @@
 namespace Engine::VisualMaterialGraph
 {
+	class CommonInput : Node
+	{
+		CommonInput(ShaderParameterType type)
+		{
+			new_output("Out", type);
+		}
+
+		string expr() const { return ""; }
+
+		Expression compile(OutputPin@ pin, Compiler@ compiler) override 
+		{ 
+			return Expression(pin.type(), expr());
+		}
+	};
+
 	class Constant : Node
 	{
 		Constant(ShaderParameterType type)
@@ -177,6 +192,146 @@ namespace Engine::VisualMaterialGraph
 	[node_group("Constants")] class ConstantFloat3 : Constant { ConstantFloat3() { super(ShaderParameterType::Float3); } };
 	[node_group("Constants")] class ConstantFloat4 : Constant { ConstantFloat4() { super(ShaderParameterType::Float4); } };
 
+	/////////////////////////////// INPUTS ///////////////////////////////
+
+	[node_group("Inputs")] class Projection : CommonInput 
+	{ 
+		Projection() { super(ShaderParameterType::Float4x4); } 
+		string expr() const override { return "globals.projection"; }	
+	};
+
+	[node_group("Inputs")] class View : CommonInput 
+	{ 
+		View() { super(ShaderParameterType::Float4x4); } 
+		string expr() const override { return "globals.view"; }	
+	};
+
+	[node_group("Inputs")] class ProjView : CommonInput 
+	{ 
+		ProjView() { super(ShaderParameterType::Float4x4); } 
+		string expr() const override { return "globals.projview"; }	
+	};
+
+	[node_group("Inputs")] class InvProjView : CommonInput 
+	{ 
+		InvProjView() { super(ShaderParameterType::Float4x4); } 
+		string expr() const override { return "globals.inv_projview"; }	
+	};
+
+	[node_group("Inputs")] class ViewportPos : CommonInput 
+	{ 
+		ViewportPos() { super(ShaderParameterType::Float2); } 
+		string expr() const override { return "globals.viewport.pos"; }
+	};
+
+	[node_group("Inputs")] class ViewportSize : CommonInput 
+	{ 
+		ViewportSize() { super(ShaderParameterType::Float2); } 
+		string expr() const override { return "globals.viewport.size"; }
+	};
+
+	[node_group("Inputs")] class CameraLocation : CommonInput 
+	{ 
+		CameraLocation() { super(ShaderParameterType::Float3); } 
+		string expr() const override { return "globals.camera.location"; }
+	};
+
+	[node_group("Inputs")] class CameraForward : CommonInput 
+	{ 
+		CameraForward() { super(ShaderParameterType::Float3); } 
+		string expr() const override { return "globals.camera.forward"; }
+	};
+
+	[node_group("Inputs")] class CameraRight : CommonInput 
+	{ 
+		CameraRight() { super(ShaderParameterType::Float3); } 
+		string expr() const override { return "globals.camera.rigth"; }
+	};
+
+	[node_group("Inputs")] class CameraUp : CommonInput 
+	{ 
+		CameraUp() { super(ShaderParameterType::Float3); } 
+		string expr() const override { return "globals.camera.up"; }
+	};
+
+	[node_group("Inputs")] class CameraFov : CommonInput 
+	{ 
+		CameraFov() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.camera.fov"; }
+	};
+
+	[node_group("Inputs")] class CameraOrthoWidth : CommonInput 
+	{ 
+		CameraOrthoWidth() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.camera.ortho_width"; }
+	};
+
+	[node_group("Inputs")] class CameraOrthoHeight : CommonInput 
+	{ 
+		CameraOrthoHeight() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.camera.ortho_height"; }
+	};
+
+	[node_group("Inputs")] class CameraNear : CommonInput 
+	{ 
+		CameraNear() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.camera.near"; }
+	};
+
+	[node_group("Inputs")] class CameraFar : CommonInput 
+	{ 
+		CameraFar() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.camera.far"; }
+	};
+
+	[node_group("Inputs")] class CameraAspect : CommonInput 
+	{ 
+		CameraAspect() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.camera.aspect_ratio"; }
+	};
+
+	[node_group("Inputs")] class RenderTargetSize : CommonInput 
+	{ 
+		RenderTargetSize() { super(ShaderParameterType::Float2); } 
+		string expr() const override { return "globals.render_target_size"; }
+	};
+
+	[node_group("Inputs")] class DepthRange : Node
+	{ 
+		DepthRange()
+		{
+			new_output("Min", ShaderParameterType::Float);
+			new_output("Max", ShaderParameterType::Float);
+		} 
+
+		Expression compile(OutputPin@ pin, Compiler@ compiler)
+		{
+			if(pin.index() == 0)
+			{
+				return Expression(ShaderParameterType::Float, "globals.viewport.min_depth");
+			}
+
+			return Expression(ShaderParameterType::Float, "globals.viewport.max_depth");
+		}
+	};
+
+	[node_group("Inputs")] class Gamma : CommonInput
+	{
+		Gamma() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.gamma"; }
+	};
+
+	[node_group("Inputs")] class Time : CommonInput
+	{
+		Time() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.time"; }
+	};
+
+	[node_group("Inputs")] class DeltaTime : CommonInput
+	{
+		DeltaTime() { super(ShaderParameterType::Float); } 
+		string expr() const override { return "globals.delta_time"; }
+	};
 
 	/////////////////////////////// MATH ///////////////////////////////
 
@@ -321,8 +476,8 @@ namespace Engine::VisualMaterialGraph
 
 		Expression compile3(Compiler@ compiler)
 		{
-			Expression in0 = compiler.compile(m_in0).vector_length();
-			Expression in1 = compiler.compile(m_in1).vector_length();
+			Expression in0 = compiler.make_variable(compiler.compile(m_in0).vector_length());
+			Expression in1 = compiler.make_variable(compiler.compile(m_in1).vector_length());
 
 			Expression in2 = compiler.compile(m_in2);
 			Expression in3 = compiler.compile(m_in3);

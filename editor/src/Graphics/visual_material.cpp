@@ -103,7 +103,7 @@ namespace Engine
 											  "\tmaterial.position_offset = {1};\n";
 
 		compiler.stage(VisualMaterialGraph::Compiler::Vertex);
-		auto position_offset = root->compile(root->position_offset, compiler);
+		auto position_offset = compiler.compile(root->position_offset);
 
 		if (!(position_offset.is_valid()))
 			return false;
@@ -132,17 +132,17 @@ namespace Engine
 											  "\tmaterial.opacity = {6};\n"
 											  "\tmaterial.AO = {7};\n"
 											  "\tmaterial.normal = {8};\n"
-											  "\tmaterial.position_offset   = float3(0.f, 0.f, 0.f);\n";
+											  "\tmaterial.position_offset = float3(0.f, 0.f, 0.f);\n";
 
 		compiler.stage(VisualMaterialGraph::Compiler::Fragment);
-		auto base_color = root->compile(root->base_color, compiler);
-		auto emissive   = root->compile(root->emissive, compiler);
-		auto specular   = root->compile(root->specular, compiler);
-		auto metalness  = root->compile(root->metalness, compiler);
-		auto roughness  = root->compile(root->roughness, compiler);
-		auto opacity    = root->compile(root->opacity, compiler);
-		auto AO         = root->compile(root->ao, compiler);
-		auto normal     = root->compile(root->normal, compiler);
+		auto base_color = compiler.compile(root->base_color);
+		auto emissive   = compiler.compile(root->emissive);
+		auto specular   = compiler.compile(root->specular);
+		auto metalness  = compiler.compile(root->metalness);
+		auto roughness  = compiler.compile(root->roughness);
+		auto opacity    = compiler.compile(root->opacity);
+		auto AO         = compiler.compile(root->ao);
+		auto normal     = compiler.compile(root->normal);
 
 		if (!is_valid_expressions(base_color, emissive, specular, metalness, roughness, opacity, AO, normal))
 			return false;

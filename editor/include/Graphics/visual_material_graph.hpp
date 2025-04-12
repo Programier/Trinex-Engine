@@ -215,8 +215,8 @@ namespace Engine::VisualMaterialGraph
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
 
 		inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
-		inline Vector<InputPin*> inputs() const { return m_inputs; }
-		inline Vector<OutputPin*> outputs() const { return m_outputs; }
+		inline const Vector<InputPin*>& inputs() const { return m_inputs; }
+		inline const Vector<OutputPin*>& outputs() const { return m_outputs; }
 
 		~Node();
 	};
@@ -237,7 +237,5 @@ namespace Engine::VisualMaterialGraph
 		InputPin* const position_offset;
 
 		MaterialRoot();
-		using Node::compile;
-		Expression compile(InputPin* pin, Compiler& compiler);
 	};
 }// namespace Engine::VisualMaterialGraph

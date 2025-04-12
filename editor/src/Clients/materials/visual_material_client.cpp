@@ -81,13 +81,51 @@ namespace Engine
 		}
 	}
 
-	template<int N, ImGuiDataType T>
+	template<int N, ImGuiDataType T, typename Element>
 	static void render_vector_nt(void* data)
 	{
-		ImGui::InputScalarN("###vector_nt", T, data, N);
+		static constexpr const char* data_type_formats[] = {
+				"%hhd", // ImGuiDataType_S8
+				"%hhu", // ImGuiDataType_U8
+				"%hd",  // ImGuiDataType_S16
+				"%hu",  // ImGuiDataType_U16
+				"%d",   // ImGuiDataType_S32
+				"%u",   // ImGuiDataType_U32
+				"%lld", // ImGuiDataType_S64
+				"%llu", // ImGuiDataType_U64
+				"%.3f", // ImGuiDataType_Float
+				"%.3lf",// ImGuiDataType_Double
+		};
+
+		constexpr const char* element_format = data_type_formats[T];
+		float max_length                     = 0;
+
+		for (int i = 0; i < N; ++i)
+		{
+			char buffer[64];
+			snprintf(buffer, sizeof(buffer), element_format, reinterpret_cast<Element*>(data)[i]);
+			max_length = glm::max(max_length, ImGui::CalcTextSize(buffer).x);
+		}
+
+		float padding     = ImGui::GetStyle().FramePadding.x * 2.0f;
+		float total_width = (max_length + padding) * N + ImGui::GetStyle().ItemInnerSpacing.x * (N - 1);
+
+		ImGui::SetNextItemWidth(total_width);
+		ImGui::InputScalarN("###vector_nt", T, data, N, nullptr, nullptr, element_format);
 	}
 
 	static void (*s_default_type_renderers[17])(void* value) = {nullptr};
+
+	template<typename T>
+	static int_t find_max_pin_name_len(const T& pins)
+	{
+		int_t len = 0;
+		for (VisualMaterialGraph::Pin* pin : pins)
+		{
+			len = glm::max<int_t>(pin->name().length(), len);
+		}
+		return len;
+	}
 
 	static void show_label(const char* label, ImColor color)
 	{
@@ -360,6 +398,8 @@ namespace Engine
 			ImGui::Spring(1.f);
 			builder.end_header();
 
+			const int_t max_input_name_len = find_max_pin_name_len(node->inputs());
+
 			// Inputs rendering
 			for (auto* input : node->inputs())
 			{
@@ -372,10 +412,7 @@ namespace Engine
 									   ImVec4(1.0, 0.0, 0.0, 1.0));
 				builder.end_input_pin();
 
-				ImGui::Text("%s", input->name().c_str());
-
-				ImGui::Spring(1.f, 0.f);
-				ImGui::Dummy({ImGui::GetTextLineHeight(), 0.f});
+				ImGui::Text("%*s ", -max_input_name_len, input->name().c_str());
 
 				if (input->linked_pin() == nullptr)
 				{
@@ -386,7 +423,6 @@ namespace Engine
 					}
 				}
 
-				ImGui::Spring(0.f, 0.f);
 				builder.end_input();
 			}
 
@@ -406,9 +442,7 @@ namespace Engine
 				if (auto default_value = output->default_value())
 				{
 					VerticalLayout layout;
-					ImGui::PushItemWidth(180.f);
 					s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
-					ImGui::PopItemWidth();
 				}
 
 				ImGui::Text("%s", output->name().c_str());
@@ -521,7 +555,7 @@ namespace Engine
 			{
 				if (auto* output = input->as_input()->linked_pin())
 				{
-					ed::Link(input->id() + 1, input->id(), output->id(), ImColor(0, 149, 220), 3.f);
+					ed::Link(input->id(), input->id(), output->id(), ImColor(0, 149, 220), 3.f);
 				}
 			}
 		}
@@ -646,8 +680,22 @@ namespace Engine
 	{
 		if (ed::BeginDelete())
 		{
-			ed::NodeId node_id = 0;
+			ed::LinkId link_id = 0;
+			while (ed::QueryDeletedLink(&link_id))
+			{
+				VisualMaterialGraph::Pin* pin = link_id.AsPointer<VisualMaterialGraph::Pin>();
+				if (pin)
+				{
+					ed::AcceptDeletedItem();
+					pin->unlink();
+				}
+				else
+				{
+					ed::RejectDeletedItem();
+				}
+			}
 
+			ed::NodeId node_id = 0;
 			while (ed::QueryDeletedNode(&node_id))
 			{
 				VisualMaterialGraph::Node* node = node_id.AsPointer<VisualMaterialGraph::Node>();
@@ -661,21 +709,6 @@ namespace Engine
 				if (ed::AcceptDeletedItem())
 				{
 					m_material->destroy_node(node);
-				}
-			}
-
-			ed::LinkId link_id = 0;
-			while (ed::QueryDeletedLink(&link_id))
-			{
-				VisualMaterialGraph::Pin* pin = link_id.AsPointer<VisualMaterialGraph::Pin>();
-				if (pin)
-				{
-					ed::AcceptDeletedItem();
-					pin->unlink();
-				}
-				else
-				{
-					ed::RejectDeletedItem();
 				}
 			}
 		}
@@ -947,20 +980,20 @@ namespace Engine
 		s_default_type_renderers[T(T::Bool3).type_index()] = render_vector_nb<3>;
 		s_default_type_renderers[T(T::Bool4).type_index()] = render_vector_nb<4>;
 
-		s_default_type_renderers[T(T::Int).type_index()]  = render_vector_nt<1, ImGuiDataType_S32>;
-		s_default_type_renderers[T(T::Int2).type_index()] = render_vector_nt<2, ImGuiDataType_S32>;
-		s_default_type_renderers[T(T::Int3).type_index()] = render_vector_nt<3, ImGuiDataType_S32>;
-		s_default_type_renderers[T(T::Int4).type_index()] = render_vector_nt<4, ImGuiDataType_S32>;
+		s_default_type_renderers[T(T::Int).type_index()]  = render_vector_nt<1, ImGuiDataType_S32, int32_t>;
+		s_default_type_renderers[T(T::Int2).type_index()] = render_vector_nt<2, ImGuiDataType_S32, int32_t>;
+		s_default_type_renderers[T(T::Int3).type_index()] = render_vector_nt<3, ImGuiDataType_S32, int32_t>;
+		s_default_type_renderers[T(T::Int4).type_index()] = render_vector_nt<4, ImGuiDataType_S32, int32_t>;
 
-		s_default_type_renderers[T(T::UInt).type_index()]  = render_vector_nt<1, ImGuiDataType_U32>;
-		s_default_type_renderers[T(T::UInt2).type_index()] = render_vector_nt<2, ImGuiDataType_U32>;
-		s_default_type_renderers[T(T::UInt3).type_index()] = render_vector_nt<3, ImGuiDataType_U32>;
-		s_default_type_renderers[T(T::UInt4).type_index()] = render_vector_nt<4, ImGuiDataType_U32>;
+		s_default_type_renderers[T(T::UInt).type_index()]  = render_vector_nt<1, ImGuiDataType_U32, uint32_t>;
+		s_default_type_renderers[T(T::UInt2).type_index()] = render_vector_nt<2, ImGuiDataType_U32, uint32_t>;
+		s_default_type_renderers[T(T::UInt3).type_index()] = render_vector_nt<3, ImGuiDataType_U32, uint32_t>;
+		s_default_type_renderers[T(T::UInt4).type_index()] = render_vector_nt<4, ImGuiDataType_U32, uint32_t>;
 
-		s_default_type_renderers[T(T::Float).type_index()]  = render_vector_nt<1, ImGuiDataType_Float>;
-		s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float>;
-		s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float>;
-		s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float>;
+		s_default_type_renderers[T(T::Float).type_index()]  = render_vector_nt<1, ImGuiDataType_Float, float>;
+		s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float, float>;
+		s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float, float>;
+		s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float, float>;
 	}
 
 	static PreInitializeController preinit(pre_initialize);

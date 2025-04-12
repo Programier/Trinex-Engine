@@ -153,14 +153,14 @@ struct FragmentMaterialInput : MaterialInput
 Material get_material_vs(in VertexMaterialInput input)
 {
 	Material material;
-	// @trinex_vertex_shader
+// @trinex_vertex_shader
 	return material;
 }
 
 Material get_material_fs(in FragmentMaterialInput input)
 {
 	Material material;
-	// @trinex_fragment_shader
+// @trinex_fragment_shader
 	return material;
 }
 
