@@ -61,8 +61,8 @@ struct GridDrawer
         entry2.scale  = scale_step;
     
         float lower_height = 0.f;
-        float upper_height = tan(radians(globals.fov)) * scale_step;
-        float camera_height = abs(globals.camera_location.y);
+        float upper_height = tan(radians(globals.camera.fov)) * scale_step;
+        float camera_height = abs(globals.camera.location.y);
 
         while (upper_height < camera_height)
         {
@@ -73,8 +73,8 @@ struct GridDrawer
             entry2.scale = entry2.scale * scale_step;
         }
 
-        float3 view_direction = normalize(globals.camera_location - pos);
-        float3 view_direction_xz = normalize(float3(globals.camera_location.x, 0.0, globals.camera_location.z) - pos);
+        float3 view_direction = normalize(globals.camera.location - pos);
+        float3 view_direction_xz = normalize(float3(globals.camera.location.x, 0.0, globals.camera.location.z) - pos);
 
         fade = 1.0 - pow(abs(dot(view_direction, view_direction_xz)), 18);
 

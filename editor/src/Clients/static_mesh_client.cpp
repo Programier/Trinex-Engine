@@ -64,7 +64,7 @@ namespace Engine
 		auto size              = ImGui::GetContentRegionAvail();
 		m_camera->aspect_ratio = size.x / size.y;
 		auto k                 = viewport()->size() / SceneRenderTargets::instance()->size();
-		ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, k.y}, {k.x, 0.f});
+		ImGui::Image(ImTextureID{m_renderer.output_surface(), nullptr}, size, {0.f, k.y}, {k.x, 0.f});
 
 		ImGui::End();
 		return *this;

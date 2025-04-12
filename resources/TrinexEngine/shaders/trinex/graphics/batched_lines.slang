@@ -65,7 +65,7 @@ VertexOutput vs_main(in VertexInput input)
 [maxvertexcount(42)] 
 void gs_main(line VertexOutput input[2], inout TriangleStream<GeometryOutput> stream)
 {
-    WideLines::stream_line(stream, input[0], input[1], globals.viewport.zw);
+    WideLines::stream_line(stream, input[0], input[1], globals.viewport.size);
 }
 
 [shader("fragment")]

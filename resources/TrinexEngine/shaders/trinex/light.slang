@@ -106,7 +106,7 @@ namespace Lighting
 			return float4(0.0, 0.0, 0.0, 1.0);
 		}
 
-		float3 view_direction = normalize(globals.camera_location -
+		float3 view_direction = normalize(globals.camera.location -
 										  primitive.position);// Using view direction from fragment location to camera location
 		float3 normal         = normalize_normal(primitive.normal, view_direction);
 

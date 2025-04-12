@@ -17,10 +17,7 @@ float2 vs_main(in uint vertex : SV_VertexID, out float4 out_position : SV_Positi
 {
     out_position = FullScreenQuad::vertex_by_index(vertex);
     float2 uv = FullScreenQuad::uv_by_index(vertex);
-    float2 min = globals.viewport.xy / globals.size;
-    float2 max = (globals.viewport.xy + globals.viewport.zw) / globals.size;
-
-    return Platform::validate_uv((uv * (max - min)) + min);
+	return Platform::validate_uv(globals.normalize_screen_space_uv(uv));
 }
 
 

@@ -96,9 +96,7 @@ float4 vs_main(
 	out float2 uv : TEXCOORD0,
 	out float2 ndc : TEXCOORD1) : SV_Position
 {
-	float2 min_v = globals.viewport.xy / globals.size;
-	float2 max_v = (globals.viewport.xy + globals.viewport.zw) / globals.size;
-	uv           = Platform::validate_uv((FullScreenQuad::uv_by_index(vertex) * (max_v - min_v)) + min_v);
+	uv = Platform::validate_uv(globals.normalize_screen_space_uv(FullScreenQuad::uv_by_index(vertex)));
 
 	float4 vertex = FullScreenQuad::vertex_by_index(vertex);
 	ndc           = vertex.xy;

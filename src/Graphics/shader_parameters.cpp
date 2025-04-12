@@ -9,38 +9,38 @@
 
 namespace Engine
 {
-	GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Size2D render_target_size)
+	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Size2D rt_size)
 	{
-		size = render_target_size;
-		if (size.x < 0.f || size.y < 0.f)
-			size = SceneRenderTargets::instance()->size();
+		render_target_size = rt_size;
+		if (rt_size.x < 0.f || rt_size.y < 0.f)
+			render_target_size = SceneRenderTargets::instance()->size();
 
 		if (scene_view)
 		{
-			const ViewPort& _viewport = scene_view->viewport();
-			viewport                  = {_viewport.pos.x, _viewport.pos.y, _viewport.size.x, _viewport.size.y};
-			depth_range               = {_viewport.min_depth, _viewport.max_depth};
-
-
-			auto& camera    = scene_view->camera_view();
-			camera_location = camera.location;
-			camera_forward  = camera.forward_vector;
-			camera_right    = camera.right_vector;
-			camera_up       = camera.up_vector;
-
-			projection = scene_view->projection_matrix();
-			view       = scene_view->view_matrix();
-
-			fov                    = camera.fov;
-			ortho_width            = camera.ortho_width;
-			ortho_height           = camera.ortho_height;
-			near_clip_plane        = camera.near_clip_plane;
-			far_clip_plane         = camera.far_clip_plane;
-			aspect_ratio           = camera.aspect_ratio;
-			camera_projection_mode = static_cast<int>(camera.projection_mode);
-
+			projection   = scene_view->projection_matrix();
+			view         = scene_view->view_matrix();
 			projview     = scene_view->projview_matrix();
 			inv_projview = scene_view->inv_projview_matrix();
+
+			const ViewPort& vp = scene_view->viewport();
+			viewport.pos       = Vector2f(vp.pos);
+			viewport.size      = Vector2f(vp.size);
+			viewport.min_depth = vp.min_depth;
+			viewport.max_depth = vp.max_depth;
+
+			auto& camera_view = scene_view->camera_view();
+			camera.location   = camera_view.location;
+			camera.forward    = camera_view.forward_vector;
+			camera.right      = camera_view.right_vector;
+			camera.up         = camera_view.up_vector;
+
+			camera.fov             = camera_view.fov;
+			camera.ortho_width     = camera_view.ortho_width;
+			camera.ortho_height    = camera_view.ortho_height;
+			camera.near_clip_plane = camera_view.near_clip_plane;
+			camera.far_clip_plane  = camera_view.far_clip_plane;
+			camera.aspect_ratio    = camera_view.aspect_ratio;
+			camera.projection_mode = static_cast<Camera::Projection>(camera_view.projection_mode);
 		}
 
 		gamma      = engine_instance->gamma();
