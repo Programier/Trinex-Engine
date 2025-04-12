@@ -98,8 +98,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent::SceneComponent()
-	{}
+	SceneComponent::SceneComponent() {}
 
 	void SceneComponent::script_on_transform_changed()
 	{
@@ -331,5 +330,12 @@ namespace Engine
 		return *this;
 	}
 
+	SceneComponent& SceneComponent::look_at(const Vector3f& location, const Vector3f& up)
+	{
+		auto quat = glm::quatLookAt(glm::normalize(location - local_transform().location()), up);
+		m_local.rotation(quat);
+		on_transform_changed();
+		return *this;
+	}
 
 }// namespace Engine

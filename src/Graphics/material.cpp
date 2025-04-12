@@ -170,7 +170,7 @@ namespace Engine
 		return true;
 	}
 
-	Material::Material() : domain(MaterialDomain::Surface)
+	Material::Material() : domain(MaterialDomain::Surface), options(0)
 	{
 		m_graphics_options = new_instance<GraphicsPipelineDescription>();
 		m_graphics_options->add_reference();

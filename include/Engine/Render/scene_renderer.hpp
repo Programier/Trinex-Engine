@@ -69,9 +69,7 @@ namespace Engine
 		const SceneView& scene_view() const;
 
 		FORCE_INLINE ViewMode view_mode() const { return m_view_mode; }
-
 		FORCE_INLINE RenderPass* first_pass() const { return m_first_pass; }
-
 		FORCE_INLINE RenderPass* last_pass() const { return m_last_pass; }
 
 		SceneRenderer& view_mode(ViewMode new_mode);

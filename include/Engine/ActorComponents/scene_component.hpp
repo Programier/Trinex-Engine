@@ -72,6 +72,7 @@ namespace Engine
 		SceneComponent& add_rotation(const Vector3f& delta);
 		SceneComponent& add_rotation(const Quaternion& delta);
 		SceneComponent& add_scale(const Vector3f& delta);
+		SceneComponent& look_at(const Vector3f& location, const Vector3f& up = {0.f, 1.f, 0.f});
 
 		virtual SceneComponent& on_transform_changed();
 	};

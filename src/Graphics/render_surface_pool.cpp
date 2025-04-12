@@ -77,6 +77,9 @@ namespace Engine
 
 	RenderSurface* RenderSurfacePool::request_surface(ColorFormat format, Vector2u size)
 	{
+		if (size.x == 0 || size.y == 0)
+			return nullptr;
+
 		auto& pool = m_pools[static_calculate_surface_id(format, size)];
 
 		if (!pool.empty())
@@ -98,9 +101,12 @@ namespace Engine
 
 	RenderSurface* RenderSurfacePool::request_transient_surface(ColorFormat format, Vector2u size)
 	{
-		auto surface = request_surface(format, size);
-		logic_thread()->call([object = Pointer(surface), this]() { return_surface(object.ptr()); });
-		return surface;
+		if (auto surface = request_surface(format, size))
+		{
+			logic_thread()->call([object = Pointer(surface), this]() { return_surface(object.ptr()); });
+			return surface;
+		}
+		return nullptr;
 	}
 
 	RenderSurfacePool& RenderSurfacePool::return_surface(RenderSurface* surface)

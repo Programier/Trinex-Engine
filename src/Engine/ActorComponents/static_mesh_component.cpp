@@ -48,12 +48,17 @@ namespace Engine
 
 		for (auto& surface_info : mesh->materials)
 		{
-			if (surface_info.material == nullptr || static_cast<Index>(surface_info.surface_index) > lod.surfaces.size())
+			if (static_cast<Index>(surface_info.surface_index) > lod.surfaces.size())
 			{
 				continue;
 			}
 
-			Material* material = surface_info.material->material();
+			MaterialInterface* material_interface = component->material(surface_info.surface_index);
+
+			if (material_interface == nullptr)
+				continue;
+
+			Material* material = material_interface->material();
 
 			for (auto pass = first_pass(); pass; pass = pass->next())
 			{
@@ -66,8 +71,7 @@ namespace Engine
 				}
 
 				VertexShader* shader = pipeline->vertex_shader();
-
-				pass->bind_material(surface_info.material, component);
+				pass->bind_material(material_interface, component);
 
 				for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
 				{
@@ -118,5 +122,19 @@ namespace Engine
 			Super::update_bounding_box();
 		}
 		return *this;
+	}
+
+	MaterialInterface* StaticMeshComponent::material(size_t index) const
+	{
+		if (index < material_overrides.size())
+		{
+			if (auto material = material_overrides[index])
+				return material;
+		}
+
+		if (mesh && index < mesh->materials.size())
+			return mesh->materials[index].material;
+
+		return nullptr;
 	}
 }// namespace Engine

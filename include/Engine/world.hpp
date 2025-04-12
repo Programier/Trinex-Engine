@@ -47,6 +47,13 @@ namespace Engine
 		Actor* spawn_actor(class Refl::Class* self, const Vector3f& location = {}, const Vector3f& rotation = {},
 		                   const Vector3f& scale = {1, 1, 1}, const Name& name = {});
 
+		template<typename T>
+		T* spawn_actor(const Vector3f& location = {}, const Vector3f& rotation = {}, const Vector3f& scale = {1, 1, 1},
+					   const Name& name = {})
+		{
+			return instance_cast<T>(spawn_actor(T::static_class_instance(), location, rotation, scale, name));
+		}
+
 		World& destroy_actor(Actor* actor);
 		Scene* scene() const;
 		World& select_actor(Actor* actor);
