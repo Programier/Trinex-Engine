@@ -398,7 +398,8 @@ namespace Engine
 			ImGui::Spring(1.f);
 			builder.end_header();
 
-			const int_t max_input_name_len = find_max_pin_name_len(node->inputs());
+			const int_t max_input_name_len  = find_max_pin_name_len(node->inputs());
+			const int_t max_output_name_len = find_max_pin_name_len(node->outputs());
 
 			// Inputs rendering
 			for (auto* input : node->inputs())
@@ -445,7 +446,7 @@ namespace Engine
 					s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
 				}
 
-				ImGui::Text("%s", output->name().c_str());
+				ImGui::Text("%*s", max_output_name_len, output->name().c_str());
 
 				builder.begin_output_pin(output->id());
 				ed::PinPivotAlignment({0.5, 0.5f});
@@ -569,7 +570,7 @@ namespace Engine
 		{
 			float width = glm::max(ImGui::TableGetAutoWidth("###properties"), 1.f);
 
-			ImGui::BeginTable("###properties", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders, {width, 0.f});
+			ImGui::BeginTable("###properties", 2, ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_Borders, {width, 0.f});
 			m_property_renderer.render_struct_properties(node, node->class_instance(), false);
 			ImGui::EndTable();
 			return false;

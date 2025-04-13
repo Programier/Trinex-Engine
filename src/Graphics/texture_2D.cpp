@@ -18,12 +18,13 @@ namespace Engine
 		auto* self = static_class_instance();
 #define m_format format
 		trinex_refl_prop(self, This, m_format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
+#undef m_format
 	}
 
 	Texture2D& Texture2D::init_render_resources()
 	{
 		render_thread()->call([this]() {
-			m_texture = rhi->create_texture_2d(m_format, size(), mips.size(), TextureCreateFlags::ShaderResource);
+			m_texture = rhi->create_texture_2d(format, size(), mips.size(), TextureCreateFlags::ShaderResource);
 			m_srv     = m_texture->create_srv();
 
 			for (byte index = 0; auto& mip : mips)

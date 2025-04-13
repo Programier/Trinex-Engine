@@ -24,12 +24,37 @@ namespace Engine
 {
 	using Parameter = MaterialInterface::Parameter;
 
+	template<typename T>
+	class MaterialParametersExt : public T
+	{
+	public:
+		using T::T;
+
+		Refl::Property* element_property() const override
+		{
+			constexpr Parameter* T::* null_prop = nullptr;
+			const auto flags                    = Refl::Property::InlineSingleFieldStructs;
+			using Element                       = Refl::NativeProperty<null_prop>;
+
+			static Refl::Property* prop = Refl::Object::new_instance<Element>(nullptr, StringView("Element"), flags);
+			return prop;
+		}
+
+		const String& index_name(const void* context, size_t index) const override
+		{
+			const Refl::ArrayProperty* prop = this;
+			const Parameter* parameter      = *prop->at_as<const Parameter*>(context, index);
+			return parameter->name().to_string();
+		}
+	};
+
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
 		auto self = static_class_instance();
 
 #define m_parameters m_child_objects
-		auto params = trinex_refl_prop(self, This, m_parameters, Refl::Property::IsNotSerializable | Refl::Property::IsReadOnly);
+		auto params = trinex_refl_prop_ext(MaterialParametersExt, self, This, m_parameters,
+										   Refl::Property::IsTransient | Refl::Property::IsReadOnly);
 #undef m_parameters
 
 		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);
@@ -40,7 +65,7 @@ namespace Engine
 	{
 		auto* self = static_class_instance();
 		trinex_refl_prop(self, This, compile_definitions);
-		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsNotSerializable)->is_composite(true);
+		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsTransient)->is_composite(true);
 
 		trinex_refl_prop(self, This, domain);
 		trinex_refl_prop(self, This, options);

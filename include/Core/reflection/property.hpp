@@ -85,10 +85,11 @@ private:
 	public:
 		enum Flag
 		{
-			IsReadOnly        = BIT(0),
-			IsNotSerializable = BIT(1),
-			IsHidden          = BIT(2),
-			IsColor           = BIT(3),
+			IsReadOnly               = BIT(0),
+			IsTransient              = BIT(1),
+			IsHidden                 = BIT(2),
+			IsColor                  = BIT(3),
+			InlineSingleFieldStructs = BIT(4),
 		};
 
 		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
@@ -106,23 +107,27 @@ private:
 
 		static void trigger_object_event(const PropertyChangedEvent& event);
 
+		inline bool check_flag(BitMask mask) const { return (m_flags & mask) == mask; }
+
 	public:
 		Property(BitMask flags = 0);
 
-		bool is_read_only() const;
-		bool is_serializable() const;
-		bool is_hidden() const;
-		bool is_color() const;
+		inline bool is_read_only() const { return check_flag(IsReadOnly); }
+		inline bool is_transient() const { return check_flag(IsTransient); }
+		inline bool is_hidden() const { return check_flag(IsHidden); }
+		inline bool is_color() const { return check_flag(IsColor); }
+		inline bool inline_single_field_structs() const { return check_flag(InlineSingleFieldStructs); }
+
 		Identifier add_change_listener(const ChangeListener& listener);
 		Property& push_change_listener(const ChangeListener& listener);
 		Property& remove_change_listener(Identifier id);
-		const ScriptFunction& renderer() const;
-		Property& renderer(const ScriptFunction& func);
 
+		using Super::display_name;
 		virtual void* address(void* context)                   = 0;
 		virtual const void* address(const void* context) const = 0;
 		virtual size_t size() const                            = 0;
 		virtual bool serialize(void* object, Archive& ar)      = 0;
+		virtual const String& property_name(const void* context);
 		virtual Property& on_property_changed(const PropertyChangedEvent& event);
 
 		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
@@ -389,6 +394,7 @@ private:
 
 		bool serialize(void* object, Archive& ar) override;
 
+		virtual const String& index_name(const void* object, size_t index) const;
 		virtual Property* element_property() const = 0;
 		virtual size_t element_size() const        = 0;
 
@@ -559,9 +565,7 @@ private:
 		}
 
 		size_t length() const override { return T::length(); }
-
 		Property* element_property() const override { return m_inner_property; }
-
 		size_t element_size() const override { return sizeof(typename T::value_type); }
 
 		void* element_address(void* context, size_t index, bool is_vector_context = false) override
@@ -697,7 +701,6 @@ private:
 
 	public:
 		Property* element_property() const override { return ArrayProperty::construct_element_property<T>(); }
-
 		size_t element_size() const override { return sizeof(Value); }
 
 		T& array_of(void* context, bool is_vector_context)
@@ -803,4 +806,7 @@ private:
 #undef trinex_refl_prop_type_filter
 #define trinex_refl_prop(self, class_name, prop_name, ...)                                                                       \
 	self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
+
+#define trinex_refl_prop_ext(extension, self, class_name, prop_name, ...)                                                        \
+	self->new_child<extension<Engine::Refl::NativeProperty<&class_name::prop_name>>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
 }// namespace Engine::Refl

@@ -145,7 +145,7 @@ struct FragmentMaterialInput : MaterialInput
 	void init(in FragmentInput data)
 	{
 		copy_geometry(data.geometry);
-		front_face = data.is_front_face  ? 1.f : -1.f;
+		front_face = data.is_front_face ? 1.f : -1.f;
 		sv_position = data.position;
 	}
 };

@@ -107,8 +107,7 @@ namespace Engine::VisualMaterialGraph
 		
 		ShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const 
 		{
-			ShaderParameterType type = Expression::static_resolve(in0.type, in1.type);
-			type = Expression::static_resolve(type, in2.type);
+			ShaderParameterType type = Expression::static_resolve(in0.type, in1.type, in2.type);
 			
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
@@ -159,9 +158,12 @@ namespace Engine::VisualMaterialGraph
 	{
 		ShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
 		{ 
-			ShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
-			type = Expression::static_resolve(type, Expression::static_make_float(in2.type));
-
+			ShaderParameterType type = Expression::static_resolve(
+				Expression::static_make_float(in0.type), 
+				Expression::static_make_float(in1.type),
+				Expression::static_make_float(in2.type)
+			);
+			
 			in0 = in0.convert(type); 
 			in1 = in1.convert(type); 
 			in2 = in2.convert(type);
@@ -333,6 +335,30 @@ namespace Engine::VisualMaterialGraph
 		string expr() const override { return "globals.delta_time"; }
 	};
 
+	[node_group("Inputs")] class ScreenCoordinates : Node
+	{
+		ScreenCoordinates() 
+		{
+			new_output("Viewport UV", ShaderParameterType::Float2); 
+			new_output("Fragment Coord", ShaderParameterType::Float2);
+		}
+		
+		Expression compile(OutputPin@ pin, Compiler@ compiler) override 
+		{ 
+			if(!compiler.is_fragment_stage())
+				return Expression();
+
+			if(pin.index() == 0)
+			{
+				return Expression(ShaderParameterType::Float2, "(input.sv_position.xy / globals.viewport.size)");
+			}
+			else
+			{
+				return Expression(ShaderParameterType::Float2, "input.sv_position.xy");
+			}
+		}
+	};
+
 	/////////////////////////////// MATH ///////////////////////////////
 
 	[node_group("Math")] class Add : Binary { string expr() const override { return "(%0 + %1)"; } };
@@ -447,6 +473,93 @@ namespace Engine::VisualMaterialGraph
 		}
 	};
 
+	[node_group("Common")] class MakeVector2 : Node
+	{
+		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Vector);
+
+		Expression compile(OutputPin@ pin, Compiler@ compiler)
+		{
+			Expression in0 = compiler.compile(m_in0);
+			Expression in1 = compiler.compile(m_in1);
+
+			ShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
+			ShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
+			ShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1);
+			ShaderParameterType vector_type = Expression::static_make_vector(component_type, 2);
+
+			string type_name = Expression::static_typename_of(vector_type);
+
+			in0 = in0.convert(component_type);
+			in1 = in1.convert(component_type);
+
+			return Expression(vector_type, "%0(%1, %2)".format(type_name, in0.value, in1.value));
+		}
+	};
+
+	[node_group("Common")] class MakeVector3 : Node
+	{
+		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("C", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Vector);
+
+		Expression compile(OutputPin@ pin, Compiler@ compiler)
+		{
+			Expression in0 = compiler.compile(m_in0);
+			Expression in1 = compiler.compile(m_in1);
+			Expression in2 = compiler.compile(m_in2);
+
+			ShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
+			ShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
+			ShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
+			
+			ShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2);
+			ShaderParameterType vector_type = Expression::static_make_vector(component_type, 3);
+			string type_name = Expression::static_typename_of(vector_type);
+
+			in0 = in0.convert(component_type);
+			in1 = in1.convert(component_type);
+			in2 = in2.convert(component_type);
+
+			return Expression(vector_type, "%0(%1, %2, %3)".format(type_name, in0.value, in1.value, in2.value));
+		}
+	};
+
+	[node_group("Common")] class MakeVector4 : Node
+	{
+		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("C", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		InputPin@ m_in3 = new_input("D", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Vector);
+
+		Expression compile(OutputPin@ pin, Compiler@ compiler)
+		{
+			Expression in0 = compiler.compile(m_in0);
+			Expression in1 = compiler.compile(m_in1);
+			Expression in2 = compiler.compile(m_in2);
+			Expression in3 = compiler.compile(m_in3);
+
+			ShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
+			ShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
+			ShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
+			ShaderParameterType scalar3 = Expression::static_make_scalar(in3.type);
+			
+			ShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2, scalar3);
+			ShaderParameterType vector_type = Expression::static_make_vector(component_type, 4);
+			string type_name = Expression::static_typename_of(vector_type);
+
+			in0 = in0.convert(component_type);
+			in1 = in1.convert(component_type);
+			in2 = in2.convert(component_type);
+			in3 = in3.convert(component_type);
+
+			return Expression(vector_type, "%0(%1, %2, %3, %4)".format(type_name, in0.value, in1.value, in2.value, in3.value));
+		}
+	};
+
 	/////////////////////////////// CONDITIONS ///////////////////////////////
 
 	[node_group("Conditions")]
@@ -483,8 +596,7 @@ namespace Engine::VisualMaterialGraph
 			Expression in3 = compiler.compile(m_in3);
 			Expression in4 = compiler.compile(m_in4);
 
-			ShaderParameterType type = Expression::static_resolve(in2.type, in3.type);
-			type = Expression::static_resolve(type, in4.type);
+			ShaderParameterType type = Expression::static_resolve(in2.type, in3.type, in4.type);
 
 			in2 = in2.convert(type);
 			in3 = in3.convert(type);
@@ -523,4 +635,6 @@ namespace Engine::VisualMaterialGraph
 			return Expression(type, "(%0 ? %1 : %2)".format(in0.value, in1.value, in2.value));
 		}
 	};
+
+	/////////////////////////////// TEXTURES ///////////////////////////////
 }

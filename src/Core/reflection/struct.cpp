@@ -200,7 +200,7 @@ namespace Engine::Refl
 
 		for (auto& prop : self->properties())
 		{
-			if (prop->is_serializable())
+			if (!prop->is_transient())
 			{
 				result.push_back(prop);
 			}
@@ -256,7 +256,7 @@ namespace Engine::Refl
 				name.serialize(ar);
 				Property* prop = find_property(name);
 
-				if (prop && prop->is_serializable())
+				if (prop && !prop->is_transient())
 				{
 					prop->serialize(object, ar);
 				}

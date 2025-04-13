@@ -32,6 +32,8 @@ namespace Engine::VisualMaterialGraph
 		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type) final", method2);
 		r.method("InputPin@ new_input(const string& name, ShaderParameterType type, ShaderParameterType default_type) final",method3);
 		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type, ShaderParameterType default_type) final", method4);
+		r.method("const Vector<InputPin@>& inputs() const final", &This::inputs);
+		r.method("const Vector<OutputPin@>& outputs() const final", &This::outputs);
 		// clang-format on
 
 		ScriptEngine::on_terminate.push([]() { s_node_compile_output.release(); });
@@ -341,6 +343,18 @@ namespace Engine::VisualMaterialGraph
 		return ShaderParameterType();
 	}
 
+	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2,
+												   ShaderParameterType type3)
+	{
+		return static_resolve(static_resolve(type1, type2), type3);
+	}
+
+	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2,
+												   ShaderParameterType type3, ShaderParameterType type4)
+	{
+		return static_resolve(static_resolve(type1, type2, type3), type4);
+	}
+
 	String Expression::static_typename_of(ShaderParameterType type)
 	{
 		// clang-format off
@@ -613,7 +627,7 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	template<typename T>
-	static String compile_expressions(const T& expression, size_t tabs)
+	static String compile_expressions(const T& expression, size_t tabs, StringView ending = ";\n")
 	{
 		const String spacing(tabs, '\t');
 
@@ -627,7 +641,7 @@ namespace Engine::VisualMaterialGraph
 		{
 			source += spacing;
 			source += expression;
-			source += '\n';
+			source += ending;
 		}
 
 		return source;
@@ -635,7 +649,7 @@ namespace Engine::VisualMaterialGraph
 
 	String Compiler::compile_includes(size_t tabs) const
 	{
-		return compile_expressions(m_includes, tabs);
+		return compile_expressions(m_includes, tabs, "\n");
 	}
 
 	String Compiler::compile_global_expressions(size_t tabs) const
@@ -707,7 +721,7 @@ namespace Engine::VisualMaterialGraph
 		OutputPin* pin = new OutputPin();
 		pin->m_name    = name;
 		pin->m_node    = this;
-		pin->m_index   = static_cast<uint16_t>(m_inputs.size());
+		pin->m_index   = static_cast<uint16_t>(m_outputs.size());
 		pin->m_type    = type;
 		m_outputs.push_back(pin);
 		return pin;
@@ -800,6 +814,7 @@ namespace Engine::VisualMaterialGraph
 
 	static void reflection_init()
 	{
+		using SPType = ShaderParameterType;
 		register_metadata_functions();
 
 		using Reg = ScriptClassRegistrar;
@@ -834,6 +849,8 @@ namespace Engine::VisualMaterialGraph
 		compiler.method("Expression compile_default(OutputPin@ pin) final", &Compiler::compile_default);
 		compiler.method("Expression compile(InputPin@ pin) final", method_of<Expression, InputPin*>(&Compiler::compile));
 		compiler.method("Expression compile(OutputPin@ pin) final", method_of<Expression, OutputPin*>(&Compiler::compile));
+		compiler.method("bool is_vertex_stage() const", &Compiler::is_vertex_stage);
+		compiler.method("bool is_fragment_stage() const", &Compiler::is_fragment_stage);
 
 		// Input pin class
 
@@ -867,7 +884,12 @@ namespace Engine::VisualMaterialGraph
 		expression.static_function("Expression static_half(ShaderParameterType type)", &Expression::static_half);
 		expression.static_function("Expression static_one(ShaderParameterType type)", &Expression::static_one);
 		expression.static_function("ShaderParameterType static_component_type_of(ShaderParameterType type)", &Expression::static_component_type_of);
-		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2)", &Expression::static_resolve);
+		constexpr auto static_resolve1 = func_of<SPType, SPType, SPType>(&Expression::static_resolve);
+		constexpr auto static_resolve2 = func_of<SPType, SPType, SPType, SPType>(&Expression::static_resolve);
+		constexpr auto static_resolve3 = func_of<SPType, SPType, SPType, SPType, SPType>(&Expression::static_resolve);
+		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2)", static_resolve1);
+		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2, ShaderParameterType type3)", static_resolve2);
+		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2, ShaderParameterType type3, ShaderParameterType type4)", static_resolve3);
 		expression.static_function("string static_typename_of(ShaderParameterType type)", &Expression::static_typename_of);
 
 		expression.static_function("ShaderParameterType static_make_float(ShaderParameterType self)", &Expression::static_make_float);

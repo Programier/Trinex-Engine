@@ -240,6 +240,20 @@ namespace Engine
 		return static_cast<bool>(archive);
 	}
 
+	template<typename T>
+	class ActorComponentsExt : public T
+	{
+	public:
+		using T::T;
+
+		const String& index_name(const void* context, size_t index) const override
+		{
+			const Refl::ArrayProperty* prop = this;
+			const ActorComponent* component = *prop->at_as<const ActorComponent*>(context, index);
+			return component->name().to_string();
+		}
+	};
+
 	trinex_implement_engine_class(Actor, Refl::Class::IsScriptable)
 	{
 		auto self = static_class_instance();
@@ -263,7 +277,7 @@ namespace Engine
 			script_actor_destroyed.release();
 		});
 
-		auto components = trinex_refl_prop(self, This, m_owned_components, Refl::Property::IsReadOnly);
+		auto components = trinex_refl_prop_ext(ActorComponentsExt, self, This, m_owned_components, Refl::Property::IsReadOnly);
 
 		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
 		{

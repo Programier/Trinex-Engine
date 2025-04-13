@@ -3,7 +3,7 @@
 
 namespace Engine::Refl
 {
-	template<typename Super, bool is_pointer = false>
+	template<typename Super, bool dereference = false>
 	class ScriptProperty : public Super
 	{
 	private:
@@ -18,7 +18,7 @@ namespace Engine::Refl
 
 		void* address(void* context) override
 		{
-			if constexpr (is_pointer)
+			if constexpr (dereference)
 				return *reinterpret_cast<byte**>(reinterpret_cast<byte*>(context) + m_offset);
 			else
 				return reinterpret_cast<byte*>(context) + m_offset;
@@ -26,7 +26,7 @@ namespace Engine::Refl
 
 		const void* address(const void* context) const override
 		{
-			if constexpr (is_pointer)
+			if constexpr (dereference)
 				return *reinterpret_cast<const byte* const*>(reinterpret_cast<const byte*>(context) + m_offset);
 			else
 				return reinterpret_cast<const byte*>(context) + m_offset;
@@ -68,7 +68,7 @@ namespace Engine::Refl
 		size_t size() const override;
 	};
 
-	class ScriptObjectProperty : public ScriptProperty<ObjectProperty, true>
+	class ScriptObjectProperty : public ScriptProperty<ObjectProperty, false>
 	{
 		Class* m_instance;
 

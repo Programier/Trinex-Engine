@@ -38,26 +38,6 @@ namespace Engine::Refl
 
 	Property::Property(BitMask flags) : m_flags(flags) {}
 
-	bool Property::is_read_only() const
-	{
-		return (m_flags & IsReadOnly) == IsReadOnly;
-	}
-
-	bool Property::is_serializable() const
-	{
-		return (m_flags & IsNotSerializable) != IsNotSerializable;
-	}
-
-	bool Property::is_hidden() const
-	{
-		return (m_flags & IsHidden) == IsHidden;
-	}
-
-	bool Property::is_color() const
-	{
-		return (m_flags & IsColor) == IsColor;
-	}
-
 	Identifier Property::add_change_listener(const ChangeListener& listener)
 	{
 		return m_change_listeners.push(listener);
@@ -75,26 +55,14 @@ namespace Engine::Refl
 		return *this;
 	}
 
+	const String& Property::property_name(const void* context)
+	{
+		return display_name();
+	}
+
 	Property& Property::on_property_changed(const PropertyChangedEvent& event)
 	{
 		m_change_listeners(event);
-		return *this;
-	}
-
-	const ScriptFunction& Property::renderer() const
-	{
-		auto* meta = find_metadata(Meta::renderer);
-		if (meta && meta->is_a<ScriptFunction>())
-		{
-			return meta->cast<const ScriptFunction&>();
-		}
-
-		return default_value_of<ScriptFunction>();
-	}
-
-	Property& Property::renderer(const ScriptFunction& func)
-	{
-		metadata(Meta::renderer, func);
 		return *this;
 	}
 
@@ -234,6 +202,18 @@ namespace Engine::Refl
 		return ar;
 	}
 
+	const String& ArrayProperty::index_name(const void* object, size_t index) const
+	{
+		static Vector<String> index_names;
+
+		while (index >= index_names.size())
+		{
+			index_names.push_back(Strings::format("{}", index_names.size() + 1));
+		}
+
+		return index_names[index];
+	}
+
 	size_t ReflObjectProperty::size() const
 	{
 		return sizeof(Refl::Object*);
@@ -330,7 +310,7 @@ namespace Engine::Refl
 			ScriptEnumRegistrar r("Engine::Refl::Property::Flag");
 			r.set("property", 0);
 			r.set("is_read_only", T::IsReadOnly);
-			r.set("is_not_serializable", T::IsNotSerializable);
+			r.set("is_transient", T::IsTransient);
 			r.set("is_hidden", T::IsHidden);
 			r.set("is_color", T::IsColor);
 		}
