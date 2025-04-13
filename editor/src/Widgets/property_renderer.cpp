@@ -355,6 +355,7 @@ namespace Engine
 		ImGui::TableSetColumnIndex(0);
 		const String& result_name = renderer->property_name(name);
 		ImGui::Text("%s", result_name.c_str());
+		ImGui::TableSetColumnIndex(1);
 	}
 
 	static bool collapsing_header(const void* id, const char* name)
