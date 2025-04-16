@@ -8,21 +8,18 @@ namespace Engine
 	{
 		trinex_declare_class(MaterialEditorClient, ImGuiViewportClient);
 
-	private:
+	protected:
 		class ContentBrowser* m_content_browser      = nullptr;
 		class ImGuiMaterialPreview* m_preview_window = nullptr;
 		class PropertyRenderer* m_properties_window  = nullptr;
 		class Material* m_material                   = nullptr;
 
-		bool m_open_select_node_window   = false;
-		bool m_is_open_create_node_popup = false;
-
 	public:
 		MaterialEditorClient();
 
-		MaterialEditorClient& create_content_browser();
-		MaterialEditorClient& create_preview_window();
-		MaterialEditorClient& create_properties_window();
+		virtual MaterialEditorClient& create_content_browser();
+		virtual MaterialEditorClient& create_preview_window();
+		virtual MaterialEditorClient& create_properties_window();
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(float dt) override;

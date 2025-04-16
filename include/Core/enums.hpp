@@ -688,19 +688,18 @@ namespace Engine
 			Undefined = 0,
 
 			// Meta
-			META_UniformBuffer        = BIT(16),
-			META_CombinedImageSampler = BIT(17),
-			META_Sampler              = BIT(18),
-			META_Texture              = BIT(19),
-			META_RWTexture            = BIT(20),
-			META_TexelBuffer          = BIT(21),
-			META_RWTexelBuffer        = BIT(22),
-			META_Buffer               = BIT(23),
-			META_RWBuffer             = BIT(24),
+			META_UniformBuffer = BIT(16),
+			META_Sampler       = BIT(17),
+			META_Texture       = BIT(18),
+			META_RWTexture     = BIT(19),
+			META_TexelBuffer   = BIT(20),
+			META_RWTexelBuffer = BIT(21),
+			META_Buffer        = BIT(22),
+			META_RWBuffer      = BIT(23),
 
-			META_Scalar  = BIT(25),
-			META_Vector  = BIT(26),
-			META_Matrix  = BIT(27),
+			META_Scalar  = BIT(24),
+			META_Vector  = BIT(25),
+			META_Matrix  = BIT(26),
 			META_Numeric = META_Scalar | META_Vector,
 			META_Any     = 65535U << 16,
 
@@ -725,7 +724,7 @@ namespace Engine
 			Float4x4    = 18 | META_Matrix | META_UniformBuffer,
 			MemoryBlock = 19 | META_UniformBuffer,
 			Sampler     = 20 | META_Sampler,
-			Sampler2D   = 21 | META_CombinedImageSampler,
+			Sampler2D   = 21 | META_Texture | META_Sampler,
 			Texture2D   = 22 | META_Texture,
 
 			// RW Resources
@@ -734,7 +733,7 @@ namespace Engine
 			Globals         = 24 | META_UniformBuffer,
 			LocalToWorld    = 25 | META_Matrix | META_UniformBuffer,
 			Surface         = 26 | META_Texture,
-			CombinedSurface = 27 | META_CombinedImageSampler,
+			CombinedSurface = 27 | META_Texture | META_Sampler,
 		};
 
 		trinex_bitfield_enum_struct(ShaderParameterType, EnumerateType);

@@ -35,5 +35,6 @@ namespace Engine
 		bool shader_source(String& out_source) override;
 
 		inline const Vector<Pointer<VisualMaterialGraph::Node>>& nodes() const { return m_nodes; }
+		inline bool is_root_node(VisualMaterialGraph::Node* node) const { return m_nodes[0].ptr() == node; }
 	};
 }// namespace Engine

@@ -1,5 +1,4 @@
 #include <Clients/material/material_client.hpp>
-#include <Widgets/property_renderer.hpp>
 
 namespace ax::NodeEditor
 {
@@ -21,7 +20,7 @@ namespace Engine
 		trinex_declare_class(VisualMaterialEditorClient, MaterialEditorClient);
 
 	private:
-		PropertyRenderer m_property_renderer;
+		Vector<VisualMaterialGraph::Node*> m_selected_nodes;
 		ax::NodeEditor::EditorContext* m_context = nullptr;
 		Pointer<VisualMaterial> m_material;
 
@@ -39,7 +38,7 @@ namespace Engine
 		VisualMaterialEditorClient& open_spawn_node_window(VisualMaterialGraph::Pin* pin = nullptr);
 
 		VisualMaterialEditorClient& render_graph();
-		bool render_properties(VisualMaterialGraph::Node* node);
+		VisualMaterialEditorClient& render_properties(VisualMaterialGraph::Node* node);
 		VisualMaterialEditorClient& render_spawn_node_window();
 
 		VisualMaterialEditorClient& update_create_events();
@@ -50,6 +49,7 @@ namespace Engine
 		VisualMaterialEditorClient();
 		~VisualMaterialEditorClient();
 
+		VisualMaterialEditorClient& create_properties_window() override;
 		VisualMaterialEditorClient& update(float dt) override;
 		VisualMaterialEditorClient& select(Object* object) override;
 		uint32_t build_dock(uint32_t dock) override;

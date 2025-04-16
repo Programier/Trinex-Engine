@@ -16,7 +16,6 @@ namespace Engine
 	    : address_u(get_type(sampler->address_u)), address_v(get_type(sampler->address_v)),
 	      address_w(get_type(sampler->address_w)), compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy),
 	      mip_lod_bias(sampler->mip_lod_bias), min_lod(sampler->min_lod), max_lod(sampler->max_lod),
-	      unnormalized_coordinates(sampler->unnormalized_coordinates),
 	      compare_enable(sampler->compare_mode == CompareMode::RefToTexture)
 	{
 		switch (sampler->filter)
@@ -51,7 +50,7 @@ namespace Engine
 		vk::SamplerCreateInfo sampler_info({}, info.mag_filter, info.min_filter, info.mipmap_mode, info.address_u, info.address_v,
 		                                   info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
 		                                   info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
-		                                   vk::BorderColor::eIntOpaqueBlack, info.unnormalized_coordinates);
+										   vk::BorderColor::eIntOpaqueBlack, vk::False);
 		m_sampler = API->m_device.createSampler(sampler_info);
 		return *this;
 	}

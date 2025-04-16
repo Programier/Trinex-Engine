@@ -46,7 +46,10 @@ namespace Engine
 		{
 			namespace MP = MaterialParameters;
 
-			if ((param.type & ShaderParameterType::META_CombinedImageSampler) == ShaderParameterType::META_CombinedImageSampler)
+			constexpr ShaderParameterType combined_image_sampler(ShaderParameterType::META_Texture |
+																 ShaderParameterType::META_Sampler);
+
+			if ((param.type & combined_image_sampler) == combined_image_sampler)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eCombinedImageSampler,
 				                    &VulkanDescriptorSetLayout::combined_image_sampler);

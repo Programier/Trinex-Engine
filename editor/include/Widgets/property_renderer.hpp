@@ -22,10 +22,10 @@ namespace Engine
 		class Context
 		{
 		public:
-			using BeginRenderingFunc = Function<bool()>;
-			using EndRenderingFunc   = Function<void(bool)>;
-			using BeginGroupFunc     = Function<bool(const String&)>;
-			using EndGroupFunc       = Function<void(const String&, bool)>;
+			using BeginRenderingFunc = Function<bool(PropertyRenderer* renderer)>;
+			using EndRenderingFunc   = Function<void(PropertyRenderer* renderer, bool)>;
+			using BeginGroupFunc     = Function<bool(PropertyRenderer* renderer, const String&)>;
+			using EndGroupFunc       = Function<void(PropertyRenderer* renderer, const String&, bool)>;
 
 		private:
 			Map<const Refl::ClassInfo*, RendererFunc> m_renderers;
@@ -66,6 +66,7 @@ namespace Engine
 		Context* m_ctx = nullptr;
 		Object* m_object;
 		Identifier m_destroy_id;
+		size_t m_property_index = 0;
 
 		PropertiesMap& build_props_map(Refl::Struct* self);
 
@@ -95,6 +96,7 @@ namespace Engine
 		virtual const char* name() const;
 		static const char* static_name();
 
+		inline size_t property_index() const { return m_property_index; }
 		inline void* property_context() const { return m_context_stack.back(); }
 		inline Context* renderer_context() const { return m_ctx; }
 		inline PropertyRenderer& renderer_context(Context* ctx)

@@ -2,8 +2,10 @@
 #include <Core/blueprints.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
+#include <Core/icons.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
@@ -23,6 +25,42 @@ namespace Engine
 		register_client(VisualMaterial::static_class_instance(), static_class_instance());
 	}
 
+	static class NodePropertyRenderer : public PropertyRenderer
+	{
+		int_t m_max_text_len;
+
+	public:
+		NodePropertyRenderer& update()
+		{
+			m_max_text_len = 0;
+
+			const void* context = object();
+			auto& props         = properties_map(object()->class_instance());
+
+			for (auto& [group, group_properties] : props)
+			{
+				for (auto* prop : group_properties)
+				{
+					m_max_text_len = glm::max<int_t>(m_max_text_len, prop->property_name(context).length());
+				}
+			}
+
+			return *this;
+		}
+
+		NodePropertyRenderer& render_name(Refl::Property* prop)
+		{
+			const String& name = property_name(prop, property_context());
+			ImGui::Text("%*s ", -m_max_text_len, name.c_str());
+			return *this;
+		}
+
+		static NodePropertyRenderer* from(PropertyRenderer* renderer)
+		{
+			return reinterpret_cast<NodePropertyRenderer*>(renderer);
+		}
+	} s_node_property_renderer;
+
 	class ImGuiNodeProperties : public PropertyRenderer
 	{
 	public:
@@ -38,6 +76,23 @@ namespace Engine
 	struct VerticalLayout {
 		VerticalLayout() { ImGui::BeginVertical(this); }
 		~VerticalLayout() { ImGui::EndVertical(); }
+	};
+
+	class NodePropertyLayout
+	{
+
+	public:
+		NodePropertyLayout(float weight = 0.f)
+		{
+			ImGui::BeginHorizontal(1);
+			ImGui::Spring(weight, 0.5f);
+		}
+
+		~NodePropertyLayout()
+		{
+			ImGui::Spring(1.f, 0.5f);
+			ImGui::EndHorizontal();
+		}
 	};
 
 	struct EditorSuspend {
@@ -364,11 +419,10 @@ namespace Engine
 	VisualMaterialEditorClient& VisualMaterialEditorClient::render_graph()
 	{
 		static BlueprintBuilder builder;
-		float text_height                        = ImGui::GetTextLineHeightWithSpacing();
-		float item_spacing                       = ImGui::GetStyle().ItemSpacing.x;
-		VisualMaterialGraph::Node* selected_node = nullptr;
+		float text_height  = ImGui::GetTextLineHeightWithSpacing();
+		float item_spacing = ImGui::GetStyle().ItemSpacing.x;
 
-		auto selected_items = ed::GetSelectedObjectCount();
+		m_selected_nodes.clear();
 
 		for (auto& node : m_material->nodes())
 		{
@@ -386,10 +440,8 @@ namespace Engine
 
 			builder.begin(node->id());
 
-			if (selected_items == 1 && ed::IsNodeSelected(node->id()))
-			{
-				selected_node = node;
-			}
+			if (ed::IsNodeSelected(node->id()))
+				m_selected_nodes.push_back(node);
 
 			builder.begin_header(ImVec4(1.0, 0.0, 0.0, 1.f));
 			ImGui::Spring(1.f);
@@ -457,96 +509,6 @@ namespace Engine
 				builder.end_input();
 			}
 
-			// {
-			// 	float max_len = 0.f;
-			// 	static Vector<float> sizes;
-			// 	sizes.clear();
-
-			// 	for (auto& input : node->inputs())
-			// 	{
-			// 		float len = ImGui::CalcTextSize(input->name().c_str()).x;
-			// 		max_len   = glm::max(max_len, len);
-			// 		sizes.push_back(len);
-			// 	}
-
-			// 	Index index = 0;
-			// 	for (auto& input : node->inputs())
-			// 	{
-			// 		builder.begin_input(input->id());
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		builder.begin_input_pin(input->id());
-			// 		ed::PinPivotAlignment({0.5, 0.5f});
-			// 		const VisualMaterialGraph::PinType type = input->node()->in_pin_type(input);
-			// 		BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->has_links(),
-			// 		                       pin_colors.at(type));
-			// 		ImGui::SetItemTooltip("%s", pin_type_names.at(type));
-			// 		builder.end_input_pin();
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		ImGui::TextUnformatted(input->name().c_str());
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		ImGui::Dummy({item_spacing + max_len - sizes[index], 0.f});
-			// 		ImGui::Spring(0.f, 0.f);
-
-			// 		ImGui::SuspendLayout();
-			// 		float width = render_default_value(input->default_value(), input->type());
-			// 		ImGui::ResumeLayout();
-
-			// 		ImGui::Spring(0.f, 0.f);
-			// 		ImGui::Dummy({width, 0.f});
-			// 		ImGui::Spring(1.f, 0.f);
-
-			// 		builder.end_input();
-
-			// 		++index;
-			// 	}
-			// }
-
-			// ImGui::Spring();
-			// builder.begin_middle();
-			// node->render();
-			// ImGui::Spring();
-
-
-			// for (auto& output : node->outputs())
-			// {
-			// 	builder.begin_output(output->id());
-
-			// 	ImGui::Spring(0.f, 0.f);
-			// 	ImGui::SuspendLayout();
-			// 	float width = render_default_value(output->default_value(), output->type());
-			// 	ImGui::ResumeLayout();
-
-			// 	ImGui::Spring(0.f, 0.f);
-			// 	ImGui::Dummy({width, 0.f});
-			// 	ImGui::Spring(1.f, 0.f);
-
-			// 	ImGui::TextUnformatted(output->name().c_str());
-			// 	ImGui::Spring(0.f, 0.f);
-
-			// 	builder.begin_output_pin(output->id());
-			// 	ed::PinPivotAlignment({0.9, 0.5f});
-			// 	const VisualMaterialGraph::PinType type = output->node()->out_pin_type(output);
-			// 	BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
-			// 	                       pin_colors.at(type));
-			// 	ImGui::SetItemTooltip("%s", pin_type_names.at(type));
-			// 	builder.end_output_pin();
-
-			// 	ImGui::Spring(0.f, 0.f);
-			// 	builder.end_output();
-			// }
-
-			// if (node->has_error())
-			// {
-			// 	ImGui::Spring();
-			// 	builder.begin_footer(ImVec4(1.f, 0.f, 0.f, 1.f));
-			// 	ImGui::Spring(1.f);
-			// 	ImGui::Text("%s", node->error_message().c_str());
-			// 	ImGui::Spring(1.f);
-			// }
-
 			builder.end();
 		}
 
@@ -564,19 +526,15 @@ namespace Engine
 		return *this;
 	}
 
-	bool VisualMaterialEditorClient::render_properties(VisualMaterialGraph::Node* node)
+	VisualMaterialEditorClient& VisualMaterialEditorClient::render_properties(VisualMaterialGraph::Node* node)
 	{
-		if (!m_property_renderer.properties_map(node->class_instance()).empty())
+		if (!s_node_property_renderer.properties_map(node->class_instance()).empty())
 		{
-			float width = glm::max(ImGui::TableGetAutoWidth("###properties"), 1.f);
-
-			ImGui::BeginTable("###properties", 2, ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_Borders, {width, 0.f});
-			m_property_renderer.render_struct_properties(node, node->class_instance(), false);
-			ImGui::EndTable();
-			return false;
+			s_node_property_renderer.object(node, false);
+			s_node_property_renderer.render();
 		}
 
-		return false;
+		return *this;
 	}
 
 	VisualMaterialEditorClient& VisualMaterialEditorClient::render_spawn_node_window()
@@ -900,6 +858,30 @@ namespace Engine
 		// 	}
 		// }
 
+		if (m_properties_window)
+		{
+			Object* properties_object = nullptr;
+
+			if (m_properties_window && m_selected_nodes.size() == 1)
+			{
+				auto node = m_selected_nodes.front();
+
+				if (s_node_property_renderer.properties_map(node->class_instance()).empty())
+				{
+					properties_object = m_material;
+				}
+				else
+				{
+					properties_object = node;
+				}
+			}
+			else
+			{
+				properties_object = m_material;
+			}
+
+			m_properties_window->object(properties_object, false);
+		}
 		return *this;
 	}
 
@@ -922,6 +904,12 @@ namespace Engine
 	VisualMaterialEditorClient::~VisualMaterialEditorClient()
 	{
 		ax::NodeEditor::DestroyEditor(m_context);
+	}
+
+	VisualMaterialEditorClient& VisualMaterialEditorClient::create_properties_window()
+	{
+		Super::create_properties_window();
+		return *this;
 	}
 
 	VisualMaterialEditorClient& VisualMaterialEditorClient::update(float dt)
@@ -972,6 +960,162 @@ namespace Engine
 		return center;
 	}
 
+
+	//////////////////// NODE PROPERTY RENDERER FUNCTIONS ////////////////////
+
+	static bool imgui_begin_combo(const char* label, const char* current, float max_text_width)
+	{
+		ImGui::PushID(label);
+
+		const float arrow_size = ImGui::GetFrameHeight();
+		const float padding    = ImGui::GetStyle().FramePadding.x * 2.0f;
+		float combo_width      = max_text_width + padding + arrow_size;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.f, 0.5f));
+		if (ImGui::Button(current, ImVec2(combo_width, 0)))
+			ImGui::OpenPopup("###combo_popup");
+		ImGui::PopStyleVar();
+
+		const bool hovered = ImGui::IsItemHovered();
+
+		ImVec2 button_min = ImGui::GetItemRectMin();
+		ImVec2 button_max = ImGui::GetItemRectMax();
+		ImVec2 arrow_pos  = ImVec2(button_max.x - arrow_size, button_min.y);
+
+		// Render arrow
+		{
+			ImU32 bg_col   = ImGui::GetColorU32(hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+			ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
+			auto list      = ImGui::GetWindowDrawList();
+
+			auto& style = ImGui::GetStyle();
+			list->AddRectFilled(arrow_pos, arrow_pos + ImVec2(arrow_size, arrow_size), bg_col, style.FrameRounding,
+								ImDrawFlags_RoundCornersRight);
+
+			ImGui::RenderArrow(list, ImVec2(arrow_pos.x + style.FramePadding.y, arrow_pos.y + style.FramePadding.y), text_col,
+							   ImGuiDir_Down, 1.0f);
+		}
+
+		ImGui::SetNextWindowPos({button_min.x, button_max.y});
+		ImGui::SetNextWindowSize({combo_width, 0.f});
+		bool result = ImGui::BeginPopup("###combo_popup");
+
+		if (!result)
+			ImGui::PopID();
+
+		return result;
+	}
+
+	static void imgui_end_combo()
+	{
+		ImGui::EndPopup();
+		ImGui::PopID();
+	}
+
+	static bool render_bool_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	{
+		void* context = renderer->property_context();
+		NodePropertyLayout layout;
+
+		NodePropertyRenderer::from(renderer)->render_name(prop);
+
+		if (ImGui::Checkbox("###boolean", prop->address_as<bool>(context)))
+		{
+			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			return true;
+		}
+		return false;
+	}
+
+	static bool render_enum_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	{
+		auto prop      = Refl::Object::instance_cast<Refl::EnumProperty>(prop_base);
+		auto enum_inst = prop->enum_instance();
+		void* context  = renderer->property_context();
+
+		NodePropertyLayout layout;
+
+		NodePropertyRenderer::from(renderer)->render_name(prop);
+
+		EnumerateType value       = prop->value(context);
+		const auto* current_entry = enum_inst->entry(value);
+
+		bool is_changed = false;
+
+		float max_text_width = 0.f;
+		for (auto& entry : enum_inst->entries())
+		{
+			const String& name = entry.name.to_string();
+			max_text_width     = glm::max(ImGui::CalcTextSize(name.c_str(), name.c_str() + name.length()).x, max_text_width);
+		}
+
+		if (imgui_begin_combo("###ComboValue", current_entry->name.c_str(), max_text_width))
+		{
+			for (auto& entry : enum_inst->entries())
+			{
+				bool is_selected = entry.value == value;
+
+				if (ImGui::Selectable(entry.name.c_str(), is_selected) && !read_only)
+				{
+					prop->value(context, entry.value);
+					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+					is_changed = true;
+				}
+			}
+
+			imgui_end_combo();
+		}
+
+		return is_changed;
+	}
+
+	static bool render_object_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	{
+		Refl::ObjectProperty* prop = Refl::Object::instance_cast<Refl::ObjectProperty>(prop_base);
+		void* context              = renderer->property_context();
+
+		if (!prop->is_composite())
+		{
+			NodePropertyLayout layout(1.f);
+
+			auto object  = prop->object(context);
+			bool changed = false;
+
+			ImGui::PushID("##Image");
+			ImGui::Image(Icons::find_icon(object), {100, 100});
+
+			if (object && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+			{
+				ImGui::SetTooltip("%s", object->full_name().c_str());
+			}
+
+			if (!read_only && ImGui::BeginDragDropTarget())
+			{
+				const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
+				if (payload)
+				{
+					IM_ASSERT(payload->DataSize == sizeof(Object*));
+
+					Object* new_object = *reinterpret_cast<Object**>(payload->Data);
+
+					if (new_object->class_instance()->is_a(prop->class_instance()))
+					{
+						prop->object(context, new_object);
+						prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+						changed = true;
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+			ImGui::PopID();
+			return changed;
+		}
+
+		return false;
+	}
+
+	//////////////////// INITITALIZATION ////////////////////
+
 	static void pre_initialize()
 	{
 		using T = ShaderParameterType;
@@ -995,6 +1139,19 @@ namespace Engine
 		s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float, float>;
 		s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float, float>;
 		s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float, float>;
+
+		static PropertyRenderer::Context ctx;
+		s_node_property_renderer.renderer_context(&ctx);
+
+		ctx.on_begin_rendering = [](PropertyRenderer* renderer) -> bool {
+			NodePropertyRenderer::from(renderer)->update();
+			return true;
+		};
+		ctx.on_end_rendering = [](PropertyRenderer*, bool) {};
+
+		ctx.renderer<Refl::BooleanProperty>(render_bool_property);
+		ctx.renderer<Refl::EnumProperty>(render_enum_property);
+		ctx.renderer<Refl::ObjectProperty>(render_object_property);
 	}
 
 	static PreInitializeController preinit(pre_initialize);

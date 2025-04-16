@@ -43,7 +43,6 @@ namespace Engine
 #if USING_OPENGL_CORE
 		glSamplerParameterf(m_id, GL_TEXTURE_MAX_ANISOTROPY, sampler->anisotropy);
 		glSamplerParameterf(m_id, GL_TEXTURE_LOD_BIAS, sampler->mip_lod_bias);
-		//glSamplerParameteri(m_id, GL_TEXTURE_UNNORMALIZED_COORDINATES_ARM, sampler->unnormalized_coordinates);
 #endif
 		glSamplerParameterf(m_id, GL_TEXTURE_MIN_LOD, sampler->min_lod);
 		glSamplerParameterf(m_id, GL_TEXTURE_MAX_LOD, sampler->max_lod);

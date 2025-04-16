@@ -20,8 +20,6 @@ namespace Engine
 		float mip_lod_bias;
 		float min_lod;
 		float max_lod;
-
-		bool unnormalized_coordinates;
 		bool compare_enable;
 
 		VulkanSamplerCreateInfo();

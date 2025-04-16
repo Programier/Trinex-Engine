@@ -327,6 +327,9 @@ namespace Engine
 	{
 		m_properties_window = imgui_window()->widgets_list.create<PropertyRenderer>();
 		m_properties_window->on_close.push([this]() { m_properties_window = nullptr; });
+
+		if (m_material)
+			m_properties_window->object(m_material);
 		return *this;
 	}
 

@@ -118,8 +118,9 @@ namespace Engine
 			{
 				if ((founded = static_cast<bool>(current->on_begin_rendering)))
 				{
-					if ((status = current->on_begin_rendering()))
+					if ((status = current->on_begin_rendering(this)))
 					{
+						m_property_index = 0;
 						render_struct_properties(m_object, m_object->class_instance(), false);
 					}
 				}
@@ -132,7 +133,7 @@ namespace Engine
 			{
 				if (current->on_end_rendering)
 				{
-					current->on_end_rendering(status);
+					current->on_end_rendering(this, status);
 					return *this;
 				}
 			}
@@ -285,7 +286,7 @@ namespace Engine
 				{
 					if (current->on_begin_group)
 					{
-						open = current->on_begin_group(group);
+						open = current->on_begin_group(this, group);
 						break;
 					}
 				}
@@ -306,7 +307,7 @@ namespace Engine
 				{
 					if (current->on_end_group)
 					{
-						current->on_end_group(group, open);
+						current->on_end_group(this, group, open);
 						break;
 					}
 				}
@@ -608,6 +609,7 @@ namespace Engine
 		{
 			auto flags = ImGuiInputTextFlags_EnterReturnsTrue | (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
 
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 			if (ImGui::InputText("##Value", *value, flags))
 			{
 				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
@@ -1019,7 +1021,7 @@ namespace Engine
 	{
 		auto ctx = PropertyRenderer::static_global_renderer_context();
 
-		ctx->on_begin_rendering = []() -> bool {
+		ctx->on_begin_rendering = [](PropertyRenderer*) -> bool {
 			bool status = ImGui::BeginTable("###properties", 3,
 											ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
 			if (status)
@@ -1032,16 +1034,16 @@ namespace Engine
 			return status;
 		};
 
-		ctx->on_end_rendering = [](bool status) { ImGui::EndTable(); };
+		ctx->on_end_rendering = [](PropertyRenderer*, bool status) { ImGui::EndTable(); };
 
-		ctx->on_begin_group = [](const String& group) -> bool {
+		ctx->on_begin_group = [](PropertyRenderer*, const String& group) -> bool {
 			ImGui::TableNextRow();
 			bool result = collapsing_header(group.c_str(), group.c_str());
 			ImGui::Indent();
 			return result;
 		};
 
-		ctx->on_end_group = [](const String& group, bool status) { ImGui::Unindent(); };
+		ctx->on_end_group = [](PropertyRenderer*, const String& group, bool status) { ImGui::Unindent(); };
 
 		ctx->renderer<Refl::BooleanProperty>(render_boolean_property);
 		ctx->renderer<Refl::IntegerProperty>(render_integer_property);

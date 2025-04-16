@@ -24,8 +24,6 @@ namespace Engine
 		trinex_refl_prop(self, This, address_w)->tooltip("Address mode for W of sampler");
 		trinex_refl_prop(self, This, compare_mode);
 		trinex_refl_prop(self, This, compare_func)->tooltip("Compare Func of sampler");
-
-		trinex_refl_prop(self, This, unnormalized_coordinates);
 	}
 
 	Sampler& Sampler::init_render_resources()
@@ -57,7 +55,7 @@ namespace Engine
 			return false;
 
 		return archive.serialize(filter, address_u, address_v, address_w, mip_lod_bias, anisotropy, compare_mode, min_lod,
-								 max_lod, compare_func, unnormalized_coordinates);
+								 max_lod, compare_func);
 	}
 
 	Sampler& Sampler::apply_changes()
