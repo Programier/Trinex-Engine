@@ -66,8 +66,7 @@ namespace Engine
 		create(self);
 	}
 
-	ScriptObject::ScriptObject(const ScriptObject& object) : ScriptVariableBase(object.address(), object.type_info(), true)
-	{}
+	ScriptObject::ScriptObject(const ScriptObject& object) : ScriptVariableBase(object.address(), object.type_info(), true) {}
 
 	ScriptObject& ScriptObject::operator=(const ScriptObject& object)
 	{

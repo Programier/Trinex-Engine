@@ -34,10 +34,7 @@ namespace Engine
 			}
 		}
 
-		~OpenGL_UniformBufferBlock()
-		{
-			glDeleteBuffers(1, &m_id);
-		}
+		~OpenGL_UniformBufferBlock() { glDeleteBuffers(1, &m_id); }
 	};
 
 	struct OpenGL_LocalUniformBuffer {
@@ -49,10 +46,7 @@ namespace Engine
 		size_t m_index            = 0;
 
 
-		OpenGL_LocalUniformBuffer()
-		{
-			m_buffers.push_back(new OpenGL_UniformBufferBlock(MAX_DEFAULT_UBO_SIZE));
-		}
+		OpenGL_LocalUniformBuffer() { m_buffers.push_back(new OpenGL_UniformBufferBlock(MAX_DEFAULT_UBO_SIZE)); }
 
 		bool is_busy()
 		{
@@ -86,7 +80,7 @@ namespace Engine
 				if (m_buffers.size() <= m_index)
 				{
 					m_buffers.push_back(
-							new OpenGL_UniformBufferBlock(glm::max<size_t>(m_shadow_data_size, MAX_DEFAULT_UBO_SIZE)));
+					        new OpenGL_UniformBufferBlock(glm::max<size_t>(m_shadow_data_size, MAX_DEFAULT_UBO_SIZE)));
 				}
 			}
 
@@ -165,10 +159,7 @@ namespace Engine
 			}
 		}
 
-		void update(const void* data, size_t size, size_t offset)
-		{
-			buffer()->update(data, size, offset);
-		}
+		void update(const void* data, size_t size, size_t offset) { buffer()->update(data, size, offset); }
 
 		void submit()
 		{

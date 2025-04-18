@@ -54,7 +54,7 @@ namespace Engine
 
 #define m_parameters m_child_objects
 		auto params = trinex_refl_prop_ext(MaterialParametersExt, self, This, m_parameters,
-										   Refl::Property::IsTransient | Refl::Property::IsReadOnly);
+		                                   Refl::Property::IsTransient | Refl::Property::IsReadOnly);
 #undef m_parameters
 
 		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);
@@ -75,8 +75,8 @@ namespace Engine
 	{
 		auto* self = MaterialInstance::static_class_instance();
 		trinex_refl_prop(self, This, parent_material)
-				->display_name("Parent Material")
-				.tooltip("Parent Material of this instance");
+		        ->display_name("Parent Material")
+		        .tooltip("Parent Material of this instance");
 	}
 
 	Refl::Class* MaterialInterface::object_tree_child_class() const
@@ -360,7 +360,7 @@ namespace Engine
 				if (pass->is_material_compatible(this) && pipeline(pass) == nullptr)
 				{
 					warn_log("Material", "Material '%s' should support pass '%s', however no pipeline was found. Recompiling...",
-							 material_name.c_str(), pass->name().c_str());
+					         material_name.c_str(), pass->name().c_str());
 
 					if (compiler->compile_pass(this, pass))
 					{

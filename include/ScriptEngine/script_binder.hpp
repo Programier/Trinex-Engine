@@ -36,10 +36,7 @@ namespace Engine::Binder
 			return (std::is_same_v<Args, typename TypeRemapper<typename ArgAt<Args, idx, Override...>::Type>::ArgType> && ...);
 		}
 
-		static consteval bool is_same_args()
-		{
-			return is_same_args(std::make_index_sequence<sizeof...(Args)>());
-		}
+		static consteval bool is_same_args() { return is_same_args(std::make_index_sequence<sizeof...(Args)>()); }
 
 		template<typename... OverrideArgs>
 		static consteval auto bind_internal()

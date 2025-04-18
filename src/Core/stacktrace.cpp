@@ -11,8 +11,7 @@ namespace Engine
 {
 
 #if PLATFORM_WINDOWS
-	StackTrace::StackTrace(uint_t skip)
-	{}
+	StackTrace::StackTrace(uint_t skip) {}
 #else
 	StackTrace::StackTrace(uint_t skip)
 	{

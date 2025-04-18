@@ -72,7 +72,7 @@ namespace Engine::Importer
 		Path dir;
 
 		ImporterContext(Package* package, const Transform& transform)
-			: package(package), transform(transform.matrix()), rotation(transform.rotation_matrix())
+		    : package(package), transform(transform.matrix()), rotation(transform.rotation_matrix())
 		{}
 
 		static inline Vector3f vector_from_assimp_vec(const aiVector3f& vector)
@@ -281,8 +281,8 @@ namespace Engine::Importer
 			Assimp::Importer importer;
 
 			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-								 aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
-								 aiProcess_CalcTangentSpace | aiProcess_GenUVCoords;
+			                     aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
+			                     aiProcess_CalcTangentSpace | aiProcess_GenUVCoords;
 			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
 
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

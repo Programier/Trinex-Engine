@@ -16,11 +16,11 @@ namespace Engine
 		event_system->register_subsystem(this);
 
 		m_listeners[0] =
-				event_system->add_listener(EventType::FingerDown, std::bind(&This::on_finger_down, this, std::placeholders::_1));
+		        event_system->add_listener(EventType::FingerDown, std::bind(&This::on_finger_down, this, std::placeholders::_1));
 		m_listeners[1] =
-				event_system->add_listener(EventType::FingerUp, std::bind(&This::on_finger_up, this, std::placeholders::_1));
+		        event_system->add_listener(EventType::FingerUp, std::bind(&This::on_finger_up, this, std::placeholders::_1));
 		m_listeners[2] = event_system->add_listener(EventType::FingerMotion,
-													std::bind(&This::on_finger_motion, this, std::placeholders::_1));
+		                                            std::bind(&This::on_finger_motion, this, std::placeholders::_1));
 
 		return *this;
 	}

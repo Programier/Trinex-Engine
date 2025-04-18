@@ -31,10 +31,7 @@ namespace Engine
 		    : m_line(line), m_file(file), m_function(function), m_message(message), m_start(std::chrono::steady_clock::now())
 		{}
 
-		std::size_t time()
-		{
-			return std::chrono::duration_cast<duration>(std::chrono::steady_clock::now() - m_start).count();
-		}
+		std::size_t time() { return std::chrono::duration_cast<duration>(std::chrono::steady_clock::now() - m_start).count(); }
 
 		BenchMark& log_status(bool flag)
 		{
@@ -42,10 +39,7 @@ namespace Engine
 			return *this;
 		}
 
-		bool log_status() const
-		{
-			return m_enable_log;
-		}
+		bool log_status() const { return m_enable_log; }
 
 		~BenchMark()
 		{

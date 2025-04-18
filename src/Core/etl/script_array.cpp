@@ -67,8 +67,7 @@ namespace Engine
 		from->m_as_array = nullptr;
 	}
 
-	ScriptArrayBase::ScriptArrayBase() : m_as_array(nullptr)
-	{}
+	ScriptArrayBase::ScriptArrayBase() : m_as_array(nullptr) {}
 
 	bool ScriptArrayBase::create(size_type init_size)
 	{

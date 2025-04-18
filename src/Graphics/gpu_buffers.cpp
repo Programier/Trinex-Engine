@@ -56,7 +56,7 @@ namespace Engine
 	}
 
 	VertexBufferBase& VertexBufferBase::init(RHIBufferType type, size_t stride, size_t count, const void* data,
-											 bool keep_cpu_data)
+	                                         bool keep_cpu_data)
 	{
 		allocate_data(type, stride, count);
 		if (data)

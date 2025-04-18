@@ -163,7 +163,7 @@ namespace Engine
 	}
 
 	RenderPass& RenderPass::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-												   size_t instances)
+	                                               size_t instances)
 	{
 		add_callabble([=]() { rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances); });
 		return *this;
@@ -224,7 +224,7 @@ namespace Engine
 		m_attachments_count = 0;
 
 		m_shader_definitions = {
-				{"TRINEX_DEPTH_PASS", "1"},
+		        {"TRINEX_DEPTH_PASS", "1"},
 		};
 
 		m_is_material_compatible = is_opaque_material;
@@ -235,7 +235,7 @@ namespace Engine
 		m_attachments_count = 4;
 
 		m_shader_definitions = {
-				{"TRINEX_GEOMETRY_PASS", "1"},
+		        {"TRINEX_GEOMETRY_PASS", "1"},
 		};
 
 		m_is_material_compatible = is_opaque_material;

@@ -159,8 +159,7 @@ namespace Engine
 	}
 
 
-	ScriptClassRegistrar::BaseInfo::BaseInfo() : template_type(""), extra_flags(0)
-	{}
+	ScriptClassRegistrar::BaseInfo::BaseInfo() : template_type(""), extra_flags(0) {}
 
 	ScriptClassRegistrar::ValueInfo::ValueInfo()
 	    : as_handle(false), pod(false), all_ints(false), all_floats(false), align8(false), more_constructors(false),
@@ -168,8 +167,7 @@ namespace Engine
 	      has_assignment_operator(false), has_copy_constructor(false)
 	{}
 
-	ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true)
-	{}
+	ScriptClassRegistrar::RefInfo::RefInfo() : no_count(true), implicit_handle(true) {}
 
 	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name)
 	    : m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)), m_namespace_name(Strings::namespace_sv_of(name))
@@ -254,28 +252,28 @@ namespace Engine
 	}
 
 	ScriptFunction ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv,
-												void* auxiliary)
+	                                            void* auxiliary)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		int r = script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-													  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv), auxiliary);
+		                                              *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv), auxiliary);
 		SCRIPT_CHECK(r >= 0);
 		return script_engine()->GetFunctionById(r);
 	}
 
 	ScriptFunction ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv,
-												void* auxiliary)
+	                                            void* auxiliary)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		int r = script_engine()->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-													  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv),
-													  auxiliary);
+		                                              *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv),
+		                                              auxiliary);
 		SCRIPT_CHECK(r >= 0);
 		return script_engine()->GetFunctionById(r);
 	}
 
 	ScriptFunction ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv,
-														 void* auxiliary)
+	                                                     void* auxiliary)
 	{
 		ScriptNamespaceScopedChanger ns(m_class_name);
 		return ScriptEngine::register_function(declaration, function, conv, auxiliary);
@@ -296,22 +294,22 @@ namespace Engine
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
-													   ScriptFuncPtr* function, ScriptCallConv conv, void* auxiliary)
+	                                                   ScriptFuncPtr* function, ScriptCallConv conv, void* auxiliary)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-															  *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv),
-															  auxiliary) >= 0);
+		                                                      *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv),
+		                                                      auxiliary) >= 0);
 		return *this;
 	}
 
 	ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
-													   ScriptMethodPtr* method, ScriptCallConv conv, void* auxiliary)
+	                                                   ScriptMethodPtr* method, ScriptCallConv conv, void* auxiliary)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		SCRIPT_CHECK(script_engine()->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
-															  *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv),
-															  auxiliary) >= 0);
+		                                                      *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv),
+		                                                      auxiliary) >= 0);
 		return *this;
 	}
 

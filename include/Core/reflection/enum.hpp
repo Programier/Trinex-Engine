@@ -40,7 +40,7 @@ namespace Engine::Refl
 
 		template<typename EnumType, auto... enum_values>
 		static Enum* create(const StringView& name)
-			requires(std::is_enum_v<EnumType> && sizeof(EnumType) <= sizeof(EnumerateType))
+		    requires(std::is_enum_v<EnumType> && sizeof(EnumType) <= sizeof(EnumerateType))
 		{
 			auto name_of = extract_enum_value_name;
 			auto entries = Vector<Enum::Entry>{Entry(name_of(value_info<enum_values>::name()), enum_values)...};
@@ -62,7 +62,7 @@ namespace Engine::Refl
 		s_enum = Engine::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name);                                           \
 	}                                                                                                                            \
 	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::byte>(                           \
-			Engine::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
+	        Engine::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
 
 #define trinex_implement_engine_enum(enum_name, ...) trinex_implement_enum(Engine::enum_name, __VA_ARGS__)
 }// namespace Engine::Refl

@@ -63,7 +63,7 @@ namespace Engine
 
 		{
 			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
-											vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
+			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, barrier,
 			                           {}, {});
 		}
@@ -94,7 +94,7 @@ namespace Engine
 				dst_stage = vk::PipelineStageFlagBits::eAllCommands;
 
 			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
-											vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
+			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, dst_stage, {}, barrier, {}, {});
 		}
 
@@ -272,7 +272,7 @@ namespace Engine
 		if (pipeline)
 		{
 			pipeline->bind_uniform_buffer(vk::DescriptorBufferInfo(m_buffer.m_buffer, offset, size), location,
-										  vk::DescriptorType::eUniformBuffer);
+			                              vk::DescriptorType::eUniformBuffer);
 			API->current_command_buffer()->add_object(this);
 		}
 	}

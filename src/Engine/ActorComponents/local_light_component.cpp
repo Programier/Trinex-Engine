@@ -22,12 +22,11 @@ namespace Engine
 		auto* self = static_class_instance();
 
 		trinex_refl_prop(self, This, m_attenuation_radius)
-				->display_name("Attenuation radius")
-				.tooltip("Attenuation radius of this light");
+		        ->display_name("Attenuation radius")
+		        .tooltip("Attenuation radius of this light");
 	}
 
-	LocalLightComponent::LocalLightComponent() : m_attenuation_radius(30.f)
-	{}
+	LocalLightComponent::LocalLightComponent() : m_attenuation_radius(30.f) {}
 
 	LocalLightComponent& LocalLightComponent::submit_local_light_info()
 	{

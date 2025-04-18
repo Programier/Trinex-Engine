@@ -10,8 +10,7 @@ namespace Engine::Refl
 {
 	implement_reflect_type(Enum);
 
-	Enum::Enum()
-	{}
+	Enum::Enum() {}
 
 	Enum& Enum::register_enum_with_entries(const Vector<Enum::Entry>& entries)
 	{

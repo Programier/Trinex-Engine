@@ -9,9 +9,6 @@ namespace Engine
 	public:
 		using Parent::Parent;
 
-		EngineResource()
-		{
-			Object::flags(Object::StandAlone, true);
-		}
+		EngineResource() { Object::flags(Object::StandAlone, true); }
 	};
 }// namespace Engine

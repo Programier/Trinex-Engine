@@ -9,13 +9,11 @@ namespace Engine
 	struct TypesList {
 		using Type = TypesList<Types...>;
 
-		constexpr TypesList()
-		{}
+		constexpr TypesList() {}
 		constexpr TypesList(Types&&... values)
-			requires(sizeof...(Types) > 0)
+		    requires(sizeof...(Types) > 0)
 		{}
-		constexpr TypesList(const TypesList& list)
-		{}
+		constexpr TypesList(const TypesList& list) {}
 
 		template<typename Func, typename... Args>
 		static void for_each(Func&& func, Args&&... args)
@@ -23,10 +21,7 @@ namespace Engine
 			(func.template operator()<Types>(std::forward<Args>(args)...), ...);
 		}
 
-		consteval static size_t size()
-		{
-			return sizeof...(Types);
-		}
+		consteval static size_t size() { return sizeof...(Types); }
 
 		template<size_t Index, typename... Rest>
 		struct type_at_impl;
@@ -226,16 +221,16 @@ namespace Engine
 
 #define trinex_scoped_method(class_name, method_name, ...)                                                                       \
 	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::FuncTypePtr>(               \
-			[]<typename Instance, typename... Args>(Instance* instance,                                                          \
-													Args... args) -> decltype(instance->method_name(args...)) {                  \
-				return instance->class_name::method_name(args...);                                                               \
-			})
+	        []<typename Instance, typename... Args>(Instance* instance,                                                          \
+	                                                Args... args) -> decltype(instance->method_name(args...)) {                  \
+		        return instance->class_name::method_name(args...);                                                               \
+	        })
 
 #define trinex_scoped_void_method(class_name, method_name, ...)                                                                  \
 	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::VoidFuncTypePtr>(           \
-			[]<typename Instance, typename... Args>(Instance* instance, Args... args) {                                          \
-				instance->class_name::method_name(args...);                                                                      \
-			})
+	        []<typename Instance, typename... Args>(Instance* instance, Args... args) {                                          \
+		        instance->class_name::method_name(args...);                                                                      \
+	        })
 
 	template<typename EnumType>
 	FORCE_INLINE EnumerateType enum_value_of(EnumType value)

@@ -41,7 +41,7 @@ namespace Engine::Refl
 	static PostDestroyController destroy_controller(destroy_reflection_instances);
 
 	ClassInfo::ClassInfo(const char* name, const ClassInfo* const parent)
-		: class_name(Strings::class_name_sv_of(name)), parent(parent), is_scriptable(false)
+	    : class_name(Strings::class_name_sv_of(name)), parent(parent), is_scriptable(false)
 	{}
 
 	bool ClassInfo::is_a(const ClassInfo* const info) const
@@ -71,7 +71,7 @@ namespace Engine::Refl
 		if (name != "Root")
 		{
 			trinex_always_check(static_find(name, FindFlags::DisableReflectionCheck) == nullptr,
-								"Object with same name already exist");
+			                    "Object with same name already exist");
 		}
 
 		auto owner_name = Strings::namespace_sv_of(name);
@@ -99,7 +99,7 @@ namespace Engine::Refl
 		if (owner)
 		{
 			trinex_always_check(owner->find(name, FindFlags::DisableReflectionCheck) == nullptr,
-								"Object with same name already exist");
+			                    "Object with same name already exist");
 		}
 
 		m_next_object_name     = Strings::class_name_sv_of(name);

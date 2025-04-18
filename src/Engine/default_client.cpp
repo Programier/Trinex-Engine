@@ -12,8 +12,7 @@
 
 namespace Engine
 {
-	DefaultClient::DefaultClient()
-	{}
+	DefaultClient::DefaultClient() {}
 
 	DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
 	{

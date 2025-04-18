@@ -36,7 +36,7 @@ namespace Engine::Refl
 	}
 
 	Identifier Object::static_register_initializer(const Function<void()>& func, const String& name,
-												   const std::initializer_list<String>& required)
+	                                               const std::initializer_list<String>& required)
 	{
 		return ReflectionInitializeController(func, name, required).id();
 	}

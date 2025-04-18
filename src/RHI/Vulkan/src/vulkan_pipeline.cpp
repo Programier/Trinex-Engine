@@ -28,7 +28,7 @@ namespace Engine
 	                                                           vk::ShaderStageFlags stages)
 	{
 		auto push_layout_binding = [&out, &descriptor_set_layout, stages](BindLocation location, vk::DescriptorType type,
-																		  byte VulkanDescriptorSetLayout::* counter) {
+		                                                                  byte VulkanDescriptorSetLayout::* counter) {
 			for (auto& entry : out)
 			{
 				if (entry.binding == location.binding && entry.descriptorType == type)
@@ -47,7 +47,7 @@ namespace Engine
 			namespace MP = MaterialParameters;
 
 			constexpr ShaderParameterType combined_image_sampler(ShaderParameterType::META_Texture |
-																 ShaderParameterType::META_Sampler);
+			                                                     ShaderParameterType::META_Sampler);
 
 			if ((param.type & combined_image_sampler) == combined_image_sampler)
 			{
@@ -65,12 +65,12 @@ namespace Engine
 			else if ((param.type & ShaderParameterType::META_UniformBuffer) == ShaderParameterType::META_UniformBuffer)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eUniformBuffer,
-									&VulkanDescriptorSetLayout::uniform_buffers);
+				                    &VulkanDescriptorSetLayout::uniform_buffers);
 			}
 			else if ((param.type & ShaderParameterType::META_RWTexture) == ShaderParameterType::META_RWTexture)
 			{
 				push_layout_binding(param.location, vk::DescriptorType::eStorageImage,
-									&VulkanDescriptorSetLayout::uniform_buffers);
+				                    &VulkanDescriptorSetLayout::uniform_buffers);
 			}
 		}
 	}
@@ -138,8 +138,8 @@ namespace Engine
 	bool VulkanPipeline::create_pipeline_layout()
 	{
 		vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout> layouts =
-				m_descriptor_set_layout->has_layouts() ? m_descriptor_set_layout->layout
-													   : vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout>{};
+		        m_descriptor_set_layout->has_layouts() ? m_descriptor_set_layout->layout
+		                                               : vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout>{};
 		vk::PipelineLayoutCreateInfo pipeline_layout_info({}, layouts);
 		m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
 		return true;
@@ -204,7 +204,7 @@ namespace Engine
 	}
 
 	VulkanPipeline& VulkanPipeline::bind_texture_combined(VulkanTextureSRV* texture, VulkanSampler* sampler,
-														  BindLocation location)
+	                                                      BindLocation location)
 	{
 		if (auto current_set = current_descriptor_set())
 		{
@@ -237,12 +237,12 @@ namespace Engine
 		static auto get_stencil_op_state = [](const GraphicsPipelineDescription::StencilTestInfo& in_state) {
 			vk::StencilOpState out_state;
 			out_state.setReference(0)
-					.setWriteMask(in_state.write_mask)
-					.setCompareMask(in_state.compare_mask)
-					.setCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.compare)])
-					.setFailOp(m_stencil_ops[static_cast<EnumerateType>(in_state.fail)])
-					.setPassOp(m_stencil_ops[static_cast<EnumerateType>(in_state.depth_pass)])
-					.setDepthFailOp(m_stencil_ops[static_cast<EnumerateType>(in_state.depth_fail)]);
+			        .setWriteMask(in_state.write_mask)
+			        .setCompareMask(in_state.compare_mask)
+			        .setCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.compare)])
+			        .setFailOp(m_stencil_ops[static_cast<EnumerateType>(in_state.fail)])
+			        .setPassOp(m_stencil_ops[static_cast<EnumerateType>(in_state.depth_pass)])
+			        .setDepthFailOp(m_stencil_ops[static_cast<EnumerateType>(in_state.depth_fail)]);
 			return out_state;
 		};
 
@@ -259,46 +259,46 @@ namespace Engine
 			if (in_state->rasterizer.polygon_mode != PolygonMode::Fill)
 			{
 				Name name = Refl::Enum::static_find("Engine::PolygoneMode", Refl::FindFlags::IsRequired)
-									->entry(static_cast<EnumerateType>(in_state->rasterizer.polygon_mode))
-									->name;
+				                    ->entry(static_cast<EnumerateType>(in_state->rasterizer.polygon_mode))
+				                    ->name;
 				error_log("Vulkan", "Polygon mode '%s' is not supported on this device. Force set it to PoligoneMode::Fill",
-						  name.c_str());
+				          name.c_str());
 			}
 
 			rasterizer.setPolygonMode(vk::PolygonMode::eFill);
 		}
 
 		rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state->rasterizer.cull_mode)])
-				.setLineWidth(API->m_features.wideLines ? in_state->rasterizer.line_width : 1.f)
-				.setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state->rasterizer.front_face)]);
+		        .setLineWidth(API->m_features.wideLines ? in_state->rasterizer.line_width : 1.f)
+		        .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state->rasterizer.front_face)]);
 
 		multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1)
-				.setSampleShadingEnable(VK_FALSE)
-				.setMinSampleShading(0.0f)
-				.setAlphaToCoverageEnable(VK_FALSE)
-				.setAlphaToOneEnable(VK_FALSE);
+		        .setSampleShadingEnable(VK_FALSE)
+		        .setMinSampleShading(0.0f)
+		        .setAlphaToCoverageEnable(VK_FALSE)
+		        .setAlphaToOneEnable(VK_FALSE);
 
 
 		auto stencil_state = get_stencil_op_state(in_state->stencil_test);
 		depth_stencil.setDepthTestEnable(in_state->depth_test.enable)
-				.setDepthWriteEnable(in_state->depth_test.write_enable)
-				.setDepthBoundsTestEnable(vk::False)
-				.setDepthCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state->depth_test.func)])
-				.setMinDepthBounds(0.f)
-				.setMaxDepthBounds(0.f)
-				.setStencilTestEnable(in_state->stencil_test.enable)
-				.setFront(stencil_state)
-				.setBack(stencil_state);
+		        .setDepthWriteEnable(in_state->depth_test.write_enable)
+		        .setDepthBoundsTestEnable(vk::False)
+		        .setDepthCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state->depth_test.func)])
+		        .setMinDepthBounds(0.f)
+		        .setMaxDepthBounds(0.f)
+		        .setStencilTestEnable(in_state->stencil_test.enable)
+		        .setFront(stencil_state)
+		        .setBack(stencil_state);
 
 		for (auto& attachment : color_blend_attachment)
 		{
 			attachment.setBlendEnable(in_state->color_blending.enable)
-					.setSrcColorBlendFactor(get_type(in_state->color_blending.src_color_func, false))
-					.setDstColorBlendFactor(get_type(in_state->color_blending.dst_color_func, false))
-					.setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.color_op)])
-					.setSrcAlphaBlendFactor(get_type(in_state->color_blending.src_alpha_func, true))
-					.setDstAlphaBlendFactor(get_type(in_state->color_blending.dst_alpha_func, true))
-					.setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.alpha_op)]);
+			        .setSrcColorBlendFactor(get_type(in_state->color_blending.src_color_func, false))
+			        .setDstColorBlendFactor(get_type(in_state->color_blending.dst_color_func, false))
+			        .setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.color_op)])
+			        .setSrcAlphaBlendFactor(get_type(in_state->color_blending.src_alpha_func, true))
+			        .setDstAlphaBlendFactor(get_type(in_state->color_blending.dst_alpha_func, true))
+			        .setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.alpha_op)]);
 
 			vk::ColorComponentFlags color_mask;
 
@@ -336,9 +336,9 @@ namespace Engine
 		if (VertexShader* vertex_shader = in_state->vertex_shader())
 		{
 			vertex_input.setVertexBindingDescriptions(
-					vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_binding_description);
+			        vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_binding_description);
 			vertex_input.setVertexAttributeDescriptions(
-					vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_attribute_description);
+			        vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_attribute_description);
 		}
 
 		struct Stage {
@@ -348,11 +348,11 @@ namespace Engine
 		};
 
 		static Stage graphics_stages[] = {
-				{ShaderType::Vertex, vk::ShaderStageFlagBits::eVertex, "Vertex"},
-				{ShaderType::TessellationControl, vk::ShaderStageFlagBits::eTessellationControl, "Tesselation Control"},
-				{ShaderType::Tessellation, vk::ShaderStageFlagBits::eTessellationEvaluation, "Tesselation"},
-				{ShaderType::Geometry, vk::ShaderStageFlagBits::eGeometry, "Geometry"},
-				{ShaderType::Fragment, vk::ShaderStageFlagBits::eFragment, "Fragment"},
+		        {ShaderType::Vertex, vk::ShaderStageFlagBits::eVertex, "Vertex"},
+		        {ShaderType::TessellationControl, vk::ShaderStageFlagBits::eTessellationControl, "Tesselation Control"},
+		        {ShaderType::Tessellation, vk::ShaderStageFlagBits::eTessellationEvaluation, "Tesselation"},
+		        {ShaderType::Geometry, vk::ShaderStageFlagBits::eGeometry, "Geometry"},
+		        {ShaderType::Fragment, vk::ShaderStageFlagBits::eFragment, "Fragment"},
 		};
 
 		for (Stage& stage : graphics_stages)
@@ -408,9 +408,9 @@ namespace Engine
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_state.stages, &m_state.vertex_input, &m_state.input_assembly, nullptr,
-													 &viewport_state, &m_state.rasterizer, &m_state.multisampling,
-													 &m_state.depth_stencil, &m_state.color_blending, &dynamic_state,
-													 m_pipeline_layout, rt->m_render_pass->m_render_pass, 0, {});
+		                                             &viewport_state, &m_state.rasterizer, &m_state.multisampling,
+		                                             &m_state.depth_stencil, &m_state.color_blending, &dynamic_state,
+		                                             m_pipeline_layout, rt->m_render_pass->m_render_pass, 0, {});
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 

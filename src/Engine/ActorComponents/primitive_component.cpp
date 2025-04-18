@@ -32,8 +32,7 @@ namespace Engine
 		return m_bounds;
 	}
 
-	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds)
-	{}
+	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
 
 	bool PrimitiveComponent::is_visible() const
 	{
@@ -137,6 +136,5 @@ namespace Engine
 	}
 
 
-	PrimitiveComponent::~PrimitiveComponent()
-	{}
+	PrimitiveComponent::~PrimitiveComponent() {}
 }// namespace Engine

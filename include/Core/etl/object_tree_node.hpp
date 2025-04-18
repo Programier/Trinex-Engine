@@ -12,7 +12,7 @@ namespace Engine
 		using iterator       = Object**;
 		using const_iterator = Object* const*;
 		static bool lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class,
-								const char* process);
+		                        const char* process);
 		static Object* find(const_iterator begin, const_iterator end, StringView full_name);
 		static Object* find(const_iterator begin, const_iterator end, Name name);
 
@@ -26,21 +26,12 @@ namespace Engine
 		protected:
 			ChildsArray m_child_objects;
 
-			bool register_child(Object* child) override
-			{
-				return true;
-			}
+			bool register_child(Object* child) override { return true; }
 
-			bool unregister_child(Object* child) override
-			{
-				return true;
-			}
+			bool unregister_child(Object* child) override { return true; }
 
 		public:
-			const ChildsArray& child_objects() const
-			{
-				return m_child_objects;
-			}
+			const ChildsArray& child_objects() const { return m_child_objects; }
 
 			~DataHolder()
 			{

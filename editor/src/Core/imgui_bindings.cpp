@@ -74,10 +74,7 @@ namespace Engine
 		using ArgType = T;
 		using RetType = T;
 
-		static T convert(T value)
-		{
-			return value;
-		}
+		static T convert(T value) { return value; }
 	};
 
 	template<>
@@ -91,10 +88,7 @@ namespace Engine
 		using ArgType = const String&;
 		using RetType = String;
 
-		static const char* convert(ArgType value)
-		{
-			return value.c_str();
-		}
+		static const char* convert(ArgType value) { return value.c_str(); }
 	};
 
 	template<>
@@ -115,10 +109,7 @@ namespace Engine
 		using ArgType = ScriptPointer;
 		using RetType = ScriptPointer;
 
-		static T* convert(const ArgType& value)
-		{
-			return value.as<T>();
-		}
+		static T* convert(const ArgType& value) { return value.as<T>(); }
 	};
 
 	template<typename T, std::size_t N>
@@ -130,10 +121,7 @@ namespace Engine
 		using ArgType = Value&;
 		using RetType = Value;
 
-		static T* convert(ArgType arg)
-		{
-			return arg.values;
-		}
+		static T* convert(ArgType arg) { return arg.values; }
 	};
 
 	template<auto func, typename... Overrides>
@@ -1191,7 +1179,7 @@ namespace Engine
 			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImVec3", sizeof(ImVec3), info);
 			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImVec3>);
 			r.behave(ScriptClassBehave::Construct, "void f(float x, float y, float z)",
-					 r.constructor<ImVec3, float, float, float>);
+			         r.constructor<ImVec3, float, float, float>);
 			r.property("float x", &ImVec3::x);
 			r.property("float y", &ImVec3::y);
 			r.property("float z", &ImVec3::z);
@@ -1204,7 +1192,7 @@ namespace Engine
 			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImVec4", sizeof(ImVec4), info);
 			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImVec4>);
 			r.behave(ScriptClassBehave::Construct, "void f(float x, float y, float z, float w)",
-					 r.constructor<ImVec4, float, float, float, float>);
+			         r.constructor<ImVec4, float, float, float, float>);
 			r.property("float x", &ImVec4::x);
 			r.property("float y", &ImVec4::y);
 			r.property("float z", &ImVec4::z);
@@ -1240,7 +1228,7 @@ namespace Engine
 			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImIVec4", sizeof(ImIVec4), info);
 			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImIVec4>);
 			r.behave(ScriptClassBehave::Construct, "void f(int x, int y, int z, int w)",
-					 r.constructor<ImIVec4, int, int, int, int>);
+			         r.constructor<ImIVec4, int, int, int, int>);
 			r.property("int x", &ImIVec4::x);
 			r.property("int y", &ImIVec4::y);
 			r.property("int z", &ImIVec4::z);
@@ -1254,9 +1242,9 @@ namespace Engine
 			r.method("void ScaleAllSizes(float scale_factor)", &ImGuiStyle::ScaleAllSizes);
 
 			auto get_color_proxy = static_cast<const ImVec4& (*) (ImGuiStyle*, int)>(
-					[](ImGuiStyle* self, int idx) -> const ImVec4& { return self->Colors[idx]; });
+			        [](ImGuiStyle* self, int idx) -> const ImVec4& { return self->Colors[idx]; });
 			auto set_color_proxy = static_cast<void (*)(ImGuiStyle*, int, const ImVec4& value)>(
-					[](ImGuiStyle* self, int idx, const ImVec4& color) { self->Colors[idx] = color; });
+			        [](ImGuiStyle* self, int idx, const ImVec4& color) { self->Colors[idx] = color; });
 
 			r.property("float Alpha", &ImGuiStyle::Alpha);
 			r.property("float DisabledAlpha", &ImGuiStyle::DisabledAlpha);
@@ -1322,40 +1310,19 @@ namespace Engine
 		auto& e = ScriptEngine::instance();
 
 		struct Custom {
-			static void Text(const String& str)
-			{
-				ImGui::Text("%s", str.c_str());
-			}
+			static void Text(const String& str) { ImGui::Text("%s", str.c_str()); }
 
-			static void TextColored(const ImVec4& col, const String& str)
-			{
-				ImGui::TextColored(col, "%s", str.c_str());
-			}
+			static void TextColored(const ImVec4& col, const String& str) { ImGui::TextColored(col, "%s", str.c_str()); }
 
-			static void TextDisabled(const String& label)
-			{
-				ImGui::TextDisabled("%s", label.c_str());
-			}
+			static void TextDisabled(const String& label) { ImGui::TextDisabled("%s", label.c_str()); }
 
-			static void TextWrapped(const String& label)
-			{
-				ImGui::TextWrapped("%s", label.c_str());
-			}
+			static void TextWrapped(const String& label) { ImGui::TextWrapped("%s", label.c_str()); }
 
-			static void LabelText(const String& str, const String& label)
-			{
-				ImGui::LabelText(str.c_str(), "%s", label.c_str());
-			}
+			static void LabelText(const String& str, const String& label) { ImGui::LabelText(str.c_str(), "%s", label.c_str()); }
 
-			static void BulletText(const String& label)
-			{
-				ImGui::BulletText("%s", label.c_str());
-			}
+			static void BulletText(const String& label) { ImGui::BulletText("%s", label.c_str()); }
 
-			static bool Checkbox(const String& text, bool& value)
-			{
-				return ImGui::Checkbox(text.c_str(), &value);
-			}
+			static bool Checkbox(const String& text, bool& value) { return ImGui::Checkbox(text.c_str(), &value); }
 
 			static bool CheckboxFlags(const String& text, uint64_t& flags, uint64_t value)
 			{
@@ -1382,7 +1349,7 @@ namespace Engine
 			}
 
 			static bool Combo2(const String& label, int& current_item, const String& items_separated_by_zeros,
-							   int height_in_items)
+			                   int height_in_items)
 			{
 				return ImGui::Combo(label.c_str(), &current_item, items_separated_by_zeros.c_str(), height_in_items);
 			}

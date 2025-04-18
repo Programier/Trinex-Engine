@@ -13,7 +13,7 @@ namespace Engine
 	}
 
 	bool ObjectTreeNodeStatics::lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class,
-											const char* process)
+	                                        const char* process)
 	{
 		if (object == nullptr)
 		{
@@ -24,7 +24,7 @@ namespace Engine
 		if (!object->class_instance()->is_a(check_class))
 		{
 			error_log("ObjectTreeNodeStatics", "Cannot %s object, because object is not instance of '%s'!", process,
-					  check_class->full_name().c_str());
+			          check_class->full_name().c_str());
 			return false;
 		}
 

@@ -30,9 +30,6 @@ namespace Engine
 			m_viewport.max_depth = 1.f;
 		}
 
-		inline VulkanRenderTargetBase* render_target()
-		{
-			return m_next_render_target ? m_next_render_target : m_render_target;
-		}
+		inline VulkanRenderTargetBase* render_target() { return m_next_render_target ? m_next_render_target : m_render_target; }
 	};
 }// namespace Engine

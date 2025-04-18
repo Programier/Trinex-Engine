@@ -62,8 +62,7 @@ namespace Engine
 	bool ScriptEngine::exception_on_error = true;
 	CallBacks<void()> ScriptEngine::on_terminate;
 
-	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger() : m_prev_namespace(ScriptEngine::default_namespace())
-	{}
+	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger() : m_prev_namespace(ScriptEngine::default_namespace()) {}
 
 	ScriptNamespaceScopedChanger::ScriptNamespaceScopedChanger(const char* new_namespace) : ScriptNamespaceScopedChanger()
 	{
@@ -87,10 +86,10 @@ namespace Engine
 	static void trigger_addons_initialization()
 	{
 		const char* addons[] = {
-				"Engine::DefaultScriptAddons",
-				"Engine::ScriptVector",
-				"Engine::ScriptPointer",
-				"Engine::PrimitiveWrappers",
+		        "Engine::DefaultScriptAddons",
+		        "Engine::ScriptVector",
+		        "Engine::ScriptPointer",
+		        "Engine::PrimitiveWrappers",
 		};
 
 		for (auto addon : addons)
@@ -196,17 +195,17 @@ namespace Engine
 	}
 
 	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv,
-												   void* auxiliary)
+	                                               void* auxiliary)
 	{
 		int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv),
-													auxiliary);
+		                                            auxiliary);
 		if (id < 0)
 			return {};
 		return function_by_id(id);
 	}
 
 	ScriptFunction ScriptEngine::register_function(const String& declaration, ScriptFuncPtr* func, ScriptCallConv conv,
-												   void* auxiliary)
+	                                               void* auxiliary)
 	{
 		return register_function(declaration.c_str(), func, conv, auxiliary);
 	}
@@ -359,15 +358,15 @@ namespace Engine
 	}
 
 	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, StringView* config_group,
-									   int_t* type_id, bool* is_const, byte** pointer)
+	                                   int_t* type_id, bool* is_const, byte** pointer)
 	{
 		const char* c_name       = nullptr;
 		const char* c_name_space = nullptr;
 		const char* c_group      = nullptr;
 
 		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
-														 type_id, is_const, config_group ? &c_group : nullptr,
-														 reinterpret_cast<void**>(pointer)) >= 0;
+		                                                 type_id, is_const, config_group ? &c_group : nullptr,
+		                                                 reinterpret_cast<void**>(pointer)) >= 0;
 
 		if (result)
 		{
@@ -737,7 +736,7 @@ namespace Engine
 	Array<const char*, 6> static_object_to_string_operator_names<false>()
 	{
 		return {"const string& opConv() const",     "string& opConv() const",     "string opConv() const",
-				"const string& opImplConv() const", "string& opImplConv() const", "string opImplConv() const"};
+		        "const string& opImplConv() const", "string& opImplConv() const", "string opImplConv() const"};
 	}
 
 	template<bool repr>

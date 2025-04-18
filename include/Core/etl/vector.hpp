@@ -47,15 +47,9 @@ namespace Engine::Containers
 		static constexpr inline bool is_forward_iterator =
 		        std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::forward_iterator_tag>;
 
-		constexpr AllocatorType& allocator()
-		{
-			return *this;
-		}
+		constexpr AllocatorType& allocator() { return *this; }
 
-		constexpr const AllocatorType& allocator() const
-		{
-			return *this;
-		}
+		constexpr const AllocatorType& allocator() const { return *this; }
 
 		constexpr inline void range_check(size_type n) const
 		{
@@ -396,10 +390,7 @@ namespace Engine::Containers
 			return iterator(m_start + n);
 		}
 
-		constexpr iterator emplace_aux(const_iterator pos, value_type&& v)
-		{
-			return insert_rval(pos, std::move(v));
-		}
+		constexpr iterator emplace_aux(const_iterator pos, value_type&& v) { return insert_rval(pos, std::move(v)); }
 
 		constexpr inline void append_to_end(size_type count)
 		{
@@ -467,68 +458,31 @@ namespace Engine::Containers
 		}
 
 	public:
-		constexpr inline iterator begin()
-		{
-			return m_start;
-		}
+		constexpr inline iterator begin() { return m_start; }
 
-		constexpr inline const_iterator begin() const
-		{
-			return m_start;
-		}
+		constexpr inline const_iterator begin() const { return m_start; }
 
-		constexpr inline iterator end()
-		{
-			return m_finish;
-		}
+		constexpr inline iterator end() { return m_finish; }
 
-		constexpr inline const_iterator end() const
-		{
-			return m_finish;
-		}
+		constexpr inline const_iterator end() const { return m_finish; }
 
-		constexpr inline const_iterator cbegin() const
-		{
-			return m_start;
-		}
+		constexpr inline const_iterator cbegin() const { return m_start; }
 
-		constexpr inline const_iterator cend() const
-		{
-			return m_finish;
-		}
+		constexpr inline const_iterator cend() const { return m_finish; }
 
-		constexpr inline reverse_iterator rbegin()
-		{
-			return reverse_iterator(end());
-		}
+		constexpr inline reverse_iterator rbegin() { return reverse_iterator(end()); }
 
-		constexpr inline const_reverse_iterator rbegin() const
-		{
-			return const_reverse_iterator(end());
-		}
+		constexpr inline const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 
-		constexpr inline reverse_iterator rend()
-		{
-			return reverse_iterator(begin());
-		}
+		constexpr inline reverse_iterator rend() { return reverse_iterator(begin()); }
 
-		constexpr inline const_reverse_iterator rend() const
-		{
-			return const_reverse_iterator(begin());
-		}
+		constexpr inline const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
-		constexpr inline const_reverse_iterator crbegin() const
-		{
-			return const_reverse_iterator(end());
-		}
+		constexpr inline const_reverse_iterator crbegin() const { return const_reverse_iterator(end()); }
 
-		constexpr inline const_reverse_iterator crend() const
-		{
-			return const_reverse_iterator(begin());
-		}
+		constexpr inline const_reverse_iterator crend() const { return const_reverse_iterator(begin()); }
 
-		constexpr Vector() noexcept : m_start(nullptr), m_finish(nullptr), m_end(nullptr)
-		{}
+		constexpr Vector() noexcept : m_start(nullptr), m_finish(nullptr), m_end(nullptr) {}
 
 		constexpr Vector(const AllocatorType& allocator) noexcept
 		    : AllocatorType(allocator), m_start(nullptr), m_finish(nullptr), m_end(nullptr)
@@ -570,18 +524,15 @@ namespace Engine::Containers
 			range_initialize(first, last);
 		}
 
-		constexpr Vector(std::initializer_list<T> list) : Vector(list.begin(), list.end())
-		{}
+		constexpr Vector(std::initializer_list<T> list) : Vector(list.begin(), list.end()) {}
 
 		constexpr Vector(std::initializer_list<T> list, const AllocatorType& allocator)
 		    : Vector(list.begin(), list.end(), allocator)
 		{}
 
-		constexpr Vector(const Vector& other) : Vector(other.begin(), other.end(), other.allocator())
-		{}
+		constexpr Vector(const Vector& other) : Vector(other.begin(), other.end(), other.allocator()) {}
 
-		constexpr Vector(const Vector& other, const AllocatorType& allocator) : Vector(other.begin(), other.end(), allocator)
-		{}
+		constexpr Vector(const Vector& other, const AllocatorType& allocator) : Vector(other.begin(), other.end(), allocator) {}
 
 		constexpr Vector(Vector&& other)
 		    : AllocatorType(std::move(other)), m_start(other.m_start), m_finish(other.m_finish), m_end(other.m_end)
@@ -595,10 +546,7 @@ namespace Engine::Containers
 			other.m_start = other.m_finish = other.m_end = nullptr;
 		}
 
-		constexpr ~Vector()
-		{
-			destroy();
-		}
+		constexpr ~Vector() { destroy(); }
 
 		constexpr Vector& operator=(const Vector& other)
 		{
@@ -629,15 +577,9 @@ namespace Engine::Containers
 			return *this;
 		}
 
-		constexpr reference operator[](size_type n)
-		{
-			return *(m_start + n);
-		}
+		constexpr reference operator[](size_type n) { return *(m_start + n); }
 
-		constexpr const_reference operator[](size_type n) const
-		{
-			return *(m_start + n);
-		}
+		constexpr const_reference operator[](size_type n) const { return *(m_start + n); }
 
 		constexpr reference at(size_type n)
 		{
@@ -651,45 +593,21 @@ namespace Engine::Containers
 			return (*this)[n];
 		}
 
-		constexpr reference front()
-		{
-			return *begin();
-		}
+		constexpr reference front() { return *begin(); }
 
-		constexpr const_reference front() const
-		{
-			return *begin();
-		}
+		constexpr const_reference front() const { return *begin(); }
 
-		constexpr reference back()
-		{
-			return *(end() - 1);
-		}
+		constexpr reference back() { return *(end() - 1); }
 
-		constexpr const_reference back() const
-		{
-			return *(end() - 1);
-		}
+		constexpr const_reference back() const { return *(end() - 1); }
 
-		constexpr pointer data() noexcept
-		{
-			return data_ptr(m_start);
-		}
+		constexpr pointer data() noexcept { return data_ptr(m_start); }
 
-		constexpr const_pointer data() const noexcept
-		{
-			return data_ptr(m_start);
-		}
+		constexpr const_pointer data() const noexcept { return data_ptr(m_start); }
 
-		constexpr inline bool empty() const
-		{
-			return m_start == m_finish;
-		}
+		constexpr inline bool empty() const { return m_start == m_finish; }
 
-		constexpr inline size_type size() const
-		{
-			return m_finish - m_start;
-		}
+		constexpr inline size_type size() const { return m_finish - m_start; }
 
 		constexpr inline size_type max_size() const
 		{
@@ -698,10 +616,7 @@ namespace Engine::Containers
 			return (std::min)(diffmax, allocmax);
 		}
 
-		constexpr inline size_type capacity() const
-		{
-			return m_end - m_start;
-		}
+		constexpr inline size_type capacity() const { return m_end - m_start; }
 
 		constexpr inline void clear()
 		{
@@ -788,10 +703,7 @@ namespace Engine::Containers
 			assign_aux(first, last, IteratorCategory<InputIterator>());
 		}
 
-		constexpr void assign(std::initializer_list<T> list)
-		{
-			assign(list.begin(), list.end());
-		}
+		constexpr void assign(std::initializer_list<T> list) { assign(list.begin(), list.end()); }
 
 		template<class... Args>
 		constexpr iterator emplace(const_iterator pos, Args&&... args)
@@ -799,15 +711,9 @@ namespace Engine::Containers
 			return emplace_aux(pos, std::forward<Args>(args)...);
 		}
 
-		constexpr iterator insert(const_iterator pos, const value_type& v)
-		{
-			return emplace(pos, v);
-		}
+		constexpr iterator insert(const_iterator pos, const value_type& v) { return emplace(pos, v); }
 
-		constexpr iterator insert(const_iterator pos, value_type&& v)
-		{
-			return emplace(pos, std::move(v));
-		}
+		constexpr iterator insert(const_iterator pos, value_type&& v) { return emplace(pos, std::move(v)); }
 
 		constexpr iterator insert(const_iterator pos, size_type n, const value_type& v)
 		{
@@ -844,15 +750,9 @@ namespace Engine::Containers
 			return back();
 		}
 
-		constexpr reference push_back(value_type&& v)
-		{
-			return emplace_back(std::move(v));
-		}
+		constexpr reference push_back(value_type&& v) { return emplace_back(std::move(v)); }
 
-		constexpr reference push_back(const value_type& v)
-		{
-			return emplace_back(v);
-		}
+		constexpr reference push_back(const value_type& v) { return emplace_back(v); }
 
 		constexpr void pop_back()
 		{
@@ -918,16 +818,13 @@ namespace Engine
 
 	template<typename Type, typename ArchiveType>
 	inline bool trinex_serialize_vector(ArchiveType& ar, Vector<Type>& vector)
-		requires(is_complete_archive_type<ArchiveType>)
+	    requires(is_complete_archive_type<ArchiveType>)
 	{
 		return ar.serialize_vector(vector);
 	}
 
 	template<typename Type, typename Alloc>
 	struct Serializer<Containers::Vector<Type, Alloc>> {
-		bool serialize(Archive& ar, Containers::Vector<Type, Alloc>& vector)
-		{
-			return trinex_serialize_vector(ar, vector);
-		}
+		bool serialize(Archive& ar, Containers::Vector<Type, Alloc>& vector) { return trinex_serialize_vector(ar, vector); }
 	};
 }// namespace Engine

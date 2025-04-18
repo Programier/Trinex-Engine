@@ -17,9 +17,6 @@ namespace Engine
 	public:
 		using BaseType::BaseType;
 
-		size_t size() const override
-		{
-			return sizeof(TaskType);
-		}
+		size_t size() const override { return sizeof(TaskType); }
 	};
 }// namespace Engine

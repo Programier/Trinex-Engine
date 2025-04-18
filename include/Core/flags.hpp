@@ -21,14 +21,11 @@ namespace Engine
 		ValueType m_flags;
 
 	public:
-		FORCE_INLINE Flags() : m_flags(0)
-		{}
+		FORCE_INLINE Flags() : m_flags(0) {}
 
-		FORCE_INLINE Flags(BitMask flags) : m_flags(flags)
-		{}
+		FORCE_INLINE Flags(BitMask flags) : m_flags(flags) {}
 
-		FORCE_INLINE Flags(FlagsType flags) : m_flags(static_cast<BitMask>(flags))
-		{}
+		FORCE_INLINE Flags(FlagsType flags) : m_flags(static_cast<BitMask>(flags)) {}
 
 		template<typename... Args>
 		FORCE_INLINE Flags(FlagsOperator op, FlagsType first, Args... args) : m_flags(BitMask(first))
@@ -47,8 +44,7 @@ namespace Engine
 			}
 		}
 
-		FORCE_INLINE Flags(const Flags& new_flags) : Flags(static_cast<BitMask>(new_flags.m_flags))
-		{}
+		FORCE_INLINE Flags(const Flags& new_flags) : Flags(static_cast<BitMask>(new_flags.m_flags)) {}
 
 		FORCE_INLINE Flags& operator=(const Flags& new_flags)
 		{
@@ -59,25 +55,13 @@ namespace Engine
 			return *this;
 		}
 
-		FORCE_INLINE operator BitMask() const
-		{
-			return m_flags;
-		}
+		FORCE_INLINE operator BitMask() const { return m_flags; }
 
-		FORCE_INLINE operator FlagsType() const
-		{
-			return static_cast<FlagsType>(m_flags);
-		}
+		FORCE_INLINE operator FlagsType() const { return static_cast<FlagsType>(m_flags); }
 
-		FORCE_INLINE bool has_all(Flags mask) const
-		{
-			return (m_flags & mask.m_flags) == mask.m_flags;
-		}
+		FORCE_INLINE bool has_all(Flags mask) const { return (m_flags & mask.m_flags) == mask.m_flags; }
 
-		FORCE_INLINE bool has_any(Flags mask) const
-		{
-			return (m_flags & mask.m_flags) != 0;
-		}
+		FORCE_INLINE bool has_any(Flags mask) const { return (m_flags & mask.m_flags) != 0; }
 
 		FORCE_INLINE Flags& set(Flags mask)
 		{
@@ -116,10 +100,7 @@ namespace Engine
 			return count;
 		}
 
-		FORCE_INLINE bool operator()(Flags mask) const
-		{
-			return has_all(mask);
-		}
+		FORCE_INLINE bool operator()(Flags mask) const { return has_all(mask); }
 
 		FORCE_INLINE Flags& operator()(Flags mask, bool flag)
 		{
@@ -130,25 +111,13 @@ namespace Engine
 			return remove(mask);
 		}
 
-		FORCE_INLINE Flags operator&(Flags mask) const
-		{
-			return m_flags & mask.m_flags;
-		}
+		FORCE_INLINE Flags operator&(Flags mask) const { return m_flags & mask.m_flags; }
 
-		FORCE_INLINE Flags operator|(Flags mask) const
-		{
-			return m_flags | mask.m_flags;
-		}
+		FORCE_INLINE Flags operator|(Flags mask) const { return m_flags | mask.m_flags; }
 
-		FORCE_INLINE Flags operator^(Flags mask) const
-		{
-			return m_flags ^ mask.m_flags;
-		}
+		FORCE_INLINE Flags operator^(Flags mask) const { return m_flags ^ mask.m_flags; }
 
-		FORCE_INLINE Flags operator~() const
-		{
-			return ~m_flags;
-		}
+		FORCE_INLINE Flags operator~() const { return ~m_flags; }
 
 		FORCE_INLINE Flags& operator&=(Flags mask)
 		{

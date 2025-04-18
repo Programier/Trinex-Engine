@@ -87,7 +87,7 @@ namespace Engine
 
 		D3D_FEATURE_LEVEL max_feature_level = D3D_FEATURE_LEVEL_11_0;
 		result = D3D11CreateDevice(m_dxgi_adapter, driver_type, nullptr, device_flags, &max_feature_level, 1, D3D11_SDK_VERSION,
-								   &m_device, &m_feature_level, &m_context);
+		                           &m_device, &m_feature_level, &m_context);
 		trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
 
 		DXGI_ADAPTER_DESC adapter_desc;

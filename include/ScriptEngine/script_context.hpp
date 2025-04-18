@@ -160,7 +160,7 @@ namespace Engine
 
 		template<typename... Args>
 		static inline bool execute(const ScriptObject& self, const ScriptFunction& function, void* return_value = nullptr,
-								   const Args&... args)
+		                           const Args&... args)
 		{
 			if (!begin_execute(function))
 				return false;
@@ -179,7 +179,7 @@ namespace Engine
 
 		template<typename... Args>
 		static inline bool execute(const void* self, const ScriptFunction& function, void* return_value = nullptr,
-								   const Args&... args)
+		                           const Args&... args)
 		{
 			if (!begin_execute(function))
 				return false;

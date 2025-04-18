@@ -31,7 +31,7 @@ namespace Engine
 	}
 
 	VulkanTexture& VulkanTexture::create(vk::ImageCreateFlagBits flags, vk::ImageUsageFlags usage,
-										 TextureCreateFlags create_flags)
+	                                     TextureCreateFlags create_flags)
 	{
 		m_layout = vk::ImageLayout::eUndefined;
 		m_flags  = create_flags;
@@ -51,7 +51,7 @@ namespace Engine
 			usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
 
 		vk::ImageCreateInfo info(flags, image_type(), format(), extent(), mipmap_count(), layer_count(),
-								 vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
+		                         vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
 
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -227,10 +227,10 @@ namespace Engine
 
 		vk::ImageSubresourceRange range;
 		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-				.setBaseArrayLayer(0)
-				.setBaseMipLevel(0)
-				.setLayerCount(1)
-				.setLevelCount(1);
+		        .setBaseArrayLayer(0)
+		        .setBaseMipLevel(0)
+		        .setLayerCount(1)
+		        .setLevelCount(1);
 
 		API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
 		cmd->add_object(this);
@@ -238,7 +238,7 @@ namespace Engine
 
 	template<typename Target>
 	static void blit_target(Target* src, Target* dst, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter,
-							vk::ImageAspectFlagBits aspect)
+	                        vk::ImageAspectFlagBits aspect)
 	{
 		auto cmd = API->end_render_pass();
 		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
@@ -255,14 +255,14 @@ namespace Engine
 		blit.setDstSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
 
 		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal, blit,
-							 filter_of(filter));
+		                     filter_of(filter));
 
 		cmd->add_object(dst);
 		cmd->add_object(src);
 	}
 
 	void VulkanTextureRTV::blit(RHI_RenderTargetView* texture, const Rect2D& src_rect, const Rect2D& dst_rect,
-								SamplerFilter filter)
+	                            SamplerFilter filter)
 	{
 		auto src = static_cast<VulkanTextureRTV*>(texture);
 		blit_target(src, this, src_rect, dst_rect, filter, vk::ImageAspectFlagBits::eColor);
@@ -301,7 +301,7 @@ namespace Engine
 	}
 
 	void VulkanTextureDSV::blit(RHI_DepthStencilView* texture, const Rect2D& src_rect, const Rect2D& dst_rect,
-								SamplerFilter filter)
+	                            SamplerFilter filter)
 	{
 		auto src = static_cast<VulkanTextureDSV*>(texture);
 		blit_target(src, this, src_rect, dst_rect, filter, vk::ImageAspectFlagBits::eDepth);
@@ -369,7 +369,7 @@ namespace Engine
 		change_layout(vk::ImageLayout::eTransferDstOptimal);
 
 		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), mip, 0, 1),
-								   vk::Offset3D(rect.pos.x, rect.pos.y, 0), vk::Extent3D(rect.size.x, rect.size.y, 1));
+		                           vk::Offset3D(rect.pos.x, rect.pos.y, 0), vk::Extent3D(rect.size.x, rect.size.y, 1));
 
 		command_buffer->m_cmd.copyBufferToImage(buffer->m_buffer, image(), vk::ImageLayout::eTransferDstOptimal, region);
 		command_buffer->add_object(buffer);

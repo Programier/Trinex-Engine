@@ -6,8 +6,7 @@
 
 namespace Engine
 {
-	Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false)
-	{}
+	Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false) {}
 
 	Archive::Archive(BufferReader* reader) : m_is_saving(false)
 	{

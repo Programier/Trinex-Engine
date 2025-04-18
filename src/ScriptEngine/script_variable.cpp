@@ -30,7 +30,7 @@ namespace Engine
 	}
 
 	ScriptVariableBase::ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool handle_is_object,
-										   const ScriptTypeModifiers& modifiers)
+	                                       const ScriptTypeModifiers& modifiers)
 	    : ScriptVariableBase()
 	{
 		if (!create(src_address, info, handle_is_object, modifiers))
@@ -243,7 +243,7 @@ namespace Engine
 	}
 
 	bool ScriptVariableBase::create(void* address, const ScriptTypeInfo& info, bool handle_is_object,
-									const ScriptTypeModifiers& modifiers)
+	                                const ScriptTypeModifiers& modifiers)
 	{
 		release();
 		m_type_id   = info.type_id();
@@ -374,12 +374,12 @@ namespace Engine
 	}
 
 	ScriptVariable::ScriptVariable(void* address, const char* declaration, bool handle_is_object,
-								   const ScriptTypeModifiers& modifiers)
+	                               const ScriptTypeModifiers& modifiers)
 	    : ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), handle_is_object, modifiers)
 	{}
 
 	ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool handle_is_object,
-								   const ScriptTypeModifiers& modifiers)
+	                               const ScriptTypeModifiers& modifiers)
 	    : ScriptVariable(address, find_type_id_internal(declaration, module), handle_is_object, modifiers)
 	{}
 
@@ -482,7 +482,7 @@ namespace Engine
 	}
 
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, bool handle_is_object,
-								const ScriptTypeModifiers& modifiers)
+	                            const ScriptTypeModifiers& modifiers)
 	{
 		int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
@@ -494,7 +494,7 @@ namespace Engine
 	}
 
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object,
-								const ScriptTypeModifiers& modifiers)
+	                            const ScriptTypeModifiers& modifiers)
 	{
 		int_t type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)

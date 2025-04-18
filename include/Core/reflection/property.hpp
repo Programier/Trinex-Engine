@@ -36,7 +36,7 @@ namespace Engine::Refl
 		Property* member_property;
 
 		PropertyChangedEvent(void* context, PropertyChangeType::Type type, Property* property)
-			: context(context), type(type), property(property), member_property(property)
+		    : context(context), type(type), property(property), member_property(property)
 		{}
 
 		template<typename T>
@@ -51,7 +51,7 @@ namespace Engine::Refl
 public:                                                                                                                          \
 	template<typename T>                                                                                                         \
 	static constexpr inline bool is_supported = !std::is_const_v<std::remove_pointer_t<T>> && __VA_ARGS__;                       \
-																																 \
+                                                                                                                                 \
 private:
 
 	template<typename Decl>
@@ -269,7 +269,7 @@ private:
 
 		template<typename T>
 		using enum_detector =
-				std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && !T::is_bitfield_enum && T::is_enum_reflected>;
+		        std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && !T::is_bitfield_enum && T::is_enum_reflected>;
 		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
@@ -472,7 +472,7 @@ private:
 
 		template<typename T>
 		using enum_detector =
-				std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && T::is_bitfield_enum && T::is_enum_reflected>;
+		        std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && T::is_bitfield_enum && T::is_enum_reflected>;
 		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
@@ -523,14 +523,14 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(BooleanProperty::is_supported<T>)
+	    requires(BooleanProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, BooleanProperty> {
 		using Super = TypedProperty<prop, BooleanProperty>;
 		using Super::Super;
 	};
 
 	template<auto prop, typename T>
-		requires(IntegerProperty::is_supported<T>)
+	    requires(IntegerProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, IntegerProperty> {
 		using Super = TypedProperty<prop, IntegerProperty>;
 		using Super::Super;
@@ -539,14 +539,14 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(FloatProperty::is_supported<T>)
+	    requires(FloatProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, FloatProperty> {
 		using Super = TypedProperty<prop, FloatProperty>;
 		using Super::Super;
 	};
 
 	template<auto prop, typename T>
-		requires(VectorProperty::is_supported<T>)
+	    requires(VectorProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, VectorProperty> {
 	private:
 		Property* m_inner_property = nullptr;
@@ -594,7 +594,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(MatrixProperty::is_supported<T>)
+	    requires(MatrixProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, MatrixProperty> {
 	private:
 		Property* m_inner_property = nullptr;
@@ -645,7 +645,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(EnumProperty::is_supported<T>)
+	    requires(EnumProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, EnumProperty> {
 		using Super = TypedProperty<prop, EnumProperty>;
 		using Super::Super;
@@ -654,28 +654,28 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(StringProperty::is_supported<T>)
+	    requires(StringProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, StringProperty> {
 		using Super = TypedProperty<prop, StringProperty>;
 		using Super::Super;
 	};
 
 	template<auto prop, typename T>
-		requires(NameProperty::is_supported<T>)
+	    requires(NameProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, NameProperty> {
 		using Super = TypedProperty<prop, NameProperty>;
 		using Super::Super;
 	};
 
 	template<auto prop, typename T>
-		requires(PathProperty::is_supported<T>)
+	    requires(PathProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, PathProperty> {
 		using Super = TypedProperty<prop, PathProperty>;
 		using Super::Super;
 	};
 
 	template<auto prop, typename T>
-		requires(ObjectProperty::is_supported<T>)
+	    requires(ObjectProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, ObjectProperty> {
 		using Super = TypedProperty<prop, ObjectProperty>;
 		using Super::Super;
@@ -684,7 +684,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(StructProperty::is_supported<T>)
+	    requires(StructProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, StructProperty> {
 		using Super = TypedProperty<prop, StructProperty>;
 		using Super::Super;
@@ -693,7 +693,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(ArrayProperty::is_supported<T>)
+	    requires(ArrayProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, ArrayProperty> {
 		using Super = TypedProperty<prop, ArrayProperty>;
 		using Super::Super;
@@ -776,7 +776,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(ReflObjectProperty::is_supported<T>)
+	    requires(ReflObjectProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, ReflObjectProperty> {
 		using Super = TypedProperty<prop, ReflObjectProperty>;
 		using Super::Super;
@@ -785,7 +785,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(SubClassProperty::is_supported<T>)
+	    requires(SubClassProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, SubClassProperty> {
 		using Super = TypedProperty<prop, SubClassProperty>;
 		using Super::Super;
@@ -794,7 +794,7 @@ private:
 	};
 
 	template<auto prop, typename T>
-		requires(FlagsProperty::is_supported<T>)
+	    requires(FlagsProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, FlagsProperty> {
 		using Super = TypedProperty<prop, FlagsProperty>;
 		using Super::Super;

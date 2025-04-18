@@ -65,7 +65,7 @@ namespace Engine
 
 			current_buffer->bind(index, m_used_data, m_shadow_data_size);
 			m_used_data =
-					align_memory(m_used_data + m_shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
+			        align_memory(m_used_data + m_shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
 
 			m_shadow_data_size = 0;
 		}

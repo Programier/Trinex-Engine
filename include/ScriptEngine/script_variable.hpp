@@ -35,7 +35,7 @@ namespace Engine
 		ScriptVariableBase();
 		ScriptVariableBase(const ScriptTypeInfo& info, bool is_uninitialized = false);
 		ScriptVariableBase(void* src_address, const ScriptTypeInfo& info, bool handle_is_object = false,
-						   const ScriptTypeModifiers& modifiers = {});
+		                   const ScriptTypeModifiers& modifiers = {});
 		copy_constructors_hpp(ScriptVariableBase);
 
 		bool operator==(const ScriptVariableBase& other) const;
@@ -50,7 +50,7 @@ namespace Engine
 
 		bool create(const ScriptTypeInfo& info, bool is_uninitialized = false);
 		bool create(void* src_address, const ScriptTypeInfo& info, bool handle_is_object = false,
-					const ScriptTypeModifiers& modifiers = {});
+		            const ScriptTypeModifiers& modifiers = {});
 
 		bool is_valid() const;
 		bool is_object(bool handle_is_object = false) const;
@@ -82,9 +82,9 @@ namespace Engine
 		ScriptVariable(const char* declaration, const char* module);
 		ScriptVariable(void* address, int_t type_id, bool handle_is_object = false, const ScriptTypeModifiers& modifiers = {});
 		ScriptVariable(void* address, const char* declaration, bool handle_is_object = false,
-					   const ScriptTypeModifiers& modifiers = {});
+		               const ScriptTypeModifiers& modifiers = {});
 		ScriptVariable(void* address, const char* declaration, const char* module, bool handle_is_object = false,
-					   const ScriptTypeModifiers& modifiers = {});
+		               const ScriptTypeModifiers& modifiers = {});
 
 		ScriptVariable(const ScriptVariable& object);
 		ScriptVariable(ScriptVariable&& object);
@@ -98,9 +98,9 @@ namespace Engine
 		bool create(const char* type_declaration, const char* module, bool is_uninitialized = false);
 		bool create(void* src_address, int_t type_id, bool handle_is_object = false, const ScriptTypeModifiers& modifiers = {});
 		bool create(void* src_address, const char* type_declaration, bool handle_is_object = false,
-					const ScriptTypeModifiers& modifiers = {});
+		            const ScriptTypeModifiers& modifiers = {});
 		bool create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object = false,
-					const ScriptTypeModifiers& modifiers = {});
+		            const ScriptTypeModifiers& modifiers = {});
 
 		bool is_bool() const;
 		bool is_int8() const;

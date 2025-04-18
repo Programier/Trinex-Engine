@@ -16,8 +16,7 @@ namespace Engine
 		type       = Type::Define;
 	}
 
-	Arguments::Argument::Argument(const String& name, const String& value) : Argument(name, StringView(value))
-	{}
+	Arguments::Argument::Argument(const String& name, const String& value) : Argument(name, StringView(value)) {}
 
 	Arguments::Argument::Argument(const String& name, const StringView& value) : Argument(name)
 	{
@@ -25,8 +24,7 @@ namespace Engine
 		type = Type::String;
 	}
 
-	Arguments::Argument::Argument(const String& name, const char* value) : Argument(name, StringView(value))
-	{}
+	Arguments::Argument::Argument(const String& name, const char* value) : Argument(name, StringView(value)) {}
 
 	Arguments::Argument::Argument(const String& name, const ArrayType& value) : Argument(name)
 	{
@@ -121,12 +119,10 @@ namespace Engine
 		size_t pos = 0;
 		size_t len = std::strlen(name);
 
-		for (pos = 0; pos < len && name[pos] != '='; ++pos)
-			;
+		for (pos = 0; pos < len && name[pos] != '='; ++pos);
 
 		size_t arg_pos = pos + 1;
-		for (; arg_pos < len && name[arg_pos] == ' '; ++arg_pos)
-			;
+		for (; arg_pos < len && name[arg_pos] == ' '; ++arg_pos);
 
 		String arg_name = String(name, pos);
 

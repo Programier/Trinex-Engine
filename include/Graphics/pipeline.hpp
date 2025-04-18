@@ -69,7 +69,7 @@ namespace Engine
 			BlendFunc dst_alpha_func  = BlendFunc::Zero;
 			BlendOp alpha_op          = BlendOp::Add;
 			ColorComponent color_mask = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G |
-																		  ColorComponent::B | ColorComponent::A);
+			                                                              ColorComponent::B | ColorComponent::A);
 		} color_blending;
 
 		bool serialize(Archive& ar) override;
@@ -229,13 +229,13 @@ namespace Engine
 	class class_name : public base_class                                                                                         \
 	{                                                                                                                            \
 		static class_name* s_instance;                                                                                           \
-																																 \
+                                                                                                                                 \
 		class_name();                                                                                                            \
-																																 \
+                                                                                                                                 \
 	public:                                                                                                                      \
 		using Super = base_class;                                                                                                \
 		using This  = class_name;                                                                                                \
-																																 \
+                                                                                                                                 \
 		__VA_ARGS__                                                                                                              \
 		static class_name* create();                                                                                             \
 		static inline class_name* instance()                                                                                     \
@@ -257,8 +257,8 @@ namespace Engine
 
 #define trinex_implement_pipeline(class_name, path, shaders)                                                                     \
 	static Engine::byte TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                       \
-			static_cast<Engine::byte>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());           \
-																																 \
+	        static_cast<Engine::byte>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());           \
+                                                                                                                                 \
 	class_name* class_name::s_instance = nullptr;                                                                                \
 	class_name::class_name() : Super(#class_name, static_cast<Engine::ShaderType::Enum>(shaders))                                \
 	{                                                                                                                            \

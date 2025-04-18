@@ -32,8 +32,8 @@ namespace Engine
 	class ImGuiMaterialPreview : public ImGuiWidget
 	{
 		static constexpr float s_default_zooms[] = {1.0f,     1.056962, 1.113924, 1.170886, 1.262025, 1.455696,
-													1.740506, 2.025316, 2.310126, 2.594936, 3.164556, 3.734177,
-													4.303797, 5.443037, 6.582278, 7.721518, 8.860759, 10.0};
+		                                            1.740506, 2.025316, 2.310126, 2.594936, 3.164556, 3.734177,
+		                                            4.303797, 5.443037, 6.582278, 7.721518, 8.860759, 10.0};
 
 		Pointer<CameraComponent> m_camera;
 		Pointer<StaticMeshActor> m_actor;
@@ -174,9 +174,9 @@ namespace Engine
 					elevation = elevation < 0.f ? -clamp_angle : clamp_angle;
 
 				m_target_location = glm::normalize(Vector3f{
-						glm::sin(elevation) * glm::cos(azimuth),
-						glm::cos(elevation),
-						glm::sin(elevation) * glm::sin(azimuth),
+				        glm::sin(elevation) * glm::cos(azimuth),
+				        glm::cos(elevation),
+				        glm::sin(elevation) * glm::sin(azimuth),
 				});
 			}
 

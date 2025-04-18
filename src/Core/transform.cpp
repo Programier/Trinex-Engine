@@ -33,11 +33,11 @@ namespace Engine
 	}
 
 	Transform::Transform(const Vector3f& location, const Vector3f& rotation, const Vector3f& scale)
-		: m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
+	    : m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
 	{}
 
 	Transform::Transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale)
-		: Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
+	    : Transform(location, glm::degrees(glm::eulerAngles(rotation)), scale)
 	{}
 
 
@@ -255,11 +255,11 @@ namespace Engine
 	String Transform::as_string() const
 	{
 		return Strings::format("Location: {}, {}, {}\n"
-							   "Rotation: {}, {}, {}\n"
-							   "Scale: {}, {}, {}",                     //
-							   m_location.x, m_location.y, m_location.z,//
-							   m_rotation.x, m_rotation.y, m_rotation.z,//
-							   m_scale.x, m_scale.y, m_scale.z);
+		                       "Rotation: {}, {}, {}\n"
+		                       "Scale: {}, {}, {}",                     //
+		                       m_location.x, m_location.y, m_location.z,//
+		                       m_rotation.x, m_rotation.y, m_rotation.z,//
+		                       m_scale.x, m_scale.y, m_scale.z);
 	}
 
 	bool Transform::is_dirty() const
@@ -292,11 +292,11 @@ namespace Engine
 		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform), info);
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform&)",
-						 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
+		                 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
-						 ScriptCallConv::CDeclObjFirst);
+		                 ScriptCallConv::CDeclObjFirst);
 
 		registrar.method("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
 		registrar.method("const Engine::Matrix4f& matrix() const final", &Transform::matrix);

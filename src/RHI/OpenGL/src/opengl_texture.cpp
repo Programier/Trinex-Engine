@@ -41,7 +41,7 @@ namespace Engine
 		auto dst_end   = dst_start + dst_rect.size;
 
 		glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
-						  GL_COLOR_BUFFER_BIT, filter_of(filter));
+		                  GL_COLOR_BUFFER_BIT, filter_of(filter));
 
 		if (OPENGL_API->m_state.render_target)
 		{
@@ -78,7 +78,7 @@ namespace Engine
 			for (uint32_t mip = 0; mip < mips; ++mip)
 			{
 				glTexImage2D(texture_type, mip, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
-							 m_format.m_type, nullptr);
+				             m_format.m_type, nullptr);
 				size = glm::max(Vector2u(1, 1), size / 2u);
 			}
 		}
@@ -93,12 +93,12 @@ namespace Engine
 		if (m_format.m_format == 0)
 		{
 			glCompressedTexSubImage2D(texture_type, mip, rect.pos.x, rect.pos.y, rect.size.x, rect.size.y,
-									  m_format.m_internal_format, data_size, data);
+			                          m_format.m_internal_format, data_size, data);
 		}
 		else
 		{
 			glTexSubImage2D(texture_type, mip, rect.pos.x, rect.pos.y, rect.size.x, rect.size.y, m_format.m_format,
-							m_format.m_type, data);
+			                m_format.m_type, data);
 		}
 		glBindTexture(texture_type, 0);
 	}
@@ -198,7 +198,7 @@ namespace Engine
 	}
 
 	void OpenGL_TextureRTV::blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-								 SamplerFilter filter)
+	                             SamplerFilter filter)
 	{
 		blit_surface(static_cast<OpenGL_TextureRTV*>(surface), this, src_rect, dst_rect, filter);
 	}
@@ -232,7 +232,7 @@ namespace Engine
 	}
 
 	void OpenGL_TextureDSV::blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-								 SamplerFilter filter)
+	                             SamplerFilter filter)
 	{
 		blit_surface(static_cast<OpenGL_TextureDSV*>(surface), this, src_rect, dst_rect, filter);
 	}
@@ -243,7 +243,7 @@ namespace Engine
 	}
 
 	OpenGL_Texture2D::OpenGL_Texture2D(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
-		: m_texture(this)
+	    : m_texture(this)
 	{
 		m_texture.init_2D(format, size, mips, flags);
 	}

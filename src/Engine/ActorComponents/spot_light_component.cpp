@@ -16,14 +16,14 @@ namespace Engine
 		};
 
 		trinex_refl_prop(self, This, m_outer_cone_angle)
-				->push_change_listener(on_data_changed)
-				.display_name("Outer Cone Angle")
-				.tooltip("Outer Cone Angle of this spot light");
+		        ->push_change_listener(on_data_changed)
+		        .display_name("Outer Cone Angle")
+		        .tooltip("Outer Cone Angle of this spot light");
 
 		trinex_refl_prop(self, This, m_inner_cone_angle)
-				->push_change_listener(on_data_changed)
-				.display_name("Inner Cone Angle")
-				.tooltip("Inner Cone Angle of this spot light");
+		        ->push_change_listener(on_data_changed)
+		        .display_name("Inner Cone Angle")
+		        .tooltip("Inner Cone Angle of this spot light");
 	}
 
 	SpotLightComponentProxy& SpotLightComponentProxy::update_spot_angles()
@@ -71,8 +71,7 @@ namespace Engine
 		return world_transform().forward_vector();
 	}
 
-	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f)
-	{}
+	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f) {}
 
 	class UpdateSpotLightDataCommand : public Task<UpdateSpotLightDataCommand>
 	{
@@ -83,8 +82,8 @@ namespace Engine
 
 	public:
 		UpdateSpotLightDataCommand(SpotLightComponent* component)
-			: m_outer_cone_angle(glm::radians(component->outer_cone_angle())),
-			  m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
+		    : m_outer_cone_angle(glm::radians(component->outer_cone_angle())),
+		      m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
 		{}
 
 		void execute() override
@@ -158,7 +157,7 @@ namespace Engine
 		SpotLightComponentProxy* proxy = component->proxy();
 
 		if (!(scene_view().show_flags() & ShowFlags::SpotLights) || !proxy->is_enabled() ||
-			!component->leaf_class_is<SpotLightComponent>())
+		    !component->leaf_class_is<SpotLightComponent>())
 			return *this;
 
 		if (component->is_shadows_enabled())

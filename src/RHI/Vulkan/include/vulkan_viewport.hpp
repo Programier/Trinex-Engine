@@ -48,7 +48,7 @@ namespace Engine
 		int_t do_present(VulkanCommandBuffer* cmd_buffer);
 		VulkanBackBuffer* backbuffer();
 		int_t try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandBuffer*), VulkanCommandBuffer* cmd_buffer,
-						  bool skip_on_out_of_date);
+		                  bool skip_on_out_of_date);
 
 		vk::Semaphore* render_finished_semaphore();
 		vk::Semaphore* image_present_semaphore();
@@ -72,7 +72,7 @@ namespace Engine
 		void vsync(bool flag) override;
 		void bind() override;
 		void blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-						 SamplerFilter filter) override;
+		                 SamplerFilter filter) override;
 		void clear_color(const Color& color) override;
 
 		~VulkanViewport();

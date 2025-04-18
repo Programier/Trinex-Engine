@@ -2,6 +2,5 @@
 
 namespace Engine
 {
-	TaskInterface::~TaskInterface()
-	{}
+	TaskInterface::~TaskInterface() {}
 }// namespace Engine

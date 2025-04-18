@@ -77,8 +77,7 @@ namespace Engine
 		return *this;
 	}
 
-	Path::Path()
-	{}
+	Path::Path() {}
 
 	Path::Path(const Path& path) : m_path(path.m_path)
 	{
@@ -95,11 +94,9 @@ namespace Engine
 		on_path_changed();
 	}
 
-	Path::Path(const char* str) : Path(StringView(str))
-	{}
+	Path::Path(const char* str) : Path(StringView(str)) {}
 
-	Path::Path(const String& str) : Path(StringView(str))
-	{}
+	Path::Path(const String& str) : Path(StringView(str)) {}
 
 	Path& Path::operator=(const Path& path)
 	{

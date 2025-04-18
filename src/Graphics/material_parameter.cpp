@@ -134,7 +134,7 @@ namespace Engine::MaterialParameters
 		else
 		{
 			warn_log("Material Parameter",
-					 "The Render Pass is not valid, so the data passed to the material will be filled with zeros");
+			         "The Render Pass is not valid, so the data passed to the material will be filled with zeros");
 
 			GlobalShaderParameters params;
 			std::memset(&params, 0, sizeof(params));
@@ -148,7 +148,7 @@ namespace Engine::MaterialParameters
 	Surface& Surface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		auto srv = surface ? surface->rhi_shader_resource_view()
-						   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
+		                   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
 		srv->bind(info->location);
 		return *this;
 	}
@@ -165,7 +165,7 @@ namespace Engine::MaterialParameters
 	CombinedSurface& CombinedSurface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		auto srv = surface ? surface->rhi_shader_resource_view()
-						   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
+		                   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
 		srv->bind_combined(info->location, sampler->rhi_sampler());
 		return *this;
 	}

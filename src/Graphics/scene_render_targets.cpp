@@ -20,7 +20,7 @@ namespace Engine
 		{
 			Surface type              = static_cast<Surface>(texture_index);
 			m_surfaces[texture_index] = Object::new_instance<RenderSurface>(
-					name_of(type), Object::static_find_package("TrinexEngine::RenderTargets", true));
+			        name_of(type), Object::static_find_package("TrinexEngine::RenderTargets", true));
 		}
 	}
 
@@ -144,7 +144,7 @@ namespace Engine
 	const SceneRenderTargets& SceneRenderTargets::bind_gbuffer() const
 	{
 		rhi->bind_render_target(rtv_of(Surface::BaseColor), rtv_of(Surface::Normal), rtv_of(Surface::Emissive),
-								rtv_of(Surface::MSRA), dsv_of(Surface::SceneDepthZ));
+		                        rtv_of(Surface::MSRA), dsv_of(Surface::SceneDepthZ));
 		return *this;
 	}
 

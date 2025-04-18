@@ -266,7 +266,7 @@ namespace Engine
 		script_actor_destroyed  = r.method("void destroyed()", trinex_scoped_void_method(Actor, destroyed));
 
 		constexpr ActorComponent* (*create_component)(Actor*, Refl::Class*, const Name&) =
-				[](Actor* actor, Refl::Class* self, const Name& name) { return actor->create_component(self, name); };
+		        [](Actor* actor, Refl::Class* self, const Name& name) { return actor->create_component(self, name); };
 		r.method("ActorComponent create_component(Class self, const Name& name) final", create_component);
 
 		ScriptEngine::on_terminate.push([]() {

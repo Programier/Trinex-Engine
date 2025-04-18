@@ -97,10 +97,10 @@ namespace Engine
 	}
 
 	static bool compile_vertex_shader(VisualMaterialGraph::Compiler& compiler, String& template_source, size_t position,
-									  VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
+	                                  VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
 	{
 		static constexpr const char* format = "{0}\n"
-											  "\tmaterial.position_offset = {1};\n";
+		                                      "\tmaterial.position_offset = {1};\n";
 
 		compiler.stage(VisualMaterialGraph::Compiler::Vertex);
 		auto position_offset = compiler.compile(root->position_offset);
@@ -121,18 +121,18 @@ namespace Engine
 	}
 
 	static bool compile_fragment_shader(VisualMaterialGraph::Compiler compiler, String& template_source, size_t position,
-										VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
+	                                    VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
 	{
 		static constexpr const char* format = "{0}\n"
-											  "\tmaterial.base_color = {1};\n"
-											  "\tmaterial.emissive = {2};\n"
-											  "\tmaterial.specular = {3};\n"
-											  "\tmaterial.metalness = {4};\n"
-											  "\tmaterial.roughness = {5};\n"
-											  "\tmaterial.opacity = {6};\n"
-											  "\tmaterial.AO = {7};\n"
-											  "\tmaterial.normal = {8};\n"
-											  "\tmaterial.position_offset = float3(0.f, 0.f, 0.f);\n";
+		                                      "\tmaterial.base_color = {1};\n"
+		                                      "\tmaterial.emissive = {2};\n"
+		                                      "\tmaterial.specular = {3};\n"
+		                                      "\tmaterial.metalness = {4};\n"
+		                                      "\tmaterial.roughness = {5};\n"
+		                                      "\tmaterial.opacity = {6};\n"
+		                                      "\tmaterial.AO = {7};\n"
+		                                      "\tmaterial.normal = {8};\n"
+		                                      "\tmaterial.position_offset = float3(0.f, 0.f, 0.f);\n";
 
 		compiler.stage(VisualMaterialGraph::Compiler::Fragment);
 		auto base_color = compiler.compile(root->base_color);
@@ -149,7 +149,7 @@ namespace Engine
 
 		String header     = compiler.compile_local_expressions();
 		String out_source = Strings::format(format, header, base_color.value, emissive.value, specular.value, metalness.value,
-											roughness.value, opacity.value, AO.value, normal.value);
+		                                    roughness.value, opacity.value, AO.value, normal.value);
 		template_source.replace(position, std::strlen(fragment_material_source_section), out_source);
 		return true;
 	}

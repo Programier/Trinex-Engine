@@ -28,9 +28,9 @@ namespace Engine
 	};
 
 	static constexpr inline vk::PipelineStageFlags all_shaders_stage =
-			vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
-			vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eGeometryShader |
-			vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader;
+	        vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
+	        vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eGeometryShader |
+	        vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader;
 
 	struct VulkanAPI : public RHI {
 		trinex_declare_struct(VulkanAPI, void);
@@ -93,7 +93,7 @@ namespace Engine
 		VulkanAPI& wait_idle();
 
 		VulkanAPI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-									  RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
+		                              RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
 		VulkanAPI& viewport(const ViewPort& viewport) override;
 		ViewPort viewport() override;
 		VulkanAPI& scissor(const Scissor& scissor) override;

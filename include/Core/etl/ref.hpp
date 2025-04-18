@@ -11,11 +11,9 @@ namespace Engine
 
 
 	public:
-		LRef(T& ptr) : m_ref(&ptr)
-		{}
+		LRef(T& ptr) : m_ref(&ptr) {}
 
-		LRef(const LRef& value) : m_ref(value.m_ref)
-		{}
+		LRef(const LRef& value) : m_ref(value.m_ref) {}
 
 		LRef& operator=(const LRef& value)
 		{
@@ -25,26 +23,14 @@ namespace Engine
 			return *this;
 		}
 
-		T& get()
-		{
-			return *m_ref;
-		}
+		T& get() { return *m_ref; }
 
-		const T& get() const
-		{
-			return *m_ref;
-		}
+		const T& get() const { return *m_ref; }
 
 
-		T* address()
-		{
-			return m_ref;
-		}
+		T* address() { return m_ref; }
 
-		const T* address() const
-		{
-			return m_ref;
-		}
+		const T* address() const { return m_ref; }
 
 		friend struct Ref;
 	};
@@ -57,13 +43,11 @@ namespace Engine
 
 
 	public:
-		RRef(T&& value) : m_ref(std::move(value))
-		{}
+		RRef(T&& value) : m_ref(std::move(value)) {}
 
 		RRef(const RRef& from) = delete;
 
-		RRef(RRef&& from) : m_ref(std::move(from.m_ref))
-		{}
+		RRef(RRef&& from) : m_ref(std::move(from.m_ref)) {}
 
 		RRef& operator=(const RRef& value) = delete;
 
@@ -76,25 +60,13 @@ namespace Engine
 			return *this;
 		}
 
-		T&& get()
-		{
-			return std::move(m_ref);
-		}
+		T&& get() { return std::move(m_ref); }
 
-		const T&& get() const
-		{
-			return std::move(m_ref);
-		}
+		const T&& get() const { return std::move(m_ref); }
 
-		T* address()
-		{
-			return &m_ref;
-		}
+		T* address() { return &m_ref; }
 
-		const T* address() const
-		{
-			return &m_ref;
-		}
+		const T* address() const { return &m_ref; }
 
 		friend struct Ref;
 	};

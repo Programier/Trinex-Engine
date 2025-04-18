@@ -8,11 +8,9 @@
 
 namespace Engine
 {
-	ScriptPointer::ScriptPointer(void* address) : m_address(address)
-	{}
+	ScriptPointer::ScriptPointer(void* address) : m_address(address) {}
 
-	ScriptPointer::ScriptPointer(const ScriptPointer& other) : m_address(other.m_address)
-	{}
+	ScriptPointer::ScriptPointer(const ScriptPointer& other) : m_address(other.m_address) {}
 
 	ScriptPointer& ScriptPointer::operator=(const ScriptPointer& other)
 	{
@@ -120,7 +118,7 @@ namespace Engine
 			auto r             = ScriptClassRegistrar::value_class("Ptr<void>", sizeof(ScriptPointer), info);
 			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ScriptPointer>);
 			r.behave(ScriptClassBehave::Construct, "void f(const Ptr<void>& ptr)",
-					 r.constructor<ScriptPointer, const ScriptPointer&>);
+			         r.constructor<ScriptPointer, const ScriptPointer&>);
 			r.behave(ScriptClassBehave::Construct, "void f(const NullPtr& nullptr)", nullptr_constructor_void);
 			register_base_methods(r);
 		};

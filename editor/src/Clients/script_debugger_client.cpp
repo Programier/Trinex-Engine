@@ -36,8 +36,7 @@ namespace Engine
 			m_window_pos = vp->WorkPos + vp->WorkSize * 0.5f;
 		}
 
-		void init(RenderViewport* viewport) override
-		{}
+		void init(RenderViewport* viewport) override {}
 
 		void render_script_combo_box(ScriptFolder* folder)
 		{
@@ -141,7 +140,7 @@ namespace Engine
 	trinex_implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
-		: m_debugging_thread(new Thread()), m_action(ImGui::TextEditor::DebugAction::Continue), m_is_in_debug_loop(false)
+	    : m_debugging_thread(new Thread()), m_action(ImGui::TextEditor::DebugAction::Continue), m_is_in_debug_loop(false)
 	{
 		build_language_definition();
 	}
@@ -688,8 +687,7 @@ namespace Engine
 		return *this;
 	}
 
-	void ScriptDebuggerClient::on_debugger_jump(ImGui::TextEditor* editor, int_t line)
-	{}
+	void ScriptDebuggerClient::on_debugger_jump(ImGui::TextEditor* editor, int_t line) {}
 
 	void ScriptDebuggerClient::on_debugger_action(ImGui::TextEditor* editor, ImGui::TextEditor::DebugAction action)
 	{
@@ -714,36 +712,30 @@ namespace Engine
 		}
 	}
 
-	void ScriptDebuggerClient::on_identifier_hover(ImGui::TextEditor* editor, const String& identifier)
-	{}
+	void ScriptDebuggerClient::on_identifier_hover(ImGui::TextEditor* editor, const String& identifier) {}
 
 	bool ScriptDebuggerClient::has_identifier_hover(ImGui::TextEditor* editor, const String& identifier)
 	{
 		return false;
 	}
 
-	void ScriptDebuggerClient::on_expression_hover(ImGui::TextEditor* editor, const String& identifier)
-	{}
+	void ScriptDebuggerClient::on_expression_hover(ImGui::TextEditor* editor, const String& identifier) {}
 
 	bool ScriptDebuggerClient::has_expression_hover(ImGui::TextEditor* editor, const String& identifier)
 	{
 		return false;
 	}
 
-	void ScriptDebuggerClient::on_breakpoint_remove(ImGui::TextEditor* editor, int_t line)
-	{}
+	void ScriptDebuggerClient::on_breakpoint_remove(ImGui::TextEditor* editor, int_t line) {}
 
-	void ScriptDebuggerClient::on_breakpoint_update(ImGui::TextEditor* editor, int_t line)
-	{}
+	void ScriptDebuggerClient::on_breakpoint_update(ImGui::TextEditor* editor, int_t line) {}
 
 	void ScriptDebuggerClient::on_ctrl_alt_click(ImGui::TextEditor* editor, const String&, ImGui::TextEditor::Coordinates coords)
 	{}
 
-	void ScriptDebuggerClient::on_request_open(ImGui::TextEditor* editor, const String&, const String&)
-	{}
+	void ScriptDebuggerClient::on_request_open(ImGui::TextEditor* editor, const String&, const String&) {}
 
-	void ScriptDebuggerClient::on_content_update(ImGui::TextEditor* editor)
-	{}
+	void ScriptDebuggerClient::on_content_update(ImGui::TextEditor* editor) {}
 
 	ScriptDebuggerClient& ScriptDebuggerClient::on_line_callback()
 	{
@@ -956,10 +948,7 @@ namespace Engine
 				    : m_client(client), m_method(method)
 				{}
 
-				void execute() override
-				{
-					(m_client->*m_method)();
-				}
+				void execute() override { (m_client->*m_method)(); }
 			};
 
 			m_debugging_thread->create_task<RunDebugLoop>(this, &This::debugger_thread_loop);

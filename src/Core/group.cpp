@@ -127,13 +127,12 @@ namespace Engine
 	Group& Group::remove_struct(class Refl::Struct* instance)
 	{
 		auto removed =
-				std::remove_if(m_structs.begin(), m_structs.end(), [instance](Refl::Struct* ell) { return ell == instance; });
+		        std::remove_if(m_structs.begin(), m_structs.end(), [instance](Refl::Struct* ell) { return ell == instance; });
 		m_structs.erase(removed, m_structs.end());
 		return *this;
 	}
 
-	Group::Group()
-	{}
+	Group::Group() {}
 
 	Group::~Group()
 	{

@@ -140,7 +140,7 @@ namespace Engine
 		if (is_valid && info.return_type_id != 0 && return_value)
 		{
 			if (info.return_type_modifiers.has_all(ScriptTypeModifiers::OutRef) ||
-				ScriptEngine::is_handle_type(info.return_type_id))
+			    ScriptEngine::is_handle_type(info.return_type_id))
 			{
 				(*static_cast<void**>(return_value)) = return_address();
 			}
@@ -151,7 +151,7 @@ namespace Engine
 			else
 			{
 				ScriptEngine::assign_script_object(return_value, return_object_ptr(),
-												   ScriptEngine::type_info_by_id(info.return_type_id));
+				                                   ScriptEngine::type_info_by_id(info.return_type_id));
 			}
 		}
 
@@ -388,9 +388,9 @@ namespace Engine
 
 	Vector2i ScriptContext::exception_line_position(StringView* section)
 	{
-		Vector2i result = {-1, -1};
-		const char* name   = nullptr;
-		result.y           = m_context->GetExceptionLineNumber(&result.x, section ? &name : nullptr);
+		Vector2i result  = {-1, -1};
+		const char* name = nullptr;
+		result.y         = m_context->GetExceptionLineNumber(&result.x, section ? &name : nullptr);
 
 		if (section && name)
 		{
@@ -463,7 +463,7 @@ namespace Engine
 
 	Vector2i ScriptContext::line_position(uint_t stack_level, StringView* section_name)
 	{
-		Vector2i result  = {-1, -1};
+		Vector2i result     = {-1, -1};
 		const char* section = nullptr;
 		result.y            = m_context->GetLineNumber(stack_level, &result.x, (section_name ? &section : nullptr));
 

@@ -9,13 +9,9 @@ namespace Engine
 	struct WaitTask : public Task<WaitTask> {
 		CriticalSection* section;
 
-		WaitTask(CriticalSection* section) : section(section)
-		{}
+		WaitTask(CriticalSection* section) : section(section) {}
 
-		void execute() override
-		{
-			section->unlock();
-		}
+		void execute() override { section->unlock(); }
 	};
 
 	Thread::Thread(NoThreadContext ctx)

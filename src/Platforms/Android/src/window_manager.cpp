@@ -147,10 +147,7 @@ namespace Engine::Platform
 	}
 
 	struct AndroidEvent : Event {
-		AndroidEvent()
-		{
-			window_id = android_window_id();
-		}
+		AndroidEvent() { window_id = android_window_id(); }
 	};
 
 

@@ -397,7 +397,7 @@ namespace Engine
 		while (current && current != root)
 		{
 			String current_name = (current->m_name.is_valid() ? current->m_name.to_string()
-															  : Strings::format("Noname object {}", current->m_instance_index));
+			                                                  : Strings::format("Noname object {}", current->m_instance_index));
 
 			result  = Strings::format("{}{}{}", current_name, Constants::name_separator, result);
 			current = current->m_owner;
@@ -614,7 +614,7 @@ namespace Engine
 		else
 		{
 			error_log("Object", "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
-					  path.c_str());
+			          path.c_str());
 		}
 
 		return nullptr;
@@ -686,7 +686,7 @@ namespace Engine
 	}
 
 	ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
-											  SerializationFlags serialization_flags)
+	                                          SerializationFlags serialization_flags)
 	{
 		if (reader == nullptr)
 		{
@@ -781,7 +781,7 @@ namespace Engine
 		}
 
 		Path path = Path(Project::assets_dir) /
-					Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
+		            Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
 		return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
 	}
 

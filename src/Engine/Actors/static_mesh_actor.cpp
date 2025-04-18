@@ -23,6 +23,5 @@ namespace Engine
 		return m_mesh_component;
 	}
 
-	StaticMeshActor::~StaticMeshActor()
-	{}
+	StaticMeshActor::~StaticMeshActor() {}
 }// namespace Engine

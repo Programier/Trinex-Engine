@@ -21,8 +21,7 @@ namespace Engine
 		add_ref();
 	}
 
-	ScriptFunction::ScriptFunction(const ScriptFunction& obj) : Engine::ScriptFunction(obj.function())
-	{}
+	ScriptFunction::ScriptFunction(const ScriptFunction& obj) : Engine::ScriptFunction(obj.function()) {}
 
 	ScriptFunction::ScriptFunction(ScriptFunction&& obj)
 	{

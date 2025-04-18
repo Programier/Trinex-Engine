@@ -17,14 +17,14 @@ namespace Engine
 	namespace MaterialParameters
 	{
 #define trinex_material_parameter(self, super)                                                                                   \
-    trinex_declare_class(self, super);                                                                                           \
+	trinex_declare_class(self, super);                                                                                           \
                                                                                                                                  \
 public:                                                                                                                          \
 	static Engine::ShaderParameterType static_type()                                                                             \
 	{                                                                                                                            \
 		return Engine::ShaderParameterType::self;                                                                                \
 	}                                                                                                                            \
-																																 \
+                                                                                                                                 \
 	inline Engine::ShaderParameterType type() const override                                                                     \
 	{                                                                                                                            \
 		return Engine::ShaderParameterType::self;                                                                                \

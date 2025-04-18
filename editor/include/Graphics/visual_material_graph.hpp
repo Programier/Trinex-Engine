@@ -29,9 +29,9 @@ namespace Engine::VisualMaterialGraph
 		static ShaderParameterType static_component_type_of(ShaderParameterType type);
 		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2);
 		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2,
-												  ShaderParameterType type3);
+		                                          ShaderParameterType type3);
 		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2, ShaderParameterType type3,
-												  ShaderParameterType type4);
+		                                          ShaderParameterType type4);
 		static String static_typename_of(ShaderParameterType type);
 		static bool is_compatible_types(ShaderParameterType src, ShaderParameterType dst);
 

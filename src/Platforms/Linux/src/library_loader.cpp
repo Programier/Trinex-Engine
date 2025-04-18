@@ -82,13 +82,9 @@ namespace Engine::Platform::LibraryLoader
 
 		Path paths[] = {
 #if TRINEX_DEBUG_BUILD
-			get_libname(name_path, Global),
-			get_libname(name_path, Engine),
-			get_libname(name_path, None)
+		        get_libname(name_path, Global), get_libname(name_path, Engine), get_libname(name_path, None)
 #else
-			get_libname(name_path, None),
-			get_libname(name_path, Engine),
-			get_libname(name_path, Global)
+		        get_libname(name_path, None), get_libname(name_path, Engine), get_libname(name_path, Global)
 #endif
 		};
 

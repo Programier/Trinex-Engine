@@ -55,15 +55,15 @@ namespace Engine
 	public:
 		VertexBuffer() = default;
 		VertexBuffer(const std::initializer_list<T>& list, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
-			: VertexBufferBase(type, sizeof(T), list.size(), reinterpret_cast<const byte*>(list.begin()), keep_cpu_data)
+		    : VertexBufferBase(type, sizeof(T), list.size(), reinterpret_cast<const byte*>(list.begin()), keep_cpu_data)
 		{}
 
 		VertexBuffer(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
-			: VertexBufferBase(type, sizeof(T), count, reinterpret_cast<const byte*>(data), keep_cpu_data)
+		    : VertexBufferBase(type, sizeof(T), count, reinterpret_cast<const byte*>(data), keep_cpu_data)
 		{}
 
 		VertexBuffer(const T* begin, const T* end, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
-			: VertexBufferBase(type, sizeof(T), end - begin, reinterpret_cast<const byte*>(begin), keep_cpu_data)
+		    : VertexBufferBase(type, sizeof(T), end - begin, reinterpret_cast<const byte*>(begin), keep_cpu_data)
 		{}
 
 		inline VertexBuffer& init(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
@@ -155,16 +155,16 @@ namespace Engine
 		TypedIndexBuffer() = default;
 
 		TypedIndexBuffer(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)
-			: IndexBuffer(type, size, data, keep_cpu_data)
+		    : IndexBuffer(type, size, data, keep_cpu_data)
 		{}
 
 		TypedIndexBuffer(const std::initializer_list<T>& list, RHIBufferType type = RHIBufferType::Static,
-						 bool keep_cpu_data = false)
-			: IndexBuffer(list, type, keep_cpu_data)
+		                 bool keep_cpu_data = false)
+		    : IndexBuffer(list, type, keep_cpu_data)
 		{}
 
 		TypedIndexBuffer(const T* start, const T* end, RHIBufferType type = RHIBufferType::Static, bool keep_cpu_data = false)
-			: IndexBuffer(start, end, type, keep_cpu_data)
+		    : IndexBuffer(start, end, type, keep_cpu_data)
 		{}
 
 		TypedIndexBuffer& init(RHIBufferType type, size_t count, const T* data = nullptr, bool keep_cpu_data = false)

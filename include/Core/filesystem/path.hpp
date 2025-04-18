@@ -51,70 +51,31 @@ namespace Engine
 			return result /= path;
 		}
 
-		FORCE_INLINE const String& path() const
-		{
-			return m_path;
-		}
+		FORCE_INLINE const String& path() const { return m_path; }
 
-		FORCE_INLINE const StringView& extension() const
-		{
-			return m_extension;
-		}
+		FORCE_INLINE const StringView& extension() const { return m_extension; }
 
-		FORCE_INLINE const StringView& filename() const
-		{
-			return m_filename;
-		}
+		FORCE_INLINE const StringView& filename() const { return m_filename; }
 
-		FORCE_INLINE const StringView& stem() const
-		{
-			return m_stem;
-		}
+		FORCE_INLINE const StringView& stem() const { return m_stem; }
 
-		FORCE_INLINE const char* c_str() const
-		{
-			return m_path.c_str();
-		}
+		FORCE_INLINE const char* c_str() const { return m_path.c_str(); }
 
-		FORCE_INLINE const String& str() const
-		{
-			return m_path;
-		}
+		FORCE_INLINE const String& str() const { return m_path; }
 
-		FORCE_INLINE operator const String&() const
-		{
-			return str();
-		}
+		FORCE_INLINE operator const String&() const { return str(); }
 
-		FORCE_INLINE operator const char*() const
-		{
-			return c_str();
-		}
+		FORCE_INLINE operator const char*() const { return c_str(); }
 
-		FORCE_INLINE const StringView& base_path() const
-		{
-			return m_base_path;
-		}
+		FORCE_INLINE const StringView& base_path() const { return m_base_path; }
 
-		FORCE_INLINE size_t length() const
-		{
-			return m_path.length();
-		}
+		FORCE_INLINE size_t length() const { return m_path.length(); }
 
-		FORCE_INLINE bool empty() const
-		{
-			return length() == 0;
-		}
+		FORCE_INLINE bool empty() const { return length() == 0; }
 
-		FORCE_INLINE bool operator==(const Path& path) const
-		{
-			return m_path == path.m_path;
-		}
+		FORCE_INLINE bool operator==(const Path& path) const { return m_path == path.m_path; }
 
-		FORCE_INLINE bool operator!=(const Path& path) const
-		{
-			return m_path != path.m_path;
-		}
+		FORCE_INLINE bool operator!=(const Path& path) const { return m_path != path.m_path; }
 
 		FORCE_INLINE Path& operator+=(const StringView& view)
 		{
@@ -128,30 +89,15 @@ namespace Engine
 			return p += view;
 		}
 
-		FORCE_INLINE bool operator<(const Path& p) const
-		{
-			return m_path < p.m_path;
-		}
+		FORCE_INLINE bool operator<(const Path& p) const { return m_path < p.m_path; }
 
-		FORCE_INLINE bool operator>(const Path& p) const
-		{
-			return m_path > p.m_path;
-		}
+		FORCE_INLINE bool operator>(const Path& p) const { return m_path > p.m_path; }
 
-		FORCE_INLINE bool operator<=(const Path& p) const
-		{
-			return m_path <= p.m_path;
-		}
+		FORCE_INLINE bool operator<=(const Path& p) const { return m_path <= p.m_path; }
 
-		FORCE_INLINE bool operator>=(const Path& p) const
-		{
-			return m_path >= p.m_path;
-		}
+		FORCE_INLINE bool operator>=(const Path& p) const { return m_path >= p.m_path; }
 
-		FORCE_INLINE bool starts_with(const Path& path) const
-		{
-			return m_path.starts_with(path.m_path);
-		}
+		FORCE_INLINE bool starts_with(const Path& path) const { return m_path.starts_with(path.m_path); }
 
 		bool serialize(Archive& ar);
 	};

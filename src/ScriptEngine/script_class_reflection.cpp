@@ -97,7 +97,7 @@ namespace Engine
 			throw EngineException(Strings::format("Cannot find scriptable property type for prop '{}'", self->full_name()));
 
 		String code = Strings::format("void __trinex_engine_execute_meta__(Engine::Refl::{}@ prop) {{ prop.{}; }}",
-									  refl_info->class_name.to_string(), meta);
+		                              refl_info->class_name.to_string(), meta);
 
 		auto module    = script->module().as_module();
 		const char* ns = module->GetDefaultNamespace();
@@ -159,7 +159,7 @@ namespace Engine
 	}
 
 	static Refl::Property* register_enum_property(Script* script, Refl::Struct* self, const String& prop_name,
-												  ScriptTypeInfo info, size_t offset)
+	                                              ScriptTypeInfo info, size_t offset)
 	{
 		auto fullname             = Strings::concat_scoped_name(info.namespace_name(), info.name());
 		Refl::Enum* enum_instance = Refl::Enum::static_find(fullname);
@@ -235,7 +235,7 @@ namespace Engine
 	}
 
 	static Refl::Property* register_class_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, uint_t prop_idx,
-												   bool has_property_meta)
+	                                               bool has_property_meta)
 	{
 		auto decl = Strings::concat_scoped_name(info.namespace_name(), info.name());
 		{
@@ -330,7 +330,7 @@ namespace Engine
 				return instance;
 
 			throw EngineException(
-					Strings::format("Cannot register script class, because class with name '{}' already exist!", decl));
+			        Strings::format("Cannot register script class, because class with name '{}' already exist!", decl));
 		}
 
 		if (info.is_native())
@@ -354,7 +354,7 @@ namespace Engine
 		else
 		{
 			script_class = Refl::Object::new_instance<Refl::ScriptStruct>(
-					decl, Refl::Object::instance_cast<Refl::ScriptStruct>(base_class), this, info);
+			        decl, Refl::Object::instance_cast<Refl::ScriptStruct>(base_class), this, info);
 		}
 
 		if (script_class)

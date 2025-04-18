@@ -6,7 +6,7 @@ namespace Engine
 {
 	class Material;
 	class ShaderCompilationEnvironment;
-}
+}// namespace Engine
 
 namespace Engine::Refl
 {
@@ -35,20 +35,11 @@ namespace Engine::Refl
 		bool is_material_compatible(const Material* material);
 		RenderPassInfo& modify_shader_compilation_env(ShaderCompilationEnvironment* env);
 
-		inline RenderPassInfo* next_pass()
-		{
-			return m_next;
-		}
+		inline RenderPassInfo* next_pass() { return m_next; }
 
-		static inline RenderPassInfo* first_pass()
-		{
-			return s_head;
-		}
+		static inline RenderPassInfo* first_pass() { return s_head; }
 
-		static inline RenderPassInfo* last_pass()
-		{
-			return s_tail;
-		}
+		static inline RenderPassInfo* last_pass() { return s_tail; }
 	};
 
 
@@ -62,7 +53,7 @@ namespace Engine::Refl
 			using Super = Engine::Refl::RenderPassInfo;                                                                          \
 			using RenderPassInfo::RenderPassInfo;                                                                                \
 			void initialize_render_pass();                                                                                       \
-																																 \
+                                                                                                                                 \
 			This& initialize() override                                                                                          \
 			{                                                                                                                    \
 				Super::initialize();                                                                                             \
@@ -73,25 +64,24 @@ namespace Engine::Refl
 	}                                                                                                                            \
 	class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
-    class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
-    {                                                                                                                            \
-        if (!m_static_struct)                                                                                                    \
-        {                                                                                                                        \
-            m_static_struct = Engine::Refl::NativeStruct<decl, TRINEX_CONCAT(RenderPass, __LINE__)>::create(#decl, 0);           \
-        }                                                                                                                        \
-        return m_static_struct;                                                                                                  \
-    }                                                                                                                            \
+	class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
+	{                                                                                                                            \
+		if (!m_static_struct)                                                                                                    \
+		{                                                                                                                        \
+			m_static_struct = Engine::Refl::NativeStruct<decl, TRINEX_CONCAT(RenderPass, __LINE__)>::create(#decl, 0);           \
+		}                                                                                                                        \
+		return m_static_struct;                                                                                                  \
+	}                                                                                                                            \
                                                                                                                                  \
-    Engine::Refl::Struct* decl::struct_instance() const                                                                          \
-    {                                                                                                                            \
-        return static_struct_instance();                                                                                         \
-    }                                                                                                                            \
+	Engine::Refl::Struct* decl::struct_instance() const                                                                          \
+	{                                                                                                                            \
+		return static_struct_instance();                                                                                         \
+	}                                                                                                                            \
                                                                                                                                  \
-    static Engine::byte TRINEX_CONCAT(trinex_engine_refl_render_pass_, __LINE__) = static_cast<Engine::byte>(                    \
-            Engine::Refl::Object::static_register_initializer([]() { decl::static_struct_instance(); }, #decl));                 \
+	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_render_pass_, __LINE__) = static_cast<Engine::byte>(                    \
+	        Engine::Refl::Object::static_register_initializer([]() { decl::static_struct_instance(); }, #decl));                 \
                                                                                                                                  \
-    void decl::static_initialize_struct()                                                                                        \
-    {}                                                                                                                           \
+	void decl::static_initialize_struct() {}                                                                                     \
                                                                                                                                  \
-    void TRINEX_CONCAT(RenderPass, __LINE__)::initialize_render_pass()
+	void TRINEX_CONCAT(RenderPass, __LINE__)::initialize_render_pass()
 }// namespace Engine::Refl

@@ -117,7 +117,7 @@ namespace Engine
 		on_draw();
 		indices_offset *= (m_state.index_buffer->m_format == GL_UNSIGNED_SHORT ? 2 : 4);
 		glDrawElementsBaseVertex(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, indices_count,
-								 m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), vertices_offset);
+		                         m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), vertices_offset);
 		reset_samplers();
 		return *this;
 	}
@@ -142,8 +142,8 @@ namespace Engine
 	{
 		on_draw();
 		glDrawElementsInstancedBaseVertex(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, indices_count,
-										  m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), instances,
-										  vertices_offset);
+		                                  m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), instances,
+		                                  vertices_offset);
 		reset_samplers();
 		return *this;
 	}

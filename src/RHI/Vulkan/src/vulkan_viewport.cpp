@@ -81,7 +81,7 @@ namespace Engine
 	}
 
 	void VulkanViewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-									 SamplerFilter filter)
+	                                 SamplerFilter filter)
 	{
 		auto cmd = API->end_render_pass();
 
@@ -101,7 +101,7 @@ namespace Engine
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->m_image, vk::ImageLayout::eTransferDstOptimal, blit,
-							 filter_of(filter));
+		                     filter_of(filter));
 	}
 
 	void VulkanViewport::clear_color(const Color& color)
@@ -375,7 +375,7 @@ namespace Engine
 	}
 
 	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandBuffer*), VulkanCommandBuffer* cmd_buffer,
-									   bool skip_on_out_of_date)
+	                                   bool skip_on_out_of_date)
 	{
 		if (m_need_recreate)
 		{

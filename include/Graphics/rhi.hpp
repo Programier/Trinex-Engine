@@ -92,13 +92,13 @@ namespace Engine
 	struct ENGINE_EXPORT RHI_RenderTargetView : RHI_ResourceView {
 		virtual void clear(const Color& color)  = 0;
 		virtual void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-						  SamplerFilter filter) = 0;
+		                  SamplerFilter filter) = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_DepthStencilView : RHI_ResourceView {
 		virtual void clear(float depth, byte stencil) = 0;
 		virtual void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-						  SamplerFilter filter)       = 0;
+		                  SamplerFilter filter)       = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
@@ -175,7 +175,7 @@ namespace Engine
 		virtual RHI& submit() = 0;
 
 		virtual RHI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-										RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) = 0;
+		                                RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) = 0;
 
 		virtual RHI& viewport(const ViewPort& viewport) = 0;
 		virtual ViewPort viewport()                     = 0;
@@ -213,19 +213,19 @@ namespace Engine
 		}
 
 		inline RHI& bind_render_target2(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2,
-										RHI_DepthStencilView* depth_stencil = nullptr)
+		                                RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, nullptr, nullptr, depth_stencil);
 		}
 
 		inline RHI& bind_render_target3(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-										RHI_DepthStencilView* depth_stencil = nullptr)
+		                                RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, rt3, nullptr, depth_stencil);
 		}
 
 		inline RHI& bind_render_target4(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-										RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil = nullptr)
+		                                RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
 		}

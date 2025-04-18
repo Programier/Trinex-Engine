@@ -13,10 +13,7 @@ namespace Engine
 		    : m_internal_format(internal_format), m_format(format), m_type(type)
 		{}
 
-		FORCE_INLINE bool is_valid() const
-		{
-			return m_internal_format != 0 && m_format != 0 && m_type != 0;
-		}
+		FORCE_INLINE bool is_valid() const { return m_internal_format != 0 && m_format != 0 && m_type != 0; }
 	};
 
 	OpenGL_ColorInfo color_format_from_engine_format(ColorFormat format);

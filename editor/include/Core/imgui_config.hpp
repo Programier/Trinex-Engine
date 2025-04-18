@@ -13,11 +13,11 @@ struct ImGuiTrinexTextureId {
 	Engine::Sampler* sampler;
 
 	inline ImGuiTrinexTextureId(Engine::Texture2D* texture = nullptr, Engine::Sampler* sampler = nullptr)
-		: texture(texture), surface(nullptr), sampler(sampler)
+	    : texture(texture), surface(nullptr), sampler(sampler)
 	{}
 
 	inline explicit ImGuiTrinexTextureId(Engine::RenderSurface* surface, Engine::Sampler* sampler)
-		: texture(nullptr), surface(surface), sampler(sampler)
+	    : texture(nullptr), surface(surface), sampler(sampler)
 	{}
 
 	inline bool operator==(const ImGuiTrinexTextureId& other) const

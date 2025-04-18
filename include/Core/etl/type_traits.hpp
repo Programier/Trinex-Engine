@@ -68,7 +68,7 @@ namespace Engine
 	};
 
 	template<template<class...> class Op, typename... Args>
-		requires(is_valid_type_v<Op<Args...>>)
+	    requires(is_valid_type_v<Op<Args...>>)
 	struct is_detected<Op, Args...> : std::true_type {
 	};
 

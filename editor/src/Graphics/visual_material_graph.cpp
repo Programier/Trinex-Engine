@@ -19,7 +19,7 @@ namespace Engine::VisualMaterialGraph
 		auto r = ScriptClassRegistrar::reference_class(static_class_instance());
 
 		s_node_compile_output =
-				r.method("Expression compile(OutputPin@ pin, Compiler@ compiler)", trinex_scoped_void_method(This, compile));
+		        r.method("Expression compile(OutputPin@ pin, Compiler@ compiler)", trinex_scoped_void_method(This, compile));
 
 
 		InputPin* (This::*method1)(const String&, ShaderParameterType)                       = &This::new_input;
@@ -344,13 +344,13 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2,
-												   ShaderParameterType type3)
+	                                               ShaderParameterType type3)
 	{
 		return static_resolve(static_resolve(type1, type2), type3);
 	}
 
 	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2,
-												   ShaderParameterType type3, ShaderParameterType type4)
+	                                               ShaderParameterType type3, ShaderParameterType type4)
 	{
 		return static_resolve(static_resolve(type1, type2, type3), type4);
 	}
@@ -767,15 +767,15 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	MaterialRoot::MaterialRoot()
-		: Node(), base_color(new_input("Base Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),//
-		  opacity(new_input("Opacity", ShaderParameterType::Float, ShaderParameterType::Float)),                //
-		  emissive(new_input("Emissive Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),      //
-		  specular(new_input("Specular", ShaderParameterType::Float, ShaderParameterType::Float)),              //
-		  metalness(new_input("Metalness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
-		  roughness(new_input("Roughness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
-		  ao(new_input("AO", ShaderParameterType::Float, ShaderParameterType::Float)),                          //
-		  normal(new_input("Normal", ShaderParameterType::Float3, ShaderParameterType::Float3)),                //
-		  position_offset(new_input("Position Offset", ShaderParameterType::Float3, ShaderParameterType::Float3))
+	    : Node(), base_color(new_input("Base Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),//
+	      opacity(new_input("Opacity", ShaderParameterType::Float, ShaderParameterType::Float)),                //
+	      emissive(new_input("Emissive Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),      //
+	      specular(new_input("Specular", ShaderParameterType::Float, ShaderParameterType::Float)),              //
+	      metalness(new_input("Metalness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
+	      roughness(new_input("Roughness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
+	      ao(new_input("AO", ShaderParameterType::Float, ShaderParameterType::Float)),                          //
+	      normal(new_input("Normal", ShaderParameterType::Float3, ShaderParameterType::Float3)),                //
+	      position_offset(new_input("Position Offset", ShaderParameterType::Float3, ShaderParameterType::Float3))
 	{
 		opacity->default_value()->ref<float>()   = 1.0f;
 		specular->default_value()->ref<float>()  = 0.5f;
@@ -788,7 +788,7 @@ namespace Engine::VisualMaterialGraph
 		if (!self->is_a<Node>())
 		{
 			throw EngineException(
-					"Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
+			        "Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
 		}
 
 		String full_group_name = Strings::format("Engine::VisualMaterialGraph::Nodes::{}", group_name);
@@ -840,9 +840,9 @@ namespace Engine::VisualMaterialGraph
 
 		// Compiler class
 		compiler.method("Expression make_variable(ShaderParameterType type) final",
-						method_of<Expression, ShaderParameterType>(&Compiler::make_variable));
+		                method_of<Expression, ShaderParameterType>(&Compiler::make_variable));
 		compiler.method("Expression make_variable(const Expression& expression) final",
-						method_of<Expression, const Expression&>(&Compiler::make_variable));
+		                method_of<Expression, const Expression&>(&Compiler::make_variable));
 
 		compiler.method("Compiler& add_include(const StringView& file) final", &Compiler::add_include);
 		compiler.method("Expression compile_default(InputPin@ pin) final", &Compiler::compile_default);
@@ -910,6 +910,6 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	static ReflectionInitializeController init(reflection_init, "Engine::VisualMaterialGraph",
-											   {"Engine::ShaderParameterType", "Engine::Refl::Class",
-												"Engine::VisualMaterialGraph::Node"});
+	                                           {"Engine::ShaderParameterType", "Engine::Refl::Class",
+	                                            "Engine::VisualMaterialGraph::Node"});
 }// namespace Engine::VisualMaterialGraph

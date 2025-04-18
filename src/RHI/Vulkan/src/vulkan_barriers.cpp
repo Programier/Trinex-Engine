@@ -21,7 +21,7 @@ namespace Engine::Barrier
 
 				case vk::ImageLayout::eGeneral:
 					access = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
-							 vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
+					         vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
 					stage = all_shaders_stage | vk::PipelineStageFlagBits::eTransfer;
 					break;
 

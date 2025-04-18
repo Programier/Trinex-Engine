@@ -293,11 +293,9 @@ namespace Engine
 		}
 	}
 
-	AndroidEGLWindow::AndroidEGLWindow(const WindowConfig* config) : AndroidWindow(config)
-	{}
+	AndroidEGLWindow::AndroidEGLWindow(const WindowConfig* config) : AndroidWindow(config) {}
 
-	AndroidEGLWindow::~AndroidEGLWindow()
-	{}
+	AndroidEGLWindow::~AndroidEGLWindow() {}
 
 	EGLSurface AndroidEGLWindow::surface(AndroidEGLContext* context)
 	{
@@ -338,6 +336,5 @@ namespace Engine
 
 	// Vulkan Window
 
-	AndroidVulkanWindow::AndroidVulkanWindow(const WindowConfig* config) : AndroidWindow(config)
-	{}
+	AndroidVulkanWindow::AndroidVulkanWindow(const WindowConfig* config) : AndroidWindow(config) {}
 }// namespace Engine

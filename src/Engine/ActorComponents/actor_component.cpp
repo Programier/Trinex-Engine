@@ -36,11 +36,9 @@ namespace Engine
 		});
 	}
 
-	ActorComponentProxy::ActorComponentProxy()
-	{}
+	ActorComponentProxy::ActorComponentProxy() {}
 
-	ActorComponentProxy::~ActorComponentProxy()
-	{}
+	ActorComponentProxy::~ActorComponentProxy() {}
 
 	void ActorComponent::script_update(float dt)
 	{
@@ -67,8 +65,7 @@ namespace Engine
 		ScriptContext::execute(this, script_actor_comp_destroyed);
 	}
 
-	ActorComponent::ActorComponent() : m_proxy(nullptr)
-	{}
+	ActorComponent::ActorComponent() : m_proxy(nullptr) {}
 
 	ActorComponent::~ActorComponent()
 	{

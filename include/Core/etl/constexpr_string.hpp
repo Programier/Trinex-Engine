@@ -8,15 +8,9 @@ namespace Engine
 	struct ConstexprString {
 		char data[N]{};
 
-		consteval ConstexprString(const char (&str)[N])
-		{
-			std::copy_n(str, N, data);
-		}
+		consteval ConstexprString(const char (&str)[N]) { std::copy_n(str, N, data); }
 
-		consteval bool operator==(const ConstexprString<N> str) const
-		{
-			return std::equal(str.data, str.data + N, data);
-		}
+		consteval bool operator==(const ConstexprString<N> str) const { return std::equal(str.data, str.data + N, data); }
 
 		template<size_t N2>
 		consteval bool operator==(const ConstexprString<N2> s) const
@@ -33,20 +27,11 @@ namespace Engine
 			return newchar;
 		}
 
-		consteval char operator[](size_t n) const
-		{
-			return data[n];
-		}
+		consteval char operator[](size_t n) const { return data[n]; }
 
-		consteval size_t size() const
-		{
-			return N - 1;
-		}
+		consteval size_t size() const { return N - 1; }
 
-		consteval const char* c_str() const
-		{
-			return data;
-		}
+		consteval const char* c_str() const { return data; }
 	};
 
 	template<size_t s1, size_t s2>

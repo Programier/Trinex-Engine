@@ -43,9 +43,6 @@ namespace Engine
 		static constexpr inline auto m_value = value_name_array();
 
 	public:
-		static consteval const char* name()
-		{
-			return m_value.data();
-		}
+		static consteval const char* name() { return m_value.data(); }
 	};
 }// namespace Engine

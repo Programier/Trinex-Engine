@@ -26,24 +26,15 @@ namespace Engine::Refl
 			const ScopedType* const m_object;
 
 		public:
-			FORCE_INLINE Locker(const ScopedType* const object) : m_object(object)
-			{
-				m_object->lock();
-			}
+			FORCE_INLINE Locker(const ScopedType* const object) : m_object(object) { m_object->lock(); }
 
-			~Locker()
-			{
-				m_object->unlock();
-			}
+			~Locker() { m_object->unlock(); }
 		};
 
 		using Super::find;
 		Object* find(StringView name, FindFlags flags = FindFlags::None) override;
 		const Map<String, Object*>& childs() const;
 
-		FORCE_INLINE bool is_locked() const
-		{
-			return m_lock_count > 0;
-		}
+		FORCE_INLINE bool is_locked() const { return m_lock_count > 0; }
 	};
 }// namespace Engine::Refl

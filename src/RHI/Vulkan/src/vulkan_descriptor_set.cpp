@@ -61,7 +61,7 @@ namespace Engine
 	{
 		vk::DescriptorImageInfo image_info({}, texture->m_view, vk::ImageLayout::eGeneral);
 		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eStorageImage,
-												image_info);
+		                                        image_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
 		API->current_command_buffer()->add_object(texture);
 		return *this;

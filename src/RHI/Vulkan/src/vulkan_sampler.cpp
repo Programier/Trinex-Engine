@@ -50,7 +50,7 @@ namespace Engine
 		vk::SamplerCreateInfo sampler_info({}, info.mag_filter, info.min_filter, info.mipmap_mode, info.address_u, info.address_v,
 		                                   info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
 		                                   info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
-										   vk::BorderColor::eIntOpaqueBlack, vk::False);
+		                                   vk::BorderColor::eIntOpaqueBlack, vk::False);
 		m_sampler = API->m_device.createSampler(sampler_info);
 		return *this;
 	}

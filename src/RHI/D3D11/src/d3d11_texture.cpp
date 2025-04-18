@@ -107,7 +107,7 @@ namespace Engine
 		}
 
 		HRESULT hr = DXAPI->m_device->CreateTexture2D(&desc, sub_resource_data.empty() ? nullptr : sub_resource_data.data(),
-													  &m_texture);
+		                                              &m_texture);
 
 		if (hr != S_OK)
 		{

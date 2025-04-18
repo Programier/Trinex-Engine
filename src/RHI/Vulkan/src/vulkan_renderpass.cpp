@@ -29,13 +29,13 @@ namespace Engine
 			uint_t m_attachments_count = 0;
 
 			static inline vk::AttachmentDescription create_desctiption(vk::Format format, vk::ImageLayout layout,
-																	   bool has_stencil)
+			                                                           bool has_stencil)
 			{
 				return vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1,
-												 vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
-												 has_stencil ? vk::AttachmentLoadOp::eLoad : vk::AttachmentLoadOp::eDontCare,   //
-												 has_stencil ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare,//
-												 layout, layout);
+				                                 vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
+				                                 has_stencil ? vk::AttachmentLoadOp::eLoad : vk::AttachmentLoadOp::eDontCare,   //
+				                                 has_stencil ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare,//
+				                                 layout, layout);
 			}
 
 			VulkanRenderPassBuilder& create_attachment_descriptions(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
@@ -46,7 +46,7 @@ namespace Engine
 					{
 						vk::Format format = surface_format_of(targets[i]);
 						m_descriptions[m_attachments_count] =
-								create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
+						        create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
 						++m_attachments_count;
 					}
 				}
@@ -100,7 +100,7 @@ namespace Engine
 				bool has_depth_attachment = m_references[4].layout != vk::ImageLayout::eUndefined;
 
 				m_subpass = vk::SubpassDescription({}, vk::PipelineBindPoint::eGraphics, 0, nullptr, 4, m_references, nullptr,
-												   has_depth_attachment ? m_references + 4 : nullptr);
+				                                   has_depth_attachment ? m_references + 4 : nullptr);
 
 				vk::RenderPassCreateInfo info(vk::RenderPassCreateFlags(), m_attachments_count, m_descriptions, 1, &m_subpass);
 				return API->m_device.createRenderPass(info);
@@ -171,7 +171,7 @@ namespace Engine
 			VulkanRenderPassBuilder builder;
 
 			builder.m_descriptions[0] =
-					VulkanRenderPassBuilder::create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
+			        VulkanRenderPassBuilder::create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
 			builder.m_attachments_count = 1;
 
 			builder.m_references[0] = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);

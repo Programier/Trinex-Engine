@@ -57,10 +57,7 @@ namespace Engine::Refl
 
 		void full_name(String& out) const;
 
-		FORCE_INLINE bool has_metadata(const Name& name) const
-		{
-			return find_metadata(name) != nullptr;
-		}
+		FORCE_INLINE bool has_metadata(const Name& name) const { return find_metadata(name) != nullptr; }
 
 		virtual Object& unregister_subobject(Object* subobject);
 		virtual Object& register_subobject(Object* subobject);
@@ -108,7 +105,7 @@ namespace Engine::Refl
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_require(StringView name, FindFlags flags = FindFlags::None);
 		static Identifier static_register_initializer(const Function<void()>& func, const String& name = "",
-													  const std::initializer_list<String>& required = {});
+		                                              const std::initializer_list<String>& required = {});
 		static void static_initialize(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
 		static bool is_valid(Object* object);
@@ -116,14 +113,14 @@ namespace Engine::Refl
 
 		template<typename T>
 		bool is_a() const
-			requires(std::is_base_of_v<Object, T>)
+		    requires(std::is_base_of_v<Object, T>)
 		{
 			return refl_class_info()->is_a(T::static_refl_class_info());
 		}
 
 		template<typename T, typename ObjectType>
 		static T* instance_cast(ObjectType* object)
-			requires(std::is_base_of_v<Object, T> && std::is_base_of_v<Object, ObjectType>)
+		    requires(std::is_base_of_v<Object, T> && std::is_base_of_v<Object, ObjectType>)
 		{
 			if (object == nullptr)
 				return nullptr;
@@ -144,7 +141,7 @@ namespace Engine::Refl
 
 		template<typename T, typename... Args>
 		static T* new_instance(StringView name, Args&&... args)
-			requires(std::is_base_of_v<Object, T>)
+		    requires(std::is_base_of_v<Object, T>)
 		{
 			initialize_next_object(name);
 			T* instance = new T(std::forward<Args>(args)...);
@@ -155,7 +152,7 @@ namespace Engine::Refl
 
 		template<typename T, typename... Args>
 		static T* new_instance(Object* owner, StringView name, Args&&... args)
-			requires(std::is_base_of_v<Object, T>)
+		    requires(std::is_base_of_v<Object, T>)
 		{
 			initialize_next_object(owner, name);
 			T* instance = new T(std::forward<Args>(args)...);
@@ -166,14 +163,14 @@ namespace Engine::Refl
 
 		template<typename T, typename... Args>
 		static T* new_instance(Object* owner, const char* name, Args&&... args)
-			requires(std::is_base_of_v<Object, T>)
+		    requires(std::is_base_of_v<Object, T>)
 		{
 			return new_instance<T>(owner, StringView(name), std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>
 		T* new_child(StringView name, Args&&... args)
-			requires(std::is_base_of_v<Object, T>)
+		    requires(std::is_base_of_v<Object, T>)
 		{
 			return new_instance<T>(this, name, std::forward<Args>(args)...);
 		}
@@ -198,7 +195,7 @@ namespace Engine::Refl
 
 		template<typename Type>
 		bool leaf_is() const
-			requires(std::is_base_of_v<Object, Type>)
+		    requires(std::is_base_of_v<Object, Type>)
 		{
 			const void* self = this;
 			if (self == nullptr)
@@ -220,10 +217,10 @@ public:                                                                         
 	using This  = name;                                                                                                          \
 	using Super = base;                                                                                                          \
 	friend class Engine::Refl::Object;                                                                                           \
-																																 \
+                                                                                                                                 \
 	static Engine::Refl::ClassInfo* static_refl_class_info();                                                                    \
 	virtual Engine::Refl::ClassInfo* refl_class_info() const override;                                                           \
-																																 \
+                                                                                                                                 \
 	static name* static_find(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);             \
 	static name* static_require(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);          \
 	template<typename T>                                                                                                         \
@@ -244,7 +241,7 @@ public:                                                                         
 		static Engine::Refl::ClassInfo info(#name, Super::static_refl_class_info());                                             \
 		return &info;                                                                                                            \
 	}                                                                                                                            \
-																																 \
+                                                                                                                                 \
 	Engine::Refl::ClassInfo* name::refl_class_info() const                                                                       \
 	{                                                                                                                            \
 		return name::static_refl_class_info();                                                                                   \

@@ -122,7 +122,7 @@ namespace Engine
 		friend class SceneRenderer;
 	};
 #define trinex_render_pass(name, parent)                                                                                         \
-    trinex_declare_struct(name, parent);                                                                                         \
+	trinex_declare_struct(name, parent);                                                                                         \
                                                                                                                                  \
 public:                                                                                                                          \
 	static Engine::Refl::RenderPassInfo* static_info()                                                                           \

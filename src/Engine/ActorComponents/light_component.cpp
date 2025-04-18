@@ -21,24 +21,24 @@ namespace Engine
 
 		trinex_refl_prop(self, This, m_light_color, Refl::Property::IsColor)->tooltip("Color of this light");
 		trinex_refl_prop(self, This, m_is_enabled)//
-				->display_name("Is Enabled")
-				.tooltip("Is light enabled");
+		        ->display_name("Is Enabled")
+		        .tooltip("Is light enabled");
 
 		trinex_refl_prop(self, This, m_is_shadows_enabled)
-				->display_name("Enable Shadows")
-				.tooltip("The light source can cast real-time shadows");
+		        ->display_name("Enable Shadows")
+		        .tooltip("The light source can cast real-time shadows");
 
 		trinex_refl_prop(self, This, m_intensivity)//
-				->display_name("Intensivity")
-				.tooltip("Intensivity of this light");
+		        ->display_name("Intensivity")
+		        .tooltip("Intensivity of this light");
 
 		trinex_refl_prop(self, This, m_depth_bias);
 		trinex_refl_prop(self, This, m_slope_scale);
 	}
 
 	LightComponent::LightComponent()
-		: m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
-		  m_is_shadows_enabled(false)
+	    : m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
+	      m_is_shadows_enabled(false)
 	{}
 
 	LightComponent& LightComponent::on_transform_changed()
@@ -130,14 +130,14 @@ namespace Engine
 	LightComponent& LightComponent::submit_light_info_render_thread()
 	{
 		render_thread()->call([proxy           = proxy(),             //
-							   bounds          = m_bounds,            //
-							   color           = m_light_color,       //
-							   intensivity     = m_intensivity,       //
-							   depth_bias      = m_depth_bias,        //
-							   slope_scale     = m_slope_scale,       //
-							   enabled         = m_is_enabled,        //
-							   shadows_enabled = m_is_shadows_enabled,//
-							   map             = m_shadow_map]() {
+		                       bounds          = m_bounds,            //
+		                       color           = m_light_color,       //
+		                       intensivity     = m_intensivity,       //
+		                       depth_bias      = m_depth_bias,        //
+		                       slope_scale     = m_slope_scale,       //
+		                       enabled         = m_is_enabled,        //
+		                       shadows_enabled = m_is_shadows_enabled,//
+		                       map             = m_shadow_map]() {
 			proxy->m_bounds             = bounds;
 			proxy->m_light_color        = color;
 			proxy->m_intensivity        = intensivity;

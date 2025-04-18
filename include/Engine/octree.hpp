@@ -15,24 +15,16 @@ namespace Engine
 			byte y : 1 = 0;
 			byte z : 1 = 0;
 
-			Index(bool x, bool y, bool z) : x(x ? 1 : 0), y(y ? 1 : 0), z(z ? 1 : 0)
-			{}
+			Index(bool x, bool y, bool z) : x(x ? 1 : 0), y(y ? 1 : 0), z(z ? 1 : 0) {}
 
-			Index(byte index = 0) : x((index >> 2) & 1), y((index >> 1) & 1), z(index & 1)
-			{}
+			Index(byte index = 0) : x((index >> 2) & 1), y((index >> 1) & 1), z(index & 1) {}
 
 			Index(const Index&)            = default;
 			Index& operator=(const Index&) = default;
 
-			FORCE_INLINE byte index() const
-			{
-				return (x << 2) | (y << 1) | z;
-			}
+			FORCE_INLINE byte index() const { return (x << 2) | (y << 1) | z; }
 
-			FORCE_INLINE Vector3f factor() const
-			{
-				return {x == 1 ? 1.0f : -1.0f, y == 1 ? 1.0f : -1.0f, z == 1 ? 1.0f : -1.0f};
-			}
+			FORCE_INLINE Vector3f factor() const { return {x == 1 ? 1.0f : -1.0f, y == 1 ? 1.0f : -1.0f, z == 1 ? 1.0f : -1.0f}; }
 
 			Index operator!() const
 			{
@@ -55,15 +47,9 @@ namespace Engine
 				for (int i = 0; i < 8; i++) m_childs[i] = nullptr;
 			}
 
-			Node(const AABB_3Df& box) : Node()
-			{
-				m_box = box;
-			}
+			Node(const AABB_3Df& box) : Node() { m_box = box; }
 
-			Node(const Node& node)
-			{
-				*this = node;
-			}
+			Node(const Node& node) { *this = node; }
 
 			Node& operator=(const Node& other)
 			{
@@ -107,23 +93,14 @@ namespace Engine
 			}
 
 
-			FORCE_INLINE Node*& ref_child_at(Octree::Index index)
-			{
-				return m_childs[index.index()];
-			}
+			FORCE_INLINE Node*& ref_child_at(Octree::Index index) { return m_childs[index.index()]; }
 
 		public:
 			TreeSet<ElementType> values;
 
-			FORCE_INLINE Node* child_at(Octree::Index index) const
-			{
-				return m_childs[index.index()];
-			}
+			FORCE_INLINE Node* child_at(Octree::Index index) const { return m_childs[index.index()]; }
 
-			FORCE_INLINE const AABB_3Df& box() const
-			{
-				return m_box;
-			}
+			FORCE_INLINE const AABB_3Df& box() const { return m_box; }
 
 			friend class Octree;
 		};
@@ -132,10 +109,7 @@ namespace Engine
 		Node* m_root_node = nullptr;
 		float m_min_size  = 1.0f;
 
-		static FORCE_INLINE bool calc_axis_offset_index(float parent, float child)
-		{
-			return parent < child;
-		}
+		static FORCE_INLINE bool calc_axis_offset_index(float parent, float child) { return parent < child; }
 
 		static FORCE_INLINE Octree::Index calc_child_index(const AABB_3Df& parent, const AABB_3Df& child)
 		{
@@ -159,10 +133,7 @@ namespace Engine
 			m_root_node = new Octree::Node(AABB_3Df({0.0f, 0.0f, 0.0f}, {min_size, min_size, min_size}));
 		}
 
-		FORCE_INLINE Node* root_node() const
-		{
-			return m_root_node;
-		}
+		FORCE_INLINE Node* root_node() const { return m_root_node; }
 
 		FORCE_INLINE Node* push(const AABB_3Df& box, const ElementType& element)
 		{
@@ -222,9 +193,6 @@ namespace Engine
 			return node;
 		}
 
-		~Octree()
-		{
-			delete m_root_node;
-		}
+		~Octree() { delete m_root_node; }
 	};
 }// namespace Engine

@@ -3,8 +3,7 @@
 namespace Engine
 {
 
-	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags)
-	{}
+	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
 
 	SceneView::SceneView(const CameraView& view, const Size2D& view_size, ShowFlags show_flags)
 	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_show_flags(show_flags)

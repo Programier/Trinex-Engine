@@ -22,9 +22,9 @@ namespace Engine
 			using ObjectFactory = Engine::Object*(StringView name, Engine::Object* owner);
 
 			virtual Engine::Object* object_constructor(StringView name = "", Engine::Object* owner = nullptr,
-													   bool scriptable = false);
+			                                           bool scriptable = false);
 			virtual Engine::Object* object_placement_constructor(void* mem, StringView name = "", Engine::Object* owner = nullptr,
-																 bool scriptable = false);
+			                                                     bool scriptable = false);
 			virtual ObjectFactory* script_object_factory() const;
 
 			Class& register_scriptable_instance() override;
@@ -50,7 +50,7 @@ namespace Engine
 
 			template<typename Type>
 			bool is_a() const
-				requires(std::is_base_of_v<Engine::Object, Type>)
+			    requires(std::is_base_of_v<Engine::Object, Type>)
 			{
 				return is_a(Type::static_class_instance());
 			}
@@ -98,7 +98,7 @@ namespace Engine
 			}
 
 			Engine::Object* object_placement_constructor(void* mem, StringView name, Engine::Object* owner,
-														 bool scriptable = false) override
+			                                             bool scriptable = false) override
 			{
 				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
 				{
@@ -111,8 +111,7 @@ namespace Engine
 			}
 
 		public:
-			NativeClass(Class* parent = nullptr, BitMask flags = 0) : Class(parent, flags)
-			{}
+			NativeClass(Class* parent = nullptr, BitMask flags = 0) : Class(parent, flags) {}
 
 			static Class* create(StringView decl, BitMask flags = 0)
 			{
@@ -138,10 +137,7 @@ namespace Engine
 				return *this;
 			}
 
-			size_t size() const override
-			{
-				return sizeof(T);
-			}
+			size_t size() const override { return sizeof(T); }
 		};
 	}// namespace Refl
 }// namespace Engine

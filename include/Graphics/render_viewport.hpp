@@ -45,7 +45,7 @@ namespace Engine
 
 		virtual RenderViewport& render()                                                         = 0;
 		virtual RenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
-												SamplerFilter filter = SamplerFilter::Trilinear) = 0;
+		                                        SamplerFilter filter = SamplerFilter::Trilinear) = 0;
 		virtual RenderViewport& rhi_clear_color(const Color& color)                              = 0;
 		virtual RenderViewport& rhi_bind()                                                       = 0;
 		virtual RenderViewport& update(float dt);
@@ -78,7 +78,7 @@ namespace Engine
 		Size2D size() const override;
 		WindowRenderViewport& render() override;
 		WindowRenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
-											  SamplerFilter filter = SamplerFilter::Trilinear) override;
+		                                      SamplerFilter filter = SamplerFilter::Trilinear) override;
 		WindowRenderViewport& rhi_clear_color(const Color& color) override;
 		WindowRenderViewport& rhi_bind() override;
 		WindowRenderViewport& rhi_present();

@@ -38,9 +38,6 @@ namespace Engine
 		ScopeLock(const ScopeLock&)            = delete;
 		ScopeLock& operator=(const ScopeLock&) = delete;
 
-		inline ~ScopeLock()
-		{
-			m_criticalSection.unlock();
-		}
+		inline ~ScopeLock() { m_criticalSection.unlock(); }
 	};
 }// namespace Engine

@@ -28,8 +28,7 @@ namespace Engine
 			return (write(reinterpret_cast<const byte*>(&value), sizeof(T)), ...);
 		}
 
-		virtual ~BufferWriter()
-		{}
+		virtual ~BufferWriter() {}
 	};
 
 
@@ -67,8 +66,7 @@ namespace Engine
 			return result;
 		}
 
-		virtual ~BufferReader()
-		{}
+		virtual ~BufferReader() {}
 	};
 
 
@@ -92,14 +90,10 @@ namespace Engine
 		WritePos m_write_pos = 0;
 
 	public:
-		VectorWriter(Vector<T>* buffer) : m_buffer(buffer)
-		{}
+		VectorWriter(Vector<T>* buffer) : m_buffer(buffer) {}
 
 		using VectorWriterBase::position;
-		FORCE_INLINE WritePos position() override
-		{
-			return m_write_pos;
-		}
+		FORCE_INLINE WritePos position() override { return m_write_pos; }
 
 		FORCE_INLINE VectorWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override
 		{
@@ -126,10 +120,7 @@ namespace Engine
 			return true;
 		}
 
-		bool is_open() const override
-		{
-			return true;
-		}
+		bool is_open() const override { return true; }
 
 		VectorWriter& clear() override
 		{
@@ -146,14 +137,10 @@ namespace Engine
 		ReadPos m_read_pos = 0;
 
 	public:
-		VectorReader(const Vector<T>* buffer) : m_buffer(buffer)
-		{}
+		VectorReader(const Vector<T>* buffer) : m_buffer(buffer) {}
 
 		using VectorReaderBase::position;
-		FORCE_INLINE ReadPos position() override
-		{
-			return m_read_pos;
-		}
+		FORCE_INLINE ReadPos position() override { return m_read_pos; }
 
 		FORCE_INLINE VectorReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override
 		{
@@ -180,10 +167,7 @@ namespace Engine
 			return true;
 		}
 
-		bool is_open() const override
-		{
-			return true;
-		}
+		bool is_open() const override { return true; }
 	};
 
 }// namespace Engine

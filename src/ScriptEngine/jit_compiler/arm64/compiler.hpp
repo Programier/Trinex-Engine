@@ -77,7 +77,7 @@ namespace JIT
 		};
 
 		JitRuntime m_rt;
-		void (ARM64_Compiler::*exec[static_cast<size_t>(asBC_MAXBYTECODE)])(CompileInfo*);
+		void (ARM64_Compiler::* exec[static_cast<size_t>(asBC_MAXBYTECODE)])(CompileInfo*);
 		const char* code_names[static_cast<size_t>(asBC_MAXBYTECODE)];
 		bool m_with_suspend;
 

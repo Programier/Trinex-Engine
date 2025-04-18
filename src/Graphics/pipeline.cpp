@@ -521,7 +521,7 @@ namespace Engine
 		if (!cache_serialize_result && archive.is_reading())
 		{
 			warn_log("GraphicsPipeline", "Missing shader cache for pipeline '%s'.%s", pipeline_name.c_str(),
-					 material ? " Recompiling..." : "");
+			         material ? " Recompiling..." : "");
 
 			if (material)
 			{

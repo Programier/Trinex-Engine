@@ -51,7 +51,7 @@ namespace Engine
 		// clang-format on
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
-								  ShaderType::Vertex | ShaderType::Fragment)
+		                          ShaderType::Vertex | ShaderType::Fragment)
 		{
 			auto shader = vertex_shader();
 
@@ -81,7 +81,7 @@ namespace Engine
 			color_blending.dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
 			color_blending.alpha_op       = BlendOp::Add;
 			color_blending.color_mask     = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G |
-																			  ColorComponent::B | ColorComponent::A);
+			                                                                  ColorComponent::B | ColorComponent::A);
 			depth_test.enable             = false;
 			depth_test.write_enable       = false;
 			depth_test.func               = CompareFunc::Always;
@@ -331,7 +331,7 @@ namespace Engine
 							if (!pipeline->srv)
 							{
 								pipeline->srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
-																			: pcmd->TextureId.surface->rhi_shader_resource_view();
+								                                            : pcmd->TextureId.surface->rhi_shader_resource_view();
 								pipeline->sampler = pcmd->TextureId.sampler;
 							}
 
@@ -348,7 +348,7 @@ namespace Engine
 								vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
 								vd->index_buffer->bind(0);
 								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
-												  pcmd->VtxOffset + global_vtx_offset);
+								                  pcmd->VtxOffset + global_vtx_offset);
 							}
 						}
 
@@ -378,7 +378,7 @@ namespace Engine
 			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
 			bd->font_texture = Object::new_instance<EngineResource<Texture2D>>(
-					Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+			        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 			bd->font_texture->format = ColorFormat::R8G8B8A8;
 			bd->font_texture->mips.emplace_back();
 			auto& mip = bd->font_texture->mips[0];
@@ -390,7 +390,7 @@ namespace Engine
 			package->add_object(bd->sampler);
 
 			bd->sampler = Object::new_instance<EngineResource<Sampler>>(
-					Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+			        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 			bd->sampler->filter = SamplerFilter::Trilinear;
 			bd->sampler->init_render_resources();
 			package->add_object(bd->sampler);
@@ -559,7 +559,7 @@ namespace Engine
 		static ImGuiTrinexWindowData* imgui_trinex_backend_data()
 		{
 			return ImGui::GetCurrentContext() ? reinterpret_cast<ImGuiTrinexWindowData*>(ImGui::GetIO().BackendPlatformUserData)
-											  : nullptr;
+			                                  : nullptr;
 		}
 
 		static FORCE_INLINE Engine::Window* window_from(const Event& event)
@@ -1767,7 +1767,7 @@ namespace ImGui
 	}
 
 	bool ImageButton(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1,
-					 const ImVec4& bg_col, const ImVec4& tint_col)
+	                 const ImVec4& bg_col, const ImVec4& tint_col)
 	{
 		ImGuiContext& g     = *GImGui;
 		ImGuiWindow* window = g.CurrentWindow;
@@ -1775,7 +1775,7 @@ namespace ImGui
 			return false;
 
 		return ImageButtonEx(window->GetID(static_cast<const void*>(user_texture_id)), user_texture_id, image_size, uv0, uv1,
-							 bg_col, tint_col);
+		                     bg_col, tint_col);
 	}
 
 	static FORCE_INLINE void write_callback(ImDrawCmd* cmd, ImDrawCallback callback, void* userdata)

@@ -47,45 +47,21 @@ namespace Engine
 		VulkanCommandBuffer& submit(vk::Semaphore* signal_semaphore = nullptr);
 		VulkanCommandBuffer& wait();
 
-		inline bool is_ready_for_begin() const
-		{
-			return m_state == State::IsReadyForBegin;
-		}
+		inline bool is_ready_for_begin() const { return m_state == State::IsReadyForBegin; }
 
-		inline bool is_inside_render_pass() const
-		{
-			return m_state == State::IsInsideRenderPass;
-		}
+		inline bool is_inside_render_pass() const { return m_state == State::IsInsideRenderPass; }
 
-		inline bool is_outside_render_pass() const
-		{
-			return m_state == State::IsInsideBegin;
-		}
+		inline bool is_outside_render_pass() const { return m_state == State::IsInsideBegin; }
 
-		inline bool has_begun() const
-		{
-			return m_state == State::IsInsideBegin || m_state == State::IsInsideRenderPass;
-		}
+		inline bool has_begun() const { return m_state == State::IsInsideBegin || m_state == State::IsInsideRenderPass; }
 
-		inline bool has_ended() const
-		{
-			return m_state == State::HasEnded;
-		}
+		inline bool has_ended() const { return m_state == State::HasEnded; }
 
-		inline bool is_submitted() const
-		{
-			return m_state == State::Submitted;
-		}
+		inline bool is_submitted() const { return m_state == State::Submitted; }
 
-		inline VulkanDescriptorSetManager* descriptor_set_manager()
-		{
-			return m_descriptor_set_manager;
-		}
+		inline VulkanDescriptorSetManager* descriptor_set_manager() { return m_descriptor_set_manager; }
 
-		inline VulkanUniformBufferManager* uniform_buffer_manager()
-		{
-			return m_uniform_buffer;
-		}
+		inline VulkanUniformBufferManager* uniform_buffer_manager() { return m_uniform_buffer; }
 
 		friend struct VulkanCommandBufferPool;
 		friend struct VulkanQueue;
@@ -116,15 +92,9 @@ namespace Engine
 		VulkanCommandBufferManager& bind_new_command_buffer();
 
 	public:
-		FORCE_INLINE VulkanCommandBuffer* active_command_buffer() const
-		{
-			return m_current;
-		}
+		FORCE_INLINE VulkanCommandBuffer* active_command_buffer() const { return m_current; }
 
-		FORCE_INLINE bool has_pending_active_cmd_buffer() const
-		{
-			return m_current != nullptr;
-		}
+		FORCE_INLINE bool has_pending_active_cmd_buffer() const { return m_current != nullptr; }
 
 		FORCE_INLINE VulkanCommandBuffer* command_buffer()
 		{

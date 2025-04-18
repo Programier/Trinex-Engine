@@ -15,7 +15,7 @@ namespace Engine::Refl
 	}
 
 	ScriptClass::ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags)
-		: Class(parent, flags | IsScriptable), m_script(script)
+	    : Class(parent, flags | IsScriptable), m_script(script)
 	{
 		script_type_info = info;
 		script->m_refl_objects.insert(this);

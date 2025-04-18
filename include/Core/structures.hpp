@@ -20,7 +20,7 @@ namespace Engine
 		FORCE_INLINE bool operator==(const ViewPort& v) const
 		{
 			return pos == v.pos && size == v.size && glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) &&
-				   glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
+			       glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
 		}
 
 		FORCE_INLINE bool operator!=(const ViewPort& v) const { return !((*this) == v); }
@@ -129,9 +129,9 @@ namespace Engine
 		uint16_t offset;
 
 		FORCE_INLINE VertexAttribute(VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex,
-									 VertexBufferSemantic semantic = VertexBufferSemantic::Position, byte semantic_index = 0,
-									 byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
-			: name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location), offset(offset)
+		                             VertexBufferSemantic semantic = VertexBufferSemantic::Position, byte semantic_index = 0,
+		                             byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
+		    : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location), offset(offset)
 		{}
 
 		bool serialize(Archive& ar);

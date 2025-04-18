@@ -99,7 +99,7 @@ namespace Engine
 			size_t exclude_flags;
 
 			VarTraceEntry(slang::VariableLayoutReflection* const var, const VarTraceEntry* const prev = nullptr)
-				: var(var), prev(prev), kind(var->getTypeLayout()->getKind()), exclude_flags(prev ? prev->exclude_flags : 0)
+			    : var(var), prev(prev), kind(var->getTypeLayout()->getKind()), exclude_flags(prev ? prev->exclude_flags : 0)
 			{
 				name = Strings::make_string(var->getName());
 
@@ -157,7 +157,7 @@ namespace Engine
 
 	public:
 		using TypeDetector = ShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
-												 slang::TypeReflection::ScalarType);
+		                                         slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
 		Pipeline* pipeline;
@@ -175,10 +175,10 @@ namespace Engine
 		static ShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
 		{
 			static Map<StringView, ShaderParameterType::Enum> map = {
-					{"LocalToWorld", ShaderParameterType::LocalToWorld},      //
-					{"Globals", ShaderParameterType::Globals},                //
-					{"Surface", ShaderParameterType::Surface},                //
-					{"CombinedSurface", ShaderParameterType::CombinedSurface},//
+			        {"LocalToWorld", ShaderParameterType::LocalToWorld},      //
+			        {"Globals", ShaderParameterType::Globals},                //
+			        {"Surface", ShaderParameterType::Surface},                //
+			        {"CombinedSurface", ShaderParameterType::CombinedSurface},//
 			};
 
 			if (auto attrib = var->findAttributeByName(global_session(), "parameter_type"))
@@ -225,14 +225,14 @@ namespace Engine
 			Strings::to_lower(name);
 
 			static const TreeMap<String, VertexBufferSemantic> semantics = {
-					{"position", VertexBufferSemantic::Position},       //
-					{"texcoord", VertexBufferSemantic::TexCoord},       //
-					{"color", VertexBufferSemantic::Color},             //
-					{"normal", VertexBufferSemantic::Normal},           //
-					{"tangent", VertexBufferSemantic::Tangent},         //
-					{"bitangent", VertexBufferSemantic::Bitangent},     //
-					{"blendweight", VertexBufferSemantic::BlendWeight}, //
-					{"blendindices", VertexBufferSemantic::BlendIndices}//
+			        {"position", VertexBufferSemantic::Position},       //
+			        {"texcoord", VertexBufferSemantic::TexCoord},       //
+			        {"color", VertexBufferSemantic::Color},             //
+			        {"normal", VertexBufferSemantic::Normal},           //
+			        {"tangent", VertexBufferSemantic::Tangent},         //
+			        {"bitangent", VertexBufferSemantic::Bitangent},     //
+			        {"blendweight", VertexBufferSemantic::BlendWeight}, //
+			        {"blendindices", VertexBufferSemantic::BlendIndices}//
 			};
 
 			auto it = semantics.find(name);
@@ -293,14 +293,14 @@ namespace Engine
 					return VertexBufferElementType::Undefined;
 
 				if (components_offset == 3 &&
-					!is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(
-							base_type))
+				    !is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(
+				            base_type))
 				{
 					--components_offset;
 				}
 
 				VertexBufferElementType result(
-						static_cast<VertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
+				        static_cast<VertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
 
 				if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
 					return VertexBufferElementType::Color;
@@ -350,12 +350,12 @@ namespace Engine
 				}
 
 				if (is_not_in<VertexBufferSemantic::Position, //
-							  VertexBufferSemantic::TexCoord, //
-							  VertexBufferSemantic::Color,    //
-							  VertexBufferSemantic::Normal,   //
-							  VertexBufferSemantic::Tangent,  //
-							  VertexBufferSemantic::Bitangent,//
-							  VertexBufferSemantic::BlendWeight>(attribute.semantic))
+				              VertexBufferSemantic::TexCoord, //
+				              VertexBufferSemantic::Color,    //
+				              VertexBufferSemantic::Normal,   //
+				              VertexBufferSemantic::Tangent,  //
+				              VertexBufferSemantic::Bitangent,//
+				              VertexBufferSemantic::BlendWeight>(attribute.semantic))
 				{
 					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
 					return false;
@@ -364,8 +364,8 @@ namespace Engine
 				attribute.semantic_index = var->getSemanticIndex();
 				attribute.name           = var->getName();
 				attribute.rate           = var->getVariable()->findAttributeByName(global_session(), "per_instance")
-												   ? VertexAttributeInputRate::Instance
-												   : VertexAttributeInputRate::Vertex;
+				                                   ? VertexAttributeInputRate::Instance
+				                                   : VertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
 				attribute.location       = var->getOffset(slang::ParameterCategory::VertexInput);
 				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
@@ -421,7 +421,7 @@ namespace Engine
 		bool parse_shader_parameter(const VarTraceEntry& param)
 		{
 			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
-					  slang::TypeReflection::Kind::Matrix>(param.kind))
+			          slang::TypeReflection::Kind::Matrix>(param.kind))
 			{
 				if (param.kind == slang::TypeReflection::Kind::Scalar && param.is_excluded(VarTraceEntry::exclude_scalar))
 					return true;
@@ -455,7 +455,7 @@ namespace Engine
 				pipeline->parameters[info.name] = info;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
-					 !param.is_excluded(VarTraceEntry::exclude_resource))
+			         !param.is_excluded(VarTraceEntry::exclude_resource))
 			{
 				auto type = find_parameter_type_from_attributes(param.var->getVariable());
 
@@ -498,7 +498,7 @@ namespace Engine
 				}
 			}
 			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind) &&
-					 !param.is_excluded(VarTraceEntry::exclude_sampler))
+			         !param.is_excluded(VarTraceEntry::exclude_sampler))
 			{
 				ShaderParameterInfo object;
 				object.name                       = param.name;
@@ -549,7 +549,7 @@ namespace Engine
 				}
 			}
 			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(param.kind) &&
-					 !param.is_excluded(VarTraceEntry::exclude_constant_buffer))
+			         !param.is_excluded(VarTraceEntry::exclude_constant_buffer))
 			{
 				auto layout = param.var->getTypeLayout()->getElementTypeLayout();
 
@@ -577,7 +577,7 @@ namespace Engine
 			else
 			{
 				error_log("ShaderCompiler", "Resource type with name '%s' is not supported as uniform parameters",
-						  param.name.c_str());
+				          param.name.c_str());
 				return false;
 			}
 
@@ -827,7 +827,7 @@ namespace Engine
 		{
 			Slang::ComPtr<slang::IBlob> diagnostics_blob;
 			SlangResult result = compiler->m_session->createCompositeComponentType(
-					component_types.data(), component_types.size(), composite.writeRef(), diagnostics_blob.writeRef());
+			        component_types.data(), component_types.size(), composite.writeRef(), diagnostics_blob.writeRef());
 
 			if (diagnostics_blob != nullptr)
 			{
@@ -862,7 +862,7 @@ namespace Engine
 				Slang::ComPtr<slang::IBlob> diagnostics_blob;
 
 				SlangResult result =
-						program->getEntryPointCode(info.index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
+				        program->getEntryPointCode(info.index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
 				{
@@ -964,11 +964,11 @@ namespace Engine
 			return false;
 
 		ShaderInfo shader_infos[] = {
-				{ShaderType::Vertex, "vs_main", {}, -1},              //
-				{ShaderType::TessellationControl, "tsc_main", {}, -1},//
-				{ShaderType::Tessellation, "ts_main", {}, -1},        //
-				{ShaderType::Geometry, "gs_main", {}, -1},            //
-				{ShaderType::Fragment, "fs_main", {}, -1},            //
+		        {ShaderType::Vertex, "vs_main", {}, -1},              //
+		        {ShaderType::TessellationControl, "tsc_main", {}, -1},//
+		        {ShaderType::Tessellation, "ts_main", {}, -1},        //
+		        {ShaderType::Geometry, "gs_main", {}, -1},            //
+		        {ShaderType::Fragment, "fs_main", {}, -1},            //
 		};
 
 		CheckStages checker = [](ShaderInfo* infos) -> bool {
@@ -1022,9 +1022,9 @@ namespace Engine
 		Super::on_create();
 
 		Path include_directories[] = {
-				rootfs()->native_path(Project::shaders_dir),
-				rootfs()->native_path("[shaders_dir]:/TrinexEditor"),
-				rootfs()->native_path("[shaders_dir]:/TrinexEngine"),
+		        rootfs()->native_path(Project::shaders_dir),
+		        rootfs()->native_path("[shaders_dir]:/TrinexEditor"),
+		        rootfs()->native_path("[shaders_dir]:/TrinexEngine"),
 		};
 
 		SessionInitializer desc;

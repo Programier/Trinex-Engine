@@ -22,8 +22,7 @@ namespace Engine::Refl
 		SubClassOf& operator=(const SubClassOf&) = default;
 		SubClassOf& operator=(SubClassOf&&)      = default;
 
-		SubClassOf(Class* class_instance = nullptr) : m_class(class_instance)
-		{}
+		SubClassOf(Class* class_instance = nullptr) : m_class(class_instance) {}
 
 		SubClassOf& operator=(Class* class_instance)
 		{
@@ -31,59 +30,26 @@ namespace Engine::Refl
 			return *this;
 		}
 
-		Class* operator->()
-		{
-			return m_class;
-		}
+		Class* operator->() { return m_class; }
 
-		const Class* operator->() const
-		{
-			return m_class;
-		}
+		const Class* operator->() const { return m_class; }
 
-		Class* base() const
-		{
-			return T::static_class_instance();
-		}
+		Class* base() const { return T::static_class_instance(); }
 
-		bool operator==(const SubClassOf& other) const
-		{
-			return m_class == other.m_class;
-		}
+		bool operator==(const SubClassOf& other) const { return m_class == other.m_class; }
 
-		bool operator!=(const SubClassOf& other) const
-		{
-			return !(*this == other);
-		}
+		bool operator!=(const SubClassOf& other) const { return !(*this == other); }
 
-		bool operator<(const SubClassOf& other) const
-		{
-			return m_class < other.m_class;
-		}
+		bool operator<(const SubClassOf& other) const { return m_class < other.m_class; }
 
-		bool operator<=(const SubClassOf& other) const
-		{
-			return m_class <= other.m_class;
-		}
+		bool operator<=(const SubClassOf& other) const { return m_class <= other.m_class; }
 
-		bool operator>(const SubClassOf& other) const
-		{
-			return m_class > other.m_class;
-		}
+		bool operator>(const SubClassOf& other) const { return m_class > other.m_class; }
 
-		bool operator>=(const SubClassOf& other) const
-		{
-			return m_class >= other.m_class;
-		}
+		bool operator>=(const SubClassOf& other) const { return m_class >= other.m_class; }
 
-		bool operator==(Class* class_instance) const
-		{
-			return m_class == class_instance;
-		}
+		bool operator==(Class* class_instance) const { return m_class == class_instance; }
 
-		bool operator!=(Class* class_instance) const
-		{
-			return m_class != class_instance;
-		}
+		bool operator!=(Class* class_instance) const { return m_class != class_instance; }
 	};
 }// namespace Engine::Refl

@@ -10,7 +10,7 @@ namespace Engine::Refl
 	implement_reflect_type(ScriptStruct);
 
 	ScriptStruct::ScriptStruct(ScriptStruct* parent, Script* script, const ScriptTypeInfo& info, BitMask flags)
-		: Struct(parent, flags | IsScriptable), m_script(script)
+	    : Struct(parent, flags | IsScriptable), m_script(script)
 	{
 		script_type_info = info;
 		script->m_refl_objects.insert(this);

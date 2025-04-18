@@ -14,7 +14,7 @@ namespace Engine
 	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(vk::ImageView* image_views, uint32_t count)
 	{
 		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->m_render_pass, count,
-														  image_views, m_size.x, m_size.y, 1);
+		                                                  image_views, m_size.x, m_size.y, 1);
 		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
 		return *this;
@@ -201,10 +201,10 @@ namespace Engine
 	}
 
 	VulkanAPI& VulkanAPI::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-											 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	                                         RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
 		VulkanTextureRTV* surfaces[4] = {static_cast<VulkanTextureRTV*>(rt1), static_cast<VulkanTextureRTV*>(rt2),
-										 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};
+		                                 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};
 
 		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(surfaces, static_cast<VulkanTextureDSV*>(depth_stencil));
 		rt->bind();

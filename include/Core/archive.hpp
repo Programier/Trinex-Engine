@@ -104,10 +104,7 @@ namespace Engine
 			return (serialize(values) && ...);
 		}
 
-		inline operator bool()
-		{
-			return m_process_status;
-		}
+		inline operator bool() { return m_process_status; }
 
 		template<typename Type>
 		typename std::enable_if<std::is_base_of_v<class Engine::Object, Type>, bool>::type serialize_reference(Type*& object)

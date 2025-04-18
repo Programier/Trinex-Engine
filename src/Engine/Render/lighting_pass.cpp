@@ -66,8 +66,8 @@ namespace Engine
 		m_attachments_count = 1;
 
 		m_shader_definitions = {
-				{"TRINEX_SHADOWED_LIGHTING_PASS", "1"},
-				{"TRINEX_LIGHTING_PASS", "1"},
+		        {"TRINEX_SHADOWED_LIGHTING_PASS", "1"},
+		        {"TRINEX_LIGHTING_PASS", "1"},
 		};
 
 		m_is_material_compatible = is_support_lighting_pass;
@@ -78,7 +78,7 @@ namespace Engine
 		m_attachments_count = 1;
 
 		m_shader_definitions = {
-				{"TRINEX_LIGHTING_PASS", "1"},
+		        {"TRINEX_LIGHTING_PASS", "1"},
 		};
 
 		m_is_material_compatible = is_support_lighting_pass;

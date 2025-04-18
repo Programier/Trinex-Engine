@@ -57,15 +57,9 @@ namespace Engine::Refl
 			}
 		}
 
-		ClassOf(asITypeInfo* ti, const ClassOf& other)
-		{
-			self = other.self;
-		}
+		ClassOf(asITypeInfo* ti, const ClassOf& other) { self = other.self; }
 
-		Class* class_of_impl_cast() const
-		{
-			return self;
-		}
+		Class* class_of_impl_cast() const { return self; }
 	};
 
 	static void on_reflection_init()
@@ -80,7 +74,7 @@ namespace Engine::Refl
 		auto reg = ScriptClassRegistrar::value_class("Engine::class_of<class T>", sizeof(ClassOf), info);
 		reg.behave(ScriptClassBehave::Construct, "void f(int&)", ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*>);
 		reg.behave(ScriptClassBehave::Construct, "void f(int&, const class_of<T>& in other)",
-				   ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
+		           ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
 		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ClassOf>);
 
 		reg.method("Engine::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);

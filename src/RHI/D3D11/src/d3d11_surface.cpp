@@ -100,7 +100,7 @@ namespace Engine
 	}
 
 	void D3d11_SurfaceRTV::blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-								SamplerFilter filter)
+	                            SamplerFilter filter)
 	{}
 
 	D3d11_SurfaceRTV::~D3d11_SurfaceRTV()
@@ -119,7 +119,7 @@ namespace Engine
 	}
 
 	void D3d11_SurfaceDSV::blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-								SamplerFilter filter)
+	                            SamplerFilter filter)
 	{}
 
 	D3d11_SurfaceDSV::~D3d11_SurfaceDSV()
@@ -161,8 +161,8 @@ namespace Engine
 	}
 
 	static FORCE_INLINE Vector2i static_find_render_target_size(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2,
-																RHI_RenderTargetView* rt3, RHI_RenderTargetView* rt4,
-																RHI_DepthStencilView* depth_stencil)
+	                                                            RHI_RenderTargetView* rt3, RHI_RenderTargetView* rt4,
+	                                                            RHI_DepthStencilView* depth_stencil)
 	{
 		if (auto surface = surface_of(rt1))
 			return surface->m_size;
@@ -178,7 +178,7 @@ namespace Engine
 	}
 
 	D3D11& D3D11::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-									 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	                                 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
 		static ID3D11RenderTargetView* render_target_views[4] = {view_of(rt1), view_of(rt2), view_of(rt3), view_of(rt4)};
 

@@ -63,7 +63,7 @@ namespace Engine
 	};
 
 	D3D11_UniformBufferManager& D3D11_UniformBufferManager::update(const void* data, size_t size, size_t offset,
-																   BindingIndex buffer_index)
+	                                                               BindingIndex buffer_index)
 	{
 		if (m_buffers.size() <= static_cast<size_t>(buffer_index))
 			m_buffers.resize(static_cast<size_t>(buffer_index) + 1, nullptr);

@@ -37,7 +37,7 @@ namespace Engine
 		vc_update           = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
 		vc_on_bind_viewport = r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
 		vc_on_unbind_viewport =
-				r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
+		        r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
 
 		// Need to check, can we use script engine in multi-thread mode?
 		//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));
@@ -273,7 +273,7 @@ namespace Engine
 	}
 
 	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src,
-																const Rect2D& dst, SamplerFilter filter)
+	                                                            const Rect2D& dst, SamplerFilter filter)
 	{
 		m_viewport->blit_target(surface, src, dst, filter);
 		return *this;
@@ -369,7 +369,7 @@ namespace Engine
 			SurfaceRenderViewport* m_viewport;
 
 			StartRenderingViewport(ViewportClient* client, SurfaceRenderViewport* viewport, Size2D size)
-				: m_size(size), m_client(client), m_viewport(viewport)
+			    : m_size(size), m_client(client), m_viewport(viewport)
 			{}
 
 			void execute() override

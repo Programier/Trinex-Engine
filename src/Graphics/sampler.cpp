@@ -55,7 +55,7 @@ namespace Engine
 			return false;
 
 		return archive.serialize(filter, address_u, address_v, address_w, mip_lod_bias, anisotropy, compare_mode, min_lod,
-								 max_lod, compare_func);
+		                         max_lod, compare_func);
 	}
 
 	Sampler& Sampler::apply_changes()

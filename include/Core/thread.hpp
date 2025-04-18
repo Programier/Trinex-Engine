@@ -17,27 +17,18 @@ namespace Engine
 			std::decay_t<Func> m_func;
 
 		public:
-			FunctionCaller(Func&& func) : m_func(std::forward<Func>(func))
-			{}
+			FunctionCaller(Func&& func) : m_func(std::forward<Func>(func)) {}
 
-			void execute() override
-			{
-				m_func();
-			}
+			void execute() override { m_func(); }
 		};
 
 		struct SkipBytes : public Task<SkipBytes> {
 			int_t m_bytes;
-			SkipBytes(int_t bytes) : m_bytes(bytes)
-			{}
+			SkipBytes(int_t bytes) : m_bytes(bytes) {}
 
-			size_t size() const override
-			{
-				return m_bytes;
-			}
+			size_t size() const override { return m_bytes; }
 
-			void execute() override
-			{}
+			void execute() override {}
 		};
 
 		struct NoThreadContext {

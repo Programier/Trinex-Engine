@@ -30,13 +30,9 @@ namespace Engine
 		Variable& dst_variable;
 
 	public:
-		UpdateVariableCommand(const Variable& src, Variable& dst) : src_variable(src), dst_variable(dst)
-		{}
+		UpdateVariableCommand(const Variable& src, Variable& dst) : src_variable(src), dst_variable(dst) {}
 
-		void execute() override
-		{
-			dst_variable = src_variable;
-		}
+		void execute() override { dst_variable = src_variable; }
 	};
 
 	template<typename Callable>
@@ -45,13 +41,9 @@ namespace Engine
 		struct Command : public Task<Command> {
 			Callable m_callable;
 
-			Command(Callable&& callable) : m_callable(std::forward<Callable>(callable))
-			{}
+			Command(Callable&& callable) : m_callable(std::forward<Callable>(callable)) {}
 
-			void execute() override
-			{
-				m_callable();
-			}
+			void execute() override { m_callable(); }
 		};
 
 		Thread* rt = render_thread();
@@ -71,13 +63,9 @@ namespace Engine
 		struct Command : public Task<Command> {
 			Callable m_callable;
 
-			Command(Callable&& callable) : m_callable(std::forward<Callable>(callable))
-			{}
+			Command(Callable&& callable) : m_callable(std::forward<Callable>(callable)) {}
 
-			void execute() override
-			{
-				m_callable();
-			}
+			void execute() override { m_callable(); }
 		};
 
 		Thread* rt = logic_thread();

@@ -379,7 +379,7 @@ namespace Engine
 		window->ParentWorkRect.Max = max_pos;
 
 		constexpr auto flags =
-				ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_NoAutoOpenOnLog;
+		        ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_NoAutoOpenOnLog;
 
 		bool result = ImGui::TreeNodeEx(id, flags, "%s", name);
 
@@ -413,7 +413,7 @@ namespace Engine
 	}
 
 	static bool render_scalar_property_colored(void* context, Refl::Property* prop, ImGuiDataType type, int_t components,
-											   bool read_only, bool is_color = false)
+	                                           bool read_only, bool is_color = false)
 	{
 		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
 		void* address             = prop->address(context);
@@ -486,7 +486,7 @@ namespace Engine
 			ImGui::TableNextRow();
 			render_name(renderer, prop);
 			bool is_changed = render_scalar_property_colored(prop->address(context), element, type, prop->length(),
-															 read_only || element->is_read_only(), prop->is_color());
+			                                                 read_only || element->is_read_only(), prop->is_color());
 			if (is_changed)
 				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
 
@@ -508,7 +508,7 @@ namespace Engine
 				if (ImGui::Checkbox(name, &value) && !read_only)
 				{
 					element->on_property_changed(
-							Refl::PropertyChangedEvent(value_address, Refl::PropertyChangeType::value_set, element));
+					        Refl::PropertyChangedEvent(value_address, Refl::PropertyChangeType::value_set, element));
 					(*(value_address)) = value;
 					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
 					return true;
@@ -679,7 +679,7 @@ namespace Engine
 	}
 
 	static bool render_struct_property_internal(PropertyRenderer* renderer, void* struct_address, Refl::Property* prop,
-												Refl::Struct* struct_instance, bool read_only)
+	                                            Refl::Struct* struct_instance, bool read_only)
 	{
 		auto& properties_map = renderer->properties_map(struct_instance);
 
@@ -689,8 +689,8 @@ namespace Engine
 		bool is_changed = false;
 
 		const bool is_inlined = prop->inline_single_field_structs() &&//
-								properties_map.size() == 1 &&         //
-								properties_map.begin()->second.size() == 1;
+		                        properties_map.size() == 1 &&         //
+		                        properties_map.begin()->second.size() == 1;
 
 		if (is_inlined)
 		{
@@ -733,7 +733,7 @@ namespace Engine
 			}
 
 			return render_struct_property_internal(renderer, object, prop, object->class_instance(),
-												   read_only || prop->is_read_only());
+			                                       read_only || prop->is_read_only());
 		}
 		else
 		{
@@ -778,7 +778,7 @@ namespace Engine
 			{
 				ImGui::TableSetColumnIndex(2);
 				if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
-									   {size, size}))
+				                       {size, size}))
 				{
 					object  = nullptr;
 					changed = true;
@@ -795,7 +795,7 @@ namespace Engine
 	{
 		Refl::StructProperty* prop = prop_cast_checked<Refl::StructProperty>(prop_base);
 		return render_struct_property_internal(renderer, prop->address(renderer->property_context()), prop,
-											   prop->struct_instance(), read_only || prop->is_read_only());
+		                                       prop->struct_instance(), read_only || prop->is_read_only());
 	}
 
 	static bool render_array_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
@@ -1023,7 +1023,7 @@ namespace Engine
 
 		ctx->on_begin_rendering = [](PropertyRenderer*) -> bool {
 			bool status = ImGui::BeginTable("###properties", 3,
-											ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
+			                                ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
 			if (status)
 			{
 				ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, 0.45);

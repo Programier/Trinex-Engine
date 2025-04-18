@@ -4,7 +4,7 @@
 namespace Engine
 {
 	template<typename Type, std::size_t max_count = ~static_cast<std::size_t>(0),
-			 typename = typename std::enable_if<std::is_arithmetic<Type>::value>::type>
+	         typename = typename std::enable_if<std::is_arithmetic<Type>::value>::type>
 	class Average
 	{
 		std::size_t m_count = 0;
@@ -12,7 +12,7 @@ namespace Engine
 
 	public:
 		Average(Type value = Type(0), std::size_t initial_count = 0)
-			: m_count(initial_count < max_count ? initial_count : max_count), m_value(value)
+		    : m_count(initial_count < max_count ? initial_count : max_count), m_value(value)
 		{}
 
 		Average(const Average&)            = default;
@@ -44,15 +44,9 @@ namespace Engine
 			return *this;
 		}
 
-		operator Type() const
-		{
-			return m_value;
-		}
+		operator Type() const { return m_value; }
 
-		const Type& average() const
-		{
-			return m_value;
-		}
+		const Type& average() const { return m_value; }
 
 		Average& reset()
 		{
@@ -61,10 +55,7 @@ namespace Engine
 			return *this;
 		}
 
-		std::size_t count() const
-		{
-			return m_count;
-		}
+		std::size_t count() const { return m_count; }
 
 		template<typename OutType, std::size_t out_max_cout>
 		operator Average<OutType, out_max_cout>() const

@@ -20,11 +20,11 @@ namespace Engine::EditorTheme
 			config.FontDataOwnedByAtlas = false;
 
 			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::small_font_size, &config,
-										   io.Fonts->GetGlyphRangesCyrillic());
+			                               io.Fonts->GetGlyphRangesCyrillic());
 			auto default_font = io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::normal_font_size,
-															   &config, io.Fonts->GetGlyphRangesCyrillic());
+			                                                   &config, io.Fonts->GetGlyphRangesCyrillic());
 			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::large_font_size, &config,
-										   io.Fonts->GetGlyphRangesCyrillic());
+			                               io.Fonts->GetGlyphRangesCyrillic());
 			io.FontDefault = default_font;
 		}
 

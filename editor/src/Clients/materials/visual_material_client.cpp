@@ -140,16 +140,16 @@ namespace Engine
 	static void render_vector_nt(void* data)
 	{
 		static constexpr const char* data_type_formats[] = {
-				"%hhd", // ImGuiDataType_S8
-				"%hhu", // ImGuiDataType_U8
-				"%hd",  // ImGuiDataType_S16
-				"%hu",  // ImGuiDataType_U16
-				"%d",   // ImGuiDataType_S32
-				"%u",   // ImGuiDataType_U32
-				"%lld", // ImGuiDataType_S64
-				"%llu", // ImGuiDataType_U64
-				"%.3f", // ImGuiDataType_Float
-				"%.3lf",// ImGuiDataType_Double
+		        "%hhd", // ImGuiDataType_S8
+		        "%hhu", // ImGuiDataType_U8
+		        "%hd",  // ImGuiDataType_S16
+		        "%hu",  // ImGuiDataType_U16
+		        "%d",   // ImGuiDataType_S32
+		        "%u",   // ImGuiDataType_U32
+		        "%lld", // ImGuiDataType_S64
+		        "%llu", // ImGuiDataType_U64
+		        "%.3f", // ImGuiDataType_Float
+		        "%.3lf",// ImGuiDataType_Double
 		};
 
 		constexpr const char* element_format = data_type_formats[T];
@@ -462,7 +462,7 @@ namespace Engine
 				ed::PinPivotAlignment({0.5, 0.5f});
 
 				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->links_count() > 0,
-									   ImVec4(1.0, 0.0, 0.0, 1.0));
+				                       ImVec4(1.0, 0.0, 0.0, 1.0));
 				builder.end_input_pin();
 
 				ImGui::Text("%*s ", -max_input_name_len, input->name().c_str());
@@ -504,7 +504,7 @@ namespace Engine
 				ed::PinPivotAlignment({0.5, 0.5f});
 
 				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->links_count() > 0,
-									   ImVec4(0.0, 1.0, 0.0, 1.0));
+				                       ImVec4(0.0, 1.0, 0.0, 1.0));
 				builder.end_input_pin();
 				builder.end_input();
 			}
@@ -990,10 +990,10 @@ namespace Engine
 
 			auto& style = ImGui::GetStyle();
 			list->AddRectFilled(arrow_pos, arrow_pos + ImVec2(arrow_size, arrow_size), bg_col, style.FrameRounding,
-								ImDrawFlags_RoundCornersRight);
+			                    ImDrawFlags_RoundCornersRight);
 
 			ImGui::RenderArrow(list, ImVec2(arrow_pos.x + style.FramePadding.y, arrow_pos.y + style.FramePadding.y), text_col,
-							   ImGuiDir_Down, 1.0f);
+			                   ImGuiDir_Down, 1.0f);
 		}
 
 		ImGui::SetNextWindowPos({button_min.x, button_max.y});

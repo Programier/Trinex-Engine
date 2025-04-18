@@ -47,15 +47,9 @@ namespace Engine
 
 		template<typename T>
 		struct StackManager {
-			static void destroy(Storage& storage) noexcept
-			{
-				std::destroy_at(reinterpret_cast<T*>(&storage.stack));
-			}
+			static void destroy(Storage& storage) noexcept { std::destroy_at(reinterpret_cast<T*>(&storage.stack)); }
 
-			static void copy(const Storage& src, Storage& dest)
-			{
-				new (&dest.stack) T(reinterpret_cast<const T&>(src.stack));
-			}
+			static void copy(const Storage& src, Storage& dest) { new (&dest.stack) T(reinterpret_cast<const T&>(src.stack)); }
 
 			static void move(Storage& src, Storage& dest) noexcept
 			{
@@ -74,10 +68,7 @@ namespace Engine
 
 		template<typename T>
 		struct DynamicManager {
-			static void destroy(Storage& storage) noexcept
-			{
-				delete reinterpret_cast<T*>(storage.dynamic);
-			}
+			static void destroy(Storage& storage) noexcept { delete reinterpret_cast<T*>(storage.dynamic); }
 
 			static void copy(const Storage& src, Storage& dest)
 			{
@@ -90,10 +81,7 @@ namespace Engine
 				src.dynamic  = nullptr;
 			}
 
-			static void swap(Storage& lhs, Storage& rhs) noexcept
-			{
-				std::swap(lhs.dynamic, rhs.dynamic);
-			}
+			static void swap(Storage& lhs, Storage& rhs) noexcept { std::swap(lhs.dynamic, rhs.dynamic); }
 		};
 
 		template<typename Type>

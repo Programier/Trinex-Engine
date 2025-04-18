@@ -105,7 +105,7 @@ namespace Engine
 		void bind() override {}
 
 		void blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-						 SamplerFilter filter) override
+		                 SamplerFilter filter) override
 		{}
 
 		void clear_color(const Color& color) override {}
@@ -154,7 +154,7 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-										 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	                                     RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
 		return *this;
 	}

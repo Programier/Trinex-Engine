@@ -90,8 +90,8 @@ namespace Engine
 		static int_t global_property_index_by_decl(const char* declaration);
 		static int_t global_property_index_by_decl(const String& declaration);
 		static bool global_property(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr,
-									StringView* config_group = nullptr, int_t* type_id = nullptr, bool* is_const = nullptr,
-									byte** pointer = nullptr);
+		                            StringView* config_group = nullptr, int_t* type_id = nullptr, bool* is_const = nullptr,
+		                            byte** pointer = nullptr);
 
 		static bool begin_config_group(const char* group);
 		static bool begin_config_group(const String& group);
@@ -160,9 +160,9 @@ namespace Engine
 		// Functions register
 
 		static ScriptFunction register_function(const char* declaration, ScriptFuncPtr* func,
-												ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
+		                                        ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 		static ScriptFunction register_function(const String& declaration, ScriptFuncPtr* func,
-												ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
+		                                        ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 
 		// Variable to string
 		static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);

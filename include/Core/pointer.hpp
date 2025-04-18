@@ -39,15 +39,9 @@ namespace Engine
 			}
 		};
 
-		Pointer(InstanceClass* instance = nullptr) : m_instance(instance)
-		{
-			add_reference(m_object);
-		}
+		Pointer(InstanceClass* instance = nullptr) : m_instance(instance) { add_reference(m_object); }
 
-		Pointer(const Pointer& pointer)
-		{
-			*this = pointer;
-		}
+		Pointer(const Pointer& pointer) { *this = pointer; }
 
 		Pointer(Pointer&& pointer)
 		{
@@ -87,50 +81,23 @@ namespace Engine
 		}
 
 
-		InstanceClass* operator->() const
-		{
-			return m_instance;
-		}
+		InstanceClass* operator->() const { return m_instance; }
 
-		operator InstanceClass*() const
-		{
-			return m_instance;
-		}
+		operator InstanceClass*() const { return m_instance; }
 
-		InstanceClass* ptr() const
-		{
-			return m_instance;
-		}
+		InstanceClass* ptr() const { return m_instance; }
 
-		bool operator==(const Pointer<InstanceClass>& instance) const
-		{
-			return m_instance == instance.m_instance;
-		}
+		bool operator==(const Pointer<InstanceClass>& instance) const { return m_instance == instance.m_instance; }
 
-		bool operator!=(const Pointer<InstanceClass>& instance) const
-		{
-			return m_instance != instance.m_instance;
-		}
+		bool operator!=(const Pointer<InstanceClass>& instance) const { return m_instance != instance.m_instance; }
 
-		bool operator==(const InstanceClass* instance) const
-		{
-			return m_instance == instance;
-		}
+		bool operator==(const InstanceClass* instance) const { return m_instance == instance; }
 
-		bool operator!=(const InstanceClass* instance) const
-		{
-			return m_instance != instance;
-		}
+		bool operator!=(const InstanceClass* instance) const { return m_instance != instance; }
 
-		~Pointer()
-		{
-			remove_reference(m_object);
-		}
+		~Pointer() { remove_reference(m_object); }
 
 
-		bool serialize(class Archive& ar, bool is_reference = true)
-		{
-			return PointerBase::serialize(ar, m_object, is_reference);
-		}
+		bool serialize(class Archive& ar, bool is_reference = true) { return PointerBase::serialize(ar, m_object, is_reference); }
 	};
 }// namespace Engine

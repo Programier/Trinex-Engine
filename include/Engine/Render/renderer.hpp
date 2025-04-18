@@ -7,14 +7,8 @@ namespace Engine
 	class Renderer : public RendererClass
 	{
 	public:
-		Renderer()
-		{
-			Renderer::initialize();
-		}
+		Renderer() { Renderer::initialize(); }
 
-		~Renderer() override
-		{
-			Renderer::finalize();
-		}
+		~Renderer() override { Renderer::finalize(); }
 	};
 }// namespace Engine

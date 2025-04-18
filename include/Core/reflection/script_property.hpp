@@ -61,7 +61,7 @@ namespace Engine::Refl
 
 	public:
 		inline ScriptEnumProperty(size_t offset, Enum* enum_instance, BitMask flags = 0)
-			: ScriptProperty<EnumProperty>(offset, flags), m_enum_instance(enum_instance)
+		    : ScriptProperty<EnumProperty>(offset, flags), m_enum_instance(enum_instance)
 		{}
 
 		inline Enum* enum_instance() const override { return m_enum_instance; }

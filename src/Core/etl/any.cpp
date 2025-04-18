@@ -164,15 +164,9 @@ namespace Engine
 				}
 			}
 
-			void* object()
-			{
-				return data[0];
-			}
+			void* object() { return data[0]; }
 
-			asITypeInfo* info()
-			{
-				return reinterpret_cast<asITypeInfo*>(data[1]);
-			}
+			asITypeInfo* info() { return reinterpret_cast<asITypeInfo*>(data[1]); }
 
 			ObjectValue(const ObjectValue& value)
 			{
@@ -207,10 +201,7 @@ namespace Engine
 
 		static_assert(Any::is_stack_type<ObjectValue<true>>, "Object Value is not stack type!");
 
-		static Any& opAssign(Any* self, const Any& any)
-		{
-			return (*self) = any;
-		}
+		static Any& opAssign(Any* self, const Any& any) { return (*self) = any; }
 
 		static void opAssignValue(Any& any, void* value, int_t type_id)
 		{
@@ -345,10 +336,7 @@ namespace Engine
 			}
 		}
 
-		static void constructor(void* self, void* value, int_t type_id)
-		{
-			opAssignValue(*new (self) Any(), value, type_id);
-		}
+		static void constructor(void* self, void* value, int_t type_id) { opAssignValue(*new (self) Any(), value, type_id); }
 	};
 
 	static void initialize()

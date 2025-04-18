@@ -41,8 +41,7 @@ namespace Engine
 
 #define list_of(ptr) (*reinterpret_cast<CallbacksList*>(ptr))
 
-	LoadingControllerBase::LoadingControllerBase(void* list, const char* name) : m_list(list), m_name(name)
-	{}
+	LoadingControllerBase::LoadingControllerBase(void* list, const char* name) : m_list(list), m_name(name) {}
 
 	void LoadingControllerBase::exec_all_if_already_triggered()
 	{
@@ -81,7 +80,7 @@ namespace Engine
 		list_of(m_list)[name].push_back(entry);
 
 		if (is_triggered(id()) && (id() & static_cast<BitMask>(ControllerType::InitializerMask)) ==
-										  static_cast<BitMask>(ControllerType::InitializerMask))
+		                                  static_cast<BitMask>(ControllerType::InitializerMask))
 		{
 			static bool submit_command = true;
 
@@ -148,21 +147,19 @@ namespace Engine
 		m_triggered |= static_cast<ControllerType>(type);
 	}
 
-	LoadingControllerBase::~LoadingControllerBase()
-	{}
+	LoadingControllerBase::~LoadingControllerBase() {}
 
 #define IMPLEMENT_CONTROLLER(ControllerName, type)                                                                               \
-	ControllerName::ControllerName() : LoadingControllerBase(callbacks_list<ControllerName>(), #ControllerName)                  \
-	{}                                                                                                                           \
-																																 \
+	ControllerName::ControllerName() : LoadingControllerBase(callbacks_list<ControllerName>(), #ControllerName) {}               \
+                                                                                                                                 \
 	ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                                       \
-								   const std::initializer_list<String>& require_initializers)                                    \
-		: ControllerName()                                                                                                       \
+	                               const std::initializer_list<String>& require_initializers)                                    \
+	    : ControllerName()                                                                                                       \
 	{                                                                                                                            \
 		push(callback, name, require_initializers);                                                                              \
 	}                                                                                                                            \
 	ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                                 \
-										 const std::initializer_list<String>& require_initializers)                              \
+	                                     const std::initializer_list<String>& require_initializers)                              \
 	{                                                                                                                            \
 		LoadingControllerBase::push(callback, name, require_initializers);                                                       \
 		return *this;                                                                                                            \

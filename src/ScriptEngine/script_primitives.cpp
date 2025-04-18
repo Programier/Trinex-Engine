@@ -6,8 +6,7 @@
 #include <ScriptEngine/script_primitives.hpp>
 
 #define declare_primitive(name, type)                                                                                            \
-	name::name(type initial) : value(initial)                                                                                    \
-	{}                                                                                                                           \
+	name::name(type initial) : value(initial) {}                                                                                 \
 	name::name(const name&)                  = default;                                                                          \
 	name& name::operator=(const name& other) = default;                                                                          \
 	void name::add_ref() const                                                                                                   \

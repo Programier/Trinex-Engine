@@ -21,10 +21,7 @@ namespace Engine
 		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
-		void execute() override
-		{
-			m_octree->push(m_box, m_primitive);
-		}
+		void execute() override { m_octree->push(m_box, m_primitive); }
 	};
 
 	template<typename OctreeType>
@@ -39,10 +36,7 @@ namespace Engine
 		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
-		void execute() override
-		{
-			m_octree->remove(m_box, m_primitive);
-		}
+		void execute() override { m_octree->remove(m_box, m_primitive); }
 	};
 
 	Scene::Scene()
@@ -85,7 +79,7 @@ namespace Engine
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
 		render_thread()->create_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
-																			   primitive->bounding_box());
+		                                                                       primitive->bounding_box());
 		m_octree.push(primitive->bounding_box(), primitive);
 		return *this;
 	}
@@ -93,7 +87,7 @@ namespace Engine
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
 		render_thread()->create_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
-																				  primitive->bounding_box());
+		                                                                          primitive->bounding_box());
 		m_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}
@@ -117,7 +111,7 @@ namespace Engine
 	Scene& Scene::add_light(LightComponent* light)
 	{
 		render_thread()->create_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-																		   light->bounding_box());
+		                                                                   light->bounding_box());
 		m_light_octree.push(light->bounding_box(), light);
 		return *this;
 	}
@@ -125,7 +119,7 @@ namespace Engine
 	Scene& Scene::remove_light(LightComponent* light)
 	{
 		render_thread()->create_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-																			  light->bounding_box());
+		                                                                      light->bounding_box());
 		m_light_octree.remove(light->bounding_box(), light);
 		return *this;
 	}
@@ -159,6 +153,5 @@ namespace Engine
 		}
 	}
 
-	Scene::~Scene()
-	{}
+	Scene::~Scene() {}
 }// namespace Engine

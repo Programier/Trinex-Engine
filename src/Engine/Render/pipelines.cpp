@@ -26,7 +26,7 @@ namespace Engine::Pipelines
 	}
 
 	void GaussianBlur::blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel,
-							float sigma, RHI_Sampler* sampler)
+	                        float sigma, RHI_Sampler* sampler)
 	{
 		kernel = glm::abs(kernel);
 		sigma  = glm::abs(sigma);
@@ -55,7 +55,7 @@ namespace Engine::Pipelines
 	}
 
 	void Blit2D::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect,
-					  uint_t level, Swizzle swizzle)
+	                  uint_t level, Swizzle swizzle)
 	{
 		struct ShaderArgs {
 			alignas(16) Vector4i src_rect;
@@ -90,7 +90,7 @@ namespace Engine::Pipelines
 	}
 
 	void Blit2DGamma::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect,
-						   const Rect2D& dst_rect, float gamma, uint_t level, Swizzle swizzle)
+	                       const Rect2D& dst_rect, float gamma, uint_t level, Swizzle swizzle)
 	{
 		struct ShaderArgs {
 			alignas(16) Vector4i src_rect;
@@ -127,7 +127,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang",
-							  ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
+	                          ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
 	{
 		input_assembly.primitive_topology = PrimitiveTopology::LineList;
 		color_blending.enable             = true;
@@ -142,7 +142,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
-							  ShaderType::Vertex | ShaderType::Fragment)
+	                          ShaderType::Vertex | ShaderType::Fragment)
 	{
 		input_assembly.primitive_topology = PrimitiveTopology::TriangleList;
 		color_blending.enable             = true;
@@ -164,7 +164,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-							  ShaderType::BasicGraphics)
+	                          ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 
@@ -196,7 +196,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredPointLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-							  ShaderType::BasicGraphics)
+	                          ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 
@@ -218,7 +218,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredSpotLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-							  ShaderType::BasicGraphics)
+	                          ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 
@@ -252,7 +252,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredSpotLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-							  ShaderType::BasicGraphics)
+	                          ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 
@@ -274,7 +274,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredDirectionalLightShadowed,
-							  "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang", ShaderType::BasicGraphics)
+	                          "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang", ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 
@@ -304,7 +304,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredDirectionalLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-							  ShaderType::BasicGraphics)
+	                          ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 
@@ -326,7 +326,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/ambient_light.slang",
-							  ShaderType::BasicGraphics)
+	                          ShaderType::BasicGraphics)
 	{
 		setup_lighting_pipeline_state(this);
 

@@ -55,7 +55,7 @@ namespace Engine
 	// TRIANGLES
 
 	BatchedTriangles::BatchedTriangles()
-		: m_position_buffer(RHIBufferType::Dynamic, 64, nullptr, true), m_color_buffer(RHIBufferType::Dynamic, 64, nullptr, true)
+	    : m_position_buffer(RHIBufferType::Dynamic, 64, nullptr, true), m_color_buffer(RHIBufferType::Dynamic, 64, nullptr, true)
 	{}
 
 	BatchedTriangles& BatchedTriangles::clear()

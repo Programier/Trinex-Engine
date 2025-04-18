@@ -42,9 +42,9 @@ namespace Engine
 		{
 			None = 0,
 
-            /*  The object is kept around for editing even if is not referenced by anything.
+			/*  The object is kept around for editing even if is not referenced by anything.
                 The object is deleted at the end of the engine operation, or must be deleted manually */
-            StandAlone = BIT(0),
+			StandAlone = BIT(0),
 
 			// The object is kept around for editing even if is not referenced by anything. The object must always be deleted manually
 			IsAvailableForGC = BIT(1),
@@ -183,14 +183,14 @@ namespace Engine
 
 		static Object* static_new_instance(Refl::Class* object_class, StringView name = "", Object* owner = nullptr);
 		static Object* static_new_placement_instance(void* place, Refl::Class* object_class, StringView name = "",
-													 Object* owner = nullptr);
+		                                             Object* owner = nullptr);
 
 		template<typename Type, bool check_constructible = false, typename... Args>
 		static Type* new_instance(StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
-					check_constructible &&
-					(std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			        check_constructible &&
+			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -222,8 +222,8 @@ namespace Engine
 		static Type* new_placement_instance(void* place, StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
-					check_constructible &&
-					(std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			        check_constructible &&
+			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -243,7 +243,7 @@ namespace Engine
 					if constexpr (std::is_base_of_v<Object, Type>)
 						static_setup_next_object_info(Type::static_class_instance());
 					return static_setup_new_object_checked(Type::create_placement_instance(place, std::forward<Args>(args)...),
-														   name, owner);
+					                                       name, owner);
 				}
 				else
 				{
@@ -346,36 +346,36 @@ namespace Engine
 
 #define trinex_declare_class(class_name, base_name)                                                                              \
 protected:                                                                                                                       \
-    static class Engine::Refl::Class* m_static_class;                                                                            \
+	static class Engine::Refl::Class* m_static_class;                                                                            \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
 	static class Engine::Refl::Class* static_class_instance();                                                                   \
-																																 \
+                                                                                                                                 \
 private:
 
 #define trinex_implement_class(decl, flags)                                                                                      \
-    class Engine::Refl::Class* decl::m_static_class = nullptr;                                                                   \
+	class Engine::Refl::Class* decl::m_static_class = nullptr;                                                                   \
                                                                                                                                  \
-    class Engine::Refl::Class* decl::static_class_instance()                                                                     \
-    {                                                                                                                            \
-        if (!m_static_class)                                                                                                     \
-        {                                                                                                                        \
-            m_static_class = Engine::Refl::NativeClass<decl>::create(#decl, flags);                                              \
-        }                                                                                                                        \
-        return m_static_class;                                                                                                   \
-    }                                                                                                                            \
-    static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
-            Engine::Refl::Object::static_register_initializer([]() { decl::static_class_instance(); }, #decl));                  \
-    void decl::static_initialize_class()
+	class Engine::Refl::Class* decl::static_class_instance()                                                                     \
+	{                                                                                                                            \
+		if (!m_static_class)                                                                                                     \
+		{                                                                                                                        \
+			m_static_class = Engine::Refl::NativeClass<decl>::create(#decl, flags);                                              \
+		}                                                                                                                        \
+		return m_static_class;                                                                                                   \
+	}                                                                                                                            \
+	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
+	        Engine::Refl::Object::static_register_initializer([]() { decl::static_class_instance(); }, #decl));                  \
+	void decl::static_initialize_class()
 
 
 #define trinex_implement_class_default_init(decl, flags)                                                                         \
-    trinex_implement_class(decl, flags) {}
+	trinex_implement_class(decl, flags) {}
 
 #define trinex_implement_engine_class(decl, flags) trinex_implement_class(Engine::decl, flags)
 #define trinex_implement_engine_class_default_init(decl, flags)                                                                  \
-    trinex_implement_engine_class(decl, flags) {}
+	trinex_implement_engine_class(decl, flags) {}
 }// namespace Engine

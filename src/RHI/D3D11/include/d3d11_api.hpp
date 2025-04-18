@@ -74,7 +74,7 @@ namespace Engine
 		Scissor scissor() override;
 
 		D3D11& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-								  RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
+		                          RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
 
 		D3D11& prepare_draw();
 		D3D11_ViewportMode current_viewport_mode();
@@ -82,7 +82,7 @@ namespace Engine
 		D3D11& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
 		D3D11& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
 		D3D11& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-									  size_t instances) override;
+		                              size_t instances) override;
 
 		RHI_Sampler* create_sampler(const Sampler*) override;
 		RHI_Texture* create_texture_2d(const Texture2D*) override;

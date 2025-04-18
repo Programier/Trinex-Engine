@@ -86,16 +86,11 @@ namespace Engine
 			using reference       = Type&;
 			using const_reference = const Type&;
 
-			Iterator(ScriptArrayType* array, size_type position) : m_script_array(array), m_position(position)
-			{}
+			Iterator(ScriptArrayType* array, size_type position) : m_script_array(array), m_position(position) {}
 
-			Iterator(const Iterator& other) : Iterator(other.m_script_array, other.m_position)
-			{}
+			Iterator(const Iterator& other) : Iterator(other.m_script_array, other.m_position) {}
 
-			reference operator*() const
-			{
-				return (*m_script_array)[m_position];
-			}
+			reference operator*() const { return (*m_script_array)[m_position]; }
 
 			Iterator& operator++()
 			{
@@ -133,25 +128,13 @@ namespace Engine
 				return (m_script_array != other.m_script_array) || (m_position != other.m_position);
 			}
 
-			bool operator<(const Iterator& other) const
-			{
-				return m_position < other.m_position;
-			}
+			bool operator<(const Iterator& other) const { return m_position < other.m_position; }
 
-			bool operator>(const Iterator& other) const
-			{
-				return m_position > other.m_position;
-			}
+			bool operator>(const Iterator& other) const { return m_position > other.m_position; }
 
-			bool operator<=(const Iterator& other) const
-			{
-				return m_position <= other.m_position;
-			}
+			bool operator<=(const Iterator& other) const { return m_position <= other.m_position; }
 
-			bool operator>=(const Iterator& other) const
-			{
-				return m_position >= other.m_position;
-			}
+			bool operator>=(const Iterator& other) const { return m_position >= other.m_position; }
 
 			Iterator& operator+=(size_type offset)
 			{
@@ -165,20 +148,11 @@ namespace Engine
 				return *this;
 			}
 
-			Iterator operator+(size_type offset) const
-			{
-				return Iterator(m_script_array, m_position + offset);
-			}
+			Iterator operator+(size_type offset) const { return Iterator(m_script_array, m_position + offset); }
 
-			Iterator operator-(size_type offset) const
-			{
-				return Iterator(m_script_array, m_position + offset);
-			}
+			Iterator operator-(size_type offset) const { return Iterator(m_script_array, m_position + offset); }
 
-			size_type operator-(const Iterator& other) const
-			{
-				return m_position - other.m_position;
-			}
+			size_type operator-(const Iterator& other) const { return m_position - other.m_position; }
 
 			friend Iterator operator+(size_type offset, const Iterator& it)
 			{
@@ -195,15 +169,9 @@ namespace Engine
 
 		ScriptArray() = default;
 
-		ScriptArray(const ScriptArray& other)
-		{
-			do_copy(&other);
-		}
+		ScriptArray(const ScriptArray& other) { do_copy(&other); }
 
-		ScriptArray(ScriptArray&& other)
-		{
-			do_move(&other);
-		}
+		ScriptArray(ScriptArray&& other) { do_move(&other); }
 
 		ScriptArray& operator=(const ScriptArray& other)
 		{
@@ -229,105 +197,45 @@ namespace Engine
 
 		using ScriptArrayBase::create;
 
-		iterator begin()
-		{
-			return iterator(this, 0);
-		}
+		iterator begin() { return iterator(this, 0); }
 
-		iterator end()
-		{
-			return iterator(this, size());
-		}
+		iterator end() { return iterator(this, size()); }
 
-		const_iterator cbegin() const
-		{
-			return const_iterator(this, 0);
-		}
+		const_iterator cbegin() const { return const_iterator(this, 0); }
 
-		const_iterator cend() const
-		{
-			return const_iterator(this, size());
-		}
+		const_iterator cend() const { return const_iterator(this, size()); }
 
-		const_iterator begin() const
-		{
-			return cbegin();
-		}
+		const_iterator begin() const { return cbegin(); }
 
-		const_iterator end() const
-		{
-			return cend();
-		}
+		const_iterator end() const { return cend(); }
 
-		reverse_iterator rbegin()
-		{
-			return reverse_iterator(end());
-		}
+		reverse_iterator rbegin() { return reverse_iterator(end()); }
 
-		reverse_iterator rend()
-		{
-			return reverse_iterator(begin());
-		}
+		reverse_iterator rend() { return reverse_iterator(begin()); }
 
-		const_reverse_iterator crbegin() const
-		{
-			return const_reverse_iterator(cend());
-		}
+		const_reverse_iterator crbegin() const { return const_reverse_iterator(cend()); }
 
-		const_reverse_iterator crend() const
-		{
-			return const_reverse_iterator(cbegin());
-		}
+		const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 
-		const_reverse_iterator rbegin() const
-		{
-			return crbegin();
-		}
+		const_reverse_iterator rbegin() const { return crbegin(); }
 
-		const_reverse_iterator rend() const
-		{
-			return crend();
-		}
+		const_reverse_iterator rend() const { return crend(); }
 
-		reference operator[](size_type index)
-		{
-			return at(index);
-		}
+		reference operator[](size_type index) { return at(index); }
 
-		const_reference operator[](size_type index) const
-		{
-			return at(index);
-		}
+		const_reference operator[](size_type index) const { return at(index); }
 
-		reference at(size_type index)
-		{
-			return (*reinterpret_cast<pointer>(element_at(index)));
-		}
+		reference at(size_type index) { return (*reinterpret_cast<pointer>(element_at(index))); }
 
-		const_reference at(size_type index) const
-		{
-			return (*reinterpret_cast<const_pointer>(element_at(index)));
-		}
+		const_reference at(size_type index) const { return (*reinterpret_cast<const_pointer>(element_at(index))); }
 
-		reference front()
-		{
-			return (*this)[0];
-		}
+		reference front() { return (*this)[0]; }
 
-		const_reference front() const
-		{
-			return (*this)[0];
-		}
+		const_reference front() const { return (*this)[0]; }
 
-		reference back()
-		{
-			return (*this)[size() - 1];
-		}
+		reference back() { return (*this)[size() - 1]; }
 
-		const_reference back() const
-		{
-			return (*this)[size() - 1];
-		}
+		const_reference back() const { return (*this)[size() - 1]; }
 
 		ScriptArray& push_back(const value_type& value)
 		{
@@ -361,10 +269,7 @@ namespace Engine
 			}
 		}
 
-		void clear()
-		{
-			resize(0);
-		}
+		void clear() { resize(0); }
 	};
 
 #undef script_array_init_check

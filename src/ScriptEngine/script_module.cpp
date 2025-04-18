@@ -32,16 +32,14 @@ namespace Engine
 
 	ScriptModule& ScriptModule::operator=(const ScriptModule&) = default;
 
-	ScriptModule::ScriptModule(asIScriptModule* module) : m_module(module)
-	{}
+	ScriptModule::ScriptModule(asIScriptModule* module) : m_module(module) {}
 
 	ScriptModule::ScriptModule(const char* name, ModuleFlags flags)
 	{
 		(*this) = ScriptEngine::create_module(name, flags);
 	}
 
-	ScriptModule::ScriptModule(const String& name, ModuleFlags flags) : ScriptModule(name.c_str(), flags)
-	{}
+	ScriptModule::ScriptModule(const String& name, ModuleFlags flags) : ScriptModule(name.c_str(), flags) {}
 
 	asIScriptModule* ScriptModule::as_module() const
 	{

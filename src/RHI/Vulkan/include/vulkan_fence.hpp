@@ -15,10 +15,7 @@ namespace Engine
 	public:
 		vk::Fence m_fence;
 
-		bool is_signaled() const
-		{
-			return m_is_signaled || update_status();
-		}
+		bool is_signaled() const { return m_is_signaled || update_status(); }
 		VulkanFence& reset();
 		VulkanFence& wait();
 

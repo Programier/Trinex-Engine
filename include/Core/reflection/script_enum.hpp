@@ -5,7 +5,7 @@ namespace Engine
 {
 	class Script;
 	class ScriptTypeInfo;
-}
+}// namespace Engine
 
 namespace Engine::Refl
 {

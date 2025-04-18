@@ -9,16 +9,14 @@ namespace Engine::Refl
 		return sizeof(int);
 	}
 
-	ScriptObjectProperty::ScriptObjectProperty(uint_t offset, Class* instance) : ScriptProperty(offset), m_instance(instance)
-	{}
+	ScriptObjectProperty::ScriptObjectProperty(uint_t offset, Class* instance) : ScriptProperty(offset), m_instance(instance) {}
 
 	Class* ScriptObjectProperty::class_instance() const
 	{
 		return m_instance;
 	}
 
-	ScriptStructProperty::ScriptStructProperty(uint_t offset, Struct* instance) : ScriptProperty(offset), m_instance(instance)
-	{}
+	ScriptStructProperty::ScriptStructProperty(uint_t offset, Struct* instance) : ScriptProperty(offset), m_instance(instance) {}
 
 	Struct* ScriptStructProperty::struct_instance() const
 	{

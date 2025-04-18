@@ -139,7 +139,7 @@
 	{                                                                                                                            \
 		return value != other;                                                                                                   \
 	}                                                                                                                            \
-																																 \
+                                                                                                                                 \
 	Enum value
 
 
@@ -231,7 +231,7 @@
 
 #define property_hpp(class_name, type, name, _default)                                                                           \
 private:                                                                                                                         \
-    type m_##name = _default;                                                                                                    \
+	type m_##name = _default;                                                                                                    \
                                                                                                                                  \
 public:                                                                                                                          \
 	const type& name() const;                                                                                                    \
@@ -242,7 +242,7 @@ public:                                                                         
 	{                                                                                                                            \
 		return m_##name;                                                                                                         \
 	}                                                                                                                            \
-																																 \
+                                                                                                                                 \
 	_class& _class::name(const type& value)                                                                                      \
 	{                                                                                                                            \
 		this->m_##name = value;                                                                                                  \
@@ -251,7 +251,7 @@ public:                                                                         
 
 #define trinex_declare_struct(struct_name, base_name)                                                                            \
 protected:                                                                                                                       \
-    static Engine::Refl::Struct* m_static_struct;                                                                                \
+	static Engine::Refl::Struct* m_static_struct;                                                                                \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = struct_name;                                                                                                   \
@@ -260,10 +260,10 @@ public:                                                                         
 	static class Engine::Refl::Struct* static_struct_instance();
 
 #define trinex_declare_enum(enum_name)                                                                                           \
-    static constexpr bool is_enum_reflected = true;                                                                              \
+	static constexpr bool is_enum_reflected = true;                                                                              \
                                                                                                                                  \
 private:                                                                                                                         \
-    static Engine::Refl::Enum* s_enum;                                                                                           \
+	static Engine::Refl::Enum* s_enum;                                                                                           \
                                                                                                                                  \
 public:                                                                                                                          \
 	static inline class Engine::Refl::Enum* static_enum_instance()                                                               \

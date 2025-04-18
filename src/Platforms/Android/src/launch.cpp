@@ -19,7 +19,7 @@ try
 	{
 		loop.update();
 	}
-	
+
 	loop.terminate();
 
 	return 0;

@@ -436,7 +436,7 @@ namespace Engine
 	void ImGuiSpawnNewActor::render_tree(Node* node)
 	{
 		bool state =
-				ImGui::TreeNodeEx(node->self->display_name().c_str(), (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
+		        ImGui::TreeNodeEx(node->self->display_name().c_str(), (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
 
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{

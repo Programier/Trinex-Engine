@@ -9,7 +9,7 @@ namespace Engine
 {
 #define new_listener(type, func)                                                                                                 \
 	m_listener_ids[listener_index] = event_system->add_listener(                                                                 \
-			EventType::Controller##type, std::bind(&GameControllerSystem::func, this, std::placeholders::_1))
+	        EventType::Controller##type, std::bind(&GameControllerSystem::func, this, std::placeholders::_1))
 
 	void GameControllerSystem::on_controller_added(const Event& event)
 	{
@@ -43,8 +43,7 @@ namespace Engine
 		}
 	}
 
-	GameControllerSystem::GameControllerSystem()
-	{}
+	GameControllerSystem::GameControllerSystem() {}
 
 	GameControllerSystem& GameControllerSystem::create()
 	{
@@ -85,7 +84,6 @@ namespace Engine
 		return nullptr;
 	}
 
-	trinex_implement_engine_class(GameControllerSystem, Refl::Class::IsScriptable)
-	{}
+	trinex_implement_engine_class(GameControllerSystem, Refl::Class::IsScriptable) {}
 
 }// namespace Engine

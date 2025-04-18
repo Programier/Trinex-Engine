@@ -13,10 +13,7 @@ namespace Engine
 		byte samplers               = 0;
 		byte combined_image_sampler = 0;
 
-		FORCE_INLINE bool has_layouts() const
-		{
-			return static_cast<bool>(layout);
-		}
+		FORCE_INLINE bool has_layouts() const { return static_cast<bool>(layout); }
 
 		~VulkanDescriptorSetLayout();
 	};

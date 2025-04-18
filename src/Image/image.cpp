@@ -170,8 +170,7 @@ namespace Engine
 		return *this;
 	}
 
-	Image::~Image()
-	{}
+	Image::~Image() {}
 
 
 	Image::Image(Image&& img)
@@ -255,7 +254,7 @@ namespace Engine
 		path += extension_of_type(type);
 
 		static bool (Engine::Image::* write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
-																		 &Image::write_tga};
+		                                                                 &Image::write_tga};
 
 		auto method = write_methods[static_cast<EnumerateType>(type)];
 		stbi_flip_vertically_on_write(static_cast<int>(invert));

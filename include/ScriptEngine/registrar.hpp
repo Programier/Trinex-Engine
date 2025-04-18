@@ -155,37 +155,37 @@ namespace Engine
 
 		// Method registration
 		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall,
-							  void* auxiliary = nullptr);
+		                      void* auxiliary = nullptr);
 		ScriptFunction method(const char* declaration, ScriptFuncPtr* function,
-							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr);
+		                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
-							  ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
+		                      ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
 			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
-							  ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
+		                      ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
 			return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptFunction method(const char* declaration, ReturnType (*function_address)(Args...),
-							  ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr)
+		                      ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr)
 		{
 			return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv, auxiliary);
 		}
 
 		ScriptFunction static_function(const char* declaration, ScriptFuncPtr* function,
-									   ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
+		                               ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 
 		template<typename ReturnType, typename... Args>
 		ScriptFunction static_function(const char* declaration, ReturnType (*function)(Args...),
-									   ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr)
+		                               ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr)
 		{
 			return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv, auxiliary);
 		}
@@ -203,14 +203,14 @@ namespace Engine
 
 		// Behaviour registration
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptFuncPtr* function,
-									 ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr);
+		                             ScriptCallConv conv = ScriptCallConv::CDeclObjFirst, void* auxiliary = nullptr);
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptMethodPtr* method,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr);
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr);
 
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
 		                             ReturnType (ClassType::*method_address)(Args...),
-									 ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
 			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
@@ -218,15 +218,15 @@ namespace Engine
 		template<typename ReturnType, typename ClassType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
 		                             ReturnType (ClassType::*method_address)(Args...) const,
-									 ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
+		                             ScriptCallConv conv = ScriptCallConv::ThisCall, void* auxiliary = nullptr)
 		{
 			return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv, auxiliary);
 		}
 
 		template<typename ReturnType, typename... Args>
 		ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
-									 ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst,
-									 void* auxiliary = nullptr)
+		                             ReturnType (*function_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDeclObjFirst,
+		                             void* auxiliary = nullptr)
 		{
 			return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv, auxiliary);
 		}

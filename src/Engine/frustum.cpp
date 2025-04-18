@@ -5,8 +5,7 @@
 
 namespace Engine
 {
-	Plane::Plane() : normal(Constants::zero_vector), distance(0.f)
-	{}
+	Plane::Plane() : normal(Constants::zero_vector), distance(0.f) {}
 
 	Plane::Plane(const Vector3f& _p1, const Vector3f& _normal) : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
 	{}

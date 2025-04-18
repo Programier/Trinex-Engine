@@ -123,7 +123,7 @@ namespace Engine::Refl
 		using initializer_detector = decltype(F::static_initialize_struct());
 
 		inline static Struct* super_of()
-			requires(has_super_type_v<T> && !std::is_same_v<typename T::Super, void> && !std::is_base_of_v<Object, T>)
+		    requires(has_super_type_v<T> && !std::is_same_v<typename T::Super, void> && !std::is_base_of_v<Object, T>)
 		{
 			return T::Super::static_struct_instance();
 		}
@@ -204,22 +204,22 @@ namespace Engine::Refl
 	};
 
 #define trinex_implement_struct(decl, flags)                                                                                     \
-    class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
+	class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
-    class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
-    {                                                                                                                            \
-        if (!m_static_struct)                                                                                                    \
-        {                                                                                                                        \
-            m_static_struct = Engine::Refl::NativeStruct<decl>::create(#decl, flags);                                            \
-        }                                                                                                                        \
-        return m_static_struct;                                                                                                  \
-    }                                                                                                                            \
+	class Engine::Refl::Struct* decl::static_struct_instance()                                                                   \
+	{                                                                                                                            \
+		if (!m_static_struct)                                                                                                    \
+		{                                                                                                                        \
+			m_static_struct = Engine::Refl::NativeStruct<decl>::create(#decl, flags);                                            \
+		}                                                                                                                        \
+		return m_static_struct;                                                                                                  \
+	}                                                                                                                            \
                                                                                                                                  \
-    static Engine::byte TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::byte>(                         \
-            Engine::Refl::Object::static_register_initializer([]() { decl::static_struct_instance(); }, #decl));                 \
+	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::byte>(                         \
+	        Engine::Refl::Object::static_register_initializer([]() { decl::static_struct_instance(); }, #decl));                 \
                                                                                                                                  \
-    void decl::static_initialize_struct()
+	void decl::static_initialize_struct()
 
 #define trinex_implement_struct_default_init(decl, flags)                                                                        \
-    trinex_implement_struct(decl, flags) {}
+	trinex_implement_struct(decl, flags) {}
 }// namespace Engine::Refl

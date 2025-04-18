@@ -230,7 +230,7 @@ namespace Engine
 		if (object == selected_object)
 		{
 			color = is_hovered ? 4293495410 //ImGui::GetColorU32(ImVec4(0.4471, 0.5412, 0.9137, 1.0))
-							   : 4293356879;//ImGui::GetColorU32(ImVec4(0.3098, 0.4275, 0.9059, 1.0));
+			                   : 4293356879;//ImGui::GetColorU32(ImVec4(0.3098, 0.4275, 0.9059, 1.0));
 		}
 		else if (is_hovered)
 		{
@@ -243,7 +243,7 @@ namespace Engine
 			float border   = (item_size.x - image_size.x) / 2.f;
 			auto image_min = start_pos + ImVec2(border, border);
 			ImGui::GetWindowDrawList()->AddImageRounded(ImTextureID(imgui_texture), image_min, image_min + image_size, {0, 1},
-														{1, 0}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
+			                                            {1, 0}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
 		}
 
 		ImGui::BeginVertical(object, item_size, 0.5);

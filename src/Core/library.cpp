@@ -19,10 +19,7 @@ namespace Engine
 	};
 
 	struct Less {
-		bool operator()(const LibInfo& __x, const LibInfo& __y) const
-		{
-			return __x.handle < __y.handle;
-		}
+		bool operator()(const LibInfo& __x, const LibInfo& __y) const { return __x.handle < __y.handle; }
 	};
 
 

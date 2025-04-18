@@ -31,15 +31,9 @@ namespace Engine
 			ListenerNode* next = nullptr;
 			ListenerNode* prev = nullptr;
 
-			inline size_t index() const
-			{
-				return static_cast<size_t>(type);
-			}
+			inline size_t index() const { return static_cast<size_t>(type); }
 
-			inline Identifier id() const
-			{
-				return reinterpret_cast<Identifier>(this);
-			}
+			inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
 		};
 
 		ListenerNode* m_listeners[static_cast<size_t>(EventType::COUNT)];

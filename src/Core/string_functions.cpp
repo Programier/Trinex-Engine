@@ -80,7 +80,7 @@ namespace Engine::Strings
 			auto pos    = i->position();
 			result[pos] = std::toupper(result[pos]);
 			std::transform(result.begin() + pos + 1, result.begin() + pos + i->length(), result.begin() + pos + 1,
-						   [](char ch) { return std::tolower(ch); });
+			               [](char ch) { return std::tolower(ch); });
 		}
 
 		return result;

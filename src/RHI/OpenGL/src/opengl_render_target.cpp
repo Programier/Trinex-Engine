@@ -42,8 +42,8 @@ namespace Engine
 	}
 
 	OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(OpenGL_TextureRTV* rt1, OpenGL_TextureRTV* rt2,
-															 OpenGL_TextureRTV* rt3, OpenGL_TextureRTV* rt4,
-															 OpenGL_TextureDSV* depth_stencil)
+	                                                         OpenGL_TextureRTV* rt3, OpenGL_TextureRTV* rt4,
+	                                                         OpenGL_TextureDSV* depth_stencil)
 	{
 		OpenGL_TextureRTV* targets[4] = {rt1, rt2, rt3, rt4};
 
@@ -170,11 +170,11 @@ namespace Engine
 	}
 
 	OpenGL& OpenGL::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-									   RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	                                   RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
 	{
 		auto rt = OpenGL_RenderTarget::find_or_create(static_cast<OpenGL_TextureRTV*>(rt1), static_cast<OpenGL_TextureRTV*>(rt2),
-													  static_cast<OpenGL_TextureRTV*>(rt3), static_cast<OpenGL_TextureRTV*>(rt4),
-													  static_cast<OpenGL_TextureDSV*>(depth_stencil));
+		                                              static_cast<OpenGL_TextureRTV*>(rt3), static_cast<OpenGL_TextureRTV*>(rt4),
+		                                              static_cast<OpenGL_TextureDSV*>(depth_stencil));
 		rt->bind();
 		return *this;
 	}

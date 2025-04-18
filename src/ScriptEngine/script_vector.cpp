@@ -84,10 +84,7 @@ namespace Engine
 				}
 			}
 
-			~TypeInitializer()
-			{
-				destruct();
-			}
+			~TypeInitializer() { destruct(); }
 		};
 
 
@@ -196,15 +193,9 @@ namespace Engine
 			return nullptr;
 		}
 
-		static Instance* instance(asIScriptGeneric* g)
-		{
-			return reinterpret_cast<Instance*>(g->GetObject());
-		}
+		static Instance* instance(asIScriptGeneric* g) { return reinterpret_cast<Instance*>(g->GetObject()); }
 
-		static Instance* instance(asIScriptGeneric* g, asUINT arg)
-		{
-			return reinterpret_cast<Instance*>(g->GetArgAddress(arg));
-		}
+		static Instance* instance(asIScriptGeneric* g, asUINT arg) { return reinterpret_cast<Instance*>(g->GetArgAddress(arg)); }
 
 		static void fill_primitives(byte* begin, byte* end, byte* default_value)
 		{
@@ -372,17 +363,11 @@ namespace Engine
 			call_destructor(array.m_start, array.m_finish, f);
 		}
 
-		static bool is_current_array_element(byte* obj)
-		{
-			return obj >= m_self->m_start && obj <= m_self->m_end;
-		}
+		static bool is_current_array_element(byte* obj) { return obj >= m_self->m_start && obj <= m_self->m_end; }
 
 		///////////////// IMPLEMENTATION /////////////////
 
-		static void constructor(Instance* self, asITypeInfo* ot)
-		{
-			new (self) Instance();
-		}
+		static void constructor(Instance* self, asITypeInfo* ot) { new (self) Instance(); }
 
 		static void constructor_sz(Instance* self, asITypeInfo* ot, size_t size)
 		{
@@ -516,10 +501,7 @@ namespace Engine
 			g->SetReturnAddress(m_self->m_finish - m_type_size);
 		}
 
-		static bool empty(Instance* self)
-		{
-			return self->empty();
-		}
+		static bool empty(Instance* self) { return self->empty(); }
 
 		static void size(asIScriptGeneric* g)
 		{
@@ -743,7 +725,7 @@ namespace Engine
 
 			prepare_insert(p, n);
 			auto* callback = m_type ? func_of<void, byte*, byte*, byte*>(call_copy_constructor_list)
-									: func_of<void, byte*, byte*, byte*>(fill_primitives_list);
+			                        : func_of<void, byte*, byte*, byte*>(fill_primitives_list);
 
 			if (m_self == other)
 			{

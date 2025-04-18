@@ -20,7 +20,7 @@
 namespace Engine
 {
 	static inline void copy_texture_to_surface(RenderSurface* dst, RHI_ShaderResourceView* srv, float power, uint_t level,
-											   Swizzle swizzle)
+	                                           Swizzle swizzle)
 	{
 		Rect2D rect;
 		rect.pos  = {0, 0};
@@ -35,10 +35,10 @@ namespace Engine
 		if (format.is_depth())
 		{
 			static const Swizzle::Enum depth_swizzle[] = {
-					Swizzle::R,
-					Swizzle::R,
-					Swizzle::R,
-					Swizzle::One,
+			        Swizzle::R,
+			        Swizzle::R,
+			        Swizzle::R,
+			        Swizzle::One,
 			};
 
 			byte* values = &swizzle.r;
@@ -95,7 +95,7 @@ namespace Engine
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 			static ImU32 colors[4] = {IM_COL32(255, 0, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(0, 0, 255, 255),
-									  IM_COL32(255, 255, 255, 255)};
+			                          IM_COL32(255, 255, 255, 255)};
 
 			float height                                = ImGui::GetContentRegionAvail().y;
 			static const char* channel_names[]          = {"###red", "###green", "###blue", "###alpha"};
@@ -210,7 +210,7 @@ namespace Engine
 			return *this;
 
 		copy_texture_to_surface(surface, m_texture->rhi_shader_resource_view(), pow_factor(), m_mip_index,
-								modify_swizzle(swizzle(), m_texture->format));
+		                        modify_swizzle(swizzle(), m_texture->format));
 		return *this;
 	}
 
@@ -254,7 +254,7 @@ namespace Engine
 			return *this;
 
 		copy_texture_to_surface(surface, m_surface->rhi_shader_resource_view(), pow_factor(), 0,
-								modify_swizzle(swizzle(), m_surface->format()));
+		                        modify_swizzle(swizzle(), m_surface->format()));
 		return *this;
 	}
 
