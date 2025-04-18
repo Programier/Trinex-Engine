@@ -144,6 +144,29 @@ namespace Engine
 				return trace_offset(static_cast<SlangParameterCategory>(category));
 			}
 
+			bool parameter_name(TreeMap<Name, ShaderParameterInfo>& params, Name& out) const
+			{
+				Name result;
+				if (auto attr = find_attribute("name"))
+				{
+					auto view = parse_string_attribute(attr, 0);
+					if (!view.empty())
+						result = view;
+				}
+
+				if (!result.is_valid())
+					result = name;
+
+				if (params.contains(result))
+				{
+					error_log("ShaderCompiler", "Parameter name with name '%s' already exist!", result.c_str());
+					return false;
+				}
+
+				out = result;
+				return true;
+			}
+
 			inline slang::UserAttribute* find_attribute(const char* attribute) const
 			{
 				return var->getVariable()->findAttributeByName(global_session(), attribute);
@@ -449,7 +472,9 @@ namespace Engine
 					return false;
 				}
 
-				info.name                       = param.name;
+				if (!param.parameter_name(pipeline->parameters, info.name))
+					return false;
+
 				info.offset                     = param.trace_offset(slang::ParameterCategory::Uniform);
 				info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
 				pipeline->parameters[info.name] = info;
@@ -468,7 +493,10 @@ namespace Engine
 						auto binding_type = type_layout->getBindingRangeType(0);
 
 						ShaderParameterInfo object;
-						object.name     = param.name;
+
+						if (!param.parameter_name(pipeline->parameters, object.name))
+							return false;
+
 						object.location = param.trace_offset(param.category());
 						object.type     = type;
 
@@ -501,7 +529,10 @@ namespace Engine
 			         !param.is_excluded(VarTraceEntry::exclude_sampler))
 			{
 				ShaderParameterInfo object;
-				object.name                       = param.name;
+
+				if (!param.parameter_name(pipeline->parameters, object.name))
+					return false;
+
 				object.location                   = param.trace_offset(param.category());
 				object.type                       = ShaderParameterType::Sampler;
 				pipeline->parameters[object.name] = object;
@@ -533,8 +564,11 @@ namespace Engine
 							return false;
 						}
 
-						info.type                       = ShaderParameterType::MemoryBlock;
-						info.name                       = param.name;
+						info.type = ShaderParameterType::MemoryBlock;
+
+						if (!param.parameter_name(pipeline->parameters, info.name))
+							return false;
+
 						info.offset                     = param.trace_offset(slang::ParameterCategory::Uniform);
 						info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
 						pipeline->parameters[info.name] = info;
@@ -556,7 +590,10 @@ namespace Engine
 				if (is_global_parameters(layout))
 				{
 					ShaderParameterInfo object;
-					object.name                       = param.name;
+
+					if (!param.parameter_name(pipeline->parameters, object.name))
+						return false;
+
 					object.location                   = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
 					object.type                       = ShaderParameterType::Globals;
 					object.size                       = sizeof(GlobalShaderParameters);

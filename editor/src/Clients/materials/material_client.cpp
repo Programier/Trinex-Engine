@@ -289,14 +289,7 @@ namespace Engine
 		menu_bar.create("editor/Material")->actions.push([this]() {
 			if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr))
 			{
-				if (auto compiler = ShaderCompiler::instance())
-				{
-					compiler->compile(m_material);
-				}
-				else
-				{
-					error_log("MaterialEditor", "Failed to get material compiler");
-				}
+				compile_material();
 			}
 
 			if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))
@@ -330,6 +323,19 @@ namespace Engine
 
 		if (m_material)
 			m_properties_window->object(m_material);
+		return *this;
+	}
+
+	MaterialEditorClient& MaterialEditorClient::compile_material()
+	{
+		if (auto compiler = ShaderCompiler::instance())
+		{
+			compiler->compile(m_material);
+		}
+		else
+		{
+			error_log("MaterialEditor", "Failed to get material compiler");
+		}
 		return *this;
 	}
 

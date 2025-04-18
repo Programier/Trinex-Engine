@@ -20,6 +20,7 @@ namespace Engine
 		virtual MaterialEditorClient& create_content_browser();
 		virtual MaterialEditorClient& create_preview_window();
 		virtual MaterialEditorClient& create_properties_window();
+		virtual MaterialEditorClient& compile_material();
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(float dt) override;

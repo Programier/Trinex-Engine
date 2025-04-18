@@ -24,4 +24,10 @@ struct per_instanceAttribute
 {
 };
 
+[__AttributeUsage(_AttributeTargets.Var)]
+struct nameAttribute
+{
+	string name;
+}
+
 #endif
