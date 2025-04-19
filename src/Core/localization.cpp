@@ -17,7 +17,7 @@ namespace Engine
 
 	const String& Localization::localize(const StringView& line) const
 	{
-		HashIndex hash = memory_hash_fast(line.data(), line.length());
+		HashIndex hash = memory_hash(line.data(), line.length());
 		auto it        = m_translation_map.find(hash);
 
 		if (it != m_translation_map.end())
@@ -105,7 +105,7 @@ namespace Engine
 					{
 						String p       = entry.relative(path);
 						key            = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
-						HashIndex hash = memory_hash_fast(key.c_str(), key.length());
+						HashIndex hash = memory_hash(key.c_str(), key.length());
 						out[hash]      = value;
 					}
 				}

@@ -61,7 +61,7 @@ namespace Engine
 	Name Name::find_name(const StringView& name)
 	{
 		Name out_name;
-		HashIndex hash = memory_hash_fast(name.data(), name.length(), 0);
+		HashIndex hash = memory_hash(name.data(), name.length(), 0);
 
 		Vector<Name::Entry>& name_table = name_entries();
 
@@ -91,7 +91,7 @@ namespace Engine
 			return *this;
 		}
 
-		HashIndex hash                      = memory_hash_fast(view.data(), view.length(), 0);
+		HashIndex hash                      = memory_hash(view.data(), view.length(), 0);
 		Vector<Name::Entry>& name_table     = name_entries();
 		MultiMap<HashIndex, Index>& indices = name_index_map();
 

@@ -47,8 +47,8 @@ namespace Engine
 	{
 		OpenGL_TextureRTV* targets[4] = {rt1, rt2, rt3, rt4};
 
-		HashIndex hash = memory_hash_fast(targets, sizeof(targets));
-		hash           = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
+		HashIndex hash = memory_hash(targets, sizeof(targets));
+		hash           = memory_hash(&depth_stencil, sizeof(depth_stencil), hash);
 
 		auto it = m_render_targets.find(hash);
 		if (it != m_render_targets.end())

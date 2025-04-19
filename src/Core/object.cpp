@@ -198,7 +198,7 @@ namespace Engine
 
 	ENGINE_EXPORT HashIndex Object::hash_of_name(const StringView& name)
 	{
-		return memory_hash_fast(name.data(), name.length(), 0);
+		return memory_hash(name.data(), name.length(), 0);
 	}
 
 	HashIndex Object::hash_index() const
