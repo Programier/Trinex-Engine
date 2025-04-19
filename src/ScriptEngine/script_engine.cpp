@@ -306,7 +306,7 @@ namespace Engine
 		return register_typedef(type.c_str(), declaration.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::destroy_script_object(ScriptObjectAddress object, const ScriptTypeInfo& info)
+	ScriptEngine& ScriptEngine::destroy_script_object(void* object, const ScriptTypeInfo& info)
 	{
 		m_engine->ReleaseScriptObject(object, info.info());
 		return instance();

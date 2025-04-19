@@ -90,9 +90,9 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_RenderTargetView : RHI_ResourceView {
-		virtual void clear(const Color& color)  = 0;
+		virtual void clear(const LinearColor& color) = 0;
 		virtual void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
-		                  SamplerFilter filter) = 0;
+		                  SamplerFilter filter)      = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_DepthStencilView : RHI_ResourceView {
@@ -151,7 +151,7 @@ namespace Engine
 		virtual void bind()                                          = 0;
 		virtual void blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 		                         SamplerFilter filter)               = 0;
-		virtual void clear_color(const Color& color)                 = 0;
+		virtual void clear_color(const LinearColor& color)           = 0;
 	};
 
 	struct ENGINE_EXPORT RHI {
@@ -198,7 +198,7 @@ namespace Engine
 		virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)                  = 0;
 		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;
 		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)        = 0;
-		virtual RHI& push_debug_stage(const char* stage, const Color& color = {})                                            = 0;
+		virtual RHI& push_debug_stage(const char* stage, const LinearColor& color = {})                                      = 0;
 		virtual RHI& pop_debug_stage()                                                                                       = 0;
 
 		// INLINES

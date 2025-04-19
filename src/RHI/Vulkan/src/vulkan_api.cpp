@@ -493,7 +493,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::push_debug_stage(const char* stage, const Color& color)
+	VulkanAPI& VulkanAPI::push_debug_stage(const char* stage, const LinearColor& color)
 	{
 		if (pfn.vkCmdBeginDebugUtilsLabelEXT)
 		{

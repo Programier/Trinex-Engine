@@ -11,7 +11,7 @@ namespace Engine
 	{
 	protected:
 		AABB_3Df m_bounds;
-		Color3 m_light_color;
+		Color m_light_color;
 		float m_intensivity;
 		float m_depth_bias;
 		float m_slope_scale;
@@ -22,7 +22,7 @@ namespace Engine
 
 	public:
 		inline const AABB_3Df& bounding_box() const { return m_bounds; };
-		inline const Color3& light_color() const { return m_light_color; }
+		inline const Color& light_color() const { return m_light_color; }
 		inline float intensivity() const { return m_intensivity; }
 		inline float depth_bias() const { return m_depth_bias; }
 		inline float slope_scale() const { return m_slope_scale; }
@@ -51,7 +51,7 @@ namespace Engine
 		Pointer<RenderSurface> m_shadow_map;
 
 		AABB_3Df m_bounds;
-		Color3 m_light_color;
+		Color m_light_color;
 		float m_intensivity;
 		float m_depth_bias;
 		float m_slope_scale;
@@ -63,14 +63,14 @@ namespace Engine
 	public:
 		LightComponent();
 		inline const AABB_3Df& bounding_box() const { return m_bounds; };
-		inline const Color3& light_color() const { return m_light_color; }
+		inline const Color& light_color() const { return m_light_color; }
 		inline float intensivity() const { return m_intensivity; }
 		inline float depth_bias() const { return m_depth_bias; }
 		inline float slope_scale() const { return m_slope_scale; }
 		inline bool is_enabled() const { return m_is_enabled; }
 		inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
 
-		LightComponent& light_color(const Color3& color);
+		LightComponent& light_color(const Color& color);
 		LightComponent& intensivity(float value);
 		LightComponent& is_enabled(bool enabled);
 		LightComponent& is_shadows_enabled(bool enabled);

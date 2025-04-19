@@ -180,10 +180,9 @@ namespace Engine
 
 		Vector3f end_point        = location + direction * 3.f;
 		Vector3f arrow_base_point = end_point - direction * offset;
-
-
-		static const ByteColor white = {255, 150, 150, 255};
-		static const ByteColor red   = {255, 0, 0, 255};
+		
+		static const Color white = {255, 150, 150, 255};
+		static const Color red   = {255, 0, 0, 255};
 
 		Vector3f arrow_points[4] = {
 		        arrow_base_point + forward_vector * offset / 2.f,

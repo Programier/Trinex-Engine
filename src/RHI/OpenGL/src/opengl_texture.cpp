@@ -185,7 +185,7 @@ namespace Engine
 		texture->m_owner->add_reference();
 	}
 
-	void OpenGL_TextureRTV::clear(const Color& color)
+	void OpenGL_TextureRTV::clear(const LinearColor& color)
 	{
 		auto rt = OPENGL_API->m_state.render_target;
 		OPENGL_API->bind_render_target1(this);

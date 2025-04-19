@@ -33,7 +33,7 @@ namespace Engine
 		Image(const Path& path, const bool& invert_horizontal = false);
 		Image(const Size2D& size, uint_t channels, const Buffer& buffer);
 		Image(const Size2D& size, uint_t channels, const byte* data);
-		Image(ByteColor color, const Size2D& size, uint_t channels = 4);
+		Image(Color color, const Size2D& size, uint_t channels = 4);
 		Image(const Size2D& size, uint_t channels = 4);
 
 		Image(const Image&);
@@ -62,7 +62,7 @@ namespace Engine
 		Image& create(const Size2D& size, uint_t channels, Buffer&& buffer);
 		Image& create(const Size2D& size, uint_t channels, const Buffer& buffer);
 		Image& create(const Size2D& size, uint_t channels, const byte* buffer);
-		Image& create(ByteColor color, const Size2D& size, uint_t channels = 4);
+		Image& create(Color color, const Size2D& size, uint_t channels = 4);
 		Image& create(const Size2D& size, uint_t channels = 4);
 		Image& create_interface(const Size2D& size, uint_t channels = 4);
 

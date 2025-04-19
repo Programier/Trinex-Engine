@@ -65,7 +65,7 @@ namespace Engine
 	}
 
 	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
-	                                                 ByteColor color1, ByteColor color2, ByteColor color3)
+	                                                 Color color1, Color color2, Color color3)
 	{
 		if (m_vtx_count + 3 > m_position_buffer.size())
 		{
@@ -80,9 +80,9 @@ namespace Engine
 		new (pos_dst + 1) Vector3f(point2);
 		new (pos_dst + 2) Vector3f(point3);
 
-		new (col_dst) ByteColor(color1);
-		new (col_dst + 1) ByteColor(color2);
-		new (col_dst + 2) ByteColor(color3);
+		new (col_dst) Color(color1);
+		new (col_dst + 1) Color(color2);
+		new (col_dst + 2) Color(color3);
 
 		m_vtx_count += 3;
 		return *this;

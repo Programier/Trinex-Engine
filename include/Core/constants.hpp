@@ -39,7 +39,7 @@ namespace Engine
 		static const String script_byte_code_extension;
 		static const String virtual_file_system_extension;
 		static const String translation_config_extension;
-		static const ByteColor3 splash_text_color;
+		static const Color splash_text_color;
 		static const HashIndex script_userdata_id;
 	};
 }// namespace Engine

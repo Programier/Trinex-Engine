@@ -43,7 +43,7 @@ namespace Engine
 
 		static void terminate();
 		static asIScriptContext* new_context();
-		static ScriptEngine& destroy_script_object(ScriptObjectAddress, const ScriptTypeInfo& info);
+		static ScriptEngine& destroy_script_object(void*, const ScriptTypeInfo& info);
 
 	public:
 		enum GarbageCollectFlags

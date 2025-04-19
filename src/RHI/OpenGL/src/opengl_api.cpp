@@ -168,7 +168,7 @@ namespace Engine
 		return *this;
 	}
 
-	OpenGL& OpenGL::push_debug_stage(const char* stage, const Color& color)
+	OpenGL& OpenGL::push_debug_stage(const char* stage, const LinearColor& color)
 	{
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, stage);
 		return *this;

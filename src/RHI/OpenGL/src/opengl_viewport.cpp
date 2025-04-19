@@ -58,7 +58,7 @@ namespace Engine
 
 	void OpenGL_Viewport::on_orientation_changed(Orientation orientation) {}
 
-	void OpenGL_Viewport::clear_color(const Color& color)
+	void OpenGL_Viewport::clear_color(const LinearColor& color)
 	{
 		GLint current_fbo;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &current_fbo);

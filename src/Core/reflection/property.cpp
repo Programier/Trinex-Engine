@@ -18,6 +18,8 @@ namespace Engine::Refl
 	implement_reflect_type(IntegerProperty);
 	implement_reflect_type(FloatProperty);
 	implement_reflect_type(EnumProperty);
+	implement_reflect_type(ColorProperty);
+	implement_reflect_type(LinearColorProperty);
 	implement_reflect_type(VectorProperty);
 	implement_reflect_type(MatrixProperty);
 	implement_reflect_type(StringProperty);
@@ -312,7 +314,6 @@ namespace Engine::Refl
 			r.set("is_read_only", T::IsReadOnly);
 			r.set("is_transient", T::IsTransient);
 			r.set("is_hidden", T::IsHidden);
-			r.set("is_color", T::IsColor);
 		}
 
 		ScriptClassRegistrar::RefInfo info;

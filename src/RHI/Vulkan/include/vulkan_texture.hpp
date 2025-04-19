@@ -66,7 +66,7 @@ namespace Engine
 		VulkanTextureRTV(VulkanTexture* texture, vk::ImageView view);
 		~VulkanTextureRTV();
 
-		void clear(const Color& color) override;
+		void clear(const LinearColor& color) override;
 		void blit(RHI_RenderTargetView* texture, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
 
 		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }

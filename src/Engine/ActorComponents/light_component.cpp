@@ -19,7 +19,7 @@ namespace Engine
 	{
 		Refl::Class* self = static_class_instance();
 
-		trinex_refl_prop(self, This, m_light_color, Refl::Property::IsColor)->tooltip("Color of this light");
+		trinex_refl_prop(self, This, m_light_color)->tooltip("Color of this light");
 		trinex_refl_prop(self, This, m_is_enabled)//
 		        ->display_name("Is Enabled")
 		        .tooltip("Is light enabled");
@@ -37,7 +37,7 @@ namespace Engine
 	}
 
 	LightComponent::LightComponent()
-	    : m_light_color({1.0, 1.0, 1.0}), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
+	    : m_light_color({255, 255, 255, 255}), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
 	      m_is_shadows_enabled(false)
 	{}
 
@@ -93,7 +93,7 @@ namespace Engine
 		return *this;
 	}
 
-	LightComponent& LightComponent::light_color(const Color3& color)
+	LightComponent& LightComponent::light_color(const Color& color)
 	{
 		m_light_color = color;
 		return submit_light_info_render_thread();

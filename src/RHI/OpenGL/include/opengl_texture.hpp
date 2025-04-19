@@ -55,7 +55,7 @@ namespace Engine
 		OpenGL_Texture* const m_texture;
 
 		OpenGL_TextureRTV(OpenGL_Texture* texture);
-		void clear(const Color& color) override;
+		void clear(const LinearColor& color) override;
 		void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
 		~OpenGL_TextureRTV();
 	};

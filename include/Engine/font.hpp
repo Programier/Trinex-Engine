@@ -9,7 +9,7 @@ namespace Engine
 
 	struct ENGINE_EXPORT FontConfig {
 		Size2D image_size;
-		ByteColor3 color;
+		Color color;
 		Vector2u font_size;
 		bool dynamic_size;
 

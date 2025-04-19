@@ -128,7 +128,7 @@ namespace Engine
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 		VulkanAPI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
-		VulkanAPI& push_debug_stage(const char* stage, const Color& color) override;
+		VulkanAPI& push_debug_stage(const char* stage, const LinearColor& color) override;
 		VulkanAPI& pop_debug_stage() override;
 
 		~VulkanAPI();

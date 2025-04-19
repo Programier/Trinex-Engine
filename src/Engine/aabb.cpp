@@ -74,7 +74,7 @@ namespace Engine
 		return AABB_3Df(t_center - t_extents, t_center + t_extents);
 	}
 
-	const AABB_3Df& AABB_3Df::write_to_batcher(BatchedLines& batcher, const ByteColor& color) const
+	const AABB_3Df& AABB_3Df::write_to_batcher(BatchedLines& batcher, const Color& color) const
 	{
 		using Vertex = BatchedLines::Vertex;
 		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0));

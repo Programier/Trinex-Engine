@@ -13,7 +13,6 @@ namespace Engine
 		trinex_declare_struct(MeshMaterial, void);
 
 		MaterialInterface* material = nullptr;
-		PolicyID policy;
 		byte surface_index;
 	};
 

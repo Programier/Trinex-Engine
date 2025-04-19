@@ -150,7 +150,7 @@ namespace Engine
 
 	const SceneRenderTargets& SceneRenderTargets::clear() const
 	{
-		Color color = {0.f, 0.f, 0.f, 1.f};
+		LinearColor color = {0.f, 0.f, 0.f, 1.f};
 
 		surface_of(SceneColorHDR)->rhi_render_target_view()->clear(color);
 		surface_of(SceneColorLDR)->rhi_render_target_view()->clear(color);

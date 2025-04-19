@@ -413,29 +413,13 @@ namespace Engine
 	}
 
 	static bool render_scalar_property_colored(void* context, Refl::Property* prop, ImGuiDataType type, int_t components,
-	                                           bool read_only, bool is_color = false)
+	                                           bool read_only)
 	{
 		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
 		void* address             = prop->address(context);
 
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-		bool changed = false;
-
-		if (is_color && (components == 3 || components == 4) && type == ImGuiDataType_Float)
-		{
-			if (components == 3)
-			{
-				changed = ImGui::ColorEdit3("##value", reinterpret_cast<float*>(address), ImGuiColorEditFlags_Float);
-			}
-			else
-			{
-				changed = ImGui::ColorEdit4("##value", reinterpret_cast<float*>(address), ImGuiColorEditFlags_Float);
-			}
-		}
-		else
-		{
-			changed = ImGui::InputScalarN("##value", type, address, components, nullptr, nullptr, nullptr, flags);
-		}
+		bool changed = ImGui::InputScalarN("##value", type, address, components, nullptr, nullptr, nullptr, flags);
 
 		if (changed)
 		{
@@ -446,7 +430,7 @@ namespace Engine
 
 	static bool render_scalar_property(void* context, Refl::Property* prop, ImGuiDataType type, int_t components, bool read_only)
 	{
-		return render_scalar_property_colored(context, prop, type, components, read_only, false);
+		return render_scalar_property_colored(context, prop, type, components, read_only);
 	}
 
 	static ImGuiDataType find_imgui_data_type(Refl::IntegerProperty* prop)
@@ -486,7 +470,7 @@ namespace Engine
 			ImGui::TableNextRow();
 			render_name(renderer, prop);
 			bool is_changed = render_scalar_property_colored(prop->address(context), element, type, prop->length(),
-			                                                 read_only || element->is_read_only(), prop->is_color());
+			                                                 read_only || element->is_read_only());
 			if (is_changed)
 				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
 
@@ -597,6 +581,66 @@ namespace Engine
 		}
 
 		return is_changed;
+	}
+
+	static bool render_color_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	{
+		ImGui::TableNextRow();
+		render_name(renderer, prop);
+
+		void* context = renderer->property_context();
+
+		Color* color       = prop->address_as<Color>(context);
+		LinearColor linear = {
+		        static_cast<float>(color->r) / 255.f,
+		        static_cast<float>(color->g) / 255.f,
+		        static_cast<float>(color->b) / 255.f,
+		        static_cast<float>(color->a) / 255.f,
+		};
+
+		uint32_t flags = ImGuiColorEditFlags_Uint8;
+
+		if (read_only)
+			flags |= ImGuiColorEditFlags_NoInputs;
+
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+		if (ImGui::ColorEdit4("###value", &linear.x, flags))
+		{
+			(*color) = {
+			        static_cast<byte>(linear.r * 255.f),
+			        static_cast<byte>(linear.g * 255.f),
+			        static_cast<byte>(linear.b * 255.f),
+			        static_cast<byte>(linear.a * 255.f),
+			};
+
+			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::interactive, prop));
+			return true;
+		}
+
+		return false;
+	}
+
+	static bool render_linear_color_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	{
+		ImGui::TableNextRow();
+		render_name(renderer, prop);
+
+		void* context      = renderer->property_context();
+		LinearColor* color = prop->address_as<LinearColor>(context);
+
+		uint32_t flags = ImGuiColorEditFlags_Float;
+
+		if (read_only)
+			flags |= ImGuiColorEditFlags_NoInputs;
+
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+		if (ImGui::ColorEdit4("###value", &color->x, flags))
+		{
+			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::interactive, prop));
+			return true;
+		}
+
+		return false;
 	}
 
 	static bool render_string_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
@@ -1051,6 +1095,8 @@ namespace Engine
 		ctx->renderer<Refl::VectorProperty>(render_vector_property);
 		ctx->renderer<Refl::MatrixProperty>(render_matrix_property);
 		ctx->renderer<Refl::EnumProperty>(render_enum_property);
+		ctx->renderer<Refl::ColorProperty>(render_color_property);
+		ctx->renderer<Refl::LinearColorProperty>(render_linear_color_property);
 		ctx->renderer<Refl::StringProperty>(render_string_property);
 		ctx->renderer<Refl::NameProperty>(render_name_property);
 		ctx->renderer<Refl::PathProperty>(render_path_property);

@@ -96,7 +96,7 @@ namespace Engine
 	// clang-format off
 	class PositionVertexBuffer  : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
 	class TexCoordVertexBuffer  : public VertexBuffer<Vector2f>	 { using VertexBuffer::VertexBuffer; };
-	class ColorVertexBuffer     : public VertexBuffer<ByteColor> { using VertexBuffer::VertexBuffer; };
+	class ColorVertexBuffer     : public VertexBuffer<Color> { using VertexBuffer::VertexBuffer; };
 	class NormalVertexBuffer    : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
 	class TangentVertexBuffer   : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
 	class BitangentVertexBuffer : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };

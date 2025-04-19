@@ -104,7 +104,7 @@ namespace Engine
 		                     filter_of(filter));
 	}
 
-	void VulkanViewport::clear_color(const Color& color)
+	void VulkanViewport::clear_color(const LinearColor& color)
 	{
 		auto cmd = API->end_render_pass();
 

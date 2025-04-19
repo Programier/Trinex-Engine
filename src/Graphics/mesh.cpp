@@ -58,12 +58,10 @@ namespace Engine
 		return bitangents.size() <= index ? nullptr : &bitangents[index];
 	}
 
-
 	StaticMesh::StaticMesh()
 	{
 		materials.resize(1);
 		auto& entry    = materials.back();
-		entry.policy   = 0;
 		entry.material = Object::static_find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
 	}
 

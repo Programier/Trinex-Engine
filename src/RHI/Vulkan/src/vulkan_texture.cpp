@@ -217,7 +217,7 @@ namespace Engine
 		m_texture->owner()->release();
 	}
 
-	void VulkanTextureRTV::clear(const Color& color)
+	void VulkanTextureRTV::clear(const LinearColor& color)
 	{
 		auto cmd = API->end_render_pass();
 		change_layout(vk::ImageLayout::eTransferDstOptimal);

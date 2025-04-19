@@ -44,13 +44,6 @@ namespace Engine
 	using Force        = glm::vec3;
 	using LightColor   = glm::vec3;
 
-	using Color      = glm::vec4;
-	using ByteColor  = glm::vec<4, byte, glm::defaultp>;
-	using Color4     = glm::vec4;
-	using ByteColor4 = glm::vec<4, byte, glm::defaultp>;
-	using Color3     = glm::vec3;
-	using ByteColor3 = glm::vec<3, byte, glm::defaultp>;
-
 	template<size_t N, typename T>
 	using VectorNT = glm::vec<N, T, glm::defaultp>;
 
@@ -90,6 +83,23 @@ namespace Engine
 	using Vector3u = glm::vec<3, uint32_t, glm::defaultp>;
 	using Vector4u = glm::vec<4, uint32_t, glm::defaultp>;
 
+	struct Color : VectorNT<4, byte> {
+		using VectorNT<4, byte>::VectorNT;
+
+		explicit Color(float r, float g, float b, float a)
+		    : VectorNT<4, byte>{
+		              static_cast<byte>(r * 255.f),
+		              static_cast<byte>(g * 255.f),
+		              static_cast<byte>(b * 255.f),
+		              static_cast<byte>(a * 255.f),
+		      }
+		{}
+	};
+
+	struct LinearColor : VectorNT<4, float_t> {
+		using VectorNT<4, float_t>::VectorNT;
+	};
+
 	using ArrayIndex          = size_t;
 	using ArrayOffset         = size_t;
 	using PriorityIndex       = size_t;
@@ -100,26 +110,11 @@ namespace Engine
 
 	using Quaternion = glm::quat;
 
-	using TextureBindIndex   = byte;
-	using BindingIndex       = byte;
-	using TextureAttachIndex = byte;
+	using BindingIndex = byte;
 
-	using BitMask   = size_t;
-	using PixelRGB  = glm::vec<3, byte, glm::defaultp>;
-	using PixelRGBA = glm::vec<4, byte, glm::defaultp>;
-
-	using BufferType      = size_t;
-	using ColorClearValue = Vector4f;
-
+	using BitMask       = size_t;
 	using Identifier    = std::uint64_t;
-	using MipMapLevel   = byte;
-	using LodLevel      = float;
-	using LodBias       = float;
 	using EnumerateType = std::uint32_t;
-	using PolicyID      = EnumerateType;
-
-	using SampleMask          = size_t;
-	using ScriptObjectAddress = void*;
 
 	namespace Refl
 	{

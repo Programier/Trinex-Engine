@@ -144,7 +144,7 @@ namespace Engine
 		create(size, channels, data);
 	}
 
-	Image::Image(ByteColor color, const Size2D& size, uint_t channels)
+	Image::Image(Color color, const Size2D& size, uint_t channels)
 	{
 		create(color, size, channels);
 	}
@@ -299,7 +299,7 @@ namespace Engine
 		return *this;
 	}
 
-	Image& Image::create(ByteColor color, const Size2D& size, uint_t channels)
+	Image& Image::create(Color color, const Size2D& size, uint_t channels)
 	{
 		create(size, channels);
 

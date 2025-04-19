@@ -88,8 +88,7 @@ private:
 			IsReadOnly               = BIT(0),
 			IsTransient              = BIT(1),
 			IsHidden                 = BIT(2),
-			IsColor                  = BIT(3),
-			InlineSingleFieldStructs = BIT(4),
+			InlineSingleFieldStructs = BIT(3),
 		};
 
 		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
@@ -115,7 +114,6 @@ private:
 		inline bool is_read_only() const { return check_flag(IsReadOnly); }
 		inline bool is_transient() const { return check_flag(IsTransient); }
 		inline bool is_hidden() const { return check_flag(IsHidden); }
-		inline bool is_color() const { return check_flag(IsColor); }
 		inline bool inline_single_field_structs() const { return check_flag(InlineSingleFieldStructs); }
 
 		Identifier add_change_listener(const ChangeListener& listener);
@@ -278,6 +276,24 @@ private:
 		virtual Enum* enum_instance() const = 0;
 		EnumerateType value(const void* context) const;
 		EnumProperty& value(void* context, EnumerateType value);
+	};
+
+	class ENGINE_EXPORT ColorProperty : public PrimitiveProperty
+	{
+		trinex_refl_prop_type_filter(std::is_same_v<T, Engine::Color>);
+		declare_reflect_type(ColorProperty, PrimitiveProperty);
+
+	public:
+		using PrimitiveProperty::PrimitiveProperty;
+	};
+
+	class ENGINE_EXPORT LinearColorProperty : public PrimitiveProperty
+	{
+		trinex_refl_prop_type_filter(std::is_same_v<T, Engine::LinearColor>);
+		declare_reflect_type(LinearColorProperty, PrimitiveProperty);
+
+	public:
+		using PrimitiveProperty::PrimitiveProperty;
 	};
 
 	class ENGINE_EXPORT StringProperty : public Property
@@ -651,6 +667,20 @@ private:
 		using Super::Super;
 
 		Enum* enum_instance() const override { return T::static_enum_instance(); }
+	};
+
+	template<auto prop, typename T>
+	    requires(ColorProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, ColorProperty> {
+		using Super = TypedProperty<prop, ColorProperty>;
+		using Super::Super;
+	};
+
+	template<auto prop, typename T>
+	    requires(LinearColorProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, LinearColorProperty> {
+		using Super = TypedProperty<prop, LinearColorProperty>;
+		using Super::Super;
 	};
 
 	template<auto prop, typename T>
