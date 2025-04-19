@@ -16,8 +16,9 @@ namespace Engine
 	class PropertyRenderer : public ImGuiWidget
 	{
 	public:
-		using PropertiesMap = TreeMap<String, Vector<Refl::Property*>>;
-		using RendererFunc  = Function<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
+		using PropertiesMap      = TreeMap<String, Vector<Refl::Property*>>;
+		using RendererFunc       = Function<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
+		using StructRendererFunc = Function<bool(PropertyRenderer* renderer, Refl::Struct* struct_instance, bool read_only)>;
 
 		class Context
 		{
@@ -29,6 +30,7 @@ namespace Engine
 
 		private:
 			Map<const Refl::ClassInfo*, RendererFunc> m_renderers;
+			Map<const Refl::Struct*, StructRendererFunc> m_struct_renderers;
 			Context* m_prev = nullptr;
 
 		public:
@@ -39,9 +41,13 @@ namespace Engine
 
 			Context(Context* prev = nullptr) : m_prev(prev) {}
 
-			const RendererFunc& renderer(const Refl::ClassInfo*);
-			const RendererFunc* renderer_ptr(const Refl::ClassInfo*);
+			const RendererFunc& renderer(const Refl::ClassInfo*) const;
+			const RendererFunc* renderer_ptr(const Refl::ClassInfo*) const;
 			Context& renderer(const Refl::ClassInfo*, const RendererFunc& func);
+
+			const StructRendererFunc& struct_renderer(const Refl::Struct*) const;
+			const StructRendererFunc* struct_renderer_ptr(const Refl::Struct*) const;
+			Context& struct_renderer(const Refl::Struct*, const StructRendererFunc& func);
 
 			inline Context* prev() const { return m_prev; }
 

@@ -56,16 +56,19 @@ namespace Engine
 		~ScopedPropID() { pop_props_id(); }
 	};
 
-	const PropertyRenderer::RendererFunc& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class)
+	using RendererFunc       = PropertyRenderer::RendererFunc;
+	using StructRendererFunc = PropertyRenderer::StructRendererFunc;
+
+	const RendererFunc& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class) const
 	{
 		if (auto ptr = renderer_ptr(refl_class))
 			return *ptr;
 		return default_value_of<RendererFunc>();
 	}
 
-	const PropertyRenderer::RendererFunc* PropertyRenderer::Context::renderer_ptr(const Refl::ClassInfo* refl_class)
+	const RendererFunc* PropertyRenderer::Context::renderer_ptr(const Refl::ClassInfo* refl_class) const
 	{
-		for (Context* ctx = this; ctx; ctx = ctx->prev())
+		for (const Context* ctx = this; ctx; ctx = ctx->prev())
 		{
 			auto it = ctx->m_renderers.find(refl_class);
 			if (it != ctx->m_renderers.end())
@@ -77,6 +80,31 @@ namespace Engine
 	PropertyRenderer::Context& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class, const RendererFunc& func)
 	{
 		m_renderers[refl_class] = func;
+		return *this;
+	}
+
+	const StructRendererFunc& PropertyRenderer::Context::struct_renderer(const Refl::Struct* struct_instance) const
+	{
+		if (auto ptr = struct_renderer_ptr(struct_instance))
+			return *ptr;
+		return default_value_of<StructRendererFunc>();
+	}
+
+	const StructRendererFunc* PropertyRenderer::Context::struct_renderer_ptr(const Refl::Struct* struct_instance) const
+	{
+		for (const Context* ctx = this; ctx; ctx = ctx->prev())
+		{
+			auto it = ctx->m_struct_renderers.find(struct_instance);
+			if (it != ctx->m_struct_renderers.end())
+				return &it->second;
+		}
+		return nullptr;
+	}
+
+	PropertyRenderer::Context& PropertyRenderer::Context::struct_renderer(const Refl::Struct* struct_instance,
+	                                                                      const StructRendererFunc& func)
+	{
+		m_struct_renderers[struct_instance] = func;
 		return *this;
 	}
 
@@ -272,9 +300,17 @@ namespace Engine
 
 	bool PropertyRenderer::render_struct_properties(void* object, Refl::Struct* struct_class, bool read_only)
 	{
-		bool has_changed_props = false;
-
 		const Context* ctx = m_ctx ? m_ctx : static_global_renderer_context();
+
+		if (auto renderer = ctx->struct_renderer_ptr(struct_class))
+		{
+			m_context_stack.push_back(object);
+			bool result = (*renderer)(this, struct_class, read_only);
+			m_context_stack.pop_back();
+			return result;
+		}
+
+		bool has_changed_props = false;
 
 		for (auto& [group, props] : properties_map(struct_class))
 		{
