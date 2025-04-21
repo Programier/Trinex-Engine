@@ -52,7 +52,6 @@ namespace Engine
 
 	trinex_implement_engine_enum(MaterialDomain, Surface, PostProcess);
 	trinex_implement_engine_enum(SplashTextType, StartupProgress, VersionInfo, CopyrightInfo, GameName);
-	trinex_implement_engine_enum(MaterialOptions, DefaultPassOnly, DisableDefaultPass, LightMaterial);
 
 	trinex_implement_engine_enum(ShaderParameterType, Undefined, META_UniformBuffer, META_Sampler, META_Texture, META_Scalar,
 	                             META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3, Bool4, Int, Int2, Int3,

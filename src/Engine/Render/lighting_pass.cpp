@@ -26,7 +26,7 @@ namespace Engine
 
 	static inline void bind_surface(RenderSurface* surface, byte location)
 	{
-		surface->rhi_shader_resource_view()->bind_combined(location, DefaultResources::Samplers::default_sampler->rhi_sampler());
+		surface->rhi_shader_resource_view()->bind_combined(location, Sampler(SamplerFilter::Point).rhi_sampler());
 	}
 
 	static inline void bind_scene_render_target(SceneRenderTargets* rt, SceneRenderTargets::Surface surface, byte location)

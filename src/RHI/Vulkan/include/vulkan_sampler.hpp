@@ -23,7 +23,7 @@ namespace Engine
 		bool compare_enable;
 
 		VulkanSamplerCreateInfo();
-		VulkanSamplerCreateInfo(const Sampler* sampler);
+		VulkanSamplerCreateInfo(const SamplerInitializer* sampler);
 	};
 
 	struct VulkanSampler : RHI_DefaultDestroyable<RHI_Sampler> {

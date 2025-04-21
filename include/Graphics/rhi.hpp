@@ -20,7 +20,7 @@ namespace Engine
 	class Shader;
 	class GraphicsPipeline;
 	class ComputePipeline;
-	class Sampler;
+	struct SamplerInitializer;
 	class RenderSurface;
 	class Texture2D;
 	struct GlobalShaderParameters;
@@ -182,7 +182,7 @@ namespace Engine
 		virtual RHI& scissor(const Scissor& scissor)    = 0;
 		virtual Scissor scissor()                       = 0;
 
-		virtual RHI_Sampler* create_sampler(const Sampler*)                                                                  = 0;
+		virtual RHI_Sampler* create_sampler(const SamplerInitializer*)                                                       = 0;
 		virtual RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) = 0;
 		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                                 = 0;
 		virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                       = 0;

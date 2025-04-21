@@ -42,7 +42,6 @@ namespace Engine
 		Texture2D* more_icon                                = nullptr;
 		Texture2D* light_sprite                             = nullptr;
 		Texture2D* blueprint_texture                        = nullptr;
-		Sampler* default_sampler                            = nullptr;
 		Material* grid_material                             = nullptr;
 		Material* point_light_overlay_material              = nullptr;
 		Material* spot_light_overlay_material               = nullptr;
@@ -144,7 +143,6 @@ namespace Engine
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
 		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
 
-		EditorResources::default_sampler              = load_object<Sampler>("TrinexEditor::Samplers::DefaultSampler");
 		EditorResources::grid_material                = load_object<Material>("TrinexEditor::Materials::GridMaterial");
 		EditorResources::point_light_overlay_material = load_object<Material>("TrinexEditor::Materials::PointLightOverlay");
 		EditorResources::spot_light_overlay_material  = load_object<Material>("TrinexEditor::Materials::SpotLightOverlay");

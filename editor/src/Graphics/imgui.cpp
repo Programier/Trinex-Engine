@@ -43,10 +43,9 @@ namespace Engine
 			const ShaderParameterInfo* texture_parameter = nullptr;
 			const ShaderParameterInfo* model_parameter   = nullptr;
 			Matrix4f model;
-			Sampler* sampler            = nullptr;
 			RHI_ShaderResourceView* srv = nullptr;
 
-			void apply();
+			void apply(const Sampler& sampler);
 		);
 		// clang-format on
 
@@ -98,14 +97,13 @@ namespace Engine
 			model_parameter   = find_param_info("model");
 		}
 
-		void ImGuiPipeline::apply()
+		void ImGuiPipeline::apply(const Sampler& sampler)
 		{
 			rhi_bind();
-			srv->bind_combined(texture_parameter->location, sampler->rhi_sampler());
+			srv->bind_combined(texture_parameter->location, sampler.rhi_sampler());
 			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->location);
 
-			srv     = nullptr;
-			sampler = nullptr;
+			srv = nullptr;
 		}
 
 
@@ -115,7 +113,7 @@ namespace Engine
 
 		struct ImGuiTrinexData {
 			Texture2D* font_texture = nullptr;
-			Sampler* sampler        = nullptr;
+			Sampler sampler;
 
 			Engine::RenderViewport* window = nullptr;
 			RenderSurface* surface         = nullptr;
@@ -142,10 +140,9 @@ namespace Engine
 
 		static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
 		{
-			auto bd           = imgui_trinex_backend_data();
-			auto pipeline     = ImGuiPipeline::instance();
-			pipeline->srv     = nullptr;
-			pipeline->sampler = nullptr;
+			auto bd       = imgui_trinex_backend_data();
+			auto pipeline = ImGuiPipeline::instance();
+			pipeline->srv = nullptr;
 
 			Vector2f target_size;
 
@@ -330,19 +327,13 @@ namespace Engine
 
 							if (!pipeline->srv)
 							{
-								pipeline->srv     = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
-								                                            : pcmd->TextureId.surface->rhi_shader_resource_view();
-								pipeline->sampler = pcmd->TextureId.sampler;
-							}
-
-							if (!pipeline->sampler)
-							{
-								pipeline->sampler = bd->sampler;
+								pipeline->srv = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
+								                                        : pcmd->TextureId.surface->rhi_shader_resource_view();
 							}
 
 							{
 								trinex_profile_cpu_n("Drawing");
-								pipeline->apply();
+								pipeline->apply(bd->sampler);
 
 
 								vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
@@ -387,13 +378,9 @@ namespace Engine
 			bd->font_texture->init_render_resources();
 
 			auto package = Package::static_find_package("TrinexEditor::ImGui", true);
-			package->add_object(bd->sampler);
+			package->add_object(bd->font_texture);
 
-			bd->sampler = Object::new_instance<EngineResource<Sampler>>(
-			        Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-			bd->sampler->filter = SamplerFilter::Trilinear;
-			bd->sampler->init_render_resources();
-			package->add_object(bd->sampler);
+			bd->sampler = Sampler(SamplerFilter::Trilinear);
 
 			// Store our identifier
 			io.Fonts->SetTexID(bd->font_texture);
@@ -407,11 +394,9 @@ namespace Engine
 			if (bd->font_texture)
 			{
 				if (call_garbage_collector)
-				{
 					GarbageCollector::destroy(bd->font_texture);
-					GarbageCollector::destroy(bd->sampler);
-				}
-				ImGui::GetIO().Fonts->SetTexID(0);
+
+				ImGui::GetIO().Fonts->SetTexID(ImTextureID());
 				bd->font_texture = {};
 			}
 		}

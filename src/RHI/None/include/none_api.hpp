@@ -33,7 +33,7 @@ namespace Engine
 		ViewPort viewport() override;
 		NoneApi& scissor(const Scissor& scissor) override;
 		Scissor scissor() override;
-		RHI_Sampler* create_sampler(const Sampler*) override;
+		RHI_Sampler* create_sampler(const SamplerInitializer*) override;
 		RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;

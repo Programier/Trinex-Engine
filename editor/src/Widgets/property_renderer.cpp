@@ -137,7 +137,7 @@ namespace Engine
 	{
 		if (m_object)
 		{
-			auto ctx = m_ctx ? m_ctx : static_global_renderer_context();
+			auto ctx = renderer_context();
 
 			bool status  = false;
 			bool founded = false;
@@ -282,7 +282,7 @@ namespace Engine
 		if (prop->is_hidden())
 			return false;
 
-		Context* ctx = m_ctx ? m_ctx : static_global_renderer_context();
+		Context* ctx = renderer_context();
 
 		read_only = read_only || prop->is_read_only();
 		ScopedPropID prop_id(object, prop);
@@ -300,7 +300,7 @@ namespace Engine
 
 	bool PropertyRenderer::render_struct_properties(void* object, Refl::Struct* struct_class, bool read_only)
 	{
-		const Context* ctx = m_ctx ? m_ctx : static_global_renderer_context();
+		const Context* ctx = renderer_context();
 
 		if (auto renderer = ctx->struct_renderer_ptr(struct_class))
 		{
@@ -763,7 +763,7 @@ namespace Engine
 	{
 		auto& properties_map = renderer->properties_map(struct_instance);
 
-		if (properties_map.empty())
+		if (properties_map.empty() && renderer->renderer_context()->struct_renderer_ptr(struct_instance) == nullptr)
 			return false;
 
 		bool is_changed = false;
@@ -857,8 +857,7 @@ namespace Engine
 			if (!read_only && ImGui::TableGetColumnCount() > 2)
 			{
 				ImGui::TableSetColumnIndex(2);
-				if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
-				                       {size, size}))
+				if (ImGui::ImageButton(Icons::icon(Icons::IconType::Rotate), {size, size}))
 				{
 					object  = nullptr;
 					changed = true;

@@ -2,12 +2,12 @@
 
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
+#include <Graphics/sampler.hpp>
 
 namespace Engine
 {
 	class SceneComponent;
 	struct ShaderParameterInfo;
-	class Sampler;
 	class Texture2D;
 	class Material;
 	class RenderPass;
@@ -191,7 +191,7 @@ public:                                                                         
 			trinex_material_parameter(Sampler, Parameter);
 
 		public:
-			Engine::Sampler* sampler;
+			Engine::Sampler sampler;
 
 			Sampler();
 			Sampler& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
@@ -203,7 +203,7 @@ public:                                                                         
 			trinex_material_parameter(Sampler2D, Parameter);
 
 		public:
-			Engine::Sampler* sampler;
+			Engine::Sampler sampler;
 			Engine::Texture2D* texture;
 
 			Sampler2D();
@@ -249,7 +249,7 @@ public:                                                                         
 
 		public:
 			Engine::RenderSurface* surface;
-			Engine::Sampler* sampler;
+			Engine::Sampler sampler;
 
 			CombinedSurface();
 			CombinedSurface& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;

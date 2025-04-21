@@ -168,7 +168,7 @@ namespace Engine
 			ImGui::BeginHorizontal(0, ImGui::GetContentRegionAvail());
 			ImGui::Spring(1.f, 0.5);
 			auto size = max_texture_size_in_viewport(m_surface->size(), ImGui::EngineVecFrom(ImGui::GetContentRegionAvail()));
-			ImGui::Image(ImTextureID(m_surface, DefaultResources::Samplers::default_sampler), ImGui::ImVecFrom(size));
+			ImGui::Image(m_surface.ptr(), ImGui::ImVecFrom(size));
 			ImGui::Spring(1.f, 0.5);
 			ImGui::EndHorizontal();
 		}

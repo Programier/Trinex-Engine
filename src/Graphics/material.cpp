@@ -68,7 +68,6 @@ namespace Engine
 		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsTransient)->is_composite(true);
 
 		trinex_refl_prop(self, This, domain);
-		trinex_refl_prop(self, This, options);
 	}
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
@@ -195,7 +194,7 @@ namespace Engine
 		return true;
 	}
 
-	Material::Material() : domain(MaterialDomain::Surface), options(0)
+	Material::Material() : domain(MaterialDomain::Surface)
 	{
 		m_graphics_options = new_instance<GraphicsPipelineDescription>();
 		m_graphics_options->add_reference();
@@ -203,9 +202,6 @@ namespace Engine
 
 	Pipeline* Material::pipeline(Refl::RenderPassInfo* pass) const
 	{
-		if (options & MaterialOptions::DefaultPassOnly)
-			pass = nullptr;
-
 		auto it = m_pipelines.find(pass);
 		if (it == m_pipelines.end())
 			return nullptr;
@@ -387,17 +383,26 @@ namespace Engine
 
 	bool Material::apply(SceneComponent* component, RenderPass* render_pass)
 	{
-		return apply(this, component, render_pass);
+		return apply_internal(this, component, render_pass);
 	}
 
-	bool Material::apply(MaterialInterface* head, SceneComponent* component, RenderPass* render_pass)
+	bool Material::apply_internal(MaterialInterface* head, SceneComponent* component, RenderPass* render_pass)
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
-		auto pipeline_object = pipeline(render_pass ? render_pass->info() : nullptr);
+		Refl::RenderPassInfo* pass_info = render_pass ? render_pass->info() : nullptr;
+		auto pipeline_object            = pipeline(pass_info);
 
 		if (pipeline_object == nullptr)
-			return false;
+		{
+			if (pass_info == nullptr)
+				return false;
+
+			pipeline_object = pipeline(nullptr);
+
+			if (pipeline_object == nullptr)
+				return false;
+		}
 
 		pipeline_object->rhi_bind();
 
@@ -528,7 +533,7 @@ namespace Engine
 			return false;
 		}
 
-		return mat->apply(this, component, render_pass);
+		return mat->apply_internal(this, component, render_pass);
 	}
 
 	bool MaterialInstance::serialize(Archive& archive)

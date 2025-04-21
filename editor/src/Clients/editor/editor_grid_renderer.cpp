@@ -10,7 +10,7 @@ namespace Engine
 		if (Settings::Editor::show_grid == false)
 			return;
 
-		EditorResources::grid_material->apply(nullptr, pass);
-		rhi->draw(6, 0);
+		if (EditorResources::grid_material->apply(nullptr, pass))
+			rhi->draw(6, 0);
 	}
 }// namespace Engine

@@ -168,7 +168,7 @@ namespace Engine
 					                            (m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
 
 					draw_list->AddImageRounded(
-					        ImTextureID(texture, EditorResources::default_sampler),
+					        texture,
 					        m_header_min - ImVec2(node_padding.x - half_border_width, node_padding.y - half_border_width),
 					        m_header_max + ImVec2(node_padding.z - half_border_width, 0), ImVec2(0.0f, 0.0f), uv, header_color,
 					        GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
@@ -193,8 +193,7 @@ namespace Engine
 					                            (m_footer_max.y - m_footer_min.y) / (4.0f * texture->height()));
 
 					draw_list->AddImageRounded(
-					        ImTextureID(texture, EditorResources::default_sampler),
-					        m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
+					        texture, m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
 					        m_footer_max + ImVec2(node_padding.z - half_border_width, node_padding.w - half_border_width),
 					        ImVec2(0.0f, 0.0f), uv, footer_color, GetStyle().NodeRounding, ImDrawFlags_RoundCornersBottom);
 				}

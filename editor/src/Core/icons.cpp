@@ -13,13 +13,7 @@
 
 namespace Engine::Icons
 {
-	static Sampler* m_default_sampler              = nullptr;
 	static Texture2D* m_icons[IconType::__COUNT__] = {0};
-
-	Sampler* default_sampler()
-	{
-		return m_default_sampler;
-	}
 
 	Texture2D* default_texture()
 	{
@@ -60,8 +54,6 @@ namespace Engine::Icons
 
 	void on_editor_package_loaded()
 	{
-		m_default_sampler = EditorResources::default_sampler;
-		trinex_always_check(m_default_sampler, "Editor default sampler can't be null!");
 		m_icons[IconType::Default] = EditorResources::default_icon;
 		m_icons[IconType::Add]     = EditorResources::add_icon;
 		m_icons[IconType::Remove]  = EditorResources::remove_icon;

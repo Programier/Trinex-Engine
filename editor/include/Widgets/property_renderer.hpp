@@ -104,7 +104,7 @@ namespace Engine
 
 		inline size_t property_index() const { return m_property_index; }
 		inline void* property_context() const { return m_context_stack.back(); }
-		inline Context* renderer_context() const { return m_ctx; }
+		inline Context* renderer_context() const { return m_ctx ? m_ctx : static_global_renderer_context(); }
 		inline PropertyRenderer& renderer_context(Context* ctx)
 		{
 			m_ctx = ctx;

@@ -3,7 +3,6 @@
 
 namespace Engine
 {
-	class Sampler;
 	class Texture2D;
 	class Material;
 	class PositionVertexBuffer;
@@ -20,7 +19,6 @@ namespace Engine
 		extern Texture2D* more_icon;
 		extern Texture2D* light_sprite;
 		extern Texture2D* blueprint_texture;
-		extern Sampler* default_sampler;
 		extern Material* axis_material;
 		extern Material* grid_material;
 		extern Material* point_light_overlay_material;

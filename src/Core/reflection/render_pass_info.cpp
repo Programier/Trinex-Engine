@@ -62,9 +62,6 @@ namespace Engine::Refl
 
 	bool RenderPassInfo::is_material_compatible(const Material* material)
 	{
-		if (material->options & MaterialOptions::DefaultPassOnly)
-			return false;
-
 		if (m_is_material_compatible)
 		{
 			return m_is_material_compatible(material);

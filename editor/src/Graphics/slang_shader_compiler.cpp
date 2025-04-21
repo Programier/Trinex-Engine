@@ -1123,10 +1123,7 @@ namespace Engine
 			return false;
 		}
 
-		bool success = true;
-
-		if (!(material->options & MaterialOptions::DisableDefaultPass))
-			success = compile_pass(material, nullptr, source);
+		bool success = compile_pass(material, nullptr, source);
 
 		for (auto pass = Refl::RenderPassInfo::first_pass(); pass && success; pass = pass->next_pass())
 		{

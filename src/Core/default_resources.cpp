@@ -11,11 +11,6 @@ namespace Engine
 {
 	namespace DefaultResources
 	{
-		namespace Samplers
-		{
-			ENGINE_EXPORT Sampler* default_sampler = nullptr;
-		}
-
 		namespace Textures
 		{
 			ENGINE_EXPORT Texture2D* default_texture = nullptr;
@@ -64,7 +59,6 @@ namespace Engine
 	void load_default_resources()
 	{
 		using namespace DefaultResources;
-		Samplers::default_sampler = load_object<Sampler>("TrinexEngine::Samplers::DefaultSampler");
 		Textures::default_texture = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
 		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
 		Materials::screen         = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");

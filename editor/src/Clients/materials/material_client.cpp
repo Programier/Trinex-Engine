@@ -208,7 +208,7 @@ namespace Engine
 
 			if (auto surface = render_preview(content_size, viewport))
 			{
-				ImGui::Image(ImTextureID{surface, nullptr}, content_size);
+				ImGui::Image(surface, content_size);
 			}
 
 			ImGui::End();

@@ -670,18 +670,6 @@ namespace Engine
 		trinex_enum_struct(ScriptTypeModifiers);
 	};
 
-	struct MaterialOptions {
-		enum Enum : EnumerateType
-		{
-			DefaultPassOnly    = BIT(0),
-			DisableDefaultPass = BIT(1),
-			LightMaterial      = BIT(2),
-		};
-
-		trinex_bitfield_enum_struct(MaterialOptions, EnumerateType);
-		trinex_declare_enum(MaterialOptions);
-	};
-
 	struct ShaderParameterType {
 		enum Enum : EnumerateType
 		{

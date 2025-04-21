@@ -12,7 +12,7 @@ namespace Engine
 
 	VulkanSamplerCreateInfo::VulkanSamplerCreateInfo() = default;
 
-	VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const Sampler* sampler)
+	VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const SamplerInitializer* sampler)
 	    : address_u(get_type(sampler->address_u)), address_v(get_type(sampler->address_v)),
 	      address_w(get_type(sampler->address_w)), compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy),
 	      mip_lod_bias(sampler->mip_lod_bias), min_lod(sampler->min_lod), max_lod(sampler->max_lod),
@@ -68,8 +68,7 @@ namespace Engine
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 
-
-	RHI_Sampler* VulkanAPI::create_sampler(const Sampler* sampler)
+	RHI_Sampler* VulkanAPI::create_sampler(const SamplerInitializer* sampler)
 	{
 		return &(new VulkanSampler())->create(sampler);
 	}

@@ -13,11 +13,6 @@ namespace Engine
 
 	namespace DefaultResources
 	{
-		namespace Samplers
-		{
-			ENGINE_EXPORT extern Sampler* default_sampler;
-		}
-
 		namespace Textures
 		{
 			ENGINE_EXPORT extern Texture2D* default_texture;

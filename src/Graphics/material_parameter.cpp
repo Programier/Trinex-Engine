@@ -71,12 +71,11 @@ namespace Engine::MaterialParameters
 		return *this;
 	}
 
-	Sampler::Sampler() : sampler(DefaultResources::Samplers::default_sampler) {}
+	Sampler::Sampler() : sampler(SamplerFilter::Point) {}
 
 	Sampler& Sampler::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
-		if (sampler)
-			sampler->rhi_bind(info->location);
+		sampler.rhi_bind(info->location);
 		return *this;
 	}
 
@@ -84,17 +83,16 @@ namespace Engine::MaterialParameters
 	{
 		if (!Super::serialize(ar))
 			return false;
-		return ar.serialize_reference(sampler);
+		return ar.serialize(sampler);
 	}
 
-	Sampler2D::Sampler2D()
-	    : sampler(DefaultResources::Samplers::default_sampler), texture(DefaultResources::Textures::default_texture)
-	{}
+	Sampler2D::Sampler2D() : sampler(SamplerFilter::Point), texture(DefaultResources::Textures::default_texture) {}
 
 	Sampler2D& Sampler2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
-		if (sampler && texture)
-			texture->rhi_shader_resource_view()->bind_combined(info->location, sampler->rhi_sampler());
+		auto rhi_sampler = sampler.rhi_sampler();
+		if (texture && rhi_sampler)
+			texture->rhi_shader_resource_view()->bind_combined(info->location, rhi_sampler);
 		return *this;
 	}
 
@@ -103,7 +101,7 @@ namespace Engine::MaterialParameters
 		if (!Super::serialize(ar))
 			return false;
 
-		ar.serialize_reference(sampler);
+		ar.serialize(sampler);
 		ar.serialize_reference(texture);
 		return ar;
 	}
@@ -160,13 +158,15 @@ namespace Engine::MaterialParameters
 		return ar.serialize_reference(surface);
 	}
 
-	CombinedSurface::CombinedSurface() : surface(nullptr), sampler(DefaultResources::Samplers::default_sampler) {}
+	CombinedSurface::CombinedSurface() : surface(nullptr), sampler() {}
 
 	CombinedSurface& CombinedSurface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
-		auto srv = surface ? surface->rhi_shader_resource_view()
-		                   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
-		srv->bind_combined(info->location, sampler->rhi_sampler());
+		RHI_ShaderResourceView* srv = surface ? surface->rhi_shader_resource_view() : nullptr;
+		RHI_Sampler* rhi_sampler    = sampler.rhi_sampler();
+
+		if (srv && rhi_sampler)
+			srv->bind_combined(info->location, rhi_sampler);
 		return *this;
 	}
 
@@ -174,7 +174,7 @@ namespace Engine::MaterialParameters
 	{
 		if (!Super::serialize(ar))
 			return false;
-		return ar.serialize_reference(surface) && ar.serialize_reference(sampler);
+		return ar.serialize_reference(surface) && ar.serialize(sampler);
 	}
 
 	implement_parameter(Parameter) {}

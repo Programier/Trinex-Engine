@@ -32,7 +32,7 @@ namespace Engine::Pipelines
 		sigma  = glm::abs(sigma);
 
 		if (sampler == nullptr)
-			sampler = DefaultResources::Samplers::default_sampler->rhi_sampler();
+			sampler = Sampler(SamplerFilter::Point).rhi_sampler();
 
 		rhi_bind();
 
@@ -72,7 +72,7 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind_combined(m_src->location, DefaultResources::Samplers::default_sampler->rhi_sampler());
+		src->bind_combined(m_src->location, Sampler(SamplerFilter::Point).rhi_sampler());
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
@@ -109,7 +109,7 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind_combined(m_src->location, DefaultResources::Samplers::default_sampler->rhi_sampler());
+		src->bind_combined(m_src->location, Sampler(SamplerFilter::Point).rhi_sampler());
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);

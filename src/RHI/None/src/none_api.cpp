@@ -179,7 +179,7 @@ namespace Engine
 		return {};
 	}
 
-	RHI_Sampler* NoneApi::create_sampler(const Sampler*)
+	RHI_Sampler* NoneApi::create_sampler(const SamplerInitializer*)
 	{
 		return new NoneSampler();
 	}

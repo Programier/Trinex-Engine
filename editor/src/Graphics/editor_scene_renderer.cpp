@@ -36,14 +36,11 @@ namespace Engine
 
 		auto* texture_parameter = material->find_parameter<MaterialParameters::Sampler2D>(Name::texture);
 		Texture2D* tmp_texture  = nullptr;
-		Sampler* tmp_sampler    = nullptr;
 
 		if (texture_parameter && texture)
 		{
 			tmp_texture                = texture_parameter->texture;
-			tmp_sampler                = texture_parameter->sampler;
 			texture_parameter->texture = texture;
-			texture_parameter->sampler = EditorResources::default_sampler;
 		}
 
 		material->apply(component, pass);
@@ -53,7 +50,6 @@ namespace Engine
 		if (texture_parameter && texture)
 		{
 			texture_parameter->texture = tmp_texture;
-			texture_parameter->sampler = tmp_sampler;
 		}
 	}
 
@@ -180,7 +176,7 @@ namespace Engine
 
 		Vector3f end_point        = location + direction * 3.f;
 		Vector3f arrow_base_point = end_point - direction * offset;
-		
+
 		static const Color white = {255, 150, 150, 255};
 		static const Color red   = {255, 0, 0, 255};
 

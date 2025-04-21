@@ -3,31 +3,73 @@
 
 namespace Engine
 {
-	class ENGINE_EXPORT Sampler : public RenderResource
-	{
-		trinex_declare_class(Sampler, RenderResource);
-
-		RenderResourcePtr<RHI_Sampler> m_sampler;
-
-	public:
-		Vector4f border_color        = {0.f, 0.f, 0.f, 1.f};
+	struct SamplerInitializer {
 		SamplerFilter filter         = SamplerFilter::Point;
 		SamplerAddressMode address_u = SamplerAddressMode::Repeat;
 		SamplerAddressMode address_v = SamplerAddressMode::Repeat;
 		SamplerAddressMode address_w = SamplerAddressMode::Repeat;
-		float mip_lod_bias           = 0.0;
-		float anisotropy             = 1.0;
 		CompareMode compare_mode     = CompareMode::None;
-		float min_lod                = -1000.0;
-		float max_lod                = 1000.0;
 		CompareFunc compare_func     = CompareFunc::Always;
+		Color border_color           = Color(0, 0, 0, 255);
 
-		Sampler& init_render_resources() override;
-		Sampler& release_render_resources() override;
-		Sampler& rhi_bind(byte location);
-		bool serialize(Archive& archive) override;
-		Sampler& apply_changes() override;
+		float anisotropy;
+		float mip_lod_bias;
+		float min_lod;
+		float max_lod;
 
-		inline RHI_Sampler* rhi_sampler() const { return m_sampler; }
+		SamplerInitializer();
+		HashIndex hash() const;
+
+		bool operator==(const SamplerInitializer& initializer) const;
+		inline bool operator!=(const SamplerInitializer& initializer) const { return !(*this == initializer); }
+	};
+
+	class ENGINE_EXPORT Sampler final
+	{
+		trinex_declare_struct(Sampler, void);
+
+	private:
+		class SamplerImpl* m_sampler = nullptr;
+
+		Sampler& add_ref();
+
+	public:
+		inline Sampler() { init(SamplerFilter::Point); };
+		inline Sampler(const Sampler& sampler) : m_sampler(sampler.m_sampler) { add_ref(); }
+		inline Sampler(Sampler&& sampler) : m_sampler(sampler.m_sampler) { sampler.m_sampler = nullptr; }
+		inline Sampler(const SamplerInitializer& initializer) { init(initializer); }
+		inline Sampler(SamplerFilter filter) { init(filter); }
+
+		Sampler& init(const SamplerInitializer& initializer);
+		Sampler& init(SamplerFilter filter);
+		Sampler& release();
+		const SamplerInitializer* initializer() const;
+		RHI_Sampler* rhi_sampler() const;
+		const Sampler& rhi_bind(byte location) const;
+		bool serialize(Archive& ar);
+
+		inline Sampler& operator=(const Sampler& sampler)
+		{
+			if (this == &sampler)
+				return *this;
+
+			release();
+			m_sampler = sampler.m_sampler;
+			add_ref();
+			return *this;
+		}
+
+		inline Sampler& operator=(Sampler&& sampler)
+		{
+			if (this == &sampler)
+				return *this;
+
+			release();
+			m_sampler         = sampler.m_sampler;
+			sampler.m_sampler = nullptr;
+			return *this;
+		}
+
+		inline ~Sampler() { release(); }
 	};
 }// namespace Engine

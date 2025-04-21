@@ -7,7 +7,7 @@
 
 namespace Engine
 {
-	OpenGL_Sampler::OpenGL_Sampler(const Sampler* sampler)
+	OpenGL_Sampler::OpenGL_Sampler(const SamplerInitializer* sampler)
 	{
 		glGenSamplers(1, &m_id);
 
@@ -59,7 +59,7 @@ namespace Engine
 		glDeleteSamplers(1, &m_id);
 	}
 
-	RHI_Sampler* OpenGL::create_sampler(const Sampler* sampler)
+	RHI_Sampler* OpenGL::create_sampler(const SamplerInitializer* sampler)
 	{
 		return new OpenGL_Sampler(sampler);
 	}

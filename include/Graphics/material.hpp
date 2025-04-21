@@ -55,18 +55,18 @@ namespace Engine
 		trinex_declare_class(Material, MaterialInterface);
 
 	protected:
-		bool register_child(Object* child) override;
-		bool unregister_child(Object* child) override;
-
 		Map<Refl::RenderPassInfo*, Pipeline*> m_pipelines;
 		GraphicsPipelineDescription* m_graphics_options = nullptr;
+
+		bool register_child(Object* child) override;
+		bool unregister_child(Object* child) override;
+		bool apply_internal(MaterialInterface* head, SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
 
 	private:
 		bool register_pipeline_parameters(Pipeline* pipeline);
 
 	public:
 		MaterialDomain domain;
-		MaterialOptions options;
 
 		Vector<ShaderDefinition> compile_definitions;
 
@@ -80,7 +80,6 @@ namespace Engine
 
 		class Material* material() override;
 		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
-		bool apply(MaterialInterface* head, SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
 		bool serialize(Archive& archive) override;
 
 		virtual Material& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline);
@@ -89,6 +88,8 @@ namespace Engine
 		inline GraphicsPipelineDescription* graphics_description() const { return m_graphics_options; }
 
 		~Material();
+
+		friend class MaterialInstance;
 	};
 
 	class ENGINE_EXPORT MaterialInstance : public MaterialInterface
