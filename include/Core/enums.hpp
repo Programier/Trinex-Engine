@@ -527,7 +527,7 @@ namespace Engine
 		trinex_enum_struct(RHIBufferType);
 	};
 
-	struct ColorFormat {
+	struct ENGINE_EXPORT ColorFormat {
 		enum Enum : EnumerateType
 		{
 			Undefined         = 0,
@@ -535,16 +535,99 @@ namespace Engine
 			META_Depth        = BIT(1),
 			META_DepthStencil = BIT(2) | META_Depth,
 
-			FloatR       = (1 << 3) | META_Color,
-			FloatRGBA    = (2 << 3) | META_Color,
-			R8           = (3 << 3) | META_Color,
-			R8G8B8A8     = (4 << 3) | META_Color,
-			Depth        = (5 << 3) | META_Depth,
-			DepthStencil = (6 << 3) | META_DepthStencil,
-			ShadowDepth  = (7 << 3) | META_Depth,
-			BC1          = (8 << 3) | META_Color,
-			BC2          = (9 << 3) | META_Color,
-			BC3          = (10 << 3) | META_Color,
+			R8       = (1 << 3) | META_Color,
+			R8G8     = (2 << 3) | META_Color,
+			R8G8B8   = (3 << 3) | META_Color,
+			R8G8B8A8 = (4 << 3) | META_Color,
+
+			R8_SNORM       = (5 << 3) | META_Color,
+			R8G8_SNORM     = (6 << 3) | META_Color,
+			R8G8B8_SNORM   = (7 << 3) | META_Color,
+			R8G8B8A8_SNORM = (8 << 3) | META_Color,
+
+			R8_UINT       = (9 << 3) | META_Color,
+			R8G8_UINT     = (10 << 3) | META_Color,
+			R8G8B8_UINT   = (11 << 3) | META_Color,
+			R8G8B8A8_UINT = (12 << 3) | META_Color,
+
+			R8_SINT       = (13 << 3) | META_Color,
+			R8G8_SINT     = (14 << 3) | META_Color,
+			R8G8B8_SINT   = (15 << 3) | META_Color,
+			R8G8B8A8_SINT = (16 << 3) | META_Color,
+
+			R16          = (17 << 3) | META_Color,
+			R16G16       = (18 << 3) | META_Color,
+			R16G16B16    = (19 << 3) | META_Color,
+			R16G16B16A16 = (20 << 3) | META_Color,
+
+			R16_SNORM          = (21 << 3) | META_Color,
+			R16G16_SNORM       = (22 << 3) | META_Color,
+			R16G16B16_SNORM    = (23 << 3) | META_Color,
+			R16G16B16A16_SNORM = (24 << 3) | META_Color,
+
+			R16_UINT          = (25 << 3) | META_Color,
+			R16G16_UINT       = (26 << 3) | META_Color,
+			R16G16B16_UINT    = (27 << 3) | META_Color,
+			R16G16B16A16_UINT = (28 << 3) | META_Color,
+
+			R16_SINT          = (29 << 3) | META_Color,
+			R16G16_SINT       = (30 << 3) | META_Color,
+			R16G16B16_SINT    = (31 << 3) | META_Color,
+			R16G16B16A16_SINT = (32 << 3) | META_Color,
+
+			R32          = (33 << 3) | META_Color,
+			R32G32       = (34 << 3) | META_Color,
+			R32G32B32    = (35 << 3) | META_Color,
+			R32G32B32A32 = (36 << 3) | META_Color,
+
+			R32_SNORM          = (37 << 3) | META_Color,
+			R32G32_SNORM       = (38 << 3) | META_Color,
+			R32G32B32_SNORM    = (39 << 3) | META_Color,
+			R32G32B32A32_SNORM = (40 << 3) | META_Color,
+
+			R32_UINT          = (41 << 3) | META_Color,
+			R32G32_UINT       = (42 << 3) | META_Color,
+			R32G32B32_UINT    = (43 << 3) | META_Color,
+			R32G32B32A32_UINT = (44 << 3) | META_Color,
+
+			R32_SINT          = (45 << 3) | META_Color,
+			R32G32_SINT       = (46 << 3) | META_Color,
+			R32G32B32_SINT    = (47 << 3) | META_Color,
+			R32G32B32A32_SINT = (48 << 3) | META_Color,
+
+			R16F          = (49 << 3) | META_Color,
+			R16G16F       = (50 << 3) | META_Color,
+			R16G16B16F    = (51 << 3) | META_Color,
+			R16G16B16A16F = (52 << 3) | META_Color,
+
+			R32F          = (53 << 3) | META_Color,
+			R32G32F       = (54 << 3) | META_Color,
+			R32G32B32F    = (55 << 3) | META_Color,
+			R32G32B32A32F = (56 << 3) | META_Color,
+
+			BC1_RGBA = (57 << 3) | META_Color,
+			BC2_RGBA = (58 << 3) | META_Color,
+			BC3_RGBA = (59 << 3) | META_Color,
+			BC4_R    = (60 << 3) | META_Color,
+			BC5_RG   = (61 << 3) | META_Color,
+			BC7_RGBA = (62 << 3) | META_Color,
+
+			ASTC_4x4_RGBA   = (63 << 3) | META_Color,
+			ASTC_6x6_RGBA   = (64 << 3) | META_Color,
+			ASTC_8x8_RGBA   = (65 << 3) | META_Color,
+			ASTC_10x10_RGBA = (66 << 3) | META_Color,
+
+			ETC1_RGB  = (67 << 3) | META_Color,
+			ETC2_RGB  = (68 << 3) | META_Color,
+			ETC2_RGBA = (69 << 3) | META_Color,
+
+			NV12 = (70 << 3) | META_Color,
+			P010 = (71 << 3) | META_Color,
+
+			// Platform specific formats
+			Depth        = (513 << 3) | META_Depth,       // Platform specific format
+			DepthStencil = (514 << 3) | META_DepthStencil,// Platform specific format
+			ShadowDepth  = (515 << 3) | META_Depth,       // Platform specific format
 		};
 
 		trinex_enum_struct(ColorFormat);

@@ -255,7 +255,7 @@ namespace Engine
 		blit.setDstSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
 
 		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal, blit,
-		                     filter_of(filter));
+		                     VulkanEnums::filter_of(filter));
 
 		cmd->add_object(dst);
 		cmd->add_object(src);
@@ -334,7 +334,7 @@ namespace Engine
 
 	vk::Format VulkanTexture2D::format() const
 	{
-		return VulkanEnums::from_color_format(engine_format());
+		return VulkanEnums::format_of(engine_format());
 	}
 
 	ColorFormat VulkanTexture2D::engine_format() const

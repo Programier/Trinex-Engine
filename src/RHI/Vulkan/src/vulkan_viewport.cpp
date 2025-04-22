@@ -8,6 +8,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_enums.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
@@ -101,7 +102,7 @@ namespace Engine
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->m_image, vk::ImageLayout::eTransferDstOptimal, blit,
-		                     filter_of(filter));
+		                     VulkanEnums::filter_of(filter));
 	}
 
 	void VulkanViewport::clear_color(const LinearColor& color)

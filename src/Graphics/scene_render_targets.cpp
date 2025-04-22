@@ -77,7 +77,7 @@ namespace Engine
 		switch (type)
 		{
 			case Surface::SceneColorHDR:
-				return ColorFormat::FloatRGBA;
+				return ColorFormat::R16G16B16A16F;
 			case Surface::SceneColorLDR:
 				return ColorFormat::R8G8B8A8;
 			case Surface::SceneDepthZ:
@@ -87,7 +87,7 @@ namespace Engine
 			case Surface::BaseColor:
 				return ColorFormat::R8G8B8A8;
 			case Surface::Normal:
-				return ColorFormat::FloatRGBA;
+				return ColorFormat::R16G16B16A16F;
 			case Surface::Emissive:
 				return ColorFormat::R8G8B8A8;
 			case Surface::MSRA:

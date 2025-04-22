@@ -13,6 +13,7 @@
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_config.hpp>
+#include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
@@ -398,6 +399,13 @@ namespace Engine
 			m_state.m_render_pass = nullptr;
 		}
 		return cmd;
+	}
+
+	bool VulkanAPI::is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal)
+	{
+		vk::FormatProperties properties            = m_physical_device.getFormatProperties(format);
+		const vk::FormatFeatureFlags feature_flags = optimal ? properties.optimalTilingFeatures : properties.linearTilingFeatures;
+		return (feature_flags & flags) == flags;
 	}
 
 	VulkanAPI& VulkanAPI::submit()

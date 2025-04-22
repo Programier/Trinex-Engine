@@ -12,8 +12,8 @@ struct Arguments
 	uint level;
 };
 
-uniform Sampler2D<float4> src;
-uniform writeonly RWTexture2D<float4> dst;
+uniform Texture2D src;
+uniform writeonly RWTexture2D dst;
 
 [parameter_type("MemoryBlock")]
 uniform Arguments args;

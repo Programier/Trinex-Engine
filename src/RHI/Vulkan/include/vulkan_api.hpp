@@ -83,6 +83,8 @@ namespace Engine
 		VulkanCommandBuffer* begin_render_pass();
 		VulkanCommandBuffer* end_render_pass();
 
+		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
+
 		//////////////////////////////////////////////////////////////
 
 		VulkanAPI();

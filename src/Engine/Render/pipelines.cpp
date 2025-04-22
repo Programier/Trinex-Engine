@@ -72,7 +72,7 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind_combined(m_src->location, Sampler(SamplerFilter::Point).rhi_sampler());
+		src->bind(m_src->location);
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
@@ -109,7 +109,7 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind_combined(m_src->location, Sampler(SamplerFilter::Point).rhi_sampler());
+		src->bind(m_src->location);
 		dst->bind(m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);

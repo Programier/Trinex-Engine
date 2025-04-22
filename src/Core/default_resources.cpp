@@ -24,7 +24,6 @@ namespace Engine
 		namespace Materials
 		{
 			ENGINE_EXPORT Material* sprite    = nullptr;
-			ENGINE_EXPORT Material* screen    = nullptr;
 			ENGINE_EXPORT Material* base_pass = nullptr;
 		}// namespace Materials
 
@@ -61,7 +60,6 @@ namespace Engine
 		using namespace DefaultResources;
 		Textures::default_texture = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
 		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
-		Materials::screen         = load_object<Material>("TrinexEngine::Materials::ScreenMaterial");
 		Materials::base_pass      = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
 		Meshes::cube              = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
 		Meshes::sphere            = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");

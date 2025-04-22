@@ -423,12 +423,12 @@ namespace Engine
 		{
 			if (m_channels == 3)
 			{
-				return ColorFormat::BC1;
+				return ColorFormat::BC1_RGBA;
 			}
 
 			if (m_channels == 4)
 			{
-				return ColorFormat::BC3;
+				return ColorFormat::BC3_RGBA;
 			}
 		}
 
@@ -447,12 +447,6 @@ namespace Engine
 
 	bool Image::serialize(Archive& archive)
 	{
-		//        if (archive.is_saving() && m_data.empty())
-		//        {
-		//            error_log("Image", "Failed to serialize image. Data is empty!");
-		//            return false;
-		//        }
-
 		archive.serialize(m_width, m_height, m_channels, m_is_compressed);
 
 		if (!archive)

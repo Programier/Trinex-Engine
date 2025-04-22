@@ -26,7 +26,6 @@ namespace Engine
 		namespace Materials
 		{
 			ENGINE_EXPORT extern Material* sprite;
-			ENGINE_EXPORT extern Material* screen;
 			ENGINE_EXPORT extern Material* base_pass;
 		}// namespace Materials
 

@@ -11,6 +11,7 @@
 #include <vulkan_definitions.hpp>
 #include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_set.hpp>
+#include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
@@ -293,11 +294,11 @@ namespace Engine
 		for (auto& attachment : color_blend_attachment)
 		{
 			attachment.setBlendEnable(in_state->color_blending.enable)
-			        .setSrcColorBlendFactor(get_type(in_state->color_blending.src_color_func, false))
-			        .setDstColorBlendFactor(get_type(in_state->color_blending.dst_color_func, false))
+			        .setSrcColorBlendFactor(VulkanEnums::blend_func_of(in_state->color_blending.src_color_func, false))
+			        .setDstColorBlendFactor(VulkanEnums::blend_func_of(in_state->color_blending.dst_color_func, false))
 			        .setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.color_op)])
-			        .setSrcAlphaBlendFactor(get_type(in_state->color_blending.src_alpha_func, true))
-			        .setDstAlphaBlendFactor(get_type(in_state->color_blending.dst_alpha_func, true))
+			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(in_state->color_blending.src_alpha_func, true))
+			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(in_state->color_blending.dst_alpha_func, true))
 			        .setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.alpha_op)]);
 
 			vk::ColorComponentFlags color_mask;
