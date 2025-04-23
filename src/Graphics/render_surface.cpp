@@ -19,8 +19,7 @@ namespace Engine
 		m_size   = size;
 
 		render_thread()->call([this]() {
-			TextureCreateFlags flags;
-			flags |= TextureCreateFlags::ShaderResource;
+			TextureCreateFlags flags = TextureCreateFlags::ShaderResource;
 
 			if (m_format.is_color())
 			{
