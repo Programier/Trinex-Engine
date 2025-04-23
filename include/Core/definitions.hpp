@@ -178,6 +178,10 @@
 		bitfield |= other;                                                                                                       \
 		return *this;                                                                                                            \
 	}                                                                                                                            \
+	constexpr inline struct_type operator~() const                                                                               \
+	{                                                                                                                            \
+		return struct_type(~bitfield);                                                                                           \
+	}                                                                                                                            \
 	constexpr inline struct_type& operator&=(Enum other)                                                                         \
 	{                                                                                                                            \
 		bitfield &= other;                                                                                                       \

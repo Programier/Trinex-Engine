@@ -352,7 +352,7 @@ namespace Engine
 			ImGui::SameLine();
 		};
 
-		if (Texture2D* icon = Icons::icon(Icons::More))
+		if (ImTextureID icon = Icons::icon(Icons::More))
 		{
 			if (ImGui::ImageButton(icon, {height, height}, {0, 1}, {1, 0}))
 			{
@@ -374,7 +374,7 @@ namespace Engine
 
 		for (auto& control : controls)
 		{
-			if (Texture2D* imgui_texture = Icons::icon(control.second))
+			if (ImTextureID imgui_texture = Icons::icon(control.second))
 			{
 				ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 

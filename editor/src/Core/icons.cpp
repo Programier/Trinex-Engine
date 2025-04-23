@@ -8,24 +8,23 @@
 #include <Core/reflection/class.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 
 namespace Engine::Icons
 {
 	static Texture2D* m_icons[IconType::__COUNT__] = {0};
 
-	Texture2D* default_texture()
+	ImGuiTrinexTextureId default_texture()
 	{
 		return m_icons[IconType::Default];
 	}
 
-	Texture2D* icon(IconType type)
+	ImGuiTrinexTextureId icon(IconType type)
 	{
 		return m_icons[type];
 	}
 
-	Texture2D* find_icon(Object* object)
+	ImGuiTrinexTextureId find_icon(Object* object)
 	{
 		if (object)
 		{
@@ -35,13 +34,16 @@ namespace Engine::Icons
 					return texture;
 			}
 
+			if (RenderSurface* surface = object->instance_cast<RenderSurface>())
+				return surface;
+
 			return find_icon(object->class_instance());
 		}
 
 		return default_texture();
 	}
 
-	Texture2D* find_icon(Refl::Class* class_instance)
+	ImGuiTrinexTextureId find_icon(Refl::Class* class_instance)
 	{
 		static Name meta = "__trinex_editor_class_icon__";
 		auto& data       = class_instance->metadata(meta);

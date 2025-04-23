@@ -47,17 +47,6 @@ namespace Engine
 	                             Short1N, Short2N, Short4N, UShort1, UShort2, UShort4, UShort1N, UShort2N, UShort4N, Int1, Int2,
 	                             Int3, Int4, UInt1, UInt2, UInt3, UInt4);
 
-	trinex_implement_engine_enum(ColorFormat, Undefined, R8, R8G8, R8G8B8, R8G8B8A8, R8_SNORM, R8G8_SNORM, R8G8B8_SNORM,
-	                             R8G8B8A8_SNORM, R8_UINT, R8G8_UINT, R8G8B8_UINT, R8G8B8A8_UINT, R8_SINT, R8G8_SINT, R8G8B8_SINT,
-	                             R8G8B8A8_SINT, R16, R16G16, R16G16B16, R16G16B16A16, R16_SNORM, R16G16_SNORM, R16G16B16_SNORM,
-	                             R16G16B16A16_SNORM, R16_UINT, R16G16_UINT, R16G16B16_UINT, R16G16B16A16_UINT, R16_SINT,
-	                             R16G16_SINT, R16G16B16_SINT, R16G16B16A16_SINT, R32, R32G32, R32G32B32, R32G32B32A32, R32_SNORM,
-	                             R32G32_SNORM, R32G32B32_SNORM, R32G32B32A32_SNORM, R32_UINT, R32G32_UINT, R32G32B32_UINT,
-	                             R32G32B32A32_UINT, R32_SINT, R32G32_SINT, R32G32B32_SINT, R32G32B32A32_SINT, R16F, R16G16F,
-	                             R16G16B16F, R16G16B16A16F, R32F, R32G32F, R32G32B32F, R32G32B32A32F, BC1_RGBA, BC2_RGBA,
-	                             BC3_RGBA, BC4_R, BC5_RG, BC7_RGBA, ASTC_4x4_RGBA, ASTC_6x6_RGBA, ASTC_8x8_RGBA, ASTC_10x10_RGBA,
-	                             ETC1_RGB, ETC2_RGB, ETC2_RGBA, NV12, P010, Depth, DepthStencil, ShadowDepth);
-
 	trinex_implement_engine_enum(MaterialDomain, Surface, PostProcess);
 	trinex_implement_engine_enum(SplashTextType, StartupProgress, VersionInfo, CopyrightInfo, GameName);
 

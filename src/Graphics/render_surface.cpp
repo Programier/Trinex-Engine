@@ -26,7 +26,7 @@ namespace Engine
 				flags |= TextureCreateFlags::RenderTarget;
 				flags |= TextureCreateFlags::UnorderedAccess;
 			}
-			else if (m_format.is_depth())
+			else if (m_format.has_depth())
 			{
 				flags |= TextureCreateFlags::DepthStencilTarget;
 			}

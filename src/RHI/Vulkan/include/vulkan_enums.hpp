@@ -40,10 +40,6 @@ namespace Engine::VulkanEnums
 			case ColorFormat::R16G16_SINT: return vk::Format::eR16G16Sint;
 			case ColorFormat::R16G16B16_SINT: return vk::Format::eR16G16B16Sint;
 			case ColorFormat::R16G16B16A16_SINT: return vk::Format::eR16G16B16A16Sint;
-			case ColorFormat::R32: return vk::Format::eR32Sfloat;
-			case ColorFormat::R32G32: return vk::Format::eR32G32Sfloat;
-			case ColorFormat::R32G32B32: return vk::Format::eR32G32B32Sfloat;
-			case ColorFormat::R32G32B32A32: return vk::Format::eR32G32B32A32Sfloat;
 			case ColorFormat::R32_UINT: return vk::Format::eR32Uint;
 			case ColorFormat::R32G32_UINT: return vk::Format::eR32G32Uint;
 			case ColorFormat::R32G32B32_UINT: return vk::Format::eR32G32B32Uint;
@@ -75,7 +71,7 @@ namespace Engine::VulkanEnums
 			case ColorFormat::ETC2_RGBA: return vk::Format::eEtc2R8G8B8A8UnormBlock;
 			case ColorFormat::NV12: return vk::Format::eG8B8R82Plane420Unorm;
 			case ColorFormat::P010: return vk::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16;
-			case ColorFormat::Depth: return vk::Format::eD32Sfloat;
+			case ColorFormat::Depth: return vk::Format::eD16Unorm;
 			case ColorFormat::DepthStencil: return vk::Format::eD24UnormS8Uint;
 			case ColorFormat::ShadowDepth: return vk::Format::eD16Unorm;
 

@@ -39,10 +39,6 @@ namespace Engine
 			case ColorFormat::R16G16_SINT: return OpenGL_ColorInfo(GL_RG16I, GL_RG, GL_SHORT);
 			case ColorFormat::R16G16B16_SINT: return OpenGL_ColorInfo(GL_RGB16I, GL_RGB, GL_SHORT);
 			case ColorFormat::R16G16B16A16_SINT: return OpenGL_ColorInfo(GL_RGBA16I, GL_RGBA, GL_SHORT);
-			case ColorFormat::R32: return OpenGL_ColorInfo(GL_R32F, GL_RED, GL_FLOAT);
-			case ColorFormat::R32G32: return OpenGL_ColorInfo(GL_RG32F, GL_RG, GL_FLOAT);
-			case ColorFormat::R32G32B32: return OpenGL_ColorInfo(GL_RGB32F, GL_RGB, GL_FLOAT);
-			case ColorFormat::R32G32B32A32: return OpenGL_ColorInfo(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 			case ColorFormat::R32_UINT: return OpenGL_ColorInfo(GL_R32UI, GL_RED, GL_UNSIGNED_INT);
 			case ColorFormat::R32G32_UINT: return OpenGL_ColorInfo(GL_RG32UI, GL_RG, GL_UNSIGNED_INT);
 			case ColorFormat::R32G32B32_UINT: return OpenGL_ColorInfo(GL_RGB32UI, GL_RGB, GL_UNSIGNED_INT);

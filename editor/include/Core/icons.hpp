@@ -1,5 +1,7 @@
 #pragma once
 
+class ImGuiTrinexTextureId;
+
 namespace Engine
 {
 	class Texture2D;
@@ -25,10 +27,10 @@ namespace Engine
 			__COUNT__
 		};
 
-		Texture2D* icon(IconType type);
-		Texture2D* default_texture();
+		ImGuiTrinexTextureId icon(IconType type);
+		ImGuiTrinexTextureId default_texture();
 
-		Texture2D* find_icon(Object* object);
-		Texture2D* find_icon(Refl::Class* class_instance);
+		ImGuiTrinexTextureId find_icon(Object* object);
+		ImGuiTrinexTextureId find_icon(Refl::Class* class_instance);
 	}// namespace Icons
 }// namespace Engine

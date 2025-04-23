@@ -3,6 +3,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
+#include <Graphics/types/color_format.hpp>
 
 namespace Engine
 {

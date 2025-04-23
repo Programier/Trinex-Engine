@@ -19,8 +19,8 @@ struct ImGuiTrinexTextureId {
 	inline ImGuiTrinexTextureId(Engine::RenderSurface* surface) : texture(nullptr), surface(surface) {}
 	inline bool operator==(const ImGuiTrinexTextureId& other) const { return other.texture == texture; }
 	inline bool operator!=(const ImGuiTrinexTextureId& other) const { return other.texture != texture; }
-	inline void* id() const { return texture; }
-	inline operator bool() const { return texture != nullptr; }
+	inline const void* id() const { return texture ? static_cast<const void*>(texture) : static_cast<const void*>(surface); }
+	inline operator bool() const { return id() != nullptr; }
 	inline operator const void*() const { return id(); }
 };
 

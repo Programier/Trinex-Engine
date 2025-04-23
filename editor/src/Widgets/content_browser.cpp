@@ -188,7 +188,7 @@ namespace Engine
 		if (!in_filter)
 			return false;
 
-		Texture2D* imgui_texture      = Icons::find_icon(object);
+		ImTextureID imgui_texture     = Icons::find_icon(object);
 		const float image_side_length = item_size.x * 0.93f;
 		const ImVec2 image_size       = ImVec2(image_side_length, image_side_length);
 
