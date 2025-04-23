@@ -48,55 +48,35 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case Surface::SceneColorHDR:
-				return "SceneColorHDR";
-			case Surface::SceneColorLDR:
-				return "SceneColorLDR";
-			case Surface::SceneDepthZ:
-				return "SceneDepthZ";
-			case Surface::HitProxies:
-				return "HitProxies";
-			case Surface::BaseColor:
-				return "BaseColor";
-			case Surface::Normal:
-				return "Normal";
-			case Surface::Emissive:
-				return "Emissive";
-			case Surface::MSRA:
-				return "MSRA";
-			case Surface::LightPassDepthZ:
-				return "LightPassDepthZ";
+			case Surface::SceneColorHDR: return "SceneColorHDR";
+			case Surface::SceneColorLDR: return "SceneColorLDR";
+			case Surface::SceneDepthZ: return "SceneDepthZ";
+			case Surface::HitProxies: return "HitProxies";
+			case Surface::BaseColor: return "BaseColor";
+			case Surface::Normal: return "Normal";
+			case Surface::Emissive: return "Emissive";
+			case Surface::MSRA: return "MSRA";
+			case Surface::LightPassDepthZ: return "LightPassDepthZ";
 
-			default:
-				throw EngineException("Undefined name of render target texture");
+			default: throw EngineException("Undefined name of render target texture");
 		}
 	}
 
-	ColorFormat SceneRenderTargets::format_of(Surface type) const
+	SurfaceFormat SceneRenderTargets::format_of(Surface type) const
 	{
 		switch (type)
 		{
-			case Surface::SceneColorHDR:
-				return ColorFormat::R16G16B16A16F;
-			case Surface::SceneColorLDR:
-				return ColorFormat::R8G8B8A8;
-			case Surface::SceneDepthZ:
-				return ColorFormat::DepthStencil;
-			case Surface::HitProxies:
-				return ColorFormat::R8G8B8A8;
-			case Surface::BaseColor:
-				return ColorFormat::R8G8B8A8;
-			case Surface::Normal:
-				return ColorFormat::R16G16B16A16F;
-			case Surface::Emissive:
-				return ColorFormat::R8G8B8A8;
-			case Surface::MSRA:
-				return ColorFormat::R8G8B8A8;
-			case Surface::LightPassDepthZ:
-				return ColorFormat::DepthStencil;
+			case Surface::SceneColorHDR: return SurfaceFormat::RGBA16F;
+			case Surface::SceneColorLDR: return SurfaceFormat::RGBA8;
+			case Surface::SceneDepthZ: return SurfaceFormat::Depth;
+			case Surface::HitProxies: return SurfaceFormat::RGBA8;
+			case Surface::BaseColor: return SurfaceFormat::RGBA8;
+			case Surface::Normal: return SurfaceFormat::RGBA16F;
+			case Surface::Emissive: return SurfaceFormat::RGBA8;
+			case Surface::MSRA: return SurfaceFormat::RGBA8;
+			case Surface::LightPassDepthZ: return SurfaceFormat::ShadowDepth;
 
-			default:
-				throw EngineException("Undefined type of render target texture");
+			default: throw EngineException("Undefined type of render target texture");
 		}
 	}
 

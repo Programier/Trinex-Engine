@@ -20,12 +20,12 @@ namespace Engine
 		RenderResourcePtr<RHI_ShaderResourceView> m_srv;
 		RenderResourcePtr<RHI_UnorderedAccessView> m_uav;
 
-		ColorFormat m_format = ColorFormat::Undefined;
-		Vector2u m_size      = {0, 0};
+		SurfaceFormat m_format = SurfaceFormat::Undefined;
+		Vector2u m_size        = {0, 0};
 
 	public:
 		RenderSurface();
-		RenderSurface& init(ColorFormat format, Vector2i size);
+		RenderSurface& init(SurfaceFormat format, Vector2i size);
 		RenderSurface& release_render_resources() override;
 
 		inline RHI_Texture2D* rhi_texture() const { return m_texture; }
@@ -34,6 +34,6 @@ namespace Engine
 		inline RHI_ShaderResourceView* rhi_shader_resource_view() const { return m_srv; }
 		inline RHI_UnorderedAccessView* rhi_unordered_access_view() const { return m_uav; }
 		inline Vector2u size() const { return m_size; }
-		inline ColorFormat format() const { return m_format; }
+		inline SurfaceFormat format() const { return m_format; }
 	};
 }// namespace Engine

@@ -117,7 +117,7 @@ namespace Engine
 
 		if (enabled && m_shadow_map == nullptr)
 		{
-			m_shadow_map = RenderSurfacePool::global_instance()->request_surface(ColorFormat::ShadowDepth, {1024, 1024});
+			m_shadow_map = RenderSurfacePool::global_instance()->request_surface(SurfaceFormat::ShadowDepth, {1024, 1024});
 		}
 		else if (!enabled && m_shadow_map != nullptr)
 		{

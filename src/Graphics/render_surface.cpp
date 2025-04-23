@@ -13,7 +13,7 @@ namespace Engine
 		flags(IsEditable, false);
 	}
 
-	RenderSurface& RenderSurface::init(ColorFormat format, Vector2i size)
+	RenderSurface& RenderSurface::init(SurfaceFormat format, Vector2i size)
 	{
 		m_format = format;
 		m_size   = size;
@@ -55,7 +55,7 @@ namespace Engine
 		m_rtv     = nullptr;
 		m_texture = nullptr;
 
-		m_format = ColorFormat::Undefined;
+		m_format = SurfaceFormat::Undefined;
 		m_size   = {0, 0};
 		return *this;
 	}

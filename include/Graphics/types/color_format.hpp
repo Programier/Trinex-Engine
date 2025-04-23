@@ -129,7 +129,7 @@ namespace Engine
 		constexpr inline bool is_color() const { return value >= R8 && value <= P010; }
 		constexpr inline bool is_depth_stencil() const { return value == DepthStencil; }
 		constexpr inline bool is_depth() const { return value == Depth || value == ShadowDepth; }
-		constexpr inline bool has_depth() const { return value >= DepthStencil && value <= ShadowDepth; }
+		constexpr inline bool has_depth() const { return value >= Depth && value <= ShadowDepth; }
 
 		template<typename Func>
 		constexpr static void static_foreach(Func&& func)
@@ -144,6 +144,7 @@ namespace Engine
 	struct SurfaceFormat {
 		enum Enum : EnumerateType
 		{
+			Undefined   = ColorFormat::Undefined,
 			Depth       = ColorFormat::Depth,
 			ShadowDepth = ColorFormat::ShadowDepth,
 

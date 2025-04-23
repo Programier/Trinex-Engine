@@ -43,7 +43,7 @@ namespace Engine
 		RenderSurface* surface_of(Surface type) const;
 		RHI_RenderTargetView* rtv_of(Surface type) const;
 		RHI_DepthStencilView* dsv_of(Surface type) const;
-		ColorFormat format_of(Surface type) const;
+		SurfaceFormat format_of(Surface type) const;
 		StringView name_of(Surface type) const;
 		void initialize(Size2D new_size);
 		const Size2D& size() const;

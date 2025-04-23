@@ -4,6 +4,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/pointer.hpp>
 #include <Core/tickable.hpp>
+#include <Graphics/types/color_format.hpp>
 
 namespace Engine
 {
@@ -23,8 +24,8 @@ namespace Engine
 		static RenderSurfacePool* global_instance();
 
 		RenderSurfacePool& update(float dt) override;
-		RenderSurface* request_surface(ColorFormat format, Vector2u size);
-		RenderSurface* request_transient_surface(ColorFormat format, Vector2u size);
+		RenderSurface* request_surface(SurfaceFormat format, Vector2u size);
+		RenderSurface* request_transient_surface(SurfaceFormat format, Vector2u size);
 		RenderSurfacePool& return_surface(RenderSurface* surface);
 	};
 }// namespace Engine

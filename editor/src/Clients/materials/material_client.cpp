@@ -126,7 +126,7 @@ namespace Engine
 				return nullptr;
 
 			auto pool    = RenderSurfacePool::global_instance();
-			auto surface = pool->request_transient_surface(ColorFormat::R8G8B8A8, {size.x, size.y});
+			auto surface = pool->request_transient_surface(SurfaceFormat::RGBA8, {size.x, size.y});
 
 			if (surface)
 			{

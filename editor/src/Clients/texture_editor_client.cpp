@@ -87,7 +87,7 @@ namespace Engine
 	TextureEditorClient::TextureEditorClient()
 	{
 		m_surface = Object::new_instance<RenderSurface>();
-		m_surface->init(ColorFormat::R8G8B8A8, {1, 1});
+		m_surface->init(SurfaceFormat::RGBA8, {1, 1});
 
 		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_render_target_view()->clear(Color(0, 0, 0, 1)); });
 
@@ -199,7 +199,7 @@ namespace Engine
 
 		if (size != dst->size())
 		{
-			dst->init(ColorFormat::R8G8B8A8, size);
+			dst->init(SurfaceFormat::RGBA8, size);
 		}
 		return *this;
 	}
@@ -243,7 +243,7 @@ namespace Engine
 
 		if (size != dst->size())
 		{
-			dst->init(ColorFormat::R8G8B8A8, size);
+			dst->init(SurfaceFormat::RGBA8, size);
 		}
 		return *this;
 	}

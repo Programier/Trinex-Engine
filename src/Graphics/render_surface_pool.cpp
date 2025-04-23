@@ -22,7 +22,7 @@ namespace Engine
 		Identifier id;
 
 		struct Value {
-			ColorFormat format;
+			SurfaceFormat format;
 			uint16_t x;
 			uint16_t y;
 		} value;
@@ -30,7 +30,7 @@ namespace Engine
 		static_assert(sizeof(Value) == sizeof(Identifier));
 	};
 
-	static inline Identifier static_calculate_surface_id(ColorFormat format, Vector2u size)
+	static inline Identifier static_calculate_surface_id(SurfaceFormat format, Vector2u size)
 	{
 		SurfaceID id;
 		id.value.format = format;
@@ -75,7 +75,7 @@ namespace Engine
 		return *this;
 	}
 
-	RenderSurface* RenderSurfacePool::request_surface(ColorFormat format, Vector2u size)
+	RenderSurface* RenderSurfacePool::request_surface(SurfaceFormat format, Vector2u size)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
@@ -99,7 +99,7 @@ namespace Engine
 		return surface;
 	}
 
-	RenderSurface* RenderSurfacePool::request_transient_surface(ColorFormat format, Vector2u size)
+	RenderSurface* RenderSurfacePool::request_transient_surface(SurfaceFormat format, Vector2u size)
 	{
 		if (auto surface = request_surface(format, size))
 		{
