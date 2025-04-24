@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
+#include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
@@ -31,6 +32,7 @@ namespace Engine::Refl
 	implement_reflect_type(ReflObjectProperty);
 	implement_reflect_type(SubClassProperty);
 	implement_reflect_type(FlagsProperty);
+	implement_reflect_type(VirtualProperty);
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
@@ -304,6 +306,56 @@ namespace Engine::Refl
 		return ar.serialize_memory(flags, size());
 	}
 
+	void* VirtualProperty::address(void* context)
+	{
+		throw EngineException("Cannot use Property::address method on virtual properties!");
+		return nullptr;
+	}
+
+	const void* VirtualProperty::address(const void* context) const
+	{
+		throw EngineException("Cannot use Property::address method on virtual properties!");
+		return nullptr;
+	}
+
+	bool VirtualProperty::serialize(void* object, Archive& ar)
+	{
+		if (ar.is_reading())
+		{
+			Any value  = construct_value();
+			void* prop = value.address();
+
+			if (property()->serialize(prop, ar))
+			{
+				setter(object, value);
+				return true;
+			}
+
+			return false;
+		}
+		else if (ar.is_saving())
+		{
+			Any value = getter(object);
+			return property()->serialize(value.address(), ar);
+		}
+
+		return false;
+	}
+
+	struct Example {
+		int getter() const { return 0; }
+		Example& setter(int value) { return *this; }
+	};
+
+	static void test()
+	{
+
+		Refl::Object* test;
+
+		test->new_child<decltype(TypedVirtualProperty(&Example::getter, &Example::setter))>("", &Example::getter,
+		                                                                                    &Example::setter);
+	}
+
 	static void on_init()
 	{
 		{
@@ -314,6 +366,8 @@ namespace Engine::Refl
 			r.set("is_read_only", T::IsReadOnly);
 			r.set("is_transient", T::IsTransient);
 			r.set("is_hidden", T::IsHidden);
+			r.set("inline_single_field", T::InlineSingleField);
+			r.set("inline", T::Inline);
 		}
 
 		ScriptClassRegistrar::RefInfo info;

@@ -51,13 +51,25 @@ namespace Engine
 		ImGui::PopID();
 	}
 
+	static FORCE_INLINE bool has_only_one_property(Refl::Struct* self)
+	{
+		uint_t count = 0;
+
+		while (self && count < 2)
+		{
+			count += static_cast<uint_t>(self->properties().size());
+			self = self->parent();
+		}
+
+		return count < 2;
+	}
+
 	struct ScopedPropID {
 		ScopedPropID(const void* object, Refl::Property* prop) { push_props_id(object, prop); }
 		~ScopedPropID() { pop_props_id(); }
 	};
 
-	using RendererFunc       = PropertyRenderer::RendererFunc;
-	using StructRendererFunc = PropertyRenderer::StructRendererFunc;
+	using RendererFunc = PropertyRenderer::RendererFunc;
 
 	const RendererFunc& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class) const
 	{
@@ -80,31 +92,6 @@ namespace Engine
 	PropertyRenderer::Context& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class, const RendererFunc& func)
 	{
 		m_renderers[refl_class] = func;
-		return *this;
-	}
-
-	const StructRendererFunc& PropertyRenderer::Context::struct_renderer(const Refl::Struct* struct_instance) const
-	{
-		if (auto ptr = struct_renderer_ptr(struct_instance))
-			return *ptr;
-		return default_value_of<StructRendererFunc>();
-	}
-
-	const StructRendererFunc* PropertyRenderer::Context::struct_renderer_ptr(const Refl::Struct* struct_instance) const
-	{
-		for (const Context* ctx = this; ctx; ctx = ctx->prev())
-		{
-			auto it = ctx->m_struct_renderers.find(struct_instance);
-			if (it != ctx->m_struct_renderers.end())
-				return &it->second;
-		}
-		return nullptr;
-	}
-
-	PropertyRenderer::Context& PropertyRenderer::Context::struct_renderer(const Refl::Struct* struct_instance,
-	                                                                      const StructRendererFunc& func)
-	{
-		m_struct_renderers[struct_instance] = func;
 		return *this;
 	}
 
@@ -179,20 +166,54 @@ namespace Engine
 		return m_object;
 	}
 
-	PropertyRenderer::PropertiesMap& PropertyRenderer::build_props_map(Refl::Struct* self)
+	PropertyRenderer::PropertiesMap& PropertyRenderer::build_properties_map(PropertiesMap& map, Refl::Struct* self)
 	{
-		auto& map = m_properties[self];
-		map.clear();
-
 		for (; self; self = self->parent())
 		{
-			for (auto& prop : self->properties())
+			for (Refl::Property* prop : self->properties())
 			{
+				const bool inline_single_field = prop->is_inline_single_field();
+				const bool is_inline           = prop->is_inline();
+
+				if (is_inline || inline_single_field)
+				{
+					Refl::Struct* struct_instance = nullptr;
+
+					if (Refl::StructProperty* struct_property = prop_cast<Refl::StructProperty>(prop))
+					{
+						struct_instance = struct_property->struct_instance();
+					}
+					else if (Refl::ObjectProperty* object_property = prop_cast<Refl::ObjectProperty>(prop))
+					{
+						if (object_property->is_composite())
+						{
+							struct_instance = object_property->class_instance();
+						}
+					}
+
+					if (struct_instance)
+					{
+						if (is_inline || (!inline_single_field || has_only_one_property(struct_instance)))
+						{
+							build_properties_map(map, struct_instance);
+							continue;
+						}
+					}
+				}
+
 				map[prop->group()].push_back(prop);
 			}
 		}
 
 		return map;
+	}
+
+	PropertyRenderer::PropertiesMap& PropertyRenderer::build_properties_map(Refl::Struct* self)
+	{
+		auto& map = m_properties[self];
+		map.clear();
+
+		return build_properties_map(map, self);
 	}
 
 	PropertyRenderer& PropertyRenderer::object(Object* object, bool reset)
@@ -203,7 +224,7 @@ namespace Engine
 		{
 			m_properties.clear();
 			userdata.clear();
-			build_props_map(struct_instance());
+			build_properties_map(struct_instance());
 		}
 		return *this;
 	}
@@ -224,51 +245,40 @@ namespace Engine
 
 		if (map.empty() && has_props(self))
 		{
-			return build_props_map(self);
+			return build_properties_map(self);
 		}
 
 		return map;
 	}
 
-	PropertyRenderer& PropertyRenderer::push_name(const String& name, uint16_t usages)
+	PropertyRenderer& PropertyRenderer::next_name(const String& name)
 	{
-		m_prop_names_stack.emplace_back(name, usages);
-		return *this;
-	}
-
-	PropertyRenderer& PropertyRenderer::pop_name()
-	{
-		trinex_check(m_prop_names_stack.size() > 0, "Names stack is empty. push_name/pop_name count mismatch!");
-		m_prop_names_stack.pop_back();
+		m_next_name = name;
 		return *this;
 	}
 
 	const String& PropertyRenderer::property_name(const String& name)
 	{
-		if (!m_prop_names_stack.empty())
+		const String& overrided = m_property_names_stack.back();
+
+		if (overrided.empty())
 		{
-			auto& back = m_prop_names_stack.back();
-			if (back.usages > 0)
-			{
-				--back.usages;
-				return back.name;
-			}
+			return name;
 		}
-		return name;
+
+		return overrided;
 	}
 
 	const String& PropertyRenderer::property_name(Refl::Property* prop, const void* context)
 	{
-		if (!m_prop_names_stack.empty())
+		const String& overrided = m_property_names_stack.back();
+
+		if (overrided.empty())
 		{
-			auto& back = m_prop_names_stack.back();
-			if (back.usages > 0)
-			{
-				--back.usages;
-				return back.name;
-			}
+			return prop->property_name(context);
 		}
-		return prop->property_name(context);
+
+		return overrided;
 	}
 
 	void* PropertyRenderer::property_context(size_t stack_offset) const
@@ -290,7 +300,11 @@ namespace Engine
 		if (auto renderer = ctx->renderer_ptr(prop->refl_class_info()))
 		{
 			m_context_stack.push_back(object);
+			m_property_names_stack.emplace_back(std::move(m_next_name));
+
 			bool result = (*renderer)(this, prop, read_only);
+
+			m_property_names_stack.pop_back();
 			m_context_stack.pop_back();
 			return result;
 		}
@@ -300,16 +314,7 @@ namespace Engine
 
 	bool PropertyRenderer::render_struct_properties(void* object, Refl::Struct* struct_class, bool read_only)
 	{
-		const Context* ctx = renderer_context();
-
-		if (auto renderer = ctx->struct_renderer_ptr(struct_class))
-		{
-			m_context_stack.push_back(object);
-			bool result = (*renderer)(this, struct_class, read_only);
-			m_context_stack.pop_back();
-			return result;
-		}
-
+		const Context* ctx     = renderer_context();
 		bool has_changed_props = false;
 
 		for (auto& [group, props] : properties_map(struct_class))
@@ -564,7 +569,7 @@ namespace Engine
 
 			for (size_t i = 0; i < rows; i++)
 			{
-				renderer->push_name(names[i]);
+				renderer->next_name(names[i]);
 
 				void* context = renderer->property_context();
 				void* address = prop->row_address(context, i);
@@ -575,8 +580,6 @@ namespace Engine
 					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
 					is_changed = changed;
 				}
-
-				renderer->pop_name();
 			}
 			ImGui::Unindent();
 		}
@@ -763,31 +766,43 @@ namespace Engine
 	{
 		auto& properties_map = renderer->properties_map(struct_instance);
 
-		if (properties_map.empty() && renderer->renderer_context()->struct_renderer_ptr(struct_instance) == nullptr)
+		if (properties_map.empty())
 			return false;
 
-		bool is_changed = false;
+		bool is_changed   = false;
+		bool is_collapsed = false;
 
-		const bool is_inlined = prop->inline_single_field_structs() &&//
-		                        properties_map.size() == 1 &&         //
-		                        properties_map.begin()->second.size() == 1;
-
-		if (is_inlined)
+		if (prop->is_inline())
 		{
-			is_changed = renderer->render_property(struct_address, properties_map.begin()->second.front(), read_only);
+			is_collapsed = true;
+			renderer->next_name(renderer->property_name());
+		}
+		else if (prop->is_inline_single_field())
+		{
+			if (has_only_one_property(struct_instance))
+			{
+				is_collapsed = true;
+				renderer->next_name(renderer->property_name());
+			}
+			else
+			{
+				ImGui::TableNextRow();
+				is_collapsed = collapsing_header(renderer, prop);
+			}
 		}
 		else
 		{
 			ImGui::TableNextRow();
+			is_collapsed = collapsing_header(renderer, prop);
+		}
 
-			if (collapsing_header(renderer, prop))
-			{
-				push_props_id(struct_address, prop);
-				ImGui::Indent();
-				is_changed = renderer->render_struct_properties(struct_address, struct_instance, read_only);
-				ImGui::Unindent();
-				pop_props_id();
-			}
+		if (is_collapsed)
+		{
+			push_props_id(struct_address, prop);
+			ImGui::Indent();
+			is_changed = renderer->render_struct_properties(struct_address, struct_instance, read_only);
+			ImGui::Unindent();
+			pop_props_id();
 		}
 
 		if (is_changed)
@@ -910,7 +925,7 @@ namespace Engine
 				ImGui::PushID(i);
 
 				void* array_object = prop->at(context, i);
-				renderer->push_name(prop->index_name(context, i));
+				renderer->next_name(prop->index_name(context, i));
 
 				if (renderer->render_property(array_object, element_prop, element_prop->is_read_only()))
 				{
@@ -930,8 +945,6 @@ namespace Engine
 						continue;
 					}
 				}
-
-				renderer->pop_name();
 
 				ImGui::PopID();
 			}
@@ -1096,6 +1109,25 @@ namespace Engine
 		return changed;
 	}
 
+	static bool render_virtual_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	{
+		Refl::VirtualProperty* prop = prop_cast_checked<Refl::VirtualProperty>(prop_base);
+		void* context               = renderer->property_context();
+
+		Any value = prop->getter(context);
+		renderer->next_name(renderer->property_name(prop, context));
+
+		const bool changed = renderer->render_property(value.address(), prop->property(), read_only);
+
+		if (changed)
+		{
+			prop->setter(context, value);
+			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+		}
+
+		return changed;
+	}
+
 	static void on_preinit()
 	{
 		auto ctx = PropertyRenderer::static_global_renderer_context();
@@ -1141,6 +1173,7 @@ namespace Engine
 		ctx->renderer<Refl::ReflObjectProperty>(render_refl_object_property);
 		ctx->renderer<Refl::SubClassProperty>(render_sub_class_property);
 		ctx->renderer<Refl::FlagsProperty>(render_flags_property);
+		ctx->renderer<Refl::VirtualProperty>(render_virtual_property);
 	}
 
 	static PreInitializeController pre_init(on_preinit);

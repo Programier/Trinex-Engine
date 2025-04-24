@@ -6,7 +6,7 @@
 #include <Core/reflection/property.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
-#include <Graphics/visual_material_graph.hpp>
+#include <Graphics/visual_material_nodes.hpp>
 
 namespace Engine
 {

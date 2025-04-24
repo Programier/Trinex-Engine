@@ -212,6 +212,7 @@ namespace Engine::VisualMaterialGraph
 	public:
 		Vector2f position = {0.f, 0.f};
 
+		static void static_node_group(Refl::Class* node_class, const String& group);
 		InputPin* new_input(const String& name, ShaderParameterType type);
 		OutputPin* new_output(const String& name, ShaderParameterType type);
 
@@ -225,23 +226,5 @@ namespace Engine::VisualMaterialGraph
 		inline const Vector<OutputPin*>& outputs() const { return m_outputs; }
 
 		~Node();
-	};
-
-	class MaterialRoot : public Node
-	{
-		trinex_declare_class(MaterialRoot, Node);
-
-	public:
-		InputPin* const base_color;
-		InputPin* const opacity;
-		InputPin* const emissive;
-		InputPin* const specular;
-		InputPin* const metalness;
-		InputPin* const roughness;
-		InputPin* const ao;
-		InputPin* const normal;
-		InputPin* const position_offset;
-
-		MaterialRoot();
 	};
 }// namespace Engine::VisualMaterialGraph

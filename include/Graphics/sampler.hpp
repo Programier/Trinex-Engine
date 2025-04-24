@@ -43,10 +43,18 @@ namespace Engine
 		Sampler& init(const SamplerInitializer& initializer);
 		Sampler& init(SamplerFilter filter);
 		Sampler& release();
-		const SamplerInitializer* initializer() const;
+		const SamplerInitializer& initializer() const;
 		RHI_Sampler* rhi_sampler() const;
 		const Sampler& rhi_bind(byte location) const;
 		bool serialize(Archive& ar);
+
+		Sampler& filter(SamplerFilter filter);
+		Sampler& address_u(SamplerAddressMode address);
+		Sampler& address_v(SamplerAddressMode address);
+		Sampler& address_w(SamplerAddressMode address);
+		Sampler& compare_mode(CompareMode mode);
+		Sampler& compare_func(CompareFunc func);
+		Sampler& border_color(const Color& color);
 
 		inline Sampler& operator=(const Sampler& sampler)
 		{
@@ -69,6 +77,15 @@ namespace Engine
 			sampler.m_sampler = nullptr;
 			return *this;
 		}
+
+		inline SamplerFilter filter() const { return initializer().filter; }
+		inline SamplerAddressMode address_u() const { return initializer().address_u; }
+		inline SamplerAddressMode address_v() const { return initializer().address_v; }
+		inline SamplerAddressMode address_w() const { return initializer().address_w; }
+		inline CompareMode compare_mode() const { return initializer().compare_mode; }
+		inline CompareFunc compare_func() const { return initializer().compare_func; }
+		inline Color border_color() const { return initializer().border_color; }
+
 
 		inline ~Sampler() { release(); }
 	};

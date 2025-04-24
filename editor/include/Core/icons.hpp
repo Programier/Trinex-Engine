@@ -1,6 +1,6 @@
 #pragma once
 
-class ImGuiTrinexTextureId;
+struct ImGuiTrinexTextureId;
 
 namespace Engine
 {

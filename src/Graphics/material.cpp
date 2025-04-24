@@ -33,7 +33,7 @@ namespace Engine
 		Refl::Property* element_property() const override
 		{
 			constexpr Parameter* T::* null_prop = nullptr;
-			const auto flags                    = Refl::Property::InlineSingleFieldStructs;
+			const auto flags                    = Refl::Property::InlineSingleField;
 			using Element                       = Refl::NativeProperty<null_prop>;
 
 			static Refl::Property* prop = Refl::Object::new_instance<Element>(nullptr, StringView("Element"), flags);

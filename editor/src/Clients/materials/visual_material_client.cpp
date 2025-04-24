@@ -13,7 +13,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
-#include <Graphics/visual_material_graph.hpp>
+#include <Graphics/visual_material_nodes.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -866,9 +866,9 @@ namespace Engine
 			{
 				auto node = m_selected_nodes.front();
 
-				if (s_node_property_renderer.properties_map(node->class_instance()).empty())
+				if (m_properties_window->properties_map(node->class_instance()).empty())
 				{
-					properties_object = m_material;
+					properties_object = node;
 				}
 				else
 				{
@@ -1069,6 +1069,13 @@ namespace Engine
 		return is_changed;
 	}
 
+	static bool render_struct_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	{
+		Refl::StructProperty* prop = Refl::Object::instance_cast<Refl::StructProperty>(prop_base);
+		void* struct_address       = prop->address(renderer->property_context());
+		return renderer->render_struct_properties(struct_address, prop->struct_instance(), read_only);
+	}
+
 	static bool render_object_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
 	{
 		Refl::ObjectProperty* prop = Refl::Object::instance_cast<Refl::ObjectProperty>(prop_base);
@@ -1151,6 +1158,7 @@ namespace Engine
 
 		ctx.renderer<Refl::BooleanProperty>(render_bool_property);
 		ctx.renderer<Refl::EnumProperty>(render_enum_property);
+		ctx.renderer<Refl::StructProperty>(render_struct_property);
 		ctx.renderer<Refl::ObjectProperty>(render_object_property);
 	}
 

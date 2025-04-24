@@ -16,9 +16,8 @@ namespace Engine
 	class PropertyRenderer : public ImGuiWidget
 	{
 	public:
-		using PropertiesMap      = TreeMap<String, Vector<Refl::Property*>>;
-		using RendererFunc       = Function<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
-		using StructRendererFunc = Function<bool(PropertyRenderer* renderer, Refl::Struct* struct_instance, bool read_only)>;
+		using PropertiesMap = TreeMap<String, Vector<Refl::Property*>>;
+		using RendererFunc  = Function<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
 
 		class Context
 		{
@@ -30,7 +29,6 @@ namespace Engine
 
 		private:
 			Map<const Refl::ClassInfo*, RendererFunc> m_renderers;
-			Map<const Refl::Struct*, StructRendererFunc> m_struct_renderers;
 			Context* m_prev = nullptr;
 
 		public:
@@ -45,10 +43,6 @@ namespace Engine
 			const RendererFunc* renderer_ptr(const Refl::ClassInfo*) const;
 			Context& renderer(const Refl::ClassInfo*, const RendererFunc& func);
 
-			const StructRendererFunc& struct_renderer(const Refl::Struct*) const;
-			const StructRendererFunc* struct_renderer_ptr(const Refl::Struct*) const;
-			Context& struct_renderer(const Refl::Struct*, const StructRendererFunc& func);
-
 			inline Context* prev() const { return m_prev; }
 
 			template<typename T>
@@ -59,22 +53,19 @@ namespace Engine
 		};
 
 	private:
-		struct NextPropertyName {
-			String name;
-			uint16_t usages = 1;
-		};
-
 		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
-		Vector<NextPropertyName> m_prop_names_stack;
+		Vector<String> m_property_names_stack;
 		Vector<void*> m_context_stack;
 
 
+		String m_next_name;
 		Context* m_ctx = nullptr;
 		Object* m_object;
 		Identifier m_destroy_id;
 		size_t m_property_index = 0;
 
-		PropertiesMap& build_props_map(Refl::Struct* self);
+		PropertiesMap& build_properties_map(PropertiesMap& map, Refl::Struct* self);
+		PropertiesMap& build_properties_map(Refl::Struct* self);
 
 	public:
 		UserData userdata;
@@ -90,8 +81,8 @@ namespace Engine
 		Refl::Struct* struct_instance() const;
 		const PropertiesMap& properties_map(Refl::Struct* self);
 
-		PropertyRenderer& push_name(const String& name, uint16_t usages = 1);
-		PropertyRenderer& pop_name();
+		PropertyRenderer& next_name(const String& name);
+		inline const String& property_name() const { return m_property_names_stack.back(); }
 		const String& property_name(const String& name);
 		const String& property_name(Refl::Property* prop, const void* context);
 

@@ -4,6 +4,7 @@
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/memory.hpp>
+#include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
@@ -12,7 +13,17 @@
 
 namespace Engine
 {
-	trinex_implement_struct(Engine::Sampler, 0) {}
+	trinex_implement_struct(Engine::Sampler, 0)
+	{
+		auto self = static_struct_instance();
+		trinex_refl_virtual_prop(self, filter, filter, filter, Refl::Property::IsTransient);
+		trinex_refl_virtual_prop(self, address_u, address_u, address_u, Refl::Property::IsTransient);
+		trinex_refl_virtual_prop(self, address_v, address_v, address_v, Refl::Property::IsTransient);
+		trinex_refl_virtual_prop(self, address_w, address_w, address_w, Refl::Property::IsTransient);
+		trinex_refl_virtual_prop(self, compare_mode, compare_mode, compare_mode, Refl::Property::IsTransient);
+		trinex_refl_virtual_prop(self, compare_func, compare_func, compare_func, Refl::Property::IsTransient);
+		trinex_refl_virtual_prop(self, border_color, border_color, border_color, Refl::Property::IsTransient);
+	}
 
 	struct SamplerInitializerHash {
 		inline size_t operator()(const SamplerInitializer& initializer) const { return initializer.hash(); }
@@ -71,7 +82,7 @@ namespace Engine
 		}
 
 		inline uint64_t references() const { return m_references; }
-		inline const SamplerInitializer* initializer() const { return &m_initializer; }
+		inline const SamplerInitializer& initializer() const { return m_initializer; }
 		inline RHI_Sampler* rhi_sampler() const { return m_sampler; }
 		inline SamplerImpl* prev() const { return m_prev; }
 		inline SamplerImpl* next() const { return m_next; }
@@ -182,10 +193,8 @@ namespace Engine
 		return add_ref();
 	}
 
-	const SamplerInitializer* Sampler::initializer() const
+	const SamplerInitializer& Sampler::initializer() const
 	{
-		if (m_sampler == nullptr)
-			return nullptr;
 		return m_sampler->initializer();
 	}
 
@@ -215,7 +224,7 @@ namespace Engine
 
 		if (size > 0 && ar.is_saving())
 		{
-			SamplerInitializer inititalizer = *m_sampler->initializer();
+			SamplerInitializer inititalizer = m_sampler->initializer();
 			ar.serialize_memory(reinterpret_cast<byte*>(&inititalizer), size);
 		}
 		else if (ar.is_reading())
@@ -233,6 +242,90 @@ namespace Engine
 		}
 
 		return ar;
+	}
+
+	Sampler& Sampler::filter(SamplerFilter filter)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.filter != filter)
+		{
+			new_initializer.filter = filter;
+			init(new_initializer);
+		}
+		return *this;
+	}
+
+	Sampler& Sampler::address_u(SamplerAddressMode address)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.address_u != address)
+		{
+			new_initializer.address_u = address;
+			init(new_initializer);
+		}
+		return *this;
+	}
+
+	Sampler& Sampler::address_v(SamplerAddressMode address)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.address_v != address)
+		{
+			new_initializer.address_v = address;
+			init(new_initializer);
+		}
+		return *this;
+	}
+
+	Sampler& Sampler::address_w(SamplerAddressMode address)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.address_w != address)
+		{
+			new_initializer.address_w = address;
+			init(new_initializer);
+		}
+		return *this;
+	}
+
+	Sampler& Sampler::compare_mode(CompareMode mode)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.compare_mode != mode)
+		{
+			new_initializer.compare_mode = mode;
+			init(new_initializer);
+		}
+		return *this;
+	}
+
+	Sampler& Sampler::compare_func(CompareFunc func)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.compare_func != func)
+		{
+			new_initializer.compare_func = func;
+			init(new_initializer);
+		}
+		return *this;
+	}
+
+	Sampler& Sampler::border_color(const Color& color)
+	{
+		SamplerInitializer new_initializer = initializer();
+
+		if (new_initializer.border_color != color)
+		{
+			new_initializer.border_color = color;
+			init(new_initializer);
+		}
+		return *this;
 	}
 
 	template<SamplerFilter filter>

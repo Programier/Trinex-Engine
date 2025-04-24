@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/any.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/reflection/object.hpp>
@@ -85,10 +86,11 @@ private:
 	public:
 		enum Flag
 		{
-			IsReadOnly               = BIT(0),
-			IsTransient              = BIT(1),
-			IsHidden                 = BIT(2),
-			InlineSingleFieldStructs = BIT(3),
+			IsReadOnly        = BIT(0),
+			IsTransient       = BIT(1),
+			IsHidden          = BIT(2),
+			InlineSingleField = BIT(3),
+			Inline            = BIT(4),
 		};
 
 		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
@@ -114,7 +116,8 @@ private:
 		inline bool is_read_only() const { return check_flag(IsReadOnly); }
 		inline bool is_transient() const { return check_flag(IsTransient); }
 		inline bool is_hidden() const { return check_flag(IsHidden); }
-		inline bool inline_single_field_structs() const { return check_flag(InlineSingleFieldStructs); }
+		inline bool is_inline() const { return check_flag(Inline); }
+		inline bool is_inline_single_field() const { return check_flag(InlineSingleField); }
 
 		Identifier add_change_listener(const ChangeListener& listener);
 		Property& push_change_listener(const ChangeListener& listener);
@@ -496,6 +499,23 @@ private:
 		bool serialize(void* object, Archive& ar) override;
 	};
 
+	class ENGINE_EXPORT VirtualProperty : public Property
+	{
+		declare_reflect_type(VirtualProperty, Property);
+
+	public:
+		using Property::Property;
+
+		void* address(void* context) final override;
+		const void* address(const void* context) const final override;
+		bool serialize(void* object, Archive& ar) override;
+
+		virtual Property* property()                                     = 0;
+		virtual Any getter(const void* context)                          = 0;
+		virtual VirtualProperty& setter(void* context, const Any& value) = 0;
+		virtual Any construct_value() const                              = 0;
+	};
+
 	//////////////////// SPECIALIZATIONS ////////////////////
 
 	template<auto prop, typename Super, typename = std::enable_if_t<std::is_base_of_v<Property, Super>>>
@@ -832,11 +852,68 @@ private:
 		Enum* enum_instance() const override { return T::static_enum_instance(); }
 	};
 
+	template<typename T, typename O, typename SRet, typename SArg>
+	class TypedVirtualProperty : public VirtualProperty
+	{
+	private:
+		using Getter = T (O::*)() const;
+		using Setter = SRet (O::*)(SArg);
+
+		Getter m_getter;
+		Setter m_setter;
+
+	public:
+		static_assert(std::is_default_constructible_v<T>, "Property type must be default constructible!");
+		static_assert(std::is_convertible_v<T, SArg>, "Getter return type must be convertible to setter argument!");
+
+		TypedVirtualProperty(Getter getter, Setter setter, BitMask flags = 0)
+		    : VirtualProperty(flags), m_getter(getter), m_setter(setter)
+		{}
+
+		Any getter(const void* context) override
+		{
+			const O* obj = static_cast<const O*>(context);
+			return (obj->*m_getter)();
+		}
+
+		VirtualProperty& setter(void* context, const Any& value) override
+		{
+			O* obj = static_cast<O*>(context);
+			T val  = value.cast<const T&>();
+			(obj->*m_setter)(static_cast<SArg>(val));
+			return *this;
+		}
+
+		Any construct_value() const override { return T(); }
+
+		Property* property() override
+		{
+			constexpr T O::* null_prop = nullptr;
+			static Property* instance  = Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Property"));
+			return instance;
+		}
+
+		size_t size() const override { return sizeof(T); }
+
+		static TypedVirtualProperty* construct(Object* owner, StringView name, Getter getter, Setter setter, BitMask flags = 0)
+		{
+			return owner->new_child<TypedVirtualProperty>(name, getter, setter, flags);
+		}
+	};
+
 
 #undef trinex_refl_prop_type_filter
 #define trinex_refl_prop(self, class_name, prop_name, ...)                                                                       \
 	self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
 
+#define trinex_refl_virtual_prop(self, prop_name, getter, setter, ...)                                                           \
+	decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))::construct(                                       \
+	        self, #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
+
 #define trinex_refl_prop_ext(extension, self, class_name, prop_name, ...)                                                        \
 	self->new_child<extension<Engine::Refl::NativeProperty<&class_name::prop_name>>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
+
+#define trinex_refl_virtual_prop_ext(extension, self, prop_name, getter, setter, ...)                                            \
+	self->new_child<extension<decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))>>(                      \
+	        #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
 }// namespace Engine::Refl

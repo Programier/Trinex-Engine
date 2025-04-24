@@ -39,8 +39,6 @@ namespace Engine::VisualMaterialGraph
 		ScriptEngine::on_terminate.push([]() { s_node_compile_output.release(); });
 	}
 
-	trinex_implement_class(Engine::VisualMaterialGraph::MaterialRoot, 0) {}
-
 	template<typename T>
 	struct DataTypeFormatter {
 		static String format(const T& value, ShaderParameterType type, uint_t depth = 0)
@@ -98,44 +96,25 @@ namespace Engine::VisualMaterialGraph
 
 		switch (type.value)
 		{
-			case T::Bool:
-				return allocate<DefaultValueHolder<Vector1b, T::Bool>>();
-			case T::Bool2:
-				return allocate<DefaultValueHolder<Vector2b, T::Bool2>>();
-			case T::Bool3:
-				return allocate<DefaultValueHolder<Vector3b, T::Bool3>>();
-			case T::Bool4:
-				return allocate<DefaultValueHolder<Vector4b, T::Bool4>>();
-			case T::Int:
-				return allocate<DefaultValueHolder<Vector1i, T::Int>>();
-			case T::Int2:
-				return allocate<DefaultValueHolder<Vector2i, T::Int2>>();
-			case T::Int3:
-				return allocate<DefaultValueHolder<Vector3i, T::Int3>>();
-			case T::Int4:
-				return allocate<DefaultValueHolder<Vector4i, T::Int4>>();
-			case T::UInt:
-				return allocate<DefaultValueHolder<Vector1u, T::UInt>>();
-			case T::UInt2:
-				return allocate<DefaultValueHolder<Vector2u, T::UInt2>>();
-			case T::UInt3:
-				return allocate<DefaultValueHolder<Vector3u, T::UInt3>>();
-			case T::UInt4:
-				return allocate<DefaultValueHolder<Vector4u, T::UInt4>>();
-			case T::Float:
-				return allocate<DefaultValueHolder<Vector1f, T::Float>>();
-			case T::Float2:
-				return allocate<DefaultValueHolder<Vector2f, T::Float2>>();
-			case T::Float3:
-				return allocate<DefaultValueHolder<Vector3f, T::Float3>>();
-			case T::Float4:
-				return allocate<DefaultValueHolder<Vector4f, T::Float4>>();
-			case T::Float3x3:
-				return allocate<DefaultValueHolder<Matrix3f, T::Float3x3>>();
-			case T::Float4x4:
-				return allocate<DefaultValueHolder<Matrix4f, T::Float4x4>>();
-			default:
-				return nullptr;
+			case T::Bool: return allocate<DefaultValueHolder<Vector1b, T::Bool>>();
+			case T::Bool2: return allocate<DefaultValueHolder<Vector2b, T::Bool2>>();
+			case T::Bool3: return allocate<DefaultValueHolder<Vector3b, T::Bool3>>();
+			case T::Bool4: return allocate<DefaultValueHolder<Vector4b, T::Bool4>>();
+			case T::Int: return allocate<DefaultValueHolder<Vector1i, T::Int>>();
+			case T::Int2: return allocate<DefaultValueHolder<Vector2i, T::Int2>>();
+			case T::Int3: return allocate<DefaultValueHolder<Vector3i, T::Int3>>();
+			case T::Int4: return allocate<DefaultValueHolder<Vector4i, T::Int4>>();
+			case T::UInt: return allocate<DefaultValueHolder<Vector1u, T::UInt>>();
+			case T::UInt2: return allocate<DefaultValueHolder<Vector2u, T::UInt2>>();
+			case T::UInt3: return allocate<DefaultValueHolder<Vector3u, T::UInt3>>();
+			case T::UInt4: return allocate<DefaultValueHolder<Vector4u, T::UInt4>>();
+			case T::Float: return allocate<DefaultValueHolder<Vector1f, T::Float>>();
+			case T::Float2: return allocate<DefaultValueHolder<Vector2f, T::Float2>>();
+			case T::Float3: return allocate<DefaultValueHolder<Vector3f, T::Float3>>();
+			case T::Float4: return allocate<DefaultValueHolder<Vector4f, T::Float4>>();
+			case T::Float3x3: return allocate<DefaultValueHolder<Matrix3f, T::Float3x3>>();
+			case T::Float4x4: return allocate<DefaultValueHolder<Matrix4f, T::Float4x4>>();
+			default: return nullptr;
 		}
 		return nullptr;
 	}
@@ -146,47 +125,28 @@ namespace Engine::VisualMaterialGraph
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool:
-				return Expression(type, "false");
-			case ShaderParameterType::Bool2:
-				return Expression(type, "bool2(false, false)");
-			case ShaderParameterType::Bool3:
-				return Expression(type, "bool3(false, false, false)");
-			case ShaderParameterType::Bool4:
-				return Expression(type, "bool4(false, false, false)");
+			case ShaderParameterType::Bool: return Expression(type, "false");
+			case ShaderParameterType::Bool2: return Expression(type, "bool2(false, false)");
+			case ShaderParameterType::Bool3: return Expression(type, "bool3(false, false, false)");
+			case ShaderParameterType::Bool4: return Expression(type, "bool4(false, false, false)");
 
-			case ShaderParameterType::Int:
-				return Expression(type, "int(0)");
-			case ShaderParameterType::Int2:
-				return Expression(type, "int2(0, 0)");
-			case ShaderParameterType::Int3:
-				return Expression(type, "int3(0, 0, 0)");
-			case ShaderParameterType::Int4:
-				return Expression(type, "int4(0, 0, 0, 0)");
+			case ShaderParameterType::Int: return Expression(type, "int(0)");
+			case ShaderParameterType::Int2: return Expression(type, "int2(0, 0)");
+			case ShaderParameterType::Int3: return Expression(type, "int3(0, 0, 0)");
+			case ShaderParameterType::Int4: return Expression(type, "int4(0, 0, 0, 0)");
 
-			case ShaderParameterType::UInt:
-				return Expression(type, "uint(0)");
-			case ShaderParameterType::UInt2:
-				return Expression(type, "uint2(0, 0)");
-			case ShaderParameterType::UInt3:
-				return Expression(type, "uint3(0, 0, 0)");
-			case ShaderParameterType::UInt4:
-				return Expression(type, "uint4(0, 0, 0, 0)");
+			case ShaderParameterType::UInt: return Expression(type, "uint(0)");
+			case ShaderParameterType::UInt2: return Expression(type, "uint2(0, 0)");
+			case ShaderParameterType::UInt3: return Expression(type, "uint3(0, 0, 0)");
+			case ShaderParameterType::UInt4: return Expression(type, "uint4(0, 0, 0, 0)");
 
-			case ShaderParameterType::Float:
-				return Expression(type, "float(0.f)");
-			case ShaderParameterType::Float2:
-				return Expression(type, "float2(0.f, 0.f)");
-			case ShaderParameterType::Float3:
-				return Expression(type, "float3(0.f, 0.f, 0.f)");
-			case ShaderParameterType::Float4:
-				return Expression(type, "float4(0.f, 0.f, 0.f, 0.f)");
-			case ShaderParameterType::Float3x3:
-				return Expression(type, "float3x3(0.f)");
-			case ShaderParameterType::Float4x4:
-				return Expression(type, "float4x4(0.f)");
-			default:
-				throw EngineException("Unsupported shader parameter type!");
+			case ShaderParameterType::Float: return Expression(type, "float(0.f)");
+			case ShaderParameterType::Float2: return Expression(type, "float2(0.f, 0.f)");
+			case ShaderParameterType::Float3: return Expression(type, "float3(0.f, 0.f, 0.f)");
+			case ShaderParameterType::Float4: return Expression(type, "float4(0.f, 0.f, 0.f, 0.f)");
+			case ShaderParameterType::Float3x3: return Expression(type, "float3x3(0.f)");
+			case ShaderParameterType::Float4x4: return Expression(type, "float4x4(0.f)");
+			default: throw EngineException("Unsupported shader parameter type!");
 		}
 	}
 
@@ -194,47 +154,28 @@ namespace Engine::VisualMaterialGraph
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool:
-				return Expression(type, "false");
-			case ShaderParameterType::Bool2:
-				return Expression(type, "bool2(false, false)");
-			case ShaderParameterType::Bool3:
-				return Expression(type, "bool3(false, false, false)");
-			case ShaderParameterType::Bool4:
-				return Expression(type, "bool4(false, false, false)");
+			case ShaderParameterType::Bool: return Expression(type, "false");
+			case ShaderParameterType::Bool2: return Expression(type, "bool2(false, false)");
+			case ShaderParameterType::Bool3: return Expression(type, "bool3(false, false, false)");
+			case ShaderParameterType::Bool4: return Expression(type, "bool4(false, false, false)");
 
-			case ShaderParameterType::Int:
-				return Expression(type, "int(0)");
-			case ShaderParameterType::Int2:
-				return Expression(type, "int2(0, 0)");
-			case ShaderParameterType::Int3:
-				return Expression(type, "int3(0, 0, 0)");
-			case ShaderParameterType::Int4:
-				return Expression(type, "int4(0, 0, 0, 0)");
+			case ShaderParameterType::Int: return Expression(type, "int(0)");
+			case ShaderParameterType::Int2: return Expression(type, "int2(0, 0)");
+			case ShaderParameterType::Int3: return Expression(type, "int3(0, 0, 0)");
+			case ShaderParameterType::Int4: return Expression(type, "int4(0, 0, 0, 0)");
 
-			case ShaderParameterType::UInt:
-				return Expression(type, "uint(0)");
-			case ShaderParameterType::UInt2:
-				return Expression(type, "uint2(0, 0)");
-			case ShaderParameterType::UInt3:
-				return Expression(type, "uint3(0, 0, 0)");
-			case ShaderParameterType::UInt4:
-				return Expression(type, "uint4(0, 0, 0, 0)");
+			case ShaderParameterType::UInt: return Expression(type, "uint(0)");
+			case ShaderParameterType::UInt2: return Expression(type, "uint2(0, 0)");
+			case ShaderParameterType::UInt3: return Expression(type, "uint3(0, 0, 0)");
+			case ShaderParameterType::UInt4: return Expression(type, "uint4(0, 0, 0, 0)");
 
-			case ShaderParameterType::Float:
-				return Expression(type, "float(0.5f)");
-			case ShaderParameterType::Float2:
-				return Expression(type, "float2(0.5f, 0.5f)");
-			case ShaderParameterType::Float3:
-				return Expression(type, "float3(0.5f, 0.5f, 0.5f)");
-			case ShaderParameterType::Float4:
-				return Expression(type, "float4(0.5f, 0.5f, 0.5f, 0.5f)");
-			case ShaderParameterType::Float3x3:
-				return Expression(type, "float3x3(0.5f)");
-			case ShaderParameterType::Float4x4:
-				return Expression(type, "float4x4(0.5f)");
-			default:
-				throw EngineException("Unsupported shader parameter type!");
+			case ShaderParameterType::Float: return Expression(type, "float(0.5f)");
+			case ShaderParameterType::Float2: return Expression(type, "float2(0.5f, 0.5f)");
+			case ShaderParameterType::Float3: return Expression(type, "float3(0.5f, 0.5f, 0.5f)");
+			case ShaderParameterType::Float4: return Expression(type, "float4(0.5f, 0.5f, 0.5f, 0.5f)");
+			case ShaderParameterType::Float3x3: return Expression(type, "float3x3(0.5f)");
+			case ShaderParameterType::Float4x4: return Expression(type, "float4x4(0.5f)");
+			default: throw EngineException("Unsupported shader parameter type!");
 		}
 	}
 
@@ -242,47 +183,28 @@ namespace Engine::VisualMaterialGraph
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool:
-				return Expression(type, "true");
-			case ShaderParameterType::Bool2:
-				return Expression(type, "bool2(true, true)");
-			case ShaderParameterType::Bool3:
-				return Expression(type, "bool3(true, true, true)");
-			case ShaderParameterType::Bool4:
-				return Expression(type, "bool4(true, true, true)");
+			case ShaderParameterType::Bool: return Expression(type, "true");
+			case ShaderParameterType::Bool2: return Expression(type, "bool2(true, true)");
+			case ShaderParameterType::Bool3: return Expression(type, "bool3(true, true, true)");
+			case ShaderParameterType::Bool4: return Expression(type, "bool4(true, true, true)");
 
-			case ShaderParameterType::Int:
-				return Expression(type, "int(1)");
-			case ShaderParameterType::Int2:
-				return Expression(type, "int2(1, 1)");
-			case ShaderParameterType::Int3:
-				return Expression(type, "int3(1, 1, 1)");
-			case ShaderParameterType::Int4:
-				return Expression(type, "int4(1, 1, 1, 1)");
+			case ShaderParameterType::Int: return Expression(type, "int(1)");
+			case ShaderParameterType::Int2: return Expression(type, "int2(1, 1)");
+			case ShaderParameterType::Int3: return Expression(type, "int3(1, 1, 1)");
+			case ShaderParameterType::Int4: return Expression(type, "int4(1, 1, 1, 1)");
 
-			case ShaderParameterType::UInt:
-				return Expression(type, "uint(1)");
-			case ShaderParameterType::UInt2:
-				return Expression(type, "uint2(1, 1)");
-			case ShaderParameterType::UInt3:
-				return Expression(type, "uint3(1, 1, 1)");
-			case ShaderParameterType::UInt4:
-				return Expression(type, "uint4(1, 1, 1, 1)");
+			case ShaderParameterType::UInt: return Expression(type, "uint(1)");
+			case ShaderParameterType::UInt2: return Expression(type, "uint2(1, 1)");
+			case ShaderParameterType::UInt3: return Expression(type, "uint3(1, 1, 1)");
+			case ShaderParameterType::UInt4: return Expression(type, "uint4(1, 1, 1, 1)");
 
-			case ShaderParameterType::Float:
-				return Expression(type, "float(1.f)");
-			case ShaderParameterType::Float2:
-				return Expression(type, "float2(1.f, 1.f)");
-			case ShaderParameterType::Float3:
-				return Expression(type, "float3(1.f, 1.f, 1.f)");
-			case ShaderParameterType::Float4:
-				return Expression(type, "float4(1.f, 1.f, 1.f, 1.f)");
-			case ShaderParameterType::Float3x3:
-				return Expression(type, "float3x3(1.f)");
-			case ShaderParameterType::Float4x4:
-				return Expression(type, "float4x4(1.f)");
-			default:
-				throw EngineException("Unsupported shader parameter type!");
+			case ShaderParameterType::Float: return Expression(type, "float(1.f)");
+			case ShaderParameterType::Float2: return Expression(type, "float2(1.f, 1.f)");
+			case ShaderParameterType::Float3: return Expression(type, "float3(1.f, 1.f, 1.f)");
+			case ShaderParameterType::Float4: return Expression(type, "float4(1.f, 1.f, 1.f, 1.f)");
+			case ShaderParameterType::Float3x3: return Expression(type, "float3x3(1.f)");
+			case ShaderParameterType::Float4x4: return Expression(type, "float4x4(1.f)");
+			default: throw EngineException("Unsupported shader parameter type!");
 		}
 	}
 
@@ -292,28 +214,23 @@ namespace Engine::VisualMaterialGraph
 		{
 			case ShaderParameterType::Bool2:
 			case ShaderParameterType::Bool3:
-			case ShaderParameterType::Bool4:
-				return ShaderParameterType::Bool;
+			case ShaderParameterType::Bool4: return ShaderParameterType::Bool;
 
 			case ShaderParameterType::Int2:
 			case ShaderParameterType::Int3:
-			case ShaderParameterType::Int4:
-				return ShaderParameterType::Int;
+			case ShaderParameterType::Int4: return ShaderParameterType::Int;
 
 			case ShaderParameterType::UInt2:
 			case ShaderParameterType::UInt3:
-			case ShaderParameterType::UInt4:
-				return ShaderParameterType::UInt;
+			case ShaderParameterType::UInt4: return ShaderParameterType::UInt;
 
 			case ShaderParameterType::Float2:
 			case ShaderParameterType::Float3:
 			case ShaderParameterType::Float4:
 			case ShaderParameterType::Float3x3:
-			case ShaderParameterType::Float4x4:
-				return ShaderParameterType::Float;
+			case ShaderParameterType::Float4x4: return ShaderParameterType::Float;
 
-			default:
-				return type;
+			default: return type;
 		}
 	}
 
@@ -705,6 +622,18 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
+	void Node::static_node_group(Refl::Class* node_class, const String& group)
+	{
+		if (!node_class->is_a<Node>())
+		{
+			throw EngineException(
+			        "Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
+		}
+
+		String full_group_name = Strings::format("Engine::VisualMaterialGraph::Nodes::{}", group);
+		Group::find(full_group_name, true)->add_struct(node_class);
+	}
+
 	InputPin* Node::new_input(const String& name, ShaderParameterType type)
 	{
 		InputPin* pin = new InputPin();
@@ -766,39 +695,10 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	MaterialRoot::MaterialRoot()
-	    : Node(), base_color(new_input("Base Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),//
-	      opacity(new_input("Opacity", ShaderParameterType::Float, ShaderParameterType::Float)),                //
-	      emissive(new_input("Emissive Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),      //
-	      specular(new_input("Specular", ShaderParameterType::Float, ShaderParameterType::Float)),              //
-	      metalness(new_input("Metalness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
-	      roughness(new_input("Roughness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
-	      ao(new_input("AO", ShaderParameterType::Float, ShaderParameterType::Float)),                          //
-	      normal(new_input("Normal", ShaderParameterType::Float3, ShaderParameterType::Float3)),                //
-	      position_offset(new_input("Position Offset", ShaderParameterType::Float3, ShaderParameterType::Float3))
-	{
-		opacity->default_value()->ref<float>()   = 1.0f;
-		specular->default_value()->ref<float>()  = 0.5f;
-		normal->default_value()->ref<Vector3f>() = {0.5f, 0.5f, 1.0f};
-		ao->default_value()->ref<float>()        = 1.f;
-	}
-
-	static void script_class_node_group(Refl::Class* self, const String& group_name)
-	{
-		if (!self->is_a<Node>())
-		{
-			throw EngineException(
-			        "Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
-		}
-
-		String full_group_name = Strings::format("Engine::VisualMaterialGraph::Nodes::{}", group_name);
-		Group::find(full_group_name, true)->add_struct(self);
-	}
-
 	static void register_metadata_functions()
 	{
 		ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Engine::Refl::Class");
-		r.method("void node_group(const string& group_name) const final", script_class_node_group);
+		r.method("void node_group(const string& group_name) const final", Node::static_node_group);
 	}
 
 	template<typename T>
