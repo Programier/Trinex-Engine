@@ -33,7 +33,8 @@ namespace Engine
 			Footer  = 8,
 		};
 
-		Identifier m_id = 0;
+		ed::NodeId m_id      = 0;
+		Identifier m_next_id = 0;
 		Stage m_stage;
 
 		ImVec2 m_node_min;
@@ -59,21 +60,21 @@ namespace Engine
 	public:
 		BlueprintBuilder();
 
-		void begin(Identifier id);
+		void begin(ed::NodeId id);
 		void end();
 
 		void begin_header(const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 		void end_header();
 
-		void begin_input(Identifier id);
-		void begin_input_pin(Identifier id);
+		void begin_input();
+		void begin_input_pin(ed::PinId id);
 		void end_input_pin();
 		void end_input();
 
 		void begin_middle();
 
-		void begin_output(Identifier id);
-		void begin_output_pin(Identifier id);
+		void begin_output();
+		void begin_output_pin(ed::PinId id);
 		void end_output_pin();
 		void end_output();
 

@@ -21,19 +21,15 @@ namespace Engine
 
 		switch (old)
 		{
-			case Stage::Invalid:
-				break;
-			case Stage::Begin:
-				break;
-			case Stage::End:
-				break;
+			case Stage::Invalid: break;
+			case Stage::Begin: break;
+			case Stage::End: break;
 			case Stage::Header:
 				ImGui::EndHorizontal();
 				m_header_min = ImGui::GetItemRectMin();
 				m_header_max = ImGui::GetItemRectMax();
 				break;
-			case Stage::Content:
-				break;
+			case Stage::Content: break;
 
 			case Stage::Input:
 				ed::PopStyleVar(2);
@@ -56,8 +52,7 @@ namespace Engine
 				m_footer_max = ImGui::GetItemRectMax();
 				break;
 
-			default:
-				break;
+			default: break;
 		}
 
 		if (m_require_spacing && is_in<Stage::Middle, Stage::Output>(new_stage))
@@ -68,8 +63,7 @@ namespace Engine
 
 		switch (new_stage)
 		{
-			case Stage::Invalid:
-				break;
+			case Stage::Invalid: break;
 			case Stage::Begin:
 				ImGui::BeginVertical("Node");
 				ImGui::Spring(0.f, 0.f);
@@ -124,14 +118,14 @@ namespace Engine
 				m_has_footer = true;
 				break;
 
-			default:
-				break;
+			default: break;
 		}
 	}
 
-	void BlueprintBuilder::begin(Identifier id)
+	void BlueprintBuilder::begin(ed::NodeId id)
 	{
 		m_id         = id;
+		m_next_id    = id.Get() + 1;
 		m_footer_min = m_footer_max = m_header_min = m_header_max = ImVec2();
 
 		m_has_header      = false;
@@ -140,7 +134,7 @@ namespace Engine
 
 		//ed::PushStyleVar(StyleVar_NodePadding, ImVec4(8, 4, 8, 8));
 		ed::BeginNode(id);
-		ImGui::PushID(id);
+		ImGui::PushID(id.AsPointer());
 		transition_to_stage(Stage::Begin);
 	}
 
@@ -215,17 +209,17 @@ namespace Engine
 		transition_to_stage(Stage::Content);
 	}
 
-	void BlueprintBuilder::begin_input(Identifier id)
+	void BlueprintBuilder::begin_input()
 	{
 		if (m_stage == Stage::Begin)
 			transition_to_stage(Stage::Content);
 
 		transition_to_stage(Stage::Input);
-		ImGui::BeginHorizontal(id);
+		ImGui::BeginHorizontal(m_next_id++);
 		m_require_spacing = true;
 	}
 
-	void BlueprintBuilder::begin_input_pin(Identifier id)
+	void BlueprintBuilder::begin_input_pin(ed::PinId id)
 	{
 		ed::BeginPin(id, ed::PinKind::Input);
 	}
@@ -249,16 +243,16 @@ namespace Engine
 		m_require_spacing = true;
 	}
 
-	void BlueprintBuilder::begin_output(Identifier id)
+	void BlueprintBuilder::begin_output()
 	{
 		if (m_stage == Stage::Begin)
 			transition_to_stage(Stage::Content);
 
 		transition_to_stage(Stage::Output);
-		ImGui::BeginHorizontal(id);
+		ImGui::BeginHorizontal(m_next_id);
 	}
 
-	void BlueprintBuilder::begin_output_pin(Identifier id)
+	void BlueprintBuilder::begin_output_pin(ed::PinId id)
 	{
 		ed::BeginPin(id, ed::PinKind::Output);
 	}

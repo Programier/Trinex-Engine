@@ -420,9 +420,9 @@ namespace Engine
 			// Inputs rendering
 			for (auto* input : node->inputs())
 			{
-				builder.begin_input(input->id());
+				builder.begin_input();
 
-				builder.begin_input_pin(input->id());
+				builder.begin_input_pin(ed::PinId(input));
 				ed::PinPivotAlignment({0.5, 0.5f});
 
 				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, input->links_count() > 0,
@@ -454,7 +454,7 @@ namespace Engine
 			// Outputs rendering
 			for (auto* output : node->outputs())
 			{
-				builder.begin_output(output->id());
+				builder.begin_output();
 
 				if (auto default_value = output->default_value())
 				{
@@ -464,7 +464,7 @@ namespace Engine
 
 				ImGui::Text("%*s", max_output_name_len, output->name().c_str());
 
-				builder.begin_output_pin(output->id());
+				builder.begin_output_pin(ed::PinId(output));
 				ed::PinPivotAlignment({0.5, 0.5f});
 
 				BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->links_count() > 0,
@@ -482,7 +482,7 @@ namespace Engine
 			{
 				if (auto* output = input->as_input()->linked_pin())
 				{
-					ed::Link(input->id(), input->id(), output->id(), ImColor(0, 149, 220), 3.f);
+					ed::Link(ed::LinkId(input), ed::PinId(input), ed::PinId(output), ImColor(0, 149, 220), 3.f);
 				}
 			}
 		}

@@ -38,6 +38,7 @@ namespace Engine::VisualMaterialGraph
 
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
 		Texture2D& render() override;
+		Texture2D& post_compile(VisualMaterial* material) override;
 	};
 
 	class Sampler : public Node

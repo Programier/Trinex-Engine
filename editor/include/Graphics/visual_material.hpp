@@ -17,20 +17,23 @@ namespace Engine
 
 	private:
 		Vector<Pointer<VisualMaterialGraph::Node>> m_nodes;
+		uint16_t m_next_node_id = 0;
+
+		VisualMaterial& recalculate_nodes_ids();
 
 	public:
 		VisualMaterial();
 		VisualMaterialGraph::Node* create_node(class Refl::Class* node_class, const Vector2f& position = {});
 		VisualMaterial& destroy_node(VisualMaterialGraph::Node* node, bool destroy_links = true);
-		// VisualMaterial& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline) override;
+		VisualMaterial& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline) override;
 
-		// template<typename T>
-		// T* create_node()
-		// {
-		// 	static_assert(std::is_base_of_v<VisualMaterialGraph::Node, T>,
-		// 	              "Template type must have base class VisualMaterialGraph::Node");
-		// 	return Object::instance_cast<T>(create_node(T::static_class_instance()));
-		// }
+		template<typename T>
+		T* create_node()
+		{
+			static_assert(std::is_base_of_v<VisualMaterialGraph::Node, T>,
+			              "Template type must have base class VisualMaterialGraph::Node");
+			return Object::instance_cast<T>(create_node(T::static_class_instance()));
+		}
 
 		bool shader_source(String& out_source) override;
 

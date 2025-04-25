@@ -4,11 +4,37 @@
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 
 namespace Engine::VisualMaterialGraph
 {
 	trinex_implement_class(Engine::VisualMaterialGraph::MaterialRoot, 0) {}
+
+	trinex_implement_class(Engine::VisualMaterialGraph::Texture2D, 0)
+	{
+		static_node_group(static_class_instance(), "Textures");
+
+		auto self = static_class_instance();
+		trinex_refl_prop(self, This, name);
+		trinex_refl_prop(self, This, texture);
+	}
+
+	trinex_implement_class(Engine::VisualMaterialGraph::Sampler, 0)
+	{
+		static_node_group(static_class_instance(), "Textures");
+		auto self = static_class_instance();
+
+		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+	}
+
+	trinex_implement_class(Engine::VisualMaterialGraph::SampleTexture, 0)
+	{
+		static_node_group(static_class_instance(), "Textures");
+
+		auto self = static_class_instance();
+		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+	}
 
 	MaterialRoot::MaterialRoot()
 	    : Node(), base_color(new_input("Base Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),//
@@ -27,14 +53,6 @@ namespace Engine::VisualMaterialGraph
 		ao->default_value()->ref<float>()        = 1.f;
 	}
 
-	trinex_implement_class(Engine::VisualMaterialGraph::Texture2D, 0)
-	{
-		static_node_group(static_class_instance(), "Textures");
-
-		auto self = static_class_instance();
-		trinex_refl_prop(self, This, name);
-		trinex_refl_prop(self, This, texture);
-	}
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
 	{
@@ -56,12 +74,28 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	trinex_implement_class(Engine::VisualMaterialGraph::Sampler, 0)
+	Texture2D& Texture2D::post_compile(VisualMaterial* material)
 	{
-		static_node_group(static_class_instance(), "Textures");
-		auto self = static_class_instance();
+		Super::post_compile(material);
 
-		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+		MaterialParameters::Parameter* parameter = nullptr;
+
+		if (name.empty())
+		{
+			String var_name = Compiler::static_uniform_parameter_name(this);
+			parameter       = material->find_parameter(var_name);
+		}
+		else
+		{
+			parameter = material->find_parameter(name);
+		}
+
+		if (auto texture_param = instance_cast<MaterialParameters::Texture2D>(parameter))
+		{
+			texture_param->texture = texture ? texture : DefaultResources::Textures::default_texture;
+		}
+
+		return *this;
 	}
 
 	Sampler::Sampler()
@@ -72,14 +106,6 @@ namespace Engine::VisualMaterialGraph
 	Expression Sampler::compile(OutputPin* pin, Compiler& compiler)
 	{
 		return compiler.make_uniform(ShaderParameterType::Sampler);
-	}
-
-	trinex_implement_class(Engine::VisualMaterialGraph::SampleTexture, 0)
-	{
-		static_node_group(static_class_instance(), "Textures");
-
-		auto self = static_class_instance();
-		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
 	}
 
 	SampleTexture::SampleTexture()

@@ -4,11 +4,13 @@
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
+#include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
+#include <utility>
 
 namespace Engine::VisualMaterialGraph
 {
@@ -479,6 +481,11 @@ namespace Engine::VisualMaterialGraph
 		return Strings::format("trx_var_{}", id);
 	}
 
+	String Compiler::static_uniform_parameter_name(Node* node)
+	{
+		return Strings::format("trx_var_uniform_{}", node->id());
+	}
+
 	Compiler& Compiler::add_include(const StringView& include)
 	{
 		m_includes.insert(String(include));
@@ -489,7 +496,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (name_override.empty())
 		{
-			String var_name   = next_var_name();
+			String var_name   = static_uniform_parameter_name(m_current_node);
 			String expression = Strings::format("uniform {} {}", Expression::static_typename_of(type), var_name);
 			m_globals.insert(expression);
 			return Expression(type, var_name);
@@ -501,7 +508,7 @@ namespace Engine::VisualMaterialGraph
 
 			m_param_names.insert(name_override);
 
-			String var_name   = next_var_name();
+			String var_name   = static_uniform_parameter_name(m_current_node);
 			String expression = Strings::format("[name(\"{}\")] uniform {} {}", name_override,
 			                                    Expression::static_typename_of(type), var_name);
 			m_globals.insert(expression);
@@ -548,17 +555,14 @@ namespace Engine::VisualMaterialGraph
 		if (output_pin)
 		{
 			Expression expression = compile(output_pin);
+
 			if (!pin->type().is_meta())
 				expression = expression.convert(pin->type());
+
 			return expression;
 		}
 
-		if (auto default_value = pin->default_value())
-		{
-			return default_value->compile();
-		}
-
-		return {};
+		return compile_default(pin);
 	}
 
 	Expression Compiler::compile(OutputPin* pin)
@@ -568,7 +572,11 @@ namespace Engine::VisualMaterialGraph
 		if (it != m_expression.end())
 			return it->second;
 
-		Expression expression = pin->node()->compile(pin, *this);
+		Node* node = pin->node();
+
+		std::swap(node, m_current_node);
+		Expression expression = m_current_node->compile(pin, *this);
+		std::swap(node, m_current_node);
 
 		if (pin->links_count() > 1)
 			expression = make_variable(expression);
@@ -716,12 +724,35 @@ namespace Engine::VisualMaterialGraph
 		ScriptContext::execute(this, s_node_render);
 	}
 
+	Node& Node::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		Super::on_property_changed(event);
+
+		if (auto material = instance_cast<VisualMaterial>(owner()))
+		{
+			post_compile(material);
+		}
+		
+		return *this;
+	}
+
 	Expression Node::compile(OutputPin* pin, Compiler& compiler)
 	{
 		return Expression();
 	}
 
 	Node& Node::render()
+	{
+		return *this;
+	}
+
+	Node& Node::change_id(uint16_t id)
+	{
+		m_id = id;
+		return *this;
+	}
+
+	Node& Node::post_compile(VisualMaterial* material)
 	{
 		return *this;
 	}
@@ -752,7 +783,6 @@ namespace Engine::VisualMaterialGraph
 		r.method("Node@ node() const", &Pin::node);
 		r.method("ShaderParameterType type() const", &Pin::type);
 		r.method("uint16 index() const", &Pin::index);
-		r.method("uint64 id() const", &Pin::id);
 		r.method("uint64 links_count() const", &T::links_count);
 	}
 

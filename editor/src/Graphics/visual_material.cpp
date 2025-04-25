@@ -1,12 +1,14 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/group.hpp>
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
+#include <limits>
 
 namespace Engine
 {
@@ -22,32 +24,58 @@ namespace Engine
 		create_node(VisualMaterialGraph::MaterialRoot::static_class_instance());
 	}
 
+	VisualMaterial& VisualMaterial::recalculate_nodes_ids()
+	{
+		m_next_node_id = 0;
+		
+		for (VisualMaterialGraph::Node* node : m_nodes)
+		{
+			node->change_id(m_next_node_id++);
+		}
+		return *this;
+	}
+
 	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2f& position)
 	{
+		if (m_nodes.size() == std::numeric_limits<uint16_t>::max())
+		{
+			error_log("VisualMaterialGraph",
+			          "The limit of %d nodes has been reached. Take a look at the material — you're "
+			          "clearly doing something wrong...",
+			          std::numeric_limits<uint16_t>::max());
+
+			return nullptr;
+		}
+
 		if (!node_class->is_a<VisualMaterialGraph::Node>())
 			return nullptr;
 
 		VisualMaterialGraph::Node* node = Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object());
+
 		if (node)
 		{
 			node->position = position;
 			m_nodes.push_back(node);
+
+			if (m_next_node_id == std::numeric_limits<uint16_t>::max())
+			{
+				recalculate_nodes_ids();
+			}
+			else
+			{
+				node->change_id(m_next_node_id++);
+			}
 		}
+
 		return node;
 	}
 
-	// VisualMaterial& VisualMaterial::post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline)
-	// {
-	// 	Super::post_compile(pass, pipeline);
-	// 	for (auto& node : m_nodes)
-	// 	{
-	// 		if (node)
-	// 		{
-	// 			node->override_parameter(this);
-	// 		}
-	// 	}
-	// 	return *this;
-	// }
+	VisualMaterial& VisualMaterial::post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline)
+	{
+		Super::post_compile(pass, pipeline);
+		for (auto& node : m_nodes) node->post_compile(this);
+		return *this;
+	}
 
 	VisualMaterial& VisualMaterial::destroy_node(VisualMaterialGraph::Node* node, bool destroy_links)
 	{

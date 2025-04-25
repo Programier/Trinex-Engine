@@ -5,6 +5,11 @@
 #include <Core/object.hpp>
 #include <Core/string_functions.hpp>
 
+namespace Engine
+{
+	class VisualMaterial;
+}
+
 namespace Engine::VisualMaterialGraph
 {
 	class Pin;
@@ -87,11 +92,15 @@ namespace Engine::VisualMaterialGraph
 		Set<String> m_param_names;
 
 		Vector<String> m_stage_locals[2];
-		Stage m_stage = Vertex;
+
+		Node* m_current_node = nullptr;
+		Stage m_stage        = Vertex;
 
 		String next_var_name() const;
 
 	public:
+		static String static_uniform_parameter_name(Node* node);
+
 		Compiler& add_include(const StringView& include);
 		Expression make_uniform(ShaderParameterType type, const String& name_override = "");
 		Expression make_variable(ShaderParameterType type);
@@ -113,6 +122,7 @@ namespace Engine::VisualMaterialGraph
 		inline Stage stage() const { return m_stage; }
 		inline bool is_vertex_stage() const { return m_stage == Vertex; }
 		inline bool is_fragment_stage() const { return m_stage == Fragment; }
+		inline Node* current_node() const { return m_current_node; }
 	};
 
 	class Pin
@@ -151,7 +161,6 @@ namespace Engine::VisualMaterialGraph
 		inline DefaultValue* default_value() const { return m_default_value; }
 		inline ShaderParameterType type() const { return m_type; }
 		inline uint16_t index() const { return m_index; }
-		inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
 
 		virtual Pin& unlink() = 0;
 		virtual inline OutputPin* as_output() { return nullptr; };
@@ -205,6 +214,7 @@ namespace Engine::VisualMaterialGraph
 	private:
 		Vector<InputPin*> m_inputs;
 		Vector<OutputPin*> m_outputs;
+		uint16_t m_id = 0;
 
 		Expression script_compile(OutputPin* pin, Compiler& compiler);
 		void script_render();
@@ -229,11 +239,15 @@ namespace Engine::VisualMaterialGraph
 
 		InputPin* new_input(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
 		OutputPin* new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
-
+		
+		Node& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+		
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
 		virtual Node& render();
+		virtual Node& change_id(uint16_t id);
+		virtual Node& post_compile(VisualMaterial* material);
 
-		inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
+		inline uint16_t id() const { return m_id; }
 		inline const Vector<InputPin*>& inputs() const { return m_inputs; }
 		inline const Vector<OutputPin*>& outputs() const { return m_outputs; }
 
