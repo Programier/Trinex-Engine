@@ -38,7 +38,6 @@ namespace Engine
 		VisualMaterialEditorClient& open_spawn_node_window(VisualMaterialGraph::Pin* pin = nullptr);
 
 		VisualMaterialEditorClient& render_graph();
-		VisualMaterialEditorClient& render_properties(VisualMaterialGraph::Node* node);
 		VisualMaterialEditorClient& render_spawn_node_window();
 
 		VisualMaterialEditorClient& update_create_events();

@@ -4,6 +4,6 @@
 namespace Engine
 {
 	struct ENGINE_EXPORT WorldEnvironment {
-		Color ambient_color = Color(77, 77, 77, 255);
+		LinearColor ambient_color = LinearColor(0.3, 0.3, 0.3, 1.f);
 	};
 }// namespace Engine

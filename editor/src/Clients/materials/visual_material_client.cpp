@@ -25,42 +25,6 @@ namespace Engine
 		register_client(VisualMaterial::static_class_instance(), static_class_instance());
 	}
 
-	static class NodePropertyRenderer : public PropertyRenderer
-	{
-		int_t m_max_text_len;
-
-	public:
-		NodePropertyRenderer& update()
-		{
-			m_max_text_len = 0;
-
-			const void* context = object();
-			auto& props         = properties_map(object()->class_instance());
-
-			for (auto& [group, group_properties] : props)
-			{
-				for (auto* prop : group_properties)
-				{
-					m_max_text_len = glm::max<int_t>(m_max_text_len, prop->property_name(context).length());
-				}
-			}
-
-			return *this;
-		}
-
-		NodePropertyRenderer& render_name(Refl::Property* prop)
-		{
-			const String& name = property_name(prop, property_context());
-			ImGui::Text("%*s ", -m_max_text_len, name.c_str());
-			return *this;
-		}
-
-		static NodePropertyRenderer* from(PropertyRenderer* renderer)
-		{
-			return reinterpret_cast<NodePropertyRenderer*>(renderer);
-		}
-	} s_node_property_renderer;
-
 	class ImGuiNodeProperties : public PropertyRenderer
 	{
 	public:
@@ -484,7 +448,7 @@ namespace Engine
 			// Content rendering
 			builder.begin_middle();
 			{
-				render_properties(node);
+				node->render();
 			}
 
 			// Outputs rendering
@@ -521,17 +485,6 @@ namespace Engine
 					ed::Link(input->id(), input->id(), output->id(), ImColor(0, 149, 220), 3.f);
 				}
 			}
-		}
-
-		return *this;
-	}
-
-	VisualMaterialEditorClient& VisualMaterialEditorClient::render_properties(VisualMaterialGraph::Node* node)
-	{
-		if (!s_node_property_renderer.properties_map(node->class_instance()).empty())
-		{
-			s_node_property_renderer.object(node, false);
-			s_node_property_renderer.render();
 		}
 
 		return *this;
@@ -868,7 +821,7 @@ namespace Engine
 
 				if (m_properties_window->properties_map(node->class_instance()).empty())
 				{
-					properties_object = node;
+					properties_object = m_material;
 				}
 				else
 				{
@@ -960,167 +913,6 @@ namespace Engine
 		return center;
 	}
 
-
-	//////////////////// NODE PROPERTY RENDERER FUNCTIONS ////////////////////
-
-	static bool imgui_begin_combo(const char* label, const char* current, float max_text_width)
-	{
-		ImGui::PushID(label);
-
-		const float arrow_size = ImGui::GetFrameHeight();
-		const float padding    = ImGui::GetStyle().FramePadding.x * 2.0f;
-		float combo_width      = max_text_width + padding + arrow_size;
-
-		ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.f, 0.5f));
-		if (ImGui::Button(current, ImVec2(combo_width, 0)))
-			ImGui::OpenPopup("###combo_popup");
-		ImGui::PopStyleVar();
-
-		const bool hovered = ImGui::IsItemHovered();
-
-		ImVec2 button_min = ImGui::GetItemRectMin();
-		ImVec2 button_max = ImGui::GetItemRectMax();
-		ImVec2 arrow_pos  = ImVec2(button_max.x - arrow_size, button_min.y);
-
-		// Render arrow
-		{
-			ImU32 bg_col   = ImGui::GetColorU32(hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-			ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
-			auto list      = ImGui::GetWindowDrawList();
-
-			auto& style = ImGui::GetStyle();
-			list->AddRectFilled(arrow_pos, arrow_pos + ImVec2(arrow_size, arrow_size), bg_col, style.FrameRounding,
-			                    ImDrawFlags_RoundCornersRight);
-
-			ImGui::RenderArrow(list, ImVec2(arrow_pos.x + style.FramePadding.y, arrow_pos.y + style.FramePadding.y), text_col,
-			                   ImGuiDir_Down, 1.0f);
-		}
-
-		ImGui::SetNextWindowPos({button_min.x, button_max.y});
-		ImGui::SetNextWindowSize({combo_width, 0.f});
-		bool result = ImGui::BeginPopup("###combo_popup");
-
-		if (!result)
-			ImGui::PopID();
-
-		return result;
-	}
-
-	static void imgui_end_combo()
-	{
-		ImGui::EndPopup();
-		ImGui::PopID();
-	}
-
-	static bool render_bool_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
-	{
-		void* context = renderer->property_context();
-		NodePropertyLayout layout;
-
-		NodePropertyRenderer::from(renderer)->render_name(prop);
-
-		if (ImGui::Checkbox("###boolean", prop->address_as<bool>(context)))
-		{
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
-			return true;
-		}
-		return false;
-	}
-
-	static bool render_enum_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
-	{
-		auto prop      = Refl::Object::instance_cast<Refl::EnumProperty>(prop_base);
-		auto enum_inst = prop->enum_instance();
-		void* context  = renderer->property_context();
-
-		NodePropertyLayout layout;
-
-		NodePropertyRenderer::from(renderer)->render_name(prop);
-
-		EnumerateType value       = prop->value(context);
-		const auto* current_entry = enum_inst->entry(value);
-
-		bool is_changed = false;
-
-		float max_text_width = 0.f;
-		for (auto& entry : enum_inst->entries())
-		{
-			const String& name = entry.name.to_string();
-			max_text_width     = glm::max(ImGui::CalcTextSize(name.c_str(), name.c_str() + name.length()).x, max_text_width);
-		}
-
-		if (imgui_begin_combo("###ComboValue", current_entry->name.c_str(), max_text_width))
-		{
-			for (auto& entry : enum_inst->entries())
-			{
-				bool is_selected = entry.value == value;
-
-				if (ImGui::Selectable(entry.name.c_str(), is_selected) && !read_only)
-				{
-					prop->value(context, entry.value);
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
-					is_changed = true;
-				}
-			}
-
-			imgui_end_combo();
-		}
-
-		return is_changed;
-	}
-
-	static bool render_struct_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
-	{
-		Refl::StructProperty* prop = Refl::Object::instance_cast<Refl::StructProperty>(prop_base);
-		void* struct_address       = prop->address(renderer->property_context());
-		return renderer->render_struct_properties(struct_address, prop->struct_instance(), read_only);
-	}
-
-	static bool render_object_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
-	{
-		Refl::ObjectProperty* prop = Refl::Object::instance_cast<Refl::ObjectProperty>(prop_base);
-		void* context              = renderer->property_context();
-
-		if (!prop->is_composite())
-		{
-			NodePropertyLayout layout(1.f);
-
-			auto object  = prop->object(context);
-			bool changed = false;
-
-			ImGui::PushID("##Image");
-			ImGui::Image(Icons::find_icon(object), {100, 100});
-
-			if (object && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-			{
-				ImGui::SetTooltip("%s", object->full_name().c_str());
-			}
-
-			if (!read_only && ImGui::BeginDragDropTarget())
-			{
-				const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
-				if (payload)
-				{
-					IM_ASSERT(payload->DataSize == sizeof(Object*));
-
-					Object* new_object = *reinterpret_cast<Object**>(payload->Data);
-
-					if (new_object->class_instance()->is_a(prop->class_instance()))
-					{
-						prop->object(context, new_object);
-						prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
-						changed = true;
-					}
-				}
-				ImGui::EndDragDropTarget();
-			}
-			ImGui::PopID();
-			return changed;
-		}
-
-		return false;
-	}
-
 	//////////////////// INITITALIZATION ////////////////////
 
 	static void pre_initialize()
@@ -1146,20 +938,6 @@ namespace Engine
 		s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float, float>;
 		s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float, float>;
 		s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float, float>;
-
-		static PropertyRenderer::Context ctx;
-		s_node_property_renderer.renderer_context(&ctx);
-
-		ctx.on_begin_rendering = [](PropertyRenderer* renderer) -> bool {
-			NodePropertyRenderer::from(renderer)->update();
-			return true;
-		};
-		ctx.on_end_rendering = [](PropertyRenderer*, bool) {};
-
-		ctx.renderer<Refl::BooleanProperty>(render_bool_property);
-		ctx.renderer<Refl::EnumProperty>(render_enum_property);
-		ctx.renderer<Refl::StructProperty>(render_struct_property);
-		ctx.renderer<Refl::ObjectProperty>(render_object_property);
 	}
 
 	static PreInitializeController preinit(pre_initialize);

@@ -63,6 +63,7 @@ namespace Engine
 		        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false},
 		        {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false},
 		        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
+		        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false, false},
 		};
 	}
 

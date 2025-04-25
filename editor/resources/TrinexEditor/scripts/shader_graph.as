@@ -359,6 +359,12 @@ namespace Engine::VisualMaterialGraph
 		}
 	};
 
+	[node_group("Inputs")] class UV : CommonInput
+	{
+		UV() { super(ShaderParameterType::Float2); }
+		string expr() const override { return "input.uv"; }
+	};
+
 	/////////////////////////////// MATH ///////////////////////////////
 
 	[node_group("Math")] class Add : Binary { string expr() const override { return "(%0 + %1)"; } };
@@ -470,6 +476,14 @@ namespace Engine::VisualMaterialGraph
 			}
 
 			return expression;
+		}
+
+		void render()
+		{
+			ImGui::Text("X"); ImGui::SameLine(); ImGui::Checkbox("##X", x);
+			ImGui::Text("Y"); ImGui::SameLine(); ImGui::Checkbox("##Y", y);
+			ImGui::Text("Z"); ImGui::SameLine(); ImGui::Checkbox("##Z", z);
+			ImGui::Text("W"); ImGui::SameLine(); ImGui::Checkbox("##W", w);
 		}
 	};
 

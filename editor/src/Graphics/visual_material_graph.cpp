@@ -13,6 +13,7 @@
 namespace Engine::VisualMaterialGraph
 {
 	static ScriptFunction s_node_compile_output;
+	static ScriptFunction s_node_render;
 
 	trinex_implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
@@ -21,6 +22,7 @@ namespace Engine::VisualMaterialGraph
 		s_node_compile_output =
 		        r.method("Expression compile(OutputPin@ pin, Compiler@ compiler)", trinex_scoped_void_method(This, compile));
 
+		s_node_render = r.method("void render()", trinex_scoped_void_method(This, render));
 
 		InputPin* (This::*method1)(const String&, ShaderParameterType)                       = &This::new_input;
 		OutputPin* (This::*method2)(const String&, ShaderParameterType)                      = &This::new_output;
@@ -36,7 +38,10 @@ namespace Engine::VisualMaterialGraph
 		r.method("const Vector<OutputPin@>& outputs() const final", &This::outputs);
 		// clang-format on
 
-		ScriptEngine::on_terminate.push([]() { s_node_compile_output.release(); });
+		ScriptEngine::on_terminate.push([]() {
+			s_node_compile_output.release();
+			s_node_render.release();
+		});
 	}
 
 	template<typename T>
@@ -315,7 +320,9 @@ namespace Engine::VisualMaterialGraph
 
 		if (src.is_matrix() && dst.is_matrix())
 			return true;
-		return false;
+
+		// We can do upcast, but cannot do downcast, so, source type must have all bits of destination type to allow casting
+		return (src & dst) == dst;
 	}
 
 	ShaderParameterType Expression::static_make_float(ShaderParameterType self)
@@ -466,16 +473,45 @@ namespace Engine::VisualMaterialGraph
 		return Expression();
 	}
 
+	String Compiler::next_var_name() const
+	{
+		Identifier id = m_stage_locals[m_stage].size() + m_globals.size();
+		return Strings::format("trx_var_{}", id);
+	}
+
 	Compiler& Compiler::add_include(const StringView& include)
 	{
 		m_includes.insert(String(include));
 		return *this;
 	}
 
+	Expression Compiler::make_uniform(ShaderParameterType type, const String& name_override)
+	{
+		if (name_override.empty())
+		{
+			String var_name   = next_var_name();
+			String expression = Strings::format("uniform {} {}", Expression::static_typename_of(type), var_name);
+			m_globals.insert(expression);
+			return Expression(type, var_name);
+		}
+		else
+		{
+			if (m_param_names.contains(name_override))
+				return Expression();
+
+			m_param_names.insert(name_override);
+
+			String var_name   = next_var_name();
+			String expression = Strings::format("[name(\"{}\")] uniform {} {}", name_override,
+			                                    Expression::static_typename_of(type), var_name);
+			m_globals.insert(expression);
+			return Expression(type, var_name);
+		}
+	}
+
 	Expression Compiler::make_variable(ShaderParameterType type)
 	{
-		Identifier id   = m_stage_locals[m_stage].size() + m_globals.size();
-		String var_name = Strings::format("trx_var_{}", id);
+		String var_name = next_var_name();
 
 		String var = Strings::format("{} {}", Expression::static_typename_of(type), var_name);
 		m_stage_locals[m_stage].push_back(var);
@@ -487,10 +523,8 @@ namespace Engine::VisualMaterialGraph
 		if (expression.value.starts_with("trx_var_"))
 			return expression;
 
-		Identifier id = m_stage_locals[m_stage].size() + m_globals.size();
-
 		String type     = Expression::static_typename_of(expression.type);
-		String var_name = Strings::format("trx_var_{}", id);
+		String var_name = next_var_name();
 		String var      = Strings::format("{} {} = {}", type, var_name, expression.value);
 		m_stage_locals[m_stage].push_back(var);
 
@@ -677,9 +711,19 @@ namespace Engine::VisualMaterialGraph
 		return result;
 	}
 
+	void Node::script_render()
+	{
+		ScriptContext::execute(this, s_node_render);
+	}
+
 	Expression Node::compile(OutputPin* pin, Compiler& compiler)
 	{
 		return Expression();
+	}
+
+	Node& Node::render()
+	{
+		return *this;
 	}
 
 	Node::~Node()
@@ -739,6 +783,8 @@ namespace Engine::VisualMaterialGraph
 		register_pin_methods<OutputPin>(output_pin);
 
 		// Compiler class
+		compiler.method("Expression make_uniform(ShaderParameterType type, const string& name_override = \"\") final",
+		                &Compiler::make_uniform);
 		compiler.method("Expression make_variable(ShaderParameterType type) final",
 		                method_of<Expression, ShaderParameterType>(&Compiler::make_variable));
 		compiler.method("Expression make_variable(const Expression& expression) final",

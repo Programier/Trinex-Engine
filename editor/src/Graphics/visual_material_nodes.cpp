@@ -1,5 +1,9 @@
+#include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/string_functions.hpp>
+#include <Graphics/imgui.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 
 namespace Engine::VisualMaterialGraph
@@ -23,11 +27,92 @@ namespace Engine::VisualMaterialGraph
 		ao->default_value()->ref<float>()        = 1.f;
 	}
 
+	trinex_implement_class(Engine::VisualMaterialGraph::Texture2D, 0)
+	{
+		static_node_group(static_class_instance(), "Textures");
+
+		auto self = static_class_instance();
+		trinex_refl_prop(self, This, name);
+		trinex_refl_prop(self, This, texture);
+	}
+
+	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
+	{
+		new_output("Out", ShaderParameterType::Texture2D);
+	}
+
+	Expression Texture2D::compile(OutputPin* pin, Compiler& compiler)
+	{
+		return compiler.make_uniform(ShaderParameterType::Texture2D, name);
+	}
+
+	Texture2D& Texture2D::render()
+	{
+		if (texture)
+		{
+			float size = 4.f * ImGui::GetFrameHeight();
+			ImGui::Image(texture, {size, size});
+		}
+		return *this;
+	}
+
 	trinex_implement_class(Engine::VisualMaterialGraph::Sampler, 0)
 	{
 		static_node_group(static_class_instance(), "Textures");
 		auto self = static_class_instance();
 
 		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+	}
+
+	Sampler::Sampler()
+	{
+		new_output("Out", ShaderParameterType::Sampler);
+	}
+
+	Expression Sampler::compile(OutputPin* pin, Compiler& compiler)
+	{
+		return compiler.make_uniform(ShaderParameterType::Sampler);
+	}
+
+	trinex_implement_class(Engine::VisualMaterialGraph::SampleTexture, 0)
+	{
+		static_node_group(static_class_instance(), "Textures");
+
+		auto self = static_class_instance();
+		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+	}
+
+	SampleTexture::SampleTexture()
+	{
+		new_input("Tex", ShaderParameterType::META_Texture);
+		new_input("UV", ShaderParameterType::META_Numeric);
+		new_input("Sampler", ShaderParameterType::Sampler);
+		new_output("Out", ShaderParameterType::Float4);
+	}
+
+	Expression SampleTexture::compile(OutputPin* pin, Compiler& compiler)
+	{
+		auto in_uv = uv_pin();
+
+		Expression texture = compiler.compile(texture_pin());
+		Expression sampler = compiler.compile(sampler_pin());
+
+		if (texture.type == ShaderParameterType::Texture2D)
+		{
+			Expression uv;
+
+			if (in_uv->linked_pin())
+				uv = compiler.compile(in_uv).convert(ShaderParameterType::Float2);
+			else
+				uv = Expression(ShaderParameterType::Float2, "input.uv");
+
+			if (uv.is_valid())
+			{
+				String expr = Strings::format("{}.Sample({}, {})", texture.value, sampler.value, uv.value);
+				return Expression(ShaderParameterType::Float4, expr);
+			}
+		}
+
+		return Expression();
 	}
 }// namespace Engine::VisualMaterialGraph

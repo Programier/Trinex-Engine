@@ -84,11 +84,16 @@ namespace Engine::VisualMaterialGraph
 
 		Set<String> m_includes;
 		Set<String> m_globals;
+		Set<String> m_param_names;
+
 		Vector<String> m_stage_locals[2];
 		Stage m_stage = Vertex;
 
+		String next_var_name() const;
+
 	public:
 		Compiler& add_include(const StringView& include);
+		Expression make_uniform(ShaderParameterType type, const String& name_override = "");
 		Expression make_variable(ShaderParameterType type);
 		Expression make_variable(const Expression& expression);
 		Expression compile_default(Pin* pin);
@@ -202,11 +207,17 @@ namespace Engine::VisualMaterialGraph
 		Vector<OutputPin*> m_outputs;
 
 		Expression script_compile(OutputPin* pin, Compiler& compiler);
+		void script_render();
 
 	public:
 		template<typename T>
 		struct Scriptable : public Super::Scriptable<T> {
 			Expression compile(OutputPin* pin, Compiler& compiler) override { return Node::script_compile(pin, compiler); }
+			Scriptable& render() override
+			{
+				Node::script_render();
+				return *this;
+			}
 		};
 
 	public:
@@ -220,6 +231,7 @@ namespace Engine::VisualMaterialGraph
 		OutputPin* new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
 
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
+		virtual Node& render();
 
 		inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
 		inline const Vector<InputPin*>& inputs() const { return m_inputs; }

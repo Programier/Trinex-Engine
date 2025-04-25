@@ -120,7 +120,7 @@ namespace Engine
 		return (args.is_valid() && ...);
 	}
 
-	static bool compile_fragment_shader(VisualMaterialGraph::Compiler compiler, String& template_source, size_t position,
+	static bool compile_fragment_shader(VisualMaterialGraph::Compiler& compiler, String& template_source, size_t position,
 	                                    VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
 	{
 		static constexpr const char* format = "{0}\n"

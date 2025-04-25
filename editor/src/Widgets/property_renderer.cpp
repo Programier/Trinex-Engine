@@ -172,35 +172,6 @@ namespace Engine
 		{
 			for (Refl::Property* prop : self->properties())
 			{
-				const bool inline_single_field = prop->is_inline_single_field();
-				const bool is_inline           = prop->is_inline();
-
-				if (is_inline || inline_single_field)
-				{
-					Refl::Struct* struct_instance = nullptr;
-
-					if (Refl::StructProperty* struct_property = prop_cast<Refl::StructProperty>(prop))
-					{
-						struct_instance = struct_property->struct_instance();
-					}
-					else if (Refl::ObjectProperty* object_property = prop_cast<Refl::ObjectProperty>(prop))
-					{
-						if (object_property->is_composite())
-						{
-							struct_instance = object_property->class_instance();
-						}
-					}
-
-					if (struct_instance)
-					{
-						if (is_inline || (!inline_single_field || has_only_one_property(struct_instance)))
-						{
-							build_properties_map(map, struct_instance);
-							continue;
-						}
-					}
-				}
-
 				map[prop->group()].push_back(prop);
 			}
 		}
@@ -842,7 +813,7 @@ namespace Engine
 			ImGui::TableSetColumnIndex(1);
 
 			ImGui::PushID("##Image");
-			ImGui::Image(Icons::find_icon(object), {100, 100});
+			ImGui::Image(Icons::find_icon(object), {5.f * size, 5.f * size});
 
 			if (object && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 			{

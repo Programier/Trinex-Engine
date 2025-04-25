@@ -1,6 +1,11 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/visual_material_graph.hpp>
 
+namespace Engine
+{
+	class Texture2D;
+}
+
 namespace Engine::VisualMaterialGraph
 {
 	class MaterialRoot : public Node
@@ -21,11 +26,43 @@ namespace Engine::VisualMaterialGraph
 		MaterialRoot();
 	};
 
+	class Texture2D : public Node
+	{
+		trinex_declare_class(Texture2D, Node);
+
+	public:
+		String name;
+		Engine::Texture2D* texture;
+
+		Texture2D();
+
+		Expression compile(OutputPin* pin, Compiler& compiler) override;
+		Texture2D& render() override;
+	};
+
 	class Sampler : public Node
 	{
 		trinex_declare_class(Sampler, Node);
 
 	public:
 		Engine::Sampler sampler;
+
+		Sampler();
+		Expression compile(OutputPin* pin, Compiler& compiler) override;
+	};
+
+	class SampleTexture : public Node
+	{
+		trinex_declare_class(SampleTexture, Node);
+
+	public:
+		Engine::Sampler sampler;
+
+		SampleTexture();
+		Expression compile(OutputPin* pin, Compiler& compiler) override;
+
+		inline InputPin* texture_pin() const { return inputs()[0]; }
+		inline InputPin* uv_pin() const { return inputs()[1]; }
+		inline InputPin* sampler_pin() const { return inputs()[2]; }
 	};
 }// namespace Engine::VisualMaterialGraph
