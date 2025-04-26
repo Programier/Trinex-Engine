@@ -64,6 +64,7 @@ namespace Engine
 		        {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false},
 		        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
 		        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false, false},
+		        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false, false},
 		};
 	}
 
@@ -150,11 +151,11 @@ namespace Engine
 	{
 		vkb::PhysicalDeviceSelector phys_device_selector(API->m_instance);
 
-		for (VulkanExtention& extension : API->m_device_extensions)
+		for (const VulkanExtention& extension : API->m_device_extensions)
 		{
 			if (extension.required)
 			{
-				phys_device_selector.add_required_extension(extension.name);
+				phys_device_selector.add_required_extension(extension.name.data());
 				extension.enabled = true;
 			}
 		}
@@ -184,24 +185,29 @@ namespace Engine
 
 		auto device = selected_device.value();
 
-		for (VulkanExtention& extension : API->m_device_extensions)
+		for (const VulkanExtention& extension : API->m_device_extensions)
 		{
 			if (!extension.required)
 			{
-				extension.enabled = device.enable_extension_if_present(extension.name);
+				extension.enabled = device.enable_extension_if_present(extension.name.data());
 			}
 		}
 
 		return device;
 	}
 
-
 	static vkb::Device build_device(vkb::PhysicalDevice& physical_device)
 	{
 		vkb::DeviceBuilder builder(physical_device);
 
 		vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
+		vk::PhysicalDeviceCustomBorderColorFeaturesEXT custom_border(vk::True, vk::False);
+
 		builder.add_pNext(&idx_byte_feature);
+
+		if (API->is_extension_enabled(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME))
+			builder.add_pNext(&custom_border);
+
 		auto device_ret = builder.build();
 
 		if (!device_ret)
@@ -440,6 +446,18 @@ namespace Engine
 		vk::FormatProperties properties            = m_physical_device.getFormatProperties(format);
 		const vk::FormatFeatureFlags feature_flags = optimal ? properties.optimalTilingFeatures : properties.linearTilingFeatures;
 		return (feature_flags & flags) == flags;
+	}
+
+	bool VulkanAPI::is_extension_enabled(const char* extension)
+	{
+		VulkanExtention ext;
+		ext.name = extension;
+
+		auto it = m_device_extensions.find(ext);
+		if (it == m_device_extensions.end())
+			return false;
+
+		return it->enabled;
 	}
 
 	VulkanAPI& VulkanAPI::submit()

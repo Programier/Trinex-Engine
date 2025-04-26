@@ -43,6 +43,18 @@ namespace Engine
 				min_filter  = vk::Filter::eNearest;
 				mipmap_mode = vk::SamplerMipmapMode::eNearest;
 		}
+
+		border_color = sampler->border_color;
+	}
+
+	static vk::BorderColor parse_border_color(Color color)
+	{
+		const byte color_intensity = (color.r + color.g + color.b) / 3;
+		const byte alpha_intensity = color.a;
+
+		if (alpha_intensity <= 127)
+			return vk::BorderColor::eFloatTransparentBlack;
+		return color_intensity > 127 ? vk::BorderColor::eFloatOpaqueWhite : vk::BorderColor::eFloatOpaqueBlack;
 	}
 
 	VulkanSampler& VulkanSampler::create(const VulkanSamplerCreateInfo& info)
@@ -50,7 +62,19 @@ namespace Engine
 		vk::SamplerCreateInfo sampler_info({}, info.mag_filter, info.min_filter, info.mipmap_mode, info.address_u, info.address_v,
 		                                   info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
 		                                   info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
-		                                   vk::BorderColor::eIntOpaqueBlack, vk::False);
+		                                   parse_border_color(info.border_color), vk::False);
+
+		vk::SamplerCustomBorderColorCreateInfoEXT border_color;
+
+		if (API->is_extension_enabled(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME))
+		{
+			sampler_info.borderColor = vk::BorderColor::eFloatCustomEXT;
+			border_color.format      = vk::Format::eR32G32B32A32Sfloat;
+			for (int i = 0; i < 4; ++i)
+				border_color.customBorderColor.float32[i] = static_cast<float>(info.border_color[i]) / 255.f;
+			sampler_info.setPNext(&border_color);
+		}
+
 		m_sampler = API->m_device.createSampler(sampler_info);
 		return *this;
 	}

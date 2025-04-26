@@ -15,12 +15,12 @@ namespace Engine
 		vk::SamplerAddressMode address_w;
 
 		vk::CompareOp compare_func;
-
 		float anisotropy;
 		float mip_lod_bias;
 		float min_lod;
 		float max_lod;
 		bool compare_enable;
+		Color border_color;
 
 		VulkanSamplerCreateInfo();
 		VulkanSamplerCreateInfo(const SamplerInitializer* sampler);

@@ -4,7 +4,7 @@
 */
 
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/set.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
 #include <VkBootstrap.h>
@@ -22,9 +22,16 @@ namespace Engine
 	class Window;
 
 	struct VulkanExtention {
-		const char* name;
-		bool required = false;
-		bool enabled  = false;
+		StringView name;
+		mutable bool required = false;
+		mutable bool enabled  = false;
+
+		inline bool operator==(const VulkanExtention& ext) const { return name == ext.name; }
+		inline bool operator!=(const VulkanExtention& ext) const { return name != ext.name; }
+
+		struct Hasher {
+			size_t operator()(const VulkanExtention& ext) const { return std::hash<StringView>()(ext.name); }
+		};
 	};
 
 	static constexpr inline vk::PipelineStageFlags all_shaders_stage =
@@ -39,7 +46,7 @@ namespace Engine
 
 		static VulkanAPI* m_vulkan;
 
-		Vector<VulkanExtention> m_device_extensions;
+		Set<VulkanExtention, VulkanExtention::Hasher> m_device_extensions;
 
 		struct {
 			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT           = nullptr;
@@ -84,6 +91,7 @@ namespace Engine
 		VulkanCommandBuffer* end_render_pass();
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
+		bool is_extension_enabled(const char* extension);
 
 		//////////////////////////////////////////////////////////////
 
