@@ -11,8 +11,7 @@ namespace Engine
 	private:
 		using iterator       = Object**;
 		using const_iterator = Object* const*;
-		static bool lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class,
-		                        const char* process);
+		static bool lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class);
 		static Object* find(const_iterator begin, const_iterator end, StringView full_name);
 		static Object* find(const_iterator begin, const_iterator end, Name name);
 
@@ -25,10 +24,6 @@ namespace Engine
 
 		protected:
 			ChildsArray m_child_objects;
-
-			bool register_child(Object* child) override { return true; }
-
-			bool unregister_child(Object* child) override { return true; }
 
 		public:
 			const ChildsArray& child_objects() const { return m_child_objects; }
@@ -61,8 +56,8 @@ namespace Engine
 			Object** end   = reinterpret_cast<Object**>(Holder::m_child_objects.end());
 			Object** place = nullptr;
 
-			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, object_tree_child_class(), "register"))
-				return false;
+			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, object_tree_child_class()))
+				return Super::register_child(child);
 
 			Holder::m_child_objects.insert(reinterpret_cast<Element**>(place), Super::template instance_cast<Element>(child));
 			return true;
@@ -74,8 +69,8 @@ namespace Engine
 			Object** end   = reinterpret_cast<Object**>(Holder::m_child_objects.end());
 			Object** place = nullptr;
 
-			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, object_tree_child_class(), "unregister"))
-				return false;
+			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, object_tree_child_class()))
+				return Super::unregister_child(child);
 
 			if (place != end)
 			{
@@ -83,7 +78,7 @@ namespace Engine
 				return true;
 			}
 
-			return false;
+			return Super::unregister_child(child);
 		}
 
 	public:

@@ -390,21 +390,23 @@ namespace Engine
 
 		for (auto& node : m_material->nodes())
 		{
-			auto pos = ed::GetNodePosition(node->id());
+			const ed::NodeId node_id = ed::NodeId(node.ptr());
+
+			auto pos = ed::GetNodePosition(node_id);
 
 			if (pos.x == FLT_MAX || pos.y == FLT_MAX)
 			{
 				pos = {node->position.x, node->position.y};
-				ed::SetNodePosition(node->id(), pos);
+				ed::SetNodePosition(node_id, pos);
 			}
 			else
 			{
 				node->position = ImGui::EngineVecFrom(pos);
 			}
 
-			builder.begin(node->id());
+			builder.begin(node_id);
 
-			if (ed::IsNodeSelected(node->id()))
+			if (ed::IsNodeSelected(node_id))
 				m_selected_nodes.push_back(node);
 
 			builder.begin_header(ImVec4(1.0, 0.0, 0.0, 1.f));
@@ -749,7 +751,7 @@ namespace Engine
 			ed::ClearSelection();
 			for (auto node : m_material->nodes())
 			{
-				ed::SelectNode(node->id(), true);
+				ed::SelectNode(ed::NodeId(node.ptr()), true);
 			}
 		}
 

@@ -12,19 +12,10 @@ namespace Engine
 		return object->name().index() < id;
 	}
 
-	bool ObjectTreeNodeStatics::lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class,
-	                                        const char* process)
+	bool ObjectTreeNodeStatics::lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class)
 	{
-		if (object == nullptr)
-		{
-			error_log("ObjectTreeNodeStatics", "Cannot %s object, because object is nullptr!", process);
-			return false;
-		}
-
 		if (!object->class_instance()->is_a(check_class))
 		{
-			error_log("ObjectTreeNodeStatics", "Cannot %s object, because object is not instance of '%s'!", process,
-			          check_class->full_name().c_str());
 			return false;
 		}
 

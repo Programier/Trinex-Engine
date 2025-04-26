@@ -50,6 +50,7 @@ namespace Engine::VisualMaterialGraph
 
 		Sampler();
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
+		Sampler& post_compile(VisualMaterial* material) override;
 	};
 
 	class SampleTexture : public Node

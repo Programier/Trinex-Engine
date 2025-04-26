@@ -27,7 +27,7 @@ namespace Engine
 	VisualMaterial& VisualMaterial::recalculate_nodes_ids()
 	{
 		m_next_node_id = 0;
-		
+
 		for (VisualMaterialGraph::Node* node : m_nodes)
 		{
 			node->change_id(m_next_node_id++);
@@ -50,7 +50,7 @@ namespace Engine
 		if (!node_class->is_a<VisualMaterialGraph::Node>())
 			return nullptr;
 
-		VisualMaterialGraph::Node* node = Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object());
+		VisualMaterialGraph::Node* node = Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object("", this));
 
 		if (node)
 		{
@@ -75,6 +75,15 @@ namespace Engine
 		Super::post_compile(pass, pipeline);
 		for (auto& node : m_nodes) node->post_compile(this);
 		return *this;
+	}
+
+	VisualMaterial::~VisualMaterial()
+	{
+		for (auto& node : m_nodes)
+		{
+			if (node->owner() == this)
+				node->owner(nullptr);
+		}
 	}
 
 	VisualMaterial& VisualMaterial::destroy_node(VisualMaterialGraph::Node* node, bool destroy_links)
@@ -103,6 +112,9 @@ namespace Engine
 					out->unlink();
 				}
 			}
+
+			if (node->owner() == this)
+				node->owner(nullptr);
 
 			m_nodes.erase(m_nodes.begin() + index);
 		}

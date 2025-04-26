@@ -108,6 +108,24 @@ namespace Engine::VisualMaterialGraph
 		return compiler.make_uniform(ShaderParameterType::Sampler);
 	}
 
+	Sampler& Sampler::post_compile(VisualMaterial* material)
+	{
+		Super::post_compile(material);
+
+		MaterialParameters::Parameter* parameter = nullptr;
+		{
+			String var_name = Compiler::static_uniform_parameter_name(this);
+			parameter       = material->find_parameter(var_name);
+		}
+
+		if (auto sampler_param = instance_cast<MaterialParameters::Sampler>(parameter))
+		{
+			sampler_param->sampler = sampler;
+		}
+
+		return *this;
+	}
+
 	SampleTexture::SampleTexture()
 	{
 		new_input("Tex", ShaderParameterType::META_Texture);
