@@ -616,13 +616,7 @@ namespace Engine
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 		if (ImGui::ColorEdit4("###value", &linear.x, flags))
 		{
-			(*color) = {
-			        static_cast<byte>(linear.r * 255.f),
-			        static_cast<byte>(linear.g * 255.f),
-			        static_cast<byte>(linear.b * 255.f),
-			        static_cast<byte>(linear.a * 255.f),
-			};
-
+			(*color) = linear;
 			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::interactive, prop));
 			return true;
 		}

@@ -3,6 +3,7 @@
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
+#include <Core/types/color.hpp>
 #include <Graphics/imgui.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -165,7 +166,7 @@ namespace Engine
 	{
 		Super::render(viewport);
 		viewport->rhi_bind();
-		viewport->rhi_clear_color(Color(0, 0, 0, 1));
+		viewport->rhi_clear_color(LinearColor(0.f, 0.f, 0.f, 1.f));
 		m_window->rhi_render();
 		return *this;
 	}

@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/types/color.hpp>
 
 namespace Engine
 {

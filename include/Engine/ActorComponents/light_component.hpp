@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/pointer.hpp>
+#include <Core/types/color.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/aabb.hpp>
 
@@ -11,7 +12,7 @@ namespace Engine
 	{
 	protected:
 		AABB_3Df m_bounds;
-		Color m_light_color;
+		LinearColor m_light_color;
 		float m_intensivity;
 		float m_depth_bias;
 		float m_slope_scale;
@@ -22,7 +23,7 @@ namespace Engine
 
 	public:
 		inline const AABB_3Df& bounding_box() const { return m_bounds; };
-		inline const Color& light_color() const { return m_light_color; }
+		inline const LinearColor& light_color() const { return m_light_color; }
 		inline float intensivity() const { return m_intensivity; }
 		inline float depth_bias() const { return m_depth_bias; }
 		inline float slope_scale() const { return m_slope_scale; }

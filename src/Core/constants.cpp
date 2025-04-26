@@ -40,6 +40,5 @@ namespace Engine
 	const String Constants::script_byte_code_extension    = ".asbc";
 	const String Constants::virtual_file_system_extension = ".tvfs";
 	const String Constants::translation_config_extension  = ".lang";
-	const Color Constants::splash_text_color              = {255, 255, 255, 255};
 	const HashIndex Constants::script_userdata_id         = Strings::hash_of("script_userdata_id");
 }// namespace Engine

@@ -1,6 +1,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/types/color.hpp>
 
 namespace Engine
 {

@@ -83,23 +83,6 @@ namespace Engine
 	using Vector3u = glm::vec<3, uint32_t, glm::defaultp>;
 	using Vector4u = glm::vec<4, uint32_t, glm::defaultp>;
 
-	struct Color : VectorNT<4, byte> {
-		using VectorNT<4, byte>::VectorNT;
-
-		explicit Color(float r, float g, float b, float a)
-		    : VectorNT<4, byte>{
-		              static_cast<byte>(r * 255.f),
-		              static_cast<byte>(g * 255.f),
-		              static_cast<byte>(b * 255.f),
-		              static_cast<byte>(a * 255.f),
-		      }
-		{}
-	};
-
-	struct LinearColor : VectorNT<4, float_t> {
-		using VectorNT<4, float_t>::VectorNT;
-	};
-
 	using ArrayIndex          = size_t;
 	using ArrayOffset         = size_t;
 	using PriorityIndex       = size_t;

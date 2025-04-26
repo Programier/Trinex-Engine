@@ -3,6 +3,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/reflection/object.hpp>
+#include <Core/types/color.hpp>
 
 namespace Engine
 {

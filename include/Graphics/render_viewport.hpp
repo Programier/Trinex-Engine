@@ -10,6 +10,7 @@ namespace Engine
 	class RenderTarget;
 	class RenderSurface;
 	struct RHI_RenderTargetView;
+	struct Color;
 
 	class ENGINE_EXPORT ViewportClient : public Object
 	{

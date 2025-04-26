@@ -37,7 +37,7 @@ namespace Engine
 	}
 
 	LightComponent::LightComponent()
-	    : m_light_color({255, 255, 255, 255}), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
+	    : m_light_color(255, 255, 255, 255), m_intensivity(30.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
 	      m_is_shadows_enabled(false)
 	{}
 

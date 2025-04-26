@@ -121,7 +121,6 @@ namespace Engine::Importer
 
 		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
 		{
-			return DefaultResources::Materials::base_pass;
 			// VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
 			// auto* root               = Object::instance_cast<VisualMaterialGraph::Root>(material->nodes()[0].ptr());
 
@@ -132,61 +131,61 @@ namespace Engine::Importer
 			// 	root->opacity()->value    = diffuse.a;
 			// }
 
-			// aiString texture_path;
+			aiString texture_path;
+
+			if (ai_material->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				// if (texture)
+				// {
+				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+				// 	node->texture = texture;
+				// 	root->base_color()->create_link(node->output_pin(0));
+				// 	node->name("base_color");
+				// }
+			}
+
+			if (ai_material->GetTexture(aiTextureType_METALNESS, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				// if (texture)
+				// {
+				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+				// 	node->texture = texture;
+				// 	root->metalness()->create_link(node->output_pin(1));
+				// 	node->name("metalness");
+				// }
+			}
+
+			if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				// if (texture)
+				// {
+				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+				// 	node->texture = texture;
+				// 	root->roughness()->create_link(node->output_pin(2));
+				// 	node->name("roughness");
+				// }
+			}
 
 
-			// if (ai_material->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) == AI_SUCCESS)
-			// {
-			// 	Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-			// 	if (texture)
-			// 	{
-			// 		auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-			// 		node->texture = texture;
-			// 		root->base_color()->create_link(node->output_pin(0));
-			// 		node->name("base_color");
-			// 	}
-			// }
-
-			// if (ai_material->GetTexture(aiTextureType_METALNESS, 0, &texture_path) == AI_SUCCESS)
-			// {
-			// 	Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-			// 	if (texture)
-			// 	{
-			// 		auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-			// 		node->texture = texture;
-			// 		root->metalness()->create_link(node->output_pin(1));
-			// 		node->name("metalness");
-			// 	}
-			// }
-
-			// if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texture_path) == AI_SUCCESS)
-			// {
-			// 	Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-			// 	if (texture)
-			// 	{
-			// 		auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-			// 		node->texture = texture;
-			// 		root->roughness()->create_link(node->output_pin(2));
-			// 		node->name("roughness");
-			// 	}
-			// }
-
-
-			// if (ai_material->GetTexture(aiTextureType_NORMALS, 0, &texture_path) == AI_SUCCESS)
-			// {
-			// 	Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-			// 	if (texture)
-			// 	{
-			// 		auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-			// 		node->texture = texture;
-			// 		root->normal()->create_link(node->output_pin(0));
-			// 		node->name("normal_map");
-			// 	}
-			// }
+			if (ai_material->GetTexture(aiTextureType_NORMALS, 0, &texture_path) == AI_SUCCESS)
+			{
+				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				// if (texture)
+				// {
+				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
+				// 	node->texture = texture;
+				// 	root->normal()->create_link(node->output_pin(0));
+				// 	node->name("normal_map");
+				// }
+			}
 
 			// ShaderCompiler::instance()->compile(material);
 
 			// return material;
+			return DefaultResources::Materials::base_pass;
 		}
 
 		void load_static_meshes(const aiScene* scene, const aiNode* node)

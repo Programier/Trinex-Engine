@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/render_resource.hpp>
+#include <Core/types/color.hpp>
 
 namespace Engine
 {

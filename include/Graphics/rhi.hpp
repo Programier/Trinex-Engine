@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/structures.hpp>
+#include <Core/types/color.hpp>
 #include <Graphics/types/color_format.hpp>
 
 struct ImGuiContext;
