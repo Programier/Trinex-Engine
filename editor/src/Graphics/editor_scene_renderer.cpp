@@ -136,7 +136,7 @@ namespace Engine
 
 		EditorOverlayPass& render(RenderViewport* rt) override
 		{
-			SceneRenderTargets::instance()->bind_scene_color_ldr();
+			SceneRenderTargets::instance()->bind_scene_color();
 
 			for (LightComponent* component : m_light_components)
 			{

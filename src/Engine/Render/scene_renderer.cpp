@@ -244,7 +244,7 @@ namespace Engine
 
 	RenderSurface* SceneRenderer::output_surface() const
 	{
-		return SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR);
+		return SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColor);
 	}
 
 	SceneRenderer& SceneRenderer::render(const SceneView& view, RenderViewport* viewport)

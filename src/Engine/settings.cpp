@@ -21,6 +21,7 @@ namespace Engine::Settings
 		ENGINE_EXPORT String rhi                    = "Vulkan";
 		ENGINE_EXPORT bool force_keep_cpu_resources = false;
 		ENGINE_EXPORT uint_t shadow_map_size        = 1024;
+		ENGINE_EXPORT bool enable_hdr               = true;
 	}// namespace Rendering
 
 	namespace Window
@@ -73,12 +74,13 @@ namespace Engine::Settings
 		}
 
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Settings::GPU");
+			ScriptNamespaceScopedChanger changer("Engine::Settings::Rendering");
 
 			using namespace Rendering;
 
 			bind_value(string, rhi);
 			bind_value(uint, shadow_map_size);
+			bind_value(bool, enable_hdr);
 		}
 
 		{

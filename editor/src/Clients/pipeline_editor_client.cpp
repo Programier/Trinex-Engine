@@ -17,31 +17,31 @@ namespace Engine
 		menu_bar.create("")->actions.push([this]() {
 			Object* object = selected_object();
 
-			if (ImGui::MenuItem("editor/Compile"_localized, nullptr, false, object != nullptr))
-			{
-				if (Pipeline* pipeline = instance_cast<Pipeline>(object))
-				{
-					String source;
-					if (!pipeline->shader_source(source))
-					{
-						error_log("PipelineEditorClient", "Failed to get pipeline source!");
-						return;
-					}
+			// if (ImGui::MenuItem("editor/Compile"_localized, nullptr, false, object != nullptr))
+			// {
+			// 	if (Pipeline* pipeline = instance_cast<Pipeline>(object))
+			// 	{
+			// 		String source;
+			// 		if (!pipeline->shader_source(source))
+			// 		{
+			// 			error_log("PipelineEditorClient", "Failed to get pipeline source!");
+			// 			return;
+			// 		}
 
-					ShaderCompiler* compiler = ShaderCompiler::instance();
-					if (!compiler)
-					{
-						error_log("PipelineEditorClient", "Failed to get compiler!");
-						return;
-					}
+			// 		ShaderCompiler* compiler = ShaderCompiler::instance();
+			// 		if (!compiler)
+			// 		{
+			// 			error_log("PipelineEditorClient", "Failed to get compiler!");
+			// 			return;
+			// 		}
 
-					compiler->compile(source, pipeline);
-				}
-				else
-				{
-					error_log("PipelineEditorClient", "Failed to cast object to pipeline!");
-				}
-			}
+			// 		compiler->compile(source, pipeline);
+			// 	}
+			// 	else
+			// 	{
+			// 		error_log("PipelineEditorClient", "Failed to cast object to pipeline!");
+			// 	}
+			// }
 		});
 	}
 

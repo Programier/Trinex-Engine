@@ -149,11 +149,6 @@ namespace Engine
 		return *this;
 	}
 
-	bool Pipeline::shader_source(String& source)
-	{
-		return false;
-	}
-
 	Pipeline& Pipeline::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		return *this;
@@ -181,10 +176,8 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case Graphics:
-				return new_instance<GraphicsPipeline>();
-			default:
-				return nullptr;
+			case Graphics: return new_instance<GraphicsPipeline>();
+			default: return nullptr;
 		}
 	}
 
@@ -211,20 +204,13 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case ShaderType::Vertex:
-				return m_vertex_shader;
-			case ShaderType::TessellationControl:
-				return m_tessellation_control_shader;
-			case ShaderType::Tessellation:
-				return m_tessellation_shader;
-			case ShaderType::Geometry:
-				return m_geometry_shader;
-			case ShaderType::Fragment:
-				return m_fragment_shader;
-			case ShaderType::Compute:
-				return nullptr;
-			default:
-				return nullptr;
+			case ShaderType::Vertex: return m_vertex_shader;
+			case ShaderType::TessellationControl: return m_tessellation_control_shader;
+			case ShaderType::Tessellation: return m_tessellation_shader;
+			case ShaderType::Geometry: return m_geometry_shader;
+			case ShaderType::Fragment: return m_fragment_shader;
+			case ShaderType::Compute: return nullptr;
+			default: return nullptr;
 		}
 	}
 
@@ -445,15 +431,6 @@ namespace Engine
 	Pipeline::Type GraphicsPipeline::type() const
 	{
 		return Pipeline::Type::Graphics;
-	}
-
-	bool GraphicsPipeline::shader_source(String& source)
-	{
-		if (auto mat = material())
-		{
-			return mat->shader_source(source);
-		}
-		return false;
 	}
 
 	bool GraphicsPipeline::serialize(class Archive& archive, Material* material)

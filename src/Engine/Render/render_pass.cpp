@@ -273,7 +273,7 @@ namespace Engine
 
 	PostProcessPass& PostProcessPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
+		SceneRenderTargets::instance()->bind_scene_color(false);
 		Super::render(vp);
 		return *this;
 	}
@@ -324,22 +324,21 @@ namespace Engine
 				swizzle = {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One};
 				break;
 
-			default:
-				return *this;
+			default: return *this;
 		}
 
 		Rect2D rect;
 		rect.pos  = {0, 0};
 		rect.size = src->size();
 
-		auto dst = render_targets->surface_of(SceneRenderTargets::SceneColorLDR)->rhi_unordered_access_view();
+		auto dst = render_targets->surface_of(SceneRenderTargets::SceneColor)->rhi_unordered_access_view();
 		Pipelines::Blit2D::instance()->blit(src->rhi_shader_resource_view(), dst, rect, rect, 0, swizzle);
 		return *this;
 	}
 
 	OverlayPass& OverlayPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
+		SceneRenderTargets::instance()->bind_scene_color(false);
 
 		{
 			auto mode = scene_renderer()->view_mode();

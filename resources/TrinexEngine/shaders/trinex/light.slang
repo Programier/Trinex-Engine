@@ -27,15 +27,16 @@ namespace Lighting
 		float calc_attenuation(float3 world_light_vector)
 		{
 #if TRINEX_POINT_LIGHT || TRINEX_SPOT_LIGHT
-			world_light_vector /= radius;
-			float len_sqr     = dot(world_light_vector, world_light_vector);
-			float attenuation = pow(1.0f - saturate(len_sqr), fall_off_exponent);
+			const float distance = length(world_light_vector);
+			float attenuation    = pow(saturate(1.0 - (distance / radius)), fall_off_exponent);
+			attenuation 		/= max(distance * distance, 0.01);
 
 #if TRINEX_SPOT_LIGHT
-			float cos_outer_cone          = spot_angles.x;
-			float inv_cos_cone_difference = spot_angles.y;
-			attenuation *=
-					square(saturate((dot(normalize(world_light_vector), -direction) - cos_outer_cone) * inv_cos_cone_difference));
+			const float cos_theta               = dot(normalize(world_light_vector), -direction);
+			const float cos_outer_cone          = spot_angles.x;
+			const float inv_cos_cone_difference = spot_angles.y;
+
+			attenuation *= square(saturate((cos_theta - cos_outer_cone) * inv_cos_cone_difference));
 #endif
 			return attenuation;
 #else

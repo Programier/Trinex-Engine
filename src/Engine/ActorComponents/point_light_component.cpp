@@ -16,7 +16,7 @@ namespace Engine
 		        .tooltip("Fall Off Exponent of this light");
 	}
 
-	PointLightComponent::PointLightComponent() : m_fall_off_exponent(8.f) {}
+	PointLightComponent::PointLightComponent() : m_fall_off_exponent(2.f) {}
 
 	float PointLightComponent::fall_off_exponent() const
 	{

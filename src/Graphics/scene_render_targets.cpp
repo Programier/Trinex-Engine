@@ -5,6 +5,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -48,10 +49,8 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case Surface::SceneColorHDR: return "SceneColorHDR";
-			case Surface::SceneColorLDR: return "SceneColorLDR";
-			case Surface::SceneDepthZ: return "SceneDepthZ";
-			case Surface::HitProxies: return "HitProxies";
+			case Surface::SceneColor: return "SceneColor";
+			case Surface::SceneDepth: return "SceneDepth";
 			case Surface::BaseColor: return "BaseColor";
 			case Surface::Normal: return "Normal";
 			case Surface::Emissive: return "Emissive";
@@ -66,10 +65,8 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case Surface::SceneColorHDR: return SurfaceFormat::RGBA16F;
-			case Surface::SceneColorLDR: return SurfaceFormat::RGBA8;
-			case Surface::SceneDepthZ: return SurfaceFormat::Depth;
-			case Surface::HitProxies: return SurfaceFormat::RGBA8;
+			case Surface::SceneColor: return Settings::Rendering::enable_hdr ? SurfaceFormat::RGBA16F : SurfaceFormat::RGBA8;
+			case Surface::SceneDepth: return SurfaceFormat::Depth;
 			case Surface::BaseColor: return SurfaceFormat::RGBA8;
 			case Surface::Normal: return SurfaceFormat::RGBA16F;
 			case Surface::Emissive: return SurfaceFormat::RGBA8;
@@ -108,23 +105,16 @@ namespace Engine
 		return m_size.y;
 	}
 
-	const SceneRenderTargets& SceneRenderTargets::bind_scene_color_hdr(bool with_depth) const
+	const SceneRenderTargets& SceneRenderTargets::bind_scene_color(bool with_depth) const
 	{
-
-		rhi->bind_render_target1(rtv_of(SceneColorHDR), with_depth ? dsv_of(Surface::SceneDepthZ) : nullptr);
-		return *this;
-	}
-
-	const SceneRenderTargets& SceneRenderTargets::bind_scene_color_ldr(bool with_depth) const
-	{
-		rhi->bind_render_target1(rtv_of(Surface::SceneColorLDR), with_depth ? dsv_of(Surface::SceneDepthZ) : nullptr);
+		rhi->bind_render_target1(rtv_of(Surface::SceneColor), with_depth ? dsv_of(Surface::SceneDepth) : nullptr);
 		return *this;
 	}
 
 	const SceneRenderTargets& SceneRenderTargets::bind_gbuffer() const
 	{
 		rhi->bind_render_target(rtv_of(Surface::BaseColor), rtv_of(Surface::Normal), rtv_of(Surface::Emissive),
-		                        rtv_of(Surface::MSRA), dsv_of(Surface::SceneDepthZ));
+		                        rtv_of(Surface::MSRA), dsv_of(Surface::SceneDepth));
 		return *this;
 	}
 
@@ -132,13 +122,12 @@ namespace Engine
 	{
 		LinearColor color = {0.f, 0.f, 0.f, 1.f};
 
-		surface_of(SceneColorHDR)->rhi_render_target_view()->clear(color);
-		surface_of(SceneColorLDR)->rhi_render_target_view()->clear(color);
+		surface_of(SceneColor)->rhi_render_target_view()->clear(color);
 		surface_of(BaseColor)->rhi_render_target_view()->clear(color);
 		surface_of(Normal)->rhi_render_target_view()->clear(color);
 		surface_of(Emissive)->rhi_render_target_view()->clear(color);
 		surface_of(MSRA)->rhi_render_target_view()->clear(color);
-		surface_of(SceneDepthZ)->rhi_depth_stencil_view()->clear(1.0, 0);
+		surface_of(SceneDepth)->rhi_depth_stencil_view()->clear(1.0, 0);
 		surface_of(LightPassDepthZ)->rhi_depth_stencil_view()->clear(1.0, 0);
 		return *this;
 	}

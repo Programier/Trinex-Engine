@@ -42,7 +42,7 @@ namespace Engine
 		bind_scene_render_target(rt, SceneRenderTargets::Normal, pipeline->normal_texture->location);
 		bind_scene_render_target(rt, SceneRenderTargets::Emissive, pipeline->emissive_texture->location);
 		bind_scene_render_target(rt, SceneRenderTargets::MSRA, pipeline->msra_texture->location);
-		bind_scene_render_target(rt, SceneRenderTargets::SceneDepthZ, pipeline->depth_texture->location);
+		bind_scene_render_target(rt, SceneRenderTargets::SceneDepth, pipeline->depth_texture->location);
 	}
 
 	template<typename PipelineType>
@@ -162,12 +162,15 @@ namespace Engine
 			scene_renderer()->bind_global_parameters(pipeline->globals->location);
 
 			const auto& color             = proxy->light_color();
-			const auto& intensivity       = proxy->intensivity();
+			float intensivity             = proxy->intensivity();
 			const auto& location          = proxy->world_transform().location();
 			const auto& direction         = proxy->direction();
 			const auto spot_angles        = Vector2f(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference());
 			const auto& radius            = proxy->attenuation_radius();
 			const auto& fall_off_exponent = proxy->fall_off_exponent();
+
+			const float solid_angle = 2.0 * M_PI * (1.0 - proxy->cos_outer_cone_angle());
+			intensivity /= solid_angle;
 
 			// clang-format off
 			rhi->update_scalar_parameter(&color, sizeof(color), pipeline->color->offset, pipeline->color->location);
@@ -218,7 +221,7 @@ namespace Engine
 
 	AmbientLightingPass& AmbientLightingPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
+		SceneRenderTargets::instance()->bind_scene_color(false);
 
 		auto pipeline = Pipelines::AmbientLight::instance();
 		pipeline->rhi_bind();
@@ -367,7 +370,7 @@ namespace Engine
 
 	DeferredLightingPass& DeferredLightingPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->bind_scene_color_ldr(false);
+		SceneRenderTargets::instance()->bind_scene_color(false);
 		Super::render(vp);
 		return *this;
 	}

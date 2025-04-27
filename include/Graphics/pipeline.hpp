@@ -115,7 +115,6 @@ namespace Engine
 		virtual bool serialize(Archive& ar) final override;
 		virtual bool serialize(Archive& ar, Material* material);
 		virtual Pipeline& clear();
-		virtual bool shader_source(String& source);
 		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
 		virtual Pipeline& post_compile(Refl::RenderPassInfo* pass);
 
@@ -176,7 +175,6 @@ namespace Engine
 		GraphicsPipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
 		GraphicsPipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
 		Type type() const override;
-		bool shader_source(String& source) override;
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 
