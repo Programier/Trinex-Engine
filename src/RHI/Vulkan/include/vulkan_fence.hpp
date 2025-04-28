@@ -1,10 +1,11 @@
 #pragma once
+#include <Graphics/rhi.hpp>
 #include <vulkan_headers.hpp>
 
 
 namespace Engine
 {
-	struct VulkanFence {
+	struct VulkanFence : public RHI_DefaultDestroyable<RHI_Fence> {
 	private:
 		mutable bool m_is_signaled;
 
@@ -15,11 +16,10 @@ namespace Engine
 	public:
 		vk::Fence m_fence;
 
-		bool is_signaled() const { return m_is_signaled || update_status(); }
-		VulkanFence& reset();
-		VulkanFence& wait();
+		inline bool is_signaled() override { return m_is_signaled || update_status(); }
+		void reset() override;
+		void wait() override;
 
 		static VulkanFence* create(bool is_signaled);
-		static void release(VulkanFence* fence);
 	};
 }// namespace Engine

@@ -34,6 +34,12 @@ namespace Engine
 
 	trinex_implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
 
+	struct NoneFence : public RHI_DefaultDestroyable<RHI_Fence> {
+		void wait() override {}
+		bool is_signaled() override { return true; }
+		void reset() override {}
+	};
+
 	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
 		void bind(BindLocation location) override {}
 	};
@@ -177,6 +183,11 @@ namespace Engine
 	Scissor NoneApi::scissor()
 	{
 		return {};
+	}
+
+	RHI_Fence* NoneApi::create_fence()
+	{
+		return new NoneFence();
 	}
 
 	RHI_Sampler* NoneApi::create_sampler(const SamplerInitializer*)

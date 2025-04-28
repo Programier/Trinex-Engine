@@ -133,7 +133,7 @@ namespace Engine
 	VulkanCommandBuffer& VulkanCommandBuffer::destroy(struct VulkanCommandBufferPool* pool)
 	{
 		release_references();
-		VulkanFence::release(m_fence);
+		m_fence->release();
 		API->m_device.freeCommandBuffers(pool->m_pool, m_cmd);
 		return *this;
 	}

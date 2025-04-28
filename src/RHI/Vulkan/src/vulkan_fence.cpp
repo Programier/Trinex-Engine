@@ -17,18 +17,16 @@ namespace Engine
 		return m_is_signaled;
 	}
 
-	VulkanFence& VulkanFence::reset()
+	void VulkanFence::reset()
 	{
 		API->m_device.resetFences(m_fence);
 		m_is_signaled = false;
-		return *this;
 	}
 
-	VulkanFence& VulkanFence::wait()
+	void VulkanFence::wait()
 	{
 		auto result = API->m_device.waitForFences(m_fence, vk::True, UINT64_MAX);
 		(void) result;
-		return *this;
 	}
 
 	VulkanFence* VulkanFence::create(bool is_signaled)
@@ -36,14 +34,13 @@ namespace Engine
 		return new VulkanFence(is_signaled);
 	}
 
-	void VulkanFence::release(VulkanFence* fence)
-	{
-		delete fence;
-	}
-
-
 	VulkanFence::~VulkanFence()
 	{
 		DESTROY_CALL(destroyFence, m_fence);
+	}
+
+	RHI_Fence* VulkanAPI::create_fence()
+	{
+		return VulkanFence::create(false);
 	}
 }// namespace Engine

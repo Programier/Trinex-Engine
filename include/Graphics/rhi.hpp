@@ -69,6 +69,12 @@ namespace Engine
 		}
 	};
 
+	struct RHI_Fence : public RHI_Object {
+		virtual void wait()        = 0;
+		virtual bool is_signaled() = 0;
+		virtual void reset()       = 0;
+	};
+
 	template<typename Base>
 	struct RHI_DefaultDestroyable : public Base {
 	protected:
@@ -184,6 +190,7 @@ namespace Engine
 		virtual RHI& scissor(const Scissor& scissor)    = 0;
 		virtual Scissor scissor()                       = 0;
 
+		virtual RHI_Fence* create_fence()                                                                                    = 0;
 		virtual RHI_Sampler* create_sampler(const SamplerInitializer*)                                                       = 0;
 		virtual RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) = 0;
 		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                                 = 0;
