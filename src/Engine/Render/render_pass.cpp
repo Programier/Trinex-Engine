@@ -338,7 +338,7 @@ namespace Engine
 
 	OverlayPass& OverlayPass::render(RenderViewport* vp)
 	{
-		SceneRenderTargets::instance()->bind_scene_color(false);
+		SceneRenderTargets::instance()->bind_scene_color();
 
 		{
 			auto mode = scene_renderer()->view_mode();
@@ -363,6 +363,7 @@ namespace Engine
 			render_octree_bounding_box(renderer->scene->light_octree().root_node(), lines);
 		}
 
+		SceneRenderTargets::instance()->bind_scene_color(true);
 		lines.render(this);
 		triangles.render(this);
 		return *this;

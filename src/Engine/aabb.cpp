@@ -77,20 +77,24 @@ namespace Engine
 	const AABB_3Df& AABB_3Df::write_to_batcher(BatchedLines& batcher, const Color& color) const
 	{
 		using Vertex = BatchedLines::Vertex;
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
 
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0), Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
+		Vector3f min = m_min - Vector3f(0.001f, 0.001f, 0.001f);
+		Vector3f max = m_max + Vector3f(0.001f, 0.001f, 0.001f);
 
-		batcher.add_line(Vertex({m_min.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_min.x, m_min.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_min.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_min.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_min.x, m_max.y, m_min.z}, color, 2.0), Vertex({m_min.x, m_max.y, m_max.z}, color, 2.0));
-		batcher.add_line(Vertex({m_max.x, m_max.y, m_min.z}, color, 2.0), Vertex({m_max.x, m_max.y, m_max.z}, color, 2.0));
+		batcher.add_line(Vertex({min.x, min.y, min.z}, color, 3.0), Vertex({max.x, min.y, min.z}, color, 3.0));
+		batcher.add_line(Vertex({min.x, max.y, min.z}, color, 3.0), Vertex({max.x, max.y, min.z}, color, 3.0));
+		batcher.add_line(Vertex({min.x, min.y, max.z}, color, 3.0), Vertex({max.x, min.y, max.z}, color, 3.0));
+		batcher.add_line(Vertex({min.x, max.y, max.z}, color, 3.0), Vertex({max.x, max.y, max.z}, color, 3.0));
+
+		batcher.add_line(Vertex({min.x, min.y, min.z}, color, 3.0), Vertex({min.x, max.y, min.z}, color, 3.0));
+		batcher.add_line(Vertex({max.x, min.y, min.z}, color, 3.0), Vertex({max.x, max.y, min.z}, color, 3.0));
+		batcher.add_line(Vertex({min.x, min.y, max.z}, color, 3.0), Vertex({min.x, max.y, max.z}, color, 3.0));
+		batcher.add_line(Vertex({max.x, min.y, max.z}, color, 3.0), Vertex({max.x, max.y, max.z}, color, 3.0));
+
+		batcher.add_line(Vertex({min.x, min.y, min.z}, color, 3.0), Vertex({min.x, min.y, max.z}, color, 3.0));
+		batcher.add_line(Vertex({max.x, min.y, min.z}, color, 3.0), Vertex({max.x, min.y, max.z}, color, 3.0));
+		batcher.add_line(Vertex({min.x, max.y, min.z}, color, 3.0), Vertex({min.x, max.y, max.z}, color, 3.0));
+		batcher.add_line(Vertex({max.x, max.y, min.z}, color, 3.0), Vertex({max.x, max.y, max.z}, color, 3.0));
 		return *this;
 	}
 

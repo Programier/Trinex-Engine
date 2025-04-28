@@ -21,11 +21,8 @@ namespace Engine
 			{}
 
 			FORCE_INLINE const Vector3f& position() const { return m_position; }
-
 			FORCE_INLINE const Color& color() const { return m_color; }
-
 			FORCE_INLINE float thickness() const { return m_thickness; }
-
 			FORCE_INLINE Vertex& position(const Vector3f& position)
 			{
 				m_position = position;

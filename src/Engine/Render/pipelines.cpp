@@ -130,7 +130,7 @@ namespace Engine::Pipelines
 	                          ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
 	{
 		input_assembly.primitive_topology = PrimitiveTopology::LineList;
-		color_blending.enable             = true;
+		color_blending.enable             = false;
 
 		m_globals = find_param_info("globals");
 	}
