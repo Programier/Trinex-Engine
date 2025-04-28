@@ -8,7 +8,7 @@
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
-#include <Graphics/visual_material_graph.hpp>
+#include <Graphics/visual_material_nodes.hpp>
 #include <Image/image.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -89,6 +89,12 @@ namespace Engine::Importer
 			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
 		}
 
+		static inline uint32_t calculate_mip_count(uint32_t width, uint32_t height)
+		{
+			uint32_t dimension = glm::max(width, height);
+			return glm::log2<float>(dimension) + 1;
+		}
+
 		Texture2D* load_texture(StringView path)
 		{
 			Pointer<Texture2D>& texture_ref = textures[path];
@@ -111,9 +117,25 @@ namespace Engine::Importer
 			auto texture    = Object::new_instance<Texture2D>(name, package);
 			texture_ref     = texture;
 			texture->format = image.format();
-			auto& mip       = texture->mips.emplace_back();
-			mip.size        = image.size();
-			mip.data        = image.buffer();
+
+			const uint_t mips_count = calculate_mip_count(image.width(), image.height());
+			texture->mips.resize(mips_count);
+
+			texture->mips[0].size = image.size();
+			texture->mips[0].data = image.buffer();
+
+			for (uint_t i = 1; i < mips_count; ++i)
+			{
+				auto& mip = texture->mips[i];
+
+				uint_t width  = glm::max<uint32_t>(image.width() / 2, 1);
+				uint_t height = glm::max<uint32_t>(image.height() / 2, 1);
+				image.resize({width, height});
+
+				mip.size = {width, height};
+				mip.data = image.buffer();
+			}
+
 			texture->init_render_resources();
 
 			return texture;
@@ -121,71 +143,69 @@ namespace Engine::Importer
 
 		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
 		{
-			// VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
-			// auto* root               = Object::instance_cast<VisualMaterialGraph::Root>(material->nodes()[0].ptr());
+			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
+			auto* root               = material->root_node();
 
-			// aiColor4D diffuse;
-			// if (ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
-			// {
-			// 	root->base_color()->value = {diffuse.r, diffuse.g, diffuse.b};
-			// 	root->opacity()->value    = diffuse.a;
-			// }
+			aiColor4D diffuse;
+			if (ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
+			{
+				root->base_color->default_value()->ref<Vector3f>() = {diffuse.r, diffuse.g, diffuse.b};
+				root->opacity->default_value()->ref<float>()       = diffuse.a;
+			}
 
 			aiString texture_path;
+			aiString roughness_path;
 
 			if (ai_material->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) == AI_SUCCESS)
 			{
 				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-				// if (texture)
-				// {
-				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-				// 	node->texture = texture;
-				// 	root->base_color()->create_link(node->output_pin(0));
-				// 	node->name("base_color");
-				// }
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
+					node->texture = texture;
+					root->base_color->link(node->rgba_pin());
+				}
 			}
 
 			if (ai_material->GetTexture(aiTextureType_METALNESS, 0, &texture_path) == AI_SUCCESS)
 			{
 				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-				// if (texture)
-				// {
-				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-				// 	node->texture = texture;
-				// 	root->metalness()->create_link(node->output_pin(1));
-				// 	node->name("metalness");
-				// }
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
+					node->texture = texture;
+					root->metalness->link(node->r_pin());
+				}
 			}
 
-			if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texture_path) == AI_SUCCESS)
+			if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &roughness_path) == AI_SUCCESS)
 			{
-				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-				// if (texture)
-				// {
-				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-				// 	node->texture = texture;
-				// 	root->roughness()->create_link(node->output_pin(2));
-				// 	node->name("roughness");
-				// }
-			}
+				Texture2D* texture = load_texture(StringView(roughness_path.C_Str(), roughness_path.length));
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
+					node->texture = texture;
 
+					if (roughness_path == texture_path)
+						root->roughness->link(node->g_pin());
+					else
+						root->roughness->link(node->r_pin());
+				}
+			}
 
 			if (ai_material->GetTexture(aiTextureType_NORMALS, 0, &texture_path) == AI_SUCCESS)
 			{
 				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
-				// if (texture)
-				// {
-				// 	auto node     = material->create_node<VisualMaterialGraph::Texture2D>();
-				// 	node->texture = texture;
-				// 	root->normal()->create_link(node->output_pin(0));
-				// 	node->name("normal_map");
-				// }
+				if (texture)
+				{
+					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
+					node->texture = texture;
+					root->normal->link(node->rgba_pin());
+				}
 			}
 
-			// ShaderCompiler::instance()->compile(material);
-
-			// return material;
-			return DefaultResources::Materials::base_pass;
+			ShaderCompiler::instance()->compile(material);
+			return material;
 		}
 
 		void load_static_meshes(const aiScene* scene, const aiNode* node)

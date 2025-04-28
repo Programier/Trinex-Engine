@@ -85,12 +85,30 @@ namespace Engine::VisualMaterialGraph
 		};
 
 	private:
+		struct RedirectionKey {
+			Refl::Class* node_class;
+			Identifier id;
+
+			inline bool operator<(const RedirectionKey& other) const
+			{
+				if (node_class != other.node_class)
+					return node_class < other.node_class;
+				return id < other.id;
+			}
+
+			inline bool operator==(const RedirectionKey& other) const { return node_class == other.node_class && id == other.id; }
+			inline bool operator!=(const RedirectionKey& other) const { return !(*this == other); }
+		};
+
+		TreeMap<RedirectionKey, Node*> m_redirections;
 		Map<Pin*, Expression> m_expression;
 
 		Set<String> m_includes;
 		Set<String> m_globals;
 		Set<String> m_param_names;
+		Set<String> m_var_names;
 
+		Set<Node*> m_temp_nodes;
 		Vector<String> m_stage_locals[2];
 
 		Node* m_current_node = nullptr;
@@ -99,7 +117,25 @@ namespace Engine::VisualMaterialGraph
 		String next_var_name() const;
 
 	public:
+		Compiler();
+		trinex_non_copyable(Compiler);
+		trinex_non_moveable(Compiler);
+		~Compiler();
+
 		static String static_uniform_parameter_name(Node* node);
+		static String static_uniform_parameter_name(Refl::Class* node_class, uint16_t id);
+
+		Node* create_temp_node(Refl::Class* node_class, uint16_t id);
+
+		template<typename T>
+		inline T* create_temp_node(uint16_t id)
+		{
+			static_assert(std::is_base_of_v<Node, T>, "Node class must be derived from Node");
+			return Object::instance_cast<T>(create_temp_node(T::static_class_instance(), id));
+		}
+
+		Compiler& add_redirection(Node* node, Identifier id);
+		Node* find_redirection(Refl::Class* node_class, Identifier id);
 
 		Compiler& add_include(const StringView& include);
 		Expression make_uniform(ShaderParameterType type, const String& name_override = "");
@@ -239,9 +275,9 @@ namespace Engine::VisualMaterialGraph
 
 		InputPin* new_input(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
 		OutputPin* new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
-		
+
 		Node& on_property_changed(const Refl::PropertyChangedEvent& event) override;
-		
+
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
 		virtual Node& render();
 		virtual Node& change_id(uint16_t id);

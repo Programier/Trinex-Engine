@@ -475,6 +475,33 @@ namespace Engine::VisualMaterialGraph
 		return Expression();
 	}
 
+	Compiler::Compiler() = default;
+
+	Compiler::~Compiler()
+	{
+		for (Node* node : m_temp_nodes)
+		{
+			node->remove_reference();
+		}
+	}
+
+	Node* Compiler::create_temp_node(Refl::Class* node_class, uint16_t id)
+	{
+		if (!node_class->is_a<Node>())
+			return nullptr;
+
+		Node* node = Object::instance_cast<Node>(node_class->create_object());
+
+		if (node)
+		{
+			node->add_reference();
+			node->change_id(id);
+			m_temp_nodes.insert(node);
+		}
+
+		return node;
+	}
+
 	String Compiler::next_var_name() const
 	{
 		Identifier id = m_stage_locals[m_stage].size() + m_globals.size();
@@ -483,7 +510,37 @@ namespace Engine::VisualMaterialGraph
 
 	String Compiler::static_uniform_parameter_name(Node* node)
 	{
-		return Strings::format("trx_var_uniform_{}", node->id());
+		return static_uniform_parameter_name(node->class_instance(), node->id());
+	}
+
+	String Compiler::static_uniform_parameter_name(Refl::Class* node_class, uint16_t id)
+	{
+		String node_name = Strings::to_lower(node_class->name());
+		return Strings::format("trx_var_{}_{}", node_name, id);
+	}
+
+	Compiler& Compiler::add_redirection(Node* node, Identifier id)
+	{
+		RedirectionKey key;
+		key.node_class = node->class_instance();
+		key.id         = id;
+
+		m_redirections[key] = node;
+		return *this;
+	}
+
+	Node* Compiler::find_redirection(Refl::Class* node_class, Identifier id)
+	{
+		RedirectionKey key;
+		key.node_class = node_class;
+		key.id         = id;
+
+		auto it = m_redirections.find(key);
+
+		if (it != m_redirections.end())
+			return it->second;
+
+		return nullptr;
 	}
 
 	Compiler& Compiler::add_include(const StringView& include)
@@ -499,6 +556,7 @@ namespace Engine::VisualMaterialGraph
 			String var_name   = static_uniform_parameter_name(m_current_node);
 			String expression = Strings::format("uniform {} {}", Expression::static_typename_of(type), var_name);
 			m_globals.insert(expression);
+			m_var_names.insert(var_name);
 			return Expression(type, var_name);
 		}
 		else
@@ -512,6 +570,7 @@ namespace Engine::VisualMaterialGraph
 			String expression = Strings::format("[name(\"{}\")] uniform {} {}", name_override,
 			                                    Expression::static_typename_of(type), var_name);
 			m_globals.insert(expression);
+			m_var_names.insert(var_name);
 			return Expression(type, var_name);
 		}
 	}
@@ -522,12 +581,13 @@ namespace Engine::VisualMaterialGraph
 
 		String var = Strings::format("{} {}", Expression::static_typename_of(type), var_name);
 		m_stage_locals[m_stage].push_back(var);
+		m_var_names.insert(var_name);
 		return Expression(type, var_name);
 	}
 
 	Expression Compiler::make_variable(const Expression& expression)
 	{
-		if (expression.value.starts_with("trx_var_"))
+		if (m_var_names.contains(expression.value))
 			return expression;
 
 		String type     = Expression::static_typename_of(expression.type);
@@ -535,6 +595,7 @@ namespace Engine::VisualMaterialGraph
 		String var      = Strings::format("{} {} = {}", type, var_name, expression.value);
 		m_stage_locals[m_stage].push_back(var);
 
+		m_var_names.insert(var_name);
 		return Expression(expression.type, var_name);
 	}
 
@@ -732,7 +793,7 @@ namespace Engine::VisualMaterialGraph
 		{
 			post_compile(material);
 		}
-		
+
 		return *this;
 	}
 

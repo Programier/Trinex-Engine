@@ -25,6 +25,7 @@ namespace Engine::VisualMaterialGraph
 		static_node_group(static_class_instance(), "Textures");
 		auto self = static_class_instance();
 
+		trinex_refl_prop(self, This, name);
 		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
 	}
 
@@ -33,6 +34,7 @@ namespace Engine::VisualMaterialGraph
 		static_node_group(static_class_instance(), "Textures");
 
 		auto self = static_class_instance();
+		trinex_refl_prop(self, This, texture);
 		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
 	}
 
@@ -56,11 +58,37 @@ namespace Engine::VisualMaterialGraph
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
 	{
-		new_output("Out", ShaderParameterType::Texture2D);
+		new_output("Tex", ShaderParameterType::Texture2D);
+	}
+
+	Texture2D* Texture2D::static_find_node(Engine::Texture2D* texture, Compiler& compiler, uint16_t id)
+	{
+		Node* redirected_node = compiler.find_redirection(static_class_instance(), reinterpret_cast<Identifier>(texture));
+
+		if (auto redirected_texture = instance_cast<This>(redirected_node))
+		{
+			return redirected_texture;
+		}
+
+		Texture2D* texture_node = compiler.create_temp_node<This>(id);
+		texture_node->texture   = texture;
+		return texture_node;
 	}
 
 	Expression Texture2D::compile(OutputPin* pin, Compiler& compiler)
 	{
+		if (name.empty())
+		{
+			Node* redirected_node = compiler.find_redirection(static_class_instance(), reinterpret_cast<Identifier>(texture));
+
+			if (auto redirected_texture = instance_cast<This>(redirected_node))
+			{
+				return compiler.compile(redirected_texture->outputs()[pin->index()]);
+			}
+
+			compiler.add_redirection(this, reinterpret_cast<Identifier>(texture));
+		}
+
 		return compiler.make_uniform(ShaderParameterType::Texture2D, name);
 	}
 
@@ -77,86 +105,237 @@ namespace Engine::VisualMaterialGraph
 	Texture2D& Texture2D::post_compile(VisualMaterial* material)
 	{
 		Super::post_compile(material);
+		static_post_compile(material, texture, id(), name);
+		return *this;
+	}
 
+	void Texture2D::static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, uint16_t id,
+	                                    StringView name_override)
+	{
 		MaterialParameters::Parameter* parameter = nullptr;
 
-		if (name.empty())
+		if (name_override.empty())
 		{
-			String var_name = Compiler::static_uniform_parameter_name(this);
+			String var_name = Compiler::static_uniform_parameter_name(static_class_instance(), id);
 			parameter       = material->find_parameter(var_name);
 		}
 		else
 		{
-			parameter = material->find_parameter(name);
+			parameter = material->find_parameter(name_override);
 		}
 
 		if (auto texture_param = instance_cast<MaterialParameters::Texture2D>(parameter))
 		{
 			texture_param->texture = texture ? texture : DefaultResources::Textures::default_texture;
 		}
-
-		return *this;
 	}
 
-	Sampler::Sampler()
+	Sampler::Sampler() : sampler(SamplerFilter::Trilinear)
 	{
-		new_output("Out", ShaderParameterType::Sampler);
+		if (class_instance() == static_class_instance())
+			new_output("Out", ShaderParameterType::Sampler);
+	}
+
+	Sampler* Sampler::static_find_node(const Engine::Sampler& sampler, Compiler& compiler, uint16_t id)
+	{
+		Node* redirected_node = compiler.find_redirection(static_class_instance(), sampler.initializer().hash());
+
+		if (auto redirected_sampler = instance_cast<Sampler>(redirected_node))
+		{
+			return redirected_sampler;
+		}
+
+		Sampler* sampler_node = compiler.create_temp_node<Sampler>(id);
+		sampler_node->sampler = sampler;
+		return sampler_node;
 	}
 
 	Expression Sampler::compile(OutputPin* pin, Compiler& compiler)
 	{
-		return compiler.make_uniform(ShaderParameterType::Sampler);
+		if (name.empty())
+		{
+			Node* redirected_node = compiler.find_redirection(static_class_instance(), sampler.initializer().hash());
+
+			if (auto redirected_sampler = instance_cast<Sampler>(redirected_node))
+			{
+				return compiler.compile(redirected_sampler->outputs()[pin->index()]);
+			}
+
+			compiler.add_redirection(this, sampler.initializer().hash());
+		}
+
+		return compiler.make_uniform(ShaderParameterType::Sampler, name);
 	}
 
 	Sampler& Sampler::post_compile(VisualMaterial* material)
 	{
 		Super::post_compile(material);
+		static_post_compile(material, sampler, id());
+		return *this;
+	}
 
+	void Sampler::static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, uint16_t id,
+	                                  StringView name_override)
+	{
 		MaterialParameters::Parameter* parameter = nullptr;
+
+		if (name_override.empty())
 		{
-			String var_name = Compiler::static_uniform_parameter_name(this);
+			String var_name = Compiler::static_uniform_parameter_name(static_class_instance(), id);
 			parameter       = material->find_parameter(var_name);
+		}
+		else
+		{
+			parameter = material->find_parameter(name_override);
 		}
 
 		if (auto sampler_param = instance_cast<MaterialParameters::Sampler>(parameter))
 		{
 			sampler_param->sampler = sampler;
 		}
-
-		return *this;
 	}
 
-	SampleTexture::SampleTexture()
+	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(SamplerFilter::Trilinear)
 	{
-		new_input("Tex", ShaderParameterType::META_Texture);
-		new_input("UV", ShaderParameterType::META_Numeric);
+		new_input("Tex", ShaderParameterType::Texture2D);
+		new_input("UV", ShaderParameterType::Float2);
 		new_input("Sampler", ShaderParameterType::Sampler);
-		new_output("Out", ShaderParameterType::Float4);
+
+		new_output("RGBA", ShaderParameterType::Float4);
+		new_output("R", ShaderParameterType::Float);
+		new_output("G", ShaderParameterType::Float);
+		new_output("B", ShaderParameterType::Float);
+		new_output("A", ShaderParameterType::Float);
+	}
+
+	Expression SampleTexture::compile_texture(Compiler& compiler)
+	{
+		auto in_texture = texture_pin();
+
+		if (in_texture->linked_pin())
+			return compiler.compile(in_texture);
+
+		Texture2D* node = Texture2D::static_find_node(texture, compiler, id());
+		return compiler.compile(node->texture_pin());
+	}
+
+	Expression SampleTexture::compile_uv(Compiler& compiler)
+	{
+		auto in_uv = uv_pin();
+
+		if (in_uv->linked_pin())
+			return compiler.compile(in_uv);
+
+		return Expression(ShaderParameterType::Float2, "input.uv");
+	}
+
+	Expression SampleTexture::compile_sampler(Compiler& compiler)
+	{
+		auto in_sampler = sampler_pin();
+
+		if (in_sampler->linked_pin())
+			return compiler.compile(in_sampler);
+
+		Sampler* sampler_node = Sampler::static_find_node(sampler, compiler, id());
+		return compiler.compile(sampler_node->sampler_pin());
+	}
+
+	Engine::Texture2D* SampleTexture::find_texture()
+	{
+		Node* node = this;
+
+		do
+		{
+			InputPin* pin = nullptr;
+
+			for (InputPin* input : node->inputs())
+			{
+				if (input->type() == ShaderParameterType::Texture2D)
+				{
+					pin = input;
+					break;
+				}
+			}
+
+			if (pin && pin->linked_pin())
+			{
+				node = pin->linked_pin()->node();
+			}
+			else
+			{
+				node = nullptr;
+			}
+
+		} while (node && !node->is_instance_of<Texture2D>());
+
+		if (auto texture = instance_cast<Texture2D>(node))
+		{
+			return texture->texture;
+		}
+
+		return texture;
 	}
 
 	Expression SampleTexture::compile(OutputPin* pin, Compiler& compiler)
 	{
-		auto in_uv = uv_pin();
+		const size_t pin_index = pin->index();
 
-		Expression texture = compiler.compile(texture_pin());
-		Expression sampler = compiler.compile(sampler_pin());
-
-		if (texture.type == ShaderParameterType::Texture2D)
+		if (pin_index != 0)
 		{
-			Expression uv;
+			Expression result     = compiler.compile(outputs()[0]);
+			const char* swizzle[] = {".r", ".g", ".b", ".a"};
 
-			if (in_uv->linked_pin())
-				uv = compiler.compile(in_uv).convert(ShaderParameterType::Float2);
-			else
-				uv = Expression(ShaderParameterType::Float2, "input.uv");
-
-			if (uv.is_valid())
-			{
-				String expr = Strings::format("{}.Sample({}, {})", texture.value, sampler.value, uv.value);
-				return Expression(ShaderParameterType::Float4, expr);
-			}
+			result.value += swizzle[pin_index - 1];
+			result.type = ShaderParameterType::Float;
+			return result;
 		}
 
-		return Expression();
+		Expression texture = compile_texture(compiler);
+
+		if (!texture.is_valid())
+			return Expression();
+
+		Expression uv = compile_uv(compiler);
+
+		if (!uv.is_valid())
+			return Expression();
+
+		Expression sampler = compile_sampler(compiler);
+
+		if (!sampler.is_valid())
+			return Expression();
+
+		String expr = Strings::format("{}.Sample({}, {})", texture.value, sampler.value, uv.value);
+		return compiler.make_variable(Expression(ShaderParameterType::Float4, expr));
+	}
+
+	SampleTexture& SampleTexture::render()
+	{
+		Engine::Texture2D* icon = find_texture();
+
+		if (icon)
+		{
+			float size = 4.f * ImGui::GetFrameHeight();
+			ImGui::Image(icon, {size, size});
+		}
+
+		return *this;
+	}
+
+	SampleTexture& SampleTexture::post_compile(VisualMaterial* material)
+	{
+		Super::post_compile(material);
+
+		if (!texture_pin()->linked_pin())
+		{
+			Texture2D::static_post_compile(material, texture, id());
+		}
+
+		if (!sampler_pin()->linked_pin())
+		{
+			Sampler::static_post_compile(material, sampler, id());
+		}
+
+		return *this;
 	}
 }// namespace Engine::VisualMaterialGraph

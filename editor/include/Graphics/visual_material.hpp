@@ -9,6 +9,7 @@ namespace Engine
 	{
 		class Node;
 		class NodeLayout;
+		class MaterialRoot;
 	}// namespace VisualMaterialGraph
 
 	class VisualMaterial : public Material
@@ -16,6 +17,8 @@ namespace Engine
 		trinex_declare_class(VisualMaterial, Material);
 
 	private:
+		using RootNode = VisualMaterialGraph::MaterialRoot;
+
 		Vector<Pointer<VisualMaterialGraph::Node>> m_nodes;
 		uint16_t m_next_node_id = 0;
 
@@ -39,6 +42,7 @@ namespace Engine
 		bool shader_source(String& out_source) override;
 
 		inline const Vector<Pointer<VisualMaterialGraph::Node>>& nodes() const { return m_nodes; }
+		inline RootNode* root_node() const { return reinterpret_cast<RootNode*>(nodes()[0].ptr()); }
 		inline bool is_root_node(VisualMaterialGraph::Node* node) const { return m_nodes[0].ptr() == node; }
 	};
 }// namespace Engine

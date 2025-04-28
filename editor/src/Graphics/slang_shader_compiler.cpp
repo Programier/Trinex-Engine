@@ -245,7 +245,7 @@ namespace Engine
 
 		static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
 		{
-			Strings::to_lower(name);
+			name = Strings::to_lower(name);
 
 			static const TreeMap<String, VertexBufferSemantic> semantics = {
 			        {"position", VertexBufferSemantic::Position},       //
@@ -282,29 +282,21 @@ namespace Engine
 			{
 				switch (var->getScalarType())
 				{
-					case slang::TypeReflection::ScalarType::Int8:
-						return VertexBufferElementType::Byte1;
+					case slang::TypeReflection::ScalarType::Int8: return VertexBufferElementType::Byte1;
 
-					case slang::TypeReflection::ScalarType::UInt8:
-						return VertexBufferElementType::UByte1;
+					case slang::TypeReflection::ScalarType::UInt8: return VertexBufferElementType::UByte1;
 
-					case slang::TypeReflection::ScalarType::Int16:
-						return VertexBufferElementType::Short1;
+					case slang::TypeReflection::ScalarType::Int16: return VertexBufferElementType::Short1;
 
-					case slang::TypeReflection::ScalarType::UInt16:
-						return VertexBufferElementType::UShort1;
+					case slang::TypeReflection::ScalarType::UInt16: return VertexBufferElementType::UShort1;
 
-					case slang::TypeReflection::ScalarType::Int32:
-						return VertexBufferElementType::Int1;
+					case slang::TypeReflection::ScalarType::Int32: return VertexBufferElementType::Int1;
 
-					case slang::TypeReflection::ScalarType::UInt32:
-						return VertexBufferElementType::UInt1;
+					case slang::TypeReflection::ScalarType::UInt32: return VertexBufferElementType::UInt1;
 
-					case slang::TypeReflection::ScalarType::Float32:
-						return VertexBufferElementType::Float1;
+					case slang::TypeReflection::ScalarType::Float32: return VertexBufferElementType::Float1;
 
-					default:
-						return VertexBufferElementType::Undefined;
+					default: return VertexBufferElementType::Undefined;
 				}
 			}
 			else if (kind == slang::TypeReflection::Kind::Vector)
@@ -508,16 +500,11 @@ namespace Engine
 									object.type = ShaderParameterType::Sampler2D;
 									break;
 
-								case slang::BindingType::Texture:
-									object.type = ShaderParameterType::Texture2D;
-									break;
+								case slang::BindingType::Texture: object.type = ShaderParameterType::Texture2D; break;
 
-								case slang::BindingType::MutableTexture:
-									object.type = ShaderParameterType::RWTexture2D;
-									break;
+								case slang::BindingType::MutableTexture: object.type = ShaderParameterType::RWTexture2D; break;
 
-								default:
-									return false;
+								default: return false;
 							}
 						}
 

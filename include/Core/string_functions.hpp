@@ -35,10 +35,8 @@ namespace Engine::Strings
 	ENGINE_EXPORT uint_t replace_symbol(String& str, char old_symbol, char new_symbol);
 	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol);
 	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol, uint_t len);
-	ENGINE_EXPORT String& to_lower(String& line);
-	ENGINE_EXPORT String to_lower(const String& line);
-	ENGINE_EXPORT String& to_upper(String& line);
-	ENGINE_EXPORT String to_upper(const String& line);
+	ENGINE_EXPORT String to_lower(StringView line);
+	ENGINE_EXPORT String to_upper(StringView line);
 
 	ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len);
 	ENGINE_EXPORT Vector<String> split(const StringView& line, char delimiter = ' ');

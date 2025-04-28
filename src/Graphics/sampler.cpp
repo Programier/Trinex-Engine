@@ -7,6 +7,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <limits>
@@ -127,17 +128,17 @@ namespace Engine
 	};
 
 	SamplerInitializer::SamplerInitializer()
-	    : filter(SamplerFilter::Point),             //
-	      address_u(SamplerAddressMode::Repeat),    //
-	      address_v(SamplerAddressMode::Repeat),    //
-	      address_w(SamplerAddressMode::Repeat),    //
-	      compare_mode(CompareMode::None),          //
-	      compare_func(CompareFunc::Always),        //
-	      border_color(0, 0, 0, 255),               //
-	      anisotropy(1.0),                          //
-	      mip_lod_bias(0.0),                        //
-	      min_lod(0.f),                             //
-	      max_lod(std::numeric_limits<float>::max())//
+	    : filter(SamplerFilter::Point),               //
+	      address_u(SamplerAddressMode::Repeat),      //
+	      address_v(SamplerAddressMode::Repeat),      //
+	      address_w(SamplerAddressMode::Repeat),      //
+	      compare_mode(CompareMode::None),            //
+	      compare_func(CompareFunc::Always),          //
+	      border_color(0, 0, 0, 255),                 //
+	      anisotropy(Settings::Rendering::anisotropy),//
+	      mip_lod_bias(0.0),                          //
+	      min_lod(0.f),                               //
+	      max_lod(std::numeric_limits<float>::max())  //
 	{}
 
 	HashIndex SamplerInitializer::hash() const

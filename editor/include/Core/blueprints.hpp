@@ -53,7 +53,6 @@ namespace Engine
 		ImU32 m_footer_color;
 		bool m_has_header;
 		bool m_has_footer;
-		bool m_require_spacing;
 
 		void transition_to_stage(Stage new_stage);
 

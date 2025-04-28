@@ -170,30 +170,20 @@ namespace Engine::Strings
 		return count;
 	}
 
-	ENGINE_EXPORT String& to_lower(String& line)
+	ENGINE_EXPORT String to_lower(StringView line)
 	{
-		static auto callback = [](char value) -> char { return std::tolower(value); };
-		std::transform(line.begin(), line.end(), line.begin(), callback);
-		return line;
+		String result;
+		result.resize(line.size());
+		std::transform(line.begin(), line.end(), result.begin(), [](char ch) -> char { return std::tolower(ch); });
+		return result;
 	}
 
-	ENGINE_EXPORT String to_lower(const String& line)
+	ENGINE_EXPORT String to_upper(StringView line)
 	{
-		String result = line;
-		return to_lower(result);
-	}
-
-	ENGINE_EXPORT String& to_upper(String& line)
-	{
-		static auto callback = [](char value) -> char { return std::toupper(value); };
-		std::transform(line.begin(), line.end(), line.begin(), callback);
-		return line;
-	}
-
-	ENGINE_EXPORT String to_upper(const String& line)
-	{
-		String result = line;
-		return to_upper(result);
+		String result;
+		result.resize(line.size());
+		std::transform(line.begin(), line.end(), result.begin(), [](char ch) -> char { return std::toupper(ch); });
+		return result;
 	}
 
 	ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len)

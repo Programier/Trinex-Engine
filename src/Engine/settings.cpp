@@ -22,6 +22,7 @@ namespace Engine::Settings
 		ENGINE_EXPORT bool force_keep_cpu_resources = false;
 		ENGINE_EXPORT uint_t shadow_map_size        = 1024;
 		ENGINE_EXPORT bool enable_hdr               = true;
+		ENGINE_EXPORT float anisotropy              = 8.f;
 	}// namespace Rendering
 
 	namespace Window

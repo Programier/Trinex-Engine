@@ -29,7 +29,7 @@ namespace Engine
 
 			for (byte index = 0; auto& mip : mips)
 			{
-				m_texture->update(index, Rect2D({0, 0}, mip.size), mip.data.data(), mip.data.size());
+				m_texture->update(index++, Rect2D({0, 0}, mip.size), mip.data.data(), mip.data.size());
 			}
 		});
 		return *this;

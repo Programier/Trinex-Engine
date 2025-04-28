@@ -23,6 +23,8 @@ namespace Engine::Settings
 
 		extern ENGINE_EXPORT uint_t shadow_map_size;
 		extern ENGINE_EXPORT bool enable_hdr;
+
+		extern ENGINE_EXPORT float anisotropy;
 	}// namespace Rendering
 
 	namespace Window

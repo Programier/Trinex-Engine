@@ -464,7 +464,7 @@ namespace Engine
 					s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
 				}
 
-				ImGui::Text("%*s", max_output_name_len, output->name().c_str());
+				ImGui::Text(" %*s", max_output_name_len, output->name().c_str());
 
 				builder.begin_output_pin(ed::PinId(output));
 				ed::PinPivotAlignment({0.5, 0.5f});
