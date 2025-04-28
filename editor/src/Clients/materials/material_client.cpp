@@ -38,7 +38,7 @@ namespace Engine
 		Pointer<CameraComponent> m_camera;
 		Pointer<StaticMeshActor> m_actor;
 
-		World* m_world = nullptr;
+		Pointer<World> m_world;
 		Renderer<EditorSceneRenderer> m_renderer;
 
 		float m_target_zoom  = 1.f;
@@ -213,12 +213,6 @@ namespace Engine
 
 			ImGui::End();
 			return is_open;
-		}
-
-		~ImGuiMaterialPreview()
-		{
-			render_thread()->wait();
-			//m_world->shutdown();
 		}
 
 		static const char* name() { return static_name(); }

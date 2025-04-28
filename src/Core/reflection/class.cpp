@@ -122,6 +122,8 @@ namespace Engine::Refl
 			{
 				bool scriptable     = !Engine::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_constructor(name, owner, scriptable);
+				m_singletone_object->flags |= Engine::Object::StandAlone;
+				m_singletone_object->add_reference();
 			}
 
 			return m_singletone_object;
@@ -140,6 +142,8 @@ namespace Engine::Refl
 			{
 				bool scriptable     = !Engine::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_placement_constructor(place, name, owner, scriptable);
+				m_singletone_object->flags |= Engine::Object::StandAlone;
+				m_singletone_object->add_reference();
 				return m_singletone_object;
 			}
 

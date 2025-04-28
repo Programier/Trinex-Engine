@@ -66,7 +66,5 @@ namespace Engine
 
 		const Vector<class Actor*>& actors() const;
 		~World();
-
-		static World* global();
 	};
 }// namespace Engine

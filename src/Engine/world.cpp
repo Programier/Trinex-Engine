@@ -286,22 +286,4 @@ namespace Engine
 			shutdown();
 		}
 	}
-
-	World* World::global()
-	{
-		static World* global_world = nullptr;
-		if (global_world == nullptr)
-		{
-			System* system = Object::static_find_object_checked<System>("Engine::Systems::EngineSystem");
-			if (!system)
-				return nullptr;
-			system = system->find_subsystem("LogicSystem::Global World");
-			if (!system)
-				return nullptr;
-
-			global_world = system->instance_cast<World>();
-		}
-
-		return global_world;
-	}
 }// namespace Engine

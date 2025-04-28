@@ -27,8 +27,8 @@ namespace Engine
 		virtual System& update(float dt);
 		virtual System& shutdown();
 		System& on_destroy() override;
-		static System* system_of(const String& name);
-		static System* system_of(class Refl::Class* class_instance);
+		static System* system_of(const String& name, Object* owner = nullptr);
+		static System* system_of(class Refl::Class* class_instance, Object* owner = nullptr);
 
 		const Vector<System*>& subsystems() const;
 		System& register_subsystem(System* system);
@@ -42,9 +42,9 @@ namespace Engine
 		bool is_shutdowned() const;
 
 		template<typename SystemType>
-		static SystemType* system_of()
+		static SystemType* system_of(Object* owner = nullptr)
 		{
-			return reinterpret_cast<SystemType*>(system_of(SystemType::static_class_instance()));
+			return reinterpret_cast<SystemType*>(system_of(SystemType::static_class_instance(), owner));
 		}
 		~System();
 		Identifier id() const;

@@ -3,7 +3,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
-#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Systems/system.hpp>
@@ -31,17 +30,14 @@ namespace Engine
 
 	System& System::create()
 	{
-		const Refl::Class* _this  = This::static_class_instance();
-		const Refl::Class* _class = class_instance();
+		const Refl::Class* self = class_instance();
 
-		if (_class == nullptr || _this == nullptr || _this == _class)
+		if (self == static_class_instance())
 		{
 			throw EngineException("Each class based from Engine::System must be registered!");
 		}
 
-		rename(_class->name().c_str(), static_find_package("TrinexEngine::Systems", true));
-
-		debug_log("System", "Created system '%s'", string_name().c_str());
+		debug_log("System", "Created system with type '%s'", self->name().c_str());
 		m_is_initialized = true;
 		return *this;
 	}
@@ -77,7 +73,6 @@ namespace Engine
 
 		m_subsystems.push_back(system);
 		system->m_parent_system = this;
-		system->owner(this);
 		return *this;
 	}
 
@@ -94,13 +89,10 @@ namespace Engine
 				{
 					m_subsystems.erase(it);
 					system->m_parent_system = nullptr;
-					system->owner(nullptr);
 					return *this;
 				}
 				++it;
 			}
-
-			system->owner(nullptr);
 		}
 
 		return *this;
@@ -228,24 +220,26 @@ namespace Engine
 		return *this;
 	}
 
-	System* System::system_of(class Refl::Class* class_instance)
+	System* System::system_of(class Refl::Class* class_instance, Object* owner)
 	{
 		if (class_instance && class_instance->is_a(System::static_class_instance()))
 		{
-			System* system = class_instance->create_object()->instance_cast<System>();
+			System* system = class_instance->create_object("", owner)->instance_cast<System>();
+
 			if (system && system->m_is_initialized == false)
 			{
 				on_new_system(system);
 			}
+
 			return system;
 		}
 
 		return nullptr;
 	}
 
-	System* System::system_of(const String& name)
+	System* System::system_of(const String& name, Object* owner)
 	{
-		return system_of(Refl::Class::static_find(name));
+		return system_of(Refl::Class::static_find(name), owner);
 	}
 
 	const Vector<System*>& System::subsystems() const

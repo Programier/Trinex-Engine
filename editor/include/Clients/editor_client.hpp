@@ -29,7 +29,7 @@ namespace Engine
 		trinex_declare_class(EditorClient, ImGuiViewportClient);
 
 	private:
-		class World* m_world = nullptr;
+		Pointer<World> m_world;
 
 		Vector<Identifier> m_event_system_listeners;
 		Identifier m_on_actor_select_callback_id   = 0;
