@@ -71,7 +71,7 @@ namespace Engine::VulkanEnums
 			case ColorFormat::ETC2_RGBA: return vk::Format::eEtc2R8G8B8A8UnormBlock;
 			case ColorFormat::NV12: return vk::Format::eG8B8R82Plane420Unorm;
 			case ColorFormat::P010: return vk::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16;
-			case ColorFormat::Depth: return vk::Format::eD16Unorm;
+			case ColorFormat::Depth: return vk::Format::eD32Sfloat;
 			case ColorFormat::DepthStencil: return vk::Format::eD24UnormS8Uint;
 			case ColorFormat::ShadowDepth: return vk::Format::eD16Unorm;
 

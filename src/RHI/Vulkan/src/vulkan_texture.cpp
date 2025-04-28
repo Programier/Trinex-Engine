@@ -373,6 +373,7 @@ namespace Engine
 
 		command_buffer->m_cmd.copyBufferToImage(buffer->m_buffer, image(), vk::ImageLayout::eTransferDstOptimal, region);
 		command_buffer->add_object(buffer);
+		command_buffer->add_object(this);
 	}
 
 	RHI_Texture2D* VulkanAPI::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
