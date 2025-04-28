@@ -14,48 +14,41 @@ namespace Engine
 		void execute() override { section->unlock(); }
 	};
 
-	Thread::Thread(NoThreadContext ctx)
+	Thread& Thread::register_thread_name(const String& name)
+	{
+		return *this;
+	}
+
+	Thread& Thread::register_thread()
+	{
+		this_thread_instance = this;
+		return *this;
+	}
+
+	Thread& Thread::unregister_thread()
+	{
+		this_thread_instance = nullptr;
+		return *this;
+	}
+
+	Thread::~Thread() {}
+
+	CommandBufferThread::CommandBufferThread(NoThread, size_t command_buffer_size)
+	    : m_buffer(ByteAllocator::allocate(command_buffer_size)), m_buffer_size(command_buffer_size)
 	{
 		m_read_pointer  = m_buffer;
 		m_write_pointer = m_buffer;
 	}
 
-	Thread::Thread() : Thread(NoThreadContext{})
+	CommandBufferThread::CommandBufferThread(const char* name, size_t command_buffer_size)
+	    : CommandBufferThread(NoThread(), command_buffer_size)
 	{
 		m_thread = new std::thread([this]() { thread_loop(); });
 	}
 
-	Thread& Thread::execute_commands()
+	void CommandBufferThread::thread_loop()
 	{
-		m_is_busy = true;
-		byte* wp  = m_write_pointer;
-		byte* rp  = m_read_pointer;
-
-		while (wp != rp)
-		{
-			auto* task = reinterpret_cast<TaskInterface*>(rp);
-			auto size  = task->size();
-			task->execute();
-			std::destroy_at(task);
-
-			rp = align_memory(rp + size, m_align);
-
-			if (rp >= m_buffer + m_buffer_size)
-				rp = m_buffer;
-
-			m_read_pointer = rp;
-		}
-
-		m_is_busy = false;
-		m_exec_flag.clear();
-		m_exec_flag.notify_all();
-
-		return *this;
-	}
-
-	void Thread::thread_loop()
-	{
-		this_thread_instance = this;
+		register_thread();
 
 		while (m_running)
 		{
@@ -69,14 +62,41 @@ namespace Engine
 
 			execute_commands();
 		}
+
+		unregister_thread();
 	}
 
-	bool Thread::is_busy() const
+	CommandBufferThread& CommandBufferThread::execute_commands()
 	{
-		return m_is_busy;
+		if (ThisThread::self() == this)
+		{
+			m_is_busy = true;
+			byte* wp  = m_write_pointer;
+			byte* rp  = m_read_pointer;
+
+			while (wp != rp)
+			{
+				auto* task = reinterpret_cast<TaskInterface*>(rp);
+				auto size  = task->size();
+				task->execute();
+				std::destroy_at(task);
+
+				rp = align_memory(rp + size, command_alignment);
+
+				if (rp >= m_buffer + m_buffer_size)
+					rp = m_buffer;
+
+				m_read_pointer = rp;
+			}
+
+			m_is_busy = false;
+			m_exec_flag.clear();
+			m_exec_flag.notify_all();
+		}
+		return *this;
 	}
 
-	Thread& Thread::wait()
+	CommandBufferThread& CommandBufferThread::wait()
 	{
 		if (ThisThread::self() != this)
 		{
@@ -85,10 +105,14 @@ namespace Engine
 			create_task<WaitTask>(&m_section);
 			m_section.lock();
 		}
+		else
+		{
+			execute_commands();
+		}
 		return *this;
 	}
 
-	Thread::~Thread()
+	CommandBufferThread::~CommandBufferThread()
 	{
 		m_running = false;
 		m_exec_flag.test_and_set();
@@ -103,20 +127,8 @@ namespace Engine
 
 			delete m_thread;
 		}
-	}
 
-
-	Thread::NoThreadContext MainThread::no_thead_context()
-	{
-		if (logic_thread() != nullptr)
-			throw EngineException("Cannot create main thread, because an object of this class already exists");
-		return {};
-	}
-
-	MainThread::MainThread() : Thread(no_thead_context())
-	{
-
-		this_thread_instance = this;
+		ByteAllocator::deallocate(m_buffer);
 	}
 
 	namespace ThisThread

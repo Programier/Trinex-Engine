@@ -1,3 +1,4 @@
+#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/critical_section.hpp>
@@ -58,11 +59,11 @@ namespace Engine
 			};
 
 			TempAllocatorSync* const m_sync;
-			Thread* const m_thread;
-			Node* m_head    = nullptr;
-			Node* m_current = nullptr;
+			Node* m_head     = nullptr;
+			Node* m_current  = nullptr;
+			uint64_t m_frame = 0;
 
-			TempAllocatorData(TempAllocatorSync* sync) : m_sync(sync), m_thread(ThisThread::self())
+			TempAllocatorData(TempAllocatorSync* sync) : m_sync(sync)
 			{
 				sync->push(this);
 				m_head    = allocate_block();
@@ -77,6 +78,15 @@ namespace Engine
 			inline byte* allocate_aligned(size_type size, size_type align)
 			{
 				Node* prev = nullptr;
+
+				const uint64_t current_frame = engine_instance->frame_index();
+
+				if (m_frame != current_frame)
+				{
+					m_current          = m_head;
+					m_current->m_stack = m_current->m_begin;
+					m_frame            = current_frame;
+				}
 
 				while (m_current)
 				{
@@ -99,18 +109,6 @@ namespace Engine
 				prev->m_next = m_current;
 				m_current->m_stack += size;
 				return m_current->m_begin;
-			}
-
-			inline void flush()
-			{
-				if (m_thread != ThisThread::self())
-				{
-					m_thread->call([this]() { flush(); });
-					return;
-				}
-
-				m_current          = m_head;
-				m_current->m_stack = m_current->m_begin;
 			}
 
 			~TempAllocatorData()
@@ -162,33 +160,8 @@ namespace Engine
 		return s_stack_allocator.allocate_aligned(size, align);
 	}
 
-	void StackByteAllocator::flush()
-	{
-		s_stack_sync.lock();
-
-		for (TempAllocatorData* stack : s_stack_sync.stacks)
-		{
-			stack->flush();
-		}
-
-		s_stack_sync.unlock();
-	}
-
 	unsigned char* FrameByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
 		return s_frame_allocator.allocate_aligned(size, align);
 	}
-
-	void FrameByteAllocator::flush()
-	{
-		s_frame_sync.lock();
-
-		for (TempAllocatorData* stack : s_frame_sync.stacks)
-		{
-			stack->flush();
-		}
-
-		s_frame_sync.unlock();
-	}
-
 }// namespace Engine

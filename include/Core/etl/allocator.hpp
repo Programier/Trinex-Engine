@@ -59,7 +59,6 @@ namespace Engine
 		static inline void deallocate(unsigned char* ptr) noexcept {}
 
 		static unsigned char* allocate_aligned(size_type size, size_type align);
-		static void flush();
 	};
 
 	struct ENGINE_EXPORT FrameByteAllocator : AllocatorBase {
@@ -75,7 +74,6 @@ namespace Engine
 		static inline void deallocate(unsigned char* ptr) noexcept {}
 
 		static unsigned char* allocate_aligned(size_type size, size_type align);
-		static void flush();
 	};
 
 	template<typename T, typename Type>

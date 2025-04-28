@@ -34,7 +34,7 @@ namespace Engine
 		static constexpr inline size_t m_align       = 16;
 
 		alignas(m_align) byte m_buffer[m_buffer_size];
-		Vector<std::thread> m_threads;
+		Vector<class WorkerThread*> m_threads;
 
 		Atomic<byte*> m_thread_read_pointer;
 		Atomic<byte*> m_read_pointer;
@@ -42,11 +42,11 @@ namespace Engine
 
 		Atomic<bool> m_running = true;
 		Atomic<bool> m_has_tasks;
-		CriticalSection m_thread_section;
-		CriticalSection m_push_section;
 
-		void thread_loop();
+		CriticalSection m_task_exec_section;
+		CriticalSection m_push_task_section;
 
+	protected:
 		inline size_t free_size() const
 		{
 			byte* rp = m_read_pointer;
@@ -66,7 +66,7 @@ namespace Engine
 			}
 		}
 
-		FORCE_INLINE void wait_for_size(size_t size)
+		inline void wait_for_size(size_t size)
 		{
 			while (free_size() < size)
 			{
@@ -74,11 +74,12 @@ namespace Engine
 			}
 		}
 
-
 		ThreadManager();
 		~ThreadManager();
 
-		ThreadManager& resize(size_t threads_count);
+		void thread_loop(class WorkerThread* thread);
+		TaskInterface* begin_execute();
+		void end_execute(TaskInterface* interface);
 
 	public:
 		static void destroy_manager();
@@ -87,7 +88,7 @@ namespace Engine
 		template<typename CommandType, typename... Args>
 		inline ThreadManager& create_task(Args&&... args)
 		{
-			m_push_section.lock();
+			m_push_task_section.lock();
 
 			size_t task_size = sizeof(CommandType);
 			byte* wp         = m_write_pointer;
@@ -110,7 +111,7 @@ namespace Engine
 			}
 
 			m_write_pointer = wp;
-			m_push_section.unlock();
+			m_push_task_section.unlock();
 
 			m_has_tasks = true;
 			m_has_tasks.notify_one();

@@ -140,14 +140,15 @@ namespace Engine
 	trinex_implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
-	    : m_debugging_thread(new Thread()), m_action(ImGui::TextEditor::DebugAction::Continue), m_is_in_debug_loop(false)
+	    : m_debugging_thread(allocate<CommandBufferThread>("ScriptDebug")), m_action(ImGui::TextEditor::DebugAction::Continue),
+	      m_is_in_debug_loop(false)
 	{
 		build_language_definition();
 	}
 
 	ScriptDebuggerClient::~ScriptDebuggerClient()
 	{
-		delete m_debugging_thread;
+		release(m_debugging_thread);
 		m_debugging_thread = nullptr;
 	}
 
@@ -699,16 +700,12 @@ namespace Engine
 		switch (action)
 		{
 			case ImGui::TextEditor::DebugAction::Step:
-			case ImGui::TextEditor::DebugAction::StepOut:
-				m_last_command_at_stack_level = ScriptContext::callstack_size();
+			case ImGui::TextEditor::DebugAction::StepOut: m_last_command_at_stack_level = ScriptContext::callstack_size();
 
 			case ImGui::TextEditor::DebugAction::StepInto:
-			case ImGui::TextEditor::DebugAction::Continue:
-				m_is_in_debug_loop = false;
-				break;
+			case ImGui::TextEditor::DebugAction::Continue: m_is_in_debug_loop = false; break;
 
-			default:
-				break;
+			default: break;
 		}
 	}
 
@@ -880,15 +877,12 @@ namespace Engine
 				case Engine::Keyboard::Key::F5:
 					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Continue);
 					break;
-				case Engine::Keyboard::Key::F10:
-					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Step);
-					break;
+				case Engine::Keyboard::Key::F10: self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Step); break;
 				case Engine::Keyboard::Key::F11:
 					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::StepInto);
 					break;
 
-				default:
-					break;
+				default: break;
 			}
 		}
 		else if (event.type == EventType::WindowResized && self->window()->id() == event.window_id)

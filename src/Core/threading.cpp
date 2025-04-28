@@ -3,20 +3,31 @@
 
 namespace Engine
 {
-	static MainThread* m_logic_thread = nullptr;
-	static Thread* m_render_thread    = nullptr;
+	static CommandBufferThread* m_logic_thread  = nullptr;
+	static CommandBufferThread* m_render_thread = nullptr;
+
+	class MainThread : public CommandBufferThread
+	{
+	public:
+		MainThread() : CommandBufferThread(NoThread())
+		{
+			register_thread();
+			register_thread_name("Main");
+		}
+		~MainThread() { unregister_thread(); }
+	};
 
 	ENGINE_EXPORT Thread* this_thread()
 	{
 		return ThisThread::self();
 	}
 
-	ENGINE_EXPORT Thread* render_thread()
+	ENGINE_EXPORT CommandBufferThread* render_thread()
 	{
 		return m_render_thread;
 	}
 
-	ENGINE_EXPORT MainThread* logic_thread()
+	ENGINE_EXPORT CommandBufferThread* logic_thread()
 	{
 		return m_logic_thread;
 	}
@@ -31,17 +42,16 @@ namespace Engine
 		return this_thread() == m_logic_thread;
 	}
 
-
 	ENGINE_EXPORT void create_threads()
 	{
 		if (m_logic_thread == nullptr)
 		{
-			m_logic_thread = new MainThread();
+			m_logic_thread = allocate<MainThread>();
 		}
 
 		if (m_render_thread == nullptr)
 		{
-			m_render_thread = new Thread();
+			m_render_thread = allocate<CommandBufferThread>("Render");
 		}
 	}
 
@@ -50,7 +60,7 @@ namespace Engine
 	{
 		if (thread)
 		{
-			delete thread;
+			release(thread);
 			thread = nullptr;
 		}
 	}

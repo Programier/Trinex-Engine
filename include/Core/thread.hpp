@@ -11,6 +11,20 @@ namespace Engine
 {
 	class ENGINE_EXPORT Thread
 	{
+	public:
+		static constexpr inline size_t command_alignment = 16;
+
+	protected:
+		Thread& register_thread_name(const String& name);
+		Thread& register_thread();
+		Thread& unregister_thread();
+
+	public:
+		virtual ~Thread();
+	};
+
+	class CommandBufferThread : public Thread
+	{
 	protected:
 		template<typename Func>
 		struct FunctionCaller : public Task<FunctionCaller<Func>> {
@@ -31,13 +45,12 @@ namespace Engine
 			void execute() override {}
 		};
 
-		struct NoThreadContext {
+		struct NoThread {
 		};
 
-		static constexpr inline size_t m_buffer_size = 1024 * 1024 * 1;
-		static constexpr inline size_t m_align       = 16;
+		byte* const m_buffer;
+		const size_t m_buffer_size;
 
-		alignas(m_align) byte m_buffer[m_buffer_size];
 		std::thread* m_thread = nullptr;
 
 		Atomic<byte*> m_read_pointer;
@@ -49,7 +62,7 @@ namespace Engine
 		std::atomic_flag m_exec_flag = ATOMIC_FLAG_INIT;
 		CriticalSection m_push_section;
 
-		Thread& execute_commands();
+	protected:
 		void thread_loop();
 
 		inline size_t free_size() const
@@ -79,13 +92,12 @@ namespace Engine
 			}
 		}
 
-		Thread(NoThreadContext ctx);
+		CommandBufferThread(NoThread, size_t command_buffer_size = 1024 * 1024 * 1);
 
 	public:
-		Thread();
-
-		bool is_busy() const;
-		Thread& wait();
+		CommandBufferThread(const char* name, size_t command_buffer_size = 1024 * 1024 * 1);
+		CommandBufferThread& execute_commands();
+		CommandBufferThread& wait();
 
 		template<typename CommandType, typename... Args>
 		inline Thread& create_task(Args&&... args)
@@ -105,7 +117,7 @@ namespace Engine
 			wait_for_size(task_size);
 
 			new (wp) CommandType(std::forward<Args>(args)...);
-			wp = align_memory(wp + task_size, m_align);
+			wp = align_memory(wp + task_size, command_alignment);
 
 			if (wp >= m_buffer + m_buffer_size)
 			{
@@ -133,16 +145,7 @@ namespace Engine
 			return create_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));
 		}
 
-		virtual ~Thread();
-	};
-
-	class ENGINE_EXPORT MainThread : public Thread
-	{
-		static NoThreadContext no_thead_context();
-
-	public:
-		MainThread();
-		using Thread::execute_commands;
+		~CommandBufferThread();
 	};
 
 	namespace ThisThread

@@ -7,6 +7,7 @@ namespace Engine::Settings
 	ENGINE_EXPORT String engine_class          = "Engine::BaseEngine";
 	ENGINE_EXPORT String default_language      = "eng";
 	ENGINE_EXPORT String current_language      = "eng";
+	ENGINE_EXPORT uint_t num_threads           = 0;
 	ENGINE_EXPORT int_t lz4_compression_level  = 0;
 	ENGINE_EXPORT int_t gc_max_object_per_tick = 1;
 	ENGINE_EXPORT int_t fps_limit              = 60;
@@ -65,6 +66,7 @@ namespace Engine::Settings
 			bind_value(string, engine_class);
 			bind_value(string, default_language);
 			bind_value(string, current_language);
+			bind_value(uint, num_threads);
 			bind_value(int, lz4_compression_level);
 			bind_value(int, gc_max_object_per_tick);
 			bind_value(float, fps_limit);

@@ -1,9 +1,44 @@
+#include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/thread.hpp>
 #include <Core/thread_manager.hpp>
+#include <Engine/settings.hpp>
 
 namespace Engine
 {
 	static ThreadManager* m_manager = nullptr;
+
+	class WorkerThread : public Thread
+	{
+		std::thread m_thread;
+
+	public:
+		using Thread::register_thread;
+		using Thread::register_thread_name;
+		using Thread::unregister_thread;
+
+		template<typename... Args>
+		WorkerThread(Args... args) : m_thread(args..., this)
+		{}
+
+		~WorkerThread()
+		{
+			if (m_thread.joinable())
+			{
+				m_thread.join();
+			}
+		}
+	};
+
+	struct CompletedTask : public TaskInterface {
+		uint32_t m_size;
+		static constexpr uint64_t complete_mask = 0xFFFFFFFF00000000ull;
+		static constexpr uint64_t size_mask     = 0x00000000FFFFFFFFull;
+
+		CompletedTask(uint32_t size) : m_size(size) {}
+		void execute() override {}
+		size_t size() const override { return complete_mask | m_size; }
+	};
 
 	ThreadManager* ThreadManager::instance()
 	{
@@ -14,19 +49,41 @@ namespace Engine
 		return m_manager;
 	}
 
-	ThreadManager& ThreadManager::resize(size_t threads_count)
+	ThreadManager::ThreadManager()
 	{
-		threads_count = glm::clamp<size_t>(1, std::thread::hardware_concurrency(), threads_count);
+		PostDestroyController().push(destroy_manager);
+
+		m_read_pointer        = m_buffer;
+		m_thread_read_pointer = m_buffer;
+		m_write_pointer       = m_buffer;
+
+
+		uint_t threads_count = 10;
+		m_threads.reserve(threads_count);
 
 		for (size_t i = 0; i < threads_count; ++i)
 		{
-			m_threads.emplace_back(&ThreadManager::thread_loop, this);
+			WorkerThread* thread = allocate<WorkerThread>(&ThreadManager::thread_loop, this);
+			m_threads.push_back(thread);
 		}
-		return *this;
 	}
 
-	void ThreadManager::thread_loop()
+	ThreadManager::~ThreadManager()
 	{
+		m_running   = false;
+		m_has_tasks = true;
+		m_has_tasks.notify_all();
+
+		for (auto& thread : m_threads)
+		{
+			release(thread);
+		}
+	}
+
+	void ThreadManager::thread_loop(WorkerThread* thread)
+	{
+		thread->register_thread();
+
 		while (m_running)
 		{
 			while (m_running && m_read_pointer == m_write_pointer)
@@ -38,41 +95,67 @@ namespace Engine
 			if (!m_running)
 				return;
 
+			TaskInterface* task = begin_execute();
 
-			// Load and unregister task from thread manager
-			m_thread_section.lock();
-			byte* rp = m_thread_read_pointer.load();
-			byte* wp = m_write_pointer;
-
-			if (rp == wp)
-			{
-				m_thread_section.unlock();
+			if (task == nullptr)
 				continue;
-			}
-
-			TaskInterface* task    = reinterpret_cast<TaskInterface*>(m_thread_read_pointer.load());
-			const size_t task_size = task->size();
-			rp                     = align_memory(rp + task_size, m_align);
-
-			if (rp >= m_buffer + m_buffer_size)
-				rp = m_buffer;
-
-			m_thread_read_pointer = rp;
-			m_thread_section.unlock();
 
 			task->execute();
+			end_execute(task);
+		}
 
-			// Submit executed task
+		thread->unregister_thread();
+	}
+
+	TaskInterface* ThreadManager::begin_execute()
+	{
+		ScopeLock lock(m_task_exec_section);
+
+		byte* rp = m_thread_read_pointer.load();
+		byte* wp = m_write_pointer;
+
+		if (rp == wp)
+		{
+			return nullptr;
+		}
+
+		TaskInterface* task = reinterpret_cast<TaskInterface*>(rp);
+		rp                  = align_memory(rp + task->size(), m_align);
+
+		if (rp >= m_buffer + m_buffer_size)
+			rp = m_buffer;
+
+		m_thread_read_pointer = rp;
+		return task;
+	}
+
+	void ThreadManager::end_execute(TaskInterface* task)
+	{
+		ScopeLock lock(m_task_exec_section);
+
+		byte* rp              = m_read_pointer.load();
+		byte* const thread_rp = m_thread_read_pointer.load();
+
+		if (rp == reinterpret_cast<byte*>(task))
+		{
+			do
 			{
-				m_thread_section.lock();
-				rp = align_memory(m_read_pointer.load() + task_size, m_align);
+				rp = align_memory(rp + (task->size() & CompletedTask::size_mask), m_align);
+				task->~TaskInterface();
 
 				if (rp >= m_buffer + m_buffer_size)
 					rp = m_buffer;
 
-				m_read_pointer = rp;
-				m_thread_section.unlock();
-			}
+				task = reinterpret_cast<TaskInterface*>(rp);
+			} while (rp != thread_rp && (task->size() & CompletedTask::complete_mask) == CompletedTask::complete_mask);
+
+			m_read_pointer = rp;
+		}
+		else
+		{
+			size_t size = task->size();
+			task->~TaskInterface();
+			new (task) CompletedTask(size);
 		}
 	}
 
@@ -80,30 +163,5 @@ namespace Engine
 	{
 		delete m_manager;
 		m_manager = nullptr;
-	}
-
-	ThreadManager::ThreadManager()
-	{
-		PostDestroyController().push(destroy_manager);
-
-		m_read_pointer        = m_buffer;
-		m_thread_read_pointer = m_buffer;
-		m_write_pointer       = m_buffer;
-		resize(10);
-	}
-
-	ThreadManager::~ThreadManager()
-	{
-		m_running   = false;
-		m_has_tasks = true;
-		m_has_tasks.notify_all();
-
-		for (auto& thread : m_threads)
-		{
-			if (thread.joinable())
-			{
-				thread.join();
-			}
-		}
 	}
 }// namespace Engine
