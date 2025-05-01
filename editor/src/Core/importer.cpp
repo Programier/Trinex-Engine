@@ -258,12 +258,12 @@ namespace Engine::Importer
 			RHIIndexFormat index_format = vertex_count > 65535 ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
 			byte index_size             = vertex_count > 65535 ? 4 : 2;
 
-			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
-			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
-			VtxBuffer<Vector3f> tangents   = lod.tangents.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
-			VtxBuffer<Vector3f> bitangents = lod.bitangents.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
-			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(RHIBufferType::Static, vertex_count);
-			IdxBuffer indices(lod.indices.allocate_data(RHIBufferType::Static, index_format, faces_count * 3), index_size);
+			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> tangents   = lod.tangents.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> bitangents = lod.bitangents.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
+			IdxBuffer indices(lod.indices.allocate_data(BufferCreateFlags::Static, index_format, faces_count * 3), index_size);
 
 			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
 			{

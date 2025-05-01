@@ -12,6 +12,7 @@
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_render_target.hpp>
+#include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
@@ -151,162 +152,6 @@ namespace Engine
 		vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
-	VulkanTextureSRV::VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
-	{
-		m_texture->owner()->add_reference();
-	}
-
-	VulkanTextureSRV::~VulkanTextureSRV()
-	{
-		DESTROY_CALL(destroyImageView, m_view);
-		m_texture->owner()->release();
-	}
-
-	void VulkanTextureSRV::bind(BindLocation location)
-	{
-		if (API->m_state.m_pipeline)
-		{
-			m_texture->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
-			API->m_state.m_pipeline->bind_texture(this, location);
-		}
-	}
-
-	void VulkanTextureSRV::bind_combined(byte location, struct RHI_Sampler* sampler)
-	{
-		if (API->m_state.m_pipeline)
-		{
-			m_texture->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
-			API->m_state.m_pipeline->bind_texture_combined(this, static_cast<VulkanSampler*>(sampler), location);
-		}
-	}
-
-	VulkanTextureUAV::VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
-	{
-		texture->owner()->add_reference();
-	}
-
-	VulkanTextureUAV::~VulkanTextureUAV()
-	{
-		DESTROY_CALL(destroyImageView, m_view);
-		m_texture->owner()->release();
-	}
-
-	void VulkanTextureUAV::bind(BindLocation location)
-	{
-		if (API->m_state.m_pipeline)
-		{
-			m_texture->change_layout(vk::ImageLayout::eGeneral);
-			API->m_state.m_pipeline->bind_texture(this, location);
-		}
-	}
-
-	VulkanTextureRTV::VulkanTextureRTV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
-	{
-		texture->owner()->add_reference();
-	}
-
-	VulkanTextureRTV::~VulkanTextureRTV()
-	{
-		while (!m_render_targets.empty())
-		{
-			auto rt = *m_render_targets.begin();
-			delete rt;
-		}
-
-		DESTROY_CALL(destroyImageView, m_view);
-		m_texture->owner()->release();
-	}
-
-	void VulkanTextureRTV::clear(const LinearColor& color)
-	{
-		auto cmd = API->end_render_pass();
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ClearColorValue value;
-		value.setFloat32({color.r, color.g, color.b, color.a});
-
-		vk::ImageSubresourceRange range;
-		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(0)
-		        .setBaseMipLevel(0)
-		        .setLayerCount(1)
-		        .setLevelCount(1);
-
-		API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
-		cmd->add_object(this);
-	}
-
-	template<typename Target>
-	static void blit_target(Target* src, Target* dst, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter,
-	                        vk::ImageAspectFlagBits aspect)
-	{
-		auto cmd = API->end_render_pass();
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
-		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		auto src_end = src_rect.pos + src_rect.size;
-		auto dst_end = dst_rect.pos + dst_rect.size;
-
-		vk::ImageBlit blit;
-		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_rect.pos.y, 0), vk::Offset3D(dst_end.x, dst_end.y, 1)});
-
-		blit.setSrcSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
-		blit.setDstSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
-
-		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal, blit,
-		                     VulkanEnums::filter_of(filter));
-
-		cmd->add_object(dst);
-		cmd->add_object(src);
-	}
-
-	void VulkanTextureRTV::blit(RHI_RenderTargetView* texture, const Rect2D& src_rect, const Rect2D& dst_rect,
-	                            SamplerFilter filter)
-	{
-		auto src = static_cast<VulkanTextureRTV*>(texture);
-		blit_target(src, this, src_rect, dst_rect, filter, vk::ImageAspectFlagBits::eColor);
-	}
-
-	VulkanTextureDSV::VulkanTextureDSV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
-	{
-		texture->owner()->add_reference();
-	}
-
-	VulkanTextureDSV::~VulkanTextureDSV()
-	{
-		while (!m_render_targets.empty())
-		{
-			auto rt = *m_render_targets.begin();
-			delete rt;
-		}
-
-		DESTROY_CALL(destroyImageView, m_view);
-		m_texture->owner()->release();
-	}
-
-	void VulkanTextureDSV::clear(float depth, byte stencil)
-	{
-		auto cmd = API->end_render_pass();
-
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ClearDepthStencilValue value;
-		value.setDepth(depth).setStencil(stencil);
-		vk::ImageSubresourceRange range;
-		range.setAspectMask(m_texture->aspect()).setBaseArrayLayer(0).setBaseMipLevel(0).setLayerCount(1).setLevelCount(1);
-
-		API->current_command_buffer_handle().clearDepthStencilImage(image(), layout(), value, range);
-		cmd->add_object(this);
-	}
-
-	void VulkanTextureDSV::blit(RHI_DepthStencilView* texture, const Rect2D& src_rect, const Rect2D& dst_rect,
-	                            SamplerFilter filter)
-	{
-		auto src = static_cast<VulkanTextureDSV*>(texture);
-		blit_target(src, this, src_rect, dst_rect, filter, vk::ImageAspectFlagBits::eDepth);
-	}
-
 	VulkanTexture2D& VulkanTexture2D::create(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
 		m_format = format;
@@ -314,6 +159,18 @@ namespace Engine
 		m_mips   = mips;
 
 		VulkanTexture::create({}, {}, flags);
+
+		if (flags & TextureCreateFlags::ShaderResource)
+			m_srv = VulkanTexture::create_srv();
+
+		if (flags & TextureCreateFlags::UnorderedAccess)
+			m_uav = VulkanTexture::create_uav();
+
+		if (flags & TextureCreateFlags::RenderTarget)
+			m_rtv = VulkanTexture::create_rtv();
+
+		if (flags & TextureCreateFlags::DepthStencilTarget)
+			m_dsv = VulkanTexture::create_dsv();
 		return *this;
 	}
 
@@ -362,7 +219,7 @@ namespace Engine
 		if (data == nullptr || data_size == 0)
 			return;
 
-		auto buffer = API->m_stagging_manager->allocate(data_size, vk::BufferUsageFlagBits::eTransferSrc);
+		auto buffer = API->m_stagging_manager->allocate(data_size, BufferCreateFlags::TransferSrc);
 		buffer->copy(0, data, data_size);
 
 		auto command_buffer = API->current_command_buffer();
@@ -374,6 +231,21 @@ namespace Engine
 		command_buffer->m_cmd.copyBufferToImage(buffer->m_buffer, image(), vk::ImageLayout::eTransferDstOptimal, region);
 		command_buffer->add_object(buffer);
 		command_buffer->add_object(this);
+	}
+
+	VulkanTexture2D::~VulkanTexture2D()
+	{
+		if (m_srv)
+			delete m_srv;
+
+		if (m_uav)
+			delete m_uav;
+
+		if (m_rtv)
+			delete m_rtv;
+
+		if (m_dsv)
+			delete m_dsv;
 	}
 
 	RHI_Texture2D* VulkanAPI::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)

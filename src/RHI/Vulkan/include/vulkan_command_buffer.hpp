@@ -24,6 +24,7 @@ namespace Engine
 		std::vector<vk::PipelineStageFlags> m_wait_flags;
 		VulkanDescriptorSetManager* m_descriptor_set_manager = nullptr;
 		class VulkanUniformBufferManager* m_uniform_buffer   = nullptr;
+		size_t m_fence_signaled_count                        = 0;
 
 		State m_state = State::IsReadyForBegin;
 
@@ -48,19 +49,13 @@ namespace Engine
 		VulkanCommandBuffer& wait();
 
 		inline bool is_ready_for_begin() const { return m_state == State::IsReadyForBegin; }
-
 		inline bool is_inside_render_pass() const { return m_state == State::IsInsideRenderPass; }
-
 		inline bool is_outside_render_pass() const { return m_state == State::IsInsideBegin; }
-
 		inline bool has_begun() const { return m_state == State::IsInsideBegin || m_state == State::IsInsideRenderPass; }
-
 		inline bool has_ended() const { return m_state == State::HasEnded; }
-
 		inline bool is_submitted() const { return m_state == State::Submitted; }
-
+		inline size_t fence_signaled_count() const { return m_fence_signaled_count; }
 		inline VulkanDescriptorSetManager* descriptor_set_manager() { return m_descriptor_set_manager; }
-
 		inline VulkanUniformBufferManager* uniform_buffer_manager() { return m_uniform_buffer; }
 
 		friend struct VulkanCommandBufferPool;

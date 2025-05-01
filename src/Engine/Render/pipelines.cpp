@@ -36,8 +36,8 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind_combined(m_src->location, sampler);
-		dst->bind(m_dst->location);
+		rhi->bind_srv(src, m_src->location, sampler);
+		rhi->bind_uav(dst, m_dst->location);
 
 		rhi->update_scalar_parameter(&kernel, m_kernel_size);
 		rhi->update_scalar_parameter(&sigma, m_sigma);
@@ -72,8 +72,8 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind(m_src->location);
-		dst->bind(m_dst->location);
+		rhi->bind_srv(src, m_src->location);
+		rhi->bind_uav(dst, m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
 
@@ -109,8 +109,8 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		src->bind(m_src->location);
-		dst->bind(m_dst->location);
+		rhi->bind_srv(src, m_src->location);
+		rhi->bind_uav(dst, m_dst->location);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
 

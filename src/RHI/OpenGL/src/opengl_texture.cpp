@@ -18,11 +18,9 @@ namespace Engine
 		switch (filter)
 		{
 			case SamplerFilter::Bilinear:
-			case SamplerFilter::Trilinear:
-				return GL_LINEAR;
+			case SamplerFilter::Trilinear: return GL_LINEAR;
 
-			default:
-				return GL_NEAREST;
+			default: return GL_NEAREST;
 		}
 	}
 
@@ -55,7 +53,6 @@ namespace Engine
 	{
 		m_format = color_format_from_engine_format(format);
 		m_size   = size;
-		m_flags  = flags;
 
 		glGenTextures(1, &m_id);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -105,30 +102,22 @@ namespace Engine
 
 	RHI_RenderTargetView* OpenGL_Texture::create_rtv()
 	{
-		if (m_flags & TextureCreateFlags::RenderTarget)
-			return new OpenGL_TextureRTV(this);
-		return nullptr;
+		return new OpenGL_TextureRTV(this);
 	}
 
 	RHI_DepthStencilView* OpenGL_Texture::create_dsv()
 	{
-		if (m_flags & TextureCreateFlags::DepthStencilTarget)
-			return new OpenGL_TextureDSV(this);
-		return nullptr;
+		return new OpenGL_TextureDSV(this);
 	}
 
 	RHI_ShaderResourceView* OpenGL_Texture::create_srv()
 	{
-		if (m_flags & TextureCreateFlags::ShaderResource)
-			return new OpenGL_TextureSRV(this);
-		return nullptr;
+		return new OpenGL_TextureSRV(this);
 	}
 
 	RHI_UnorderedAccessView* OpenGL_Texture::create_uav()
 	{
-		if (m_flags & TextureCreateFlags::UnorderedAccess)
-			return new OpenGL_TextureUAV(this);
-		return nullptr;
+		return new OpenGL_TextureUAV(this);
 	}
 
 	OpenGL_Texture::~OpenGL_Texture()
@@ -144,15 +133,10 @@ namespace Engine
 		texture->m_owner->add_reference();
 	}
 
-	void OpenGL_TextureSRV::bind(BindLocation location)
+	void OpenGL_TextureSRV::bind(byte location, OpenGL_Sampler* sampler)
 	{
-		glActiveTexture(GL_TEXTURE0 + location.binding);
+		glActiveTexture(GL_TEXTURE0 + location);
 		glBindTexture(m_texture->type(), m_texture->m_id);
-	}
-
-	void OpenGL_TextureSRV::bind_combined(byte location, struct RHI_Sampler* sampler)
-	{
-		bind(location);
 
 		if (sampler)
 		{
@@ -170,7 +154,7 @@ namespace Engine
 		texture->m_owner->add_reference();
 	}
 
-	void OpenGL_TextureUAV::bind(BindLocation location)
+	void OpenGL_TextureUAV::bind(byte location)
 	{
 		glBindImageTexture(location, m_texture->m_id, 0, GL_FALSE, 0, GL_WRITE_ONLY, m_texture->m_format.m_internal_format);
 	}
@@ -246,6 +230,33 @@ namespace Engine
 	    : m_texture(this)
 	{
 		m_texture.init_2D(format, size, mips, flags);
+
+		if (flags & TextureCreateFlags::ShaderResource)
+			m_srv = m_texture.create_srv();
+
+		if (flags & TextureCreateFlags::UnorderedAccess)
+			m_uav = m_texture.create_uav();
+
+		if (flags & TextureCreateFlags::RenderTarget)
+			m_rtv = m_texture.create_rtv();
+
+		if (flags & TextureCreateFlags::DepthStencilTarget)
+			m_dsv = m_texture.create_dsv();
+	}
+
+	OpenGL_Texture2D::~OpenGL_Texture2D()
+	{
+		if (m_srv)
+			delete m_srv;
+
+		if (m_uav)
+			delete m_uav;
+
+		if (m_rtv)
+			delete m_rtv;
+
+		if (m_dsv)
+			delete m_dsv;
 	}
 
 	void OpenGL_Texture2D::update(byte mip, const Rect2D& rect, const byte* data, size_t data_size)

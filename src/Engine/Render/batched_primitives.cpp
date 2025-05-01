@@ -10,7 +10,7 @@ namespace Engine
 {
 	//// Lines
 
-	BatchedLines::BatchedLines() : m_vtx_buffer(RHIBufferType::Dynamic, 64, nullptr, true) {}
+	BatchedLines::BatchedLines() : m_vtx_buffer(BufferCreateFlags::Dynamic, 64, nullptr, true) {}
 
 	BatchedLines& BatchedLines::add_line(const Vertex& point1, const Vertex& point2)
 	{
@@ -55,7 +55,8 @@ namespace Engine
 	// TRIANGLES
 
 	BatchedTriangles::BatchedTriangles()
-	    : m_position_buffer(RHIBufferType::Dynamic, 64, nullptr, true), m_color_buffer(RHIBufferType::Dynamic, 64, nullptr, true)
+	    : m_position_buffer(BufferCreateFlags::Dynamic, 64, nullptr, true),
+	      m_color_buffer(BufferCreateFlags::Dynamic, 64, nullptr, true)
 	{}
 
 	BatchedTriangles& BatchedTriangles::clear()

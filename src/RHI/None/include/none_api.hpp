@@ -24,7 +24,7 @@ namespace Engine
 		                                size_t instances) override;
 
 		NoneApi& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
-
+		NoneApi& signal_fence(RHI_Fence* fence) override;
 		NoneApi& submit() override;
 
 		NoneApi& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
@@ -45,11 +45,14 @@ namespace Engine
 		RHI_Shader* create_compute_shader(const ComputeShader* shader) override;
 		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline) override;
-		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type) override;
-		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
+		RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
+
+		NoneApi& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
+		NoneApi& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
+		NoneApi& bind_uniform_buffer(RHI_Buffer* buffer, byte slot) override;
+		NoneApi& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
+		NoneApi& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 
 		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 		NoneApi& push_debug_stage(const char* stage, const LinearColor& color = {}) override;

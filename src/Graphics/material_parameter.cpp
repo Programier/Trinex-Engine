@@ -91,8 +91,11 @@ namespace Engine::MaterialParameters
 	Sampler2D& Sampler2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		auto rhi_sampler = sampler.rhi_sampler();
+
 		if (texture && rhi_sampler)
-			texture->rhi_shader_resource_view()->bind_combined(info->location, rhi_sampler);
+		{
+			rhi->bind_srv(texture->rhi_srv(), info->location, rhi_sampler);
+		}
 		return *this;
 	}
 
@@ -111,7 +114,9 @@ namespace Engine::MaterialParameters
 	Texture2D& Texture2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
 		if (texture)
-			texture->rhi_shader_resource_view()->bind(info->location);
+		{
+			rhi->bind_srv(texture->rhi_srv(), info->location);
+		}
 		return *this;
 	}
 
@@ -145,9 +150,8 @@ namespace Engine::MaterialParameters
 
 	Surface& Surface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
-		auto srv = surface ? surface->rhi_shader_resource_view()
-		                   : DefaultResources::Textures::default_texture->rhi_shader_resource_view();
-		srv->bind(info->location);
+		auto srv = surface ? surface->rhi_srv() : DefaultResources::Textures::default_texture->rhi_srv();
+		rhi->bind_srv(srv, info->location);
 		return *this;
 	}
 
@@ -162,11 +166,13 @@ namespace Engine::MaterialParameters
 
 	CombinedSurface& CombinedSurface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
 	{
-		RHI_ShaderResourceView* srv = surface ? surface->rhi_shader_resource_view() : nullptr;
+		RHI_ShaderResourceView* srv = surface ? surface->rhi_srv() : nullptr;
 		RHI_Sampler* rhi_sampler    = sampler.rhi_sampler();
 
 		if (srv && rhi_sampler)
-			srv->bind_combined(info->location, rhi_sampler);
+		{
+			rhi->bind_srv(srv, info->location, rhi_sampler);
+		}
 		return *this;
 	}
 

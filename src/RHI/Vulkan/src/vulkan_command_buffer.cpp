@@ -52,6 +52,7 @@ namespace Engine
 				m_cmd.reset();
 				m_fence->reset();
 				m_uniform_buffer->reset();
+				++m_fence_signaled_count;
 				release_references();
 			}
 		}
@@ -133,7 +134,7 @@ namespace Engine
 	VulkanCommandBuffer& VulkanCommandBuffer::destroy(struct VulkanCommandBufferPool* pool)
 	{
 		release_references();
-		m_fence->release();
+		VulkanFence::release(m_fence);
 		API->m_device.freeCommandBuffers(pool->m_pool, m_cmd);
 		return *this;
 	}

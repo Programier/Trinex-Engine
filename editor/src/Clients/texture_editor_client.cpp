@@ -27,7 +27,7 @@ namespace Engine
 		rect.size = dst->size();
 
 		auto pipeline = Pipelines::Blit2DGamma::instance();
-		pipeline->blit(srv, dst->rhi_unordered_access_view(), rect, rect, power, level, swizzle);
+		pipeline->blit(srv, dst->rhi_uav(), rect, rect, power, level, swizzle);
 	}
 
 	static inline Swizzle modify_swizzle(Swizzle swizzle, ColorFormat format)
@@ -89,7 +89,7 @@ namespace Engine
 		m_surface = Object::new_instance<RenderSurface>();
 		m_surface->init(SurfaceFormat::RGBA8, {1, 1});
 
-		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_render_target_view()->clear(Color(0, 0, 0, 1)); });
+		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_rtv()->clear(Color(0, 0, 0, 1)); });
 
 		menu_bar.create("")->actions.push([this]() {
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -209,7 +209,7 @@ namespace Engine
 		if (!m_texture)
 			return *this;
 
-		copy_texture_to_surface(surface, m_texture->rhi_shader_resource_view(), pow_factor(), m_mip_index,
+		copy_texture_to_surface(surface, m_texture->rhi_srv(), pow_factor(), m_mip_index,
 		                        modify_swizzle(swizzle(), m_texture->format));
 		return *this;
 	}
@@ -253,8 +253,7 @@ namespace Engine
 		if (!m_surface)
 			return *this;
 
-		copy_texture_to_surface(surface, m_surface->rhi_shader_resource_view(), pow_factor(), 0,
-		                        modify_swizzle(swizzle(), m_surface->format()));
+		copy_texture_to_surface(surface, m_surface->rhi_srv(), pow_factor(), 0, modify_swizzle(swizzle(), m_surface->format()));
 		return *this;
 	}
 

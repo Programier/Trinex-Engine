@@ -12,10 +12,6 @@ namespace Engine
 	struct RHI_Shader;
 	struct RHI_Pipeline;
 	struct RHI_Buffer;
-	struct RHI_VertexBuffer;
-	struct RHI_IndexBuffer;
-	struct RHI_UniformBuffer;
-	struct RHI_SSBO;
 	struct RHI_RenderPass;
 
 	class ENGINE_EXPORT RenderResource : public Object

@@ -517,14 +517,25 @@ namespace Engine
 		trinex_bitfield_enum_struct(ShaderType, EnumerateType);
 	};
 
-	struct RHIBufferType {
-		enum Enum : byte
+	struct BufferCreateFlags {
+		enum Enum : uint16_t
 		{
-			Static  = 0,
-			Dynamic = 1,
+			Undefined,
+			Static  = BIT(0),
+			Dynamic = BIT(1),
+
+			VertexBuffer      = BIT(2),
+			IndexBuffer       = BIT(3),
+			UniformBuffer     = BIT(4),
+			ShaderResource    = BIT(5),
+			UnorderedAccess   = BIT(6),
+			StructuredBuffer  = BIT(7),
+			ByteAddressBuffer = BIT(8),
+			TransferSrc       = BIT(9),
+			TransferDst       = BIT(9),
 		};
 
-		trinex_enum_struct(RHIBufferType);
+		trinex_bitfield_enum_struct(BufferCreateFlags, uint16_t);
 	};
 
 	struct ShowFlags {

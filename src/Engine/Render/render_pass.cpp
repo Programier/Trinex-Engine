@@ -331,8 +331,8 @@ namespace Engine
 		rect.pos  = {0, 0};
 		rect.size = src->size();
 
-		auto dst = render_targets->surface_of(SceneRenderTargets::SceneColor)->rhi_unordered_access_view();
-		Pipelines::Blit2D::instance()->blit(src->rhi_shader_resource_view(), dst, rect, rect, 0, swizzle);
+		auto dst = render_targets->surface_of(SceneRenderTargets::SceneColor)->rhi_uav();
+		Pipelines::Blit2D::instance()->blit(src->rhi_srv(), dst, rect, rect, 0, swizzle);
 		return *this;
 	}
 

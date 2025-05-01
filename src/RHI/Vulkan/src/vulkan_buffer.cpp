@@ -10,17 +10,61 @@
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_types.hpp>
 
 namespace Engine
 {
-	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlags usage,
+	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, BufferCreateFlags flags,
 	                                   VmaMemoryUsage memory_usage)
 	{
 		m_size  = size;
-		m_usage = vk::BufferUsageFlagBits::eTransferDst | usage;
-		vk::BufferCreateInfo buffer_info({}, size, m_usage, vk::SharingMode::eExclusive);
+		m_flags = flags;
+
+		vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eTransferDst;
+
+		if (flags & BufferCreateFlags::VertexBuffer)
+			usage |= vk::BufferUsageFlagBits::eVertexBuffer;
+
+		if (flags & BufferCreateFlags::IndexBuffer)
+			usage |= vk::BufferUsageFlagBits::eIndexBuffer;
+
+		if (flags & BufferCreateFlags::UniformBuffer)
+			usage |= vk::BufferUsageFlagBits::eUniformBuffer;
+
+
+		if (flags & BufferCreateFlags::ShaderResource)
+		{
+			if (flags & (BufferCreateFlags::ByteAddressBuffer | BufferCreateFlags::StructuredBuffer))
+			{
+				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+				m_srv = new TypedVulkanBufferSRV<vk::DescriptorType::eStorageBuffer>(this);
+			}
+			else
+			{
+				usage |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
+				m_srv = new TypedVulkanBufferSRV<vk::DescriptorType::eUniformTexelBuffer>(this);
+			}
+		}
+
+		if (flags & BufferCreateFlags::UnorderedAccess)
+		{
+			if (flags & (BufferCreateFlags::ByteAddressBuffer | BufferCreateFlags::StructuredBuffer))
+			{
+				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+				m_uav = new TypedVulkanBufferUAV<vk::DescriptorType::eStorageBuffer>(this);
+			}
+		}
+
+		if (flags & BufferCreateFlags::TransferSrc)
+			usage |= vk::BufferUsageFlagBits::eTransferSrc;
+
+		if (flags & BufferCreateFlags::TransferDst)
+			usage |= vk::BufferUsageFlagBits::eTransferDst;
+
+
+		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
 
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = memory_usage;
@@ -39,13 +83,13 @@ namespace Engine
 
 	VulkanBuffer& VulkanBuffer::copy(vk::DeviceSize offset, const byte* data, vk::DeviceSize size)
 	{
-		if (m_allocation->IsMappingAllowed() && map_memory() != nullptr)
+		if (map() != nullptr)
 		{
 			std::memcpy(m_mapped + offset, data, size);
 		}
 		else
 		{
-			auto buffer = API->m_stagging_manager->allocate(size, vk::BufferUsageFlagBits::eTransferSrc);
+			auto buffer = API->m_stagging_manager->allocate(size, BufferCreateFlags::TransferSrc);
 			buffer->copy(offset, data, size);
 
 			auto cmd = API->end_render_pass();
@@ -57,7 +101,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanBuffer& VulkanBuffer::update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size)
+	void VulkanBuffer::update(size_t offset, size_t size, const byte* data)
 	{
 		auto cmd = API->end_render_pass();
 
@@ -75,7 +119,7 @@ namespace Engine
 		}
 		else
 		{
-			auto staging = API->m_stagging_manager->allocate(size, vk::BufferUsageFlagBits::eTransferSrc);
+			auto staging = API->m_stagging_manager->allocate(size, BufferCreateFlags::TransferSrc);
 			staging->copy(0, data, size);
 
 			vk::BufferCopy region(0, offset, size);
@@ -86,9 +130,9 @@ namespace Engine
 		{
 			vk::PipelineStageFlags dst_stage;
 
-			if (m_usage & (vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer))
+			if (m_flags & (BufferCreateFlags::VertexBuffer | BufferCreateFlags::IndexBuffer))
 				dst_stage = vk::PipelineStageFlagBits::eVertexInput;
-			else if (m_usage & vk::BufferUsageFlagBits::eUniformBuffer)
+			else if (m_flags & BufferCreateFlags::UniformBuffer)
 				dst_stage = all_shaders_stage;
 			else
 				dst_stage = vk::PipelineStageFlagBits::eAllCommands;
@@ -97,13 +141,11 @@ namespace Engine
 			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, dst_stage, {}, barrier, {}, {});
 		}
-
-		return *this;
 	}
 
-	byte* VulkanBuffer::map_memory()
+	byte* VulkanBuffer::map()
 	{
-		if (m_mapped == nullptr)
+		if (m_mapped == nullptr && m_allocation->IsMappingAllowed())
 		{
 			auto res = vmaMapMemory(API->m_allocator, m_allocation, reinterpret_cast<void**>(&m_mapped));
 			trinex_check(res == VK_SUCCESS, "Failed to map buffer");
@@ -111,22 +153,27 @@ namespace Engine
 		return m_mapped;
 	}
 
-	VulkanBuffer& VulkanBuffer::unmap_memory()
+	void VulkanBuffer::unmap()
 	{
 		if (m_mapped)
 		{
 			vmaUnmapMemory(API->m_allocator, m_allocation);
 			m_mapped = nullptr;
 		}
-		return *this;
 	}
 
 	VulkanBuffer::~VulkanBuffer()
 	{
-		unmap_memory();
+		unmap();
 
 		if (m_allocation)
 			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
+
+		if (m_srv)
+			delete m_srv;
+
+		if (m_uav)
+			delete m_uav;
 	}
 
 
@@ -143,13 +190,13 @@ namespace Engine
 			delete this;
 	}
 
-	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, vk::BufferUsageFlags usage,
+	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, BufferCreateFlags flags,
 	                                                            VmaMemoryUsage memory_usage)
 	{
 		for (size_t i = 0, size = m_free.size(); i < size; i++)
 		{
 			auto buffer = m_free[i].m_buffer;
-			if (buffer->references() == 0 && buffer->m_size >= buffer_size && (buffer->m_usage & usage) == usage)
+			if (buffer->references() == 0 && buffer->m_size >= buffer_size && (buffer->m_flags & flags) == flags)
 			{
 				m_free.erase(m_free.begin() + i);
 				return buffer;
@@ -157,7 +204,7 @@ namespace Engine
 		}
 
 		VulkanStaggingBuffer* buffer = new VulkanStaggingBuffer(this);
-		buffer->create(buffer_size, nullptr, usage, memory_usage);
+		buffer->create(buffer_size, nullptr, flags, memory_usage);
 		m_buffers.insert(buffer);
 		return buffer;
 	}
@@ -208,116 +255,47 @@ namespace Engine
 		m_buffers.clear();
 	}
 
-	VulkanVertexBuffer& VulkanVertexBuffer::create(const byte* data, size_t size)
+	RHI_Buffer* VulkanAPI::create_buffer(size_t size, const byte* data, BufferCreateFlags flags)
 	{
-		m_buffer.create(size, data, vk::BufferUsageFlagBits::eVertexBuffer);
+		return &(new VulkanBuffer())->create(size, data, flags);
+	}
+
+	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	{
+		auto* cmd = current_command_buffer();
+		cmd->add_object(buffer);
+		cmd->m_cmd.bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->m_buffer, byte_offset);
 		return *this;
 	}
 
-	void VulkanVertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
+	VulkanAPI& VulkanAPI::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
 	{
-		RHI_VertexBuffer*& current = API->m_state.m_current_vertex_buffer[stream_index];
-		if (current != this)
-		{
-			auto cmd = API->current_command_buffer();
-			cmd->m_cmd.bindVertexBuffers(stream_index, m_buffer.m_buffer, {offset});
-			cmd->add_object(this);
-			current = this;
-		}
-	}
-
-	void VulkanVertexBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		m_buffer.update(offset, data, size);
-	}
-
-	VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size, RHIIndexFormat format)
-	{
-		m_type = format == RHIIndexFormat::UInt32 ? vk::IndexType::eUint32 : vk::IndexType::eUint16;
-		m_buffer.create(size, data, vk::BufferUsageFlagBits::eIndexBuffer);
+		auto* cmd = current_command_buffer();
+		cmd->add_object(buffer);
+		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
+		cmd->m_cmd.bindIndexBuffer(vulkan_buffer->m_buffer, 0,
+		                           format == RHIIndexFormat::UInt16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
 		return *this;
 	}
 
-	void VulkanIndexBuffer::bind(size_t offset)
+	VulkanAPI& VulkanAPI::bind_uniform_buffer(RHI_Buffer* buffer, byte slot)
 	{
-		RHI_IndexBuffer*& current = API->m_state.m_current_index_buffer;
-		if (current != this)
+		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
+		return bind_uniform_buffer(vulkan_buffer, vulkan_buffer->m_size, 0, slot);
+	}
+
+	VulkanAPI& VulkanAPI::bind_uniform_buffer(VulkanBuffer* buffer, size_t size, size_t offset, byte slot)
+	{
+		if (m_state.m_pipeline)
 		{
-			auto cmd = API->current_command_buffer();
-			cmd->m_cmd.bindIndexBuffer(m_buffer.m_buffer, offset, m_type);
-			cmd->add_object(this);
-			current = this;
+			vk::DescriptorBufferInfo info;
+			info.buffer = buffer->m_buffer;
+			info.offset = offset;
+			info.range  = size;
+			m_state.m_pipeline->bind_uniform_buffer(info, slot, vk::DescriptorType::eUniformBuffer);
+			current_command_buffer()->add_object(buffer);
 		}
-	}
 
-	void VulkanIndexBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		m_buffer.update(offset, data, size);
-	}
-
-	VulkanUniformBuffer& VulkanUniformBuffer::create(const byte* data, size_t size, VmaMemoryUsage usage)
-	{
-		m_buffer.create(size, data, vk::BufferUsageFlagBits::eUniformBuffer, usage);
 		return *this;
-	}
-
-	void VulkanUniformBuffer::bind(BindingIndex location)
-	{
-		bind(location, 0, m_buffer.m_size);
-	}
-
-	void VulkanUniformBuffer::bind(BindingIndex location, size_t offset, size_t size)
-	{
-		auto pipeline = API->m_state.m_pipeline;
-		if (pipeline)
-		{
-			pipeline->bind_uniform_buffer(vk::DescriptorBufferInfo(m_buffer.m_buffer, offset, size), location,
-			                              vk::DescriptorType::eUniformBuffer);
-			API->current_command_buffer()->add_object(this);
-		}
-	}
-
-	void VulkanUniformBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		m_buffer.update(offset, data, size);
-	}
-
-	VulkanSSBO& VulkanSSBO::create(const byte* data, size_t size)
-	{
-		m_buffer.create(size, data, vk::BufferUsageFlagBits::eStorageBuffer);
-		return *this;
-	}
-
-	void VulkanSSBO::bind(BindLocation location)
-	{
-		if (API->m_state.m_pipeline)
-		{
-			API->m_state.m_pipeline->bind_ssbo(this, location);
-		}
-	}
-
-	void VulkanSSBO::update(size_t offset, size_t size, const byte* data)
-	{
-		m_buffer.update(offset, data, size);
-	}
-
-	RHI_VertexBuffer* VulkanAPI::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
-	{
-		return &(new VulkanVertexBuffer())->create(data, size);
-	}
-
-	RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, RHIIndexFormat format, RHIBufferType type)
-	{
-		return &(new VulkanIndexBuffer())->create(data, size, format);
-	}
-
-	RHI_SSBO* VulkanAPI::create_ssbo(size_t size, const byte* data, RHIBufferType type)
-	{
-		return &(new VulkanSSBO())->create(data, size);
-	}
-
-	RHI_UniformBuffer* VulkanAPI::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
-	{
-		return &(new VulkanUniformBuffer())->create(data, size);
 	}
 }// namespace Engine

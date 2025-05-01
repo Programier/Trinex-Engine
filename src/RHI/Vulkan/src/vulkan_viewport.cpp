@@ -12,7 +12,7 @@
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_texture.hpp>
+#include <vulkan_resource_view.hpp>
 #include <vulkan_types.hpp>
 #include <vulkan_viewport.hpp>
 

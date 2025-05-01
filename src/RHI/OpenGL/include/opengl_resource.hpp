@@ -3,15 +3,19 @@
 
 namespace Engine
 {
-	struct OpenGL_SRV : public RHI_DefaultDestroyable<RHI_ShaderResourceView> {
+	struct OpenGL_Sampler;
+
+	struct OpenGL_SRV : public RHI_ShaderResourceView {
+		virtual void bind(byte location, OpenGL_Sampler* sampler) = 0;
 	};
 
-	struct OpenGL_UAV : public RHI_DefaultDestroyable<RHI_UnorderedAccessView> {
+	struct OpenGL_UAV : public RHI_UnorderedAccessView {
+		virtual void bind(byte location) = 0;
 	};
 
-	struct OpenGL_RTV : public RHI_DefaultDestroyable<RHI_RenderTargetView> {
+	struct OpenGL_RTV : public RHI_RenderTargetView {
 	};
 
-	struct OpenGL_DSV : public RHI_DefaultDestroyable<RHI_DepthStencilView> {
+	struct OpenGL_DSV : public RHI_DepthStencilView {
 	};
 }// namespace Engine

@@ -5,6 +5,8 @@
 #include <opengl_api.hpp>
 #include <opengl_buffers.hpp>
 #include <opengl_render_target.hpp>
+#include <opengl_resource.hpp>
+#include <opengl_sampler.hpp>
 #include <opengl_shader.hpp>
 
 namespace Engine
@@ -115,9 +117,9 @@ namespace Engine
 	OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
 	{
 		on_draw();
-		indices_offset *= (m_state.index_buffer->m_format == GL_UNSIGNED_SHORT ? 2 : 4);
+		indices_offset *= (m_state.index_type == GL_UNSIGNED_SHORT ? 2 : 4);
 		glDrawElementsBaseVertex(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, indices_count,
-		                         m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), vertices_offset);
+		                         m_state.index_type, reinterpret_cast<void*>(indices_offset), vertices_offset);
 		reset_samplers();
 		return *this;
 	}
@@ -133,7 +135,8 @@ namespace Engine
 	OpenGL& OpenGL::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
 		on_draw();
-		glDrawArraysInstanced(OPENGL_API->m_state.pipeline->m_pipeline, vertices_offset, vertex_count, instances);
+		glDrawArraysInstanced(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, vertices_offset, vertex_count,
+		                      instances);
 		reset_samplers();
 		return *this;
 	}
@@ -142,7 +145,7 @@ namespace Engine
 	{
 		on_draw();
 		glDrawElementsInstancedBaseVertex(static_cast<OpenGL_GraphicsPipeline*>(m_state.pipeline)->m_topology, indices_count,
-		                                  m_state.index_buffer->m_format, reinterpret_cast<void*>(indices_offset), instances,
+		                                  m_state.index_type, reinterpret_cast<void*>(indices_offset), instances,
 		                                  vertices_offset);
 		reset_samplers();
 		return *this;
@@ -189,6 +192,19 @@ namespace Engine
 
 		m_sampler_units.clear();
 	}
+
+	OpenGL& OpenGL::bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler)
+	{
+		static_cast<OpenGL_SRV*>(view)->bind(slot, static_cast<OpenGL_Sampler*>(sampler));
+		return *this;
+	}
+
+	OpenGL& OpenGL::bind_uav(RHI_UnorderedAccessView* view, byte slot)
+	{
+		static_cast<OpenGL_UAV*>(view)->bind(slot);
+		return *this;
+	}
+
 }// namespace Engine
 
 

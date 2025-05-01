@@ -11,7 +11,7 @@ namespace Engine
 	class VulkanDynamicUniformBuffer
 	{
 	private:
-		Vector<VulkanUniformBuffer*> m_buffers;
+		Vector<VulkanBuffer*> m_buffers;
 		Vector<byte> m_shadow_data;
 
 		size_t m_shadow_data_size = 0;
@@ -20,12 +20,12 @@ namespace Engine
 
 		void allocate(size_t size)
 		{
-			VulkanUniformBuffer* buffer = new VulkanUniformBuffer();
+			VulkanBuffer* buffer = new VulkanBuffer();
 
 			if (size < default_uniform_buffer_size)
 				size = default_uniform_buffer_size;
 
-			buffer->create(nullptr, size, VMA_MEMORY_USAGE_CPU_TO_GPU);
+			buffer->create(size, nullptr, BufferCreateFlags::UniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU);
 			m_buffers.push_back(buffer);
 		}
 
@@ -49,7 +49,7 @@ namespace Engine
 			if (m_shadow_data_size == 0)
 				return;
 
-			while (m_buffers[m_index]->m_buffer.m_size < m_used_data + m_shadow_data_size)
+			while (m_buffers[m_index]->m_size < m_used_data + m_shadow_data_size)
 			{
 				++m_index;
 				m_used_data = 0;
@@ -61,9 +61,9 @@ namespace Engine
 			}
 
 			auto& current_buffer = m_buffers[m_index];
-			current_buffer->m_buffer.copy(m_used_data, m_shadow_data.data(), m_shadow_data_size);
+			current_buffer->copy(m_used_data, m_shadow_data.data(), m_shadow_data_size);
 
-			current_buffer->bind(index, m_used_data, m_shadow_data_size);
+			API->bind_uniform_buffer(current_buffer, m_shadow_data_size, m_used_data, index);
 			m_used_data =
 			        align_memory(m_used_data + m_shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
 
@@ -79,7 +79,7 @@ namespace Engine
 
 		~VulkanDynamicUniformBuffer()
 		{
-			for (VulkanUniformBuffer* buffer : m_buffers)
+			for (VulkanBuffer* buffer : m_buffers)
 			{
 				buffer->release();
 			}

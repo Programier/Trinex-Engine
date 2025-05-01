@@ -4,6 +4,7 @@
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_set.hpp>
+#include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_texture.hpp>
 
@@ -17,16 +18,6 @@ namespace Engine
 	{
 		auto cmd = API->current_command_buffer();
 		cmd->m_cmd.bindDescriptorSets(point, layout, 0, descriptor_set, {});
-		return *this;
-	}
-
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location)
-	{
-		vk::DescriptorBufferInfo buffer_info(ssbo->m_buffer.m_buffer, 0, ssbo->m_buffer.m_size);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eStorageBuffer, {},
-		                                        buffer_info);
-		API->m_device.updateDescriptorSets(write_descriptor, {});
-		API->current_command_buffer()->add_object(ssbo);
 		return *this;
 	}
 
@@ -47,38 +38,26 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture(VulkanTextureSRV* texture, BindLocation location)
+	VulkanDescriptorSet& VulkanDescriptorSet::bind_srv(VulkanSRV* srv, byte location, VulkanSampler* sampler)
 	{
-		vk::DescriptorImageInfo image_info({}, texture->m_view, vk::ImageLayout::eShaderReadOnlyOptimal);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampledImage,
-		                                        image_info);
-		API->m_device.updateDescriptorSets(write_descriptor, {});
-		API->current_command_buffer()->add_object(texture);
+		vk::WriteDescriptorSet descriptor(descriptor_set, location, 0, 1);
+
+		srv->update_descriptor(descriptor, sampler);
+		API->current_command_buffer()->add_object(srv->owner());
+
+		if (sampler)
+			API->current_command_buffer()->add_object(sampler);
 		return *this;
 	}
 
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture(VulkanTextureUAV* texture, BindLocation location)
+	VulkanDescriptorSet& VulkanDescriptorSet::bind_uav(VulkanUAV* uav, byte location)
 	{
-		vk::DescriptorImageInfo image_info({}, texture->m_view, vk::ImageLayout::eGeneral);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eStorageImage,
-		                                        image_info);
-		API->m_device.updateDescriptorSets(write_descriptor, {});
-		API->current_command_buffer()->add_object(texture);
+		vk::WriteDescriptorSet descriptor(descriptor_set, location, 0, 1);
+
+		uav->update_descriptor(descriptor);
+		API->current_command_buffer()->add_object(uav->owner());
 		return *this;
 	}
-
-	VulkanDescriptorSet& VulkanDescriptorSet::bind_texture_combined(VulkanTextureSRV* texture, VulkanSampler* sampler,
-	                                                                BindLocation location)
-	{
-		vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->m_view, vk::ImageLayout::eShaderReadOnlyOptimal);
-		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eCombinedImageSampler,
-		                                        image_info);
-		API->m_device.updateDescriptorSets(write_descriptor, {});
-		API->current_command_buffer()->add_object(texture);
-		API->current_command_buffer()->add_object(sampler);
-		return *this;
-	}
-
 
 	struct VulkanDescriptorPool {
 		vk::DescriptorPool pool;

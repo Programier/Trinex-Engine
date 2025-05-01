@@ -9,26 +9,19 @@ namespace Engine
 
 	Texture& Texture::rhi_bind(byte location)
 	{
-		m_srv->bind(location);
+		rhi->bind_srv(rhi_srv(), location);
 		return *this;
 	}
 
 	Texture& Texture::rhi_bind_combined(byte location, RHI_Sampler* sampler)
 	{
-		m_srv->bind_combined(location, sampler);
+		rhi->bind_srv(rhi_srv(), location, sampler);
 		return *this;
 	}
 
 	Texture& Texture::rhi_bind_combined(byte location, Sampler* sampler)
 	{
-		m_srv->bind_combined(location, sampler->rhi_sampler());
-		return *this;
-	}
-
-	Texture& Texture::release_render_resources()
-	{
-		Super::release_render_resources();
-		m_srv = nullptr;
+		rhi->bind_srv(rhi_srv(), location, sampler->rhi_sampler());
 		return *this;
 	}
 }// namespace Engine

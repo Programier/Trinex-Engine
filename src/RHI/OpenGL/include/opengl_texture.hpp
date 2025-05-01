@@ -8,7 +8,6 @@
 namespace Engine
 {
 	struct OpenGL_Texture {
-		TextureCreateFlags m_flags;
 		OpenGL_ColorInfo m_format;
 		GLuint m_id     = 0;
 		Vector2u m_size = {0, 0};
@@ -37,8 +36,7 @@ namespace Engine
 		OpenGL_Texture* m_texture;
 
 		OpenGL_TextureSRV(OpenGL_Texture* texture);
-		void bind(BindLocation location) override;
-		void bind_combined(byte location, struct RHI_Sampler* sampler) override;
+		void bind(byte location, OpenGL_Sampler* sampler) override;
 		~OpenGL_TextureSRV();
 	};
 
@@ -46,7 +44,7 @@ namespace Engine
 		OpenGL_Texture* m_texture;
 
 		OpenGL_TextureUAV(OpenGL_Texture* texture);
-		void bind(BindLocation location) override;
+		void bind(byte location) override;
 		~OpenGL_TextureUAV();
 	};
 
@@ -72,13 +70,18 @@ namespace Engine
 
 	struct OpenGL_Texture2D : public RHI_DefaultDestroyable<RHI_Texture2D> {
 		OpenGL_TypedTexture<GL_TEXTURE_2D> m_texture;
+		RHI_ShaderResourceView* m_srv  = nullptr;
+		RHI_UnorderedAccessView* m_uav = nullptr;
+		RHI_RenderTargetView* m_rtv    = nullptr;
+		RHI_DepthStencilView* m_dsv    = nullptr;
 
 		OpenGL_Texture2D(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags);
+		~OpenGL_Texture2D();
 		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) override;
-		inline RHI_RenderTargetView* create_rtv() override { return m_texture.create_rtv(); }
-		inline RHI_DepthStencilView* create_dsv() override { return m_texture.create_dsv(); }
-		inline RHI_ShaderResourceView* create_srv() override { return m_texture.create_srv(); }
-		inline RHI_UnorderedAccessView* create_uav() override { return m_texture.create_uav(); }
+		inline RHI_RenderTargetView* as_rtv() override { return m_rtv; }
+		inline RHI_DepthStencilView* as_dsv() override { return m_dsv; }
+		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
+		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
 	};
 
 }// namespace Engine

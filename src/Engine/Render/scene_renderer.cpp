@@ -21,12 +21,13 @@ namespace Engine
 {
 	struct GlobalUniformBuffer final {
 		GlobalShaderParameters storage;
-		GlobalUniformBuffer* prev         = nullptr;
-		RHI_UniformBuffer* uniform_buffer = nullptr;
+		GlobalUniformBuffer* prev  = nullptr;
+		RHI_Buffer* uniform_buffer = nullptr;
 
 		GlobalUniformBuffer()
 		{
-			uniform_buffer = rhi->create_uniform_buffer(sizeof(GlobalShaderParameters), nullptr, RHIBufferType::Dynamic);
+			uniform_buffer = rhi->create_buffer(sizeof(GlobalShaderParameters), nullptr,
+			                                    BufferCreateFlags::Dynamic | BufferCreateFlags::UniformBuffer);
 		}
 
 		delete_copy_constructors(GlobalUniformBuffer);
@@ -139,7 +140,7 @@ namespace Engine
 		GlobalUniformBuffer* buffer = m_global_shader_params->current();
 		if (!buffer)
 			throw EngineException("Shader parameters stack is empty!");
-		buffer->uniform_buffer->bind(index);
+		rhi->bind_uniform_buffer(buffer->uniform_buffer, index);
 		return *this;
 	}
 

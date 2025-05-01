@@ -10,8 +10,8 @@ namespace Engine
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSet;
 	struct VulkanSampler;
-	struct VulkanTextureSRV;
-	struct VulkanTextureUAV;
+	struct VulkanSRV;
+	struct VulkanUAV;
 	struct VulkanDescriptorSetLayout;
 	class Pipeline;
 
@@ -24,12 +24,11 @@ namespace Engine
 		VulkanDescriptorSet* current_descriptor_set();
 		bool create_pipeline_layout();
 
-		VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
 		VulkanPipeline& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location, vk::DescriptorType type);
 		VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);
-		VulkanPipeline& bind_texture(VulkanTextureSRV* texture, BindLocation location);
-		VulkanPipeline& bind_texture(VulkanTextureUAV* texture, BindLocation location);
-		VulkanPipeline& bind_texture_combined(VulkanTextureSRV*, VulkanSampler*, BindLocation);
+		VulkanPipeline& bind_srv(VulkanSRV* srv, byte location, VulkanSampler* sampler);
+		VulkanPipeline& bind_uav(VulkanUAV* uav, byte location);
+
 		VulkanPipeline& bind_descriptor_set(vk::PipelineBindPoint point);
 
 		~VulkanPipeline();

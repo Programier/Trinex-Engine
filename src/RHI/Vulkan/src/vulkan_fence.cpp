@@ -1,4 +1,5 @@
 #include <vulkan_api.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_fence.hpp>
 
 namespace Engine
@@ -17,16 +18,18 @@ namespace Engine
 		return m_is_signaled;
 	}
 
-	void VulkanFence::reset()
+	VulkanFence& VulkanFence::reset()
 	{
 		API->m_device.resetFences(m_fence);
 		m_is_signaled = false;
+		return *this;
 	}
 
-	void VulkanFence::wait()
+	VulkanFence& VulkanFence::wait()
 	{
 		auto result = API->m_device.waitForFences(m_fence, vk::True, UINT64_MAX);
 		(void) result;
+		return *this;
 	}
 
 	VulkanFence* VulkanFence::create(bool is_signaled)
@@ -34,13 +37,43 @@ namespace Engine
 		return new VulkanFence(is_signaled);
 	}
 
+	void VulkanFence::release(VulkanFence* fence)
+	{
+		delete fence;
+	}
+
 	VulkanFence::~VulkanFence()
 	{
 		DESTROY_CALL(destroyFence, m_fence);
 	}
 
+
+	bool VulkanFenceRef::is_signaled()
+	{
+		if (m_cmd)
+		{
+			return m_fence_signaled_count != m_cmd->fence_signaled_count();
+		}
+		return false;
+	}
+
+	void VulkanFenceRef::reset()
+	{
+		m_cmd = nullptr;
+	}
+
 	RHI_Fence* VulkanAPI::create_fence()
 	{
-		return VulkanFence::create(false);
+		return new VulkanFenceRef();
+	}
+
+	VulkanAPI& VulkanAPI::signal_fence(RHI_Fence* fence)
+	{
+		VulkanFenceRef* ref = static_cast<VulkanFenceRef*>(fence);
+		auto handle         = current_command_buffer();
+
+		ref->m_cmd                  = handle;
+		ref->m_fence_signaled_count = handle->fence_signaled_count();
+		return *this;
 	}
 }// namespace Engine

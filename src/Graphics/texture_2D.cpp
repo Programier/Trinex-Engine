@@ -25,7 +25,6 @@ namespace Engine
 	{
 		render_thread()->call([this]() {
 			m_texture = rhi->create_texture_2d(format, size(), mips.size(), TextureCreateFlags::ShaderResource);
-			m_srv     = m_texture->create_srv();
 
 			for (byte index = 0; auto& mip : mips)
 			{
@@ -53,6 +52,13 @@ namespace Engine
 	TextureType Texture2D::type() const
 	{
 		return TextureType::Texture2D;
+	}
+
+	RHI_ShaderResourceView* Texture2D::rhi_srv() const
+	{
+		if (m_texture)
+			return m_texture->as_srv();
+		return nullptr;
 	}
 
 	bool Texture2D::serialize(Archive& archive)

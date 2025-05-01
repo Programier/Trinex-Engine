@@ -4,6 +4,13 @@
 
 namespace Engine
 {
+	template<typename T>
+	T* rhi_default()
+	{
+		static T t;
+		return &t;
+	}
+
 	NoneApi* NoneApi::m_instance = nullptr;
 
 	NoneApi* NoneApi::static_constructor()
@@ -35,39 +42,30 @@ namespace Engine
 	trinex_implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
 
 	struct NoneFence : public RHI_DefaultDestroyable<RHI_Fence> {
-		void wait() override {}
 		bool is_signaled() override { return true; }
 		void reset() override {}
 	};
+
 
 	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
 		void bind(BindLocation location) override {}
 	};
 
-	struct NoneRTV : public RHI_DefaultDestroyable<RHI_RenderTargetView> {
+	struct NoneRTV : public RHI_RenderTargetView {
 		void clear(const LinearColor& color) override {}
 		void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
 	};
 
-	struct NoneDSV : public RHI_DefaultDestroyable<RHI_DepthStencilView> {
+	struct NoneDSV : public RHI_DepthStencilView {
 		void clear(float, byte) override {}
 		void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
 	};
 
-	struct NoneSRV : public RHI_DefaultDestroyable<RHI_ShaderResourceView> {
-		void bind(BindLocation location) override {}
-		void bind_combined(byte location, struct RHI_Sampler* sampler) override {};
-	};
-
-	struct NoneUAV : public RHI_DefaultDestroyable<RHI_UnorderedAccessView> {
-		void bind(BindLocation location) override {}
-	};
-
 	struct NoneTexture2D : public RHI_DefaultDestroyable<RHI_Texture2D> {
-		RHI_RenderTargetView* create_rtv() override { return new NoneRTV(); }
-		RHI_DepthStencilView* create_dsv() override { return new NoneDSV(); }
-		RHI_ShaderResourceView* create_srv() override { return new NoneSRV(); }
-		RHI_UnorderedAccessView* create_uav() override { return new NoneUAV(); }
+		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
+		RHI_DepthStencilView* as_dsv() override { return rhi_default<NoneDSV>(); }
+		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
+		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
 		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) override {}
 	};
 
@@ -78,25 +76,13 @@ namespace Engine
 		void bind() override {}
 	};
 
-	template<typename BufferType>
-	struct NoneBuffer : public RHI_DefaultDestroyable<BufferType> {
+	struct NoneBuffer : public RHI_DefaultDestroyable<RHI_Buffer> {
+		byte* map() override { return nullptr; }
+		void unmap() override {}
 		void update(size_t offset, size_t size, const byte* data) override {}
-	};
 
-	struct NoneIndexBuffer : public NoneBuffer<RHI_IndexBuffer> {
-		void bind(size_t offset) override {}
-	};
-
-	struct NoneVertexBuffer : public NoneBuffer<RHI_VertexBuffer> {
-		void bind(byte stream_index, size_t stride, size_t offset) override {}
-	};
-
-	struct NoneSSBOBuffer : public NoneBuffer<RHI_SSBO> {
-		void bind(BindLocation location) override {}
-	};
-
-	struct NoneUniformBuffer : public NoneBuffer<RHI_UniformBuffer> {
-		void bind(BindingIndex location) override {}
+		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
+		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
 	};
 
 	struct NoneViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
@@ -150,6 +136,11 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::signal_fence(RHI_Fence* fence)
 	{
 		return *this;
 	}
@@ -240,29 +231,40 @@ namespace Engine
 		return new NonePipeline();
 	}
 
-	RHI_VertexBuffer* NoneApi::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
+	RHI_Buffer* NoneApi::create_buffer(size_t size, const byte* data, BufferCreateFlags flags)
 	{
-		return new NoneVertexBuffer();
-	}
-
-	RHI_IndexBuffer* NoneApi::create_index_buffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type)
-	{
-		return new NoneIndexBuffer();
-	}
-
-	RHI_SSBO* NoneApi::create_ssbo(size_t size, const byte* data, RHIBufferType type)
-	{
-		return new NoneSSBOBuffer();
-	}
-
-	RHI_UniformBuffer* NoneApi::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
-	{
-		return new NoneUniformBuffer();
+		return new NoneBuffer();
 	}
 
 	RHI_Viewport* NoneApi::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
 		return new NoneViewport();
+	}
+
+	NoneApi& NoneApi::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::bind_uniform_buffer(RHI_Buffer* buffer, byte slot)
+	{
+		return *this;
+	}
+
+
+	NoneApi& NoneApi::bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::bind_uav(RHI_UnorderedAccessView* view, byte slot)
+	{
+		return *this;
 	}
 
 	NoneApi& NoneApi::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)

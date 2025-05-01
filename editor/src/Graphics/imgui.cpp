@@ -100,7 +100,7 @@ namespace Engine
 		void ImGuiPipeline::apply(const Sampler& sampler)
 		{
 			rhi_bind();
-			srv->bind_combined(texture_parameter->location, sampler.rhi_sampler());
+			rhi->bind_srv(srv, texture_parameter->location, sampler.rhi_sampler());
 			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->location);
 
 			srv = nullptr;
@@ -125,8 +125,8 @@ namespace Engine
 		};
 
 		struct ImGuiTrinexViewportData {
-			RenderResourcePtr<RHI_VertexBuffer> vertex_buffer;
-			RenderResourcePtr<RHI_IndexBuffer> index_buffer;
+			RenderResourcePtr<RHI_Buffer> vertex_buffer;
+			RenderResourcePtr<RHI_Buffer> index_buffer;
 			uint64_t vertex_count = 0;
 			uint64_t index_count  = 0;
 		};
@@ -148,7 +148,7 @@ namespace Engine
 
 			if (bd->surface)
 			{
-				rhi->bind_render_target1(bd->surface->rhi_render_target_view());
+				rhi->bind_render_target1(bd->surface->rhi_rtv());
 				target_size = bd->surface->size();
 			}
 			else
@@ -250,16 +250,17 @@ namespace Engine
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
-				vd->vertex_count  = draw_data->TotalVtxCount + 5000;
-				auto len          = vd->vertex_count * sizeof(ImDrawVert);
-				vd->vertex_buffer = rhi->create_vertex_buffer(len, nullptr, RHIBufferType::Dynamic);
+				vd->vertex_count = draw_data->TotalVtxCount + 5000;
+				auto len         = vd->vertex_count * sizeof(ImDrawVert);
+				vd->vertex_buffer =
+				        rhi->create_buffer(len, nullptr, BufferCreateFlags::Dynamic | BufferCreateFlags::VertexBuffer);
 			}
 
 			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
 				vd->index_count  = draw_data->TotalIdxCount + 10000;
 				auto len         = vd->index_count * sizeof(ImDrawIdx);
-				vd->index_buffer = rhi->create_index_buffer(len, nullptr, RHIIndexFormat::UInt16, RHIBufferType::Dynamic);
+				vd->index_buffer = rhi->create_buffer(len, nullptr, BufferCreateFlags::Dynamic | BufferCreateFlags::IndexBuffer);
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer
@@ -327,8 +328,8 @@ namespace Engine
 
 							if (!pipeline->srv)
 							{
-								pipeline->srv = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_shader_resource_view()
-								                                        : pcmd->TextureId.surface->rhi_shader_resource_view();
+								pipeline->srv = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_srv()
+								                                        : pcmd->TextureId.surface->rhi_srv();
 							}
 
 							{
@@ -336,8 +337,8 @@ namespace Engine
 								pipeline->apply(bd->sampler);
 
 
-								vd->vertex_buffer->bind(0, sizeof(ImDrawVert), 0);
-								vd->index_buffer->bind(0);
+								rhi->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
+								rhi->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
 								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
 								                  pcmd->VtxOffset + global_vtx_offset);
 							}
@@ -567,16 +568,12 @@ namespace Engine
 		{
 			switch (button)
 			{
-				case Mouse::Button::Left:
-					return ImGuiMouseButton_Left;
-				case Mouse::Button::Middle:
-					return ImGuiMouseButton_Middle;
-				case Mouse::Button::Right:
-					return ImGuiMouseButton_Right;
+				case Mouse::Button::Left: return ImGuiMouseButton_Left;
+				case Mouse::Button::Middle: return ImGuiMouseButton_Middle;
+				case Mouse::Button::Right: return ImGuiMouseButton_Right;
 				case Mouse::Button::Forward:
 				case Mouse::Button::Back:
-				default:
-					return -1;
+				default: return -1;
 			}
 		}
 
@@ -584,244 +581,125 @@ namespace Engine
 		{
 			switch (button)
 			{
-				case Keyboard::Key::Space:
-					return ImGuiKey_Space;
-				case Keyboard::Key::Apostrophe:
-					return ImGuiKey_Apostrophe;
-				case Keyboard::Key::Comma:
-					return ImGuiKey_Comma;
-				case Keyboard::Key::Minus:
-					return ImGuiKey_Minus;
-				case Keyboard::Key::Period:
-					return ImGuiKey_Period;
-				case Keyboard::Key::Slash:
-					return ImGuiKey_Slash;
-				case Keyboard::Key::Num0:
-					return ImGuiKey_0;
-				case Keyboard::Key::Num1:
-					return ImGuiKey_1;
-				case Keyboard::Key::Num2:
-					return ImGuiKey_2;
-				case Keyboard::Key::Num3:
-					return ImGuiKey_3;
-				case Keyboard::Key::Num4:
-					return ImGuiKey_4;
-				case Keyboard::Key::Num5:
-					return ImGuiKey_5;
-				case Keyboard::Key::Num6:
-					return ImGuiKey_6;
-				case Keyboard::Key::Num7:
-					return ImGuiKey_7;
-				case Keyboard::Key::Num8:
-					return ImGuiKey_8;
-				case Keyboard::Key::Num9:
-					return ImGuiKey_9;
-				case Keyboard::Key::Semicolon:
-					return ImGuiKey_Semicolon;
-				case Keyboard::Key::Equal:
-					return ImGuiKey_Equal;
-				case Keyboard::Key::A:
-					return ImGuiKey_A;
-				case Keyboard::Key::B:
-					return ImGuiKey_B;
-				case Keyboard::Key::C:
-					return ImGuiKey_C;
-				case Keyboard::Key::D:
-					return ImGuiKey_D;
-				case Keyboard::Key::E:
-					return ImGuiKey_E;
-				case Keyboard::Key::F:
-					return ImGuiKey_F;
-				case Keyboard::Key::G:
-					return ImGuiKey_G;
-				case Keyboard::Key::H:
-					return ImGuiKey_H;
-				case Keyboard::Key::I:
-					return ImGuiKey_I;
-				case Keyboard::Key::J:
-					return ImGuiKey_J;
-				case Keyboard::Key::K:
-					return ImGuiKey_K;
-				case Keyboard::Key::L:
-					return ImGuiKey_L;
-				case Keyboard::Key::M:
-					return ImGuiKey_M;
-				case Keyboard::Key::N:
-					return ImGuiKey_N;
-				case Keyboard::Key::O:
-					return ImGuiKey_O;
-				case Keyboard::Key::P:
-					return ImGuiKey_P;
-				case Keyboard::Key::Q:
-					return ImGuiKey_Q;
-				case Keyboard::Key::R:
-					return ImGuiKey_R;
-				case Keyboard::Key::S:
-					return ImGuiKey_S;
-				case Keyboard::Key::T:
-					return ImGuiKey_T;
-				case Keyboard::Key::U:
-					return ImGuiKey_U;
-				case Keyboard::Key::V:
-					return ImGuiKey_V;
-				case Keyboard::Key::W:
-					return ImGuiKey_W;
-				case Keyboard::Key::X:
-					return ImGuiKey_X;
-				case Keyboard::Key::Y:
-					return ImGuiKey_Y;
-				case Keyboard::Key::Z:
-					return ImGuiKey_Z;
-				case Keyboard::Key::LeftBracket:
-					return ImGuiKey_LeftBracket;
-				case Keyboard::Key::Backslash:
-					return ImGuiKey_Backslash;
-				case Keyboard::Key::RightBracket:
-					return ImGuiKey_RightBracket;
-				case Keyboard::Key::GraveAccent:
-					return ImGuiKey_GraveAccent;
-				case Keyboard::Key::Explorer:
-					return ImGuiKey_None;
-				case Keyboard::Key::Escape:
-					return ImGuiKey_Escape;
-				case Keyboard::Key::Enter:
-					return ImGuiKey_Enter;
-				case Keyboard::Key::Tab:
-					return ImGuiKey_Tab;
-				case Keyboard::Key::Backspace:
-					return ImGuiKey_Backspace;
-				case Keyboard::Key::Insert:
-					return ImGuiKey_Insert;
-				case Keyboard::Key::Delete:
-					return ImGuiKey_Delete;
-				case Keyboard::Key::Right:
-					return ImGuiKey_RightArrow;
-				case Keyboard::Key::Left:
-					return ImGuiKey_LeftArrow;
-				case Keyboard::Key::Down:
-					return ImGuiKey_DownArrow;
-				case Keyboard::Key::Up:
-					return ImGuiKey_UpArrow;
-				case Keyboard::Key::PageUp:
-					return ImGuiKey_PageUp;
-				case Keyboard::Key::PageDown:
-					return ImGuiKey_PageDown;
-				case Keyboard::Key::Home:
-					return ImGuiKey_Home;
-				case Keyboard::Key::End:
-					return ImGuiKey_End;
-				case Keyboard::Key::CapsLock:
-					return ImGuiKey_CapsLock;
-				case Keyboard::Key::ScrollLock:
-					return ImGuiKey_ScrollLock;
-				case Keyboard::Key::NumLock:
-					return ImGuiKey_NumLock;
-				case Keyboard::Key::PrintScreen:
-					return ImGuiKey_PrintScreen;
-				case Keyboard::Key::Pause:
-					return ImGuiKey_Pause;
-				case Keyboard::Key::F1:
-					return ImGuiKey_F1;
-				case Keyboard::Key::F2:
-					return ImGuiKey_F2;
-				case Keyboard::Key::F3:
-					return ImGuiKey_F3;
-				case Keyboard::Key::F4:
-					return ImGuiKey_F4;
-				case Keyboard::Key::F5:
-					return ImGuiKey_F5;
-				case Keyboard::Key::F6:
-					return ImGuiKey_F6;
-				case Keyboard::Key::F7:
-					return ImGuiKey_F7;
-				case Keyboard::Key::F8:
-					return ImGuiKey_F8;
-				case Keyboard::Key::F9:
-					return ImGuiKey_F9;
-				case Keyboard::Key::F10:
-					return ImGuiKey_F10;
-				case Keyboard::Key::F11:
-					return ImGuiKey_F11;
-				case Keyboard::Key::F12:
-					return ImGuiKey_F12;
-				case Keyboard::Key::F13:
-					return ImGuiKey_F13;
-				case Keyboard::Key::F14:
-					return ImGuiKey_F14;
-				case Keyboard::Key::F15:
-					return ImGuiKey_F15;
-				case Keyboard::Key::F16:
-					return ImGuiKey_F16;
-				case Keyboard::Key::F17:
-					return ImGuiKey_F17;
-				case Keyboard::Key::F18:
-					return ImGuiKey_F18;
-				case Keyboard::Key::F19:
-					return ImGuiKey_F19;
-				case Keyboard::Key::F20:
-					return ImGuiKey_F20;
-				case Keyboard::Key::F21:
-					return ImGuiKey_F21;
-				case Keyboard::Key::F22:
-					return ImGuiKey_F22;
-				case Keyboard::Key::F23:
-					return ImGuiKey_F23;
-				case Keyboard::Key::F24:
-					return ImGuiKey_F24;
-				case Keyboard::Key::Kp0:
-					return ImGuiKey_Keypad0;
-				case Keyboard::Key::Kp1:
-					return ImGuiKey_Keypad1;
-				case Keyboard::Key::Kp2:
-					return ImGuiKey_Keypad2;
-				case Keyboard::Key::Kp3:
-					return ImGuiKey_Keypad3;
-				case Keyboard::Key::Kp4:
-					return ImGuiKey_Keypad4;
-				case Keyboard::Key::Kp5:
-					return ImGuiKey_Keypad5;
-				case Keyboard::Key::Kp6:
-					return ImGuiKey_Keypad6;
-				case Keyboard::Key::Kp7:
-					return ImGuiKey_Keypad7;
-				case Keyboard::Key::Kp8:
-					return ImGuiKey_Keypad8;
-				case Keyboard::Key::Kp9:
-					return ImGuiKey_Keypad9;
-				case Keyboard::Key::KpDot:
-					return ImGuiKey_KeypadDecimal;
-				case Keyboard::Key::KpDivide:
-					return ImGuiKey_KeypadDivide;
-				case Keyboard::Key::KpMultiply:
-					return ImGuiKey_KeypadMultiply;
-				case Keyboard::Key::KpSubtract:
-					return ImGuiKey_KeypadSubtract;
-				case Keyboard::Key::KpAdd:
-					return ImGuiKey_KeypadAdd;
-				case Keyboard::Key::KpEnter:
-					return ImGuiKey_KeypadEnter;
-				case Keyboard::Key::KpEqual:
-					return ImGuiKey_KeypadEqual;
-				case Keyboard::Key::LeftShift:
-					return ImGuiKey_LeftShift;
-				case Keyboard::Key::LeftControl:
-					return ImGuiKey_LeftCtrl;
-				case Keyboard::Key::LeftAlt:
-					return ImGuiKey_LeftAlt;
-				case Keyboard::Key::LeftSuper:
-					return ImGuiKey_LeftSuper;
-				case Keyboard::Key::RightShift:
-					return ImGuiKey_RightShift;
-				case Keyboard::Key::RightControl:
-					return ImGuiKey_RightCtrl;
-				case Keyboard::Key::RightAlt:
-					return ImGuiKey_RightAlt;
-				case Keyboard::Key::RightSuper:
-					return ImGuiKey_RightSuper;
-				case Keyboard::Key::Menu:
-					return ImGuiKey_Menu;
-				default:
-					return ImGuiKey_None;
+				case Keyboard::Key::Space: return ImGuiKey_Space;
+				case Keyboard::Key::Apostrophe: return ImGuiKey_Apostrophe;
+				case Keyboard::Key::Comma: return ImGuiKey_Comma;
+				case Keyboard::Key::Minus: return ImGuiKey_Minus;
+				case Keyboard::Key::Period: return ImGuiKey_Period;
+				case Keyboard::Key::Slash: return ImGuiKey_Slash;
+				case Keyboard::Key::Num0: return ImGuiKey_0;
+				case Keyboard::Key::Num1: return ImGuiKey_1;
+				case Keyboard::Key::Num2: return ImGuiKey_2;
+				case Keyboard::Key::Num3: return ImGuiKey_3;
+				case Keyboard::Key::Num4: return ImGuiKey_4;
+				case Keyboard::Key::Num5: return ImGuiKey_5;
+				case Keyboard::Key::Num6: return ImGuiKey_6;
+				case Keyboard::Key::Num7: return ImGuiKey_7;
+				case Keyboard::Key::Num8: return ImGuiKey_8;
+				case Keyboard::Key::Num9: return ImGuiKey_9;
+				case Keyboard::Key::Semicolon: return ImGuiKey_Semicolon;
+				case Keyboard::Key::Equal: return ImGuiKey_Equal;
+				case Keyboard::Key::A: return ImGuiKey_A;
+				case Keyboard::Key::B: return ImGuiKey_B;
+				case Keyboard::Key::C: return ImGuiKey_C;
+				case Keyboard::Key::D: return ImGuiKey_D;
+				case Keyboard::Key::E: return ImGuiKey_E;
+				case Keyboard::Key::F: return ImGuiKey_F;
+				case Keyboard::Key::G: return ImGuiKey_G;
+				case Keyboard::Key::H: return ImGuiKey_H;
+				case Keyboard::Key::I: return ImGuiKey_I;
+				case Keyboard::Key::J: return ImGuiKey_J;
+				case Keyboard::Key::K: return ImGuiKey_K;
+				case Keyboard::Key::L: return ImGuiKey_L;
+				case Keyboard::Key::M: return ImGuiKey_M;
+				case Keyboard::Key::N: return ImGuiKey_N;
+				case Keyboard::Key::O: return ImGuiKey_O;
+				case Keyboard::Key::P: return ImGuiKey_P;
+				case Keyboard::Key::Q: return ImGuiKey_Q;
+				case Keyboard::Key::R: return ImGuiKey_R;
+				case Keyboard::Key::S: return ImGuiKey_S;
+				case Keyboard::Key::T: return ImGuiKey_T;
+				case Keyboard::Key::U: return ImGuiKey_U;
+				case Keyboard::Key::V: return ImGuiKey_V;
+				case Keyboard::Key::W: return ImGuiKey_W;
+				case Keyboard::Key::X: return ImGuiKey_X;
+				case Keyboard::Key::Y: return ImGuiKey_Y;
+				case Keyboard::Key::Z: return ImGuiKey_Z;
+				case Keyboard::Key::LeftBracket: return ImGuiKey_LeftBracket;
+				case Keyboard::Key::Backslash: return ImGuiKey_Backslash;
+				case Keyboard::Key::RightBracket: return ImGuiKey_RightBracket;
+				case Keyboard::Key::GraveAccent: return ImGuiKey_GraveAccent;
+				case Keyboard::Key::Explorer: return ImGuiKey_None;
+				case Keyboard::Key::Escape: return ImGuiKey_Escape;
+				case Keyboard::Key::Enter: return ImGuiKey_Enter;
+				case Keyboard::Key::Tab: return ImGuiKey_Tab;
+				case Keyboard::Key::Backspace: return ImGuiKey_Backspace;
+				case Keyboard::Key::Insert: return ImGuiKey_Insert;
+				case Keyboard::Key::Delete: return ImGuiKey_Delete;
+				case Keyboard::Key::Right: return ImGuiKey_RightArrow;
+				case Keyboard::Key::Left: return ImGuiKey_LeftArrow;
+				case Keyboard::Key::Down: return ImGuiKey_DownArrow;
+				case Keyboard::Key::Up: return ImGuiKey_UpArrow;
+				case Keyboard::Key::PageUp: return ImGuiKey_PageUp;
+				case Keyboard::Key::PageDown: return ImGuiKey_PageDown;
+				case Keyboard::Key::Home: return ImGuiKey_Home;
+				case Keyboard::Key::End: return ImGuiKey_End;
+				case Keyboard::Key::CapsLock: return ImGuiKey_CapsLock;
+				case Keyboard::Key::ScrollLock: return ImGuiKey_ScrollLock;
+				case Keyboard::Key::NumLock: return ImGuiKey_NumLock;
+				case Keyboard::Key::PrintScreen: return ImGuiKey_PrintScreen;
+				case Keyboard::Key::Pause: return ImGuiKey_Pause;
+				case Keyboard::Key::F1: return ImGuiKey_F1;
+				case Keyboard::Key::F2: return ImGuiKey_F2;
+				case Keyboard::Key::F3: return ImGuiKey_F3;
+				case Keyboard::Key::F4: return ImGuiKey_F4;
+				case Keyboard::Key::F5: return ImGuiKey_F5;
+				case Keyboard::Key::F6: return ImGuiKey_F6;
+				case Keyboard::Key::F7: return ImGuiKey_F7;
+				case Keyboard::Key::F8: return ImGuiKey_F8;
+				case Keyboard::Key::F9: return ImGuiKey_F9;
+				case Keyboard::Key::F10: return ImGuiKey_F10;
+				case Keyboard::Key::F11: return ImGuiKey_F11;
+				case Keyboard::Key::F12: return ImGuiKey_F12;
+				case Keyboard::Key::F13: return ImGuiKey_F13;
+				case Keyboard::Key::F14: return ImGuiKey_F14;
+				case Keyboard::Key::F15: return ImGuiKey_F15;
+				case Keyboard::Key::F16: return ImGuiKey_F16;
+				case Keyboard::Key::F17: return ImGuiKey_F17;
+				case Keyboard::Key::F18: return ImGuiKey_F18;
+				case Keyboard::Key::F19: return ImGuiKey_F19;
+				case Keyboard::Key::F20: return ImGuiKey_F20;
+				case Keyboard::Key::F21: return ImGuiKey_F21;
+				case Keyboard::Key::F22: return ImGuiKey_F22;
+				case Keyboard::Key::F23: return ImGuiKey_F23;
+				case Keyboard::Key::F24: return ImGuiKey_F24;
+				case Keyboard::Key::Kp0: return ImGuiKey_Keypad0;
+				case Keyboard::Key::Kp1: return ImGuiKey_Keypad1;
+				case Keyboard::Key::Kp2: return ImGuiKey_Keypad2;
+				case Keyboard::Key::Kp3: return ImGuiKey_Keypad3;
+				case Keyboard::Key::Kp4: return ImGuiKey_Keypad4;
+				case Keyboard::Key::Kp5: return ImGuiKey_Keypad5;
+				case Keyboard::Key::Kp6: return ImGuiKey_Keypad6;
+				case Keyboard::Key::Kp7: return ImGuiKey_Keypad7;
+				case Keyboard::Key::Kp8: return ImGuiKey_Keypad8;
+				case Keyboard::Key::Kp9: return ImGuiKey_Keypad9;
+				case Keyboard::Key::KpDot: return ImGuiKey_KeypadDecimal;
+				case Keyboard::Key::KpDivide: return ImGuiKey_KeypadDivide;
+				case Keyboard::Key::KpMultiply: return ImGuiKey_KeypadMultiply;
+				case Keyboard::Key::KpSubtract: return ImGuiKey_KeypadSubtract;
+				case Keyboard::Key::KpAdd: return ImGuiKey_KeypadAdd;
+				case Keyboard::Key::KpEnter: return ImGuiKey_KeypadEnter;
+				case Keyboard::Key::KpEqual: return ImGuiKey_KeypadEqual;
+				case Keyboard::Key::LeftShift: return ImGuiKey_LeftShift;
+				case Keyboard::Key::LeftControl: return ImGuiKey_LeftCtrl;
+				case Keyboard::Key::LeftAlt: return ImGuiKey_LeftAlt;
+				case Keyboard::Key::LeftSuper: return ImGuiKey_LeftSuper;
+				case Keyboard::Key::RightShift: return ImGuiKey_RightShift;
+				case Keyboard::Key::RightControl: return ImGuiKey_RightCtrl;
+				case Keyboard::Key::RightAlt: return ImGuiKey_RightAlt;
+				case Keyboard::Key::RightSuper: return ImGuiKey_RightSuper;
+				case Keyboard::Key::Menu: return ImGuiKey_Menu;
+				default: return ImGuiKey_None;
 			}
 		}
 
@@ -1021,39 +899,27 @@ namespace Engine
 
 			switch (type)
 			{
-				case EventType::MouseMotion:
-					return on_mouse_move(event);
+				case EventType::MouseMotion: return on_mouse_move(event);
 
 				case EventType::MouseButtonDown:
-				case EventType::MouseButtonUp:
-					return on_mouse_button(event, type == EventType::MouseButtonDown);
+				case EventType::MouseButtonUp: return on_mouse_button(event, type == EventType::MouseButtonDown);
 
-				case EventType::MouseWheel:
-					return on_mouse_wheel(event);
+				case EventType::MouseWheel: return on_mouse_wheel(event);
 
 				case EventType::KeyDown:
-				case EventType::KeyUp:
-					return on_keyboard_button(event, type == EventType::KeyDown);
+				case EventType::KeyUp: return on_keyboard_button(event, type == EventType::KeyDown);
 
-				case EventType::TextInput:
-					return on_text_input(event);
+				case EventType::TextInput: return on_text_input(event);
 
-				case EventType::WindowClose:
-					return on_window_close(event);
-				case EventType::WindowMoved:
-					return on_window_move(event);
-				case EventType::WindowResized:
-					return on_window_resize(event);
+				case EventType::WindowClose: return on_window_close(event);
+				case EventType::WindowMoved: return on_window_move(event);
+				case EventType::WindowResized: return on_window_resize(event);
 
-				case EventType::FingerDown:
-					return on_finger_down(event);
-				case EventType::FingerUp:
-					return on_finger_up(event);
-				case EventType::FingerMotion:
-					return on_finger_motion(event);
+				case EventType::FingerDown: return on_finger_down(event);
+				case EventType::FingerUp: return on_finger_up(event);
+				case EventType::FingerMotion: return on_finger_motion(event);
 
-				default:
-					break;
+				default: break;
 			}
 		}
 

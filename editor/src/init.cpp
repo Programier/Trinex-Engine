@@ -68,7 +68,7 @@ namespace Engine
 	static void create_spot_light_overlay_positions()
 	{
 		EditorResources::spot_light_overlay_positions = allocate<PositionVertexBuffer>();
-		auto write_ptr = EditorResources::spot_light_overlay_positions->allocate_data(RHIBufferType::Static, 1080 + 8);
+		auto write_ptr = EditorResources::spot_light_overlay_positions->allocate_data(BufferCreateFlags::Static, 1080 + 8);
 
 		static constexpr float circle_y = -1.f;
 
@@ -93,7 +93,7 @@ namespace Engine
 	static void create_point_light_overlay_positions()
 	{
 		EditorResources::point_light_overlay_positions = allocate<PositionVertexBuffer>();
-		auto write_ptr = EditorResources::point_light_overlay_positions->allocate_data(RHIBufferType::Static, 1080 * 3);
+		auto write_ptr = EditorResources::point_light_overlay_positions->allocate_data(BufferCreateFlags::Static, 1080 * 3);
 
 		create_circle([&write_ptr](float y, float z) { new (write_ptr++) Vector3f(0, y, z); });
 		create_circle([&write_ptr](float x, float z) { new (write_ptr++) Vector3f(x, 0, z); });

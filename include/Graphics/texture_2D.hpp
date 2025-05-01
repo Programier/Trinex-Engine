@@ -30,6 +30,7 @@ namespace Engine
 		uint_t height(byte mip = 0) const;
 		Vector2u size(byte mip = 0) const;
 		TextureType type() const override;
+		RHI_ShaderResourceView* rhi_srv() const override;
 		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

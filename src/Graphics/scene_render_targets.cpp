@@ -37,12 +37,12 @@ namespace Engine
 
 	inline RHI_RenderTargetView* SceneRenderTargets::rtv_of(Surface type) const
 	{
-		return surface_of(type)->rhi_render_target_view();
+		return surface_of(type)->rhi_rtv();
 	}
 
 	inline RHI_DepthStencilView* SceneRenderTargets::dsv_of(Surface type) const
 	{
-		return surface_of(type)->rhi_depth_stencil_view();
+		return surface_of(type)->rhi_dsv();
 	}
 
 	StringView SceneRenderTargets::name_of(Surface type) const
@@ -122,13 +122,13 @@ namespace Engine
 	{
 		LinearColor color = {0.f, 0.f, 0.f, 1.f};
 
-		surface_of(SceneColor)->rhi_render_target_view()->clear(color);
-		surface_of(BaseColor)->rhi_render_target_view()->clear(color);
-		surface_of(Normal)->rhi_render_target_view()->clear(color);
-		surface_of(Emissive)->rhi_render_target_view()->clear(color);
-		surface_of(MSRA)->rhi_render_target_view()->clear(color);
-		surface_of(SceneDepth)->rhi_depth_stencil_view()->clear(1.0, 0);
-		surface_of(LightPassDepthZ)->rhi_depth_stencil_view()->clear(1.0, 0);
+		surface_of(SceneColor)->rhi_rtv()->clear(color);
+		surface_of(BaseColor)->rhi_rtv()->clear(color);
+		surface_of(Normal)->rhi_rtv()->clear(color);
+		surface_of(Emissive)->rhi_rtv()->clear(color);
+		surface_of(MSRA)->rhi_rtv()->clear(color);
+		surface_of(SceneDepth)->rhi_dsv()->clear(1.0, 0);
+		surface_of(LightPassDepthZ)->rhi_dsv()->clear(1.0, 0);
 		return *this;
 	}
 }// namespace Engine

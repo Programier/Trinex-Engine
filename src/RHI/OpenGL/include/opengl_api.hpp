@@ -18,7 +18,7 @@ namespace Engine
 		Scissor scissor                           = {};
 		struct OpenGL_RenderTarget* render_target = nullptr;
 		struct OpenGL_Pipeline* pipeline          = nullptr;
-		struct OpenGL_IndexBuffer* index_buffer   = nullptr;
+		GLenum index_type                         = 0;
 	};
 
 	struct OpenGL : public RHI {
@@ -48,6 +48,7 @@ namespace Engine
 		OpenGL& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 		                               size_t instances) override;
 		OpenGL& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
+		OpenGL& signal_fence(RHI_Fence* fence) override;
 		OpenGL& submit() override;
 		OpenGL& reset_state();
 
@@ -73,15 +74,18 @@ namespace Engine
 		RHI_Shader* create_compute_shader(const ComputeShader* shader) override;
 		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline) override;
-		RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type) override;
-		RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
-		RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type) override;
+		RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 		OpenGL& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		OpenGL& push_debug_stage(const char* stage, const LinearColor& color = {}) override;
 		OpenGL& pop_debug_stage() override;
+
+		OpenGL& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
+		OpenGL& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
+		OpenGL& bind_uniform_buffer(RHI_Buffer* buffer, byte slot) override;
+		OpenGL& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
+		OpenGL& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 
 		void reset_samplers();
 

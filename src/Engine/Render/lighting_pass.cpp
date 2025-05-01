@@ -26,7 +26,8 @@ namespace Engine
 
 	static inline void bind_surface(RenderSurface* surface, byte location)
 	{
-		surface->rhi_shader_resource_view()->bind_combined(location, Sampler(SamplerFilter::Point).rhi_sampler());
+		auto srv = surface->rhi_srv();
+		rhi->bind_srv(srv, location, Sampler(SamplerFilter::Point).rhi_sampler());
 	}
 
 	static inline void bind_scene_render_target(SceneRenderTargets* rt, SceneRenderTargets::Surface surface, byte location)
@@ -127,8 +128,9 @@ namespace Engine
 		add_callabble([=, scene = scene_renderer()->scene]() {
 			auto shadow_map = component->proxy()->shadow_map();
 
-			shadow_map->rhi_depth_stencil_view()->clear(1.0, 255);
-			rhi->bind_depth_stencil_target(shadow_map->rhi_depth_stencil_view());
+			auto dsv = shadow_map->rhi_dsv();
+			dsv->clear(1.0, 255);
+			rhi->bind_depth_stencil_target(dsv);
 
 			Vector2f size = {Settings::Rendering::shadow_map_size, Settings::Rendering::shadow_map_size};
 			SceneView view(camera_view(component->proxy()), size);
@@ -246,9 +248,9 @@ namespace Engine
 		using namespace Pipelines;
 
 		Super::initialize();
-		m_spot_lights.init(RHIBufferType::Dynamic, sizeof(DeferredSpotLight::LightData), 8, nullptr, true);
-		m_point_lights.init(RHIBufferType::Dynamic, sizeof(DeferredPointLight::LightData), 8, nullptr, true);
-		m_directional_lights.init(RHIBufferType::Dynamic, sizeof(DeferredDirectionalLight::LightData), 8, nullptr, true);
+		m_spot_lights.init(BufferCreateFlags::Dynamic, sizeof(DeferredSpotLight::LightData), 8, nullptr, true);
+		m_point_lights.init(BufferCreateFlags::Dynamic, sizeof(DeferredPointLight::LightData), 8, nullptr, true);
+		m_directional_lights.init(BufferCreateFlags::Dynamic, sizeof(DeferredDirectionalLight::LightData), 8, nullptr, true);
 		return *this;
 	}
 

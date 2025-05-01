@@ -136,8 +136,8 @@ namespace Engine
 					SceneView scene_view(camera_view, {size.x, size.y});
 					m_renderer.render(scene_view, vp);
 
-					auto dst = surface->rhi_render_target_view();
-					auto src = m_renderer.output_surface()->rhi_render_target_view();
+					auto dst = surface->rhi_rtv();
+					auto src = m_renderer.output_surface()->rhi_rtv();
 
 					Rect2D rect;
 					rect.pos  = {0.f, 0.f};

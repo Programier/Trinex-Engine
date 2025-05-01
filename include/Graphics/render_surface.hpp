@@ -15,10 +15,6 @@ namespace Engine
 		trinex_declare_class(RenderSurface, RenderResource);
 
 		RenderResourcePtr<RHI_Texture2D> m_texture;
-		RenderResourcePtr<RHI_RenderTargetView> m_rtv;
-		RenderResourcePtr<RHI_DepthStencilView> m_dsv;
-		RenderResourcePtr<RHI_ShaderResourceView> m_srv;
-		RenderResourcePtr<RHI_UnorderedAccessView> m_uav;
 
 		SurfaceFormat m_format = SurfaceFormat::Undefined;
 		Vector2u m_size        = {0, 0};
@@ -27,12 +23,12 @@ namespace Engine
 		RenderSurface();
 		RenderSurface& init(SurfaceFormat format, Vector2i size);
 		RenderSurface& release_render_resources() override;
+		RHI_RenderTargetView* rhi_rtv() const;
+		RHI_DepthStencilView* rhi_dsv() const;
+		RHI_UnorderedAccessView* rhi_uav() const;
+		RHI_ShaderResourceView* rhi_srv() const;
 
 		inline RHI_Texture2D* rhi_texture() const { return m_texture; }
-		inline RHI_RenderTargetView* rhi_render_target_view() const { return m_rtv; }
-		inline RHI_DepthStencilView* rhi_depth_stencil_view() const { return m_dsv; }
-		inline RHI_ShaderResourceView* rhi_shader_resource_view() const { return m_srv; }
-		inline RHI_UnorderedAccessView* rhi_unordered_access_view() const { return m_uav; }
 		inline Vector2u size() const { return m_size; }
 		inline SurfaceFormat format() const { return m_format; }
 	};

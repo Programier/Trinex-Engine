@@ -8,133 +8,105 @@
 
 namespace Engine
 {
-
-	OpenGL_VertexBuffer::OpenGL_VertexBuffer(size_t size, const byte* data, RHIBufferType type)
+	OpenGL_Buffer::OpenGL_Buffer(size_t size, const byte* data, BufferCreateFlags flags)
 	{
-		GLenum gl_type = type == RHIBufferType::Static ? GL_STATIC_DRAW : GL_STREAM_DRAW;
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_ARRAY_BUFFER, m_id);
-		glBufferData(GL_ARRAY_BUFFER, size, data, gl_type);
-	}
-
-	void OpenGL_VertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
-	{
-		glBindVertexBuffer(stream_index, m_id, offset, stride);
-	}
-
-	void OpenGL_VertexBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_id);
-		glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
-	}
-
-	OpenGL_VertexBuffer::~OpenGL_VertexBuffer()
-	{
-		glDeleteBuffers(1, &m_id);
-	}
-
-	RHI_VertexBuffer* OpenGL::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
-	{
-		return new OpenGL_VertexBuffer(size, data, type);
-	}
-
-
-	OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data, RHIIndexFormat format, RHIBufferType type)
-	{
-		m_format = format == RHIIndexFormat::UInt32 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
-
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
-		GLenum gl_type = type == RHIBufferType::Static ? GL_STATIC_DRAW : GL_STREAM_DRAW;
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, gl_type);
-
-		if (OPENGL_API->m_state.index_buffer)
+		if (flags & (BufferCreateFlags::StructuredBuffer | BufferCreateFlags::ByteAddressBuffer))
 		{
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_state.index_buffer->m_id);
+			m_target = GL_SHADER_STORAGE_BUFFER;
 		}
-	}
-
-	void OpenGL_IndexBuffer::bind(size_t offset)
-	{
-		if (OPENGL_API->m_state.index_buffer != this)
+		else if (flags & BufferCreateFlags::IndexBuffer)
 		{
-			OPENGL_API->m_state.index_buffer = this;
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
+			m_target = GL_ELEMENT_ARRAY_BUFFER;
 		}
-	}
-
-	void OpenGL_IndexBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, reinterpret_cast<const void*>(data));
-
-		if (OPENGL_API->m_state.index_buffer != nullptr && OPENGL_API->m_state.index_buffer != this)
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_state.index_buffer->m_id);
 		else
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-
-	OpenGL_IndexBuffer::~OpenGL_IndexBuffer()
-	{
-		if (m_id)
 		{
-			glDeleteBuffers(1, &m_id);
+			m_target = GL_ARRAY_BUFFER;
+		}
+
+		glGenBuffers(1, &m_id);
+		glBindBuffer(m_target, m_id);
+		glBufferData(m_target, size, data, (flags & BufferCreateFlags::Dynamic) ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+
+
+		if (flags & BufferCreateFlags::ShaderResource)
+		{
+			if (flags & (BufferCreateFlags::ByteAddressBuffer | BufferCreateFlags::StructuredBuffer))
+				m_srv = new OpenGL_BufferSRV<GL_SHADER_STORAGE_BUFFER>(m_id);
+			else
+				m_srv = new OpenGL_BufferSRV<GL_TEXTURE_BUFFER>(m_id);
+		}
+
+		if (flags & BufferCreateFlags::UnorderedAccess)
+		{
+			if (flags & (BufferCreateFlags::ByteAddressBuffer | BufferCreateFlags::StructuredBuffer))
+			{
+				m_uav = new OpenGL_BufferUAV<GL_SHADER_STORAGE_BUFFER>(m_id);
+			}
 		}
 	}
 
-	OpenGL_UniformBuffer::OpenGL_UniformBuffer(size_t size, const byte* data, RHIBufferType type)
-	{
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_UNIFORM_BUFFER, m_id);
-		glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STREAM_COPY);
-	}
-
-	void OpenGL_UniformBuffer::bind(BindingIndex location)
-	{
-		glBindBufferBase(GL_UNIFORM_BUFFER, location, m_id);
-	}
-
-	void OpenGL_UniformBuffer::update(size_t offset, size_t size, const byte* data)
-	{
-		glBindBuffer(GL_UNIFORM_BUFFER, m_id);
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
-	}
-
-	RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, RHIIndexFormat format, RHIBufferType type)
-	{
-		return new OpenGL_IndexBuffer(size, data, format, type);
-	}
-
-	OpenGL_SSBO::OpenGL_SSBO(size_t size, const byte* data)
-	{
-		glGenBuffers(1, &m_id);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_id);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, GL_DYNAMIC_DRAW);
-	}
-
-	void OpenGL_SSBO::bind(BindLocation location)
-	{
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, location.binding, m_id);
-	}
-
-	void OpenGL_SSBO::update(size_t offset, size_t size, const byte* data)
-	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_id);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
-	}
-
-	OpenGL_SSBO::~OpenGL_SSBO()
+	OpenGL_Buffer::~OpenGL_Buffer()
 	{
 		glDeleteBuffers(1, &m_id);
+
+		if (m_srv)
+			delete m_srv;
+		if (m_uav)
+			delete m_uav;
 	}
 
-	RHI_SSBO* OpenGL::create_ssbo(size_t size, const byte* data, RHIBufferType type)
+	byte* OpenGL_Buffer::map()
 	{
-		return new OpenGL_SSBO(size, data);
+		if (m_mapped == nullptr)
+		{
+			glBindBuffer(m_target, m_id);
+			m_mapped = reinterpret_cast<byte*>(glMapBuffer(m_target, GL_READ_WRITE));
+		}
+
+		return m_mapped;
 	}
 
-	RHI_UniformBuffer* OpenGL::create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)
+	void OpenGL_Buffer::unmap()
 	{
-		return new OpenGL_UniformBuffer(size, data, type);
+		if (m_mapped)
+		{
+			glBindBuffer(m_target, m_id);
+			glUnmapBuffer(m_target);
+			m_mapped = nullptr;
+		}
 	}
+
+	void OpenGL_Buffer::update(size_t offset, size_t size, const byte* data)
+	{
+		glBindBuffer(m_target, m_id);
+		glBufferSubData(m_target, offset, size, data);
+	}
+
+	RHI_Buffer* OpenGL::create_buffer(size_t size, const byte* data, BufferCreateFlags flags)
+	{
+		return new OpenGL_Buffer(size, data, flags);
+	}
+
+	OpenGL& OpenGL::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	{
+		OpenGL_Buffer* gl_buffer = static_cast<OpenGL_Buffer*>(buffer);
+		glBindVertexBuffer(stream, gl_buffer->m_id, byte_offset, stride);
+		return *this;
+	}
+
+	OpenGL& OpenGL::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
+	{
+		OpenGL_Buffer* gl_buffer = static_cast<OpenGL_Buffer*>(buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_buffer->m_id);
+		m_state.index_type = format == RHIIndexFormat::UInt16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+		return *this;
+	}
+
+	OpenGL& OpenGL::bind_uniform_buffer(RHI_Buffer* buffer, byte slot)
+	{
+		OpenGL_Buffer* gl_buffer = static_cast<OpenGL_Buffer*>(buffer);
+		glBindBufferBase(GL_UNIFORM_BUFFER, slot, gl_buffer->m_id);
+		return *this;
+	}
+
 }// namespace Engine

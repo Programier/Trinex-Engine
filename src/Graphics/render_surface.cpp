@@ -32,15 +32,6 @@ namespace Engine
 			}
 
 			m_texture = rhi->create_texture_2d(m_format, m_size, 1, flags);
-
-			if (flags & TextureCreateFlags::ShaderResource)
-				m_srv = m_texture->create_srv();
-			if (flags & TextureCreateFlags::UnorderedAccess)
-				m_uav = m_texture->create_uav();
-			if (flags & TextureCreateFlags::RenderTarget)
-				m_rtv = m_texture->create_rtv();
-			if (flags & TextureCreateFlags::DepthStencilTarget)
-				m_dsv = m_texture->create_dsv();
 		});
 
 		return *this;
@@ -49,14 +40,30 @@ namespace Engine
 	RenderSurface& RenderSurface::release_render_resources()
 	{
 		Super::release_render_resources();
-		m_uav     = nullptr;
-		m_srv     = nullptr;
-		m_dsv     = nullptr;
-		m_rtv     = nullptr;
 		m_texture = nullptr;
 
 		m_format = SurfaceFormat::Undefined;
 		m_size   = {0, 0};
 		return *this;
+	}
+
+	RHI_RenderTargetView* RenderSurface::rhi_rtv() const
+	{
+		return m_texture ? m_texture->as_rtv() : nullptr;
+	}
+	
+	RHI_DepthStencilView* RenderSurface::rhi_dsv() const
+	{
+		return m_texture ? m_texture->as_dsv() : nullptr;
+	}
+	
+	RHI_UnorderedAccessView* RenderSurface::rhi_uav() const
+	{
+		return m_texture ? m_texture->as_uav() : nullptr;
+	}
+	
+	RHI_ShaderResourceView* RenderSurface::rhi_srv() const
+	{
+		return m_texture ? m_texture->as_srv() : nullptr;
 	}
 }// namespace Engine

@@ -4,7 +4,7 @@
 #include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_texture.hpp>
+#include <vulkan_resource_view.hpp>
 
 namespace Engine
 {
@@ -55,7 +55,8 @@ namespace Engine
 				{
 					vk::ImageLayout layout              = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 					vk::Format format                   = surface_format_of(depth);
-					m_descriptions[m_attachments_count] = create_desctiption(format, layout, depth->m_with_stencil);
+					m_descriptions[m_attachments_count] = create_desctiption(
+					        format, layout, format == vk::Format::eD24UnormS8Uint || format == vk::Format::eD32SfloatS8Uint);
 					++m_attachments_count;
 				}
 

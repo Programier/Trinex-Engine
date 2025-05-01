@@ -157,15 +157,6 @@ namespace Engine
 		DESTROY_CALL(destroyPipelineLayout, m_pipeline_layout);
 	}
 
-	VulkanPipeline& VulkanPipeline::bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location)
-	{
-		if (auto current_set = current_descriptor_set())
-		{
-			current_set->bind_ssbo(ssbo, location);
-		}
-		return *this;
-	}
-
 	VulkanPipeline& VulkanPipeline::bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,
 	                                                    vk::DescriptorType type)
 	{
@@ -185,31 +176,20 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanPipeline& VulkanPipeline::bind_texture(VulkanTextureSRV* texture, BindLocation location)
+	VulkanPipeline& VulkanPipeline::bind_srv(VulkanSRV* srv, byte location, VulkanSampler* sampler)
 	{
 		if (auto current_set = current_descriptor_set())
 		{
-			current_set->bind_texture(texture, location);
-		}
-
-		return *this;
-	}
-
-	VulkanPipeline& VulkanPipeline::bind_texture(VulkanTextureUAV* texture, BindLocation location)
-	{
-		if (auto current_set = current_descriptor_set())
-		{
-			current_set->bind_texture(texture, location);
+			current_set->bind_srv(srv, location, sampler);
 		}
 		return *this;
 	}
 
-	VulkanPipeline& VulkanPipeline::bind_texture_combined(VulkanTextureSRV* texture, VulkanSampler* sampler,
-	                                                      BindLocation location)
+	VulkanPipeline& VulkanPipeline::VulkanPipeline::bind_uav(VulkanUAV* uav, byte location)
 	{
 		if (auto current_set = current_descriptor_set())
 		{
-			current_set->bind_texture_combined(texture, sampler, location);
+			current_set->bind_uav(uav, location);
 		}
 		return *this;
 	}

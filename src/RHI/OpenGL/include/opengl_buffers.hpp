@@ -2,48 +2,43 @@
 #include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_headers.hpp>
+#include <opengl_resource.hpp>
 
 namespace Engine
 {
-	struct OpenGL_VertexBuffer : public RHI_DefaultDestroyable<RHI_VertexBuffer> {
+	template<GLenum target>
+	struct OpenGL_BufferSRV : public OpenGL_SRV {
 		GLuint m_id;
 
-
-		OpenGL_VertexBuffer(size_t size, const byte* data, RHIBufferType type);
-		void bind(byte stream_index, size_t stride, size_t offset) override;
-		void update(size_t offset, size_t size, const byte* data) override;
-
-		~OpenGL_VertexBuffer();
+		OpenGL_BufferSRV(GLuint id) : m_id(id) {}
+		void bind(byte location, OpenGL_Sampler*) override { glBindBufferBase(target, location, m_id); }
 	};
 
-	struct OpenGL_IndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer> {
+	template<GLenum target>
+	struct OpenGL_BufferUAV : public OpenGL_UAV {
 		GLuint m_id;
-		GLuint m_format;
 
-		OpenGL_IndexBuffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type);
-		void bind(size_t offset) override;
-		void update(size_t offset, size_t size, const byte* data) override;
-
-		~OpenGL_IndexBuffer();
+		OpenGL_BufferUAV(GLuint id) : m_id(id) {}
+		void bind(byte location) override { glBindBufferBase(target, location, m_id); }
 	};
 
-	struct OpenGL_UniformBuffer : public RHI_DefaultDestroyable<RHI_UniformBuffer> {
+	struct OpenGL_Buffer : public RHI_DefaultDestroyable<RHI_Buffer> {
+		OpenGL_SRV* m_srv = nullptr;
+		OpenGL_UAV* m_uav = nullptr;
+
+		byte* m_mapped = nullptr;
+		GLuint m_target;
 		GLuint m_id;
 
-		OpenGL_UniformBuffer(size_t size, const byte* data, RHIBufferType type);
-		void bind(BindingIndex location) override;
-		void update(size_t offset, size_t size, const byte* data) override;
-	};
+		OpenGL_Buffer(size_t size, const byte* data, BufferCreateFlags flags);
+		~OpenGL_Buffer();
 
-	struct OpenGL_SSBO : public RHI_DefaultDestroyable<RHI_SSBO> {
-		GLuint m_id;
-
-		OpenGL_SSBO(size_t size, const byte* data);
-
-		void bind(BindLocation location) override;
+		byte* map() override;
+		void unmap() override;
 		void update(size_t offset, size_t size, const byte* data) override;
 
-		~OpenGL_SSBO();
+		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
+		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
 	};
 
 	struct OpenGL_LocalUniformBufferManager {

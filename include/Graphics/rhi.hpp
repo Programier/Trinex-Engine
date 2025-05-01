@@ -70,7 +70,6 @@ namespace Engine
 	};
 
 	struct RHI_Fence : public RHI_Object {
-		virtual void wait()        = 0;
 		virtual bool is_signaled() = 0;
 		virtual void reset()       = 0;
 	};
@@ -85,38 +84,31 @@ namespace Engine
 		virtual void bind(BindLocation location) = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_ResourceView : RHI_Object {
-	};
+	struct ENGINE_EXPORT RHI_ShaderResourceView{virtual ~RHI_ShaderResourceView(){}};
+	struct ENGINE_EXPORT RHI_UnorderedAccessView{virtual ~RHI_UnorderedAccessView(){}};
 
-	struct ENGINE_EXPORT RHI_ShaderResourceView : RHI_ResourceView {
-		virtual void bind(BindLocation location)                               = 0;
-		virtual void bind_combined(byte location, struct RHI_Sampler* sampler) = 0;
-	};
-
-	struct ENGINE_EXPORT RHI_UnorderedAccessView : RHI_ResourceView {
-		virtual void bind(BindLocation location) = 0;
-	};
-
-	struct ENGINE_EXPORT RHI_RenderTargetView : RHI_ResourceView {
+	struct ENGINE_EXPORT RHI_RenderTargetView {
 		virtual void clear(const LinearColor& color) = 0;
 		virtual void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 		                  SamplerFilter filter)      = 0;
+		virtual ~RHI_RenderTargetView() {}
 	};
 
-	struct ENGINE_EXPORT RHI_DepthStencilView : RHI_ResourceView {
+	struct ENGINE_EXPORT RHI_DepthStencilView {
 		virtual void clear(float depth, byte stencil) = 0;
 		virtual void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 		                  SamplerFilter filter)       = 0;
+		virtual ~RHI_DepthStencilView() {}
 	};
 
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
 	};
 
 	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
-		virtual RHI_RenderTargetView* create_rtv()    = 0;
-		virtual RHI_DepthStencilView* create_dsv()    = 0;
-		virtual RHI_ShaderResourceView* create_srv()  = 0;
-		virtual RHI_UnorderedAccessView* create_uav() = 0;
+		virtual RHI_RenderTargetView* as_rtv()    = 0;
+		virtual RHI_DepthStencilView* as_dsv()    = 0;
+		virtual RHI_ShaderResourceView* as_srv()  = 0;
+		virtual RHI_UnorderedAccessView* as_uav() = 0;
 	};
 
 	struct RHI_Texture2D : RHI_Texture {
@@ -131,23 +123,12 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_Buffer : RHI_Object {
+		virtual byte* map()                                               = 0;
+		virtual void unmap()                                              = 0;
 		virtual void update(size_t offset, size_t size, const byte* data) = 0;
-	};
 
-	struct ENGINE_EXPORT RHI_VertexBuffer : RHI_Buffer {
-		virtual void bind(byte stream_index, size_t stride, size_t offset) = 0;
-	};
-
-	struct ENGINE_EXPORT RHI_IndexBuffer : RHI_Buffer {
-		virtual void bind(size_t offset) = 0;
-	};
-
-	struct ENGINE_EXPORT RHI_SSBO : RHI_Buffer {
-		virtual void bind(BindLocation location) = 0;
-	};
-
-	struct ENGINE_EXPORT RHI_UniformBuffer : RHI_Buffer {
-		virtual void bind(BindingIndex location) = 0;
+		virtual RHI_ShaderResourceView* as_srv()  = 0;
+		virtual RHI_UnorderedAccessView* as_uav() = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Viewport : RHI_Object {
@@ -179,8 +160,8 @@ namespace Engine
 		                                    size_t instances)                                          = 0;
 
 		virtual RHI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) = 0;
-
-		virtual RHI& submit() = 0;
+		virtual RHI& signal_fence(RHI_Fence* fence)                                 = 0;
+		virtual RHI& submit()                                                       = 0;
 
 		virtual RHI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
 		                                RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) = 0;
@@ -201,14 +182,18 @@ namespace Engine
 		virtual RHI_Shader* create_compute_shader(const ComputeShader* shader)                                               = 0;
 		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                     = 0;
 		virtual RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline)                                       = 0;
-		virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
-		virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIIndexFormat format, RHIBufferType type)    = 0;
-		virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;
-		virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data, RHIBufferType type)                  = 0;
+		virtual RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags)                            = 0;
 		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;
 		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)        = 0;
 		virtual RHI& push_debug_stage(const char* stage, const LinearColor& color = {})                                      = 0;
 		virtual RHI& pop_debug_stage()                                                                                       = 0;
+
+		virtual RHI& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) = 0;
+		virtual RHI& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)                             = 0;
+		virtual RHI& bind_uniform_buffer(RHI_Buffer* buffer, byte slot)                                       = 0;
+
+		virtual RHI& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) = 0;
+		virtual RHI& bind_uav(RHI_UnorderedAccessView* view, byte slot)                                = 0;
 
 		// INLINES
 		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)
