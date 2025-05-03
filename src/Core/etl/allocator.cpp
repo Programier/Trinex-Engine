@@ -79,7 +79,7 @@ namespace Engine
 			{
 				Node* prev = nullptr;
 
-				const uint64_t current_frame = engine_instance->frame_index();
+				const uint64_t current_frame = engine_instance ? engine_instance->frame_index() : 0;
 
 				if (m_frame != current_frame)
 				{

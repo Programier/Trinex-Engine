@@ -69,7 +69,10 @@ namespace Engine
 		}
 	};
 
-	struct RHI_Fence : public RHI_Object {
+	struct ENGINE_EXPORT RHI_Resource : RHI_Object {
+	};
+
+	struct ENGINE_EXPORT RHI_Fence : RHI_Object {
 		virtual bool is_signaled() = 0;
 		virtual void reset()       = 0;
 	};
@@ -104,7 +107,7 @@ namespace Engine
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
 	};
 
-	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
+	struct ENGINE_EXPORT RHI_Texture : RHI_Resource {
 		virtual RHI_RenderTargetView* as_rtv()    = 0;
 		virtual RHI_DepthStencilView* as_dsv()    = 0;
 		virtual RHI_ShaderResourceView* as_srv()  = 0;
@@ -122,7 +125,7 @@ namespace Engine
 		virtual void bind() = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_Buffer : RHI_Object {
+	struct ENGINE_EXPORT RHI_Buffer : RHI_Resource {
 		virtual byte* map()                                               = 0;
 		virtual void unmap()                                              = 0;
 		virtual void update(size_t offset, size_t size, const byte* data) = 0;

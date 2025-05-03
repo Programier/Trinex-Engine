@@ -384,7 +384,7 @@ private:
 		};
 
 		template<typename T, typename Alloc>
-		struct IsArray<Engine::Containers::Vector<T, Alloc>> : std::true_type {
+		struct IsArray<Engine::Vector<T, Alloc>> : std::true_type {
 		};
 
 		template<typename T>

@@ -30,17 +30,17 @@ namespace Engine
 		return m_surfaces;
 	}
 
-	inline RenderSurface* SceneRenderTargets::surface_of(Surface type) const
+	RenderSurface* SceneRenderTargets::surface_of(Surface type) const
 	{
 		return m_surfaces.at(static_cast<size_t>(type)).ptr();
 	}
 
-	inline RHI_RenderTargetView* SceneRenderTargets::rtv_of(Surface type) const
+	RHI_RenderTargetView* SceneRenderTargets::rtv_of(Surface type) const
 	{
 		return surface_of(type)->rhi_rtv();
 	}
 
-	inline RHI_DepthStencilView* SceneRenderTargets::dsv_of(Surface type) const
+	RHI_DepthStencilView* SceneRenderTargets::dsv_of(Surface type) const
 	{
 		return surface_of(type)->rhi_dsv();
 	}

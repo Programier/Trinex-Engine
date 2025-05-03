@@ -7,9 +7,9 @@
 #include <memory>
 #include <stdexcept>
 
-namespace Engine::Containers
+namespace Engine
 {
-	template<typename T, typename AllocatorType = std::allocator<T>>
+	template<typename T, typename AllocatorType = Allocator<T>>
 	class Vector : private AllocatorType
 	{
 	public:
@@ -416,7 +416,7 @@ namespace Engine::Containers
 
 		constexpr inline void erase_at_end(iterator pos)
 		{
-			if (size_type n = m_finish - pos)
+			if (m_finish - pos)
 			{
 				std::destroy(pos, m_finish);
 				m_finish = pos;
@@ -807,24 +807,25 @@ namespace Engine::Containers
 			std::swap(m_end, other.m_end);
 		}
 	};
-}// namespace Engine::Containers
 
 
-namespace Engine
-{
-	template<typename Type>
-	using Vector = Containers::Vector<Type, Allocator<Type>>;
 	using Buffer = Vector<unsigned char>;
 
-	template<typename Type, typename ArchiveType>
-	inline bool trinex_serialize_vector(ArchiveType& ar, Vector<Type>& vector)
+	template<typename Type, typename AllocatorType, typename ArchiveType>
+	inline bool trinex_serialize_vector(ArchiveType& ar, Vector<Type, AllocatorType>& vector)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{
 		return ar.serialize_vector(vector);
 	}
 
 	template<typename Type, typename Alloc>
-	struct Serializer<Containers::Vector<Type, Alloc>> {
-		bool serialize(Archive& ar, Containers::Vector<Type, Alloc>& vector) { return trinex_serialize_vector(ar, vector); }
+	struct Serializer<Vector<Type, Alloc>> {
+		bool serialize(Archive& ar, Vector<Type, Alloc>& vector) { return trinex_serialize_vector(ar, vector); }
 	};
+}// namespace Engine
+
+
+namespace Engine
+{
+
 }// namespace Engine

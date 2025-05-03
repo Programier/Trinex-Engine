@@ -828,7 +828,7 @@ namespace Engine
 
 	bool SLANG_ShaderCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
-		Containers::Vector<slang::IComponentType*, FrameAllocator<slang::IComponentType*>> component_types;
+		Vector<slang::IComponentType*, FrameAllocator<slang::IComponentType*>> component_types;
 		component_types.push_back(module);
 
 		for (size_t i = 0; i < infos_len; ++i)

@@ -12,7 +12,7 @@ namespace Engine
 	class Pipeline;
 	class Shader;
 
-	using SLANG_DefinitionsArray = Containers::Vector<ShaderDefinition, FrameAllocator<ShaderDefinition>>;
+	using SLANG_DefinitionsArray = Vector<ShaderDefinition, FrameAllocator<ShaderDefinition>>;
 
 	class SLANG_ShaderCompiler : public ShaderCompiler
 	{
@@ -50,10 +50,10 @@ namespace Engine
 		};
 
 		struct SessionInitializer {
-			Containers::Vector<const char*, FrameAllocator<const char*>> search_paths;
-			Containers::Vector<slang::PreprocessorMacroDesc, FrameAllocator<slang::PreprocessorMacroDesc>> definitions;
-			Containers::Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> options;
-			Containers::Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> target_options;
+			Vector<const char*, FrameAllocator<const char*>> search_paths;
+			Vector<slang::PreprocessorMacroDesc, FrameAllocator<slang::PreprocessorMacroDesc>> definitions;
+			Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> options;
+			Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> target_options;
 
 			slang::SessionDesc session_desc;
 			slang::TargetDesc target_desc;
