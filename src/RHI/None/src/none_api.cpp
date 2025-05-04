@@ -267,6 +267,16 @@ namespace Engine
 		return *this;
 	}
 
+	NoneApi& NoneApi::barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)
+	{
+		return *this;
+	}
+
 	NoneApi& NoneApi::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
 		return *this;

@@ -54,6 +54,9 @@ namespace Engine
 		NoneApi& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
 		NoneApi& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 
+		NoneApi& barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access) override;
+		NoneApi& barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access) override;
+
 		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 		NoneApi& push_debug_stage(const char* stage, const LinearColor& color = {}) override;
 		NoneApi& pop_debug_stage() override;

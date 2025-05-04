@@ -242,9 +242,7 @@ namespace Engine
 	}
 
 	trinex_impl_render_pass(Engine::TransparencyPass) {}
-
 	trinex_impl_render_pass(Engine::PostProcessPass) {}
-
 	trinex_impl_render_pass(Engine::OverlayPass) {}
 
 	bool ClearPass::is_empty() const

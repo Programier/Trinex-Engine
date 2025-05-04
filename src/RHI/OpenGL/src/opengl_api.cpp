@@ -205,6 +205,16 @@ namespace Engine
 		return *this;
 	}
 
+	OpenGL& OpenGL::barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access)
+	{
+		return *this;
+	}
+
+	OpenGL& OpenGL::barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)
+	{
+		return *this;
+	}
+
 }// namespace Engine
 
 

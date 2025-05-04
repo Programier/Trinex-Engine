@@ -2,6 +2,7 @@
 #include <Core/structures.hpp>
 #include <Core/types/color.hpp>
 #include <Graphics/types/color_format.hpp>
+#include <Graphics/types/rhi_access.hpp>
 
 struct ImGuiContext;
 struct ImDrawData;
@@ -69,9 +70,6 @@ namespace Engine
 		}
 	};
 
-	struct ENGINE_EXPORT RHI_Resource : RHI_Object {
-	};
-
 	struct ENGINE_EXPORT RHI_Fence : RHI_Object {
 		virtual bool is_signaled() = 0;
 		virtual void reset()       = 0;
@@ -107,7 +105,7 @@ namespace Engine
 	struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
 	};
 
-	struct ENGINE_EXPORT RHI_Texture : RHI_Resource {
+	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
 		virtual RHI_RenderTargetView* as_rtv()    = 0;
 		virtual RHI_DepthStencilView* as_dsv()    = 0;
 		virtual RHI_ShaderResourceView* as_srv()  = 0;
@@ -125,7 +123,7 @@ namespace Engine
 		virtual void bind() = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_Buffer : RHI_Resource {
+	struct ENGINE_EXPORT RHI_Buffer : RHI_Object {
 		virtual byte* map()                                               = 0;
 		virtual void unmap()                                              = 0;
 		virtual void update(size_t offset, size_t size, const byte* data) = 0;
@@ -197,6 +195,9 @@ namespace Engine
 
 		virtual RHI& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) = 0;
 		virtual RHI& bind_uav(RHI_UnorderedAccessView* view, byte slot)                                = 0;
+
+		virtual RHI& barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access) = 0;
+		virtual RHI& barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)   = 0;
 
 		// INLINES
 		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)

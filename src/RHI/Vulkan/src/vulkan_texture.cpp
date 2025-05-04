@@ -252,4 +252,9 @@ namespace Engine
 	{
 		return &(new VulkanTexture2D())->create(format, size, mips, flags);
 	}
+
+	VulkanAPI& VulkanAPI::barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access)
+	{
+		return *this;
+	}
 }// namespace Engine

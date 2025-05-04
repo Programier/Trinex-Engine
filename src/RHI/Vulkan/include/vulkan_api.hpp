@@ -147,6 +147,9 @@ namespace Engine
 		VulkanAPI& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
 		VulkanAPI& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 
+		VulkanAPI& barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access) override;
+		VulkanAPI& barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access) override;
+
 		~VulkanAPI();
 	};
 }// namespace Engine

@@ -298,4 +298,9 @@ namespace Engine
 
 		return *this;
 	}
+
+	VulkanAPI& VulkanAPI::barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)
+	{
+		return *this;
+	}
 }// namespace Engine

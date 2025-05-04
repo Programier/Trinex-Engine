@@ -3,10 +3,8 @@
 #include <Core/etl/set.hpp>
 #include <Core/memory.hpp>
 #include <Engine/Render/render_graph.hpp>
+#include <Graphics/rhi.hpp>
 #include <cstring>
-
-#include <Core/engine_loading_controllers.hpp>
-#include <Core/logger.hpp>
 
 namespace Engine::RenderGraph
 {
@@ -31,23 +29,31 @@ namespace Engine::RenderGraph
 		m_tasks.reserve(s_default_reserve_size);
 	}
 
-	Pass& Pass::add_resource(RHI_Resource* object, RHIAccess access)
+	Pass& Pass::add_resource(RenderGraph::Resource* resource, RHIAccess access)
 	{
-		RenderGraph::Resource* graph_resource = &m_graph->find_resource(object);
-		Resource* resource                    = new (rg_allocate<Resource>()) Resource(graph_resource, access);
-		m_resources.emplace_back(resource);
+		Resource* pass_resource = new (rg_allocate<Resource>()) Resource(resource, access);
+		m_resources.emplace_back(pass_resource);
 
 		const bool is_reading = access & RHIAccess::ReadableMask;
 		const bool is_writing = access & RHIAccess::WritableMask;
 
 		if (is_reading && is_writing)
-			graph_resource->add_read_writer(this);
+			resource->add_read_writer(this);
 		else if (is_writing)
-			graph_resource->add_writer(this);
+			resource->add_writer(this);
 		else if (is_reading)
-			graph_resource->add_reader(this);
-
+			resource->add_reader(this);
 		return *this;
+	}
+
+	Pass& Pass::add_resource(RHI_Texture* texture, RHIAccess access)
+	{
+		return add_resource(&m_graph->find_resource(texture), access);
+	}
+
+	Pass& Pass::add_resource(RHI_Buffer* buffer, RHIAccess access)
+	{
+		return add_resource(&m_graph->find_resource(buffer), access);
 	}
 
 	Graph::Graph()
@@ -57,14 +63,14 @@ namespace Engine::RenderGraph
 		m_outputs.reserve(s_default_reserve_size);
 	}
 
-	Resource& Graph::find_resource(RHI_Resource* object)
+	Resource& Graph::find_resource(RHI_Texture* texture)
 	{
-		auto it = m_resource_map.find(object);
+		auto it = m_resource_map.find(texture);
 
 		if (it == m_resource_map.end())
 		{
-			Resource* resource     = new (rg_allocate<Resource>()) Resource(object);
-			m_resource_map[object] = resource;
+			Resource* resource      = new (rg_allocate<Resource>()) Resource();
+			m_resource_map[texture] = resource;
 			return *resource;
 		}
 		else
@@ -73,9 +79,31 @@ namespace Engine::RenderGraph
 		}
 	}
 
-	Graph& Graph::add_output(RHI_Resource* object)
+	Resource& Graph::find_resource(RHI_Buffer* buffer)
 	{
-		m_outputs.insert(&find_resource(object));
+		auto it = m_resource_map.find(buffer);
+
+		if (it == m_resource_map.end())
+		{
+			Resource* resource     = new (rg_allocate<Resource>()) Resource();
+			m_resource_map[buffer] = resource;
+			return *resource;
+		}
+		else
+		{
+			return *(it->second);
+		}
+	}
+
+	Graph& Graph::add_output(RHI_Texture* texture)
+	{
+		m_outputs.insert(&find_resource(texture));
+		return *this;
+	}
+
+	Graph& Graph::add_output(RHI_Buffer* buffer)
+	{
+		m_outputs.insert(&find_resource(buffer));
 		return *this;
 	}
 

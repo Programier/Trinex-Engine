@@ -87,6 +87,9 @@ namespace Engine
 		OpenGL& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
 		OpenGL& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 
+		OpenGL& barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access) override;
+		OpenGL& barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access) override;
+
 		void reset_samplers();
 
 		~OpenGL();

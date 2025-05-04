@@ -10,8 +10,10 @@
 
 namespace Engine
 {
-	struct RHI_Resource;
-}
+	struct RHI_Object;
+	struct RHI_Buffer;
+	struct RHI_Texture;
+}// namespace Engine
 
 namespace Engine::RenderGraph
 {
@@ -35,12 +37,11 @@ namespace Engine::RenderGraph
 	class ENGINE_EXPORT Resource
 	{
 	private:
-		RHI_Resource* m_resource;
 		RGVector<class Pass*> m_readers;
 		RGVector<class Pass*> m_writers;
 		RGVector<class Pass*> m_read_writers;
 
-		inline Resource(RHI_Resource* object) : m_resource(object) {}
+		inline Resource() {}
 
 	public:
 		inline Resource& add_writer(Pass* pass)
@@ -61,7 +62,6 @@ namespace Engine::RenderGraph
 			return *this;
 		}
 
-		inline RHI_Resource* resource() const { return m_resource; }
 		inline const RGVector<Pass*>& writers() const { return m_writers; }
 		inline const RGVector<Pass*>& readers() const { return m_readers; }
 		inline const RGVector<Pass*>& read_writers() const { return m_read_writers; }
@@ -127,8 +127,11 @@ namespace Engine::RenderGraph
 
 		Pass(class Graph* graph, Type type, const StringView& name = "Unnamed pass");
 
+		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access);
+
 	public:
-		Pass& add_resource(RHI_Resource* object, RHIAccess access);
+		Pass& add_resource(RHI_Texture* texture, RHIAccess access);
+		Pass& add_resource(RHI_Buffer* buffer, RHIAccess access);
 
 		template<typename TaskType, typename... Args>
 		Pass& add_task(Args&&... args)
@@ -206,7 +209,7 @@ namespace Engine::RenderGraph
 			static inline Node* create() { return new (rg_allocate<Node>()) Node(); }
 		};
 
-		RGMap<RHI_Resource*, Resource*> m_resource_map;
+		RGMap<RHI_Object*, Resource*> m_resource_map;
 		RGVector<Pass*> m_passes;
 		RGSet<Resource*> m_outputs;
 
@@ -217,8 +220,10 @@ namespace Engine::RenderGraph
 
 	public:
 		Graph();
-		Resource& find_resource(RHI_Resource* object);
-		Graph& add_output(RHI_Resource* object);
+		Resource& find_resource(RHI_Texture* texture);
+		Resource& find_resource(RHI_Buffer* buffer);
+		Graph& add_output(RHI_Texture* texture);
+		Graph& add_output(RHI_Buffer* buffer);
 		Pass& add_pass(Pass::Type type, const StringView& name = "Unnamed pass");
 		bool execute();
 

@@ -58,9 +58,7 @@ namespace Engine
 		bool destroy_subpass(RenderPass* pass);
 
 		inline SceneRenderer* scene_renderer() const { return m_renderer; }
-
 		inline RenderPass* next() const { return m_next; }
-
 		inline RenderPass* owner() const { return m_owner; }
 
 		virtual RenderPass& initialize();
@@ -109,7 +107,6 @@ namespace Engine
 			return add_task<CallableTask>(std::forward<Callable>(callable));
 		}
 
-
 		template<typename T = RenderPass, typename... Args, typename = std::enable_if<std::is_base_of_v<RenderPass, T>>>
 		T* create_subpass(Args&&... args)
 		{
@@ -117,7 +114,6 @@ namespace Engine
 			initialize_subpass(pass);
 			return pass;
 		}
-
 
 		friend class SceneRenderer;
 	};
