@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
@@ -12,21 +13,35 @@
 
 namespace Engine
 {
-	trinex_implement_struct(Engine::MeshMaterial, 0)
+	trinex_implement_struct(Engine::MeshSurface, 0)
 	{
-		auto* self = static_struct_instance();
+		auto self = static_struct_instance();
+		trinex_refl_prop(self, This, base_vertex_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(self, This, first_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(self, This, vertices_count, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(self, This, material_index, Refl::Property::IsTransient);
+	}
 
-		trinex_refl_prop(self, This, surface_index);
-		trinex_refl_prop(self, This, material)->tooltip("Material which used for rendering this primitive");
+	trinex_implement_struct(Engine::StaticMesh::LOD, 0)
+	{
+		auto self = static_struct_instance();
+		trinex_refl_prop(self, This, surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 	}
 
 	trinex_implement_engine_class(StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
 		auto* self = StaticMesh::static_class_instance();
-		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");
+		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this mesh");
+		trinex_refl_prop(self, This, lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)
+		        ->tooltip("Array of lods of this mesh");
 	}
 
 	trinex_implement_engine_class_default_init(SkeletalMesh, 0);
+
+	bool MeshSurface::serialize(Archive& ar)
+	{
+		return ar.serialize(base_vertex_index, first_index, vertices_count, material_index);
+	}
 
 	PositionVertexBuffer* StaticMesh::LOD::find_position_buffer(Index index)
 	{
@@ -58,12 +73,7 @@ namespace Engine
 		return bitangents.size() <= index ? nullptr : &bitangents[index];
 	}
 
-	StaticMesh::StaticMesh()
-	{
-		materials.resize(1);
-		auto& entry    = materials.back();
-		entry.material = Object::static_find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
-	}
+	StaticMesh::StaticMesh() : materials({DefaultResources::Materials::base_pass}) {}
 
 	StaticMesh& StaticMesh::init_render_resources()
 	{

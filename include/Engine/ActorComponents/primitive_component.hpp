@@ -7,7 +7,7 @@ namespace Engine
 	class PrimitiveComponent;
 	class MaterialInterface;
 	class MeshReference;
-	class MeshSurface;
+	struct MeshSurface;
 	class VertexBufferBase;
 	class IndexBuffer;
 
@@ -23,11 +23,12 @@ namespace Engine
 			AABB_3Df m_bounds;
 
 		public:
-			virtual MaterialInterface* material(size_t index) const                                                      = 0;
-			virtual size_t materials_count() const                                                                       = 0;
-			virtual size_t surfaces() const                                                                              = 0;
+			virtual bool has_render_data() const                                                                         = 0;
 			virtual size_t lods() const                                                                                  = 0;
-			virtual const MeshSurface* surface(size_t index) const                                                       = 0;
+			virtual size_t materials_count(size_t lod = 0) const                                                         = 0;
+			virtual size_t surfaces(size_t lod = 0) const                                                                = 0;
+			virtual const MeshSurface* surface(size_t index, size_t lod = 0) const                                       = 0;
+			virtual MaterialInterface* material(size_t index, size_t lod = 0) const                                      = 0;
 			virtual VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0, size_t lod = 0) = 0;
 			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                       = 0;
 

@@ -109,7 +109,7 @@ namespace Engine
 			m_camera->near_clip_plane = 0.1;
 			m_actor                   = m_world->spawn_actor<StaticMeshActor>();
 
-			m_actor->mesh_component()->mesh = DefaultResources::Meshes::cube;
+			m_actor->mesh_component()->mesh(DefaultResources::Meshes::cube);
 			m_actor->mesh_component()->on_transform_changed();
 		}
 

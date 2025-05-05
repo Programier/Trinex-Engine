@@ -14,28 +14,40 @@ namespace Engine
 	public:
 		class ENGINE_EXPORT Proxy : public Super::Proxy
 		{
+			class StaticMesh* m_mesh;
+
 		public:
-			MaterialInterface* material(size_t index) const override { return nullptr; }
-			size_t materials_count() const override { return 0; }
-			size_t surfaces() const override { return 0; }
-			size_t lods() const override { return 0; }
-			const MeshSurface* surface(size_t index) const override { return nullptr; }
-			VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0, size_t lod = 0) override
-			{
-				return nullptr;
-			}
-			IndexBuffer* find_index_buffer(size_t lod = 0) override { return nullptr; }
+			inline bool has_render_data() const override { return m_mesh != nullptr; }
+
+			size_t lods() const override;
+			size_t materials_count(size_t lod = 0) const override;
+			size_t surfaces(size_t lod = 0) const override;
+			const MeshSurface* surface(size_t index, size_t lod = 0) const override;
+			MaterialInterface* material(size_t index, size_t lod = 0) const override;
+			VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0, size_t lod = 0) override;
+			IndexBuffer* find_index_buffer(size_t lod = 0) override;
+
+			friend StaticMeshComponent;
 		};
 
-	public:
-		class StaticMesh* mesh = nullptr;
+		class StaticMesh* m_mesh = nullptr;
 
+		StaticMeshComponent& submit_new_mesh();
+
+	public:
 		Proxy* create_proxy() override;
 
 		StaticMeshComponent& render(class SceneRenderer*) override;
 		StaticMeshComponent& update_bounding_box() override;
 		MaterialInterface* material(size_t index) const;
 
+		inline StaticMesh* mesh() const { return m_mesh; }
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
+
+		StaticMeshComponent& mesh(StaticMesh* mesh)
+		{
+			m_mesh = mesh;
+			return submit_new_mesh();
+		}
 	};
 }// namespace Engine

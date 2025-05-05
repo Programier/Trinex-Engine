@@ -19,10 +19,53 @@ namespace Engine
 {
 	trinex_implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
 	{
-		trinex_refl_prop(static_class_instance(), This, mesh)->tooltip("Mesh object of this component");
+		trinex_refl_virtual_prop(static_class_instance(), mesh, mesh, mesh)->tooltip("Mesh object of this component");
 
 		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
-		r.property("StaticMesh@ mesh", &This::mesh);
+		r.method("StaticMesh@ mesh() const final", method_of<StaticMesh*>(&This::mesh));
+		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", method_of<StaticMeshComponent&, StaticMesh*>(&This::mesh));
+	}
+
+	size_t StaticMeshComponent::Proxy::lods() const
+	{
+		return m_mesh->lods.size();
+	}
+
+	size_t StaticMeshComponent::Proxy::materials_count(size_t lod) const
+	{
+		return m_mesh->materials.size();
+	}
+
+	size_t StaticMeshComponent::Proxy::surfaces(size_t lod) const
+	{
+		return m_mesh->lods[lod].surfaces.size();
+	}
+
+	const MeshSurface* StaticMeshComponent::Proxy::surface(size_t index, size_t lod) const
+	{
+		return &m_mesh->lods[lod].surfaces[index];
+	}
+
+	MaterialInterface* StaticMeshComponent::Proxy::material(size_t index, size_t lod) const
+	{
+		return m_mesh ? m_mesh->materials[index] : nullptr;
+	}
+
+	VertexBufferBase* StaticMeshComponent::Proxy::find_vertex_buffer(VertexBufferSemantic semantic, Index index, size_t lod)
+	{
+		return m_mesh->lods[lod].find_vertex_buffer(semantic, index);
+	}
+
+	IndexBuffer* StaticMeshComponent::Proxy::find_index_buffer(size_t lod)
+	{
+		auto& buffer = m_mesh->lods[lod].indices;
+		return buffer.size() == 0 ? nullptr : &buffer;
+	}
+
+	StaticMeshComponent& StaticMeshComponent::submit_new_mesh()
+	{
+		render_thread()->call([proxy = proxy(), mesh = m_mesh]() { proxy->m_mesh = mesh; });
+		return *this;
 	}
 
 	StaticMeshComponent::Proxy* StaticMeshComponent::create_proxy()
@@ -37,7 +80,7 @@ namespace Engine
 		if (!(scene_view().show_flags() & ShowFlags::StaticMesh))
 			return *this;
 
-		StaticMesh* mesh = component->mesh;
+		StaticMesh* mesh = component->mesh();
 
 		if (mesh->lods.empty())
 			return *this;
@@ -45,14 +88,14 @@ namespace Engine
 		auto& camera_view = scene_view().camera_view();
 		auto& lod = mesh->lods[camera_view.compute_lod(component->proxy()->world_transform().location(), mesh->lods.size())];
 
-		for (auto& surface_info : mesh->materials)
+		for (auto& surface : lod.surfaces)
 		{
-			if (static_cast<Index>(surface_info.surface_index) > lod.surfaces.size())
+			if (static_cast<Index>(surface.material_index) > mesh->materials.size())
 			{
 				continue;
 			}
 
-			MaterialInterface* material_interface = component->material(surface_info.surface_index);
+			MaterialInterface* material_interface = component->material(surface.material_index);
 
 			if (material_interface == nullptr)
 				continue;
@@ -83,9 +126,7 @@ namespace Engine
 					}
 				}
 
-				auto& surface = lod.surfaces[surface_info.surface_index];
-
-				pass->predraw(component, surface_info.material, pipeline);
+				pass->predraw(component, material_interface, pipeline);
 
 				if (lod.indices.size() > 0)
 				{
@@ -104,16 +145,16 @@ namespace Engine
 
 	StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer)
 	{
-		if (mesh)
+		if (mesh())
 			renderer->render_component(this);
 		return *this;
 	}
 
 	StaticMeshComponent& StaticMeshComponent::update_bounding_box()
 	{
-		if (mesh)
+		if (mesh())
 		{
-			m_bounding_box = mesh->bounds.apply_transform(world_transform().matrix());
+			m_bounding_box = mesh()->bounds.apply_transform(world_transform().matrix());
 			submit_bounds_to_render_thread();
 		}
 		else
@@ -131,8 +172,8 @@ namespace Engine
 				return material;
 		}
 
-		if (mesh && index < mesh->materials.size())
-			return mesh->materials[index].material;
+		if (mesh() && index < mesh()->materials.size())
+			return mesh()->materials[index];
 
 		return nullptr;
 	}

@@ -293,11 +293,9 @@ namespace Engine::Importer
 					}
 				}
 
-				surface.vertices_count = indices.size - surface.first_index;
-
-				auto& material         = static_mesh->materials[mesh_index];
-				material.surface_index = mesh_index;
-				material.material      = create_material(scene, scene->mMaterials[mesh->mMaterialIndex]);
+				surface.vertices_count             = indices.size - surface.first_index;
+				surface.material_index             = mesh_index;
+				static_mesh->materials[mesh_index] = create_material(scene, scene->mMaterials[mesh->mMaterialIndex]);
 
 				auto min_pos = vector_from_assimp_vec(mesh->mAABB.mMin);
 				auto max_pos = vector_from_assimp_vec(mesh->mAABB.mMax);

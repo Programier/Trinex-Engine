@@ -9,17 +9,15 @@ namespace Engine
 {
 	class MaterialInterface;
 
-	struct ENGINE_EXPORT MeshMaterial {
-		trinex_declare_struct(MeshMaterial, void);
-
-		MaterialInterface* material = nullptr;
-		byte surface_index;
-	};
-
 	struct ENGINE_EXPORT MeshSurface {
+		trinex_declare_struct(MeshSurface, void);
+
 		uint32_t base_vertex_index;
 		uint32_t first_index;
 		uint32_t vertices_count;
+		uint16_t material_index;
+
+		bool serialize(Archive& ar);
 	};
 
 	class ENGINE_EXPORT StaticMesh : public Object
@@ -28,6 +26,8 @@ namespace Engine
 
 	public:
 		struct ENGINE_EXPORT LOD {
+			trinex_declare_struct(LOD, void);
+
 			Vector<PositionVertexBuffer> positions;
 			Vector<TexCoordVertexBuffer> tex_coords;
 			Vector<ColorVertexBuffer> colors;
@@ -53,7 +53,7 @@ namespace Engine
 			bool serialize(Archive& ar);
 		};
 
-		Vector<MeshMaterial> materials;
+		Vector<MaterialInterface*> materials;
 		AABB_3Df bounds;
 		Vector<LOD> lods;
 
