@@ -52,13 +52,9 @@ namespace Engine
 			byte* rp = m_read_pointer;
 			byte* wp = m_write_pointer;
 
-			if (rp < wp)
+			if (rp <= wp)
 			{
-				return (rp - m_buffer) + ((m_buffer + m_buffer_size) - wp);
-			}
-			else if (rp == wp)
-			{
-				return m_buffer_size;
+				return m_buffer_size - (wp - rp);
 			}
 			else
 			{
@@ -66,13 +62,15 @@ namespace Engine
 			}
 		}
 
-		inline void wait_for_size(size_t size)
+		FORCE_INLINE void wait_for_size(size_t size)
 		{
+			size += m_align;
 			while (free_size() < size)
 			{
 				std::this_thread::yield();
 			}
 		}
+
 
 		ThreadManager();
 		~ThreadManager();
@@ -90,7 +88,7 @@ namespace Engine
 		{
 			m_push_task_section.lock();
 
-			size_t task_size = sizeof(CommandType);
+			size_t task_size = align_up(sizeof(CommandType), m_align);
 			byte* wp         = m_write_pointer;
 
 			if (wp + task_size > m_buffer + m_buffer_size)
@@ -103,7 +101,7 @@ namespace Engine
 			wait_for_size(task_size);
 
 			new (wp) CommandType(std::forward<Args>(args)...);
-			wp = align_memory(wp + task_size, m_align);
+			wp += task_size;
 
 			if (wp >= m_buffer + m_buffer_size)
 			{

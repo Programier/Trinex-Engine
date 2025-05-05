@@ -70,9 +70,8 @@ namespace Engine
 	{
 		if (ThisThread::self() == this)
 		{
-			m_is_busy = true;
-			byte* wp  = m_write_pointer;
-			byte* rp  = m_read_pointer;
+			byte* wp = m_write_pointer;
+			byte* rp = m_read_pointer;
 
 			while (wp != rp)
 			{
@@ -89,7 +88,6 @@ namespace Engine
 				m_read_pointer = rp;
 			}
 
-			m_is_busy = false;
 			m_exec_flag.clear();
 			m_exec_flag.notify_all();
 		}

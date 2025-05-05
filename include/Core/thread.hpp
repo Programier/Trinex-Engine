@@ -57,7 +57,6 @@ namespace Engine
 		Atomic<byte*> m_write_pointer;
 
 		Atomic<bool> m_running = true;
-		Atomic<bool> m_is_busy = false;
 
 		std::atomic_flag m_exec_flag = ATOMIC_FLAG_INIT;
 		CriticalSection m_push_section;
@@ -70,13 +69,9 @@ namespace Engine
 			byte* rp = m_read_pointer;
 			byte* wp = m_write_pointer;
 
-			if (rp < wp)
+			if (rp <= wp)
 			{
-				return (rp - m_buffer) + ((m_buffer + m_buffer_size) - wp);
-			}
-			else if (rp == wp)
-			{
-				return m_buffer_size;
+				return m_buffer_size - (wp - rp);
 			}
 			else
 			{
@@ -86,6 +81,7 @@ namespace Engine
 
 		FORCE_INLINE void wait_for_size(size_t size)
 		{
+			size += command_alignment;
 			while (free_size() < size)
 			{
 				std::this_thread::yield();
@@ -104,20 +100,21 @@ namespace Engine
 		{
 			m_push_section.lock();
 
-			size_t task_size = sizeof(CommandType);
+			size_t task_size = align_up(sizeof(CommandType), command_alignment);
 			byte* wp         = m_write_pointer;
 
 			if (wp + task_size > m_buffer + m_buffer_size)
 			{
 				wait_for_size(sizeof(SkipBytes));
 				new (wp) SkipBytes((m_buffer + m_buffer_size) - wp);
-				wp = m_buffer;
+				wp              = m_buffer;
+				m_write_pointer = wp;
 			}
 
 			wait_for_size(task_size);
 
 			new (wp) CommandType(std::forward<Args>(args)...);
-			wp = align_memory(wp + task_size, command_alignment);
+			wp += task_size;
 
 			if (wp >= m_buffer + m_buffer_size)
 			{
