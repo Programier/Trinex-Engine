@@ -5,37 +5,43 @@
 
 namespace Engine
 {
-	class ENGINE_EXPORT PointLightComponentProxy : public LocalLightComponentProxy
-	{
-	private:
-		float m_fall_off_exponent;
-
-	public:
-		float fall_off_exponent() const;
-		PointLightComponentProxy& fall_off_exponent(float value);
-		friend class PointLightComponent;
-	};
-
 	class ENGINE_EXPORT PointLightComponent : public LocalLightComponent
 	{
 		trinex_declare_class(PointLightComponent, LocalLightComponent);
 
+	public:
+		class ENGINE_EXPORT Proxy : public Super::Proxy
+		{
+		private:
+			float m_fall_off_exponent;
+
+		public:
+			inline float fall_off_exponent() const { return m_fall_off_exponent; }
+			friend class PointLightComponent;
+		};
+
+	private:
 		float m_fall_off_exponent;
 
 		PointLightComponent& submit_point_light_data();
 
 	public:
 		PointLightComponent();
-		float fall_off_exponent() const;
-		PointLightComponent& fall_off_exponent(float value);
-
-		Type light_type() const override;
 
 		PointLightComponent& start_play() override;
 		PointLightComponent& render(class SceneRenderer*) override;
-		ActorComponentProxy* create_proxy() override;
-		PointLightComponentProxy* proxy() const;
+		Proxy* create_proxy() override;
 		PointLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+
+		inline float fall_off_exponent() const { return m_fall_off_exponent; }
+		inline Type light_type() const override { return Type::Point; }
+		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
+
+		inline PointLightComponent& fall_off_exponent(float value)
+		{
+			m_fall_off_exponent = value;
+			return submit_point_light_data();
+		}
 	};
 
 }// namespace Engine

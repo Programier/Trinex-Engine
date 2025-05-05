@@ -5,21 +5,35 @@
 namespace Engine
 {
 	class PrimitiveComponent;
+	class MaterialInterface;
+	class MeshReference;
+	class MeshSurface;
+	class VertexBufferBase;
+	class IndexBuffer;
 
-	class ENGINE_EXPORT PrimitiveComponentProxy : public SceneComponentProxy
-	{
-	protected:
-		AABB_3Df m_bounds;
-
-	public:
-		PrimitiveComponentProxy& bounding_box(const AABB_3Df& bounds);
-		const AABB_3Df& bounding_box() const;
-		friend class PrimitiveComponent;
-	};
 
 	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
 	{
 		trinex_declare_class(PrimitiveComponent, SceneComponent);
+
+	public:
+		class ENGINE_EXPORT Proxy : public Super::Proxy
+		{
+		protected:
+			AABB_3Df m_bounds;
+
+		public:
+			virtual MaterialInterface* material(size_t index) const                                                      = 0;
+			virtual size_t materials_count() const                                                                       = 0;
+			virtual size_t surfaces() const                                                                              = 0;
+			virtual size_t lods() const                                                                                  = 0;
+			virtual const MeshSurface* surface(size_t index) const                                                       = 0;
+			virtual VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0, size_t lod = 0) = 0;
+			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                       = 0;
+
+			inline const AABB_3Df& bounding_box() const { return m_bounds; }
+			friend class PrimitiveComponent;
+		};
 
 	protected:
 		bool m_is_visible;
@@ -36,12 +50,11 @@ namespace Engine
 		PrimitiveComponent& start_play() override;
 		PrimitiveComponent& stop_play() override;
 		PrimitiveComponent& on_transform_changed() override;
-		ActorComponentProxy* create_proxy() override;
 
 		virtual PrimitiveComponent& render(class SceneRenderer* renderer);
 		virtual PrimitiveComponent& update_bounding_box();
 
-		PrimitiveComponentProxy* proxy() const;
+		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 		~PrimitiveComponent();
 	};
 }// namespace Engine

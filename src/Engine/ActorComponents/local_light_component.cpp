@@ -6,17 +6,6 @@
 
 namespace Engine
 {
-	float LocalLightComponentProxy::attenuation_radius() const
-	{
-		return m_attenuation_radius;
-	}
-
-	LocalLightComponentProxy& LocalLightComponentProxy::attenuation_radius(float value)
-	{
-		m_attenuation_radius = value;
-		return *this;
-	}
-
 	trinex_implement_engine_class(LocalLightComponent, 0)
 	{
 		auto* self = static_class_instance();
@@ -30,19 +19,8 @@ namespace Engine
 
 	LocalLightComponent& LocalLightComponent::submit_local_light_info()
 	{
-		render_thread()->create_task<UpdateVariableCommand<float>>(m_attenuation_radius, proxy()->m_attenuation_radius);
+		render_thread()->call([proxy = proxy(), radius = m_attenuation_radius]() { proxy->m_attenuation_radius = radius; });
 		return *this;
-	}
-
-	float LocalLightComponent::attenuation_radius() const
-	{
-		return m_attenuation_radius;
-	}
-
-	LocalLightComponent& LocalLightComponent::attenuation_radius(float value)
-	{
-		m_attenuation_radius = value;
-		return submit_local_light_info();
 	}
 
 	LocalLightComponent& LocalLightComponent::start_play()
@@ -52,14 +30,9 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* LocalLightComponent::create_proxy()
+	LocalLightComponent::Proxy* LocalLightComponent::create_proxy()
 	{
-		return new LocalLightComponentProxy();
-	}
-
-	LocalLightComponentProxy* LocalLightComponent::proxy() const
-	{
-		return typed_proxy<LocalLightComponentProxy>();
+		return new Proxy();
 	}
 
 	LocalLightComponent& LocalLightComponent::render(class SceneRenderer* renderer)

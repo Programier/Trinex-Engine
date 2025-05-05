@@ -64,9 +64,9 @@ namespace Engine
 		StaticMesh& postload() override;
 	};
 
-	class ENGINE_EXPORT DynamicMesh : public Object
+	class ENGINE_EXPORT SkeletalMesh : public Object
 	{
-		trinex_declare_class(DynamicMesh, Object);
+		trinex_declare_class(SkeletalMesh, Object);
 
 	public:
 		struct ENGINE_EXPORT RenderData{};

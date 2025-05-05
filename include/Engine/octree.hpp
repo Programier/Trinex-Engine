@@ -5,84 +5,77 @@
 
 namespace Engine
 {
-	template<typename ElementType>
+	template<typename ElementType, typename HashType = Hash<ElementType>, typename Pred = std::equal_to<ElementType>>
 	class Octree
 	{
 	public:
 		using ValueType = ElementType;
+
 		struct Index {
-			byte x : 1 = 0;
-			byte y : 1 = 0;
-			byte z : 1 = 0;
+			union
+			{
+				struct {
+					byte x : 1;
+					byte y : 1;
+					byte z : 1;
+				};
 
-			Index(bool x, bool y, bool z) : x(x ? 1 : 0), y(y ? 1 : 0), z(z ? 1 : 0) {}
+				byte index : 3 = 0;
+			};
 
-			Index(byte index = 0) : x((index >> 2) & 1), y((index >> 1) & 1), z(index & 1) {}
+			Index(bool x, bool y, bool z) : x(x), y(y), z(z) {}
+			Index(byte index = 0) : index(index) {}
 
 			Index(const Index&)            = default;
 			Index& operator=(const Index&) = default;
 
-			FORCE_INLINE byte index() const { return (x << 2) | (y << 1) | z; }
-
-			FORCE_INLINE Vector3f factor() const { return {x == 1 ? 1.0f : -1.0f, y == 1 ? 1.0f : -1.0f, z == 1 ? 1.0f : -1.0f}; }
-
-			Index operator!() const
+			FORCE_INLINE Vector3f factor() const
 			{
-				Index res;
-				res.x = !x;
-				res.y = !y;
-				res.z = !z;
-				return res;
+				return {
+				        2.0f * static_cast<float>(x) - 1.0f,
+				        2.0f * static_cast<float>(y) - 1.0f,
+				        2.0f * static_cast<float>(z) - 1.0f,
+				};
 			}
+
+			FORCE_INLINE Index operator!() const { return ~index; }
 		};
 
 		class Node
 		{
 		private:
+			static FORCE_INLINE Octree::Index calc_child_index(const AABB_3Df& parent, const AABB_3Df& child)
+			{
+				auto parent_center = parent.center();
+				auto child_center  = child.center();
+
+				return Octree::Index({
+				        parent_center.x < child_center.x,
+				        parent_center.y < child_center.y,
+				        parent_center.z < child_center.z,
+				});
+			}
+
+			static FORCE_INLINE bool is_child_of(const AABB_3Df& parent, const AABB_3Df& child)
+			{
+				return child.inside(parent) && !child.contains(parent.center());
+			}
+
+		private:
+			Set<ElementType, HashType, Pred> m_values;
 			Node* m_childs[8];
+			Node* m_owner;
 			AABB_3Df m_box;
+			size_t m_size;
 
-			Node()
-			{
-				for (int i = 0; i < 8; i++) m_childs[i] = nullptr;
-			}
+			Node(Node* owner, const AABB_3Df& box) : m_values(), m_childs{nullptr}, m_owner(owner), m_box(box), m_size(0) {}
 
-			Node(const AABB_3Df& box) : Node() { m_box = box; }
-
-			Node(const Node& node) { *this = node; }
-
-			Node& operator=(const Node& other)
-			{
-				if (this == &other)
-					return *this;
-
-				m_box  = other.m_box;
-				values = other.values;
-
-				for (int i = 0; i < 8; i++)
-				{
-					if (other.m_childs[i])
-					{
-						if (!m_childs[i])
-						{
-							m_childs[i] = new Octree::Node(*other.m_childs[i]);
-						}
-						else
-						{
-							(*m_childs[i]) = *other.m_childs[i];
-						}
-					}
-					else if (m_childs[i])
-					{
-						delete m_childs[i];
-						m_childs[i] = nullptr;
-					}
-				}
-			}
+			trinex_non_copyable(Node);
+			trinex_non_moveable(Node);
 
 			~Node()
 			{
-				for (int i = 0; i < 8; i++)
+				for (byte i = 0; i < 8; i++)
 				{
 					if (m_childs[i] != nullptr)
 					{
@@ -92,80 +85,102 @@ namespace Engine
 				}
 			}
 
+			inline Node& on_value_add()
+			{
+				Node* node = this;
 
-			FORCE_INLINE Node*& ref_child_at(Octree::Index index) { return m_childs[index.index()]; }
+				while (node)
+				{
+					++node->m_size;
+					node = node->m_owner;
+				}
+
+				return *this;
+			}
+
+			inline Node& on_value_remove()
+			{
+				Node* node = this;
+
+				while (node)
+				{
+					--node->m_size;
+					node = node->m_owner;
+				}
+				return *this;
+			}
 
 		public:
-			TreeSet<ElementType> values;
+			inline Node& add(const ElementType& element)
+			{
+				if (m_values.insert(element).second)
+					return on_value_add();
+				return *this;
+			}
 
-			FORCE_INLINE Node* child_at(Octree::Index index) const { return m_childs[index.index()]; }
+			inline Node& add(ElementType&& element)
+			{
+				if (m_values.erase(std::move(element)).second)
+					return on_value_add();
+				return *this;
+			}
 
+			inline Node& remove(const ElementType& element)
+			{
+				if (m_values.erase(element))
+					return on_value_remove();
+				return *this;
+			}
+
+			FORCE_INLINE const Set<ElementType>& values() const { return m_values; }
+			FORCE_INLINE Node* owner() { return m_owner; }
+			FORCE_INLINE const Node* owner() const { return m_owner; }
+			FORCE_INLINE Node* child_at(Octree::Index index) { return m_childs[index.index]; }
+			FORCE_INLINE const Node* child_at(Octree::Index index) const { return m_childs[index.index]; }
 			FORCE_INLINE const AABB_3Df& box() const { return m_box; }
+			FORCE_INLINE size_t size() const { return m_size; }
 
+			FORCE_INLINE Node* find(const AABB_3Df& box) { return const_cast<Node*>(const_cast<const Node*>(this)->find(box)); }
+
+			inline const Node* find(const AABB_3Df& box) const
+			{
+				const Node* node = this;
+
+				while (node && !box.inside(node->m_box)) node = node->m_owner;
+
+				while (node && is_child_of(node->m_box, box))
+				{
+					node = node->child_at(calc_child_index(node->m_box, box));
+				}
+				return node;
+			}
 			friend class Octree;
 		};
 
 	private:
 		Node* m_root_node = nullptr;
-		float m_min_size  = 1.0f;
-
-		static FORCE_INLINE bool calc_axis_offset_index(float parent, float child) { return parent < child; }
-
-		static FORCE_INLINE Octree::Index calc_child_index(const AABB_3Df& parent, const AABB_3Df& child)
-		{
-			Octree::Index result;
-			auto parent_center = parent.center();
-			auto child_center  = child.center();
-			result.x           = calc_axis_offset_index(parent_center.x, child_center.x);
-			result.y           = calc_axis_offset_index(parent_center.y, child_center.y);
-			result.z           = calc_axis_offset_index(parent_center.z, child_center.z);
-			return result;
-		}
-
-		static FORCE_INLINE bool is_child_of(const AABB_3Df& parent, const AABB_3Df& child)
-		{
-			return child.inside(parent) && !child.contains(parent.center());
-		}
 
 	public:
-		Octree(float min_size = 1.0f) : m_min_size(min_size)
-		{
-			m_root_node = new Octree::Node(AABB_3Df({0.0f, 0.0f, 0.0f}, {min_size, min_size, min_size}));
-		}
-
+		Octree() { m_root_node = new Octree::Node(nullptr, AABB_3Df({0.0f, 0.0f, 0.0f}, {1.f, 1.f, 1.f})); }
 		FORCE_INLINE Node* root_node() const { return m_root_node; }
 
 		FORCE_INLINE Node* push(const AABB_3Df& box, const ElementType& element)
 		{
 			Node* node = find_or_create(box);
-			node->values.insert(element);
-			return node;
+			return &node->add(element);
 		}
 
 		FORCE_INLINE Node* remove(const AABB_3Df& box, const ElementType& element)
 		{
 			Node* node = find(box);
+
 			if (node)
-			{
-				node->values.erase(element);
-			}
+				return &node->remove(element);
 
 			return node;
 		}
 
-		FORCE_INLINE Node* find(const AABB_3Df& box) const
-		{
-			Node* node = m_root_node;
-
-			if (!box.inside(node->m_box))
-				return nullptr;
-
-			while (node && is_child_of(node->m_box, box))
-			{
-				node = node->child_at(calc_child_index(node->m_box, box));
-			}
-			return node;
-		}
+		FORCE_INLINE Node* find(const AABB_3Df& box) const { return m_root_node->find(box); }
 
 		FORCE_INLINE Node* find_or_create(const AABB_3Df& box)
 		{
@@ -173,25 +188,29 @@ namespace Engine
 
 			while (!box.inside(node->m_box))
 			{
-				Octree::Index index = calc_child_index(box, node->m_box);
-				node                = new Octree::Node((node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
-				node->m_childs[index.index()] = m_root_node;
-				m_root_node                   = node;
+				Octree::Index index = Node::calc_child_index(box, node->m_box);
+				node = new Octree::Node(nullptr, (node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
+				node->m_childs[index.index] = m_root_node;
+				node->m_size                = m_root_node->m_size;
+				m_root_node->m_owner        = node;
+				m_root_node                 = node;
 			}
 
-			while (node && node->m_box.size().x / 2 >= m_min_size && is_child_of(node->m_box, box))
+			while (node && node->m_box.size().x / 2 >= 1.f && Node::is_child_of(node->m_box, box))
 			{
-				Octree::Index index = calc_child_index(node->m_box, box);
-				if (node->m_childs[index.index()] == nullptr)
+				Octree::Index index = Node::calc_child_index(node->m_box, box);
+				if (node->m_childs[index.index] == nullptr)
 				{
-					node->m_childs[index.index()] =
-					        new Octree::Node((node->m_box * 0.5) + (node->m_box.size() * 0.25f) * index.factor());
+					node->m_childs[index.index] =
+					        new Octree::Node(node, (node->m_box * 0.5) + (node->m_box.size() * 0.25f) * index.factor());
 				}
-				node = node->m_childs[index.index()];
+				node = node->m_childs[index.index];
 			}
 
 			return node;
 		}
+
+		FORCE_INLINE size_t size() const { return m_root_node->size(); }
 
 		~Octree() { delete m_root_node; }
 	};

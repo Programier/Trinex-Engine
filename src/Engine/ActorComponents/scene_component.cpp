@@ -76,23 +76,23 @@ namespace Engine
 		ScriptEngine::on_terminate.push([]() { script_scene_comp_transform_changed.release(); });
 	}
 
-	const Transform& SceneComponentProxy::world_transform() const
+	const Transform& SceneComponent::Proxy::world_transform() const
 	{
 		return m_world_transform;
 	}
 
-	const Transform& SceneComponentProxy::local_transform() const
+	const Transform& SceneComponent::Proxy::local_transform() const
 	{
 		return m_local_transform;
 	}
 
-	SceneComponentProxy& SceneComponentProxy::world_transform(const Transform& transform)
+	SceneComponent::Proxy& SceneComponent::Proxy::world_transform(const Transform& transform)
 	{
 		m_world_transform = transform;
 		return *this;
 	}
 
-	SceneComponentProxy& SceneComponentProxy::local_transform(const Transform& transform)
+	SceneComponent::Proxy& SceneComponent::Proxy::local_transform(const Transform& transform)
 	{
 		m_local_transform = transform;
 		return *this;
@@ -153,11 +153,6 @@ namespace Engine
 		return false;
 	}
 
-	const Vector<Pointer<SceneComponent>>& SceneComponent::childs() const
-	{
-		return m_childs;
-	}
-
 	SceneComponent& SceneComponent::on_transform_changed()
 	{
 		m_is_dirty = true;
@@ -172,11 +167,6 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent* SceneComponent::parent() const
-	{
-		return m_parent.ptr();
-	}
-
 	SceneComponent& SceneComponent::destroyed()
 	{
 		detach_from_parent();
@@ -185,14 +175,9 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* SceneComponent::create_proxy()
-	{
-		return new SceneComponentProxy();
-	}
-
 	void SceneComponent::submit_transform_to_render_thread()
 	{
-		if (SceneComponentProxy* component_proxy = proxy())
+		if (Proxy* component_proxy = proxy())
 		{
 			CommandBufferThread* thread = render_thread();
 			thread->create_task<UpdateVariableCommand<Transform>>(local_transform(), component_proxy->m_local_transform);
@@ -205,11 +190,6 @@ namespace Engine
 		Super::start_play();
 		submit_transform_to_render_thread();
 		return *this;
-	}
-
-	SceneComponentProxy* SceneComponent::proxy() const
-	{
-		return typed_proxy<SceneComponentProxy>();
 	}
 
 	const Transform& SceneComponent::local_transform() const
@@ -277,8 +257,7 @@ namespace Engine
 	{
 		is_in_logic_thread_checked();
 		m_local.rotation(new_rotation);
-
-
+		on_transform_changed();
 		return *this;
 	}
 

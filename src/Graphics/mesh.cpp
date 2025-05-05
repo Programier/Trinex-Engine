@@ -26,7 +26,7 @@ namespace Engine
 		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this primitive");
 	}
 
-	trinex_implement_engine_class_default_init(DynamicMesh, 0);
+	trinex_implement_engine_class_default_init(SkeletalMesh, 0);
 
 	PositionVertexBuffer* StaticMesh::LOD::find_position_buffer(Index index)
 	{

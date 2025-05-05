@@ -70,14 +70,9 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* LightComponent::create_proxy()
+	LightComponent::Proxy* LightComponent::create_proxy()
 	{
-		return new LightComponentProxy();
-	}
-
-	LightComponentProxy* LightComponent::proxy() const
-	{
-		return typed_proxy<LightComponentProxy>();
+		return new Proxy();
 	}
 
 	LightComponent& LightComponent::stop_play()

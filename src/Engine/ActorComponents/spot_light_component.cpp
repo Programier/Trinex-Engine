@@ -26,7 +26,7 @@ namespace Engine
 		        .tooltip("Inner Cone Angle of this spot light");
 	}
 
-	SpotLightComponentProxy& SpotLightComponentProxy::update_spot_angles()
+	SpotLightComponent::Proxy& SpotLightComponent::Proxy::update_spot_angles()
 	{
 		m_cos_outer_cone_angle    = glm::cos(m_outer_cone_angle);
 		float cos_inner_cone      = glm::cos(m_inner_cone_angle);
@@ -34,70 +34,20 @@ namespace Engine
 		return *this;
 	}
 
-	float SpotLightComponentProxy::inner_cone_angle() const
-	{
-		return m_inner_cone_angle;
-	}
-
-	float SpotLightComponentProxy::outer_cone_angle() const
-	{
-		return m_outer_cone_angle;
-	}
-
-	float SpotLightComponentProxy::cos_outer_cone_angle() const
-	{
-		return m_cos_outer_cone_angle;
-	}
-
-	float SpotLightComponentProxy::inv_cos_cone_difference() const
-	{
-		return m_inv_cos_cone_difference;
-	}
-
-	SpotLightComponentProxy& SpotLightComponentProxy::inner_cone_angle(float value)
-	{
-		m_inner_cone_angle = value;
-		return update_spot_angles();
-	}
-
-	SpotLightComponentProxy& SpotLightComponentProxy::outer_cone_angle(float value)
-	{
-		m_outer_cone_angle = value;
-		return update_spot_angles();
-	}
-
-	Vector3f SpotLightComponentProxy::direction() const
-	{
-		return world_transform().forward_vector();
-	}
 
 	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f) {}
 
-	class UpdateSpotLightDataCommand : public Task<UpdateSpotLightDataCommand>
-	{
-	private:
-		float m_outer_cone_angle;
-		float m_inner_cone_angle;
-		SpotLightComponentProxy* m_proxy;
-
-	public:
-		UpdateSpotLightDataCommand(SpotLightComponent* component)
-		    : m_outer_cone_angle(glm::radians(component->outer_cone_angle())),
-		      m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
-		{}
-
-		void execute() override
-		{
-			m_proxy->outer_cone_angle(m_outer_cone_angle);
-			m_proxy->inner_cone_angle(m_inner_cone_angle);
-		}
-	};
 
 	SpotLightComponent& SpotLightComponent::submit_spot_light_data()
 	{
 		m_outer_cone_angle = glm::clamp(m_outer_cone_angle, 0.f, 89.f);
 		m_inner_cone_angle = glm::clamp(m_inner_cone_angle, 0.f, m_outer_cone_angle);
-		render_thread()->create_task<UpdateSpotLightDataCommand>(this);
+
+		render_thread()->call([proxy = proxy(), outer_cone = m_outer_cone_angle, inner_cone = m_inner_cone_angle]() {
+			proxy->m_outer_cone_angle = glm::radians(outer_cone);
+			proxy->m_inner_cone_angle = glm::radians(inner_cone);
+			proxy->update_spot_angles();
+		});
 		return *this;
 	}
 
@@ -123,16 +73,6 @@ namespace Engine
 		return submit_spot_light_data();
 	}
 
-	Vector3f SpotLightComponent::direction() const
-	{
-		return world_transform().forward_vector();
-	}
-
-	SpotLightComponentProxy* SpotLightComponent::proxy() const
-	{
-		return typed_proxy<SpotLightComponentProxy>();
-	}
-
 	LightComponent::Type SpotLightComponent::light_type() const
 	{
 		return LightComponent::Type::Spot;
@@ -154,7 +94,7 @@ namespace Engine
 	{
 		render_base_component(component);
 
-		SpotLightComponentProxy* proxy = component->proxy();
+		auto* proxy = component->proxy();
 
 		if (!(scene_view().show_flags() & ShowFlags::SpotLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<SpotLightComponent>())
@@ -178,8 +118,8 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* SpotLightComponent::create_proxy()
+	SpotLightComponent::Proxy* SpotLightComponent::create_proxy()
 	{
-		return new SpotLightComponentProxy();
+		return new Proxy();
 	}
 }// namespace Engine

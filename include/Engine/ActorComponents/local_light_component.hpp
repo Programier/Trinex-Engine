@@ -3,20 +3,20 @@
 
 namespace Engine
 {
-	class ENGINE_EXPORT LocalLightComponentProxy : public LightComponentProxy
-	{
-	private:
-		float m_attenuation_radius;
-
-	public:
-		float attenuation_radius() const;
-		LocalLightComponentProxy& attenuation_radius(float value);
-		friend class LocalLightComponent;
-	};
-
 	class ENGINE_EXPORT LocalLightComponent : public LightComponent
 	{
 		trinex_declare_class(LocalLightComponent, LightComponent);
+
+	public:
+		class ENGINE_EXPORT Proxy : public Super::Proxy
+		{
+		private:
+			float m_attenuation_radius;
+
+		public:
+			inline float attenuation_radius() const { return m_attenuation_radius; }
+			friend class LocalLightComponent;
+		};
 
 	private:
 		float m_attenuation_radius;
@@ -25,12 +25,19 @@ namespace Engine
 
 	public:
 		LocalLightComponent();
-		float attenuation_radius() const;
-		LocalLightComponentProxy* proxy() const;
-		LocalLightComponent& attenuation_radius(float value);
+
 		LocalLightComponent& start_play() override;
-		ActorComponentProxy* create_proxy() override;
+		Proxy* create_proxy() override;
 		LocalLightComponent& render(class SceneRenderer*) override;
 		LocalLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+
+		inline float attenuation_radius() const { return m_attenuation_radius; }
+		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
+
+		inline LocalLightComponent& attenuation_radius(float value)
+		{
+			m_attenuation_radius = value;
+			return submit_local_light_info();
+		}
 	};
 }// namespace Engine

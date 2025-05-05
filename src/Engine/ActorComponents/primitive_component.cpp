@@ -19,18 +19,8 @@ namespace Engine
 		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
 		r.method("void stop_play()", trinex_scoped_void_method(This, stop_play));
 	}
+
 	static const AABB_3Df default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
-
-	PrimitiveComponentProxy& PrimitiveComponentProxy::bounding_box(const AABB_3Df& bounds)
-	{
-		m_bounds = bounds;
-		return *this;
-	}
-
-	const AABB_3Df& PrimitiveComponentProxy::bounding_box() const
-	{
-		return m_bounds;
-	}
 
 	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
 
@@ -90,11 +80,6 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* PrimitiveComponent::create_proxy()
-	{
-		return new PrimitiveComponentProxy();
-	}
-
 	PrimitiveComponent& PrimitiveComponent::on_transform_changed()
 	{
 		Super::on_transform_changed();
@@ -114,15 +99,9 @@ namespace Engine
 		return *this;
 	}
 
-	PrimitiveComponentProxy* PrimitiveComponent::proxy() const
-	{
-		return typed_proxy<PrimitiveComponentProxy>();
-	}
-
-
 	void PrimitiveComponent::submit_bounds_to_render_thread()
 	{
-		if (PrimitiveComponentProxy* component_proxy = proxy())
+		if (Proxy* component_proxy = proxy())
 		{
 			render_thread()->create_task<UpdateVariableCommand<AABB_3Df>>(m_bounding_box, component_proxy->m_bounds);
 		}

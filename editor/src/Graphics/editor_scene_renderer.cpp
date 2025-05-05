@@ -165,10 +165,10 @@ namespace Engine
 
 	static void create_directional_arrow(DirectionalLightComponent* component, EditorOverlayPass* pass)
 	{
-		DirectionalLightComponentProxy* proxy = component->proxy();
-		auto& transform                       = proxy->world_transform();
-		auto location                         = transform.location();
-		auto direction                        = proxy->direction();
+		auto* proxy     = component->proxy();
+		auto& transform = proxy->world_transform();
+		auto location   = transform.location();
+		auto direction  = proxy->direction();
 
 		constexpr float offset        = 0.5f;
 		const Vector3f forward_vector = transform.forward_vector();

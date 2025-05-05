@@ -640,7 +640,7 @@ namespace Engine
 		if (result.first && intersect.x > result.second)
 			return result;
 
-		for (auto* component : node->values)
+		for (auto* component : node->values())
 		{
 			if (component->component_flags(ActorComponent::DisableRaycast))
 				continue;

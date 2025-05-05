@@ -87,7 +87,7 @@ namespace Engine
 
 	trinex_impl_render_pass(Engine::DeferredLightingPass) {}
 
-	static CameraView camera_view(SpotLightComponentProxy* component)
+	static CameraView camera_view(SpotLightComponent::Proxy* component)
 	{
 		CameraView view;
 		const Transform& transform = component->world_transform();

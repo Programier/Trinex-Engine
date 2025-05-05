@@ -8,19 +8,15 @@ namespace Engine
 	class Actor;
 	class ScriptFunction;
 
-	class ENGINE_EXPORT ActorComponentProxy
-	{
-	public:
-		ActorComponentProxy();
-		virtual ~ActorComponentProxy();
-	};
-
 	class ENGINE_EXPORT ActorComponent : public Object
 	{
 		trinex_declare_class(ActorComponent, Object);
 
+	public:
+		class ENGINE_EXPORT Proxy{public: virtual ~Proxy(){}};
+
 	private:
-		ActorComponentProxy* m_proxy;
+		Proxy* m_proxy;
 
 		void destroy_proxy();
 
@@ -81,8 +77,8 @@ namespace Engine
 		virtual ActorComponent& spawned();
 		virtual ActorComponent& destroyed();
 
-		virtual ActorComponentProxy* create_proxy();
-		ActorComponentProxy* proxy() const;
+		virtual Proxy* create_proxy();
+		Proxy* proxy() const;
 
 		template<typename ProxyType>
 		ProxyType* typed_proxy() const

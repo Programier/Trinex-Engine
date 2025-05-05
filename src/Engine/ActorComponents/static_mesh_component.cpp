@@ -25,10 +25,9 @@ namespace Engine
 		r.property("StaticMesh@ mesh", &This::mesh);
 	}
 
-	StaticMeshComponent& StaticMeshComponent::update(float dt)
+	StaticMeshComponent::Proxy* StaticMeshComponent::create_proxy()
 	{
-		Super::update(dt);
-		return *this;
+		return new Proxy();
 	}
 
 	SceneRenderer& SceneRenderer::render_component(StaticMeshComponent* component)

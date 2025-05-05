@@ -48,7 +48,10 @@ namespace Engine
 	template<typename Node>
 	static void build_views_internal(SceneRenderer* renderer, Node* node, const Frustum& frustum, bool always_render = false)
 	{
-		for (auto component : node->values)
+		if (node->size() == 0 || !frustum.in_frustum(node->box()))
+			return;
+
+		for (auto component : node->values())
 		{
 			if (always_render || frustum.in_frustum(component->bounding_box()))
 			{

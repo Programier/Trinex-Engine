@@ -36,10 +36,6 @@ namespace Engine
 		});
 	}
 
-	ActorComponentProxy::ActorComponentProxy() {}
-
-	ActorComponentProxy::~ActorComponentProxy() {}
-
 	void ActorComponent::script_update(float dt)
 	{
 		ScriptContext::execute(this, script_actor_comp_update, nullptr, dt);
@@ -108,12 +104,12 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* ActorComponent::create_proxy()
+	ActorComponent::Proxy* ActorComponent::create_proxy()
 	{
 		return nullptr;
 	}
 
-	ActorComponentProxy* ActorComponent::proxy() const
+	ActorComponent::Proxy* ActorComponent::proxy() const
 	{
 		return m_proxy;
 	}

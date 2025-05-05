@@ -14,7 +14,7 @@ namespace Engine
 
 	BatchedLines& BatchedLines::add_line(const Vertex& point1, const Vertex& point2)
 	{
-		if (m_vtx_count + 2 > m_vtx_buffer.size())
+		if (m_vtx_count + 2 > m_vtx_buffer.vertices())
 			m_vtx_buffer.grow();
 
 		auto dst = m_vtx_buffer.data() + m_vtx_count;
@@ -68,7 +68,7 @@ namespace Engine
 	BatchedTriangles& BatchedTriangles::add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 	                                                 Color color1, Color color2, Color color3)
 	{
-		if (m_vtx_count + 3 > m_position_buffer.size())
+		if (m_vtx_count + 3 > m_position_buffer.vertices())
 		{
 			m_position_buffer.grow();
 			m_color_buffer.grow();

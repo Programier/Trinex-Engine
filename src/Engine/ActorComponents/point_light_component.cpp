@@ -18,34 +18,6 @@ namespace Engine
 
 	PointLightComponent::PointLightComponent() : m_fall_off_exponent(2.f) {}
 
-	float PointLightComponent::fall_off_exponent() const
-	{
-		return m_fall_off_exponent;
-	}
-
-	PointLightComponent& PointLightComponent::fall_off_exponent(float value)
-	{
-		m_fall_off_exponent = value;
-		submit_point_light_data();
-		return *this;
-	}
-
-	LightComponent::Type PointLightComponent::light_type() const
-	{
-		return LightComponent::Type::Point;
-	}
-
-	float PointLightComponentProxy::fall_off_exponent() const
-	{
-		return m_fall_off_exponent;
-	}
-
-	PointLightComponentProxy& PointLightComponentProxy::fall_off_exponent(float value)
-	{
-		m_fall_off_exponent = value;
-		return *this;
-	}
-
 	PointLightComponent& PointLightComponent::submit_point_light_data()
 	{
 		render_thread()->create_task<UpdateVariableCommand<float>>(m_fall_off_exponent, proxy()->m_fall_off_exponent);
@@ -68,7 +40,7 @@ namespace Engine
 	{
 		render_base_component(component);
 
-		PointLightComponentProxy* proxy = component->proxy();
+		auto* proxy = component->proxy();
 
 		if (!(scene_view().show_flags() & ShowFlags::PointLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<PointLightComponent>())
@@ -93,14 +65,9 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponentProxy* PointLightComponent::create_proxy()
+	PointLightComponent::Proxy* PointLightComponent::create_proxy()
 	{
-		return new PointLightComponentProxy();
-	}
-
-	PointLightComponentProxy* PointLightComponent::proxy() const
-	{
-		return typed_proxy<PointLightComponentProxy>();
+		return new Proxy();
 	}
 
 	PointLightComponent& PointLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)

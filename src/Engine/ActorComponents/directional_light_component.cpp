@@ -8,34 +8,14 @@ namespace Engine
 {
 	trinex_implement_engine_class_default_init(DirectionalLightComponent, 0);
 
-	static Vector3f get_direction(const Transform& world_transform)
-	{
-		return -world_transform.up_vector();
-	}
-
-	Vector3f DirectionalLightComponentProxy::direction() const
-	{
-		return get_direction(world_transform());
-	}
-
-	Vector3f DirectionalLightComponent::direction() const
-	{
-		return get_direction(world_transform());
-	}
-
 	DirectionalLightComponent::Type DirectionalLightComponent::light_type() const
 	{
 		return Type::Directional;
 	}
 
-	ActorComponentProxy* DirectionalLightComponent::create_proxy()
+	DirectionalLightComponent::Proxy* DirectionalLightComponent::create_proxy()
 	{
-		return new DirectionalLightComponentProxy();
-	}
-
-	DirectionalLightComponentProxy* DirectionalLightComponent::proxy() const
-	{
-		return typed_proxy<DirectionalLightComponentProxy>();
+		return new Proxy();
 	}
 
 	SceneRenderer& SceneRenderer::render_component(DirectionalLightComponent* component)
@@ -46,7 +26,7 @@ namespace Engine
 	ColorSceneRenderer& ColorSceneRenderer::render_component(DirectionalLightComponent* component)
 	{
 		render_base_component(component);
-		DirectionalLightComponentProxy* proxy = component->proxy();
+		auto* proxy = component->proxy();
 
 		if (!(scene_view().show_flags() & ShowFlags::DirectionalLights) || !proxy->is_enabled() ||
 		    !component->leaf_class_is<DirectionalLightComponent>())
