@@ -28,7 +28,6 @@ namespace Engine
 
 		LocalLightComponent& start_play() override;
 		Proxy* create_proxy() override;
-		LocalLightComponent& render(class SceneRenderer*) override;
 		LocalLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 
 		inline float attenuation_radius() const { return m_attenuation_radius; }

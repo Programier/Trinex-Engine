@@ -24,7 +24,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedLines& BatchedLines::render(class RenderPass* pass)
+	BatchedLines& BatchedLines::render(const RendererContext& ctx)
 	{
 		if (m_vtx_count == 0)
 			return *this;
@@ -35,7 +35,7 @@ namespace Engine
 		rhi->push_debug_stage("Lines Rendering");
 #endif
 
-		Pipelines::BatchedLines::instance()->apply(pass->scene_renderer());
+		Pipelines::BatchedLines::instance()->apply(ctx);
 		m_vtx_buffer.rhi_bind(0);
 
 		rhi->draw(m_vtx_count, 0);
@@ -89,7 +89,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedTriangles& BatchedTriangles::render(class RenderPass* pass)
+	BatchedTriangles& BatchedTriangles::render(const RendererContext& ctx)
 	{
 		if (m_vtx_count == 0)
 			return *this;

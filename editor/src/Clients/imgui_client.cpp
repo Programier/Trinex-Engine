@@ -3,8 +3,10 @@
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
+#include <Core/threading.hpp>
 #include <Core/types/color.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -162,15 +164,6 @@ namespace Engine
 		return *this;
 	}
 
-	ImGuiViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
-	{
-		Super::render(viewport);
-		viewport->rhi_bind();
-		viewport->rhi_clear_color(LinearColor(0.f, 0.f, 0.f, 1.f));
-		m_window->rhi_render();
-		return *this;
-	}
-
 	ImGuiViewportClient& ImGuiViewportClient::update(class RenderViewport* viewport, float dt)
 	{
 		Super::update(viewport, dt);
@@ -211,6 +204,15 @@ namespace Engine
 
 		ImGui::End();
 		m_window->end_frame();
+
+		render_thread()->call([this, viewport]() {
+			rhi->viewport(ViewPort({0, 0}, {viewport->size()}));
+			rhi->scissor(Scissor({0, 0}, {viewport->size()}));
+			viewport->rhi_bind();
+			viewport->rhi_clear_color(LinearColor(0.f, 0.f, 0.f, 1.f));
+			m_window->rhi_render();
+			viewport->rhi_present();
+		});
 		return *this;
 	}
 

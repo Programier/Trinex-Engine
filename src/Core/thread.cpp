@@ -31,22 +31,19 @@ namespace Engine
 		return *this;
 	}
 
-	Thread::~Thread() {}
-
-	CommandBufferThread::CommandBufferThread(NoThread, size_t command_buffer_size)
+	Thread::Thread(NoThread, size_t command_buffer_size)
 	    : m_buffer(ByteAllocator::allocate(command_buffer_size)), m_buffer_size(command_buffer_size)
 	{
 		m_read_pointer  = m_buffer;
 		m_write_pointer = m_buffer;
 	}
 
-	CommandBufferThread::CommandBufferThread(const char* name, size_t command_buffer_size)
-	    : CommandBufferThread(NoThread(), command_buffer_size)
+	Thread::Thread(const char* name, size_t command_buffer_size) : Thread(NoThread(), command_buffer_size)
 	{
 		m_thread = new std::thread([this]() { thread_loop(); });
 	}
 
-	void CommandBufferThread::thread_loop()
+	void Thread::thread_loop()
 	{
 		register_thread();
 
@@ -66,7 +63,7 @@ namespace Engine
 		unregister_thread();
 	}
 
-	CommandBufferThread& CommandBufferThread::execute_commands()
+	Thread& Thread::execute_commands()
 	{
 		if (ThisThread::self() == this)
 		{
@@ -94,7 +91,7 @@ namespace Engine
 		return *this;
 	}
 
-	CommandBufferThread& CommandBufferThread::wait()
+	Thread& Thread::wait()
 	{
 		if (ThisThread::self() != this)
 		{
@@ -110,7 +107,7 @@ namespace Engine
 		return *this;
 	}
 
-	CommandBufferThread::~CommandBufferThread()
+	Thread::~Thread()
 	{
 		m_running = false;
 		m_exec_flag.test_and_set();

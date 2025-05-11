@@ -6,7 +6,7 @@ namespace Engine
 	struct RHI_ShaderResourceView;
 	struct RHI_UnorderedAccessView;
 	struct RHI_Sampler;
-	class SceneRenderer;
+	struct RendererContext;
 
 	namespace Pipelines
 	{
@@ -50,7 +50,7 @@ namespace Engine
 			const ShaderParameterInfo* m_globals;
 
 		public:
-			void apply(SceneRenderer* renderer);
+			void apply(const RendererContext& ctx);
 		);
 
 		trinex_declare_graphics_pipeline(BatchedTriangles);

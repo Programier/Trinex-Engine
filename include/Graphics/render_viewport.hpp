@@ -38,20 +38,17 @@ namespace Engine
 		static Vector<RenderViewport*> m_viewports;
 
 	public:
-		bool disable_update : 1 = false;
-		bool disable_render : 1 = false;
-
 		RenderViewport();
 		~RenderViewport();
 
-		virtual RenderViewport& render()                                                         = 0;
 		virtual RenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
 		                                        SamplerFilter filter = SamplerFilter::Trilinear) = 0;
 		virtual RenderViewport& rhi_clear_color(const Color& color)                              = 0;
 		virtual RenderViewport& rhi_bind()                                                       = 0;
-		virtual RenderViewport& update(float dt);
-		virtual Size2D size() const;
+		virtual RenderViewport& rhi_present()                                                    = 0;
+		inline Size2D size() const { return m_size; }
 
+		RenderViewport& update(float dt);
 		ViewportClient* client() const;
 		RenderViewport& client(ViewportClient* client);
 
@@ -76,13 +73,11 @@ namespace Engine
 		WindowRenderViewport(Window* window, bool vsync);
 		~WindowRenderViewport();
 		Window* window() const;
-		Size2D size() const override;
-		WindowRenderViewport& render() override;
 		WindowRenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
 		                                      SamplerFilter filter = SamplerFilter::Trilinear) override;
 		WindowRenderViewport& rhi_clear_color(const Color& color) override;
 		WindowRenderViewport& rhi_bind() override;
-		WindowRenderViewport& rhi_present();
+		WindowRenderViewport& rhi_present() override;
 
 		WindowRenderViewport& vsync(bool flag);
 		WindowRenderViewport& on_resize(const Size2D& new_size);
@@ -97,7 +92,6 @@ namespace Engine
 	public:
 		SurfaceRenderViewport(RenderSurface* surface);
 		RenderSurface* render_surface() const;
-		Size2D size() const override;
-		SurfaceRenderViewport& render() override;
+		SurfaceRenderViewport& rhi_present() override;
 	};
 }// namespace Engine

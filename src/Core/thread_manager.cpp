@@ -18,7 +18,7 @@ namespace Engine
 		using Thread::unregister_thread;
 
 		template<typename... Args>
-		WorkerThread(Args... args) : m_thread(args..., this)
+		WorkerThread(Args... args) : Thread(NoThread(), 1024 * 16), m_thread(args..., this)
 		{}
 
 		~WorkerThread()
@@ -94,6 +94,8 @@ namespace Engine
 
 			if (!m_running)
 				return;
+
+			thread->execute_commands();
 
 			TaskInterface* task = begin_execute();
 

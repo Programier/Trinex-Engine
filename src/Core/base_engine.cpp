@@ -8,7 +8,6 @@
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window_manager.hpp>
@@ -69,10 +68,12 @@ namespace Engine
 
 		m_delta_time = current_time - m_prev_time;
 		m_prev_time  = current_time;
-
 		++m_frame_index;
 
 		GarbageCollector::update(m_delta_time);
+
+		StackByteAllocator::reset();
+		FrameByteAllocator::reset();
 
 		if (auto instance = EngineSystem::instance())
 		{
@@ -82,25 +83,15 @@ namespace Engine
 
 		if (!is_requesting_exit())
 		{
-			auto& viewports    = RenderViewport::viewports();
-			Size2D max_vp_size = {0.f, 0.f};
+			auto& viewports = RenderViewport::viewports();
 
 			for (size_t i = 0; i < viewports.size(); ++i)
 			{
 				auto viewport = viewports[i];
 				viewport->update(m_delta_time);
-				max_vp_size = glm::max(max_vp_size, viewport->size());
 			}
 
 			m_render_end_signal.lock();
-			SceneRenderTargets::instance()->initialize(max_vp_size);
-
-			for (size_t i = 0; i < viewports.size(); ++i)
-			{
-				auto viewport = viewports[i];
-				viewport->render();
-			}
-
 			render_thread()->create_task<SubmitCommand>(&m_render_end_signal);
 		}
 		return 0;

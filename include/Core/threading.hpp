@@ -7,8 +7,8 @@ namespace Engine
 	ENGINE_EXPORT void create_threads();
 	ENGINE_EXPORT void destroy_threads();
 
-	ENGINE_EXPORT CommandBufferThread* render_thread();
-	ENGINE_EXPORT CommandBufferThread* logic_thread();
+	ENGINE_EXPORT Thread* render_thread();
+	ENGINE_EXPORT Thread* logic_thread();
 	ENGINE_EXPORT Thread* this_thread();
 
 	ENGINE_EXPORT bool is_in_render_thread();
@@ -46,7 +46,7 @@ namespace Engine
 			void execute() override { m_callable(); }
 		};
 
-		CommandBufferThread* rt = render_thread();
+		Thread* rt = render_thread();
 		if (ThisThread::self() == rt)
 		{
 			callable();
@@ -68,7 +68,7 @@ namespace Engine
 			void execute() override { m_callable(); }
 		};
 
-		CommandBufferThread* rt = logic_thread();
+		Thread* rt = logic_thread();
 		if (ThisThread::self() == rt)
 		{
 			callable();

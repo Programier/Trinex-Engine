@@ -49,7 +49,6 @@ namespace Engine
 
 		ImGuiViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ImGuiViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
-		ImGuiViewportClient& render(class RenderViewport* viewport) override;
 
 		ImGuiWindow* imgui_window() const;
 		Window* window() const;

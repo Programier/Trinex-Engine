@@ -36,8 +36,6 @@ namespace Engine
 
 	public:
 		Proxy* create_proxy() override;
-
-		StaticMeshComponent& render(class SceneRenderer*) override;
 		StaticMeshComponent& update_bounding_box() override;
 		MaterialInterface* material(size_t index) const;
 

@@ -116,6 +116,9 @@ namespace Engine::RenderGraph
 
 	Graph& Graph::build_graph(Pass* writer, Node* owner)
 	{
+		if (owner->pass == writer)
+			return *this;
+
 		if (!(writer->m_flags & Pass::Flags::IsLive))
 		{
 			writer->m_flags |= Pass::Flags::IsLive;
@@ -123,7 +126,6 @@ namespace Engine::RenderGraph
 			Node* writer_node = Node::create();
 			writer_node->pass = writer;
 			writer->m_node    = writer_node;
-			writer_node->dependents.push_back(owner);
 			owner->dependencies.push_back(writer_node);
 
 			for (const Pass::Resource* pr : writer->resources())
@@ -134,17 +136,16 @@ namespace Engine::RenderGraph
 				}
 			}
 		}
-		else if (writer->m_node != owner)
-		{
-			Node* writer_node = static_cast<Node*>(writer->m_node);
-			writer_node->dependents.push_back(owner);
-			owner->dependencies.push_back(writer_node);
-		}
 		return *this;
 	}
 
 	Graph& Graph::build_graph(Resource* resource, Node* owner)
 	{
+		if (resource->m_is_visited)
+			return *this;
+
+		resource->m_is_visited = true;
+
 		for (Pass* writer : resource->writers())
 		{
 			build_graph(writer, owner);
@@ -170,7 +171,6 @@ namespace Engine::RenderGraph
 		return root;
 	}
 
-
 	void Graph::execute_node(Node* node)
 	{
 		if (!node->is_executed())
@@ -182,7 +182,9 @@ namespace Engine::RenderGraph
 
 			if (!node->is_executed())
 			{
+				trinex_rhi_push_stage(node->name());
 				node->execute();
+				trinex_rhi_pop_stage();
 			}
 		}
 	}

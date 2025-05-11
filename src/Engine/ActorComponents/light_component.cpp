@@ -4,7 +4,6 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -62,12 +61,6 @@ namespace Engine
 			world_scene->add_light(this);
 		}
 		return submit_light_info_render_thread();
-	}
-
-	LightComponent& LightComponent::render(SceneRenderer* renderer)
-	{
-		renderer->render_component(this);
-		return *this;
 	}
 
 	LightComponent::Proxy* LightComponent::create_proxy()
@@ -171,9 +164,4 @@ namespace Engine
 	}
 
 	LightComponent::~LightComponent() {}
-
-	SceneRenderer& SceneRenderer::render_component(LightComponent* component)
-	{
-		return *this;
-	}
 }// namespace Engine

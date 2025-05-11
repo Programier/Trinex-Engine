@@ -6,7 +6,6 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <Window/window.hpp>
 

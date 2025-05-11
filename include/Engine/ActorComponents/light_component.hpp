@@ -78,7 +78,6 @@ namespace Engine
 		LightComponent& is_shadows_enabled(bool enabled);
 
 		virtual Type light_type() const = 0;
-		virtual LightComponent& render(class SceneRenderer*);
 		Proxy* create_proxy() override;
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 

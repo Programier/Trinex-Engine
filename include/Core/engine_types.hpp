@@ -106,6 +106,5 @@ namespace Engine
 		class Class;
 		class Property;
 		struct PropertyChangedEvent;
-		class RenderPassInfo;
 	}// namespace Refl
 }// namespace Engine

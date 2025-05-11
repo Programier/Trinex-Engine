@@ -809,6 +809,9 @@ namespace Engine
 	};
 
 
+	template<typename T>
+	using FrameVector = Vector<T, FrameAllocator<T>>;
+
 	using Buffer = Vector<unsigned char>;
 
 	template<typename Type, typename AllocatorType, typename ArchiveType>

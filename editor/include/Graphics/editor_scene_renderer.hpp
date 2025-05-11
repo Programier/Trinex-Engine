@@ -1,21 +1,6 @@
 #pragma once
-#include <Engine/Render/scene_renderer.hpp>
-
 namespace Engine
 {
-	class EditorOverlayPass;
-
-	class EditorSceneRenderer : public ColorSceneRenderer
-	{
-	private:
-		EditorOverlayPass* m_overlay_pass;
-
-	public:
-		EditorSceneRenderer& initialize() override;
-
-		// Components rendering
-		using ColorSceneRenderer::render_component;
-		EditorSceneRenderer& render_component(LightComponent* component) override;
-		EditorSceneRenderer& render_component(PrimitiveComponent* component) override;
-	};
+	class Renderer;
+	void register_editor_render_passes(Renderer* renderer);
 }// namespace Engine

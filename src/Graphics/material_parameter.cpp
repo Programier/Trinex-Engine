@@ -7,7 +7,7 @@
 #include <Core/structures.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
@@ -50,30 +50,21 @@ namespace Engine::MaterialParameters
 		return ar;
 	}
 
-	Float4x4& Float4x4::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	Float4x4& Float4x4::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
-		if (is_model)
-		{
-			auto matrix = component->world_transform().matrix();
-			update(&matrix, sizeof(matrix), info);
-		}
-		else
-		{
-			update(&value, sizeof(Matrix4f), info);
-		}
+		update(&value, sizeof(Matrix4f), info);
 		return *this;
 	}
 
-	LocalToWorld& LocalToWorld::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	LocalToWorld& LocalToWorld::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
-		auto matrix = component->proxy()->world_transform().matrix();
-		rhi->update_scalar_parameter(&matrix, sizeof(matrix), info->offset, info->location);
+		rhi->update_scalar_parameter(&ctx.local_to_world, sizeof(ctx.local_to_world), info->offset, info->location);
 		return *this;
 	}
 
 	Sampler::Sampler() : sampler(SamplerFilter::Point) {}
 
-	Sampler& Sampler::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	Sampler& Sampler::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
 		sampler.rhi_bind(info->location);
 		return *this;
@@ -88,7 +79,7 @@ namespace Engine::MaterialParameters
 
 	Sampler2D::Sampler2D() : sampler(SamplerFilter::Point), texture(DefaultResources::Textures::default_texture) {}
 
-	Sampler2D& Sampler2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	Sampler2D& Sampler2D::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
 		auto rhi_sampler = sampler.rhi_sampler();
 
@@ -111,7 +102,7 @@ namespace Engine::MaterialParameters
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture) {}
 
-	Texture2D& Texture2D::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	Texture2D& Texture2D::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
 		if (texture)
 		{
@@ -128,27 +119,16 @@ namespace Engine::MaterialParameters
 		return true;
 	}
 
-	Globals& Globals::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	Globals& Globals::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
-		if (render_pass)
-		{
-			render_pass->scene_renderer()->bind_global_parameters(info->location);
-		}
-		else
-		{
-			warn_log("Material Parameter",
-			         "The Render Pass is not valid, so the data passed to the material will be filled with zeros");
-
-			GlobalShaderParameters params;
-			std::memset(&params, 0, sizeof(params));
-			rhi->update_scalar_parameter(&params, sizeof(params), 0, info->location);
-		}
+		auto buffer = ctx.renderer->globals_uniform_buffer();
+		rhi->bind_uniform_buffer(buffer, info->location);
 		return *this;
 	}
 
 	Surface::Surface() : surface(nullptr) {}
 
-	Surface& Surface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	Surface& Surface::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
 		auto srv = surface ? surface->rhi_srv() : DefaultResources::Textures::default_texture->rhi_srv();
 		rhi->bind_srv(srv, info->location);
@@ -164,7 +144,7 @@ namespace Engine::MaterialParameters
 
 	CombinedSurface::CombinedSurface() : surface(nullptr), sampler() {}
 
-	CombinedSurface& CombinedSurface::apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info)
+	CombinedSurface& CombinedSurface::apply(const RendererContext& ctx, ShaderParameterInfo* info)
 	{
 		RHI_ShaderResourceView* srv = surface ? surface->rhi_srv() : nullptr;
 		RHI_Sampler* rhi_sampler    = sampler.rhi_sampler();

@@ -2,6 +2,7 @@
 #include <Clients/imgui_client.hpp>
 #include <Core/etl/average.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
@@ -35,9 +36,9 @@ namespace Engine
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;
 
-		Renderer<EditorSceneRenderer> m_renderer;
 		RenderStatistics m_statistics;
 		ShowFlags m_show_flags = ShowFlags::DefaultFlags;
+		ViewMode m_view_mode   = ViewMode::Lit;
 		SceneView m_scene_view;
 
 		class ContentBrowser* m_content_browser = nullptr;
@@ -53,6 +54,7 @@ namespace Engine
 
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);
+		RenderSurface* capture_scene();
 
 	public:
 		EditorClient();
@@ -63,7 +65,6 @@ namespace Engine
 
 		EditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		EditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
-		EditorClient& render(class RenderViewport* viewport) override;
 		EditorClient& update(float dt) override;
 
 		uint32_t build_dock(uint32_t dock_id) override;

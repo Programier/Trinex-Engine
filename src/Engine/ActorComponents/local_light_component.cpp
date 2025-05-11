@@ -2,7 +2,6 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/local_light_component.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 
 namespace Engine
 {
@@ -35,12 +34,6 @@ namespace Engine
 		return new Proxy();
 	}
 
-	LocalLightComponent& LocalLightComponent::render(class SceneRenderer* renderer)
-	{
-		renderer->render_component(this);
-		return *this;
-	}
-
 	LocalLightComponent& LocalLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
 	{
 		Super::on_property_changed(event);
@@ -50,12 +43,6 @@ namespace Engine
 			submit_local_light_info();
 		}
 
-		return *this;
-	}
-
-	SceneRenderer& SceneRenderer::render_component(LocalLightComponent* component)
-	{
-		render_base_component(component);
 		return *this;
 	}
 }// namespace Engine

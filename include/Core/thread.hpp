@@ -19,12 +19,6 @@ namespace Engine
 		Thread& register_thread();
 		Thread& unregister_thread();
 
-	public:
-		virtual ~Thread();
-	};
-
-	class CommandBufferThread : public Thread
-	{
 	protected:
 		template<typename Func>
 		struct FunctionCaller : public Task<FunctionCaller<Func>> {
@@ -88,12 +82,12 @@ namespace Engine
 			}
 		}
 
-		CommandBufferThread(NoThread, size_t command_buffer_size = 1024 * 1024 * 1);
+		Thread(NoThread, size_t command_buffer_size = 1024 * 1024 * 1);
 
 	public:
-		CommandBufferThread(const char* name, size_t command_buffer_size = 1024 * 1024 * 1);
-		CommandBufferThread& execute_commands();
-		CommandBufferThread& wait();
+		Thread(const char* name, size_t command_buffer_size = 1024 * 1024 * 1);
+		Thread& execute_commands();
+		Thread& wait();
 
 		template<typename CommandType, typename... Args>
 		inline Thread& create_task(Args&&... args)
@@ -142,7 +136,7 @@ namespace Engine
 			return create_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));
 		}
 
-		~CommandBufferThread();
+		virtual ~Thread();
 	};
 
 	namespace ThisThread

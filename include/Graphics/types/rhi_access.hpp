@@ -27,7 +27,7 @@ namespace Engine
 			DSV         = BIT(13),
 
 			ReadableMask = CPURead | Present | IndirectArgs | VertexOrIndexBuffer | SRVCompute | SRVGraphics | CopySrc |
-			               ResolveSrc | UAVCompute | UAVGraphics,
+			               ResolveSrc | UAVCompute | UAVGraphics | RTV | DSV,
 
 			WritableMask = UAVCompute | UAVGraphics | CopyDst | ResolveDst | RTV | DSV,
 		};

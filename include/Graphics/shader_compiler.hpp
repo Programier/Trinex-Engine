@@ -8,6 +8,7 @@ namespace Engine
 	class Material;
 	class Pipeline;
 	class Path;
+	class RenderPass;
 
 	class ShaderCompilationEnvironment
 	{
@@ -22,9 +23,9 @@ namespace Engine
 
 	public:
 		static ShaderCompiler* instance(const StringView& api_name = "");
-		virtual bool compile(Material* material)                                         = 0;
-		virtual bool compile(const String& source, Pipeline* pipeline)                   = 0;
-		virtual bool compile_pass(Material* material, Refl::RenderPassInfo* render_pass) = 0;
+		virtual bool compile(Material* material)                               = 0;
+		virtual bool compile(const String& source, Pipeline* pipeline)         = 0;
+		virtual bool compile_pass(Material* material, RenderPass* render_pass) = 0;
 	};
 
 }// namespace Engine

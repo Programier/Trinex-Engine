@@ -12,12 +12,11 @@ namespace Engine
 		class Parameter;
 	}
 
-	class Logger;
-	class SceneComponent;
 	class Pipeline;
 	class GraphicsPipeline;
-	class RenderPass;
 	class GraphicsPipelineDescription;
+	struct RendererContext;
+	class RenderPass;
 
 	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
@@ -45,7 +44,7 @@ namespace Engine
 
 		virtual MaterialInterface* parent() const;
 		virtual class Material* material();
-		virtual bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
+		virtual bool apply(const RendererContext& ctx);
 
 		bool serialize(Archive& archive) override;
 	};
@@ -55,15 +54,15 @@ namespace Engine
 		trinex_declare_class(Material, MaterialInterface);
 
 	protected:
-		Map<Refl::RenderPassInfo*, Pipeline*> m_pipelines;
+		Map<RenderPass*, GraphicsPipeline*> m_pipelines;
 		GraphicsPipelineDescription* m_graphics_options = nullptr;
 
 		bool register_child(Object* child) override;
 		bool unregister_child(Object* child) override;
-		bool apply_internal(MaterialInterface* head, SceneComponent* component = nullptr, RenderPass* render_pass = nullptr);
+		bool apply_internal(MaterialInterface* head, const RendererContext& ctx);
 
 	private:
-		bool register_pipeline_parameters(Pipeline* pipeline);
+		bool register_pipeline_parameters(GraphicsPipeline* pipeline);
 
 	public:
 		MaterialDomain domain;
@@ -71,18 +70,18 @@ namespace Engine
 		Vector<ShaderDefinition> compile_definitions;
 
 		Material();
-		Pipeline* pipeline(Refl::RenderPassInfo* pass) const;
-		bool add_pipeline(Refl::RenderPassInfo* pass, Pipeline* pipeline);
-		Pipeline* remove_pipeline(Refl::RenderPassInfo* pass);
+		GraphicsPipeline* pipeline(RenderPass* pass) const;
+		bool add_pipeline(RenderPass* pass, GraphicsPipeline* pipeline);
+		GraphicsPipeline* remove_pipeline(RenderPass* pass);
 		Material& remove_all_pipelines();
 		Material& postload() override;
 		Material& setup_pipeline(GraphicsPipeline* pipeline);
 
 		class Material* material() override;
-		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
+		bool apply(const RendererContext& ctx) override;
 		bool serialize(Archive& archive) override;
 
-		virtual Material& post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline);
+		virtual Material& post_compile(RenderPass* pass, GraphicsPipeline* pipeline);
 		virtual bool shader_source(String& out_source) = 0;
 
 		inline GraphicsPipelineDescription* graphics_description() const { return m_graphics_options; }
@@ -101,7 +100,7 @@ namespace Engine
 
 		class Material* material() override;
 		MaterialInterface* parent() const override;
-		bool apply(SceneComponent* component = nullptr, RenderPass* render_pass = nullptr) override;
+		bool apply(const RendererContext& ctx) override;
 		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

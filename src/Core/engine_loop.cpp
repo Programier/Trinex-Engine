@@ -19,7 +19,6 @@
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Platform/platform.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
@@ -149,7 +148,6 @@ namespace Engine
 		WindowConfig config;
 		config.attributes.insert(WindowAttribute::Hidden);
 		WindowManager::create_instance()->create_window(config, nullptr)->hide();
-		SceneRenderTargets::create_instance();
 		return 0;
 	}
 

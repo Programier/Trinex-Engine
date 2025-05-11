@@ -20,8 +20,6 @@ namespace Engine
 
 		Type light_type() const override;
 		Proxy* create_proxy() override;
-		DirectionalLightComponent& render(class SceneRenderer*) override;
-
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 	};
 }// namespace Engine

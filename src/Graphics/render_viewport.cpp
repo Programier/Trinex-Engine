@@ -181,7 +181,7 @@ namespace Engine
 
 	RenderViewport& RenderViewport::update(float dt)
 	{
-		if (m_client && !disable_update)
+		if (m_client)
 		{
 			m_current_render_viewport = this;
 
@@ -199,11 +199,6 @@ namespace Engine
 		return *this;
 	}
 
-	Size2D RenderViewport::size() const
-	{
-		return m_size;
-	}
-
 	RenderViewport* RenderViewport::current()
 	{
 		return m_current_render_viewport;
@@ -218,6 +213,7 @@ namespace Engine
 	{
 		m_window = window;
 		render_thread()->call([vp = Pointer(this), vsync]() { vp->m_viewport = rhi->create_viewport(vp, vsync); });
+		m_size = window->size();
 	}
 
 	WindowRenderViewport::~WindowRenderViewport()
@@ -233,43 +229,6 @@ namespace Engine
 	Window* WindowRenderViewport::window() const
 	{
 		return m_window;
-	}
-
-	Size2D WindowRenderViewport::size() const
-	{
-		if (is_in_render_thread())
-			return Super::size();
-
-		return m_window->size() * Settings::screen_percentage;
-	}
-
-
-	WindowRenderViewport& WindowRenderViewport::render()
-	{
-		if (m_client == nullptr || disable_render)
-			return *this;
-
-		class StartRenderingViewport : public Task<StartRenderingViewport>
-		{
-		public:
-			Size2D m_size;
-			WindowRenderViewport* m_viewport;
-
-			StartRenderingViewport(WindowRenderViewport* viewport) : m_size(viewport->size()), m_viewport(viewport) {}
-
-			void execute() override
-			{
-				m_viewport->m_size = m_size;
-				rhi->viewport(m_viewport->viewport_info(m_size));
-				rhi->scissor(m_viewport->scissor_info(m_size));
-
-				m_viewport->m_client->render(m_viewport);
-				m_viewport->m_viewport->present();
-			}
-		};
-
-		render_thread()->create_task<StartRenderingViewport>(this);
-		return *this;
 	}
 
 	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src,
@@ -318,6 +277,7 @@ namespace Engine
 		}
 		else
 		{
+			m_size = new_size;
 			render_thread()->call([vp = m_viewport, new_size]() { vp->on_resize(new_size); });
 		}
 		return *this;
@@ -348,41 +308,8 @@ namespace Engine
 		return m_surface;
 	}
 
-	Size2D SurfaceRenderViewport::size() const
+	SurfaceRenderViewport& SurfaceRenderViewport::rhi_present()
 	{
-		if (is_in_render_thread())
-			return Super::size();
-
-		return m_surface->size();
-	}
-
-	SurfaceRenderViewport& SurfaceRenderViewport::render()
-	{
-		if (m_client == nullptr || disable_render)
-			return *this;
-
-		class StartRenderingViewport : public Task<StartRenderingViewport>
-		{
-		public:
-			Size2D m_size;
-			ViewportClient* m_client;
-			SurfaceRenderViewport* m_viewport;
-
-			StartRenderingViewport(ViewportClient* client, SurfaceRenderViewport* viewport, Size2D size)
-			    : m_size(size), m_client(client), m_viewport(viewport)
-			{}
-
-			void execute() override
-			{
-				m_viewport->m_size = m_size;
-
-				rhi->viewport(m_viewport->viewport_info(m_size));
-				rhi->scissor(m_viewport->scissor_info(m_size));
-				m_client->render(m_viewport);
-			}
-		};
-
-		render_thread()->create_task<StartRenderingViewport>(m_client.ptr(), this, size());
 		return *this;
 	}
 }// namespace Engine

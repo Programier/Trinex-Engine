@@ -2,7 +2,6 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 
@@ -42,41 +41,6 @@ namespace Engine
 	Scene::Scene()
 	{
 		m_root_component = Object::new_instance<SceneComponent>("Root");
-	}
-
-
-	template<typename Node>
-	static void build_views_internal(SceneRenderer* renderer, Node* node, const Frustum& frustum, bool always_render = false)
-	{
-		if (node->size() == 0 || !frustum.in_frustum(node->box()))
-			return;
-
-		for (auto component : node->values())
-		{
-			if (always_render || frustum.in_frustum(component->bounding_box()))
-			{
-				component->render(renderer);
-				++renderer->statistics.visible_objects;
-			}
-		}
-
-		for (byte i = 0; i < 8; i++)
-		{
-			auto child = node->child_at(i);
-
-			if (child)
-			{
-				build_views_internal(renderer, child, frustum, always_render);
-			}
-		}
-	}
-
-	Scene& Scene::build_views(SceneRenderer* renderer)
-	{
-		Frustum frustum = renderer->scene_view().camera_view();
-		build_views_internal(renderer, m_octree_render_thread.root_node(), frustum);
-		build_views_internal(renderer, m_light_octree_render_thread.root_node(), frustum, true);
-		return *this;
 	}
 
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
@@ -154,6 +118,51 @@ namespace Engine
 		{
 			return m_light_octree;
 		}
+	}
+
+	template<typename Node, typename Container>
+	static void collect_elements_internal(Node* node, const Frustum& frustum, Container& result)
+	{
+		if (node->size() == 0 || !frustum.in_frustum(node->box()))
+			return;
+
+		for (auto component : node->values())
+		{
+			if (frustum.in_frustum(component->bounding_box()))
+			{
+				result.emplace_back(component);
+			}
+		}
+
+		for (byte i = 0; i < 8; i++)
+		{
+			auto child = node->child_at(i);
+
+			if (child)
+			{
+				collect_elements_internal(child, frustum, result);
+			}
+		}
+	}
+
+	FrameVector<PrimitiveComponent*> Scene::collect_visible_primitives(const Frustum& frustum)
+	{
+		FrameVector<PrimitiveComponent*> objects;
+		const PrimitiveOctree& octree = primitive_octree();
+		objects.reserve(glm::max<size_t>(64, octree.size() / 10));
+
+		collect_elements_internal(octree.root_node(), frustum, objects);
+		return objects;
+	}
+
+	FrameVector<LightComponent*> Scene::collect_visible_lights(const Frustum& frustum)
+	{
+		FrameVector<LightComponent*> objects;
+		const LightOctree& octree = light_octree();
+		objects.reserve(glm::max<size_t>(64, octree.size() / 10));
+
+		collect_elements_internal(octree.root_node(), frustum, objects);
+		return objects;
 	}
 
 	Scene::~Scene() {}

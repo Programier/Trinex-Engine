@@ -43,8 +43,8 @@ namespace Engine
 
 		public:
 			Context(SLANG_ShaderCompiler* compiler);
-			bool compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass);
-			bool compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass = nullptr);
+			bool compile_graphics(const String& source, Material* material, RenderPass* pass);
+			bool compile_graphics(const String& source, Pipeline* pipeline, RenderPass* pass = nullptr);
 			bool compile_compute(const String& source, Pipeline* pipeline);
 			~Context();
 		};
@@ -141,8 +141,8 @@ namespace Engine
 		virtual void initialize_context(SessionInitializer* session);
 		virtual void submit_source(Shader* shader, const byte* src, size_t size);
 		bool compile(Material* material) override;
-		bool compile_pass(Material* material, Refl::RenderPassInfo* pass) override;
-		bool compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source);
+		bool compile_pass(Material* material, RenderPass* pass) override;
+		bool compile_pass(Material* material, RenderPass* pass, const String& source);
 		bool compile(const String& source, Pipeline* pipeline) override;
 		slang::IModule* load_module(const char* module);
 	};

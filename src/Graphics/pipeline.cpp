@@ -5,9 +5,9 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
-#include <Core/reflection/render_pass_info.hpp>
 #include <Core/structures.hpp>
 #include <Core/threading.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
@@ -154,7 +154,7 @@ namespace Engine
 		return *this;
 	}
 
-	Pipeline& Pipeline::post_compile(Refl::RenderPassInfo* pass)
+	Pipeline& Pipeline::post_compile(RenderPass* pass)
 	{
 		return *this;
 	}
@@ -442,7 +442,7 @@ namespace Engine
 			}
 		};
 
-		static auto compile_pipeline = [](Material* material, GraphicsPipeline* GraphicsPipeline) -> bool {
+		static auto compile_pipeline = [](Material* material, GraphicsPipeline* pipeline) -> bool {
 			ShaderCompiler* compiler = ShaderCompiler::instance();
 
 			if (compiler == nullptr)
@@ -451,7 +451,7 @@ namespace Engine
 				return false;
 			}
 
-			Refl::RenderPassInfo* pass = Refl::RenderPassInfo::static_find_pass(GraphicsPipeline->name());
+			RenderPass* pass = RenderPass::static_find(pipeline->name());
 			return compiler->compile_pass(material, pass);
 		};
 

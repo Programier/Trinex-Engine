@@ -4,18 +4,16 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
-#include <Core/reflection/render_pass_info.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -152,7 +150,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool MaterialInterface::apply(SceneComponent* component, RenderPass* render_pass)
+	bool MaterialInterface::apply(const RendererContext& ctx)
 	{
 		return false;
 	}
@@ -200,7 +198,7 @@ namespace Engine
 		m_graphics_options->add_reference();
 	}
 
-	Pipeline* Material::pipeline(Refl::RenderPassInfo* pass) const
+	GraphicsPipeline* Material::pipeline(RenderPass* pass) const
 	{
 		auto it = m_pipelines.find(pass);
 		if (it == m_pipelines.end())
@@ -208,7 +206,7 @@ namespace Engine
 		return it->second;
 	}
 
-	bool Material::register_pipeline_parameters(Pipeline* pipeline)
+	bool Material::register_pipeline_parameters(GraphicsPipeline* pipeline)
 	{
 		for (auto& [name, info] : pipeline->parameters)
 		{
@@ -251,20 +249,24 @@ namespace Engine
 		return true;
 	}
 
-	bool Material::add_pipeline(Refl::RenderPassInfo* pass, Pipeline* pipeline)
+	bool Material::add_pipeline(RenderPass* pass, GraphicsPipeline* pipeline)
 	{
 		render_thread()->wait();
 
-		if (Material::pipeline(pass) == pipeline)
-		{
-			error_log("Material", "Cannot add pipeline, because current pipeline already exist in material!");
+		auto current_pipeline = Material::pipeline(pass);
+
+		if (current_pipeline == pipeline)
 			return false;
-		}
 
 		if (pipeline == nullptr)
 		{
-			remove_pipeline(pass);
+			if (current_pipeline)
+				remove_pipeline(pass);
 			return true;
+		}
+		else if (current_pipeline)
+		{
+			remove_pipeline(pass);
 		}
 
 		Name name = pass ? pass->name() : "Default";
@@ -276,22 +278,18 @@ namespace Engine
 			return false;
 
 		m_pipelines[pass] = pipeline;
-
-		if (auto graphics_pipeline = instance_cast<GraphicsPipeline>(pipeline))
-		{
-			setup_pipeline(graphics_pipeline);
-		}
+		setup_pipeline(pipeline);
 		return true;
 	}
 
-	Pipeline* Material::remove_pipeline(Refl::RenderPassInfo* pass)
+	GraphicsPipeline* Material::remove_pipeline(RenderPass* pass)
 	{
 		auto it = m_pipelines.find(pass);
 		if (it == m_pipelines.end())
 			return nullptr;
 
 		render_thread()->wait();
-		Pipeline* pipeline = it->second;
+		GraphicsPipeline* pipeline = it->second;
 		m_pipelines.erase(it);
 		pipeline->owner(nullptr);
 
@@ -351,7 +349,7 @@ namespace Engine
 			uint_t count         = 0;
 			String material_name = full_name();
 
-			for (auto pass = Refl::RenderPassInfo::first_pass(); pass; pass = pass->next_pass())
+			for (auto pass = RenderPass::static_first_pass(); pass; pass = pass->next_pass())
 			{
 				if (pass->is_material_compatible(this) && pipeline(pass) == nullptr)
 				{
@@ -381,28 +379,19 @@ namespace Engine
 		return *this;
 	}
 
-	bool Material::apply(SceneComponent* component, RenderPass* render_pass)
+	bool Material::apply(const RendererContext& ctx)
 	{
-		return apply_internal(this, component, render_pass);
+		return apply_internal(this, ctx);
 	}
 
-	bool Material::apply_internal(MaterialInterface* head, SceneComponent* component, RenderPass* render_pass)
+	bool Material::apply_internal(MaterialInterface* head, const RendererContext& ctx)
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
-		Refl::RenderPassInfo* pass_info = render_pass ? render_pass->info() : nullptr;
-		auto pipeline_object            = pipeline(pass_info);
+		auto pipeline_object = pipeline(ctx.render_pass);
 
 		if (pipeline_object == nullptr)
-		{
-			if (pass_info == nullptr)
-				return false;
-
-			pipeline_object = pipeline(nullptr);
-
-			if (pipeline_object == nullptr)
-				return false;
-		}
+			return false;
 
 		pipeline_object->rhi_bind();
 
@@ -411,7 +400,7 @@ namespace Engine
 			Parameter* parameter = head->find_parameter(name);
 
 			if (parameter)
-				parameter->apply(component, render_pass, &info);
+				parameter->apply(ctx, &info);
 		}
 		return true;
 	}
@@ -469,8 +458,8 @@ namespace Engine
 					name = "Default";
 				}
 
-				auto pass     = Refl::RenderPassInfo::static_find_pass(name);
-				auto pipeline = Pipeline::static_create_pipeline(type);
+				auto pass     = RenderPass::static_find(name);
+				auto pipeline = new_instance<GraphicsPipeline>();
 
 				add_pipeline(pass, pipeline);
 				pipeline->serialize(archive, this);
@@ -495,7 +484,7 @@ namespace Engine
 		return *this;
 	}
 
-	Material& Material::post_compile(Refl::RenderPassInfo* pass, Pipeline* pipeline)
+	Material& Material::post_compile(RenderPass* pass, GraphicsPipeline* pipeline)
 	{
 		return *this;
 	}
@@ -524,7 +513,7 @@ namespace Engine
 		return parent_material;
 	}
 
-	bool MaterialInstance::apply(SceneComponent* component, RenderPass* render_pass)
+	bool MaterialInstance::apply(const RendererContext& ctx)
 	{
 		Material* mat = material();
 
@@ -533,7 +522,7 @@ namespace Engine
 			return false;
 		}
 
-		return mat->apply_internal(this, component, render_pass);
+		return mat->apply_internal(this, ctx);
 	}
 
 	bool MaterialInstance::serialize(Archive& archive)

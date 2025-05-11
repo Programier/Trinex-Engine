@@ -5,7 +5,6 @@
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>

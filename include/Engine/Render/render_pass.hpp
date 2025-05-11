@@ -1,186 +1,85 @@
 #pragma once
-#include <Core/etl/vector.hpp>
-#include <Core/memory.hpp>
 #include <Core/name.hpp>
-#include <Core/task.hpp>
-#include <Engine/Render/batched_primitives.hpp>
 
 namespace Engine
 {
-	class SceneRenderer;
-	class RenderViewport;
-	class SceneComponent;
-	class PrimitiveComponent;
-	class MaterialInterface;
-	class Pipeline;
+	class Material;
+	class ShaderCompilationEnvironment;
 
 	class ENGINE_EXPORT RenderPass
 	{
-		trinex_declare_struct(RenderPass, void);
-
-	public:
-		static constexpr size_t command_alignment = 16;
-
 	private:
-		SceneRenderer* m_renderer = nullptr;
-		RenderPass* m_owner       = nullptr;
-		RenderPass* m_childs      = nullptr;
-		RenderPass* m_next        = nullptr;
+		static RenderPass* s_head;
+		static RenderPass* s_tail;
 
-		Buffer m_commands;
-		size_t m_allocated = 0;
-
-		inline byte* allocate(size_t size)
-		{
-			size_t start = m_allocated;
-			m_allocated += align_up(size, command_alignment);
-
-			if (m_allocated > m_commands.size())
-			{
-				m_commands.resize(m_allocated);
-			}
-
-			return m_commands.data() + start;
-		}
-
-		void initialize_subpass(RenderPass* pass);
+		RenderPass* m_next = nullptr;
+		Name m_name;
 
 	protected:
-		static Refl::RenderPassInfo* static_cast_to_render_pass_info(Refl::Struct* info);
+		inline RenderPass* static_instance() { return nullptr; }
 
-		RenderPass();
+	public:
+		RenderPass(const char* name);
+		trinex_non_copyable(RenderPass);
+		trinex_non_moveable(RenderPass);
+
+		static RenderPass* static_find(const Name& name);
+
+		virtual bool is_material_compatible(const Material* material);
+		virtual RenderPass& modify_shader_compilation_env(ShaderCompilationEnvironment* env);
+		virtual RenderPass* super_pass();
+
+		inline const Name& name() const { return m_name; }
+		inline RenderPass* next_pass() { return m_next; }
+
+		static inline RenderPass* static_first_pass() { return s_head; }
+		static inline RenderPass* static_last_pass() { return s_tail; }
 		virtual ~RenderPass();
-
-	public:
-		delete_copy_constructors(RenderPass);
-
-		Refl::RenderPassInfo* info() const;
-		bool destroy_subpass(RenderPass* pass);
-
-		inline SceneRenderer* scene_renderer() const { return m_renderer; }
-		inline RenderPass* next() const { return m_next; }
-		inline RenderPass* owner() const { return m_owner; }
-
-		virtual RenderPass& initialize();
-		virtual Refl::Struct* struct_instance() const;
-		virtual bool is_empty() const;
-		virtual RenderPass& clear();
-		virtual RenderPass& render(RenderViewport*);
-		virtual RenderPass& predraw(PrimitiveComponent* primitive, MaterialInterface* material, Pipeline* pipeline);
-
-		RenderPass& draw(size_t vertices_count, size_t vertices_offset);
-		RenderPass& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset);
-		RenderPass& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances);
-		RenderPass& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances);
-		RenderPass& bind_material(class MaterialInterface* material, SceneComponent* component = nullptr);
-		RenderPass& bind_vertex_buffer(class VertexBufferBase* buffer, byte stream, size_t offset = 0);
-		RenderPass& bind_index_buffer(class IndexBuffer* buffer, size_t offset = 0);
-
-		template<typename Dst, typename Src>
-		auto assign(Dst& dst, Src&& src)
-		{
-			using SrcT = std::decay_t<Src>;
-			return add_callabble([&dst, src_copy = SrcT(std::forward<Src>(src))]() { dst = src_copy; });
-		}
-
-		template<typename Task, typename... Args>
-		Task* add_task(Args&&... args)
-		{
-			static_assert(alignof(Task) <= command_alignment);
-			static_assert(std::is_base_of_v<TaskInterface, Task>);
-
-			void* place = allocate(sizeof(Task));
-			return new (place) Task(std::forward<Args>(args)...);
-		}
-
-		template<typename Callable>
-		TaskInterface* add_callabble(Callable&& callable)
-		{
-			struct CallableTask : public Task<CallableTask> {
-				Callable func;
-
-				CallableTask(Callable&& callable) : func(std::forward<Callable>(callable)) {}
-
-				void execute() override { func(); }
-			};
-
-			return add_task<CallableTask>(std::forward<Callable>(callable));
-		}
-
-		template<typename T = RenderPass, typename... Args, typename = std::enable_if<std::is_base_of_v<RenderPass, T>>>
-		T* create_subpass(Args&&... args)
-		{
-			T* pass = new T(std::forward<Args>(args)...);
-			initialize_subpass(pass);
-			return pass;
-		}
-
-		friend class SceneRenderer;
 	};
-#define trinex_render_pass(name, parent)                                                                                         \
-	trinex_declare_struct(name, parent);                                                                                         \
-                                                                                                                                 \
+
+#define trinex_render_pass(pass_name, parent)                                                                                    \
 public:                                                                                                                          \
-	static Engine::Refl::RenderPassInfo* static_info()                                                                           \
-	{                                                                                                                            \
-		return Engine::RenderPass::static_cast_to_render_pass_info(static_struct_instance());                                    \
-	}                                                                                                                            \
-	virtual Engine::Refl::Struct* struct_instance() const override;                                                              \
-	friend class Engine::RenderPass;                                                                                             \
-	friend class Engine::SceneRenderer;                                                                                          \
+	using This  = pass_name;                                                                                                     \
+	using Super = parent;                                                                                                        \
+	static pass_name* static_instance();                                                                                         \
+	pass_name(const char* name = #pass_name) : parent(name) {}                                                                   \
+	parent* super_pass() override;                                                                                               \
                                                                                                                                  \
-private:                                                                                                                         \
-	void static_initialize_render_pass()
+private:
+
+#define trinex_implement_render_pass(pass_name)                                                                                  \
+	pass_name* pass_name::static_instance()                                                                                      \
+	{                                                                                                                            \
+		static pass_name s_instance(#pass_name);                                                                                 \
+		return &s_instance;                                                                                                      \
+	}                                                                                                                            \
+	pass_name::Super* pass_name::super_pass()                                                                                    \
+	{                                                                                                                            \
+		return Super::static_instance();                                                                                         \
+	}                                                                                                                            \
+	static const byte TRINEX_CONCAT(trinex_engine_refl_render_pass_, __LINE__) =                                                 \
+	        Engine::ReflectionInitializeController([]() { pass_name::static_instance(); }).id()
 
 
-	class ENGINE_EXPORT ClearPass : public RenderPass
+	namespace RenderPasses
 	{
-		trinex_render_pass(ClearPass, RenderPass);
+		// Generic render pass with only depth buffer
+		class ENGINE_EXPORT Depth : public RenderPass
+		{
+			trinex_render_pass(Depth, RenderPass);
+		};
 
-	public:
-		bool is_empty() const override;
-		ClearPass& render(RenderViewport*) override;
-	};
+		// Generic render pass with one color attachment
+		class ENGINE_EXPORT GenericOutput : public RenderPass
+		{
+			trinex_render_pass(GenericOutput, RenderPass);
+		};
 
-	class ENGINE_EXPORT DepthPass : public RenderPass
-	{
-		trinex_render_pass(DepthPass, RenderPass);
-	};
-
-	class ENGINE_EXPORT GeometryPass : public RenderPass
-	{
-		trinex_render_pass(DepthPass, RenderPass);
-
-	public:
-		GeometryPass& render(RenderViewport*) override;
-	};
-
-	class ENGINE_EXPORT TransparencyPass : public RenderPass
-	{
-		trinex_render_pass(TransparencyPass, RenderPass);
-	};
-
-	class ENGINE_EXPORT PostProcessPass : public RenderPass
-	{
-		trinex_render_pass(PostProcessPass, RenderPass);
-
-	public:
-		bool is_empty() const override;
-		PostProcessPass& render(RenderViewport*) override;
-	};
-
-	class ENGINE_EXPORT OverlayPass : public RenderPass
-	{
-		trinex_render_pass(OverlayPass, RenderPass);
-
-		OverlayPass& copy_view_texture(ViewMode mode);
-
-	public:
-		BatchedLines lines;
-		BatchedTriangles triangles;
-
-		bool is_empty() const override;
-		OverlayPass& clear() override;
-		OverlayPass& render(RenderViewport*) override;
-	};
+		// Generic render pass with four color attachments
+		class ENGINE_EXPORT GenericGeometry : public RenderPass
+		{
+			trinex_render_pass(GenericGeometry, RenderPass);
+			GenericGeometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+		};
+	}// namespace RenderPasses
 }// namespace Engine

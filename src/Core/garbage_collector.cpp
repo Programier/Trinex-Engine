@@ -29,15 +29,9 @@ namespace Engine
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
 	CallBacks<void(Object*)> GarbageCollector::on_destroy;
 
-	static FORCE_INLINE ByteAllocator& allocator()
-	{
-		static ByteAllocator object_allocator;
-		return object_allocator;
-	}
-
 	void* Object::operator new(size_t size) noexcept
 	{
-		byte* memory = allocator().allocate(size);
+		byte* memory = ByteAllocator::allocate(size);
 		return memory;
 	}
 
@@ -49,29 +43,12 @@ namespace Engine
 	void Object::operator delete(void* _memory, size_t size) noexcept
 	{
 		byte* memory = reinterpret_cast<byte*>(_memory);
-		allocator().deallocate(memory);
+		ByteAllocator::deallocate(memory);
 	}
 
 	static FORCE_INLINE uint32_t get_max_objects_per_tick()
 	{
 		return glm::max<uint32_t>(1, Settings::gc_max_object_per_tick);
-	}
-
-
-	void GarbageCollector::destroy_recursive(Object* object, bool destroy_owner_if_exist)
-	{
-		if (object == nullptr || object->flags(Object::IsAvailableForGC) == false)
-			return;
-
-		if (destroy_owner_if_exist)
-		{
-			if (Object* owner = object->owner())
-			{
-				destroy_recursive(owner, destroy_owner_if_exist);
-			}
-		}
-
-		destroy(object);
 	}
 
 	ENGINE_EXPORT void GarbageCollector::destroy_internal(Object* object)
@@ -221,13 +198,37 @@ namespace Engine
 		process_objects(callback);
 	}
 
+	static bool destroy_recursive(Object* object)
+	{
+		if (object == nullptr)
+			return true;
+
+		if (!object->flags.has_all(Object::IsAvailableForGC))
+			return false;
+		
+		auto index = object->instance_index();
+		
+		if (Object* owner = object->owner())
+		{
+			if (!destroy_recursive(owner))
+				return false;
+
+			// Maybe this object is already destroyed, check it
+			if (Object::all_objects()[index] != object)
+				return true;
+		}
+
+		GarbageCollector::destroy(object);
+		return true;
+	}
+
 	void GarbageCollector::destroy_all_objects()
 	{
 		auto& objects = const_cast<Vector<Object*>&>(Object::all_objects());
 
 		for (Object* object : objects)
 		{
-			destroy_recursive(object, true);
+			destroy_recursive(object);
 		}
 	}
 }// namespace Engine

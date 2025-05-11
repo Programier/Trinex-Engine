@@ -1,6 +1,5 @@
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
-#include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Actors/spot_light_actor.hpp>
 #include <Graphics/texture_2D.hpp>
 

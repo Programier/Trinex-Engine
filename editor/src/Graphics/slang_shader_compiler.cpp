@@ -8,7 +8,7 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/reflection/render_pass_info.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
@@ -934,7 +934,7 @@ namespace Engine
 		return pipeline;
 	}
 
-	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Material* material, Refl::RenderPassInfo* pass)
+	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Material* material, RenderPass* pass)
 	{
 		if (material)
 		{
@@ -950,8 +950,8 @@ namespace Engine
 			pass->modify_shader_compilation_env(&env);
 		}
 
-		Pipeline* pipeline      = material->remove_pipeline(pass);
-		const bool new_pipeline = pipeline == nullptr;
+		GraphicsPipeline* pipeline = material->remove_pipeline(pass);
+		const bool new_pipeline    = pipeline == nullptr;
 
 		if (new_pipeline)
 		{
@@ -979,7 +979,7 @@ namespace Engine
 		return false;
 	}
 
-	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline, Refl::RenderPassInfo* pass)
+	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline, RenderPass* pass)
 	{
 		SLANG_CompilationEnv env(this);
 		pipeline->modify_compilation_env(&env);
@@ -1112,7 +1112,7 @@ namespace Engine
 
 		bool success = compile_pass(material, nullptr, source);
 
-		for (auto pass = Refl::RenderPassInfo::first_pass(); pass && success; pass = pass->next_pass())
+		for (auto pass = RenderPass::static_first_pass(); pass && success; pass = pass->next_pass())
 		{
 			if (pass->is_material_compatible(material))
 			{
@@ -1131,7 +1131,7 @@ namespace Engine
 		new (&out) Buffer(src, src + size);
 	}
 
-	bool SLANG_ShaderCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass)
+	bool SLANG_ShaderCompiler::compile_pass(Material* material, RenderPass* pass)
 	{
 		String source;
 
@@ -1146,7 +1146,7 @@ namespace Engine
 		return result;
 	}
 
-	bool SLANG_ShaderCompiler::compile_pass(Material* material, Refl::RenderPassInfo* pass, const String& source)
+	bool SLANG_ShaderCompiler::compile_pass(Material* material, RenderPass* pass, const String& source)
 	{
 		Context ctx(this);
 		return ctx.compile_graphics(source, material, pass);

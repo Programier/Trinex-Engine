@@ -5,6 +5,8 @@
 
 namespace Engine
 {
+	class RendererContext;
+
 	class ENGINE_EXPORT BatchedLines final
 	{
 	public:
@@ -51,7 +53,7 @@ namespace Engine
 		delete_copy_constructors(BatchedLines);
 
 		BatchedLines& add_line(const Vertex& point1, const Vertex& point2);
-		BatchedLines& render(class RenderPass* pass);
+		BatchedLines& render(const RendererContext& ctx);
 		BatchedLines& clear();
 	};
 
@@ -69,6 +71,6 @@ namespace Engine
 		BatchedTriangles& add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 		                               Color color1 = {255, 255, 255, 255}, Color color2 = {255, 255, 255, 255},
 		                               Color color3 = {255, 255, 255, 255});
-		BatchedTriangles& render(class RenderPass* pass);
+		BatchedTriangles& render(const RendererContext& ctx);
 	};
 }// namespace Engine

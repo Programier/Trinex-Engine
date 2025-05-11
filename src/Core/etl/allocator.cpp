@@ -4,6 +4,7 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/thread.hpp>
 #include <cstdlib>
@@ -61,13 +62,28 @@ namespace Engine
 			TempAllocatorSync* const m_sync;
 			Node* m_head     = nullptr;
 			Node* m_current  = nullptr;
-			uint64_t m_frame = 0;
+			Thread* m_thread = nullptr;
 
 			TempAllocatorData(TempAllocatorSync* sync) : m_sync(sync)
 			{
 				sync->push(this);
 				m_head    = allocate_block();
 				m_current = m_head;
+				m_thread  = ThisThread::self();
+			}
+
+			TempAllocatorData& reset()
+			{
+				if (m_thread == ThisThread::self())
+				{
+					m_current          = m_head;
+					m_current->m_stack = m_current->m_begin;
+				}
+				else
+				{
+					m_thread->call([this]() { reset(); });
+				}
+				return *this;
 			}
 
 			Node* allocate_block(size_type size = 0, size_type align = 0)
@@ -78,15 +94,6 @@ namespace Engine
 			inline byte* allocate_aligned(size_type size, size_type align)
 			{
 				Node* prev = nullptr;
-
-				const uint64_t current_frame = engine_instance ? engine_instance->frame_index() : 0;
-
-				if (m_frame != current_frame)
-				{
-					m_current          = m_head;
-					m_current->m_stack = m_current->m_begin;
-					m_frame            = current_frame;
-				}
 
 				while (m_current)
 				{
@@ -131,7 +138,6 @@ namespace Engine
 		static thread_local TempAllocatorData s_frame_allocator(&s_frame_sync);
 	}// namespace
 
-
 	unsigned char* ByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
 		return static_cast<unsigned char*>(std::aligned_alloc(align, size));
@@ -160,8 +166,25 @@ namespace Engine
 		return s_stack_allocator.allocate_aligned(size, align);
 	}
 
+	static void reset_stack_allocator(TempAllocatorSync* sync)
+	{
+		sync->lock();
+		for (TempAllocatorData* allocator : sync->stacks) allocator->reset();
+		sync->unlock();
+	}
+
+	void StackByteAllocator::reset()
+	{
+		reset_stack_allocator(&s_stack_sync);
+	}
+
 	unsigned char* FrameByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
 		return s_frame_allocator.allocate_aligned(size, align);
+	}
+
+	void FrameByteAllocator::reset()
+	{
+		reset_stack_allocator(&s_frame_sync);
 	}
 }// namespace Engine

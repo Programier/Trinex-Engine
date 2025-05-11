@@ -25,7 +25,7 @@ namespace Engine
 		CriticalSection m_render_finished;
 
 		Vector<struct Event> m_recieved_events;
-		CommandBufferThread* m_debugging_thread;
+		Thread* m_debugging_thread;
 
 		class Script* m_selected_script  = nullptr;
 		class Script* m_script_for_popup = nullptr;

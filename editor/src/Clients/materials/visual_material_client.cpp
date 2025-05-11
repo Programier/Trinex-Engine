@@ -383,8 +383,7 @@ namespace Engine
 	VisualMaterialEditorClient& VisualMaterialEditorClient::render_graph()
 	{
 		static BlueprintBuilder builder;
-		float text_height  = ImGui::GetTextLineHeightWithSpacing();
-		float item_spacing = ImGui::GetStyle().ItemSpacing.x;
+		float text_height = ImGui::GetTextLineHeightWithSpacing();
 
 		m_selected_nodes.clear();
 

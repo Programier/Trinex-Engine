@@ -1,10 +1,9 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
-#include <Core/reflection/render_pass_info.hpp>
-#include <Engine/Render/lighting_pass.hpp>
 #include <Engine/Render/pipelines.hpp>
-#include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
@@ -135,10 +134,10 @@ namespace Engine::Pipelines
 		m_globals = find_param_info("globals");
 	}
 
-	void BatchedLines::apply(SceneRenderer* renderer)
+	void BatchedLines::apply(const RendererContext& ctx)
 	{
 		rhi_bind();
-		renderer->bind_global_parameters(m_globals->location);
+		rhi->bind_uniform_buffer(ctx.renderer->globals_uniform_buffer(), m_globals->location);
 	}
 
 	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
@@ -191,7 +190,7 @@ namespace Engine::Pipelines
 		Super::modify_compilation_env(env);
 		env->add_definition_nocopy("TRINEX_POINT_LIGHT", "1");
 		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
+		//ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
 		return *this;
 	}
 
@@ -213,7 +212,7 @@ namespace Engine::Pipelines
 		Super::modify_compilation_env(env);
 		env->add_definition_nocopy("TRINEX_POINT_LIGHT", "1");
 		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		LightingPass::static_info()->modify_shader_compilation_env(env);
+		//LightingPass::static_info()->modify_shader_compilation_env(env);
 		return *this;
 	}
 
@@ -247,7 +246,7 @@ namespace Engine::Pipelines
 		Super::modify_compilation_env(env);
 		env->add_definition_nocopy("TRINEX_SPOT_LIGHT", "1");
 		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
+		//ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
 		return *this;
 	}
 
@@ -269,7 +268,7 @@ namespace Engine::Pipelines
 		Super::modify_compilation_env(env);
 		env->add_definition_nocopy("TRINEX_SPOT_LIGHT", "1");
 		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		LightingPass::static_info()->modify_shader_compilation_env(env);
+		//LightingPass::static_info()->modify_shader_compilation_env(env);
 		return *this;
 	}
 
@@ -299,7 +298,7 @@ namespace Engine::Pipelines
 		Super::modify_compilation_env(env);
 		env->add_definition_nocopy("TRINEX_DIRECTIONAL_LIGHT", "1");
 		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
+		//ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
 		return *this;
 	}
 
@@ -321,7 +320,7 @@ namespace Engine::Pipelines
 		Super::modify_compilation_env(env);
 		env->add_definition_nocopy("TRINEX_DIRECTIONAL_LIGHT", "1");
 		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		LightingPass::static_info()->modify_shader_compilation_env(env);
+		//LightingPass::static_->modify_shader_compilation_env(env);
 		return *this;
 	}
 

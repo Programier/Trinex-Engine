@@ -140,7 +140,7 @@ namespace Engine
 	trinex_implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
-	    : m_debugging_thread(allocate<CommandBufferThread>("ScriptDebug")), m_action(ImGui::TextEditor::DebugAction::Continue),
+	    : m_debugging_thread(allocate<Thread>("ScriptDebug")), m_action(ImGui::TextEditor::DebugAction::Continue),
 	      m_is_in_debug_loop(false)
 	{
 		build_language_definition();
@@ -920,7 +920,6 @@ namespace Engine
 				viewport()->update(dt);
 
 				m_render_finished.lock();
-				viewport()->render();
 				render_thread()->call([this]() {
 					rhi->submit();
 					m_render_finished.unlock();

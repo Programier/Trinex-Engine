@@ -3,7 +3,6 @@
 #include <Engine/camera_types.hpp>
 #include <Engine/scene_view.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader_parameters.hpp>
 
 
@@ -11,16 +10,13 @@ namespace Engine
 {
 	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Size2D rt_size)
 	{
-		render_target_size = rt_size;
-		if (rt_size.x < 0.f || rt_size.y < 0.f)
-			render_target_size = SceneRenderTargets::instance()->size();
-
 		if (scene_view)
 		{
-			projection   = scene_view->projection_matrix();
-			view         = scene_view->view_matrix();
-			projview     = scene_view->projview_matrix();
-			inv_projview = scene_view->inv_projview_matrix();
+			render_target_size = scene_view->view_size();
+			projection         = scene_view->projection_matrix();
+			view               = scene_view->view_matrix();
+			projview           = scene_view->projview_matrix();
+			inv_projview       = scene_view->inv_projview_matrix();
 
 			const ViewPort& vp = scene_view->viewport();
 			viewport.pos       = Vector2f(vp.pos);

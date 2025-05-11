@@ -7,7 +7,6 @@
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Platform/platform.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>

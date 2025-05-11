@@ -40,8 +40,9 @@ namespace Engine::RenderGraph
 		RGVector<class Pass*> m_readers;
 		RGVector<class Pass*> m_writers;
 		RGVector<class Pass*> m_read_writers;
+		bool m_is_visited;
 
-		inline Resource() {}
+		inline Resource() : m_is_visited(false) {}
 
 	public:
 		inline Resource& add_writer(Pass* pass)
@@ -188,18 +189,12 @@ namespace Engine::RenderGraph
 	private:
 		struct Node {
 			Pass* pass;
-			RGVector<Node*> dependencies;// Passes that this pass depends on (i.e., must run before this one)
-			RGVector<Node*> dependents;  // Passes that depend on this pass (i.e., must run after this one)
+			RGVector<Node*> dependencies;
 
 			uint32_t depth       = 0;
 			uint32_t phase_score = 0;
 
-			inline Node()
-			{
-				dependencies.reserve(8);
-				dependents.reserve(8);
-			}
-
+			inline Node() { dependencies.reserve(8); }
 			inline void execute() { pass->execute(); }
 			inline bool is_executed() const { return pass->m_flags & Pass::Flags::IsExecuted; }
 			inline bool is_live() const { return pass->m_flags & Pass::Flags::IsLive; }

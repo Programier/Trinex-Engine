@@ -30,7 +30,6 @@ namespace Engine
 		ENGINE_EXPORT static void mark_unreachable(float dt);
 		ENGINE_EXPORT static void collect_garbage(float dt);
 		ENGINE_EXPORT static void destroy_garbage(float dt);
-		ENGINE_EXPORT static void destroy_recursive(Object* object, bool destroy_owner_if_exist = false);
 		ENGINE_EXPORT static void destroy_internal(Object* object);
 
 		ENGINE_EXPORT static void destroy_all_objects();

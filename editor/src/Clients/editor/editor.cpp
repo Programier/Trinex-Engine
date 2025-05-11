@@ -16,8 +16,8 @@
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_surface.hpp>
+#include <Graphics/render_surface_pool.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <ImGuizmo.h>
 #include <Platform/platform.hpp>
@@ -147,7 +147,6 @@ namespace Engine
 		        std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
 		m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
 		        std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
-		m_renderer.scene = m_world->scene();
 		m_world->start_play();
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
@@ -218,6 +217,38 @@ namespace Engine
 		}
 	}
 
+	RenderSurface* EditorClient::capture_scene()
+	{
+		Vector2i size        = viewport()->size();
+		RenderSurface* scene = RenderSurfacePool::global_instance()->request_transient_surface(SurfaceFormat::RGBA8, size);
+
+		if (scene == nullptr)
+			return nullptr;
+
+		m_scene_view.viewport(ViewPort({0, 0}, size));
+		m_scene_view.scissor(Scissor({0, 0}, size));
+
+		render_thread()->call([this, scene, mode = m_view_mode]() {
+			Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), m_scene_view, mode);
+			register_editor_render_passes(renderer);
+
+			Rect2D rect;
+			rect.pos  = {0, 0};
+			rect.size = m_scene_view.viewport().size;
+
+			auto src = renderer->render().scene_color_target()->as_rtv();
+			auto dst = scene->rhi_rtv();
+			dst->blit(src, rect, rect, SamplerFilter::Point);
+
+			if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
+			{
+				call_in_logic_thread([this, statistics = renderer->statistics]() { m_statistics = statistics; });
+			}
+		});
+
+		return scene;
+	}
+
 	EditorClient& EditorClient::update_drag_and_drop()
 	{
 		if (ImGui::BeginDragDropTarget())
@@ -230,21 +261,6 @@ namespace Engine
 			}
 			ImGui::EndDragDropTarget();
 		}
-		return *this;
-	}
-
-	EditorClient& EditorClient::render(class RenderViewport* render_viewport)
-	{
-		m_scene_view.viewport(render_viewport->viewport_info());
-		m_scene_view.scissor(render_viewport->scissor_info());
-		m_renderer.render(m_scene_view, render_viewport);
-
-		if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
-		{
-			call_in_logic_thread([this, statistics = m_renderer.statistics]() { m_statistics = statistics; });
-		}
-
-		Super::render(render_viewport);
 		return *this;
 	}
 
@@ -426,7 +442,6 @@ namespace Engine
 			}
 		}
 
-
 		if (m_state.viewport.show_additional_menu)
 		{
 			if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
@@ -441,7 +456,7 @@ namespace Engine
 							if (ImGui::Selectable(entry.name.c_str(), &entry == m_state.viewport.view_mode_entry))
 							{
 								m_state.viewport.view_mode_entry = &entry;
-								m_renderer.view_mode(static_cast<ViewMode::Enum>(entry.value));
+								m_view_mode                      = static_cast<ViewMode::Enum>(entry.value);
 							}
 						}
 						ImGui::EndCombo();
@@ -508,9 +523,11 @@ namespace Engine
 			m_state.viewport.size = ImGui::EngineVecFrom(size);
 			camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
-			auto k = viewport()->size() / SceneRenderTargets::instance()->size();
-			ImGui::Image(m_renderer.output_surface(), size, {0.f, k.y}, {k.x, 0.f});
-			m_state.viewport.is_hovered = ImGui::IsWindowHovered();
+			if (RenderSurface* scene = capture_scene())
+			{
+				ImGui::Image(scene, size);
+				m_state.viewport.is_hovered = ImGui::IsWindowHovered();
+			}
 
 			ImGui::SetCursorPos(current_pos);
 			render_guizmo(dt);

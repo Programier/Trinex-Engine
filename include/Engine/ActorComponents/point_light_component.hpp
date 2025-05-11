@@ -1,5 +1,4 @@
 #pragma once
-
 #include <Engine/ActorComponents/local_light_component.hpp>
 
 
@@ -29,7 +28,6 @@ namespace Engine
 		PointLightComponent();
 
 		PointLightComponent& start_play() override;
-		PointLightComponent& render(class SceneRenderer*) override;
 		Proxy* create_proxy() override;
 		PointLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 

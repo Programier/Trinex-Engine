@@ -44,7 +44,6 @@ namespace Engine
 
 		Type light_type() const override;
 		SpotLightComponent& start_play() override;
-		SpotLightComponent& render(class SceneRenderer*) override;
 		Proxy* create_proxy() override;
 
 		inline Vector3f direction() const { return world_transform().forward_vector(); }

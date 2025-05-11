@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	class SceneComponent;
+	struct RendererContext;
 	struct ShaderParameterInfo;
 	class Texture2D;
 	class Material;
@@ -38,7 +38,7 @@ public:                                                                         
 			uint16_t m_pipeline_refs = 0;
 
 		protected:
-			virtual Parameter& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) = 0;
+			virtual Parameter& apply(const RendererContext& ctx, ShaderParameterInfo* info) = 0;
 
 		public:
 			static Refl::Class* static_find_class(ShaderParameterType type);
@@ -64,7 +64,7 @@ public:                                                                         
 		protected:
 			Primitive(const T& value = T()) : value(value) {}
 
-			Primitive& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override
+			Primitive& apply(const RendererContext& ctx, ShaderParameterInfo* info) override
 			{
 				update(&value, sizeof(T), info);
 				return *this;
@@ -171,11 +171,8 @@ public:                                                                         
 			trinex_material_parameter(Float4x4, Parameter);
 
 		public:
-			bool is_model = false;
-
 			Float4x4() : Primitive<Matrix4f>(Matrix3f(1.f)) {}
-
-			Float4x4& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			Float4x4& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT LocalToWorld : public Parameter
@@ -183,7 +180,7 @@ public:                                                                         
 			trinex_material_parameter(LocalToWorld, Parameter);
 
 		public:
-			LocalToWorld& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			LocalToWorld& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Sampler : public Parameter
@@ -194,7 +191,7 @@ public:                                                                         
 			Engine::Sampler sampler;
 
 			Sampler();
-			Sampler& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			Sampler& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -207,7 +204,7 @@ public:                                                                         
 			Engine::Texture2D* texture;
 
 			Sampler2D();
-			Sampler2D& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			Sampler2D& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -219,7 +216,7 @@ public:                                                                         
 			Engine::Texture2D* texture;
 
 			Texture2D();
-			Texture2D& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			Texture2D& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -228,7 +225,7 @@ public:                                                                         
 			trinex_material_parameter(Globals, Parameter);
 
 		public:
-			Globals& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			Globals& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Surface : public Parameter
@@ -239,7 +236,7 @@ public:                                                                         
 			Engine::RenderSurface* surface;
 
 			Surface();
-			Surface& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			Surface& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -252,7 +249,7 @@ public:                                                                         
 			Engine::Sampler sampler;
 
 			CombinedSurface();
-			CombinedSurface& apply(SceneComponent* component, RenderPass* render_pass, ShaderParameterInfo* info) override;
+			CombinedSurface& apply(const RendererContext& ctx, ShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 	}// namespace MaterialParameters

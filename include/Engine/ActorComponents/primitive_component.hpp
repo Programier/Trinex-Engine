@@ -52,7 +52,6 @@ namespace Engine
 		PrimitiveComponent& stop_play() override;
 		PrimitiveComponent& on_transform_changed() override;
 
-		virtual PrimitiveComponent& render(class SceneRenderer* renderer);
 		virtual PrimitiveComponent& update_bounding_box();
 
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }

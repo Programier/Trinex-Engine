@@ -139,6 +139,7 @@ namespace Engine
 			FORCE_INLINE const Node* child_at(Octree::Index index) const { return m_childs[index.index]; }
 			FORCE_INLINE const AABB_3Df& box() const { return m_box; }
 			FORCE_INLINE size_t size() const { return m_size; }
+			FORCE_INLINE bool empty() const { return m_size == 0; }
 
 			FORCE_INLINE Node* find(const AABB_3Df& box) { return const_cast<Node*>(const_cast<const Node*>(this)->find(box)); }
 
@@ -211,6 +212,7 @@ namespace Engine
 		}
 
 		FORCE_INLINE size_t size() const { return m_root_node->size(); }
+		FORCE_INLINE bool empty() const { return m_root_node->empty(); }
 
 		~Octree() { delete m_root_node; }
 	};

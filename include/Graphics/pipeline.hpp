@@ -116,7 +116,7 @@ namespace Engine
 		virtual bool serialize(Archive& ar, Material* material);
 		virtual Pipeline& clear();
 		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
-		virtual Pipeline& post_compile(Refl::RenderPassInfo* pass);
+		virtual Pipeline& post_compile(RenderPass* pass);
 
 		inline RHI_Pipeline* rhi_pipeline() const { return m_pipeline; }
 

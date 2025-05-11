@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
@@ -11,9 +12,9 @@ namespace Engine
 	class PrimitiveComponent;
 	class LightComponent;
 	class SceneComponent;
-	class SceneRenderer;
 	class RenderViewport;
 	class RenderTargetBase;
+	class Frustum;
 
 	class ENGINE_EXPORT Scene final
 	{
@@ -32,7 +33,6 @@ namespace Engine
 		WorldEnvironment environment;
 
 		Scene();
-		Scene& build_views(SceneRenderer* renderer);
 		Scene& add_primitive(PrimitiveComponent* primitive);
 		Scene& remove_primitive(PrimitiveComponent* primitive);
 		Scene& update_primitive_transform(PrimitiveComponent* primitive);
@@ -42,6 +42,9 @@ namespace Engine
 		SceneComponent* root_component() const;
 		const PrimitiveOctree& primitive_octree() const;
 		const LightOctree& light_octree() const;
+
+		FrameVector<PrimitiveComponent*> collect_visible_primitives(const Frustum& frustum);
+		FrameVector<LightComponent*> collect_visible_lights(const Frustum& frustum);
 		~Scene();
 	};
 }// namespace Engine
