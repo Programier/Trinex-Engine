@@ -25,11 +25,11 @@ namespace Engine
 
 		if (mode == ViewMode::Lit)
 		{
-			graph.add_pass(RenderGraph::Pass::Graphics, "Ambient Pass")
+			graph.add_pass(RenderGraph::Pass::Graphics, "Lighting Pass")
 			        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
 			        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 			        .add_resource(scene_color_target(), RHIAccess::RTV)
-			        .add_func([this]() { ambient_pass(); });
+			        .add_func([this]() { deferred_lighting_pass(); });
 		}
 		else if (mode == ViewMode::Unlit)
 		{
@@ -48,7 +48,7 @@ namespace Engine
 		render_visible_primitives(RenderPasses::GenericGeometry::static_instance());
 	}
 
-	void DeferredRenderer::ambient_pass()
+	void DeferredRenderer::deferred_lighting_pass()
 	{
 		auto pipeline = Pipelines::AmbientLight::instance();
 		rhi->bind_render_target1(scene_color_target()->as_rtv());

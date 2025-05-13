@@ -9,7 +9,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/render_surface_pool.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>

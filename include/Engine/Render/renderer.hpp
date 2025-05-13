@@ -9,6 +9,7 @@ namespace Engine
 	class RenderSurface;
 	class RenderPass;
 	class PrimitiveComponent;
+	class LightComponent;
 	struct RHI_Buffer;
 	struct RHI_Texture2D;
 
@@ -63,7 +64,9 @@ namespace Engine
 
 		RHI_Texture2D* m_surfaces[LastSurface];
 		FrameVector<CustomPass> m_custom_passes;
+
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
+		FrameVector<LightComponent*> m_visible_lights;
 
 		Renderer& register_clear_passes(RenderGraph::Graph& graph);
 
@@ -87,6 +90,7 @@ namespace Engine
 		inline Scene* scene() const { return m_scene; }
 		inline ViewMode view_mode() const { return m_view_mode; }
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
+		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }
 
 		inline RHI_Texture2D* scene_color_target() { return m_surfaces[SceneColor]; }
 		inline RHI_Texture2D* scene_depth_target() { return m_surfaces[SceneDepth]; }

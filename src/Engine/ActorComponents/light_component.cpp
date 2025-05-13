@@ -7,7 +7,7 @@
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/render_surface_pool.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine

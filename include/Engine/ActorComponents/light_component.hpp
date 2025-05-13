@@ -15,11 +15,10 @@ namespace Engine
 	public:
 		enum Type
 		{
-			Unknown     = -1,
-			Point       = 0,
-			Spot        = 1,
-			Directional = 2,
-			Num         = 3
+			Undefined   = 0,
+			Point       = 1,
+			Spot        = 2,
+			Directional = 3,
 		};
 
 		class ENGINE_EXPORT Proxy : public Super::Proxy

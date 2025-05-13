@@ -9,8 +9,8 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/mesh.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/render_surface_pool.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>

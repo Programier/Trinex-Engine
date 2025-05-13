@@ -14,8 +14,8 @@
 #include <Engine/world.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/render_surface_pool.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Widgets/content_browser.hpp>

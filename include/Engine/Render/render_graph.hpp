@@ -40,9 +40,8 @@ namespace Engine::RenderGraph
 		RGVector<class Pass*> m_readers;
 		RGVector<class Pass*> m_writers;
 		RGVector<class Pass*> m_read_writers;
-		bool m_is_visited;
 
-		inline Resource() : m_is_visited(false) {}
+		inline Resource() {}
 
 	public:
 		inline Resource& add_writer(Pass* pass)
@@ -122,6 +121,7 @@ namespace Engine::RenderGraph
 		void* m_node;
 
 		RGVector<Resource*> m_resources;
+		RGVector<Pass*> m_dependencies;
 		RGVector<Task*> m_tasks;
 		Type m_type;
 		Flags m_flags;
@@ -133,6 +133,12 @@ namespace Engine::RenderGraph
 	public:
 		Pass& add_resource(RHI_Texture* texture, RHIAccess access);
 		Pass& add_resource(RHI_Buffer* buffer, RHIAccess access);
+		
+		inline Pass& add_dependency(Pass* dependency)
+		{
+			m_dependencies.push_back(dependency);
+			return *this;
+		}
 
 		template<typename TaskType, typename... Args>
 		Pass& add_task(Args&&... args)
@@ -167,6 +173,7 @@ namespace Engine::RenderGraph
 		inline Type type() const { return m_type; }
 		inline const char* name() const { return m_name; }
 		inline const RGVector<Resource*>& resources() const { return m_resources; }
+		inline const RGVector<Pass*>& dependencies() const { return m_dependencies; }
 		inline const RGVector<Task*>& tasks() const { return m_tasks; }
 
 		inline Pass& execute()

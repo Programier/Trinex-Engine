@@ -9,7 +9,7 @@
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/render_surface_pool.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_parameters.hpp>
@@ -18,7 +18,8 @@ namespace Engine
 {
 	Renderer::Renderer(Scene* scene, const SceneView& view, ViewMode mode)
 	    : m_view(view), m_scene(scene), m_view_mode(mode),
-	      m_visible_primitives(scene->collect_visible_primitives(view.camera_view()))
+	      m_visible_primitives(scene->collect_visible_primitives(view.camera_view())),
+	      m_visible_lights(scene->collect_visible_lights(view.camera_view()))
 	{
 		m_custom_passes.reserve(8);
 		m_globals = RHIBufferPool::global_instance()->request_transient_buffer(sizeof(GlobalShaderParameters),

@@ -128,6 +128,11 @@ namespace Engine::RenderGraph
 			writer->m_node    = writer_node;
 			owner->dependencies.push_back(writer_node);
 
+			for (Pass* dependency : writer->dependencies())
+			{
+				build_graph(dependency, writer_node);
+			}
+
 			for (const Pass::Resource* pr : writer->resources())
 			{
 				if (pr->access & RHIAccess::ReadableMask)
@@ -141,27 +146,20 @@ namespace Engine::RenderGraph
 
 	Graph& Graph::build_graph(Resource* resource, Node* owner)
 	{
-		if (resource->m_is_visited)
-			return *this;
-
-		resource->m_is_visited = true;
-
 		for (Pass* writer : resource->writers())
 		{
 			build_graph(writer, owner);
 		}
 
-		for (Pass* writer : resource->read_writers())
-		{
-			build_graph(writer, owner);
-		}
+		auto& rw = resource->read_writers();
+		std::for_each(rw.rbegin(), rw.rend(), [this, owner](Pass* writer) { build_graph(writer, owner); });
 		return *this;
 	}
 
 	Graph::Node* Graph::build_graph()
 	{
 		Node* root = Node::create();
-		root->pass = &add_pass(Pass::Type::Graphics);
+		root->pass = &add_pass(Pass::Type::Graphics, "Root");
 
 		for (Resource* output : m_outputs)
 		{

@@ -15,7 +15,7 @@ namespace Engine
 
 		graph.add_pass(RenderGraph::Pass::Graphics, "Editor Grid")
 		        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
-		        //.add_resource(renderer->scene_depth_target(), RHIAccess::DSV)
+		        .add_resource(renderer->scene_depth_target(), RHIAccess::DSV)
 		        .add_func([renderer]() {
 			        rhi->bind_render_target1(renderer->scene_color_target()->as_rtv(), renderer->scene_depth_target()->as_dsv());
 			        RendererContext ctx(renderer, RenderPasses::GenericOutput::static_instance());

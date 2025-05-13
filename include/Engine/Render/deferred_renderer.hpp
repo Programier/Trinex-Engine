@@ -7,7 +7,7 @@ namespace Engine
 	{
 	private:
 		void geometry_pass();
-		void ambient_pass();
+		void deferred_lighting_pass();
 		void copy_base_color_to_scene_color();
 
 	public:

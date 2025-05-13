@@ -4,8 +4,8 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/render_surface_pool.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine

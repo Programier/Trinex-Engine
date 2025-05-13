@@ -8,8 +8,8 @@
 #include <Engine/Render/renderer.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/render_surface_pool.hpp>
 #include <Widgets/mesh_preview.hpp>
 
 namespace Engine
