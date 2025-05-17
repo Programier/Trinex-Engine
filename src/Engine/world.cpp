@@ -264,7 +264,7 @@ namespace Engine
 		return *this;
 	}
 
-	const TreeSet<Actor*>& World::selected_actors() const
+	const Set<Actor*>& World::selected_actors() const
 	{
 		return m_selected_actors;
 	}

@@ -13,7 +13,11 @@ namespace Engine
 		trinex_declare_class(ActorComponent, Object);
 
 	public:
-		class ENGINE_EXPORT Proxy{public: virtual ~Proxy(){}};
+		class ENGINE_EXPORT Proxy
+		{
+		public:
+			virtual ~Proxy() {}
+		};
 
 	private:
 		Proxy* m_proxy;
@@ -59,14 +63,6 @@ namespace Engine
 				return *this;
 			}
 		};
-
-
-		enum Flag
-		{
-			DisableRaycast = BIT(0),
-		};
-
-		Flags<Flag, Atomic<BitMask>> component_flags;
 
 		ActorComponent();
 		~ActorComponent();

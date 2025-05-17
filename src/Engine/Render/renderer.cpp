@@ -8,8 +8,8 @@
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/render_surface.hpp>
 #include <Graphics/render_pools.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_parameters.hpp>
@@ -95,7 +95,8 @@ namespace Engine
 
 		for (auto custom_pass : m_custom_passes)
 		{
-			custom_pass(this, graph);
+			custom_pass->execute(this, graph);
+			custom_pass->~CustomPass();
 		}
 
 		rhi->viewport(m_view.viewport());
@@ -106,65 +107,71 @@ namespace Engine
 		return *this;
 	}
 
+	Renderer& Renderer::render_primitive(RenderPass* pass, PrimitiveComponent* primitive)
+	{
+		auto proxy = primitive->proxy();
+
+		if (!proxy->has_render_data())
+			return *this;
+
+		const uint_t lod      = scene_view().camera_view().compute_lod(proxy->world_transform().location(), proxy->lods());
+		const uint_t surfaces = proxy->surfaces(lod);
+
+		for (uint_t surface_index = 0; surface_index < surfaces; ++surface_index)
+		{
+			const MeshSurface* surface = proxy->surface(surface_index, lod);
+
+			if (surface == nullptr)
+				continue;
+
+			MaterialInterface* material_interface = proxy->material(surface->material_index, lod);
+
+			if (material_interface == nullptr)
+				continue;
+
+			Material* material         = material_interface->material();
+			GraphicsPipeline* pipeline = material->pipeline(pass);
+
+			if (!pipeline)
+				continue;
+
+			VertexShader* shader = pipeline->vertex_shader();
+			RendererContext ctx(this, pass, proxy->world_transform().matrix());
+
+			if (!material_interface->apply(ctx))
+				continue;
+
+			for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
+			{
+				auto& attribute          = shader->attributes[i];
+				VertexBufferBase* buffer = proxy->find_vertex_buffer(attribute.semantic, attribute.semantic_index, lod);
+
+				if (buffer)
+				{
+					buffer->rhi_bind(attribute.stream_index, 0);
+				}
+			}
+
+			if (auto index_buffer = proxy->find_index_buffer(lod))
+			{
+				index_buffer->rhi_bind();
+				rhi->draw_indexed(surface->vertices_count, surface->first_index, surface->base_vertex_index);
+			}
+			else
+			{
+				rhi->draw(surface->vertices_count, surface->base_vertex_index);
+			}
+		}
+		return *this;
+	}
+
 	Renderer& Renderer::render_visible_primitives(RenderPass* pass)
 	{
 		const FrameVector<PrimitiveComponent*>& primitives = visible_primitives();
 
 		for (PrimitiveComponent* primitive : primitives)
 		{
-			auto proxy = primitive->proxy();
-
-			if (!proxy->has_render_data())
-				continue;
-
-			const uint_t lod      = scene_view().camera_view().compute_lod(proxy->world_transform().location(), proxy->lods());
-			const uint_t surfaces = proxy->surfaces(lod);
-
-			for (uint_t surface_index = 0; surface_index < surfaces; ++surface_index)
-			{
-				const MeshSurface* surface = proxy->surface(surface_index, lod);
-
-				if (surface == nullptr)
-					continue;
-
-				MaterialInterface* material_interface = proxy->material(surface->material_index, lod);
-
-				if (material_interface == nullptr)
-					continue;
-
-				Material* material         = material_interface->material();
-				GraphicsPipeline* pipeline = material->pipeline(pass);
-
-				if (!pipeline)
-					continue;
-
-				VertexShader* shader = pipeline->vertex_shader();
-				RendererContext ctx(this, pass, proxy->world_transform().matrix());
-
-				if (!material_interface->apply(ctx))
-					continue;
-
-				for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
-				{
-					auto& attribute          = shader->attributes[i];
-					VertexBufferBase* buffer = proxy->find_vertex_buffer(attribute.semantic, attribute.semantic_index, lod);
-
-					if (buffer)
-					{
-						buffer->rhi_bind(attribute.stream_index, 0);
-					}
-				}
-
-				if (auto index_buffer = proxy->find_index_buffer(lod))
-				{
-					index_buffer->rhi_bind();
-					rhi->draw_indexed(surface->vertices_count, surface->first_index, surface->base_vertex_index);
-				}
-				else
-				{
-					rhi->draw(surface->vertices_count, surface->base_vertex_index);
-				}
-			}
+			render_primitive(pass, primitive);
 		}
 
 		return *this;

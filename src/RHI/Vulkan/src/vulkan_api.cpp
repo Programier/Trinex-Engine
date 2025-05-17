@@ -121,7 +121,6 @@ namespace Engine
 	}
 
 	///////////////////////////////// INITIALIZATION /////////////////////////////////
-#if ENABLE_VALIDATION_LAYERS
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
 	                                                     const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
@@ -145,7 +144,6 @@ namespace Engine
 		return VK_FALSE;
 #undef has_bit
 	}
-#endif
 
 	static vkb::PhysicalDevice initialize_physical_device()
 	{
@@ -281,14 +279,18 @@ namespace Engine
 			instance_builder.enable_extension(extension.c_str());
 		}
 
-#if ENABLE_VALIDATION_LAYERS
-		instance_builder.set_debug_callback(debug_callback)
-		        .request_validation_layers(true)
-		        .enable_validation_layers(true)
-		        .add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
-#else
-		instance_builder.enable_validation_layers(false).request_validation_layers(false);
-#endif
+
+		if (VulkanConfig::enable_validation)
+		{
+			instance_builder.set_debug_callback(debug_callback)
+			        .request_validation_layers(true)
+			        .enable_validation_layers(true)
+			        .add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
+		}
+		else
+		{
+			instance_builder.enable_validation_layers(false).request_validation_layers(false);
+		}
 
 		auto instance_ret = instance_builder.build();
 

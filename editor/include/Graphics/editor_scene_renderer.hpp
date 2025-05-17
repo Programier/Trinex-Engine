@@ -1,6 +1,14 @@
 #pragma once
+#include <Core/engine_types.hpp>
+
 namespace Engine
 {
 	class Renderer;
-	void register_editor_render_passes(Renderer* renderer);
+	class Actor;
+
+	namespace EditorRenderer
+	{
+		void render_grid(Renderer* renderer);
+		void render_outlines(Renderer* renderer, Actor** actor, size_t count);
+	}// namespace EditorRenderer
 }// namespace Engine

@@ -1,32 +1,72 @@
+#include "Engine/Actors/actor.hpp"
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
+#include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Engine/scene.hpp>
+#include <Graphics/editor_pipelines.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 
-namespace Engine
+namespace Engine::EditorRenderer
 {
-	static void render_editor_grid(Renderer* renderer, RenderGraph::Graph& graph)
+	void render_grid(Renderer* renderer)
 	{
+		if (!Settings::Editor::show_grid)
+			return;
 
-		graph.add_pass(RenderGraph::Pass::Graphics, "Editor Grid")
-		        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
-		        .add_resource(renderer->scene_depth_target(), RHIAccess::DSV)
-		        .add_func([renderer]() {
-			        rhi->bind_render_target1(renderer->scene_color_target()->as_rtv(), renderer->scene_depth_target()->as_dsv());
-			        RendererContext ctx(renderer, RenderPasses::GenericOutput::static_instance());
-			        EditorResources::grid_material->apply(ctx);
-			        rhi->draw(6, 0);
-		        });
+		renderer->add_custom_pass([](Renderer* renderer, RenderGraph::Graph& graph) {
+			graph.add_pass(RenderGraph::Pass::Graphics, "Editor Grid")
+			        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
+			        .add_resource(renderer->scene_depth_target(), RHIAccess::DSV)
+			        .add_func([renderer]() {
+				        rhi->bind_render_target1(renderer->scene_color_target()->as_rtv(),
+				                                 renderer->scene_depth_target()->as_dsv());
+				        RendererContext ctx(renderer, RenderPasses::GenericOutput::static_instance());
+				        EditorResources::grid_material->apply(ctx);
+				        rhi->draw(6, 0);
+			        });
+		});
 	}
 
-	void register_editor_render_passes(Renderer* renderer)
+	static void render_outlines_pass(Renderer* renderer, Actor** actors, size_t count)
 	{
-		if (Settings::Editor::show_grid)
-			renderer->add_custom_pass(render_editor_grid);
+		auto view_size = renderer->scene_view().view_size();
+		auto pool      = RHISurfacePool::global_instance();
+		auto depth     = pool->request_surface(SurfaceFormat::Depth, view_size);
+
+		depth->as_dsv()->clear(1.f, 0);
+		rhi->bind_depth_stencil_target(depth->as_dsv());
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			Actor* actor = actors[i];
+
+			for (ActorComponent* component : actor->owned_components())
+			{
+				if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
+				{
+					renderer->render_primitive(RenderPasses::Depth::static_instance(), primitive);
+				}
+			}
+		}
+
+		EditorPipelines::Outline::instance()->render(renderer, depth->as_srv(), {1.f, 0.f, 0.f});
+		pool->return_surface(depth);
 	}
-}// namespace Engine
+
+	void render_outlines(Renderer* renderer, Actor** actors, size_t count)
+	{
+		renderer->add_custom_pass([actors, count](Renderer* renderer, RenderGraph::Graph& graph) {
+			graph.add_pass(RenderGraph::Pass::Graphics, "Editor Outlines")
+			        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
+			        .add_resource(renderer->scene_depth_target(), RHIAccess::SRVGraphics)
+			        .add_func([renderer, actors, count]() { render_outlines_pass(renderer, actors, count); });
+		});
+	}
+}// namespace Engine::EditorRenderer

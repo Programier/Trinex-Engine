@@ -15,8 +15,8 @@
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/render_surface.hpp>
 #include <Graphics/render_pools.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <ImGuizmo.h>
@@ -204,6 +204,8 @@ namespace Engine
 		{
 			m_properties->object(actor);
 		}
+
+		render_thread()->call([this, actor]() { m_selected_actors_render_thread.push_back(actor); });
 	}
 
 	void EditorClient::on_actor_unselect(World* world, class Actor* actor)
@@ -215,6 +217,13 @@ namespace Engine
 				m_properties->object(nullptr);
 			}
 		}
+
+		render_thread()->call([this, actor]() {
+			auto it = std::find(m_selected_actors_render_thread.begin(), m_selected_actors_render_thread.end(), actor);
+
+			if (it != m_selected_actors_render_thread.end())
+				m_selected_actors_render_thread.erase(it);
+		});
 	}
 
 	RenderSurface* EditorClient::capture_scene()
@@ -230,7 +239,13 @@ namespace Engine
 
 		render_thread()->call([this, scene, mode = m_view_mode]() {
 			Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), m_scene_view, mode);
-			register_editor_render_passes(renderer);
+			EditorRenderer::render_grid(renderer);
+
+			size_t selected_count = m_selected_actors_render_thread.size();
+
+			if (selected_count != 0)
+				EditorRenderer::render_outlines(renderer, m_selected_actors_render_thread.data(), selected_count);
+
 
 			Rect2D rect;
 			rect.pos  = {0, 0};
@@ -550,56 +565,6 @@ namespace Engine
 		return *this;
 	}
 
-	// Inputs
-	static FORCE_INLINE float calculate_y_rotatation(float offset, float size, float fov)
-	{
-		return -offset * fov / size;
-	}
-
-	void EditorClient::on_mouse_press(const Event& event)
-	{
-		const auto& button = event.mouse.button;
-
-		if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
-		{
-			MouseSystem::instance()->relative_mode(true, window());
-		}
-	}
-
-	void EditorClient::on_mouse_release(const Event& event)
-	{
-		const auto& button = event.mouse.button;
-
-		if (button.button == Mouse::Button::Right)
-		{
-			MouseSystem::instance()->relative_mode(false, window());
-			m_camera_move = {0, 0, 0};
-		}
-	}
-
-	void EditorClient::on_mouse_move(const Event& event)
-	{
-		const auto& motion = event.mouse.motion;
-
-		if (MouseSystem::instance()->is_relative_mode(window()))
-		{
-			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-			                      0.f});
-		}
-	}
-
-	void EditorClient::on_finger_move(const Event& event)
-	{
-		const auto& motion = event.touchscreen.finger_motion;
-		if (motion.index == 0 && m_state.viewport.is_hovered)
-		{
-			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-			                      0.f});
-		}
-	}
-
 	static FORCE_INLINE void move_camera(Vector3f& move, Window* window)
 	{
 		move = {0, 0, 0};
@@ -659,9 +624,6 @@ namespace Engine
 
 		for (auto* component : node->values())
 		{
-			if (component->component_flags(ActorComponent::DisableRaycast))
-				continue;
-
 			intersect = component->bounding_box().intersect(ray);
 
 			if (intersect.x < intersect.y)
@@ -709,5 +671,55 @@ namespace Engine
 		}
 
 		return *this;
+	}
+
+	// Inputs
+	static FORCE_INLINE float calculate_y_rotatation(float offset, float size, float fov)
+	{
+		return -offset * fov / size;
+	}
+
+	void EditorClient::on_mouse_press(const Event& event)
+	{
+		const auto& button = event.mouse.button;
+
+		if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
+		{
+			MouseSystem::instance()->relative_mode(true, window());
+		}
+	}
+
+	void EditorClient::on_mouse_release(const Event& event)
+	{
+		const auto& button = event.mouse.button;
+
+		if (button.button == Mouse::Button::Right)
+		{
+			MouseSystem::instance()->relative_mode(false, window());
+			m_camera_move = {0, 0, 0};
+		}
+	}
+
+	void EditorClient::on_mouse_move(const Event& event)
+	{
+		const auto& motion = event.mouse.motion;
+
+		if (MouseSystem::instance()->is_relative_mode(window()))
+		{
+			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
+			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+			                      0.f});
+		}
+	}
+
+	void EditorClient::on_finger_move(const Event& event)
+	{
+		const auto& motion = event.touchscreen.finger_motion;
+		if (motion.index == 0 && m_state.viewport.is_hovered)
+		{
+			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
+			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+			                      0.f});
+		}
 	}
 }// namespace Engine

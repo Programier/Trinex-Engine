@@ -14,7 +14,7 @@ namespace Engine
 	class SceneComponent;
 	class RenderViewport;
 	class RenderTargetBase;
-	class Frustum;
+	struct Frustum;
 
 	class ENGINE_EXPORT Scene final
 	{

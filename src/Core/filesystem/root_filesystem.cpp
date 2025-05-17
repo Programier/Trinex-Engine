@@ -239,7 +239,7 @@ namespace Engine::VFS
 	Pair<FileSystem*, Path> RootFS::find_filesystem(const Path& path) const
 	{
 		static auto next_symbol_of = [](const Path& path, const String& fs_path) -> char {
-			if (fs_path.back() == Path::separator)
+			if (fs_path.empty() || fs_path.back() == Path::separator)
 				return Path::separator;
 
 			if (path.length() <= fs_path.length())

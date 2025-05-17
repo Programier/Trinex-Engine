@@ -43,152 +43,43 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case VertexBufferElementType::Float1:
-				stride = sizeof(float);
-				return vk::Format::eR32Sfloat;
-
-			case VertexBufferElementType::Float2:
-				stride = sizeof(float) * 2;
-				return vk::Format::eR32G32Sfloat;
-
-			case VertexBufferElementType::Float3:
-				stride = sizeof(float) * 3;
-				return vk::Format::eR32G32B32Sfloat;
-
-			case VertexBufferElementType::Float4:
-				stride = sizeof(float) * 4;
-				return vk::Format::eR32G32B32A32Sfloat;
-
-			case VertexBufferElementType::Byte1:
-				stride = sizeof(signed_byte);
-				return vk::Format::eR8Sint;
-
-			case VertexBufferElementType::Byte2:
-				stride = sizeof(signed_byte) * 2;
-				return vk::Format::eR8G8Sint;
-
-			case VertexBufferElementType::Byte4:
-				stride = sizeof(signed_byte) * 4;
-				return vk::Format::eR8G8B8A8Sint;
-
-			case VertexBufferElementType::Byte1N:
-				stride = sizeof(signed_byte);
-				return vk::Format::eR8Snorm;
-
-			case VertexBufferElementType::Byte2N:
-				stride = sizeof(signed_byte) * 2;
-				return vk::Format::eR8G8Snorm;
-
-			case VertexBufferElementType::Byte4N:
-				stride = sizeof(signed_byte) * 4;
-				return vk::Format::eR8G8B8A8Snorm;
-
-			case VertexBufferElementType::UByte1:
-				stride = sizeof(byte);
-				return vk::Format::eR8Uint;
-
-			case VertexBufferElementType::UByte2:
-				stride = sizeof(byte) * 2;
-				return vk::Format::eR8G8Uint;
-
-			case VertexBufferElementType::UByte4:
-				stride = sizeof(byte) * 4;
-				return vk::Format::eR8G8B8A8Uint;
-
-			case VertexBufferElementType::UByte1N:
-				stride = sizeof(byte);
-				return vk::Format::eR8Unorm;
-
-			case VertexBufferElementType::UByte2N:
-				stride = sizeof(byte) * 2;
-				return vk::Format::eR8G8Unorm;
-
-			case VertexBufferElementType::UByte4N:
-				stride = sizeof(byte) * 4;
-				return vk::Format::eR8G8B8A8Unorm;
-
-			case VertexBufferElementType::Short1:
-				stride = sizeof(short_t);
-				return vk::Format::eR16Sint;
-
-			case VertexBufferElementType::Short2:
-				stride = sizeof(short_t) * 2;
-				return vk::Format::eR16G16Sint;
-
-			case VertexBufferElementType::Short4:
-				stride = sizeof(short_t) * 4;
-				return vk::Format::eR16G16B16A16Sint;
-
-			case VertexBufferElementType::Short1N:
-				stride = sizeof(short_t);
-				return vk::Format::eR16Snorm;
-
-			case VertexBufferElementType::Short2N:
-				stride = sizeof(short_t) * 2;
-				return vk::Format::eR16G16Snorm;
-
-			case VertexBufferElementType::Short4N:
-				stride = sizeof(short_t) * 4;
-				return vk::Format::eR16G16B16A16Snorm;
-
-			case VertexBufferElementType::UShort1:
-				stride = sizeof(uint16_t);
-				return vk::Format::eR16Uint;
-
-			case VertexBufferElementType::UShort2:
-				stride = sizeof(uint16_t) * 2;
-				return vk::Format::eR16G16Uint;
-
-			case VertexBufferElementType::UShort4:
-				stride = sizeof(uint16_t) * 4;
-				return vk::Format::eR16G16B16A16Uint;
-
-			case VertexBufferElementType::UShort1N:
-				stride = sizeof(uint16_t);
-				return vk::Format::eR16Unorm;
-
-			case VertexBufferElementType::UShort2N:
-				stride = sizeof(uint16_t) * 2;
-				return vk::Format::eR16G16Unorm;
-
-			case VertexBufferElementType::UShort4N:
-				stride = sizeof(uint16_t) * 4;
-				return vk::Format::eR16G16B16A16Unorm;
-
-			case VertexBufferElementType::Int1:
-				stride = sizeof(int32_t);
-				return vk::Format::eR32Sint;
-
-			case VertexBufferElementType::Int2:
-				stride = sizeof(int32_t) * 2;
-				return vk::Format::eR32G32Sint;
-
-			case VertexBufferElementType::Int3:
-				stride = sizeof(int32_t) * 3;
-				return vk::Format::eR32G32B32Sint;
-
-			case VertexBufferElementType::Int4:
-				stride = sizeof(int32_t) * 4;
-				return vk::Format::eR32G32B32A32Sint;
-
-			case VertexBufferElementType::UInt1:
-				stride = sizeof(uint32_t);
-				return vk::Format::eR32Uint;
-
-			case VertexBufferElementType::UInt2:
-				stride = sizeof(uint32_t) * 2;
-				return vk::Format::eR32G32Uint;
-
-			case VertexBufferElementType::UInt3:
-				stride = sizeof(uint32_t) * 3;
-				return vk::Format::eR32G32B32Uint;
-
-			case VertexBufferElementType::UInt4:
-				stride = sizeof(uint32_t) * 4;
-				return vk::Format::eR32G32B32A32Uint;
-
-			default:
-				return vk::Format::eUndefined;
+			case VertexBufferElementType::Float1: stride = sizeof(float); return vk::Format::eR32Sfloat;
+			case VertexBufferElementType::Float2: stride = sizeof(float) * 2; return vk::Format::eR32G32Sfloat;
+			case VertexBufferElementType::Float3: stride = sizeof(float) * 3; return vk::Format::eR32G32B32Sfloat;
+			case VertexBufferElementType::Float4: stride = sizeof(float) * 4; return vk::Format::eR32G32B32A32Sfloat;
+			case VertexBufferElementType::Byte1: stride = sizeof(signed_byte); return vk::Format::eR8Sint;
+			case VertexBufferElementType::Byte2: stride = sizeof(signed_byte) * 2; return vk::Format::eR8G8Sint;
+			case VertexBufferElementType::Byte4: stride = sizeof(signed_byte) * 4; return vk::Format::eR8G8B8A8Sint;
+			case VertexBufferElementType::Byte1N: stride = sizeof(signed_byte); return vk::Format::eR8Snorm;
+			case VertexBufferElementType::Byte2N: stride = sizeof(signed_byte) * 2; return vk::Format::eR8G8Snorm;
+			case VertexBufferElementType::Byte4N: stride = sizeof(signed_byte) * 4; return vk::Format::eR8G8B8A8Snorm;
+			case VertexBufferElementType::UByte1: stride = sizeof(byte); return vk::Format::eR8Uint;
+			case VertexBufferElementType::UByte2: stride = sizeof(byte) * 2; return vk::Format::eR8G8Uint;
+			case VertexBufferElementType::UByte4: stride = sizeof(byte) * 4; return vk::Format::eR8G8B8A8Uint;
+			case VertexBufferElementType::UByte1N: stride = sizeof(byte); return vk::Format::eR8Unorm;
+			case VertexBufferElementType::UByte2N: stride = sizeof(byte) * 2; return vk::Format::eR8G8Unorm;
+			case VertexBufferElementType::UByte4N: stride = sizeof(byte) * 4; return vk::Format::eR8G8B8A8Unorm;
+			case VertexBufferElementType::Short1: stride = sizeof(short_t); return vk::Format::eR16Sint;
+			case VertexBufferElementType::Short2: stride = sizeof(short_t) * 2; return vk::Format::eR16G16Sint;
+			case VertexBufferElementType::Short4: stride = sizeof(short_t) * 4; return vk::Format::eR16G16B16A16Sint;
+			case VertexBufferElementType::Short1N: stride = sizeof(short_t); return vk::Format::eR16Snorm;
+			case VertexBufferElementType::Short2N: stride = sizeof(short_t) * 2; return vk::Format::eR16G16Snorm;
+			case VertexBufferElementType::Short4N: stride = sizeof(short_t) * 4; return vk::Format::eR16G16B16A16Snorm;
+			case VertexBufferElementType::UShort1: stride = sizeof(uint16_t); return vk::Format::eR16Uint;
+			case VertexBufferElementType::UShort2: stride = sizeof(uint16_t) * 2; return vk::Format::eR16G16Uint;
+			case VertexBufferElementType::UShort4: stride = sizeof(uint16_t) * 4; return vk::Format::eR16G16B16A16Uint;
+			case VertexBufferElementType::UShort1N: stride = sizeof(uint16_t); return vk::Format::eR16Unorm;
+			case VertexBufferElementType::UShort2N: stride = sizeof(uint16_t) * 2; return vk::Format::eR16G16Unorm;
+			case VertexBufferElementType::UShort4N: stride = sizeof(uint16_t) * 4; return vk::Format::eR16G16B16A16Unorm;
+			case VertexBufferElementType::Int1: stride = sizeof(int32_t); return vk::Format::eR32Sint;
+			case VertexBufferElementType::Int2: stride = sizeof(int32_t) * 2; return vk::Format::eR32G32Sint;
+			case VertexBufferElementType::Int3: stride = sizeof(int32_t) * 3; return vk::Format::eR32G32B32Sint;
+			case VertexBufferElementType::Int4: stride = sizeof(int32_t) * 4; return vk::Format::eR32G32B32A32Sint;
+			case VertexBufferElementType::UInt1: stride = sizeof(uint32_t); return vk::Format::eR32Uint;
+			case VertexBufferElementType::UInt2: stride = sizeof(uint32_t) * 2; return vk::Format::eR32G32Uint;
+			case VertexBufferElementType::UInt3: stride = sizeof(uint32_t) * 3; return vk::Format::eR32G32B32Uint;
+			case VertexBufferElementType::UInt4: stride = sizeof(uint32_t) * 4; return vk::Format::eR32G32B32A32Uint;
+			default: return vk::Format::eUndefined;
 		}
 	}
 

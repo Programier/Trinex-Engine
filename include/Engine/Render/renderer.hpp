@@ -42,8 +42,6 @@ namespace Engine
 	class ENGINE_EXPORT Renderer
 	{
 	public:
-		using CustomPass = void (*)(Renderer* renderer, RenderGraph::Graph&);
-
 		enum Surface
 		{
 			SceneColor, /**< Render target for scene colors */
@@ -57,13 +55,18 @@ namespace Engine
 		};
 
 	private:
+		struct CustomPass {
+			virtual void execute(Renderer* renderer, RenderGraph::Graph&) = 0;
+			virtual ~CustomPass() {}
+		};
+
 		RHI_Buffer* m_globals;
 		SceneView m_view;
 		Scene* m_scene;
 		ViewMode m_view_mode;
 
 		RHI_Texture2D* m_surfaces[LastSurface];
-		FrameVector<CustomPass> m_custom_passes;
+		FrameVector<CustomPass*> m_custom_passes;
 
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
 		FrameVector<LightComponent*> m_visible_lights;
@@ -82,6 +85,7 @@ namespace Engine
 		trinex_non_moveable(Renderer);
 
 		Renderer& render();
+		Renderer& render_primitive(RenderPass* pass, PrimitiveComponent* component);
 		Renderer& render_visible_primitives(RenderPass* pass);
 		virtual Renderer& render(RenderGraph::Graph& graph) = 0;
 
@@ -99,9 +103,19 @@ namespace Engine
 		inline RHI_Texture2D* emissive_target() { return m_surfaces[Emissive]; }
 		inline RHI_Texture2D* msra_target() { return m_surfaces[MSRA]; }
 
-		Renderer& add_custom_pass(CustomPass pass)
+		template<typename Callable>
+		Renderer& add_custom_pass(Callable&& pass)
 		{
-			m_custom_passes.emplace_back(pass);
+			struct CustomPassImpl : public CustomPass {
+				std::decay_t<Callable> m_func;
+
+				CustomPassImpl(Callable&& pass) : m_func(std::forward<Callable>(pass)) {}
+				void execute(Renderer* renderer, RenderGraph::Graph& graph) { m_func(renderer, graph); }
+			};
+
+			CustomPassImpl* callback = FrameAllocator<CustomPassImpl>::allocate(1);
+			new (callback) CustomPassImpl(std::forward<Callable>(pass));
+			m_custom_passes.push_back(callback);
 			return *this;
 		}
 

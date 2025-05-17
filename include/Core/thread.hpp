@@ -87,6 +87,7 @@ namespace Engine
 	public:
 		Thread(const char* name, size_t command_buffer_size = 1024 * 1024 * 1);
 		Thread& execute_commands();
+		Thread& execute_commands(uint_t commands_limit);
 		Thread& wait();
 
 		template<typename CommandType, typename... Args>

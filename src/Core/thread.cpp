@@ -91,6 +91,36 @@ namespace Engine
 		return *this;
 	}
 
+	Thread& Thread::execute_commands(uint_t commands_limit)
+	{
+		if (ThisThread::self() == this)
+		{
+			byte* wp = m_write_pointer;
+			byte* rp = m_read_pointer;
+
+			while (wp != rp && commands_limit > 0)
+			{
+				commands_limit -= 1;
+				
+				auto* task = reinterpret_cast<TaskInterface*>(rp);
+				auto size = task->size();
+				task->execute();
+				std::destroy_at(task);
+
+				rp = align_memory(rp + size, command_alignment);
+
+				if (rp >= m_buffer + m_buffer_size)
+					rp = m_buffer;
+
+				m_read_pointer = rp;
+			}
+
+			m_exec_flag.clear();
+			m_exec_flag.notify_all();
+		}
+		return *this;
+	}
+
 	Thread& Thread::wait()
 	{
 		if (ThisThread::self() != this)

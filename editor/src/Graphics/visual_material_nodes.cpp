@@ -130,7 +130,7 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	Sampler::Sampler() : sampler(SamplerFilter::Trilinear)
+	Sampler::Sampler() : sampler(SamplerFilter::Point)
 	{
 		if (class_instance() == static_class_instance())
 			new_output("Out", ShaderParameterType::Sampler);
@@ -195,7 +195,7 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(SamplerFilter::Trilinear)
+	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(SamplerFilter::Point)
 	{
 		new_input("Tex", ShaderParameterType::Texture2D);
 		new_input("UV", ShaderParameterType::Float2);
