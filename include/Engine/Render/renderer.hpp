@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/vector.hpp>
+#include <Engine/Render/batched_primitives.hpp>
 #include <Engine/scene_view.hpp>
 #include <Graphics/types/color_format.hpp>
 
@@ -72,12 +73,14 @@ namespace Engine
 		FrameVector<LightComponent*> m_visible_lights;
 
 		Renderer& register_clear_passes(RenderGraph::Graph& graph);
+		Renderer& register_batched_primitives(RenderGraph::Graph& graph);
 
 	public:
 		static SurfaceFormat format_of(Surface type);
 		static Renderer* static_create_renderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
 
 	public:
+		BatchedLines lines;
 		RenderStatistics statistics;
 
 		Renderer(Scene* scene, const SceneView& view, ViewMode mode);

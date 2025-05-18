@@ -3,6 +3,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
+#include <Engine/Render/light_parameters.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
@@ -33,6 +34,17 @@ namespace Engine
 
 		trinex_refl_prop(self, This, m_depth_bias);
 		trinex_refl_prop(self, This, m_slope_scale);
+	}
+
+	LightComponent::Proxy& LightComponent::Proxy::render_parameters(LightRenderParameters& out)
+	{
+		auto& transform = world_transform();
+		out.color       = m_light_color;
+		out.intensivity = m_intensivity;
+		out.depth_bias  = m_depth_bias;
+		out.slope_scale = m_slope_scale;
+		out.location    = transform.location();
+		return *this;
 	}
 
 	LightComponent::LightComponent()
@@ -118,7 +130,6 @@ namespace Engine
 	LightComponent& LightComponent::submit_light_info_render_thread()
 	{
 		render_thread()->call([proxy           = proxy(),             //
-		                       bounds          = m_bounds,            //
 		                       color           = m_light_color,       //
 		                       intensivity     = m_intensivity,       //
 		                       depth_bias      = m_depth_bias,        //
@@ -126,7 +137,6 @@ namespace Engine
 		                       enabled         = m_is_enabled,        //
 		                       shadows_enabled = m_is_shadows_enabled,//
 		                       map             = m_shadow_map]() {
-			proxy->m_bounds             = bounds;
 			proxy->m_light_color        = color;
 			proxy->m_intensivity        = intensivity;
 			proxy->m_depth_bias         = depth_bias;
@@ -140,8 +150,10 @@ namespace Engine
 
 	LightComponent& LightComponent::update_bounding_box()
 	{
-		m_bounds = AABB_3Df(light_bounds).center(world_transform().location());
-		return submit_light_info_render_thread();
+		static constexpr Vector3f extents = {1.f, 1.f, 1.f};
+		const Vector3f& location          = world_transform().location();
+		m_bounding_box                    = AABB_3Df(location - extents, location + extents);
+		return *this;
 	}
 
 	LightComponent& LightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)

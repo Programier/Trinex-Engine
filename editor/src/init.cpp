@@ -32,75 +32,19 @@ namespace Engine
 
 	namespace EditorResources
 	{
-		Texture2D* default_icon                             = nullptr;
-		Texture2D* add_icon                                 = nullptr;
-		Texture2D* move_icon                                = nullptr;
-		Texture2D* remove_icon                              = nullptr;
-		Texture2D* rotate_icon                              = nullptr;
-		Texture2D* scale_icon                               = nullptr;
-		Texture2D* select_icon                              = nullptr;
-		Texture2D* more_icon                                = nullptr;
-		Texture2D* light_sprite                             = nullptr;
-		Texture2D* blueprint_texture                        = nullptr;
-		Material* grid_material                             = nullptr;
-		Material* point_light_overlay_material              = nullptr;
-		Material* spot_light_overlay_material               = nullptr;
-		Material* texture_editor_material                   = nullptr;
-		PositionVertexBuffer* spot_light_overlay_positions  = nullptr;
-		PositionVertexBuffer* point_light_overlay_positions = nullptr;
+		Texture2D* default_icon           = nullptr;
+		Texture2D* add_icon               = nullptr;
+		Texture2D* move_icon              = nullptr;
+		Texture2D* remove_icon            = nullptr;
+		Texture2D* rotate_icon            = nullptr;
+		Texture2D* scale_icon             = nullptr;
+		Texture2D* select_icon            = nullptr;
+		Texture2D* more_icon              = nullptr;
+		Texture2D* light_sprite           = nullptr;
+		Texture2D* blueprint_texture      = nullptr;
+		Material* grid_material           = nullptr;
+		Material* texture_editor_material = nullptr;
 	}// namespace EditorResources
-
-
-	static void create_circle(const Function<void(float, float)>& callback)
-	{
-		for (int i = 1; i <= 360; ++i)
-		{
-			for (int j = -1; j <= 1; j++)
-			{
-				float angle = glm::two_pi<float>() * static_cast<float>(i + j) / 360.f;
-				float x     = glm::cos(angle);
-				float z     = glm::sin(angle);
-				callback(x, z);
-			}
-		}
-	}
-
-	static void create_spot_light_overlay_positions()
-	{
-		EditorResources::spot_light_overlay_positions = allocate<PositionVertexBuffer>();
-		auto write_ptr = EditorResources::spot_light_overlay_positions->allocate_data(BufferCreateFlags::Static, 1080 + 8);
-
-		static constexpr float circle_y = -1.f;
-
-		// Create circle
-		create_circle([&write_ptr](float x, float z) { new (write_ptr++) Vector3f(x, circle_y, z); });
-
-		new (write_ptr++) Vector3f(0, 0, 0);
-		new (write_ptr++) Vector3f(1, circle_y, 0);
-
-		new (write_ptr++) Vector3f(0, 0, 0);
-		new (write_ptr++) Vector3f(-1, circle_y, 0);
-
-		new (write_ptr++) Vector3f(0, 0, 0);
-		new (write_ptr++) Vector3f(0, circle_y, 1);
-
-		new (write_ptr++) Vector3f(0, 0, 0);
-		new (write_ptr++) Vector3f(0, circle_y, -1);
-
-		EditorResources::spot_light_overlay_positions->init();
-	}
-
-	static void create_point_light_overlay_positions()
-	{
-		EditorResources::point_light_overlay_positions = allocate<PositionVertexBuffer>();
-		auto write_ptr = EditorResources::point_light_overlay_positions->allocate_data(BufferCreateFlags::Static, 1080 * 3);
-
-		create_circle([&write_ptr](float y, float z) { new (write_ptr++) Vector3f(0, y, z); });
-		create_circle([&write_ptr](float x, float z) { new (write_ptr++) Vector3f(x, 0, z); });
-		create_circle([&write_ptr](float x, float y) { new (write_ptr++) Vector3f(x, y, 0); });
-
-		EditorResources::point_light_overlay_positions->init();
-	}
 
 	static void preinit()
 	{
@@ -143,32 +87,19 @@ namespace Engine
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
 		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
 
-		EditorResources::grid_material                = load_object<Material>("TrinexEditor::Materials::GridMaterial");
-		EditorResources::point_light_overlay_material = load_object<Material>("TrinexEditor::Materials::PointLightOverlay");
-		EditorResources::spot_light_overlay_material  = load_object<Material>("TrinexEditor::Materials::SpotLightOverlay");
-		EditorResources::texture_editor_material      = load_object<Material>("TrinexEditor::Materials::TextureEditorMaterial");
-
-		create_point_light_overlay_positions();
-		create_spot_light_overlay_positions();
+		EditorResources::grid_material           = load_object<Material>("TrinexEditor::Materials::GridMaterial");
+		EditorResources::texture_editor_material = load_object<Material>("TrinexEditor::Materials::TextureEditorMaterial");
 
 		Icons::on_editor_package_loaded();
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}
-
 
 	static void load_configs()
 	{
 		Engine::Settings::Splash::font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	}
 
-	static void destroy()
-	{
-		release(EditorResources::spot_light_overlay_positions);
-		release(EditorResources::point_light_overlay_positions);
-	}
-
 	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
 	static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
 	static Engine::PreInitializeController on_preinit(preinit, "EditorPreinit");
-	static Engine::DestroyController on_destroy(destroy);
 }// namespace Engine

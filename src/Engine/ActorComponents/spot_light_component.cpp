@@ -2,6 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
+#include <Engine/Render/light_parameters.hpp>
 
 namespace Engine
 {
@@ -32,6 +33,14 @@ namespace Engine
 		return *this;
 	}
 
+
+	SpotLightComponent::Proxy& SpotLightComponent::Proxy::render_parameters(LightRenderParameters& out)
+	{
+		Super::Proxy::render_parameters(out);
+		out.spot_angles = {m_cos_outer_cone_angle, m_inv_cos_cone_difference};
+		out.direction   = direction();
+		return *this;
+	}
 
 	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f) {}
 

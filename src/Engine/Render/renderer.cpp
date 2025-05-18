@@ -85,6 +85,19 @@ namespace Engine
 		return *this;
 	}
 
+	Renderer& Renderer::register_batched_primitives(RenderGraph::Graph& graph)
+	{
+		graph.add_pass(RenderGraph::Pass::Graphics, "Batched Primitives")
+		        .add_resource(m_surfaces[SceneColor], RHIAccess::RTV)
+		        .add_resource(m_surfaces[SceneDepth], RHIAccess::DSV)
+		        .add_func([this]() {
+			        rhi->bind_render_target1(scene_color_target()->as_rtv(), scene_depth_target()->as_dsv());
+			        lines.flush(this);
+		        });
+
+		return *this;
+	}
+
 	Renderer& Renderer::render()
 	{
 		RenderGraph::Graph graph;
@@ -98,6 +111,8 @@ namespace Engine
 			custom_pass->execute(this, graph);
 			custom_pass->~CustomPass();
 		}
+
+		register_batched_primitives(graph);
 
 		rhi->viewport(m_view.viewport());
 		rhi->scissor(m_view.scissor());

@@ -246,6 +246,8 @@ namespace Engine
 			if (selected_count != 0)
 				EditorRenderer::render_outlines(renderer, m_selected_actors_render_thread.data(), selected_count);
 
+			EditorRenderer::render_primitives(renderer, m_selected_actors_render_thread.data(), selected_count);
+
 
 			Rect2D rect;
 			rect.pos  = {0, 0};
@@ -606,70 +608,10 @@ namespace Engine
 
 
 	using RaycastPrimitiveResult = Pair<SceneComponent*, float>;
-
-	template<typename NodeType>
-	static RaycastPrimitiveResult raycast_primitive(NodeType* node, const Ray& ray,
-	                                                RaycastPrimitiveResult result = {nullptr, -1.f})
+	
+	EditorClient& EditorClient::select_actors(const Vector2f& coords)
 	{
-		if (node == nullptr)
-			return result;
-
-		auto intersect = node->box().intersect(ray);
-
-		if (intersect.x > intersect.y)
-			return result;
-
-		if (result.first && intersect.x > result.second)
-			return result;
-
-		for (auto* component : node->values())
-		{
-			intersect = component->bounding_box().intersect(ray);
-
-			if (intersect.x < intersect.y)
-			{
-				if ((result.first == nullptr) || (intersect.x < result.second))
-				{
-					result.first  = component;
-					result.second = intersect.y;
-				}
-			}
-		}
-
-		for (byte index = 0; index < 8; ++index)
-		{
-			result = raycast_primitive(node->child_at(index), ray, result);
-		}
-
-		return result;
-	}
-
-	EditorClient& EditorClient::raycast_objects(const Vector2f& coords)
-	{
-		SceneView view(camera->camera_view(), m_state.viewport.size);
-		Vector3f origin;
-		Vector3f direction;
-
-		view.screen_to_world(coords, origin, direction);
-		Ray ray(origin, direction);
-
-		// Raycast primitives and lights
-		auto component = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
-		component      = raycast_primitive(m_world->scene()->light_octree().root_node(), ray, component);
-
-		if (component.first)
-		{
-			if (Actor* actor = component.first->actor())
-			{
-				m_world->unselect_actors();
-				m_world->select_actor(actor);
-			}
-		}
-		else
-		{
-			m_world->unselect_actors();
-		}
-
+        // TODO: Implement picking objects using hit proxy or similar way
 		return *this;
 	}
 

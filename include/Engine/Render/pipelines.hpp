@@ -6,7 +6,7 @@ namespace Engine
 	struct RHI_ShaderResourceView;
 	struct RHI_UnorderedAccessView;
 	struct RHI_Sampler;
-	struct RendererContext;
+	class Renderer;
 
 	namespace Pipelines
 	{
@@ -50,149 +50,54 @@ namespace Engine
 			const ShaderParameterInfo* m_globals;
 
 		public:
-			void apply(const RendererContext& ctx);
+			void apply(Renderer* renderer);
 		);
 
 		trinex_declare_graphics_pipeline(BatchedTriangles);
 
-		trinex_declare_graphics_pipeline(DeferredPointLightShadowed,
+		class ENGINE_EXPORT DeferredLightPipeline : public GlobalGraphicsPipeline
+		{
 		public:
+			using GlobalGraphicsPipeline::GlobalGraphicsPipeline;
+
 			const ShaderParameterInfo* globals            = nullptr;
 			const ShaderParameterInfo* base_color_texture = nullptr;
 			const ShaderParameterInfo* normal_texture     = nullptr;
 			const ShaderParameterInfo* emissive_texture   = nullptr;
 			const ShaderParameterInfo* msra_texture       = nullptr;
 			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* color              = nullptr;
-			const ShaderParameterInfo* intensivity        = nullptr;
+			const ShaderParameterInfo* parameters         = nullptr;
 
-			const ShaderParameterInfo* shadow_map_texture  = nullptr;
-			const ShaderParameterInfo* shadow_map_projview = nullptr;
-			const ShaderParameterInfo* depth_bias          = nullptr;
-			const ShaderParameterInfo* slope_scale         = nullptr;
+            void initialize() override;
+		};
 
-			const ShaderParameterInfo* location          = nullptr;
-			const ShaderParameterInfo* radius            = nullptr;
-			const ShaderParameterInfo* fall_off_exponent = nullptr;
-
+		trinex_declare_global_pipeline(DeferredPointLightShadowed, DeferredLightPipeline,
+		public:
 			DeferredPointLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 
-		trinex_declare_graphics_pipeline(DeferredPointLight,
+		trinex_declare_global_pipeline(DeferredPointLight, DeferredLightPipeline,
 		public:
-			const ShaderParameterInfo* globals            = nullptr;
-			const ShaderParameterInfo* base_color_texture = nullptr;
-			const ShaderParameterInfo* normal_texture     = nullptr;
-			const ShaderParameterInfo* emissive_texture   = nullptr;
-			const ShaderParameterInfo* msra_texture       = nullptr;
-			const ShaderParameterInfo* depth_texture      = nullptr;
-
-			struct LightData {
-				Vector4f param1;
-				Vector4f param2;
-				float param3;
-
-				inline void color(const Vector3f& col) { param1.x = col.x; param1.y = col.y; param1.z = col.z; }
-				inline void intensivity(float value) { param1.w = value; }
-				inline void location(const Vector3f& loc) { param2.x = loc.x; param2.y = loc.y; param2.z = loc.z; }
-				inline void radius(float value) { param2.w = value; }
-				inline void fall_off_exponent(float value) { param3 = value; }
-			};
-
 			DeferredPointLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 
-		trinex_declare_graphics_pipeline(DeferredSpotLightShadowed,
-		public:
-			const ShaderParameterInfo* globals            = nullptr;
-			const ShaderParameterInfo* base_color_texture = nullptr;
-			const ShaderParameterInfo* normal_texture     = nullptr;
-			const ShaderParameterInfo* emissive_texture   = nullptr;
-			const ShaderParameterInfo* msra_texture       = nullptr;
-			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* color              = nullptr;
-			const ShaderParameterInfo* intensivity        = nullptr;
-
-			const ShaderParameterInfo* shadow_map_texture  = nullptr;
-			const ShaderParameterInfo* shadow_map_projview = nullptr;
-			const ShaderParameterInfo* depth_bias          = nullptr;
-			const ShaderParameterInfo* slope_scale         = nullptr;
-
-			const ShaderParameterInfo* location          = nullptr;
-			const ShaderParameterInfo* radius            = nullptr;
-			const ShaderParameterInfo* fall_off_exponent = nullptr;
-
-			const ShaderParameterInfo* direction         = nullptr;
-			const ShaderParameterInfo* spot_angles       = nullptr;
-
+		trinex_declare_global_pipeline(DeferredSpotLightShadowed, DeferredLightPipeline,
+        public:
 			DeferredSpotLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 
-		trinex_declare_graphics_pipeline(DeferredSpotLight,
-		public:
-			const ShaderParameterInfo* globals            = nullptr;
-			const ShaderParameterInfo* base_color_texture = nullptr;
-			const ShaderParameterInfo* normal_texture     = nullptr;
-			const ShaderParameterInfo* emissive_texture   = nullptr;
-			const ShaderParameterInfo* msra_texture       = nullptr;
-			const ShaderParameterInfo* depth_texture      = nullptr;
-
-			struct LightData {
-				Vector4f param1;
-				Vector4f param2;
-				Vector4f param3;
-				Vector2f param4;
-
-				inline void color(const Vector3f& col) { param1.x = col.x; param1.y = col.y; param1.z = col.z; }
-				inline void intensivity(float value) { param1.w = value; }
-				inline void direction(const Vector3f& dir) { param2.x = dir.x; param2.y = dir.y; param2.z = dir.z; }
-				inline void radius(float value) { param2.w = value; }
-				inline void location(const Vector3f& loc) { param3.x = loc.x; param3.y = loc.y; param3.z = loc.z; }
-				inline void fall_off_exponent(float value) { param3.w = value; }
-				inline void spot_angles(const Vector2f& angles) { param4 = angles; }
-			};
-
+		trinex_declare_global_pipeline(DeferredSpotLight, DeferredLightPipeline,
+        public:
 			DeferredSpotLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 
-		trinex_declare_graphics_pipeline(DeferredDirectionalLightShadowed,
-		public:
-			const ShaderParameterInfo* globals            = nullptr;
-			const ShaderParameterInfo* base_color_texture = nullptr;
-			const ShaderParameterInfo* normal_texture     = nullptr;
-			const ShaderParameterInfo* emissive_texture   = nullptr;
-			const ShaderParameterInfo* msra_texture       = nullptr;
-			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* color              = nullptr;
-			const ShaderParameterInfo* intensivity        = nullptr;
-
-			const ShaderParameterInfo* shadow_map_texture  = nullptr;
-			const ShaderParameterInfo* shadow_map_projview = nullptr;
-			const ShaderParameterInfo* depth_bias          = nullptr;
-			const ShaderParameterInfo* slope_scale         = nullptr;
-			const ShaderParameterInfo* direction			= nullptr;
-
+		trinex_declare_global_pipeline(DeferredDirectionalLightShadowed, DeferredLightPipeline,
+        public:
 			DeferredDirectionalLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 
-		trinex_declare_graphics_pipeline(DeferredDirectionalLight,
+		trinex_declare_global_pipeline(DeferredDirectionalLight, DeferredLightPipeline,
 		public:
-			const ShaderParameterInfo* globals            = nullptr;
-			const ShaderParameterInfo* base_color_texture = nullptr;
-			const ShaderParameterInfo* normal_texture     = nullptr;
-			const ShaderParameterInfo* emissive_texture   = nullptr;
-			const ShaderParameterInfo* msra_texture       = nullptr;
-			const ShaderParameterInfo* depth_texture      = nullptr;
-
-			struct LightData {
-				Vector4f param1;
-				Vector3f param2;
-
-				inline void color(const Vector3f& col) { param1.x = col.x; param1.y = col.y; param1.z = col.z; }
-				inline void intensivity(float value) { param1.w = value; }
-				inline void direction(const Vector3f& dir) { param2 = dir; }
-			};
-
 			DeferredDirectionalLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
 		);
 

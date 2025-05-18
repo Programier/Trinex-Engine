@@ -7,6 +7,7 @@
 namespace Engine
 {
 	class RenderSurface;
+	struct LightRenderParameters;
 
 	class ENGINE_EXPORT LightComponent : public SceneComponent
 	{
@@ -24,7 +25,6 @@ namespace Engine
 		class ENGINE_EXPORT Proxy : public Super::Proxy
 		{
 		protected:
-			AABB_3Df m_bounds;
 			LinearColor m_light_color;
 			float m_intensivity;
 			float m_depth_bias;
@@ -35,7 +35,6 @@ namespace Engine
 			Pointer<RenderSurface> m_shadow_map;
 
 		public:
-			inline const AABB_3Df& bounding_box() const { return m_bounds; };
 			inline const LinearColor& light_color() const { return m_light_color; }
 			inline float intensivity() const { return m_intensivity; }
 			inline float depth_bias() const { return m_depth_bias; }
@@ -44,14 +43,18 @@ namespace Engine
 			inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
 			inline RenderSurface* shadow_map() const { return m_shadow_map; }
 
+			virtual Proxy& render_parameters(LightRenderParameters& out);
+
 			friend class LightComponent;
 		};
 
 
+	protected:
+		AABB_3Df m_bounding_box;
+
 	private:
 		Pointer<RenderSurface> m_shadow_map;
 
-		AABB_3Df m_bounds;
 		Color m_light_color;
 		float m_intensivity;
 		float m_depth_bias;
@@ -63,7 +66,7 @@ namespace Engine
 
 	public:
 		LightComponent();
-		inline const AABB_3Df& bounding_box() const { return m_bounds; };
+		inline const AABB_3Df& bounding_box() const { return m_bounding_box; }
 		inline const Color& light_color() const { return m_light_color; }
 		inline float intensivity() const { return m_intensivity; }
 		inline float depth_bias() const { return m_depth_bias; }
@@ -77,13 +80,13 @@ namespace Engine
 		LightComponent& is_shadows_enabled(bool enabled);
 
 		virtual Type light_type() const = 0;
+		virtual LightComponent& update_bounding_box();
 		Proxy* create_proxy() override;
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 
 		LightComponent& on_transform_changed() override;
 		LightComponent& start_play() override;
 		LightComponent& stop_play() override;
-		LightComponent& update_bounding_box();
 		LightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		~LightComponent();
 	};

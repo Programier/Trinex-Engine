@@ -24,6 +24,7 @@ namespace Engine
 			inline float cos_outer_cone_angle() const { return m_cos_outer_cone_angle; }
 			inline float inv_cos_cone_difference() const { return m_inv_cos_cone_difference; }
 			inline Vector3f direction() const { return world_transform().forward_vector(); }
+			virtual Proxy& render_parameters(LightRenderParameters& out);
 
 			friend class SpotLightComponent;
 		};

@@ -1,7 +1,9 @@
 #include "Engine/Actors/actor.hpp"
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
+#include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
@@ -68,5 +70,41 @@ namespace Engine::EditorRenderer
 			        .add_resource(renderer->scene_depth_target(), RHIAccess::SRVGraphics)
 			        .add_func([renderer, actors, count]() { render_outlines_pass(renderer, actors, count); });
 		});
+	}
+
+	void render_primitives(Renderer* renderer, Actor** actors, size_t count)
+	{
+		for (size_t i = 0; i < count; ++i)
+		{
+			Actor* actor = actors[i];
+
+			for (ActorComponent* component : actor->owned_components())
+			{
+				if (auto spot_light = Object::instance_cast<SpotLightComponent>(component))
+				{
+					auto proxy = spot_light->proxy();
+
+					auto dir           = proxy->direction() * 2.f;
+					float outer_radius = 2.f * glm::tan(proxy->outer_cone_angle());
+					float inner_radius = 2.f * glm::tan(proxy->inner_cone_angle());
+
+					auto location = proxy->world_transform().location() + dir;
+					renderer->lines.add_cone(location, -dir, outer_radius, {255, 255, 0, 255}, 0, 3.f);
+					renderer->lines.add_cone(location, -dir, inner_radius, {255, 255, 0, 255}, 0, 3.f);
+				}
+				else if (auto point_light = Object::instance_cast<PointLightComponent>(component))
+				{
+					auto proxy     = point_light->proxy();
+					auto& location = proxy->world_transform().location();
+					renderer->lines.add_sphere(location, proxy->attenuation_radius(), {255, 255, 0, 255}, 0, 3.f);
+				}
+				else if (auto directional_light = Object::instance_cast<DirectionalLightComponent>(component))
+				{
+					auto proxy     = directional_light->proxy();
+					auto& location = proxy->world_transform().location();
+					renderer->lines.add_arrow(location, proxy->direction(), {255, 255, 0, 255}, 3.f);
+				}
+			}
+		}
 	}
 }// namespace Engine::EditorRenderer

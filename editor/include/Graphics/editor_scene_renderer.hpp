@@ -9,6 +9,7 @@ namespace Engine
 	namespace EditorRenderer
 	{
 		void render_grid(Renderer* renderer);
-		void render_outlines(Renderer* renderer, Actor** actor, size_t count);
+		void render_outlines(Renderer* renderer, Actor** actors, size_t count);
+		void render_primitives(Renderer* renderer, Actor** actors = nullptr, size_t count = 0);
 	}// namespace EditorRenderer
 }// namespace Engine

@@ -16,6 +16,7 @@ namespace Engine
 
 		public:
 			inline float fall_off_exponent() const { return m_fall_off_exponent; }
+			virtual Proxy& render_parameters(LightRenderParameters& out);
 			friend class PointLightComponent;
 		};
 

@@ -1,3 +1,6 @@
+#ifndef TRINEX_LIGHT_SLANG
+#define TRINEX_LIGHT_SLANG
+
 #include "trinex/globals.slang"
 #include "trinex/math.slang"
 #include "trinex/platform.slang"
@@ -5,30 +8,23 @@
 
 namespace Lighting
 {
-	struct LightData {
+	struct LightParameters {
 		float3 color;
-		float intensivity;
-#if TRINEX_POINT_LIGHT || TRINEX_SPOT_LIGHT
 		float3 location;
-		float radius;
+		float3 direction;
+		float2 spot_angles;
+		float intensivity;
+		float inv_attenuation_radius;
 		float fall_off_exponent;
-#if TRINEX_SPOT_LIGHT
-		float3 direction;
-		float2 spot_angles;// {Cos outer cone, inv cos cone difference. }
-#endif
-#else
-		float3 direction;
-#endif
-#if TRINEX_SHADOWED_LIGHTING_PASS
+		float source_radius;
 		float depth_bias;
 		float slope_scale;
-#endif
 
 		float calc_attenuation(float3 world_light_vector)
 		{
 #if TRINEX_POINT_LIGHT || TRINEX_SPOT_LIGHT
 			const float distance = length(world_light_vector);
-			float attenuation    = pow(saturate(1.0 - (distance / radius)), fall_off_exponent);
+			float attenuation    = pow(saturate(1.0 - (distance * inv_attenuation_radius)), fall_off_exponent);
 			attenuation 		/= max(distance * distance, 0.01);
 
 #if TRINEX_SPOT_LIGHT
@@ -50,11 +46,8 @@ namespace Lighting
 		float3 position;
 		float3 normal;
 		float4 msra;
-
-#if TRINEX_SHADOWED_LIGHTING_PASS
 		float primitive_depth;
 		float shadow_depth;
-#endif
 	};
 
 	float distribution_ggx(in float3 normal, in float3 halfway_direction, float roughness)
@@ -100,7 +93,7 @@ namespace Lighting
 		return square((IOR - 1.0) / (IOR + 1.0));
 	}
 
-	float4 calculate_light(in LightData light, in PrimitiveData primitive)
+	float4 calculate_light(in LightParameters light, in PrimitiveData primitive)
 	{
 		if (length(primitive.normal) < 0.1)
 		{
@@ -124,7 +117,7 @@ namespace Lighting
 
 		float normal_dot_l = max(dot(normal, light_direction), 0.0);
 
-#if TRINEX_SHADOWED_LIGHTING_PASS
+#if TRINEX_SHADOWED_LIGHTING
 		float depth_bias = light.depth_bias + normal_dot_l * light.slope_scale;
 		if(primitive.shadow_depth > primitive.primitive_depth + depth_bias)
 			return float4(0, 0, 0, 1.0);
@@ -147,3 +140,5 @@ namespace Lighting
 		return float4(reflectance, 1.0);
 	}
 }// namespace Lighting
+
+#endif

@@ -15,6 +15,7 @@ namespace Engine
 
 		public:
 			inline float attenuation_radius() const { return m_attenuation_radius; }
+			virtual Proxy& render_parameters(LightRenderParameters& out);
 			friend class LocalLightComponent;
 		};
 
@@ -29,6 +30,7 @@ namespace Engine
 		LocalLightComponent& start_play() override;
 		Proxy* create_proxy() override;
 		LocalLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+		LocalLightComponent& update_bounding_box() override;
 
 		inline float attenuation_radius() const { return m_attenuation_radius; }
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }

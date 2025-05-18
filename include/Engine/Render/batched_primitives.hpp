@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	class RendererContext;
+	class Renderer;
 
 	class ENGINE_EXPORT BatchedLines final
 	{
@@ -45,16 +45,34 @@ namespace Engine
 		};
 
 	private:
-		VertexBuffer<Vertex> m_vtx_buffer;
-		size_t m_vtx_count = 0;
+		struct Node {
+			Node* next;
+			Vertex* vertices;
+			size_t vtx_count;
+
+			Node();
+		};
+
+		Node* m_first = nullptr;
+		Node* m_last  = nullptr;
+
+		Node* find_node();
 
 	public:
 		BatchedLines();
 		delete_copy_constructors(BatchedLines);
 
 		BatchedLines& add_line(const Vertex& point1, const Vertex& point2);
-		BatchedLines& render(const RendererContext& ctx);
-		BatchedLines& clear();
+		BatchedLines& add_circle(const Vector3f& position, const Vector3f& normal, float radius,
+		                         const Color& color = {255, 255, 255, 255}, uint_t segments = 0, float thickness = 1.f);
+		BatchedLines& add_sphere(const Vector3f& position, float radius, const Color& color = {255, 255, 255, 255},
+		                         uint_t segments = 0, float thickness = 1.f);
+		BatchedLines& add_arrow(const Vector3f& position, const Vector3f& direction, const Color& color = {255, 255, 255, 255},
+		                        float thickness = 1.f);
+		BatchedLines& add_cone(const Vector3f& position, const Vector3f& direction, float radius,
+		                       const Color& color = {255, 255, 255, 255}, uint_t segments = 0, float thickness = 1.f);
+
+		BatchedLines& flush(Renderer* renderer);
 	};
 
 	class ENGINE_EXPORT BatchedTriangles final
@@ -71,6 +89,6 @@ namespace Engine
 		BatchedTriangles& add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 		                               Color color1 = {255, 255, 255, 255}, Color color2 = {255, 255, 255, 255},
 		                               Color color3 = {255, 255, 255, 255});
-		BatchedTriangles& render(const RendererContext& ctx);
+		BatchedTriangles& render(Renderer* renderer);
 	};
 }// namespace Engine

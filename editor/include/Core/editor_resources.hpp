@@ -19,12 +19,7 @@ namespace Engine
 		extern Texture2D* more_icon;
 		extern Texture2D* light_sprite;
 		extern Texture2D* blueprint_texture;
-		extern Material* axis_material;
 		extern Material* grid_material;
-		extern Material* point_light_overlay_material;
-		extern Material* spot_light_overlay_material;
 		extern Material* texture_editor_material;
-		extern PositionVertexBuffer* spot_light_overlay_positions;
-		extern PositionVertexBuffer* point_light_overlay_positions;
 	}// namespace EditorResources
 }// namespace Engine
