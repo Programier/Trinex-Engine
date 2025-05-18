@@ -530,7 +530,7 @@ namespace Engine
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
 			relative_mouse_pos.y    = m_state.viewport.size.y - relative_mouse_pos.y;
-			raycast_objects(ImGui::EngineVecFrom(relative_mouse_pos));
+			select_actors(ImGui::EngineVecFrom(relative_mouse_pos));
 		}
 
 		{
@@ -608,10 +608,10 @@ namespace Engine
 
 
 	using RaycastPrimitiveResult = Pair<SceneComponent*, float>;
-	
+
 	EditorClient& EditorClient::select_actors(const Vector2f& coords)
 	{
-        // TODO: Implement picking objects using hit proxy or similar way
+		// TODO: Implement picking objects using hit proxy or similar way
 		return *this;
 	}
 

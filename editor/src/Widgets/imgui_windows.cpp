@@ -40,15 +40,9 @@ namespace Engine
 
 			switch (m_type)
 			{
-				case Type::Info:
-					text_color = ImVec4(0.0f, 0.7f, 1.0f, 1.0f);
-					break;
-				case Type::Warning:
-					text_color = ImVec4(1.0f, 0.7f, 0.0f, 1.0f);
-					break;
-				case Type::Error:
-					text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
-					break;
+				case Type::Info: text_color = ImVec4(0.0f, 0.7f, 1.0f, 1.0f); break;
+				case Type::Warning: text_color = ImVec4(1.0f, 0.7f, 0.0f, 1.0f); break;
+				case Type::Error: text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); break;
 			}
 
 
@@ -565,7 +559,10 @@ namespace Engine
 						if (ImGui::Selectable(actor->class_instance()->name().c_str(), m_world->is_selected(actor),
 						                      ImGuiSelectableFlags_SpanAllColumns))
 						{
-							m_world->select_actor(actor);
+							if (m_world->is_selected(actor))
+								m_world->unselect_actor(actor);
+							else
+								m_world->select_actor(actor);
 						}
 
 						ImGui::PopID();
