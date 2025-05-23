@@ -533,6 +533,7 @@ namespace Engine
 			ByteAddressBuffer = BIT(8),
 			TransferSrc       = BIT(9),
 			TransferDst       = BIT(9),
+			CPUAccess         = BIT(10),
 		};
 
 		trinex_bitfield_enum_struct(BufferCreateFlags, uint16_t);

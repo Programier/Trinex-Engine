@@ -8,13 +8,13 @@ namespace Engine
 	struct RHI_UnorderedAccessView;
 	struct RHI_RenderTargetView;
 	struct RHI_DepthStencilView;
-	struct RHI_Texture2D;
+	struct RHI_Texture;
 
 	class ENGINE_EXPORT RenderSurface : public RenderResource
 	{
 		trinex_declare_class(RenderSurface, RenderResource);
 
-		RenderResourcePtr<RHI_Texture2D> m_texture;
+		RenderResourcePtr<RHI_Texture> m_texture;
 
 		SurfaceFormat m_format = SurfaceFormat::Undefined;
 		Vector2u m_size        = {0, 0};
@@ -28,7 +28,7 @@ namespace Engine
 		RHI_UnorderedAccessView* rhi_uav() const;
 		RHI_ShaderResourceView* rhi_srv() const;
 
-		inline RHI_Texture2D* rhi_texture() const { return m_texture; }
+		inline RHI_Texture* rhi_texture() const { return m_texture; }
 		inline Vector2u size() const { return m_size; }
 		inline SurfaceFormat format() const { return m_format; }
 	};

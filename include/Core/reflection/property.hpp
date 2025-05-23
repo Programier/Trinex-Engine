@@ -896,6 +896,7 @@ private:
 
 		size_t size() const override { return sizeof(T); }
 
+		using VirtualProperty::construct;
 		static TypedVirtualProperty* construct(Object* owner, StringView name, Getter getter, Setter setter, BitMask flags = 0)
 		{
 			return owner->new_child<TypedVirtualProperty>(name, getter, setter, flags);

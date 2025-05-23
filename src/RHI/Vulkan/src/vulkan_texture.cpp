@@ -209,11 +209,6 @@ namespace Engine
 		return vk::Extent3D(m_size.x, m_size.y, 1);
 	}
 
-	RHI_Object* VulkanTexture2D::owner()
-	{
-		return this;
-	}
-
 	void VulkanTexture2D::update(byte mip, const Rect2D& rect, const byte* data, size_t data_size)
 	{
 		if (data == nullptr || data_size == 0)
@@ -248,13 +243,22 @@ namespace Engine
 			delete m_dsv;
 	}
 
-	RHI_Texture2D* VulkanAPI::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
+	RHI_Texture* VulkanAPI::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
 		return &(new VulkanTexture2D())->create(format, size, mips, flags);
 	}
 
-	VulkanAPI& VulkanAPI::barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access)
+
+	VulkanAPI& VulkanAPI::update_texture_2d(RHI_Texture* texture, byte mip, const Rect2D& rect, const byte* data,
+	                                        size_t data_size)
 	{
+		static_cast<VulkanTexture2D*>(texture)->update(mip, rect, data, data_size);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::barrier(RHI_Texture* texture, RHIAccess dst_access)
+	{
+		static_cast<VulkanTexture*>(texture)->change_layout(VulkanEnums::image_layout_of(dst_access));
 		return *this;
 	}
 }// namespace Engine

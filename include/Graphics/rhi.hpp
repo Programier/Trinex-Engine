@@ -85,8 +85,12 @@ namespace Engine
 		virtual void bind(BindLocation location) = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_ShaderResourceView{virtual ~RHI_ShaderResourceView(){}};
-	struct ENGINE_EXPORT RHI_UnorderedAccessView{virtual ~RHI_UnorderedAccessView(){}};
+	struct ENGINE_EXPORT RHI_ShaderResourceView {
+		virtual ~RHI_ShaderResourceView() {}
+	};
+	struct ENGINE_EXPORT RHI_UnorderedAccessView {
+		virtual ~RHI_UnorderedAccessView() {}
+	};
 
 	struct ENGINE_EXPORT RHI_RenderTargetView {
 		virtual void clear(const LinearColor& color) = 0;
@@ -112,10 +116,6 @@ namespace Engine
 		virtual RHI_UnorderedAccessView* as_uav() = 0;
 	};
 
-	struct RHI_Texture2D : RHI_Texture {
-		virtual void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) = 0;
-	};
-
 	struct ENGINE_EXPORT RHI_Shader : RHI_Object {
 	};
 
@@ -124,10 +124,8 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_Buffer : RHI_Object {
-		virtual byte* map()                                               = 0;
-		virtual void unmap()                                              = 0;
-		virtual void update(size_t offset, size_t size, const byte* data) = 0;
-
+		virtual byte* map()                       = 0;
+		virtual void unmap()                      = 0;
 		virtual RHI_ShaderResourceView* as_srv()  = 0;
 		virtual RHI_UnorderedAccessView* as_uav() = 0;
 	};
@@ -149,6 +147,7 @@ namespace Engine
 			String name;
 			String renderer;
 			Refl::Struct* struct_instance = nullptr;
+			Vector2f ndc_depth_range      = {0.f, 1.f};
 		} info;
 
 		virtual RHI& initialize(class Window* window) = 0;
@@ -172,22 +171,28 @@ namespace Engine
 		virtual RHI& scissor(const Scissor& scissor)    = 0;
 		virtual Scissor scissor()                       = 0;
 
-		virtual RHI_Fence* create_fence()                                                                                    = 0;
-		virtual RHI_Sampler* create_sampler(const SamplerInitializer*)                                                       = 0;
-		virtual RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) = 0;
-		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                                 = 0;
-		virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                       = 0;
-		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                      = 0;
-		virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                                             = 0;
-		virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                             = 0;
-		virtual RHI_Shader* create_compute_shader(const ComputeShader* shader)                                               = 0;
-		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                     = 0;
-		virtual RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline)                                       = 0;
-		virtual RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags)                            = 0;
-		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                    = 0;
-		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)        = 0;
-		virtual RHI& push_debug_stage(const char* stage, const LinearColor& color = {})                                      = 0;
-		virtual RHI& pop_debug_stage()                                                                                       = 0;
+		virtual RHI_Fence* create_fence()                                                                                  = 0;
+		virtual RHI_Sampler* create_sampler(const SamplerInitializer*)                                                     = 0;
+		virtual RHI_Texture* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) = 0;
+		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                               = 0;
+		virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                     = 0;
+		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                    = 0;
+		virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                                           = 0;
+		virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                           = 0;
+		virtual RHI_Shader* create_compute_shader(const ComputeShader* shader)                                             = 0;
+		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                   = 0;
+		virtual RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline)                                     = 0;
+		virtual RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags)                          = 0;
+		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                                  = 0;
+		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)      = 0;
+		virtual RHI& push_debug_stage(const char* stage, const LinearColor& color = {})                                    = 0;
+		virtual RHI& pop_debug_stage()                                                                                     = 0;
+
+		virtual RHI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)                   = 0;
+		virtual RHI& update_texture_2d(RHI_Texture*, byte mip, const Rect2D& rect, const byte* data, size_t data_size) = 0;
+
+		virtual RHI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
+		                                   size_t dst_offset) = 0;
 
 		virtual RHI& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) = 0;
 		virtual RHI& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)                             = 0;
@@ -196,8 +201,8 @@ namespace Engine
 		virtual RHI& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) = 0;
 		virtual RHI& bind_uav(RHI_UnorderedAccessView* view, byte slot)                                = 0;
 
-		virtual RHI& barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access) = 0;
-		virtual RHI& barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)   = 0;
+		virtual RHI& barrier(RHI_Texture* texture, RHIAccess access) = 0;
+		virtual RHI& barrier(RHI_Buffer* buffer, RHIAccess access)   = 0;
 
 		// INLINES
 		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)

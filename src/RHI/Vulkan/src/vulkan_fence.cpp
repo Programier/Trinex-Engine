@@ -52,6 +52,7 @@ namespace Engine
 	{
 		if (m_cmd)
 		{
+			m_cmd->refresh_fence_status();
 			return m_fence_signaled_count != m_cmd->fence_signaled_count();
 		}
 		return false;

@@ -76,10 +76,11 @@ namespace Engine
 		}
 	}
 
-	void OpenGL_Buffer::update(size_t offset, size_t size, const byte* data)
+	OpenGL_Buffer& OpenGL_Buffer::update(size_t offset, size_t size, const byte* data)
 	{
 		glBindBuffer(m_target, m_id);
 		glBufferSubData(m_target, offset, size, data);
+		return *this;
 	}
 
 	RHI_Buffer* OpenGL::create_buffer(size_t size, const byte* data, BufferCreateFlags flags)
@@ -106,6 +107,25 @@ namespace Engine
 	{
 		OpenGL_Buffer* gl_buffer = static_cast<OpenGL_Buffer*>(buffer);
 		glBindBufferBase(GL_UNIFORM_BUFFER, slot, gl_buffer->m_id);
+		return *this;
+	}
+
+	OpenGL& OpenGL::update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)
+	{
+		static_cast<OpenGL_Buffer*>(buffer)->update(offset, size, data);
+		return *this;
+	}
+
+	OpenGL& OpenGL::copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset, size_t dst_offset)
+	{
+		GLuint src_buffer = static_cast<OpenGL_Buffer*>(src)->m_id;
+		GLuint dst_buffer = static_cast<OpenGL_Buffer*>(dst)->m_id;
+
+		glBindBuffer(GL_COPY_READ_BUFFER, src_buffer);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, dst_buffer);
+
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, static_cast<GLintptr>(src_offset),
+		                    static_cast<GLintptr>(dst_offset), static_cast<GLsizeiptr>(size));
 		return *this;
 	}
 

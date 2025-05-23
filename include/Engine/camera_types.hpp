@@ -27,6 +27,13 @@ namespace Engine
 
 		Matrix4f projection_matrix() const;
 		Matrix4f view_matrix() const;
+		float linearize_depth(float depth) const;
+		Vector3f reconstruct_position_ndc(Vector2f ndc, float depth) const;
+		inline Vector3f reconstruct_position(Vector2f uv, float depth) const
+		{
+			return reconstruct_position_ndc(uv * 2.f - 1.f, depth);
+		}
+
 		static ENGINE_EXPORT Matrix4f view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector);
 
 		inline uint_t compute_lod(const Vector3f& object_location, uint_t lod_count) const

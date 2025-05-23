@@ -129,8 +129,7 @@ namespace Engine
 	{
 		m_image_present_semaphore   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
 		m_render_finished_semaphore = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
-
-		m_render_target = new VulkanSwapchainRenderTarget(backbuffer, view, size, format);
+		m_render_target             = new VulkanSwapchainRenderTarget(backbuffer, view, size, format);
 		return *this;
 	}
 
@@ -294,8 +293,7 @@ namespace Engine
 		const auto prev_buffer_index = m_buffer_index;
 		m_buffer_index               = (m_buffer_index + 1) % m_backbuffers.size();
 
-		auto& backbuffer = m_backbuffers[m_buffer_index].wait_for_command_buffer();
-
+		auto& backbuffer                 = m_backbuffers[m_buffer_index];
 		vk::ResultValue<uint32_t> result = vk::ResultValue<uint32_t>(vk::Result::eSuccess, 0);
 
 		try
@@ -437,7 +435,6 @@ namespace Engine
 
 		return &m_backbuffers[m_image_index];
 	}
-
 
 	RHI_Viewport* VulkanAPI::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{

@@ -6,6 +6,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <opengl_api.hpp>
+#include <opengl_buffers.hpp>
 #include <opengl_enums_convertor.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_sampler.hpp>
@@ -47,9 +48,23 @@ namespace Engine
 		}
 	}
 
-	OpenGL_Texture::OpenGL_Texture(RHI_Object* owner) : m_owner(owner) {}
+	OpenGL_Texture& OpenGL_Texture::init_views(TextureCreateFlags flags)
+	{
+		if (flags & TextureCreateFlags::ShaderResource)
+			m_srv = create_srv();
 
-	void OpenGL_Texture::init_2D(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
+		if (flags & TextureCreateFlags::UnorderedAccess)
+			m_uav = create_uav();
+
+		if (flags & TextureCreateFlags::RenderTarget)
+			m_rtv = create_rtv();
+
+		if (flags & TextureCreateFlags::DepthStencilTarget)
+			m_dsv = create_dsv();
+		return *this;
+	}
+
+	void OpenGL_Texture::init_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
 		m_format = color_format_from_engine_format(format);
 		m_size   = size;
@@ -83,7 +98,7 @@ namespace Engine
 		glBindTexture(texture_type, 0);
 	}
 
-	void OpenGL_Texture::update_2D(byte mip, const Rect2D& rect, const byte* data, size_t data_size)
+	void OpenGL_Texture::update_2d(byte mip, const Rect2D& rect, const byte* data, size_t data_size)
 	{
 		GLuint texture_type = type();
 		glBindTexture(texture_type, m_id);
@@ -94,6 +109,7 @@ namespace Engine
 		}
 		else
 		{
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 			glTexSubImage2D(texture_type, mip, rect.pos.x, rect.pos.y, rect.size.x, rect.size.y, m_format.m_format,
 			                m_format.m_type, data);
 		}
@@ -122,6 +138,18 @@ namespace Engine
 
 	OpenGL_Texture::~OpenGL_Texture()
 	{
+		if (m_srv)
+			delete m_srv;
+
+		if (m_uav)
+			delete m_uav;
+
+		if (m_rtv)
+			delete m_rtv;
+
+		if (m_dsv)
+			delete m_dsv;
+
 		if (m_id)
 		{
 			glDeleteTextures(1, &m_id);
@@ -130,7 +158,7 @@ namespace Engine
 
 	OpenGL_TextureSRV::OpenGL_TextureSRV(OpenGL_Texture* texture) : m_texture(texture)
 	{
-		texture->m_owner->add_reference();
+		texture->add_reference();
 	}
 
 	void OpenGL_TextureSRV::bind(byte location, OpenGL_Sampler* sampler)
@@ -146,12 +174,12 @@ namespace Engine
 
 	OpenGL_TextureSRV::~OpenGL_TextureSRV()
 	{
-		m_texture->m_owner->release();
+		m_texture->release();
 	}
 
 	OpenGL_TextureUAV::OpenGL_TextureUAV(OpenGL_Texture* texture) : m_texture(texture)
 	{
-		texture->m_owner->add_reference();
+		texture->add_reference();
 	}
 
 	void OpenGL_TextureUAV::bind(byte location)
@@ -161,12 +189,12 @@ namespace Engine
 
 	OpenGL_TextureUAV::~OpenGL_TextureUAV()
 	{
-		m_texture->m_owner->release();
+		m_texture->release();
 	}
 
 	OpenGL_TextureRTV::OpenGL_TextureRTV(OpenGL_Texture* texture) : m_texture(texture)
 	{
-		texture->m_owner->add_reference();
+		texture->add_reference();
 	}
 
 	void OpenGL_TextureRTV::clear(const LinearColor& color)
@@ -189,12 +217,12 @@ namespace Engine
 
 	OpenGL_TextureRTV::~OpenGL_TextureRTV()
 	{
-		m_texture->m_owner->release();
+		m_texture->release();
 	}
 
 	OpenGL_TextureDSV::OpenGL_TextureDSV(OpenGL_Texture* texture) : m_texture(texture)
 	{
-		texture->m_owner->add_reference();
+		texture->add_reference();
 	}
 
 	void OpenGL_TextureDSV::clear(float depth, byte stencil)
@@ -223,48 +251,22 @@ namespace Engine
 
 	OpenGL_TextureDSV::~OpenGL_TextureDSV()
 	{
-		m_texture->m_owner->release();
+		m_texture->release();
 	}
 
 	OpenGL_Texture2D::OpenGL_Texture2D(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
-	    : m_texture(this)
+
 	{
-		m_texture.init_2D(format, size, mips, flags);
-
-		if (flags & TextureCreateFlags::ShaderResource)
-			m_srv = m_texture.create_srv();
-
-		if (flags & TextureCreateFlags::UnorderedAccess)
-			m_uav = m_texture.create_uav();
-
-		if (flags & TextureCreateFlags::RenderTarget)
-			m_rtv = m_texture.create_rtv();
-
-		if (flags & TextureCreateFlags::DepthStencilTarget)
-			m_dsv = m_texture.create_dsv();
+		init_2d(format, size, mips, flags);
 	}
 
-	OpenGL_Texture2D::~OpenGL_Texture2D()
+	OpenGL& OpenGL::update_texture_2d(RHI_Texture* texture, byte mip, const Rect2D& rect, const byte* data, size_t data_size)
 	{
-		if (m_srv)
-			delete m_srv;
-
-		if (m_uav)
-			delete m_uav;
-
-		if (m_rtv)
-			delete m_rtv;
-
-		if (m_dsv)
-			delete m_dsv;
+		static_cast<OpenGL_Texture*>(texture)->update_2d(mip, rect, data, data_size);
+		return *this;
 	}
 
-	void OpenGL_Texture2D::update(byte mip, const Rect2D& rect, const byte* data, size_t data_size)
-	{
-		m_texture.update_2D(mip, rect, data, data_size);
-	}
-
-	RHI_Texture2D* OpenGL::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
+	RHI_Texture* OpenGL::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
 		return new OpenGL_Texture2D(format, size, mips, flags);
 	}

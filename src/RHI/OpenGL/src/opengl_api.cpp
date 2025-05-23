@@ -24,6 +24,7 @@ namespace Engine
 		{
 			OpenGL::m_instance                       = new OpenGL();
 			OpenGL::m_instance->info.struct_instance = static_struct_instance();
+			OpenGL::m_instance->info.ndc_depth_range = {-1.f, 1.f};
 		}
 
 		return OpenGL::m_instance;
@@ -205,12 +206,12 @@ namespace Engine
 		return *this;
 	}
 
-	OpenGL& OpenGL::barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access)
+	OpenGL& OpenGL::barrier(RHI_Texture* texture, RHIAccess dst_access)
 	{
 		return *this;
 	}
 
-	OpenGL& OpenGL::barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)
+	OpenGL& OpenGL::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
 	{
 		return *this;
 	}

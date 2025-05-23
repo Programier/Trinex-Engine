@@ -12,7 +12,7 @@ namespace Engine
 	class PrimitiveComponent;
 	class LightComponent;
 	struct RHI_Buffer;
-	struct RHI_Texture2D;
+	struct RHI_Texture;
 
 	namespace RenderGraph
 	{
@@ -66,7 +66,7 @@ namespace Engine
 		Scene* m_scene;
 		ViewMode m_view_mode;
 
-		RHI_Texture2D* m_surfaces[LastSurface];
+		RHI_Texture* m_surfaces[LastSurface];
 		FrameVector<CustomPass*> m_custom_passes;
 
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
@@ -99,12 +99,12 @@ namespace Engine
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
 		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }
 
-		inline RHI_Texture2D* scene_color_target() { return m_surfaces[SceneColor]; }
-		inline RHI_Texture2D* scene_depth_target() { return m_surfaces[SceneDepth]; }
-		inline RHI_Texture2D* base_color_target() { return m_surfaces[BaseColor]; }
-		inline RHI_Texture2D* normal_target() { return m_surfaces[Normal]; }
-		inline RHI_Texture2D* emissive_target() { return m_surfaces[Emissive]; }
-		inline RHI_Texture2D* msra_target() { return m_surfaces[MSRA]; }
+		inline RHI_Texture* scene_color_target() { return m_surfaces[SceneColor]; }
+		inline RHI_Texture* scene_depth_target() { return m_surfaces[SceneDepth]; }
+		inline RHI_Texture* base_color_target() { return m_surfaces[BaseColor]; }
+		inline RHI_Texture* normal_target() { return m_surfaces[Normal]; }
+		inline RHI_Texture* emissive_target() { return m_surfaces[Emissive]; }
+		inline RHI_Texture* msra_target() { return m_surfaces[MSRA]; }
 
 		template<typename Callable>
 		Renderer& add_custom_pass(Callable&& pass)

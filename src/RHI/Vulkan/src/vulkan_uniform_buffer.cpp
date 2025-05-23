@@ -25,7 +25,8 @@ namespace Engine
 			if (size < default_uniform_buffer_size)
 				size = default_uniform_buffer_size;
 
-			buffer->create(size, nullptr, BufferCreateFlags::UniformBuffer, VMA_MEMORY_USAGE_CPU_TO_GPU);
+			buffer->create(size, nullptr, BufferCreateFlags::UniformBuffer | BufferCreateFlags::CPUAccess,
+			               VMA_MEMORY_USAGE_CPU_TO_GPU);
 			m_buffers.push_back(buffer);
 		}
 

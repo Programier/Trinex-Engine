@@ -7,22 +7,30 @@
 
 namespace Engine
 {
-	struct OpenGL_Texture {
+	struct OpenGL_Texture : public RHI_DefaultDestroyable<RHI_Texture> {
+		RHI_ShaderResourceView* m_srv  = nullptr;
+		RHI_UnorderedAccessView* m_uav = nullptr;
+		RHI_RenderTargetView* m_rtv    = nullptr;
+		RHI_DepthStencilView* m_dsv    = nullptr;
+
 		OpenGL_ColorInfo m_format;
 		GLuint m_id     = 0;
 		Vector2u m_size = {0, 0};
-		RHI_Object* const m_owner;
 
-		OpenGL_Texture(RHI_Object* owner);
-
-		void init_2D(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags);
-		void update_2D(byte mip, const Rect2D& rect, const byte* data, size_t data_size);
+		OpenGL_Texture& init_views(TextureCreateFlags flags);
+		void init_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags);
+		void update_2d(byte mip, const Rect2D& rect, const byte* data, size_t data_size);
 		virtual GLuint type() = 0;
 
 		RHI_RenderTargetView* create_rtv();
 		RHI_DepthStencilView* create_dsv();
 		RHI_ShaderResourceView* create_srv();
 		RHI_UnorderedAccessView* create_uav();
+
+		inline RHI_RenderTargetView* as_rtv() override { return m_rtv; }
+		inline RHI_DepthStencilView* as_dsv() override { return m_dsv; }
+		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
+		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
 		~OpenGL_Texture();
 	};
 
@@ -68,20 +76,8 @@ namespace Engine
 		~OpenGL_TextureDSV();
 	};
 
-	struct OpenGL_Texture2D : public RHI_DefaultDestroyable<RHI_Texture2D> {
-		OpenGL_TypedTexture<GL_TEXTURE_2D> m_texture;
-		RHI_ShaderResourceView* m_srv  = nullptr;
-		RHI_UnorderedAccessView* m_uav = nullptr;
-		RHI_RenderTargetView* m_rtv    = nullptr;
-		RHI_DepthStencilView* m_dsv    = nullptr;
-
+	struct OpenGL_Texture2D : public OpenGL_TypedTexture<GL_TEXTURE_2D> {
 		OpenGL_Texture2D(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags);
-		~OpenGL_Texture2D();
-		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) override;
-		inline RHI_RenderTargetView* as_rtv() override { return m_rtv; }
-		inline RHI_DepthStencilView* as_dsv() override { return m_dsv; }
-		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
-		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
 	};
 
 }// namespace Engine

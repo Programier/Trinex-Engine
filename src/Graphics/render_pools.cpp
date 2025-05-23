@@ -47,13 +47,80 @@ namespace Engine
 		return (static_cast<Identifier>(size) << 32) | flags.bitfield;
 	}
 
+	RHIFencePool* RHIFencePool::global_instance()
+	{
+		static RHIFencePool pool;
+		return &pool;
+	}
+
+	RHIFencePool& RHIFencePool::update()
+	{
+		size_t erase_count = 0;
+
+		for (auto& entry : m_pool)
+		{
+			if (--entry.frame == 0)
+			{
+				++erase_count;
+				entry.fence->release();
+			}
+		}
+
+		if (erase_count > 0)
+		{
+			m_pool.erase(m_pool.begin(), m_pool.begin() + erase_count);
+		}
+
+		return *this;
+	}
+
+	RHI_Fence* RHIFencePool::request_fence()
+	{
+		if (!m_pool.empty())
+		{
+			RHI_Fence* fence = m_pool.back().fence;
+			fence->reset();
+			m_pool.pop_back();
+			return fence;
+		}
+		return rhi->create_fence();
+	}
+
+	RHI_Fence* RHIFencePool::request_transient_fence()
+	{
+		if (auto fence = request_fence())
+		{
+			render_thread()->call([fence, this]() { return_fence(fence); });
+			return fence;
+		}
+		return nullptr;
+	}
+
+	RHIFencePool& RHIFencePool::release_all()
+	{
+		for (auto& entry : m_pool)
+		{
+			entry.fence->release();
+		}
+		m_pool.clear();
+		return *this;
+	}
+
+	RHIFencePool& RHIFencePool::return_fence(RHI_Fence* fence)
+	{
+		auto& entry = m_pool.emplace_back();
+		entry.fence = fence;
+		entry.frame = s_resource_live_threshold;
+		return *this;
+	}
+
 	RHIBufferPool* RHIBufferPool::global_instance()
 	{
 		static RHIBufferPool pool;
 		return &pool;
 	}
 
-	RHIBufferPool& RHIBufferPool::update(float dt)
+	RHIBufferPool& RHIBufferPool::update()
 	{
 		for (auto& [id, pool] : m_pools)
 		{
@@ -142,7 +209,7 @@ namespace Engine
 		return &pool;
 	}
 
-	RHISurfacePool& RHISurfacePool::update(float dt)
+	RHISurfacePool& RHISurfacePool::update()
 	{
 		for (auto& [id, pool] : m_pools)
 		{
@@ -167,7 +234,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Texture2D* RHISurfacePool::request_surface(SurfaceFormat format, Vector2u size)
+	RHI_Texture* RHISurfacePool::request_surface(SurfaceFormat format, Vector2u size)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
@@ -177,7 +244,7 @@ namespace Engine
 
 		if (!pool.empty())
 		{
-			RHI_Texture2D* surface = pool.back().surface;
+			RHI_Texture* surface = pool.back().surface;
 			pool.pop_back();
 			return surface;
 		}
@@ -194,12 +261,12 @@ namespace Engine
 			flags |= TextureCreateFlags::DepthStencilTarget;
 		}
 
-		RHI_Texture2D* surface = rhi->create_texture_2d(format, size, 1, flags);
-		m_surface_id[surface]  = surface_id;
+		RHI_Texture* surface  = rhi->create_texture_2d(format, size, 1, flags);
+		m_surface_id[surface] = surface_id;
 		return surface;
 	}
 
-	RHI_Texture2D* RHISurfacePool::request_transient_surface(SurfaceFormat format, Vector2u size)
+	RHI_Texture* RHISurfacePool::request_transient_surface(SurfaceFormat format, Vector2u size)
 	{
 		if (auto surface = request_surface(format, size))
 		{
@@ -223,7 +290,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHISurfacePool& RHISurfacePool::return_surface(RHI_Texture2D* surface)
+	RHISurfacePool& RHISurfacePool::return_surface(RHI_Texture* surface)
 	{
 		auto it = m_surface_id.find(surface);
 
@@ -243,7 +310,7 @@ namespace Engine
 		return &pool;
 	}
 
-	RenderSurfacePool& RenderSurfacePool::update(float dt)
+	RenderSurfacePool& RenderSurfacePool::update()
 	{
 		for (auto& [id, pool] : m_pools)
 		{
@@ -269,8 +336,6 @@ namespace Engine
 				pool.erase(pool.begin(), pool.begin() + erase_count);
 			}
 		}
-
-		render_thread()->call([dt]() { RHISurfacePool::global_instance()->update(dt); });
 		return *this;
 	}
 
@@ -319,13 +384,14 @@ namespace Engine
 
 	static class : public TickableObject
 	{
-		TickableObject& update(float dt) override
+		TickableObject& update(float) override
 		{
-			RenderSurfacePool::global_instance()->update(dt);
+			RenderSurfacePool::global_instance()->update();
 
-			render_thread()->call([dt]() {
-				RHISurfacePool::global_instance()->update(dt);
-				RHIBufferPool::global_instance()->update(dt);
+			render_thread()->call([]() {
+				RHISurfacePool::global_instance()->update();
+				RHIBufferPool::global_instance()->update();
+				RHIFencePool::global_instance()->update();
 			});
 			return *this;
 		}
@@ -337,6 +403,7 @@ namespace Engine
 		render_thread()->call([]() {
 			RHIBufferPool::global_instance()->release_all();
 			RHISurfacePool::global_instance()->release_all();
+			RHIFencePool::global_instance()->release_all();
 		});
 
 		render_thread()->wait();

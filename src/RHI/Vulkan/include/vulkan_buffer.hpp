@@ -24,7 +24,7 @@ namespace Engine
 
 		byte* map() override;
 		void unmap() override;
-		void update(size_t offset, size_t size, const byte* data) override;
+		VulkanBuffer& update(size_t offset, size_t size, const byte* data);
 
 		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
 		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
@@ -54,8 +54,7 @@ namespace Engine
 		Vector<FreeEntry> m_free;
 
 	public:
-		VulkanStaggingBuffer* allocate(vk::DeviceSize size, BufferCreateFlags flags,
-		                               VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_CPU_ONLY);
+		VulkanStaggingBuffer* allocate(vk::DeviceSize size, BufferCreateFlags flags);
 		VulkanStaggingBufferManager& release(VulkanStaggingBuffer* buffer);
 		VulkanStaggingBufferManager& update();
 		~VulkanStaggingBufferManager();

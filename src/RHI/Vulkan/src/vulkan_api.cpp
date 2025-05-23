@@ -90,7 +90,6 @@ namespace Engine
 		vkb::destroy_instance(m_instance);
 	}
 
-
 	static vk::PresentModeKHR find_present_mode(const std::vector<vk::PresentModeKHR>& modes,
 	                                            const std::initializer_list<vk::PresentModeKHR>& requested)
 	{
@@ -569,7 +568,6 @@ namespace Engine
 
 			pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer_handle(), &label_info);
 		}
-
 		return *this;
 	}
 

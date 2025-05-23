@@ -5,8 +5,6 @@
 
 namespace Engine
 {
-	struct RHI_Texture2D;
-
 	struct ENGINE_EXPORT Texture2DMip {
 		Vector2u size;
 		Buffer data;
@@ -19,8 +17,6 @@ namespace Engine
 	{
 		trinex_declare_class(Texture2D, Texture);
 
-		RenderResourcePtr<RHI_Texture2D> m_texture;
-
 	public:
 		Vector<Texture2DMip> mips;
 		ColorFormat format;
@@ -30,7 +26,6 @@ namespace Engine
 		uint_t height(byte mip = 0) const;
 		Vector2u size(byte mip = 0) const;
 		TextureType type() const override;
-		RHI_ShaderResourceView* rhi_srv() const override;
 		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

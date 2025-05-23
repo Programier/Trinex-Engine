@@ -28,7 +28,7 @@ namespace Engine
 
 			for (byte index = 0; auto& mip : mips)
 			{
-				m_texture->update(index++, Rect2D({0, 0}, mip.size), mip.data.data(), mip.data.size());
+				rhi->update_texture_2d(m_texture, index++, Rect2D({0, 0}, mip.size), mip.data.data(), mip.data.size());
 			}
 		});
 		return *this;
@@ -52,13 +52,6 @@ namespace Engine
 	TextureType Texture2D::type() const
 	{
 		return TextureType::Texture2D;
-	}
-
-	RHI_ShaderResourceView* Texture2D::rhi_srv() const
-	{
-		if (m_texture)
-			return m_texture->as_srv();
-		return nullptr;
 	}
 
 	bool Texture2D::serialize(Archive& archive)

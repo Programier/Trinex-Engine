@@ -79,6 +79,8 @@ private:
 		class ENGINE_EXPORT GenericGeometry : public RenderPass
 		{
 			trinex_render_pass(GenericGeometry, RenderPass);
+
+		public:
 			GenericGeometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		};
 	}// namespace RenderPasses

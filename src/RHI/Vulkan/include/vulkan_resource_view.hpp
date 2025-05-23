@@ -41,7 +41,7 @@ namespace Engine
 
 		VulkanTextureView(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view) {}
 		~VulkanTextureView() { VulkanResourceView::release(m_view); }
-		inline RHI_Object* owner() override { return m_texture->owner(); }
+		inline RHI_Object* owner() override { return m_texture; }
 	};
 
 	struct VulkanTextureSRV : public VulkanTextureView<VulkanSRV> {

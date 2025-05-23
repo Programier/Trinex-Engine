@@ -144,7 +144,7 @@ namespace Engine
 
 		while (m_first)
 		{
-			vtx_buffer->update(0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<byte*>(m_first->vertices));
+			rhi->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<byte*>(m_first->vertices));
 			rhi->draw(m_first->vtx_count, 0);
 			m_first = m_first->next;
 		}

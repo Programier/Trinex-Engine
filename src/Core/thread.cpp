@@ -101,9 +101,9 @@ namespace Engine
 			while (wp != rp && commands_limit > 0)
 			{
 				commands_limit -= 1;
-				
+
 				auto* task = reinterpret_cast<TaskInterface*>(rp);
-				auto size = task->size();
+				auto size  = task->size();
 				task->execute();
 				std::destroy_at(task);
 
@@ -135,6 +135,11 @@ namespace Engine
 			execute_commands();
 		}
 		return *this;
+	}
+
+	void Thread::static_yield()
+	{
+		std::this_thread::yield();
 	}
 
 	Thread::~Thread()

@@ -9,24 +9,45 @@
 namespace Engine
 {
 	class RenderSurface;
-	struct RHI_Texture2D;
+	struct RHI_Texture;
 	struct RHI_Buffer;
+	struct RHI_Fence;
+
+	class ENGINE_EXPORT RHIFencePool final
+	{
+	private:
+		struct FenceEntry {
+			uint64_t frame   = 0;
+			RHI_Fence* fence = nullptr;
+		};
+
+		Vector<FenceEntry> m_pool;
+
+	public:
+		static RHIFencePool* global_instance();
+
+		RHIFencePool& update();
+		RHI_Fence* request_fence();
+		RHI_Fence* request_transient_fence();
+		RHIFencePool& release_all();
+		RHIFencePool& return_fence(RHI_Fence* fence);
+	};
 
 	class ENGINE_EXPORT RHIBufferPool final
 	{
 	private:
-		struct SurfaceEntry {
+		struct BufferEntry {
 			uint64_t frame     = 0;
 			RHI_Buffer* buffer = nullptr;
 		};
 
-		Map<Identifier, Vector<SurfaceEntry>> m_pools;
+		Map<Identifier, Vector<BufferEntry>> m_pools;
 		Map<RHI_Buffer*, Identifier> m_buffer_id;
 
 	public:
 		static RHIBufferPool* global_instance();
 
-		RHIBufferPool& update(float dt);
+		RHIBufferPool& update();
 		RHI_Buffer* request_buffer(uint32_t size, BufferCreateFlags flags);
 		RHI_Buffer* request_transient_buffer(uint32_t size, BufferCreateFlags flags);
 		RHIBufferPool& release_all();
@@ -37,21 +58,21 @@ namespace Engine
 	{
 	private:
 		struct SurfaceEntry {
-			uint64_t frame         = 0;
-			RHI_Texture2D* surface = nullptr;
+			uint64_t frame       = 0;
+			RHI_Texture* surface = nullptr;
 		};
 
 		Map<Identifier, Vector<SurfaceEntry>> m_pools;
-		Map<RHI_Texture2D*, Identifier> m_surface_id;
+		Map<RHI_Texture*, Identifier> m_surface_id;
 
 	public:
 		static RHISurfacePool* global_instance();
 
-		RHISurfacePool& update(float dt);
-		RHI_Texture2D* request_surface(SurfaceFormat format, Vector2u size);
-		RHI_Texture2D* request_transient_surface(SurfaceFormat format, Vector2u size);
+		RHISurfacePool& update();
+		RHI_Texture* request_surface(SurfaceFormat format, Vector2u size);
+		RHI_Texture* request_transient_surface(SurfaceFormat format, Vector2u size);
 		RHISurfacePool& release_all();
-		RHISurfacePool& return_surface(RHI_Texture2D* surface);
+		RHISurfacePool& return_surface(RHI_Texture* surface);
 	};
 
 	class ENGINE_EXPORT RenderSurfacePool final
@@ -67,7 +88,7 @@ namespace Engine
 	public:
 		static RenderSurfacePool* global_instance();
 
-		RenderSurfacePool& update(float dt);
+		RenderSurfacePool& update();
 		RenderSurface* request_surface(SurfaceFormat format, Vector2u size);
 		RenderSurface* request_transient_surface(SurfaceFormat format, Vector2u size);
 		RenderSurfacePool& return_surface(RenderSurface* surface);

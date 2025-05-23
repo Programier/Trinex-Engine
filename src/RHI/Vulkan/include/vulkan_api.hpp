@@ -124,7 +124,7 @@ namespace Engine
 
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const SamplerInitializer*) override;
-		RHI_Texture2D* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
+		RHI_Texture* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
 		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
 		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
 		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
@@ -140,6 +140,12 @@ namespace Engine
 		VulkanAPI& push_debug_stage(const char* stage, const LinearColor& color) override;
 		VulkanAPI& pop_debug_stage() override;
 
+		VulkanAPI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
+		VulkanAPI& update_texture_2d(RHI_Texture*, byte mip, const Rect2D& rect, const byte* data, size_t data_size) override;
+
+		VulkanAPI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
+		                                 size_t dst_offset) override;
+
 		VulkanAPI& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
 		VulkanAPI& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
 		VulkanAPI& bind_uniform_buffer(RHI_Buffer* buffer, byte slot) override;
@@ -147,8 +153,8 @@ namespace Engine
 		VulkanAPI& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
 		VulkanAPI& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 
-		VulkanAPI& barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access) override;
-		VulkanAPI& barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access) override;
+		VulkanAPI& barrier(RHI_Texture* texture, RHIAccess dst_access) override;
+		VulkanAPI& barrier(RHI_Buffer* buffer, RHIAccess dst_access) override;
 
 		~VulkanAPI();
 	};

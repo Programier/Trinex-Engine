@@ -30,8 +30,8 @@ namespace Engine
 			friend StaticMeshComponent;
 		};
 
+	private:
 		class StaticMesh* m_mesh = nullptr;
-
 		StaticMeshComponent& submit_new_mesh();
 
 	public:

@@ -61,12 +61,11 @@ namespace Engine
 		void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
 	};
 
-	struct NoneTexture2D : public RHI_DefaultDestroyable<RHI_Texture2D> {
+	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture> {
 		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
 		RHI_DepthStencilView* as_dsv() override { return rhi_default<NoneDSV>(); }
 		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
 		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
-		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) override {}
 	};
 
 	struct NoneShader : public RHI_DefaultDestroyable<RHI_Shader> {
@@ -79,7 +78,6 @@ namespace Engine
 	struct NoneBuffer : public RHI_DefaultDestroyable<RHI_Buffer> {
 		byte* map() override { return nullptr; }
 		void unmap() override {}
-		void update(size_t offset, size_t size, const byte* data) override {}
 
 		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
 		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
@@ -186,9 +184,9 @@ namespace Engine
 		return new NoneSampler();
 	}
 
-	RHI_Texture2D* NoneApi::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
+	RHI_Texture* NoneApi::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
-		return new NoneTexture2D();
+		return new NoneTexture();
 	}
 
 	RHI_Shader* NoneApi::create_vertex_shader(const VertexShader* shader)
@@ -267,12 +265,27 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::barrier(RHI_Texture* texture, RHIAccess src_access, RHIAccess dst_access)
+	NoneApi& NoneApi::update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)
+	NoneApi& NoneApi::update_texture_2d(RHI_Texture*, byte mip, const Rect2D& rect, const byte* data, size_t data_size)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset, size_t dst_offset)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::barrier(RHI_Texture* texture, RHIAccess dst_access)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
 	{
 		return *this;
 	}

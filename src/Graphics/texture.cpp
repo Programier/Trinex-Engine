@@ -24,4 +24,16 @@ namespace Engine
 		rhi->bind_srv(rhi_srv(), location, sampler->rhi_sampler());
 		return *this;
 	}
+
+	RHI_ShaderResourceView* Texture::rhi_srv() const
+	{
+		if (m_texture)
+			return m_texture->as_srv();
+		return nullptr;
+	}
+
+	RHI_Texture* Texture::rhi_texture() const
+	{
+		return m_texture.get();
+	}
 }// namespace Engine

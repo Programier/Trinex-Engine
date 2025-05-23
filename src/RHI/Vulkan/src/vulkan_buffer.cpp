@@ -68,7 +68,13 @@ namespace Engine
 
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = memory_usage;
-		VkBuffer out_buffer                = VK_NULL_HANDLE;
+
+		if (flags & BufferCreateFlags::CPUAccess)
+		{
+			alloc_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		}
+
+		VkBuffer out_buffer = VK_NULL_HANDLE;
 		auto res = vmaCreateBuffer(API->m_allocator, &static_cast<VkBufferCreateInfo&>(buffer_info), &alloc_info, &out_buffer,
 		                           &m_allocation, nullptr);
 		m_buffer = out_buffer;
@@ -101,7 +107,7 @@ namespace Engine
 		return *this;
 	}
 
-	void VulkanBuffer::update(size_t offset, size_t size, const byte* data)
+	VulkanBuffer& VulkanBuffer::update(size_t offset, size_t size, const byte* data)
 	{
 		auto cmd = API->end_render_pass();
 
@@ -141,6 +147,7 @@ namespace Engine
 			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
 			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, dst_stage, {}, barrier, {}, {});
 		}
+		return *this;
 	}
 
 	byte* VulkanBuffer::map()
@@ -190,9 +197,10 @@ namespace Engine
 			delete this;
 	}
 
-	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, BufferCreateFlags flags,
-	                                                            VmaMemoryUsage memory_usage)
+	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, BufferCreateFlags flags)
 	{
+		flags |= BufferCreateFlags::CPUAccess;
+
 		for (size_t i = 0, size = m_free.size(); i < size; i++)
 		{
 			auto buffer = m_free[i].m_buffer;
@@ -204,7 +212,7 @@ namespace Engine
 		}
 
 		VulkanStaggingBuffer* buffer = new VulkanStaggingBuffer(this);
-		buffer->create(buffer_size, nullptr, flags, memory_usage);
+		buffer->create(buffer_size, nullptr, flags, VMA_MEMORY_USAGE_CPU_ONLY);
 		m_buffers.insert(buffer);
 		return buffer;
 	}
@@ -299,8 +307,30 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::barrier(RHI_Buffer* buffer, RHIAccess src_access, RHIAccess dst_access)
+	VulkanAPI& VulkanAPI::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
 	{
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)
+	{
+		static_cast<VulkanBuffer*>(buffer)->update(offset, size, data);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
+	                                            size_t dst_offset)
+	{
+		VulkanBuffer* src_buffer = static_cast<VulkanBuffer*>(src);
+		VulkanBuffer* dst_buffer = static_cast<VulkanBuffer*>(dst);
+
+		auto* cmd = current_command_buffer();
+
+		vk::BufferCopy region(src_offset, dst_offset, size);
+		cmd->m_cmd.copyBuffer(src_buffer->m_buffer, dst_buffer->m_buffer, region);
+
+		cmd->add_object(src);
+		cmd->add_object(dst);
 		return *this;
 	}
 }// namespace Engine

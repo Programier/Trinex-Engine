@@ -276,8 +276,10 @@ namespace Engine
 					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
 					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-					vd->vertex_buffer->update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
-					vd->index_buffer->update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+					rhi->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
+					                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+					rhi->update_buffer(vd->index_buffer, idx_offset, idx_size,
+					                   reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
 
 					vtx_offset += vtx_size;
 					idx_offset += idx_size;

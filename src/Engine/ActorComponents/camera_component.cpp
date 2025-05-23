@@ -3,6 +3,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
+#include <Graphics/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>
 #include <glm/ext.hpp>
@@ -32,6 +33,25 @@ namespace Engine
 	Matrix4f CameraView::view_matrix() const
 	{
 		return view_matrix(location, forward_vector, up_vector);
+	}
+
+	float CameraView::linearize_depth(float depth) const
+	{
+		Vector2f depth_range = rhi->info.ndc_depth_range;
+		depth                = glm::mix(depth_range.x, depth_range.y, depth);
+
+		return (depth_range.y - depth_range.x) * (near_clip_plane * far_clip_plane) /
+		       (far_clip_plane + depth * (near_clip_plane - far_clip_plane));
+	}
+
+	Vector3f CameraView::reconstruct_position_ndc(Vector2f ndc, float depth) const
+	{
+		Vector2f depth_range = rhi->info.ndc_depth_range;
+		Vector4f ndc_pos     = Vector4f(ndc.x, ndc.y, glm::mix(depth_range.x, depth_range.y, depth), 1.0f);
+		Matrix4f inv_proj    = glm::inverse(projection_matrix() * view_matrix());
+		Vector4f view_pos    = inv_proj * ndc_pos;
+		view_pos /= view_pos.w;
+		return {view_pos.x, view_pos.y, view_pos.z};
 	}
 
 	ENGINE_EXPORT Matrix4f CameraView::view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector)

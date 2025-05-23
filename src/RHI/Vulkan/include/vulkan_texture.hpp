@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	struct VulkanTexture {
+	struct VulkanTexture : public RHI_DefaultDestroyable<RHI_Texture> {
 	private:
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
 		vk::Image m_image;
@@ -21,7 +21,6 @@ namespace Engine
 		virtual ColorFormat engine_format() const   = 0;
 		virtual vk::ImageType image_type() const    = 0;
 		virtual vk::Extent3D extent() const         = 0;
-		virtual RHI_Object* owner()                 = 0;
 
 		vk::Image image() const;
 		vk::ImageLayout layout() const;
@@ -37,7 +36,7 @@ namespace Engine
 		~VulkanTexture();
 	};
 
-	struct VulkanTexture2D : RHI_DefaultDestroyable<RHI_Texture2D>, VulkanTexture {
+	struct VulkanTexture2D : public VulkanTexture {
 		RHI_ShaderResourceView* m_srv  = nullptr;
 		RHI_UnorderedAccessView* m_uav = nullptr;
 		RHI_RenderTargetView* m_rtv    = nullptr;
@@ -57,11 +56,10 @@ namespace Engine
 		ColorFormat engine_format() const override;
 		vk::ImageType image_type() const override;
 		vk::Extent3D extent() const override;
-		RHI_Object* owner() override;
 
 		~VulkanTexture2D();
-		
-		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size) override;
+
+		void update(byte mip, const Rect2D& rect, const byte* data, size_t data_size);
 		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
 		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
 		inline RHI_RenderTargetView* as_rtv() override { return m_rtv; }

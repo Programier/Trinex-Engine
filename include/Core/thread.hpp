@@ -90,6 +90,8 @@ namespace Engine
 		Thread& execute_commands(uint_t commands_limit);
 		Thread& wait();
 
+		static void static_yield();
+		
 		template<typename CommandType, typename... Args>
 		inline Thread& create_task(Args&&... args)
 		{

@@ -147,9 +147,7 @@ namespace Engine
 	VertexBufferBase& VertexBufferBase::rhi_update(size_t size, size_t offset)
 	{
 		if (m_buffer && m_data)
-		{
-			m_buffer->update(offset, size, m_data + offset);
-		}
+			rhi->update_buffer(m_buffer, offset, size, m_data + offset);
 		return *this;
 	}
 

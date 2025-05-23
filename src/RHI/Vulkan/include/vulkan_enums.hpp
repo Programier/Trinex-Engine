@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
+#include <Graphics/types/rhi_access.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine::VulkanEnums
@@ -129,5 +130,46 @@ namespace Engine::VulkanEnums
 
 			default: return vk::BlendFactor::eZero;
 		}
+	}
+
+	constexpr vk::ImageLayout image_layout_of(RHIAccess access)
+	{
+		if (access & RHIAccess::RTV)
+			return vk::ImageLayout::eColorAttachmentOptimal;
+
+		if (access & RHIAccess::DSV)
+			return vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+		if (access & RHIAccess::UAVCompute || access & RHIAccess::UAVGraphics)
+			return vk::ImageLayout::eGeneral;
+
+		if (access & RHIAccess::CopyDst)
+			return vk::ImageLayout::eTransferDstOptimal;
+
+		if (access & RHIAccess::ResolveDst)
+			return vk::ImageLayout::eColorAttachmentOptimal;
+
+		if (access & RHIAccess::Present)
+			return vk::ImageLayout::ePresentSrcKHR;
+
+		if (access & RHIAccess::CopySrc)
+			return vk::ImageLayout::eTransferSrcOptimal;
+
+		if (access & RHIAccess::ResolveSrc)
+			return vk::ImageLayout::eShaderReadOnlyOptimal;
+
+		if (access & RHIAccess::SRVCompute || access & RHIAccess::SRVGraphics)
+			return vk::ImageLayout::eShaderReadOnlyOptimal;
+
+		if (access & RHIAccess::VertexOrIndexBuffer || access & RHIAccess::IndirectArgs)
+			return vk::ImageLayout::eReadOnlyOptimalKHR;
+
+		if (access & RHIAccess::CPURead)
+			return vk::ImageLayout::eGeneral;
+
+		if (access == RHIAccess::Undefined)
+			return vk::ImageLayout::eUndefined;
+
+		return vk::ImageLayout::eGeneral;
 	}
 }// namespace Engine::VulkanEnums

@@ -27,7 +27,7 @@ namespace Engine
 
 		GlobalShaderParameters params;
 		params.update(&view);
-		m_globals->update(0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
+		rhi->update_buffer(m_globals, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
 
 		auto surface_manager = RHISurfacePool::global_instance();
 

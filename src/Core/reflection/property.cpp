@@ -342,20 +342,6 @@ namespace Engine::Refl
 		return false;
 	}
 
-	struct Example {
-		int getter() const { return 0; }
-		Example& setter(int value) { return *this; }
-	};
-
-	static void test()
-	{
-
-		Refl::Object* test;
-
-		test->new_child<decltype(TypedVirtualProperty(&Example::getter, &Example::setter))>("", &Example::getter,
-		                                                                                    &Example::setter);
-	}
-
 	static void on_init()
 	{
 		{
