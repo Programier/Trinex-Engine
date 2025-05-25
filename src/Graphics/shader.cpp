@@ -36,7 +36,9 @@ namespace Engine
 
 	VertexShader& VertexShader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_vertex_shader(this); });
+		render_thread()->call([this] {
+			m_shader = rhi->create_vertex_shader(source_code.data(), source_code.size(), attributes.data(), attributes.size());
+		});
 		return *this;
 	}
 
@@ -54,7 +56,7 @@ namespace Engine
 
 	FragmentShader& FragmentShader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_fragment_shader(this); });
+		render_thread()->call([this] { m_shader = rhi->create_fragment_shader(source_code.data(), source_code.size()); });
 		return *this;
 	}
 
@@ -65,7 +67,8 @@ namespace Engine
 
 	TessellationControlShader& TessellationControlShader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_tesselation_control_shader(this); });
+		render_thread()->call(
+		        [this] { m_shader = rhi->create_tesselation_control_shader(source_code.data(), source_code.size()); });
 		return *this;
 	}
 
@@ -76,7 +79,7 @@ namespace Engine
 
 	TessellationShader& TessellationShader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_tesselation_shader(this); });
+		render_thread()->call([this] { m_shader = rhi->create_tesselation_shader(source_code.data(), source_code.size()); });
 		return *this;
 	}
 
@@ -87,7 +90,7 @@ namespace Engine
 
 	GeometryShader& GeometryShader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_geometry_shader(this); });
+		render_thread()->call([this] { m_shader = rhi->create_geometry_shader(source_code.data(), source_code.size()); });
 		return *this;
 	}
 
@@ -98,7 +101,7 @@ namespace Engine
 
 	ComputeShader& ComputeShader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_compute_shader(this); });
+		render_thread()->call([this] { m_shader = rhi->create_compute_shader(source_code.data(), source_code.size()); });
 		return *this;
 	}
 

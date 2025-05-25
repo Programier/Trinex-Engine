@@ -247,11 +247,6 @@ namespace Engine
 		return *this;
 	}
 
-	ViewPort VulkanAPI::viewport()
-	{
-		return m_state.m_viewport;
-	}
-
 	VulkanAPI& VulkanAPI::scissor(const Scissor& scissor)
 	{
 		auto& m_scissor = m_state.m_scissor;
@@ -282,10 +277,5 @@ namespace Engine
 			m_scissor = scissor;
 		}
 		return *this;
-	}
-
-	Scissor VulkanAPI::scissor()
-	{
-		return m_state.m_scissor;
 	}
 }// namespace Engine

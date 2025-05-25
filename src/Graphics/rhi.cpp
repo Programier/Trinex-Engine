@@ -20,12 +20,12 @@ namespace Engine
 		}
 	}
 
-	void RHI_Object::add_reference() const
+	void RHI_Object::add_reference()
 	{
 		++m_references;
 	}
 
-	void RHI_Object::release() const
+	void RHI_Object::release()
 	{
 		if (m_references > 0)
 			--m_references;

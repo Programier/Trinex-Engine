@@ -131,9 +131,9 @@ namespace Engine
 		return *this;
 	}
 
-	static inline vk::ShaderModule& vulkan_shader_of(Shader* shader)
+	static inline vk::ShaderModule vulkan_shader_of(Shader* shader)
 	{
-		return static_cast<VulkanShaderBase*>(shader->rhi_shader())->m_shader;
+		return static_cast<VulkanShader*>(shader->rhi_shader())->module();
 	}
 
 	bool VulkanPipeline::create_pipeline_layout()
@@ -317,9 +317,9 @@ namespace Engine
 		if (VertexShader* vertex_shader = in_state->vertex_shader())
 		{
 			vertex_input.setVertexBindingDescriptions(
-			        vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_binding_description);
+			        vertex_shader->rhi_shader()->as<VulkanVertexShader>()->binding_description());
 			vertex_input.setVertexAttributeDescriptions(
-			        vertex_shader->rhi_shader()->as<VulkanVertexShader>()->m_attribute_description);
+			        vertex_shader->rhi_shader()->as<VulkanVertexShader>()->attribute_description());
 		}
 
 		struct Stage {

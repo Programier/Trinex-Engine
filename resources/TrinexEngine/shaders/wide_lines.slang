@@ -17,7 +17,7 @@ namespace WideLines
 		__init(in Vertex vertex, in float4 new_position);
 	};
 
-	void stream_line<StreamElement : OutputVertex>(in TriangleStream<StreamElement> streamer, in Vertex vertex_0,
+	void stream_line<StreamElement : OutputVertex>(inout TriangleStream<StreamElement> streamer, in Vertex vertex_0,
 	                                               in Vertex vertex_1, in float2 viewport)
 	{
 		float4 position_0 = vertex_0.get_position();

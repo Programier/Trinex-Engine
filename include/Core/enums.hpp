@@ -533,7 +533,8 @@ namespace Engine
 			ByteAddressBuffer = BIT(8),
 			TransferSrc       = BIT(9),
 			TransferDst       = BIT(9),
-			CPUAccess         = BIT(10),
+			CPURead           = BIT(10),
+			CPUWrite= BIT(11),
 		};
 
 		trinex_bitfield_enum_struct(BufferCreateFlags, uint16_t);
@@ -708,8 +709,8 @@ namespace Engine
 		trinex_bitfield_enum_struct(ShaderParameterType, EnumerateType);
 		trinex_declare_enum(ShaderParameterType);
 
-		ShaderParameterType make_vector(byte len);
-		ShaderParameterType make_scalar();
+		ENGINE_EXPORT ShaderParameterType make_vector(byte len);
+		ENGINE_EXPORT ShaderParameterType make_scalar();
 
 		inline constexpr bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
 		inline constexpr bool is_vector() const { return (value & META_Vector) == META_Vector; }

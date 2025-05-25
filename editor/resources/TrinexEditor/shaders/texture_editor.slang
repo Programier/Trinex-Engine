@@ -1,4 +1,3 @@
-#include "trinex/platform.slang"
 #include "trinex/quad.slang"
 
 struct VertexOutput
@@ -16,7 +15,7 @@ uniform float power;
 void vs_main(in uint vertex : SV_VertexID, out VertexOutput out)
 {
 	out.position = FullScreenQuad::vertex_by_index(vertex);
-	out.uv = Platform::validate_uv(FullScreenQuad::uv_by_index(vertex));
+	out.uv = FullScreenQuad::uv_by_index(vertex);
 }
 
 [shader("fragment")]

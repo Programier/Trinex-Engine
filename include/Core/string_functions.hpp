@@ -1,6 +1,4 @@
 #pragma once
-
-#include <Core/build.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/string.hpp>

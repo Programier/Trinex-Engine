@@ -14,6 +14,7 @@ namespace Engine
 
 		BufferCreateFlags m_flags  = {};
 		vk::Buffer m_buffer        = VK_NULL_HANDLE;
+		RHIAccess m_access         = RHIAccess::Undefined;
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
 		size_t m_size              = 0;
 
@@ -25,6 +26,7 @@ namespace Engine
 		byte* map() override;
 		void unmap() override;
 		VulkanBuffer& update(size_t offset, size_t size, const byte* data);
+		VulkanBuffer& transition(RHIAccess access);
 
 		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
 		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
@@ -36,7 +38,7 @@ namespace Engine
 		struct VulkanStaggingBufferManager* m_manager = nullptr;
 
 		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager);
-		void destroy() const override;
+		void destroy() override;
 
 		friend struct VulkanStaggingBufferManager;
 	};

@@ -8,10 +8,12 @@ namespace Engine
 	{
 		trinex_declare_class(DefaultClient, ViewportClient);
 
+		struct RHI_Buffer* m_vertex_buffer;
+		
 	public:
 		DefaultClient();
+		~DefaultClient();
 		DefaultClient& on_bind_viewport(class RenderViewport* viewport) override;
-		DefaultClient& render(class RenderViewport* viewport) override;
 		DefaultClient& update(class RenderViewport* viewport, float dt) override;
 	};
 }// namespace Engine

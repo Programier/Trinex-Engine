@@ -13,12 +13,10 @@ float gaussian_weight(int x)
 void cs_main(uint3 id : SV_DispatchThreadID)
 {
     int x, y;
-    
-    input.GetDimensions(x, y);
-    float2 input_size = float2(x, y);
-    
+
     output.GetDimensions(x, y);
     float2 output_size = float2(x, y);
+    float2 input_size = output_size;
 
     float2 input_texel = float2(1.0, 1.0) / input_size;
     float2 uv = float2(id.xy) * (float2(1.0, 1.0) / output_size);

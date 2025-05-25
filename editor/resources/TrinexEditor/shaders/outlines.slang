@@ -33,7 +33,7 @@ uniform Arguments args;
 [shader("vertex")]
 float4 vs_main(out float2 uv: TEXCOORD0, in uint vertex: SV_VertexID) : SV_Position
 {
-    uv = Platform::validate_uv(FullScreenQuad::uv_by_index(vertex));
+    uv = FullScreenQuad::uv_by_index(vertex);
     return FullScreenQuad::vertex_by_index(vertex);
 }
 

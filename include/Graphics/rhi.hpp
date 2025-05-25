@@ -38,13 +38,13 @@ namespace Engine
 		static void static_release_internal(RHI_Object* object);
 
 	protected:
-		mutable size_t m_references;
-		virtual void destroy() const = 0;
+		size_t m_references;
+		virtual void destroy() = 0;
 
 	public:
 		RHI_Object(size_t init_ref_count = 1);
-		virtual void add_reference() const;
-		virtual void release() const;
+		virtual void add_reference();
+		virtual void release();
 		size_t references() const;
 		virtual ~RHI_Object();
 
@@ -78,7 +78,7 @@ namespace Engine
 	template<typename Base>
 	struct RHI_DefaultDestroyable : public Base {
 	protected:
-		void destroy() const override { delete this; }
+		void destroy() override { delete this; }
 	};
 
 	struct ENGINE_EXPORT RHI_BindingObject : RHI_Object {
@@ -143,6 +143,12 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI {
+		static constexpr size_t s_max_srv             = 32;
+		static constexpr size_t s_max_samplers        = 32;
+		static constexpr size_t s_max_uav             = 8;
+		static constexpr size_t s_max_uniform_buffers = 8;
+		static constexpr size_t s_max_vertex_buffers  = 8;
+
 		struct Info {
 			String name;
 			String renderer;
@@ -167,19 +173,18 @@ namespace Engine
 		                                RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) = 0;
 
 		virtual RHI& viewport(const ViewPort& viewport) = 0;
-		virtual ViewPort viewport()                     = 0;
 		virtual RHI& scissor(const Scissor& scissor)    = 0;
-		virtual Scissor scissor()                       = 0;
 
 		virtual RHI_Fence* create_fence()                                                                                  = 0;
 		virtual RHI_Sampler* create_sampler(const SamplerInitializer*)                                                     = 0;
 		virtual RHI_Texture* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) = 0;
-		virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                               = 0;
-		virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                     = 0;
-		virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                    = 0;
-		virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                                           = 0;
-		virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                           = 0;
-		virtual RHI_Shader* create_compute_shader(const ComputeShader* shader)                                             = 0;
+		virtual RHI_Shader* create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
+		                                         size_t attributes_count)                                                  = 0;
+		virtual RHI_Shader* create_tesselation_control_shader(const byte* shader, size_t size)                             = 0;
+		virtual RHI_Shader* create_tesselation_shader(const byte* shader, size_t size)                                     = 0;
+		virtual RHI_Shader* create_geometry_shader(const byte* shader, size_t size)                                        = 0;
+		virtual RHI_Shader* create_fragment_shader(const byte* shader, size_t size)                                        = 0;
+		virtual RHI_Shader* create_compute_shader(const byte* shader, size_t size)                                         = 0;
 		virtual RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline)                                   = 0;
 		virtual RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline)                                     = 0;
 		virtual RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags)                          = 0;

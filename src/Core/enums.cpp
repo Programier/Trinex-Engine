@@ -55,7 +55,7 @@ namespace Engine
 	                             Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3, Float4x4, MemoryBlock,
 	                             Sampler, Sampler2D, Texture2D);
 
-	ShaderParameterType ShaderParameterType::make_vector(byte len)
+	ENGINE_EXPORT ShaderParameterType ShaderParameterType::make_vector(byte len)
 	{
 		len = glm::clamp<byte>(len, 1, 4);
 
@@ -95,7 +95,7 @@ namespace Engine
 		return ShaderParameterType();
 	}
 
-	ShaderParameterType ShaderParameterType::make_scalar()
+	ENGINE_EXPORT ShaderParameterType ShaderParameterType::make_scalar()
 	{
 		if (is_scalar())
 			return *this;

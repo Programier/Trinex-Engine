@@ -223,35 +223,27 @@ namespace Engine
 		virtual void initialize()        = 0;
 	};
 
-#define trinex_declare_global_pipeline(class_name, base_class, ...)                                                              \
-	class class_name : public base_class                                                                                         \
+#define trinex_declare_pipeline(class_name, base_class)                                                                          \
+private:                                                                                                                         \
+	static class_name* s_instance;                                                                                               \
+                                                                                                                                 \
+	class_name();                                                                                                                \
+                                                                                                                                 \
+public:                                                                                                                          \
+	using Super = base_class;                                                                                                    \
+	using This  = class_name;                                                                                                    \
+                                                                                                                                 \
+	static class_name* create();                                                                                                 \
+	static inline class_name* instance()                                                                                         \
 	{                                                                                                                            \
-		static class_name* s_instance;                                                                                           \
+		return s_instance;                                                                                                       \
+	}                                                                                                                            \
+	Path shader_path() const override;                                                                                           \
+	void initialize() override;                                                                                                  \
+	~class_name();                                                                                                               \
+	friend class Engine::Object;                                                                                                 \
                                                                                                                                  \
-		class_name();                                                                                                            \
-                                                                                                                                 \
-	public:                                                                                                                      \
-		using Super = base_class;                                                                                                \
-		using This  = class_name;                                                                                                \
-                                                                                                                                 \
-		__VA_ARGS__                                                                                                              \
-		static class_name* create();                                                                                             \
-		static inline class_name* instance()                                                                                     \
-		{                                                                                                                        \
-			return s_instance;                                                                                                   \
-		}                                                                                                                        \
-		Path shader_path() const override;                                                                                       \
-		void initialize() override;                                                                                              \
-		~class_name();                                                                                                           \
-		friend class Engine::Object;                                                                                             \
-	}
-
-#define trinex_declare_graphics_pipeline(class_name, ...)                                                                        \
-	trinex_declare_global_pipeline(class_name, Engine::GlobalGraphicsPipeline, __VA_ARGS__)
-
-#define trinex_declare_compute_pipeline(class_name, ...)                                                                         \
-	trinex_declare_global_pipeline(class_name, Engine::GlobalComputePipeline, __VA_ARGS__)
-
+private:
 
 #define trinex_implement_pipeline(class_name, path, shaders)                                                                     \
 	static Engine::byte TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                       \

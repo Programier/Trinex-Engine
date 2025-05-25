@@ -86,4 +86,9 @@ namespace Engine::Barrier
 		barrier.dstAccessMask = dst.access;
 		cmd->m_cmd.pipelineBarrier(src.stage, dst.stage, {}, {}, {}, barrier);
 	}
+	
+	void transition_buffer_access(vk::BufferMemoryBarrier& barrier)
+	{
+		
+	}
 }// namespace Engine::Barrier

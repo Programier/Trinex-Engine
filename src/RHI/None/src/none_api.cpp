@@ -159,19 +159,9 @@ namespace Engine
 		return *this;
 	}
 
-	ViewPort NoneApi::viewport()
-	{
-		return {};
-	}
-
 	NoneApi& NoneApi::scissor(const Scissor& scissor)
 	{
 		return *this;
-	}
-
-	Scissor NoneApi::scissor()
-	{
-		return {};
 	}
 
 	RHI_Fence* NoneApi::create_fence()
@@ -189,32 +179,33 @@ namespace Engine
 		return new NoneTexture();
 	}
 
-	RHI_Shader* NoneApi::create_vertex_shader(const VertexShader* shader)
+	RHI_Shader* NoneApi::create_vertex_shader(const byte* source, size_t size, const VertexAttribute* attributes,
+	                                          size_t attributes_count)
 	{
 		return new NoneShader();
 	}
 
-	RHI_Shader* NoneApi::create_tesselation_control_shader(const TessellationControlShader* shader)
+	RHI_Shader* NoneApi::create_tesselation_control_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}
 
-	RHI_Shader* NoneApi::create_tesselation_shader(const TessellationShader* shader)
+	RHI_Shader* NoneApi::create_tesselation_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}
 
-	RHI_Shader* NoneApi::create_geometry_shader(const GeometryShader* shader)
+	RHI_Shader* NoneApi::create_geometry_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}
 
-	RHI_Shader* NoneApi::create_fragment_shader(const FragmentShader* shader)
+	RHI_Shader* NoneApi::create_fragment_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}
 
-	RHI_Shader* NoneApi::create_compute_shader(const ComputeShader* shader)
+	RHI_Shader* NoneApi::create_compute_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}

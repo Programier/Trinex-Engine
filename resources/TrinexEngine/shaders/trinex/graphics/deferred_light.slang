@@ -19,7 +19,7 @@ uniform float4x4 shadow_map_projview;
 [shader("vertex")] 
 float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
 {
-	uv = Platform::validate_uv(globals.normalize_screen_space_uv(FullScreenQuad::uv_by_index(vertex)));
+	uv = globals.normalize_screen_space_uv(FullScreenQuad::uv_by_index(vertex));
 	float4 vertex = FullScreenQuad::vertex_by_index(vertex);
 	ndc           = vertex.xy;
 	return vertex;
@@ -47,7 +47,7 @@ float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
 	shadow_ndc.xyz /= shadow_ndc.w;
 
 	primitive.shadow_depth    = shadow_ndc.z;
-	primitive.primitive_depth = shadow_map_texture.Sample(Platform::validate_uv(shadow_ndc.xy * 0.5 + 0.5)).r;
+	primitive.primitive_depth = shadow_map_texture.Sample(shadow_ndc.xy * 0.5 + 0.5).r;
 #endif
 
 	return Lighting::calculate_light(parameters, primitive);

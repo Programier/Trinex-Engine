@@ -23,18 +23,13 @@ namespace Engine
 		vk::SampleMask sample_mask;
 	};
 
-	bool VulkanShaderBase::create(const Shader* shader)
+	VulkanShader::VulkanShader(const byte* shader, size_t size)
 	{
-		if (shader->source_code.empty())
-			return false;
-		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->source_code.size(),
-		                                reinterpret_cast<const uint32_t*>(shader->source_code.data()));
+		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), size, reinterpret_cast<const uint32_t*>(shader));
 		m_shader = API->m_device.createShaderModule(info);
-
-		return true;
 	}
 
-	VulkanShaderBase::~VulkanShaderBase()
+	VulkanShader::~VulkanShader()
 	{
 		DESTROY_CALL(destroyShaderModule, m_shader)
 	}
@@ -93,17 +88,16 @@ namespace Engine
 		return rate == vk::VertexInputRate::eVertex ? "Vertex" : "Instance";
 	}
 
-	bool VulkanVertexShader::create(const VertexShader* shader)
+	VulkanVertexShader::VulkanVertexShader(const byte* shader, size_t size, const VertexAttribute* attributes,
+	                                       size_t attributes_count)
+	    : VulkanShader(shader, size)
 	{
-		bool status = VulkanShaderBase::create(shader);
-		if (status == false)
-			return false;
+		m_binding_description.reserve(attributes_count);
+		m_attribute_description.reserve(attributes_count);
 
-		m_binding_description.reserve(shader->attributes.size());
-		m_attribute_description.reserve(shader->attributes.size());
-
-		for (Index index = 0; auto& attribute : shader->attributes)
+		for (size_t index = 0; index < attributes_count; ++index)
 		{
+			auto& attribute   = attributes[index];
 			uint32_t stream   = static_cast<uint32_t>(attribute.stream_index);
 			uint32_t stride   = 0;
 			vk::Format format = parse_vertex_format(attribute.type, stride);
@@ -121,7 +115,6 @@ namespace Engine
 						{
 							error_log("Vulkan", "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'",
 							          name_of_rate(rate), index, name_of_rate(desc.inputRate));
-							return false;
 						}
 
 						desc.stride = glm::max(desc.stride, stride + static_cast<uint32_t>(attribute.offset));
@@ -148,54 +141,38 @@ namespace Engine
 				description.offset   = attribute.offset;
 				description.format   = format;
 			}
-
-			++index;
 		}
-
-		return status;
 	}
 
 
-	template<typename Out, typename In>
-	static Out* create_shader(In* in)
+	RHI_Shader* VulkanAPI::create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
+	                                            size_t attributes_count)
 	{
-		Out* out = new Out();
-		if (out->create(in))
-		{
-			return out;
-		}
-
-		delete out;
-		return nullptr;
+		return new VulkanVertexShader(shader, size, attributes, attributes_count);
 	}
 
-	RHI_Shader* VulkanAPI::create_vertex_shader(const VertexShader* shader)
+	RHI_Shader* VulkanAPI::create_tesselation_control_shader(const byte* shader, size_t size)
 	{
-		return create_shader<VulkanVertexShader>(shader);
+		return new VulkanShader(shader, size);
 	}
 
-	RHI_Shader* VulkanAPI::create_tesselation_control_shader(const TessellationControlShader* shader)
+	RHI_Shader* VulkanAPI::create_tesselation_shader(const byte* shader, size_t size)
 	{
-		return create_shader<VulkanTessellationControlShader>(shader);
+		return new VulkanShader(shader, size);
 	}
 
-	RHI_Shader* VulkanAPI::create_tesselation_shader(const TessellationShader* shader)
+	RHI_Shader* VulkanAPI::create_geometry_shader(const byte* shader, size_t size)
 	{
-		return create_shader<VulkanTessellationShader>(shader);
+		return new VulkanShader(shader, size);
 	}
 
-	RHI_Shader* VulkanAPI::create_geometry_shader(const GeometryShader* shader)
+	RHI_Shader* VulkanAPI::create_fragment_shader(const byte* shader, size_t size)
 	{
-		return create_shader<VulkanGeometryShader>(shader);
+		return new VulkanShader(shader, size);
 	}
 
-	RHI_Shader* VulkanAPI::create_fragment_shader(const FragmentShader* shader)
+	RHI_Shader* VulkanAPI::create_compute_shader(const byte* shader, size_t size)
 	{
-		return create_shader<VulkanFragmentShader>(shader);
-	}
-
-	RHI_Shader* VulkanAPI::create_compute_shader(const ComputeShader* shader)
-	{
-		return create_shader<VulkanComputeShader>(shader);
+		return new VulkanShader(shader, size);
 	}
 }// namespace Engine

@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	struct SamplerInitializer {
+	struct ENGINE_EXPORT SamplerInitializer {
 		SamplerFilter filter         = SamplerFilter::Point;
 		SamplerAddressMode address_u = SamplerAddressMode::Repeat;
 		SamplerAddressMode address_v = SamplerAddressMode::Repeat;

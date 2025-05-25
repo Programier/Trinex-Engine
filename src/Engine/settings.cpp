@@ -19,7 +19,11 @@ namespace Engine::Settings
 
 	namespace Rendering
 	{
-		ENGINE_EXPORT String rhi                    = "Vulkan";
+#if PLATFORM_WINDOWS
+		ENGINE_EXPORT String rhi = "D3D12";
+#else
+		ENGINE_EXPORT String rhi = "Vulkan";
+#endif
 		ENGINE_EXPORT bool force_keep_cpu_resources = false;
 		ENGINE_EXPORT uint_t shadow_map_size        = 1024;
 		ENGINE_EXPORT bool enable_hdr               = true;

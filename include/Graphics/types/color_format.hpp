@@ -39,63 +39,51 @@ namespace Engine
 
 			R8           = 4,
 			R8G8         = 5,
-			R8G8B8       = 6,
 			R8G8B8A8     = 7,
 			R10G108B10A2 = 8,
 
 			R8_SNORM       = 9,
 			R8G8_SNORM     = 10,
-			R8G8B8_SNORM   = 11,
 			R8G8B8A8_SNORM = 12,
 
 			R8_UINT       = 13,
 			R8G8_UINT     = 14,
-			R8G8B8_UINT   = 15,
 			R8G8B8A8_UINT = 16,
 
 			R8_SINT       = 17,
 			R8G8_SINT     = 18,
-			R8G8B8_SINT   = 19,
 			R8G8B8A8_SINT = 20,
 
 			R16          = 21,
 			R16G16       = 22,
-			R16G16B16    = 23,
 			R16G16B16A16 = 24,
 
 			R16_SNORM          = 25,
 			R16G16_SNORM       = 26,
-			R16G16B16_SNORM    = 27,
 			R16G16B16A16_SNORM = 28,
 
 			R16_UINT          = 29,
 			R16G16_UINT       = 30,
-			R16G16B16_UINT    = 31,
 			R16G16B16A16_UINT = 32,
 
 			R16_SINT          = 33,
 			R16G16_SINT       = 34,
-			R16G16B16_SINT    = 35,
 			R16G16B16A16_SINT = 36,
 
 			R32_UINT          = 37,
 			R32G32_UINT       = 38,
-			R32G32B32_UINT    = 39,
 			R32G32B32A32_UINT = 40,
 
 			R32_SINT          = 41,
 			R32G32_SINT       = 42,
-			R32G32B32_SINT    = 43,
 			R32G32B32A32_SINT = 44,
 
 			R16F          = 45,
 			R16G16F       = 46,
-			R16G16B16F    = 47,
 			R16G16B16A16F = 48,
 
 			R32F          = 49,
 			R32G32F       = 50,
-			R32G32B32F    = 51,
 			R32G32B32A32F = 52,
 
 			BC1_RGBA = 53,

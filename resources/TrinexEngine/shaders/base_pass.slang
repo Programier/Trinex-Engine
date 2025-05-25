@@ -1,6 +1,5 @@
 #include "trinex/attributes.slang"
 #include "trinex/common.slang"
-#include "trinex/platform.slang"
 #include "trinex/math.slang"
 #include "trinex/globals.slang"
 
@@ -72,7 +71,7 @@ VertexOutput vs_main(in VertexFactory input)
 #if TRINEX_GEOMETRY_PASS
 	output.world_position = world_position;
 	output.world_normal = input.get_world_normal();
-	output.uv =	Platform::validate_uv(input.get_uv());
+	output.uv =	input.get_uv();
 #endif
 
 	return output;

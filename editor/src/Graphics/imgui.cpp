@@ -38,16 +38,19 @@ namespace Engine
 
 	namespace ImGuiBackend_RHI
 	{
-		// clang-format off
-		trinex_declare_graphics_pipeline(ImGuiPipeline,
+		class ImGuiPipeline : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(ImGuiPipeline, GlobalGraphicsPipeline);
+
+		public:
 			const ShaderParameterInfo* texture_parameter = nullptr;
 			const ShaderParameterInfo* model_parameter   = nullptr;
 			Matrix4f model;
 			RHI_ShaderResourceView* srv = nullptr;
 
 			void apply(const Sampler& sampler);
-		);
-		// clang-format on
+		};
+
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
 		                          ShaderType::Vertex | ShaderType::Fragment)
@@ -245,8 +248,6 @@ namespace Engine
 			}
 
 			trinex_rhi_push_stage("ImGui Setup state");
-			const ViewPort backup_viewport = rhi->viewport();
-			const Scissor backup_scissor   = rhi->scissor();
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
@@ -276,10 +277,16 @@ namespace Engine
 					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
 					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
+					rhi->barrier(vd->vertex_buffer, RHIAccess::CopyDst);
+					rhi->barrier(vd->index_buffer, RHIAccess::CopyDst);
+
 					rhi->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
 					                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
 					rhi->update_buffer(vd->index_buffer, idx_offset, idx_size,
 					                   reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+
+					rhi->barrier(vd->vertex_buffer, RHIAccess::VertexBuffer);
+					rhi->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
 
 					vtx_offset += vtx_size;
 					idx_offset += idx_size;
@@ -357,8 +364,6 @@ namespace Engine
 				}
 			}
 
-			rhi->viewport(backup_viewport);
-			rhi->scissor(backup_scissor);
 			trinex_rhi_pop_stage();
 		}
 

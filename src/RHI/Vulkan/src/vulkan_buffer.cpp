@@ -9,6 +9,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
@@ -69,7 +70,7 @@ namespace Engine
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = memory_usage;
 
-		if (flags & BufferCreateFlags::CPUAccess)
+		if ((flags & BufferCreateFlags::CPURead) || (flags & BufferCreateFlags::CPUWrite))
 		{
 			alloc_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		}
@@ -98,6 +99,7 @@ namespace Engine
 			auto buffer = API->m_stagging_manager->allocate(size, BufferCreateFlags::TransferSrc);
 			buffer->copy(offset, data, size);
 
+			transition(RHIAccess::CopyDst);
 			auto cmd = API->end_render_pass();
 
 			vk::BufferCopy region(0, offset, size);
@@ -110,13 +112,7 @@ namespace Engine
 	VulkanBuffer& VulkanBuffer::update(size_t offset, size_t size, const byte* data)
 	{
 		auto cmd = API->end_render_pass();
-
-		{
-			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
-			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
-			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, barrier,
-			                           {}, {});
-		}
+		transition(RHIAccess::CopyDst);
 
 		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
 		if (size <= 65536 && size % 4 == 0 && offset % 4 == 0)
@@ -132,21 +128,32 @@ namespace Engine
 			cmd->m_cmd.copyBuffer(staging->m_buffer, m_buffer, region);
 			cmd->add_object(staging);
 		}
+		return *this;
+	}
 
+	VulkanBuffer& VulkanBuffer::transition(RHIAccess access)
+	{
+		if (m_access == access)
+			return *this;
+
+		if (m_access == RHIAccess::Undefined)
 		{
-			vk::PipelineStageFlags dst_stage;
-
-			if (m_flags & (BufferCreateFlags::VertexBuffer | BufferCreateFlags::IndexBuffer))
-				dst_stage = vk::PipelineStageFlagBits::eVertexInput;
-			else if (m_flags & BufferCreateFlags::UniformBuffer)
-				dst_stage = all_shaders_stage;
-			else
-				dst_stage = vk::PipelineStageFlagBits::eAllCommands;
-
-			const vk::MemoryBarrier barrier(vk::AccessFlagBits::eMemoryWrite,
-			                                vk::AccessFlagBits::eMemoryRead | vk::AccessFlagBits::eMemoryWrite);
-			cmd->m_cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, dst_stage, {}, barrier, {}, {});
+			m_access = access;
+			return *this;
 		}
+
+		API->end_render_pass();
+
+		const vk::PipelineStageFlags src_stage = VulkanEnums::pipeline_stage_of(m_access);
+		const vk::PipelineStageFlags dst_stage = VulkanEnums::pipeline_stage_of(access);
+		const vk::AccessFlags src_access       = VulkanEnums::access_of(m_access);
+		const vk::AccessFlags dst_access       = VulkanEnums::access_of(access);
+
+		vk::BufferMemoryBarrier barrier(src_access, dst_access, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, m_buffer, 0,
+		                                VK_WHOLE_SIZE);
+
+		API->current_command_buffer_handle().pipelineBarrier(src_stage, dst_stage, {}, {}, barrier, {});
+		m_access = access;
 		return *this;
 	}
 
@@ -189,7 +196,7 @@ namespace Engine
 		m_references = 0;
 	}
 
-	void VulkanStaggingBuffer::destroy() const
+	void VulkanStaggingBuffer::destroy()
 	{
 		if (m_manager)
 			m_manager->release(const_cast<VulkanStaggingBuffer*>(this));
@@ -199,7 +206,7 @@ namespace Engine
 
 	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, BufferCreateFlags flags)
 	{
-		flags |= BufferCreateFlags::CPUAccess;
+		flags |= BufferCreateFlags::CPUWrite;
 
 		for (size_t i = 0, size = m_free.size(); i < size; i++)
 		{
@@ -309,6 +316,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
 	{
+		static_cast<VulkanBuffer*>(buffer)->transition(dst_access);
 		return *this;
 	}
 

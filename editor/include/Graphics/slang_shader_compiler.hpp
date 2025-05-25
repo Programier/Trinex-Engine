@@ -172,9 +172,9 @@ namespace Engine
 		void initialize_context(SessionInitializer* session) override;
 	};
 
-	class D3D11_ShaderCompiler : public SLANG_ShaderCompiler
+	class D3D12_ShaderCompiler : public SLANG_ShaderCompiler
 	{
-		trinex_declare_class(D3D11_ShaderCompiler, SLANG_ShaderCompiler);
+		trinex_declare_class(D3D12_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;

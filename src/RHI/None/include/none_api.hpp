@@ -30,19 +30,18 @@ namespace Engine
 		NoneApi& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
 		                            RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
 		NoneApi& viewport(const ViewPort& viewport) override;
-		ViewPort viewport() override;
 		NoneApi& scissor(const Scissor& scissor) override;
-		Scissor scissor() override;
 
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const SamplerInitializer*) override;
 		RHI_Texture* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
-		RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
-		RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
-		RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
-		RHI_Shader* create_geometry_shader(const GeometryShader* shader) override;
-		RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
-		RHI_Shader* create_compute_shader(const ComputeShader* shader) override;
+		RHI_Shader* create_vertex_shader(const byte* source, size_t size, const VertexAttribute* attributes,
+		                                 size_t attributes_count) override;
+		RHI_Shader* create_tesselation_control_shader(const byte* source, size_t size) override;
+		RHI_Shader* create_tesselation_shader(const byte* source, size_t size) override;
+		RHI_Shader* create_geometry_shader(const byte* source, size_t size) override;
+		RHI_Shader* create_fragment_shader(const byte* source, size_t size) override;
+		RHI_Shader* create_compute_shader(const byte* source, size_t size) override;
 		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags type) override;

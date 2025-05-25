@@ -185,7 +185,7 @@ namespace Engine
 
 		Pipeline* pipeline;
 
-		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, uint index)
+		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, uint_t index)
 		{
 			size_t size;
 			const char* name = attribute->getArgumentValueString(0, &size);
@@ -712,7 +712,7 @@ namespace Engine
 	trinex_implement_class_default_init(Engine::OPENGL_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Engine::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Engine::D3D11_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Engine::D3D12_ShaderCompiler, Refl::Class::IsSingletone);
 
 
 	class SLANG_CompilationEnv : public ShaderCompilationEnvironment
@@ -1239,15 +1239,15 @@ namespace Engine
 		}
 	}
 
-	void D3D11_ShaderCompiler::initialize_context(SessionInitializer* session)
+	void D3D12_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		Super::initialize_context(session);
 
-		session->target_desc.format  = SLANG_DXBC;
-		session->target_desc.profile = global_session()->findProfile("sm_5_0");
+		session->target_desc.format  = SLANG_DXIL;
+		session->target_desc.profile = global_session()->findProfile("sm_6_0");
 
 		session->add_definition("TRINEX_INVERT_UV", "1");
-		session->add_definition("TRINEX_D3D11_RHI", "1");
+		session->add_definition("TRINEX_D3D12_RHI", "1");
 		session->add_definition("TRINEX_DIRECT_X_RHI", "1");
 	}
 }// namespace Engine

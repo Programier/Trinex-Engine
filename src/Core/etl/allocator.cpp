@@ -140,12 +140,20 @@ namespace Engine
 
 	unsigned char* ByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
+#if PLATFORM_WINDOWS
+		return static_cast<unsigned char*>(_aligned_malloc(size, align));
+#else
 		return static_cast<unsigned char*>(std::aligned_alloc(align, size));
+#endif
 	}
 
 	void ByteAllocator::deallocate(unsigned char* ptr) noexcept
 	{
+#if PLATFORM_WINDOWS
+		_aligned_free(ptr);
+#else
 		std::free(ptr);
+#endif
 	}
 
 	StackByteAllocator::Mark::Mark()

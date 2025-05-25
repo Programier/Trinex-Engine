@@ -70,6 +70,7 @@ namespace Engine
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
 				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_data, m_flags | BufferCreateFlags::VertexBuffer);
+				rhi->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{
 					release_memory(m_data);
@@ -284,6 +285,7 @@ namespace Engine
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
 				m_buffer = rhi->create_buffer(size(), m_data, m_flags | BufferCreateFlags::IndexBuffer);
+				rhi->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
 
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{

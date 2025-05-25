@@ -144,7 +144,10 @@ namespace Engine
 
 		while (m_first)
 		{
+			rhi->barrier(vtx_buffer, RHIAccess::CopyDst);
 			rhi->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<byte*>(m_first->vertices));
+			rhi->barrier(vtx_buffer, RHIAccess::VertexBuffer);
+
 			rhi->draw(m_first->vtx_count, 0);
 			m_first = m_first->next;
 		}

@@ -2,11 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES C CXX ASM)
 
 option(TRINEX_WITH_TRACY_PROFILER "Build Trinex Engine with supper Tracy Profiler" OFF)
-option(TRINEX_WITH_VULKAN "Build Trinex Engine with support Vulkan API" ON)
-option(TRINEX_WITH_OPENGL "Build Trinex Engine with support OpenGL API" ON)
+option(TRINEX_WITH_VULKAN "Build Trinex Engine with support Vulkan API" OFF)
 
 if(WIN32)
-    option(TRINEX_WITH_D3D11 "Build TrinexEngine with support DirectX 11 API" ON)
+    option(TRINEX_WITH_D3D12 "Build TrinexEngine with support DirectX 12 API" ON)
 endif()
 
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)

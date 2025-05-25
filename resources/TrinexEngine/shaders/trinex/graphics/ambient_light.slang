@@ -1,6 +1,5 @@
 #include "trinex/attributes.slang"
 #include "trinex/quad.slang"
-#include "trinex/platform.slang"
 #include "trinex/common.slang"
 #include "trinex/globals.slang"
 
@@ -17,7 +16,7 @@ float2 vs_main(in uint vertex : SV_VertexID, out float4 out_position : SV_Positi
 {
     out_position = FullScreenQuad::vertex_by_index(vertex);
     float2 uv = FullScreenQuad::uv_by_index(vertex);
-	return Platform::validate_uv(globals.normalize_screen_space_uv(uv));
+	return globals.normalize_screen_space_uv(uv);
 }
 
 
