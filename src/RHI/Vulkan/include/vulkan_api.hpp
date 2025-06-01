@@ -5,7 +5,6 @@
 
 #pragma once
 #include <Core/etl/set.hpp>
-#include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
 #include <VkBootstrap.h>
 #include <vk_mem_alloc.h>
@@ -16,7 +15,11 @@
 
 namespace Engine
 {
-	struct VulkanTexture;
+	class VulkanBuffer;
+	class VulkanTexture;
+	class VulkanQueue;
+	class VulkanCommandBufferManager;
+	class VulkanStaggingBufferManager;
 	struct VulkanViewport;
 	class VulkanUniformBufferManager;
 	class Window;
@@ -33,11 +36,6 @@ namespace Engine
 			size_t operator()(const VulkanExtention& ext) const { return std::hash<StringView>()(ext.name); }
 		};
 	};
-
-	static constexpr inline vk::PipelineStageFlags all_shaders_stage =
-	        vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eTessellationControlShader |
-	        vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eGeometryShader |
-	        vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader;
 
 	struct VulkanAPI : public RHI {
 		trinex_declare_struct(VulkanAPI, void);
@@ -62,14 +60,14 @@ namespace Engine
 		vk::Device m_device;
 		VmaAllocator m_allocator = VK_NULL_HANDLE;
 
-		struct VulkanQueue* m_graphics_queue = nullptr;
-		struct VulkanQueue* m_present_queue  = nullptr;
+		VulkanQueue* m_graphics_queue = nullptr;
+		VulkanQueue* m_present_queue  = nullptr;
 
 		vk::PhysicalDeviceProperties m_properties;
 		vk::PhysicalDeviceFeatures m_features;
 
-		struct VulkanCommandBufferManager* m_cmd_manager       = nullptr;
-		struct VulkanStaggingBufferManager* m_stagging_manager = nullptr;
+		VulkanCommandBufferManager* m_cmd_manager       = nullptr;
+		VulkanStaggingBufferManager* m_stagging_manager = nullptr;
 
 		//////////////////////////////////////////////////////////////
 
@@ -83,8 +81,7 @@ namespace Engine
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 		bool has_stencil_component(vk::Format format);
 
-		struct VulkanCommandBuffer* current_command_buffer();
-		vk::CommandBuffer& current_command_buffer_handle();
+		class VulkanCommandBuffer* current_command_buffer();
 		VulkanUniformBufferManager* uniform_buffer_manager();
 
 		VulkanCommandBuffer* begin_render_pass();
@@ -92,6 +89,7 @@ namespace Engine
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
 		bool is_extension_enabled(const char* extension);
+		inline VulkanCommandBufferManager* command_buffer_mananger() const { return m_cmd_manager; }
 
 		//////////////////////////////////////////////////////////////
 
@@ -109,8 +107,8 @@ namespace Engine
 
 		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);
 
-		VulkanAPI& prepare_draw();
-		VulkanAPI& prepare_dispatch();
+		VulkanCommandBuffer* prepare_draw();
+		VulkanCommandBuffer* prepare_dispatch();
 		VulkanAPI& draw(size_t vertex_count, size_t vertices_offset) override;
 		VulkanAPI& draw_indexed(size_t indices, size_t offset, size_t vertices_offset) override;
 		VulkanAPI& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
@@ -148,7 +146,7 @@ namespace Engine
 		VulkanAPI& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
 		VulkanAPI& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
 		VulkanAPI& bind_uniform_buffer(RHI_Buffer* buffer, byte slot) override;
-		VulkanAPI& bind_uniform_buffer(struct VulkanBuffer* buffer, size_t size, size_t offset, byte slot);
+		VulkanAPI& bind_uniform_buffer(VulkanBuffer* buffer, size_t size, size_t offset, byte slot);
 		VulkanAPI& bind_srv(RHI_ShaderResourceView* view, byte slot, RHI_Sampler* sampler = nullptr) override;
 		VulkanAPI& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
 

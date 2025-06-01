@@ -12,7 +12,7 @@ namespace Engine
 	};
 
 	struct VulkanState {
-		struct VulkanRenderPass* m_render_pass              = nullptr;
+		class VulkanRenderPass* m_render_pass               = nullptr;
 		struct VulkanRenderTargetBase* m_render_target      = nullptr;
 		struct VulkanRenderTargetBase* m_next_render_target = nullptr;
 

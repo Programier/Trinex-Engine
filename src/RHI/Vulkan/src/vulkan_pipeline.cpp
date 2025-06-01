@@ -1,5 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -9,7 +10,6 @@
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_definitions.hpp>
-#include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
@@ -391,7 +391,7 @@ namespace Engine
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_state.stages, &m_state.vertex_input, &m_state.input_assembly, nullptr,
 		                                             &viewport_state, &m_state.rasterizer, &m_state.multisampling,
 		                                             &m_state.depth_stencil, &m_state.color_blending, &dynamic_state,
-		                                             m_pipeline_layout, rt->m_render_pass->m_render_pass, 0, {});
+		                                             m_pipeline_layout, rt->m_render_pass->render_pass(), 0, {});
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 
@@ -422,8 +422,7 @@ namespace Engine
 			auto current_pipeline = find_or_create_pipeline();
 			if (API->m_state.m_vk_pipeline != current_pipeline)
 			{
-				cmd->m_cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
-				cmd->add_object(this);
+				cmd->bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
 				API->m_state.m_pipeline    = this;
 				API->m_state.m_vk_pipeline = current_pipeline;
 			}
@@ -483,8 +482,7 @@ namespace Engine
 		{
 			if (API->m_state.m_vk_pipeline != m_pipeline)
 			{
-				cmd->m_cmd.bindPipeline(vk::PipelineBindPoint::eCompute, m_pipeline);
-				cmd->add_object(this);
+				cmd->bindPipeline(vk::PipelineBindPoint::eCompute, m_pipeline);
 				API->m_state.m_pipeline    = this;
 				API->m_state.m_vk_pipeline = m_pipeline;
 			}

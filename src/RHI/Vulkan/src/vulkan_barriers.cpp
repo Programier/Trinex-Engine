@@ -22,7 +22,7 @@ namespace Engine::Barrier
 				case vk::ImageLayout::eGeneral:
 					access = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
 					         vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
-					stage = all_shaders_stage | vk::PipelineStageFlagBits::eTransfer;
+					stage = vk::PipelineStageFlagBits::eAllCommands;
 					break;
 
 				case vk::ImageLayout::eColorAttachmentOptimal:
@@ -43,7 +43,7 @@ namespace Engine::Barrier
 
 				case vk::ImageLayout::eShaderReadOnlyOptimal:
 					access = vk::AccessFlagBits::eShaderRead;
-					stage  = all_shaders_stage;
+					stage  = vk::PipelineStageFlagBits::eAllCommands;
 					break;
 
 				case vk::ImageLayout::eTransferSrcOptimal:
@@ -63,11 +63,10 @@ namespace Engine::Barrier
 
 				case vk::ImageLayout::eReadOnlyOptimal:
 					access = vk::AccessFlagBits::eShaderRead;
-					stage  = all_shaders_stage;
+					stage  = vk::PipelineStageFlagBits::eAllCommands;
 					break;
 
-				default:
-					throw EngineException("Undefined layout");
+				default: throw EngineException("Undefined layout");
 			}
 		}
 	};
@@ -84,11 +83,8 @@ namespace Engine::Barrier
 
 		barrier.srcAccessMask = src.access;
 		barrier.dstAccessMask = dst.access;
-		cmd->m_cmd.pipelineBarrier(src.stage, dst.stage, {}, {}, {}, barrier);
+		cmd->pipelineBarrier(src.stage, dst.stage, {}, {}, {}, barrier);
 	}
-	
-	void transition_buffer_access(vk::BufferMemoryBarrier& barrier)
-	{
-		
-	}
+
+	void transition_buffer_access(vk::BufferMemoryBarrier& barrier) {}
 }// namespace Engine::Barrier

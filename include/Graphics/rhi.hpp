@@ -75,12 +75,6 @@ namespace Engine
 		virtual void reset()       = 0;
 	};
 
-	template<typename Base>
-	struct RHI_DefaultDestroyable : public Base {
-	protected:
-		void destroy() override { delete this; }
-	};
-
 	struct ENGINE_EXPORT RHI_BindingObject : RHI_Object {
 		virtual void bind(BindLocation location) = 0;
 	};

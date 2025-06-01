@@ -3,11 +3,14 @@
 #include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <vk_mem_alloc.h>
+#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine
 {
-	struct VulkanBuffer : public RHI_DefaultDestroyable<RHI_Buffer> {
+	class VulkanBuffer : public VulkanDeferredDestroy<RHI_Buffer>
+	{
+	private:
 		RHI_ShaderResourceView* m_srv  = nullptr;
 		RHI_UnorderedAccessView* m_uav = nullptr;
 		byte* m_mapped                 = nullptr;
@@ -18,6 +21,7 @@ namespace Engine
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
 		size_t m_size              = 0;
 
+	public:
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, BufferCreateFlags flags,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 
@@ -30,24 +34,29 @@ namespace Engine
 
 		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
 		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
+		inline size_t size() const { return m_size; }
+		inline BufferCreateFlags flags() const { return m_flags; }
+		inline vk::Buffer buffer() const { return m_buffer; }
 		~VulkanBuffer();
 	};
 
-	struct VulkanStaggingBuffer : VulkanBuffer {
+	class VulkanStaggingBuffer : public VulkanBuffer
+	{
 	private:
-		struct VulkanStaggingBufferManager* m_manager = nullptr;
+		class VulkanStaggingBufferManager* m_manager = nullptr;
 
 		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager);
 		void destroy() override;
 
-		friend struct VulkanStaggingBufferManager;
+		friend class VulkanStaggingBufferManager;
 	};
 
-	struct VulkanStaggingBufferManager {
+	class VulkanStaggingBufferManager
+	{
 	private:
 		struct FreeEntry {
-			struct VulkanStaggingBuffer* m_buffer = nullptr;
-			size_t m_frame_number                 = 0;
+			VulkanStaggingBuffer* m_buffer = nullptr;
+			size_t m_frame_number          = 0;
 
 			FreeEntry(VulkanStaggingBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames) {}
 		};

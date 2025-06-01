@@ -1,4 +1,5 @@
 #include <Core/exception.hpp>
+#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_api.hpp>
@@ -12,34 +13,15 @@
 
 namespace Engine
 {
-	VulkanCommandBuffer::VulkanCommandBuffer(struct VulkanCommandBufferPool* pool)
+	VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandBufferManager* manager)
 	{
-		vk::CommandBufferAllocateInfo alloc_info(pool->m_pool, vk::CommandBufferLevel::ePrimary, 1);
-		m_cmd   = API->m_device.allocateCommandBuffers(alloc_info).front();
-		m_fence = VulkanFence::create(false);
+		m_fence                  = allocate<VulkanFence>(false);
+		m_descriptor_set_manager = allocate<VulkanDescriptorSetManager>();
+		m_uniform_buffer         = allocate<VulkanUniformBufferManager>();
 
-		m_descriptor_set_manager = new VulkanDescriptorSetManager();
-		m_uniform_buffer         = new VulkanUniformBufferManager();
-	}
-
-	VulkanCommandBuffer& VulkanCommandBuffer::add_object(RHI_Object* object)
-	{
-		if (object)
-		{
-			m_references.push_back(object);
-			object->add_reference();
-		}
-		return *this;
-	}
-
-	VulkanCommandBuffer& VulkanCommandBuffer::release_references()
-	{
-		for (RHI_Object* object : m_references)
-		{
-			object->release();
-		}
-		m_references.clear();
-		return *this;
+		vk::CommandPool pool = manager->command_pool();
+		vk::CommandBufferAllocateInfo alloc_info(pool, vk::CommandBufferLevel::ePrimary, 1);
+		static_cast<vk::CommandBuffer&>(*this) = API->m_device.allocateCommandBuffers(alloc_info).front();
 	}
 
 	VulkanCommandBuffer& VulkanCommandBuffer::refresh_fence_status()
@@ -49,11 +31,12 @@ namespace Engine
 			if (m_fence->is_signaled())
 			{
 				m_state = State::IsReadyForBegin;
-				m_cmd.reset();
+				reset();
 				m_fence->reset();
 				m_uniform_buffer->reset();
 				++m_fence_signaled_count;
-				release_references();
+
+				destroy_objects();
 			}
 		}
 
@@ -63,7 +46,7 @@ namespace Engine
 	VulkanCommandBuffer& VulkanCommandBuffer::begin()
 	{
 		trinex_check(m_state == State::IsReadyForBegin, "Vulkan cmd state must be ready for begin");
-		m_cmd.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+		vk::CommandBuffer::begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 		m_state = State::IsInsideBegin;
 		return *this;
 	}
@@ -71,8 +54,7 @@ namespace Engine
 	VulkanCommandBuffer& VulkanCommandBuffer::end()
 	{
 		trinex_check(is_outside_render_pass(), "Command Buffer must be in outside render pass state!");
-
-		m_cmd.end();
+		vk::CommandBuffer::end();
 		m_state = State::HasEnded;
 		return *this;
 	}
@@ -82,8 +64,8 @@ namespace Engine
 		trinex_check(has_begun(), "Command Buffer must be begun!");
 
 		vk::Rect2D area({0, 0}, {static_cast<uint32_t>(rt->m_size.x), static_cast<uint32_t>(rt->m_size.y)});
-		vk::RenderPassBeginInfo info(rt->m_render_pass->m_render_pass, rt->m_framebuffer, area);
-		m_cmd.beginRenderPass(info, vk::SubpassContents::eInline);
+		vk::RenderPassBeginInfo info(rt->m_render_pass->render_pass(), rt->m_framebuffer, area);
+		vk::CommandBuffer::beginRenderPass(info, vk::SubpassContents::eInline);
 
 		m_state = State::IsInsideRenderPass;
 		return *this;
@@ -92,7 +74,7 @@ namespace Engine
 	VulkanCommandBuffer& VulkanCommandBuffer::end_render_pass()
 	{
 		trinex_check(is_inside_render_pass(), "Command Buffer must be inside render pass!");
-		m_cmd.endRenderPass();
+		vk::CommandBuffer::endRenderPass();
 
 		m_state = State::IsInsideBegin;
 		return *this;
@@ -118,6 +100,12 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanCommandBuffer& VulkanCommandBuffer::destroy_object(RHI_Object* object)
+	{
+		m_pending_destroy.push_back(object);
+		return *this;
+	}
+
 	VulkanCommandBuffer& VulkanCommandBuffer::wait()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
@@ -131,111 +119,113 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::destroy(struct VulkanCommandBufferPool* pool)
+	VulkanCommandBuffer& VulkanCommandBuffer::destroy_objects()
 	{
-		release_references();
-		VulkanFence::release(m_fence);
-		API->m_device.freeCommandBuffers(pool->m_pool, m_cmd);
+		while (!m_pending_destroy.empty())
+		{
+			RHI_Object* object = m_pending_destroy.back();
+			m_pending_destroy.pop_back();
+			delete object;
+		}
+
 		return *this;
 	}
 
 	VulkanCommandBuffer::~VulkanCommandBuffer()
 	{
-		delete m_descriptor_set_manager;
-		delete m_uniform_buffer;
+		auto pool = API->command_buffer_mananger()->command_pool();
+		API->m_device.freeCommandBuffers(pool, *this);
+
+		Engine::release(m_fence);
+		Engine::release(m_descriptor_set_manager);
+		Engine::release(m_uniform_buffer);
+		destroy_objects();
 	}
 
-	VulkanCommandBufferPool::VulkanCommandBufferPool()
+	VulkanCommandBufferManager::VulkanCommandBufferManager()
 	{
 		m_pool = API->m_device.createCommandPool(
-		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->m_index));
+		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->index()));
+
+		m_current  = create_node();
+		m_first    = create_node();
+		m_push_ptr = &m_first->next;
+
+		m_current->command_buffer->begin();
 	}
 
-	VulkanCommandBuffer* VulkanCommandBufferPool::create()
+	VulkanCommandBufferManager::~VulkanCommandBufferManager()
 	{
-		auto buffer = new VulkanCommandBuffer(this);
-		m_cmd_buffers.push_back(buffer);
-		info_log("Vulkan", "Allocate new command buffer. Total count: %zu", m_cmd_buffers.size());
-		return buffer;
-	}
-
-	VulkanCommandBufferPool::~VulkanCommandBufferPool()
-	{
-		for (auto buffer : m_cmd_buffers)
+		while (m_first)
 		{
-			buffer->destroy(this);
-			delete buffer;
+			m_first = destroy_node(m_first);
 		}
+
+		destroy_node(m_current);
 		API->m_device.destroyCommandPool(m_pool);
 	}
 
-	VulkanCommandBufferPool& VulkanCommandBufferPool::refresh_fence_status(const VulkanCommandBuffer* skip_cmd_buffer)
+	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::create_node()
 	{
-		for (auto buffer : m_cmd_buffers)
-		{
-			if (buffer != skip_cmd_buffer)
-			{
-				buffer->refresh_fence_status();
-			}
-		}
-
-		return *this;
+		Node* node           = allocate<Node>();
+		node->command_buffer = allocate<VulkanCommandBuffer>(this);
+		node->next           = nullptr;
+		return node;
 	}
 
-	VulkanCommandBufferManager& VulkanCommandBufferManager::bind_new_command_buffer()
+	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::destroy_node(Node* node)
 	{
-		for (auto buffer : m_pool.m_cmd_buffers)
-		{
-			buffer->refresh_fence_status();
-
-			if (buffer->is_ready_for_begin())
-			{
-				m_current = buffer;
-				break;
-			}
-			else
-			{
-				trinex_check(buffer->is_submitted(), "Buffer is not submitted and fence status is not signaled");
-			}
-		}
-
-		if (m_current == nullptr)
-		{
-			m_current = m_pool.create();
-		}
-
-		m_current->begin();
-		return *this;
+		Node* next = node->next;
+		release(node->command_buffer);
+		release(node);
+		return next;
 	}
 
-	VulkanCommandBufferManager& VulkanCommandBufferManager::submit_active_cmd_buffer(vk::Semaphore* semaphore)
+	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::request_node()
 	{
-		if (!m_current->is_submitted() && m_current->has_begun())
-		{
-			if (m_current->is_inside_render_pass())
-			{
-				API->end_render_pass();
-			}
+		auto buffer = m_first->command_buffer;
+		buffer->refresh_fence_status();
 
-			m_current->end();
-			m_current->submit(semaphore);
+		if (buffer->is_ready_for_begin())
+		{
+			Node* result = m_first;
+			m_first      = m_first->next;
+			buffer->begin();
+			return result;
 		}
-		m_current = nullptr;
+
+		Node* node = create_node();
+		node->command_buffer->begin();
+		return node;
+	}
+
+	VulkanCommandBufferManager& VulkanCommandBufferManager::submit(vk::Semaphore* semaphore)
+	{
+		VulkanCommandBuffer* buffer = m_current->command_buffer;
+
+		if (buffer->is_inside_render_pass())
+		{
+			API->end_render_pass();
+		}
+
+		buffer->end();
+		buffer->submit(semaphore);
+
+		m_current->next = nullptr;
+		(*m_push_ptr)   = m_current;
+		m_push_ptr      = &m_current->next;
+
+		m_current = request_node();
 		return *this;
 	}
 
 	VulkanCommandBuffer* VulkanAPI::current_command_buffer()
 	{
-		return m_cmd_manager->command_buffer();
-	}
-
-	vk::CommandBuffer& VulkanAPI::current_command_buffer_handle()
-	{
-		return m_cmd_manager->command_buffer()->m_cmd;
+		return m_cmd_manager->current();
 	}
 
 	VulkanUniformBufferManager* VulkanAPI::uniform_buffer_manager()
 	{
-		return current_command_buffer()->uniform_buffer_manager();
+		return m_cmd_manager->current()->uniform_buffer_manager();
 	}
 }// namespace Engine

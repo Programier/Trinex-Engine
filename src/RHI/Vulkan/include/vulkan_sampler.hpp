@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Graphics/rhi.hpp>
+#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine
@@ -26,11 +27,15 @@ namespace Engine
 		VulkanSamplerCreateInfo(const SamplerInitializer* sampler);
 	};
 
-	struct VulkanSampler : RHI_DefaultDestroyable<RHI_Sampler> {
+	class VulkanSampler : public VulkanDeferredDestroy<RHI_Sampler>
+	{
+	private:
 		vk::Sampler m_sampler;
 
+	public:
 		VulkanSampler& create(const VulkanSamplerCreateInfo&);
 		void bind(BindLocation location) override;
+		inline vk::Sampler sampler() const { return m_sampler; }
 		~VulkanSampler();
 	};
 }// namespace Engine

@@ -50,7 +50,7 @@ namespace Engine
 			if (m_shadow_data_size == 0)
 				return;
 
-			while (m_buffers[m_index]->m_size < m_used_data + m_shadow_data_size)
+			while (m_buffers[m_index]->size() < m_used_data + m_shadow_data_size)
 			{
 				++m_index;
 				m_used_data = 0;

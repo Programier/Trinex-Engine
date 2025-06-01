@@ -1,3 +1,4 @@
+#include <Core/logger.hpp>
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_sampler.hpp>

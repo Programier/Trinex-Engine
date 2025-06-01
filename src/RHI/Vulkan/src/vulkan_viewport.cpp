@@ -1,4 +1,5 @@
 #include <Core/exception.hpp>
+#include <Core/logger.hpp>
 #include <Core/profiler.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_surface.hpp>
@@ -55,7 +56,7 @@ namespace Engine
 		auto cmd = API->current_command_buffer();
 		render_target()->change_layout(vk::ImageLayout::ePresentSrcKHR);
 		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, *m_swapchain->image_present_semaphore());
-		API->m_cmd_manager->submit_active_cmd_buffer(m_swapchain->render_finished_semaphore());
+		API->m_cmd_manager->submit(m_swapchain->render_finished_semaphore());
 		m_swapchain->try_present(&VulkanSwapchain::do_present, cmd, true);
 
 		API->m_state.reset();
@@ -101,8 +102,8 @@ namespace Engine
 
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->m_image, vk::ImageLayout::eTransferDstOptimal, blit,
-		                     VulkanEnums::filter_of(filter));
+		cmd->blitImage(src->image(), src->layout(), dst->m_image, vk::ImageLayout::eTransferDstOptimal, blit,
+		               VulkanEnums::filter_of(filter));
 	}
 
 	void VulkanViewport::clear_color(const LinearColor& color)
@@ -112,9 +113,9 @@ namespace Engine
 		auto dst = render_target();
 		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		cmd->m_cmd.clearColorImage(dst->m_image, vk::ImageLayout::eTransferDstOptimal,
-		                           vk::ClearColorValue(color.r, color.g, color.b, color.a),
-		                           vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+		cmd->clearColorImage(dst->m_image, vk::ImageLayout::eTransferDstOptimal,
+		                     vk::ClearColorValue(color.r, color.g, color.b, color.a),
+		                     vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 	}
 
 	VulkanViewport::~VulkanViewport()
@@ -130,16 +131,6 @@ namespace Engine
 		m_image_present_semaphore   = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
 		m_render_finished_semaphore = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
 		m_render_target             = new VulkanSwapchainRenderTarget(backbuffer, view, size, format);
-		return *this;
-	}
-
-	VulkanBackBuffer& VulkanBackBuffer::wait_for_command_buffer()
-	{
-		if (m_command_buffer)
-		{
-			m_command_buffer->wait();
-			m_command_buffer = nullptr;
-		}
 		return *this;
 	}
 
@@ -188,8 +179,8 @@ namespace Engine
 		info_log("Vulkan API", "Creating new swapchain");
 		m_need_recreate = false;
 
-		vkb::SwapchainBuilder builder(API->m_physical_device, API->m_device, m_surface, API->m_graphics_queue->m_index,
-		                              API->m_present_queue->m_index);
+		vkb::SwapchainBuilder builder(API->m_physical_device, API->m_device, m_surface, API->m_graphics_queue->index(),
+		                              API->m_present_queue->index());
 
 		builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
 		auto capabilities = API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
@@ -252,11 +243,6 @@ namespace Engine
 	VulkanSwapchain& VulkanSwapchain::release()
 	{
 		API->wait_idle();
-
-		for (auto& backbuffer : m_backbuffers)
-		{
-			backbuffer.wait_for_command_buffer();
-		}
 
 		for (auto& backbuffer : m_backbuffers)
 		{
@@ -345,12 +331,10 @@ namespace Engine
 		vk::Result result;
 		m_image_index = -1;
 
-		m_backbuffers[m_buffer_index].m_command_buffer = cmd_buffer;
-
 		try
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
-			result = API->m_present_queue->m_queue.presentKHR(present_info);
+			result = API->m_present_queue->queue().presentKHR(present_info);
 		}
 		catch (const vk::OutOfDateKHRError& e)
 		{

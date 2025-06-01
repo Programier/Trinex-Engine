@@ -2,6 +2,8 @@
 
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
+#include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Engine/settings.hpp>
@@ -40,7 +42,7 @@ namespace Engine
 	{
 		if (VulkanAPI::m_vulkan == nullptr)
 		{
-			VulkanAPI::m_vulkan                       = new VulkanAPI();
+			VulkanAPI::m_vulkan                       = allocate<VulkanAPI>();
 			VulkanAPI::m_vulkan->info.name            = "Vulkan";
 			VulkanAPI::m_vulkan->info.struct_instance = static_struct_instance();
 		}
@@ -51,7 +53,7 @@ namespace Engine
 	{
 		if (vulkan == m_vulkan)
 		{
-			delete vulkan;
+			release(vulkan);
 			m_vulkan = nullptr;
 		}
 	}
@@ -74,13 +76,13 @@ namespace Engine
 
 		VulkanRenderPass::destroy_all();
 
-		delete m_cmd_manager;
-		delete m_stagging_manager;
-		delete m_graphics_queue;
+		release(m_stagging_manager);
+		release(m_cmd_manager);
+		release(m_graphics_queue);
 
 		if (m_present_queue != m_graphics_queue)
 		{
-			delete m_present_queue;
+			release(m_present_queue);
 		}
 
 		vmaDestroyAllocator(m_allocator);
@@ -328,12 +330,12 @@ namespace Engine
 			throw EngineException("Failed to create graphics queue");
 		}
 
-		m_graphics_queue = new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
+		m_graphics_queue = allocate<VulkanQueue>(graphics_queue.value(), graphics_queue_index.value());
 
 		initialize_pfn();
 
-		m_cmd_manager      = new VulkanCommandBufferManager();
-		m_stagging_manager = new VulkanStaggingBufferManager();
+		m_cmd_manager      = allocate<VulkanCommandBufferManager>();
+		m_stagging_manager = allocate<VulkanStaggingBufferManager>();
 
 
 		// Initialize memory allocator
@@ -464,12 +466,7 @@ namespace Engine
 	VulkanAPI& VulkanAPI::submit()
 	{
 		m_stagging_manager->update();
-
-		if (m_cmd_manager->has_pending_active_cmd_buffer())
-		{
-			m_cmd_manager->submit_active_cmd_buffer();
-		}
-
+		m_cmd_manager->submit();
 		API->m_state.reset();
 		return *this;
 	}
@@ -477,13 +474,13 @@ namespace Engine
 	VulkanAPI& VulkanAPI::wait_idle()
 	{
 		m_device.waitIdle();
-		m_graphics_queue->wait_idle();
-		m_present_queue->wait_idle();
+		m_graphics_queue->queue().waitIdle();
+		m_present_queue->queue().waitIdle();
 
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::prepare_draw()
+	VulkanCommandBuffer* VulkanAPI::prepare_draw()
 	{
 		trinex_profile_cpu_n("VulkanAPI::prepare_draw");
 
@@ -510,47 +507,47 @@ namespace Engine
 
 		uniform_buffer_manager()->bind();
 		m_state.m_pipeline->bind_descriptor_set(vk::PipelineBindPoint::eGraphics);
-		return *this;
+		return cmd;
 	}
 
-	VulkanAPI& VulkanAPI::prepare_dispatch()
+	VulkanCommandBuffer* VulkanAPI::prepare_dispatch()
 	{
 		trinex_profile_cpu_n("VulkanAPI::prepare_dispatch");
 		trinex_check(m_state.m_pipeline, "Pipeline can't be nullptr");
 
 		uniform_buffer_manager()->bind();
 		m_state.m_pipeline->bind_descriptor_set(vk::PipelineBindPoint::eCompute);
-		return *this;
+		return current_command_buffer();
 	}
 
 	VulkanAPI& VulkanAPI::draw(size_t vertex_count, size_t vertices_offset)
 	{
-		prepare_draw().current_command_buffer_handle().draw(vertex_count, 1, vertices_offset, 0);
+		prepare_draw()->draw(vertex_count, 1, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset, size_t vertices_offset)
 	{
-		prepare_draw().current_command_buffer_handle().drawIndexed(indices, 1, offset, vertices_offset, 0);
+		prepare_draw()->drawIndexed(indices, 1, offset, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
-		prepare_draw().current_command_buffer_handle().draw(vertex_count, instances, vertices_offset, 0);
+		prepare_draw()->draw(vertex_count, instances, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 	                                             size_t instances)
 	{
-		prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
+		prepare_draw()->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
 	{
-		prepare_dispatch().current_command_buffer_handle().dispatch(group_x, group_y, group_z);
+		prepare_dispatch()->dispatch(group_x, group_y, group_z);
 		return *this;
 	}
 
@@ -566,7 +563,7 @@ namespace Engine
 			label_info.color[2]             = color.b;
 			label_info.color[3]             = color.a;
 
-			pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer_handle(), &label_info);
+			pfn.vkCmdBeginDebugUtilsLabelEXT(*current_command_buffer(), &label_info);
 		}
 		return *this;
 	}
@@ -575,8 +572,13 @@ namespace Engine
 	{
 		if (pfn.vkCmdEndDebugUtilsLabelEXT)
 		{
-			pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer_handle());
+			pfn.vkCmdEndDebugUtilsLabelEXT(*current_command_buffer());
 		}
 		return *this;
+	}
+
+	void trinex_vulkan_deferred_destroy(RHI_Object* object)
+	{
+		API->current_command_buffer()->destroy_object(object);
 	}
 }// namespace Engine

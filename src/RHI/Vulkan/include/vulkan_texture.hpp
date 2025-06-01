@@ -2,11 +2,13 @@
 #include <Core/etl/set.hpp>
 #include <Graphics/rhi.hpp>
 #include <vk_mem_alloc.h>
+#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine
 {
-	struct VulkanTexture : public RHI_DefaultDestroyable<RHI_Texture> {
+	class VulkanTexture : public VulkanDeferredDestroy<RHI_Texture>
+	{
 	private:
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
 		vk::Image m_image;
@@ -36,7 +38,9 @@ namespace Engine
 		~VulkanTexture();
 	};
 
-	struct VulkanTexture2D : public VulkanTexture {
+	class VulkanTexture2D : public VulkanTexture
+	{
+	public:
 		RHI_ShaderResourceView* m_srv  = nullptr;
 		RHI_UnorderedAccessView* m_uav = nullptr;
 		RHI_RenderTargetView* m_rtv    = nullptr;

@@ -32,21 +32,10 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanFence* VulkanFence::create(bool is_signaled)
-	{
-		return new VulkanFence(is_signaled);
-	}
-
-	void VulkanFence::release(VulkanFence* fence)
-	{
-		delete fence;
-	}
-
 	VulkanFence::~VulkanFence()
 	{
 		DESTROY_CALL(destroyFence, m_fence);
 	}
-
 
 	bool VulkanFenceRef::is_signaled()
 	{
@@ -63,6 +52,13 @@ namespace Engine
 		m_cmd = nullptr;
 	}
 
+	VulkanFenceRef& VulkanFenceRef::signal(VulkanCommandBuffer* cmd_buffer)
+	{
+		m_cmd                  = cmd_buffer;
+		m_fence_signaled_count = cmd_buffer->fence_signaled_count();
+		return *this;
+	}
+
 	RHI_Fence* VulkanAPI::create_fence()
 	{
 		return new VulkanFenceRef();
@@ -70,11 +66,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::signal_fence(RHI_Fence* fence)
 	{
-		VulkanFenceRef* ref = static_cast<VulkanFenceRef*>(fence);
-		auto handle         = current_command_buffer();
-
-		ref->m_cmd                  = handle;
-		ref->m_fence_signaled_count = handle->fence_signaled_count();
+		static_cast<VulkanFenceRef*>(fence)->signal(current_command_buffer());
 		return *this;
 	}
 }// namespace Engine

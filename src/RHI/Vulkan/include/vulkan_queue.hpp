@@ -4,11 +4,12 @@
 
 namespace Engine
 {
-	struct VulkanQueue {
+	class VulkanCommandBuffer;
+	
+	class VulkanQueue
+	{
 		vk::Queue m_queue;
 		uint32_t m_index;
-
-		struct VulkanCommandBuffer* m_last_submitted_cmd_buffer;
 
 	public:
 		VulkanQueue(vk::Queue queue, uint32_t index);
@@ -22,6 +23,7 @@ namespace Engine
 		}
 
 		VulkanQueue& submit(const vk::SubmitInfo& info, vk::Fence fence = {});
-		VulkanQueue& wait_idle();
+		inline vk::Queue queue() const { return m_queue; }
+		inline uint32_t index() const { return m_index; }
 	};
 }// namespace Engine

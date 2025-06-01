@@ -96,8 +96,6 @@ namespace Engine
 
 			vk::RenderPass build()
 			{
-				info_log("Vulkan", "New Render Pass");
-
 				bool has_depth_attachment = m_references[4].layout != vk::ImageLayout::eUndefined;
 
 				m_subpass = vk::SubpassDescription({}, vk::PipelineBindPoint::eGraphics, 0, nullptr, 4, m_references, nullptr,

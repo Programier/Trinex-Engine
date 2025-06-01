@@ -8,7 +8,9 @@ namespace Engine
 	struct VulkanTextureRTV;
 	struct VulkanTextureDSV;
 
-	struct VulkanRenderPass {
+	class VulkanRenderPass
+	{
+	private:
 		struct Key {
 			vk::Format m_attachments[6];
 
@@ -18,12 +20,14 @@ namespace Engine
 		};
 
 		static TreeMap<Key, VulkanRenderPass*> m_render_passes;
-
 		vk::RenderPass m_render_pass;
 
+	public:
 		static VulkanRenderPass* find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
 		static VulkanRenderPass* swapchain_render_pass(vk::Format format);
 		static void destroy_all();
+
+		inline vk::RenderPass render_pass() const { return m_render_pass; }
 
 	private:
 		VulkanRenderPass(vk::RenderPass pass);

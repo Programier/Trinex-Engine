@@ -223,9 +223,7 @@ namespace Engine
 		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), mip, 0, 1),
 		                           vk::Offset3D(rect.pos.x, rect.pos.y, 0), vk::Extent3D(rect.size.x, rect.size.y, 1));
 
-		command_buffer->m_cmd.copyBufferToImage(buffer->m_buffer, image(), vk::ImageLayout::eTransferDstOptimal, region);
-		command_buffer->add_object(buffer);
-		command_buffer->add_object(this);
+		command_buffer->copyBufferToImage(buffer->buffer(), image(), vk::ImageLayout::eTransferDstOptimal, region);
 	}
 
 	VulkanTexture2D::~VulkanTexture2D()

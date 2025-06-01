@@ -2,7 +2,6 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
-#include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
@@ -12,12 +11,17 @@ namespace Engine
 {
 	static constexpr inline uint32_t max_sets = 49152;
 
+	VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout()
+	{
+		DESTROY_CALL(destroyDescriptorSetLayout, layout);
+	}
+
 	VulkanDescriptorSet::VulkanDescriptorSet() {}
 
 	VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point)
 	{
 		auto cmd = API->current_command_buffer();
-		cmd->m_cmd.bindDescriptorSets(point, layout, 0, descriptor_set, {});
+		cmd->bindDescriptorSets(point, layout, 0, descriptor_set, {});
 		return *this;
 	}
 
@@ -31,31 +35,23 @@ namespace Engine
 
 	VulkanDescriptorSet& VulkanDescriptorSet::bind_sampler(VulkanSampler* sampler, BindLocation location)
 	{
-		vk::DescriptorImageInfo image_info(sampler->m_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
+		vk::DescriptorImageInfo image_info(sampler->sampler(), {}, vk::ImageLayout::eShaderReadOnlyOptimal);
 		vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampler, image_info);
 		API->m_device.updateDescriptorSets(write_descriptor, {});
-		API->current_command_buffer()->add_object(sampler);
 		return *this;
 	}
 
 	VulkanDescriptorSet& VulkanDescriptorSet::bind_srv(VulkanSRV* srv, byte location, VulkanSampler* sampler)
 	{
 		vk::WriteDescriptorSet descriptor(descriptor_set, location, 0, 1);
-
 		srv->update_descriptor(descriptor, sampler);
-		API->current_command_buffer()->add_object(srv->owner());
-
-		if (sampler)
-			API->current_command_buffer()->add_object(sampler);
 		return *this;
 	}
 
 	VulkanDescriptorSet& VulkanDescriptorSet::bind_uav(VulkanUAV* uav, byte location)
 	{
 		vk::WriteDescriptorSet descriptor(descriptor_set, location, 0, 1);
-
 		uav->update_descriptor(descriptor);
-		API->current_command_buffer()->add_object(uav->owner());
 		return *this;
 	}
 
@@ -70,7 +66,6 @@ namespace Engine
 
 		VulkanDescriptorPool()
 		{
-			info_log("Vulkan", "Allocate new descriptor pool!");
 			free_sets              = max_sets;
 			samplers               = max_sets * 16;
 			textures               = max_sets * 16;

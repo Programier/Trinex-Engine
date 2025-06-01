@@ -103,8 +103,7 @@ namespace Engine
 			auto cmd = API->end_render_pass();
 
 			vk::BufferCopy region(0, offset, size);
-			cmd->m_cmd.copyBuffer(buffer->m_buffer, m_buffer, region);
-			cmd->add_object(buffer);
+			cmd->copyBuffer(buffer->buffer(), m_buffer, region);
 		}
 		return *this;
 	}
@@ -117,7 +116,7 @@ namespace Engine
 		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
 		if (size <= 65536 && size % 4 == 0 && offset % 4 == 0)
 		{
-			cmd->m_cmd.updateBuffer(m_buffer, offset, size, data);
+			cmd->updateBuffer(m_buffer, offset, size, data);
 		}
 		else
 		{
@@ -125,8 +124,7 @@ namespace Engine
 			staging->copy(0, data, size);
 
 			vk::BufferCopy region(0, offset, size);
-			cmd->m_cmd.copyBuffer(staging->m_buffer, m_buffer, region);
-			cmd->add_object(staging);
+			cmd->copyBuffer(staging->m_buffer, m_buffer, region);
 		}
 		return *this;
 	}
@@ -152,7 +150,7 @@ namespace Engine
 		vk::BufferMemoryBarrier barrier(src_access, dst_access, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, m_buffer, 0,
 		                                VK_WHOLE_SIZE);
 
-		API->current_command_buffer_handle().pipelineBarrier(src_stage, dst_stage, {}, {}, barrier, {});
+		API->current_command_buffer()->pipelineBarrier(src_stage, dst_stage, {}, {}, barrier, {});
 		m_access = access;
 		return *this;
 	}
@@ -211,7 +209,7 @@ namespace Engine
 		for (size_t i = 0, size = m_free.size(); i < size; i++)
 		{
 			auto buffer = m_free[i].m_buffer;
-			if (buffer->references() == 0 && buffer->m_size >= buffer_size && (buffer->m_flags & flags) == flags)
+			if (buffer->references() == 0 && buffer->size() >= buffer_size && (buffer->flags() & flags) == flags)
 			{
 				m_free.erase(m_free.begin() + i);
 				return buffer;
@@ -278,25 +276,23 @@ namespace Engine
 	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
 	{
 		auto* cmd = current_command_buffer();
-		cmd->add_object(buffer);
-		cmd->m_cmd.bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->m_buffer, byte_offset);
+		cmd->bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->buffer(), byte_offset);
 		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
 	{
-		auto* cmd = current_command_buffer();
-		cmd->add_object(buffer);
+		auto* cmd                   = current_command_buffer();
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
-		cmd->m_cmd.bindIndexBuffer(vulkan_buffer->m_buffer, 0,
-		                           format == RHIIndexFormat::UInt16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
+		cmd->bindIndexBuffer(vulkan_buffer->buffer(), 0,
+		                     format == RHIIndexFormat::UInt16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
 		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::bind_uniform_buffer(RHI_Buffer* buffer, byte slot)
 	{
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
-		return bind_uniform_buffer(vulkan_buffer, vulkan_buffer->m_size, 0, slot);
+		return bind_uniform_buffer(vulkan_buffer, vulkan_buffer->size(), 0, slot);
 	}
 
 	VulkanAPI& VulkanAPI::bind_uniform_buffer(VulkanBuffer* buffer, size_t size, size_t offset, byte slot)
@@ -304,11 +300,10 @@ namespace Engine
 		if (m_state.m_pipeline)
 		{
 			vk::DescriptorBufferInfo info;
-			info.buffer = buffer->m_buffer;
+			info.buffer = buffer->buffer();
 			info.offset = offset;
 			info.range  = size;
 			m_state.m_pipeline->bind_uniform_buffer(info, slot, vk::DescriptorType::eUniformBuffer);
-			current_command_buffer()->add_object(buffer);
 		}
 
 		return *this;
@@ -335,10 +330,7 @@ namespace Engine
 		auto* cmd = current_command_buffer();
 
 		vk::BufferCopy region(src_offset, dst_offset, size);
-		cmd->m_cmd.copyBuffer(src_buffer->m_buffer, dst_buffer->m_buffer, region);
-
-		cmd->add_object(src);
-		cmd->add_object(dst);
+		cmd->copyBuffer(src_buffer->buffer(), dst_buffer->buffer(), region);
 		return *this;
 	}
 }// namespace Engine

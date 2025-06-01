@@ -11,6 +11,14 @@ namespace Engine
 		return &t;
 	}
 
+	template<typename T>
+	class NoneApiDestroyable : public T
+	{
+	public:
+		using T::T;
+		void destroy() override { delete this; }
+	};
+
 	NoneApi* NoneApi::m_instance = nullptr;
 
 	NoneApi* NoneApi::static_constructor()
@@ -41,13 +49,13 @@ namespace Engine
 
 	trinex_implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
 
-	struct NoneFence : public RHI_DefaultDestroyable<RHI_Fence> {
+	struct NoneFence : public NoneApiDestroyable<RHI_Fence> {
 		bool is_signaled() override { return true; }
 		void reset() override {}
 	};
 
 
-	struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
+	struct NoneSampler : public NoneApiDestroyable<RHI_Sampler> {
 		void bind(BindLocation location) override {}
 	};
 
@@ -61,21 +69,21 @@ namespace Engine
 		void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override {}
 	};
 
-	struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture> {
+	struct NoneTexture : public NoneApiDestroyable<RHI_Texture> {
 		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
 		RHI_DepthStencilView* as_dsv() override { return rhi_default<NoneDSV>(); }
 		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
 		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
 	};
 
-	struct NoneShader : public RHI_DefaultDestroyable<RHI_Shader> {
+	struct NoneShader : public NoneApiDestroyable<RHI_Shader> {
 	};
 
-	struct NonePipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
+	struct NonePipeline : public NoneApiDestroyable<RHI_Pipeline> {
 		void bind() override {}
 	};
 
-	struct NoneBuffer : public RHI_DefaultDestroyable<RHI_Buffer> {
+	struct NoneBuffer : public NoneApiDestroyable<RHI_Buffer> {
 		byte* map() override { return nullptr; }
 		void unmap() override {}
 
@@ -83,7 +91,7 @@ namespace Engine
 		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
 	};
 
-	struct NoneViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
+	struct NoneViewport : public NoneApiDestroyable<RHI_Viewport> {
 		void present() override {}
 
 		void vsync(bool flag) override {}

@@ -2,21 +2,20 @@
 #include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
 #include <VkBootstrap.h>
+#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_state.hpp>
 
 namespace Engine
 {
-	struct VulkanCommandBuffer;
+	class VulkanCommandBuffer;
 
 	struct VulkanBackBuffer {
 		vk::Semaphore m_image_present_semaphore;
 		vk::Semaphore m_render_finished_semaphore;
-		struct VulkanCommandBuffer* m_command_buffer        = nullptr;
 		struct VulkanSwapchainRenderTarget* m_render_target = nullptr;
 
 		VulkanBackBuffer& setup(vk::Image backbuffer, vk::ImageView view, Size2D size, vk::Format format);
-		VulkanBackBuffer& wait_for_command_buffer();
 		VulkanBackBuffer& release();
 	};
 
@@ -54,7 +53,7 @@ namespace Engine
 		vk::Semaphore* image_present_semaphore();
 	};
 
-	struct VulkanViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
+	struct VulkanViewport : public VulkanDeferredDestroy<RHI_Viewport> {
 		std::vector<VkImageView> m_image_views;
 		VulkanSwapchain* m_swapchain = nullptr;
 

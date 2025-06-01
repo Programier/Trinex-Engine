@@ -4,6 +4,7 @@
 #include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_resource_view.hpp>
@@ -13,7 +14,7 @@ namespace Engine
 {
 	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(vk::ImageView* image_views, uint32_t count)
 	{
-		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->m_render_pass, count,
+		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->render_pass(), count,
 		                                                  image_views, m_size.x, m_size.y, 1);
 		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
@@ -238,7 +239,7 @@ namespace Engine
 					vulkan_viewport.setY(vp_y);
 					vulkan_viewport.setMinDepth(viewport.min_depth);
 					vulkan_viewport.setMaxDepth(viewport.max_depth);
-					current_command_buffer_handle().setViewport(0, vulkan_viewport);
+					current_command_buffer()->setViewport(0, vulkan_viewport);
 				}
 			}
 
@@ -271,7 +272,7 @@ namespace Engine
 				vulkan_scissor.offset.setY(clamp(sc_y, 0, render_target_size.y));
 				vulkan_scissor.extent.setWidth(clamp(scissor.size.x, 0, render_target_size.x - vulkan_scissor.offset.x));
 				vulkan_scissor.extent.setHeight(clamp(scissor.size.y, 0, render_target_size.y - vulkan_scissor.offset.y));
-				current_command_buffer_handle().setScissor(0, vulkan_scissor);
+				current_command_buffer()->setScissor(0, vulkan_scissor);
 			}
 
 			m_scissor = scissor;

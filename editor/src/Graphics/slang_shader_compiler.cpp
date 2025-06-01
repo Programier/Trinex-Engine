@@ -51,11 +51,8 @@ namespace Engine
 		~CompileLogHandler() { Logger::logger = base; }
 
 		Logger& log_msg(const char* tag, const char* msg) override { return base->log_msg(tag, msg); }
-
 		Logger& debug_msg(const char* tag, const char* msg) override { return base->debug_msg(tag, msg); }
-
 		Logger& warning_msg(const char* tag, const char* msg) override { return base->warning_msg(tag, msg); }
-
 		Logger& error_msg(const char* tag, const char* msg) override
 		{
 			if (std::strcmp(tag, "ShaderCompiler") == 0)

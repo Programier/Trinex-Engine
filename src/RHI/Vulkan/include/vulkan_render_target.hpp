@@ -8,7 +8,7 @@ namespace Engine
 {
 	struct VulkanRenderTargetBase {
 		vk::Framebuffer m_framebuffer;
-		struct VulkanRenderPass* m_render_pass = nullptr;
+		class VulkanRenderPass* m_render_pass = nullptr;
 		Vector2u m_size;
 
 		VulkanRenderTargetBase& post_init(vk::ImageView* image_views, uint32_t count);

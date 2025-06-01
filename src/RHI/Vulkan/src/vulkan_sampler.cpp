@@ -97,8 +97,3 @@ namespace Engine
 		return &(new VulkanSampler())->create(sampler);
 	}
 }// namespace Engine
-
-VkSampler trinex_default_vulkan_sampler(Engine::Sampler* sampler)
-{
-	return sampler->rhi_sampler()->as<Engine::VulkanSampler>()->m_sampler;
-}

@@ -2,20 +2,20 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
 #include <Graphics/rhi.hpp>
-#include <vulkan_descript_set_layout.hpp>
+#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine
 {
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSet;
-	struct VulkanSampler;
-	struct VulkanSRV;
-	struct VulkanUAV;
+	class VulkanSampler;
+	class VulkanSRV;
+	class VulkanUAV;
 	struct VulkanDescriptorSetLayout;
 	class Pipeline;
 
-	struct VulkanPipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
+	struct VulkanPipeline : public VulkanDeferredDestroy<RHI_Pipeline> {
 		VulkanDescriptorSetLayout* m_descriptor_set_layout;
 		vk::PipelineLayout m_pipeline_layout;
 		VulkanDescriptorSet* m_descriptor_set = nullptr;

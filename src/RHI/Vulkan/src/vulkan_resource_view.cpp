@@ -22,7 +22,7 @@ namespace Engine
 
 		if (sampler)
 		{
-			image_info.setSampler(sampler->m_sampler);
+			image_info.setSampler(sampler->sampler());
 			descriptor.setDescriptorType(vk::DescriptorType::eCombinedImageSampler);
 		}
 		else
@@ -55,7 +55,7 @@ namespace Engine
 
 	void VulkanTextureRTV::clear(const LinearColor& color)
 	{
-		auto cmd = API->end_render_pass();
+		API->end_render_pass();
 		change_layout(vk::ImageLayout::eTransferDstOptimal);
 
 		vk::ClearColorValue value;
@@ -68,8 +68,7 @@ namespace Engine
 		        .setLayerCount(1)
 		        .setLevelCount(1);
 
-		API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
-		cmd->add_object(owner());
+		API->current_command_buffer()->clearColorImage(image(), layout(), value, range);
 	}
 
 	template<typename Target>
@@ -90,11 +89,8 @@ namespace Engine
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
 
-		cmd->m_cmd.blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal, blit,
-		                     VulkanEnums::filter_of(filter));
-
-		cmd->add_object(dst->owner());
-		cmd->add_object(src->owner());
+		cmd->blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal, blit,
+		               VulkanEnums::filter_of(filter));
 	}
 
 	void VulkanTextureRTV::blit(RHI_RenderTargetView* texture, const Rect2D& src_rect, const Rect2D& dst_rect,
@@ -115,7 +111,7 @@ namespace Engine
 
 	void VulkanTextureDSV::clear(float depth, byte stencil)
 	{
-		auto cmd = API->end_render_pass();
+		API->end_render_pass();
 
 		change_layout(vk::ImageLayout::eTransferDstOptimal);
 
@@ -124,8 +120,7 @@ namespace Engine
 		vk::ImageSubresourceRange range;
 		range.setAspectMask(m_texture->aspect()).setBaseArrayLayer(0).setBaseMipLevel(0).setLayerCount(1).setLevelCount(1);
 
-		API->current_command_buffer_handle().clearDepthStencilImage(image(), layout(), value, range);
-		cmd->add_object(owner());
+		API->current_command_buffer()->clearDepthStencilImage(image(), layout(), value, range);
 	}
 
 	void VulkanTextureDSV::blit(RHI_DepthStencilView* texture, const Rect2D& src_rect, const Rect2D& dst_rect,
@@ -156,27 +151,17 @@ namespace Engine
 
 	VulkanBufferSRV& VulkanBufferSRV::update_descriptor_base(vk::WriteDescriptorSet& descriptor, vk::DescriptorType type)
 	{
-		vk::DescriptorBufferInfo buffer_info(m_buffer->m_buffer, 0, m_buffer->m_size);
+		vk::DescriptorBufferInfo buffer_info(m_buffer->buffer(), 0, m_buffer->size());
 		descriptor.setDescriptorType(type).setBufferInfo(buffer_info);
 		API->m_device.updateDescriptorSets(descriptor, {});
 		return *this;
-	}
-
-	RHI_Object* VulkanBufferSRV::owner()
-	{
-		return m_buffer;
 	}
 
 	VulkanBufferUAV& VulkanBufferUAV::update_descriptor_base(vk::WriteDescriptorSet& descriptor, vk::DescriptorType type)
 	{
-		vk::DescriptorBufferInfo buffer_info(m_buffer->m_buffer, 0, m_buffer->m_size);
+		vk::DescriptorBufferInfo buffer_info(m_buffer->buffer(), 0, m_buffer->size());
 		descriptor.setDescriptorType(type).setBufferInfo(buffer_info);
 		API->m_device.updateDescriptorSets(descriptor, {});
 		return *this;
-	}
-
-	RHI_Object* VulkanBufferUAV::owner()
-	{
-		return m_buffer;
 	}
 }// namespace Engine

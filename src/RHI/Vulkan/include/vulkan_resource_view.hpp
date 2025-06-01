@@ -7,41 +7,44 @@
 namespace Engine
 {
 	struct VulkanRenderTarget;
-	struct VulkanSampler;
-	struct VulkanTexture;
-	struct VulkanBuffer;
+	class VulkanSampler;
+	class VulkanTexture;
+	class VulkanBuffer;
 
-	struct VulkanResourceView {
+	class VulkanResourceView
+	{
+	protected:
 		static void release(vk::ImageView view);
 	};
 
-	struct VulkanSRV : public RHI_ShaderResourceView {
-		virtual RHI_Object* owner()                                                                      = 0;
+	class VulkanSRV : public RHI_ShaderResourceView
+	{
+	public:
 		virtual VulkanSRV& update_descriptor(vk::WriteDescriptorSet& descriptor, VulkanSampler* sampler) = 0;
 	};
 
-	struct VulkanUAV : public RHI_UnorderedAccessView {
-		virtual RHI_Object* owner()                                              = 0;
+	class VulkanUAV : public RHI_UnorderedAccessView
+	{
+	public:
 		virtual VulkanUAV& update_descriptor(vk::WriteDescriptorSet& descriptor) = 0;
 	};
 
-	struct VulkanRTV : public RHI_RenderTargetView {
-		virtual RHI_Object* owner() = 0;
+	class VulkanRTV : public RHI_RenderTargetView
+	{
 	};
 
-	struct VulkanDSV : public RHI_DepthStencilView {
-		virtual RHI_Object* owner() = 0;
+	class VulkanDSV : public RHI_DepthStencilView
+	{
+	public:
 	};
-
 
 	template<typename Super>
-	struct VulkanTextureView : Super {
+	struct VulkanTextureView : public Super, public VulkanResourceView {
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
 		VulkanTextureView(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view) {}
 		~VulkanTextureView() { VulkanResourceView::release(m_view); }
-		inline RHI_Object* owner() override { return m_texture; }
 	};
 
 	struct VulkanTextureSRV : public VulkanTextureView<VulkanSRV> {
@@ -49,12 +52,12 @@ namespace Engine
 		VulkanTextureSRV& update_descriptor(vk::WriteDescriptorSet& descriptor, VulkanSampler* sampler) override;
 	};
 
-	struct VulkanTextureUAV : VulkanTextureView<VulkanUAV> {
+	struct VulkanTextureUAV : public VulkanTextureView<VulkanUAV> {
 		using VulkanTextureView::VulkanTextureView;
 		VulkanTextureUAV& update_descriptor(vk::WriteDescriptorSet& descriptor) override;
 	};
 
-	struct VulkanTextureRTV : VulkanTextureView<VulkanRTV> {
+	struct VulkanTextureRTV : public VulkanTextureView<VulkanRTV> {
 		Set<struct VulkanRenderTarget*> m_render_targets;
 
 		using VulkanTextureView::VulkanTextureView;
@@ -70,7 +73,7 @@ namespace Engine
 		FORCE_INLINE void change_layout(vk::ImageLayout layout) { return m_texture->change_layout(layout); }
 	};
 
-	struct VulkanTextureDSV : VulkanTextureView<VulkanDSV> {
+	struct VulkanTextureDSV : public VulkanTextureView<VulkanDSV> {
 		Set<struct VulkanRenderTarget*> m_render_targets;
 
 		using VulkanTextureView::VulkanTextureView;
@@ -91,7 +94,6 @@ namespace Engine
 
 		VulkanBufferSRV(VulkanBuffer* buffer) : m_buffer(buffer) {}
 		VulkanBufferSRV& update_descriptor_base(vk::WriteDescriptorSet& descriptor, vk::DescriptorType type);
-		RHI_Object* owner() override;
 	};
 
 	template<vk::DescriptorType type>
@@ -109,7 +111,6 @@ namespace Engine
 
 		VulkanBufferUAV(VulkanBuffer* buffer) : m_buffer(buffer) {}
 		VulkanBufferUAV& update_descriptor_base(vk::WriteDescriptorSet& descriptor, vk::DescriptorType type);
-		RHI_Object* owner() override;
 	};
 
 	template<vk::DescriptorType type>

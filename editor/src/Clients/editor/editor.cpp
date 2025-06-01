@@ -234,10 +234,10 @@ namespace Engine
 		if (scene == nullptr)
 			return nullptr;
 
-		m_scene_view.viewport(ViewPort({0, 0}, size));
-		m_scene_view.scissor(Scissor({0, 0}, size));
+		render_thread()->call([this, scene, mode = m_view_mode, size]() {
+			m_scene_view.viewport(ViewPort({0, 0}, size));
+			m_scene_view.scissor(Scissor({0, 0}, size));
 
-		render_thread()->call([this, scene, mode = m_view_mode]() {
 			Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), m_scene_view, mode);
 			EditorRenderer::render_grid(renderer);
 
