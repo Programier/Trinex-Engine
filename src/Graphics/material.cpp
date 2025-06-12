@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
@@ -251,6 +252,12 @@ namespace Engine
 
 	bool Material::add_pipeline(RenderPass* pass, GraphicsPipeline* pipeline)
 	{
+		if (pass == nullptr)
+		{
+			error_log("Material", "Cannot bind pipeline to undefined pass!");
+			return false;
+		}
+
 		render_thread()->wait();
 
 		auto current_pipeline = Material::pipeline(pass);
@@ -445,27 +452,22 @@ namespace Engine
 		}
 		else
 		{
-			while (pipelines_count > 0)
-			{
-				Name name;
-				Pipeline::Type type;
+			// while (pipelines_count > 0)
+			// {
+			// 	Name name;
+			// 	Pipeline::Type type;
 
-				archive.serialize(name);
-				archive.serialize(type);
+			// 	archive.serialize(name);
+			// 	archive.serialize(type);
 
-				if (name == Name::none)
-				{
-					name = "Default";
-				}
+			// 	auto pass     = RenderPass::static_find(name);
+			// 	auto pipeline = new_instance<GraphicsPipeline>();
 
-				auto pass     = RenderPass::static_find(name);
-				auto pipeline = new_instance<GraphicsPipeline>();
-
-				add_pipeline(pass, pipeline);
-				pipeline->serialize(archive, this);
-				register_pipeline_parameters(pipeline);
-				--pipelines_count;
-			}
+			// 	add_pipeline(pass, pipeline);
+			// 	pipeline->serialize(archive, this);
+			// 	register_pipeline_parameters(pipeline);
+			// 	--pipelines_count;
+			// }
 		}
 
 		return archive;
@@ -487,6 +489,11 @@ namespace Engine
 	Material& Material::post_compile(RenderPass* pass, GraphicsPipeline* pipeline)
 	{
 		return *this;
+	}
+
+	bool Material::shader_source(String& out_source)
+	{
+		return false;
 	}
 
 	Material::~Material()

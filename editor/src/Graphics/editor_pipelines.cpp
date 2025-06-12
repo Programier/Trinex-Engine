@@ -72,4 +72,19 @@ namespace Engine::EditorPipelines
 
 		RHISurfacePool::global_instance()->return_surface(tmp_color);
 	}
+
+	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang", ShaderType::BasicGraphics)
+	{
+		m_scene_view          = find_param_info("scene_view");
+		depth_test.enable     = true;
+		depth_test.func       = CompareFunc::Lequal;
+		color_blending.enable = true;
+	}
+
+	void Grid::render(Renderer* renderer)
+	{
+		rhi_bind();
+		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->location);
+		rhi->draw(6, 0);
+	}
 }// namespace Engine::EditorPipelines

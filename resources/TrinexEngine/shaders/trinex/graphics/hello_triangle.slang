@@ -23,3 +23,9 @@ float4 fs_main(VertexOutput input) : SV_Target
 {
     return float4(input.uv, 0.f, 1.0f);
 }
+
+
+struct MaterialInput
+{
+
+};

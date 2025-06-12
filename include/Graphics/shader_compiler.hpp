@@ -13,8 +13,7 @@ namespace Engine
 	class ShaderCompilationEnvironment
 	{
 	public:
-		virtual ShaderCompilationEnvironment& add_definition(const char* key, const char* value)        = 0;
-		virtual ShaderCompilationEnvironment& add_definition_nocopy(const char* key, const char* value) = 0;
+		virtual ShaderCompilationEnvironment& add_module(const char* module) = 0;
 	};
 
 	class ENGINE_EXPORT ShaderCompiler : public Object

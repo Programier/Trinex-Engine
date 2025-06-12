@@ -1,0 +1,84 @@
+import "trinex/math.slang";
+
+interface IVertexInput {}
+
+interface IMaterial
+{
+	property float3 base_color { get; set; }
+	property float3 emissive { get; set; }
+	property float3 normal { get; set; }
+	property float3 position_offset { get; set; }
+	property float specular { get; set; }
+	property float metalness { get; set; }
+	property float roughness { get; set; }
+	property float opacity { get; set; }
+	property float ao { get; set; }
+
+	static void discard();
+}
+
+interface IMaterialInput
+{
+	property float4 sv_position { get; }
+	property float sv_depth { get; }
+
+	property float4 screen_position { get; }
+	property float3 position { get; }
+	property float3 normal { get; }
+	property float3 tangent { get; }
+	property float3 world_position { get; }
+	property float3 world_normal { get; }
+	property float3 world_tangent { get; }
+
+	property float4x4 local_to_world { get; }
+	property float3x3 TBN { get; }
+	
+	property IVertexInput vertex_input { get; }
+}
+
+struct Material : IMaterial
+{
+	property float3 base_color { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float3 emissive { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float3 normal { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float3 position_offset { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float specular { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float metalness { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float roughness { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float opacity { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float ao { [ForceInline] get { return 0; } [ForceInline] set {} }
+
+	[ForceInline] static void discard() {}
+}
+
+struct VertexMaterial : IMaterial
+{
+	float3 position_offset;
+
+	property float3 base_color { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float3 emissive { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float3 normal { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float specular { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float metalness { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float roughness { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float opacity { [ForceInline] get { return 0; } [ForceInline] set {} }
+	property float ao { [ForceInline] get { return 0; } [ForceInline] set {} }
+
+	[ForceInline] static void discard() { }
+}
+
+struct FragmentMaterial : IMaterial
+{
+	float3 base_color;
+	float3 emissive;
+	float3 normal;
+	float specular;
+	float metalness;
+	float roughness;
+	float opacity;
+	float ao;
+
+	property float3 position_offset { [ForceInline] get { return 0; } [ForceInline] set {} }
+
+	[ForceInline] static void discard() { discard; }
+}

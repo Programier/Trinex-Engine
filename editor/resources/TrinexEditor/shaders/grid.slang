@@ -1,6 +1,4 @@
-#include "trinex/attributes.slang"
-#include "trinex/common.slang"
-#include "trinex/globals.slang"
+import "trinex/scene_view.slang";
 
 static float3 grid_plane[6] = {
     float3(1, 1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
@@ -61,8 +59,8 @@ struct GridDrawer
         entry2.scale  = scale_step;
     
         float lower_height = 0.f;
-        float upper_height = tan(radians(globals.camera.fov)) * scale_step;
-        float camera_height = abs(globals.camera.location.y);
+        float upper_height = tan(radians(scene_view.camera.fov)) * scale_step;
+        float camera_height = abs(scene_view.camera.location.y);
 
         while (upper_height < camera_height)
         {
@@ -73,8 +71,8 @@ struct GridDrawer
             entry2.scale = entry2.scale * scale_step;
         }
 
-        float3 view_direction = normalize(globals.camera.location - pos);
-        float3 view_direction_xz = normalize(float3(globals.camera.location.x, 0.0, globals.camera.location.z) - pos);
+        float3 view_direction = normalize(scene_view.camera.location - pos);
+        float3 view_direction_xz = normalize(float3(scene_view.camera.location.x, 0.0, scene_view.camera.location.z) - pos);
 
         fade = 1.0 - pow(abs(dot(view_direction, view_direction_xz)), 18);
 
@@ -102,19 +100,14 @@ struct GridDrawer
 
 float3 unproject_point(float x, float y, float z)
 {
-    float4 unprojected_point =  mul(globals.inv_projview, float4(x, y, z, 1.0));
+    float4 unprojected_point =  mul(scene_view.inv_projview, float4(x, y, z, 1.0));
     return unprojected_point.xyz / unprojected_point.w;
 }
 
 float compute_depth(float3 pos) 
 {
-    float4 clip_space_pos = mul(globals.projview, float4(pos, 1.0));
+    float4 clip_space_pos = mul(scene_view.projview, float4(pos, 1.0));
     float result = (clip_space_pos.z / clip_space_pos.w);
-
-#ifdef TRINEX_OPENGL_RHI
-    result = (result + 1.0) / 2.0;
-#endif
-
     return result;
 }
 

@@ -1,14 +1,20 @@
-#ifndef TRINEX_LIGHT_SLANG
-#define TRINEX_LIGHT_SLANG
-
-#include "trinex/globals.slang"
-#include "trinex/math.slang"
-#include "trinex/platform.slang"
-#include "trinex/quad.slang"
+import "trinex/math.slang";
+import "trinex/scene_view.slang";
+import "trinex/platform.slang";
+import "trinex/quad.slang";
 
 namespace Lighting
 {
-	struct LightParameters {
+	interface ILight
+	{
+		static float attenuation(in float3 world_light_vector, in LightParameters params);
+		static float3 direction(in float3 world_light_vector, in LightParameters params);
+	}
+
+	extern struct LightType : ILight;
+
+	struct LightParameters 
+	{
 		float3 color;
 		float3 location;
 		float3 direction;
@@ -19,29 +25,10 @@ namespace Lighting
 		float source_radius;
 		float depth_bias;
 		float slope_scale;
-
-		float calc_attenuation(float3 world_light_vector)
-		{
-#if TRINEX_POINT_LIGHT || TRINEX_SPOT_LIGHT
-			const float distance = length(world_light_vector);
-			float attenuation    = pow(saturate(1.0 - (distance * inv_attenuation_radius)), fall_off_exponent);
-			attenuation 		/= max(distance * distance, 0.01);
-
-#if TRINEX_SPOT_LIGHT
-			const float cos_theta               = dot(normalize(world_light_vector), -direction);
-			const float cos_outer_cone          = spot_angles.x;
-			const float inv_cos_cone_difference = spot_angles.y;
-
-			attenuation *= square(saturate((cos_theta - cos_outer_cone) * inv_cos_cone_difference));
-#endif
-			return attenuation;
-#else
-			return 1.0;
-#endif
-		}
 	};
 
-	struct PrimitiveData {
+	struct PrimitiveData 
+	{
 		float4 base_color;
 		float3 position;
 		float3 normal;
@@ -52,10 +39,10 @@ namespace Lighting
 
 	float distribution_ggx(in float3 normal, in float3 halfway_direction, float roughness)
 	{
-		float roughness4 = square(square(roughness));
-		float n_dot_h2   = square(max(dot(normal, halfway_direction), 0.0));
+		float roughness4 = Math::square(Math::square(roughness));
+		float n_dot_h2   = Math::square(max(dot(normal, halfway_direction), 0.0));
 		float denom      = n_dot_h2 * (roughness4 - 1.0) + 1.0;
-		return roughness4 / (M_PI * (denom * denom));
+		return roughness4 / (Math::pi * (denom * denom));
 	}
 
 	float geometry_schlick_ggx(float normal_dot_v, float roughness)
@@ -90,7 +77,7 @@ namespace Lighting
 	float fresnel_zero_reflectance(in float specular)
 	{
 		float IOR = lerp(1.3, 1.7, specular);
-		return square((IOR - 1.0) / (IOR + 1.0));
+		return Math::square((IOR - 1.0) / (IOR + 1.0));
 	}
 
 	float4 calculate_light(in LightParameters light, in PrimitiveData primitive)
@@ -100,20 +87,15 @@ namespace Lighting
 			return float4(0.0, 0.0, 0.0, 1.0);
 		}
 
-		float3 view_direction = normalize(globals.camera.location -
+		float3 view_direction = normalize(scene_view.camera.location -
 										  primitive.position);// Using view direction from fragment location to camera location
 		float3 normal         = normalize_normal(primitive.normal, view_direction);
 
 		float3 f0 = lerp(float3(fresnel_zero_reflectance(primitive.msra.g)), primitive.base_color.rgb, float3(primitive.msra.r));
 
-#if TRINEX_POINT_LIGHT || TRINEX_SPOT_LIGHT
 		float3 light_direction = light.location.rgb - primitive.position;// Using light direction from fragment location to light location
-		float attenuation = light.calc_attenuation(light_direction);
-		light_direction   = normalize(light_direction);
-#else
-		float3 light_direction = -light.direction;
-		float attenuation      = 1.0;
-#endif
+		float attenuation = LightType.attenuation(light_direction, light);
+		light_direction   = LightType.direction(light_direction, light);
 
 		float normal_dot_l = max(dot(normal, light_direction), 0.0);
 
@@ -136,9 +118,7 @@ namespace Lighting
 		k_d *= 1.0 - primitive.msra.r;
 
 		
-		float3 reflectance = (k_d * primitive.base_color.xyz / M_PI + specular) * radiance * normal_dot_l;
+		float3 reflectance = (k_d * primitive.base_color.xyz / Math::pi + specular) * radiance * normal_dot_l;
 		return float4(reflectance, 1.0);
 	}
 }// namespace Lighting
-
-#endif

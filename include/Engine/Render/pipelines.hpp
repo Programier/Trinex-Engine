@@ -39,25 +39,11 @@ namespace Engine
 			          uint_t level = 0, Swizzle swizzle = {});
 		};
 
-		class ENGINE_EXPORT Blit2DGamma : public GlobalComputePipeline
-		{
-			trinex_declare_pipeline(Blit2DGamma, GlobalComputePipeline);
-
-			const ShaderParameterInfo* m_src;
-			const ShaderParameterInfo* m_dst;
-			const ShaderParameterInfo* m_args;
-
-		public:
-			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect,
-			          float gamma, uint_t level = 0, Swizzle swizzle = {});
-			Blit2DGamma& modify_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
 		class ENGINE_EXPORT BatchedLines : public GlobalGraphicsPipeline
 		{
 			trinex_declare_pipeline(BatchedLines, GlobalGraphicsPipeline);
 
-			const ShaderParameterInfo* m_globals;
+			const ShaderParameterInfo* m_scene_view;
 
 		public:
 			void apply(Renderer* renderer);
@@ -73,7 +59,7 @@ namespace Engine
 		public:
 			using GlobalGraphicsPipeline::GlobalGraphicsPipeline;
 
-			const ShaderParameterInfo* globals            = nullptr;
+			const ShaderParameterInfo* scene_view         = nullptr;
 			const ShaderParameterInfo* base_color_texture = nullptr;
 			const ShaderParameterInfo* normal_texture     = nullptr;
 			const ShaderParameterInfo* emissive_texture   = nullptr;
@@ -137,7 +123,7 @@ namespace Engine
 			trinex_declare_pipeline(AmbientLight, GlobalGraphicsPipeline);
 
 		public:
-			const ShaderParameterInfo* globals       = nullptr;
+			const ShaderParameterInfo* scene_view    = nullptr;
 			const ShaderParameterInfo* base_color    = nullptr;
 			const ShaderParameterInfo* msra          = nullptr;
 			const ShaderParameterInfo* ambient_color = nullptr;

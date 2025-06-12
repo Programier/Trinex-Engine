@@ -1,7 +1,4 @@
-#ifndef TRINEX_COMMON_SLANG
-#define TRINEX_COMMON_SLANG
-
-struct GlobalParameters
+struct SceneView
 {
 	struct Viewport {
 		float2 pos;
@@ -52,11 +49,4 @@ struct GlobalParameters
     }
 };
 
-struct GBufferFragmentOutput
-{
-    [vk::location(0)] float4 base_color   : SV_TARGET0;
-    [vk::location(1)] float4 normal       : SV_TARGET1;
-    [vk::location(2)] float4 emissive     : SV_TARGET2;
-    [vk::location(3)] float4 msra         : SV_TARGET3;
-};
-#endif
+uniform ConstantBuffer<SceneView> scene_view;

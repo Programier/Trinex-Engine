@@ -58,14 +58,19 @@ namespace Engine
 	namespace RenderPasses
 	{
 		trinex_implement_render_pass(Depth);
-		trinex_implement_render_pass(GenericOutput);
-		trinex_implement_render_pass(GenericGeometry);
+		trinex_implement_render_pass(Geometry);
 
-
-		GenericGeometry& GenericGeometry::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+		Depth& Depth::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
 		{
 			Super::modify_shader_compilation_env(env);
-			env->add_definition_nocopy("TRINEX_GEOMETRY_PASS", "1");
+			env->add_module("trinex/material_templates/surface_depth_pass.slang");
+			return *this;
+		}
+
+		Geometry& Geometry::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+		{
+			Super::modify_shader_compilation_env(env);
+			env->add_module("trinex/material_templates/surface_geometry_pass.slang");
 			return *this;
 		}
 	}// namespace RenderPasses

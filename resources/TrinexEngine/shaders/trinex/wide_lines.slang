@@ -1,8 +1,4 @@
-#ifndef WIDE_LINES_SLANG
-#define WIDE_LINES_SLANG
-
-#include "trinex/math.slang"
-#define WIDE_LINE_TRIANGLES_COUNT 6
+import "trinex/math.slang";
 
 namespace WideLines
 {
@@ -57,6 +53,3 @@ namespace WideLines
 		streamer.Append(StreamElement(vertex_1, v3));
 	}
 }// namespace WideLines
-
-#undef WIDE_LINE_TRIANGLES_COUNT
-#endif

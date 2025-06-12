@@ -1,8 +1,3 @@
-#ifndef PLATFORM_SLANG
-#define PLATFORM_SLANG 1
-
-#include "trinex/definitions.slang"
-
 namespace Platform
 {
     static const float2 ndc_depth_range = float2(0.f, 1.f);
@@ -12,5 +7,3 @@ namespace Platform
         return (near * far) / (far + depth * (near - far));
     }
 }
-
-#endif

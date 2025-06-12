@@ -1,15 +1,17 @@
+import "trinex/attributes.slang";
+
 struct VS_INPUT
 {
-    float2 pos : TEXCOORD0;
-    float4 col : COLOR0;
-    float2 uv  : TEXCOORD1;
+    [vertex_stream(0), vertex_offset(0)] float2 pos : TEXCOORD0;
+	[vertex_stream(0), vertex_offset(8)] float2 uv : TEXCOORD1;
+	[vertex_stream(0), vertex_offset(16)] float4 col : COLOR0;
 };
 
 struct PS_INPUT
 {
     float4 pos : SV_Position;
-    float4 col : COLOR0;
-    float2 uv  : TEXCOORD0;
+	float2 uv : TEXCOORD0;
+	float4 col : COLOR0;
 };
 
 uniform float4x4 model;

@@ -60,6 +60,15 @@ private:
 	static const byte TRINEX_CONCAT(trinex_engine_refl_render_pass_, __LINE__) =                                                 \
 	        Engine::ReflectionInitializeController([]() { pass_name::static_instance(); }).id()
 
+#define trinex_implement_abstract_render_pass(pass_name)                                                                         \
+	pass_name* pass_name::static_instance()                                                                                      \
+	{                                                                                                                            \
+		return nullptr;                                                                                                          \
+	}                                                                                                                            \
+	pass_name::Super* pass_name::super_pass()                                                                                    \
+	{                                                                                                                            \
+		return Super::static_instance();                                                                                         \
+	}
 
 	namespace RenderPasses
 	{
@@ -67,21 +76,16 @@ private:
 		class ENGINE_EXPORT Depth : public RenderPass
 		{
 			trinex_render_pass(Depth, RenderPass);
-		};
-
-		// Generic render pass with one color attachment
-		class ENGINE_EXPORT GenericOutput : public RenderPass
-		{
-			trinex_render_pass(GenericOutput, RenderPass);
+			Depth& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		};
 
 		// Generic render pass with four color attachments
-		class ENGINE_EXPORT GenericGeometry : public RenderPass
+		class ENGINE_EXPORT Geometry : public RenderPass
 		{
-			trinex_render_pass(GenericGeometry, RenderPass);
+			trinex_render_pass(Geometry, RenderPass);
 
 		public:
-			GenericGeometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+			Geometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		};
 	}// namespace RenderPasses
 }// namespace Engine

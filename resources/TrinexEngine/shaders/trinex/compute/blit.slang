@@ -1,14 +1,10 @@
-#include "trinex/attributes.slang"
+import "trinex/attributes.slang";
 
 struct Arguments
 {
 	int4 src_rect;
 	int4 dst_rect;
 	uint4 swizzle;// [0 -> R, 1 -> G, 2 -> B, 3 -> A, 4 -> 0.f, 5 -> 1.f]
-
-#if TRINEX_BLIT_GAMMA
-	float  gamma;
-#endif
 	uint level;
 };
 
@@ -21,7 +17,7 @@ uniform Arguments args;
 [ForceInline]
 static float4 calculate_swizzle(in float4 color)
 {
-	const float swizzle[6] = {
+	static const float swizzle[6] = {
 		color.r,
 		color.g,
 		color.b,
@@ -47,11 +43,5 @@ void cs_main(uint3 thread_id : SV_DispatchThreadID)
     int2 dst_coord = args.dst_rect.xy + thread_id.xy * sign(args.dst_rect.zw);
     
     float4 src_color = calculate_swizzle(src[src_coord]);
-
-#if TRINEX_BLIT_GAMMA
-	dst[dst_coord] = pow(src_color, args.gamma);
-
-#else
 	dst[dst_coord] = src_color;
-#endif
 }

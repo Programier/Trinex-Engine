@@ -84,18 +84,26 @@ namespace Engine
 		return render_target;
 	}
 
+	static vk::Extent3D find_target_extent(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			if (targets[i])
+				return targets[i]->extent();
+		}
+
+		if (depth)
+			return depth->extent();
+
+		throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
+	}
+
 	VulkanRenderTarget& VulkanRenderTarget::init(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		m_key.init(targets, depth);
-		m_render_pass                  = VulkanRenderPass::find_or_create(targets, depth);
-		VulkanTextureRTV* base_surface = targets[0] ? targets[0] : targets[4];
+		m_render_pass = VulkanRenderPass::find_or_create(targets, depth);
 
-		if (base_surface == nullptr)
-		{
-			throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
-		}
-
-		auto extent = base_surface->extent();
+		auto extent = find_target_extent(targets, depth);
 		m_size      = {extent.width, extent.height};
 		Index index = 0;
 

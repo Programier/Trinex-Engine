@@ -19,7 +19,5 @@ namespace Engine
 		extern Texture2D* more_icon;
 		extern Texture2D* light_sprite;
 		extern Texture2D* blueprint_texture;
-		extern Material* grid_material;
-		extern Material* texture_editor_material;
 	}// namespace EditorResources
 }// namespace Engine

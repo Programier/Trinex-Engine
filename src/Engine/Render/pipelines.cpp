@@ -81,63 +81,19 @@ namespace Engine::Pipelines
 		rhi->dispatch(groups.x, groups.y, 1);
 	}
 
-	trinex_implement_pipeline(Blit2DGamma, "[shaders_dir]:/TrinexEngine/trinex/compute/blit.slang", ShaderType::Compute)
-	{
-		m_src  = find_param_info("src");
-		m_dst  = find_param_info("dst");
-		m_args = find_param_info("args");
-	}
-
-	void Blit2DGamma::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect,
-	                       const Rect2D& dst_rect, float gamma, uint_t level, Swizzle swizzle)
-	{
-		struct ShaderArgs {
-			alignas(16) Vector4i src_rect;
-			alignas(16) Vector4i dst_rect;
-			alignas(16) Vector4u swizzle;
-			alignas(4) float gamma;
-			alignas(4) uint32_t level;
-		};
-
-		ShaderArgs shader_args;
-		shader_args.src_rect = rect_to_vec4(src_rect);
-		shader_args.dst_rect = rect_to_vec4(dst_rect);
-		shader_args.swizzle  = swizzle;
-		shader_args.level    = level;
-		shader_args.gamma    = gamma;
-
-		rhi_bind();
-
-		rhi->bind_srv(src, m_src->location);
-		rhi->bind_uav(dst, m_dst->location);
-
-		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
-
-		// Shader uses 8x8x1 threads per group
-		Vector2u groups = {(glm::abs(dst_rect.size.x) + 7) / 8, (glm::abs(dst_rect.size.y) + 7) / 8};
-		rhi->dispatch(groups.x, groups.y, 1);
-	}
-
-	Blit2DGamma& Blit2DGamma::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_BLIT_GAMMA", "1");
-		return *this;
-	}
-
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang",
 	                          ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
 	{
 		input_assembly.primitive_topology = PrimitiveTopology::LineList;
 		color_blending.enable             = false;
 
-		m_globals = find_param_info("globals");
+		m_scene_view = find_param_info("scene_view");
 	}
 
 	void BatchedLines::apply(Renderer* renderer)
 	{
 		rhi_bind();
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_globals->location);
+		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->location);
 	}
 
 	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
@@ -149,7 +105,7 @@ namespace Engine::Pipelines
 
 	void DeferredLightPipeline::initialize()
 	{
-		globals            = find_param_info("globals");
+		scene_view         = find_param_info("scene_view");
 		base_color_texture = find_param_info("base_color_texture");
 		normal_texture     = find_param_info("normal_texture");
 		emissive_texture   = find_param_info("emissive_texture");
@@ -179,8 +135,7 @@ namespace Engine::Pipelines
 	DeferredPointLightShadowed& DeferredPointLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_POINT_LIGHT", "1");
-		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
+		env->add_module("trinex/point_light.slang");
 		return *this;
 	}
 
@@ -193,8 +148,7 @@ namespace Engine::Pipelines
 	DeferredPointLight& DeferredPointLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_POINT_LIGHT", "1");
-		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
+		env->add_module("trinex/point_light.slang");
 		return *this;
 	}
 
@@ -207,8 +161,7 @@ namespace Engine::Pipelines
 	DeferredSpotLightShadowed& DeferredSpotLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_SPOT_LIGHT", "1");
-		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
+		env->add_module("trinex/spot_light.slang");
 		return *this;
 	}
 
@@ -221,8 +174,7 @@ namespace Engine::Pipelines
 	DeferredSpotLight& DeferredSpotLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_SPOT_LIGHT", "1");
-		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
+		env->add_module("trinex/spot_light.slang");
 		return *this;
 	}
 
@@ -235,9 +187,7 @@ namespace Engine::Pipelines
 	DeferredDirectionalLightShadowed& DeferredDirectionalLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_DIRECTIONAL_LIGHT", "1");
-		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		//ShadowedLightingPass::static_info()->modify_shader_compilation_env(env);
+		env->add_module("trinex/directional_light.slang");
 		return *this;
 	}
 
@@ -250,9 +200,7 @@ namespace Engine::Pipelines
 	DeferredDirectionalLight& DeferredDirectionalLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_definition_nocopy("TRINEX_DIRECTIONAL_LIGHT", "1");
-		env->add_definition_nocopy("TRINEX_DEFERRED_LIGHTING", "1");
-		//LightingPass::static_->modify_shader_compilation_env(env);
+		env->add_module("trinex/directional_light.slang");
 		return *this;
 	}
 
@@ -261,7 +209,7 @@ namespace Engine::Pipelines
 	{
 		//setup_lighting_pipeline_state(this);
 
-		globals       = find_param_info("globals");
+		scene_view    = find_param_info("scene_view");
 		base_color    = find_param_info("base_color");
 		msra          = find_param_info("msra");
 		ambient_color = find_param_info("ambient_color");

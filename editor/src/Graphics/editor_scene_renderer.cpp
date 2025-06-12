@@ -29,9 +29,7 @@ namespace Engine::EditorRenderer
 			        .add_func([renderer]() {
 				        rhi->bind_render_target1(renderer->scene_color_target()->as_rtv(),
 				                                 renderer->scene_depth_target()->as_dsv());
-				        RendererContext ctx(renderer, RenderPasses::GenericOutput::static_instance());
-				        EditorResources::grid_material->apply(ctx);
-				        rhi->draw(6, 0);
+				        EditorPipelines::Grid::instance()->render(renderer);
 			        });
 		});
 	}

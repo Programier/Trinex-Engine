@@ -1,6 +1,6 @@
-#include "trinex/quad.slang"
-#include "trinex/platform.slang"
-#include "trinex/random.slang"
+import "trinex/quad.slang";
+import "trinex/platform.slang";
+import "trinex/random.slang";
 
 struct Arguments
 {

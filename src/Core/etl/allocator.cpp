@@ -66,10 +66,10 @@ namespace Engine
 
 			TempAllocatorData(TempAllocatorSync* sync) : m_sync(sync)
 			{
-				sync->push(this);
 				m_head    = allocate_block();
 				m_current = m_head;
 				m_thread  = ThisThread::self();
+				sync->push(this);
 			}
 
 			TempAllocatorData& reset()

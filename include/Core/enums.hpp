@@ -534,7 +534,7 @@ namespace Engine
 			TransferSrc       = BIT(9),
 			TransferDst       = BIT(9),
 			CPURead           = BIT(10),
-			CPUWrite= BIT(11),
+			CPUWrite          = BIT(11),
 		};
 
 		trinex_bitfield_enum_struct(BufferCreateFlags, uint16_t);

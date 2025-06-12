@@ -1,4 +1,4 @@
-#include "trinex/quad.slang"
+import "trinex/quad.slang";
 
 struct VertexOutput
 {

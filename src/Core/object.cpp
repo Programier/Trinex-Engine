@@ -736,6 +736,12 @@ namespace Engine
 
 		Object* object = self->create_object();
 
+		if (object == nullptr)
+		{
+			error_log("Object", "Cannot create object of class '%s'!", hierarchy.front().c_str());
+			return nullptr;
+		}
+
 		if (!fullname.empty())
 		{
 			StringView package_name = package_name_sv_of(fullname);

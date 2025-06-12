@@ -12,8 +12,6 @@ namespace Engine
 	class Pipeline;
 	class Shader;
 
-	using SLANG_DefinitionsArray = Vector<ShaderDefinition, FrameAllocator<ShaderDefinition>>;
-
 	class SLANG_ShaderCompiler : public ShaderCompiler
 	{
 		trinex_declare_class(SLANG_ShaderCompiler, ShaderCompiler);
@@ -24,20 +22,17 @@ namespace Engine
 		public:
 			struct ShaderInfo {
 				ShaderType type;
-				const char* entry_name;
-				Slang::ComPtr<slang::IEntryPoint> entry;
-				int32_t index = -1;
+				const char* entry_name    = nullptr;
+				slang::IEntryPoint* entry = nullptr;
+				int32_t index             = -1;
 			};
 
 			using CheckStages = bool (*)(ShaderInfo*);
 
-			SLANG_DefinitionsArray definitions;
-			Slang::ComPtr<slang::IModule> module;
+			Vector<slang::IComponentType*> component_types;
 			SLANG_ShaderCompiler* const compiler;
 			Context* const prev_ctx;
 
-			size_t calculate_source_len(const String& source);
-			char* initialize_definitions(char* dst);
 			bool initialize(const String& source, Pipeline* pipeline);
 			bool compile(ShaderInfo* infos, size_t len, Pipeline* pipeline, CheckStages checker);
 
@@ -160,15 +155,6 @@ namespace Engine
 		trinex_declare_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
-		void initialize_context(SessionInitializer* session) override;
-	};
-
-	class OPENGL_ShaderCompiler : public SLANG_ShaderCompiler
-	{
-		trinex_declare_class(OPENGL_ShaderCompiler, SLANG_ShaderCompiler);
-
-	public:
-		void submit_source(Shader* shader, const byte* src, size_t size) override;
 		void initialize_context(SessionInitializer* session) override;
 	};
 

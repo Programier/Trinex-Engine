@@ -172,31 +172,30 @@ namespace Engine
 			inline bool has_attribute(const char* attribute) { return find_attribute(attribute) != nullptr; }
 			inline slang::ParameterCategory category() const { return var->getCategory(); }
 			inline bool is_excluded(size_t flags) const { return (exclude_flags & flags) == flags; }
+			inline slang::VariableLayoutReflection* operator->() const { return var; }
 		};
 
+	private:
+		Pipeline* m_pipeline;
 
 	public:
 		using TypeDetector = ShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
 		                                         slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
-		Pipeline* pipeline;
-
 		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, uint_t index)
 		{
 			size_t size;
 			const char* name = attribute->getArgumentValueString(0, &size);
-			if (name && size > 2)
-				return StringView(name + 1, size - 2);
+			if (name)
+				return StringView(name, size);
 			return StringView();
 		}
-
 
 		static ShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
 		{
 			static Map<StringView, ShaderParameterType::Enum> map = {
 			        {"LocalToWorld", ShaderParameterType::LocalToWorld},      //
-			        {"Globals", ShaderParameterType::Globals},                //
 			        {"Surface", ShaderParameterType::Surface},                //
 			        {"CombinedSurface", ShaderParameterType::CombinedSurface},//
 			};
@@ -280,19 +279,12 @@ namespace Engine
 				switch (var->getScalarType())
 				{
 					case slang::TypeReflection::ScalarType::Int8: return VertexBufferElementType::Byte1;
-
 					case slang::TypeReflection::ScalarType::UInt8: return VertexBufferElementType::UByte1;
-
 					case slang::TypeReflection::ScalarType::Int16: return VertexBufferElementType::Short1;
-
 					case slang::TypeReflection::ScalarType::UInt16: return VertexBufferElementType::UShort1;
-
 					case slang::TypeReflection::ScalarType::Int32: return VertexBufferElementType::Int1;
-
 					case slang::TypeReflection::ScalarType::UInt32: return VertexBufferElementType::UInt1;
-
 					case slang::TypeReflection::ScalarType::Float32: return VertexBufferElementType::Float1;
-
 					default: return VertexBufferElementType::Undefined;
 				}
 			}
@@ -322,21 +314,21 @@ namespace Engine
 			return VertexBufferElementType::Undefined;
 		}
 
-		bool parse_vertex_semantic(slang::VariableLayoutReflection* var)
+		bool parse_vertex_semantic(const VarTraceEntry& var)
 		{
-			auto kind     = var->getType()->getKind();
-			auto category = var->getCategory();
+			auto category = var.category();
+
 			if (category != slang::ParameterCategory::VaryingInput && category != slang::ParameterCategory::Mixed)
 				return true;
 
-			if (kind == slang::TypeReflection::Kind::Struct)
+			if (var.kind == slang::TypeReflection::Kind::Struct)
 			{
 				auto layout       = var->getTypeLayout();
 				auto fields_count = layout->getFieldCount();
 
 				for (uint32_t field_index = 0; field_index < fields_count; ++field_index)
 				{
-					auto field = layout->getFieldByIndex(field_index);
+					VarTraceEntry field(layout->getFieldByIndex(field_index), &var);
 
 					if (!parse_vertex_semantic(field))
 					{
@@ -344,7 +336,7 @@ namespace Engine
 					}
 				}
 			}
-			else if (kind == slang::TypeReflection::Kind::Vector || kind == slang::TypeReflection::Kind::Scalar)
+			else if (var.kind == slang::TypeReflection::Kind::Vector || var.kind == slang::TypeReflection::Kind::Scalar)
 			{
 				VertexAttribute attribute;
 
@@ -374,15 +366,15 @@ namespace Engine
 				}
 
 				attribute.semantic_index = var->getSemanticIndex();
-				attribute.name           = var->getName();
+				attribute.name           = var.name;
 				attribute.rate           = var->getVariable()->findAttributeByName(global_session(), "per_instance")
 				                                   ? VertexAttributeInputRate::Instance
 				                                   : VertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-				attribute.location       = var->getOffset(slang::ParameterCategory::VertexInput);
+				attribute.location       = var.trace_offset(slang::ParameterCategory::VertexInput);
 				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
 				attribute.offset         = find_vertex_offset(var->getVariable());
-				Object::instance_cast<GraphicsPipeline>(pipeline)->vertex_shader()->attributes.push_back(attribute);
+				Object::instance_cast<GraphicsPipeline>(m_pipeline)->vertex_shader()->attributes.push_back(attribute);
 			}
 			else
 			{
@@ -393,11 +385,11 @@ namespace Engine
 			return true;
 		}
 
-		static bool is_global_parameters(slang::TypeLayoutReflection* type)
+		static bool is_scene_view(slang::TypeLayoutReflection* type)
 		{
 			return_if_false(type->getKind() == slang::TypeReflection::Kind::Struct) false;
 			const char* name = type->getName();
-			return_if_false(name != nullptr && std::strcmp(name, "GlobalParameters") == 0) false;
+			return_if_false(name != nullptr && std::strcmp(name, "SceneView") == 0) false;
 			return_if_false(sizeof(GlobalShaderParameters) == type->getSize(SLANG_PARAMETER_CATEGORY_UNIFORM)) false;
 			return true;
 		}
@@ -461,12 +453,12 @@ namespace Engine
 					return false;
 				}
 
-				if (!param.parameter_name(pipeline->parameters, info.name))
+				if (!param.parameter_name(m_pipeline->parameters, info.name))
 					return false;
 
-				info.offset                     = param.trace_offset(slang::ParameterCategory::Uniform);
-				info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
-				pipeline->parameters[info.name] = info;
+				info.offset                       = param.trace_offset(slang::ParameterCategory::Uniform);
+				info.location                     = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+				m_pipeline->parameters[info.name] = info;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
@@ -483,7 +475,7 @@ namespace Engine
 
 						ShaderParameterInfo object;
 
-						if (!param.parameter_name(pipeline->parameters, object.name))
+						if (!param.parameter_name(m_pipeline->parameters, object.name))
 							return false;
 
 						object.location = param.trace_offset(param.category());
@@ -505,7 +497,7 @@ namespace Engine
 							}
 						}
 
-						pipeline->parameters[object.name] = object;
+						m_pipeline->parameters[object.name] = object;
 					}
 				}
 			}
@@ -514,12 +506,12 @@ namespace Engine
 			{
 				ShaderParameterInfo object;
 
-				if (!param.parameter_name(pipeline->parameters, object.name))
+				if (!param.parameter_name(m_pipeline->parameters, object.name))
 					return false;
 
-				object.location                   = param.trace_offset(param.category());
-				object.type                       = ShaderParameterType::Sampler;
-				pipeline->parameters[object.name] = object;
+				object.location                     = param.trace_offset(param.category());
+				object.type                         = ShaderParameterType::Sampler;
+				m_pipeline->parameters[object.name] = object;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))
 			{
@@ -550,12 +542,12 @@ namespace Engine
 
 						info.type = ShaderParameterType::MemoryBlock;
 
-						if (!param.parameter_name(pipeline->parameters, info.name))
+						if (!param.parameter_name(m_pipeline->parameters, info.name))
 							return false;
 
-						info.offset                     = param.trace_offset(slang::ParameterCategory::Uniform);
-						info.location                   = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
-						pipeline->parameters[info.name] = info;
+						info.offset                       = param.trace_offset(slang::ParameterCategory::Uniform);
+						info.location                     = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+						m_pipeline->parameters[info.name] = info;
 					}
 				}
 
@@ -571,18 +563,18 @@ namespace Engine
 			{
 				auto layout = param.var->getTypeLayout()->getElementTypeLayout();
 
-				if (is_global_parameters(layout))
+				if (is_scene_view(layout))
 				{
 					ShaderParameterInfo object;
 
-					if (!param.parameter_name(pipeline->parameters, object.name))
+					if (!param.parameter_name(m_pipeline->parameters, object.name))
 						return false;
 
-					object.location                   = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
-					object.type                       = ShaderParameterType::Globals;
-					object.size                       = sizeof(GlobalShaderParameters);
-					object.offset                     = 0;
-					pipeline->parameters[object.name] = object;
+					object.location                     = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
+					object.type                         = ShaderParameterType::Globals;
+					object.size                         = sizeof(GlobalShaderParameters);
+					object.offset                       = 0;
+					m_pipeline->parameters[object.name] = object;
 				}
 				else
 				{
@@ -608,7 +600,7 @@ namespace Engine
 		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* out)
 		{
 			CompileLogHandler log_handler;
-			pipeline = out;
+			m_pipeline = out;
 
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
@@ -706,11 +698,9 @@ namespace Engine
 	static PreInitializeController preinit(setup_detectors);
 
 	trinex_implement_class_default_init(Engine::SLANG_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Engine::OPENGL_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Engine::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Engine::D3D12_ShaderCompiler, Refl::Class::IsSingletone);
-
 
 	class SLANG_CompilationEnv : public ShaderCompilationEnvironment
 	{
@@ -719,23 +709,11 @@ namespace Engine
 	public:
 		SLANG_CompilationEnv(SLANG_ShaderCompiler::Context* ctx) : m_ctx(ctx) {}
 
-		static const char* copy_str(const char* str)
+		SLANG_CompilationEnv& add_module(const char* module) override
 		{
-			auto len   = std::strlen(str) + 1;
-			char* copy = FrameAllocator<char>().allocate(len);
-			std::memcpy(copy, str, len);
-			return copy;
-		}
-
-		SLANG_CompilationEnv& add_definition(const char* key, const char* value) override
-		{
-			m_ctx->definitions.push_back({copy_str(key), copy_str(value)});
-			return *this;
-		}
-
-		SLANG_CompilationEnv& add_definition_nocopy(const char* key, const char* value) override
-		{
-			m_ctx->definitions.push_back({key, value});
+			slang::IModule* shader_module = m_ctx->compiler->load_module(module);
+			if (shader_module)
+				m_ctx->component_types.push_back(shader_module);
 			return *this;
 		}
 	};
@@ -743,40 +721,7 @@ namespace Engine
 	SLANG_ShaderCompiler::Context::Context(SLANG_ShaderCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
 	{
 		compiler->m_ctx = this;
-		definitions.reserve(64);
-	}
-
-	size_t SLANG_ShaderCompiler::Context::calculate_source_len(const String& source)
-	{
-		size_t len = source.size();
-
-		for (auto& definition : definitions)
-		{
-			len += definition.key.size();
-			len += definition.value.size();
-			len += 10;// "<#define >{key}< >{value}<\n>", 10 is sum of string lengths in <>
-		}
-		return len;
-	}
-
-	char* SLANG_ShaderCompiler::Context::initialize_definitions(char* dst)
-	{
-		for (auto& definition : definitions)
-		{
-			std::memcpy(dst, "#define ", 8);
-			dst += 8;
-
-			std::memcpy(dst, definition.key.data(), definition.key.size());
-			dst += definition.key.size();
-
-			*(dst++) = ' ';
-
-			std::memcpy(dst, definition.value.data(), definition.value.size());
-			dst += definition.value.size();
-
-			*(dst++) = '\n';
-		}
-		return dst;
+		component_types.reserve(16);
 	}
 
 	bool SLANG_ShaderCompiler::Context::initialize(const String& source, Pipeline* pipeline)
@@ -789,22 +734,9 @@ namespace Engine
 			return false;
 		}
 
-		const char* source_ptr = source.data();
-
-		if (definitions.size() > 0)
-		{
-			size_t len = calculate_source_len(source);
-			char* dst  = FrameAllocator<char>().allocate(len + 1);
-			source_ptr = dst;
-
-			dst = initialize_definitions(dst);
-			std::memcpy(dst, source.c_str(), source.size());
-			dst[source.size()] = '\0';
-		}
-
 		String name = Strings::format("Module<{}> '{}'", static_cast<void*>(pipeline), pipeline->name().c_str());
 		Slang::ComPtr<slang::IBlob> diagnostics;
-		module = session->loadModuleFromSourceString(name.c_str(), name.c_str(), source_ptr, diagnostics.writeRef());
+		auto module = session->loadModuleFromSourceString(name.c_str(), name.c_str(), source.data(), diagnostics.writeRef());
 
 		if (diagnostics && diagnostics->getBufferSize() > 0)
 		{
@@ -820,24 +752,41 @@ namespace Engine
 			}
 		}
 
-		return module != nullptr;
+		if (module)
+		{
+			component_types.push_back(module);
+			return true;
+		}
+		return false;
 	}
 
 	bool SLANG_ShaderCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
-		Vector<slang::IComponentType*, FrameAllocator<slang::IComponentType*>> component_types;
-		component_types.push_back(module);
+		const size_t module_count = component_types.size();
 
 		for (size_t i = 0; i < infos_len; ++i)
 		{
 			auto& info = infos[i];
 
-			module->findEntryPointByName(info.entry_name, info.entry.writeRef());
-
-			if (info.entry)
+			for (size_t module_index = 0; module_index < module_count; ++module_index)
 			{
-				info.index = component_types.size() - 1;
-				component_types.push_back(info.entry);
+				auto module = static_cast<slang::IModule*>(component_types[module_index]);
+
+				slang::IEntryPoint* entry = nullptr;
+				module->findEntryPointByName(info.entry_name, &entry);
+
+				if (entry)
+				{
+					if (info.entry)
+					{
+						error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.entry_name);
+						return false;
+					}
+
+					info.index = component_types.size() - module_count;
+					info.entry = entry;
+					component_types.push_back(entry);
+				}
 			}
 		}
 
@@ -933,12 +882,10 @@ namespace Engine
 
 	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Material* material, RenderPass* pass)
 	{
-		if (material)
+		if (pass == nullptr)
 		{
-			for (auto& definition : material->compile_definitions)
-			{
-				definitions.push_back(definition);
-			}
+			error_log("ShaderCompiler", "Cannot compile material for undefined pass!\n");
+			return false;
 		}
 
 		if (pass)
@@ -952,8 +899,7 @@ namespace Engine
 
 		if (new_pipeline)
 		{
-			String name = pass ? pass->name() : "Default";
-			pipeline    = new_instance<GraphicsPipeline>(name);
+			pipeline = new_instance<GraphicsPipeline>(pass->name());
 		}
 		else
 		{
@@ -985,11 +931,11 @@ namespace Engine
 			return false;
 
 		ShaderInfo shader_infos[] = {
-		        {ShaderType::Vertex, "vs_main", {}, -1},              //
-		        {ShaderType::TessellationControl, "tsc_main", {}, -1},//
-		        {ShaderType::Tessellation, "ts_main", {}, -1},        //
-		        {ShaderType::Geometry, "gs_main", {}, -1},            //
-		        {ShaderType::Fragment, "fs_main", {}, -1},            //
+		        {ShaderType::Vertex, "vs_main"},              //
+		        {ShaderType::TessellationControl, "tsc_main"},//
+		        {ShaderType::Tessellation, "ts_main"},        //
+		        {ShaderType::Geometry, "gs_main"},            //
+		        {ShaderType::Fragment, "fs_main"},            //
 		};
 
 		CheckStages checker = [](ShaderInfo* infos) -> bool {
@@ -1015,7 +961,7 @@ namespace Engine
 		if (!initialize(source, pipeline))
 			return false;
 
-		ShaderInfo shader_infos[] = {{ShaderType::Compute, "cs_main", {}, -1}};
+		ShaderInfo shader_infos[] = {{ShaderType::Compute, "cs_main"}};
 
 		CheckStages checker = [](ShaderInfo* infos) -> bool {
 			bool result = infos[0].index != -1;
@@ -1030,6 +976,11 @@ namespace Engine
 	SLANG_ShaderCompiler::Context::~Context()
 	{
 		compiler->m_ctx = prev_ctx;
+
+		for (slang::IComponentType* component : component_types)
+		{
+			component->release();
+		}
 	}
 
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
@@ -1107,7 +1058,7 @@ namespace Engine
 			return false;
 		}
 
-		bool success = compile_pass(material, nullptr, source);
+		bool success = true;
 
 		for (auto pass = RenderPass::static_first_pass(); pass && success; pass = pass->next_pass())
 		{
@@ -1182,58 +1133,13 @@ namespace Engine
 		throw EngineException("Something is wrong! Cannot compile shaders for None API!");
 	}
 
-	void OPENGL_ShaderCompiler::initialize_context(SessionInitializer* session)
-	{
-		Super::initialize_context(session);
-
-		session->target_desc.profile = global_session()->findProfile("glsl_330");
-		session->target_desc.format  = SLANG_SPIRV;
-		session->add_definition("TRINEX_OPENGL_RHI", "1");
-		session->add_target_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
-	}
-
-	void OPENGL_ShaderCompiler::submit_source(Shader* shader, const byte* src, size_t size)
-	{
-		spirv_cross::CompilerGLSL glsl(reinterpret_cast<const uint32_t*>(src), size / 4);
-		spirv_cross::ShaderResources resources = glsl.get_shader_resources();
-
-		for (auto& resource : resources.sampled_images)
-		{
-			unsigned set     = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
-			unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
-			glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
-			glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
-		}
-
-		// Set some options.
-		spirv_cross::CompilerGLSL::Options options;
-		options.version                 = 310;
-		options.es                      = true;
-		options.separate_shader_objects = true;
-		glsl.set_common_options(options);
-		glsl.build_dummy_sampler_for_combined_images();
-		glsl.build_combined_image_samplers();
-		String glsl_code = glsl.compile();
-		Super::submit_source(shader, reinterpret_cast<const byte*>(glsl_code.data()), glsl_code.size() + 1);
-	}
-
 	void VULKAN_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		Super::initialize_context(session);
 
-		session->target_desc.format = SLANG_SPIRV;
+		session->target_desc.format  = SLANG_SPIRV;
+		session->target_desc.profile = global_session()->findProfile("spirv_1_3");
 		session->add_definition("TRINEX_VULKAN_RHI", "1");
-
-		if (Settings::debug_shaders)
-		{
-			session->add_target_option(slang::CompilerOptionName::EmitSpirvDirectly, true);
-			session->target_desc.profile = global_session()->findProfile("spirv_1_3");
-		}
-		else
-		{
-			session->add_target_option(slang::CompilerOptionName::EmitSpirvViaGLSL, true);
-			session->target_desc.profile = global_session()->findProfile("glsl_330");
-		}
 	}
 
 	void D3D12_ShaderCompiler::initialize_context(SessionInitializer* session)

@@ -61,9 +61,7 @@ namespace Engine
 	VulkanAPI::VulkanAPI()
 	{
 		m_device_extensions = {
-		        {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false},
 		        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false},
-		        {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false},
 		        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
 		        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false, false},
 		        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false, false},
@@ -199,10 +197,12 @@ namespace Engine
 	{
 		vkb::DeviceBuilder builder(physical_device);
 
-		vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
 		vk::PhysicalDeviceCustomBorderColorFeaturesEXT custom_border(vk::True, vk::False);
+		vk::PhysicalDeviceVulkan11Features vk11_features;
 
-		builder.add_pNext(&idx_byte_feature);
+		vk11_features.setShaderDrawParameters(vk::True);
+
+		builder.add_pNext(&vk11_features);
 
 		if (API->is_extension_enabled(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME))
 			builder.add_pNext(&custom_border);
@@ -221,11 +221,13 @@ namespace Engine
 	{
 		vk::PhysicalDeviceFeatures new_features;
 
-		new_features.samplerAnisotropy  = features.samplerAnisotropy;
-		new_features.fillModeNonSolid   = features.fillModeNonSolid;
-		new_features.wideLines          = features.wideLines;
-		new_features.tessellationShader = features.tessellationShader;
-		new_features.geometryShader     = features.geometryShader;
+		new_features.samplerAnisotropy                    = features.samplerAnisotropy;
+		new_features.fillModeNonSolid                     = features.fillModeNonSolid;
+		new_features.wideLines                            = features.wideLines;
+		new_features.tessellationShader                   = features.tessellationShader;
+		new_features.geometryShader                       = features.geometryShader;
+		new_features.shaderStorageImageReadWithoutFormat  = features.shaderStorageImageReadWithoutFormat;
+		new_features.shaderStorageImageWriteWithoutFormat = features.shaderStorageImageWriteWithoutFormat;
 
 		return new_features;
 	}
@@ -264,11 +266,7 @@ namespace Engine
 	VulkanAPI& VulkanAPI::initialize(Window* window)
 	{
 		vkb::InstanceBuilder instance_builder;
-
-		if (Settings::debug_shaders)
-			instance_builder.require_api_version(VK_API_VERSION_1_3);
-		else
-			instance_builder.require_api_version(VK_API_VERSION_1_0);
+		instance_builder.require_api_version(VK_API_VERSION_1_1);
 
 		Vector<String> required_extensions;
 		extern void load_required_extensions(void* native_window, Vector<String>& required_extensions);
@@ -279,7 +277,6 @@ namespace Engine
 			info_log("VulkanAPI", "Enable extention %s", extension.c_str());
 			instance_builder.enable_extension(extension.c_str());
 		}
-
 
 		if (VulkanConfig::enable_validation)
 		{

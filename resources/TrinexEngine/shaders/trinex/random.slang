@@ -1,6 +1,3 @@
-#ifndef TRINEX_RANDOM_SLANG
-#define TRINEX_RANDOM_SLANG 1
-
 namespace Random
 {
 	float pseudo_random(float2 xy)
@@ -67,5 +64,3 @@ namespace Random
 		return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 	}
 }// namespace Random
-
-#endif

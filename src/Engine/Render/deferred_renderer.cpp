@@ -50,7 +50,7 @@ namespace Engine
 	{
 		rhi->bind_render_target4(base_color_target()->as_rtv(), normal_target()->as_rtv(), emissive_target()->as_rtv(),
 		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv());
-		render_visible_primitives(RenderPasses::GenericGeometry::static_instance());
+		render_visible_primitives(RenderPasses::Geometry::static_instance());
 	}
 
 	Pipelines::DeferredLightPipeline* DeferredRenderer::static_find_light_pipeline(LightComponent* component)
@@ -88,7 +88,7 @@ namespace Engine
 
 		pipeline->rhi_bind();
 
-		rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->globals->location);
+		rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->location);
 		rhi->update_scalar_parameter(&scene()->environment.ambient_color, pipeline->ambient_color);
 		rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->location, sampler);
 		rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->location, sampler);
@@ -114,7 +114,7 @@ namespace Engine
 			rhi->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->location, sampler);
 			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->location, sampler);
 			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->location, sampler);
-			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->globals->location);
+			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->location);
 			rhi->update_scalar_parameter(&parameters, pipeline->parameters);
 			rhi->draw(6, 0);
 		}

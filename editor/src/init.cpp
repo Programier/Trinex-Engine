@@ -32,18 +32,16 @@ namespace Engine
 
 	namespace EditorResources
 	{
-		Texture2D* default_icon           = nullptr;
-		Texture2D* add_icon               = nullptr;
-		Texture2D* move_icon              = nullptr;
-		Texture2D* remove_icon            = nullptr;
-		Texture2D* rotate_icon            = nullptr;
-		Texture2D* scale_icon             = nullptr;
-		Texture2D* select_icon            = nullptr;
-		Texture2D* more_icon              = nullptr;
-		Texture2D* light_sprite           = nullptr;
-		Texture2D* blueprint_texture      = nullptr;
-		Material* grid_material           = nullptr;
-		Material* texture_editor_material = nullptr;
+		Texture2D* default_icon      = nullptr;
+		Texture2D* add_icon          = nullptr;
+		Texture2D* move_icon         = nullptr;
+		Texture2D* remove_icon       = nullptr;
+		Texture2D* rotate_icon       = nullptr;
+		Texture2D* scale_icon        = nullptr;
+		Texture2D* select_icon       = nullptr;
+		Texture2D* more_icon         = nullptr;
+		Texture2D* light_sprite      = nullptr;
+		Texture2D* blueprint_texture = nullptr;
 	}// namespace EditorResources
 
 	static void preinit()
@@ -86,9 +84,6 @@ namespace Engine
 		EditorResources::more_icon         = load_object<Texture2D>("TrinexEditor::Textures::MoreIcon");
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
 		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
-
-		EditorResources::grid_material           = load_object<Material>("TrinexEditor::Materials::GridMaterial");
-		EditorResources::texture_editor_material = load_object<Material>("TrinexEditor::Materials::TextureEditorMaterial");
 
 		Icons::on_editor_package_loaded();
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);

@@ -33,4 +33,15 @@ namespace Engine::EditorPipelines
 		void render(Renderer* renderer, SRV* outline_depth, Vector3f color, Vector2f sample_offset);
 	};
 
+	class Grid : public GlobalGraphicsPipeline
+	{
+		trinex_declare_pipeline(Grid, GlobalGraphicsPipeline);
+
+	private:
+		const ShaderParameterInfo* m_scene_view;
+
+	public:
+		void render(Renderer* renderer);
+	};
+
 }// namespace Engine::EditorPipelines

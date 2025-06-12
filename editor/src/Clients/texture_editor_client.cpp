@@ -26,8 +26,8 @@ namespace Engine
 		rect.pos  = {0, 0};
 		rect.size = dst->size();
 
-		auto pipeline = Pipelines::Blit2DGamma::instance();
-		pipeline->blit(srv, dst->rhi_uav(), rect, rect, power, level, swizzle);
+		auto pipeline = Pipelines::Blit2D::instance();
+		pipeline->blit(srv, dst->rhi_uav(), rect, rect, level, swizzle);
 	}
 
 	static inline Swizzle modify_swizzle(Swizzle swizzle, ColorFormat format)

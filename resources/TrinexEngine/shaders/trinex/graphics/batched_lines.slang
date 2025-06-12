@@ -1,7 +1,6 @@
-#include "trinex/attributes.slang"
-#include "trinex/common.slang"
-#include "trinex/globals.slang"
-#include "wide_lines.slang"
+import "trinex/attributes.slang";
+import "trinex/scene_view.slang";
+import "trinex/wide_lines.slang";
 
 struct VertexInput 
 {
@@ -56,7 +55,7 @@ VertexOutput vs_main(in VertexInput input)
 {
     VertexOutput output;
     output.color     = input.color;
-    output.position  = mul(globals.projview, float4(input.position, 1.0));
+    output.position  = mul(scene_view.projview, float4(input.position, 1.0));
     output.thickness = input.thickness;
     return output;
 }
@@ -65,7 +64,7 @@ VertexOutput vs_main(in VertexInput input)
 [maxvertexcount(6)] 
 void gs_main(line VertexOutput input[2], inout TriangleStream<GeometryOutput> stream)
 {
-    WideLines::stream_line(stream, input[0], input[1], globals.viewport.size);
+    WideLines::stream_line(stream, input[0], input[1], scene_view.viewport.size);
 }
 
 [shader("fragment")]
