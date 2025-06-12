@@ -452,22 +452,22 @@ namespace Engine
 		}
 		else
 		{
-			// while (pipelines_count > 0)
-			// {
-			// 	Name name;
-			// 	Pipeline::Type type;
+			while (pipelines_count > 0)
+			{
+				Name name;
+				Pipeline::Type type;
 
-			// 	archive.serialize(name);
-			// 	archive.serialize(type);
+				archive.serialize(name);
+				archive.serialize(type);
 
-			// 	auto pass     = RenderPass::static_find(name);
-			// 	auto pipeline = new_instance<GraphicsPipeline>();
+				auto pass     = RenderPass::static_find(name);
+				auto pipeline = new_instance<GraphicsPipeline>();
 
-			// 	add_pipeline(pass, pipeline);
-			// 	pipeline->serialize(archive, this);
-			// 	register_pipeline_parameters(pipeline);
-			// 	--pipelines_count;
-			// }
+				add_pipeline(pass, pipeline);
+				pipeline->serialize(archive, this);
+				register_pipeline_parameters(pipeline);
+				--pipelines_count;
+			}
 		}
 
 		return archive;
