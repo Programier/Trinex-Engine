@@ -1,6 +1,6 @@
 #include <Core/exception.hpp>
 #include <Core/threading.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {

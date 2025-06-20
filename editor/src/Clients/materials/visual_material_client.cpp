@@ -8,12 +8,12 @@
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
-#include <Graphics/render_surface.hpp>
 #include <Graphics/render_pools.hpp>
-#include <Graphics/rhi.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
+#include <RHI/rhi.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -918,7 +918,7 @@ namespace Engine
 
 	static void pre_initialize()
 	{
-		using T = ShaderParameterType;
+		using T = RHIShaderParameterType;
 
 		s_default_type_renderers[T(T::Bool).type_index()]  = render_vector_nb<1>;
 		s_default_type_renderers[T(T::Bool2).type_index()] = render_vector_nb<2>;

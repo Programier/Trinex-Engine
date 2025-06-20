@@ -4,9 +4,6 @@
 #include <Systems/event_system.hpp>
 #include <Systems/logic_system.hpp>
 
-#include <Core/render_resource.hpp>
-#include <Graphics/rhi.hpp>
-
 namespace Engine
 {
 	LogicSystem& LogicSystem::create()

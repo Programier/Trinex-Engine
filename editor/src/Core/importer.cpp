@@ -112,7 +112,7 @@ namespace Engine::Importer
 			auto texture    = Object::new_instance<Texture2D>(name, package);
 			texture_ref     = texture;
 
-			texture->format = ColorFormat::R8G8B8A8;
+			texture->format = RHIColorFormat::R8G8B8A8;
 			texture->mips.resize(1);
 			texture->mips[0].size = {1, 1};
 			texture->mips[0].data = {255, 255, 255, 255};
@@ -258,12 +258,14 @@ namespace Engine::Importer
 			RHIIndexFormat index_format = vertex_count > 65535 ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
 			byte index_size             = vertex_count > 65535 ? 4 : 2;
 
-			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector3f> tangents   = lod.tangents.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector3f> bitangents = lod.bitangents.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(BufferCreateFlags::Static, vertex_count);
-			IdxBuffer indices(lod.indices.allocate_data(BufferCreateFlags::Static, index_format, faces_count * 3), index_size);
+			// clang-format off
+			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> tangents   = lod.tangents.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> bitangents = lod.bitangents.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			IdxBuffer indices(lod.indices.allocate_data(RHIBufferCreateFlags::Static, index_format, faces_count * 3), index_size);
+			// clang-format on
 
 			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
 			{

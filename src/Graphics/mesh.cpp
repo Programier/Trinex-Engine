@@ -8,7 +8,7 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/enums.hpp>
 
 namespace Engine
 {
@@ -154,15 +154,15 @@ namespace Engine
 		return ar;
 	}
 
-	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(VertexBufferSemantic semantic, Index index)
+	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index)
 	{
 		Index semantic_index = static_cast<Index>(semantic);
-		if (semantic_index > static_cast<Index>(VertexBufferSemantic::Bitangent))
+		if (semantic_index > static_cast<Index>(RHIVertexBufferSemantic::Bitangent))
 		{
 			return nullptr;
 		}
 
-		using Func = VertexBufferBase* (*) (LOD* lod, size_t);
+		using Func = VertexBufferBase* (*) (LOD * lod, size_t);
 
 		static Func funcs[6] = {
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_position_buffer(index); }),

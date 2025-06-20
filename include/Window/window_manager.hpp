@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Core/structures.hpp>
 
 namespace Engine
 {
@@ -10,7 +9,7 @@ namespace Engine
 	struct WindowConfig;
 	struct Event;
 
-	class ENGINE_EXPORT WindowManager final : public Singletone<WindowManager, EmptyClass>
+	class ENGINE_EXPORT WindowManager final : public Singletone<WindowManager, EmptySingletoneParent>
 	{
 	private:
 		static WindowManager* s_instance;
@@ -28,6 +27,6 @@ namespace Engine
 		Window* main_window() const;
 		const TreeMap<Identifier, Window*>& windows() const;
 		friend class Window;
-		friend class Singletone<WindowManager, EmptyClass>;
+		friend class Singletone<WindowManager, EmptySingletoneParent>;
 	};
 }// namespace Engine

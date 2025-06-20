@@ -7,9 +7,9 @@
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -103,7 +103,7 @@ namespace Engine
 
 	void GraphicsShaderCache::init_from(const class GraphicsPipeline* pipeline)
 	{
-		parameters = pipeline->parameters;
+		parameters = pipeline->parameters();
 
 		auto vs = pipeline->vertex_shader();
 		if (vs)
@@ -120,7 +120,7 @@ namespace Engine
 
 	void GraphicsShaderCache::apply_to(class GraphicsPipeline* pipeline)
 	{
-		pipeline->parameters = parameters;
+		pipeline->parameters(parameters);
 
 		auto vs = pipeline->vertex_shader();
 		if (vs)
@@ -136,13 +136,13 @@ namespace Engine
 
 	void ComputeShaderCache::init_from(const class ComputePipeline* pipeline)
 	{
-		parameters = pipeline->parameters;
+		parameters = pipeline->parameters();
 		copy_buffer(compute, pipeline->compute_shader());
 	}
 
 	void ComputeShaderCache::apply_to(class ComputePipeline* pipeline)
 	{
-		pipeline->parameters = parameters;
+		pipeline->parameters(parameters);
 		apply_buffer(compute, pipeline->compute_shader());
 	}
 

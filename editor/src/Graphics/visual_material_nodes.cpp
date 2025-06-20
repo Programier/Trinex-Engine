@@ -6,6 +6,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
+#include <RHI/rhi_initializers.hpp>
 
 namespace Engine::VisualMaterialGraph
 {
@@ -39,15 +40,15 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	MaterialRoot::MaterialRoot()
-	    : Node(), base_color(new_input("Base Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),//
-	      opacity(new_input("Opacity", ShaderParameterType::Float, ShaderParameterType::Float)),                //
-	      emissive(new_input("Emissive Color", ShaderParameterType::Float3, ShaderParameterType::Float3)),      //
-	      specular(new_input("Specular", ShaderParameterType::Float, ShaderParameterType::Float)),              //
-	      metalness(new_input("Metalness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
-	      roughness(new_input("Roughness", ShaderParameterType::Float, ShaderParameterType::Float)),            //
-	      ao(new_input("AO", ShaderParameterType::Float, ShaderParameterType::Float)),                          //
-	      normal(new_input("Normal", ShaderParameterType::Float3, ShaderParameterType::Float3)),                //
-	      position_offset(new_input("Position Offset", ShaderParameterType::Float3, ShaderParameterType::Float3))
+	    : Node(), base_color(new_input("Base Color", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),//
+	      opacity(new_input("Opacity", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),                //
+	      emissive(new_input("Emissive Color", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),      //
+	      specular(new_input("Specular", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),              //
+	      metalness(new_input("Metalness", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),            //
+	      roughness(new_input("Roughness", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),            //
+	      ao(new_input("AO", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),                          //
+	      normal(new_input("Normal", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),                //
+	      position_offset(new_input("Position Offset", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3))
 	{
 		opacity->default_value()->ref<float>()   = 1.0f;
 		specular->default_value()->ref<float>()  = 0.5f;
@@ -58,7 +59,7 @@ namespace Engine::VisualMaterialGraph
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
 	{
-		new_output("Tex", ShaderParameterType::Texture2D);
+		new_output("Tex", RHIShaderParameterType::Texture2D);
 	}
 
 	Texture2D* Texture2D::static_find_node(Engine::Texture2D* texture, Compiler& compiler, uint16_t id)
@@ -89,7 +90,7 @@ namespace Engine::VisualMaterialGraph
 			compiler.add_redirection(this, reinterpret_cast<Identifier>(texture));
 		}
 
-		return compiler.make_uniform(ShaderParameterType::Texture2D, name);
+		return compiler.make_uniform(RHIShaderParameterType::Texture2D, name);
 	}
 
 	Texture2D& Texture2D::render()
@@ -130,10 +131,10 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	Sampler::Sampler() : sampler(SamplerFilter::Point)
+	Sampler::Sampler() : sampler(RHISamplerFilter::Point)
 	{
 		if (class_instance() == static_class_instance())
-			new_output("Out", ShaderParameterType::Sampler);
+			new_output("Out", RHIShaderParameterType::Sampler);
 	}
 
 	Sampler* Sampler::static_find_node(const Engine::Sampler& sampler, Compiler& compiler, uint16_t id)
@@ -164,7 +165,7 @@ namespace Engine::VisualMaterialGraph
 			compiler.add_redirection(this, sampler.initializer().hash());
 		}
 
-		return compiler.make_uniform(ShaderParameterType::Sampler, name);
+		return compiler.make_uniform(RHIShaderParameterType::Sampler, name);
 	}
 
 	Sampler& Sampler::post_compile(VisualMaterial* material)
@@ -195,17 +196,17 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(SamplerFilter::Point)
+	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(RHISamplerFilter::Point)
 	{
-		new_input("Tex", ShaderParameterType::Texture2D);
-		new_input("UV", ShaderParameterType::Float2);
-		new_input("Sampler", ShaderParameterType::Sampler);
+		new_input("Tex", RHIShaderParameterType::Texture2D);
+		new_input("UV", RHIShaderParameterType::Float2);
+		new_input("Sampler", RHIShaderParameterType::Sampler);
 
-		new_output("RGBA", ShaderParameterType::Float4);
-		new_output("R", ShaderParameterType::Float);
-		new_output("G", ShaderParameterType::Float);
-		new_output("B", ShaderParameterType::Float);
-		new_output("A", ShaderParameterType::Float);
+		new_output("RGBA", RHIShaderParameterType::Float4);
+		new_output("R", RHIShaderParameterType::Float);
+		new_output("G", RHIShaderParameterType::Float);
+		new_output("B", RHIShaderParameterType::Float);
+		new_output("A", RHIShaderParameterType::Float);
 	}
 
 	Expression SampleTexture::compile_texture(Compiler& compiler)
@@ -226,7 +227,7 @@ namespace Engine::VisualMaterialGraph
 		if (in_uv->linked_pin())
 			return compiler.compile(in_uv);
 
-		return Expression(ShaderParameterType::Float2, "input.uv");
+		return Expression(RHIShaderParameterType::Float2, "input.uv");
 	}
 
 	Expression SampleTexture::compile_sampler(Compiler& compiler)
@@ -250,7 +251,7 @@ namespace Engine::VisualMaterialGraph
 
 			for (InputPin* input : node->inputs())
 			{
-				if (input->type() == ShaderParameterType::Texture2D)
+				if (input->type() == RHIShaderParameterType::Texture2D)
 				{
 					pin = input;
 					break;
@@ -286,7 +287,7 @@ namespace Engine::VisualMaterialGraph
 			const char* swizzle[] = {".r", ".g", ".b", ".a"};
 
 			result.value += swizzle[pin_index - 1];
-			result.type = ShaderParameterType::Float;
+			result.type = RHIShaderParameterType::Float;
 			return result;
 		}
 
@@ -306,7 +307,7 @@ namespace Engine::VisualMaterialGraph
 			return Expression();
 
 		String expr = Strings::format("{}.Sample({}, {})", texture.value, sampler.value, uv.value);
-		return compiler.make_variable(Expression(ShaderParameterType::Float4, expr));
+		return compiler.make_variable(Expression(RHIShaderParameterType::Float4, expr));
 	}
 
 	SampleTexture& SampleTexture::render()

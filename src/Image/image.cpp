@@ -5,6 +5,7 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Image/image.hpp>
+#include <RHI/enums.hpp>
 #include <stb_dxt.h>
 #include <stb_image.h>
 #include <stb_image_resize.h>
@@ -417,32 +418,32 @@ namespace Engine
 		m_is_compressed = true;
 	}
 
-	ColorFormat Image::format() const
+	RHIColorFormat Image::format() const
 	{
 		if (is_compressed())
 		{
 			if (m_channels == 3)
 			{
-				return ColorFormat::BC1_RGBA;
+				return RHIColorFormat::BC1_RGBA;
 			}
 
 			if (m_channels == 4)
 			{
-				return ColorFormat::BC3_RGBA;
+				return RHIColorFormat::BC3_RGBA;
 			}
 		}
 
 		if (m_channels == 1)
 		{
-			return ColorFormat::R8;
+			return RHIColorFormat::R8;
 		}
 
 		if (m_channels == 4)
 		{
-			return ColorFormat::R8G8B8A8;
+			return RHIColorFormat::R8G8B8A8;
 		}
 
-		return ColorFormat::Undefined;
+		return RHIColorFormat::Undefined;
 	}
 
 	bool Image::serialize(Archive& archive)

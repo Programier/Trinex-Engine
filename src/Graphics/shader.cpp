@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {

@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/object.hpp>
-#include <Core/structures.hpp>
 
 namespace Engine
 {

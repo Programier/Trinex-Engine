@@ -4,14 +4,14 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/render_pools.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 
 
 namespace Engine
 {
 	static constexpr size_t s_line_vtx_per_node = 1024;
 	static constexpr auto s_vtx_buffer_flags =
-	        BufferCreateFlags::VertexBuffer | BufferCreateFlags::TransferDst | BufferCreateFlags::Dynamic;
+	        RHIBufferCreateFlags::VertexBuffer | RHIBufferCreateFlags::TransferDst | RHIBufferCreateFlags::Dynamic;
 
 	BatchedLines::Node::Node() : next(nullptr), vertices(FrameAllocator<Vertex>::allocate(s_line_vtx_per_node)), vtx_count(0) {}
 
@@ -164,8 +164,8 @@ namespace Engine
 	// TRIANGLES
 
 	BatchedTriangles::BatchedTriangles()
-	    : m_position_buffer(BufferCreateFlags::Dynamic, 64, nullptr, true),
-	      m_color_buffer(BufferCreateFlags::Dynamic, 64, nullptr, true)
+	    : m_position_buffer(RHIBufferCreateFlags::Dynamic, 64, nullptr, true),
+	      m_color_buffer(RHIBufferCreateFlags::Dynamic, 64, nullptr, true)
 	{}
 
 	BatchedTriangles& BatchedTriangles::clear()

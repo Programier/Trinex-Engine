@@ -6,7 +6,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
-#include <Graphics/types/rhi_access.hpp>
+#include <RHI/enums.hpp>
 
 namespace Engine
 {
@@ -133,7 +133,7 @@ namespace Engine::RenderGraph
 	public:
 		Pass& add_resource(RHI_Texture* texture, RHIAccess access);
 		Pass& add_resource(RHI_Buffer* buffer, RHIAccess access);
-		
+
 		inline Pass& add_dependency(Pass* dependency)
 		{
 			m_dependencies.push_back(dependency);

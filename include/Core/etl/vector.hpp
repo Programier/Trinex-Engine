@@ -613,7 +613,7 @@ namespace Engine
 		{
 			const size_type diffmax  = std::numeric_limits<difference_type>::max() / sizeof(value_type);
 			const size_type allocmax = std::allocator_traits<AllocatorType>::max_size(allocator());
-			return (std::min)(diffmax, allocmax);
+			return (std::min) (diffmax, allocmax);
 		}
 
 		constexpr inline size_type capacity() const { return m_end - m_start; }
@@ -811,6 +811,9 @@ namespace Engine
 
 	template<typename T>
 	using FrameVector = Vector<T, FrameAllocator<T>>;
+
+	template<typename T>
+	using StackVector = Vector<T, StackAllocator<T>>;
 
 	using Buffer = Vector<unsigned char>;
 

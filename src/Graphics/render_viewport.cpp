@@ -5,7 +5,7 @@
 #include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_object.hpp>
@@ -52,24 +52,6 @@ namespace Engine
 
 	static RenderViewport* m_current_render_viewport = nullptr;
 
-	static FORCE_INLINE ViewPort construct_default_viewport(Size2D size)
-	{
-		ViewPort viewport;
-		viewport.pos       = {0.f, 0.f};
-		viewport.size      = size;
-		viewport.min_depth = 0.f;
-		viewport.max_depth = 1.f;
-		return viewport;
-	}
-
-	static FORCE_INLINE Scissor construct_default_scissor(Size2D size)
-	{
-		Scissor scissor;
-		scissor.pos  = {0.f, 0.f};
-		scissor.size = size;
-		return scissor;
-	}
-
 	ViewportClient& ViewportClient::on_bind_viewport(class RenderViewport* viewport)
 	{
 		return *this;
@@ -88,16 +70,6 @@ namespace Engine
 	ViewportClient& ViewportClient::update(class RenderViewport* viewport, float dt)
 	{
 		return *this;
-	}
-
-	ViewPort ViewportClient::viewport_info(Size2D size) const
-	{
-		return construct_default_viewport(size);
-	}
-
-	Scissor ViewportClient::scissor_info(Size2D size) const
-	{
-		return construct_default_scissor(size);
 	}
 
 	ViewportClient* ViewportClient::create(const StringView& name)
@@ -123,20 +95,6 @@ namespace Engine
 	{
 		auto it = std::remove_if(m_viewports.begin(), m_viewports.end(), [this](RenderViewport* vp) { return vp == this; });
 		m_viewports.erase(it, m_viewports.end());
-	}
-
-	ViewPort RenderViewport::viewport_info(Size2D size) const
-	{
-		if (m_client)
-			return m_client->viewport_info(size);
-		return construct_default_viewport(size);
-	}
-
-	Scissor RenderViewport::scissor_info(Size2D size) const
-	{
-		if (m_client)
-			return m_client->scissor_info(size);
-		return construct_default_scissor(size);
 	}
 
 	ViewportClient* RenderViewport::client() const
@@ -231,8 +189,8 @@ namespace Engine
 		return m_window;
 	}
 
-	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src,
-	                                                            const Rect2D& dst, SamplerFilter filter)
+	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RHI_RenderTargetView* surface, const RHIRect& src,
+	                                                            const RHIRect& dst, RHISamplerFilter filter)
 	{
 		m_viewport->blit_target(surface, src, dst, filter);
 		return *this;
@@ -287,11 +245,11 @@ namespace Engine
 	{
 		if (is_in_render_thread())
 		{
-			m_viewport->on_orientation_changed(orientation);
+			m_viewport->on_resize(size());
 		}
 		else
 		{
-			render_thread()->call([vp = m_viewport, orientation]() { vp->on_orientation_changed(orientation); });
+			render_thread()->call([self = Pointer(this), orientation]() { self->on_orientation_changed(orientation); });
 		}
 		return *this;
 	}

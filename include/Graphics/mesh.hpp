@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/enums.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Engine/aabb.hpp>
@@ -47,7 +46,7 @@ namespace Engine
 			BitangentVertexBuffer* find_bitangent_buffer(Index index);
 
 		public:
-			VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0);
+			VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0);
 			size_t vertex_count() const;
 			size_t indices_count() const;
 			bool serialize(Archive& ar);
@@ -69,7 +68,8 @@ namespace Engine
 		trinex_declare_class(SkeletalMesh, Object);
 
 	public:
-		struct ENGINE_EXPORT RenderData{};
+		struct ENGINE_EXPORT RenderData {
+		};
 
 		struct ENGINE_EXPORT LOD {
 			RenderData render_data;

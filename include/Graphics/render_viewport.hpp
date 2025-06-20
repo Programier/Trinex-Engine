@@ -2,7 +2,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
-#include <Core/structures.hpp>
+#include <RHI/enums.hpp>
 
 namespace Engine
 {
@@ -21,10 +21,6 @@ namespace Engine
 		virtual ViewportClient& on_unbind_viewport(class RenderViewport* viewport);
 		virtual ViewportClient& render(class RenderViewport* viewport);
 		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
-
-		virtual ViewPort viewport_info(Size2D size) const;
-		virtual Scissor scissor_info(Size2D size) const;
-
 		static ViewportClient* create(const StringView& name);
 	};
 
@@ -41,23 +37,17 @@ namespace Engine
 		RenderViewport();
 		~RenderViewport();
 
-		virtual RenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
-		                                        SamplerFilter filter = SamplerFilter::Trilinear) = 0;
-		virtual RenderViewport& rhi_clear_color(const Color& color)                              = 0;
-		virtual RenderViewport& rhi_bind()                                                       = 0;
-		virtual RenderViewport& rhi_present()                                                    = 0;
+		virtual RenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const struct RHIRect& src,
+		                                        const struct RHIRect& dst,
+		                                        RHISamplerFilter filter = RHISamplerFilter::Trilinear) = 0;
+		virtual RenderViewport& rhi_clear_color(const Color& color)                                    = 0;
+		virtual RenderViewport& rhi_bind()                                                             = 0;
+		virtual RenderViewport& rhi_present()                                                          = 0;
 		inline Size2D size() const { return m_size; }
 
 		RenderViewport& update(float dt);
 		ViewportClient* client() const;
 		RenderViewport& client(ViewportClient* client);
-
-		ViewPort viewport_info(Size2D size) const;
-		Scissor scissor_info(Size2D size) const;
-
-		FORCE_INLINE ViewPort viewport_info() const { return viewport_info(size()); }
-
-		FORCE_INLINE Scissor scissor_info() const { return scissor_info(size()); }
 
 		static RenderViewport* current();
 		static const Vector<RenderViewport*>& viewports();
@@ -73,8 +63,8 @@ namespace Engine
 		WindowRenderViewport(Window* window, bool vsync);
 		~WindowRenderViewport();
 		Window* window() const;
-		WindowRenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const Rect2D& src, const Rect2D& dst,
-		                                      SamplerFilter filter = SamplerFilter::Trilinear) override;
+		WindowRenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const RHIRect& src, const RHIRect& dst,
+		                                      RHISamplerFilter filter = RHISamplerFilter::Trilinear) override;
 		WindowRenderViewport& rhi_clear_color(const Color& color) override;
 		WindowRenderViewport& rhi_bind() override;
 		WindowRenderViewport& rhi_present() override;

@@ -3,7 +3,7 @@
 #include <Core/etl/set.hpp>
 #include <Core/memory.hpp>
 #include <Engine/Render/render_graph.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 #include <cstring>
 
 namespace Engine::RenderGraph

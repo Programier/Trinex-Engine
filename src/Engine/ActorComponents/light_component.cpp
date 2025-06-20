@@ -9,7 +9,7 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/render_pools.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -117,7 +117,7 @@ namespace Engine
 
 		if (enabled && m_shadow_map == nullptr)
 		{
-			m_shadow_map = RenderSurfacePool::global_instance()->request_surface(SurfaceFormat::ShadowDepth, {1024, 1024});
+			m_shadow_map = RenderSurfacePool::global_instance()->request_surface(RHISurfaceFormat::ShadowDepth, {1024, 1024});
 		}
 		else if (!enabled && m_shadow_map != nullptr)
 		{

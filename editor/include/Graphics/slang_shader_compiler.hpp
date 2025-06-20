@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/structures.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <slang-com-ptr.h>
 #include <slang.h>
@@ -54,11 +53,6 @@ namespace Engine
 			slang::TargetDesc target_desc;
 
 			FORCE_INLINE void add_definition(const char* key, const char* value) { definitions.push_back({key, value}); }
-			FORCE_INLINE void add_definition(const ShaderDefinition& definition)
-			{
-				add_definition(definition.key.c_str(), definition.value.c_str());
-			}
-
 			FORCE_INLINE void add_search_path(const char* path) { search_paths.push_back(path); }
 			FORCE_INLINE void add_option(slang::CompilerOptionName name, bool v1, bool v2 = false)
 			{

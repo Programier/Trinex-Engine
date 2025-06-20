@@ -7,8 +7,8 @@
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/rhi.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>

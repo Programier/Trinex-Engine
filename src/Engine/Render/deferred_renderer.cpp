@@ -6,8 +6,8 @@
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/scene.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -81,17 +81,20 @@ namespace Engine
 
 	void DeferredRenderer::deferred_lighting_pass()
 	{
-		RHI_Sampler* sampler = Sampler(SamplerFilter::Point).rhi_sampler();
+		RHI_Sampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
 
 		auto pipeline = Pipelines::AmbientLight::instance();
 		rhi->bind_render_target1(scene_color_target()->as_rtv());
 
 		pipeline->rhi_bind();
 
-		rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->location);
+		rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 		rhi->update_scalar_parameter(&scene()->environment.ambient_color, pipeline->ambient_color);
-		rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->location, sampler);
-		rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->location, sampler);
+		rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
+		rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
+
+		rhi->bind_sampler(sampler, pipeline->base_color->binding);
+		rhi->bind_sampler(sampler, pipeline->msra->binding);
 
 		rhi->draw(6, 0);
 
@@ -109,12 +112,19 @@ namespace Engine
 
 			pipeline->rhi_bind();
 
-			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->location, sampler);
-			rhi->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->location, sampler);
-			rhi->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->location, sampler);
-			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->location, sampler);
-			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->location, sampler);
-			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->location);
+			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
+			rhi->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
+			rhi->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->binding);
+			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);
+			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->binding);
+
+			rhi->bind_sampler(sampler, pipeline->base_color_texture->binding);
+			rhi->bind_sampler(sampler, pipeline->normal_texture->binding);
+			rhi->bind_sampler(sampler, pipeline->emissive_texture->binding);
+			rhi->bind_sampler(sampler, pipeline->msra_texture->binding);
+			rhi->bind_sampler(sampler, pipeline->depth_texture->binding);
+
+			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 			rhi->update_scalar_parameter(&parameters, pipeline->parameters);
 			rhi->draw(6, 0);
 		}
@@ -125,7 +135,7 @@ namespace Engine
 		auto src = base_color_target()->as_rtv();
 		auto dst = scene_color_target()->as_rtv();
 
-		Rect2D rect({}, scene_view().view_size());
-		dst->blit(src, rect, rect, SamplerFilter::Point);
+		RHIRect rect(scene_view().view_size());
+		dst->blit(src, rect, rect, RHISamplerFilter::Point);
 	}
 }// namespace Engine

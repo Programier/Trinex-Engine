@@ -9,9 +9,9 @@
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>

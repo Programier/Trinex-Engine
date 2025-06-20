@@ -2,8 +2,8 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene_view.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <RHI/rhi.hpp>
 
 
 namespace Engine
@@ -18,7 +18,7 @@ namespace Engine
 			projview           = scene_view->projview_matrix();
 			inv_projview       = scene_view->inv_projview_matrix();
 
-			const ViewPort& vp = scene_view->viewport();
+			const auto& vp     = scene_view->viewport();
 			viewport.pos       = Vector2f(vp.pos);
 			viewport.size      = Vector2f(vp.size);
 			viewport.min_depth = vp.min_depth;

@@ -24,7 +24,7 @@ namespace Engine
 			size_t surfaces(size_t lod = 0) const override;
 			const MeshSurface* surface(size_t index, size_t lod = 0) const override;
 			MaterialInterface* material(size_t index, size_t lod = 0) const override;
-			VertexBufferBase* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0, size_t lod = 0) override;
+			VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0, size_t lod = 0) override;
 			IndexBuffer* find_index_buffer(size_t lod = 0) override;
 
 			friend StaticMeshComponent;

@@ -10,6 +10,7 @@
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
+#include <RHI/rhi.hpp>
 #include <Widgets/mesh_preview.hpp>
 
 namespace Engine
@@ -103,7 +104,7 @@ namespace Engine
 
 		auto pool          = RenderSurfacePool::global_instance();
 		Vector2u view_size = {find_nearest_size(size.x), find_nearest_size(size.y)};
-		auto surface       = pool->request_transient_surface(SurfaceFormat::RGBA8, view_size);
+		auto surface       = pool->request_transient_surface(RHISurfaceFormat::RGBA8, view_size);
 
 		if (surface)
 		{
@@ -119,10 +120,8 @@ namespace Engine
 				auto dst = surface->rhi_rtv();
 				auto src = renderer->scene_color_target()->as_rtv();
 
-				Rect2D rect;
-				rect.pos  = {0.f, 0.f};
-				rect.size = view_size;
-				dst->blit(src, rect, rect, SamplerFilter::Bilinear);
+				RHIRect rect(view_size);
+				dst->blit(src, rect, rect, RHISamplerFilter::Bilinear);
 			});
 		}
 

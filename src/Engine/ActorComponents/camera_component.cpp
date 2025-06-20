@@ -3,7 +3,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>
 #include <glm/ext.hpp>
@@ -14,14 +14,16 @@ namespace Engine
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			return glm::perspectiveZO(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
+			Matrix4f projection = glm::perspective(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
+			projection[1][1] *= -1;
+			return projection;
 		}
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{
 			return glm::ortho(-ortho_width / 2.0f, // Left
 			                  ortho_width / 2.0f,  // Right
-			                  -ortho_height / 2.0f,// Bottom
 			                  ortho_height / 2.0f, // Top
+			                  -ortho_height / 2.0f,// Bottom
 			                  near_clip_plane,     // Near clipping plane
 			                  far_clip_plane       // Far clipping plane
 			);

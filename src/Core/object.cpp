@@ -14,7 +14,6 @@
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>

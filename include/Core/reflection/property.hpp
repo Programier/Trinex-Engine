@@ -496,6 +496,7 @@ private:
 		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
+		using Property::Property;
 		virtual Refl::Enum* enum_instance() const = 0;
 		bool serialize(void* object, Archive& ar) override;
 	};

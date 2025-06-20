@@ -14,10 +14,10 @@
 #include <Graphics/material.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -63,10 +63,10 @@ namespace Engine
 	trinex_implement_engine_class(Material, Refl::Class::IsAsset)
 	{
 		auto* self = static_class_instance();
-		trinex_refl_prop(self, This, compile_definitions);
-		trinex_refl_prop(self, This, m_graphics_options, Refl::Property::IsTransient)->is_composite(true);
-
-		trinex_refl_prop(self, This, domain);
+		trinex_refl_prop(self, This, domain, Refl::Property::IsTransient);
+		trinex_refl_prop(self, This, depth_test, Refl::Property::IsTransient);
+		trinex_refl_prop(self, This, stencil_test, Refl::Property::IsTransient);
+		trinex_refl_prop(self, This, color_blending, Refl::Property::IsTransient);
 	}
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
@@ -193,11 +193,7 @@ namespace Engine
 		return true;
 	}
 
-	Material::Material() : domain(MaterialDomain::Surface)
-	{
-		m_graphics_options = new_instance<GraphicsPipelineDescription>();
-		m_graphics_options->add_reference();
-	}
+	Material::Material() : domain(MaterialDomain::Surface) {}
 
 	GraphicsPipeline* Material::pipeline(RenderPass* pass) const
 	{
@@ -209,9 +205,9 @@ namespace Engine
 
 	bool Material::register_pipeline_parameters(GraphicsPipeline* pipeline)
 	{
-		for (auto& [name, info] : pipeline->parameters)
+		for (const RHIShaderParameterInfo& info : pipeline->parameters())
 		{
-			if (Parameter* param = find_parameter(name))
+			if (Parameter* param = find_parameter(info.name))
 			{
 				if (param->type() == info.type)
 				{
@@ -224,7 +220,7 @@ namespace Engine
 				}
 				else
 				{
-					error_log("Material", "Ambiguous parameter type with name '%s'", name.c_str());
+					error_log("Material", "Ambiguous parameter type with name '%s'", info.name.c_str());
 					return false;
 				}
 			}
@@ -237,13 +233,13 @@ namespace Engine
 				return false;
 			}
 
-			if (auto parameter = Object::instance_cast<Parameter>(class_instance->create_object(name, this)))
+			if (auto parameter = Object::instance_cast<Parameter>(class_instance->create_object(info.name, this)))
 			{
 				parameter->m_pipeline_refs = 1;
 			}
 			else
 			{
-				error_log("Material", "Failed to create material parameter '%s'", name.c_str());
+				error_log("Material", "Failed to create material parameter '%s'", info.name.c_str());
 				return false;
 			}
 		}
@@ -300,9 +296,9 @@ namespace Engine
 		m_pipelines.erase(it);
 		pipeline->owner(nullptr);
 
-		for (auto& [name, info] : pipeline->parameters)
+		for (const RHIShaderParameterInfo& info : pipeline->parameters())
 		{
-			if (Parameter* param = find_parameter(name))
+			if (Parameter* param = find_parameter(info.name))
 			{
 				--param->m_pipeline_refs;
 			}
@@ -318,9 +314,9 @@ namespace Engine
 		{
 			pipeline->owner(nullptr);
 
-			for (auto& [name, info] : pipeline->parameters)
+			for (const RHIShaderParameterInfo& info : pipeline->parameters())
 			{
-				if (Parameter* param = find_parameter(name))
+				if (Parameter* param = find_parameter(info.name))
 				{
 					trinex_check(param->m_pipeline_refs > 0, "Parameter is referenced by pipeline, but reference count == 0");
 					--param->m_pipeline_refs;
@@ -402,9 +398,9 @@ namespace Engine
 
 		pipeline_object->rhi_bind();
 
-		for (auto& [name, info] : pipeline_object->parameters)
+		for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
 		{
-			Parameter* parameter = head->find_parameter(name);
+			Parameter* parameter = head->find_parameter(info.name);
 
 			if (parameter)
 				parameter->apply(ctx, &info);
@@ -422,17 +418,7 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		archive.serialize(compile_definitions);
-
-		bool with_graphics_options = m_graphics_options != nullptr;
-		archive.serialize(with_graphics_options);
-
-		if (with_graphics_options)
-		{
-			m_graphics_options->serialize(archive);
-		}
-
-		// Serialize pipelines
+		archive.serialize(domain, depth_test, stencil_test, color_blending);
 
 		size_t pipelines_count = m_pipelines.size();
 		archive.serialize(pipelines_count);
@@ -475,14 +461,9 @@ namespace Engine
 
 	Material& Material::setup_pipeline(GraphicsPipeline* pipeline)
 	{
-		if (m_graphics_options)
-		{
-			pipeline->depth_test     = m_graphics_options->depth_test;
-			pipeline->stencil_test   = m_graphics_options->stencil_test;
-			pipeline->input_assembly = m_graphics_options->input_assembly;
-			pipeline->rasterizer     = m_graphics_options->rasterizer;
-			pipeline->color_blending = m_graphics_options->color_blending;
-		}
+		pipeline->depth_test     = depth_test;
+		pipeline->stencil_test   = stencil_test;
+		pipeline->color_blending = color_blending;
 		return *this;
 	}
 
@@ -502,8 +483,6 @@ namespace Engine
 		{
 			pipeline.second->owner(nullptr);
 		}
-
-		m_graphics_options->remove_reference();
 	}
 
 	class Material* MaterialInstance::material()

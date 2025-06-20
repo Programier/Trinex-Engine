@@ -1,14 +1,17 @@
+#include <Core/archive.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/gpu_buffers.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
 	VertexBufferBase::VertexBufferBase() = default;
 
-	VertexBufferBase::VertexBufferBase(BufferCreateFlags type, uint16_t stride, size_t size, const void* data, bool keep_cpu_data)
+	VertexBufferBase::VertexBufferBase(RHIBufferCreateFlags type, uint16_t stride, size_t size, const void* data,
+	                                   bool keep_cpu_data)
 	{
 		init(type, stride, size, data, keep_cpu_data);
 	}
@@ -55,7 +58,7 @@ namespace Engine
 		return *this;
 	}
 
-	VertexBufferBase& VertexBufferBase::init(BufferCreateFlags type, size_t stride, size_t count, const void* data,
+	VertexBufferBase& VertexBufferBase::init(RHIBufferCreateFlags type, size_t stride, size_t count, const void* data,
 	                                         bool keep_cpu_data)
 	{
 		allocate_data(type, stride, count);
@@ -69,7 +72,7 @@ namespace Engine
 		if (m_vtx_count > 0 && m_buffer == nullptr)
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
-				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_data, m_flags | BufferCreateFlags::VertexBuffer);
+				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_data, m_flags | RHIBufferCreateFlags::VertexBuffer);
 				rhi->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{
@@ -90,7 +93,7 @@ namespace Engine
 		return *this;
 	}
 
-	byte* VertexBufferBase::allocate_data(BufferCreateFlags type, uint16_t stride, size_t count)
+	byte* VertexBufferBase::allocate_data(RHIBufferCreateFlags type, uint16_t stride, size_t count)
 	{
 		release();
 		m_flags     = type;
@@ -157,7 +160,7 @@ namespace Engine
 		bool has_data = m_data != nullptr;
 		byte flags;
 		ar.serialize(flags, m_stride, m_vtx_count, has_data);
-		m_flags = BufferCreateFlags::Static;
+		m_flags = RHIBufferCreateFlags::Static;
 
 		if (has_data)
 		{
@@ -173,32 +176,32 @@ namespace Engine
 
 	IndexBuffer::IndexBuffer() = default;
 
-	IndexBuffer::IndexBuffer(BufferCreateFlags type, size_t size, const uint16_t* data, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(RHIBufferCreateFlags type, size_t size, const uint16_t* data, bool keep_cpu_data)
 	{
 		init(type, size, data, keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(BufferCreateFlags type, size_t size, const uint32_t* data, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(RHIBufferCreateFlags type, size_t size, const uint32_t* data, bool keep_cpu_data)
 	{
 		init(type, size, data, keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const std::initializer_list<uint16_t>& list, BufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const std::initializer_list<uint16_t>& list, RHIBufferCreateFlags type, bool keep_cpu_data)
 	{
 		init(type, list.size(), list.begin(), keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const std::initializer_list<uint32_t>& list, BufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const std::initializer_list<uint32_t>& list, RHIBufferCreateFlags type, bool keep_cpu_data)
 	{
 		init(type, list.size(), list.begin(), keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const uint16_t* start, const uint16_t* end, BufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const uint16_t* start, const uint16_t* end, RHIBufferCreateFlags type, bool keep_cpu_data)
 	{
 		init(type, end - start, start, keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const uint32_t* start, const uint32_t* end, BufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const uint32_t* start, const uint32_t* end, RHIBufferCreateFlags type, bool keep_cpu_data)
 	{
 		init(type, end - start, start, keep_cpu_data);
 	}
@@ -263,7 +266,7 @@ namespace Engine
 		return *this;
 	}
 
-	IndexBuffer& IndexBuffer::init(BufferCreateFlags type, size_t size, const uint16_t* data, bool keep_cpu_data)
+	IndexBuffer& IndexBuffer::init(RHIBufferCreateFlags type, size_t size, const uint16_t* data, bool keep_cpu_data)
 	{
 		allocate_data(type, RHIIndexFormat::UInt16, sizeof(uint16_t) * size);
 		if (data)
@@ -271,7 +274,7 @@ namespace Engine
 		return init(keep_cpu_data);
 	}
 
-	IndexBuffer& IndexBuffer::init(BufferCreateFlags type, size_t size, const uint32_t* data, bool keep_cpu_data)
+	IndexBuffer& IndexBuffer::init(RHIBufferCreateFlags type, size_t size, const uint32_t* data, bool keep_cpu_data)
 	{
 		allocate_data(type, RHIIndexFormat::UInt32, sizeof(uint32_t) * size);
 		if (data)
@@ -284,7 +287,7 @@ namespace Engine
 		if (m_idx_count > 0 && m_buffer == nullptr)
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
-				m_buffer = rhi->create_buffer(size(), m_data, m_flags | BufferCreateFlags::IndexBuffer);
+				m_buffer = rhi->create_buffer(size(), m_data, m_flags | RHIBufferCreateFlags::IndexBuffer);
 				rhi->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
 
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
@@ -307,7 +310,7 @@ namespace Engine
 		return *this;
 	}
 
-	byte* IndexBuffer::allocate_data(BufferCreateFlags type, RHIIndexFormat format, size_t count)
+	byte* IndexBuffer::allocate_data(RHIBufferCreateFlags type, RHIIndexFormat format, size_t count)
 	{
 		release();
 		m_flags     = type;
@@ -345,7 +348,7 @@ namespace Engine
 		bool has_data = m_data != nullptr;
 		byte flags;
 		ar.serialize(m_idx_count, flags, m_format, has_data);
-		m_flags = BufferCreateFlags::Static;
+		m_flags = RHIBufferCreateFlags::Static;
 
 		if (has_data)
 		{

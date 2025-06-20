@@ -4,24 +4,24 @@
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine::Pipelines
 {
-	static FORCE_INLINE Vector4i rect_to_vec4(const Rect2D& rect)
+	static FORCE_INLINE Vector4i rect_to_vec4(const RHIRect& rect)
 	{
 		return {rect.pos.x, rect.pos.y, rect.size.x, rect.size.y};
 	}
 
 	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/compute/gaussian_blur.slang", ShaderType::Compute)
 	{
-		m_src         = find_param_info("input");
-		m_dst         = find_param_info("output");
-		m_sigma       = find_param_info("sigma");
-		m_kernel_size = find_param_info("kernel_size");
+		m_src         = find_parameter("input");
+		m_dst         = find_parameter("output");
+		m_sigma       = find_parameter("sigma");
+		m_kernel_size = find_parameter("kernel_size");
 	}
 
 	void GaussianBlur::blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel,
@@ -31,12 +31,13 @@ namespace Engine::Pipelines
 		sigma  = glm::abs(sigma);
 
 		if (sampler == nullptr)
-			sampler = Sampler(SamplerFilter::Point).rhi_sampler();
+			sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
 
 		rhi_bind();
 
-		rhi->bind_srv(src, m_src->location, sampler);
-		rhi->bind_uav(dst, m_dst->location);
+		rhi->bind_srv(src, m_src->binding);
+		rhi->bind_sampler(sampler, m_src->binding);
+		rhi->bind_uav(dst, m_dst->binding);
 
 		rhi->update_scalar_parameter(&kernel, m_kernel_size);
 		rhi->update_scalar_parameter(&sigma, m_sigma);
@@ -48,12 +49,12 @@ namespace Engine::Pipelines
 
 	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/compute/blit.slang", ShaderType::Compute)
 	{
-		m_src  = find_param_info("src");
-		m_dst  = find_param_info("dst");
-		m_args = find_param_info("args");
+		m_src  = find_parameter("src");
+		m_dst  = find_parameter("dst");
+		m_args = find_parameter("args");
 	}
 
-	void Blit2D::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect,
+	void Blit2D::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
 	                  uint_t level, Swizzle swizzle)
 	{
 		struct ShaderArgs {
@@ -71,8 +72,8 @@ namespace Engine::Pipelines
 
 		rhi_bind();
 
-		rhi->bind_srv(src, m_src->location);
-		rhi->bind_uav(dst, m_dst->location);
+		rhi->bind_srv(src, m_src->binding);
+		rhi->bind_uav(dst, m_dst->binding);
 
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
 
@@ -84,46 +85,43 @@ namespace Engine::Pipelines
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang",
 	                          ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
 	{
-		input_assembly.primitive_topology = PrimitiveTopology::LineList;
-		color_blending.enable             = false;
-
-		m_scene_view = find_param_info("scene_view");
+		color_blending.enable = false;
+		m_scene_view          = find_parameter("scene_view");
 	}
 
 	void BatchedLines::apply(Renderer* renderer)
 	{
 		rhi_bind();
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->location);
+		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 	}
 
 	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
 	                          ShaderType::Vertex | ShaderType::Fragment)
 	{
-		input_assembly.primitive_topology = PrimitiveTopology::TriangleList;
-		color_blending.enable             = true;
+		color_blending.enable = true;
 	}
 
 	void DeferredLightPipeline::initialize()
 	{
-		scene_view         = find_param_info("scene_view");
-		base_color_texture = find_param_info("base_color_texture");
-		normal_texture     = find_param_info("normal_texture");
-		emissive_texture   = find_param_info("emissive_texture");
-		msra_texture       = find_param_info("msra_texture");
-		depth_texture      = find_param_info("depth_texture");
-		parameters         = find_param_info("parameters");
+		scene_view         = find_parameter("scene_view");
+		base_color_texture = find_parameter("base_color_texture");
+		normal_texture     = find_parameter("normal_texture");
+		emissive_texture   = find_parameter("emissive_texture");
+		msra_texture       = find_parameter("msra_texture");
+		depth_texture      = find_parameter("depth_texture");
+		parameters         = find_parameter("parameters");
 
 		depth_test.enable       = false;
 		depth_test.write_enable = false;
 		color_blending.enable   = true;
 
-		color_blending.src_color_func = BlendFunc::One;
-		color_blending.dst_color_func = BlendFunc::One;
-		color_blending.color_op       = BlendOp::Max;
+		color_blending.src_color_func = RHIBlendFunc::One;
+		color_blending.dst_color_func = RHIBlendFunc::One;
+		color_blending.color_op       = RHIBlendOp::Max;
 
-		color_blending.src_alpha_func = BlendFunc::One;
-		color_blending.dst_alpha_func = BlendFunc::One;
-		color_blending.alpha_op       = BlendOp::Max;
+		color_blending.src_alpha_func = RHIBlendFunc::One;
+		color_blending.dst_alpha_func = RHIBlendFunc::One;
+		color_blending.alpha_op       = RHIBlendOp::Max;
 	}
 
 	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
@@ -209,9 +207,9 @@ namespace Engine::Pipelines
 	{
 		//setup_lighting_pipeline_state(this);
 
-		scene_view    = find_param_info("scene_view");
-		base_color    = find_param_info("base_color");
-		msra          = find_param_info("msra");
-		ambient_color = find_param_info("ambient_color");
+		scene_view    = find_parameter("scene_view");
+		base_color    = find_parameter("base_color");
+		msra          = find_parameter("msra");
+		ambient_color = find_parameter("ambient_color");
 	}
 }// namespace Engine::Pipelines

@@ -10,9 +10,9 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <RHI/rhi.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -22,15 +22,12 @@ namespace Engine
 	static inline void copy_texture_to_surface(RenderSurface* dst, RHI_ShaderResourceView* srv, float power, uint_t level,
 	                                           Swizzle swizzle)
 	{
-		Rect2D rect;
-		rect.pos  = {0, 0};
-		rect.size = dst->size();
-
+		RHIRect rect(dst->size());
 		auto pipeline = Pipelines::Blit2D::instance();
 		pipeline->blit(srv, dst->rhi_uav(), rect, rect, level, swizzle);
 	}
 
-	static inline Swizzle modify_swizzle(Swizzle swizzle, ColorFormat format)
+	static inline Swizzle modify_swizzle(Swizzle swizzle, RHIColorFormat format)
 	{
 		if (format.is_depth())
 		{
@@ -87,7 +84,7 @@ namespace Engine
 	TextureEditorClient::TextureEditorClient()
 	{
 		m_surface = Object::new_instance<RenderSurface>();
-		m_surface->init(SurfaceFormat::RGBA8, {1, 1});
+		m_surface->init(RHISurfaceFormat::RGBA8, {1, 1});
 
 		call_in_render_thread([self = Pointer(this)]() { self->m_surface->rhi_rtv()->clear(Color(0, 0, 0, 1)); });
 
@@ -199,7 +196,7 @@ namespace Engine
 
 		if (size != dst->size())
 		{
-			dst->init(SurfaceFormat::RGBA8, size);
+			dst->init(RHISurfaceFormat::RGBA8, size);
 		}
 		return *this;
 	}
@@ -243,7 +240,7 @@ namespace Engine
 
 		if (size != dst->size())
 		{
-			dst->init(SurfaceFormat::RGBA8, size);
+			dst->init(RHISurfaceFormat::RGBA8, size);
 		}
 		return *this;
 	}

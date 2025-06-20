@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstddef>
 
+#include <Core/glm_config.hpp>
+
 #define GLM_VERSION_MAJOR 0
 #define GLM_VERSION_MINOR 9
 #define GLM_VERSION_PATCH 9

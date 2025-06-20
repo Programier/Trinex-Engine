@@ -1,17 +1,17 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/render_resource.hpp>
-#include <Core/structures.hpp>
+#include <Graphics/render_resource.hpp>
 #include <Graphics/shader_parameters.hpp>
 
 namespace Engine
 {
+	struct RHI_Shader;
 	class ENGINE_EXPORT Shader : public RenderResource
 	{
 		trinex_declare_class(Shader, RenderResource);
 
 	protected:
-		RenderResourcePtr<RHI_Shader> m_shader;
+		RHIResourcePtr<RHI_Shader> m_shader;
 
 	public:
 		Buffer source_code;
@@ -29,7 +29,7 @@ namespace Engine
 		trinex_declare_class(VertexShader, Shader);
 
 	public:
-		Vector<VertexAttribute> attributes;
+		Vector<struct RHIVertexAttribute> attributes;
 
 	public:
 		VertexShader& init_render_resources() override;

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES C CXX ASM)
 
 option(TRINEX_WITH_TRACY_PROFILER "Build Trinex Engine with supper Tracy Profiler" OFF)
-option(TRINEX_WITH_VULKAN "Build Trinex Engine with support Vulkan API" OFF)
+option(TRINEX_WITH_VULKAN "Build Trinex Engine with support Vulkan API" ON)
 
 if(WIN32)
     option(TRINEX_WITH_D3D12 "Build TrinexEngine with support DirectX 12 API" ON)
@@ -43,7 +43,7 @@ set_property(GLOBAL PROPERTY trinex_public_headers_dir ${TRINEX_ENGINE_ROOT}/inc
 set_property(GLOBAL PROPERTY trinex_link_directories)
 set_property(GLOBAL PROPERTY trinex_sources)
 set_property(GLOBAL PROPERTY trinex_dependencies)
-set_property(GLOBAL PROPERTY trinex_private_definitions -DENABLE_ENGINE_EXPORTS -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+set_property(GLOBAL PROPERTY trinex_private_definitions -DENABLE_ENGINE_EXPORTS)
 set_property(GLOBAL PROPERTY trinex_public_definitions)
 
 function(add_trinex_sources sources)
@@ -123,6 +123,7 @@ set(TRINEX_SRC_SYSTEMS_DIR "${TRINEX_ENGINE_SRC}/Systems/")
 set(TRINEX_SRC_ENGINE_DIR "${TRINEX_ENGINE_SRC}/Engine/")
 set(TRINEX_SRC_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platforms/")
 set(TRINEX_SRC_RHI_DIR "${TRINEX_ENGINE_SRC}/RHI/")
+set(TRINEX_SRC_BACKEND_RHI_DIR "${TRINEX_ENGINE_SRC}/BackendRHI/")
 set(TRINEX_SRC_ENTRY_POINTS_DIR "${TRINEX_ENGINE_SRC}/EntryPoints/")
 
 
@@ -139,6 +140,7 @@ file(GLOB_RECURSE TRINEX_SRC_SCRIPT_ENGINE_SRC "${TRINEX_SRC_SCRIPT_ENGINE_DIR}*
 file(GLOB_RECURSE TRINEX_SRC_SYSTEMS_SRC "${TRINEX_SRC_SYSTEMS_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_ENGINE_SRC "${TRINEX_SRC_ENGINE_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_ENTRY_POINTS_SRC "${TRINEX_SRC_ENTRY_POINTS_DIR}*.cpp")
+file(GLOB_RECURSE TRINEX_SRC_RHI_SRC "${TRINEX_SRC_RHI_DIR}*.cpp")
 
 # Write all source files to one variable
 add_trinex_sources( ${TRINEX_SRC_WINDOW_SRC}
@@ -152,11 +154,12 @@ add_trinex_sources( ${TRINEX_SRC_WINDOW_SRC}
                     ${TRINEX_SRC_SYSTEMS_SRC}
                     ${TRINEX_SRC_ENGINE_SRC}
                     ${TRINEX_SRC_PLATFORM_SRC}
-                    ${TRINEX_SRC_ENTRY_POINTS_SRC})
+                    ${TRINEX_SRC_ENTRY_POINTS_SRC}
+                    ${TRINEX_SRC_RHI_SRC})
 
 # Collect platform source files
 add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
-add_subdirectory(${TRINEX_SRC_RHI_DIR})
+add_subdirectory(${TRINEX_SRC_BACKEND_RHI_DIR})
 
 # Collect sources of editor, if engine builds to executable file
 if (TRINEX_WITH_EDITOR AND TRINEX_AS_EXECUTABLE)

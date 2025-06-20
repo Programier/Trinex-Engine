@@ -13,7 +13,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine::EditorRenderer
 {
@@ -38,7 +38,7 @@ namespace Engine::EditorRenderer
 	{
 		auto view_size = renderer->scene_view().view_size();
 		auto pool      = RHISurfacePool::global_instance();
-		auto depth     = pool->request_surface(SurfaceFormat::Depth, view_size);
+		auto depth     = pool->request_surface(RHISurfaceFormat::Depth, view_size);
 
 		depth->as_dsv()->clear(1.f, 0);
 		rhi->bind_depth_stencil_target(depth->as_dsv());

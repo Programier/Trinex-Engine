@@ -26,16 +26,16 @@ namespace Engine::VisualMaterialGraph
 
 		s_node_render = r.method("void render()", trinex_scoped_void_method(This, render));
 
-		InputPin* (This::*method1)(const String&, ShaderParameterType)                       = &This::new_input;
-		OutputPin* (This::*method2)(const String&, ShaderParameterType)                      = &This::new_output;
-		InputPin* (This::*method3)(const String&, ShaderParameterType, ShaderParameterType)  = &This::new_input;
-		OutputPin* (This::*method4)(const String&, ShaderParameterType, ShaderParameterType) = &This::new_output;
+		InputPin* (This::*method1)(const String&, RHIShaderParameterType)                          = &This::new_input;
+		OutputPin* (This::*method2)(const String&, RHIShaderParameterType)                         = &This::new_output;
+		InputPin* (This::*method3)(const String&, RHIShaderParameterType, RHIShaderParameterType)  = &This::new_input;
+		OutputPin* (This::*method4)(const String&, RHIShaderParameterType, RHIShaderParameterType) = &This::new_output;
 
 		// clang-format off
-		r.method("InputPin@ new_input(const string& name, ShaderParameterType type) final", method1);
-		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type) final", method2);
-		r.method("InputPin@ new_input(const string& name, ShaderParameterType type, ShaderParameterType default_type) final",method3);
-		r.method("OutputPin@ new_output(const string& name, ShaderParameterType type, ShaderParameterType default_type) final", method4);
+		r.method("InputPin@ new_input(const string& name, RHIShaderParameterType type) final", method1);
+		r.method("OutputPin@ new_output(const string& name, RHIShaderParameterType type) final", method2);
+		r.method("InputPin@ new_input(const string& name, RHIShaderParameterType type, RHIShaderParameterType default_type) final",method3);
+		r.method("OutputPin@ new_output(const string& name, RHIShaderParameterType type, RHIShaderParameterType default_type) final", method4);
 		r.method("const Vector<InputPin@>& inputs() const final", &This::inputs);
 		r.method("const Vector<OutputPin@>& outputs() const final", &This::outputs);
 		// clang-format on
@@ -48,7 +48,7 @@ namespace Engine::VisualMaterialGraph
 
 	template<typename T>
 	struct DataTypeFormatter {
-		static String format(const T& value, ShaderParameterType type, uint_t depth = 0)
+		static String format(const T& value, RHIShaderParameterType type, uint_t depth = 0)
 		{
 			if (depth == 0)
 				return Strings::format("{}({})", Expression::static_typename_of(type), value);
@@ -58,7 +58,7 @@ namespace Engine::VisualMaterialGraph
 
 	template<glm::length_t L, typename T, glm::qualifier Q>
 	struct DataTypeFormatter<glm::vec<L, T, Q>> {
-		static String format(const glm::vec<L, T, Q>& value, ShaderParameterType type, uint_t depth = 0)
+		static String format(const glm::vec<L, T, Q>& value, RHIShaderParameterType type, uint_t depth = 0)
 		{
 			String result = Expression::static_typename_of(type);
 			result.push_back('(');
@@ -80,26 +80,26 @@ namespace Engine::VisualMaterialGraph
 
 	template<>
 	struct DataTypeFormatter<Matrix3f> {
-		static String format(const Matrix3f& value, ShaderParameterType type, uint_t depth = 0) { return {}; }
+		static String format(const Matrix3f& value, RHIShaderParameterType type, uint_t depth = 0) { return {}; }
 	};
 
 	template<>
 	struct DataTypeFormatter<Matrix4f> {
-		static String format(const Matrix4f& value, ShaderParameterType type, uint_t depth = 0) { return {}; }
+		static String format(const Matrix4f& value, RHIShaderParameterType type, uint_t depth = 0) { return {}; }
 	};
 
-	template<typename T, ShaderParameterType type_value>
+	template<typename T, RHIShaderParameterType type_value>
 	struct DefaultValueHolder : public Pin::DefaultValue {
 		T value = T();
 
 		byte* address() override { return reinterpret_cast<byte*>(&value); }
-		ShaderParameterType type() const override { return type_value; };
+		RHIShaderParameterType type() const override { return type_value; };
 		Expression compile() const override { return Expression(type_value, DataTypeFormatter<T>::format(value, type_value)); }
 	};
 
-	static Pin::DefaultValue* create_default_value_holder(ShaderParameterType type)
+	static Pin::DefaultValue* create_default_value_holder(RHIShaderParameterType type)
 	{
-		using T = ShaderParameterType;
+		using T = RHIShaderParameterType;
 
 		switch (type.value)
 		{
@@ -128,120 +128,120 @@ namespace Engine::VisualMaterialGraph
 
 	const char* Expression::s_swizzle[4] = {".x", ".y", ".z", ".w"};
 
-	Expression Expression::static_zero(ShaderParameterType type)
+	Expression Expression::static_zero(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool: return Expression(type, "false");
-			case ShaderParameterType::Bool2: return Expression(type, "bool2(false, false)");
-			case ShaderParameterType::Bool3: return Expression(type, "bool3(false, false, false)");
-			case ShaderParameterType::Bool4: return Expression(type, "bool4(false, false, false)");
+			case RHIShaderParameterType::Bool: return Expression(type, "false");
+			case RHIShaderParameterType::Bool2: return Expression(type, "bool2(false, false)");
+			case RHIShaderParameterType::Bool3: return Expression(type, "bool3(false, false, false)");
+			case RHIShaderParameterType::Bool4: return Expression(type, "bool4(false, false, false)");
 
-			case ShaderParameterType::Int: return Expression(type, "int(0)");
-			case ShaderParameterType::Int2: return Expression(type, "int2(0, 0)");
-			case ShaderParameterType::Int3: return Expression(type, "int3(0, 0, 0)");
-			case ShaderParameterType::Int4: return Expression(type, "int4(0, 0, 0, 0)");
+			case RHIShaderParameterType::Int: return Expression(type, "int(0)");
+			case RHIShaderParameterType::Int2: return Expression(type, "int2(0, 0)");
+			case RHIShaderParameterType::Int3: return Expression(type, "int3(0, 0, 0)");
+			case RHIShaderParameterType::Int4: return Expression(type, "int4(0, 0, 0, 0)");
 
-			case ShaderParameterType::UInt: return Expression(type, "uint(0)");
-			case ShaderParameterType::UInt2: return Expression(type, "uint2(0, 0)");
-			case ShaderParameterType::UInt3: return Expression(type, "uint3(0, 0, 0)");
-			case ShaderParameterType::UInt4: return Expression(type, "uint4(0, 0, 0, 0)");
+			case RHIShaderParameterType::UInt: return Expression(type, "uint(0)");
+			case RHIShaderParameterType::UInt2: return Expression(type, "uint2(0, 0)");
+			case RHIShaderParameterType::UInt3: return Expression(type, "uint3(0, 0, 0)");
+			case RHIShaderParameterType::UInt4: return Expression(type, "uint4(0, 0, 0, 0)");
 
-			case ShaderParameterType::Float: return Expression(type, "float(0.f)");
-			case ShaderParameterType::Float2: return Expression(type, "float2(0.f, 0.f)");
-			case ShaderParameterType::Float3: return Expression(type, "float3(0.f, 0.f, 0.f)");
-			case ShaderParameterType::Float4: return Expression(type, "float4(0.f, 0.f, 0.f, 0.f)");
-			case ShaderParameterType::Float3x3: return Expression(type, "float3x3(0.f)");
-			case ShaderParameterType::Float4x4: return Expression(type, "float4x4(0.f)");
+			case RHIShaderParameterType::Float: return Expression(type, "float(0.f)");
+			case RHIShaderParameterType::Float2: return Expression(type, "float2(0.f, 0.f)");
+			case RHIShaderParameterType::Float3: return Expression(type, "float3(0.f, 0.f, 0.f)");
+			case RHIShaderParameterType::Float4: return Expression(type, "float4(0.f, 0.f, 0.f, 0.f)");
+			case RHIShaderParameterType::Float3x3: return Expression(type, "float3x3(0.f)");
+			case RHIShaderParameterType::Float4x4: return Expression(type, "float4x4(0.f)");
 			default: throw EngineException("Unsupported shader parameter type!");
 		}
 	}
 
-	Expression Expression::static_half(ShaderParameterType type)
+	Expression Expression::static_half(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool: return Expression(type, "false");
-			case ShaderParameterType::Bool2: return Expression(type, "bool2(false, false)");
-			case ShaderParameterType::Bool3: return Expression(type, "bool3(false, false, false)");
-			case ShaderParameterType::Bool4: return Expression(type, "bool4(false, false, false)");
+			case RHIShaderParameterType::Bool: return Expression(type, "false");
+			case RHIShaderParameterType::Bool2: return Expression(type, "bool2(false, false)");
+			case RHIShaderParameterType::Bool3: return Expression(type, "bool3(false, false, false)");
+			case RHIShaderParameterType::Bool4: return Expression(type, "bool4(false, false, false)");
 
-			case ShaderParameterType::Int: return Expression(type, "int(0)");
-			case ShaderParameterType::Int2: return Expression(type, "int2(0, 0)");
-			case ShaderParameterType::Int3: return Expression(type, "int3(0, 0, 0)");
-			case ShaderParameterType::Int4: return Expression(type, "int4(0, 0, 0, 0)");
+			case RHIShaderParameterType::Int: return Expression(type, "int(0)");
+			case RHIShaderParameterType::Int2: return Expression(type, "int2(0, 0)");
+			case RHIShaderParameterType::Int3: return Expression(type, "int3(0, 0, 0)");
+			case RHIShaderParameterType::Int4: return Expression(type, "int4(0, 0, 0, 0)");
 
-			case ShaderParameterType::UInt: return Expression(type, "uint(0)");
-			case ShaderParameterType::UInt2: return Expression(type, "uint2(0, 0)");
-			case ShaderParameterType::UInt3: return Expression(type, "uint3(0, 0, 0)");
-			case ShaderParameterType::UInt4: return Expression(type, "uint4(0, 0, 0, 0)");
+			case RHIShaderParameterType::UInt: return Expression(type, "uint(0)");
+			case RHIShaderParameterType::UInt2: return Expression(type, "uint2(0, 0)");
+			case RHIShaderParameterType::UInt3: return Expression(type, "uint3(0, 0, 0)");
+			case RHIShaderParameterType::UInt4: return Expression(type, "uint4(0, 0, 0, 0)");
 
-			case ShaderParameterType::Float: return Expression(type, "float(0.5f)");
-			case ShaderParameterType::Float2: return Expression(type, "float2(0.5f, 0.5f)");
-			case ShaderParameterType::Float3: return Expression(type, "float3(0.5f, 0.5f, 0.5f)");
-			case ShaderParameterType::Float4: return Expression(type, "float4(0.5f, 0.5f, 0.5f, 0.5f)");
-			case ShaderParameterType::Float3x3: return Expression(type, "float3x3(0.5f)");
-			case ShaderParameterType::Float4x4: return Expression(type, "float4x4(0.5f)");
+			case RHIShaderParameterType::Float: return Expression(type, "float(0.5f)");
+			case RHIShaderParameterType::Float2: return Expression(type, "float2(0.5f, 0.5f)");
+			case RHIShaderParameterType::Float3: return Expression(type, "float3(0.5f, 0.5f, 0.5f)");
+			case RHIShaderParameterType::Float4: return Expression(type, "float4(0.5f, 0.5f, 0.5f, 0.5f)");
+			case RHIShaderParameterType::Float3x3: return Expression(type, "float3x3(0.5f)");
+			case RHIShaderParameterType::Float4x4: return Expression(type, "float4x4(0.5f)");
 			default: throw EngineException("Unsupported shader parameter type!");
 		}
 	}
 
-	Expression Expression::static_one(ShaderParameterType type)
+	Expression Expression::static_one(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool: return Expression(type, "true");
-			case ShaderParameterType::Bool2: return Expression(type, "bool2(true, true)");
-			case ShaderParameterType::Bool3: return Expression(type, "bool3(true, true, true)");
-			case ShaderParameterType::Bool4: return Expression(type, "bool4(true, true, true)");
+			case RHIShaderParameterType::Bool: return Expression(type, "true");
+			case RHIShaderParameterType::Bool2: return Expression(type, "bool2(true, true)");
+			case RHIShaderParameterType::Bool3: return Expression(type, "bool3(true, true, true)");
+			case RHIShaderParameterType::Bool4: return Expression(type, "bool4(true, true, true)");
 
-			case ShaderParameterType::Int: return Expression(type, "int(1)");
-			case ShaderParameterType::Int2: return Expression(type, "int2(1, 1)");
-			case ShaderParameterType::Int3: return Expression(type, "int3(1, 1, 1)");
-			case ShaderParameterType::Int4: return Expression(type, "int4(1, 1, 1, 1)");
+			case RHIShaderParameterType::Int: return Expression(type, "int(1)");
+			case RHIShaderParameterType::Int2: return Expression(type, "int2(1, 1)");
+			case RHIShaderParameterType::Int3: return Expression(type, "int3(1, 1, 1)");
+			case RHIShaderParameterType::Int4: return Expression(type, "int4(1, 1, 1, 1)");
 
-			case ShaderParameterType::UInt: return Expression(type, "uint(1)");
-			case ShaderParameterType::UInt2: return Expression(type, "uint2(1, 1)");
-			case ShaderParameterType::UInt3: return Expression(type, "uint3(1, 1, 1)");
-			case ShaderParameterType::UInt4: return Expression(type, "uint4(1, 1, 1, 1)");
+			case RHIShaderParameterType::UInt: return Expression(type, "uint(1)");
+			case RHIShaderParameterType::UInt2: return Expression(type, "uint2(1, 1)");
+			case RHIShaderParameterType::UInt3: return Expression(type, "uint3(1, 1, 1)");
+			case RHIShaderParameterType::UInt4: return Expression(type, "uint4(1, 1, 1, 1)");
 
-			case ShaderParameterType::Float: return Expression(type, "float(1.f)");
-			case ShaderParameterType::Float2: return Expression(type, "float2(1.f, 1.f)");
-			case ShaderParameterType::Float3: return Expression(type, "float3(1.f, 1.f, 1.f)");
-			case ShaderParameterType::Float4: return Expression(type, "float4(1.f, 1.f, 1.f, 1.f)");
-			case ShaderParameterType::Float3x3: return Expression(type, "float3x3(1.f)");
-			case ShaderParameterType::Float4x4: return Expression(type, "float4x4(1.f)");
+			case RHIShaderParameterType::Float: return Expression(type, "float(1.f)");
+			case RHIShaderParameterType::Float2: return Expression(type, "float2(1.f, 1.f)");
+			case RHIShaderParameterType::Float3: return Expression(type, "float3(1.f, 1.f, 1.f)");
+			case RHIShaderParameterType::Float4: return Expression(type, "float4(1.f, 1.f, 1.f, 1.f)");
+			case RHIShaderParameterType::Float3x3: return Expression(type, "float3x3(1.f)");
+			case RHIShaderParameterType::Float4x4: return Expression(type, "float4x4(1.f)");
 			default: throw EngineException("Unsupported shader parameter type!");
 		}
 	}
 
-	ShaderParameterType Expression::static_component_type_of(ShaderParameterType type)
+	RHIShaderParameterType Expression::static_component_type_of(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
-			case ShaderParameterType::Bool2:
-			case ShaderParameterType::Bool3:
-			case ShaderParameterType::Bool4: return ShaderParameterType::Bool;
+			case RHIShaderParameterType::Bool2:
+			case RHIShaderParameterType::Bool3:
+			case RHIShaderParameterType::Bool4: return RHIShaderParameterType::Bool;
 
-			case ShaderParameterType::Int2:
-			case ShaderParameterType::Int3:
-			case ShaderParameterType::Int4: return ShaderParameterType::Int;
+			case RHIShaderParameterType::Int2:
+			case RHIShaderParameterType::Int3:
+			case RHIShaderParameterType::Int4: return RHIShaderParameterType::Int;
 
-			case ShaderParameterType::UInt2:
-			case ShaderParameterType::UInt3:
-			case ShaderParameterType::UInt4: return ShaderParameterType::UInt;
+			case RHIShaderParameterType::UInt2:
+			case RHIShaderParameterType::UInt3:
+			case RHIShaderParameterType::UInt4: return RHIShaderParameterType::UInt;
 
-			case ShaderParameterType::Float2:
-			case ShaderParameterType::Float3:
-			case ShaderParameterType::Float4:
-			case ShaderParameterType::Float3x3:
-			case ShaderParameterType::Float4x4: return ShaderParameterType::Float;
+			case RHIShaderParameterType::Float2:
+			case RHIShaderParameterType::Float3:
+			case RHIShaderParameterType::Float4:
+			case RHIShaderParameterType::Float3x3:
+			case RHIShaderParameterType::Float4x4: return RHIShaderParameterType::Float;
 
 			default: return type;
 		}
 	}
 
-	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2)
+	RHIShaderParameterType Expression::static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)
 	{
 		if (type1 == type2)
 			return type1;
@@ -252,59 +252,59 @@ namespace Engine::VisualMaterialGraph
 			auto type_component2 = static_component_type_of(type2);
 			byte result_len      = glm::max(type1.vector_length(), type2.vector_length());
 
-			if (type_component1 == ShaderParameterType::Float || type_component2 == ShaderParameterType::Float)
-				return ShaderParameterType(ShaderParameterType::Float).make_vector(result_len);
+			if (type_component1 == RHIShaderParameterType::Float || type_component2 == RHIShaderParameterType::Float)
+				return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(result_len);
 
-			if (type_component1 == ShaderParameterType::Bool || type_component2 == ShaderParameterType::Bool)
-				return ShaderParameterType(ShaderParameterType::Bool).make_vector(result_len);
+			if (type_component1 == RHIShaderParameterType::Bool || type_component2 == RHIShaderParameterType::Bool)
+				return RHIShaderParameterType(RHIShaderParameterType::Bool).make_vector(result_len);
 
-			if (type_component1 == ShaderParameterType::UInt || type_component2 == ShaderParameterType::UInt)
-				return ShaderParameterType(ShaderParameterType::UInt).make_vector(result_len);
+			if (type_component1 == RHIShaderParameterType::UInt || type_component2 == RHIShaderParameterType::UInt)
+				return RHIShaderParameterType(RHIShaderParameterType::UInt).make_vector(result_len);
 
-			return ShaderParameterType(ShaderParameterType::Int).make_vector(result_len);
+			return RHIShaderParameterType(RHIShaderParameterType::Int).make_vector(result_len);
 		}
 
-		return ShaderParameterType();
+		return RHIShaderParameterType();
 	}
 
-	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2,
-	                                               ShaderParameterType type3)
+	RHIShaderParameterType Expression::static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+	                                                  RHIShaderParameterType type3)
 	{
 		return static_resolve(static_resolve(type1, type2), type3);
 	}
 
-	ShaderParameterType Expression::static_resolve(ShaderParameterType type1, ShaderParameterType type2,
-	                                               ShaderParameterType type3, ShaderParameterType type4)
+	RHIShaderParameterType Expression::static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+	                                                  RHIShaderParameterType type3, RHIShaderParameterType type4)
 	{
 		return static_resolve(static_resolve(type1, type2, type3), type4);
 	}
 
-	String Expression::static_typename_of(ShaderParameterType type)
+	String Expression::static_typename_of(RHIShaderParameterType type)
 	{
 		// clang-format off
 		switch (type)
 		{
-			case ShaderParameterType::Bool: return "bool";
-			case ShaderParameterType::Bool2: return "bool2";
-			case ShaderParameterType::Bool3: return "bool3";
-			case ShaderParameterType::Bool4: return "bool4";
-			case ShaderParameterType::Int: return "int";
-			case ShaderParameterType::Int2: return "int2";
-			case ShaderParameterType::Int3: return "int3";
-			case ShaderParameterType::Int4: return "int4";
-			case ShaderParameterType::UInt: return "uint";
-			case ShaderParameterType::UInt2: return "uint2";
-			case ShaderParameterType::UInt3: return "uint3";
-			case ShaderParameterType::UInt4: return "uint4";
-			case ShaderParameterType::Float: return "float";
-			case ShaderParameterType::Float2: return "float2";
-			case ShaderParameterType::Float3: return "float3";
-			case ShaderParameterType::Float4: return "float4";
-			case ShaderParameterType::Float3x3: return "float3x3";
-			case ShaderParameterType::Float4x4: return "float4x4";
-			case ShaderParameterType::Sampler: return "SamplerState";
-			case ShaderParameterType::Sampler2D: return "Sampler2D";
-			case ShaderParameterType::Texture2D: return "Texture2D";
+			case RHIShaderParameterType::Bool: return "bool";
+			case RHIShaderParameterType::Bool2: return "bool2";
+			case RHIShaderParameterType::Bool3: return "bool3";
+			case RHIShaderParameterType::Bool4: return "bool4";
+			case RHIShaderParameterType::Int: return "int";
+			case RHIShaderParameterType::Int2: return "int2";
+			case RHIShaderParameterType::Int3: return "int3";
+			case RHIShaderParameterType::Int4: return "int4";
+			case RHIShaderParameterType::UInt: return "uint";
+			case RHIShaderParameterType::UInt2: return "uint2";
+			case RHIShaderParameterType::UInt3: return "uint3";
+			case RHIShaderParameterType::UInt4: return "uint4";
+			case RHIShaderParameterType::Float: return "float";
+			case RHIShaderParameterType::Float2: return "float2";
+			case RHIShaderParameterType::Float3: return "float3";
+			case RHIShaderParameterType::Float4: return "float4";
+			case RHIShaderParameterType::Float3x3: return "float3x3";
+			case RHIShaderParameterType::Float4x4: return "float4x4";
+			case RHIShaderParameterType::Sampler: return "SamplerState";
+			case RHIShaderParameterType::Sampler2D: return "Sampler2D";
+			case RHIShaderParameterType::Texture2D: return "Texture2D";
 			default:
 				break;
 		}
@@ -312,7 +312,7 @@ namespace Engine::VisualMaterialGraph
 		throw EngineException("Unsupported type!");
 	}
 
-	bool Expression::is_compatible_types(ShaderParameterType src, ShaderParameterType dst)
+	bool Expression::is_compatible_types(RHIShaderParameterType src, RHIShaderParameterType dst)
 	{
 		if (src == dst)
 			return true;
@@ -327,21 +327,21 @@ namespace Engine::VisualMaterialGraph
 		return (src & dst) == dst;
 	}
 
-	ShaderParameterType Expression::static_make_float(ShaderParameterType self)
+	RHIShaderParameterType Expression::static_make_float(RHIShaderParameterType self)
 	{
 		if (self.is_numeric())
 		{
 			byte len = self.vector_length();
-			return ShaderParameterType(ShaderParameterType::Float).make_vector(len);
+			return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(len);
 		}
 
 		if (self.is_matrix())
 			return self;
 
-		return ShaderParameterType::Undefined;
+		return RHIShaderParameterType::Undefined;
 	}
 
-	ShaderParameterType Expression::static_vector_clamp(ShaderParameterType self, byte min, byte max)
+	RHIShaderParameterType Expression::static_vector_clamp(RHIShaderParameterType self, byte min, byte max)
 	{
 		if (self.is_numeric())
 		{
@@ -353,7 +353,7 @@ namespace Engine::VisualMaterialGraph
 			return self;
 		}
 
-		return ShaderParameterType::Undefined;
+		return RHIShaderParameterType::Undefined;
 	}
 
 	Expression Expression::x() const
@@ -404,7 +404,7 @@ namespace Engine::VisualMaterialGraph
 		return static_zero(component);
 	}
 
-	Expression Expression::convert(ShaderParameterType dst) const
+	Expression Expression::convert(RHIShaderParameterType dst) const
 	{
 		if (type == dst || value.empty())
 			return *this;
@@ -465,7 +465,7 @@ namespace Engine::VisualMaterialGraph
 		if (type.is_vector())
 		{
 			Expression result = to_floating();
-			result.type       = ShaderParameterType::Float;
+			result.type       = RHIShaderParameterType::Float;
 			result.value      = Strings::format("length({})", result.value);
 			return result;
 		}
@@ -549,7 +549,7 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	Expression Compiler::make_uniform(ShaderParameterType type, const String& name_override)
+	Expression Compiler::make_uniform(RHIShaderParameterType type, const String& name_override)
 	{
 		if (name_override.empty())
 		{
@@ -575,7 +575,7 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	Expression Compiler::make_variable(ShaderParameterType type)
+	Expression Compiler::make_variable(RHIShaderParameterType type)
 	{
 		String var_name = next_var_name();
 
@@ -737,7 +737,7 @@ namespace Engine::VisualMaterialGraph
 		Group::find(full_group_name, true)->add_struct(node_class);
 	}
 
-	InputPin* Node::new_input(const String& name, ShaderParameterType type)
+	InputPin* Node::new_input(const String& name, RHIShaderParameterType type)
 	{
 		InputPin* pin = new InputPin();
 		pin->m_name   = name;
@@ -748,7 +748,7 @@ namespace Engine::VisualMaterialGraph
 		return pin;
 	}
 
-	OutputPin* Node::new_output(const String& name, ShaderParameterType type)
+	OutputPin* Node::new_output(const String& name, RHIShaderParameterType type)
 	{
 		OutputPin* pin = new OutputPin();
 		pin->m_name    = name;
@@ -759,14 +759,14 @@ namespace Engine::VisualMaterialGraph
 		return pin;
 	}
 
-	InputPin* Node::new_input(const String& name, ShaderParameterType type, ShaderParameterType default_value_type)
+	InputPin* Node::new_input(const String& name, RHIShaderParameterType type, RHIShaderParameterType default_value_type)
 	{
 		auto pin                                = new_input(name, type);
 		static_cast<Pin*>(pin)->m_default_value = create_default_value_holder(default_value_type);
 		return pin;
 	}
 
-	OutputPin* Node::new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type)
+	OutputPin* Node::new_output(const String& name, RHIShaderParameterType type, RHIShaderParameterType default_value_type)
 	{
 		auto pin                                = new_output(name, type);
 		static_cast<Pin*>(pin)->m_default_value = create_default_value_holder(default_value_type);
@@ -842,14 +842,14 @@ namespace Engine::VisualMaterialGraph
 	{
 		r.method("const string& name() const", &Pin::name);
 		r.method("Node@ node() const", &Pin::node);
-		r.method("ShaderParameterType type() const", &Pin::type);
+		r.method("RHIShaderParameterType type() const", &Pin::type);
 		r.method("uint16 index() const", &Pin::index);
 		r.method("uint64 links_count() const", &T::links_count);
 	}
 
 	static void reflection_init()
 	{
-		using SPType = ShaderParameterType;
+		using SPType = RHIShaderParameterType;
 		register_metadata_functions();
 
 		using Reg = ScriptClassRegistrar;
@@ -874,10 +874,10 @@ namespace Engine::VisualMaterialGraph
 		register_pin_methods<OutputPin>(output_pin);
 
 		// Compiler class
-		compiler.method("Expression make_uniform(ShaderParameterType type, const string& name_override = \"\") final",
+		compiler.method("Expression make_uniform(RHIShaderParameterType type, const string& name_override = \"\") final",
 		                &Compiler::make_uniform);
-		compiler.method("Expression make_variable(ShaderParameterType type) final",
-		                method_of<Expression, ShaderParameterType>(&Compiler::make_variable));
+		compiler.method("Expression make_variable(RHIShaderParameterType type) final",
+		                method_of<Expression, RHIShaderParameterType>(&Compiler::make_variable));
 		compiler.method("Expression make_variable(const Expression& expression) final",
 		                method_of<Expression, const Expression&>(&Compiler::make_variable));
 
@@ -898,12 +898,12 @@ namespace Engine::VisualMaterialGraph
 		// clang-format off
 		expression.behave(ScriptClassBehave::Construct, "void f()", Reg::constructor<Expression>);
 		expression.behave(ScriptClassBehave::Construct, "void f(const Expression&)", Reg::constructor<Expression, const Expression&>);
-		expression.behave(ScriptClassBehave::Construct, "void f(ShaderParameterType type, const string& expression)", Reg::constructor<Expression, ShaderParameterType, const String&>);
+		expression.behave(ScriptClassBehave::Construct, "void f(RHIShaderParameterType type, const string& expression)", Reg::constructor<Expression, RHIShaderParameterType, const String&>);
 		expression.behave(ScriptClassBehave::Destruct, "void f()", Reg::destructor<Expression>);
 		// clang-format on
 
 		expression.property("string value", &Expression::value);
-		expression.property("ShaderParameterType type", &Expression::type);
+		expression.property("RHIShaderParameterType type", &Expression::type);
 
 		expression.method("Expression& opAssign(const Expression&)", Reg::assign<Expression, const Expression&>);
 		expression.method("Expression x() const", &Expression::x);
@@ -912,41 +912,41 @@ namespace Engine::VisualMaterialGraph
 		expression.method("Expression w() const", &Expression::w);
 		expression.method("Expression& clear()", &Expression::clear);
 		expression.method("bool is_valid() const", &Expression::is_valid);
-		expression.method("Expression convert(ShaderParameterType type) const", &Expression::convert);
+		expression.method("Expression convert(RHIShaderParameterType type) const", &Expression::convert);
 		expression.method("Expression to_floating() const", &Expression::to_floating);
 		expression.method("Expression vector_length() const", &Expression::vector_length);
 
 		// clang-format off
-		expression.static_function("Expression static_zero(ShaderParameterType type)", &Expression::static_zero);
-		expression.static_function("Expression static_half(ShaderParameterType type)", &Expression::static_half);
-		expression.static_function("Expression static_one(ShaderParameterType type)", &Expression::static_one);
-		expression.static_function("ShaderParameterType static_component_type_of(ShaderParameterType type)", &Expression::static_component_type_of);
+		expression.static_function("Expression static_zero(RHIShaderParameterType type)", &Expression::static_zero);
+		expression.static_function("Expression static_half(RHIShaderParameterType type)", &Expression::static_half);
+		expression.static_function("Expression static_one(RHIShaderParameterType type)", &Expression::static_one);
+		expression.static_function("RHIShaderParameterType static_component_type_of(RHIShaderParameterType type)", &Expression::static_component_type_of);
 		constexpr auto static_resolve1 = func_of<SPType, SPType, SPType>(&Expression::static_resolve);
 		constexpr auto static_resolve2 = func_of<SPType, SPType, SPType, SPType>(&Expression::static_resolve);
 		constexpr auto static_resolve3 = func_of<SPType, SPType, SPType, SPType, SPType>(&Expression::static_resolve);
-		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2)", static_resolve1);
-		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2, ShaderParameterType type3)", static_resolve2);
-		expression.static_function("ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2, ShaderParameterType type3, ShaderParameterType type4)", static_resolve3);
-		expression.static_function("string static_typename_of(ShaderParameterType type)", &Expression::static_typename_of);
+		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)", static_resolve1);
+		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3)", static_resolve2);
+		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3, RHIShaderParameterType type4)", static_resolve3);
+		expression.static_function("string static_typename_of(RHIShaderParameterType type)", &Expression::static_typename_of);
 
-		expression.static_function("ShaderParameterType static_make_float(ShaderParameterType self)", &Expression::static_make_float);
-		expression.static_function("ShaderParameterType static_vector_clamp(ShaderParameterType self, uint8 min, uint8 max)", &Expression::static_vector_clamp);
-		expression.static_function("ShaderParameterType static_make_vector(ShaderParameterType self, uint8 len)", &Expression::static_make_vector);
-		expression.static_function("ShaderParameterType static_make_scalar(ShaderParameterType self)", &Expression::static_make_scalar);
-		expression.static_function("bool static_is_scalar(ShaderParameterType self)", &Expression::static_is_scalar);
-		expression.static_function("bool static_is_vector(ShaderParameterType self)", &Expression::static_is_vector);
-		expression.static_function("bool static_is_matrix(ShaderParameterType self)", &Expression::static_is_matrix);
-		expression.static_function("bool static_is_numeric(ShaderParameterType self)", &Expression::static_is_numeric);
-		expression.static_function("bool static_is_meta(ShaderParameterType self)", &Expression::static_is_meta);
-		expression.static_function("uint16 static_type_index(ShaderParameterType self)", &Expression::static_type_index);
-		expression.static_function("uint8 static_vector_length(ShaderParameterType self)", &Expression::static_vector_length);
+		expression.static_function("RHIShaderParameterType static_make_float(RHIShaderParameterType self)", &Expression::static_make_float);
+		expression.static_function("RHIShaderParameterType static_vector_clamp(RHIShaderParameterType self, uint8 min, uint8 max)", &Expression::static_vector_clamp);
+		expression.static_function("RHIShaderParameterType static_make_vector(RHIShaderParameterType self, uint8 len)", &Expression::static_make_vector);
+		expression.static_function("RHIShaderParameterType static_make_scalar(RHIShaderParameterType self)", &Expression::static_make_scalar);
+		expression.static_function("bool static_is_scalar(RHIShaderParameterType self)", &Expression::static_is_scalar);
+		expression.static_function("bool static_is_vector(RHIShaderParameterType self)", &Expression::static_is_vector);
+		expression.static_function("bool static_is_matrix(RHIShaderParameterType self)", &Expression::static_is_matrix);
+		expression.static_function("bool static_is_numeric(RHIShaderParameterType self)", &Expression::static_is_numeric);
+		expression.static_function("bool static_is_meta(RHIShaderParameterType self)", &Expression::static_is_meta);
+		expression.static_function("uint16 static_type_index(RHIShaderParameterType self)", &Expression::static_type_index);
+		expression.static_function("uint8 static_vector_length(RHIShaderParameterType self)", &Expression::static_vector_length);
 
 		// clang-format on
 
-		// static ShaderParameterType component_type(ShaderParameterType type);
+		// static RHIShaderParameterType component_type(RHIShaderParameterType type);
 	}
 
 	static ReflectionInitializeController init(reflection_init, "Engine::VisualMaterialGraph",
-	                                           {"Engine::ShaderParameterType", "Engine::Refl::Class",
+	                                           {"Engine::RHIShaderParameterType", "Engine::Refl::Class",
 	                                            "Engine::VisualMaterialGraph::Node"});
 }// namespace Engine::VisualMaterialGraph

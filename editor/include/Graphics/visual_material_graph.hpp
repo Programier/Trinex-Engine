@@ -4,6 +4,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/object.hpp>
 #include <Core/string_functions.hpp>
+#include <RHI/enums.hpp>
 
 namespace Engine
 {
@@ -23,53 +24,56 @@ namespace Engine::VisualMaterialGraph
 		static const char* s_swizzle[4];
 
 	public:
-		ShaderParameterType type;
+		RHIShaderParameterType type;
 		String value;
 
-		static Expression static_zero(ShaderParameterType type);
-		static Expression static_half(ShaderParameterType type);
-		static Expression static_one(ShaderParameterType type);
-		static Expression static_convert(const Expression& expression, ShaderParameterType type);
+		static Expression static_zero(RHIShaderParameterType type);
+		static Expression static_half(RHIShaderParameterType type);
+		static Expression static_one(RHIShaderParameterType type);
+		static Expression static_convert(const Expression& expression, RHIShaderParameterType type);
 
-		static ShaderParameterType static_component_type_of(ShaderParameterType type);
-		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2);
-		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2,
-		                                          ShaderParameterType type3);
-		static ShaderParameterType static_resolve(ShaderParameterType type1, ShaderParameterType type2, ShaderParameterType type3,
-		                                          ShaderParameterType type4);
-		static String static_typename_of(ShaderParameterType type);
-		static bool is_compatible_types(ShaderParameterType src, ShaderParameterType dst);
+		static RHIShaderParameterType static_component_type_of(RHIShaderParameterType type);
+		static RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2);
+		static RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+		                                             RHIShaderParameterType type3);
+		static RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+		                                             RHIShaderParameterType type3, RHIShaderParameterType type4);
+		static String static_typename_of(RHIShaderParameterType type);
+		static bool is_compatible_types(RHIShaderParameterType src, RHIShaderParameterType dst);
 
-		static ShaderParameterType static_make_float(ShaderParameterType self);
-		static ShaderParameterType static_vector_clamp(ShaderParameterType self, byte min, byte max);
-		static inline ShaderParameterType static_make_vector(ShaderParameterType self, byte len) { return self.make_vector(len); }
-		static inline ShaderParameterType static_make_scalar(ShaderParameterType self) { return self.make_scalar(); }
-		static inline bool static_is_scalar(ShaderParameterType self) { return self.is_scalar(); }
-		static inline bool static_is_vector(ShaderParameterType self) { return self.is_vector(); }
-		static inline bool static_is_matrix(ShaderParameterType self) { return self.is_matrix(); }
-		static inline bool static_is_numeric(ShaderParameterType self) { return self.is_numeric(); }
-		static inline bool static_is_meta(ShaderParameterType self) { return self.is_meta(); }
-		static inline uint16_t static_type_index(ShaderParameterType self) { return self.type_index(); }
-		static inline byte static_vector_length(ShaderParameterType self) { return self.vector_length(); }
+		static RHIShaderParameterType static_make_float(RHIShaderParameterType self);
+		static RHIShaderParameterType static_vector_clamp(RHIShaderParameterType self, byte min, byte max);
+		static inline RHIShaderParameterType static_make_vector(RHIShaderParameterType self, byte len)
+		{
+			return self.make_vector(len);
+		}
+		static inline RHIShaderParameterType static_make_scalar(RHIShaderParameterType self) { return self.make_scalar(); }
+		static inline bool static_is_scalar(RHIShaderParameterType self) { return self.is_scalar(); }
+		static inline bool static_is_vector(RHIShaderParameterType self) { return self.is_vector(); }
+		static inline bool static_is_matrix(RHIShaderParameterType self) { return self.is_matrix(); }
+		static inline bool static_is_numeric(RHIShaderParameterType self) { return self.is_numeric(); }
+		static inline bool static_is_meta(RHIShaderParameterType self) { return self.is_meta(); }
+		static inline uint16_t static_type_index(RHIShaderParameterType self) { return self.type_index(); }
+		static inline byte static_vector_length(RHIShaderParameterType self) { return self.vector_length(); }
 
-		inline Expression() : type(ShaderParameterType::Undefined) {}
-		Expression(ShaderParameterType type, const char* value) : type(type), value(value) {}
-		Expression(ShaderParameterType type, String&& value) : type(type), value(std::move(value)) {}
-		Expression(ShaderParameterType type, const String& value) : type(type), value(value) {}
+		inline Expression() : type(RHIShaderParameterType::Undefined) {}
+		Expression(RHIShaderParameterType type, const char* value) : type(type), value(value) {}
+		Expression(RHIShaderParameterType type, String&& value) : type(type), value(std::move(value)) {}
+		Expression(RHIShaderParameterType type, const String& value) : type(type), value(value) {}
 
 		Expression x() const;
 		Expression y() const;
 		Expression z() const;
 		Expression w() const;
 
-		Expression convert(ShaderParameterType dst) const;
+		Expression convert(RHIShaderParameterType dst) const;
 		Expression vector_length() const;
 		inline Expression to_floating() const { return convert(static_make_float(type)); }
 
-		FORCE_INLINE bool is_valid() const { return type != ShaderParameterType::Undefined; }
+		FORCE_INLINE bool is_valid() const { return type != RHIShaderParameterType::Undefined; }
 		FORCE_INLINE Expression& clear()
 		{
-			type = ShaderParameterType::Undefined;
+			type = RHIShaderParameterType::Undefined;
 			value.clear();
 			return *this;
 		}
@@ -138,8 +142,8 @@ namespace Engine::VisualMaterialGraph
 		Node* find_redirection(Refl::Class* node_class, Identifier id);
 
 		Compiler& add_include(const StringView& include);
-		Expression make_uniform(ShaderParameterType type, const String& name_override = "");
-		Expression make_variable(ShaderParameterType type);
+		Expression make_uniform(RHIShaderParameterType type, const String& name_override = "");
+		Expression make_variable(RHIShaderParameterType type);
 		Expression make_variable(const Expression& expression);
 		Expression compile_default(Pin* pin);
 		Expression compile(InputPin* pin);
@@ -165,10 +169,10 @@ namespace Engine::VisualMaterialGraph
 	{
 	public:
 		struct DefaultValue {
-			virtual byte* address()                  = 0;
-			virtual ShaderParameterType type() const = 0;
-			virtual Expression compile() const       = 0;
-			virtual ~DefaultValue()                  = default;
+			virtual byte* address()                     = 0;
+			virtual RHIShaderParameterType type() const = 0;
+			virtual Expression compile() const          = 0;
+			virtual ~DefaultValue()                     = default;
 
 			template<typename T>
 			inline T& ref()
@@ -182,8 +186,8 @@ namespace Engine::VisualMaterialGraph
 		Node* m_node                  = nullptr;
 		DefaultValue* m_default_value = nullptr;
 
-		ShaderParameterType m_type = ShaderParameterType::Undefined;
-		uint16_t m_index           = 0;
+		RHIShaderParameterType m_type = RHIShaderParameterType::Undefined;
+		uint16_t m_index              = 0;
 
 	public:
 		enum Kind
@@ -195,7 +199,7 @@ namespace Engine::VisualMaterialGraph
 		inline const String& name() const { return m_name; }
 		inline Node* node() const { return m_node; }
 		inline DefaultValue* default_value() const { return m_default_value; }
-		inline ShaderParameterType type() const { return m_type; }
+		inline RHIShaderParameterType type() const { return m_type; }
 		inline uint16_t index() const { return m_index; }
 
 		virtual Pin& unlink() = 0;
@@ -270,11 +274,11 @@ namespace Engine::VisualMaterialGraph
 		Vector2f position = {0.f, 0.f};
 
 		static void static_node_group(Refl::Class* node_class, const String& group);
-		InputPin* new_input(const String& name, ShaderParameterType type);
-		OutputPin* new_output(const String& name, ShaderParameterType type);
+		InputPin* new_input(const String& name, RHIShaderParameterType type);
+		OutputPin* new_output(const String& name, RHIShaderParameterType type);
 
-		InputPin* new_input(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
-		OutputPin* new_output(const String& name, ShaderParameterType type, ShaderParameterType default_value_type);
+		InputPin* new_input(const String& name, RHIShaderParameterType type, RHIShaderParameterType default_value_type);
+		OutputPin* new_output(const String& name, RHIShaderParameterType type, RHIShaderParameterType default_value_type);
 
 		Node& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 

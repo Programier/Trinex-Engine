@@ -8,8 +8,6 @@ namespace Engine
 	{
 		trinex_declare_class(DefaultClient, ViewportClient);
 
-		struct RHI_Buffer* m_vertex_buffer;
-		
 	public:
 		DefaultClient();
 		~DefaultClient();

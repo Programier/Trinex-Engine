@@ -7,7 +7,7 @@
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window_manager.hpp>

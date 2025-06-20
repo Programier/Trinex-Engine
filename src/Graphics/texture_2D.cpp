@@ -2,8 +2,8 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -24,11 +24,11 @@ namespace Engine
 	Texture2D& Texture2D::init_render_resources()
 	{
 		render_thread()->call([this]() {
-			m_texture = rhi->create_texture_2d(format, size(), mips.size(), TextureCreateFlags::ShaderResource);
+			m_texture = rhi->create_texture_2d(format, size(), mips.size(), RHITextureCreateFlags::ShaderResource);
 
 			for (byte index = 0; auto& mip : mips)
 			{
-				rhi->update_texture_2d(m_texture, index++, Rect2D({0, 0}, mip.size), mip.data.data(), mip.data.size());
+				rhi->update_texture_2d(m_texture, index++, RHIRect(mip.size), mip.data.data(), mip.data.size());
 			}
 		});
 		return *this;
@@ -47,11 +47,6 @@ namespace Engine
 	Vector2u Texture2D::size(byte mip) const
 	{
 		return mips.size() <= static_cast<size_t>(mip) ? Vector2u{0, 0} : mips[mip].size;
-	}
-
-	TextureType Texture2D::type() const
-	{
-		return TextureType::Texture2D;
 	}
 
 	bool Texture2D::serialize(Archive& archive)

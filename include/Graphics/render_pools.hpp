@@ -1,14 +1,13 @@
 #pragma once
-#include <Core/enums.hpp>
+#include <Core/engine_types.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/pointer.hpp>
-#include <Core/render_resource_ptr.hpp>
-#include <Graphics/types/color_format.hpp>
 
 namespace Engine
 {
 	class RenderSurface;
+	struct RHIBufferCreateFlags;
 	struct RHI_Texture;
 	struct RHI_Buffer;
 	struct RHI_Fence;
@@ -48,8 +47,8 @@ namespace Engine
 		static RHIBufferPool* global_instance();
 
 		RHIBufferPool& update();
-		RHI_Buffer* request_buffer(uint32_t size, BufferCreateFlags flags);
-		RHI_Buffer* request_transient_buffer(uint32_t size, BufferCreateFlags flags);
+		RHI_Buffer* request_buffer(uint32_t size, RHIBufferCreateFlags flags);
+		RHI_Buffer* request_transient_buffer(uint32_t size, RHIBufferCreateFlags flags);
 		RHIBufferPool& release_all();
 		RHIBufferPool& return_buffer(RHI_Buffer* buffer);
 	};
@@ -69,8 +68,8 @@ namespace Engine
 		static RHISurfacePool* global_instance();
 
 		RHISurfacePool& update();
-		RHI_Texture* request_surface(SurfaceFormat format, Vector2u size);
-		RHI_Texture* request_transient_surface(SurfaceFormat format, Vector2u size);
+		RHI_Texture* request_surface(struct RHISurfaceFormat format, Vector2u size);
+		RHI_Texture* request_transient_surface(struct RHISurfaceFormat format, Vector2u size);
 		RHISurfacePool& release_all();
 		RHISurfacePool& return_surface(RHI_Texture* surface);
 	};
@@ -89,8 +88,8 @@ namespace Engine
 		static RenderSurfacePool* global_instance();
 
 		RenderSurfacePool& update();
-		RenderSurface* request_surface(SurfaceFormat format, Vector2u size);
-		RenderSurface* request_transient_surface(SurfaceFormat format, Vector2u size);
+		RenderSurface* request_surface(struct RHISurfaceFormat format, Vector2u size);
+		RenderSurface* request_transient_surface(struct RHISurfaceFormat format, Vector2u size);
 		RenderSurfacePool& return_surface(RenderSurface* surface);
 	};
 }// namespace Engine

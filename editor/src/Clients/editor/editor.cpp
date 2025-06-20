@@ -17,10 +17,10 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <ImGuizmo.h>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
@@ -229,14 +229,14 @@ namespace Engine
 	RenderSurface* EditorClient::capture_scene()
 	{
 		Vector2i size        = viewport()->size();
-		RenderSurface* scene = RenderSurfacePool::global_instance()->request_transient_surface(SurfaceFormat::RGBA8, size);
+		RenderSurface* scene = RenderSurfacePool::global_instance()->request_transient_surface(RHISurfaceFormat::RGBA8, size);
 
 		if (scene == nullptr)
 			return nullptr;
 
 		render_thread()->call([this, scene, mode = m_view_mode, size]() {
-			m_scene_view.viewport(ViewPort({0, 0}, size));
-			m_scene_view.scissor(Scissor({0, 0}, size));
+			m_scene_view.viewport(RHIViewport(size));
+			m_scene_view.scissor(RHIScissors(size));
 
 			Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), m_scene_view, mode);
 			EditorRenderer::render_grid(renderer);
@@ -249,13 +249,10 @@ namespace Engine
 			EditorRenderer::render_primitives(renderer, m_selected_actors_render_thread.data(), selected_count);
 
 
-			Rect2D rect;
-			rect.pos  = {0, 0};
-			rect.size = m_scene_view.viewport().size;
-
-			auto src = renderer->render().scene_color_target()->as_rtv();
-			auto dst = scene->rhi_rtv();
-			dst->blit(src, rect, rect, SamplerFilter::Point);
+			RHIRect rect = m_scene_view.viewport().size;
+			auto src     = renderer->render().scene_color_target()->as_rtv();
+			auto dst     = scene->rhi_rtv();
+			dst->blit(src, rect, rect, RHISamplerFilter::Point);
 
 			if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
 			{
@@ -387,7 +384,7 @@ namespace Engine
 
 		if (ImTextureID icon = Icons::icon(Icons::More))
 		{
-			if (ImGui::ImageButton(icon, {height, height}, {0, 1}, {1, 0}))
+			if (ImGui::ImageButton(icon, {height, height}))
 			{
 				m_state.viewport.show_additional_menu = true;
 				ImGui::OpenPopup("##addition_menu");
@@ -411,7 +408,7 @@ namespace Engine
 			{
 				ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 
-				if (ImGui::ImageButton(imgui_texture, {height, height}, {0, 1}, {1, 0}, color))
+				if (ImGui::ImageButton(imgui_texture, {height, height}, {0, 0}, {1, 1}, color))
 				{
 					m_guizmo_operation = control.first;
 				}

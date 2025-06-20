@@ -15,10 +15,10 @@ namespace Engine
 		{
 			trinex_declare_pipeline(GaussianBlur, GlobalComputePipeline);
 
-			const ShaderParameterInfo* m_src;
-			const ShaderParameterInfo* m_dst;
-			const ShaderParameterInfo* m_sigma;
-			const ShaderParameterInfo* m_kernel_size;
+			const RHIShaderParameterInfo* m_src;
+			const RHIShaderParameterInfo* m_dst;
+			const RHIShaderParameterInfo* m_sigma;
+			const RHIShaderParameterInfo* m_kernel_size;
 
 		public:
 			void blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel = 5,
@@ -30,12 +30,12 @@ namespace Engine
 		{
 			trinex_declare_pipeline(Blit2D, GlobalComputePipeline);
 
-			const ShaderParameterInfo* m_src;
-			const ShaderParameterInfo* m_dst;
-			const ShaderParameterInfo* m_args;
+			const RHIShaderParameterInfo* m_src;
+			const RHIShaderParameterInfo* m_dst;
+			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Rect2D& src_rect, const Rect2D& dst_rect,
+			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
 			          uint_t level = 0, Swizzle swizzle = {});
 		};
 
@@ -43,7 +43,7 @@ namespace Engine
 		{
 			trinex_declare_pipeline(BatchedLines, GlobalGraphicsPipeline);
 
-			const ShaderParameterInfo* m_scene_view;
+			const RHIShaderParameterInfo* m_scene_view;
 
 		public:
 			void apply(Renderer* renderer);
@@ -59,13 +59,13 @@ namespace Engine
 		public:
 			using GlobalGraphicsPipeline::GlobalGraphicsPipeline;
 
-			const ShaderParameterInfo* scene_view         = nullptr;
-			const ShaderParameterInfo* base_color_texture = nullptr;
-			const ShaderParameterInfo* normal_texture     = nullptr;
-			const ShaderParameterInfo* emissive_texture   = nullptr;
-			const ShaderParameterInfo* msra_texture       = nullptr;
-			const ShaderParameterInfo* depth_texture      = nullptr;
-			const ShaderParameterInfo* parameters         = nullptr;
+			const RHIShaderParameterInfo* scene_view         = nullptr;
+			const RHIShaderParameterInfo* base_color_texture = nullptr;
+			const RHIShaderParameterInfo* normal_texture     = nullptr;
+			const RHIShaderParameterInfo* emissive_texture   = nullptr;
+			const RHIShaderParameterInfo* msra_texture       = nullptr;
+			const RHIShaderParameterInfo* depth_texture      = nullptr;
+			const RHIShaderParameterInfo* parameters         = nullptr;
 
 			void initialize() override;
 		};
@@ -123,10 +123,10 @@ namespace Engine
 			trinex_declare_pipeline(AmbientLight, GlobalGraphicsPipeline);
 
 		public:
-			const ShaderParameterInfo* scene_view    = nullptr;
-			const ShaderParameterInfo* base_color    = nullptr;
-			const ShaderParameterInfo* msra          = nullptr;
-			const ShaderParameterInfo* ambient_color = nullptr;
+			const RHIShaderParameterInfo* scene_view    = nullptr;
+			const RHIShaderParameterInfo* base_color    = nullptr;
+			const RHIShaderParameterInfo* msra          = nullptr;
+			const RHIShaderParameterInfo* ambient_color = nullptr;
 		};
 	}// namespace Pipelines
 }// namespace Engine

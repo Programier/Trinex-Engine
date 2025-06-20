@@ -17,7 +17,7 @@ uniform Arguments args;
 [ForceInline]
 static float4 calculate_swizzle(in float4 color)
 {
-	static const float swizzle[6] = {
+	const float swizzle[6] = {
 		color.r,
 		color.g,
 		color.b,

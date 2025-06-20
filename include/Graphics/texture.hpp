@@ -1,7 +1,6 @@
 #pragma once
-#include <Core/render_resource.hpp>
-
-struct ImGuiContext;
+#include <Graphics/render_resource.hpp>
+#include <RHI/resource_ptr.hpp>
 
 namespace Engine
 {
@@ -15,7 +14,7 @@ namespace Engine
 		trinex_declare_class(Texture, RenderResource);
 
 	protected:
-		RenderResourcePtr<RHI_Texture> m_texture;
+		RHIResourcePtr<RHI_Texture> m_texture;
 
 	public:
 		Texture& rhi_bind(byte location);
@@ -23,7 +22,6 @@ namespace Engine
 		Texture& rhi_bind_combined(byte location, Sampler* sampler);
 		RHI_ShaderResourceView* rhi_srv() const;
 		RHI_Texture* rhi_texture() const;
-		virtual TextureType type() const = 0;
 	};
 
 }// namespace Engine

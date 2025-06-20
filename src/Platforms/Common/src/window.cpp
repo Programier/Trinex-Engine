@@ -1,8 +1,8 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/struct.hpp>
-#include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <SDL_gamecontroller.h>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
@@ -365,9 +365,7 @@ namespace Engine
 
 			switch (attrib)
 			{
-				case WindowAttribute::Resizable:
-					SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(value));
-					break;
+				case WindowAttribute::Resizable: SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(value)); break;
 
 				case WindowAttribute::FullScreen:
 					fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
@@ -384,9 +382,7 @@ namespace Engine
 					value ? hide() : show();
 					break;
 				}
-				case WindowAttribute::BorderLess:
-					SDL_SetWindowBordered(m_window, static_cast<SDL_bool>(value));
-					break;
+				case WindowAttribute::BorderLess: SDL_SetWindowBordered(m_window, static_cast<SDL_bool>(value)); break;
 
 				case WindowAttribute::InputFocus:
 				{
@@ -420,8 +416,7 @@ namespace Engine
 					break;
 				}
 
-				default:
-					break;
+				default: break;
 			}
 
 

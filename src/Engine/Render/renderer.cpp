@@ -10,9 +10,9 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -23,7 +23,7 @@ namespace Engine
 	{
 		m_custom_passes.reserve(8);
 		m_globals = RHIBufferPool::global_instance()->request_transient_buffer(sizeof(GlobalShaderParameters),
-		                                                                       BufferCreateFlags::UniformBuffer);
+		                                                                       RHIBufferCreateFlags::UniformBuffer);
 
 		GlobalShaderParameters params;
 		params.update(&view);
@@ -40,17 +40,18 @@ namespace Engine
 		}
 	}
 
-	SurfaceFormat Renderer::format_of(Surface type)
+	RHISurfaceFormat Renderer::format_of(Surface type)
 	{
 		switch (type)
 		{
-			case Surface::SceneColor: return Settings::Rendering::enable_hdr ? SurfaceFormat::RGBA16F : SurfaceFormat::RGBA8;
-			case Surface::SceneDepth: return SurfaceFormat::Depth;
-			case Surface::BaseColor: return SurfaceFormat::RGBA8;
-			case Surface::Normal: return SurfaceFormat::RGBA16F;
-			case Surface::Emissive: return SurfaceFormat::RGBA8;
-			case Surface::MSRA: return SurfaceFormat::RGBA8;
-			default: return SurfaceFormat::RGBA8;
+			case Surface::SceneColor:
+				return Settings::Rendering::enable_hdr ? RHISurfaceFormat::RGBA16F : RHISurfaceFormat::RGBA8;
+			case Surface::SceneDepth: return RHISurfaceFormat::Depth;
+			case Surface::BaseColor: return RHISurfaceFormat::RGBA8;
+			case Surface::Normal: return RHISurfaceFormat::RGBA16F;
+			case Surface::Emissive: return RHISurfaceFormat::RGBA8;
+			case Surface::MSRA: return RHISurfaceFormat::RGBA8;
+			default: return RHISurfaceFormat::RGBA8;
 		}
 	}
 

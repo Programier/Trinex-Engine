@@ -18,8 +18,8 @@
 #include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/engine_system.hpp>

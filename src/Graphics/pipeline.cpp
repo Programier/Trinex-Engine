@@ -5,81 +5,18 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
-#include <Core/structures.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
 #include <Graphics/shader_compiler.hpp>
+#include <RHI/rhi.hpp>
+#include <RHI/rhi_initializers.hpp>
 
 namespace Engine
 {
-	trinex_implement_struct(Engine::GraphicsPipelineDescription::DepthTestInfo, 0)
-	{
-		auto* self = static_struct_instance();
-
-		trinex_refl_prop(self, This, func)->tooltip("Depth compare function");
-		trinex_refl_prop(self, This, enable)->tooltip("Enable depth test");
-		trinex_refl_prop(self, This, write_enable)->tooltip("Enable write to depth buffer");
-	}
-
-	trinex_implement_struct(Engine::GraphicsPipelineDescription::StencilTestInfo, 0)
-	{
-		auto* self = static_struct_instance();
-
-		trinex_refl_prop(self, This, enable)->tooltip("Enable stencil test");
-		trinex_refl_prop(self, This, fail)->tooltip("Operation on fail");
-		trinex_refl_prop(self, This, depth_pass)->tooltip("Operation on depth pass");
-		trinex_refl_prop(self, This, depth_fail)->tooltip("Operation on depth fail");
-		trinex_refl_prop(self, This, compare)->display_name("Compare func").tooltip("Stencil compare function");
-		trinex_refl_prop(self, This, compare_mask)->tooltip("Stencil compare mask");
-		trinex_refl_prop(self, This, write_mask)->tooltip("Stencil write mask");
-	}
-
-	trinex_implement_struct(Engine::GraphicsPipelineDescription::AssemblyInfo, 0)
-	{
-		auto* self = static_struct_instance();
-		trinex_refl_prop(self, This, primitive_topology)->tooltip("Primitive types which will be rendered by this pipeline");
-	}
-
-	trinex_implement_struct(Engine::GraphicsPipelineDescription::RasterizerInfo, 0)
-	{
-		auto* self = static_struct_instance();
-
-		trinex_refl_prop(self, This, polygon_mode);
-		trinex_refl_prop(self, This, cull_mode);
-		trinex_refl_prop(self, This, front_face);
-		trinex_refl_prop(self, This, line_width);
-	}
-
-	trinex_implement_struct(Engine::GraphicsPipelineDescription::ColorBlendingInfo, 0)
-	{
-		auto* self = static_struct_instance();
-
-		trinex_refl_prop(self, This, enable);
-		trinex_refl_prop(self, This, src_color_func);
-		trinex_refl_prop(self, This, dst_color_func);
-		trinex_refl_prop(self, This, color_op)->display_name("Color Operator");
-
-		trinex_refl_prop(self, This, src_alpha_func);
-		trinex_refl_prop(self, This, dst_alpha_func);
-		trinex_refl_prop(self, This, alpha_op)->display_name("Alpha Operator");
-		trinex_refl_prop(self, This, color_mask);
-	}
-
-	bool GraphicsPipelineDescription::serialize(Archive& ar)
-	{
-		ar.serialize(depth_test);
-		ar.serialize(stencil_test);
-		ar.serialize(input_assembly);
-		ar.serialize(rasterizer);
-		ar.serialize(color_blending);
-		return ar;
-	}
-
 	GraphicsPipeline::~GraphicsPipeline()
 	{
 		GraphicsPipeline::remove_shaders(ShaderType::All);
@@ -93,6 +30,11 @@ namespace Engine
 			return true;
 		}
 		return false;
+	}
+
+	static RHI_Shader* extract_shader(Shader* shader)
+	{
+		return shader ? shader->rhi_shader() : nullptr;
 	}
 
 	StringView Pipeline::pipeline_name_of(StringView name)
@@ -144,7 +86,7 @@ namespace Engine
 	Pipeline& Pipeline::clear()
 	{
 		m_pipeline = nullptr;
-		parameters.clear();
+		m_parameters.clear();
 		remove_shaders(ShaderType::All);
 		return *this;
 	}
@@ -164,12 +106,61 @@ namespace Engine
 		return Object::instance_cast<Material>(owner());
 	}
 
-	const ShaderParameterInfo* Pipeline::find_param_info(const Name& name) const
+	static bool pipeline_parameter_compare(const RHIShaderParameterInfo& a, const Name& name)
 	{
-		auto it = parameters.find(name);
-		if (it == parameters.end())
-			return nullptr;
-		return &it->second;
+		return a.name < name;
+	}
+
+	bool Pipeline::add_parameter(const RHIShaderParameterInfo& parameter, bool replace)
+	{
+		auto begin = m_parameters.begin();
+		auto end   = m_parameters.end();
+		auto it    = std::lower_bound(begin, end, parameter.name, pipeline_parameter_compare);
+
+		if (it != end && it->name == parameter.name)
+		{
+			if (replace)
+			{
+				(*it) = parameter;
+				return true;
+			}
+
+			error_log("Pipeline", "Parameter with name '%s' already exist!");
+			return false;
+		}
+
+		m_parameters.insert(it, parameter);
+		return true;
+	}
+
+	bool Pipeline::remove_parameter(const Name& name)
+	{
+		auto begin = m_parameters.begin();
+		auto end   = m_parameters.end();
+		auto it    = std::lower_bound(begin, end, name, pipeline_parameter_compare);
+
+		if (it != end && it->name == name)
+		{
+			m_parameters.erase(it);
+			return true;
+		}
+		return false;
+	}
+
+	const RHIShaderParameterInfo* Pipeline::find_parameter(const Name& name) const
+	{
+		auto begin = m_parameters.begin();
+		auto end   = m_parameters.end();
+		auto it    = std::lower_bound(begin, end, name, pipeline_parameter_compare);
+		return it == end ? nullptr : it;
+	}
+
+	Pipeline& Pipeline::parameters(const Vector<RHIShaderParameterInfo>& parameters)
+	{
+		using Info   = RHIShaderParameterInfo;
+		m_parameters = parameters;
+		std::sort(m_parameters.begin(), m_parameters.end(), [](const Info& a, const Info& b) { return a.name < b.name; });
+		return *this;
 	}
 
 	Pipeline* Pipeline::static_create_pipeline(Type type)
@@ -189,7 +180,25 @@ namespace Engine
 		init_shader(m_geometry_shader);
 		init_shader(m_fragment_shader);
 
-		render_thread()->call([this]() { m_pipeline = rhi->create_graphics_pipeline(this); });
+		render_thread()->call([this]() {
+			RHIGraphicsPipelineInitializer initializer;
+			initializer.vertex_shader               = extract_shader(vertex_shader());
+			initializer.tessellation_control_shader = extract_shader(tessellation_control_shader());
+			initializer.tessellation_shader         = extract_shader(tessellation_shader());
+			initializer.geometry_shader             = extract_shader(geometry_shader());
+			initializer.fragment_shader             = extract_shader(fragment_shader());
+			initializer.parameters                  = parameters().data();
+			initializer.parameters_count            = parameters().size();
+
+			initializer.parameters       = parameters().data();
+			initializer.parameters_count = parameters().size();
+
+			initializer.depth    = depth_test;
+			initializer.stencil  = stencil_test;
+			initializer.blending = color_blending;
+
+			m_pipeline = rhi->create_graphics_pipeline(&initializer);
+		});
 		return *this;
 	}
 
@@ -462,8 +471,6 @@ namespace Engine
 		{
 			archive.serialize(depth_test);
 			archive.serialize(stencil_test);
-			archive.serialize(input_assembly);
-			archive.serialize(rasterizer);
 			archive.serialize(color_blending);
 		}
 
@@ -531,7 +538,14 @@ namespace Engine
 	ComputePipeline& ComputePipeline::init_render_resources()
 	{
 		init_shader(m_shader);
-		render_thread()->call([this]() { m_pipeline = rhi->create_compute_pipeline(this); });
+		render_thread()->call([this]() {
+			RHIComputePipelineInitializer initializer;
+			initializer.compute_shader   = compute_shader()->rhi_shader();
+			initializer.parameters       = parameters().data();
+			initializer.parameters_count = parameters().size();
+
+			m_pipeline = rhi->create_compute_pipeline(&initializer);
+		});
 		return *this;
 	}
 
@@ -656,17 +670,6 @@ namespace Engine
 	bool GlobalComputePipeline::serialize(Archive& ar, Material* material)
 	{
 		return ar;
-	}
-
-	trinex_implement_engine_class(GraphicsPipelineDescription, 0)
-	{
-		auto* self = static_class_instance();
-
-		trinex_refl_prop(self, This, depth_test);
-		trinex_refl_prop(self, This, stencil_test);
-		trinex_refl_prop(self, This, input_assembly);
-		trinex_refl_prop(self, This, rasterizer);
-		trinex_refl_prop(self, This, color_blending);
 	}
 
 	trinex_implement_engine_class_default_init(Pipeline, 0);

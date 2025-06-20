@@ -6,7 +6,7 @@
 #include <Core/tickable.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -20,14 +20,14 @@ namespace Engine
 
 	static constexpr uint64_t s_resource_live_threshold = 60 * 3;
 
-	static inline Identifier static_calculate_surface_id(SurfaceFormat format, Vector2u size)
+	static inline Identifier static_calculate_surface_id(RHISurfaceFormat format, Vector2u size)
 	{
 		union SurfaceID
 		{
 			Identifier id;
 
 			struct Value {
-				SurfaceFormat format;
+				RHISurfaceFormat format;
 				uint16_t x;
 				uint16_t y;
 			} value;
@@ -42,7 +42,7 @@ namespace Engine
 		return id.id;
 	}
 
-	static inline Identifier static_calculate_buffer_id(uint32_t size, BufferCreateFlags flags)
+	static inline Identifier static_calculate_buffer_id(uint32_t size, RHIBufferCreateFlags flags)
 	{
 		return (static_cast<Identifier>(size) << 32) | flags.bitfield;
 	}
@@ -144,12 +144,12 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Buffer* RHIBufferPool::request_buffer(uint32_t size, BufferCreateFlags flags)
+	RHI_Buffer* RHIBufferPool::request_buffer(uint32_t size, RHIBufferCreateFlags flags)
 	{
 		if (size == 0)
 			return nullptr;
 
-		flags |= BufferCreateFlags::Dynamic;
+		flags |= RHIBufferCreateFlags::Dynamic;
 		const Identifier buffer_id = static_calculate_buffer_id(size, flags);
 		auto& pool                 = m_pools[buffer_id];
 
@@ -165,7 +165,7 @@ namespace Engine
 		return buffer;
 	}
 
-	RHI_Buffer* RHIBufferPool::request_transient_buffer(uint32_t size, BufferCreateFlags flags)
+	RHI_Buffer* RHIBufferPool::request_transient_buffer(uint32_t size, RHIBufferCreateFlags flags)
 	{
 		if (auto buffer = request_buffer(size, flags))
 		{
@@ -234,7 +234,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Texture* RHISurfacePool::request_surface(SurfaceFormat format, Vector2u size)
+	RHI_Texture* RHISurfacePool::request_surface(RHISurfaceFormat format, Vector2u size)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
@@ -249,16 +249,16 @@ namespace Engine
 			return surface;
 		}
 
-		TextureCreateFlags flags = TextureCreateFlags::ShaderResource;
+		RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
 
 		if (format.is_color())
 		{
-			flags |= TextureCreateFlags::RenderTarget;
-			flags |= TextureCreateFlags::UnorderedAccess;
+			flags |= RHITextureCreateFlags::RenderTarget;
+			flags |= RHITextureCreateFlags::UnorderedAccess;
 		}
 		else if (format.has_depth())
 		{
-			flags |= TextureCreateFlags::DepthStencilTarget;
+			flags |= RHITextureCreateFlags::DepthStencilTarget;
 		}
 
 		RHI_Texture* surface  = rhi->create_texture_2d(format, size, 1, flags);
@@ -266,7 +266,7 @@ namespace Engine
 		return surface;
 	}
 
-	RHI_Texture* RHISurfacePool::request_transient_surface(SurfaceFormat format, Vector2u size)
+	RHI_Texture* RHISurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size)
 	{
 		if (auto surface = request_surface(format, size))
 		{
@@ -339,7 +339,7 @@ namespace Engine
 		return *this;
 	}
 
-	RenderSurface* RenderSurfacePool::request_surface(SurfaceFormat format, Vector2u size)
+	RenderSurface* RenderSurfacePool::request_surface(RHISurfaceFormat format, Vector2u size)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
@@ -363,7 +363,7 @@ namespace Engine
 		return surface;
 	}
 
-	RenderSurface* RenderSurfacePool::request_transient_surface(SurfaceFormat format, Vector2u size)
+	RenderSurface* RenderSurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size)
 	{
 		if (auto surface = request_surface(format, size))
 		{

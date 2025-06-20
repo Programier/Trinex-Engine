@@ -19,7 +19,7 @@ namespace Engine
 		m_inv_projview = glm::inverse(m_projview);
 	}
 
-	SceneView::SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor, ShowFlags show_flags)
+	SceneView::SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissors& scissor, ShowFlags show_flags)
 	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_viewport(viewport),
 	      m_scissor(scissor), m_show_flags(show_flags)
 	{
@@ -39,13 +39,13 @@ namespace Engine
 		return *this;
 	}
 
-	SceneView& SceneView::viewport(const ViewPort& viewport)
+	SceneView& SceneView::viewport(const RHIViewport& viewport)
 	{
 		m_viewport = viewport;
 		return *this;
 	}
 
-	SceneView& SceneView::scissor(const Scissor& scissor)
+	SceneView& SceneView::scissor(const RHIScissors& scissor)
 	{
 		m_scissor = scissor;
 		return *this;

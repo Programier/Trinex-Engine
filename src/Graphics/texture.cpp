@@ -1,7 +1,7 @@
 #include <Core/reflection/class.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -15,13 +15,15 @@ namespace Engine
 
 	Texture& Texture::rhi_bind_combined(byte location, RHI_Sampler* sampler)
 	{
-		rhi->bind_srv(rhi_srv(), location, sampler);
+		rhi->bind_srv(rhi_srv(), location);
+		rhi->bind_sampler(sampler, location);
 		return *this;
 	}
 
 	Texture& Texture::rhi_bind_combined(byte location, Sampler* sampler)
 	{
-		rhi->bind_srv(rhi_srv(), location, sampler->rhi_sampler());
+		rhi->bind_srv(rhi_srv(), location);
+		rhi->bind_sampler(sampler->rhi_sampler(), location);
 		return *this;
 	}
 

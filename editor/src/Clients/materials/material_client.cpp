@@ -16,8 +16,8 @@
 #include <Graphics/material.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/shader_compiler.hpp>
+#include <RHI/rhi.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/mesh_preview.hpp>
 #include <Widgets/property_renderer.hpp>

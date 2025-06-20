@@ -2,8 +2,8 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/object.hpp>
-#include <Core/structures.hpp>
 #include <Graphics/material_parameter.hpp>
+#include <RHI/pipeline.hpp>
 
 namespace Engine
 {
@@ -14,7 +14,6 @@ namespace Engine
 
 	class Pipeline;
 	class GraphicsPipeline;
-	class GraphicsPipelineDescription;
 	struct RendererContext;
 	class RenderPass;
 
@@ -55,7 +54,6 @@ namespace Engine
 
 	protected:
 		Map<RenderPass*, GraphicsPipeline*> m_pipelines;
-		GraphicsPipelineDescription* m_graphics_options = nullptr;
 
 		bool register_child(Object* child) override;
 		bool unregister_child(Object* child) override;
@@ -67,7 +65,9 @@ namespace Engine
 	public:
 		MaterialDomain domain;
 
-		Vector<ShaderDefinition> compile_definitions;
+		RHIDepthTest depth_test;
+		RHIStencilTest stencil_test;
+		RHIColorBlending color_blending;
 
 		Material();
 		GraphicsPipeline* pipeline(RenderPass* pass) const;
@@ -84,10 +84,7 @@ namespace Engine
 		virtual Material& post_compile(RenderPass* pass, GraphicsPipeline* pipeline);
 		virtual bool shader_source(String& out_source) = 0;
 
-		inline GraphicsPipelineDescription* graphics_description() const { return m_graphics_options; }
-
 		~Material();
-
 		friend class MaterialInstance;
 	};
 

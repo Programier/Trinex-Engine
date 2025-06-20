@@ -6,7 +6,7 @@
 #include <Core/thread.hpp>
 #include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
-#include <Graphics/rhi.hpp>
+#include <RHI/rhi.hpp>
 #include <Systems/engine_system.hpp>
 
 namespace Engine

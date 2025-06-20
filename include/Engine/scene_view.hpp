@@ -1,7 +1,7 @@
 #pragma once
-#include <Core/flags.hpp>
-#include <Core/structures.hpp>
 #include <Engine/camera_types.hpp>
+#include <Engine/enums.hpp>
+#include <RHI/structures.hpp>
 
 namespace Engine
 {
@@ -13,28 +13,28 @@ namespace Engine
 		Matrix4f m_view;
 		Matrix4f m_projview;
 		Matrix4f m_inv_projview;
-		ViewPort m_viewport;
-		Scissor m_scissor;
+		RHIViewport m_viewport;
+		RHIScissors m_scissor;
 		ShowFlags m_show_flags;
 
 	public:
 		SceneView(ShowFlags show_flags = ShowFlags::DefaultFlags);
 		SceneView(const CameraView& view, const Size2D& view_size, ShowFlags show_flags = ShowFlags::DefaultFlags);
-		SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor,
+		SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissors& scissor,
 		          ShowFlags show_flags = ShowFlags::DefaultFlags);
 		copy_constructors_hpp(SceneView);
 
 	public:
 		SceneView& camera_view(const CameraView& view);
-		SceneView& viewport(const ViewPort& viewport);
-		SceneView& scissor(const Scissor& scissor);
+		SceneView& viewport(const RHIViewport& viewport);
+		SceneView& scissor(const RHIScissors& scissor);
 
 		SceneView& show_flags(ShowFlags flags);
 		const SceneView& screen_to_world(const Vector2f& screen_point, Vector3f& world_origin, Vector3f& world_direction) const;
 		Vector4f world_to_screen(const Vector3f& world_point) const;
 
-		FORCE_INLINE const ViewPort& viewport() const { return m_viewport; }
-		FORCE_INLINE const Scissor& scissor() const { return m_scissor; }
+		FORCE_INLINE const RHIViewport& viewport() const { return m_viewport; }
+		FORCE_INLINE const RHIScissors& scissor() const { return m_scissor; }
 		FORCE_INLINE const Matrix4f& view_matrix() const { return m_view; }
 		FORCE_INLINE const Matrix4f& projection_matrix() const { return m_projection; }
 		FORCE_INLINE const Matrix4f& projview_matrix() const { return m_projview; }

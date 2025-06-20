@@ -24,7 +24,7 @@
 
 #define return_undefined_if_not(cond)                                                                                            \
 	if (!(cond))                                                                                                                 \
-	return ShaderParameterType::Undefined
+	return RHIShaderParameterType::Undefined
 
 #define check_compile_errors()                                                                                                   \
 	if (log_handler.has_error)                                                                                                   \
@@ -141,27 +141,18 @@ namespace Engine
 				return trace_offset(static_cast<SlangParameterCategory>(category));
 			}
 
-			bool parameter_name(TreeMap<Name, ShaderParameterInfo>& params, Name& out) const
+			StringView parameter_name() const
 			{
-				Name result;
+				StringView result;
 				if (auto attr = find_attribute("name"))
 				{
-					auto view = parse_string_attribute(attr, 0);
-					if (!view.empty())
-						result = view;
+					result = parse_string_attribute(attr, 0);
+
+					if (!result.empty())
+						return result;
 				}
 
-				if (!result.is_valid())
-					result = name;
-
-				if (params.contains(result))
-				{
-					error_log("ShaderCompiler", "Parameter name with name '%s' already exist!", result.c_str());
-					return false;
-				}
-
-				out = result;
-				return true;
+				return name;
 			}
 
 			inline slang::UserAttribute* find_attribute(const char* attribute) const
@@ -179,8 +170,8 @@ namespace Engine
 		Pipeline* m_pipeline;
 
 	public:
-		using TypeDetector = ShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
-		                                         slang::TypeReflection::ScalarType);
+		using TypeDetector = RHIShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
+		                                            slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
 		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, uint_t index)
@@ -192,12 +183,12 @@ namespace Engine
 			return StringView();
 		}
 
-		static ShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
+		static RHIShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
 		{
-			static Map<StringView, ShaderParameterType::Enum> map = {
-			        {"LocalToWorld", ShaderParameterType::LocalToWorld},      //
-			        {"Surface", ShaderParameterType::Surface},                //
-			        {"CombinedSurface", ShaderParameterType::CombinedSurface},//
+			static Map<StringView, RHIShaderParameterType::Enum> map = {
+			        {"LocalToWorld", RHIShaderParameterType::LocalToWorld},      //
+			        {"Surface", RHIShaderParameterType::Surface},                //
+			        {"CombinedSurface", RHIShaderParameterType::CombinedSurface},//
 			};
 
 			if (auto attrib = var->findAttributeByName(global_session(), "parameter_type"))
@@ -208,7 +199,7 @@ namespace Engine
 					return it->second;
 			}
 
-			return ShaderParameterType::Undefined;
+			return RHIShaderParameterType::Undefined;
 		}
 
 		static uint32_t find_vertex_stream(slang::VariableReflection* var, uint32_t default_stream)
@@ -239,19 +230,19 @@ namespace Engine
 			return 0;
 		}
 
-		static bool find_semantic(String name, VertexBufferSemantic& out_semantic)
+		static bool find_semantic(String name, RHIVertexBufferSemantic& out_semantic)
 		{
 			name = Strings::to_lower(name);
 
-			static const TreeMap<String, VertexBufferSemantic> semantics = {
-			        {"position", VertexBufferSemantic::Position},       //
-			        {"texcoord", VertexBufferSemantic::TexCoord},       //
-			        {"color", VertexBufferSemantic::Color},             //
-			        {"normal", VertexBufferSemantic::Normal},           //
-			        {"tangent", VertexBufferSemantic::Tangent},         //
-			        {"bitangent", VertexBufferSemantic::Bitangent},     //
-			        {"blendweight", VertexBufferSemantic::BlendWeight}, //
-			        {"blendindices", VertexBufferSemantic::BlendIndices}//
+			static const TreeMap<String, RHIVertexBufferSemantic> semantics = {
+			        {"position", RHIVertexBufferSemantic::Position},       //
+			        {"texcoord", RHIVertexBufferSemantic::TexCoord},       //
+			        {"color", RHIVertexBufferSemantic::Color},             //
+			        {"normal", RHIVertexBufferSemantic::Normal},           //
+			        {"tangent", RHIVertexBufferSemantic::Tangent},         //
+			        {"bitangent", RHIVertexBufferSemantic::Bitangent},     //
+			        {"blendweight", RHIVertexBufferSemantic::BlendWeight}, //
+			        {"blendindices", RHIVertexBufferSemantic::BlendIndices}//
 			};
 
 			auto it = semantics.find(name);
@@ -267,10 +258,11 @@ namespace Engine
 			}
 		}
 
-		static VertexBufferElementType find_vertex_element_type(slang::TypeLayoutReflection* var, VertexBufferSemantic semantic)
+		static RHIVertexBufferElementType find_vertex_element_type(slang::TypeLayoutReflection* var,
+		                                                           RHIVertexBufferSemantic semantic)
 		{
 			if (var == nullptr)
-				return VertexBufferElementType::Undefined;
+				return RHIVertexBufferElementType::Undefined;
 
 			auto kind = var->getKind();
 
@@ -278,14 +270,14 @@ namespace Engine
 			{
 				switch (var->getScalarType())
 				{
-					case slang::TypeReflection::ScalarType::Int8: return VertexBufferElementType::Byte1;
-					case slang::TypeReflection::ScalarType::UInt8: return VertexBufferElementType::UByte1;
-					case slang::TypeReflection::ScalarType::Int16: return VertexBufferElementType::Short1;
-					case slang::TypeReflection::ScalarType::UInt16: return VertexBufferElementType::UShort1;
-					case slang::TypeReflection::ScalarType::Int32: return VertexBufferElementType::Int1;
-					case slang::TypeReflection::ScalarType::UInt32: return VertexBufferElementType::UInt1;
-					case slang::TypeReflection::ScalarType::Float32: return VertexBufferElementType::Float1;
-					default: return VertexBufferElementType::Undefined;
+					case slang::TypeReflection::ScalarType::Int8: return RHIVertexBufferElementType::Byte1;
+					case slang::TypeReflection::ScalarType::UInt8: return RHIVertexBufferElementType::UByte1;
+					case slang::TypeReflection::ScalarType::Int16: return RHIVertexBufferElementType::Short1;
+					case slang::TypeReflection::ScalarType::UInt16: return RHIVertexBufferElementType::UShort1;
+					case slang::TypeReflection::ScalarType::Int32: return RHIVertexBufferElementType::Int1;
+					case slang::TypeReflection::ScalarType::UInt32: return RHIVertexBufferElementType::UInt1;
+					case slang::TypeReflection::ScalarType::Float32: return RHIVertexBufferElementType::Float1;
+					default: return RHIVertexBufferElementType::Undefined;
 				}
 			}
 			else if (kind == slang::TypeReflection::Kind::Vector)
@@ -294,24 +286,23 @@ namespace Engine
 				auto components_offset = var->getElementCount() - 1;
 
 				if (components_offset > 3)
-					return VertexBufferElementType::Undefined;
+					return RHIVertexBufferElementType::Undefined;
 
-				if (components_offset == 3 &&
-				    !is_in<VertexBufferElementType::Float1, VertexBufferElementType::Int1, VertexBufferElementType::UInt1>(
-				            base_type))
+				if (components_offset == 3 && !is_in<RHIVertexBufferElementType::Float1, RHIVertexBufferElementType::Int1,
+				                                     RHIVertexBufferElementType::UInt1>(base_type))
 				{
 					--components_offset;
 				}
 
-				VertexBufferElementType result(
-				        static_cast<VertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
+				RHIVertexBufferElementType result(
+				        static_cast<RHIVertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
 
-				if (semantic == VertexBufferSemantic::Color && result == VertexBufferElementType::Float4)
-					return VertexBufferElementType::Color;
+				if (semantic == RHIVertexBufferSemantic::Color && result == RHIVertexBufferElementType::Float4)
+					return RHIVertexBufferElementType::Color;
 				return result;
 			}
 
-			return VertexBufferElementType::Undefined;
+			return RHIVertexBufferElementType::Undefined;
 		}
 
 		bool parse_vertex_semantic(const VarTraceEntry& var)
@@ -338,7 +329,7 @@ namespace Engine
 			}
 			else if (var.kind == slang::TypeReflection::Kind::Vector || var.kind == slang::TypeReflection::Kind::Scalar)
 			{
-				VertexAttribute attribute;
+				RHIVertexAttribute attribute;
 
 				const char* semantic_name = var->getSemanticName();
 
@@ -353,13 +344,13 @@ namespace Engine
 					return false;
 				}
 
-				if (is_not_in<VertexBufferSemantic::Position, //
-				              VertexBufferSemantic::TexCoord, //
-				              VertexBufferSemantic::Color,    //
-				              VertexBufferSemantic::Normal,   //
-				              VertexBufferSemantic::Tangent,  //
-				              VertexBufferSemantic::Bitangent,//
-				              VertexBufferSemantic::BlendWeight>(attribute.semantic))
+				if (is_not_in<RHIVertexBufferSemantic::Position, //
+				              RHIVertexBufferSemantic::TexCoord, //
+				              RHIVertexBufferSemantic::Color,    //
+				              RHIVertexBufferSemantic::Normal,   //
+				              RHIVertexBufferSemantic::Tangent,  //
+				              RHIVertexBufferSemantic::Bitangent,//
+				              RHIVertexBufferSemantic::BlendWeight>(attribute.semantic))
 				{
 					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
 					return false;
@@ -368,8 +359,8 @@ namespace Engine
 				attribute.semantic_index = var->getSemanticIndex();
 				attribute.name           = var.name;
 				attribute.rate           = var->getVariable()->findAttributeByName(global_session(), "per_instance")
-				                                   ? VertexAttributeInputRate::Instance
-				                                   : VertexAttributeInputRate::Vertex;
+				                                   ? RHIVertexAttributeInputRate::Instance
+				                                   : RHIVertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
 				attribute.location       = var.trace_offset(slang::ParameterCategory::VertexInput);
 				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
@@ -394,11 +385,11 @@ namespace Engine
 			return true;
 		}
 
-		static ShaderParameterType find_scalar_parameter_type(slang::VariableLayoutReflection* var)
+		static RHIShaderParameterType find_scalar_parameter_type(slang::VariableLayoutReflection* var)
 		{
 			auto type = find_parameter_type_from_attributes(var->getVariable());
 
-			if (type != ShaderParameterType::Undefined)
+			if (type != RHIShaderParameterType::Undefined)
 				return type;
 
 			auto reflection = var->getType();
@@ -412,14 +403,14 @@ namespace Engine
 				for (auto& detector : type_detectors)
 				{
 					auto type = detector(var, rows, colums, elements, scalar);
-					if (type != ShaderParameterType::Undefined)
+					if (type != RHIShaderParameterType::Undefined)
 					{
 						return type;
 					}
 				}
 			}
 
-			return ShaderParameterType::MemoryBlock;
+			return RHIShaderParameterType::MemoryBlock;
 		}
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
@@ -434,10 +425,10 @@ namespace Engine
 				if (param.kind == slang::TypeReflection::Kind::Matrix && param.is_excluded(VarTraceEntry::exclude_matrix))
 					return true;
 
-				ShaderParameterInfo info;
+				RHIShaderParameterInfo info;
 				info.type = find_scalar_parameter_type(param.var);
 
-				if (info.type == ShaderParameterType::Undefined)
+				if (info.type == RHIShaderParameterType::Undefined)
 				{
 					error_log("ShaderCompiler", "Failed to get parameter type!");
 					return false;
@@ -453,12 +444,10 @@ namespace Engine
 					return false;
 				}
 
-				if (!param.parameter_name(m_pipeline->parameters, info.name))
-					return false;
-
-				info.offset                       = param.trace_offset(slang::ParameterCategory::Uniform);
-				info.location                     = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
-				m_pipeline->parameters[info.name] = info;
+				info.name    = param.parameter_name();
+				info.offset  = param.trace_offset(slang::ParameterCategory::Uniform);
+				info.binding = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+				return m_pipeline->add_parameter(info);
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
@@ -473,45 +462,39 @@ namespace Engine
 					{
 						auto binding_type = type_layout->getBindingRangeType(0);
 
-						ShaderParameterInfo object;
+						RHIShaderParameterInfo object;
+						object.name    = param.parameter_name();
+						object.binding = param.trace_offset(param.category());
+						object.type    = type;
 
-						if (!param.parameter_name(m_pipeline->parameters, object.name))
-							return false;
-
-						object.location = param.trace_offset(param.category());
-						object.type     = type;
-
-						if (type == ShaderParameterType::Undefined)
+						if (type == RHIShaderParameterType::Undefined)
 						{
 							switch (binding_type)
 							{
 								case slang::BindingType::CombinedTextureSampler:
-									object.type = ShaderParameterType::Sampler2D;
+									object.type = RHIShaderParameterType::Sampler2D;
 									break;
 
-								case slang::BindingType::Texture: object.type = ShaderParameterType::Texture2D; break;
+								case slang::BindingType::Texture: object.type = RHIShaderParameterType::Texture2D; break;
 
-								case slang::BindingType::MutableTexture: object.type = ShaderParameterType::RWTexture2D; break;
+								case slang::BindingType::MutableTexture: object.type = RHIShaderParameterType::RWTexture2D; break;
 
 								default: return false;
 							}
 						}
 
-						m_pipeline->parameters[object.name] = object;
+						return m_pipeline->add_parameter(object);
 					}
 				}
 			}
 			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_sampler))
 			{
-				ShaderParameterInfo object;
-
-				if (!param.parameter_name(m_pipeline->parameters, object.name))
-					return false;
-
-				object.location                     = param.trace_offset(param.category());
-				object.type                         = ShaderParameterType::Sampler;
-				m_pipeline->parameters[object.name] = object;
+				RHIShaderParameterInfo object;
+				object.name    = param.parameter_name();
+				object.binding = param.trace_offset(param.category());
+				object.type    = RHIShaderParameterType::Sampler;
+				m_pipeline->add_parameter(object);
 			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))
 			{
@@ -528,7 +511,7 @@ namespace Engine
 						additional_exclude |= VarTraceEntry::exclude_vector;
 						additional_exclude |= VarTraceEntry::exclude_matrix;
 
-						ShaderParameterInfo info;
+						RHIShaderParameterInfo info;
 
 						if (auto layout = param.var->getTypeLayout())
 						{
@@ -540,14 +523,11 @@ namespace Engine
 							return false;
 						}
 
-						info.type = ShaderParameterType::MemoryBlock;
-
-						if (!param.parameter_name(m_pipeline->parameters, info.name))
-							return false;
-
-						info.offset                       = param.trace_offset(slang::ParameterCategory::Uniform);
-						info.location                     = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
-						m_pipeline->parameters[info.name] = info;
+						info.type    = RHIShaderParameterType::MemoryBlock;
+						info.name    = param.parameter_name();
+						info.offset  = param.trace_offset(slang::ParameterCategory::Uniform);
+						info.binding = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+						m_pipeline->add_parameter(info);
 					}
 				}
 
@@ -565,16 +545,13 @@ namespace Engine
 
 				if (is_scene_view(layout))
 				{
-					ShaderParameterInfo object;
-
-					if (!param.parameter_name(m_pipeline->parameters, object.name))
-						return false;
-
-					object.location                     = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
-					object.type                         = ShaderParameterType::Globals;
-					object.size                         = sizeof(GlobalShaderParameters);
-					object.offset                       = 0;
-					m_pipeline->parameters[object.name] = object;
+					RHIShaderParameterInfo object;
+					object.name    = param.parameter_name();
+					object.binding = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
+					object.type    = RHIShaderParameterType::Globals;
+					object.size    = sizeof(GlobalShaderParameters);
+					object.offset  = 0;
+					return m_pipeline->add_parameter(object);
 				}
 				else
 				{
@@ -632,8 +609,8 @@ namespace Engine
 		using SVR    = slang::VariableReflection;
 		using SVLR   = slang ::VariableLayoutReflection;
 
-		template<ShaderParameterType type, Scalar required_scalar>
-		static ShaderParameterType primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<RHIShaderParameterType type, Scalar required_scalar>
+		static RHIShaderParameterType primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			return_undefined_if_not(rows == 1);
 			return_undefined_if_not(columns == 1);
@@ -642,8 +619,8 @@ namespace Engine
 			return type;
 		}
 
-		template<ShaderParameterType type, uint32_t len, Scalar required_scalar>
-		static ShaderParameterType vector(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<RHIShaderParameterType type, uint32_t len, Scalar required_scalar>
+		static RHIShaderParameterType vector(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			return_undefined_if_not(rows == 1);
 			return_undefined_if_not(columns == len);
@@ -652,8 +629,8 @@ namespace Engine
 			return type;
 		}
 
-		template<ShaderParameterType type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
-		static ShaderParameterType matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<RHIShaderParameterType type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
+		static RHIShaderParameterType matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
 		{
 			return_undefined_if_not(rows == required_rows);
 			return_undefined_if_not(rows == required_rows);
@@ -668,7 +645,7 @@ namespace Engine
 	{
 		using T      = TypeDetector;
 		using Scalar = slang::TypeReflection::ScalarType;
-		using MP     = ShaderParameterType;
+		using MP     = RHIShaderParameterType;
 
 		ReflectionParser::type_detectors.push_back(T::primitive<MP::Bool, Scalar::Bool>);
 		ReflectionParser::type_detectors.push_back(T::primitive<MP::Int, Scalar::Int32>);

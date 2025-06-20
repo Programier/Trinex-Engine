@@ -2,7 +2,7 @@ namespace Engine::VisualMaterialGraph
 {
 	class CommonInput : Node
 	{
-		CommonInput(ShaderParameterType type)
+		CommonInput(RHIShaderParameterType type)
 		{
 			new_output("Out", type);
 		}
@@ -17,16 +17,16 @@ namespace Engine::VisualMaterialGraph
 
 	class Constant : Node
 	{
-		Constant(ShaderParameterType type)
+		Constant(RHIShaderParameterType type)
 		{
 			new_output("Out", type, type);
 		}
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler) override { return compiler.compile_default(pin); }
 		
-		void create(ShaderParameterType type)
+		void create(RHIShaderParameterType type)
 		{
-			new_output("Out", ShaderParameterType::Float, ShaderParameterType::Float);
+			new_output("Out", RHIShaderParameterType::Float, RHIShaderParameterType::Float);
 		}
 	};
 
@@ -35,17 +35,17 @@ namespace Engine::VisualMaterialGraph
 		InputPin@ m_in0 = new_input("In", in0_type(), in0_default_type());
 		OutputPin@ m_out0 = new_output("Out", out0_type());
 
-		ShaderParameterType in0_type() const { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in0_default_type() const { return ShaderParameterType::Float; }
-		ShaderParameterType out0_type() const { return ShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_type() const { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_default_type() const { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType out0_type() const { return RHIShaderParameterType::META_Numeric; }
 		
 		string expr() const { return ""; }
-		ShaderParameterType resolve_args(Expression& in0) const { return in0.type; }
+		RHIShaderParameterType resolve_args(Expression& in0) const { return in0.type; }
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
 			Expression in0 = compiler.compile(m_in0);
-			ShaderParameterType result_type = resolve_args(in0);
+			RHIShaderParameterType result_type = resolve_args(in0);
 			return Expression(result_type, expr().format(in0.value));
 		}
 	};
@@ -59,17 +59,17 @@ namespace Engine::VisualMaterialGraph
 		string in0_name() const { return "A"; }
 		string in1_name() const { return "B"; }
 		
-		ShaderParameterType in0_type() const { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in0_default_type() const { return ShaderParameterType::Float; }
-		ShaderParameterType in1_type() const { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in1_default_type() const { return ShaderParameterType::Float; }
-		ShaderParameterType out0_type() const { return ShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_type() const { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_default_type() const { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType in1_type() const { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in1_default_type() const { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType out0_type() const { return RHIShaderParameterType::META_Numeric; }
 		
 		string expr() const { return ""; }
 		
-		ShaderParameterType resolve_args(Expression& in0, Expression& in1) const 
+		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1) const 
 		{
-			ShaderParameterType type = Expression::static_resolve(in0.type, in1.type);
+			RHIShaderParameterType type = Expression::static_resolve(in0.type, in1.type);
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
 			return type;
@@ -79,7 +79,7 @@ namespace Engine::VisualMaterialGraph
 		{
 			Expression in0 = compiler.compile(m_in0);
 			Expression in1 = compiler.compile(m_in1);
-			ShaderParameterType result_type = resolve_args(in0, in1);		
+			RHIShaderParameterType result_type = resolve_args(in0, in1);		
 			return Expression(result_type, expr().format(in0.value, in1.value));
 		}
 	};
@@ -89,25 +89,25 @@ namespace Engine::VisualMaterialGraph
 		InputPin@ m_in0 = new_input(in0_name(), in0_type(), in0_default_type());
 		InputPin@ m_in1 = new_input(in1_name(), in1_type(), in1_default_type());
 		InputPin@ m_in2 = new_input(in2_name(), in2_type(), in2_default_type());
-		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Numeric);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Numeric);
 
 		string in0_name() const { return "A"; }
 		string in1_name() const { return "B"; }
 		string in2_name() const { return "C"; }
 		
-		ShaderParameterType in0_type() const { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in0_default_type() const { return ShaderParameterType::Float; }
-		ShaderParameterType in1_type() const { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in1_default_type() const { return ShaderParameterType::Float; }
-		ShaderParameterType in2_type() const { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in2_default_type() const { return ShaderParameterType::Float; }
-		ShaderParameterType out0_type() const { return ShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_type() const { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_default_type() const { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType in1_type() const { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in1_default_type() const { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType in2_type() const { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in2_default_type() const { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType out0_type() const { return RHIShaderParameterType::META_Numeric; }
 		
 		string expr() const { return ""; }
 		
-		ShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const 
+		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const 
 		{
-			ShaderParameterType type = Expression::static_resolve(in0.type, in1.type, in2.type);
+			RHIShaderParameterType type = Expression::static_resolve(in0.type, in1.type, in2.type);
 			
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
@@ -121,14 +121,14 @@ namespace Engine::VisualMaterialGraph
 			Expression in1 = compiler.compile(m_in1);
 			Expression in2 = compiler.compile(m_in2);
 
-			ShaderParameterType result_type = resolve_args(in0, in1, in2);
+			RHIShaderParameterType result_type = resolve_args(in0, in1, in2);
 			return Expression(result_type, expr().format(in0.value, in1.value, in2.value));
 		}
 	};
 
 	class FloatUnary : Unary
 	{
-		ShaderParameterType resolve_args(Expression& in0) const override 
+		RHIShaderParameterType resolve_args(Expression& in0) const override 
 		{ 
 			in0 = in0.to_floating();
 			return in0.type; 
@@ -137,9 +137,9 @@ namespace Engine::VisualMaterialGraph
 
 	class FloatBinary : Binary
 	{
-		ShaderParameterType resolve_args(Expression& in0, Expression& in1) const override 
+		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1) const override 
 		{ 
-			ShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
+			RHIShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
 			in0 = in0.convert(type); 
 			in1 = in1.convert(type); 
 			return type;
@@ -148,17 +148,17 @@ namespace Engine::VisualMaterialGraph
 
 	class Float3Binary : Binary
 	{
-		ShaderParameterType in0_type() const override { return ShaderParameterType::Float3; }
-		ShaderParameterType in0_default_type() const override { return ShaderParameterType::Float3; }
-		ShaderParameterType in1_type() const override { return ShaderParameterType::Float3; }
-		ShaderParameterType in1_default_type() const override { return ShaderParameterType::Float3; }
+		RHIShaderParameterType in0_type() const override { return RHIShaderParameterType::Float3; }
+		RHIShaderParameterType in0_default_type() const override { return RHIShaderParameterType::Float3; }
+		RHIShaderParameterType in1_type() const override { return RHIShaderParameterType::Float3; }
+		RHIShaderParameterType in1_default_type() const override { return RHIShaderParameterType::Float3; }
 	};
 
 	class FloatTernary : Ternary
 	{
-		ShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
+		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
 		{ 
-			ShaderParameterType type = Expression::static_resolve(
+			RHIShaderParameterType type = Expression::static_resolve(
 				Expression::static_make_float(in0.type), 
 				Expression::static_make_float(in1.type),
 				Expression::static_make_float(in2.type)
@@ -174,127 +174,127 @@ namespace Engine::VisualMaterialGraph
 
 	/////////////////////////////// CONSTANTS ///////////////////////////////
 
-	[node_group("Constants")] class ConstantBool  : Constant { ConstantBool()  { super(ShaderParameterType::Bool);  } };
-	[node_group("Constants")] class ConstantBool2 : Constant { ConstantBool2() { super(ShaderParameterType::Bool2); } };
-	[node_group("Constants")] class ConstantBool3 : Constant { ConstantBool3() { super(ShaderParameterType::Bool3); } };
-	[node_group("Constants")] class ConstantBool4 : Constant { ConstantBool4() { super(ShaderParameterType::Bool4); } };
+	[node_group("Constants")] class ConstantBool  : Constant { ConstantBool()  { super(RHIShaderParameterType::Bool);  } };
+	[node_group("Constants")] class ConstantBool2 : Constant { ConstantBool2() { super(RHIShaderParameterType::Bool2); } };
+	[node_group("Constants")] class ConstantBool3 : Constant { ConstantBool3() { super(RHIShaderParameterType::Bool3); } };
+	[node_group("Constants")] class ConstantBool4 : Constant { ConstantBool4() { super(RHIShaderParameterType::Bool4); } };
 
-	[node_group("Constants")] class ConstantInt  : Constant { ConstantInt()  { super(ShaderParameterType::Int);  } };
-	[node_group("Constants")] class ConstantInt2 : Constant { ConstantInt2() { super(ShaderParameterType::Int2); } };
-	[node_group("Constants")] class ConstantInt3 : Constant { ConstantInt3() { super(ShaderParameterType::Int3); } };
-	[node_group("Constants")] class ConstantInt4 : Constant { ConstantInt4() { super(ShaderParameterType::Int4); } };
+	[node_group("Constants")] class ConstantInt  : Constant { ConstantInt()  { super(RHIShaderParameterType::Int);  } };
+	[node_group("Constants")] class ConstantInt2 : Constant { ConstantInt2() { super(RHIShaderParameterType::Int2); } };
+	[node_group("Constants")] class ConstantInt3 : Constant { ConstantInt3() { super(RHIShaderParameterType::Int3); } };
+	[node_group("Constants")] class ConstantInt4 : Constant { ConstantInt4() { super(RHIShaderParameterType::Int4); } };
 
-	[node_group("Constants")] class ConstantUInt  : Constant { ConstantUInt()  { super(ShaderParameterType::UInt);  } };
-	[node_group("Constants")] class ConstantUInt2 : Constant { ConstantUInt2() { super(ShaderParameterType::UInt2); } };
-	[node_group("Constants")] class ConstantUInt3 : Constant { ConstantUInt3() { super(ShaderParameterType::UInt3); } };
-	[node_group("Constants")] class ConstantUInt4 : Constant { ConstantUInt4() { super(ShaderParameterType::UInt4); } };
+	[node_group("Constants")] class ConstantUInt  : Constant { ConstantUInt()  { super(RHIShaderParameterType::UInt);  } };
+	[node_group("Constants")] class ConstantUInt2 : Constant { ConstantUInt2() { super(RHIShaderParameterType::UInt2); } };
+	[node_group("Constants")] class ConstantUInt3 : Constant { ConstantUInt3() { super(RHIShaderParameterType::UInt3); } };
+	[node_group("Constants")] class ConstantUInt4 : Constant { ConstantUInt4() { super(RHIShaderParameterType::UInt4); } };
 
-	[node_group("Constants")] class ConstantFloat  : Constant { ConstantFloat()  { super(ShaderParameterType::Float);  } };
-	[node_group("Constants")] class ConstantFloat2 : Constant { ConstantFloat2() { super(ShaderParameterType::Float2); } };
-	[node_group("Constants")] class ConstantFloat3 : Constant { ConstantFloat3() { super(ShaderParameterType::Float3); } };
-	[node_group("Constants")] class ConstantFloat4 : Constant { ConstantFloat4() { super(ShaderParameterType::Float4); } };
+	[node_group("Constants")] class ConstantFloat  : Constant { ConstantFloat()  { super(RHIShaderParameterType::Float);  } };
+	[node_group("Constants")] class ConstantFloat2 : Constant { ConstantFloat2() { super(RHIShaderParameterType::Float2); } };
+	[node_group("Constants")] class ConstantFloat3 : Constant { ConstantFloat3() { super(RHIShaderParameterType::Float3); } };
+	[node_group("Constants")] class ConstantFloat4 : Constant { ConstantFloat4() { super(RHIShaderParameterType::Float4); } };
 
 	/////////////////////////////// INPUTS ///////////////////////////////
 
 	[node_group("Inputs")] class Projection : CommonInput 
 	{ 
-		Projection() { super(ShaderParameterType::Float4x4); } 
+		Projection() { super(RHIShaderParameterType::Float4x4); } 
 		string expr() const override { return "globals.projection"; }	
 	};
 
 	[node_group("Inputs")] class View : CommonInput 
 	{ 
-		View() { super(ShaderParameterType::Float4x4); } 
+		View() { super(RHIShaderParameterType::Float4x4); } 
 		string expr() const override { return "globals.view"; }	
 	};
 
 	[node_group("Inputs")] class ProjView : CommonInput 
 	{ 
-		ProjView() { super(ShaderParameterType::Float4x4); } 
+		ProjView() { super(RHIShaderParameterType::Float4x4); } 
 		string expr() const override { return "globals.projview"; }	
 	};
 
 	[node_group("Inputs")] class InvProjView : CommonInput 
 	{ 
-		InvProjView() { super(ShaderParameterType::Float4x4); } 
+		InvProjView() { super(RHIShaderParameterType::Float4x4); } 
 		string expr() const override { return "globals.inv_projview"; }	
 	};
 
 	[node_group("Inputs")] class ViewportPos : CommonInput 
 	{ 
-		ViewportPos() { super(ShaderParameterType::Float2); } 
+		ViewportPos() { super(RHIShaderParameterType::Float2); } 
 		string expr() const override { return "globals.viewport.pos"; }
 	};
 
 	[node_group("Inputs")] class ViewportSize : CommonInput 
 	{ 
-		ViewportSize() { super(ShaderParameterType::Float2); } 
+		ViewportSize() { super(RHIShaderParameterType::Float2); } 
 		string expr() const override { return "globals.viewport.size"; }
 	};
 
 	[node_group("Inputs")] class CameraLocation : CommonInput 
 	{ 
-		CameraLocation() { super(ShaderParameterType::Float3); } 
+		CameraLocation() { super(RHIShaderParameterType::Float3); } 
 		string expr() const override { return "globals.camera.location"; }
 	};
 
 	[node_group("Inputs")] class CameraForward : CommonInput 
 	{ 
-		CameraForward() { super(ShaderParameterType::Float3); } 
+		CameraForward() { super(RHIShaderParameterType::Float3); } 
 		string expr() const override { return "globals.camera.forward"; }
 	};
 
 	[node_group("Inputs")] class CameraRight : CommonInput 
 	{ 
-		CameraRight() { super(ShaderParameterType::Float3); } 
+		CameraRight() { super(RHIShaderParameterType::Float3); } 
 		string expr() const override { return "globals.camera.rigth"; }
 	};
 
 	[node_group("Inputs")] class CameraUp : CommonInput 
 	{ 
-		CameraUp() { super(ShaderParameterType::Float3); } 
+		CameraUp() { super(RHIShaderParameterType::Float3); } 
 		string expr() const override { return "globals.camera.up"; }
 	};
 
 	[node_group("Inputs")] class CameraFov : CommonInput 
 	{ 
-		CameraFov() { super(ShaderParameterType::Float); } 
+		CameraFov() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.camera.fov"; }
 	};
 
 	[node_group("Inputs")] class CameraOrthoWidth : CommonInput 
 	{ 
-		CameraOrthoWidth() { super(ShaderParameterType::Float); } 
+		CameraOrthoWidth() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.camera.ortho_width"; }
 	};
 
 	[node_group("Inputs")] class CameraOrthoHeight : CommonInput 
 	{ 
-		CameraOrthoHeight() { super(ShaderParameterType::Float); } 
+		CameraOrthoHeight() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.camera.ortho_height"; }
 	};
 
 	[node_group("Inputs")] class CameraNear : CommonInput 
 	{ 
-		CameraNear() { super(ShaderParameterType::Float); } 
+		CameraNear() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.camera.near"; }
 	};
 
 	[node_group("Inputs")] class CameraFar : CommonInput 
 	{ 
-		CameraFar() { super(ShaderParameterType::Float); } 
+		CameraFar() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.camera.far"; }
 	};
 
 	[node_group("Inputs")] class CameraAspect : CommonInput 
 	{ 
-		CameraAspect() { super(ShaderParameterType::Float); } 
+		CameraAspect() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.camera.aspect_ratio"; }
 	};
 
 	[node_group("Inputs")] class RenderTargetSize : CommonInput 
 	{ 
-		RenderTargetSize() { super(ShaderParameterType::Float2); } 
+		RenderTargetSize() { super(RHIShaderParameterType::Float2); } 
 		string expr() const override { return "globals.render_target_size"; }
 	};
 
@@ -302,36 +302,36 @@ namespace Engine::VisualMaterialGraph
 	{ 
 		DepthRange()
 		{
-			new_output("Min", ShaderParameterType::Float);
-			new_output("Max", ShaderParameterType::Float);
+			new_output("Min", RHIShaderParameterType::Float);
+			new_output("Max", RHIShaderParameterType::Float);
 		} 
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
 			if(pin.index() == 0)
 			{
-				return Expression(ShaderParameterType::Float, "globals.viewport.min_depth");
+				return Expression(RHIShaderParameterType::Float, "globals.viewport.min_depth");
 			}
 
-			return Expression(ShaderParameterType::Float, "globals.viewport.max_depth");
+			return Expression(RHIShaderParameterType::Float, "globals.viewport.max_depth");
 		}
 	};
 
 	[node_group("Inputs")] class Gamma : CommonInput
 	{
-		Gamma() { super(ShaderParameterType::Float); } 
+		Gamma() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.gamma"; }
 	};
 
 	[node_group("Inputs")] class Time : CommonInput
 	{
-		Time() { super(ShaderParameterType::Float); } 
+		Time() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.time"; }
 	};
 
 	[node_group("Inputs")] class DeltaTime : CommonInput
 	{
-		DeltaTime() { super(ShaderParameterType::Float); } 
+		DeltaTime() { super(RHIShaderParameterType::Float); } 
 		string expr() const override { return "globals.delta_time"; }
 	};
 
@@ -339,8 +339,8 @@ namespace Engine::VisualMaterialGraph
 	{
 		ScreenCoordinates() 
 		{
-			new_output("Viewport UV", ShaderParameterType::Float2); 
-			new_output("Fragment Coord", ShaderParameterType::Float2);
+			new_output("Viewport UV", RHIShaderParameterType::Float2); 
+			new_output("Fragment Coord", RHIShaderParameterType::Float2);
 		}
 		
 		Expression compile(OutputPin@ pin, Compiler@ compiler) override 
@@ -350,18 +350,18 @@ namespace Engine::VisualMaterialGraph
 
 			if(pin.index() == 0)
 			{
-				return Expression(ShaderParameterType::Float2, "(input.sv_position.xy / globals.viewport.size)");
+				return Expression(RHIShaderParameterType::Float2, "(input.sv_position.xy / globals.viewport.size)");
 			}
 			else
 			{
-				return Expression(ShaderParameterType::Float2, "input.sv_position.xy");
+				return Expression(RHIShaderParameterType::Float2, "input.sv_position.xy");
 			}
 		}
 	};
 
 	[node_group("Inputs")] class UV : CommonInput
 	{
-		UV() { super(ShaderParameterType::Float2); }
+		UV() { super(RHIShaderParameterType::Float2); }
 		string expr() const override { return "input.uv"; }
 	};
 
@@ -398,15 +398,15 @@ namespace Engine::VisualMaterialGraph
 	[node_group("Math")] 
 	class Reflect : Binary
 	{ 
-		ShaderParameterType in0_type() const override { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in0_default_type() const override { return ShaderParameterType::Float3; }
-		ShaderParameterType in1_type() const override { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in1_default_type() const override { return ShaderParameterType::Float3; }
+		RHIShaderParameterType in0_type() const override { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_default_type() const override { return RHIShaderParameterType::Float3; }
+		RHIShaderParameterType in1_type() const override { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in1_default_type() const override { return RHIShaderParameterType::Float3; }
 		string expr() const override { return "reflect(%0, %1)"; } 
 		
-		ShaderParameterType resolve_args(Expression& in0, Expression& in1) const override 
+		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1) const override 
 		{
-			ShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
+			RHIShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
 			type = Expression::static_vector_clamp(type, 1, 3);
 			
 			in0 = in0.convert(type);
@@ -418,18 +418,18 @@ namespace Engine::VisualMaterialGraph
 	[node_group("Math")]
 	class Refract : Ternary
 	{ 
-		ShaderParameterType in0_type() const override { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in0_default_type() const override { return ShaderParameterType::Float3; }
-		ShaderParameterType in1_type() const override { return ShaderParameterType::META_Numeric; }
-		ShaderParameterType in1_default_type() const override { return ShaderParameterType::Float3; }
-		ShaderParameterType in2_type() const override { return ShaderParameterType::Float; }
-		ShaderParameterType in2_default_type() const override { return ShaderParameterType::Float; }
+		RHIShaderParameterType in0_type() const override { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in0_default_type() const override { return RHIShaderParameterType::Float3; }
+		RHIShaderParameterType in1_type() const override { return RHIShaderParameterType::META_Numeric; }
+		RHIShaderParameterType in1_default_type() const override { return RHIShaderParameterType::Float3; }
+		RHIShaderParameterType in2_type() const override { return RHIShaderParameterType::Float; }
+		RHIShaderParameterType in2_default_type() const override { return RHIShaderParameterType::Float; }
 		
 		string expr() const override { return "refract(%0, %1, %2)"; } 
 		
-		ShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
+		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
 		{
-			ShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
+			RHIShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
 			
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
@@ -451,8 +451,8 @@ namespace Engine::VisualMaterialGraph
 		[property] bool z = true;
 		[property] bool w = true;
 
-		InputPin@ in0 = new_input("In", ShaderParameterType::META_Numeric);
-		OutputPin@ out0 = new_output("Out", ShaderParameterType::META_Numeric);
+		InputPin@ in0 = new_input("In", RHIShaderParameterType::META_Numeric);
+		OutputPin@ out0 = new_output("Out", RHIShaderParameterType::META_Numeric);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
@@ -489,19 +489,19 @@ namespace Engine::VisualMaterialGraph
 
 	[node_group("Common")] class MakeVector2 : Node
 	{
-		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Vector);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Vector);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
 			Expression in0 = compiler.compile(m_in0);
 			Expression in1 = compiler.compile(m_in1);
 
-			ShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
-			ShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
-			ShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1);
-			ShaderParameterType vector_type = Expression::static_make_vector(component_type, 2);
+			RHIShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
+			RHIShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
+			RHIShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1);
+			RHIShaderParameterType vector_type = Expression::static_make_vector(component_type, 2);
 
 			string type_name = Expression::static_typename_of(vector_type);
 
@@ -514,10 +514,10 @@ namespace Engine::VisualMaterialGraph
 
 	[node_group("Common")] class MakeVector3 : Node
 	{
-		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		InputPin@ m_in2 = new_input("C", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Vector);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("C", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Vector);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
@@ -525,12 +525,12 @@ namespace Engine::VisualMaterialGraph
 			Expression in1 = compiler.compile(m_in1);
 			Expression in2 = compiler.compile(m_in2);
 
-			ShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
-			ShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
-			ShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
+			RHIShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
+			RHIShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
+			RHIShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
 			
-			ShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2);
-			ShaderParameterType vector_type = Expression::static_make_vector(component_type, 3);
+			RHIShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2);
+			RHIShaderParameterType vector_type = Expression::static_make_vector(component_type, 3);
 			string type_name = Expression::static_typename_of(vector_type);
 
 			in0 = in0.convert(component_type);
@@ -543,11 +543,11 @@ namespace Engine::VisualMaterialGraph
 
 	[node_group("Common")] class MakeVector4 : Node
 	{
-		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		InputPin@ m_in2 = new_input("C", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		InputPin@ m_in3 = new_input("D", ShaderParameterType::META_Scalar, ShaderParameterType::Float);
-		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Vector);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("C", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		InputPin@ m_in3 = new_input("D", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Vector);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
@@ -556,13 +556,13 @@ namespace Engine::VisualMaterialGraph
 			Expression in2 = compiler.compile(m_in2);
 			Expression in3 = compiler.compile(m_in3);
 
-			ShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
-			ShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
-			ShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
-			ShaderParameterType scalar3 = Expression::static_make_scalar(in3.type);
+			RHIShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
+			RHIShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
+			RHIShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
+			RHIShaderParameterType scalar3 = Expression::static_make_scalar(in3.type);
 			
-			ShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2, scalar3);
-			ShaderParameterType vector_type = Expression::static_make_vector(component_type, 4);
+			RHIShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2, scalar3);
+			RHIShaderParameterType vector_type = Expression::static_make_vector(component_type, 4);
 			string type_name = Expression::static_typename_of(vector_type);
 
 			in0 = in0.convert(component_type);
@@ -579,12 +579,12 @@ namespace Engine::VisualMaterialGraph
 	[node_group("Conditions")]
 	class If : Node
 	{
-		InputPin@ m_in0 = new_input("A", ShaderParameterType::META_Numeric, ShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", ShaderParameterType::META_Numeric, ShaderParameterType::Float);
-		InputPin@ m_in2 = new_input("A > B", ShaderParameterType::META_Any);
-		InputPin@ m_in3 = new_input("A == B", ShaderParameterType::META_Any);
-		InputPin@ m_in4 = new_input("A < B", ShaderParameterType::META_Any);
-		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Any);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("A > B", RHIShaderParameterType::META_Any);
+		InputPin@ m_in3 = new_input("A == B", RHIShaderParameterType::META_Any);
+		InputPin@ m_in4 = new_input("A < B", RHIShaderParameterType::META_Any);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Any);
 
 		Expression compile2(Compiler@ compiler)
 		{
@@ -594,7 +594,7 @@ namespace Engine::VisualMaterialGraph
 			Expression in2 = compiler.compile(m_in2);
 			Expression in4 = compiler.compile(m_in4);
 
-			ShaderParameterType type = Expression::static_resolve(in2.type, in4.type);
+			RHIShaderParameterType type = Expression::static_resolve(in2.type, in4.type);
 			in2 = in2.convert(type);
 			in4 = in4.convert(type);
 
@@ -610,7 +610,7 @@ namespace Engine::VisualMaterialGraph
 			Expression in3 = compiler.compile(m_in3);
 			Expression in4 = compiler.compile(m_in4);
 
-			ShaderParameterType type = Expression::static_resolve(in2.type, in3.type, in4.type);
+			RHIShaderParameterType type = Expression::static_resolve(in2.type, in3.type, in4.type);
 
 			in2 = in2.convert(type);
 			in3 = in3.convert(type);
@@ -630,10 +630,10 @@ namespace Engine::VisualMaterialGraph
 	[node_group("Conditions")]
 	class Branch : Node
 	{
-		InputPin@ m_in0 = new_input("Condition", ShaderParameterType::Bool, ShaderParameterType::Bool);
-		InputPin@ m_in1 = new_input("True", ShaderParameterType::META_Any);
-		InputPin@ m_in2 = new_input("False", ShaderParameterType::META_Any);
-		OutputPin@ m_out0 = new_output("Out", ShaderParameterType::META_Any);
+		InputPin@ m_in0 = new_input("Condition", RHIShaderParameterType::Bool, RHIShaderParameterType::Bool);
+		InputPin@ m_in1 = new_input("True", RHIShaderParameterType::META_Any);
+		InputPin@ m_in2 = new_input("False", RHIShaderParameterType::META_Any);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Any);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
@@ -642,7 +642,7 @@ namespace Engine::VisualMaterialGraph
 			Expression in1 = compiler.compile(m_in1);
 			Expression in2 = compiler.compile(m_in2);
 
-			const ShaderParameterType type = Expression::static_resolve(in1.type, in2.type);
+			const RHIShaderParameterType type = Expression::static_resolve(in1.type, in2.type);
 			in1 = in1.convert(type);
 			in2 = in2.convert(type);
 

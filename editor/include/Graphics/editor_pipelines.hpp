@@ -14,15 +14,15 @@ namespace Engine::EditorPipelines
 	{
 		trinex_declare_pipeline(Outline, GlobalGraphicsPipeline);
 
-		const ShaderParameterInfo* m_scene_color;
-		const ShaderParameterInfo* m_scene_depth;
-		const ShaderParameterInfo* m_outline_depth;
-		const ShaderParameterInfo* m_linear;
-		const ShaderParameterInfo* m_point;
-		const ShaderParameterInfo* m_outline_color;
-		const ShaderParameterInfo* m_near;
-		const ShaderParameterInfo* m_far;
-		const ShaderParameterInfo* m_sample_offset;
+		const RHIShaderParameterInfo* m_scene_color;
+		const RHIShaderParameterInfo* m_scene_depth;
+		const RHIShaderParameterInfo* m_outline_depth;
+		const RHIShaderParameterInfo* m_linear;
+		const RHIShaderParameterInfo* m_point;
+		const RHIShaderParameterInfo* m_outline_color;
+		const RHIShaderParameterInfo* m_near;
+		const RHIShaderParameterInfo* m_far;
+		const RHIShaderParameterInfo* m_sample_offset;
 
 		Sampler m_point_sampler;
 		Sampler m_linear_sampler;
@@ -38,7 +38,7 @@ namespace Engine::EditorPipelines
 		trinex_declare_pipeline(Grid, GlobalGraphicsPipeline);
 
 	private:
-		const ShaderParameterInfo* m_scene_view;
+		const RHIShaderParameterInfo* m_scene_view;
 
 	public:
 		void render(Renderer* renderer);

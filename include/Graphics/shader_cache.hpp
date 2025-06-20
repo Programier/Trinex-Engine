@@ -2,13 +2,13 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
-#include <Core/structures.hpp>
+#include <RHI/structures.hpp>
 
 namespace Engine
 {
 	struct ENGINE_EXPORT GraphicsShaderCache {
-		TreeMap<Name, ShaderParameterInfo> parameters;
-		Vector<VertexAttribute> vertex_attributes;
+		Vector<RHIShaderParameterInfo> parameters;
+		Vector<RHIVertexAttribute> vertex_attributes;
 		Buffer vertex;
 		Buffer tessellation_control;
 		Buffer tessellation;
@@ -23,7 +23,7 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT ComputeShaderCache {
-		TreeMap<Name, ShaderParameterInfo> parameters;
+		Vector<RHIShaderParameterInfo> parameters;
 
 		Buffer compute;
 

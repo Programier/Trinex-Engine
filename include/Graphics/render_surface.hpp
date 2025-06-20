@@ -1,6 +1,7 @@
 #pragma once
-#include <Core/render_resource.hpp>
-#include <Graphics/types/color_format.hpp>
+#include <Graphics/render_resource.hpp>
+#include <RHI/enums.hpp>
+#include <RHI/resource_ptr.hpp>
 
 namespace Engine
 {
@@ -14,14 +15,14 @@ namespace Engine
 	{
 		trinex_declare_class(RenderSurface, RenderResource);
 
-		RenderResourcePtr<RHI_Texture> m_texture;
+		RHIResourcePtr<RHI_Texture> m_texture;
 
-		SurfaceFormat m_format = SurfaceFormat::Undefined;
-		Vector2u m_size        = {0, 0};
+		RHISurfaceFormat m_format = RHISurfaceFormat::Undefined;
+		Vector2u m_size           = {0, 0};
 
 	public:
 		RenderSurface();
-		RenderSurface& init(SurfaceFormat format, Vector2i size);
+		RenderSurface& init(RHISurfaceFormat format, Vector2i size);
 		RenderSurface& release_render_resources() override;
 		RHI_RenderTargetView* rhi_rtv() const;
 		RHI_DepthStencilView* rhi_dsv() const;
@@ -30,6 +31,6 @@ namespace Engine
 
 		inline RHI_Texture* rhi_texture() const { return m_texture; }
 		inline Vector2u size() const { return m_size; }
-		inline SurfaceFormat format() const { return m_format; }
+		inline RHISurfaceFormat format() const { return m_format; }
 	};
 }// namespace Engine

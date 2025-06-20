@@ -3,7 +3,6 @@
 #include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
 #include <Core/pointer.hpp>
-#include <Core/structures.hpp>
 #include <Engine/enviroment.hpp>
 #include <Engine/octree.hpp>
 

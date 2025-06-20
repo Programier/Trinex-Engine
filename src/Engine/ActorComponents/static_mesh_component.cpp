@@ -41,7 +41,7 @@ namespace Engine
 		return m_mesh ? m_mesh->materials[index] : nullptr;
 	}
 
-	VertexBufferBase* StaticMeshComponent::Proxy::find_vertex_buffer(VertexBufferSemantic semantic, Index index, size_t lod)
+	VertexBufferBase* StaticMeshComponent::Proxy::find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index, size_t lod)
 	{
 		return m_mesh->lods[lod].find_vertex_buffer(semantic, index);
 	}

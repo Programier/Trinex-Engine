@@ -2,12 +2,12 @@
 #include <Core/enums.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/types/color.hpp>
-#include <Graphics/types/color_format.hpp>
 
 namespace Engine
 {
 	class Archive;
 	class Path;
+	struct RHIColorFormat;
 
 	enum class ImageType : EnumerateType
 	{
@@ -54,7 +54,7 @@ namespace Engine
 		uint_t channels() const;
 		bool resize(const Size2D& new_size);
 		bool empty() const;
-		ColorFormat format() const;
+		RHIColorFormat format() const;
 
 		Image& load(const Path& image, bool invert = false);
 		Image& load_from_memory(const byte* buffer, size_t size, bool invert = false);

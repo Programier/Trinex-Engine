@@ -9,9 +9,9 @@
 #include <Engine/splash_config.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>

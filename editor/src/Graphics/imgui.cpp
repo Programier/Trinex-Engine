@@ -11,7 +11,6 @@
 #include <Core/package.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/gpu_buffers.hpp>
@@ -19,12 +18,12 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
@@ -43,8 +42,8 @@ namespace Engine
 			trinex_declare_pipeline(ImGuiPipeline, GlobalGraphicsPipeline);
 
 		public:
-			const ShaderParameterInfo* texture_parameter = nullptr;
-			const ShaderParameterInfo* model_parameter   = nullptr;
+			const RHIShaderParameterInfo* texture_parameter = nullptr;
+			const RHIShaderParameterInfo* model_parameter   = nullptr;
 			Matrix4f model;
 			RHI_ShaderResourceView* srv = nullptr;
 
@@ -76,35 +75,31 @@ namespace Engine
 			}
 
 			color_blending.enable         = true;
-			color_blending.src_color_func = BlendFunc::SrcAlpha;
-			color_blending.dst_color_func = BlendFunc::OneMinusSrcAlpha;
-			color_blending.color_op       = BlendOp::Add;
-			color_blending.src_alpha_func = BlendFunc::One;
-			color_blending.dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
-			color_blending.alpha_op       = BlendOp::Add;
-			color_blending.color_mask     = static_cast<ColorComponent::Enum>(ColorComponent::R | ColorComponent::G |
-			                                                                  ColorComponent::B | ColorComponent::A);
-			depth_test.enable             = false;
-			depth_test.write_enable       = false;
-			depth_test.func               = CompareFunc::Always;
+			color_blending.src_color_func = RHIBlendFunc::SrcAlpha;
+			color_blending.dst_color_func = RHIBlendFunc::OneMinusSrcAlpha;
+			color_blending.color_op       = RHIBlendOp::Add;
+			color_blending.src_alpha_func = RHIBlendFunc::One;
+			color_blending.dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha;
+			color_blending.alpha_op       = RHIBlendOp::Add;
+			color_blending.color_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B | RHIColorComponent::A;
+			depth_test.enable         = false;
+			depth_test.write_enable   = false;
+			depth_test.func           = RHICompareFunc::Always;
 
 			stencil_test.enable     = false;
-			stencil_test.depth_fail = stencil_test.depth_pass = stencil_test.fail = StencilOp::Keep;
-			stencil_test.compare                                                  = CompareFunc::Always;
+			stencil_test.depth_fail = stencil_test.depth_pass = stencil_test.fail = RHIStencilOp::Keep;
+			stencil_test.compare                                                  = RHICompareFunc::Always;
 
-			rasterizer.cull_mode    = CullMode::None;
-			rasterizer.polygon_mode = PolygonMode::Fill;
-			rasterizer.line_width   = 1.0;
-
-			texture_parameter = find_param_info("texture");
-			model_parameter   = find_param_info("model");
+			texture_parameter = find_parameter("texture");
+			model_parameter   = find_parameter("model");
 		}
 
 		void ImGuiPipeline::apply(const Sampler& sampler)
 		{
 			rhi_bind();
-			rhi->bind_srv(srv, texture_parameter->location, sampler.rhi_sampler());
-			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->location);
+			rhi->bind_srv(srv, texture_parameter->binding);
+			rhi->bind_sampler(sampler.rhi_sampler(), texture_parameter->binding);
+			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->binding);
 
 			srv = nullptr;
 		}
@@ -115,21 +110,14 @@ namespace Engine
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
 
 		struct ImGuiTrinexData {
-			Texture2D* font_texture = nullptr;
-			Sampler sampler;
-
+			Texture2D* font_texture        = nullptr;
 			Engine::RenderViewport* window = nullptr;
-			RenderSurface* surface         = nullptr;
-			ImVec2 cursor                  = {0.f, 0.f};
-			ImVec2 uv0                     = {0.f, 0.f};
-			ImVec2 uv1                     = {1.f, 1.f};
-			ImVec4 viewport                = {0.f, 0.f, 0.f, 0.f};
-			bool is_custom_surface         = false;
+			Sampler sampler;
 		};
 
 		struct ImGuiTrinexViewportData {
-			RenderResourcePtr<RHI_Buffer> vertex_buffer;
-			RenderResourcePtr<RHI_Buffer> index_buffer;
+			RHIResourcePtr<RHI_Buffer> vertex_buffer;
+			RHIResourcePtr<RHI_Buffer> index_buffer;
 			uint64_t vertex_count = 0;
 			uint64_t index_count  = 0;
 		};
@@ -147,81 +135,16 @@ namespace Engine
 			auto pipeline = ImGuiPipeline::instance();
 			pipeline->srv = nullptr;
 
-			Vector2f target_size;
-
-			if (bd->surface)
-			{
-				rhi->bind_render_target1(bd->surface->rhi_rtv());
-				target_size = bd->surface->size();
-			}
-			else
-			{
-				bd->window->rhi_bind();
-				target_size = bd->window->size();
-			}
-
-			ViewPort viewport;
-			viewport.size.x = static_cast<int_t>(target_size.x * (bd->uv1.x - bd->uv0.x));
-			viewport.size.y = static_cast<int_t>(target_size.y * (bd->uv1.y - bd->uv0.y));
-			viewport.pos.x  = static_cast<int_t>(glm::mix<float>(0.f, target_size.x, bd->uv0.x));
-			viewport.pos.y  = static_cast<int_t>(glm::mix<float>(target_size.y, 0.f, bd->uv0.y)) - viewport.size.y;
-
-			float L         = draw_data->DisplayPos.x + bd->cursor.x;
-			float R         = L + static_cast<float>(viewport.size.x);
-			float T         = draw_data->DisplayPos.y + bd->cursor.y;
-			float B         = T + static_cast<float>(viewport.size.y);
-			pipeline->model = glm::ortho(L, R, B, T);
-
-			if (viewport.size.x < 0)
-			{
-				viewport.pos.x += viewport.size.x;
-				viewport.size.x = -viewport.size.x;
-			}
-
-			if (viewport.size.y < 0)
-			{
-				viewport.pos.y += viewport.size.y;
-				viewport.size.y = -viewport.size.y;
-			}
-
+			RHIViewport viewport(bd->window->size());
+			bd->window->rhi_bind();
 			rhi->viewport(viewport);
-			bd->viewport.x = viewport.pos.x;
-			bd->viewport.y = viewport.pos.y;
-			bd->viewport.z = viewport.size.x;
-			bd->viewport.w = viewport.size.y;
-		}
 
-		static void set_render_target_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
-		{
-			auto bd               = imgui_trinex_backend_data();
-			bd->uv0.x             = cmd->ClipRect.x;
-			bd->uv0.y             = cmd->ClipRect.y;
-			bd->uv1.x             = cmd->ClipRect.z;
-			bd->uv1.y             = cmd->ClipRect.w;
-			bd->surface           = static_cast<RenderSurface*>(cmd->UserCallbackData);
-			bd->is_custom_surface = true;
-		}
+			float L = draw_data->DisplayPos.x;
+			float R = L + static_cast<float>(viewport.size.x);
+			float T = draw_data->DisplayPos.y;
+			float B = T + static_cast<float>(viewport.size.y);
 
-		static void set_render_target_cursor_cmd(const ImDrawList* parent_list, const ImDrawCmd* cmd)
-		{
-			auto bd    = imgui_trinex_backend_data();
-			bd->cursor = *reinterpret_cast<const ImVec2*>(&cmd->UserCallbackData);
-		}
-
-		static FORCE_INLINE void unset_render_target(ImDrawData* draw_data, ImGuiTrinexData* bd)
-		{
-			if (bd->is_custom_surface)
-			{
-				if (bd->surface)
-					bd->surface->remove_reference();
-				bd->surface           = nullptr;
-				bd->cursor            = {0.f, 0.f};
-				bd->uv0               = {0.f, 0.f};
-				bd->uv1               = {1.f, 1.f};
-				bd->is_custom_surface = false;
-
-				imgui_trinex_setup_render_state(draw_data);
-			}
+			pipeline->model = glm::ortho(L, R, T, B, 0.f, 1.f);
 		}
 
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
@@ -254,14 +177,15 @@ namespace Engine
 				vd->vertex_count = draw_data->TotalVtxCount + 5000;
 				auto len         = vd->vertex_count * sizeof(ImDrawVert);
 				vd->vertex_buffer =
-				        rhi->create_buffer(len, nullptr, BufferCreateFlags::Dynamic | BufferCreateFlags::VertexBuffer);
+				        rhi->create_buffer(len, nullptr, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::VertexBuffer);
 			}
 
 			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
-				vd->index_count  = draw_data->TotalIdxCount + 10000;
-				auto len         = vd->index_count * sizeof(ImDrawIdx);
-				vd->index_buffer = rhi->create_buffer(len, nullptr, BufferCreateFlags::Dynamic | BufferCreateFlags::IndexBuffer);
+				vd->index_count = draw_data->TotalIdxCount + 10000;
+				auto len        = vd->index_count * sizeof(ImDrawIdx);
+				vd->index_buffer =
+				        rhi->create_buffer(len, nullptr, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::IndexBuffer);
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer
@@ -324,12 +248,13 @@ namespace Engine
 						{
 							ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
 							ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
+
 							if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 								continue;
 
-							Scissor scissor;
-							scissor.pos.x  = (clip_min.x - bd->cursor.x) + bd->viewport.x;
-							scissor.pos.y  = (bd->viewport.w - clip_max.y) + bd->cursor.y + bd->viewport.y;
+							RHIScissors scissor;
+							scissor.pos.x  = clip_min.x;
+							scissor.pos.y  = clip_min.y;
 							scissor.size.x = (clip_max.x - clip_min.x);
 							scissor.size.y = (clip_max.y - clip_min.y);
 
@@ -356,8 +281,6 @@ namespace Engine
 						trinex_rhi_pop_stage();
 					}
 
-					unset_render_target(draw_data, bd);
-
 					global_idx_offset += cmd_list->IdxBuffer.Size;
 					global_vtx_offset += cmd_list->VtxBuffer.Size;
 					trinex_rhi_pop_stage();
@@ -378,7 +301,7 @@ namespace Engine
 
 			bd->font_texture = Object::new_instance<EngineResource<Texture2D>>(
 			        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-			bd->font_texture->format = ColorFormat::R8G8B8A8;
+			bd->font_texture->format = RHIColorFormat::R8G8B8A8;
 			bd->font_texture->mips.emplace_back();
 			auto& mip = bd->font_texture->mips[0];
 			mip.size  = {width, height};
@@ -388,7 +311,7 @@ namespace Engine
 			auto package = Package::static_find_package("TrinexEditor::ImGui", true);
 			package->add_object(bd->font_texture);
 
-			bd->sampler = Sampler(SamplerFilter::Trilinear);
+			bd->sampler = Sampler(RHISamplerFilter::Trilinear);
 
 			// Store our identifier
 			io.Fonts->SetTexID(bd->font_texture);
@@ -1634,107 +1557,6 @@ namespace ImGui
 
 		return ImageButtonEx(window->GetID(static_cast<const void*>(user_texture_id)), user_texture_id, image_size, uv0, uv1,
 		                     bg_col, tint_col);
-	}
-
-	static FORCE_INLINE void write_callback(ImDrawCmd* cmd, ImDrawCallback callback, void* userdata)
-	{
-		cmd->UserCallback           = callback;
-		cmd->UserCallbackData       = userdata;
-		cmd->UserCallbackDataSize   = 0;
-		cmd->UserCallbackDataOffset = -1;
-	}
-
-
-	bool Begin(Engine::RenderSurface* surface, const char* name, bool* p_open, ImGuiWindowFlags flags, ImVec2 uv0, ImVec2 uv1)
-	{
-		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-		bool status = ImGui::Begin(name, p_open, flags);
-
-		if (status)
-		{
-			if (surface)
-				surface->add_reference();
-
-			ImDrawList* draw_list     = GetWindowDrawList();
-			ImVector<ImDrawCmd>& list = draw_list->CmdBuffer;
-
-			int size = list.size();
-			list.resize(size + 3);
-			memmove(list.Data + 3, list.Data, size * sizeof(ImDrawCmd));
-			size = list.size();
-
-			list.Size = 0;
-			draw_list->AddDrawCmd();
-			draw_list->AddDrawCmd();
-			list.Size = size;
-
-			ImVec2 cursor = ImGui::GetCurrentWindow()->Pos - ImGui::GetMainViewport()->Pos;
-
-			// clang-format off
-			write_callback(list.Data, Engine::ImGuiBackend_RHI::set_render_target_cmd, surface);
-			write_callback(list.Data + 1, Engine::ImGuiBackend_RHI::set_render_target_cursor_cmd, *reinterpret_cast<void**>(&cursor));
-			write_callback(list.Data + 2, ImDrawCallback_ResetRenderState, nullptr);
-			// clang-format on
-
-			list.Data->ClipRect.x = uv0.x;
-			list.Data->ClipRect.y = uv0.y;
-			list.Data->ClipRect.z = uv1.x;
-			list.Data->ClipRect.w = uv1.y;
-
-			if (size == 3)
-			{
-				draw_list->AddDrawCmd();
-			}
-		}
-		return status;
-	}
-
-	void SetWindowSurface(Engine::RenderSurface* surface, ImVec2 uv0, ImVec2 uv1)
-	{
-		SetWindowSurface(ImGui::GetCurrentWindow(), surface, uv0, uv1);
-	}
-
-	void SetWindowSurface(ImGuiWindow* window, Engine::RenderSurface* surface, ImVec2 uv0, ImVec2 uv1)
-	{
-		ImGui::SetWindowViewport(window, static_cast<ImGuiViewportP*>(ImGui::GetMainViewport()));
-
-		if (surface)
-			surface->add_reference();
-		ImDrawList* draw_list     = &window->DrawListInst;
-		ImVector<ImDrawCmd>& list = draw_list->CmdBuffer;
-
-		const bool is_first_setup = list[0].UserCallback != Engine::ImGuiBackend_RHI::set_render_target_cmd;
-
-		if (is_first_setup)
-		{
-			int size = list.size();
-			list.resize(size + 3);
-			memmove(list.Data + 3, list.Data, size * sizeof(ImDrawCmd));
-			size = list.size();
-
-			list.Size = 0;
-			draw_list->AddDrawCmd();
-			draw_list->AddDrawCmd();
-			list.Size = size;
-		}
-
-		ImVec2 cursor = window->Pos - ImGui::GetMainViewport()->Pos;
-
-		// clang-format off
-		write_callback(list.Data, Engine::ImGuiBackend_RHI::set_render_target_cmd, surface);
-		write_callback(list.Data + 1, Engine::ImGuiBackend_RHI::set_render_target_cursor_cmd, *reinterpret_cast<void**>(&cursor));
-		write_callback(list.Data + 2, ImDrawCallback_ResetRenderState, nullptr);
-		// clang-format on
-
-		list.Data->ClipRect.x = uv0.x;
-		list.Data->ClipRect.y = uv0.y;
-		list.Data->ClipRect.z = uv1.x;
-		list.Data->ClipRect.w = uv1.y;
-
-		if (is_first_setup && list.size() == 3)
-		{
-			draw_list->AddDrawCmd();
-		}
 	}
 
 	float TableGetAutoWidth(const char* name)
