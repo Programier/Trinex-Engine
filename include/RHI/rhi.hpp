@@ -92,6 +92,9 @@ namespace Engine
 		virtual RHI_DepthStencilView* as_dsv()    = 0;
 		virtual RHI_ShaderResourceView* as_srv()  = 0;
 		virtual RHI_UnorderedAccessView* as_uav() = 0;
+
+		virtual byte* map(RHIMappingAccess access, const RHIMappingRange* range = nullptr) = 0;
+		virtual void unmap(const RHIMappingRange* range = nullptr)                         = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Shader : RHI_Object {

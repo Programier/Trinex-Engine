@@ -35,6 +35,9 @@ namespace Engine
 		RHI_UnorderedAccessView* create_uav();
 		RHI_RenderTargetView* create_rtv();
 		RHI_DepthStencilView* create_dsv();
+
+		byte* map(RHIMappingAccess access, const RHIMappingRange* range = nullptr) override;
+		void unmap(const RHIMappingRange* range = nullptr) override;
 		~VulkanTexture();
 	};
 

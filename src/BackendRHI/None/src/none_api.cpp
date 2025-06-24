@@ -77,6 +77,9 @@ namespace Engine
 		RHI_DepthStencilView* as_dsv() override { return rhi_default<NoneDSV>(); }
 		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
 		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
+
+		byte* map(RHIMappingAccess access, const RHIMappingRange* range) override { return nullptr; }
+		void unmap(const RHIMappingRange* range) override {}
 	};
 
 	struct NoneShader : public NoneApiDestroyable<RHI_Shader> {

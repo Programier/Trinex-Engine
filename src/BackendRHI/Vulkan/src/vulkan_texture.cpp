@@ -146,6 +146,44 @@ namespace Engine
 		return new VulkanTextureDSV(this, view);
 	}
 
+	byte* VulkanTexture::map(RHIMappingAccess access, const RHIMappingRange* range)
+	{
+		byte* memory    = nullptr;
+		VkResult result = vmaMapMemory(API->m_allocator, m_allocation, reinterpret_cast<void**>(&memory));
+
+		if (result != VK_SUCCESS || memory == nullptr)
+			return nullptr;
+
+		if (range)
+		{
+			if (access != RHIMappingAccess::Write)
+			{
+				VmaAllocationInfo info;
+				vmaGetAllocationInfo(API->m_allocator, m_allocation, &info);
+
+				vk::MappedMemoryRange invalidate_range(info.deviceMemory, info.offset + range->offset, range->size);
+				API->m_device.invalidateMappedMemoryRanges(invalidate_range);
+			}
+
+			return memory + range->offset;
+		}
+
+		return memory;
+	}
+
+	void VulkanTexture::unmap(const RHIMappingRange* range)
+	{
+		if (range)
+		{
+			VmaAllocationInfo info;
+			vmaGetAllocationInfo(API->m_allocator, m_allocation, &info);
+			vk::MappedMemoryRange flust_range(info.deviceMemory, info.offset + range->offset, range->size);
+			API->m_device.flushMappedMemoryRanges(flust_range);
+		}
+
+		vmaUnmapMemory(API->m_allocator, m_allocation);
+	}
+
 	VulkanTexture::~VulkanTexture()
 	{
 		vmaDestroyImage(API->m_allocator, m_image, m_allocation);

@@ -14,7 +14,6 @@ namespace Engine
 		FORCE_INLINE bool operator!=(const RHIRect& v) const { return !((*this) == v); }
 	};
 
-
 	struct RHIScissors {
 		Vector2i size = {0, 0};
 		Vector2i pos  = {0, 0};
@@ -74,5 +73,10 @@ namespace Engine
 		{}
 
 		bool serialize(Archive& ar);
+	};
+
+	struct RHIMappingRange {
+		size_t offset = 0;
+		size_t size   = 0;
 	};
 }// namespace Engine
