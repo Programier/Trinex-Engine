@@ -1,6 +1,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -8,7 +9,6 @@
 #include <Graphics/shader.hpp>
 #include <RHI/rhi_initializers.hpp>
 #include <vulkan_api.hpp>
-#include <Core/profiler.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_definitions.hpp>
@@ -369,6 +369,30 @@ namespace Engine
 		API->m_state_manager->bind(this);
 	}
 
+	bool VulkanGraphicsPipeline::is_dirty_vertex_strides(VulkanStateManager* manager)
+	{
+		vk::VertexInputBindingDescription* description =
+		        const_cast<vk::VertexInputBindingDescription*>(m_vertex_input.pVertexBindingDescriptions);
+		size_t count = m_vertex_input.vertexBindingDescriptionCount;
+
+		bool dirty = false;
+
+		while (count > 0)
+		{
+			uint16_t stride = manager->vertex_buffers_stride.resource(description->binding);
+			if (stride != description->stride)
+			{
+				description->stride = stride;
+				dirty               = true;
+			}
+
+			--count;
+			++description;
+		}
+
+		return dirty;
+	}
+
 	VulkanPipeline& VulkanGraphicsPipeline::flush(VulkanStateManager* manager)
 	{
 		trinex_profile_cpu_n("VulkanGraphicsPipeline::flush");
@@ -376,7 +400,9 @@ namespace Engine
 		                   VulkanStateManager::PrimitiveTopology | VulkanStateManager::PolygonMode |
 		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
 
-		if (manager->is_dirty(dirty_flags))
+		bool is_dirty = is_dirty_vertex_strides(manager);
+
+		if (manager->is_dirty(dirty_flags) || is_dirty)
 		{
 			auto cmd              = API->current_command_buffer();
 			auto current_pipeline = find_or_create_pipeline(manager);

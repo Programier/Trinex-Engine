@@ -66,7 +66,9 @@ namespace Engine
 		Map<Key, vk::Pipeline, KeyHasher> m_pipelines;
 
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
-
+		
+		bool is_dirty_vertex_strides(VulkanStateManager* manager);
+		
 	public:
 		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
 		void bind() override;

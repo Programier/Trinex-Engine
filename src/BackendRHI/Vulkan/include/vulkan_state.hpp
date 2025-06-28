@@ -37,13 +37,13 @@ namespace Engine
 		bool is_dirty(size_t index) const { return m_dirty_flags[index >> 3] & (1 << (index % 8)); }
 		size_t size() const { return m_resources.size(); }
 
-
-		void bind(T&& resource, size_t index)
+		template<typename Resource>
+		void bind(Resource&& resource, size_t index)
 		{
 			resize(index);
 			if (m_resources[index] != resource)
 			{
-				m_resources[index] = std::forward<T>(resource);
+				m_resources[index] = std::forward<Resource>(resource);
 				make_dirty(index);
 			}
 		}
@@ -117,6 +117,7 @@ namespace Engine
 		VulkanResourceState<vk::Sampler> samplers;
 		VulkanResourceState<VulkanTextureSRV*> srv_images;
 		VulkanResourceState<VulkanTextureUAV*> uav_images;
+		VulkanResourceState<uint16_t> vertex_buffers_stride;
 
 		VulkanStateManager();
 		~VulkanStateManager();

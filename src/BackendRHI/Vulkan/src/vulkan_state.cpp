@@ -125,6 +125,7 @@ namespace Engine
 		samplers.flush();
 		srv_images.flush();
 		uav_images.flush();
+		vertex_buffers_stride.flush();
 
 		size_t count = m_global_uniform_buffers.size();
 
@@ -233,6 +234,7 @@ namespace Engine
 		samplers.make_dirty();
 		srv_images.make_dirty();
 		uav_images.make_dirty();
+		vertex_buffers_stride.make_dirty();
 		return *this;
 	}
 

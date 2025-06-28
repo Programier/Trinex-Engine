@@ -274,6 +274,7 @@ namespace Engine
 	{
 		auto* cmd = current_command_buffer();
 		cmd->bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->buffer(), byte_offset);
+		m_state_manager->vertex_buffers_stride.bind(stride, stream);
 		return *this;
 	}
 

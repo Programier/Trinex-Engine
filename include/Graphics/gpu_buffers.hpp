@@ -21,6 +21,9 @@ namespace Engine
 		RHIBufferCreateFlags m_flags = RHIBufferCreateFlags::Static;
 
 	public:
+		static const VertexBufferBase* static_null();
+
+	public:
 		VertexBufferBase();
 		// clang-format off
 		VertexBufferBase(RHIBufferCreateFlags type, uint16_t stride, size_t count, const void* data = nullptr, bool keep_cpu_data = false);
@@ -49,6 +52,8 @@ namespace Engine
 		inline size_t size() const { return static_cast<size_t>(m_vtx_count) * static_cast<size_t>(m_stride); }
 		inline size_t stride() const { return static_cast<size_t>(m_stride); }
 		inline size_t vertices() const { return static_cast<size_t>(m_vtx_count); }
+
+		friend class NullVertexBuffer;
 	};
 
 	template<typename T>

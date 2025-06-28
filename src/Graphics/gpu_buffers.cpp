@@ -1,4 +1,5 @@
 #include <Core/archive.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
@@ -8,6 +9,27 @@
 
 namespace Engine
 {
+	class NullVertexBuffer : public VertexBufferBase
+	{
+	public:
+		void init()
+		{
+			render_thread()->call([this]() {
+				byte memory[64] = {};
+				m_buffer        = rhi->create_buffer(64, memory, m_flags | RHIBufferCreateFlags::VertexBuffer);
+			});
+		}
+
+	} s_null_vertex_buffer;
+
+	static StartupResourcesInitializeController on_resource_init([]() { s_null_vertex_buffer.init(); });
+	static DestroyController on_resource_destroy([]() { s_null_vertex_buffer.release(); });
+
+	const VertexBufferBase* VertexBufferBase::static_null()
+	{
+		return &s_null_vertex_buffer;
+	}
+
 	VertexBufferBase::VertexBufferBase() = default;
 
 	VertexBufferBase::VertexBufferBase(RHIBufferCreateFlags type, uint16_t stride, size_t size, const void* data,

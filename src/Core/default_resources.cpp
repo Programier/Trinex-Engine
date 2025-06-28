@@ -77,7 +77,8 @@ namespace Engine
 
 	static void on_destroy()
 	{
-		release(DefaultResources::Buffers::screen_quad);
+		if (DefaultResources::Buffers::screen_quad)
+			release(DefaultResources::Buffers::screen_quad);
 	}
 
 	static byte destroy_id = DestroyController(on_destroy).id();
