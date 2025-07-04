@@ -1,3 +1,16 @@
+namespace meta
+{
+	[UnscopedEnum]
+	enum ParameterFlags
+	{
+		MemoryBlock              = 0x8010013,
+		ExcludeMaterialParameter = 0x8000000,
+		Globals                  = 0x0010018,
+		LocalToWorld             = 0x4010019,
+	}
+}
+
+
 [__AttributeUsage(_AttributeTargets.Var)]
 struct parameter_typeAttribute
 {
@@ -25,4 +38,10 @@ struct per_instanceAttribute
 struct nameAttribute
 {
 	string name;
+}
+
+[__AttributeUsage(_AttributeTargets.Var)]
+struct parameter_flagsAttribute
+{
+	meta::ParameterFlags flags;
 }

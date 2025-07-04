@@ -15,20 +15,23 @@
 
 namespace Engine::MaterialParameters
 {
-	static Map<RHIShaderParameterType::Enum, Refl::Class*> s_parameter_class_map;
+	static Vector<Refl::Class*> s_parameter_classes;
 
 	template<typename T>
 	static void register_parameter()
 	{
-		s_parameter_class_map[T::static_type()] = T::static_class_instance();
+		uint16_t index = T::static_type().type_index();
+		if (index >= s_parameter_classes.size())
+			s_parameter_classes.resize(index + 1);
+		s_parameter_classes[index] = T::static_class_instance();
 	}
 
 	Refl::Class* Parameter::static_find_class(RHIShaderParameterType type)
 	{
-		auto it = s_parameter_class_map.find(type.value);
-		if (it == s_parameter_class_map.end())
+		uint16_t index = type.type_index();
+		if (index >= s_parameter_classes.size())
 			return nullptr;
-		return it->second;
+		return s_parameter_classes[index];
 	}
 
 #define implement_parameter(name) trinex_implement_class(Engine::MaterialParameters::name, 0)

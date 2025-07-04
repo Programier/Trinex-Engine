@@ -6,7 +6,7 @@ import "trinex/scene_view.slang";
 extern struct VertexInput : IVertexInput { }
 extern Material main<Material : IMaterial>(in IMaterialInput input);
 
-[parameter_type("LocalToWorld")]
+[parameter_flags(meta::LocalToWorld)]
 uniform float4x4 local_to_world;
 
 struct GeometryFragmentOutput

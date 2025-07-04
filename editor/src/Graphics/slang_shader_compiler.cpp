@@ -183,20 +183,19 @@ namespace Engine
 			return StringView();
 		}
 
-		static RHIShaderParameterType find_parameter_type_from_attributes(slang::VariableReflection* var)
+		static RHIShaderParameterType find_parameter_flags(slang::VariableReflection* var)
 		{
-			static Map<StringView, RHIShaderParameterType::Enum> map = {
-			        {"LocalToWorld", RHIShaderParameterType::LocalToWorld},      //
-			        {"Surface", RHIShaderParameterType::Surface},                //
-			        {"CombinedSurface", RHIShaderParameterType::CombinedSurface},//
-			};
-
-			if (auto attrib = var->findAttributeByName(global_session(), "parameter_type"))
+			if (auto attrib = var->findAttributeByName(global_session(), "parameter_flags"))
 			{
-				auto it = map.find(parse_string_attribute(attrib, 0));
+				if (attrib->getArgumentCount() == 1)
+				{
+					int value = 0;
 
-				if (it != map.end())
-					return it->second;
+					if (attrib->getArgumentValueInt(0, &value) == SLANG_OK)
+					{
+						return static_cast<RHIShaderParameterType>(value);
+					}
+				}
 			}
 
 			return RHIShaderParameterType::Undefined;
@@ -387,9 +386,9 @@ namespace Engine
 
 		static RHIShaderParameterType find_scalar_parameter_type(slang::VariableLayoutReflection* var)
 		{
-			auto type = find_parameter_type_from_attributes(var->getVariable());
+			auto type = find_parameter_flags(var->getVariable());
 
-			if (type != RHIShaderParameterType::Undefined)
+			if (!type.is_meta())
 				return type;
 
 			auto reflection = var->getType();
@@ -402,10 +401,10 @@ namespace Engine
 			{
 				for (auto& detector : type_detectors)
 				{
-					auto type = detector(var, rows, colums, elements, scalar);
-					if (type != RHIShaderParameterType::Undefined)
+					auto detected_type = detector(var, rows, colums, elements, scalar);
+					if (detected_type != RHIShaderParameterType::Undefined)
 					{
-						return type;
+						return detected_type | type;
 					}
 				}
 			}
@@ -452,7 +451,7 @@ namespace Engine
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
 			{
-				auto type = find_parameter_type_from_attributes(param.var->getVariable());
+				auto type = find_parameter_flags(param.var->getVariable());
 
 				if (auto type_layout = param.var->getTypeLayout())
 				{
@@ -467,17 +466,18 @@ namespace Engine
 						object.binding = param.trace_offset(param.category());
 						object.type    = type;
 
-						if (type == RHIShaderParameterType::Undefined)
+						if (type.is_meta())
 						{
 							switch (binding_type)
 							{
 								case slang::BindingType::CombinedTextureSampler:
-									object.type = RHIShaderParameterType::Sampler2D;
+									object.type |= RHIShaderParameterType::Sampler2D;
 									break;
 
-								case slang::BindingType::Texture: object.type = RHIShaderParameterType::Texture2D; break;
-
-								case slang::BindingType::MutableTexture: object.type = RHIShaderParameterType::RWTexture2D; break;
+								case slang::BindingType::Texture: object.type |= RHIShaderParameterType::Texture2D; break;
+								case slang::BindingType::MutableTexture:
+									object.type |= RHIShaderParameterType::RWTexture2D;
+									break;
 
 								default: return false;
 							}

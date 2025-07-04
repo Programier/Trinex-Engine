@@ -10,11 +10,10 @@ uniform Sampler2D emissive_texture;
 uniform Sampler2D msra_texture;
 uniform Sampler2D depth_texture;
 
-[parameter_type("MemoryBlock")]
+[parameter_flags(meta::MemoryBlock)]
 uniform Lighting::LightParameters parameters;
 
 #if TRINEX_SHADOWED_LIGHTING
-[parameter_type("CombinedSurface")]
 uniform Sampler2D shadow_map_texture;
 uniform float4x4 shadow_map_projview;
 #endif

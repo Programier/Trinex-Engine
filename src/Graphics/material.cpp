@@ -207,9 +207,12 @@ namespace Engine
 	{
 		for (const RHIShaderParameterInfo& info : pipeline->parameters())
 		{
+			if (info.type & RHIShaderParameterType::META_ExcludeMaterialParameter)
+				continue;
+
 			if (Parameter* param = find_parameter(info.name))
 			{
-				if (param->type() == info.type)
+				if (param->type().type_index() == info.type.type_index())
 				{
 					++param->m_pipeline_refs;
 					continue;

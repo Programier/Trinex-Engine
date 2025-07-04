@@ -22,7 +22,9 @@ namespace Engine
 			META_Vector  = BIT(25),
 			META_Matrix  = BIT(26),
 			META_Numeric = META_Scalar | META_Vector,
-			META_Any     = 65535U << 16,
+
+			META_ExcludeMaterialParameter = BIT(27),
+			META_Any                      = 65535U << 16,
 
 			// Values
 			Bool        = 1 | META_Scalar | META_UniformBuffer,
@@ -43,13 +45,13 @@ namespace Engine
 			Float4      = 16 | META_Vector | META_UniformBuffer,
 			Float3x3    = 17 | META_Matrix | META_UniformBuffer,
 			Float4x4    = 18 | META_Matrix | META_UniformBuffer,
-			MemoryBlock = 19 | META_UniformBuffer,
+			MemoryBlock = 19 | META_UniformBuffer | META_ExcludeMaterialParameter,
 			Sampler     = 20 | META_Sampler,
 			Sampler2D   = 21 | META_Texture | META_Sampler,
 			Texture2D   = 22 | META_Texture,
 
 			// RW Resources
-			RWTexture2D = 23 | META_RWTexture,
+			RWTexture2D = 23 | META_RWTexture | META_ExcludeMaterialParameter,
 
 			Globals         = 24 | META_UniformBuffer,
 			LocalToWorld    = 25 | META_Matrix | META_UniformBuffer,
@@ -535,6 +537,10 @@ namespace Engine
 			RG8      = RHIColorFormat::R8G8,
 			RGBA8    = RHIColorFormat::R8G8B8A8,
 			RG8B10A2 = RHIColorFormat::R10G108B10A2,
+
+			R16U   = RHIColorFormat::R16_UINT,
+			R32U   = RHIColorFormat::R16_UINT,
+			RGBA8U = RHIColorFormat::R8G8B8A8_UINT,
 
 			R16F    = RHIColorFormat::R16F,
 			RG16F   = RHIColorFormat::R16G16F,

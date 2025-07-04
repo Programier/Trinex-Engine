@@ -11,7 +11,7 @@ struct Arguments
 uniform Texture2D src;
 uniform writeonly RWTexture2D dst;
 
-[parameter_type("MemoryBlock")]
+[parameter_flags(meta::MemoryBlock)]
 uniform Arguments args;
 
 [ForceInline]
