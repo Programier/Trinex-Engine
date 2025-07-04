@@ -73,18 +73,12 @@ namespace Engine
 
 		switch (len & 15)
 		{
-			case 15:
-				k2 ^= ((uint64_t) data[14]) << 48;
-			case 14:
-				k2 ^= ((uint64_t) data[13]) << 40;
-			case 13:
-				k2 ^= ((uint64_t) data[12]) << 32;
-			case 12:
-				k2 ^= ((uint64_t) data[11]) << 24;
-			case 11:
-				k2 ^= ((uint64_t) data[10]) << 16;
-			case 10:
-				k2 ^= ((uint64_t) data[9]) << 8;
+			case 15: k2 ^= ((uint64_t) data[14]) << 48;
+			case 14: k2 ^= ((uint64_t) data[13]) << 40;
+			case 13: k2 ^= ((uint64_t) data[12]) << 32;
+			case 12: k2 ^= ((uint64_t) data[11]) << 24;
+			case 11: k2 ^= ((uint64_t) data[10]) << 16;
+			case 10: k2 ^= ((uint64_t) data[9]) << 8;
 			case 9:
 				k2 ^= ((uint64_t) data[8]) << 0;
 				k2 *= c2;
@@ -92,20 +86,13 @@ namespace Engine
 				k2 *= c1;
 				h2 ^= k2;
 
-			case 8:
-				k1 ^= ((uint64_t) data[7]) << 56;
-			case 7:
-				k1 ^= ((uint64_t) data[6]) << 48;
-			case 6:
-				k1 ^= ((uint64_t) data[5]) << 40;
-			case 5:
-				k1 ^= ((uint64_t) data[4]) << 32;
-			case 4:
-				k1 ^= ((uint64_t) data[3]) << 24;
-			case 3:
-				k1 ^= ((uint64_t) data[2]) << 16;
-			case 2:
-				k1 ^= ((uint64_t) data[1]) << 8;
+			case 8: k1 ^= ((uint64_t) data[7]) << 56;
+			case 7: k1 ^= ((uint64_t) data[6]) << 48;
+			case 6: k1 ^= ((uint64_t) data[5]) << 40;
+			case 5: k1 ^= ((uint64_t) data[4]) << 32;
+			case 4: k1 ^= ((uint64_t) data[3]) << 24;
+			case 3: k1 ^= ((uint64_t) data[2]) << 16;
+			case 2: k1 ^= ((uint64_t) data[1]) << 8;
 			case 1:
 				k1 ^= ((uint64_t) data[0]) << 0;
 				k1 *= c1;

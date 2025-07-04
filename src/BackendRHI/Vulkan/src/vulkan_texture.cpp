@@ -20,38 +20,110 @@
 
 namespace Engine
 {
-	vk::Image VulkanTexture::image() const
+	template<typename Value>
+	static FORCE_INLINE Value static_find_view(VulkanTexture::View<Value>* head, const VulkanTexture::ViewDesc& desc)
 	{
-		return m_image;
+		while (head)
+		{
+			if (head->desc == desc)
+			{
+				return head->value;
+			}
+
+			head = head->next;
+		}
+
+		return nullptr;
 	}
 
-	vk::ImageLayout VulkanTexture::layout() const
+	template<typename Value>
+	static FORCE_INLINE void static_destroy_view(VulkanTexture::View<Value>* head)
 	{
-		return m_layout;
+		while (head)
+		{
+			VulkanTexture::View<Value>* next = head->next;
+			release(head->value);
+			release(head);
+			head = next;
+		}
 	}
 
-	VulkanTexture& VulkanTexture::create(vk::ImageCreateFlagBits flags, vk::ImageUsageFlags usage,
-	                                     RHITextureCreateFlags create_flags)
+	template<typename T>
+	VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from_generic(const T* view, const VulkanTexture* texture)
 	{
+		ViewDesc desc;
+		desc.view_type = view->view_type == RHITextureType::Undefined ? texture->image_view_type()
+		                                                              : VulkanEnums::image_view_type_of(view->view_type);
+
+		desc.format = view->format == RHIColorFormat::Undefined ? texture->format() : VulkanEnums::format_of(view->format);
+
+		desc.first_mip         = 0;
+		desc.first_array_slice = 0;
+		desc.mip_levels        = texture->mipmap_count();
+		desc.array_size        = texture->layer_count();
+		return desc;
+	}
+
+
+	VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescSRV* view, const VulkanTexture* texture)
+	{
+		ViewDesc desc = from_generic(view, texture);
+		return desc;
+	}
+
+	VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescUAV* view, const VulkanTexture* texture)
+	{
+		ViewDesc desc = from_generic(view, texture);
+		return desc;
+	}
+
+	VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescRTV* view, const VulkanTexture* texture)
+	{
+		ViewDesc desc = from_generic(view, texture);
+		return desc;
+	}
+
+	VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescDSV* view, const VulkanTexture* texture)
+	{
+		ViewDesc desc = from_generic(view, texture);
+		return desc;
+	}
+
+	VulkanTexture& VulkanTexture::create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags)
+	{
+		m_aspect     = VulkanEnums::aspect_of(color_format);
+		m_format     = VulkanEnums::format_of(color_format);
+		m_extent     = vk::Extent3D{size.x, size.y, size.z};
+		m_mips_count = mips;
+
+		switch (image_view_type())
+		{
+			case vk::ImageViewType::e1DArray:
+			case vk::ImageViewType::e2DArray:
+			case vk::ImageViewType::eCube:
+			case vk::ImageViewType::eCubeArray: m_layers_count = size.z; break;
+			default: m_layers_count = 1; break;
+		}
+
 		m_layout = vk::ImageLayout::eUndefined;
-		m_flags  = create_flags;
+		m_flags  = flags;
 
-		usage |= vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc;
+		vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc;
 
-		if ((create_flags & RHITextureCreateFlags::ShaderResource) == RHITextureCreateFlags::ShaderResource)
+		if ((flags & RHITextureCreateFlags::ShaderResource) == RHITextureCreateFlags::ShaderResource)
 			usage |= vk::ImageUsageFlagBits::eSampled;
 
-		if ((create_flags & RHITextureCreateFlags::UnorderedAccess) == RHITextureCreateFlags::UnorderedAccess)
+		if ((flags & RHITextureCreateFlags::UnorderedAccess) == RHITextureCreateFlags::UnorderedAccess)
 			usage |= vk::ImageUsageFlagBits::eStorage;
 
-		if ((create_flags & RHITextureCreateFlags::RenderTarget) == RHITextureCreateFlags::RenderTarget)
+		if ((flags & RHITextureCreateFlags::RenderTarget) == RHITextureCreateFlags::RenderTarget)
 			usage |= vk::ImageUsageFlagBits::eColorAttachment;
 
-		if ((create_flags & RHITextureCreateFlags::DepthStencilTarget) == RHITextureCreateFlags::DepthStencilTarget)
+		if ((flags & RHITextureCreateFlags::DepthStencilTarget) == RHITextureCreateFlags::DepthStencilTarget)
 			usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
 
-		vk::ImageCreateInfo info(flags, image_type(), format(), extent(), mipmap_count(), layer_count(),
-		                         vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
+		vk::ImageCreateInfo info({}, image_type(), format(), extent(), mipmap_count(), layer_count(), vk::SampleCountFlagBits::e1,
+		                         vk::ImageTiling::eOptimal, usage);
 
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -61,21 +133,65 @@ namespace Engine
 		                                   &m_allocation, nullptr);
 		trinex_check(res == VK_SUCCESS, "Failed to create texture!");
 		m_image = out_image;
+
+		return create_views();
+	}
+
+	VulkanTexture& VulkanTexture::create_views()
+	{
+		if (m_flags & RHITextureCreateFlags::ShaderResource)
+		{
+			vk::ImageSubresourceRange range(VulkanEnums::srv_aspect(aspect()), 0, mipmap_count(), 0, layer_count());
+			vk::ImageViewCreateInfo view_info({}, image(), image_view_type(), format(), {}, range);
+			vk::ImageView view = API->m_device.createImageView(view_info);
+			m_srv.value        = new VulkanTextureSRV(this, view);
+		}
+
+		if (m_flags & RHITextureCreateFlags::UnorderedAccess)
+		{
+			vk::ImageSubresourceRange range(VulkanEnums::uav_aspect(aspect()), 0, mipmap_count(), 0, layer_count());
+			vk::ImageViewCreateInfo view_info({}, image(), image_view_type(), format(), {}, range);
+			vk::ImageView view = API->m_device.createImageView(view_info);
+			m_uav.value        = new VulkanTextureUAV(this, view);
+		}
+
+		if (m_flags & RHITextureCreateFlags::RenderTarget)
+		{
+			vk::ImageSubresourceRange range(VulkanEnums::rtv_aspect(aspect()), 0, 1, 0, 1);
+			vk::ImageViewCreateInfo view_info({}, image(), vk::ImageViewType::e2D, format(), {}, range);
+			vk::ImageView view = API->m_device.createImageView(view_info);
+			m_rtv.value        = new VulkanTextureRTV(this, view);
+		}
+
+		if (m_flags & RHITextureCreateFlags::DepthStencilTarget)
+		{
+			vk::ImageSubresourceRange range(VulkanEnums::dsv_aspect(aspect()), 0, 1, 0, 1);
+			vk::ImageViewCreateInfo view_info({}, image(), vk::ImageViewType::e2D, format(), {}, range);
+			vk::ImageView view = API->m_device.createImageView(view_info);
+			m_dsv.value        = new VulkanTextureDSV(this, view);
+		}
+
 		return *this;
 	}
 
-	vk::ImageAspectFlags VulkanTexture::aspect() const
+	VulkanTexture& VulkanTexture::update(const RHITextureUpdateDesc& desc)
 	{
-		RHIColorFormat format = engine_format();
-		if (format.is_color())
-		{
-			return vk::ImageAspectFlagBits::eColor;
-		}
-		else if (format.is_depth_stencil())
-		{
-			return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-		}
-		return vk::ImageAspectFlagBits::eDepth;
+		if (desc.data == nullptr || desc.size == 0)
+			return *this;
+
+		auto buffer = API->m_stagging_manager->allocate(desc.size, RHIBufferCreateFlags::TransferSrc);
+		buffer->copy(0, static_cast<const byte*>(desc.data), desc.size);
+
+		auto command_buffer = API->current_command_buffer();
+		change_layout(vk::ImageLayout::eTransferDstOptimal);
+
+		vk::BufferImageCopy region(0, desc.buffer_width, desc.buffer_height,
+		                           vk::ImageSubresourceLayers(aspect(), desc.mip_level, desc.array_slice, 1),
+		                           vk::Offset3D(desc.offset.x, desc.offset.y, desc.offset.z),
+		                           vk::Extent3D(desc.extent.x, desc.extent.y, desc.extent.z));
+
+		command_buffer->copyBufferToImage(buffer->buffer(), image(), vk::ImageLayout::eTransferDstOptimal, region);
+		return *this;
 	}
 
 	void VulkanTexture::change_layout(vk::ImageLayout new_layout)
@@ -98,50 +214,82 @@ namespace Engine
 		}
 	}
 
-	RHI_ShaderResourceView* VulkanTexture::create_srv()
+	RHI_ShaderResourceView* VulkanTexture::as_srv(const RHITextureDescSRV* desc)
 	{
-		vk::ImageSubresourceRange range(VulkanEnums::srv_aspect(aspect()), 0, mipmap_count(), 0, layer_count());
-
-		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+		if (!(m_flags & RHITextureCreateFlags::ShaderResource))
 			return nullptr;
 
-		vk::ImageViewCreateInfo view_info({}, image(), view_type(), format(), {}, range);
+		if (desc == nullptr)
+			return m_srv.value;
+
+		ViewDesc view_desc = ViewDesc::from(desc, this);
+
+		if (auto view = static_find_view(m_srv.next, view_desc))
+			return view;
+
+		vk::ImageSubresourceRange range(VulkanEnums::srv_aspect(aspect()), view_desc.first_mip, view_desc.mip_levels,
+		                                view_desc.first_array_slice, view_desc.array_size);
+		vk::ImageViewCreateInfo view_info({}, image(), view_desc.view_type, view_desc.format, {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureSRV(this, view);
 	}
 
-	RHI_UnorderedAccessView* VulkanTexture::create_uav()
+	RHI_UnorderedAccessView* VulkanTexture::as_uav(const RHITextureDescUAV* desc)
 	{
-		vk::ImageSubresourceRange range(VulkanEnums::uav_aspect(aspect()), 0, mipmap_count(), 0, layer_count());
-
-		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+		if (!(m_flags & RHITextureCreateFlags::UnorderedAccess))
 			return nullptr;
 
-		vk::ImageViewCreateInfo view_info({}, image(), view_type(), format(), {}, range);
+		if (desc == nullptr)
+			return m_uav.value;
+
+		ViewDesc view_desc = ViewDesc::from(desc, this);
+
+		if (auto view = static_find_view(m_uav.next, view_desc))
+			return view;
+
+		vk::ImageSubresourceRange range(VulkanEnums::uav_aspect(aspect()), view_desc.first_mip, view_desc.mip_levels,
+		                                view_desc.first_array_slice, view_desc.array_size);
+		vk::ImageViewCreateInfo view_info({}, image(), view_desc.view_type, view_desc.format, {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureUAV(this, view);
 	}
 
-	RHI_RenderTargetView* VulkanTexture::create_rtv()
+	RHI_RenderTargetView* VulkanTexture::as_rtv(const RHITextureDescRTV* desc)
 	{
-		vk::ImageSubresourceRange range(VulkanEnums::rtv_aspect(aspect()), 0, 1, 0, 1);
-
-		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+		if (!(m_flags & RHITextureCreateFlags::RenderTarget))
 			return nullptr;
 
-		vk::ImageViewCreateInfo view_info({}, image(), vk::ImageViewType::e2D, format(), {}, range);
+		if (desc == nullptr)
+			return m_rtv.value;
+
+		ViewDesc view_desc = ViewDesc::from(desc, this);
+
+		if (auto view = static_find_view(m_rtv.next, view_desc))
+			return view;
+
+		vk::ImageSubresourceRange range(VulkanEnums::rtv_aspect(aspect()), view_desc.first_mip, view_desc.mip_levels,
+		                                view_desc.first_array_slice, view_desc.array_size);
+		vk::ImageViewCreateInfo view_info({}, image(), view_desc.view_type, view_desc.format, {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureRTV(this, view);
 	}
 
-	RHI_DepthStencilView* VulkanTexture::create_dsv()
+	RHI_DepthStencilView* VulkanTexture::as_dsv(const RHITextureDescDSV* desc)
 	{
-		vk::ImageSubresourceRange range(VulkanEnums::dsv_aspect(aspect()), 0, 1, 0, 1);
-
-		if (range.aspectMask == vk::ImageAspectFlagBits::eNone)
+		if (!(m_flags & RHITextureCreateFlags::DepthStencilTarget))
 			return nullptr;
 
-		vk::ImageViewCreateInfo view_info({}, image(), vk::ImageViewType::e2D, format(), {}, range);
+		if (desc == nullptr)
+			return m_dsv.value;
+
+		ViewDesc view_desc = ViewDesc::from(desc, this);
+
+		if (auto view = static_find_view(m_dsv.next, view_desc))
+			return view;
+
+		vk::ImageSubresourceRange range(VulkanEnums::dsv_aspect(aspect()), view_desc.first_mip, view_desc.mip_levels,
+		                                view_desc.first_array_slice, view_desc.array_size);
+		vk::ImageViewCreateInfo view_info({}, image(), view_desc.view_type, view_desc.format, {}, range);
 		vk::ImageView view = API->m_device.createImageView(view_info);
 		return new VulkanTextureDSV(this, view);
 	}
@@ -186,108 +334,78 @@ namespace Engine
 
 	VulkanTexture::~VulkanTexture()
 	{
+		if (m_srv.value)
+			Engine::release(m_srv.value);
+
+		if (m_uav.value)
+			Engine::release(m_uav.value);
+
+		if (m_rtv.value)
+			Engine::release(m_rtv.value);
+
+		if (m_dsv.value)
+			Engine::release(m_dsv.value);
+
+		static_destroy_view(m_srv.next);
+		static_destroy_view(m_uav.next);
+		static_destroy_view(m_rtv.next);
+		static_destroy_view(m_dsv.next);
+
 		vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
-	VulkanTexture2D& VulkanTexture2D::create(RHIColorFormat format, Vector2u size, uint32_t mips, RHITextureCreateFlags flags)
+	RHI_Texture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+	                                       RHITextureCreateFlags flags)
 	{
-		m_format = format;
-		m_size   = size;
-		m_mips   = mips;
+		VulkanTexture* texture = nullptr;
 
-		VulkanTexture::create({}, {}, flags);
+		switch (type)
+		{
+			case RHITextureType::Texture1D:
+				size    = {size.x, 1, 1};
+				texture = new VulkanTypedTexture<vk::ImageViewType::e1D>();
+				break;
 
-		if (flags & RHITextureCreateFlags::ShaderResource)
-			m_srv = VulkanTexture::create_srv();
+			case RHITextureType::Texture1DArray:
+				size    = {size.x, 1, glm::max(size.z, 1u)};
+				texture = new VulkanTypedTexture<vk::ImageViewType::e1DArray>();
+				break;
 
-		if (flags & RHITextureCreateFlags::UnorderedAccess)
-			m_uav = VulkanTexture::create_uav();
+			case RHITextureType::Texture2D:
+				size    = {size.x, size.y, 1};
+				texture = new VulkanTypedTexture<vk::ImageViewType::e2D>();
+				break;
 
-		if (flags & RHITextureCreateFlags::RenderTarget)
-			m_rtv = VulkanTexture::create_rtv();
+			case RHITextureType::Texture2DArray:
+				size    = {size.x, size.y, glm::max(size.z, 1u)};
+				texture = new VulkanTypedTexture<vk::ImageViewType::e2DArray>();
+				break;
 
-		if (flags & RHITextureCreateFlags::DepthStencilTarget)
-			m_dsv = VulkanTexture::create_dsv();
-		return *this;
-	}
+			case RHITextureType::TextureCube:
+				size    = {size.x, size.y, 6};
+				texture = new VulkanTypedTexture<vk::ImageViewType::eCube>();
+				break;
 
-	uint_t VulkanTexture2D::layer_count() const
-	{
-		return 1;
-	}
+			case RHITextureType::TextureCubeArray:
+				size    = {size.x, size.y, glm::max((size.z + 5) / 6, 1u) * 6};
+				texture = new VulkanTypedTexture<vk::ImageViewType::eCubeArray>();
+				break;
 
-	vk::ImageViewType VulkanTexture2D::view_type() const
-	{
-		return vk::ImageViewType::e2D;
-	}
+			case RHITextureType::Texture3D: texture = new VulkanTypedTexture<vk::ImageViewType::e3D>(); break;
+			default: break;
+		}
 
-	uint8_t VulkanTexture2D::mipmap_count() const
-	{
-		return m_mips;
-	}
-
-	vk::Format VulkanTexture2D::format() const
-	{
-		return VulkanEnums::format_of(engine_format());
-	}
-
-	RHIColorFormat VulkanTexture2D::engine_format() const
-	{
-		return m_format;
-	}
-
-	vk::ImageType VulkanTexture2D::image_type() const
-	{
-		return vk::ImageType::e2D;
-	}
-
-	vk::Extent3D VulkanTexture2D::extent() const
-	{
-		return vk::Extent3D(m_size.x, m_size.y, 1);
-	}
-
-	void VulkanTexture2D::update(byte mip, const RHIRect& rect, const byte* data, size_t data_size)
-	{
-		if (data == nullptr || data_size == 0)
-			return;
-
-		auto buffer = API->m_stagging_manager->allocate(data_size, RHIBufferCreateFlags::TransferSrc);
-		buffer->copy(0, data, data_size);
-
-		auto command_buffer = API->current_command_buffer();
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), mip, 0, 1),
-		                           vk::Offset3D(rect.pos.x, rect.pos.y, 0), vk::Extent3D(rect.size.x, rect.size.y, 1));
-
-		command_buffer->copyBufferToImage(buffer->buffer(), image(), vk::ImageLayout::eTransferDstOptimal, region);
-	}
-
-	VulkanTexture2D::~VulkanTexture2D()
-	{
-		if (m_srv)
-			delete m_srv;
-
-		if (m_uav)
-			delete m_uav;
-
-		if (m_rtv)
-			delete m_rtv;
-
-		if (m_dsv)
-			delete m_dsv;
-	}
-
-	RHI_Texture* VulkanAPI::create_texture_2d(RHIColorFormat format, Vector2u size, uint32_t mips, RHITextureCreateFlags flags)
-	{
-		return &(new VulkanTexture2D())->create(format, size, mips, flags);
+		if (texture)
+		{
+			texture->create(format, size, glm::max(mips, 1u), flags);
+		}
+		return texture;
 	}
 
 
-	VulkanAPI& VulkanAPI::update_texture_2d(RHI_Texture* texture, byte mip, const RHIRect& rect, const byte* data,
-	                                        size_t data_size)
+	VulkanAPI& VulkanAPI::update_texture(RHI_Texture* texture, const RHITextureUpdateDesc& desc)
 	{
-		static_cast<VulkanTexture2D*>(texture)->update(mip, rect, data, data_size);
+		static_cast<VulkanTexture*>(texture)->update(desc);
 		return *this;
 	}
 

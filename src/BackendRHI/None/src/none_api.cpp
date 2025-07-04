@@ -73,10 +73,10 @@ namespace Engine
 	};
 
 	struct NoneTexture : public NoneApiDestroyable<RHI_Texture> {
-		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
-		RHI_DepthStencilView* as_dsv() override { return rhi_default<NoneDSV>(); }
-		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
-		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
+		RHI_RenderTargetView* as_rtv(const RHITextureDescRTV* view) override { return rhi_default<NoneRTV>(); }
+		RHI_DepthStencilView* as_dsv(const RHITextureDescDSV* view) override { return rhi_default<NoneDSV>(); }
+		RHI_ShaderResourceView* as_srv(const RHITextureDescSRV* view) override { return rhi_default<RHI_ShaderResourceView>(); }
+		RHI_UnorderedAccessView* as_uav(const RHITextureDescUAV* view) override { return rhi_default<RHI_UnorderedAccessView>(); }
 
 		byte* map(RHIMappingAccess access, const RHIMappingRange* range) override { return nullptr; }
 		void unmap(const RHIMappingRange* range) override {}
@@ -183,7 +183,8 @@ namespace Engine
 		return new NoneSampler();
 	}
 
-	RHI_Texture* NoneApi::create_texture_2d(RHIColorFormat format, Vector2u size, uint32_t mips, RHITextureCreateFlags flags)
+	RHI_Texture* NoneApi::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+	                                     RHITextureCreateFlags flags)
 	{
 		return new NoneTexture();
 	}
@@ -294,7 +295,7 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::update_texture_2d(RHI_Texture*, byte mip, const RHIRect& rect, const byte* data, size_t data_size)
+	NoneApi& NoneApi::update_texture(RHI_Texture*, const RHITextureUpdateDesc& desc)
 	{
 		return *this;
 	}

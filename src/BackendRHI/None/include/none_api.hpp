@@ -34,7 +34,8 @@ namespace Engine
 
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
-		RHI_Texture* create_texture_2d(RHIColorFormat format, Vector2u size, uint32_t mips, RHITextureCreateFlags flags) override;
+		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+		                            RHITextureCreateFlags flags) override;
 		RHI_Shader* create_vertex_shader(const byte* source, size_t size, const RHIVertexAttribute* attributes,
 		                                 size_t attributes_count) override;
 		RHI_Shader* create_tesselation_control_shader(const byte* source, size_t size) override;
@@ -46,12 +47,12 @@ namespace Engine
 		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
-		
+
 		NoneApi& primitive_topology(RHIPrimitiveTopology topology) override;
 		NoneApi& polygon_mode(RHIPolygonMode mode) override;
 		NoneApi& cull_mode(RHICullMode mode) override;
 		NoneApi& front_face(RHIFrontFace face) override;
-		
+
 		NoneApi& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
 		NoneApi& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
 		NoneApi& bind_uniform_buffer(RHI_Buffer* buffer, byte slot) override;
@@ -60,7 +61,7 @@ namespace Engine
 		NoneApi& bind_sampler(RHI_Sampler* sampler, byte slot) override;
 
 		NoneApi& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
-		NoneApi& update_texture_2d(RHI_Texture*, byte mip, const RHIRect& rect, const byte* data, size_t data_size) override;
+		NoneApi& update_texture(RHI_Texture*, const RHITextureUpdateDesc& desc) override;
 
 		NoneApi& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                               size_t dst_offset) override;

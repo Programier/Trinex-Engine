@@ -79,4 +79,50 @@ namespace Engine
 		size_t offset = 0;
 		size_t size   = 0;
 	};
+
+	struct RHITextureUpdateDesc {
+		const void* data     = nullptr;
+		size_t size          = 0;
+		size_t buffer_width  = 0;
+		size_t buffer_height = 0;
+
+		Vector3u offset = {0, 0, 0};
+		Vector3u extent = {0, 0, 0};
+
+		uint16_t mip_level   = 0;
+		uint16_t array_slice = 0;
+	};
+
+	struct RHITextureDescSRV {
+		RHIColorFormat format      = RHIColorFormat::Undefined;
+		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t first_mip         = 0;
+		uint16_t first_array_slice = 0;
+		uint16_t mip_levels        = ~0;
+		uint16_t array_size        = ~0;
+	};
+
+	struct RHITextureDescUAV {
+		RHIColorFormat format      = RHIColorFormat::Undefined;
+		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t mip_slice         = 0;
+		uint16_t first_array_slice = 0;
+		uint16_t array_size        = ~0;
+	};
+
+	struct RHITextureDescRTV {
+		RHIColorFormat format      = RHIColorFormat::Undefined;
+		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t mip_slice         = 0;
+		uint16_t first_array_slice = 0;
+		uint16_t array_size        = ~0;
+	};
+
+	struct RHITextureDescDSV {
+		RHIColorFormat format      = RHIColorFormat::Undefined;
+		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t mip_slice         = 0;
+		uint16_t first_array_slice = 0;
+		uint16_t array_size        = ~0;
+	};
 }// namespace Engine

@@ -261,7 +261,7 @@ namespace Engine
 			flags |= RHITextureCreateFlags::DepthStencilTarget;
 		}
 
-		RHI_Texture* surface  = rhi->create_texture_2d(format, size, 1, flags);
+		RHI_Texture* surface  = rhi->create_texture(RHITextureType::Texture2D, format, {size, 1}, 1, flags);
 		m_surface_id[surface] = surface_id;
 		return surface;
 	}

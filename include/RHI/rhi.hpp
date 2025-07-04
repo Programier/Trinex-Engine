@@ -88,10 +88,10 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
-		virtual RHI_RenderTargetView* as_rtv()    = 0;
-		virtual RHI_DepthStencilView* as_dsv()    = 0;
-		virtual RHI_ShaderResourceView* as_srv()  = 0;
-		virtual RHI_UnorderedAccessView* as_uav() = 0;
+		virtual RHI_RenderTargetView* as_rtv(const RHITextureDescRTV* view = nullptr)    = 0;
+		virtual RHI_DepthStencilView* as_dsv(const RHITextureDescDSV* view = nullptr)    = 0;
+		virtual RHI_ShaderResourceView* as_srv(const RHITextureDescSRV* view = nullptr)  = 0;
+		virtual RHI_UnorderedAccessView* as_uav(const RHITextureDescUAV* view = nullptr) = 0;
 
 		virtual byte* map(RHIMappingAccess access, const RHIMappingRange* range = nullptr) = 0;
 		virtual void unmap(const RHIMappingRange* range = nullptr)                         = 0;
@@ -157,8 +157,8 @@ namespace Engine
 
 		virtual RHI_Fence* create_fence()                                                                             = 0;
 		virtual RHI_Sampler* create_sampler(const RHISamplerInitializer*)                                             = 0;
-		virtual RHI_Texture* create_texture_2d(RHIColorFormat format, Vector2u size, uint32_t mips,
-		                                       RHITextureCreateFlags flags)                                           = 0;
+		virtual RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+		                                    RHITextureCreateFlags flags)                                              = 0;
 		virtual RHI_Shader* create_vertex_shader(const byte* shader, size_t size, const RHIVertexAttribute* attributes,
 		                                         size_t attributes_count)                                             = 0;
 		virtual RHI_Shader* create_tesselation_control_shader(const byte* shader, size_t size)                        = 0;
@@ -174,8 +174,8 @@ namespace Engine
 		virtual RHI& push_debug_stage(const char* stage)                                                              = 0;
 		virtual RHI& pop_debug_stage()                                                                                = 0;
 
-		virtual RHI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)                    = 0;
-		virtual RHI& update_texture_2d(RHI_Texture*, byte mip, const RHIRect& rect, const byte* data, size_t data_size) = 0;
+		virtual RHI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) = 0;
+		virtual RHI& update_texture(RHI_Texture* texture, const RHITextureUpdateDesc& desc)          = 0;
 
 		virtual RHI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                                   size_t dst_offset) = 0;

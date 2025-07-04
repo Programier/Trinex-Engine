@@ -81,7 +81,7 @@ namespace Engine
 	};
 
 	struct RHITextureCreateFlags {
-		enum Enum
+		enum Enum : byte
 		{
 			None               = 0,
 			ShaderResource     = BIT(0),
@@ -586,5 +586,21 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIMappingAccess);
+	};
+
+	struct RHITextureType {
+		enum Enum : EnumerateType
+		{
+			Undefined        = 0,
+			Texture1D        = 1,
+			Texture1DArray   = 2,
+			Texture2D        = 3,
+			Texture2DArray   = 4,
+			TextureCube      = 5,
+			TextureCubeArray = 6,
+			Texture3D        = 7,
+		};
+
+		trinex_enum_struct(RHITextureType);
 	};
 };// namespace Engine

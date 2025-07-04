@@ -24,11 +24,19 @@ namespace Engine
 	Texture2D& Texture2D::init_render_resources()
 	{
 		render_thread()->call([this]() {
-			m_texture = rhi->create_texture_2d(format, size(), mips.size(), RHITextureCreateFlags::ShaderResource);
+			m_texture = rhi->create_texture(RHITextureType::Texture2D, format, {size(), 1}, mips.size(),
+			                                RHITextureCreateFlags::ShaderResource);
 
 			for (byte index = 0; auto& mip : mips)
 			{
-				rhi->update_texture_2d(m_texture, index++, RHIRect(mip.size), mip.data.data(), mip.data.size());
+				RHITextureUpdateDesc desc;
+				desc.data      = mip.data.data();
+				desc.size      = mip.data.size();
+				desc.mip_level = index++;
+				desc.offset    = {0, 0, 0};
+				desc.extent    = {mip.size, 1};
+
+				rhi->update_texture(m_texture, desc);
 			}
 		});
 		return *this;

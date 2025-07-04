@@ -6,6 +6,22 @@
 
 namespace Engine::VulkanEnums
 {
+	constexpr inline vk::ImageAspectFlags aspect_of(RHIColorFormat format)
+	{
+		if (format.is_color())
+		{
+			return vk::ImageAspectFlagBits::eColor;
+		}
+		else if (format.is_depth_stencil())
+		{
+			return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+		}
+		else
+		{
+			return vk::ImageAspectFlagBits::eDepth;
+		}
+	}
+
 	constexpr inline vk::Format format_of(RHIColorFormat format)
 	{
 		switch (format)
@@ -365,6 +381,20 @@ namespace Engine::VulkanEnums
 			case RHIPolygonMode::Line: return vk::PolygonMode::eLine;
 			case RHIPolygonMode::Point: return vk::PolygonMode::ePoint;
 			default: return vk::PolygonMode::eFill;
+		}
+	}
+
+	static inline vk::ImageViewType image_view_type_of(RHITextureType type)
+	{
+		switch (type)
+		{
+			case RHITextureType::Texture1DArray: return vk::ImageViewType::e1DArray;
+			case RHITextureType::Texture2D: return vk::ImageViewType::e2D;
+			case RHITextureType::Texture2DArray: return vk::ImageViewType::e2DArray;
+			case RHITextureType::TextureCube: return vk::ImageViewType::eCube;
+			case RHITextureType::TextureCubeArray: return vk::ImageViewType::eCubeArray;
+			case RHITextureType::Texture3D: return vk::ImageViewType::e3D;
+			default: return vk::ImageViewType::e1D;
 		}
 	}
 }// namespace Engine::VulkanEnums

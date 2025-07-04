@@ -125,7 +125,8 @@ namespace Engine
 
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
-		RHI_Texture* create_texture_2d(RHIColorFormat format, Vector2u size, uint32_t mips, RHITextureCreateFlags flags) override;
+		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+		                            RHITextureCreateFlags flags) override;
 		RHI_Shader* create_vertex_shader(const byte* shader, size_t size, const RHIVertexAttribute* attributes,
 		                                 size_t attributes_count) override;
 		RHI_Shader* create_tesselation_control_shader(const byte* shader, size_t size) override;
@@ -143,7 +144,7 @@ namespace Engine
 		VulkanAPI& pop_debug_stage() override;
 
 		VulkanAPI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
-		VulkanAPI& update_texture_2d(RHI_Texture*, byte mip, const RHIRect& rect, const byte* data, size_t data_size) override;
+		VulkanAPI& update_texture(RHI_Texture*, const RHITextureUpdateDesc& desc) override;
 
 		VulkanAPI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                                 size_t dst_offset) override;

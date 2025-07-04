@@ -32,7 +32,7 @@ namespace Engine
 				flags |= RHITextureCreateFlags::DepthStencilTarget;
 			}
 
-			m_texture = rhi->create_texture_2d(m_format, m_size, 1, flags);
+			m_texture = rhi->create_texture(RHITextureType::Texture2D, m_format, {m_size, 1}, 1, flags);
 		});
 
 		return *this;
