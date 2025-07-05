@@ -5,8 +5,8 @@
 
 namespace Engine
 {
-	struct VulkanTextureRTV;
-	struct VulkanTextureDSV;
+	class VulkanTextureRTV;
+	class VulkanTextureDSV;
 
 	class VulkanRenderPass
 	{

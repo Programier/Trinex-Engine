@@ -31,8 +31,10 @@ namespace Engine
 	                             BC2_RGBA, BC3_RGBA, BC4_R, BC5_RG, BC7_RGBA, ASTC_4x4_RGBA, ASTC_6x6_RGBA, ASTC_8x8_RGBA,
 	                             ASTC_10x10_RGBA, ETC1_RGB, ETC2_RGB, ETC2_RGBA, NV12, P010, Depth, DepthStencil, ShadowDepth);
 
-	trinex_implement_engine_enum(RHISurfaceFormat, Undefined, Depth, ShadowDepth, R8, RG8, RGBA8, RG8B10A2, R16U, R32U, RGBA8U,
-	                             R16F, RG16F, RGBA16F);
+	trinex_implement_engine_enum(RHISurfaceFormat, Undefined, Depth, ShadowDepth, R8, RG8, RGBA8, RG8B10A2, R16, RG16, RGBA16,
+	                             R8S, RG8S, RGBA8S, R16S, RG16S, RGBA16S, R8UI, RG8UI, RGBA8UI, R16UI, RG16UI, RGBA16UI, R32UI,
+	                             RG32UI, RGBA32UI, R8SI, RG8SI, RGBA8SI, R16SI, RG16SI, RGBA16SI, R32SI, RG32SI, RGBA32SI, R16F,
+	                             RG16F, RGBA16F, R32F, RG32F, RGBA32F);
 
 	static RHIColorFormat::Capabilities s_capabilities[RHIColorFormat::static_count()] = {};
 

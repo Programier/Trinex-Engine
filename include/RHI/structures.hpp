@@ -94,35 +94,31 @@ namespace Engine
 	};
 
 	struct RHITextureDescSRV {
-		RHIColorFormat format      = RHIColorFormat::Undefined;
-		RHITextureType view_type   = RHITextureType::Undefined;
-		uint16_t first_mip         = 0;
 		uint16_t first_array_slice = 0;
-		uint16_t mip_levels        = ~0;
 		uint16_t array_size        = ~0;
+		uint8_t first_mip          = 0;
+		uint8_t mip_levels         = ~0;
+		RHITextureType view_type   = RHITextureType::Undefined;
 	};
 
 	struct RHITextureDescUAV {
-		RHIColorFormat format      = RHIColorFormat::Undefined;
-		RHITextureType view_type   = RHITextureType::Undefined;
-		uint16_t mip_slice         = 0;
 		uint16_t first_array_slice = 0;
 		uint16_t array_size        = ~0;
+		uint8_t mip_slice          = 0;
+		RHITextureType view_type   = RHITextureType::Undefined;
 	};
 
 	struct RHITextureDescRTV {
-		RHIColorFormat format      = RHIColorFormat::Undefined;
-		RHITextureType view_type   = RHITextureType::Undefined;
-		uint16_t mip_slice         = 0;
 		uint16_t first_array_slice = 0;
 		uint16_t array_size        = ~0;
+		uint8_t mip_slice          = 0;
+		RHITextureType view_type   = RHITextureType::Undefined;
 	};
 
 	struct RHITextureDescDSV {
-		RHIColorFormat format      = RHIColorFormat::Undefined;
-		RHITextureType view_type   = RHITextureType::Undefined;
-		uint16_t mip_slice         = 0;
 		uint16_t first_array_slice = 0;
 		uint16_t array_size        = ~0;
+		uint8_t mip_slice          = 0;
+		RHITextureType view_type   = RHITextureType::Undefined;
 	};
 }// namespace Engine

@@ -506,6 +506,11 @@ namespace Engine
 		trinex_enum_struct(RHIColorFormat);
 		trinex_declare_enum(RHIColorFormat);
 
+		constexpr inline RHIColorFormat(const struct RHISurfaceFormat& format);
+		constexpr inline RHIColorFormat& operator=(const struct RHISurfaceFormat& format);
+		constexpr inline bool operator==(const struct RHISurfaceFormat& format) const noexcept;
+		constexpr inline bool operator!=(const struct RHISurfaceFormat& format) const noexcept;
+
 		Capabilities capabilities() const;
 		RHIColorFormat add_capabilities(Capabilities capabilities) const;
 		RHIColorFormat remove_capabilities(Capabilities capabilities) const;
@@ -533,22 +538,66 @@ namespace Engine
 			Depth       = RHIColorFormat::Depth,
 			ShadowDepth = RHIColorFormat::ShadowDepth,
 
+			// Unsigned normalized formats,
 			R8       = RHIColorFormat::R8,
 			RG8      = RHIColorFormat::R8G8,
 			RGBA8    = RHIColorFormat::R8G8B8A8,
 			RG8B10A2 = RHIColorFormat::R10G108B10A2,
+			R16      = RHIColorFormat::R16,
+			RG16     = RHIColorFormat::R16G16,
+			RGBA16   = RHIColorFormat::R16G16B16A16,
 
-			R16U   = RHIColorFormat::R16_UINT,
-			R32U   = RHIColorFormat::R16_UINT,
-			RGBA8U = RHIColorFormat::R8G8B8A8_UINT,
+			// Signed normalized formats
+			R8S     = RHIColorFormat::R8_SNORM,
+			RG8S    = RHIColorFormat::R8G8_SNORM,
+			RGBA8S  = RHIColorFormat::R8G8B8A8_SNORM,
+			R16S    = RHIColorFormat::R16_SNORM,
+			RG16S   = RHIColorFormat::R16G16_SNORM,
+			RGBA16S = RHIColorFormat::R16G16B16A16_SNORM,
 
+			// Unsigned integer formats
+			R8UI     = RHIColorFormat::R8_UINT,
+			RG8UI    = RHIColorFormat::R8G8_UINT,
+			RGBA8UI  = RHIColorFormat::R8G8B8A8_UINT,
+			R16UI    = RHIColorFormat::R16_UINT,
+			RG16UI   = RHIColorFormat::R16G16_UINT,
+			RGBA16UI = RHIColorFormat::R16G16B16A16_UINT,
+			R32UI    = RHIColorFormat::R32_UINT,
+			RG32UI   = RHIColorFormat::R32G32_UINT,
+			RGBA32UI = RHIColorFormat::R32G32B32A32_UINT,
+
+			// Signed integer formats
+			R8SI     = RHIColorFormat::R8_SINT,
+			RG8SI    = RHIColorFormat::R8G8_SINT,
+			RGBA8SI  = RHIColorFormat::R8G8B8A8_SINT,
+			R16SI    = RHIColorFormat::R16_SINT,
+			RG16SI   = RHIColorFormat::R16G16_SINT,
+			RGBA16SI = RHIColorFormat::R16G16B16A16_SINT,
+			R32SI    = RHIColorFormat::R32_SINT,
+			RG32SI   = RHIColorFormat::R32G32_SINT,
+			RGBA32SI = RHIColorFormat::R32G32B32A32_SINT,
+
+			// Floating formats
 			R16F    = RHIColorFormat::R16F,
 			RG16F   = RHIColorFormat::R16G16F,
 			RGBA16F = RHIColorFormat::R16G16B16A16F,
+			R32F    = RHIColorFormat::R32F,
+			RG32F   = RHIColorFormat::R32G32F,
+			RGBA32F = RHIColorFormat::R32G32B32A32F,
 		};
 
 		trinex_enum_struct(RHISurfaceFormat);
 		trinex_declare_enum(RHISurfaceFormat);
+
+		constexpr inline bool operator==(const struct RHIColorFormat& format) const noexcept
+		{
+			return value == static_cast<Enum>(format.value);
+		}
+
+		constexpr inline bool operator!=(const struct RHIColorFormat& format) const noexcept
+		{
+			return value != static_cast<Enum>(format.value);
+		}
 
 		inline RHIColorFormat as_color_format() const { return static_cast<RHIColorFormat::Enum>(value); }
 
@@ -559,6 +608,26 @@ namespace Engine
 
 		operator RHIColorFormat() const { return as_color_format(); }
 	};
+
+	constexpr inline RHIColorFormat::RHIColorFormat(const struct RHISurfaceFormat& format)
+	    : value(static_cast<RHIColorFormat::Enum>(format.value))
+	{}
+
+	constexpr inline RHIColorFormat& RHIColorFormat::operator=(const struct RHISurfaceFormat& format)
+	{
+		value = static_cast<Enum>(format.value);
+		return *this;
+	}
+
+	constexpr inline bool RHIColorFormat::operator==(const struct RHISurfaceFormat& format) const noexcept
+	{
+		return value == static_cast<Enum>(format.value);
+	}
+
+	constexpr inline bool RHIColorFormat::operator!=(const struct RHISurfaceFormat& format) const noexcept
+	{
+		return value != static_cast<Enum>(format.value);
+	}
 
 	struct RHIColorComponent {
 		enum Enum : EnumerateType
@@ -589,7 +658,7 @@ namespace Engine
 	};
 
 	struct RHITextureType {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Undefined        = 0,
 			Texture1D        = 1,

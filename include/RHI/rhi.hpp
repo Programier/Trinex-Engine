@@ -88,10 +88,10 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
-		virtual RHI_RenderTargetView* as_rtv(const RHITextureDescRTV* view = nullptr)    = 0;
-		virtual RHI_DepthStencilView* as_dsv(const RHITextureDescDSV* view = nullptr)    = 0;
-		virtual RHI_ShaderResourceView* as_srv(const RHITextureDescSRV* view = nullptr)  = 0;
-		virtual RHI_UnorderedAccessView* as_uav(const RHITextureDescUAV* view = nullptr) = 0;
+		virtual RHI_RenderTargetView* as_rtv(RHITextureDescRTV desc = {})    = 0;
+		virtual RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc = {})    = 0;
+		virtual RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc = {})  = 0;
+		virtual RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc = {}) = 0;
 
 		virtual byte* map(RHIMappingAccess access, const RHIMappingRange* range = nullptr) = 0;
 		virtual void unmap(const RHIMappingRange* range = nullptr)                         = 0;

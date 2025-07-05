@@ -123,19 +123,19 @@
 	{                                                                                                                            \
 		return value;                                                                                                            \
 	}                                                                                                                            \
-	constexpr inline bool operator==(const struct_type& other) const                                                             \
+	constexpr inline bool operator==(const struct_type& other) const noexcept                                                    \
 	{                                                                                                                            \
 		return value == other.value;                                                                                             \
 	}                                                                                                                            \
-	constexpr inline bool operator!=(const struct_type& other) const                                                             \
+	constexpr inline bool operator!=(const struct_type& other) const noexcept                                                    \
 	{                                                                                                                            \
 		return value != other.value;                                                                                             \
 	}                                                                                                                            \
-	constexpr inline bool operator==(Enum other) const                                                                           \
+	constexpr inline bool operator==(Enum other) const noexcept                                                                  \
 	{                                                                                                                            \
 		return value == other;                                                                                                   \
 	}                                                                                                                            \
-	constexpr inline bool operator!=(Enum other) const                                                                           \
+	constexpr inline bool operator!=(Enum other) const noexcept                                                                  \
 	{                                                                                                                            \
 		return value != other;                                                                                                   \
 	}                                                                                                                            \
@@ -153,41 +153,41 @@
 	{                                                                                                                            \
 		return value;                                                                                                            \
 	}                                                                                                                            \
-	constexpr inline bool operator==(Enum other) const                                                                           \
+	constexpr inline bool operator==(Enum other) const noexcept                                                                  \
 	{                                                                                                                            \
 		return bitfield == type(other);                                                                                          \
 	}                                                                                                                            \
-	constexpr inline bool operator!=(Enum other) const                                                                           \
+	constexpr inline bool operator!=(Enum other) const noexcept                                                                  \
 	{                                                                                                                            \
 		return bitfield != type(other);                                                                                          \
 	}                                                                                                                            \
-	constexpr inline struct_type operator|(Enum other) const                                                                     \
+	constexpr inline struct_type operator|(Enum other) const noexcept                                                            \
 	{                                                                                                                            \
 		return struct_type(bitfield | type(other));                                                                              \
 	}                                                                                                                            \
-	constexpr inline struct_type operator&(Enum other) const                                                                     \
+	constexpr inline struct_type operator&(Enum other) const noexcept                                                            \
 	{                                                                                                                            \
 		return struct_type(bitfield & type(other));                                                                              \
 	}                                                                                                                            \
-	constexpr inline struct_type operator^(Enum other) const                                                                     \
+	constexpr inline struct_type operator^(Enum other) const noexcept                                                            \
 	{                                                                                                                            \
 		return struct_type(bitfield ^ type(other));                                                                              \
 	}                                                                                                                            \
-	constexpr inline struct_type& operator|=(Enum other)                                                                         \
+	constexpr inline struct_type& operator|=(Enum other) noexcept                                                                \
 	{                                                                                                                            \
 		bitfield |= other;                                                                                                       \
 		return *this;                                                                                                            \
 	}                                                                                                                            \
-	constexpr inline struct_type operator~() const                                                                               \
+	constexpr inline struct_type operator~() const noexcept                                                                      \
 	{                                                                                                                            \
 		return struct_type(~bitfield);                                                                                           \
 	}                                                                                                                            \
-	constexpr inline struct_type& operator&=(Enum other)                                                                         \
+	constexpr inline struct_type& operator&=(Enum other) noexcept                                                                \
 	{                                                                                                                            \
 		bitfield &= other;                                                                                                       \
 		return *this;                                                                                                            \
 	}                                                                                                                            \
-	constexpr inline struct_type& operator^=(Enum other)                                                                         \
+	constexpr inline struct_type& operator^=(Enum other) noexcept                                                                \
 	{                                                                                                                            \
 		bitfield ^= other;                                                                                                       \
 		return *this;                                                                                                            \
