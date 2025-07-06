@@ -83,11 +83,11 @@ namespace Engine
 	struct RHITextureCreateFlags {
 		enum Enum : byte
 		{
-			None               = 0,
+			Undefined          = 0,
 			ShaderResource     = BIT(0),
 			UnorderedAccess    = BIT(1),
 			RenderTarget       = BIT(2),
-			DepthStencilTarget = BIT(3),
+			DepthStencilTarget = BIT(3)
 		};
 
 		trinex_bitfield_enum_struct(RHITextureCreateFlags, byte);
@@ -96,9 +96,9 @@ namespace Engine
 	struct RHIBufferCreateFlags {
 		enum Enum : uint16_t
 		{
-			Undefined,
-			Static  = BIT(0),
-			Dynamic = BIT(1),
+			Undefined = 0,
+			Static    = BIT(0),
+			Dynamic   = BIT(1),
 
 			VertexBuffer      = BIT(2),
 			IndexBuffer       = BIT(3),

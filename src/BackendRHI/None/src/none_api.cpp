@@ -60,6 +60,8 @@ namespace Engine
 
 	struct NoneRTV : public RHI_RenderTargetView {
 		void clear(const LinearColor& color) override {}
+		void clear_uint(const Vector4u& value) override {}
+		void clear_sint(const Vector4i& value) override {}
 		void blit(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
 		          RHISamplerFilter filter) override
 		{}
@@ -77,9 +79,6 @@ namespace Engine
 		RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc) override { return rhi_default<NoneDSV>(); }
 		RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc) override { return rhi_default<RHI_ShaderResourceView>(); }
 		RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc) override { return rhi_default<RHI_UnorderedAccessView>(); }
-
-		byte* map(RHIMappingAccess access, const RHIMappingRange* range) override { return nullptr; }
-		void unmap(const RHIMappingRange* range) override {}
 	};
 
 	struct NoneShader : public NoneApiDestroyable<RHI_Shader> {
@@ -301,6 +300,19 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset, size_t dst_offset)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice,
+	                                         const Vector3u& offset, const Vector3u& extent, RHI_Buffer* buffer,
+	                                         size_t buffer_offset)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
+	                                         uint16_t array_slice, const Vector3u& offset, const Vector3u& extent)
 	{
 		return *this;
 	}

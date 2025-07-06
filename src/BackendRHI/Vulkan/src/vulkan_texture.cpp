@@ -144,8 +144,8 @@ namespace Engine
 		if ((flags & RHITextureCreateFlags::DepthStencilTarget) == RHITextureCreateFlags::DepthStencilTarget)
 			usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
 
-		vk::ImageCreateInfo info(vk::ImageCreateFlagBits::eMutableFormat, image_type(), format(), extent(), mipmap_count(),
-		                         layer_count(), vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
+		vk::ImageCreateInfo info({}, image_type(), format(), extent(), mipmap_count(), layer_count(), vk::SampleCountFlagBits::e1,
+		                         vk::ImageTiling::eOptimal, usage);
 
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -235,44 +235,6 @@ namespace Engine
 		return static_as_view(this, m_dsv, ViewDesc::from(desc, this), mask);
 	}
 
-	byte* VulkanTexture::map(RHIMappingAccess access, const RHIMappingRange* range)
-	{
-		byte* memory    = nullptr;
-		VkResult result = vmaMapMemory(API->m_allocator, m_allocation, reinterpret_cast<void**>(&memory));
-
-		if (result != VK_SUCCESS || memory == nullptr)
-			return nullptr;
-
-		if (range)
-		{
-			if (access != RHIMappingAccess::Write)
-			{
-				VmaAllocationInfo info;
-				vmaGetAllocationInfo(API->m_allocator, m_allocation, &info);
-
-				vk::MappedMemoryRange invalidate_range(info.deviceMemory, info.offset + range->offset, range->size);
-				API->m_device.invalidateMappedMemoryRanges(invalidate_range);
-			}
-
-			return memory + range->offset;
-		}
-
-		return memory;
-	}
-
-	void VulkanTexture::unmap(const RHIMappingRange* range)
-	{
-		if (range)
-		{
-			VmaAllocationInfo info;
-			vmaGetAllocationInfo(API->m_allocator, m_allocation, &info);
-			vk::MappedMemoryRange flust_range(info.deviceMemory, info.offset + range->offset, range->size);
-			API->m_device.flushMappedMemoryRanges(flust_range);
-		}
-
-		vmaUnmapMemory(API->m_allocator, m_allocation);
-	}
-
 	VulkanTexture::~VulkanTexture()
 	{
 		static_destroy_view(m_srv);
@@ -337,6 +299,38 @@ namespace Engine
 	VulkanAPI& VulkanAPI::update_texture(RHI_Texture* texture, const RHITextureUpdateDesc& desc)
 	{
 		static_cast<VulkanTexture*>(texture)->update(desc);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice,
+	                                             const Vector3u& offset, const Vector3u& extent, RHI_Buffer* buffer,
+	                                             size_t buffer_offset)
+	{
+		VulkanTexture* src = static_cast<VulkanTexture*>(texture);
+		VulkanBuffer* dst  = static_cast<VulkanBuffer*>(buffer);
+
+		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
+		dst->transition(RHIAccess::CopyDst);
+
+		vk::BufferImageCopy region(buffer_offset, 0, 0, vk::ImageSubresourceLayers(src->aspect(), mip_level, array_slice, 1),
+		                           vk::Offset3D(offset.x, offset.y, offset.z), vk::Extent3D(extent.x, extent.y, extent.z));
+		API->current_command_buffer()->copyImageToBuffer(src->image(), src->layout(), dst->buffer(), region);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture,
+	                                             uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
+	                                             const Vector3u& extent)
+	{
+		VulkanTexture* dst = static_cast<VulkanTexture*>(texture);
+		VulkanBuffer* src  = static_cast<VulkanBuffer*>(buffer);
+
+		src->transition(RHIAccess::CopySrc);
+		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
+
+		vk::BufferImageCopy region(buffer_offset, 0, 0, vk::ImageSubresourceLayers(dst->aspect(), mip_level, array_slice, 1),
+		                           vk::Offset3D(offset.x, offset.y, offset.z), vk::Extent3D(extent.x, extent.y, extent.z));
+		API->current_command_buffer()->copyBufferToImage(src->buffer(), dst->image(), dst->layout(), region);
 		return *this;
 	}
 

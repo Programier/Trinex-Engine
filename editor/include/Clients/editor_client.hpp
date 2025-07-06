@@ -79,7 +79,7 @@ namespace Engine
 		EditorClient& update_drag_and_drop();
 
 		EditorClient& update_camera(float dt);
-		EditorClient& select_actors(const Vector2f& coords);
+		EditorClient& select_actors(const Vector2f& uv);
 
 		// Inputs
 		void on_mouse_press(const Event& event);

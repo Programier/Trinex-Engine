@@ -1,37 +1,86 @@
-#include "Engine/Actors/actor.hpp"
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
+#include <Core/thread.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
+#include <Engine/Actors/actor.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/editor_pipelines.hpp>
+#include <Graphics/editor_render_passes.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_bindings.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine::EditorRenderer
 {
+	class EditorRenderer : public Renderer
+	{
+	public:
+		EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit) : Renderer(scene, view, mode) {}
+
+		RHI_Texture* render_hitproxies()
+		{
+			Vector2u size                               = scene_view().view_size();
+			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().camera_view());
+
+			auto surface = RHISurfacePool::global_instance()->request_transient_surface(RHISurfaceFormat::RG32UI, size);
+			auto depth   = scene_depth_target();
+
+			auto surface_rtv = surface->as_rtv();
+			auto depth_dsv   = depth->as_dsv();
+
+			trinex_rhi_push_stage("HitProxy");
+			surface_rtv->clear_uint({0, 0, 0, 0});
+			depth_dsv->clear(1.f, 0);
+
+			rhi->bind_render_target1(surface_rtv, depth_dsv);
+			rhi->viewport(RHIViewport(size));
+			rhi->scissor(RHIScissors(size));
+
+			static MaterialBindings bindings;
+			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("proxy_id");
+
+			for (PrimitiveComponent* primitive : primitives)
+			{
+				if (Actor* actor = primitive->actor())
+				{
+					uintptr_t addr = reinterpret_cast<uintptr_t>(actor);
+
+					Vector2u id;
+					id.x        = static_cast<uint32_t>(addr & 0xFFFFFFFFu);
+					id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
+					(*proxy_id) = id;
+
+					render_primitive(EditorRenderPasses::HitProxy::static_instance(), primitive, &bindings);
+				}
+			}
+
+			trinex_rhi_pop_stage();
+			return surface;
+		}
+	};
+
 	void render_grid(Renderer* renderer)
 	{
 		if (!Settings::Editor::show_grid)
 			return;
 
-		renderer->add_custom_pass([](Renderer* renderer, RenderGraph::Graph& graph) {
-			graph.add_pass(RenderGraph::Pass::Graphics, "Editor Grid")
-			        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
-			        .add_resource(renderer->scene_depth_target(), RHIAccess::DSV)
-			        .add_func([renderer]() {
-				        rhi->bind_render_target1(renderer->scene_color_target()->as_rtv(),
-				                                 renderer->scene_depth_target()->as_dsv());
-				        EditorPipelines::Grid::instance()->render(renderer);
-			        });
-		});
+		renderer->render_graph()
+		        ->add_pass(RenderGraph::Pass::Graphics, "Editor Grid")
+		        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
+		        .add_resource(renderer->scene_depth_target(), RHIAccess::DSV)
+		        .add_func([renderer]() {
+			        rhi->bind_render_target1(renderer->scene_color_target()->as_rtv(), renderer->scene_depth_target()->as_dsv());
+			        EditorPipelines::Grid::instance()->render(renderer);
+		        });
 	}
 
 	static void render_outlines_pass(Renderer* renderer, Actor** actors, size_t count)
@@ -62,12 +111,11 @@ namespace Engine::EditorRenderer
 
 	void render_outlines(Renderer* renderer, Actor** actors, size_t count)
 	{
-		renderer->add_custom_pass([actors, count](Renderer* renderer, RenderGraph::Graph& graph) {
-			graph.add_pass(RenderGraph::Pass::Graphics, "Editor Outlines")
-			        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
-			        .add_resource(renderer->scene_depth_target(), RHIAccess::SRVGraphics)
-			        .add_func([renderer, actors, count]() { render_outlines_pass(renderer, actors, count); });
-		});
+		renderer->render_graph()
+		        ->add_pass(RenderGraph::Pass::Graphics, "Editor Outlines")
+		        .add_resource(renderer->scene_color_target(), RHIAccess::RTV)
+		        .add_resource(renderer->scene_depth_target(), RHIAccess::SRVGraphics)
+		        .add_func([renderer, actors, count]() { render_outlines_pass(renderer, actors, count); });
 	}
 
 	void render_primitives(Renderer* renderer, Actor** actors, size_t count)
@@ -104,5 +152,37 @@ namespace Engine::EditorRenderer
 				}
 			}
 		}
+	}
+
+	Actor* raycast(const SceneView& view, Vector2f uv, Scene* scene)
+	{
+		EditorRenderer renderer(scene, view);
+		RHI_Texture* hitproxy = renderer.render_hitproxies();
+
+		auto buffer_pool = RHIBufferPool::global_instance();
+		auto fence_pool  = RHIFencePool::global_instance();
+
+		static constexpr RHIBufferCreateFlags buffer_flags = RHIBufferCreateFlags::TransferDst | RHIBufferCreateFlags::CPURead;
+
+		auto buffer = buffer_pool->request_buffer(8, buffer_flags);
+		auto fence  = fence_pool->request_fence();
+
+		Vector2f size = view.view_size();
+		Vector3u offset(static_cast<uint32_t>((size.x * uv.x) + 0.5f), static_cast<uint32_t>((size.y * uv.y) + 0.5f), 0);
+		rhi->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
+
+		rhi->signal_fence(fence);
+		rhi->submit();
+
+		while (!fence->is_signaled()) Thread::static_yield();
+
+		Actor* actor = nullptr;
+		byte* data   = buffer->map();
+		std::memcpy(&actor, data, 8);
+		buffer->unmap();
+
+		RHIFencePool::global_instance()->return_fence(fence);
+		RHIBufferPool::global_instance()->return_buffer(buffer);
+		return actor;
 	}
 }// namespace Engine::EditorRenderer

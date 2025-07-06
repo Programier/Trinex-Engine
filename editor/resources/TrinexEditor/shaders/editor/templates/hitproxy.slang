@@ -10,7 +10,7 @@ extern Material main<Material : IMaterial>(in IMaterialInput input);
 uniform float4x4 local_to_world;
 
 [parameter_flags(meta::ExcludeMaterialParameter)]
-uniform uint32_t proxy_id;
+uniform uint2 proxy_id;
 
 [shader("vertex")]
 float4 vs_main(
@@ -57,4 +57,4 @@ float4 vs_main(
 }
 
 [shader("fragment")]
-uint32_t fs_main() : SV_Target { return proxy_id; }
+uint2 fs_main() : SV_Target { return proxy_id; }

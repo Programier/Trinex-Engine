@@ -20,25 +20,27 @@ namespace Engine
 
 	static constexpr uint64_t s_resource_live_threshold = 60 * 3;
 
-	static inline Identifier static_calculate_surface_id(RHISurfaceFormat format, Vector2u size)
+	static inline Identifier static_calculate_surface_id(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
 		union SurfaceID
 		{
-			Identifier id;
+			Identifier id = 0;
 
 			struct Value {
-				RHISurfaceFormat format;
 				uint16_t x;
 				uint16_t y;
+				RHISurfaceFormat::Enum format : 16;
+				RHITextureCreateFlags flags;
 			} value;
 
-			static_assert(sizeof(Value) == sizeof(Identifier));
+			static_assert(sizeof(Value) <= sizeof(Identifier));
 		};
 
 		SurfaceID id;
 		id.value.format = format;
 		id.value.x      = size.x;
 		id.value.y      = size.y;
+		id.value.flags  = flags;
 		return id.id;
 	}
 
@@ -53,8 +55,20 @@ namespace Engine
 		return &pool;
 	}
 
+	RHIFencePool& RHIFencePool::flush_transient()
+	{
+		for (RHI_Fence* fence : m_transient_fences)
+		{
+			return_fence(fence);
+		}
+		m_transient_fences.clear();
+		return *this;
+	}
+
 	RHIFencePool& RHIFencePool::update()
 	{
+		flush_transient();
+
 		size_t erase_count = 0;
 
 		for (auto& entry : m_pool)
@@ -90,7 +104,7 @@ namespace Engine
 	{
 		if (auto fence = request_fence())
 		{
-			render_thread()->call([fence, this]() { return_fence(fence); });
+			m_transient_fences.push_back(fence);
 			return fence;
 		}
 		return nullptr;
@@ -98,6 +112,8 @@ namespace Engine
 
 	RHIFencePool& RHIFencePool::release_all()
 	{
+		flush_transient();
+
 		for (auto& entry : m_pool)
 		{
 			entry.fence->release();
@@ -120,8 +136,21 @@ namespace Engine
 		return &pool;
 	}
 
+	RHIBufferPool& RHIBufferPool::flush_transient()
+	{
+		for (RHI_Buffer* buffer : m_transient_buffers)
+		{
+			return_buffer(buffer);
+		}
+
+		m_transient_buffers.clear();
+		return *this;
+	}
+
 	RHIBufferPool& RHIBufferPool::update()
 	{
+		flush_transient();
+
 		for (auto& [id, pool] : m_pools)
 		{
 			size_t erase_count = 0;
@@ -169,7 +198,7 @@ namespace Engine
 	{
 		if (auto buffer = request_buffer(size, flags))
 		{
-			render_thread()->call([buffer, this]() { return_buffer(buffer); });
+			m_transient_buffers.push_back(buffer);
 			return buffer;
 		}
 		return nullptr;
@@ -177,6 +206,8 @@ namespace Engine
 
 	RHIBufferPool& RHIBufferPool::release_all()
 	{
+		flush_transient();
+
 		m_buffer_id.clear();
 		for (auto& [id, pool] : m_pools)
 		{
@@ -209,8 +240,20 @@ namespace Engine
 		return &pool;
 	}
 
+	RHISurfacePool& RHISurfacePool::flush_transient()
+	{
+		for (RHI_Texture* texture : m_transient_textures)
+		{
+			return_surface(texture);
+		}
+		m_transient_textures.clear();
+		return *this;
+	}
+
 	RHISurfacePool& RHISurfacePool::update()
 	{
+		flush_transient();
+
 		for (auto& [id, pool] : m_pools)
 		{
 			size_t erase_count = 0;
@@ -234,12 +277,23 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Texture* RHISurfacePool::request_surface(RHISurfaceFormat format, Vector2u size)
+	RHI_Texture* RHISurfacePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
 
-		const Identifier surface_id = static_calculate_surface_id(format, size);
+		flags |= RHITextureCreateFlags::ShaderResource;
+
+		if (format.is_color())
+		{
+			flags |= RHITextureCreateFlags::RenderTarget;
+		}
+		else if (format.has_depth())
+		{
+			flags |= RHITextureCreateFlags::DepthStencilTarget;
+		}
+
+		const Identifier surface_id = static_calculate_surface_id(format, size, flags);
 		auto& pool                  = m_pools[surface_id];
 
 		if (!pool.empty())
@@ -249,28 +303,16 @@ namespace Engine
 			return surface;
 		}
 
-		RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
-
-		if (format.is_color())
-		{
-			flags |= RHITextureCreateFlags::RenderTarget;
-			flags |= RHITextureCreateFlags::UnorderedAccess;
-		}
-		else if (format.has_depth())
-		{
-			flags |= RHITextureCreateFlags::DepthStencilTarget;
-		}
-
-		RHI_Texture* surface  = rhi->create_texture(RHITextureType::Texture2D, format, {size, 1}, 1, flags);
+		RHI_Texture* surface  = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(format), {size, 1}, 1, flags);
 		m_surface_id[surface] = surface_id;
 		return surface;
 	}
 
-	RHI_Texture* RHISurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size)
+	RHI_Texture* RHISurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
-		if (auto surface = request_surface(format, size))
+		if (auto surface = request_surface(format, size, flags))
 		{
-			render_thread()->call([surface, this]() { return_surface(surface); });
+			m_transient_textures.push_back(surface);
 			return surface;
 		}
 		return nullptr;
@@ -278,6 +320,8 @@ namespace Engine
 
 	RHISurfacePool& RHISurfacePool::release_all()
 	{
+		flush_transient();
+
 		m_surface_id.clear();
 		for (auto& [id, pool] : m_pools)
 		{
@@ -310,8 +354,20 @@ namespace Engine
 		return &pool;
 	}
 
+	RenderSurfacePool& RenderSurfacePool::flush_transient()
+	{
+		for (RenderSurface* surface : m_transient_surfaces)
+		{
+			return_surface(surface);
+		}
+		m_transient_surfaces.clear();
+		return *this;
+	}
+
 	RenderSurfacePool& RenderSurfacePool::update()
 	{
+		flush_transient();
+
 		for (auto& [id, pool] : m_pools)
 		{
 			size_t erase_count = 0;
@@ -344,7 +400,7 @@ namespace Engine
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
 
-		auto& pool = m_pools[static_calculate_surface_id(format, size)];
+		auto& pool = m_pools[static_calculate_surface_id(format, size, {})];
 
 		if (!pool.empty())
 		{
@@ -367,7 +423,7 @@ namespace Engine
 	{
 		if (auto surface = request_surface(format, size))
 		{
-			logic_thread()->call([object = Pointer(surface), this]() { return_surface(object.ptr()); });
+			m_transient_surfaces.push_back(surface);
 			return surface;
 		}
 		return nullptr;
@@ -375,7 +431,7 @@ namespace Engine
 
 	RenderSurfacePool& RenderSurfacePool::return_surface(RenderSurface* surface)
 	{
-		auto& pool    = m_pools[static_calculate_surface_id(surface->format(), surface->size())];
+		auto& pool    = m_pools[static_calculate_surface_id(surface->format(), surface->size(), {})];
 		auto& entry   = pool.emplace_back();
 		entry.surface = surface;
 		entry.frame   = s_resource_live_threshold;

@@ -48,8 +48,8 @@ namespace Engine
 		API->end_render_pass();
 		change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		vk::ClearColorValue value;
-		value.setFloat32({color.r, color.g, color.b, color.a});
+		vk::ClearColorValue clear_value;
+		clear_value.setFloat32({color.r, color.g, color.b, color.a});
 
 		vk::ImageSubresourceRange range;
 		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
@@ -58,7 +58,43 @@ namespace Engine
 		        .setLayerCount(1)
 		        .setLevelCount(1);
 
-		API->current_command_buffer()->clearColorImage(image(), layout(), value, range);
+		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
+	}
+
+	void VulkanTextureRTV::clear_uint(const Vector4u& value)
+	{
+		API->end_render_pass();
+		change_layout(vk::ImageLayout::eTransferDstOptimal);
+
+		vk::ClearColorValue clear_value;
+		clear_value.setUint32({value.r, value.g, value.b, value.a});
+
+		vk::ImageSubresourceRange range;
+		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
+		        .setBaseArrayLayer(0)
+		        .setBaseMipLevel(0)
+		        .setLayerCount(1)
+		        .setLevelCount(1);
+
+		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
+	}
+
+	void VulkanTextureRTV::clear_sint(const Vector4i& value)
+	{
+		API->end_render_pass();
+		change_layout(vk::ImageLayout::eTransferDstOptimal);
+
+		vk::ClearColorValue clear_value;
+		clear_value.setInt32({value.r, value.g, value.b, value.a});
+
+		vk::ImageSubresourceRange range;
+		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
+		        .setBaseArrayLayer(0)
+		        .setBaseMipLevel(0)
+		        .setLayerCount(1)
+		        .setLevelCount(1);
+
+		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
 	}
 
 	template<typename Target>

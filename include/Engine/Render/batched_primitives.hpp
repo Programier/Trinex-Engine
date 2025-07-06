@@ -73,6 +73,8 @@ namespace Engine
 		                       const Color& color = {255, 255, 255, 255}, uint_t segments = 0, float thickness = 1.f);
 
 		BatchedLines& flush(Renderer* renderer);
+
+		inline bool is_empty() const { return m_first == nullptr; }
 	};
 
 	class ENGINE_EXPORT BatchedTriangles final

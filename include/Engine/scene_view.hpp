@@ -30,7 +30,8 @@ namespace Engine
 		SceneView& scissor(const RHIScissors& scissor);
 
 		SceneView& show_flags(ShowFlags flags);
-		const SceneView& screen_to_world(const Vector2f& screen_point, Vector3f& world_origin, Vector3f& world_direction) const;
+		Vector3f screen_to_ray_direction(const Vector2f& screen_point) const;
+		Vector3f uv_to_ray_direction(const Vector2f& uv) const;
 		Vector4f world_to_screen(const Vector3f& world_point) const;
 
 		FORCE_INLINE const RHIViewport& viewport() const { return m_viewport; }

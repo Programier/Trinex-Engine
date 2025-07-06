@@ -97,9 +97,6 @@ namespace Engine
 		RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc) override;
 		RHI_RenderTargetView* as_rtv(RHITextureDescRTV desc) override;
 		RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc) override;
-
-		byte* map(RHIMappingAccess access, const RHIMappingRange* range = nullptr) override;
-		void unmap(const RHIMappingRange* range = nullptr) override;
 		~VulkanTexture();
 	};
 

@@ -110,7 +110,7 @@ namespace Engine
 		       (m_min.z <= other.m_max.z && m_max.z >= other.m_min.z);
 	}
 
-	Vector2f AABB_3Df::intersect(const Ray& ray) const
+	bool AABB_3Df::intersect(const Ray& ray) const
 	{
 		const Vector3f& origin    = ray.origin();
 		const Vector3f& direction = ray.direction();
@@ -121,10 +121,10 @@ namespace Engine
 		Vector3f t2    = glm::max(t_min, t_max);
 		float t_near   = glm::max(glm::max(t1.x, t1.y), t1.z);
 		float t_far    = glm::min(glm::min(t2.x, t2.y), t2.z);
-		return Vector2f(t_near, t_far);
+		return t_near < t_far;
 	}
 
-	Vector2f Ray::intersect(const AABB_3Df& aabb) const
+	bool Ray::intersect(const AABB_3Df& aabb) const
 	{
 		return aabb.intersect(*this);
 	}

@@ -219,6 +219,8 @@ namespace Engine
 		new_features.geometryShader                       = features.geometryShader;
 		new_features.shaderStorageImageReadWithoutFormat  = features.shaderStorageImageReadWithoutFormat;
 		new_features.shaderStorageImageWriteWithoutFormat = features.shaderStorageImageWriteWithoutFormat;
+		new_features.shaderInt16                          = features.shaderInt16;
+		new_features.shaderInt64                          = features.shaderInt64;
 
 		return new_features;
 	}

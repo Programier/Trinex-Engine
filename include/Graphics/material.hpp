@@ -14,6 +14,7 @@ namespace Engine
 
 	class Pipeline;
 	class GraphicsPipeline;
+	class MaterialBindings;
 	struct RendererContext;
 	class RenderPass;
 
@@ -43,7 +44,7 @@ namespace Engine
 
 		virtual MaterialInterface* parent() const;
 		virtual class Material* material();
-		virtual bool apply(const RendererContext& ctx);
+		virtual bool apply(const RendererContext& ctx, const MaterialBindings* bindings = nullptr);
 
 		bool serialize(Archive& archive) override;
 	};
@@ -57,7 +58,7 @@ namespace Engine
 
 		bool register_child(Object* child) override;
 		bool unregister_child(Object* child) override;
-		bool apply_internal(MaterialInterface* head, const RendererContext& ctx);
+		bool apply_internal(MaterialInterface* head, const RendererContext& ctx, const MaterialBindings* bindings = nullptr);
 
 	private:
 		bool register_pipeline_parameters(GraphicsPipeline* pipeline);
@@ -78,7 +79,7 @@ namespace Engine
 		Material& setup_pipeline(GraphicsPipeline* pipeline);
 
 		class Material* material() override;
-		bool apply(const RendererContext& ctx) override;
+		bool apply(const RendererContext& ctx, const MaterialBindings* bindings = nullptr) override;
 		bool serialize(Archive& archive) override;
 
 		virtual Material& post_compile(RenderPass* pass, GraphicsPipeline* pipeline);
@@ -97,7 +98,7 @@ namespace Engine
 
 		class Material* material() override;
 		MaterialInterface* parent() const override;
-		bool apply(const RendererContext& ctx) override;
+		bool apply(const RendererContext& ctx, const MaterialBindings* bindings = nullptr) override;
 		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

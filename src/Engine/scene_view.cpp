@@ -57,20 +57,25 @@ namespace Engine
 		return *this;
 	}
 
-	const SceneView& SceneView::screen_to_world(const Vector2f& screen_point, Vector3f& world_origin,
-	                                            Vector3f& world_direction) const
+	Vector3f SceneView::screen_to_ray_direction(const Vector2f& screen_point) const
 	{
 		int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
+		Size2D m_size = view_size();
 
+		float u = (x - m_size.x / 2.f) / (m_size.x / 2.f);
+		float v = (y - m_size.y / 2.f) / (m_size.y / 2.f);
+
+		return uv_to_ray_direction({u, v});
+	}
+
+	Vector3f SceneView::uv_to_ray_direction(const Vector2f& uv) const
+	{
 		Matrix4f inverse_view       = glm::inverse(m_view);
 		Matrix4f inverse_projection = glm::inverse(m_projection);
 
-		Size2D m_size = view_size();
-
-		float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
-		float screen_space_y                = (y - m_size.y / 2.f) / (m_size.y / 2.f);
-		Vector4f ray_start_projection_space = Vector4f(screen_space_x, screen_space_y, 0.f, 1.0f);
-		Vector4f ray_end_projection_space   = Vector4f(screen_space_x, screen_space_y, 0.5f, 1.0f);
+		Vector2f ndc                        = uv * 2.0f - Vector2f(1.0f);
+		Vector4f ray_start_projection_space = Vector4f(ndc, 0.f, 1.0f);
+		Vector4f ray_end_projection_space   = Vector4f(ndc, 0.5f, 1.0f);
 
 		Vector4f hg_ray_start_view_space = inverse_projection * ray_start_projection_space;
 		Vector4f hg_ray_end_view_space   = inverse_projection * ray_end_projection_space;
@@ -79,22 +84,12 @@ namespace Engine
 		Vector3f ray_end_view_space(hg_ray_end_view_space.x, hg_ray_end_view_space.y, hg_ray_end_view_space.z);
 
 		if (hg_ray_start_view_space.w != 0.0f)
-		{
 			ray_start_view_space /= hg_ray_start_view_space.w;
-		}
+
 		if (hg_ray_end_view_space.w != 0.0f)
-		{
 			ray_end_view_space /= hg_ray_end_view_space.w;
-		}
 
-		Vector3f ray_dir_view_space = ray_end_view_space - ray_start_view_space;
-		ray_dir_view_space          = glm::normalize(ray_dir_view_space);
-
-		Vector3f ray_dir_world_space = inverse_view * Vector4f(ray_dir_view_space, 0.f);
-
-		world_origin    = m_camera_view.location;
-		world_direction = glm::normalize(ray_dir_world_space);
-		return *this;
+		return glm::normalize(inverse_view * Vector4f(glm::normalize(ray_end_view_space - ray_start_view_space), 0.f));
 	}
 
 	Vector4f SceneView::world_to_screen(const Vector3f& world_point) const

@@ -3,11 +3,11 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/pointer.hpp>
+#include <RHI/enums.hpp>
 
 namespace Engine
 {
 	class RenderSurface;
-	struct RHIBufferCreateFlags;
 	struct RHI_Texture;
 	struct RHI_Buffer;
 	struct RHI_Fence;
@@ -21,6 +21,10 @@ namespace Engine
 		};
 
 		Vector<FenceEntry> m_pool;
+		Vector<RHI_Fence*> m_transient_fences;
+
+	private:
+		RHIFencePool& flush_transient();
 
 	public:
 		static RHIFencePool* global_instance();
@@ -42,6 +46,10 @@ namespace Engine
 
 		Map<Identifier, Vector<BufferEntry>> m_pools;
 		Map<RHI_Buffer*, Identifier> m_buffer_id;
+		Vector<RHI_Buffer*> m_transient_buffers;
+
+	private:
+		RHIBufferPool& flush_transient();
 
 	public:
 		static RHIBufferPool* global_instance();
@@ -63,13 +71,17 @@ namespace Engine
 
 		Map<Identifier, Vector<SurfaceEntry>> m_pools;
 		Map<RHI_Texture*, Identifier> m_surface_id;
+		Vector<RHI_Texture*> m_transient_textures;
+
+	private:
+		RHISurfacePool& flush_transient();
 
 	public:
 		static RHISurfacePool* global_instance();
 
 		RHISurfacePool& update();
-		RHI_Texture* request_surface(struct RHISurfaceFormat format, Vector2u size);
-		RHI_Texture* request_transient_surface(struct RHISurfaceFormat format, Vector2u size);
+		RHI_Texture* request_surface(struct RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
+		RHI_Texture* request_transient_surface(struct RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
 		RHISurfacePool& release_all();
 		RHISurfacePool& return_surface(RHI_Texture* surface);
 	};
@@ -83,6 +95,10 @@ namespace Engine
 		};
 
 		Map<Identifier, Vector<SurfaceEntry>> m_pools;
+		Vector<RenderSurface*> m_transient_surfaces;
+
+	private:
+		RenderSurfacePool& flush_transient();
 
 	public:
 		static RenderSurfacePool* global_instance();

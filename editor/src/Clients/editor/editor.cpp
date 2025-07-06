@@ -523,39 +523,38 @@ namespace Engine
 			return *this;
 		};
 
+		auto cursor_position = ImGui::GetCursorPos();
+		auto viewport_size   = ImGui::GetContentRegionAvail();
+
 		if (!m_state.viewport.is_using_guizmo && m_state.viewport.is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
-			relative_mouse_pos.y    = m_state.viewport.size.y - relative_mouse_pos.y;
-			select_actors(ImGui::EngineVecFrom(relative_mouse_pos));
+			select_actors(ImGui::EngineVecFrom(relative_mouse_pos / viewport_size));
 		}
 
 		{
-			auto current_pos = ImGui::GetCursorPos();
-			auto size        = ImGui::GetContentRegionAvail();
-
-			m_state.viewport.size = ImGui::EngineVecFrom(size);
+			m_state.viewport.size = ImGui::EngineVecFrom(viewport_size);
 			camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
 			if (RenderSurface* scene = capture_scene())
 			{
-				ImGui::Image(scene, size);
+				ImGui::Image(scene, viewport_size);
 				m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 			}
 
-			ImGui::SetCursorPos(current_pos);
+			ImGui::SetCursorPos(cursor_position);
 			render_guizmo(dt);
 
 			update_drag_and_drop();
 
-			ImGui::SetCursorPos(current_pos);
+			ImGui::SetCursorPos(cursor_position);
 			ImGui::BeginGroup();
 			render_viewport_menu();
 			ImGui::EndGroup();
 
 			if ((m_show_flags & ShowFlags::Statistics) != ShowFlags::None)
 			{
-				ImGui::SetCursorPos(current_pos + ImVec2(0, ImGui::GetItemRectSize().y));
+				ImGui::SetCursorPos(cursor_position + ImVec2(0, ImGui::GetItemRectSize().y));
 				render_statistics(dt);
 			}
 		}
@@ -606,9 +605,17 @@ namespace Engine
 
 	using RaycastPrimitiveResult = Pair<SceneComponent*, float>;
 
-	EditorClient& EditorClient::select_actors(const Vector2f& coords)
+	EditorClient& EditorClient::select_actors(const Vector2f& uv)
 	{
-		// TODO: Implement picking objects using hit proxy or similar way
+		Actor* actor = nullptr;
+
+		render_thread()->call([this, uv, &actor]() { actor = EditorRenderer::raycast(m_scene_view, uv, m_world->scene()); });
+		render_thread()->wait();
+
+		m_world->unselect_actors();
+
+		if (actor)
+			m_world->select_actor(actor);
 		return *this;
 	}
 

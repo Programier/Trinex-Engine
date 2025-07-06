@@ -71,9 +71,12 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHI_RenderTargetView {
-		virtual void clear(const LinearColor& color) = 0;
+		virtual void clear(const LinearColor& color)   = 0;
+		virtual void clear_uint(const Vector4u& value) = 0;
+		virtual void clear_sint(const Vector4i& value) = 0;
+
 		virtual void blit(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		                  RHISamplerFilter filter)   = 0;
+		                  RHISamplerFilter filter) = 0;
 		virtual ~RHI_RenderTargetView() {}
 	};
 
@@ -92,9 +95,6 @@ namespace Engine
 		virtual RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc = {})    = 0;
 		virtual RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc = {})  = 0;
 		virtual RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc = {}) = 0;
-
-		virtual byte* map(RHIMappingAccess access, const RHIMappingRange* range = nullptr) = 0;
-		virtual void unmap(const RHIMappingRange* range = nullptr)                         = 0;
 	};
 
 	struct ENGINE_EXPORT RHI_Shader : RHI_Object {
@@ -179,6 +179,12 @@ namespace Engine
 
 		virtual RHI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                                   size_t dst_offset) = 0;
+
+		virtual RHI& copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
+		                                    const Vector3u& extent, RHI_Buffer* buffer, size_t buffer_offset) = 0;
+
+		virtual RHI& copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
+		                                    uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) = 0;
 
 		virtual RHI& primitive_topology(RHIPrimitiveTopology topology) = 0;
 		virtual RHI& polygon_mode(RHIPolygonMode mode)                 = 0;

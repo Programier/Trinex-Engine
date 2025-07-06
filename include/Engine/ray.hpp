@@ -18,6 +18,6 @@ namespace Engine
 		Ray& origin(const Point3D& origin);
 		Ray& direction(const Vector3f& direction);
 
-		Vector2f intersect(const AABB_3Df&) const;
+		bool intersect(const AABB_3Df&) const;
 	};
 }// namespace Engine

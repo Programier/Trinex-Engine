@@ -49,7 +49,8 @@ namespace Engine
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
 	};
 
-	struct VulkanTextureUAV : public VulkanUAV {
+	class VulkanTextureUAV : public VulkanUAV
+	{
 	private:
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
@@ -74,6 +75,8 @@ namespace Engine
 		~VulkanTextureRTV();
 
 		void clear(const LinearColor& color) override;
+		void clear_uint(const Vector4u& value) override;
+		void clear_sint(const Vector4i& value) override;
 		void blit(RHI_RenderTargetView* texture, const RHIRect& src_rect, const RHIRect& dst_rect,
 		          RHISamplerFilter filter) override;
 

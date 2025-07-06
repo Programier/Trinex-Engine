@@ -12,6 +12,7 @@
 #include <Engine/Render/renderer.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/material_bindings.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
@@ -46,6 +47,74 @@ namespace Engine
 			return parameter->name().to_string();
 		}
 	};
+
+	struct MaterialBindingsVisitor {
+	private:
+		const RHIShaderParameterInfo* m_parameter;
+
+		template<RHIShaderParameterType type, typename T>
+		bool bind_scalar(const T& value) const
+		{
+			if (m_parameter->type.type_index() == type.type_index())
+			{
+				rhi->update_scalar_parameter(&value, m_parameter);
+				return true;
+			}
+			return false;
+		}
+
+	public:
+		inline MaterialBindingsVisitor(const RHIShaderParameterInfo* info) : m_parameter(info) {}
+
+		bool operator()(bool value) const { return bind_scalar<RHIShaderParameterType::Bool>(value); }
+		bool operator()(Vector2b value) const { return bind_scalar<RHIShaderParameterType::Bool2>(value); }
+		bool operator()(Vector3b value) const { return bind_scalar<RHIShaderParameterType::Bool3>(value); }
+		bool operator()(Vector4b value) const { return bind_scalar<RHIShaderParameterType::Bool4>(value); }
+
+		bool operator()(int_t value) const { return bind_scalar<RHIShaderParameterType::Int>(value); }
+		bool operator()(Vector2i value) const { return bind_scalar<RHIShaderParameterType::Int2>(value); }
+		bool operator()(const Vector3i& value) const { return bind_scalar<RHIShaderParameterType::Int3>(value); }
+		bool operator()(const Vector4i& value) const { return bind_scalar<RHIShaderParameterType::Int4>(value); }
+
+		bool operator()(uint_t value) const { return bind_scalar<RHIShaderParameterType::UInt>(value); }
+		bool operator()(Vector2u value) const { return bind_scalar<RHIShaderParameterType::UInt2>(value); }
+		bool operator()(const Vector3u& value) const { return bind_scalar<RHIShaderParameterType::UInt3>(value); }
+		bool operator()(const Vector4u& value) const { return bind_scalar<RHIShaderParameterType::UInt4>(value); }
+
+		bool operator()(float value) const { return bind_scalar<RHIShaderParameterType::Float>(value); }
+		bool operator()(Vector2f value) const { return bind_scalar<RHIShaderParameterType::Float2>(value); }
+		bool operator()(const Vector3f& value) const { return bind_scalar<RHIShaderParameterType::Float3>(value); }
+		bool operator()(const Vector4f& value) const { return bind_scalar<RHIShaderParameterType::Float4>(value); }
+
+		bool operator()(const MaterialBindings::MemoryBlock& value) const { return false; }
+		bool operator()(const MaterialBindings::CombinedSamplerImage& value) const { return false; }
+
+		bool operator()(RHI_ShaderResourceView* value) const
+		{
+			static constexpr RHIShaderParameterType mask = RHIShaderParameterType::META_Texture |
+			                                               RHIShaderParameterType::META_Buffer |
+			                                               RHIShaderParameterType::META_TexelBuffer;
+			if (m_parameter->type & mask)
+			{
+				rhi->bind_srv(value, m_parameter->binding);
+				return true;
+			}
+			return false;
+		}
+
+		bool operator()(RHI_Sampler* value) const
+		{
+			static constexpr RHIShaderParameterType dst_type = RHIShaderParameterType::Sampler;
+
+			if (m_parameter->type.type_index() == dst_type.type_index())
+			{
+				rhi->bind_sampler(value, m_parameter->binding);
+				return true;
+			}
+			return false;
+		}
+	};
+
 
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
@@ -151,7 +220,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool MaterialInterface::apply(const RendererContext& ctx)
+	bool MaterialInterface::apply(const RendererContext& ctx, const MaterialBindings* bindings)
 	{
 		return false;
 	}
@@ -385,12 +454,12 @@ namespace Engine
 		return *this;
 	}
 
-	bool Material::apply(const RendererContext& ctx)
+	bool Material::apply(const RendererContext& ctx, const MaterialBindings* bindings)
 	{
-		return apply_internal(this, ctx);
+		return apply_internal(this, ctx, bindings);
 	}
 
-	bool Material::apply_internal(MaterialInterface* head, const RendererContext& ctx)
+	bool Material::apply_internal(MaterialInterface* head, const RendererContext& ctx, const MaterialBindings* bindings)
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
@@ -401,12 +470,33 @@ namespace Engine
 
 		pipeline_object->rhi_bind();
 
-		for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
+		if (bindings)
 		{
-			Parameter* parameter = head->find_parameter(info.name);
+			for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
+			{
+				if (auto binding = bindings->find(info.name))
+				{
+					MaterialBindingsVisitor visitor(&info);
 
-			if (parameter)
-				parameter->apply(ctx, &info);
+					if (std::visit(visitor, *binding))
+						continue;
+				}
+
+				Parameter* parameter = head->find_parameter(info.name);
+
+				if (parameter)
+					parameter->apply(ctx, &info);
+			}
+		}
+		else
+		{
+			for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
+			{
+				Parameter* parameter = head->find_parameter(info.name);
+
+				if (parameter)
+					parameter->apply(ctx, &info);
+			}
 		}
 		return true;
 	}
@@ -502,7 +592,7 @@ namespace Engine
 		return parent_material;
 	}
 
-	bool MaterialInstance::apply(const RendererContext& ctx)
+	bool MaterialInstance::apply(const RendererContext& ctx, const MaterialBindings* bindings)
 	{
 		Material* mat = material();
 
@@ -511,7 +601,7 @@ namespace Engine
 			return false;
 		}
 
-		return mat->apply_internal(this, ctx);
+		return mat->apply_internal(this, ctx, bindings);
 	}
 
 	bool MaterialInstance::serialize(Archive& archive)
