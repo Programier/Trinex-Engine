@@ -1,6 +1,19 @@
 #pragma once
 #include <Core/export.hpp>
 
+namespace Engine
+{
+	template<typename T>
+	struct TrinexDefer {
+	private:
+		T func;
+
+	public:
+		TrinexDefer(const T& f) : func(f) {}
+		~TrinexDefer() { func(); }
+	};
+}// namespace Engine
+
 #if defined(_WIN32)
 #define PLATFORM_WINDOWS 1
 #else
@@ -283,3 +296,5 @@ public:                                                                         
 #define trinex_non_moveable(class_name)                                                                                          \
 	class_name(class_name&&)            = delete;                                                                                \
 	class_name& operator=(class_name&&) = delete
+
+#define trinex_defer Engine::TrinexDefer TRINEX_CONCAT(trinex_engine_defer, __LINE__) = [&]()

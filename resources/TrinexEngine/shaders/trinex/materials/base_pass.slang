@@ -1,10 +1,5 @@
 import "trinex/material.slang";
 
-export struct VertexInput : IVertexInput
-{
-	float2 uv : TEXCOORD0;
-}
-
 uniform Sampler2D base_color;
 uniform float3 emissive;
 uniform float opacity;
@@ -17,9 +12,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 {
 	Material material;
 
-	VertexInput vs_input = (input.vertex_input as VertexInput).value;
-
-	material.base_color      = base_color.Sample(vs_input.uv).rgb;
+	material.base_color      = base_color.Sample(input.vertex.uv0).rgb;
 	material.emissive        = emissive;
 	material.opacity         = opacity;
 	material.metalness       = metalic;

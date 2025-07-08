@@ -141,6 +141,7 @@ namespace Engine
 
 		Pipelines::BatchedLines::instance()->apply(renderer);
 		rhi->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
+		rhi->primitive_topology(RHIPrimitiveTopology::LineList);
 
 		while (m_first)
 		{
@@ -153,6 +154,7 @@ namespace Engine
 		}
 		m_last = nullptr;
 
+		rhi->primitive_topology(RHIPrimitiveTopology::TriangleList);
 #if TRINEX_DEBUG_BUILD
 		rhi->pop_debug_stage();
 #endif

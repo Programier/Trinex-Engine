@@ -46,7 +46,7 @@ namespace Engine::EditorRenderer
 			rhi->scissor(RHIScissors(size));
 
 			static MaterialBindings bindings;
-			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("proxy_id");
+			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");
 
 			for (PrimitiveComponent* primitive : primitives)
 			{

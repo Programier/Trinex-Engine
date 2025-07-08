@@ -66,7 +66,7 @@ namespace Engine
 			if (surface == nullptr)
 				continue;
 
-			MaterialInterface* material_interface = proxy->material(surface->material_index, lod);
+			MaterialInterface* material_interface = proxy->material(surface->material_index);
 
 			if (material_interface == nullptr)
 				continue;

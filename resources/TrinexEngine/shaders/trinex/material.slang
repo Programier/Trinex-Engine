@@ -1,6 +1,5 @@
 import "trinex/math.slang";
-
-interface IVertexInput {}
+import "trinex/vertex_input.slang";
 
 interface IMaterial
 {
@@ -19,21 +18,14 @@ interface IMaterial
 
 interface IMaterialInput
 {
-	property float4 sv_position { get; }
-	property float sv_depth { get; }
-
-	property float4 screen_position { get; }
-	property float3 position { get; }
-	property float3 normal { get; }
-	property float3 tangent { get; }
+	property IVertexInput vertex { get; }
 	property float3 world_position { get; }
-	property float3 world_normal { get; }
-	property float3 world_tangent { get; }
-
 	property float4x4 local_to_world { get; }
 	property float3x3 TBN { get; }
-	
-	property IVertexInput vertex_input { get; }
+
+	// [ForceInline] float3 world_tangent() { return TBN[0]; }
+	// [ForceInline] float3 world_bitangent() { return TBN[1]; }
+	// [ForceInline] float3 world_normal() { return TBN[2]; }
 }
 
 struct Material : IMaterial

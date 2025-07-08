@@ -12,10 +12,31 @@
 
 namespace Engine
 {
-	static inline constexpr const char* vertex_attribute_section         = "// @trinex_vertex_attributes";
-	static inline constexpr const char* global_variables_section         = "// @trinex_global_parameters";
-	static inline constexpr const char* vertex_material_source_section   = "// @trinex_vertex_shader";
-	static inline constexpr const char* fragment_material_source_section = "// @trinex_fragment_shader";
+	static constexpr const char* s_material_template = R"(
+import "trinex/material.slang";
+import "trinex/scene_view.slang";
+
+// Global statemets
+{0}
+
+export Material main<Material : IMaterial>(in IMaterialInput input)
+{{
+    {1}
+
+    Material material;
+    material.base_color      = {2};
+    material.emissive        = {3};
+    material.specular        = {4};
+    material.metalness       = {5};
+    material.roughness       = {6};
+    material.opacity         = {7};
+    material.ao              = {8};
+    material.normal          = {9};
+    material.position_offset = {10};
+    return material;
+}}
+
+)";
 
 	trinex_implement_engine_class(VisualMaterial, Refl::Class::IsAsset) {}
 
@@ -121,129 +142,37 @@ namespace Engine
 		return *this;
 	}
 
-	static String read_material_template(MaterialDomain domain)
-	{
-		static auto* domain_enum = Refl::Enum::static_find("Engine::MaterialDomain", Refl::FindFlags::IsRequired);
-		Name name                = domain_enum->entry(static_cast<EnumerateType>(domain))->name;
-
-		Path file_path = Path("[shaders_dir]:/TrinexEditor/material_templates") / name.c_str() + ".slang";
-		FileReader reader(file_path);
-
-		if (reader.is_open())
-		{
-			return reader.read_string();
-		}
-		return "";
-	}
-
-	static bool compile_vertex_shader(VisualMaterialGraph::Compiler& compiler, String& template_source, size_t position,
-	                                  VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
-	{
-		static constexpr const char* format = "{0}\n"
-		                                      "\tmaterial.position_offset = {1};\n";
-
-		compiler.stage(VisualMaterialGraph::Compiler::Vertex);
-		auto position_offset = compiler.compile(root->position_offset);
-
-		if (!(position_offset.is_valid()))
-			return false;
-
-		String header     = compiler.compile_local_expressions();
-		String out_source = Strings::format(format, header, position_offset.value);
-		template_source.replace(position, std::strlen(vertex_material_source_section), out_source);
-		return true;
-	}
-
 	template<typename... Args>
 	static bool is_valid_expressions(const Args&... args)
 	{
 		return (args.is_valid() && ...);
 	}
 
-	static bool compile_fragment_shader(VisualMaterialGraph::Compiler& compiler, String& template_source, size_t position,
-	                                    VisualMaterialGraph::MaterialRoot* root, MaterialDomain domain)
-	{
-		static constexpr const char* format = "{0}\n"
-		                                      "\tmaterial.base_color = {1};\n"
-		                                      "\tmaterial.emissive = {2};\n"
-		                                      "\tmaterial.specular = {3};\n"
-		                                      "\tmaterial.metalness = {4};\n"
-		                                      "\tmaterial.roughness = {5};\n"
-		                                      "\tmaterial.opacity = {6};\n"
-		                                      "\tmaterial.AO = {7};\n"
-		                                      "\tmaterial.normal = {8};\n"
-		                                      "\tmaterial.position_offset = float3(0.f, 0.f, 0.f);\n";
-
-		compiler.stage(VisualMaterialGraph::Compiler::Fragment);
-		auto base_color = compiler.compile(root->base_color);
-		auto emissive   = compiler.compile(root->emissive);
-		auto specular   = compiler.compile(root->specular);
-		auto metalness  = compiler.compile(root->metalness);
-		auto roughness  = compiler.compile(root->roughness);
-		auto opacity    = compiler.compile(root->opacity);
-		auto AO         = compiler.compile(root->ao);
-		auto normal     = compiler.compile(root->normal);
-
-		if (!is_valid_expressions(base_color, emissive, specular, metalness, roughness, opacity, AO, normal))
-			return false;
-
-		String header     = compiler.compile_local_expressions();
-		String out_source = Strings::format(format, header, base_color.value, emissive.value, specular.value, metalness.value,
-		                                    roughness.value, opacity.value, AO.value, normal.value);
-		template_source.replace(position, std::strlen(fragment_material_source_section), out_source);
-		return true;
-	}
-
 	bool VisualMaterial::shader_source(String& out_source)
 	{
-		using Root = VisualMaterialGraph::MaterialRoot;
-		Root* root = instance_cast<Root>(nodes()[0].ptr());
+		auto root = instance_cast<VisualMaterialGraph::MaterialRoot>(nodes()[0].ptr());
 
-		String template_source = read_material_template(domain);
-		bool status            = true;
 		VisualMaterialGraph::Compiler compiler;
 
-		// Compile vertex shader
-		{
-			auto pos = template_source.find(vertex_material_source_section);
-			if (pos != String::npos)
-			{
-				status = compile_vertex_shader(compiler, template_source, pos, root, domain);
-			}
-			else
-			{
-				status = false;
-			}
-		}
+		auto base_color      = compiler.compile(root->base_color);
+		auto emissive        = compiler.compile(root->emissive);
+		auto specular        = compiler.compile(root->specular);
+		auto metalness       = compiler.compile(root->metalness);
+		auto roughness       = compiler.compile(root->roughness);
+		auto opacity         = compiler.compile(root->opacity);
+		auto AO              = compiler.compile(root->ao);
+		auto normal          = compiler.compile(root->normal);
+		auto position_offset = compiler.compile(root->position_offset);
 
-		// Compile fragment shader
-		if (status)
-		{
-			auto pos = template_source.find(fragment_material_source_section);
-			if (pos != String::npos)
-			{
-				status = compile_fragment_shader(compiler, template_source, pos, root, domain);
-			}
-		}
+		if (!is_valid_expressions(base_color, emissive, specular, metalness, roughness, opacity, AO, normal, position_offset))
+			return false;
 
-		if (status)
-		{
-			String globals = compiler.compile_global_expressions();
-			auto pos       = template_source.find(global_variables_section);
-			if (pos != String::npos)
-			{
-				template_source.replace(pos, std::strlen(global_variables_section), globals);
-			}
-			else
-			{
-				status = false;
-			}
-		}
+		String locals  = compiler.compile_local_expressions();
+		String globals = compiler.compile_global_expressions();
 
-		if (status)
-		{
-			out_source = std::move(template_source);
-		}
+		out_source =
+		        Strings::format(s_material_template, globals, locals, base_color.value, emissive.value, specular.value,
+		                        metalness.value, roughness.value, opacity.value, AO.value, normal.value, position_offset.value);
 		return true;
 	}
 }// namespace Engine

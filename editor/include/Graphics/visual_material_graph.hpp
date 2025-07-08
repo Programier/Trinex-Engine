@@ -81,13 +81,6 @@ namespace Engine::VisualMaterialGraph
 
 	class Compiler
 	{
-	public:
-		enum Stage
-		{
-			Vertex   = 0,
-			Fragment = 1,
-		};
-
 	private:
 		struct RedirectionKey {
 			Refl::Class* node_class;
@@ -113,11 +106,9 @@ namespace Engine::VisualMaterialGraph
 		Set<String> m_var_names;
 
 		Set<Node*> m_temp_nodes;
-		Vector<String> m_stage_locals[2];
+		Vector<String> m_locals;
 
 		Node* m_current_node = nullptr;
-		Stage m_stage        = Vertex;
-
 		String next_var_name() const;
 
 	public:
@@ -152,16 +143,6 @@ namespace Engine::VisualMaterialGraph
 		String compile_includes(size_t tabs = 0) const;
 		String compile_global_expressions(size_t tabs = 0) const;
 		String compile_local_expressions(size_t tabs = 1) const;
-
-		inline Compiler& stage(Stage stage)
-		{
-			m_stage = stage;
-			return *this;
-		}
-
-		inline Stage stage() const { return m_stage; }
-		inline bool is_vertex_stage() const { return m_stage == Vertex; }
-		inline bool is_fragment_stage() const { return m_stage == Fragment; }
 		inline Node* current_node() const { return m_current_node; }
 	};
 

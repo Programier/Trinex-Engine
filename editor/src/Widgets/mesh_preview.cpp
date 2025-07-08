@@ -92,8 +92,7 @@ namespace Engine
 
 	ImGuiStaticMeshPreview& ImGuiStaticMeshPreview::material(MaterialInterface* material)
 	{
-		m_actor->mesh_component()->material_overrides.resize(1);
-		m_actor->mesh_component()->material_overrides[0] = material;
+		m_actor->mesh_component()->material(material, 0);
 		return *this;
 	}
 

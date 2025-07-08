@@ -28,6 +28,7 @@ namespace Engine
 
 			using CheckStages = bool (*)(ShaderInfo*);
 
+			slang::IModule* module = nullptr;
 			Vector<slang::IComponentType*> component_types;
 			SLANG_ShaderCompiler* const compiler;
 			Context* const prev_ctx;

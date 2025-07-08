@@ -1,6 +1,7 @@
 #include <Core/definitions.hpp>
 
 #if !PLATFORM_ANDROID
+#include <Core/etl/span.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
@@ -111,26 +112,10 @@ namespace Engine
 				const VarTraceEntry* current = this;
 				size_t result                = 0;
 
-				if (var->getCategory() == slang::ParameterCategory::Uniform)
+				while (current)
 				{
-					while (current)
-					{
-						result += current->var->getOffset(category);
-
-						if (current->kind == slang::TypeReflection::Kind::ConstantBuffer)
-						{
-							break;
-						}
-						current = current->prev;
-					}
-				}
-				else
-				{
-					while (current)
-					{
-						result += current->var->getOffset(category);
-						current = current->prev;
-					}
+					result += current->var->getOffset(category);
+					current = current->prev;
 				}
 
 				return result;
@@ -139,6 +124,25 @@ namespace Engine
 			size_t trace_offset(slang::ParameterCategory category) const
 			{
 				return trace_offset(static_cast<SlangParameterCategory>(category));
+			}
+
+			size_t trace_space(SlangParameterCategory category) const
+			{
+				const VarTraceEntry* current = this;
+				size_t result                = 0;
+
+				while (current)
+				{
+					result += current->var->getBindingSpace(category);
+					current = current->prev;
+				}
+
+				return result;
+			}
+
+			size_t trace_space(slang::ParameterCategory category) const
+			{
+				return trace_space(static_cast<SlangParameterCategory>(category));
 			}
 
 			StringView parameter_name() const
@@ -162,12 +166,15 @@ namespace Engine
 
 			inline bool has_attribute(const char* attribute) { return find_attribute(attribute) != nullptr; }
 			inline slang::ParameterCategory category() const { return var->getCategory(); }
+			inline slang::ParameterCategory category(uint_t index) const { return var->getCategoryByIndex(index); }
+			inline uint_t category_count() const { return var->getCategoryCount(); }
 			inline bool is_excluded(size_t flags) const { return (exclude_flags & flags) == flags; }
 			inline slang::VariableLayoutReflection* operator->() const { return var; }
 		};
 
 	private:
 		Pipeline* m_pipeline;
+		Span<slang::IMetadata*> m_metadatas;
 
 	public:
 		using TypeDetector = RHIShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
@@ -304,6 +311,31 @@ namespace Engine
 			return RHIVertexBufferElementType::Undefined;
 		}
 
+		inline bool is_variable_used(const VarTraceEntry& var, byte index)
+		{
+			using SPC = SlangParameterCategory;
+
+			for (slang::IMetadata* meta : m_metadatas)
+			{
+				uint_t categories = var.category_count();
+
+				for (uint_t i = 0; i < categories; ++i)
+				{
+					slang::ParameterCategory category = var->getCategory();
+
+					bool is_used       = false;
+					SlangResult result = meta->isParameterLocationUsed(static_cast<SPC>(category), 0, index, is_used);
+
+					if (result == SLANG_OK && is_used)
+						return true;
+				}
+			}
+
+			if (var.prev)
+				return is_variable_used(*var.prev, index);
+			return false;
+		}
+
 		bool parse_vertex_semantic(const VarTraceEntry& var)
 		{
 			auto category = var.category();
@@ -361,9 +393,10 @@ namespace Engine
 				                                   ? RHIVertexAttributeInputRate::Instance
 				                                   : RHIVertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-				attribute.location       = var.trace_offset(slang::ParameterCategory::VertexInput);
+				attribute.location       = var.trace_offset(category);
 				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
 				attribute.offset         = find_vertex_offset(var->getVariable());
+
 				Object::instance_cast<GraphicsPipeline>(m_pipeline)->vertex_shader()->attributes.push_back(attribute);
 			}
 			else
@@ -425,7 +458,14 @@ namespace Engine
 					return true;
 
 				RHIShaderParameterInfo info;
-				info.type = find_scalar_parameter_type(param.var);
+				info.binding = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+
+				if (!is_variable_used(param, info.binding))
+					return true;
+
+				info.offset = param.trace_offset(slang::ParameterCategory::Uniform);
+				info.name   = param.parameter_name();
+				info.type   = find_scalar_parameter_type(param.var);
 
 				if (info.type == RHIShaderParameterType::Undefined)
 				{
@@ -443,9 +483,7 @@ namespace Engine
 					return false;
 				}
 
-				info.name    = param.parameter_name();
-				info.offset  = param.trace_offset(slang::ParameterCategory::Uniform);
-				info.binding = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+
 				return m_pipeline->add_parameter(info);
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
@@ -462,9 +500,13 @@ namespace Engine
 						auto binding_type = type_layout->getBindingRangeType(0);
 
 						RHIShaderParameterInfo object;
-						object.name    = param.parameter_name();
 						object.binding = param.trace_offset(param.category());
-						object.type    = type;
+
+						if (!is_variable_used(param, object.binding))
+							return true;
+
+						object.name = param.parameter_name();
+						object.type = type;
 
 						if (type.is_meta())
 						{
@@ -491,9 +533,13 @@ namespace Engine
 			         !param.is_excluded(VarTraceEntry::exclude_sampler))
 			{
 				RHIShaderParameterInfo object;
-				object.name    = param.parameter_name();
 				object.binding = param.trace_offset(param.category());
-				object.type    = RHIShaderParameterType::Sampler;
+
+				if (!is_variable_used(param, object.binding))
+					return true;
+
+				object.name = param.parameter_name();
+				object.type = RHIShaderParameterType::Sampler;
 				m_pipeline->add_parameter(object);
 			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))
@@ -503,16 +549,19 @@ namespace Engine
 
 				size_t additional_exclude = 0;
 
-				if (auto attr = param.find_attribute("parameter_type"))
+				RHIShaderParameterType flags = find_parameter_flags(param.var->getVariable());
+
+				if ((flags & RHIShaderParameterType::MemoryBlock) == RHIShaderParameterType::MemoryBlock)
 				{
-					if (parse_string_attribute(attr, 0) == "MemoryBlock")
+					additional_exclude |= VarTraceEntry::exclude_scalar;
+					additional_exclude |= VarTraceEntry::exclude_vector;
+					additional_exclude |= VarTraceEntry::exclude_matrix;
+
+					RHIShaderParameterInfo info;
+					info.binding = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+
+					if (is_variable_used(param, info.binding))
 					{
-						additional_exclude |= VarTraceEntry::exclude_scalar;
-						additional_exclude |= VarTraceEntry::exclude_vector;
-						additional_exclude |= VarTraceEntry::exclude_matrix;
-
-						RHIShaderParameterInfo info;
-
 						if (auto layout = param.var->getTypeLayout())
 						{
 							info.size = layout->getSize();
@@ -523,10 +572,10 @@ namespace Engine
 							return false;
 						}
 
-						info.type    = RHIShaderParameterType::MemoryBlock;
-						info.name    = param.parameter_name();
-						info.offset  = param.trace_offset(slang::ParameterCategory::Uniform);
-						info.binding = param.trace_offset(slang::ParameterCategory::ConstantBuffer);
+						info.type   = RHIShaderParameterType::MemoryBlock;
+						info.name   = param.parameter_name();
+						info.offset = param.trace_offset(slang::ParameterCategory::Uniform);
+
 						m_pipeline->add_parameter(info);
 					}
 				}
@@ -546,11 +595,15 @@ namespace Engine
 				if (is_scene_view(layout))
 				{
 					RHIShaderParameterInfo object;
-					object.name    = param.parameter_name();
-					object.binding = param.trace_offset(slang::ParameterCategory::DescriptorTableSlot);
-					object.type    = RHIShaderParameterType::Globals;
-					object.size    = sizeof(GlobalShaderParameters);
-					object.offset  = 0;
+					object.binding = param.trace_offset(param.category());
+
+					if (!is_variable_used(param, object.binding))
+						return true;
+
+					object.name   = param.parameter_name();
+					object.type   = RHIShaderParameterType::Globals;
+					object.size   = sizeof(GlobalShaderParameters);
+					object.offset = 0;
 					return m_pipeline->add_parameter(object);
 				}
 				else
@@ -574,10 +627,11 @@ namespace Engine
 			return true;
 		}
 
-		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* out)
+		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* out, const Span<slang::IMetadata*>& metadatas)
 		{
 			CompileLogHandler log_handler;
-			m_pipeline = out;
+			m_pipeline  = out;
+			m_metadatas = metadatas;
 
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
@@ -713,7 +767,7 @@ namespace Engine
 
 		String name = Strings::format("Module<{}> '{}'", static_cast<void*>(pipeline), pipeline->name().c_str());
 		Slang::ComPtr<slang::IBlob> diagnostics;
-		auto module = session->loadModuleFromSourceString(name.c_str(), name.c_str(), source.data(), diagnostics.writeRef());
+		module = session->loadModuleFromSourceString(name.c_str(), name.c_str(), source.data(), diagnostics.writeRef());
 
 		if (diagnostics && diagnostics->getBufferSize() > 0)
 		{
@@ -739,7 +793,10 @@ namespace Engine
 
 	bool SLANG_ShaderCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
 	{
+		StackByteAllocator::Mark mark;
+
 		const size_t module_count = component_types.size();
+		size_t entry_points       = 0;
 
 		for (size_t i = 0; i < infos_len; ++i)
 		{
@@ -763,6 +820,7 @@ namespace Engine
 					info.index = component_types.size() - module_count;
 					info.entry = entry;
 					component_types.push_back(entry);
+					++entry_points;
 				}
 			}
 		}
@@ -788,6 +846,7 @@ namespace Engine
 		Slang::ComPtr<slang::IComponentType> program;
 		{
 			Slang::ComPtr<slang::IBlob> diagnostics_blob;
+
 			SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
 
 			if (diagnostics_blob != nullptr)
@@ -798,6 +857,19 @@ namespace Engine
 			if (SLANG_FAILED(result))
 				return false;
 		}
+
+		Span<slang::IMetadata*> metadatas(StackAllocator<slang::IMetadata*>::allocate(entry_points), entry_points);
+
+		trinex_defer
+		{
+			for (slang::IMetadata* meta : metadatas)
+			{
+				if (meta)
+				{
+					meta->Release();
+				}
+			}
+		};
 
 		for (size_t i = 0; i < infos_len; ++i)
 		{
@@ -829,6 +901,9 @@ namespace Engine
 					error_log("ShaderCompiler", "Failed to create shader");
 					return false;
 				}
+
+				metadatas[info.index] = nullptr;
+				program->getEntryPointMetadata(info.index, 0, &metadatas[info.index], nullptr);
 			}
 		}
 
@@ -850,11 +925,11 @@ namespace Engine
 
 			ReflectionParser parser;
 
-			if (!parser.create_reflection(reflection, pipeline))
+			if (!parser.create_reflection(reflection, pipeline, metadatas))
 				return false;
 		}
 
-		return pipeline;
+		return true;
 	}
 
 	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Material* material, RenderPass* pass)
@@ -953,11 +1028,8 @@ namespace Engine
 	SLANG_ShaderCompiler::Context::~Context()
 	{
 		compiler->m_ctx = prev_ctx;
-
-		for (slang::IComponentType* component : component_types)
-		{
-			component->release();
-		}
+		if (module)
+			module->Release();
 	}
 
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
@@ -1002,6 +1074,7 @@ namespace Engine
 			error_log("Shader Compiler", "Failed to create session");
 			m_session = nullptr;
 		}
+
 		return *this;
 	}
 

@@ -214,7 +214,7 @@ namespace Engine
 		auto& image_views = image_views_result.value();
 
 		m_backbuffers.resize(images.size());
-		m_image_present_semaphores.resize(images.size());
+		m_image_present_semaphores.resize(images.size() + 1);
 		m_render_finished_semaphores.resize(images.size());
 
 		Size2D size = {swapchain->extent.width, swapchain->extent.height};

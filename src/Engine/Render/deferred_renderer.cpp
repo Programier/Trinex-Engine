@@ -118,13 +118,13 @@ namespace Engine
 
 			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
 			rhi->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
-			rhi->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->binding);
+			//rhi->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->binding);
 			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);
 			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->binding);
 
 			rhi->bind_sampler(sampler, pipeline->base_color_texture->binding);
 			rhi->bind_sampler(sampler, pipeline->normal_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->emissive_texture->binding);
+			//rhi->bind_sampler(sampler, pipeline->emissive_texture->binding);
 			rhi->bind_sampler(sampler, pipeline->msra_texture->binding);
 			rhi->bind_sampler(sampler, pipeline->depth_texture->binding);
 
@@ -160,17 +160,18 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::render()
 	{
-		// if (!lines.is_empty())
-		// {
-		// 	render_graph()
-		// 	        ->add_pass(RenderGraph::Pass::Graphics, "Batched Primitives")
-		// 	        .add_resource(scene_color_target(), RHIAccess::RTV)
-		// 	        .add_resource(scene_depth_target(), RHIAccess::DSV)
-		// 	        .add_func([this]() {
-		// 		        rhi->bind_render_target1(scene_color_target()->as_rtv(), scene_depth_target()->as_dsv());
-		// 		        lines.flush(this);
-		// 	        });
-		// }
+		if (!lines.is_empty())
+		{
+			render_graph()
+			        ->add_pass(RenderGraph::Pass::Graphics, "Batched Primitives")
+			        .add_resource(scene_color_target(), RHIAccess::RTV)
+			        .add_resource(scene_depth_target(), RHIAccess::DSV)
+			        .add_func([this]() {
+				        rhi->bind_render_target1(scene_color_target()->as_rtv(), scene_depth_target()->as_dsv());
+				        lines.flush(this);
+			        });
+		}
+
 		Renderer::render();
 		return *this;
 	}

@@ -21,7 +21,7 @@ namespace Engine
 		return m_mesh->lods.size();
 	}
 
-	size_t StaticMeshComponent::Proxy::materials_count(size_t lod) const
+	size_t StaticMeshComponent::Proxy::materials_count() const
 	{
 		return m_mesh->materials.size();
 	}
@@ -36,8 +36,11 @@ namespace Engine
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	MaterialInterface* StaticMeshComponent::Proxy::material(size_t index, size_t lod) const
+	MaterialInterface* StaticMeshComponent::Proxy::material(size_t index) const
 	{
+		if (auto material = Super::Proxy::material(index))
+			return material;
+
 		return m_mesh ? m_mesh->materials[index] : nullptr;
 	}
 
@@ -77,13 +80,18 @@ namespace Engine
 		return *this;
 	}
 
+	size_t StaticMeshComponent::materials_count() const
+	{
+		if (m_mesh)
+			return m_mesh->materials.size();
+
+		return 0;
+	}
+
 	MaterialInterface* StaticMeshComponent::material(size_t index) const
 	{
-		if (index < material_overrides.size())
-		{
-			if (auto material = material_overrides[index])
-				return material;
-		}
+		if (MaterialInterface* material = Super::material(index))
+			return material;
 
 		if (mesh() && index < mesh()->materials.size())
 			return mesh()->materials[index];

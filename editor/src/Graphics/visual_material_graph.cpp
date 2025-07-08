@@ -504,7 +504,7 @@ namespace Engine::VisualMaterialGraph
 
 	String Compiler::next_var_name() const
 	{
-		Identifier id = m_stage_locals[m_stage].size() + m_globals.size();
+		Identifier id = m_locals.size() + m_globals.size();
 		return Strings::format("trx_var_{}", id);
 	}
 
@@ -580,7 +580,7 @@ namespace Engine::VisualMaterialGraph
 		String var_name = next_var_name();
 
 		String var = Strings::format("{} {}", Expression::static_typename_of(type), var_name);
-		m_stage_locals[m_stage].push_back(var);
+		m_locals.push_back(var);
 		m_var_names.insert(var_name);
 		return Expression(type, var_name);
 	}
@@ -593,7 +593,7 @@ namespace Engine::VisualMaterialGraph
 		String type     = Expression::static_typename_of(expression.type);
 		String var_name = next_var_name();
 		String var      = Strings::format("{} {} = {}", type, var_name, expression.value);
-		m_stage_locals[m_stage].push_back(var);
+		m_locals.push_back(var);
 
 		m_var_names.insert(var_name);
 		return Expression(expression.type, var_name);
@@ -679,7 +679,7 @@ namespace Engine::VisualMaterialGraph
 
 	String Compiler::compile_local_expressions(size_t tabs) const
 	{
-		return compile_expressions(m_stage_locals[m_stage], tabs);
+		return compile_expressions(m_locals, tabs);
 	}
 
 	Pin::~Pin()
@@ -886,8 +886,6 @@ namespace Engine::VisualMaterialGraph
 		compiler.method("Expression compile_default(OutputPin@ pin) final", &Compiler::compile_default);
 		compiler.method("Expression compile(InputPin@ pin) final", method_of<Expression, InputPin*>(&Compiler::compile));
 		compiler.method("Expression compile(OutputPin@ pin) final", method_of<Expression, OutputPin*>(&Compiler::compile));
-		compiler.method("bool is_vertex_stage() const", &Compiler::is_vertex_stage);
-		compiler.method("bool is_fragment_stage() const", &Compiler::is_fragment_stage);
 
 		// Input pin class
 

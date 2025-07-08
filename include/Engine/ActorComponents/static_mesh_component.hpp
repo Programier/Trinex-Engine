@@ -20,10 +20,10 @@ namespace Engine
 			inline bool has_render_data() const override { return m_mesh != nullptr; }
 
 			size_t lods() const override;
-			size_t materials_count(size_t lod = 0) const override;
+			size_t materials_count() const override;
 			size_t surfaces(size_t lod = 0) const override;
 			const MeshSurface* surface(size_t index, size_t lod = 0) const override;
-			MaterialInterface* material(size_t index, size_t lod = 0) const override;
+			MaterialInterface* material(size_t index) const override;
 			VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0, size_t lod = 0) override;
 			IndexBuffer* find_index_buffer(size_t lod = 0) override;
 
@@ -37,7 +37,11 @@ namespace Engine
 	public:
 		Proxy* create_proxy() override;
 		StaticMeshComponent& update_bounding_box() override;
-		MaterialInterface* material(size_t index) const;
+
+		size_t materials_count() const override;
+
+		using MeshComponent::material;
+		MaterialInterface* material(size_t index) const override;
 
 		inline StaticMesh* mesh() const { return m_mesh; }
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }

@@ -26,10 +26,10 @@ namespace Engine
 		public:
 			virtual bool has_render_data() const                                                                            = 0;
 			virtual size_t lods() const                                                                                     = 0;
-			virtual size_t materials_count(size_t lod = 0) const                                                            = 0;
+			virtual size_t materials_count() const                                                                          = 0;
 			virtual size_t surfaces(size_t lod = 0) const                                                                   = 0;
 			virtual const MeshSurface* surface(size_t index, size_t lod = 0) const                                          = 0;
-			virtual MaterialInterface* material(size_t index, size_t lod = 0) const                                         = 0;
+			virtual MaterialInterface* material(size_t index) const                                                         = 0;
 			virtual VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0, size_t lod = 0) = 0;
 			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                          = 0;
 
@@ -53,8 +53,11 @@ namespace Engine
 		PrimitiveComponent& stop_play() override;
 		PrimitiveComponent& on_transform_changed() override;
 
-		virtual PrimitiveComponent& update_bounding_box();
+		virtual size_t materials_count() const                                 = 0;
+		virtual MaterialInterface* material(size_t index) const                = 0;
+		virtual PrimitiveComponent& material(MaterialInterface*, size_t index) = 0;
 
+		virtual PrimitiveComponent& update_bounding_box();
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 		~PrimitiveComponent();
 	};

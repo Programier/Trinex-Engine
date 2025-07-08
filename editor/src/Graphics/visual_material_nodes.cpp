@@ -227,7 +227,7 @@ namespace Engine::VisualMaterialGraph
 		if (in_uv->linked_pin())
 			return compiler.compile(in_uv);
 
-		return Expression(RHIShaderParameterType::Float2, "input.uv");
+		return Expression(RHIShaderParameterType::Float2, "input.vertex.uv0");
 	}
 
 	Expression SampleTexture::compile_sampler(Compiler& compiler)
