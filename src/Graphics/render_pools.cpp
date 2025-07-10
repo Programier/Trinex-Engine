@@ -439,6 +439,62 @@ namespace Engine
 		return *this;
 	}
 
+	RHITimestampPool* RHITimestampPool::global_instance()
+	{
+		static RHITimestampPool pool;
+		return &pool;
+	}
+
+	RHITimestampPool& RHITimestampPool::update()
+	{
+		size_t erase_count = 0;
+
+		for (auto& entry : m_pool)
+		{
+			if (--entry.frame == 0)
+			{
+				++erase_count;
+				entry.timestamp->release();
+			}
+		}
+
+		if (erase_count > 0)
+		{
+			m_pool.erase(m_pool.begin(), m_pool.begin() + erase_count);
+		}
+
+		return *this;
+	}
+
+	RHITimestamp* RHITimestampPool::request_timestamp()
+	{
+		if (!m_pool.empty())
+		{
+			RHITimestamp* timestamp = m_pool.back().timestamp;
+			m_pool.pop_back();
+			return timestamp;
+		}
+		return rhi->create_timestamp();
+	}
+
+	RHITimestampPool& RHITimestampPool::release_all()
+	{
+		for (auto& entry : m_pool)
+		{
+			entry.timestamp->release();
+		}
+		m_pool.clear();
+		return *this;
+	}
+
+	RHITimestampPool& RHITimestampPool::return_timestamp(RHITimestamp* timestamp)
+	{
+		auto& entry     = m_pool.emplace_back();
+		entry.timestamp = timestamp;
+		entry.frame     = s_resource_live_threshold;
+		return *this;
+	}
+
 	static class : public TickableObject
 	{
 		TickableObject& update(float) override
@@ -449,6 +505,7 @@ namespace Engine
 				RHISurfacePool::global_instance()->update();
 				RHIBufferPool::global_instance()->update();
 				RHIFencePool::global_instance()->update();
+				RHITimestampPool::global_instance()->update();
 			});
 			return *this;
 		}
@@ -461,6 +518,7 @@ namespace Engine
 			RHIBufferPool::global_instance()->release_all();
 			RHISurfacePool::global_instance()->release_all();
 			RHIFencePool::global_instance()->release_all();
+			RHITimestampPool::global_instance()->release_all();
 		});
 
 		render_thread()->wait();

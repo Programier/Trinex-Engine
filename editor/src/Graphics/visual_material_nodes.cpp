@@ -131,7 +131,7 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	Sampler::Sampler() : sampler(RHISamplerFilter::Point)
+	Sampler::Sampler() : sampler(RHISamplerFilter::Bilinear)
 	{
 		if (class_instance() == static_class_instance())
 			new_output("Out", RHIShaderParameterType::Sampler);
@@ -196,7 +196,7 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(RHISamplerFilter::Point)
+	SampleTexture::SampleTexture() : texture(DefaultResources::Textures::default_texture), sampler(RHISamplerFilter::Bilinear)
 	{
 		new_input("Tex", RHIShaderParameterType::Texture2D);
 		new_input("UV", RHIShaderParameterType::Float2);

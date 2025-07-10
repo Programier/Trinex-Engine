@@ -11,6 +11,7 @@ namespace Engine
 	struct RHI_Texture;
 	struct RHI_Buffer;
 	struct RHI_Fence;
+	struct RHITimestamp;
 
 	class ENGINE_EXPORT RHIFencePool final
 	{
@@ -107,5 +108,24 @@ namespace Engine
 		RenderSurface* request_surface(struct RHISurfaceFormat format, Vector2u size);
 		RenderSurface* request_transient_surface(struct RHISurfaceFormat format, Vector2u size);
 		RenderSurfacePool& return_surface(RenderSurface* surface);
+	};
+
+	class ENGINE_EXPORT RHITimestampPool final
+	{
+	private:
+		struct TimestampEntry {
+			uint64_t frame          = 0;
+			RHITimestamp* timestamp = nullptr;
+		};
+
+		Vector<TimestampEntry> m_pool;
+		
+	public:
+		static RHITimestampPool* global_instance();
+
+		RHITimestampPool& update();
+		RHITimestamp* request_timestamp();
+		RHITimestampPool& release_all();
+		RHITimestampPool& return_timestamp(RHITimestamp* timestamp);
 	};
 }// namespace Engine

@@ -17,15 +17,11 @@ namespace Engine::EditorPipelines
 		const RHIShaderParameterInfo* m_scene_color;
 		const RHIShaderParameterInfo* m_scene_depth;
 		const RHIShaderParameterInfo* m_outline_depth;
-		const RHIShaderParameterInfo* m_linear;
-		const RHIShaderParameterInfo* m_point;
+		const RHIShaderParameterInfo* m_sampler;
 		const RHIShaderParameterInfo* m_outline_color;
 		const RHIShaderParameterInfo* m_near;
 		const RHIShaderParameterInfo* m_far;
 		const RHIShaderParameterInfo* m_sample_offset;
-
-		Sampler m_point_sampler;
-		Sampler m_linear_sampler;
 
 	public:
 		using SRV = RHI_ShaderResourceView;

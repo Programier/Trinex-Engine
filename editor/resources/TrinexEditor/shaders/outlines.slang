@@ -7,8 +7,7 @@ struct Arguments
     Texture2D scene_color;
     Texture2D scene_depth;
     Texture2D outline_depth;
-    SamplerState linear;
-    SamplerState point;
+    SamplerState sampler;
 
     float3 outline_color;
     float near;
@@ -20,8 +19,6 @@ uniform Arguments args;
 
 
 [ForceInline] float min4(float v0, float v1, float v2, float v3) { return min(min(v0, v1), min(v2, v3)); }
-[ForceInline] float min8(float v0, float v1, float v2, float v3, float v4, float v5, float v6, float v7)
-{ return min(min4(v0, v1, v2, v3), min4(v4, v5, v6, v7)); }
 
 [ForceInline] float random_float(float2 p)
 {
@@ -40,21 +37,17 @@ float4 vs_main(out float2 uv: TEXCOORD0, in uint vertex: SV_VertexID) : SV_Posit
 [shader("fragment")]
 float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
 {
-    float outline_min_depth = min8(
-        args.outline_depth.SampleLevel(args.point, uv + float2(args.sample_offset.x, 0.f), 0.f).r,
-        args.outline_depth.SampleLevel(args.point, uv + float2(-args.sample_offset.x, 0.f), 0.f).r,
-        args.outline_depth.SampleLevel(args.point, uv + float2(0.f, args.sample_offset.y), 0.f).r,
-        args.outline_depth.SampleLevel(args.point, uv + float2(0.f, -args.sample_offset.y), 0.f).r,
-        args.outline_depth.SampleLevel(args.linear, uv + float2(args.sample_offset.x, args.sample_offset.y), 0.f).r,
-        args.outline_depth.SampleLevel(args.linear, uv + float2(-args.sample_offset.x, -args.sample_offset.y), 0.f).r,
-        args.outline_depth.SampleLevel(args.linear, uv + float2(args.sample_offset.x, -args.sample_offset.y), 0.f).r,
-        args.outline_depth.SampleLevel(args.linear, uv + float2(-args.sample_offset.x, args.sample_offset.y), 0.f).r
+	float outline_min_depth = min4(
+        args.outline_depth.SampleLevel(args.sampler, uv + float2(args.sample_offset.x, 0.f), 0.f).r,
+        args.outline_depth.SampleLevel(args.sampler, uv + float2(-args.sample_offset.x, 0.f), 0.f).r,
+        args.outline_depth.SampleLevel(args.sampler, uv + float2(0.f, args.sample_offset.y), 0.f).r,
+        args.outline_depth.SampleLevel(args.sampler, uv + float2(0.f, -args.sample_offset.y), 0.f).r
     );
 
     float3 outline_color = args.outline_color;
-    float3 scene_color = args.scene_color.SampleLevel(args.point, uv, 0.f).rgb;
-    float scene_depth = args.scene_depth.SampleLevel(args.point, uv, 0.f).r;
-    float outline_depth = args.outline_depth.SampleLevel(args.point, uv, 0.f).r;
+    float3 scene_color = args.scene_color.SampleLevel(args.sampler, uv, 0.f).rgb;
+    float scene_depth = args.scene_depth.SampleLevel(args.sampler, uv, 0.f).r;
+    float outline_depth = args.outline_depth.SampleLevel(args.sampler, uv, 0.f).r;
 
     float intensity = 0;
 

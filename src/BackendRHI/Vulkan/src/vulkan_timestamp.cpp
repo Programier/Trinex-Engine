@@ -1,6 +1,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_destroyable.hpp>
+#include <vulkan_fence.hpp>
 #include <vulkan_timestamp.hpp>
 
 namespace Engine
@@ -109,8 +110,10 @@ namespace Engine
 		struct Marker {
 			VulkanQueryPool* pool = nullptr;
 			uint64_t index        = 0;
+			VulkanFenceRef fence;
 
 			inline bool is_valid() const { return pool != nullptr; }
+			inline bool is_ready() { return fence.is_signaled() || !fence.is_waiting(); }
 
 			inline uint64_t query()
 			{
@@ -141,7 +144,9 @@ namespace Engine
 					marker.pool->find_index(marker.index);
 				}
 
+				cmd->resetQueryPool(marker.pool->pool(), marker.index, 1);
 				cmd->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, marker.pool->pool(), marker.index);
+				marker.fence.signal(cmd);
 			}
 		}
 
@@ -167,7 +172,7 @@ namespace Engine
 			if (!m_end.is_valid())
 				return false;
 
-			bool ready = m_begin.pool->is_available(m_begin.index) && m_end.pool->is_available(m_end.index);
+			bool ready = m_begin.is_ready() && m_end.is_ready();
 
 			if (ready)
 			{
