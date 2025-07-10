@@ -250,8 +250,9 @@ namespace Engine
 
 
 			RHIRect rect = m_scene_view.viewport().size;
-			auto src     = renderer->render().scene_color_target()->as_rtv();
-			auto dst     = scene->rhi_rtv();
+			auto src     = renderer->render().scene_color_ldr_target()->as_rtv();
+			auto texture = scene->rhi_texture();
+			auto dst     = texture->as_rtv();
 			dst->blit(src, rect, rect, RHISamplerFilter::Point);
 
 			if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
@@ -526,10 +527,13 @@ namespace Engine
 		auto cursor_position = ImGui::GetCursorPos();
 		auto viewport_size   = ImGui::GetContentRegionAvail();
 
-		if (!m_state.viewport.is_using_guizmo && m_state.viewport.is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (!m_state.viewport.is_using_guizmo && ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
-			select_actors(ImGui::EngineVecFrom(relative_mouse_pos / viewport_size));
+			Vector2f uv             = ImGui::EngineVecFrom(relative_mouse_pos / viewport_size);
+
+			if (uv.x >= 0.f && uv.x <= 1.f && uv.y >= 0.f && uv.y <= 1.f)
+				select_actors(uv);
 		}
 
 		{

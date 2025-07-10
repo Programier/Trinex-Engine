@@ -44,13 +44,13 @@ namespace Engine::EditorPipelines
 	void Outline::render(Renderer* renderer, SRV* outline_depth, Vector3f color, Vector2f sample_offset)
 	{
 		auto view_size  = renderer->scene_view().view_size();
-		auto tmp_format = renderer->format_of(Renderer::SceneColor);
+		auto tmp_format = renderer->format_of(Renderer::SceneColorLDR);
 		auto tmp_color  = RHISurfacePool::global_instance()->request_surface(tmp_format, view_size);
 
 		RHIRect rect(view_size);
-		tmp_color->as_rtv()->blit(renderer->scene_color_target()->as_rtv(), rect, rect, RHISamplerFilter::Point);
+		tmp_color->as_rtv()->blit(renderer->scene_color_ldr_target()->as_rtv(), rect, rect, RHISamplerFilter::Point);
 
-		rhi->bind_render_target1(renderer->scene_color_target()->as_rtv());
+		rhi->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
 
 		SRV* scene_color = tmp_color->as_srv();
 		SRV* scene_depth = renderer->scene_depth_target()->as_srv();
@@ -76,10 +76,11 @@ namespace Engine::EditorPipelines
 
 	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang", ShaderType::BasicGraphics)
 	{
-		m_scene_view          = find_parameter("scene_view");
-		depth_test.enable     = true;
-		depth_test.func       = RHICompareFunc::Lequal;
-		color_blending.enable = true;
+		m_scene_view            = find_parameter("scene_view");
+		depth_test.enable       = true;
+		depth_test.write_enable = false;
+		depth_test.func         = RHICompareFunc::Lequal;
+		color_blending.enable   = true;
 	}
 
 	void Grid::render(Renderer* renderer)

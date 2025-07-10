@@ -38,7 +38,7 @@ namespace Engine
 		RHIBlendFunc src_alpha_func  = RHIBlendFunc::One;
 		RHIBlendFunc dst_alpha_func  = RHIBlendFunc::OneMinusSrcAlpha;
 		RHIBlendOp alpha_op          = RHIBlendOp::Add;
-		RHIColorComponent color_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B | RHIColorComponent::A;
+		RHIColorComponent write_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B | RHIColorComponent::A;
 		bool enable                  = false;
 
 		bool serialize(Archive& ar);

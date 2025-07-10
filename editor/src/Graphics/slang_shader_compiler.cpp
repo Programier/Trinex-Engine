@@ -495,7 +495,7 @@ namespace Engine
 				{
 					SlangResourceShape shape = type_layout->getResourceShape();
 
-					if (shape == SLANG_TEXTURE_2D)
+					if (shape & SLANG_TEXTURE_2D)
 					{
 						auto binding_type = type_layout->getBindingRangeType(0);
 

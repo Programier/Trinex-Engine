@@ -1,10 +1,10 @@
-import "trinex/light.slang";
+import "trinex/lighting.slang";
 import "trinex/math.slang";
 
 namespace Lighting
 {
-	export struct LightType : ILight
-    {
+	export struct LightType : ILight 
+	{
 		static float attenuation(in float3 world_light_vector, in LightParameters params)
 		{
 			const float distance = length(world_light_vector);
@@ -16,11 +16,10 @@ namespace Lighting
 			const float inv_cos_cone_difference = params.spot_angles.y;
 
 			return attenuation * Math::square(saturate((cos_theta - cos_outer_cone) * inv_cos_cone_difference));
-        }
+		}
 
-		static float3 direction(in float3 world_light_vector, in LightParameters params)
-        {
-            return normalize(world_light_vector);
-        }
-    }
+		static float3 direction(in float3 world_light_vector, in LightParameters params) { return normalize(world_light_vector); }
+
+		static float shadow(in float3 position, in LightParameters params) { return 1.f; }
+	}
 }

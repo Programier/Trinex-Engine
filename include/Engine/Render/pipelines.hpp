@@ -10,7 +10,6 @@ namespace Engine
 
 	namespace Pipelines
 	{
-
 		class ENGINE_EXPORT GaussianBlur : public GlobalComputePipeline
 		{
 			trinex_declare_pipeline(GaussianBlur, GlobalComputePipeline);
@@ -24,7 +23,6 @@ namespace Engine
 			void blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel = 5,
 			          float sigma = 2.f, RHI_Sampler* sampler = nullptr);
 		};
-
 
 		class ENGINE_EXPORT Blit2D : public GlobalComputePipeline
 		{
@@ -43,10 +41,13 @@ namespace Engine
 		{
 			trinex_declare_pipeline(BatchedLines, GlobalGraphicsPipeline);
 
-			const RHIShaderParameterInfo* m_scene_view;
+		private:
+			const RHIShaderParameterInfo* m_projview;
+			const RHIShaderParameterInfo* m_viewport;
 
 		public:
-			void apply(Renderer* renderer);
+			inline const RHIShaderParameterInfo* projview() const { return m_projview; }
+			inline const RHIShaderParameterInfo* viewport() const { return m_viewport; }
 		};
 
 		class ENGINE_EXPORT BatchedTriangles : public GlobalGraphicsPipeline
@@ -62,10 +63,11 @@ namespace Engine
 			const RHIShaderParameterInfo* scene_view         = nullptr;
 			const RHIShaderParameterInfo* base_color_texture = nullptr;
 			const RHIShaderParameterInfo* normal_texture     = nullptr;
-			const RHIShaderParameterInfo* emissive_texture   = nullptr;
 			const RHIShaderParameterInfo* msra_texture       = nullptr;
 			const RHIShaderParameterInfo* depth_texture      = nullptr;
 			const RHIShaderParameterInfo* parameters         = nullptr;
+			const RHIShaderParameterInfo* shadow_map         = nullptr;
+			const RHIShaderParameterInfo* shadow_projview    = nullptr;
 
 			void initialize() override;
 		};
@@ -127,6 +129,19 @@ namespace Engine
 			const RHIShaderParameterInfo* base_color    = nullptr;
 			const RHIShaderParameterInfo* msra          = nullptr;
 			const RHIShaderParameterInfo* ambient_color = nullptr;
+		};
+
+		class TonemappingACES : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(TonemappingACES, GlobalGraphicsPipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_hdr_target = nullptr;
+			const RHIShaderParameterInfo* m_exposure   = nullptr;
+			const RHIShaderParameterInfo* m_scene_view = nullptr;
+
+		public:
+			TonemappingACES& apply(Renderer* renderer);
 		};
 	}// namespace Pipelines
 }// namespace Engine

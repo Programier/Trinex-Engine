@@ -10,7 +10,7 @@ float2 vs_main(in uint vertex : SV_VertexID, out float4 out_position : SV_Positi
 {
     out_position = FullScreenQuad::vertex_by_index(vertex);
     float2 uv = FullScreenQuad::uv_by_index(vertex);
-	return scene_view.normalize_screen_space_uv(uv);
+	return scene_view.screen_uv(uv);
 }
 
 [shader("fragment")]

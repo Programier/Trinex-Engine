@@ -81,10 +81,9 @@ namespace Engine
 			color_blending.src_alpha_func = RHIBlendFunc::One;
 			color_blending.dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha;
 			color_blending.alpha_op       = RHIBlendOp::Add;
-			color_blending.color_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B | RHIColorComponent::A;
-			depth_test.enable         = false;
-			depth_test.write_enable   = false;
-			depth_test.func           = RHICompareFunc::Always;
+			depth_test.enable             = false;
+			depth_test.write_enable       = false;
+			depth_test.func               = RHICompareFunc::Always;
 
 			stencil_test.enable     = false;
 			stencil_test.depth_fail = stencil_test.depth_pass = stencil_test.fail = RHIStencilOp::Keep;
@@ -140,9 +139,9 @@ namespace Engine
 			rhi->viewport(viewport);
 
 			float L = draw_data->DisplayPos.x;
-			float R = L + static_cast<float>(viewport.size.x);
+			float R = L + draw_data->DisplaySize.x;
 			float T = draw_data->DisplayPos.y;
-			float B = T + static_cast<float>(viewport.size.y);
+			float B = T + draw_data->DisplaySize.y;
 
 			pipeline->model = glm::ortho(L, R, T, B, 0.f, 1.f);
 		}
@@ -450,7 +449,7 @@ namespace Engine
 				return *this;
 			}
 
-			ViewportClient& render(class RenderViewport* viewport) override
+			ViewportClient& render_frame(RenderViewport* viewport)
 			{
 				auto bd = ImGuiBackend_RHI::imgui_trinex_backend_data();
 				std::swap(viewport, bd->window);// Temporary set as main viewport
@@ -461,13 +460,16 @@ namespace Engine
 				trinex_rhi_pop_stage();
 
 				std::swap(viewport, bd->window);// Restore main viewport
+
+				viewport->rhi_present();
 				return *this;
 			}
 
-			ViewportClient& update(class RenderViewport*, float dt) override
+			ViewportClient& update(class RenderViewport* vp, float dt) override
 			{
 				m_draw_data.copy(viewport->DrawData);
 				m_draw_data.swap_logic_index();
+				render_thread()->call([self = Pointer(this), viewport = Pointer(vp)]() { self->render_frame(viewport); });
 				return *this;
 			}
 		};

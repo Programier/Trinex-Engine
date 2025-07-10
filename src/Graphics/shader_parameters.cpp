@@ -12,17 +12,17 @@ namespace Engine
 	{
 		if (scene_view)
 		{
-			render_target_size = scene_view->view_size();
-			projection         = scene_view->projection_matrix();
-			view               = scene_view->view_matrix();
-			projview           = scene_view->projview_matrix();
-			inv_projview       = scene_view->inv_projview_matrix();
+			projection   = scene_view->projection_matrix();
+			view         = scene_view->view_matrix();
+			projview     = scene_view->projview_matrix();
+			inv_projview = scene_view->inv_projview_matrix();
 
-			const auto& vp     = scene_view->viewport();
-			viewport.pos       = Vector2f(vp.pos);
-			viewport.size      = Vector2f(vp.size);
-			viewport.min_depth = vp.min_depth;
-			viewport.max_depth = vp.max_depth;
+			const auto& vp       = scene_view->viewport();
+			viewport.pos         = Vector2f(vp.pos);
+			viewport.size        = Vector2f(vp.size);
+			viewport.target_size = scene_view->view_size();
+			viewport.min_depth   = vp.min_depth;
+			viewport.max_depth   = vp.max_depth;
 
 			auto& camera_view = scene_view->camera_view();
 			camera.location   = camera_view.location;
@@ -39,7 +39,6 @@ namespace Engine
 			camera.projection_mode = static_cast<Camera::Projection>(camera_view.projection_mode);
 		}
 
-		gamma      = engine_instance->gamma();
 		time       = engine_instance->time_seconds();
 		delta_time = engine_instance->delta_time();
 		return *this;

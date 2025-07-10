@@ -9,6 +9,7 @@ namespace Lighting
 	{
 		static float attenuation(in float3 world_light_vector, in LightParameters params);
 		static float3 direction(in float3 world_light_vector, in LightParameters params);
+		static float shadow(in float3 position, in LightParameters params);
 	}
 
 	extern struct LightType : ILight;
@@ -33,8 +34,6 @@ namespace Lighting
 		float3 position;
 		float3 normal;
 		float4 msra;
-		float primitive_depth;
-		float shadow_depth;
 	};
 
 	float distribution_ggx(in float3 normal, in float3 halfway_direction, float roughness)
@@ -99,12 +98,6 @@ namespace Lighting
 
 		float normal_dot_l = max(dot(normal, light_direction), 0.0);
 
-#if TRINEX_SHADOWED_LIGHTING
-		float depth_bias = light.depth_bias + normal_dot_l * light.slope_scale;
-		if(primitive.shadow_depth > primitive.primitive_depth + depth_bias)
-			return float4(0, 0, 0, 1.0);
-#endif
-
 		float3 halfway_direction = normalize(view_direction + light_direction);
 		float3 radiance          = light.color * light.intensivity * attenuation;
 
@@ -117,7 +110,6 @@ namespace Lighting
 		float3 k_d = float3(1.0, 1.0, 1.0) - k_s;
 		k_d *= 1.0 - primitive.msra.r;
 
-		
 		float3 reflectance = (k_d * primitive.base_color.xyz / Math::pi + specular) * radiance * normal_dot_l;
 		return float4(reflectance, 1.0);
 	}

@@ -10,6 +10,7 @@ namespace Engine
 		struct Viewport {
 			alignas(8) Vector2f pos;
 			alignas(8) Vector2f size;
+			alignas(8) Vector2f target_size;
 			alignas(4) float min_depth;
 			alignas(4) float max_depth;
 		};
@@ -43,8 +44,6 @@ namespace Engine
 		Viewport viewport;
 		Camera camera;
 
-		alignas(8) Vector2f render_target_size;
-		alignas(4) float gamma;
 		alignas(4) float time;
 		alignas(4) float delta_time;
 

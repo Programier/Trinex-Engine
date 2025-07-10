@@ -86,13 +86,8 @@ namespace Engine::Pipelines
 	                          ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
 	{
 		color_blending.enable = false;
-		m_scene_view          = find_parameter("scene_view");
-	}
-
-	void BatchedLines::apply(Renderer* renderer)
-	{
-		rhi_bind();
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		m_projview            = find_parameter("projview");
+		m_viewport            = find_parameter("viewport");
 	}
 
 	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
@@ -106,22 +101,22 @@ namespace Engine::Pipelines
 		scene_view         = find_parameter("scene_view");
 		base_color_texture = find_parameter("base_color_texture");
 		normal_texture     = find_parameter("normal_texture");
-		emissive_texture   = find_parameter("emissive_texture");
 		msra_texture       = find_parameter("msra_texture");
 		depth_texture      = find_parameter("depth_texture");
 		parameters         = find_parameter("parameters");
 
+		shadow_map      = find_parameter("shadow_map");
+		shadow_projview = find_parameter("shadow_projview");
+
 		depth_test.enable       = false;
 		depth_test.write_enable = false;
-		color_blending.enable   = true;
 
+		color_blending.enable         = true;
 		color_blending.src_color_func = RHIBlendFunc::One;
 		color_blending.dst_color_func = RHIBlendFunc::One;
-		color_blending.color_op       = RHIBlendOp::Max;
+		color_blending.color_op       = RHIBlendOp::Add;
 
-		color_blending.src_alpha_func = RHIBlendFunc::One;
-		color_blending.dst_alpha_func = RHIBlendFunc::One;
-		color_blending.alpha_op       = RHIBlendOp::Max;
+		color_blending.write_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B;
 	}
 
 	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
@@ -133,7 +128,7 @@ namespace Engine::Pipelines
 	DeferredPointLightShadowed& DeferredPointLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/point_light.slang");
+		env->add_module("trinex/lights/point_light.slang");
 		return *this;
 	}
 
@@ -146,7 +141,7 @@ namespace Engine::Pipelines
 	DeferredPointLight& DeferredPointLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/point_light.slang");
+		env->add_module("trinex/lights/point_light.slang");
 		return *this;
 	}
 
@@ -159,7 +154,7 @@ namespace Engine::Pipelines
 	DeferredSpotLightShadowed& DeferredSpotLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/spot_light.slang");
+		env->add_module("trinex/lights/shadowed_spot_light.slang");
 		return *this;
 	}
 
@@ -172,7 +167,7 @@ namespace Engine::Pipelines
 	DeferredSpotLight& DeferredSpotLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/spot_light.slang");
+		env->add_module("trinex/lights/spot_light.slang");
 		return *this;
 	}
 
@@ -185,7 +180,7 @@ namespace Engine::Pipelines
 	DeferredDirectionalLightShadowed& DeferredDirectionalLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/directional_light.slang");
+		env->add_module("trinex/lights/directional_light.slang");
 		return *this;
 	}
 
@@ -198,7 +193,7 @@ namespace Engine::Pipelines
 	DeferredDirectionalLight& DeferredDirectionalLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/directional_light.slang");
+		env->add_module("trinex/lights/directional_light.slang");
 		return *this;
 	}
 
@@ -211,5 +206,31 @@ namespace Engine::Pipelines
 		base_color    = find_parameter("base_color");
 		msra          = find_parameter("msra");
 		ambient_color = find_parameter("ambient_color");
+	}
+
+	trinex_implement_pipeline(TonemappingACES, "[shaders_dir]:/TrinexEngine/trinex/graphics/tonemapping.slang",
+	                          ShaderType::BasicGraphics)
+	{
+		depth_test.enable       = false;
+		depth_test.write_enable = false;
+		stencil_test.enable     = false;
+
+		m_hdr_target = find_parameter("hdr_scene");
+		m_exposure   = find_parameter("exposure");
+		m_scene_view = find_parameter("scene_view");
+	}
+
+	TonemappingACES& TonemappingACES::apply(Renderer* renderer)
+	{
+		rhi->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
+		rhi_bind();
+
+		float EV = 0.f;
+		rhi->update_scalar_parameter(&EV, m_exposure);
+		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
+		rhi->draw(6, 0);
+
+		return *this;
 	}
 }// namespace Engine::Pipelines

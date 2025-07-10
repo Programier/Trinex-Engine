@@ -117,7 +117,7 @@ namespace Engine
 				renderer->render();
 
 				auto dst = surface->rhi_rtv();
-				auto src = renderer->scene_color_target()->as_rtv();
+				auto src = renderer->scene_color_ldr_target()->as_rtv();
 
 				RHIRect rect(view_size);
 				dst->blit(src, rect, rect, RHISamplerFilter::Bilinear);

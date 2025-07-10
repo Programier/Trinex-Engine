@@ -8,8 +8,8 @@ struct Arguments
 	uint level;
 };
 
-uniform Texture2D src;
-uniform writeonly RWTexture2D dst;
+uniform Texture2D<float4> src;
+uniform writeonly RWTexture2D<float4> dst;
 
 [parameter_flags(meta::MemoryBlock)]
 uniform Arguments args;

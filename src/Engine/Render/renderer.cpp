@@ -24,8 +24,8 @@ namespace Engine
 	{
 		switch (type)
 		{
-			case SurfaceType::SceneColor:
-				return Settings::Rendering::enable_hdr ? RHISurfaceFormat::RGBA16F : RHISurfaceFormat::RGBA8;
+			case SurfaceType::SceneColorHDR: return RHISurfaceFormat::RGBA16F;
+			case SurfaceType::SceneColorLDR: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::SceneDepth: return RHISurfaceFormat::Depth;
 			case SurfaceType::BaseColor: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Normal: return RHISurfaceFormat::RGBA16F;
@@ -42,6 +42,12 @@ namespace Engine
 
 	Renderer& Renderer::render()
 	{
+		while (m_child_renderer)
+		{
+			m_child_renderer->renderer->render();
+			m_child_renderer = m_child_renderer->next;
+		}
+
 		rhi->viewport(m_view.viewport());
 		rhi->scissor(m_view.scissor());
 		m_graph->execute();
@@ -107,15 +113,32 @@ namespace Engine
 		return *this;
 	}
 
+	Renderer& Renderer::add_child_renderer(Renderer* renderer)
+	{
+		if (renderer)
+		{
+			ChildRenderer* child = FrameAllocator<ChildRenderer>::allocate(1);
+			child->renderer      = renderer;
+			child->next          = m_child_renderer;
+			m_child_renderer     = child;
+		}
+
+		return *this;
+	}
+
 	RHI_Texture* Renderer::surface(SurfaceType type)
 	{
 		if (m_surfaces[type] == nullptr)
 		{
-			static const char* clear_pass_names[] = {"Clear SceneColor", "Clear SceneDepth", "Clear BaseColor",
-			                                         "Clear Normal",     "Clear Emissive",   "Clear MSRA"};
+			static const char* clear_pass_names[] = {
+			        "Clear SceneColor HDR", "Clear SceneColor LDR", "Clear SceneDepth", "Clear BaseColor",
+			        "Clear Normal",         "Clear Emissive",       "Clear MSRA",
+			};
 
 			auto pool           = RHISurfacePool::global_instance();
-			RHI_Texture* target = pool->request_transient_surface(format_of(type), m_view.viewport().size);
+			RHI_Texture* target = pool->request_transient_surface(format_of(type), m_view.viewport().size,
+			                                                      type == SceneDepth ? RHITextureCreateFlags::Undefined
+			                                                                         : RHITextureCreateFlags::UnorderedAccess);
 			m_surfaces[type]    = target;
 
 			auto& pass = m_graph->add_pass(RenderGraph::Pass::Graphics, clear_pass_names[type])
@@ -124,10 +147,15 @@ namespace Engine
 			if (type == SceneDepth)
 				pass.add_func([target]() { target->as_dsv()->clear(1.f, 0); });
 			else
-				pass.add_func([target]() { target->as_rtv()->clear(LinearColor(0.f, 0.f, 0.f, 1.f)); });
+				pass.add_func([target]() { target->as_rtv()->clear(LinearColor(0.f, 0.f, 0.f, 0.f)); });
 		}
 
 		return m_surfaces[type];
+	}
+
+	RHI_Texture* Renderer::scene_color_target()
+	{
+		return Settings::Rendering::enable_hdr ? scene_color_hdr_target() : scene_color_ldr_target();
 	}
 
 	RHI_Buffer* Renderer::globals_uniform_buffer()

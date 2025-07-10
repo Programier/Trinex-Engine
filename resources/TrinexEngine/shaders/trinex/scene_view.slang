@@ -3,6 +3,7 @@ struct SceneView
 	struct Viewport {
 		float2 pos;
 		float2 size;
+		float2 target_size;
 		float min_depth;
 		float max_depth;
 	};
@@ -36,15 +37,13 @@ struct SceneView
 	Viewport viewport;
 	Camera camera;
 
-	float2 render_target_size;
-	float gamma;
 	float time;
 	float delta_time;
 
-	float2 normalize_screen_space_uv(float2 uv)
+	float2 screen_uv(float2 uv)
     {
-        float2 uv0 = viewport.pos / render_target_size;
-		float2 uv1 = (viewport.pos + viewport.size) / render_target_size;
+        float2 uv0 = viewport.pos / viewport.target_size;
+		float2 uv1 = (viewport.pos + viewport.size) / viewport.target_size;
 		return (uv * (uv1 - uv0)) + uv0;
     }
 };

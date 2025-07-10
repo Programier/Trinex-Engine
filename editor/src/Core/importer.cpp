@@ -108,51 +108,42 @@ namespace Engine::Importer
 			StringView name   = texture_path.stem();
 			info_log("Importer", "Loading texture: %s\n", texture_path.c_str());
 
-			auto thread_mgr = ThreadManager::instance();
-			auto texture    = Object::new_instance<Texture2D>(name, package);
-			texture_ref     = texture;
+			Image image;
+
+			if (image.load(texture_path).empty())
+			{
+				error_log("Importer", "Failed to load texture: %s\n", texture_path.c_str());
+				return DefaultResources::Textures::default_texture;
+			}
+
+			auto texture = Object::new_instance<Texture2D>(name, package);
+			texture_ref  = texture;
 
 			texture->format = RHIColorFormat::R8G8B8A8;
-			texture->mips.resize(1);
-			texture->mips[0].size = {1, 1};
-			texture->mips[0].data = {255, 255, 255, 255};
+
+			const uint_t mips_count = calculate_mip_count(image.width(), image.height());
+
+			Vector<Texture2DMip> mips;
+			mips.resize(mips_count);
+
+			mips[0].size = image.size();
+			mips[0].data = image.buffer();
+
+			for (uint_t i = 1; i < mips_count; ++i)
+			{
+				auto& mip = mips[i];
+
+				uint_t width  = glm::max<uint32_t>(image.width() / 2, 1);
+				uint_t height = glm::max<uint32_t>(image.height() / 2, 1);
+				image.resize({width, height});
+
+				mip.size = {width, height};
+				mip.data = image.buffer();
+			}
+
+			texture->format = image.format();
+			texture->mips   = std::move(mips);
 			texture->init_render_resources();
-
-			thread_mgr->call([texture_path, texture = Pointer(texture)]() {
-				Image image;
-
-				if (image.load(texture_path).empty())
-				{
-					error_log("Importer", "Failed to load texture: %s\n", texture_path.c_str());
-					return;
-				}
-
-				const uint_t mips_count = calculate_mip_count(image.width(), image.height());
-
-				Vector<Texture2DMip> mips;
-				mips.resize(mips_count);
-
-				mips[0].size = image.size();
-				mips[0].data = image.buffer();
-
-				for (uint_t i = 1; i < mips_count; ++i)
-				{
-					auto& mip = mips[i];
-
-					uint_t width  = glm::max<uint32_t>(image.width() / 2, 1);
-					uint_t height = glm::max<uint32_t>(image.height() / 2, 1);
-					image.resize({width, height});
-
-					mip.size = {width, height};
-					mip.data = image.buffer();
-				}
-
-				logic_thread()->call([texture, mips = std::move(mips), format = image.format()]() {
-					texture->format = format;
-					texture->mips   = std::move(mips);
-					texture->init_render_resources();
-				});
-			});
 
 			return texture;
 		}

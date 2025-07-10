@@ -41,7 +41,7 @@ namespace Engine
 		trinex_refl_prop(self, This, src_alpha_func, s_flags);
 		trinex_refl_prop(self, This, dst_alpha_func, s_flags);
 		trinex_refl_prop(self, This, alpha_op, s_flags)->display_name("Alpha Operator");
-		trinex_refl_prop(self, This, color_mask);
+		trinex_refl_prop(self, This, write_mask);
 	}
 
 
@@ -49,12 +49,12 @@ namespace Engine
 	{
 		return ar.serialize_memory(reinterpret_cast<byte*>(this), sizeof(*this));
 	}
-	
+
 	bool RHIStencilTest::serialize(Archive& ar)
 	{
 		return ar.serialize_memory(reinterpret_cast<byte*>(this), sizeof(*this));
 	}
-	
+
 	bool RHIColorBlending::serialize(Archive& ar)
 	{
 		return ar.serialize_memory(reinterpret_cast<byte*>(this), sizeof(*this));

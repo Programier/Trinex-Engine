@@ -22,6 +22,11 @@ namespace Engine
 			    : m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
+			FORCE_INLINE constexpr Vertex(const Vector2f& position, const Color& color = {255, 255, 255, 255},
+			                              float thickness = 1.f)
+			    : m_position(position, 0.f), m_color(color), m_thickness(thickness)
+			{}
+
 			FORCE_INLINE const Vector3f& position() const { return m_position; }
 			FORCE_INLINE const Color& color() const { return m_color; }
 			FORCE_INLINE float thickness() const { return m_thickness; }

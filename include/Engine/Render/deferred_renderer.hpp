@@ -10,16 +10,28 @@ namespace Engine
 		class DeferredLightPipeline;
 	}
 
+	class SpotLightComponent;
+
 	class ENGINE_EXPORT DeferredRenderer : public Renderer
 	{
 	private:
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
 		FrameVector<LightComponent*> m_visible_lights;
+		FrameVector<RHI_Texture*> m_shadow_maps;
+		FrameVector<Matrix4f> m_shadow_projections;
 
 	private:
+		DeferredRenderer& register_shadow_light(SpotLightComponent* light, uint_t index);
+		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass();
 		DeferredRenderer& deferred_lighting_pass();
 		DeferredRenderer& copy_base_color_to_scene_color();
+		DeferredRenderer& copy_world_normal_to_scene_color();
+		DeferredRenderer& copy_metalic_to_scene_color();
+		DeferredRenderer& copy_specular_to_scene_color();
+		DeferredRenderer& copy_roughness_to_scene_color();
+		DeferredRenderer& copy_ambient_to_scene_color();
+		DeferredRenderer& copy_world_to_scene_color();
 		DeferredRenderer& render_visible_primitives(RenderPass* pass);
 
 	public:

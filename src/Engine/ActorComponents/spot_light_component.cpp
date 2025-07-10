@@ -42,6 +42,11 @@ namespace Engine
 		return *this;
 	}
 
+	SpotLightComponent::Type SpotLightComponent::Proxy::light_type() const
+	{
+		return Spot;
+	}
+
 	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f) {}
 
 

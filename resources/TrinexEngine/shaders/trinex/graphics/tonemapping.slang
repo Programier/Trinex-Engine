@@ -1,0 +1,56 @@
+import "trinex/quad.slang";
+import "trinex/scene_view.slang";
+
+uniform Sampler2D hdr_scene;
+uniform float exposure;
+
+[shader("vertex")]
+float4 vs_main(in uint vertex: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Position
+{
+	uv            = scene_view.screen_uv(FullScreenQuad::uv_by_index(vertex));
+	float4 vertex = FullScreenQuad::vertex_by_index(vertex);
+	return vertex;
+}
+
+[shader("fragment")]
+float4 fs_main(in float2 uv: TEXCOORD0) : SV_Target
+{
+	float4 scene_color = hdr_scene.SampleLevel(uv, 0);
+	scene_color.rgb    = ACES(scene_color.rgb * pow(2, exposure));
+
+	// Gamma
+	scene_color.rgb = pow(scene_color.rgb, float3(1.0 / 2.2));
+	return scene_color;
+}
+
+// https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
+// MIT License
+
+static const float3x3 ACESInputMat =
+{
+    { 0.59719, 0.35458, 0.04823 },
+    { 0.07600, 0.90834, 0.01566 },
+	{ 0.02840, 0.13383, 0.83777 }
+};
+
+// ODT_SAT => XYZ => D60_2_D65 => sRGB
+static const float3x3 ACESOutputMat =
+{
+    { 1.60475, -0.53108, -0.07367 },
+    { -0.10208, 1.10813, -0.00605 },
+    { -0.00327, -0.07276, 1.07602 }
+};
+
+[ForceInline]
+static float3 ACES(float3 linear)
+{
+	float3 color = mul(ACESInputMat, linear);
+
+	// Apply RRT and ODT
+	float3 a = color * (color + 0.0245786f) - 0.000090537f;
+	float3 b = color * (0.983729f * color + 0.4329510f) + 0.238081f;
+	color    = a / b;
+
+	color = mul(ACESOutputMat, color);
+	return saturate(color);
+}

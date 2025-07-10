@@ -22,6 +22,11 @@ namespace Engine
 		return *this;
 	}
 
+	PointLightComponent::Type PointLightComponent::Proxy::light_type() const
+	{
+		return Point;
+	}
+
 	PointLightComponent::PointLightComponent() : m_fall_off_exponent(2.f) {}
 
 	PointLightComponent& PointLightComponent::submit_point_light_data()

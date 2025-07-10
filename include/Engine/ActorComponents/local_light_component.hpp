@@ -15,7 +15,7 @@ namespace Engine
 
 		public:
 			inline float attenuation_radius() const { return m_attenuation_radius; }
-			virtual Proxy& render_parameters(LightRenderParameters& out);
+			Proxy& render_parameters(LightRenderParameters& out) override;
 			friend class LocalLightComponent;
 		};
 

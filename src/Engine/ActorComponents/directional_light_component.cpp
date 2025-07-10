@@ -5,6 +5,11 @@ namespace Engine
 {
 	trinex_implement_engine_class_default_init(DirectionalLightComponent, 0);
 
+	DirectionalLightComponent::Type DirectionalLightComponent::Proxy::light_type() const
+	{
+		return Directional;
+	}
+
 	DirectionalLightComponent::Type DirectionalLightComponent::light_type() const
 	{
 		return Type::Directional;

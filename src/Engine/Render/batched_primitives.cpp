@@ -2,6 +2,7 @@
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/render_pools.hpp>
 #include <RHI/rhi.hpp>
@@ -139,7 +140,15 @@ namespace Engine
 		rhi->push_debug_stage("Lines Rendering");
 #endif
 
-		Pipelines::BatchedLines::instance()->apply(renderer);
+		auto pipeline = Pipelines::BatchedLines::instance();
+		pipeline->rhi_bind();
+
+		Matrix4f projview = renderer->scene_view().projview_matrix();
+		Vector2f size     = renderer->scene_view().view_size();
+
+		rhi->update_scalar_parameter(&projview, pipeline->projview());
+		rhi->update_scalar_parameter(&size, pipeline->viewport());
+
 		rhi->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
 		rhi->primitive_topology(RHIPrimitiveTopology::LineList);
 

@@ -13,6 +13,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 	Material material;
 
 	material.base_color      = base_color.Sample(input.vertex.uv0).rgb;
+	material.normal          = float3(0.5f, 0.5f, 1.f);
 	material.emissive        = emissive;
 	material.opacity         = opacity;
 	material.metalness       = metalic;
@@ -20,6 +21,6 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 	material.roughness       = roughness;
 	material.ao              = ao;
 	material.position_offset = float3(0, 0, 0);
-
+	
 	return material;
 }

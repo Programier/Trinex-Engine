@@ -5,6 +5,7 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/light_parameters.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -45,6 +46,11 @@ namespace Engine
 		out.slope_scale = m_slope_scale;
 		out.location    = transform.location();
 		return *this;
+	}
+
+	LightComponent::Type LightComponent::Proxy::light_type() const
+	{
+		return Undefined;
 	}
 
 	LightComponent::LightComponent()
@@ -114,36 +120,24 @@ namespace Engine
 	LightComponent& LightComponent::is_shadows_enabled(bool enabled)
 	{
 		m_is_shadows_enabled = enabled;
-
-		if (enabled && m_shadow_map == nullptr)
-		{
-			m_shadow_map = RenderSurfacePool::global_instance()->request_surface(RHISurfaceFormat::ShadowDepth, {1024, 1024});
-		}
-		else if (!enabled && m_shadow_map != nullptr)
-		{
-			RenderSurfacePool::global_instance()->return_surface(m_shadow_map.ptr());
-		}
-
 		return submit_light_info_render_thread();
 	}
 
 	LightComponent& LightComponent::submit_light_info_render_thread()
 	{
-		render_thread()->call([proxy           = proxy(),             //
-		                       color           = m_light_color,       //
-		                       intensivity     = m_intensivity,       //
-		                       depth_bias      = m_depth_bias,        //
-		                       slope_scale     = m_slope_scale,       //
-		                       enabled         = m_is_enabled,        //
-		                       shadows_enabled = m_is_shadows_enabled,//
-		                       map             = m_shadow_map]() {
+		render_thread()->call([proxy           = proxy(),      //
+		                       color           = m_light_color,//
+		                       intensivity     = m_intensivity,//
+		                       depth_bias      = m_depth_bias, //
+		                       slope_scale     = m_slope_scale,//
+		                       enabled         = m_is_enabled, //
+		                       shadows_enabled = m_is_shadows_enabled]() {
 			proxy->m_light_color        = color;
 			proxy->m_intensivity        = intensivity;
 			proxy->m_depth_bias         = depth_bias;
 			proxy->m_slope_scale        = slope_scale;
 			proxy->m_is_enabled         = enabled;
 			proxy->m_is_shadows_enabled = shadows_enabled;
-			proxy->m_shadow_map         = map;
 		});
 		return *this;
 	}

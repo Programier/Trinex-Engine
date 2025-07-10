@@ -1,4 +1,4 @@
-import "trinex/light.slang";
+import "trinex/lighting.slang";
 import "trinex/attributes.slang";
 import "trinex/scene_view.slang";
 import "trinex/quad.slang";
@@ -6,22 +6,16 @@ import "trinex/platform.slang";
 
 uniform Sampler2D base_color_texture;
 uniform Sampler2D normal_texture;
-uniform Sampler2D emissive_texture;
 uniform Sampler2D msra_texture;
 uniform Sampler2D depth_texture;
 
 [parameter_flags(meta::MemoryBlock)]
 uniform Lighting::LightParameters parameters;
 
-#if TRINEX_SHADOWED_LIGHTING
-uniform Sampler2D shadow_map_texture;
-uniform float4x4 shadow_map_projview;
-#endif
-
 [shader("vertex")] 
 float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
 {
-	uv = scene_view.normalize_screen_space_uv(FullScreenQuad::uv_by_index(vertex));
+	uv            = scene_view.screen_uv(FullScreenQuad::uv_by_index(vertex));
 	float4 vertex = FullScreenQuad::vertex_by_index(vertex);
 	ndc           = vertex.xy;
 	return vertex;
@@ -44,13 +38,5 @@ float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
 	primitive.normal     = normal_texture.Sample(uv).xyz;
 	primitive.msra       = msra_texture.Sample(uv);
 
-#if TRINEX_SHADOWED_LIGHTING
-	float4 shadow_ndc = mul(shadow_map_projview, float4(primitive.position, 1.0));
-	shadow_ndc.xyz /= shadow_ndc.w;
-
-	primitive.shadow_depth    = shadow_ndc.z;
-	primitive.primitive_depth = shadow_map_texture.Sample(shadow_ndc.xy * 0.5 + 0.5).r;
-#endif
-
-	return Lighting::calculate_light(parameters, primitive);
+	return Lighting::calculate_light(parameters, primitive) * Lighting::LightType::shadow(primitive.position, parameters);
 }

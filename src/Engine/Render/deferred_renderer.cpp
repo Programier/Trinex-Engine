@@ -1,14 +1,19 @@
+#include <Core/etl/templates.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
+#include <Engine/Render/depth_renderer.hpp>
 #include <Engine/Render/light_parameters.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/sampler.hpp>
 #include <RHI/rhi.hpp>
+#include <RHI/static_sampler.hpp>
 
 namespace Engine
 {
@@ -18,7 +23,7 @@ namespace Engine
 	{
 		auto graph = render_graph();
 
-		graph->add_output(scene_color_target());
+		graph->add_output(scene_color_ldr_target());
 
 		graph->add_pass(RenderGraph::Pass::Graphics, "Geometry Pass")
 		        .add_resource(base_color_target(), RHIAccess::RTV)
@@ -29,24 +34,142 @@ namespace Engine
 		        .add_func([this]() { geometry_pass(); });
 
 
-		if (mode == ViewMode::Lit)
+		switch (mode)
 		{
-			graph->add_pass(RenderGraph::Pass::Graphics, "Lighting Pass")
-			        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
-			        .add_resource(normal_target(), RHIAccess::SRVGraphics)
-			        .add_resource(emissive_target(), RHIAccess::SRVGraphics)
-			        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-			        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-			        .add_resource(scene_color_target(), RHIAccess::RTV)
-			        .add_func([this]() { deferred_lighting_pass(); });
+			case ViewMode::Lit:
+			{
+				register_lit_mode_passes();
+				break;
+			}
+
+			case ViewMode::Unlit:
+			{
+				graph->add_pass(RenderGraph::Pass::Graphics, "Base Color Resolve")
+				        .add_resource(base_color_target(), RHIAccess::CopySrc)
+				        .add_resource(scene_color_target(), RHIAccess::CopyDst)
+				        .add_func([this]() { copy_base_color_to_scene_color(); });
+				break;
+			}
+
+			case ViewMode::WorldNormal:
+			{
+				graph->add_pass(RenderGraph::Pass::Graphics, "World Normal Resolve")
+				        .add_resource(normal_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_func([this]() { copy_world_normal_to_scene_color(); });
+				break;
+			}
+
+			case ViewMode::Metalic:
+			{
+				graph->add_pass(RenderGraph::Pass::Graphics, "Metalic Resolve")
+				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_func([this]() { copy_metalic_to_scene_color(); });
+				break;
+			}
+
+			case ViewMode::Roughness:
+			{
+				graph->add_pass(RenderGraph::Pass::Graphics, "Roughness Resolve")
+				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_func([this]() { copy_roughness_to_scene_color(); });
+				break;
+			}
+
+			case ViewMode::Specular:
+			{
+				graph->add_pass(RenderGraph::Pass::Graphics, "Specular Resolve")
+				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_func([this]() { copy_specular_to_scene_color(); });
+				break;
+			}
+
+			case ViewMode::AO:
+			{
+				graph->add_pass(RenderGraph::Pass::Graphics, "AO Resolve")
+				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_func([this]() { copy_ambient_to_scene_color(); });
+				break;
+			}
+
+			default: break;
 		}
-		else if (mode == ViewMode::Unlit)
+	}
+
+	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, uint_t index)
+	{
+		Vector2u shadow_map_size = {512, 512};
+		auto proxy               = light->proxy();
+
+		auto& transform = proxy->world_transform();
+
+		CameraView view;
+		view.location       = transform.location();
+		view.rotation       = transform.quaternion();
+		view.up_vector      = transform.up_vector();
+		view.forward_vector = transform.forward_vector();
+		view.right_vector   = transform.right_vector();
+
+		view.projection_mode = CameraProjectionMode::Perspective;
+		view.aspect_ratio    = 1.f;
+		view.near_clip_plane = scene_view().camera_view().near_clip_plane;
+		view.far_clip_plane  = proxy->attenuation_radius();
+		view.fov             = glm::degrees(proxy->outer_cone_angle()) * 2.f;
+
+		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
+		new (renderer) DepthRenderer(scene(), SceneView(view, shadow_map_size));
+		add_child_renderer(renderer);
+
+		m_shadow_maps[index]        = renderer->scene_depth_target();
+		m_shadow_projections[index] = view.projection_matrix() * view.view_matrix();
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::register_lit_mode_passes()
+	{
+		auto graph = render_graph();
+
+		graph->add_pass(RenderGraph::Pass::Graphics, "Lighting Pass")
+		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
+		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
+		        .add_resource(emissive_target(), RHIAccess::SRVGraphics)
+		        .add_resource(msra_target(), RHIAccess::SRVGraphics)
+		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+		        .add_resource(scene_color_target(), RHIAccess::RTV)
+		        .add_func([this]() { deferred_lighting_pass(); });
+
+
+		m_shadow_maps.resize(m_visible_lights.size(), nullptr);
+		m_shadow_projections.resize(m_visible_lights.size(), Matrix4f(1.f));
+
+		for (size_t i = 0, count = m_visible_lights.size(); i < count; ++i)
 		{
-			graph->add_pass(RenderGraph::Pass::Graphics, "Base Color Resolve")
-			        .add_resource(base_color_target(), RHIAccess::CopySrc)
-			        .add_resource(scene_color_target(), RHIAccess::CopyDst)
-			        .add_func([this]() { copy_base_color_to_scene_color(); });
+			auto component = m_visible_lights[i];
+			auto light     = component->proxy();
+
+			if (light->is_shadows_enabled())
+			{
+				if (light->light_type() == LightComponent::Spot)
+				{
+					register_shadow_light(static_cast<SpotLightComponent*>(component), i);
+				}
+			}
 		}
+
+		if (Settings::Rendering::enable_hdr)
+		{
+			// Tonemapping
+			graph->add_pass(RenderGraph::Pass::Graphics, "Tonemapping")
+			        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
+			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+			        .add_func([this]() { Pipelines::TonemappingACES::instance()->apply(this); });
+		}
+
+		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::geometry_pass()
@@ -59,11 +182,12 @@ namespace Engine
 
 	Pipelines::DeferredLightPipeline* DeferredRenderer::static_find_light_pipeline(LightComponent* component)
 	{
-		const bool is_shadows_enabled = component->proxy()->is_shadows_enabled();
+		auto proxy                    = component->proxy();
+		const bool is_shadows_enabled = proxy->is_shadows_enabled();
 
 		if (is_shadows_enabled)
 		{
-			switch (component->light_type())
+			switch (proxy->light_type())
 			{
 				case LightComponent::Point: return Pipelines::DeferredPointLightShadowed::instance();
 				case LightComponent::Spot: return Pipelines::DeferredSpotLightShadowed::instance();
@@ -102,34 +226,41 @@ namespace Engine
 
 		rhi->draw(6, 0);
 
-		auto& lights = visible_lights();
-
-		for (LightComponent* light : lights)
+		for (size_t i = 0, count = m_visible_lights.size(); i < count; ++i)
 		{
-			auto pipeline = static_find_light_pipeline(light);
+			auto component = m_visible_lights[i];
+			auto pipeline  = static_find_light_pipeline(component);
 
 			if (pipeline == nullptr)
 				continue;
 
+			auto light = component->proxy();
+
 			LightRenderParameters parameters;
-			light->proxy()->render_parameters(parameters);
+			light->render_parameters(parameters);
 
 			pipeline->rhi_bind();
 
 			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
 			rhi->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
-			//rhi->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->binding);
 			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);
 			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->binding);
 
 			rhi->bind_sampler(sampler, pipeline->base_color_texture->binding);
 			rhi->bind_sampler(sampler, pipeline->normal_texture->binding);
-			//rhi->bind_sampler(sampler, pipeline->emissive_texture->binding);
 			rhi->bind_sampler(sampler, pipeline->msra_texture->binding);
 			rhi->bind_sampler(sampler, pipeline->depth_texture->binding);
 
 			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 			rhi->update_scalar_parameter(&parameters, pipeline->parameters);
+
+			if (light->is_shadows_enabled())
+			{
+				rhi->bind_srv(m_shadow_maps[i]->as_srv(), pipeline->shadow_map->binding);
+				rhi->bind_sampler(RHIShadowSampler::static_sampler(), pipeline->shadow_map->binding);
+				rhi->update_scalar_parameter(&m_shadow_projections[i], pipeline->shadow_projview);
+			}
+
 			rhi->draw(6, 0);
 		}
 
@@ -143,6 +274,56 @@ namespace Engine
 
 		RHIRect rect(scene_view().view_size());
 		dst->blit(src, rect, rect, RHISamplerFilter::Point);
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::copy_world_normal_to_scene_color()
+	{
+		auto src = normal_target()->as_srv();
+		auto dst = scene_color_target()->as_uav();
+
+		RHIRect rect(scene_view().view_size());
+		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::copy_metalic_to_scene_color()
+	{
+		auto src = msra_target()->as_srv();
+		auto dst = scene_color_target()->as_uav();
+
+		RHIRect rect(scene_view().view_size());
+		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::copy_specular_to_scene_color()
+	{
+		auto src = msra_target()->as_srv();
+		auto dst = scene_color_target()->as_uav();
+
+		RHIRect rect(scene_view().view_size());
+		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::copy_roughness_to_scene_color()
+	{
+		auto src = msra_target()->as_srv();
+		auto dst = scene_color_target()->as_uav();
+
+		RHIRect rect(scene_view().view_size());
+		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::copy_ambient_to_scene_color()
+	{
+		auto src = msra_target()->as_srv();
+		auto dst = scene_color_hdr_target()->as_uav();
+
+		RHIRect rect(scene_view().view_size());
+		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
 		return *this;
 	}
 
@@ -164,10 +345,10 @@ namespace Engine
 		{
 			render_graph()
 			        ->add_pass(RenderGraph::Pass::Graphics, "Batched Primitives")
-			        .add_resource(scene_color_target(), RHIAccess::RTV)
+			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 			        .add_resource(scene_depth_target(), RHIAccess::DSV)
 			        .add_func([this]() {
-				        rhi->bind_render_target1(scene_color_target()->as_rtv(), scene_depth_target()->as_dsv());
+				        rhi->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
 				        lines.flush(this);
 			        });
 		}

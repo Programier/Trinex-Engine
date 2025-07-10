@@ -25,7 +25,7 @@ namespace Engine
 		trinex_bitfield_enum_struct(ShowFlags, EnumerateType);
 		trinex_declare_enum(ShowFlags);
 	};
-	
+
 	struct ViewMode {
 		enum Enum : EnumerateType
 		{
@@ -38,9 +38,9 @@ namespace Engine
 			Specular    = 6,
 			AO          = 7,
 		};
-		
+
 		trinex_enum_struct(ViewMode);
 		trinex_declare_enum(ViewMode);
 	};
-	
+
 }// namespace Engine

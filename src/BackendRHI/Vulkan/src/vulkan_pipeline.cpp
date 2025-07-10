@@ -314,7 +314,7 @@ namespace Engine
 				EnumerateType B = enum_value_of(RHIColorComponent::B);
 				EnumerateType A = enum_value_of(RHIColorComponent::A);
 
-				auto mask = enum_value_of(pipeline->blending.color_mask);
+				auto mask = enum_value_of(pipeline->blending.write_mask);
 
 				if ((mask & R) == R)
 				{

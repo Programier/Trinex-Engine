@@ -32,8 +32,6 @@ namespace Engine
 			bool m_is_enabled;
 			bool m_is_shadows_enabled;
 
-			Pointer<RenderSurface> m_shadow_map;
-
 		public:
 			inline const LinearColor& light_color() const { return m_light_color; }
 			inline float intensivity() const { return m_intensivity; }
@@ -41,10 +39,9 @@ namespace Engine
 			inline float slope_scale() const { return m_slope_scale; }
 			inline bool is_enabled() const { return m_is_enabled; }
 			inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
-			inline RenderSurface* shadow_map() const { return m_shadow_map; }
 
 			virtual Proxy& render_parameters(LightRenderParameters& out);
-
+			virtual Type light_type() const;
 			friend class LightComponent;
 		};
 
@@ -53,8 +50,6 @@ namespace Engine
 		AABB_3Df m_bounding_box;
 
 	private:
-		Pointer<RenderSurface> m_shadow_map;
-
 		Color m_light_color;
 		float m_intensivity;
 		float m_depth_bias;

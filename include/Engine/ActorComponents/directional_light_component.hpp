@@ -12,6 +12,7 @@ namespace Engine
 		{
 		public:
 			inline Vector3f direction() const { return -world_transform().up_vector(); }
+			Type light_type() const override;
 			friend class DirectionalLightComponent;
 		};
 
