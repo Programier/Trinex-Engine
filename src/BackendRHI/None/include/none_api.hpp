@@ -32,6 +32,7 @@ namespace Engine
 		NoneApi& viewport(const RHIViewport& viewport) override;
 		NoneApi& scissor(const RHIScissors& scissor) override;
 
+		RHITimestamp* create_timestamp() override;
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
 		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
@@ -74,6 +75,9 @@ namespace Engine
 
 		NoneApi& barrier(RHI_Texture* texture, RHIAccess dst_access) override;
 		NoneApi& barrier(RHI_Buffer* buffer, RHIAccess dst_access) override;
+
+		NoneApi& begin_timestamp(RHITimestamp* timestamp) override;
+		NoneApi& end_timestamp(RHITimestamp* timestamp) override;
 
 		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 		NoneApi& push_debug_stage(const char* stage) override;

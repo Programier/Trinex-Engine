@@ -49,6 +49,11 @@ namespace Engine
 
 	trinex_implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
 
+	struct NoneTimestamp : public NoneApiDestroyable<RHITimestamp> {
+		bool is_ready() override { return true; }
+		float milliseconds() override { return 0.f; }
+	};
+
 	struct NoneFence : public NoneApiDestroyable<RHI_Fence> {
 		bool is_signaled() override { return true; }
 		void reset() override {}
@@ -170,6 +175,11 @@ namespace Engine
 	NoneApi& NoneApi::scissor(const RHIScissors& scissor)
 	{
 		return *this;
+	}
+
+	RHITimestamp* NoneApi::create_timestamp()
+	{
+		return new NoneTimestamp();
 	}
 
 	RHI_Fence* NoneApi::create_fence()
@@ -323,6 +333,16 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::begin_timestamp(RHITimestamp* timestamp)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::end_timestamp(RHITimestamp* timestamp)
 	{
 		return *this;
 	}

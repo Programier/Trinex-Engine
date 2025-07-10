@@ -377,7 +377,7 @@ namespace Engine
 				if (--entry.frame == 0)
 				{
 					++erase_count;
-
+					entry.surface->remove_reference();
 #if TRINEX_DEBUG_BUILD
 					if (entry.surface->owner() == surfaces_package())
 					{
@@ -410,6 +410,7 @@ namespace Engine
 		}
 
 		RenderSurface* surface = Object::new_instance<RenderSurface>();
+		surface->add_reference();
 		surface->init(format, size);
 
 #if TRINEX_DEBUG_BUILD

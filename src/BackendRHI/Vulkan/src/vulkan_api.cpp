@@ -24,6 +24,7 @@
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
+#include <vulkan_timestamp.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -78,6 +79,7 @@ namespace Engine
 		release(m_cmd_manager);
 		release(m_graphics_queue);
 		release(m_descriptor_set_allocator);
+		release(m_query_pool_manager);
 
 		for (auto& [hash, layout] : m_pipeline_layouts)
 		{
@@ -327,6 +329,7 @@ namespace Engine
 		m_stagging_manager         = allocate<VulkanStaggingBufferManager>();
 		m_state_manager            = allocate<VulkanStateManager>();
 		m_descriptor_set_allocator = allocate<VulkanDescriptorSetAllocator>();
+		m_query_pool_manager       = allocate<VulkanQueryPoolManager>();
 
 
 		// Initialize memory allocator

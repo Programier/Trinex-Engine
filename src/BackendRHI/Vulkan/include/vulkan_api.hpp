@@ -19,6 +19,7 @@ namespace Engine
 	class VulkanUniformBufferManager;
 	class VulkanDescriptorSetAllocator;
 	class VulkanStateManager;
+	class VulkanQueryPoolManager;
 	struct VulkanViewport;
 	class Window;
 
@@ -69,6 +70,7 @@ namespace Engine
 	private:
 		MultiMap<uint64_t, class VulkanPipelineLayout*> m_pipeline_layouts;
 		VulkanDescriptorSetAllocator* m_descriptor_set_allocator;
+		VulkanQueryPoolManager* m_query_pool_manager;
 
 
 	public:
@@ -123,6 +125,7 @@ namespace Engine
 		VulkanAPI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
 		VulkanAPI& signal_fence(RHI_Fence* fence) override;
 
+		RHITimestamp* create_timestamp() override;
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
 		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
@@ -170,6 +173,9 @@ namespace Engine
 
 		VulkanAPI& barrier(RHI_Texture* texture, RHIAccess dst_access) override;
 		VulkanAPI& barrier(RHI_Buffer* buffer, RHIAccess dst_access) override;
+
+		VulkanAPI& begin_timestamp(RHITimestamp* timestamp) override;
+		VulkanAPI& end_timestamp(RHITimestamp* timestamp) override;
 
 		~VulkanAPI();
 	};
