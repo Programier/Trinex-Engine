@@ -62,6 +62,22 @@ namespace Engine
 		virtual float milliseconds() = 0;
 	};
 
+	struct ENGINE_EXPORT RHIPipelineStatistics : RHI_Object {
+		virtual bool is_ready() = 0;
+
+		virtual uint64_t vertices()                   = 0;
+		virtual uint64_t primitives()                 = 0;
+		virtual uint64_t geometry_shader_primitives() = 0;
+		virtual uint64_t clipping_primitives()        = 0;
+
+		virtual uint64_t vertex_shader_invocations()               = 0;
+		virtual uint64_t tessellation_control_shader_invocations() = 0;
+		virtual uint64_t tesselation_shader_invocations()          = 0;
+		virtual uint64_t geometry_shader_invocations()             = 0;
+		virtual uint64_t clipping_invocations()                    = 0;
+		virtual uint64_t fragment_shader_invocations()             = 0;
+	};
+
 	struct ENGINE_EXPORT RHI_Fence : RHI_Object {
 		virtual bool is_signaled() = 0;
 		virtual void reset()       = 0;
@@ -161,6 +177,7 @@ namespace Engine
 		virtual RHI& scissor(const RHIScissors& scissor)   = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                                      = 0;
+		virtual RHIPipelineStatistics* create_pipeline_statistics()                                                   = 0;
 		virtual RHI_Fence* create_fence()                                                                             = 0;
 		virtual RHI_Sampler* create_sampler(const RHISamplerInitializer*)                                             = 0;
 		virtual RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
@@ -210,6 +227,9 @@ namespace Engine
 
 		virtual RHI& begin_timestamp(RHITimestamp* timestamp) = 0;
 		virtual RHI& end_timestamp(RHITimestamp* timestamp)   = 0;
+
+		virtual RHI& begin_statistics(RHIPipelineStatistics* stats) = 0;
+		virtual RHI& end_statistics(RHIPipelineStatistics* stats)   = 0;
 
 		// INLINES
 		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)

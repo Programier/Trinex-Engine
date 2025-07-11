@@ -126,6 +126,7 @@ namespace Engine
 		VulkanAPI& signal_fence(RHI_Fence* fence) override;
 
 		RHITimestamp* create_timestamp() override;
+		RHIPipelineStatistics* create_pipeline_statistics() override;
 		RHI_Fence* create_fence() override;
 		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
 		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
@@ -176,6 +177,9 @@ namespace Engine
 
 		VulkanAPI& begin_timestamp(RHITimestamp* timestamp) override;
 		VulkanAPI& end_timestamp(RHITimestamp* timestamp) override;
+
+		VulkanAPI& begin_statistics(RHIPipelineStatistics* stats) override;
+		VulkanAPI& end_statistics(RHIPipelineStatistics* stats) override;
 
 		~VulkanAPI();
 	};

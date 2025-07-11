@@ -11,6 +11,7 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
+#include <Engine/Render/render_graph.hpp>
 #include <Engine/ray.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
@@ -239,6 +240,8 @@ namespace Engine
 			m_scene_view.scissor(RHIScissors(size));
 
 			Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), m_scene_view, mode);
+
+			update_render_stats(renderer);
 			EditorRenderer::render_grid(renderer);
 
 			size_t selected_count = m_selected_actors_render_thread.size();
@@ -248,20 +251,150 @@ namespace Engine
 
 			EditorRenderer::render_primitives(renderer, m_selected_actors_render_thread.data(), selected_count);
 
-
 			RHIRect rect = m_scene_view.viewport().size;
 			auto src     = renderer->render().scene_color_ldr_target()->as_rtv();
 			auto texture = scene->rhi_texture();
 			auto dst     = texture->as_rtv();
 			dst->blit(src, rect, rect, RHISamplerFilter::Point);
-
-			if ((m_scene_view.show_flags() & ShowFlags::Statistics) != ShowFlags::None)
-			{
-				call_in_logic_thread([this, statistics = renderer->statistics]() { m_statistics = statistics; });
-			}
 		});
 
 		return scene;
+	}
+
+	EditorClient& EditorClient::update_render_stats(Renderer* renderer)
+	{
+		if (!m_stats.pipeline.pool.empty())
+		{
+			auto stats = m_stats.pipeline.pool.front();
+
+			if (stats->is_ready())
+			{
+				size_t data[10] = {
+				        stats->vertices(),
+				        stats->primitives(),
+				        stats->geometry_shader_primitives(),
+				        stats->clipping_primitives(),
+				        stats->vertex_shader_invocations(),
+				        stats->tessellation_control_shader_invocations(),
+				        stats->tesselation_shader_invocations(),
+				        stats->geometry_shader_invocations(),
+				        stats->clipping_invocations(),
+				        stats->fragment_shader_invocations(),
+				};
+
+				call_in_logic_thread([=, this]() {
+					m_stats.pipeline.vertices                                = data[0];
+					m_stats.pipeline.primitives                              = data[1];
+					m_stats.pipeline.geometry_shader_primitives              = data[2];
+					m_stats.pipeline.clipping_primitives                     = data[3];
+					m_stats.pipeline.vertex_shader_invocations               = data[4];
+					m_stats.pipeline.tessellation_control_shader_invocations = data[5];
+					m_stats.pipeline.tesselation_shader_invocations          = data[6];
+					m_stats.pipeline.geometry_shader_invocations             = data[7];
+					m_stats.pipeline.clipping_invocations                    = data[8];
+					m_stats.pipeline.fragment_shader_invocations             = data[9];
+				});
+
+				RHIPipelineStatisticsPool::global_instance()->return_statistics(stats);
+				m_stats.pipeline.pool.erase(m_stats.pipeline.pool.begin());
+			}
+		}
+
+		if (!m_stats.timings.reading_frame().empty())
+		{
+			auto& frame = m_stats.timings.reading_frame();
+
+			bool is_ready = true;
+			for (size_t i = 0, count = frame.size(); is_ready && i < count; ++i)
+			{
+				is_ready = frame[i].timestamp->is_ready();
+			}
+
+			if (is_ready)
+			{
+				auto& result = m_stats.timings.lock();
+				result.clear();
+
+				auto pool = RHITimestampPool::global_instance();
+
+				for (auto& query : frame)
+				{
+					result.emplace_back(query.timestamp->milliseconds(), query.pass);
+					pool->return_timestamp(query.timestamp);
+				}
+
+				frame.clear();
+				m_stats.timings.unlock();
+
+				m_stats.timings.submit_read_index();
+			}
+		}
+
+		if (!(m_scene_view.show_flags() & ShowFlags::Statistics))
+			return *this;
+
+		if (m_stats.pipeline.pool.size() < 5)
+		{
+			class Plugin : public RenderGraph::Graph::Plugin
+			{
+				RHIPipelineStatistics* m_stats;
+
+			public:
+				Plugin(EditorClient* client) : m_stats(RHIPipelineStatisticsPool::global_instance()->request_statistics())
+				{
+					client->m_stats.pipeline.pool.push_back(m_stats);
+				}
+
+				Plugin& on_frame_begin(RenderGraph::Graph* graph)
+				{
+					rhi->begin_statistics(m_stats);
+					return *this;
+				}
+
+				Plugin& on_frame_end(RenderGraph::Graph* graph)
+				{
+					rhi->end_statistics(m_stats);
+					return *this;
+				}
+			};
+
+			renderer->render_graph()->create_plugin<Plugin>(this);
+		}
+
+		if (m_stats.timings.writing_frame().empty())
+		{
+			auto& frame = m_stats.timings.writing_frame();
+
+			class Plugin : public RenderGraph::Graph::Plugin
+			{
+				Vector<Stats::TimingQuery>& m_frame;
+
+			public:
+				Plugin(Vector<Stats::TimingQuery>& frame) : m_frame(frame) {}
+
+				Plugin& on_pass_begin(RenderGraph::Pass* pass)
+				{
+					Stats::TimingQuery entry;
+					entry.pass      = pass->name();
+					entry.timestamp = RHITimestampPool::global_instance()->request_timestamp();
+					rhi->begin_timestamp(entry.timestamp);
+
+					m_frame.push_back(entry);
+					return *this;
+				}
+
+				Plugin& on_pass_end(RenderGraph::Pass* pass)
+				{
+					Stats::TimingQuery& entry = m_frame.back();
+					rhi->end_timestamp(entry.timestamp);
+					return *this;
+				}
+			};
+
+			renderer->render_graph()->create_plugin<Plugin>(frame);
+			m_stats.timings.submit_write_index();
+		}
+		return *this;
 	}
 
 	EditorClient& EditorClient::update_drag_and_drop()
@@ -281,12 +414,39 @@ namespace Engine
 
 	EditorClient& EditorClient::render_statistics(float dt)
 	{
-		ImGui::BeginVertical(1, ImGui::GetContentRegionAvail() - ImVec2(100, 0.f), 1.f);
+		ImGui::BeginVertical(1, ImGui::GetContentRegionAvail() - ImVec2(100, 0.f), 0.f);
 		{
 			static const ImVec4 color = {0.f, 1.f, 0.f, 1.f};
 			ImGui::TextColored(color, "Delta Time: %f", dt);
 			ImGui::TextColored(color, "FPS: %f", m_average_fps.average());
-			ImGui::TextColored(color, "Visible objects: %zu", m_statistics.visible_objects);
+
+			ImGui::TextColored(color, "Vertices: %zu", m_stats.pipeline.vertices);
+			ImGui::TextColored(color, "Primitives: %zu", m_stats.pipeline.primitives);
+			ImGui::TextColored(color, "Clipping primitives: %zu", m_stats.pipeline.clipping_primitives);
+			ImGui::TextColored(color, "Geometry primitives: %zu", m_stats.pipeline.geometry_shader_primitives);
+
+			ImGui::TextColored(color, "Vertex shader invocations: %zu", m_stats.pipeline.vertex_shader_invocations);
+			ImGui::TextColored(color, "Geometry shader invocations: %zu", m_stats.pipeline.geometry_shader_invocations);
+			ImGui::TextColored(color, "Tessellation control shader invocations: %zu",
+			                   m_stats.pipeline.tessellation_control_shader_invocations);
+			ImGui::TextColored(color, "Tessellation shader invocations: %zu", m_stats.pipeline.tesselation_shader_invocations);
+			ImGui::TextColored(color, "Geometry shader invocations: %zu", m_stats.pipeline.geometry_shader_invocations);
+			ImGui::TextColored(color, "Clipping invocations: %zu", m_stats.pipeline.clipping_invocations);
+			ImGui::TextColored(color, "Fragment shader invocations: %zu", m_stats.pipeline.fragment_shader_invocations);
+
+			ImGui::NewLine();
+
+			auto& timings = m_stats.timings.lock();
+
+			float total = 0.f;
+			for (auto& time : timings)
+			{
+				ImGui::TextColored(color, "%s: %f ms", time.pass, time.time);
+				total += time.time;
+			}
+
+			ImGui::TextColored(color, "Total: %f", total);
+			m_stats.timings.unlock();
 		}
 		ImGui::EndVertical();
 		return *this;
@@ -558,7 +718,8 @@ namespace Engine
 
 			if ((m_show_flags & ShowFlags::Statistics) != ShowFlags::None)
 			{
-				ImGui::SetCursorPos(cursor_position + ImVec2(0, ImGui::GetItemRectSize().y));
+				float padding = ImGui::GetTextLineHeightWithSpacing();
+				ImGui::SetCursorPos(cursor_position + ImVec2(padding, padding + ImGui::GetItemRectSize().y));
 				render_statistics(dt);
 			}
 		}

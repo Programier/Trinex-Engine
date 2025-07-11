@@ -495,6 +495,62 @@ namespace Engine
 		return *this;
 	}
 
+	RHIPipelineStatisticsPool* RHIPipelineStatisticsPool::global_instance()
+	{
+		static RHIPipelineStatisticsPool pool;
+		return &pool;
+	}
+
+	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::update()
+	{
+		size_t erase_count = 0;
+
+		for (auto& entry : m_pool)
+		{
+			if (--entry.frame == 0)
+			{
+				++erase_count;
+				entry.stats->release();
+			}
+		}
+
+		if (erase_count > 0)
+		{
+			m_pool.erase(m_pool.begin(), m_pool.begin() + erase_count);
+		}
+
+		return *this;
+	}
+
+	RHIPipelineStatistics* RHIPipelineStatisticsPool::request_statistics()
+	{
+		if (!m_pool.empty())
+		{
+			RHIPipelineStatistics* stats = m_pool.back().stats;
+			m_pool.pop_back();
+			return stats;
+		}
+		return rhi->create_pipeline_statistics();
+	}
+
+	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::release_all()
+	{
+		for (auto& entry : m_pool)
+		{
+			entry.stats->release();
+		}
+		m_pool.clear();
+		return *this;
+	}
+
+	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::return_statistics(RHIPipelineStatistics* stats)
+	{
+		auto& entry = m_pool.emplace_back();
+		entry.stats = stats;
+		entry.frame = s_resource_live_threshold;
+		return *this;
+	}
+
 	static class : public TickableObject
 	{
 		TickableObject& update(float) override
@@ -506,6 +562,7 @@ namespace Engine
 				RHIBufferPool::global_instance()->update();
 				RHIFencePool::global_instance()->update();
 				RHITimestampPool::global_instance()->update();
+				RHIPipelineStatisticsPool::global_instance()->update();
 			});
 			return *this;
 		}
@@ -519,6 +576,7 @@ namespace Engine
 			RHISurfacePool::global_instance()->release_all();
 			RHIFencePool::global_instance()->release_all();
 			RHITimestampPool::global_instance()->release_all();
+			RHIPipelineStatisticsPool::global_instance()->release_all();
 		});
 
 		render_thread()->wait();

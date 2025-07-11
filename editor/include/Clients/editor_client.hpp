@@ -1,6 +1,7 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
 #include <Core/etl/average.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/camera_types.hpp>
@@ -25,9 +26,64 @@ namespace Engine
 		EditorState();
 	};
 
+	struct RHIPipelineStatistics;
+	struct RHITimestamp;
+
 	class EditorClient : public ImGuiViewportClient
 	{
 		trinex_declare_class(EditorClient, ImGuiViewportClient);
+
+	private:
+		struct Stats {
+			struct TimingQuery {
+				RHITimestamp* timestamp = nullptr;
+				const char* pass        = nullptr;
+			};
+
+			struct TimingResult {
+				float time       = 0.f;
+				const char* pass = nullptr;
+			};
+
+			struct {
+				uint64_t vertices                                = 0;
+				uint64_t primitives                              = 0;
+				uint64_t geometry_shader_primitives              = 0;
+				uint64_t clipping_primitives                     = 0;
+				uint64_t vertex_shader_invocations               = 0;
+				uint64_t tessellation_control_shader_invocations = 0;
+				uint64_t tesselation_shader_invocations          = 0;
+				uint64_t geometry_shader_invocations             = 0;
+				uint64_t clipping_invocations                    = 0;
+				uint64_t fragment_shader_invocations             = 0;
+
+				Vector<RHIPipelineStatistics*> pool;
+			} pipeline;
+
+			class
+			{
+			private:
+				CriticalSection m_cs;
+				Vector<TimingQuery> m_frames[5];
+				Vector<TimingResult> m_frame;
+				uint_t m_write_index = 0;
+				uint_t m_read_index  = 0;
+
+			public:
+				inline Vector<TimingResult>& lock()
+				{
+					m_cs.lock();
+					return m_frame;
+				}
+
+				inline void unlock() { m_cs.unlock(); }
+				inline Vector<TimingQuery>& writing_frame() { return m_frames[m_write_index]; }
+				inline Vector<TimingQuery>& reading_frame() { return m_frames[m_read_index]; }
+
+				inline void submit_read_index() { m_read_index = (m_read_index + 1) % 5u; }
+				inline void submit_write_index() { m_write_index = (m_write_index + 1) % 5u; }
+			} timings;
+		} m_stats;
 
 	private:
 		Pointer<World> m_world;
@@ -38,7 +94,6 @@ namespace Engine
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;
 
-		RenderStatistics m_statistics;
 		ShowFlags m_show_flags = ShowFlags::DefaultFlags;
 		ViewMode m_view_mode   = ViewMode::Lit;
 		SceneView m_scene_view;
@@ -52,11 +107,13 @@ namespace Engine
 		Vector3f m_camera_move   = {0, 0, 0};
 		int_t m_guizmo_operation = 0;
 		EditorState m_state;
-		Average<float, 60> m_average_fps = Average<float, 60>(60.f, 1);
+		Average<float, 10> m_average_fps = Average<float, 10>(60.f, 1);
 
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);
 		RenderSurface* capture_scene();
+
+		EditorClient& update_render_stats(Renderer* renderer);
 
 	public:
 		EditorClient();

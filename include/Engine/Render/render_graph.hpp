@@ -126,7 +126,7 @@ namespace Engine::RenderGraph
 		Type m_type;
 		Flags m_flags;
 
-		Pass(class Graph* graph, Type type, const StringView& name = "Unnamed pass");
+		Pass(class Graph* graph, Type type, const char* name = "Unnamed pass");
 
 		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access);
 
@@ -175,6 +175,7 @@ namespace Engine::RenderGraph
 		inline const RGVector<Resource*>& resources() const { return m_resources; }
 		inline const RGVector<Pass*>& dependencies() const { return m_dependencies; }
 		inline const RGVector<Task*>& tasks() const { return m_tasks; }
+		inline bool is_empty() const { return m_tasks.empty(); }
 
 		inline Pass& execute()
 		{
@@ -193,6 +194,17 @@ namespace Engine::RenderGraph
 
 	class ENGINE_EXPORT Graph
 	{
+	public:
+		class Plugin
+		{
+		public:
+			virtual Plugin& on_frame_begin(Graph* graph);
+			virtual Plugin& on_frame_end(Graph* graph);
+
+			virtual Plugin& on_pass_begin(Pass* pass);
+			virtual Plugin& on_pass_end(Pass* pass);
+		};
+
 	private:
 		struct Node {
 			Pass* pass;
@@ -205,6 +217,7 @@ namespace Engine::RenderGraph
 			inline void execute() { pass->execute(); }
 			inline bool is_executed() const { return pass->m_flags & Pass::Flags::IsExecuted; }
 			inline bool is_live() const { return pass->m_flags & Pass::Flags::IsLive; }
+			inline bool is_empty() const { return pass->is_empty(); }
 			inline Pass::Type type() const { return pass->type(); }
 			inline const char* name() const { return pass->name(); }
 
@@ -212,8 +225,9 @@ namespace Engine::RenderGraph
 		};
 
 		RGMap<RHI_Object*, Resource*> m_resource_map;
-		RGVector<Pass*> m_passes;
 		RGSet<Resource*> m_outputs;
+		RGVector<Pass*> m_passes;
+		RGVector<Plugin*> m_plugins;
 
 		Graph& build_graph(Pass* writer, Node* owner);
 		Graph& build_graph(Resource* resource, Node* owner);
@@ -226,10 +240,25 @@ namespace Engine::RenderGraph
 		Resource& find_resource(RHI_Buffer* buffer);
 		Graph& add_output(RHI_Texture* texture);
 		Graph& add_output(RHI_Buffer* buffer);
-		Pass& add_pass(Pass::Type type, const StringView& name = "Unnamed pass");
+		Pass& add_pass(Pass::Type type, const char* name = "Unnamed pass");
 		bool execute();
 
-		class Test;
+		inline const RGVector<Pass*> passes() const { return m_passes; }
+		inline const RGVector<Plugin*> plugins() const { return m_plugins; }
+		inline Graph& add_plugin(Plugin* plugin)
+		{
+			m_plugins.push_back(plugin);
+			return *this;
+		}
+
+		template<typename PluginType, typename... Args>
+		PluginType* create_plugin(Args&&... args)
+		{
+			PluginType* plugin = FrameAllocator<PluginType>::allocate(1);
+			new (plugin) PluginType(std::forward<Args>(args)...);
+			m_plugins.push_back(plugin);
+			return plugin;
+		}
 		friend Pass;
 	};
 }// namespace Engine::RenderGraph

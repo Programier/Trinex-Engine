@@ -18,13 +18,13 @@
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
-#include <vulkan_timestamp.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -223,6 +223,7 @@ namespace Engine
 		new_features.shaderStorageImageWriteWithoutFormat = features.shaderStorageImageWriteWithoutFormat;
 		new_features.shaderInt16                          = features.shaderInt16;
 		new_features.shaderInt64                          = features.shaderInt64;
+		new_features.pipelineStatisticsQuery              = features.pipelineStatisticsQuery;
 
 		return new_features;
 	}

@@ -12,6 +12,7 @@ namespace Engine
 	struct RHI_Buffer;
 	struct RHI_Fence;
 	struct RHITimestamp;
+	struct RHIPipelineStatistics;
 
 	class ENGINE_EXPORT RHIFencePool final
 	{
@@ -119,7 +120,7 @@ namespace Engine
 		};
 
 		Vector<TimestampEntry> m_pool;
-		
+
 	public:
 		static RHITimestampPool* global_instance();
 
@@ -127,5 +128,24 @@ namespace Engine
 		RHITimestamp* request_timestamp();
 		RHITimestampPool& release_all();
 		RHITimestampPool& return_timestamp(RHITimestamp* timestamp);
+	};
+
+	class ENGINE_EXPORT RHIPipelineStatisticsPool final
+	{
+	private:
+		struct StatsEntry {
+			uint64_t frame               = 0;
+			RHIPipelineStatistics* stats = nullptr;
+		};
+
+		Vector<StatsEntry> m_pool;
+
+	public:
+		static RHIPipelineStatisticsPool* global_instance();
+
+		RHIPipelineStatisticsPool& update();
+		RHIPipelineStatistics* request_statistics();
+		RHIPipelineStatisticsPool& release_all();
+		RHIPipelineStatisticsPool& return_statistics(RHIPipelineStatistics* stats);
 	};
 }// namespace Engine

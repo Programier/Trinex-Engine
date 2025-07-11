@@ -18,16 +18,6 @@ namespace Engine
 		class Graph;
 	}
 
-	struct ENGINE_EXPORT RenderStatistics final {
-		size_t visible_objects;
-
-		FORCE_INLINE RenderStatistics& reset()
-		{
-			visible_objects = 0;
-			return *this;
-		}
-	};
-
 	struct RendererContext {
 		class Renderer* renderer;
 		RenderPass* render_pass;
@@ -75,7 +65,6 @@ namespace Engine
 
 	public:
 		BatchedLines lines;
-		RenderStatistics statistics;
 
 		Renderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
 		trinex_non_copyable(Renderer);

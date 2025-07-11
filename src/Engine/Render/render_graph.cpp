@@ -4,26 +4,13 @@
 #include <Core/memory.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <RHI/rhi.hpp>
-#include <cstring>
 
 namespace Engine::RenderGraph
 {
 	static constexpr size_t s_default_reserve_size = 64;
 
-	static FORCE_INLINE const char* copy_string(StringView str)
-	{
-#if TRINEX_DEBUG_BUILD
-		byte* memory = FrameByteAllocator::allocate(str.size() + 1);
-		std::memcpy(memory, str.data(), str.size());
-		memory[str.size()] = 0;
-		return reinterpret_cast<const char*>(memory);
-#else
-		return "";
-#endif
-	}
-
-	Pass::Pass(Graph* graph, Type type, const StringView& name)
-	    : m_graph(graph), m_name(copy_string(name)), m_node(nullptr), m_type(type), m_flags(Flags::Undefined)
+	Pass::Pass(Graph* graph, Type type, const char* name)
+	    : m_graph(graph), m_name(name), m_node(nullptr), m_type(type), m_flags(Flags::Undefined)
 	{
 		m_resources.reserve(s_default_reserve_size);
 		m_tasks.reserve(s_default_reserve_size);
@@ -54,6 +41,26 @@ namespace Engine::RenderGraph
 	Pass& Pass::add_resource(RHI_Buffer* buffer, RHIAccess access)
 	{
 		return add_resource(&m_graph->find_resource(buffer), access);
+	}
+
+	Graph::Plugin& Graph::Plugin::on_frame_begin(Graph* graph)
+	{
+		return *this;
+	}
+
+	Graph::Plugin& Graph::Plugin::on_frame_end(Graph* graph)
+	{
+		return *this;
+	}
+
+	Graph::Plugin& Graph::Plugin::on_pass_begin(Pass* pass)
+	{
+		return *this;
+	}
+
+	Graph::Plugin& Graph::Plugin::on_pass_end(Pass* pass)
+	{
+		return *this;
 	}
 
 	Graph::Graph()
@@ -107,7 +114,7 @@ namespace Engine::RenderGraph
 		return *this;
 	}
 
-	Pass& Graph::add_pass(Pass::Type type, const StringView& name)
+	Pass& Graph::add_pass(Pass::Type type, const char* name)
 	{
 		Pass* pass = new (rg_allocate<Pass>()) Pass(this, type, name);
 		m_passes.emplace_back(pass);
@@ -178,10 +185,15 @@ namespace Engine::RenderGraph
 				execute_node(dependency);
 			}
 
-			if (!node->is_executed())
+			if (!node->is_executed() && !node->is_empty())
 			{
 				trinex_rhi_push_stage(node->name());
+
+				for (Plugin* plugin : m_plugins) plugin->on_pass_begin(node->pass);
+
 				node->execute();
+
+				for (Plugin* plugin : m_plugins) plugin->on_pass_end(node->pass);
 				trinex_rhi_pop_stage();
 			}
 		}
@@ -193,7 +205,9 @@ namespace Engine::RenderGraph
 
 		// TODO: Implement graph optimizations
 
+		for (Plugin* plugin : m_plugins) plugin->on_frame_begin(this);
 		execute_node(root);
+		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this);
 		return true;
 	}
 }// namespace Engine::RenderGraph
