@@ -17,6 +17,7 @@ namespace Engine
 	class MaterialBindings;
 	struct RendererContext;
 	class RenderPass;
+	class ShaderCompiler;
 
 	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
@@ -31,9 +32,6 @@ namespace Engine
 
 	public:
 		Parameter* find_parameter(const Name& name) const;
-		MaterialInterface& remove_parameter(const Name& name);
-		MaterialInterface& clear_parameters();
-		uint16_t remove_unreferenced_parameters();
 		const Vector<Parameter*>& parameters() const;
 
 		template<typename T>
@@ -62,6 +60,9 @@ namespace Engine
 
 	private:
 		bool register_pipeline_parameters(GraphicsPipeline* pipeline);
+		Material& remove_unreferenced_parameters();
+		Material& remove_all_pipelines();
+		bool compile_pass(ShaderCompiler* compiler, RenderPass* pass, const String& source);
 
 	public:
 		MaterialDomain domain;
@@ -74,7 +75,6 @@ namespace Engine
 		GraphicsPipeline* pipeline(RenderPass* pass) const;
 		bool add_pipeline(RenderPass* pass, GraphicsPipeline* pipeline);
 		GraphicsPipeline* remove_pipeline(RenderPass* pass);
-		Material& remove_all_pipelines();
 		Material& postload() override;
 		Material& setup_pipeline(GraphicsPipeline* pipeline);
 
@@ -82,7 +82,7 @@ namespace Engine
 		bool apply(const RendererContext& ctx, const MaterialBindings* bindings = nullptr) override;
 		bool serialize(Archive& archive) override;
 
-		virtual Material& post_compile(RenderPass* pass, GraphicsPipeline* pipeline);
+		virtual bool compile(ShaderCompiler* compiler = nullptr, RenderPass* pass = nullptr);
 		virtual bool shader_source(String& out_source) = 0;
 
 		~Material();

@@ -8,7 +8,7 @@
 
 namespace Engine::EditorPipelines
 {
-	trinex_implement_pipeline(Outline, "[shaders_dir]:/TrinexEditor/outlines.slang", ShaderType::BasicGraphics)
+	trinex_implement_pipeline(Outline, "[shaders_dir]:/TrinexEditor/outlines.slang")
 	{
 		m_scene_color   = find_parameter("args.scene_color");
 		m_scene_depth   = find_parameter("args.scene_depth");
@@ -60,7 +60,7 @@ namespace Engine::EditorPipelines
 		RHISurfacePool::global_instance()->return_surface(tmp_color);
 	}
 
-	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang", ShaderType::BasicGraphics)
+	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang")
 	{
 		m_scene_view            = find_parameter("scene_view");
 		depth_test.enable       = true;

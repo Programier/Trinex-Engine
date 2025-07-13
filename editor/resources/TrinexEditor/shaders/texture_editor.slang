@@ -12,14 +12,14 @@ uniform uint mip_level;
 uniform float power;
 
 [shader("vertex")]
-void vs_main(in uint vertex : SV_VertexID, out VertexOutput out)
+void vertex_main(in uint vertex : SV_VertexID, out VertexOutput out)
 {
 	out.position = FullScreenQuad::vertex_by_index(vertex);
 	out.uv = FullScreenQuad::uv_by_index(vertex);
 }
 
 [shader("fragment")]
-float4 fs_main(in VertexOutput input) : SV_Target
+float4 fragment_main(in VertexOutput input) : SV_Target
 {
 	float4 out_color = texture.SampleLevel(input.uv, mip_level) * mask;
 

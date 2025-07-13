@@ -31,7 +31,7 @@ static float4 calculate_swizzle(in float4 color)
 
 [shader("compute")]
 [numthreads(8, 8, 1)]
-void cs_main(uint3 thread_id : SV_DispatchThreadID)
+void compute_main(uint3 thread_id : SV_DispatchThreadID)
 {
 	int2 dst_size = abs(args.dst_rect.zw);
 

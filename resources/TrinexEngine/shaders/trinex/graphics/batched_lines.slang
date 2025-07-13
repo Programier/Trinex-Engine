@@ -53,7 +53,7 @@ struct GeometryOutput : WideLines::OutputVertex
 };
 
 [shader("vertex")]
-VertexOutput vs_main(in VertexInput input) 
+VertexOutput vertex_main(in VertexInput input) 
 {
     VertexOutput output;
     output.color     = input.color;
@@ -64,13 +64,13 @@ VertexOutput vs_main(in VertexInput input)
 
 [shader("geometry")]
 [maxvertexcount(6)] 
-void gs_main(line VertexOutput input[2], inout TriangleStream<GeometryOutput> stream)
+void geometry_main(line VertexOutput input[2], inout TriangleStream<GeometryOutput> stream)
 {
     WideLines::stream_line(stream, input[0], input[1], viewport);
 }
 
 [shader("fragment")]
-float4 fs_main(in GeometryOutput output) : SV_Target
+float4 fragment_main(in GeometryOutput output) : SV_Target
 {
     return output.color;
 }

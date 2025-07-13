@@ -5,7 +5,7 @@ uniform Sampler2D hdr_scene;
 uniform float exposure;
 
 [shader("vertex")]
-float4 vs_main(in uint vertex: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Position
+float4 vertex_main(in uint vertex: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Position
 {
 	uv            = scene_view.screen_uv(FullScreenQuad::uv_by_index(vertex));
 	float4 vertex = FullScreenQuad::vertex_by_index(vertex);
@@ -13,7 +13,7 @@ float4 vs_main(in uint vertex: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Posit
 }
 
 [shader("fragment")]
-float4 fs_main(in float2 uv: TEXCOORD0) : SV_Target
+float4 fragment_main(in float2 uv: TEXCOORD0) : SV_Target
 {
 	float4 scene_color = hdr_scene.SampleLevel(uv, 0);
 	scene_color.rgb    = ACES(scene_color.rgb * pow(2, exposure));

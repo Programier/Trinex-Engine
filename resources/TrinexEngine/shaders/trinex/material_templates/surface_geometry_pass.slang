@@ -46,7 +46,7 @@ struct VertexOutput
 }
 
 [shader("vertex")]
-VertexOutput vs_main(in VertexInput vs_input)
+VertexOutput vertex_main(in VertexInput vs_input)
 {
 	VertexOutput output;
 	output.vertex_input   = vs_input;
@@ -74,7 +74,7 @@ VertexOutput vs_main(in VertexInput vs_input)
 }
 
 [shader("fragment")]
-GeometryFragmentOutput fs_main(in VertexOutput input)
+GeometryFragmentOutput fragment_main(in VertexOutput input)
 {
 	struct MaterialInput : IMaterialInput
 	{

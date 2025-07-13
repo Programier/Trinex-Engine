@@ -15,12 +15,8 @@ namespace Engine
 
 	public:
 		Buffer source_code;
-
+		
 		Shader& release_render_resources() override;
-		bool serialize(Archive& ar) override;
-		bool serialize_source_code(Archive& ar);
-		virtual ShaderType type() const = 0;
-
 		inline RHI_Shader* rhi_shader() const { return m_shader; }
 	};
 
@@ -33,8 +29,6 @@ namespace Engine
 
 	public:
 		VertexShader& init_render_resources() override;
-		bool serialize(Archive& ar) override;
-		ShaderType type() const override;
 	};
 
 	class ENGINE_EXPORT FragmentShader : public Shader
@@ -43,7 +37,6 @@ namespace Engine
 
 	public:
 		FragmentShader& init_render_resources() override;
-		ShaderType type() const override;
 	};
 
 	class ENGINE_EXPORT TessellationControlShader : public Shader
@@ -52,7 +45,6 @@ namespace Engine
 
 	public:
 		TessellationControlShader& init_render_resources() override;
-		ShaderType type() const override;
 	};
 
 	class ENGINE_EXPORT TessellationShader : public Shader
@@ -61,7 +53,6 @@ namespace Engine
 
 	public:
 		TessellationShader& init_render_resources() override;
-		ShaderType type() const override;
 	};
 
 	class ENGINE_EXPORT GeometryShader : public Shader
@@ -70,7 +61,6 @@ namespace Engine
 
 	public:
 		GeometryShader& init_render_resources() override;
-		ShaderType type() const override;
 	};
 
 	class ENGINE_EXPORT ComputeShader : public Shader
@@ -79,6 +69,5 @@ namespace Engine
 
 	public:
 		ComputeShader& init_render_resources() override;
-		ShaderType type() const override;
 	};
 }// namespace Engine

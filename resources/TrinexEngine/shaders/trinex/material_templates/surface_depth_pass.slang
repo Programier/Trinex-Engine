@@ -30,7 +30,7 @@ struct DepthUniforms
 uniform ConstantBuffer<DepthUniforms> uniforms;
 
 [shader("vertex")]
-float4 vs_main(in VertexInput vs_input) : SV_Position
+float4 vertex_main(in VertexInput vs_input) : SV_Position
 {
 	struct MaterialInput : IMaterialInput
 	{
@@ -61,4 +61,4 @@ float4 vs_main(in VertexInput vs_input) : SV_Position
 }
 
 [shader("fragment")]
-float4 fs_main() : SV_Target { return 0; }
+float4 fragment_main() : SV_Target { return 0; }

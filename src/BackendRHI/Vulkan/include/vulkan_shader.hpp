@@ -44,4 +44,6 @@ namespace Engine
 	using VulkanGeometryShader            = VulkanShader;
 	using VulkanFragmentShader            = VulkanShader;
 	using VulkanComputeShader             = VulkanShader;
+	using VulkanMeshShader                = VulkanShader;
+	using VulkanTaskShader                = VulkanShader;
 }// namespace Engine

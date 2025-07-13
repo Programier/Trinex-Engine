@@ -28,14 +28,14 @@ uniform Arguments args;
 }
 
 [shader("vertex")]
-float4 vs_main(out float2 uv: TEXCOORD0, in uint vertex: SV_VertexID) : SV_Position
+float4 vertex_main(out float2 uv: TEXCOORD0, in uint vertex: SV_VertexID) : SV_Position
 {
     uv = FullScreenQuad::uv_by_index(vertex);
     return FullScreenQuad::vertex_by_index(vertex);
 }
 
 [shader("fragment")]
-float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
+float4 fragment_main(in float2 uv : TEXCOORD0) : SV_Target
 {
 	float outline_min_depth = min4(
         args.outline_depth.SampleLevel(args.sampler, uv + float2(args.sample_offset.x, 0.f), 0.f).r,

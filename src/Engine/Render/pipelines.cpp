@@ -16,7 +16,7 @@ namespace Engine::Pipelines
 		return {rect.pos.x, rect.pos.y, rect.size.x, rect.size.y};
 	}
 
-	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/compute/gaussian_blur.slang", ShaderType::Compute)
+	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/compute/gaussian_blur.slang")
 	{
 		m_src         = find_parameter("input");
 		m_dst         = find_parameter("output");
@@ -47,7 +47,7 @@ namespace Engine::Pipelines
 		rhi->dispatch(groups.x, groups.y, 1);
 	}
 
-	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/compute/blit.slang", ShaderType::Compute)
+	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/compute/blit.slang")
 	{
 		m_src  = find_parameter("src");
 		m_dst  = find_parameter("dst");
@@ -82,16 +82,14 @@ namespace Engine::Pipelines
 		rhi->dispatch(groups.x, groups.y, 1);
 	}
 
-	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang",
-	                          ShaderType::Vertex | ShaderType::Geometry | ShaderType::Fragment)
+	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang")
 	{
 		color_blending.enable = false;
 		m_projview            = find_parameter("projview");
 		m_viewport            = find_parameter("viewport");
 	}
 
-	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang",
-	                          ShaderType::Vertex | ShaderType::Fragment)
+	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang")
 	{
 		color_blending.enable = true;
 	}
@@ -119,8 +117,7 @@ namespace Engine::Pipelines
 		color_blending.write_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B;
 	}
 
-	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
 	{
 		Super::initialize();
 	}
@@ -132,8 +129,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredPointLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(DeferredPointLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
 	{
 		Super::initialize();
 	}
@@ -145,8 +141,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredSpotLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(DeferredSpotLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
 	{
 		Super::initialize();
 	}
@@ -158,8 +153,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredSpotLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(DeferredSpotLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
 	{
 		Super::initialize();
 	}
@@ -172,7 +166,7 @@ namespace Engine::Pipelines
 	}
 
 	trinex_implement_pipeline(DeferredDirectionalLightShadowed,
-	                          "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang", ShaderType::BasicGraphics)
+	                          "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
 	{
 		Super::initialize();
 	}
@@ -184,8 +178,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredDirectionalLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(DeferredDirectionalLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
 	{
 		Super::initialize();
 	}
@@ -197,8 +190,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/ambient_light.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/ambient_light.slang")
 	{
 		//setup_lighting_pipeline_state(this);
 
@@ -208,8 +200,7 @@ namespace Engine::Pipelines
 		ambient_color = find_parameter("ambient_color");
 	}
 
-	trinex_implement_pipeline(TonemappingACES, "[shaders_dir]:/TrinexEngine/trinex/graphics/tonemapping.slang",
-	                          ShaderType::BasicGraphics)
+	trinex_implement_pipeline(TonemappingACES, "[shaders_dir]:/TrinexEngine/trinex/graphics/tonemapping.slang")
 	{
 		depth_test.enable       = false;
 		depth_test.write_enable = false;

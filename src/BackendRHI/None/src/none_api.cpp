@@ -250,6 +250,16 @@ namespace Engine
 		return new NoneShader();
 	}
 
+	RHI_Shader* NoneApi::create_mesh_shader(const byte* shader, size_t size)
+	{
+		return new NoneShader();
+	}
+
+	RHI_Shader* NoneApi::create_task_shader(const byte* shader, size_t size)
+	{
+		return new NoneShader();
+	}
+
 	RHI_Pipeline* NoneApi::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
 		return new NonePipeline();

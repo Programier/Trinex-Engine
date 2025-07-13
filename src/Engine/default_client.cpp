@@ -13,9 +13,7 @@ namespace Engine
 		trinex_declare_pipeline(HelloTriangle, GlobalGraphicsPipeline);
 	};
 
-	trinex_implement_pipeline(HelloTriangle, "[shaders_dir]:/TrinexEngine/trinex/graphics/hello_triangle.slang",
-	                          ShaderType::BasicGraphics)
-	{}
+	trinex_implement_pipeline(HelloTriangle, "[shaders_dir]:/TrinexEngine/trinex/graphics/hello_triangle.slang") {}
 
 	DefaultClient::DefaultClient() {}
 

@@ -112,7 +112,7 @@ float compute_depth(float3 pos)
 }
 
 [shader("vertex")]
-void vs_main(out VertexOutput output, uint vertex : SV_VertexID)
+void vertex_main(out VertexOutput output, uint vertex : SV_VertexID)
 {
     float3 p = grid_plane[vertex];
     output.position = float4(p, 1.0);
@@ -122,7 +122,7 @@ void vs_main(out VertexOutput output, uint vertex : SV_VertexID)
 }
 
 [shader("fragment")]
-float4 fs_main(in VertexOutput input, out float depth : SV_Depth) : SV_Target
+float4 fragment_main(in VertexOutput input, out float depth : SV_Depth) : SV_Target
 {
     float t = -input.near.y / (input.far.y - input.near.y);
     float3 frag_pos = input.near + t * (input.far - input.near);

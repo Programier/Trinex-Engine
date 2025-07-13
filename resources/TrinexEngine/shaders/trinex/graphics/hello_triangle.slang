@@ -7,7 +7,7 @@ struct VertexOutput
 };
 
 [shader("vertex")]
-VertexOutput vs_main(in uint index : SV_VertexID)
+VertexOutput vertex_main(in uint index : SV_VertexID)
 {
 	static float2 uvs[6] = {
 		float2(0, 0),
@@ -27,7 +27,7 @@ VertexOutput vs_main(in uint index : SV_VertexID)
 }
 
 [shader("fragment")]
-float4 fs_main(VertexOutput input) : SV_Target
+float4 fragment_main(VertexOutput input) : SV_Target
 {
     return float4(input.uv, 0.f, 1.0f);
 }

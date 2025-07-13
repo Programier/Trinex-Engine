@@ -33,7 +33,7 @@ struct HitproxyInput
 uniform ConstantBuffer<HitproxyInput> hitproxy;
 
 [shader("vertex")]
-float4 vs_main(in VertexInput vs_input) : SV_Position
+float4 vertex_main(in VertexInput vs_input) : SV_Position
 {
 	struct MaterialInput : IMaterialInput
 	{
@@ -64,4 +64,4 @@ float4 vs_main(in VertexInput vs_input) : SV_Position
 }
 
 [shader("fragment")]
-uint2 fs_main() : SV_Target { return hitproxy.id; }
+uint2 fragment_main() : SV_Target { return hitproxy.id; }

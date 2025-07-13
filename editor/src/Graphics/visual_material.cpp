@@ -91,12 +91,12 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 		return node;
 	}
 
-	VisualMaterial& VisualMaterial::post_compile(RenderPass* pass, GraphicsPipeline* pipeline)
-	{
-		Super::post_compile(pass, pipeline);
-		for (auto& node : m_nodes) node->post_compile(this);
-		return *this;
-	}
+	// VisualMaterial& VisualMaterial::post_compile(RenderPass* pass, GraphicsPipeline* pipeline)
+	// {
+	// 	Super::post_compile(pass, pipeline);
+	// 	for (auto& node : m_nodes) node->post_compile(this);
+	// 	return *this;
+	// }
 
 	VisualMaterial::~VisualMaterial()
 	{

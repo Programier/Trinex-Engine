@@ -9,6 +9,7 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -118,26 +119,47 @@ namespace Engine
 		copy_buffer(fragment, pipeline->fragment_shader());
 	}
 
+	void GraphicsShaderCache::init_from(const ShaderCompilationResult& compilation_result)
+	{
+		parameters        = compilation_result.reflection.parameters;
+		vertex_attributes = compilation_result.reflection.vertex_attributes;
+
+		vertex               = compilation_result.shaders.vertex;
+		tessellation_control = compilation_result.shaders.tessellation_control;
+		tessellation         = compilation_result.shaders.tessellation;
+		geometry             = compilation_result.shaders.geometry;
+		fragment             = compilation_result.shaders.fragment;
+	}
+
 	void GraphicsShaderCache::apply_to(class GraphicsPipeline* pipeline)
 	{
+		if (vertex.empty() || fragment.empty())
+			return;
+
+		pipeline->clear();
+		pipeline->vertex_shader(true)->source_code   = vertex;
+		pipeline->vertex_shader(true)->attributes    = vertex_attributes;
+		pipeline->fragment_shader(true)->source_code = fragment;
 		pipeline->parameters(parameters);
 
-		auto vs = pipeline->vertex_shader();
-		if (vs)
-		{
-			vs->attributes = vertex_attributes;
-		}
-		apply_buffer(vertex, vs);
-		apply_buffer(tessellation_control, pipeline->tessellation_control_shader());
-		apply_buffer(tessellation, pipeline->tessellation_shader());
-		apply_buffer(geometry, pipeline->geometry_shader());
-		apply_buffer(fragment, pipeline->fragment_shader());
+		if (!tessellation_control.empty())
+			pipeline->tessellation_control_shader(true)->source_code = tessellation_control;
+		if (!tessellation.empty())
+			pipeline->tessellation_shader(true)->source_code = tessellation;
+		if (!geometry.empty())
+			pipeline->geometry_shader(true)->source_code = geometry;
 	}
 
 	void ComputeShaderCache::init_from(const class ComputePipeline* pipeline)
 	{
 		parameters = pipeline->parameters();
 		copy_buffer(compute, pipeline->compute_shader());
+	}
+
+	void ComputeShaderCache::init_from(const ShaderCompilationResult& compilation_result)
+	{
+		parameters = compilation_result.reflection.parameters;
+		compute    = compilation_result.shaders.compute;
 	}
 
 	void ComputeShaderCache::apply_to(class ComputePipeline* pipeline)

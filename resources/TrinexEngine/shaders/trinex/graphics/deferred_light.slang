@@ -13,7 +13,7 @@ uniform Sampler2D depth_texture;
 uniform Lighting::LightParameters parameters;
 
 [shader("vertex")] 
-float4 vs_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
+float4 vertex_main(in uint vertex : SV_VertexID, out float2 uv : TEXCOORD0, out float2 ndc : TEXCOORD1) : SV_Position
 {
 	uv            = scene_view.screen_uv(FullScreenQuad::uv_by_index(vertex));
 	float4 vertex = FullScreenQuad::vertex_by_index(vertex);
@@ -30,7 +30,7 @@ float3 reconstruct_position(in float2 ndc, in float2 uv)
 }
 
 [shader("fragment")] 
-float4 fs_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
+float4 fragment_main(in float2 uv : TEXCOORD0, in float2 ndc : TEXCOORD1) : SV_Target
 {
 	Lighting::PrimitiveData primitive;
 	primitive.base_color = base_color_texture.Sample(uv);

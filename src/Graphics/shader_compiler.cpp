@@ -1,12 +1,45 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
+#include <Graphics/pipeline.hpp>
+#include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
 {
 	trinex_implement_class_default_init(Engine::ShaderCompiler, 0);
+
+	bool ShaderCompilationResult::initialize_pipeline(class GraphicsPipeline* pipeline)
+	{
+		if (shaders.vertex.empty() || shaders.fragment.empty())
+			return false;
+
+		pipeline->clear();
+		pipeline->vertex_shader(true)->source_code   = shaders.vertex;
+		pipeline->vertex_shader(true)->attributes    = reflection.vertex_attributes;
+		pipeline->fragment_shader(true)->source_code = shaders.fragment;
+		pipeline->parameters(reflection.parameters);
+		
+		if (!shaders.tessellation_control.empty())
+			pipeline->tessellation_control_shader(true)->source_code = shaders.tessellation_control;
+		if (!shaders.tessellation.empty())
+			pipeline->tessellation_shader(true)->source_code = shaders.tessellation;
+		if (!shaders.geometry.empty())
+			pipeline->geometry_shader(true)->source_code = shaders.geometry;
+		return true;
+	}
+
+	bool ShaderCompilationResult::initialize_pipeline(class ComputePipeline* pipeline)
+	{
+		if (shaders.compute.empty())
+			return false;
+
+		pipeline->clear();
+		pipeline->compute_shader()->source_code = shaders.compute;
+		pipeline->parameters(reflection.parameters);
+		return true;
+	}
 
 	ShaderCompiler* ShaderCompiler::instance(const StringView& api_name)
 	{

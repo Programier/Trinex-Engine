@@ -211,7 +211,7 @@ namespace Engine::Importer
 				}
 			}
 
-			ShaderCompiler::instance()->compile(material);
+			material->compile();
 			return material;
 		}
 

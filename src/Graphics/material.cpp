@@ -162,49 +162,6 @@ namespace Engine
 		return instance_cast<Parameter>(find_child_object(name));
 	}
 
-	MaterialInterface& MaterialInterface::remove_parameter(const Name& name)
-	{
-		render_thread()->wait();
-		if (auto param = find_parameter(name))
-		{
-			param->m_pipeline_refs = 0;
-			param->owner(nullptr);
-		}
-
-		return *this;
-	}
-
-	MaterialInterface& MaterialInterface::clear_parameters()
-	{
-		render_thread()->wait();
-		auto params = std::move(m_child_objects);
-
-		for (auto& param : params)
-		{
-			param->owner(nullptr);
-		}
-
-		return *this;
-	}
-
-	uint16_t MaterialInterface::remove_unreferenced_parameters()
-	{
-		uint16_t count = 0;
-
-		for (ptrdiff_t i = static_cast<ptrdiff_t>(m_child_objects.size()) - 1; i >= 0; --i)
-		{
-			Parameter* parameter = m_child_objects[i];
-
-			if (parameter->m_pipeline_refs == 0)
-			{
-				++count;
-				parameter->owner(nullptr);
-			}
-		}
-
-		return count;
-	}
-
 	const Vector<Parameter*>& MaterialInterface::parameters() const
 	{
 		return m_child_objects;
@@ -235,8 +192,6 @@ namespace Engine
 
 		if (archive.is_reading())
 		{
-			clear_parameters();
-
 			while (size > 0)
 			{
 				--size;
@@ -373,31 +328,15 @@ namespace Engine
 			if (Parameter* param = find_parameter(info.name))
 			{
 				--param->m_pipeline_refs;
-			}
-		}
 
-		return pipeline;
-	}
-
-	Material& Material::remove_all_pipelines()
-	{
-		render_thread()->wait();
-		for (auto& [pass, pipeline] : m_pipelines)
-		{
-			pipeline->owner(nullptr);
-
-			for (const RHIShaderParameterInfo& info : pipeline->parameters())
-			{
-				if (Parameter* param = find_parameter(info.name))
+				if (param->m_pipeline_refs == 0)
 				{
-					trinex_check(param->m_pipeline_refs > 0, "Parameter is referenced by pipeline, but reference count == 0");
-					--param->m_pipeline_refs;
+					param->owner(nullptr);
 				}
 			}
 		}
 
-		m_pipelines.clear();
-		return *this;
+		return pipeline;
 	}
 
 	bool Material::register_child(Object* child)
@@ -431,7 +370,7 @@ namespace Engine
 					warn_log("Material", "Material '%s' should support pass '%s', however no pipeline was found. Recompiling...",
 					         material_name.c_str(), pass->name().c_str());
 
-					if (compiler->compile_pass(this, pass))
+					if (compile(compiler, pass))
 					{
 						++count;
 					}
@@ -520,12 +459,8 @@ namespace Engine
 		{
 			for (auto& pipeline : m_pipelines)
 			{
-				Name name           = pipeline.first ? pipeline.first->name() : "Default";
-				Pipeline::Type type = pipeline.second->type();
-
+				Name name = pipeline.first ? pipeline.first->name() : "Default";
 				archive.serialize(name);
-				archive.serialize(type);
-
 				pipeline.second->serialize(archive, this);
 			}
 		}
@@ -534,10 +469,7 @@ namespace Engine
 			while (pipelines_count > 0)
 			{
 				Name name;
-				Pipeline::Type type;
-
 				archive.serialize(name);
-				archive.serialize(type);
 
 				auto pass     = RenderPass::static_find(name);
 				auto pipeline = new_instance<GraphicsPipeline>();
@@ -560,9 +492,115 @@ namespace Engine
 		return *this;
 	}
 
-	Material& Material::post_compile(RenderPass* pass, GraphicsPipeline* pipeline)
+	Material& Material::remove_unreferenced_parameters()
 	{
+		for (ptrdiff_t i = static_cast<ptrdiff_t>(m_child_objects.size()) - 1; i >= 0; --i)
+		{
+			Parameter* parameter = m_child_objects[i];
+
+			if (parameter->m_pipeline_refs == 0)
+			{
+				parameter->owner(nullptr);
+			}
+		}
 		return *this;
+	}
+
+	Material& Material::remove_all_pipelines()
+	{
+		render_thread()->wait();
+		for (auto& [pass, pipeline] : m_pipelines)
+		{
+			pipeline->owner(nullptr);
+
+			for (const RHIShaderParameterInfo& info : pipeline->parameters())
+			{
+				if (Parameter* param = find_parameter(info.name))
+				{
+					trinex_check(param->m_pipeline_refs > 0, "Parameter is referenced by pipeline, but reference count == 0");
+					--param->m_pipeline_refs;
+				}
+			}
+		}
+
+		m_pipelines.clear();
+		return *this;
+	}
+
+	bool Material::compile_pass(ShaderCompiler* compiler, RenderPass* pass, const String& source)
+	{
+		Pointer<GraphicsPipeline> pipeline = remove_pipeline(pass);
+		const bool new_pipeline            = pipeline == nullptr;
+
+		if (new_pipeline)
+		{
+			pipeline = new_instance<GraphicsPipeline>(pass->name());
+		}
+		else
+		{
+			pipeline->clear();
+		}
+
+		ShaderCompiler::StackEnvironment env;
+		ShaderCompilationResult result;
+
+		env.add_source(source.c_str());
+		pass->modify_shader_compilation_env(&env);
+		pipeline->modify_compilation_env(&env);
+
+		if (compiler->compile(&env, result))
+		{
+			result.initialize_pipeline(pipeline);
+			add_pipeline(pass, pipeline);
+			return true;
+		}
+
+		return false;
+	}
+
+	bool Material::compile(ShaderCompiler* compiler, RenderPass* pass)
+	{
+		if (compiler == nullptr)
+		{
+			compiler = ShaderCompiler::instance();
+
+			if (compiler == nullptr)
+			{
+				error_log("Material", "Failed to find material compiler");
+				return false;
+			}
+		}
+
+		String source;
+		if (!shader_source(source))
+		{
+			error_log("Material", "Failed to get material source");
+			return false;
+		}
+
+		if (pass == nullptr)
+		{
+			remove_all_pipelines();
+
+			bool success = true;
+
+			for (auto pass = RenderPass::static_first_pass(); pass && success; pass = pass->next_pass())
+			{
+				if (pass->is_material_compatible(this))
+				{
+					success = compile_pass(compiler, pass, source);
+				}
+			}
+
+			remove_unreferenced_parameters();
+			return success;
+		}
+		else
+		{
+			bool result = compile_pass(compiler, pass, source);
+			remove_unreferenced_parameters();
+			return result;
+		}
 	}
 
 	bool Material::shader_source(String& out_source)

@@ -10,7 +10,7 @@ float gaussian_weight(int x)
 }
 
 [numthreads (8, 8, 1)]
-void cs_main(uint3 id : SV_DispatchThreadID)
+void compute_main(uint3 id : SV_DispatchThreadID)
 {
     int x, y;
 

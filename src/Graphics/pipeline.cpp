@@ -17,19 +17,31 @@
 
 namespace Engine
 {
-	GraphicsPipeline::~GraphicsPipeline()
-	{
-		GraphicsPipeline::remove_shaders(ShaderType::All);
-	}
-
 	static FORCE_INLINE bool init_shader(Shader* shader)
 	{
-		if (shader)
+		if (shader && !shader->source_code.empty())
 		{
 			shader->init_render_resources();
 			return true;
 		}
 		return false;
+	}
+
+	static FORCE_INLINE void destroy_shader(Shader* shader)
+	{
+		if (shader)
+		{
+			GarbageCollector::destroy(shader);
+		}
+	}
+
+	GraphicsPipeline::~GraphicsPipeline()
+	{
+		destroy_shader(m_vertex_shader);
+		destroy_shader(m_tessellation_control_shader);
+		destroy_shader(m_tessellation_shader);
+		destroy_shader(m_geometry_shader);
+		destroy_shader(m_fragment_shader);
 	}
 
 	static RHI_Shader* extract_shader(Shader* shader)
@@ -87,16 +99,10 @@ namespace Engine
 	{
 		m_pipeline = nullptr;
 		m_parameters.clear();
-		remove_shaders(ShaderType::All);
 		return *this;
 	}
 
 	Pipeline& Pipeline::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		return *this;
-	}
-
-	Pipeline& Pipeline::post_compile(RenderPass* pass)
 	{
 		return *this;
 	}
@@ -163,42 +169,37 @@ namespace Engine
 		return *this;
 	}
 
-	Pipeline* Pipeline::static_create_pipeline(Type type)
-	{
-		switch (type)
-		{
-			case Graphics: return new_instance<GraphicsPipeline>();
-			default: return nullptr;
-		}
-	}
-
 	GraphicsPipeline& GraphicsPipeline::init_render_resources()
 	{
-		init_shader(m_vertex_shader);
+		const bool vs_inited = init_shader(m_vertex_shader);
 		init_shader(m_tessellation_control_shader);
 		init_shader(m_tessellation_shader);
 		init_shader(m_geometry_shader);
-		init_shader(m_fragment_shader);
+		const bool fs_inited = init_shader(m_fragment_shader);
 
-		render_thread()->call([this]() {
-			RHIGraphicsPipelineInitializer initializer;
-			initializer.vertex_shader               = extract_shader(vertex_shader());
-			initializer.tessellation_control_shader = extract_shader(tessellation_control_shader());
-			initializer.tessellation_shader         = extract_shader(tessellation_shader());
-			initializer.geometry_shader             = extract_shader(geometry_shader());
-			initializer.fragment_shader             = extract_shader(fragment_shader());
-			initializer.parameters                  = parameters().data();
-			initializer.parameters_count            = parameters().size();
 
-			initializer.parameters       = parameters().data();
-			initializer.parameters_count = parameters().size();
+		if (vs_inited && fs_inited)
+		{
+			render_thread()->call([this]() {
+				RHIGraphicsPipelineInitializer initializer;
+				initializer.vertex_shader               = extract_shader(vertex_shader());
+				initializer.tessellation_control_shader = extract_shader(tessellation_control_shader());
+				initializer.tessellation_shader         = extract_shader(tessellation_shader());
+				initializer.geometry_shader             = extract_shader(geometry_shader());
+				initializer.fragment_shader             = extract_shader(fragment_shader());
+				initializer.parameters                  = parameters().data();
+				initializer.parameters_count            = parameters().size();
 
-			initializer.depth    = depth_test;
-			initializer.stencil  = stencil_test;
-			initializer.blending = color_blending;
+				initializer.parameters       = parameters().data();
+				initializer.parameters_count = parameters().size();
 
-			m_pipeline = rhi->create_graphics_pipeline(&initializer);
-		});
+				initializer.depth    = depth_test;
+				initializer.stencil  = stencil_test;
+				initializer.blending = color_blending;
+
+				m_pipeline = rhi->create_graphics_pipeline(&initializer);
+			});
+		}
 		return *this;
 	}
 
@@ -207,29 +208,6 @@ namespace Engine
 		// Initialize shaders first!
 		Super::postload();
 		return *this;
-	}
-
-	Shader* GraphicsPipeline::shader(ShaderType type) const
-	{
-		switch (type)
-		{
-			case ShaderType::Vertex: return m_vertex_shader;
-			case ShaderType::TessellationControl: return m_tessellation_control_shader;
-			case ShaderType::Tessellation: return m_tessellation_shader;
-			case ShaderType::Geometry: return m_geometry_shader;
-			case ShaderType::Fragment: return m_fragment_shader;
-			case ShaderType::Compute: return nullptr;
-			default: return nullptr;
-		}
-	}
-
-	Shader* GraphicsPipeline::shader(ShaderType type, bool allocate)
-	{
-		if (allocate)
-		{
-			allocate_shaders(Flags<ShaderType>(type));
-		}
-		return static_cast<const GraphicsPipeline*>(this)->shader(type);
 	}
 
 	VertexShader* GraphicsPipeline::vertex_shader() const
@@ -257,12 +235,11 @@ namespace Engine
 		return m_geometry_shader;
 	}
 
-
 	VertexShader* GraphicsPipeline::vertex_shader(bool create)
 	{
 		if (!m_vertex_shader && create)
 		{
-			allocate_shaders(ShaderType::Vertex);
+			create_new_shader(m_vertex_shader);
 		}
 
 		return m_vertex_shader;
@@ -272,7 +249,7 @@ namespace Engine
 	{
 		if (!m_fragment_shader && create)
 		{
-			allocate_shaders(ShaderType::Fragment);
+			create_new_shader(m_fragment_shader);
 		}
 
 		return m_fragment_shader;
@@ -282,7 +259,7 @@ namespace Engine
 	{
 		if (!m_tessellation_control_shader && create)
 		{
-			allocate_shaders(ShaderType::TessellationControl);
+			create_new_shader(m_tessellation_control_shader);
 		}
 
 		return m_tessellation_control_shader;
@@ -292,7 +269,7 @@ namespace Engine
 	{
 		if (!m_tessellation_shader && create)
 		{
-			allocate_shaders(ShaderType::Tessellation);
+			create_new_shader(m_tessellation_shader);
 		}
 
 		return m_tessellation_shader;
@@ -302,7 +279,7 @@ namespace Engine
 	{
 		if (!m_geometry_shader && create)
 		{
-			allocate_shaders(ShaderType::Geometry);
+			create_new_shader(m_geometry_shader);
 		}
 
 		return m_geometry_shader;
@@ -358,90 +335,6 @@ namespace Engine
 		return *this;
 	}
 
-	ShaderType GraphicsPipeline::shader_types() const
-	{
-		ShaderType result(ShaderType::Vertex | ShaderType::Fragment);
-
-		if (m_vertex_shader)
-			result |= ShaderType::Vertex;
-
-		if (m_fragment_shader)
-			result |= ShaderType::Fragment;
-
-		if (m_tessellation_control_shader)
-			result |= ShaderType::TessellationControl;
-		if (m_tessellation_shader)
-			result |= ShaderType::Tessellation;
-		if (m_geometry_shader)
-			result |= ShaderType::Geometry;
-
-		return result;
-	}
-
-	GraphicsPipeline& GraphicsPipeline::allocate_shaders(ShaderType flags)
-	{
-		if ((flags & ShaderType::Vertex) == ShaderType::Vertex)
-		{
-			create_new_shader<VertexShader>("Vertex Shader", m_vertex_shader);
-		}
-
-		if ((flags & ShaderType::Fragment) == ShaderType::Fragment)
-		{
-			create_new_shader<FragmentShader>("Fragment Shader", m_fragment_shader);
-		}
-
-		if ((flags & ShaderType::TessellationControl) == ShaderType::TessellationControl)
-		{
-			create_new_shader<TessellationControlShader>("Tessellation Control Shader", m_tessellation_control_shader);
-		}
-
-		if ((flags & ShaderType::Tessellation) == ShaderType::Tessellation)
-		{
-			create_new_shader<TessellationShader>("Tessellation Shader", m_tessellation_shader);
-		}
-
-		if ((flags & ShaderType::Geometry) == ShaderType::Geometry)
-		{
-			create_new_shader<GeometryShader>("Geometry Shader", m_geometry_shader);
-		}
-
-		return *this;
-	}
-
-	GraphicsPipeline& GraphicsPipeline::remove_shaders(ShaderType flags)
-	{
-		if ((flags & ShaderType::Vertex) == ShaderType::Vertex)
-		{
-			remove_vertex_shader();
-		}
-
-		if ((flags & ShaderType::Fragment) == ShaderType::Fragment)
-		{
-			remove_fragment_shader();
-		}
-
-		if ((flags & ShaderType::TessellationControl) == ShaderType::TessellationControl)
-		{
-			remove_tessellation_control_shader();
-		}
-
-		if ((flags & ShaderType::Tessellation) == ShaderType::Tessellation)
-		{
-			remove_tessellation_shader();
-		}
-
-		if ((flags & ShaderType::Geometry) == ShaderType::Geometry)
-		{
-			remove_geometry_shader();
-		}
-		return *this;
-	}
-
-	Pipeline::Type GraphicsPipeline::type() const
-	{
-		return Pipeline::Type::Graphics;
-	}
-
 	bool GraphicsPipeline::serialize(class Archive& archive, Material* material)
 	{
 		static auto serialize_shader_internal = [](Shader* shader, Archive& archive) {
@@ -452,16 +345,14 @@ namespace Engine
 		};
 
 		static auto compile_pipeline = [](Material* material, GraphicsPipeline* pipeline) -> bool {
-			ShaderCompiler* compiler = ShaderCompiler::instance();
-
-			if (compiler == nullptr)
+			RenderPass* pass = RenderPass::static_find(pipeline->name());
+			if (pass == nullptr)
 			{
-				error_log("GraphicsPipeline", "Failed to get material compiler");
+				error_log("Pipeline", "Failed to find render pass with name '%s'", pipeline->name().c_str());
 				return false;
 			}
 
-			RenderPass* pass = RenderPass::static_find(pipeline->name());
-			return compiler->compile_pass(material, pass);
+			return material->compile(nullptr, pass);
 		};
 
 		if (!Super::serialize(archive, material))
@@ -474,10 +365,8 @@ namespace Engine
 			archive.serialize(color_blending);
 		}
 
-		Flags<ShaderType> flags = shader_types();
-
-		archive.serialize(flags);
-		allocate_shaders(flags);
+		vertex_shader(true);
+		fragment_shader(true);
 
 		serialize_shader_internal(m_vertex_shader, archive);
 		serialize_shader_internal(m_tessellation_control_shader, archive);
@@ -530,9 +419,14 @@ namespace Engine
 		return archive && cache_serialize_result;
 	}
 
+	ComputePipeline::ComputePipeline()
+	{
+		create_new_shader(m_shader);
+	}
+
 	ComputePipeline::~ComputePipeline()
 	{
-		remove_shaders(ShaderType::Compute);
+		destroy_shader(m_shader);
 	}
 
 	ComputePipeline& ComputePipeline::init_render_resources()
@@ -549,65 +443,7 @@ namespace Engine
 		return *this;
 	}
 
-	Shader* ComputePipeline::shader(ShaderType type) const
-	{
-		if ((type & ShaderType::Compute) == ShaderType::Compute)
-			return m_shader;
-		return nullptr;
-	}
-
-	Shader* ComputePipeline::shader(ShaderType type, bool create)
-	{
-		if ((type & ShaderType::Compute) == ShaderType::Compute)
-		{
-			if (m_shader == nullptr)
-			{
-				m_shader = create_new_shader<ComputeShader>("Compute", m_shader);
-			}
-			return m_shader;
-		}
-		return nullptr;
-	}
-
-	ShaderType ComputePipeline::shader_types() const
-	{
-		return m_shader ? ShaderType::Compute : ShaderType::Undefined;
-	}
-
-	ComputePipeline& ComputePipeline::allocate_shaders(ShaderType type)
-	{
-		if ((type & ShaderType::Compute) == ShaderType::Compute)
-		{
-			if (m_shader == nullptr)
-			{
-				m_shader = create_new_shader<ComputeShader>("Compute", m_shader);
-			}
-		}
-		return *this;
-	}
-
-	ComputePipeline& ComputePipeline::remove_shaders(ShaderType type)
-	{
-		if ((type & ShaderType::Compute) == ShaderType::Compute)
-		{
-			if (m_shader)
-			{
-				GarbageCollector::destroy(m_shader);
-				m_shader = nullptr;
-			}
-		}
-		return *this;
-	}
-
-	Pipeline::Type ComputePipeline::type() const
-	{
-		return Pipeline::Type::Compute;
-	}
-
-	GlobalGraphicsPipeline::GlobalGraphicsPipeline(StringView name, ShaderType types)
-	{
-		allocate_shaders(types);
-	}
+	GlobalGraphicsPipeline::GlobalGraphicsPipeline(StringView name) {}
 
 	template<typename ShaderCacheType, typename Type>
 	static Type& load_global_pipeline(Type* self)
@@ -629,9 +465,15 @@ namespace Engine
 				throw EngineException("Failed to read global shader");
 			}
 
-			if (ShaderCompiler::instance()->compile(source_code, self))
+			ShaderCompiler::StackEnvironment env;
+			ShaderCompilationResult result;
+
+			env.add_source(source_code.c_str());
+			self->modify_compilation_env(&env);
+
+			if (ShaderCompiler::instance()->compile(&env, result))
 			{
-				cache.init_from(self);
+				cache.init_from(result);
 				cache.store(cache_path);
 			}
 			else
@@ -657,10 +499,7 @@ namespace Engine
 		return ar;
 	}
 
-	GlobalComputePipeline::GlobalComputePipeline(StringView name, ShaderType types)
-	{
-		allocate_shaders(types);
-	}
+	GlobalComputePipeline::GlobalComputePipeline(StringView name) {}
 
 	GlobalComputePipeline& GlobalComputePipeline::load_pipeline()
 	{

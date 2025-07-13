@@ -173,8 +173,8 @@ namespace Engine
 		};
 
 	private:
-		Pipeline* m_pipeline;
-		Span<slang::IMetadata*> m_metadatas;
+		ShaderCompilationResult::Reflection* m_reflection;
+		Span<Slang::ComPtr<slang::IMetadata>> m_metadatas;
 
 	public:
 		using TypeDetector = RHIShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
@@ -397,7 +397,7 @@ namespace Engine
 				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
 				attribute.offset         = find_vertex_offset(var->getVariable());
 
-				Object::instance_cast<GraphicsPipeline>(m_pipeline)->vertex_shader()->attributes.push_back(attribute);
+				m_reflection->vertex_attributes.push_back(attribute);
 			}
 			else
 			{
@@ -483,8 +483,8 @@ namespace Engine
 					return false;
 				}
 
-
-				return m_pipeline->add_parameter(info);
+				m_reflection->parameters.push_back(info);
+				return true;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
@@ -525,7 +525,8 @@ namespace Engine
 							}
 						}
 
-						return m_pipeline->add_parameter(object);
+						m_reflection->parameters.push_back(object);
+						return true;
 					}
 				}
 			}
@@ -540,7 +541,8 @@ namespace Engine
 
 				object.name = param.parameter_name();
 				object.type = RHIShaderParameterType::Sampler;
-				m_pipeline->add_parameter(object);
+				m_reflection->parameters.push_back(object);
+				return true;
 			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))
 			{
@@ -576,7 +578,8 @@ namespace Engine
 						info.name   = param.parameter_name();
 						info.offset = param.trace_offset(slang::ParameterCategory::Uniform);
 
-						m_pipeline->add_parameter(info);
+						m_reflection->parameters.push_back(info);
+						return true;
 					}
 				}
 
@@ -604,7 +607,8 @@ namespace Engine
 					object.type   = RHIShaderParameterType::Globals;
 					object.size   = sizeof(GlobalShaderParameters);
 					object.offset = 0;
-					return m_pipeline->add_parameter(object);
+					m_reflection->parameters.push_back(object);
+					return true;
 				}
 				else
 				{
@@ -627,14 +631,15 @@ namespace Engine
 			return true;
 		}
 
-		bool create_reflection(slang::ShaderReflection* reflection, Pipeline* out, const Span<slang::IMetadata*>& metadatas)
+		bool create_reflection(slang::ShaderReflection* reflection, ShaderCompilationResult::Reflection* out,
+		                       const Span<Slang::ComPtr<slang::IMetadata>>& metadatas)
 		{
 			CompileLogHandler log_handler;
-			m_pipeline  = out;
-			m_metadatas = metadatas;
+			m_reflection = out;
+			m_metadatas  = metadatas;
 
 			// Parse vertex attributes
-			if (auto entry_point = reflection->findEntryPointByName("vs_main"))
+			if (auto entry_point = reflection->findEntryPointByName("vertex_main"))
 			{
 				uint32_t parameter_count = entry_point->getParameterCount();
 				for (uint32_t i = 0; i < parameter_count; i++)
@@ -733,305 +738,6 @@ namespace Engine
 	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Engine::D3D12_ShaderCompiler, Refl::Class::IsSingletone);
 
-	class SLANG_CompilationEnv : public ShaderCompilationEnvironment
-	{
-		SLANG_ShaderCompiler::Context* m_ctx = nullptr;
-
-	public:
-		SLANG_CompilationEnv(SLANG_ShaderCompiler::Context* ctx) : m_ctx(ctx) {}
-
-		SLANG_CompilationEnv& add_module(const char* module) override
-		{
-			slang::IModule* shader_module = m_ctx->compiler->load_module(module);
-			if (shader_module)
-				m_ctx->component_types.push_back(shader_module);
-			return *this;
-		}
-	};
-
-	SLANG_ShaderCompiler::Context::Context(SLANG_ShaderCompiler* compiler) : compiler(compiler), prev_ctx(compiler->m_ctx)
-	{
-		compiler->m_ctx = this;
-		component_types.reserve(16);
-	}
-
-	bool SLANG_ShaderCompiler::Context::initialize(const String& source, Pipeline* pipeline)
-	{
-		auto& session = compiler->m_session;
-
-		if (!session)
-		{
-			error_log("ShaderCompiler", "Failed to compile shader, because compiler session is invalid!");
-			return false;
-		}
-
-		String name = Strings::format("Module<{}> '{}'", static_cast<void*>(pipeline), pipeline->name().c_str());
-		Slang::ComPtr<slang::IBlob> diagnostics;
-		module = session->loadModuleFromSourceString(name.c_str(), name.c_str(), source.data(), diagnostics.writeRef());
-
-		if (diagnostics && diagnostics->getBufferSize() > 0)
-		{
-			if (module)
-			{
-				warn_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
-				return true;
-			}
-			else
-			{
-				error_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
-				return false;
-			}
-		}
-
-		if (module)
-		{
-			component_types.push_back(module);
-			return true;
-		}
-		return false;
-	}
-
-	bool SLANG_ShaderCompiler::Context::compile(ShaderInfo* infos, size_t infos_len, Pipeline* pipeline, CheckStages checker)
-	{
-		StackByteAllocator::Mark mark;
-
-		const size_t module_count = component_types.size();
-		size_t entry_points       = 0;
-
-		for (size_t i = 0; i < infos_len; ++i)
-		{
-			auto& info = infos[i];
-
-			for (size_t module_index = 0; module_index < module_count; ++module_index)
-			{
-				auto module = static_cast<slang::IModule*>(component_types[module_index]);
-
-				slang::IEntryPoint* entry = nullptr;
-				module->findEntryPointByName(info.entry_name, &entry);
-
-				if (entry)
-				{
-					if (info.entry)
-					{
-						error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.entry_name);
-						return false;
-					}
-
-					info.index = component_types.size() - module_count;
-					info.entry = entry;
-					component_types.push_back(entry);
-					++entry_points;
-				}
-			}
-		}
-
-		if (!checker(infos))
-			return false;
-
-		Slang::ComPtr<slang::IComponentType> composite;
-		{
-			Slang::ComPtr<slang::IBlob> diagnostics_blob;
-			SlangResult result = compiler->m_session->createCompositeComponentType(
-			        component_types.data(), component_types.size(), composite.writeRef(), diagnostics_blob.writeRef());
-
-			if (diagnostics_blob != nullptr)
-			{
-				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-			}
-
-			if (SLANG_FAILED(result))
-				return false;
-		}
-
-		Slang::ComPtr<slang::IComponentType> program;
-		{
-			Slang::ComPtr<slang::IBlob> diagnostics_blob;
-
-			SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
-
-			if (diagnostics_blob != nullptr)
-			{
-				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-			}
-
-			if (SLANG_FAILED(result))
-				return false;
-		}
-
-		Span<slang::IMetadata*> metadatas(StackAllocator<slang::IMetadata*>::allocate(entry_points), entry_points);
-
-		trinex_defer
-		{
-			for (slang::IMetadata* meta : metadatas)
-			{
-				if (meta)
-				{
-					meta->Release();
-				}
-			}
-		};
-
-		for (size_t i = 0; i < infos_len; ++i)
-		{
-			auto& info = infos[i];
-
-			if (info.index != -1)
-			{
-				Slang::ComPtr<slang::IBlob> result_code;
-				Slang::ComPtr<slang::IBlob> diagnostics_blob;
-
-				SlangResult result =
-				        program->getEntryPointCode(info.index, 0, result_code.writeRef(), diagnostics_blob.writeRef());
-
-				if (diagnostics_blob != nullptr)
-				{
-					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-				}
-
-				if (SLANG_FAILED(result))
-					return false;
-
-				if (auto shader = pipeline->shader(info.type, true))
-				{
-					const byte* src = static_cast<const byte*>(result_code->getBufferPointer());
-					compiler->submit_source(shader, src, result_code->getBufferSize());
-				}
-				else
-				{
-					error_log("ShaderCompiler", "Failed to create shader");
-					return false;
-				}
-
-				metadatas[info.index] = nullptr;
-				program->getEntryPointMetadata(info.index, 0, &metadatas[info.index], nullptr);
-			}
-		}
-
-		// Generate reflection
-		{
-			Slang::ComPtr<slang::IBlob> diagnostics_blob;
-			slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
-
-			if (diagnostics_blob != nullptr)
-			{
-				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-			}
-
-			if (!reflection)
-			{
-				error_log("ShaderCompiler", "Failed to get shader reflection!");
-				return false;
-			}
-
-			ReflectionParser parser;
-
-			if (!parser.create_reflection(reflection, pipeline, metadatas))
-				return false;
-		}
-
-		return true;
-	}
-
-	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Material* material, RenderPass* pass)
-	{
-		if (pass == nullptr)
-		{
-			error_log("ShaderCompiler", "Cannot compile material for undefined pass!\n");
-			return false;
-		}
-
-		if (pass)
-		{
-			SLANG_CompilationEnv env(this);
-			pass->modify_shader_compilation_env(&env);
-		}
-
-		GraphicsPipeline* pipeline = material->remove_pipeline(pass);
-		const bool new_pipeline    = pipeline == nullptr;
-
-		if (new_pipeline)
-		{
-			pipeline = new_instance<GraphicsPipeline>(pass->name());
-		}
-		else
-		{
-			pipeline->clear();
-		}
-
-		if (compile_graphics(source, pipeline))
-		{
-			material->add_pipeline(pass, pipeline);
-			material->post_compile(pass, pipeline);
-			pipeline->init_render_resources();
-			return true;
-		}
-
-		if (new_pipeline)
-		{
-			GarbageCollector::destroy(pipeline);
-		}
-
-		return false;
-	}
-
-	bool SLANG_ShaderCompiler::Context::compile_graphics(const String& source, Pipeline* pipeline, RenderPass* pass)
-	{
-		SLANG_CompilationEnv env(this);
-		pipeline->modify_compilation_env(&env);
-
-		if (!initialize(source, pipeline))
-			return false;
-
-		ShaderInfo shader_infos[] = {
-		        {ShaderType::Vertex, "vs_main"},              //
-		        {ShaderType::TessellationControl, "tsc_main"},//
-		        {ShaderType::Tessellation, "ts_main"},        //
-		        {ShaderType::Geometry, "gs_main"},            //
-		        {ShaderType::Fragment, "fs_main"},            //
-		};
-
-		CheckStages checker = [](ShaderInfo* infos) -> bool {
-			bool result = infos[0].index != -1 && infos[4].index != -1;
-			if (!result)
-				error_log("ShaderCompiler", "Graphics pipeline is not valid!");
-			return result;
-		};
-
-		if (compile(shader_infos, 5, pipeline, checker))
-		{
-			pipeline->post_compile(pass);
-			return true;
-		}
-		return false;
-	}
-
-	bool SLANG_ShaderCompiler::Context::compile_compute(const String& source, Pipeline* pipeline)
-	{
-		SLANG_CompilationEnv env(this);
-		pipeline->modify_compilation_env(&env);
-
-		if (!initialize(source, pipeline))
-			return false;
-
-		ShaderInfo shader_infos[] = {{ShaderType::Compute, "cs_main"}};
-
-		CheckStages checker = [](ShaderInfo* infos) -> bool {
-			bool result = infos[0].index != -1;
-			if (!result)
-				error_log("ShaderCompiler", "Compute pipeline is not valid!");
-			return result;
-		};
-
-		return compile(shader_infos, 1, pipeline, checker);
-	}
-
-	SLANG_ShaderCompiler::Context::~Context()
-	{
-		compiler->m_ctx = prev_ctx;
-		if (module)
-			module->Release();
-	}
-
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{
 		flags(StandAlone, true);
@@ -1096,86 +802,189 @@ namespace Engine
 		}
 	}
 
-	bool SLANG_ShaderCompiler::compile(Material* material)
+	bool SLANG_ShaderCompiler::compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result)
 	{
-		String source;
+		StackByteAllocator::Mark mark;
+		StackVector<slang::IComponentType*> components;
+		StackVector<Slang::ComPtr<slang::IMetadata>> metadata;
+		Slang::ComPtr<slang::IComponentType> program;
 
-		material->remove_all_pipelines();
+		ShaderInfo shader_infos[] = {
+		        {&result.shaders.vertex, "vertex_main"},                            // vertex shader
+		        {&result.shaders.tessellation_control, "tessellation_control_main"},// tess control shader
+		        {&result.shaders.tessellation, "tessellation_main"},                // tess evaluation shader
+		        {&result.shaders.geometry, "geometry_main"},                        // geometry shader
+		        {&result.shaders.fragment, "fragment_main"},                        // fragment shader
+		        {&result.shaders.compute, "compute_main"},                          // compute shader
+		        {&result.shaders.mesh, "mesh_main"},                                // mesh shader
+		        {&result.shaders.task, "task_main"},                                // task shader
+		        {&result.shaders.raygen, "raygen_main"},                            // ray generation shader
+		        {&result.shaders.closest_hit, "closest_hit_main"},                  // closest hit shader
+		        {&result.shaders.any_hit, "any_hit_main"},                          // any hit shader
+		        {&result.shaders.miss, "miss_main"},                                // miss shader
+		};
 
-		if (!material->shader_source(source))
+		components.reserve(env->sources_count() + env->modules_count() + 12);
+		metadata.reserve(12);
+
+		///////// STEP ONE: COLLECT COMPONENTS /////////
 		{
-			error_log("ShaderCompiler", "Failed to get shader source");
-			return false;
-		}
-
-		bool success = true;
-
-		for (auto pass = RenderPass::static_first_pass(); pass && success; pass = pass->next_pass())
-		{
-			if (pass->is_material_compatible(material))
+			// Process sources
+			for (size_t i = 0, count = env->sources_count(); i < count; ++i)
 			{
-				success = compile_pass(material, pass, source);
+				const char* source = env->source(i);
+				static uint_t id   = 0;
+				String name        = Strings::format("Unnamed module {}", ++id);
+
+				Slang::ComPtr<slang::IBlob> diagnostics;
+				slang::IModule* module =
+				        m_session->loadModuleFromSourceString(name.c_str(), name.c_str(), source, diagnostics.writeRef());
+
+				if (diagnostics && diagnostics->getBufferSize() > 0)
+				{
+					if (module)
+					{
+						warn_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+					}
+					else
+					{
+						error_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+						return false;
+					}
+				}
+
+				components.push_back(module);
+			}
+
+			// Process modules
+			for (size_t i = 0, count = env->modules_count(); i < count; ++i)
+			{
+				Slang::ComPtr<slang::IBlob> diagnostics;
+				slang::IModule* module = m_session->loadModule(env->module(i), diagnostics.writeRef());
+
+				if (diagnostics && diagnostics->getBufferSize() > 0)
+				{
+					if (module)
+					{
+						warn_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+					}
+					else
+					{
+						error_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+						return false;
+					}
+				}
+
+				components.push_back(module);
 			}
 		}
 
-		material->remove_unreferenced_parameters();
-		return success;
-	}
-
-	void SLANG_ShaderCompiler::submit_source(Shader* shader, const byte* src, size_t size)
-	{
-		Buffer& out = shader->source_code;
-		std::destroy_at(&out);
-		new (&out) Buffer(src, src + size);
-	}
-
-	bool SLANG_ShaderCompiler::compile_pass(Material* material, RenderPass* pass)
-	{
-		String source;
-
-		if (!material->shader_source(source))
+		///////// STEP TWO: COLLECT ENTRY POINTS  /////////
 		{
-			error_log("ShaderCompiler", "Failed to get shader source");
-			return false;
-		}
-
-		bool result = compile_pass(material, pass, source);
-		material->remove_unreferenced_parameters();
-		return result;
-	}
-
-	bool SLANG_ShaderCompiler::compile_pass(Material* material, RenderPass* pass, const String& source)
-	{
-		Context ctx(this);
-		return ctx.compile_graphics(source, material, pass);
-	}
-
-	bool SLANG_ShaderCompiler::compile(const String& source, Pipeline* pipeline)
-	{
-		Context ctx(this);
-
-		if (pipeline->is_instance_of<GraphicsPipeline>())
-		{
-			if (ctx.compile_graphics(source, pipeline))
+			const size_t module_count = components.size();
+			for (auto& info : shader_infos)
 			{
-				pipeline->init_render_resources();
-				return true;
+				for (size_t module_index = 0; module_index < module_count; ++module_index)
+				{
+					auto module = static_cast<slang::IModule*>(components[module_index]);
+
+					slang::IEntryPoint* entry = nullptr;
+					module->findEntryPointByName(info.entry_name, &entry);
+
+					if (entry)
+					{
+						if (info.entry)
+						{
+							error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.entry_name);
+							return false;
+						}
+
+						info.index = components.size() - module_count;
+						info.entry = entry;
+						components.push_back(entry);
+					}
+				}
 			}
 		}
-		else if (pipeline->is_instance_of<ComputePipeline>())
+
+		///////// STEP THREE: COMPILE COMPONENTS TO COMPOSITE PROGRAM  /////////
 		{
-			if (ctx.compile_compute(source, pipeline))
+			Slang::ComPtr<slang::IComponentType> composite;
 			{
-				pipeline->init_render_resources();
-				return true;
+				Slang::ComPtr<slang::IBlob> diagnostics_blob;
+				SlangResult result = m_session->createCompositeComponentType(components.data(), components.size(),
+				                                                             composite.writeRef(), diagnostics_blob.writeRef());
+
+				if (diagnostics_blob != nullptr)
+				{
+					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				}
+
+				if (SLANG_FAILED(result))
+					return false;
+			}
+
+			{
+				Slang::ComPtr<slang::IBlob> diagnostics_blob;
+				SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
+
+				if (diagnostics_blob != nullptr)
+				{
+					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				}
+
+				if (SLANG_FAILED(result))
+					return false;
 			}
 		}
-		return false;
-	}
 
-	slang::IModule* SLANG_ShaderCompiler::load_module(const char* module)
-	{
-		return m_session->loadModule(module);
+		///////// STEP FOUR: COLLECT COMPILED SHADER SOURCE  /////////
+		for (auto& info : shader_infos)
+		{
+			if (info.index != -1)
+			{
+				Slang::ComPtr<slang::IBlob> code;
+				Slang::ComPtr<slang::IBlob> diagnostics_blob;
+
+				SlangResult result = program->getEntryPointCode(info.index, 0, code.writeRef(), diagnostics_blob.writeRef());
+
+				if (diagnostics_blob != nullptr)
+				{
+					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				}
+
+				if (SLANG_FAILED(result))
+					return false;
+
+				info.source->resize(code->getBufferSize());
+				std::memcpy(info.source->data(), code->getBufferPointer(), info.source->size());
+				program->getEntryPointMetadata(info.index, 0, metadata.emplace_back().writeRef(), nullptr);
+			}
+		}
+
+		///////// STEP FIVE: GENERATE REFLECTION  /////////
+		{
+			Slang::ComPtr<slang::IBlob> diagnostics_blob;
+			slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
+
+			if (diagnostics_blob != nullptr)
+			{
+				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+			}
+
+			if (!reflection)
+			{
+				error_log("ShaderCompiler", "Failed to get shader reflection!");
+				return false;
+			}
+
+			ReflectionParser parser;
+
+			if (!parser.create_reflection(reflection, &result.reflection, metadata))
+				return false;
+		}
+
+		return true;
 	}
 
 	void NONE_ShaderCompiler::initialize_context(SessionInitializer* session)

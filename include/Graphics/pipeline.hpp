@@ -18,6 +18,7 @@ namespace Engine
 	class Shader;
 	class ShaderCompilationEnvironment;
 	class RHI_Pipeline;
+	struct ShaderCompilationResult;
 
 	class ENGINE_EXPORT Pipeline : public RenderResource
 	{
@@ -28,12 +29,9 @@ namespace Engine
 		static Object* package_of(StringView name);
 
 		template<typename Type>
-		Type* create_new_shader(const char* name, Type*& out)
+		FORCE_INLINE Type* create_new_shader(Type*& out)
 		{
-			if (out)
-				return out;
-
-			out = Object::new_instance<Type>(name);
+			out = Object::new_instance<Type>();
 			out->flags(Object::IsAvailableForGC, false);
 			out->owner(this);
 			return out;
@@ -46,14 +44,6 @@ namespace Engine
 		Vector<RHIShaderParameterInfo> m_parameters;
 
 	public:
-		enum Type
-		{
-			Graphics,
-			Compute,
-		};
-
-		static Pipeline* static_create_pipeline(Type type);
-
 		bool add_parameter(const RHIShaderParameterInfo& parameter, bool replace = false);
 		bool remove_parameter(const Name& name);
 		const RHIShaderParameterInfo* find_parameter(const Name& name) const;
@@ -67,16 +57,8 @@ namespace Engine
 		virtual bool serialize(Archive& ar, Material* material);
 		virtual Pipeline& clear();
 		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
-		virtual Pipeline& post_compile(RenderPass* pass);
 
 		inline RHI_Pipeline* rhi_pipeline() const { return m_pipeline; }
-
-		virtual Shader* shader(ShaderType type) const                                = 0;
-		virtual Shader* shader(ShaderType type, bool create = false)                 = 0;
-		virtual ShaderType shader_types() const                                      = 0;
-		virtual Pipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) = 0;
-		virtual Pipeline& remove_shaders(ShaderType flags = ShaderType::Undefined)   = 0;
-		virtual Type type() const                                                    = 0;
 	};
 
 	class ENGINE_EXPORT GraphicsPipeline : public Pipeline
@@ -100,8 +82,6 @@ namespace Engine
 		GraphicsPipeline& init_render_resources() override;
 		GraphicsPipeline& postload() override;
 
-		Shader* shader(ShaderType type) const override;
-		Shader* shader(ShaderType type, bool create = false) override;
 		VertexShader* vertex_shader() const;
 		FragmentShader* fragment_shader() const;
 		TessellationControlShader* tessellation_control_shader() const;
@@ -120,10 +100,6 @@ namespace Engine
 		GraphicsPipeline& remove_tessellation_shader();
 		GraphicsPipeline& remove_geometry_shader();
 
-		ShaderType shader_types() const override;
-		GraphicsPipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
-		GraphicsPipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
-		Type type() const override;
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 
@@ -134,15 +110,9 @@ namespace Engine
 		ComputeShader* m_shader = nullptr;
 
 	public:
+		ComputePipeline();
 		~ComputePipeline();
 		ComputePipeline& init_render_resources() override;
-		Shader* shader(ShaderType type) const override;
-		Shader* shader(ShaderType type, bool create = false) override;
-		ShaderType shader_types() const override;
-		ComputePipeline& allocate_shaders(ShaderType flags = ShaderType::Undefined) override;
-		ComputePipeline& remove_shaders(ShaderType flags = ShaderType::Undefined) override;
-		Type type() const override;
-
 		inline ComputeShader* compute_shader() const { return m_shader; }
 	};
 
@@ -152,7 +122,7 @@ namespace Engine
 		GlobalGraphicsPipeline& load_pipeline();
 
 	public:
-		GlobalGraphicsPipeline(StringView name = "", ShaderType types = {});
+		GlobalGraphicsPipeline(StringView name = "");
 
 		bool serialize(Archive& ar, Material* material) override;
 		virtual Path shader_path() const = 0;
@@ -165,7 +135,7 @@ namespace Engine
 		GlobalComputePipeline& load_pipeline();
 
 	public:
-		GlobalComputePipeline(StringView name = "", ShaderType types = {});
+		GlobalComputePipeline(StringView name = "");
 
 		bool serialize(Archive& ar, Material* material) override;
 		virtual Path shader_path() const = 0;
@@ -194,12 +164,12 @@ public:                                                                         
                                                                                                                                  \
 private:
 
-#define trinex_implement_pipeline(class_name, path, shaders)                                                                     \
+#define trinex_implement_pipeline(class_name, path)                                                                              \
 	static Engine::byte TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                       \
 	        static_cast<Engine::byte>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());           \
                                                                                                                                  \
 	class_name* class_name::s_instance = nullptr;                                                                                \
-	class_name::class_name() : Super(#class_name, static_cast<Engine::ShaderType::Enum>(shaders))                                \
+	class_name::class_name() : Super(#class_name)                                                                                \
 	{                                                                                                                            \
 		s_instance = this;                                                                                                       \
 	}                                                                                                                            \

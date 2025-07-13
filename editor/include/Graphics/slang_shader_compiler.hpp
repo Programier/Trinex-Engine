@@ -16,16 +16,16 @@ namespace Engine
 		trinex_declare_class(SLANG_ShaderCompiler, ShaderCompiler);
 
 	public:
+		struct ShaderInfo {
+			Buffer* source;
+			const char* entry_name    = nullptr;
+			slang::IEntryPoint* entry = nullptr;
+			int32_t index             = -1;
+		};
+
 		class Context
 		{
 		public:
-			struct ShaderInfo {
-				ShaderType type;
-				const char* entry_name    = nullptr;
-				slang::IEntryPoint* entry = nullptr;
-				int32_t index             = -1;
-			};
-
 			using CheckStages = bool (*)(ShaderInfo*);
 
 			slang::IModule* module = nullptr;
@@ -33,15 +33,7 @@ namespace Engine
 			SLANG_ShaderCompiler* const compiler;
 			Context* const prev_ctx;
 
-			bool initialize(const String& source, Pipeline* pipeline);
-			bool compile(ShaderInfo* infos, size_t len, Pipeline* pipeline, CheckStages checker);
-
-		public:
-			Context(SLANG_ShaderCompiler* compiler);
-			bool compile_graphics(const String& source, Material* material, RenderPass* pass);
-			bool compile_graphics(const String& source, Pipeline* pipeline, RenderPass* pass = nullptr);
-			bool compile_compute(const String& source, Pipeline* pipeline);
-			~Context();
+			bool compile(ShaderInfo* infos, size_t len);
 		};
 
 		struct SessionInitializer {
@@ -129,12 +121,9 @@ namespace Engine
 		SLANG_ShaderCompiler();
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
-		virtual void submit_source(Shader* shader, const byte* src, size_t size);
-		bool compile(Material* material) override;
-		bool compile_pass(Material* material, RenderPass* pass) override;
-		bool compile_pass(Material* material, RenderPass* pass, const String& source);
-		bool compile(const String& source, Pipeline* pipeline) override;
-		slang::IModule* load_module(const char* module);
+		bool compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result) override;
+
+		inline slang::IModule* load_module(const char* module) { return m_session->loadModule(module); }
 	};
 
 	class NONE_ShaderCompiler : public SLANG_ShaderCompiler

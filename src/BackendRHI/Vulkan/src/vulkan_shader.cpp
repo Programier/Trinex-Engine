@@ -173,4 +173,14 @@ namespace Engine
 	{
 		return new VulkanShader(shader, size);
 	}
+
+	RHI_Shader* VulkanAPI::create_mesh_shader(const byte* shader, size_t size)
+	{
+		return new VulkanShader(shader, size);
+	}
+
+	RHI_Shader* VulkanAPI::create_task_shader(const byte* shader, size_t size)
+	{
+		return new VulkanShader(shader, size);
+	}
 }// namespace Engine

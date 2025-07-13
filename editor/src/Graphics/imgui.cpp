@@ -50,9 +50,7 @@ namespace Engine
 			void apply(const Sampler& sampler);
 		};
 
-
-		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang",
-		                          ShaderType::Vertex | ShaderType::Fragment)
+		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
 		{
 			auto shader = vertex_shader();
 

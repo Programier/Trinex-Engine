@@ -138,6 +138,8 @@ namespace Engine
 		RHI_Shader* create_geometry_shader(const byte* shader, size_t size) override;
 		RHI_Shader* create_fragment_shader(const byte* shader, size_t size) override;
 		RHI_Shader* create_compute_shader(const byte* shader, size_t size) override;
+		RHI_Shader* create_mesh_shader(const byte* shader, size_t size) override;
+		RHI_Shader* create_task_shader(const byte* shader, size_t size) override;
 		RHI_Pipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
