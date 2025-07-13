@@ -16,11 +16,11 @@ namespace Engine
 			return false;
 
 		pipeline->clear();
+		pipeline->vertex_attributes                  = reflection.vertex_attributes;
 		pipeline->vertex_shader(true)->source_code   = shaders.vertex;
-		pipeline->vertex_shader(true)->attributes    = reflection.vertex_attributes;
 		pipeline->fragment_shader(true)->source_code = shaders.fragment;
 		pipeline->parameters(reflection.parameters);
-		
+
 		if (!shaders.tessellation_control.empty())
 			pipeline->tessellation_control_shader(true)->source_code = shaders.tessellation_control;
 		if (!shaders.tessellation.empty())

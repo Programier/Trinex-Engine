@@ -7,15 +7,9 @@
 
 namespace Engine
 {
-	class VertexShader;
-	class TessellationControlShader;
-	class TessellationShader;
-	class GeometryShader;
-	class FragmentShader;
-	class ComputeShader;
+	class Shader;
 	class RenderPass;
 	class Logger;
-	class Shader;
 	class ShaderCompilationEnvironment;
 	class RHI_Pipeline;
 	struct ShaderCompilationResult;
@@ -27,15 +21,7 @@ namespace Engine
 	protected:
 		static StringView pipeline_name_of(StringView name);
 		static Object* package_of(StringView name);
-
-		template<typename Type>
-		FORCE_INLINE Type* create_new_shader(Type*& out)
-		{
-			out = Object::new_instance<Type>();
-			out->flags(Object::IsAvailableForGC, false);
-			out->owner(this);
-			return out;
-		}
+		Shader* create_new_shader();
 
 	protected:
 		RHIResourcePtr<RHI_Pipeline> m_pipeline;
@@ -66,33 +52,34 @@ namespace Engine
 		trinex_declare_class(GraphicsPipeline, Pipeline);
 
 	public:
+		Vector<RHIVertexAttribute> vertex_attributes;
 		RHIDepthTest depth_test;
 		RHIStencilTest stencil_test;
 		RHIColorBlending color_blending;
 
 	private:
-		VertexShader* m_vertex_shader                            = nullptr;
-		TessellationControlShader* m_tessellation_control_shader = nullptr;
-		TessellationShader* m_tessellation_shader                = nullptr;
-		GeometryShader* m_geometry_shader                        = nullptr;
-		FragmentShader* m_fragment_shader                        = nullptr;
+		Shader* m_vertex_shader               = nullptr;
+		Shader* m_tessellation_control_shader = nullptr;
+		Shader* m_tessellation_shader         = nullptr;
+		Shader* m_geometry_shader             = nullptr;
+		Shader* m_fragment_shader             = nullptr;
 
 	public:
 		~GraphicsPipeline();
 		GraphicsPipeline& init_render_resources() override;
 		GraphicsPipeline& postload() override;
 
-		VertexShader* vertex_shader() const;
-		FragmentShader* fragment_shader() const;
-		TessellationControlShader* tessellation_control_shader() const;
-		TessellationShader* tessellation_shader() const;
-		GeometryShader* geometry_shader() const;
+		Shader* vertex_shader() const;
+		Shader* fragment_shader() const;
+		Shader* tessellation_control_shader() const;
+		Shader* tessellation_shader() const;
+		Shader* geometry_shader() const;
 
-		VertexShader* vertex_shader(bool create = false);
-		FragmentShader* fragment_shader(bool create = false);
-		TessellationControlShader* tessellation_control_shader(bool create = false);
-		TessellationShader* tessellation_shader(bool create = false);
-		GeometryShader* geometry_shader(bool create = false);
+		Shader* vertex_shader(bool create = false);
+		Shader* fragment_shader(bool create = false);
+		Shader* tessellation_control_shader(bool create = false);
+		Shader* tessellation_shader(bool create = false);
+		Shader* geometry_shader(bool create = false);
 
 		GraphicsPipeline& remove_vertex_shader();
 		GraphicsPipeline& remove_fragment_shader();
@@ -107,13 +94,13 @@ namespace Engine
 	{
 		trinex_declare_class(ComputePipeline, Pipeline);
 
-		ComputeShader* m_shader = nullptr;
+		Shader* m_shader = nullptr;
 
 	public:
 		ComputePipeline();
 		~ComputePipeline();
 		ComputePipeline& init_render_resources() override;
-		inline ComputeShader* compute_shader() const { return m_shader; }
+		inline Shader* compute_shader() const { return m_shader; }
 	};
 
 	class ENGINE_EXPORT GlobalGraphicsPipeline : public GraphicsPipeline

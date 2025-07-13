@@ -397,4 +397,53 @@ namespace Engine::VulkanEnums
 			default: return vk::ImageViewType::e1D;
 		}
 	}
+
+	static inline vk::Format vertex_format_of(RHIVertexBufferElementType type)
+	{
+		switch (type)
+		{
+			case RHIVertexBufferElementType::Float1: return vk::Format::eR32Sfloat;
+			case RHIVertexBufferElementType::Float2: return vk::Format::eR32G32Sfloat;
+			case RHIVertexBufferElementType::Float3: return vk::Format::eR32G32B32Sfloat;
+			case RHIVertexBufferElementType::Float4: return vk::Format::eR32G32B32A32Sfloat;
+			case RHIVertexBufferElementType::Byte1: return vk::Format::eR8Sint;
+			case RHIVertexBufferElementType::Byte2: return vk::Format::eR8G8Sint;
+			case RHIVertexBufferElementType::Byte4: return vk::Format::eR8G8B8A8Sint;
+			case RHIVertexBufferElementType::Byte1N: return vk::Format::eR8Snorm;
+			case RHIVertexBufferElementType::Byte2N: return vk::Format::eR8G8Snorm;
+			case RHIVertexBufferElementType::Byte4N: return vk::Format::eR8G8B8A8Snorm;
+			case RHIVertexBufferElementType::UByte1: return vk::Format::eR8Uint;
+			case RHIVertexBufferElementType::UByte2: return vk::Format::eR8G8Uint;
+			case RHIVertexBufferElementType::UByte4: return vk::Format::eR8G8B8A8Uint;
+			case RHIVertexBufferElementType::UByte1N: return vk::Format::eR8Unorm;
+			case RHIVertexBufferElementType::UByte2N: return vk::Format::eR8G8Unorm;
+			case RHIVertexBufferElementType::UByte4N: return vk::Format::eR8G8B8A8Unorm;
+			case RHIVertexBufferElementType::Short1: return vk::Format::eR16Sint;
+			case RHIVertexBufferElementType::Short2: return vk::Format::eR16G16Sint;
+			case RHIVertexBufferElementType::Short4: return vk::Format::eR16G16B16A16Sint;
+			case RHIVertexBufferElementType::Short1N: return vk::Format::eR16Snorm;
+			case RHIVertexBufferElementType::Short2N: return vk::Format::eR16G16Snorm;
+			case RHIVertexBufferElementType::Short4N: return vk::Format::eR16G16B16A16Snorm;
+			case RHIVertexBufferElementType::UShort1: return vk::Format::eR16Uint;
+			case RHIVertexBufferElementType::UShort2: return vk::Format::eR16G16Uint;
+			case RHIVertexBufferElementType::UShort4: return vk::Format::eR16G16B16A16Uint;
+			case RHIVertexBufferElementType::UShort1N: return vk::Format::eR16Unorm;
+			case RHIVertexBufferElementType::UShort2N: return vk::Format::eR16G16Unorm;
+			case RHIVertexBufferElementType::UShort4N: return vk::Format::eR16G16B16A16Unorm;
+			case RHIVertexBufferElementType::Int1: return vk::Format::eR32Sint;
+			case RHIVertexBufferElementType::Int2: return vk::Format::eR32G32Sint;
+			case RHIVertexBufferElementType::Int3: return vk::Format::eR32G32B32Sint;
+			case RHIVertexBufferElementType::Int4: return vk::Format::eR32G32B32A32Sint;
+			case RHIVertexBufferElementType::UInt1: return vk::Format::eR32Uint;
+			case RHIVertexBufferElementType::UInt2: return vk::Format::eR32G32Uint;
+			case RHIVertexBufferElementType::UInt3: return vk::Format::eR32G32B32Uint;
+			case RHIVertexBufferElementType::UInt4: return vk::Format::eR32G32B32A32Uint;
+			default: return vk::Format::eUndefined;
+		}
+	}
+
+	static inline vk::VertexInputRate input_rate_of(RHIVertexAttributeInputRate rate)
+	{
+		return rate == RHIVertexAttributeInputRate::Vertex ? vk::VertexInputRate::eVertex : vk::VertexInputRate::eInstance;
+	}
 }// namespace Engine::VulkanEnums

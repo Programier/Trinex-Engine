@@ -131,15 +131,7 @@ namespace Engine
 		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
 		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
 		                            RHITextureCreateFlags flags) override;
-		RHI_Shader* create_vertex_shader(const byte* shader, size_t size, const RHIVertexAttribute* attributes,
-		                                 size_t attributes_count) override;
-		RHI_Shader* create_tesselation_control_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_tesselation_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_geometry_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_fragment_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_compute_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_mesh_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_task_shader(const byte* shader, size_t size) override;
+		RHI_Shader* create_shader(const byte* shader, size_t size) override;
 		RHI_Pipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;

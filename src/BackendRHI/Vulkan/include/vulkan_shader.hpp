@@ -22,28 +22,4 @@ namespace Engine
 
 		inline vk::ShaderModule module() const { return m_shader; }
 	};
-
-	class VulkanVertexShader : public VulkanShader
-	{
-	private:
-		Vector<vk::VertexInputBindingDescription> m_binding_description;
-		Vector<vk::VertexInputAttributeDescription> m_attribute_description;
-
-	public:
-		VulkanVertexShader(const byte* shader, size_t size, const RHIVertexAttribute* attribute, size_t attributes_count);
-
-		inline const Vector<vk::VertexInputBindingDescription>& binding_description() const { return m_binding_description; }
-		inline const Vector<vk::VertexInputAttributeDescription>& attribute_description() const
-		{
-			return m_attribute_description;
-		}
-	};
-
-	using VulkanTessellationControlShader = VulkanShader;
-	using VulkanTessellationShader        = VulkanShader;
-	using VulkanGeometryShader            = VulkanShader;
-	using VulkanFragmentShader            = VulkanShader;
-	using VulkanComputeShader             = VulkanShader;
-	using VulkanMeshShader                = VulkanShader;
-	using VulkanTaskShader                = VulkanShader;
 }// namespace Engine

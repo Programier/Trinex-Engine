@@ -457,11 +457,11 @@ namespace Engine
 
 		if (archive.is_saving())
 		{
-			for (auto& pipeline : m_pipelines)
+			for (auto& [pass, pipeline] : m_pipelines)
 			{
-				Name name = pipeline.first ? pipeline.first->name() : "Default";
+				Name name = pass->name();
 				archive.serialize(name);
-				pipeline.second->serialize(archive, this);
+				pipeline->serialize(archive, this);
 			}
 		}
 		else

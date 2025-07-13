@@ -83,15 +83,14 @@ namespace Engine
 			if (!pipeline)
 				continue;
 
-			VertexShader* shader = pipeline->vertex_shader();
 			RendererContext ctx(this, pass, proxy->world_transform().matrix());
 
 			if (!material_interface->apply(ctx, bindings))
 				continue;
 
-			for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
+			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
-				auto& attribute          = shader->attributes[i];
+				auto& attribute          = pipeline->vertex_attributes[i];
 				VertexBufferBase* buffer = proxy->find_vertex_buffer(attribute.semantic, attribute.semantic_index, lod);
 
 				if (buffer)

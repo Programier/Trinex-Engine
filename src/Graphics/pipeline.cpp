@@ -67,6 +67,14 @@ namespace Engine
 		return package;
 	}
 
+	Shader* Pipeline::create_new_shader()
+	{
+		Shader* shader = Object::new_instance<Shader>();
+		shader->flags(Object::IsAvailableForGC, false);
+		shader->owner(this);
+		return shader;
+	}
+
 	Pipeline& Pipeline::release_render_resources()
 	{
 		Super::release_render_resources();
@@ -189,6 +197,8 @@ namespace Engine
 				initializer.fragment_shader             = extract_shader(fragment_shader());
 				initializer.parameters                  = parameters().data();
 				initializer.parameters_count            = parameters().size();
+				initializer.vertex_attributes           = vertex_attributes.data();
+				initializer.vertex_attributes_count     = vertex_attributes.size();
 
 				initializer.parameters       = parameters().data();
 				initializer.parameters_count = parameters().size();
@@ -210,76 +220,76 @@ namespace Engine
 		return *this;
 	}
 
-	VertexShader* GraphicsPipeline::vertex_shader() const
+	Shader* GraphicsPipeline::vertex_shader() const
 	{
 		return m_vertex_shader;
 	}
 
-	FragmentShader* GraphicsPipeline::fragment_shader() const
+	Shader* GraphicsPipeline::fragment_shader() const
 	{
 		return m_fragment_shader;
 	}
 
-	TessellationControlShader* GraphicsPipeline::tessellation_control_shader() const
+	Shader* GraphicsPipeline::tessellation_control_shader() const
 	{
 		return m_tessellation_control_shader;
 	}
 
-	TessellationShader* GraphicsPipeline::tessellation_shader() const
+	Shader* GraphicsPipeline::tessellation_shader() const
 	{
 		return m_tessellation_shader;
 	}
 
-	GeometryShader* GraphicsPipeline::geometry_shader() const
+	Shader* GraphicsPipeline::geometry_shader() const
 	{
 		return m_geometry_shader;
 	}
 
-	VertexShader* GraphicsPipeline::vertex_shader(bool create)
+	Shader* GraphicsPipeline::vertex_shader(bool create)
 	{
 		if (!m_vertex_shader && create)
 		{
-			create_new_shader(m_vertex_shader);
+			m_vertex_shader = create_new_shader();
 		}
 
 		return m_vertex_shader;
 	}
 
-	FragmentShader* GraphicsPipeline::fragment_shader(bool create)
+	Shader* GraphicsPipeline::fragment_shader(bool create)
 	{
 		if (!m_fragment_shader && create)
 		{
-			create_new_shader(m_fragment_shader);
+			m_fragment_shader = create_new_shader();
 		}
 
 		return m_fragment_shader;
 	}
 
-	TessellationControlShader* GraphicsPipeline::tessellation_control_shader(bool create)
+	Shader* GraphicsPipeline::tessellation_control_shader(bool create)
 	{
 		if (!m_tessellation_control_shader && create)
 		{
-			create_new_shader(m_tessellation_control_shader);
+			m_tessellation_control_shader = create_new_shader();
 		}
 
 		return m_tessellation_control_shader;
 	}
 
-	TessellationShader* GraphicsPipeline::tessellation_shader(bool create)
+	Shader* GraphicsPipeline::tessellation_shader(bool create)
 	{
 		if (!m_tessellation_shader && create)
 		{
-			create_new_shader(m_tessellation_shader);
+			m_tessellation_shader = create_new_shader();
 		}
 
 		return m_tessellation_shader;
 	}
 
-	GeometryShader* GraphicsPipeline::geometry_shader(bool create)
+	Shader* GraphicsPipeline::geometry_shader(bool create)
 	{
 		if (!m_geometry_shader && create)
 		{
-			create_new_shader(m_geometry_shader);
+			m_geometry_shader = create_new_shader();
 		}
 
 		return m_geometry_shader;
@@ -421,7 +431,7 @@ namespace Engine
 
 	ComputePipeline::ComputePipeline()
 	{
-		create_new_shader(m_shader);
+		m_shader = create_new_shader();
 	}
 
 	ComputePipeline::~ComputePipeline()

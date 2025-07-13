@@ -52,9 +52,7 @@ namespace Engine
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
 		{
-			auto shader = vertex_shader();
-
-			for (auto& attribute : shader->attributes)
+			for (auto& attribute : vertex_attributes)
 			{
 				attribute.stream_index = 0;
 

@@ -53,6 +53,9 @@ namespace Engine
 			uint64_t operator()(const Key& key) const;
 		};
 
+		Vector<vk::VertexInputBindingDescription> m_binding_description;
+		Vector<vk::VertexInputAttributeDescription> m_attribute_description;
+
 		vk::PipelineInputAssemblyStateCreateInfo m_input_assembly;
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
 		vk::PipelineMultisampleStateCreateInfo m_multisampling;
@@ -66,9 +69,9 @@ namespace Engine
 		Map<Key, vk::Pipeline, KeyHasher> m_pipelines;
 
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
-		
+
 		bool is_dirty_vertex_strides(VulkanStateManager* manager);
-		
+
 	public:
 		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
 		void bind() override;

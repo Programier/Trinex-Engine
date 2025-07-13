@@ -339,12 +339,58 @@ namespace Engine
 
 		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
 
-		if (pipeline->vertex_shader)
+		m_binding_description.reserve(pipeline->vertex_attributes_count);
+		m_attribute_description.reserve(pipeline->vertex_attributes_count);
+
+		for (size_t index = 0; index < pipeline->vertex_attributes_count; ++index)
 		{
-			m_vertex_input.setVertexBindingDescriptions(pipeline->vertex_shader->as<VulkanVertexShader>()->binding_description());
-			m_vertex_input.setVertexAttributeDescriptions(
-			        pipeline->vertex_shader->as<VulkanVertexShader>()->attribute_description());
+			auto& attribute   = pipeline->vertex_attributes[index];
+			uint32_t stream   = static_cast<uint32_t>(attribute.stream_index);
+			vk::Format format = VulkanEnums::vertex_format_of(attribute.type);
+
+			{
+				// Find and setup binding description
+				bool found = false;
+				for (auto& desc : m_binding_description)
+				{
+					if (desc.binding == stream)
+					{
+						vk::VertexInputRate rate = VulkanEnums::input_rate_of(attribute.rate);
+
+						if (desc.inputRate != rate)
+						{
+							const char* name = rate == vk::VertexInputRate::eVertex ? "Vertex" : "Instance";
+							error_log("Vulkan", "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'", name,
+							          index, name);
+						}
+
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					m_binding_description.emplace_back();
+					auto& desc     = m_binding_description.back();
+					desc.binding   = attribute.stream_index;
+					desc.stride    = 0;
+					desc.inputRate = VulkanEnums::input_rate_of(attribute.rate);
+				}
+			}
+
+			{
+				m_attribute_description.emplace_back();
+				vk::VertexInputAttributeDescription& description = m_attribute_description.back();
+				description.binding  = static_cast<decltype(description.binding)>(attribute.stream_index);
+				description.location = static_cast<decltype(description.location)>(attribute.location);
+				description.offset   = attribute.offset;
+				description.format   = format;
+			}
 		}
+
+		m_vertex_input.setVertexBindingDescriptions(m_binding_description);
+		m_vertex_input.setVertexAttributeDescriptions(m_attribute_description);
 
 		static vk::ShaderStageFlagBits graphics_stages[] = {
 		        vk::ShaderStageFlagBits::eVertex,

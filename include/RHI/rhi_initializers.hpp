@@ -40,8 +40,10 @@ namespace Engine
 			RHI_Shader* shaders[5];
 		};
 
-		const struct RHIShaderParameterInfo* parameters = nullptr;
-		size_t parameters_count                         = 0;
+		const struct RHIShaderParameterInfo* parameters    = nullptr;
+		const struct RHIVertexAttribute* vertex_attributes = nullptr;
+		size_t parameters_count                            = 0;
+		size_t vertex_attributes_count                     = 0;
 
 		RHIDepthTest depth;
 		RHIStencilTest stencil;

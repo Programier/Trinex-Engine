@@ -219,43 +219,7 @@ namespace Engine
 		return new NoneTexture();
 	}
 
-	RHI_Shader* NoneApi::create_vertex_shader(const byte* source, size_t size, const RHIVertexAttribute* attributes,
-	                                          size_t attributes_count)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_tesselation_control_shader(const byte* source, size_t size)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_tesselation_shader(const byte* source, size_t size)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_geometry_shader(const byte* source, size_t size)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_fragment_shader(const byte* source, size_t size)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_compute_shader(const byte* source, size_t size)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_mesh_shader(const byte* shader, size_t size)
-	{
-		return new NoneShader();
-	}
-
-	RHI_Shader* NoneApi::create_task_shader(const byte* shader, size_t size)
+	RHI_Shader* NoneApi::create_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}

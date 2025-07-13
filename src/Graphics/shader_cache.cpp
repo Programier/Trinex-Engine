@@ -104,15 +104,10 @@ namespace Engine
 
 	void GraphicsShaderCache::init_from(const class GraphicsPipeline* pipeline)
 	{
-		parameters = pipeline->parameters();
+		parameters        = pipeline->parameters();
+		vertex_attributes = pipeline->vertex_attributes;
 
-		auto vs = pipeline->vertex_shader();
-		if (vs)
-			vertex_attributes = vs->attributes;
-		else
-			vertex_attributes = {};
-
-		copy_buffer(vertex, vs);
+		copy_buffer(vertex, pipeline->vertex_shader());
 		copy_buffer(tessellation_control, pipeline->tessellation_control_shader());
 		copy_buffer(tessellation, pipeline->tessellation_shader());
 		copy_buffer(geometry, pipeline->geometry_shader());
@@ -137,8 +132,8 @@ namespace Engine
 			return;
 
 		pipeline->clear();
+		pipeline->vertex_attributes                  = vertex_attributes;
 		pipeline->vertex_shader(true)->source_code   = vertex;
-		pipeline->vertex_shader(true)->attributes    = vertex_attributes;
 		pipeline->fragment_shader(true)->source_code = fragment;
 		pipeline->parameters(parameters);
 
