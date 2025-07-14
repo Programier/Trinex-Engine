@@ -23,6 +23,8 @@ namespace Engine
 		NoneApi& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 		                                size_t instances) override;
 
+		NoneApi& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
+
 		NoneApi& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
 		NoneApi& signal_fence(RHI_Fence* fence) override;
 		NoneApi& submit() override;
@@ -40,6 +42,7 @@ namespace Engine
 		                            RHITextureCreateFlags flags) override;
 		RHI_Shader* create_shader(const byte* source, size_t size) override;
 		RHI_Pipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
+		RHI_Pipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags type) override;
 		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;

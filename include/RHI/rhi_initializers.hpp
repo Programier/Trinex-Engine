@@ -50,6 +50,26 @@ namespace Engine
 		RHIColorBlending blending;
 	};
 
+	struct RHIMeshPipelineInitializer {
+		union
+		{
+			struct {
+				RHI_Shader* task_shader     = nullptr;
+				RHI_Shader* mesh_shader     = nullptr;
+				RHI_Shader* fragment_shader = nullptr;
+			};
+
+			RHI_Shader* shaders[3];
+		};
+
+		const struct RHIShaderParameterInfo* parameters = nullptr;
+		size_t parameters_count                         = 0;
+
+		RHIDepthTest depth;
+		RHIStencilTest stencil;
+		RHIColorBlending blending;
+	};
+
 	struct ENGINE_EXPORT RHIComputePipelineInitializer {
 		RHI_Shader* compute_shader                      = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;

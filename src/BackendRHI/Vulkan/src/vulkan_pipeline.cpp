@@ -47,6 +47,22 @@ namespace Engine
 		return stages;
 	}
 
+	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIMeshPipelineInitializer* pipeline)
+	{
+		vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
+
+		if (pipeline->task_shader)
+			stages |= vk::ShaderStageFlagBits::eTaskEXT;
+
+		if (pipeline->mesh_shader)
+			stages |= vk::ShaderStageFlagBits::eMeshEXT;
+
+		if (pipeline->fragment_shader)
+			stages |= vk::ShaderStageFlagBits::eFragment;
+
+		return stages;
+	}
+
 	static inline vk::ShaderModule vulkan_shader_of(RHI_Shader* shader)
 	{
 		return shader->as<VulkanShader>()->module();
@@ -206,6 +222,11 @@ namespace Engine
 		return *this;
 	}
 
+	void VulkanPipeline::bind()
+	{
+		API->m_state_manager->bind(this);
+	}
+
 	uint64_t VulkanGraphicsPipeline::KeyHasher::operator()(const Key& key) const
 	{
 		return memory_hash(&key, sizeof(key));
@@ -240,9 +261,11 @@ namespace Engine
 
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
+		vk::PipelineMultisampleStateCreateInfo multisampling;
+
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, &m_vertex_input, &m_input_assembly, nullptr, &viewport_state,
-		                                             &m_rasterizer, &m_multisampling, &m_depth_stencil, &m_color_blending,
+		                                             &m_rasterizer, &multisampling, &m_depth_stencil, &m_color_blending,
 		                                             &dynamic_state, layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
@@ -277,13 +300,6 @@ namespace Engine
 		m_rasterizer.cullMode                   = vk::CullModeFlagBits::eNone;
 		m_rasterizer.frontFace                  = vk::FrontFace::eClockwise;
 		m_rasterizer.lineWidth                  = 1.f;
-
-		m_multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1)
-		        .setSampleShadingEnable(VK_FALSE)
-		        .setMinSampleShading(0.0f)
-		        .setAlphaToCoverageEnable(VK_FALSE)
-		        .setAlphaToOneEnable(VK_FALSE);
-
 
 		auto stencil_state = get_stencil_op_state(pipeline->stencil);
 		m_depth_stencil.setDepthTestEnable(pipeline->depth.enable)
@@ -410,11 +426,6 @@ namespace Engine
 		}
 	}
 
-	void VulkanGraphicsPipeline::bind()
-	{
-		API->m_state_manager->bind(this);
-	}
-
 	bool VulkanGraphicsPipeline::is_dirty_vertex_strides(VulkanStateManager* manager)
 	{
 		vk::VertexInputBindingDescription* description =
@@ -467,6 +478,170 @@ namespace Engine
 		}
 	}
 
+	uint64_t VulkanMeshPipeline::KeyHasher::operator()(const Key& key) const
+	{
+		return memory_hash(&key, sizeof(key));
+	}
+
+	VulkanMeshPipeline::VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline)
+	    : VulkanPipeline(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline))
+	{
+		static auto get_stencil_op_state = [](const RHIStencilTest& pipeline) {
+			vk::StencilOpState out_state;
+			out_state.setReference(0)
+			        .setWriteMask(pipeline.write_mask)
+			        .setCompareMask(pipeline.compare_mask)
+			        .setCompareOp(VulkanEnums::compare_of(pipeline.compare))
+			        .setFailOp(VulkanEnums::stencil_of(pipeline.fail))
+			        .setPassOp(VulkanEnums::stencil_of(pipeline.depth_pass))
+			        .setDepthFailOp(VulkanEnums::stencil_of(pipeline.depth_fail));
+			return out_state;
+		};
+
+		m_rasterizer.polygonMode = vk::PolygonMode::eFill;
+		m_rasterizer.cullMode    = vk::CullModeFlagBits::eNone;
+		m_rasterizer.frontFace   = vk::FrontFace::eClockwise;
+		m_rasterizer.lineWidth   = 1.f;
+
+		auto stencil_state = get_stencil_op_state(pipeline->stencil);
+		m_depth_stencil.setDepthTestEnable(pipeline->depth.enable)
+		        .setDepthWriteEnable(pipeline->depth.write_enable)
+		        .setDepthBoundsTestEnable(vk::False)
+		        .setDepthCompareOp(VulkanEnums::compare_of(pipeline->depth.func))
+		        .setMinDepthBounds(0.f)
+		        .setMaxDepthBounds(0.f)
+		        .setStencilTestEnable(pipeline->stencil.enable)
+		        .setFront(stencil_state)
+		        .setBack(stencil_state);
+
+		for (auto& attachment : m_color_blend_attachment)
+		{
+			attachment.setBlendEnable(pipeline->blending.enable)
+			        .setSrcColorBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_color_func, false))
+			        .setDstColorBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_color_func, false))
+			        .setColorBlendOp(VulkanEnums::blend_of(pipeline->blending.color_op))
+			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_alpha_func, true))
+			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_alpha_func, true))
+			        .setAlphaBlendOp(VulkanEnums::blend_of(pipeline->blending.alpha_op));
+
+			vk::ColorComponentFlags color_mask;
+
+			{
+				EnumerateType R = enum_value_of(RHIColorComponent::R);
+				EnumerateType G = enum_value_of(RHIColorComponent::G);
+				EnumerateType B = enum_value_of(RHIColorComponent::B);
+				EnumerateType A = enum_value_of(RHIColorComponent::A);
+
+				auto mask = enum_value_of(pipeline->blending.write_mask);
+
+				if ((mask & R) == R)
+				{
+					color_mask |= vk::ColorComponentFlagBits::eR;
+				}
+				if ((mask & G) == G)
+				{
+					color_mask |= vk::ColorComponentFlagBits::eG;
+				}
+				if ((mask & B) == B)
+				{
+					color_mask |= vk::ColorComponentFlagBits::eB;
+				}
+				if ((mask & A) == A)
+				{
+					color_mask |= vk::ColorComponentFlagBits::eA;
+				}
+
+				attachment.setColorWriteMask(color_mask);
+			}
+		}
+
+		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
+
+		static vk::ShaderStageFlagBits graphics_stages[] = {
+		        vk::ShaderStageFlagBits::eTaskEXT,
+		        vk::ShaderStageFlagBits::eMeshEXT,
+		        vk::ShaderStageFlagBits::eFragment,
+		};
+
+		for (uint_t i = 0; i < 5; ++i)
+		{
+			if (pipeline->shaders[i])
+			{
+				m_stages.emplace_back(vk::PipelineShaderStageCreateFlags(), graphics_stages[i],
+				                      vulkan_shader_of(pipeline->shaders[i]), "main");
+			}
+		}
+	}
+
+	vk::Pipeline VulkanMeshPipeline::find_or_create_pipeline(VulkanStateManager* manager)
+	{
+		auto rt = API->m_state_manager->render_target();
+
+		Key key;
+		key.pass         = manager->render_target()->m_render_pass;
+		key.polygon_mode = manager->polygon_mode();
+		key.cull_mode    = manager->cull_mode();
+		key.front_face   = manager->front_face();
+
+		auto& pipeline = m_pipelines[key];
+
+		if (pipeline)
+		{
+			return pipeline;
+		}
+
+		static vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
+		static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+		static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
+
+		m_rasterizer.setPolygonMode(key.polygon_mode);
+		m_rasterizer.setCullMode(key.cull_mode);
+		m_rasterizer.setFrontFace(key.front_face);
+
+		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
+		vk::PipelineMultisampleStateCreateInfo multisampling;
+
+		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, nullptr, nullptr, nullptr, &viewport_state, &m_rasterizer,
+		                                             &multisampling, &m_depth_stencil, &m_color_blending, &dynamic_state,
+		                                             layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
+
+		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
+
+		if (pipeline_result.result != vk::Result::eSuccess)
+		{
+			throw EngineException("Failed to create pipeline");
+		}
+
+		pipeline = pipeline_result.value;
+		return pipeline;
+	}
+
+	VulkanMeshPipeline& VulkanMeshPipeline::flush(VulkanStateManager* manager)
+	{
+		trinex_profile_cpu_n("VulkanGraphicsPipeline::flush");
+		auto dirty_flags = VulkanStateManager::RenderTarget | VulkanStateManager::Pipeline | VulkanStateManager::PolygonMode |
+		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
+
+		if (manager->is_dirty(dirty_flags))
+		{
+			auto cmd              = API->current_command_buffer();
+			auto current_pipeline = find_or_create_pipeline(manager);
+			cmd->bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
+		}
+
+		VulkanPipeline::flush_descriptors(manager, vk::PipelineBindPoint::eGraphics);
+		return *this;
+	}
+
+	VulkanMeshPipeline::~VulkanMeshPipeline()
+	{
+		for (auto& pipeline : m_pipelines)
+		{
+			DESTROY_CALL(destroyPipeline, pipeline.second);
+		}
+	}
+
 	VulkanComputePipeline::VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline)
 	    : VulkanPipeline(pipeline->parameters, pipeline->parameters_count, vk::ShaderStageFlagBits::eCompute)
 	{
@@ -493,11 +668,6 @@ namespace Engine
 		m_pipeline = result.value;
 	}
 
-	void VulkanComputePipeline::bind()
-	{
-		API->m_state_manager->bind(this);
-	}
-
 	VulkanPipeline& VulkanComputePipeline::flush(VulkanStateManager* manager)
 	{
 		if (manager->is_dirty(VulkanStateManager::Pipeline))
@@ -518,6 +688,11 @@ namespace Engine
 	RHI_Pipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
 		return new VulkanGraphicsPipeline(pipeline);
+	}
+
+	RHI_Pipeline* VulkanAPI::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
+	{
+		return new VulkanMeshPipeline(pipeline);
 	}
 
 	RHI_Pipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)

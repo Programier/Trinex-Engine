@@ -26,6 +26,7 @@ namespace Engine
 	public:
 		VulkanPipeline(const RHIShaderParameterInfo* parameter, size_t count, vk::ShaderStageFlags stages);
 		VulkanPipeline& flush_descriptors(VulkanStateManager* manager, vk::PipelineBindPoint);
+		void bind() override;
 		virtual VulkanPipeline& flush(VulkanStateManager* manager) = 0;
 		inline VulkanPipelineLayout* layout() const { return m_layout; }
 
@@ -58,26 +59,58 @@ namespace Engine
 
 		vk::PipelineInputAssemblyStateCreateInfo m_input_assembly;
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
-		vk::PipelineMultisampleStateCreateInfo m_multisampling;
 		vk::PipelineDepthStencilStateCreateInfo m_depth_stencil;
 		vk::PipelineColorBlendAttachmentState m_color_blend_attachment[4];
 		vk::PipelineColorBlendStateCreateInfo m_color_blending;
-		vk::SampleMask m_sample_mask;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 		vk::PipelineVertexInputStateCreateInfo m_vertex_input;
 
 		Map<Key, vk::Pipeline, KeyHasher> m_pipelines;
 
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
-
 		bool is_dirty_vertex_strides(VulkanStateManager* manager);
 
 	public:
 		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
-		void bind() override;
 		VulkanPipeline& flush(VulkanStateManager* manager) override;
-
 		~VulkanGraphicsPipeline();
+	};
+
+	class VulkanMeshPipeline : public VulkanPipeline
+	{
+	private:
+		struct Key {
+			class VulkanRenderPass* pass;
+			vk::PolygonMode polygon_mode;
+			vk::CullModeFlags cull_mode;
+			vk::FrontFace front_face;
+
+			inline bool operator==(const Key& key) const
+			{
+				return pass == key.pass && polygon_mode == key.polygon_mode && cull_mode == key.cull_mode &&
+				       front_face == key.front_face;
+			}
+		};
+
+		struct KeyHasher {
+			uint64_t operator()(const Key& key) const;
+		};
+
+		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
+		vk::PipelineDepthStencilStateCreateInfo m_depth_stencil;
+		vk::PipelineColorBlendAttachmentState m_color_blend_attachment[4];
+		vk::PipelineColorBlendStateCreateInfo m_color_blending;
+		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
+
+		Map<Key, vk::Pipeline, KeyHasher> m_pipelines;
+
+	private:
+		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
+
+	public:
+		VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline);
+		VulkanMeshPipeline& flush(VulkanStateManager* manager) override;
+		~VulkanMeshPipeline();
 	};
 
 	class VulkanComputePipeline : public VulkanPipeline
@@ -87,7 +120,6 @@ namespace Engine
 
 	public:
 		VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline);
-		void bind() override;
 		VulkanPipeline& flush(VulkanStateManager* manager) override;
 		~VulkanComputePipeline();
 	};

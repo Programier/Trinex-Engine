@@ -192,6 +192,7 @@ namespace Engine
 
 		vk::PhysicalDeviceCustomBorderColorFeaturesEXT custom_border(vk::True, vk::False);
 		vk::PhysicalDeviceVulkan11Features vk11_features;
+		vk::PhysicalDeviceMeshShaderFeaturesEXT mesh_shaders(true, true, false, false, false);
 
 		vk11_features.setShaderDrawParameters(vk::True);
 
@@ -199,6 +200,9 @@ namespace Engine
 
 		if (API->is_extension_enabled(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME))
 			builder.add_pNext(&custom_border);
+
+		if (API->is_extension_enabled(VK_EXT_MESH_SHADER_EXTENSION_NAME))
+			builder.add_pNext(&mesh_shaders);
 
 		auto device_ret = builder.build();
 
@@ -366,6 +370,7 @@ namespace Engine
 		load(pfn.vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
 		load(pfn.vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
 		load(pfn.vkGetBufferMemoryRequirements2KHR, "vkGetBufferMemoryRequirements2KHR");
+		load(pfn.vkCmdDrawMeshTasksEXT, "vkCmdDrawMeshTasksEXT");
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
@@ -450,6 +455,12 @@ namespace Engine
 	                                             size_t instances)
 	{
 		m_state_manager->flush_graphics()->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
+	{
+		m_state_manager->flush_graphics()->drawMeshTasksEXT(x, y, z, pfn);
 		return *this;
 	}
 

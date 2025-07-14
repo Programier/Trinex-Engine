@@ -12,7 +12,7 @@ namespace vkb
 namespace Engine::VulkanConfig
 {
 	vkb::PreferredDeviceType device_type = vkb::PreferredDeviceType::discrete;
-	bool enable_validation               = static_cast<bool>(TRINEX_DEBUG_BUILD) && false;
+	bool enable_validation               = static_cast<bool>(TRINEX_DEBUG_BUILD);
 	bool allow_any_gpu_type              = false;
 
 	static PreInitializeController on_init([]() {

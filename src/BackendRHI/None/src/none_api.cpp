@@ -162,6 +162,11 @@ namespace Engine
 		return *this;
 	}
 
+	NoneApi& NoneApi::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
+	{
+		return *this;
+	}
+	
 	NoneApi& NoneApi::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
 	{
 		return *this;
@@ -225,6 +230,11 @@ namespace Engine
 	}
 
 	RHI_Pipeline* NoneApi::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
+	{
+		return new NonePipeline();
+	}
+
+	RHI_Pipeline* NoneApi::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
 	{
 		return new NonePipeline();
 	}
