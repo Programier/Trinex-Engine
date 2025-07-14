@@ -60,12 +60,8 @@ namespace Engine
 
 	VulkanAPI::VulkanAPI()
 	{
-		m_device_extensions = {
-		        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false},
-		        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false, false},
-		        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false, false},
-		        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false, false},
-		};
+		auto array = make_extensions_array();
+		m_device_extensions.assign(array.begin(), array.end());
 	}
 
 	VulkanAPI::~VulkanAPI()
@@ -151,12 +147,11 @@ namespace Engine
 	{
 		vkb::PhysicalDeviceSelector phys_device_selector(API->m_instance);
 
-		for (const VulkanExtention& extension : API->m_device_extensions)
+		for (const VulkanExtention& extension : API->extensions())
 		{
-			if (extension.required)
+			if (extension.is_valid() && extension.enabled)
 			{
 				phys_device_selector.add_required_extension(extension.name.data());
-				extension.enabled = true;
 			}
 		}
 
@@ -175,9 +170,9 @@ namespace Engine
 
 		auto device = selected_device.value();
 
-		for (const VulkanExtention& extension : API->m_device_extensions)
+		for (const VulkanExtention& extension : API->extensions())
 		{
-			if (!extension.required)
+			if (extension.is_valid() && !extension.enabled)
 			{
 				extension.enabled = device.enable_extension_if_present(extension.name.data());
 			}
@@ -198,10 +193,10 @@ namespace Engine
 
 		builder.add_pNext(&vk11_features);
 
-		if (API->is_extension_enabled(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME))
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
 			builder.add_pNext(&custom_border);
 
-		if (API->is_extension_enabled(VK_EXT_MESH_SHADER_EXTENSION_NAME))
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_MESH_SHADER_EXTENSION_NAME)))
 			builder.add_pNext(&mesh_shaders);
 
 		auto device_ret = builder.build();
@@ -404,18 +399,6 @@ namespace Engine
 		vk::FormatProperties properties            = m_physical_device.getFormatProperties(format);
 		const vk::FormatFeatureFlags feature_flags = optimal ? properties.optimalTilingFeatures : properties.linearTilingFeatures;
 		return (feature_flags & flags) == flags;
-	}
-
-	bool VulkanAPI::is_extension_enabled(const char* extension)
-	{
-		VulkanExtention ext;
-		ext.name = extension;
-
-		auto it = m_device_extensions.find(ext);
-		if (it == m_device_extensions.end())
-			return false;
-
-		return it->enabled;
 	}
 
 	VulkanAPI& VulkanAPI::submit()

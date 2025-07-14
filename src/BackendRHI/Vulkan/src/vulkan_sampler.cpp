@@ -62,7 +62,7 @@ namespace Engine
 
 		vk::SamplerCustomBorderColorCreateInfoEXT border_color;
 
-		if (API->is_extension_enabled(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME))
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
 		{
 			sampler_info.borderColor = vk::BorderColor::eFloatCustomEXT;
 			border_color.format      = vk::Format::eR32G32B32A32Sfloat;

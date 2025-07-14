@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/set.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
@@ -25,15 +25,11 @@ namespace Engine
 
 	struct VulkanExtention {
 		StringView name;
-		mutable bool required = false;
-		mutable bool enabled  = false;
+		mutable bool enabled = false;
 
 		inline bool operator==(const VulkanExtention& ext) const { return name == ext.name; }
 		inline bool operator!=(const VulkanExtention& ext) const { return name != ext.name; }
-
-		struct Hasher {
-			size_t operator()(const VulkanExtention& ext) const { return std::hash<StringView>()(ext.name); }
-		};
+		inline bool is_valid() const { return !name.empty(); }
 	};
 
 	struct VulkanAPI : public RHI {
@@ -42,8 +38,6 @@ namespace Engine
 		static void static_destructor(VulkanAPI* vulkan);
 
 		static VulkanAPI* m_vulkan;
-
-		Set<VulkanExtention, VulkanExtention::Hasher> m_device_extensions;
 
 		struct {
 			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT           = nullptr;
@@ -71,17 +65,48 @@ namespace Engine
 		VulkanStaggingBufferManager* m_stagging_manager = nullptr;
 
 	private:
+		Vector<VulkanExtention> m_device_extensions;
 		MultiMap<uint64_t, class VulkanPipelineLayout*> m_pipeline_layouts;
 		VulkanDescriptorSetAllocator* m_descriptor_set_allocator;
 		VulkanQueryPoolManager* m_query_pool_manager;
 
+
+	private:
+		static consteval auto make_extensions_array()
+		{
+			return std::to_array<VulkanExtention>({
+			        {"", false},// Dummy extension
+			        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true},
+			        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false},
+			        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false},
+			        {VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME, false},
+			        {VK_KHR_SPIRV_1_4_EXTENSION_NAME, false},
+			        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false},
+			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},
+			});
+		}
 
 	public:
 		VulkanPipelineLayout* create_pipeline_layout(const RHIShaderParameterInfo* parameters, size_t count,
 		                                             vk::ShaderStageFlags stages);
 		VulkanAPI& destroy_pipeline_layout(VulkanPipelineLayout* layout);
 
+		static consteval size_t find_extension_index(const char* str)
+		{
+			auto extensions = make_extensions_array();
+
+			for (size_t i = 1, count = extensions.size(); i < count; ++i)
+			{
+				if (extensions[i].name == str)
+					return i;
+			}
+
+			return 0;
+		}
+
 	public:
+		inline const Vector<VulkanExtention>& extensions() const { return m_device_extensions; }
+		inline bool is_extension_enabled(size_t index) const { return m_device_extensions[index].enabled; }
 		inline VulkanDescriptorSetAllocator* descriptor_set_allocator() const { return m_descriptor_set_allocator; }
 		inline VulkanCommandBufferManager* command_buffer_mananger() const { return m_cmd_manager; }
 
@@ -102,7 +127,6 @@ namespace Engine
 		VulkanCommandBuffer* end_render_pass();
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
-		bool is_extension_enabled(const char* extension);
 		//////////////////////////////////////////////////////////////
 
 		VulkanAPI();
