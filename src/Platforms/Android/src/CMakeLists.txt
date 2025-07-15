@@ -1,6 +1,4 @@
-set(PLATFORM_ANDROID_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-file(GLOB PLATFORM_ANDROID_SRC "${PLATFORM_ANDROID_SOURCES_DIR}/*.cpp")
+file(GLOB TRINEX_PLATFORM_ANDROID_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
-
-add_trinex_sources(${PLATFORM_ANDROID_SRC})
-add_trinex_private_libraries(dl)
+target_sources(TrinexEngine PRIVATE ${TRINEX_PLATFORM_ANDROID_SRC})
+target_link_libraries(TrinexEngine PUBLIC dl)

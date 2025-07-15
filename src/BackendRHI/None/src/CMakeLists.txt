@@ -1,3 +1,2 @@
-file(GLOB NONE_SRC "${NONE_SOURCES_ROOT}/*.cpp")
-
-add_trinex_sources(${NONE_SRC})
+file(GLOB NONE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+target_sources(TrinexEngine PRIVATE ${NONE_SRC})

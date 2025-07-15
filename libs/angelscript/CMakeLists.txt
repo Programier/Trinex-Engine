@@ -88,12 +88,12 @@ if(${ARCHFLAGS} MATCHES "^aarch64")
     endif()
 endif()
 
-add_trinex_sources(${ANGELSCRIPT_SOURCE})
-add_trinex_private_definitions(-DANGELSCRIPT_EXPORT -D_LIB)
+target_sources(TrinexEngine PRIVATE ${ANGELSCRIPT_SOURCE})
+target_compile_definitions(TrinexEngine PRIVATE -DANGELSCRIPT_EXPORT -D_LIB)
 
 if(AS_NO_EXCEPTIONS)
-        add_trinex_private_dependencies(AS_NO_EXCEPTIONS)
+        target_compile_definitions(TrinexEngine PUBLIC -DAS_NO_EXCEPTIONS)
 endif()
 
-add_trinex_private_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/)
-add_trinex_public_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
+target_include_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source)
+target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

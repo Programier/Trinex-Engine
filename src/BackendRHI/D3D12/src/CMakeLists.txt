@@ -1,8 +1,8 @@
-file(GLOB D3D12_SRC "${D3D12_SOURCES_ROOT}/*.cpp")
+file(GLOB TRINEX_D3D12_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
-add_trinex_sources(${D3D12_SRC})
-add_trinex_private_libraries(d3d12.lib dxgi.lib)
+target_sources(TrinexEngine PRIVATE ${TRINEX_D3D12_SOURCES})
+target_link_libraries(TrinexEngine PRIVATE d3d12.lib dxgi.lib)
 
 if(WIN32)
-    add_trinex_sources(${D3D12_SOURCES_ROOT}/platforms/windows.cpp)
+    target_sources(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/platforms/windows.cpp)
 endif()

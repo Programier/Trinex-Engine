@@ -10,8 +10,9 @@ elseif(LINUX)
 endif()
 
 if(SLANG_LIBRARIES_DIR)
-    add_trinex_editor_link_directories(${SLANG_LIBRARIES_DIR})
-    add_trinex_editor_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-    add_trinex_editor_libraries(slang)
+    target_link_directories(${TRINEX_EDITOR_TARGET} PRIVATE ${SLANG_LIBRARIES_DIR})
+    target_include_directories(${TRINEX_EDITOR_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(${TRINEX_EDITOR_TARGET} PRIVATE slang)
+    
     install(DIRECTORY "${SLANG_LIBRARIES_DIR}/" DESTINATION "${TRINEX_LIBRARIES_INSTALL_DIR}" FILES_MATCHING PATTERN "*.*")
 endif()

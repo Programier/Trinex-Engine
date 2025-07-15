@@ -32,5 +32,5 @@ if (TRINEX_WITH_TRACY_PROFILER)
 	add_subdirectory(tracy)
 endif()
 
-add_trinex_public_libraries(fmt-header-only)
-add_trinex_public_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/glm-lib/)
+target_link_libraries(TrinexEngine PUBLIC fmt-header-only)
+target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glm-lib)
