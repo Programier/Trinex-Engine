@@ -99,6 +99,14 @@ namespace Engine
 				imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
 				        [package](const Path& path) { Importer::import_resource(package, path); });
 			}
+
+			if (ImGui::MenuItem("editor/Import scene"_localized, "editor/Import scene from file to world"_localized, false,
+			                    enable_import))
+			{
+				Package* package = m_content_browser->selected_package();
+				imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
+				        [package, world = m_world](const Path& path) { Importer::import_scene(world, package, path); });
+			}
 		});
 
 		menu_bar.create("")->actions.push([this]() {

@@ -357,6 +357,11 @@ namespace Engine
 
 	Material& Material::postload()
 	{
+		for (auto& pipeline : m_pipelines)
+		{
+			pipeline.second->postload();
+		}
+
 		// Checking that all registered passes supported by this material are compiled
 		if (ShaderCompiler* compiler = ShaderCompiler::instance())
 		{
@@ -383,11 +388,6 @@ namespace Engine
 				remove_unreferenced_parameters();
 				save();
 			}
-		}
-
-		for (auto& pipeline : m_pipelines)
-		{
-			pipeline.second->postload();
 		}
 
 		return *this;
@@ -551,6 +551,7 @@ namespace Engine
 		if (compiler->compile(&env, result))
 		{
 			result.initialize_pipeline(pipeline);
+			pipeline->init_render_resources();
 			add_pipeline(pass, pipeline);
 			return true;
 		}

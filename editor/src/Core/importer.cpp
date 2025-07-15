@@ -1,10 +1,14 @@
 #include <Core/default_resources.hpp>
+#include <Core/etl/function.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Core/thread_manager.hpp>
 #include <Core/threading.hpp>
+#include <Engine/ActorComponents/static_mesh_component.hpp>
+#include <Engine/Actors/static_mesh_actor.hpp>
+#include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/shader_compiler.hpp>
@@ -71,6 +75,7 @@ namespace Engine::Importer
 		Matrix4f transform;
 		Matrix3f rotation;
 		Map<StringView, Pointer<Texture2D>> textures;
+		Map<aiMaterial*, Pointer<VisualMaterial>> materials;
 		Path dir;
 
 		ImporterContext(Package* package, const Transform& transform)
@@ -89,6 +94,20 @@ namespace Engine::Importer
 		static inline Vector3f vector_cast(const Vector4f& vector)
 		{
 			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
+		}
+
+		Matrix4f matrix_cast(const aiMatrix4x4& m)
+		{
+			Matrix4f result;
+
+			// clang-format off
+			result[0][0] = m.a1; result[1][0] = m.a2; result[2][0] = m.a3; result[3][0] = m.a4;
+			result[0][1] = m.b1; result[1][1] = m.b2; result[2][1] = m.b3; result[3][1] = m.b4;
+			result[0][2] = m.c1; result[1][2] = m.c2; result[2][2] = m.c3; result[3][2] = m.c4;
+			result[0][3] = m.d1; result[1][3] = m.d2; result[2][3] = m.d3; result[3][3] = m.d4;
+			// clang-format on
+
+			return result;
 		}
 
 		static inline uint32_t calculate_mip_count(uint32_t width, uint32_t height)
@@ -150,8 +169,21 @@ namespace Engine::Importer
 
 		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
 		{
-			VisualMaterial* material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
-			auto* root               = material->root_node();
+			Pointer<VisualMaterial>& material = materials[ai_material];
+
+			if (material)
+				return material;
+
+			if (ai_material->GetName().length != 0)
+			{
+				material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
+			}
+			else
+			{
+				String name = Strings::format("Material {}", static_cast<const void*>(ai_material));
+				material    = Object::new_instance<VisualMaterial>(name.c_str(), package);
+			}
+			auto* root = material->root_node();
 
 			aiColor4D diffuse;
 			if (ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
@@ -215,17 +247,11 @@ namespace Engine::Importer
 			return material;
 		}
 
-		void load_static_meshes(const aiScene* scene, const aiNode* node)
+		StaticMesh* load_static_mesh(const aiScene* scene, const aiNode* node)
 		{
-			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
-			{
-				auto child = node->mChildren[i];
-				load_static_meshes(scene, child);
-			}
-
 			unsigned int meshes_count = node->mNumMeshes;
 			if (meshes_count == 0 || node->mMeshes == nullptr)
-				return;
+				return nullptr;
 
 			unsigned int vertex_count = 0;
 			unsigned int faces_count  = 0;
@@ -238,7 +264,10 @@ namespace Engine::Importer
 				faces_count += mesh->mNumFaces;
 			}
 
-			StaticMesh* static_mesh = Object::new_instance<StaticMesh>(node->mName.C_Str(), package);
+			String name = node->mName.C_Str() ? String(node->mName.C_Str())
+			                                  : Strings::format("Static Mesh {}", static_cast<const void*>(node));
+
+			StaticMesh* static_mesh = Object::new_instance<StaticMesh>(name.c_str(), package);
 			static_mesh->materials.resize(meshes_count);
 
 			static_mesh->lods.resize(1);
@@ -298,6 +327,38 @@ namespace Engine::Importer
 			}
 
 			static_mesh->init_render_resources();
+			return static_mesh;
+		}
+
+		void load_static_meshes(const aiScene* scene, const aiNode* node)
+		{
+			load_static_mesh(scene, node);
+
+			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
+			{
+				auto child = node->mChildren[i];
+				load_static_meshes(scene, child);
+			}
+		}
+
+		void load_static_meshes(const aiScene* scene, const aiNode* node, World* world, const Matrix4f& transform = Matrix4f(1.f))
+		{
+			Matrix4f node_transform = transform * matrix_cast(node->mTransformation);
+
+			if (StaticMesh* mesh = load_static_mesh(scene, node))
+			{
+				StaticMeshActor* actor = world->spawn_actor<StaticMeshActor>();
+				auto component         = actor->mesh_component();
+
+				component->mesh(mesh);
+				component->local_transform(node_transform);
+			}
+
+			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
+			{
+				auto child = node->mChildren[i];
+				load_static_meshes(scene, child, world, node_transform);
+			}
 		}
 
 		void import(const Path& path)
@@ -321,12 +382,38 @@ namespace Engine::Importer
 			load_static_meshes(scene, scene->mRootNode);
 			importer.FreeScene();
 		}
-	};
 
+		void import(const Path& path, World* world)
+		{
+			info_log("Importer", "Loading resources from file '%s'", path.c_str());
+
+			Assimp::Importer importer;
+
+			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
+			                     aiProcess_GenBoundingBoxes | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords;
+			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
+
+			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+			{
+				error_log("Importer", "Failed to load resource: %s", importer.GetErrorString());
+				return;
+			}
+
+			dir = path.base_path();
+			load_static_meshes(scene, scene->mRootNode, world);
+			importer.FreeScene();
+		}
+	};
 
 	void import_resource(Package* package, const Path& file, const Transform& transform)
 	{
 		ImporterContext context(package, transform);
 		context.import(file);
+	}
+
+	void import_scene(World* world, Package* package, const Path& file, const Transform& transform)
+	{
+		ImporterContext context(package, transform);
+		context.import(file, world);
 	}
 }// namespace Engine::Importer
