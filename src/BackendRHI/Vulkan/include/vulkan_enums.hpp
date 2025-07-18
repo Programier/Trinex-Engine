@@ -77,9 +77,9 @@ namespace Engine::VulkanEnums
 			case RHIColorFormat::ETC2_RGBA: return vk::Format::eEtc2R8G8B8A8UnormBlock;
 			case RHIColorFormat::NV12: return vk::Format::eG8B8R82Plane420Unorm;
 			case RHIColorFormat::P010: return vk::Format::eG10X6B10X6R10X62Plane420Unorm3Pack16;
-			case RHIColorFormat::Depth: return vk::Format::eD32Sfloat;
-			case RHIColorFormat::DepthStencil: return vk::Format::eD24UnormS8Uint;
-			case RHIColorFormat::ShadowDepth: return vk::Format::eD16Unorm;
+			case RHIColorFormat::D32F: return vk::Format::eD32Sfloat;
+			case RHIColorFormat::D24S8: return vk::Format::eD24UnormS8Uint;
+			case RHIColorFormat::D16_UNORM: return vk::Format::eD16Unorm;
 
 			default: return vk::Format::eUndefined;
 		}

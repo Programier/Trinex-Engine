@@ -88,7 +88,7 @@ namespace Engine::EditorRenderer
 	{
 		auto view_size = renderer->scene_view().view_size();
 		auto pool      = RHISurfacePool::global_instance();
-		auto depth     = pool->request_surface(RHISurfaceFormat::Depth, view_size);
+		auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size);
 
 		depth->as_dsv()->clear(1.f, 0);
 		rhi->bind_depth_stencil_target(depth->as_dsv());

@@ -334,6 +334,36 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanAPI& VulkanAPI::copy_texture_to_texture(RHI_Texture* src_texture, const RHITextureRegion& src_region,
+	                                              RHI_Texture* dst_texture, const RHITextureRegion& dst_region)
+	{
+		end_render_pass();
+		VulkanTexture* src = static_cast<VulkanTexture*>(src_texture);
+		VulkanTexture* dst = static_cast<VulkanTexture*>(dst_texture);
+
+		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
+		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
+
+		if (src_region.extent == dst_region.extent)
+		{
+			vk::ImageSubresourceLayers src_subresource(src->aspect(), src_region.mip_level, src_region.array_slice, 1);
+			vk::ImageSubresourceLayers dst_subresource(dst->aspect(), dst_region.mip_level, dst_region.array_slice, 1);
+
+			vk::ImageCopy region(src_subresource, vk::Offset3D(src_region.offset.x, src_region.offset.y, src_region.offset.z),
+			                     dst_subresource, vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),
+			                     vk::Extent3D(src_region.extent.x, src_region.extent.y, src_region.extent.z));
+
+			current_command_buffer()->copyImage(src->image(), src->layout(), dst->image(), dst->layout(), region);
+		}
+		else
+		{
+			throw -1;
+		}
+
+		return *this;
+	}
+
+
 	VulkanAPI& VulkanAPI::barrier(RHI_Texture* texture, RHIAccess dst_access)
 	{
 		static_cast<VulkanTexture*>(texture)->change_layout(VulkanEnums::image_layout_of(dst_access));

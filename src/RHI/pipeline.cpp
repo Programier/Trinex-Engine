@@ -52,7 +52,7 @@ namespace Engine
 
 	bool RHIStencilTest::serialize(Archive& ar)
 	{
-		return ar.serialize_memory(reinterpret_cast<byte*>(this), sizeof(*this));
+		return ar.serialize(fail, depth_pass, depth_fail, compare, compare_mask, write_mask, reference, enable);
 	}
 
 	bool RHIColorBlending::serialize(Archive& ar)

@@ -284,7 +284,7 @@ namespace Engine
 	{
 		static auto get_stencil_op_state = [](const RHIStencilTest& pipeline) {
 			vk::StencilOpState out_state;
-			out_state.setReference(0)
+			out_state.setReference(pipeline.reference)
 			        .setWriteMask(pipeline.write_mask)
 			        .setCompareMask(pipeline.compare_mask)
 			        .setCompareOp(VulkanEnums::compare_of(pipeline.compare))

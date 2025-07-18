@@ -93,6 +93,13 @@ namespace Engine
 		uint16_t array_slice = 0;
 	};
 
+	struct RHITextureRegion {
+		Vector3u offset      = {0, 0, 0};
+		Vector3u extent      = {0, 0, 0};
+		uint16_t mip_level   = 0;
+		uint16_t array_slice = 0;
+	};
+
 	struct RHITextureDescSRV {
 		uint16_t first_array_slice = 0;
 		uint16_t array_size        = ~0;

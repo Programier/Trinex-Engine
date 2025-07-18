@@ -207,6 +207,9 @@ namespace Engine
 		virtual RHI& copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
 		                                    uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) = 0;
 
+		virtual RHI& copy_texture_to_texture(RHI_Texture* src, const RHITextureRegion& src_region, RHI_Texture* dst,
+		                                     const RHITextureRegion& dst_region) = 0;
+
 		virtual RHI& primitive_topology(RHIPrimitiveTopology topology) = 0;
 		virtual RHI& polygon_mode(RHIPolygonMode mode)                 = 0;
 		virtual RHI& cull_mode(RHICullMode mode)                       = 0;

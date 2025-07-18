@@ -183,6 +183,9 @@ namespace Engine
 		VulkanAPI& copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
 		                                  uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) override;
 
+		VulkanAPI& copy_texture_to_texture(RHI_Texture* src, const RHITextureRegion& src_region, RHI_Texture* dst,
+		                                   const RHITextureRegion& dst_region) override;
+
 		VulkanAPI& primitive_topology(RHIPrimitiveTopology topology) override;
 		VulkanAPI& polygon_mode(RHIPolygonMode mode) override;
 		VulkanAPI& cull_mode(RHICullMode mode) override;

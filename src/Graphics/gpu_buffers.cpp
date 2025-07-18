@@ -95,6 +95,7 @@ namespace Engine
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
 				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_data, m_flags | RHIBufferCreateFlags::VertexBuffer);
+
 				rhi->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{
@@ -290,7 +291,7 @@ namespace Engine
 
 	IndexBuffer& IndexBuffer::init(RHIBufferCreateFlags type, size_t size, const uint16_t* data, bool keep_cpu_data)
 	{
-		allocate_data(type, RHIIndexFormat::UInt16, sizeof(uint16_t) * size);
+		allocate_data(type, RHIIndexFormat::UInt16, size);
 		if (data)
 			std::memcpy(m_data, data, sizeof(uint16_t) * size);
 		return init(keep_cpu_data);
@@ -298,7 +299,7 @@ namespace Engine
 
 	IndexBuffer& IndexBuffer::init(RHIBufferCreateFlags type, size_t size, const uint32_t* data, bool keep_cpu_data)
 	{
-		allocate_data(type, RHIIndexFormat::UInt32, sizeof(uint32_t) * size);
+		allocate_data(type, RHIIndexFormat::UInt32, size);
 		if (data)
 			std::memcpy(m_data, data, sizeof(uint32_t) * size);
 		return init(keep_cpu_data);

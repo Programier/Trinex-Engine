@@ -92,7 +92,7 @@ namespace Engine
 
 		vk::ImageBlit blit;
 		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.pos.y, 1)});
+		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_rect.pos.y, 0), vk::Offset3D(dst_end.x, dst_end.y, 1)});
 
 		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
 		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));

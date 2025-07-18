@@ -71,6 +71,9 @@ namespace Engine
 		NoneApi& copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
 		                                uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) override;
 
+		NoneApi& copy_texture_to_texture(RHI_Texture* src, const RHITextureRegion& src_region, RHI_Texture* dst,
+		                                 const RHITextureRegion& dst_region) override;
+
 		NoneApi& barrier(RHI_Texture* texture, RHIAccess dst_access) override;
 		NoneApi& barrier(RHI_Buffer* buffer, RHIAccess dst_access) override;
 

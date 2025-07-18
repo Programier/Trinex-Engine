@@ -430,9 +430,9 @@ namespace Engine
 		{
 			Undefined = 0,
 
-			Depth        = 1,
-			DepthStencil = 2,
-			ShadowDepth  = 3,
+			D32F      = 1,
+			D16_UNORM = 3,
+			D24S8     = 2,
 
 			R8           = 4,
 			R8G8         = 5,
@@ -517,9 +517,9 @@ namespace Engine
 
 		constexpr static inline uint32_t static_count() { return 68; }
 		constexpr inline bool is_color() const { return value >= R8 && value <= P010; }
-		constexpr inline bool is_depth_stencil() const { return value == DepthStencil; }
-		constexpr inline bool is_depth() const { return value == Depth || value == ShadowDepth; }
-		constexpr inline bool has_depth() const { return value >= Depth && value <= ShadowDepth; }
+		constexpr inline bool is_depth_stencil() const { return value == D24S8; }
+		constexpr inline bool is_depth() const { return value == D32F || value == D16_UNORM; }
+		constexpr inline bool has_depth() const { return value >= D32F && value <= D24S8; }
 
 		template<typename Func>
 		constexpr static void static_foreach(Func&& func)
@@ -534,9 +534,10 @@ namespace Engine
 	struct RHISurfaceFormat {
 		enum Enum : EnumerateType
 		{
-			Undefined   = RHIColorFormat::Undefined,
-			Depth       = RHIColorFormat::Depth,
-			ShadowDepth = RHIColorFormat::ShadowDepth,
+			Undefined = RHIColorFormat::Undefined,
+			D32F      = RHIColorFormat::D32F,
+			D16       = RHIColorFormat::D16_UNORM,
+			D24S8     = RHIColorFormat::D24S8,
 
 			// Unsigned normalized formats,
 			R8       = RHIColorFormat::R8,

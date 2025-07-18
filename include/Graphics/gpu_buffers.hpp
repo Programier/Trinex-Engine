@@ -45,7 +45,7 @@ namespace Engine
 
 		bool serialize(Archive& ar);
 
-		inline RHI_Buffer* rhi_vertex_buffer() { return m_buffer; }
+		inline RHI_Buffer* rhi_vertex_buffer() const { return m_buffer; }
 		inline byte* data() { return m_data; }
 		inline const byte* data() const { return m_data; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
@@ -147,7 +147,7 @@ namespace Engine
 
 		bool serialize(Archive& ar);
 
-		inline RHI_Buffer* rhi_index_buffer() { return m_buffer; }
+		inline RHI_Buffer* rhi_index_buffer() const { return m_buffer; }
 		inline byte* data() { return m_data; }
 		inline const byte* data() const { return m_data; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }

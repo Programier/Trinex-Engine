@@ -24,6 +24,7 @@ namespace Engine
 		RHICompareFunc compare  = RHICompareFunc::Less;
 		byte compare_mask       = 0;
 		byte write_mask         = 0;
+		byte reference          = 0;
 		bool enable             = false;
 
 		bool serialize(Archive& ar);

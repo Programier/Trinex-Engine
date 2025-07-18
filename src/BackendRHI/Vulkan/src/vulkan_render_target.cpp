@@ -181,7 +181,7 @@ namespace Engine
 
 	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::change_layout(vk::ImageLayout new_layout)
 	{
-		if (m_layout != new_layout)
+		if (m_layout != new_layout || new_layout == vk::ImageLayout::eTransferDstOptimal)
 		{
 			vk::ImageMemoryBarrier barrier;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
