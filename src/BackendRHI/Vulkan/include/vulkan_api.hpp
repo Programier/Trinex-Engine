@@ -165,7 +165,7 @@ namespace Engine
 		RHI_Pipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
-		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
+		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		VulkanAPI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		VulkanAPI& push_debug_stage(const char* stage) override;
@@ -207,6 +207,8 @@ namespace Engine
 
 		VulkanAPI& begin_statistics(RHIPipelineStatistics* stats) override;
 		VulkanAPI& end_statistics(RHIPipelineStatistics* stats) override;
+
+		VulkanAPI& present(RHISwapchain* swapchain) override;
 
 		~VulkanAPI();
 	};

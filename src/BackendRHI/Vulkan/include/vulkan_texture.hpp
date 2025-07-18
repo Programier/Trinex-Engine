@@ -44,7 +44,7 @@ namespace Engine
 			ViewDesc desc;
 		};
 
-	private:
+	protected:
 		Vector<View<class VulkanTextureSRV>> m_srv;
 		Vector<View<class VulkanTextureUAV>> m_uav;
 		Vector<View<class VulkanTextureRTV>> m_rtv;
@@ -55,7 +55,6 @@ namespace Engine
 
 		vk::Image m_image;
 		vk::ImageLayout m_layout;
-		vk::ImageAspectFlags m_aspect;
 		vk::Format m_format;
 		vk::Extent3D m_extent;
 
@@ -68,7 +67,16 @@ namespace Engine
 
 		inline vk::Image image() const { return m_image; }
 		inline vk::ImageLayout layout() const { return m_layout; }
-		inline vk::ImageAspectFlags aspect() const { return m_aspect; }
+		inline vk::ImageAspectFlags aspect() const
+		{
+			if (m_format == vk::Format::eD16Unorm || m_format == vk::Format::eD32Sfloat)
+				return vk::ImageAspectFlagBits::eDepth;
+
+			if (m_format == vk::Format::eD24UnormS8Uint)
+				return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+
+			return vk::ImageAspectFlagBits::eColor;
+		}
 		inline vk::Format format() const { return m_format; }
 		inline vk::Extent3D extent() const { return m_extent; }
 		inline uint16_t layer_count() const { return m_layers_count; }

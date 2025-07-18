@@ -110,16 +110,6 @@ namespace Engine
 
 	TreeMap<VulkanRenderPass::Key, VulkanRenderPass*> VulkanRenderPass::m_render_passes;
 
-	void VulkanRenderPass::Key::init(vk::Format format)
-	{
-		m_attachments[5] = format;
-
-		for (size_t i = 0; i < 5; ++i)
-		{
-			m_attachments[i] = vk::Format::eUndefined;
-		}
-	}
-
 	void VulkanRenderPass::Key::init(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		m_attachments[0] = surface_format_of(targets[0]);
@@ -156,40 +146,6 @@ namespace Engine
 		}
 
 		throw EngineException("Failed to create render pass!");
-	}
-
-	VulkanRenderPass* VulkanRenderPass::swapchain_render_pass(vk::Format format)
-	{
-		Key key;
-		key.init(format);
-
-		VulkanRenderPass*& pass = m_render_passes[key];
-
-		if (!pass)
-		{
-			VulkanRenderPassBuilder builder;
-
-			builder.m_descriptions[0] =
-			        VulkanRenderPassBuilder::create_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false);
-			builder.m_attachments_count = 1;
-
-			builder.m_references[0] = vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal);
-			builder.m_references[1] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
-			builder.m_references[2] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
-			builder.m_references[3] = vk::AttachmentReference(VK_ATTACHMENT_UNUSED, vk::ImageLayout::eColorAttachmentOptimal);
-
-			if (auto vk_pass = builder.build())
-			{
-				pass = new VulkanRenderPass(vk_pass);
-				return pass;
-			}
-			else
-			{
-				throw EngineException("Failed to create swapchain render pass!");
-			}
-		}
-
-		return pass;
 	}
 
 	void VulkanRenderPass::destroy_all()

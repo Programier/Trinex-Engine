@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	class WindowRenderViewport;
+	class Window;
 	class GraphicsPipeline;
 	class ComputePipeline;
 
@@ -133,15 +133,10 @@ namespace Engine
 		virtual RHI_UnorderedAccessView* as_uav() = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_Viewport : RHI_Object {
-		virtual void present() = 0;
-
-		virtual void vsync(bool flag)                      = 0;
-		virtual void on_resize(const Size2D& new_size)     = 0;
-		virtual void bind()                                = 0;
-		virtual void blit_target(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		                         RHISamplerFilter filter)  = 0;
-		virtual void clear_color(const LinearColor& color) = 0;
+	struct RHISwapchain : RHI_Object {
+		virtual void vsync(bool flag)             = 0;
+		virtual void resize(const Vector2u& size) = 0;
+		virtual RHI_RenderTargetView* as_rtv()    = 0;
 	};
 
 	struct ENGINE_EXPORT RHI {
@@ -190,7 +185,7 @@ namespace Engine
 		virtual RHI_Pipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)                        = 0;
 		virtual RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)                  = 0;
 		virtual RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)                  = 0;
-		virtual RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync)                             = 0;
+		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                            = 0;
 		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHI& push_debug_stage(const char* stage)                                                              = 0;
 		virtual RHI& pop_debug_stage()                                                                                = 0;
@@ -231,6 +226,8 @@ namespace Engine
 
 		virtual RHI& begin_statistics(RHIPipelineStatistics* stats) = 0;
 		virtual RHI& end_statistics(RHIPipelineStatistics* stats)   = 0;
+
+		virtual RHI& present(RHISwapchain* swapchain) = 0;
 
 		// INLINES
 		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)

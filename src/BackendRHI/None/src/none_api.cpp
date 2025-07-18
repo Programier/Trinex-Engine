@@ -117,17 +117,10 @@ namespace Engine
 		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
 	};
 
-	struct NoneViewport : public NoneApiDestroyable<RHI_Viewport> {
-		void present() override {}
+	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {
 		void vsync(bool flag) override {}
-		void on_resize(const Size2D& new_size) override {}
-		void bind() override {}
-
-		void blit_target(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		                 RHISamplerFilter filter) override
-		{}
-
-		void clear_color(const LinearColor& color) override {}
+		void resize(const Vector2u& new_size) override {}
+		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
 	};
 
 
@@ -249,9 +242,9 @@ namespace Engine
 		return new NoneBuffer();
 	}
 
-	RHI_Viewport* NoneApi::create_viewport(WindowRenderViewport* viewport, bool vsync)
+	RHISwapchain* NoneApi::create_swapchain(Window* window, bool vsync)
 	{
-		return new NoneViewport();
+		return new NoneSwapchain();
 	}
 
 	NoneApi& NoneApi::primitive_topology(RHIPrimitiveTopology topology)
@@ -364,6 +357,11 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::end_statistics(RHIPipelineStatistics* stats)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::present(RHISwapchain* swapchain)
 	{
 		return *this;
 	}

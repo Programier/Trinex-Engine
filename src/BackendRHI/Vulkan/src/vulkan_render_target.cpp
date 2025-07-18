@@ -8,7 +8,7 @@
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_resource_view.hpp>
-#include <vulkan_viewport.hpp>
+#include <vulkan_state.hpp>
 
 namespace Engine
 {
@@ -24,11 +24,6 @@ namespace Engine
 	void VulkanRenderTargetBase::bind()
 	{
 		API->m_state_manager->bind(this);
-	}
-
-	bool VulkanRenderTargetBase::is_swapchain_render_target()
-	{
-		return false;
 	}
 
 	VulkanRenderTargetBase& VulkanRenderTargetBase::size(uint32_t width, uint32_t height)
@@ -153,53 +148,6 @@ namespace Engine
 		{
 			m_key.m_depth->remove_target(this);
 		}
-	}
-
-	VulkanSwapchainRenderTarget::VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format)
-	{
-		m_image  = image;
-		m_view   = view;
-		m_layout = vk::ImageLayout::eUndefined;
-
-		m_size        = size;
-		m_render_pass = VulkanRenderPass::swapchain_render_pass(format);
-		post_init(&view, 1);
-
-		change_layout(vk::ImageLayout::ePresentSrcKHR);
-	}
-
-	bool VulkanSwapchainRenderTarget::is_swapchain_render_target()
-	{
-		return true;
-	}
-
-	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::lock_surfaces()
-	{
-		change_layout(vk::ImageLayout::eColorAttachmentOptimal);
-		return *this;
-	}
-
-	VulkanSwapchainRenderTarget& VulkanSwapchainRenderTarget::change_layout(vk::ImageLayout new_layout)
-	{
-		if (m_layout != new_layout || new_layout == vk::ImageLayout::eTransferDstOptimal)
-		{
-			vk::ImageMemoryBarrier barrier;
-			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.oldLayout           = m_layout;
-			barrier.newLayout           = new_layout;
-			barrier.image               = m_image;
-			barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-			Barrier::transition_image_layout(barrier);
-			m_layout = new_layout;
-		}
-		return *this;
-	}
-
-	VulkanSwapchainRenderTarget::~VulkanSwapchainRenderTarget()
-	{
-		DESTROY_CALL(destroyImageView, m_view);
 	}
 
 	VulkanAPI& VulkanAPI::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,

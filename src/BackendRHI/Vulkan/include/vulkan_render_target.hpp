@@ -15,7 +15,6 @@ namespace Engine
 		VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
 		void bind();
-		virtual bool is_swapchain_render_target();
 		virtual VulkanRenderTargetBase& lock_surfaces() = 0;
 		virtual ~VulkanRenderTargetBase();
 	};
@@ -38,18 +37,5 @@ namespace Engine
 		VulkanRenderTarget& init(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
 		VulkanRenderTargetBase& lock_surfaces() override;
 		~VulkanRenderTarget();
-	};
-
-	struct VulkanSwapchainRenderTarget : public VulkanRenderTargetBase {
-		vk::Image m_image;
-		vk::ImageView m_view;
-		vk::ImageLayout m_layout;
-
-		VulkanSwapchainRenderTarget(vk::Image image, vk::ImageView view, Size2D size, vk::Format format);
-
-		virtual bool is_swapchain_render_target() override;
-		VulkanSwapchainRenderTarget& lock_surfaces() override;
-		VulkanSwapchainRenderTarget& change_layout(vk::ImageLayout new_layout);
-		~VulkanSwapchainRenderTarget();
 	};
 }// namespace Engine

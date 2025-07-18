@@ -37,12 +37,8 @@ namespace Engine
 		RenderViewport();
 		~RenderViewport();
 
-		virtual RenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const struct RHIRect& src,
-		                                        const struct RHIRect& dst,
-		                                        RHISamplerFilter filter = RHISamplerFilter::Trilinear) = 0;
-		virtual RenderViewport& rhi_clear_color(const Color& color)                                    = 0;
-		virtual RenderViewport& rhi_bind()                                                             = 0;
-		virtual RenderViewport& rhi_present()                                                          = 0;
+		virtual RHI_RenderTargetView* rhi_rtv() = 0;
+		virtual RenderViewport& rhi_present()   = 0;
 		inline Size2D size() const { return m_size; }
 
 		RenderViewport& update(float dt);
@@ -57,21 +53,20 @@ namespace Engine
 	{
 		trinex_declare_class(WindowRenderViewport, RenderViewport);
 		class Window* m_window;
-		struct RHI_Viewport* m_viewport;
+		struct RHISwapchain* m_swapchain;
 
 	public:
 		WindowRenderViewport(Window* window, bool vsync);
 		~WindowRenderViewport();
 		Window* window() const;
-		WindowRenderViewport& rhi_blit_target(RHI_RenderTargetView* surface, const RHIRect& src, const RHIRect& dst,
-		                                      RHISamplerFilter filter = RHISamplerFilter::Trilinear) override;
-		WindowRenderViewport& rhi_clear_color(const Color& color) override;
-		WindowRenderViewport& rhi_bind() override;
-		WindowRenderViewport& rhi_present() override;
 
 		WindowRenderViewport& vsync(bool flag);
 		WindowRenderViewport& on_resize(const Size2D& new_size);
 		WindowRenderViewport& on_orientation_changed(Orientation orientation);
+
+		WindowRenderViewport& rhi_present() override;
+		RHI_RenderTargetView* rhi_rtv() override;
+		inline RHISwapchain* rhi_swapchain() const { return m_swapchain; }
 	};
 
 	class ENGINE_EXPORT SurfaceRenderViewport : public RenderViewport

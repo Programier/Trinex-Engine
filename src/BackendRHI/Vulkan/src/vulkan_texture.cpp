@@ -113,7 +113,6 @@ namespace Engine
 
 	VulkanTexture& VulkanTexture::create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags)
 	{
-		m_aspect     = VulkanEnums::aspect_of(color_format);
 		m_format     = VulkanEnums::format_of(color_format);
 		m_extent     = vk::Extent3D{size.x, size.y, size.z};
 		m_mips_count = mips;
@@ -242,7 +241,8 @@ namespace Engine
 		static_destroy_view(m_rtv);
 		static_destroy_view(m_dsv);
 
-		vmaDestroyImage(API->m_allocator, m_image, m_allocation);
+		if (m_allocation)
+			vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
 	RHI_Texture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,

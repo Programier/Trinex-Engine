@@ -131,7 +131,7 @@ namespace Engine
 			pipeline->srv = nullptr;
 
 			RHIViewport viewport(bd->window->size());
-			bd->window->rhi_bind();
+			rhi->bind_render_target1(bd->window->rhi_rtv());
 			rhi->viewport(viewport);
 
 			float L = draw_data->DisplayPos.x;

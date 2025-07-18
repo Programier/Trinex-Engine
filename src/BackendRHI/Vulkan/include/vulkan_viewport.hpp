@@ -9,9 +9,11 @@
 namespace Engine
 {
 	class VulkanCommandBuffer;
-	struct VulkanSwapchainRenderTarget;
+	class VulkanTexture;
 
-	struct VulkanSwapchain {
+	class VulkanSwapchain : public VulkanDeferredDestroy<RHISwapchain>
+	{
+	private:
 		enum Status : int_t
 		{
 			Success     = 0,
@@ -33,7 +35,7 @@ namespace Engine
 			inline vk::Semaphore semaphore() const { return m_semaphore; }
 		};
 
-		Vector<VulkanSwapchainRenderTarget*> m_backbuffers;
+		Vector<VulkanTexture*> m_backbuffers;
 		Vector<Semaphore> m_image_present_semaphores;
 		Vector<Semaphore> m_render_finished_semaphores;
 
@@ -44,44 +46,27 @@ namespace Engine
 		int32_t m_image_index = -1;
 		bool m_need_recreate  = false;
 
+	private:
+		VulkanSwapchain& create_swapchain(vk::SwapchainKHR* old = nullptr);
+		VulkanSwapchain& release_swapchain();
+		VulkanSwapchain& recreate_swapchain();
+
+	public:
 		VulkanSwapchain(Window* window, bool vsync);
 		~VulkanSwapchain();
-		VulkanSwapchain& vsync(bool flag, bool is_init = false);
-
-		VulkanSwapchain& create(vk::SwapchainKHR* old = nullptr);
-		VulkanSwapchain& release();
-		VulkanSwapchain& recreate();
 
 		int_t acquire_image_index(VulkanCommandBuffer* cmd_buffer);
 		int_t do_present(VulkanCommandBuffer* cmd_buffer);
-		VulkanSwapchainRenderTarget* backbuffer();
+		VulkanTexture* backbuffer();
 		int_t try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandBuffer*), VulkanCommandBuffer* cmd_buffer,
 		                  bool skip_on_out_of_date);
 
 		vk::Semaphore render_finished_semaphore();
 		vk::Semaphore image_present_semaphore();
-	};
 
-	struct VulkanViewport : public VulkanDeferredDestroy<RHI_Viewport> {
-		std::vector<VkImageView> m_image_views;
-		VulkanSwapchain* m_swapchain = nullptr;
-
-		vk::Image current_image();
-		vk::ImageLayout default_image_layout();
-		VulkanSwapchainRenderTarget* render_target();
-
-		VulkanViewport* init(WindowRenderViewport* viewport, bool vsync);
-
-		void destroy_image_views();
-		void present() override;
-
-		void on_resize(const Size2D& new_size) override;
+		void present();
+		void resize(const Vector2u& size) override;
 		void vsync(bool flag) override;
-		void bind() override;
-		void blit_target(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		                 RHISamplerFilter filter) override;
-		void clear_color(const LinearColor& color) override;
-
-		~VulkanViewport();
+		RHI_RenderTargetView* as_rtv() override;
 	};
 }// namespace Engine

@@ -8,13 +8,6 @@
 
 namespace Engine
 {
-	class HelloTriangle : public GlobalGraphicsPipeline
-	{
-		trinex_declare_pipeline(HelloTriangle, GlobalGraphicsPipeline);
-	};
-
-	trinex_implement_pipeline(HelloTriangle, "[shaders_dir]:/TrinexEngine/trinex/graphics/hello_triangle.slang") {}
-
 	DefaultClient::DefaultClient() {}
 
 	DefaultClient::~DefaultClient() {}
@@ -27,13 +20,9 @@ namespace Engine
 	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
 	{
 		render_thread()->call([viewport]() {
-			rhi->viewport(RHIViewport(viewport->size()));
-			rhi->scissor(RHIScissors(viewport->size()));
-
-			viewport->rhi_clear_color(LinearColor(0, 0, 0, 1));
-			viewport->rhi_bind();
-			HelloTriangle::instance()->rhi_bind();
-			rhi->draw(6, 0);
+			rhi->submit();
+			auto rtv = viewport->rhi_rtv();
+			rtv->clear(LinearColor(1, 0, 0, 1));
 			viewport->rhi_present();
 		});
 		return *this;

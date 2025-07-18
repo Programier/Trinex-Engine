@@ -170,7 +170,7 @@ namespace Engine
 	WindowRenderViewport::WindowRenderViewport(Window* window, bool vsync)
 	{
 		m_window = window;
-		render_thread()->call([vp = Pointer(this), vsync]() { vp->m_viewport = rhi->create_viewport(vp, vsync); });
+		render_thread()->call([vp = Pointer(this), vsync]() { vp->m_swapchain = rhi->create_swapchain(vp->window(), vsync); });
 		m_size = window->size();
 	}
 
@@ -180,8 +180,8 @@ namespace Engine
 		m_window->m_render_viewport = nullptr;
 		m_window                    = nullptr;
 
-		render_thread()->call([vp = m_viewport]() { vp->release(); });
-		m_viewport = nullptr;
+		render_thread()->call([swapchain = m_swapchain]() { swapchain->release(); });
+		m_swapchain = nullptr;
 	}
 
 	Window* WindowRenderViewport::window() const
@@ -189,40 +189,26 @@ namespace Engine
 		return m_window;
 	}
 
-	WindowRenderViewport& WindowRenderViewport::rhi_blit_target(RHI_RenderTargetView* surface, const RHIRect& src,
-	                                                            const RHIRect& dst, RHISamplerFilter filter)
-	{
-		m_viewport->blit_target(surface, src, dst, filter);
-		return *this;
-	}
-
-	WindowRenderViewport& WindowRenderViewport::rhi_clear_color(const Color& color)
-	{
-		m_viewport->clear_color(color);
-		return *this;
-	}
-
-	WindowRenderViewport& WindowRenderViewport::rhi_bind()
-	{
-		m_viewport->bind();
-		return *this;
-	}
-
 	WindowRenderViewport& WindowRenderViewport::rhi_present()
 	{
-		m_viewport->present();
+		rhi->present(m_swapchain);
 		return *this;
+	}
+
+	RHI_RenderTargetView* WindowRenderViewport::rhi_rtv()
+	{
+		return m_swapchain->as_rtv();
 	}
 
 	WindowRenderViewport& WindowRenderViewport::vsync(bool flag)
 	{
 		if (is_in_render_thread())
 		{
-			m_viewport->vsync(flag);
+			m_swapchain->vsync(flag);
 		}
 		else
 		{
-			render_thread()->call([vp = m_viewport, flag]() { vp->vsync(flag); });
+			render_thread()->call([swapchain = m_swapchain, flag]() { swapchain->vsync(flag); });
 		}
 		return *this;
 	}
@@ -231,12 +217,12 @@ namespace Engine
 	{
 		if (is_in_render_thread())
 		{
-			m_viewport->on_resize(new_size);
+			m_swapchain->resize(new_size);
 		}
 		else
 		{
 			m_size = new_size;
-			render_thread()->call([vp = m_viewport, new_size]() { vp->on_resize(new_size); });
+			render_thread()->call([swapchain = m_swapchain, new_size]() { swapchain->resize(new_size); });
 		}
 		return *this;
 	}
@@ -245,7 +231,7 @@ namespace Engine
 	{
 		if (is_in_render_thread())
 		{
-			m_viewport->on_resize(size());
+			m_swapchain->resize(size());
 		}
 		else
 		{

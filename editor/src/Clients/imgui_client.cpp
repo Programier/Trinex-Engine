@@ -208,8 +208,10 @@ namespace Engine
 		render_thread()->call([this, viewport]() {
 			rhi->viewport(RHIViewport(viewport->size()));
 			rhi->scissor(RHIScissors(viewport->size()));
-			viewport->rhi_bind();
-			viewport->rhi_clear_color(LinearColor(0.f, 0.f, 0.f, 1.f));
+
+			auto rtv = viewport->rhi_rtv();
+			rtv->clear(LinearColor(0.f, 0.f, 0.f, 1.f));
+			rhi->bind_render_target1(rtv);
 			m_window->rhi_render();
 			viewport->rhi_present();
 		});

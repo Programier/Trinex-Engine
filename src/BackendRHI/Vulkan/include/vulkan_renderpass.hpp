@@ -14,7 +14,6 @@ namespace Engine
 		struct Key {
 			vk::Format m_attachments[6];
 
-			void init(vk::Format format);
 			void init(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
 			bool operator<(const Key& key) const;
 		};
@@ -24,7 +23,6 @@ namespace Engine
 
 	public:
 		static VulkanRenderPass* find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
-		static VulkanRenderPass* swapchain_render_pass(vk::Format format);
 		static void destroy_all();
 
 		inline vk::RenderPass render_pass() const { return m_render_pass; }

@@ -45,7 +45,7 @@ namespace Engine
 		RHI_Pipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags type) override;
-		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
+		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 
 		NoneApi& primitive_topology(RHIPrimitiveTopology topology) override;
 		NoneApi& polygon_mode(RHIPolygonMode mode) override;
@@ -82,6 +82,8 @@ namespace Engine
 
 		NoneApi& begin_statistics(RHIPipelineStatistics* stats) override;
 		NoneApi& end_statistics(RHIPipelineStatistics* stats) override;
+
+		NoneApi& present(RHISwapchain* swapchain) override;
 
 		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 		NoneApi& push_debug_stage(const char* stage) override;

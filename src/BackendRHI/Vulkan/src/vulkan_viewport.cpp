@@ -1,5 +1,6 @@
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_surface.hpp>
@@ -14,109 +15,27 @@
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_resource_view.hpp>
+#include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
 {
-	vk::Image VulkanViewport::current_image()
+	class VulkanSwapchainTexture : public VulkanTypedTexture<vk::ImageViewType::e2D, RHITextureType::Texture2D>
 	{
-		return m_swapchain->backbuffer()->m_image;
-	}
-
-	vk::ImageLayout VulkanViewport::default_image_layout()
-	{
-		return vk::ImageLayout::ePresentSrcKHR;
-	}
-
-	VulkanSwapchainRenderTarget* VulkanViewport::render_target()
-	{
-		return m_swapchain->backbuffer();
-	}
-
-	VulkanViewport* VulkanViewport::init(WindowRenderViewport* viewport, bool vsync)
-	{
-		m_swapchain = new VulkanSwapchain(viewport->window(), vsync);
-		return this;
-	}
-
-	void VulkanViewport::destroy_image_views()
-	{
-		for (auto& view : m_image_views)
+	public:
+		VulkanSwapchainTexture(vk::Image image, vk::Format format, Vector2u size)
 		{
-			API->m_device.destroyImageView(view);
+			m_flags        = RHITextureCreateFlags::RenderTarget;
+			m_image        = image;
+			m_layout       = vk::ImageLayout::eUndefined;
+			m_format       = format;
+			m_extent       = vk::Extent3D(size.x, size.y, 1);
+			m_mips_count   = 1;
+			m_layers_count = 1;
 		}
 
-		m_image_views.clear();
-	}
-
-	void VulkanViewport::present()
-	{
-		trinex_profile_cpu_n("VulkanWindowViewport::end_render");
-		auto cmd = API->current_command_buffer();
-		render_target()->change_layout(vk::ImageLayout::ePresentSrcKHR);
-		cmd->add_wait_semaphore(vk::PipelineStageFlagBits::eColorAttachmentOutput, m_swapchain->image_present_semaphore());
-		API->m_cmd_manager->submit(m_swapchain->render_finished_semaphore());
-		m_swapchain->try_present(&VulkanSwapchain::do_present, cmd, true);
-
-		API->m_state_manager->submit();
-	}
-
-	void VulkanViewport::on_resize(const Size2D& new_size)
-	{
-		m_swapchain->m_need_recreate = true;
-	}
-
-	void VulkanViewport::vsync(bool flag)
-	{
-		m_swapchain->vsync(flag);
-	}
-
-	void VulkanViewport::bind()
-	{
-		return render_target()->bind();
-	}
-
-	void VulkanViewport::blit_target(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-	                                 RHISamplerFilter filter)
-	{
-		auto cmd = API->end_render_pass();
-
-		auto src = static_cast<VulkanTextureRTV*>(surface);
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
-
-		auto dst = render_target();
-		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		Vector2i src_end = src_rect.pos + src_rect.size;
-		Vector2i dst_end = dst_rect.pos + dst_rect.size;
-
-		vk::ImageBlit blit;
-		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_rect.pos.y, 0), vk::Offset3D(dst_end.x, dst_end.y, 1)});
-
-		blit.setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
-		cmd->blitImage(src->image(), src->layout(), dst->m_image, vk::ImageLayout::eTransferDstOptimal, blit,
-		               VulkanEnums::filter_of(filter));
-	}
-
-	void VulkanViewport::clear_color(const LinearColor& color)
-	{
-		auto cmd = API->end_render_pass();
-
-		auto dst = render_target();
-		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		cmd->clearColorImage(dst->m_image, vk::ImageLayout::eTransferDstOptimal,
-		                     vk::ClearColorValue(color.r, color.g, color.b, color.a),
-		                     vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-	}
-
-	VulkanViewport::~VulkanViewport()
-	{
-		API->wait_idle();
-		delete m_swapchain;
-	}
+		~VulkanSwapchainTexture() { m_image = vk::Image(); }
+	};
 
 	VulkanSwapchain::Semaphore::Semaphore()
 	{
@@ -137,35 +56,17 @@ namespace Engine
 
 	VulkanSwapchain::VulkanSwapchain(Window* window, bool vsync) : m_surface(API->create_surface(window))
 	{
-		this->vsync(vsync, true);
-		create();
+		m_present_mode = API->present_mode_of(vsync, m_surface);
+		create_swapchain();
 	}
 
 	VulkanSwapchain::~VulkanSwapchain()
 	{
-		release();
+		release_swapchain();
 		vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);
 	}
 
-	VulkanSwapchain& VulkanSwapchain::vsync(bool flag, bool is_init)
-	{
-		if (is_init)
-		{
-			m_present_mode = API->present_mode_of(flag, m_surface);
-		}
-		else
-		{
-			auto mode = API->present_mode_of(flag, m_surface);
-			if (mode != m_present_mode)
-			{
-				m_present_mode  = mode;
-				m_need_recreate = true;
-			}
-		}
-		return *this;
-	}
-
-	VulkanSwapchain& VulkanSwapchain::create(vk::SwapchainKHR* old)
+	VulkanSwapchain& VulkanSwapchain::create_swapchain(vk::SwapchainKHR* old)
 	{
 		info_log("Vulkan API", "Creating new swapchain");
 		m_need_recreate = false;
@@ -203,15 +104,11 @@ namespace Engine
 		}
 
 		auto images_result = swapchain->get_images();
+
 		if (!images_result.has_value())
 			throw EngineException(images_result.error().message());
 
-		auto image_views_result = swapchain->get_image_views();
-		if (!image_views_result.has_value())
-			throw EngineException(image_views_result.error().message());
-
-		auto& images      = images_result.value();
-		auto& image_views = image_views_result.value();
+		auto& images = images_result.value();
 
 		m_backbuffers.resize(images.size());
 		m_image_present_semaphores.resize(images.size() + 1);
@@ -221,24 +118,19 @@ namespace Engine
 
 		for (int_t i = 0; auto& backbuffer : m_backbuffers)
 		{
-			backbuffer = new VulkanSwapchainRenderTarget(images[i], image_views[i], size, vk::Format(swapchain->image_format));
+			backbuffer = new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), size);
 			++i;
 		}
 
 		m_swapchain = swapchain->swapchain;
-		auto cmd    = API->current_command_buffer();
-		cmd->end();
-		cmd->submit();
-		cmd->wait();
-		cmd->begin();
 		return *this;
 	}
 
-	VulkanSwapchain& VulkanSwapchain::release()
+	VulkanSwapchain& VulkanSwapchain::release_swapchain()
 	{
 		API->wait_idle();
 
-		for (VulkanSwapchainRenderTarget* backbuffer : m_backbuffers)
+		for (VulkanTexture* backbuffer : m_backbuffers)
 		{
 			delete backbuffer;
 		}
@@ -253,13 +145,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanSwapchain& VulkanSwapchain::recreate()
+	VulkanSwapchain& VulkanSwapchain::recreate_swapchain()
 	{
 		vk::SwapchainKHR swapchain = m_swapchain;
 		m_swapchain                = VK_NULL_HANDLE;
 
-		release();
-		create(&swapchain);
+		release_swapchain();
+		create_swapchain(&swapchain);
 
 		API->m_device.destroySwapchainKHR(swapchain);
 
@@ -312,6 +204,7 @@ namespace Engine
 		}
 
 		m_image_index = result.value;
+		API->current_command_buffer()->add_wait_semaphore(vk::PipelineStageFlagBits::eAllCommands, image_present_semaphore());
 		return m_image_index;
 	}
 
@@ -357,7 +250,7 @@ namespace Engine
 	{
 		if (m_need_recreate)
 		{
-			recreate();
+			recreate_swapchain();
 			return try_present(callback, cmd_buffer, skip_on_out_of_date);
 		}
 
@@ -380,7 +273,7 @@ namespace Engine
 			}
 
 			ThisThread::sleep_for(0.1);
-			recreate();
+			recreate_swapchain();
 
 			status = (this->*callback)(cmd_buffer);
 		}
@@ -400,7 +293,7 @@ namespace Engine
 		return m_image_present_semaphores[m_sync_index].semaphore();
 	}
 
-	VulkanSwapchainRenderTarget* VulkanSwapchain::backbuffer()
+	VulkanTexture* VulkanSwapchain::backbuffer()
 	{
 		if (m_image_index == -1)
 		{
@@ -415,10 +308,47 @@ namespace Engine
 		return m_backbuffers[m_image_index];
 	}
 
-	RHI_Viewport* VulkanAPI::create_viewport(WindowRenderViewport* viewport, bool vsync)
+	void VulkanSwapchain::vsync(bool flag)
 	{
-		VulkanViewport* vulkan_viewport = new VulkanViewport();
-		vulkan_viewport->init(viewport, vsync);
-		return vulkan_viewport;
+		auto mode = API->present_mode_of(flag, m_surface);
+		if (mode != m_present_mode)
+		{
+			m_present_mode  = mode;
+			m_need_recreate = true;
+		}
+	}
+
+	RHI_RenderTargetView* VulkanSwapchain::as_rtv()
+	{
+		return backbuffer()->as_rtv({});
+	}
+
+	void VulkanSwapchain::resize(const Vector2u& size)
+	{
+		m_need_recreate = true;
+	}
+
+	void VulkanSwapchain::present()
+	{
+		if (m_image_index != -1)
+		{
+			trinex_profile_cpu_n("VulkanSwapchain::present");
+			auto cmd = API->current_command_buffer();
+			backbuffer()->change_layout(vk::ImageLayout::ePresentSrcKHR);
+			API->m_cmd_manager->submit(render_finished_semaphore());
+			try_present(&VulkanSwapchain::do_present, cmd, true);
+		}
+	}
+
+	RHISwapchain* VulkanAPI::create_swapchain(Window* window, bool vsync)
+	{
+		return new VulkanSwapchain(window, vsync);
+	}
+
+	VulkanAPI& VulkanAPI::present(RHISwapchain* swapchain)
+	{
+		static_cast<VulkanSwapchain*>(swapchain)->present();
+		m_state_manager->submit();
+		return *this;
 	}
 }// namespace Engine
