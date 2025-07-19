@@ -35,9 +35,8 @@ namespace Engine::EditorPipelines
 		auto tmp_format = renderer->format_of(Renderer::SceneColorLDR);
 		auto tmp_color  = RHISurfacePool::global_instance()->request_surface(tmp_format, view_size);
 
-		RHIRect rect(view_size);
-		tmp_color->as_rtv()->blit(renderer->scene_color_ldr_target()->as_rtv(), rect, rect, RHISamplerFilter::Point);
-
+		RHITextureRegion region = {view_size};
+		rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, tmp_color, region);
 		rhi->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
 
 		SRV* scene_color = tmp_color->as_srv();

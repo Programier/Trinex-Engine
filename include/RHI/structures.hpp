@@ -75,29 +75,21 @@ namespace Engine
 		bool serialize(Archive& ar);
 	};
 
-	struct RHIMappingRange {
-		size_t offset = 0;
-		size_t size   = 0;
-	};
-
-	struct RHITextureUpdateDesc {
-		const void* data     = nullptr;
-		size_t size          = 0;
-		size_t buffer_width  = 0;
-		size_t buffer_height = 0;
-
-		Vector3u offset = {0, 0, 0};
-		Vector3u extent = {0, 0, 0};
-
-		uint16_t mip_level   = 0;
-		uint16_t array_slice = 0;
-	};
-
 	struct RHITextureRegion {
-		Vector3u offset      = {0, 0, 0};
-		Vector3u extent      = {0, 0, 0};
-		uint16_t mip_level   = 0;
-		uint16_t array_slice = 0;
+		Vector3u extent;
+		Vector3u offset;
+		uint16_t mip_level;
+		uint16_t array_slice;
+
+		inline RHITextureRegion(const Vector3u& extent = {0, 0, 0}, const Vector3u& offset = {0, 0, 0}, uint16_t mip_level = 0,
+		                        uint16_t array_slice = 0)
+		    : extent(extent), offset(offset), mip_level(mip_level), array_slice(array_slice)
+		{}
+
+		inline RHITextureRegion(const Vector2u& extent, const Vector2u& offset = {0, 0}, uint16_t mip_level = 0,
+		                        uint16_t array_slice = 0)
+		    : extent(extent, 1), offset(offset, 0), mip_level(mip_level), array_slice(array_slice)
+		{}
 	};
 
 	struct RHITextureDescSRV {

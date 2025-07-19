@@ -97,35 +97,6 @@ namespace Engine
 		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
 	}
 
-	template<typename Target>
-	static void blit_target(Target* src, Target* dst, const RHIRect& src_rect, const RHIRect& dst_rect, RHISamplerFilter filter,
-	                        vk::ImageAspectFlagBits aspect)
-	{
-		auto cmd = API->end_render_pass();
-		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
-		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		auto src_end = src_rect.pos + src_rect.size;
-		auto dst_end = dst_rect.pos + dst_rect.size;
-
-		vk::ImageBlit blit;
-		blit.setSrcOffsets({vk::Offset3D(src_rect.pos.x, src_rect.pos.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
-		blit.setDstOffsets({vk::Offset3D(dst_rect.pos.x, dst_rect.pos.y, 0), vk::Offset3D(dst_end.x, dst_end.y, 1)});
-
-		blit.setSrcSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
-		blit.setDstSubresource(vk::ImageSubresourceLayers(aspect, 0, 0, 1));
-
-		cmd->blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal, blit,
-		               VulkanEnums::filter_of(filter));
-	}
-
-	void VulkanTextureRTV::blit(RHI_RenderTargetView* texture, const RHIRect& src_rect, const RHIRect& dst_rect,
-	                            RHISamplerFilter filter)
-	{
-		auto src = static_cast<VulkanTextureRTV*>(texture);
-		blit_target(src, this, src_rect, dst_rect, filter, vk::ImageAspectFlagBits::eColor);
-	}
-
 	VulkanTextureDSV::~VulkanTextureDSV()
 	{
 		while (!m_render_targets.empty())
@@ -167,13 +138,6 @@ namespace Engine
 	{
 		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), buffer()->size(), 0), index);
 		return *this;
-	}
-
-	void VulkanTextureDSV::blit(RHI_DepthStencilView* texture, const RHIRect& src_rect, const RHIRect& dst_rect,
-	                            RHISamplerFilter filter)
-	{
-		auto src = static_cast<VulkanTextureDSV*>(texture);
-		blit_target(src, this, src_rect, dst_rect, filter, vk::ImageAspectFlagBits::eDepth);
 	}
 
 	VulkanAPI& VulkanAPI::bind_srv(RHI_ShaderResourceView* view, byte slot)

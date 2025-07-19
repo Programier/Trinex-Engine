@@ -3,7 +3,6 @@
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/enums.hpp>
@@ -33,41 +32,7 @@ namespace Engine::RenderGraph
 	}
 
 	class Graph;
-
-	class ENGINE_EXPORT Resource
-	{
-	private:
-		RGVector<class Pass*> m_readers;
-		RGVector<class Pass*> m_writers;
-		RGVector<class Pass*> m_read_writers;
-
-		inline Resource() {}
-
-	public:
-		inline Resource& add_writer(Pass* pass)
-		{
-			m_writers.emplace_back(pass);
-			return *this;
-		}
-
-		inline Resource& add_reader(Pass* pass)
-		{
-			m_readers.emplace_back(pass);
-			return *this;
-		}
-
-		inline Resource& add_read_writer(Pass* pass)
-		{
-			m_read_writers.push_back(pass);
-			return *this;
-		}
-
-		inline const RGVector<Pass*>& writers() const { return m_writers; }
-		inline const RGVector<Pass*>& readers() const { return m_readers; }
-		inline const RGVector<Pass*>& read_writers() const { return m_read_writers; }
-
-		friend class Graph;
-	};
+	class Resource;
 
 	class ENGINE_EXPORT Pass
 	{
@@ -111,7 +76,7 @@ namespace Engine::RenderGraph
 			{
 				Undefined  = 0,
 				IsExecuted = BIT(0),
-				IsLive     = BIT(1),
+				IsVisited  = BIT(1),
 			};
 			trinex_bitfield_enum_struct(Flags, byte);
 		};
@@ -127,7 +92,6 @@ namespace Engine::RenderGraph
 		Flags m_flags;
 
 		Pass(class Graph* graph, Type type, const char* name = "Unnamed pass");
-
 		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access);
 
 	public:
@@ -172,10 +136,17 @@ namespace Engine::RenderGraph
 		inline class Graph* graph() const { return m_graph; }
 		inline Type type() const { return m_type; }
 		inline const char* name() const { return m_name; }
+		inline bool is_visited() const { return (m_flags & Flags::IsVisited) == Flags::IsVisited; }
 		inline const RGVector<Resource*>& resources() const { return m_resources; }
 		inline const RGVector<Pass*>& dependencies() const { return m_dependencies; }
 		inline const RGVector<Task*>& tasks() const { return m_tasks; }
 		inline bool is_empty() const { return m_tasks.empty(); }
+
+		inline Pass& add_flags(Flags flags)
+		{
+			m_flags |= flags;
+			return *this;
+		}
 
 		inline Pass& execute()
 		{
@@ -216,7 +187,7 @@ namespace Engine::RenderGraph
 			inline Node() { dependencies.reserve(8); }
 			inline void execute() { pass->execute(); }
 			inline bool is_executed() const { return pass->m_flags & Pass::Flags::IsExecuted; }
-			inline bool is_live() const { return pass->m_flags & Pass::Flags::IsLive; }
+			inline bool is_visited() const { return pass->m_flags & Pass::Flags::IsVisited; }
 			inline bool is_empty() const { return pass->is_empty(); }
 			inline Pass::Type type() const { return pass->type(); }
 			inline const char* name() const { return pass->name(); }
@@ -224,20 +195,35 @@ namespace Engine::RenderGraph
 			static inline Node* create() { return new (rg_allocate<Node>()) Node(); }
 		};
 
-		RGMap<RHI_Object*, Resource*> m_resource_map;
+		struct ResourceEntry {
+			Resource* first = nullptr;
+			Resource* last  = nullptr;
+		};
+
+		RGMap<RHI_Object*, ResourceEntry> m_resource_map;
 		RGSet<Resource*> m_outputs;
 		RGVector<Pass*> m_passes;
 		RGVector<Plugin*> m_plugins;
 
+	private:
 		Graph& build_graph(Pass* writer, Node* owner);
 		Graph& build_graph(Resource* resource, Node* owner);
+		Graph& build_output(Resource* resource, Node* owner);
 		Node* build_graph();
 		void execute_node(Node* node);
 
+		ResourceEntry* find_resource(RHI_Object* object);
+		ResourceEntry* find_resource(RHI_Texture* texture);
+		ResourceEntry* find_resource(RHI_Buffer* buffer);
+
+		inline Resource* readable_resource(RHI_Texture* texture) { return find_resource(texture)->last; }
+		inline Resource* readable_resource(RHI_Buffer* buffer) { return find_resource(buffer)->last; }
+
+		Resource* writable_resource(RHI_Texture* texture, Pass* writer);
+		Resource* writable_resource(RHI_Buffer* buffer, Pass* writer);
+
 	public:
 		Graph();
-		Resource& find_resource(RHI_Texture* texture);
-		Resource& find_resource(RHI_Buffer* buffer);
 		Graph& add_output(RHI_Texture* texture);
 		Graph& add_output(RHI_Buffer* buffer);
 		Pass& add_pass(Pass::Type type, const char* name = "Unnamed pass");

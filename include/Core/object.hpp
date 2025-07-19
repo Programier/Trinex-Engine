@@ -74,7 +74,6 @@ namespace Engine
 		// Setup object info
 		static Refl::Class* static_setup_next_object_info(Refl::Class* self);
 		static void static_setup_new_object(Object* object, StringView name, Object* owner);
-		const Object& remove_from_instances_array() const;
 
 		template<typename T>
 		static FORCE_INLINE T* static_setup_new_object_checked(T* object, StringView name, Object* owner)

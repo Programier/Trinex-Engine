@@ -205,9 +205,9 @@ namespace Engine
 
 		if (!object->flags.has_all(Object::IsAvailableForGC))
 			return false;
-		
+
 		auto index = object->instance_index();
-		
+
 		if (Object* owner = object->owner())
 		{
 			if (!destroy_recursive(owner))
@@ -226,9 +226,14 @@ namespace Engine
 	{
 		auto& objects = const_cast<Vector<Object*>&>(Object::all_objects());
 
-		for (Object* object : objects)
+		size_t index = 0;
+
+		while (index < objects.size())
 		{
-			destroy_recursive(object);
+			Object* object = objects[index];
+
+			if (!destroy_recursive(object))
+				++index;
 		}
 	}
 }// namespace Engine

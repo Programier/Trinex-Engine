@@ -116,11 +116,8 @@ namespace Engine
 
 				renderer->render();
 
-				auto dst = surface->rhi_rtv();
-				auto src = renderer->scene_color_ldr_target()->as_rtv();
-
-				RHIRect rect(view_size);
-				dst->blit(src, rect, rect, RHISamplerFilter::Bilinear);
+				RHITextureRegion region(view_size);
+				rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, surface->rhi_texture(), region);
 			});
 		}
 

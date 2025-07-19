@@ -259,11 +259,10 @@ namespace Engine
 
 			EditorRenderer::render_primitives(renderer, m_selected_actors_render_thread.data(), selected_count);
 
-			RHIRect rect = m_scene_view.viewport().size;
-			auto src     = renderer->render().scene_color_ldr_target()->as_rtv();
-			auto texture = scene->rhi_texture();
-			auto dst     = texture->as_rtv();
-			dst->blit(src, rect, rect, RHISamplerFilter::Point);
+			renderer->render();
+			
+			RHITextureRegion region(m_scene_view.view_size());
+			rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, scene->rhi_texture(), region);
 		});
 
 		return scene;

@@ -130,8 +130,6 @@ namespace Engine
 		//////////////////////////////////////////////////////////////
 
 		VulkanAPI();
-		VulkanAPI& initialize(Window* window) override;
-		void* context() override;
 
 		VulkanAPI& submit() override;
 		VulkanAPI& wait_idle();
@@ -172,7 +170,8 @@ namespace Engine
 		VulkanAPI& pop_debug_stage() override;
 
 		VulkanAPI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
-		VulkanAPI& update_texture(RHI_Texture*, const RHITextureUpdateDesc& desc) override;
+		VulkanAPI& update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+		                          size_t buffer_width, size_t buffer_height) override;
 
 		VulkanAPI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                                 size_t dst_offset) override;

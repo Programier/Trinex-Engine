@@ -46,7 +46,7 @@ namespace Engine
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "Base Color Resolve")
 				        .add_resource(base_color_target(), RHIAccess::CopySrc)
-				        .add_resource(scene_color_target(), RHIAccess::CopyDst)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::CopyDst)
 				        .add_func([this]() { copy_base_color_to_scene_color(); });
 				break;
 			}
@@ -55,7 +55,7 @@ namespace Engine
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "World Normal Resolve")
 				        .add_resource(normal_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::UAVGraphics)
 				        .add_func([this]() { copy_world_normal_to_scene_color(); });
 				break;
 			}
@@ -64,7 +64,7 @@ namespace Engine
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "Metalic Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::UAVGraphics)
 				        .add_func([this]() { copy_metalic_to_scene_color(); });
 				break;
 			}
@@ -73,7 +73,7 @@ namespace Engine
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "Roughness Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::UAVGraphics)
 				        .add_func([this]() { copy_roughness_to_scene_color(); });
 				break;
 			}
@@ -82,7 +82,7 @@ namespace Engine
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "Specular Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::UAVGraphics)
 				        .add_func([this]() { copy_specular_to_scene_color(); });
 				break;
 			}
@@ -91,7 +91,7 @@ namespace Engine
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "AO Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_target(), RHIAccess::UAVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::UAVGraphics)
 				        .add_func([this]() { copy_ambient_to_scene_color(); });
 				break;
 			}
@@ -269,18 +269,18 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::copy_base_color_to_scene_color()
 	{
-		auto src = base_color_target()->as_rtv();
-		auto dst = scene_color_target()->as_rtv();
+		auto src = base_color_target();
+		auto dst = scene_color_ldr_target();
 
-		RHIRect rect(scene_view().view_size());
-		dst->blit(src, rect, rect, RHISamplerFilter::Point);
+		RHITextureRegion region(scene_view().view_size());
+		rhi->copy_texture_to_texture(src, region, dst, region);
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::copy_world_normal_to_scene_color()
 	{
 		auto src = normal_target()->as_srv();
-		auto dst = scene_color_target()->as_uav();
+		auto dst = scene_color_ldr_target()->as_uav();
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
@@ -290,7 +290,7 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::copy_metalic_to_scene_color()
 	{
 		auto src = msra_target()->as_srv();
-		auto dst = scene_color_target()->as_uav();
+		auto dst = scene_color_ldr_target()->as_uav();
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
@@ -300,7 +300,7 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::copy_specular_to_scene_color()
 	{
 		auto src = msra_target()->as_srv();
-		auto dst = scene_color_target()->as_uav();
+		auto dst = scene_color_ldr_target()->as_uav();
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
@@ -310,7 +310,7 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::copy_roughness_to_scene_color()
 	{
 		auto src = msra_target()->as_srv();
-		auto dst = scene_color_target()->as_uav();
+		auto dst = scene_color_ldr_target()->as_uav();
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
@@ -320,7 +320,7 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::copy_ambient_to_scene_color()
 	{
 		auto src = msra_target()->as_srv();
-		auto dst = scene_color_hdr_target()->as_uav();
+		auto dst = scene_color_ldr_target()->as_uav();
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(src, dst, rect, rect, 0, {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});

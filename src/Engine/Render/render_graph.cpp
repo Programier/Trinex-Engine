@@ -9,6 +9,26 @@ namespace Engine::RenderGraph
 {
 	static constexpr size_t s_default_reserve_size = 64;
 
+	class Resource
+	{
+	private:
+		Resource* m_next_version = nullptr;
+		RHI_Object* m_resource;
+		Pass* m_writer;
+		uint32_t m_version;
+
+	public:
+		inline Resource(RHI_Object* resource, size_t version, Pass* writer = nullptr)
+		    : m_resource(resource), m_writer(writer), m_version(version)
+		{}
+		inline Pass* writer() const { return m_writer; }
+		inline Resource* next_version() const { return m_next_version; }
+		inline Resource* next_version(Resource* resource) { return (m_next_version = resource); }
+		inline RHI_Object* resource() const { return m_resource; }
+		inline uint32_t version() const { return m_version; }
+		friend class Graph;
+	};
+
 	Pass::Pass(Graph* graph, Type type, const char* name)
 	    : m_graph(graph), m_name(name), m_node(nullptr), m_type(type), m_flags(Flags::Undefined)
 	{
@@ -18,29 +38,24 @@ namespace Engine::RenderGraph
 
 	Pass& Pass::add_resource(RenderGraph::Resource* resource, RHIAccess access)
 	{
-		Resource* pass_resource = new (rg_allocate<Resource>()) Resource(resource, access);
-		m_resources.emplace_back(pass_resource);
-
-		const bool is_reading = access & RHIAccess::ReadableMask;
-		const bool is_writing = access & RHIAccess::WritableMask;
-
-		if (is_reading && is_writing)
-			resource->add_read_writer(this);
-		else if (is_writing)
-			resource->add_writer(this);
-		else if (is_reading)
-			resource->add_reader(this);
+		m_resources.emplace_back(new (rg_allocate<Resource>()) Resource(resource, access));
 		return *this;
 	}
 
 	Pass& Pass::add_resource(RHI_Texture* texture, RHIAccess access)
 	{
-		return add_resource(&m_graph->find_resource(texture), access);
+		if (access & RHIAccess::WritableMask)
+			return add_resource(m_graph->writable_resource(texture, this), access);
+		else
+			return add_resource(m_graph->readable_resource(texture), access);
 	}
 
 	Pass& Pass::add_resource(RHI_Buffer* buffer, RHIAccess access)
 	{
-		return add_resource(&m_graph->find_resource(buffer), access);
+		if (access & RHIAccess::WritableMask)
+			return add_resource(m_graph->writable_resource(buffer, this), access);
+		else
+			return add_resource(m_graph->readable_resource(buffer), access);
 	}
 
 	Graph::Plugin& Graph::Plugin::on_frame_begin(Graph* graph)
@@ -70,47 +85,56 @@ namespace Engine::RenderGraph
 		m_outputs.reserve(s_default_reserve_size);
 	}
 
-	Resource& Graph::find_resource(RHI_Texture* texture)
+	Graph::ResourceEntry* Graph::find_resource(RHI_Object* object)
 	{
-		auto it = m_resource_map.find(texture);
-
-		if (it == m_resource_map.end())
-		{
-			Resource* resource      = new (rg_allocate<Resource>()) Resource();
-			m_resource_map[texture] = resource;
-			return *resource;
-		}
-		else
-		{
-			return *(it->second);
-		}
+		return &m_resource_map[object];
 	}
 
-	Resource& Graph::find_resource(RHI_Buffer* buffer)
+	Graph::ResourceEntry* Graph::find_resource(RHI_Texture* texture)
 	{
-		auto it = m_resource_map.find(buffer);
+		auto& entry = m_resource_map[texture];
 
-		if (it == m_resource_map.end())
-		{
-			Resource* resource     = new (rg_allocate<Resource>()) Resource();
-			m_resource_map[buffer] = resource;
-			return *resource;
-		}
-		else
-		{
-			return *(it->second);
-		}
+		if (entry.first == nullptr)
+			entry.first = entry.last = new (rg_allocate<Resource>()) Resource(texture, 0);
+
+		return &entry;
+	}
+
+	Graph::ResourceEntry* Graph::find_resource(RHI_Buffer* buffer)
+	{
+		auto& entry = m_resource_map[buffer];
+
+		if (entry.first == nullptr)
+			entry.first = entry.last = new (rg_allocate<Resource>()) Resource(buffer, 0);
+
+		return &entry;
+	}
+
+	Resource* Graph::writable_resource(RHI_Texture* texture, Pass* writer)
+	{
+		ResourceEntry* entry = find_resource(texture);
+		uint_t version       = entry->last->version() + 1;
+		entry->last          = entry->last->next_version(new (rg_allocate<Resource>()) Resource(texture, version, writer));
+		return entry->last;
+	}
+
+	Resource* Graph::writable_resource(RHI_Buffer* buffer, Pass* writer)
+	{
+		ResourceEntry* entry = find_resource(buffer);
+		uint_t version       = entry->last->version() + 1;
+		entry->last          = entry->last->next_version(new (rg_allocate<Resource>()) Resource(buffer, version, writer));
+		return entry->last;
 	}
 
 	Graph& Graph::add_output(RHI_Texture* texture)
 	{
-		m_outputs.insert(&find_resource(texture));
+		m_outputs.insert(find_resource(texture)->first);
 		return *this;
 	}
 
 	Graph& Graph::add_output(RHI_Buffer* buffer)
 	{
-		m_outputs.insert(&find_resource(buffer));
+		m_outputs.insert(find_resource(buffer)->first);
 		return *this;
 	}
 
@@ -126,9 +150,9 @@ namespace Engine::RenderGraph
 		if (owner->pass == writer)
 			return *this;
 
-		if (!(writer->m_flags & Pass::Flags::IsLive))
+		if (!writer->is_visited())
 		{
-			writer->m_flags |= Pass::Flags::IsLive;
+			writer->add_flags(Pass::Flags::IsVisited);
 
 			Node* writer_node = Node::create();
 			writer_node->pass = writer;
@@ -153,13 +177,33 @@ namespace Engine::RenderGraph
 
 	Graph& Graph::build_graph(Resource* resource, Node* owner)
 	{
-		for (Pass* writer : resource->writers())
-		{
-			build_graph(writer, owner);
-		}
+		uint32_t requested_version = resource->version();
+		Resource*& resource_state  = find_resource(resource->resource())->first;
 
-		auto& rw = resource->read_writers();
-		std::for_each(rw.rbegin(), rw.rend(), [this, owner](Pass* writer) { build_graph(writer, owner); });
+		while (resource_state && resource_state->version() <= requested_version)
+		{
+			Resource* current_state = resource_state;
+			resource_state          = current_state->next_version();
+
+			if (Pass* writer = current_state->writer())
+			{
+				build_graph(writer, owner);
+			}
+		}
+		return *this;
+	}
+
+	Graph& Graph::build_output(Resource* resource, Node* owner)
+	{
+		while (resource)
+		{
+			if (Pass* writer = resource->writer())
+			{
+				build_graph(writer, owner);
+			}
+
+			resource = resource->next_version();
+		}
 		return *this;
 	}
 
@@ -170,7 +214,7 @@ namespace Engine::RenderGraph
 
 		for (Resource* output : m_outputs)
 		{
-			build_graph(output, root);
+			build_output(output, root);
 		}
 
 		return root;

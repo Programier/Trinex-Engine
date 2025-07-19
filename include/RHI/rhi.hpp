@@ -96,16 +96,11 @@ namespace Engine
 		virtual void clear(const LinearColor& color)   = 0;
 		virtual void clear_uint(const Vector4u& value) = 0;
 		virtual void clear_sint(const Vector4i& value) = 0;
-
-		virtual void blit(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		                  RHISamplerFilter filter) = 0;
 		virtual ~RHI_RenderTargetView() {}
 	};
 
 	struct ENGINE_EXPORT RHI_DepthStencilView {
 		virtual void clear(float depth, byte stencil) = 0;
-		virtual void blit(RHI_DepthStencilView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		                  RHISamplerFilter filter)    = 0;
 		virtual ~RHI_DepthStencilView() {}
 	};
 
@@ -153,9 +148,6 @@ namespace Engine
 			Vector2f ndc_depth_range      = {0.f, 1.f};
 		} info;
 
-		virtual RHI& initialize(class Window* window) = 0;
-		virtual void* context()                       = 0;
-
 		virtual RHI& draw(size_t vertex_count, size_t vertices_offset)                                 = 0;
 		virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) = 0;
 		virtual RHI& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)       = 0;
@@ -191,7 +183,9 @@ namespace Engine
 		virtual RHI& pop_debug_stage()                                                                                = 0;
 
 		virtual RHI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) = 0;
-		virtual RHI& update_texture(RHI_Texture* texture, const RHITextureUpdateDesc& desc)          = 0;
+
+		virtual RHI& update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+		                            size_t buffer_width = 0, size_t buffer_height = 0) = 0;
 
 		virtual RHI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                                   size_t dst_offset) = 0;

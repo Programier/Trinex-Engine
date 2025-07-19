@@ -38,87 +38,6 @@ namespace Engine
 
 	trinex_implement_struct_default_init(Engine::TRINEX_RHI::VULKAN, 0);
 
-	VulkanAPI* VulkanAPI::static_constructor()
-	{
-		if (VulkanAPI::m_vulkan == nullptr)
-		{
-			VulkanAPI::m_vulkan                       = allocate<VulkanAPI>();
-			VulkanAPI::m_vulkan->info.name            = "Vulkan";
-			VulkanAPI::m_vulkan->info.struct_instance = static_struct_instance();
-		}
-		return VulkanAPI::m_vulkan;
-	}
-
-	void VulkanAPI::static_destructor(VulkanAPI* vulkan)
-	{
-		if (vulkan == m_vulkan)
-		{
-			release(vulkan);
-			m_vulkan = nullptr;
-		}
-	}
-
-	VulkanAPI::VulkanAPI()
-	{
-		auto array = make_extensions_array();
-		m_device_extensions.assign(array.begin(), array.end());
-	}
-
-	VulkanAPI::~VulkanAPI()
-	{
-		wait_idle();
-
-		VulkanRenderPass::destroy_all();
-
-		release(m_stagging_manager);
-		release(m_state_manager);
-		release(m_cmd_manager);
-		release(m_graphics_queue);
-		release(m_descriptor_set_allocator);
-		release(m_query_pool_manager);
-
-		for (auto& [hash, layout] : m_pipeline_layouts)
-		{
-			release(layout);
-		}
-
-		vmaDestroyAllocator(m_allocator);
-		m_allocator = VK_NULL_HANDLE;
-
-		m_device.destroy();
-		vkb::destroy_instance(m_instance);
-	}
-
-	static vk::PresentModeKHR find_present_mode(const std::vector<vk::PresentModeKHR>& modes,
-	                                            const std::initializer_list<vk::PresentModeKHR>& requested)
-	{
-		for (auto& mode : requested)
-		{
-			if (std::find(modes.begin(), modes.end(), mode) != modes.end())
-				return mode;
-		}
-
-		return vk::PresentModeKHR::eFifo;
-	}
-
-	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync, vk::SurfaceKHR surface)
-	{
-		auto present_modes = m_physical_device.getSurfacePresentModesKHR(surface);
-
-		if (present_modes.empty())
-			throw EngineException("Failed to find present mode!");
-
-		if (vsync)
-		{
-			return find_present_mode(present_modes, {vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed});
-		}
-		else
-		{
-			return find_present_mode(present_modes, {vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox});
-		}
-	}
-
-	///////////////////////////////// INITIALIZATION /////////////////////////////////
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
 	                                                     const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
@@ -258,20 +177,34 @@ namespace Engine
 		color_format.add_capabilities(capabilities);
 	}
 
-	VulkanAPI& VulkanAPI::initialize(Window* window)
+	VulkanAPI* VulkanAPI::static_constructor()
 	{
+		if (VulkanAPI::m_vulkan == nullptr)
+		{
+			auto& info           = allocate<VulkanAPI>()->info;
+			info.name            = "Vulkan";
+			info.struct_instance = static_struct_instance();
+		}
+		return VulkanAPI::m_vulkan;
+	}
+
+	void VulkanAPI::static_destructor(VulkanAPI* vulkan)
+	{
+		if (vulkan == m_vulkan)
+		{
+			release(vulkan);
+			m_vulkan = nullptr;
+		}
+	}
+
+	VulkanAPI::VulkanAPI()
+	{
+		m_vulkan   = this;
+		auto array = make_extensions_array();
+		m_device_extensions.assign(array.begin(), array.end());
+
 		vkb::InstanceBuilder instance_builder;
 		instance_builder.require_api_version(VK_API_VERSION_1_1);
-
-		Vector<String> required_extensions;
-		extern void load_required_extensions(void* native_window, Vector<String>& required_extensions);
-		load_required_extensions(window->native_window(), required_extensions);
-
-		for (auto& extension : required_extensions)
-		{
-			info_log("VulkanAPI", "Enable extention %s", extension.c_str());
-			instance_builder.enable_extension(extension.c_str());
-		}
 
 		if (VulkanConfig::enable_validation)
 		{
@@ -346,14 +279,60 @@ namespace Engine
 			allocator_info.pVulkanFunctions       = &vulkan_functions;
 			vmaCreateAllocator(&allocator_info, &m_allocator);
 		}
-
-
-		return *this;
 	}
 
-	void* VulkanAPI::context()
+	VulkanAPI::~VulkanAPI()
 	{
-		return nullptr;
+		wait_idle();
+
+		VulkanRenderPass::destroy_all();
+
+		release(m_stagging_manager);
+		release(m_state_manager);
+		release(m_cmd_manager);
+		release(m_graphics_queue);
+		release(m_descriptor_set_allocator);
+		release(m_query_pool_manager);
+
+		for (auto& [hash, layout] : m_pipeline_layouts)
+		{
+			release(layout);
+		}
+
+		vmaDestroyAllocator(m_allocator);
+		m_allocator = VK_NULL_HANDLE;
+
+		m_device.destroy();
+		vkb::destroy_instance(m_instance);
+	}
+
+	static vk::PresentModeKHR find_present_mode(const std::vector<vk::PresentModeKHR>& modes,
+	                                            const std::initializer_list<vk::PresentModeKHR>& requested)
+	{
+		for (auto& mode : requested)
+		{
+			if (std::find(modes.begin(), modes.end(), mode) != modes.end())
+				return mode;
+		}
+
+		return vk::PresentModeKHR::eFifo;
+	}
+
+	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync, vk::SurfaceKHR surface)
+	{
+		auto present_modes = m_physical_device.getSurfacePresentModesKHR(surface);
+
+		if (present_modes.empty())
+			throw EngineException("Failed to find present mode!");
+
+		if (vsync)
+		{
+			return find_present_mode(present_modes, {vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed});
+		}
+		else
+		{
+			return find_present_mode(present_modes, {vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox});
+		}
 	}
 
 	void VulkanAPI::initialize_pfn()

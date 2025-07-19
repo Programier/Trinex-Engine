@@ -70,7 +70,6 @@ namespace Engine
 	Shader* Pipeline::create_new_shader()
 	{
 		Shader* shader = Object::new_instance<Shader>();
-		shader->flags(Object::IsAvailableForGC, false);
 		shader->owner(this);
 		return shader;
 	}

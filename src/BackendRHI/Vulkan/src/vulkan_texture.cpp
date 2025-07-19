@@ -158,26 +158,6 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanTexture& VulkanTexture::update(const RHITextureUpdateDesc& desc)
-	{
-		if (desc.data == nullptr || desc.size == 0)
-			return *this;
-
-		auto buffer = API->m_stagging_manager->allocate(desc.size, RHIBufferCreateFlags::TransferSrc);
-		buffer->copy(0, static_cast<const byte*>(desc.data), desc.size);
-
-		auto command_buffer = API->current_command_buffer();
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::BufferImageCopy region(0, desc.buffer_width, desc.buffer_height,
-		                           vk::ImageSubresourceLayers(aspect(), desc.mip_level, desc.array_slice, 1),
-		                           vk::Offset3D(desc.offset.x, desc.offset.y, desc.offset.z),
-		                           vk::Extent3D(desc.extent.x, desc.extent.y, desc.extent.z));
-
-		command_buffer->copyBufferToImage(buffer->buffer(), image(), vk::ImageLayout::eTransferDstOptimal, region);
-		return *this;
-	}
-
 	void VulkanTexture::change_layout(vk::ImageLayout new_layout)
 	{
 		if (layout() != new_layout || new_layout == vk::ImageLayout::eTransferDstOptimal)
@@ -295,10 +275,25 @@ namespace Engine
 		return texture;
 	}
 
-
-	VulkanAPI& VulkanAPI::update_texture(RHI_Texture* texture, const RHITextureUpdateDesc& desc)
+	VulkanAPI& VulkanAPI::update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+	                                     size_t buffer_width, size_t buffer_height)
 	{
-		static_cast<VulkanTexture*>(texture)->update(desc);
+		auto buffer = API->m_stagging_manager->allocate(size, RHIBufferCreateFlags::TransferSrc);
+		buffer->copy(0, static_cast<const byte*>(data), size);
+
+		auto command_buffer           = API->current_command_buffer();
+		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(texture);
+
+		vulkan_texture->change_layout(vk::ImageLayout::eTransferDstOptimal);
+
+		vk::BufferImageCopy copy_region(
+		        0, buffer_width, buffer_height,
+		        vk::ImageSubresourceLayers(vulkan_texture->aspect(), region.mip_level, region.array_slice, 1),
+		        vk::Offset3D(region.offset.x, region.offset.y, region.offset.z),
+		        vk::Extent3D(region.extent.x, region.extent.y, region.extent.z));
+
+		command_buffer->copyBufferToImage(buffer->buffer(), vulkan_texture->image(), vk::ImageLayout::eTransferDstOptimal,
+		                                  copy_region);
 		return *this;
 	}
 
@@ -344,11 +339,11 @@ namespace Engine
 		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
 		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
+		vk::ImageSubresourceLayers src_subresource(src->aspect(), src_region.mip_level, src_region.array_slice, 1);
+		vk::ImageSubresourceLayers dst_subresource(dst->aspect(), dst_region.mip_level, dst_region.array_slice, 1);
+
 		if (src_region.extent == dst_region.extent)
 		{
-			vk::ImageSubresourceLayers src_subresource(src->aspect(), src_region.mip_level, src_region.array_slice, 1);
-			vk::ImageSubresourceLayers dst_subresource(dst->aspect(), dst_region.mip_level, dst_region.array_slice, 1);
-
 			vk::ImageCopy region(src_subresource, vk::Offset3D(src_region.offset.x, src_region.offset.y, src_region.offset.z),
 			                     dst_subresource, vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),
 			                     vk::Extent3D(src_region.extent.x, src_region.extent.y, src_region.extent.z));
@@ -357,7 +352,23 @@ namespace Engine
 		}
 		else
 		{
-			throw -1;
+			Vector3u src_region_end = src_region.offset + src_region.extent;
+			Vector3u dst_region_end = dst_region.offset + dst_region.extent;
+
+			std::array<vk::Offset3D, 2> src_offsets = {
+			        vk::Offset3D(src_region.offset.x, src_region.offset.y, src_region.offset.z),
+			        vk::Offset3D(src_region_end.x, src_region_end.y, src_region_end.z),
+			};
+
+			std::array<vk::Offset3D, 2> dst_offsets = {
+			        vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),
+			        vk::Offset3D(dst_region_end.x, dst_region_end.y, dst_region_end.z),
+			};
+
+			vk::ImageBlit blit(src_subresource, src_offsets, dst_subresource, dst_offsets);
+
+			current_command_buffer()->blitImage(src->image(), src->layout(), dst->image(), vk::ImageLayout::eTransferDstOptimal,
+			                                    blit, vk::Filter::eLinear);
 		}
 
 		return *this;

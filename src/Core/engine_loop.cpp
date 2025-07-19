@@ -211,7 +211,13 @@ namespace Engine
 
 		DestroyController().execute();
 		engine_instance->terminate();
-
+		
+		if (WindowManager::instance())
+			WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
+		
+		if (WindowManager::instance())
+			delete WindowManager::instance();
+		
 		GarbageCollector::destroy_all_objects();
 		render_thread()->wait();
 
@@ -223,12 +229,6 @@ namespace Engine
 			render_thread()->wait();
 			rhi = nullptr;
 		}
-
-		if (WindowManager::instance())
-			WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
-
-		if (WindowManager::instance())
-			delete WindowManager::instance();
 
 		Library::close_all();
 

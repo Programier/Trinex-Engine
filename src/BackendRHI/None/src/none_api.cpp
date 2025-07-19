@@ -83,16 +83,10 @@ namespace Engine
 		void clear(const LinearColor& color) override {}
 		void clear_uint(const Vector4u& value) override {}
 		void clear_sint(const Vector4i& value) override {}
-		void blit(RHI_RenderTargetView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		          RHISamplerFilter filter) override
-		{}
 	};
 
 	struct NoneDSV : public RHI_DepthStencilView {
 		void clear(float, byte) override {}
-		void blit(RHI_DepthStencilView* surface, const RHIRect& src_rect, const RHIRect& dst_rect,
-		          RHISamplerFilter filter) override
-		{}
 	};
 
 	struct NoneTexture : public NoneApiDestroyable<RHI_Texture> {
@@ -122,17 +116,6 @@ namespace Engine
 		void resize(const Vector2u& new_size) override {}
 		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
 	};
-
-
-	NoneApi& NoneApi::initialize(Window* window)
-	{
-		return *this;
-	}
-
-	void* NoneApi::context()
-	{
-		return nullptr;
-	}
 
 	NoneApi& NoneApi::draw(size_t vertex_count, size_t vertices_offset)
 	{
@@ -302,7 +285,8 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::update_texture(RHI_Texture*, const RHITextureUpdateDesc& desc)
+	NoneApi& NoneApi::update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+	                                 size_t buffer_width, size_t buffer_height)
 	{
 		return *this;
 	}

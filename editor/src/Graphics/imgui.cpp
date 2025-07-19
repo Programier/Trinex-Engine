@@ -306,7 +306,7 @@ namespace Engine
 			auto package = Package::static_find_package("TrinexEditor::ImGui", true);
 			package->add_object(bd->font_texture);
 
-			bd->sampler = Sampler(RHISamplerFilter::Trilinear);
+			bd->sampler = Sampler(RHISamplerFilter::Bilinear);
 
 			// Store our identifier
 			io.Fonts->SetTexID(bd->font_texture);

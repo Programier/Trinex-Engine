@@ -14,9 +14,6 @@ namespace Engine
 
 		static NoneApi* m_instance;
 
-		NoneApi& initialize(class Window* window) override;
-		void* context() override;
-
 		NoneApi& draw(size_t vertex_count, size_t vertices_offset) override;
 		NoneApi& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
 		NoneApi& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
@@ -60,7 +57,8 @@ namespace Engine
 		NoneApi& bind_sampler(RHI_Sampler* sampler, byte slot) override;
 
 		NoneApi& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
-		NoneApi& update_texture(RHI_Texture*, const RHITextureUpdateDesc& desc) override;
+		NoneApi& update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+		                        size_t buffer_width = 0, size_t buffer_height = 0) override;
 
 		NoneApi& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
 		                               size_t dst_offset) override;

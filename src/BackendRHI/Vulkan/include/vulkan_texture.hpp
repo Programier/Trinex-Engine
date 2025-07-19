@@ -98,7 +98,6 @@ namespace Engine
 		}
 
 		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags);
-		VulkanTexture& update(const RHITextureUpdateDesc& desc);
 		void change_layout(vk::ImageLayout new_layout);
 
 		RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc) override;

@@ -77,19 +77,8 @@ namespace Engine
 		}
 	}
 
-	static Vector<Index>& get_free_indexes_array()
-	{
-		static Vector<Index> array;
-		return array;
-	}
-
-	static Vector<Object*>& get_instances_array()
-	{
-		static Vector<Object*> array;
-		return array;
-	}
-
 	static Package* s_root_package = nullptr;
+	static Vector<Object*> s_objects_array;
 
 	static void create_default_package()
 	{
@@ -174,20 +163,8 @@ namespace Engine
 		m_class = next_object_info.class_instance;
 		next_object_info.reset();
 
-
-		Vector<Object*>& objects_array = get_instances_array();
-
-		if (!get_free_indexes_array().empty())
-		{
-			m_instance_index = get_free_indexes_array().back();
-			get_free_indexes_array().pop_back();
-			objects_array[m_instance_index] = this;
-		}
-		else
-		{
-			m_instance_index = objects_array.size();
-			objects_array.push_back(this);
-		}
+		m_instance_index = s_objects_array.size();
+		s_objects_array.push_back(this);
 	}
 
 	class Refl::Class* Object::class_instance() const
@@ -237,24 +214,9 @@ namespace Engine
 		return name.substr(pos, name.length() - pos);
 	}
 
-
-	const Object& Object::remove_from_instances_array() const
-	{
-		if (engine_instance && m_instance_index < get_instances_array().size())
-		{
-			get_instances_array()[m_instance_index] = nullptr;
-			if (!engine_instance->is_shuting_down())
-			{
-				get_free_indexes_array().push_back(m_instance_index);
-			}
-			m_instance_index = Constants::max_size;
-		}
-		return *this;
-	}
-
 	ENGINE_EXPORT const Vector<Object*>& Object::all_objects()
 	{
-		return get_instances_array();
+		return s_objects_array;
 	}
 
 	Object::~Object()
@@ -265,7 +227,15 @@ namespace Engine
 			m_owner = nullptr;
 		}
 
-		remove_from_instances_array();
+		Object* last_object = s_objects_array.back();
+
+		if (last_object != this)
+		{
+			s_objects_array[m_instance_index] = last_object;
+			last_object->m_instance_index     = m_instance_index;
+		}
+
+		s_objects_array.pop_back();
 	}
 
 	const String& Object::string_name() const

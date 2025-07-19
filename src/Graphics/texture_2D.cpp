@@ -29,14 +29,8 @@ namespace Engine
 
 			for (byte index = 0; auto& mip : mips)
 			{
-				RHITextureUpdateDesc desc;
-				desc.data      = mip.data.data();
-				desc.size      = mip.data.size();
-				desc.mip_level = index++;
-				desc.offset    = {0, 0, 0};
-				desc.extent    = {mip.size, 1};
-
-				rhi->update_texture(m_texture, desc);
+				RHITextureRegion region(mip.size, {0, 0}, index++);
+				rhi->update_texture(m_texture, region, mip.data.data(), mip.data.size());
 			}
 		});
 		return *this;

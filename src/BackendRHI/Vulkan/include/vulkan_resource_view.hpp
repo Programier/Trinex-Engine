@@ -77,8 +77,6 @@ namespace Engine
 		void clear(const LinearColor& color) override;
 		void clear_uint(const Vector4u& value) override;
 		void clear_sint(const Vector4i& value) override;
-		void blit(RHI_RenderTargetView* texture, const RHIRect& src_rect, const RHIRect& dst_rect,
-		          RHISamplerFilter filter) override;
 
 		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }
 		FORCE_INLINE vk::Format format() const { return m_texture->format(); }
@@ -112,8 +110,6 @@ namespace Engine
 		~VulkanTextureDSV();
 
 		void clear(float depth, byte stencil) override;
-		void blit(RHI_DepthStencilView* texture, const RHIRect& src_rect, const RHIRect& dst_rect,
-		          RHISamplerFilter filter) override;
 
 		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }
 		FORCE_INLINE vk::Format format() const { return m_texture->format(); }

@@ -172,21 +172,11 @@ namespace Engine
 			parent->m_childs.push_back(window);
 			window->m_parent_window = parent;
 		}
-
-		const bool is_windows_empty = m_windows.empty();
-		m_windows[window->id()]     = window;
-
-		if (is_windows_empty)
-		{
+		
+		if (m_windows.empty())
 			m_main_window = window;
-
-			static RHI* initialized_rhi = nullptr;
-
-			if (initialized_rhi != rhi)
-			{
-				call_in_render_thread([window]() { rhi->initialize(window); });
-			}
-		}
+		
+		m_windows[window->id()] = window;
 
 		// Initialize client
 		window->icon(load_image_icon());
