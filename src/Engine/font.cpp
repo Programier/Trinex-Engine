@@ -108,7 +108,7 @@ namespace Engine
 				{
 					unsigned char value = bitmap.buffer[i * bitmap.pitch + j];
 
-					byte* data = image.pixel_at(img_x, img_y);
+					byte* data = image.sample(img_x, img_y);
 					data[0]    = config->color.r;
 					data[1]    = config->color.g;
 					data[2]    = config->color.b;

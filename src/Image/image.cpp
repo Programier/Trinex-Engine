@@ -1,158 +1,65 @@
 #include <Core/archive.hpp>
-#include <Core/buffer_manager.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/file.hpp>
 #include <Core/filesystem/path.hpp>
-#include <Core/logger.hpp>
-#include <Core/string_functions.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Image/image.hpp>
 #include <RHI/enums.hpp>
-#include <stb_dxt.h>
+#include <cstring>
 #include <stb_image.h>
 #include <stb_image_resize.h>
 #include <stb_image_write.h>
 
 namespace Engine
 {
-	bool Image::empty() const
-	{
-		return m_data.empty() || m_channels == 0 || m_width == 0 || m_height == 0;
-	}
-
-	byte* Image::data()
-	{
-		return m_data.data();
-	}
-
-	const byte* Image::data() const
-	{
-		return m_data.data();
-	}
-
-	Buffer& Image::buffer()
-	{
-		return m_data;
-	}
-
-	const Buffer& Image::buffer() const
-	{
-		return m_data;
-	}
-
-	uint_t Image::width() const
-	{
-		return static_cast<uint_t>(m_width);
-	}
-
-	uint_t Image::height() const
-	{
-		return static_cast<uint_t>(m_height);
-	}
-
-	Size2D Image::size() const
-	{
-		return {width(), height()};
-	}
-
-
-	uint_t Image::channels() const
-	{
-		return m_channels;
-	}
-
-	void Image::resize_channels(int_t new_channels)
-	{
-		if (new_channels < 1 || new_channels > 4)
-			return;
-
-		int_t channels_diff = new_channels - m_channels;
-
-		if (channels_diff != 0)
-		{
-			int_t pixels = m_width * m_height;
-			Buffer new_data(m_data.size() + (pixels * channels_diff), 255);
-
-			int_t min_channels = glm::min(new_channels, m_channels);
-
-			byte* src_memory = m_data.data();
-			byte* dst_memory = new_data.data();
-
-			for (int_t pixel = 0; pixel < pixels; pixel++)
-			{
-				byte* src_pixel_data = src_memory + (pixel * m_channels);
-				byte* dst_pixel_data = dst_memory + (pixel * new_channels);
-
-				for (int_t channel = 0; channel < min_channels; channel++)
-				{
-					dst_pixel_data[channel] = src_pixel_data[channel];
-				}
-			}
-
-			m_data     = std::move(new_data);
-			m_channels = new_channels;
-		}
-	}
-
-
-	Image& Image::load(const Path& image, bool invert_horizontal)
-	{
-		m_data.clear();
-		m_data.shrink_to_fit();
-
-		Buffer buffer = FileReader(image).read_buffer();
-		load_from_memory(buffer, invert_horizontal);
-
-		if (m_channels > 1)
-		{
-			resize_channels(4);
-		}
-		return *this;
-	}
-
-
-	Image& Image::load_from_memory(const byte* buffer, size_t size, bool invert)
-	{
-		m_data.clear();
-		m_data.shrink_to_fit();
-
-		stbi_set_flip_vertically_on_load(static_cast<int>(!invert));
-		stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &m_width, &m_height, &m_channels, 0);
-		m_data.resize(m_width * m_height * m_channels);
-		std::copy(image_data, image_data + m_data.size(), m_data.data());
-		stbi_image_free(image_data);
-		m_is_compressed = false;
-		return *this;
-	}
-
-	Image& Image::load_from_memory(const Buffer& buffer, bool invert)
-	{
-		return load_from_memory(buffer.data(), buffer.size(), invert);
-	}
-
 	Image::Image() = default;
 
-	Image::Image(const Path& path, const bool& invert_horizontal)
+	Image::Image(const Path& path)
 	{
-		load(path, invert_horizontal);
+		Buffer buffer = FileReader(path).read_buffer();
+
+		int_t pixel_channels = 0;
+		stbi_uc* image_data  = stbi_load_from_memory(buffer.data(), static_cast<int>(buffer.size()), &m_size_i.x, &m_size_i.y,
+		                                             &pixel_channels, 0);
+		m_data.resize(m_size.x * m_size.y * pixel_channels);
+		std::copy(image_data, image_data + m_data.size(), m_data.data());
+		stbi_image_free(image_data);
 	}
 
-	Image::Image(const Size2D& size, uint_t channels, const Buffer& buffer)
+	Image::Image(const Vector2u& size, uint_t channels, const void* data) : m_size(size)
 	{
-		create(size, channels, buffer);
+		m_data.resize(width() * height() * channels);
+
+		if (data)
+			std::memcpy(m_data.data(), data, m_data.size());
 	}
 
-	Image::Image(const Size2D& size, uint_t channels, const byte* data)
+	Image::Image(Color color, const Vector2u& size, uint_t channels) : m_size(size)
 	{
-		create(size, channels, data);
+		m_data.resize(width() * height() * channels);
+
+		for (uint_t x = 0; x < width(); ++x)
+		{
+			for (uint_t y = 0; y < height(); ++y)
+			{
+				byte* data = sample(x, y);
+
+				for (uint_t component = 0; component < channels; ++component)
+				{
+					data[component] = color[component];
+				}
+			}
+		}
 	}
 
-	Image::Image(Color color, const Size2D& size, uint_t channels)
+	Image::Image(const void* data, size_t size)
 	{
-		create(color, size, channels);
-	}
-
-	Image::Image(const Size2D& size, uint_t channels)
-	{
-		create(size, channels);
+		int_t pixel_channels = 0;
+		stbi_uc* image_data  = stbi_load_from_memory(static_cast<const stbi_uc*>(data), static_cast<int>(size), &m_size_i.x,
+		                                             &m_size_i.y, &pixel_channels, 0);
+		m_data.resize(m_size.x * m_size.y * pixel_channels);
+		std::copy(image_data, image_data + m_data.size(), m_data.data());
+		stbi_image_free(image_data);
 	}
 
 	Image::Image(const Image& img)
@@ -164,10 +71,8 @@ namespace Engine
 	{
 		if (this == &img)
 			return *this;
-		m_data     = img.m_data;
-		m_width    = img.m_width;
-		m_height   = img.m_height;
-		m_channels = img.m_channels;
+		m_data = img.m_data;
+		m_size = img.m_size;
 		return *this;
 	}
 
@@ -184,279 +89,98 @@ namespace Engine
 		if (this == &img)
 			return *this;
 
-		m_data     = std::move(img.m_data);
-		m_channels = img.m_channels;
-		m_width    = img.m_width;
-		m_height   = img.m_height;
+		m_data = std::move(img.m_data);
+		m_size = img.m_size;
 
-		img.m_channels = img.m_height = img.m_width = 0;
+		img.m_size = {0, 0};
 		return *this;
 	}
 
-	bool Image::resize(const Size2D& new_size)
+	bool Image::resize(const Vector2u& size)
 	{
-		int new_width  = static_cast<int>(new_size.x);
-		int new_height = static_cast<int>(new_size.y);
+		Vector<byte> resized_image(size.x * size.y * channels(), 0);
 
-		Vector<byte> resized_image(new_width * new_height * m_channels, 0);
-
-		auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(), new_width,
-		                                 new_height, new_width * m_channels, m_channels);
-
-		m_width  = new_width;
-		m_height = new_height;
-		m_data   = std::move(resized_image);
-		return status;
-	}
-
-	static String extension_of_type(ImageType type)
-	{
-		static String extensions[] = {".png", ".jpg", ".bmp", ".tga"};
-		return extensions[static_cast<EnumerateType>(type)];
+		stbir_resize_uint8_linear(m_data.data(), width(), height(), width() * channels(), resized_image.data(), size.x, size.y,
+		                          size.x * channels(), STBIR_RGBA);
+		m_size = size;
+		m_data = std::move(resized_image);
+		return true;
 	}
 
 	static void image_writer_func(void* context, void* data, int size)
 	{
-		FileWriter* writer = reinterpret_cast<FileWriter*>(context);
-		writer->write(reinterpret_cast<const byte*>(data), size);
+		VFS::File* file = static_cast<VFS::File*>(context);
+		file->write(static_cast<byte*>(data), size);
 	}
 
-#define make_writer()                                                                                                            \
-	FileWriter writer(filename);                                                                                                 \
-	if (!writer.is_open())                                                                                                       \
-		return false;
-
-	bool Image::write_png(const Path& filename)
+	bool Image::save(const Path& path)
 	{
-		make_writer();
-		return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(),
-		                                                m_width * m_channels));
-	}
+		StringView extension = path.extension();
+		VFS::File* file      = rootfs()->open(path, FileOpenMode::Out);
 
-	bool Image::write_jpg(const Path& filename)
-	{
-		make_writer();
-		return static_cast<bool>(
-		        stbi_write_jpg_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(), 100));
-	}
+		if (file == nullptr)
+			return false;
 
-	bool Image::write_bmp(const Path& filename)
-	{
-		return false;
-	}
-
-	bool Image::write_tga(const Path& filename)
-	{
-		return false;
-	}
-
-	bool Image::save(Path path, ImageType type, bool invert)
-	{
-		path += extension_of_type(type);
-
-		static bool (Engine::Image::* write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
-		                                                                 &Image::write_tga};
-
-		auto method = write_methods[static_cast<EnumerateType>(type)];
-		stbi_flip_vertically_on_write(static_cast<int>(invert));
-		return ((*this).*method)(path);
-	}
-
-	Image& Image::create(const Size2D& size, uint_t channels, Buffer&& buffer)
-	{
-		if (static_cast<int_t>(size.x) * static_cast<int_t>(size.y) * static_cast<int_t>(channels) !=
-		    static_cast<int_t>(buffer.size()))
+		trinex_defer
 		{
-			throw EngineException("Image: Invalid buffer size");
+			file->close();
+		};
+
+		if (extension == ".png")
+		{
+			return stbi_write_png_to_func(image_writer_func, file, width(), height(), channels(), data(), width() * channels());
 		}
 
-		m_channels = channels;
-		m_width    = static_cast<int_t>(size.x);
-		m_height   = static_cast<int_t>(size.y);
-		m_data     = std::move(buffer);
-
-		return *this;
-	}
-
-	Image& Image::create(const Size2D& size, uint_t channels, const Buffer& buffer)
-	{
-		Buffer copied_buffer = buffer;
-		create(size, channels, std::move(copied_buffer));
-		return *this;
-	}
-
-	Image& Image::create(const Size2D& size, uint_t channels, const byte* buffer)
-	{
-		m_channels = channels;
-		m_width    = static_cast<int_t>(size.x);
-		m_height   = static_cast<int_t>(size.y);
-
-		auto buffer_size = m_width * m_height * m_channels;
-		m_data.reserve(buffer_size);
-		if (buffer)
-			std::copy(buffer, buffer + buffer_size, m_data.data());
-		else
-			std::fill(m_data.begin(), m_data.end(), 0);
-		return *this;
-	}
-
-	Image& Image::create(Color color, const Size2D& size, uint_t channels)
-	{
-		create(size, channels);
-
-		for (int_t x = 0; x < m_width; ++x)
+		if (extension == ".bmp")
 		{
-			for (int_t y = 0; y < m_height; ++y)
-			{
-				byte* data = pixel_at(x, y);
-
-				for (int_t component = 0; component < m_channels; ++component)
-				{
-					data[component] = color[component];
-				}
-			}
+			return stbi_write_bmp_to_func(image_writer_func, file, width(), height(), channels(), data());
 		}
-		return *this;
+
+		if (extension == ".tga")
+		{
+			return stbi_write_tga_to_func(image_writer_func, file, width(), height(), channels(), data());
+		}
+
+		if (extension == ".hdr")
+		{
+			return stbi_write_tga_to_func(image_writer_func, file, width(), height(), channels(), data());
+		}
+
+		if (extension == ".jpg" || extension == ".jpeg")
+		{
+			return stbi_write_jpg_to_func(image_writer_func, file, width(), height(), channels(), data(), 100);
+		}
+
+		return false;
 	}
 
-	Image& Image::create(const Size2D& size, uint_t channels)
+	byte* Image::sample(uint_t x, uint_t y)
 	{
-		create_interface(size, channels);
-		size_t count = m_width * m_height * m_channels;
-		m_data.resize(count);
-		return *this;
-	}
-
-	Image& Image::create_interface(const Size2D& size, uint_t channels)
-	{
-		m_channels = glm::min<uint_t>(channels, 4);
-		m_width    = static_cast<int_t>(glm::abs(size.x));
-		m_height   = static_cast<int_t>(glm::abs(size.y));
-		m_data.clear();
-
-		return *this;
-	}
-
-	byte* Image::pixel_at(uint_t x, uint_t y)
-	{
-		if (x > static_cast<uint_t>(m_width) || y > static_cast<uint_t>(m_height))
+		if (x > m_size.x || y > m_size.y)
 			throw EngineException("Image: Invalid UV");
 
-		uint_t index = y * (m_width * m_channels) + x * m_channels;
+		uint_t index = y * (width() * channels()) + x * channels();
 		return m_data.data() + index;
 	}
 
-	const byte* Image::pixel_at(uint_t x, uint_t y) const
+	const byte* Image::sample(uint_t x, uint_t y) const
 	{
-		return const_cast<Image*>(this)->pixel_at(x, y);
-	}
-
-	bool Image::is_compressed() const
-	{
-		return m_is_compressed;
-	}
-
-	static void dxt_texture_compress(uint8_t const* const data, Buffer& comp_data, int_t width, int_t height, int_t ncolors)
-	{
-		assert(width > 0 && height > 0);
-		assert(ncolors == 3 || ncolors == 4);
-		assert(data != nullptr);
-		// RGB=DXT1/BC1, RGBA=DXT5/BC3
-		bool const has_alpha  = ncolors == 4;
-		const uint_t block_sz = has_alpha ? 16 : 8;
-		const uint_t x_blocks = (width + 3) / 4;
-		const uint_t y_blocks = (height + 3) / 4;
-
-		comp_data.resize(x_blocks * y_blocks * block_sz);
-
-		for (int_t y = 0; y < height; y += 4)
-		{
-			uint8_t block[4 * 4 * 4] = {};
-
-			for (int_t x = 0; x < width; x += 4)
-			{
-				for (int_t yy = 0; yy < 4; ++yy)
-				{
-					for (int_t xx = 0; xx < 4; ++xx)
-					{
-						const uint_t bix = 4 * (4 * yy + xx);
-						const uint_t dix = ncolors * (width * glm::min(y + yy, height - 1) + glm::min(x + xx, width - 1));
-						for (int_t c = 0; c < ncolors; ++c)
-						{
-							block[bix + c] = data[dix + c];
-						}
-
-						if (!has_alpha)
-						{
-							block[bix + 3] = 255;
-						}
-					}
-				}
-
-				unsigned const comp_offset(((y / 4) * x_blocks + (x / 4)) * block_sz);
-				assert(comp_offset < comp_data.size());
-				stb_compress_dxt_block(&comp_data[comp_offset], block, has_alpha, /*STB_DXT_NORMAL*/ STB_DXT_HIGHQUAL);
-			}
-		}
-	}
-
-	void Image::compress()
-	{
-		if (is_compressed())
-		{
-			error_log("Image", "Cannot recompress image, because image is already compressed!");
-			return;
-		}
-
-		if (m_channels == 3 || m_channels == 4)
-		{
-			Buffer compressed_data;
-			dxt_texture_compress(m_data.data(), compressed_data, m_width, m_height, m_channels);
-			m_data = compressed_data;
-		}
-
-		m_is_compressed = true;
+		return const_cast<Image*>(this)->sample(x, y);
 	}
 
 	RHIColorFormat Image::format() const
 	{
-		if (is_compressed())
+		switch (channels())
 		{
-			if (m_channels == 3)
-			{
-				return RHIColorFormat::BC1_RGBA;
-			}
-
-			if (m_channels == 4)
-			{
-				return RHIColorFormat::BC3_RGBA;
-			}
+			case 1: return RHIColorFormat::R8;
+			case 2: return RHIColorFormat::R8G8;
+			case 4: return RHIColorFormat::R8G8B8A8;
+			default: return RHIColorFormat::Undefined;
 		}
-
-		if (m_channels == 1)
-		{
-			return RHIColorFormat::R8;
-		}
-
-		if (m_channels == 4)
-		{
-			return RHIColorFormat::R8G8B8A8;
-		}
-
-		return RHIColorFormat::Undefined;
 	}
 
 	bool Image::serialize(Archive& archive)
 	{
-		archive.serialize(m_width, m_height, m_channels, m_is_compressed);
-
-		if (!archive)
-		{
-			error_log("Image", "Failed to serialize image header!");
-			return false;
-		}
-
-		archive.serialize(m_data);
-		return static_cast<bool>(archive);
+		return archive.serialize(m_size, m_data);
 	}
 }// namespace Engine

@@ -22,13 +22,7 @@ namespace Engine
 {
 	static const Image& load_image_icon()
 	{
-		static Image image;
-
-		if (image.empty())
-		{
-			image.load_from_memory(logo_png, logo_png_len, true);
-		}
-
+		static Image image = {logo_png, logo_png_len};
 		return image;
 	}
 
@@ -172,10 +166,10 @@ namespace Engine
 			parent->m_childs.push_back(window);
 			window->m_parent_window = parent;
 		}
-		
+
 		if (m_windows.empty())
 			m_main_window = window;
-		
+
 		m_windows[window->id()] = window;
 
 		// Initialize client

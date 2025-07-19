@@ -127,9 +127,9 @@ namespace Engine::Importer
 			StringView name   = texture_path.stem();
 			info_log("Importer", "Loading texture: %s\n", texture_path.c_str());
 
-			Image image;
+			Image image = texture_path;
 
-			if (image.load(texture_path).empty())
+			if (image.is_empty())
 			{
 				error_log("Importer", "Failed to load texture: %s\n", texture_path.c_str());
 				return DefaultResources::Textures::default_texture;
