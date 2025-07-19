@@ -242,8 +242,8 @@ namespace Engine
 		{
 			float border   = (item_size.x - image_size.x) / 2.f;
 			auto image_min = start_pos + ImVec2(border, border);
-			ImGui::GetWindowDrawList()->AddImageRounded(ImTextureID(imgui_texture), image_min, image_min + image_size, {0, 1},
-			                                            {1, 0}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
+			ImGui::GetWindowDrawList()->AddImageRounded(ImTextureID(imgui_texture), image_min, image_min + image_size, {0, 0},
+			                                            {1, 1}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
 		}
 
 		ImGui::BeginVertical(object, item_size, 0.5);
