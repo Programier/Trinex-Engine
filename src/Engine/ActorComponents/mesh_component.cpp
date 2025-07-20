@@ -9,7 +9,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(MeshComponent, Refl::Class::IsScriptable)
 	{
-		trinex_refl_prop(static_reflection(), This, m_material_overrides)->tooltip("Material overrides of this component");
+		trinex_refl_prop(m_material_overrides)->tooltip("Material overrides of this component");
 	}
 
 	MaterialInterface* MeshComponent::Proxy::material(size_t index) const

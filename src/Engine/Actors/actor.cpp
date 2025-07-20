@@ -277,7 +277,7 @@ namespace Engine
 			script_actor_destroyed.release();
 		});
 
-		auto components = trinex_refl_prop_ext(ActorComponentsExt, self, This, m_owned_components, Refl::Property::IsReadOnly);
+		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_owned_components, Refl::Property::IsReadOnly);
 
 		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
 		{
@@ -285,6 +285,6 @@ namespace Engine
 		}
 
 		components->display_name("Components").tooltip("Array of components of this actor");
-		trinex_refl_prop(self, This, m_is_visible)->display_name("Is Visible").tooltip("If true, actor is visible in the scene");
+		trinex_refl_prop(m_is_visible)->display_name("Is Visible").tooltip("If true, actor is visible in the scene");
 	}
 }// namespace Engine

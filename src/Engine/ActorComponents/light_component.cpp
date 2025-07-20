@@ -18,23 +18,21 @@ namespace Engine
 
 	trinex_implement_engine_class(LightComponent, 0)
 	{
-		Refl::Class* self = static_reflection();
-
-		trinex_refl_prop(self, This, m_light_color)->tooltip("Color of this light");
-		trinex_refl_prop(self, This, m_is_enabled)//
+		trinex_refl_prop(m_light_color)->tooltip("Color of this light");
+		trinex_refl_prop(m_is_enabled)//
 		        ->display_name("Is Enabled")
 		        .tooltip("Is light enabled");
 
-		trinex_refl_prop(self, This, m_is_shadows_enabled)
+		trinex_refl_prop(m_is_shadows_enabled)
 		        ->display_name("Enable Shadows")
 		        .tooltip("The light source can cast real-time shadows");
 
-		trinex_refl_prop(self, This, m_intensivity)//
+		trinex_refl_prop(m_intensivity)//
 		        ->display_name("Intensivity")
 		        .tooltip("Intensivity of this light");
 
-		trinex_refl_prop(self, This, m_depth_bias);
-		trinex_refl_prop(self, This, m_slope_scale);
+		trinex_refl_prop(m_depth_bias);
+		trinex_refl_prop(m_slope_scale);
 	}
 
 	LightComponent::Proxy& LightComponent::Proxy::render_parameters(LightRenderParameters& out)

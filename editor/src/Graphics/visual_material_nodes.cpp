@@ -16,27 +16,24 @@ namespace Engine::VisualMaterialGraph
 	{
 		static_node_group(static_reflection(), "Textures");
 
-		auto self = static_reflection();
-		trinex_refl_prop(self, This, name);
-		trinex_refl_prop(self, This, texture);
+		trinex_refl_prop(name);
+		trinex_refl_prop(texture);
 	}
 
 	trinex_implement_class(Engine::VisualMaterialGraph::Sampler, 0)
 	{
 		static_node_group(static_reflection(), "Textures");
-		auto self = static_reflection();
 
-		trinex_refl_prop(self, This, name);
-		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+		trinex_refl_prop(name);
+		trinex_refl_prop(sampler, Refl::Property::Inline);
 	}
 
 	trinex_implement_class(Engine::VisualMaterialGraph::SampleTexture, 0)
 	{
 		static_node_group(static_reflection(), "Textures");
 
-		auto self = static_reflection();
-		trinex_refl_prop(self, This, texture);
-		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
+		trinex_refl_prop(texture);
+		trinex_refl_prop(sampler, Refl::Property::Inline);
 	}
 
 	MaterialRoot::MaterialRoot()

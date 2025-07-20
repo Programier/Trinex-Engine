@@ -10,8 +10,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
 	{
-		auto* self = This::static_reflection();
-		trinex_refl_prop(self, This, shader_path)->tooltip("Path to slang file");
+		trinex_refl_prop(shader_path)->tooltip("Path to slang file");
 	}
 
 	bool ShaderMaterial::shader_source(String& out_source)

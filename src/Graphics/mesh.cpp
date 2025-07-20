@@ -14,25 +14,21 @@ namespace Engine
 {
 	trinex_implement_struct(Engine::MeshSurface, 0)
 	{
-		auto self = static_reflection();
-		trinex_refl_prop(self, This, base_vertex_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(self, This, first_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(self, This, vertices_count, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(self, This, material_index, Refl::Property::IsTransient);
+		trinex_refl_prop(base_vertex_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(first_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(vertices_count, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(material_index, Refl::Property::IsTransient);
 	}
 
 	trinex_implement_struct(Engine::StaticMesh::LOD, 0)
 	{
-		auto self = static_reflection();
-		trinex_refl_prop(self, This, surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 	}
 
 	trinex_implement_engine_class(StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
-		auto* self = StaticMesh::static_reflection();
-		trinex_refl_prop(self, This, materials)->tooltip("Array of materials for this mesh");
-		trinex_refl_prop(self, This, lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)
-		        ->tooltip("Array of lods of this mesh");
+		trinex_refl_prop(materials)->tooltip("Array of materials for this mesh");
+		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");
 	}
 
 	trinex_implement_engine_class_default_init(SkeletalMesh, 0);

@@ -8,11 +8,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(PointLightComponent, 0)
 	{
-		auto* self = static_reflection();
-
-		trinex_refl_prop(self, This, m_fall_off_exponent)
-		        ->display_name("Fall Off Exponent")
-		        .tooltip("Fall Off Exponent of this light");
+		trinex_refl_prop(m_fall_off_exponent)->display_name("Fall Off Exponent").tooltip("Fall Off Exponent of this light");
 	}
 
 	PointLightComponent::Proxy& PointLightComponent::Proxy::render_parameters(LightRenderParameters& out)

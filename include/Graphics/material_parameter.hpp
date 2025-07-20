@@ -110,7 +110,7 @@ public:                                                                         
 
 		class ENGINE_EXPORT Bool4 : public Primitive<Vector4b>
 		{
-			trinex_material_parameter(Bool2, Parameter);
+			trinex_material_parameter(Bool4, Parameter);
 		};
 
 		class ENGINE_EXPORT Int2 : public Primitive<Vector2i>

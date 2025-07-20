@@ -8,18 +8,16 @@ namespace Engine
 {
 	trinex_implement_engine_class(SpotLightComponent, 0)
 	{
-		auto* self = static_reflection();
-
 		auto on_data_changed = [](const Refl::PropertyChangedEvent& event) {
 			event.context_as<SpotLightComponent>()->submit_spot_light_data();
 		};
 
-		trinex_refl_prop(self, This, m_outer_cone_angle)
+		trinex_refl_prop(m_outer_cone_angle)
 		        ->push_change_listener(on_data_changed)
 		        .display_name("Outer Cone Angle")
 		        .tooltip("Outer Cone Angle of this spot light");
 
-		trinex_refl_prop(self, This, m_inner_cone_angle)
+		trinex_refl_prop(m_inner_cone_angle)
 		        ->push_change_listener(on_data_changed)
 		        .display_name("Inner Cone Angle")
 		        .tooltip("Inner Cone Angle of this spot light");

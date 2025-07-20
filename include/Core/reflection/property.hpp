@@ -906,17 +906,18 @@ private:
 
 
 #undef trinex_refl_prop_type_filter
-#define trinex_refl_prop(self, class_name, prop_name, ...)                                                                       \
-	self->new_child<Engine::Refl::NativeProperty<&class_name::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
+#define trinex_refl_prop(prop_name, ...)                                                                                         \
+	This::static_reflection()->new_child<Engine::Refl::NativeProperty<&This::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
 
-#define trinex_refl_virtual_prop(self, prop_name, getter, setter, ...)                                                           \
+#define trinex_refl_virtual_prop(prop_name, getter, setter, ...)                                                                 \
 	decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))::construct(                                       \
-	        self, #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
+	        This::static_reflection(), #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
 
-#define trinex_refl_prop_ext(extension, self, class_name, prop_name, ...)                                                        \
-	self->new_child<extension<Engine::Refl::NativeProperty<&class_name::prop_name>>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
+#define trinex_refl_prop_ext(extension, prop_name, ...)                                                                          \
+	This::static_reflection()->new_child<extension<Engine::Refl::NativeProperty<&This::prop_name>>>(#prop_name __VA_OPT__(, )    \
+	                                                                                                        __VA_ARGS__)
 
-#define trinex_refl_virtual_prop_ext(extension, self, prop_name, getter, setter, ...)                                            \
-	self->new_child<extension<decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))>>(                      \
+#define trinex_refl_virtual_prop_ext(extension, prop_name, getter, setter, ...)                                                  \
+	This::static_reflection()->new_child<extension<decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))>>( \
 	        #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
 }// namespace Engine::Refl

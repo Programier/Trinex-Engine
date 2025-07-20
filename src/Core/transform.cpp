@@ -15,13 +15,11 @@ namespace Engine
 
 	trinex_implement_struct(Engine::Transform, 0)
 	{
-		auto* self = static_reflection();
-
 		auto on_prop_changed = [](const Refl::PropertyChangedEvent& event) { event.context_as<Transform>()->m_is_dirty = true; };
 
-		auto& location = *trinex_refl_prop(self, This, m_location);
-		auto& rotation = *trinex_refl_prop(self, This, m_rotation);
-		auto& scale    = *trinex_refl_prop(self, This, m_scale);
+		auto& location = *trinex_refl_prop(m_location);
+		auto& rotation = *trinex_refl_prop(m_rotation);
+		auto& scale    = *trinex_refl_prop(m_scale);
 
 		location.display_name("Location").tooltip("Location component of transform");
 		rotation.display_name("Rotation").tooltip("Rotation component of transform");

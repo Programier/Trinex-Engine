@@ -28,8 +28,7 @@ namespace Engine
 
 	trinex_implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
 	{
-		auto* self  = static_reflection();
-		auto& local = *trinex_refl_prop(self, This, m_local);
+		auto& local = *trinex_refl_prop(m_local);
 		local.display_name("Transform").tooltip("Local transform of this component");
 
 		local.add_change_listener([](const Refl::PropertyChangedEvent& event) {
@@ -38,7 +37,7 @@ namespace Engine
 			component->on_transform_changed();
 		});
 
-		auto r = ScriptClassRegistrar::existing_class(self);
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
 		r.method("SceneComponent@ attach(SceneComponent@ child) final", &This::attach);
 		r.method("SceneComponent@ detach_from_parent() final", &This::detach_from_parent);

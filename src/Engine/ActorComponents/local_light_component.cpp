@@ -8,11 +8,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(LocalLightComponent, 0)
 	{
-		auto* self = static_reflection();
-
-		trinex_refl_prop(self, This, m_attenuation_radius)
-		        ->display_name("Attenuation radius")
-		        .tooltip("Attenuation radius of this light");
+		trinex_refl_prop(m_attenuation_radius)->display_name("Attenuation radius").tooltip("Attenuation radius of this light");
 	}
 
 	LocalLightComponent::Proxy& LocalLightComponent::Proxy::render_parameters(LightRenderParameters& out)

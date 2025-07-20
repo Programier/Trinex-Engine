@@ -118,10 +118,8 @@ namespace Engine
 
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
-		auto self = static_reflection();
-
 #define m_parameters m_child_objects
-		auto params = trinex_refl_prop_ext(MaterialParametersExt, self, This, m_parameters,
+		auto params = trinex_refl_prop_ext(MaterialParametersExt, m_parameters,
 		                                   Refl::Property::IsTransient | Refl::Property::IsReadOnly);
 #undef m_parameters
 
@@ -131,19 +129,15 @@ namespace Engine
 
 	trinex_implement_engine_class(Material, Refl::Class::IsAsset)
 	{
-		auto* self = static_reflection();
-		trinex_refl_prop(self, This, domain, Refl::Property::IsTransient);
-		trinex_refl_prop(self, This, depth_test, Refl::Property::IsTransient);
-		trinex_refl_prop(self, This, stencil_test, Refl::Property::IsTransient);
-		trinex_refl_prop(self, This, color_blending, Refl::Property::IsTransient);
+		trinex_refl_prop(domain, Refl::Property::IsTransient);
+		trinex_refl_prop(depth_test, Refl::Property::IsTransient);
+		trinex_refl_prop(stencil_test, Refl::Property::IsTransient);
+		trinex_refl_prop(color_blending, Refl::Property::IsTransient);
 	}
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
-		auto* self = MaterialInstance::static_reflection();
-		trinex_refl_prop(self, This, parent_material)
-		        ->display_name("Parent Material")
-		        .tooltip("Parent Material of this instance");
+		trinex_refl_prop(parent_material)->display_name("Parent Material").tooltip("Parent Material of this instance");
 	}
 
 	Refl::Class* MaterialInterface::object_tree_child_class() const
