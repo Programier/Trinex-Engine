@@ -8,7 +8,7 @@
 namespace Engine
 {
 	class Window;
-	class D3D12_Viewport : public D3D12_DeferredDestroyable<RHI_Viewport>
+	class D3D12_Viewport : public D3D12_DeferredDestroyable<RHIViewport>
 	{
 		static constexpr uint_t s_frame_count = 3;
 
@@ -35,7 +35,7 @@ namespace Engine
 		void on_resize(const Size2D& new_size) override;
 		void on_orientation_changed(Orientation orientation) override;
 		void bind() override;
-		void blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+		void blit_target(RHIRenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 		                 SamplerFilter filter) override;
 		void clear_color(const LinearColor& color) override;
 

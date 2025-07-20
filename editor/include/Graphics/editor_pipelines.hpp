@@ -5,7 +5,7 @@
 namespace Engine
 {
 	class Renderer;
-	struct RHI_ShaderResourceView;
+	struct RHIShaderResourceView;
 }// namespace Engine
 
 namespace Engine::EditorPipelines
@@ -24,7 +24,7 @@ namespace Engine::EditorPipelines
 		const RHIShaderParameterInfo* m_sample_offset;
 
 	public:
-		using SRV = RHI_ShaderResourceView;
+		using SRV = RHIShaderResourceView;
 		void render(Renderer* renderer, SRV* outline_depth, Vector3f color);
 		void render(Renderer* renderer, SRV* outline_depth, Vector3f color, Vector2f sample_offset);
 	};

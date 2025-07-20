@@ -3,9 +3,9 @@
 
 namespace Engine
 {
-	struct RHI_ShaderResourceView;
-	struct RHI_UnorderedAccessView;
-	struct RHI_Sampler;
+	struct RHIShaderResourceView;
+	struct RHIUnorderedAccessView;
+	struct RHISampler;
 	class Renderer;
 
 	namespace Pipelines
@@ -20,8 +20,8 @@ namespace Engine
 			const RHIShaderParameterInfo* m_kernel_size;
 
 		public:
-			void blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel = 5,
-			          float sigma = 2.f, RHI_Sampler* sampler = nullptr);
+			void blur(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel = 5,
+			          float sigma = 2.f, RHISampler* sampler = nullptr);
 		};
 
 		class ENGINE_EXPORT Blit2D : public GlobalComputePipeline
@@ -33,7 +33,7 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
+			void blit(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
 			          uint_t level = 0, Swizzle swizzle = {});
 		};
 

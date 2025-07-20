@@ -4,12 +4,12 @@
 
 namespace Engine
 {
-	struct RHI_Sampler;
+	struct RHISampler;
 
 	class RHIStaticSamplerBase
 	{
 	protected:
-		static ENGINE_EXPORT void create(RHI_Sampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
+		static ENGINE_EXPORT void create(RHISampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
 		                                 RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,
 		                                 float max_anisotropy, Color border_color, RHICompareFunc compare_func);
 	};
@@ -26,7 +26,7 @@ namespace Engine
 	{
 	private:
 		struct StaticResource {
-			RHI_Sampler* sampler = nullptr;
+			RHISampler* sampler = nullptr;
 			StaticResource()
 			{
 				RHIStaticSamplerBase::create(sampler, filter, address_u, address_v, address_w, mip_bias, max_anisotropy,
@@ -35,7 +35,7 @@ namespace Engine
 		};
 
 	public:
-		static inline RHI_Sampler* static_sampler()
+		static inline RHISampler* static_sampler()
 		{
 			static StaticResource s_resource;
 			return s_resource.sampler;

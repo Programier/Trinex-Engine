@@ -148,8 +148,8 @@ namespace Engine::MaterialParameters
 
 	CombinedSurface& CombinedSurface::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
 	{
-		RHI_ShaderResourceView* srv = surface ? surface->rhi_srv() : nullptr;
-		RHI_Sampler* rhi_sampler    = sampler.rhi_sampler();
+		RHIShaderResourceView* srv = surface ? surface->rhi_srv() : nullptr;
+		RHISampler* rhi_sampler    = sampler.rhi_sampler();
 
 		if (srv && rhi_sampler)
 		{

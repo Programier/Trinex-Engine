@@ -40,7 +40,7 @@ namespace Engine
 	{
 	private:
 		Atomic<uint64_t> m_references = 0;
-		RHI_Sampler* m_sampler        = nullptr;
+		RHISampler* m_sampler        = nullptr;
 		SamplerImpl* m_prev           = nullptr;
 		SamplerImpl* m_next           = nullptr;
 		RHISamplerInitializer m_initializer;
@@ -82,7 +82,7 @@ namespace Engine
 
 		inline uint64_t references() const { return m_references; }
 		inline const RHISamplerInitializer& initializer() const { return m_initializer; }
-		inline RHI_Sampler* rhi_sampler() const { return m_sampler; }
+		inline RHISampler* rhi_sampler() const { return m_sampler; }
 		inline SamplerImpl* prev() const { return m_prev; }
 		inline SamplerImpl* next() const { return m_next; }
 
@@ -163,7 +163,7 @@ namespace Engine
 		return m_sampler->initializer();
 	}
 
-	RHI_Sampler* Sampler::rhi_sampler() const
+	RHISampler* Sampler::rhi_sampler() const
 	{
 		if (m_sampler == nullptr)
 			return nullptr;

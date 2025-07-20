@@ -10,8 +10,8 @@ namespace Engine
 	class PrimitiveComponent;
 	class LightComponent;
 	class MaterialBindings;
-	struct RHI_Buffer;
-	struct RHI_Texture;
+	struct RHIBuffer;
+	struct RHITexture;
 
 	namespace RenderGraph
 	{
@@ -54,10 +54,10 @@ namespace Engine
 		ChildRenderer* m_child_renderer = nullptr;
 		RenderGraph::Graph* m_graph;
 		Scene* m_scene;
-		RHI_Buffer* m_globals = nullptr;
+		RHIBuffer* m_globals = nullptr;
 		SceneView m_view;
 		ViewMode m_view_mode;
-		RHI_Texture* m_surfaces[LastSurface] = {};
+		RHITexture* m_surfaces[LastSurface] = {};
 
 	public:
 		static RHISurfaceFormat format_of(SurfaceType type);
@@ -72,22 +72,22 @@ namespace Engine
 
 		Renderer& render_primitive(RenderPass* pass, PrimitiveComponent* component, const MaterialBindings* bindings = nullptr);
 		Renderer& add_child_renderer(Renderer* renderer);
-		RHI_Texture* surface(SurfaceType type);
-		RHI_Texture* scene_color_target();
-		RHI_Buffer* globals_uniform_buffer();
+		RHITexture* surface(SurfaceType type);
+		RHITexture* scene_color_target();
+		RHIBuffer* globals_uniform_buffer();
 
 		virtual Renderer& render();
 
 		inline const SceneView& scene_view() const { return m_view; }
 		inline Scene* scene() const { return m_scene; }
 		inline ViewMode view_mode() const { return m_view_mode; }
-		inline RHI_Texture* scene_color_hdr_target() { return surface(SceneColorHDR); }
-		inline RHI_Texture* scene_color_ldr_target() { return surface(SceneColorLDR); }
-		inline RHI_Texture* scene_depth_target() { return surface(SceneDepth); }
-		inline RHI_Texture* base_color_target() { return surface(BaseColor); }
-		inline RHI_Texture* normal_target() { return surface(Normal); }
-		inline RHI_Texture* emissive_target() { return surface(Emissive); }
-		inline RHI_Texture* msra_target() { return surface(MSRA); }
+		inline RHITexture* scene_color_hdr_target() { return surface(SceneColorHDR); }
+		inline RHITexture* scene_color_ldr_target() { return surface(SceneColorLDR); }
+		inline RHITexture* scene_depth_target() { return surface(SceneDepth); }
+		inline RHITexture* base_color_target() { return surface(BaseColor); }
+		inline RHITexture* normal_target() { return surface(Normal); }
+		inline RHITexture* emissive_target() { return surface(Emissive); }
+		inline RHITexture* msra_target() { return surface(MSRA); }
 		inline RenderGraph::Graph* render_graph() const { return m_graph; }
 
 		virtual ~Renderer() {}

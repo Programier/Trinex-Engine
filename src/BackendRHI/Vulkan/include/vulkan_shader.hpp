@@ -11,7 +11,7 @@ namespace Engine
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSet;
 
-	class VulkanShader : public VulkanDeferredDestroy<RHI_Shader>
+	class VulkanShader : public VulkanDeferredDestroy<RHIShader>
 	{
 	private:
 		vk::ShaderModule m_shader;

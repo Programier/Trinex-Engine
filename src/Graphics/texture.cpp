@@ -13,7 +13,7 @@ namespace Engine
 		return *this;
 	}
 
-	Texture& Texture::rhi_bind_combined(byte location, RHI_Sampler* sampler)
+	Texture& Texture::rhi_bind_combined(byte location, RHISampler* sampler)
 	{
 		rhi->bind_srv(rhi_srv(), location);
 		rhi->bind_sampler(sampler, location);
@@ -27,14 +27,14 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_ShaderResourceView* Texture::rhi_srv() const
+	RHIShaderResourceView* Texture::rhi_srv() const
 	{
 		if (m_texture)
 			return m_texture->as_srv();
 		return nullptr;
 	}
 
-	RHI_Texture* Texture::rhi_texture() const
+	RHITexture* Texture::rhi_texture() const
 	{
 		return m_texture.get();
 	}

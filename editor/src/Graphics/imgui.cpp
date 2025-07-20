@@ -45,7 +45,7 @@ namespace Engine
 			const RHIShaderParameterInfo* texture_parameter = nullptr;
 			const RHIShaderParameterInfo* model_parameter   = nullptr;
 			Matrix4f model;
-			RHI_ShaderResourceView* srv = nullptr;
+			RHIShaderResourceView* srv = nullptr;
 
 			void apply(const Sampler& sampler);
 		};
@@ -111,8 +111,8 @@ namespace Engine
 		};
 
 		struct ImGuiTrinexViewportData {
-			RHIResourcePtr<RHI_Buffer> vertex_buffer;
-			RHIResourcePtr<RHI_Buffer> index_buffer;
+			RHIResourcePtr<RHIBuffer> vertex_buffer;
+			RHIResourcePtr<RHIBuffer> index_buffer;
 			uint64_t vertex_count = 0;
 			uint64_t index_count  = 0;
 		};

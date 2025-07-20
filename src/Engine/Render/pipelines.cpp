@@ -24,8 +24,8 @@ namespace Engine::Pipelines
 		m_kernel_size = find_parameter("kernel_size");
 	}
 
-	void GaussianBlur::blur(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel,
-	                        float sigma, RHI_Sampler* sampler)
+	void GaussianBlur::blur(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel,
+	                        float sigma, RHISampler* sampler)
 	{
 		kernel = glm::abs(kernel);
 		sigma  = glm::abs(sigma);
@@ -54,7 +54,7 @@ namespace Engine::Pipelines
 		m_args = find_parameter("args");
 	}
 
-	void Blit2D::blit(RHI_ShaderResourceView* src, RHI_UnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
+	void Blit2D::blit(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
 	                  uint_t level, Swizzle swizzle)
 	{
 		struct ShaderArgs {

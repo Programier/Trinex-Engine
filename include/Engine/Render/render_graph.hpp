@@ -9,9 +9,9 @@
 
 namespace Engine
 {
-	struct RHI_Object;
-	struct RHI_Buffer;
-	struct RHI_Texture;
+	struct RHIObject;
+	struct RHIBuffer;
+	struct RHITexture;
 }// namespace Engine
 
 namespace Engine::RenderGraph
@@ -95,8 +95,8 @@ namespace Engine::RenderGraph
 		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access);
 
 	public:
-		Pass& add_resource(RHI_Texture* texture, RHIAccess access);
-		Pass& add_resource(RHI_Buffer* buffer, RHIAccess access);
+		Pass& add_resource(RHITexture* texture, RHIAccess access);
+		Pass& add_resource(RHIBuffer* buffer, RHIAccess access);
 
 		inline Pass& add_dependency(Pass* dependency)
 		{
@@ -200,7 +200,7 @@ namespace Engine::RenderGraph
 			Resource* last  = nullptr;
 		};
 
-		RGMap<RHI_Object*, ResourceEntry> m_resource_map;
+		RGMap<RHIObject*, ResourceEntry> m_resource_map;
 		RGSet<Resource*> m_outputs;
 		RGVector<Pass*> m_passes;
 		RGVector<Plugin*> m_plugins;
@@ -212,20 +212,20 @@ namespace Engine::RenderGraph
 		Node* build_graph();
 		void execute_node(Node* node);
 
-		ResourceEntry* find_resource(RHI_Object* object);
-		ResourceEntry* find_resource(RHI_Texture* texture);
-		ResourceEntry* find_resource(RHI_Buffer* buffer);
+		ResourceEntry* find_resource(RHIObject* object);
+		ResourceEntry* find_resource(RHITexture* texture);
+		ResourceEntry* find_resource(RHIBuffer* buffer);
 
-		inline Resource* readable_resource(RHI_Texture* texture) { return find_resource(texture)->last; }
-		inline Resource* readable_resource(RHI_Buffer* buffer) { return find_resource(buffer)->last; }
+		inline Resource* readable_resource(RHITexture* texture) { return find_resource(texture)->last; }
+		inline Resource* readable_resource(RHIBuffer* buffer) { return find_resource(buffer)->last; }
 
-		Resource* writable_resource(RHI_Texture* texture, Pass* writer);
-		Resource* writable_resource(RHI_Buffer* buffer, Pass* writer);
+		Resource* writable_resource(RHITexture* texture, Pass* writer);
+		Resource* writable_resource(RHIBuffer* buffer, Pass* writer);
 
 	public:
 		Graph();
-		Graph& add_output(RHI_Texture* texture);
-		Graph& add_output(RHI_Buffer* buffer);
+		Graph& add_output(RHITexture* texture);
+		Graph& add_output(RHIBuffer* buffer);
 		Pass& add_pass(Pass::Type type, const char* name = "Unnamed pass");
 		bool execute();
 

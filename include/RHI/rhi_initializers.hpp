@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	struct RHI_Shader;
+	struct RHIShader;
 
 	struct ENGINE_EXPORT RHISamplerInitializer {
 		RHISamplerFilter filter;
@@ -30,14 +30,14 @@ namespace Engine
 		union
 		{
 			struct {
-				RHI_Shader* vertex_shader               = nullptr;
-				RHI_Shader* tessellation_control_shader = nullptr;
-				RHI_Shader* tessellation_shader         = nullptr;
-				RHI_Shader* geometry_shader             = nullptr;
-				RHI_Shader* fragment_shader             = nullptr;
+				RHIShader* vertex_shader               = nullptr;
+				RHIShader* tessellation_control_shader = nullptr;
+				RHIShader* tessellation_shader         = nullptr;
+				RHIShader* geometry_shader             = nullptr;
+				RHIShader* fragment_shader             = nullptr;
 			};
 
-			RHI_Shader* shaders[5];
+			RHIShader* shaders[5];
 		};
 
 		const struct RHIShaderParameterInfo* parameters    = nullptr;
@@ -54,12 +54,12 @@ namespace Engine
 		union
 		{
 			struct {
-				RHI_Shader* task_shader     = nullptr;
-				RHI_Shader* mesh_shader     = nullptr;
-				RHI_Shader* fragment_shader = nullptr;
+				RHIShader* task_shader     = nullptr;
+				RHIShader* mesh_shader     = nullptr;
+				RHIShader* fragment_shader = nullptr;
 			};
 
-			RHI_Shader* shaders[3];
+			RHIShader* shaders[3];
 		};
 
 		const struct RHIShaderParameterInfo* parameters = nullptr;
@@ -71,7 +71,7 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHIComputePipelineInitializer {
-		RHI_Shader* compute_shader                      = nullptr;
+		RHIShader* compute_shader                      = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		size_t parameters_count                         = 0;
 	};

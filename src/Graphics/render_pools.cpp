@@ -57,7 +57,7 @@ namespace Engine
 
 	RHIFencePool& RHIFencePool::flush_transient()
 	{
-		for (RHI_Fence* fence : m_transient_fences)
+		for (RHIFence* fence : m_transient_fences)
 		{
 			return_fence(fence);
 		}
@@ -88,11 +88,11 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Fence* RHIFencePool::request_fence()
+	RHIFence* RHIFencePool::request_fence()
 	{
 		if (!m_pool.empty())
 		{
-			RHI_Fence* fence = m_pool.back().fence;
+			RHIFence* fence = m_pool.back().fence;
 			fence->reset();
 			m_pool.pop_back();
 			return fence;
@@ -100,7 +100,7 @@ namespace Engine
 		return rhi->create_fence();
 	}
 
-	RHI_Fence* RHIFencePool::request_transient_fence()
+	RHIFence* RHIFencePool::request_transient_fence()
 	{
 		if (auto fence = request_fence())
 		{
@@ -122,7 +122,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHIFencePool& RHIFencePool::return_fence(RHI_Fence* fence)
+	RHIFencePool& RHIFencePool::return_fence(RHIFence* fence)
 	{
 		auto& entry = m_pool.emplace_back();
 		entry.fence = fence;
@@ -138,7 +138,7 @@ namespace Engine
 
 	RHIBufferPool& RHIBufferPool::flush_transient()
 	{
-		for (RHI_Buffer* buffer : m_transient_buffers)
+		for (RHIBuffer* buffer : m_transient_buffers)
 		{
 			return_buffer(buffer);
 		}
@@ -173,7 +173,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Buffer* RHIBufferPool::request_buffer(uint32_t size, RHIBufferCreateFlags flags)
+	RHIBuffer* RHIBufferPool::request_buffer(uint32_t size, RHIBufferCreateFlags flags)
 	{
 		if (size == 0)
 			return nullptr;
@@ -184,17 +184,17 @@ namespace Engine
 
 		if (!pool.empty())
 		{
-			RHI_Buffer* buffer = pool.back().buffer;
+			RHIBuffer* buffer = pool.back().buffer;
 			pool.pop_back();
 			return buffer;
 		}
 
-		RHI_Buffer* buffer  = rhi->create_buffer(size, nullptr, flags);
+		RHIBuffer* buffer  = rhi->create_buffer(size, nullptr, flags);
 		m_buffer_id[buffer] = buffer_id;
 		return buffer;
 	}
 
-	RHI_Buffer* RHIBufferPool::request_transient_buffer(uint32_t size, RHIBufferCreateFlags flags)
+	RHIBuffer* RHIBufferPool::request_transient_buffer(uint32_t size, RHIBufferCreateFlags flags)
 	{
 		if (auto buffer = request_buffer(size, flags))
 		{
@@ -220,7 +220,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHIBufferPool& RHIBufferPool::return_buffer(RHI_Buffer* buffer)
+	RHIBufferPool& RHIBufferPool::return_buffer(RHIBuffer* buffer)
 	{
 		auto it = m_buffer_id.find(buffer);
 
@@ -242,7 +242,7 @@ namespace Engine
 
 	RHISurfacePool& RHISurfacePool::flush_transient()
 	{
-		for (RHI_Texture* texture : m_transient_textures)
+		for (RHITexture* texture : m_transient_textures)
 		{
 			return_surface(texture);
 		}
@@ -277,7 +277,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Texture* RHISurfacePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	RHITexture* RHISurfacePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
@@ -298,17 +298,17 @@ namespace Engine
 
 		if (!pool.empty())
 		{
-			RHI_Texture* surface = pool.back().surface;
+			RHITexture* surface = pool.back().surface;
 			pool.pop_back();
 			return surface;
 		}
 
-		RHI_Texture* surface  = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(format), {size, 1}, 1, flags);
+		RHITexture* surface  = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(format), {size, 1}, 1, flags);
 		m_surface_id[surface] = surface_id;
 		return surface;
 	}
 
-	RHI_Texture* RHISurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	RHITexture* RHISurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
 		if (auto surface = request_surface(format, size, flags))
 		{
@@ -334,7 +334,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHISurfacePool& RHISurfacePool::return_surface(RHI_Texture* surface)
+	RHISurfacePool& RHISurfacePool::return_surface(RHITexture* surface)
 	{
 		auto it = m_surface_id.find(surface);
 

@@ -109,7 +109,7 @@ namespace Engine
 		D3D12::api()->bind_render_target1(rtv());
 	}
 
-	void D3D12_Viewport::blit_target(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+	void D3D12_Viewport::blit_target(RHIRenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
 	                                 SamplerFilter filter)
 	{}
 
@@ -139,7 +139,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Viewport* D3D12::create_viewport(WindowRenderViewport* viewport, bool vsync)
+	RHIViewport* D3D12::create_viewport(WindowRenderViewport* viewport, bool vsync)
 	{
 		return allocate<D3D12_Viewport>(viewport, vsync);
 	}

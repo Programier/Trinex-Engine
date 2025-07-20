@@ -47,36 +47,36 @@ namespace Engine
 
 		D3D12& compile_root_signature();
 		D3D12& rebind_descriptors();
-		D3D12& deferred_destroy(RHI_Object* object);
+		D3D12& deferred_destroy(RHIObject* object);
 
-		RHI_Texture* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
-		RHI_Buffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags) override;
-		RHI_Shader* create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
+		RHITexture* create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags) override;
+		RHIBuffer* create_buffer(size_t size, const byte* data, BufferCreateFlags flags) override;
+		RHIShader* create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
 		                                 size_t attributes_count) override;
-		RHI_Shader* create_tesselation_control_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_tesselation_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_geometry_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_fragment_shader(const byte* shader, size_t size) override;
-		RHI_Shader* create_compute_shader(const byte* shader, size_t size) override;
+		RHIShader* create_tesselation_control_shader(const byte* shader, size_t size) override;
+		RHIShader* create_tesselation_shader(const byte* shader, size_t size) override;
+		RHIShader* create_geometry_shader(const byte* shader, size_t size) override;
+		RHIShader* create_fragment_shader(const byte* shader, size_t size) override;
+		RHIShader* create_compute_shader(const byte* shader, size_t size) override;
 
-		RHI_Pipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
-		RHI_Pipeline* create_compute_pipeline(const ComputePipeline* pipeline) override;
-		RHI_Viewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
+		RHIPipeline* create_graphics_pipeline(const GraphicsPipeline* pipeline) override;
+		RHIPipeline* create_compute_pipeline(const ComputePipeline* pipeline) override;
+		RHIViewport* create_viewport(WindowRenderViewport* viewport, bool vsync) override;
 
-		D3D12& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
+		D3D12& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) override;
 
-		D3D12& barrier(RHI_Texture* texture, RHIAccess access) override;
-		D3D12& barrier(RHI_Buffer* buffer, RHIAccess access) override;
+		D3D12& barrier(RHITexture* texture, RHIAccess access) override;
+		D3D12& barrier(RHIBuffer* buffer, RHIAccess access) override;
 
 		D3D12& submit() override;
 
 		D3D12& viewport(const ViewPort& viewport) override;
 		D3D12& scissor(const Scissor& scissor) override;
 
-		D3D12& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
-		D3D12& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
-		D3D12& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-		                          RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
+		D3D12& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
+		D3D12& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;
+		D3D12& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                          RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) override;
 
 		D3D12& draw(size_t vertex_count, size_t vertices_offset) override;
 	};

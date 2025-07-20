@@ -109,12 +109,12 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_ShaderResourceView* D3D12Buffer::as_srv()
+	RHIShaderResourceView* D3D12Buffer::as_srv()
 	{
 		return nullptr;
 	}
 
-	RHI_UnorderedAccessView* D3D12Buffer::as_uav()
+	RHIUnorderedAccessView* D3D12Buffer::as_uav()
 	{
 		return nullptr;
 	}
@@ -179,12 +179,12 @@ namespace Engine
 		return buffer;
 	}
 
-	RHI_Buffer* D3D12::create_buffer(size_t size, const byte* data, BufferCreateFlags flags)
+	RHIBuffer* D3D12::create_buffer(size_t size, const byte* data, BufferCreateFlags flags)
 	{
 		return allocate<D3D12Buffer>(size, data, flags);
 	}
 
-	D3D12& D3D12::update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)
+	D3D12& D3D12::update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data)
 	{
 		D3D12Buffer* dst = static_cast<D3D12Buffer*>(buffer);
 
@@ -195,7 +195,7 @@ namespace Engine
 		return *this;
 	}
 
-	D3D12& D3D12::barrier(RHI_Buffer* buffer, RHIAccess access)
+	D3D12& D3D12::barrier(RHIBuffer* buffer, RHIAccess access)
 	{
 		static_cast<D3D12Buffer*>(buffer)->transition(resource_state_of(access));
 		return *this;

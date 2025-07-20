@@ -7,9 +7,9 @@
 
 namespace Engine
 {
-	class RHI_Texture;
-	class RHI_Sampler;
-	class RHI_ShaderResourceView;
+	class RHITexture;
+	class RHISampler;
+	class RHIShaderResourceView;
 
 	class ENGINE_EXPORT MaterialBindings
 	{
@@ -20,8 +20,8 @@ namespace Engine
 		};
 
 		struct CombinedSamplerImage {
-			RHI_ShaderResourceView* texture = nullptr;
-			RHI_Sampler* sampler            = nullptr;
+			RHIShaderResourceView* texture = nullptr;
+			RHISampler* sampler            = nullptr;
 		};
 
 		using Binding = Variant<bool, Vector2b, Vector3b, Vector4b,  //
@@ -29,7 +29,7 @@ namespace Engine
 		                        uint_t, Vector2u, Vector3u, Vector4u,//
 		                        float, Vector2f, Vector3f, Vector4f, //
 		                        MemoryBlock, CombinedSamplerImage,   //
-		                        RHI_Sampler*, RHI_ShaderResourceView*>;
+		                        RHISampler*, RHIShaderResourceView*>;
 
 	private:
 		using Element = Pair<Name, Binding>;

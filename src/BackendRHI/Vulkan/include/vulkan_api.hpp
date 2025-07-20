@@ -134,8 +134,8 @@ namespace Engine
 		VulkanAPI& submit() override;
 		VulkanAPI& wait_idle();
 
-		VulkanAPI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-		                              RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) override;
+		VulkanAPI& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                              RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) override;
 		VulkanAPI& viewport(const RHIViewport& viewport) override;
 		VulkanAPI& scissor(const RHIScissors& scissor) override;
 
@@ -150,39 +150,39 @@ namespace Engine
 		VulkanAPI& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
 
 		VulkanAPI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
-		VulkanAPI& signal_fence(RHI_Fence* fence) override;
+		VulkanAPI& signal_fence(RHIFence* fence) override;
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
-		RHI_Fence* create_fence() override;
-		RHI_Sampler* create_sampler(const RHISamplerInitializer*) override;
-		RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+		RHIFence* create_fence() override;
+		RHISampler* create_sampler(const RHISamplerInitializer*) override;
+		RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
 		                            RHITextureCreateFlags flags) override;
-		RHI_Shader* create_shader(const byte* shader, size_t size) override;
-		RHI_Pipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
-		RHI_Pipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
-		RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
-		RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
+		RHIShader* create_shader(const byte* shader, size_t size) override;
+		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
+		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
+		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
+		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		VulkanAPI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		VulkanAPI& push_debug_stage(const char* stage) override;
 		VulkanAPI& pop_debug_stage() override;
 
-		VulkanAPI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) override;
-		VulkanAPI& update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+		VulkanAPI& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) override;
+		VulkanAPI& update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, size_t size,
 		                          size_t buffer_width, size_t buffer_height) override;
 
-		VulkanAPI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
+		VulkanAPI& copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset,
 		                                 size_t dst_offset) override;
 
-		VulkanAPI& copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
-		                                  const Vector3u& extent, RHI_Buffer* buffer, size_t buffer_offset) override;
+		VulkanAPI& copy_texture_to_buffer(RHITexture* texture, uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
+		                                  const Vector3u& extent, RHIBuffer* buffer, size_t buffer_offset) override;
 
-		VulkanAPI& copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
+		VulkanAPI& copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture, uint8_t mip_level,
 		                                  uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) override;
 
-		VulkanAPI& copy_texture_to_texture(RHI_Texture* src, const RHITextureRegion& src_region, RHI_Texture* dst,
+		VulkanAPI& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 		                                   const RHITextureRegion& dst_region) override;
 
 		VulkanAPI& primitive_topology(RHIPrimitiveTopology topology) override;
@@ -190,16 +190,16 @@ namespace Engine
 		VulkanAPI& cull_mode(RHICullMode mode) override;
 		VulkanAPI& front_face(RHIFrontFace face) override;
 
-		VulkanAPI& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
-		VulkanAPI& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format) override;
-		VulkanAPI& bind_uniform_buffer(RHI_Buffer* buffer, byte slot) override;
+		VulkanAPI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
+		VulkanAPI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;
+		VulkanAPI& bind_uniform_buffer(RHIBuffer* buffer, byte slot) override;
 		VulkanAPI& bind_uniform_buffer(VulkanBuffer* buffer, size_t size, size_t offset, byte slot);
-		VulkanAPI& bind_srv(RHI_ShaderResourceView* view, byte slot) override;
-		VulkanAPI& bind_uav(RHI_UnorderedAccessView* view, byte slot) override;
-		VulkanAPI& bind_sampler(RHI_Sampler* view, byte slot) override;
+		VulkanAPI& bind_srv(RHIShaderResourceView* view, byte slot) override;
+		VulkanAPI& bind_uav(RHIUnorderedAccessView* view, byte slot) override;
+		VulkanAPI& bind_sampler(RHISampler* view, byte slot) override;
 
-		VulkanAPI& barrier(RHI_Texture* texture, RHIAccess dst_access) override;
-		VulkanAPI& barrier(RHI_Buffer* buffer, RHIAccess dst_access) override;
+		VulkanAPI& barrier(RHITexture* texture, RHIAccess dst_access) override;
+		VulkanAPI& barrier(RHIBuffer* buffer, RHIAccess dst_access) override;
 
 		VulkanAPI& begin_timestamp(RHITimestamp* timestamp) override;
 		VulkanAPI& end_timestamp(RHITimestamp* timestamp) override;

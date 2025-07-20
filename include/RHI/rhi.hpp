@@ -21,20 +21,20 @@ namespace Engine
 		class Struct;
 	}
 
-	struct ENGINE_EXPORT RHI_Object {
+	struct ENGINE_EXPORT RHIObject {
 	private:
-		static void static_release_internal(RHI_Object* object);
+		static void static_release_internal(RHIObject* object);
 
 	protected:
 		size_t m_references;
 
 	public:
-		RHI_Object(size_t init_ref_count = 1);
+		RHIObject(size_t init_ref_count = 1);
 		virtual void add_reference();
 		virtual void release();
 		virtual void destroy() = 0;
 		size_t references() const;
-		virtual ~RHI_Object();
+		virtual ~RHIObject();
 
 		template<typename T>
 		static inline void static_release(T* object)
@@ -58,12 +58,12 @@ namespace Engine
 		}
 	};
 
-	struct ENGINE_EXPORT RHITimestamp : RHI_Object {
+	struct ENGINE_EXPORT RHITimestamp : RHIObject {
 		virtual bool is_ready()      = 0;
 		virtual float milliseconds() = 0;
 	};
 
-	struct ENGINE_EXPORT RHIPipelineStatistics : RHI_Object {
+	struct ENGINE_EXPORT RHIPipelineStatistics : RHIObject {
 		virtual bool is_ready() = 0;
 
 		virtual uint64_t vertices()                   = 0;
@@ -79,59 +79,59 @@ namespace Engine
 		virtual uint64_t fragment_shader_invocations()             = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_Fence : RHI_Object {
+	struct ENGINE_EXPORT RHIFence : RHIObject {
 		virtual bool is_signaled() = 0;
 		virtual void reset()       = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_ShaderResourceView {
-		virtual ~RHI_ShaderResourceView() {}
+	struct ENGINE_EXPORT RHIShaderResourceView {
+		virtual ~RHIShaderResourceView() {}
 	};
 
-	struct ENGINE_EXPORT RHI_UnorderedAccessView {
-		virtual ~RHI_UnorderedAccessView() {}
+	struct ENGINE_EXPORT RHIUnorderedAccessView {
+		virtual ~RHIUnorderedAccessView() {}
 	};
 
-	struct ENGINE_EXPORT RHI_RenderTargetView {
+	struct ENGINE_EXPORT RHIRenderTargetView {
 		virtual void clear(const LinearColor& color)   = 0;
 		virtual void clear_uint(const Vector4u& value) = 0;
 		virtual void clear_sint(const Vector4i& value) = 0;
-		virtual ~RHI_RenderTargetView() {}
+		virtual ~RHIRenderTargetView() {}
 	};
 
-	struct ENGINE_EXPORT RHI_DepthStencilView {
+	struct ENGINE_EXPORT RHIDepthStencilView {
 		virtual void clear(float depth, byte stencil) = 0;
-		virtual ~RHI_DepthStencilView() {}
+		virtual ~RHIDepthStencilView() {}
 	};
 
-	struct ENGINE_EXPORT RHI_Sampler : RHI_Object {
+	struct ENGINE_EXPORT RHISampler : RHIObject {
 	};
 
-	struct ENGINE_EXPORT RHI_Texture : RHI_Object {
-		virtual RHI_RenderTargetView* as_rtv(RHITextureDescRTV desc = {})    = 0;
-		virtual RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc = {})    = 0;
-		virtual RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc = {})  = 0;
-		virtual RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc = {}) = 0;
+	struct ENGINE_EXPORT RHITexture : RHIObject {
+		virtual RHIRenderTargetView* as_rtv(RHITextureDescRTV desc = {})    = 0;
+		virtual RHIDepthStencilView* as_dsv(RHITextureDescDSV desc = {})    = 0;
+		virtual RHIShaderResourceView* as_srv(RHITextureDescSRV desc = {})  = 0;
+		virtual RHIUnorderedAccessView* as_uav(RHITextureDescUAV desc = {}) = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_Shader : RHI_Object {
+	struct ENGINE_EXPORT RHIShader : RHIObject {
 	};
 
-	struct ENGINE_EXPORT RHI_Pipeline : RHI_Object {
+	struct ENGINE_EXPORT RHIPipeline : RHIObject {
 		virtual void bind() = 0;
 	};
 
-	struct ENGINE_EXPORT RHI_Buffer : RHI_Object {
-		virtual byte* map()                       = 0;
-		virtual void unmap()                      = 0;
-		virtual RHI_ShaderResourceView* as_srv()  = 0;
-		virtual RHI_UnorderedAccessView* as_uav() = 0;
+	struct ENGINE_EXPORT RHIBuffer : RHIObject {
+		virtual byte* map()                      = 0;
+		virtual void unmap()                     = 0;
+		virtual RHIShaderResourceView* as_srv()  = 0;
+		virtual RHIUnorderedAccessView* as_uav() = 0;
 	};
 
-	struct RHISwapchain : RHI_Object {
+	struct RHISwapchain : RHIObject {
 		virtual void vsync(bool flag)             = 0;
 		virtual void resize(const Vector2u& size) = 0;
-		virtual RHI_RenderTargetView* as_rtv()    = 0;
+		virtual RHIRenderTargetView* as_rtv()     = 0;
 	};
 
 	struct ENGINE_EXPORT RHI {
@@ -157,46 +157,45 @@ namespace Engine
 		virtual RHI& draw_mesh(uint32_t x, uint32_t y, uint32_t z) = 0;
 
 		virtual RHI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) = 0;
-		virtual RHI& signal_fence(RHI_Fence* fence)                                 = 0;
+		virtual RHI& signal_fence(RHIFence* fence)                                  = 0;
 		virtual RHI& submit()                                                       = 0;
 
-		virtual RHI& bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-		                                RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil) = 0;
+		virtual RHI& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                                RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) = 0;
 
 		virtual RHI& viewport(const RHIViewport& viewport) = 0;
 		virtual RHI& scissor(const RHIScissors& scissor)   = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                                      = 0;
 		virtual RHIPipelineStatistics* create_pipeline_statistics()                                                   = 0;
-		virtual RHI_Fence* create_fence()                                                                             = 0;
-		virtual RHI_Sampler* create_sampler(const RHISamplerInitializer*)                                             = 0;
-		virtual RHI_Texture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
-		                                    RHITextureCreateFlags flags)                                              = 0;
-		virtual RHI_Shader* create_shader(const byte* shader, size_t size)                                            = 0;
-		virtual RHI_Pipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)                = 0;
-		virtual RHI_Pipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)                        = 0;
-		virtual RHI_Pipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)                  = 0;
-		virtual RHI_Buffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)                  = 0;
+		virtual RHIFence* create_fence()                                                                              = 0;
+		virtual RHISampler* create_sampler(const RHISamplerInitializer*)                                              = 0;
+		virtual RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+		                                   RHITextureCreateFlags flags)                                               = 0;
+		virtual RHIShader* create_shader(const byte* shader, size_t size)                                             = 0;
+		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)                 = 0;
+		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)                         = 0;
+		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)                   = 0;
+		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)                   = 0;
 		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                            = 0;
 		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHI& push_debug_stage(const char* stage)                                                              = 0;
 		virtual RHI& pop_debug_stage()                                                                                = 0;
 
-		virtual RHI& update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data) = 0;
+		virtual RHI& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) = 0;
 
-		virtual RHI& update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+		virtual RHI& update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, size_t size,
 		                            size_t buffer_width = 0, size_t buffer_height = 0) = 0;
 
-		virtual RHI& copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
-		                                   size_t dst_offset) = 0;
+		virtual RHI& copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset, size_t dst_offset) = 0;
 
-		virtual RHI& copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
-		                                    const Vector3u& extent, RHI_Buffer* buffer, size_t buffer_offset) = 0;
+		virtual RHI& copy_texture_to_buffer(RHITexture* texture, uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
+		                                    const Vector3u& extent, RHIBuffer* buffer, size_t buffer_offset) = 0;
 
-		virtual RHI& copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
+		virtual RHI& copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture, uint8_t mip_level,
 		                                    uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) = 0;
 
-		virtual RHI& copy_texture_to_texture(RHI_Texture* src, const RHITextureRegion& src_region, RHI_Texture* dst,
+		virtual RHI& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 		                                     const RHITextureRegion& dst_region) = 0;
 
 		virtual RHI& primitive_topology(RHIPrimitiveTopology topology) = 0;
@@ -204,16 +203,16 @@ namespace Engine
 		virtual RHI& cull_mode(RHICullMode mode)                       = 0;
 		virtual RHI& front_face(RHIFrontFace face)                     = 0;
 
-		virtual RHI& bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream) = 0;
-		virtual RHI& bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)                             = 0;
-		virtual RHI& bind_uniform_buffer(RHI_Buffer* buffer, byte slot)                                       = 0;
+		virtual RHI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) = 0;
+		virtual RHI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)                             = 0;
+		virtual RHI& bind_uniform_buffer(RHIBuffer* buffer, byte slot)                                       = 0;
 
-		virtual RHI& bind_sampler(RHI_Sampler* sampler, byte slot)      = 0;
-		virtual RHI& bind_srv(RHI_ShaderResourceView* view, byte slot)  = 0;
-		virtual RHI& bind_uav(RHI_UnorderedAccessView* view, byte slot) = 0;
+		virtual RHI& bind_sampler(RHISampler* sampler, byte slot)      = 0;
+		virtual RHI& bind_srv(RHIShaderResourceView* view, byte slot)  = 0;
+		virtual RHI& bind_uav(RHIUnorderedAccessView* view, byte slot) = 0;
 
-		virtual RHI& barrier(RHI_Texture* texture, RHIAccess access) = 0;
-		virtual RHI& barrier(RHI_Buffer* buffer, RHIAccess access)   = 0;
+		virtual RHI& barrier(RHITexture* texture, RHIAccess access) = 0;
+		virtual RHI& barrier(RHIBuffer* buffer, RHIAccess access)   = 0;
 
 		virtual RHI& begin_timestamp(RHITimestamp* timestamp) = 0;
 		virtual RHI& end_timestamp(RHITimestamp* timestamp)   = 0;
@@ -224,30 +223,30 @@ namespace Engine
 		virtual RHI& present(RHISwapchain* swapchain) = 0;
 
 		// INLINES
-		inline RHI& bind_depth_stencil_target(RHI_DepthStencilView* depth_stencil)
+		inline RHI& bind_depth_stencil_target(RHIDepthStencilView* depth_stencil)
 		{
 			return bind_render_target(nullptr, nullptr, nullptr, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target1(RHI_RenderTargetView* rt1, RHI_DepthStencilView* depth_stencil = nullptr)
+		inline RHI& bind_render_target1(RHIRenderTargetView* rt1, RHIDepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, nullptr, nullptr, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target2(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2,
-		                                RHI_DepthStencilView* depth_stencil = nullptr)
+		inline RHI& bind_render_target2(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2,
+		                                RHIDepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, nullptr, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target3(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-		                                RHI_DepthStencilView* depth_stencil = nullptr)
+		inline RHI& bind_render_target3(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                                RHIDepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, rt3, nullptr, depth_stencil);
 		}
 
-		inline RHI& bind_render_target4(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-		                                RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil = nullptr)
+		inline RHI& bind_render_target4(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                                RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil = nullptr)
 		{
 			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
 		}

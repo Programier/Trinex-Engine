@@ -105,33 +105,33 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_RenderTargetView* D3D12Texture::as_rtv()
+	RHIRenderTargetView* D3D12Texture::as_rtv()
 	{
 		return m_rtv;
 	}
 
-	RHI_DepthStencilView* D3D12Texture::as_dsv()
+	RHIDepthStencilView* D3D12Texture::as_dsv()
 	{
 		return m_dsv;
 	}
 
-	RHI_ShaderResourceView* D3D12Texture::as_srv()
+	RHIShaderResourceView* D3D12Texture::as_srv()
 	{
 		return m_srv;
 	}
 
-	RHI_UnorderedAccessView* D3D12Texture::as_uav()
+	RHIUnorderedAccessView* D3D12Texture::as_uav()
 	{
 		return m_uav;
 	}
 
-	D3D12& D3D12::barrier(RHI_Texture* texture, RHIAccess access)
+	D3D12& D3D12::barrier(RHITexture* texture, RHIAccess access)
 	{
 		static_cast<D3D12Texture*>(texture)->transition(resource_state_of(access));
 		return *this;
 	}
 
-	RHI_Texture* D3D12::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
+	RHITexture* D3D12::create_texture_2d(ColorFormat format, Vector2u size, uint32_t mips, TextureCreateFlags flags)
 	{
 		return &allocate<D3D12Texture>()->create_2d(format, size, mips, flags);
 	}

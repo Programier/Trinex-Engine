@@ -13,18 +13,18 @@ namespace Engine::RenderGraph
 	{
 	private:
 		Resource* m_next_version = nullptr;
-		RHI_Object* m_resource;
+		RHIObject* m_resource;
 		Pass* m_writer;
 		uint32_t m_version;
 
 	public:
-		inline Resource(RHI_Object* resource, size_t version, Pass* writer = nullptr)
+		inline Resource(RHIObject* resource, size_t version, Pass* writer = nullptr)
 		    : m_resource(resource), m_writer(writer), m_version(version)
 		{}
 		inline Pass* writer() const { return m_writer; }
 		inline Resource* next_version() const { return m_next_version; }
 		inline Resource* next_version(Resource* resource) { return (m_next_version = resource); }
-		inline RHI_Object* resource() const { return m_resource; }
+		inline RHIObject* resource() const { return m_resource; }
 		inline uint32_t version() const { return m_version; }
 		friend class Graph;
 	};
@@ -42,7 +42,7 @@ namespace Engine::RenderGraph
 		return *this;
 	}
 
-	Pass& Pass::add_resource(RHI_Texture* texture, RHIAccess access)
+	Pass& Pass::add_resource(RHITexture* texture, RHIAccess access)
 	{
 		if (access & RHIAccess::WritableMask)
 			return add_resource(m_graph->writable_resource(texture, this), access);
@@ -50,7 +50,7 @@ namespace Engine::RenderGraph
 			return add_resource(m_graph->readable_resource(texture), access);
 	}
 
-	Pass& Pass::add_resource(RHI_Buffer* buffer, RHIAccess access)
+	Pass& Pass::add_resource(RHIBuffer* buffer, RHIAccess access)
 	{
 		if (access & RHIAccess::WritableMask)
 			return add_resource(m_graph->writable_resource(buffer, this), access);
@@ -85,12 +85,12 @@ namespace Engine::RenderGraph
 		m_outputs.reserve(s_default_reserve_size);
 	}
 
-	Graph::ResourceEntry* Graph::find_resource(RHI_Object* object)
+	Graph::ResourceEntry* Graph::find_resource(RHIObject* object)
 	{
 		return &m_resource_map[object];
 	}
 
-	Graph::ResourceEntry* Graph::find_resource(RHI_Texture* texture)
+	Graph::ResourceEntry* Graph::find_resource(RHITexture* texture)
 	{
 		auto& entry = m_resource_map[texture];
 
@@ -100,7 +100,7 @@ namespace Engine::RenderGraph
 		return &entry;
 	}
 
-	Graph::ResourceEntry* Graph::find_resource(RHI_Buffer* buffer)
+	Graph::ResourceEntry* Graph::find_resource(RHIBuffer* buffer)
 	{
 		auto& entry = m_resource_map[buffer];
 
@@ -110,7 +110,7 @@ namespace Engine::RenderGraph
 		return &entry;
 	}
 
-	Resource* Graph::writable_resource(RHI_Texture* texture, Pass* writer)
+	Resource* Graph::writable_resource(RHITexture* texture, Pass* writer)
 	{
 		ResourceEntry* entry = find_resource(texture);
 		uint_t version       = entry->last->version() + 1;
@@ -118,7 +118,7 @@ namespace Engine::RenderGraph
 		return entry->last;
 	}
 
-	Resource* Graph::writable_resource(RHI_Buffer* buffer, Pass* writer)
+	Resource* Graph::writable_resource(RHIBuffer* buffer, Pass* writer)
 	{
 		ResourceEntry* entry = find_resource(buffer);
 		uint_t version       = entry->last->version() + 1;
@@ -126,13 +126,13 @@ namespace Engine::RenderGraph
 		return entry->last;
 	}
 
-	Graph& Graph::add_output(RHI_Texture* texture)
+	Graph& Graph::add_output(RHITexture* texture)
 	{
 		m_outputs.insert(find_resource(texture)->first);
 		return *this;
 	}
 
-	Graph& Graph::add_output(RHI_Buffer* buffer)
+	Graph& Graph::add_output(RHIBuffer* buffer)
 	{
 		m_outputs.insert(find_resource(buffer)->first);
 		return *this;

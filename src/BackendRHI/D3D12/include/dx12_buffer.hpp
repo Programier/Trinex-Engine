@@ -7,7 +7,7 @@
 
 namespace Engine
 {
-	class D3D12Buffer : public D3D12_DeferredDestroyable<RHI_Buffer>
+	class D3D12Buffer : public D3D12_DeferredDestroyable<RHIBuffer>
 	{
 	private:
 		ComPtr<ID3D12Resource> m_buffer;
@@ -21,8 +21,8 @@ namespace Engine
 		void unmap() override;
 		D3D12Buffer& copy(size_t size, const byte* data, size_t offset = 0);
 		D3D12Buffer& transition(D3D12_RESOURCE_STATES state);
-		RHI_ShaderResourceView* as_srv() override;
-		RHI_UnorderedAccessView* as_uav() override;
+		RHIShaderResourceView* as_srv() override;
+		RHIUnorderedAccessView* as_uav() override;
 
 
 		inline D3D12_GPU_VIRTUAL_ADDRESS virtual_address() const { return m_buffer->GetGPUVirtualAddress(); }

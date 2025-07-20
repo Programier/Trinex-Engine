@@ -13,8 +13,8 @@ struct ImGuiTrinexTextureId {
 	Engine::RenderSurface* surface;
 
 	inline constexpr ImGuiTrinexTextureId() : texture(nullptr), surface(nullptr) {}
-	inline consteval ImGuiTrinexTextureId(decltype(NULL) value) : ImGuiTrinexTextureId() {}
-	inline consteval ImGuiTrinexTextureId(decltype(nullptr) value) : ImGuiTrinexTextureId() {}
+	inline consteval ImGuiTrinexTextureId(decltype(NULL)) : ImGuiTrinexTextureId() {}
+	inline consteval ImGuiTrinexTextureId(decltype(nullptr)) : ImGuiTrinexTextureId() {}
 	inline ImGuiTrinexTextureId(Engine::Texture2D* texture) : texture(texture), surface(nullptr) {}
 	inline ImGuiTrinexTextureId(Engine::RenderSurface* surface) : texture(nullptr), surface(surface) {}
 	inline bool operator==(const ImGuiTrinexTextureId& other) const { return other.texture == texture; }

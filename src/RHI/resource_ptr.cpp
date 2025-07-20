@@ -5,7 +5,7 @@ namespace Engine
 {
 	void RHIResourcePtrBase::release(void* object)
 	{
-		RHI_Object::static_release(static_cast<RHI_Object*>(object));
+		RHIObject::static_release(static_cast<RHIObject*>(object));
 	}
 
 }// namespace Engine

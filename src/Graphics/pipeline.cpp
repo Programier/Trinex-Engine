@@ -44,7 +44,7 @@ namespace Engine
 		destroy_shader(m_fragment_shader);
 	}
 
-	static RHI_Shader* extract_shader(Shader* shader)
+	static RHIShader* extract_shader(Shader* shader)
 	{
 		return shader ? shader->rhi_shader() : nullptr;
 	}
@@ -83,7 +83,7 @@ namespace Engine
 
 	const Pipeline& Pipeline::rhi_bind() const
 	{
-		if (RHI_Pipeline* pipeline = m_pipeline)
+		if (RHIPipeline* pipeline = m_pipeline)
 		{
 			pipeline->bind();
 		}

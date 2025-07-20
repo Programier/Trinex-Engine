@@ -209,7 +209,7 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::deferred_lighting_pass()
 	{
-		RHI_Sampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
+		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
 
 		auto pipeline = Pipelines::AmbientLight::instance();
 		rhi->bind_render_target1(scene_color_target()->as_rtv());

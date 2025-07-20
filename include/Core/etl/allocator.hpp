@@ -48,14 +48,14 @@ namespace Engine
 		};
 
 		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
-		static inline void deallocate(unsigned char* ptr) noexcept {}
+		static inline void deallocate(unsigned char*) noexcept {}
 		static unsigned char* allocate_aligned(size_type size, size_type align);
 		static void reset();
 	};
 
 	struct ENGINE_EXPORT FrameByteAllocator : AllocatorBase {
 		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
-		static inline void deallocate(unsigned char* ptr) noexcept {}
+		static inline void deallocate(unsigned char*) noexcept {}
 		static unsigned char* allocate_aligned(size_type size, size_type align);
 		static void reset();
 	};

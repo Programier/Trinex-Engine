@@ -59,12 +59,12 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Fence* VulkanAPI::create_fence()
+	RHIFence* VulkanAPI::create_fence()
 	{
 		return new VulkanFenceRef();
 	}
 
-	VulkanAPI& VulkanAPI::signal_fence(RHI_Fence* fence)
+	VulkanAPI& VulkanAPI::signal_fence(RHIFence* fence)
 	{
 		static_cast<VulkanFenceRef*>(fence)->signal(current_command_buffer());
 		return *this;

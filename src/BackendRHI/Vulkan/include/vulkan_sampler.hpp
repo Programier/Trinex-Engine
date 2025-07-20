@@ -24,7 +24,7 @@ namespace Engine
 		Color border_color;
 	};
 
-	class VulkanSampler : public VulkanDeferredDestroy<RHI_Sampler>
+	class VulkanSampler : public VulkanDeferredDestroy<RHISampler>
 	{
 	private:
 		vk::Sampler m_sampler;

@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	class VulkanPipelineLayout : public RHI_Object
+	class VulkanPipelineLayout : public RHIObject
 	{
 	public:
 		struct Descriptor {

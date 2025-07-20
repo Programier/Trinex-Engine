@@ -41,7 +41,7 @@ namespace Engine
 		cmd_list->ClearRenderTargetView(handle, &color.x, 0, nullptr);
 	}
 
-	void D3D12_RTV::blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) {}
+	void D3D12_RTV::blit(RHIRenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) {}
 
 	D3D12_RTV::~D3D12_RTV()
 	{
@@ -65,7 +65,7 @@ namespace Engine
 		
 	}
 	
-	void D3D12_DSV::blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
+	void D3D12_DSV::blit(RHIDepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
 	{
 		
 	}

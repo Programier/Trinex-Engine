@@ -5,7 +5,7 @@
 namespace Engine
 {
 	struct RHISamplerInitializer;
-	struct RHI_Sampler;
+	struct RHISampler;
 
 	class ENGINE_EXPORT Sampler final
 	{
@@ -27,7 +27,7 @@ namespace Engine
 		Sampler& init(RHISamplerFilter filter);
 		Sampler& release();
 		const RHISamplerInitializer& initializer() const;
-		RHI_Sampler* rhi_sampler() const;
+		RHISampler* rhi_sampler() const;
 		const Sampler& rhi_bind(byte location) const;
 		bool serialize(class Archive& ar);
 

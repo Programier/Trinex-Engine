@@ -46,7 +46,7 @@ namespace Engine
 			{
 				m_current = m_first;
 
-				for (RHI_Object* object : m_current->m_pending_destroy)
+				for (RHIObject* object : m_current->m_pending_destroy)
 				{
 					release(object);
 				}

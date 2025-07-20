@@ -2,8 +2,8 @@
 
 namespace Engine
 {
-	struct RHI_Object;
-	void d3d12_deferred_destroy(RHI_Object* object);
+	struct RHIObject;
+	void d3d12_deferred_destroy(RHIObject* object);
 
 	template<typename Base>
 	class D3D12_DeferredDestroyable : public Base

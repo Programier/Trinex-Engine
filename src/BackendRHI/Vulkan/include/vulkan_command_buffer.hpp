@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	struct RHI_Object;
+	struct RHIObject;
 
 	class VulkanCommandBuffer final : public vk::CommandBuffer
 	{
@@ -19,7 +19,7 @@ namespace Engine
 			Submitted,
 		};
 
-		Vector<RHI_Object*> m_pending_destroy;
+		Vector<RHIObject*> m_pending_destroy;
 		Vector<vk::Semaphore> m_wait_semaphores;
 		Vector<vk::PipelineStageFlags> m_wait_flags;
 		class VulkanFence* m_fence    = nullptr;
@@ -47,7 +47,7 @@ namespace Engine
 		VulkanCommandBuffer& add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore);
 		VulkanCommandBuffer& submit(vk::Semaphore semaphore = VK_NULL_HANDLE);
 		VulkanCommandBuffer& wait();
-		VulkanCommandBuffer& destroy_object(RHI_Object* object);
+		VulkanCommandBuffer& destroy_object(RHIObject* object);
 
 		inline bool is_ready_for_begin() const { return m_state == State::IsReadyForBegin; }
 		inline bool is_inside_render_pass() const { return m_state == State::IsInsideRenderPass; }

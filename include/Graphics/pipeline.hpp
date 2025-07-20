@@ -11,7 +11,7 @@ namespace Engine
 	class RenderPass;
 	class Logger;
 	class ShaderCompilationEnvironment;
-	class RHI_Pipeline;
+	class RHIPipeline;
 	struct ShaderCompilationResult;
 
 	class ENGINE_EXPORT Pipeline : public RenderResource
@@ -24,7 +24,7 @@ namespace Engine
 		Shader* create_new_shader();
 
 	protected:
-		RHIResourcePtr<RHI_Pipeline> m_pipeline;
+		RHIResourcePtr<RHIPipeline> m_pipeline;
 
 	private:
 		Vector<RHIShaderParameterInfo> m_parameters;
@@ -44,7 +44,7 @@ namespace Engine
 		virtual Pipeline& clear();
 		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
 
-		inline RHI_Pipeline* rhi_pipeline() const { return m_pipeline; }
+		inline RHIPipeline* rhi_pipeline() const { return m_pipeline; }
 	};
 
 	class ENGINE_EXPORT GraphicsPipeline : public Pipeline

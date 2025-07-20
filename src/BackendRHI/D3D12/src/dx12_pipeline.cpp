@@ -49,33 +49,33 @@ namespace Engine
 		Allocator<D3D12_INPUT_ELEMENT_DESC>::deallocate(input_elements);
 	}
 
-	RHI_Shader* D3D12::create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
+	RHIShader* D3D12::create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
 	                                        size_t attributes_count)
 	{
 		return allocate<D3D12_VertexShader>(shader, size, attributes, attributes_count);
 	}
 
-	RHI_Shader* D3D12::create_tesselation_control_shader(const byte* shader, size_t size)
+	RHIShader* D3D12::create_tesselation_control_shader(const byte* shader, size_t size)
 	{
 		return allocate<D3D12_Shader>(shader, size);
 	}
 
-	RHI_Shader* D3D12::create_tesselation_shader(const byte* shader, size_t size)
+	RHIShader* D3D12::create_tesselation_shader(const byte* shader, size_t size)
 	{
 		return allocate<D3D12_Shader>(shader, size);
 	}
 
-	RHI_Shader* D3D12::create_geometry_shader(const byte* shader, size_t size)
+	RHIShader* D3D12::create_geometry_shader(const byte* shader, size_t size)
 	{
 		return allocate<D3D12_Shader>(shader, size);
 	}
 
-	RHI_Shader* D3D12::create_fragment_shader(const byte* shader, size_t size)
+	RHIShader* D3D12::create_fragment_shader(const byte* shader, size_t size)
 	{
 		return allocate<D3D12_Shader>(shader, size);
 	}
 
-	RHI_Shader* D3D12::create_compute_shader(const byte* shader, size_t size)
+	RHIShader* D3D12::create_compute_shader(const byte* shader, size_t size)
 	{
 		return allocate<D3D12_Shader>(shader, size);
 	}
@@ -105,7 +105,7 @@ namespace Engine
 	{
 		if (shader)
 		{
-			RHI_Shader* result = shader->rhi_shader();
+			RHIShader* result = shader->rhi_shader();
 			result->add_reference();
 			return static_cast<D3D12_Shader*>(result);
 		}
@@ -261,12 +261,12 @@ namespace Engine
 		D3D12::api()->state()->bind_pipeline(this);
 	}
 
-	RHI_Pipeline* D3D12::create_graphics_pipeline(const GraphicsPipeline* pipeline)
+	RHIPipeline* D3D12::create_graphics_pipeline(const GraphicsPipeline* pipeline)
 	{
 		return allocate<D3D12_GraphicsPipeline>(pipeline);
 	}
 
-	RHI_Pipeline* D3D12::create_compute_pipeline(const ComputePipeline* pipeline)
+	RHIPipeline* D3D12::create_compute_pipeline(const ComputePipeline* pipeline)
 	{
 		return NoneApi::create_compute_pipeline(pipeline);
 	}

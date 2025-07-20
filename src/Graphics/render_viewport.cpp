@@ -195,7 +195,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_RenderTargetView* WindowRenderViewport::rhi_rtv()
+	RHIRenderTargetView* WindowRenderViewport::rhi_rtv()
 	{
 		return m_swapchain->as_rtv();
 	}

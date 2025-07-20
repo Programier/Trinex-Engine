@@ -13,23 +13,23 @@ namespace Engine
 	class VulkanStateManager;
 
 
-	class VulkanSRV : public RHI_ShaderResourceView
+	class VulkanSRV : public RHIShaderResourceView
 	{
 	public:
 		virtual VulkanSRV& bind(VulkanStateManager* manager, byte index) = 0;
 	};
 
-	class VulkanUAV : public RHI_UnorderedAccessView
+	class VulkanUAV : public RHIUnorderedAccessView
 	{
 	public:
 		virtual VulkanUAV& bind(VulkanStateManager* manager, byte index) = 0;
 	};
 
-	class VulkanRTV : public RHI_RenderTargetView
+	class VulkanRTV : public RHIRenderTargetView
 	{
 	};
 
-	class VulkanDSV : public RHI_DepthStencilView
+	class VulkanDSV : public RHIDepthStencilView
 	{
 	public:
 	};
@@ -99,7 +99,8 @@ namespace Engine
 		}
 	};
 
-	struct VulkanTextureDSV : public VulkanDSV {
+	class VulkanTextureDSV : public VulkanDSV
+	{
 	private:
 		Set<struct VulkanRenderTarget*> m_render_targets;
 		VulkanTexture* m_texture;

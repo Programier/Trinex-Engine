@@ -140,13 +140,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::bind_srv(RHI_ShaderResourceView* view, byte slot)
+	VulkanAPI& VulkanAPI::bind_srv(RHIShaderResourceView* view, byte slot)
 	{
 		static_cast<VulkanSRV*>(view)->bind(API->m_state_manager, slot);
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::bind_uav(RHI_UnorderedAccessView* view, byte slot)
+	VulkanAPI& VulkanAPI::bind_uav(RHIUnorderedAccessView* view, byte slot)
 	{
 		static_cast<VulkanUAV*>(view)->bind(API->m_state_manager, slot);
 		return *this;

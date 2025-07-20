@@ -84,13 +84,13 @@ namespace Engine
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 
-	VulkanAPI& VulkanAPI::bind_sampler(RHI_Sampler* sampler, byte slot)
+	VulkanAPI& VulkanAPI::bind_sampler(RHISampler* sampler, byte slot)
 	{
 		m_state_manager->samplers.bind(static_cast<VulkanSampler*>(sampler)->sampler(), slot);
 		return *this;
 	}
 
-	RHI_Sampler* VulkanAPI::create_sampler(const RHISamplerInitializer* sampler)
+	RHISampler* VulkanAPI::create_sampler(const RHISamplerInitializer* sampler)
 	{
 		return &(new VulkanSampler())->create(sampler);
 	}

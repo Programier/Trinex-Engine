@@ -100,7 +100,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::destroy_object(RHI_Object* object)
+	VulkanCommandBuffer& VulkanCommandBuffer::destroy_object(RHIObject* object)
 	{
 		m_pending_destroy.push_back(object);
 		return *this;
@@ -123,7 +123,7 @@ namespace Engine
 	{
 		while (!m_pending_destroy.empty())
 		{
-			RHI_Object* object = m_pending_destroy.back();
+			RHIObject* object = m_pending_destroy.back();
 			m_pending_destroy.pop_back();
 			object->destroy();
 		}

@@ -69,7 +69,8 @@ namespace Engine
 		                                RHIVertexBufferSemantic semantic = RHIVertexBufferSemantic::Position,
 		                                byte semantic_index = 0, byte location = 0, byte stream = 0, uint16_t offset = 0,
 		                                const Name& name = Name::none)
-		    : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location), offset(offset)
+		    : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location),
+		      stream_index(stream), offset(offset)
 		{}
 
 		bool serialize(Archive& ar);

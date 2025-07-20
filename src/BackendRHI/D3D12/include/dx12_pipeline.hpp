@@ -9,7 +9,7 @@ namespace Engine
 {
 	class D3D12_State;
 
-	class D3D12_Shader : public D3D12_DeferredDestroyable<RHI_Shader>
+	class D3D12_Shader : public D3D12_DeferredDestroyable<RHIShader>
 	{
 	public:
 		byte* const data;
@@ -29,7 +29,7 @@ namespace Engine
 		~D3D12_VertexShader();
 	};
 
-	class D3D12_GraphicsPipeline : public D3D12_DeferredDestroyable<RHI_Pipeline>
+	class D3D12_GraphicsPipeline : public D3D12_DeferredDestroyable<RHIPipeline>
 	{
 	private:
 		struct Key {

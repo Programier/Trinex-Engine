@@ -134,7 +134,7 @@ namespace Engine
 			return *this;
 
 		auto pool              = RHIBufferPool::global_instance();
-		RHI_Buffer* vtx_buffer = pool->request_buffer(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
+		RHIBuffer* vtx_buffer = pool->request_buffer(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
 
 #if TRINEX_DEBUG_BUILD
 		rhi->push_debug_stage("Lines Rendering");

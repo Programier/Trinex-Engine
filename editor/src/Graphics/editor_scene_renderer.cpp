@@ -26,7 +26,7 @@ namespace Engine::EditorRenderer
 	public:
 		EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit) : Renderer(scene, view, mode) {}
 
-		RHI_Texture* render_hitproxies()
+		RHITexture* render_hitproxies()
 		{
 			Vector2u size                               = scene_view().view_size();
 			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().camera_view());
@@ -160,7 +160,7 @@ namespace Engine::EditorRenderer
 	{
 		uv = glm::clamp(uv, Vector2f(0.f), Vector2f(1.f));
 		EditorRenderer renderer(scene, view);
-		RHI_Texture* hitproxy = renderer.render_hitproxies();
+		RHITexture* hitproxy = renderer.render_hitproxies();
 
 		auto buffer_pool = RHIBufferPool::global_instance();
 		auto fence_pool  = RHIFencePool::global_instance();

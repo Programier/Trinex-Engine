@@ -63,7 +63,7 @@ namespace Engine
 		return stages;
 	}
 
-	static inline vk::ShaderModule vulkan_shader_of(RHI_Shader* shader)
+	static inline vk::ShaderModule vulkan_shader_of(RHIShader* shader)
 	{
 		return shader->as<VulkanShader>()->module();
 	}
@@ -685,17 +685,17 @@ namespace Engine
 		DESTROY_CALL(destroyPipeline, m_pipeline);
 	}
 
-	RHI_Pipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
 		return new VulkanGraphicsPipeline(pipeline);
 	}
 
-	RHI_Pipeline* VulkanAPI::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
 	{
 		return new VulkanMeshPipeline(pipeline);
 	}
 
-	RHI_Pipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
 	{
 		return new VulkanComputePipeline(pipeline);
 	}

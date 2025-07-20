@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	class D3D12_SRV : public RHI_ShaderResourceView
+	class D3D12_SRV : public RHIShaderResourceView
 	{
 	private:
 		D3D12Descriptor m_descriptor;
@@ -15,7 +15,7 @@ namespace Engine
 		inline const D3D12Descriptor& descriptor() const { return m_descriptor; }
 	};
 
-	class D3D12_UAV : public RHI_UnorderedAccessView
+	class D3D12_UAV : public RHIUnorderedAccessView
 	{
 	private:
 		D3D12Descriptor m_descriptor;
@@ -27,7 +27,7 @@ namespace Engine
 		inline const D3D12Descriptor& descriptor() const { return m_descriptor; }
 	};
 
-	class D3D12_RTV : public RHI_RenderTargetView
+	class D3D12_RTV : public RHIRenderTargetView
 	{
 	private:
 		D3D12Descriptor m_descriptor;
@@ -38,13 +38,13 @@ namespace Engine
 		~D3D12_RTV();
 
 		void clear(const LinearColor& color) override;
-		void blit(RHI_RenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
+		void blit(RHIRenderTargetView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
 
 		inline const D3D12Descriptor& descriptor() const { return m_descriptor; }
 		inline DXGI_FORMAT format() const { return m_format; }
 	};
 
-	class D3D12_DSV : public RHI_DepthStencilView
+	class D3D12_DSV : public RHIDepthStencilView
 	{
 	private:
 		D3D12Descriptor m_descriptor;
@@ -55,7 +55,7 @@ namespace Engine
 		~D3D12_DSV();
 
 		void clear(float depth, byte stencil) override;
-		void blit(RHI_DepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
+		void blit(RHIDepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
 
 		inline const D3D12Descriptor& descriptor() const { return m_descriptor; }
 		inline DXGI_FORMAT format() const { return m_format; }

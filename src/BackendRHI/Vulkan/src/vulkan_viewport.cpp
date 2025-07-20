@@ -318,7 +318,7 @@ namespace Engine
 		}
 	}
 
-	RHI_RenderTargetView* VulkanSwapchain::as_rtv()
+	RHIRenderTargetView* VulkanSwapchain::as_rtv()
 	{
 		return backbuffer()->as_rtv({});
 	}

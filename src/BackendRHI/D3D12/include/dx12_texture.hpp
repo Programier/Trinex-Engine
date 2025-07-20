@@ -10,7 +10,7 @@ namespace Engine
 	class D3D12_SRV;
 	class D3D12_UAV;
 
-	class D3D12Texture : public D3D12_DeferredDestroyable<RHI_Texture>
+	class D3D12Texture : public D3D12_DeferredDestroyable<RHITexture>
 	{
 		ComPtr<ID3D12Resource> m_resource;
 		D3D12_RESOURCE_STATES m_state;
@@ -26,9 +26,9 @@ namespace Engine
 		D3D12Texture& transition(D3D12_RESOURCE_STATES state);
 		
 		
-		RHI_RenderTargetView* as_rtv() override;
-		RHI_DepthStencilView* as_dsv() override;
-		RHI_ShaderResourceView* as_srv() override;
-		RHI_UnorderedAccessView* as_uav() override;
+		RHIRenderTargetView* as_rtv() override;
+		RHIDepthStencilView* as_dsv() override;
+		RHIShaderResourceView* as_srv() override;
+		RHIUnorderedAccessView* as_uav() override;
 	};
 }// namespace Engine

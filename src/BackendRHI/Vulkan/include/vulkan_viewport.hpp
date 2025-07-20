@@ -67,6 +67,6 @@ namespace Engine
 		void present();
 		void resize(const Vector2u& size) override;
 		void vsync(bool flag) override;
-		RHI_RenderTargetView* as_rtv() override;
+		RHIRenderTargetView* as_rtv() override;
 	};
 }// namespace Engine

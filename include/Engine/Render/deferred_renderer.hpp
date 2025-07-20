@@ -17,7 +17,7 @@ namespace Engine
 	private:
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
 		FrameVector<LightComponent*> m_visible_lights;
-		FrameVector<RHI_Texture*> m_shadow_maps;
+		FrameVector<RHITexture*> m_shadow_maps;
 		FrameVector<Matrix4f> m_shadow_projections;
 
 	private:

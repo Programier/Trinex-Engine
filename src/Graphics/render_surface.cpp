@@ -48,22 +48,22 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_RenderTargetView* RenderSurface::rhi_rtv() const
+	RHIRenderTargetView* RenderSurface::rhi_rtv() const
 	{
 		return m_texture ? m_texture->as_rtv() : nullptr;
 	}
 
-	RHI_DepthStencilView* RenderSurface::rhi_dsv() const
+	RHIDepthStencilView* RenderSurface::rhi_dsv() const
 	{
 		return m_texture ? m_texture->as_dsv() : nullptr;
 	}
 
-	RHI_UnorderedAccessView* RenderSurface::rhi_uav() const
+	RHIUnorderedAccessView* RenderSurface::rhi_uav() const
 	{
 		return m_texture ? m_texture->as_uav() : nullptr;
 	}
 
-	RHI_ShaderResourceView* RenderSurface::rhi_srv() const
+	RHIShaderResourceView* RenderSurface::rhi_srv() const
 	{
 		return m_texture ? m_texture->as_srv() : nullptr;
 	}

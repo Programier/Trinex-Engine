@@ -6,9 +6,9 @@ namespace Engine
 {
 	ENGINE_EXPORT RHI* rhi = nullptr;
 
-	RHI_Object::RHI_Object(size_t init_ref_count) : m_references(init_ref_count) {}
+	RHIObject::RHIObject(size_t init_ref_count) : m_references(init_ref_count) {}
 
-	void RHI_Object::static_release_internal(RHI_Object* object)
+	void RHIObject::static_release_internal(RHIObject* object)
 	{
 		if (is_in_render_thread())
 		{
@@ -20,12 +20,12 @@ namespace Engine
 		}
 	}
 
-	void RHI_Object::add_reference()
+	void RHIObject::add_reference()
 	{
 		++m_references;
 	}
 
-	void RHI_Object::release()
+	void RHIObject::release()
 	{
 		if (m_references > 0)
 			--m_references;
@@ -36,10 +36,10 @@ namespace Engine
 		}
 	}
 
-	size_t RHI_Object::references() const
+	size_t RHIObject::references() const
 	{
 		return m_references;
 	}
 
-	RHI_Object::~RHI_Object() {}
+	RHIObject::~RHIObject() {}
 }// namespace Engine

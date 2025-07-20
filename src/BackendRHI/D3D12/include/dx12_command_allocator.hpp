@@ -5,13 +5,13 @@
 
 namespace Engine
 {
-	struct RHI_Object;
+	struct RHIObject;
 
 	class D3D12CommandAlloctor
 	{
 		struct Entry {
 			Entry* m_next;
-			Vector<RHI_Object*> m_pending_destroy;
+			Vector<RHIObject*> m_pending_destroy;
 			ComPtr<ID3D12CommandAllocator> m_allocator;
 			ComPtr<ID3D12Fence> m_fence;
 			uint64_t m_last_signaled;
@@ -32,7 +32,7 @@ namespace Engine
 		D3D12CommandAlloctor& submit();
 
 		inline ID3D12CommandAllocator* allocator() { return current_entry()->m_allocator.Get(); }
-		inline D3D12CommandAlloctor& add_object_to_destroy(RHI_Object* object)
+		inline D3D12CommandAlloctor& add_object_to_destroy(RHIObject* object)
 		{
 			current_entry()->m_pending_destroy.push_back(object);
 			return *this;

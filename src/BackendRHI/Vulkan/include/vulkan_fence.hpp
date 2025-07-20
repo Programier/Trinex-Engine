@@ -26,7 +26,7 @@ namespace Engine
 		inline vk::Fence fence() const { return m_fence; }
 	};
 
-	class VulkanFenceRef : public VulkanDeferredDestroy<RHI_Fence>
+	class VulkanFenceRef : public VulkanDeferredDestroy<RHIFence>
 	{
 	private:
 		VulkanCommandBuffer* m_cmd    = nullptr;

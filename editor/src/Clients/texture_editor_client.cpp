@@ -19,7 +19,7 @@
 
 namespace Engine
 {
-	static inline void copy_texture_to_surface(RenderSurface* dst, RHI_ShaderResourceView* srv, float power, uint_t level,
+	static inline void copy_texture_to_surface(RenderSurface* dst, RHIShaderResourceView* srv, float power, uint_t level,
 	                                           Swizzle swizzle)
 	{
 		RHIRect rect(dst->size());

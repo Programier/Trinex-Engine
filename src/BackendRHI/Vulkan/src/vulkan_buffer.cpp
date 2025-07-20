@@ -265,12 +265,12 @@ namespace Engine
 		m_buffers.clear();
 	}
 
-	RHI_Buffer* VulkanAPI::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
+	RHIBuffer* VulkanAPI::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
 	{
 		return &(new VulkanBuffer())->create(size, data, flags);
 	}
 
-	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
 	{
 		auto* cmd = current_command_buffer();
 		cmd->bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->buffer(), byte_offset);
@@ -278,7 +278,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
+	VulkanAPI& VulkanAPI::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)
 	{
 		auto* cmd                   = current_command_buffer();
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
@@ -287,7 +287,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::bind_uniform_buffer(RHI_Buffer* buffer, byte slot)
+	VulkanAPI& VulkanAPI::bind_uniform_buffer(RHIBuffer* buffer, byte slot)
 	{
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
 		return bind_uniform_buffer(vulkan_buffer, vulkan_buffer->size(), 0, slot);
@@ -299,19 +299,19 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
+	VulkanAPI& VulkanAPI::barrier(RHIBuffer* buffer, RHIAccess dst_access)
 	{
 		static_cast<VulkanBuffer*>(buffer)->transition(dst_access);
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)
+	VulkanAPI& VulkanAPI::update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data)
 	{
 		static_cast<VulkanBuffer*>(buffer)->update(offset, size, data);
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset,
+	VulkanAPI& VulkanAPI::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset,
 	                                            size_t dst_offset)
 	{
 		VulkanBuffer* src_buffer = static_cast<VulkanBuffer*>(src);

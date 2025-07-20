@@ -501,7 +501,7 @@ namespace Engine
 		return *this;
 	}
 
-	void trinex_vulkan_deferred_destroy(RHI_Object* object)
+	void trinex_vulkan_deferred_destroy(RHIObject* object)
 	{
 		API->current_command_buffer()->destroy_object(object);
 	}

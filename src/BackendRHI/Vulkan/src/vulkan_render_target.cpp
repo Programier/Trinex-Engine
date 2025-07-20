@@ -150,8 +150,8 @@ namespace Engine
 		}
 	}
 
-	VulkanAPI& VulkanAPI::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-	                                         RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	VulkanAPI& VulkanAPI::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+	                                         RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil)
 	{
 		VulkanTextureRTV* surfaces[4] = {static_cast<VulkanTextureRTV*>(rt1), static_cast<VulkanTextureRTV*>(rt2),
 		                                 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};

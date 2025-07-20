@@ -16,7 +16,7 @@ namespace Engine
 	struct VulkanDescriptorSetLayout;
 	class Pipeline;
 
-	class VulkanPipeline : public VulkanDeferredDestroy<RHI_Pipeline>
+	class VulkanPipeline : public VulkanDeferredDestroy<RHIPipeline>
 	{
 	private:
 		VulkanPipelineLayout* m_layout;

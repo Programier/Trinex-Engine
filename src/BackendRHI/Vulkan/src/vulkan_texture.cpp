@@ -178,7 +178,7 @@ namespace Engine
 		}
 	}
 
-	RHI_ShaderResourceView* VulkanTexture::as_srv(RHITextureDescSRV desc)
+	RHIShaderResourceView* VulkanTexture::as_srv(RHITextureDescSRV desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::ShaderResource))
 			return nullptr;
@@ -187,7 +187,7 @@ namespace Engine
 		return static_as_view(this, m_srv, ViewDesc::from(desc, this), mask);
 	}
 
-	RHI_UnorderedAccessView* VulkanTexture::as_uav(RHITextureDescUAV desc)
+	RHIUnorderedAccessView* VulkanTexture::as_uav(RHITextureDescUAV desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::UnorderedAccess))
 			return nullptr;
@@ -196,7 +196,7 @@ namespace Engine
 		return static_as_view(this, m_uav, ViewDesc::from(desc, this), mask);
 	}
 
-	RHI_RenderTargetView* VulkanTexture::as_rtv(RHITextureDescRTV desc)
+	RHIRenderTargetView* VulkanTexture::as_rtv(RHITextureDescRTV desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::RenderTarget))
 			return nullptr;
@@ -205,7 +205,7 @@ namespace Engine
 		return static_as_view(this, m_rtv, ViewDesc::from(desc, this), mask);
 	}
 
-	RHI_DepthStencilView* VulkanTexture::as_dsv(RHITextureDescDSV desc)
+	RHIDepthStencilView* VulkanTexture::as_dsv(RHITextureDescDSV desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::DepthStencilTarget))
 			return nullptr;
@@ -225,7 +225,7 @@ namespace Engine
 			vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
-	RHI_Texture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+	RHITexture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
 	                                       RHITextureCreateFlags flags)
 	{
 		VulkanTexture* texture = nullptr;
@@ -275,7 +275,7 @@ namespace Engine
 		return texture;
 	}
 
-	VulkanAPI& VulkanAPI::update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+	VulkanAPI& VulkanAPI::update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, size_t size,
 	                                     size_t buffer_width, size_t buffer_height)
 	{
 		auto buffer = API->m_stagging_manager->allocate(size, RHIBufferCreateFlags::TransferSrc);
@@ -297,8 +297,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice,
-	                                             const Vector3u& offset, const Vector3u& extent, RHI_Buffer* buffer,
+	VulkanAPI& VulkanAPI::copy_texture_to_buffer(RHITexture* texture, uint8_t mip_level, uint16_t array_slice,
+	                                             const Vector3u& offset, const Vector3u& extent, RHIBuffer* buffer,
 	                                             size_t buffer_offset)
 	{
 		VulkanTexture* src = static_cast<VulkanTexture*>(texture);
@@ -313,7 +313,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture,
+	VulkanAPI& VulkanAPI::copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture,
 	                                             uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
 	                                             const Vector3u& extent)
 	{
@@ -329,8 +329,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::copy_texture_to_texture(RHI_Texture* src_texture, const RHITextureRegion& src_region,
-	                                              RHI_Texture* dst_texture, const RHITextureRegion& dst_region)
+	VulkanAPI& VulkanAPI::copy_texture_to_texture(RHITexture* src_texture, const RHITextureRegion& src_region,
+	                                              RHITexture* dst_texture, const RHITextureRegion& dst_region)
 	{
 		end_render_pass();
 		VulkanTexture* src = static_cast<VulkanTexture*>(src_texture);
@@ -375,7 +375,7 @@ namespace Engine
 	}
 
 
-	VulkanAPI& VulkanAPI::barrier(RHI_Texture* texture, RHIAccess dst_access)
+	VulkanAPI& VulkanAPI::barrier(RHITexture* texture, RHIAccess dst_access)
 	{
 		static_cast<VulkanTexture*>(texture)->change_layout(VulkanEnums::image_layout_of(dst_access));
 		return *this;

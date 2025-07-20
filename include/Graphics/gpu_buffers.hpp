@@ -8,13 +8,13 @@
 namespace Engine
 {
 	// VERTEX BUFFER IMPLEMENTATION
-	struct RHI_Buffer;
+	struct RHIBuffer;
 	class Archive;
 
 	class ENGINE_EXPORT VertexBufferBase
 	{
 	private:
-		RHIResourcePtr<RHI_Buffer> m_buffer;
+		RHIResourcePtr<RHIBuffer> m_buffer;
 		byte* m_data                 = nullptr;
 		uint32_t m_vtx_count         = 0;
 		uint16_t m_stride            = 0;
@@ -45,7 +45,7 @@ namespace Engine
 
 		bool serialize(Archive& ar);
 
-		inline RHI_Buffer* rhi_vertex_buffer() const { return m_buffer; }
+		inline RHIBuffer* rhi_vertex_buffer() const { return m_buffer; }
 		inline byte* data() { return m_data; }
 		inline const byte* data() const { return m_data; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
@@ -117,7 +117,7 @@ namespace Engine
 	class ENGINE_EXPORT IndexBuffer
 	{
 	private:
-		RHIResourcePtr<RHI_Buffer> m_buffer;
+		RHIResourcePtr<RHIBuffer> m_buffer;
 		byte* m_data                 = nullptr;
 		uint32_t m_idx_count         = 0;
 		RHIBufferCreateFlags m_flags = RHIBufferCreateFlags::Static;
@@ -147,7 +147,7 @@ namespace Engine
 
 		bool serialize(Archive& ar);
 
-		inline RHI_Buffer* rhi_index_buffer() const { return m_buffer; }
+		inline RHIBuffer* rhi_index_buffer() const { return m_buffer; }
 		inline byte* data() { return m_data; }
 		inline const byte* data() const { return m_data; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }

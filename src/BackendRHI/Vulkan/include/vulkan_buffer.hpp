@@ -8,11 +8,11 @@
 
 namespace Engine
 {
-	class VulkanBuffer : public VulkanDeferredDestroy<RHI_Buffer>
+	class VulkanBuffer : public VulkanDeferredDestroy<RHIBuffer>
 	{
 	private:
-		RHI_ShaderResourceView* m_srv  = nullptr;
-		RHI_UnorderedAccessView* m_uav = nullptr;
+		RHIShaderResourceView* m_srv  = nullptr;
+		RHIUnorderedAccessView* m_uav = nullptr;
 
 		RHIBufferCreateFlags m_flags = {};
 		vk::Buffer m_buffer          = VK_NULL_HANDLE;
@@ -31,8 +31,8 @@ namespace Engine
 		VulkanBuffer& update(size_t offset, size_t size, const byte* data);
 		VulkanBuffer& transition(RHIAccess access);
 
-		inline RHI_ShaderResourceView* as_srv() override { return m_srv; }
-		inline RHI_UnorderedAccessView* as_uav() override { return m_uav; }
+		inline RHIShaderResourceView* as_srv() override { return m_srv; }
+		inline RHIUnorderedAccessView* as_uav() override { return m_uav; }
 		inline size_t size() const { return m_size; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
 		inline vk::Buffer buffer() const { return m_buffer; }

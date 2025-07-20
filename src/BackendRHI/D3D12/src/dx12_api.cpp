@@ -154,7 +154,7 @@ namespace Engine
 		return *this;
 	}
 
-	D3D12& D3D12::deferred_destroy(RHI_Object* object)
+	D3D12& D3D12::deferred_destroy(RHIObject* object)
 	{
 		m_command_allocator->add_object_to_destroy(object);
 		return *this;
@@ -195,7 +195,7 @@ namespace Engine
 		return *this;
 	}
 
-	D3D12& D3D12::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	D3D12& D3D12::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
 	{
 		D3D12Buffer* vertex_buffer = static_cast<D3D12Buffer*>(buffer);
 		D3D12_VERTEX_BUFFER_VIEW view;
@@ -207,7 +207,7 @@ namespace Engine
 		return *this;
 	}
 
-	D3D12& D3D12::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
+	D3D12& D3D12::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)
 	{
 		D3D12Buffer* index_buffer = static_cast<D3D12Buffer*>(buffer);
 		D3D12_INDEX_BUFFER_VIEW view;
@@ -218,8 +218,8 @@ namespace Engine
 		return *this;
 	}
 
-	D3D12& D3D12::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-	                                 RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	D3D12& D3D12::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+	                                 RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil)
 	{
 		state()->bind_render_target(static_cast<D3D12_RTV*>(rt1), static_cast<D3D12_RTV*>(rt2), static_cast<D3D12_RTV*>(rt3),
 		                            static_cast<D3D12_RTV*>(rt4), static_cast<D3D12_DSV*>(depth_stencil));
@@ -233,7 +233,7 @@ namespace Engine
 		return *this;
 	}
 
-	void d3d12_deferred_destroy(RHI_Object* object)
+	void d3d12_deferred_destroy(RHIObject* object)
 	{
 		D3D12::api()->deferred_destroy(object);
 	}

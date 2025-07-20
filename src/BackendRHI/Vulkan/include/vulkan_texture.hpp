@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	class VulkanTexture : public VulkanDeferredDestroy<RHI_Texture>
+	class VulkanTexture : public VulkanDeferredDestroy<RHITexture>
 	{
 	public:
 		struct ViewDesc {
@@ -100,10 +100,10 @@ namespace Engine
 		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags);
 		void change_layout(vk::ImageLayout new_layout);
 
-		RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc) override;
-		RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc) override;
-		RHI_RenderTargetView* as_rtv(RHITextureDescRTV desc) override;
-		RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc) override;
+		RHIShaderResourceView* as_srv(RHITextureDescSRV desc) override;
+		RHIUnorderedAccessView* as_uav(RHITextureDescUAV desc) override;
+		RHIRenderTargetView* as_rtv(RHITextureDescRTV desc) override;
+		RHIDepthStencilView* as_dsv(RHITextureDescDSV desc) override;
 		~VulkanTexture();
 	};
 

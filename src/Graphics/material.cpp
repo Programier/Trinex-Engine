@@ -89,7 +89,7 @@ namespace Engine
 		bool operator()(const MaterialBindings::MemoryBlock& value) const { return false; }
 		bool operator()(const MaterialBindings::CombinedSamplerImage& value) const { return false; }
 
-		bool operator()(RHI_ShaderResourceView* value) const
+		bool operator()(RHIShaderResourceView* value) const
 		{
 			static constexpr RHIShaderParameterType mask = RHIShaderParameterType::META_Texture |
 			                                               RHIShaderParameterType::META_Buffer |
@@ -102,7 +102,7 @@ namespace Engine
 			return false;
 		}
 
-		bool operator()(RHI_Sampler* value) const
+		bool operator()(RHISampler* value) const
 		{
 			static constexpr RHIShaderParameterType dst_type = RHIShaderParameterType::Sampler;
 

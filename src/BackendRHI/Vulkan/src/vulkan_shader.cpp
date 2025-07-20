@@ -16,7 +16,7 @@ namespace Engine
 
 	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}
 
-	RHI_Shader* VulkanAPI::create_shader(const byte* shader, size_t size)
+	RHIShader* VulkanAPI::create_shader(const byte* shader, size_t size)
 	{
 		return new VulkanShader(shader, size);
 	}

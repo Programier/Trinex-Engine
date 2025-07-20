@@ -125,7 +125,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHI_Texture* Renderer::surface(SurfaceType type)
+	RHITexture* Renderer::surface(SurfaceType type)
 	{
 		if (m_surfaces[type] == nullptr)
 		{
@@ -135,7 +135,7 @@ namespace Engine
 			};
 
 			auto pool           = RHISurfacePool::global_instance();
-			RHI_Texture* target = pool->request_transient_surface(format_of(type), m_view.viewport().size,
+			RHITexture* target = pool->request_transient_surface(format_of(type), m_view.viewport().size,
 			                                                      type == SceneDepth ? RHITextureCreateFlags::Undefined
 			                                                                         : RHITextureCreateFlags::UnorderedAccess);
 			m_surfaces[type]    = target;
@@ -152,12 +152,12 @@ namespace Engine
 		return m_surfaces[type];
 	}
 
-	RHI_Texture* Renderer::scene_color_target()
+	RHITexture* Renderer::scene_color_target()
 	{
 		return Settings::Rendering::enable_hdr ? scene_color_hdr_target() : scene_color_ldr_target();
 	}
 
-	RHI_Buffer* Renderer::globals_uniform_buffer()
+	RHIBuffer* Renderer::globals_uniform_buffer()
 	{
 		if (m_globals == nullptr)
 		{

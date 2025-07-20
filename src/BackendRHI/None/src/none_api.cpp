@@ -70,51 +70,51 @@ namespace Engine
 		uint64_t fragment_shader_invocations() override { return 0; }
 	};
 
-	struct NoneFence : public NoneApiDestroyable<RHI_Fence> {
+	struct NoneFence : public NoneApiDestroyable<RHIFence> {
 		bool is_signaled() override { return true; }
 		void reset() override {}
 	};
 
 
-	struct NoneSampler : public NoneApiDestroyable<RHI_Sampler> {
+	struct NoneSampler : public NoneApiDestroyable<RHISampler> {
 	};
 
-	struct NoneRTV : public RHI_RenderTargetView {
+	struct NoneRTV : public RHIRenderTargetView {
 		void clear(const LinearColor& color) override {}
 		void clear_uint(const Vector4u& value) override {}
 		void clear_sint(const Vector4i& value) override {}
 	};
 
-	struct NoneDSV : public RHI_DepthStencilView {
+	struct NoneDSV : public RHIDepthStencilView {
 		void clear(float, byte) override {}
 	};
 
-	struct NoneTexture : public NoneApiDestroyable<RHI_Texture> {
-		RHI_RenderTargetView* as_rtv(RHITextureDescRTV desc) override { return rhi_default<NoneRTV>(); }
-		RHI_DepthStencilView* as_dsv(RHITextureDescDSV desc) override { return rhi_default<NoneDSV>(); }
-		RHI_ShaderResourceView* as_srv(RHITextureDescSRV desc) override { return rhi_default<RHI_ShaderResourceView>(); }
-		RHI_UnorderedAccessView* as_uav(RHITextureDescUAV desc) override { return rhi_default<RHI_UnorderedAccessView>(); }
+	struct NoneTexture : public NoneApiDestroyable<RHITexture> {
+		RHIRenderTargetView* as_rtv(RHITextureDescRTV desc) override { return rhi_default<NoneRTV>(); }
+		RHIDepthStencilView* as_dsv(RHITextureDescDSV desc) override { return rhi_default<NoneDSV>(); }
+		RHIShaderResourceView* as_srv(RHITextureDescSRV desc) override { return rhi_default<RHIShaderResourceView>(); }
+		RHIUnorderedAccessView* as_uav(RHITextureDescUAV desc) override { return rhi_default<RHIUnorderedAccessView>(); }
 	};
 
-	struct NoneShader : public NoneApiDestroyable<RHI_Shader> {
+	struct NoneShader : public NoneApiDestroyable<RHIShader> {
 	};
 
-	struct NonePipeline : public NoneApiDestroyable<RHI_Pipeline> {
+	struct NonePipeline : public NoneApiDestroyable<RHIPipeline> {
 		void bind() override {}
 	};
 
-	struct NoneBuffer : public NoneApiDestroyable<RHI_Buffer> {
+	struct NoneBuffer : public NoneApiDestroyable<RHIBuffer> {
 		byte* map() override { return nullptr; }
 		void unmap() override {}
 
-		RHI_ShaderResourceView* as_srv() override { return rhi_default<RHI_ShaderResourceView>(); }
-		RHI_UnorderedAccessView* as_uav() override { return rhi_default<RHI_UnorderedAccessView>(); }
+		RHIShaderResourceView* as_srv() override { return rhi_default<RHIShaderResourceView>(); }
+		RHIUnorderedAccessView* as_uav() override { return rhi_default<RHIUnorderedAccessView>(); }
 	};
 
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {
 		void vsync(bool flag) override {}
 		void resize(const Vector2u& new_size) override {}
-		RHI_RenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
+		RHIRenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
 	};
 
 	NoneApi& NoneApi::draw(size_t vertex_count, size_t vertices_offset)
@@ -148,7 +148,7 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::signal_fence(RHI_Fence* fence)
+	NoneApi& NoneApi::signal_fence(RHIFence* fence)
 	{
 		return *this;
 	}
@@ -158,8 +158,8 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_render_target(RHI_RenderTargetView* rt1, RHI_RenderTargetView* rt2, RHI_RenderTargetView* rt3,
-	                                     RHI_RenderTargetView* rt4, RHI_DepthStencilView* depth_stencil)
+	NoneApi& NoneApi::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+	                                     RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil)
 	{
 		return *this;
 	}
@@ -184,43 +184,43 @@ namespace Engine
 		return new NonePipelineStatistics();
 	}
 
-	RHI_Fence* NoneApi::create_fence()
+	RHIFence* NoneApi::create_fence()
 	{
 		return new NoneFence();
 	}
 
-	RHI_Sampler* NoneApi::create_sampler(const RHISamplerInitializer*)
+	RHISampler* NoneApi::create_sampler(const RHISamplerInitializer*)
 	{
 		return new NoneSampler();
 	}
 
-	RHI_Texture* NoneApi::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+	RHITexture* NoneApi::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
 	                                     RHITextureCreateFlags flags)
 	{
 		return new NoneTexture();
 	}
 
-	RHI_Shader* NoneApi::create_shader(const byte* source, size_t size)
+	RHIShader* NoneApi::create_shader(const byte* source, size_t size)
 	{
 		return new NoneShader();
 	}
 
-	RHI_Pipeline* NoneApi::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
 		return new NonePipeline();
 	}
 
-	RHI_Pipeline* NoneApi::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
 	{
 		return new NonePipeline();
 	}
 
-	RHI_Pipeline* NoneApi::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
 	{
 		return new NonePipeline();
 	}
 
-	RHI_Buffer* NoneApi::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
+	RHIBuffer* NoneApi::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
 	{
 		return new NoneBuffer();
 	}
@@ -250,77 +250,77 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_vertex_buffer(RHI_Buffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	NoneApi& NoneApi::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_index_buffer(RHI_Buffer* buffer, RHIIndexFormat format)
+	NoneApi& NoneApi::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_uniform_buffer(RHI_Buffer* buffer, byte slot)
+	NoneApi& NoneApi::bind_uniform_buffer(RHIBuffer* buffer, byte slot)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_srv(RHI_ShaderResourceView* view, byte slot)
+	NoneApi& NoneApi::bind_srv(RHIShaderResourceView* view, byte slot)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_uav(RHI_UnorderedAccessView* view, byte slot)
+	NoneApi& NoneApi::bind_uav(RHIUnorderedAccessView* view, byte slot)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::bind_sampler(RHI_Sampler* sampler, byte slot)
+	NoneApi& NoneApi::bind_sampler(RHISampler* sampler, byte slot)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::update_buffer(RHI_Buffer* buffer, size_t offset, size_t size, const byte* data)
+	NoneApi& NoneApi::update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::update_texture(RHI_Texture* texture, const RHITextureRegion& region, const void* data, size_t size,
+	NoneApi& NoneApi::update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, size_t size,
 	                                 size_t buffer_width, size_t buffer_height)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::copy_buffer_to_buffer(RHI_Buffer* src, RHI_Buffer* dst, size_t size, size_t src_offset, size_t dst_offset)
+	NoneApi& NoneApi::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset, size_t dst_offset)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::copy_texture_to_buffer(RHI_Texture* texture, uint8_t mip_level, uint16_t array_slice,
-	                                         const Vector3u& offset, const Vector3u& extent, RHI_Buffer* buffer,
+	NoneApi& NoneApi::copy_texture_to_buffer(RHITexture* texture, uint8_t mip_level, uint16_t array_slice,
+	                                         const Vector3u& offset, const Vector3u& extent, RHIBuffer* buffer,
 	                                         size_t buffer_offset)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::copy_buffer_to_texture(RHI_Buffer* buffer, size_t buffer_offset, RHI_Texture* texture, uint8_t mip_level,
+	NoneApi& NoneApi::copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture, uint8_t mip_level,
 	                                         uint16_t array_slice, const Vector3u& offset, const Vector3u& extent)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::copy_texture_to_texture(RHI_Texture* src, const RHITextureRegion& src_region, RHI_Texture* dst,
+	NoneApi& NoneApi::copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 	                                          const RHITextureRegion& dst_region)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::barrier(RHI_Texture* texture, RHIAccess dst_access)
+	NoneApi& NoneApi::barrier(RHITexture* texture, RHIAccess dst_access)
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::barrier(RHI_Buffer* buffer, RHIAccess dst_access)
+	NoneApi& NoneApi::barrier(RHIBuffer* buffer, RHIAccess dst_access)
 	{
 		return *this;
 	}

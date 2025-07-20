@@ -9,7 +9,7 @@ namespace Engine
 	class Window;
 	class RenderTarget;
 	class RenderSurface;
-	struct RHI_RenderTargetView;
+	struct RHIRenderTargetView;
 	struct Color;
 
 	class ENGINE_EXPORT ViewportClient : public Object
@@ -37,7 +37,7 @@ namespace Engine
 		RenderViewport();
 		~RenderViewport();
 
-		virtual RHI_RenderTargetView* rhi_rtv() = 0;
+		virtual RHIRenderTargetView* rhi_rtv() = 0;
 		virtual RenderViewport& rhi_present()   = 0;
 		inline Size2D size() const { return m_size; }
 
@@ -65,7 +65,7 @@ namespace Engine
 		WindowRenderViewport& on_orientation_changed(Orientation orientation);
 
 		WindowRenderViewport& rhi_present() override;
-		RHI_RenderTargetView* rhi_rtv() override;
+		RHIRenderTargetView* rhi_rtv() override;
 		inline RHISwapchain* rhi_swapchain() const { return m_swapchain; }
 	};
 
