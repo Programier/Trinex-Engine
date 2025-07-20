@@ -20,7 +20,6 @@ namespace Engine
 	class VulkanDescriptorSetAllocator;
 	class VulkanStateManager;
 	class VulkanQueryPoolManager;
-	struct VulkanViewport;
 	class Window;
 
 	struct VulkanExtention {
@@ -32,8 +31,11 @@ namespace Engine
 		inline bool is_valid() const { return !name.empty(); }
 	};
 
-	struct VulkanAPI : public RHI {
+	class VulkanAPI : public RHI
+	{
 		trinex_declare_struct(VulkanAPI, void);
+
+	public:
 		static VulkanAPI* static_constructor();
 		static void static_destructor(VulkanAPI* vulkan);
 
@@ -157,7 +159,7 @@ namespace Engine
 		RHIFence* create_fence() override;
 		RHISampler* create_sampler(const RHISamplerInitializer*) override;
 		RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
-		                            RHITextureCreateFlags flags) override;
+		                           RHITextureCreateFlags flags) override;
 		RHIShader* create_shader(const byte* shader, size_t size) override;
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;

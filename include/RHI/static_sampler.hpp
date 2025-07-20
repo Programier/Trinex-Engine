@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	struct RHISampler;
+	class RHISampler;
 
 	class RHIStaticSamplerBase
 	{

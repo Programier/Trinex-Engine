@@ -1,5 +1,6 @@
 #pragma once
 
+#include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
 
 
@@ -36,7 +37,7 @@ namespace Engine
 		RHIFence* create_fence() override;
 		RHISampler* create_sampler(const RHISamplerInitializer*) override;
 		RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
-		                            RHITextureCreateFlags flags) override;
+		                           RHITextureCreateFlags flags) override;
 		RHIShader* create_shader(const byte* source, size_t size) override;
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;

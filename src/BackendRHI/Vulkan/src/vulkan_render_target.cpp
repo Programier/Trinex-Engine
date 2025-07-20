@@ -12,32 +12,6 @@
 
 namespace Engine
 {
-	VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(vk::ImageView* image_views, uint32_t count)
-	{
-		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->render_pass(), count,
-		                                                  image_views, m_size.x, m_size.y, 1);
-		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
-
-		return *this;
-	}
-
-	void VulkanRenderTargetBase::bind()
-	{
-		API->m_state_manager->bind(this);
-	}
-
-	VulkanRenderTargetBase& VulkanRenderTargetBase::size(uint32_t width, uint32_t height)
-	{
-		m_size.x = width;
-		m_size.y = height;
-		return *this;
-	}
-
-	VulkanRenderTargetBase::~VulkanRenderTargetBase()
-	{
-		DESTROY_CALL(destroyFramebuffer, m_framebuffer);
-	}
-
 	VulkanRenderTarget::VulkanRenderTarget() {}
 
 	TreeMap<VulkanRenderTarget::Key, VulkanRenderTarget*> VulkanRenderTarget::m_render_targets;
@@ -92,7 +66,8 @@ namespace Engine
 		m_render_pass = VulkanRenderPass::find_or_create(targets, depth);
 
 		auto extent = find_target_extent(targets, depth);
-		m_size      = {extent.width, extent.height};
+		m_width     = extent.width;
+		m_height    = extent.height;
 		Index index = 0;
 
 		vk::ImageView attachments[5] = {VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE};
@@ -113,11 +88,13 @@ namespace Engine
 			depth->add_target(this);
 		}
 
-		post_init(attachments, index);
+		vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_render_pass->render_pass(), index,
+		                                                  attachments, extent.width, extent.height, 1);
+		m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 		return *this;
 	}
 
-	VulkanRenderTargetBase& VulkanRenderTarget::lock_surfaces()
+	VulkanRenderTarget& VulkanRenderTarget::lock_surfaces()
 	{
 		for (auto& surface : m_key.m_surfaces)
 		{
@@ -148,6 +125,8 @@ namespace Engine
 		{
 			m_key.m_depth->remove_target(this);
 		}
+
+		DESTROY_CALL(destroyFramebuffer, m_framebuffer);
 	}
 
 	VulkanAPI& VulkanAPI::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
@@ -157,7 +136,8 @@ namespace Engine
 		                                 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};
 
 		VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(surfaces, static_cast<VulkanTextureDSV*>(depth_stencil));
-		rt->bind();
+
+		m_state_manager->bind(rt);
 		return *this;
 	}
 }// namespace Engine

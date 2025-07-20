@@ -27,10 +27,10 @@ namespace Engine
 
 			FORCE_INLINE void normalize(VulkanTexture* texture) {}
 
-			static ViewDesc from(const RHITextureDescSRV& view, const VulkanTexture* texture);
-			static ViewDesc from(const RHITextureDescUAV& view, const VulkanTexture* texture);
-			static ViewDesc from(const RHITextureDescRTV& view, const VulkanTexture* texture);
-			static ViewDesc from(const RHITextureDescDSV& view, const VulkanTexture* texture);
+			static ViewDesc from(const RHITextureDescSRV* view, const VulkanTexture* texture);
+			static ViewDesc from(const RHITextureDescUAV* view, const VulkanTexture* texture);
+			static ViewDesc from(const RHITextureDescRTV* view, const VulkanTexture* texture);
+			static ViewDesc from(const RHITextureDescDSV* view, const VulkanTexture* texture);
 
 			FORCE_INLINE bool operator==(const ViewDesc& other) const noexcept { return id == other.id; }
 			FORCE_INLINE bool operator!=(const ViewDesc& other) const noexcept { return id != other.id; }
@@ -100,10 +100,10 @@ namespace Engine
 		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags);
 		void change_layout(vk::ImageLayout new_layout);
 
-		RHIShaderResourceView* as_srv(RHITextureDescSRV desc) override;
-		RHIUnorderedAccessView* as_uav(RHITextureDescUAV desc) override;
-		RHIRenderTargetView* as_rtv(RHITextureDescRTV desc) override;
-		RHIDepthStencilView* as_dsv(RHITextureDescDSV desc) override;
+		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;
+		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override;
+		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc) override;
+		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc) override;
 		~VulkanTexture();
 	};
 

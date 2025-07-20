@@ -6,7 +6,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
-#include <RHI/rhi_initializers.hpp>
+#include <RHI/initializers.hpp>
 
 namespace Engine::VisualMaterialGraph
 {

@@ -55,58 +55,70 @@ namespace Engine
 		}
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescSRV& view,
+	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescSRV* view,
 	                                                                   const VulkanTexture* texture)
 	{
+		if (view == nullptr)
+			view = &default_value_of<RHITextureDescSRV>();
+
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view.first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view.array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view.first_mip, texture->mipmap_count() - 1);
-		desc.mip_levels        = glm::min<uint8_t>(view.mip_levels, texture->mipmap_count() - desc.first_mip);
-		desc.view_type         = view.view_type == RHITextureType::Undefined ? texture->texture_type() : view.view_type;
+		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = glm::min<uint8_t>(view->first_mip, texture->mipmap_count() - 1);
+		desc.mip_levels        = glm::min<uint8_t>(view->mip_levels, texture->mipmap_count() - desc.first_mip);
+		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescUAV& view,
+	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescUAV* view,
 	                                                                   const VulkanTexture* texture)
 	{
+		if (view == nullptr)
+			view = &default_value_of<RHITextureDescUAV>();
+
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view.first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view.array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view.mip_slice, texture->mipmap_count() - 1);
+		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = glm::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
 		desc.mip_levels        = 1;
-		desc.view_type         = view.view_type == RHITextureType::Undefined ? texture->texture_type() : view.view_type;
+		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescRTV& view,
+	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescRTV* view,
 	                                                                   const VulkanTexture* texture)
 	{
+		if (view == nullptr)
+			view = &default_value_of<RHITextureDescRTV>();
+
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view.first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view.array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view.mip_slice, texture->mipmap_count() - 1);
+		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = glm::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
 		desc.mip_levels        = 1;
-		desc.view_type         = view.view_type == RHITextureType::Undefined ? texture->texture_type() : view.view_type;
+		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescDSV& view,
+	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescDSV* view,
 	                                                                   const VulkanTexture* texture)
 	{
+		if (view == nullptr)
+			view = &default_value_of<RHITextureDescDSV>();
+
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view.first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view.array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view.mip_slice, texture->mipmap_count() - 1);
+		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = glm::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
 		desc.mip_levels        = 1;
-		desc.view_type         = view.view_type == RHITextureType::Undefined ? texture->texture_type() : view.view_type;
+		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
 		return desc;
 	}
@@ -178,7 +190,7 @@ namespace Engine
 		}
 	}
 
-	RHIShaderResourceView* VulkanTexture::as_srv(RHITextureDescSRV desc)
+	RHIShaderResourceView* VulkanTexture::as_srv(RHITextureDescSRV* desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::ShaderResource))
 			return nullptr;
@@ -187,7 +199,7 @@ namespace Engine
 		return static_as_view(this, m_srv, ViewDesc::from(desc, this), mask);
 	}
 
-	RHIUnorderedAccessView* VulkanTexture::as_uav(RHITextureDescUAV desc)
+	RHIUnorderedAccessView* VulkanTexture::as_uav(RHITextureDescUAV* desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::UnorderedAccess))
 			return nullptr;
@@ -196,7 +208,7 @@ namespace Engine
 		return static_as_view(this, m_uav, ViewDesc::from(desc, this), mask);
 	}
 
-	RHIRenderTargetView* VulkanTexture::as_rtv(RHITextureDescRTV desc)
+	RHIRenderTargetView* VulkanTexture::as_rtv(RHITextureDescRTV* desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::RenderTarget))
 			return nullptr;
@@ -205,7 +217,7 @@ namespace Engine
 		return static_as_view(this, m_rtv, ViewDesc::from(desc, this), mask);
 	}
 
-	RHIDepthStencilView* VulkanTexture::as_dsv(RHITextureDescDSV desc)
+	RHIDepthStencilView* VulkanTexture::as_dsv(RHITextureDescDSV* desc)
 	{
 		if (!(m_flags & RHITextureCreateFlags::DepthStencilTarget))
 			return nullptr;
@@ -226,7 +238,7 @@ namespace Engine
 	}
 
 	RHITexture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
-	                                       RHITextureCreateFlags flags)
+	                                      RHITextureCreateFlags flags)
 	{
 		VulkanTexture* texture = nullptr;
 
@@ -313,9 +325,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture,
-	                                             uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
-	                                             const Vector3u& extent)
+	VulkanAPI& VulkanAPI::copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture, uint8_t mip_level,
+	                                             uint16_t array_slice, const Vector3u& offset, const Vector3u& extent)
 	{
 		VulkanTexture* dst = static_cast<VulkanTexture*>(texture);
 		VulkanBuffer* src  = static_cast<VulkanBuffer*>(buffer);

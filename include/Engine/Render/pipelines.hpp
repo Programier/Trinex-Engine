@@ -3,9 +3,9 @@
 
 namespace Engine
 {
-	struct RHIShaderResourceView;
-	struct RHIUnorderedAccessView;
-	struct RHISampler;
+	class RHIShaderResourceView;
+	class RHIUnorderedAccessView;
+	class RHISampler;
 	class Renderer;
 
 	namespace Pipelines

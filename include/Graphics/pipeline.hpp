@@ -12,7 +12,7 @@ namespace Engine
 	class Logger;
 	class ShaderCompilationEnvironment;
 	class RHIPipeline;
-	struct ShaderCompilationResult;
+	class ShaderCompilationResult;
 
 	class ENGINE_EXPORT Pipeline : public RenderResource
 	{

@@ -9,9 +9,9 @@
 
 namespace Engine
 {
-	struct RHIObject;
-	struct RHIBuffer;
-	struct RHITexture;
+	class RHIObject;
+	class RHIBuffer;
+	class RHITexture;
 }// namespace Engine
 
 namespace Engine::RenderGraph

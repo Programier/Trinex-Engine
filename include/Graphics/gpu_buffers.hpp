@@ -8,7 +8,7 @@
 namespace Engine
 {
 	// VERTEX BUFFER IMPLEMENTATION
-	struct RHIBuffer;
+	class RHIBuffer;
 	class Archive;
 
 	class ENGINE_EXPORT VertexBufferBase

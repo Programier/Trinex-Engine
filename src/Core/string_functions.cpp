@@ -2,8 +2,6 @@
 #include <Core/memory.hpp>
 #include <Core/string_functions.hpp>
 #include <algorithm>
-#include <codecvt>
-#include <locale>
 #include <regex>
 #include <stdarg.h>
 #include <string>
@@ -11,22 +9,6 @@
 
 namespace Engine::Strings
 {
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>& convertor()
-	{
-		static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> m_convertor;
-		return m_convertor;
-	}
-
-	ENGINE_EXPORT std::wstring to_wstring(const String& str)
-	{
-		return convertor().from_bytes(str);
-	}
-
-	ENGINE_EXPORT std::wstring to_wstring(const char* str)
-	{
-		return convertor().from_bytes(str);
-	}
-
 	ENGINE_EXPORT String c_style_format(const char* text, ...)
 	{
 		va_list args;

@@ -1,6 +1,6 @@
 #include <Core/memory.hpp>
 #include <Engine/settings.hpp>
-#include <RHI/rhi_initializers.hpp>
+#include <RHI/initializers.hpp>
 
 namespace Engine
 {

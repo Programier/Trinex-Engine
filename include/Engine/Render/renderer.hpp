@@ -10,8 +10,8 @@ namespace Engine
 	class PrimitiveComponent;
 	class LightComponent;
 	class MaterialBindings;
-	struct RHIBuffer;
-	struct RHITexture;
+	class RHIBuffer;
+	class RHITexture;
 
 	namespace RenderGraph
 	{

@@ -1,6 +1,6 @@
 #include <Core/default_resources.hpp>
 #include <Graphics/sampler.hpp>
-#include <RHI/rhi_initializers.hpp>
+#include <RHI/initializers.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_enums.hpp>

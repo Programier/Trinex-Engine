@@ -7,7 +7,7 @@
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
-#include <RHI/rhi_initializers.hpp>
+#include <RHI/initializers.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>

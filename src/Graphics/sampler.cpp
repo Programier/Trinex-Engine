@@ -9,8 +9,8 @@
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/sampler.hpp>
+#include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
-#include <RHI/rhi_initializers.hpp>
 
 namespace Engine
 {
@@ -40,7 +40,7 @@ namespace Engine
 	{
 	private:
 		Atomic<uint64_t> m_references = 0;
-		RHISampler* m_sampler        = nullptr;
+		RHISampler* m_sampler         = nullptr;
 		SamplerImpl* m_prev           = nullptr;
 		SamplerImpl* m_next           = nullptr;
 		RHISamplerInitializer m_initializer;

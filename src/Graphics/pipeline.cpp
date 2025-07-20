@@ -13,7 +13,7 @@
 #include <Graphics/shader_cache.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
-#include <RHI/rhi_initializers.hpp>
+#include <RHI/initializers.hpp>
 
 namespace Engine
 {

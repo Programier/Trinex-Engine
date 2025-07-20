@@ -6,8 +6,8 @@
 
 namespace Engine
 {
-	struct ShaderCompilationResult;
-	
+	class ShaderCompilationResult;
+
 	struct ENGINE_EXPORT GraphicsShaderCache {
 		Vector<RHIShaderParameterInfo> parameters;
 		Vector<RHIVertexAttribute> vertex_attributes;

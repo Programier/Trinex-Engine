@@ -26,8 +26,8 @@ namespace Engine
 		EditorState();
 	};
 
-	struct RHIPipelineStatistics;
-	struct RHITimestamp;
+	class RHIPipelineStatistics;
+	class RHITimestamp;
 
 	class EditorClient : public ImGuiViewportClient
 	{

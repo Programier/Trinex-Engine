@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	struct RHIShader;
+	class RHIShader;
 	class ENGINE_EXPORT Shader : public RenderResource
 	{
 		trinex_declare_class(Shader, RenderResource);

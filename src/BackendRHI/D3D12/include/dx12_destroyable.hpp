@@ -2,7 +2,7 @@
 
 namespace Engine
 {
-	struct RHIObject;
+	class RHIObject;
 	void d3d12_deferred_destroy(RHIObject* object);
 
 	template<typename Base>

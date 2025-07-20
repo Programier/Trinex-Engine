@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	struct VulkanRenderTarget;
+	class VulkanRenderTarget;
 	class VulkanSampler;
 	class VulkanTexture;
 	class VulkanBuffer;
@@ -66,7 +66,7 @@ namespace Engine
 	class VulkanTextureRTV : public VulkanRTV
 	{
 	private:
-		Set<struct VulkanRenderTarget*> m_render_targets;
+		Set<VulkanRenderTarget*> m_render_targets;
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
@@ -86,13 +86,13 @@ namespace Engine
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
 
-		FORCE_INLINE VulkanTextureRTV& add_target(struct VulkanRenderTarget* target)
+		FORCE_INLINE VulkanTextureRTV& add_target(VulkanRenderTarget* target)
 		{
 			m_render_targets.insert(target);
 			return *this;
 		}
 
-		FORCE_INLINE VulkanTextureRTV& remove_target(struct VulkanRenderTarget* target)
+		FORCE_INLINE VulkanTextureRTV& remove_target(VulkanRenderTarget* target)
 		{
 			m_render_targets.erase(target);
 			return *this;
@@ -102,7 +102,7 @@ namespace Engine
 	class VulkanTextureDSV : public VulkanDSV
 	{
 	private:
-		Set<struct VulkanRenderTarget*> m_render_targets;
+		Set<VulkanRenderTarget*> m_render_targets;
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
@@ -120,13 +120,13 @@ namespace Engine
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
 
-		FORCE_INLINE VulkanTextureDSV& add_target(struct VulkanRenderTarget* target)
+		FORCE_INLINE VulkanTextureDSV& add_target(VulkanRenderTarget* target)
 		{
 			m_render_targets.insert(target);
 			return *this;
 		}
 
-		FORCE_INLINE VulkanTextureDSV& remove_target(struct VulkanRenderTarget* target)
+		FORCE_INLINE VulkanTextureDSV& remove_target(VulkanRenderTarget* target)
 		{
 			m_render_targets.erase(target);
 			return *this;

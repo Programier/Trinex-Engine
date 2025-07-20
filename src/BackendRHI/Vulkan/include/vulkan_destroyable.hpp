@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-	struct RHIObject;
+	class RHIObject;
 	void trinex_vulkan_deferred_destroy(RHIObject* object);
 
 	template<typename T>

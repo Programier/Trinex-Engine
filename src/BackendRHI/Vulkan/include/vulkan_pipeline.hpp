@@ -7,13 +7,11 @@
 
 namespace Engine
 {
-	struct VulkanPipelineLayout;
-	struct VulkanDescriptorSet;
+	class VulkanPipelineLayout;
 	class VulkanSampler;
 	class VulkanSRV;
 	class VulkanUAV;
 	class VulkanStateManager;
-	struct VulkanDescriptorSetLayout;
 	class Pipeline;
 
 	class VulkanPipeline : public VulkanDeferredDestroy<RHIPipeline>

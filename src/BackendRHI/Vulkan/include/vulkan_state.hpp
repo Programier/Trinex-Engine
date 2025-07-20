@@ -92,8 +92,8 @@ namespace Engine
 
 		Vector<VulkanUniformBuffer*> m_global_uniform_buffers;
 
-		class VulkanRenderPass* m_render_pass          = nullptr;
-		struct VulkanRenderTargetBase* m_render_target = nullptr;
+		class VulkanRenderPass* m_render_pass     = nullptr;
+		class VulkanRenderTarget* m_render_target = nullptr;
 
 		VulkanPipeline* m_pipeline = nullptr;
 
@@ -134,7 +134,7 @@ namespace Engine
 			return *this;
 		}
 
-		VulkanStateManager& bind(VulkanRenderTargetBase* target)
+		VulkanStateManager& bind(VulkanRenderTarget* target)
 		{
 			if (m_render_target != target)
 			{
@@ -194,7 +194,7 @@ namespace Engine
 		inline uint64_t dirty_flags() const { return m_dirty_flags; }
 		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
-		inline VulkanRenderTargetBase* render_target() const { return m_render_target; }
+		inline VulkanRenderTarget* render_target() const { return m_render_target; }
 		inline vk::PrimitiveTopology primitive_topology() const { return m_primitive_topology; }
 		inline vk::PolygonMode polygon_mode() const { return m_polygon_mode; }
 		inline vk::CullModeFlags cull_mode() const { return m_cull_mode; }

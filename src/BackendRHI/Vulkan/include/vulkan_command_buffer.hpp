@@ -5,7 +5,8 @@
 
 namespace Engine
 {
-	struct RHIObject;
+	class RHIObject;
+	class VulkanRenderTarget;
 
 	class VulkanCommandBuffer final : public vk::CommandBuffer
 	{
@@ -42,7 +43,7 @@ namespace Engine
 		VulkanCommandBuffer& refresh_fence_status();
 		VulkanCommandBuffer& begin();
 		VulkanCommandBuffer& end();
-		VulkanCommandBuffer& begin_render_pass(struct VulkanRenderTargetBase* rt);
+		VulkanCommandBuffer& begin_render_pass(VulkanRenderTarget* rt);
 		VulkanCommandBuffer& end_render_pass();
 		VulkanCommandBuffer& add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore);
 		VulkanCommandBuffer& submit(vk::Semaphore semaphore = VK_NULL_HANDLE);

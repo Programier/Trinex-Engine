@@ -53,12 +53,12 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::begin_render_pass(struct VulkanRenderTargetBase* rt)
+	VulkanCommandBuffer& VulkanCommandBuffer::begin_render_pass(VulkanRenderTarget* rt)
 	{
 		trinex_check(has_begun(), "Command Buffer must be begun!");
 
-		vk::Rect2D area({0, 0}, {static_cast<uint32_t>(rt->m_size.x), static_cast<uint32_t>(rt->m_size.y)});
-		vk::RenderPassBeginInfo info(rt->m_render_pass->render_pass(), rt->m_framebuffer, area);
+		vk::Rect2D area({0, 0}, {rt->width(), rt->height()});
+		vk::RenderPassBeginInfo info(rt->m_render_pass->render_pass(), rt->framebuffer(), area);
 		vk::CommandBuffer::beginRenderPass(info, vk::SubpassContents::eInline);
 
 		m_state = State::IsInsideRenderPass;

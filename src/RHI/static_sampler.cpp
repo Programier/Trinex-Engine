@@ -2,7 +2,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/threading.hpp>
 #include <RHI/rhi.hpp>
-#include <RHI/rhi_initializers.hpp>
+#include <RHI/initializers.hpp>
 #include <RHI/static_sampler.hpp>
 
 namespace Engine

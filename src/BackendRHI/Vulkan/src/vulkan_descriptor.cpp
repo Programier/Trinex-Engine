@@ -224,7 +224,7 @@ namespace Engine
 	VulkanDescriptorSetAllocator& VulkanDescriptorSetAllocator::submit()
 	{
 		trinex_profile_cpu_n("VulkanDescriptorSetAllocator::submit");
-		
+
 		(*m_push_ptr) = m_current;
 		m_push_ptr    = &m_current->next;
 		m_current->submit();

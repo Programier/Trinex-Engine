@@ -5,7 +5,7 @@
 namespace Engine
 {
 	struct RHISamplerInitializer;
-	struct RHISampler;
+	class RHISampler;
 
 	class ENGINE_EXPORT Sampler final
 	{

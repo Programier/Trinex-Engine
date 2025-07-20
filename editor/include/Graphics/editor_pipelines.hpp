@@ -5,7 +5,7 @@
 namespace Engine
 {
 	class Renderer;
-	struct RHIShaderResourceView;
+	class RHIShaderResourceView;
 }// namespace Engine
 
 namespace Engine::EditorPipelines

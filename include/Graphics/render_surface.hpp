@@ -5,11 +5,11 @@
 
 namespace Engine
 {
-	struct RHIShaderResourceView;
-	struct RHIUnorderedAccessView;
-	struct RHIRenderTargetView;
-	struct RHIDepthStencilView;
-	struct RHITexture;
+	class RHIShaderResourceView;
+	class RHIUnorderedAccessView;
+	class RHIRenderTargetView;
+	class RHIDepthStencilView;
+	class RHITexture;
 
 	class ENGINE_EXPORT RenderSurface : public RenderResource
 	{

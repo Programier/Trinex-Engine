@@ -9,7 +9,7 @@ namespace Engine
 	class Window;
 	class RenderTarget;
 	class RenderSurface;
-	struct RHIRenderTargetView;
+	class RHIRenderTargetView;
 	struct Color;
 
 	class ENGINE_EXPORT ViewportClient : public Object
@@ -53,7 +53,7 @@ namespace Engine
 	{
 		trinex_declare_class(WindowRenderViewport, RenderViewport);
 		class Window* m_window;
-		struct RHISwapchain* m_swapchain;
+		class RHISwapchain* m_swapchain;
 
 	public:
 		WindowRenderViewport(Window* window, bool vsync);

@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	struct RHIObject;
+	class RHIObject;
 
 	class D3D12CommandAlloctor
 	{

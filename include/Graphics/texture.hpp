@@ -4,9 +4,9 @@
 
 namespace Engine
 {
-	struct RHIShaderResourceView;
-	struct RHISampler;
-	struct RHITexture;
+	class RHIShaderResourceView;
+	class RHISampler;
+	class RHITexture;
 	class Sampler;
 
 	class ENGINE_EXPORT Texture : public RenderResource

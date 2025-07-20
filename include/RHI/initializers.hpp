@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	struct RHIShader;
+	class RHIShader;
 
 	struct ENGINE_EXPORT RHISamplerInitializer {
 		RHISamplerFilter filter;
@@ -71,7 +71,7 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHIComputePipelineInitializer {
-		RHIShader* compute_shader                      = nullptr;
+		RHIShader* compute_shader                       = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		size_t parameters_count                         = 0;
 	};

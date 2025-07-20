@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
+#include <RHI/handles.hpp>
 #include <RHI/structures.hpp>
 
 namespace Engine
@@ -21,120 +22,9 @@ namespace Engine
 		class Struct;
 	}
 
-	struct ENGINE_EXPORT RHIObject {
-	private:
-		static void static_release_internal(RHIObject* object);
-
-	protected:
-		size_t m_references;
-
+	class ENGINE_EXPORT RHI
+	{
 	public:
-		RHIObject(size_t init_ref_count = 1);
-		virtual void add_reference();
-		virtual void release();
-		virtual void destroy() = 0;
-		size_t references() const;
-		virtual ~RHIObject();
-
-		template<typename T>
-		static inline void static_release(T* object)
-		{
-			if (object)
-			{
-				static_release_internal(object);
-			}
-		}
-
-		template<typename T>
-		T* as()
-		{
-			return static_cast<T*>(this);
-		}
-
-		template<typename T>
-		const T* as() const
-		{
-			return static_cast<const T*>(this);
-		}
-	};
-
-	struct ENGINE_EXPORT RHITimestamp : RHIObject {
-		virtual bool is_ready()      = 0;
-		virtual float milliseconds() = 0;
-	};
-
-	struct ENGINE_EXPORT RHIPipelineStatistics : RHIObject {
-		virtual bool is_ready() = 0;
-
-		virtual uint64_t vertices()                   = 0;
-		virtual uint64_t primitives()                 = 0;
-		virtual uint64_t geometry_shader_primitives() = 0;
-		virtual uint64_t clipping_primitives()        = 0;
-
-		virtual uint64_t vertex_shader_invocations()               = 0;
-		virtual uint64_t tessellation_control_shader_invocations() = 0;
-		virtual uint64_t tesselation_shader_invocations()          = 0;
-		virtual uint64_t geometry_shader_invocations()             = 0;
-		virtual uint64_t clipping_invocations()                    = 0;
-		virtual uint64_t fragment_shader_invocations()             = 0;
-	};
-
-	struct ENGINE_EXPORT RHIFence : RHIObject {
-		virtual bool is_signaled() = 0;
-		virtual void reset()       = 0;
-	};
-
-	struct ENGINE_EXPORT RHIShaderResourceView {
-		virtual ~RHIShaderResourceView() {}
-	};
-
-	struct ENGINE_EXPORT RHIUnorderedAccessView {
-		virtual ~RHIUnorderedAccessView() {}
-	};
-
-	struct ENGINE_EXPORT RHIRenderTargetView {
-		virtual void clear(const LinearColor& color)   = 0;
-		virtual void clear_uint(const Vector4u& value) = 0;
-		virtual void clear_sint(const Vector4i& value) = 0;
-		virtual ~RHIRenderTargetView() {}
-	};
-
-	struct ENGINE_EXPORT RHIDepthStencilView {
-		virtual void clear(float depth, byte stencil) = 0;
-		virtual ~RHIDepthStencilView() {}
-	};
-
-	struct ENGINE_EXPORT RHISampler : RHIObject {
-	};
-
-	struct ENGINE_EXPORT RHITexture : RHIObject {
-		virtual RHIRenderTargetView* as_rtv(RHITextureDescRTV desc = {})    = 0;
-		virtual RHIDepthStencilView* as_dsv(RHITextureDescDSV desc = {})    = 0;
-		virtual RHIShaderResourceView* as_srv(RHITextureDescSRV desc = {})  = 0;
-		virtual RHIUnorderedAccessView* as_uav(RHITextureDescUAV desc = {}) = 0;
-	};
-
-	struct ENGINE_EXPORT RHIShader : RHIObject {
-	};
-
-	struct ENGINE_EXPORT RHIPipeline : RHIObject {
-		virtual void bind() = 0;
-	};
-
-	struct ENGINE_EXPORT RHIBuffer : RHIObject {
-		virtual byte* map()                      = 0;
-		virtual void unmap()                     = 0;
-		virtual RHIShaderResourceView* as_srv()  = 0;
-		virtual RHIUnorderedAccessView* as_uav() = 0;
-	};
-
-	struct RHISwapchain : RHIObject {
-		virtual void vsync(bool flag)             = 0;
-		virtual void resize(const Vector2u& size) = 0;
-		virtual RHIRenderTargetView* as_rtv()     = 0;
-	};
-
-	struct ENGINE_EXPORT RHI {
 		static constexpr size_t s_max_srv             = 32;
 		static constexpr size_t s_max_samplers        = 32;
 		static constexpr size_t s_max_uav             = 8;

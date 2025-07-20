@@ -8,11 +8,11 @@
 namespace Engine
 {
 	class RenderSurface;
-	struct RHITexture;
-	struct RHIBuffer;
-	struct RHIFence;
-	struct RHITimestamp;
-	struct RHIPipelineStatistics;
+	class RHITexture;
+	class RHIBuffer;
+	class RHIFence;
+	class RHITimestamp;
+	class RHIPipelineStatistics;
 
 	class ENGINE_EXPORT RHIFencePool final
 	{
