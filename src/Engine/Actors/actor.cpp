@@ -256,7 +256,7 @@ namespace Engine
 
 	trinex_implement_engine_class(Actor, Refl::Class::IsScriptable)
 	{
-		auto self = static_class_instance();
+		auto self = static_reflection();
 		auto r    = ScriptClassRegistrar::existing_class(self);
 
 		script_actor_update     = r.method("void update(float dt)", trinex_scoped_void_method(Actor, update));

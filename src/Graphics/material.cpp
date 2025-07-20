@@ -118,7 +118,7 @@ namespace Engine
 
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
-		auto self = static_class_instance();
+		auto self = static_reflection();
 
 #define m_parameters m_child_objects
 		auto params = trinex_refl_prop_ext(MaterialParametersExt, self, This, m_parameters,
@@ -131,7 +131,7 @@ namespace Engine
 
 	trinex_implement_engine_class(Material, Refl::Class::IsAsset)
 	{
-		auto* self = static_class_instance();
+		auto* self = static_reflection();
 		trinex_refl_prop(self, This, domain, Refl::Property::IsTransient);
 		trinex_refl_prop(self, This, depth_test, Refl::Property::IsTransient);
 		trinex_refl_prop(self, This, stencil_test, Refl::Property::IsTransient);
@@ -140,7 +140,7 @@ namespace Engine
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
-		auto* self = MaterialInstance::static_class_instance();
+		auto* self = MaterialInstance::static_reflection();
 		trinex_refl_prop(self, This, parent_material)
 		        ->display_name("Parent Material")
 		        .tooltip("Parent Material of this instance");
@@ -148,7 +148,7 @@ namespace Engine
 
 	Refl::Class* MaterialInterface::object_tree_child_class() const
 	{
-		return MaterialParameters::Parameter::static_class_instance();
+		return MaterialParameters::Parameter::static_reflection();
 	}
 
 	bool MaterialInterface::unregister_child(Object* child)

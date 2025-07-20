@@ -9,7 +9,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(StaticMeshActor, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 		r.method("StaticMeshComponent@ mesh_component() const final", trinex_scoped_method(This, mesh_component));
 	}
 

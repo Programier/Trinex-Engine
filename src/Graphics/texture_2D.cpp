@@ -15,7 +15,7 @@ namespace Engine
 
 	trinex_implement_engine_class(Texture2D, Refl::Class::IsAsset)
 	{
-		auto* self = static_class_instance();
+		auto* self = static_reflection();
 #define m_format format
 		trinex_refl_prop(self, This, m_format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
 #undef m_format

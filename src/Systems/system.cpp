@@ -32,7 +32,7 @@ namespace Engine
 	{
 		const Refl::Class* self = class_instance();
 
-		if (self == static_class_instance())
+		if (self == static_reflection())
 		{
 			throw EngineException("Each class based from Engine::System must be registered!");
 		}
@@ -222,7 +222,7 @@ namespace Engine
 
 	System* System::system_of(class Refl::Class* class_instance, Object* owner)
 	{
-		if (class_instance && class_instance->is_a(System::static_class_instance()))
+		if (class_instance && class_instance->is_a(System::static_reflection()))
 		{
 			System* system = class_instance->create_object("", owner)->instance_cast<System>();
 

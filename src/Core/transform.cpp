@@ -15,7 +15,7 @@ namespace Engine
 
 	trinex_implement_struct(Engine::Transform, 0)
 	{
-		auto* self = static_struct_instance();
+		auto* self = static_reflection();
 
 		auto on_prop_changed = [](const Refl::PropertyChangedEvent& event) { event.context_as<Transform>()->m_is_dirty = true; };
 
@@ -308,7 +308,7 @@ namespace Engine
 		registrar.method("const Engine::Vector3f& scale() const final", method_of<const Vector3f&>(&Transform::scale));
 		registrar.method("const Engine::Quaternion& quaternion() const final", method_of<Quaternion>(&Transform::quaternion));
 
-		Transform::static_struct_instance()->script_type_info = registrar.type_info();
+		Transform::static_reflection()->script_type_info = registrar.type_info();
 	}
 
 	static ReflectionInitializeController init(on_init);

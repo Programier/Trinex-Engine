@@ -22,7 +22,7 @@ namespace Engine
 
 	trinex_implement_engine_class(ImGuiViewportClient, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
 		m_ic_script_update = r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiViewportClient&, float));
 		m_ic_script_select = r.method("void select(Object@ object)", trinex_scoped_method(This, select));
@@ -55,7 +55,7 @@ namespace Engine
 		if (self == nullptr)
 			return;
 
-		if (self != skip && self != ImGuiViewportClient::static_class_instance())
+		if (self != skip && self != ImGuiViewportClient::static_reflection())
 		{
 			String fmt = Localization::instance()->localize(Strings::format("editor/Open {}", self->display_name()));
 
@@ -130,7 +130,7 @@ namespace Engine
 	{
 		if (ImGui::BeginMenu("editor/Clients"_localized))
 		{
-			draw_available_clients_for_opening_internal(This::static_class_instance(), class_instance());
+			draw_available_clients_for_opening_internal(This::static_reflection(), class_instance());
 			ImGui::EndMenu();
 		}
 	}

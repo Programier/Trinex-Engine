@@ -9,7 +9,7 @@ namespace Engine
 
 	trinex_implement_struct(Engine::RHIDepthTest, 0)
 	{
-		auto* self = static_struct_instance();
+		auto* self = static_reflection();
 
 		trinex_refl_prop(self, This, enable, s_flags)->tooltip("Enable depth test");
 		trinex_refl_prop(self, This, write_enable, s_flags)->tooltip("Enable write to depth buffer");
@@ -18,7 +18,7 @@ namespace Engine
 
 	trinex_implement_struct(Engine::RHIStencilTest, 0)
 	{
-		auto* self = static_struct_instance();
+		auto* self = static_reflection();
 
 		trinex_refl_prop(self, This, enable, s_flags)->tooltip("Enable stencil test");
 		trinex_refl_prop(self, This, fail, s_flags)->tooltip("Operation on fail");
@@ -31,7 +31,7 @@ namespace Engine
 
 	trinex_implement_struct(Engine::RHIColorBlending, 0)
 	{
-		auto* self = static_struct_instance();
+		auto* self = static_reflection();
 
 		trinex_refl_prop(self, This, enable, s_flags);
 		trinex_refl_prop(self, This, src_color_func, s_flags);

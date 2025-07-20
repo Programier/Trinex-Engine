@@ -20,7 +20,7 @@ namespace Engine
 
 	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 		// r.method("Vector2f size() const final", &This::size);
 		// r.method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
 		// r.method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
@@ -32,7 +32,7 @@ namespace Engine
 
 	trinex_implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
 		vc_update           = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
 		vc_on_bind_viewport = r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));

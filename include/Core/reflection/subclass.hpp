@@ -34,7 +34,7 @@ namespace Engine::Refl
 
 		const Class* operator->() const { return m_class; }
 
-		Class* base() const { return T::static_class_instance(); }
+		Class* base() const { return T::static_reflection(); }
 
 		bool operator==(const SubClassOf& other) const { return m_class == other.m_class; }
 

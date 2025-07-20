@@ -239,7 +239,7 @@ public:                                                                         
 	using This  = struct_name;                                                                                                   \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_struct();                                                                                      \
-	static class Engine::Refl::Struct* static_struct_instance();
+	static class Engine::Refl::Struct* static_reflection();
 
 #define trinex_declare_enum(enum_name)                                                                                           \
 	static constexpr bool is_enum_reflected = true;                                                                              \
@@ -248,7 +248,7 @@ private:                                                                        
 	static Engine::Refl::Enum* s_enum;                                                                                           \
                                                                                                                                  \
 public:                                                                                                                          \
-	static inline class Engine::Refl::Enum* static_enum_instance()                                                               \
+	static inline class Engine::Refl::Enum* static_reflection()                                                               \
 	{                                                                                                                            \
 		return s_enum;                                                                                                           \
 	}                                                                                                                            \

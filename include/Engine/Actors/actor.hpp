@@ -78,7 +78,7 @@ namespace Engine
 		template<typename ComponentType>
 		FORCE_INLINE ComponentType* create_component(const Name& name = {})
 		{
-			return create_component(ComponentType::static_class_instance(), name)->template instance_cast<ComponentType>();
+			return create_component(ComponentType::static_reflection(), name)->template instance_cast<ComponentType>();
 		}
 
 		virtual Actor& update(float dt);

@@ -34,7 +34,7 @@ namespace Engine
 
 	class Refl::Class* LogicSystem::depends_on() const
 	{
-		return EventSystem::static_class_instance();
+		return EventSystem::static_reflection();
 	}
 
 	trinex_implement_engine_class_default_init(LogicSystem, 0);

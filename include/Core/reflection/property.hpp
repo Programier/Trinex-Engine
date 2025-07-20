@@ -363,7 +363,7 @@ private:
 
 	private:
 		template<typename T>
-		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_struct_instance()), Struct*>>;
+		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_reflection()), Struct*>>;
 
 		trinex_refl_prop_type_filter(std::is_class_v<T>&& is_detected_v<refl_detector, T>);
 
@@ -688,7 +688,7 @@ private:
 		using Super = TypedProperty<prop, EnumProperty>;
 		using Super::Super;
 
-		Enum* enum_instance() const override { return T::static_enum_instance(); }
+		Enum* enum_instance() const override { return T::static_reflection(); }
 	};
 
 	template<auto prop, typename T>
@@ -732,7 +732,7 @@ private:
 		using Super = TypedProperty<prop, ObjectProperty>;
 		using Super::Super;
 
-		Class* class_instance() const override { return std::remove_pointer_t<T>::static_class_instance(); }
+		Class* class_instance() const override { return std::remove_pointer_t<T>::static_reflection(); }
 	};
 
 	template<auto prop, typename T>
@@ -741,7 +741,7 @@ private:
 		using Super = TypedProperty<prop, StructProperty>;
 		using Super::Super;
 
-		Struct* struct_instance() const override { return T::static_struct_instance(); }
+		Struct* struct_instance() const override { return T::static_reflection(); }
 	};
 
 	template<auto prop, typename T>
@@ -842,7 +842,7 @@ private:
 		using Super = TypedProperty<prop, SubClassProperty>;
 		using Super::Super;
 
-		Class* base_class() const override { return T::Type::static_class_instance(); }
+		Class* base_class() const override { return T::Type::static_reflection(); }
 	};
 
 	template<auto prop, typename T>
@@ -851,7 +851,7 @@ private:
 		using Super = TypedProperty<prop, FlagsProperty>;
 		using Super::Super;
 
-		Enum* enum_instance() const override { return T::static_enum_instance(); }
+		Enum* enum_instance() const override { return T::static_reflection(); }
 	};
 
 	template<typename T, typename O, typename SRet, typename SArg>

@@ -78,7 +78,7 @@ namespace Engine
 			}
 			else if constexpr (Concepts::is_reflected_struct<DecayType>)
 			{
-				return serialize_struct(DecayType::static_struct_instance(), address_of(value));
+				return serialize_struct(DecayType::static_reflection(), address_of(value));
 			}
 			else
 			{
@@ -130,7 +130,7 @@ namespace Engine
 				}
 				else
 				{
-					object = reinterpret_cast<Type*>(load_object(name, Type::static_class_instance()));
+					object = reinterpret_cast<Type*>(load_object(name, Type::static_reflection()));
 				}
 			}
 

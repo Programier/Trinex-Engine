@@ -121,7 +121,7 @@ namespace Engine
 
 		static Object* static_constructor();
 		static void static_initialize_class();
-		static class Refl::Class* static_class_instance();
+		static class Refl::Class* static_reflection();
 		static HashIndex hash_of_name(const StringView& name);
 		class Refl::Class* class_instance() const;
 
@@ -205,13 +205,13 @@ namespace Engine
 					}
 
 					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_class_instance());
+						static_setup_next_object_info(Type::static_reflection());
 					return static_setup_new_object_checked(Type::create_instance(std::forward<Args>(args)...), name, owner);
 				}
 				else
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_class_instance());
+						static_setup_next_object_info(Type::static_reflection());
 					return static_setup_new_object_checked(new Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
@@ -240,14 +240,14 @@ namespace Engine
 					}
 
 					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_class_instance());
+						static_setup_next_object_info(Type::static_reflection());
 					return static_setup_new_object_checked(Type::create_placement_instance(place, std::forward<Args>(args)...),
 					                                       name, owner);
 				}
 				else
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_class_instance());
+						static_setup_next_object_info(Type::static_reflection());
 					return static_setup_new_object_checked(new (place) Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
@@ -256,7 +256,7 @@ namespace Engine
 		template<typename Type>
 		typename std::enable_if<is_object_based<Type>::value, bool>::type is_instance_of() const
 		{
-			return private_check_instance(Type::static_class_instance());
+			return private_check_instance(Type::static_reflection());
 		}
 
 		template<typename Type>
@@ -307,7 +307,7 @@ namespace Engine
 			const void* self = this;
 			if (self == nullptr)
 				return false;
-			return class_instance() == Type::static_class_instance();
+			return class_instance() == Type::static_reflection();
 		}
 
 		template<typename ObjectInstanceType>
@@ -351,14 +351,14 @@ public:                                                                         
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
-	static class Engine::Refl::Class* static_class_instance();                                                                   \
+	static class Engine::Refl::Class* static_reflection();                                                                   \
                                                                                                                                  \
 private:
 
 #define trinex_implement_class(decl, flags)                                                                                      \
 	class Engine::Refl::Class* decl::m_static_class = nullptr;                                                                   \
                                                                                                                                  \
-	class Engine::Refl::Class* decl::static_class_instance()                                                                     \
+	class Engine::Refl::Class* decl::static_reflection()                                                                     \
 	{                                                                                                                            \
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
@@ -367,7 +367,7 @@ private:
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
 	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
-	        Engine::Refl::Object::static_register_initializer([]() { decl::static_class_instance(); }, #decl));                  \
+	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                  \
 	void decl::static_initialize_class()
 
 

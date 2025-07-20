@@ -51,7 +51,7 @@ namespace Engine
 		T* spawn_actor(const Vector3f& location = {}, const Vector3f& rotation = {}, const Vector3f& scale = {1, 1, 1},
 		               const Name& name = {})
 		{
-			return instance_cast<T>(spawn_actor(T::static_class_instance(), location, rotation, scale, name));
+			return instance_cast<T>(spawn_actor(T::static_reflection(), location, rotation, scale, name));
 		}
 
 		World& destroy_actor(Actor* actor);

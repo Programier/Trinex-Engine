@@ -8,7 +8,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(SpotLightComponent, 0)
 	{
-		auto* self = static_class_instance();
+		auto* self = static_reflection();
 
 		auto on_data_changed = [](const Refl::PropertyChangedEvent& event) {
 			event.context_as<SpotLightComponent>()->submit_spot_light_data();

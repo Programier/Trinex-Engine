@@ -183,7 +183,7 @@ namespace Engine
 		{
 			auto& info           = allocate<VulkanAPI>()->info;
 			info.name            = "Vulkan";
-			info.struct_instance = static_struct_instance();
+			info.struct_instance = static_reflection();
 		}
 		return VulkanAPI::m_vulkan;
 	}

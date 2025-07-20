@@ -42,7 +42,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 
 	VisualMaterial::VisualMaterial()
 	{
-		create_node(VisualMaterialGraph::MaterialRoot::static_class_instance());
+		create_node(VisualMaterialGraph::MaterialRoot::static_reflection());
 	}
 
 	VisualMaterial& VisualMaterial::recalculate_nodes_ids()

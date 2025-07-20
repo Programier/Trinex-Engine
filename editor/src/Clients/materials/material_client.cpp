@@ -28,7 +28,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(MaterialEditorClient, 0)
 	{
-		register_client(Material::static_class_instance(), static_class_instance());
+		register_client(Material::static_reflection(), static_reflection());
 	}
 
 	class ImGuiMaterialPreview : public ImGuiStaticMeshPreview

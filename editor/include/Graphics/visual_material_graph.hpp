@@ -126,7 +126,7 @@ namespace Engine::VisualMaterialGraph
 		inline T* create_temp_node(uint16_t id)
 		{
 			static_assert(std::is_base_of_v<Node, T>, "Node class must be derived from Node");
-			return Object::instance_cast<T>(create_temp_node(T::static_class_instance(), id));
+			return Object::instance_cast<T>(create_temp_node(T::static_reflection(), id));
 		}
 
 		Compiler& add_redirection(Node* node, Identifier id);

@@ -23,7 +23,7 @@ namespace Engine::MaterialParameters
 		uint16_t index = T::static_type().type_index();
 		if (index >= s_parameter_classes.size())
 			s_parameter_classes.resize(index + 1);
-		s_parameter_classes[index] = T::static_class_instance();
+		s_parameter_classes[index] = T::static_reflection();
 	}
 
 	Refl::Class* Parameter::static_find_class(RHIShaderParameterType type)
@@ -170,109 +170,109 @@ namespace Engine::MaterialParameters
 
 	implement_parameter(Bool)
 	{
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Int)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(UInt)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Float)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Bool2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Bool3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Bool4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Int2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Int3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Int4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(UInt2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(UInt3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(UInt4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Float2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Float3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Float4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Float3x3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Float4x4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, value, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, value, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(LocalToWorld)
@@ -283,20 +283,20 @@ namespace Engine::MaterialParameters
 	implement_parameter(Sampler)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, sampler, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, sampler, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Sampler2D)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, texture, Refl::Property::IsTransient);
-		trinex_refl_prop(static_class_instance(), This, sampler, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, texture, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, sampler, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Texture2D)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, texture, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, texture, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Globals)
@@ -307,13 +307,13 @@ namespace Engine::MaterialParameters
 	implement_parameter(Surface)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, surface, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, surface, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(CombinedSurface)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(static_class_instance(), This, surface, Refl::Property::IsTransient);
-		trinex_refl_prop(static_class_instance(), This, sampler, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, surface, Refl::Property::IsTransient);
+		trinex_refl_prop(static_reflection(), This, sampler, Refl::Property::IsTransient);
 	}
 }// namespace Engine::MaterialParameters

@@ -181,7 +181,7 @@ namespace Engine
 
 		if (auto obj_type = script_func->GetDelegateObjectType())
 		{
-			if (obj_type->DerivesFrom(Object::static_class_instance()->script_type_info.info()))
+			if (obj_type->DerivesFrom(Object::static_reflection()->script_type_info.info()))
 			{
 				object = reinterpret_cast<Object*>(script_func->GetDelegateObject());
 			}
@@ -199,7 +199,7 @@ namespace Engine
 	{
 		ReflectionInitializeController().require("Engine::Event");
 
-		auto reg = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto reg = ScriptClassRegistrar::existing_class(static_reflection());
 
 		reg.funcdef("void Listener(const Engine::Event&)");
 		reg.static_function("EventSystem@ instance()", instance);

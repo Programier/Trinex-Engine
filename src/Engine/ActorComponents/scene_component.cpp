@@ -28,7 +28,7 @@ namespace Engine
 
 	trinex_implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
 	{
-		auto* self  = static_class_instance();
+		auto* self  = static_reflection();
 		auto& local = *trinex_refl_prop(self, This, m_local);
 		local.display_name("Transform").tooltip("Local transform of this component");
 

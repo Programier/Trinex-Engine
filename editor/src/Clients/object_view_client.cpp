@@ -7,7 +7,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(ObjectViewClient, 0)
 	{
-		register_client(Object::static_class_instance(), static_class_instance());
+		register_client(Object::static_reflection(), static_reflection());
 	}
 
 	ObjectViewClient::ObjectViewClient()

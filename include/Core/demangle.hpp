@@ -10,6 +10,6 @@ namespace Engine::Demangle
 	template<typename Type>
 	FORCE_INLINE typename std::enable_if<is_object_based<Type>::value, String>::type name_of_type()
 	{
-		return Type::static_class_instance()->name();
+		return Type::static_reflection()->name();
 	}
 }// namespace Engine::Demangle

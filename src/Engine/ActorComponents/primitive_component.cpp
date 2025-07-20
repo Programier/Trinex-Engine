@@ -13,7 +13,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
 		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
 		r.method("void stop_play()", trinex_scoped_void_method(This, stop_play));

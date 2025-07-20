@@ -9,9 +9,9 @@ namespace Engine
 {
 	trinex_implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
 	{
-		trinex_refl_virtual_prop(static_class_instance(), mesh, mesh, mesh)->tooltip("Mesh object of this component");
+		trinex_refl_virtual_prop(static_reflection(), mesh, mesh, mesh)->tooltip("Mesh object of this component");
 
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 		r.method("StaticMesh@ mesh() const final", method_of<StaticMesh*>(&This::mesh));
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", method_of<StaticMeshComponent&, StaticMesh*>(&This::mesh));
 	}

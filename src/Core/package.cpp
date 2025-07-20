@@ -41,7 +41,7 @@ namespace Engine
 
 	Refl::Class* Package::object_tree_child_class() const
 	{
-		return Object::static_class_instance();
+		return Object::static_reflection();
 	}
 
 	bool Package::register_child(Object* object)

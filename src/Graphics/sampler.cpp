@@ -16,7 +16,7 @@ namespace Engine
 {
 	trinex_implement_struct(Engine::Sampler, 0)
 	{
-		auto self = static_struct_instance();
+		auto self = static_reflection();
 		trinex_refl_virtual_prop(self, filter, filter, filter, Refl::Property::IsTransient);
 		trinex_refl_virtual_prop(self, address_u, address_u, address_u, Refl::Property::IsTransient);
 		trinex_refl_virtual_prop(self, address_v, address_v, address_v, Refl::Property::IsTransient);

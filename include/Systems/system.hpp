@@ -44,7 +44,7 @@ namespace Engine
 		template<typename SystemType>
 		static SystemType* system_of(Object* owner = nullptr)
 		{
-			return reinterpret_cast<SystemType*>(system_of(SystemType::static_class_instance(), owner));
+			return reinterpret_cast<SystemType*>(system_of(SystemType::static_reflection(), owner));
 		}
 		~System();
 		Identifier id() const;

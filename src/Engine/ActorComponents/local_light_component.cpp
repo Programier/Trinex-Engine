@@ -8,7 +8,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(LocalLightComponent, 0)
 	{
-		auto* self = static_class_instance();
+		auto* self = static_reflection();
 
 		trinex_refl_prop(self, This, m_attenuation_radius)
 		        ->display_name("Attenuation radius")
@@ -46,7 +46,7 @@ namespace Engine
 	{
 		Super::on_property_changed(event);
 
-		if (event.property->owner() == static_class_instance())
+		if (event.property->owner() == static_reflection())
 		{
 			submit_local_light_info();
 			on_transform_changed();

@@ -28,7 +28,7 @@ namespace Engine
 			NoneApi::m_instance                       = new NoneApi();
 			NoneApi::m_instance->info.name            = "None";
 			NoneApi::m_instance->info.renderer        = "None";
-			NoneApi::m_instance->info.struct_instance = static_struct_instance();
+			NoneApi::m_instance->info.struct_instance = static_reflection();
 		}
 		return NoneApi::m_instance;
 	}

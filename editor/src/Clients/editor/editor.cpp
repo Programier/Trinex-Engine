@@ -43,7 +43,7 @@ namespace Engine
 
 	trinex_implement_engine_class(EditorClient, 0)
 	{
-		register_client(Actor::static_class_instance(), static_class_instance());
+		register_client(Actor::static_reflection(), static_reflection());
 	}
 
 	EditorClient::EditorClient()

@@ -416,7 +416,7 @@ namespace Engine
 	static bool is_child_of_object(const ScriptTypeInfo& info)
 	{
 		auto p_info      = info.info();
-		auto object_info = Engine::Object::static_class_instance()->script_type_info.info();
+		auto object_info = Engine::Object::static_reflection()->script_type_info.info();
 
 		while (p_info && p_info != object_info)
 		{

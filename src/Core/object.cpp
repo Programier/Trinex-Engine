@@ -57,7 +57,7 @@ namespace Engine
 
 	trinex_implement_engine_class(Object, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_class_instance());
+		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 		r.method("const string& string_name() const final", &Object::string_name);
 		r.static_function("Package@ root_package()", &Object::root_package);
 		r.method("const Name& name() const final", method_of<const Name&>(&Object::name));

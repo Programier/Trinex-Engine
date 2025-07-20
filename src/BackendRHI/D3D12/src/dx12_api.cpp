@@ -41,7 +41,7 @@ namespace Engine
 	{
 		s_d3d12              = this;
 		info.name            = "D3D12";
-		info.struct_instance = static_struct_instance();
+		info.struct_instance = static_reflection();
 
 		if (D3D12Config::enable_debug)
 		{

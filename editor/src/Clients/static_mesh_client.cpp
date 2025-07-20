@@ -24,7 +24,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(StaticMeshClient, 0)
 	{
-		register_client(StaticMesh::static_class_instance(), static_class_instance());
+		register_client(StaticMesh::static_reflection(), static_reflection());
 	}
 
 	class StaticMeshClient::Viewport : public ImGuiStaticMeshPreview
@@ -95,7 +95,7 @@ namespace Engine
 				m_world->destroy_actor(m_actor);
 			}
 
-			m_actor = instance_cast<StaticMeshActor>(m_world->spawn_actor(StaticMeshActor::static_class_instance()));
+			m_actor = instance_cast<StaticMeshActor>(m_world->spawn_actor(StaticMeshActor::static_reflection()));
 			m_actor->mesh_component()->mesh(mesh);
 		}
 

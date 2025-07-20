@@ -8,7 +8,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(PointLightComponent, 0)
 	{
-		auto* self = static_class_instance();
+		auto* self = static_reflection();
 
 		trinex_refl_prop(self, This, m_fall_off_exponent)
 		        ->display_name("Fall Off Exponent")
@@ -51,7 +51,7 @@ namespace Engine
 	{
 		Super::on_property_changed(event);
 
-		if (event.property->owner() == static_class_instance())
+		if (event.property->owner() == static_reflection())
 		{
 			submit_point_light_data();
 		}

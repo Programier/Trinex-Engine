@@ -73,12 +73,12 @@ namespace Engine
 
 	trinex_implement_engine_class(Texture2DEditorClient, 0)
 	{
-		register_client(Texture::static_class_instance(), static_class_instance());
+		register_client(Texture::static_reflection(), static_reflection());
 	}
 
 	trinex_implement_engine_class(RenderSurfaceEditorClient, 0)
 	{
-		register_client(RenderSurface::static_class_instance(), static_class_instance());
+		register_client(RenderSurface::static_reflection(), static_reflection());
 	}
 
 	TextureEditorClient::TextureEditorClient()

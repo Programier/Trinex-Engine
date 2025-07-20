@@ -18,7 +18,7 @@ namespace Engine
 
 	trinex_implement_engine_class(LightComponent, 0)
 	{
-		Refl::Class* self = static_class_instance();
+		Refl::Class* self = static_reflection();
 
 		trinex_refl_prop(self, This, m_light_color)->tooltip("Color of this light");
 		trinex_refl_prop(self, This, m_is_enabled)//
@@ -154,7 +154,7 @@ namespace Engine
 	{
 		Super::on_property_changed(event);
 
-		if (event.property->owner() == static_class_instance())
+		if (event.property->owner() == static_reflection())
 		{
 			if (event.property->address(this) == &m_is_shadows_enabled)
 			{

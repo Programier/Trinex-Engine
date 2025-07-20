@@ -14,17 +14,17 @@ namespace Engine::VisualMaterialGraph
 
 	trinex_implement_class(Engine::VisualMaterialGraph::Texture2D, 0)
 	{
-		static_node_group(static_class_instance(), "Textures");
+		static_node_group(static_reflection(), "Textures");
 
-		auto self = static_class_instance();
+		auto self = static_reflection();
 		trinex_refl_prop(self, This, name);
 		trinex_refl_prop(self, This, texture);
 	}
 
 	trinex_implement_class(Engine::VisualMaterialGraph::Sampler, 0)
 	{
-		static_node_group(static_class_instance(), "Textures");
-		auto self = static_class_instance();
+		static_node_group(static_reflection(), "Textures");
+		auto self = static_reflection();
 
 		trinex_refl_prop(self, This, name);
 		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
@@ -32,9 +32,9 @@ namespace Engine::VisualMaterialGraph
 
 	trinex_implement_class(Engine::VisualMaterialGraph::SampleTexture, 0)
 	{
-		static_node_group(static_class_instance(), "Textures");
+		static_node_group(static_reflection(), "Textures");
 
-		auto self = static_class_instance();
+		auto self = static_reflection();
 		trinex_refl_prop(self, This, texture);
 		trinex_refl_prop(self, This, sampler, Refl::Property::Inline);
 	}
@@ -64,7 +64,7 @@ namespace Engine::VisualMaterialGraph
 
 	Texture2D* Texture2D::static_find_node(Engine::Texture2D* texture, Compiler& compiler, uint16_t id)
 	{
-		Node* redirected_node = compiler.find_redirection(static_class_instance(), reinterpret_cast<Identifier>(texture));
+		Node* redirected_node = compiler.find_redirection(static_reflection(), reinterpret_cast<Identifier>(texture));
 
 		if (auto redirected_texture = instance_cast<This>(redirected_node))
 		{
@@ -80,7 +80,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (name.empty())
 		{
-			Node* redirected_node = compiler.find_redirection(static_class_instance(), reinterpret_cast<Identifier>(texture));
+			Node* redirected_node = compiler.find_redirection(static_reflection(), reinterpret_cast<Identifier>(texture));
 
 			if (auto redirected_texture = instance_cast<This>(redirected_node))
 			{
@@ -117,7 +117,7 @@ namespace Engine::VisualMaterialGraph
 
 		if (name_override.empty())
 		{
-			String var_name = Compiler::static_uniform_parameter_name(static_class_instance(), id);
+			String var_name = Compiler::static_uniform_parameter_name(static_reflection(), id);
 			parameter       = material->find_parameter(var_name);
 		}
 		else
@@ -133,13 +133,13 @@ namespace Engine::VisualMaterialGraph
 
 	Sampler::Sampler() : sampler(RHISamplerFilter::Bilinear)
 	{
-		if (class_instance() == static_class_instance())
+		if (class_instance() == static_reflection())
 			new_output("Out", RHIShaderParameterType::Sampler);
 	}
 
 	Sampler* Sampler::static_find_node(const Engine::Sampler& sampler, Compiler& compiler, uint16_t id)
 	{
-		Node* redirected_node = compiler.find_redirection(static_class_instance(), sampler.initializer().hash());
+		Node* redirected_node = compiler.find_redirection(static_reflection(), sampler.initializer().hash());
 
 		if (auto redirected_sampler = instance_cast<Sampler>(redirected_node))
 		{
@@ -155,7 +155,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (name.empty())
 		{
-			Node* redirected_node = compiler.find_redirection(static_class_instance(), sampler.initializer().hash());
+			Node* redirected_node = compiler.find_redirection(static_reflection(), sampler.initializer().hash());
 
 			if (auto redirected_sampler = instance_cast<Sampler>(redirected_node))
 			{
@@ -182,7 +182,7 @@ namespace Engine::VisualMaterialGraph
 
 		if (name_override.empty())
 		{
-			String var_name = Compiler::static_uniform_parameter_name(static_class_instance(), id);
+			String var_name = Compiler::static_uniform_parameter_name(static_reflection(), id);
 			parameter       = material->find_parameter(var_name);
 		}
 		else

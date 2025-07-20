@@ -32,7 +32,7 @@ namespace Engine
 			{
 				if constexpr (singletone_based_on_object)
 				{
-					register_singletone(Type::static_class_instance(), new Type(std::forward<Args>(args)...));
+					register_singletone(Type::static_reflection(), new Type(std::forward<Args>(args)...));
 				}
 				else
 				{
@@ -61,7 +61,7 @@ namespace Engine
 			{
 				if constexpr (singletone_based_on_object)
 				{
-					register_singletone(Type::static_class_instance(), new (place) Type(std::forward<Args>(args)...));
+					register_singletone(Type::static_reflection(), new (place) Type(std::forward<Args>(args)...));
 				}
 				else
 				{
@@ -76,7 +76,7 @@ namespace Engine
 		{
 			if constexpr (singletone_based_on_object)
 			{
-				Object* object = extract_object_from_class(Type::static_class_instance());
+				Object* object = extract_object_from_class(Type::static_reflection());
 
 				if (object)
 				{
@@ -99,7 +99,7 @@ namespace Engine
 			}
 			else
 			{
-				unlink_instance(Type::static_class_instance());
+				unlink_instance(Type::static_reflection());
 			}
 		}
 	};

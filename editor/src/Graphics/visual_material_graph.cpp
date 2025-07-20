@@ -19,7 +19,7 @@ namespace Engine::VisualMaterialGraph
 
 	trinex_implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::reference_class(static_class_instance());
+		auto r = ScriptClassRegistrar::reference_class(static_reflection());
 
 		s_node_compile_output =
 		        r.method("Expression compile(OutputPin@ pin, Compiler@ compiler)", trinex_scoped_void_method(This, compile));

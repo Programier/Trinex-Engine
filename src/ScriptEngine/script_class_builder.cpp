@@ -46,7 +46,7 @@ namespace Engine::Refl
 			ti = ti->GetSubType(0);
 
 			asITypeInfo* current = ti;
-			auto target          = Engine::Object::static_class_instance()->script_type_info.info();
+			auto target          = Engine::Object::static_reflection()->script_type_info.info();
 
 			while (current && current != target) current = current->GetBaseType();
 

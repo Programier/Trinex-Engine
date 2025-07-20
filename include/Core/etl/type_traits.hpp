@@ -119,12 +119,12 @@ namespace Engine
 
 		template<typename T>
 		concept is_reflected_struct = requires(T* obj) {
-			{ obj->static_struct_instance() } -> std::same_as<Engine::Refl::Struct*>;
+			{ obj->static_reflection() } -> std::same_as<Engine::Refl::Struct*>;
 		};
 
 		template<typename T>
 		concept is_reflected_class = requires(T* obj) {
-			{ obj->static_class_instance() } -> std::same_as<Engine::Refl::Class*>;
+			{ obj->static_reflection() } -> std::same_as<Engine::Refl::Class*>;
 		};
 	}// namespace Concepts
 }// namespace Engine

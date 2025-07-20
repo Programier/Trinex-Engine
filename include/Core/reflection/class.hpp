@@ -52,7 +52,7 @@ namespace Engine
 			bool is_a() const
 			    requires(std::is_base_of_v<Engine::Object, Type>)
 			{
-				return is_a(Type::static_class_instance());
+				return is_a(Type::static_reflection());
 			}
 
 			friend class Engine::ScriptClassRegistrar;
@@ -119,7 +119,7 @@ namespace Engine
 
 				if constexpr (!std::is_same_v<T, Engine::Object>)
 				{
-					parent = T::Super::static_class_instance();
+					parent = T::Super::static_reflection();
 				}
 
 				if (NativeClass* self = Object::new_instance<NativeClass<T>>(decl, parent, flags | native_type_flags<T>()))

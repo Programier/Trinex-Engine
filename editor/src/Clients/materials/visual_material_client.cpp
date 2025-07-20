@@ -22,7 +22,7 @@ namespace Engine
 {
 	trinex_implement_class(Engine::VisualMaterialEditorClient, 0)
 	{
-		register_client(VisualMaterial::static_class_instance(), static_class_instance());
+		register_client(VisualMaterial::static_reflection(), static_reflection());
 	}
 
 	class ImGuiNodeProperties : public PropertyRenderer
