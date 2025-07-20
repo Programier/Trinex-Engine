@@ -26,7 +26,7 @@ namespace Engine
 	{
 		if (m_property_renderer == nullptr)
 		{
-			m_property_renderer = imgui_window()->widgets_list.create<PropertyRenderer>();
+			m_property_renderer = window()->widgets.create<PropertyRenderer>();
 			m_property_renderer->on_close.push([this]() { m_property_renderer = nullptr; });
 
 			if (m_object)

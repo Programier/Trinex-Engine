@@ -170,4 +170,10 @@ namespace Engine
 		virtual const char* name() const;
 		static const char* static_name();
 	};
+	
+	class ImGuiStyleEditor : public ImGuiWidget
+	{
+	public:
+		bool render(RenderViewport* viewport) override;
+	};
 }// namespace Engine

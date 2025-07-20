@@ -147,8 +147,8 @@ namespace Engine
 	{
 		Super::on_bind_viewport(vp);
 		auto current = ImGuiWindow::current();
-		ImGuiWindow::make_current(imgui_window());
-		m_properties           = imgui_window()->widgets_list.create<PropertyRenderer>();
+		ImGuiWindow::make_current(window());
+		m_properties           = window()->widgets.create<PropertyRenderer>();
 		m_properties->closable = false;
 
 		ImGuiWindow::make_current(current);

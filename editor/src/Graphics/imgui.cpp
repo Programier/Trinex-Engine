@@ -1404,7 +1404,7 @@ namespace Engine
 	{
 		make_current(this);
 
-		widgets_list.render(m_window->render_viewport());
+		widgets.render(m_window->render_viewport());
 		ImGui::Render();
 
 		m_draw_data.copy(ImGui::GetDrawData());
@@ -1415,15 +1415,22 @@ namespace Engine
 			ImGui::UpdatePlatformWindows();
 		}
 
+		render_thread()->call([this]() {
+			auto viewport = window()->render_viewport();
+			rhi->viewport(RHIViewport(viewport->size()));
+			rhi->scissor(RHIScissors(viewport->size()));
+
+			auto rtv = viewport->rhi_rtv();
+			rtv->clear(LinearColor(0.f, 0.f, 0.f, 1.f));
+			rhi->bind_render_target1(rtv);
+			ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(m_context, draw_data());
+			viewport->rhi_present();
+
+			m_draw_data.swap_render_index();
+		});
+		
 		make_current(nullptr);
 
-		return *this;
-	}
-
-	ImGuiWindow& ImGuiWindow::rhi_render()
-	{
-		ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(m_context, draw_data());
-		m_draw_data.swap_render_index();
 		return *this;
 	}
 

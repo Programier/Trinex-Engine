@@ -57,7 +57,7 @@ namespace Engine
 		m_camera->rotation({-30, 0, 0});
 		m_view.camera_view(m_camera->camera_view());
 
-		m_browser           = imgui_window()->widgets_list.create<ContentBrowser>();
+		m_browser           = window()->widgets.create<ContentBrowser>();
 		m_browser->closable = false;
 		return *this;
 	}

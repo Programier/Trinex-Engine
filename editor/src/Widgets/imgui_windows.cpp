@@ -258,7 +258,7 @@ namespace Engine
 			{
 				if (m_object->rename(new_object_name))
 				{
-					ImGuiWindow::current()->widgets_list.create<ImGuiNotificationMessage>("Failed to rename object",
+					ImGuiWindow::current()->widgets.create<ImGuiNotificationMessage>("Failed to rename object",
 					                                                                      ImGuiNotificationMessage::Error);
 				}
 
@@ -586,5 +586,14 @@ namespace Engine
 	const char* ImGuiLevelExplorer::static_name()
 	{
 		return "editor/Level Explorer"_localized;
+	}
+
+	bool ImGuiStyleEditor::render(RenderViewport* viewport)
+	{
+		bool is_open = true;
+		ImGui::Begin("Style Editor", &is_open);
+		ImGui::ShowStyleEditor();
+		ImGui::End();
+		return is_open;
 	}
 }// namespace Engine

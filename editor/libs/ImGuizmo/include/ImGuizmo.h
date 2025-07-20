@@ -107,7 +107,7 @@ namespace IMGUIZMO_NAMESPACE
    // Needs view and projection matrices. 
    // matrix parameter is the source matrix (where will be gizmo be drawn) and might be transformed by the function. Return deltaMatrix is optional
    // translation is applied in world space
-   enum OPERATION
+   enum OPERATION : unsigned int
    {
       TRANSLATE_X      = (1u << 0),
       TRANSLATE_Y      = (1u << 1),
@@ -136,7 +136,7 @@ namespace IMGUIZMO_NAMESPACE
      return static_cast<OPERATION>(static_cast<int>(lhs) | static_cast<int>(rhs));
    }
 
-   enum MODE
+   enum MODE : unsigned int
    {
       LOCAL,
       WORLD

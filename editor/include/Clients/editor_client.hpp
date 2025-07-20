@@ -12,6 +12,12 @@
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/property_renderer.hpp>
 
+namespace ImGuizmo
+{
+	enum OPERATION : unsigned int;
+	enum MODE : unsigned int;
+}// namespace ImGuizmo
+
 namespace Engine
 {
 	struct EditorState {
@@ -20,7 +26,6 @@ namespace Engine
 			Vector2f size                            = {0.f, 0.f};
 			bool show_additional_menu                = false;
 			bool is_hovered                          = false;
-			bool is_using_guizmo                     = false;
 		} viewport;
 
 		EditorState();
@@ -103,12 +108,15 @@ namespace Engine
 		ImGuiLevelExplorer* m_level_explorer    = nullptr;
 
 		Pointer<CameraComponent> camera;
-		float m_camera_speed     = 10.f;
-		Vector3f m_camera_move   = {0, 0, 0};
-		int_t m_guizmo_operation = 0;
-		EditorState m_state;
-		Average<float, 10> m_average_fps = Average<float, 10>(60.f, 1);
+		float m_camera_speed   = 10.f;
+		Vector3f m_camera_move = {0, 0, 0};
 
+		EditorState m_state;
+		Average<float, 10> m_dt;
+		ImGuizmo::OPERATION m_guizmo_operation;
+		ImGuizmo::MODE m_guizmo_mode;
+
+	private:
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);
 		RenderSurface* capture_scene();
@@ -127,15 +135,15 @@ namespace Engine
 		EditorClient& update(float dt) override;
 
 		uint32_t build_dock(uint32_t dock_id) override;
-		EditorClient& render_viewport_window(float dt);
-		EditorClient& render_guizmo(float dt);
+		EditorClient& render_viewport_window();
+		EditorClient& render_guizmo();
 		EditorClient& render_viewport_menu();
-		EditorClient& render_statistics(float dt);
+		EditorClient& render_statistics();
 
 		EditorClient& on_object_dropped(Object* object);
 		EditorClient& update_drag_and_drop();
 
-		EditorClient& update_camera(float dt);
+		EditorClient& update_camera();
 		EditorClient& select_actors(const Vector2f& uv);
 
 		// Inputs

@@ -51,13 +51,13 @@ namespace Engine
 
 		if (ImGui::Button("editor/Create Package"_localized))
 		{
-			ImGuiWindow::current()->widgets_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+			ImGuiWindow::current()->widgets.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
 			return false;
 		}
 
 		if (is_editable && ImGui::Button("editor/Rename"_localized))
 		{
-			ImGuiWindow::current()->widgets_list.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
+			ImGuiWindow::current()->widgets.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
 			return false;
 		}
 
@@ -78,13 +78,13 @@ namespace Engine
 
 			if (ImGui::Button("editor/Create Package"_localized))
 			{
-				ImGuiWindow::current()->widgets_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+				ImGuiWindow::current()->widgets.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
 				ImGui::CloseCurrentPopup();
 			}
 
 			if (is_editable && ImGui::Button("editor/Rename"_localized))
 			{
-				ImGuiWindow::current()->widgets_list.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
+				ImGuiWindow::current()->widgets.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -102,7 +102,9 @@ namespace Engine
 	{
 		if (node == m_selected_package)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
+			auto active_color = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
+			ImGui::PushStyleColor(ImGuiCol_Header, active_color);
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::MakeHoveredColor(active_color));
 		}
 
 		bool opened          = false;
@@ -112,7 +114,7 @@ namespace Engine
 
 		if (node == m_selected_package)
 		{
-			ImGui::PopStyleColor();
+			ImGui::PopStyleColor(2);
 		}
 
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
@@ -155,7 +157,7 @@ namespace Engine
 		if (ImGui::ImageButton(icon, {icon_size, icon_size}))
 		{
 			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
-			auto window                      = ImGuiWindow::current()->widgets_list.create_identified<ImGuiOpenFile>(this, flags);
+			auto window                      = ImGuiWindow::current()->widgets.create_identified<ImGuiOpenFile>(this, flags);
 			window->on_select.push([](const Path& path) {
 				Path relative = path.relative(rootfs()->native_path(Project::assets_dir));
 				Object::load_object_from_file(relative);
@@ -225,16 +227,24 @@ namespace Engine
 			ImGui::EndDragDropSource();
 		}
 
-		ImU32 color = 4283187259;// ImGui::GetColorU32({.230, .250, .298, 1.0});
+		ImU32 color;
 
 		if (object == selected_object)
 		{
-			color = is_hovered ? 4293495410 //ImGui::GetColorU32(ImVec4(0.4471, 0.5412, 0.9137, 1.0))
-			                   : 4293356879;//ImGui::GetColorU32(ImVec4(0.3098, 0.4275, 0.9059, 1.0));
+			auto active = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
+
+			if (is_hovered)
+				active = ImGui::MakeHoveredColor(active);
+
+			color = ImGui::GetColorU32(active);
 		}
 		else if (is_hovered)
 		{
-			color = 4284042567;// ImGui::GetColorU32(ImVec4(0.280f, 0.300f, 0.348f, 1.0f));
+			color = ImGui::GetColorU32(ImGuiCol_FrameBgHovered);
+		}
+		else
+		{
+			color = ImGui::GetColorU32(ImGuiCol_FrameBg);
 		}
 
 		ImGui::SetCursorScreenPos(start_pos);
@@ -391,7 +401,7 @@ namespace Engine
 
 			if (ImGui::Button("editor/Create new asset"_localized))
 			{
-				ImGuiWindow::current()->widgets_list.create<ImGuiCreateNewAsset>(pkg, filters);
+				ImGuiWindow::current()->widgets.create<ImGuiCreateNewAsset>(pkg, filters);
 				ImGui::CloseCurrentPopup();
 			}
 

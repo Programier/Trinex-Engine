@@ -204,33 +204,7 @@ namespace Engine
 
 		ImGui::End();
 		m_window->end_frame();
-
-		render_thread()->call([this, viewport]() {
-			rhi->viewport(RHIViewport(viewport->size()));
-			rhi->scissor(RHIScissors(viewport->size()));
-
-			auto rtv = viewport->rhi_rtv();
-			rtv->clear(LinearColor(0.f, 0.f, 0.f, 1.f));
-			rhi->bind_render_target1(rtv);
-			m_window->rhi_render();
-			viewport->rhi_present();
-		});
 		return *this;
-	}
-
-	ImGuiWindow* ImGuiViewportClient::imgui_window() const
-	{
-		return m_window.ptr();
-	}
-
-	Window* ImGuiViewportClient::window() const
-	{
-		return m_window ? m_window->window() : nullptr;
-	}
-
-	WindowRenderViewport* ImGuiViewportClient::viewport() const
-	{
-		return m_viewport;
 	}
 
 	ImGuiViewportClient& ImGuiViewportClient::update(float dt)

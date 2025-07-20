@@ -114,14 +114,14 @@ namespace Engine
 
 	MaterialEditorClient& MaterialEditorClient::create_content_browser()
 	{
-		m_content_browser = imgui_window()->widgets_list.create<ContentBrowser>();
+		m_content_browser = window()->widgets.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
 	MaterialEditorClient& MaterialEditorClient::create_preview_window()
 	{
-		m_preview_window = imgui_window()->widgets_list.create<ImGuiMaterialPreview>();
+		m_preview_window = window()->widgets.create<ImGuiMaterialPreview>();
 		m_preview_window->on_close.push([this]() { m_preview_window = nullptr; });
 
 		if (m_material)
@@ -131,7 +131,7 @@ namespace Engine
 
 	MaterialEditorClient& MaterialEditorClient::create_properties_window()
 	{
-		m_properties_window = imgui_window()->widgets_list.create<PropertyRenderer>();
+		m_properties_window = window()->widgets.create<PropertyRenderer>();
 		m_properties_window->on_close.push([this]() { m_properties_window = nullptr; });
 
 		if (m_material)
@@ -143,12 +143,12 @@ namespace Engine
 	{
 		Super::on_bind_viewport(viewport);
 
-		auto wd = window();
+		auto wd = window()->window();
 		wd->title(Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str()));
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
 
-		ImGuiWindow::make_current(imgui_window());
+		ImGuiWindow::make_current(window());
 		create_content_browser().create_preview_window().create_properties_window();
 		ImGuiWindow::make_current(prev_window);
 		return *this;

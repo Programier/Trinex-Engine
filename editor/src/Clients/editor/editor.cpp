@@ -48,6 +48,9 @@ namespace Engine
 
 	EditorClient::EditorClient()
 	{
+		m_guizmo_operation = ImGuizmo::OPERATION::UNIVERSAL;
+		m_guizmo_mode      = ImGuizmo::MODE::WORLD;
+
 		menu_bar.create("editor/View")->actions.push([this]() {
 			draw_available_clients_for_opening();
 
@@ -66,10 +69,15 @@ namespace Engine
 			}
 		});
 
-		menu_bar.create("editor/Edit")->actions.push([]() {
+		menu_bar.create("editor/Edit")->actions.push([this]() {
 			if (ImGui::MenuItem("editor/Reload localization"_localized))
 			{
 				Localization::instance()->reload();
+			}
+
+			if (ImGui::MenuItem("editor/Open Style Editor"_localized))
+			{
+				window()->widgets.create_identified<ImGuiStyleEditor>("Editor Style Editor");
 			}
 
 			if (ImGui::BeginMenu("editor/Change language"_localized))
@@ -96,7 +104,7 @@ namespace Engine
 			                    "editor/Import resource from file to selected package"_localized, false, enable_import))
 			{
 				Package* package = m_content_browser->selected_package();
-				imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
+				window()->widgets.create<ImGuiOpenFile>()->on_select.push(
 				        [package](const Path& path) { Importer::import_resource(package, path); });
 			}
 
@@ -104,13 +112,13 @@ namespace Engine
 			                    enable_import))
 			{
 				Package* package = m_content_browser->selected_package();
-				imgui_window()->widgets_list.create<ImGuiOpenFile>()->on_select.push(
+				window()->widgets.create<ImGuiOpenFile>()->on_select.push(
 				        [package, world = m_world](const Path& path) { Importer::import_scene(world, package, path); });
 			}
 		});
 
 		menu_bar.create("")->actions.push([this]() {
-			ImGui::Text("FPS: %.2f\n", m_average_fps.average());
+			ImGui::Text("FPS: %.2f\n", 1.f / m_dt.average());
 			ImGui::Spacing();
 			ImGui::Text("RHI: %s\n", rhi->info.name.c_str());
 			ImGui::Spacing();
@@ -120,21 +128,21 @@ namespace Engine
 
 	EditorClient& EditorClient::create_content_browser()
 	{
-		m_content_browser = imgui_window()->widgets_list.create<ContentBrowser>();
+		m_content_browser = window()->widgets.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
 	EditorClient& EditorClient::create_properties_window()
 	{
-		m_properties = imgui_window()->widgets_list.create<PropertyRenderer>();
+		m_properties = window()->widgets.create<PropertyRenderer>();
 		m_properties->on_close.push([this]() { m_properties = nullptr; });
 		return *this;
 	}
 
 	EditorClient& EditorClient::create_level_explorer()
 	{
-		m_level_explorer = imgui_window()->widgets_list.create<ImGuiLevelExplorer>(m_world);
+		m_level_explorer = window()->widgets.create<ImGuiLevelExplorer>(m_world);
 		m_level_explorer->on_close.push([this]() { m_level_explorer = nullptr; });
 		return *this;
 	}
@@ -143,7 +151,7 @@ namespace Engine
 	{
 		Super::on_bind_viewport(viewport);
 
-		auto wd          = window();
+		auto wd          = window()->window();
 		String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
 		wd->title(new_title);
 
@@ -159,7 +167,7 @@ namespace Engine
 		m_world->start_play();
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
-		ImGuiWindow::make_current(imgui_window());
+		ImGuiWindow::make_current(window());
 
 		create_content_browser();
 		create_properties_window();
@@ -260,7 +268,7 @@ namespace Engine
 			EditorRenderer::render_primitives(renderer, m_selected_actors_render_thread.data(), selected_count);
 
 			renderer->render();
-			
+
 			RHITextureRegion region(m_scene_view.view_size());
 			rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, scene->rhi_texture(), region);
 		});
@@ -419,13 +427,13 @@ namespace Engine
 		return *this;
 	}
 
-	EditorClient& EditorClient::render_statistics(float dt)
+	EditorClient& EditorClient::render_statistics()
 	{
 		ImGui::BeginVertical(1, ImGui::GetContentRegionAvail() - ImVec2(100, 0.f), 0.f);
 		{
 			static const ImVec4 color = {0.f, 1.f, 0.f, 1.f};
-			ImGui::TextColored(color, "Delta Time: %f", dt);
-			ImGui::TextColored(color, "FPS: %f", m_average_fps.average());
+			ImGui::TextColored(color, "Delta Time: %f", m_dt.average());
+			ImGui::TextColored(color, "FPS: %f", 1.f / m_dt.average());
 
 			ImGui::TextColored(color, "Vertices: %zu", m_stats.pipeline.vertices);
 			ImGui::TextColored(color, "Primitives: %zu", m_stats.pipeline.primitives);
@@ -461,9 +469,9 @@ namespace Engine
 
 	EditorClient& EditorClient::update(float dt)
 	{
-		m_average_fps.push(1.0 / dt);
-		update_camera(dt);
-		render_viewport_window(dt);
+		m_dt.push(dt);
+		update_camera();
+		render_viewport_window();
 
 		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
 		{
@@ -477,13 +485,12 @@ namespace Engine
 		return *this;
 	}
 
-	EditorClient& EditorClient::render_guizmo(float dt)
+	EditorClient& EditorClient::render_guizmo()
 	{
 		const auto& selected = m_world->selected_actors();
 
 		if (selected.empty())
 		{
-			m_state.viewport.is_using_guizmo = false;
 			return *this;
 		}
 
@@ -505,13 +512,9 @@ namespace Engine
 
 			const auto& transform = component->world_transform();
 			{
-				if (m_guizmo_operation == 0)
-				{
-					m_guizmo_operation = ImGuizmo::OPERATION::UNIVERSAL;
-				}
 				Matrix4f model = transform.matrix();
 				if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
-				                         static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
+				                         static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), m_guizmo_mode,
 				                         glm::value_ptr(model), nullptr, nullptr))
 				{
 
@@ -521,9 +524,6 @@ namespace Engine
 				}
 			}
 		}
-
-		m_state.viewport.is_using_guizmo =
-		        ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
 		return *this;
 	}
 
@@ -537,10 +537,30 @@ namespace Engine
 		}
 	}
 
+	static bool render_viewport_item_button(const char* id, Texture2D* texture, bool active = false)
+	{
+		if (active)
+		{
+			auto active_color = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+			ImGui::PushStyleColor(ImGuiCol_Button, active_color);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::MakeHoveredColor(active_color));
+		}
+
+		const float height = ImGui::GetFontSize();
+
+		bool result = ImGui::ImageButton(id, texture, {height, height}, {0, 0}, {1, 1});
+
+		if (active)
+			ImGui::PopStyleColor(2);
+
+		return result;
+	}
+
 	EditorClient& EditorClient::render_viewport_menu()
 	{
-		const float height           = ImGui::GetFontSize();
-		ImVec2 screen_pos            = ImGui::GetCursorScreenPos();
+		const float height = ImGui::GetFontSize();
+		ImVec2 screen_pos  = ImGui::GetCursorScreenPos();
+
 		static auto render_separator = []() {
 			ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));
 			ImGui::PushStyleColor(ImGuiCol_Separator, color);
@@ -563,31 +583,41 @@ namespace Engine
 			ImGui::SameLine();
 		}
 
-		static const Pair<ImGuizmo::OPERATION, Icons::IconType> controls[] = {
-		        {ImGuizmo::OPERATION::UNIVERSAL, Icons::IconType::Select},
-		        {ImGuizmo::OPERATION::TRANSLATE, Icons::IconType::Move},
-		        {ImGuizmo::OPERATION::ROTATE, Icons::IconType::Rotate},
-		        {ImGuizmo::OPERATION::SCALE, Icons::IconType::Scale},
+		struct {
+			ImGuizmo::OPERATION op;
+			Texture2D* texture;
+			const char* name;
+		} operation_controls[] = {
+		        {ImGuizmo::OPERATION::UNIVERSAL, EditorResources::add_icon, "##op_universal"},
+		        {ImGuizmo::OPERATION::TRANSLATE, EditorResources::move_icon, "##op_translate"},
+		        {ImGuizmo::OPERATION::ROTATE, EditorResources::rotate_icon, "##op_rotate"},
+		        {ImGuizmo::OPERATION::SCALE, EditorResources::scale_icon, "##op_scale"},
 		};
 
-		for (auto& control : controls)
+		for (auto& control : operation_controls)
 		{
-			if (ImTextureID imgui_texture = Icons::icon(control.second))
+			const bool is_active = m_guizmo_operation == control.op;
+
+			if (render_viewport_item_button(control.name, control.texture, is_active))
 			{
-				ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
-
-				if (ImGui::ImageButton(imgui_texture, {height, height}, {0, 0}, {1, 1}, color))
-				{
-					m_guizmo_operation = control.first;
-				}
-
-				if (ImGui::IsItemHovered())
-				{
-					m_state.viewport.is_hovered = false;
-				}
-
-				ImGui::SameLine();
+				m_guizmo_operation = control.op;
 			}
+
+			if (ImGui::IsItemHovered())
+			{
+				m_state.viewport.is_hovered = false;
+			}
+
+			ImGui::SameLine();
+		}
+
+		{
+			if (render_viewport_item_button("###globe_mode", EditorResources::globe_texture, ImGuizmo::WORLD == m_guizmo_mode))
+			{
+				m_guizmo_mode = m_guizmo_mode == ImGuizmo::LOCAL ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
+			}
+
+			ImGui::SameLine();
 		}
 
 		auto add_icon = Icons::icon(Icons::IconType::Add);
@@ -597,7 +627,7 @@ namespace Engine
 			render_separator();
 			if (ImGui::ImageButton(add_icon, {height, height}))
 			{
-				imgui_window()->widgets_list.create_identified<ImGuiSpawnNewActor>(this, m_world);
+				window()->widgets.create_identified<ImGuiSpawnNewActor>(this, m_world);
 			}
 		}
 
@@ -683,7 +713,7 @@ namespace Engine
 		return dock_id;
 	}
 
-	EditorClient& EditorClient::render_viewport_window(float dt)
+	EditorClient& EditorClient::render_viewport_window()
 	{
 		if (!ImGui::Begin(Object::localize("editor/Viewport").c_str(), nullptr))
 		{
@@ -694,7 +724,8 @@ namespace Engine
 		auto cursor_position = ImGui::GetCursorPos();
 		auto viewport_size   = ImGui::GetContentRegionAvail();
 
-		if (!m_state.viewport.is_using_guizmo && ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (!ImGuizmo::IsOver(m_guizmo_operation | ImGuizmo::SCALE) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() &&
+		    ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
 			Vector2f uv             = ImGui::EngineVecFrom(relative_mouse_pos / viewport_size);
@@ -714,7 +745,7 @@ namespace Engine
 			}
 
 			ImGui::SetCursorPos(cursor_position);
-			render_guizmo(dt);
+			render_guizmo();
 
 			update_drag_and_drop();
 
@@ -727,7 +758,7 @@ namespace Engine
 			{
 				float padding = ImGui::GetTextLineHeightWithSpacing();
 				ImGui::SetCursorPos(cursor_position + ImVec2(padding, padding + ImGui::GetItemRectSize().y));
-				render_statistics(dt);
+				render_statistics();
 			}
 		}
 
@@ -749,12 +780,12 @@ namespace Engine
 		move.x += keyboard->is_pressed(Keyboard::D) ? 1.f : 0.f;
 	}
 
-	EditorClient& EditorClient::update_camera(float dt)
+	EditorClient& EditorClient::update_camera()
 	{
-		move_camera(m_camera_move, window());
+		move_camera(m_camera_move, window()->window());
 
-		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) * dt *
-		                     m_camera_speed);
+		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) *
+		                     m_dt.average() * m_camera_speed);
 
 		struct UpdateView : Task<UpdateView> {
 			CameraView view;
@@ -803,7 +834,7 @@ namespace Engine
 
 		if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
 		{
-			MouseSystem::instance()->relative_mode(true, window());
+			MouseSystem::instance()->relative_mode(true, window()->window());
 		}
 	}
 
@@ -813,7 +844,7 @@ namespace Engine
 
 		if (button.button == Mouse::Button::Right)
 		{
-			MouseSystem::instance()->relative_mode(false, window());
+			MouseSystem::instance()->relative_mode(false, window()->window());
 			m_camera_move = {0, 0, 0};
 		}
 	}
@@ -822,7 +853,7 @@ namespace Engine
 	{
 		const auto& motion = event.mouse.motion;
 
-		if (MouseSystem::instance()->is_relative_mode(window()))
+		if (MouseSystem::instance()->is_relative_mode(window()->window()))
 		{
 			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
 			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),

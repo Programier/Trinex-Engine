@@ -132,7 +132,7 @@ namespace Engine
 		ImGuiWindow& free_resources();
 
 	public:
-		ImGuiWidgetsList widgets_list;
+		ImGuiWidgetsList widgets;
 		CallBacks<void()> on_destroy;
 
 		bool initialize(Window* window, const Function<void(ImGuiContext*)>& callback);
@@ -142,7 +142,6 @@ namespace Engine
 		ImDrawData* draw_data();
 		ImGuiWindow& new_frame();
 		ImGuiWindow& end_frame();
-		ImGuiWindow& rhi_render();
 		Window* window() const;
 		size_t frame_index() const;
 		ImGuiWindow& reset_frame_index();
@@ -161,6 +160,16 @@ struct ImGuiWindow;
 
 namespace ImGui
 {
+	FORCE_INLINE ImVec4 MakeHoveredColor(ImVec4 color)
+	{
+		const float factor = 0.2f;
+
+		color.x = glm::mix(color.x, 1.f, factor);
+		color.y = glm::mix(color.y, 1.f, factor);
+		color.z = glm::mix(color.z, 1.f, factor);
+		return color;
+	}
+
 	void TextEllipsis(const char* text, float max_width);
 
 	bool InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags = 0,

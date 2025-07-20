@@ -50,9 +50,8 @@ namespace Engine
 		ImGuiViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ImGuiViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
 
-		ImGuiWindow* imgui_window() const;
-		Window* window() const;
-		WindowRenderViewport* viewport() const;
+		inline ImGuiWindow* window() const { return m_window.ptr(); }
+		inline WindowRenderViewport* viewport() const { return m_viewport; }
 
 		virtual ImGuiViewportClient& update(float dt);
 		virtual ImGuiViewportClient& select(Object* object);

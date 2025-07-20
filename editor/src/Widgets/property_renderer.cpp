@@ -719,7 +719,7 @@ namespace Engine
 					str = value->str();
 				};
 
-				imgui_window->widgets_list.create<ImGuiOpenFile>()->on_select.push(callback);
+				imgui_window->widgets.create<ImGuiOpenFile>()->on_select.push(callback);
 			}
 		}
 

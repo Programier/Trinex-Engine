@@ -193,7 +193,7 @@ namespace Engine
 	ScriptDebuggerClient& ScriptDebuggerClient::on_bind_viewport(class RenderViewport* viewport)
 	{
 		Super::on_bind_viewport(viewport);
-		window()->title("Script Debugger");
+		window()->window()->title("Script Debugger");
 		ScriptContext::line_callback([this](void*) { on_line_callback(); });
 		return *this;
 	}
@@ -219,7 +219,7 @@ namespace Engine
 		auto dock_id = ImGui::GetID("ScriptDebugger##Dock");
 		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
-		if (imgui_window()->frame_index() == 1)
+		if (window()->frame_index() == 1)
 		{
 			ImGui::DockBuilderRemoveNode(dock_id);
 			ImGui::DockBuilderAddNode(dock_id,
@@ -268,7 +268,7 @@ namespace Engine
 			{
 				if (ImGui::MenuItem("editor/Exec Function"_localized, "editor/Execute specific function from a module"_localized))
 				{
-					imgui_window()->widgets_list.create<DebugExecScriptFunction>();
+					window()->widgets.create<DebugExecScriptFunction>();
 				}
 				ImGui::EndMenu();
 			}
@@ -854,7 +854,8 @@ namespace Engine
 	{
 		ScriptDebuggerClient* self = reinterpret_cast<ScriptDebuggerClient*>(userdata);
 
-		if (event.type == EventType::Quit || (event.type == EventType::WindowClose && event.window_id == self->window()->id()))
+		if (event.type == EventType::Quit ||
+		    (event.type == EventType::WindowClose && event.window_id == self->window()->window()->id()))
 		{
 			self->m_is_in_debug_loop = false;
 		}
@@ -885,7 +886,7 @@ namespace Engine
 				default: break;
 			}
 		}
-		else if (event.type == EventType::WindowResized && self->window()->id() == event.window_id)
+		else if (event.type == EventType::WindowResized && self->window()->window()->id() == event.window_id)
 		{
 			const auto& window_event = event.window;
 			auto x                   = window_event.x;
