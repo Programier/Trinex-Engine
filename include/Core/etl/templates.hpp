@@ -82,118 +82,119 @@ namespace Engine
 	};
 
 
+	template<typename T>
+	struct Signature {
+		static constexpr inline bool is_function     = false;
+		static constexpr inline bool is_method       = false;
+		static constexpr inline bool is_const_method = false;
+	};
+
+	template<unsigned int index, typename... Args>
+	struct SignatureArgsTypeAt;
+
+	template<typename Head, typename... Tail>
+	struct SignatureArgsTypeAt<0, Head, Tail...> {
+		using type = Head;
+	};
+
+	template<unsigned int index, typename Head, typename... Tail>
+	struct SignatureArgsTypeAt<index, Head, Tail...> {
+		static_assert(index < sizeof...(Tail) + 1, "Index out of bounds");
+		using type = typename SignatureArgsTypeAt<index - 1, Tail...>::type;
+	};
+
 	template<typename... Args>
 	struct SignatureArgs {
 		static constexpr inline unsigned int count = sizeof...(Args);
-	};
 
-	template<typename T>
-	struct SignatureParser {
-		using Type = T;
-	};
+		template<unsigned int Index>
+		using arg = typename SignatureArgsTypeAt<Index, Args...>::type;
 
-	template<typename ReturnType, typename... ArgsType>
-	struct SignatureParser<ReturnType(ArgsType...)> {
-		using Type    = ReturnType(ArgsType...);
-		using TypePtr = Type*;
-		using TypeRef = Type&;
+		template<typename... PushArgs>
+		using push_back = SignatureArgs<Args..., PushArgs...>;
 
-		using FuncType    = ReturnType(ArgsType...);
-		using FuncTypePtr = FuncType*;
-		using FuncTypeRef = FuncType&;
+		template<typename... PushArgs>
+		using push_front = SignatureArgs<PushArgs..., Args...>;
 
-		using VoidFuncType    = void(ArgsType...);
-		using VoidFuncTypePtr = VoidFuncType*;
-		using VoidFuncTypeRef = VoidFuncType&;
+		template<typename Other>
+		struct merge_impl;
 
-		using Args = SignatureArgs<ArgsType...>;
+		template<typename... OtherArgs>
+		struct merge_impl<SignatureArgs<OtherArgs...>> {
+			using type = SignatureArgs<Args..., OtherArgs...>;
+		};
 
-		using Return = ReturnType;
-	};
+		template<typename Other>
+		using merge = typename merge_impl<Other>::type;
 
-	template<typename ReturnType, typename... ArgsType>
-	struct SignatureParser<ReturnType (*)(ArgsType...)> {
-		using Type    = ReturnType(ArgsType...);
-		using TypePtr = Type*;
-		using TypeRef = Type&;
+		template<typename Ret = void>
+		using make_function = Ret (*)(Args...);
 
-		using FuncType    = ReturnType(ArgsType...);
-		using FuncTypePtr = FuncType*;
-		using FuncTypeRef = FuncType&;
+		template<typename O, typename Ret = void>
+		using make_method = Ret (O::*)(Args...);
 
-		using VoidFuncType    = void(ArgsType...);
-		using VoidFuncTypePtr = VoidFuncType*;
-		using VoidFuncTypeRef = VoidFuncType&;
-
-		using Args = SignatureArgs<ArgsType...>;
-
-		using Return = ReturnType;
+		template<typename O, typename Ret = void>
+		using make_const_method = Ret (O::*)(Args...) const;
 	};
 
 	template<typename ReturnType, typename... ArgsType>
-	struct SignatureParser<ReturnType (&)(ArgsType...)> {
-		using Type    = ReturnType(ArgsType...);
-		using TypePtr = Type*;
-		using TypeRef = Type&;
-
-		using FuncType    = ReturnType(ArgsType...);
-		using FuncTypePtr = FuncType*;
-		using FuncTypeRef = FuncType&;
-
-		using VoidFuncType    = void(ArgsType...);
-		using VoidFuncTypePtr = VoidFuncType*;
-		using VoidFuncTypeRef = VoidFuncType&;
-
-		using Args = SignatureArgs<ArgsType...>;
-
+	struct Signature<ReturnType(ArgsType...)> {
+		using Type   = ReturnType (*)(ArgsType...);
 		using Return = ReturnType;
+		using Args   = SignatureArgs<ArgsType...>;
+
+		static constexpr inline bool is_function     = true;
+		static constexpr inline bool is_method       = false;
+		static constexpr inline bool is_const_method = false;
+	};
+
+	template<typename ReturnType, typename... ArgsType>
+	struct Signature<ReturnType (*)(ArgsType...)> {
+		using Type   = ReturnType (*)(ArgsType...);
+		using Return = ReturnType;
+		using Args   = SignatureArgs<ArgsType...>;
+
+		static constexpr inline bool is_function     = true;
+		static constexpr inline bool is_method       = false;
+		static constexpr inline bool is_const_method = false;
+	};
+
+	template<typename ReturnType, typename... ArgsType>
+	struct Signature<ReturnType (&)(ArgsType...)> {
+		using Type   = ReturnType (*)(ArgsType...);
+		using Return = ReturnType;
+		using Args   = SignatureArgs<ArgsType...>;
+
+		static constexpr inline bool is_function     = true;
+		static constexpr inline bool is_method       = false;
+		static constexpr inline bool is_const_method = false;
 	};
 
 	template<typename ClassType, typename ReturnType, typename... ArgsType>
-	struct SignatureParser<ReturnType (ClassType::*)(ArgsType...)> {
-		using Type    = ReturnType (ClassType::*)(ArgsType...);
-		using TypePtr = Type*;
-		using TypeRef = Type&;
-
-		using Args = SignatureArgs<ArgsType...>;
-
-		using FuncType    = ReturnType(ClassType*, ArgsType...);
-		using FuncTypePtr = FuncType*;
-		using FuncTypeRef = FuncType&;
-
-		using VoidFuncType    = void(ClassType*, ArgsType...);
-		using VoidFuncTypePtr = VoidFuncType*;
-		using VoidFuncTypeRef = VoidFuncType&;
-
-		using FuncArgs = SignatureArgs<ClassType*, ArgsType...>;
-
+	struct Signature<ReturnType (ClassType::*)(ArgsType...)> {
+		using Type   = ReturnType (ClassType::*)(ArgsType...);
+		using Args   = SignatureArgs<ArgsType...>;
 		using Return = ReturnType;
 		using Class  = ClassType;
-	};
+		using Func   = ReturnType (*)(Class*, ArgsType...);
 
+		static constexpr inline bool is_function     = false;
+		static constexpr inline bool is_method       = true;
+		static constexpr inline bool is_const_method = false;
+	};
 
 	template<typename ClassType, typename ReturnType, typename... ArgsType>
-	struct SignatureParser<ReturnType (ClassType::*)(ArgsType...) const> {
-		using Type    = ReturnType (ClassType::*)(ArgsType...) const;
-		using TypePtr = Type*;
-		using TypeRef = Type&;
-
-		using Args = SignatureArgs<ArgsType...>;
-
-		using FuncType    = ReturnType(const ClassType*, ArgsType...);
-		using FuncTypePtr = FuncType*;
-		using FuncTypeRef = FuncType&;
-
-		using VoidFuncType    = void(const ClassType*, ArgsType...);
-		using VoidFuncTypePtr = VoidFuncType*;
-		using VoidFuncTypeRef = VoidFuncType&;
-
-		using FuncArgs = SignatureArgs<ClassType*, ArgsType...>;
-
+	struct Signature<ReturnType (ClassType::*)(ArgsType...) const> {
+		using Type   = ReturnType (ClassType::*)(ArgsType...) const;
+		using Args   = SignatureArgs<ArgsType...>;
 		using Return = ReturnType;
-		using Class  = ClassType;
-	};
+		using Class  = const ClassType;
+		using Func   = ReturnType (*)(Class*, ArgsType...);
 
+		static constexpr inline bool is_function     = false;
+		static constexpr inline bool is_method       = true;
+		static constexpr inline bool is_const_method = true;
+	};
 
 	template<typename Return, typename... Args>
 	constexpr Return (*func_of(Return (*func)(Args...)))(Args...)
@@ -201,10 +202,10 @@ namespace Engine
 		return func;
 	}
 
-	template<typename Signature, typename T>
-	constexpr typename SignatureParser<Signature>::TypePtr func_of(T func)
+	template<typename Sig, typename T>
+	constexpr typename Signature<Sig>::Type func_of(T func)
 	{
-		return static_cast<typename SignatureParser<Signature>::TypePtr>(func);
+		return static_cast<typename Signature<Sig>::Type>(func);
 	}
 
 	template<typename Return, typename... Args, typename Instance>
@@ -220,14 +221,15 @@ namespace Engine
 	}
 
 #define trinex_scoped_method(class_name, method_name, ...)                                                                       \
-	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::FuncTypePtr>(               \
+	static_cast<Engine::Signature<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::Func>(                            \
 	        []<typename Instance, typename... Args>(Instance* instance,                                                          \
 	                                                Args... args) -> decltype(instance->method_name(args...)) {                  \
 		        return instance->class_name::method_name(args...);                                                               \
 	        })
 
 #define trinex_scoped_void_method(class_name, method_name, ...)                                                                  \
-	static_cast<Engine::SignatureParser<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::VoidFuncTypePtr>(           \
+	static_cast<Engine::Signature<Engine::Signature<decltype(method_of<__VA_ARGS__>(&class_name::method_name))>::Func>::Args::   \
+	                    template make_function<void>>(                                                                           \
 	        []<typename Instance, typename... Args>(Instance* instance, Args... args) {                                          \
 		        instance->class_name::method_name(args...);                                                                      \
 	        })
@@ -287,21 +289,4 @@ namespace Engine
 		static T value{};
 		return value;
 	}
-
-	template<typename Type>
-	void fake_delete(Type*)
-	{}
-
-	template<typename Type>
-	void delete_value(Type* value)
-	{
-		delete value;
-	}
-
-	template<typename Type>
-	void delete_array(Type* array)
-	{
-		delete[] array;
-	}
-
 }// namespace Engine

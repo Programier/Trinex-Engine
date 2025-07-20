@@ -48,7 +48,7 @@ namespace Engine
 	{
 		auto fs       = rootfs();
 		auto exec_dir = Platform::find_exec_directory();
-		auto callback = delete_value<VFS::FileSystem>;
+		auto callback = +[](VFS::FileSystem* fs) { delete fs; };
 
 		using FS = VFS::NativeFileSystem;
 

@@ -54,7 +54,7 @@ namespace Engine
 
 	static void initialize_filesystem()
 	{
-		auto callback = delete_value<VFS::FileSystem>;
+		auto callback = +[](VFS::FileSystem* fs) { delete fs; };
 
 		auto vfs                       = VFS::RootFS::create_instance();
 		auto exec_dir                  = Platform::find_exec_directory();
@@ -211,13 +211,13 @@ namespace Engine
 
 		DestroyController().execute();
 		engine_instance->terminate();
-		
+
 		if (WindowManager::instance())
 			WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
-		
+
 		if (WindowManager::instance())
 			delete WindowManager::instance();
-		
+
 		GarbageCollector::destroy_all_objects();
 		render_thread()->wait();
 
