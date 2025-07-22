@@ -34,13 +34,14 @@ namespace Engine
 	public:
 		enum SurfaceType
 		{
-			SceneColorHDR, /**< Render target for scene hdr colors */
-			SceneColorLDR, /**< Render target for scene ldr colors */
-			SceneDepth,    /**< Render target for scene depths */
-			BaseColor,     /**< Render target for base color */
-			Normal,        /**< Render target for normal */
-			Emissive,      /**< Render target for emissive */
-			MSRA,          /**< Render target for MSRA */
+			SceneColorHDR,// Render target for scene hdr colors
+			SceneColorLDR,// Render target for scene ldr colors
+			SceneDepth,   // Render target for scene depths
+			BaseColor,    // Render target for base color
+			Normal,       // Render target for normal
+			Emissive,     // Render target for emissive
+			MSRA,         // Render target for MSRA (R: Metalic, G: Roughness, B: Specular, A: AO)
+			Velocity,     // Render target for motion vectors
 
 			LastSurface,
 		};
@@ -60,7 +61,8 @@ namespace Engine
 		RHITexture* m_surfaces[LastSurface] = {};
 
 	public:
-		static RHISurfaceFormat format_of(SurfaceType type);
+		static RHISurfaceFormat static_surface_format_of(SurfaceType type);
+		static const char* static_surface_name_of(SurfaceType type);
 		static Renderer* static_create_renderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
 
 	public:

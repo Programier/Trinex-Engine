@@ -1,6 +1,6 @@
 import "trinex/quad.slang";
-import "trinex/platform.slang";
 import "trinex/random.slang";
+import "trinex/math.slang";
 
 struct Arguments
 {
@@ -63,8 +63,8 @@ float4 fragment_main(in float2 uv : TEXCOORD0) : SV_Target
         }
     }
 
-    float scene_depth_linear = Platform::linearize_depth(scene_depth, args.near, args.far);
-    float outline_depth_linear = Platform::linearize_depth(outline_depth, args.near, args.far);
+    float scene_depth_linear = Math::linearize_depth(scene_depth, args.near, args.far);
+    float outline_depth_linear = Math::linearize_depth(outline_depth, args.near, args.far);
 
     if (abs(scene_depth_linear - outline_depth_linear) < 0.001f && scene_depth < 1.f)
     {

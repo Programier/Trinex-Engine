@@ -109,4 +109,9 @@ namespace Math
 	{
 		return tangent_basis(normal, cross(normal, float3(1, 0, 0)));
 	}
+
+	[ForceInline] float linearize_depth(float depth, float near, float far)
+	{
+		return (near * far) / (far + depth * (near - far));
+	}
 }

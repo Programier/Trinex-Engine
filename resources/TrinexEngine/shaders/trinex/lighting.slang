@@ -1,7 +1,5 @@
 import "trinex/math.slang";
 import "trinex/scene_view.slang";
-import "trinex/platform.slang";
-import "trinex/quad.slang";
 
 namespace Lighting
 {

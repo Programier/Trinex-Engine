@@ -32,7 +32,7 @@ namespace Engine::EditorPipelines
 	void Outline::render(Renderer* renderer, SRV* outline_depth, Vector3f color, Vector2f sample_offset)
 	{
 		auto view_size  = renderer->scene_view().view_size();
-		auto tmp_format = renderer->format_of(Renderer::SceneColorLDR);
+		auto tmp_format = renderer->static_surface_format_of(Renderer::SceneColorLDR);
 		auto tmp_color  = RHISurfacePool::global_instance()->request_surface(tmp_format, view_size);
 
 		RHITextureRegion region = {view_size};

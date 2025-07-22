@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Size2D rt_size)
+	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Vector2u target_size)
 	{
 		if (scene_view)
 		{
@@ -17,12 +17,16 @@ namespace Engine
 			projview     = scene_view->projview_matrix();
 			inv_projview = scene_view->inv_projview_matrix();
 
-			const auto& vp       = scene_view->viewport();
-			viewport.pos         = Vector2f(vp.pos);
-			viewport.size        = Vector2f(vp.size);
-			viewport.target_size = scene_view->view_size();
-			viewport.min_depth   = vp.min_depth;
-			viewport.max_depth   = vp.max_depth;
+			const auto& vp    = scene_view->viewport();
+			viewport.pos      = Vector2f(vp.pos);
+			viewport.size     = Vector2f(vp.size);
+			viewport.inv_size = 1.f / Vector2f(vp.size);
+
+			viewport.min_depth = vp.min_depth;
+			viewport.max_depth = vp.max_depth;
+
+			render_target.size     = Vector2f(target_size);
+			render_target.inv_size = 1.f / Vector2f(target_size);
 
 			auto& camera_view = scene_view->camera_view();
 			camera.location   = camera_view.location;

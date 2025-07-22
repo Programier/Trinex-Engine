@@ -3,16 +3,19 @@
 
 namespace Engine
 {
-	// Using GLSL std140 alignment rules
-
-	// 400 bytes
 	struct GlobalShaderParameters {
 		struct Viewport {
 			alignas(8) Vector2f pos;
 			alignas(8) Vector2f size;
-			alignas(8) Vector2f target_size;
+			alignas(8) Vector2f inv_size;
+
 			alignas(4) float min_depth;
 			alignas(4) float max_depth;
+		};
+
+		struct RenderTarget {
+			alignas(8) Vector2f size;
+			alignas(8) Vector2f inv_size;
 		};
 
 		struct Camera {
@@ -42,11 +45,12 @@ namespace Engine
 		alignas(16) Matrix4f inv_projview;
 
 		Viewport viewport;
+		RenderTarget render_target;
 		Camera camera;
 
 		alignas(4) float time;
 		alignas(4) float delta_time;
 
-		ENGINE_EXPORT GlobalShaderParameters& update(const class SceneView* scene_view, Size2D render_target_size = {-1.f, -1.f});
+		ENGINE_EXPORT GlobalShaderParameters& update(const class SceneView* scene_view, Vector2u target_size);
 	};
 }// namespace Engine

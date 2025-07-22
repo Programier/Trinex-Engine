@@ -20,7 +20,7 @@ namespace Engine
 		m_graph = new (FrameAllocator<RenderGraph::Graph>::allocate(1)) RenderGraph::Graph();
 	}
 
-	RHISurfaceFormat Renderer::format_of(SurfaceType type)
+	RHISurfaceFormat Renderer::static_surface_format_of(SurfaceType type)
 	{
 		switch (type)
 		{
@@ -31,7 +31,24 @@ namespace Engine
 			case SurfaceType::Normal: return RHISurfaceFormat::RGBA16F;
 			case SurfaceType::Emissive: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::MSRA: return RHISurfaceFormat::RGBA8;
+			case SurfaceType::Velocity: return RHISurfaceFormat::RG16F;
 			default: return RHISurfaceFormat::RGBA8;
+		}
+	}
+
+	const char* Renderer::static_surface_name_of(SurfaceType type)
+	{
+		switch (type)
+		{
+			case SurfaceType::SceneColorHDR: return "SceneColorHDR";
+			case SurfaceType::SceneColorLDR: return "SceneColorLDR";
+			case SurfaceType::SceneDepth: return "SceneDepth";
+			case SurfaceType::BaseColor: return "BaseColor";
+			case SurfaceType::Normal: return "Normal";
+			case SurfaceType::Emissive: return "Emissive";
+			case SurfaceType::MSRA: return "MSRA";
+			case SurfaceType::Velocity: return "Velocity";
+			default: return "Undefined";
 		}
 	}
 
@@ -131,14 +148,13 @@ namespace Engine
 		{
 			static const char* clear_pass_names[] = {
 			        "Clear SceneColor HDR", "Clear SceneColor LDR", "Clear SceneDepth", "Clear BaseColor",
-			        "Clear Normal",         "Clear Emissive",       "Clear MSRA",
+			        "Clear Normal",         "Clear Emissive",       "Clear MSRA",       "Clear Velocity",
 			};
 
-			auto pool           = RHISurfacePool::global_instance();
-			RHITexture* target = pool->request_transient_surface(format_of(type), m_view.viewport().size,
-			                                                      type == SceneDepth ? RHITextureCreateFlags::Undefined
-			                                                                         : RHITextureCreateFlags::UnorderedAccess);
-			m_surfaces[type]    = target;
+			auto pool          = RHISurfacePool::global_instance();
+			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.viewport().size,
+			                                                     RHITextureCreateFlags::UnorderedAccess);
+			m_surfaces[type]   = target;
 
 			auto& pass = m_graph->add_pass(RenderGraph::Pass::Graphics, clear_pass_names[type])
 			                     .add_resource(target, RHIAccess::CopyDst);
@@ -165,7 +181,7 @@ namespace Engine
 			                                                                       RHIBufferCreateFlags::UniformBuffer);
 
 			GlobalShaderParameters params;
-			params.update(&m_view);
+			params.update(&m_view, m_view.view_size());
 			rhi->barrier(m_globals, RHIAccess::CopyDst);
 			rhi->update_buffer(m_globals, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
 			rhi->barrier(m_globals, RHIAccess::UniformBuffer);
