@@ -137,11 +137,22 @@ namespace Engine
 
 		private:
 			const RHIShaderParameterInfo* m_hdr_target = nullptr;
-			const RHIShaderParameterInfo* m_exposure   = nullptr;
 			const RHIShaderParameterInfo* m_scene_view = nullptr;
 
 		public:
 			TonemappingACES& apply(Renderer* renderer);
+		};
+
+		class SSR : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(SSR, GlobalGraphicsPipeline);
+
+		public:
+			const RHIShaderParameterInfo* scene_view   = nullptr;
+			const RHIShaderParameterInfo* scene_color  = nullptr;
+			const RHIShaderParameterInfo* scene_normal = nullptr;
+			const RHIShaderParameterInfo* scene_depth  = nullptr;
+			const RHIShaderParameterInfo* sampler      = nullptr;
 		};
 	}// namespace Pipelines
 }// namespace Engine

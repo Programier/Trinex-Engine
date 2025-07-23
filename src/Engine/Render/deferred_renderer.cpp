@@ -1,5 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
+#include <Engine/ActorComponents/post_process_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
@@ -19,7 +20,8 @@ namespace Engine
 {
 	DeferredRenderer::DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode)
 	    : Renderer(scene, view, mode), m_visible_primitives(scene->collect_visible_primitives(view.camera_view())),
-	      m_visible_lights(scene->collect_visible_lights(view.camera_view()))
+	      m_visible_lights(scene->collect_visible_lights(view.camera_view())),
+	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location))
 	{
 		auto graph = render_graph();
 

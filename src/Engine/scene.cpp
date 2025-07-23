@@ -45,17 +45,15 @@ namespace Engine
 
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->create_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+		render_thread()->create_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_primitive_octree, primitive,
 		                                                                       primitive->bounding_box());
-		m_octree.push(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->create_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+		render_thread()->create_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_primitive_octree, primitive,
 		                                                                          primitive->bounding_box());
-		m_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
@@ -67,6 +65,18 @@ namespace Engine
 		return *this;
 	}
 
+	Scene& Scene::add_light(LightComponent* light)
+	{
+		render_thread()->create_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree, light, light->bounding_box());
+		return *this;
+	}
+
+	Scene& Scene::remove_light(LightComponent* light)
+	{
+		render_thread()->create_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree, light, light->bounding_box());
+		return *this;
+	}
+
 	Scene& Scene::update_light_transform(LightComponent* light)
 	{
 		remove_light(light);
@@ -75,49 +85,26 @@ namespace Engine
 		return *this;
 	}
 
-	Scene& Scene::add_light(LightComponent* light)
+	Scene& Scene::add_post_process(PostProcessComponent* post_process)
 	{
-		render_thread()->create_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-		                                                                   light->bounding_box());
-		m_light_octree.push(light->bounding_box(), light);
+		m_unbound_post_processes.insert(post_process);
 		return *this;
 	}
 
-	Scene& Scene::remove_light(LightComponent* light)
+	Scene& Scene::remove_post_process(PostProcessComponent* post_process)
 	{
-		render_thread()->create_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
-		                                                                      light->bounding_box());
-		m_light_octree.remove(light->bounding_box(), light);
+		m_unbound_post_processes.erase(post_process);
+		return *this;
+	}
+
+	Scene& Scene::update_post_process_transform(PostProcessComponent* post_process)
+	{
 		return *this;
 	}
 
 	SceneComponent* Scene::root_component() const
 	{
 		return m_root_component.ptr();
-	}
-
-	const Scene::PrimitiveOctree& Scene::primitive_octree() const
-	{
-		if (is_in_render_thread())
-		{
-			return m_octree_render_thread;
-		}
-		else
-		{
-			return m_octree;
-		}
-	}
-
-	const Scene::LightOctree& Scene::light_octree() const
-	{
-		if (is_in_render_thread())
-		{
-			return m_light_octree_render_thread;
-		}
-		else
-		{
-			return m_light_octree;
-		}
 	}
 
 	template<typename Node, typename Container>
@@ -148,22 +135,25 @@ namespace Engine
 	FrameVector<PrimitiveComponent*> Scene::collect_visible_primitives(const Frustum& frustum)
 	{
 		FrameVector<PrimitiveComponent*> objects;
-		const PrimitiveOctree& octree = primitive_octree();
-		objects.reserve(glm::max<size_t>(64, octree.size() / 10));
-
-		collect_elements_internal(octree.root_node(), frustum, objects);
+		objects.reserve(glm::max<size_t>(64, m_primitive_octree.size() / 10));
+		collect_elements_internal(m_primitive_octree.root_node(), frustum, objects);
 		return objects;
 	}
 
 	FrameVector<LightComponent*> Scene::collect_visible_lights(const Frustum& frustum)
 	{
 		FrameVector<LightComponent*> objects;
-		const LightOctree& octree = light_octree();
-		objects.reserve(glm::max<size_t>(64, octree.size() / 10));
-
-		collect_elements_internal(octree.root_node(), frustum, objects);
+		objects.reserve(glm::max<size_t>(64, m_light_octree.size() / 10));
+		collect_elements_internal(m_light_octree.root_node(), frustum, objects);
 		return objects;
 	}
 
-	Scene::~Scene() {}
+	FrameVector<PostProcessComponent*> Scene::collect_post_processes(const Vector3f& location)
+	{
+		FrameVector<PostProcessComponent*> objects;
+		objects.reserve(m_unbound_post_processes.size());
+		for (PostProcessComponent* component : m_unbound_post_processes) objects.push_back(component);
+		return objects;
+	}
+
 }// namespace Engine

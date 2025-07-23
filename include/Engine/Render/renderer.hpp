@@ -8,7 +8,6 @@ namespace Engine
 	class RenderSurface;
 	class RenderPass;
 	class PrimitiveComponent;
-	class LightComponent;
 	class MaterialBindings;
 	class RHIBuffer;
 	class RHITexture;

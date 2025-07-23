@@ -10,6 +10,8 @@ namespace Engine
 		class DeferredLightPipeline;
 	}
 
+	class LightComponent;
+	class PostProcessComponent;
 	class SpotLightComponent;
 
 	class ENGINE_EXPORT DeferredRenderer : public Renderer
@@ -17,6 +19,7 @@ namespace Engine
 	private:
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
 		FrameVector<LightComponent*> m_visible_lights;
+		FrameVector<PostProcessComponent*> m_visible_post_processes;
 		FrameVector<RHITexture*> m_shadow_maps;
 		FrameVector<Matrix4f> m_shadow_projections;
 
@@ -45,5 +48,6 @@ namespace Engine
 
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
 		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }
+		inline const FrameVector<PostProcessComponent*> visible_post_processes() const { return m_visible_post_processes; }
 	};
 }// namespace Engine

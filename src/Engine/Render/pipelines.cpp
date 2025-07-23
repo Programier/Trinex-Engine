@@ -8,6 +8,7 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
+#include <RHI/static_sampler.hpp>
 
 namespace Engine::Pipelines
 {
@@ -207,7 +208,6 @@ namespace Engine::Pipelines
 		stencil_test.enable     = false;
 
 		m_hdr_target = find_parameter("hdr_scene");
-		m_exposure   = find_parameter("exposure");
 		m_scene_view = find_parameter("scene_view");
 	}
 
@@ -216,12 +216,26 @@ namespace Engine::Pipelines
 		rhi->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
 		rhi_bind();
 
-		float EV = 0.f;
-		rhi->update_scalar_parameter(&EV, m_exposure);
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		rhi->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
+		rhi->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
 		rhi->draw(6, 0);
 
 		return *this;
 	}
+
+	trinex_implement_pipeline(SSR, "[shaders_dir]:/TrinexEngine/trinex/graphics/ssr.slang")
+	{
+		depth_test.enable       = false;
+		depth_test.write_enable = false;
+		stencil_test.enable     = false;
+		color_blending.enable   = false;
+
+		scene_view   = find_parameter("scene_view");
+		scene_color  = find_parameter("scene_color");
+		scene_normal = find_parameter("scene_normal");
+		scene_depth  = find_parameter("scene_depth");
+		sampler      = find_parameter("sampler");
+	}
+
 }// namespace Engine::Pipelines
