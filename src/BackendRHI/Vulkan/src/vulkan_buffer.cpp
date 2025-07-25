@@ -33,30 +33,6 @@ namespace Engine
 		if (flags & RHIBufferCreateFlags::UniformBuffer)
 			usage |= vk::BufferUsageFlagBits::eUniformBuffer;
 
-
-		if (flags & RHIBufferCreateFlags::ShaderResource)
-		{
-			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
-			{
-				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
-				m_srv = new VulkanStorageBufferSRV(this);
-			}
-			else
-			{
-				usage |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
-				m_srv = new VulkanUniformTexelBufferSRV(this);
-			}
-		}
-
-		if (flags & RHIBufferCreateFlags::UnorderedAccess)
-		{
-			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
-			{
-				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
-				m_uav = new VulkanBufferUAV(this);
-			}
-		}
-
 		if (flags & RHIBufferCreateFlags::TransferSrc)
 			usage |= vk::BufferUsageFlagBits::eTransferSrc;
 
@@ -155,6 +131,53 @@ namespace Engine
 		return *this;
 	}
 
+	RHIShaderResourceView* VulkanBuffer::as_srv(uint32_t offset, uint32_t size)
+	{
+		if (!(m_flags & RHIBufferCreateFlags::ShaderResource))
+			return nullptr;
+
+		if (size == 0)
+			size = m_size - offset;
+
+		uint64_t id = (static_cast<uint64_t>(offset) << 32) | size;
+
+		RHIShaderResourceView*& srv = m_srv[id];
+
+		if (srv == nullptr)
+		{
+			if (m_flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+			{
+				srv = new VulkanStorageBufferSRV(this, offset, size);
+			}
+			else
+			{
+				srv = new VulkanUniformTexelBufferSRV(this, offset, size);
+			}
+		}
+
+		return srv;
+	}
+
+	RHIUnorderedAccessView* VulkanBuffer::as_uav(uint32_t offset, uint32_t size)
+	{
+		if (!(m_flags & RHIBufferCreateFlags::UnorderedAccess))
+			return nullptr;
+
+		if (size == 0)
+			size = m_size - offset;
+
+		uint64_t id = (static_cast<uint64_t>(offset) << 32) | size;
+
+		RHIUnorderedAccessView*& uav = m_uav[id];
+
+		if (uav == nullptr && m_flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+		{
+			uav = new VulkanBufferUAV(this, offset, size);
+		}
+
+		return uav;
+	}
+
 	byte* VulkanBuffer::map()
 	{
 		if (m_allocation->IsMappingAllowed())
@@ -178,11 +201,8 @@ namespace Engine
 		if (m_allocation)
 			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
 
-		if (m_srv)
-			delete m_srv;
-
-		if (m_uav)
-			delete m_uav;
+		for (auto [id, srv] : m_srv) delete srv;
+		for (auto [id, uav] : m_uav) delete uav;
 	}
 
 
@@ -311,8 +331,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset,
-	                                            size_t dst_offset)
+	VulkanAPI& VulkanAPI::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset, size_t dst_offset)
 	{
 		VulkanBuffer* src_buffer = static_cast<VulkanBuffer*>(src);
 		VulkanBuffer* dst_buffer = static_cast<VulkanBuffer*>(dst);

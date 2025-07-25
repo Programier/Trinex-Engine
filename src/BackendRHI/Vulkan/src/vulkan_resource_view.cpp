@@ -124,19 +124,19 @@ namespace Engine
 
 	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanStateManager* manager, byte index)
 	{
-		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), buffer()->size(), 0), index);
+		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), size(), offset()), index);
 		return *this;
 	}
 
 	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanStateManager* manager, byte index)
 	{
-		manager->uniform_texel_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), buffer()->size(), 0), index);
+		manager->uniform_texel_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), size(), offset()), index);
 		return *this;
 	}
 
 	VulkanUAV& VulkanBufferUAV::bind(VulkanStateManager* manager, byte index)
 	{
-		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), buffer()->size(), 0), index);
+		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), m_size, m_offset), index);
 		return *this;
 	}
 

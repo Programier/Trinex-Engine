@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/flat_map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/rhi.hpp>
@@ -11,8 +12,8 @@ namespace Engine
 	class VulkanBuffer : public VulkanDeferredDestroy<RHIBuffer>
 	{
 	private:
-		RHIShaderResourceView* m_srv  = nullptr;
-		RHIUnorderedAccessView* m_uav = nullptr;
+		FlatMap<uint64_t, RHIShaderResourceView*> m_srv;
+		FlatMap<uint64_t, RHIUnorderedAccessView*> m_uav;
 
 		RHIBufferCreateFlags m_flags = {};
 		vk::Buffer m_buffer          = VK_NULL_HANDLE;
@@ -31,8 +32,8 @@ namespace Engine
 		VulkanBuffer& update(size_t offset, size_t size, const byte* data);
 		VulkanBuffer& transition(RHIAccess access);
 
-		inline RHIShaderResourceView* as_srv(uint32_t offset = 0, uint32_t size = 0) override { return m_srv; }
-		inline RHIUnorderedAccessView* as_uav(uint32_t offset = 0, uint32_t size = 0) override { return m_uav; }
+		RHIShaderResourceView* as_srv(uint32_t offset = 0, uint32_t size = 0) override;
+		RHIUnorderedAccessView* as_uav(uint32_t offset = 0, uint32_t size = 0) override;
 		inline size_t size() const { return m_size; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
 		inline vk::Buffer buffer() const { return m_buffer; }

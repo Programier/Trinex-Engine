@@ -137,23 +137,36 @@ namespace Engine
 	{
 	private:
 		VulkanBuffer* m_buffer;
+		uint32_t m_offset;
+		uint32_t m_size;
 
 	public:
-		VulkanBufferSRV(VulkanBuffer* buffer) : m_buffer(buffer) {}
+		inline VulkanBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+		    : m_buffer(buffer), m_offset(offset), m_size(size)
+		{}
+
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
+		FORCE_INLINE uint32_t offset() const { return m_offset; }
+		FORCE_INLINE uint32_t size() const { return m_size; }
 	};
 
 	class VulkanStorageBufferSRV : public VulkanBufferSRV
 	{
 	public:
-		VulkanStorageBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer) {}
+		inline VulkanStorageBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+		    : VulkanBufferSRV(buffer, offset, size)
+		{}
+
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
 	};
 
 	class VulkanUniformTexelBufferSRV : public VulkanBufferSRV
 	{
 	public:
-		VulkanUniformTexelBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer) {}
+		inline VulkanUniformTexelBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+		    : VulkanBufferSRV(buffer, offset, size)
+		{}
+
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
 	};
 
@@ -161,10 +174,17 @@ namespace Engine
 	{
 	private:
 		VulkanBuffer* m_buffer;
+		uint32_t m_offset;
+		uint32_t m_size;
 
 	public:
-		VulkanBufferUAV(VulkanBuffer* buffer) : m_buffer(buffer) {}
+		inline VulkanBufferUAV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+		    : m_buffer(buffer), m_offset(offset), m_size(size)
+		{}
+		
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
+		FORCE_INLINE uint32_t offset() const { return m_offset; }
+		FORCE_INLINE uint32_t size() const { return m_size; }
 		VulkanUAV& bind(VulkanStateManager* manager, byte index) override;
 	};
 }// namespace Engine
