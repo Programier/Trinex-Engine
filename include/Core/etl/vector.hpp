@@ -31,7 +31,7 @@ namespace Engine
 		pointer m_finish;
 		pointer m_end;
 
-	private:
+	protected:
 		template<typename IteratorType>
 		using IteratorCategory = typename std::iterator_traits<IteratorType>::iterator_category;
 
@@ -47,10 +47,12 @@ namespace Engine
 		static constexpr inline bool is_forward_iterator =
 		        std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::forward_iterator_tag>;
 
-		constexpr AllocatorType& allocator() { return *this; }
 
+	public:
+		constexpr AllocatorType& allocator() { return *this; }
 		constexpr const AllocatorType& allocator() const { return *this; }
 
+	private:
 		constexpr inline void range_check(size_type n) const
 		{
 			if (n >= size())
