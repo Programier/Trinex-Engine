@@ -97,6 +97,22 @@ namespace Engine
 			return *this;
 		}
 
+		constexpr mapped_type& operator[](const key_type& key)
+		{
+			auto it = find(key);
+
+			if (it == end())
+			{
+				auto insert_it = std::lower_bound(begin(), end(), key, [&](const value_type& elem, const key_type& val) {
+					return Compare()(elem.first, val);
+				});
+
+				it = container_type::insert(insert_it, {key, Value()});
+			}
+
+			return const_cast<mapped_type&>(it->second);
+		}
+
 		constexpr inline const_iterator begin() const { return container_type::cbegin(); }
 		constexpr inline const_iterator end() const { return container_type::cend(); }
 		constexpr inline const_iterator cbegin() const { return container_type::cbegin(); }
