@@ -133,10 +133,10 @@ namespace Engine
 	class ENGINE_EXPORT RHIBuffer : public RHIObject
 	{
 	public:
-		virtual byte* map()                      = 0;
-		virtual void unmap()                     = 0;
-		virtual RHIShaderResourceView* as_srv()  = 0;
-		virtual RHIUnorderedAccessView* as_uav() = 0;
+		virtual byte* map()                                                            = 0;
+		virtual void unmap()                                                           = 0;
+		virtual RHIShaderResourceView* as_srv(uint32_t offset = 0, uint32_t size = 0)  = 0;
+		virtual RHIUnorderedAccessView* as_uav(uint32_t offset = 0, uint32_t size = 0) = 0;
 	};
 
 	class RHISwapchain : public RHIObject

@@ -442,7 +442,7 @@ namespace Engine
 				}
 			}
 
-			return RHIShaderParameterType::MemoryBlock;
+			return RHIShaderParameterType::UniformBuffer;
 		}
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
@@ -493,23 +493,24 @@ namespace Engine
 
 				if (auto type_layout = param.var->getTypeLayout())
 				{
-					SlangResourceShape shape = type_layout->getResourceShape();
+					SlangResourceShape shape      = type_layout->getResourceShape();
+					SlangResourceShape shape_mask = static_cast<SlangResourceShape>(shape & SLANG_RESOURCE_BASE_SHAPE_MASK);
 
-					if (shape & SLANG_TEXTURE_2D)
+					RHIShaderParameterInfo object;
+					object.binding = param.trace_offset(param.category());
+
+					if (!is_variable_used(param, object.binding))
+						return true;
+
+					object.name = param.parameter_name();
+					object.type = type;
+
+					if (shape_mask == SLANG_TEXTURE_2D)
 					{
-						auto binding_type = type_layout->getBindingRangeType(0);
-
-						RHIShaderParameterInfo object;
-						object.binding = param.trace_offset(param.category());
-
-						if (!is_variable_used(param, object.binding))
-							return true;
-
-						object.name = param.parameter_name();
-						object.type = type;
-
 						if (type.is_meta())
 						{
+							auto binding_type = type_layout->getBindingRangeType(0);
+
 							switch (binding_type)
 							{
 								case slang::BindingType::CombinedTextureSampler:
@@ -523,6 +524,16 @@ namespace Engine
 
 								default: return false;
 							}
+						}
+
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
+					else if (shape_mask == SLANG_STRUCTURED_BUFFER)
+					{
+						if (type.is_meta())
+						{
+							object.type |= RHIShaderParameterType::StructuredBuffer;
 						}
 
 						m_reflection->parameters.push_back(object);
@@ -553,7 +564,7 @@ namespace Engine
 
 				RHIShaderParameterType flags = find_parameter_flags(param.var->getVariable());
 
-				if ((flags & RHIShaderParameterType::MemoryBlock) == RHIShaderParameterType::MemoryBlock)
+				if ((flags & RHIShaderParameterType::UniformBuffer) == RHIShaderParameterType::UniformBuffer)
 				{
 					additional_exclude |= VarTraceEntry::exclude_scalar;
 					additional_exclude |= VarTraceEntry::exclude_vector;
@@ -574,7 +585,7 @@ namespace Engine
 							return false;
 						}
 
-						info.type   = RHIShaderParameterType::MemoryBlock;
+						info.type   = RHIShaderParameterType::UniformBuffer;
 						info.name   = param.parameter_name();
 						info.offset = param.trace_offset(slang::ParameterCategory::Uniform);
 

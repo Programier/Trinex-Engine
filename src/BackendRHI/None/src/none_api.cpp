@@ -107,8 +107,8 @@ namespace Engine
 		byte* map() override { return nullptr; }
 		void unmap() override {}
 
-		RHIShaderResourceView* as_srv() override { return rhi_default<RHIShaderResourceView>(); }
-		RHIUnorderedAccessView* as_uav() override { return rhi_default<RHIUnorderedAccessView>(); }
+		RHIShaderResourceView* as_srv(uint32_t offset, uint32_t size) override { return rhi_default<RHIShaderResourceView>(); }
+		RHIUnorderedAccessView* as_uav(uint32_t offset, uint32_t size) override { return rhi_default<RHIUnorderedAccessView>(); }
 	};
 
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {

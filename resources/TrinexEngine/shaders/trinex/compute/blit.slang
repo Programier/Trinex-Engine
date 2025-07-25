@@ -11,7 +11,7 @@ struct Arguments
 uniform Texture2D<float4> src;
 uniform writeonly RWTexture2D<float4> dst;
 
-[parameter_flags(meta::MemoryBlock)]
+[parameter_flags(meta::UniformBuffer)]
 uniform Arguments args;
 
 [ForceInline]

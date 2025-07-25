@@ -91,9 +91,10 @@ namespace Engine
 
 		bool operator()(RHIShaderResourceView* value) const
 		{
-			static constexpr RHIShaderParameterType mask = RHIShaderParameterType::META_Texture |
-			                                               RHIShaderParameterType::META_Buffer |
-			                                               RHIShaderParameterType::META_TexelBuffer;
+			static constexpr RHIShaderParameterType mask =
+			        RHIShaderParameterType::META_Texture | RHIShaderParameterType::META_Buffer |
+			        RHIShaderParameterType::META_StructuredBuffer | RHIShaderParameterType::META_ByteAddressBuffer;
+
 			if (m_parameter->type & mask)
 			{
 				rhi->bind_srv(value, m_parameter->binding);

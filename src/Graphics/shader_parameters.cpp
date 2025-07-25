@@ -12,10 +12,12 @@ namespace Engine
 	{
 		if (scene_view)
 		{
-			projection   = scene_view->projection_matrix();
-			view         = scene_view->view_matrix();
-			projview     = scene_view->projview_matrix();
-			inv_projview = scene_view->inv_projview_matrix();
+			projection     = scene_view->projection_matrix();
+			view           = scene_view->view_matrix();
+			projview       = scene_view->projview_matrix();
+			inv_projection = glm::inverse(projection);
+			inv_view       = glm::inverse(view);
+			inv_projview   = scene_view->inv_projview_matrix();
 
 			const auto& vp    = scene_view->viewport();
 			viewport.pos      = Vector2f(vp.pos);

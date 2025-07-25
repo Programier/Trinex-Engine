@@ -20,8 +20,8 @@ namespace Engine
 	trinex_implement_engine_enum(RHIVertexAttributeInputRate, Vertex, Instance);
 	trinex_implement_engine_enum(RHIShaderParameterType, Undefined, META_UniformBuffer, META_Sampler, META_Texture, META_Scalar,
 	                             META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3, Bool4, Int, Int2, Int3,
-	                             Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3, Float4x4, MemoryBlock,
-	                             Sampler, Sampler2D, Texture2D);
+	                             Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3, Float4x4,
+	                             UniformBuffer, Sampler, Sampler2D, Texture2D);
 
 	trinex_implement_engine_enum(RHIColorFormat, Undefined, R8, R8G8, R8G8B8A8, R8_SNORM, R8G8_SNORM, R8G8B8A8_SNORM, R8_UINT,
 	                             R8G8_UINT, R8G8B8A8_UINT, R8_SINT, R8G8_SINT, R8G8B8A8_SINT, R16, R16G16, R16G16B16A16,

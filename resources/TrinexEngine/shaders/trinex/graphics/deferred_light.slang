@@ -8,7 +8,7 @@ uniform Sampler2D normal_texture;
 uniform Sampler2D msra_texture;
 uniform Sampler2D depth_texture;
 
-[parameter_flags(meta::MemoryBlock)]
+[parameter_flags(meta::UniformBuffer)]
 uniform Lighting::LightParameters parameters;
 
 [shader("vertex")]

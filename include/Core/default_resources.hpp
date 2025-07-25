@@ -16,7 +16,8 @@ namespace Engine
 		namespace Textures
 		{
 			ENGINE_EXPORT extern Texture2D* default_texture;
-		}
+			ENGINE_EXPORT extern Texture2D* noise_texture;
+		}// namespace Textures
 
 		namespace Buffers
 		{

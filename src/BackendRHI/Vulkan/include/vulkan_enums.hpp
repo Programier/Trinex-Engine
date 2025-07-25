@@ -341,6 +341,27 @@ namespace Engine::VulkanEnums
 		if ((type & RHIShaderParameterType::META_RWTexture) == RHIShaderParameterType::META_RWTexture)
 			return vk::DescriptorType::eStorageImage;
 
+		if ((type & RHIShaderParameterType::META_Buffer) == RHIShaderParameterType::META_Buffer)
+			return vk::DescriptorType::eUniformTexelBuffer;
+
+		if ((type & RHIShaderParameterType::META_RWBuffer) == RHIShaderParameterType::META_RWBuffer)
+			return vk::DescriptorType::eStorageTexelBuffer;
+
+		if ((type & RHIShaderParameterType::META_StructuredBuffer) == RHIShaderParameterType::META_StructuredBuffer)
+			return vk::DescriptorType::eStorageBuffer;
+
+		if ((type & RHIShaderParameterType::META_RWStructuredBuffer) == RHIShaderParameterType::META_RWStructuredBuffer)
+			return vk::DescriptorType::eStorageBuffer;
+
+		if ((type & RHIShaderParameterType::META_ByteAddressBuffer) == RHIShaderParameterType::META_ByteAddressBuffer)
+			return vk::DescriptorType::eStorageBuffer;
+
+		if ((type & RHIShaderParameterType::META_RWByteAddressBuffer) == RHIShaderParameterType::META_RWByteAddressBuffer)
+			return vk::DescriptorType::eStorageBuffer;
+
+		if ((type & RHIShaderParameterType::META_AccelerationStructure) == RHIShaderParameterType::META_AccelerationStructure)
+			return vk::DescriptorType::eAccelerationStructureKHR;
+
 		throw EngineException("Undefined descriptor type");
 	}
 

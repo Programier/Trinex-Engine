@@ -6,6 +6,8 @@
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Graphics/gpu_buffers.hpp>
+#include <Graphics/texture_2D.hpp>
+#include <random>
 
 namespace Engine
 {
@@ -14,7 +16,8 @@ namespace Engine
 		namespace Textures
 		{
 			ENGINE_EXPORT Texture2D* default_texture = nullptr;
-		}
+			ENGINE_EXPORT Texture2D* noise_texture   = nullptr;
+		}// namespace Textures
 
 		namespace Buffers
 		{
@@ -55,9 +58,36 @@ namespace Engine
 		return reinterpret_cast<T*>(obj);
 	}
 
+	static void generate_noise_texture()
+	{
+		Package* package   = Package::static_find_package("TrinexEngine::Textures", true);
+		Texture2D* texture = Object::new_instance<Texture2D>("Noise", package);
+
+		texture->flags |= Object::StandAlone;
+		texture->format = RHIColorFormat::R8G8B8A8;
+
+		auto& mip = texture->mips.emplace_back();
+		mip.size  = {256, 256};
+		mip.data.resize(mip.size.x * mip.size.y * 4);
+
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<uint8_t> dist(0, 255);
+
+		for (byte& value : mip.data)
+		{
+			value = dist(gen);
+		}
+
+		texture->init_render_resources();
+	}
+
 	void load_default_resources()
 	{
 		using namespace DefaultResources;
+
+		generate_noise_texture();
+
 		Textures::default_texture = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
 		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
 		Materials::base_pass      = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");

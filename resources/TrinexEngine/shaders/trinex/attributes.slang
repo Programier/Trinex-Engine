@@ -3,10 +3,10 @@ namespace meta
 	[UnscopedEnum]
 	enum ParameterFlags
 	{
-		MemoryBlock              = 0x8010013,
-		ExcludeMaterialParameter = 0x8000000,
-		Globals                  = 0x0010018,
-		LocalToWorld             = 0x4010019,
+		UniformBuffer            = 0x00010013,
+		ExcludeMaterialParameter = 0x40000000,
+		Globals                  = 0x00010038,
+		LocalToWorld             = 0x20010039,
 	}
 }
 

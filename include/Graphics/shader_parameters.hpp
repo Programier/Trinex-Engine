@@ -42,6 +42,8 @@ namespace Engine
 		alignas(16) Matrix4f projection;
 		alignas(16) Matrix4f view;
 		alignas(16) Matrix4f projview;
+		alignas(16) Matrix4f inv_projection;
+		alignas(16) Matrix4f inv_view;
 		alignas(16) Matrix4f inv_projview;
 
 		Viewport viewport;
