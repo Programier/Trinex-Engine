@@ -68,14 +68,6 @@ namespace Engine::Platform
 		return Path("/sdcard/Android/obb") / m_android_platform_info.app_package_name;
 	}
 
-	ENGINE_EXPORT void bind_platform_mount_points() {}
-
-
-	ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()
-	{
-		return {{"/", "/"}};
-	}
-
 	ENGINE_EXPORT size_t monitors_count()
 	{
 		return 1;

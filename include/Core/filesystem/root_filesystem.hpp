@@ -8,34 +8,26 @@ namespace Engine::VFS
 	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>
 	{
 	public:
-		struct FileSystemCompare {
-			bool operator()(const String&, const String& second) const;
-		};
-
-		struct FileSystemInfo {
-			FileSystem* fs = nullptr;
-			String name;
-			Path mount;
-		};
-
-		using FileSystemMap = TreeMap<String, FileSystemInfo, FileSystemCompare>;
+		using FileSystems = TreeMap<String, FileSystem*, std::greater<String>>;
 
 	private:
-		FileSystemMap m_file_systems;
+		FileSystems m_file_systems;
+		FileSystem* m_root_native_file_system;
 
 		static RootFS* s_instance;
 
+	private:
 		RootFS();
 		~RootFS();
 
 	protected:
 		DirectoryIteratorInterface* create_directory_iterator(const Path& path) override;
 		DirectoryIteratorInterface* create_recursive_directory_iterator(const Path& path) override;
-		FileSystem* remove_fs(const FileSystemMap::iterator& it);
 
 	public:
-		bool mount(const Path& mount_point, const StringView& name, FileSystem* system, const UnMountCallback& callback = {});
-		FileSystem* unmount(const Path& mount_point);
+		bool mount(const Path& mount_point, const Path& path);
+		bool mount(const Path& mount_point, const Path& path, Type type);
+		RootFS& unmount(const Path& mount_point);
 		Pair<FileSystem*, Path> find_filesystem(const Path& path) const;
 
 		const Path& path() const override;
@@ -51,10 +43,9 @@ namespace Engine::VFS
 		Type type() const override;
 		Path native_path(const Path& path) const override;
 		FileSystem* filesystem_of(const Path& path) const;
-		FileSystem::Type filesystem_type_of(const Path& path) const;
 		bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
 		Vector<String> mount_points() const;
-		const FileSystemMap& filesystems() const;
+		const FileSystems& filesystems() const;
 
 		friend class Singletone<RootFS, FileSystem>;
 		friend class DirectoryIterator;

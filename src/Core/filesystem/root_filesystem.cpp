@@ -2,8 +2,10 @@
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
+#include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Platform/platform.hpp>
 
 namespace Engine
@@ -109,20 +111,20 @@ namespace Engine::VFS
 		bool is_equal(DirectoryIteratorInterface* iterator) override { return false; }
 	};
 
-	bool RootFS::FileSystemCompare::operator()(const String& first, const String& second) const
-	{
-		return first > second;
-	}
-
 	RootFS* RootFS::s_instance = nullptr;
 
-	RootFS::RootFS() {}
+	RootFS::RootFS()
+	{
+		m_root_native_file_system = allocate<NativeFileSystem>("", "");
+	}
 
 	RootFS::~RootFS()
 	{
-		while (!m_file_systems.empty())
+		release(m_root_native_file_system);
+
+		for (auto& [mount, fs] : m_file_systems)
 		{
-			remove_fs(m_file_systems.begin());
+			release(fs);
 		}
 	}
 
@@ -141,13 +143,13 @@ namespace Engine::VFS
 
 				MountPointIterator* mount_point_iterator = nullptr;
 
-				for (auto& [fs_path, mount] : filesystems())
+				for (auto& [mount, fs] : filesystems())
 				{
-					if (mount.mount.starts_with(entry.first->mount_point()) && mount.mount != entry.first->mount_point())
+					if (mount.starts_with(entry.first->mount_point()) && mount != entry.first->mount_point().str())
 					{
 						if (mount_point_iterator == nullptr)
 							mount_point_iterator = new MountPointIterator();
-						mount_point_iterator->m_file_systems.push_back(mount.fs);
+						mount_point_iterator->m_file_systems.push_back(fs);
 					}
 				}
 
@@ -173,10 +175,10 @@ namespace Engine::VFS
 				fs_iterator->m_iterators.push_back(iterator);
 				iterator = fs_iterator;
 
-				for (auto& [fs_path, mount] : filesystems())
+				for (auto& [mount, fs] : filesystems())
 				{
-					if (mount.mount.starts_with(entry.first->mount_point()) && mount.mount != entry.first->mount_point())
-						fs_iterator->m_iterators.push_back(mount.fs->create_recursive_directory_iterator(""));
+					if (mount.starts_with(entry.first->mount_point()) && mount != entry.first->mount_point().str())
+						fs_iterator->m_iterators.push_back(fs->create_recursive_directory_iterator(""));
 				}
 			}
 
@@ -185,55 +187,48 @@ namespace Engine::VFS
 		return nullptr;
 	}
 
-	FileSystem* RootFS::remove_fs(const FileSystemMap::iterator& it)
+	bool RootFS::mount(const Path& mount_point, const Path& path)
 	{
-		FileSystem* system = it->second.fs;
-		m_file_systems.erase(it);
-		system->m_mount_point    = {};
-		UnMountCallback callback = std::move(system->m_on_unmount);
-
-		if (callback)
-		{
-			callback(system);
-		}
-
-		return system;
-	}
-
-	bool RootFS::mount(const Path& mount_point, const StringView& name, FileSystem* system, const UnMountCallback& callback)
-	{
-		if (system == nullptr)
-		{
-			vfs_error("Failed to mount nullptr system!");
-		}
-
 		if (m_file_systems.contains(mount_point))
 		{
 			vfs_error("Failed to create mount point '%s'. Mount point already exist!", mount_point.c_str());
 			return false;
 		}
 
-		auto& info = m_file_systems[mount_point];
-		info.fs    = system;
-		info.name  = String(name);
-		info.mount = mount_point;
+		auto& file_system = m_file_systems[mount_point];
+		file_system       = allocate<Redirector>(mount_point, path);
 
-		system->m_mount_point = mount_point;
-		system->m_on_unmount  = callback;
-
-		vfs_log("Mounted '%s' to '%s'", system->path().c_str(), mount_point.c_str());
-		return system;
+		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
+		return true;
 	}
 
-	FileSystem* RootFS::unmount(const Path& mount_point)
+	bool RootFS::mount(const Path& mount_point, const Path& path, Type type)
+	{
+		if (m_file_systems.contains(mount_point))
+		{
+			vfs_error("Failed to create mount point '%s'. Mount point already exist!", mount_point.c_str());
+			return false;
+		}
+
+		auto& file_system = m_file_systems[mount_point];
+
+		if (type == Native)
+			file_system = allocate<NativeFileSystem>(mount_point, path);
+
+		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
+		return true;
+	}
+
+	RootFS& RootFS::unmount(const Path& mount_point)
 	{
 		auto it = m_file_systems.find(mount_point);
 
 		if (it == m_file_systems.end())
-		{
-			return nullptr;
-		}
-		return remove_fs(it);
+			return *this;
+
+		release(it->second);
+		m_file_systems.erase(it);
+		return *this;
 	}
 
 	Pair<FileSystem*, Path> RootFS::find_filesystem(const Path& path) const
@@ -247,15 +242,16 @@ namespace Engine::VFS
 			return path.str()[fs_path.length()];
 		};
 
-		for (auto& [fs_path, fs] : m_file_systems)
+		for (auto& [mount_point, fs] : m_file_systems)
 		{
-			if (path.path().starts_with(fs_path) && (next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
+			if (path.path().starts_with(mount_point) &&
+			    (next_symbol_of(path, mount_point) == Path::separator || mount_point.empty()))
 			{
-				return {fs.fs, path.relative(fs_path)};
+				return {fs, path.relative(mount_point)};
 			}
 		}
 
-		return {};
+		return {m_root_native_file_system, path};
 	}
 
 	const Path& RootFS::path() const
@@ -272,11 +268,7 @@ namespace Engine::VFS
 	File* RootFS::open(const Path& path, FileOpenMode mode)
 	{
 		auto entry = find_filesystem(path);
-		if (entry.first)
-		{
-			return entry.first->open(entry.second, mode);
-		}
-		return nullptr;
+		return entry.first->open(entry.second, mode);
 	}
 
 
@@ -356,7 +348,7 @@ namespace Engine::VFS
 
 	RootFS::Type RootFS::type() const
 	{
-		return Type::Root;
+		return Type::Native;
 	}
 
 	Path RootFS::native_path(const Path& path) const
@@ -374,14 +366,6 @@ namespace Engine::VFS
 		return find_filesystem(path).first;
 	}
 
-	FileSystem::Type RootFS::filesystem_type_of(const Path& path) const
-	{
-		FileSystem* fs = filesystem_of(path);
-		if (fs == nullptr)
-			return Type::Undefined;
-		return fs->type();
-	}
-
 	Vector<String> RootFS::mount_points() const
 	{
 		Vector<String> result;
@@ -394,7 +378,7 @@ namespace Engine::VFS
 		return result;
 	}
 
-	const RootFS::FileSystemMap& RootFS::filesystems() const
+	const RootFS::FileSystems& RootFS::filesystems() const
 	{
 		return m_file_systems;
 	}

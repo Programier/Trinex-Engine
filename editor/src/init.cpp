@@ -3,7 +3,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
@@ -47,16 +46,12 @@ namespace Engine
 
 	static void preinit()
 	{
-		auto fs       = rootfs();
-		auto exec_dir = Platform::find_exec_directory();
-		auto callback = +[](VFS::FileSystem* fs) { delete fs; };
+		auto fs = rootfs();
 
-		using FS = VFS::NativeFileSystem;
-
-		fs->mount("[assets_dir]:/TrinexEditor", "Editor Assets", new FS(exec_dir / "resources/TrinexEditor/assets"), callback);
-		fs->mount("[configs_dir]:/editor", "Editor Configs", new FS(exec_dir / "resources/TrinexEditor/configs"), callback);
-		fs->mount("[shaders_dir]:/TrinexEditor", "Editor Shaders", new FS(exec_dir / "resources/TrinexEditor/shaders"), callback);
-		fs->mount("[scripts_dir]:/TrinexEditor", "Editor Scripts", new FS(exec_dir / "resources/TrinexEditor/scripts"), callback);
+		fs->mount("[assets_dir]:/TrinexEditor", "[exec_dir]:/resources/TrinexEditor/assets");
+		fs->mount("[configs_dir]:/editor", "[exec_dir]:/resources/TrinexEditor/configs");
+		fs->mount("[shaders_dir]:/TrinexEditor", "[exec_dir]:/resources/TrinexEditor/shaders");
+		fs->mount("[scripts_dir]:/TrinexEditor", "[exec_dir]:/resources/TrinexEditor/scripts");
 
 		Settings::Rendering::force_keep_cpu_resources = true;
 	}
@@ -86,7 +81,7 @@ namespace Engine
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
 		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
 		EditorResources::globe_texture     = load_object<Texture2D>("TrinexEditor::Textures::Globe");
-		
+
 		Icons::on_editor_package_loaded();
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}

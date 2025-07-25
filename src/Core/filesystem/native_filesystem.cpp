@@ -69,7 +69,7 @@ namespace Engine::VFS
 	{
 		try
 		{
-			Path dir      = m_path / path;
+			Path dir      = m_directory / path;
 			auto iterator = fs::directory_iterator(dir.str());
 
 			NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
@@ -89,7 +89,7 @@ namespace Engine::VFS
 	{
 		try
 		{
-			Path dir      = m_path / path;
+			Path dir      = m_directory / path;
 			auto iterator = fs::recursive_directory_iterator(dir.str());
 
 			NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
@@ -105,19 +105,18 @@ namespace Engine::VFS
 	}
 
 
-	NativeFileSystem::NativeFileSystem(const Path& directory) : m_path(directory)
-	{
-		trinex_always_check(fs::is_directory(directory.str()), "Path to native file system must be directory!");
-	}
+	NativeFileSystem::NativeFileSystem(const Path& mount_point, const Path& directory)
+	    : FileSystem(mount_point), m_directory(directory)
+	{}
 
 	const Path& NativeFileSystem::path() const
 	{
-		return m_path;
+		return m_directory;
 	}
 
 	bool NativeFileSystem::is_read_only() const
 	{
-		return (fs::status(m_path.str()).permissions() & fs::perms::owner_write) != fs::perms::owner_write;
+		return (fs::status(m_directory.str()).permissions() & fs::perms::owner_write) != fs::perms::owner_write;
 	}
 
 	File* NativeFileSystem::open(const Path& path, FileOpenMode mode)
@@ -125,7 +124,7 @@ namespace Engine::VFS
 		if (is_dir(path))
 			return nullptr;
 
-		Path full_path = m_path / path;
+		Path full_path = m_directory / path;
 
 		std::ios_base::openmode open_mode = std::ios_base::binary;
 
@@ -155,18 +154,18 @@ namespace Engine::VFS
 
 	bool NativeFileSystem::create_dir(const Path& path)
 	{
-		return fs::create_directories((m_path / path).str());
+		return fs::create_directories((m_directory / path).str());
 	}
 
 	bool NativeFileSystem::remove(const Path& path)
 	{
-		return fs::remove((m_path / path).str());
+		return fs::remove((m_directory / path).str());
 	}
 
 	bool NativeFileSystem::copy(const Path& src, const Path& dest)
 	{
 		std::error_code code;
-		fs::copy_file((m_path / src).str(), (m_path / dest).str(), code);
+		fs::copy_file((m_directory / src).str(), (m_directory / dest).str(), code);
 
 		if (code)
 		{
@@ -179,7 +178,7 @@ namespace Engine::VFS
 	bool NativeFileSystem::rename(const Path& src, const Path& dest)
 	{
 		std::error_code code;
-		fs::rename((m_path / src).str(), (m_path / dest).str(), code);
+		fs::rename((m_directory / src).str(), (m_directory / dest).str(), code);
 
 		if (code)
 		{
@@ -191,17 +190,17 @@ namespace Engine::VFS
 
 	bool NativeFileSystem::is_file_exist(const Path& path) const
 	{
-		return fs::exists((m_path / path).str());
+		return fs::exists((m_directory / path).str());
 	}
 
 	bool NativeFileSystem::is_file(const Path& file) const
 	{
-		return fs::is_regular_file((m_path / file).str());
+		return fs::is_regular_file((m_directory / file).str());
 	}
 
 	bool NativeFileSystem::is_dir(const Path& dir) const
 	{
-		return fs::is_directory((m_path / dir).str());
+		return fs::is_directory((m_directory / dir).str());
 	}
 
 	NativeFileSystem::Type NativeFileSystem::type() const
@@ -211,6 +210,6 @@ namespace Engine::VFS
 
 	Path NativeFileSystem::native_path(const Path& path) const
 	{
-		return m_path / path;
+		return m_directory / path;
 	}
 }// namespace Engine::VFS

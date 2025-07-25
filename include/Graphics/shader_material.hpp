@@ -9,7 +9,7 @@ namespace Engine
 		trinex_declare_class(ShaderMaterial, Material);
 
 	public:
-		Path shader_path;
+		String shader_path;
 
 		bool shader_source(String& out_source) override;
 		bool serialize(Archive& archive) override;

@@ -1,11 +1,8 @@
 #pragma once
 #include <Engine/ActorComponents/scene_component.hpp>
-#include <Engine/aabb.hpp>
 
 namespace Engine
 {
-	class Renderer;
-
 	class ENGINE_EXPORT PostProcessComponent : public SceneComponent
 	{
 		trinex_declare_class(PostProcessComponent, SceneComponent);

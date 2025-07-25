@@ -1,6 +1,5 @@
 #include <Core/arguments.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Engine/project.hpp>
@@ -20,8 +19,6 @@ namespace Engine
 	String Project::localization_dir;
 	String Project::libraries_dir;
 	String Project::shader_cache_dir;
-
-	String (*Project::custom_project_config)() = nullptr;
 
 	static void bind_to_script_engine()
 	{
@@ -86,25 +83,18 @@ namespace Engine
 		Project::shader_cache_dir = "[shader_cache_dir]:";
 	}
 
-	static void delete_system(VFS::FileSystem* system)
-	{
-		delete system;
-	}
-
 	static void apply_project_config()
 	{
 		auto rfs = rootfs();
 		create_folders();
 
-		using FS = VFS::NativeFileSystem;
-
-		rfs->mount("[configs_dir]:", "Configs", new FS(Project::configs_dir), delete_system);
-		rfs->mount("[assets_dir]:", "Assets", new FS(Project::assets_dir), delete_system);
-		rfs->mount("[scripts_dir]:", "Scripts", new FS(Project::scripts_dir), delete_system);
-		rfs->mount("[shaders_dir]:", "Shaders", new FS(Project::shaders_dir), delete_system);
-		rfs->mount("[localization_dir]:", "Localization", new FS(Project::localization_dir), delete_system);
-		rfs->mount("[libraries_dir]:", "Libraries", new FS(Project::libraries_dir), delete_system);
-		rfs->mount("[shader_cache_dir]:", "Shader Cache", new FS(Project::shader_cache_dir), delete_system);
+		rfs->mount("[configs_dir]:", Project::configs_dir);
+		rfs->mount("[assets_dir]:", Project::assets_dir);
+		rfs->mount("[scripts_dir]:", Project::scripts_dir);
+		rfs->mount("[shaders_dir]:", Project::shaders_dir);
+		rfs->mount("[localization_dir]:", Project::localization_dir);
+		rfs->mount("[libraries_dir]:", Project::libraries_dir);
+		rfs->mount("[shader_cache_dir]:", Project::shader_cache_dir);
 
 		rename_dirs_to_mount_points();
 	}
@@ -196,13 +186,6 @@ Engine::Project::shader_cache_dir = "{}";
 	void Project::initialize()
 	{
 		bind_to_script_engine();
-
-		// if (custom_project_config)
-		// {
-		//     String source = custom_project_config();
-		//     if (from_string(source) && check_initialize(false))
-		//         return;
-		// }
 
 		// Try to load project using files from argument
 		auto arg = Arguments::find("project");
