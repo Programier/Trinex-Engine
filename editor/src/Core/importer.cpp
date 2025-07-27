@@ -369,7 +369,7 @@ namespace Engine::Importer
 
 			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
 			                     aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
-			                     aiProcess_CalcTangentSpace | aiProcess_GenUVCoords;
+			                     aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_FlipUVs;
 			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
 
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -390,7 +390,8 @@ namespace Engine::Importer
 			Assimp::Importer importer;
 
 			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-			                     aiProcess_GenBoundingBoxes | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords;
+			                     aiProcess_GenBoundingBoxes | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords |
+			                     aiProcess_FlipUVs;
 			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
 
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

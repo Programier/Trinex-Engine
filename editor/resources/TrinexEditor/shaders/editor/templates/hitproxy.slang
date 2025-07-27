@@ -1,4 +1,4 @@
-import "trinex/attributes.slang";
+import "trinex/trinex.slang";
 import "trinex/material.slang";
 import "trinex/math.slang";
 import "trinex/scene_view.slang";
@@ -48,19 +48,19 @@ float4 vertex_main(in VertexInput vs_input) : SV_Position
 
 	MaterialInput material_input;
 
-	material_input.m_world_position = mul(hitproxy.local_to_world, float4(vs_input.position, 1.0f)).xyz;
+	material_input.m_world_position = (hitproxy.local_to_world * float4(vs_input.position, 1.0f)).xyz;
 	float3x3 rotation               = transpose(Math::inverse((float3x3) hitproxy.local_to_world));
 
-	float3 world_normal  = normalize(mul(rotation, vs_input.normal));
-	float3 world_tangent = normalize(mul(rotation, vs_input.tangent.xyz));
+	float3 world_normal  = normalize(rotation * vs_input.normal);
+	float3 world_tangent = normalize(rotation * vs_input.tangent.xyz);
 
 	float3 world_bitangent = cross(world_normal, world_tangent);
 	material_input.m_tbn   = Math::tangent_basis(world_normal, world_tangent, world_bitangent);
 
-	float4 ndc = mul(scene_view.projview, float4(material_input.world_position, 1.0f));
+	float4 ndc = scene_view.projview * float4(material_input.world_position, 1.0f);
 
 	VertexMaterial material = main<VertexMaterial>(material_input);
-	return mul(scene_view.projview, float4(material_input.world_position + material.position_offset, 1.0f));
+	return scene_view.projview * float4(material_input.world_position + material.position_offset, 1.0f);
 }
 
 [shader("fragment")]

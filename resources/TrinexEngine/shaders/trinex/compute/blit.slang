@@ -1,4 +1,4 @@
-import "trinex/attributes.slang";
+import "trinex/trinex.slang";
 
 struct Arguments
 {

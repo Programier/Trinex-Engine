@@ -7,6 +7,7 @@
 #include <Engine/Render/depth_renderer.hpp>
 #include <Engine/Render/light_parameters.hpp>
 #include <Engine/Render/pipelines.hpp>
+#include <Engine/Render/post_process_parameters.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/frustum.hpp>
@@ -27,6 +28,14 @@ namespace Engine
 
 		graph->add_output(scene_color_ldr_target());
 
+		PostProcessParameters* post_process_params = FrameAllocator<PostProcessParameters>::allocate(1);
+		new (post_process_params) PostProcessParameters();
+
+		for (PostProcessComponent* post_process : visible_post_processes())
+		{
+			post_process_params->blend(post_process->parameters(), post_process->blend_weight());
+		}
+
 		graph->add_pass(RenderGraph::Pass::Graphics, "Geometry Pass")
 		        .add_resource(base_color_target(), RHIAccess::RTV)
 		        .add_resource(normal_target(), RHIAccess::RTV)
@@ -35,6 +44,11 @@ namespace Engine
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this]() { geometry_pass(); });
 
+		graph->add_pass(RenderGraph::Pass::Graphics, "Ambient Occlusion")
+		        .add_resource(msra_target(), RHIAccess::RTV)
+		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
+		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+		        .add_func([this, post_process_params]() { ambient_occlusion_pass(post_process_params); });
 
 		switch (mode)
 		{
@@ -207,6 +221,14 @@ namespace Engine
 				default: return nullptr;
 			}
 		}
+	}
+
+	DeferredRenderer& DeferredRenderer::ambient_occlusion_pass(PostProcessParameters* params)
+	{
+		Pipelines::SSAO::instance()->apply(this, params->ssao.intensity, params->ssao.bias, params->ssao.power,
+		                                   params->ssao.radius, params->ssao.fade_out_distance, params->ssao.fade_out_radius,
+		                                   params->ssao.samples);
+		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::deferred_lighting_pass()

@@ -1,5 +1,6 @@
 import "trinex/quad.slang";
 import "trinex/scene_view.slang";
+import "trinex/trinex.slang";
 
 uniform Sampler2D hdr_scene;
 
@@ -42,13 +43,13 @@ static const float3x3 ACESOutputMat =
 [ForceInline]
 static float3 ACES(float3 linear)
 {
-	float3 color = mul(ACESInputMat, linear);
+	float3 color = linear * ACESInputMat;
 
 	// Apply RRT and ODT
 	float3 a = color * (color + 0.0245786f) - 0.000090537f;
 	float3 b = color * (0.983729f * color + 0.4329510f) + 0.238081f;
 	color    = a / b;
 
-	color = mul(ACESOutputMat, color);
+	color = color * ACESOutputMat;
 	return saturate(color);
 }

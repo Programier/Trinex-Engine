@@ -1,4 +1,4 @@
-import "trinex/attributes.slang";
+import "trinex/trinex.slang";
 import "trinex/wide_lines.slang";
 
 uniform float4x4 projview;
@@ -57,7 +57,7 @@ VertexOutput vertex_main(in VertexInput input)
 {
     VertexOutput output;
     output.color     = input.color;
-    output.position  = mul(projview, float4(input.position, 1.0));
+    output.position  = projview * float4(input.position, 1.0);
     output.thickness = input.thickness;
     return output;
 }

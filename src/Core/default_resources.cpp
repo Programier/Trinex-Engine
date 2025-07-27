@@ -16,7 +16,9 @@ namespace Engine
 		namespace Textures
 		{
 			ENGINE_EXPORT Texture2D* default_texture = nullptr;
-			ENGINE_EXPORT Texture2D* noise_texture   = nullptr;
+			ENGINE_EXPORT Texture2D* noise4x4;
+			ENGINE_EXPORT Texture2D* noise16x16;
+			ENGINE_EXPORT Texture2D* noise128x128;
 		}// namespace Textures
 
 		namespace Buffers
@@ -58,16 +60,14 @@ namespace Engine
 		return reinterpret_cast<T*>(obj);
 	}
 
-	static void generate_noise_texture()
+	static void generate_noise_texture(Package* package, Texture2D*& texture, const char* name, Vector2u size)
 	{
-		Package* package   = Package::static_find_package("TrinexEngine::Textures", true);
-		Texture2D* texture = Object::new_instance<Texture2D>("Noise", package);
-
+		texture = Object::new_instance<Texture2D>(name, package);
 		texture->flags |= Object::StandAlone;
 		texture->format = RHIColorFormat::R8G8B8A8;
 
 		auto& mip = texture->mips.emplace_back();
-		mip.size  = {256, 256};
+		mip.size  = size;
 		mip.data.resize(mip.size.x * mip.size.y * 4);
 
 		std::random_device rd;
@@ -82,11 +82,21 @@ namespace Engine
 		texture->init_render_resources();
 	}
 
+
+	static void generate_noise_textures()
+	{
+		Package* package = Package::static_find_package("TrinexEngine::Textures", true);
+
+		generate_noise_texture(package, DefaultResources::Textures::noise4x4, "Noise4x4", {4, 4});
+		generate_noise_texture(package, DefaultResources::Textures::noise16x16, "Noise16x16", {16, 16});
+		generate_noise_texture(package, DefaultResources::Textures::noise128x128, "Noise128x128", {128, 128});
+	}
+
 	void load_default_resources()
 	{
 		using namespace DefaultResources;
 
-		generate_noise_texture();
+		generate_noise_textures();
 
 		Textures::default_texture = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
 		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");

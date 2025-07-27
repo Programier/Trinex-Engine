@@ -1,4 +1,4 @@
-import "trinex/attributes.slang";
+import "trinex/trinex.slang";
 
 struct VS_INPUT
 {
@@ -21,7 +21,7 @@ Sampler2D texture;
 PS_INPUT vertex_main(in VS_INPUT input)
 {
     PS_INPUT output;
-    output.pos = mul(model, float4(input.pos.xy, 0.f, 1.f));
+    output.pos = model * float4(input.pos.xy, 0.f, 1.f);
     output.col = input.col;
     output.uv  = input.uv;
     return output;

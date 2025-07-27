@@ -13,11 +13,10 @@ namespace Engine
 	{
 	private:
 		Buffer m_data;
-		union
-		{
-			Vector2u m_size;
-			Vector2i m_size_i;
-		};
+		Vector2u m_size;
+
+	private:
+		void load_from_memory(const void* buffer, size_t size);
 
 	public:
 		Image();

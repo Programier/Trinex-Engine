@@ -1,3 +1,5 @@
+import "trinex/trinex.slang";
+
 namespace Math
 {
     static const float pi = 3.141592f;
@@ -67,15 +69,14 @@ namespace Math
         return inverse_matrix;
     }
 
+	[ForceInline]
     float3 rotate_vector(in float3 normal, in float4x4 model)
     {
-        return normalize(mul(transpose(inverse((float3x3)model)), normal));
+        return normalize(transpose(inverse((float3x3)model)) * normal);
     }
 
-    float square(float x)
-    {
-        return x * x;
-    }
+    [ForceInline]
+    float square(float x) { return x * x; }
 
 	float3x3 tangent_basis(float3 normal, float3 pos, float2 uv)
 	{
@@ -90,26 +91,25 @@ namespace Math
 		return float3x3(tangent, bitangent, normal);
 	}
 
+	[ForceInline]
 	float3x3 tangent_basis(float3 normal, float3 tangent, float3 bitangent)
 	{
-		float3x3 result = float3x3(tangent, bitangent, normal);
-#if TRINEX_VULKAN_RHI
-		return transpose(result);
-#else
-		return result;
-#endif
+		return float3x3(tangent, bitangent, normal);
 	}
 
+	[ForceInline]
 	float3x3 tangent_basis(float3 normal, float3 tangent)
 	{
 		return tangent_basis(normal, tangent, cross(normal, tangent));
 	}
 
+	[ForceInline]
 	float3x3 tangent_basis(float3 normal)
 	{
 		return tangent_basis(normal, cross(normal, float3(1, 0, 0)));
 	}
 
+	[ForceInline]
 	[ForceInline] float linearize_depth(float depth, float near, float far)
 	{
 		return (near * far) / (far + depth * (near - far));

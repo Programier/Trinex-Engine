@@ -1,5 +1,6 @@
 import "trinex/lighting.slang";
 import "trinex/math.slang";
+import "trinex/trinex.slang";
 
 namespace Lighting
 {
@@ -30,7 +31,7 @@ namespace Lighting
 
 		static float shadow(in float3 position, in LightParameters params)
 		{
-			float4 shadow_ndc = mul(shadow_projview, float4(position, 1.0));
+			float4 shadow_ndc = shadow_projview * float4(position, 1.0);
 			shadow_ndc.xyz /= shadow_ndc.w;
 
 			float2 uv = shadow_ndc.xy * 0.5 + 0.5;

@@ -9,6 +9,7 @@ namespace Engine
 {
 	trinex_implement_engine_class(PostProcessComponent, 0)
 	{
+		trinex_refl_prop(m_parameters, Refl::Property::Inline);
 		trinex_refl_prop(m_priority);
 		trinex_refl_prop(m_blend_weight);
 	}

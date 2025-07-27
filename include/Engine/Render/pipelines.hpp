@@ -6,24 +6,11 @@ namespace Engine
 	class RHIShaderResourceView;
 	class RHIUnorderedAccessView;
 	class RHISampler;
+	class RHIBuffer;
 	class Renderer;
 
 	namespace Pipelines
 	{
-		class ENGINE_EXPORT GaussianBlur : public GlobalComputePipeline
-		{
-			trinex_declare_pipeline(GaussianBlur, GlobalComputePipeline);
-
-			const RHIShaderParameterInfo* m_src;
-			const RHIShaderParameterInfo* m_dst;
-			const RHIShaderParameterInfo* m_sigma;
-			const RHIShaderParameterInfo* m_kernel_size;
-
-		public:
-			void blur(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const Vector2u& dst_size, int32_t kernel = 5,
-			          float sigma = 2.f, RHISampler* sampler = nullptr);
-		};
-
 		class ENGINE_EXPORT Blit2D : public GlobalComputePipeline
 		{
 			trinex_declare_pipeline(Blit2D, GlobalComputePipeline);
@@ -153,6 +140,29 @@ namespace Engine
 			const RHIShaderParameterInfo* scene_normal = nullptr;
 			const RHIShaderParameterInfo* scene_depth  = nullptr;
 			const RHIShaderParameterInfo* sampler      = nullptr;
+		};
+
+		class SSAO : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(SSAO, GlobalGraphicsPipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_scene_view   = nullptr;
+			const RHIShaderParameterInfo* m_scene_depth  = nullptr;
+			const RHIShaderParameterInfo* m_scene_normal = nullptr;
+			const RHIShaderParameterInfo* m_noise        = nullptr;
+			const RHIShaderParameterInfo* m_sampler      = nullptr;
+			const RHIShaderParameterInfo* m_args         = nullptr;
+			const RHIShaderParameterInfo* m_samples      = nullptr;
+
+			RHIBuffer* m_samples_buffer = nullptr;
+			size_t m_samples_count      = 0;
+
+			SSAO& create_samples_buffer(size_t count);
+
+		public:
+			SSAO& apply(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
+			            float fade_out_radius, uint_t samples);
 		};
 	}// namespace Pipelines
 }// namespace Engine

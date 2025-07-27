@@ -1,4 +1,5 @@
 import "trinex/scene_view.slang";
+import "trinex/trinex.slang";
 
 static float3 grid_plane[6] = {
     float3(1, 1, 0), float3(-1, -1, 0), float3(-1, 1, 0),
@@ -100,13 +101,13 @@ struct GridDrawer
 
 float3 unproject_point(float x, float y, float z)
 {
-    float4 unprojected_point =  mul(scene_view.inv_projview, float4(x, y, z, 1.0));
+    float4 unprojected_point =  scene_view.inv_projview * float4(x, y, z, 1.0);
     return unprojected_point.xyz / unprojected_point.w;
 }
 
 float compute_depth(float3 pos) 
 {
-    float4 clip_space_pos = mul(scene_view.projview, float4(pos, 1.0));
+    float4 clip_space_pos = scene_view.projview * float4(pos, 1.0);
     float result = (clip_space_pos.z / clip_space_pos.w);
     return result;
 }

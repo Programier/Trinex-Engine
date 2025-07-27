@@ -1,3 +1,5 @@
+import "trinex/trinex.slang";
+
 struct SceneView
 {
 	struct Viewport {
@@ -59,14 +61,14 @@ struct SceneView
 	inline float3 reconstruct_position(float2 coord, float depth)
 	{
 		float4 clip_space_pos = float4(screen_ndc(coord), depth, 1.0);
-		float4 view_space_pos = mul(scene_view.inv_projview, clip_space_pos);
+		float4 view_space_pos = scene_view.inv_projview * clip_space_pos;
 		return view_space_pos.xyz /= view_space_pos.w;
 	}
 
 	inline float3 reconstruct_position_from_ndc(float2 ndc, float depth)
 	{
 		float4 clip_space_pos = float4(ndc, depth, 1.0);
-		float4 view_space_pos = mul(scene_view.inv_projview, clip_space_pos);
+		float4 view_space_pos = scene_view.inv_projview * clip_space_pos;
 		return view_space_pos.xyz /= view_space_pos.w;
 	}
 };

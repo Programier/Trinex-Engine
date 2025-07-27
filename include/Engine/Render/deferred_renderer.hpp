@@ -13,6 +13,7 @@ namespace Engine
 	class LightComponent;
 	class PostProcessComponent;
 	class SpotLightComponent;
+	struct PostProcessParameters;
 
 	class ENGINE_EXPORT DeferredRenderer : public Renderer
 	{
@@ -27,6 +28,7 @@ namespace Engine
 		DeferredRenderer& register_shadow_light(SpotLightComponent* light, uint_t index);
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass();
+		DeferredRenderer& ambient_occlusion_pass(PostProcessParameters* params);
 		DeferredRenderer& deferred_lighting_pass();
 		DeferredRenderer& copy_base_color_to_scene_color();
 		DeferredRenderer& copy_world_normal_to_scene_color();

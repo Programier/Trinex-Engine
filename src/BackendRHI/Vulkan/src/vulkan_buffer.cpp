@@ -39,6 +39,19 @@ namespace Engine
 		if (flags & RHIBufferCreateFlags::TransferDst)
 			usage |= vk::BufferUsageFlagBits::eTransferDst;
 
+		if (flags & RHIBufferCreateFlags::ShaderResource)
+		{
+			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+			else
+				usage |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
+		}
+
+		if (flags & RHIBufferCreateFlags::UnorderedAccess)
+		{
+			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+		}
 
 		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
 

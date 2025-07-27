@@ -1,4 +1,4 @@
-import "trinex/attributes.slang";
+import "trinex/trinex.slang";
 import "trinex/material.slang";
 import "trinex/math.slang";
 import "trinex/scene_view.slang";
@@ -50,11 +50,11 @@ VertexOutput vertex_main(in VertexInput vs_input)
 {
 	VertexOutput output;
 	output.vertex_input   = vs_input;
-	output.world_position = mul(uniforms.local_to_world, float4(vs_input.position, 1.0f)).xyz;
+	output.world_position = (uniforms.local_to_world * float4(vs_input.position, 1.0f)).xyz;
 
 	float3x3 rotation     = transpose(Math::inverse((float3x3) uniforms.local_to_world));
-	float3 world_normal   = normalize(mul(rotation, vs_input.normal));
-	float3 world_tangent  = normalize(mul(rotation, vs_input.tangent.xyz));
+	float3 world_normal   = normalize(rotation * vs_input.normal);
+	float3 world_tangent  = normalize(rotation * vs_input.tangent.xyz);
 
 	float3 world_bitangent = cross(world_normal, world_tangent);
 	output.TBN             = Math::tangent_basis(world_normal, world_tangent, world_bitangent);
@@ -69,7 +69,7 @@ VertexOutput vertex_main(in VertexInput vs_input)
 
 	VertexMaterial material = main<VertexMaterial>(MaterialInput());
 	output.world_position += material.position_offset;
-	output.sv_position = mul(scene_view.projview, float4(output.world_position + material.position_offset, 1.0f));
+	output.sv_position = scene_view.projview * float4(output.world_position + material.position_offset, 1.0f);
 	return output;
 }
 
@@ -87,7 +87,7 @@ GeometryFragmentOutput fragment_main(in VertexOutput input)
 	FragmentMaterial material = main<FragmentMaterial>(MaterialInput());
 
 	GeometryFragmentOutput output;
-	float3 result_normal = normalize(mul(input.TBN, material.normal * 2.0 - 1.0));
+	float3 result_normal = normalize(input.TBN * (material.normal * 2.0 - 1.0));
 	output.base_color    = float4(material.base_color, 1.0);
 	output.normal        = float4(result_normal, 1.f);
 	output.emissive      = float4(material.emissive, 1.0);

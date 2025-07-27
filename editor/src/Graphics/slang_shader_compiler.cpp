@@ -766,12 +766,8 @@ namespace Engine
 		};
 
 		SessionInitializer desc;
-
-		desc.session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-		desc.session_desc.allowGLSLSyntax         = false;
-		desc.session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-		desc.session_desc.targetCount             = 1;
-		desc.session_desc.targets                 = &desc.target_desc;
+		desc.session_desc.targetCount = 1;
+		desc.session_desc.targets     = &desc.target_desc;
 
 		for (auto& include_dir : include_directories) desc.add_search_path(include_dir.c_str());
 		initialize_context(&desc);

@@ -17,13 +17,7 @@ namespace Engine
 	Image::Image(const Path& path)
 	{
 		Buffer buffer = FileReader(path).read_buffer();
-
-		int_t pixel_channels = 0;
-		stbi_uc* image_data  = stbi_load_from_memory(buffer.data(), static_cast<int>(buffer.size()), &m_size_i.x, &m_size_i.y,
-		                                             &pixel_channels, 0);
-		m_data.resize(m_size.x * m_size.y * pixel_channels);
-		std::copy(image_data, image_data + m_data.size(), m_data.data());
-		stbi_image_free(image_data);
+		load_from_memory(buffer.data(), buffer.size());
 	}
 
 	Image::Image(const Vector2u& size, uint_t channels, const void* data) : m_size(size)
@@ -54,12 +48,7 @@ namespace Engine
 
 	Image::Image(const void* data, size_t size)
 	{
-		int_t pixel_channels = 0;
-		stbi_uc* image_data  = stbi_load_from_memory(static_cast<const stbi_uc*>(data), static_cast<int>(size), &m_size_i.x,
-		                                             &m_size_i.y, &pixel_channels, 0);
-		m_data.resize(m_size.x * m_size.y * pixel_channels);
-		std::copy(image_data, image_data + m_data.size(), m_data.data());
-		stbi_image_free(image_data);
+		load_from_memory(data, size);
 	}
 
 	Image::Image(const Image& img)
@@ -94,6 +83,38 @@ namespace Engine
 
 		img.m_size = {0, 0};
 		return *this;
+	}
+
+	void Image::load_from_memory(const void* buffer, size_t size)
+	{
+		int_t pixel_channels = 0;
+		int w, h;
+		stbi_uc* image_data =
+		        stbi_load_from_memory(static_cast<const stbi_uc*>(buffer), static_cast<int>(size), &w, &h, &pixel_channels, 0);
+		m_size.x = static_cast<uint_t>(w);
+		m_size.y = static_cast<uint_t>(h);
+
+		if (pixel_channels != 3)
+		{
+			m_data.resize(m_size.x * m_size.y * pixel_channels);
+			std::copy(image_data, image_data + m_data.size(), m_data.data());
+			stbi_image_free(image_data);
+			return;
+		}
+
+		m_data.resize(m_size.x * m_size.y * 4, 255);
+		byte* dst = m_data.data();
+
+		for (int x = 0; x < w; ++x)
+		{
+			for (int y = 0; y < h; ++y)
+			{
+				(*dst++) = (*image_data++);
+				(*dst++) = (*image_data++);
+				(*dst++) = (*image_data++);
+				++dst;
+			}
+		}
 	}
 
 	bool Image::resize(const Vector2u& size)
