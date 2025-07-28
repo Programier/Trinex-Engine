@@ -63,6 +63,7 @@ namespace Engine
 			}
 
 			case ViewMode::Unlit:
+			case ViewMode::Wireframe:
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "Base Color Resolve")
 				        .add_resource(base_color_target(), RHIAccess::CopySrc)
@@ -194,9 +195,14 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::geometry_pass()
 	{
+		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
+		rhi->polygon_mode(mode);
+
 		rhi->bind_render_target4(base_color_target()->as_rtv(), normal_target()->as_rtv(), emissive_target()->as_rtv(),
 		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv());
 		render_visible_primitives(RenderPasses::Geometry::static_instance());
+
+		rhi->polygon_mode(RHIPolygonMode::Fill);
 		return *this;
 	}
 
