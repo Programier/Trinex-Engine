@@ -250,6 +250,11 @@ namespace Engine
 		return *this;
 	}
 
+	NoneApi& NoneApi::write_mask(RHIColorComponent mask)
+	{
+		return *this;
+	}
+
 	NoneApi& NoneApi::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
 	{
 		return *this;

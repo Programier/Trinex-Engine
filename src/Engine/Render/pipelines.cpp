@@ -15,44 +15,79 @@
 
 namespace Engine::Pipelines
 {
-	static FORCE_INLINE Vector4i rect_to_vec4(const RHIRect& rect)
+	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
 	{
-		return {rect.pos.x, rect.pos.y, rect.size.x, rect.size.y};
+		depth_test.enable       = false;
+		depth_test.write_enable = false;
+		color_blending.enable   = false;
+
+		m_source = find_parameter("source");
+		m_args   = find_parameter("args");
 	}
 
-	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/compute/blit.slang")
+	void GaussianBlur::blur(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction, float sigma,
+	                        float radius, Swizzle swizzle, RHISampler* sampler)
 	{
-		m_src  = find_parameter("src");
-		m_dst  = find_parameter("dst");
-		m_args = find_parameter("args");
-	}
-
-	void Blit2D::blit(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
-	                  uint_t level, Swizzle swizzle)
-	{
-		struct ShaderArgs {
-			alignas(16) Vector4i src_rect;
-			alignas(16) Vector4i dst_rect;
+		struct Args {
 			alignas(16) Vector4u swizzle;
-			alignas(4) uint32_t level;
+			alignas(8) Vector2f offset;
+			alignas(8) Vector2f inv_size;
+			alignas(8) Vector2f direction;
+			alignas(4) float sigma;
+			alignas(4) float radius;
 		};
 
-		ShaderArgs shader_args;
-		shader_args.src_rect = rect_to_vec4(src_rect);
-		shader_args.dst_rect = rect_to_vec4(dst_rect);
-		shader_args.swizzle  = swizzle;
-		shader_args.level    = level;
+		Args args;
+		args.swizzle   = swizzle;
+		args.offset    = offset;
+		args.inv_size  = inv_size;
+		args.direction = glm::normalize(direction);
+		args.sigma     = sigma;
+		args.radius    = radius;
+
+		if (sampler == nullptr)
+			sampler = RHIBilinearSampler::static_sampler();
 
 		rhi_bind();
+		rhi->bind_srv(src, m_source->binding);
+		rhi->bind_sampler(sampler, m_source->binding);
+		rhi->update_scalar_parameter(&args, sizeof(args), m_args);
 
-		rhi->bind_srv(src, m_src->binding);
-		rhi->bind_uav(dst, m_dst->binding);
+		rhi->draw(6, 0);
+	}
 
+	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/graphics/blit.slang")
+	{
+		depth_test.enable       = false;
+		depth_test.write_enable = false;
+		color_blending.enable   = false;
+
+		m_source = find_parameter("source");
+		m_args   = find_parameter("args");
+	}
+
+	void Blit2D::blit(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle, RHISampler* sampler)
+	{
+		struct ShaderArgs {
+			alignas(8) Vector2f offset;
+			alignas(8) Vector2f inv_size;
+			alignas(16) Vector4u swizzle;
+		};
+
+		if (sampler == nullptr)
+			sampler = RHIPointSampler::static_sampler();
+
+		ShaderArgs shader_args;
+		shader_args.offset   = offset;
+		shader_args.inv_size = inv_size;
+		shader_args.swizzle  = swizzle;
+
+		rhi_bind();
+		rhi->bind_srv(src, m_source->binding);
+		rhi->bind_sampler(sampler, m_source->binding);
 		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
 
-		// Shader uses 8x8x1 threads per group
-		Vector2u groups = {(glm::abs(dst_rect.size.x) + 7) / 8, (glm::abs(dst_rect.size.y) + 7) / 8};
-		rhi->dispatch(groups.x, groups.y, 1);
+		rhi->draw(6, 0);
 	}
 
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang")
@@ -86,8 +121,6 @@ namespace Engine::Pipelines
 		color_blending.src_color_func = RHIBlendFunc::One;
 		color_blending.dst_color_func = RHIBlendFunc::One;
 		color_blending.color_op       = RHIBlendOp::Add;
-
-		color_blending.write_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B;
 	}
 
 	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
@@ -219,12 +252,11 @@ namespace Engine::Pipelines
 
 		color_blending.color_op       = RHIBlendOp::Add;
 		color_blending.src_color_func = RHIBlendFunc::Zero;
-		color_blending.dst_color_func = RHIBlendFunc::Zero;
+		color_blending.dst_color_func = RHIBlendFunc::One;
 
 		color_blending.alpha_op       = RHIBlendOp::Add;
 		color_blending.src_alpha_func = RHIBlendFunc::DstAlpha;
 		color_blending.dst_alpha_func = RHIBlendFunc::Zero;
-		color_blending.write_mask     = RHIColorComponent::A;
 
 		m_scene_view   = find_parameter("scene_view");
 		m_scene_depth  = find_parameter("scene_depth");
@@ -287,8 +319,8 @@ namespace Engine::Pipelines
 		uint32_t samples;
 	};
 
-	SSAO& SSAO::apply(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
-	                  float fade_out_radius, uint_t samples)
+	SSAO& SSAO::render(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
+	                   float fade_out_radius, uint_t samples)
 	{
 		create_samples_buffer(samples);
 
@@ -303,8 +335,6 @@ namespace Engine::Pipelines
 		args.fade_out_distance = fade_out_distance;
 		args.fade_out_radius   = fade_out_radius;
 		args.samples           = samples;
-
-		rhi->bind_render_target1(renderer->msra_target()->as_rtv());
 
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		rhi->update_scalar_parameter(&args, sizeof(args), 0, m_args->binding);

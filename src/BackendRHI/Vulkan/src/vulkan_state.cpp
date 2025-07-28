@@ -262,6 +262,34 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanAPI& VulkanAPI::write_mask(RHIColorComponent mask)
+	{
+		vk::ColorComponentFlags color_mask;
+
+		if (mask & RHIColorComponent::R)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eR;
+		}
+
+		if (mask & RHIColorComponent::G)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eG;
+		}
+
+		if (mask & RHIColorComponent::B)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eB;
+		}
+
+		if (mask & RHIColorComponent::A)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eA;
+		}
+
+		m_state_manager->bind(color_mask);
+		return *this;
+	}
+
 	VulkanAPI& VulkanAPI::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
 		m_state_manager->update_scalar(data, size, offset, buffer_index);

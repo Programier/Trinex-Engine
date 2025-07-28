@@ -33,14 +33,13 @@ namespace Engine
 	struct RHIColorBlending final {
 		trinex_declare_struct(RHIColorBlending, void);
 
-		RHIBlendFunc src_color_func  = RHIBlendFunc::SrcAlpha;
-		RHIBlendFunc dst_color_func  = RHIBlendFunc::OneMinusSrcAlpha;
-		RHIBlendOp color_op          = RHIBlendOp::Add;
-		RHIBlendFunc src_alpha_func  = RHIBlendFunc::One;
-		RHIBlendFunc dst_alpha_func  = RHIBlendFunc::OneMinusSrcAlpha;
-		RHIBlendOp alpha_op          = RHIBlendOp::Add;
-		RHIColorComponent write_mask = RHIColorComponent::R | RHIColorComponent::G | RHIColorComponent::B | RHIColorComponent::A;
-		bool enable                  = false;
+		RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha;
+		RHIBlendFunc dst_color_func = RHIBlendFunc::OneMinusSrcAlpha;
+		RHIBlendOp color_op         = RHIBlendOp::Add;
+		RHIBlendFunc src_alpha_func = RHIBlendFunc::One;
+		RHIBlendFunc dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha;
+		RHIBlendOp alpha_op         = RHIBlendOp::Add;
+		bool enable                 = false;
 
 		bool serialize(Archive& ar);
 	};

@@ -92,6 +92,7 @@ namespace Engine
 		virtual RHI& polygon_mode(RHIPolygonMode mode)                 = 0;
 		virtual RHI& cull_mode(RHICullMode mode)                       = 0;
 		virtual RHI& front_face(RHIFrontFace face)                     = 0;
+		virtual RHI& write_mask(RHIColorComponent mask)                = 0;
 
 		virtual RHI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) = 0;
 		virtual RHI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)                             = 0;

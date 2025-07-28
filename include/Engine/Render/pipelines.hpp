@@ -4,24 +4,34 @@
 namespace Engine
 {
 	class RHIShaderResourceView;
-	class RHIUnorderedAccessView;
 	class RHISampler;
 	class RHIBuffer;
 	class Renderer;
 
 	namespace Pipelines
 	{
-		class ENGINE_EXPORT Blit2D : public GlobalComputePipeline
+		class ENGINE_EXPORT GaussianBlur : public GlobalGraphicsPipeline
 		{
-			trinex_declare_pipeline(Blit2D, GlobalComputePipeline);
+			trinex_declare_pipeline(GaussianBlur, GlobalGraphicsPipeline);
 
-			const RHIShaderParameterInfo* m_src;
-			const RHIShaderParameterInfo* m_dst;
+			const RHIShaderParameterInfo* m_source;
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blit(RHIShaderResourceView* src, RHIUnorderedAccessView* dst, const RHIRect& src_rect, const RHIRect& dst_rect,
-			          uint_t level = 0, Swizzle swizzle = {});
+			void blur(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction, float sigma,
+			          float radius, Swizzle swizzle = {}, RHISampler* sampler = nullptr);
+		};
+
+		class ENGINE_EXPORT Blit2D : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(Blit2D, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_source;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			void blit(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle = {},
+			          RHISampler* sampler = nullptr);
 		};
 
 		class ENGINE_EXPORT BatchedLines : public GlobalGraphicsPipeline
@@ -161,8 +171,8 @@ namespace Engine
 			SSAO& create_samples_buffer(size_t count);
 
 		public:
-			SSAO& apply(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
-			            float fade_out_radius, uint_t samples);
+			SSAO& render(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
+			             float fade_out_radius, uint_t samples);
 		};
 	}// namespace Pipelines
 }// namespace Engine

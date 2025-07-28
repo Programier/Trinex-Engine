@@ -242,6 +242,7 @@ namespace Engine
 		key.polygon_mode       = manager->polygon_mode();
 		key.cull_mode          = manager->cull_mode();
 		key.front_face         = manager->front_face();
+		key.write_mask         = manager->write_mask();
 
 		auto& pipeline = m_pipelines[key];
 
@@ -258,6 +259,11 @@ namespace Engine
 		m_rasterizer.setPolygonMode(key.polygon_mode);
 		m_rasterizer.setCullMode(key.cull_mode);
 		m_rasterizer.setFrontFace(key.front_face);
+
+		for (auto& attachment : m_color_blend_attachment)
+		{
+			attachment.setColorWriteMask(key.write_mask);
+		}
 
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
@@ -321,36 +327,6 @@ namespace Engine
 			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_alpha_func, true))
 			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_alpha_func, true))
 			        .setAlphaBlendOp(VulkanEnums::blend_of(pipeline->blending.alpha_op));
-
-			vk::ColorComponentFlags color_mask;
-
-			{
-				EnumerateType R = enum_value_of(RHIColorComponent::R);
-				EnumerateType G = enum_value_of(RHIColorComponent::G);
-				EnumerateType B = enum_value_of(RHIColorComponent::B);
-				EnumerateType A = enum_value_of(RHIColorComponent::A);
-
-				auto mask = enum_value_of(pipeline->blending.write_mask);
-
-				if ((mask & R) == R)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eR;
-				}
-				if ((mask & G) == G)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eG;
-				}
-				if ((mask & B) == B)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eB;
-				}
-				if ((mask & A) == A)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eA;
-				}
-
-				attachment.setColorWriteMask(color_mask);
-			}
 		}
 
 		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
@@ -523,36 +499,6 @@ namespace Engine
 			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_alpha_func, true))
 			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_alpha_func, true))
 			        .setAlphaBlendOp(VulkanEnums::blend_of(pipeline->blending.alpha_op));
-
-			vk::ColorComponentFlags color_mask;
-
-			{
-				EnumerateType R = enum_value_of(RHIColorComponent::R);
-				EnumerateType G = enum_value_of(RHIColorComponent::G);
-				EnumerateType B = enum_value_of(RHIColorComponent::B);
-				EnumerateType A = enum_value_of(RHIColorComponent::A);
-
-				auto mask = enum_value_of(pipeline->blending.write_mask);
-
-				if ((mask & R) == R)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eR;
-				}
-				if ((mask & G) == G)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eG;
-				}
-				if ((mask & B) == B)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eB;
-				}
-				if ((mask & A) == A)
-				{
-					color_mask |= vk::ColorComponentFlagBits::eA;
-				}
-
-				attachment.setColorWriteMask(color_mask);
-			}
 		}
 
 		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
@@ -582,6 +528,7 @@ namespace Engine
 		key.polygon_mode = manager->polygon_mode();
 		key.cull_mode    = manager->cull_mode();
 		key.front_face   = manager->front_face();
+		key.write_mask   = manager->write_mask();
 
 		auto& pipeline = m_pipelines[key];
 
@@ -597,6 +544,11 @@ namespace Engine
 		m_rasterizer.setPolygonMode(key.polygon_mode);
 		m_rasterizer.setCullMode(key.cull_mode);
 		m_rasterizer.setFrontFace(key.front_face);
+
+		for (auto& attachment : m_color_blend_attachment)
+		{
+			attachment.setColorWriteMask(key.write_mask);
+		}
 
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);

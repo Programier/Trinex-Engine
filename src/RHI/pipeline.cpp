@@ -35,13 +35,11 @@ namespace Engine
 		trinex_refl_prop(src_alpha_func, s_flags);
 		trinex_refl_prop(dst_alpha_func, s_flags);
 		trinex_refl_prop(alpha_op, s_flags)->display_name("Alpha Operator");
-		trinex_refl_prop(write_mask);
 	}
-
 
 	bool RHIDepthTest::serialize(Archive& ar)
 	{
-		return ar.serialize_memory(reinterpret_cast<byte*>(this), sizeof(*this));
+		return ar.serialize(func, enable, write_enable);
 	}
 
 	bool RHIStencilTest::serialize(Archive& ar)
@@ -51,6 +49,6 @@ namespace Engine
 
 	bool RHIColorBlending::serialize(Archive& ar)
 	{
-		return ar.serialize_memory(reinterpret_cast<byte*>(this), sizeof(*this));
+		return ar.serialize(src_color_func, dst_color_func, color_op, src_alpha_func, dst_alpha_func, alpha_op, enable);
 	}
 }// namespace Engine

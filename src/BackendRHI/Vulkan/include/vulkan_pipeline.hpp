@@ -40,11 +40,12 @@ namespace Engine
 			vk::PolygonMode polygon_mode;
 			vk::CullModeFlags cull_mode;
 			vk::FrontFace front_face;
+			vk::ColorComponentFlags write_mask;
 
 			inline bool operator==(const Key& key) const
 			{
 				return pass == key.pass && primitive_topology == key.primitive_topology && polygon_mode == key.polygon_mode &&
-				       cull_mode == key.cull_mode && front_face == key.front_face;
+				       cull_mode == key.cull_mode && front_face == key.front_face && write_mask == key.write_mask;
 			}
 		};
 
@@ -82,11 +83,12 @@ namespace Engine
 			vk::PolygonMode polygon_mode;
 			vk::CullModeFlags cull_mode;
 			vk::FrontFace front_face;
+			vk::ColorComponentFlags write_mask;
 
 			inline bool operator==(const Key& key) const
 			{
 				return pass == key.pass && polygon_mode == key.polygon_mode && cull_mode == key.cull_mode &&
-				       front_face == key.front_face;
+				       front_face == key.front_face && write_mask == key.write_mask;
 			}
 		};
 

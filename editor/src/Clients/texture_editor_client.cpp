@@ -22,9 +22,9 @@ namespace Engine
 	static inline void copy_texture_to_surface(RenderSurface* dst, RHIShaderResourceView* srv, float power, uint_t level,
 	                                           Swizzle swizzle)
 	{
-		RHIRect rect(dst->size());
-		auto pipeline = Pipelines::Blit2D::instance();
-		pipeline->blit(srv, dst->rhi_uav(), rect, rect, level, swizzle);
+		// RHIRect rect(dst->size());
+		// auto pipeline = Pipelines::Blit2D::instance();
+		// pipeline->blit(srv, dst->rhi_uav(), rect, rect, level, swizzle);
 	}
 
 	static inline Swizzle modify_swizzle(Swizzle swizzle, RHIColorFormat format)
@@ -250,7 +250,7 @@ namespace Engine
 		if (!m_surface)
 			return *this;
 
-		copy_texture_to_surface(surface, m_surface->rhi_srv(), pow_factor(), 0, modify_swizzle(swizzle(), m_surface->format()));
+		// copy_texture_to_surface(surface, m_surface->rhi_srv(), pow_factor(), 0, modify_swizzle(swizzle(), m_surface->format()));
 		return *this;
 	}
 

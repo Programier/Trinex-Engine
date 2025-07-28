@@ -64,8 +64,9 @@ namespace Engine
 			PolygonMode       = 1 << 3,
 			CullMode          = 1 << 4,
 			FrontFace         = 1 << 5,
+			WriteMask         = 1 << 6,
 
-			GraphicsMask = RenderTarget | Pipeline | PrimitiveTopology | PolygonMode | CullMode | FrontFace,
+			GraphicsMask = RenderTarget | Pipeline | PrimitiveTopology | PolygonMode | CullMode | FrontFace | WriteMask,
 			ComputeMask  = Pipeline,
 		};
 
@@ -101,6 +102,8 @@ namespace Engine
 		vk::PolygonMode m_polygon_mode             = vk::PolygonMode::eFill;
 		vk::CullModeFlags m_cull_mode              = vk::CullModeFlagBits::eNone;
 		vk::FrontFace m_front_face                 = vk::FrontFace::eClockwise;
+		vk::ColorComponentFlags m_write_mask       = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+		                                       vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
 
 	private:
@@ -185,6 +188,16 @@ namespace Engine
 			return *this;
 		}
 
+		VulkanStateManager& bind(vk::ColorComponentFlags write_mask)
+		{
+			if (m_write_mask != write_mask)
+			{
+				m_write_mask = write_mask;
+				m_dirty_flags |= WriteMask;
+			}
+			return *this;
+		}
+
 		VulkanCommandBuffer* begin_render_pass();
 		VulkanCommandBuffer* end_render_pass();
 		VulkanCommandBuffer* flush_graphics();
@@ -199,6 +212,7 @@ namespace Engine
 		inline vk::PolygonMode polygon_mode() const { return m_polygon_mode; }
 		inline vk::CullModeFlags cull_mode() const { return m_cull_mode; }
 		inline vk::FrontFace front_face() const { return m_front_face; }
+		inline vk::ColorComponentFlags write_mask() const { return m_write_mask; }
 
 		friend class VulkanUniformBuffer;
 	};

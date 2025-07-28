@@ -191,6 +191,7 @@ namespace Engine
 		VulkanAPI& polygon_mode(RHIPolygonMode mode) override;
 		VulkanAPI& cull_mode(RHICullMode mode) override;
 		VulkanAPI& front_face(RHIFrontFace face) override;
+		VulkanAPI& write_mask(RHIColorComponent mask) override;
 
 		VulkanAPI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
 		VulkanAPI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;

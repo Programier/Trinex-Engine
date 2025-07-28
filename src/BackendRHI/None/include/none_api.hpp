@@ -49,6 +49,7 @@ namespace Engine
 		NoneApi& polygon_mode(RHIPolygonMode mode) override;
 		NoneApi& cull_mode(RHICullMode mode) override;
 		NoneApi& front_face(RHIFrontFace face) override;
+		NoneApi& write_mask(RHIColorComponent mask) override;
 
 		NoneApi& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
 		NoneApi& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;
