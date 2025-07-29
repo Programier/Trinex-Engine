@@ -7,19 +7,15 @@ namespace Engine
 		enum Enum : EnumerateType
 		{
 			None              = 0,
-			Sprite            = BIT(0),
-			Wireframe         = BIT(1),
-			Gizmo             = BIT(2),
-			PointLights       = BIT(3),
-			SpotLights        = BIT(4),
-			DirectionalLights = BIT(5),
-			PostProcess       = BIT(6),
-			StaticMesh        = BIT(7),
-			LightOctree       = BIT(8),
-			PrimitiveOctree   = BIT(9),
-			Statistics        = BIT(10),
+			Statistics        = BIT(1),
+			PointLights       = BIT(2),
+			SpotLights        = BIT(3),
+			DirectionalLights = BIT(4),
+			PostProcess       = BIT(5),
+			StaticMesh        = BIT(6),
+			PrimitiveBounds   = BIT(7),
 
-			DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess,
+			DefaultFlags = PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess,
 		};
 
 		trinex_bitfield_enum_struct(ShowFlags, EnumerateType);

@@ -25,6 +25,8 @@ namespace Engine
 		FrameVector<Matrix4f> m_shadow_projections;
 
 	private:
+		DeferredRenderer& register_debug_lines();
+		
 		DeferredRenderer& register_shadow_light(SpotLightComponent* light, uint_t index);
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass();

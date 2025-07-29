@@ -249,6 +249,15 @@ namespace Engine::Importer
 
 		StaticMesh* load_static_mesh(const aiScene* scene, const aiNode* node)
 		{
+
+			String name = node->mName.C_Str() ? String(node->mName.C_Str())
+			                                  : Strings::format("Static Mesh {}", static_cast<const void*>(node));
+
+			StaticMesh* static_mesh = package->find_child_object_checked<StaticMesh>(name);
+
+			if (static_mesh)
+				return static_mesh;
+
 			unsigned int meshes_count = node->mNumMeshes;
 			if (meshes_count == 0 || node->mMeshes == nullptr)
 				return nullptr;
@@ -264,10 +273,7 @@ namespace Engine::Importer
 				faces_count += mesh->mNumFaces;
 			}
 
-			String name = node->mName.C_Str() ? String(node->mName.C_Str())
-			                                  : Strings::format("Static Mesh {}", static_cast<const void*>(node));
-
-			StaticMesh* static_mesh = Object::new_instance<StaticMesh>(name.c_str(), package);
+			static_mesh = Object::new_instance<StaticMesh>(name.c_str(), package);
 			static_mesh->materials.resize(meshes_count);
 
 			static_mesh->lods.resize(1);

@@ -676,20 +676,16 @@ namespace Engine
 
 					if (ImGui::BeginMenu("editor/Show Flags"_localized))
 					{
-						render_show_flag(m_show_flags, ShowFlags::Statistics, "Statistics");
-						render_show_flag(m_show_flags, ShowFlags::Sprite, "Sprite");
-						render_show_flag(m_show_flags, ShowFlags::StaticMesh, "Static Mesh");
-						render_show_flag(m_show_flags, ShowFlags::Wireframe, "Wireframe");
-						render_show_flag(m_show_flags, ShowFlags::Gizmo, "Gizmo");
-						render_show_flag(m_show_flags, ShowFlags::PointLights, "Point Lights");
-						render_show_flag(m_show_flags, ShowFlags::SpotLights, "Spot Lights");
-						render_show_flag(m_show_flags, ShowFlags::DirectionalLights, "Directional Lights");
-						render_show_flag(m_show_flags, ShowFlags::PostProcess, "Post Process");
-						render_show_flag(m_show_flags, ShowFlags::LightOctree, "Light Octree");
-						render_show_flag(m_show_flags, ShowFlags::PrimitiveOctree, "Primitive Octree");
+						for (auto& entry : ShowFlags::static_reflection()->entries())
+						{
+							render_show_flag(m_show_flags, entry.value, entry.name.c_str());
+						}
+
 						ImGui::Checkbox("Show Grid", &Settings::Editor::show_grid);
 						ImGui::EndMenu();
 					}
+
+					ImGui::DragFloat("Camera Speed", &m_camera_speed, 0.5f, 1.f, 512.f);
 				}
 
 				ImGui::EndPopup();

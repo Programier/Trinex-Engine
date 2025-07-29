@@ -56,21 +56,20 @@ namespace Lighting
 		return geometry_schlick_ggx(normal_dot_l, roughness) * geometry_schlick_ggx(normal_dot_v, roughness);
 	}
 
+	[ForceInline]
 	float3 fresnel_schlick(in float cos_theta, in float3 F0)
 	{
 		return F0 + (1.0 - F0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
 	}
 
+	[ForceInline]
 	float3 normalize_normal(float3 normal, in float3 view)
 	{
 		normal = normalize(normal);
-
-		if (dot(normal, view) < 0.0)
-			normal = -normal;
-
-		return normal;
+		return normal * sign(dot(normal, view));
 	}
 
+	[ForceInline]
 	float fresnel_zero_reflectance(in float specular)
 	{
 		float IOR = lerp(1.3, 1.7, specular);

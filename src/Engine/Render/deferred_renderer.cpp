@@ -119,6 +119,24 @@ namespace Engine
 
 			default: break;
 		}
+
+		register_debug_lines();
+	}
+
+	DeferredRenderer& DeferredRenderer::register_debug_lines()
+	{
+		ShowFlags flags = scene_view().show_flags();
+
+		if (flags & ShowFlags::PrimitiveBounds)
+		{
+			for (PrimitiveComponent* component : m_visible_primitives)
+			{
+				auto& bounds = component->proxy()->bounding_box();
+				bounds.write_to_batcher(lines, {255, 255, 0, 255});
+			}
+		}
+
+		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, uint_t index)
