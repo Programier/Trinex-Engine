@@ -1,4 +1,4 @@
-import "trinex/lighting.slang";
+import "trinex/lighting/lighting.slang";
 import "trinex/trinex.slang";
 import "trinex/scene_view.slang";
 import "trinex/quad.slang";

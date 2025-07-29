@@ -1,4 +1,4 @@
-import "trinex/lighting.slang";
+import "trinex/lighting/lighting.slang";
 
 namespace Lighting
 {

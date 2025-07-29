@@ -123,7 +123,7 @@ namespace Engine::Pipelines
 		color_blending.color_op       = RHIBlendOp::Add;
 	}
 
-	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
+	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		Super::initialize();
 	}
@@ -131,11 +131,11 @@ namespace Engine::Pipelines
 	DeferredPointLightShadowed& DeferredPointLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/lights/point_light.slang");
+		env->add_module("trinex/lighting/point_light.slang");
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredPointLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
+	trinex_implement_pipeline(DeferredPointLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		Super::initialize();
 	}
@@ -143,11 +143,11 @@ namespace Engine::Pipelines
 	DeferredPointLight& DeferredPointLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/lights/point_light.slang");
+		env->add_module("trinex/lighting/point_light.slang");
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredSpotLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
+	trinex_implement_pipeline(DeferredSpotLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		Super::initialize();
 	}
@@ -155,11 +155,11 @@ namespace Engine::Pipelines
 	DeferredSpotLightShadowed& DeferredSpotLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/lights/shadowed_spot_light.slang");
+		env->add_module("trinex/lighting/shadowed_spot_light.slang");
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredSpotLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
+	trinex_implement_pipeline(DeferredSpotLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		Super::initialize();
 	}
@@ -167,12 +167,11 @@ namespace Engine::Pipelines
 	DeferredSpotLight& DeferredSpotLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/lights/spot_light.slang");
+		env->add_module("trinex/lighting/spot_light.slang");
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredDirectionalLightShadowed,
-	                          "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
+	trinex_implement_pipeline(DeferredDirectionalLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		Super::initialize();
 	}
@@ -180,11 +179,11 @@ namespace Engine::Pipelines
 	DeferredDirectionalLightShadowed& DeferredDirectionalLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/lights/directional_light.slang");
+		env->add_module("trinex/lighting/directional_light.slang");
 		return *this;
 	}
 
-	trinex_implement_pipeline(DeferredDirectionalLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/deferred_light.slang")
+	trinex_implement_pipeline(DeferredDirectionalLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		Super::initialize();
 	}
@@ -192,11 +191,11 @@ namespace Engine::Pipelines
 	DeferredDirectionalLight& DeferredDirectionalLight::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		Super::modify_compilation_env(env);
-		env->add_module("trinex/lights/directional_light.slang");
+		env->add_module("trinex/lighting/directional_light.slang");
 		return *this;
 	}
 
-	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/graphics/ambient_light.slang")
+	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/ambient.slang")
 	{
 		//setup_lighting_pipeline_state(this);
 
