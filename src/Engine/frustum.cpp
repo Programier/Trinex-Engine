@@ -10,12 +10,12 @@ namespace Engine
 	Plane::Plane(const Vector3f& _p1, const Vector3f& _normal) : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
 	{}
 
-	float Plane::signed_distance_to_plane(const Point3D& point) const
+	float Plane::signed_distance_to_plane(const Vector3f& point) const
 	{
 		return glm::dot(normal, point) - distance;
 	}
 
-	bool Plane::is_on_or_forward(const Point3D& point) const
+	bool Plane::is_on_or_forward(const Vector3f& point) const
 	{
 		return signed_distance_to_plane(point) >= 0.f;
 	}

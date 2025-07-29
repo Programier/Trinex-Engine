@@ -13,9 +13,9 @@ namespace Engine
 
 	public:
 		Ray(const Vector3f& origin = {0.f, 0.f, 0.f}, const Vector3f& direction = {0.0f, 0.0f, 0.0f});
-		const Point3D& origin() const;
-		const Point3D& direction() const;
-		Ray& origin(const Point3D& origin);
+		const Vector3f& origin() const;
+		const Vector3f& direction() const;
+		Ray& origin(const Vector3f& origin);
 		Ray& direction(const Vector3f& direction);
 
 		bool intersect(const AABB_3Df&) const;

@@ -9,7 +9,7 @@ namespace Engine
 	class Path;
 
 	struct ENGINE_EXPORT FontConfig {
-		Size2D image_size;
+		Vector2u image_size;
 		Color color;
 		Vector2u font_size;
 		bool dynamic_size;
@@ -26,7 +26,7 @@ namespace Engine
 		bool load(const Buffer& buffer);
 		bool load(const byte* buffer, size_t size);
 		Font& close();
-		Size2D calc_text_size(const StringView& text, Vector2u font_size) const;
+		Vector2u calc_text_size(const StringView& text, Vector2u font_size) const;
 		Image render(const StringView& text, const FontConfig* config = nullptr) const;
 		bool is_valid() const;
 

@@ -213,16 +213,16 @@ namespace Engine
 		return *this;
 	}
 
-	WindowRenderViewport& WindowRenderViewport::on_resize(const Size2D& new_size)
+	WindowRenderViewport& WindowRenderViewport::on_resize(const Vector2u& size)
 	{
 		if (is_in_render_thread())
 		{
-			m_swapchain->resize(new_size);
+			m_swapchain->resize(size);
 		}
 		else
 		{
-			m_size = new_size;
-			render_thread()->call([swapchain = m_swapchain, new_size]() { swapchain->resize(new_size); });
+			m_size = size;
+			render_thread()->call([swapchain = m_swapchain, size]() { swapchain->resize(size); });
 		}
 		return *this;
 	}

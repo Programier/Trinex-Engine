@@ -143,7 +143,7 @@ namespace Engine
 		return *this;
 	}
 
-	WindowSDL& WindowSDL::size(const Size2D& size)
+	WindowSDL& WindowSDL::size(const Vector2u& size)
 	{
 		SDL_SetWindowSize(m_window, size.x, size.y);
 		return *this;
@@ -160,7 +160,7 @@ namespace Engine
 		return *this;
 	}
 
-	Point2D WindowSDL::position()
+	Vector2u WindowSDL::position()
 	{
 		int x, y;
 		SDL_GetWindowPosition(m_window, &x, &y);
@@ -169,7 +169,7 @@ namespace Engine
 		return {x, info.size.y - (y + size().y)};
 	}
 
-	WindowSDL& WindowSDL::position(const Point2D& position)
+	WindowSDL& WindowSDL::position(const Vector2u& position)
 	{
 		size_t index = monitor_index();
 		auto info    = Platform::monitor_info(index);

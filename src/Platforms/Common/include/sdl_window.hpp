@@ -29,11 +29,11 @@ namespace Engine
 		WindowSDL* sdl_initialize(const WindowConfig* config);
 		WindowSDL& width(float_t width) override;
 		WindowSDL& height(float_t height) override;
-		WindowSDL& size(const Size2D& size) override;
+		WindowSDL& size(const Vector2u& size) override;
 		String title() override;
 		WindowSDL& title(const String& title) override;
-		Point2D position() override;
-		WindowSDL& position(const Point2D& position) override;
+		Vector2u position() override;
+		WindowSDL& position(const Vector2u& position) override;
 		bool resizable() override;
 		WindowSDL& resizable(bool value) override;
 		WindowSDL& focus() override;

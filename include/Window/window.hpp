@@ -24,21 +24,21 @@ namespace Engine
 		Vector<Window*> m_childs;
 
 	protected:
-		Atomic<Size2D> m_size;
+		Atomic<Vector2u> m_size;
 
 	public:
 		virtual void initialize(const WindowConfig&);
 		float_t width();
 		float_t height();
-		Size2D size();
+		Vector2u size();
 
 		virtual Window& width(float_t width);
 		virtual Window& height(float_t height);
-		virtual Window& size(const Size2D& size);
+		virtual Window& size(const Vector2u& size);
 		virtual String title();
 		virtual Window& title(const String& title);
-		virtual Point2D position();
-		virtual Window& position(const Point2D& position);
+		virtual Vector2u position();
+		virtual Window& position(const Vector2u& position);
 		virtual bool resizable();
 		virtual Window& resizable(bool value);
 		virtual Window& focus();

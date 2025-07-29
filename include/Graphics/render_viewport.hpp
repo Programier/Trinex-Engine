@@ -30,7 +30,7 @@ namespace Engine
 
 	protected:
 		Pointer<ViewportClient> m_client;
-		Size2D m_size;
+		Vector2u m_size;
 		static Vector<RenderViewport*> m_viewports;
 
 	public:
@@ -38,8 +38,8 @@ namespace Engine
 		~RenderViewport();
 
 		virtual RHIRenderTargetView* rhi_rtv() = 0;
-		virtual RenderViewport& rhi_present()   = 0;
-		inline Size2D size() const { return m_size; }
+		virtual RenderViewport& rhi_present()  = 0;
+		inline Vector2u size() const { return m_size; }
 
 		RenderViewport& update(float dt);
 		ViewportClient* client() const;
@@ -61,7 +61,7 @@ namespace Engine
 		Window* window() const;
 
 		WindowRenderViewport& vsync(bool flag);
-		WindowRenderViewport& on_resize(const Size2D& new_size);
+		WindowRenderViewport& on_resize(const Vector2u& size);
 		WindowRenderViewport& on_orientation_changed(Orientation orientation);
 
 		WindowRenderViewport& rhi_present() override;

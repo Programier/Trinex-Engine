@@ -958,7 +958,7 @@ namespace Engine
 				auto pos    = wd->position();
 				auto info   = Platform::monitor_info(wd->monitor_index());
 				float new_y = -pos.y + info.size.y - wd->size().y;
-				return {pos.x, new_y};
+				return {static_cast<float>(pos.x), static_cast<float>(new_y)};
 			}
 
 			return {0, 0};
@@ -977,7 +977,7 @@ namespace Engine
 			if (Engine::Window* wd = window_from(vp))
 			{
 				auto size = wd->size();
-				return {size.x, size.y};
+				return {static_cast<float>(size.x), static_cast<float>(size.y)};
 			}
 
 			return {0, 0};
@@ -1088,8 +1088,8 @@ namespace Engine
 			ImGuiIO& io = ImGui::GetIO();
 			auto bd     = imgui_trinex_backend_data();
 
-			auto size            = window->size();
-			Size2D drawable_size = window->size();
+			Vector2f size          = Vector2f(window->size());
+			Vector2f drawable_size = Vector2f(window->size());
 
 			io.DisplaySize = ImVec2(size.x, size.y);
 			if (drawable_size.x > 0 && drawable_size.y > 0)
@@ -1428,7 +1428,7 @@ namespace Engine
 
 			m_draw_data.swap_render_index();
 		});
-		
+
 		make_current(nullptr);
 
 		return *this;

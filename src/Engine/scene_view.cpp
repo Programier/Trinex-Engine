@@ -5,7 +5,7 @@ namespace Engine
 
 	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
 
-	SceneView::SceneView(const CameraView& view, const Size2D& view_size, ShowFlags show_flags)
+	SceneView::SceneView(const CameraView& view, const Vector2f& view_size, ShowFlags show_flags)
 	    : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_show_flags(show_flags)
 	{
 		m_viewport.pos       = {0, 0};
@@ -60,7 +60,7 @@ namespace Engine
 	Vector3f SceneView::screen_to_ray_direction(const Vector2f& screen_point) const
 	{
 		int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
-		Size2D m_size = view_size();
+		Vector2f m_size = view_size();
 
 		float u = (x - m_size.x / 2.f) / (m_size.x / 2.f);
 		float v = (y - m_size.y / 2.f) / (m_size.y / 2.f);

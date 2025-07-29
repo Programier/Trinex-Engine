@@ -16,8 +16,8 @@ namespace Engine
 	namespace Platform
 	{
 		struct ENGINE_EXPORT MonitorInfo {
-			Size2D pos;
-			Size2D size;
+			Vector2u pos;
+			Vector2u size;
 			float dpi;
 		};
 

@@ -136,7 +136,7 @@ namespace Engine
 		Node* m_selected = nullptr;
 		ImGuiID m_dock_id;
 
-		Size2D m_monitor_size;
+		Vector2u m_monitor_size;
 		Vector3f m_location = {0, 0, 0};
 		Vector3f m_rotation = {0, 0, 0};
 		Vector3f m_scale    = {1, 1, 1};
@@ -170,7 +170,7 @@ namespace Engine
 		virtual const char* name() const;
 		static const char* static_name();
 	};
-	
+
 	class ImGuiStyleEditor : public ImGuiWidget
 	{
 	public:

@@ -32,7 +32,7 @@ namespace Engine
 
 		auto size = ImGui::GetFontSize();
 		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2u), ImGuiCond_Once, {0.5, 0.5});
 
 		if (ImGui::Begin(name(), &open, window_flags))
 		{
@@ -85,7 +85,7 @@ namespace Engine
 
 		auto size = ImGui::GetFontSize();
 		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2u), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -164,7 +164,7 @@ namespace Engine
 		auto size = ImGui::GetFontSize();
 
 		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2u), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Parent: %s", m_parent->full_name().c_str());
@@ -228,7 +228,7 @@ namespace Engine
 
 		auto size = ImGui::GetFontSize();
 		ImGui::SetNextWindowSize(ImVec2(23 * size, 11 * size), ImGuiCond_Once);
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2.0f), ImGuiCond_Once, {0.5, 0.5});
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2u), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Object: %s", m_object->full_name().c_str());
@@ -259,7 +259,7 @@ namespace Engine
 				if (m_object->rename(new_object_name))
 				{
 					ImGuiWindow::current()->widgets.create<ImGuiNotificationMessage>("Failed to rename object",
-					                                                                      ImGuiNotificationMessage::Error);
+					                                                                 ImGuiNotificationMessage::Error);
 				}
 
 				open = false;
@@ -488,7 +488,7 @@ namespace Engine
 	{
 		m_is_open      = true;
 		auto font_size = ImGui::GetFontSize();
-		ImGui::SetNextWindowPos(ImGui::ImVecFrom(m_monitor_size / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
+		ImGui::SetNextWindowPos(ImGui::ImVecFrom(m_monitor_size / 2u), ImGuiCond_Appearing, {0.5f, 0.5f});
 		ImGui::SetNextWindowSize({50 * font_size, 25 * font_size}, ImGuiCond_Appearing);
 		ImGui::Begin(name(), &m_is_open);
 

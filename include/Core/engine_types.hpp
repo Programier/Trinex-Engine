@@ -31,19 +31,6 @@ namespace Engine
 	using size_t      = std::uint64_t;
 	using ptrdiff_t   = std::int64_t;
 
-	using Point2D  = glm::vec2;
-	using Offset2D = glm::vec2;
-	using Size2D   = glm::vec2;
-
-	using Point3D      = glm::vec3;
-	using Offset3D     = glm::vec3;
-	using Size3D       = glm::vec3;
-	using Scale3D      = glm::vec3;
-	using Translate3D  = glm::vec3;
-	using EulerAngle3D = glm::vec3;
-	using Force        = glm::vec3;
-	using LightColor   = glm::vec3;
-
 	template<size_t N, typename T>
 	using VectorNT = glm::vec<N, T, glm::defaultp>;
 

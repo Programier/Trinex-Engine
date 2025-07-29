@@ -31,12 +31,12 @@ namespace Engine
 		return *this;
 	}
 
-	Size2D Window::size()
+	Vector2u Window::size()
 	{
 		return m_size.load();
 	}
 
-	Window& Window::size(const Size2D& size)
+	Window& Window::size(const Vector2u& size)
 	{
 		return *this;
 	}
@@ -51,12 +51,12 @@ namespace Engine
 		return *this;
 	}
 
-	Point2D Window::position()
+	Vector2u Window::position()
 	{
-		return {0.f, 0.f};
+		return {0, 0};
 	}
 
-	Window& Window::position(const Point2D& position)
+	Window& Window::position(const Vector2u& position)
 	{
 		return *this;
 	}

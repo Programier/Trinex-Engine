@@ -118,7 +118,7 @@ namespace Engine
 		}
 	}
 
-	Size2D Font::calc_text_size(const StringView& text, Vector2u font_size) const
+	Vector2u Font::calc_text_size(const StringView& text, Vector2u font_size) const
 	{
 		if (!is_valid() || text.empty())
 			return {0, 0};
@@ -166,7 +166,7 @@ namespace Engine
 		if (!config->dynamic_size)
 			FT_Set_Pixel_Sizes(face, config->font_size.x, config->font_size.y);
 
-		Size2D image_size = config->dynamic_size ? calc_text_size(text, config->font_size) : config->image_size;
+		Vector2u image_size = config->dynamic_size ? calc_text_size(text, config->font_size) : config->image_size;
 		Image image(image_size, 4);
 
 		if (config->font_size.y == 0)

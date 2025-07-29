@@ -11,8 +11,8 @@ namespace Engine
 
 		String title;
 		String client;
-		Size2D size;
-		Point2D position = {-1, -1};
+		Vector2u size;
+		Vector2u position = {-1, -1};
 
 		bool vsync;
 

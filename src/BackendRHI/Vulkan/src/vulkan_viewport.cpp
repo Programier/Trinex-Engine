@@ -114,7 +114,7 @@ namespace Engine
 		m_image_present_semaphores.resize(images.size() + 1);
 		m_render_finished_semaphores.resize(images.size());
 
-		Size2D size = {swapchain->extent.width, swapchain->extent.height};
+		Vector2u size = {swapchain->extent.width, swapchain->extent.height};
 
 		for (int_t i = 0; auto& backbuffer : m_backbuffers)
 		{
