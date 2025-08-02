@@ -5,26 +5,23 @@
 
 namespace Engine
 {
-	Plane::Plane() : normal(Constants::zero_vector), distance(0.f) {}
-
-	Plane::Plane(const Vector3f& _p1, const Vector3f& _normal) : normal(glm::normalize(_normal)), distance(glm::dot(normal, _p1))
+	Plane::Plane() : m_normal(Constants::zero_vector), m_distance(0.f) {}
+	Plane::Plane(const Vector3f& normal, float distance) : m_normal(glm::normalize(normal)), m_distance(distance) {}
+	Plane::Plane(const Vector3f& normal, const Vector3f& location)
+	    : m_normal(glm::normalize(normal)), m_distance(glm::dot(m_normal, location))
 	{}
 
-	float Plane::signed_distance_to_plane(const Vector3f& point) const
+	float Plane::distance_to(const Vector3f& point) const
 	{
-		return glm::dot(normal, point) - distance;
+		return glm::dot(m_normal, point) - m_distance;
 	}
 
-	bool Plane::is_on_or_forward(const Vector3f& point) const
+	float Plane::distance_to(const AABB_3Df& box) const
 	{
-		return signed_distance_to_plane(point) >= 0.f;
-	}
-
-	bool Plane::is_on_or_forward(const AABB_3Df& box) const
-	{
-		const auto extents = box.extents();
-		const float r      = extents.x * std::abs(normal.x) + extents.y * std::abs(normal.y) + extents.z * std::abs(normal.z);
-		return -r <= signed_distance_to_plane(box.center());
+		Vector3f extents     = box.extents();
+		const float distance = distance_to(box.center());
+		const float r = extents.x * std::abs(m_normal.x) + extents.y * std::abs(m_normal.y) + extents.z * std::abs(m_normal.z);
+		return distance + r;
 	}
 
 	Frustum::Frustum(const CameraView& camera)
@@ -39,26 +36,25 @@ namespace Engine
 
 		const Vector3f front_mult_far = view.far_clip_plane * view.forward_vector;
 
-		near = {view.location + view.near_clip_plane * view.forward_vector, view.forward_vector};
-		far  = {view.location + front_mult_far, -view.forward_vector};
+		near = Plane(view.forward_vector, view.location + view.near_clip_plane * view.forward_vector);
+		far  = Plane(-view.forward_vector, view.location + front_mult_far);
 
-		right  = {view.location, glm::cross(view.up_vector, front_mult_far + view.right_vector * half_h_side)};
-		left   = {view.location, glm::cross(front_mult_far - view.right_vector * half_h_side, view.up_vector)};
-		top    = {view.location, glm::cross(view.right_vector, front_mult_far - view.up_vector * half_v_side)};
-		bottom = {view.location, glm::cross(front_mult_far + view.up_vector * half_v_side, view.right_vector)};
+		right  = Plane(glm::cross(view.up_vector, front_mult_far + view.right_vector * half_h_side), view.location);
+		left   = Plane(glm::cross(front_mult_far - view.right_vector * half_h_side, view.up_vector), view.location);
+		top    = Plane(glm::cross(view.right_vector, front_mult_far - view.up_vector * half_v_side), view.location);
+		bottom = Plane(glm::cross(front_mult_far + view.up_vector * half_v_side, view.right_vector), view.location);
 
 		return *this;
 	}
 
 	bool Frustum::in_frustum(const AABB_3Df& box) const
 	{
-		bool r1 = left.is_on_or_forward(box);
-		bool r2 = right.is_on_or_forward(box);
-		bool r3 = top.is_on_or_forward(box);
-		bool r4 = bottom.is_on_or_forward(box);
-		bool r5 = near.is_on_or_forward(box);
-		bool r6 = far.is_on_or_forward(box);
+		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
+		{
+			if (plane->distance_to(box) < 0.f)
+				return false;
+		}
 
-		return r1 && r2 && r3 && r4 && r5 && r6;
+		return true;
 	}
 }// namespace Engine

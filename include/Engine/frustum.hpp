@@ -6,19 +6,26 @@ namespace Engine
 	struct CameraView;
 	class AABB_3Df;
 
-	struct ENGINE_EXPORT Plane {
-		Vector3f normal;
-		float distance;
+	class ENGINE_EXPORT Plane
+	{
+	private:
+		Vector3f m_normal;
+		float m_distance;
 
+	public:
 		Plane();
-		Plane(const Vector3f& p1, const Vector3f& norm);
-		float signed_distance_to_plane(const Vector3f& point) const;
-		bool is_on_or_forward(const Vector3f& point) const;
-		bool is_on_or_forward(const AABB_3Df& box) const;
+		Plane(const Vector3f& normal, float distance);
+		Plane(const Vector3f& normal, const Vector3f& location);
+
+		inline const Vector3f& normal() const { return m_normal; }
+		inline float distance() const { return m_distance; }
+		inline Vector3f location() const { return m_normal * m_distance; }
+
+		float distance_to(const Vector3f& point) const;
+		float distance_to(const AABB_3Df& box) const;
 	};
 
 	struct ENGINE_EXPORT Frustum {
-
 		Plane top;
 		Plane bottom;
 		Plane right;
@@ -28,7 +35,6 @@ namespace Engine
 
 		Frustum(const CameraView& camera);
 		Frustum& operator=(const CameraView& view);
-
 		bool in_frustum(const AABB_3Df& box) const;
 	};
 }// namespace Engine
