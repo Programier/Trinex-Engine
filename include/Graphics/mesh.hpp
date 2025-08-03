@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/math/box.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
-#include <Engine/aabb.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
 namespace Engine
@@ -53,7 +53,7 @@ namespace Engine
 		};
 
 		Vector<MaterialInterface*> materials;
-		AABB_3Df bounds;
+		Box3f bounds;
 		Vector<LOD> lods;
 
 		StaticMesh();

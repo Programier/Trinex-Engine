@@ -55,7 +55,7 @@ namespace Engine
 	{
 		const Vector3f& location = world_transform().location();
 		Vector3f extends         = {m_attenuation_radius, m_attenuation_radius, m_attenuation_radius};
-		m_bounding_box           = AABB_3Df(location - extends, location + extends);
+		m_bounding_box           = Box3f(location - extends, location + extends);
 		return *this;
 	}
 }// namespace Engine

@@ -1,10 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/math/vector.hpp>
 
 namespace Engine
 {
 	struct CameraView;
-	class AABB_3Df;
 
 	class ENGINE_EXPORT Plane
 	{
@@ -22,7 +22,7 @@ namespace Engine
 		inline Vector3f location() const { return m_normal * m_distance; }
 
 		float distance_to(const Vector3f& point) const;
-		float distance_to(const AABB_3Df& box) const;
+		float distance_to(const Box3f& box) const;
 	};
 
 	struct ENGINE_EXPORT Frustum {
@@ -35,6 +35,6 @@ namespace Engine
 
 		Frustum(const CameraView& camera);
 		Frustum& operator=(const CameraView& view);
-		bool in_frustum(const AABB_3Df& box) const;
+		bool in_frustum(const Box3f& box) const;
 	};
 }// namespace Engine

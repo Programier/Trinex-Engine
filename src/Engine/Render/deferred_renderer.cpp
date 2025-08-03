@@ -132,7 +132,7 @@ namespace Engine
 			for (PrimitiveComponent* component : m_visible_primitives)
 			{
 				auto& bounds = component->proxy()->bounding_box();
-				bounds.write_to_batcher(lines, {255, 255, 0, 255});
+				lines.add_box(bounds.min - Vector3f(0.01f), bounds.max + Vector3f(0.01f), {255, 255, 0, 255}, 3.f);
 			}
 		}
 

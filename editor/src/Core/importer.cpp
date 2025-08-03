@@ -3,6 +3,7 @@
 #include <Core/filesystem/path.hpp>
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Core/package.hpp>
 #include <Core/thread_manager.hpp>
 #include <Core/threading.hpp>
@@ -328,8 +329,8 @@ namespace Engine::Importer
 				auto min_pos = vector_from_assimp_vec(mesh->mAABB.mMin);
 				auto max_pos = vector_from_assimp_vec(mesh->mAABB.mMax);
 
-				bounds.min(glm::min(min_pos, bounds.min()));
-				bounds.max(glm::max(max_pos, bounds.max()));
+				bounds.min = Math::min(min_pos, bounds.min);
+				bounds.max = Math::max(max_pos, bounds.max);
 			}
 
 			static_mesh->init_render_resources();

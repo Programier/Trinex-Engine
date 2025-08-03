@@ -77,6 +77,8 @@ namespace Engine
 		                        float thickness = 1.f);
 		BatchedLines& add_cone(const Vector3f& position, const Vector3f& direction, float radius,
 		                       const Color& color = {255, 255, 255, 255}, uint_t segments = 0, float thickness = 1.f);
+		BatchedLines& add_box(const Vector3f& min, const Vector3f& max, const Color& color = {255, 255, 255, 255},
+		                      float thickness = 1.f);
 
 		BatchedLines& flush(Renderer* renderer);
 

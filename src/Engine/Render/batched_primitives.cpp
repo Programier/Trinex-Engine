@@ -128,12 +128,31 @@ namespace Engine
 		return add_circle(position, direction, radius, color, segments, thickness);
 	}
 
+	BatchedLines& BatchedLines::add_box(const Vector3f& min, const Vector3f& max, const Color& color, float thickness)
+	{
+		add_line(Vertex({min.x, min.y, min.z}, color, thickness), Vertex({max.x, min.y, min.z}, color, thickness));
+		add_line(Vertex({min.x, max.y, min.z}, color, thickness), Vertex({max.x, max.y, min.z}, color, thickness));
+		add_line(Vertex({min.x, min.y, max.z}, color, thickness), Vertex({max.x, min.y, max.z}, color, thickness));
+		add_line(Vertex({min.x, max.y, max.z}, color, thickness), Vertex({max.x, max.y, max.z}, color, thickness));
+
+		add_line(Vertex({min.x, min.y, min.z}, color, thickness), Vertex({min.x, max.y, min.z}, color, thickness));
+		add_line(Vertex({max.x, min.y, min.z}, color, thickness), Vertex({max.x, max.y, min.z}, color, thickness));
+		add_line(Vertex({min.x, min.y, max.z}, color, thickness), Vertex({min.x, max.y, max.z}, color, thickness));
+		add_line(Vertex({max.x, min.y, max.z}, color, thickness), Vertex({max.x, max.y, max.z}, color, thickness));
+
+		add_line(Vertex({min.x, min.y, min.z}, color, thickness), Vertex({min.x, min.y, max.z}, color, thickness));
+		add_line(Vertex({max.x, min.y, min.z}, color, thickness), Vertex({max.x, min.y, max.z}, color, thickness));
+		add_line(Vertex({min.x, max.y, min.z}, color, thickness), Vertex({min.x, max.y, max.z}, color, thickness));
+		add_line(Vertex({max.x, max.y, min.z}, color, thickness), Vertex({max.x, max.y, max.z}, color, thickness));
+		return *this;
+	}
+
 	BatchedLines& BatchedLines::flush(Renderer* renderer)
 	{
 		if (m_first == nullptr)
 			return *this;
 
-		auto pool              = RHIBufferPool::global_instance();
+		auto pool             = RHIBufferPool::global_instance();
 		RHIBuffer* vtx_buffer = pool->request_buffer(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
 
 #if TRINEX_DEBUG_BUILD

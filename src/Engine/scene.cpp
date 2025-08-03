@@ -1,10 +1,10 @@
+#include <Core/math/box.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
-
 
 namespace Engine
 {
@@ -13,10 +13,10 @@ namespace Engine
 	{
 		OctreeType* m_octree;
 		typename OctreeType::ValueType m_primitive;
-		AABB_3Df m_box;
+		Box3f m_box;
 
 	public:
-		AddPrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const AABB_3Df& box)
+		AddPrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const Box3f& box)
 		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 
@@ -28,10 +28,10 @@ namespace Engine
 	{
 		OctreeType* m_octree;
 		typename OctreeType::ValueType m_primitive;
-		AABB_3Df m_box;
+		Box3f m_box;
 
 	public:
-		RemovePrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const AABB_3Df& box)
+		RemovePrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const Box3f& box)
 		    : m_octree(octree), m_primitive(primitive), m_box(box)
 		{}
 

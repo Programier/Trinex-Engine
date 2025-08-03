@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/set.hpp>
-#include <Engine/aabb.hpp>
+#include <Core/math/box.hpp>
 
 namespace Engine
 {
@@ -44,7 +44,7 @@ namespace Engine
 		class Node
 		{
 		private:
-			static FORCE_INLINE Octree::Index calc_child_index(const AABB_3Df& parent, const AABB_3Df& child)
+			static FORCE_INLINE Octree::Index calc_child_index(const Box3f& parent, const Box3f& child)
 			{
 				auto parent_center = parent.center();
 				auto child_center  = child.center();
@@ -56,7 +56,7 @@ namespace Engine
 				});
 			}
 
-			static FORCE_INLINE bool is_child_of(const AABB_3Df& parent, const AABB_3Df& child)
+			static FORCE_INLINE bool is_child_of(const Box3f& parent, const Box3f& child)
 			{
 				return child.inside(parent) && !child.contains(parent.center());
 			}
@@ -65,10 +65,10 @@ namespace Engine
 			Set<ElementType, HashType, Pred> m_values;
 			Node* m_childs[8];
 			Node* m_owner;
-			AABB_3Df m_box;
+			Box3f m_box;
 			size_t m_size;
 
-			Node(Node* owner, const AABB_3Df& box) : m_values(), m_childs{nullptr}, m_owner(owner), m_box(box), m_size(0) {}
+			Node(Node* owner, const Box3f& box) : m_values(), m_childs{nullptr}, m_owner(owner), m_box(box), m_size(0) {}
 
 			trinex_non_copyable(Node);
 			trinex_non_moveable(Node);
@@ -137,13 +137,13 @@ namespace Engine
 			FORCE_INLINE const Node* owner() const { return m_owner; }
 			FORCE_INLINE Node* child_at(Octree::Index index) { return m_childs[index.index]; }
 			FORCE_INLINE const Node* child_at(Octree::Index index) const { return m_childs[index.index]; }
-			FORCE_INLINE const AABB_3Df& box() const { return m_box; }
+			FORCE_INLINE const Box3f& box() const { return m_box; }
 			FORCE_INLINE size_t size() const { return m_size; }
 			FORCE_INLINE bool empty() const { return m_size == 0; }
 
-			FORCE_INLINE Node* find(const AABB_3Df& box) { return const_cast<Node*>(const_cast<const Node*>(this)->find(box)); }
+			FORCE_INLINE Node* find(const Box3f& box) { return const_cast<Node*>(const_cast<const Node*>(this)->find(box)); }
 
-			inline const Node* find(const AABB_3Df& box) const
+			inline const Node* find(const Box3f& box) const
 			{
 				const Node* node = this;
 
@@ -162,16 +162,16 @@ namespace Engine
 		Node* m_root_node = nullptr;
 
 	public:
-		Octree() { m_root_node = new Octree::Node(nullptr, AABB_3Df({0.0f, 0.0f, 0.0f}, {1.f, 1.f, 1.f})); }
+		Octree() { m_root_node = new Octree::Node(nullptr, Box3f({0.0f, 0.0f, 0.0f}, {1.f, 1.f, 1.f})); }
 		FORCE_INLINE Node* root_node() const { return m_root_node; }
 
-		FORCE_INLINE Node* push(const AABB_3Df& box, const ElementType& element)
+		FORCE_INLINE Node* push(const Box3f& box, const ElementType& element)
 		{
 			Node* node = find_or_create(box);
 			return &node->add(element);
 		}
 
-		FORCE_INLINE Node* remove(const AABB_3Df& box, const ElementType& element)
+		FORCE_INLINE Node* remove(const Box3f& box, const ElementType& element)
 		{
 			Node* node = find(box);
 
@@ -181,9 +181,9 @@ namespace Engine
 			return node;
 		}
 
-		FORCE_INLINE Node* find(const AABB_3Df& box) const { return m_root_node->find(box); }
+		FORCE_INLINE Node* find(const Box3f& box) const { return m_root_node->find(box); }
 
-		FORCE_INLINE Node* find_or_create(const AABB_3Df& box)
+		FORCE_INLINE Node* find_or_create(const Box3f& box)
 		{
 			Node* node = m_root_node;
 

@@ -1,5 +1,5 @@
 #include <Core/constants.hpp>
-#include <Engine/aabb.hpp>
+#include <Core/math/box.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/frustum.hpp>
 
@@ -16,7 +16,7 @@ namespace Engine
 		return glm::dot(m_normal, point) - m_distance;
 	}
 
-	float Plane::distance_to(const AABB_3Df& box) const
+	float Plane::distance_to(const Box3f& box) const
 	{
 		Vector3f extents     = box.extents();
 		const float distance = distance_to(box.center());
@@ -47,7 +47,7 @@ namespace Engine
 		return *this;
 	}
 
-	bool Frustum::in_frustum(const AABB_3Df& box) const
+	bool Frustum::in_frustum(const Box3f& box) const
 	{
 		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
 		{

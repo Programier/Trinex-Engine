@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/math/box.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
-#include <Engine/aabb.hpp>
 
 namespace Engine
 {
@@ -21,7 +21,7 @@ namespace Engine
 		class ENGINE_EXPORT Proxy : public Super::Proxy
 		{
 		protected:
-			AABB_3Df m_bounds;
+			Box3f m_bounds;
 
 		public:
 			virtual bool has_render_data() const                                                                            = 0;
@@ -33,13 +33,13 @@ namespace Engine
 			virtual VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0, size_t lod = 0) = 0;
 			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                          = 0;
 
-			inline const AABB_3Df& bounding_box() const { return m_bounds; }
+			inline const Box3f& bounding_box() const { return m_bounds; }
 			friend class PrimitiveComponent;
 		};
 
 	protected:
 		bool m_is_visible;
-		AABB_3Df m_bounding_box;
+		Box3f m_bounding_box;
 
 		void submit_bounds_to_render_thread();
 
@@ -47,7 +47,7 @@ namespace Engine
 		PrimitiveComponent();
 		bool is_visible() const;
 		PrimitiveComponent& is_visible(bool visible);
-		const AABB_3Df& bounding_box() const;
+		const Box3f& bounding_box() const;
 
 		PrimitiveComponent& start_play() override;
 		PrimitiveComponent& stop_play() override;

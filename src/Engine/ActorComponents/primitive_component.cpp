@@ -19,7 +19,7 @@ namespace Engine
 		r.method("void stop_play()", trinex_scoped_void_method(This, stop_play));
 	}
 
-	static const AABB_3Df default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
+	static const Box3f default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
 	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
 
@@ -34,7 +34,7 @@ namespace Engine
 		return false;
 	}
 
-	const AABB_3Df& PrimitiveComponent::bounding_box() const
+	const Box3f& PrimitiveComponent::bounding_box() const
 	{
 		return m_bounding_box;
 	}
@@ -95,13 +95,13 @@ namespace Engine
 	{
 		if (Proxy* component_proxy = proxy())
 		{
-			render_thread()->create_task<UpdateVariableCommand<AABB_3Df>>(m_bounding_box, component_proxy->m_bounds);
+			render_thread()->create_task<UpdateVariableCommand<Box3f>>(m_bounding_box, component_proxy->m_bounds);
 		}
 	}
 
 	PrimitiveComponent& PrimitiveComponent::update_bounding_box()
 	{
-		m_bounding_box = default_bounds.apply_transform(world_transform().matrix());
+		m_bounding_box = default_bounds.transform(world_transform().matrix());
 		submit_bounds_to_render_thread();
 		return *this;
 	}

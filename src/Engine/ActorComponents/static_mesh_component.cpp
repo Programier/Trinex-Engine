@@ -70,7 +70,7 @@ namespace Engine
 	{
 		if (mesh())
 		{
-			m_bounding_box = mesh()->bounds.apply_transform(world_transform().matrix());
+			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
 			submit_bounds_to_render_thread();
 		}
 		else

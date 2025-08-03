@@ -1,8 +1,8 @@
 #pragma once
+#include <Core/math/box.hpp>
 #include <Core/pointer.hpp>
 #include <Core/types/color.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
-#include <Engine/aabb.hpp>
 
 namespace Engine
 {
@@ -47,7 +47,7 @@ namespace Engine
 
 
 	protected:
-		AABB_3Df m_bounding_box;
+		Box3f m_bounding_box;
 
 	private:
 		Color m_light_color;
@@ -61,7 +61,7 @@ namespace Engine
 
 	public:
 		LightComponent();
-		inline const AABB_3Df& bounding_box() const { return m_bounding_box; }
+		inline const Box3f& bounding_box() const { return m_bounding_box; }
 		inline const Color& light_color() const { return m_light_color; }
 		inline float intensivity() const { return m_intensivity; }
 		inline float depth_bias() const { return m_depth_bias; }

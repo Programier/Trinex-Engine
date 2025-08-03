@@ -14,8 +14,6 @@
 
 namespace Engine
 {
-	static const AABB_3Df light_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
-
 	trinex_implement_engine_class(LightComponent, 0)
 	{
 		trinex_refl_prop(m_light_color)->tooltip("Color of this light");
@@ -144,7 +142,7 @@ namespace Engine
 	{
 		static constexpr Vector3f extents = {1.f, 1.f, 1.f};
 		const Vector3f& location          = world_transform().location();
-		m_bounding_box                    = AABB_3Df(location - extents, location + extents);
+		m_bounding_box                    = Box3f(location - extents, location + extents);
 		return *this;
 	}
 
