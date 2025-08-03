@@ -1,11 +1,12 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/constants.hpp>
+#include <Core/math/matrix.hpp>
+#include <Core/math/vector.hpp>
 
 namespace Engine
 {
 	class Archive;
-
 
 	class ENGINE_EXPORT Transform
 	{

@@ -1,6 +1,7 @@
 #include <Core/default_resources.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <Graphics/sampler.hpp>
@@ -63,10 +64,10 @@ namespace Engine
 
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view->first_mip, texture->mipmap_count() - 1);
-		desc.mip_levels        = glm::min<uint8_t>(view->mip_levels, texture->mipmap_count() - desc.first_mip);
+		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = Math::min<uint8_t>(view->first_mip, texture->mipmap_count() - 1);
+		desc.mip_levels        = Math::min<uint8_t>(view->mip_levels, texture->mipmap_count() - desc.first_mip);
 		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
 		return desc;
@@ -80,9 +81,9 @@ namespace Engine
 
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
 		desc.mip_levels        = 1;
 		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
@@ -97,9 +98,9 @@ namespace Engine
 
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
 		desc.mip_levels        = 1;
 		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
@@ -114,9 +115,9 @@ namespace Engine
 
 		ViewDesc desc;
 
-		desc.first_array_slice = glm::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = glm::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = glm::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_mip         = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
 		desc.mip_levels        = 1;
 		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 
@@ -250,7 +251,7 @@ namespace Engine
 				break;
 
 			case RHITextureType::Texture1DArray:
-				size    = {size.x, 1, glm::max(size.z, 1u)};
+				size    = {size.x, 1, Math::max(size.z, 1u)};
 				texture = new VulkanTypedTexture<vk::ImageViewType::e1DArray, RHITextureType::Texture1DArray>();
 				break;
 
@@ -260,7 +261,7 @@ namespace Engine
 				break;
 
 			case RHITextureType::Texture2DArray:
-				size    = {size.x, size.y, glm::max(size.z, 1u)};
+				size    = {size.x, size.y, Math::max(size.z, 1u)};
 				texture = new VulkanTypedTexture<vk::ImageViewType::e2DArray, RHITextureType::Texture2DArray>();
 				break;
 
@@ -270,7 +271,7 @@ namespace Engine
 				break;
 
 			case RHITextureType::TextureCubeArray:
-				size    = {size.x, size.y, glm::max((size.z + 5) / 6, 1u) * 6};
+				size    = {size.x, size.y, Math::max((size.z + 5) / 6, 1u) * 6};
 				texture = new VulkanTypedTexture<vk::ImageViewType::eCubeArray, RHITextureType::TextureCubeArray>();
 				break;
 
@@ -282,7 +283,7 @@ namespace Engine
 
 		if (texture)
 		{
-			texture->create(format, size, glm::max(mips, 1u), flags);
+			texture->create(format, size, Math::max(mips, 1u), flags);
 		}
 		return texture;
 	}

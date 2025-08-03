@@ -12,7 +12,6 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/render_graph.hpp>
-#include <Engine/ray.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>

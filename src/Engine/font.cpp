@@ -2,6 +2,7 @@
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Engine/font.hpp>
 #include <Image/image.hpp>
 #include <freetype/freetype.h>
@@ -145,9 +146,9 @@ namespace Engine
 			}
 
 			current_x += face->glyph->advance.x >> 6;
-			size_x = glm::max(size_x, current_x);
-			size_y = glm::max(size_y,
-			                  font_size.y + static_cast<uint_t>(face->glyph->metrics.height >> 6) - face->glyph->bitmap_top);
+			size_x = Math::max(size_x, current_x);
+			size_y = Math::max(size_y,
+			                   font_size.y + static_cast<uint_t>(face->glyph->metrics.height >> 6) - face->glyph->bitmap_top);
 		}
 
 		return {static_cast<float>(size_x), static_cast<float>(size_y)};

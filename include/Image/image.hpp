@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 
 namespace Engine

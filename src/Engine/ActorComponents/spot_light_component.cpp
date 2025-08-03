@@ -1,3 +1,4 @@
+#include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -25,8 +26,8 @@ namespace Engine
 
 	SpotLightComponent::Proxy& SpotLightComponent::Proxy::update_spot_angles()
 	{
-		m_cos_outer_cone_angle    = glm::cos(m_outer_cone_angle);
-		float cos_inner_cone      = glm::cos(m_inner_cone_angle);
+		m_cos_outer_cone_angle    = Math::cos(m_outer_cone_angle);
+		float cos_inner_cone      = Math::cos(m_inner_cone_angle);
 		m_inv_cos_cone_difference = 1.0f / (cos_inner_cone - m_cos_outer_cone_angle);
 		return *this;
 	}
@@ -50,12 +51,12 @@ namespace Engine
 
 	SpotLightComponent& SpotLightComponent::submit_spot_light_data()
 	{
-		m_outer_cone_angle = glm::clamp(m_outer_cone_angle, 0.f, 89.f);
-		m_inner_cone_angle = glm::clamp(m_inner_cone_angle, 0.f, m_outer_cone_angle);
+		m_outer_cone_angle = Math::clamp(m_outer_cone_angle, 0.f, 89.f);
+		m_inner_cone_angle = Math::clamp(m_inner_cone_angle, 0.f, m_outer_cone_angle);
 
 		render_thread()->call([proxy = proxy(), outer_cone = m_outer_cone_angle, inner_cone = m_inner_cone_angle]() {
-			proxy->m_outer_cone_angle = glm::radians(outer_cone);
-			proxy->m_inner_cone_angle = glm::radians(inner_cone);
+			proxy->m_outer_cone_angle = Math::radians(outer_cone);
+			proxy->m_inner_cone_angle = Math::radians(inner_cone);
 			proxy->update_spot_angles();
 		});
 		return *this;

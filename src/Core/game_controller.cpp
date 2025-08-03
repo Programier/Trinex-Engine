@@ -2,6 +2,7 @@
 #include <Core/event.hpp>
 #include <Core/game_controller.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <Systems/game_controller_system.hpp>
 
@@ -33,7 +34,7 @@ namespace Engine
 	float GameController::axis_value(Axis axis, float dead_zone) const
 	{
 		float result = m_axis_values[axis];
-		if (glm::abs(result) >= glm::abs(dead_zone))
+		if (Math::abs(result) >= Math::abs(dead_zone))
 			return result;
 		return 0.f;
 	}

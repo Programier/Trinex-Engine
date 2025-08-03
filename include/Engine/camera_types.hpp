@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/math/quaternion.hpp>
 #include <Core/transform.hpp>
 
 namespace Engine

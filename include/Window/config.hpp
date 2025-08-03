@@ -2,6 +2,7 @@
 #include <Core/enums.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/string.hpp>
+#include <Core/math/vector.hpp>
 
 namespace Engine
 {

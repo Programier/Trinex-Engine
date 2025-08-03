@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 

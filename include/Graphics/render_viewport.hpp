@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/string.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>

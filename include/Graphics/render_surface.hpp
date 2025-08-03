@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/math/vector.hpp>
 #include <Graphics/render_resource.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>

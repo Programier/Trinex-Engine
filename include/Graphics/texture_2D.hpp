@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/filesystem/path.hpp>
+#include <Core/math/vector.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
 #include <RHI/enums.hpp>

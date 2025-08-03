@@ -2,6 +2,7 @@
 #include <Core/etl/hash.hpp>
 #include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
+#include <Core/math/math.hpp>
 #include <Core/string_functions.hpp>
 
 namespace Engine
@@ -195,7 +196,7 @@ namespace Engine
 		Vector<StringView> base_sv = base.split_sv();
 		Vector<StringView> self_sv = split_sv();
 
-		size_t min_len = glm::min(base_sv.size(), self_sv.size());
+		size_t min_len = Math::min(base_sv.size(), self_sv.size());
 		Index index    = 0;
 
 		while (index < min_len && base_sv[index] == self_sv[index]) ++index;

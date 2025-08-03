@@ -4,6 +4,10 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/string_functions.hpp>
+
+//#include <Core/math/vector.hpp>
+#include <Core/math/matrix.hpp>
+
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <fmt/ranges.h>

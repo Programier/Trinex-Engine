@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
@@ -142,7 +143,7 @@ namespace Engine
 
 	VertexBufferBase& VertexBufferBase::grow(uint32_t factor)
 	{
-		factor = glm::max<uint32_t>(factor, 2);
+		factor = Math::max<uint32_t>(factor, 2);
 
 		VertexBufferBase new_buffer;
 		byte* ptr = new_buffer.allocate_data(m_flags, m_stride, m_vtx_count * factor);

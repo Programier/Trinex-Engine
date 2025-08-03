@@ -33,7 +33,6 @@ namespace Engine
 
 		bool inside(const AABB_3Df& other) const;
 		bool intersect(const AABB_3Df& other) const;
-		bool intersect(const Ray& ray) const;
 		bool outside(const AABB_3Df& other) const;
 		bool contains(const Vector3f& point) const;
 

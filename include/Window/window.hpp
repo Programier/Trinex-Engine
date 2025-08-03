@@ -4,6 +4,7 @@
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/flags.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/pointer.hpp>
 
 namespace Engine

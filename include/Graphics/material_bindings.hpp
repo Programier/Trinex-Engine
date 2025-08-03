@@ -3,6 +3,7 @@
 #include <Core/etl/pair.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/name.hpp>
 
 namespace Engine

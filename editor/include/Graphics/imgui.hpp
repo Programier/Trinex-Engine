@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/math/math.hpp>
 #include <Core/object.hpp>
 #include <imgui.h>
 
@@ -164,9 +165,9 @@ namespace ImGui
 	{
 		const float factor = 0.2f;
 
-		color.x = glm::mix(color.x, 1.f, factor);
-		color.y = glm::mix(color.y, 1.f, factor);
-		color.z = glm::mix(color.z, 1.f, factor);
+		color.x = Engine::Math::lerp(color.x, 1.f, factor);
+		color.y = Engine::Math::lerp(color.y, 1.f, factor);
+		color.z = Engine::Math::lerp(color.z, 1.f, factor);
 		return color;
 	}
 

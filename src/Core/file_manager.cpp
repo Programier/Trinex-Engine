@@ -1,6 +1,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/math/math.hpp>
 
 namespace Engine
 {
@@ -127,7 +128,7 @@ namespace Engine
 
 	String FileReader::read_string(size_t len)
 	{
-		len = glm::min(len, size());
+		len = Math::min(len, size());
 		String result(len, 0);
 		read(reinterpret_cast<byte*>(result.data()), len);
 		return result;
@@ -135,7 +136,7 @@ namespace Engine
 
 	Buffer FileReader::read_buffer(size_t len)
 	{
-		len = glm::min(len, size());
+		len = Math::min(len, size());
 		Buffer result(len, 0);
 		read(reinterpret_cast<byte*>(result.data()), len);
 		return result;

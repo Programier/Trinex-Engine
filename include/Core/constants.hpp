@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
+#include <Core/math/fwd.hpp>
 
 namespace Engine
 {

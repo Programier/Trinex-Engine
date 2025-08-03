@@ -1,5 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
+#include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -310,7 +311,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::look_at(const Vector3f& location, const Vector3f& up)
 	{
-		auto quat = glm::quatLookAt(glm::normalize(location - local_transform().location()), up);
+		auto quat = Math::quat_look_at(Math::normalize(location - local_transform().location()), up);
 		m_local.rotation(quat);
 		on_transform_changed();
 		return *this;

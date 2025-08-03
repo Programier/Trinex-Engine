@@ -1,8 +1,7 @@
 #pragma once
 #include <Core/definitions.hpp>
 #include <Core/serializer.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <cstdint>
 
 namespace Engine
 {
@@ -24,51 +23,12 @@ namespace Engine
 	using uint32_t = std::uint32_t;
 	using int64_t  = std::int64_t;
 	using uint64_t = std::uint64_t;
-	using float_t  = std::float_t;
-	using double_t = std::double_t;
+	using float_t  = float;
+	using double_t = double;
 
 	using signed_byte = std::int8_t;
 	using size_t      = std::uint64_t;
 	using ptrdiff_t   = std::int64_t;
-
-	template<size_t N, typename T>
-	using VectorNT = glm::vec<N, T, glm::defaultp>;
-
-	using Matrix4f = glm::mat<4, 4, float_t, glm::defaultp>;
-	using Matrix3f = glm::mat<3, 3, float_t, glm::defaultp>;
-	using Matrix2f = glm::mat<2, 2, float_t, glm::defaultp>;
-
-	using Matrix4i = glm::mat<4, 4, int32_t, glm::defaultp>;
-	using Matrix3i = glm::mat<3, 3, int32_t, glm::defaultp>;
-	using Matrix2i = glm::mat<2, 2, int32_t, glm::defaultp>;
-
-	using Matrix4u = glm::mat<4, 4, uint32_t, glm::defaultp>;
-	using Matrix3u = glm::mat<3, 3, uint32_t, glm::defaultp>;
-	using Matrix2u = glm::mat<2, 2, uint32_t, glm::defaultp>;
-
-	using Matrix4b = glm::mat<4, 4, bool_t, glm::defaultp>;
-	using Matrix3b = glm::mat<3, 3, bool_t, glm::defaultp>;
-	using Matrix2b = glm::mat<2, 2, bool_t, glm::defaultp>;
-
-	using Vector1f = glm::vec<1, float_t, glm::defaultp>;
-	using Vector2f = glm::vec<2, float_t, glm::defaultp>;
-	using Vector3f = glm::vec<3, float_t, glm::defaultp>;
-	using Vector4f = glm::vec<4, float_t, glm::defaultp>;
-
-	using Vector1b = glm::vec<1, bool_t, glm::defaultp>;
-	using Vector2b = glm::vec<2, bool_t, glm::defaultp>;
-	using Vector3b = glm::vec<3, bool_t, glm::defaultp>;
-	using Vector4b = glm::vec<4, bool_t, glm::defaultp>;
-
-	using Vector1i = glm::vec<1, int32_t, glm::defaultp>;
-	using Vector2i = glm::vec<2, int32_t, glm::defaultp>;
-	using Vector3i = glm::vec<3, int32_t, glm::defaultp>;
-	using Vector4i = glm::vec<4, int32_t, glm::defaultp>;
-
-	using Vector1u = glm::vec<1, uint32_t, glm::defaultp>;
-	using Vector2u = glm::vec<2, uint32_t, glm::defaultp>;
-	using Vector3u = glm::vec<3, uint32_t, glm::defaultp>;
-	using Vector4u = glm::vec<4, uint32_t, glm::defaultp>;
 
 	using ArrayIndex          = size_t;
 	using ArrayOffset         = size_t;
@@ -77,8 +37,6 @@ namespace Engine
 	using Index               = size_t;
 	using MaterialLayoutIndex = size_t;
 	using HashIndex           = size_t;
-
-	using Quaternion = glm::quat;
 
 	using BindingIndex = byte;
 

@@ -1,5 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
@@ -189,7 +190,7 @@ namespace Engine
 			return buffer;
 		}
 
-		RHIBuffer* buffer  = rhi->create_buffer(size, nullptr, flags);
+		RHIBuffer* buffer   = rhi->create_buffer(size, nullptr, flags);
 		m_buffer_id[buffer] = buffer_id;
 		return buffer;
 	}
@@ -303,7 +304,7 @@ namespace Engine
 			return surface;
 		}
 
-		RHITexture* surface  = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(format), {size, 1}, 1, flags);
+		RHITexture* surface   = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(format), {size, 1}, 1, flags);
 		m_surface_id[surface] = surface_id;
 		return surface;
 	}

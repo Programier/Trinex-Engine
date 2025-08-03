@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/math/math.hpp>
 #include <Core/reflection/enum.hpp>
 #include <RHI/enums.hpp>
 
@@ -57,7 +58,7 @@ namespace Engine
 
 	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_vector(byte len)
 	{
-		len = glm::clamp<byte>(len, 1, 4);
+		len = Math::clamp<byte>(len, 1, 4);
 
 		if (is_scalar())
 		{

@@ -7,6 +7,7 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Core/mouse.hpp>
 #include <Core/package.hpp>
 #include <Core/profiler.hpp>
@@ -139,7 +140,7 @@ namespace Engine
 			float T = draw_data->DisplayPos.y;
 			float B = T + draw_data->DisplaySize.y;
 
-			pipeline->model = glm::ortho(L, R, T, B, 0.f, 1.f);
+			pipeline->model = Math::ortho(L, R, T, B, 0.f, 1.f);
 		}
 
 		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)

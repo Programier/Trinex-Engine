@@ -2,6 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/math/fwd.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
 
@@ -18,7 +19,7 @@ namespace Engine
 	{
 	private:
 		struct FenceEntry {
-			uint64_t frame   = 0;
+			uint64_t frame  = 0;
 			RHIFence* fence = nullptr;
 		};
 
@@ -42,7 +43,7 @@ namespace Engine
 	{
 	private:
 		struct BufferEntry {
-			uint64_t frame     = 0;
+			uint64_t frame    = 0;
 			RHIBuffer* buffer = nullptr;
 		};
 
@@ -67,7 +68,7 @@ namespace Engine
 	{
 	private:
 		struct SurfaceEntry {
-			uint64_t frame       = 0;
+			uint64_t frame      = 0;
 			RHITexture* surface = nullptr;
 		};
 

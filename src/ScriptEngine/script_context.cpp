@@ -1,6 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/vector.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -203,26 +204,16 @@ namespace Engine
 		auto state = m_context->GetState();
 		switch (state)
 		{
-			case asEXECUTION_FINISHED:
-				return State::Finished;
-			case asEXECUTION_SUSPENDED:
-				return State::Suspended;
-			case asEXECUTION_ABORTED:
-				return State::Aborted;
-			case asEXECUTION_EXCEPTION:
-				return State::Exception;
-			case asEXECUTION_PREPARED:
-				return State::Prepared;
-			case asEXECUTION_UNINITIALIZED:
-				return State::Uninitialized;
-			case asEXECUTION_ACTIVE:
-				return State::Active;
-			case asEXECUTION_ERROR:
-				return State::Error;
-			case asEXECUTION_DESERIALIZATION:
-				return State::Deserealization;
-			default:
-				return State::Undefined;
+			case asEXECUTION_FINISHED: return State::Finished;
+			case asEXECUTION_SUSPENDED: return State::Suspended;
+			case asEXECUTION_ABORTED: return State::Aborted;
+			case asEXECUTION_EXCEPTION: return State::Exception;
+			case asEXECUTION_PREPARED: return State::Prepared;
+			case asEXECUTION_UNINITIALIZED: return State::Uninitialized;
+			case asEXECUTION_ACTIVE: return State::Active;
+			case asEXECUTION_ERROR: return State::Error;
+			case asEXECUTION_DESERIALIZATION: return State::Deserealization;
+			default: return State::Undefined;
 		}
 	}
 

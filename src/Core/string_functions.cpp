@@ -1,4 +1,5 @@
 #include <Core/constants.hpp>
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/string_functions.hpp>
 #include <algorithm>
@@ -298,7 +299,7 @@ namespace Engine::Strings
 		}
 
 		float float_value = ::strtof(line, nullptr);
-		return glm::abs(float_value) >= 0.5f;
+		return Math::abs(float_value) >= 0.5f;
 	}
 
 	ENGINE_EXPORT int_t integer_of(const char* text)

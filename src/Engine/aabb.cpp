@@ -1,6 +1,7 @@
+#include <Core/math/matrix.hpp>
+#include <Core/math/vector.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/aabb.hpp>
-#include <Engine/ray.hpp>
 
 namespace Engine
 {
@@ -108,25 +109,6 @@ namespace Engine
 	{
 		return (m_min.x <= other.m_max.x && m_max.x >= other.m_min.x) && (m_min.y <= other.m_max.y && m_max.y >= other.m_min.y) &&
 		       (m_min.z <= other.m_max.z && m_max.z >= other.m_min.z);
-	}
-
-	bool AABB_3Df::intersect(const Ray& ray) const
-	{
-		const Vector3f& origin    = ray.origin();
-		const Vector3f& direction = ray.direction();
-
-		Vector3f t_min = (m_min - origin) / direction;
-		Vector3f t_max = (m_max - origin) / direction;
-		Vector3f t1    = glm::min(t_min, t_max);
-		Vector3f t2    = glm::max(t_min, t_max);
-		float t_near   = glm::max(glm::max(t1.x, t1.y), t1.z);
-		float t_far    = glm::min(glm::min(t2.x, t2.y), t2.z);
-		return t_near < t_far;
-	}
-
-	bool Ray::intersect(const AABB_3Df& aabb) const
-	{
-		return aabb.intersect(*this);
 	}
 
 	bool AABB_3Df::outside(const AABB_3Df& other) const

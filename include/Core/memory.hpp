@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <new>
 #include <utility>
 
 namespace Engine
@@ -25,7 +26,8 @@ namespace Engine
 	T* allocate_array(size_t count, const Args&... args)
 	{
 		constexpr size_t max_align = alignof(T) > alignof(size_t) ? alignof(T) : alignof(size_t);
-		size_t* size_ptr           = new (allocate_memory(max_align + (sizeof(T) * count), max_align)) size_t(count);
+		void* place                = allocate_memory(max_align + (sizeof(T) * count), max_align);
+		size_t* size_ptr           = new (place) size_t(count);
 
 		T* array = reinterpret_cast<T*>(reinterpret_cast<byte*>(size_ptr) + max_align);
 		for (size_t i = 0; i < count; ++i) new (array + i) T(args...);

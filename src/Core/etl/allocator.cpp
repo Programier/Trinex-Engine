@@ -5,6 +5,7 @@
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/thread.hpp>
 #include <cstdlib>
@@ -88,7 +89,7 @@ namespace Engine
 
 			Node* allocate_block(size_type size = 0, size_type align = 0)
 			{
-				return allocate<Node>(glm::max(size, min_block_size), glm::max(align, min_block_alignment));
+				return allocate<Node>(Math::max(size, min_block_size), Math::max(align, min_block_alignment));
 			}
 
 			inline byte* allocate_aligned(size_type size, size_type align)

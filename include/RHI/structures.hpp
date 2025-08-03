@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/name.hpp>
 #include <RHI/enums.hpp>
 
@@ -38,8 +39,7 @@ namespace Engine
 
 		FORCE_INLINE bool operator==(const RHIViewport& v) const
 		{
-			return pos == v.pos && size == v.size && glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) &&
-			       glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
+			return pos == v.pos && size == v.size && min_depth == v.min_depth && max_depth == v.max_depth;
 		}
 
 		FORCE_INLINE bool operator!=(const RHIViewport& v) const { return !((*this) == v); }

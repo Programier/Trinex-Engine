@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
@@ -48,7 +49,7 @@ namespace Engine
 
 	static FORCE_INLINE uint32_t get_max_objects_per_tick()
 	{
-		return glm::max<uint32_t>(1, Settings::gc_max_object_per_tick);
+		return Math::max<uint32_t>(1, Settings::gc_max_object_per_tick);
 	}
 
 	ENGINE_EXPORT void GarbageCollector::destroy_internal(Object* object)
