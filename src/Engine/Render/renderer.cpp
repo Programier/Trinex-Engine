@@ -157,7 +157,7 @@ namespace Engine
 			m_surfaces[type]   = target;
 
 			auto& pass = m_graph->add_pass(RenderGraph::Pass::Graphics, clear_pass_names[type])
-			                     .add_resource(target, RHIAccess::CopyDst);
+			                     .add_resource(target, RHIAccess::TransferDst);
 
 			if (type == SceneDepth)
 				pass.add_func([target]() { target->as_dsv()->clear(1.f, 0); });
@@ -182,7 +182,7 @@ namespace Engine
 
 			GlobalShaderParameters params;
 			params.update(&m_view, m_view.view_size());
-			rhi->barrier(m_globals, RHIAccess::CopyDst);
+			rhi->barrier(m_globals, RHIAccess::TransferDst);
 			rhi->update_buffer(m_globals, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
 			rhi->barrier(m_globals, RHIAccess::UniformBuffer);
 		}

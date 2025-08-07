@@ -7,6 +7,7 @@ namespace Engine
 	class RHISampler;
 	class RHIBuffer;
 	class Renderer;
+	struct LightRenderRanges;
 
 	namespace Pipelines
 	{
@@ -52,69 +53,19 @@ namespace Engine
 			trinex_declare_pipeline(BatchedTriangles, GlobalGraphicsPipeline);
 		};
 
-		class ENGINE_EXPORT DeferredLightPipeline : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT DeferredLighting : public GlobalGraphicsPipeline
 		{
-		public:
-			using GlobalGraphicsPipeline::GlobalGraphicsPipeline;
+			trinex_declare_pipeline(DeferredLighting, GlobalGraphicsPipeline);
 
+		public:
 			const RHIShaderParameterInfo* scene_view         = nullptr;
 			const RHIShaderParameterInfo* base_color_texture = nullptr;
 			const RHIShaderParameterInfo* normal_texture     = nullptr;
 			const RHIShaderParameterInfo* msra_texture       = nullptr;
 			const RHIShaderParameterInfo* depth_texture      = nullptr;
-			const RHIShaderParameterInfo* parameters         = nullptr;
-			const RHIShaderParameterInfo* shadow_map         = nullptr;
-			const RHIShaderParameterInfo* shadow_projview    = nullptr;
-
-			void initialize() override;
-		};
-
-		class ENGINE_EXPORT DeferredPointLightShadowed : public DeferredLightPipeline
-		{
-			trinex_declare_pipeline(DeferredPointLightShadowed, DeferredLightPipeline);
-
-		public:
-			DeferredPointLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
-		class ENGINE_EXPORT DeferredPointLight : public DeferredLightPipeline
-		{
-			trinex_declare_pipeline(DeferredPointLight, DeferredLightPipeline);
-
-		public:
-			DeferredPointLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
-		class ENGINE_EXPORT DeferredSpotLightShadowed : public DeferredLightPipeline
-		{
-			trinex_declare_pipeline(DeferredSpotLightShadowed, DeferredLightPipeline);
-
-		public:
-			DeferredSpotLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
-		class ENGINE_EXPORT DeferredSpotLight : public DeferredLightPipeline
-		{
-			trinex_declare_pipeline(DeferredSpotLight, DeferredLightPipeline);
-
-		public:
-			DeferredSpotLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
-		class ENGINE_EXPORT DeferredDirectionalLightShadowed : public DeferredLightPipeline
-		{
-			trinex_declare_pipeline(DeferredDirectionalLightShadowed, DeferredLightPipeline);
-
-		public:
-			DeferredDirectionalLightShadowed& modify_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
-		class ENGINE_EXPORT DeferredDirectionalLight : public DeferredLightPipeline
-		{
-			trinex_declare_pipeline(DeferredDirectionalLight, DeferredLightPipeline);
-
-		public:
-			DeferredDirectionalLight& modify_compilation_env(ShaderCompilationEnvironment* env) override;
+			const RHIShaderParameterInfo* clusters           = nullptr;
+			const RHIShaderParameterInfo* lights             = nullptr;
+			const RHIShaderParameterInfo* ranges             = nullptr;
 		};
 
 		class ENGINE_EXPORT AmbientLight : public GlobalGraphicsPipeline
@@ -173,6 +124,34 @@ namespace Engine
 		public:
 			SSAO& render(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
 			             float fade_out_radius, uint_t samples);
+		};
+
+		class ClusterInitialize : public GlobalComputePipeline
+		{
+			trinex_declare_pipeline(ClusterInitialize, GlobalComputePipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_scene_view;
+			const RHIShaderParameterInfo* m_clusters;
+
+		public:
+			RHIBuffer* create_clusters_buffer();
+			ClusterInitialize& build(RHIBuffer* clusters, Renderer* renderer);
+		};
+
+		class ClusterLightCulling : public GlobalComputePipeline
+		{
+			trinex_declare_pipeline(ClusterLightCulling, GlobalComputePipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_scene_view;
+			const RHIShaderParameterInfo* m_clusters;
+			const RHIShaderParameterInfo* m_lights;
+			const RHIShaderParameterInfo* m_ranges;
+
+		public:
+			ClusterLightCulling& cull(Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
+			                          const LightRenderRanges& ranges);
 		};
 	}// namespace Pipelines
 }// namespace Engine

@@ -149,7 +149,7 @@ namespace Engine::VulkanEnums
 		if (access & RHIAccess::UAVCompute || access & RHIAccess::UAVGraphics)
 			return vk::ImageLayout::eGeneral;
 
-		if (access & RHIAccess::CopyDst)
+		if (access & RHIAccess::TransferDst)
 			return vk::ImageLayout::eTransferDstOptimal;
 
 		if (access & RHIAccess::ResolveDst)
@@ -158,7 +158,7 @@ namespace Engine::VulkanEnums
 		if (access & RHIAccess::Present)
 			return vk::ImageLayout::ePresentSrcKHR;
 
-		if (access & RHIAccess::CopySrc)
+		if (access & RHIAccess::TransferSrc)
 			return vk::ImageLayout::eTransferSrcOptimal;
 
 		if (access & RHIAccess::ResolveSrc)
@@ -199,7 +199,7 @@ namespace Engine::VulkanEnums
 			stages |= vk::PipelineStageFlagBits::eComputeShader;
 		if (access & RHIAccess::SRVGraphics)
 			stages |= vk::PipelineStageFlagBits::eAllGraphics;
-		if (access & RHIAccess::CopySrc)
+		if (access & RHIAccess::TransferSrc)
 			stages |= vk::PipelineStageFlagBits::eTransfer;
 		if (access & RHIAccess::ResolveSrc)
 			stages |= vk::PipelineStageFlagBits::eTransfer;
@@ -210,7 +210,7 @@ namespace Engine::VulkanEnums
 			stages |= vk::PipelineStageFlagBits::eComputeShader;
 		if (access & RHIAccess::UAVGraphics)
 			stages |= vk::PipelineStageFlagBits::eAllGraphics;
-		if (access & RHIAccess::CopyDst)
+		if (access & RHIAccess::TransferDst)
 			stages |= vk::PipelineStageFlagBits::eTransfer;
 		if (access & RHIAccess::ResolveDst)
 			stages |= vk::PipelineStageFlagBits::eTransfer;
@@ -242,7 +242,7 @@ namespace Engine::VulkanEnums
 			flags |= vk::AccessFlagBits::eShaderRead;
 		if (access & RHIAccess::SRVGraphics)
 			flags |= vk::AccessFlagBits::eShaderRead;
-		if (access & RHIAccess::CopySrc)
+		if (access & RHIAccess::TransferSrc)
 			flags |= vk::AccessFlagBits::eTransferRead;
 		if (access & RHIAccess::ResolveSrc)
 			flags |= vk::AccessFlagBits::eTransferRead;
@@ -250,7 +250,7 @@ namespace Engine::VulkanEnums
 			flags |= vk::AccessFlagBits::eShaderWrite | vk::AccessFlagBits::eShaderRead;
 		if (access & RHIAccess::UAVGraphics)
 			flags |= vk::AccessFlagBits::eShaderWrite | vk::AccessFlagBits::eShaderRead;
-		if (access & RHIAccess::CopyDst)
+		if (access & RHIAccess::TransferDst)
 			flags |= vk::AccessFlagBits::eTransferWrite;
 		if (access & RHIAccess::ResolveDst)
 			flags |= vk::AccessFlagBits::eTransferWrite;

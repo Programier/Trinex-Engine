@@ -16,10 +16,9 @@ namespace Engine
 	public:
 		enum Type
 		{
-			Undefined   = 0,
-			Point       = 1,
-			Spot        = 2,
-			Directional = 3,
+			Point       = 0,
+			Spot        = 1,
+			Directional = 2,
 		};
 
 		class ENGINE_EXPORT Proxy : public Super::Proxy
@@ -41,7 +40,7 @@ namespace Engine
 			inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
 
 			virtual Proxy& render_parameters(LightRenderParameters& out);
-			virtual Type light_type() const;
+			virtual Type light_type() const = 0;
 			friend class LightComponent;
 		};
 
@@ -76,7 +75,6 @@ namespace Engine
 
 		virtual Type light_type() const = 0;
 		virtual LightComponent& update_bounding_box();
-		Proxy* create_proxy() override;
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 
 		LightComponent& on_transform_changed() override;

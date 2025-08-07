@@ -17,6 +17,7 @@
 #include <Graphics/sampler.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
+#include <algorithm>
 
 namespace Engine
 {
@@ -25,6 +26,19 @@ namespace Engine
 	      m_visible_lights(scene->collect_visible_lights(view.camera_view())),
 	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location))
 	{
+		std::sort(m_visible_lights.begin(), m_visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
+			auto a_proxy = a->proxy();
+			auto b_proxy = b->proxy();
+
+			return a_proxy->light_type() < b_proxy->light_type();
+		});
+
+		m_light_ranges = FrameAllocator<LightRenderRanges>::allocate(1);
+
+		find_light_range(LightComponent::Point, m_light_ranges->point.start, m_light_ranges->point.end);
+		find_light_range(LightComponent::Spot, m_light_ranges->spot.start, m_light_ranges->spot.end);
+		find_light_range(LightComponent::Directional, m_light_ranges->directional.start, m_light_ranges->directional.end);
+
 		auto graph = render_graph();
 
 		graph->add_output(scene_color_ldr_target());
@@ -66,8 +80,8 @@ namespace Engine
 			case ViewMode::Wireframe:
 			{
 				graph->add_pass(RenderGraph::Pass::Graphics, "Base Color Resolve")
-				        .add_resource(base_color_target(), RHIAccess::CopySrc)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::CopyDst)
+				        .add_resource(base_color_target(), RHIAccess::TransferDst)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
 				        .add_func([this]() { copy_base_color_to_scene_color(); });
 				break;
 			}
@@ -172,6 +186,11 @@ namespace Engine
 	{
 		auto graph = render_graph();
 
+		graph->add_pass(RenderGraph::Pass::Compute, "Light Culling")
+		        .add_resource(clusters_buffer(), RHIAccess::UAVCompute)
+		        .add_resource(lights_buffer(), RHIAccess::SRVCompute)
+		        .add_func([this]() { cull_lights(); });
+
 		graph->add_pass(RenderGraph::Pass::Graphics, "Lighting Pass")
 		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
 		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
@@ -179,8 +198,9 @@ namespace Engine
 		        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
 		        .add_resource(scene_color_target(), RHIAccess::RTV)
+		        .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
+		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this]() { deferred_lighting_pass(); });
-
 
 		m_shadow_maps.resize(m_visible_lights.size(), nullptr);
 		m_shadow_projections.resize(m_visible_lights.size(), Matrix4f(1.f));
@@ -224,33 +244,6 @@ namespace Engine
 		return *this;
 	}
 
-	Pipelines::DeferredLightPipeline* DeferredRenderer::static_find_light_pipeline(LightComponent* component)
-	{
-		auto proxy                    = component->proxy();
-		const bool is_shadows_enabled = proxy->is_shadows_enabled();
-
-		if (is_shadows_enabled)
-		{
-			switch (proxy->light_type())
-			{
-				case LightComponent::Point: return Pipelines::DeferredPointLightShadowed::instance();
-				case LightComponent::Spot: return Pipelines::DeferredSpotLightShadowed::instance();
-				case LightComponent::Directional: return Pipelines::DeferredDirectionalLightShadowed::instance();
-				default: return nullptr;
-			}
-		}
-		else
-		{
-			switch (component->light_type())
-			{
-				case LightComponent::Point: return Pipelines::DeferredPointLight::instance();
-				case LightComponent::Spot: return Pipelines::DeferredSpotLight::instance();
-				case LightComponent::Directional: return Pipelines::DeferredDirectionalLight::instance();
-				default: return nullptr;
-			}
-		}
-	}
-
 	DeferredRenderer& DeferredRenderer::ambient_occlusion_pass(PostProcessParameters* params)
 	{
 		RHISurfacePool* pool = RHISurfacePool::global_instance();
@@ -291,36 +284,29 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::deferred_lighting_pass()
 	{
+
 		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
 
-		auto pipeline = Pipelines::AmbientLight::instance();
-		rhi->bind_render_target1(scene_color_target()->as_rtv());
-
-		pipeline->rhi_bind();
-
-		rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
-		rhi->update_scalar_parameter(&scene()->environment.ambient_color, pipeline->ambient_color);
-		rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
-		rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
-
-		rhi->bind_sampler(sampler, pipeline->base_color->binding);
-		rhi->bind_sampler(sampler, pipeline->msra->binding);
-
-		rhi->draw(6, 0);
-
-		for (size_t i = 0, count = m_visible_lights.size(); i < count; ++i)
 		{
-			auto component = m_visible_lights[i];
-			auto pipeline  = static_find_light_pipeline(component);
+			auto pipeline = Pipelines::AmbientLight::instance();
+			rhi->bind_render_target1(scene_color_target()->as_rtv());
 
-			if (pipeline == nullptr)
-				continue;
+			pipeline->rhi_bind();
 
-			auto light = component->proxy();
+			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
+			rhi->update_scalar_parameter(&scene()->environment.ambient_color, pipeline->ambient_color);
+			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
+			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
 
-			LightRenderParameters parameters;
-			light->render_parameters(parameters);
+			rhi->bind_sampler(sampler, pipeline->base_color->binding);
+			rhi->bind_sampler(sampler, pipeline->msra->binding);
 
+			rhi->draw(6, 0);
+		}
+
+		if (!m_visible_lights.empty())
+		{
+			auto pipeline = Pipelines::DeferredLighting::instance();
 			pipeline->rhi_bind();
 
 			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
@@ -334,14 +320,9 @@ namespace Engine
 			rhi->bind_sampler(sampler, pipeline->depth_texture->binding);
 
 			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
-			rhi->update_scalar_parameter(&parameters, pipeline->parameters);
-
-			if (light->is_shadows_enabled())
-			{
-				rhi->bind_srv(m_shadow_maps[i]->as_srv(), pipeline->shadow_map->binding);
-				rhi->bind_sampler(RHIShadowSampler::static_sampler(), pipeline->shadow_map->binding);
-				rhi->update_scalar_parameter(&m_shadow_projections[i], pipeline->shadow_projview);
-			}
+			rhi->bind_srv(clusters_buffer()->as_srv(), pipeline->clusters->binding);
+			rhi->bind_srv(lights_buffer()->as_srv(), pipeline->lights->binding);
+			rhi->update_scalar_parameter(m_light_ranges, pipeline->ranges);
 
 			rhi->draw(6, 0);
 		}
@@ -421,6 +402,77 @@ namespace Engine
 		}
 
 		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::cull_lights()
+	{
+		Pipelines::ClusterLightCulling::instance()->cull(this, clusters_buffer(), lights_buffer(), *m_light_ranges);
+		return *this;
+	}
+
+	uint_t DeferredRenderer::find_light_range(uint_t light_type, uint_t& start, uint_t& end)
+	{
+		if (m_visible_lights.empty())
+		{
+			start = end = 0;
+			return 0;
+		}
+
+		struct Compare {
+			bool operator()(const LightComponent* light, uint_t type) const { return light->proxy()->light_type() < type; }
+			bool operator()(uint_t type, const LightComponent* light) const { return light->proxy()->light_type() > type; }
+		};
+
+		auto range = std::equal_range(m_visible_lights.begin(), m_visible_lights.end(), light_type, Compare());
+
+		start = range.first - m_visible_lights.begin();
+		end   = range.second - m_visible_lights.begin();
+
+		return end - start;
+	}
+
+	RHIBuffer* DeferredRenderer::clusters_buffer()
+	{
+		if (m_clusters_buffer == nullptr)
+		{
+			m_clusters_buffer = Pipelines::ClusterInitialize::instance()->create_clusters_buffer();
+
+			render_graph()
+			        ->add_pass(RenderGraph::Pass::Compute, "Initialize Clusters")
+			        .add_resource(m_clusters_buffer, RHIAccess::UAVCompute)
+			        .add_func([this]() { Pipelines::ClusterInitialize::instance()->build(m_clusters_buffer, this); });
+		}
+		return m_clusters_buffer;
+	}
+
+	RHIBuffer* DeferredRenderer::lights_buffer()
+	{
+		if (m_lights_buffer == nullptr)
+		{
+			static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::StructuredBuffer |
+			                                              RHIBufferCreateFlags::ShaderResource |
+			                                              RHIBufferCreateFlags::TransferDst;
+
+			size_t size = sizeof(LightRenderParameters) * m_visible_primitives.size();
+
+			if (size == 0)
+				size = sizeof(LightRenderParameters);
+
+			m_lights_buffer = RHIBufferPool::global_instance()->request_transient_buffer(size, flags);
+
+			size_t offset = 0;
+
+			for (LightComponent* light : m_visible_lights)
+			{
+				LightRenderParameters params;
+				light->proxy()->render_parameters(params);
+
+				rhi->barrier(m_lights_buffer, RHIAccess::TransferDst);
+				rhi->update_buffer(m_lights_buffer, offset, sizeof(LightRenderParameters),
+				                   reinterpret_cast<const byte*>(&params));
+			}
+		}
+		return m_lights_buffer;
 	}
 
 	DeferredRenderer& DeferredRenderer::render()

@@ -5,6 +5,7 @@
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
@@ -102,17 +103,17 @@ namespace Engine::Pipelines
 		color_blending.enable = true;
 	}
 
-	void DeferredLightPipeline::initialize()
+	trinex_implement_pipeline(DeferredLighting, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		scene_view         = find_parameter("scene_view");
 		base_color_texture = find_parameter("base_color_texture");
 		normal_texture     = find_parameter("normal_texture");
 		msra_texture       = find_parameter("msra_texture");
 		depth_texture      = find_parameter("depth_texture");
-		parameters         = find_parameter("parameters");
 
-		shadow_map      = find_parameter("shadow_map");
-		shadow_projview = find_parameter("shadow_projview");
+		clusters = find_parameter("clusters");
+		lights   = find_parameter("lights");
+		ranges   = find_parameter("ranges");
 
 		depth_test.enable       = false;
 		depth_test.write_enable = false;
@@ -121,78 +122,6 @@ namespace Engine::Pipelines
 		color_blending.src_color_func = RHIBlendFunc::One;
 		color_blending.dst_color_func = RHIBlendFunc::One;
 		color_blending.color_op       = RHIBlendOp::Add;
-	}
-
-	trinex_implement_pipeline(DeferredPointLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
-	{
-		Super::initialize();
-	}
-
-	DeferredPointLightShadowed& DeferredPointLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_module("trinex/lighting/point_light.slang");
-		return *this;
-	}
-
-	trinex_implement_pipeline(DeferredPointLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
-	{
-		Super::initialize();
-	}
-
-	DeferredPointLight& DeferredPointLight::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_module("trinex/lighting/point_light.slang");
-		return *this;
-	}
-
-	trinex_implement_pipeline(DeferredSpotLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
-	{
-		Super::initialize();
-	}
-
-	DeferredSpotLightShadowed& DeferredSpotLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_module("trinex/lighting/shadowed_spot_light.slang");
-		return *this;
-	}
-
-	trinex_implement_pipeline(DeferredSpotLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
-	{
-		Super::initialize();
-	}
-
-	DeferredSpotLight& DeferredSpotLight::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_module("trinex/lighting/spot_light.slang");
-		return *this;
-	}
-
-	trinex_implement_pipeline(DeferredDirectionalLightShadowed, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
-	{
-		Super::initialize();
-	}
-
-	DeferredDirectionalLightShadowed& DeferredDirectionalLightShadowed::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_module("trinex/lighting/directional_light.slang");
-		return *this;
-	}
-
-	trinex_implement_pipeline(DeferredDirectionalLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
-	{
-		Super::initialize();
-	}
-
-	DeferredDirectionalLight& DeferredDirectionalLight::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		Super::modify_compilation_env(env);
-		env->add_module("trinex/lighting/directional_light.slang");
-		return *this;
 	}
 
 	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/ambient.slang")
@@ -344,6 +273,52 @@ namespace Engine::Pipelines
 		rhi->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
 
 		rhi->draw(6, 0);
+		return *this;
+	}
+
+	trinex_implement_pipeline(ClusterInitialize, "[shaders_dir]:/TrinexEngine/trinex/cluster/initialize.slang")
+	{
+		m_scene_view = find_parameter("scene_view");
+		m_clusters   = find_parameter("clusters");
+	}
+
+	RHIBuffer* ClusterInitialize::create_clusters_buffer()
+	{
+		static constexpr size_t cluster_size        = 552;
+		static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::UnorderedAccess |
+		                                              RHIBufferCreateFlags::ShaderResource |
+		                                              RHIBufferCreateFlags::StructuredBuffer;
+
+		size_t buffer_size = 16 * 9 * 24 * cluster_size;
+		return RHIBufferPool::global_instance()->request_transient_buffer(buffer_size, flags);
+	}
+
+	ClusterInitialize& ClusterInitialize::build(RHIBuffer* clusters, Renderer* renderer)
+	{
+		rhi_bind();
+		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->bind_uav(clusters->as_uav(), m_clusters->binding);
+		rhi->dispatch(16, 9, 24);
+		return *this;
+	}
+
+	trinex_implement_pipeline(ClusterLightCulling, "[shaders_dir]:/TrinexEngine/trinex/cluster/light_culling.slang")
+	{
+		m_scene_view = find_parameter("scene_view");
+		m_clusters   = find_parameter("clusters");
+		m_lights     = find_parameter("lights");
+		m_ranges     = find_parameter("ranges");
+	}
+
+	ClusterLightCulling& ClusterLightCulling::cull(Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
+	                                               const LightRenderRanges& ranges)
+	{
+		rhi_bind();
+		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->bind_uav(clusters->as_uav(), m_clusters->binding);
+		rhi->bind_srv(lights->as_srv(), m_lights->binding);
+		rhi->update_scalar_parameter(&ranges, m_ranges);
+		rhi->dispatch(27, 1, 1);
 		return *this;
 	}
 }// namespace Engine::Pipelines

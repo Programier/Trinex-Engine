@@ -88,7 +88,7 @@ namespace Engine
 			auto buffer = API->m_stagging_manager->allocate(size, RHIBufferCreateFlags::TransferSrc);
 			buffer->copy(offset, data, size);
 
-			transition(RHIAccess::CopyDst);
+			transition(RHIAccess::TransferDst);
 			auto cmd = API->end_render_pass();
 
 			vk::BufferCopy region(0, offset, size);
@@ -100,7 +100,7 @@ namespace Engine
 	VulkanBuffer& VulkanBuffer::update(size_t offset, size_t size, const byte* data)
 	{
 		auto cmd = API->end_render_pass();
-		transition(RHIAccess::CopyDst);
+		transition(RHIAccess::TransferDst);
 
 		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
 		if (size <= 65536 && size % 4 == 0 && offset % 4 == 0)
@@ -120,7 +120,7 @@ namespace Engine
 
 	VulkanBuffer& VulkanBuffer::transition(RHIAccess access)
 	{
-		if (m_access == access)
+		if (m_access == access && !(access & RHIAccess::WritableMask))
 			return *this;
 
 		if (m_access == RHIAccess::Undefined)

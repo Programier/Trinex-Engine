@@ -28,7 +28,6 @@ namespace Engine
 		LocalLightComponent();
 
 		LocalLightComponent& start_play() override;
-		Proxy* create_proxy() override;
 		LocalLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		LocalLightComponent& update_bounding_box() override;
 

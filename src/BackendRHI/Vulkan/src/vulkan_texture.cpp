@@ -318,7 +318,7 @@ namespace Engine
 		VulkanBuffer* dst  = static_cast<VulkanBuffer*>(buffer);
 
 		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
-		dst->transition(RHIAccess::CopyDst);
+		dst->transition(RHIAccess::TransferDst);
 
 		vk::BufferImageCopy region(buffer_offset, 0, 0, vk::ImageSubresourceLayers(src->aspect(), mip_level, array_slice, 1),
 		                           vk::Offset3D(offset.x, offset.y, offset.z), vk::Extent3D(extent.x, extent.y, extent.z));
@@ -332,7 +332,7 @@ namespace Engine
 		VulkanTexture* dst = static_cast<VulkanTexture*>(texture);
 		VulkanBuffer* src  = static_cast<VulkanBuffer*>(buffer);
 
-		src->transition(RHIAccess::CopySrc);
+		src->transition(RHIAccess::TransferDst);
 		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
 		vk::BufferImageCopy region(buffer_offset, 0, 0, vk::ImageSubresourceLayers(dst->aspect(), mip_level, array_slice, 1),

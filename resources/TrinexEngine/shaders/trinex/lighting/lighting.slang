@@ -10,8 +10,6 @@ namespace Lighting
 		static float shadow(in float3 position, in LightParameters params);
 	}
 
-	extern struct LightType : ILight;
-
 	struct LightParameters 
 	{
 		float3 color;
@@ -19,11 +17,19 @@ namespace Lighting
 		float3 direction;
 		float2 spot_angles;
 		float intensivity;
+		float attenuation_radius;
 		float inv_attenuation_radius;
 		float fall_off_exponent;
 		float source_radius;
 		float depth_bias;
 		float slope_scale;
+	};
+
+	struct LightRanges 
+	{
+		uint2 point;
+		uint2 spot;
+		uint2 directional;
 	};
 
 	struct PrimitiveData 
@@ -33,7 +39,7 @@ namespace Lighting
 		float3 normal;
 		float4 msra;
 	};
-
+	
 	float distribution_ggx(in float3 normal, in float3 halfway_direction, float roughness)
 	{
 		float roughness4 = Math::square(Math::square(roughness));
@@ -76,11 +82,11 @@ namespace Lighting
 		return Math::square((IOR - 1.0) / (IOR + 1.0));
 	}
 
-	float4 calculate_light(in LightParameters light, in PrimitiveData primitive)
+	float3 calculate_light<LightType : ILight>(in LightParameters light, in PrimitiveData primitive)
 	{
 		if (length(primitive.normal) < 0.1)
 		{
-			return float4(0.0, 0.0, 0.0, 1.0);
+			return float3(0.0, 0.0, 0.0);
 		}
 
 		float3 view_direction = normalize(scene_view.camera.location -
@@ -108,6 +114,6 @@ namespace Lighting
 		k_d *= 1.0 - primitive.msra.r;
 
 		float3 reflectance = (k_d * primitive.base_color.xyz / Math::pi + specular) * radiance * normal_dot_l;
-		return float4(reflectance, 1.0);
+		return reflectance;
 	}
 }// namespace Lighting

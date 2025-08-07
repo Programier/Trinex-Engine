@@ -44,11 +44,6 @@ namespace Engine
 		return *this;
 	}
 
-	LightComponent::Type LightComponent::Proxy::light_type() const
-	{
-		return Undefined;
-	}
-
 	LightComponent::LightComponent()
 	    : m_light_color(255, 255, 255, 255), m_intensivity(250.f), m_depth_bias(0.5f), m_slope_scale(0.5f), m_is_enabled(true),
 	      m_is_shadows_enabled(false)
@@ -75,11 +70,6 @@ namespace Engine
 			world_scene->add_light(this);
 		}
 		return submit_light_info_render_thread();
-	}
-
-	LightComponent::Proxy* LightComponent::create_proxy()
-	{
-		return new Proxy();
 	}
 
 	LightComponent& LightComponent::stop_play()

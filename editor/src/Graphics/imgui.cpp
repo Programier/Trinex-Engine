@@ -197,8 +197,8 @@ namespace Engine
 					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
 					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-					rhi->barrier(vd->vertex_buffer, RHIAccess::CopyDst);
-					rhi->barrier(vd->index_buffer, RHIAccess::CopyDst);
+					rhi->barrier(vd->vertex_buffer, RHIAccess::TransferDst);
+					rhi->barrier(vd->index_buffer, RHIAccess::TransferDst);
 
 					rhi->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
 					                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));

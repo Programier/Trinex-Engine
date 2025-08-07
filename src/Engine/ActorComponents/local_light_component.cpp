@@ -14,6 +14,7 @@ namespace Engine
 	LocalLightComponent::Proxy& LocalLightComponent::Proxy::render_parameters(LightRenderParameters& out)
 	{
 		Super::Proxy::render_parameters(out);
+		out.attenuation_radius     = m_attenuation_radius;
 		out.inv_attenuation_radius = 1.f / m_attenuation_radius;
 		return *this;
 	}
@@ -31,11 +32,6 @@ namespace Engine
 		Super::start_play();
 		submit_local_light_info();
 		return *this;
-	}
-
-	LocalLightComponent::Proxy* LocalLightComponent::create_proxy()
-	{
-		return new Proxy();
 	}
 
 	LocalLightComponent& LocalLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
