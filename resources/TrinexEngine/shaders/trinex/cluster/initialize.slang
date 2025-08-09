@@ -39,6 +39,6 @@ void compute_main(uint3 cluster_id: SV_GroupID)
 
 	uint cluster_index = uint(cluster.x + (cluster.y * Cluster::s_grid_size.x) + (cluster.z * Cluster::s_grid_size.x * Cluster::s_grid_size.y));
 
-	clusters[cluster_index].min = float4(min(min_point_near, min_point_far), 0.0);
-	clusters[cluster_index].max = float4(max(max_point_near, max_point_far), 0.0);
+	clusters[cluster_index].min = float4(min(min(min_point_near, min_point_far), min(max_point_near, max_point_far)), 0.f);
+	clusters[cluster_index].max = float4(max(max(min_point_near, min_point_far), max(max_point_near, max_point_far)), 0.f);
 }
