@@ -453,7 +453,7 @@ namespace Engine
 			                                              RHIBufferCreateFlags::ShaderResource |
 			                                              RHIBufferCreateFlags::TransferDst;
 
-			size_t size = sizeof(LightRenderParameters) * m_visible_primitives.size();
+			size_t size = sizeof(LightRenderParameters) * m_visible_lights.size();
 
 			if (size == 0)
 				size = sizeof(LightRenderParameters);
@@ -470,6 +470,7 @@ namespace Engine
 				rhi->barrier(m_lights_buffer, RHIAccess::TransferDst);
 				rhi->update_buffer(m_lights_buffer, offset, sizeof(LightRenderParameters),
 				                   reinterpret_cast<const byte*>(&params));
+				offset += sizeof(LightRenderParameters);
 			}
 		}
 		return m_lights_buffer;

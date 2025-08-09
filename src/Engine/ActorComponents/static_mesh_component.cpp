@@ -58,6 +58,7 @@ namespace Engine
 	StaticMeshComponent& StaticMeshComponent::submit_new_mesh()
 	{
 		render_thread()->call([proxy = proxy(), mesh = m_mesh]() { proxy->m_mesh = mesh; });
+		update_bounding_box();
 		return *this;
 	}
 
