@@ -11,13 +11,14 @@ namespace Engine
 		class ENGINE_EXPORT Proxy : public Super::Proxy
 		{
 		public:
-			inline Vector3f direction() const { return -world_transform().up_vector(); }
+			inline Vector3f direction() const { return world_transform().forward_vector(); }
 			Type light_type() const override;
+			Proxy& render_parameters(LightRenderParameters& out) override;
 			friend class DirectionalLightComponent;
 		};
 
 	public:
-		Vector3f direction() const;
+		inline Vector3f direction() const { return world_transform().forward_vector(); }
 
 		Type light_type() const override;
 		Proxy* create_proxy() override;
