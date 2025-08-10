@@ -449,10 +449,10 @@ namespace Engine
 	{
 		if (m_lights_buffer == nullptr)
 		{
+			StackByteAllocator::Mark mark;
 			static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::StructuredBuffer |
 			                                              RHIBufferCreateFlags::ShaderResource |
 			                                              RHIBufferCreateFlags::TransferDst;
-
 			size_t size = sizeof(LightRenderParameters) * m_visible_lights.size();
 
 			if (size == 0)
@@ -460,17 +460,18 @@ namespace Engine
 
 			m_lights_buffer = RHIBufferPool::global_instance()->request_transient_buffer(size, flags);
 
-			size_t offset = 0;
-
-			for (LightComponent* light : m_visible_lights)
+			if (!m_visible_lights.empty())
 			{
-				LightRenderParameters params;
-				light->proxy()->render_parameters(params);
+				LightRenderParameters* parameters = StackAllocator<LightRenderParameters>::allocate(m_visible_lights.size());
+				LightRenderParameters* current    = parameters;
+
+				for (LightComponent* light : m_visible_lights)
+				{
+					light->proxy()->render_parameters(*(current++));
+				}
 
 				rhi->barrier(m_lights_buffer, RHIAccess::TransferDst);
-				rhi->update_buffer(m_lights_buffer, offset, sizeof(LightRenderParameters),
-				                   reinterpret_cast<const byte*>(&params));
-				offset += sizeof(LightRenderParameters);
+				rhi->update_buffer(m_lights_buffer, 0, size, reinterpret_cast<byte*>(parameters));
 			}
 		}
 		return m_lights_buffer;

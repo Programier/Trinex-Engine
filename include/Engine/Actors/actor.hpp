@@ -16,31 +16,31 @@ namespace Engine
 	public:
 		template<typename NativeType>
 		struct Scriptable : Super::Scriptable<NativeType> {
-			Actor& update(float dt) override
+			Scriptable& update(float dt) override
 			{
 				static_cast<Actor*>(this)->scriptable_update(dt);
 				return *this;
 			}
 
-			Actor& start_play() override
+			Scriptable& start_play() override
 			{
 				static_cast<Actor*>(this)->scriptable_start_play();
 				return *this;
 			}
 
-			Actor& stop_play() override
+			Scriptable& stop_play() override
 			{
 				static_cast<Actor*>(this)->scriptable_stop_play();
 				return *this;
 			}
 
-			Actor& spawned() override
+			Scriptable& spawned() override
 			{
 				static_cast<Actor*>(this)->scriptable_spawned();
 				return *this;
 			}
 
-			Actor& destroyed() override
+			Scriptable& destroyed() override
 			{
 				static_cast<Actor*>(this)->scriptable_destroyed();
 				return *this;
