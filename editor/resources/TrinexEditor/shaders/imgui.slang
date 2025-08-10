@@ -15,7 +15,8 @@ struct PS_INPUT
 };
 
 uniform float4x4 model;
-Sampler2D texture;
+uniform DescriptorHandle<Texture2D> texture;
+uniform DescriptorHandle<SamplerState> sampler;
 
 [shader("vertex")]
 PS_INPUT vertex_main(in VS_INPUT input)
@@ -30,6 +31,5 @@ PS_INPUT vertex_main(in VS_INPUT input)
 [shader("fragment")]
 float4 fragment_main(in PS_INPUT input) : SV_Target
 {
-    float4 out_col = input.col * texture.Sample(input.uv); 
-    return out_col; 
+    return input.col * texture.Sample(sampler, input.uv); 
 }

@@ -20,6 +20,7 @@ namespace Engine
 	class VulkanDescriptorSetAllocator;
 	class VulkanStateManager;
 	class VulkanQueryPoolManager;
+	class VulkanDescriptorHeap;
 	class Window;
 
 	struct VulkanExtention {
@@ -71,6 +72,7 @@ namespace Engine
 		MultiMap<uint64_t, class VulkanPipelineLayout*> m_pipeline_layouts;
 		VulkanDescriptorSetAllocator* m_descriptor_set_allocator;
 		VulkanQueryPoolManager* m_query_pool_manager;
+		VulkanDescriptorHeap* m_descriptor_heap;
 
 
 	private:
@@ -79,6 +81,7 @@ namespace Engine
 			return std::to_array<VulkanExtention>({
 			        {"", false},// Dummy extension
 			        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true},
+			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
 			        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false},
 			        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false},
 			        {VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME, false},
@@ -111,6 +114,7 @@ namespace Engine
 		inline bool is_extension_enabled(size_t index) const { return m_device_extensions[index].enabled; }
 		inline VulkanDescriptorSetAllocator* descriptor_set_allocator() const { return m_descriptor_set_allocator; }
 		inline VulkanCommandBufferManager* command_buffer_mananger() const { return m_cmd_manager; }
+		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
 
 	public:
 		//////////////////////////////////////////////////////////////

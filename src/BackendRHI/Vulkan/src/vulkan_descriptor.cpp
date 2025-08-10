@@ -2,6 +2,7 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_descriptor.hpp>
@@ -49,8 +50,9 @@ namespace Engine
 			}
 
 			vk::DescriptorSetLayoutCreateInfo info({}, count, bindings);
-			m_set_layout = API->m_device.createDescriptorSetLayout(info);
-			pipeline_info.setSetLayouts(m_set_layout);
+			m_set_layout                       = API->m_device.createDescriptorSetLayout(info);
+			vk::DescriptorSetLayout layouts[2] = {m_set_layout, API->descriptor_heap()->descriptor_set_layout()};
+			pipeline_info.setSetLayouts(layouts);
 		}
 
 		m_layout = API->m_device.createPipelineLayout(pipeline_info);

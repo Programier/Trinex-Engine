@@ -15,14 +15,22 @@ namespace Engine
 
 	class VulkanSRV : public RHIShaderResourceView
 	{
+	protected:
+		RHIDescriptor m_descriptor;
+
 	public:
 		virtual VulkanSRV& bind(VulkanStateManager* manager, byte index) = 0;
+		RHIDescriptor descriptor() const override;
 	};
 
 	class VulkanUAV : public RHIUnorderedAccessView
 	{
+	protected:
+		RHIDescriptor m_descriptor;
+
 	public:
 		virtual VulkanUAV& bind(VulkanStateManager* manager, byte index) = 0;
+		RHIDescriptor descriptor() const override;
 	};
 
 	class VulkanRTV : public RHIRenderTargetView
@@ -42,9 +50,10 @@ namespace Engine
 		vk::ImageView m_view;
 
 	public:
-		VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view) {}
+		VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view);
 		~VulkanTextureSRV();
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
+
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
 	};
@@ -56,9 +65,10 @@ namespace Engine
 		vk::ImageView m_view;
 
 	public:
-		VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view) {}
+		VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view);
 		~VulkanTextureUAV();
 		VulkanUAV& bind(VulkanStateManager* manager, byte index) override;
+
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
 	};
@@ -153,9 +163,8 @@ namespace Engine
 	class VulkanStorageBufferSRV : public VulkanBufferSRV
 	{
 	public:
-		inline VulkanStorageBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-		    : VulkanBufferSRV(buffer, offset, size)
-		{}
+		VulkanStorageBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size);
+		~VulkanStorageBufferSRV();
 
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
 	};
@@ -163,9 +172,8 @@ namespace Engine
 	class VulkanUniformTexelBufferSRV : public VulkanBufferSRV
 	{
 	public:
-		inline VulkanUniformTexelBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-		    : VulkanBufferSRV(buffer, offset, size)
-		{}
+		VulkanUniformTexelBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size);
+		~VulkanUniformTexelBufferSRV();
 
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
 	};
@@ -178,10 +186,9 @@ namespace Engine
 		uint32_t m_size;
 
 	public:
-		inline VulkanBufferUAV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-		    : m_buffer(buffer), m_offset(offset), m_size(size)
-		{}
-		
+		VulkanBufferUAV(VulkanBuffer* buffer, uint32_t offset, uint32_t size);
+		~VulkanBufferUAV();
+
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
 		FORCE_INLINE uint32_t offset() const { return m_offset; }
 		FORCE_INLINE uint32_t size() const { return m_size; }

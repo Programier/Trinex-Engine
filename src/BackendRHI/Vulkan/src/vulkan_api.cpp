@@ -12,6 +12,7 @@
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_config.hpp>
@@ -100,17 +101,36 @@ namespace Engine
 		return device;
 	}
 
+	static void clean_pnext(vk::BaseOutStructure* base)
+	{
+		while (base)
+		{
+			vk::BaseOutStructure* next = base->pNext;
+			base->pNext                = nullptr;
+			base                       = next;
+		}
+	}
+
 	static vkb::Device build_device(vkb::PhysicalDevice& physical_device)
 	{
 		vkb::DeviceBuilder builder(physical_device);
 
-		vk::PhysicalDeviceCustomBorderColorFeaturesEXT custom_border(vk::True, vk::False);
+		vk::PhysicalDeviceFeatures2 features;
+		vk::PhysicalDeviceCustomBorderColorFeaturesEXT custom_border;
 		vk::PhysicalDeviceVulkan11Features vk11_features;
-		vk::PhysicalDeviceMeshShaderFeaturesEXT mesh_shaders(true, true, false, false, false);
+		vk::PhysicalDeviceMeshShaderFeaturesEXT mesh_shaders;
+		vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing;
 
-		vk11_features.setShaderDrawParameters(vk::True);
+		features.pNext      = &custom_border;
+		custom_border.pNext = &vk11_features;
+		vk11_features.pNext = &mesh_shaders;
+		vk11_features.pNext = &descriptor_indexing;
+
+		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
+		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
 
 		builder.add_pNext(&vk11_features);
+		builder.add_pNext(&descriptor_indexing);
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
 			builder.add_pNext(&custom_border);
@@ -263,6 +283,7 @@ namespace Engine
 		m_state_manager            = allocate<VulkanStateManager>();
 		m_descriptor_set_allocator = allocate<VulkanDescriptorSetAllocator>();
 		m_query_pool_manager       = allocate<VulkanQueryPoolManager>();
+		m_descriptor_heap          = allocate<VulkanDescriptorHeap>();
 
 
 		// Initialize memory allocator
@@ -293,6 +314,7 @@ namespace Engine
 		release(m_graphics_queue);
 		release(m_descriptor_set_allocator);
 		release(m_query_pool_manager);
+		release(m_descriptor_heap);
 
 		for (auto& [hash, layout] : m_pipeline_layouts)
 		{

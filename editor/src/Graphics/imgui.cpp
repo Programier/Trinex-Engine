@@ -44,6 +44,7 @@ namespace Engine
 
 		public:
 			const RHIShaderParameterInfo* texture_parameter = nullptr;
+			const RHIShaderParameterInfo* sampler_parameter = nullptr;
 			const RHIShaderParameterInfo* model_parameter   = nullptr;
 			Matrix4f model;
 			RHIShaderResourceView* srv = nullptr;
@@ -87,14 +88,19 @@ namespace Engine
 			stencil_test.compare                                                  = RHICompareFunc::Always;
 
 			texture_parameter = find_parameter("texture");
+			sampler_parameter = find_parameter("sampler");
 			model_parameter   = find_parameter("model");
 		}
 
 		void ImGuiPipeline::apply(const Sampler& sampler)
 		{
 			rhi_bind();
-			rhi->bind_srv(srv, texture_parameter->binding);
-			rhi->bind_sampler(sampler.rhi_sampler(), texture_parameter->binding);
+
+			RHIDescriptor sampler_descriptor = sampler.rhi_sampler()->descriptor();
+			RHIDescriptor texture_descriptor = srv->descriptor();
+
+			rhi->update_scalar_parameter(&sampler_descriptor, sampler_parameter);
+			rhi->update_scalar_parameter(&texture_descriptor, texture_parameter);
 			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->binding);
 
 			srv = nullptr;

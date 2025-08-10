@@ -2,6 +2,7 @@
 #include <Graphics/sampler.hpp>
 #include <RHI/initializers.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_bindless.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
@@ -75,12 +76,19 @@ namespace Engine
 			sampler_info.borderColor = parse_border_color(initializer->border_color);
 		}
 
-		m_sampler = API->m_device.createSampler(sampler_info);
+		m_sampler    = API->m_device.createSampler(sampler_info);
+		m_descriptor = API->descriptor_heap()->allocate(m_sampler);
 		return *this;
+	}
+
+	RHIDescriptor VulkanSampler::descriptor() const
+	{
+		return m_descriptor;
 	}
 
 	VulkanSampler::~VulkanSampler()
 	{
+		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::Sampler);
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 

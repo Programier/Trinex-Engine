@@ -10,6 +10,8 @@ namespace Engine
 	struct RHITextureDescSRV;
 	struct RHITextureDescUAV;
 
+	using RHIDescriptor = uint64_t;
+
 	class ENGINE_EXPORT RHIObject
 	{
 	private:
@@ -84,12 +86,14 @@ namespace Engine
 	{
 	public:
 		virtual ~RHIShaderResourceView() {}
+		virtual RHIDescriptor descriptor() const = 0;
 	};
 
 	class ENGINE_EXPORT RHIUnorderedAccessView
 	{
 	public:
 		virtual ~RHIUnorderedAccessView() {}
+		virtual RHIDescriptor descriptor() const = 0;
 	};
 
 	class ENGINE_EXPORT RHIRenderTargetView
@@ -110,6 +114,8 @@ namespace Engine
 
 	class ENGINE_EXPORT RHISampler : public RHIObject
 	{
+	public:
+		virtual RHIDescriptor descriptor() const = 0;
 	};
 
 	class ENGINE_EXPORT RHITexture : public RHIObject

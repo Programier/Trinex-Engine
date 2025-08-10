@@ -1,4 +1,5 @@
 #include <vulkan_api.hpp>
+#include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_enums.hpp>
@@ -10,8 +11,24 @@
 
 namespace Engine
 {
+	RHIDescriptor VulkanSRV::descriptor() const
+	{
+		return m_descriptor;
+	}
+
+	RHIDescriptor VulkanUAV::descriptor() const
+	{
+		return m_descriptor;
+	}
+
+	VulkanTextureSRV::VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
+	{
+		m_descriptor = API->descriptor_heap()->allocate(view, VulkanDescriptorHeap::SampledImage);
+	}
+
 	VulkanTextureSRV::~VulkanTextureSRV()
 	{
+		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::SampledImage);
 		API->m_device.destroyImageView(m_view);
 	}
 
@@ -19,6 +36,11 @@ namespace Engine
 	{
 		manager->srv_images.bind(this, index);
 		return *this;
+	}
+
+	VulkanTextureUAV::VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
+	{
+		m_descriptor = API->descriptor_heap()->allocate(m_view, VulkanDescriptorHeap::StorageImage);
 	}
 
 	VulkanTextureUAV::~VulkanTextureUAV()
@@ -122,16 +144,49 @@ namespace Engine
 		API->current_command_buffer()->clearDepthStencilImage(image(), layout(), value, range);
 	}
 
+	VulkanStorageBufferSRV::VulkanStorageBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+	    : VulkanBufferSRV(buffer, offset, size)
+	{
+		m_descriptor = API->descriptor_heap()->allocate(buffer, offset, size, VulkanDescriptorHeap::StorageBuffer);
+	}
+
+	VulkanStorageBufferSRV::~VulkanStorageBufferSRV()
+	{
+		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
+	}
+
 	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanStateManager* manager, byte index)
 	{
 		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), size(), offset()), index);
 		return *this;
 	}
 
+	VulkanUniformTexelBufferSRV::VulkanUniformTexelBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+	    : VulkanBufferSRV(buffer, offset, size)
+	{
+		m_descriptor = API->descriptor_heap()->allocate(buffer, offset, size, VulkanDescriptorHeap::UniformTexelBuffer);
+	}
+
+	VulkanUniformTexelBufferSRV::~VulkanUniformTexelBufferSRV()
+	{
+		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::UniformTexelBuffer);
+	}
+
 	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanStateManager* manager, byte index)
 	{
 		manager->uniform_texel_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), size(), offset()), index);
 		return *this;
+	}
+
+	VulkanBufferUAV::VulkanBufferUAV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
+	    : m_buffer(buffer), m_offset(offset), m_size(size)
+	{
+		m_descriptor = API->descriptor_heap()->allocate(buffer, offset, size, VulkanDescriptorHeap::StorageBuffer);
+	}
+
+	VulkanBufferUAV::~VulkanBufferUAV()
+	{
+		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanUAV& VulkanBufferUAV::bind(VulkanStateManager* manager, byte index)

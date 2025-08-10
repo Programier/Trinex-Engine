@@ -77,6 +77,15 @@ namespace Engine
 
 
 	struct NoneSampler : public NoneApiDestroyable<RHISampler> {
+		RHIDescriptor descriptor() const override { return 0; }
+	};
+
+	struct NoneSRV : public RHIShaderResourceView {
+		RHIDescriptor descriptor() const override { return 0; }
+	};
+
+	struct NoneUAV : public RHIUnorderedAccessView {
+		RHIDescriptor descriptor() const override { return 0; }
 	};
 
 	struct NoneRTV : public RHIRenderTargetView {
@@ -92,8 +101,8 @@ namespace Engine
 	struct NoneTexture : public NoneApiDestroyable<RHITexture> {
 		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc) override { return rhi_default<NoneRTV>(); }
 		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc) override { return rhi_default<NoneDSV>(); }
-		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override { return rhi_default<RHIShaderResourceView>(); }
-		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override { return rhi_default<RHIUnorderedAccessView>(); }
+		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override { return rhi_default<NoneSRV>(); }
+		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override { return rhi_default<NoneUAV>(); }
 	};
 
 	struct NoneShader : public NoneApiDestroyable<RHIShader> {
@@ -107,8 +116,8 @@ namespace Engine
 		byte* map() override { return nullptr; }
 		void unmap() override {}
 
-		RHIShaderResourceView* as_srv(uint32_t offset, uint32_t size) override { return rhi_default<RHIShaderResourceView>(); }
-		RHIUnorderedAccessView* as_uav(uint32_t offset, uint32_t size) override { return rhi_default<RHIUnorderedAccessView>(); }
+		RHIShaderResourceView* as_srv(uint32_t offset, uint32_t size) override { return rhi_default<NoneSRV>(); }
+		RHIUnorderedAccessView* as_uav(uint32_t offset, uint32_t size) override { return rhi_default<NoneUAV>(); }
 	};
 
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {

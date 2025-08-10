@@ -28,9 +28,11 @@ namespace Engine
 	{
 	private:
 		vk::Sampler m_sampler;
+		RHIDescriptor m_descriptor;
 
 	public:
 		VulkanSampler& create(const RHISamplerInitializer* sampler);
+		RHIDescriptor descriptor() const override;
 		inline vk::Sampler sampler() const { return m_sampler; }
 		~VulkanSampler();
 	};

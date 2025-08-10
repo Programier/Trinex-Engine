@@ -9,6 +9,7 @@
 #include <Graphics/shader.hpp>
 #include <RHI/initializers.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_definitions.hpp>
@@ -218,7 +219,8 @@ namespace Engine
 			}
 		}
 
-		API->current_command_buffer()->bindDescriptorSets(bind_point, m_layout->layout(), 0, set, {});
+		vk::DescriptorSet descriptor_sets[2] = {set, API->descriptor_heap()->descriptor_set()};
+		API->current_command_buffer()->bindDescriptorSets(bind_point, m_layout->layout(), 0, descriptor_sets, {});
 		return *this;
 	}
 

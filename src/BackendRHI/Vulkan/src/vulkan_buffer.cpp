@@ -51,6 +51,8 @@ namespace Engine
 		{
 			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
 				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+			else
+				usage |= vk::BufferUsageFlagBits::eStorageTexelBuffer;
 		}
 
 		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
@@ -185,7 +187,14 @@ namespace Engine
 
 		if (uav == nullptr && m_flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
 		{
-			uav = new VulkanBufferUAV(this, offset, size);
+			if (m_flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+			{
+				uav = new VulkanBufferUAV(this, offset, size);
+			}
+			else
+			{
+				uav = new VulkanBufferUAV(this, offset, size);
+			}
 		}
 
 		return uav;
