@@ -43,12 +43,12 @@ namespace Engine::EditorPipelines
 		SRV* scene_depth = renderer->scene_depth_target()->as_srv();
 
 		rhi_bind();
-		rhi->bind_srv(scene_color, m_scene_color->binding);
-		rhi->bind_srv(scene_depth, m_scene_depth->binding);
-		rhi->bind_srv(outline_depth, m_outline_depth->binding);
 
-		rhi->bind_sampler(RHIPointSampler::static_sampler(), m_sampler->binding);
-		rhi->update_scalar_parameter(&color, m_outline_color);
+		rhi->update_scalar(scene_color->descriptor(), m_scene_color);
+		rhi->update_scalar(scene_depth->descriptor(), m_scene_depth);
+		rhi->update_scalar(outline_depth->descriptor(), m_outline_depth);
+		rhi->update_scalar(RHIPointSampler::static_sampler()->descriptor(), m_sampler);
+		rhi->update_scalar(color, m_outline_color);
 
 		auto& camera_view = renderer->scene_view().camera_view();
 		rhi->update_scalar_parameter(&camera_view.near_clip_plane, m_near);

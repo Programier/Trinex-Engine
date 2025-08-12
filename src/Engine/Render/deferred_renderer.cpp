@@ -285,7 +285,7 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::deferred_lighting_pass()
 	{
 
-		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
+		RHIDescriptor sampler = RHIPointSampler::static_sampler()->descriptor();
 
 		{
 			auto pipeline = Pipelines::AmbientLight::instance();
@@ -294,12 +294,11 @@ namespace Engine
 			pipeline->rhi_bind();
 
 			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
-			rhi->update_scalar_parameter(&scene()->environment.ambient_color, pipeline->ambient_color);
-			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
-			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
 
-			rhi->bind_sampler(sampler, pipeline->base_color->binding);
-			rhi->bind_sampler(sampler, pipeline->msra->binding);
+			rhi->update_scalar(base_color_target()->as_srv()->descriptor(), pipeline->base_color);
+			rhi->update_scalar(msra_target()->as_srv()->descriptor(), pipeline->msra);
+			rhi->update_scalar(sampler, pipeline->sampler);
+			rhi->update_scalar(scene()->environment.ambient_color, pipeline->ambient_color);
 
 			rhi->draw(6, 0);
 		}
@@ -309,15 +308,11 @@ namespace Engine
 			auto pipeline = Pipelines::DeferredLighting::instance();
 			pipeline->rhi_bind();
 
-			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
-			rhi->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
-			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);
-			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->binding);
-
-			rhi->bind_sampler(sampler, pipeline->base_color_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->normal_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->msra_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->depth_texture->binding);
+			rhi->update_scalar(base_color_target()->as_srv()->descriptor(), pipeline->base_color_texture);
+			rhi->update_scalar(normal_target()->as_srv()->descriptor(), pipeline->normal_texture);
+			rhi->update_scalar(msra_target()->as_srv()->descriptor(), pipeline->msra_texture);
+			rhi->update_scalar(scene_depth_target()->as_srv()->descriptor(), pipeline->depth_texture);
+			rhi->update_scalar(sampler, pipeline->sampler);
 
 			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 			rhi->bind_srv(clusters_buffer()->as_srv(), pipeline->clusters->binding);

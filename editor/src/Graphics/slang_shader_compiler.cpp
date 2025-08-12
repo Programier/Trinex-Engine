@@ -884,6 +884,8 @@ namespace Engine
 
 				components.push_back(module);
 			}
+
+			components.push_back(load_module("trinex/trinex.slang"));
 		}
 
 		///////// STEP TWO: COLLECT ENTRY POINTS  /////////

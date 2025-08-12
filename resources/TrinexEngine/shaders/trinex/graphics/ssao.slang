@@ -14,12 +14,10 @@ struct Args
 	uint samples;
 };
 
-
-uniform Texture2D scene_depth;
-uniform Texture2D scene_normal;
-uniform Texture2D noise_texture;
-
-uniform SamplerState sampler;
+uniform DescriptorHandle<Texture2D> scene_depth;
+uniform DescriptorHandle<Texture2D> scene_normal;
+uniform DescriptorHandle<Texture2D> noise_texture;
+uniform DescriptorHandle<SamplerState> sampler;
 
 [parameter_flags(meta::UniformBuffer)]
 uniform Args args;

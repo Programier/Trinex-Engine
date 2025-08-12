@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <RHI/types.hpp>
 
 namespace Engine
 {

@@ -31,8 +31,8 @@ namespace Engine
 		initialize(StorageImage, vk::DescriptorType::eStorageImage, 64 * 1024);
 		initialize(UniformTexelBuffer, vk::DescriptorType::eUniformTexelBuffer, 64 * 1024);
 		initialize(StorageTexelBuffer, vk::DescriptorType::eStorageTexelBuffer, 64 * 1024);
-		initialize(UniformBuffer, vk::DescriptorType::eUniformBuffer, 768 * 1024);
-		initialize(StorageBuffer, vk::DescriptorType::eStorageBuffer, 768 * 1024);
+		initialize(UniformBuffer, vk::DescriptorType::eUniformBuffer, 256 * 1024);
+		initialize(StorageBuffer, vk::DescriptorType::eStorageBuffer, 256 * 1024);
 
 		create();
 	}

@@ -16,6 +16,7 @@ namespace Engine
 			trinex_declare_pipeline(GaussianBlur, GlobalGraphicsPipeline);
 
 			const RHIShaderParameterInfo* m_source;
+			const RHIShaderParameterInfo* m_sampler;
 			const RHIShaderParameterInfo* m_args;
 
 		public:
@@ -63,6 +64,7 @@ namespace Engine
 			const RHIShaderParameterInfo* normal_texture     = nullptr;
 			const RHIShaderParameterInfo* msra_texture       = nullptr;
 			const RHIShaderParameterInfo* depth_texture      = nullptr;
+			const RHIShaderParameterInfo* sampler            = nullptr;
 			const RHIShaderParameterInfo* clusters           = nullptr;
 			const RHIShaderParameterInfo* lights             = nullptr;
 			const RHIShaderParameterInfo* ranges             = nullptr;
@@ -76,6 +78,7 @@ namespace Engine
 			const RHIShaderParameterInfo* scene_view    = nullptr;
 			const RHIShaderParameterInfo* base_color    = nullptr;
 			const RHIShaderParameterInfo* msra          = nullptr;
+			const RHIShaderParameterInfo* sampler       = nullptr;
 			const RHIShaderParameterInfo* ambient_color = nullptr;
 		};
 
@@ -85,6 +88,7 @@ namespace Engine
 
 		private:
 			const RHIShaderParameterInfo* m_hdr_target = nullptr;
+			const RHIShaderParameterInfo* m_sampler    = nullptr;
 			const RHIShaderParameterInfo* m_scene_view = nullptr;
 
 		public:

@@ -5,12 +5,13 @@ import "trinex/scene_view.slang";
 import "trinex/quad.slang";
 import "trinex/cluster/cluster.slang";
 
-uniform Sampler2D base_color_texture;
-uniform Sampler2D normal_texture;
-uniform Sampler2D msra_texture;
-uniform Sampler2D depth_texture;
+uniform DescriptorHandle<Texture2D> base_color_texture;
+uniform DescriptorHandle<Texture2D> normal_texture;
+uniform DescriptorHandle<Texture2D> msra_texture;
+uniform DescriptorHandle<Texture2D> depth_texture;
+uniform DescriptorHandle<SamplerState> sampler;
 
-uniform StructuredBuffer<Cluster> clusters;
+uniform DescriptorHandle<StructuredBuffer<Cluster>> clusters;
 uniform StructuredBuffer<Lighting::LightParameters> lights;
 
 [parameter_flags(meta::UniformBuffer)]
@@ -46,12 +47,12 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	float2 uv = scene_view.screen_uv(position.xy);
 
 	Lighting::PrimitiveData primitive;
-	float depth          = depth_texture.Sample(uv).r;
+	float depth          = depth_texture.Sample(sampler, uv).r;
 
-	primitive.base_color = base_color_texture.Sample(uv);
+	primitive.base_color = base_color_texture.Sample(sampler, uv);
 	primitive.position   = scene_view.reconstruct_position(position.xy, depth);
-	primitive.normal     = normal_texture.Sample(uv).xyz;
-	primitive.msra       = msra_texture.Sample(uv);
+	primitive.normal     = normal_texture.Sample(sampler, uv).xyz;
+	primitive.msra       = msra_texture.Sample(sampler, uv);
 
 	float3 color = float3(0.f);
 	

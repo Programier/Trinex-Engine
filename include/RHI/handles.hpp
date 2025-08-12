@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/math/vector.hpp>
+#include <RHI/types.hpp>
 
 namespace Engine
 {
@@ -9,8 +9,6 @@ namespace Engine
 	struct RHITextureDescDSV;
 	struct RHITextureDescSRV;
 	struct RHITextureDescUAV;
-
-	using RHIDescriptor = uint64_t;
 
 	class ENGINE_EXPORT RHIObject
 	{

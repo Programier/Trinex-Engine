@@ -152,6 +152,12 @@ namespace Engine
 			return update_scalar_parameter(data, info->size, info->offset, info->binding);
 		}
 
+		template<typename T>
+		FORCE_INLINE RHI& update_scalar(const T& value, const RHIShaderParameterInfo* info)
+		{
+			return update_scalar_parameter(&value, sizeof(value), info->offset, info->binding);
+		}
+
 		virtual ~RHI() {};
 	};
 

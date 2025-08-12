@@ -1,7 +1,8 @@
 import "trinex/trinex.slang";
 import "trinex/quad.slang";
 
-uniform Sampler2D source;
+uniform DescriptorHandle<Texture2D> source;
+uniform DescriptorHandle<SamplerState> sampler;
 
 struct Arguments
 {
@@ -38,6 +39,6 @@ float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 float4 fragment_main(in float4 position: SV_Position) : SV_Target
 {
 	float2 uv    = args.offset + position.xy * args.inv_size;
-	float4 color = source.SampleLevel(uv, 0);
+	float4 color = source.SampleLevel(sampler, uv, 0);
 	return calculate_swizzle(color);
 }
