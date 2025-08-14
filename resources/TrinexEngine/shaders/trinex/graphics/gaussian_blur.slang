@@ -1,8 +1,7 @@
 import "trinex/trinex.slang";
 import "trinex/quad.slang";
 
-uniform DescriptorHandle<Texture2D> source;
-uniform DescriptorHandle<SamplerState> sampler;
+uniform Sampler2D source;
 
 struct Args
 {
@@ -49,7 +48,7 @@ float4 fragment_main(in float4 position: SV_Position) : SV_Target
 	for (float i = -args.radius; i <= args.radius; i++)
 	{
 		float weight = exp(-0.5f * (i * i) / (args.sigma * args.sigma)) / (2.50662827f * args.sigma);
-		value += source.SampleLevel(sampler, uv + i * args.inv_size, 0.f) * weight;
+		value += source.SampleLevel(uv + i * args.inv_size, 0.f) * weight;
 		weight_sum += weight;
 	}
 

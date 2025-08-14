@@ -2,8 +2,7 @@ import "trinex/quad.slang";
 import "trinex/scene_view.slang";
 import "trinex/trinex.slang";
 
-uniform DescriptorHandle<Texture2D> hdr_scene;
-uniform DescriptorHandle<SamplerState> sampler;
+uniform Sampler2D hdr_scene;
 
 [shader("vertex")]
 float4 vertex_main(in uint index: SV_VertexID) : SV_Position
@@ -15,7 +14,7 @@ float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 float4 fragment_main(in float4 position : SV_Position) : SV_Target
 {
 	float2 uv          = scene_view.screen_uv(position.xy);
-	float4 scene_color = hdr_scene.SampleLevel(sampler, uv, 0);
+	float4 scene_color = hdr_scene.SampleLevel(uv, 0);
 	scene_color.rgb    = ACES(scene_color.rgb);
 
 	// Gamma

@@ -4,10 +4,10 @@ import "trinex/math.slang";
 
 struct Arguments
 {
-    DescriptorHandle<Texture2D> scene_color;
-    DescriptorHandle<Texture2D> scene_depth;
-    DescriptorHandle<Texture2D> outline_depth;
-    DescriptorHandle<SamplerState> sampler;
+    Texture2D scene_color;
+    Texture2D scene_depth;
+    Texture2D outline_depth;
+    SamplerState sampler;
 
     float3 outline_color;
     float near;

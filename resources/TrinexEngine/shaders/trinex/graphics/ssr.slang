@@ -2,10 +2,10 @@ import "trinex/quad.slang";
 import "trinex/scene_view.slang";
 import "trinex/trinex.slang";
 
-uniform DescriptorHandle<Texture2D> scene_color;
-uniform DescriptorHandle<Texture2D> scene_normal;
-uniform DescriptorHandle<Texture2D> scene_depth;
-uniform DescriptorHandle<SamplerState> sampler;
+uniform Texture2D scene_color;
+uniform Texture2D scene_normal;
+uniform Texture2D scene_depth;
+uniform SamplerState sampler;
 
 [shader("vertex")] 
 float4 vertex_main(in uint index : SV_VertexID) : SV_Position

@@ -22,9 +22,8 @@ namespace Engine::Pipelines
 		depth_test.write_enable = false;
 		color_blending.enable   = false;
 
-		m_source  = find_parameter("source");
-		m_sampler = find_parameter("sampler");
-		m_args    = find_parameter("args");
+		m_source = find_parameter("source");
+		m_args   = find_parameter("args");
 	}
 
 	void GaussianBlur::blur(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction, float sigma,
@@ -51,10 +50,9 @@ namespace Engine::Pipelines
 			sampler = RHIBilinearSampler::static_sampler();
 
 		rhi_bind();
-
-		rhi->update_scalar(src->descriptor(), m_source);
-		rhi->update_scalar(sampler->descriptor(), m_source);
-		rhi->update_scalar(args, m_args);
+		rhi->bind_srv(src, m_source->binding);
+		rhi->bind_sampler(sampler, m_source->binding);
+		rhi->update_scalar_parameter(&args, sizeof(args), m_args);
 
 		rhi->draw(6, 0);
 	}
@@ -112,7 +110,6 @@ namespace Engine::Pipelines
 		normal_texture     = find_parameter("normal_texture");
 		msra_texture       = find_parameter("msra_texture");
 		depth_texture      = find_parameter("depth_texture");
-		sampler            = find_parameter("sampler");
 
 		clusters = find_parameter("clusters");
 		lights   = find_parameter("lights");
@@ -134,7 +131,6 @@ namespace Engine::Pipelines
 		scene_view    = find_parameter("scene_view");
 		base_color    = find_parameter("base_color");
 		msra          = find_parameter("msra");
-		sampler       = find_parameter("sampler");
 		ambient_color = find_parameter("ambient_color");
 	}
 
@@ -145,7 +141,6 @@ namespace Engine::Pipelines
 		stencil_test.enable     = false;
 
 		m_hdr_target = find_parameter("hdr_scene");
-		m_sampler    = find_parameter("sampler");
 		m_scene_view = find_parameter("scene_view");
 	}
 
@@ -155,8 +150,8 @@ namespace Engine::Pipelines
 		rhi_bind();
 
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->update_scalar(renderer->scene_color_hdr_target()->as_srv()->descriptor(), m_hdr_target);
-		rhi->update_scalar(RHIPointSampler::static_sampler()->descriptor(), m_sampler);
+		rhi->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
+		rhi->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
 		rhi->draw(6, 0);
 
 		return *this;
@@ -270,13 +265,12 @@ namespace Engine::Pipelines
 		args.samples           = samples;
 
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-
-		rhi->update_scalar(args, m_args);
-		rhi->update_scalar(renderer->scene_depth_target()->as_srv()->descriptor(), m_scene_depth);
-		rhi->update_scalar(renderer->normal_target()->as_srv()->descriptor(), m_scene_normal);
-		rhi->update_scalar(DefaultResources::Textures::noise4x4->rhi_srv()->descriptor(), m_noise);
-		rhi->update_scalar(m_samples_buffer->as_srv()->descriptor(), m_samples);
-		rhi->update_scalar(RHIBilinearWrapSampler::static_sampler()->descriptor(), m_sampler);
+		rhi->update_scalar_parameter(&args, sizeof(args), 0, m_args->binding);
+		rhi->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
+		rhi->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
+		rhi->bind_srv(DefaultResources::Textures::noise4x4->rhi_srv(), m_noise->binding);
+		rhi->bind_srv(m_samples_buffer->as_srv(), m_samples->binding);
+		rhi->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
 
 		rhi->draw(6, 0);
 		return *this;
