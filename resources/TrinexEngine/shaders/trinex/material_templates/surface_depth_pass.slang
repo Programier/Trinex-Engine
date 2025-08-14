@@ -23,7 +23,7 @@ extern Material main<Material : IMaterial>(in IMaterialInput input);
 
 struct DepthUniforms
 {
-	[parameter_flags(meta::LocalToWorld)]
+	[parameter_type(meta::type::LocalToWorld)]
 	uniform float4x4 local_to_world;
 }
 

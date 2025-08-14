@@ -2,13 +2,21 @@
 
 namespace meta
 {
-	[UnscopedEnum]
-	enum ParameterFlags
+	enum type
 	{
 		UniformBuffer            = 0x00010013,
 		ExcludeMaterialParameter = 0x40000000,
-		Globals                  = 0x00010038,
+		SceneView                = 0x00010038,
 		LocalToWorld             = 0x20010039,
+
+		// Descriptors
+		DescriptorTexture1D        = 0x1003c,
+		DescriptorTexture2D        = 0x1003d,
+		DescriptorTexture3D        = 0x1003e,
+		DescriptorTextureCube      = 0x1003f,
+		DescriptorTexture1DArray   = 0x10040,
+		DescriptorTexture2DArray   = 0x10041,
+		DescriptorTextureCubeArray = 0x10042,
 	}
 }
 
@@ -16,7 +24,7 @@ namespace meta
 [__AttributeUsage(_AttributeTargets.Var)]
 struct parameter_typeAttribute
 {
-	string type;
+	meta::type type;
 };
 
 [__AttributeUsage(_AttributeTargets.Var)]
@@ -41,13 +49,6 @@ struct nameAttribute
 {
 	string name;
 }
-
-[__AttributeUsage(_AttributeTargets.Var)]
-struct parameter_flagsAttribute
-{
-	meta::ParameterFlags flags;
-}
-
 
 // OPERATORS SECTION
 

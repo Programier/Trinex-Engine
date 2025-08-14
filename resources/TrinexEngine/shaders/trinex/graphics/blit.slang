@@ -10,7 +10,7 @@ struct Arguments
 	uint4 swizzle;// [0 -> R, 1 -> G, 2 -> B, 3 -> A, 4 -> 0.f, 5 -> 1.f]
 };
 
-[parameter_flags(meta::UniformBuffer)]
+[parameter_type(meta::type::UniformBuffer)]
 uniform Arguments args;
 
 [ForceInline]

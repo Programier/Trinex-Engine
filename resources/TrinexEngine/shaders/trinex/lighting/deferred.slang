@@ -13,7 +13,7 @@ uniform Sampler2D depth_texture;
 uniform StructuredBuffer<Cluster> clusters;
 uniform StructuredBuffer<Lighting::LightParameters> lights;
 
-[parameter_flags(meta::UniformBuffer)]
+[parameter_type(meta::type::UniformBuffer)]
 uniform Lighting::LightRanges ranges;
 
 [shader("vertex")]

@@ -13,7 +13,7 @@ struct Args
 	float radius;
 };
 
-[parameter_flags(meta::UniformBuffer)]
+[parameter_type(meta::type::UniformBuffer)]
 uniform Args args;
 
 [shader("vertex")]

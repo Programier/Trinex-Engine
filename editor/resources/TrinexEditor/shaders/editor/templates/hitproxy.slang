@@ -23,10 +23,10 @@ extern struct VertexInput : IVertexInput
 
 struct HitproxyInput
 {
-	[parameter_flags(meta::LocalToWorld)]
+	[parameter_type(meta::type::LocalToWorld)]
 	float4x4 local_to_world;
 
-	[parameter_flags(meta::ExcludeMaterialParameter)]
+	[parameter_type(meta::type::ExcludeMaterialParameter)]
 	uint2 id;
 }
 

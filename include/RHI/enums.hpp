@@ -98,6 +98,15 @@ namespace Engine
 			LocalToWorld    = 57 | META_Matrix | META_UniformBuffer,
 			Surface         = 58 | META_Texture,
 			CombinedSurface = 59 | META_Texture | META_Sampler,
+
+			// Descriptors
+			DescriptorTexture1D        = 60 | META_UniformBuffer,
+			DescriptorTexture2D        = 61 | META_UniformBuffer,
+			DescriptorTexture3D        = 62 | META_UniformBuffer,
+			DescriptorTextureCube      = 63 | META_UniformBuffer,
+			DescriptorTexture1DArray   = 64 | META_UniformBuffer,
+			DescriptorTexture2DArray   = 65 | META_UniformBuffer,
+			DescriptorTextureCubeArray = 66 | META_UniformBuffer,
 		};
 
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);

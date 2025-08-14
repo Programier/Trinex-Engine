@@ -190,9 +190,9 @@ namespace Engine
 			return StringView();
 		}
 
-		static RHIShaderParameterType find_parameter_flags(slang::VariableReflection* var)
+		static RHIShaderParameterType find_parameter_type(slang::VariableReflection* var)
 		{
-			if (auto attrib = var->findAttributeByName(global_session(), "parameter_flags"))
+			if (auto attrib = var->findAttributeByName(global_session(), "parameter_type"))
 			{
 				if (attrib->getArgumentCount() == 1)
 				{
@@ -419,7 +419,7 @@ namespace Engine
 
 		static RHIShaderParameterType find_scalar_parameter_type(slang::VariableLayoutReflection* var)
 		{
-			auto type = find_parameter_flags(var->getVariable());
+			auto type = find_parameter_type(var->getVariable());
 
 			if (!type.is_meta())
 				return type;
@@ -489,7 +489,7 @@ namespace Engine
 			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
 			{
-				auto type = find_parameter_flags(param.var->getVariable());
+				auto type = find_parameter_type(param.var->getVariable());
 
 				if (auto type_layout = param.var->getTypeLayout())
 				{
@@ -562,7 +562,7 @@ namespace Engine
 
 				size_t additional_exclude = 0;
 
-				RHIShaderParameterType flags = find_parameter_flags(param.var->getVariable());
+				RHIShaderParameterType flags = find_parameter_type(param.var->getVariable());
 
 				if ((flags & RHIShaderParameterType::UniformBuffer) == RHIShaderParameterType::UniformBuffer)
 				{

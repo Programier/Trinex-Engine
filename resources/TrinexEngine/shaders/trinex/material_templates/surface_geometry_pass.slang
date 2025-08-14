@@ -23,7 +23,7 @@ extern struct VertexInput : IVertexInput
 
 struct GeometryUniforms 
 {
-	[parameter_flags(meta::LocalToWorld)]
+	[parameter_type(meta::type::LocalToWorld)]
 	float4x4 local_to_world;
 }
 

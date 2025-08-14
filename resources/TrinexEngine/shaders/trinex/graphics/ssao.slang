@@ -21,7 +21,7 @@ uniform Texture2D noise_texture;
 
 uniform SamplerState sampler;
 
-[parameter_flags(meta::UniformBuffer)]
+[parameter_type(meta::type::UniformBuffer)]
 uniform Args args;
 
 uniform StructuredBuffer<float3> samples;
