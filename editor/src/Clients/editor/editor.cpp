@@ -17,7 +17,7 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <ImGuizmo.h>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>

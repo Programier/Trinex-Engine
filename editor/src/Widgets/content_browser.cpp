@@ -9,7 +9,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Engine/project.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imgui_internal.h>

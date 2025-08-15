@@ -1,7 +1,7 @@
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Actors/point_light_actor.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 
 namespace Engine
 {

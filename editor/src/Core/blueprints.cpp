@@ -1,7 +1,7 @@
 #include <Core/blueprints.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/etl/templates.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 

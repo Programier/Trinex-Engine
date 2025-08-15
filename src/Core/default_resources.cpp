@@ -6,7 +6,7 @@
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Graphics/gpu_buffers.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <random>
 
 namespace Engine
@@ -15,10 +15,11 @@ namespace Engine
 	{
 		namespace Textures
 		{
-			ENGINE_EXPORT Texture2D* default_texture = nullptr;
-			ENGINE_EXPORT Texture2D* noise4x4;
-			ENGINE_EXPORT Texture2D* noise16x16;
-			ENGINE_EXPORT Texture2D* noise128x128;
+			ENGINE_EXPORT Texture2D* default_texture        = nullptr;
+			ENGINE_EXPORT TextureCube* default_texture_cube = nullptr;
+			ENGINE_EXPORT Texture2D* noise4x4               = nullptr;
+			ENGINE_EXPORT Texture2D* noise16x16             = nullptr;
+			ENGINE_EXPORT Texture2D* noise128x128           = nullptr;
 		}// namespace Textures
 
 		namespace Buffers
@@ -60,11 +61,18 @@ namespace Engine
 		return reinterpret_cast<T*>(obj);
 	}
 
-	static void generate_noise_texture(Package* package, Texture2D*& texture, const char* name, Vector2u size)
+	template<typename T>
+	static T* create_texture(Package* package, const char* name)
 	{
-		texture = Object::new_instance<Texture2D>(name, package);
+		T* texture = Object::new_instance<T>(name, package);
 		texture->flags |= Object::StandAlone;
 		texture->format = RHIColorFormat::R8G8B8A8;
+		return texture;
+	}
+
+	static void generate_noise_texture(Package* package, Texture2D*& texture, const char* name, Vector2u size)
+	{
+		texture = create_texture<Texture2D>(package, name);
 
 		auto& mip = texture->mips.emplace_back();
 		mip.size  = size;
@@ -83,27 +91,81 @@ namespace Engine
 	}
 
 
-	static void generate_noise_textures()
+	static void generate_noise_textures(Package* package)
 	{
-		Package* package = Package::static_find_package("TrinexEngine::Textures", true);
-
 		generate_noise_texture(package, DefaultResources::Textures::noise4x4, "Noise4x4", {4, 4});
 		generate_noise_texture(package, DefaultResources::Textures::noise16x16, "Noise16x16", {16, 16});
 		generate_noise_texture(package, DefaultResources::Textures::noise128x128, "Noise128x128", {128, 128});
+	}
+
+	static void generate_checker_texture(Vector2u size, uint_t cell, Color* texture)
+	{
+		const Color colors[2] = {{200, 200, 200, 255}, {100, 100, 100, 255}};
+
+		for (uint32_t y = 0; y < size.y; ++y)
+		{
+			for (uint32_t x = 0; x < size.x; ++x)
+			{
+				uint_t index            = ((x / cell) + (y / cell)) % 2;
+				texture[y * size.x + x] = colors[index];
+			}
+		}
+	}
+
+	static void generate_default_textures(Package* package)
+	{
+		{
+			Texture2D*& texture = DefaultResources::Textures::default_texture;
+			texture             = create_texture<Texture2D>(package, "DefaultTexture");
+
+			auto& mip = texture->mips.emplace_back();
+			mip.size  = {128, 128};
+			mip.data.resize(mip.size.x * mip.size.y * 4);
+
+			Color* pixels = reinterpret_cast<Color*>(mip.data.data());
+			generate_checker_texture({128, 128}, 8, pixels);
+			texture->init_render_resources();
+		}
+
+		{
+			TextureCube*& texture = DefaultResources::Textures::default_texture_cube;
+			texture               = create_texture<TextureCube>(package, "DefaultTextureCube");
+
+			auto& mip = texture->mips.emplace_back();
+			mip.size  = {128, 128};
+			mip.data.resize(mip.size.x * mip.size.y * 4 * 6);
+
+			Color* pixels = reinterpret_cast<Color*>(mip.data.data());
+
+			for (uint_t i = 0; i < 6; ++i)
+			{
+				generate_checker_texture({128, 128}, 8, pixels);
+				pixels += mip.size.x * mip.size.y;
+			}
+
+			texture->init_render_resources();
+		}
+	}
+
+	static void generate_textures()
+	{
+		Package* package = Package::static_find_package("TrinexEngine::Textures", true);
+
+		generate_default_textures(package);
+		generate_noise_textures(package);
 	}
 
 	void load_default_resources()
 	{
 		using namespace DefaultResources;
 
-		generate_noise_textures();
+		generate_textures();
 
-		Textures::default_texture = load_object<Texture2D>("TrinexEngine::Textures::DefaultTexture");
-		Materials::sprite         = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
-		Materials::base_pass      = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
-		Meshes::cube              = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
-		Meshes::sphere            = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
-		Meshes::cylinder          = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
+		Materials::sprite    = load_object<Material>("TrinexEngine::Materials::SpriteMaterial");
+		Materials::base_pass = load_object<Material>("TrinexEngine::Materials::BasePassMaterial");
+		Meshes::cube         = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
+		Meshes::sphere       = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
+		Meshes::cylinder     = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
 
 		Buffers::screen_quad = allocate<PositionVertexBuffer>(std::initializer_list<Vector3f>{
 		        Vector3f{-1.f, -1.f, 0.0f},

@@ -10,7 +10,7 @@
 #include <Core/threading.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 #include <RHI/rhi.hpp>

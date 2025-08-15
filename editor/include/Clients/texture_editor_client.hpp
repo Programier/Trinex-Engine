@@ -1,9 +1,11 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
+#include <Core/etl/variant.hpp>
 
 namespace Engine
 {
 	class Texture2D;
+	class TextureCube;
 	class RenderSurface;
 	class PropertyRenderer;
 
@@ -11,18 +13,19 @@ namespace Engine
 	{
 		trinex_declare_class(TextureEditorClient, ImGuiViewportClient);
 
-		Pointer<RenderSurface> m_surface;
-		PropertyRenderer* m_properties   = nullptr;
-		size_t m_last_render_frame_index = 0;
+	private:
+		using TextureVariant = Variant<Pointer<Texture2D>, Pointer<TextureCube>, Pointer<RenderSurface>>;
 
-		Swizzle m_swizzle;
+		PropertyRenderer* m_properties = nullptr;
 
-		float m_pow = 1.f;
+		TextureVariant m_texture;
 
-	protected:
-		virtual TextureEditorClient& setup_surface(RenderSurface* dst)      = 0;
-		virtual TextureEditorClient& rhi_render_surface(RenderSurface* dst) = 0;
-		TextureEditorClient& request_render();
+		Vector4b m_mask             = {true, true, true, true};
+		Vector2f m_range            = {0.f, 1.f};
+		Vector2f m_translate        = {0.f, 0.f};
+		Vector2f m_smooth_translate = {0.f, 0.f};
+		float m_scale               = 1.f;
+		float m_smooth_scale        = 1.f;
 
 	public:
 		TextureEditorClient();
@@ -30,42 +33,15 @@ namespace Engine
 		TextureEditorClient& update(float dt) override;
 		TextureEditorClient& select(Object* object) override;
 		uint32_t build_dock(uint32_t dock_id) override;
+		Matrix4f build_projection(Vector2u texture_size, Vector2u viewport_size) const;
 
-		inline Swizzle swizzle() const { return m_swizzle; }
-		inline float pow_factor() const { return m_pow; }
-	};
+		TextureEditorClient& rhi_render(Texture2D* texture, Vector2u size);
+		TextureEditorClient& rhi_render(TextureCube* texture, Vector2u size);
+		TextureEditorClient& rhi_render(RenderSurface* texture, Vector2u size);
 
-	class Texture2DEditorClient : public TextureEditorClient
-	{
-		trinex_declare_class(Texture2DEditorClient, TextureEditorClient);
-
-	private:
-		uint32_t m_mip_index = 0;
-		Pointer<Texture2D> m_texture;
-
-	protected:
-		Texture2DEditorClient& setup_surface(RenderSurface* dst) override;
-		Texture2DEditorClient& rhi_render_surface(RenderSurface* dst) override;
-
-	public:
-		Texture2DEditorClient& select(Object* object) override;
-	};
-
-	class RenderSurfaceEditorClient : public TextureEditorClient
-	{
-		trinex_declare_class(RenderSurfaceEditorClient, TextureEditorClient);
-
-	private:
-		Pointer<RenderSurface> m_surface;
-		bool m_live_update = true;
-
-	protected:
-		RenderSurfaceEditorClient& setup_surface(RenderSurface* dst) override;
-		RenderSurfaceEditorClient& rhi_render_surface(RenderSurface* dst) override;
-
-	public:
-		RenderSurfaceEditorClient();
-		RenderSurfaceEditorClient& select(Object* object) override;
-		RenderSurfaceEditorClient& update(float dt) override;
+		inline Vector4f mask() const { return Vector4f(m_mask); }
+		inline Vector2f range() const { return m_range; }
+		inline Vector2f translate() const { return m_smooth_translate; }
+		inline float scale() const { return m_smooth_scale; }
 	};
 }// namespace Engine

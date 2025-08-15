@@ -27,6 +27,9 @@ namespace Engine
 
 			FORCE_INLINE void normalize(VulkanTexture* texture) {}
 
+			template<typename T>
+			static ViewDesc from_base(const T* view, const VulkanTexture* texture);
+
 			static ViewDesc from(const RHITextureDescSRV* view, const VulkanTexture* texture);
 			static ViewDesc from(const RHITextureDescUAV* view, const VulkanTexture* texture);
 			static ViewDesc from(const RHITextureDescRTV* view, const VulkanTexture* texture);
@@ -81,23 +84,27 @@ namespace Engine
 		inline vk::Extent3D extent() const { return m_extent; }
 		inline uint16_t layer_count() const { return m_layers_count; }
 		inline uint8_t mipmap_count() const { return m_mips_count; }
+		inline bool is_cube_compatible() const
+		{
+			vk::ImageViewType type = image_view_type();
+			return type == vk::ImageViewType::eCube || type == vk::ImageViewType::eCubeArray;
+		}
 
 		inline vk::ImageType image_type() const
 		{
 			switch (image_view_type())
 			{
 				case vk::ImageViewType::e2D:
-				case vk::ImageViewType::e2DArray: return vk::ImageType::e2D;
-
-				case vk::ImageViewType::e3D:
+				case vk::ImageViewType::e2DArray:
 				case vk::ImageViewType::eCube:
-				case vk::ImageViewType::eCubeArray: return vk::ImageType::e3D;
+				case vk::ImageViewType::eCubeArray: return vk::ImageType::e2D;
+				case vk::ImageViewType::e3D: return vk::ImageType::e3D;
 
 				default: return vk::ImageType::e1D;
 			}
 		}
 
-		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags);
+		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint_t layers, uint32_t mips, RHITextureCreateFlags flags);
 		void change_layout(vk::ImageLayout new_layout);
 
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;

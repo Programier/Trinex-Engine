@@ -22,7 +22,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
@@ -206,17 +206,23 @@ namespace Engine
 					rhi->barrier(vd->vertex_buffer, RHIAccess::TransferDst);
 					rhi->barrier(vd->index_buffer, RHIAccess::TransferDst);
 
-					rhi->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
-					                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
-					rhi->update_buffer(vd->index_buffer, idx_offset, idx_size,
-					                   reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+					if (vtx_size > 0)
+					{
+						rhi->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
+						                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+						vtx_offset += vtx_size;
+					}
 
-					rhi->barrier(vd->vertex_buffer, RHIAccess::VertexBuffer);
-					rhi->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
-
-					vtx_offset += vtx_size;
-					idx_offset += idx_size;
+					if (idx_size > 0)
+					{
+						rhi->update_buffer(vd->index_buffer, idx_offset, idx_size,
+						                   reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+						idx_offset += idx_size;
+					}
 				}
+
+				rhi->barrier(vd->vertex_buffer, RHIAccess::VertexBuffer);
+				rhi->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
 			}
 
 			imgui_trinex_setup_render_state(draw_data);

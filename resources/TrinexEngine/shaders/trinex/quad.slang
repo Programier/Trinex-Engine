@@ -1,6 +1,6 @@
 namespace FullScreenQuad
 {
-	static float2 full_screen_quad_vertices[] = {
+	static const float2 full_screen_quad_vertices[] = {
 		float2(-1.0, -1.0), 
         float2(-1.0,  1.0), 
         float2( 1.0, -1.0), 

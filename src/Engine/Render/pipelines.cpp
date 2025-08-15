@@ -9,7 +9,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 #include <random>

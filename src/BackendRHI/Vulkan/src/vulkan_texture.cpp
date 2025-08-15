@@ -4,8 +4,6 @@
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
-#include <Graphics/sampler.hpp>
-#include <Graphics/texture_2D.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_buffer.hpp>
@@ -22,8 +20,8 @@
 namespace Engine
 {
 	template<typename Value>
-	static FORCE_INLINE Value* static_as_view(VulkanTexture* texture, Vector<VulkanTexture::View<Value>>& views,
-	                                          const VulkanTexture::ViewDesc& desc, vk::ImageAspectFlags aspect)
+	static inline Value* static_as_view(VulkanTexture* texture, Vector<VulkanTexture::View<Value>>& views,
+	                                    const VulkanTexture::ViewDesc& desc, vk::ImageAspectFlags aspect)
 	{
 		for (auto& view : views)
 		{
@@ -56,20 +54,27 @@ namespace Engine
 		}
 	}
 
+	template<typename T>
+	VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from_base(const T* view, const VulkanTexture* texture)
+	{
+		ViewDesc desc;
+
+		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+
+		desc.view_type = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
+		return desc;
+	}
+
 	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescSRV* view,
 	                                                                   const VulkanTexture* texture)
 	{
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescSRV>();
 
-		ViewDesc desc;
-
-		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = Math::min<uint8_t>(view->first_mip, texture->mipmap_count() - 1);
-		desc.mip_levels        = Math::min<uint8_t>(view->mip_levels, texture->mipmap_count() - desc.first_mip);
-		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
-
+		ViewDesc desc   = from_base(view, texture);
+		desc.first_mip  = Math::min<uint8_t>(view->first_mip, texture->mipmap_count() - 1);
+		desc.mip_levels = Math::min<uint8_t>(view->mip_levels, texture->mipmap_count() - desc.first_mip);
 		return desc;
 	}
 
@@ -79,13 +84,9 @@ namespace Engine
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescUAV>();
 
-		ViewDesc desc;
-
-		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
-		desc.mip_levels        = 1;
-		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
+		ViewDesc desc   = from_base(view, texture);
+		desc.first_mip  = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.mip_levels = 1;
 
 		return desc;
 	}
@@ -96,13 +97,9 @@ namespace Engine
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescRTV>();
 
-		ViewDesc desc;
-
-		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
-		desc.mip_levels        = 1;
-		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
+		ViewDesc desc   = from_base(view, texture);
+		desc.first_mip  = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.mip_levels = 1;
 
 		return desc;
 	}
@@ -113,34 +110,24 @@ namespace Engine
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescDSV>();
 
-		ViewDesc desc;
+		ViewDesc desc = from_base(view, texture);
 
-		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
-		desc.first_mip         = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
-		desc.mip_levels        = 1;
-		desc.view_type         = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
+		desc.first_mip  = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.mip_levels = 1;
+
 
 		return desc;
 	}
 
-	VulkanTexture& VulkanTexture::create(RHIColorFormat color_format, Vector3u size, uint32_t mips, RHITextureCreateFlags flags)
+	VulkanTexture& VulkanTexture::create(RHIColorFormat color_format, Vector3u size, uint_t layers, uint32_t mips,
+	                                     RHITextureCreateFlags flags)
 	{
-		m_format     = VulkanEnums::format_of(color_format);
-		m_extent     = vk::Extent3D{size.x, size.y, size.z};
-		m_mips_count = mips;
-
-		switch (image_view_type())
-		{
-			case vk::ImageViewType::e1DArray:
-			case vk::ImageViewType::e2DArray:
-			case vk::ImageViewType::eCube:
-			case vk::ImageViewType::eCubeArray: m_layers_count = size.z; break;
-			default: m_layers_count = 1; break;
-		}
-
-		m_layout = vk::ImageLayout::eUndefined;
-		m_flags  = flags;
+		m_format       = VulkanEnums::format_of(color_format);
+		m_extent       = vk::Extent3D{size.x, size.y, size.z};
+		m_mips_count   = mips;
+		m_layers_count = layers;
+		m_layout       = vk::ImageLayout::eUndefined;
+		m_flags        = flags;
 
 		vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc;
 
@@ -156,8 +143,15 @@ namespace Engine
 		if ((flags & RHITextureCreateFlags::DepthStencilTarget) == RHITextureCreateFlags::DepthStencilTarget)
 			usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
 
-		vk::ImageCreateInfo info({}, image_type(), format(), extent(), mipmap_count(), layer_count(), vk::SampleCountFlagBits::e1,
-		                         vk::ImageTiling::eOptimal, usage);
+		vk::ImageCreateFlags image_flags = {};
+
+		if (is_cube_compatible())
+		{
+			image_flags |= vk::ImageCreateFlagBits::eCubeCompatible;
+		}
+
+		vk::ImageCreateInfo info(image_flags, image_type(), format(), extent(), mipmap_count(), layer_count(),
+		                         vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, usage);
 
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -243,6 +237,8 @@ namespace Engine
 	{
 		VulkanTexture* texture = nullptr;
 
+		uint_t layers = 1;
+
 		switch (type)
 		{
 			case RHITextureType::Texture1D:
@@ -251,7 +247,8 @@ namespace Engine
 				break;
 
 			case RHITextureType::Texture1DArray:
-				size    = {size.x, 1, Math::max(size.z, 1u)};
+				layers  = Math::max(size.z, 1u);
+				size    = {size.x, 1, 1};
 				texture = new VulkanTypedTexture<vk::ImageViewType::e1DArray, RHITextureType::Texture1DArray>();
 				break;
 
@@ -261,17 +258,20 @@ namespace Engine
 				break;
 
 			case RHITextureType::Texture2DArray:
-				size    = {size.x, size.y, Math::max(size.z, 1u)};
+				layers  = Math::max(size.z, 1u);
+				size    = {size.x, size.y, 1};
 				texture = new VulkanTypedTexture<vk::ImageViewType::e2DArray, RHITextureType::Texture2DArray>();
 				break;
 
 			case RHITextureType::TextureCube:
-				size    = {size.x, size.y, 6};
+				layers  = 6;
+				size    = {size.x, size.y, 1};
 				texture = new VulkanTypedTexture<vk::ImageViewType::eCube, RHITextureType::TextureCube>();
 				break;
 
 			case RHITextureType::TextureCubeArray:
-				size    = {size.x, size.y, Math::max((size.z + 5) / 6, 1u) * 6};
+				layers  = Math::max((size.z + 5) / 6, 1u) * 6;
+				size    = {size.x, size.y, 1};
 				texture = new VulkanTypedTexture<vk::ImageViewType::eCubeArray, RHITextureType::TextureCubeArray>();
 				break;
 
@@ -283,7 +283,7 @@ namespace Engine
 
 		if (texture)
 		{
-			texture->create(format, size, Math::max(mips, 1u), flags);
+			texture->create(format, size, layers, Math::max(mips, 1u), flags);
 		}
 		return texture;
 	}

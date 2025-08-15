@@ -529,6 +529,29 @@ namespace Engine
 						m_reflection->parameters.push_back(object);
 						return true;
 					}
+					else if (shape_mask == SLANG_TEXTURE_CUBE)
+					{
+						if (type.is_meta())
+						{
+							auto binding_type = type_layout->getBindingRangeType(0);
+
+							switch (binding_type)
+							{
+								case slang::BindingType::CombinedTextureSampler:
+									object.type |= RHIShaderParameterType::SamplerCube;
+									break;
+
+								case slang::BindingType::Texture: object.type |= RHIShaderParameterType::TextureCube; break;
+								case slang::BindingType::MutableTexture:
+									object.type |= RHIShaderParameterType::RWTextureCube;
+									break;
+
+								default: return false;
+							}
+						}
+
+						m_reflection->parameters.push_back(object);
+					}
 					else if (shape_mask == SLANG_STRUCTURED_BUFFER)
 					{
 						if (type.is_meta())

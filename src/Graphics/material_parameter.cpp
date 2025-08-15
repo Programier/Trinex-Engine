@@ -10,7 +10,7 @@
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine::MaterialParameters

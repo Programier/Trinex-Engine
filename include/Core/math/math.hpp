@@ -53,6 +53,10 @@ namespace Engine::Math
 	using glm::rotate;
 	using glm::slerp;
 
+	using glm::scale;
+	using glm::rotate;
+	using glm::translate;
+
 	template<typename T, glm::qualifier Q>
 	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, Q> look_at(glm::vec<3, T, Q> const& eye, glm::vec<3, T, Q> const& center,
 	                                                glm::vec<3, T, Q> const& up)

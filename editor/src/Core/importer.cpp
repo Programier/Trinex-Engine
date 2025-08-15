@@ -13,7 +13,7 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/shader_compiler.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 #include <Image/image.hpp>

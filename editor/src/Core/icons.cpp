@@ -8,7 +8,7 @@
 #include <Core/reflection/class.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 
 namespace Engine::Icons
 {

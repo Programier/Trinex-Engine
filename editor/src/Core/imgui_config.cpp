@@ -1,5 +1,5 @@
 #include <Core/imgui_config.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/texture.hpp>
 
 ImGuiContext*& get_current_imgui_context()
 {
