@@ -120,4 +120,10 @@ namespace Math
 	{
 		return ((near * far) / depth - far) / (near - far);
 	}
+
+	[ForceInline]
+	static float calculate_bias(in float depth_bias, in float slope_scale, in float3 normal, in float3 direction)
+	{
+		return depth_bias + slope_scale * max(dot(normal, direction), 0.0);
+	}
 }

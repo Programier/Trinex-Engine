@@ -60,12 +60,10 @@ namespace Engine
 		Frustum frustum                             = scene_view().camera_view();
 		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
 
-		camera.view_matrix();
-
 		RHITextureDescDSV view;
-		view.first_array_slice = face;
-		view.array_size        = 1;
-		view.view_type         = RHITextureType::Texture2D;
+		view.base_slice  = face;
+		view.slice_count = 1;
+		view.view_type   = RHITextureType::Texture2D;
 
 		auto dsv = cubemap()->as_dsv(&view);
 

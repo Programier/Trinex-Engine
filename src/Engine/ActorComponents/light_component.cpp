@@ -38,8 +38,6 @@ namespace Engine
 		auto& transform = world_transform();
 		out.color       = m_light_color;
 		out.intensivity = m_intensivity;
-		out.depth_bias  = m_depth_bias;
-		out.slope_scale = m_slope_scale;
 		out.location    = transform.location();
 		return *this;
 	}

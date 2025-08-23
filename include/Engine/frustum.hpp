@@ -40,6 +40,7 @@ namespace Engine
 		Frustum& operator=(const CameraView& view);
 		Frustum& initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
 		                    float far, float aspect_ratio);
-		bool in_frustum(const Box3f& box) const;
+		bool contains(const Box3f& box) const;
+		bool contains(const Vector3f& point);
 	};
 }// namespace Engine

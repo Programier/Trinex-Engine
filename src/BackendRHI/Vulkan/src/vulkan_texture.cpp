@@ -61,8 +61,8 @@ namespace Engine
 	{
 		ViewDesc desc;
 
-		desc.first_array_slice = Math::min<uint16_t>(view->first_array_slice, texture->layer_count() - 1);
-		desc.array_size        = Math::min<uint16_t>(view->array_size, texture->layer_count() - desc.first_array_slice);
+		desc.first_array_slice = Math::min<uint16_t>(view->base_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<uint16_t>(view->slice_count, texture->layer_count() - desc.first_array_slice);
 
 		desc.view_type = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 		return desc;
@@ -75,8 +75,8 @@ namespace Engine
 			view = &default_value_of<RHITextureDescSRV>();
 
 		ViewDesc desc   = from_base(view, texture);
-		desc.first_mip  = Math::min<uint8_t>(view->first_mip, texture->mipmap_count() - 1);
-		desc.mip_levels = Math::min<uint8_t>(view->mip_levels, texture->mipmap_count() - desc.first_mip);
+		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
+		desc.mip_levels = Math::min<uint8_t>(view->mip_count, texture->mipmap_count() - desc.first_mip);
 		return desc;
 	}
 
@@ -87,7 +87,7 @@ namespace Engine
 			view = &default_value_of<RHITextureDescUAV>();
 
 		ViewDesc desc   = from_base(view, texture);
-		desc.first_mip  = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
 		return desc;
@@ -100,7 +100,7 @@ namespace Engine
 			view = &default_value_of<RHITextureDescRTV>();
 
 		ViewDesc desc   = from_base(view, texture);
-		desc.first_mip  = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
 		return desc;
@@ -114,7 +114,7 @@ namespace Engine
 
 		ViewDesc desc = from_base(view, texture);
 
-		desc.first_mip  = Math::min<uint8_t>(view->mip_slice, texture->mipmap_count() - 1);
+		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
 
@@ -301,11 +301,10 @@ namespace Engine
 
 		vulkan_texture->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		vk::BufferImageCopy copy_region(
-		        0, buffer_width, buffer_height,
-		        vk::ImageSubresourceLayers(vulkan_texture->aspect(), region.mip_level, region.array_slice, 1),
-		        vk::Offset3D(region.offset.x, region.offset.y, region.offset.z),
-		        vk::Extent3D(region.extent.x, region.extent.y, region.extent.z));
+		vk::BufferImageCopy copy_region(0, buffer_width, buffer_height,
+		                                vk::ImageSubresourceLayers(vulkan_texture->aspect(), region.mip, region.slice, 1),
+		                                vk::Offset3D(region.offset.x, region.offset.y, region.offset.z),
+		                                vk::Extent3D(region.extent.x, region.extent.y, region.extent.z));
 
 		command_buffer->copyBufferToImage(buffer->buffer(), vulkan_texture->image(), vk::ImageLayout::eTransferDstOptimal,
 		                                  copy_region);
@@ -353,8 +352,8 @@ namespace Engine
 		src->change_layout(vk::ImageLayout::eTransferSrcOptimal);
 		dst->change_layout(vk::ImageLayout::eTransferDstOptimal);
 
-		vk::ImageSubresourceLayers src_subresource(src->aspect(), src_region.mip_level, src_region.array_slice, 1);
-		vk::ImageSubresourceLayers dst_subresource(dst->aspect(), dst_region.mip_level, dst_region.array_slice, 1);
+		vk::ImageSubresourceLayers src_subresource(src->aspect(), src_region.mip, src_region.slice, 1);
+		vk::ImageSubresourceLayers dst_subresource(dst->aspect(), dst_region.mip, dst_region.slice, 1);
 
 		if (src_region.extent == dst_region.extent)
 		{

@@ -62,11 +62,22 @@ namespace Engine
 		return *this;
 	}
 
-	bool Frustum::in_frustum(const Box3f& box) const
+	bool Frustum::contains(const Box3f& box) const
 	{
 		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
 		{
 			if (plane->distance_to(box) < 0.f)
+				return false;
+		}
+
+		return true;
+	}
+
+	bool Frustum::contains(const Vector3f& point)
+	{
+		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
+		{
+			if (plane->distance_to(point) < 0.f)
 				return false;
 		}
 

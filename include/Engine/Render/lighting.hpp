@@ -15,8 +15,6 @@ namespace Engine
 		alignas(4) float inv_attenuation_radius;
 		alignas(4) float fall_off_exponent;
 		alignas(4) float source_radius;
-		alignas(4) float depth_bias;
-		alignas(4) float slope_scale;
 		alignas(4) uint32_t shadow_address;
 	};
 
@@ -36,17 +34,23 @@ namespace Engine
 		LightRange directional;
 	};
 
-	struct PointLightShadowData {
+	struct PointLightShadowParameters {
 		uint64_t descriptor;
+		float depth_bias;
+		float slope_scale;
 	};
 
-	struct SpotLightShadowData {
+	struct SpotLightShadowParameters {
 		uint64_t descriptor;
 		Matrix4f projview;
+		float depth_bias;
+		float slope_scale;
 	};
 
-	struct DirectionalLightShadowData {
+	struct DirectionalLightShadowParameters {
 		uint64_t descriptor;
 		Matrix4f projview;
+		float depth_bias;
+		float slope_scale;
 	};
 }// namespace Engine

@@ -110,12 +110,12 @@ namespace Engine
 	template<typename Node, typename Container>
 	static void collect_elements_internal(Node* node, const Frustum& frustum, Container& result)
 	{
-		if (node->size() == 0 || !frustum.in_frustum(node->box()))
+		if (node->size() == 0 || !frustum.contains(node->box()))
 			return;
 
 		for (auto component : node->values())
 		{
-			if (frustum.in_frustum(component->bounding_box()))
+			if (frustum.contains(component->bounding_box()))
 			{
 				result.emplace_back(component);
 			}

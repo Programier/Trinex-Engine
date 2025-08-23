@@ -79,46 +79,45 @@ namespace Engine
 	struct RHITextureRegion {
 		Vector3u extent;
 		Vector3u offset;
-		uint16_t mip_level;
-		uint16_t array_slice;
+		uint16_t mip;
+		uint16_t slice;
 
-		inline RHITextureRegion(const Vector3u& extent = {0, 0, 0}, const Vector3u& offset = {0, 0, 0}, uint16_t mip_level = 0,
-		                        uint16_t array_slice = 0)
-		    : extent(extent), offset(offset), mip_level(mip_level), array_slice(array_slice)
+		inline RHITextureRegion(const Vector3u& extent = {0, 0, 0}, const Vector3u& offset = {0, 0, 0}, uint16_t mip = 0,
+		                        uint16_t slice = 0)
+		    : extent(extent), offset(offset), mip(mip), slice(slice)
 		{}
 
-		inline RHITextureRegion(const Vector2u& extent, const Vector2u& offset = {0, 0}, uint16_t mip_level = 0,
-		                        uint16_t array_slice = 0)
-		    : extent(extent, 1), offset(offset, 0), mip_level(mip_level), array_slice(array_slice)
+		inline RHITextureRegion(const Vector2u& extent, const Vector2u& offset = {0, 0}, uint16_t mip = 0, uint16_t slice = 0)
+		    : extent(extent, 1), offset(offset, 0), mip(mip), slice(slice)
 		{}
 	};
 
 	struct RHITextureDescSRV {
-		uint16_t first_array_slice = 0;
-		uint16_t array_size        = ~0;
-		uint8_t first_mip          = 0;
-		uint8_t mip_levels         = ~0;
-		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t base_slice      = 0;
+		uint16_t slice_count     = ~0;
+		uint16_t base_mip        = 0;
+		uint16_t mip_count       = ~0;
+		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
 	struct RHITextureDescUAV {
-		uint16_t first_array_slice = 0;
-		uint16_t array_size        = ~0;
-		uint8_t mip_slice          = 0;
-		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t base_slice      = 0;
+		uint16_t slice_count     = ~0;
+		uint16_t base_mip        = 0;
+		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
 	struct RHITextureDescRTV {
-		uint16_t first_array_slice = 0;
-		uint16_t array_size        = ~0;
-		uint8_t mip_slice          = 0;
-		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t base_slice      = 0;
+		uint16_t slice_count     = ~0;
+		uint16_t base_mip        = 0;
+		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
 	struct RHITextureDescDSV {
-		uint16_t first_array_slice = 0;
-		uint16_t array_size        = ~0;
-		uint8_t mip_slice          = 0;
-		RHITextureType view_type   = RHITextureType::Undefined;
+		uint16_t base_slice      = 0;
+		uint16_t slice_count     = ~0;
+		uint16_t base_mip        = 0;
+		RHITextureType view_type = RHITextureType::Undefined;
 	};
 }// namespace Engine

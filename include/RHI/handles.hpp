@@ -9,6 +9,7 @@ namespace Engine
 	struct RHITextureDescDSV;
 	struct RHITextureDescSRV;
 	struct RHITextureDescUAV;
+	struct RHITextureType;
 
 	class ENGINE_EXPORT RHIObject
 	{
@@ -123,6 +124,32 @@ namespace Engine
 		virtual RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc = nullptr)    = 0;
 		virtual RHIShaderResourceView* as_srv(RHITextureDescSRV* desc = nullptr)  = 0;
 		virtual RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc = nullptr) = 0;
+	};
+
+	class ENGINE_EXPORT RHITextureView : public RHITexture
+	{
+	private:
+		RHITexture* m_texture;
+		uint16_t m_type;
+		uint16_t m_base_slice;
+		uint16_t m_slice_count;
+		uint16_t m_base_mip;
+		uint16_t m_mip_count;
+
+	private:
+		template<typename T>
+		T initialize_description(const T* desc);
+
+	public:
+		RHITextureView(RHITexture* texture, RHITextureType type, uint16_t base_slice = 0, uint16_t slice_count = 65535,
+		               uint16_t base_mip = 0, uint16_t mip_count = 65535);
+
+		void destroy() override;
+		
+		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc = nullptr) override;
+		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc = nullptr) override;
+		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc = nullptr) override;
+		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc = nullptr) override;
 	};
 
 	class ENGINE_EXPORT RHIShader : public RHIObject

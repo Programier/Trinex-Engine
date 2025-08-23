@@ -116,7 +116,7 @@ namespace Engine
 				for (byte face = 0; face < 6; ++face)
 				{
 					RHITextureRegion region(mip.size, {0, 0}, index);
-					region.array_slice = face;
+					region.slice = face;
 					rhi->update_texture(m_texture, region, data, mip_size);
 					data += mip_size;
 				}

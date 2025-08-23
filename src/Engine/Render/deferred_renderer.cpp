@@ -182,8 +182,8 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(PointLightComponent* light, byte* shadow_data)
 	{
-		Vector2u shadow_map_size = {512, 512};
-		auto proxy               = light->proxy();
+		static const uint_t shadow_map_size = 512;
+		auto proxy                          = light->proxy();
 
 		auto& transform = proxy->world_transform();
 
@@ -200,18 +200,20 @@ namespace Engine
 		view.fov             = 90.f;
 
 		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
-		new (renderer) DepthCubeRenderer(scene(), SceneView(view, shadow_map_size));
+		new (renderer) DepthCubeRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
 		add_child_renderer(renderer);
 
-		PointLightShadowData* data = reinterpret_cast<PointLightShadowData*>(shadow_data);
-		data->descriptor           = renderer->cubemap()->as_srv()->descriptor();
+		PointLightShadowParameters* data = reinterpret_cast<PointLightShadowParameters*>(shadow_data);
+		data->descriptor                 = renderer->cubemap()->as_srv()->descriptor();
+		data->depth_bias                 = proxy->depth_bias() / static_cast<float>(shadow_map_size);
+		data->slope_scale                = proxy->slope_scale() / static_cast<float>(shadow_map_size);
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, byte* shadow_data)
 	{
-		Vector2u shadow_map_size = {512, 512};
-		auto proxy               = light->proxy();
+		static const uint_t shadow_map_size = 512;
+		auto proxy                          = light->proxy();
 
 		auto& transform = proxy->world_transform();
 
@@ -228,12 +230,14 @@ namespace Engine
 		view.fov             = glm::degrees(proxy->outer_cone_angle()) * 2.f;
 
 		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
-		new (renderer) DepthRenderer(scene(), SceneView(view, shadow_map_size));
+		new (renderer) DepthRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
 		add_child_renderer(renderer);
 
-		SpotLightShadowData* data = reinterpret_cast<SpotLightShadowData*>(shadow_data);
-		data->descriptor          = renderer->scene_depth_target()->as_srv()->descriptor();
-		data->projview            = view.projection_matrix() * view.view_matrix();
+		SpotLightShadowParameters* data = reinterpret_cast<SpotLightShadowParameters*>(shadow_data);
+		data->descriptor                = renderer->scene_depth_target()->as_srv()->descriptor();
+		data->projview                  = view.projection_matrix() * view.view_matrix();
+		data->depth_bias                = proxy->depth_bias() / static_cast<float>(shadow_map_size);
+		data->slope_scale               = proxy->slope_scale() / static_cast<float>(shadow_map_size);
 		return *this;
 	}
 
@@ -497,7 +501,7 @@ namespace Engine
 					for (; current < end; ++current)
 					{
 						parameters[current].shadow_address = address;
-						address += sizeof(PointLightShadowData);
+						address += sizeof(PointLightShadowParameters);
 					}
 
 					current = m_light_ranges->spot.shadowed.start;
@@ -506,7 +510,7 @@ namespace Engine
 					for (; current < end; ++current)
 					{
 						parameters[current].shadow_address = address;
-						address += sizeof(SpotLightShadowData);
+						address += sizeof(SpotLightShadowParameters);
 					}
 				}
 
@@ -527,9 +531,9 @@ namespace Engine
 			uint32_t spot_lights        = m_light_ranges->spot.shadowed.end - m_light_ranges->spot.shadowed.start;
 			uint32_t directional_lights = m_light_ranges->directional.shadowed.end - m_light_ranges->directional.shadowed.start;
 
-			size_t buffer_size = point_lights * sizeof(PointLightShadowData) +           //
-			                     spot_lights * sizeof(SpotLightShadowData) +             //
-			                     directional_lights * sizeof(DirectionalLightShadowData);//
+			size_t buffer_size = point_lights * sizeof(PointLightShadowParameters) +           //
+			                     spot_lights * sizeof(SpotLightShadowParameters) +             //
+			                     directional_lights * sizeof(DirectionalLightShadowParameters);//
 
 			byte* buffer       = StackByteAllocator::allocate(buffer_size);
 			byte* current_data = buffer;
@@ -541,7 +545,7 @@ namespace Engine
 			{
 				auto light = static_cast<PointLightComponent*>(m_visible_lights[current]);
 				register_shadow_light(light, current_data);
-				current_data += sizeof(PointLightShadowData);
+				current_data += sizeof(PointLightShadowParameters);
 			}
 
 			current = m_light_ranges->spot.shadowed.start;
@@ -551,7 +555,7 @@ namespace Engine
 			{
 				auto light = static_cast<SpotLightComponent*>(m_visible_lights[current]);
 				register_shadow_light(light, current_data);
-				current_data += sizeof(SpotLightShadowData);
+				current_data += sizeof(SpotLightShadowParameters);
 			}
 
 			current = m_light_ranges->directional.shadowed.start;
@@ -561,9 +565,8 @@ namespace Engine
 			{
 				auto light = static_cast<DirectionalLightComponent*>(m_visible_lights[current]);
 				register_shadow_light(light, current_data);
-				current_data += sizeof(DirectionalLightShadowData);
+				current_data += sizeof(DirectionalLightShadowParameters);
 			}
-
 
 			auto pool       = RHIBufferPool::global_instance();
 			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferCreateFlags::ByteAddressBuffer |

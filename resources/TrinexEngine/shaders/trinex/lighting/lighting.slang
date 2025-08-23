@@ -5,8 +5,9 @@ namespace Lighting
 {
 	interface ILight
 	{
-		static float attenuation(in float3 world_light_vector, in LightParameters params);
-		static float3 direction(in float3 world_light_vector, in LightParameters params);
+		static float attenuation(in float3 world_light_vector, in LightParameters light);
+		static float3 direction(in float3 world_light_vector, in LightParameters light);
+		static float shadow(in PrimitiveParameters primitive, in LightParameters light, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler);
 	}
 
 	struct LightParameters 
@@ -20,8 +21,6 @@ namespace Lighting
 		float inv_attenuation_radius;
 		float fall_off_exponent;
 		float source_radius;
-		float depth_bias;
-		float slope_scale;
 		uint shadow_address;
 	};
 
@@ -32,17 +31,19 @@ namespace Lighting
 		uint4 directional;
 	};
 
-	struct PrimitiveData 
+	struct PrimitiveParameters
 	{
 		float4 base_color;
-		float3 position;
+		float3 location;
 		float3 normal;
 		float4 msra;
 	};
 
-	struct PointLightShadowData
+	struct PointLightShadowParameters
 	{
 		TextureCube.Handle shadow_map;
+		float depth_bias;
+		float slope_scale;
 
 		[ForceInline]
 		float sample(SamplerComparisonState sampler, float3 dir, float depth)
@@ -51,10 +52,12 @@ namespace Lighting
 		}
 	};
 
-	struct SpotLightShadowData
+	struct SpotLightShadowParameters
 	{
 		Texture2D.Handle shadow_map;
 		float4x4 projview;
+		float depth_bias;
+		float slope_scale;
 
 		[ForceInline] 
 		float sample(SamplerComparisonState sampler, float2 uv, int2 offset, float depth)
@@ -62,6 +65,19 @@ namespace Lighting
 			return shadow_map.SampleCmpLevelZero(sampler, uv, depth);
 		}
 	};
+
+	struct DirectionalLightShadowParameters
+	{
+		Texture2DArray.Handle shadow_map;
+		float depth_bias;
+		float slope_scale;
+
+		[ForceInline]
+		float sample(SamplerComparisonState sampler, float3 uv, int2 offset, float depth)
+		{
+			return shadow_map.SampleCmpLevelZero(sampler, uv, depth, offset);
+		}
+	}
 	
 	float distribution_ggx(in float3 normal, in float3 halfway_direction, float roughness)
 	{
@@ -105,7 +121,7 @@ namespace Lighting
 		return Math::square((IOR - 1.0) / (IOR + 1.0));
 	}
 
-	float3 calculate_light<LightType : ILight>(in LightParameters light, in PrimitiveData primitive)
+	float3 calculate_light<LightType : ILight>(in LightParameters light, in PrimitiveParameters primitive)
 	{
 		if (length(primitive.normal) < 0.1)
 		{
@@ -113,12 +129,12 @@ namespace Lighting
 		}
 
 		float3 view_direction = normalize(scene_view.camera.location -
-										  primitive.position);// Using view direction from fragment location to camera location
+										  primitive.location);// Using view direction from fragment location to camera location
 		float3 normal         = normalize_normal(primitive.normal, view_direction);
 
 		float3 f0 = lerp(float3(fresnel_zero_reflectance(primitive.msra.g)), primitive.base_color.rgb, float3(primitive.msra.r));
 
-		float3 light_direction = light.location.rgb - primitive.position;// Using light direction from fragment location to light location
+		float3 light_direction = light.location.rgb - primitive.location;// Using light direction from fragment location to light location
 		float attenuation = LightType.attenuation(light_direction, light);
 		light_direction   = LightType.direction(light_direction, light);
 

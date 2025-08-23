@@ -24,9 +24,9 @@ float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 }
 
 [ForceInline]
-uint calculate_cluster_index(in float3 world_space, in float2 coord)
+uint calculate_cluster_index(in float3 location, in float2 coord)
 {
-	float4 view_space = scene_view.view * float4(world_space, 1.0);
+	float4 view_space = scene_view.view * float4(location, 1.0);
 	float depth = view_space.z / view_space.w;
 
 	float near = scene_view.camera.near;
@@ -46,17 +46,17 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 {
 	float2 uv = scene_view.screen_uv(position.xy);
 
-	Lighting::PrimitiveData primitive;
+	Lighting::PrimitiveParameters primitive;
 	float depth          = depth_texture.Sample(screen_sampler, uv).r;
 
 	primitive.base_color = base_color_texture.SampleLevel(screen_sampler, uv, 0.f);
-	primitive.position   = scene_view.reconstruct_position(position.xy, depth);
+	primitive.location   = scene_view.reconstruct_position(position.xy, depth);
 	primitive.normal     = normal_texture.SampleLevel(screen_sampler, uv, 0.f).xyz;
 	primitive.msra       = msra_texture.SampleLevel(screen_sampler, uv, 0.f);
 
 	float3 color = float3(0.f);
 	
-	uint cluster_index = calculate_cluster_index(primitive.position, position.xy);
+	uint cluster_index = calculate_cluster_index(primitive.location, position.xy);
 	Cluster cluster    = clusters[cluster_index];
 
 	uint i = 0;
@@ -71,7 +71,7 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	{
 		uint index                      = cluster.light_indices[i];
 		Lighting::LightParameters light = lights[index];
-		float shadow                    = Lighting::PointLight::shadow(primitive.position, light, shadows, shadow_sampler);
+		float shadow                    = Lighting::PointLight::shadow(primitive, light, shadows, shadow_sampler);
 		color += Lighting::calculate_light<Lighting::PointLight>(light, primitive) * shadow;
 	}
 
@@ -85,7 +85,7 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	{
 		uint index                      = cluster.light_indices[i];
 		Lighting::LightParameters light = lights[index];
-		float shadow                    = Lighting::SpotLight::shadow(primitive.position, light, shadows, shadow_sampler);
+		float shadow                    = Lighting::SpotLight::shadow(primitive, light, shadows, shadow_sampler);
 		color += Lighting::calculate_light<Lighting::SpotLight>(light, primitive) * shadow;
 	}
 
