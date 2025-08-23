@@ -1,12 +1,12 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>
-#include <glm/ext.hpp>
 
 namespace Engine
 {
@@ -14,18 +14,18 @@ namespace Engine
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			Matrix4f projection = glm::perspective(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
+			Matrix4f projection = Math::perspective(Math::radians(fov), aspect_ratio, near, far);
 			projection[1][1] *= -1;
 			return projection;
 		}
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{
-			return glm::ortho(-ortho_width / 2.0f, // Left
-			                  ortho_width / 2.0f,  // Right
-			                  ortho_height / 2.0f, // Top
-			                  -ortho_height / 2.0f,// Bottom
-			                  near_clip_plane,     // Near clipping plane
-			                  far_clip_plane       // Far clipping plane
+			return Math::ortho(-ortho_width / 2.0f, // Left
+			                   ortho_width / 2.0f,  // Right
+			                   ortho_height / 2.0f, // Top
+			                   -ortho_height / 2.0f,// Bottom
+			                   near,                // Near clipping plane
+			                   far                  // Far clipping plane
 			);
 		}
 
@@ -34,7 +34,7 @@ namespace Engine
 
 	Matrix4f CameraView::view_matrix() const
 	{
-		return view_matrix(location, forward_vector, up_vector);
+		return static_view_matrix(location, forward, up);
 	}
 
 	float CameraView::linearize_depth(float depth) const
@@ -42,8 +42,7 @@ namespace Engine
 		Vector2f depth_range = rhi->info.ndc_depth_range;
 		depth                = glm::mix(depth_range.x, depth_range.y, depth);
 
-		return (depth_range.y - depth_range.x) * (near_clip_plane * far_clip_plane) /
-		       (far_clip_plane + depth * (near_clip_plane - far_clip_plane));
+		return (depth_range.y - depth_range.x) * (near * far) / (far + depth * (near - far));
 	}
 
 	Vector3f CameraView::reconstruct_position_ndc(Vector2f ndc, float depth) const
@@ -56,9 +55,10 @@ namespace Engine
 		return {view_pos.x, view_pos.y, view_pos.z};
 	}
 
-	ENGINE_EXPORT Matrix4f CameraView::view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector)
+	ENGINE_EXPORT Matrix4f CameraView::static_view_matrix(const Vector3f& position, const Vector3f& direction,
+	                                                      const Vector3f& up_vector)
 	{
-		return glm::lookAt(position, position + direction, up_vector);
+		return Math::look_at(position, position + direction, up_vector);
 	}
 
 	trinex_implement_engine_class_default_init(CameraComponent, 0);
@@ -68,23 +68,23 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		return archive.serialize(projection_mode, fov, ortho_width, ortho_height, near_clip_plane, far_clip_plane, aspect_ratio);
+		return archive.serialize(projection_mode, fov, ortho_width, ortho_height, near, far, aspect_ratio);
 	}
 
 	Matrix4f CameraComponent::projection_matrix()
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			return glm::perspective(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
+			return Math::perspective(Math::radians(fov), aspect_ratio, near, far);
 		}
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{
-			return glm::ortho(-ortho_width / 2.0f, // Left
-			                  ortho_width / 2.0f,  // Right
-			                  -ortho_height / 2.0f,// Bottom
-			                  ortho_height / 2.0f, // Top
-			                  near_clip_plane,     // Near clipping plane
-			                  far_clip_plane       // Far clipping plane
+			return Math::ortho(-ortho_width / 2.0f, // Left
+			                   ortho_width / 2.0f,  // Right
+			                   -ortho_height / 2.0f,// Bottom
+			                   ortho_height / 2.0f, // Top
+			                   near,                // Near clipping plane
+			                   far                  // Far clipping plane
 			);
 		}
 
@@ -106,15 +106,15 @@ namespace Engine
 	{
 		auto& global_transform = world_transform();
 		out.location           = global_transform.location();
-		out.up_vector          = global_transform.up_vector();
-		out.right_vector       = global_transform.right_vector();
-		out.forward_vector     = global_transform.forward_vector();
+		out.up                 = global_transform.up_vector();
+		out.right              = global_transform.right_vector();
+		out.forward            = global_transform.forward_vector();
 		out.projection_mode    = projection_mode;
 		out.fov                = fov;
 		out.ortho_width        = ortho_width;
 		out.ortho_height       = ortho_height;
-		out.near_clip_plane    = near_clip_plane;
-		out.far_clip_plane     = far_clip_plane;
+		out.near               = near;
+		out.far                = far;
 		out.aspect_ratio       = aspect_ratio;
 
 		return *this;

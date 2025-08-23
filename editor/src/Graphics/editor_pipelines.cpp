@@ -51,8 +51,8 @@ namespace Engine::EditorPipelines
 		rhi->update_scalar_parameter(&color, m_outline_color);
 
 		auto& camera_view = renderer->scene_view().camera_view();
-		rhi->update_scalar_parameter(&camera_view.near_clip_plane, m_near);
-		rhi->update_scalar_parameter(&camera_view.far_clip_plane, m_far);
+		rhi->update_scalar_parameter(&camera_view.near, m_near);
+		rhi->update_scalar_parameter(&camera_view.far, m_far);
 		rhi->update_scalar_parameter(&sample_offset, m_sample_offset);
 		rhi->draw(6, 0);
 

@@ -32,15 +32,15 @@ namespace Engine
 
 			auto& camera_view = scene_view->camera_view();
 			camera.location   = camera_view.location;
-			camera.forward    = camera_view.forward_vector;
-			camera.right      = camera_view.right_vector;
-			camera.up         = camera_view.up_vector;
+			camera.forward    = camera_view.forward;
+			camera.right      = camera_view.right;
+			camera.up         = camera_view.up;
 
 			camera.fov             = camera_view.fov;
 			camera.ortho_width     = camera_view.ortho_width;
 			camera.ortho_height    = camera_view.ortho_height;
-			camera.near            = camera_view.near_clip_plane;
-			camera.far             = camera_view.far_clip_plane;
+			camera.near            = camera_view.near;
+			camera.far             = camera_view.far;
 			camera.aspect_ratio    = camera_view.aspect_ratio;
 			camera.projection_mode = static_cast<Camera::Projection>(camera_view.projection_mode);
 		}

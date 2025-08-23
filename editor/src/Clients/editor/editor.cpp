@@ -176,8 +176,6 @@ namespace Engine
 
 		camera = Object::new_instance<CameraComponent>();
 		camera->location({0, 10, 10});
-		camera->near_clip_plane = 0.1f;
-		camera->far_clip_plane  = 1000.f;
 
 		EventSystem* event_system = EventSystem::system_of<EventSystem>();
 		m_event_system_listeners.push_back(event_system->add_listener(

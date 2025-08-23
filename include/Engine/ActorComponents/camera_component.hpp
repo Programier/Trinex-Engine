@@ -14,8 +14,8 @@ namespace Engine
 		float fov                            = 75.f;
 		float ortho_width                    = 1000.f;
 		float ortho_height                   = 1000.f;
-		float near_clip_plane                = 1.f;
-		float far_clip_plane                 = 1000.f;
+		float near                           = 0.1f;
+		float far                            = 1000.f;
 		float aspect_ratio                   = 1.f;
 
 		bool serialize(Archive& archive) override;

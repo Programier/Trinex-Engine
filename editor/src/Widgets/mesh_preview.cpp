@@ -32,10 +32,9 @@ namespace Engine
 
 	ImGuiStaticMeshPreview::ImGuiStaticMeshPreview()
 	{
-		m_world                   = World::system_of<World>();
-		m_camera                  = Object::new_instance<CameraComponent>();
-		m_camera->near_clip_plane = 0.1;
-		m_actor                   = m_world->spawn_actor<StaticMeshActor>();
+		m_world  = World::system_of<World>();
+		m_camera = Object::new_instance<CameraComponent>();
+		m_actor  = m_world->spawn_actor<StaticMeshActor>();
 
 		m_actor->mesh_component()->mesh(DefaultResources::Meshes::cube);
 		m_actor->mesh_component()->on_transform_changed();
@@ -165,7 +164,7 @@ namespace Engine
 
 		auto bounds        = m_actor->mesh_component()->bounding_box().size();
 		float min_distance = glm::max(bounds.x, glm::max(bounds.y, bounds.z));
-		min_distance       = glm::length(Vector2f(min_distance, min_distance)) + m_camera->near_clip_plane + 0.01;
+		min_distance       = glm::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
 
 		m_camera->location(m_current_location * min_distance * m_current_zoom);
 		m_camera->look_at({0.f, 0.f, 0.f});

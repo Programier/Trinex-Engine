@@ -89,39 +89,39 @@ namespace Engine
 		CameraView camera = scene_view().camera_view();
 
 		// Back (-Z)
-		camera.forward_vector = {0.f, 0.f, -1.f};
-		camera.up_vector      = {0.f, -1.f, 0.f};
-		camera.right_vector   = {1.f, 0.f, 0.f};
+		camera.forward = {0.f, 0.f, -1.f};
+		camera.up      = {0.f, -1.f, 0.f};
+		camera.right   = {1.f, 0.f, 0.f};
 		render_depth(camera, RHICubeFace::Back);
 
 		// Front (+Z)
-		camera.forward_vector = {0.f, 0.f, 1.f};
-		camera.up_vector      = {0.f, -1.f, 0.f};
-		camera.right_vector   = {-1.f, 0.f, 0.f};
+		camera.forward = {0.f, 0.f, 1.f};
+		camera.up      = {0.f, -1.f, 0.f};
+		camera.right   = {-1.f, 0.f, 0.f};
 		render_depth(camera, RHICubeFace::Front);
 
 		// Right (+X)
-		camera.forward_vector = {1.f, 0.f, 0.f};
-		camera.up_vector      = {0.f, -1.f, 0.f};
-		camera.right_vector   = {0.f, 0.f, 1.f};
+		camera.forward = {1.f, 0.f, 0.f};
+		camera.up      = {0.f, -1.f, 0.f};
+		camera.right   = {0.f, 0.f, 1.f};
 		render_depth(camera, RHICubeFace::Right);
 
 		// Left (-X)
-		camera.forward_vector = {-1.f, 0.f, 0.f};
-		camera.up_vector      = {0.f, -1.f, 0.f};
-		camera.right_vector   = {0.f, 0.f, -1.f};
+		camera.forward = {-1.f, 0.f, 0.f};
+		camera.up      = {0.f, -1.f, 0.f};
+		camera.right   = {0.f, 0.f, -1.f};
 		render_depth(camera, RHICubeFace::Left);
 
 		// Top (+Y)
-		camera.forward_vector = {0.f, 1.f, 0.f};
-		camera.up_vector      = {0.f, 0.f, -1.f};
-		camera.right_vector   = {1.f, 0.f, 0.f};
+		camera.forward = {0.f, 1.f, 0.f};
+		camera.up      = {0.f, 0.f, -1.f};
+		camera.right   = {1.f, 0.f, 0.f};
 		render_depth(camera, RHICubeFace::Top);
 
 		// Bottom (-Y)
-		camera.forward_vector = {0.f, -1.f, 0.f};
-		camera.up_vector      = {0.f, 0.f, 1.f};
-		camera.right_vector   = {1.f, 0.f, 0.f};
+		camera.forward = {0.f, -1.f, 0.f};
+		camera.up      = {0.f, 0.f, 1.f};
+		camera.right   = {1.f, 0.f, 0.f};
 		render_depth(camera, RHICubeFace::Bottom);
 
 		return *this;

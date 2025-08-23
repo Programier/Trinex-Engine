@@ -188,15 +188,15 @@ namespace Engine
 		auto& transform = proxy->world_transform();
 
 		CameraView view;
-		view.location       = transform.location();
-		view.up_vector      = transform.up_vector();
-		view.forward_vector = transform.forward_vector();
-		view.right_vector   = transform.right_vector();
+		view.location = transform.location();
+		view.up       = transform.up_vector();
+		view.forward  = transform.forward_vector();
+		view.right    = transform.right_vector();
 
 		view.projection_mode = CameraProjectionMode::Perspective;
 		view.aspect_ratio    = 1.f;
-		view.near_clip_plane = 0.1f;
-		view.far_clip_plane  = proxy->attenuation_radius();
+		view.near            = 0.1f;
+		view.far             = proxy->attenuation_radius();
 		view.fov             = 90.f;
 
 		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
@@ -216,15 +216,15 @@ namespace Engine
 		auto& transform = proxy->world_transform();
 
 		CameraView view;
-		view.location       = transform.location();
-		view.up_vector      = transform.up_vector();
-		view.forward_vector = transform.forward_vector();
-		view.right_vector   = transform.right_vector();
+		view.location = transform.location();
+		view.up       = transform.up_vector();
+		view.forward  = transform.forward_vector();
+		view.right    = transform.right_vector();
 
 		view.projection_mode = CameraProjectionMode::Perspective;
 		view.aspect_ratio    = 1.f;
-		view.near_clip_plane = 0.1f;
-		view.far_clip_plane  = proxy->attenuation_radius();
+		view.near            = 0.1f;
+		view.far             = proxy->attenuation_radius();
 		view.fov             = glm::degrees(proxy->outer_cone_angle()) * 2.f;
 
 		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);

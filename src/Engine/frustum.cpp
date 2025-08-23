@@ -40,15 +40,14 @@ namespace Engine
 
 	Frustum& Frustum::operator=(const CameraView& view)
 	{
-		return initialize(view.location, view.forward_vector, view.up_vector, Math::radians(view.fov), view.near_clip_plane,
-		                  view.far_clip_plane, view.aspect_ratio);
+		return initialize(view.location, view.forward, view.up, Math::radians(view.fov), view.near, view.far, view.aspect_ratio);
 	}
 
 	Frustum& Frustum::initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
-	                             float far, float aspect)
+	                             float far, float aspect_ratio)
 	{
 		const float half_v_side = far * Math::tan(fov * 0.5f);
-		const float half_h_side = half_v_side * aspect;
+		const float half_h_side = half_v_side * aspect_ratio;
 
 		const Vector3f front_mult_far = far * forward;
 		const Vector3f right          = Math::cross(forward, up);
