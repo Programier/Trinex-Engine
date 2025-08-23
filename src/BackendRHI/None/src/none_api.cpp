@@ -363,7 +363,7 @@ namespace Engine
 		return *this;
 	}
 
-	NoneApi& NoneApi::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
+	NoneApi& NoneApi::update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
 		return *this;
 	}

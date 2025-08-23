@@ -290,7 +290,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
+	VulkanAPI& VulkanAPI::update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
 		m_state_manager->update_scalar(data, size, offset, buffer_index);
 		return *this;

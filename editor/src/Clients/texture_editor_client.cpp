@@ -49,20 +49,20 @@ namespace Engine
 
 		inline TextureView& update_transform(const Matrix4f& transform)
 		{
-			rhi->update_scalar(transform, m_transform);
+			rhi->update_scalar(&transform, m_transform);
 			return *this;
 		}
 
 		inline TextureView& update_mask(const Vector4f& mask)
 		{
-			rhi->update_scalar(mask, m_mask);
+			rhi->update_scalar(&mask, m_mask);
 			return *this;
 		}
 
 		inline TextureView& update_range(Vector2f range)
 		{
 			range = {range.x, 1.f / (range.y - range.x)};
-			rhi->update_scalar(range, m_range);
+			rhi->update_scalar(&range, m_range);
 			return *this;
 		}
 	};
@@ -77,7 +77,8 @@ namespace Engine
 	public:
 		TextureView2D& update_mip(uint_t mip)
 		{
-			rhi->update_scalar(static_cast<float>(mip), m_mip);
+			float scalar = static_cast<float>(mip);
+			rhi->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
@@ -106,13 +107,14 @@ namespace Engine
 	public:
 		TextureViewCube& update_mip(uint_t mip)
 		{
-			rhi->update_scalar(static_cast<float>(mip), m_mip);
+			float scalar = static_cast<float>(mip);
+			rhi->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
 		TextureViewCube& update_face(uint_t face)
 		{
-			rhi->update_scalar(face, m_face);
+			rhi->update_scalar(&face, m_face);
 			return *this;
 		}
 

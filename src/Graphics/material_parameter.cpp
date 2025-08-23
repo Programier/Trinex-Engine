@@ -38,7 +38,7 @@ namespace Engine::MaterialParameters
 
 	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, const RHIShaderParameterInfo* info)
 	{
-		rhi->update_scalar_parameter(data, size, info->offset, info->binding);
+		rhi->update_scalar(data, size, info->offset, info->binding);
 		return *this;
 	}
 
@@ -59,7 +59,7 @@ namespace Engine::MaterialParameters
 
 	LocalToWorld& LocalToWorld::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
 	{
-		rhi->update_scalar_parameter(&ctx.local_to_world, sizeof(ctx.local_to_world), info->offset, info->binding);
+		rhi->update_scalar(&ctx.local_to_world, sizeof(ctx.local_to_world), info->offset, info->binding);
 		return *this;
 	}
 

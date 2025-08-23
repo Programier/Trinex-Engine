@@ -342,7 +342,7 @@ namespace Engine
 			pipeline->rhi_bind();
 
 			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
-			rhi->update_scalar_parameter(&scene()->environment.ambient_color, pipeline->ambient_color);
+			rhi->update_scalar(&scene()->environment.ambient_color, pipeline->ambient_color);
 			rhi->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
 			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
 
@@ -369,6 +369,8 @@ namespace Engine
 			rhi->bind_srv(clusters_buffer()->as_srv(), pipeline->clusters->binding);
 			rhi->bind_srv(lights_buffer()->as_srv(), pipeline->lights->binding);
 			rhi->bind_srv(shadow_buffer()->as_srv(), pipeline->shadows->binding);
+
+			rhi->update_scalar(m_light_ranges, pipeline->ranges);
 
 			rhi->draw(6, 0);
 		}

@@ -17,6 +17,9 @@ uniform StructuredBuffer<Cluster> clusters;
 uniform StructuredBuffer<Lighting::LightParameters> lights;
 uniform ByteAddressBuffer shadows;
 
+[parameter_type(meta::type::UniformBuffer)]
+uniform Lighting::LightRanges ranges;
+
 [shader("vertex")]
 float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 {
@@ -41,6 +44,7 @@ uint calculate_cluster_index(in float3 location, in float2 coord)
 	return tile.x + (tile.y * uint(Cluster::s_grid_size.x)) + (tile.z * uint(Cluster::s_grid_size.x) * uint(Cluster::s_grid_size.y));
 }
 
+
 [shader("fragment")] 
 float4 fragment_main(in float4 position : SV_Position) : SV_Target
 {
@@ -55,7 +59,17 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	primitive.msra       = msra_texture.SampleLevel(screen_sampler, uv, 0.f);
 
 	float3 color = float3(0.f);
-	
+
+	for (uint i = ranges.directional.x; i < ranges.directional.y; ++i)
+	{
+		color += Lighting::calculate_light<Lighting::DirectionalLight>(lights[i], primitive);
+	}
+
+	for (uint i = ranges.directional.z; i < ranges.directional.w; ++i)
+	{
+		color += Lighting::calculate_light<Lighting::DirectionalLight>(lights[i], primitive);
+	}
+
 	uint cluster_index = calculate_cluster_index(primitive.location, position.xy);
 	Cluster cluster    = clusters[cluster_index];
 

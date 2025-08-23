@@ -99,9 +99,9 @@ namespace Engine
 			RHIDescriptor sampler_descriptor = sampler.rhi_sampler()->descriptor();
 			RHIDescriptor texture_descriptor = srv->descriptor();
 
-			rhi->update_scalar_parameter(&sampler_descriptor, sampler_parameter);
-			rhi->update_scalar_parameter(&texture_descriptor, texture_parameter);
-			rhi->update_scalar_parameter(&model, sizeof(model), 0, model_parameter->binding);
+			rhi->update_scalar(&sampler_descriptor, sampler_parameter);
+			rhi->update_scalar(&texture_descriptor, texture_parameter);
+			rhi->update_scalar(&model, sizeof(model), 0, model_parameter->binding);
 
 			srv = nullptr;
 		}

@@ -48,12 +48,12 @@ namespace Engine::EditorPipelines
 		rhi->bind_srv(outline_depth, m_outline_depth->binding);
 
 		rhi->bind_sampler(RHIPointSampler::static_sampler(), m_sampler->binding);
-		rhi->update_scalar_parameter(&color, m_outline_color);
+		rhi->update_scalar(&color, m_outline_color);
 
 		auto& camera_view = renderer->scene_view().camera_view();
-		rhi->update_scalar_parameter(&camera_view.near, m_near);
-		rhi->update_scalar_parameter(&camera_view.far, m_far);
-		rhi->update_scalar_parameter(&sample_offset, m_sample_offset);
+		rhi->update_scalar(&camera_view.near, m_near);
+		rhi->update_scalar(&camera_view.far, m_far);
+		rhi->update_scalar(&sample_offset, m_sample_offset);
 		rhi->draw(6, 0);
 
 		RHITexturePool::global_instance()->return_surface(tmp_color);

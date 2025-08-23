@@ -57,7 +57,7 @@ namespace Engine
 		{
 			if (m_parameter->type.type_index() == type.type_index())
 			{
-				rhi->update_scalar_parameter(&value, m_parameter);
+				rhi->update_scalar(&value, m_parameter);
 				return true;
 			}
 			return false;

@@ -56,21 +56,21 @@ namespace Engine
 		virtual RHI& viewport(const RHIViewport& viewport) = 0;
 		virtual RHI& scissor(const RHIScissors& scissor)   = 0;
 
-		virtual RHITimestamp* create_timestamp()                                                                      = 0;
-		virtual RHIPipelineStatistics* create_pipeline_statistics()                                                   = 0;
-		virtual RHIFence* create_fence()                                                                              = 0;
-		virtual RHISampler* create_sampler(const RHISamplerInitializer*)                                              = 0;
+		virtual RHITimestamp* create_timestamp()                                                            = 0;
+		virtual RHIPipelineStatistics* create_pipeline_statistics()                                         = 0;
+		virtual RHIFence* create_fence()                                                                    = 0;
+		virtual RHISampler* create_sampler(const RHISamplerInitializer*)                                    = 0;
 		virtual RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
-		                                   RHITextureCreateFlags flags)                                               = 0;
-		virtual RHIShader* create_shader(const byte* shader, size_t size)                                             = 0;
-		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)                 = 0;
-		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)                         = 0;
-		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)                   = 0;
-		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)                   = 0;
-		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                            = 0;
-		virtual RHI& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
-		virtual RHI& push_debug_stage(const char* stage)                                                              = 0;
-		virtual RHI& pop_debug_stage()                                                                                = 0;
+		                                   RHITextureCreateFlags flags)                                     = 0;
+		virtual RHIShader* create_shader(const byte* shader, size_t size)                                   = 0;
+		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)       = 0;
+		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)               = 0;
+		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)         = 0;
+		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)         = 0;
+		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                  = 0;
+		virtual RHI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
+		virtual RHI& push_debug_stage(const char* stage)                                                    = 0;
+		virtual RHI& pop_debug_stage()                                                                      = 0;
 
 		virtual RHI& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) = 0;
 
@@ -142,20 +142,14 @@ namespace Engine
 			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
 		}
 
-		inline RHI& update_scalar_parameter(const void* data, size_t size, const RHIShaderParameterInfo* info)
+		inline RHI& update_scalar(const void* data, size_t size, const RHIShaderParameterInfo* info)
 		{
-			return update_scalar_parameter(data, size, info->offset, info->binding);
+			return update_scalar(data, size, info->offset, info->binding);
 		}
 
-		inline RHI& update_scalar_parameter(const void* data, const RHIShaderParameterInfo* info)
+		inline RHI& update_scalar(const void* data, const RHIShaderParameterInfo* info)
 		{
-			return update_scalar_parameter(data, info->size, info->offset, info->binding);
-		}
-
-		template<typename T>
-		FORCE_INLINE RHI& update_scalar(const T& value, const RHIShaderParameterInfo* info)
-		{
-			return update_scalar_parameter(&value, sizeof(value), info->offset, info->binding);
+			return update_scalar(data, info->size, info->offset, info->binding);
 		}
 
 		virtual ~RHI() {};

@@ -165,8 +165,8 @@ namespace Engine
 		Matrix4f projview = renderer->scene_view().projview_matrix();
 		Vector2f size     = renderer->scene_view().view_size();
 
-		rhi->update_scalar_parameter(&projview, pipeline->projview());
-		rhi->update_scalar_parameter(&size, pipeline->viewport());
+		rhi->update_scalar(&projview, pipeline->projview());
+		rhi->update_scalar(&size, pipeline->viewport());
 
 		rhi->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
 		rhi->primitive_topology(RHIPrimitiveTopology::LineList);

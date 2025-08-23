@@ -85,7 +85,7 @@ namespace Engine
 
 		NoneApi& present(RHISwapchain* swapchain) override;
 
-		NoneApi& update_scalar_parameter(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
+		NoneApi& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 		NoneApi& push_debug_stage(const char* stage) override;
 		NoneApi& pop_debug_stage() override;
 	};

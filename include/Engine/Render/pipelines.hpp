@@ -67,6 +67,7 @@ namespace Engine
 			const RHIShaderParameterInfo* screen_sampler = nullptr;
 			const RHIShaderParameterInfo* shadow_sampler = nullptr;
 
+			const RHIShaderParameterInfo* ranges   = nullptr;
 			const RHIShaderParameterInfo* clusters = nullptr;
 			const RHIShaderParameterInfo* lights   = nullptr;
 			const RHIShaderParameterInfo* shadows  = nullptr;

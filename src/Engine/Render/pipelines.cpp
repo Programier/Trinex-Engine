@@ -52,7 +52,7 @@ namespace Engine::Pipelines
 		rhi_bind();
 		rhi->bind_srv(src, m_source->binding);
 		rhi->bind_sampler(sampler, m_source->binding);
-		rhi->update_scalar_parameter(&args, sizeof(args), m_args);
+		rhi->update_scalar(&args, sizeof(args), m_args);
 
 		rhi->draw(6, 0);
 	}
@@ -86,7 +86,7 @@ namespace Engine::Pipelines
 		rhi_bind();
 		rhi->bind_srv(src, m_source->binding);
 		rhi->bind_sampler(sampler, m_source->binding);
-		rhi->update_scalar_parameter(&shader_args, sizeof(shader_args), m_args);
+		rhi->update_scalar(&shader_args, sizeof(shader_args), m_args);
 
 		rhi->draw(6, 0);
 	}
@@ -114,6 +114,7 @@ namespace Engine::Pipelines
 		screen_sampler = find_parameter("screen_sampler");
 		shadow_sampler = find_parameter("shadow_sampler");
 
+		ranges   = find_parameter("ranges");
 		clusters = find_parameter("clusters");
 		lights   = find_parameter("lights");
 		shadows  = find_parameter("shadows");
@@ -268,7 +269,7 @@ namespace Engine::Pipelines
 		args.samples           = samples;
 
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->update_scalar_parameter(&args, sizeof(args), 0, m_args->binding);
+		rhi->update_scalar(&args, sizeof(args), 0, m_args->binding);
 		rhi->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
 		rhi->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
 		rhi->bind_srv(DefaultResources::Textures::noise4x4->rhi_srv(), m_noise->binding);
@@ -320,7 +321,7 @@ namespace Engine::Pipelines
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		rhi->bind_uav(clusters->as_uav(), m_clusters->binding);
 		rhi->bind_srv(lights->as_srv(), m_lights->binding);
-		rhi->update_scalar_parameter(&ranges, m_ranges);
+		rhi->update_scalar(&ranges, m_ranges);
 		rhi->dispatch(27, 1, 1);
 		return *this;
 	}
