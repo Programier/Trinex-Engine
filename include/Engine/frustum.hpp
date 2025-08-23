@@ -33,8 +33,13 @@ namespace Engine
 		Plane far;
 		Plane near;
 
+		Frustum();
+		Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near, float far,
+		        float aspect);
 		Frustum(const CameraView& camera);
 		Frustum& operator=(const CameraView& view);
+		Frustum& initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
+		                    float far, float aspect);
 		bool in_frustum(const Box3f& box) const;
 	};
 }// namespace Engine

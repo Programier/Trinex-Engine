@@ -63,9 +63,13 @@ namespace Engine
 			const RHIShaderParameterInfo* normal_texture     = nullptr;
 			const RHIShaderParameterInfo* msra_texture       = nullptr;
 			const RHIShaderParameterInfo* depth_texture      = nullptr;
-			const RHIShaderParameterInfo* clusters           = nullptr;
-			const RHIShaderParameterInfo* lights             = nullptr;
-			const RHIShaderParameterInfo* ranges             = nullptr;
+
+			const RHIShaderParameterInfo* screen_sampler = nullptr;
+			const RHIShaderParameterInfo* shadow_sampler = nullptr;
+
+			const RHIShaderParameterInfo* clusters = nullptr;
+			const RHIShaderParameterInfo* lights   = nullptr;
+			const RHIShaderParameterInfo* shadows  = nullptr;
 		};
 
 		class ENGINE_EXPORT AmbientLight : public GlobalGraphicsPipeline

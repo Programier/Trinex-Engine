@@ -111,9 +111,12 @@ namespace Engine::Pipelines
 		msra_texture       = find_parameter("msra_texture");
 		depth_texture      = find_parameter("depth_texture");
 
+		screen_sampler = find_parameter("screen_sampler");
+		shadow_sampler = find_parameter("shadow_sampler");
+
 		clusters = find_parameter("clusters");
 		lights   = find_parameter("lights");
-		ranges   = find_parameter("ranges");
+		shadows  = find_parameter("shadows");
 
 		depth_test.enable       = false;
 		depth_test.write_enable = false;
@@ -284,7 +287,7 @@ namespace Engine::Pipelines
 
 	RHIBuffer* ClusterInitialize::create_clusters_buffer()
 	{
-		static constexpr size_t cluster_size        = 552;
+		static constexpr size_t cluster_size        = 560;
 		static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::UnorderedAccess |
 		                                              RHIBufferCreateFlags::ShaderResource |
 		                                              RHIBufferCreateFlags::StructuredBuffer;

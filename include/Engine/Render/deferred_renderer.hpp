@@ -2,7 +2,6 @@
 #include <Core/etl/vector.hpp>
 #include <Engine/Render/renderer.hpp>
 
-
 namespace Engine
 {
 	namespace Pipelines
@@ -12,7 +11,9 @@ namespace Engine
 
 	class LightComponent;
 	class PostProcessComponent;
+	class PointLightComponent;
 	class SpotLightComponent;
+	class DirectionalLightComponent;
 	struct PostProcessParameters;
 	struct LightRenderRanges;
 
@@ -21,19 +22,20 @@ namespace Engine
 	private:
 		RHIBuffer* m_clusters_buffer      = nullptr;
 		RHIBuffer* m_lights_buffer        = nullptr;
+		RHIBuffer* m_shadow_buffer        = nullptr;
 		LightRenderRanges* m_light_ranges = nullptr;
 
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
 		FrameVector<LightComponent*> m_visible_lights;
 		FrameVector<PostProcessComponent*> m_visible_post_processes;
-		FrameVector<RHITexture*> m_shadow_maps;
-		FrameVector<Matrix4f> m_shadow_projections;
-
 
 	private:
 		DeferredRenderer& register_debug_lines();
 
-		DeferredRenderer& register_shadow_light(SpotLightComponent* light, uint_t index);
+		DeferredRenderer& register_shadow_light(PointLightComponent* light, byte* shadow_data);
+		DeferredRenderer& register_shadow_light(SpotLightComponent* light, byte* shadow_data);
+		DeferredRenderer& register_shadow_light(DirectionalLightComponent* light, byte* shadow_data);
+
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass();
 		DeferredRenderer& ambient_occlusion_pass(PostProcessParameters* params);
@@ -48,8 +50,6 @@ namespace Engine
 		DeferredRenderer& render_visible_primitives(RenderPass* pass);
 		DeferredRenderer& cull_lights();
 
-		uint_t find_light_range(uint_t light_type, uint_t& start, uint_t& end);
-
 	public:
 		DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode);
 		trinex_non_copyable(DeferredRenderer);
@@ -57,6 +57,7 @@ namespace Engine
 
 		RHIBuffer* clusters_buffer();
 		RHIBuffer* lights_buffer();
+		RHIBuffer* shadow_buffer();
 		DeferredRenderer& render() override;
 
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }

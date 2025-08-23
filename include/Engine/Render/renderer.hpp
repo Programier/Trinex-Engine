@@ -8,6 +8,7 @@ namespace Engine
 	class RenderSurface;
 	class RenderPass;
 	class PrimitiveComponent;
+	class LightComponent;
 	class MaterialBindings;
 	class RHIBuffer;
 	class RHITexture;
@@ -63,6 +64,7 @@ namespace Engine
 		static RHISurfaceFormat static_surface_format_of(SurfaceType type);
 		static const char* static_surface_name_of(SurfaceType type);
 		static Renderer* static_create_renderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
+		static void static_sort_lights(FrameVector<LightComponent*>& visible_lights);
 
 	public:
 		BatchedLines lines;
@@ -78,6 +80,7 @@ namespace Engine
 		RHIBuffer* globals_uniform_buffer();
 
 		virtual Renderer& render();
+		virtual Renderer& reset(const SceneView& view);
 
 		inline const SceneView& scene_view() const { return m_view; }
 		inline Scene* scene() const { return m_scene; }

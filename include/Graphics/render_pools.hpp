@@ -64,29 +64,49 @@ namespace Engine
 		RHIBufferPool& return_buffer(RHIBuffer* buffer);
 	};
 
-	class ENGINE_EXPORT RHISurfacePool final
+	class ENGINE_EXPORT RHITexturePool final
 	{
 	private:
+		struct Key {
+			RHISurfaceFormat format;
+			RHITextureType type;
+			RHITextureCreateFlags flags;
+
+			uint16_t width;
+			uint16_t height;
+			uint16_t depth;
+
+			inline bool operator==(const Key& key) const = default;
+		};
+
+		struct ENGINE_EXPORT Hasher {
+			uint64_t operator()(const Key& key) const;
+		};
+
 		struct SurfaceEntry {
 			uint64_t frame      = 0;
 			RHITexture* surface = nullptr;
 		};
 
-		Map<Identifier, Vector<SurfaceEntry>> m_pools;
-		Map<RHITexture*, Identifier> m_surface_id;
+		Map<Key, Vector<SurfaceEntry>, Hasher> m_pools;
+		Map<RHITexture*, Key> m_surface_id;
 		Vector<RHITexture*> m_transient_textures;
 
 	private:
-		RHISurfacePool& flush_transient();
+		RHITexturePool& flush_transient();
 
 	public:
-		static RHISurfacePool* global_instance();
+		static RHITexturePool* global_instance();
 
-		RHISurfacePool& update();
-		RHITexture* request_surface(struct RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
-		RHITexture* request_transient_surface(struct RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
-		RHISurfacePool& release_all();
-		RHISurfacePool& return_surface(RHITexture* surface);
+		RHITexturePool& update();
+		RHITexture* request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
+		RHITexture* request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+		                            RHITextureCreateFlags flags = {});
+		RHITexture* request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
+		RHITexture* request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+		                                      RHITextureCreateFlags flags = {});
+		RHITexturePool& release_all();
+		RHITexturePool& return_surface(RHITexture* surface);
 	};
 
 	class ENGINE_EXPORT RenderSurfacePool final

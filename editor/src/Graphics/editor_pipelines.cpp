@@ -33,7 +33,7 @@ namespace Engine::EditorPipelines
 	{
 		auto view_size  = renderer->scene_view().view_size();
 		auto tmp_format = renderer->static_surface_format_of(Renderer::SceneColorLDR);
-		auto tmp_color  = RHISurfacePool::global_instance()->request_surface(tmp_format, view_size);
+		auto tmp_color  = RHITexturePool::global_instance()->request_surface(tmp_format, view_size);
 
 		RHITextureRegion region = {view_size};
 		rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, tmp_color, region);
@@ -56,7 +56,7 @@ namespace Engine::EditorPipelines
 		rhi->update_scalar_parameter(&sample_offset, m_sample_offset);
 		rhi->draw(6, 0);
 
-		RHISurfacePool::global_instance()->return_surface(tmp_color);
+		RHITexturePool::global_instance()->return_surface(tmp_color);
 	}
 
 	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang")

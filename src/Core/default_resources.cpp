@@ -155,6 +155,7 @@ namespace Engine
 		generate_noise_textures(package);
 	}
 
+
 	void load_default_resources()
 	{
 		using namespace DefaultResources;

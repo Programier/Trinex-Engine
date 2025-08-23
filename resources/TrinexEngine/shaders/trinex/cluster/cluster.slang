@@ -8,7 +8,7 @@ struct Cluster
 	float4 min;
 	float4 max;
 
-	uint point_lights;
-	uint spot_lights;
+	uint2 point_lights;// [without shadows, with shadows]
+	uint2 spot_lights; // [without shadows, with shadows]
 	uint light_indices[s_lights_per_cluster];
 }

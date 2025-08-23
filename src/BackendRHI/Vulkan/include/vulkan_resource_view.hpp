@@ -51,6 +51,9 @@ namespace Engine
 
 	public:
 		VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view);
+		inline VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view, const VulkanTexture::ViewDesc&)
+		    : VulkanTextureSRV(texture, view)
+		{}
 		~VulkanTextureSRV();
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
 
@@ -66,6 +69,9 @@ namespace Engine
 
 	public:
 		VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view);
+		inline VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view, const VulkanTexture::ViewDesc&)
+		    : VulkanTextureUAV(texture, view)
+		{}
 		~VulkanTextureUAV();
 		VulkanUAV& bind(VulkanStateManager* manager, byte index) override;
 
@@ -80,8 +86,15 @@ namespace Engine
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
+		uint16_t m_base_layer;
+		uint16_t m_layer_count;
+		uint16_t m_mip;
+
 	public:
-		VulkanTextureRTV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view) {}
+		VulkanTextureRTV(VulkanTexture* texture, vk::ImageView view, const VulkanTexture::ViewDesc& desc)
+		    : m_texture(texture), m_view(view), m_base_layer(desc.first_array_slice), m_layer_count(desc.array_size),
+		      m_mip(desc.first_mip)
+		{}
 		~VulkanTextureRTV();
 
 		void clear(const LinearColor& color) override;
@@ -116,8 +129,15 @@ namespace Engine
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
+		uint16_t m_base_layer;
+		uint16_t m_layer_count;
+		uint16_t m_mip;
+
 	public:
-		VulkanTextureDSV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view) {}
+		VulkanTextureDSV(VulkanTexture* texture, vk::ImageView view, const VulkanTexture::ViewDesc& desc)
+		    : m_texture(texture), m_view(view), m_base_layer(desc.first_array_slice), m_layer_count(desc.array_size),
+		      m_mip(desc.first_mip)
+		{}
 		~VulkanTextureDSV();
 
 		void clear(float depth, byte stencil) override;

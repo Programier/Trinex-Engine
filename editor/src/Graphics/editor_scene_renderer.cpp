@@ -31,7 +31,8 @@ namespace Engine::EditorRenderer
 			Vector2u size                               = scene_view().view_size();
 			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().camera_view());
 
-			auto surface = RHISurfacePool::global_instance()->request_transient_surface(RHISurfaceFormat::RG32UI, size);
+			auto pool    = RHITexturePool::global_instance();
+			auto surface = pool->request_transient_surface(RHISurfaceFormat::RG32UI, size);
 			auto depth   = scene_depth_target();
 
 			auto surface_rtv = surface->as_rtv();
@@ -87,7 +88,7 @@ namespace Engine::EditorRenderer
 	static void render_outlines_pass(Renderer* renderer, Actor** actors, size_t count)
 	{
 		auto view_size = renderer->scene_view().view_size();
-		auto pool      = RHISurfacePool::global_instance();
+		auto pool      = RHITexturePool::global_instance();
 		auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size);
 
 		depth->as_dsv()->clear(1.f, 0);

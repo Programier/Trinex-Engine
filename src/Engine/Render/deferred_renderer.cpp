@@ -1,11 +1,12 @@
 #include <Core/etl/templates.hpp>
+#include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/post_process_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 #include <Engine/Render/depth_renderer.hpp>
-#include <Engine/Render/light_parameters.hpp>
+#include <Engine/Render/lighting.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/post_process_parameters.hpp>
 #include <Engine/Render/render_graph.hpp>
@@ -21,23 +22,49 @@
 
 namespace Engine
 {
+	static void find_light_range(FrameVector<LightComponent*>& lights, uint_t light_type, LightRenderRanges::LightRange& range,
+	                             uint32_t search_offset = 0)
+	{
+		if (lights.size() <= search_offset)
+		{
+			range.normal.start = range.normal.end = search_offset;
+			range.shadowed.start = range.shadowed.end = search_offset;
+			return;
+		}
+
+		struct CompareType {
+			bool operator()(const LightComponent* light, uint_t type) const { return light->proxy()->light_type() < type; }
+			bool operator()(uint_t type, const LightComponent* light) const { return light->proxy()->light_type() > type; }
+		};
+
+		struct CompareShadows {
+			bool operator()(const LightComponent* light, bool) const { return !light->proxy()->is_shadows_enabled(); }
+			bool operator()(bool, const LightComponent* light) const { return light->proxy()->is_shadows_enabled(); }
+		};
+
+		auto lights_range = std::equal_range(lights.begin() + search_offset, lights.end(), light_type, CompareType());
+		auto shadows      = std::lower_bound(lights_range.first, lights_range.second, true, CompareShadows());
+
+		auto start = lights.begin();
+
+		range.normal.start   = lights_range.first - start;
+		range.normal.end     = shadows - start;
+		range.shadowed.start = range.normal.end;
+		range.shadowed.end   = lights_range.second - start;
+	}
+
 	DeferredRenderer::DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode)
 	    : Renderer(scene, view, mode), m_visible_primitives(scene->collect_visible_primitives(view.camera_view())),
 	      m_visible_lights(scene->collect_visible_lights(view.camera_view())),
 	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location))
 	{
-		std::sort(m_visible_lights.begin(), m_visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
-			auto a_proxy = a->proxy();
-			auto b_proxy = b->proxy();
-
-			return a_proxy->light_type() < b_proxy->light_type();
-		});
-
+		static_sort_lights(m_visible_lights);
 		m_light_ranges = FrameAllocator<LightRenderRanges>::allocate(1);
 
-		find_light_range(LightComponent::Point, m_light_ranges->point.start, m_light_ranges->point.end);
-		find_light_range(LightComponent::Spot, m_light_ranges->spot.start, m_light_ranges->spot.end);
-		find_light_range(LightComponent::Directional, m_light_ranges->directional.start, m_light_ranges->directional.end);
+		find_light_range(m_visible_lights, LightComponent::Point, m_light_ranges->point);
+		find_light_range(m_visible_lights, LightComponent::Spot, m_light_ranges->spot, m_light_ranges->point.shadowed.end);
+		find_light_range(m_visible_lights, LightComponent::Directional, m_light_ranges->directional,
+		                 m_light_ranges->spot.shadowed.end);
 
 		auto graph = render_graph();
 
@@ -153,7 +180,7 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, uint_t index)
+	DeferredRenderer& DeferredRenderer::register_shadow_light(PointLightComponent* light, byte* shadow_data)
 	{
 		Vector2u shadow_map_size = {512, 512};
 		auto proxy               = light->proxy();
@@ -162,14 +189,41 @@ namespace Engine
 
 		CameraView view;
 		view.location       = transform.location();
-		view.rotation       = transform.quaternion();
 		view.up_vector      = transform.up_vector();
 		view.forward_vector = transform.forward_vector();
 		view.right_vector   = transform.right_vector();
 
 		view.projection_mode = CameraProjectionMode::Perspective;
 		view.aspect_ratio    = 1.f;
-		view.near_clip_plane = scene_view().camera_view().near_clip_plane;
+		view.near_clip_plane = 0.1f;
+		view.far_clip_plane  = proxy->attenuation_radius();
+		view.fov             = 90.f;
+
+		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
+		new (renderer) DepthCubeRenderer(scene(), SceneView(view, shadow_map_size));
+		add_child_renderer(renderer);
+
+		PointLightShadowData* data = reinterpret_cast<PointLightShadowData*>(shadow_data);
+		data->descriptor           = renderer->cubemap()->as_srv()->descriptor();
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, byte* shadow_data)
+	{
+		Vector2u shadow_map_size = {512, 512};
+		auto proxy               = light->proxy();
+
+		auto& transform = proxy->world_transform();
+
+		CameraView view;
+		view.location       = transform.location();
+		view.up_vector      = transform.up_vector();
+		view.forward_vector = transform.forward_vector();
+		view.right_vector   = transform.right_vector();
+
+		view.projection_mode = CameraProjectionMode::Perspective;
+		view.aspect_ratio    = 1.f;
+		view.near_clip_plane = 0.1f;
 		view.far_clip_plane  = proxy->attenuation_radius();
 		view.fov             = glm::degrees(proxy->outer_cone_angle()) * 2.f;
 
@@ -177,8 +231,14 @@ namespace Engine
 		new (renderer) DepthRenderer(scene(), SceneView(view, shadow_map_size));
 		add_child_renderer(renderer);
 
-		m_shadow_maps[index]        = renderer->scene_depth_target();
-		m_shadow_projections[index] = view.projection_matrix() * view.view_matrix();
+		SpotLightShadowData* data = reinterpret_cast<SpotLightShadowData*>(shadow_data);
+		data->descriptor          = renderer->scene_depth_target()->as_srv()->descriptor();
+		data->projview            = view.projection_matrix() * view.view_matrix();
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::register_shadow_light(DirectionalLightComponent* light, byte* shadow_data)
+	{
 		return *this;
 	}
 
@@ -200,24 +260,8 @@ namespace Engine
 		        .add_resource(scene_color_target(), RHIAccess::RTV)
 		        .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
 		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
+		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this]() { deferred_lighting_pass(); });
-
-		m_shadow_maps.resize(m_visible_lights.size(), nullptr);
-		m_shadow_projections.resize(m_visible_lights.size(), Matrix4f(1.f));
-
-		for (size_t i = 0, count = m_visible_lights.size(); i < count; ++i)
-		{
-			auto component = m_visible_lights[i];
-			auto light     = component->proxy();
-
-			if (light->is_shadows_enabled())
-			{
-				if (light->light_type() == LightComponent::Spot)
-				{
-					register_shadow_light(static_cast<SpotLightComponent*>(component), i);
-				}
-			}
-		}
 
 		if (Settings::Rendering::enable_hdr)
 		{
@@ -246,7 +290,7 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::ambient_occlusion_pass(PostProcessParameters* params)
 	{
-		RHISurfacePool* pool = RHISurfacePool::global_instance();
+		RHITexturePool* pool = RHITexturePool::global_instance();
 
 		Vector2f inv_size = 1.f / Vector2f(scene_view().view_size());
 
@@ -314,15 +358,13 @@ namespace Engine
 			rhi->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);
 			rhi->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->binding);
 
-			rhi->bind_sampler(sampler, pipeline->base_color_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->normal_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->msra_texture->binding);
-			rhi->bind_sampler(sampler, pipeline->depth_texture->binding);
+			rhi->bind_sampler(sampler, pipeline->screen_sampler->binding);
+			rhi->bind_sampler(RHIShadowSampler::static_sampler(), pipeline->shadow_sampler->binding);
 
 			rhi->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 			rhi->bind_srv(clusters_buffer()->as_srv(), pipeline->clusters->binding);
 			rhi->bind_srv(lights_buffer()->as_srv(), pipeline->lights->binding);
-			rhi->update_scalar_parameter(m_light_ranges, pipeline->ranges);
+			rhi->bind_srv(shadow_buffer()->as_srv(), pipeline->shadows->binding);
 
 			rhi->draw(6, 0);
 		}
@@ -410,27 +452,6 @@ namespace Engine
 		return *this;
 	}
 
-	uint_t DeferredRenderer::find_light_range(uint_t light_type, uint_t& start, uint_t& end)
-	{
-		if (m_visible_lights.empty())
-		{
-			start = end = 0;
-			return 0;
-		}
-
-		struct Compare {
-			bool operator()(const LightComponent* light, uint_t type) const { return light->proxy()->light_type() < type; }
-			bool operator()(uint_t type, const LightComponent* light) const { return light->proxy()->light_type() > type; }
-		};
-
-		auto range = std::equal_range(m_visible_lights.begin(), m_visible_lights.end(), light_type, Compare());
-
-		start = range.first - m_visible_lights.begin();
-		end   = range.second - m_visible_lights.begin();
-
-		return end - start;
-	}
-
 	RHIBuffer* DeferredRenderer::clusters_buffer()
 	{
 		if (m_clusters_buffer == nullptr)
@@ -453,11 +474,8 @@ namespace Engine
 			static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::StructuredBuffer |
 			                                              RHIBufferCreateFlags::ShaderResource |
 			                                              RHIBufferCreateFlags::TransferDst;
-			size_t size = sizeof(LightRenderParameters) * m_visible_lights.size();
 
-			if (size == 0)
-				size = sizeof(LightRenderParameters);
-
+			size_t size     = sizeof(LightRenderParameters) * m_visible_lights.size();
 			m_lights_buffer = RHIBufferPool::global_instance()->request_transient_buffer(size, flags);
 
 			if (!m_visible_lights.empty())
@@ -467,7 +485,29 @@ namespace Engine
 
 				for (LightComponent* light : m_visible_lights)
 				{
-					light->proxy()->render_parameters(*(current++));
+					light->proxy()->render_parameters(*current);
+				}
+
+				// Update shadow buffer address for each light
+				{
+					uint_t current = m_light_ranges->point.shadowed.start;
+					uint_t end     = m_light_ranges->point.shadowed.end;
+					uint_t address = 0;
+
+					for (; current < end; ++current)
+					{
+						parameters[current].shadow_address = address;
+						address += sizeof(PointLightShadowData);
+					}
+
+					current = m_light_ranges->spot.shadowed.start;
+					end     = m_light_ranges->spot.shadowed.end;
+
+					for (; current < end; ++current)
+					{
+						parameters[current].shadow_address = address;
+						address += sizeof(SpotLightShadowData);
+					}
 				}
 
 				rhi->barrier(m_lights_buffer, RHIAccess::TransferDst);
@@ -475,6 +515,67 @@ namespace Engine
 			}
 		}
 		return m_lights_buffer;
+	}
+
+	RHIBuffer* DeferredRenderer::shadow_buffer()
+	{
+		if (m_shadow_buffer == nullptr)
+		{
+			StackByteAllocator::Mark mark;
+
+			uint32_t point_lights       = m_light_ranges->point.shadowed.end - m_light_ranges->point.shadowed.start;
+			uint32_t spot_lights        = m_light_ranges->spot.shadowed.end - m_light_ranges->spot.shadowed.start;
+			uint32_t directional_lights = m_light_ranges->directional.shadowed.end - m_light_ranges->directional.shadowed.start;
+
+			size_t buffer_size = point_lights * sizeof(PointLightShadowData) +           //
+			                     spot_lights * sizeof(SpotLightShadowData) +             //
+			                     directional_lights * sizeof(DirectionalLightShadowData);//
+
+			byte* buffer       = StackByteAllocator::allocate(buffer_size);
+			byte* current_data = buffer;
+
+			uint_t current = m_light_ranges->point.shadowed.start;
+			uint_t end     = m_light_ranges->point.shadowed.end;
+
+			for (; current < end; ++current)
+			{
+				auto light = static_cast<PointLightComponent*>(m_visible_lights[current]);
+				register_shadow_light(light, current_data);
+				current_data += sizeof(PointLightShadowData);
+			}
+
+			current = m_light_ranges->spot.shadowed.start;
+			end     = m_light_ranges->spot.shadowed.end;
+
+			for (; current < end; ++current)
+			{
+				auto light = static_cast<SpotLightComponent*>(m_visible_lights[current]);
+				register_shadow_light(light, current_data);
+				current_data += sizeof(SpotLightShadowData);
+			}
+
+			current = m_light_ranges->directional.shadowed.start;
+			end     = m_light_ranges->directional.shadowed.end;
+
+			for (; current < end; ++current)
+			{
+				auto light = static_cast<DirectionalLightComponent*>(m_visible_lights[current]);
+				register_shadow_light(light, current_data);
+				current_data += sizeof(DirectionalLightShadowData);
+			}
+
+
+			auto pool       = RHIBufferPool::global_instance();
+			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferCreateFlags::ByteAddressBuffer |
+			                                                                      RHIBufferCreateFlags::ShaderResource |
+			                                                                      RHIBufferCreateFlags::TransferDst);
+			if (buffer_size > 0)
+			{
+				rhi->update_buffer(m_shadow_buffer, 0, buffer_size, buffer);
+			}
+		}
+
+		return m_shadow_buffer;
 	}
 
 	DeferredRenderer& DeferredRenderer::render()

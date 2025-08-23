@@ -7,7 +7,6 @@ namespace Lighting
 	{
 		static float attenuation(in float3 world_light_vector, in LightParameters params);
 		static float3 direction(in float3 world_light_vector, in LightParameters params);
-		static float shadow(in float3 position, in LightParameters params);
 	}
 
 	struct LightParameters 
@@ -23,13 +22,14 @@ namespace Lighting
 		float source_radius;
 		float depth_bias;
 		float slope_scale;
+		uint shadow_address;
 	};
 
 	struct LightRanges 
 	{
-		uint2 point;
-		uint2 spot;
-		uint2 directional;
+		uint4 point;
+		uint4 spot;
+		uint4 directional;
 	};
 
 	struct PrimitiveData 
@@ -38,6 +38,29 @@ namespace Lighting
 		float3 position;
 		float3 normal;
 		float4 msra;
+	};
+
+	struct PointLightShadowData
+	{
+		TextureCube.Handle shadow_map;
+
+		[ForceInline]
+		float sample(SamplerComparisonState sampler, float3 dir, float depth)
+		{
+			return shadow_map.SampleCmpLevelZero(sampler, dir, depth);
+		}
+	};
+
+	struct SpotLightShadowData
+	{
+		Texture2D.Handle shadow_map;
+		float4x4 projview;
+
+		[ForceInline] 
+		float sample(SamplerComparisonState sampler, float2 uv, int2 offset, float depth)
+		{
+			return shadow_map.SampleCmpLevelZero(sampler, uv, depth);
+		}
 	};
 	
 	float distribution_ggx(in float3 normal, in float3 halfway_direction, float roughness)

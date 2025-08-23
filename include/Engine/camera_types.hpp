@@ -13,7 +13,6 @@ namespace Engine
 
 	struct ENGINE_EXPORT CameraView {
 		Vector3f location;
-		Quaternion rotation;
 		Vector3f forward_vector;
 		Vector3f up_vector;
 		Vector3f right_vector;

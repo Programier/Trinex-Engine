@@ -2,7 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
-#include <Engine/Render/light_parameters.hpp>
+#include <Engine/Render/lighting.hpp>
 
 namespace Engine
 {

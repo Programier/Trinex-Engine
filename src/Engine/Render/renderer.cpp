@@ -1,3 +1,4 @@
+#include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 #include <Engine/Render/render_graph.hpp>
@@ -57,6 +58,28 @@ namespace Engine
 		return new (FrameAllocator<DeferredRenderer>::allocate(1)) DeferredRenderer(scene, view, mode);
 	}
 
+	void Renderer::static_sort_lights(FrameVector<LightComponent*>& visible_lights)
+	{
+		std::sort(visible_lights.begin(), visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
+			auto a_proxy = a->proxy();
+			auto b_proxy = b->proxy();
+
+			auto a_type = a_proxy->light_type();
+			auto b_type = b_proxy->light_type();
+
+			if (a_type != b_type)
+				return a_type < b_type;
+
+			bool a_has_shadow = a_proxy->is_shadows_enabled();
+			bool b_has_shadow = b_proxy->is_shadows_enabled();
+
+			if (a_has_shadow != b_has_shadow)
+				return !a_has_shadow;
+
+			return false;
+		});
+	}
+
 	Renderer& Renderer::render()
 	{
 		while (m_child_renderer)
@@ -69,6 +92,13 @@ namespace Engine
 		rhi->scissor(m_view.scissor());
 		m_graph->execute();
 
+		return *this;
+	}
+
+	Renderer& Renderer::reset(const SceneView& view)
+	{
+		m_view    = view;
+		m_globals = nullptr;
 		return *this;
 	}
 
@@ -151,9 +181,8 @@ namespace Engine
 			        "Clear Normal",         "Clear Emissive",       "Clear MSRA",       "Clear Velocity",
 			};
 
-			auto pool          = RHISurfacePool::global_instance();
-			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.viewport().size,
-			                                                     RHITextureCreateFlags::UnorderedAccess);
+			auto pool          = RHITexturePool::global_instance();
+			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.viewport().size);
 			m_surfaces[type]   = target;
 
 			auto& pass = m_graph->add_pass(RenderGraph::Pass::Graphics, clear_pass_names[type])

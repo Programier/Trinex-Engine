@@ -75,9 +75,9 @@ namespace Engine
 
 		vk::ImageSubresourceRange range;
 		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(0)
-		        .setBaseMipLevel(0)
-		        .setLayerCount(1)
+		        .setBaseArrayLayer(m_base_layer)
+		        .setLayerCount(m_layer_count)
+		        .setBaseMipLevel(m_mip)
 		        .setLevelCount(1);
 
 		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
@@ -93,9 +93,9 @@ namespace Engine
 
 		vk::ImageSubresourceRange range;
 		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(0)
-		        .setBaseMipLevel(0)
-		        .setLayerCount(1)
+		        .setBaseArrayLayer(m_base_layer)
+		        .setLayerCount(m_layer_count)
+		        .setBaseMipLevel(m_mip)
 		        .setLevelCount(1);
 
 		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
@@ -111,9 +111,9 @@ namespace Engine
 
 		vk::ImageSubresourceRange range;
 		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(0)
-		        .setBaseMipLevel(0)
-		        .setLayerCount(1)
+		        .setBaseArrayLayer(m_base_layer)
+		        .setLayerCount(m_layer_count)
+		        .setBaseMipLevel(m_mip)
 		        .setLevelCount(1);
 
 		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
@@ -139,7 +139,11 @@ namespace Engine
 		vk::ClearDepthStencilValue value;
 		value.setDepth(depth).setStencil(stencil);
 		vk::ImageSubresourceRange range;
-		range.setAspectMask(m_texture->aspect()).setBaseArrayLayer(0).setBaseMipLevel(0).setLayerCount(1).setLevelCount(1);
+		range.setAspectMask(m_texture->aspect())
+		        .setBaseArrayLayer(m_base_layer)
+		        .setLayerCount(m_layer_count)
+		        .setBaseMipLevel(m_mip)
+		        .setLevelCount(1);
 
 		API->current_command_buffer()->clearDepthStencilImage(image(), layout(), value, range);
 	}

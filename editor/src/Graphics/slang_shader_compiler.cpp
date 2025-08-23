@@ -562,6 +562,16 @@ namespace Engine
 						m_reflection->parameters.push_back(object);
 						return true;
 					}
+					else if (shape_mask == SLANG_BYTE_ADDRESS_BUFFER)
+					{
+						if (type.is_meta())
+						{
+							object.type |= RHIShaderParameterType::ByteAddressBuffer;
+						}
+
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
 				}
 			}
 			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind) &&

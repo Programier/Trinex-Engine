@@ -1,5 +1,6 @@
 #include <Core/default_resources.hpp>
 #include <Core/etl/templates.hpp>
+#include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -41,7 +42,8 @@ namespace Engine
 
 		auto& node = views.emplace_back();
 		node.desc  = desc;
-		node.value = Engine::allocate<Value>(texture, view);
+
+		node.value = Engine::allocate<Value>(texture, view, desc);
 		return node.value;
 	}
 

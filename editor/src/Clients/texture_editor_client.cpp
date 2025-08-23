@@ -229,6 +229,7 @@ namespace Engine
 			ImGui::PushItemWidth(ImGui::GetFontSize() * 5);
 			ImGui::SliderFloat("##range1", &m_range.x, 0.f, m_range.y, "%.2f");
 			ImGui::SliderFloat("##range2", &m_range.y, m_range.x, 1.f, "%.2f");
+			ImGui::InputScalar("Mip", ImGuiDataType_U32, &m_mip);
 			ImGui::PopItemWidth();
 		});
 	}
@@ -371,7 +372,7 @@ namespace Engine
 			return *this;
 
 		Matrix4f projection = build_projection(texture->size(0), size);
-		render_texture_2d(texture->rhi_texture(), projection, range(), 0, mask());
+		render_texture_2d(texture->rhi_texture(), projection, range(), mip(), mask());
 		return *this;
 	}
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <Core/math/matrix.hpp>
+#include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 
 namespace Engine
@@ -15,6 +17,7 @@ namespace Engine
 		alignas(4) float source_radius;
 		alignas(4) float depth_bias;
 		alignas(4) float slope_scale;
+		alignas(4) uint32_t shadow_address;
 	};
 
 	struct LightRenderRanges {
@@ -23,8 +26,27 @@ namespace Engine
 			uint_t end   = 0;
 		};
 
-		Range point;
-		Range spot;
-		Range directional;
+		struct alignas(8) LightRange {
+			Range normal;
+			Range shadowed;
+		};
+
+		LightRange point;
+		LightRange spot;
+		LightRange directional;
+	};
+
+	struct PointLightShadowData {
+		uint64_t descriptor;
+	};
+
+	struct SpotLightShadowData {
+		uint64_t descriptor;
+		Matrix4f projview;
+	};
+
+	struct DirectionalLightShadowData {
+		uint64_t descriptor;
+		Matrix4f projview;
 	};
 }// namespace Engine

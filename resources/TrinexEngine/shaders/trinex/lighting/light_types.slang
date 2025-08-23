@@ -1,5 +1,6 @@
 import "trinex/lighting/lighting.slang";
 import "trinex/math.slang";
+import "trinex/trinex.slang";
 
 namespace Lighting
 {
@@ -18,7 +19,25 @@ namespace Lighting
 			return normalize(world_light_vector);
 		}
 
-		static float shadow(in float3 position, in LightParameters params) { return 1.f; }
+		[ForceInline]
+		static float calculate_depth(float3 direction)
+		{
+			direction = abs(direction);
+			return max(max(direction.x, direction.y), direction.z);
+		}
+
+		static float shadow(in float3 position, in LightParameters params, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler)
+		{
+			PointLightShadowData data = shadow_data.Load<PointLightShadowData>(params.shadow_address);
+
+			float3 direction    = position - params.location;
+
+			static const float bias = 0.001;
+			static const float near = 0.1;
+			float primitive_depth   = Math::unlinearize_depth(calculate_depth(direction), near, params.attenuation_radius) - bias;
+			float shadow_depth      = data.sample(sampler, direction, primitive_depth);
+			return shadow_depth;
+		}
 	}
 
 	struct SpotLight : ILight 
@@ -38,7 +57,31 @@ namespace Lighting
 
 		static float3 direction(in float3 world_light_vector, in LightParameters params) { return normalize(world_light_vector); }
 
-		static float shadow(in float3 position, in LightParameters params) { return 1.f; }
+		static float shadow(in float3 position, in LightParameters params, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler)
+		{
+			SpotLightShadowData data = shadow_data.Load<SpotLightShadowData>(params.shadow_address);
+
+			float4 shadow_ndc = data.projview * float4(position, 1.0);
+			shadow_ndc.xyz /= shadow_ndc.w;
+
+			float2 uv = shadow_ndc.xy * 0.5 + 0.5;
+
+			static const float bias = 0.001;
+			float primitive_depth   = shadow_ndc.z - bias;
+
+			float shadow_depth =
+				data.sample(sampler, uv, int2(-1, -1), primitive_depth) +
+			    data.sample(sampler, uv, int2(0, -1), primitive_depth) +
+				data.sample(sampler, uv, int2(1, -1), primitive_depth) +
+			    data.sample(sampler, uv, int2(-1, 0), primitive_depth) +
+				data.sample(sampler, uv, int2(0, 0), primitive_depth) +
+				data.sample(sampler, uv, int2(1, 0), primitive_depth) +
+				data.sample(sampler, uv, int2(-1, 1), primitive_depth) +
+				data.sample(sampler, uv, int2(0, 1), primitive_depth) +
+				data.sample(sampler, uv, int2(1, 1), primitive_depth);
+
+			return shadow_depth / 9.0;
+		}
 	}
 
 	struct DirectionalLight : Lighting::ILight 

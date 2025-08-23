@@ -3,7 +3,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
-#include <Engine/Render/light_parameters.hpp>
+#include <Engine/Render/lighting.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>

@@ -1,5 +1,6 @@
 #include <Core/constants.hpp>
 #include <Core/math/box.hpp>
+#include <Core/math/math.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/frustum.hpp>
 
@@ -24,6 +25,14 @@ namespace Engine
 		return distance + r;
 	}
 
+	Frustum::Frustum() = default;
+
+	Frustum::Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near, float far,
+	                 float aspect)
+	{
+		initialize(location, forward, up, fov, near, far, aspect);
+	}
+
 	Frustum::Frustum(const CameraView& camera)
 	{
 		*this = camera;
@@ -31,18 +40,25 @@ namespace Engine
 
 	Frustum& Frustum::operator=(const CameraView& view)
 	{
-		const float half_v_side = view.far_clip_plane * glm::tan(glm::radians(view.fov) * 0.5f);
-		const float half_h_side = half_v_side * view.aspect_ratio;
+		return initialize(view.location, view.forward_vector, view.up_vector, Math::radians(view.fov), view.near_clip_plane,
+		                  view.far_clip_plane, view.aspect_ratio);
+	}
 
-		const Vector3f front_mult_far = view.far_clip_plane * view.forward_vector;
+	Frustum& Frustum::initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
+	                             float far, float aspect)
+	{
+		const float half_v_side = far * Math::tan(fov * 0.5f);
+		const float half_h_side = half_v_side * aspect;
 
-		near = Plane(view.forward_vector, view.location + view.near_clip_plane * view.forward_vector);
-		far  = Plane(-view.forward_vector, view.location + front_mult_far);
+		const Vector3f front_mult_far = far * forward;
+		const Vector3f right          = Math::cross(forward, up);
 
-		right  = Plane(glm::cross(view.up_vector, front_mult_far + view.right_vector * half_h_side), view.location);
-		left   = Plane(glm::cross(front_mult_far - view.right_vector * half_h_side, view.up_vector), view.location);
-		top    = Plane(glm::cross(view.right_vector, front_mult_far - view.up_vector * half_v_side), view.location);
-		bottom = Plane(glm::cross(front_mult_far + view.up_vector * half_v_side, view.right_vector), view.location);
+		this->near   = Plane(forward, location + near * forward);
+		this->far    = Plane(-forward, location + front_mult_far);
+		this->right  = Plane(Math::cross(up, front_mult_far + right * half_h_side), location);
+		this->left   = Plane(Math::cross(front_mult_far - right * half_h_side, up), location);
+		this->top    = Plane(Math::cross(right, front_mult_far - up * half_v_side), location);
+		this->bottom = Plane(Math::cross(front_mult_far + up * half_v_side, right), location);
 
 		return *this;
 	}

@@ -5,16 +5,17 @@ import "trinex/scene_view.slang";
 import "trinex/quad.slang";
 import "trinex/cluster/cluster.slang";
 
-uniform Sampler2D base_color_texture;
-uniform Sampler2D normal_texture;
-uniform Sampler2D msra_texture;
-uniform Sampler2D depth_texture;
+uniform Texture2D base_color_texture;
+uniform Texture2D normal_texture;
+uniform Texture2D msra_texture;
+uniform Texture2D depth_texture;
+
+uniform SamplerState screen_sampler;
+uniform SamplerComparisonState shadow_sampler;
 
 uniform StructuredBuffer<Cluster> clusters;
 uniform StructuredBuffer<Lighting::LightParameters> lights;
-
-[parameter_type(meta::type::UniformBuffer)]
-uniform Lighting::LightRanges ranges;
+uniform ByteAddressBuffer shadows;
 
 [shader("vertex")]
 float4 vertex_main(in uint index: SV_VertexID) : SV_Position
@@ -46,34 +47,46 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	float2 uv = scene_view.screen_uv(position.xy);
 
 	Lighting::PrimitiveData primitive;
-	float depth          = depth_texture.Sample(uv).r;
+	float depth          = depth_texture.Sample(screen_sampler, uv).r;
 
-	primitive.base_color = base_color_texture.Sample(uv);
+	primitive.base_color = base_color_texture.SampleLevel(screen_sampler, uv, 0.f);
 	primitive.position   = scene_view.reconstruct_position(position.xy, depth);
-	primitive.normal     = normal_texture.Sample(uv).xyz;
-	primitive.msra       = msra_texture.Sample(uv);
+	primitive.normal     = normal_texture.SampleLevel(screen_sampler, uv, 0.f).xyz;
+	primitive.msra       = msra_texture.SampleLevel(screen_sampler, uv, 0.f);
 
 	float3 color = float3(0.f);
 	
-	// Render directional lights
-	for (uint i = ranges.directional.x; i < ranges.directional.y; ++i)
-	{
-		color += Lighting::calculate_light<Lighting::DirectionalLight>(lights[i], primitive);
-	}
-
 	uint cluster_index = calculate_cluster_index(primitive.position, position.xy);
 	Cluster cluster    = clusters[cluster_index];
 
-	for (uint i = 0; i < cluster.point_lights; ++i)
+	uint i = 0;
+
+	for (;i < cluster.point_lights.x; ++i)
 	{
 		uint index = cluster.light_indices[i];
 		color += Lighting::calculate_light<Lighting::PointLight>(lights[index], primitive);
 	}
 
-	for (uint i = 0; i < cluster.spot_lights; ++i)
+	for (; i < cluster.point_lights.y; ++i)
 	{
-		uint index = cluster.light_indices[cluster.point_lights + i];
+		uint index                      = cluster.light_indices[i];
+		Lighting::LightParameters light = lights[index];
+		float shadow                    = Lighting::PointLight::shadow(primitive.position, light, shadows, shadow_sampler);
+		color += Lighting::calculate_light<Lighting::PointLight>(light, primitive) * shadow;
+	}
+
+	for (; i < cluster.spot_lights.x; ++i)
+	{
+		uint index = cluster.light_indices[i];
 		color += Lighting::calculate_light<Lighting::SpotLight>(lights[index], primitive);
+	}
+
+	for (; i < cluster.spot_lights.y; ++i)
+	{
+		uint index                      = cluster.light_indices[i];
+		Lighting::LightParameters light = lights[index];
+		float shadow                    = Lighting::SpotLight::shadow(primitive.position, light, shadows, shadow_sampler);
+		color += Lighting::calculate_light<Lighting::SpotLight>(light, primitive) * shadow;
 	}
 
 	return float4(color, 1.f);

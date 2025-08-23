@@ -106,7 +106,6 @@ namespace Engine
 	{
 		auto& global_transform = world_transform();
 		out.location           = global_transform.location();
-		out.rotation           = global_transform.rotation();
 		out.up_vector          = global_transform.up_vector();
 		out.right_vector       = global_transform.right_vector();
 		out.forward_vector     = global_transform.forward_vector();

@@ -21,6 +21,20 @@ namespace Engine
 
 	static constexpr uint64_t s_resource_live_threshold = 60 * 3;
 
+	static inline uint32_t next_power_of_two(uint32_t x)
+	{
+		if (x <= 16)
+			return 16;
+
+		--x;
+		x |= x >> 1;
+		x |= x >> 2;
+		x |= x >> 4;
+		x |= x >> 8;
+		x |= x >> 16;
+		return x + 1;
+	}
+
 	static inline Identifier static_calculate_surface_id(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
 		union SurfaceID
@@ -176,8 +190,7 @@ namespace Engine
 
 	RHIBuffer* RHIBufferPool::request_buffer(uint32_t size, RHIBufferCreateFlags flags)
 	{
-		if (size == 0)
-			return nullptr;
+		size = next_power_of_two(size);
 
 		flags |= RHIBufferCreateFlags::Dynamic;
 		const Identifier buffer_id = static_calculate_buffer_id(size, flags);
@@ -235,13 +248,18 @@ namespace Engine
 		return *this;
 	}
 
-	RHISurfacePool* RHISurfacePool::global_instance()
+	uint64_t RHITexturePool::Hasher::operator()(const Key& key) const
 	{
-		static RHISurfacePool pool;
+		return memory_hash(&key, sizeof(key));
+	}
+
+	RHITexturePool* RHITexturePool::global_instance()
+	{
+		static RHITexturePool pool;
 		return &pool;
 	}
 
-	RHISurfacePool& RHISurfacePool::flush_transient()
+	RHITexturePool& RHITexturePool::flush_transient()
 	{
 		for (RHITexture* texture : m_transient_textures)
 		{
@@ -251,7 +269,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHISurfacePool& RHISurfacePool::update()
+	RHITexturePool& RHITexturePool::update()
 	{
 		flush_transient();
 
@@ -278,9 +296,15 @@ namespace Engine
 		return *this;
 	}
 
-	RHITexture* RHISurfacePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	RHITexture* RHITexturePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
-		if (size.x == 0 || size.y == 0)
+		return request_surface(RHITextureType::Texture2D, format, {size, 1}, flags);
+	}
+
+	RHITexture* RHITexturePool::request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+	                                            RHITextureCreateFlags flags)
+	{
+		if (size.x == 0 || size.y == 0 || size.z == 0)
 			return nullptr;
 
 		flags |= RHITextureCreateFlags::ShaderResource;
@@ -294,8 +318,16 @@ namespace Engine
 			flags |= RHITextureCreateFlags::DepthStencilTarget;
 		}
 
-		const Identifier surface_id = static_calculate_surface_id(format, size, flags);
-		auto& pool                  = m_pools[surface_id];
+		Key key;
+
+		key.type   = type;
+		key.format = format;
+		key.flags  = flags;
+		key.width  = size.x;
+		key.height = size.y;
+		key.depth  = size.z;
+
+		auto& pool = m_pools[key];
 
 		if (!pool.empty())
 		{
@@ -304,12 +336,12 @@ namespace Engine
 			return surface;
 		}
 
-		RHITexture* surface   = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(format), {size, 1}, 1, flags);
-		m_surface_id[surface] = surface_id;
+		RHITexture* surface   = rhi->create_texture(type, RHIColorFormat(format), size, 1, flags);
+		m_surface_id[surface] = key;
 		return surface;
 	}
 
-	RHITexture* RHISurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	RHITexture* RHITexturePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
 	{
 		if (auto surface = request_surface(format, size, flags))
 		{
@@ -319,7 +351,18 @@ namespace Engine
 		return nullptr;
 	}
 
-	RHISurfacePool& RHISurfacePool::release_all()
+	RHITexture* RHITexturePool::request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+	                                                      RHITextureCreateFlags flags)
+	{
+		if (auto surface = request_surface(type, format, size, flags))
+		{
+			m_transient_textures.push_back(surface);
+			return surface;
+		}
+		return nullptr;
+	}
+
+	RHITexturePool& RHITexturePool::release_all()
 	{
 		flush_transient();
 
@@ -335,7 +378,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHISurfacePool& RHISurfacePool::return_surface(RHITexture* surface)
+	RHITexturePool& RHITexturePool::return_surface(RHITexture* surface)
 	{
 		auto it = m_surface_id.find(surface);
 
@@ -559,7 +602,7 @@ namespace Engine
 			RenderSurfacePool::global_instance()->update();
 
 			render_thread()->call([]() {
-				RHISurfacePool::global_instance()->update();
+				RHITexturePool::global_instance()->update();
 				RHIBufferPool::global_instance()->update();
 				RHIFencePool::global_instance()->update();
 				RHITimestampPool::global_instance()->update();
@@ -574,7 +617,7 @@ namespace Engine
 	{
 		render_thread()->call([]() {
 			RHIBufferPool::global_instance()->release_all();
-			RHISurfacePool::global_instance()->release_all();
+			RHITexturePool::global_instance()->release_all();
 			RHIFencePool::global_instance()->release_all();
 			RHITimestampPool::global_instance()->release_all();
 			RHIPipelineStatisticsPool::global_instance()->release_all();

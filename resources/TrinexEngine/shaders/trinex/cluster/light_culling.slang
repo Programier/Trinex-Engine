@@ -77,24 +77,44 @@ void compute_main(uint3 thread : SV_DispatchThreadID)
 {
 	Cluster cluster = clusters[thread.x];
 
-	cluster.point_lights = 0;
-	cluster.spot_lights  = 0;
+	cluster.point_lights = { 0, 0 };
+	cluster.spot_lights  = { 0, 0 };
 
 	for (uint i = ranges.point.x; i < ranges.point.y; ++i)
 	{
 		if (point_light_intersection(i, cluster.min.xyz, cluster.max.xyz))
 		{
-			cluster.light_indices[cluster.point_lights] = i;
-			++cluster.point_lights;
+			cluster.light_indices[cluster.point_lights.x++] = i;
 		}
 	}
+
+	cluster.point_lights.y = cluster.point_lights.x;
+
+	for (uint i = ranges.point.z; i < ranges.point.w; ++i)
+	{
+		if (point_light_intersection(i, cluster.min.xyz, cluster.max.xyz))
+		{
+			cluster.light_indices[cluster.point_lights.y++] = i;
+		}
+	}
+
+	cluster.spot_lights.x = cluster.point_lights.y;
 
 	for (uint i = ranges.spot.x; i < ranges.spot.y; ++i)
 	{
 		if (spot_light_intersection(i, cluster.min.xyz, cluster.max.xyz))
 		{
-			cluster.light_indices[cluster.point_lights + cluster.spot_lights] = i;
-			++cluster.spot_lights;
+			cluster.light_indices[cluster.spot_lights.x++] = i;
+		}
+	}
+
+	cluster.spot_lights.y = cluster.spot_lights.x;
+
+	for (uint i = ranges.spot.z; i < ranges.spot.w; ++i)
+	{
+		if (spot_light_intersection(i, cluster.min.xyz, cluster.max.xyz))
+		{
+			cluster.light_indices[cluster.spot_lights.y++] = i;
 		}
 	}
 
