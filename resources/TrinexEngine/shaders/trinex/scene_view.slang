@@ -18,32 +18,17 @@ struct SceneView
 	};
 
 	struct Camera {
-		enum Projection : int
-		{
-			Perspective  = 0,
-			Orthographic = 1,
-		};
+		float4x4 projection;
+		float4x4 view;
+		float4x4 projview;
+		float4x4 inv_projection;
+		float4x4 inv_view;
+		float4x4 inv_projview;
 
 		float3 location;
-		float3 forward;
-		float3 right;
-		float3 up;
-
-		float fov;
-		float ortho_width;
-		float ortho_height;
 		float near;
 		float far;
-		float aspect_ratio;
-		Projection projection_mode;
 	};
-
-	float4x4 projection;
-	float4x4 view;
-	float4x4 projview;
-	float4x4 inv_projection;
-	float4x4 inv_view;
-	float4x4 inv_projview;
 
 	Viewport viewport;
 	RenderTarget render_target;
@@ -61,14 +46,14 @@ struct SceneView
 	inline float3 reconstruct_position(float2 coord, float depth)
 	{
 		float4 clip_space_pos = float4(screen_ndc(coord), depth, 1.0);
-		float4 view_space_pos = scene_view.inv_projview * clip_space_pos;
+		float4 view_space_pos = scene_view.camera.inv_projview * clip_space_pos;
 		return view_space_pos.xyz /= view_space_pos.w;
 	}
 
 	inline float3 reconstruct_position_from_ndc(float2 ndc, float depth)
 	{
 		float4 clip_space_pos = float4(ndc, depth, 1.0);
-		float4 view_space_pos = scene_view.inv_projview * clip_space_pos;
+		float4 view_space_pos = scene_view.camera.inv_projview * clip_space_pos;
 		return view_space_pos.xyz /= view_space_pos.w;
 	}
 };

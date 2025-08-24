@@ -8,7 +8,7 @@ uniform RWStructuredBuffer<Cluster> clusters;
 float3 screen_to_view(float2 coord)
 {
 	float4 ndc = float4(coord * scene_view.viewport.inv_size * 2.0 - 1.0, 0.0, 1.0);
-	float4 view_coord = scene_view.inv_projection * ndc;
+	float4 view_coord = scene_view.camera.inv_projection * ndc;
 	return view_coord.xyz / view_coord.w;
 }
 

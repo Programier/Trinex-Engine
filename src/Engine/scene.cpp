@@ -67,21 +67,41 @@ namespace Engine
 
 	Scene& Scene::add_light(LightComponent* light)
 	{
-		render_thread()->create_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree, light, light->bounding_box());
+		if (light->light_type() == LightComponent::Directional)
+		{
+			render_thread()->call([this, light]() { m_directional_lights.insert(light); });
+		}
+		else
+		{
+			Box3f box = light->bounding_box();
+			render_thread()->call([this, box, light]() { m_light_octree.push(box, light); });
+		}
+
 		return *this;
 	}
 
 	Scene& Scene::remove_light(LightComponent* light)
 	{
-		render_thread()->create_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree, light, light->bounding_box());
+		if (light->light_type() == LightComponent::Directional)
+		{
+			render_thread()->call([this, light]() { m_directional_lights.erase(light); });
+		}
+		else
+		{
+			Box3f box = light->bounding_box();
+			render_thread()->call([this, box, light]() { m_light_octree.remove(box, light); });
+		}
 		return *this;
 	}
 
 	Scene& Scene::update_light_transform(LightComponent* light)
 	{
-		remove_light(light);
-		light->update_bounding_box();
-		add_light(light);
+		if (light->light_type() != LightComponent::Directional)
+		{
+			remove_light(light);
+			light->update_bounding_box();
+			add_light(light);
+		}
 		return *this;
 	}
 
@@ -143,8 +163,9 @@ namespace Engine
 	FrameVector<LightComponent*> Scene::collect_visible_lights(const Frustum& frustum)
 	{
 		FrameVector<LightComponent*> objects;
-		objects.reserve(glm::max<size_t>(64, m_light_octree.size() / 10));
+		objects.reserve(glm::max<size_t>(64, m_light_octree.size() / 10 + m_directional_lights.size()));
 		collect_elements_internal(m_light_octree.root_node(), frustum, objects);
+		for (LightComponent* light : m_directional_lights) objects.emplace_back(light);
 		return objects;
 	}
 
@@ -156,4 +177,8 @@ namespace Engine
 		return objects;
 	}
 
+	const Box3f& Scene::bounds() const
+	{
+		return m_primitive_octree.root_node()->box();
+	}
 }// namespace Engine

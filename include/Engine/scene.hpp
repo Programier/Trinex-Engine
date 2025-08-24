@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/set.hpp>
+#include <Core/etl/flat_set.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
 #include <Core/pointer.hpp>
@@ -25,7 +25,9 @@ namespace Engine
 		PrimitiveOctree m_primitive_octree;
 		LightOctree m_light_octree;
 		PostProcessOctree m_post_process_octree;
-		Set<PostProcessComponent*> m_unbound_post_processes;
+
+		FlatSet<PostProcessComponent*> m_unbound_post_processes;
+		FlatSet<LightComponent*> m_directional_lights;
 
 		Pointer<SceneComponent> m_root_component;
 
@@ -49,8 +51,10 @@ namespace Engine
 		SceneComponent* root_component() const;
 
 		// Next methods can be used only from render thread
+		// TODO: Move to render proxy class
 		FrameVector<PrimitiveComponent*> collect_visible_primitives(const Frustum& frustum);
 		FrameVector<LightComponent*> collect_visible_lights(const Frustum& frustum);
 		FrameVector<PostProcessComponent*> collect_post_processes(const Vector3f& location);
+		const Box3f& bounds() const;
 	};
 }// namespace Engine

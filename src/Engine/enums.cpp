@@ -7,4 +7,5 @@ namespace Engine
 	trinex_implement_engine_enum(ShowFlags, Statistics, PointLights, SpotLights, DirectionalLights, PostProcess, StaticMesh,
 	                             PrimitiveBounds);
 	trinex_implement_engine_enum(ViewMode, Lit, Unlit, Wireframe, WorldNormal, Metalic, Roughness, Specular, AO);
+	trinex_implement_engine_enum(CameraProjectionMode, Perspective, Orthographic);
 }// namespace Engine

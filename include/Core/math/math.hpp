@@ -107,4 +107,38 @@ namespace Engine::Math
 	{
 		return glm::eulerAngles(x);
 	}
+
+	FORCE_INLINE constexpr float linearize_depth(float depth, float near, float far)
+	{
+		return (near * far) / (far + depth * (near - far));
+	}
+
+	FORCE_INLINE constexpr float unlinearize_depth(float depth, float near, float far)
+	{
+		return ((near * far) / depth - far) / (near - far);
+	}
+
+	template<typename T, typename... Ts>
+	FORCE_INLINE constexpr T max(T a, T b, Ts... rest)
+	{
+		a = max(a, b);
+		return ((a = max(a, rest)), ...);
+	}
+	template<typename T, typename... Ts>
+	FORCE_INLINE constexpr T min(T a, T b, Ts... rest)
+	{
+		a = min(a, b);
+		return ((a = min(a, rest)), ...);
+	}
+
+	FORCE_INLINE constexpr float cascade_split(uint_t index, uint_t count, float distribution_exponent = 1.2f)
+	{
+		float si = static_cast<float>(index) / static_cast<float>(count);
+		return pow(si, distribution_exponent);
+	}
+
+	FORCE_INLINE constexpr uint_t cascade_index(float split, uint_t count, float distribution_exponent = 1.2f)
+	{
+		return static_cast<uint_t>(pow(split, 1.0f / distribution_exponent) * static_cast<float>(count));
+	}
 }// namespace Engine::Math

@@ -12,14 +12,14 @@ uniform Lighting::LightRanges ranges;
 [ForceInline]
 float3 make_view_space_location(float3 world_space)
 {
-	float4 view_space = scene_view.view * float4(world_space, 1.f);
+	float4 view_space = scene_view.camera.view * float4(world_space, 1.f);
 	return view_space.xyz / view_space.w;
 }
 
 [ForceInline]
 float3 make_view_space_direction(float3 world_space)
 {
-	return normalize(float3x3(scene_view.view) * world_space);
+	return normalize(float3x3(scene_view.camera.view) * world_space);
 }
 
 bool point_light_intersection(uint light_index, float3 min, float3 max)

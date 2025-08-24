@@ -15,7 +15,7 @@ namespace Engine::Settings
 	ENGINE_EXPORT Vector<String> languages     = {"eng"};
 	ENGINE_EXPORT Vector<String> systems;
 	ENGINE_EXPORT Vector<String> plugins;
-	ENGINE_EXPORT bool debug_shaders = true;
+	ENGINE_EXPORT bool debug_shaders = false;
 
 	namespace Rendering
 	{

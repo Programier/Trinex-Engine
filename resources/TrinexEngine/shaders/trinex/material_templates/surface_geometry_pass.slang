@@ -69,7 +69,7 @@ VertexOutput vertex_main(in VertexInput vs_input)
 
 	VertexMaterial material = main<VertexMaterial>(MaterialInput());
 	output.world_position += material.position_offset;
-	output.sv_position = scene_view.projview * float4(output.world_position + material.position_offset, 1.0f);
+	output.sv_position = scene_view.camera.projview * float4(output.world_position + material.position_offset, 1.0f);
 	return output;
 }
 

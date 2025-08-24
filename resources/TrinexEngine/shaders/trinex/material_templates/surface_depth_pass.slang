@@ -54,10 +54,10 @@ float4 vertex_main(in VertexInput vs_input) : SV_Position
 	float3 world_bitangent = cross(world_normal, world_tangent);
 	material_input.m_tbn   = Math::tangent_basis(world_normal, world_tangent, world_bitangent);
 
-	float4 ndc = scene_view.projview * float4(material_input.world_position, 1.0f);
+	float4 ndc = scene_view.camera.projview * float4(material_input.world_position, 1.0f);
 
 	VertexMaterial material = main<VertexMaterial>(material_input);
-	return scene_view.projview * float4(material_input.world_position + material.position_offset, 1.0f);
+	return scene_view.camera.projview * float4(material_input.world_position + material.position_offset, 1.0f);
 }
 
 [shader("fragment")]

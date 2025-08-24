@@ -6,6 +6,8 @@ static float3 grid_plane[6] = {
     float3(-1, -1, 0), float3(1, 1, 0), float3(1, -1, 0)
 };
 
+uniform float fov;
+
 struct VertexOutput
 {
     float4 position : SV_Position;
@@ -60,7 +62,7 @@ struct GridDrawer
         entry2.scale  = scale_step;
     
         float lower_height = 0.f;
-        float upper_height = tan(radians(scene_view.camera.fov)) * scale_step;
+        float upper_height = fov * scale_step;
         float camera_height = abs(scene_view.camera.location.y);
 
         while (upper_height < camera_height)
@@ -101,13 +103,13 @@ struct GridDrawer
 
 float3 unproject_point(float x, float y, float z)
 {
-    float4 unprojected_point =  scene_view.inv_projview * float4(x, y, z, 1.0);
+    float4 unprojected_point =  scene_view.camera.inv_projview * float4(x, y, z, 1.0);
     return unprojected_point.xyz / unprojected_point.w;
 }
 
 float compute_depth(float3 pos) 
 {
-    float4 clip_space_pos = scene_view.projview * float4(pos, 1.0);
+    float4 clip_space_pos = scene_view.camera.projview * float4(pos, 1.0);
     float result = (clip_space_pos.z / clip_space_pos.w);
     return result;
 }

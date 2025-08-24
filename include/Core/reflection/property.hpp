@@ -890,8 +890,8 @@ private:
 
 		Property* property() override
 		{
-			constexpr T O::* null_prop = nullptr;
-			static Property* instance  = Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Property"));
+			constexpr T Property::* null_prop = nullptr;
+			static Property* instance         = Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Property"));
 			return instance;
 		}
 

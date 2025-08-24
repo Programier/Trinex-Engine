@@ -95,9 +95,37 @@ namespace Lighting
 	{
 		static float attenuation(in float3 world_light_vector, in LightParameters params) { return 1.f; }
 		static inline float3 direction(in float3 world_light_vector, in LightParameters params) { return -params.direction; }
+		
 		static float shadow(in PrimitiveParameters primitive, in LightParameters light, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler)
 		{
-			return 1.f;
+			DirectionalLightShadowParameters parameters = shadow_data.Load<DirectionalLightShadowParameters>(light.shadow_address);
+
+			uint cascade_index = parameters.cascade(primitive.depth);
+
+			if(cascade_index == 4)
+				return 1.f;
+
+			uint cascade_offset = sizeof(DirectionalLightShadowParameters) + cascade_index * 72;
+
+			DirectioanlLightShadowCascade cascade = shadow_data.Load<DirectioanlLightShadowCascade>(light.shadow_address + cascade_offset);
+
+			const float3 primitive_projection = calculate_primitive_projection(cascade.projview, primitive.location);
+
+			const float bias = Math::calculate_bias(parameters.depth_bias, parameters.slope_scale, primitive.normal, light.direction);
+			const float primitive_depth = primitive_projection.z - bias;
+
+			float shadow_depth =
+				cascade.sample(sampler, primitive_projection.xy, int2(-1, -1), primitive_depth) +
+			    cascade.sample(sampler, primitive_projection.xy, int2(0, -1), primitive_depth) +
+				cascade.sample(sampler, primitive_projection.xy, int2(1, -1), primitive_depth) +
+			    cascade.sample(sampler, primitive_projection.xy, int2(-1, 0), primitive_depth) +
+				cascade.sample(sampler, primitive_projection.xy, int2(0, 0), primitive_depth) +
+				cascade.sample(sampler, primitive_projection.xy, int2(1, 0), primitive_depth) +
+				cascade.sample(sampler, primitive_projection.xy, int2(-1, 1), primitive_depth) +
+				cascade.sample(sampler, primitive_projection.xy, int2(0, 1), primitive_depth) +
+				cascade.sample(sampler, primitive_projection.xy, int2(1, 1), primitive_depth);
+
+			return shadow_depth / 9.0;
 		}
 	}
 }

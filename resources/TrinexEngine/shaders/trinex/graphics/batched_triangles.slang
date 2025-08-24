@@ -5,7 +5,7 @@ import "trinex/trinex.slang";
 float4 vertex_main(	in float3 position : POSITION0, in float4 color : COLOR0, out float4 out_color : COLOR0) : SV_Position
 {
 	out_color = color;
-	return scene_view.projview * float4(position, 1.0);
+	return scene_view.camera.projview * float4(position, 1.0);
 }
 
 [shader("fragment")]

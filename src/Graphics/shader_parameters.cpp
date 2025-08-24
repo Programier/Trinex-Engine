@@ -1,5 +1,5 @@
 #include <Core/base_engine.hpp>
-#include <Engine/ActorComponents/camera_component.hpp>
+#include <Core/math/math.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene_view.hpp>
 #include <Graphics/shader_parameters.hpp>
@@ -12,12 +12,15 @@ namespace Engine
 	{
 		if (scene_view)
 		{
-			projection     = scene_view->projection_matrix();
-			view           = scene_view->view_matrix();
-			projview       = scene_view->projview_matrix();
-			inv_projection = glm::inverse(projection);
-			inv_view       = glm::inverse(view);
-			inv_projview   = scene_view->inv_projview_matrix();
+			camera.projection     = scene_view->projection_matrix();
+			camera.view           = scene_view->view_matrix();
+			camera.projview       = scene_view->projview_matrix();
+			camera.inv_projection = Math::inverse(camera.projection);
+			camera.inv_view       = Math::inverse(camera.view);
+			camera.inv_projview   = scene_view->inv_projview_matrix();
+			camera.location       = scene_view->camera_view().location;
+			camera.near           = scene_view->camera_view().near;
+			camera.far            = scene_view->camera_view().far;
 
 			const auto& vp    = scene_view->viewport();
 			viewport.pos      = Vector2f(vp.pos);
@@ -29,20 +32,6 @@ namespace Engine
 
 			render_target.size     = Vector2f(target_size);
 			render_target.inv_size = 1.f / Vector2f(target_size);
-
-			auto& camera_view = scene_view->camera_view();
-			camera.location   = camera_view.location;
-			camera.forward    = camera_view.forward;
-			camera.right      = camera_view.right;
-			camera.up         = camera_view.up;
-
-			camera.fov             = camera_view.fov;
-			camera.ortho_width     = camera_view.ortho_width;
-			camera.ortho_height    = camera_view.ortho_height;
-			camera.near            = camera_view.near;
-			camera.far             = camera_view.far;
-			camera.aspect_ratio    = camera_view.aspect_ratio;
-			camera.projection_mode = static_cast<Camera::Projection>(camera_view.projection_mode);
 		}
 
 		time       = engine_instance->time_seconds();

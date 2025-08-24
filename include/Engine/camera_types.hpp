@@ -1,30 +1,39 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/math/math.hpp>
 #include <Core/math/quaternion.hpp>
 #include <Core/transform.hpp>
+#include <Engine/enums.hpp>
 
 namespace Engine
 {
-	enum class CameraProjectionMode
-	{
-		Perspective  = 0,
-		Orthographic = 1,
-	};
-
 	struct ENGINE_EXPORT CameraView {
+		struct Ortho {
+			float left;
+			float right;
+			float top;
+			float bottom;
+		};
+
+		struct Perspective {
+			float fov;
+			float aspect_ratio;
+		};
+
+		CameraProjectionMode projection_mode;
+
 		Vector3f location;
 		Vector3f forward;
 		Vector3f up;
 		Vector3f right;
 
-		CameraProjectionMode projection_mode;
-		float fov;
-		float ortho_width;
-		float ortho_height;
 		float near;
 		float far;
-		float aspect_ratio;
+
+		union
+		{
+			Ortho ortho;
+			Perspective perspective;
+		};
 
 		Matrix4f projection_matrix() const;
 		Matrix4f view_matrix() const;
@@ -34,9 +43,6 @@ namespace Engine
 		{
 			return reconstruct_position_ndc(uv * 2.f - 1.f, depth);
 		}
-
-		static ENGINE_EXPORT Matrix4f static_view_matrix(const Vector3f& position, const Vector3f& direction,
-		                                                 const Vector3f& up_vector);
 
 		inline uint_t compute_lod(const Vector3f& object_location, uint_t lod_count) const
 		{

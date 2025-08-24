@@ -63,7 +63,7 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	float3 ray_end_position = primitive_position.xyz + reflected_direction * max_ray_distance;
 
 	// Texture Space ray calculation
-	float4 ray_end = scene_view.projview * float4(ray_end_position, 1.0f);
+	float4 ray_end = scene_view.camera.projview * float4(ray_end_position, 1.0f);
 	ray_end /= ray_end.w;
 	ray_end.xy = (ray_end.xy + float2(1.0f, 1.0f)) * 0.5f;
 

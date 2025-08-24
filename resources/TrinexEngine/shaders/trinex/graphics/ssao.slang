@@ -34,19 +34,19 @@ float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 
 float3 to_view_space(float3 vector)
 {
-	float4 result = scene_view.view * float4(vector, 1.f);
+	float4 result = scene_view.camera.view * float4(vector, 1.f);
 	return result.xyz / result.w;
 }
 
 float3 rotate_normal(float3 normal)
 {
-	return normalize((float3x3)scene_view.view * normal);
+	return normalize((float3x3) scene_view.camera.view * normal);
 }
 
 [ForceInline]
 float2 make_ndc(float3 position)
 {
-	float4 result = scene_view.projection * float4(position, 1.0);
+	float4 result = scene_view.camera.projection * float4(position, 1.0);
 	return result.xy / result.w;
 }
 

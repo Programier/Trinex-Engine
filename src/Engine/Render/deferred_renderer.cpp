@@ -22,6 +22,8 @@
 
 namespace Engine
 {
+	static constexpr uint_t s_cascades_per_directional_light = 4;
+
 	static void find_light_range(FrameVector<LightComponent*>& lights, uint_t light_type, LightRenderRanges::LightRange& range,
 	                             uint32_t search_offset = 0)
 	{
@@ -182,7 +184,7 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(PointLightComponent* light, byte* shadow_data)
 	{
-		static const uint_t shadow_map_size = 512;
+		static const uint_t shadow_map_size = 1024;
 		auto proxy                          = light->proxy();
 
 		auto& transform = proxy->world_transform();
@@ -193,11 +195,11 @@ namespace Engine
 		view.forward  = transform.forward_vector();
 		view.right    = transform.right_vector();
 
-		view.projection_mode = CameraProjectionMode::Perspective;
-		view.aspect_ratio    = 1.f;
-		view.near            = 0.1f;
-		view.far             = proxy->attenuation_radius();
-		view.fov             = 90.f;
+		view.projection_mode          = CameraProjectionMode::Perspective;
+		view.perspective.aspect_ratio = 1.f;
+		view.perspective.fov          = 90.f;
+		view.near                     = 0.1f;
+		view.far                      = proxy->attenuation_radius();
 
 		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
 		new (renderer) DepthCubeRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
@@ -212,7 +214,7 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, byte* shadow_data)
 	{
-		static const uint_t shadow_map_size = 512;
+		static const uint_t shadow_map_size = 1024;
 		auto proxy                          = light->proxy();
 
 		auto& transform = proxy->world_transform();
@@ -223,11 +225,11 @@ namespace Engine
 		view.forward  = transform.forward_vector();
 		view.right    = transform.right_vector();
 
-		view.projection_mode = CameraProjectionMode::Perspective;
-		view.aspect_ratio    = 1.f;
-		view.near            = 0.1f;
-		view.far             = proxy->attenuation_radius();
-		view.fov             = glm::degrees(proxy->outer_cone_angle()) * 2.f;
+		view.projection_mode          = CameraProjectionMode::Perspective;
+		view.perspective.aspect_ratio = 1.f;
+		view.perspective.fov          = glm::degrees(proxy->outer_cone_angle()) * 2.f;
+		view.near                     = 0.1f;
+		view.far                      = proxy->attenuation_radius();
 
 		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
 		new (renderer) DepthRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
@@ -243,6 +245,79 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(DirectionalLightComponent* light, byte* shadow_data)
 	{
+		static const uint_t shadow_map_size = 1024;
+		const SceneView& view               = scene_view();
+
+		DirectionalLightShadowParameters* data  = reinterpret_cast<DirectionalLightShadowParameters*>(shadow_data);
+		DirectionalLightShadowCascade* cascades = reinterpret_cast<DirectionalLightShadowCascade*>(data + 1);
+
+		const float camera_near = view.camera_view().near;
+		const float camera_far  = view.camera_view().far;
+
+		auto proxy = light->proxy();
+
+		data->depth_bias  = proxy->depth_bias() / static_cast<float>(shadow_map_size);
+		data->slope_scale = proxy->slope_scale() / static_cast<float>(shadow_map_size);
+		data->splits      = {0.f, 0.f, 0.f, 0.f};
+
+		const float shadow_distance = proxy->shadows_distance();
+
+		for (uint_t cascade = 0; cascade < s_cascades_per_directional_light; ++cascade)
+		{
+			Box3f box;
+			{
+				float near = Math::cascade_split(cascade, s_cascades_per_directional_light);
+				float far  = Math::cascade_split(cascade + 1, s_cascades_per_directional_light);
+
+				near = Math::unlinearize_depth(camera_near + shadow_distance * near, camera_near, camera_far);
+				far  = Math::unlinearize_depth(camera_near + shadow_distance * far, camera_near, camera_far);
+
+				data->splits[cascade] = far;
+
+				const Vector3f screen_corners[] = {
+				        {-1.f, -1.f, near}, {-1.f, 1.f, near}, {1.f, -1.f, near}, {1.f, 1.f, near},
+				        {-1.f, -1.f, far},  {-1.f, 1.f, far},  {1.f, -1.f, far},  {1.f, 1.f, far},
+				};
+
+				Vector3f corner = view.screen_to_world(screen_corners[0]);
+				box.min         = corner;
+				box.max         = corner;
+
+				for (uint_t i = 1; i < 8; i++)
+				{
+					corner  = view.screen_to_world(screen_corners[i]);
+					box.min = Math::min(box.min, corner);
+					box.max = Math::max(box.max, corner);
+				}
+			}
+
+			auto& transform = proxy->world_transform();
+
+			CameraView camera;
+			camera.projection_mode = CameraProjectionMode::Orthographic;
+			camera.up              = transform.up_vector();
+			camera.forward         = transform.forward_vector();
+			camera.right           = transform.right_vector();
+			camera.location        = box.center();
+
+			box = box.transform(camera.view_matrix());
+
+			camera.ortho.left   = box.min.x;
+			camera.ortho.right  = box.max.x;
+			camera.ortho.bottom = box.min.y;
+			camera.ortho.top    = box.max.y;
+
+			camera.near = -100.f;
+			camera.far  = 100.f;
+
+			DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
+			new (renderer) DepthRenderer(scene(), SceneView(camera, {shadow_map_size, shadow_map_size}));
+			add_child_renderer(renderer);
+
+			cascades[cascade].projview   = camera.projection_matrix() * camera.view_matrix();
+			cascades[cascade].descriptor = renderer->scene_depth_target()->as_srv()->descriptor();
+		}
+
 		return *this;
 	}
 
@@ -332,7 +407,6 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::deferred_lighting_pass()
 	{
-
 		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
 
 		{
@@ -514,6 +588,16 @@ namespace Engine
 						parameters[current].shadow_address = address;
 						address += sizeof(SpotLightShadowParameters);
 					}
+
+					current = m_light_ranges->directional.shadowed.start;
+					end     = m_light_ranges->directional.shadowed.end;
+
+					for (; current < end; ++current)
+					{
+						parameters[current].shadow_address = address;
+						address += sizeof(DirectionalLightShadowParameters) +
+						           s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
+					}
 				}
 
 				rhi->barrier(m_lights_buffer, RHIAccess::TransferDst);
@@ -533,9 +617,11 @@ namespace Engine
 			uint32_t spot_lights        = m_light_ranges->spot.shadowed.end - m_light_ranges->spot.shadowed.start;
 			uint32_t directional_lights = m_light_ranges->directional.shadowed.end - m_light_ranges->directional.shadowed.start;
 
-			size_t buffer_size = point_lights * sizeof(PointLightShadowParameters) +           //
-			                     spot_lights * sizeof(SpotLightShadowParameters) +             //
-			                     directional_lights * sizeof(DirectionalLightShadowParameters);//
+			size_t buffer_size =
+			        point_lights * sizeof(PointLightShadowParameters) +//
+			        spot_lights * sizeof(SpotLightShadowParameters) +  //
+			        directional_lights * (sizeof(DirectionalLightShadowParameters) +
+			                              s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
 
 			byte* buffer       = StackByteAllocator::allocate(buffer_size);
 			byte* current_data = buffer;
@@ -567,7 +653,9 @@ namespace Engine
 			{
 				auto light = static_cast<DirectionalLightComponent*>(m_visible_lights[current]);
 				register_shadow_light(light, current_data);
-				current_data += sizeof(DirectionalLightShadowParameters);
+
+				current_data += sizeof(DirectionalLightShadowParameters) +
+				                s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
 			}
 
 			auto pool       = RHIBufferPool::global_instance();

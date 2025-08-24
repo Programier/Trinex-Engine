@@ -37,6 +37,7 @@ namespace Lighting
 		float3 location;
 		float3 normal;
 		float4 msra;
+		float depth;
 	};
 
 	struct PointLightShadowParameters
@@ -62,20 +63,33 @@ namespace Lighting
 		[ForceInline] 
 		float sample(SamplerComparisonState sampler, float2 uv, int2 offset, float depth)
 		{
-			return shadow_map.SampleCmpLevelZero(sampler, uv, depth);
+			return shadow_map.SampleCmpLevelZero(sampler, uv, depth, offset);
 		}
 	};
 
+	struct DirectioanlLightShadowCascade
+	{
+		Texture2D.Handle shadow_map;
+		float4x4 projview;
+
+		[ForceInline]
+		float sample(SamplerComparisonState sampler, float2 uv, int2 offset, float depth)
+		{
+			return shadow_map.SampleCmpLevelZero(sampler, uv, depth, offset);
+		}
+	}
+
 	struct DirectionalLightShadowParameters
 	{
-		Texture2DArray.Handle shadow_map;
+		float4 splits;
 		float depth_bias;
 		float slope_scale;
 
 		[ForceInline]
-		float sample(SamplerComparisonState sampler, float3 uv, int2 offset, float depth)
+		uint cascade(float depth)
 		{
-			return shadow_map.SampleCmpLevelZero(sampler, uv, depth, offset);
+			float4 count = float4(depth.xxxx >= splits);
+			return uint(count.x + count.y + count.z + count.w);
 		}
 	}
 	

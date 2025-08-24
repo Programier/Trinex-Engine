@@ -35,6 +35,7 @@ namespace Engine::EditorPipelines
 
 	private:
 		const RHIShaderParameterInfo* m_scene_view;
+		const RHIShaderParameterInfo* m_fov;
 
 	public:
 		void render(Renderer* renderer);

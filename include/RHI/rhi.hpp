@@ -35,7 +35,6 @@ namespace Engine
 			String name;
 			String renderer;
 			Refl::Struct* struct_instance = nullptr;
-			Vector2f ndc_depth_range      = {0.f, 1.f};
 		} info;
 
 		virtual RHI& draw(size_t vertex_count, size_t vertices_offset)                                 = 0;

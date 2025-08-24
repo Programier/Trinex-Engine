@@ -61,7 +61,9 @@ namespace Engine::EditorPipelines
 
 	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang")
 	{
-		m_scene_view            = find_parameter("scene_view");
+		m_scene_view = find_parameter("scene_view");
+		m_fov        = find_parameter("fov");
+
 		depth_test.enable       = true;
 		depth_test.write_enable = false;
 		depth_test.func         = RHICompareFunc::Lequal;
@@ -70,8 +72,11 @@ namespace Engine::EditorPipelines
 
 	void Grid::render(Renderer* renderer)
 	{
+		float fov = Math::tan(Math::radians(renderer->scene_view().camera_view().perspective.fov));
+
 		rhi_bind();
 		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->update_scalar(&fov, m_fov);
 		rhi->draw(6, 0);
 	}
 }// namespace Engine::EditorPipelines

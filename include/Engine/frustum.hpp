@@ -36,10 +36,14 @@ namespace Engine
 		Frustum();
 		Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near, float far,
 		        float aspect);
+		Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right, float top,
+		        float bottom, float near, float far);
 		Frustum(const CameraView& camera);
 		Frustum& operator=(const CameraView& view);
 		Frustum& initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
 		                    float far, float aspect_ratio);
+		Frustum& initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right,
+		                    float top, float bottom, float near, float far);
 		bool contains(const Box3f& box) const;
 		bool contains(const Vector3f& point);
 	};

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <Engine/ActorComponents/scene_component.hpp>
-#include <Engine/camera_types.hpp>
+#include <Engine/enums.hpp>
 
 namespace Engine
 {
+	struct CameraView;
+	
 	class ENGINE_EXPORT CameraComponent : public SceneComponent
 	{
 		trinex_declare_class(CameraComponent, SceneComponent);

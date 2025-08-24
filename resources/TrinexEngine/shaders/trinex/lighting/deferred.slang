@@ -29,7 +29,7 @@ float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 [ForceInline]
 uint calculate_cluster_index(in float3 location, in float2 coord)
 {
-	float4 view_space = scene_view.view * float4(location, 1.0);
+	float4 view_space = scene_view.camera.view * float4(location, 1.0);
 	float depth = view_space.z / view_space.w;
 
 	float near = scene_view.camera.near;
@@ -51,10 +51,9 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	float2 uv = scene_view.screen_uv(position.xy);
 
 	Lighting::PrimitiveParameters primitive;
-	float depth          = depth_texture.Sample(screen_sampler, uv).r;
-
+	primitive.depth      = depth_texture.Sample(screen_sampler, uv).r;
 	primitive.base_color = base_color_texture.SampleLevel(screen_sampler, uv, 0.f);
-	primitive.location   = scene_view.reconstruct_position(position.xy, depth);
+	primitive.location   = scene_view.reconstruct_position(position.xy, primitive.depth);
 	primitive.normal     = normal_texture.SampleLevel(screen_sampler, uv, 0.f).xyz;
 	primitive.msra       = msra_texture.SampleLevel(screen_sampler, uv, 0.f);
 
@@ -67,7 +66,9 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 
 	for (uint i = ranges.directional.z; i < ranges.directional.w; ++i)
 	{
-		color += Lighting::calculate_light<Lighting::DirectionalLight>(lights[i], primitive);
+		Lighting::LightParameters light = lights[i];
+		float shadow = Lighting::DirectionalLight::shadow(primitive, light, shadows, shadow_sampler);
+		color += Lighting::calculate_light<Lighting::DirectionalLight>(light, primitive) * shadow;
 	}
 
 	uint cluster_index = calculate_cluster_index(primitive.location, position.xy);

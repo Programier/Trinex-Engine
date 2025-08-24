@@ -92,9 +92,16 @@ namespace Engine
 		return glm::normalize(inverse_view * Vector4f(glm::normalize(ray_end_view_space - ray_start_view_space), 0.f));
 	}
 
-	Vector4f SceneView::world_to_screen(const Vector3f& world_point) const
+	Vector3f SceneView::world_to_screen(const Vector3f& world) const
 	{
-		return m_projview * Vector4f(world_point, 1.f);
+		Vector4f result = m_projview * Vector4f(world, 1.f);
+		return Vector3f(result.x / result.w, result.y / result.w, result.z / result.w);
+	}
+
+	Vector3f SceneView::screen_to_world(const Vector3f& screen) const
+	{
+		Vector4f result = m_inv_projview * Vector4f(screen, 1.f);
+		return Vector3f(result.x / result.w, result.y / result.w, result.z / result.w);
 	}
 
 }// namespace Engine

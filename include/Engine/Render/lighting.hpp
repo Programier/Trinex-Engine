@@ -47,9 +47,13 @@ namespace Engine
 		float slope_scale;
 	};
 
-	struct DirectionalLightShadowParameters {
+	struct DirectionalLightShadowCascade {
 		uint64_t descriptor;
 		Matrix4f projview;
+	};
+
+	struct DirectionalLightShadowParameters {
+		Vector4f splits;
 		float depth_bias;
 		float slope_scale;
 	};

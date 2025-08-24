@@ -39,4 +39,15 @@ namespace Engine
 		trinex_declare_enum(ViewMode);
 	};
 
+	struct CameraProjectionMode {
+		enum Enum : EnumerateType
+		{
+			Perspective  = 0,
+			Orthographic = 1,
+		};
+
+		trinex_enum_struct(CameraProjectionMode);
+		trinex_declare_enum(CameraProjectionMode);
+	};
+
 }// namespace Engine

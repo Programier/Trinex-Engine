@@ -33,6 +33,12 @@ namespace Engine
 		initialize(location, forward, up, fov, near, far, aspect);
 	}
 
+	Frustum::Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right, float top,
+	                 float bottom, float near, float far)
+	{
+		initialize(location, forward, up, left, right, top, bottom, near, far);
+	}
+
 	Frustum::Frustum(const CameraView& camera)
 	{
 		*this = camera;
@@ -40,7 +46,12 @@ namespace Engine
 
 	Frustum& Frustum::operator=(const CameraView& view)
 	{
-		return initialize(view.location, view.forward, view.up, Math::radians(view.fov), view.near, view.far, view.aspect_ratio);
+		if (view.projection_mode == CameraProjectionMode::Perspective)
+			return initialize(view.location, view.forward, view.up, Math::radians(view.perspective.fov), view.near, view.far,
+			                  view.perspective.aspect_ratio);
+
+		return initialize(view.location, view.forward, view.up, view.ortho.left, view.ortho.right, view.ortho.top,
+		                  view.ortho.bottom, view.near, view.far);
 	}
 
 	Frustum& Frustum::initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
@@ -58,6 +69,24 @@ namespace Engine
 		this->left   = Plane(Math::cross(front_mult_far - right * half_h_side, up), location);
 		this->top    = Plane(Math::cross(right, front_mult_far - up * half_v_side), location);
 		this->bottom = Plane(Math::cross(front_mult_far + up * half_v_side, right), location);
+
+		return *this;
+	}
+
+	Frustum& Frustum::initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right,
+	                             float top, float bottom, float near, float far)
+	{
+		const Vector3f right_vector = Math::cross(forward, up);
+
+		const Vector3f near_center = location + near * forward;
+		const Vector3f far_center  = location + far * forward;
+
+		this->near   = Plane(forward, near_center);
+		this->far    = Plane(-forward, far_center);
+		this->right  = Plane(-right_vector, location + right_vector * right);
+		this->left   = Plane(right_vector, location + right_vector * left);
+		this->top    = Plane(-up, location + up * top);
+		this->bottom = Plane(up, location + up * bottom);
 
 		return *this;
 	}
