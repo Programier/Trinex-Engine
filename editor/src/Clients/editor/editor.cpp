@@ -252,22 +252,19 @@ namespace Engine
 			m_scene_view.viewport(RHIViewport(size));
 			m_scene_view.scissor(RHIScissors(size));
 
-			Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), m_scene_view, mode);
+			EditorRenderer renderer(m_world->scene(), m_scene_view, mode);
 
-			update_render_stats(renderer);
-			EditorRenderer::render_grid(renderer);
+			update_render_stats(&renderer);
 
 			size_t selected_count = m_selected_actors_render_thread.size();
+			renderer.render_grid();
+			renderer.render_outlines(m_selected_actors_render_thread.data(), selected_count);
+			renderer.render_primitives(m_selected_actors_render_thread.data(), selected_count);
 
-			if (selected_count != 0)
-				EditorRenderer::render_outlines(renderer, m_selected_actors_render_thread.data(), selected_count);
-
-			EditorRenderer::render_primitives(renderer, m_selected_actors_render_thread.data(), selected_count);
-
-			renderer->render();
+			renderer.render();
 
 			RHITextureRegion region(m_scene_view.view_size());
-			rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, scene->rhi_texture(), region);
+			rhi->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, scene->rhi_texture(), region);
 		});
 
 		return scene;
@@ -801,7 +798,8 @@ namespace Engine
 	{
 		Actor* actor = nullptr;
 
-		render_thread()->call([this, uv, &actor]() { actor = EditorRenderer::raycast(m_scene_view, uv, m_world->scene()); });
+		render_thread()->call(
+		        [this, uv, &actor]() { actor = EditorRenderer::static_raycast(m_scene_view, uv, m_world->scene()); });
 		render_thread()->wait();
 
 		m_world->unselect_actors();

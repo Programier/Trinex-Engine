@@ -524,7 +524,7 @@ namespace Engine
 
 		for (PrimitiveComponent* primitive : primitives)
 		{
-			render_primitive(pass, primitive);
+			primitive->proxy()->render(this, pass);
 		}
 
 		return *this;

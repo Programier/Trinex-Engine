@@ -28,6 +28,8 @@ namespace Engine
 
 		World& destroy_actor(Actor* actor, bool ignore_playing);
 		World& destroy_all_actors();
+		Actor* spawn_actor(Actor* actor, const Vector3f& location = {}, const Vector3f& rotation = {},
+		                   const Vector3f& scale = {1, 1, 1});
 
 	protected:
 		World& create() override;
@@ -51,7 +53,8 @@ namespace Engine
 		T* spawn_actor(const Vector3f& location = {}, const Vector3f& rotation = {}, const Vector3f& scale = {1, 1, 1},
 		               const Name& name = {})
 		{
-			return instance_cast<T>(spawn_actor(T::static_reflection(), location, rotation, scale, name));
+			T* actor = new_instance<T>(name, this);
+			return static_cast<T*>(spawn_actor(actor, location, rotation, scale));
 		}
 
 		World& destroy_actor(Actor* actor);

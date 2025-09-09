@@ -16,7 +16,7 @@ namespace Engine
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", method_of<StaticMeshComponent&, StaticMesh*>(&This::mesh));
 	}
 
-	size_t StaticMeshComponent::Proxy::lods() const
+	size_t StaticMeshComponent::Proxy::lods_count() const
 	{
 		return m_mesh->lods.size();
 	}
@@ -26,7 +26,7 @@ namespace Engine
 		return m_mesh->materials.size();
 	}
 
-	size_t StaticMeshComponent::Proxy::surfaces(size_t lod) const
+	size_t StaticMeshComponent::Proxy::surfaces_count(size_t lod) const
 	{
 		return m_mesh->lods[lod].surfaces.size();
 	}
@@ -34,14 +34,6 @@ namespace Engine
 	const MeshSurface* StaticMeshComponent::Proxy::surface(size_t index, size_t lod) const
 	{
 		return &m_mesh->lods[lod].surfaces[index];
-	}
-
-	MaterialInterface* StaticMeshComponent::Proxy::material(size_t index) const
-	{
-		if (auto material = Super::Proxy::material(index))
-			return material;
-
-		return m_mesh ? m_mesh->materials[index] : nullptr;
 	}
 
 	VertexBufferBase* StaticMeshComponent::Proxy::find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index, size_t lod)
@@ -53,6 +45,14 @@ namespace Engine
 	{
 		auto& buffer = m_mesh->lods[lod].indices;
 		return buffer.size() == 0 ? nullptr : &buffer;
+	}
+
+	MaterialInterface* StaticMeshComponent::Proxy::material(size_t index) const
+	{
+		if (auto material = Super::Proxy::material(index))
+			return material;
+
+		return m_mesh ? m_mesh->materials[index] : nullptr;
 	}
 
 	StaticMeshComponent& StaticMeshComponent::submit_new_mesh()

@@ -13,6 +13,10 @@ namespace Engine
 
 	struct RHIVertexBufferSemantic;
 
+	class RenderPass;
+	class Renderer;
+	class MaterialBindings;
+
 	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
 	{
 		trinex_declare_class(PrimitiveComponent, SceneComponent);
@@ -24,14 +28,7 @@ namespace Engine
 			Box3f m_bounds;
 
 		public:
-			virtual bool has_render_data() const                                                                            = 0;
-			virtual size_t lods() const                                                                                     = 0;
-			virtual size_t materials_count() const                                                                          = 0;
-			virtual size_t surfaces(size_t lod = 0) const                                                                   = 0;
-			virtual const MeshSurface* surface(size_t index, size_t lod = 0) const                                          = 0;
-			virtual MaterialInterface* material(size_t index) const                                                         = 0;
-			virtual VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0, size_t lod = 0) = 0;
-			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                          = 0;
+			virtual Proxy& render(Renderer* renderer, RenderPass* pass, const MaterialBindings* bindings = nullptr);
 
 			inline const Box3f& bounding_box() const { return m_bounds; }
 			friend class PrimitiveComponent;

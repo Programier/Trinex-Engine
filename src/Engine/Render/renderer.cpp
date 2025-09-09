@@ -53,11 +53,6 @@ namespace Engine
 		}
 	}
 
-	Renderer* Renderer::static_create_renderer(Scene* scene, const SceneView& view, ViewMode mode)
-	{
-		return new (FrameAllocator<DeferredRenderer>::allocate(1)) DeferredRenderer(scene, view, mode);
-	}
-
 	void Renderer::static_sort_lights(FrameVector<LightComponent*>& visible_lights)
 	{
 		std::sort(visible_lights.begin(), visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
@@ -99,63 +94,6 @@ namespace Engine
 	{
 		m_view    = view;
 		m_globals = nullptr;
-		return *this;
-	}
-
-	Renderer& Renderer::render_primitive(RenderPass* pass, PrimitiveComponent* primitive, const MaterialBindings* bindings)
-	{
-		auto proxy = primitive->proxy();
-
-		if (!proxy->has_render_data())
-			return *this;
-
-		const uint_t lod      = scene_view().camera_view().compute_lod(proxy->world_transform().location(), proxy->lods());
-		const uint_t surfaces = proxy->surfaces(lod);
-
-		for (uint_t surface_index = 0; surface_index < surfaces; ++surface_index)
-		{
-			const MeshSurface* surface = proxy->surface(surface_index, lod);
-
-			if (surface == nullptr)
-				continue;
-
-			MaterialInterface* material_interface = proxy->material(surface->material_index);
-
-			if (material_interface == nullptr)
-				continue;
-
-			Material* material         = material_interface->material();
-			GraphicsPipeline* pipeline = material->pipeline(pass);
-
-			if (!pipeline)
-				continue;
-
-			RendererContext ctx(this, pass, proxy->world_transform().matrix());
-
-			if (!material_interface->apply(ctx, bindings))
-				continue;
-
-			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
-			{
-				auto& attribute          = pipeline->vertex_attributes[i];
-				VertexBufferBase* buffer = proxy->find_vertex_buffer(attribute.semantic, attribute.semantic_index, lod);
-
-				if (buffer)
-				{
-					buffer->rhi_bind(attribute.stream_index, 0);
-				}
-			}
-
-			if (auto index_buffer = proxy->find_index_buffer(lod))
-			{
-				index_buffer->rhi_bind();
-				rhi->draw_indexed(surface->vertices_count, surface->first_index, surface->base_vertex_index);
-			}
-			else
-			{
-				rhi->draw(surface->vertices_count, surface->base_vertex_index);
-			}
-		}
 		return *this;
 	}
 

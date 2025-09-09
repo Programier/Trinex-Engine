@@ -21,6 +21,12 @@ namespace Engine
 
 	static const Box3f default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
+	PrimitiveComponent::Proxy& PrimitiveComponent::Proxy::render(Renderer* renderer, RenderPass* pass,
+	                                                             const MaterialBindings* bindings)
+	{
+		return *this;
+	}
+
 	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
 
 	bool PrimitiveComponent::is_visible() const

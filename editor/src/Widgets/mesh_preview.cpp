@@ -108,13 +108,12 @@ namespace Engine
 		{
 			render_thread()->call([this, surface, view_size, camera_view = m_camera->camera_view()]() {
 				SceneView scene_view(camera_view, view_size);
-				Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), scene_view);
-				EditorRenderer::render_grid(renderer);
 
-				renderer->render();
+				EditorRenderer renderer(m_world->scene(), scene_view);
+				renderer.render_grid().render();
 
 				RHITextureRegion region(view_size);
-				rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, surface->rhi_texture(), region);
+				rhi->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(), region);
 			});
 		}
 

@@ -63,7 +63,6 @@ namespace Engine
 	public:
 		static RHISurfaceFormat static_surface_format_of(SurfaceType type);
 		static const char* static_surface_name_of(SurfaceType type);
-		static Renderer* static_create_renderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
 		static void static_sort_lights(FrameVector<LightComponent*>& visible_lights);
 
 	public:
@@ -73,7 +72,6 @@ namespace Engine
 		trinex_non_copyable(Renderer);
 		trinex_non_moveable(Renderer);
 
-		Renderer& render_primitive(RenderPass* pass, PrimitiveComponent* component, const MaterialBindings* bindings = nullptr);
 		Renderer& add_child_renderer(Renderer* renderer);
 		RHITexture* surface(SurfaceType type);
 		RHITexture* scene_color_target();

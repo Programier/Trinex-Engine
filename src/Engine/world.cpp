@@ -1,3 +1,4 @@
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
@@ -130,17 +131,12 @@ namespace Engine
 		return *this;
 	}
 
-	Actor* World::spawn_actor(class Refl::Class* self, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale,
-	                          const Name& actor_name)
+	Actor* World::spawn_actor(Actor* actor, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale)
 	{
-		if (!self)
-			return nullptr;
-
-		Actor* actor = self->create_object(actor_name, this)->instance_cast<Actor>();
-
 		if (actor == nullptr)
 		{
-			throw EngineException("Invalid class for actor!");
+			error_log("World", "Failed to allocate actor!");
+			return nullptr;
 		}
 
 		actor->spawned();
@@ -163,6 +159,25 @@ namespace Engine
 
 		m_actors.push_back(actor);
 		return actor;
+	}
+
+	Actor* World::spawn_actor(class Refl::Class* self, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale,
+	                          const Name& actor_name)
+	{
+		if (!self)
+		{
+			error_log("World", "Failed to create actor, because class instance is nullptr");
+			return nullptr;
+		}
+
+		if (!self->is_a(Actor::static_reflection()))
+		{
+			error_log("World", "Failed to create actor from non-Actor class '%s'!", self->name().c_str());
+			return nullptr;
+		}
+
+		Actor* actor = self->create_object(actor_name, this)->instance_cast<Actor>();
+		return spawn_actor(actor, location, rotation, scale);
 	}
 
 	World& World::destroy_actor(Actor* actor, bool ignore_playing)

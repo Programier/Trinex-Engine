@@ -1,4 +1,5 @@
 #include <Core/math/math.hpp>
+#include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/depth_renderer.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
@@ -29,7 +30,7 @@ namespace Engine
 
 		for (PrimitiveComponent* component : components)
 		{
-			render_primitive(RenderPasses::Depth::static_instance(), component);
+			component->proxy()->render(this, RenderPasses::Depth::static_instance());
 		}
 		return *this;
 	}
@@ -72,7 +73,7 @@ namespace Engine
 
 		for (PrimitiveComponent* component : components)
 		{
-			render_primitive(RenderPasses::Depth::static_instance(), component);
+			component->proxy()->render(this, RenderPasses::Depth::static_instance());
 		}
 
 #if TRINEX_DEBUG_BUILD
