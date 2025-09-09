@@ -499,7 +499,7 @@ namespace Engine
 		                  m_state.viewport.size.y);
 
 		auto view       = camera->view_matrix();
-		auto projection = camera->projection_matrix();
+		auto projection = camera->projection_matrix(viewport()->aspect());
 
 		for (Actor* actor : selected)
 		{
@@ -729,7 +729,6 @@ namespace Engine
 
 		{
 			m_state.viewport.size = ImGui::EngineVecFrom(viewport_size);
-			camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
 			if (RenderSurface* scene = capture_scene())
 			{
@@ -797,9 +796,6 @@ namespace Engine
 		render_thread()->create_task<UpdateView>(camera->camera_view(), m_scene_view, m_show_flags);
 		return *this;
 	}
-
-
-	using RaycastPrimitiveResult = Pair<SceneComponent*, float>;
 
 	EditorClient& EditorClient::select_actors(const Vector2f& uv)
 	{

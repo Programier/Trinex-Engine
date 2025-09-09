@@ -6,21 +6,16 @@ namespace Engine
 {
 	struct CameraView;
 
-	class ENGINE_EXPORT Plane
-	{
-	private:
-		Vector3f m_normal;
-		float m_distance;
+	struct ENGINE_EXPORT Plane {
+		Vector3f normal;
+		float offset;
 
-	public:
 		Plane();
+		Plane(const Vector4f& normal_distance);
 		Plane(const Vector3f& normal, float distance);
 		Plane(const Vector3f& normal, const Vector3f& location);
 
-		inline const Vector3f& normal() const { return m_normal; }
-		inline float distance() const { return m_distance; }
-		inline Vector3f location() const { return m_normal * m_distance; }
-
+		Plane& normalize();
 		float distance_to(const Vector3f& point) const;
 		float distance_to(const Box3f& box) const;
 	};
@@ -34,16 +29,9 @@ namespace Engine
 		Plane near;
 
 		Frustum();
-		Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near, float far,
-		        float aspect);
-		Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right, float top,
-		        float bottom, float near, float far);
-		Frustum(const CameraView& camera);
-		Frustum& operator=(const CameraView& view);
-		Frustum& initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
-		                    float far, float aspect_ratio);
-		Frustum& initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right,
-		                    float top, float bottom, float near, float far);
+		Frustum(const Matrix4f& projview);
+		Frustum& operator=(const Matrix4f& projview);
+
 		bool contains(const Box3f& box) const;
 		bool contains(const Vector3f& point);
 	};

@@ -106,8 +106,6 @@ namespace Engine
 
 		if (surface)
 		{
-			m_camera->aspect_ratio = size.x / size.y;
-
 			render_thread()->call([this, surface, view_size, camera_view = m_camera->camera_view()]() {
 				SceneView scene_view(camera_view, view_size);
 				Renderer* renderer = Renderer::static_create_renderer(m_world->scene(), scene_view);

@@ -56,8 +56,8 @@ namespace Engine
 	}
 
 	DeferredRenderer::DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode)
-	    : Renderer(scene, view, mode), m_visible_primitives(scene->collect_visible_primitives(view.camera_view())),
-	      m_visible_lights(scene->collect_visible_lights(view.camera_view())),
+	    : Renderer(scene, view, mode), m_visible_primitives(scene->collect_visible_primitives(view.projview())),
+	      m_visible_lights(scene->collect_visible_lights(view.projview())),
 	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location))
 	{
 		static_sort_lights(m_visible_lights);
@@ -195,11 +195,10 @@ namespace Engine
 		view.forward  = transform.forward_vector();
 		view.right    = transform.right_vector();
 
-		view.projection_mode          = CameraProjectionMode::Perspective;
-		view.perspective.aspect_ratio = 1.f;
-		view.perspective.fov          = 90.f;
-		view.near                     = 0.1f;
-		view.far                      = proxy->attenuation_radius();
+		view.projection_mode = CameraProjectionMode::Perspective;
+		view.perspective.fov = 90.f;
+		view.near            = 0.1f;
+		view.far             = proxy->attenuation_radius();
 
 		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
 		new (renderer) DepthCubeRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
@@ -225,11 +224,10 @@ namespace Engine
 		view.forward  = transform.forward_vector();
 		view.right    = transform.right_vector();
 
-		view.projection_mode          = CameraProjectionMode::Perspective;
-		view.perspective.aspect_ratio = 1.f;
-		view.perspective.fov          = glm::degrees(proxy->outer_cone_angle()) * 2.f;
-		view.near                     = 0.1f;
-		view.far                      = proxy->attenuation_radius();
+		view.projection_mode = CameraProjectionMode::Perspective;
+		view.perspective.fov = glm::degrees(proxy->outer_cone_angle()) * 2.f;
+		view.near            = 0.1f;
+		view.far             = proxy->attenuation_radius();
 
 		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
 		new (renderer) DepthRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
@@ -264,7 +262,9 @@ namespace Engine
 
 		for (uint_t cascade = 0; cascade < s_cascades_per_directional_light; ++cascade)
 		{
-			Box3f box;
+			Vector3f cascade_center;
+			float cascade_radius;
+
 			{
 				float near = Math::cascade_split(cascade, s_cascades_per_directional_light);
 				float far  = Math::cascade_split(cascade + 1, s_cascades_per_directional_light);
@@ -280,8 +280,8 @@ namespace Engine
 				};
 
 				Vector3f corner = view.screen_to_world(screen_corners[0]);
-				box.min         = corner;
-				box.max         = corner;
+
+				Box3f box = Box3f(corner, corner);
 
 				for (uint_t i = 1; i < 8; i++)
 				{
@@ -289,6 +289,12 @@ namespace Engine
 					box.min = Math::min(box.min, corner);
 					box.max = Math::max(box.max, corner);
 				}
+
+				cascade_radius = Math::ceil(box.radius() * 16.0f) / 16.0f;
+				cascade_center = box.center();
+
+				float texels_per_unit = static_cast<float>(shadow_map_size) / (cascade_radius * 2.0f);
+				cascade_center        = Math::floor(cascade_center * texels_per_unit) / texels_per_unit;
 			}
 
 			auto& transform = proxy->world_transform();
@@ -298,14 +304,12 @@ namespace Engine
 			camera.up              = transform.up_vector();
 			camera.forward         = transform.forward_vector();
 			camera.right           = transform.right_vector();
-			camera.location        = box.center();
+			camera.location        = cascade_center;
 
-			box = box.transform(camera.view_matrix());
-
-			camera.ortho.left   = box.min.x;
-			camera.ortho.right  = box.max.x;
-			camera.ortho.bottom = box.min.y;
-			camera.ortho.top    = box.max.y;
+			camera.ortho.left   = -cascade_radius;
+			camera.ortho.right  = cascade_radius;
+			camera.ortho.bottom = -cascade_radius;
+			camera.ortho.top    = cascade_radius;
 
 			camera.near = -100.f;
 			camera.far  = 100.f;

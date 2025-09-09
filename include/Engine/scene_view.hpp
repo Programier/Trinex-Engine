@@ -28,6 +28,7 @@ namespace Engine
 		SceneView& camera_view(const CameraView& view);
 		SceneView& viewport(const RHIViewport& viewport);
 		SceneView& scissor(const RHIScissors& scissor);
+		SceneView& transform(const Matrix4f& transform);
 
 		SceneView& show_flags(ShowFlags flags);
 		Vector3f screen_to_ray_direction(const Vector2f& screen_point) const;
@@ -38,9 +39,9 @@ namespace Engine
 		FORCE_INLINE const RHIViewport& viewport() const { return m_viewport; }
 		FORCE_INLINE const RHIScissors& scissor() const { return m_scissor; }
 		FORCE_INLINE const Matrix4f& view_matrix() const { return m_view; }
-		FORCE_INLINE const Matrix4f& projection_matrix() const { return m_projection; }
-		FORCE_INLINE const Matrix4f& projview_matrix() const { return m_projview; }
-		FORCE_INLINE const Matrix4f& inv_projview_matrix() const { return m_inv_projview; }
+		FORCE_INLINE const Matrix4f& projection() const { return m_projection; }
+		FORCE_INLINE const Matrix4f& projview() const { return m_projview; }
+		FORCE_INLINE const Matrix4f& inv_projview() const { return m_inv_projview; }
 		FORCE_INLINE const CameraView& camera_view() const { return m_camera_view; }
 		FORCE_INLINE const Vector2i& view_size() const { return m_viewport.size; }
 		FORCE_INLINE ShowFlags show_flags() const { return m_show_flags; }

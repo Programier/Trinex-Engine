@@ -29,7 +29,7 @@ namespace Engine::EditorRenderer
 		RHITexture* render_hitproxies()
 		{
 			Vector2u size                               = scene_view().view_size();
-			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().camera_view());
+			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().projview());
 
 			auto pool    = RHITexturePool::global_instance();
 			auto surface = pool->request_transient_surface(RHISurfaceFormat::RG32UI, size);
@@ -122,7 +122,7 @@ namespace Engine::EditorRenderer
 
 	void render_primitives(Renderer* renderer, Actor** actors, size_t count)
 	{
-		Frustum frustum                     = renderer->scene_view().camera_view();
+		Frustum frustum                     = renderer->scene_view().projview();
 		FrameVector<LightComponent*> lights = renderer->scene()->collect_visible_lights(frustum);
 
 		for (LightComponent* light : lights)

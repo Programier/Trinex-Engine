@@ -4,89 +4,70 @@
 #include <Engine/camera_types.hpp>
 #include <Engine/frustum.hpp>
 
+
 namespace Engine
 {
-	Plane::Plane() : m_normal(Constants::zero_vector), m_distance(0.f) {}
-	Plane::Plane(const Vector3f& normal, float distance) : m_normal(glm::normalize(normal)), m_distance(distance) {}
+	Plane::Plane() : normal(Constants::zero_vector), offset(0.f) {}
+	Plane::Plane(const Vector4f& normal_distance) : Plane(static_cast<const Vector3f&>(normal_distance), normal_distance.w) {}
+
+	Plane::Plane(const Vector3f& normal, float distance)
+	{
+		const float len = Math::length(normal);
+		this->normal    = normal / len;
+		this->offset    = distance / len;
+	}
+
 	Plane::Plane(const Vector3f& normal, const Vector3f& location)
-	    : m_normal(glm::normalize(normal)), m_distance(glm::dot(m_normal, location))
+	    : normal(Math::normalize(normal)), offset(-Math::dot(this->normal, location))
 	{}
+
+	Plane& Plane::normalize()
+	{
+		const float length = Math::length(normal);
+
+		if (length != 0.f)
+		{
+			const float rcp = 1.0f / length;
+			normal *= rcp;
+			offset *= rcp;
+		}
+
+		return *this;
+	}
 
 	float Plane::distance_to(const Vector3f& point) const
 	{
-		return glm::dot(m_normal, point) - m_distance;
+		return Math::dot(point, normal) + offset;
 	}
 
 	float Plane::distance_to(const Box3f& box) const
 	{
 		Vector3f extents     = box.extents();
 		const float distance = distance_to(box.center());
-		const float r = extents.x * std::abs(m_normal.x) + extents.y * std::abs(m_normal.y) + extents.z * std::abs(m_normal.z);
+		const float r = extents.x * Math::abs(normal.x) + extents.y * Math::abs(normal.y) + extents.z * Math::abs(normal.z);
 		return distance + r;
 	}
 
 	Frustum::Frustum() = default;
 
-	Frustum::Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near, float far,
-	                 float aspect)
+	Frustum::Frustum(const Matrix4f& projview)
 	{
-		initialize(location, forward, up, fov, near, far, aspect);
+		(*this) = projview;
 	}
 
-	Frustum::Frustum(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right, float top,
-	                 float bottom, float near, float far)
+	Frustum& Frustum::operator=(const Matrix4f& projview)
 	{
-		initialize(location, forward, up, left, right, top, bottom, near, far);
-	}
+		Vector4f row0 = Math::row(projview, 0);
+		Vector4f row1 = Math::row(projview, 1);
+		Vector4f row2 = Math::row(projview, 2);
+		Vector4f row3 = Math::row(projview, 3);
 
-	Frustum::Frustum(const CameraView& camera)
-	{
-		*this = camera;
-	}
-
-	Frustum& Frustum::operator=(const CameraView& view)
-	{
-		if (view.projection_mode == CameraProjectionMode::Perspective)
-			return initialize(view.location, view.forward, view.up, Math::radians(view.perspective.fov), view.near, view.far,
-			                  view.perspective.aspect_ratio);
-
-		return initialize(view.location, view.forward, view.up, view.ortho.left, view.ortho.right, view.ortho.top,
-		                  view.ortho.bottom, view.near, view.far);
-	}
-
-	Frustum& Frustum::initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float fov, float near,
-	                             float far, float aspect_ratio)
-	{
-		const float half_v_side = far * Math::tan(fov * 0.5f);
-		const float half_h_side = half_v_side * aspect_ratio;
-
-		const Vector3f front_mult_far = far * forward;
-		const Vector3f right          = Math::cross(forward, up);
-
-		this->near   = Plane(forward, location + near * forward);
-		this->far    = Plane(-forward, location + front_mult_far);
-		this->right  = Plane(Math::cross(up, front_mult_far + right * half_h_side), location);
-		this->left   = Plane(Math::cross(front_mult_far - right * half_h_side, up), location);
-		this->top    = Plane(Math::cross(right, front_mult_far - up * half_v_side), location);
-		this->bottom = Plane(Math::cross(front_mult_far + up * half_v_side, right), location);
-
-		return *this;
-	}
-
-	Frustum& Frustum::initialize(const Vector3f& location, const Vector3f& forward, const Vector3f& up, float left, float right,
-	                             float top, float bottom, float near, float far)
-	{
-		const Vector3f right_vector = Math::cross(forward, up);
-
-		const Vector3f near_center = location + near * forward;
-		const Vector3f far_center  = location + far * forward;
-
-		this->near   = Plane(forward, near_center);
-		this->far    = Plane(-forward, far_center);
-		this->right  = Plane(-right_vector, location + right_vector * right);
-		this->left   = Plane(right_vector, location + right_vector * left);
-		this->top    = Plane(-up, location + up * top);
-		this->bottom = Plane(up, location + up * bottom);
+		new (&left) Plane(row3 + row0);
+		new (&right) Plane(row3 - row0);
+		new (&bottom) Plane(row3 + row1);
+		new (&top) Plane(row3 - row1);
+		new (&near) Plane(row3 + row2);
+		new (&far) Plane(row3 - row2);
 
 		return *this;
 	}

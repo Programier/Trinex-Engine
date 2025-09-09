@@ -11,11 +11,11 @@
 
 namespace Engine
 {
-	Matrix4f CameraView::projection_matrix() const
+	Matrix4f CameraView::projection_matrix(float aspect) const
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			Matrix4f projection = Math::perspective(Math::radians(perspective.fov), perspective.aspect_ratio, near, far);
+			Matrix4f projection = glm::perspective(Math::radians(perspective.fov), aspect, near, far);
 			projection[1][1] *= -1;
 			return projection;
 		}
@@ -53,14 +53,14 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		return archive.serialize(projection_mode, fov, ortho_width, ortho_height, near, far, aspect_ratio);
+		return archive.serialize(projection_mode, fov, ortho_width, ortho_height, near, far);
 	}
 
-	Matrix4f CameraComponent::projection_matrix()
+	Matrix4f CameraComponent::projection_matrix(float aspect)
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			return Math::perspective(Math::radians(fov), aspect_ratio, near, far);
+			return Math::perspective(Math::radians(fov), aspect, near, far);
 		}
 		else if (projection_mode == CameraProjectionMode::Orthographic)
 		{
@@ -98,8 +98,7 @@ namespace Engine
 
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			out.perspective.fov          = fov;
-			out.perspective.aspect_ratio = aspect_ratio;
+			out.perspective.fov = fov;
 		}
 		else
 		{

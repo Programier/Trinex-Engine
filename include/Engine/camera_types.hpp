@@ -16,7 +16,6 @@ namespace Engine
 
 		struct Perspective {
 			float fov;
-			float aspect_ratio;
 		};
 
 		CameraProjectionMode projection_mode;
@@ -35,7 +34,7 @@ namespace Engine
 			Perspective perspective;
 		};
 
-		Matrix4f projection_matrix() const;
+		Matrix4f projection_matrix(float aspect = 1.f) const;
 		Matrix4f view_matrix() const;
 		float linearize_depth(float depth) const;
 		Vector3f reconstruct_position_ndc(Vector2f ndc, float depth) const;

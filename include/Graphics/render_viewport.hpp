@@ -41,6 +41,7 @@ namespace Engine
 		virtual RHIRenderTargetView* rhi_rtv() = 0;
 		virtual RenderViewport& rhi_present()  = 0;
 		inline Vector2u size() const { return m_size; }
+		inline float aspect() const { return static_cast<float>(m_size.x) / static_cast<float>(m_size.y); }
 
 		RenderViewport& update(float dt);
 		ViewportClient* client() const;

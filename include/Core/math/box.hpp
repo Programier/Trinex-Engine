@@ -32,6 +32,7 @@ namespace Engine
 		}
 
 		constexpr VectorType size() const { return max - min; }
+		constexpr T radius() const { return glm::length(extents()); }
 
 		constexpr Box transform(const MatrixType& matrix) const
 		{

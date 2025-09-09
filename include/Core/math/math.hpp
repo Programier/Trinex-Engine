@@ -5,6 +5,7 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_access.hpp>
 
 namespace Engine::Math
 {
@@ -36,10 +37,12 @@ namespace Engine::Math
 	using glm::mod;
 	using glm::pow;
 	using glm::radians;
+	using glm::round;
 	using glm::sign;
 	using glm::sin;
 	using glm::sqrt;
 	using glm::tan;
+	using glm::trunc;
 
 	using glm::ortho;
 	using glm::perspective;
@@ -58,6 +61,9 @@ namespace Engine::Math
 	using glm::translate;
 
 	using glm::quat_cast;
+
+	using glm::column;
+	using glm::row;
 
 	template<typename T, glm::qualifier Q>
 	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, Q> look_at(glm::vec<3, T, Q> const& eye, glm::vec<3, T, Q> const& center,

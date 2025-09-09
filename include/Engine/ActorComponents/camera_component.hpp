@@ -6,7 +6,7 @@
 namespace Engine
 {
 	struct CameraView;
-	
+
 	class ENGINE_EXPORT CameraComponent : public SceneComponent
 	{
 		trinex_declare_class(CameraComponent, SceneComponent);
@@ -18,12 +18,11 @@ namespace Engine
 		float ortho_height                   = 1000.f;
 		float near                           = 0.1f;
 		float far                            = 1000.f;
-		float aspect_ratio                   = 1.f;
 
 		bool serialize(Archive& archive) override;
 		const CameraComponent& camera_view(CameraView& out) const;
 		CameraView camera_view() const;
-		Matrix4f projection_matrix();
+		Matrix4f projection_matrix(float aspect = 1.f);
 		Matrix4f view_matrix();
 		static Matrix4f view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector);
 	};

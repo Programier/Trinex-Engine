@@ -35,7 +35,12 @@ namespace Engine
 		    : size(size), pos(pos), min_depth(min_depth), max_depth(max_depth)
 		{}
 
-		FORCE_INLINE float aspect() const { return static_cast<float>(size.x) / static_cast<float>(size.y); }
+		FORCE_INLINE float aspect() const
+		{
+			if (size.x == 0 || size.y == 0)
+				return 1.f;
+			return static_cast<float>(size.x) / static_cast<float>(size.y);
+		}
 
 		FORCE_INLINE bool operator==(const RHIViewport& v) const
 		{
