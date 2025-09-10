@@ -3,6 +3,7 @@
 
 namespace Engine
 {
+	struct RHIVertexSemantic;
 	class MaterialInterface;
 
 	class ENGINE_EXPORT MeshComponent : public PrimitiveComponent
@@ -19,12 +20,12 @@ namespace Engine
 			Proxy& material(MaterialInterface*, size_t index);
 
 		public:
-			virtual size_t lods_count() const                                                                               = 0;
-			virtual size_t materials_count() const                                                                          = 0;
-			virtual size_t surfaces_count(size_t lod = 0) const                                                             = 0;
-			virtual const MeshSurface* surface(size_t index, size_t lod = 0) const                                          = 0;
-			virtual VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0, size_t lod = 0) = 0;
-			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                          = 0;
+			virtual size_t lods_count() const                                                                         = 0;
+			virtual size_t materials_count() const                                                                    = 0;
+			virtual size_t surfaces_count(size_t lod = 0) const                                                       = 0;
+			virtual const MeshSurface* surface(size_t index, size_t lod = 0) const                                    = 0;
+			virtual VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0, size_t lod = 0) = 0;
+			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                    = 0;
 			virtual MaterialInterface* material(size_t index) const;
 			Proxy& render(Renderer* renderer, RenderPass* pass, const MaterialBindings* bindings) override;
 

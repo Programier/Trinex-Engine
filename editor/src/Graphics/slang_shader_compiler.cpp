@@ -236,19 +236,20 @@ namespace Engine
 			return 0;
 		}
 
-		static bool find_semantic(String name, RHIVertexBufferSemantic& out_semantic)
+		static bool find_semantic(String name, RHIVertexSemantic& out_semantic)
 		{
 			name = Strings::to_lower(name);
 
-			static const TreeMap<String, RHIVertexBufferSemantic> semantics = {
-			        {"position", RHIVertexBufferSemantic::Position},       //
-			        {"texcoord", RHIVertexBufferSemantic::TexCoord},       //
-			        {"color", RHIVertexBufferSemantic::Color},             //
-			        {"normal", RHIVertexBufferSemantic::Normal},           //
-			        {"tangent", RHIVertexBufferSemantic::Tangent},         //
-			        {"bitangent", RHIVertexBufferSemantic::Bitangent},     //
-			        {"blendweight", RHIVertexBufferSemantic::BlendWeight}, //
-			        {"blendindices", RHIVertexBufferSemantic::BlendIndices}//
+			static const TreeMap<String, RHIVertexSemantic> semantics = {
+			        {"position", RHIVertexSemantic::Position},        //
+			        {"texcoord", RHIVertexSemantic::TexCoord},        //
+			        {"color", RHIVertexSemantic::Color},              //
+			        {"normal", RHIVertexSemantic::Normal},            //
+			        {"tangent", RHIVertexSemantic::Tangent},          //
+			        {"bitangent", RHIVertexSemantic::Bitangent},      //
+			        {"blendweight", RHIVertexSemantic::BlendWeight},  //
+			        {"blendindices", RHIVertexSemantic::BlendIndices},//
+			        {"userdata", RHIVertexSemantic::UserData}         //
 			};
 
 			auto it = semantics.find(name);
@@ -264,8 +265,7 @@ namespace Engine
 			}
 		}
 
-		static RHIVertexBufferElementType find_vertex_element_type(slang::TypeLayoutReflection* var,
-		                                                           RHIVertexBufferSemantic semantic)
+		static RHIVertexBufferElementType find_vertex_element_type(slang::TypeLayoutReflection* var, RHIVertexSemantic semantic)
 		{
 			if (var == nullptr)
 				return RHIVertexBufferElementType::Undefined;
@@ -303,7 +303,7 @@ namespace Engine
 				RHIVertexBufferElementType result(
 				        static_cast<RHIVertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
 
-				if (semantic == RHIVertexBufferSemantic::Color && result == RHIVertexBufferElementType::Float4)
+				if (semantic == RHIVertexSemantic::Color && result == RHIVertexBufferElementType::Float4)
 					return RHIVertexBufferElementType::Color;
 				return result;
 			}
@@ -375,13 +375,13 @@ namespace Engine
 					return false;
 				}
 
-				if (is_not_in<RHIVertexBufferSemantic::Position, //
-				              RHIVertexBufferSemantic::TexCoord, //
-				              RHIVertexBufferSemantic::Color,    //
-				              RHIVertexBufferSemantic::Normal,   //
-				              RHIVertexBufferSemantic::Tangent,  //
-				              RHIVertexBufferSemantic::Bitangent,//
-				              RHIVertexBufferSemantic::BlendWeight>(attribute.semantic))
+				if (is_not_in<RHIVertexSemantic::Position, //
+				              RHIVertexSemantic::TexCoord, //
+				              RHIVertexSemantic::Color,    //
+				              RHIVertexSemantic::Normal,   //
+				              RHIVertexSemantic::Tangent,  //
+				              RHIVertexSemantic::Bitangent,//
+				              RHIVertexSemantic::BlendWeight>(attribute.semantic))
 				{
 					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
 					return false;

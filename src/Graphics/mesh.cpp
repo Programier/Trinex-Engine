@@ -150,10 +150,10 @@ namespace Engine
 		return ar;
 	}
 
-	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index)
+	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(RHIVertexSemantic semantic, Index index)
 	{
 		Index semantic_index = static_cast<Index>(semantic);
-		if (semantic_index > static_cast<Index>(RHIVertexBufferSemantic::Bitangent))
+		if (semantic_index > static_cast<Index>(RHIVertexSemantic::Bitangent))
 		{
 			return nullptr;
 		}

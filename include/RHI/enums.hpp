@@ -218,8 +218,8 @@ namespace Engine
 		trinex_bitfield_enum_struct(RHIAccess, EnumerateType);
 	};
 
-	struct RHIVertexBufferSemantic {
-		enum Enum : EnumerateType
+	struct RHIVertexSemantic {
+		enum Enum : byte
 		{
 			Position     = 0,
 			TexCoord     = 1,
@@ -229,13 +229,14 @@ namespace Engine
 			Bitangent    = 5,
 			BlendWeight  = 6,
 			BlendIndices = 7,
+			UserData     = 8,
 		};
 
-		trinex_enum_struct(RHIVertexBufferSemantic);
+		trinex_enum_struct(RHIVertexSemantic);
 	};
 
 	struct RHIVertexBufferElementType {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Undefined = 0,
 			Float1    = 1,
@@ -725,7 +726,7 @@ namespace Engine
 	};
 
 	struct RHICubeFace {
-		enum Enum
+		enum Enum : byte
 		{
 			Right  = 0,
 			Left   = 1,

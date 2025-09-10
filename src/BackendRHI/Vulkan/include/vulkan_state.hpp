@@ -15,6 +15,14 @@ namespace Engine
 	class VulkanUniformBuffer;
 	class VulkanPipeline;
 
+	struct VulkanVertexAttribute {
+		uint16_t stream;
+		uint16_t offset;
+
+		inline bool operator==(const VulkanVertexAttribute& va) const { return stream == va.stream && offset == va.offset; }
+		inline bool operator!=(const VulkanVertexAttribute& va) const { return stream != va.stream || offset != va.offset; }
+	};
+
 	template<typename T>
 	class VulkanResourceState
 	{
@@ -121,6 +129,7 @@ namespace Engine
 		VulkanResourceState<VulkanTextureSRV*> srv_images;
 		VulkanResourceState<VulkanTextureUAV*> uav_images;
 		VulkanResourceState<uint16_t> vertex_buffers_stride;
+		VulkanResourceState<VulkanVertexAttribute> vertex_attributes[9];
 
 		VulkanStateManager();
 		~VulkanStateManager();

@@ -46,7 +46,7 @@ namespace Engine
 			BitangentVertexBuffer* find_bitangent_buffer(Index index);
 
 		public:
-			VertexBufferBase* find_vertex_buffer(RHIVertexBufferSemantic semantic, Index index = 0);
+			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0);
 			size_t vertex_count() const;
 			size_t indices_count() const;
 			bool serialize(Archive& ar);

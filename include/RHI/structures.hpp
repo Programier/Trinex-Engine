@@ -64,16 +64,15 @@ namespace Engine
 		Name name;
 		RHIVertexBufferElementType type;
 		RHIVertexAttributeInputRate rate;
-		RHIVertexBufferSemantic semantic;
+		RHIVertexSemantic semantic;
 		byte semantic_index;
 		byte location;
 		byte stream_index;
 		uint16_t offset;
 
 		FORCE_INLINE RHIVertexAttribute(RHIVertexAttributeInputRate rate = RHIVertexAttributeInputRate::Vertex,
-		                                RHIVertexBufferSemantic semantic = RHIVertexBufferSemantic::Position,
-		                                byte semantic_index = 0, byte location = 0, byte stream = 0, uint16_t offset = 0,
-		                                const Name& name = Name::none)
+		                                RHIVertexSemantic semantic = RHIVertexSemantic::Position, byte semantic_index = 0,
+		                                byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
 		    : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location),
 		      stream_index(stream), offset(offset)
 		{}

@@ -126,6 +126,7 @@ namespace Engine
 		srv_images.flush();
 		uav_images.flush();
 		vertex_buffers_stride.flush();
+		for (auto& va : vertex_attributes) va.flush();
 
 		size_t count = m_global_uniform_buffers.size();
 
@@ -235,6 +236,8 @@ namespace Engine
 		srv_images.make_dirty();
 		uav_images.make_dirty();
 		vertex_buffers_stride.make_dirty();
+		for (auto& va : vertex_attributes) va.make_dirty();
+
 		return *this;
 	}
 
@@ -293,6 +296,16 @@ namespace Engine
 	VulkanAPI& VulkanAPI::update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
 	{
 		m_state_manager->update_scalar(data, size, offset, buffer_index);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::bind_vertex_attribute(RHIVertexSemantic semantic, byte semantic_index, byte stream, uint16_t offset)
+	{
+		VulkanVertexAttribute va;
+		va.stream = stream;
+		va.offset = offset;
+
+		m_state_manager->vertex_attributes[semantic_index].bind(va, semantic_index);
 		return *this;
 	}
 }// namespace Engine

@@ -264,6 +264,11 @@ namespace Engine
 		return *this;
 	}
 
+	NoneApi& NoneApi::bind_vertex_attribute(RHIVertexSemantic semantic, byte semantic_index, byte stream, uint16_t offset)
+	{
+		return *this;
+	}
+
 	NoneApi& NoneApi::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
 	{
 		return *this;

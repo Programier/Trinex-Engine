@@ -11,8 +11,6 @@ namespace Engine
 	class VertexBufferBase;
 	class IndexBuffer;
 
-	struct RHIVertexBufferSemantic;
-
 	class RenderPass;
 	class Renderer;
 	class MaterialBindings;
