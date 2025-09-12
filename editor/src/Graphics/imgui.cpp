@@ -54,24 +54,6 @@ namespace Engine
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
 		{
-			for (auto& attribute : vertex_attributes)
-			{
-				attribute.stream_index = 0;
-
-				if (attribute.name == "pos")
-				{
-					attribute.offset = offsetof(ImDrawVert, pos);
-				}
-				else if (attribute.name == "col")
-				{
-					attribute.offset = offsetof(ImDrawVert, col);
-				}
-				else if (attribute.name == "uv")
-				{
-					attribute.offset = offsetof(ImDrawVert, uv);
-				}
-			}
-
 			color_blending.enable         = true;
 			color_blending.src_color_func = RHIBlendFunc::SrcAlpha;
 			color_blending.dst_color_func = RHIBlendFunc::OneMinusSrcAlpha;
@@ -231,6 +213,13 @@ namespace Engine
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
+			rhi->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 0, 0, offsetof(ImDrawVert, pos));
+			rhi->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 1, 0, offsetof(ImDrawVert, uv));
+			rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, offsetof(ImDrawVert, col));
+
+			rhi->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
+			rhi->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
+
 			trinex_rhi_pop_stage();
 			{
 				trinex_profile_cpu_n("Render");
@@ -278,9 +267,6 @@ namespace Engine
 								trinex_profile_cpu_n("Drawing");
 								pipeline->apply(bd->sampler);
 
-
-								rhi->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
-								rhi->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
 								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
 								                  pcmd->VtxOffset + global_vtx_offset);
 							}

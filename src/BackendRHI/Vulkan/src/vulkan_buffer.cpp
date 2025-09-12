@@ -312,11 +312,16 @@ namespace Engine
 		return &(new VulkanBuffer())->create(size, data, flags);
 	}
 
-	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)
+	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
+	                                         RHIVertexInputRate rate)
 	{
 		auto* cmd = current_command_buffer();
 		cmd->bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->buffer(), byte_offset);
-		m_state_manager->vertex_buffers_stride.bind(stride, stream);
+
+		VulkanStateManager::VertexStream vertex_stream;
+		vertex_stream.stride = stride;
+		vertex_stream.rate   = VulkanEnums::input_rate_of(rate);
+		m_state_manager->vertex_streams.bind(vertex_stream, stream);
 		return *this;
 	}
 

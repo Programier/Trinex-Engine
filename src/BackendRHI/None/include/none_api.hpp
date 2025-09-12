@@ -52,7 +52,8 @@ namespace Engine
 		NoneApi& write_mask(RHIColorComponent mask) override;
 
 		NoneApi& bind_vertex_attribute(RHIVertexSemantic semantic, byte semantic_index, byte stream, uint16_t offset) override;
-		NoneApi& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream) override;
+		NoneApi& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
+		                            RHIVertexInputRate rate) override;
 		NoneApi& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;
 		NoneApi& bind_uniform_buffer(RHIBuffer* buffer, byte slot) override;
 		NoneApi& bind_srv(RHIShaderResourceView* view, byte slot) override;

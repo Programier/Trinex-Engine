@@ -14,14 +14,7 @@ namespace Engine
 	class VulkanTextureUAV;
 	class VulkanUniformBuffer;
 	class VulkanPipeline;
-
-	struct VulkanVertexAttribute {
-		uint16_t stream;
-		uint16_t offset;
-
-		inline bool operator==(const VulkanVertexAttribute& va) const { return stream == va.stream && offset == va.offset; }
-		inline bool operator!=(const VulkanVertexAttribute& va) const { return stream != va.stream || offset != va.offset; }
-	};
+	struct VulkanVertexAttribute;
 
 	template<typename T>
 	class VulkanResourceState
@@ -93,6 +86,26 @@ namespace Engine
 			inline bool operator!=(const Buffer& other) const { return !((*this) == other); }
 		};
 
+		struct VertexAttribute {
+			uint16_t stream;
+			uint16_t offset;
+
+			inline bool operator==(const VertexAttribute& other) const
+			{
+				return stream == other.stream && offset == other.offset;
+			}
+
+			inline bool operator!=(const VertexAttribute& other) const { return !((*this) == other); }
+		};
+
+		struct VertexStream {
+			vk::VertexInputRate rate;
+			uint16_t stride;
+
+			inline bool operator==(const VertexStream& other) const { return stride == other.stride && rate == other.rate; }
+			inline bool operator!=(const VertexStream& other) const { return !((*this) == other); }
+		};
+
 	private:
 		uint64_t m_dirty_flags;
 
@@ -113,7 +126,6 @@ namespace Engine
 		vk::ColorComponentFlags m_write_mask       = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
 		                                       vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
-
 	private:
 		VulkanUniformBuffer* request_uniform_buffer();
 		VulkanStateManager& return_uniform_buffer(VulkanUniformBuffer*);
@@ -128,8 +140,8 @@ namespace Engine
 		VulkanResourceState<vk::Sampler> samplers;
 		VulkanResourceState<VulkanTextureSRV*> srv_images;
 		VulkanResourceState<VulkanTextureUAV*> uav_images;
-		VulkanResourceState<uint16_t> vertex_buffers_stride;
-		VulkanResourceState<VulkanVertexAttribute> vertex_attributes[9];
+		VulkanResourceState<VertexStream> vertex_streams;
+		VulkanResourceState<VertexAttribute> vertex_attributes[9];
 
 		VulkanStateManager();
 		~VulkanStateManager();
@@ -212,6 +224,10 @@ namespace Engine
 		VulkanCommandBuffer* flush_graphics();
 		VulkanCommandBuffer* flush_compute();
 		VulkanStateManager& submit();
+
+		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);
+		Identifier graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
+		Identifier mesh_pipeline_id() const;
 
 		inline uint64_t dirty_flags() const { return m_dirty_flags; }
 		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }

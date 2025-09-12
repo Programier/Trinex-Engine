@@ -208,34 +208,6 @@ namespace Engine
 			return RHIShaderParameterType::Undefined;
 		}
 
-		static uint32_t find_vertex_stream(slang::VariableReflection* var, uint32_t default_stream)
-		{
-			auto attrib = var->findAttributeByName(global_session(), "vertex_stream");
-			if (attrib && attrib->getArgumentCount() == 1)
-			{
-				int value = 0;
-				if (SLANG_SUCCEEDED(attrib->getArgumentValueInt(0, &value)))
-				{
-					return static_cast<uint32_t>(value);
-				}
-			}
-			return default_stream;
-		}
-
-		static uint32_t find_vertex_offset(slang::VariableReflection* var)
-		{
-			auto attrib = var->findAttributeByName(global_session(), "vertex_offset");
-			if (attrib && attrib->getArgumentCount() == 1)
-			{
-				int value = 0;
-				if (SLANG_SUCCEEDED(attrib->getArgumentValueInt(0, &value)))
-				{
-					return static_cast<uint32_t>(value);
-				}
-			}
-			return 0;
-		}
-
 		static bool find_semantic(String name, RHIVertexSemantic& out_semantic)
 		{
 			name = Strings::to_lower(name);
@@ -389,13 +361,8 @@ namespace Engine
 
 				attribute.semantic_index = var->getSemanticIndex();
 				attribute.name           = var.name;
-				attribute.rate           = var->getVariable()->findAttributeByName(global_session(), "per_instance")
-				                                   ? RHIVertexAttributeInputRate::Instance
-				                                   : RHIVertexAttributeInputRate::Vertex;
 				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-				attribute.location       = var.trace_offset(category);
-				attribute.stream_index   = find_vertex_stream(var->getVariable(), attribute.location);
-				attribute.offset         = find_vertex_offset(var->getVariable());
+				attribute.binding        = var.trace_offset(category);
 
 				m_reflection->vertex_attributes.push_back(attribute);
 			}

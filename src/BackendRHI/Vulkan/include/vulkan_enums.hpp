@@ -463,8 +463,8 @@ namespace Engine::VulkanEnums
 		}
 	}
 
-	static inline vk::VertexInputRate input_rate_of(RHIVertexAttributeInputRate rate)
+	static inline vk::VertexInputRate input_rate_of(RHIVertexInputRate rate)
 	{
-		return rate == RHIVertexAttributeInputRate::Vertex ? vk::VertexInputRate::eVertex : vk::VertexInputRate::eInstance;
+		return rate == RHIVertexInputRate::Vertex ? vk::VertexInputRate::eVertex : vk::VertexInputRate::eInstance;
 	}
 }// namespace Engine::VulkanEnums

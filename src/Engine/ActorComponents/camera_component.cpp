@@ -15,7 +15,7 @@ namespace Engine
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
 		{
-			Matrix4f projection = glm::perspective(Math::radians(perspective.fov), aspect, near, far);
+			Matrix4f projection = Math::perspective(Math::radians(perspective.fov), aspect, near, far);
 			projection[1][1] *= -1;
 			return projection;
 		}

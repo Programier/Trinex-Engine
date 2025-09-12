@@ -1,6 +1,5 @@
 #pragma once
-#include <Core/etl/map.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/flat_map.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
@@ -13,6 +12,13 @@ namespace Engine
 	class VulkanUAV;
 	class VulkanStateManager;
 	class Pipeline;
+
+	struct VulkanVertexAttribute {
+		vk::Format format;
+		RHIVertexSemantic semantic;
+		byte semantic_index;
+		byte binding;
+	};
 
 	class VulkanPipeline : public VulkanDeferredDestroy<RHIPipeline>
 	{
@@ -34,27 +40,8 @@ namespace Engine
 	class VulkanGraphicsPipeline : public VulkanPipeline
 	{
 	private:
-		struct Key {
-			class VulkanRenderPass* pass;
-			vk::PrimitiveTopology primitive_topology;
-			vk::PolygonMode polygon_mode;
-			vk::CullModeFlags cull_mode;
-			vk::FrontFace front_face;
-			vk::ColorComponentFlags write_mask;
-
-			inline bool operator==(const Key& key) const
-			{
-				return pass == key.pass && primitive_topology == key.primitive_topology && polygon_mode == key.polygon_mode &&
-				       cull_mode == key.cull_mode && front_face == key.front_face && write_mask == key.write_mask;
-			}
-		};
-
-		struct KeyHasher {
-			uint64_t operator()(const Key& key) const;
-		};
-
-		Vector<vk::VertexInputBindingDescription> m_binding_description;
-		Vector<vk::VertexInputAttributeDescription> m_attribute_description;
+		VulkanVertexAttribute* m_vertex_attributes = nullptr;
+		uint16_t m_vertex_attributes_count         = 0;
 
 		vk::PipelineInputAssemblyStateCreateInfo m_input_assembly;
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
@@ -62,12 +49,11 @@ namespace Engine
 		vk::PipelineColorBlendAttachmentState m_color_blend_attachment[4];
 		vk::PipelineColorBlendStateCreateInfo m_color_blending;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
-		vk::PipelineVertexInputStateCreateInfo m_vertex_input;
 
-		Map<Key, vk::Pipeline, KeyHasher> m_pipelines;
+		FlatMap<Identifier, vk::Pipeline> m_pipelines;
 
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
-		bool is_dirty_vertex_strides(VulkanStateManager* manager);
+		bool is_dirty_vertex_input(VulkanStateManager* manager);
 
 	public:
 		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
@@ -102,7 +88,7 @@ namespace Engine
 		vk::PipelineColorBlendStateCreateInfo m_color_blending;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
-		Map<Key, vk::Pipeline, KeyHasher> m_pipelines;
+		FlatMap<Identifier, vk::Pipeline> m_pipelines;
 
 	private:
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);

@@ -94,7 +94,8 @@ namespace Engine
 		virtual RHI& write_mask(RHIColorComponent mask)                = 0;
 
 		virtual RHI& bind_vertex_attribute(RHIVertexSemantic semantic, byte semantic_index, byte stream, uint16_t offset = 0) = 0;
-		virtual RHI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream)                  = 0;
+		virtual RHI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
+		                                RHIVertexInputRate rate = RHIVertexInputRate::Vertex)                                 = 0;
 		virtual RHI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)                                              = 0;
 		virtual RHI& bind_uniform_buffer(RHIBuffer* buffer, byte slot)                                                        = 0;
 

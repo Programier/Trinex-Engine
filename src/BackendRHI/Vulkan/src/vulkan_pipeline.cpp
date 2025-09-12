@@ -229,24 +229,12 @@ namespace Engine
 		API->m_state_manager->bind(this);
 	}
 
-	uint64_t VulkanGraphicsPipeline::KeyHasher::operator()(const Key& key) const
-	{
-		return memory_hash(&key, sizeof(key));
-	}
-
 	vk::Pipeline VulkanGraphicsPipeline::find_or_create_pipeline(VulkanStateManager* manager)
 	{
 		auto rt = API->m_state_manager->render_target();
 
-		Key key;
-		key.pass               = manager->render_target()->m_render_pass;
-		key.primitive_topology = manager->primitive_topology();
-		key.polygon_mode       = manager->polygon_mode();
-		key.cull_mode          = manager->cull_mode();
-		key.front_face         = manager->front_face();
-		key.write_mask         = manager->write_mask();
-
-		auto& pipeline = m_pipelines[key];
+		auto link_id   = manager->graphics_pipeline_id(m_vertex_attributes, m_vertex_attributes_count);
+		auto& pipeline = m_pipelines[link_id];
 
 		if (pipeline)
 		{
@@ -257,22 +245,25 @@ namespace Engine
 		static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
 		static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
-		m_input_assembly.setTopology(key.primitive_topology);
-		m_rasterizer.setPolygonMode(key.polygon_mode);
-		m_rasterizer.setCullMode(key.cull_mode);
-		m_rasterizer.setFrontFace(key.front_face);
+		StackByteAllocator::Mark mark;
+
+		m_input_assembly.setTopology(manager->primitive_topology());
+		m_rasterizer.setPolygonMode(manager->polygon_mode());
+		m_rasterizer.setCullMode(manager->cull_mode());
+		m_rasterizer.setFrontFace(manager->front_face());
 
 		for (auto& attachment : m_color_blend_attachment)
 		{
-			attachment.setColorWriteMask(key.write_mask);
+			attachment.setColorWriteMask(manager->write_mask());
 		}
 
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
 		vk::PipelineMultisampleStateCreateInfo multisampling;
+		vk::PipelineVertexInputStateCreateInfo vertex_input =
+		        manager->create_vertex_input(m_vertex_attributes, m_vertex_attributes_count);
 
-
-		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, &m_vertex_input, &m_input_assembly, nullptr, &viewport_state,
+		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, &vertex_input, &m_input_assembly, nullptr, &viewport_state,
 		                                             &m_rasterizer, &multisampling, &m_depth_stencil, &m_color_blending,
 		                                             &dynamic_state, layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
 
@@ -333,58 +324,20 @@ namespace Engine
 
 		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
 
-		m_binding_description.reserve(pipeline->vertex_attributes_count);
-		m_attribute_description.reserve(pipeline->vertex_attributes_count);
+		m_vertex_attributes_count = pipeline->vertex_attributes_count;
+		if (m_vertex_attributes_count)
+			m_vertex_attributes = Allocator<VulkanVertexAttribute>::allocate(m_vertex_attributes_count);
 
 		for (size_t index = 0; index < pipeline->vertex_attributes_count; ++index)
 		{
-			auto& attribute   = pipeline->vertex_attributes[index];
-			uint32_t stream   = static_cast<uint32_t>(attribute.stream_index);
-			vk::Format format = VulkanEnums::vertex_format_of(attribute.type);
+			auto& src = pipeline->vertex_attributes[index];
+			auto& dst = m_vertex_attributes[index];
 
-			{
-				// Find and setup binding description
-				bool found = false;
-				for (auto& desc : m_binding_description)
-				{
-					if (desc.binding == stream)
-					{
-						vk::VertexInputRate rate = VulkanEnums::input_rate_of(attribute.rate);
-
-						if (desc.inputRate != rate)
-						{
-							const char* name = rate == vk::VertexInputRate::eVertex ? "Vertex" : "Instance";
-							error_log("Vulkan", "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'", name,
-							          index, name);
-						}
-
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-				{
-					m_binding_description.emplace_back();
-					auto& desc     = m_binding_description.back();
-					desc.binding   = attribute.stream_index;
-					desc.stride    = 0;
-					desc.inputRate = VulkanEnums::input_rate_of(attribute.rate);
-				}
-			}
-
-			{
-				m_attribute_description.emplace_back();
-				vk::VertexInputAttributeDescription& description = m_attribute_description.back();
-				description.binding  = static_cast<decltype(description.binding)>(attribute.stream_index);
-				description.location = static_cast<decltype(description.location)>(attribute.location);
-				description.offset   = attribute.offset;
-				description.format   = format;
-			}
+			dst.semantic       = src.semantic;
+			dst.semantic_index = src.semantic_index;
+			dst.binding        = src.binding;
+			dst.format         = VulkanEnums::vertex_format_of(src.type);
 		}
-
-		m_vertex_input.setVertexBindingDescriptions(m_binding_description);
-		m_vertex_input.setVertexAttributeDescriptions(m_attribute_description);
 
 		static vk::ShaderStageFlagBits graphics_stages[] = {
 		        vk::ShaderStageFlagBits::eVertex,
@@ -404,28 +357,24 @@ namespace Engine
 		}
 	}
 
-	bool VulkanGraphicsPipeline::is_dirty_vertex_strides(VulkanStateManager* manager)
+	bool VulkanGraphicsPipeline::is_dirty_vertex_input(VulkanStateManager* manager)
 	{
-		vk::VertexInputBindingDescription* description =
-		        const_cast<vk::VertexInputBindingDescription*>(m_vertex_input.pVertexBindingDescriptions);
-		size_t count = m_vertex_input.vertexBindingDescriptionCount;
-
-		bool dirty = false;
-
-		while (count > 0)
+		for (uint16_t i = 0; i < m_vertex_attributes_count; ++i)
 		{
-			uint16_t stride = manager->vertex_buffers_stride.resource(description->binding);
-			if (stride != description->stride)
-			{
-				description->stride = stride;
-				dirty               = true;
-			}
+			const VulkanVertexAttribute& attribute = m_vertex_attributes[i];
 
-			--count;
-			++description;
+			auto& va = manager->vertex_attributes[attribute.semantic];
+
+			if (va.is_dirty(attribute.semantic_index))
+				return true;
+
+			auto stream = va.resource(attribute.semantic_index).stream;
+
+			if (manager->vertex_streams.is_dirty(stream))
+				return true;
 		}
 
-		return dirty;
+		return false;
 	}
 
 	VulkanPipeline& VulkanGraphicsPipeline::flush(VulkanStateManager* manager)
@@ -435,9 +384,7 @@ namespace Engine
 		                   VulkanStateManager::PrimitiveTopology | VulkanStateManager::PolygonMode |
 		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
 
-		bool is_dirty = is_dirty_vertex_strides(manager);
-
-		if (manager->is_dirty(dirty_flags) || is_dirty)
+		if (manager->is_dirty(dirty_flags) || is_dirty_vertex_input(manager))
 		{
 			auto cmd              = API->current_command_buffer();
 			auto current_pipeline = find_or_create_pipeline(manager);
@@ -450,10 +397,13 @@ namespace Engine
 
 	VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 	{
-		for (auto& pipeline : m_pipelines)
+		for (auto [id, pipeline] : m_pipelines)
 		{
-			DESTROY_CALL(destroyPipeline, pipeline.second);
+			DESTROY_CALL(destroyPipeline, pipeline);
 		}
+
+		if (m_vertex_attributes)
+			Allocator<VulkanVertexAttribute>::deallocate(m_vertex_attributes);
 	}
 
 	uint64_t VulkanMeshPipeline::KeyHasher::operator()(const Key& key) const
@@ -532,7 +482,7 @@ namespace Engine
 		key.front_face   = manager->front_face();
 		key.write_mask   = manager->write_mask();
 
-		auto& pipeline = m_pipelines[key];
+		vk::Pipeline& pipeline = m_pipelines[manager->mesh_pipeline_id()];
 
 		if (pipeline)
 		{
@@ -590,9 +540,10 @@ namespace Engine
 
 	VulkanMeshPipeline::~VulkanMeshPipeline()
 	{
-		for (auto& pipeline : m_pipelines)
+		for (auto [id, pipeline] : m_pipelines)
 		{
-			DESTROY_CALL(destroyPipeline, pipeline.second);
+
+			DESTROY_CALL(destroyPipeline, pipeline);
 		}
 	}
 

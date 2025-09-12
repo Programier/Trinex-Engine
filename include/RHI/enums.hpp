@@ -430,15 +430,15 @@ namespace Engine
 		trinex_declare_enum(RHIFrontFace);
 	};
 
-	struct RHIVertexAttributeInputRate {
+	struct RHIVertexInputRate {
 		enum Enum : byte
 		{
 			Vertex   = 0,
 			Instance = 1,
 		};
 
-		trinex_enum_struct(RHIVertexAttributeInputRate);
-		trinex_declare_enum(RHIVertexAttributeInputRate);
+		trinex_enum_struct(RHIVertexInputRate);
+		trinex_declare_enum(RHIVertexInputRate);
 	};
 
 	struct RHIIndexFormat {

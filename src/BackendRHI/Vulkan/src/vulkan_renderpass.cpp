@@ -1,3 +1,4 @@
+#include <Core/etl/flat_map.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/memory.hpp>
@@ -10,6 +11,8 @@ namespace Engine
 {
 	namespace
 	{
+		static FlatMap<VulkanRenderPass::Key, VulkanRenderPass*> m_render_passes;
+
 		static FORCE_INLINE vk::Format surface_format_of(const VulkanTextureRTV* surface)
 		{
 			return surface ? surface->format() : vk::Format::eUndefined;
@@ -108,8 +111,6 @@ namespace Engine
 
 	}// namespace
 
-	TreeMap<VulkanRenderPass::Key, VulkanRenderPass*> VulkanRenderPass::m_render_passes;
-
 	void VulkanRenderPass::Key::init(VulkanTextureRTV** targets, VulkanTextureDSV* depth)
 	{
 		m_attachments[0] = surface_format_of(targets[0]);
@@ -119,11 +120,6 @@ namespace Engine
 		m_attachments[4] = surface_format_of(depth);
 
 		m_attachments[5] = vk::Format::eUndefined;
-	}
-
-	bool VulkanRenderPass::Key::operator<(const Key& key) const
-	{
-		return std::memcmp(m_attachments, key.m_attachments, sizeof(m_attachments)) < 0;
 	}
 
 	VulkanRenderPass* VulkanRenderPass::find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth)

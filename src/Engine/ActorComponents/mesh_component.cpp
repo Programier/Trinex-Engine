@@ -53,6 +53,8 @@ namespace Engine
 			if (!material_interface->apply(ctx, bindings))
 				continue;
 
+			byte stream = 0;
+
 			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
 				auto& attribute          = pipeline->vertex_attributes[i];
@@ -60,7 +62,9 @@ namespace Engine
 
 				if (buffer)
 				{
-					buffer->rhi_bind(attribute.stream_index, 0);
+					rhi->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
+					rhi->bind_vertex_buffer(buffer->rhi_vertex_buffer(), 0, buffer->stride(), stream);
+					++stream;
 				}
 			}
 

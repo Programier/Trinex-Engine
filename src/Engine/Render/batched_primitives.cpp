@@ -168,6 +168,10 @@ namespace Engine
 		rhi->update_scalar(&projview, pipeline->projview());
 		rhi->update_scalar(&size, pipeline->viewport());
 
+		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0, 0);
+		rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, 12);
+		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 1, 0, 16);
+
 		rhi->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
 		rhi->primitive_topology(RHIPrimitiveTopology::LineList);
 
@@ -241,8 +245,12 @@ namespace Engine
 #endif
 
 		Pipelines::BatchedTriangles::instance()->rhi_bind();
-		m_position_buffer.rhi_bind(0);
-		m_color_buffer.rhi_bind(1);
+
+		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
+		rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
+
+		rhi->bind_vertex_buffer(m_position_buffer.rhi_vertex_buffer(), 0, m_position_buffer.stride(), 0);
+		rhi->bind_vertex_buffer(m_color_buffer.rhi_vertex_buffer(), 0, m_color_buffer.stride(), 1);
 
 		rhi->draw(m_vtx_count, 0);
 

@@ -18,7 +18,7 @@ namespace Engine
 	trinex_implement_engine_enum(RHIPolygonMode, Fill, Line, Point);
 	trinex_implement_engine_enum(RHICullMode, None, Front, Back);
 	trinex_implement_engine_enum(RHIFrontFace, ClockWise, CounterClockWise);
-	trinex_implement_engine_enum(RHIVertexAttributeInputRate, Vertex, Instance);
+	trinex_implement_engine_enum(RHIVertexInputRate, Vertex, Instance);
 	trinex_implement_engine_enum(RHIShaderParameterType, Undefined, META_UniformBuffer, META_Sampler, META_Texture, META_Scalar,
 	                             META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3, Bool4, Int, Int2, Int3,
 	                             Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3, Float4x4,

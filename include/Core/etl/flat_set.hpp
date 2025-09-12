@@ -8,7 +8,7 @@
 namespace Engine
 {
 	template<typename T, typename Compare = std::less<T>, typename AllocatorType = Allocator<T>>
-	class FlatSet : private Vector<T, AllocatorType>
+	class FlatSet : protected Vector<T, AllocatorType>
 	{
 	public:
 		using container_type = Vector<T>;

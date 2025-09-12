@@ -63,18 +63,13 @@ namespace Engine
 	struct RHIVertexAttribute {
 		Name name;
 		RHIVertexBufferElementType type;
-		RHIVertexAttributeInputRate rate;
 		RHIVertexSemantic semantic;
 		byte semantic_index;
-		byte location;
-		byte stream_index;
-		uint16_t offset;
+		byte binding;
 
-		FORCE_INLINE RHIVertexAttribute(RHIVertexAttributeInputRate rate = RHIVertexAttributeInputRate::Vertex,
-		                                RHIVertexSemantic semantic = RHIVertexSemantic::Position, byte semantic_index = 0,
-		                                byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
-		    : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location),
-		      stream_index(stream), offset(offset)
+		FORCE_INLINE RHIVertexAttribute(RHIVertexSemantic semantic = RHIVertexSemantic::Position, byte semantic_index = 0,
+		                                byte binding = 0, const Name& name = Name::none)
+		    : name(name), semantic(semantic), semantic_index(semantic_index), binding(binding)
 		{}
 
 		bool serialize(Archive& ar);

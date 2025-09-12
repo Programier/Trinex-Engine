@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/etl/map.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_headers.hpp>
 
@@ -10,15 +9,25 @@ namespace Engine
 
 	class VulkanRenderPass
 	{
-	private:
+	public:
 		struct Key {
 			vk::Format m_attachments[6];
 
 			void init(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
-			bool operator<(const Key& key) const;
+			inline bool operator<(const Key& key) const
+			{
+				for (size_t i = 0; i < 6; i++)
+				{
+					if (m_attachments[i] < key.m_attachments[i])
+						return true;
+					if (m_attachments[i] > key.m_attachments[i])
+						return false;
+				}
+				return false;
+			}
 		};
 
-		static TreeMap<Key, VulkanRenderPass*> m_render_passes;
+	private:
 		vk::RenderPass m_render_pass;
 
 	public:

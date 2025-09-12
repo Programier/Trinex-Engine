@@ -28,23 +28,6 @@ struct parameter_typeAttribute
 };
 
 [__AttributeUsage(_AttributeTargets.Var)]
-struct vertex_streamAttribute
-{
-	int stream;
-};
-
-[__AttributeUsage(_AttributeTargets.Var)]
-struct vertex_offsetAttribute
-{
-	uint offset;
-};
-
-[__AttributeUsage(_AttributeTargets.Var)]
-struct per_instanceAttribute
-{
-};
-
-[__AttributeUsage(_AttributeTargets.Var)]
 struct nameAttribute
 {
 	string name;
