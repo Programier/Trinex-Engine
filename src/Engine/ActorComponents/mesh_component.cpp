@@ -63,14 +63,14 @@ namespace Engine
 				if (buffer)
 				{
 					rhi->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
-					rhi->bind_vertex_buffer(buffer->rhi_vertex_buffer(), 0, buffer->stride(), stream);
+					rhi->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
 					++stream;
 				}
 			}
 
 			if (auto index_buffer = find_index_buffer(lod))
 			{
-				index_buffer->rhi_bind();
+				rhi->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
 				rhi->draw_indexed(surface_data->vertices_count, surface_data->first_index, surface_data->base_vertex_index);
 			}
 			else

@@ -40,12 +40,11 @@ namespace Engine
 		VertexBufferBase& release();
 		VertexBufferBase& grow(uint32_t factor = 2);
 
-		VertexBufferBase& rhi_bind(byte stream_index, size_t offset = 0);
 		VertexBufferBase& rhi_update(size_t size, size_t offset = 0);
 
 		bool serialize(Archive& ar);
 
-		inline RHIBuffer* rhi_vertex_buffer() const { return m_buffer; }
+		inline RHIBuffer* rhi_buffer() const { return m_buffer; }
 		inline byte* data() { return m_data; }
 		inline const byte* data() const { return m_data; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
@@ -90,12 +89,6 @@ namespace Engine
 		inline T* allocate_data(RHIBufferCreateFlags type, size_t size)
 		{
 			return reinterpret_cast<T*>(VertexBufferBase::allocate_data(type, sizeof(T), size));
-		}
-
-		inline VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0)
-		{
-			VertexBufferBase::rhi_bind(stream_index, offset);
-			return *this;
 		}
 
 		inline T* data() { return reinterpret_cast<T*>(VertexBufferBase::data()); }
@@ -143,11 +136,10 @@ namespace Engine
 		IndexBuffer& init(bool keep_cpu_data = false);
 		byte* allocate_data(RHIBufferCreateFlags type, RHIIndexFormat format, size_t count);
 		IndexBuffer& release();
-		IndexBuffer& rhi_bind(size_t offset = 0);
 
 		bool serialize(Archive& ar);
 
-		inline RHIBuffer* rhi_index_buffer() const { return m_buffer; }
+		inline RHIBuffer* rhi_buffer() const { return m_buffer; }
 		inline byte* data() { return m_data; }
 		inline const byte* data() const { return m_data; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }

@@ -249,8 +249,8 @@ namespace Engine
 		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
 		rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
 
-		rhi->bind_vertex_buffer(m_position_buffer.rhi_vertex_buffer(), 0, m_position_buffer.stride(), 0);
-		rhi->bind_vertex_buffer(m_color_buffer.rhi_vertex_buffer(), 0, m_color_buffer.stride(), 1);
+		rhi->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
+		rhi->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
 
 		rhi->draw(m_vtx_count, 0);
 

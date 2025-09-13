@@ -163,15 +163,6 @@ namespace Engine
 		return *this;
 	}
 
-	VertexBufferBase& VertexBufferBase::rhi_bind(byte stream, size_t offset)
-	{
-		if (m_buffer)
-		{
-			rhi->bind_vertex_buffer(m_buffer, offset, m_stride, stream);
-		}
-		return *this;
-	}
-
 	VertexBufferBase& VertexBufferBase::rhi_update(size_t size, size_t offset)
 	{
 		if (m_buffer && m_data)
@@ -355,15 +346,6 @@ namespace Engine
 
 		m_idx_count = 0;
 		m_buffer    = nullptr;
-		return *this;
-	}
-
-	IndexBuffer& IndexBuffer::rhi_bind(size_t offset)
-	{
-		if (m_buffer)
-		{
-			rhi->bind_index_buffer(m_buffer, m_format);
-		}
 		return *this;
 	}
 
