@@ -61,15 +61,14 @@ namespace Engine
 	};
 
 	struct RHIVertexAttribute {
-		Name name;
-		RHIVertexBufferElementType type;
+		RHIVertexFormat format;
 		RHIVertexSemantic semantic;
 		byte semantic_index;
 		byte binding;
 
 		FORCE_INLINE RHIVertexAttribute(RHIVertexSemantic semantic = RHIVertexSemantic::Position, byte semantic_index = 0,
-		                                byte binding = 0, const Name& name = Name::none)
-		    : name(name), semantic(semantic), semantic_index(semantic_index), binding(binding)
+		                                byte binding = 0)
+		    : semantic(semantic), semantic_index(semantic_index), binding(binding)
 		{}
 
 		bool serialize(Archive& ar);

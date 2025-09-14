@@ -124,8 +124,8 @@ namespace Engine
 		m_preview_window = window()->widgets.create<ImGuiMaterialPreview>();
 		m_preview_window->on_close.push([this]() { m_preview_window = nullptr; });
 
-		if (m_material)
-			m_preview_window->material(m_material);
+		// if (m_material)
+		// 	m_preview_window->material(m_material);
 		return *this;
 	}
 
@@ -172,7 +172,7 @@ namespace Engine
 
 			if (m_preview_window)
 			{
-				m_preview_window->material(material);
+				//m_preview_window->material(material);
 			}
 		}
 

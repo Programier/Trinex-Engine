@@ -32,12 +32,7 @@ namespace Engine
 
 	ImGuiStaticMeshPreview::ImGuiStaticMeshPreview()
 	{
-		m_world  = World::system_of<World>();
 		m_camera = Object::new_instance<CameraComponent>();
-		m_actor  = m_world->spawn_actor<StaticMeshActor>();
-
-		m_actor->mesh_component()->mesh(DefaultResources::Meshes::cube);
-		m_actor->mesh_component()->on_transform_changed();
 	}
 
 	int_t ImGuiStaticMeshPreview::match_zoom_index(int direction)
@@ -89,15 +84,9 @@ namespace Engine
 			return fallback;
 	}
 
-	ImGuiStaticMeshPreview& ImGuiStaticMeshPreview::material(MaterialInterface* material)
-	{
-		m_actor->mesh_component()->material(material, 0);
-		return *this;
-	}
-
 	RenderSurface* ImGuiStaticMeshPreview::render_preview(ImVec2 size)
 	{
-		if (size.x < 1.f || size.y < 1.f)
+		if (size.x < 1.f || size.y < 1.f || m_mesh == nullptr)
 			return nullptr;
 
 		auto pool          = RenderSurfacePool::global_instance();
@@ -106,10 +95,12 @@ namespace Engine
 
 		if (surface)
 		{
-			render_thread()->call([this, surface, view_size, camera_view = m_camera->camera_view()]() {
+			auto scene = m_mesh->world()->scene();
+
+			render_thread()->call([surface, view_size, camera_view = m_camera->camera_view(), scene]() {
 				SceneView scene_view(camera_view, view_size);
 
-				EditorRenderer renderer(m_world->scene(), scene_view);
+				EditorRenderer renderer(scene, scene_view);
 				renderer.render_grid().render();
 
 				RHITextureRegion region(view_size);
@@ -159,12 +150,21 @@ namespace Engine
 	{
 		update_rotation(size).update_zoom();
 
-		auto bounds        = m_actor->mesh_component()->bounding_box().size();
-		float min_distance = glm::max(bounds.x, glm::max(bounds.y, bounds.z));
-		min_distance       = glm::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
+		if (m_mesh)
+		{
+			auto bounds        = m_mesh->mesh_component()->bounding_box().size();
+			float min_distance = glm::max(bounds.x, glm::max(bounds.y, bounds.z));
+			min_distance       = glm::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
 
-		m_camera->location(m_current_location * min_distance * m_current_zoom);
-		m_camera->look_at({0.f, 0.f, 0.f});
+			m_camera->location(m_current_location * min_distance * m_current_zoom);
+			m_camera->look_at({0.f, 0.f, 0.f});
+		}
+		return *this;
+	}
+
+	ImGuiStaticMeshPreview& ImGuiStaticMeshPreview::mesh(StaticMeshActor* actor)
+	{
+		m_mesh = actor;
 		return *this;
 	}
 

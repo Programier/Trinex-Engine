@@ -97,6 +97,7 @@ namespace Engine
 
 			m_actor = instance_cast<StaticMeshActor>(m_world->spawn_actor(StaticMeshActor::static_reflection()));
 			m_actor->mesh_component()->mesh(mesh);
+			m_viewport->mesh(m_actor);
 		}
 
 		return *this;

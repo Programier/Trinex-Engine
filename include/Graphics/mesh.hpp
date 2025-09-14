@@ -32,7 +32,6 @@ namespace Engine
 			Vector<ColorVertexBuffer> colors;
 			Vector<NormalVertexBuffer> normals;
 			Vector<TangentVertexBuffer> tangents;
-			Vector<BitangentVertexBuffer> bitangents;
 
 			IndexBuffer indices;
 			Vector<MeshSurface> surfaces;
@@ -43,7 +42,6 @@ namespace Engine
 			ColorVertexBuffer* find_color_buffer(Index index);
 			NormalVertexBuffer* find_normal_buffer(Index index);
 			TangentVertexBuffer* find_tangent_buffer(Index index);
-			BitangentVertexBuffer* find_bitangent_buffer(Index index);
 
 		public:
 			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0);
@@ -56,7 +54,6 @@ namespace Engine
 		Box3f bounds;
 		Vector<LOD> lods;
 
-		StaticMesh();
 		StaticMesh& init_render_resources();
 		StaticMesh& apply_changes() override;
 		bool serialize(Archive& ar) override;
@@ -68,14 +65,44 @@ namespace Engine
 		trinex_declare_class(SkeletalMesh, Object);
 
 	public:
-		struct ENGINE_EXPORT RenderData {
-		};
-
 		struct ENGINE_EXPORT LOD {
-			RenderData render_data;
-			Pointer<MaterialInterface> material;
+			trinex_declare_struct(LOD, void);
+
+			Vector<PositionVertexBuffer> positions;
+			Vector<TexCoordVertexBuffer> tex_coords;
+			Vector<ColorVertexBuffer> colors;
+			Vector<NormalVertexBuffer> normals;
+			Vector<TangentVertexBuffer> tangents;
+			Vector<BlendWeightVertexBuffer> blend_weights;
+			Vector<BlendIndicesVertexBuffer> blend_indices;
+
+			IndexBuffer indices;
+			Vector<MeshSurface> surfaces;
+
+		private:
+			VertexBufferBase* find_position_buffer(Index index);
+			VertexBufferBase* find_tex_coord_buffer(Index index);
+			VertexBufferBase* find_color_buffer(Index index);
+			VertexBufferBase* find_normal_buffer(Index index);
+			VertexBufferBase* find_tangent_buffer(Index index);
+			VertexBufferBase* find_blend_weights_buffer(Index index);
+			VertexBufferBase* find_blend_indices_buffer(Index index);
+
+		public:
+			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0);
+			size_t vertex_count() const;
+			size_t indices_count() const;
+			bool serialize(Archive& ar);
 		};
 
+		Vector<MaterialInterface*> materials;
+		Box3f bounds = {};
 		Vector<LOD> lods;
+		uint32_t bones = 0;
+
+		SkeletalMesh& init_render_resources();
+		SkeletalMesh& apply_changes() override;
+		bool serialize(Archive& ar) override;
+		SkeletalMesh& postload() override;
 	};
 }// namespace Engine

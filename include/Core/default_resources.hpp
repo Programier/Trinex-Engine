@@ -39,6 +39,8 @@ namespace Engine
 			ENGINE_EXPORT extern StaticMesh* cube;
 			ENGINE_EXPORT extern StaticMesh* sphere;
 			ENGINE_EXPORT extern StaticMesh* cylinder;
+			ENGINE_EXPORT extern StaticMesh* plane;
+			ENGINE_EXPORT extern StaticMesh* cone;
 		}// namespace Meshes
 
 	}// namespace DefaultResources

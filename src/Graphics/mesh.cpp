@@ -31,7 +31,16 @@ namespace Engine
 		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");
 	}
 
-	trinex_implement_engine_class_default_init(SkeletalMesh, 0);
+	trinex_implement_struct(Engine::SkeletalMesh::LOD, 0)
+	{
+		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+	}
+
+	trinex_implement_engine_class(SkeletalMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
+	{
+		trinex_refl_prop(materials)->tooltip("Array of materials for this mesh");
+		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");
+	}
 
 	bool MeshSurface::serialize(Archive& ar)
 	{
@@ -63,13 +72,6 @@ namespace Engine
 		return tangents.size() <= index ? nullptr : &tangents[index];
 	}
 
-	BitangentVertexBuffer* StaticMesh::LOD::find_bitangent_buffer(Index index)
-	{
-		return bitangents.size() <= index ? nullptr : &bitangents[index];
-	}
-
-	StaticMesh::StaticMesh() : materials({DefaultResources::Materials::base_pass}) {}
-
 	StaticMesh& StaticMesh::init_render_resources()
 	{
 		for (auto& lod : lods)
@@ -79,7 +81,6 @@ namespace Engine
 			for (auto& color : lod.colors) color.init();
 			for (auto& normal : lod.normals) normal.init();
 			for (auto& tangent : lod.tangents) tangent.init();
-			for (auto& bitangent : lod.bitangents) bitangent.init();
 			lod.indices.init();
 		}
 
@@ -123,7 +124,6 @@ namespace Engine
 		serialize_buffers(ar, colors);
 		serialize_buffers(ar, normals);
 		serialize_buffers(ar, tangents);
-		serialize_buffers(ar, bitangents);
 		indices.serialize(ar);
 		return ar.serialize(surfaces);
 	}
@@ -152,21 +152,18 @@ namespace Engine
 
 	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(RHIVertexSemantic semantic, Index index)
 	{
-		Index semantic_index = static_cast<Index>(semantic);
-		if (semantic_index > static_cast<Index>(RHIVertexSemantic::Bitangent))
-		{
-			return nullptr;
-		}
-
 		using Func = VertexBufferBase* (*) (LOD * lod, size_t);
 
-		static Func funcs[6] = {
+		static Func funcs[9] = {
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_position_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tex_coord_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_color_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_normal_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tangent_buffer(index); }),
-		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_bitangent_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
 		};
 
 		return funcs[semantic](this, index);
@@ -186,5 +183,138 @@ namespace Engine
 	size_t StaticMesh::LOD::indices_count() const
 	{
 		return indices.indices_count();
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_position_buffer(Index index)
+	{
+		return positions.size() <= index ? nullptr : &positions[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_tex_coord_buffer(Index index)
+	{
+		return tex_coords.size() <= index ? nullptr : &tex_coords[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_color_buffer(Index index)
+	{
+		return colors.size() <= index ? nullptr : &colors[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_normal_buffer(Index index)
+	{
+		return normals.size() <= index ? nullptr : &normals[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_tangent_buffer(Index index)
+	{
+		return tangents.size() <= index ? nullptr : &tangents[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_blend_weights_buffer(Index index)
+	{
+		return blend_weights.size() <= index ? nullptr : &blend_weights[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_blend_indices_buffer(Index index)
+	{
+		return blend_indices.size() <= index ? nullptr : &blend_indices[index];
+	}
+
+	VertexBufferBase* SkeletalMesh::LOD::find_vertex_buffer(RHIVertexSemantic semantic, Index index)
+	{
+		using Func = VertexBufferBase* (*) (LOD * lod, size_t);
+
+		static Func funcs[9] = {
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_position_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_tex_coord_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_color_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_normal_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_tangent_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_blend_weights_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_blend_indices_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
+		};
+
+		return funcs[semantic](this, index);
+	}
+
+	size_t SkeletalMesh::LOD::vertex_count() const
+	{
+		for (auto& buffer : positions)
+		{
+			auto size = buffer.size();
+			if (size > 0)
+				return size;
+		}
+		return 0;
+	}
+
+	size_t SkeletalMesh::LOD::indices_count() const
+	{
+		return indices.indices_count();
+	}
+
+	bool SkeletalMesh::LOD::serialize(Archive& ar)
+	{
+		serialize_buffers(ar, positions);
+		serialize_buffers(ar, tex_coords);
+		serialize_buffers(ar, colors);
+		serialize_buffers(ar, normals);
+		serialize_buffers(ar, tangents);
+		serialize_buffers(ar, blend_weights);
+		serialize_buffers(ar, blend_indices);
+		indices.serialize(ar);
+		return ar.serialize(surfaces);
+	}
+
+	SkeletalMesh& SkeletalMesh::init_render_resources()
+	{
+		for (auto& lod : lods)
+		{
+			for (auto& position : lod.positions) position.init();
+			for (auto& coord : lod.tex_coords) coord.init();
+			for (auto& color : lod.colors) color.init();
+			for (auto& normal : lod.normals) normal.init();
+			for (auto& tangent : lod.tangents) tangent.init();
+			for (auto& blend_weights : lod.blend_weights) blend_weights.init();
+			for (auto& blend_indices : lod.blend_indices) blend_indices.init();
+			lod.indices.init();
+		}
+
+		return *this;
+	}
+
+	SkeletalMesh& SkeletalMesh::apply_changes()
+	{
+		return init_render_resources();
+	}
+
+	bool SkeletalMesh::serialize(Archive& ar)
+	{
+		if (!Super::serialize(ar))
+			return false;
+
+		ar.serialize(bounds);
+
+		size_t lods_count = lods.size();
+		ar.serialize(lods_count);
+
+		if (ar.is_reading())
+		{
+			lods.resize(lods_count);
+		}
+
+		for (auto& lod : lods)
+		{
+			lod.serialize(ar);
+		}
+
+		return ar.serialize(bones);
+	}
+
+	SkeletalMesh& SkeletalMesh::postload()
+	{
+		return init_render_resources();
 	}
 }// namespace Engine

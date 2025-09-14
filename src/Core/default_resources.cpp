@@ -38,6 +38,8 @@ namespace Engine
 			ENGINE_EXPORT StaticMesh* cube     = nullptr;
 			ENGINE_EXPORT StaticMesh* sphere   = nullptr;
 			ENGINE_EXPORT StaticMesh* cylinder = nullptr;
+			ENGINE_EXPORT StaticMesh* plane    = nullptr;
+			ENGINE_EXPORT StaticMesh* cone     = nullptr;
 		}// namespace Meshes
 
 	}// namespace DefaultResources
@@ -167,6 +169,8 @@ namespace Engine
 		Meshes::cube         = load_object<StaticMesh>("TrinexEngine::Meshes::Cube");
 		Meshes::sphere       = load_object<StaticMesh>("TrinexEngine::Meshes::Sphere");
 		Meshes::cylinder     = load_object<StaticMesh>("TrinexEngine::Meshes::Cylinder");
+		Meshes::plane        = load_object<StaticMesh>("TrinexEngine::Meshes::Plane");
+		Meshes::cone         = load_object<StaticMesh>("TrinexEngine::Meshes::Cone");
 
 		Buffers::screen_quad = allocate<PositionVertexBuffer>(std::initializer_list<Vector3f>{
 		        Vector3f{-1.f, -1.f, 0.0f},

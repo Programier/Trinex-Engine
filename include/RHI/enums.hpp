@@ -235,7 +235,7 @@ namespace Engine
 		trinex_enum_struct(RHIVertexSemantic);
 	};
 
-	struct RHIVertexBufferElementType {
+	struct RHIVertexFormat {
 		enum Enum : byte
 		{
 			Undefined = 0,
@@ -288,7 +288,7 @@ namespace Engine
 			UInt4 = 36,
 		};
 
-		trinex_enum_struct(RHIVertexBufferElementType);
+		trinex_enum_struct(RHIVertexFormat);
 	};
 
 	struct RHISamplerFilter {

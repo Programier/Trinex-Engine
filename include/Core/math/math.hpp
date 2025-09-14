@@ -34,6 +34,7 @@ namespace Engine::Math
 	using glm::floor;
 	using glm::fract;
 	using glm::log;
+	using glm::log2;
 	using glm::mod;
 	using glm::pow;
 	using glm::radians;

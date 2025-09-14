@@ -29,10 +29,40 @@ namespace Engine
 	using Vector3i = VectorNT<3, int32_t>;
 	using Vector4i = VectorNT<4, int32_t>;
 
+	using Vector1i32 = VectorNT<1, int32_t>;
+	using Vector2i32 = VectorNT<2, int32_t>;
+	using Vector3i32 = VectorNT<3, int32_t>;
+	using Vector4i32 = VectorNT<4, int32_t>;
+
+	using Vector1i16 = VectorNT<1, int16_t>;
+	using Vector2i16 = VectorNT<2, int16_t>;
+	using Vector3i16 = VectorNT<3, int16_t>;
+	using Vector4i16 = VectorNT<4, int16_t>;
+
+	using Vector1i8 = VectorNT<1, int8_t>;
+	using Vector2i8 = VectorNT<2, int8_t>;
+	using Vector3i8 = VectorNT<3, int8_t>;
+	using Vector4i8 = VectorNT<4, int8_t>;
+
 	using Vector1u = VectorNT<1, uint32_t>;
 	using Vector2u = VectorNT<2, uint32_t>;
 	using Vector3u = VectorNT<3, uint32_t>;
 	using Vector4u = VectorNT<4, uint32_t>;
+
+	using Vector1u32 = VectorNT<1, uint32_t>;
+	using Vector2u32 = VectorNT<2, uint32_t>;
+	using Vector3u32 = VectorNT<3, uint32_t>;
+	using Vector4u32 = VectorNT<4, uint32_t>;
+
+	using Vector1u16 = VectorNT<1, uint16_t>;
+	using Vector2u16 = VectorNT<2, uint16_t>;
+	using Vector3u16 = VectorNT<3, uint16_t>;
+	using Vector4u16 = VectorNT<4, uint16_t>;
+
+	using Vector1u8 = VectorNT<1, uint8_t>;
+	using Vector2u8 = VectorNT<2, uint8_t>;
+	using Vector3u8 = VectorNT<3, uint8_t>;
+	using Vector4u8 = VectorNT<4, uint8_t>;
 
 	using Matrix4f = MatrixNT<4, float_t>;
 	using Matrix3f = MatrixNT<3, float_t>;

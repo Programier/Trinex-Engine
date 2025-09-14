@@ -15,8 +15,7 @@ namespace Engine
 
 	bool RHIVertexAttribute::serialize(Archive& ar)
 	{
-		ar.serialize(name);
-		ar.serialize(type);
+		ar.serialize(format);
 		ar.serialize(semantic);
 		ar.serialize(semantic_index);
 		return ar.serialize(binding);

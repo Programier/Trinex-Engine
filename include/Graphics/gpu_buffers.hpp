@@ -100,8 +100,9 @@ namespace Engine
 	class TexCoordVertexBuffer  : public VertexBuffer<Vector2f>	 { using VertexBuffer::VertexBuffer; };
 	class ColorVertexBuffer     : public VertexBuffer<Color> { using VertexBuffer::VertexBuffer; };
 	class NormalVertexBuffer    : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
-	class TangentVertexBuffer   : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
-	class BitangentVertexBuffer : public VertexBuffer<Vector3f>  { using VertexBuffer::VertexBuffer; };
+	class TangentVertexBuffer   : public VertexBuffer<Vector4f>  { using VertexBuffer::VertexBuffer; };
+	class BlendWeightVertexBuffer  : public VertexBuffer<Vector4f>  { using VertexBuffer::VertexBuffer; };
+	class BlendIndicesVertexBuffer : public VertexBuffer<Vector4u16>  { using VertexBuffer::VertexBuffer; };
 	// clang-format on
 
 

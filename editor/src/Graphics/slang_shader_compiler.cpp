@@ -237,10 +237,10 @@ namespace Engine
 			}
 		}
 
-		static RHIVertexBufferElementType find_vertex_element_type(slang::TypeLayoutReflection* var, RHIVertexSemantic semantic)
+		static RHIVertexFormat find_vertex_element_type(slang::TypeLayoutReflection* var, RHIVertexSemantic semantic)
 		{
 			if (var == nullptr)
-				return RHIVertexBufferElementType::Undefined;
+				return RHIVertexFormat::Undefined;
 
 			auto kind = var->getKind();
 
@@ -248,14 +248,14 @@ namespace Engine
 			{
 				switch (var->getScalarType())
 				{
-					case slang::TypeReflection::ScalarType::Int8: return RHIVertexBufferElementType::Byte1;
-					case slang::TypeReflection::ScalarType::UInt8: return RHIVertexBufferElementType::UByte1;
-					case slang::TypeReflection::ScalarType::Int16: return RHIVertexBufferElementType::Short1;
-					case slang::TypeReflection::ScalarType::UInt16: return RHIVertexBufferElementType::UShort1;
-					case slang::TypeReflection::ScalarType::Int32: return RHIVertexBufferElementType::Int1;
-					case slang::TypeReflection::ScalarType::UInt32: return RHIVertexBufferElementType::UInt1;
-					case slang::TypeReflection::ScalarType::Float32: return RHIVertexBufferElementType::Float1;
-					default: return RHIVertexBufferElementType::Undefined;
+					case slang::TypeReflection::ScalarType::Int8: return RHIVertexFormat::Byte1;
+					case slang::TypeReflection::ScalarType::UInt8: return RHIVertexFormat::UByte1;
+					case slang::TypeReflection::ScalarType::Int16: return RHIVertexFormat::Short1;
+					case slang::TypeReflection::ScalarType::UInt16: return RHIVertexFormat::UShort1;
+					case slang::TypeReflection::ScalarType::Int32: return RHIVertexFormat::Int1;
+					case slang::TypeReflection::ScalarType::UInt32: return RHIVertexFormat::UInt1;
+					case slang::TypeReflection::ScalarType::Float32: return RHIVertexFormat::Float1;
+					default: return RHIVertexFormat::Undefined;
 				}
 			}
 			else if (kind == slang::TypeReflection::Kind::Vector)
@@ -264,23 +264,23 @@ namespace Engine
 				auto components_offset = var->getElementCount() - 1;
 
 				if (components_offset > 3)
-					return RHIVertexBufferElementType::Undefined;
+					return RHIVertexFormat::Undefined;
 
-				if (components_offset == 3 && !is_in<RHIVertexBufferElementType::Float1, RHIVertexBufferElementType::Int1,
-				                                     RHIVertexBufferElementType::UInt1>(base_type))
+				if (components_offset == 3 &&
+				    !is_in<RHIVertexFormat::Float1, RHIVertexFormat::Int1, RHIVertexFormat::UInt1>(base_type))
 				{
 					--components_offset;
 				}
 
-				RHIVertexBufferElementType result(
-				        static_cast<RHIVertexBufferElementType::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
+				RHIVertexFormat result(
+				        static_cast<RHIVertexFormat::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
 
-				if (semantic == RHIVertexSemantic::Color && result == RHIVertexBufferElementType::Float4)
-					return RHIVertexBufferElementType::Color;
+				if (semantic == RHIVertexSemantic::Color && result == RHIVertexFormat::Float4)
+					return RHIVertexFormat::Color;
 				return result;
 			}
 
-			return RHIVertexBufferElementType::Undefined;
+			return RHIVertexFormat::Undefined;
 		}
 
 		inline bool is_variable_used(const VarTraceEntry& var, byte index)
@@ -308,7 +308,7 @@ namespace Engine
 			return false;
 		}
 
-		bool parse_vertex_semantic(const VarTraceEntry& var)
+		bool parse_vertex_attribute(const VarTraceEntry& var)
 		{
 			auto category = var.category();
 
@@ -324,7 +324,7 @@ namespace Engine
 				{
 					VarTraceEntry field(layout->getFieldByIndex(field_index), &var);
 
-					if (!parse_vertex_semantic(field))
+					if (!parse_vertex_attribute(field))
 					{
 						return false;
 					}
@@ -347,21 +347,21 @@ namespace Engine
 					return false;
 				}
 
-				if (is_not_in<RHIVertexSemantic::Position, //
-				              RHIVertexSemantic::TexCoord, //
-				              RHIVertexSemantic::Color,    //
-				              RHIVertexSemantic::Normal,   //
-				              RHIVertexSemantic::Tangent,  //
-				              RHIVertexSemantic::Bitangent,//
-				              RHIVertexSemantic::BlendWeight>(attribute.semantic))
+				if (is_not_in<RHIVertexSemantic::Position,   //
+				              RHIVertexSemantic::TexCoord,   //
+				              RHIVertexSemantic::Color,      //
+				              RHIVertexSemantic::Normal,     //
+				              RHIVertexSemantic::Tangent,    //
+				              RHIVertexSemantic::Bitangent,  //
+				              RHIVertexSemantic::BlendWeight,//
+				              RHIVertexSemantic::UserData>(attribute.semantic))
 				{
 					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
 					return false;
 				}
 
 				attribute.semantic_index = var->getSemanticIndex();
-				attribute.name           = var.name;
-				attribute.type           = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
+				attribute.format         = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
 				attribute.binding        = var.trace_offset(category);
 
 				m_reflection->vertex_attributes.push_back(attribute);
@@ -655,7 +655,7 @@ namespace Engine
 				uint32_t parameter_count = entry_point->getParameterCount();
 				for (uint32_t i = 0; i < parameter_count; i++)
 				{
-					return_if_false(parse_vertex_semantic(entry_point->getParameterByIndex(i))) false;
+					return_if_false(parse_vertex_attribute(entry_point->getParameterByIndex(i))) false;
 				}
 			}
 

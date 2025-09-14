@@ -419,46 +419,46 @@ namespace Engine::VulkanEnums
 		}
 	}
 
-	static inline vk::Format vertex_format_of(RHIVertexBufferElementType type)
+	static inline vk::Format vertex_format_of(RHIVertexFormat format)
 	{
-		switch (type)
+		switch (format)
 		{
-			case RHIVertexBufferElementType::Float1: return vk::Format::eR32Sfloat;
-			case RHIVertexBufferElementType::Float2: return vk::Format::eR32G32Sfloat;
-			case RHIVertexBufferElementType::Float3: return vk::Format::eR32G32B32Sfloat;
-			case RHIVertexBufferElementType::Float4: return vk::Format::eR32G32B32A32Sfloat;
-			case RHIVertexBufferElementType::Byte1: return vk::Format::eR8Sint;
-			case RHIVertexBufferElementType::Byte2: return vk::Format::eR8G8Sint;
-			case RHIVertexBufferElementType::Byte4: return vk::Format::eR8G8B8A8Sint;
-			case RHIVertexBufferElementType::Byte1N: return vk::Format::eR8Snorm;
-			case RHIVertexBufferElementType::Byte2N: return vk::Format::eR8G8Snorm;
-			case RHIVertexBufferElementType::Byte4N: return vk::Format::eR8G8B8A8Snorm;
-			case RHIVertexBufferElementType::UByte1: return vk::Format::eR8Uint;
-			case RHIVertexBufferElementType::UByte2: return vk::Format::eR8G8Uint;
-			case RHIVertexBufferElementType::UByte4: return vk::Format::eR8G8B8A8Uint;
-			case RHIVertexBufferElementType::UByte1N: return vk::Format::eR8Unorm;
-			case RHIVertexBufferElementType::UByte2N: return vk::Format::eR8G8Unorm;
-			case RHIVertexBufferElementType::UByte4N: return vk::Format::eR8G8B8A8Unorm;
-			case RHIVertexBufferElementType::Short1: return vk::Format::eR16Sint;
-			case RHIVertexBufferElementType::Short2: return vk::Format::eR16G16Sint;
-			case RHIVertexBufferElementType::Short4: return vk::Format::eR16G16B16A16Sint;
-			case RHIVertexBufferElementType::Short1N: return vk::Format::eR16Snorm;
-			case RHIVertexBufferElementType::Short2N: return vk::Format::eR16G16Snorm;
-			case RHIVertexBufferElementType::Short4N: return vk::Format::eR16G16B16A16Snorm;
-			case RHIVertexBufferElementType::UShort1: return vk::Format::eR16Uint;
-			case RHIVertexBufferElementType::UShort2: return vk::Format::eR16G16Uint;
-			case RHIVertexBufferElementType::UShort4: return vk::Format::eR16G16B16A16Uint;
-			case RHIVertexBufferElementType::UShort1N: return vk::Format::eR16Unorm;
-			case RHIVertexBufferElementType::UShort2N: return vk::Format::eR16G16Unorm;
-			case RHIVertexBufferElementType::UShort4N: return vk::Format::eR16G16B16A16Unorm;
-			case RHIVertexBufferElementType::Int1: return vk::Format::eR32Sint;
-			case RHIVertexBufferElementType::Int2: return vk::Format::eR32G32Sint;
-			case RHIVertexBufferElementType::Int3: return vk::Format::eR32G32B32Sint;
-			case RHIVertexBufferElementType::Int4: return vk::Format::eR32G32B32A32Sint;
-			case RHIVertexBufferElementType::UInt1: return vk::Format::eR32Uint;
-			case RHIVertexBufferElementType::UInt2: return vk::Format::eR32G32Uint;
-			case RHIVertexBufferElementType::UInt3: return vk::Format::eR32G32B32Uint;
-			case RHIVertexBufferElementType::UInt4: return vk::Format::eR32G32B32A32Uint;
+			case RHIVertexFormat::Float1: return vk::Format::eR32Sfloat;
+			case RHIVertexFormat::Float2: return vk::Format::eR32G32Sfloat;
+			case RHIVertexFormat::Float3: return vk::Format::eR32G32B32Sfloat;
+			case RHIVertexFormat::Float4: return vk::Format::eR32G32B32A32Sfloat;
+			case RHIVertexFormat::Byte1: return vk::Format::eR8Sint;
+			case RHIVertexFormat::Byte2: return vk::Format::eR8G8Sint;
+			case RHIVertexFormat::Byte4: return vk::Format::eR8G8B8A8Sint;
+			case RHIVertexFormat::Byte1N: return vk::Format::eR8Snorm;
+			case RHIVertexFormat::Byte2N: return vk::Format::eR8G8Snorm;
+			case RHIVertexFormat::Byte4N: return vk::Format::eR8G8B8A8Snorm;
+			case RHIVertexFormat::UByte1: return vk::Format::eR8Uint;
+			case RHIVertexFormat::UByte2: return vk::Format::eR8G8Uint;
+			case RHIVertexFormat::UByte4: return vk::Format::eR8G8B8A8Uint;
+			case RHIVertexFormat::UByte1N: return vk::Format::eR8Unorm;
+			case RHIVertexFormat::UByte2N: return vk::Format::eR8G8Unorm;
+			case RHIVertexFormat::UByte4N: return vk::Format::eR8G8B8A8Unorm;
+			case RHIVertexFormat::Short1: return vk::Format::eR16Sint;
+			case RHIVertexFormat::Short2: return vk::Format::eR16G16Sint;
+			case RHIVertexFormat::Short4: return vk::Format::eR16G16B16A16Sint;
+			case RHIVertexFormat::Short1N: return vk::Format::eR16Snorm;
+			case RHIVertexFormat::Short2N: return vk::Format::eR16G16Snorm;
+			case RHIVertexFormat::Short4N: return vk::Format::eR16G16B16A16Snorm;
+			case RHIVertexFormat::UShort1: return vk::Format::eR16Uint;
+			case RHIVertexFormat::UShort2: return vk::Format::eR16G16Uint;
+			case RHIVertexFormat::UShort4: return vk::Format::eR16G16B16A16Uint;
+			case RHIVertexFormat::UShort1N: return vk::Format::eR16Unorm;
+			case RHIVertexFormat::UShort2N: return vk::Format::eR16G16Unorm;
+			case RHIVertexFormat::UShort4N: return vk::Format::eR16G16B16A16Unorm;
+			case RHIVertexFormat::Int1: return vk::Format::eR32Sint;
+			case RHIVertexFormat::Int2: return vk::Format::eR32G32Sint;
+			case RHIVertexFormat::Int3: return vk::Format::eR32G32B32Sint;
+			case RHIVertexFormat::Int4: return vk::Format::eR32G32B32A32Sint;
+			case RHIVertexFormat::UInt1: return vk::Format::eR32Uint;
+			case RHIVertexFormat::UInt2: return vk::Format::eR32G32Uint;
+			case RHIVertexFormat::UInt3: return vk::Format::eR32G32B32Uint;
+			case RHIVertexFormat::UInt4: return vk::Format::eR32G32B32A32Uint;
 			default: return vk::Format::eUndefined;
 		}
 	}

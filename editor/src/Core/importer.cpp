@@ -97,6 +97,12 @@ namespace Engine::Importer
 			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
 		}
 
+		static inline Vector4f pack_tangent(const Vector3f& N, const Vector3f& T, const Vector3f& B)
+		{
+			float handedness = Math::sign(Math::dot(Math::cross(N, T), B));
+			return Vector4f(T.x, T.y, T.z, handedness);
+		}
+
 		Matrix4f matrix_cast(const aiMatrix4x4& m)
 		{
 			Matrix4f result;
@@ -113,8 +119,8 @@ namespace Engine::Importer
 
 		static inline uint32_t calculate_mip_count(uint32_t width, uint32_t height)
 		{
-			uint32_t dimension = glm::max(width, height);
-			return glm::log2<float>(dimension) + 1;
+			uint32_t dimension = Math::max(width, height);
+			return Math::log2<float>(dimension) + 1;
 		}
 
 		Texture2D* load_texture(StringView path)
@@ -153,8 +159,8 @@ namespace Engine::Importer
 			{
 				auto& mip = mips[i];
 
-				uint_t width  = glm::max<uint32_t>(image.width() / 2, 1);
-				uint_t height = glm::max<uint32_t>(image.height() / 2, 1);
+				uint_t width  = Math::max<uint32_t>(image.width() / 2, 1);
+				uint_t height = Math::max<uint32_t>(image.height() / 2, 1);
 				image.resize({width, height});
 
 				mip.size = {width, height};
@@ -288,8 +294,7 @@ namespace Engine::Importer
 			// clang-format off
 			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
 			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector3f> tangents   = lod.tangents.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector3f> bitangents = lod.bitangents.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector4f> tangents   = lod.tangents.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
 			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
 			IdxBuffer indices(lod.indices.allocate_data(RHIBufferCreateFlags::Static, index_format, faces_count * 3), index_size);
 			// clang-format on
@@ -306,11 +311,16 @@ namespace Engine::Importer
 
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
 				{
-					positions.push_back(vector_cast(transform * Vector4f(vector_from_assimp_vec(mesh->mVertices[i]), 1.f)));
-					normals.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mNormals[i])));
-					tangents.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mTangents[i])));
-					bitangents.push_back(glm::normalize(rotation * vector_from_assimp_vec(mesh->mBitangents[i])));
-					uvs.push_back(vector_from_assimp_vec(texture_coords[i]));
+					Vector3f position  = vector_cast(transform * Vector4f(vector_from_assimp_vec(mesh->mVertices[i]), 1.f));
+					Vector3f normal    = Math::normalize(rotation * vector_from_assimp_vec(mesh->mNormals[i]));
+					Vector3f tangent   = Math::normalize(rotation * vector_from_assimp_vec(mesh->mTangents[i]));
+					Vector3f bitangent = Math::normalize(rotation * vector_from_assimp_vec(mesh->mBitangents[i]));
+					Vector2f uv        = vector_from_assimp_vec(texture_coords[i]);
+
+					positions.push_back(position);
+					normals.push_back(normal);
+					tangents.push_back(pack_tangent(normal, tangent, bitangent));
+					uvs.push_back(uv);
 				}
 
 				for (unsigned int face_index = 0; face_index < mesh->mNumFaces; ++face_index)
