@@ -38,13 +38,20 @@ namespace Engine
 
 	const MaterialBindings::Binding* MaterialBindings::find(const Name& name) const
 	{
-		auto it = std::lower_bound(m_bindings.begin(), m_bindings.end(), name,
-		                           [](const Element& elem, const Name& val) { return elem.first < val; });
+		const MaterialBindings* current = this;
 
-		if (it != m_bindings.end() && name == it->first)
+		do
 		{
-			return &it->second;
-		}
+			auto it = std::lower_bound(m_bindings.begin(), m_bindings.end(), name,
+			                           [](const Element& elem, const Name& val) { return elem.first < val; });
+
+			if (it != m_bindings.end() && name == it->first)
+			{
+				return &it->second;
+			}
+
+			current = current->prev;
+		} while (current);
 
 		return nullptr;
 	}

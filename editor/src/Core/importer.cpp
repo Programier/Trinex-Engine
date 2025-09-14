@@ -123,12 +123,56 @@ namespace Engine::Importer
 			return Math::log2<float>(dimension) + 1;
 		}
 
-		Texture2D* load_texture(StringView path)
+		Texture2D* load_texture(const aiScene* scene, int_t index)
+		{
+			aiTexture* ai_texture = scene->mTextures[index];
+			String name           = Strings::format("Texture {}", static_cast<void*>(ai_texture));
+
+			if (ai_texture->mHeight > 0)
+			{
+				auto texture = Object::new_instance<Texture2D>(name, package);
+
+				texture->format = RHIColorFormat::R8G8B8A8;
+				auto& mip       = texture->mips.emplace_back();
+
+				mip.size = Vector2u(ai_texture->mWidth, ai_texture->mHeight);
+				mip.data.resize(ai_texture->mWidth * ai_texture->mHeight * 4);
+				std::memcpy(mip.data.data(), ai_texture->pcData, mip.data.size());
+
+				texture->init_render_resources();
+				return texture;
+			}
+			else
+			{
+				Image image = Image(ai_texture->pcData, ai_texture->mWidth);
+
+				if (image.is_empty())
+					return DefaultResources::Textures::default_texture;
+
+				auto texture = Object::new_instance<Texture2D>(name, package);
+
+				texture->format = image.format();
+				auto& mip       = texture->mips.emplace_back();
+				mip.size        = image.size();
+				mip.data        = image.buffer();
+				texture->init_render_resources();
+				return texture;
+			}
+		}
+
+		Texture2D* load_texture(const aiScene* scene, StringView path)
 		{
 			Pointer<Texture2D>& texture_ref = textures[path];
 
 			if (texture_ref != nullptr)
 				return texture_ref.ptr();
+
+			if (path.front() == '*')
+			{
+				int_t index = Strings::integer_of(path.data() + 1);
+				texture_ref = load_texture(scene, index);
+				return texture_ref;
+			}
 
 			Path texture_path = dir / path;
 			StringView name   = texture_path.stem();
@@ -204,7 +248,7 @@ namespace Engine::Importer
 
 			if (ai_material->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) == AI_SUCCESS)
 			{
-				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				Texture2D* texture = load_texture(scene, StringView(texture_path.C_Str(), texture_path.length));
 				if (texture)
 				{
 					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
@@ -215,7 +259,7 @@ namespace Engine::Importer
 
 			if (ai_material->GetTexture(aiTextureType_METALNESS, 0, &texture_path) == AI_SUCCESS)
 			{
-				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				Texture2D* texture = load_texture(scene, StringView(texture_path.C_Str(), texture_path.length));
 				if (texture)
 				{
 					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
@@ -226,7 +270,7 @@ namespace Engine::Importer
 
 			if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &roughness_path) == AI_SUCCESS)
 			{
-				Texture2D* texture = load_texture(StringView(roughness_path.C_Str(), roughness_path.length));
+				Texture2D* texture = load_texture(scene, StringView(roughness_path.C_Str(), roughness_path.length));
 				if (texture)
 				{
 					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
@@ -241,7 +285,7 @@ namespace Engine::Importer
 
 			if (ai_material->GetTexture(aiTextureType_NORMALS, 0, &texture_path) == AI_SUCCESS)
 			{
-				Texture2D* texture = load_texture(StringView(texture_path.C_Str(), texture_path.length));
+				Texture2D* texture = load_texture(scene, StringView(texture_path.C_Str(), texture_path.length));
 				if (texture)
 				{
 					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
@@ -256,7 +300,6 @@ namespace Engine::Importer
 
 		StaticMesh* load_static_mesh(const aiScene* scene, const aiNode* node)
 		{
-
 			String name = node->mName.C_Str() ? String(node->mName.C_Str())
 			                                  : Strings::format("Static Mesh {}", static_cast<const void*>(node));
 
@@ -305,7 +348,17 @@ namespace Engine::Importer
 				aiMesh* mesh                  = scene->mMeshes[scene_mesh_index];
 				aiVector3f* texture_coords    = mesh->mTextureCoords[0];
 
-				MeshSurface& surface      = lod.surfaces[mesh_index];
+				MeshSurface& surface = lod.surfaces[mesh_index];
+
+				if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
+					surface.topology = RHIPrimitiveTopology::TriangleList;
+				else if (mesh->mPrimitiveTypes & aiPrimitiveType_LINE)
+					surface.topology = RHIPrimitiveTopology::LineList;
+				else if (mesh->mPrimitiveTypes & aiPrimitiveType_POINT)
+					surface.topology = RHIPrimitiveTopology::PointList;
+				else
+					surface.topology = RHIPrimitiveTopology::TriangleList;
+
 				surface.base_vertex_index = positions.size;
 				surface.first_index       = indices.size;
 
@@ -347,22 +400,13 @@ namespace Engine::Importer
 			return static_mesh;
 		}
 
-		void load_static_meshes(const aiScene* scene, const aiNode* node)
-		{
-			load_static_mesh(scene, node);
-
-			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
-			{
-				auto child = node->mChildren[i];
-				load_static_meshes(scene, child);
-			}
-		}
-
-		void load_static_meshes(const aiScene* scene, const aiNode* node, World* world, const Matrix4f& transform = Matrix4f(1.f))
+		void load_meshes(const aiScene* scene, const aiNode* node, World* world, const Matrix4f& transform = Matrix4f(1.f))
 		{
 			Matrix4f node_transform = transform * matrix_cast(node->mTransformation);
 
-			if (StaticMesh* mesh = load_static_mesh(scene, node))
+			StaticMesh* mesh = load_static_mesh(scene, node);
+
+			if (world && mesh)
 			{
 				StaticMeshActor* actor = world->spawn_actor<StaticMeshActor>();
 				auto component         = actor->mesh_component();
@@ -374,41 +418,25 @@ namespace Engine::Importer
 			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
 			{
 				auto child = node->mChildren[i];
-				load_static_meshes(scene, child, world, node_transform);
+				load_meshes(scene, child, world, node_transform);
 			}
 		}
 
-		void import(const Path& path)
+		void import(const Path& path, World* world = nullptr)
 		{
 			info_log("Importer", "Loading resources from file '%s'", path.c_str());
 
 			Assimp::Importer importer;
 
-			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-			                     aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_GenBoundingBoxes |
-			                     aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_FlipUVs;
-			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
-
-			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-			{
-				error_log("Importer", "Failed to load resource: %s", importer.GetErrorString());
-				return;
-			}
-
-			dir = path.base_path();
-			load_static_meshes(scene, scene->mRootNode);
-			importer.FreeScene();
-		}
-
-		void import(const Path& path, World* world)
-		{
-			info_log("Importer", "Loading resources from file '%s'", path.c_str());
-
-			Assimp::Importer importer;
-
-			unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-			                     aiProcess_GenBoundingBoxes | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords |
+			unsigned int flags = aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights | aiProcess_Triangulate |
+			                     aiProcess_SortByPType | aiProcess_GenUVCoords | aiProcess_FindDegenerates |
+			                     aiProcess_FindInvalidData | aiProcess_GlobalScale | aiProcess_GenBoundingBoxes |
 			                     aiProcess_FlipUVs;
+
+			flags |= aiProcess_FixInfacingNormals | aiProcess_GenSmoothNormals;
+			flags |= aiProcess_CalcTangentSpace;
+			flags |= aiProcess_OptimizeMeshes | aiProcess_ImproveCacheLocality;
+
 			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
 
 			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -418,18 +446,12 @@ namespace Engine::Importer
 			}
 
 			dir = path.base_path();
-			load_static_meshes(scene, scene->mRootNode, world);
+			load_meshes(scene, scene->mRootNode, world);
 			importer.FreeScene();
 		}
 	};
 
-	void import_resource(Package* package, const Path& file, const Transform& transform)
-	{
-		ImporterContext context(package, transform);
-		context.import(file);
-	}
-
-	void import_scene(World* world, Package* package, const Path& file, const Transform& transform)
+	void import_scene(Package* package, const Path& file, World* world, const Transform& transform)
 	{
 		ImporterContext context(package, transform);
 		context.import(file, world);

@@ -11,10 +11,11 @@ namespace Engine
 	struct ENGINE_EXPORT MeshSurface {
 		trinex_declare_struct(MeshSurface, void);
 
-		uint32_t base_vertex_index;
-		uint32_t first_index;
-		uint32_t vertices_count;
-		uint16_t material_index;
+		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
+		uint32_t base_vertex_index    = 0;
+		uint32_t first_index          = 0;
+		uint32_t vertices_count       = 0;
+		uint16_t material_index       = 0;
 
 		bool serialize(Archive& ar);
 	};

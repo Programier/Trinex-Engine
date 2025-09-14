@@ -13,7 +13,6 @@ namespace Engine
 	trinex_implement_engine_enum(RHIBlendFunc, Zero, One, SrcColor, OneMinusSrcColor, DstColor, OneMinusDstColor, SrcAlpha,
 	                             OneMinusSrcAlpha, DstAlpha, OneMinusDstAlpha, BlendFactor, OneMinusBlendFactor);
 	trinex_implement_engine_enum(RHIBlendOp, Add, Subtract, ReverseSubtract, Min, Max);
-	trinex_implement_engine_enum(RHIPrimitive, Triangle, Line, Point);
 	trinex_implement_engine_enum(RHIPrimitiveTopology, TriangleList, PointList, LineList, LineStrip, TriangleStrip);
 	trinex_implement_engine_enum(RHIPolygonMode, Fill, Line, Point);
 	trinex_implement_engine_enum(RHICullMode, None, Front, Back);

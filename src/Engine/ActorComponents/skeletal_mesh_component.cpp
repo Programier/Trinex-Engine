@@ -2,7 +2,10 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/skeletal_mesh_component.hpp>
+#include <Engine/Render/render_pass.hpp>
+#include <Graphics/material_bindings.hpp>
 #include <Graphics/mesh.hpp>
+#include <RHI/handles.hpp>
 #include <ScriptEngine/registrar.hpp>
 
 namespace Engine
@@ -15,6 +18,12 @@ namespace Engine
 		r.method("SkeletalMesh@ mesh() const final", method_of<SkeletalMesh*>(&This::mesh));
 		r.method("SkeletalMeshComponent@ mesh(SkeletalMesh@ mesh) final",
 		         method_of<SkeletalMeshComponent&, SkeletalMesh*>(&This::mesh));
+	}
+
+	SkeletalMeshComponent::Proxy& SkeletalMeshComponent::Proxy::update_mesh(SkeletalMesh* mesh)
+	{
+		m_mesh = mesh;
+		return *this;
 	}
 
 	size_t SkeletalMeshComponent::Proxy::lods_count() const
@@ -56,9 +65,25 @@ namespace Engine
 		return m_mesh ? m_mesh->materials[index] : nullptr;
 	}
 
+	SkeletalMeshComponent::Proxy& SkeletalMeshComponent::Proxy::render(Renderer* renderer, RenderPass* pass,
+	                                                                   const MaterialBindings* bindings)
+	{
+		static MaterialBindings skeletal_bindings;
+		static Name permutation                              = "SkeletalMesh";
+		static MaterialBindings::Binding* trx_skinning_bones = skeletal_bindings.find_or_create("trx_skinning_bones");
+
+		if ((pass = pass->find_permutation(permutation)))
+		{
+			skeletal_bindings.prev = bindings;
+			(*trx_skinning_bones)  = m_bones->as_srv();
+			Super::Proxy::render(renderer, pass, &skeletal_bindings);
+		}
+		return *this;
+	}
+
 	SkeletalMeshComponent& SkeletalMeshComponent::submit_new_mesh()
 	{
-		render_thread()->call([proxy = proxy(), mesh = m_mesh]() { proxy->m_mesh = mesh; });
+		render_thread()->call([proxy = proxy(), mesh = m_mesh]() { proxy->update_mesh(mesh); });
 		update_bounding_box();
 		return *this;
 	}

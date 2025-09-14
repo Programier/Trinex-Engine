@@ -417,7 +417,6 @@ namespace Engine
 			{
 				Package* package = selected_object->package();
 				package->remove_object(selected_object);
-				GarbageCollector::destroy(selected_object);
 				selected_object = nullptr;
 				on_object_select(nullptr);
 				ImGui::CloseCurrentPopup();

@@ -369,18 +369,6 @@ namespace Engine
 		trinex_declare_enum(RHIBlendOp);
 	};
 
-	struct RHIPrimitive {
-		enum Enum : EnumerateType
-		{
-			Triangle = 0,
-			Line     = 1,
-			Point    = 2,
-		};
-
-		trinex_enum_struct(RHIPrimitive);
-		trinex_declare_enum(RHIPrimitive);
-	};
-
 	struct RHIPrimitiveTopology {
 		enum Enum : EnumerateType
 		{

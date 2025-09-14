@@ -104,7 +104,7 @@ namespace Engine
 			{
 				Package* package = m_content_browser->selected_package();
 				window()->widgets.create<ImGuiOpenFile>()->on_select.push(
-				        [package](const Path& path) { Importer::import_resource(package, path); });
+				        [package](const Path& path) { Importer::import_scene(package, path); });
 			}
 
 			if (ImGui::MenuItem("editor/Import scene"_localized, "editor/Import scene from file to world"_localized, false,
@@ -112,7 +112,7 @@ namespace Engine
 			{
 				Package* package = m_content_browser->selected_package();
 				window()->widgets.create<ImGuiOpenFile>()->on_select.push(
-				        [package, world = m_world](const Path& path) { Importer::import_scene(world, package, path); });
+				        [package, world = m_world](const Path& path) { Importer::import_scene(package, path, world); });
 			}
 		});
 

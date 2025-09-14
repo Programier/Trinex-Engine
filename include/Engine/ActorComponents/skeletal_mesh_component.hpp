@@ -5,6 +5,8 @@
 
 namespace Engine
 {
+	class RHIBuffer;
+
 	class ENGINE_EXPORT SkeletalMeshComponent : public MeshComponent
 	{
 		trinex_declare_class(SkeletalMeshComponent, MeshComponent);
@@ -13,6 +15,10 @@ namespace Engine
 		class ENGINE_EXPORT Proxy : public Super::Proxy
 		{
 			class SkeletalMesh* m_mesh;
+			RHIBuffer* m_bones = nullptr;
+
+		private:
+			Proxy& update_mesh(SkeletalMesh* mesh);
 
 		public:
 			size_t lods_count() const override;
@@ -22,6 +28,7 @@ namespace Engine
 			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0, size_t lod = 0) override;
 			IndexBuffer* find_index_buffer(size_t lod = 0) override;
 			MaterialInterface* material(size_t index) const override;
+			Proxy& render(Renderer* renderer, RenderPass* pass, const MaterialBindings* bindings) override;
 
 			friend SkeletalMeshComponent;
 		};

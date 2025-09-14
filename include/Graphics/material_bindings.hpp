@@ -40,6 +40,8 @@ namespace Engine
 		MaterialBindings& sort();
 
 	public:
+		const MaterialBindings* prev = nullptr;
+
 		MaterialBindings()                                       = default;
 		MaterialBindings(const MaterialBindings&)                = default;
 		MaterialBindings& operator=(const MaterialBindings&)     = default;
