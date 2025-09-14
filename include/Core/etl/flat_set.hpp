@@ -1,17 +1,17 @@
 #pragma once
 
+#include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
 #include <algorithm>
-#include <functional>
 
 namespace Engine
 {
-	template<typename T, typename Compare = std::less<T>, typename AllocatorType = Allocator<T>>
+	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
 	class FlatSet : protected Vector<T, AllocatorType>
 	{
 	public:
-		using container_type = Vector<T>;
+		using container_type = Vector<T, AllocatorType>;
 		using key_type       = T;
 		using key_compare    = Compare;
 		using value_compare  = Compare;

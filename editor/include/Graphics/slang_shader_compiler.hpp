@@ -121,6 +121,7 @@ namespace Engine
 		SLANG_ShaderCompiler();
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
+		virtual bool submit_result(ShaderCompilationResult& result);
 		bool compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result) override;
 
 		inline slang::IModule* load_module(const char* module) { return m_session->loadModule(module); }
@@ -138,8 +139,26 @@ namespace Engine
 	{
 		trinex_declare_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
 
+	private:
+		struct SPIRV {
+			enum Opcodes
+			{
+				OpDecorate = 71,
+				OpVariable = 59,
+			};
+
+			static constexpr uint32_t Decoration_Location = 30;
+			static constexpr uint32_t StorageClass_Input  = 1;
+
+			static inline uint16_t wordcount(uint32_t w) { return static_cast<uint16_t>(w >> 16); }
+			static inline uint16_t opcode(uint32_t w) { return static_cast<uint16_t>(w & 0xFFFF); }
+		};
+
+		static bool strip_vertex_inputs(const uint32_t* spirv, const uint32_t words, Vector<RHIVertexAttribute>& attributes);
+
 	public:
 		void initialize_context(SessionInitializer* session) override;
+		bool submit_result(ShaderCompilationResult& result) override;
 	};
 
 	class D3D12_ShaderCompiler : public SLANG_ShaderCompiler

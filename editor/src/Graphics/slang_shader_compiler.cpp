@@ -1,6 +1,7 @@
 #include <Core/definitions.hpp>
 
 #if !PLATFORM_ANDROID
+#include <Core/etl/flat_set.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
@@ -809,6 +810,11 @@ namespace Engine
 		}
 	}
 
+	bool SLANG_ShaderCompiler::submit_result(ShaderCompilationResult& result)
+	{
+		return true;
+	}
+
 	bool SLANG_ShaderCompiler::compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result)
 	{
 		StackByteAllocator::Mark mark;
@@ -993,12 +999,102 @@ namespace Engine
 				return false;
 		}
 
-		return true;
+		return submit_result(result);
 	}
 
 	void NONE_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		throw EngineException("Something is wrong! Cannot compile shaders for None API!");
+	}
+
+	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const uint32_t* spirv, const uint32_t words,
+	                                                Vector<RHIVertexAttribute>& attributes)
+	{
+		if (words < 5)
+			return false;
+
+		StackByteAllocator::Mark mark;
+
+		FlatSet<uint32_t, Less<uint32_t>, StackAllocator<uint32_t>> inputs;
+		FlatSet<uint32_t, Less<uint32_t>, StackAllocator<uint32_t>> locations;
+		inputs.reserve(attributes.size());
+		locations.reserve(attributes.size());
+
+		// Collect all vertex inputs
+		{
+			size_t i = 5;
+			while (i < words)
+			{
+				uint16_t wc = SPIRV::wordcount(spirv[i]);
+				uint16_t op = SPIRV::opcode(spirv[i]);
+
+				if (wc == 0 || i + wc > words)
+					return false;
+
+				if (op == SPIRV::OpVariable && wc >= 4)
+				{
+					uint32_t target  = spirv[i + 2];
+					uint32_t storage = spirv[i + 3];
+
+					if (storage == SPIRV::StorageClass_Input)
+						inputs.insert(target);
+				}
+
+				i += wc;
+			}
+		}
+
+		if (inputs.empty())
+		{
+			attributes.clear();
+			attributes.shrink_to_fit();
+			return true;
+		}
+
+		// Collect all vertex locations
+		{
+			size_t i = 5;
+			while (i < words && inputs.size() != locations.size())
+			{
+				uint32_t first = spirv[i];
+				uint16_t wc    = SPIRV::wordcount(first);
+				uint16_t op    = SPIRV::opcode(first);
+
+				if (wc == 0 || i + wc > words)
+					return false;
+
+				if (op == SPIRV::OpDecorate)
+				{
+					uint32_t target     = spirv[i + 1];
+					uint32_t decoration = spirv[i + 2];
+
+					if (decoration == SPIRV::Decoration_Location && inputs.contains(target))
+						locations.insert(spirv[i + 3]);
+				}
+
+				i += wc;
+			}
+		}
+
+		{
+			size_t index = 0;
+			size_t count = attributes.size();
+
+			while (index < count)
+			{
+				if (locations.contains(attributes[index].binding))
+				{
+					++index;
+				}
+				else
+				{
+					attributes.erase(attributes.begin() + index);
+					--count;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	void VULKAN_ShaderCompiler::initialize_context(SessionInitializer* session)
@@ -1008,6 +1104,21 @@ namespace Engine
 		session->target_desc.format  = SLANG_SPIRV;
 		session->target_desc.profile = global_session()->findProfile("spirv_1_3");
 		session->add_definition("TRINEX_VULKAN_RHI", "1");
+	}
+
+	bool VULKAN_ShaderCompiler::submit_result(ShaderCompilationResult& result)
+	{
+		bool status = Super::submit_result(result);
+
+		if (status && !result.reflection.vertex_attributes.empty())
+		{
+			const uint32_t* spirv = reinterpret_cast<uint32_t*>(result.shaders.vertex.data());
+			const uint32_t words  = result.shaders.vertex.size() / 4;
+
+			status = strip_vertex_inputs(spirv, words, result.reflection.vertex_attributes);
+		}
+
+		return status;
 	}
 
 	void D3D12_ShaderCompiler::initialize_context(SessionInitializer* session)

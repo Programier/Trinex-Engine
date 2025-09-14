@@ -1,13 +1,12 @@
 #pragma once
+#include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
 #include <algorithm>
-#include <functional>
 
 namespace Engine
 {
-	template<typename Key, typename Value, typename Compare = std::less<Key>,
-	         typename AllocatorType = Allocator<Pair<Key, Value>>>
+	template<typename Key, typename Value, typename Compare = Less<Key>, typename AllocatorType = Allocator<Pair<Key, Value>>>
 	class FlatMap : private Vector<Pair<Key, Value>, AllocatorType>
 	{
 	public:

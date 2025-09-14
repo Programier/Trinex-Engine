@@ -163,7 +163,6 @@ namespace Engine
 
 	EditorRenderer& EditorRenderer::render_primitives(Actor** actors, size_t count)
 	{
-		Frustum frustum                     = scene_view().projview();
 		FrameVector<LightComponent*> lights = visible_lights();
 
 		for (LightComponent* light : lights)
