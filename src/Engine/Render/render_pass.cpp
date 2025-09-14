@@ -10,6 +10,12 @@ namespace Engine
 	RenderPass* RenderPass::s_head = nullptr;
 	RenderPass* RenderPass::s_tail = nullptr;
 
+	RenderPass::RenderPass(const char* name, RenderPass* owner) : m_name(name)
+	{
+		m_next                = owner->m_permutations;
+		owner->m_permutations = static_cast<RenderPassPermutation*>(this);
+	}
+
 	RenderPass::RenderPass(const char* name) : m_name(name)
 	{
 		s_render_pass_table.insert({name, this});
@@ -50,15 +56,71 @@ namespace Engine
 		return nullptr;
 	}
 
+	String RenderPass::full_name() const
+	{
+		return m_name.to_string();
+	}
+
+	RenderPassPermutation* RenderPass::find_permutation(const Name& name) const
+	{
+		RenderPassPermutation* entry = m_permutations;
+
+		while (entry && entry->name() != name)
+		{
+			entry = static_cast<RenderPassPermutation*>(entry->next());
+		}
+
+		return entry;
+	}
+
 	RenderPass::~RenderPass()
 	{
 		s_render_pass_table.erase(name());
 	}
 
+	RenderPassPermutation::RenderPassPermutation(const char* name, RenderPass* owner) : RenderPass(name, owner), m_owner(owner) {}
+
+	RenderPassPermutation& RenderPassPermutation::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+	{
+		m_owner->modify_shader_compilation_env(env);
+		return *this;
+	}
+
+	String RenderPassPermutation::full_name() const
+	{
+		return name().to_string() + m_owner->full_name();
+	}
+
+	namespace RenderPassPermutations
+	{
+		StaticMesh& StaticMesh::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+		{
+			RenderPassPermutation::modify_shader_compilation_env(env);
+			env->add_module("trinex/vertex_inputs/static_mesh.slang");
+			return *this;
+		}
+
+		SkeletalMesh& SkeletalMesh::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+		{
+			RenderPassPermutation::modify_shader_compilation_env(env);
+			env->add_module("trinex/vertex_inputs/skeletal_mesh.slang");
+			return *this;
+		}
+	}// namespace RenderPassPermutations
+
 	namespace RenderPasses
 	{
-		trinex_implement_render_pass(Depth);
-		trinex_implement_render_pass(Geometry);
+		trinex_implement_render_pass(Depth)
+		{
+			static RenderPassPermutations::StaticMesh static_mesh(this);
+			static RenderPassPermutations::SkeletalMesh skeletal_mesh(this);
+		}
+
+		trinex_implement_render_pass(Geometry)
+		{
+			static RenderPassPermutations::StaticMesh static_mesh(this);
+			static RenderPassPermutations::SkeletalMesh skeletal_mesh(this);
+		}
 
 		Depth& Depth::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
 		{

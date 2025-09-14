@@ -2,6 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Graphics/mesh.hpp>
 #include <ScriptEngine/registrar.hpp>
 
@@ -53,6 +54,19 @@ namespace Engine
 			return material;
 
 		return m_mesh ? m_mesh->materials[index] : nullptr;
+	}
+
+	StaticMeshComponent::Proxy& StaticMeshComponent::Proxy::render(Renderer* renderer, RenderPass* pass,
+	                                                               const MaterialBindings* bindings)
+	{
+		static Name permutation = "StaticMesh";
+
+		if ((pass = pass->find_permutation(permutation)))
+		{
+			Super::Proxy::render(renderer, pass, bindings);
+		}
+
+		return *this;
 	}
 
 	StaticMeshComponent& StaticMeshComponent::submit_new_mesh()

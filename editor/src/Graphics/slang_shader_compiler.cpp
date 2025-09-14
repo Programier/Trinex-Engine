@@ -348,13 +348,14 @@ namespace Engine
 					return false;
 				}
 
-				if (is_not_in<RHIVertexSemantic::Position,   //
-				              RHIVertexSemantic::TexCoord,   //
-				              RHIVertexSemantic::Color,      //
-				              RHIVertexSemantic::Normal,     //
-				              RHIVertexSemantic::Tangent,    //
-				              RHIVertexSemantic::Bitangent,  //
-				              RHIVertexSemantic::BlendWeight,//
+				if (is_not_in<RHIVertexSemantic::Position,    //
+				              RHIVertexSemantic::TexCoord,    //
+				              RHIVertexSemantic::Color,       //
+				              RHIVertexSemantic::Normal,      //
+				              RHIVertexSemantic::Tangent,     //
+				              RHIVertexSemantic::Bitangent,   //
+				              RHIVertexSemantic::BlendWeight, //
+				              RHIVertexSemantic::BlendIndices,//
 				              RHIVertexSemantic::UserData>(attribute.semantic))
 				{
 					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());

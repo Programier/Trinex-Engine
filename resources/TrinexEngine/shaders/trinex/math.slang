@@ -126,4 +126,10 @@ namespace Math
 	{
 		return depth_bias + slope_scale * max(dot(normal, direction), 0.0);
 	}
+
+	[ForceInline]
+	static float3 perspective_divide(float4 position)
+	{
+		return position.xyz / position.w;
+    }
 }

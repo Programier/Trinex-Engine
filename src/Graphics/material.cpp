@@ -294,7 +294,7 @@ namespace Engine
 			remove_pipeline(pass);
 		}
 
-		Name name = pass ? pass->name() : "Default";
+		String name = pass->full_name();
 
 		if (!pipeline->rename(name, this))
 			return false;
@@ -363,7 +363,7 @@ namespace Engine
 			uint_t count         = 0;
 			String material_name = full_name();
 
-			for (auto pass = RenderPass::static_first_pass(); pass; pass = pass->next_pass())
+			for (auto pass = RenderPass::static_first_pass(); pass; pass = pass->next())
 			{
 				if (pass->is_material_compatible(this) && pipeline(pass) == nullptr)
 				{
@@ -454,26 +454,26 @@ namespace Engine
 		{
 			for (auto& [pass, pipeline] : m_pipelines)
 			{
-				Name name = pass->name();
+				String name = pass->full_name();
 				archive.serialize(name);
 				pipeline->serialize(archive, this);
 			}
 		}
 		else
 		{
-			while (pipelines_count > 0)
-			{
-				Name name;
-				archive.serialize(name);
+			// while (pipelines_count > 0)
+			// {
+			// 	Name name;
+			// 	archive.serialize(name);
 
-				auto pass     = RenderPass::static_find(name);
-				auto pipeline = new_instance<GraphicsPipeline>();
+			// 	auto pass     = RenderPass::static_find(name);
+			// 	auto pipeline = new_instance<GraphicsPipeline>();
 
-				add_pipeline(pass, pipeline);
-				pipeline->serialize(archive, this);
-				register_pipeline_parameters(pipeline);
-				--pipelines_count;
-			}
+			// 	add_pipeline(pass, pipeline);
+			// 	pipeline->serialize(archive, this);
+			// 	register_pipeline_parameters(pipeline);
+			// 	--pipelines_count;
+			// }
 		}
 
 		return archive;
@@ -524,12 +524,27 @@ namespace Engine
 
 	bool Material::compile_pass(ShaderCompiler* compiler, RenderPass* pass, const String& source)
 	{
+		if (RenderPass* permutation = pass->permutations())
+		{
+			bool status = true;
+
+			do
+			{
+				bool current_status = compile_pass(compiler, permutation, source);
+				status              = current_status && status;
+				permutation         = permutation->next();
+			} while (permutation);
+
+			return status;
+		}
+
 		Pointer<GraphicsPipeline> pipeline = remove_pipeline(pass);
 		const bool new_pipeline            = pipeline == nullptr;
 
 		if (new_pipeline)
 		{
-			pipeline = new_instance<GraphicsPipeline>(pass->name());
+			String name = pass->full_name();
+			pipeline    = new_instance<GraphicsPipeline>(name);
 		}
 		else
 		{
@@ -580,7 +595,7 @@ namespace Engine
 
 			bool success = true;
 
-			for (auto pass = RenderPass::static_first_pass(); pass && success; pass = pass->next_pass())
+			for (auto pass = RenderPass::static_first_pass(); pass && success; pass = pass->next())
 			{
 				if (pass->is_material_compatible(this))
 				{

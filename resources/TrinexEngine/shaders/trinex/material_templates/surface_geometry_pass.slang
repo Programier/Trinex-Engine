@@ -6,20 +6,7 @@ import "trinex/vertex_input.slang";
 
 extern Material main<Material : IMaterial>(in IMaterialInput input);
 
-extern struct VertexInput : IVertexInput
-{
-	float3 m_position : POSITION;
-	float3 m_normal : NORMAL;
-	float3 m_tangent : TANGENT;
-	float2 m_uv0 : TEXCOORD0;
-
-	property float3 position { [ForceInline] get { return m_position; } }
-	property float3 normal { [ForceInline] get { return m_normal; } }
-	property float4 tangent { [ForceInline] get { return float4(m_tangent, 1.0); } }
-	property float2 uv0 { [ForceInline] get { return m_uv0; } }
-	property float2 uv1 { [ForceInline] get { return 0; } }
-	property float4 color { [ForceInline] get { return 0; } }
-}
+extern struct VertexInput : IVertexInput;
 
 struct GeometryUniforms 
 {
@@ -39,7 +26,7 @@ struct GeometryFragmentOutput
 
 struct VertexOutput
 {
-	VertexInput vertex_input;
+	GeometryVertexInput vertex_input;
 	float4 sv_position : SV_Position;
 	float3 world_position : WORLD_POSITION;
 	float3x3 TBN : TBN;
@@ -49,7 +36,8 @@ struct VertexOutput
 VertexOutput vertex_main(in VertexInput vs_input)
 {
 	VertexOutput output;
-	output.vertex_input   = vs_input;
+	vs_input.vertex_input_main(output.vertex_input);
+
 	output.world_position = (uniforms.local_to_world * float4(vs_input.position, 1.0f)).xyz;
 
 	float3x3 rotation     = transpose(Math::inverse((float3x3) uniforms.local_to_world));
@@ -61,7 +49,7 @@ VertexOutput vertex_main(in VertexInput vs_input)
 
 	struct MaterialInput : IMaterialInput
 	{
-		property IVertexInput vertex { [ForceInline] get { return vs_input; } }
+		property IVertexInput vertex { [ForceInline] get { return output.vertex_input; } }
 		property float3 world_position { [ForceInline] get { return output.world_position; } }
 		property float4x4 local_to_world { [ForceInline] get { return uniforms.local_to_world; } }
 		property float3x3 TBN { [ForceInline] get { return output.TBN; } }

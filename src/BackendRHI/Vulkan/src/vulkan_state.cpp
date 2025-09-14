@@ -342,25 +342,7 @@ namespace Engine
 				vb_desc->inputRate = vs_state.rate;
 				++vb_desc;
 
-				while (va_index < count && va_desc[va_index] == stream) ++va_index;
-			}
-		}
-
-		// Link vertex attributes to vertex binding
-		{
-			uint32_t binding   = va_desc[0].binding;
-			uint32_t link      = 0;
-			va_desc[0].binding = link;
-
-			for (size_t i = 1; i < count; ++i)
-			{
-				if (va_desc[i].binding != binding)
-				{
-					binding = va_desc[i].binding;
-					++link;
-				}
-
-				va_desc[i].binding = link;
+				while (va_index < count && va_desc[va_index].binding == stream) ++va_index;
 			}
 		}
 
