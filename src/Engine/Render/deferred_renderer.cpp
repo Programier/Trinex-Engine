@@ -565,11 +565,13 @@ namespace Engine
 			if (!m_visible_lights.empty())
 			{
 				LightRenderParameters* parameters = StackAllocator<LightRenderParameters>::allocate(m_visible_lights.size());
-				LightRenderParameters* current    = parameters;
-
-				for (LightComponent* light : m_visible_lights)
 				{
-					light->proxy()->render_parameters(*current);
+					LightRenderParameters* current = parameters;
+
+					for (LightComponent* light : m_visible_lights)
+					{
+						light->proxy()->render_parameters(*(current++));
+					}
 				}
 
 				// Update shadow buffer address for each light

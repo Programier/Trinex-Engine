@@ -1,5 +1,5 @@
 
-// 552 bytes
+// 576 bytes
 struct Cluster
 {
 	static const uint s_lights_per_cluster = 128;

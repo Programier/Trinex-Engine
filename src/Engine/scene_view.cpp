@@ -5,22 +5,9 @@ namespace Engine
 {
 	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
 
-	SceneView::SceneView(const CameraView& view, const Vector2f& view_size, ShowFlags show_flags)
-	    : m_camera_view(view),                                            //
-	      m_projection(view.projection_matrix(view_size.x / view_size.y)),//
-	      m_view(view.view_matrix()),                                     //
-	      m_show_flags(show_flags)
-	{
-		m_viewport.pos       = {0, 0};
-		m_viewport.size      = view_size;
-		m_viewport.min_depth = 0.f;
-		m_viewport.max_depth = 1.f;
-		m_scissor.pos        = {0, 0};
-		m_scissor.size       = view_size;
-
-		m_projview     = m_projection * m_view;
-		m_inv_projview = Math::inverse(m_projview);
-	}
+	SceneView::SceneView(const CameraView& view, const Vector2u& view_size, ShowFlags show_flags)
+	    : SceneView(view, RHIViewport(view_size), RHIScissors(view_size), show_flags)
+	{}
 
 	SceneView::SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissors& scissor, ShowFlags show_flags)
 	    : m_camera_view(view),                                    //

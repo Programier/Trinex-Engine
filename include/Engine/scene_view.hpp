@@ -19,7 +19,7 @@ namespace Engine
 
 	public:
 		SceneView(ShowFlags show_flags = ShowFlags::DefaultFlags);
-		SceneView(const CameraView& view, const Vector2f& view_size, ShowFlags show_flags = ShowFlags::DefaultFlags);
+		SceneView(const CameraView& view, const Vector2u& view_size, ShowFlags show_flags = ShowFlags::DefaultFlags);
 		SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissors& scissor,
 		          ShowFlags show_flags = ShowFlags::DefaultFlags);
 		copy_constructors_hpp(SceneView);

@@ -37,7 +37,7 @@ void compute_main(uint3 cluster_id: SV_GroupID)
 	float3 max_point_near = intersection(max_tile, slice_near);
 	float3 max_point_far  = intersection(max_tile, slice_far);
 
-	uint cluster_index = uint(cluster.x + (cluster.y * Cluster::s_grid_size.x) + (cluster.z * Cluster::s_grid_size.x * Cluster::s_grid_size.y));
+	uint cluster_index = cluster_id.x + cluster_id.y * uint(Cluster::s_grid_size.x) + cluster_id.z * uint(Cluster::s_grid_size.x) * uint(Cluster::s_grid_size.y);
 
 	clusters[cluster_index].min = float4(min(min(min_point_near, min_point_far), min(max_point_near, max_point_far)), 0.f);
 	clusters[cluster_index].max = float4(max(max(min_point_near, min_point_far), max(max_point_near, max_point_far)), 0.f);

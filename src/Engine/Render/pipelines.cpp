@@ -288,7 +288,7 @@ namespace Engine::Pipelines
 
 	RHIBuffer* ClusterInitialize::create_clusters_buffer()
 	{
-		static constexpr size_t cluster_size        = 560;
+		static constexpr size_t cluster_size        = 576;
 		static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::UnorderedAccess |
 		                                              RHIBufferCreateFlags::ShaderResource |
 		                                              RHIBufferCreateFlags::StructuredBuffer;
