@@ -18,6 +18,7 @@ namespace Engine
 		uint16_t material_index       = 0;
 
 		bool serialize(Archive& ar);
+		inline bool is_indexed() const { return first_index != ~0U; }
 	};
 
 	class ENGINE_EXPORT StaticMesh : public Object

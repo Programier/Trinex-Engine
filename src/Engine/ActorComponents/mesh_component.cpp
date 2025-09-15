@@ -75,10 +75,17 @@ namespace Engine
 				}
 			}
 
-			if (auto index_buffer = find_index_buffer(lod))
+			if (surface_data->is_indexed())
 			{
-				rhi->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
-				rhi->draw_indexed(surface_data->vertices_count, surface_data->first_index, surface_data->base_vertex_index);
+				if (auto index_buffer = find_index_buffer(lod))
+				{
+					rhi->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
+					rhi->draw_indexed(surface_data->vertices_count, surface_data->first_index, surface_data->base_vertex_index);
+				}
+				else
+				{
+					rhi->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+				}
 			}
 			else
 			{

@@ -34,3 +34,4 @@ endif()
 
 target_link_libraries(TrinexEngine PUBLIC fmt-header-only)
 target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glm-lib)
+target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/json/include)
