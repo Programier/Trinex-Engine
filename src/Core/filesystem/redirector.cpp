@@ -65,17 +65,20 @@ namespace Engine::VFS
 
 	bool Redirector::is_file_exist(const Path& path) const
 	{
-		return false;
+		FileSystem* fs = rootfs()->filesystem_of(m_redirect);
+		return fs->is_file_exist(m_redirect.relative(fs->mount_point()) / path);
 	}
 
 	bool Redirector::is_file(const Path& file) const
 	{
-		return false;
+		FileSystem* fs = rootfs()->filesystem_of(m_redirect);
+		return fs->is_file(m_redirect.relative(fs->mount_point()) / file);
 	}
 
 	bool Redirector::is_dir(const Path& dir) const
 	{
-		return false;
+		FileSystem* fs = rootfs()->filesystem_of(m_redirect);
+		return fs->is_dir(m_redirect.relative(fs->mount_point()) / dir);
 	}
 
 	Redirector::Type Redirector::type() const

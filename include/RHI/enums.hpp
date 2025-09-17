@@ -426,7 +426,6 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIVertexInputRate);
-		trinex_declare_enum(RHIVertexInputRate);
 	};
 
 	struct RHIIndexFormat {
