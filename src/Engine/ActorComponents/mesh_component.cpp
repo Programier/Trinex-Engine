@@ -2,6 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
@@ -40,6 +41,9 @@ namespace Engine
 			MaterialInterface* material_interface = material(surface_data->material_index);
 
 			if (material_interface == nullptr)
+				continue;
+
+			if (!pass->is_material_compatible(material_interface->material()))
 				continue;
 
 			Material* material         = material_interface->material();

@@ -12,8 +12,8 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
 #include <Graphics/shader_compiler.hpp>
-#include <RHI/rhi.hpp>
 #include <RHI/initializers.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Engine
 {
@@ -184,9 +184,15 @@ namespace Engine
 		init_shader(m_geometry_shader);
 		const bool fs_inited = init_shader(m_fragment_shader);
 
-
 		if (vs_inited && fs_inited)
 		{
+			if (auto owner_material = material())
+			{
+				depth_test     = owner_material->depth_test;
+				stencil_test   = owner_material->stencil_test;
+				color_blending = owner_material->color_blending;
+			}
+
 			render_thread()->call([this]() {
 				RHIGraphicsPipelineInitializer initializer;
 				initializer.vertex_shader               = extract_shader(vertex_shader());

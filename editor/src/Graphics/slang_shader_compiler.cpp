@@ -587,7 +587,7 @@ namespace Engine
 							return false;
 						}
 
-						info.type   = RHIShaderParameterType::UniformBuffer;
+						info.type   = flags;
 						info.name   = param.parameter_name();
 						info.offset = param.trace_offset(slang::ParameterCategory::Uniform);
 

@@ -561,8 +561,10 @@ namespace Engine
 		if (compiler->compile(&env, result))
 		{
 			result.initialize_pipeline(pipeline);
-			pipeline->init_render_resources();
-			add_pipeline(pass, pipeline);
+			if (add_pipeline(pass, pipeline))
+			{
+				pipeline->init_render_resources();
+			}
 			return true;
 		}
 

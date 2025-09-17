@@ -31,13 +31,22 @@ namespace Lighting
 		uint4 directional;
 	};
 
+	[Flags]
+	enum PrimitiveFlags
+	{
+		Undefined = 0x0,
+		IsTranslucent = 0x1
+	};
+
 	struct PrimitiveParameters
 	{
-		float4 base_color;
+		float3 base_color;
 		float3 location;
 		float3 normal;
 		float4 msra;
 		float depth;
+		
+		PrimitiveFlags flags;
 	};
 
 	struct PointLightShadowParameters
@@ -122,35 +131,27 @@ namespace Lighting
 	}
 
 	[ForceInline]
-	float3 normalize_normal(float3 normal, in float3 view)
-	{
-		normal = normalize(normal);
-		return normal * sign(dot(normal, view));
-	}
-
-	[ForceInline]
 	float fresnel_zero_reflectance(in float specular)
 	{
 		float IOR = lerp(1.3, 1.7, specular);
 		return Math::square((IOR - 1.0) / (IOR + 1.0));
 	}
 
-	float3 calculate_light<LightType : ILight>(in LightParameters light, in PrimitiveParameters primitive)
+	float3 calculate_lighting<LightType : ILight>(in LightParameters light, in PrimitiveParameters primitive)
 	{
-		if (length(primitive.normal) < 0.1)
+		float3 view_direction  = normalize(scene_view.camera.location - primitive.location);
+		float3 light_direction = light.location.rgb - primitive.location;
+		float attenuation      = LightType.attenuation(light_direction, light);
+		light_direction        = LightType.direction(light_direction, light);
+
+		float3 normal = primitive.normal;
+
+		if (primitive.flags & PrimitiveFlags::IsTranslucent)
 		{
-			return float3(0.0, 0.0, 0.0);
+			normal = normal * sign(dot(normal, light_direction));
 		}
 
-		float3 view_direction = normalize(scene_view.camera.location -
-										  primitive.location);// Using view direction from fragment location to camera location
-		float3 normal         = normalize_normal(primitive.normal, view_direction);
-
-		float3 f0 = lerp(float3(fresnel_zero_reflectance(primitive.msra.g)), primitive.base_color.rgb, float3(primitive.msra.r));
-
-		float3 light_direction = light.location.rgb - primitive.location;// Using light direction from fragment location to light location
-		float attenuation = LightType.attenuation(light_direction, light);
-		light_direction   = LightType.direction(light_direction, light);
+		float3 f0 = lerp(float3(fresnel_zero_reflectance(primitive.msra.g)), primitive.base_color, float3(primitive.msra.r));
 
 		float normal_dot_l = max(dot(normal, light_direction), 0.0);
 
@@ -166,7 +167,7 @@ namespace Lighting
 		float3 k_d = float3(1.0, 1.0, 1.0) - k_s;
 		k_d *= 1.0 - primitive.msra.r;
 
-		float3 reflectance = (k_d * primitive.base_color.xyz / Math::pi + specular) * radiance * normal_dot_l;
+		float3 reflectance = (k_d * primitive.base_color / Math::pi + specular) * radiance * normal_dot_l;
 		return reflectance;
 	}
 }// namespace Lighting

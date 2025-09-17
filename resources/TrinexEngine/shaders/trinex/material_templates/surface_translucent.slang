@@ -3,6 +3,8 @@ import "trinex/material.slang";
 import "trinex/math.slang";
 import "trinex/scene_view.slang";
 import "trinex/vertex_input.slang";
+import "trinex/lighting/lighting_gather.slang";
+import "trinex/lighting/lighting.slang";
 
 extern Material main<Material : IMaterial>(in IMaterialInput input);
 
@@ -62,7 +64,7 @@ VertexOutput vertex_main(in VertexInput vs_input)
 }
 
 [shader("fragment")]
-GeometryFragmentOutput fragment_main(in VertexOutput input)
+float4 fragment_main(in VertexOutput input) : SV_Target
 {
 	struct MaterialInput : IMaterialInput
 	{
@@ -74,11 +76,17 @@ GeometryFragmentOutput fragment_main(in VertexOutput input)
 
 	FragmentMaterial material = main<FragmentMaterial>(MaterialInput());
 
-	GeometryFragmentOutput output;
-	float3 result_normal = normalize(input.TBN * (material.normal * 2.0 - 1.0));
-	output.base_color    = float4(material.base_color, 1.0);
-	output.normal        = float4(result_normal, 1.f);
-	output.emissive      = float4(material.emissive, 1.0);
-	output.msra          = float4(material.metalness, material.specular, material.roughness, material.ao);
-	return output;
+	float3 normal = normalize(input.TBN * (material.normal * 2.0 - 1.0));
+	
+	Lighting::PrimitiveParameters primitive;
+	primitive.depth      = input.sv_position.z;
+	primitive.base_color = material.base_color;
+	primitive.location   = input.world_position;
+	primitive.normal     = normal;
+	primitive.msra       = float4(material.metalness, material.specular, material.roughness, material.ao);
+	primitive.flags      = Lighting::PrimitiveFlags::IsTranslucent;
+
+	const float ambient = 0.2;
+	float3 result = Lighting::gather_lighting(primitive, input.sv_position.xy, primitive.base_color * ambient);
+	return float4(result, material.opacity);
 }

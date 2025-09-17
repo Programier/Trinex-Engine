@@ -18,7 +18,6 @@ namespace Engine
 			camera.inv_projection = Math::inverse(camera.projection);
 			camera.inv_view       = Math::inverse(camera.view);
 			camera.inv_projview   = scene_view->inv_projview();
-			camera.location       = scene_view->camera_view().location;
 			camera.near           = scene_view->camera_view().near;
 			camera.far            = scene_view->camera_view().far;
 

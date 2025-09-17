@@ -52,6 +52,7 @@ namespace Engine
 
 	public:
 		RenderPassPermutation(const char* name, RenderPass* owner);
+		bool is_material_compatible(const Material* material) override;
 		RenderPassPermutation& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		String full_name() const override;
 		inline RenderPass* owner() const { return m_owner; }
@@ -116,6 +117,7 @@ private:
 		class ENGINE_EXPORT Depth : public RenderPass
 		{
 			trinex_render_pass(Depth, RenderPass);
+			bool is_material_compatible(const Material* material) override;
 			Depth& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		};
 
@@ -125,7 +127,17 @@ private:
 			trinex_render_pass(Geometry, RenderPass);
 
 		public:
+			bool is_material_compatible(const Material* material) override;
 			Geometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+		};
+
+		class ENGINE_EXPORT Translucent : public RenderPass
+		{
+			trinex_render_pass(Translucent, RenderPass);
+
+		public:
+			bool is_material_compatible(const Material* material) override;
+			Translucent& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		};
 	}// namespace RenderPasses
 }// namespace Engine

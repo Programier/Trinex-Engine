@@ -1,8 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/pair.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/etl/variant.hpp>
-#include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/name.hpp>
 
@@ -32,12 +31,10 @@ namespace Engine
 		                        MemoryBlock, CombinedSamplerImage,   //
 		                        RHISampler*, RHIShaderResourceView*>;
 
-	private:
-		using Element = Pair<Name, Binding>;
-		Vector<Element> m_bindings;
+		using Container = TreeMap<Name, Binding>;
 
 	private:
-		MaterialBindings& sort();
+		Container m_bindings;
 
 	public:
 		const MaterialBindings* prev = nullptr;
@@ -49,14 +46,13 @@ namespace Engine
 		MaterialBindings& operator=(MaterialBindings&&) noexcept = default;
 		~MaterialBindings()                                      = default;
 
-		MaterialBindings(const std::initializer_list<Pair<Name, Binding>>& list);
-		MaterialBindings(const Vector<Pair<Name, Binding>>& list);
-		MaterialBindings(Vector<Pair<Name, Binding>>&& list);
+		MaterialBindings(const std::initializer_list<Container::value_type>& list);
+		MaterialBindings(const Container& list);
+		MaterialBindings(Container&& list);
 
 		Binding* find_or_create(const Name& name);
 		bool unbind(const Name& name);
 		const Binding* find(const Name& name) const;
-
 
 		inline Binding* find(const Name& name)
 		{
@@ -86,14 +82,14 @@ namespace Engine
 		inline size_t size() const { return m_bindings.size(); }
 		inline bool empty() const { return m_bindings.empty(); }
 
-		inline Vector<Element>::const_iterator begin() const { return m_bindings.begin(); }
-		inline Vector<Element>::const_iterator end() const { return m_bindings.end(); }
-		inline Vector<Element>::const_reverse_iterator rbegin() const { return m_bindings.rbegin(); }
-		inline Vector<Element>::const_reverse_iterator rend() const { return m_bindings.rend(); }
+		inline Container::const_iterator begin() const { return m_bindings.begin(); }
+		inline Container::const_iterator end() const { return m_bindings.end(); }
+		inline Container::const_reverse_iterator rbegin() const { return m_bindings.rbegin(); }
+		inline Container::const_reverse_iterator rend() const { return m_bindings.rend(); }
 
-		inline Vector<Element>::const_iterator cbegin() const { return m_bindings.begin(); }
-		inline Vector<Element>::const_iterator cend() const { return m_bindings.end(); }
-		inline Vector<Element>::const_reverse_iterator crbegin() const { return m_bindings.crbegin(); }
-		inline Vector<Element>::const_reverse_iterator crend() const { return m_bindings.crend(); }
+		inline Container::const_iterator cbegin() const { return m_bindings.begin(); }
+		inline Container::const_iterator cend() const { return m_bindings.end(); }
+		inline Container::const_reverse_iterator crbegin() const { return m_bindings.crbegin(); }
+		inline Container::const_reverse_iterator crend() const { return m_bindings.crend(); }
 	};
 }// namespace Engine

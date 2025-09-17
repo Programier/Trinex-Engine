@@ -122,14 +122,20 @@ namespace Math
 	}
 
 	[ForceInline]
-	static float calculate_bias(in float depth_bias, in float slope_scale, in float3 normal, in float3 direction)
+	float calculate_bias(in float depth_bias, in float slope_scale, in float3 normal, in float3 direction)
 	{
 		return depth_bias + slope_scale * max(dot(normal, direction), 0.0);
 	}
 
 	[ForceInline]
-	static float3 perspective_divide(float4 position)
+	float3 perspective_divide(float4 position)
 	{
 		return position.xyz / position.w;
+    }
+
+    [ForceInline]
+	bool is_fragment_covered(float depth)
+	{
+		return depth < 1.f;
     }
 }

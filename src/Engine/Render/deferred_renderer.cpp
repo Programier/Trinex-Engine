@@ -14,6 +14,7 @@
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/settings.hpp>
+#include <Graphics/material_bindings.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
 #include <RHI/rhi.hpp>
@@ -346,6 +347,15 @@ namespace Engine
 		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this]() { deferred_lighting_pass(); });
 
+		graph->add_pass(RenderGraph::Pass::Graphics, "Translucent")
+		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
+		        .add_resource(scene_depth_target(), RHIAccess::DSV)
+		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+		        .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
+		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
+		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
+		        .add_func([this]() { translucent_pass(); });
+
 		if (Settings::Rendering::enable_hdr)
 		{
 			// Tonemapping
@@ -368,6 +378,37 @@ namespace Engine
 		render_visible_primitives(RenderPasses::Geometry::static_instance());
 
 		rhi->polygon_mode(RHIPolygonMode::Fill);
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::translucent_pass()
+	{
+		static MaterialBindings s_bindings;
+		static MaterialBindings::Binding* s_shadow_sampler = s_bindings.find_or_create("shadow_sampler");
+		static MaterialBindings::Binding* s_clusters       = s_bindings.find_or_create("clusters");
+		static MaterialBindings::Binding* s_lights         = s_bindings.find_or_create("lights");
+		static MaterialBindings::Binding* s_shadows        = s_bindings.find_or_create("shadows");
+		static MaterialBindings::Binding* s_ranges         = s_bindings.find_or_create("ranges");
+
+		MaterialBindings::MemoryBlock ranges_block;
+		ranges_block.memory = m_light_ranges;
+		ranges_block.size   = sizeof(*m_light_ranges);
+
+		s_shadow_sampler->emplace<RHISampler*>(RHIShadowSampler::static_sampler());
+		s_clusters->emplace<RHIShaderResourceView*>(clusters_buffer()->as_srv());
+		s_lights->emplace<RHIShaderResourceView*>(lights_buffer()->as_srv());
+		s_shadows->emplace<RHIShaderResourceView*>(shadow_buffer()->as_srv());
+		s_ranges->emplace<MaterialBindings::MemoryBlock>(ranges_block);
+
+		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
+		rhi->polygon_mode(mode);
+		rhi->cull_mode(RHICullMode::Front);
+
+		rhi->bind_render_target1(scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv());
+		render_visible_primitives(RenderPasses::Translucent::static_instance(), &s_bindings);
+
+		rhi->polygon_mode(RHIPolygonMode::Fill);
+		rhi->cull_mode(RHICullMode::None);
 		return *this;
 	}
 
@@ -518,13 +559,13 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::render_visible_primitives(RenderPass* pass)
+	DeferredRenderer& DeferredRenderer::render_visible_primitives(RenderPass* pass, MaterialBindings* bindings)
 	{
 		const FrameVector<PrimitiveComponent*>& primitives = visible_primitives();
 
 		for (PrimitiveComponent* primitive : primitives)
 		{
-			primitive->proxy()->render(this, pass);
+			primitive->proxy()->render(this, pass, bindings);
 		}
 
 		return *this;

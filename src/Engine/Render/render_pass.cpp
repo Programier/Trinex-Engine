@@ -1,6 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/map.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/shader_compiler.hpp>
 
 namespace Engine
@@ -80,6 +81,11 @@ namespace Engine
 
 	RenderPassPermutation::RenderPassPermutation(const char* name, RenderPass* owner) : RenderPass(name, owner), m_owner(owner) {}
 
+	bool RenderPassPermutation::is_material_compatible(const Material* material)
+	{
+		return m_owner->is_material_compatible(material);
+	}
+
 	RenderPassPermutation& RenderPassPermutation::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		m_owner->modify_shader_compilation_env(env);
@@ -122,17 +128,45 @@ namespace Engine
 			static RenderPassPermutations::SkeletalMesh skeletal_mesh(this);
 		}
 
+		trinex_implement_render_pass(Translucent)
+		{
+			static RenderPassPermutations::StaticMesh static_mesh(this);
+			static RenderPassPermutations::SkeletalMesh skeletal_mesh(this);
+		}
+
+		bool Depth::is_material_compatible(const Material* material)
+		{
+			return material->domain == MaterialDomain::Surface && material->color_blending.is_opaque();
+		}
+
 		Depth& Depth::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
 		{
 			Super::modify_shader_compilation_env(env);
-			env->add_module("trinex/material_templates/surface_depth_pass.slang");
+			env->add_module("trinex/material_templates/surface_depth.slang");
 			return *this;
+		}
+
+		bool Geometry::is_material_compatible(const Material* material)
+		{
+			return material->domain == MaterialDomain::Surface && material->color_blending.is_opaque();
 		}
 
 		Geometry& Geometry::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
 		{
 			Super::modify_shader_compilation_env(env);
-			env->add_module("trinex/material_templates/surface_geometry_pass.slang");
+			env->add_module("trinex/material_templates/surface_geometry.slang");
+			return *this;
+		}
+
+		bool Translucent::is_material_compatible(const Material* material)
+		{
+			return material->domain == MaterialDomain::Surface && material->color_blending.is_translucent();
+		}
+
+		Translucent& Translucent::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
+		{
+			Super::modify_shader_compilation_env(env);
+			env->add_module("trinex/material_templates/surface_translucent.slang");
 			return *this;
 		}
 	}// namespace RenderPasses

@@ -25,9 +25,13 @@ struct SceneView
 		float4x4 inv_view;
 		float4x4 inv_projview;
 
-		float3 location;
 		float near;
 		float far;
+
+		property float3 right { [ForceInline] get { return inv_view[0].xyz; } }
+		property float3 up { [ForceInline] get { return inv_view[1].xyz; } }
+		property float3 forward { [ForceInline] get { return inv_view[2].xyz; } }
+		property float3 location { [ForceInline] get { return inv_view[3].xyz; } }
 	};
 
 	Viewport viewport;

@@ -27,7 +27,6 @@ namespace Engine
 			alignas(16) Matrix4f inv_view;
 			alignas(16) Matrix4f inv_projview;
 
-			alignas(16) Vector3f location;
 			alignas(4) float near;
 			alignas(4) float far;
 		};

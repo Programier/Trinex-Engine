@@ -14,6 +14,7 @@ namespace Engine
 	class PointLightComponent;
 	class SpotLightComponent;
 	class DirectionalLightComponent;
+	class MaterialBindings;
 	struct PostProcessParameters;
 	struct LightRenderRanges;
 
@@ -38,6 +39,7 @@ namespace Engine
 
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass();
+		DeferredRenderer& translucent_pass();
 		DeferredRenderer& ambient_occlusion_pass(PostProcessParameters* params);
 		DeferredRenderer& deferred_lighting_pass();
 		DeferredRenderer& copy_base_color_to_scene_color();
@@ -47,7 +49,7 @@ namespace Engine
 		DeferredRenderer& copy_roughness_to_scene_color();
 		DeferredRenderer& copy_ambient_to_scene_color();
 		DeferredRenderer& copy_world_to_scene_color();
-		DeferredRenderer& render_visible_primitives(RenderPass* pass);
+		DeferredRenderer& render_visible_primitives(RenderPass* pass, MaterialBindings* bindings = nullptr);
 		DeferredRenderer& cull_lights();
 
 	public:

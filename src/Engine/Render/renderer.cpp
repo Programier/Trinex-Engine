@@ -129,7 +129,7 @@ namespace Engine
 			if (type == SceneDepth)
 				pass.add_func([target]() { target->as_dsv()->clear(1.f, 0); });
 			else
-				pass.add_func([target]() { target->as_rtv()->clear(LinearColor(0.f, 0.f, 0.f, 1.f)); });
+				pass.add_func([target]() { target->as_rtv()->clear(LinearColor(0.f, 0.f, 0.f, 0.f)); });
 		}
 
 		return m_surfaces[type];
