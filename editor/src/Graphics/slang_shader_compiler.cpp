@@ -63,21 +63,7 @@ namespace Engine
 		}
 	};
 
-	static slang::IGlobalSession* global_session()
-	{
-		static Slang::ComPtr<slang::IGlobalSession> slang_global_session;
-		if (slang_global_session.get() == nullptr)
-		{
-			if (SLANG_FAILED(slang::createGlobalSession(slang_global_session.writeRef())))
-			{
-				throw EngineException("Cannot create global session");
-			}
-
-			DestroyController().push([]() { slang_global_session = nullptr; });
-		}
-
-		return slang_global_session.get();
-	}
+	static slang::IGlobalSession* g_slang_global_session = nullptr;
 
 	class ReflectionParser
 	{
@@ -162,7 +148,7 @@ namespace Engine
 
 			inline slang::UserAttribute* find_attribute(const char* attribute) const
 			{
-				return var->getVariable()->findAttributeByName(global_session(), attribute);
+				return var->getVariable()->findAttributeByName(g_slang_global_session, attribute);
 			}
 
 			inline bool has_attribute(const char* attribute) { return find_attribute(attribute) != nullptr; }
@@ -193,7 +179,7 @@ namespace Engine
 
 		static RHIShaderParameterType find_parameter_type(slang::VariableReflection* var)
 		{
-			if (auto attrib = var->findAttributeByName(global_session(), "parameter_type"))
+			if (auto attrib = var->findAttributeByName(g_slang_global_session, "parameter_type"))
 			{
 				if (attrib->getArgumentCount() == 1)
 				{
@@ -755,6 +741,26 @@ namespace Engine
 	{
 		flags(StandAlone, true);
 		flags(IsAvailableForGC, false);
+
+		if (g_slang_global_session == nullptr)
+		{
+			if (SLANG_FAILED(slang::createGlobalSession(&g_slang_global_session)))
+			{
+				throw EngineException("Cannot create global session");
+			}
+		}
+		else
+		{
+			g_slang_global_session->AddRef();
+		}
+	}
+
+	SLANG_ShaderCompiler::~SLANG_ShaderCompiler()
+	{
+		if (g_slang_global_session->Release() == 0)
+		{
+			g_slang_global_session = nullptr;
+		}
 	}
 
 	SLANG_ShaderCompiler& SLANG_ShaderCompiler::on_create()
@@ -784,7 +790,7 @@ namespace Engine
 		desc.target_desc.compilerOptionEntryCount = desc.target_options.size();
 		desc.target_desc.compilerOptionEntries    = desc.target_options.data();
 
-		if (SLANG_FAILED(global_session()->createSession(desc.session_desc, m_session.writeRef())))
+		if (SLANG_FAILED(g_slang_global_session->createSession(desc.session_desc, m_session.writeRef())))
 		{
 			error_log("Shader Compiler", "Failed to create session");
 			m_session = nullptr;
@@ -1103,7 +1109,7 @@ namespace Engine
 		Super::initialize_context(session);
 
 		session->target_desc.format  = SLANG_SPIRV;
-		session->target_desc.profile = global_session()->findProfile("spirv_1_3");
+		session->target_desc.profile = g_slang_global_session->findProfile("spirv_1_3");
 		session->add_definition("TRINEX_VULKAN_RHI", "1");
 	}
 
@@ -1127,7 +1133,7 @@ namespace Engine
 		Super::initialize_context(session);
 
 		session->target_desc.format  = SLANG_DXIL;
-		session->target_desc.profile = global_session()->findProfile("sm_6_0");
+		session->target_desc.profile = g_slang_global_session->findProfile("sm_6_0");
 
 		session->add_definition("TRINEX_INVERT_UV", "1");
 		session->add_definition("TRINEX_D3D12_RHI", "1");

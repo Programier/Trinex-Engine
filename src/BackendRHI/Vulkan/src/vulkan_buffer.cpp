@@ -162,11 +162,11 @@ namespace Engine
 		{
 			if (m_flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
 			{
-				srv = new VulkanStorageBufferSRV(this, offset, size);
+				srv = trx_new VulkanStorageBufferSRV(this, offset, size);
 			}
 			else
 			{
-				srv = new VulkanUniformTexelBufferSRV(this, offset, size);
+				srv = trx_new VulkanUniformTexelBufferSRV(this, offset, size);
 			}
 		}
 
@@ -189,11 +189,11 @@ namespace Engine
 		{
 			if (m_flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
 			{
-				uav = new VulkanBufferUAV(this, offset, size);
+				uav = trx_new VulkanBufferUAV(this, offset, size);
 			}
 			else
 			{
-				uav = new VulkanBufferUAV(this, offset, size);
+				uav = trx_new VulkanBufferUAV(this, offset, size);
 			}
 		}
 
@@ -223,8 +223,8 @@ namespace Engine
 		if (m_allocation)
 			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
 
-		for (auto [id, srv] : m_srv) delete srv;
-		for (auto [id, uav] : m_uav) delete uav;
+		for (auto [id, srv] : m_srv) trx_delete srv;
+		for (auto [id, uav] : m_uav) trx_delete uav;
 	}
 
 
@@ -238,7 +238,7 @@ namespace Engine
 		if (m_manager)
 			m_manager->release(const_cast<VulkanStaggingBuffer*>(this));
 		else
-			delete this;
+			trx_delete this;
 	}
 
 	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, RHIBufferCreateFlags flags)
@@ -255,7 +255,7 @@ namespace Engine
 			}
 		}
 
-		VulkanStaggingBuffer* buffer = new VulkanStaggingBuffer(this);
+		VulkanStaggingBuffer* buffer = trx_new VulkanStaggingBuffer(this);
 		buffer->create(buffer_size, nullptr, flags, VMA_MEMORY_USAGE_CPU_ONLY);
 		m_buffers.insert(buffer);
 		return buffer;
@@ -278,7 +278,7 @@ namespace Engine
 			if (entry.m_frame_number == 0)
 			{
 				m_buffers.erase(entry.m_buffer);
-				delete entry.m_buffer;
+				trx_delete entry.m_buffer;
 				m_free.erase(m_free.begin() + i);
 				--size;
 			}
@@ -296,7 +296,7 @@ namespace Engine
 		{
 			if (buffer->references() == 0)
 			{
-				delete buffer;
+				trx_delete buffer;
 			}
 			else
 			{
@@ -309,7 +309,7 @@ namespace Engine
 
 	RHIBuffer* VulkanAPI::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
 	{
-		return &(new VulkanBuffer())->create(size, data, flags);
+		return &(trx_new VulkanBuffer())->create(size, data, flags);
 	}
 
 	VulkanAPI& VulkanAPI::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,

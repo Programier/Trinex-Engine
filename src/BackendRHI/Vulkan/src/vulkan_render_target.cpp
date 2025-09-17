@@ -40,7 +40,7 @@ namespace Engine
 		if (render_target != nullptr)
 			return render_target;
 
-		render_target = new VulkanRenderTarget();
+		render_target = trx_new VulkanRenderTarget();
 		render_target->init(targets, depth);
 
 		return render_target;

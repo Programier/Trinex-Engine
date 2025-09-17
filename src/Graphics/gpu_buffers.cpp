@@ -33,6 +33,14 @@ namespace Engine
 
 	VertexBufferBase::VertexBufferBase() = default;
 
+	VertexBufferBase::~VertexBufferBase()
+	{
+		if (m_data)
+		{
+			ByteAllocator::deallocate(m_data);
+		}
+	}
+
 	VertexBufferBase::VertexBufferBase(RHIBufferCreateFlags type, uint16_t stride, size_t size, const void* data,
 	                                   bool keep_cpu_data)
 	{
@@ -100,7 +108,7 @@ namespace Engine
 				rhi->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{
-					release_memory(m_data);
+					ByteAllocator::deallocate(m_data);
 					m_data = nullptr;
 				}
 			};
@@ -123,7 +131,7 @@ namespace Engine
 		m_flags     = type;
 		m_stride    = stride;
 		m_vtx_count = count;
-		m_data      = allocate_memory(count * stride);
+		m_data      = ByteAllocator::allocate(count * stride);
 		return m_data;
 	}
 
@@ -131,7 +139,7 @@ namespace Engine
 	{
 		if (m_data)
 		{
-			release_memory(m_data);
+			ByteAllocator::deallocate(m_data);
 			m_data = nullptr;
 		}
 
@@ -190,6 +198,14 @@ namespace Engine
 	}
 
 	IndexBuffer::IndexBuffer() = default;
+
+	IndexBuffer::~IndexBuffer()
+	{
+		if (m_data)
+		{
+			ByteAllocator::deallocate(m_data);
+		}
+	}
 
 	IndexBuffer::IndexBuffer(RHIBufferCreateFlags type, size_t size, const uint16_t* data, bool keep_cpu_data)
 	{
@@ -307,7 +323,7 @@ namespace Engine
 
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{
-					release_memory(m_data);
+					ByteAllocator::deallocate(m_data);
 					m_data = nullptr;
 				}
 			};
@@ -332,7 +348,7 @@ namespace Engine
 		m_format    = format;
 		m_idx_count = count;
 
-		m_data = allocate_memory(size(), alignof(uint32_t));
+		m_data = ByteAllocator::allocate_aligned(size(), alignof(uint32_t));
 		return m_data;
 	}
 
@@ -340,7 +356,7 @@ namespace Engine
 	{
 		if (m_data)
 		{
-			release_memory(m_data);
+			ByteAllocator::deallocate(m_data);
 			m_data = nullptr;
 		}
 

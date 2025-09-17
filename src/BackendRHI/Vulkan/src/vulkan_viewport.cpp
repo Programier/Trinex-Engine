@@ -118,7 +118,7 @@ namespace Engine
 
 		for (int_t i = 0; auto& backbuffer : m_backbuffers)
 		{
-			backbuffer = new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), size);
+			backbuffer = trx_new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), size);
 			++i;
 		}
 
@@ -132,7 +132,7 @@ namespace Engine
 
 		for (VulkanTexture* backbuffer : m_backbuffers)
 		{
-			delete backbuffer;
+			trx_delete backbuffer;
 		}
 
 		m_backbuffers.clear();
@@ -342,7 +342,7 @@ namespace Engine
 
 	RHISwapchain* VulkanAPI::create_swapchain(Window* window, bool vsync)
 	{
-		return new VulkanSwapchain(window, vsync);
+		return trx_new VulkanSwapchain(window, vsync);
 	}
 
 	VulkanAPI& VulkanAPI::present(RHISwapchain* swapchain)

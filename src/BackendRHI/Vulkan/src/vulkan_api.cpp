@@ -1,4 +1,5 @@
-﻿#include <VkBootstrap.h>
+﻿
+#include <VkBootstrap.h>
 
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
@@ -201,7 +202,7 @@ namespace Engine
 	{
 		if (VulkanAPI::m_vulkan == nullptr)
 		{
-			auto& info           = allocate<VulkanAPI>()->info;
+			auto& info           = (trx_new VulkanAPI())->info;
 			info.name            = "Vulkan";
 			info.struct_instance = static_reflection();
 		}
@@ -212,7 +213,7 @@ namespace Engine
 	{
 		if (vulkan == m_vulkan)
 		{
-			release(vulkan);
+			trx_delete vulkan;
 			m_vulkan = nullptr;
 		}
 	}
@@ -274,16 +275,16 @@ namespace Engine
 			throw EngineException("Failed to create graphics queue");
 		}
 
-		m_graphics_queue = allocate<VulkanQueue>(graphics_queue.value(), graphics_queue_index.value());
+		m_graphics_queue = trx_new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
 
 		initialize_pfn();
 
-		m_cmd_manager              = allocate<VulkanCommandBufferManager>();
-		m_stagging_manager         = allocate<VulkanStaggingBufferManager>();
-		m_state_manager            = allocate<VulkanStateManager>();
-		m_descriptor_set_allocator = allocate<VulkanDescriptorSetAllocator>();
-		m_query_pool_manager       = allocate<VulkanQueryPoolManager>();
-		m_descriptor_heap          = allocate<VulkanDescriptorHeap>();
+		m_cmd_manager              = trx_new VulkanCommandBufferManager();
+		m_stagging_manager         = trx_new VulkanStaggingBufferManager();
+		m_state_manager            = trx_new VulkanStateManager();
+		m_descriptor_set_allocator = trx_new VulkanDescriptorSetAllocator();
+		m_query_pool_manager       = trx_new VulkanQueryPoolManager();
+		m_descriptor_heap          = trx_new VulkanDescriptorHeap();
 
 
 		// Initialize memory allocator
@@ -308,17 +309,17 @@ namespace Engine
 
 		VulkanRenderPass::destroy_all();
 
-		release(m_stagging_manager);
-		release(m_state_manager);
-		release(m_cmd_manager);
-		release(m_graphics_queue);
-		release(m_descriptor_set_allocator);
-		release(m_query_pool_manager);
-		release(m_descriptor_heap);
+		trx_delete m_stagging_manager;
+		trx_delete m_state_manager;
+		trx_delete m_cmd_manager;
+		trx_delete m_graphics_queue;
+		trx_delete m_descriptor_set_allocator;
+		trx_delete m_query_pool_manager;
+		trx_delete m_descriptor_heap;
 
 		for (auto& [hash, layout] : m_pipeline_layouts)
 		{
-			release(layout);
+			trx_delete layout;
 		}
 
 		vmaDestroyAllocator(m_allocator);

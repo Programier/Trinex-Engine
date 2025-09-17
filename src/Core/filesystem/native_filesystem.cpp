@@ -46,7 +46,7 @@ namespace Engine::VFS
 
 		DirectoryIteratorInterface* copy() override
 		{
-			NativeIterator* new_iterator = new NativeIterator();
+			NativeIterator* new_iterator = trx_new NativeIterator();
 			new_iterator->m_path         = m_path;
 			new_iterator->m_it           = m_it;
 			new_iterator->m_base         = m_base;
@@ -72,7 +72,7 @@ namespace Engine::VFS
 			Path dir      = m_directory / path;
 			auto iterator = fs::directory_iterator(dir.str());
 
-			NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
+			NativeIterator<fs::directory_iterator>* it = trx_new NativeIterator<fs::directory_iterator>();
 			it->m_base                                 = this;
 			it->m_it                                   = iterator;
 			it->update_path();
@@ -92,7 +92,7 @@ namespace Engine::VFS
 			Path dir      = m_directory / path;
 			auto iterator = fs::recursive_directory_iterator(dir.str());
 
-			NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
+			NativeIterator<fs::recursive_directory_iterator>* it = trx_new NativeIterator<fs::recursive_directory_iterator>();
 			it->m_base                                           = this;
 			it->m_it                                             = iterator;
 			it->update_path();
@@ -143,7 +143,7 @@ namespace Engine::VFS
 		file.open(full_path.str(), open_mode);
 		if (file.is_open())
 		{
-			return new NativeFile(path, full_path, std::move(file), is_read_only);
+			return trx_new NativeFile(path, full_path, std::move(file), is_read_only);
 		}
 		else
 		{

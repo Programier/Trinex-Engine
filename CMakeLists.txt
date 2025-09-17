@@ -16,6 +16,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(TRINEX_ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(TRINEX_ENGINE_SRC "${TRINEX_ENGINE_ROOT}/src")
+set(TRINEX_ENGINE_INCLUDE "${TRINEX_ENGINE_ROOT}/include")
 
 # Setup install directory
 set(TRINEX_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/Engine" CACHE STRING "Install directory")
@@ -75,6 +76,11 @@ target_include_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 target_link_libraries(TrinexEngine PUBLIC freetype asmjit zlib_library lz4_static stb_library)
 
 target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS=1)
+
+target_compile_options(TrinexEngine PUBLIC
+    $<$<CXX_COMPILER_ID:GNU,Clang>:-include ${TRINEX_ENGINE_INCLUDE}/Core/precompiled.hpp>
+    $<$<CXX_COMPILER_ID:MSVC>:/FI${TRINEX_ENGINE_INCLUDE}/Core/precompiled.hpp>
+)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=1)

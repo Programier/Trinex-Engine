@@ -119,6 +119,7 @@ namespace Engine
 		}
 
 		SLANG_ShaderCompiler();
+		~SLANG_ShaderCompiler();
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
 		virtual bool submit_result(ShaderCompilationResult& result);

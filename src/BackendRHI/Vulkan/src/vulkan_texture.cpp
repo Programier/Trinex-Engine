@@ -43,7 +43,7 @@ namespace Engine
 		auto& node = views.emplace_back();
 		node.desc  = desc;
 
-		node.value = Engine::allocate<Value>(texture, view, desc);
+		node.value = trx_new Value(texture, view, desc);
 		return node.value;
 	}
 
@@ -52,7 +52,7 @@ namespace Engine
 	{
 		for (auto& view : views)
 		{
-			Engine::release(view.value);
+			trx_delete view.value;
 		}
 	}
 
@@ -245,40 +245,40 @@ namespace Engine
 		{
 			case RHITextureType::Texture1D:
 				size    = {size.x, 1, 1};
-				texture = new VulkanTypedTexture<vk::ImageViewType::e1D, RHITextureType::Texture1D>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::e1D, RHITextureType::Texture1D>();
 				break;
 
 			case RHITextureType::Texture1DArray:
 				layers  = Math::max(size.z, 1u);
 				size    = {size.x, 1, 1};
-				texture = new VulkanTypedTexture<vk::ImageViewType::e1DArray, RHITextureType::Texture1DArray>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::e1DArray, RHITextureType::Texture1DArray>();
 				break;
 
 			case RHITextureType::Texture2D:
 				size    = {size.x, size.y, 1};
-				texture = new VulkanTypedTexture<vk::ImageViewType::e2D, RHITextureType::Texture2D>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::e2D, RHITextureType::Texture2D>();
 				break;
 
 			case RHITextureType::Texture2DArray:
 				layers  = Math::max(size.z, 1u);
 				size    = {size.x, size.y, 1};
-				texture = new VulkanTypedTexture<vk::ImageViewType::e2DArray, RHITextureType::Texture2DArray>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::e2DArray, RHITextureType::Texture2DArray>();
 				break;
 
 			case RHITextureType::TextureCube:
 				layers  = 6;
 				size    = {size.x, size.y, 1};
-				texture = new VulkanTypedTexture<vk::ImageViewType::eCube, RHITextureType::TextureCube>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::eCube, RHITextureType::TextureCube>();
 				break;
 
 			case RHITextureType::TextureCubeArray:
 				layers  = Math::max((size.z + 5) / 6, 1u) * 6;
 				size    = {size.x, size.y, 1};
-				texture = new VulkanTypedTexture<vk::ImageViewType::eCubeArray, RHITextureType::TextureCubeArray>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::eCubeArray, RHITextureType::TextureCubeArray>();
 				break;
 
 			case RHITextureType::Texture3D:
-				texture = new VulkanTypedTexture<vk::ImageViewType::e3D, RHITextureType::Texture3D>();
+				texture = trx_new VulkanTypedTexture<vk::ImageViewType::e3D, RHITextureType::Texture3D>();
 				break;
 			default: break;
 		}

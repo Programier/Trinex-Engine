@@ -100,6 +100,6 @@ namespace Engine
 
 	RHISampler* VulkanAPI::create_sampler(const RHISamplerInitializer* sampler)
 	{
-		return &(new VulkanSampler())->create(sampler);
+		return &(trx_new VulkanSampler())->create(sampler);
 	}
 }// namespace Engine

@@ -52,12 +52,12 @@ namespace Engine
 
 				inline Node(size_type size, size_type align)
 				{
-					m_begin = allocate_memory(size, align);
+					m_begin = ByteAllocator::allocate_aligned(size, align);
 					m_end   = m_begin + size;
 					m_stack = m_begin;
 				}
 
-				~Node() { release_memory(m_begin); }
+				~Node() { ByteAllocator::deallocate(m_begin); }
 			};
 
 			TempAllocatorSync* const m_sync;
@@ -89,7 +89,7 @@ namespace Engine
 
 			Node* allocate_block(size_type size = 0, size_type align = 0)
 			{
-				return allocate<Node>(Math::max(size, min_block_size), Math::max(align, min_block_alignment));
+				return trx_new Node(Math::max(size, min_block_size), Math::max(align, min_block_alignment));
 			}
 
 			inline byte* allocate_aligned(size_type size, size_type align)
@@ -126,7 +126,7 @@ namespace Engine
 				while (m_head)
 				{
 					Node* next = m_head->m_next;
-					release(m_head);
+					trx_delete m_head;
 					m_head = next;
 				}
 			}
@@ -141,6 +141,8 @@ namespace Engine
 
 	unsigned char* ByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
+		size = align_up(size, align);
+
 #if PLATFORM_WINDOWS
 		return static_cast<unsigned char*>(_aligned_malloc(size, align));
 #else

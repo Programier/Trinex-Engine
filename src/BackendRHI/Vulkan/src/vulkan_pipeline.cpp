@@ -1,6 +1,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
@@ -592,16 +593,16 @@ namespace Engine
 
 	RHIPipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
-		return new VulkanGraphicsPipeline(pipeline);
+		return trx_new VulkanGraphicsPipeline(pipeline);
 	}
 
 	RHIPipeline* VulkanAPI::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
 	{
-		return new VulkanMeshPipeline(pipeline);
+		return trx_new VulkanMeshPipeline(pipeline);
 	}
 
 	RHIPipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
 	{
-		return new VulkanComputePipeline(pipeline);
+		return trx_new VulkanComputePipeline(pipeline);
 	}
 }// namespace Engine

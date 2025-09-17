@@ -25,6 +25,8 @@ namespace Engine
 
 	public:
 		VertexBufferBase();
+		~VertexBufferBase();
+		
 		// clang-format off
 		VertexBufferBase(RHIBufferCreateFlags type, uint16_t stride, size_t count, const void* data = nullptr, bool keep_cpu_data = false);
 		VertexBufferBase(const VertexBufferBase& buffer);
@@ -119,6 +121,7 @@ namespace Engine
 
 	public:
 		IndexBuffer();
+		~IndexBuffer();
 		// clang-format off
 		IndexBuffer(RHIBufferCreateFlags type, size_t count, const uint16_t* data = nullptr, bool keep_cpu_data = false);
 		IndexBuffer(RHIBufferCreateFlags type, size_t count, const uint32_t* data = nullptr, bool keep_cpu_data = false);

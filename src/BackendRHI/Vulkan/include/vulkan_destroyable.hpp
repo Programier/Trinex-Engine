@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/memory.hpp>
 
 namespace Engine
 {
@@ -23,6 +22,6 @@ namespace Engine
 			}
 		}
 
-		void destroy() override { Engine::release(this); }
+		void destroy() override { trx_delete this; }
 	};
 }// namespace Engine

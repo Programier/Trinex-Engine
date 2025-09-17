@@ -24,7 +24,7 @@ namespace Engine::VFS
 	void NativeFile::close()
 	{
 		m_stream.close();
-		delete this;
+		trx_delete this;
 	}
 
 	bool NativeFile::is_open() const
@@ -36,14 +36,10 @@ namespace Engine::VFS
 	{
 		switch (dir)
 		{
-			case FileSeekDir::Begin:
-				return std::ios_base::beg;
-			case FileSeekDir::Current:
-				return std::ios_base::cur;
-			case FileSeekDir::End:
-				return std::ios_base::end;
-			default:
-				return std::ios_base::beg;
+			case FileSeekDir::Begin: return std::ios_base::beg;
+			case FileSeekDir::Current: return std::ios_base::cur;
+			case FileSeekDir::End: return std::ios_base::end;
+			default: return std::ios_base::beg;
 		}
 	}
 

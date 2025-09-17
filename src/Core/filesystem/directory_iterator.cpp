@@ -18,13 +18,21 @@ namespace Engine::VFS
 		other.m_interface = nullptr;
 	}
 
+	DirectoryIterator::~DirectoryIterator()
+	{
+		if (m_interface)
+		{
+			trx_delete_inline(m_interface);
+		}
+	}
+
 	DirectoryIterator& DirectoryIterator::operator=(const DirectoryIterator& other)
 	{
 		if (this == &other)
 			return *this;
 
 		if (m_interface)
-			delete m_interface;
+			trx_delete_inline(m_interface);
 
 		m_interface = other.m_interface ? other.m_interface->copy() : nullptr;
 		return *this;
@@ -36,7 +44,7 @@ namespace Engine::VFS
 			return *this;
 
 		if (m_interface)
-			delete m_interface;
+			trx_delete_inline(m_interface);
 
 		m_interface       = other.m_interface;
 		other.m_interface = nullptr;
@@ -107,13 +115,21 @@ namespace Engine::VFS
 		other.m_interface = nullptr;
 	}
 
+	RecursiveDirectoryIterator::~RecursiveDirectoryIterator()
+	{
+		if (m_interface)
+		{
+			trx_delete_inline(m_interface);
+		}
+	}
+
 	RecursiveDirectoryIterator& RecursiveDirectoryIterator::operator=(const RecursiveDirectoryIterator& other)
 	{
 		if (this == &other)
 			return *this;
 
 		if (m_interface)
-			delete m_interface;
+			trx_delete_inline(m_interface);
 
 		m_interface = other.m_interface ? other.m_interface->copy() : nullptr;
 		return *this;
@@ -125,7 +141,7 @@ namespace Engine::VFS
 			return *this;
 
 		if (m_interface)
-			delete m_interface;
+			trx_delete_inline(m_interface);
 
 		m_interface       = other.m_interface;
 		other.m_interface = nullptr;

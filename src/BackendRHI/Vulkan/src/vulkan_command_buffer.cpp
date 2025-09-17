@@ -12,7 +12,7 @@ namespace Engine
 {
 	VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandBufferManager* manager)
 	{
-		m_fence = allocate<VulkanFence>(false);
+		m_fence = trx_new VulkanFence(false);
 
 		vk::CommandPool pool = manager->command_pool();
 		vk::CommandBufferAllocateInfo alloc_info(pool, vk::CommandBufferLevel::ePrimary, 1);
@@ -136,7 +136,7 @@ namespace Engine
 		auto pool = API->command_buffer_mananger()->command_pool();
 		API->m_device.freeCommandBuffers(pool, *this);
 
-		Engine::release(m_fence);
+		trx_delete m_fence;
 		destroy_objects();
 	}
 
@@ -165,8 +165,8 @@ namespace Engine
 
 	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::create_node()
 	{
-		Node* node           = allocate<Node>();
-		node->command_buffer = allocate<VulkanCommandBuffer>(this);
+		Node* node           = trx_new Node();
+		node->command_buffer = trx_new VulkanCommandBuffer(this);
 		node->next           = nullptr;
 		return node;
 	}
@@ -174,8 +174,8 @@ namespace Engine
 	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::destroy_node(Node* node)
 	{
 		Node* next = node->next;
-		release(node->command_buffer);
-		release(node);
+		trx_delete node->command_buffer;
+		trx_delete node;
 		return next;
 	}
 

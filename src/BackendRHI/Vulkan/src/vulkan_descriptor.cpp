@@ -60,7 +60,7 @@ namespace Engine
 
 	VulkanPipelineLayout::~VulkanPipelineLayout()
 	{
-		Engine::release(m_descriptors);
+		trx_delete m_descriptors;
 		API->m_device.destroyPipelineLayout(m_layout);
 
 		if (m_set_layout)
@@ -197,21 +197,21 @@ namespace Engine
 
 	VulkanDescriptorSetAllocator::VulkanDescriptorSetAllocator()
 	{
-		m_current  = Engine::allocate<VulkanDescriptorPool>();
-		m_pool     = Engine::allocate<VulkanDescriptorPool>();
+		m_current  = trx_new VulkanDescriptorPool();
+		m_pool     = trx_new VulkanDescriptorPool();
 		m_push_ptr = &m_pool->next;
 	}
 
 	VulkanDescriptorSetAllocator::~VulkanDescriptorSetAllocator()
 	{
-		Engine::release(m_current);
+		trx_delete m_current;
 
 		while (m_pool)
 		{
 			m_current = m_pool;
 			m_pool    = m_pool->next;
 
-			Engine::release(m_current);
+			trx_delete m_current;
 		}
 	}
 
@@ -240,7 +240,7 @@ namespace Engine
 		}
 		else
 		{
-			m_current = Engine::allocate<VulkanDescriptorPool>();
+			m_current = trx_new VulkanDescriptorPool();
 		}
 		return *this;
 	}
@@ -294,7 +294,7 @@ namespace Engine
 		}
 
 		// Layout is not found, create new one
-		VulkanPipelineLayout* layout = allocate<VulkanPipelineLayout>(hash, stages, descriptors, descriptors_count);
+		VulkanPipelineLayout* layout = trx_new VulkanPipelineLayout(hash, stages, descriptors, descriptors_count);
 		m_pipeline_layouts.insert({hash, layout});
 		return layout;
 	}
@@ -310,7 +310,7 @@ namespace Engine
 			if (target->equals(layout->descriptors(), layout->descriptors_count()))
 			{
 				m_pipeline_layouts.erase(search_result.first);
-				Engine::release(layout);
+				trx_delete layout;
 				return *this;
 			}
 			++search_result.first;

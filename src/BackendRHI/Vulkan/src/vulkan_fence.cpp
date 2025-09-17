@@ -61,7 +61,7 @@ namespace Engine
 
 	RHIFence* VulkanAPI::create_fence()
 	{
-		return new VulkanFenceRef();
+		return trx_new VulkanFenceRef();
 	}
 
 	VulkanAPI& VulkanAPI::signal_fence(RHIFence* fence)

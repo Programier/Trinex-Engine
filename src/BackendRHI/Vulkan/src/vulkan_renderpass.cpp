@@ -137,7 +137,7 @@ namespace Engine
 
 		if (auto vk_pass = builder.build(targets, depth))
 		{
-			(pass = new VulkanRenderPass(vk_pass));
+			(pass = trx_new VulkanRenderPass(vk_pass));
 			return pass;
 		}
 
@@ -148,7 +148,7 @@ namespace Engine
 	{
 		for (auto& render_pass : m_render_passes)
 		{
-			delete render_pass.second;
+			trx_delete_inline(render_pass.second);
 		}
 
 		m_render_passes.clear();

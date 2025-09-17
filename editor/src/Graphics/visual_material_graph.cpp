@@ -103,24 +103,24 @@ namespace Engine::VisualMaterialGraph
 
 		switch (type.value)
 		{
-			case T::Bool: return allocate<DefaultValueHolder<Vector1b, T::Bool>>();
-			case T::Bool2: return allocate<DefaultValueHolder<Vector2b, T::Bool2>>();
-			case T::Bool3: return allocate<DefaultValueHolder<Vector3b, T::Bool3>>();
-			case T::Bool4: return allocate<DefaultValueHolder<Vector4b, T::Bool4>>();
-			case T::Int: return allocate<DefaultValueHolder<Vector1i, T::Int>>();
-			case T::Int2: return allocate<DefaultValueHolder<Vector2i, T::Int2>>();
-			case T::Int3: return allocate<DefaultValueHolder<Vector3i, T::Int3>>();
-			case T::Int4: return allocate<DefaultValueHolder<Vector4i, T::Int4>>();
-			case T::UInt: return allocate<DefaultValueHolder<Vector1u, T::UInt>>();
-			case T::UInt2: return allocate<DefaultValueHolder<Vector2u, T::UInt2>>();
-			case T::UInt3: return allocate<DefaultValueHolder<Vector3u, T::UInt3>>();
-			case T::UInt4: return allocate<DefaultValueHolder<Vector4u, T::UInt4>>();
-			case T::Float: return allocate<DefaultValueHolder<Vector1f, T::Float>>();
-			case T::Float2: return allocate<DefaultValueHolder<Vector2f, T::Float2>>();
-			case T::Float3: return allocate<DefaultValueHolder<Vector3f, T::Float3>>();
-			case T::Float4: return allocate<DefaultValueHolder<Vector4f, T::Float4>>();
-			case T::Float3x3: return allocate<DefaultValueHolder<Matrix3f, T::Float3x3>>();
-			case T::Float4x4: return allocate<DefaultValueHolder<Matrix4f, T::Float4x4>>();
+			case T::Bool: return trx_new DefaultValueHolder<Vector1b, T::Bool>();
+			case T::Bool2: return trx_new DefaultValueHolder<Vector2b, T::Bool2>();
+			case T::Bool3: return trx_new DefaultValueHolder<Vector3b, T::Bool3>();
+			case T::Bool4: return trx_new DefaultValueHolder<Vector4b, T::Bool4>();
+			case T::Int: return trx_new DefaultValueHolder<Vector1i, T::Int>();
+			case T::Int2: return trx_new DefaultValueHolder<Vector2i, T::Int2>();
+			case T::Int3: return trx_new DefaultValueHolder<Vector3i, T::Int3>();
+			case T::Int4: return trx_new DefaultValueHolder<Vector4i, T::Int4>();
+			case T::UInt: trx_new DefaultValueHolder<Vector1u, T::UInt>();
+			case T::UInt2: trx_new DefaultValueHolder<Vector2u, T::UInt2>();
+			case T::UInt3: trx_new DefaultValueHolder<Vector3u, T::UInt3>();
+			case T::UInt4: trx_new DefaultValueHolder<Vector4u, T::UInt4>();
+			case T::Float: return trx_new DefaultValueHolder<Vector1f, T::Float>();
+			case T::Float2: return trx_new DefaultValueHolder<Vector2f, T::Float2>();
+			case T::Float3: return trx_new DefaultValueHolder<Vector3f, T::Float3>();
+			case T::Float4: return trx_new DefaultValueHolder<Vector4f, T::Float4>();
+			case T::Float3x3: return trx_new DefaultValueHolder<Matrix3f, T::Float3x3>();
+			case T::Float4x4: return trx_new DefaultValueHolder<Matrix4f, T::Float4x4>();
 			default: return nullptr;
 		}
 		return nullptr;
@@ -686,7 +686,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (m_default_value)
 		{
-			release(m_default_value);
+			trx_delete m_default_value;
 		}
 	}
 
@@ -822,12 +822,12 @@ namespace Engine::VisualMaterialGraph
 	{
 		for (Pin* pin : m_inputs)
 		{
-			release(pin);
+			trx_delete pin;
 		}
 
 		for (Pin* pin : m_outputs)
 		{
-			release(pin);
+			trx_delete pin;
 		}
 	}
 

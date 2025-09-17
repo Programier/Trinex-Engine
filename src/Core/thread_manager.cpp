@@ -63,7 +63,7 @@ namespace Engine
 
 		for (size_t i = 0; i < threads_count; ++i)
 		{
-			WorkerThread* thread = allocate<WorkerThread>(&ThreadManager::thread_loop, this);
+			WorkerThread* thread = trx_new WorkerThread(&ThreadManager::thread_loop, this);
 			m_threads.push_back(thread);
 		}
 	}
@@ -76,7 +76,7 @@ namespace Engine
 
 		for (auto& thread : m_threads)
 		{
-			release(thread);
+			trx_delete thread;
 		}
 	}
 

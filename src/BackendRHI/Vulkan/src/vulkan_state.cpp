@@ -121,14 +121,14 @@ namespace Engine
 	{
 		for (VulkanUniformBuffer* buffer : m_global_uniform_buffers)
 		{
-			Engine::release(buffer);
+			trx_delete buffer;
 		}
 
 		while (m_uniform_buffer_pool)
 		{
 			VulkanUniformBuffer* buffer = m_uniform_buffer_pool;
 			m_uniform_buffer_pool       = m_uniform_buffer_pool->next;
-			Engine::release(buffer);
+			trx_delete buffer;
 		}
 	}
 
@@ -146,7 +146,7 @@ namespace Engine
 			return &buffer->reset();
 		}
 
-		return allocate<VulkanUniformBuffer>();
+		return trx_new VulkanUniformBuffer();
 	}
 
 	VulkanStateManager& VulkanStateManager::return_uniform_buffer(VulkanUniformBuffer* buffer)

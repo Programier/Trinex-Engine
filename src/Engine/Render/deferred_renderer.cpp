@@ -55,12 +55,20 @@ namespace Engine
 		range.shadowed.start = range.normal.end;
 		range.shadowed.end   = lights_range.second - start;
 	}
-
+	
+	struct Test
+	{
+		
+	};
+	
 	DeferredRenderer::DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode)
 	    : Renderer(scene, view, mode), m_visible_primitives(scene->collect_visible_primitives(view.projview())),
 	      m_visible_lights(scene->collect_visible_lights(view.projview())),
 	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location))
 	{
+		Test* ptr = trx_new Test();
+		trx_delete ptr;
+
 		static_sort_lights(m_visible_lights);
 		m_light_ranges = FrameAllocator<LightRenderRanges>::allocate(1);
 

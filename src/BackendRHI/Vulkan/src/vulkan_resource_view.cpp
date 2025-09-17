@@ -59,7 +59,7 @@ namespace Engine
 		while (!m_render_targets.empty())
 		{
 			auto rt = *m_render_targets.begin();
-			delete rt;
+			trx_delete rt;
 		}
 
 		API->m_device.destroyImageView(m_view);
@@ -124,7 +124,7 @@ namespace Engine
 		while (!m_render_targets.empty())
 		{
 			auto rt = *m_render_targets.begin();
-			delete rt;
+			trx_delete rt;
 		}
 
 		API->m_device.destroyImageView(m_view);

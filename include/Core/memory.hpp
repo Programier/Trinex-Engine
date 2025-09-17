@@ -1,48 +1,8 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <new>
-#include <utility>
 
 namespace Engine
 {
-	ENGINE_EXPORT byte* allocate_memory(size_t size, size_t alignment = 16);
-	ENGINE_EXPORT byte* allocate_memory(size_t size, size_t alignment, const void* src);
-	ENGINE_EXPORT void release_memory(void* ptr);
-
-	template<typename T, typename... Args>
-	T* allocate(Args&&... args)
-	{
-		return new (allocate_memory(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
-	}
-
-	template<typename T>
-	void release(T* ptr)
-	{
-		ptr->~T();
-		release_memory(ptr);
-	}
-
-	template<typename T, typename... Args>
-	T* allocate_array(size_t count, const Args&... args)
-	{
-		constexpr size_t max_align = alignof(T) > alignof(size_t) ? alignof(T) : alignof(size_t);
-		void* place                = allocate_memory(max_align + (sizeof(T) * count), max_align);
-		size_t* size_ptr           = new (place) size_t(count);
-
-		T* array = reinterpret_cast<T*>(reinterpret_cast<byte*>(size_ptr) + max_align);
-		for (size_t i = 0; i < count; ++i) new (array + i) T(args...);
-		return array;
-	}
-
-	template<typename T>
-	void release_array(T* array)
-	{
-		constexpr size_t max_align = alignof(T) > alignof(size_t) ? alignof(T) : alignof(size_t);
-		size_t* size_ptr           = reinterpret_cast<size_t*>(reinterpret_cast<byte*>(array) - max_align);
-		for (size_t i = 0; i < *size_ptr; ++i) (array + i)->~T();
-		release_memory(size_ptr);
-	}
-
 	ENGINE_EXPORT HashIndex memory_hash(const void* memory, const size_t size, HashIndex start_hash = 0);
 	ENGINE_EXPORT const byte* memory_search(const byte* haystack, size_t haystack_len, const byte* needle, size_t needle_len);
 

@@ -76,7 +76,7 @@ namespace Engine
 
 			if (s_gc_disabled && m_references == 0)
 			{
-				Engine::release(this);
+				trx_delete this;
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace Engine
 			auto it = s_samplers.find(initializer);
 
 			if (it == s_samplers.end())
-				return &allocate<SamplerImpl>(initializer)->initialize();
+				return &((trx_new SamplerImpl(initializer))->initialize());
 
 			return it->second;
 		}
@@ -318,7 +318,7 @@ namespace Engine
 
 		RHISamplerInitializer initializer;
 		initializer.filter   = filter;
-		SamplerImpl* sampler = allocate<SamplerImpl>(initializer);
+		SamplerImpl* sampler = trx_new SamplerImpl(initializer);
 		sampler->add_ref();
 		s_default_samplers[filter.value] = sampler;
 	}
@@ -353,7 +353,7 @@ namespace Engine
 			if (sampler->references() == 0)
 			{
 				SamplerImpl* next = sampler->next();
-				release(sampler);
+				trx_delete sampler;
 				sampler = next;
 			}
 			else

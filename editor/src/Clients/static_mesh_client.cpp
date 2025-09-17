@@ -36,14 +36,14 @@ namespace Engine
 
 	StaticMeshClient::StaticMeshClient()
 	{
-		m_viewport          = allocate<Viewport>();
-		m_property_renderer = allocate<PropertyRenderer>();
+		m_viewport          = trx_new Viewport();
+		m_property_renderer = trx_new PropertyRenderer();
 	}
 
 	StaticMeshClient::~StaticMeshClient()
 	{
-		release(m_property_renderer);
-		release(m_viewport);
+		trx_delete m_property_renderer;
+		trx_delete m_viewport;
 	}
 
 	StaticMeshClient& StaticMeshClient::on_bind_viewport(RenderViewport* vp)

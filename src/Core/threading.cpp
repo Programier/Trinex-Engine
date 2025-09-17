@@ -46,12 +46,12 @@ namespace Engine
 	{
 		if (m_logic_thread == nullptr)
 		{
-			m_logic_thread = allocate<MainThread>();
+			m_logic_thread = trx_new MainThread();
 		}
 
 		if (m_render_thread == nullptr)
 		{
-			m_render_thread = allocate<Thread>("Render");
+			m_render_thread = trx_new Thread("Render");
 		}
 	}
 
@@ -60,7 +60,7 @@ namespace Engine
 	{
 		if (thread)
 		{
-			release(thread);
+			trx_delete thread;
 			thread = nullptr;
 		}
 	}

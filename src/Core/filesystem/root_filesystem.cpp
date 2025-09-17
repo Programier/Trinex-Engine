@@ -54,7 +54,7 @@ namespace Engine::VFS
 
 		DirectoryIteratorInterface* copy() override
 		{
-			FileSystemIterator* new_iterator = new FileSystemIterator();
+			FileSystemIterator* new_iterator = trx_new FileSystemIterator();
 			new_iterator->m_iterators.reserve(m_iterators.size() - m_index);
 
 			for (size_t index = m_index, count = m_iterators.size(); index < count; ++index)
@@ -78,7 +78,7 @@ namespace Engine::VFS
 		{
 			for (auto* it : m_iterators)
 			{
-				delete it;
+				trx_delete_inline(it);
 			}
 		}
 	};
@@ -95,7 +95,7 @@ namespace Engine::VFS
 
 		DirectoryIteratorInterface* copy() override
 		{
-			MountPointIterator* new_iterator = new MountPointIterator();
+			MountPointIterator* new_iterator = trx_new MountPointIterator();
 			new_iterator->m_file_systems.reserve(m_file_systems.size() - m_index);
 			for (size_t index = m_index, count = m_file_systems.size(); index < count; ++index)
 				new_iterator->m_file_systems.push_back(m_file_systems[index]);
@@ -115,16 +115,16 @@ namespace Engine::VFS
 
 	RootFS::RootFS()
 	{
-		m_root_native_file_system = allocate<NativeFileSystem>("", "");
+		m_root_native_file_system = trx_new NativeFileSystem("", "");
 	}
 
 	RootFS::~RootFS()
 	{
-		release(m_root_native_file_system);
+		trx_delete m_root_native_file_system;
 
 		for (auto& [mount, fs] : m_file_systems)
 		{
-			release(fs);
+			trx_delete fs;
 		}
 	}
 
@@ -137,7 +137,7 @@ namespace Engine::VFS
 
 			if (entry.second.empty())
 			{
-				FileSystemIterator* fs_iterator = new FileSystemIterator();
+				FileSystemIterator* fs_iterator = trx_new FileSystemIterator();
 				fs_iterator->m_iterators.push_back(iterator);
 				iterator = fs_iterator;
 
@@ -148,7 +148,7 @@ namespace Engine::VFS
 					if (mount.starts_with(entry.first->mount_point()) && mount != entry.first->mount_point().str())
 					{
 						if (mount_point_iterator == nullptr)
-							mount_point_iterator = new MountPointIterator();
+							mount_point_iterator = trx_new MountPointIterator();
 						mount_point_iterator->m_file_systems.push_back(fs);
 					}
 				}
@@ -171,7 +171,7 @@ namespace Engine::VFS
 
 			if (entry.second.empty())
 			{
-				FileSystemIterator* fs_iterator = new FileSystemIterator();
+				FileSystemIterator* fs_iterator = trx_new FileSystemIterator();
 				fs_iterator->m_iterators.push_back(iterator);
 				iterator = fs_iterator;
 
@@ -196,7 +196,7 @@ namespace Engine::VFS
 		}
 
 		auto& file_system = m_file_systems[mount_point];
-		file_system       = allocate<Redirector>(mount_point, path);
+		file_system       = trx_new Redirector(mount_point, path);
 
 		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
 		return true;
@@ -213,7 +213,7 @@ namespace Engine::VFS
 		auto& file_system = m_file_systems[mount_point];
 
 		if (type == Native)
-			file_system = allocate<NativeFileSystem>(mount_point, path);
+			file_system = trx_new NativeFileSystem(mount_point, path);
 
 		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
 		return true;
@@ -226,7 +226,7 @@ namespace Engine::VFS
 		if (it == m_file_systems.end())
 			return *this;
 
-		release(it->second);
+		trx_delete it->second;
 		m_file_systems.erase(it);
 		return *this;
 	}
@@ -270,7 +270,6 @@ namespace Engine::VFS
 		auto entry = find_filesystem(path);
 		return entry.first->open(entry.second, mode);
 	}
-
 
 	bool RootFS::create_dir(const Path& path)
 	{

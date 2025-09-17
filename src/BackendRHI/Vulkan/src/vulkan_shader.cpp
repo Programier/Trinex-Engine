@@ -18,7 +18,7 @@ namespace Engine
 
 	RHIShader* VulkanAPI::create_shader(const byte* shader, size_t size)
 	{
-		return new VulkanShader(shader, size);
+		return trx_new VulkanShader(shader, size);
 	}
 
 }// namespace Engine

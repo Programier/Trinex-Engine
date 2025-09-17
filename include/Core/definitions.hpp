@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/export.hpp>
 
 namespace Engine
 {

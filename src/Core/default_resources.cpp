@@ -172,7 +172,7 @@ namespace Engine
 		Meshes::plane        = load_object<StaticMesh>("TrinexEngine::Meshes::Plane");
 		Meshes::cone         = load_object<StaticMesh>("TrinexEngine::Meshes::Cone");
 
-		Buffers::screen_quad = allocate<PositionVertexBuffer>(std::initializer_list<Vector3f>{
+		Buffers::screen_quad = trx_new PositionVertexBuffer({
 		        Vector3f{-1.f, -1.f, 0.0f},
 		        Vector3f{-1.f, 1.f, 0.0f},
 		        Vector3f{1.f, 1.f, 0.0f},
@@ -185,7 +185,7 @@ namespace Engine
 	static void on_destroy()
 	{
 		if (DefaultResources::Buffers::screen_quad)
-			release(DefaultResources::Buffers::screen_quad);
+			trx_delete DefaultResources::Buffers::screen_quad;
 	}
 
 	static byte destroy_id = DestroyController(on_destroy).id();

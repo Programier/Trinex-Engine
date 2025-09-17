@@ -35,6 +35,7 @@ namespace Engine
 			DirectoryIterator(const Path& path);
 			DirectoryIterator(const DirectoryIterator&);
 			DirectoryIterator(DirectoryIterator&&);
+			~DirectoryIterator();
 
 			DirectoryIterator& operator=(const DirectoryIterator&);
 			DirectoryIterator& operator=(DirectoryIterator&&);
@@ -59,6 +60,7 @@ namespace Engine
 			RecursiveDirectoryIterator(const Path& path);
 			RecursiveDirectoryIterator(const RecursiveDirectoryIterator&);
 			RecursiveDirectoryIterator(RecursiveDirectoryIterator&&);
+			~RecursiveDirectoryIterator();
 
 			RecursiveDirectoryIterator& operator=(const RecursiveDirectoryIterator&);
 			RecursiveDirectoryIterator& operator=(RecursiveDirectoryIterator&&);

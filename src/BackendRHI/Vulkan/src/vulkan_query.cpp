@@ -80,7 +80,7 @@ namespace Engine
 		auto destroy_pool = [](Vector<VulkanQueryPool*>& pools) {
 			for (VulkanQueryPool* pool : pools)
 			{
-				delete pool;
+				trx_delete pool;
 			}
 		};
 
@@ -97,7 +97,7 @@ namespace Engine
 				return pool;
 		}
 
-		VulkanQueryPool* pool = new VulkanQueryPool(info);
+		VulkanQueryPool* pool = trx_new VulkanQueryPool(info);
 		pools.push_back(pool);
 		return pool;
 	}
@@ -319,12 +319,12 @@ namespace Engine
 
 	RHITimestamp* VulkanAPI::create_timestamp()
 	{
-		return new VulkanTimestamp();
+		return trx_new VulkanTimestamp();
 	}
 
 	RHIPipelineStatistics* VulkanAPI::create_pipeline_statistics()
 	{
-		return new VulkanPipelineStats();
+		return trx_new VulkanPipelineStats();
 	}
 
 	VulkanAPI& VulkanAPI::begin_timestamp(RHITimestamp* timestamp)

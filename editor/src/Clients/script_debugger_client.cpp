@@ -140,7 +140,7 @@ namespace Engine
 	trinex_implement_engine_class_default_init(ScriptDebuggerClient, 0);
 
 	ScriptDebuggerClient::ScriptDebuggerClient()
-	    : m_debugging_thread(allocate<Thread>("ScriptDebug")), m_action(ImGui::TextEditor::DebugAction::Continue),
+	    : m_debugging_thread(trx_new Thread("ScriptDebug")), m_action(ImGui::TextEditor::DebugAction::Continue),
 	      m_is_in_debug_loop(false)
 	{
 		build_language_definition();
@@ -148,7 +148,7 @@ namespace Engine
 
 	ScriptDebuggerClient::~ScriptDebuggerClient()
 	{
-		release(m_debugging_thread);
+		trx_delete m_debugging_thread;
 		m_debugging_thread = nullptr;
 	}
 

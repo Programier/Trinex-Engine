@@ -33,18 +33,16 @@ namespace Engine
 	{
 		if (m_file)
 		{
-			delete m_file;
+			trx_delete m_file;
 			m_file = nullptr;
 		}
 		return *this;
 	}
 
-
 	bool FileWriter::is_open() const
 	{
 		return m_file != nullptr && m_file->is_open();
 	}
-
 
 	FileWriter& FileWriter::clear()
 	{
@@ -115,7 +113,7 @@ namespace Engine
 	{
 		if (is_open())
 		{
-			delete m_file;
+			trx_delete m_file;
 			m_file = nullptr;
 		}
 		return *this;
