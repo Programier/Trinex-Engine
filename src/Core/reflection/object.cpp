@@ -133,7 +133,7 @@ namespace Engine::Refl
 
 		if (m_metadata)
 		{
-			delete m_metadata;
+			trx_delete m_metadata;
 		}
 	}
 
@@ -292,7 +292,7 @@ namespace Engine::Refl
 	{
 		if (m_metadata == nullptr)
 		{
-			m_metadata = new MetaData();
+			m_metadata = trx_new MetaData();
 		}
 
 		(*m_metadata)[name] = any;
@@ -368,7 +368,7 @@ namespace Engine::Refl
 				object->m_owner->unregister_subobject(object);
 			}
 
-			delete object;
+			trx_delete_inline(object);
 
 			m_check_exiting_instance = check_exiting_instance_tmp;
 			return true;

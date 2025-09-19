@@ -144,7 +144,7 @@ namespace Engine::Refl
 		    requires(std::is_base_of_v<Object, T>)
 		{
 			initialize_next_object(name);
-			T* instance = new T(std::forward<Args>(args)...);
+			T* instance = trx_new T(std::forward<Args>(args)...);
 			static_cast<Object*>(instance)->setup_owner();
 			static_cast<Object*>(instance)->construct();
 			return instance;
@@ -155,7 +155,7 @@ namespace Engine::Refl
 		    requires(std::is_base_of_v<Object, T>)
 		{
 			initialize_next_object(owner, name);
-			T* instance = new T(std::forward<Args>(args)...);
+			T* instance = trx_new T(std::forward<Args>(args)...);
 			static_cast<Object*>(instance)->setup_owner();
 			static_cast<Object*>(instance)->construct();
 			return instance;

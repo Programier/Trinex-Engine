@@ -79,7 +79,7 @@ namespace Engine
 				{
 					if (m_childs[i] != nullptr)
 					{
-						delete m_childs[i];
+						trx_delete_inline(m_childs[i]);
 						m_childs[i] = nullptr;
 					}
 				}
@@ -162,7 +162,7 @@ namespace Engine
 		Node* m_root_node = nullptr;
 
 	public:
-		Octree() { m_root_node = new Octree::Node(nullptr, Box3f({0.0f, 0.0f, 0.0f}, {1.f, 1.f, 1.f})); }
+		Octree() { m_root_node = trx_new Octree::Node(nullptr, Box3f({0.0f, 0.0f, 0.0f}, {1.f, 1.f, 1.f})); }
 		FORCE_INLINE Node* root_node() const { return m_root_node; }
 
 		FORCE_INLINE Node* push(const Box3f& box, const ElementType& element)
@@ -190,7 +190,7 @@ namespace Engine
 			while (!box.inside(node->m_box))
 			{
 				Octree::Index index = Node::calc_child_index(box, node->m_box);
-				node = new Octree::Node(nullptr, (node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
+				node = trx_new Octree::Node(nullptr, (node->m_box * 2.0f) + (node->m_box.size() / 2.0f) * (!index).factor());
 				node->m_childs[index.index] = m_root_node;
 				node->m_size                = m_root_node->m_size;
 				m_root_node->m_owner        = node;
@@ -203,7 +203,7 @@ namespace Engine
 				if (node->m_childs[index.index] == nullptr)
 				{
 					node->m_childs[index.index] =
-					        new Octree::Node(node, (node->m_box * 0.5) + (node->m_box.size() * 0.25f) * index.factor());
+					        trx_new Octree::Node(node, (node->m_box * 0.5) + (node->m_box.size() * 0.25f) * index.factor());
 				}
 				node = node->m_childs[index.index];
 			}
@@ -214,6 +214,6 @@ namespace Engine
 		FORCE_INLINE size_t size() const { return m_root_node->size(); }
 		FORCE_INLINE bool empty() const { return m_root_node->empty(); }
 
-		~Octree() { delete m_root_node; }
+		~Octree() { trx_delete_inline(m_root_node); }
 	};
 }// namespace Engine

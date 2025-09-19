@@ -37,12 +37,12 @@ namespace Engine
 		};
 
 		template<typename T>
-		inline void operator=(T* ptr) const noexcept
+		inline void operator=(const T* ptr) const noexcept
 		{
 			if (ptr)
 			{
 				ptr->~T();
-				::operator delete(ptr, Engine::ByteAllocatorTag{});
+				::operator delete(const_cast<T*>(ptr), Engine::ByteAllocatorTag{});
 			}
 		}
 	};

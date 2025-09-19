@@ -51,7 +51,7 @@ namespace Engine
 		while (!Joystick::joysticks().empty())
 		{
 			Joystick* joystick = Joystick::joysticks().begin()->second;
-			delete joystick;
+			trx_delete joystick;
 		}
 	}
 

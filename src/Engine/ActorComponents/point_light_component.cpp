@@ -40,7 +40,7 @@ namespace Engine
 
 	PointLightComponent::Proxy* PointLightComponent::create_proxy()
 	{
-		return new Proxy();
+		return trx_new Proxy();
 	}
 
 	PointLightComponent& PointLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)

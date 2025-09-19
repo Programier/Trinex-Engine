@@ -21,7 +21,7 @@ namespace Engine
 		LogicSystem::system_of<LogicSystem>()->register_subsystem(this);
 		m_is_playing = false;
 
-		m_scene = new Scene();
+		m_scene = trx_new Scene();
 
 		return *this;
 	}
@@ -99,7 +99,7 @@ namespace Engine
 		stop_play();
 		destroy_all_actors();
 		render_thread()->wait();
-		delete m_scene;
+		trx_delete m_scene;
 		return *this;
 	}
 

@@ -78,7 +78,7 @@ namespace Engine::Refl
 		while (!m_derived_structs.empty())
 		{
 			Struct* derived_struct = *m_derived_structs.begin();
-			delete derived_struct;
+			trx_delete derived_struct;
 		}
 	}
 

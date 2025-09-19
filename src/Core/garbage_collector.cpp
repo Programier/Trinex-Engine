@@ -30,23 +30,6 @@ namespace Engine
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
 	CallBacks<void(Object*)> GarbageCollector::on_destroy;
 
-	void* Object::operator new(size_t size) noexcept
-	{
-		byte* memory = ByteAllocator::allocate(size);
-		return memory;
-	}
-
-	ENGINE_EXPORT void* Object::operator new(size_t size, void* place) noexcept
-	{
-		return place;
-	}
-
-	void Object::operator delete(void* _memory, size_t size) noexcept
-	{
-		byte* memory = reinterpret_cast<byte*>(_memory);
-		ByteAllocator::deallocate(memory);
-	}
-
 	static FORCE_INLINE uint32_t get_max_objects_per_tick()
 	{
 		return Math::max<uint32_t>(1, Settings::gc_max_object_per_tick);
@@ -54,7 +37,7 @@ namespace Engine
 
 	ENGINE_EXPORT void GarbageCollector::destroy_internal(Object* object)
 	{
-		delete object;
+		trx_delete object;
 	}
 
 	void GarbageCollector::destroy(Object* object)

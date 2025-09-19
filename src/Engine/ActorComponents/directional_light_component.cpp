@@ -30,7 +30,7 @@ namespace Engine
 
 	DirectionalLightComponent::Proxy* DirectionalLightComponent::create_proxy()
 	{
-		return new Proxy();
+		return trx_new Proxy();
 	}
 
 	DirectionalLightComponent& DirectionalLightComponent::shadows_distance(float value)

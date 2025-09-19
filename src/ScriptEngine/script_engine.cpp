@@ -53,6 +53,16 @@ namespace Engine
 		throw;
 	}
 
+	static void* angel_script_allocate(size_t size)
+	{
+		return ByteAllocator::allocate(size);
+	}
+
+	static void angel_script_deallocate(void* ptr)
+	{
+		ByteAllocator::deallocate(static_cast<unsigned char*>(ptr));
+	}
+
 	Vector<class Script*> ScriptEngine::m_scripts;
 	asIScriptEngine* ScriptEngine::m_engine      = nullptr;
 	asIJITCompiler* ScriptEngine::m_jit_compiler = nullptr;
@@ -103,6 +113,8 @@ namespace Engine
 		if (m_engine != nullptr)
 			return instance();
 
+		asSetGlobalMemoryFunctions(angel_script_allocate, angel_script_deallocate);
+
 		m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
 		info_log("ScriptEngine", "Created script engine [%p]", m_engine);
 
@@ -118,7 +130,7 @@ namespace Engine
 		if constexpr (enable_jit)
 		{
 			info_log("ScriptEngine", "Enable JIT compiler!");
-			auto compiler  = new PlatformJitCompiler();
+			auto compiler  = trx_new PlatformJitCompiler();
 			m_jit_compiler = compiler;
 			m_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
 			m_engine->SetJITCompiler(m_jit_compiler);
@@ -127,7 +139,7 @@ namespace Engine
 		PostDestroyController controller(ScriptEngine::terminate, "Engine::ScriptEngine");
 		ScriptContext::initialize();
 
-		m_script_folder = new ScriptFolder("[scripts_dir]:");
+		m_script_folder = trx_new ScriptFolder("[scripts_dir]:");
 		trigger_addons_initialization();
 		return instance();
 	}
@@ -138,7 +150,7 @@ namespace Engine
 		{
 			on_terminate();
 			ScriptContext::terminate();
-			delete m_script_folder;
+			trx_delete_inline(m_script_folder);
 			m_script_folder = nullptr;
 			m_engine->Release();
 			m_engine = nullptr;
@@ -146,7 +158,7 @@ namespace Engine
 
 		if (m_jit_compiler)
 		{
-			delete m_jit_compiler;
+			trx_delete m_jit_compiler;
 			m_jit_compiler = nullptr;
 		}
 	}
@@ -171,26 +183,16 @@ namespace Engine
 	{
 		switch (conv)
 		{
-			case ScriptCallConv::CDecl:
-				return asCALL_CDECL;
-			case ScriptCallConv::StdCall:
-				return asCALL_STDCALL;
-			case ScriptCallConv::ThisCallAsGlobal:
-				return asCALL_THISCALL_ASGLOBAL;
-			case ScriptCallConv::ThisCall:
-				return asCALL_THISCALL;
-			case ScriptCallConv::CDeclObjLast:
-				return asCALL_CDECL_OBJLAST;
-			case ScriptCallConv::CDeclObjFirst:
-				return asCALL_CDECL_OBJFIRST;
-			case ScriptCallConv::Generic:
-				return asCALL_GENERIC;
-			case ScriptCallConv::ThisCall_ObjLast:
-				return asCALL_THISCALL_OBJLAST;
-			case ScriptCallConv::ThisCall_ObjFirst:
-				return asCALL_THISCALL_OBJFIRST;
-			default:
-				throw EngineException("Undefined call convension!");
+			case ScriptCallConv::CDecl: return asCALL_CDECL;
+			case ScriptCallConv::StdCall: return asCALL_STDCALL;
+			case ScriptCallConv::ThisCallAsGlobal: return asCALL_THISCALL_ASGLOBAL;
+			case ScriptCallConv::ThisCall: return asCALL_THISCALL;
+			case ScriptCallConv::CDeclObjLast: return asCALL_CDECL_OBJLAST;
+			case ScriptCallConv::CDeclObjFirst: return asCALL_CDECL_OBJFIRST;
+			case ScriptCallConv::Generic: return asCALL_GENERIC;
+			case ScriptCallConv::ThisCall_ObjLast: return asCALL_THISCALL_OBJLAST;
+			case ScriptCallConv::ThisCall_ObjFirst: return asCALL_THISCALL_OBJFIRST;
+			default: throw EngineException("Undefined call convension!");
 		}
 	}
 
@@ -254,14 +256,10 @@ namespace Engine
 		MFlags module_flags = static_cast<MFlags>(flags);
 		switch (module_flags)
 		{
-			case MFlags::CreateIfNotExists:
-				return m_engine->GetModule(name, asGM_CREATE_IF_NOT_EXISTS);
-			case MFlags::OnlyIfExists:
-				return m_engine->GetModule(name, asGM_ONLY_IF_EXISTS);
-			case MFlags::AlwaysCreate:
-				return m_engine->GetModule(name, asGM_ALWAYS_CREATE);
-			default:
-				return ScriptModule();
+			case MFlags::CreateIfNotExists: return m_engine->GetModule(name, asGM_CREATE_IF_NOT_EXISTS);
+			case MFlags::OnlyIfExists: return m_engine->GetModule(name, asGM_ONLY_IF_EXISTS);
+			case MFlags::AlwaysCreate: return m_engine->GetModule(name, asGM_ALWAYS_CREATE);
+			default: return ScriptModule();
 		}
 	}
 

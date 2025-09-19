@@ -44,7 +44,7 @@ namespace Engine
 	{
 		if (m_manager == nullptr)
 		{
-			m_manager = new ThreadManager();
+			m_manager = trx_new ThreadManager();
 		}
 		return m_manager;
 	}
@@ -163,7 +163,7 @@ namespace Engine
 
 	void ThreadManager::destroy_manager()
 	{
-		delete m_manager;
+		trx_delete_inline(m_manager);
 		m_manager = nullptr;
 	}
 }// namespace Engine

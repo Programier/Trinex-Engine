@@ -97,11 +97,6 @@ namespace Engine
 		virtual bool unregister_child(Object* child);
 		virtual Object& post_rename(Object* old_owner, Name old_name);
 
-		// Override new and delete operators
-		static ENGINE_EXPORT void* operator new(size_t size) noexcept;
-		static ENGINE_EXPORT void* operator new(size_t size, void*) noexcept;
-		static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
-
 	private:
 		// AngelScript integration
 		int AddRef() const override;
@@ -212,7 +207,7 @@ namespace Engine
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
 						static_setup_next_object_info(Type::static_reflection());
-					return static_setup_new_object_checked(new Type(std::forward<Args>(args)...), name, owner);
+					return static_setup_new_object_checked(trx_new Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
 		}
@@ -351,14 +346,14 @@ public:                                                                         
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
-	static class Engine::Refl::Class* static_reflection();                                                                   \
+	static class Engine::Refl::Class* static_reflection();                                                                       \
                                                                                                                                  \
 private:
 
 #define trinex_implement_class(decl, flags)                                                                                      \
 	class Engine::Refl::Class* decl::m_static_class = nullptr;                                                                   \
                                                                                                                                  \
-	class Engine::Refl::Class* decl::static_reflection()                                                                     \
+	class Engine::Refl::Class* decl::static_reflection()                                                                         \
 	{                                                                                                                            \
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
@@ -367,7 +362,7 @@ private:
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
 	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
-	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                  \
+	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
 	void decl::static_initialize_class()
 
 

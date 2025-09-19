@@ -1243,10 +1243,10 @@ namespace Engine
 			node->next->parent = node->parent;
 		}
 
-		delete node->widget;
+		trx_delete node->widget;
 
 		Node* next = node->next;
-		delete node;
+		trx_delete node;
 
 		return next;
 	}
@@ -1257,7 +1257,7 @@ namespace Engine
 		Node* parent_node = m_root;
 		while (parent_node && parent_node->next) parent_node = parent_node->next;
 
-		Node* node   = new Node();
+		Node* node   = trx_new Node();
 		node->widget = widget;
 		node->parent = parent_node;
 		node->next   = nullptr;

@@ -13,7 +13,7 @@ namespace Engine
 
 	void GameControllerSystem::on_controller_added(const Event& event)
 	{
-		m_controllers[event.gamepad.id] = new GameController(event.gamepad.id);
+		m_controllers[event.gamepad.id] = trx_new GameController(event.gamepad.id);
 	}
 
 	void GameControllerSystem::on_controller_removed(const Event& event)
@@ -29,7 +29,7 @@ namespace Engine
 				if (system)
 				{
 					system->m_controllers.erase(controller->id());
-					delete controller;
+					trx_delete controller;
 				}
 			});
 		}

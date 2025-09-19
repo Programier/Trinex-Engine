@@ -28,7 +28,7 @@ namespace Engine
 		if (auto menu = find(name))
 			return menu;
 
-		Menu* menu = new Menu(this, name);
+		Menu* menu = trx_new Menu(this, name);
 
 		if (before && before->bar == this)
 		{
@@ -111,7 +111,7 @@ namespace Engine
 		if (menu && menu->bar == this)
 		{
 			remove(menu);
-			delete menu;
+			trx_delete_inline(menu);
 		}
 		return *this;
 	}
@@ -150,7 +150,7 @@ namespace Engine
 		while (m_first)
 		{
 			Menu* next = m_first->m_next;
-			delete m_first;
+			trx_delete_inline(m_first);
 			m_first = next;
 		}
 

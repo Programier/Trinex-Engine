@@ -29,7 +29,7 @@ namespace Engine
 	Identifier EventSystem::add_listener(EventType type, const Listener& listener)
 	{
 		size_t index       = static_cast<size_t>(type);
-		ListenerNode* node = new ListenerNode();
+		ListenerNode* node = trx_new ListenerNode();
 		node->type         = type;
 		node->listener     = listener;
 
@@ -65,7 +65,7 @@ namespace Engine
 					system->m_listeners[node->index()] = node->next;
 				}
 
-				delete node;
+				trx_delete node;
 			}
 		});
 
@@ -124,7 +124,7 @@ namespace Engine
 			while (listener)
 			{
 				ListenerNode* next = listener->next;
-				delete listener;
+				trx_delete listener;
 				listener = next;
 			}
 		}

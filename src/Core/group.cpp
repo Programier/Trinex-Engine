@@ -13,11 +13,11 @@ namespace Engine
 
 		if (root_group == nullptr)
 		{
-			root_group         = new Group();
+			root_group         = trx_new Group();
 			root_group->m_name = "Root Group";
 
 			PostDestroyController([]() {
-				delete root_group;
+				trx_delete root_group;
 				root_group = nullptr;
 			});
 		}
@@ -45,7 +45,7 @@ namespace Engine
 
 		if (create)
 		{
-			Group* new_group    = new Group();
+			Group* new_group    = trx_new Group();
 			new_group->m_name   = Name(name, len);
 			new_group->m_parent = this;
 
@@ -138,7 +138,7 @@ namespace Engine
 	{
 		while (!m_childs.empty())
 		{
-			delete m_childs.front();
+			trx_delete m_childs.front();
 		}
 
 		if (m_parent)

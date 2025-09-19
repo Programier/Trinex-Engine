@@ -157,7 +157,7 @@ namespace Engine::Refl
 
 	Class& Class::destroy_object(Engine::Object* object)
 	{
-		delete object;
+		trx_delete object;
 		return *this;
 	}
 

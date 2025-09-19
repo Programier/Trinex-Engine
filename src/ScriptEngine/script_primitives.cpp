@@ -18,7 +18,7 @@
 		--m_refs;                                                                                                                \
 		if (m_refs == 0)                                                                                                         \
 		{                                                                                                                        \
-			delete this;                                                                                                         \
+			trx_delete this;                                                                                                     \
 		}                                                                                                                        \
 	}                                                                                                                            \
 	type name::op_conv() const                                                                                                   \
@@ -43,7 +43,7 @@ namespace Engine
 	template<typename T1, typename T2>
 	static T1* factory(T2 value)
 	{
-		T1* instance = new T1(value);
+		T1* instance = trx_new T1(value);
 		instance->add_ref();
 		return instance;
 	}

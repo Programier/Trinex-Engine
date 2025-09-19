@@ -150,7 +150,7 @@ namespace Engine::Refl
 			{
 				if constexpr (std::is_default_constructible_v<T>)
 				{
-					return new T();
+					return trx_new T();
 				}
 				else
 				{
@@ -169,7 +169,7 @@ namespace Engine::Refl
 			{
 				if constexpr (std::is_default_constructible_v<T>)
 				{
-					delete reinterpret_cast<T*>(mem);
+					trx_delete_inline(reinterpret_cast<T*>(mem));
 				}
 			}
 
@@ -206,7 +206,7 @@ namespace Engine::Refl
 #define trinex_implement_struct(decl, flags)                                                                                     \
 	class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
-	class Engine::Refl::Struct* decl::static_reflection()                                                                   \
+	class Engine::Refl::Struct* decl::static_reflection()                                                                        \
 	{                                                                                                                            \
 		if (!m_static_struct)                                                                                                    \
 		{                                                                                                                        \
@@ -216,7 +216,7 @@ namespace Engine::Refl
 	}                                                                                                                            \
                                                                                                                                  \
 	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::byte>(                         \
-	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                 \
+	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
                                                                                                                                  \
 	void decl::static_initialize_struct()
 

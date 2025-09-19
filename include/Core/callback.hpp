@@ -88,8 +88,8 @@ namespace Engine
 		const_iterator cend() const noexcept { return const_iterator(nullptr); }
 
 		inline bool empty() const { return m_head == nullptr; }
-		inline Identifier push(const Function<Signature>& callback) { return push(new FuncNode(callback)); }
-		inline Identifier push(Function<Signature>&& callback) { return push(new FuncNode(std::move(callback))); }
+		inline Identifier push(const Function<Signature>& callback) { return push(trx_new FuncNode(callback)); }
+		inline Identifier push(Function<Signature>&& callback) { return push(trx_new FuncNode(std::move(callback))); }
 		inline Identifier operator+=(const Function<Signature>& func) { return push(func); }
 		inline Identifier operator+=(Function<Signature>&& func) { return push(func); }
 
@@ -130,7 +130,7 @@ namespace Engine
 			if (remove->next)
 				remove->next->prev = remove->prev;
 
-			delete remove;
+			trx_delete remove;
 			return *this;
 		}
 
@@ -139,7 +139,7 @@ namespace Engine
 			while (m_head)
 			{
 				FuncNode* next = m_head->next;
-				delete m_head;
+				trx_delete m_head;
 				m_head = next;
 			}
 			return *this;

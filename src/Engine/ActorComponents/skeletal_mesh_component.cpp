@@ -90,7 +90,7 @@ namespace Engine
 
 	SkeletalMeshComponent::Proxy* SkeletalMeshComponent::create_proxy()
 	{
-		return new Proxy();
+		return trx_new Proxy();
 	}
 
 	SkeletalMeshComponent& SkeletalMeshComponent::update_bounding_box()

@@ -283,7 +283,7 @@ namespace Engine
 
 	ImGuiOpenFile::ImGuiOpenFile(Flags<Flag> flags) : m_flags(flags)
 	{
-		m_browser = new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags));
+		m_browser = trx_new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags));
 		m_browser->SetTitle(name());
 		m_browser->Open();
 	}
@@ -369,7 +369,7 @@ namespace Engine
 
 	ImGuiOpenFile::~ImGuiOpenFile()
 	{
-		delete m_browser;
+		trx_delete m_browser;
 	}
 
 	const char* ImGuiOpenFile::name() const
@@ -392,7 +392,7 @@ namespace Engine
 	{
 		for (auto& child : childs)
 		{
-			delete child;
+			trx_delete child;
 		}
 	}
 
@@ -406,7 +406,7 @@ namespace Engine
 			{
 				if (Refl::Class* child_class = Refl::Object::instance_cast<Refl::Class>(child))
 				{
-					Node* child_node = new Node();
+					Node* child_node = trx_new Node();
 					build_tree(child_node, child_class);
 					node->childs.insert(child_node);
 				}
@@ -417,14 +417,14 @@ namespace Engine
 	ImGuiSpawnNewActor::ImGuiSpawnNewActor(class World* world) : world(world)
 	{
 		auto* actor_class = Refl::Class::static_find("Engine::Actor", Refl::FindFlags::IsRequired);
-		m_root            = new Node();
+		m_root            = trx_new Node();
 		build_tree(m_root, actor_class);
 		m_monitor_size = Platform::monitor_info().size;
 	}
 
 	ImGuiSpawnNewActor::~ImGuiSpawnNewActor()
 	{
-		delete m_root;
+		trx_delete m_root;
 	}
 
 	void ImGuiSpawnNewActor::render_tree(Node* node)

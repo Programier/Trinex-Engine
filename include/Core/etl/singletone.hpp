@@ -32,18 +32,18 @@ namespace Engine
 			{
 				if constexpr (singletone_based_on_object)
 				{
-					register_singletone(Type::static_reflection(), new Type(std::forward<Args>(args)...));
+					register_singletone(Type::static_reflection(), trx_new Type(std::forward<Args>(args)...));
 				}
 				else
 				{
-					Type::s_instance = new Type(std::forward<Args>(args)...);
+					Type::s_instance = trx_new Type(std::forward<Args>(args)...);
 
 					if constexpr (with_destroy_controller)
 					{
 						PostDestroyController post_destroy([]() {
 							if (Type::s_instance)
 							{
-								delete Type::s_instance;
+								trx_delete_inline(Type::s_instance);
 								Type::s_instance = nullptr;
 							}
 						});

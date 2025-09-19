@@ -36,7 +36,7 @@ namespace Engine
 
 		for (auto& child : childs)
 		{
-			delete child.second;
+			trx_delete_inline(child.second);
 		}
 
 		if (m_parent)
@@ -49,7 +49,7 @@ namespace Engine
 
 		for (auto& script : scripts)
 		{
-			delete script.second;
+			trx_delete script.second;
 		}
 	}
 
@@ -111,7 +111,7 @@ namespace Engine
 			{
 				if (create_if_not_exists)
 				{
-					folder = new ScriptFolder(name, folder);
+					folder = trx_new ScriptFolder(name, folder);
 				}
 				else
 				{
@@ -146,7 +146,7 @@ namespace Engine
 			{
 				if (create_if_not_exists)
 				{
-					Script* new_script = new Script(folder, path.back());
+					Script* new_script = trx_new Script(folder, path.back());
 					folder->m_scripts.insert_or_assign(path.back(), new_script);
 					return new_script;
 				}
@@ -198,7 +198,7 @@ namespace Engine
 
 		for (auto& script : scripts)
 		{
-			delete script.second;
+			trx_delete script.second;
 		}
 		return *this;
 	}

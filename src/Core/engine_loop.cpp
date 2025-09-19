@@ -204,7 +204,7 @@ namespace Engine
 			WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
 
 		if (WindowManager::instance())
-			delete WindowManager::instance();
+			trx_delete WindowManager::instance();
 
 		GarbageCollector::destroy_all_objects();
 		render_thread()->wait();
@@ -227,7 +227,3 @@ namespace Engine
 		destroy_threads();
 	}
 }// namespace Engine
-
-
-
-

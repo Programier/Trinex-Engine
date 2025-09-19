@@ -68,11 +68,11 @@ namespace Engine
 
 		template<typename T>
 		struct DynamicManager {
-			static void destroy(Storage& storage) noexcept { delete reinterpret_cast<T*>(storage.dynamic); }
+			static void destroy(Storage& storage) noexcept { trx_delete reinterpret_cast<T*>(storage.dynamic); }
 
 			static void copy(const Storage& src, Storage& dest)
 			{
-				dest.dynamic = new T(*reinterpret_cast<const T*>(src.dynamic));
+				dest.dynamic = trx_new T(*reinterpret_cast<const T*>(src.dynamic));
 			}
 
 			static void move(Storage& src, Storage& dest) noexcept
@@ -128,7 +128,7 @@ namespace Engine
 		template<typename Value, typename DecayValue>
 		typename std::enable_if<!is_stack_type<DecayValue>>::type initialize(Value&& value)
 		{
-			m_storage.dynamic = new DecayValue(std::forward<Value>(value));
+			m_storage.dynamic = trx_new DecayValue(std::forward<Value>(value));
 		}
 
 		template<typename Value>

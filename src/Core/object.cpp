@@ -568,13 +568,13 @@ namespace Engine
 			rootfs()->create_dir(path.base_path());
 		}
 
-		Type* value = new Type(path);
+		Type* value = trx_new Type(path);
 		if (value->is_open())
 		{
 			return value;
 		}
 
-		delete value;
+		trx_delete value;
 
 		if constexpr (std::is_base_of_v<BufferReader, Type>)
 		{
@@ -633,7 +633,7 @@ namespace Engine
 
 		if (need_destroy_writer)
 		{
-			delete writer;
+			trx_delete writer;
 		}
 
 		return ar;
@@ -725,7 +725,7 @@ namespace Engine
 		if (!valid)
 		{
 			error_log("Object", "Failed to load object");
-			delete object;
+			trx_delete object;
 			object = nullptr;
 		}
 		else

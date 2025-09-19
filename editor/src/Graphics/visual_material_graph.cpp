@@ -739,7 +739,7 @@ namespace Engine::VisualMaterialGraph
 
 	InputPin* Node::new_input(const String& name, RHIShaderParameterType type)
 	{
-		InputPin* pin = new InputPin();
+		InputPin* pin = trx_new InputPin();
 		pin->m_name   = name;
 		pin->m_node   = this;
 		pin->m_index  = static_cast<uint16_t>(m_inputs.size());
@@ -750,7 +750,7 @@ namespace Engine::VisualMaterialGraph
 
 	OutputPin* Node::new_output(const String& name, RHIShaderParameterType type)
 	{
-		OutputPin* pin = new OutputPin();
+		OutputPin* pin = trx_new OutputPin();
 		pin->m_name    = name;
 		pin->m_node    = this;
 		pin->m_index   = static_cast<uint16_t>(m_outputs.size());

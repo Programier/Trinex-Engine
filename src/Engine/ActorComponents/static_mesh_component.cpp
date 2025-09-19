@@ -78,7 +78,7 @@ namespace Engine
 
 	StaticMeshComponent::Proxy* StaticMeshComponent::create_proxy()
 	{
-		return new Proxy();
+		return trx_new Proxy();
 	}
 
 	StaticMeshComponent& StaticMeshComponent::update_bounding_box()

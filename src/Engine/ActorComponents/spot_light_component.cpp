@@ -98,6 +98,6 @@ namespace Engine
 
 	SpotLightComponent::Proxy* SpotLightComponent::create_proxy()
 	{
-		return new Proxy();
+		return trx_new Proxy();
 	}
 }// namespace Engine

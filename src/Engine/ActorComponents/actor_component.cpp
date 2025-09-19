@@ -72,7 +72,7 @@ namespace Engine
 	{
 		if (m_proxy)
 		{
-			delete m_proxy;
+			trx_delete m_proxy;
 			m_proxy = nullptr;
 		}
 	}

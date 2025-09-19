@@ -40,7 +40,7 @@ namespace Engine
 
 	Thread::Thread(const char* name, size_t command_buffer_size) : Thread(NoThread(), command_buffer_size)
 	{
-		m_thread = new std::thread([this]() { thread_loop(); });
+		m_thread = trx_new std::thread([this]() { thread_loop(); });
 	}
 
 	void Thread::thread_loop()
@@ -155,7 +155,7 @@ namespace Engine
 				m_thread->join();
 			}
 
-			delete m_thread;
+			trx_delete m_thread;
 		}
 
 		ByteAllocator::deallocate(m_buffer);
