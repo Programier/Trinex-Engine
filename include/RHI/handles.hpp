@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/math/vector.hpp>
+#include <RHI/object.hpp>
 #include <RHI/types.hpp>
 
 namespace Engine
@@ -10,44 +11,6 @@ namespace Engine
 	struct RHITextureDescSRV;
 	struct RHITextureDescUAV;
 	struct RHITextureType;
-
-	class ENGINE_EXPORT RHIObject
-	{
-	private:
-		static void static_release_internal(RHIObject* object);
-
-	protected:
-		size_t m_references;
-
-	public:
-		RHIObject(size_t init_ref_count = 1);
-		virtual void add_reference();
-		virtual void release();
-		virtual void destroy() = 0;
-		size_t references() const;
-		virtual ~RHIObject();
-
-		template<typename T>
-		static inline void static_release(T* object)
-		{
-			if (object)
-			{
-				static_release_internal(object);
-			}
-		}
-
-		template<typename T>
-		T* as()
-		{
-			return static_cast<T*>(this);
-		}
-
-		template<typename T>
-		const T* as() const
-		{
-			return static_cast<const T*>(this);
-		}
-	};
 
 	class ENGINE_EXPORT RHITimestamp : public RHIObject
 	{
@@ -145,7 +108,7 @@ namespace Engine
 		               uint16_t base_mip = 0, uint16_t mip_count = 65535);
 
 		void destroy() override;
-		
+
 		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc = nullptr) override;
 		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc = nullptr) override;
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc = nullptr) override;

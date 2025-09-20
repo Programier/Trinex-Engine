@@ -1,5 +1,5 @@
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_fence.hpp>
 
 namespace Engine
@@ -52,7 +52,7 @@ namespace Engine
 		m_cmd = nullptr;
 	}
 
-	VulkanFenceRef& VulkanFenceRef::signal(VulkanCommandBuffer* cmd_buffer)
+	VulkanFenceRef& VulkanFenceRef::signal(VulkanCommandHandle* cmd_buffer)
 	{
 		m_cmd                  = cmd_buffer;
 		m_fence_signaled_count = cmd_buffer->fence_signaled_count();

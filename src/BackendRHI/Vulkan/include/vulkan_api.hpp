@@ -127,10 +127,10 @@ namespace Engine
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 		bool has_stencil_component(vk::Format format);
 
-		class VulkanCommandBuffer* current_command_buffer();
+		class VulkanCommandHandle* current_command_buffer();
 
-		VulkanCommandBuffer* begin_render_pass();
-		VulkanCommandBuffer* end_render_pass();
+		VulkanCommandHandle* begin_render_pass();
+		VulkanCommandHandle* end_render_pass();
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
 		//////////////////////////////////////////////////////////////
@@ -170,6 +170,7 @@ namespace Engine
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
+		RHICommandBuffer* create_command_buffer() override;
 		VulkanAPI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		VulkanAPI& push_debug_stage(const char* stage) override;

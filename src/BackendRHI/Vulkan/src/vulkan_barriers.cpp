@@ -1,7 +1,7 @@
 #include <Core/exception.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Engine::Barrier

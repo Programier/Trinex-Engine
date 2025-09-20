@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	class VulkanCommandBuffer;
+	class VulkanCommandHandle;
 	class VulkanSampler;
 	class VulkanBuffer;
 	class VulkanTexture;
@@ -219,10 +219,10 @@ namespace Engine
 			return *this;
 		}
 
-		VulkanCommandBuffer* begin_render_pass();
-		VulkanCommandBuffer* end_render_pass();
-		VulkanCommandBuffer* flush_graphics();
-		VulkanCommandBuffer* flush_compute();
+		VulkanCommandHandle* begin_render_pass();
+		VulkanCommandHandle* end_render_pass();
+		VulkanCommandHandle* flush_graphics();
+		VulkanCommandHandle* flush_compute();
 		VulkanStateManager& submit();
 
 		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);

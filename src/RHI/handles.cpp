@@ -5,43 +5,6 @@
 
 namespace Engine
 {
-	RHIObject::RHIObject(size_t init_ref_count) : m_references(init_ref_count) {}
-
-	void RHIObject::static_release_internal(RHIObject* object)
-	{
-		if (is_in_render_thread())
-		{
-			object->release();
-		}
-		else
-		{
-			render_thread()->call([object]() { object->release(); });
-		}
-	}
-
-	void RHIObject::add_reference()
-	{
-		++m_references;
-	}
-
-	void RHIObject::release()
-	{
-		if (m_references > 0)
-			--m_references;
-
-		if (m_references == 0)
-		{
-			destroy();
-		}
-	}
-
-	size_t RHIObject::references() const
-	{
-		return m_references;
-	}
-
-	RHIObject::~RHIObject() {}
-
 	RHITextureView::RHITextureView(RHITexture* texture, RHITextureType type, uint16_t base_slice, uint16_t slice_count,
 	                               uint16_t base_mip, uint16_t mip_count)
 	    : m_texture(texture), m_base_slice(base_slice), m_slice_count(slice_count), m_base_mip(base_mip), m_mip_count(mip_count)

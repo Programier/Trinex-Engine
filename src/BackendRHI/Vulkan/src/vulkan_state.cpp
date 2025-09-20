@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_pipeline.hpp>
@@ -213,7 +213,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer* VulkanStateManager::begin_render_pass()
+	VulkanCommandHandle* VulkanStateManager::begin_render_pass()
 	{
 		auto cmd = API->current_command_buffer();
 		m_render_target->lock_surfaces();
@@ -222,7 +222,7 @@ namespace Engine
 		return cmd;
 	}
 
-	VulkanCommandBuffer* VulkanStateManager::end_render_pass()
+	VulkanCommandHandle* VulkanStateManager::end_render_pass()
 	{
 		auto cmd = API->current_command_buffer();
 
@@ -234,7 +234,7 @@ namespace Engine
 		return cmd;
 	}
 
-	VulkanCommandBuffer* VulkanStateManager::flush_graphics()
+	VulkanCommandHandle* VulkanStateManager::flush_graphics()
 	{
 		trinex_profile_cpu_n("VulkanStateManager::flush_graphics");
 		auto cmd = API->current_command_buffer();
@@ -257,7 +257,7 @@ namespace Engine
 		return cmd;
 	}
 
-	VulkanCommandBuffer* VulkanStateManager::flush_compute()
+	VulkanCommandHandle* VulkanStateManager::flush_compute()
 	{
 		auto cmd = API->current_command_buffer();
 		trinex_check(m_pipeline, "Pipeline can't be nullptr");

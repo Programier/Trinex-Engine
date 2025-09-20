@@ -2,15 +2,16 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 
+
 namespace Engine
 {
-	VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandBufferManager* manager)
+	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager)
 	{
 		m_fence = trx_new VulkanFence(false);
 
@@ -19,7 +20,7 @@ namespace Engine
 		static_cast<vk::CommandBuffer&>(*this) = API->m_device.allocateCommandBuffers(alloc_info).front();
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::refresh_fence_status()
+	VulkanCommandHandle& VulkanCommandHandle::refresh_fence_status()
 	{
 		if (m_state == State::Submitted)
 		{
@@ -37,7 +38,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::begin()
+	VulkanCommandHandle& VulkanCommandHandle::begin()
 	{
 		trinex_check(m_state == State::IsReadyForBegin, "Vulkan cmd state must be ready for begin");
 		vk::CommandBuffer::begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
@@ -45,7 +46,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::end()
+	VulkanCommandHandle& VulkanCommandHandle::end()
 	{
 		trinex_check(is_outside_render_pass(), "Command Buffer must be in outside render pass state!");
 		vk::CommandBuffer::end();
@@ -53,7 +54,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::begin_render_pass(VulkanRenderTarget* rt)
+	VulkanCommandHandle& VulkanCommandHandle::begin_render_pass(VulkanRenderTarget* rt)
 	{
 		trinex_check(has_begun(), "Command Buffer must be begun!");
 
@@ -65,7 +66,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::end_render_pass()
+	VulkanCommandHandle& VulkanCommandHandle::end_render_pass()
 	{
 		trinex_check(is_inside_render_pass(), "Command Buffer must be inside render pass!");
 		vk::CommandBuffer::endRenderPass();
@@ -74,14 +75,14 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore)
+	VulkanCommandHandle& VulkanCommandHandle::add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore)
 	{
 		m_wait_semaphores.push_back(semaphore);
 		m_wait_flags.push_back(flags);
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::submit(vk::Semaphore semaphore)
+	VulkanCommandHandle& VulkanCommandHandle::submit(vk::Semaphore semaphore)
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
 		trinex_check(has_ended(), "Command Buffer must be in ended state!");
@@ -100,13 +101,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::destroy_object(RHIObject* object)
+	VulkanCommandHandle& VulkanCommandHandle::destroy_object(RHIObject* object)
 	{
 		m_pending_destroy.push_back(object);
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::wait()
+	VulkanCommandHandle& VulkanCommandHandle::wait()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
 		if (m_state == State::Submitted)
@@ -119,7 +120,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer& VulkanCommandBuffer::destroy_objects()
+	VulkanCommandHandle& VulkanCommandHandle::destroy_objects()
 	{
 		while (!m_pending_destroy.empty())
 		{
@@ -131,7 +132,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer::~VulkanCommandBuffer()
+	VulkanCommandHandle::~VulkanCommandHandle()
 	{
 		auto pool = API->command_buffer_mananger()->command_pool();
 		API->m_device.freeCommandBuffers(pool, *this);
@@ -166,7 +167,7 @@ namespace Engine
 	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::create_node()
 	{
 		Node* node           = trx_new Node();
-		node->command_buffer = trx_new VulkanCommandBuffer(this);
+		node->command_buffer = trx_new VulkanCommandHandle(this);
 		node->next           = nullptr;
 		return node;
 	}
@@ -199,7 +200,7 @@ namespace Engine
 
 	VulkanCommandBufferManager& VulkanCommandBufferManager::submit(vk::Semaphore semaphore)
 	{
-		VulkanCommandBuffer* buffer = m_current->command_buffer;
+		VulkanCommandHandle* buffer = m_current->command_buffer;
 
 		if (buffer->is_inside_render_pass())
 		{
@@ -217,8 +218,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandBuffer* VulkanAPI::current_command_buffer()
+	VulkanCommandHandle* VulkanAPI::current_command_buffer()
 	{
 		return m_cmd_manager->current();
+	}
+
+	RHICommandBuffer* VulkanAPI::create_command_buffer()
+	{
+		return nullptr;
 	}
 }// namespace Engine

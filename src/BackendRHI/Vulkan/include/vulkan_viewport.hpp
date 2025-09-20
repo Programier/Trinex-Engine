@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	class VulkanCommandBuffer;
+	class VulkanCommandHandle;
 	class VulkanTexture;
 
 	class VulkanSwapchain : public VulkanDeferredDestroy<RHISwapchain>
@@ -55,10 +55,10 @@ namespace Engine
 		VulkanSwapchain(Window* window, bool vsync);
 		~VulkanSwapchain();
 
-		int_t acquire_image_index(VulkanCommandBuffer* cmd_buffer);
-		int_t do_present(VulkanCommandBuffer* cmd_buffer);
+		int_t acquire_image_index(VulkanCommandHandle* cmd_buffer);
+		int_t do_present(VulkanCommandHandle* cmd_buffer);
 		VulkanTexture* backbuffer();
-		int_t try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandBuffer*), VulkanCommandBuffer* cmd_buffer,
+		int_t try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandHandle*), VulkanCommandHandle* cmd_buffer,
 		                  bool skip_on_out_of_date);
 
 		vk::Semaphore render_finished_semaphore();

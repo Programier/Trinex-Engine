@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	class VulkanCommandBuffer;
+	class VulkanCommandHandle;
 
 	class VulkanFence
 	{
@@ -29,13 +29,13 @@ namespace Engine
 	class VulkanFenceRef : public VulkanDeferredDestroy<RHIFence>
 	{
 	private:
-		VulkanCommandBuffer* m_cmd    = nullptr;
+		VulkanCommandHandle* m_cmd    = nullptr;
 		size_t m_fence_signaled_count = 0;
 
 	public:
 		bool is_signaled() override;
 		void reset() override;
-		VulkanFenceRef& signal(VulkanCommandBuffer* cmd_buffer);
+		VulkanFenceRef& signal(VulkanCommandHandle* cmd_buffer);
 		inline bool is_waiting() const { return m_cmd != nullptr; }
 	};
 }// namespace Engine

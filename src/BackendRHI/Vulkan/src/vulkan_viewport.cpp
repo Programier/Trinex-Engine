@@ -9,7 +9,7 @@
 #include <Window/window.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
@@ -158,7 +158,7 @@ namespace Engine
 		return *this;
 	}
 
-	int_t VulkanSwapchain::acquire_image_index(VulkanCommandBuffer* cmd_buffer)
+	int_t VulkanSwapchain::acquire_image_index(VulkanCommandHandle* cmd_buffer)
 	{
 		trinex_profile_cpu_n("VulkanSwapchain::acquire_image_index");
 
@@ -208,7 +208,7 @@ namespace Engine
 		return m_image_index;
 	}
 
-	int_t VulkanSwapchain::do_present(VulkanCommandBuffer* cmd_buffer)
+	int_t VulkanSwapchain::do_present(VulkanCommandHandle* cmd_buffer)
 	{
 		if (m_image_index == -1)
 			return Status::Success;
@@ -245,7 +245,7 @@ namespace Engine
 		return Status::Success;
 	}
 
-	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandBuffer*), VulkanCommandBuffer* cmd_buffer,
+	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandHandle*), VulkanCommandHandle* cmd_buffer,
 	                                   bool skip_on_out_of_date)
 	{
 		if (m_need_recreate)

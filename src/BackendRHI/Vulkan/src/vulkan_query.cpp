@@ -1,5 +1,5 @@
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_query.hpp>
@@ -135,7 +135,7 @@ namespace Engine
 		Marker m_begin;
 		Marker m_end;
 
-		static void write_timestamp(Marker& marker, VulkanQueryPoolManager* manager, VulkanCommandBuffer* cmd)
+		static void write_timestamp(Marker& marker, VulkanQueryPoolManager* manager, VulkanCommandHandle* cmd)
 		{
 			if (API->m_properties.limits.timestampComputeAndGraphics)
 			{
@@ -153,13 +153,13 @@ namespace Engine
 		}
 
 	public:
-		VulkanTimestamp& begin(VulkanQueryPoolManager* manager, VulkanCommandBuffer* cmd)
+		VulkanTimestamp& begin(VulkanQueryPoolManager* manager, VulkanCommandHandle* cmd)
 		{
 			write_timestamp(m_begin, manager, cmd);
 			return *this;
 		}
 
-		VulkanTimestamp& end(VulkanQueryPoolManager* manager, VulkanCommandBuffer* cmd)
+		VulkanTimestamp& end(VulkanQueryPoolManager* manager, VulkanCommandHandle* cmd)
 		{
 			write_timestamp(m_end, manager, cmd);
 			return *this;
@@ -239,7 +239,7 @@ namespace Engine
 		Marker m_marker;
 
 	public:
-		VulkanPipelineStats& begin(VulkanQueryPoolManager* manager, VulkanCommandBuffer* cmd)
+		VulkanPipelineStats& begin(VulkanQueryPoolManager* manager, VulkanCommandHandle* cmd)
 		{
 			if (API->m_features.pipelineStatisticsQuery)
 			{
@@ -257,7 +257,7 @@ namespace Engine
 			return *this;
 		}
 
-		VulkanPipelineStats& end(VulkanQueryPoolManager* manager, VulkanCommandBuffer* cmd)
+		VulkanPipelineStats& end(VulkanQueryPoolManager* manager, VulkanCommandHandle* cmd)
 		{
 			if (API->m_features.pipelineStatisticsQuery)
 			{

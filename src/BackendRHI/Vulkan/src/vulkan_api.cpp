@@ -15,7 +15,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_command_buffer.hpp>
+#include <vulkan_commands.hpp>
 #include <vulkan_config.hpp>
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
@@ -386,12 +386,12 @@ namespace Engine
 		return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 	}
 
-	VulkanCommandBuffer* VulkanAPI::begin_render_pass()
+	VulkanCommandHandle* VulkanAPI::begin_render_pass()
 	{
 		return m_state_manager->begin_render_pass();
 	}
 
-	VulkanCommandBuffer* VulkanAPI::end_render_pass()
+	VulkanCommandHandle* VulkanAPI::end_render_pass()
 	{
 		return m_state_manager->end_render_pass();
 	}

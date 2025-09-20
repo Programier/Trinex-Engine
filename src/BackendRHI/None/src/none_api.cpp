@@ -239,6 +239,11 @@ namespace Engine
 		return new NoneSwapchain();
 	}
 
+	RHICommandBuffer* NoneApi::create_command_buffer()
+	{
+		return nullptr;
+	}
+
 	NoneApi& NoneApi::primitive_topology(RHIPrimitiveTopology topology)
 	{
 		return *this;

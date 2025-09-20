@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-	class VulkanCommandBuffer;
+	class VulkanCommandHandle;
 
 	class VulkanQueue
 	{
@@ -14,10 +14,10 @@ namespace Engine
 	public:
 		VulkanQueue(vk::Queue queue, uint32_t index);
 
-		VulkanQueue& submit(VulkanCommandBuffer* cmd_buffer, uint32_t signal_semaphores_count = 0,
+		VulkanQueue& submit(VulkanCommandHandle* cmd_buffer, uint32_t signal_semaphores_count = 0,
 		                    const vk::Semaphore* signal_semaphores = nullptr);
 
-		inline VulkanQueue& submit(VulkanCommandBuffer* cmd_buffer, vk::Semaphore signal_semaphore)
+		inline VulkanQueue& submit(VulkanCommandHandle* cmd_buffer, vk::Semaphore signal_semaphore)
 		{
 			return submit(cmd_buffer, 1, &signal_semaphore);
 		}

@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/etl/vector.hpp>
+#include <RHI/commands.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace Engine
@@ -8,7 +8,7 @@ namespace Engine
 	class RHIObject;
 	class VulkanRenderTarget;
 
-	class VulkanCommandBuffer final : public vk::CommandBuffer
+	class VulkanCommandHandle final : public vk::CommandBuffer
 	{
 	private:
 		enum class State
@@ -29,26 +29,26 @@ namespace Engine
 		State m_state = State::IsReadyForBegin;
 
 	private:
-		VulkanCommandBuffer& destroy_objects();
+		VulkanCommandHandle& destroy_objects();
 
 	public:
-		VulkanCommandBuffer(class VulkanCommandBufferManager* manager);
-		VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
-		VulkanCommandBuffer(VulkanCommandBuffer&&)      = delete;
-		~VulkanCommandBuffer();
+		VulkanCommandHandle(class VulkanCommandBufferManager* manager);
+		VulkanCommandHandle(const VulkanCommandHandle&) = delete;
+		VulkanCommandHandle(VulkanCommandHandle&&)      = delete;
+		~VulkanCommandHandle();
 
-		VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) = delete;
-		VulkanCommandBuffer& operator=(VulkanCommandBuffer&&)      = delete;
+		VulkanCommandHandle& operator=(const VulkanCommandHandle&) = delete;
+		VulkanCommandHandle& operator=(VulkanCommandHandle&&)      = delete;
 
-		VulkanCommandBuffer& refresh_fence_status();
-		VulkanCommandBuffer& begin();
-		VulkanCommandBuffer& end();
-		VulkanCommandBuffer& begin_render_pass(VulkanRenderTarget* rt);
-		VulkanCommandBuffer& end_render_pass();
-		VulkanCommandBuffer& add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore);
-		VulkanCommandBuffer& submit(vk::Semaphore semaphore = VK_NULL_HANDLE);
-		VulkanCommandBuffer& wait();
-		VulkanCommandBuffer& destroy_object(RHIObject* object);
+		VulkanCommandHandle& refresh_fence_status();
+		VulkanCommandHandle& begin();
+		VulkanCommandHandle& end();
+		VulkanCommandHandle& begin_render_pass(VulkanRenderTarget* rt);
+		VulkanCommandHandle& end_render_pass();
+		VulkanCommandHandle& add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore);
+		VulkanCommandHandle& submit(vk::Semaphore semaphore = VK_NULL_HANDLE);
+		VulkanCommandHandle& wait();
+		VulkanCommandHandle& destroy_object(RHIObject* object);
 
 		inline bool is_ready_for_begin() const { return m_state == State::IsReadyForBegin; }
 		inline bool is_inside_render_pass() const { return m_state == State::IsInsideRenderPass; }
@@ -66,7 +66,7 @@ namespace Engine
 	{
 	private:
 		struct Node {
-			VulkanCommandBuffer* command_buffer = nullptr;
+			VulkanCommandHandle* command_buffer = nullptr;
 			Node* next                          = nullptr;
 		};
 
@@ -82,8 +82,12 @@ namespace Engine
 	public:
 		VulkanCommandBufferManager();
 		~VulkanCommandBufferManager();
-		FORCE_INLINE VulkanCommandBuffer* current() const { return m_current->command_buffer; }
+		FORCE_INLINE VulkanCommandHandle* current() const { return m_current->command_buffer; }
 		VulkanCommandBufferManager& submit(vk::Semaphore semaphore = VK_NULL_HANDLE);
 		inline vk::CommandPool command_pool() const { return m_pool; }
+	};
+
+	class VulkanCommandBuffer : public RHICommandBuffer
+	{
 	};
 }// namespace Engine
