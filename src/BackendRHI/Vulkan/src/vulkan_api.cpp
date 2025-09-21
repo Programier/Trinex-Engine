@@ -7,6 +7,8 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Core/threading.hpp>
+#include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
@@ -15,8 +17,8 @@
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_commands.hpp>
 #include <vulkan_config.hpp>
+#include <vulkan_context.hpp>
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
@@ -121,17 +123,20 @@ namespace Engine
 		vk::PhysicalDeviceVulkan11Features vk11_features;
 		vk::PhysicalDeviceMeshShaderFeaturesEXT mesh_shaders;
 		vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing;
+		vk::PhysicalDeviceTimelineSemaphoreFeatures timeline_semaphore;
 
-		features.pNext      = &custom_border;
-		custom_border.pNext = &vk11_features;
-		vk11_features.pNext = &mesh_shaders;
-		vk11_features.pNext = &descriptor_indexing;
+		features.pNext            = &custom_border;
+		custom_border.pNext       = &vk11_features;
+		vk11_features.pNext       = &mesh_shaders;
+		mesh_shaders.pNext        = &descriptor_indexing;
+		descriptor_indexing.pNext = &timeline_semaphore;
 
 		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
 
 		builder.add_pNext(&vk11_features);
 		builder.add_pNext(&descriptor_indexing);
+		builder.add_pNext(&timeline_semaphore);
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
 			builder.add_pNext(&custom_border);
@@ -197,6 +202,14 @@ namespace Engine
 
 		color_format.add_capabilities(capabilities);
 	}
+
+	struct VulkanAPI::VulkanUpdater : TickableObject {
+		VulkanUpdater& update(float dt) override
+		{
+			API->update(dt);
+			return *this;
+		}
+	};
 
 	VulkanAPI* VulkanAPI::static_constructor()
 	{
@@ -285,6 +298,7 @@ namespace Engine
 		m_descriptor_set_allocator = trx_new VulkanDescriptorSetAllocator();
 		m_query_pool_manager       = trx_new VulkanQueryPoolManager();
 		m_descriptor_heap          = trx_new VulkanDescriptorHeap();
+		m_updater                  = trx_new VulkanUpdater();
 
 
 		// Initialize memory allocator
@@ -301,6 +315,12 @@ namespace Engine
 			allocator_info.pVulkanFunctions       = &vulkan_functions;
 			vmaCreateAllocator(&allocator_info, &m_allocator);
 		}
+
+		{
+			vk::SemaphoreTypeCreateInfo type_info(vk::SemaphoreType::eTimeline, 0);
+			vk::SemaphoreCreateInfo create_info({}, &type_info);
+			m_timeline = m_device.createSemaphore(create_info);
+		}
 	}
 
 	VulkanAPI::~VulkanAPI()
@@ -309,6 +329,9 @@ namespace Engine
 
 		VulkanRenderPass::destroy_all();
 
+		destroy_garbage();
+
+		trx_delete m_updater;
 		trx_delete m_stagging_manager;
 		trx_delete m_state_manager;
 		trx_delete m_cmd_manager;
@@ -325,8 +348,50 @@ namespace Engine
 		vmaDestroyAllocator(m_allocator);
 		m_allocator = VK_NULL_HANDLE;
 
+		m_device.destroySemaphore(m_timeline);
+
 		m_device.destroy();
 		vkb::destroy_instance(m_instance);
+	}
+
+	VulkanAPI& VulkanAPI::update(float dt)
+	{
+		const uint64_t current_frame = ++m_frame;
+		const uint64_t gpu_frame     = m_device.getSemaphoreCounterValueKHR(m_timeline, pfn);
+
+		m_cs.lock();
+
+		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
+		{
+			m_garbage.front().object->destroy();
+			m_garbage.pop_front();
+		}
+
+		m_cs.unlock();
+
+		vk::TimelineSemaphoreSubmitInfo timeline_info(0, nullptr, 1, &current_frame);
+
+		vk::SubmitInfo submit_info;
+		submit_info.signalSemaphoreCount = 1;
+		submit_info.pSignalSemaphores    = &m_timeline;
+		submit_info.pNext                = &timeline_info;
+
+		m_graphics_queue->submit(submit_info);
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::destroy_garbage()
+	{
+		m_cs.lock();
+
+		while (!m_garbage.empty())
+		{
+			m_garbage.front().object->destroy();
+			m_garbage.pop_front();
+		}
+
+		m_cs.unlock();
+		return *this;
 	}
 
 	static vk::PresentModeKHR find_present_mode(const std::vector<vk::PresentModeKHR>& modes,
@@ -368,6 +433,7 @@ namespace Engine
 		load(pfn.vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
 		load(pfn.vkGetBufferMemoryRequirements2KHR, "vkGetBufferMemoryRequirements2KHR");
 		load(pfn.vkCmdDrawMeshTasksEXT, "vkCmdDrawMeshTasksEXT");
+		load(pfn.vkGetSemaphoreCounterValueKHR, "vkGetSemaphoreCounterValueKHR");
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
@@ -524,8 +590,20 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanAPI& VulkanAPI::add_garbage(RHIObject* object)
+	{
+		Garbage garbage;
+		garbage.object = object;
+		garbage.frame  = m_frame + 5;
+
+		m_cs.lock();
+		m_garbage.push_back(garbage);
+		m_cs.unlock();
+		return *this;
+	}
+
 	void trinex_vulkan_deferred_destroy(RHIObject* object)
 	{
-		API->current_command_buffer()->destroy_object(object);
+		API->add_garbage(object);
 	}
 }// namespace Engine

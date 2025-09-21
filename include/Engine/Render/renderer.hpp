@@ -12,6 +12,7 @@ namespace Engine
 	class MaterialBindings;
 	class RHIBuffer;
 	class RHITexture;
+	class RHIContext;
 
 	namespace RenderGraph
 	{

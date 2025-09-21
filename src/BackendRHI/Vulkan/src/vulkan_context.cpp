@@ -2,7 +2,7 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <vulkan_api.hpp>
-#include <vulkan_commands.hpp>
+#include <vulkan_context.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
@@ -30,8 +30,6 @@ namespace Engine
 				reset();
 				m_fence->reset();
 				++m_fence_signaled_count;
-
-				destroy_objects();
 			}
 		}
 
@@ -101,12 +99,6 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandHandle& VulkanCommandHandle::destroy_object(RHIObject* object)
-	{
-		m_pending_destroy.push_back(object);
-		return *this;
-	}
-
 	VulkanCommandHandle& VulkanCommandHandle::wait()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
@@ -120,25 +112,12 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandHandle& VulkanCommandHandle::destroy_objects()
-	{
-		while (!m_pending_destroy.empty())
-		{
-			RHIObject* object = m_pending_destroy.back();
-			m_pending_destroy.pop_back();
-			object->destroy();
-		}
-
-		return *this;
-	}
-
 	VulkanCommandHandle::~VulkanCommandHandle()
 	{
 		auto pool = API->command_buffer_mananger()->command_pool();
 		API->m_device.freeCommandBuffers(pool, *this);
 
 		trx_delete m_fence;
-		destroy_objects();
 	}
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager()
@@ -218,12 +197,61 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanContext& VulkanContext::begin()
+	{
+		return *this;
+	}
+
+	VulkanCommandHandle* VulkanContext::end()
+	{
+		VulkanCommandHandle* cmd = m_cmd;
+		m_cmd                    = nullptr;
+		return cmd;
+	}
+
+	VulkanContext& VulkanContext::execute(RHICommandHandle* handle)
+	{
+		m_cmd->executeCommands(*static_cast<VulkanCommandHandle*>(handle));
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw(size_t vertex_count, size_t vertices_offset)
+	{
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
+	{
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)
+	{
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+	                                                     size_t instances)
+	{
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
+	{
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	{
+		return *this;
+	}
+
 	VulkanCommandHandle* VulkanAPI::current_command_buffer()
 	{
 		return m_cmd_manager->current();
 	}
 
-	RHICommandBuffer* VulkanAPI::create_command_buffer()
+	RHIContext* VulkanAPI::create_context()
 	{
 		return nullptr;
 	}

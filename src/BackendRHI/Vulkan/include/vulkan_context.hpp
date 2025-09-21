@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/vector.hpp>
-#include <RHI/commands.hpp>
+#include <RHI/context.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace Engine
@@ -8,7 +8,7 @@ namespace Engine
 	class RHIObject;
 	class VulkanRenderTarget;
 
-	class VulkanCommandHandle final : public vk::CommandBuffer
+	class VulkanCommandHandle final : public vk::CommandBuffer, public RHICommandHandle
 	{
 	private:
 		enum class State
@@ -20,16 +20,12 @@ namespace Engine
 			Submitted,
 		};
 
-		Vector<RHIObject*> m_pending_destroy;
 		Vector<vk::Semaphore> m_wait_semaphores;
 		Vector<vk::PipelineStageFlags> m_wait_flags;
 		class VulkanFence* m_fence    = nullptr;
 		size_t m_fence_signaled_count = 0;
 
 		State m_state = State::IsReadyForBegin;
-
-	private:
-		VulkanCommandHandle& destroy_objects();
 
 	public:
 		VulkanCommandHandle(class VulkanCommandBufferManager* manager);
@@ -48,7 +44,8 @@ namespace Engine
 		VulkanCommandHandle& add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore);
 		VulkanCommandHandle& submit(vk::Semaphore semaphore = VK_NULL_HANDLE);
 		VulkanCommandHandle& wait();
-		VulkanCommandHandle& destroy_object(RHIObject* object);
+
+		void destroy() override {}
 
 		inline bool is_ready_for_begin() const { return m_state == State::IsReadyForBegin; }
 		inline bool is_inside_render_pass() const { return m_state == State::IsInsideRenderPass; }
@@ -87,7 +84,24 @@ namespace Engine
 		inline vk::CommandPool command_pool() const { return m_pool; }
 	};
 
-	class VulkanCommandBuffer : public RHICommandBuffer
+	class VulkanContext : public RHIContext
 	{
+	private:
+		VulkanCommandHandle* m_cmd = nullptr;
+
+	public:
+		VulkanContext& begin() override;
+		VulkanCommandHandle* end() override;
+
+		VulkanContext& execute(RHICommandHandle* handle) override;
+
+		VulkanContext& draw(size_t vertex_count, size_t vertices_offset) override;
+		VulkanContext& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
+		VulkanContext& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
+		VulkanContext& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+		                                      size_t instances) override;
+
+		VulkanContext& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
+		VulkanContext& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
 	};
 }// namespace Engine

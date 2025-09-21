@@ -7,6 +7,7 @@
 #include <Core/tickable.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -595,6 +596,80 @@ namespace Engine
 		return *this;
 	}
 
+	RHIContextPool* RHIContextPool::global_instance()
+	{
+		static RHIContextPool pool;
+		return &pool;
+	}
+
+	RHIContextPool& RHIContextPool::update()
+	{
+		for (RHIContext* buffer : m_transient)
+		{
+			return_command_buffer(buffer);
+		}
+
+		m_transient.clear();
+
+		size_t erase_count = 0;
+
+		for (auto& entry : m_pool)
+		{
+			if (--entry.frame == 0)
+			{
+				++erase_count;
+				entry.context->release();
+			}
+		}
+
+		if (erase_count > 0)
+		{
+			m_pool.erase(m_pool.begin(), m_pool.begin() + erase_count);
+		}
+
+		return *this;
+	}
+
+	RHIContext* RHIContextPool::request_command_buffer()
+	{
+		if (!m_pool.empty())
+		{
+			RHIContext* buffer = m_pool.back().context;
+			m_pool.pop_back();
+			return buffer;
+		}
+		return rhi->create_context();
+	}
+
+	RHIContext* RHIContextPool::request_transient_command_buffer()
+	{
+		if (auto buffer = request_command_buffer())
+		{
+			m_transient.push_back(buffer);
+			return buffer;
+		}
+		return nullptr;
+	}
+
+	RHIContextPool& RHIContextPool::release_all()
+	{
+		for (auto& entry : m_pool)
+		{
+			entry.context->release();
+		}
+
+		m_pool.clear();
+		return *this;
+	}
+
+	RHIContextPool& RHIContextPool::return_command_buffer(RHIContext* buffer)
+	{
+		auto& entry   = m_pool.emplace_back();
+		entry.context = buffer;
+		entry.frame   = s_resource_live_threshold;
+		return *this;
+	}
+
 	static class : public TickableObject
 	{
 		TickableObject& update(float) override
@@ -607,6 +682,7 @@ namespace Engine
 				RHIFencePool::global_instance()->update();
 				RHITimestampPool::global_instance()->update();
 				RHIPipelineStatisticsPool::global_instance()->update();
+				RHIContextPool::global_instance()->update();
 			});
 			return *this;
 		}
@@ -621,6 +697,7 @@ namespace Engine
 			RHIFencePool::global_instance()->release_all();
 			RHITimestampPool::global_instance()->release_all();
 			RHIPipelineStatisticsPool::global_instance()->release_all();
+			RHIContextPool::global_instance()->release_all();
 		});
 
 		render_thread()->wait();

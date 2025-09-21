@@ -239,7 +239,7 @@ namespace Engine
 		return new NoneSwapchain();
 	}
 
-	RHICommandBuffer* NoneApi::create_command_buffer()
+	RHIContext* NoneApi::create_context()
 	{
 		return nullptr;
 	}

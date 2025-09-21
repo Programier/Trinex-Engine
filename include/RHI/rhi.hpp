@@ -10,7 +10,7 @@ namespace Engine
 	class GraphicsPipeline;
 	class ComputePipeline;
 
-	class RHICommandBuffer;
+	class RHIContext;
 
 	struct RHISamplerInitializer;
 	struct RHIGraphicsPipelineInitializer;
@@ -67,7 +67,7 @@ namespace Engine
 		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)   = 0;
 		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)   = 0;
 		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                            = 0;
-		virtual RHICommandBuffer* create_command_buffer()                                             = 0;
+		virtual RHIContext* create_context()                                                          = 0;
 
 		virtual RHI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHI& push_debug_stage(const char* stage)                                                    = 0;

@@ -1,7 +1,11 @@
 #pragma once
 #include <Core/etl/array.hpp>
+#include <Core/etl/atomic.hpp>
+#include <Core/etl/critical_section.hpp>
+#include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
+
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
 #include <vk_mem_alloc.h>
@@ -48,6 +52,7 @@ namespace Engine
 			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR = nullptr;
 			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR   = nullptr;
 			PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT                         = nullptr;
+			PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR         = nullptr;
 
 			inline uint32_t getVkHeaderVersion() const { return VK_HEADER_VERSION; }
 		} pfn;
@@ -68,12 +73,25 @@ namespace Engine
 		VulkanStaggingBufferManager* m_stagging_manager = nullptr;
 
 	private:
+		struct VulkanUpdater;
+
+		struct Garbage {
+			RHIObject* object;
+			uint64_t frame;
+		};
+
+		CriticalSection m_cs;
+		Atomic<uint64_t> m_frame;
+
+		Deque<Garbage> m_garbage;
 		Vector<VulkanExtention> m_device_extensions;
 		MultiMap<uint64_t, class VulkanPipelineLayout*> m_pipeline_layouts;
 		VulkanDescriptorSetAllocator* m_descriptor_set_allocator;
 		VulkanQueryPoolManager* m_query_pool_manager;
 		VulkanDescriptorHeap* m_descriptor_heap;
+		VulkanUpdater* m_updater = nullptr;
 
+		vk::Semaphore m_timeline;
 
 	private:
 		static consteval auto make_extensions_array()
@@ -82,6 +100,7 @@ namespace Engine
 			        {"", false},// Dummy extension
 			        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true},
 			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
+			        {VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, true},
 			        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false},
 			        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false},
 			        {VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME, false},
@@ -90,6 +109,9 @@ namespace Engine
 			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},
 			});
 		}
+
+		VulkanAPI& update(float dt);
+		VulkanAPI& destroy_garbage();
 
 	public:
 		VulkanPipelineLayout* create_pipeline_layout(const RHIShaderParameterInfo* parameters, size_t count,
@@ -133,6 +155,7 @@ namespace Engine
 		VulkanCommandHandle* end_render_pass();
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
+		VulkanAPI& add_garbage(RHIObject* object);
 		//////////////////////////////////////////////////////////////
 
 		VulkanAPI();
@@ -170,7 +193,7 @@ namespace Engine
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
-		RHICommandBuffer* create_command_buffer() override;
+		RHIContext* create_context() override;
 		VulkanAPI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		VulkanAPI& push_debug_stage(const char* stage) override;

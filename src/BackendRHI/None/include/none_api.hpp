@@ -44,7 +44,7 @@ namespace Engine
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags type) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
-		RHICommandBuffer* create_command_buffer() override;
+		RHIContext* create_context() override;
 
 		NoneApi& primitive_topology(RHIPrimitiveTopology topology) override;
 		NoneApi& polygon_mode(RHIPolygonMode mode) override;

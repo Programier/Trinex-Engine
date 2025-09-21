@@ -14,6 +14,7 @@ namespace Engine
 	class RHIFence;
 	class RHITimestamp;
 	class RHIPipelineStatistics;
+	class RHIContext;
 
 	class ENGINE_EXPORT RHIFencePool final
 	{
@@ -168,5 +169,26 @@ namespace Engine
 		RHIPipelineStatistics* request_statistics();
 		RHIPipelineStatisticsPool& release_all();
 		RHIPipelineStatisticsPool& return_statistics(RHIPipelineStatistics* stats);
+	};
+
+	class ENGINE_EXPORT RHIContextPool final
+	{
+	private:
+		struct ContextEntry {
+			uint64_t frame      = 0;
+			RHIContext* context = nullptr;
+		};
+
+		Vector<ContextEntry> m_pool;
+		Vector<RHIContext*> m_transient;
+
+	public:
+		static RHIContextPool* global_instance();
+
+		RHIContextPool& update();
+		RHIContext* request_command_buffer();
+		RHIContext* request_transient_command_buffer();
+		RHIContextPool& release_all();
+		RHIContextPool& return_command_buffer(RHIContext* context);
 	};
 }// namespace Engine
