@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
-#include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
@@ -47,12 +46,17 @@ namespace Engine
 		static VulkanAPI* m_vulkan;
 
 		struct {
-			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT           = nullptr;
-			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT               = nullptr;
-			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR = nullptr;
-			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR   = nullptr;
-			PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT                         = nullptr;
-			PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR         = nullptr;
+			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT                       = nullptr;
+			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT                           = nullptr;
+			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR             = nullptr;
+			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR               = nullptr;
+			PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT                                     = nullptr;
+			PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR                     = nullptr;
+			PFN_vkGetBufferDeviceAddressKHR vkGetBufferDeviceAddressKHR                         = nullptr;
+			PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR = nullptr;
+			PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR               = nullptr;
+			PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR             = nullptr;
+			PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR         = nullptr;
 
 			inline uint32_t getVkHeaderVersion() const { return VK_HEADER_VERSION; }
 		} pfn;
@@ -80,7 +84,6 @@ namespace Engine
 			uint64_t frame;
 		};
 
-		CriticalSection m_cs;
 		Atomic<uint64_t> m_frame;
 
 		Deque<Garbage> m_garbage;
@@ -99,12 +102,17 @@ namespace Engine
 			return std::to_array<VulkanExtention>({
 			        {"", false},// Dummy extension
 			        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true},
-			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
 			        {VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, true},
 			        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false},
 			        {VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME, false},
 			        {VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME, false},
 			        {VK_KHR_SPIRV_1_4_EXTENSION_NAME, false},
+			        {VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, false},
+			        {VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME, false},
+			        {VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, false},
+			        {VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false},
+			        {VK_KHR_RAY_QUERY_EXTENSION_NAME, false},
+			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
 			        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false},
 			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},
 			});
@@ -194,6 +202,8 @@ namespace Engine
 		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context() override;
+		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
+
 		VulkanAPI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
 		VulkanAPI& push_debug_stage(const char* stage) override;

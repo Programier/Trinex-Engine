@@ -6,6 +6,8 @@
 
 namespace Engine
 {
+	class RHIBuffer;
+
 	struct RHIRect {
 		Vector2i size = {0, 0};
 		Vector2i pos  = {0, 0};
@@ -117,5 +119,46 @@ namespace Engine
 		uint16_t slice_count     = ~0;
 		uint16_t base_mip        = 0;
 		RHITextureType view_type = RHITextureType::Undefined;
+	};
+
+	struct RHIRayTracingGeometryTriangles {
+		RHIDeviceAddress transform     = 0;
+		RHIDeviceAddress index_buffer  = 0;
+		RHIDeviceAddress vertex_buffer = 0;
+
+		RHIVertexFormat vertex_format = RHIVertexFormat::Undefined;
+		RHIIndexFormat index_format   = RHIIndexFormat::UInt16;
+		uint64_t vertex_count         = 0;
+		uint64_t vertex_stride        = 0;
+		uint64_t index_count          = 0;
+	};
+
+	struct RHIRayTracingGeometryAABBs {
+		RHIDeviceAddress aabbs = 0;
+		uint64_t count         = 0;
+		uint64_t stride        = 0;
+	};
+
+	struct RHIRayTracingGeometry {
+		RHIRayTracingGeometryType type   = RHIRayTracingGeometryType::Triangles;
+		RHIRayTracingGeometryFlags flags = RHIRayTracingGeometryFlags::Undefined;
+
+		union
+		{
+			RHIRayTracingGeometryTriangles* triangles = nullptr;
+			RHIRayTracingGeometryAABBs* aabbs;
+		};
+	};
+
+	struct RHIRayTracingAccelerationInputs {
+		RHIRayTracingAccelerationLevel level = RHIRayTracingAccelerationLevel::Top;
+		RHIRayTracingAccelerationFlags flags = RHIRayTracingAccelerationFlags::Undefined;
+
+		uint32_t count = 0;
+		union
+		{
+			RHIDeviceAddress instances = 0;
+			const RHIRayTracingGeometry* geometries;
+		};
 	};
 }// namespace Engine

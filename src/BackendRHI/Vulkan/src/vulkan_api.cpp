@@ -124,15 +124,21 @@ namespace Engine
 		vk::PhysicalDeviceMeshShaderFeaturesEXT mesh_shaders;
 		vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing;
 		vk::PhysicalDeviceTimelineSemaphoreFeatures timeline_semaphore;
+		vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR device_address;
+		vk::PhysicalDeviceAccelerationStructureFeaturesKHR acceleration;
 
 		features.pNext            = &custom_border;
 		custom_border.pNext       = &vk11_features;
 		vk11_features.pNext       = &mesh_shaders;
 		mesh_shaders.pNext        = &descriptor_indexing;
 		descriptor_indexing.pNext = &timeline_semaphore;
+		timeline_semaphore.pNext  = &device_address;
+		device_address.pNext      = &acceleration;
 
 		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
+
+		mesh_shaders.primitiveFragmentShadingRateMeshShader = vk::False;
 
 		builder.add_pNext(&vk11_features);
 		builder.add_pNext(&descriptor_indexing);
@@ -143,6 +149,12 @@ namespace Engine
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_MESH_SHADER_EXTENSION_NAME)))
 			builder.add_pNext(&mesh_shaders);
+
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)))
+			builder.add_pNext(&device_address);
+
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)))
+			builder.add_pNext(&acceleration);
 
 		auto device_ret = builder.build();
 
@@ -206,7 +218,7 @@ namespace Engine
 	struct VulkanAPI::VulkanUpdater : TickableObject {
 		VulkanUpdater& update(float dt) override
 		{
-			API->update(dt);
+			render_thread()->call([dt]() { API->update(dt); });
 			return *this;
 		}
 	};
@@ -313,6 +325,9 @@ namespace Engine
 			allocator_info.instance               = m_instance;
 			allocator_info.device                 = m_device;
 			allocator_info.pVulkanFunctions       = &vulkan_functions;
+
+			allocator_info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+
 			vmaCreateAllocator(&allocator_info, &m_allocator);
 		}
 
@@ -359,15 +374,11 @@ namespace Engine
 		const uint64_t current_frame = ++m_frame;
 		const uint64_t gpu_frame     = m_device.getSemaphoreCounterValueKHR(m_timeline, pfn);
 
-		m_cs.lock();
-
 		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
 		{
 			m_garbage.front().object->destroy();
 			m_garbage.pop_front();
 		}
-
-		m_cs.unlock();
 
 		vk::TimelineSemaphoreSubmitInfo timeline_info(0, nullptr, 1, &current_frame);
 
@@ -382,15 +393,12 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::destroy_garbage()
 	{
-		m_cs.lock();
-
 		while (!m_garbage.empty())
 		{
 			m_garbage.front().object->destroy();
 			m_garbage.pop_front();
 		}
 
-		m_cs.unlock();
 		return *this;
 	}
 
@@ -434,6 +442,11 @@ namespace Engine
 		load(pfn.vkGetBufferMemoryRequirements2KHR, "vkGetBufferMemoryRequirements2KHR");
 		load(pfn.vkCmdDrawMeshTasksEXT, "vkCmdDrawMeshTasksEXT");
 		load(pfn.vkGetSemaphoreCounterValueKHR, "vkGetSemaphoreCounterValueKHR");
+		load(pfn.vkGetBufferDeviceAddressKHR, "vkGetBufferDeviceAddressKHR");
+		load(pfn.vkGetAccelerationStructureBuildSizesKHR, "vkGetAccelerationStructureBuildSizesKHR");
+		load(pfn.vkCreateAccelerationStructureKHR, "vkCreateAccelerationStructureKHR");
+		load(pfn.vkDestroyAccelerationStructureKHR, "vkDestroyAccelerationStructureKHR");
+		load(pfn.vkCmdBuildAccelerationStructuresKHR, "vkCmdBuildAccelerationStructuresKHR");
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
@@ -596,9 +609,7 @@ namespace Engine
 		garbage.object = object;
 		garbage.frame  = m_frame + 5;
 
-		m_cs.lock();
 		m_garbage.push_back(garbage);
-		m_cs.unlock();
 		return *this;
 	}
 

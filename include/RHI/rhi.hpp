@@ -69,6 +69,9 @@ namespace Engine
 		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                            = 0;
 		virtual RHIContext* create_context()                                                          = 0;
 
+		// Raytracing
+		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) = 0;
+
 		virtual RHI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHI& push_debug_stage(const char* stage)                                                    = 0;
 		virtual RHI& pop_debug_stage()                                                                      = 0;

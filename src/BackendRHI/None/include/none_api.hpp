@@ -46,6 +46,8 @@ namespace Engine
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context() override;
 
+		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
+
 		NoneApi& primitive_topology(RHIPrimitiveTopology topology) override;
 		NoneApi& polygon_mode(RHIPolygonMode mode) override;
 		NoneApi& cull_mode(RHICullMode mode) override;

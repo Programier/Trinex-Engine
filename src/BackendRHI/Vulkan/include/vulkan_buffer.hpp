@@ -20,6 +20,7 @@ namespace Engine
 		RHIAccess m_access           = RHIAccess::Undefined;
 		VmaAllocation m_allocation   = VK_NULL_HANDLE;
 		size_t m_size                = 0;
+		RHIDeviceAddress m_address   = 0;
 
 	public:
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, RHIBufferCreateFlags flags,
@@ -27,6 +28,7 @@ namespace Engine
 
 		VulkanBuffer& copy(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
 
+		RHIDeviceAddress address() override;
 		byte* map() override;
 		void unmap() override;
 		VulkanBuffer& update(size_t offset, size_t size, const byte* data);

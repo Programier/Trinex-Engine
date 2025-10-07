@@ -150,17 +150,20 @@ namespace Engine
 			Static    = BIT(0),
 			Dynamic   = BIT(1),
 
-			VertexBuffer      = BIT(2),
-			IndexBuffer       = BIT(3),
-			UniformBuffer     = BIT(4),
-			ShaderResource    = BIT(5),
-			UnorderedAccess   = BIT(6),
-			StructuredBuffer  = BIT(7),
-			ByteAddressBuffer = BIT(8),
-			TransferSrc       = BIT(9),
-			TransferDst       = BIT(9),
-			CPURead           = BIT(10),
-			CPUWrite          = BIT(11),
+			VertexBuffer        = BIT(2),
+			IndexBuffer         = BIT(3),
+			UniformBuffer       = BIT(4),
+			ShaderResource      = BIT(5),
+			UnorderedAccess     = BIT(6),
+			StructuredBuffer    = BIT(7),
+			ByteAddressBuffer   = BIT(8),
+			TransferSrc         = BIT(9),
+			TransferDst         = BIT(9),
+			CPURead             = BIT(10),
+			CPUWrite            = BIT(11),
+			DeviceAddress       = BIT(12),
+			AccelerationStorage = BIT(13),
+			AccelerationInput   = BIT(14),
 		};
 
 		trinex_bitfield_enum_struct(RHIBufferCreateFlags, uint16_t);
@@ -723,5 +726,51 @@ namespace Engine
 			Back   = 5,
 		};
 		trinex_enum_struct(RHICubeFace);
+	};
+
+	struct RHIRayTracingGeometryType {
+		enum Enum : byte
+		{
+			Triangles = 0,
+			AABBs     = 1,
+		};
+
+		trinex_enum_struct(RHIRayTracingGeometryType);
+	};
+
+	struct RHIRayTracingAccelerationLevel {
+		enum Enum : byte
+		{
+			Top    = 0,
+			Bottom = 1,
+		};
+
+		trinex_enum_struct(RHIRayTracingAccelerationLevel);
+	};
+
+	struct RHIRayTracingGeometryFlags {
+		enum Enum : byte
+		{
+			Undefined         = 0,
+			Opaque            = BIT(0),
+			NoDuplicateAnyHit = BIT(1),
+		};
+
+		trinex_bitfield_enum_struct(RHIRayTracingGeometryFlags, byte);
+	};
+
+	struct RHIRayTracingAccelerationFlags {
+		enum Enum : byte
+		{
+			Undefined       = 0,
+			AllowUpdate     = BIT(0),
+			AllowCompaction = BIT(1),
+			PreferFastTrace = BIT(2),
+			PreferFastBuild = BIT(3),
+			MinimizeMemory  = BIT(4),
+			PerformUpdate   = BIT(5),
+		};
+
+		trinex_bitfield_enum_struct(RHIRayTracingAccelerationFlags, byte);
 	};
 }// namespace Engine

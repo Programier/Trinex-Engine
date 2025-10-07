@@ -22,43 +22,53 @@ namespace Engine
 		m_size  = size;
 		m_flags = flags;
 
-		vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eTransferDst;
+		vk::BufferCreateInfo buffer_info({}, size, vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive);
+
+		VmaAllocationCreateInfo alloc_info = {};
+		alloc_info.usage                   = memory_usage;
 
 		if (flags & RHIBufferCreateFlags::VertexBuffer)
-			usage |= vk::BufferUsageFlagBits::eVertexBuffer;
+			buffer_info.usage |= vk::BufferUsageFlagBits::eVertexBuffer;
 
 		if (flags & RHIBufferCreateFlags::IndexBuffer)
-			usage |= vk::BufferUsageFlagBits::eIndexBuffer;
+			buffer_info.usage |= vk::BufferUsageFlagBits::eIndexBuffer;
 
 		if (flags & RHIBufferCreateFlags::UniformBuffer)
-			usage |= vk::BufferUsageFlagBits::eUniformBuffer;
+			buffer_info.usage |= vk::BufferUsageFlagBits::eUniformBuffer;
 
 		if (flags & RHIBufferCreateFlags::TransferSrc)
-			usage |= vk::BufferUsageFlagBits::eTransferSrc;
+			buffer_info.usage |= vk::BufferUsageFlagBits::eTransferSrc;
 
 		if (flags & RHIBufferCreateFlags::TransferDst)
-			usage |= vk::BufferUsageFlagBits::eTransferDst;
+			buffer_info.usage |= vk::BufferUsageFlagBits::eTransferDst;
+
+		if (flags & RHIBufferCreateFlags::AccelerationStorage)
+			buffer_info.usage |= vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR;
+
+		if (flags & RHIBufferCreateFlags::AccelerationInput)
+			buffer_info.usage |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 
 		if (flags & RHIBufferCreateFlags::ShaderResource)
 		{
 			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
-				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+				buffer_info.usage |= vk::BufferUsageFlagBits::eStorageBuffer;
 			else
-				usage |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
+				buffer_info.usage |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
 		}
 
 		if (flags & RHIBufferCreateFlags::UnorderedAccess)
 		{
 			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
-				usage |= vk::BufferUsageFlagBits::eStorageBuffer;
+				buffer_info.usage |= vk::BufferUsageFlagBits::eStorageBuffer;
 			else
-				usage |= vk::BufferUsageFlagBits::eStorageTexelBuffer;
+				buffer_info.usage |= vk::BufferUsageFlagBits::eStorageTexelBuffer;
 		}
 
-		vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
-
-		VmaAllocationCreateInfo alloc_info = {};
-		alloc_info.usage                   = memory_usage;
+		if (flags & RHIBufferCreateFlags::DeviceAddress)
+		{
+			buffer_info.usage |= vk::BufferUsageFlagBits::eShaderDeviceAddressKHR;
+			alloc_info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		}
 
 		if ((flags & RHIBufferCreateFlags::CPURead) || (flags & RHIBufferCreateFlags::CPUWrite))
 		{
@@ -70,6 +80,12 @@ namespace Engine
 		                           &m_allocation, nullptr);
 		m_buffer = out_buffer;
 		trinex_check(res == VK_SUCCESS, "Failed to create buffer");
+
+
+		if (flags & RHIBufferCreateFlags::DeviceAddress)
+		{
+			m_address = API->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer), API->pfn);
+		}
 
 		if (data)
 		{
@@ -200,6 +216,11 @@ namespace Engine
 		return uav;
 	}
 
+	RHIDeviceAddress VulkanBuffer::address()
+	{
+		return m_address;
+	}
+
 	byte* VulkanBuffer::map()
 	{
 		if (m_allocation->IsMappingAllowed())
@@ -226,7 +247,6 @@ namespace Engine
 		for (auto [id, srv] : m_srv) trx_delete srv;
 		for (auto [id, uav] : m_uav) trx_delete uav;
 	}
-
 
 	VulkanStaggingBuffer::VulkanStaggingBuffer(VulkanStaggingBufferManager* manager) : m_manager(manager)
 	{

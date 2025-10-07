@@ -113,6 +113,7 @@ namespace Engine
 	};
 
 	struct NoneBuffer : public NoneApiDestroyable<RHIBuffer> {
+		RHIDeviceAddress address() override { return 0; }
 		byte* map() override { return nullptr; }
 		void unmap() override {}
 
@@ -124,6 +125,9 @@ namespace Engine
 		void vsync(bool flag) override {}
 		void resize(const Vector2u& new_size) override {}
 		RHIRenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
+	};
+
+	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure> {
 	};
 
 	NoneApi& NoneApi::draw(size_t vertex_count, size_t vertices_offset)
@@ -242,6 +246,11 @@ namespace Engine
 	RHIContext* NoneApi::create_context()
 	{
 		return nullptr;
+	}
+
+	RHIAccelerationStructure* NoneApi::create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs)
+	{
+		return new NoneAccelerationStructure();
 	}
 
 	NoneApi& NoneApi::primitive_topology(RHIPrimitiveTopology topology)

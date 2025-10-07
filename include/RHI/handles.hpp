@@ -128,17 +128,23 @@ namespace Engine
 	class ENGINE_EXPORT RHIBuffer : public RHIObject
 	{
 	public:
+		virtual RHIDeviceAddress address()                                             = 0;
 		virtual byte* map()                                                            = 0;
 		virtual void unmap()                                                           = 0;
 		virtual RHIShaderResourceView* as_srv(uint32_t offset = 0, uint32_t size = 0)  = 0;
 		virtual RHIUnorderedAccessView* as_uav(uint32_t offset = 0, uint32_t size = 0) = 0;
 	};
 
-	class RHISwapchain : public RHIObject
+	class ENGINE_EXPORT RHISwapchain : public RHIObject
 	{
 	public:
 		virtual void vsync(bool flag)             = 0;
 		virtual void resize(const Vector2u& size) = 0;
 		virtual RHIRenderTargetView* as_rtv()     = 0;
+	};
+
+	class ENGINE_EXPORT RHIAccelerationStructure : public RHIObject
+	{
+	public:
 	};
 }// namespace Engine
