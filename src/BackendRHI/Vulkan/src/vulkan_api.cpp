@@ -139,6 +139,7 @@ namespace Engine
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
 
 		mesh_shaders.primitiveFragmentShadingRateMeshShader = vk::False;
+		acceleration.accelerationStructureCaptureReplay     = vk::False;
 
 		builder.add_pNext(&vk11_features);
 		builder.add_pNext(&descriptor_indexing);
@@ -182,37 +183,6 @@ namespace Engine
 		new_features.pipelineStatisticsQuery              = features.pipelineStatisticsQuery;
 
 		return new_features;
-	}
-
-	static void initialize_color_formats(RHIColorFormat color_format)
-	{
-		using Capabilities = RHIColorFormat::Capabilities;
-		vk::Format format  = VulkanEnums::format_of(color_format);
-		auto features      = API->m_physical_device.getFormatProperties(format).optimalTilingFeatures;
-
-		Capabilities capabilities = 0;
-
-		if (features & vk::FormatFeatureFlagBits::eSampledImage)
-			capabilities |= Capabilities(Capabilities::TextureSample | Capabilities::TextureGather | Capabilities::Texture1D |
-			                             Capabilities::Texture2D | Capabilities::Texture3D | Capabilities::TextureCube |
-			                             Capabilities::TextureMipmaps);
-
-		if (features & vk::FormatFeatureFlagBits::eStorageImage)
-			capabilities |= Capabilities(Capabilities::TextureStore | Capabilities::TextureLoad);
-
-		if (features & vk::FormatFeatureFlagBits::eStorageImageAtomic)
-			capabilities |= Capabilities::TextureAtomics;
-
-		if (features & vk::FormatFeatureFlagBits::eColorAttachment)
-			capabilities |= Capabilities::RenderTarget;
-
-		if (features & vk::FormatFeatureFlagBits::eColorAttachmentBlend)
-			capabilities |= Capabilities::TextureBlendable;
-
-		if (features & vk::FormatFeatureFlagBits::eDepthStencilAttachment)
-			capabilities |= Capabilities::DepthStencil;
-
-		color_format.add_capabilities(capabilities);
 	}
 
 	struct VulkanAPI::VulkanUpdater : TickableObject {
@@ -283,8 +253,6 @@ namespace Engine
 		m_features    = filter_features(m_physical_device.getFeatures());
 		info.renderer = m_properties.deviceName.data();
 		selected_device.enable_features_if_present(m_features);
-
-		RHIColorFormat::static_foreach(initialize_color_formats);
 
 		info_log("Vulkan", "Selected GPU '%s'", info.renderer.c_str());
 

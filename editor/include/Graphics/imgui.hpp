@@ -82,7 +82,7 @@ namespace Engine
 		template<typename Type, typename... Args>
 		Type* create(Args&&... args)
 		{
-			Type* instance = new Type(std::forward<Args>(args)...);
+			Type* instance = trx_new Type(std::forward<Args>(args)...);
 			push(instance, nullptr);
 			return instance;
 		}
@@ -101,7 +101,7 @@ namespace Engine
 				}
 			}
 
-			Type* instance = new Type(std::forward<Args>(args)...);
+			Type* instance = trx_new Type(std::forward<Args>(args)...);
 			push(instance, id);
 			return instance;
 		}

@@ -9,6 +9,7 @@ if(WIN32)
 endif()
 
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
+option(TRINEX_WITH_ADDRESS_SANITIZER OFF)
 option(TRINEX_AS_EXECUTABLE "Compile trinex engine to executable file instead of shared library" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -102,6 +103,24 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(TrinexEngine PRIVATE "-fomit-frame-pointer")
 else()
     target_compile_options(TrinexEngine PRIVATE "-g")
+    
+    if(TRINEX_WITH_ADDRESS_SANITIZER)
+        target_compile_options(TrinexEngine PRIVATE 
+            -fsanitize=address 
+            -fno-omit-frame-pointer 
+            -fno-sanitize=all 
+        )
+    
+        target_link_options(TrinexEngine PRIVATE 
+            -fsanitize=address 
+            -Wl,-rpath,$ORIGIN
+        )
+    
+        set_target_properties(TrinexEngine PROPERTIES
+            LINK_DEPENDS_NO_SANITIZE 1
+            LINK_FLAGS_RELEASE "-Wl,--no-as-needed"
+        )
+    endif()
 endif()
 
 if(TRINEX_AS_EXECUTABLE)
