@@ -1,11 +1,10 @@
-#include "vfs_log.hpp"
 #include <Core/exception.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
-#include <Core/filesystem/native_file.hpp>
-#include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
 #include <cerrno>
+#include <common_file.hpp>
+#include <common_file_system.hpp>
 #include <cstring>
 #include <filesystem>
 
@@ -14,8 +13,8 @@ namespace Engine::VFS
 	namespace fs = std::filesystem;
 
 	template<typename Iterator>
-	struct NativeIterator : public DirectoryIteratorInterface {
-		NativeFileSystem* m_base;
+	struct CommonIterator : public DirectoryIteratorInterface {
+		CommonFileSystem* m_base;
 		Iterator m_it;
 		Path m_path;
 
@@ -46,7 +45,7 @@ namespace Engine::VFS
 
 		DirectoryIteratorInterface* copy() override
 		{
-			NativeIterator* new_iterator = trx_new NativeIterator();
+			CommonIterator* new_iterator = trx_new CommonIterator();
 			new_iterator->m_path         = m_path;
 			new_iterator->m_it           = m_it;
 			new_iterator->m_base         = m_base;
@@ -61,18 +60,18 @@ namespace Engine::VFS
 
 		bool is_equal(DirectoryIteratorInterface* other) override
 		{
-			return m_it == reinterpret_cast<NativeIterator*>(other)->m_it;
+			return m_it == reinterpret_cast<CommonIterator*>(other)->m_it;
 		}
 	};
 
-	DirectoryIteratorInterface* NativeFileSystem::create_directory_iterator(const Path& path)
+	DirectoryIteratorInterface* CommonFileSystem::create_directory_iterator(const Path& path)
 	{
 		try
 		{
 			Path dir      = m_directory / path;
 			auto iterator = fs::directory_iterator(dir.str());
 
-			NativeIterator<fs::directory_iterator>* it = trx_new NativeIterator<fs::directory_iterator>();
+			CommonIterator<fs::directory_iterator>* it = trx_new CommonIterator<fs::directory_iterator>();
 			it->m_base                                 = this;
 			it->m_it                                   = iterator;
 			it->update_path();
@@ -80,19 +79,19 @@ namespace Engine::VFS
 		}
 		catch (const std::exception& e)
 		{
-			error_log("NativeFileSystem", "%s", e.what());
+			error_log("CommonFileSystem", "%s", e.what());
 			return nullptr;
 		}
 	}
 
-	DirectoryIteratorInterface* NativeFileSystem::create_recursive_directory_iterator(const Path& path)
+	DirectoryIteratorInterface* CommonFileSystem::create_recursive_directory_iterator(const Path& path)
 	{
 		try
 		{
 			Path dir      = m_directory / path;
 			auto iterator = fs::recursive_directory_iterator(dir.str());
 
-			NativeIterator<fs::recursive_directory_iterator>* it = trx_new NativeIterator<fs::recursive_directory_iterator>();
+			CommonIterator<fs::recursive_directory_iterator>* it = trx_new CommonIterator<fs::recursive_directory_iterator>();
 			it->m_base                                           = this;
 			it->m_it                                             = iterator;
 			it->update_path();
@@ -104,21 +103,19 @@ namespace Engine::VFS
 		}
 	}
 
-	NativeFileSystem::NativeFileSystem(const Path& mount_point, const Path& directory)
-	    : FileSystem(mount_point), m_directory(directory)
-	{}
+	CommonFileSystem::CommonFileSystem(const Path& mount, const Path& directory) : FileSystem(mount), m_directory(directory) {}
 
-	const Path& NativeFileSystem::path() const
+	const Path& CommonFileSystem::path() const
 	{
 		return m_directory;
 	}
 
-	bool NativeFileSystem::is_read_only() const
+	bool CommonFileSystem::is_read_only() const
 	{
 		return (fs::status(m_directory.str()).permissions() & fs::perms::owner_write) != fs::perms::owner_write;
 	}
 
-	File* NativeFileSystem::open(const Path& path, FileOpenMode mode)
+	File* CommonFileSystem::open(const Path& path, FileOpenMode mode)
 	{
 		if (is_dir(path))
 			return nullptr;
@@ -142,82 +139,96 @@ namespace Engine::VFS
 			if (mode & FileOpenMode::In)
 			{
 				if (mode & FileOpenMode::Out)
-					return trx_new NativeFile(this, full_path, std::move(file));
+					return trx_new CommonFile(this, full_path, std::move(file));
 
-				return trx_new ReadOnlyNativeFile(this, full_path, std::move(file));
+				return trx_new ReadOnlyCommonFile(this, full_path, std::move(file));
 			}
 
-			return trx_new WriteOnlyNativeFile(this, full_path, std::move(file));
+			return trx_new WriteOnlyCommonFile(this, full_path, std::move(file));
 		}
 
-		error_log("Native FS", "%s: %s", path.c_str(), std::strerror(errno));
+		error_log("Common FS", "%s: %s", path.c_str(), std::strerror(errno));
 		return nullptr;
 	}
 
-	NativeFileSystem& NativeFileSystem::close(File* file)
+	CommonFileSystem& CommonFileSystem::close(File* file)
 	{
 		trx_delete file;
 		return *this;
 	}
 
-	bool NativeFileSystem::create_dir(const Path& path)
+	bool CommonFileSystem::create_dir(const Path& path)
 	{
 		return fs::create_directories((m_directory / path).str());
 	}
 
-	bool NativeFileSystem::remove(const Path& path)
+	bool CommonFileSystem::remove(const Path& path)
 	{
 		return fs::remove((m_directory / path).str());
 	}
 
-	bool NativeFileSystem::copy(const Path& src, const Path& dest)
+	bool CommonFileSystem::copy(const Path& src, const Path& dest)
 	{
 		std::error_code code;
 		fs::copy_file((m_directory / src).str(), (m_directory / dest).str(), code);
 
 		if (code)
 		{
-			vfs_error("%s", code.message().c_str());
+			error_log("CommonFS", "%s", code.message().c_str());
 			return false;
 		}
 		return true;
 	}
 
-	bool NativeFileSystem::rename(const Path& src, const Path& dest)
+	bool CommonFileSystem::rename(const Path& src, const Path& dest)
 	{
 		std::error_code code;
 		fs::rename((m_directory / src).str(), (m_directory / dest).str(), code);
 
 		if (code)
 		{
-			vfs_error("%s", code.message().c_str());
+			error_log("CommonFS", "%s", code.message().c_str());
 			return false;
 		}
 		return true;
 	}
 
-	bool NativeFileSystem::is_file_exist(const Path& path) const
+	bool CommonFileSystem::is_file_exist(const Path& path) const
 	{
 		return fs::exists((m_directory / path).str());
 	}
 
-	bool NativeFileSystem::is_file(const Path& file) const
+	bool CommonFileSystem::is_file(const Path& file) const
 	{
 		return fs::is_regular_file((m_directory / file).str());
 	}
 
-	bool NativeFileSystem::is_dir(const Path& dir) const
+	bool CommonFileSystem::is_dir(const Path& dir) const
 	{
 		return fs::is_directory((m_directory / dir).str());
 	}
 
-	NativeFileSystem::Type NativeFileSystem::type() const
+	CommonFileSystem::Type CommonFileSystem::type() const
 	{
 		return Type::Native;
 	}
 
-	Path NativeFileSystem::native_path(const Path& path) const
+	Path CommonFileSystem::native_path(const Path& path) const
 	{
 		return m_directory / path;
 	}
 }// namespace Engine::VFS
+
+
+namespace Engine::Platform::FileSystem
+{
+	ENGINE_EXPORT VFS::FileSystem* create(const Path& mount, const Path& path)
+	{
+		return trx_new VFS::CommonFileSystem(mount, path);
+	}
+
+	ENGINE_EXPORT void destroy(VFS::FileSystem* fs)
+	{
+		trx_delete_inline(fs);
+	}
+}// namespace Engine::Platform::FileSystem

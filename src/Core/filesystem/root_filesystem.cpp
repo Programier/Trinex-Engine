@@ -1,7 +1,6 @@
 #include "vfs_log.hpp"
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/file.hpp>
-#include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -112,20 +111,32 @@ namespace Engine::VFS
 		bool is_equal(DirectoryIteratorInterface* iterator) override { return false; }
 	};
 
+	static void destroy_file_system(FileSystem* fs)
+	{
+		if (fs->type() == FileSystem::Native)
+		{
+			Platform::FileSystem::destroy(fs);
+		}
+		else
+		{
+			trx_delete fs;
+		}
+	}
+
 	RootFS* RootFS::s_instance = nullptr;
 
 	RootFS::RootFS()
 	{
-		m_root_native_file_system = trx_new NativeFileSystem("", "");
+		m_root_native_file_system = Platform::FileSystem::create("", "");
 	}
 
 	RootFS::~RootFS()
 	{
-		trx_delete m_root_native_file_system;
+		Platform::FileSystem::destroy(m_root_native_file_system);
 
 		for (auto& [mount, fs] : m_file_systems)
 		{
-			trx_delete fs;
+			destroy_file_system(fs);
 		}
 	}
 
@@ -214,7 +225,7 @@ namespace Engine::VFS
 		auto& file_system = m_file_systems[mount_point];
 
 		if (type == Native)
-			file_system = trx_new NativeFileSystem(mount_point, path);
+			file_system = Platform::FileSystem::create(mount_point, path);
 
 		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
 		return true;
@@ -227,7 +238,7 @@ namespace Engine::VFS
 		if (it == m_file_systems.end())
 			return *this;
 
-		trx_delete it->second;
+		destroy_file_system(it->second);
 		m_file_systems.erase(it);
 		return *this;
 	}

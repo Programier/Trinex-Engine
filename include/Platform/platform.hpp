@@ -14,6 +14,11 @@ namespace Engine
 	struct Event;
 	class Path;
 
+	namespace VFS
+	{
+		class FileSystem;
+	}
+
 	namespace Platform
 	{
 		struct ENGINE_EXPORT MonitorInfo {
@@ -33,6 +38,12 @@ namespace Engine
 			ENGINE_EXPORT void pool_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
 			ENGINE_EXPORT void wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
 		}// namespace EventSystem
+
+		namespace FileSystem
+		{
+			ENGINE_EXPORT VFS::FileSystem* create(const Path& mount, const Path& path);
+			ENGINE_EXPORT void destroy(VFS::FileSystem* fs);
+		}// namespace FileSystem
 
 		namespace WindowManager
 		{

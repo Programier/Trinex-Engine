@@ -4,20 +4,21 @@
 
 namespace Engine::VFS
 {
-	class NativeFileSystem;
-	class ENGINE_EXPORT NativeFile : public File
+	class CommonFileSystem;
+
+	class ENGINE_EXPORT CommonFile : public File
 	{
 	private:
-		NativeFileSystem* m_fs;
+		CommonFileSystem* m_fs;
 		Path m_path;
 		std::fstream m_stream;
 
 	public:
-		NativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream);
-		~NativeFile();
+		CommonFile(CommonFileSystem* fs, const Path& path, std::fstream&& stream);
+		~CommonFile();
 
-		trinex_non_copyable(NativeFile);
-		trinex_non_moveable(NativeFile);
+		trinex_non_copyable(CommonFile);
+		trinex_non_moveable(CommonFile);
 
 		const Path& path() const;
 
@@ -29,29 +30,29 @@ namespace Engine::VFS
 		size_t read(byte* buffer, size_t size) override;
 		size_t write(const byte* buffer, size_t size) override;
 
-		friend class NativeFileSystem;
+		friend class CommonFileSystem;
 	};
 
-	class ENGINE_EXPORT ReadOnlyNativeFile : public NativeFile
+	class ENGINE_EXPORT ReadOnlyCommonFile : public CommonFile
 	{
 	public:
-		ReadOnlyNativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream);
+		ReadOnlyCommonFile(CommonFileSystem* fs, const Path& path, std::fstream&& stream);
 
-		trinex_non_copyable(ReadOnlyNativeFile);
-		trinex_non_moveable(ReadOnlyNativeFile);
+		trinex_non_copyable(ReadOnlyCommonFile);
+		trinex_non_moveable(ReadOnlyCommonFile);
 
 		FilePosition wseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition wpos() override;
 		size_t write(const byte* buffer, size_t size) override;
 	};
 
-	class ENGINE_EXPORT WriteOnlyNativeFile : public NativeFile
+	class ENGINE_EXPORT WriteOnlyCommonFile : public CommonFile
 	{
 	public:
-		WriteOnlyNativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream);
+		WriteOnlyCommonFile(CommonFileSystem* fs, const Path& path, std::fstream&& stream);
 
-		trinex_non_copyable(WriteOnlyNativeFile);
-		trinex_non_moveable(WriteOnlyNativeFile);
+		trinex_non_copyable(WriteOnlyCommonFile);
+		trinex_non_moveable(WriteOnlyCommonFile);
 
 		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition rpos() override;

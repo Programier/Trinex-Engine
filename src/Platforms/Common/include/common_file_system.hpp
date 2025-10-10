@@ -4,7 +4,7 @@
 
 namespace Engine::VFS
 {
-	class ENGINE_EXPORT NativeFileSystem : public FileSystem
+	class ENGINE_EXPORT CommonFileSystem : public FileSystem
 	{
 	private:
 		Path m_directory;
@@ -15,16 +15,16 @@ namespace Engine::VFS
 
 
 	public:
-		delete_copy_constructors(NativeFileSystem);
+		delete_copy_constructors(CommonFileSystem);
 
-		NativeFileSystem(const Path& mount_point, const Path& directory);
+		CommonFileSystem(const Path& mount, const Path& directory);
 
 		const Path& path() const override;
 		Path native_path(const Path& path) const override;
 
 		bool is_read_only() const override;
 		File* open(const Path& path, FileOpenMode mode) override;
-		NativeFileSystem& close(File* file) override;
+		CommonFileSystem& close(File* file) override;
 		bool create_dir(const Path& path) override;
 		bool remove(const Path& path) override;
 		bool copy(const Path& src, const Path& dest) override;
