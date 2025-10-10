@@ -144,7 +144,7 @@ namespace Engine
 
 		trinex_defer
 		{
-			file->close();
+			rootfs()->close(file);
 		};
 
 		if (extension == ".png")

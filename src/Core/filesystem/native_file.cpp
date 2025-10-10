@@ -1,35 +1,20 @@
 #include <Core/filesystem/native_file.hpp>
+#include <Core/filesystem/native_file_system.hpp>
 
 namespace Engine::VFS
 {
-	NativeFile::NativeFile(const Path& path, const Path& native_path, std::fstream&& stream, bool is_read_only)
-	    : m_path(path), m_native_path(native_path), m_stream(std::move(stream)), m_is_read_only(is_read_only)
+	NativeFile::NativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream)
+	    : m_fs(fs), m_path(path), m_stream(std::move(stream))
 	{}
+
+	NativeFile::~NativeFile()
+	{
+		m_stream.close();
+	}
 
 	const Path& NativeFile::path() const
 	{
 		return m_path;
-	}
-
-	const Path& NativeFile::native_path() const
-	{
-		return m_native_path;
-	}
-
-	bool NativeFile::is_read_only() const
-	{
-		return m_is_read_only;
-	}
-
-	void NativeFile::close()
-	{
-		m_stream.close();
-		trx_delete this;
-	}
-
-	bool NativeFile::is_open() const
-	{
-		return m_stream.is_open();
 	}
 
 	static FORCE_INLINE std::ios_base::seekdir direction_of(FileSeekDir dir)
@@ -43,33 +28,35 @@ namespace Engine::VFS
 		}
 	}
 
-	NativeFile::FilePosition NativeFile::write_position(FileOffset offset, FileSeekDir dir)
+	FileSystem* NativeFile::filesystem() const
 	{
-		m_stream.seekp(offset, direction_of(dir));
-		return write_position();
+		return m_fs;
 	}
 
-	NativeFile::FilePosition NativeFile::write_position()
+	NativeFile::FilePosition NativeFile::wseek(FileOffset offset, FileSeekDir dir)
+	{
+		m_stream.seekp(offset, direction_of(dir));
+		return m_stream.tellp();
+	}
+
+	NativeFile::FilePosition NativeFile::wpos()
 	{
 		return m_stream.tellp();
 	}
 
-	NativeFile::FilePosition NativeFile::read_position(FileOffset offset, FileSeekDir dir)
+	NativeFile::FilePosition NativeFile::rseek(FileOffset offset, FileSeekDir dir)
 	{
 		m_stream.seekg(offset, direction_of(dir));
-		return read_position();
+		return m_stream.tellg();
 	}
 
-	NativeFile::FilePosition NativeFile::read_position()
+	NativeFile::FilePosition NativeFile::rpos()
 	{
 		return m_stream.tellg();
 	}
 
 	size_t NativeFile::read(byte* buffer, size_t size)
 	{
-		if (!is_open())
-			return 0;
-
 		m_stream.read(reinterpret_cast<char*>(buffer), static_cast<std::streamsize>(size));
 
 		if (m_stream)
@@ -82,11 +69,6 @@ namespace Engine::VFS
 
 	size_t NativeFile::write(const byte* buffer, size_t size)
 	{
-		if (!is_open() || is_read_only())
-		{
-			return 0;
-		}
-
 		m_stream.write(reinterpret_cast<const char*>(buffer), static_cast<std::streamsize>(size));
 		if (m_stream)
 		{
@@ -94,5 +76,43 @@ namespace Engine::VFS
 		}
 
 		return static_cast<size_t>(m_stream.gcount());
+	}
+
+	ReadOnlyNativeFile::ReadOnlyNativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream)
+	    : NativeFile(fs, path, std::move(stream))
+	{}
+
+	ReadOnlyNativeFile::FilePosition ReadOnlyNativeFile::wseek(FileOffset offset, FileSeekDir dir)
+	{
+		return 0;
+	}
+
+	ReadOnlyNativeFile::FilePosition ReadOnlyNativeFile::wpos()
+	{
+		return 0;
+	}
+
+	size_t ReadOnlyNativeFile::write(const byte* buffer, size_t size)
+	{
+		return 0;
+	}
+
+	WriteOnlyNativeFile::WriteOnlyNativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream)
+	    : NativeFile(fs, path, std::move(stream))
+	{}
+
+	WriteOnlyNativeFile::FilePosition WriteOnlyNativeFile::rseek(FileOffset offset, FileSeekDir dir)
+	{
+		return 0;
+	}
+
+	WriteOnlyNativeFile::FilePosition WriteOnlyNativeFile::rpos()
+	{
+		return 0;
+	}
+
+	size_t WriteOnlyNativeFile::read(byte* buffer, size_t size)
+	{
+		return 0;
 	}
 }// namespace Engine::VFS

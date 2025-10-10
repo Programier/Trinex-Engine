@@ -104,7 +104,6 @@ namespace Engine::VFS
 		}
 	}
 
-
 	NativeFileSystem::NativeFileSystem(const Path& mount_point, const Path& directory)
 	    : FileSystem(mount_point), m_directory(directory)
 	{}
@@ -128,28 +127,37 @@ namespace Engine::VFS
 
 		std::ios_base::openmode open_mode = std::ios_base::binary;
 
-		bool is_read_only = (mode & (FileOpenMode::Out | FileOpenMode::Append)) == 0;
-
 		if (mode & FileOpenMode::In)
 			open_mode |= std::ios_base::in;
 		if (mode & FileOpenMode::Out)
 			open_mode |= std::ios_base::out;
 		if (mode & FileOpenMode::Append)
 			open_mode |= std::ios_base::app;
-		if (mode & FileOpenMode::Trunc)
-			open_mode |= std::ios_base::trunc;
 
 		std::fstream file;
 		file.open(full_path.str(), open_mode);
+
 		if (file.is_open())
 		{
-			return trx_new NativeFile(path, full_path, std::move(file), is_read_only);
+			if (mode & FileOpenMode::In)
+			{
+				if (mode & FileOpenMode::Out)
+					return trx_new NativeFile(this, full_path, std::move(file));
+
+				return trx_new ReadOnlyNativeFile(this, full_path, std::move(file));
+			}
+
+			return trx_new WriteOnlyNativeFile(this, full_path, std::move(file));
 		}
-		else
-		{
-			error_log("Native FS", "%s: %s", path.c_str(), std::strerror(errno));
-		}
+
+		error_log("Native FS", "%s: %s", path.c_str(), std::strerror(errno));
 		return nullptr;
+	}
+
+	NativeFileSystem& NativeFileSystem::close(File* file)
+	{
+		trx_delete file;
+		return *this;
 	}
 
 	bool NativeFileSystem::create_dir(const Path& path)

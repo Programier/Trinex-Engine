@@ -27,7 +27,6 @@ namespace Engine
 		FileWriter(FileWriter&&);
 		FileWriter& operator=(FileWriter&&);
 
-		const Path& filename() const;
 		bool open(const Path& filename, bool clear = true);
 		FileWriter& close();
 
@@ -35,8 +34,6 @@ namespace Engine
 		WritePos position() override;
 		FileWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
 		bool is_open() const override;
-		FileWriter& clear() override;
-
 
 		~FileWriter();
 	};
@@ -56,7 +53,6 @@ namespace Engine
 		FileReader(FileReader&&);
 		FileReader& operator=(FileReader&&);
 
-		const Path& filename() const;
 		bool open(const Path& path);
 		FileReader& close();
 

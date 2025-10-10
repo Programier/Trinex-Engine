@@ -41,6 +41,13 @@ namespace Engine::VFS
 		return fs->open(m_redirect.relative(fs->mount_point()) / path, mode);
 	}
 
+	Redirector& Redirector::close(File* file)
+	{
+		FileSystem* fs = rootfs()->filesystem_of(m_redirect);
+		fs->close(file);
+		return *this;
+	}
+
 	bool Redirector::create_dir(const Path& path)
 	{
 		FileSystem* fs = rootfs()->filesystem_of(m_redirect);

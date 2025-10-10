@@ -33,6 +33,7 @@ namespace Engine::VFS
 		const Path& path() const override;
 		bool is_read_only() const override;
 		File* open(const Path& path, FileOpenMode mode) override;
+		RootFS& close(File* file) override;
 		bool create_dir(const Path& path) override;
 		bool remove(const Path& path) override;
 		bool copy(const Path& src, const Path& dest) override;

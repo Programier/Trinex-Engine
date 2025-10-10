@@ -19,8 +19,6 @@ namespace Engine
 		virtual WritePos position()                                                                = 0;
 		virtual BufferWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
 		virtual bool is_open() const                                                               = 0;
-		virtual BufferWriter& clear()                                                              = 0;
-
 
 		template<typename... T>
 		FORCE_INLINE bool write_primitives(const T&... value)
@@ -46,7 +44,6 @@ namespace Engine
 		virtual ReadPos position()                                                                 = 0;
 		virtual BufferReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
 		virtual bool is_open() const                                                               = 0;
-
 
 		template<typename... T>
 		FORCE_INLINE bool read_primitives(T&... value)
@@ -121,12 +118,6 @@ namespace Engine
 		}
 
 		bool is_open() const override { return true; }
-
-		VectorWriter& clear() override
-		{
-			m_buffer->clear();
-			return *this;
-		}
 	};
 
 	template<typename T>

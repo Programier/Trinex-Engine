@@ -20,9 +20,9 @@ namespace Engine
 
 		FileOpenMode flags = FileOpenMode::Out;
 
-		if (clear)
+		if (!clear)
 		{
-			flags |= FileOpenMode::Trunc;
+			flags |= FileOpenMode::Append;
 		}
 
 		m_file = rootfs()->open(filename, flags);
@@ -33,7 +33,7 @@ namespace Engine
 	{
 		if (m_file)
 		{
-			trx_delete m_file;
+			rootfs()->close(m_file);
 			m_file = nullptr;
 		}
 		return *this;
@@ -41,25 +41,8 @@ namespace Engine
 
 	bool FileWriter::is_open() const
 	{
-		return m_file != nullptr && m_file->is_open();
+		return m_file != nullptr;
 	}
-
-	FileWriter& FileWriter::clear()
-	{
-		open(filename(), true);
-		return *this;
-	}
-
-	const Path& FileWriter::filename() const
-	{
-		static const Path path;
-		if (m_file)
-		{
-			return m_file->path();
-		}
-		return path;
-	}
-
 
 	bool FileWriter::write(const byte* data, size_t size)
 	{
@@ -68,19 +51,18 @@ namespace Engine
 		return false;
 	}
 
-
 	FileWriter::WritePos FileWriter::position()
 	{
 		if (!is_open())
 			return 0;
-		return m_file->write_position();
+		return m_file->wpos();
 	}
 
 	FileWriter& FileWriter::offset(PosOffset offset, BufferSeekDir dir)
 	{
 		if (is_open())
 		{
-			m_file->write_position(offset, dir);
+			m_file->wseek(offset, dir);
 		}
 		return *this;
 	}
@@ -111,9 +93,9 @@ namespace Engine
 
 	FileReader& FileReader::close()
 	{
-		if (is_open())
+		if (m_file)
 		{
-			trx_delete m_file;
+			rootfs()->close(m_file);
 			m_file = nullptr;
 		}
 		return *this;
@@ -121,7 +103,7 @@ namespace Engine
 
 	bool FileReader::is_open() const
 	{
-		return m_file != nullptr && m_file->is_open();
+		return m_file != nullptr;
 	}
 
 	String FileReader::read_string(size_t len)
@@ -140,17 +122,6 @@ namespace Engine
 		return result;
 	}
 
-	const Path& FileReader::filename() const
-	{
-		static const Path p;
-		if (m_file)
-		{
-			return m_file->path();
-		}
-		return p;
-	}
-
-
 	bool FileReader::read(byte* data, size_t size)
 	{
 		if (is_open())
@@ -163,7 +134,7 @@ namespace Engine
 	{
 		if (!is_open())
 			return 0;
-		return m_file->read_position();
+		return m_file->rpos();
 	}
 
 
@@ -171,7 +142,7 @@ namespace Engine
 	{
 		if (is_open())
 		{
-			m_file->read_position(offset, dir);
+			m_file->rseek(offset, dir);
 		}
 
 		return *this;

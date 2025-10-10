@@ -126,11 +126,10 @@ namespace Engine
 	struct FileOpenMode {
 		enum Enum : byte
 		{
-			In        = 0x01,
-			Out       = 0x02,
+			In        = BIT(0),
+			Out       = BIT(1),
 			ReadWrite = In | Out,
-			Append    = 0x04,
-			Trunc     = 0x08,
+			Append    = BIT(2) | Out,
 		};
 
 		trinex_bitfield_enum_struct(FileOpenMode, byte);

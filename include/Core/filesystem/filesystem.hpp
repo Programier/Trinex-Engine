@@ -35,6 +35,7 @@ namespace Engine::VFS
 		virtual const Path& path() const                                                          = 0;
 		virtual bool is_read_only() const                                                         = 0;
 		virtual File* open(const Path& path, FileOpenMode mode)                                   = 0;
+		virtual FileSystem& close(File* file)                                                     = 0;
 		virtual bool create_dir(const Path& path)                                                 = 0;
 		virtual bool remove(const Path& path)                                                     = 0;
 		virtual bool copy(const Path& src, const Path& dest)                                      = 0;

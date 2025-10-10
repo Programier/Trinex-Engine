@@ -4,31 +4,57 @@
 
 namespace Engine::VFS
 {
-	class ENGINE_EXPORT NativeFile final : public File
+	class NativeFileSystem;
+	class ENGINE_EXPORT NativeFile : public File
 	{
 	private:
+		NativeFileSystem* m_fs;
 		Path m_path;
-		Path m_native_path;
 		std::fstream m_stream;
-		bool m_is_read_only;
-
-		NativeFile(const Path& path, const Path& native_path, std::fstream&& stream, bool is_read_only);
 
 	public:
-		delete_copy_constructors(NativeFile);
+		NativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream);
+		~NativeFile();
 
-		const Path& path() const override;
-		const Path& native_path() const;
-		bool is_read_only() const override;
-		void close() override;
-		bool is_open() const override;
-		FilePosition write_position(FileOffset offset, FileSeekDir dir) override;
-		FilePosition write_position() override;
-		FilePosition read_position(FileOffset offset, FileSeekDir dir) override;
-		FilePosition read_position() override;
+		trinex_non_copyable(NativeFile);
+		trinex_non_moveable(NativeFile);
+
+		const Path& path() const;
+
+		FileSystem* filesystem() const override;
+		FilePosition wseek(FileOffset offset, FileSeekDir dir) override;
+		FilePosition wpos() override;
+		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
+		FilePosition rpos() override;
 		size_t read(byte* buffer, size_t size) override;
 		size_t write(const byte* buffer, size_t size) override;
 
 		friend class NativeFileSystem;
+	};
+
+	class ENGINE_EXPORT ReadOnlyNativeFile : public NativeFile
+	{
+	public:
+		ReadOnlyNativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream);
+
+		trinex_non_copyable(ReadOnlyNativeFile);
+		trinex_non_moveable(ReadOnlyNativeFile);
+
+		FilePosition wseek(FileOffset offset, FileSeekDir dir) override;
+		FilePosition wpos() override;
+		size_t write(const byte* buffer, size_t size) override;
+	};
+
+	class ENGINE_EXPORT WriteOnlyNativeFile : public NativeFile
+	{
+	public:
+		WriteOnlyNativeFile(NativeFileSystem* fs, const Path& path, std::fstream&& stream);
+
+		trinex_non_copyable(WriteOnlyNativeFile);
+		trinex_non_moveable(WriteOnlyNativeFile);
+
+		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
+		FilePosition rpos() override;
+		size_t read(byte* buffer, size_t size) override;
 	};
 }// namespace Engine::VFS

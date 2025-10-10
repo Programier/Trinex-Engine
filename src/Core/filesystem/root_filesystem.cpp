@@ -1,5 +1,6 @@
 #include "vfs_log.hpp"
 #include <Core/filesystem/directory_iterator.hpp>
+#include <Core/filesystem/file.hpp>
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/redirector.hpp>
@@ -269,6 +270,15 @@ namespace Engine::VFS
 	{
 		auto entry = find_filesystem(path);
 		return entry.first->open(entry.second, mode);
+	}
+
+	RootFS& RootFS::close(File* file)
+	{
+		if (file)
+		{
+			file->filesystem()->close(file);
+		}
+		return *this;
 	}
 
 	bool RootFS::create_dir(const Path& path)
