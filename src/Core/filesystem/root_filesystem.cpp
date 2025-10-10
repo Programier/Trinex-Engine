@@ -111,32 +111,20 @@ namespace Engine::VFS
 		bool is_equal(DirectoryIteratorInterface* iterator) override { return false; }
 	};
 
-	static void destroy_file_system(FileSystem* fs)
-	{
-		if (fs->type() == FileSystem::Native)
-		{
-			Platform::FileSystem::destroy(fs);
-		}
-		else
-		{
-			trx_delete fs;
-		}
-	}
-
 	RootFS* RootFS::s_instance = nullptr;
 
 	RootFS::RootFS()
 	{
-		m_root_native_file_system = Platform::FileSystem::create("", "");
+		m_root_native_file_system = Platform::create_filesystem("", "");
 	}
 
 	RootFS::~RootFS()
 	{
-		Platform::FileSystem::destroy(m_root_native_file_system);
+		trx_delete_inline(m_root_native_file_system);
 
 		for (auto& [mount, fs] : m_file_systems)
 		{
-			destroy_file_system(fs);
+			trx_delete_inline(fs);
 		}
 	}
 
@@ -225,7 +213,7 @@ namespace Engine::VFS
 		auto& file_system = m_file_systems[mount_point];
 
 		if (type == Native)
-			file_system = Platform::FileSystem::create(mount_point, path);
+			file_system = Platform::create_filesystem(mount_point, path);
 
 		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
 		return true;
@@ -238,7 +226,7 @@ namespace Engine::VFS
 		if (it == m_file_systems.end())
 			return *this;
 
-		destroy_file_system(it->second);
+		trx_delete_inline(it->second);
 		m_file_systems.erase(it);
 		return *this;
 	}

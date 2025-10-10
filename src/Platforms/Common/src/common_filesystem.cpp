@@ -220,15 +220,10 @@ namespace Engine::VFS
 }// namespace Engine::VFS
 
 
-namespace Engine::Platform::FileSystem
+namespace Engine::Platform
 {
-	ENGINE_EXPORT VFS::FileSystem* create(const Path& mount, const Path& path)
+	ENGINE_EXPORT VFS::FileSystem* create_filesystem(const Path& mount, const Path& path)
 	{
 		return trx_new VFS::CommonFileSystem(mount, path);
 	}
-
-	ENGINE_EXPORT void destroy(VFS::FileSystem* fs)
-	{
-		trx_delete_inline(fs);
-	}
-}// namespace Engine::Platform::FileSystem
+}// namespace Engine::Platform

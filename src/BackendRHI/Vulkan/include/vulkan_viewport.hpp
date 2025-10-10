@@ -11,7 +11,7 @@ namespace Engine
 	class VulkanCommandHandle;
 	class VulkanTexture;
 
-	class VulkanSwapchain : public VulkanDeferredDestroy<RHISwapchain>
+	class VulkanSwapchain : public RHISwapchain
 	{
 	private:
 		enum Status : int_t
@@ -68,5 +68,6 @@ namespace Engine
 		void resize(const Vector2u& size) override;
 		void vsync(bool flag) override;
 		RHIRenderTargetView* as_rtv() override;
+		void destroy() override;
 	};
 }// namespace Engine

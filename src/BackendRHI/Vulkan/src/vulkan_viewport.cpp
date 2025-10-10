@@ -340,6 +340,11 @@ namespace Engine
 		}
 	}
 
+	void VulkanSwapchain::destroy()
+	{
+		trx_delete_inline(this);
+	}
+
 	RHISwapchain* VulkanAPI::create_swapchain(Window* window, bool vsync)
 	{
 		return trx_new VulkanSwapchain(window, vsync);

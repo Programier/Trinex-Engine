@@ -219,6 +219,7 @@ namespace Engine
 			m_render_viewport        = nullptr;
 			viewport->client(nullptr);
 			GarbageCollector::destroy(viewport);
+			render_thread()->wait();
 		}
 	}
 
