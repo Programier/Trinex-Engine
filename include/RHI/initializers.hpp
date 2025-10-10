@@ -30,11 +30,11 @@ namespace Engine
 		union
 		{
 			struct {
-				RHIShader* vertex_shader               = nullptr;
-				RHIShader* tessellation_control_shader = nullptr;
-				RHIShader* tessellation_shader         = nullptr;
-				RHIShader* geometry_shader             = nullptr;
-				RHIShader* fragment_shader             = nullptr;
+				RHIShader* vertex_shader;
+				RHIShader* tessellation_control_shader;
+				RHIShader* tessellation_shader;
+				RHIShader* geometry_shader;
+				RHIShader* fragment_shader;
 			};
 
 			RHIShader* shaders[5];
@@ -48,6 +48,11 @@ namespace Engine
 		RHIDepthTest depth;
 		RHIStencilTest stencil;
 		RHIColorBlending blending;
+
+		inline RHIGraphicsPipelineInitializer()
+		    : shaders{nullptr}, parameters(nullptr), vertex_attributes(nullptr), parameters_count(0), vertex_attributes_count(0),
+		      depth(), stencil(), blending()
+		{}
 	};
 
 	struct RHIMeshPipelineInitializer {

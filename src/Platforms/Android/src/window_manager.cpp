@@ -1,9 +1,9 @@
 #include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Core/reflection/struct.hpp>
 #include <EGL/egl.h>
-#include <Graphics/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/touchscreen_system.hpp>
 #include <Window/config.hpp>
@@ -175,9 +175,7 @@ namespace Engine::Platform
 
 			switch (cmd)
 			{
-				case APP_CMD_TERM_WINDOW:
-					push_event(AppTerminating);
-					break;
+				case APP_CMD_TERM_WINDOW: push_event(AppTerminating); break;
 
 				case APP_CMD_WINDOW_RESIZED:
 				{
@@ -197,33 +195,20 @@ namespace Engine::Platform
 					break;
 				}
 
-				case APP_CMD_CONTENT_RECT_CHANGED:
-					break;
+				case APP_CMD_CONTENT_RECT_CHANGED: break;
 
-				case APP_CMD_GAINED_FOCUS:
-					push_event(WindowFocusGained);
-					break;
+				case APP_CMD_GAINED_FOCUS: push_event(WindowFocusGained); break;
 
-				case APP_CMD_LOST_FOCUS:
-					push_event(WindowFocusLost);
-					break;
+				case APP_CMD_LOST_FOCUS: push_event(WindowFocusLost); break;
 
-				case APP_CMD_LOW_MEMORY:
-					push_event(AppLowMemory);
-					break;
+				case APP_CMD_LOW_MEMORY: push_event(AppLowMemory); break;
 
-				case APP_CMD_RESUME:
-					push_event(AppResume);
-					break;
+				case APP_CMD_RESUME: push_event(AppResume); break;
 
-				case APP_CMD_PAUSE:
-					push_event(AppPause);
-					break;
+				case APP_CMD_PAUSE: push_event(AppPause); break;
 
 				case APP_CMD_STOP:
-				case APP_CMD_DESTROY:
-					push_event(Quit);
-					break;
+				case APP_CMD_DESTROY: push_event(Quit); break;
 
 				case APP_CMD_CONFIG_CHANGED:
 				{
@@ -234,8 +219,7 @@ namespace Engine::Platform
 					}
 					break;
 				}
-				default:
-					break;
+				default: break;
 			}
 		}
 	}
@@ -279,21 +263,11 @@ namespace Engine::Platform
 
 		switch (button)
 		{
-			case AMOTION_EVENT_BUTTON_PRIMARY:
-				event_data.button = Mouse::Button::Left;
-				break;
-			case AMOTION_EVENT_BUTTON_SECONDARY:
-				event_data.button = Mouse::Button::Right;
-				break;
-			case AMOTION_EVENT_BUTTON_TERTIARY:
-				event_data.button = Mouse::Button::Middle;
-				break;
-			case AMOTION_EVENT_BUTTON_BACK:
-				event_data.button = Mouse::Button::Back;
-				break;
-			case AMOTION_EVENT_BUTTON_FORWARD:
-				event_data.button = Mouse::Button::Forward;
-				break;
+			case AMOTION_EVENT_BUTTON_PRIMARY: event_data.button = Mouse::Button::Left; break;
+			case AMOTION_EVENT_BUTTON_SECONDARY: event_data.button = Mouse::Button::Right; break;
+			case AMOTION_EVENT_BUTTON_TERTIARY: event_data.button = Mouse::Button::Middle; break;
+			case AMOTION_EVENT_BUTTON_BACK: event_data.button = Mouse::Button::Back; break;
+			case AMOTION_EVENT_BUTTON_FORWARD: event_data.button = Mouse::Button::Forward; break;
 		}
 
 		float h      = Engine::WindowManager::instance()->main_window()->size().y;
@@ -377,9 +351,9 @@ namespace Engine::Platform
 				event.x     = AMotionEvent_getX(input_event, i);
 				event.y     = h - AMotionEvent_getY(input_event, i);
 
-				Size2D prev_pos = TouchScreenSystem::instance()->finger_location(event.index, window);
-				event.xrel      = event.x - prev_pos.x;
-				event.yrel      = event.y - prev_pos.y;
+				Vector2u prev_pos = TouchScreenSystem::instance()->finger_location(event.index, window);
+				event.xrel        = event.x - prev_pos.x;
+				event.yrel        = event.y - prev_pos.y;
 
 				if (glm::epsilonNotEqual(event.xrel, 0.f, 0.001f) || glm::epsilonNotEqual(event.yrel, 0.f, 0.001f))
 				{
@@ -421,15 +395,12 @@ namespace Engine::Platform
 
 		switch (AMotionEvent_getToolType(input_event, event_pointer_index))
 		{
-			case AMOTION_EVENT_TOOL_TYPE_MOUSE:
-				return handle_mouse_event(input_event, action, event_pointer_index);
-			case AMOTION_EVENT_TOOL_TYPE_FINGER:
-				return handle_finger_event(input_event, action, event_pointer_index);
+			case AMOTION_EVENT_TOOL_TYPE_MOUSE: return handle_mouse_event(input_event, action, event_pointer_index);
+			case AMOTION_EVENT_TOOL_TYPE_FINGER: return handle_finger_event(input_event, action, event_pointer_index);
 			case AMOTION_EVENT_TOOL_TYPE_STYLUS:
 			case AMOTION_EVENT_TOOL_TYPE_ERASER:
 			case AMOTION_EVENT_TOOL_TYPE_PALM:
-			default:
-				break;
+			default: break;
 		}
 
 		return 0;
@@ -442,12 +413,8 @@ namespace Engine::Platform
 
 		switch (event_type)
 		{
-			case AINPUT_EVENT_TYPE_KEY:
-				result = handle_key_event(input_event);
-				break;
-			case AINPUT_EVENT_TYPE_MOTION:
-				result = handle_motion_event(input_event);
-				break;
+			case AINPUT_EVENT_TYPE_KEY: result = handle_key_event(input_event); break;
+			case AINPUT_EVENT_TYPE_MOTION: result = handle_motion_event(input_event); break;
 		}
 
 		return result;
@@ -472,14 +439,7 @@ namespace Engine::Platform
 				throw EngineException("Cannot create two windows on android!");
 			}
 
-			if (rhi->info.struct_instance->name() == "VULKAN")
-			{
-				m_window = new AndroidVulkanWindow(config);
-			}
-			else
-			{
-				m_window = new AndroidEGLWindow(config);
-			}
+			m_window = trx_new AndroidWindow();
 			return m_window;
 		}
 

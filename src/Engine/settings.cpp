@@ -32,8 +32,8 @@ namespace Engine::Settings
 
 	namespace Window
 	{
-		ENGINE_EXPORT String title = "Trinex Engine";
-		ENGINE_EXPORT String client;
+		ENGINE_EXPORT String title                       = "Trinex Engine";
+		ENGINE_EXPORT String client                      = "Engine::DefaultClient";
 		ENGINE_EXPORT int_t size_x                       = 1280;
 		ENGINE_EXPORT int_t size_y                       = 720;
 		ENGINE_EXPORT int_t pos_x                        = -1;

@@ -15,15 +15,18 @@ namespace Engine
 			union
 			{
 				struct {
-					uint16_t first_array_slice     = 0;
-					uint16_t array_size            = ~0;
-					uint8_t first_mip              = 0;
-					uint8_t mip_levels             = ~0;
-					RHITextureType::Enum view_type = RHITextureType::Undefined;
+					uint16_t first_array_slice;
+					uint16_t array_size;
+					uint8_t first_mip;
+					uint8_t mip_levels;
+					RHITextureType::Enum view_type;
 				};
 				uint64_t id;
 			};
 
+
+			ViewDesc() : first_array_slice(0), array_size(~0), first_mip(0), mip_levels(~0), view_type(RHITextureType::Undefined)
+			{}
 
 			FORCE_INLINE void normalize(VulkanTexture* texture) {}
 
@@ -104,7 +107,8 @@ namespace Engine
 			}
 		}
 
-		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint_t layers, uint32_t mips, RHITextureCreateFlags flags);
+		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint_t layers, uint32_t mips,
+		                      RHITextureCreateFlags flags);
 		void change_layout(vk::ImageLayout new_layout);
 
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;

@@ -18,8 +18,8 @@ namespace Engine
 	         RHISamplerAddressMode address_u = RHISamplerAddressMode::ClampToEdge,//
 	         RHISamplerAddressMode address_v = RHISamplerAddressMode::ClampToEdge,//
 	         RHISamplerAddressMode address_w = RHISamplerAddressMode::ClampToEdge,//
-	         float mip_bias                  = 0.f,                               //
-	         float max_anisotropy            = 1.f,                               //
+	         uint_t mip_bias                 = 0,                                 //
+	         uint_t max_anisotropy           = 1,                                 //
 	         Color border_color              = Color(0, 0, 0, 0),                 //
 	         RHICompareFunc compare_func     = RHICompareFunc::Never>
 	class RHIStaticSampler final : public RHIStaticSamplerBase
@@ -54,6 +54,6 @@ namespace Engine
 	                                                 RHISamplerAddressMode::Repeat, RHISamplerAddressMode::Repeat>;
 
 	using RHIShadowSampler = RHIStaticSampler<RHISamplerFilter::Bilinear, RHISamplerAddressMode::ClampToBorder,
-	                                          RHISamplerAddressMode::ClampToBorder, RHISamplerAddressMode::ClampToBorder, 0.0f,
-	                                          1.0f, Color(0, 0, 0, 0), RHICompareFunc::Lequal>;
+	                                          RHISamplerAddressMode::ClampToBorder, RHISamplerAddressMode::ClampToBorder, 0, 1,
+	                                          Color(0, 0, 0, 0), RHICompareFunc::Lequal>;
 }// namespace Engine

@@ -60,7 +60,7 @@ foreach(dir ${TRINEX_SOURCE_DIRECTORIES})
 endforeach()
 
 # Compile Trinex Engine
-if(TRINEX_AS_EXECUTABLE)
+if(TRINEX_AS_EXECUTABLE AND NOT ANDROID)
     add_executable(TrinexEngine ${TRINEX_SOURCE_FILES})
 else()
     add_library(TrinexEngine SHARED ${TRINEX_SOURCE_FILES})
@@ -68,9 +68,12 @@ endif()
 
 # Compile modules
 add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/)
-add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
 add_subdirectory(${TRINEX_ENGINE_SRC}/Platforms)
 add_subdirectory(${TRINEX_ENGINE_SRC}/BackendRHI)
+
+if(TRINEX_WITH_EDITOR)
+    add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
+endif()
 
 # Trinex Engine compile options
 target_include_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
@@ -79,9 +82,12 @@ target_link_libraries(TrinexEngine PUBLIC freetype asmjit zlib_library lz4_stati
 target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS=1)
 
 target_compile_options(TrinexEngine PUBLIC
-    $<$<CXX_COMPILER_ID:GNU,Clang>:-include ${TRINEX_ENGINE_INCLUDE}/Core/precompiled.hpp>
-    $<$<CXX_COMPILER_ID:MSVC>:/FI${TRINEX_ENGINE_INCLUDE}/Core/precompiled.hpp>
+    $<$<COMPILE_LANGUAGE:CXX>:
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-include ${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp>
+        $<$<CXX_COMPILER_ID:MSVC>:/FI${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp>
+    >
 )
+
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=1)

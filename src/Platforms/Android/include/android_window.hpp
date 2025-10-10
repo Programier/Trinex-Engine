@@ -12,14 +12,12 @@ namespace Engine
 	class ENGINE_EXPORT AndroidWindow : public Window
 	{
 	protected:
-		String m_name;
+		String m_name         = "Android Window";
 		bool m_init_vsync : 1 = true;
 
 	public:
 		using Window::m_size;
 		struct ImGuiContext* imgui_context = nullptr;
-
-		AndroidWindow(const WindowConfig* config);
 
 		static ANativeWindow* static_native_window();
 
@@ -27,19 +25,19 @@ namespace Engine
 		using Window::size;
 		using Window::width;
 
-		Size2D calc_size() const;
+		Vector2u calc_size() const;
+		void resized();
 
-		String title() override;
-		Window& title(const String& title) override;
-		Point2D position() override;
-		Window& position(const Point2D& position) override;
+		void initialize(const WindowConfig&) override;
 		Window& width(float_t width) override;
 		Window& height(float_t height) override;
-		Window& size(const Size2D& size) override;
+		Window& size(const Vector2u& size) override;
+		String title() override;
+		Window& title(const String& title) override;
+		Vector2u position() override;
+		Window& position(const Vector2u& position) override;
 		bool resizable() override;
 		Window& resizable(bool value) override;
-		Identifier id() override;
-
 		Window& focus() override;
 		bool focused() override;
 		Window& show() override;
@@ -51,10 +49,6 @@ namespace Engine
 		Window& restore() override;
 		Window& opacity(float value) override;
 		float opacity() override;
-		void* native_window() override;
-
-		virtual void resized();
-
 		Window& icon(const Image& image) override;
 		Window& cursor(const Image& image, Vector2i hotspot = {0, 0}) override;
 		Window& attribute(const WindowAttribute& attrib, bool value) override;
@@ -63,52 +57,10 @@ namespace Engine
 		CursorMode cursor_mode() override;
 		bool support_orientation(Orientation orientation) override;
 		Orientation orientation() override;
+		Identifier id() override;
+		void* native_window() override;
+		size_t monitor_index() override;
+
 		~AndroidWindow();
-	};
-
-
-	struct AndroidEGLSurface {
-		EGLSurface egl_surface            = EGL_NO_SURFACE;
-		struct AndroidEGLContext* context = nullptr;
-
-		void init(AndroidEGLContext* context, ANativeWindow* window);
-		void destroy();
-		~AndroidEGLSurface();
-	};
-
-	struct ENGINE_EXPORT AndroidEGLContext {
-		EGLDisplay egl_display = EGL_NO_DISPLAY;
-		EGLContext egl_context = EGL_NO_CONTEXT;
-		EGLConfig egl_config   = nullptr;
-		EGLint egl_format      = 0;
-		Set<AndroidEGLSurface*> egl_surfaces;
-		bool m_vsync = false;
-
-
-		AndroidEGLContext();
-		bool vsync();
-		AndroidEGLContext& vsync(bool flag);
-		~AndroidEGLContext();
-	};
-
-	class ENGINE_EXPORT AndroidEGLWindow : public AndroidWindow
-	{
-		AndroidEGLSurface m_surface;
-
-	public:
-		AndroidEGLWindow(const WindowConfig* config);
-		~AndroidEGLWindow();
-
-		void* create_context();
-		EGLSurface surface(AndroidEGLContext* context);
-		AndroidEGLWindow& make_current(void* context);
-		AndroidEGLWindow& swap_buffers(void* context);
-		AndroidEGLWindow& destroy_context(void* context);
-	};
-
-	class ENGINE_EXPORT AndroidVulkanWindow : public AndroidWindow
-	{
-	public:
-		AndroidVulkanWindow(const WindowConfig* config);
 	};
 }// namespace Engine

@@ -43,7 +43,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_updateOri
 {
 	using namespace Engine::Platform;
 
-	m_android_platform_info.orientation            = static_cast<Engine::Orientation>(orientation);
+	m_android_platform_info.orientation            = static_cast<Engine::Orientation::Enum>(orientation);
 	m_android_platform_info.is_orientation_updated = true;
 }
 
@@ -65,7 +65,8 @@ namespace Engine::Platform
 
 	ENGINE_EXPORT Path find_exec_directory()
 	{
-		return Path("/sdcard/Android/obb") / m_android_platform_info.app_package_name;
+		//return Path("/sdcard/Android/obb") / m_android_platform_info.app_package_name;
+		return "/sdcard/TrinexEngine";
 	}
 
 	ENGINE_EXPORT size_t monitors_count()
