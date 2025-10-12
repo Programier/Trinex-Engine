@@ -44,7 +44,7 @@ namespace Engine
 
 		inline VulkanUniformBuffer& flush()
 		{
-			m_block_start = m_block_end = align_up(m_block_end, API->m_properties.limits.minUniformBufferOffsetAlignment);
+			m_block_start = m_block_end = align_up_ptr(m_block_end, API->m_properties.limits.minUniformBufferOffsetAlignment);
 			return *this;
 		}
 
@@ -258,6 +258,15 @@ namespace Engine
 	}
 
 	VulkanCommandHandle* VulkanStateManager::flush_compute()
+	{
+		auto cmd = API->current_command_buffer();
+		trinex_check(m_pipeline, "Pipeline can't be nullptr");
+		m_pipeline->flush(this);
+		flush_state();
+		return cmd;
+	}
+
+	VulkanCommandHandle* VulkanStateManager::flush_raytrace()
 	{
 		auto cmd = API->current_command_buffer();
 		trinex_check(m_pipeline, "Pipeline can't be nullptr");

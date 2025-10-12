@@ -38,10 +38,11 @@ namespace Engine
 		byte m_combined_image_sampler = 0;
 		byte m_storage_images         = 0;
 
-		byte m_uniform_buffers       = 0;
-		byte m_storage_buffers       = 0;
-		byte m_uniform_texel_buffers = 0;
-		byte m_storage_texel_buffers = 0;
+		byte m_uniform_buffers         = 0;
+		byte m_storage_buffers         = 0;
+		byte m_uniform_texel_buffers   = 0;
+		byte m_storage_texel_buffers   = 0;
+		byte m_acceleration_structures = 0;
 
 	public:
 		VulkanPipelineLayout(uint64_t hash, vk::ShaderStageFlags stages, Descriptor* descriptors, size_t count);
@@ -65,6 +66,7 @@ namespace Engine
 		inline byte storage_buffers_count() const { return m_storage_buffers; }
 		inline byte uniform_texel_buffers_count() const { return m_uniform_texel_buffers; }
 		inline byte storage_texel_buffers_count() const { return m_storage_texel_buffers; }
+		inline byte acceleartion_structures_count() const { return m_acceleration_structures; }
 
 		inline bool equals(const Descriptor* descriptors, size_t count)
 		{

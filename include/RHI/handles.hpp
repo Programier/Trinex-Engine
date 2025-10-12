@@ -141,6 +141,7 @@ namespace Engine
 		virtual void vsync(bool flag)             = 0;
 		virtual void resize(const Vector2u& size) = 0;
 		virtual RHIRenderTargetView* as_rtv()     = 0;
+		virtual RHITexture* as_texture()          = 0;
 	};
 
 	class ENGINE_EXPORT RHIAccelerationStructure : public RHIObject

@@ -164,6 +164,7 @@ namespace Engine
 			DeviceAddress       = BIT(12),
 			AccelerationStorage = BIT(13),
 			AccelerationInput   = BIT(14),
+			ShaderBindingTable  = BIT(14),
 		};
 
 		trinex_bitfield_enum_struct(RHIBufferCreateFlags, uint16_t);
@@ -192,30 +193,32 @@ namespace Engine
 			Undefined = 0,
 
 			// Reading states
-			CPURead       = BIT(0),
-			Present       = BIT(1),
-			IndirectArgs  = BIT(2),
-			VertexBuffer  = BIT(3),
-			IndexBuffer   = BIT(4),
-			UniformBuffer = BIT(5),
-			SRVCompute    = BIT(6),
-			SRVGraphics   = BIT(7),
-			TransferSrc   = BIT(8),
-			ResolveSrc    = BIT(9),
+			CPURead          = BIT(0),
+			AccelerationRead = BIT(1),
+			Present          = BIT(2),
+			IndirectArgs     = BIT(3),
+			VertexBuffer     = BIT(4),
+			IndexBuffer      = BIT(5),
+			UniformBuffer    = BIT(6),
+			SRVCompute       = BIT(7),
+			SRVGraphics      = BIT(8),
+			TransferSrc      = BIT(9),
+			ResolveSrc       = BIT(10),
 
 			// Writing states
-			CPUWrite    = BIT(10),
-			UAVCompute  = BIT(11),
-			UAVGraphics = BIT(12),
-			TransferDst = BIT(13),
-			ResolveDst  = BIT(14),
-			RTV         = BIT(15),
-			DSV         = BIT(16),
+			CPUWrite          = BIT(11),
+			AccelerationWrite = BIT(12),
+			UAVCompute        = BIT(13),
+			UAVGraphics       = BIT(14),
+			TransferDst       = BIT(15),
+			ResolveDst        = BIT(16),
+			RTV               = BIT(17),
+			DSV               = BIT(18),
 
-			ReadableMask = CPURead | Present | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer | SRVCompute |
-			               SRVGraphics | TransferSrc | ResolveSrc | UAVCompute | UAVGraphics | RTV | DSV,
+			ReadableMask = CPURead | AccelerationRead | Present | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer |
+			               SRVCompute | SRVGraphics | TransferSrc | ResolveSrc | UAVCompute | UAVGraphics | RTV | DSV,
 
-			WritableMask = CPUWrite | UAVCompute | UAVGraphics | TransferDst | ResolveDst | RTV | DSV,
+			WritableMask = CPUWrite | AccelerationWrite | UAVCompute | UAVGraphics | TransferDst | ResolveDst | RTV | DSV,
 		};
 
 		trinex_bitfield_enum_struct(RHIAccess, EnumerateType);
@@ -772,5 +775,32 @@ namespace Engine
 		};
 
 		trinex_bitfield_enum_struct(RHIRayTracingAccelerationFlags, byte);
+	};
+
+	struct RHIRayTracingShaderGroupType {
+		enum Enum : byte
+		{
+			GeneralRayGen   = 0,
+			GeneralMiss     = 1,
+			GeneralCallable = 2,
+			TrianglesHit    = 3,
+			ProceduralHit   = 4,
+		};
+
+		trinex_enum_struct(RHIRayTracingShaderGroupType);
+	};
+
+	struct RHIRayTracingGeometryInstanceFlags {
+		enum Enum : byte
+		{
+			Undefined                 = 0,
+			TriangleFacingCullDisable = BIT(0),
+			TriangleFlipFacing        = BIT(1),
+			TriangleFrontCCW          = BIT(2),
+			ForceOpaque               = BIT(3),
+			ForceNoOpaque             = BIT(4),
+		};
+
+		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, byte);
 	};
 }// namespace Engine

@@ -57,6 +57,9 @@ namespace Engine
 			PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR               = nullptr;
 			PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR             = nullptr;
 			PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR         = nullptr;
+			PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR                   = nullptr;
+			PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR       = nullptr;
+			PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR                                             = nullptr;
 
 			inline uint32_t getVkHeaderVersion() const { return VK_HEADER_VERSION; }
 		} pfn;
@@ -95,6 +98,8 @@ namespace Engine
 		VulkanUpdater* m_updater = nullptr;
 
 		vk::Semaphore m_timeline;
+
+		vk::PhysicalDeviceRayTracingPipelinePropertiesKHR m_ray_trace_properties;
 
 	private:
 		static consteval auto make_extensions_array()
@@ -145,6 +150,24 @@ namespace Engine
 		inline VulkanDescriptorSetAllocator* descriptor_set_allocator() const { return m_descriptor_set_allocator; }
 		inline VulkanCommandBufferManager* command_buffer_mananger() const { return m_cmd_manager; }
 		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
+		inline const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& ray_trace_properties() const
+		{
+			return m_ray_trace_properties;
+		}
+
+		inline bool is_raytracing_supported() const
+		{
+			if (!is_extension_enabled(find_extension_index(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)))
+				return false;
+
+			if (!is_extension_enabled(find_extension_index(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)))
+				return false;
+
+			if (!is_extension_enabled(find_extension_index(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)))
+				return false;
+
+			return true;
+		}
 
 	public:
 		//////////////////////////////////////////////////////////////
@@ -187,6 +210,10 @@ namespace Engine
 		VulkanAPI& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
 
 		VulkanAPI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
+
+		VulkanAPI& trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen = 0, const RHIRange& miss = {},
+		                      const RHIRange& hit = {}, const RHIRange& callable = {}) override;
+
 		VulkanAPI& signal_fence(RHIFence* fence) override;
 
 		RHITimestamp* create_timestamp() override;
@@ -199,10 +226,13 @@ namespace Engine
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
+		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
 		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context() override;
+
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
+		const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) override;
 
 		VulkanAPI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
 
@@ -240,6 +270,7 @@ namespace Engine
 		VulkanAPI& bind_srv(RHIShaderResourceView* view, byte slot) override;
 		VulkanAPI& bind_uav(RHIUnorderedAccessView* view, byte slot) override;
 		VulkanAPI& bind_sampler(RHISampler* view, byte slot) override;
+		VulkanAPI& bind_acceleration(RHIAccelerationStructure* acceleration, byte slot) override;
 
 		VulkanAPI& barrier(RHITexture* texture, RHIAccess dst_access) override;
 		VulkanAPI& barrier(RHIBuffer* buffer, RHIAccess dst_access) override;

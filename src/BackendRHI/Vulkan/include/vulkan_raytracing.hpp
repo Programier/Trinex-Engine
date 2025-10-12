@@ -18,5 +18,8 @@ namespace Engine
 	public:
 		VulkanAccelerationStructure(const RHIRayTracingAccelerationInputs* inputs);
 		~VulkanAccelerationStructure();
+
+		vk::DeviceAddress address() const;
+		inline vk::AccelerationStructureKHR handle() const { return m_acceleration; }
 	};
 }// namespace Engine

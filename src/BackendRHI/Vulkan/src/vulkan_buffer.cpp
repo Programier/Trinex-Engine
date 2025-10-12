@@ -48,6 +48,9 @@ namespace Engine
 		if (flags & RHIBufferCreateFlags::AccelerationInput)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 
+		if (flags & RHIBufferCreateFlags::ShaderBindingTable)
+			buffer_info.usage |= vk::BufferUsageFlagBits::eShaderBindingTableKHR;
+
 		if (flags & RHIBufferCreateFlags::ShaderResource)
 		{
 			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
@@ -138,7 +141,7 @@ namespace Engine
 
 	VulkanBuffer& VulkanBuffer::transition(RHIAccess access)
 	{
-		if (m_access == access && !(access & RHIAccess::WritableMask))
+		if ((m_access & access) == access && !(access & RHIAccess::WritableMask))
 			return *this;
 
 		if (m_access == RHIAccess::Undefined)

@@ -28,14 +28,14 @@ namespace Engine
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type align_up(Type in, size_t alignment)
+	FORCE_INLINE Type* align_up_ptr(Type* in, size_t alignment)
 	{
-		return reinterpret_cast<Type>(align_up(reinterpret_cast<size_t>(in), alignment));
+		return reinterpret_cast<Type*>(align_up(reinterpret_cast<size_t>(in), alignment));
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type align_down(Type in, size_t alignment)
+	FORCE_INLINE Type* align_down_ptr(Type* in, size_t alignment)
 	{
-		return reinterpret_cast<Type>(align_down(reinterpret_cast<size_t>(in), alignment));
+		return reinterpret_cast<Type*>(align_down(reinterpret_cast<size_t>(in), alignment));
 	}
 }// namespace Engine

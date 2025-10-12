@@ -80,4 +80,30 @@ namespace Engine
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		size_t parameters_count                         = 0;
 	};
+
+	struct ENGINE_EXPORT RHIRayTracingShaderGroup {
+		union
+		{
+			RHIShader* general = nullptr;
+			RHIShader* intersection;
+		};
+
+		RHIShader* closest_hit = nullptr;
+		RHIShader* any_hit     = nullptr;
+
+		// General* — RayGen, Miss, Callable
+		// TrianglesHit - ClosestHit + AnyHit
+		// ProceduralHit - Intersection + ClosestHit + AnyHit
+		RHIRayTracingShaderGroupType type = RHIRayTracingShaderGroupType::GeneralRayGen;
+	};
+
+	struct ENGINE_EXPORT RHIRayTracingPipelineInitializer {
+		RHIRayTracingShaderGroup* groups = nullptr;
+		uint64_t groups_count            = 0;
+
+		const struct RHIShaderParameterInfo* parameters = nullptr;
+		size_t parameters_count                         = 0;
+
+		byte max_recursion = 2;
+	};
 }// namespace Engine

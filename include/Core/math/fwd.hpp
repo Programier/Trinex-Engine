@@ -11,6 +11,9 @@ namespace Engine
 	template<size_t N, typename T>
 	using MatrixNT = glm::mat<N, N, T, glm::defaultp>;
 
+	template<size_t C, size_t R, typename T>
+	using MatrixCRT = glm::mat<C, R, T, glm::defaultp>;
+
 	template<size_t N, typename T>
 	class Box;
 
@@ -67,6 +70,9 @@ namespace Engine
 	using Matrix4f = MatrixNT<4, float_t>;
 	using Matrix3f = MatrixNT<3, float_t>;
 	using Matrix2f = MatrixNT<2, float_t>;
+
+	using Matrix4x3f = MatrixCRT<4, 3, float_t>;
+	using Matrix3x4f = MatrixCRT<3, 4, float_t>;
 
 	using Matrix4i = MatrixNT<4, int32_t>;
 	using Matrix3i = MatrixNT<3, int32_t>;

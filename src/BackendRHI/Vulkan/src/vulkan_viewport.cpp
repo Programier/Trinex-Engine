@@ -323,6 +323,11 @@ namespace Engine
 		return backbuffer()->as_rtv({});
 	}
 
+	RHITexture* VulkanSwapchain::as_texture()
+	{
+		return backbuffer();
+	}
+
 	void VulkanSwapchain::resize(const Vector2u& size)
 	{
 		m_need_recreate = true;

@@ -65,6 +65,16 @@ namespace Engine
 		return stages;
 	}
 
+	static FORCE_INLINE vk::ShaderStageFlagBits shader_stage_of(RHIRayTracingShaderGroupType type)
+	{
+		switch (type)
+		{
+			case RHIRayTracingShaderGroupType::GeneralMiss: return vk::ShaderStageFlagBits::eMissKHR;
+			case RHIRayTracingShaderGroupType::GeneralCallable: return vk::ShaderStageFlagBits::eCallableKHR;
+			default: return vk::ShaderStageFlagBits::eRaygenKHR;
+		}
+	}
+
 	static inline vk::ShaderModule vulkan_shader_of(RHIShader* shader)
 	{
 		return shader->as<VulkanShader>()->module();
@@ -147,6 +157,17 @@ namespace Engine
 		API->m_device.updateDescriptorSets(write, {});
 	}
 
+	static FORCE_INLINE void write_acceleration(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
+	{
+		auto tlas = manager->acceleration_structures.resource(index);
+
+		vk::WriteDescriptorSetAccelerationStructureKHR info(1, &tlas);
+
+		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eAccelerationStructureKHR, {}, {}, {}, &info);
+		write.descriptorCount = 1;
+		API->m_device.updateDescriptorSets(write, {});
+	}
+
 	static FORCE_INLINE bool is_descriptor_dirty(VulkanStateManager* manager, const VulkanPipelineLayout::Descriptor& descriptor)
 	{
 		switch (descriptor.type)
@@ -161,19 +182,17 @@ namespace Engine
 			case vk::DescriptorType::eStorageBuffer: return manager->storage_buffers.is_dirty(descriptor.binding);
 			case vk::DescriptorType::eUniformTexelBuffer: return manager->uniform_texel_buffers.is_dirty(descriptor.binding);
 			case vk::DescriptorType::eStorageTexelBuffer: return manager->storage_texel_buffers.is_dirty(descriptor.binding);
+			case vk::DescriptorType::eAccelerationStructureKHR:
+				return manager->acceleration_structures.is_dirty(descriptor.binding);
 			default: return false;
 		}
-	}
-
-	VulkanPipeline::VulkanPipeline(const RHIShaderParameterInfo* parameter, size_t count, vk::ShaderStageFlags stages)
-	{
-		m_layout = API->create_pipeline_layout(parameter, count, stages);
 	}
 
 	VulkanPipeline::~VulkanPipeline()
 	{
 		m_layout->release();
 	}
+
 	bool VulkanPipeline::is_dirty_state(VulkanStateManager* manager) const
 	{
 		trinex_profile_cpu_n("VulkanPipeline::is_dirty_state");
@@ -189,6 +208,16 @@ namespace Engine
 		}
 
 		return false;
+	}
+
+	VulkanPipelineLayout* VulkanPipeline::create_layout(const RHIShaderParameterInfo* parameter, size_t count,
+	                                                    vk::ShaderStageFlags stages)
+	{
+		if (m_layout)
+			m_layout->release();
+
+		m_layout = API->create_pipeline_layout(parameter, count, stages);
+		return m_layout;
 	}
 
 	VulkanPipeline& VulkanPipeline::flush_descriptors(VulkanStateManager* manager, vk::PipelineBindPoint bind_point)
@@ -216,6 +245,7 @@ namespace Engine
 				case vk::DescriptorType::eStorageBuffer: write_storage_buffer(set, manager, binding); break;
 				case vk::DescriptorType::eUniformTexelBuffer: write_uniform_texel_buffer(set, manager, binding); break;
 				case vk::DescriptorType::eStorageTexelBuffer: write_storage_texel_buffer(set, manager, binding); break;
+				case vk::DescriptorType::eAccelerationStructureKHR: write_acceleration(set, manager, binding); break;
 				default: break;
 			}
 		}
@@ -280,7 +310,6 @@ namespace Engine
 	}
 
 	VulkanGraphicsPipeline::VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline)
-	    : VulkanPipeline(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline))
 	{
 		static auto get_stencil_op_state = [](const RHIStencilTest& pipeline) {
 			vk::StencilOpState out_state;
@@ -293,6 +322,8 @@ namespace Engine
 			        .setDepthFailOp(VulkanEnums::stencil_of(pipeline.depth_fail));
 			return out_state;
 		};
+
+		create_layout(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline));
 
 		m_input_assembly.primitiveRestartEnable = vk::False;
 		m_input_assembly.topology               = vk::PrimitiveTopology::eTriangleList;
@@ -413,7 +444,6 @@ namespace Engine
 	}
 
 	VulkanMeshPipeline::VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline)
-	    : VulkanPipeline(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline))
 	{
 		static auto get_stencil_op_state = [](const RHIStencilTest& pipeline) {
 			vk::StencilOpState out_state;
@@ -426,6 +456,8 @@ namespace Engine
 			        .setDepthFailOp(VulkanEnums::stencil_of(pipeline.depth_fail));
 			return out_state;
 		};
+
+		create_layout(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline));
 
 		m_rasterizer.polygonMode = vk::PolygonMode::eFill;
 		m_rasterizer.cullMode    = vk::CullModeFlagBits::eNone;
@@ -549,7 +581,6 @@ namespace Engine
 	}
 
 	VulkanComputePipeline::VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline)
-	    : VulkanPipeline(pipeline->parameters, pipeline->parameters_count, vk::ShaderStageFlagBits::eCompute)
 	{
 		vk::PipelineShaderStageCreateInfo stage;
 		if (pipeline->compute_shader)
@@ -563,6 +594,7 @@ namespace Engine
 			error_log("VulkanPipeline", "Cannot init pipeline, because 'Compute' shader is not valid");
 		}
 
+		create_layout(pipeline->parameters, pipeline->parameters_count, vk::ShaderStageFlagBits::eCompute);
 		vk::ComputePipelineCreateInfo info({}, stage, layout()->layout());
 
 		auto result = API->m_device.createComputePipeline({}, info);
@@ -591,6 +623,137 @@ namespace Engine
 		DESTROY_CALL(destroyPipeline, m_pipeline);
 	}
 
+	static void align_shader_binding_table(byte* storage, size_t count, size_t handle, size_t aligned_handle)
+	{
+		if (handle == aligned_handle)
+			return;
+
+		for (size_t i = count; i-- > 0;)
+		{
+			byte* src = storage + i * handle;
+			byte* dst = storage + i * aligned_handle;
+			std::memmove(dst, src, handle);
+
+			if (aligned_handle > handle)
+				std::memset(dst + handle, 0, aligned_handle - handle);
+		}
+	}
+
+	VulkanRayTracingPipeline::VulkanRayTracingPipeline(const RHIRayTracingPipelineInitializer* pipeline)
+	    : m_groups(pipeline->groups_count)
+	{
+		StackByteAllocator::Mark mark;
+
+		struct {
+			vk::RayTracingPipelineCreateInfoKHR pipeline_info{};
+			vk::ShaderStageFlags stages;
+			vk::RayTracingShaderGroupCreateInfoKHR* groups_info;
+			vk::PipelineShaderStageCreateInfo* stages_info;
+		} state;
+
+		state.groups_info = StackAllocator<vk::RayTracingShaderGroupCreateInfoKHR>::allocate(pipeline->groups_count);
+		state.stages_info = StackAllocator<vk::PipelineShaderStageCreateInfo>::allocate(pipeline->groups_count * 3);
+
+		state.pipeline_info.pStages                      = state.stages_info;
+		state.pipeline_info.groupCount                   = pipeline->groups_count;
+		state.pipeline_info.pGroups                      = state.groups_info;
+		state.pipeline_info.maxPipelineRayRecursionDepth = pipeline->max_recursion;
+
+		auto find_shader_index = [&](const RHIShader* handle, vk::ShaderStageFlagBits stage) -> uint32_t {
+			if (handle == nullptr)
+				return vk::ShaderUnusedKhr;
+
+			const VulkanShader* shader = static_cast<const VulkanShader*>(handle);
+			auto module                = shader->module();
+
+			state.stages |= stage;
+
+			for (uint32_t i = 0, count = state.pipeline_info.stageCount; i < count; ++i)
+			{
+				if (state.stages_info->module == module)
+					return i;
+			}
+
+			uint32_t index = state.pipeline_info.stageCount++;
+			new (state.stages_info + index) vk::PipelineShaderStageCreateInfo({}, stage, module, "main");
+			return index;
+		};
+
+		for (size_t i = 0; i < pipeline->groups_count; ++i)
+		{
+			auto& src = pipeline->groups[i];
+			auto& dst = state.groups_info[i];
+
+			new (&dst) vk::RayTracingShaderGroupCreateInfoKHR(vk::RayTracingShaderGroupTypeKHR::eGeneral, vk::ShaderUnusedKhr,
+			                                                  vk::ShaderUnusedKhr, vk::ShaderUnusedKhr, vk::ShaderUnusedKhr);
+
+			if (src.type == RHIRayTracingShaderGroupType::TrianglesHit)
+			{
+				dst.type = vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup;
+
+				dst.closestHitShader = find_shader_index(src.closest_hit, vk::ShaderStageFlagBits::eClosestHitKHR);
+				dst.anyHitShader     = find_shader_index(src.any_hit, vk::ShaderStageFlagBits::eAnyHitKHR);
+			}
+			else if (src.type == RHIRayTracingShaderGroupType::ProceduralHit)
+			{
+				dst.type = vk::RayTracingShaderGroupTypeKHR::eProceduralHitGroup;
+
+				dst.intersectionShader = find_shader_index(src.intersection, vk::ShaderStageFlagBits::eIntersectionKHR);
+				dst.closestHitShader   = find_shader_index(src.closest_hit, vk::ShaderStageFlagBits::eClosestHitKHR);
+				dst.anyHitShader       = find_shader_index(src.any_hit, vk::ShaderStageFlagBits::eAnyHitKHR);
+			}
+			else
+			{
+				dst.generalShader = find_shader_index(src.general, shader_stage_of(src.type));
+			}
+		}
+
+		create_layout(pipeline->parameters, pipeline->parameters_count, state.stages);
+		state.pipeline_info.layout = layout()->layout();
+
+		m_pipeline = API->m_device.createRayTracingPipelineKHR({}, {}, state.pipeline_info, nullptr, API->pfn).value;
+
+		mark.reset();
+
+		// Creating shader binding table
+		{
+			auto& props                        = API->ray_trace_properties();
+			const uint32_t handle_size         = props.shaderGroupHandleSize;
+			const uint32_t handle_size_aligned = align_up(handle_size, props.shaderGroupBaseAlignment);
+
+			const size_t storage_size = pipeline->groups_count * handle_size_aligned;
+			byte* storage             = StackByteAllocator::allocate(pipeline->groups_count * handle_size);
+
+			auto result = API->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, pipeline->groups_count, storage_size,
+			                                                               storage, API->pfn);
+			if (result != vk::Result::eSuccess)
+				throw EngineException("Failed to create shader binding table!");
+
+			align_shader_binding_table(storage, pipeline->groups_count, handle_size, handle_size_aligned);
+
+			m_sbt = trx_new VulkanBuffer();
+			m_sbt->create(storage_size, storage, RHIBufferCreateFlags::ShaderBindingTable | RHIBufferCreateFlags::DeviceAddress);
+		}
+	}
+
+	VulkanRayTracingPipeline& VulkanRayTracingPipeline::flush(VulkanStateManager* manager)
+	{
+		if (manager->is_dirty(VulkanStateManager::Pipeline))
+		{
+			auto cmd = API->current_command_buffer();
+			cmd->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_pipeline);
+		}
+
+		VulkanPipeline::flush_descriptors(manager, vk::PipelineBindPoint::eRayTracingKHR);
+		return *this;
+	}
+
+	VulkanRayTracingPipeline::~VulkanRayTracingPipeline()
+	{
+		DESTROY_CALL(destroyPipeline, m_pipeline);
+		trx_delete_inline(m_sbt);
+	}
+
 	RHIPipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
 		return trx_new VulkanGraphicsPipeline(pipeline);
@@ -604,5 +767,12 @@ namespace Engine
 	RHIPipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
 	{
 		return trx_new VulkanComputePipeline(pipeline);
+	}
+
+	RHIPipeline* VulkanAPI::create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline)
+	{
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)))
+			return trx_new VulkanRayTracingPipeline(pipeline);
+		return nullptr;
 	}
 }// namespace Engine

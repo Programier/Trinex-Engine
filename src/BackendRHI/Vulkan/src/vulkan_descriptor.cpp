@@ -45,6 +45,7 @@ namespace Engine
 					case vk::DescriptorType::eStorageBuffer: ++m_storage_buffers; break;
 					case vk::DescriptorType::eUniformTexelBuffer: ++m_uniform_texel_buffers; break;
 					case vk::DescriptorType::eStorageTexelBuffer: ++m_storage_texel_buffers; break;
+					case vk::DescriptorType::eAccelerationStructureKHR: ++m_acceleration_structures; break;
 					default: throw EngineException("Unimplemented descriptor type!");
 				}
 			}
@@ -93,24 +94,26 @@ namespace Engine
 				uint32_t m_storage_buffers;
 				uint32_t m_uniform_texel_buffers;
 				uint32_t m_storage_texel_buffers;
+				uint32_t m_acceleration_structures;
 			};
 
-			uint32_t m_pool_sizes[8];
+			uint32_t m_pool_sizes[9];
 		};
 
 		VulkanFenceRef m_fence;
 
 		void reset_counters()
 		{
-			m_descriptors            = s_descriptor_sets_per_pool;
-			m_textures               = s_descriptor_sets_per_pool * 4;
-			m_samplers               = s_descriptor_sets_per_pool * 2;
-			m_combined_image_sampler = s_descriptor_sets_per_pool * 8;
-			m_storage_images         = s_descriptor_sets_per_pool * 2;
-			m_uniform_buffers        = s_descriptor_sets_per_pool * 6;
-			m_storage_buffers        = s_descriptor_sets_per_pool * 4;
-			m_uniform_texel_buffers  = s_descriptor_sets_per_pool * 1;
-			m_storage_texel_buffers  = s_descriptor_sets_per_pool * 1;
+			m_descriptors             = s_descriptor_sets_per_pool;
+			m_textures                = s_descriptor_sets_per_pool * 4;
+			m_samplers                = s_descriptor_sets_per_pool * 2;
+			m_combined_image_sampler  = s_descriptor_sets_per_pool * 8;
+			m_storage_images          = s_descriptor_sets_per_pool * 2;
+			m_uniform_buffers         = s_descriptor_sets_per_pool * 6;
+			m_storage_buffers         = s_descriptor_sets_per_pool * 4;
+			m_uniform_texel_buffers   = s_descriptor_sets_per_pool * 1;
+			m_storage_texel_buffers   = s_descriptor_sets_per_pool * 1;
+			m_acceleration_structures = s_descriptor_sets_per_pool * 1;
 		}
 
 	public:
@@ -129,9 +132,12 @@ namespace Engine
 			        {vk::DescriptorType::eStorageBuffer, m_storage_buffers},
 			        {vk::DescriptorType::eUniformTexelBuffer, m_uniform_texel_buffers},
 			        {vk::DescriptorType::eStorageTexelBuffer, m_storage_texel_buffers},
+			        {vk::DescriptorType::eAccelerationStructureKHR, m_acceleration_structures},
 			};
 
-			vk::DescriptorPoolCreateInfo info({}, s_descriptor_sets_per_pool, sizes);
+			size_t count = API->is_raytracing_supported() ? 9 : 8;
+
+			vk::DescriptorPoolCreateInfo info({}, s_descriptor_sets_per_pool, count, sizes);
 			m_pool = API->m_device.createDescriptorPool(info);
 		}
 
@@ -169,6 +175,7 @@ namespace Engine
 				        layout->storage_buffers_count(),
 				        layout->uniform_texel_buffers_count(),
 				        layout->storage_texel_buffers_count(),
+				        layout->acceleartion_structures_count(),
 				};
 
 				static constexpr uint32_t count = sizeof(m_pool_sizes) / sizeof(m_pool_sizes[0]);

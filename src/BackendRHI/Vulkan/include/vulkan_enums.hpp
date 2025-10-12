@@ -187,6 +187,10 @@ namespace Engine::VulkanEnums
 			stages |= vk::PipelineStageFlagBits::eHost;
 		if (access & RHIAccess::CPUWrite)
 			stages |= vk::PipelineStageFlagBits::eHost;
+		if (access & RHIAccess::AccelerationRead)
+			stages |= vk::PipelineStageFlagBits::eAccelerationStructureBuildKHR | vk::PipelineStageFlagBits::eRayTracingShaderKHR;
+		if (access & RHIAccess::AccelerationWrite)
+			stages |= vk::PipelineStageFlagBits::eAccelerationStructureBuildKHR | vk::PipelineStageFlagBits::eRayTracingShaderKHR;
 		if (access & RHIAccess::IndirectArgs)
 			stages |= vk::PipelineStageFlagBits::eDrawIndirect;
 		if (access & RHIAccess::VertexBuffer)
@@ -230,6 +234,10 @@ namespace Engine::VulkanEnums
 			flags |= vk::AccessFlagBits::eHostRead;
 		if (access & RHIAccess::CPUWrite)
 			flags |= vk::AccessFlagBits::eHostWrite;
+		if (access & RHIAccess::AccelerationRead)
+			flags |= vk::AccessFlagBits::eAccelerationStructureReadKHR | vk::AccessFlagBits::eShaderRead;
+		if (access & RHIAccess::AccelerationWrite)
+			flags |= vk::AccessFlagBits::eAccelerationStructureWriteKHR | vk::AccessFlagBits::eShaderWrite;
 		if (access & RHIAccess::IndirectArgs)
 			flags |= vk::AccessFlagBits::eIndirectCommandRead;
 		if (access & RHIAccess::VertexBuffer)

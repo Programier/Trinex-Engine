@@ -16,6 +16,7 @@ namespace Engine
 	struct RHIGraphicsPipelineInitializer;
 	struct RHIMeshPipelineInitializer;
 	struct RHIComputePipelineInitializer;
+	struct RHIRayTracingPipelineInitializer;
 
 	namespace Refl
 	{
@@ -46,8 +47,12 @@ namespace Engine
 		virtual RHI& draw_mesh(uint32_t x, uint32_t y, uint32_t z) = 0;
 
 		virtual RHI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) = 0;
-		virtual RHI& signal_fence(RHIFence* fence)                                  = 0;
-		virtual RHI& submit()                                                       = 0;
+
+		virtual RHI& trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen = 0, const RHIRange& miss = {},
+		                        const RHIRange& hit = {}, const RHIRange& callable = {}) = 0;
+
+		virtual RHI& signal_fence(RHIFence* fence) = 0;
+		virtual RHI& submit()                      = 0;
 
 		virtual RHI& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
 		                                RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) = 0;
@@ -55,22 +60,26 @@ namespace Engine
 		virtual RHI& viewport(const RHIViewport& viewport) = 0;
 		virtual RHI& scissor(const RHIScissors& scissor)   = 0;
 
-		virtual RHITimestamp* create_timestamp()                                                      = 0;
-		virtual RHIPipelineStatistics* create_pipeline_statistics()                                   = 0;
-		virtual RHIFence* create_fence()                                                              = 0;
-		virtual RHISampler* create_sampler(const RHISamplerInitializer*)                              = 0;
+		virtual RHITimestamp* create_timestamp()                                                           = 0;
+		virtual RHIPipelineStatistics* create_pipeline_statistics()                                        = 0;
+		virtual RHIFence* create_fence()                                                                   = 0;
+		virtual RHISampler* create_sampler(const RHISamplerInitializer*)                                   = 0;
 		virtual RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
-		                                   RHITextureCreateFlags flags)                               = 0;
-		virtual RHIShader* create_shader(const byte* shader, size_t size)                             = 0;
-		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) = 0;
-		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)         = 0;
-		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)   = 0;
-		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)   = 0;
-		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                            = 0;
-		virtual RHIContext* create_context()                                                          = 0;
+		                                   RHITextureCreateFlags flags)                                    = 0;
+		virtual RHIShader* create_shader(const byte* shader, size_t size)                                  = 0;
+		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)      = 0;
+		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)              = 0;
+		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)        = 0;
+		virtual RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) = 0;
+		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)        = 0;
+		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                 = 0;
+		virtual RHIContext* create_context()                                                               = 0;
 
 		// Raytracing
 		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) = 0;
+		virtual RHIBuffer* create_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t size,
+		                                                RHIBufferCreateFlags flags = {});
+		virtual const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) = 0;
 
 		virtual RHI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHI& push_debug_stage(const char* stage)                                                    = 0;
@@ -104,9 +113,10 @@ namespace Engine
 		virtual RHI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)                                              = 0;
 		virtual RHI& bind_uniform_buffer(RHIBuffer* buffer, byte slot)                                                        = 0;
 
-		virtual RHI& bind_sampler(RHISampler* sampler, byte slot)      = 0;
-		virtual RHI& bind_srv(RHIShaderResourceView* view, byte slot)  = 0;
-		virtual RHI& bind_uav(RHIUnorderedAccessView* view, byte slot) = 0;
+		virtual RHI& bind_sampler(RHISampler* sampler, byte slot)                         = 0;
+		virtual RHI& bind_srv(RHIShaderResourceView* view, byte slot)                     = 0;
+		virtual RHI& bind_uav(RHIUnorderedAccessView* view, byte slot)                    = 0;
+		virtual RHI& bind_acceleration(RHIAccelerationStructure* acceleration, byte slot) = 0;
 
 		virtual RHI& barrier(RHITexture* texture, RHIAccess access) = 0;
 		virtual RHI& barrier(RHIBuffer* buffer, RHIAccess access)   = 0;

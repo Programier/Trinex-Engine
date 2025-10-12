@@ -125,6 +125,7 @@ namespace Engine
 		void vsync(bool flag) override {}
 		void resize(const Vector2u& new_size) override {}
 		RHIRenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
+		RHITexture* as_texture() override { return rhi_default<NoneTexture>(); }
 	};
 
 	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure> {
@@ -157,6 +158,12 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen, const RHIRange& miss,
+	                             const RHIRange& hit, const RHIRange& callable)
 	{
 		return *this;
 	}
@@ -233,6 +240,11 @@ namespace Engine
 		return new NonePipeline();
 	}
 
+	RHIPipeline* NoneApi::create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline)
+	{
+		return new NonePipeline();
+	}
+
 	RHIBuffer* NoneApi::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
 	{
 		return new NoneBuffer();
@@ -251,6 +263,12 @@ namespace Engine
 	RHIAccelerationStructure* NoneApi::create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs)
 	{
 		return new NoneAccelerationStructure();
+	}
+
+	const byte* NoneApi::translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size)
+	{
+		size *= sizeof(RHIRayTracingGeometryInstance);
+		return reinterpret_cast<const byte*>(instances);
 	}
 
 	NoneApi& NoneApi::primitive_topology(RHIPrimitiveTopology topology)
@@ -310,6 +328,11 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::bind_sampler(RHISampler* sampler, byte slot)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::bind_acceleration(RHIAccelerationStructure* acceleration, byte slot)
 	{
 		return *this;
 	}

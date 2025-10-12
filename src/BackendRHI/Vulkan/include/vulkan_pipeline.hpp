@@ -11,6 +11,7 @@ namespace Engine
 	class VulkanSRV;
 	class VulkanUAV;
 	class VulkanStateManager;
+	class VulkanBuffer;
 	class Pipeline;
 
 	struct VulkanVertexAttribute {
@@ -23,12 +24,14 @@ namespace Engine
 	class VulkanPipeline : public VulkanDeferredDestroy<RHIPipeline>
 	{
 	private:
-		VulkanPipelineLayout* m_layout;
+		VulkanPipelineLayout* m_layout = nullptr;
 
 		bool is_dirty_state(VulkanStateManager* manager) const;
 
+	protected:
+		VulkanPipelineLayout* create_layout(const RHIShaderParameterInfo* parameter, size_t count, vk::ShaderStageFlags stages);
+
 	public:
-		VulkanPipeline(const RHIShaderParameterInfo* parameter, size_t count, vk::ShaderStageFlags stages);
 		VulkanPipeline& flush_descriptors(VulkanStateManager* manager, vk::PipelineBindPoint);
 		void bind() override;
 		virtual VulkanPipeline& flush(VulkanStateManager* manager) = 0;
@@ -108,5 +111,21 @@ namespace Engine
 		VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline);
 		VulkanPipeline& flush(VulkanStateManager* manager) override;
 		~VulkanComputePipeline();
+	};
+
+	class VulkanRayTracingPipeline : public VulkanPipeline
+	{
+	private:
+		VulkanBuffer* m_sbt;
+		size_t m_groups;
+		vk::Pipeline m_pipeline;
+
+	public:
+		VulkanRayTracingPipeline(const RHIRayTracingPipelineInitializer* pipeline);
+		VulkanRayTracingPipeline& flush(VulkanStateManager* manager) override;
+		~VulkanRayTracingPipeline();
+
+		inline size_t groups() const { return m_groups; }
+		inline VulkanBuffer* shader_binding_table() const { return m_sbt; }
 	};
 }// namespace Engine

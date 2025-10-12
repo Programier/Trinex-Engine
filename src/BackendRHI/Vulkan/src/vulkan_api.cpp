@@ -126,6 +126,7 @@ namespace Engine
 		vk::PhysicalDeviceTimelineSemaphoreFeatures timeline_semaphore;
 		vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR device_address;
 		vk::PhysicalDeviceAccelerationStructureFeaturesKHR acceleration;
+		vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing{};
 
 		features.pNext            = &custom_border;
 		custom_border.pNext       = &vk11_features;
@@ -134,12 +135,15 @@ namespace Engine
 		descriptor_indexing.pNext = &timeline_semaphore;
 		timeline_semaphore.pNext  = &device_address;
 		device_address.pNext      = &acceleration;
+		acceleration.pNext        = &ray_tracing;
 
 		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
 
-		mesh_shaders.primitiveFragmentShadingRateMeshShader = vk::False;
-		acceleration.accelerationStructureCaptureReplay     = vk::False;
+		mesh_shaders.primitiveFragmentShadingRateMeshShader               = vk::False;
+		acceleration.accelerationStructureCaptureReplay                   = vk::False;
+		ray_tracing.rayTracingPipelineShaderGroupHandleCaptureReplay      = vk::False;
+		ray_tracing.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = vk::False;
 
 		builder.add_pNext(&vk11_features);
 		builder.add_pNext(&descriptor_indexing);
@@ -156,6 +160,9 @@ namespace Engine
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)))
 			builder.add_pNext(&acceleration);
+
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)))
+			builder.add_pNext(&ray_tracing);
 
 		auto device_ret = builder.build();
 
@@ -253,6 +260,12 @@ namespace Engine
 		m_features    = filter_features(m_physical_device.getFeatures());
 		info.renderer = m_properties.deviceName.data();
 		selected_device.enable_features_if_present(m_features);
+
+		if (is_raytracing_supported())
+		{
+			vk::PhysicalDeviceProperties2 props({}, &m_ray_trace_properties);
+			m_physical_device.getProperties2(&props);
+		}
 
 		info_log("Vulkan", "Selected GPU '%s'", info.renderer.c_str());
 
@@ -415,6 +428,9 @@ namespace Engine
 		load(pfn.vkCreateAccelerationStructureKHR, "vkCreateAccelerationStructureKHR");
 		load(pfn.vkDestroyAccelerationStructureKHR, "vkDestroyAccelerationStructureKHR");
 		load(pfn.vkCmdBuildAccelerationStructuresKHR, "vkCmdBuildAccelerationStructuresKHR");
+		load(pfn.vkCreateRayTracingPipelinesKHR, "vkCreateRayTracingPipelinesKHR");
+		load(pfn.vkGetRayTracingShaderGroupHandlesKHR, "vkGetRayTracingShaderGroupHandlesKHR");
+		load(pfn.vkCmdTraceRaysKHR, "vkCmdTraceRaysKHR");
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)

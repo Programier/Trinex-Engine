@@ -166,10 +166,16 @@ namespace Engine
 		m_datas[1] = node->m_stack;
 	}
 
-	StackByteAllocator::Mark::~Mark()
+	StackByteAllocator::Mark& StackByteAllocator::Mark::reset()
 	{
 		s_stack_allocator.m_current          = static_cast<TempAllocatorData::Node*>(m_datas[0]);
 		s_stack_allocator.m_current->m_stack = static_cast<byte*>(m_datas[1]);
+		return *this;
+	}
+
+	StackByteAllocator::Mark::~Mark()
+	{
+		reset();
 	}
 
 	unsigned char* StackByteAllocator::allocate_aligned(size_type size, size_type align)

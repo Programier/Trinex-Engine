@@ -44,6 +44,7 @@ namespace Engine
 			Mark(Mark&&)                 = delete;
 			Mark& operator=(const Mark&) = delete;
 			Mark& operator=(Mark&&)      = delete;
+			Mark& reset();
 			~Mark();
 		};
 

@@ -68,6 +68,7 @@ namespace Engine
 		void resize(const Vector2u& size) override;
 		void vsync(bool flag) override;
 		RHIRenderTargetView* as_rtv() override;
+		RHITexture* as_texture() override;
 		void destroy() override;
 	};
 }// namespace Engine

@@ -138,6 +138,7 @@ namespace Engine
 		VulkanResourceState<Buffer> uniform_texel_buffers;
 		VulkanResourceState<Buffer> storage_texel_buffers;
 		VulkanResourceState<vk::Sampler> samplers;
+		VulkanResourceState<vk::AccelerationStructureKHR> acceleration_structures;
 		VulkanResourceState<VulkanTextureSRV*> srv_images;
 		VulkanResourceState<VulkanTextureUAV*> uav_images;
 		VulkanResourceState<VertexStream> vertex_streams;
@@ -223,6 +224,7 @@ namespace Engine
 		VulkanCommandHandle* end_render_pass();
 		VulkanCommandHandle* flush_graphics();
 		VulkanCommandHandle* flush_compute();
+		VulkanCommandHandle* flush_raytrace();
 		VulkanStateManager& submit();
 
 		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);

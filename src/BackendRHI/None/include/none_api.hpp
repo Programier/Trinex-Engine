@@ -24,6 +24,9 @@ namespace Engine
 		NoneApi& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
 
 		NoneApi& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
+		NoneApi& trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen = 0, const RHIRange& miss = {},
+		                    const RHIRange& hit = {}, const RHIRange& callable = {}) override;
+
 		NoneApi& signal_fence(RHIFence* fence) override;
 		NoneApi& submit() override;
 
@@ -42,11 +45,13 @@ namespace Engine
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
+		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
 		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags type) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context() override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
+		const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) override;
 
 		NoneApi& primitive_topology(RHIPrimitiveTopology topology) override;
 		NoneApi& polygon_mode(RHIPolygonMode mode) override;
@@ -62,6 +67,7 @@ namespace Engine
 		NoneApi& bind_srv(RHIShaderResourceView* view, byte slot) override;
 		NoneApi& bind_uav(RHIUnorderedAccessView* view, byte slot) override;
 		NoneApi& bind_sampler(RHISampler* sampler, byte slot) override;
+		NoneApi& bind_acceleration(RHIAccelerationStructure* acceleration, byte slot) override;
 
 		NoneApi& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) override;
 		NoneApi& update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, size_t size,

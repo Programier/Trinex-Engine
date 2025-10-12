@@ -355,7 +355,7 @@ namespace Engine
 		vk::ImageSubresourceLayers src_subresource(src->aspect(), src_region.mip, src_region.slice, 1);
 		vk::ImageSubresourceLayers dst_subresource(dst->aspect(), dst_region.mip, dst_region.slice, 1);
 
-		if (src_region.extent == dst_region.extent)
+		if (src_region.extent == dst_region.extent && src->format() == dst->format())
 		{
 			vk::ImageCopy region(src_subresource, vk::Offset3D(src_region.offset.x, src_region.offset.y, src_region.offset.z),
 			                     dst_subresource, vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),

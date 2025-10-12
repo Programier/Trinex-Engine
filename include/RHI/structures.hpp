@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/name.hpp>
 #include <RHI/enums.hpp>
@@ -50,6 +51,11 @@ namespace Engine
 		}
 
 		FORCE_INLINE bool operator!=(const RHIViewport& v) const { return !((*this) == v); }
+	};
+
+	struct ENGINE_EXPORT RHIRange {
+		uint64_t first = 0;
+		uint64_t count = ~0U;
 	};
 
 	struct ENGINE_EXPORT RHIShaderParameterInfo {
@@ -148,6 +154,15 @@ namespace Engine
 			RHIRayTracingGeometryTriangles* triangles = nullptr;
 			RHIRayTracingGeometryAABBs* aabbs;
 		};
+	};
+
+	struct RHIRayTracingGeometryInstance {
+		Matrix4x3f transform                                   = Matrix4x3f(1.f);
+		uint32_t id : 24                                       = 0;
+		uint32_t mask : 8                                      = 0xFF;
+		uint32_t sbt_offset : 24                               = 0;
+		RHIRayTracingGeometryInstanceFlags flags               = RHIRayTracingGeometryInstanceFlags::Undefined;
+		class RHIAccelerationStructure* acceleration_structure = nullptr;
 	};
 
 	struct RHIRayTracingAccelerationInputs {
