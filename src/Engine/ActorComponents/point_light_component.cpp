@@ -8,12 +8,15 @@ namespace Engine
 {
 	trinex_implement_engine_class(PointLightComponent, 0)
 	{
-		trinex_refl_prop(m_fall_off_exponent)->display_name("Fall Off Exponent").tooltip("Fall Off Exponent of this light");
+		trinex_refl_virtual_prop(Source Radius, source_radius, source_radius)->tooltip("Source radius of this light");
+		trinex_refl_virtual_prop(Fall Off Exponent, fall_off_exponent, fall_off_exponent)
+		        ->tooltip("Fall Off Exponent of this light");
 	}
 
 	PointLightComponent::Proxy& PointLightComponent::Proxy::render_parameters(LightRenderParameters& out)
 	{
 		Super::Proxy::render_parameters(out);
+		out.source_radius     = m_source_radius;
 		out.fall_off_exponent = m_fall_off_exponent;
 		return *this;
 	}
@@ -27,7 +30,10 @@ namespace Engine
 
 	PointLightComponent& PointLightComponent::submit_point_light_data()
 	{
-		render_thread()->create_task<UpdateVariableCommand<float>>(m_fall_off_exponent, proxy()->m_fall_off_exponent);
+		render_thread()->call([proxy = proxy(), radius = m_source_radius, exp = m_fall_off_exponent]() {
+			proxy->m_source_radius     = radius;
+			proxy->m_fall_off_exponent = exp;
+		});
 		return *this;
 	}
 
@@ -41,16 +47,5 @@ namespace Engine
 	PointLightComponent::Proxy* PointLightComponent::create_proxy()
 	{
 		return trx_new Proxy();
-	}
-
-	PointLightComponent& PointLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
-	{
-		Super::on_property_changed(event);
-
-		if (event.property->owner() == static_reflection())
-		{
-			submit_point_light_data();
-		}
-		return *this;
 	}
 }// namespace Engine

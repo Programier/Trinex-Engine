@@ -5,8 +5,8 @@ namespace Lighting
 {
 	interface ILight
 	{
-		static float attenuation(in float3 world_light_vector, in LightParameters light);
-		static float3 direction(in float3 world_light_vector, in LightParameters light);
+		static float attenuation(in float3 light_direction, in float distance, in LightParameters light);
+		static float3 direction(in float3 light_direction, in LightParameters light);
 		static float shadow(in PrimitiveParameters primitive, in LightParameters light, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler);
 	}
 
@@ -139,35 +139,51 @@ namespace Lighting
 
 	float3 calculate_lighting<LightType : ILight>(in LightParameters light, in PrimitiveParameters primitive)
 	{
+		// === View and light directions ===
 		float3 view_direction  = normalize(scene_view.camera.location - primitive.location);
 		float3 light_direction = light.location.rgb - primitive.location;
-		float attenuation      = LightType.attenuation(light_direction, light);
-		light_direction        = LightType.direction(light_direction, light);
+		float light_distance   = length(light_direction);
+		light_direction        = normalize(light_direction);
 
+		// === Attenuation and light adjustment ===
+		float attenuation = LightType.attenuation(light_direction, light_distance, light);
+		light_direction   = LightType.direction(light_direction, light);
+
+		// === Normal adjustment (for translucent materials) ===
 		float3 normal = primitive.normal;
-
 		if (primitive.flags & PrimitiveFlags::IsTranslucent)
 		{
-			normal = normal * sign(dot(normal, light_direction));
+			normal *= sign(dot(normal, light_direction));
 		}
 
-		float3 f0 = lerp(float3(fresnel_zero_reflectance(primitive.msra.g)), primitive.base_color, float3(primitive.msra.r));
+		// === Fresnel base reflectance ===
+		float3 fresnel_base = float3(fresnel_zero_reflectance(primitive.msra.g));
+		float3 f0           = lerp(fresnel_base, primitive.base_color, float3(primitive.msra.r));
 
-		float normal_dot_l = max(dot(normal, light_direction), 0.0);
-
+		// === Light contribution setup ===
+		float normal_dot_light   = max(dot(normal, light_direction), 0.0);
 		float3 halfway_direction = normalize(view_direction + light_direction);
 		float3 radiance          = light.color * light.intensivity * attenuation;
 
-		float ggx       = distribution_ggx(normal, halfway_direction, primitive.msra.b);
-		float geometry  = geometry_smith(normal, halfway_direction, light_direction, primitive.msra.b);
-		float3 fresnel  = fresnel_schlick(max(dot(halfway_direction, view_direction), 0.0), f0);
-		float3 specular = (ggx * geometry * fresnel) / (4.0 * max(dot(normal, view_direction), 0.0) * normal_dot_l + 0.001);
+		// === Source size effect on roughness ===
+		float roughness = 2.0 * light.source_radius / light_distance;
+		roughness       = sqrt(primitive.msra.b * primitive.msra.b + roughness * roughness);
 
-		float3 k_s = fresnel;
-		float3 k_d = float3(1.0, 1.0, 1.0) - k_s;
-		k_d *= 1.0 - primitive.msra.r;
+		// === Microfacet BRDF (GGX) ===
+		float distribution  = distribution_ggx(normal, halfway_direction, roughness);
+		float geometry_term = geometry_smith(normal, halfway_direction, light_direction, roughness);
+		float3 fresnel_term = fresnel_schlick(max(dot(halfway_direction, view_direction), 0.0), f0);
 
-		float3 reflectance = (k_d * primitive.base_color / Math::pi + specular) * radiance * normal_dot_l;
+		float denominator = 4.0 * max(dot(normal, view_direction), 0.0) * normal_dot_light + 0.001;
+		float3 specular   = (distribution * geometry_term * fresnel_term) / denominator;
+
+		// === Diffuse and specular mix ===
+		float3 k_s = fresnel_term;
+		float3 k_d = (1.0 - k_s) * (1.0 - primitive.msra.r);
+
+		// === Final reflectance ===
+		float3 reflectance = (k_d * primitive.base_color / Math::pi + specular) * radiance * normal_dot_light;
+
 		return reflectance;
 	}
 }// namespace Lighting

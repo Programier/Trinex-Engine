@@ -12,9 +12,11 @@ namespace Engine
 		class ENGINE_EXPORT Proxy : public Super::Proxy
 		{
 		private:
+			float m_source_radius;
 			float m_fall_off_exponent;
 
 		public:
+			inline float source_radius() const { return m_source_radius; }
 			inline float fall_off_exponent() const { return m_fall_off_exponent; }
 			Proxy& render_parameters(LightRenderParameters& out) override;
 			Type light_type() const override;
@@ -22,6 +24,7 @@ namespace Engine
 		};
 
 	private:
+		float m_source_radius;
 		float m_fall_off_exponent;
 
 		PointLightComponent& submit_point_light_data();
@@ -31,11 +34,17 @@ namespace Engine
 
 		PointLightComponent& start_play() override;
 		Proxy* create_proxy() override;
-		PointLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 
+		inline float source_radius() const { return m_source_radius; }
 		inline float fall_off_exponent() const { return m_fall_off_exponent; }
 		inline Type light_type() const override { return Type::Point; }
 		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
+
+		inline LocalLightComponent& source_radius(float value)
+		{
+			m_source_radius = value;
+			return submit_point_light_data();
+		}
 
 		inline PointLightComponent& fall_off_exponent(float value)
 		{

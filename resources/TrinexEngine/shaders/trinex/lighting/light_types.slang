@@ -14,17 +14,16 @@ namespace Lighting
 
 	struct PointLight : ILight 
 	{
-		static inline float attenuation(in float3 world_light_vector, in LightParameters params)
+		static inline float attenuation(in float3 light_direction, in float distance, in LightParameters params)
 		{
-			const float distance = length(world_light_vector);
 			float attenuation    = pow(saturate(1.0 - (distance * params.inv_attenuation_radius)), params.fall_off_exponent);
 			attenuation /= max(distance * distance, 0.01);
 			return attenuation;
 		}
 
-		static inline float3 direction(in float3 world_light_vector, in LightParameters params)
+		static inline float3 direction(in float3 light_direction, in LightParameters params)
 		{
-			return normalize(world_light_vector);
+			return light_direction;
 		}
 
 		[ForceInline]
@@ -51,20 +50,19 @@ namespace Lighting
 
 	struct SpotLight : ILight 
 	{
-		static float attenuation(in float3 world_light_vector, in LightParameters params)
+		static inline float attenuation(in float3 light_direction, in float distance, in LightParameters params)
 		{
-			const float distance = length(world_light_vector);
-			float attenuation    = pow(saturate(1.0 - (distance * params.inv_attenuation_radius)), params.fall_off_exponent);
+			float attenuation = pow(saturate(1.0 - (distance * params.inv_attenuation_radius)), params.fall_off_exponent);
 			attenuation /= max(distance * distance, 0.01);
 
-			const float cos_theta               = dot(normalize(world_light_vector), -params.direction);
+			const float cos_theta               = dot(light_direction, -params.direction);
 			const float cos_outer_cone          = params.spot_angles.x;
 			const float inv_cos_cone_difference = params.spot_angles.y;
 
 			return attenuation * Math::square(saturate((cos_theta - cos_outer_cone) * inv_cos_cone_difference));
 		}
 
-		static float3 direction(in float3 world_light_vector, in LightParameters light) { return normalize(world_light_vector); }
+		static float3 direction(in float3 light_direction, in LightParameters light) { return light_direction; }
 
 		static float shadow(in PrimitiveParameters primitive, in LightParameters light, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler)
 		{
@@ -93,8 +91,8 @@ namespace Lighting
 
 	struct DirectionalLight : Lighting::ILight 
 	{
-		static float attenuation(in float3 world_light_vector, in LightParameters params) { return 1.f; }
-		static inline float3 direction(in float3 world_light_vector, in LightParameters params) { return -params.direction; }
+		static inline float attenuation(in float3 light_direction, in float distance, in LightParameters params) { return 1.f; }
+		static inline float3 direction(in float3 light_direction, in LightParameters params) { return -params.direction; }
 		
 		static float shadow(in PrimitiveParameters primitive, in LightParameters light, in ByteAddressBuffer shadow_data, SamplerComparisonState sampler)
 		{
