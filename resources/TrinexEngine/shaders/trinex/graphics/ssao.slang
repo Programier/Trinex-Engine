@@ -64,7 +64,7 @@ float4 fragment_main(in float4 position: SV_Position) : SV_Target
 	float2 viewport_uv = scene_view.viewport_uv(position.xy);
 
 	float3 noise  = noise_texture.Sample(sampler, viewport_uv * args.noise_scale).xyz * 2.0 - 1.f;
-	float3 normal = rotate_normal(scene_normal.Sample(sampler, screen_uv).xyz);
+	float3 normal = rotate_normal(scene_normal.Sample(sampler, screen_uv).xyz * 2.f - 1.f);
 	float3 position = to_view_space(scene_view.reconstruct_position(position.xy, scene_depth.Sample(sampler, screen_uv).r));
 	float1 depth    = position.z;
 

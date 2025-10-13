@@ -478,10 +478,10 @@ namespace Engine
 			D16_UNORM = 3,
 			D24S8     = 2,
 
-			R8           = 4,
-			R8G8         = 5,
-			R8G8B8A8     = 7,
-			R10G108B10A2 = 8,
+			R8          = 4,
+			R8G8        = 5,
+			R8G8B8A8    = 7,
+			R10G10B10A2 = 8,
 
 			R8_SNORM       = 9,
 			R8G8_SNORM     = 10,
@@ -584,13 +584,13 @@ namespace Engine
 			D24S8     = RHIColorFormat::D24S8,
 
 			// Unsigned normalized formats,
-			R8       = RHIColorFormat::R8,
-			RG8      = RHIColorFormat::R8G8,
-			RGBA8    = RHIColorFormat::R8G8B8A8,
-			RG8B10A2 = RHIColorFormat::R10G108B10A2,
-			R16      = RHIColorFormat::R16,
-			RG16     = RHIColorFormat::R16G16,
-			RGBA16   = RHIColorFormat::R16G16B16A16,
+			R8      = RHIColorFormat::R8,
+			RG8     = RHIColorFormat::R8G8,
+			RGBA8   = RHIColorFormat::R8G8B8A8,
+			RGB10A2 = RHIColorFormat::R10G10B10A2,
+			R16     = RHIColorFormat::R16,
+			RG16    = RHIColorFormat::R16G16,
+			RGBA16  = RHIColorFormat::R16G16B16A16,
 
 			// Signed normalized formats
 			R8S     = RHIColorFormat::R8_SNORM,

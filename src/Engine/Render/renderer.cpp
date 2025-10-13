@@ -29,7 +29,7 @@ namespace Engine
 			case SurfaceType::SceneColorLDR: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::SceneDepth: return RHISurfaceFormat::D32F;
 			case SurfaceType::BaseColor: return RHISurfaceFormat::RGBA8;
-			case SurfaceType::Normal: return RHISurfaceFormat::RGBA16F;
+			case SurfaceType::Normal: return RHISurfaceFormat::RGB10A2;
 			case SurfaceType::Emissive: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::MSRA: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Velocity: return RHISurfaceFormat::RG16F;

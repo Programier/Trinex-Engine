@@ -29,6 +29,7 @@ namespace Engine::VulkanEnums
 			case RHIColorFormat::R8: return vk::Format::eR8Unorm;
 			case RHIColorFormat::R8G8: return vk::Format::eR8G8Unorm;
 			case RHIColorFormat::R8G8B8A8: return vk::Format::eR8G8B8A8Unorm;
+			case RHIColorFormat::R10G10B10A2: return vk::Format::eA2R10G10B10UnormPack32;
 			case RHIColorFormat::R8_SNORM: return vk::Format::eR8Snorm;
 			case RHIColorFormat::R8G8_SNORM: return vk::Format::eR8G8Snorm;
 			case RHIColorFormat::R8G8B8A8_SNORM: return vk::Format::eR8G8B8A8Snorm;

@@ -78,8 +78,8 @@ GeometryFragmentOutput fragment_main(in VertexOutput input)
 
 	float3 normal = normalize(input.TBN * (material.normal * 2.0 - 1.0));
 	float3 view   = scene_view.camera.location - input.world_position;
-	normal        = normal * sign(dot(normal, view));
-
+	normal        = normal * sign(dot(normal, view)) * 0.5f + 0.5f;
+	
 	output.base_color    = float4(material.base_color, 1.0);
 	output.normal        = float4(normal, 1.f);
 	output.emissive      = float4(material.emissive, 1.0);
