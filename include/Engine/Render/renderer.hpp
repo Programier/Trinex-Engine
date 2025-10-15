@@ -75,7 +75,6 @@ namespace Engine
 
 		Renderer& add_child_renderer(Renderer* renderer);
 		RHITexture* surface(SurfaceType type);
-		RHITexture* scene_color_target();
 		RHIBuffer* globals_uniform_buffer();
 
 		virtual Renderer& render();

@@ -30,7 +30,7 @@ namespace Engine
 			case SurfaceType::SceneDepth: return RHISurfaceFormat::D32F;
 			case SurfaceType::BaseColor: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Normal: return RHISurfaceFormat::RGB10A2;
-			case SurfaceType::Emissive: return RHISurfaceFormat::RGBA8;
+			case SurfaceType::Emissive: return RHISurfaceFormat::RGBA16F;
 			case SurfaceType::MSRA: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Velocity: return RHISurfaceFormat::RG16F;
 			default: return RHISurfaceFormat::RGBA8;
@@ -133,11 +133,6 @@ namespace Engine
 		}
 
 		return m_surfaces[type];
-	}
-
-	RHITexture* Renderer::scene_color_target()
-	{
-		return Settings::Rendering::enable_hdr ? scene_color_hdr_target() : scene_color_ldr_target();
 	}
 
 	RHIBuffer* Renderer::globals_uniform_buffer()

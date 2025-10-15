@@ -22,7 +22,6 @@ namespace Engine::Settings
 		extern ENGINE_EXPORT String rhi;
 		extern ENGINE_EXPORT uint_t shadow_map_size;
 		extern ENGINE_EXPORT bool force_keep_cpu_resources;
-		extern ENGINE_EXPORT bool enable_hdr;
 		extern ENGINE_EXPORT float anisotropy;
 	}// namespace Rendering
 

@@ -42,11 +42,13 @@ namespace Engine
 		DeferredRenderer& translucent_pass();
 		DeferredRenderer& ambient_occlusion_pass(PostProcessParameters* params);
 		DeferredRenderer& deferred_lighting_pass();
+		DeferredRenderer& bloom_pass();
 		DeferredRenderer& copy_base_color_to_scene_color();
 		DeferredRenderer& copy_world_normal_to_scene_color();
 		DeferredRenderer& copy_metalic_to_scene_color();
 		DeferredRenderer& copy_specular_to_scene_color();
 		DeferredRenderer& copy_roughness_to_scene_color();
+		DeferredRenderer& copy_emissive_to_scene_color();
 		DeferredRenderer& copy_ambient_to_scene_color();
 		DeferredRenderer& copy_world_to_scene_color();
 		DeferredRenderer& render_visible_primitives(RenderPass* pass, MaterialBindings* bindings = nullptr);

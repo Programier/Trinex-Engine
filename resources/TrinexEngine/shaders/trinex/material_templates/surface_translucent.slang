@@ -87,6 +87,6 @@ float4 fragment_main(in VertexOutput input) : SV_Target
 	primitive.flags      = Lighting::PrimitiveFlags::IsTranslucent;
 
 	const float ambient = 0.2;
-	float3 result = Lighting::gather_lighting(primitive, input.sv_position.xy, primitive.base_color * ambient);
+	float3 result = Lighting::gather_lighting(primitive, input.sv_position.xy, primitive.base_color * ambient) + material.emissive;
 	return float4(result, material.opacity);
 }

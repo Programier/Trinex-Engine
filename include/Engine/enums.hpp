@@ -32,7 +32,8 @@ namespace Engine
 			Metalic     = 4,
 			Roughness   = 5,
 			Specular    = 6,
-			AO          = 7,
+			Emissive    = 7,
+			AO          = 8,
 		};
 
 		trinex_enum_struct(ViewMode);

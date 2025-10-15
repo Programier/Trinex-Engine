@@ -42,7 +42,7 @@ namespace Engine::Pipelines
 		args.swizzle   = swizzle;
 		args.offset    = offset;
 		args.inv_size  = inv_size;
-		args.direction = glm::normalize(direction);
+		args.direction = Math::normalize(direction);
 		args.sigma     = sigma;
 		args.radius    = radius;
 
@@ -108,6 +108,7 @@ namespace Engine::Pipelines
 		scene_view         = find_parameter("scene_view");
 		base_color_texture = find_parameter("base_color_texture");
 		normal_texture     = find_parameter("normal_texture");
+		emissive_texture   = find_parameter("emissive_texture");
 		msra_texture       = find_parameter("msra_texture");
 		depth_texture      = find_parameter("depth_texture");
 

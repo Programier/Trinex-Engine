@@ -61,6 +61,7 @@ namespace Engine
 			const RHIShaderParameterInfo* scene_view         = nullptr;
 			const RHIShaderParameterInfo* base_color_texture = nullptr;
 			const RHIShaderParameterInfo* normal_texture     = nullptr;
+			const RHIShaderParameterInfo* emissive_texture   = nullptr;
 			const RHIShaderParameterInfo* msra_texture       = nullptr;
 			const RHIShaderParameterInfo* depth_texture      = nullptr;
 
