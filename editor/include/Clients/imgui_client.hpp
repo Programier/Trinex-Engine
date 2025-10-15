@@ -5,6 +5,8 @@
 #include <Graphics/render_viewport.hpp>
 #include <Widgets/imgui_menu_bar.hpp>
 
+struct ImGuiContext;
+
 namespace Engine
 {
 	class ImGuiWindow;
@@ -14,7 +16,11 @@ namespace Engine
 	{
 		trinex_declare_class(ImGuiViewportClient, ViewportClient);
 
+	public:
+		static constexpr uint32_t s_dock_id = 0x524F4F54;// 'ROOT'
+
 	private:
+		ImGuiContext* m_context = nullptr;
 		Pointer<ImGuiWindow> m_window;
 		WindowRenderViewport* m_viewport = nullptr;
 
@@ -47,11 +53,15 @@ namespace Engine
 		static bool register_client(Refl::Class* object_type, Refl::Class* renderer);
 		static ImGuiViewportClient* client_of(Refl::Class* object_type, bool create_if_not_exist = false);
 
+		ImGuiViewportClient();
+		~ImGuiViewportClient();
+
 		ImGuiViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
 		ImGuiViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
 
 		inline ImGuiWindow* window() const { return m_window.ptr(); }
 		inline WindowRenderViewport* viewport() const { return m_viewport; }
+		inline ImGuiContext* context() const { return m_context; }
 
 		virtual ImGuiViewportClient& update(float dt);
 		virtual ImGuiViewportClient& select(Object* object);

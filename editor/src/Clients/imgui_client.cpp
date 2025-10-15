@@ -74,6 +74,21 @@ namespace Engine
 		}
 	}
 
+	static ImGuiContext* imgui_create_context()
+	{
+		ImGuiContext* context = ImGui::CreateContext();
+
+		ImGuiContextLock lock(context);
+
+		EditorTheme::initialize_theme(context);
+
+#if !PLATFORM_ANDROID
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+#endif
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		return context;
+	}
+
 	void ImGuiViewportClient::scriptable_update(float dt)
 	{
 		ScriptContext::execute(this, m_ic_script_update, nullptr, dt);
@@ -135,6 +150,13 @@ namespace Engine
 		}
 	}
 
+	ImGuiViewportClient::ImGuiViewportClient() : m_context(imgui_create_context()) {}
+
+	ImGuiViewportClient::~ImGuiViewportClient()
+	{
+		ImGui::DestroyContext(m_context);
+	}
+
 	ImGuiViewportClient& ImGuiViewportClient::on_bind_viewport(class RenderViewport* viewport)
 	{
 		m_viewport = instance_cast<WindowRenderViewport>(viewport);
@@ -148,7 +170,7 @@ namespace Engine
 			throw EngineException("ImGuiViewportClient requires valid window object!");
 
 		m_window = Object::new_instance<ImGuiWindow>();
-		m_window->initialize(window, EditorTheme::initialize_theme);
+		m_window->initialize(window, m_context);
 		return *this;
 	}
 
@@ -170,25 +192,19 @@ namespace Engine
 
 		m_window->new_frame();
 
-		ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
-
-		ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
-		ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
-		ImGui::Begin("ImGuiClient##DockWindow", nullptr,
-		             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
-		                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
-
-		auto dock_id                       = ImGui::GetID("EditorDock##Dock");
+		ImGuiViewport* imgui_viewport      = ImGui::GetMainViewport();
 		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+		ImGui::DockSpaceOverViewport(s_dock_id, imgui_viewport, dockspace_flags);
 
 		if (ImGui::IsWindowAppearing())
 		{
-			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
-			build_dock(dock_id);
-			ImGui::DockBuilderFinish(dock_id);
+			ImGui::DockBuilderRemoveNode(s_dock_id);
+			ImGui::DockBuilderAddNode(s_dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+			ImGui::DockBuilderSetNodeSize(s_dock_id, imgui_viewport->WorkSize);
+
+			build_dock(s_dock_id);
+			ImGui::DockBuilderFinish(s_dock_id);
 		}
 
 		if (!menu_bar.is_empty())
@@ -202,10 +218,10 @@ namespace Engine
 
 		update(dt);
 
-		ImGui::End();
 		m_window->end_frame();
 		return *this;
 	}
+
 
 	ImGuiViewportClient& ImGuiViewportClient::update(float dt)
 	{

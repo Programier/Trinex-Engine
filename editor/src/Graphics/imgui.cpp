@@ -1288,64 +1288,32 @@ namespace Engine
 
 	static ImGuiWindow* m_current_window = nullptr;
 
-	static ImGuiContext* imgui_create_context(Engine::Window* window, const Function<void(ImGuiContext*)>& callback)
+	bool ImGuiWindow::initialize(Engine::Window* window, ImGuiContext* context)
 	{
-		ImGuiContext* context = ImGui::CreateContext();
+		m_window                                    = window;
+		m_context                                   = context;
+		ImGuiBackend_Window::m_window_map[m_window] = this;
 
-		ImGui::SetCurrentContext(context);
-
-		if (callback)
-		{
-			callback(context);
-		}
-#if !PLATFORM_ANDROID
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-#endif
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		ImGuiContextLock lock(context);
 
 		ImGuiBackend_Window::imgui_trinex_window_init(window);
 		ImGuiBackend_RHI::imgui_trinex_rhi_init(window, context);
-		return context;
-	}
-
-	static void imgui_destroy_context(ImGuiContext* context)
-	{
-		ImGuiBackend_RHI::imgui_trinex_rhi_shutdown(context);
-
-		ImGui::SetCurrentContext(context);
-		ImGuiBackend_Window::imgui_trinex_window_shutdown();
-
-		ImGui::DestroyContext(context);
-	}
-
-	bool ImGuiWindow::initialize(Engine::Window* window, const Function<void(ImGuiContext*)>& callback)
-	{
-		if (m_context != nullptr)
-		{
-			return false;
-		}
-		m_window = window;
-
-		ImGuiContext* current_context = ImGui::GetCurrentContext();
-		m_context                     = imgui_create_context(window, callback);
-		ImGui::SetCurrentContext(current_context);
-
-		ImGuiBackend_Window::m_window_map[m_window] = this;
 		return true;
 	}
 
 	bool ImGuiWindow::terminate()
 	{
-		if (m_context == nullptr)
-			return false;
-
 		ImGuiWindow* current_window = ImGuiWindow::current();
+
 		if (this == current_window)
 			current_window = nullptr;
 
 		free_resources();
 
-		imgui_destroy_context(m_context);
+		ImGuiContextLock lock(m_context);
+
+		ImGuiBackend_RHI::imgui_trinex_rhi_shutdown(m_context);
+		ImGuiBackend_Window::imgui_trinex_window_shutdown();
 
 		ImGuiBackend_Window::m_window_map.erase(m_window);
 
@@ -1441,12 +1409,6 @@ namespace Engine
 	size_t ImGuiWindow::frame_index() const
 	{
 		return m_frame;
-	}
-
-	ImGuiWindow& ImGuiWindow::reset_frame_index()
-	{
-		m_frame = 0;
-		return *this;
 	}
 
 	ImGuiWindow* ImGuiWindow::current()

@@ -27,6 +27,16 @@ namespace Engine
 		void enable_events();
 	}// namespace ImGuiBackend_Window
 
+	class ImGuiContextLock final
+	{
+	private:
+		ImGuiContext* m_ctx;
+
+	public:
+		inline ImGuiContextLock(ImGuiContext* context) : m_ctx(ImGui::GetCurrentContext()) { ImGui::SetCurrentContext(context); }
+		inline ~ImGuiContextLock() { ImGui::SetCurrentContext(m_ctx); }
+	};
+
 	class ImGuiDrawData final
 	{
 		ImDrawData m_draw_data[2];
@@ -58,7 +68,6 @@ namespace Engine
 		virtual bool render(RenderViewport* viewport) = 0;
 		FORCE_INLINE virtual ~ImGuiWidget(){};
 	};
-
 
 	class ImGuiWidgetsList final
 	{
@@ -136,7 +145,7 @@ namespace Engine
 		ImGuiWidgetsList widgets;
 		CallBacks<void()> on_destroy;
 
-		bool initialize(Window* window, const Function<void(ImGuiContext*)>& callback);
+		bool initialize(Window* window, ImGuiContext* context);
 		bool terminate();
 
 		ImGuiContext* context() const;
@@ -145,7 +154,6 @@ namespace Engine
 		ImGuiWindow& end_frame();
 		Window* window() const;
 		size_t frame_index() const;
-		ImGuiWindow& reset_frame_index();
 		static ImGuiWindow* current();
 		static void make_current(ImGuiWindow*);
 
