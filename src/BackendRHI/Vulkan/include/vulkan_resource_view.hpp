@@ -9,6 +9,7 @@ namespace Engine
 	class VulkanRenderTarget;
 	class VulkanSampler;
 	class VulkanTexture;
+	class VulkanContext;
 	class VulkanBuffer;
 	class VulkanStateManager;
 
@@ -97,17 +98,14 @@ namespace Engine
 		{}
 		~VulkanTextureRTV();
 
-		void clear(const LinearColor& color) override;
-		void clear_uint(const Vector4u& value) override;
-		void clear_sint(const Vector4i& value) override;
-
 		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }
 		FORCE_INLINE vk::Format format() const { return m_texture->format(); }
-		FORCE_INLINE vk::ImageLayout layout() const { return m_texture->layout(); }
 		FORCE_INLINE vk::Image image() const { return m_texture->image(); }
-		FORCE_INLINE void change_layout(vk::ImageLayout layout) { return m_texture->change_layout(layout); }
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
+		FORCE_INLINE uint16_t base_layer() const { return m_base_layer; }
+		FORCE_INLINE uint16_t layer_count() const { return m_layer_count; }
+		FORCE_INLINE uint16_t mip() const { return m_mip; }
 
 		FORCE_INLINE VulkanTextureRTV& add_target(VulkanRenderTarget* target)
 		{
@@ -140,15 +138,14 @@ namespace Engine
 		{}
 		~VulkanTextureDSV();
 
-		void clear(float depth, byte stencil) override;
-
 		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }
 		FORCE_INLINE vk::Format format() const { return m_texture->format(); }
-		FORCE_INLINE vk::ImageLayout layout() const { return m_texture->layout(); }
 		FORCE_INLINE vk::Image image() const { return m_texture->image(); }
-		FORCE_INLINE void change_layout(vk::ImageLayout layout) { return m_texture->change_layout(layout); }
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
+		FORCE_INLINE uint16_t base_layer() const { return m_base_layer; }
+		FORCE_INLINE uint16_t layer_count() const { return m_layer_count; }
+		FORCE_INLINE uint16_t mip() const { return m_mip; }
 
 		FORCE_INLINE VulkanTextureDSV& add_target(VulkanRenderTarget* target)
 		{
@@ -167,23 +164,16 @@ namespace Engine
 	{
 	private:
 		VulkanBuffer* m_buffer;
-		uint32_t m_offset;
-		uint32_t m_size;
 
 	public:
-		inline VulkanBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-		    : m_buffer(buffer), m_offset(offset), m_size(size)
-		{}
-
+		inline VulkanBufferSRV(VulkanBuffer* buffer) : m_buffer(buffer) {}
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
-		FORCE_INLINE uint32_t offset() const { return m_offset; }
-		FORCE_INLINE uint32_t size() const { return m_size; }
 	};
 
 	class VulkanStorageBufferSRV : public VulkanBufferSRV
 	{
 	public:
-		VulkanStorageBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size);
+		VulkanStorageBufferSRV(VulkanBuffer* buffer);
 		~VulkanStorageBufferSRV();
 
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
@@ -192,7 +182,7 @@ namespace Engine
 	class VulkanUniformTexelBufferSRV : public VulkanBufferSRV
 	{
 	public:
-		VulkanUniformTexelBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size);
+		VulkanUniformTexelBufferSRV(VulkanBuffer* buffer);
 		~VulkanUniformTexelBufferSRV();
 
 		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
@@ -202,16 +192,12 @@ namespace Engine
 	{
 	private:
 		VulkanBuffer* m_buffer;
-		uint32_t m_offset;
-		uint32_t m_size;
 
 	public:
-		VulkanBufferUAV(VulkanBuffer* buffer, uint32_t offset, uint32_t size);
+		VulkanBufferUAV(VulkanBuffer* buffer);
 		~VulkanBufferUAV();
 
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
-		FORCE_INLINE uint32_t offset() const { return m_offset; }
-		FORCE_INLINE uint32_t size() const { return m_size; }
 		VulkanUAV& bind(VulkanStateManager* manager, byte index) override;
 	};
 }// namespace Engine

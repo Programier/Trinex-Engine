@@ -156,14 +156,11 @@ namespace Engine::VulkanEnums
 		if (access & RHIAccess::ResolveDst)
 			return vk::ImageLayout::eColorAttachmentOptimal;
 
-		if (access & RHIAccess::Present)
+		if (access & RHIAccess::PresentSrc)
 			return vk::ImageLayout::ePresentSrcKHR;
 
 		if (access & RHIAccess::TransferSrc)
 			return vk::ImageLayout::eTransferSrcOptimal;
-
-		if (access & RHIAccess::ResolveSrc)
-			return vk::ImageLayout::eShaderReadOnlyOptimal;
 
 		if (access & RHIAccess::SRVCompute || access & RHIAccess::SRVGraphics)
 			return vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -182,6 +179,9 @@ namespace Engine::VulkanEnums
 
 	static inline vk::PipelineStageFlags pipeline_stage_of(RHIAccess access)
 	{
+		if (access == RHIAccess::Undefined)
+			return vk::PipelineStageFlagBits::eTopOfPipe;
+
 		vk::PipelineStageFlags stages = vk::PipelineStageFlagBits::eNone;
 
 		if (access & RHIAccess::CPURead)
@@ -206,10 +206,8 @@ namespace Engine::VulkanEnums
 			stages |= vk::PipelineStageFlagBits::eAllGraphics;
 		if (access & RHIAccess::TransferSrc)
 			stages |= vk::PipelineStageFlagBits::eTransfer;
-		if (access & RHIAccess::ResolveSrc)
-			stages |= vk::PipelineStageFlagBits::eTransfer;
-		if (access & RHIAccess::Present)
-			stages |= vk::PipelineStageFlagBits::eNone;
+		if (access & RHIAccess::PresentSrc)
+			stages |= vk::PipelineStageFlagBits::eBottomOfPipe;
 
 		if (access & RHIAccess::UAVCompute)
 			stages |= vk::PipelineStageFlagBits::eComputeShader;
@@ -253,8 +251,6 @@ namespace Engine::VulkanEnums
 			flags |= vk::AccessFlagBits::eShaderRead;
 		if (access & RHIAccess::TransferSrc)
 			flags |= vk::AccessFlagBits::eTransferRead;
-		if (access & RHIAccess::ResolveSrc)
-			flags |= vk::AccessFlagBits::eTransferRead;
 		if (access & RHIAccess::UAVCompute)
 			flags |= vk::AccessFlagBits::eShaderWrite | vk::AccessFlagBits::eShaderRead;
 		if (access & RHIAccess::UAVGraphics)
@@ -264,9 +260,9 @@ namespace Engine::VulkanEnums
 		if (access & RHIAccess::ResolveDst)
 			flags |= vk::AccessFlagBits::eTransferWrite;
 		if (access & RHIAccess::RTV)
-			flags |= vk::AccessFlagBits::eColorAttachmentWrite;
+			flags |= vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead;
 		if (access & RHIAccess::DSV)
-			flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+			flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentRead;
 
 		return flags;
 	}
@@ -345,7 +341,7 @@ namespace Engine::VulkanEnums
 			return vk::DescriptorType::eSampler;
 
 		if ((type & RHIShaderParameterType::META_UniformBuffer) == RHIShaderParameterType::META_UniformBuffer)
-			return vk::DescriptorType::eUniformBuffer;
+			return vk::DescriptorType::eUniformBufferDynamic;
 
 		if ((type & RHIShaderParameterType::META_RWTexture) == RHIShaderParameterType::META_RWTexture)
 			return vk::DescriptorType::eStorageImage;

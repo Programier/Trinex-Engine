@@ -3,6 +3,7 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/thread.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>
@@ -27,7 +28,7 @@ namespace Engine
 		{
 			m_flags        = RHITextureCreateFlags::RenderTarget;
 			m_image        = image;
-			m_layout       = vk::ImageLayout::eUndefined;
+			m_access       = RHIAccess::Undefined;
 			m_format       = format;
 			m_extent       = vk::Extent3D(size.x, size.y, 1);
 			m_mips_count   = 1;
@@ -114,15 +115,23 @@ namespace Engine
 		m_image_present_semaphores.resize(images.size() + 1);
 		m_render_finished_semaphores.resize(images.size());
 
-		Vector2u size = {swapchain->extent.width, swapchain->extent.height};
+		m_size = {swapchain->extent.width, swapchain->extent.height};
 
 		for (int_t i = 0; auto& backbuffer : m_backbuffers)
 		{
-			backbuffer = trx_new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), size);
+			backbuffer = trx_new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), m_size);
 			++i;
 		}
 
 		m_swapchain = swapchain->swapchain;
+
+		// Creating render buffer
+		{
+			constexpr RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource | RHITextureCreateFlags::RenderTarget;
+			vk::Format format                     = vk::Format(swapchain->image_format);
+			m_render_buffer = trx_new VulkanTypedTexture<vk::ImageViewType::e2D, RHITextureType::Texture2D>();
+			m_render_buffer->create(format, Vector3u(m_size, 1u), 1, 1, flags);
+		}
 		return *this;
 	}
 
@@ -135,7 +144,10 @@ namespace Engine
 			trx_delete backbuffer;
 		}
 
+		trx_delete m_render_buffer;
+
 		m_backbuffers.clear();
+		m_render_buffer = nullptr;
 
 		if (m_swapchain)
 			API->m_device.destroySwapchainKHR(m_swapchain);
@@ -158,7 +170,7 @@ namespace Engine
 		return *this;
 	}
 
-	int_t VulkanSwapchain::acquire_image_index(VulkanCommandHandle* cmd_buffer)
+	int_t VulkanSwapchain::acquire_image_index()
 	{
 		trinex_profile_cpu_n("VulkanSwapchain::acquire_image_index");
 
@@ -204,11 +216,10 @@ namespace Engine
 		}
 
 		m_image_index = result.value;
-		API->current_command_buffer()->add_wait_semaphore(vk::PipelineStageFlagBits::eAllCommands, image_present_semaphore());
 		return m_image_index;
 	}
 
-	int_t VulkanSwapchain::do_present(VulkanCommandHandle* cmd_buffer)
+	int_t VulkanSwapchain::do_present()
 	{
 		if (m_image_index == -1)
 			return Status::Success;
@@ -245,16 +256,15 @@ namespace Engine
 		return Status::Success;
 	}
 
-	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandHandle*), VulkanCommandHandle* cmd_buffer,
-	                                   bool skip_on_out_of_date)
+	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)
 	{
 		if (m_need_recreate)
 		{
 			recreate_swapchain();
-			return try_present(callback, cmd_buffer, skip_on_out_of_date);
+			return try_present(callback, skip_on_out_of_date);
 		}
 
-		int_t status = (this->*callback)(cmd_buffer);
+		int_t status = (this->*callback)();
 
 		while (status < 0)
 		{
@@ -275,7 +285,7 @@ namespace Engine
 			ThisThread::sleep_for(0.1);
 			recreate_swapchain();
 
-			status = (this->*callback)(cmd_buffer);
+			status = (this->*callback)();
 		}
 
 		return status;
@@ -299,7 +309,7 @@ namespace Engine
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::backbuffer");
 
-			if (try_present(&VulkanSwapchain::acquire_image_index, nullptr, false) < 0)
+			if (try_present(&VulkanSwapchain::acquire_image_index, false) < 0)
 			{
 				throw EngineException("Failed to acquire image index");
 			}
@@ -320,12 +330,12 @@ namespace Engine
 
 	RHIRenderTargetView* VulkanSwapchain::as_rtv()
 	{
-		return backbuffer()->as_rtv({});
+		return m_render_buffer->as_rtv(nullptr);
 	}
 
 	RHITexture* VulkanSwapchain::as_texture()
 	{
-		return backbuffer();
+		return m_render_buffer;
 	}
 
 	void VulkanSwapchain::resize(const Vector2u& size)
@@ -335,14 +345,35 @@ namespace Engine
 
 	void VulkanSwapchain::present()
 	{
-		if (m_image_index != -1)
+		VulkanContext* ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->request_context());
+		ctx->begin();
+
+		RHITexture* dst = backbuffer();
+		RHITexture* src = m_render_buffer;
+
+		RHITextureRegion region;
+		region.extent = {m_size, 1u};
+
+		ctx->barrier(src, RHIAccess::TransferSrc);
+		ctx->barrier(dst, RHIAccess::TransferDst);
+		ctx->copy_texture_to_texture(src, region, dst, region);
+		ctx->barrier(dst, RHIAccess::PresentSrc);
+
+		VulkanCommandHandle* handle = ctx->end();
 		{
-			trinex_profile_cpu_n("VulkanSwapchain::present");
-			auto cmd = API->current_command_buffer();
-			backbuffer()->change_layout(vk::ImageLayout::ePresentSrcKHR);
-			API->m_cmd_manager->submit(render_finished_semaphore());
-			try_present(&VulkanSwapchain::do_present, cmd, true);
+			auto wait_semaphore          = image_present_semaphore();
+			vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eAllCommands;
+			auto finish_semaphore        = render_finished_semaphore();
+
+			vk::CommandBuffer& cmd = *handle;
+			vk::SubmitInfo info(wait_semaphore, flags, cmd, finish_semaphore);
+			API->m_graphics_queue->submit(info);
 		}
+
+		handle->release();
+		RHIContextPool::global_instance()->return_context(ctx);
+
+		try_present(&VulkanSwapchain::do_present, true);
 	}
 
 	void VulkanSwapchain::destroy()
@@ -358,7 +389,6 @@ namespace Engine
 	VulkanAPI& VulkanAPI::present(RHISwapchain* swapchain)
 	{
 		static_cast<VulkanSwapchain*>(swapchain)->present();
-		m_state_manager->submit();
 		return *this;
 	}
 }// namespace Engine

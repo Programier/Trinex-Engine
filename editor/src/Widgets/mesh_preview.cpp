@@ -10,6 +10,7 @@
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <Widgets/mesh_preview.hpp>
 
@@ -104,7 +105,8 @@ namespace Engine
 				renderer.render_grid().render();
 
 				RHITextureRegion region(view_size);
-				rhi->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(), region);
+				rhi->context()->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(),
+				                                        region);
 			});
 		}
 

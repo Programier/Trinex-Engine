@@ -3,6 +3,7 @@
 #include <Graphics/editor_pipelines.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 
@@ -36,25 +37,25 @@ namespace Engine::EditorPipelines
 		auto tmp_color  = RHITexturePool::global_instance()->request_surface(tmp_format, view_size);
 
 		RHITextureRegion region = {view_size};
-		rhi->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, tmp_color, region);
-		rhi->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
+		rhi->context()->copy_texture_to_texture(renderer->scene_color_ldr_target(), region, tmp_color, region);
+		rhi->context()->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
 
 		SRV* scene_color = tmp_color->as_srv();
 		SRV* scene_depth = renderer->scene_depth_target()->as_srv();
 
 		rhi_bind();
-		rhi->bind_srv(scene_color, m_scene_color->binding);
-		rhi->bind_srv(scene_depth, m_scene_depth->binding);
-		rhi->bind_srv(outline_depth, m_outline_depth->binding);
+		rhi->context()->bind_srv(scene_color, m_scene_color->binding);
+		rhi->context()->bind_srv(scene_depth, m_scene_depth->binding);
+		rhi->context()->bind_srv(outline_depth, m_outline_depth->binding);
 
-		rhi->bind_sampler(RHIPointSampler::static_sampler(), m_sampler->binding);
-		rhi->update_scalar(&color, m_outline_color);
+		rhi->context()->bind_sampler(RHIPointSampler::static_sampler(), m_sampler->binding);
+		rhi->context()->update_scalar(&color, m_outline_color);
 
 		auto& camera_view = renderer->scene_view().camera_view();
-		rhi->update_scalar(&camera_view.near, m_near);
-		rhi->update_scalar(&camera_view.far, m_far);
-		rhi->update_scalar(&sample_offset, m_sample_offset);
-		rhi->draw(6, 0);
+		rhi->context()->update_scalar(&camera_view.near, m_near);
+		rhi->context()->update_scalar(&camera_view.far, m_far);
+		rhi->context()->update_scalar(&sample_offset, m_sample_offset);
+		rhi->context()->draw(6, 0);
 
 		RHITexturePool::global_instance()->return_surface(tmp_color);
 	}
@@ -75,8 +76,8 @@ namespace Engine::EditorPipelines
 		float fov = Math::tan(Math::radians(renderer->scene_view().camera_view().perspective.fov));
 
 		rhi_bind();
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->update_scalar(&fov, m_fov);
-		rhi->draw(6, 0);
+		rhi->context()->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->context()->update_scalar(&fov, m_fov);
+		rhi->context()->draw(6, 0);
 	}
 }// namespace Engine::EditorPipelines

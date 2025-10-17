@@ -6,6 +6,7 @@
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/gpu_buffers.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -105,7 +106,7 @@ namespace Engine
 			auto create_buffer = [this, keep_cpu_data]() {
 				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_data, m_flags | RHIBufferCreateFlags::VertexBuffer);
 
-				rhi->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
+				rhi->context()->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{
 					ByteAllocator::deallocate(m_data);
@@ -174,7 +175,7 @@ namespace Engine
 	VertexBufferBase& VertexBufferBase::rhi_update(size_t size, size_t offset)
 	{
 		if (m_buffer && m_data)
-			rhi->update_buffer(m_buffer, offset, size, m_data + offset);
+			rhi->context()->update_buffer(m_buffer, offset, size, m_data + offset);
 		return *this;
 	}
 
@@ -319,7 +320,7 @@ namespace Engine
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
 				m_buffer = rhi->create_buffer(size(), m_data, m_flags | RHIBufferCreateFlags::IndexBuffer);
-				rhi->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
+				rhi->context()->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
 
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 				{

@@ -8,6 +8,8 @@
 
 namespace Engine
 {
+	class VulkanContext;
+
 	class VulkanTexture : public VulkanDeferredDestroy<RHITexture>
 	{
 	public:
@@ -60,7 +62,7 @@ namespace Engine
 		RHITextureCreateFlags m_flags;
 
 		vk::Image m_image;
-		vk::ImageLayout m_layout;
+		RHIAccess m_access;
 		vk::Format m_format;
 		vk::Extent3D m_extent;
 
@@ -72,7 +74,7 @@ namespace Engine
 		virtual RHITextureType texture_type() const       = 0;
 
 		inline vk::Image image() const { return m_image; }
-		inline vk::ImageLayout layout() const { return m_layout; }
+		inline RHIAccess access() const { return m_access; }
 		inline vk::ImageAspectFlags aspect() const
 		{
 			if (m_format == vk::Format::eD16Unorm || m_format == vk::Format::eD32Sfloat)
@@ -107,9 +109,9 @@ namespace Engine
 			}
 		}
 
-		VulkanTexture& create(RHIColorFormat color_format, Vector3u size, uint_t layers, uint32_t mips,
-		                      RHITextureCreateFlags flags);
-		void change_layout(vk::ImageLayout new_layout);
+		VulkanTexture& create(RHIColorFormat format, Vector3u size, uint_t layers, uint32_t mips, RHITextureCreateFlags flags);
+		VulkanTexture& create(vk::Format format, Vector3u size, uint_t layers, uint32_t mips, RHITextureCreateFlags flags);
+		VulkanTexture& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;
 		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override;

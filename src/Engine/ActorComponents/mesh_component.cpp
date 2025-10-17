@@ -7,6 +7,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 
@@ -60,7 +61,7 @@ namespace Engine
 			byte stream                         = 1;
 			const VertexBufferBase* null_buffer = VertexBufferBase::static_null();
 
-			rhi->bind_vertex_buffer(null_buffer->rhi_buffer(), 0, 0, 0);
+			rhi->context()->bind_vertex_buffer(null_buffer->rhi_buffer(), 0, 0, 0);
 
 			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
@@ -69,13 +70,13 @@ namespace Engine
 
 				if (buffer)
 				{
-					rhi->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
-					rhi->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
+					rhi->context()->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
+					rhi->context()->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
 					++stream;
 				}
 				else
 				{
-					rhi->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, 0, 0);
+					rhi->context()->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, 0, 0);
 				}
 			}
 
@@ -83,17 +84,18 @@ namespace Engine
 			{
 				if (auto index_buffer = find_index_buffer(lod))
 				{
-					rhi->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
-					rhi->draw_indexed(surface_data->vertices_count, surface_data->first_index, surface_data->base_vertex_index);
+					rhi->context()->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
+					rhi->context()->draw_indexed(surface_data->vertices_count, surface_data->first_index,
+					                             surface_data->base_vertex_index);
 				}
 				else
 				{
-					rhi->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+					rhi->context()->draw(surface_data->vertices_count, surface_data->base_vertex_index);
 				}
 			}
 			else
 			{
-				rhi->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+				rhi->context()->draw(surface_data->vertices_count, surface_data->base_vertex_index);
 			}
 		}
 		return *this;

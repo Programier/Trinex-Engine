@@ -20,6 +20,7 @@
 #include <Graphics/texture.hpp>
 #include <ImGuizmo.h>
 #include <Platform/platform.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
@@ -264,7 +265,12 @@ namespace Engine
 			renderer.render();
 
 			RHITextureRegion region(m_scene_view.view_size());
-			rhi->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, scene->rhi_texture(), region);
+			rhi->context()->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, scene->rhi_texture(), region);
+
+			auto handle = rhi->context()->end();
+			rhi->submit(handle);
+			handle->release();
+			rhi->context()->begin();
 		});
 
 		return scene;
@@ -274,69 +280,69 @@ namespace Engine
 	{
 		if (!m_stats.pipeline.pool.empty())
 		{
-			auto stats = m_stats.pipeline.pool.front();
+			// auto stats = m_stats.pipeline.pool.front();
 
-			if (stats->is_ready())
-			{
-				size_t data[10] = {
-				        stats->vertices(),
-				        stats->primitives(),
-				        stats->geometry_shader_primitives(),
-				        stats->clipping_primitives(),
-				        stats->vertex_shader_invocations(),
-				        stats->tessellation_control_shader_invocations(),
-				        stats->tesselation_shader_invocations(),
-				        stats->geometry_shader_invocations(),
-				        stats->clipping_invocations(),
-				        stats->fragment_shader_invocations(),
-				};
+			// if (stats->is_ready())
+			// {
+			// 	size_t data[10] = {
+			// 	        stats->vertices(),
+			// 	        stats->primitives(),
+			// 	        stats->geometry_shader_primitives(),
+			// 	        stats->clipping_primitives(),
+			// 	        stats->vertex_shader_invocations(),
+			// 	        stats->tessellation_control_shader_invocations(),
+			// 	        stats->tesselation_shader_invocations(),
+			// 	        stats->geometry_shader_invocations(),
+			// 	        stats->clipping_invocations(),
+			// 	        stats->fragment_shader_invocations(),
+			// 	};
 
-				call_in_logic_thread([=, this]() {
-					m_stats.pipeline.vertices                                = data[0];
-					m_stats.pipeline.primitives                              = data[1];
-					m_stats.pipeline.geometry_shader_primitives              = data[2];
-					m_stats.pipeline.clipping_primitives                     = data[3];
-					m_stats.pipeline.vertex_shader_invocations               = data[4];
-					m_stats.pipeline.tessellation_control_shader_invocations = data[5];
-					m_stats.pipeline.tesselation_shader_invocations          = data[6];
-					m_stats.pipeline.geometry_shader_invocations             = data[7];
-					m_stats.pipeline.clipping_invocations                    = data[8];
-					m_stats.pipeline.fragment_shader_invocations             = data[9];
-				});
+			// 	call_in_logic_thread([=, this]() {
+			// 		m_stats.pipeline.vertices                                = data[0];
+			// 		m_stats.pipeline.primitives                              = data[1];
+			// 		m_stats.pipeline.geometry_shader_primitives              = data[2];
+			// 		m_stats.pipeline.clipping_primitives                     = data[3];
+			// 		m_stats.pipeline.vertex_shader_invocations               = data[4];
+			// 		m_stats.pipeline.tessellation_control_shader_invocations = data[5];
+			// 		m_stats.pipeline.tesselation_shader_invocations          = data[6];
+			// 		m_stats.pipeline.geometry_shader_invocations             = data[7];
+			// 		m_stats.pipeline.clipping_invocations                    = data[8];
+			// 		m_stats.pipeline.fragment_shader_invocations             = data[9];
+			// 	});
 
-				RHIPipelineStatisticsPool::global_instance()->return_statistics(stats);
-				m_stats.pipeline.pool.erase(m_stats.pipeline.pool.begin());
-			}
+			// 	RHIPipelineStatisticsPool::global_instance()->return_statistics(stats);
+			// 	m_stats.pipeline.pool.erase(m_stats.pipeline.pool.begin());
+			// }
 		}
 
 		if (!m_stats.timings.reading_frame().empty())
 		{
-			auto& frame = m_stats.timings.reading_frame();
+			// auto& frame = m_stats.timings.reading_frame();
 
-			bool is_ready = true;
-			for (size_t i = 0, count = frame.size(); is_ready && i < count; ++i)
-			{
-				is_ready = frame[i].timestamp->is_ready();
-			}
+			// bool is_ready = true;
+			// for (size_t i = 0, count = frame.size(); is_ready && i < count; ++i)
+			// {
+			// 	is_ready = frame[i].timestamp->is_ready();
+			// }
 
-			if (is_ready)
-			{
-				auto& result = m_stats.timings.lock();
-				result.clear();
+			// if (is_ready)
+			// {
+			// 	auto& result = m_stats.timings.lock();
+			// 	result.clear();
 
-				auto pool = RHITimestampPool::global_instance();
+			// 	auto pool = RHITimestampPool::global_instance();
 
-				for (auto& query : frame)
-				{
-					result.emplace_back(query.timestamp->milliseconds(), query.pass);
-					pool->return_timestamp(query.timestamp);
-				}
+			// 	for (auto& query : frame)
+			// 	{
+			// 		result.emplace_back(query.timestamp->milliseconds(), query.pass);
+			// 		pool->return_timestamp(query.timestamp);
+			// 	}
 
-				frame.clear();
-				m_stats.timings.unlock();
+			// 	frame.clear();
+			// 	m_stats.timings.unlock();
 
-				m_stats.timings.submit_read_index();
-			}
+			// 	m_stats.timings.submit_read_index();
+			// }
 		}
 
 		if (!(m_scene_view.show_flags() & ShowFlags::Statistics))
@@ -356,13 +362,13 @@ namespace Engine
 
 				Plugin& on_frame_begin(RenderGraph::Graph* graph)
 				{
-					rhi->begin_statistics(m_stats);
+					rhi->context()->begin_statistics(m_stats);
 					return *this;
 				}
 
 				Plugin& on_frame_end(RenderGraph::Graph* graph)
 				{
-					rhi->end_statistics(m_stats);
+					rhi->context()->end_statistics(m_stats);
 					return *this;
 				}
 			};
@@ -386,7 +392,7 @@ namespace Engine
 					Stats::TimingQuery entry;
 					entry.pass      = pass->name();
 					entry.timestamp = RHITimestampPool::global_instance()->request_timestamp();
-					rhi->begin_timestamp(entry.timestamp);
+					rhi->context()->begin_timestamp(entry.timestamp);
 
 					m_frame.push_back(entry);
 					return *this;
@@ -395,7 +401,7 @@ namespace Engine
 				Plugin& on_pass_end(RenderGraph::Pass* pass)
 				{
 					Stats::TimingQuery& entry = m_frame.back();
-					rhi->end_timestamp(entry.timestamp);
+					rhi->context()->end_timestamp(entry.timestamp);
 					return *this;
 				}
 			};

@@ -15,15 +15,12 @@ namespace Engine
 	class ENGINE_EXPORT RHITimestamp : public RHIObject
 	{
 	public:
-		virtual bool is_ready()      = 0;
 		virtual float milliseconds() = 0;
 	};
 
 	class ENGINE_EXPORT RHIPipelineStatistics : public RHIObject
 	{
 	public:
-		virtual bool is_ready() = 0;
-
 		virtual uint64_t vertices()                   = 0;
 		virtual uint64_t primitives()                 = 0;
 		virtual uint64_t geometry_shader_primitives() = 0;
@@ -61,16 +58,12 @@ namespace Engine
 	class ENGINE_EXPORT RHIRenderTargetView
 	{
 	public:
-		virtual void clear(const LinearColor& color)   = 0;
-		virtual void clear_uint(const Vector4u& value) = 0;
-		virtual void clear_sint(const Vector4i& value) = 0;
 		virtual ~RHIRenderTargetView() {}
 	};
 
 	class ENGINE_EXPORT RHIDepthStencilView
 	{
 	public:
-		virtual void clear(float depth, byte stencil) = 0;
 		virtual ~RHIDepthStencilView() {}
 	};
 
@@ -121,18 +114,16 @@ namespace Engine
 
 	class ENGINE_EXPORT RHIPipeline : public RHIObject
 	{
-	public:
-		virtual void bind() = 0;
 	};
 
 	class ENGINE_EXPORT RHIBuffer : public RHIObject
 	{
 	public:
-		virtual RHIDeviceAddress address()                                             = 0;
-		virtual byte* map()                                                            = 0;
-		virtual void unmap()                                                           = 0;
-		virtual RHIShaderResourceView* as_srv(uint32_t offset = 0, uint32_t size = 0)  = 0;
-		virtual RHIUnorderedAccessView* as_uav(uint32_t offset = 0, uint32_t size = 0) = 0;
+		virtual RHIDeviceAddress address()       = 0;
+		virtual byte* map()                      = 0;
+		virtual void unmap()                     = 0;
+		virtual RHIShaderResourceView* as_srv()  = 0;
+		virtual RHIUnorderedAccessView* as_uav() = 0;
 	};
 
 	class ENGINE_EXPORT RHISwapchain : public RHIObject

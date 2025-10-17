@@ -1,10 +1,12 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/types/color.hpp>
 #include <Engine/default_client.hpp>
-#include <Core/logger.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/render_pools.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -32,13 +34,25 @@ namespace Engine
 	{
 		render_thread()->call([viewport]() {
 			auto rtv = viewport->rhi_rtv();
-			rtv->clear(LinearColor(0, 0, 0, 1));
 
-			rhi->viewport(RHIViewport(viewport->size()));
-			rhi->scissor(RHIScissors(viewport->size()));
-			rhi->bind_render_target1(rtv, nullptr);
-			HelloTriangle::instance()->rhi_bind();
-			rhi->draw(3, 0);
+			auto ctx = rhi->context();
+
+			auto target = static_cast<WindowRenderViewport*>(viewport)->rhi_swapchain()->as_texture();
+			ctx->barrier(target, RHIAccess::TransferDst);
+			ctx->clear_rtv(rtv, 1.f, 0.f, 0.f, 1.f);
+
+			ctx->barrier(target, RHIAccess::RTV);
+			ctx->viewport(RHIViewport(viewport->size()));
+			ctx->scissor(RHIScissors(viewport->size()));
+			ctx->bind_render_target1(rtv, nullptr);
+			ctx->bind_pipeline(HelloTriangle::instance()->rhi_pipeline());
+			ctx->draw(3, 0);
+
+			auto handle = ctx->end();
+
+			rhi->submit(handle);
+			handle->release();
+			ctx->begin();
 			viewport->rhi_present();
 		});
 		return *this;

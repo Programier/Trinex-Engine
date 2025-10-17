@@ -186,9 +186,12 @@ namespace Engine
 		static RHIContextPool* global_instance();
 
 		RHIContextPool& update();
-		RHIContext* request_command_buffer();
-		RHIContext* request_transient_command_buffer();
+		RHIContext* request_context();
+		RHIContext* request_transient_context();
 		RHIContextPool& release_all();
-		RHIContextPool& return_command_buffer(RHIContext* context);
+		RHIContextPool& return_context(RHIContext* context);
+
+		RHIContext* begin_context();
+		RHIContextPool& end_context(RHIContext* context);
 	};
 }// namespace Engine

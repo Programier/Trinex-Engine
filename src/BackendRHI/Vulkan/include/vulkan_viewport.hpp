@@ -36,6 +36,7 @@ namespace Engine
 		};
 
 		Vector<VulkanTexture*> m_backbuffers;
+		VulkanTexture* m_render_buffer = nullptr;
 		Vector<Semaphore> m_image_present_semaphores;
 		Vector<Semaphore> m_render_finished_semaphores;
 
@@ -44,6 +45,7 @@ namespace Engine
 		vk::SwapchainKHR m_swapchain;
 		int32_t m_sync_index  = 0;
 		int32_t m_image_index = -1;
+		Vector2u m_size;
 		bool m_need_recreate  = false;
 
 	private:
@@ -55,11 +57,10 @@ namespace Engine
 		VulkanSwapchain(Window* window, bool vsync);
 		~VulkanSwapchain();
 
-		int_t acquire_image_index(VulkanCommandHandle* cmd_buffer);
-		int_t do_present(VulkanCommandHandle* cmd_buffer);
+		int_t acquire_image_index();
+		int_t do_present();
 		VulkanTexture* backbuffer();
-		int_t try_present(int_t (VulkanSwapchain::*callback)(VulkanCommandHandle*), VulkanCommandHandle* cmd_buffer,
-		                  bool skip_on_out_of_date);
+		int_t try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date);
 
 		vk::Semaphore render_finished_semaphore();
 		vk::Semaphore image_present_semaphore();

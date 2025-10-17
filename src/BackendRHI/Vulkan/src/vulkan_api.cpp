@@ -287,7 +287,6 @@ namespace Engine
 
 		m_cmd_manager              = trx_new VulkanCommandBufferManager();
 		m_stagging_manager         = trx_new VulkanStaggingBufferManager();
-		m_state_manager            = trx_new VulkanStateManager();
 		m_descriptor_set_allocator = trx_new VulkanDescriptorSetAllocator();
 		m_query_pool_manager       = trx_new VulkanQueryPoolManager();
 		m_descriptor_heap          = trx_new VulkanDescriptorHeap();
@@ -323,13 +322,14 @@ namespace Engine
 	{
 		wait_idle();
 
+		context()->release();
+
 		VulkanRenderPass::destroy_all();
 
 		destroy_garbage();
 
 		trx_delete m_updater;
 		trx_delete m_stagging_manager;
-		trx_delete m_state_manager;
 		trx_delete m_cmd_manager;
 		trx_delete m_graphics_queue;
 		trx_delete m_descriptor_set_allocator;
@@ -369,6 +369,7 @@ namespace Engine
 		submit_info.pNext                = &timeline_info;
 
 		m_graphics_queue->submit(submit_info);
+		m_stagging_manager->update();
 		return *this;
 	}
 
@@ -449,16 +450,6 @@ namespace Engine
 		return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 	}
 
-	VulkanCommandHandle* VulkanAPI::begin_render_pass()
-	{
-		return m_state_manager->begin_render_pass();
-	}
-
-	VulkanCommandHandle* VulkanAPI::end_render_pass()
-	{
-		return m_state_manager->end_render_pass();
-	}
-
 	bool VulkanAPI::is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal)
 	{
 		vk::FormatProperties properties            = m_physical_device.getFormatProperties(format);
@@ -466,11 +457,11 @@ namespace Engine
 		return (feature_flags & flags) == flags;
 	}
 
-	VulkanAPI& VulkanAPI::submit()
+	VulkanAPI& VulkanAPI::submit(RHICommandHandle* cmd)
 	{
-		m_stagging_manager->update();
-		m_cmd_manager->submit();
-		m_state_manager->submit();
+		vk::CommandBuffer& buffer = *static_cast<VulkanCommandHandle*>(cmd);
+		vk::SubmitInfo info({}, {}, buffer, {});
+		m_graphics_queue->submit(info);
 		return *this;
 	}
 
@@ -478,112 +469,6 @@ namespace Engine
 	{
 		m_device.waitIdle();
 		m_graphics_queue->queue().waitIdle();
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::draw(size_t vertex_count, size_t vertices_offset)
-	{
-		m_state_manager->flush_graphics()->draw(vertex_count, 1, vertices_offset, 0);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset, size_t vertices_offset)
-	{
-		m_state_manager->flush_graphics()->drawIndexed(indices, 1, offset, vertices_offset, 0);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
-	{
-		m_state_manager->flush_graphics()->draw(vertex_count, instances, vertices_offset, 0);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-	                                             size_t instances)
-	{
-		m_state_manager->flush_graphics()->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
-	{
-		m_state_manager->flush_graphics()->drawMeshTasksEXT(x, y, z, pfn);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
-	{
-		m_state_manager->flush_compute()->dispatch(group_x, group_y, group_z);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::push_debug_stage(const char* stage)
-	{
-		if (pfn.vkCmdBeginDebugUtilsLabelEXT)
-		{
-			VkDebugUtilsLabelEXT label_info = {};
-			label_info.sType                = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-			label_info.pLabelName           = stage;
-			label_info.color[0]             = 1.f;
-			label_info.color[1]             = 1.f;
-			label_info.color[2]             = 1.f;
-			label_info.color[3]             = 1.f;
-
-			pfn.vkCmdBeginDebugUtilsLabelEXT(*current_command_buffer(), &label_info);
-		}
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::pop_debug_stage()
-	{
-		if (pfn.vkCmdEndDebugUtilsLabelEXT)
-		{
-			pfn.vkCmdEndDebugUtilsLabelEXT(*current_command_buffer());
-		}
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::viewport(const RHIViewport& viewport)
-	{
-		vk::Viewport vulkan_viewport;
-		vulkan_viewport.setWidth(viewport.size.x);
-		vulkan_viewport.setHeight(viewport.size.y);
-		vulkan_viewport.setX(viewport.pos.x);
-		vulkan_viewport.setY(viewport.pos.y);
-		vulkan_viewport.setMinDepth(viewport.min_depth);
-		vulkan_viewport.setMaxDepth(viewport.max_depth);
-		current_command_buffer()->setViewport(0, vulkan_viewport);
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::scissor(const RHIScissors& unnormalized_scissors)
-	{
-		vk::Rect2D vulkan_scissor;
-
-		static auto normalize = [](RHIScissors rect) {
-			if (rect.pos.x < 0)
-			{
-				rect.size.x -= rect.pos.x;
-				rect.pos.x = 0;
-			}
-
-			if (rect.pos.y < 0)
-			{
-				rect.size.y -= rect.pos.y;
-				rect.pos.y = 0;
-			}
-			return rect;
-		};
-
-		RHIScissors scissors = normalize(unnormalized_scissors);
-
-		vulkan_scissor.offset.setX(scissors.pos.x);
-		vulkan_scissor.offset.setY(scissors.pos.y);
-		vulkan_scissor.extent.setWidth(scissors.size.x);
-		vulkan_scissor.extent.setHeight(scissors.size.y);
-
-		current_command_buffer()->setScissor(0, vulkan_scissor);
 		return *this;
 	}
 

@@ -5,6 +5,7 @@
 #include <Engine/Render/renderer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/render_pools.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 
@@ -156,7 +157,7 @@ namespace Engine
 		RHIBuffer* vtx_buffer = pool->request_buffer(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
 
 #if TRINEX_DEBUG_BUILD
-		rhi->push_debug_stage("Lines Rendering");
+		rhi->context()->push_debug_stage("Lines Rendering");
 #endif
 
 		auto pipeline = Pipelines::BatchedLines::instance();
@@ -165,30 +166,31 @@ namespace Engine
 		Matrix4f projview = renderer->scene_view().projview();
 		Vector2f size     = renderer->scene_view().view_size();
 
-		rhi->update_scalar(&projview, pipeline->projview());
-		rhi->update_scalar(&size, pipeline->viewport());
+		rhi->context()->update_scalar(&projview, pipeline->projview());
+		rhi->context()->update_scalar(&size, pipeline->viewport());
 
-		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0, 0);
-		rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, 12);
-		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 1, 0, 16);
+		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0, 0);
+		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, 12);
+		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Position, 1, 0, 16);
 
-		rhi->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
-		rhi->primitive_topology(RHIPrimitiveTopology::LineList);
+		rhi->context()->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
+		rhi->context()->primitive_topology(RHIPrimitiveTopology::LineList);
 
 		while (m_first)
 		{
-			rhi->barrier(vtx_buffer, RHIAccess::TransferDst);
-			rhi->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<byte*>(m_first->vertices));
-			rhi->barrier(vtx_buffer, RHIAccess::VertexBuffer);
+			rhi->context()->barrier(vtx_buffer, RHIAccess::TransferDst);
+			rhi->context()->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex),
+			                              reinterpret_cast<byte*>(m_first->vertices));
+			rhi->context()->barrier(vtx_buffer, RHIAccess::VertexBuffer);
 
-			rhi->draw(m_first->vtx_count, 0);
+			rhi->context()->draw(m_first->vtx_count, 0);
 			m_first = m_first->next;
 		}
 		m_last = nullptr;
 
-		rhi->primitive_topology(RHIPrimitiveTopology::TriangleList);
+		rhi->context()->primitive_topology(RHIPrimitiveTopology::TriangleList);
 #if TRINEX_DEBUG_BUILD
-		rhi->pop_debug_stage();
+		rhi->context()->pop_debug_stage();
 #endif
 
 		pool->return_buffer(vtx_buffer);
@@ -241,21 +243,21 @@ namespace Engine
 		m_color_buffer.rhi_update(m_vtx_count * m_color_buffer.stride());
 
 #if TRINEX_DEBUG_BUILD
-		rhi->push_debug_stage("Triangles Rendering");
+		rhi->context()->push_debug_stage("Triangles Rendering");
 #endif
 
 		Pipelines::BatchedTriangles::instance()->rhi_bind();
 
-		rhi->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
-		rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
+		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
+		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
 
-		rhi->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
-		rhi->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
+		rhi->context()->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
+		rhi->context()->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
 
-		rhi->draw(m_vtx_count, 0);
+		rhi->context()->draw(m_vtx_count, 0);
 
 #if TRINEX_DEBUG_BUILD
-		rhi->pop_debug_stage();
+		rhi->context()->pop_debug_stage();
 #endif
 
 		return *this;

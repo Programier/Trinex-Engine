@@ -7,6 +7,7 @@
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/render_pools.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -26,7 +27,7 @@ namespace Engine
 		Frustum frustum = scene_view().projview();
 
 		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
-		rhi->bind_depth_stencil_target(scene_depth_target()->as_dsv());
+		rhi->context()->bind_depth_stencil_target(scene_depth_target()->as_dsv());
 
 		for (PrimitiveComponent* component : components)
 		{
@@ -55,7 +56,7 @@ namespace Engine
 
 #if TRINEX_DEBUG_BUILD
 		static const char* face_names[6] = {"Right ", "Left", "Top", "Bottom", "Front", "Back"};
-		rhi->push_debug_stage(face_names[face]);
+		rhi->context()->push_debug_stage(face_names[face]);
 #endif
 
 		Frustum frustum                             = scene_view().projview();
@@ -68,8 +69,7 @@ namespace Engine
 
 		auto dsv = cubemap()->as_dsv(&view);
 
-		dsv->clear(1.f, 0);
-		rhi->bind_depth_stencil_target(dsv);
+		rhi->context()->clear_dsv(dsv).bind_depth_stencil_target(dsv);
 
 		for (PrimitiveComponent* component : components)
 		{
@@ -77,7 +77,7 @@ namespace Engine
 		}
 
 #if TRINEX_DEBUG_BUILD
-		rhi->pop_debug_stage();
+		rhi->context()->pop_debug_stage();
 #endif
 
 		return *this;

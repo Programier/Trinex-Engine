@@ -14,6 +14,7 @@ namespace Engine
 	class RHIShaderResourceView;
 	class RHIUnorderedAccessView;
 	class RHITimestamp;
+	class RHIPipeline;
 	class RHIPipelineStatistics;
 
 	class ENGINE_EXPORT RHICommandHandle : public RHIObject
@@ -37,7 +38,9 @@ namespace Engine
 		virtual RHIContext& draw_mesh(uint32_t x, uint32_t y, uint32_t z) = 0;
 
 		virtual RHIContext& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) = 0;
-		virtual RHIContext& signal_fence(RHIFence* fence)                                  = 0;
+
+		virtual RHIContext& trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen = 0,
+		                               const RHIRange& miss = {}, const RHIRange& hit = {}, const RHIRange& callable = {}) = 0;
 
 		virtual RHIContext& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
 		                                       RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) = 0;
@@ -48,6 +51,13 @@ namespace Engine
 		virtual RHIContext& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHIContext& push_debug_stage(const char* stage)                                                    = 0;
 		virtual RHIContext& pop_debug_stage()                                                                      = 0;
+
+		virtual RHIContext& clear_rtv(RHIRenderTargetView* rtv, float_t r = 0.f, float_t g = 0.f, float_t b = 0.f,
+		                              float_t a = 0.f)                                                                       = 0;
+		virtual RHIContext& clear_urtv(RHIRenderTargetView* rtv, uint_t r = 0u, uint_t g = 0u, uint_t b = 0u, uint_t a = 0u) = 0;
+		virtual RHIContext& clear_irtv(RHIRenderTargetView* rtv, int_t r = 0, int_t g = 0, int_t b = 0, int_t a = 0)         = 0;
+
+		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, float_t depth = 1.f, byte stencil = 0) = 0;
 
 		virtual RHIContext& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) = 0;
 
@@ -81,9 +91,11 @@ namespace Engine
 		virtual RHIContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)              = 0;
 		virtual RHIContext& bind_uniform_buffer(RHIBuffer* buffer, byte slot)                        = 0;
 
-		virtual RHIContext& bind_sampler(RHISampler* sampler, byte slot)      = 0;
-		virtual RHIContext& bind_srv(RHIShaderResourceView* view, byte slot)  = 0;
-		virtual RHIContext& bind_uav(RHIUnorderedAccessView* view, byte slot) = 0;
+		virtual RHIContext& bind_pipeline(RHIPipeline* pipeline)                                 = 0;
+		virtual RHIContext& bind_sampler(RHISampler* sampler, byte slot)                         = 0;
+		virtual RHIContext& bind_srv(RHIShaderResourceView* view, byte slot)                     = 0;
+		virtual RHIContext& bind_uav(RHIUnorderedAccessView* view, byte slot)                    = 0;
+		virtual RHIContext& bind_acceleration(RHIAccelerationStructure* acceleration, byte slot) = 0;
 
 		virtual RHIContext& barrier(RHITexture* texture, RHIAccess access) = 0;
 		virtual RHIContext& barrier(RHIBuffer* buffer, RHIAccess access)   = 0;
@@ -93,5 +105,43 @@ namespace Engine
 
 		virtual RHIContext& begin_statistics(RHIPipelineStatistics* stats) = 0;
 		virtual RHIContext& end_statistics(RHIPipelineStatistics* stats)   = 0;
+
+		inline RHIContext& bind_depth_stencil_target(RHIDepthStencilView* depth_stencil)
+		{
+			return bind_render_target(nullptr, nullptr, nullptr, nullptr, depth_stencil);
+		}
+
+		inline RHIContext& bind_render_target1(RHIRenderTargetView* rt1, RHIDepthStencilView* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, nullptr, nullptr, nullptr, depth_stencil);
+		}
+
+		inline RHIContext& bind_render_target2(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2,
+		                                       RHIDepthStencilView* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, rt2, nullptr, nullptr, depth_stencil);
+		}
+
+		inline RHIContext& bind_render_target3(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                                       RHIDepthStencilView* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, rt2, rt3, nullptr, depth_stencil);
+		}
+
+		inline RHIContext& bind_render_target4(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+		                                       RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil = nullptr)
+		{
+			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
+		}
+
+		inline RHIContext& update_scalar(const void* data, size_t size, const RHIShaderParameterInfo* info)
+		{
+			return update_scalar(data, size, info->offset, info->binding);
+		}
+
+		inline RHIContext& update_scalar(const void* data, const RHIShaderParameterInfo* info)
+		{
+			return update_scalar(data, info->size, info->offset, info->binding);
+		}
 	};
 }// namespace Engine

@@ -11,6 +11,7 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine::MaterialParameters
@@ -38,7 +39,7 @@ namespace Engine::MaterialParameters
 
 	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, const RHIShaderParameterInfo* info)
 	{
-		rhi->update_scalar(data, size, info->offset, info->binding);
+		rhi->context()->update_scalar(data, size, info->offset, info->binding);
 		return *this;
 	}
 
@@ -59,7 +60,7 @@ namespace Engine::MaterialParameters
 
 	LocalToWorld& LocalToWorld::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
 	{
-		rhi->update_scalar(&ctx.local_to_world, sizeof(ctx.local_to_world), info->offset, info->binding);
+		rhi->context()->update_scalar(&ctx.local_to_world, sizeof(ctx.local_to_world), info->offset, info->binding);
 		return *this;
 	}
 
@@ -86,8 +87,8 @@ namespace Engine::MaterialParameters
 
 		if (texture && rhi_sampler)
 		{
-			rhi->bind_srv(texture->rhi_srv(), info->binding);
-			rhi->bind_sampler(rhi_sampler, info->binding);
+			rhi->context()->bind_srv(texture->rhi_srv(), info->binding);
+			rhi->context()->bind_sampler(rhi_sampler, info->binding);
 		}
 		return *this;
 	}
@@ -108,7 +109,7 @@ namespace Engine::MaterialParameters
 	{
 		if (texture)
 		{
-			rhi->bind_srv(texture->rhi_srv(), info->binding);
+			rhi->context()->bind_srv(texture->rhi_srv(), info->binding);
 		}
 		return *this;
 	}
@@ -124,7 +125,7 @@ namespace Engine::MaterialParameters
 	Globals& Globals::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
 	{
 		auto buffer = ctx.renderer->globals_uniform_buffer();
-		rhi->bind_uniform_buffer(buffer, info->binding);
+		rhi->context()->bind_uniform_buffer(buffer, info->binding);
 		return *this;
 	}
 
@@ -133,7 +134,7 @@ namespace Engine::MaterialParameters
 	Surface& Surface::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
 	{
 		auto srv = surface ? surface->rhi_srv() : DefaultResources::Textures::default_texture->rhi_srv();
-		rhi->bind_srv(srv, info->binding);
+		rhi->context()->bind_srv(srv, info->binding);
 		return *this;
 	}
 
@@ -153,8 +154,8 @@ namespace Engine::MaterialParameters
 
 		if (srv && rhi_sampler)
 		{
-			rhi->bind_srv(srv, info->binding);
-			rhi->bind_sampler(rhi_sampler, info->binding);
+			rhi->context()->bind_srv(srv, info->binding);
+			rhi->context()->bind_sampler(rhi_sampler, info->binding);
 		}
 		return *this;
 	}

@@ -604,9 +604,9 @@ namespace Engine
 
 	RHIContextPool& RHIContextPool::update()
 	{
-		for (RHIContext* buffer : m_transient)
+		for (RHIContext* ctx : m_transient)
 		{
-			return_command_buffer(buffer);
+			return_context(ctx);
 		}
 
 		m_transient.clear();
@@ -630,23 +630,23 @@ namespace Engine
 		return *this;
 	}
 
-	RHIContext* RHIContextPool::request_command_buffer()
+	RHIContext* RHIContextPool::request_context()
 	{
 		if (!m_pool.empty())
 		{
-			RHIContext* buffer = m_pool.back().context;
+			RHIContext* ctx = m_pool.back().context;
 			m_pool.pop_back();
-			return buffer;
+			return ctx;
 		}
 		return rhi->create_context();
 	}
 
-	RHIContext* RHIContextPool::request_transient_command_buffer()
+	RHIContext* RHIContextPool::request_transient_context()
 	{
-		if (auto buffer = request_command_buffer())
+		if (auto ctx = request_context())
 		{
-			m_transient.push_back(buffer);
-			return buffer;
+			m_transient.push_back(ctx);
+			return ctx;
 		}
 		return nullptr;
 	}
@@ -662,12 +662,28 @@ namespace Engine
 		return *this;
 	}
 
-	RHIContextPool& RHIContextPool::return_command_buffer(RHIContext* buffer)
+	RHIContextPool& RHIContextPool::return_context(RHIContext* ctx)
 	{
 		auto& entry   = m_pool.emplace_back();
-		entry.context = buffer;
+		entry.context = ctx;
 		entry.frame   = s_resource_live_threshold;
 		return *this;
+	}
+
+	RHIContext* RHIContextPool::begin_context()
+	{
+		return &request_context()->begin();
+	}
+
+	RHIContextPool& RHIContextPool::end_context(RHIContext* context)
+	{
+		if (auto handle = context->end())
+		{
+			rhi->submit(handle);
+			handle->release();
+		}
+
+		return return_context(context);
 	}
 
 	static class : public TickableObject

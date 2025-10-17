@@ -17,6 +17,7 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/sampler.hpp>
@@ -24,6 +25,7 @@
 #include <Graphics/shader_cache.hpp>
 #include <Graphics/texture.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/config.hpp>
@@ -49,7 +51,7 @@ namespace Engine
 			Matrix4f model;
 			RHIShaderResourceView* srv = nullptr;
 
-			void apply(const Sampler& sampler);
+			void apply(RHIContext* ctx, const Sampler& sampler);
 		};
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
@@ -74,16 +76,16 @@ namespace Engine
 			model_parameter   = find_parameter("model");
 		}
 
-		void ImGuiPipeline::apply(const Sampler& sampler)
+		void ImGuiPipeline::apply(RHIContext* ctx, const Sampler& sampler)
 		{
-			rhi_bind();
+			ctx->bind_pipeline(rhi_pipeline());
 
 			RHIDescriptor sampler_descriptor = sampler.rhi_sampler()->descriptor();
 			RHIDescriptor texture_descriptor = srv->descriptor();
 
-			rhi->update_scalar(&sampler_descriptor, sampler_parameter);
-			rhi->update_scalar(&texture_descriptor, texture_parameter);
-			rhi->update_scalar(&model, sizeof(model), 0, model_parameter->binding);
+			ctx->update_scalar(&sampler_descriptor, sampler_parameter);
+			ctx->update_scalar(&texture_descriptor, texture_parameter);
+			ctx->update_scalar(&model, sizeof(model), 0, model_parameter->binding);
 
 			srv = nullptr;
 		}
@@ -91,7 +93,7 @@ namespace Engine
 
 		bool imgui_trinex_rhi_init(Engine::Window*, ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
-		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
+		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data);
 
 		struct ImGuiTrinexData {
 			Texture2D* font_texture        = nullptr;
@@ -113,15 +115,16 @@ namespace Engine
 
 		// RENDERING FUNCTIONS
 
-		static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
+		static void imgui_trinex_setup_render_state(RHIContext* ctx, ImDrawData* draw_data)
 		{
 			auto bd       = imgui_trinex_backend_data();
 			auto pipeline = ImGuiPipeline::instance();
 			pipeline->srv = nullptr;
 
 			RHIViewport viewport(bd->window->size());
-			rhi->bind_render_target1(bd->window->rhi_rtv());
-			rhi->viewport(viewport);
+			ctx->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
+			ctx->bind_render_target1(bd->window->rhi_rtv());
+			ctx->viewport(viewport);
 
 			float L = draw_data->DisplayPos.x;
 			float R = L + draw_data->DisplaySize.x;
@@ -131,11 +134,9 @@ namespace Engine
 			pipeline->model = Math::ortho(L, R, T, B, 0.f, 1.f);
 		}
 
-		void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
+		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data)
 		{
 			trinex_profile_cpu_n("ImGui");
-
-			ImGui::SetCurrentContext(ctx);
 			trinex_rhi_push_stage("ImGui Render");
 
 			// Avoid rendering when minimized
@@ -185,40 +186,40 @@ namespace Engine
 					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
 					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-					rhi->barrier(vd->vertex_buffer, RHIAccess::TransferDst);
-					rhi->barrier(vd->index_buffer, RHIAccess::TransferDst);
+					ctx->barrier(vd->vertex_buffer, RHIAccess::TransferDst);
+					ctx->barrier(vd->index_buffer, RHIAccess::TransferDst);
 
 					if (vtx_size > 0)
 					{
-						rhi->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
+						ctx->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
 						                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
 						vtx_offset += vtx_size;
 					}
 
 					if (idx_size > 0)
 					{
-						rhi->update_buffer(vd->index_buffer, idx_offset, idx_size,
+						ctx->update_buffer(vd->index_buffer, idx_offset, idx_size,
 						                   reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
 						idx_offset += idx_size;
 					}
 				}
 
-				rhi->barrier(vd->vertex_buffer, RHIAccess::VertexBuffer);
-				rhi->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
+				ctx->barrier(vd->vertex_buffer, RHIAccess::VertexBuffer);
+				ctx->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
 			}
 
-			imgui_trinex_setup_render_state(draw_data);
+			imgui_trinex_setup_render_state(ctx, draw_data);
 
 			int global_idx_offset = 0;
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
-			rhi->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 0, 0, offsetof(ImDrawVert, pos));
-			rhi->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 1, 0, offsetof(ImDrawVert, uv));
-			rhi->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, offsetof(ImDrawVert, col));
+			ctx->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 0, 0, offsetof(ImDrawVert, pos));
+			ctx->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 1, 0, offsetof(ImDrawVert, uv));
+			ctx->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, offsetof(ImDrawVert, col));
 
-			rhi->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
-			rhi->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
+			ctx->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
+			ctx->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
 
 			trinex_rhi_pop_stage();
 			{
@@ -237,7 +238,7 @@ namespace Engine
 						if (pcmd->UserCallback != nullptr)
 						{
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-								imgui_trinex_setup_render_state(draw_data);
+								imgui_trinex_setup_render_state(ctx, draw_data);
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
 						}
@@ -255,7 +256,7 @@ namespace Engine
 							scissor.size.x = (clip_max.x - clip_min.x);
 							scissor.size.y = (clip_max.y - clip_min.y);
 
-							rhi->scissor(scissor);
+							ctx->scissor(scissor);
 
 							if (!pipeline->srv)
 							{
@@ -265,9 +266,9 @@ namespace Engine
 
 							{
 								trinex_profile_cpu_n("Drawing");
-								pipeline->apply(bd->sampler);
+								pipeline->apply(ctx, bd->sampler);
 
-								rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
+								ctx->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
 								                  pcmd->VtxOffset + global_vtx_offset);
 							}
 						}
@@ -449,8 +450,14 @@ namespace Engine
 				auto bd = ImGuiBackend_RHI::imgui_trinex_backend_data();
 				std::swap(viewport, bd->window);// Temporary set as main viewport
 
-				trinex_rhi_push_stage("ImGuiViewportClient");
-				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(m_window->context(), m_draw_data.draw_data());
+				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+				{
+					trinex_rhi_push_stage("ImGuiViewportClient");
+					ImGuiContextLock lock(m_window->context());
+					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, m_draw_data.draw_data());
+				}
+				RHIContextPool::global_instance()->end_context(ctx);
+
 				m_draw_data.swap_render_index();
 				trinex_rhi_pop_stage();
 
@@ -1384,15 +1391,21 @@ namespace Engine
 
 		render_thread()->call([this]() {
 			auto viewport = window()->render_viewport();
-			rhi->viewport(RHIViewport(viewport->size()));
-			rhi->scissor(RHIScissors(viewport->size()));
 
-			auto rtv = viewport->rhi_rtv();
-			rtv->clear(LinearColor(0.f, 0.f, 0.f, 1.f));
-			rhi->bind_render_target1(rtv);
-			ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(m_context, draw_data());
+			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			{
+				ctx->viewport(RHIViewport(viewport->size()));
+				ctx->scissor(RHIScissors(viewport->size()));
+				auto rtv = viewport->rhi_rtv();
+				ctx->barrier(viewport->rhi_texture(), RHIAccess::TransferDst);
+				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f).bind_render_target1(rtv);
+
+				ImGuiContextLock lock(m_context);
+				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, draw_data());
+			}
+			RHIContextPool::global_instance()->end_context(ctx);
+
 			viewport->rhi_present();
-
 			m_draw_data.swap_render_index();
 		});
 

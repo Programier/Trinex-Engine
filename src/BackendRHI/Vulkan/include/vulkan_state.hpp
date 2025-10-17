@@ -14,6 +14,7 @@ namespace Engine
 	class VulkanTextureUAV;
 	class VulkanUniformBuffer;
 	class VulkanPipeline;
+	class VulkanContext;
 	struct VulkanVertexAttribute;
 
 	template<typename T>
@@ -71,19 +72,22 @@ namespace Engine
 			ComputeMask  = Pipeline,
 		};
 
-		struct Buffer {
+		struct CombinedImage {
+			VulkanTextureSRV* srv;
+			vk::Sampler sampler;
+		};
+
+		struct UniformBuffer {
 			vk::Buffer buffer;
-			size_t size;
-			size_t offset;
+			uint32_t size;
+			uint32_t offset;
 
-			Buffer(vk::Buffer buffer = {}, size_t size = 0, size_t offset = 0) : buffer(buffer), size(size), offset(offset) {}
+			UniformBuffer(vk::Buffer buffer = {}, uint32_t size = 0, uint32_t offset = 0)
+			    : buffer(buffer), size(size), offset(offset)
+			{}
 
-			inline bool operator==(const Buffer& other) const
-			{
-				return buffer == other.buffer && size == other.size && offset == other.offset;
-			}
-
-			inline bool operator!=(const Buffer& other) const { return !((*this) == other); }
+			inline bool operator==(const UniformBuffer& other) const { return buffer == other.buffer && offset == other.offset; }
+			inline bool operator!=(const UniformBuffer& other) const { return !((*this) == other); }
 		};
 
 		struct VertexAttribute {
@@ -109,11 +113,6 @@ namespace Engine
 	private:
 		uint64_t m_dirty_flags;
 
-		VulkanUniformBuffer* m_uniform_buffer_pool      = nullptr;
-		VulkanUniformBuffer** m_uniform_buffer_push_ptr = nullptr;
-
-		Vector<VulkanUniformBuffer*> m_global_uniform_buffers;
-
 		class VulkanRenderPass* m_render_pass     = nullptr;
 		class VulkanRenderTarget* m_render_target = nullptr;
 
@@ -127,16 +126,13 @@ namespace Engine
 		                                       vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
 	private:
-		VulkanUniformBuffer* request_uniform_buffer();
-		VulkanStateManager& return_uniform_buffer(VulkanUniformBuffer*);
-
-		VulkanStateManager& flush_state();
+		VulkanStateManager& flush_state(VulkanCommandHandle* handle);
 
 	public:
-		VulkanResourceState<Buffer> uniform_buffers;
-		VulkanResourceState<Buffer> storage_buffers;
-		VulkanResourceState<Buffer> uniform_texel_buffers;
-		VulkanResourceState<Buffer> storage_texel_buffers;
+		VulkanResourceState<UniformBuffer> uniform_buffers;
+		VulkanResourceState<vk::Buffer> storage_buffers;
+		VulkanResourceState<vk::Buffer> uniform_texel_buffers;
+		VulkanResourceState<vk::Buffer> storage_texel_buffers;
 		VulkanResourceState<vk::Sampler> samplers;
 		VulkanResourceState<vk::AccelerationStructureKHR> acceleration_structures;
 		VulkanResourceState<VulkanTextureSRV*> srv_images;
@@ -147,7 +143,7 @@ namespace Engine
 		VulkanStateManager();
 		~VulkanStateManager();
 
-		VulkanStateManager& update_scalar(const void* data, size_t size, size_t offset, byte buffer_index);
+		VulkanStateManager& update_scalar(VulkanContext* ctx, const void* data, size_t size, size_t offset, byte buffer_index);
 
 		VulkanStateManager& bind(VulkanPipeline* pipeline)
 		{
@@ -220,12 +216,12 @@ namespace Engine
 			return *this;
 		}
 
-		VulkanCommandHandle* begin_render_pass();
-		VulkanCommandHandle* end_render_pass();
-		VulkanCommandHandle* flush_graphics();
-		VulkanCommandHandle* flush_compute();
-		VulkanCommandHandle* flush_raytrace();
-		VulkanStateManager& submit();
+		VulkanCommandHandle* begin_render_pass(VulkanContext* ctx);
+		VulkanCommandHandle* end_render_pass(VulkanContext* ctx);
+		VulkanCommandHandle* flush_graphics(VulkanContext* ctx);
+		VulkanCommandHandle* flush_compute(VulkanContext* ctx);
+		VulkanCommandHandle* flush_raytrace(VulkanContext* ctx);
+		VulkanStateManager& reset();
 
 		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);
 		Identifier graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;

@@ -17,6 +17,7 @@
 #include <Graphics/material_bindings.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -39,12 +40,11 @@ namespace Engine
 			auto depth_dsv   = depth->as_dsv();
 
 			trinex_rhi_push_stage("HitProxy");
-			surface_rtv->clear_uint({0, 0, 0, 0});
-			depth_dsv->clear(1.f, 0);
 
-			rhi->bind_render_target1(surface_rtv, depth_dsv);
-			rhi->viewport(RHIViewport(size));
-			rhi->scissor(RHIScissors(size));
+			rhi->context()->clear_irtv(surface_rtv).clear_dsv(depth_dsv);
+			rhi->context()->bind_render_target1(surface_rtv, depth_dsv);
+			rhi->context()->viewport(RHIViewport(size));
+			rhi->context()->scissor(RHIScissors(size));
 
 			static MaterialBindings bindings;
 			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");
@@ -88,10 +88,9 @@ namespace Engine
 
 		Vector2f size = view.view_size();
 		Vector3u offset(static_cast<uint32_t>((size.x * uv.x) + 0.5f), static_cast<uint32_t>((size.y * uv.y) + 0.5f), 0);
-		rhi->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
+		rhi->context()->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
 
-		rhi->signal_fence(fence);
-		rhi->submit();
+		rhi->signal(fence);
 
 		while (!fence->is_signaled()) Thread::static_yield();
 
@@ -115,7 +114,7 @@ namespace Engine
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this]() {
-			        rhi->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
+			        rhi->context()->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
 			        EditorPipelines::Grid::instance()->render(this);
 		        });
 		return *this;
@@ -127,8 +126,8 @@ namespace Engine
 		auto pool      = RHITexturePool::global_instance();
 		auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size);
 
-		depth->as_dsv()->clear(1.f, 0);
-		rhi->bind_depth_stencil_target(depth->as_dsv());
+		auto dsv = depth->as_dsv();
+		rhi->context()->clear_dsv(dsv).bind_depth_stencil_target(dsv);
 
 		for (size_t i = 0; i < count; ++i)
 		{

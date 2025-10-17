@@ -2,15 +2,45 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_buffer.hpp>
 #include <vulkan_context.hpp>
 #include <vulkan_fence.hpp>
+#include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
+#include <vulkan_state.hpp>
 
 
 namespace Engine
 {
+	VulkanUniformBuffer* VulkanCommandHandle::UniformBuffer::request_uniform_page(size_t size)
+	{
+		while (*m_uniform_buffer_current)
+		{
+			VulkanUniformBuffer* buffer = *m_uniform_buffer_current;
+			if (buffer->contains(size))
+				return buffer;
+			m_uniform_buffer_current = &buffer->next;
+		}
+
+		VulkanUniformBuffer* buffer = trx_new VulkanUniformBuffer(size);
+		(*m_uniform_buffer_current) = buffer;
+		return buffer;
+	}
+
+	VulkanCommandHandle::UniformBuffer& VulkanCommandHandle::UniformBuffer::reset()
+	{
+		VulkanUniformBuffer* buffer = m_uniform_buffer_head;
+		m_uniform_buffer_current    = &m_uniform_buffer_head;
+		while (buffer)
+		{
+			buffer->reset();
+			buffer = buffer->next;
+		}
+		return *this;
+	}
+
 	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager)
 	{
 		m_fence = trx_new VulkanFence(false);
@@ -29,7 +59,18 @@ namespace Engine
 				m_state = State::IsReadyForBegin;
 				reset();
 				m_fence->reset();
-				++m_fence_signaled_count;
+
+				for (auto& page : m_uniform_buffers)
+				{
+					page.reset();
+				}
+
+				for (RHIObject* stagging : m_stagging)
+				{
+					stagging->destroy();
+				}
+
+				m_stagging.clear();
 			}
 		}
 
@@ -73,28 +114,12 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandHandle& VulkanCommandHandle::add_wait_semaphore(vk::PipelineStageFlags flags, vk::Semaphore semaphore)
-	{
-		m_wait_semaphores.push_back(semaphore);
-		m_wait_flags.push_back(flags);
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::submit(vk::Semaphore semaphore)
+	VulkanCommandHandle& VulkanCommandHandle::enqueue()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
 		trinex_check(has_ended(), "Command Buffer must be in ended state!");
-
-		if (semaphore)
-		{
-			API->m_graphics_queue->submit(this, 1, &semaphore);
-		}
-		else
-		{
-			API->m_graphics_queue->submit(this);
-		}
-		m_wait_flags.clear();
-		m_wait_semaphores.clear();
+		API->m_graphics_queue->submit({}, m_fence->fence());
+		m_fence->make_pending();
 		m_state = State::Submitted;
 		return *this;
 	}
@@ -112,11 +137,39 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanCommandHandle& VulkanCommandHandle::flush_uniforms()
+	{
+		for (auto& page : m_uniform_buffers)
+		{
+			if (*page.m_uniform_buffer_current)
+			{
+				(*page.m_uniform_buffer_current)->flush();
+			}
+		}
+		return *this;
+	}
+
+	void VulkanCommandHandle::destroy()
+	{
+		API->command_buffer_mananger()->return_handle(this);
+	}
+
 	VulkanCommandHandle::~VulkanCommandHandle()
 	{
+		wait();
+		
 		auto pool = API->command_buffer_mananger()->command_pool();
 		API->m_device.freeCommandBuffers(pool, *this);
 
+		for (auto& page : m_uniform_buffers)
+		{
+			while (page.m_uniform_buffer_head)
+			{
+				auto current               = page.m_uniform_buffer_head;
+				page.m_uniform_buffer_head = page.m_uniform_buffer_head->next;
+				trx_delete_inline(current);
+			}
+		}
 		trx_delete m_fence;
 	}
 
@@ -124,88 +177,76 @@ namespace Engine
 	{
 		m_pool = API->m_device.createCommandPool(
 		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->index()));
-
-		m_current  = create_node();
-		m_first    = create_node();
-		m_push_ptr = &m_first->next;
-
-		m_current->command_buffer->begin();
 	}
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()
 	{
-		while (m_first)
+		for (VulkanCommandHandle* handle : m_handles)
 		{
-			m_first = destroy_node(m_first);
+			trx_delete handle;
 		}
 
-		destroy_node(m_current);
 		API->m_device.destroyCommandPool(m_pool);
 	}
 
-	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::create_node()
+	VulkanCommandHandle* VulkanCommandBufferManager::request_handle()
 	{
-		Node* node           = trx_new Node();
-		node->command_buffer = trx_new VulkanCommandHandle(this);
-		node->next           = nullptr;
-		return node;
-	}
-
-	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::destroy_node(Node* node)
-	{
-		Node* next = node->next;
-		trx_delete node->command_buffer;
-		trx_delete node;
-		return next;
-	}
-
-	VulkanCommandBufferManager::Node* VulkanCommandBufferManager::request_node()
-	{
-		auto buffer = m_first->command_buffer;
-		buffer->refresh_fence_status();
-
-		if (buffer->is_ready_for_begin())
+		if (!m_handles.empty())
 		{
-			Node* result = m_first;
-			m_first      = m_first->next;
-			buffer->begin();
-			return result;
+			auto front = m_handles.front();
+
+			if (front->refresh_fence_status().is_ready_for_begin())
+			{
+				m_handles.pop_front();
+				return front;
+			}
 		}
 
-		Node* node = create_node();
-		node->command_buffer->begin();
-		return node;
+		return trx_new VulkanCommandHandle(this);
 	}
 
-	VulkanCommandBufferManager& VulkanCommandBufferManager::submit(vk::Semaphore semaphore)
+	VulkanCommandBufferManager& VulkanCommandBufferManager::return_handle(VulkanCommandHandle* handle)
 	{
-		VulkanCommandHandle* buffer = m_current->command_buffer;
-
-		if (buffer->is_inside_render_pass())
-		{
-			API->end_render_pass();
-		}
-
-		buffer->end();
-		buffer->submit(semaphore);
-
-		m_current->next = nullptr;
-		(*m_push_ptr)   = m_current;
-		m_push_ptr      = &m_current->next;
-
-		m_current = request_node();
+		m_handles.push_back(handle);
+		handle->add_reference();
+		handle->enqueue();
 		return *this;
+	}
+
+	VulkanContext::VulkanContext() : m_state_manager(trx_new VulkanStateManager()) {}
+
+	VulkanContext::~VulkanContext()
+	{
+		if (auto handle = end())
+		{
+			handle->release();
+		}
+		trx_delete m_state_manager;
 	}
 
 	VulkanContext& VulkanContext::begin()
 	{
+		if (m_cmd == nullptr)
+		{
+			m_cmd = API->command_buffer_mananger()->request_handle();
+			m_cmd->begin();
+		}
 		return *this;
 	}
 
 	VulkanCommandHandle* VulkanContext::end()
 	{
+		if (m_cmd == nullptr)
+			return nullptr;
+
 		VulkanCommandHandle* cmd = m_cmd;
 		m_cmd                    = nullptr;
+
+		if (cmd->is_inside_render_pass())
+			cmd->end_render_pass();
+		cmd->end();
+
+		m_state_manager->reset();
 		return cmd;
 	}
 
@@ -215,44 +256,129 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanContext& VulkanContext::viewport(const RHIViewport& viewport)
+	{
+		vk::Viewport vulkan_viewport;
+		vulkan_viewport.setWidth(viewport.size.x);
+		vulkan_viewport.setHeight(viewport.size.y);
+		vulkan_viewport.setX(viewport.pos.x);
+		vulkan_viewport.setY(viewport.pos.y);
+		vulkan_viewport.setMinDepth(viewport.min_depth);
+		vulkan_viewport.setMaxDepth(viewport.max_depth);
+		m_cmd->setViewport(0, vulkan_viewport);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::scissor(const RHIScissors& unnormalized_scissors)
+	{
+		vk::Rect2D vulkan_scissor;
+
+		static auto normalize = [](RHIScissors rect) {
+			if (rect.pos.x < 0)
+			{
+				rect.size.x -= rect.pos.x;
+				rect.pos.x = 0;
+			}
+
+			if (rect.pos.y < 0)
+			{
+				rect.size.y -= rect.pos.y;
+				rect.pos.y = 0;
+			}
+			return rect;
+		};
+
+		RHIScissors scissors = normalize(unnormalized_scissors);
+
+		vulkan_scissor.offset.setX(scissors.pos.x);
+		vulkan_scissor.offset.setY(scissors.pos.y);
+		vulkan_scissor.extent.setWidth(scissors.size.x);
+		vulkan_scissor.extent.setHeight(scissors.size.y);
+
+		m_cmd->setScissor(0, vulkan_scissor);
+		return *this;
+	}
+
 	VulkanContext& VulkanContext::draw(size_t vertex_count, size_t vertices_offset)
 	{
+		m_state_manager->flush_graphics(this)->draw(vertex_count, 1, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
 	{
+		m_state_manager->flush_graphics(this)->drawIndexed(indices_count, 1, indices_offset, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)
 	{
+		m_state_manager->flush_graphics(this)->draw(vertex_count, instances, vertex_offset, 0);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 	                                                     size_t instances)
 	{
+		m_state_manager->flush_graphics(this)->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
 	{
+		m_state_manager->flush_graphics(this)->drawMeshTasksEXT(x, y, z, API->pfn);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
 	{
+		m_state_manager->flush_compute(this)->dispatch(group_x, group_y, group_z);
 		return *this;
 	}
 
-	VulkanCommandHandle* VulkanAPI::current_command_buffer()
+	VulkanContext& VulkanContext::push_debug_stage(const char* stage)
 	{
-		return m_cmd_manager->current();
+		if (API->pfn.vkCmdBeginDebugUtilsLabelEXT)
+		{
+			VkDebugUtilsLabelEXT label_info = {};
+			label_info.sType                = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			label_info.pLabelName           = stage;
+			label_info.color[0]             = 1.f;
+			label_info.color[1]             = 1.f;
+			label_info.color[2]             = 1.f;
+			label_info.color[3]             = 1.f;
+
+			API->pfn.vkCmdBeginDebugUtilsLabelEXT(*m_cmd, &label_info);
+		}
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::pop_debug_stage()
+	{
+		if (API->pfn.vkCmdEndDebugUtilsLabelEXT)
+		{
+			API->pfn.vkCmdEndDebugUtilsLabelEXT(*m_cmd);
+		}
+		return *this;
+	}
+
+	VulkanCommandHandle* VulkanContext::begin_render_pass()
+	{
+		return m_state_manager->begin_render_pass(this);
+	}
+
+	VulkanCommandHandle* VulkanContext::end_render_pass()
+	{
+		return m_state_manager->end_render_pass(this);
+	}
+
+	void VulkanContext::destroy()
+	{
+		trx_delete_inline(this);
 	}
 
 	RHIContext* VulkanAPI::create_context()
 	{
-		return nullptr;
+		return trx_new VulkanContext();
 	}
 }// namespace Engine

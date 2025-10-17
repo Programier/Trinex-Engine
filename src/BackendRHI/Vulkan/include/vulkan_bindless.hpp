@@ -58,7 +58,7 @@ namespace Engine
 		~VulkanDescriptorHeap();
 		RHIDescriptor allocate(vk::Sampler sampler);
 		RHIDescriptor allocate(vk::ImageView view, HeapType heap);
-		RHIDescriptor allocate(VulkanBuffer* buffer, uint64_t offset, uint64_t size, HeapType heap);
+		RHIDescriptor allocate(VulkanBuffer* buffer, HeapType heap);
 		VulkanDescriptorHeap& release(RHIDescriptor descriptor, HeapType heap);
 
 		inline vk::DescriptorSetLayout descriptor_set_layout() const { return m_descriptor_set_layout; }

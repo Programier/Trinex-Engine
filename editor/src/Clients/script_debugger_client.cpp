@@ -922,7 +922,7 @@ namespace Engine
 
 				m_render_finished.lock();
 				render_thread()->call([this]() {
-					rhi->submit();
+					//rhi->submit();
 					m_render_finished.unlock();
 				});
 			}

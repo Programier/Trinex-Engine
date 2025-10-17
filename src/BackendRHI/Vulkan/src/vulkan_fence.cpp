@@ -1,28 +1,48 @@
 #include <vulkan_api.hpp>
 #include <vulkan_context.hpp>
 #include <vulkan_fence.hpp>
+#include <vulkan_queue.hpp>
 
 namespace Engine
 {
-	VulkanFence::VulkanFence(bool is_signaled) : m_is_signaled(is_signaled)
+	VulkanFence::VulkanFence(bool is_signaled)
 	{
 		if (is_signaled)
-			m_fence = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+		{
+			m_fence  = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+			m_status = Status::Signaled;
+		}
 		else
-			m_fence = API->m_device.createFence({});
+		{
+			m_fence  = API->m_device.createFence({});
+			m_status = Status::Unsignaled;
+		}
 	}
 
 	bool VulkanFence::update_status() const
 	{
-		m_is_signaled = API->m_device.getFenceStatus(m_fence) == vk::Result::eSuccess;
-		return m_is_signaled;
+		if (API->m_device.getFenceStatus(m_fence) == vk::Result::eSuccess)
+		{
+			m_status = Status::Signaled;
+			return true;
+		}
+		return false;
 	}
 
-	VulkanFence& VulkanFence::reset()
+	bool VulkanFence::is_signaled()
+	{
+		if (m_status == Status::Undefined)
+		{
+			return update_status();
+		}
+
+		return m_status == Status::Signaled;
+	}
+
+	void VulkanFence::reset()
 	{
 		API->m_device.resetFences(m_fence);
-		m_is_signaled = false;
-		return *this;
+		m_status = Status::Unsignaled;
 	}
 
 	VulkanFence& VulkanFence::wait()
@@ -37,36 +57,14 @@ namespace Engine
 		DESTROY_CALL(destroyFence, m_fence);
 	}
 
-	bool VulkanFenceRef::is_signaled()
-	{
-		if (m_cmd)
-		{
-			m_cmd->refresh_fence_status();
-			return m_fence_signaled_count != m_cmd->fence_signaled_count();
-		}
-		return false;
-	}
-
-	void VulkanFenceRef::reset()
-	{
-		m_cmd = nullptr;
-	}
-
-	VulkanFenceRef& VulkanFenceRef::signal(VulkanCommandHandle* cmd_buffer)
-	{
-		m_cmd                  = cmd_buffer;
-		m_fence_signaled_count = cmd_buffer->fence_signaled_count();
-		return *this;
-	}
-
 	RHIFence* VulkanAPI::create_fence()
 	{
-		return trx_new VulkanFenceRef();
+		return trx_new VulkanFence();
 	}
 
-	VulkanAPI& VulkanAPI::signal_fence(RHIFence* fence)
+	VulkanAPI& VulkanAPI::signal(RHIFence* fence)
 	{
-		static_cast<VulkanFenceRef*>(fence)->signal(current_command_buffer());
+		m_graphics_queue->submit({}, static_cast<VulkanFence*>(fence)->fence());
 		return *this;
 	}
 }// namespace Engine

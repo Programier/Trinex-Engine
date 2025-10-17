@@ -7,6 +7,7 @@
 namespace Engine
 {
 	class VulkanRenderPass;
+	class VulkanContext;
 
 	class VulkanRenderTarget
 	{
@@ -34,7 +35,6 @@ namespace Engine
 		static VulkanRenderTarget* find_or_create(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
 
 		VulkanRenderTarget& init(VulkanTextureRTV** targets, VulkanTextureDSV* depth);
-		VulkanRenderTarget& lock_surfaces();
 		inline vk::Framebuffer framebuffer() const { return m_framebuffer; }
 		inline VulkanRenderPass* render_pass() const { return m_render_pass; }
 		inline uint16_t width() const { return m_width; }

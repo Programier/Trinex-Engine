@@ -12,6 +12,7 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
 #include <Graphics/shader_compiler.hpp>
+#include <RHI/context.hpp>
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
@@ -85,7 +86,7 @@ namespace Engine
 	{
 		if (RHIPipeline* pipeline = m_pipeline)
 		{
-			pipeline->bind();
+			rhi->context()->bind_pipeline(pipeline);
 		}
 		return *this;
 	}

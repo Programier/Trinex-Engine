@@ -10,6 +10,7 @@
 #include <vulkan_fence.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Engine
@@ -41,7 +42,7 @@ namespace Engine
 					case vk::DescriptorType::eCombinedImageSampler: ++m_combined_image_sampler; break;
 					case vk::DescriptorType::eStorageImage: ++m_storage_images; break;
 
-					case vk::DescriptorType::eUniformBuffer: ++m_uniform_buffers; break;
+					case vk::DescriptorType::eUniformBufferDynamic: ++m_uniform_buffers; break;
 					case vk::DescriptorType::eStorageBuffer: ++m_storage_buffers; break;
 					case vk::DescriptorType::eUniformTexelBuffer: ++m_uniform_texel_buffers; break;
 					case vk::DescriptorType::eStorageTexelBuffer: ++m_storage_texel_buffers; break;
@@ -80,7 +81,6 @@ namespace Engine
 
 	private:
 		vk::DescriptorPool m_pool;
-
 		uint32_t m_descriptors;
 
 		union
@@ -99,8 +99,6 @@ namespace Engine
 
 			uint32_t m_pool_sizes[9];
 		};
-
-		VulkanFenceRef m_fence;
 
 		void reset_counters()
 		{
@@ -128,7 +126,7 @@ namespace Engine
 			        {vk::DescriptorType::eSampler, m_samplers},
 			        {vk::DescriptorType::eCombinedImageSampler, m_combined_image_sampler},
 			        {vk::DescriptorType::eStorageImage, m_storage_images},
-			        {vk::DescriptorType::eUniformBuffer, m_uniform_buffers},
+			        {vk::DescriptorType::eUniformBufferDynamic, m_uniform_buffers},
 			        {vk::DescriptorType::eStorageBuffer, m_storage_buffers},
 			        {vk::DescriptorType::eUniformTexelBuffer, m_uniform_texel_buffers},
 			        {vk::DescriptorType::eStorageTexelBuffer, m_storage_texel_buffers},
@@ -150,14 +148,6 @@ namespace Engine
 			API->m_device.resetDescriptorPool(m_pool);
 			return *this;
 		}
-
-		VulkanDescriptorPool& submit()
-		{
-			m_fence.signal(API->current_command_buffer());
-			return *this;
-		}
-
-		bool is_free() { return m_fence.is_signaled() || !m_fence.is_waiting(); }
 
 		vk::DescriptorSet allocate(VulkanPipelineLayout* layout)
 		{
@@ -202,54 +192,225 @@ namespace Engine
 		}
 	};
 
+	struct VulkanDescriptorSetAllocator::Binding {
+		struct Descriptor {
+			using enum vk::ImageLayout;
+
+			uint64_t data[2];
+
+			inline void zeros() { data[0] = data[1] = 0; }
+
+			template<typename T>
+			inline Descriptor& operator=(const T& object)
+			{
+				static_assert(alignof(T) == alignof(Descriptor));
+				static_assert(sizeof(T) <= sizeof(Descriptor));
+
+				const uint64_t* src = reinterpret_cast<const uint64_t*>(&object);
+
+				data[0] = src[0];
+
+				if constexpr (sizeof(T) > 8)
+					data[1] = src[1];
+				else
+					data[1] = 0;
+
+				return *this;
+			}
+
+			inline Descriptor& operator=(const VulkanStateManager::UniformBuffer& buffer)
+			{
+				VulkanStateManager::UniformBuffer& dst = as<VulkanStateManager::UniformBuffer>();
+				dst.buffer                             = buffer.buffer;
+				dst.size                               = buffer.size;
+				dst.offset                             = buffer.offset;
+				return *this;
+			}
+
+			template<typename T>
+			inline const T& as() const
+			{
+				static_assert(alignof(T) == alignof(Descriptor));
+				static_assert(sizeof(T) <= sizeof(Descriptor));
+				return *reinterpret_cast<const T*>(data);
+			}
+
+			template<typename T>
+			inline T& as()
+			{
+				static_assert(alignof(T) == alignof(Descriptor));
+				static_assert(sizeof(T) <= sizeof(Descriptor));
+				return *reinterpret_cast<T*>(data);
+			}
+
+			inline void write_sampled_image(vk::WriteDescriptorSet* write)
+			{
+				const VulkanTextureSRV* srv = as<VulkanTextureSRV*>();
+				write->pImageInfo           = trx_stack_new vk::DescriptorImageInfo({}, srv->view(), eShaderReadOnlyOptimal);
+			}
+
+			inline void write_sampler(vk::WriteDescriptorSet* write)
+			{
+				const vk::Sampler& sampler = as<vk::Sampler>();
+				write->pImageInfo          = trx_stack_new vk::DescriptorImageInfo(sampler, {}, eUndefined);
+			}
+
+			inline void write_combined_image_sampler(vk::WriteDescriptorSet* write)
+			{
+				auto& [srv, sampler] = as<VulkanStateManager::CombinedImage>();
+				write->pImageInfo    = trx_stack_new vk::DescriptorImageInfo(sampler, srv->view(), eShaderReadOnlyOptimal);
+			}
+
+			inline void write_storage_image(vk::WriteDescriptorSet* write)
+			{
+				VulkanTextureUAV* uav = as<VulkanTextureUAV*>();
+				write->pImageInfo     = trx_stack_new vk::DescriptorImageInfo({}, uav->view(), eGeneral);
+			}
+
+			inline void write_uniform_buffer(vk::WriteDescriptorSet* write)
+			{
+				auto& buffer       = as<VulkanStateManager::UniformBuffer>();
+				write->pBufferInfo = trx_stack_new vk::DescriptorBufferInfo(buffer.buffer, 0, buffer.size);
+			}
+
+			inline void write_buffer(vk::WriteDescriptorSet* write)
+			{
+				auto& buffer       = as<vk::Buffer>();
+				write->pBufferInfo = trx_stack_new vk::DescriptorBufferInfo(buffer, 0, vk::WholeSize);
+			}
+
+			inline void write_acceleration(vk::WriteDescriptorSet* write)
+			{
+				auto& tlas   = as<vk::AccelerationStructureKHR>();
+				write->pNext = trx_stack_new vk::WriteDescriptorSetAccelerationStructureKHR(tlas);
+			}
+		};
+
+		vk::DescriptorType type;
+		uint32_t binding;
+		Descriptor descriptor;
+	};
+
 	VulkanDescriptorSetAllocator::VulkanDescriptorSetAllocator()
 	{
-		m_current  = trx_new VulkanDescriptorPool();
 		m_pool     = trx_new VulkanDescriptorPool();
 		m_push_ptr = &m_pool->next;
 	}
 
 	VulkanDescriptorSetAllocator::~VulkanDescriptorSetAllocator()
 	{
-		trx_delete m_current;
+		VulkanDescriptorPool* current = nullptr;
 
 		while (m_pool)
 		{
-			m_current = m_pool;
-			m_pool    = m_pool->next;
-
-			trx_delete m_current;
+			current = m_pool;
+			m_pool  = m_pool->next;
+			trx_delete current;
 		}
 	}
 
 	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout)
 	{
-		trinex_profile_cpu_n("VulkanDescriptorSetAllocator::allocate");
-		vk::DescriptorSet set;
-		while (!(set = m_current->allocate(layout))) submit();
+		VulkanDescriptorPool* pool = m_pool;
+		vk::DescriptorSet set      = pool->allocate(layout);
+
+		while (!set && pool->next)
+		{
+			pool = pool->next;
+			set  = pool->allocate(layout);
+		}
+
+		if (!set)
+		{
+			pool->next = trx_new VulkanDescriptorPool();
+			set        = pool->next->allocate(layout);
+		}
+
 		return set;
 	}
 
-	VulkanDescriptorSetAllocator& VulkanDescriptorSetAllocator::submit()
+	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, VulkanStateManager* state)
 	{
-		trinex_profile_cpu_n("VulkanDescriptorSetAllocator::submit");
+		const size_t count     = layout->descriptors_count();
+		const auto* descritors = layout->descriptors();
+		StackByteAllocator::Mark mark;
 
-		(*m_push_ptr) = m_current;
-		m_push_ptr    = &m_current->next;
-		m_current->submit();
+		Binding* bindings = StackAllocator<Binding>::allocate(count);
 
-		if (m_pool->is_free())
+		for (size_t i = 0; i < count; ++i)
 		{
-			m_current       = m_pool;
-			m_pool          = m_pool->next;
-			m_current->next = nullptr;
-			m_current->reset();
+			const auto* src = descritors + i;
+			Binding* dst    = bindings + i;
+
+			dst->type    = src->type;
+			dst->binding = src->binding;
+
+			switch (dst->type)
+			{
+				case vk::DescriptorType::eSampledImage: dst->descriptor = state->srv_images.resource(dst->binding); break;
+				case vk::DescriptorType::eSampler: dst->descriptor = state->samplers.resource(dst->binding); break;
+				case vk::DescriptorType::eCombinedImageSampler:
+				{
+					dst->descriptor = VulkanStateManager::CombinedImage{
+					        state->srv_images.resource(dst->binding),
+					        state->samplers.resource(dst->binding),
+					};
+					break;
+				}
+				case vk::DescriptorType::eStorageImage: dst->descriptor = state->storage_buffers.resource(dst->binding); break;
+				case vk::DescriptorType::eUniformBufferDynamic:
+				{
+					dst->descriptor = state->uniform_buffers.resource(dst->binding);
+					break;
+				}
+				case vk::DescriptorType::eStorageBuffer: dst->descriptor = state->storage_buffers.resource(dst->binding); break;
+				case vk::DescriptorType::eUniformTexelBuffer:
+					dst->descriptor = state->uniform_texel_buffers.resource(dst->binding);
+					break;
+				case vk::DescriptorType::eStorageTexelBuffer:
+					dst->descriptor = state->storage_texel_buffers.resource(dst->binding);
+					break;
+				case vk::DescriptorType::eAccelerationStructureKHR:
+					dst->descriptor = state->acceleration_structures.resource(dst->binding);
+					break;
+				default: dst->descriptor.zeros(); break;
+			}
 		}
-		else
+
+		uint64_t hash = memory_hash(bindings, count * sizeof(Binding));
+
+		vk::DescriptorSet& set = m_table[hash];
+
+		if (set)
+			return set;
+
+		set = allocate(layout);
+
+		vk::WriteDescriptorSet* writes = StackAllocator<vk::WriteDescriptorSet>::allocate(count);
+
+		for (size_t i = 0; i < count; ++i)
 		{
-			m_current = trx_new VulkanDescriptorPool();
+			Binding* src                = bindings + i;
+			vk::WriteDescriptorSet* dst = writes + i;
+			new (dst) vk::WriteDescriptorSet(set, src->binding, 0, 1, src->type);
+
+			switch (src->type)
+			{
+				case vk::DescriptorType::eSampledImage: src->descriptor.write_sampled_image(dst); break;
+				case vk::DescriptorType::eSampler: src->descriptor.write_sampler(dst); break;
+				case vk::DescriptorType::eCombinedImageSampler: src->descriptor.write_combined_image_sampler(dst); break;
+				case vk::DescriptorType::eStorageImage: src->descriptor.write_storage_image(dst); break;
+				case vk::DescriptorType::eUniformBufferDynamic: src->descriptor.write_uniform_buffer(dst); break;
+				case vk::DescriptorType::eStorageBuffer: src->descriptor.write_buffer(dst); break;
+				case vk::DescriptorType::eUniformTexelBuffer: src->descriptor.write_buffer(dst); break;
+				case vk::DescriptorType::eStorageTexelBuffer: src->descriptor.write_buffer(dst); break;
+				case vk::DescriptorType::eAccelerationStructureKHR: src->descriptor.write_acceleration(dst); break;
+				default: break;
+			}
 		}
-		return *this;
+
+		API->m_device.updateDescriptorSets(count, writes, 0, nullptr);
+		return set;
 	}
 
 	VulkanPipelineLayout* VulkanAPI::create_pipeline_layout(const RHIShaderParameterInfo* parameters, size_t count,

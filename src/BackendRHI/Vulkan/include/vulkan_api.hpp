@@ -65,7 +65,6 @@ namespace Engine
 		} pfn;
 
 		// API DATA
-		VulkanStateManager* m_state_manager;
 		vkb::Instance m_instance;
 		vk::PhysicalDevice m_physical_device;
 		vk::Device m_device;
@@ -150,6 +149,7 @@ namespace Engine
 		inline VulkanDescriptorSetAllocator* descriptor_set_allocator() const { return m_descriptor_set_allocator; }
 		inline VulkanCommandBufferManager* command_buffer_mananger() const { return m_cmd_manager; }
 		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
+		inline VulkanQueryPoolManager* query_pool_manager() const { return m_query_pool_manager; }
 		inline const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& ray_trace_properties() const
 		{
 			return m_ray_trace_properties;
@@ -180,41 +180,17 @@ namespace Engine
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 		bool has_stencil_component(vk::Format format);
 
-		class VulkanCommandHandle* current_command_buffer();
-
-		VulkanCommandHandle* begin_render_pass();
-		VulkanCommandHandle* end_render_pass();
-
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
 		VulkanAPI& add_garbage(RHIObject* object);
 		//////////////////////////////////////////////////////////////
 
 		VulkanAPI();
 
-		VulkanAPI& submit() override;
+		VulkanAPI& signal(RHIFence* fence) override;
+		VulkanAPI& submit(RHICommandHandle* cmd) override;
 		VulkanAPI& wait_idle();
 
-		VulkanAPI& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
-		                              RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) override;
-		VulkanAPI& viewport(const RHIViewport& viewport) override;
-		VulkanAPI& scissor(const RHIScissors& scissor) override;
-
 		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);
-
-		VulkanAPI& draw(size_t vertex_count, size_t vertices_offset) override;
-		VulkanAPI& draw_indexed(size_t indices, size_t offset, size_t vertices_offset) override;
-		VulkanAPI& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
-		VulkanAPI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-		                                  size_t instances) override;
-
-		VulkanAPI& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
-
-		VulkanAPI& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
-
-		VulkanAPI& trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen = 0, const RHIRange& miss = {},
-		                      const RHIRange& hit = {}, const RHIRange& callable = {}) override;
-
-		VulkanAPI& signal_fence(RHIFence* fence) override;
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
@@ -233,53 +209,6 @@ namespace Engine
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) override;
-
-		VulkanAPI& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) override;
-
-		VulkanAPI& push_debug_stage(const char* stage) override;
-		VulkanAPI& pop_debug_stage() override;
-
-		VulkanAPI& update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data) override;
-		VulkanAPI& update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, size_t size,
-		                          size_t buffer_width, size_t buffer_height) override;
-
-		VulkanAPI& copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset,
-		                                 size_t dst_offset) override;
-
-		VulkanAPI& copy_texture_to_buffer(RHITexture* texture, uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
-		                                  const Vector3u& extent, RHIBuffer* buffer, size_t buffer_offset) override;
-
-		VulkanAPI& copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture, uint8_t mip_level,
-		                                  uint16_t array_slice, const Vector3u& offset, const Vector3u& extent) override;
-
-		VulkanAPI& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
-		                                   const RHITextureRegion& dst_region) override;
-
-		VulkanAPI& primitive_topology(RHIPrimitiveTopology topology) override;
-		VulkanAPI& polygon_mode(RHIPolygonMode mode) override;
-		VulkanAPI& cull_mode(RHICullMode mode) override;
-		VulkanAPI& front_face(RHIFrontFace face) override;
-		VulkanAPI& write_mask(RHIColorComponent mask) override;
-
-		VulkanAPI& bind_vertex_attribute(RHIVertexSemantic semantic, byte semantic_index, byte stream, uint16_t offset) override;
-		VulkanAPI& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
-		                              RHIVertexInputRate rate) override;
-		VulkanAPI& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;
-		VulkanAPI& bind_uniform_buffer(RHIBuffer* buffer, byte slot) override;
-		VulkanAPI& bind_uniform_buffer(VulkanBuffer* buffer, size_t size, size_t offset, byte slot);
-		VulkanAPI& bind_srv(RHIShaderResourceView* view, byte slot) override;
-		VulkanAPI& bind_uav(RHIUnorderedAccessView* view, byte slot) override;
-		VulkanAPI& bind_sampler(RHISampler* view, byte slot) override;
-		VulkanAPI& bind_acceleration(RHIAccelerationStructure* acceleration, byte slot) override;
-
-		VulkanAPI& barrier(RHITexture* texture, RHIAccess dst_access) override;
-		VulkanAPI& barrier(RHIBuffer* buffer, RHIAccess dst_access) override;
-
-		VulkanAPI& begin_timestamp(RHITimestamp* timestamp) override;
-		VulkanAPI& end_timestamp(RHITimestamp* timestamp) override;
-
-		VulkanAPI& begin_statistics(RHIPipelineStatistics* stats) override;
-		VulkanAPI& end_statistics(RHIPipelineStatistics* stats) override;
 
 		VulkanAPI& present(RHISwapchain* swapchain) override;
 

@@ -8,6 +8,8 @@
 
 namespace Engine
 {
+	class VulkanStateManager;
+
 	class VulkanPipelineLayout : public RHIObject
 	{
 	public:
@@ -19,6 +21,12 @@ namespace Engine
 			inline bool operator!=(const Descriptor& other) const { return type != other.type || binding != other.binding; }
 			inline bool operator<(const Descriptor& other) const
 			{
+				const bool is_this_uniform  = (type == vk::DescriptorType::eUniformBuffer);
+				const bool is_other_uniform = (other.type == vk::DescriptorType::eUniformBuffer);
+
+				if (is_this_uniform != is_other_uniform)
+					return is_this_uniform;
+
 				if (type != other.type)
 					return static_cast<uint32_t>(type) < static_cast<uint32_t>(other.type);
 
@@ -29,10 +37,9 @@ namespace Engine
 	private:
 		vk::DescriptorSetLayout m_set_layout;
 		vk::PipelineLayout m_layout;
-		Descriptor* m_descriptors    = nullptr;
-		uint64_t m_hash              = 0;
-		uint16_t m_descriptors_count = 0;
-
+		Descriptor* m_descriptors     = nullptr;
+		uint64_t m_hash               = 0;
+		uint16_t m_descriptors_count  = 0;
 		byte m_textures               = 0;
 		byte m_samplers               = 0;
 		byte m_combined_image_sampler = 0;
@@ -84,21 +91,23 @@ namespace Engine
 		friend class VulkanPipelineLayoutManager;
 	};
 
-
 	class VulkanDescriptorSetAllocator
 	{
-	private:
+	public:
 		struct VulkanDescriptorPool;
+		struct Binding;
 
+	private:
 		VulkanDescriptorPool* m_pool      = nullptr;
 		VulkanDescriptorPool** m_push_ptr = nullptr;
-		VulkanDescriptorPool* m_current   = nullptr;
 
-		VulkanDescriptorSetAllocator& submit();
+		Map<uint64_t, vk::DescriptorSet> m_table;
+
+		vk::DescriptorSet allocate(VulkanPipelineLayout* layout);
 
 	public:
 		VulkanDescriptorSetAllocator();
 		~VulkanDescriptorSetAllocator();
-		vk::DescriptorSet allocate(VulkanPipelineLayout* layout);
+		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, VulkanStateManager* state);
 	};
 }// namespace Engine

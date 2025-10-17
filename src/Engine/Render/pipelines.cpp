@@ -10,6 +10,7 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 #include <random>
@@ -50,11 +51,11 @@ namespace Engine::Pipelines
 			sampler = RHIBilinearSampler::static_sampler();
 
 		rhi_bind();
-		rhi->bind_srv(src, m_source->binding);
-		rhi->bind_sampler(sampler, m_source->binding);
-		rhi->update_scalar(&args, sizeof(args), m_args);
+		rhi->context()->bind_srv(src, m_source->binding);
+		rhi->context()->bind_sampler(sampler, m_source->binding);
+		rhi->context()->update_scalar(&args, sizeof(args), m_args);
 
-		rhi->draw(6, 0);
+		rhi->context()->draw(6, 0);
 	}
 
 	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/graphics/blit.slang")
@@ -84,11 +85,11 @@ namespace Engine::Pipelines
 		shader_args.swizzle  = swizzle;
 
 		rhi_bind();
-		rhi->bind_srv(src, m_source->binding);
-		rhi->bind_sampler(sampler, m_source->binding);
-		rhi->update_scalar(&shader_args, sizeof(shader_args), m_args);
+		rhi->context()->bind_srv(src, m_source->binding);
+		rhi->context()->bind_sampler(sampler, m_source->binding);
+		rhi->context()->update_scalar(&shader_args, sizeof(shader_args), m_args);
 
-		rhi->draw(6, 0);
+		rhi->context()->draw(6, 0);
 	}
 
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang")
@@ -151,13 +152,13 @@ namespace Engine::Pipelines
 
 	TonemappingACES& TonemappingACES::apply(Renderer* renderer)
 	{
-		rhi->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
+		rhi->context()->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
 		rhi_bind();
 
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
-		rhi->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
-		rhi->draw(6, 0);
+		rhi->context()->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->context()->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
+		rhi->context()->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
+		rhi->context()->draw(6, 0);
 
 		return *this;
 	}
@@ -269,15 +270,15 @@ namespace Engine::Pipelines
 		args.fade_out_radius   = fade_out_radius;
 		args.samples           = samples;
 
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->update_scalar(&args, sizeof(args), 0, m_args->binding);
-		rhi->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
-		rhi->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
-		rhi->bind_srv(DefaultResources::Textures::noise4x4->rhi_srv(), m_noise->binding);
-		rhi->bind_srv(m_samples_buffer->as_srv(), m_samples->binding);
-		rhi->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
+		rhi->context()->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->context()->update_scalar(&args, sizeof(args), 0, m_args->binding);
+		rhi->context()->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
+		rhi->context()->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
+		rhi->context()->bind_srv(DefaultResources::Textures::noise4x4->rhi_srv(), m_noise->binding);
+		rhi->context()->bind_srv(m_samples_buffer->as_srv(), m_samples->binding);
+		rhi->context()->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
 
-		rhi->draw(6, 0);
+		rhi->context()->draw(6, 0);
 		return *this;
 	}
 
@@ -301,9 +302,9 @@ namespace Engine::Pipelines
 	ClusterInitialize& ClusterInitialize::build(RHIBuffer* clusters, Renderer* renderer)
 	{
 		rhi_bind();
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->bind_uav(clusters->as_uav(), m_clusters->binding);
-		rhi->dispatch(16, 9, 24);
+		rhi->context()->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->context()->bind_uav(clusters->as_uav(), m_clusters->binding);
+		rhi->context()->dispatch(16, 9, 24);
 		return *this;
 	}
 
@@ -319,11 +320,11 @@ namespace Engine::Pipelines
 	                                               const LightRenderRanges& ranges)
 	{
 		rhi_bind();
-		rhi->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		rhi->bind_uav(clusters->as_uav(), m_clusters->binding);
-		rhi->bind_srv(lights->as_srv(), m_lights->binding);
-		rhi->update_scalar(&ranges, m_ranges);
-		rhi->dispatch(27, 1, 1);
+		rhi->context()->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		rhi->context()->bind_uav(clusters->as_uav(), m_clusters->binding);
+		rhi->context()->bind_srv(lights->as_srv(), m_lights->binding);
+		rhi->context()->update_scalar(&ranges, m_ranges);
+		rhi->context()->dispatch(27, 1, 1);
 		return *this;
 	}
 }// namespace Engine::Pipelines

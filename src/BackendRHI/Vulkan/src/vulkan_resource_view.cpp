@@ -65,60 +65,6 @@ namespace Engine
 		API->m_device.destroyImageView(m_view);
 	}
 
-	void VulkanTextureRTV::clear(const LinearColor& color)
-	{
-		API->end_render_pass();
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ClearColorValue clear_value;
-		clear_value.setFloat32({color.r, color.g, color.b, color.a});
-
-		vk::ImageSubresourceRange range;
-		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(m_base_layer)
-		        .setLayerCount(m_layer_count)
-		        .setBaseMipLevel(m_mip)
-		        .setLevelCount(1);
-
-		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
-	}
-
-	void VulkanTextureRTV::clear_uint(const Vector4u& value)
-	{
-		API->end_render_pass();
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ClearColorValue clear_value;
-		clear_value.setUint32({value.r, value.g, value.b, value.a});
-
-		vk::ImageSubresourceRange range;
-		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(m_base_layer)
-		        .setLayerCount(m_layer_count)
-		        .setBaseMipLevel(m_mip)
-		        .setLevelCount(1);
-
-		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
-	}
-
-	void VulkanTextureRTV::clear_sint(const Vector4i& value)
-	{
-		API->end_render_pass();
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ClearColorValue clear_value;
-		clear_value.setInt32({value.r, value.g, value.b, value.a});
-
-		vk::ImageSubresourceRange range;
-		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
-		        .setBaseArrayLayer(m_base_layer)
-		        .setLayerCount(m_layer_count)
-		        .setBaseMipLevel(m_mip)
-		        .setLevelCount(1);
-
-		API->current_command_buffer()->clearColorImage(image(), layout(), clear_value, range);
-	}
-
 	VulkanTextureDSV::~VulkanTextureDSV()
 	{
 		while (!m_render_targets.empty())
@@ -130,28 +76,9 @@ namespace Engine
 		API->m_device.destroyImageView(m_view);
 	}
 
-	void VulkanTextureDSV::clear(float depth, byte stencil)
+	VulkanStorageBufferSRV::VulkanStorageBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer)
 	{
-		API->end_render_pass();
-
-		change_layout(vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ClearDepthStencilValue value;
-		value.setDepth(depth).setStencil(stencil);
-		vk::ImageSubresourceRange range;
-		range.setAspectMask(m_texture->aspect())
-		        .setBaseArrayLayer(m_base_layer)
-		        .setLayerCount(m_layer_count)
-		        .setBaseMipLevel(m_mip)
-		        .setLevelCount(1);
-
-		API->current_command_buffer()->clearDepthStencilImage(image(), layout(), value, range);
-	}
-
-	VulkanStorageBufferSRV::VulkanStorageBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-	    : VulkanBufferSRV(buffer, offset, size)
-	{
-		m_descriptor = API->descriptor_heap()->allocate(buffer, offset, size, VulkanDescriptorHeap::StorageBuffer);
+		m_descriptor = API->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanStorageBufferSRV::~VulkanStorageBufferSRV()
@@ -161,14 +88,13 @@ namespace Engine
 
 	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanStateManager* manager, byte index)
 	{
-		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), size(), offset()), index);
+		manager->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
-	VulkanUniformTexelBufferSRV::VulkanUniformTexelBufferSRV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-	    : VulkanBufferSRV(buffer, offset, size)
+	VulkanUniformTexelBufferSRV::VulkanUniformTexelBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(buffer, offset, size, VulkanDescriptorHeap::UniformTexelBuffer);
+		m_descriptor = API->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::UniformTexelBuffer);
 	}
 
 	VulkanUniformTexelBufferSRV::~VulkanUniformTexelBufferSRV()
@@ -178,14 +104,13 @@ namespace Engine
 
 	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanStateManager* manager, byte index)
 	{
-		manager->uniform_texel_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), size(), offset()), index);
+		manager->uniform_texel_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
-	VulkanBufferUAV::VulkanBufferUAV(VulkanBuffer* buffer, uint32_t offset, uint32_t size)
-	    : m_buffer(buffer), m_offset(offset), m_size(size)
+	VulkanBufferUAV::VulkanBufferUAV(VulkanBuffer* buffer) : m_buffer(buffer)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(buffer, offset, size, VulkanDescriptorHeap::StorageBuffer);
+		m_descriptor = API->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanBufferUAV::~VulkanBufferUAV()
@@ -195,19 +120,71 @@ namespace Engine
 
 	VulkanUAV& VulkanBufferUAV::bind(VulkanStateManager* manager, byte index)
 	{
-		manager->storage_buffers.bind(VulkanStateManager::Buffer(buffer()->buffer(), m_size, m_offset), index);
+		manager->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::bind_srv(RHIShaderResourceView* view, byte slot)
+	VulkanContext& VulkanContext::bind_srv(RHIShaderResourceView* view, byte slot)
 	{
-		static_cast<VulkanSRV*>(view)->bind(API->m_state_manager, slot);
+		static_cast<VulkanSRV*>(view)->bind(m_state_manager, slot);
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::bind_uav(RHIUnorderedAccessView* view, byte slot)
+	VulkanContext& VulkanContext::bind_uav(RHIUnorderedAccessView* view, byte slot)
 	{
-		static_cast<VulkanUAV*>(view)->bind(API->m_state_manager, slot);
+		static_cast<VulkanUAV*>(view)->bind(m_state_manager, slot);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::clear_rtv(RHIRenderTargetView* rtv, const vk::ClearColorValue& color)
+	{
+		end_render_pass();
+
+		VulkanTextureRTV* view = static_cast<VulkanTextureRTV*>(rtv);
+
+		vk::ImageSubresourceRange range;
+		range.setAspectMask(vk::ImageAspectFlagBits::eColor)
+		        .setBaseArrayLayer(view->base_layer())
+		        .setLayerCount(view->layer_count())
+		        .setBaseMipLevel(view->mip())
+		        .setLevelCount(1);
+
+		m_cmd->clearColorImage(view->image(), vk::ImageLayout::eTransferDstOptimal, color, range);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::clear_rtv(RHIRenderTargetView* rtv, float_t r, float_t g, float_t b, float_t a)
+	{
+		return clear_rtv(rtv, std::array<float, 4>({r, g, b, a}));
+	}
+
+	VulkanContext& VulkanContext::clear_urtv(RHIRenderTargetView* rtv, uint_t r, uint_t g, uint_t b, uint_t a)
+	{
+		return clear_rtv(rtv, std::array<uint32_t, 4>({r, g, b, a}));
+	}
+
+	VulkanContext& VulkanContext::clear_irtv(RHIRenderTargetView* rtv, int_t r, int_t g, int_t b, int_t a)
+	{
+		return clear_rtv(rtv, std::array<int32_t, 4>({r, g, b, a}));
+	}
+
+	VulkanContext& VulkanContext::clear_dsv(RHIDepthStencilView* dsv, float_t depth, byte stencil)
+	{
+		end_render_pass();
+
+		VulkanTextureDSV* view = static_cast<VulkanTextureDSV*>(dsv);
+		VulkanTexture* texture = view->texture();
+
+		vk::ClearDepthStencilValue value;
+		value.setDepth(depth).setStencil(stencil);
+		vk::ImageSubresourceRange range;
+		range.setAspectMask(texture->aspect())
+		        .setBaseArrayLayer(view->base_layer())
+		        .setLayerCount(view->layer_count())
+		        .setBaseMipLevel(view->mip())
+		        .setLevelCount(1);
+
+		m_cmd->clearDepthStencilImage(view->image(), vk::ImageLayout::eTransferDstOptimal, value, range);
 		return *this;
 	}
 }// namespace Engine

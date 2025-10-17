@@ -12,6 +12,7 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -83,8 +84,8 @@ namespace Engine
 			m_child_renderer = m_child_renderer->next;
 		}
 
-		rhi->viewport(m_view.viewport());
-		rhi->scissor(m_view.scissor());
+		rhi->context()->viewport(m_view.viewport());
+		rhi->context()->scissor(m_view.scissor());
 		m_graph->execute();
 
 		return *this;
@@ -127,9 +128,9 @@ namespace Engine
 			                     .add_resource(target, RHIAccess::TransferDst);
 
 			if (type == SceneDepth)
-				pass.add_func([target]() { target->as_dsv()->clear(1.f, 0); });
+				pass.add_func([target]() { rhi->context()->clear_dsv(target->as_dsv()); });
 			else
-				pass.add_func([target]() { target->as_rtv()->clear(LinearColor(0.f, 0.f, 0.f, 0.f)); });
+				pass.add_func([target]() { rhi->context()->clear_rtv(target->as_rtv()); });
 		}
 
 		return m_surfaces[type];
@@ -144,9 +145,9 @@ namespace Engine
 
 			GlobalShaderParameters params;
 			params.update(&m_view, m_view.view_size());
-			rhi->barrier(m_globals, RHIAccess::TransferDst);
-			rhi->update_buffer(m_globals, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
-			rhi->barrier(m_globals, RHIAccess::UniformBuffer);
+			rhi->context()->barrier(m_globals, RHIAccess::TransferDst);
+			rhi->context()->update_buffer(m_globals, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
+			rhi->context()->barrier(m_globals, RHIAccess::UniformBuffer);
 		}
 		return m_globals;
 	}

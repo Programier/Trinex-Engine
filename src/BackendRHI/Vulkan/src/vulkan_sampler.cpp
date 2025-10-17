@@ -3,6 +3,7 @@
 #include <RHI/initializers.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
+#include <vulkan_context.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
@@ -92,7 +93,7 @@ namespace Engine
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 
-	VulkanAPI& VulkanAPI::bind_sampler(RHISampler* sampler, byte slot)
+	VulkanContext& VulkanContext::bind_sampler(RHISampler* sampler, byte slot)
 	{
 		m_state_manager->samplers.bind(static_cast<VulkanSampler*>(sampler)->sampler(), slot);
 		return *this;

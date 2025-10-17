@@ -71,9 +71,9 @@ namespace Engine::Barrier
 		}
 	};
 
-	void transition_image_layout(vk::ImageMemoryBarrier& barrier)
+	void transition_image_layout(VulkanContext* ctx, vk::ImageMemoryBarrier& barrier)
 	{
-		auto cmd = API->end_render_pass();
+		auto cmd = ctx->end_render_pass();
 
 		LayoutFlags src;
 		LayoutFlags dst;
@@ -85,6 +85,4 @@ namespace Engine::Barrier
 		barrier.dstAccessMask = dst.access;
 		cmd->pipelineBarrier(src.stage, dst.stage, {}, {}, {}, barrier);
 	}
-
-	void transition_buffer_access(vk::BufferMemoryBarrier& barrier) {}
 }// namespace Engine::Barrier

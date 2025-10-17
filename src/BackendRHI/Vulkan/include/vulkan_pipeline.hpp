@@ -11,6 +11,7 @@ namespace Engine
 	class VulkanSRV;
 	class VulkanUAV;
 	class VulkanStateManager;
+	class VulkanContext;
 	class VulkanBuffer;
 	class Pipeline;
 
@@ -32,9 +33,8 @@ namespace Engine
 		VulkanPipelineLayout* create_layout(const RHIShaderParameterInfo* parameter, size_t count, vk::ShaderStageFlags stages);
 
 	public:
-		VulkanPipeline& flush_descriptors(VulkanStateManager* manager, vk::PipelineBindPoint);
-		void bind() override;
-		virtual VulkanPipeline& flush(VulkanStateManager* manager) = 0;
+		VulkanPipeline& flush_descriptors(VulkanContext* manager, vk::PipelineBindPoint);
+		virtual VulkanPipeline& flush(VulkanContext* ctx) = 0;
 		inline VulkanPipelineLayout* layout() const { return m_layout; }
 
 		~VulkanPipeline();
@@ -60,7 +60,7 @@ namespace Engine
 
 	public:
 		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
-		VulkanPipeline& flush(VulkanStateManager* manager) override;
+		VulkanPipeline& flush(VulkanContext* ctx) override;
 		~VulkanGraphicsPipeline();
 	};
 
@@ -98,7 +98,7 @@ namespace Engine
 
 	public:
 		VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline);
-		VulkanMeshPipeline& flush(VulkanStateManager* manager) override;
+		VulkanMeshPipeline& flush(VulkanContext* ctx) override;
 		~VulkanMeshPipeline();
 	};
 
@@ -109,7 +109,7 @@ namespace Engine
 
 	public:
 		VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline);
-		VulkanPipeline& flush(VulkanStateManager* manager) override;
+		VulkanPipeline& flush(VulkanContext* ctx) override;
 		~VulkanComputePipeline();
 	};
 
@@ -122,7 +122,7 @@ namespace Engine
 
 	public:
 		VulkanRayTracingPipeline(const RHIRayTracingPipelineInitializer* pipeline);
-		VulkanRayTracingPipeline& flush(VulkanStateManager* manager) override;
+		VulkanRayTracingPipeline& flush(VulkanContext* ctx) override;
 		~VulkanRayTracingPipeline();
 
 		inline size_t groups() const { return m_groups; }

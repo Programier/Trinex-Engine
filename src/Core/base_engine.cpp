@@ -7,6 +7,7 @@
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
@@ -22,7 +23,10 @@ namespace Engine
 
 		void execute() override
 		{
-			rhi->submit();
+			auto handle = rhi->context()->end();
+			rhi->submit(handle);
+			handle->release();
+			rhi->context()->begin();
 			m_signal->unlock();
 		}
 	};

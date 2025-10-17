@@ -7,6 +7,7 @@ namespace Engine
 {
 	struct RHIRayTracingAccelerationInputs;
 	class VulkanBuffer;
+	class VulkanContext;
 
 	class VulkanAccelerationStructure : public VulkanDeferredDestroy<RHIAccelerationStructure>
 	{

@@ -262,15 +262,21 @@ namespace Engine
 		m_acceleration = API->m_device.createAccelerationStructureKHR(info, nullptr, API->pfn);
 
 		RHIBuffer* scratch = RHIBufferPool::global_instance()->request_buffer(sizes.buildScratchSize, flags);
-		API->barrier(scratch, RHIAccess::AccelerationRead | RHIAccess::AccelerationWrite);
+
+		VulkanContext* ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->request_context());
+		ctx->begin().barrier(scratch, RHIAccess::AccelerationRead | RHIAccess::AccelerationWrite);
 
 		build_info.dstAccelerationStructure = m_acceleration;
 		build_info.scratchData              = scratch->address();
 
-		VulkanCommandHandle* cmd = API->current_command_buffer();
+		VulkanCommandHandle* cmd = ctx->handle();
 		cmd->buildAccelerationStructuresKHR(build_info, build_ranges, API->pfn);
 
-		API->submit();
+		cmd = ctx->end();
+		API->submit(cmd);
+		cmd->release();
+
+		RHIContextPool::global_instance()->return_context(ctx);
 		RHIBufferPool::global_instance()->return_buffer(scratch);
 	}
 
@@ -314,18 +320,18 @@ namespace Engine
 		return reinterpret_cast<byte*>(result);
 	}
 
-	VulkanAPI& VulkanAPI::bind_acceleration(RHIAccelerationStructure* acceleration, byte slot)
+	VulkanContext& VulkanContext::bind_acceleration(RHIAccelerationStructure* acceleration, byte slot)
 	{
 		auto tlas = static_cast<VulkanAccelerationStructure*>(acceleration);
 		m_state_manager->acceleration_structures.bind(tlas->handle(), slot);
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen, const RHIRange& miss,
-	                                 const RHIRange& hit, const RHIRange& callable)
+	VulkanContext& VulkanContext::trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen,
+	                                         const RHIRange& miss, const RHIRange& hit, const RHIRange& callable)
 	{
-		const uint64_t handle =
-		        align_up(m_ray_trace_properties.shaderGroupHandleSize, m_ray_trace_properties.shaderGroupBaseAlignment);
+		auto& properties      = API->ray_trace_properties();
+		const uint64_t handle = align_up(properties.shaderGroupHandleSize, properties.shaderGroupBaseAlignment);
 
 		auto pipeline = static_cast<VulkanRayTracingPipeline*>(m_state_manager->pipeline());
 
@@ -348,8 +354,8 @@ namespace Engine
 			callable_region.size          = 0;
 		}
 
-		VulkanCommandHandle* cmd = m_state_manager->flush_raytrace();
-		cmd->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth, pfn);
+		VulkanCommandHandle* cmd = m_state_manager->flush_raytrace(this);
+		cmd->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth, API->pfn);
 		return *this;
 	}
 }// namespace Engine

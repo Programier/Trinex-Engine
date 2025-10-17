@@ -9,6 +9,7 @@
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/sampler.hpp>
+#include <RHI/context.hpp>
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
@@ -176,7 +177,7 @@ namespace Engine
 		{
 			if (auto rhi_sampler = m_sampler->rhi_sampler())
 			{
-				rhi->bind_sampler(rhi_sampler, location);
+				rhi->context()->bind_sampler(rhi_sampler, location);
 			}
 		}
 		return *this;

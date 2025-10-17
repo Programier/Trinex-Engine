@@ -200,6 +200,11 @@ namespace Engine
 		return m_swapchain->as_rtv();
 	}
 
+	RHITexture* WindowRenderViewport::rhi_texture()
+	{
+		return m_swapchain->as_texture();
+	}
+
 	WindowRenderViewport& WindowRenderViewport::vsync(bool flag)
 	{
 		if (is_in_render_thread())

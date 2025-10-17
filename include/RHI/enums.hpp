@@ -195,29 +195,27 @@ namespace Engine
 			// Reading states
 			CPURead          = BIT(0),
 			AccelerationRead = BIT(1),
-			Present          = BIT(2),
-			IndirectArgs     = BIT(3),
-			VertexBuffer     = BIT(4),
-			IndexBuffer      = BIT(5),
-			UniformBuffer    = BIT(6),
-			SRVCompute       = BIT(7),
-			SRVGraphics      = BIT(8),
-			TransferSrc      = BIT(9),
-			ResolveSrc       = BIT(10),
+			IndirectArgs     = BIT(2),
+			VertexBuffer     = BIT(3),
+			IndexBuffer      = BIT(4),
+			UniformBuffer    = BIT(5),
+			SRVCompute       = BIT(6),
+			SRVGraphics      = BIT(7),
+			TransferSrc      = BIT(8),
+			PresentSrc       = BIT(9),
 
 			// Writing states
-			CPUWrite          = BIT(11),
-			AccelerationWrite = BIT(12),
-			UAVCompute        = BIT(13),
-			UAVGraphics       = BIT(14),
-			TransferDst       = BIT(15),
-			ResolveDst        = BIT(16),
-			RTV               = BIT(17),
-			DSV               = BIT(18),
+			CPUWrite          = BIT(10),
+			AccelerationWrite = BIT(11),
+			UAVCompute        = BIT(12),
+			UAVGraphics       = BIT(13),
+			TransferDst       = BIT(14),
+			ResolveDst        = BIT(15),
+			RTV               = BIT(16),
+			DSV               = BIT(17),
 
-			ReadableMask = CPURead | AccelerationRead | Present | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer |
-			               SRVCompute | SRVGraphics | TransferSrc | ResolveSrc | UAVCompute | UAVGraphics | RTV | DSV,
-
+			ReadableMask = CPURead | AccelerationRead | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer | SRVCompute |
+			               SRVGraphics | TransferSrc | PresentSrc | UAVCompute | UAVGraphics | RTV | DSV,
 			WritableMask = CPUWrite | AccelerationWrite | UAVCompute | UAVGraphics | TransferDst | ResolveDst | RTV | DSV,
 		};
 

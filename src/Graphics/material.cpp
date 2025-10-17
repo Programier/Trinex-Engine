@@ -18,6 +18,7 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine
@@ -57,7 +58,7 @@ namespace Engine
 		{
 			if (m_parameter->type.type_index() == type.type_index())
 			{
-				rhi->update_scalar(&value, m_parameter);
+				rhi->context()->update_scalar(&value, m_parameter);
 				return true;
 			}
 			return false;
@@ -97,7 +98,7 @@ namespace Engine
 
 			if (m_parameter->type & mask)
 			{
-				rhi->bind_srv(value, m_parameter->binding);
+				rhi->context()->bind_srv(value, m_parameter->binding);
 				return true;
 			}
 			return false;
@@ -109,7 +110,7 @@ namespace Engine
 
 			if (m_parameter->type.type_index() == dst_type.type_index())
 			{
-				rhi->bind_sampler(value, m_parameter->binding);
+				rhi->context()->bind_sampler(value, m_parameter->binding);
 				return true;
 			}
 			return false;

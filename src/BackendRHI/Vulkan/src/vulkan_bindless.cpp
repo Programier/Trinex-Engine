@@ -148,12 +148,12 @@ namespace Engine
 		return descriptor;
 	}
 
-	RHIDescriptor VulkanDescriptorHeap::allocate(VulkanBuffer* buffer, uint64_t offset, uint64_t size, HeapType heap)
+	RHIDescriptor VulkanDescriptorHeap::allocate(VulkanBuffer* buffer, HeapType heap)
 	{
 		RHIDescriptor descriptor           = allocate(heap);
 		vk::DescriptorType descriptor_type = static_descriptor_type(heap);
 
-		vk::DescriptorBufferInfo buffer_info(buffer->buffer(), offset, size);
+		vk::DescriptorBufferInfo buffer_info(buffer->buffer(), 0, buffer->size());
 		vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor, descriptor_type, {}, buffer_info, {});
 		API->m_device.updateDescriptorSets(write, {});
 

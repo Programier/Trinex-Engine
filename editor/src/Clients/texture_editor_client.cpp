@@ -13,6 +13,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture.hpp>
+#include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 #include <Widgets/property_renderer.hpp>
@@ -42,27 +43,27 @@ namespace Engine
 
 		inline TextureView& update_texture(RHITexture* texture)
 		{
-			rhi->bind_srv(texture->as_srv(), m_texture->binding);
-			rhi->bind_sampler(RHIPointWrapSampler::static_sampler(), m_texture->binding);
+			rhi->context()->bind_srv(texture->as_srv(), m_texture->binding);
+			rhi->context()->bind_sampler(RHIPointWrapSampler::static_sampler(), m_texture->binding);
 			return *this;
 		}
 
 		inline TextureView& update_transform(const Matrix4f& transform)
 		{
-			rhi->update_scalar(&transform, m_transform);
+			rhi->context()->update_scalar(&transform, m_transform);
 			return *this;
 		}
 
 		inline TextureView& update_mask(const Vector4f& mask)
 		{
-			rhi->update_scalar(&mask, m_mask);
+			rhi->context()->update_scalar(&mask, m_mask);
 			return *this;
 		}
 
 		inline TextureView& update_range(Vector2f range)
 		{
 			range = {range.x, 1.f / (range.y - range.x)};
-			rhi->update_scalar(&range, m_range);
+			rhi->context()->update_scalar(&range, m_range);
 			return *this;
 		}
 	};
@@ -78,7 +79,7 @@ namespace Engine
 		TextureView2D& update_mip(uint_t mip)
 		{
 			float scalar = static_cast<float>(mip);
-			rhi->update_scalar(&scalar, m_mip);
+			rhi->context()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
@@ -108,13 +109,13 @@ namespace Engine
 		TextureViewCube& update_mip(uint_t mip)
 		{
 			float scalar = static_cast<float>(mip);
-			rhi->update_scalar(&scalar, m_mip);
+			rhi->context()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
 		TextureViewCube& update_face(uint_t face)
 		{
-			rhi->update_scalar(&face, m_face);
+			rhi->context()->update_scalar(&face, m_face);
 			return *this;
 		}
 
@@ -141,7 +142,7 @@ namespace Engine
 
 		pipeline->rhi_bind();
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
-		rhi->draw(6, 0);
+		rhi->context()->draw(6, 0);
 	}
 
 	static inline void render_texture_cube(RHITexture* src, const Matrix4f& transform, Vector2f range, uint_t level,
@@ -173,7 +174,7 @@ namespace Engine
 			        .update_mask(mask)
 			        .update_range(range);
 
-			rhi->draw(6, 0);
+			rhi->context()->draw(6, 0);
 		}
 	}
 
@@ -266,8 +267,8 @@ namespace Engine
 
 			ImDrawCallback callback = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
 				TextureViewVisitor* args = reinterpret_cast<TextureViewVisitor*>(cmd->UserCallbackData);
-				rhi->viewport(RHIViewport(args->size, args->pos));
-				rhi->scissor(RHIScissors(args->size, args->pos));
+				rhi->context()->viewport(RHIViewport(args->size, args->pos));
+				rhi->context()->scissor(RHIScissors(args->size, args->pos));
 				std::visit(*args, args->client->m_texture);
 			};
 

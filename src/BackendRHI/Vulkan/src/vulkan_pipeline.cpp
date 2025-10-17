@@ -80,94 +80,6 @@ namespace Engine
 		return shader->as<VulkanShader>()->module();
 	}
 
-	static FORCE_INLINE void write_sampled_image(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		VulkanTextureSRV* srv  = manager->srv_images.resource(index);
-		VulkanTexture* texture = srv->texture();
-
-		texture->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
-
-		vk::DescriptorImageInfo image_info({}, srv->view(), srv->texture()->layout());
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eSampledImage, image_info, {}, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_sampler(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		vk::Sampler sampler = manager->samplers.resource(index);
-
-		vk::DescriptorImageInfo image_info(sampler, {}, vk::ImageLayout::eUndefined);
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eSampler, image_info, {}, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_combined_image_sampler(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		VulkanTextureSRV* srv  = manager->srv_images.resource(index);
-		vk::Sampler sampler    = manager->samplers.resource(index);
-		VulkanTexture* texture = srv->texture();
-
-		texture->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
-
-		vk::DescriptorImageInfo image_info(sampler, srv->view(), texture->layout());
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eCombinedImageSampler, image_info, {}, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_storage_image(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		VulkanTextureUAV* uav  = manager->uav_images.resource(index);
-		VulkanTexture* texture = uav->texture();
-
-		texture->change_layout(vk::ImageLayout::eGeneral);
-		vk::DescriptorImageInfo image_info({}, uav->view(), uav->texture()->layout());
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eStorageImage, image_info, {}, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_uniform_buffer(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		auto buffer = manager->uniform_buffers.resource(index);
-		vk::DescriptorBufferInfo buffer_info(buffer.buffer, buffer.offset, buffer.size);
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eUniformBuffer, {}, buffer_info, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_storage_buffer(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		auto buffer = manager->storage_buffers.resource(index);
-		vk::DescriptorBufferInfo buffer_info(buffer.buffer, buffer.offset, buffer.size);
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eStorageBuffer, {}, buffer_info, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_uniform_texel_buffer(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		auto buffer = manager->uniform_texel_buffers.resource(index);
-		vk::DescriptorBufferInfo buffer_info(buffer.buffer, buffer.offset, buffer.size);
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eUniformTexelBuffer, {}, buffer_info, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_storage_texel_buffer(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		auto buffer = manager->storage_texel_buffers.resource(index);
-		vk::DescriptorBufferInfo buffer_info(buffer.buffer, buffer.offset, buffer.size);
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eStorageTexelBuffer, {}, buffer_info, {});
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
-	static FORCE_INLINE void write_acceleration(vk::DescriptorSet& set, VulkanStateManager* manager, byte index)
-	{
-		auto tlas = manager->acceleration_structures.resource(index);
-
-		vk::WriteDescriptorSetAccelerationStructureKHR info(1, &tlas);
-
-		vk::WriteDescriptorSet write(set, index, 0, vk::DescriptorType::eAccelerationStructureKHR, {}, {}, {}, &info);
-		write.descriptorCount = 1;
-		API->m_device.updateDescriptorSets(write, {});
-	}
-
 	static FORCE_INLINE bool is_descriptor_dirty(VulkanStateManager* manager, const VulkanPipelineLayout::Descriptor& descriptor)
 	{
 		switch (descriptor.type)
@@ -178,7 +90,7 @@ namespace Engine
 				return manager->srv_images.is_dirty(descriptor.binding) || manager->samplers.is_dirty(descriptor.binding);
 
 			case vk::DescriptorType::eStorageImage: return manager->uav_images.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eUniformBuffer: return manager->uniform_buffers.is_dirty(descriptor.binding);
+			case vk::DescriptorType::eUniformBufferDynamic: return manager->uniform_buffers.is_dirty(descriptor.binding);
 			case vk::DescriptorType::eStorageBuffer: return manager->storage_buffers.is_dirty(descriptor.binding);
 			case vk::DescriptorType::eUniformTexelBuffer: return manager->uniform_texel_buffers.is_dirty(descriptor.binding);
 			case vk::DescriptorType::eStorageTexelBuffer: return manager->storage_texel_buffers.is_dirty(descriptor.binding);
@@ -220,49 +132,35 @@ namespace Engine
 		return m_layout;
 	}
 
-	VulkanPipeline& VulkanPipeline::flush_descriptors(VulkanStateManager* manager, vk::PipelineBindPoint bind_point)
+	VulkanPipeline& VulkanPipeline::flush_descriptors(VulkanContext* ctx, vk::PipelineBindPoint bind_point)
 	{
 		trinex_profile_cpu_n("VulkanPipeline::flush_descriptors");
-		if (!is_dirty_state(manager))
+		VulkanStateManager* state = ctx->state();
+		if (!is_dirty_state(state))
 			return *this;
 
-		vk::DescriptorSet set = API->descriptor_set_allocator()->allocate(m_layout);
+		vk::DescriptorSet set                = API->descriptor_set_allocator()->allocate(m_layout, state);
+		vk::DescriptorSet descriptor_sets[2] = {set, API->descriptor_heap()->descriptor_set()};
 
-		size_t descriptors_count = m_layout->descriptors_count();
 
-		for (size_t i = 0; i < descriptors_count; ++i)
+		StackByteAllocator::Mark mark;
+		size_t uniforms_count   = m_layout->uniform_buffers_count();
+		const auto* descriptors = m_layout->descriptors();
+		uint32_t* offsets       = StackAllocator<uint32_t>::allocate(uniforms_count);
+
+		for (uint64_t i = 0; i < uniforms_count; ++i)
 		{
-			auto descriptor = m_layout->descriptor(i);
-			byte binding    = descriptor.binding;
-
-			switch (descriptor.type)
-			{
-				case vk::DescriptorType::eSampledImage: write_sampled_image(set, manager, binding); break;
-				case vk::DescriptorType::eSampler: write_sampler(set, manager, binding); break;
-				case vk::DescriptorType::eCombinedImageSampler: write_combined_image_sampler(set, manager, binding); break;
-				case vk::DescriptorType::eStorageImage: write_storage_image(set, manager, binding); break;
-				case vk::DescriptorType::eUniformBuffer: write_uniform_buffer(set, manager, binding); break;
-				case vk::DescriptorType::eStorageBuffer: write_storage_buffer(set, manager, binding); break;
-				case vk::DescriptorType::eUniformTexelBuffer: write_uniform_texel_buffer(set, manager, binding); break;
-				case vk::DescriptorType::eStorageTexelBuffer: write_storage_texel_buffer(set, manager, binding); break;
-				case vk::DescriptorType::eAccelerationStructureKHR: write_acceleration(set, manager, binding); break;
-				default: break;
-			}
+			offsets[i] = state->uniform_buffers.resource(descriptors[i].binding).offset;
 		}
 
-		vk::DescriptorSet descriptor_sets[2] = {set, API->descriptor_heap()->descriptor_set()};
-		API->current_command_buffer()->bindDescriptorSets(bind_point, m_layout->layout(), 0, descriptor_sets, {});
+		ctx->handle()->bindDescriptorSets(bind_point, m_layout->layout(), 0, descriptor_sets,
+		                                  vk::ArrayProxy<uint32_t>(uniforms_count, offsets));
 		return *this;
-	}
-
-	void VulkanPipeline::bind()
-	{
-		API->m_state_manager->bind(this);
 	}
 
 	vk::Pipeline VulkanGraphicsPipeline::find_or_create_pipeline(VulkanStateManager* manager)
 	{
-		auto rt = API->m_state_manager->render_target();
+		auto rt = manager->render_target();
 
 		auto link_id   = manager->graphics_pipeline_id(m_vertex_attributes, m_vertex_attributes_count);
 		auto& pipeline = m_pipelines[link_id];
@@ -409,21 +307,21 @@ namespace Engine
 		return false;
 	}
 
-	VulkanPipeline& VulkanGraphicsPipeline::flush(VulkanStateManager* manager)
+	VulkanPipeline& VulkanGraphicsPipeline::flush(VulkanContext* ctx)
 	{
 		trinex_profile_cpu_n("VulkanGraphicsPipeline::flush");
 		auto dirty_flags = VulkanStateManager::RenderTarget | VulkanStateManager::Pipeline |
 		                   VulkanStateManager::PrimitiveTopology | VulkanStateManager::PolygonMode |
 		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
 
-		if (manager->is_dirty(dirty_flags) || is_dirty_vertex_input(manager))
+		if (ctx->state()->is_dirty(dirty_flags) || is_dirty_vertex_input(ctx->state()))
 		{
-			auto cmd              = API->current_command_buffer();
-			auto current_pipeline = find_or_create_pipeline(manager);
+			auto cmd              = ctx->handle();
+			auto current_pipeline = find_or_create_pipeline(ctx->state());
 			cmd->bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
 		}
 
-		VulkanPipeline::flush_descriptors(manager, vk::PipelineBindPoint::eGraphics);
+		VulkanPipeline::flush_descriptors(ctx, vk::PipelineBindPoint::eGraphics);
 		return *this;
 	}
 
@@ -506,7 +404,7 @@ namespace Engine
 
 	vk::Pipeline VulkanMeshPipeline::find_or_create_pipeline(VulkanStateManager* manager)
 	{
-		auto rt = API->m_state_manager->render_target();
+		auto rt = manager->render_target();
 
 		Key key;
 		key.pass         = manager->render_target()->m_render_pass;
@@ -554,20 +452,20 @@ namespace Engine
 		return pipeline;
 	}
 
-	VulkanMeshPipeline& VulkanMeshPipeline::flush(VulkanStateManager* manager)
+	VulkanMeshPipeline& VulkanMeshPipeline::flush(VulkanContext* ctx)
 	{
 		trinex_profile_cpu_n("VulkanGraphicsPipeline::flush");
 		auto dirty_flags = VulkanStateManager::RenderTarget | VulkanStateManager::Pipeline | VulkanStateManager::PolygonMode |
 		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
 
-		if (manager->is_dirty(dirty_flags))
+		if (ctx->state()->is_dirty(dirty_flags))
 		{
-			auto cmd              = API->current_command_buffer();
-			auto current_pipeline = find_or_create_pipeline(manager);
+			auto cmd              = ctx->handle();
+			auto current_pipeline = find_or_create_pipeline(ctx->state());
 			cmd->bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
 		}
 
-		VulkanPipeline::flush_descriptors(manager, vk::PipelineBindPoint::eGraphics);
+		VulkanPipeline::flush_descriptors(ctx, vk::PipelineBindPoint::eGraphics);
 		return *this;
 	}
 
@@ -606,15 +504,14 @@ namespace Engine
 		m_pipeline = result.value;
 	}
 
-	VulkanPipeline& VulkanComputePipeline::flush(VulkanStateManager* manager)
+	VulkanPipeline& VulkanComputePipeline::flush(VulkanContext* ctx)
 	{
-		if (manager->is_dirty(VulkanStateManager::Pipeline))
+		if (ctx->state()->is_dirty(VulkanStateManager::Pipeline))
 		{
-			auto cmd = API->current_command_buffer();
-			cmd->bindPipeline(vk::PipelineBindPoint::eCompute, m_pipeline);
+			ctx->handle()->bindPipeline(vk::PipelineBindPoint::eCompute, m_pipeline);
 		}
 
-		VulkanPipeline::flush_descriptors(manager, vk::PipelineBindPoint::eCompute);
+		VulkanPipeline::flush_descriptors(ctx, vk::PipelineBindPoint::eCompute);
 		return *this;
 	}
 
@@ -736,15 +633,14 @@ namespace Engine
 		}
 	}
 
-	VulkanRayTracingPipeline& VulkanRayTracingPipeline::flush(VulkanStateManager* manager)
+	VulkanRayTracingPipeline& VulkanRayTracingPipeline::flush(VulkanContext* ctx)
 	{
-		if (manager->is_dirty(VulkanStateManager::Pipeline))
+		if (ctx->state()->is_dirty(VulkanStateManager::Pipeline))
 		{
-			auto cmd = API->current_command_buffer();
-			cmd->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_pipeline);
+			ctx->handle()->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_pipeline);
 		}
 
-		VulkanPipeline::flush_descriptors(manager, vk::PipelineBindPoint::eRayTracingKHR);
+		VulkanPipeline::flush_descriptors(ctx, vk::PipelineBindPoint::eRayTracingKHR);
 		return *this;
 	}
 
@@ -752,6 +648,12 @@ namespace Engine
 	{
 		DESTROY_CALL(destroyPipeline, m_pipeline);
 		trx_delete_inline(m_sbt);
+	}
+
+	VulkanContext& VulkanContext::bind_pipeline(RHIPipeline* pipeline)
+	{
+		m_state_manager->bind(static_cast<VulkanPipeline*>(pipeline));
+		return *this;
 	}
 
 	RHIPipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)

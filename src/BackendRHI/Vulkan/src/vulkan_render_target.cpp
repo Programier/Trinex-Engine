@@ -94,23 +94,6 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanRenderTarget& VulkanRenderTarget::lock_surfaces()
-	{
-		for (auto& surface : m_key.m_surfaces)
-		{
-			if (surface == nullptr)
-				continue;
-
-			surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal);
-		}
-
-		if (m_key.m_depth)
-		{
-			m_key.m_depth->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-		}
-		return *this;
-	}
-
 	VulkanRenderTarget::~VulkanRenderTarget()
 	{
 		m_render_targets.erase(m_key);
@@ -129,8 +112,8 @@ namespace Engine
 		DESTROY_CALL(destroyFramebuffer, m_framebuffer);
 	}
 
-	VulkanAPI& VulkanAPI::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
-	                                         RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil)
+	VulkanContext& VulkanContext::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
+	                                                 RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil)
 	{
 		VulkanTextureRTV* surfaces[4] = {static_cast<VulkanTextureRTV*>(rt1), static_cast<VulkanTextureRTV*>(rt2),
 		                                 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};

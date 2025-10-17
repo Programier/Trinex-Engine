@@ -9,11 +9,13 @@
 
 namespace Engine
 {
+	class VulkanContext;
+
 	class VulkanBuffer : public VulkanDeferredDestroy<RHIBuffer>
 	{
 	private:
-		FlatMap<uint64_t, RHIShaderResourceView*> m_srv;
-		FlatMap<uint64_t, RHIUnorderedAccessView*> m_uav;
+		RHIShaderResourceView* m_srv  = nullptr;
+		RHIUnorderedAccessView* m_uav = nullptr;
 
 		RHIBufferCreateFlags m_flags = {};
 		vk::Buffer m_buffer          = VK_NULL_HANDLE;
@@ -26,20 +28,46 @@ namespace Engine
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, RHIBufferCreateFlags flags,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 
-		VulkanBuffer& copy(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
+		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
 
 		RHIDeviceAddress address() override;
 		byte* map() override;
 		void unmap() override;
-		VulkanBuffer& update(size_t offset, size_t size, const byte* data);
-		VulkanBuffer& transition(RHIAccess access);
+		VulkanBuffer& update(VulkanContext* ctx, size_t offset, size_t size, const byte* data);
+		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
 
-		RHIShaderResourceView* as_srv(uint32_t offset = 0, uint32_t size = 0) override;
-		RHIUnorderedAccessView* as_uav(uint32_t offset = 0, uint32_t size = 0) override;
+		RHIShaderResourceView* as_srv() override;
+		RHIUnorderedAccessView* as_uav() override;
 		inline size_t size() const { return m_size; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
 		inline vk::Buffer buffer() const { return m_buffer; }
 		~VulkanBuffer();
+	};
+
+	class VulkanUniformBuffer : public VulkanBuffer
+	{
+		byte* m_memory;
+		byte* m_block_start;
+		byte* m_block_end;
+
+	public:
+		VulkanUniformBuffer* next = nullptr;
+
+		VulkanUniformBuffer(size_t min_size = 0);
+		~VulkanUniformBuffer();
+		VulkanUniformBuffer& flush();
+		VulkanUniformBuffer& update(const void* data, size_t size, size_t offset);
+		size_t block_size() const;
+
+		inline VulkanUniformBuffer& reset()
+		{
+			m_block_start = m_block_end = m_memory;
+			return *this;
+		}
+
+		inline bool contains(size_t size) const { return m_block_start + size <= m_memory + VulkanBuffer::size(); }
+		inline size_t block_offset() const { return m_block_start - m_memory; }
+		inline byte* mapped_memory() const { return m_memory; }
 	};
 
 	class VulkanStaggingBuffer : public VulkanBuffer
