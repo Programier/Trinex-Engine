@@ -29,8 +29,23 @@ namespace Engine
 			VulkanUniformBuffer* m_uniform_buffer_head     = nullptr;
 			VulkanUniformBuffer** m_uniform_buffer_current = &m_uniform_buffer_head;
 
+			UniformBuffer() = default;
+			trinex_non_copyable(UniformBuffer);
+
+			inline UniformBuffer(UniformBuffer&& buffer) : m_uniform_buffer_head(buffer.m_uniform_buffer_head)
+			{
+				if (&buffer.m_uniform_buffer_head != buffer.m_uniform_buffer_current)
+				{
+					m_uniform_buffer_current = buffer.m_uniform_buffer_current;
+				}
+
+				buffer.m_uniform_buffer_head    = nullptr;
+				buffer.m_uniform_buffer_current = nullptr;
+			}
+
 			VulkanUniformBuffer* request_uniform_page(size_t size);
 			UniformBuffer& reset();
+			UniformBuffer& flush();
 		};
 
 		class VulkanFence* m_fence = nullptr;
@@ -60,7 +75,8 @@ namespace Engine
 
 		inline VulkanUniformBuffer* request_uniform_page(size_t size, byte index)
 		{
-			m_uniform_buffers.resize(index + 1);
+			if (m_uniform_buffers.size() <= index)
+				m_uniform_buffers.resize(index + 1);
 			return m_uniform_buffers[index].request_uniform_page(size);
 		}
 

@@ -5,6 +5,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
+#include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Graphics/material_parameter.hpp>
@@ -37,9 +38,10 @@ namespace Engine::MaterialParameters
 
 #define implement_parameter(name) trinex_implement_class(Engine::MaterialParameters::name, 0)
 
-	PrimitiveBase& PrimitiveBase::update(const void* data, size_t size, const RHIShaderParameterInfo* info)
+	PrimitiveBase& PrimitiveBase::update(const PrimitiveRenderingContext* ctx, const void* data, size_t size,
+	                                     const RHIShaderParameterInfo* info)
 	{
-		rhi->context()->update_scalar(data, size, info->offset, info->binding);
+		ctx->context->update_scalar(data, size, info->offset, info->binding);
 		return *this;
 	}
 
@@ -52,21 +54,28 @@ namespace Engine::MaterialParameters
 		return ar;
 	}
 
-	Float4x4& Float4x4::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	Float4x4& Float4x4::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		update(&value, sizeof(Matrix4f), info);
+		update(ctx, &value, sizeof(Matrix4f), info);
 		return *this;
 	}
 
-	LocalToWorld& LocalToWorld::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	LocalToWorld& LocalToWorld::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		rhi->context()->update_scalar(&ctx.local_to_world, sizeof(ctx.local_to_world), info->offset, info->binding);
+		if (ctx->local_to_world)
+		{
+			ctx->context->update_scalar(ctx->local_to_world, sizeof(Matrix4f), info->offset, info->binding);
+		}
+		else
+		{
+			ctx->context->update_scalar(&Constants::identity_matrix, sizeof(Matrix4f), info->offset, info->binding);
+		}
 		return *this;
 	}
 
 	Sampler::Sampler() : sampler(RHISamplerFilter::Point) {}
 
-	Sampler& Sampler::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	Sampler& Sampler::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
 		sampler.rhi_bind(info->binding);
 		return *this;
@@ -81,14 +90,14 @@ namespace Engine::MaterialParameters
 
 	Sampler2D::Sampler2D() : sampler(RHISamplerFilter::Point), texture(DefaultResources::Textures::default_texture) {}
 
-	Sampler2D& Sampler2D::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	Sampler2D& Sampler2D::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
 		auto rhi_sampler = sampler.rhi_sampler();
 
 		if (texture && rhi_sampler)
 		{
-			rhi->context()->bind_srv(texture->rhi_srv(), info->binding);
-			rhi->context()->bind_sampler(rhi_sampler, info->binding);
+			ctx->context->bind_srv(texture->rhi_srv(), info->binding);
+			ctx->context->bind_sampler(rhi_sampler, info->binding);
 		}
 		return *this;
 	}
@@ -105,11 +114,11 @@ namespace Engine::MaterialParameters
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture) {}
 
-	Texture2D& Texture2D::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	Texture2D& Texture2D::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
 		if (texture)
 		{
-			rhi->context()->bind_srv(texture->rhi_srv(), info->binding);
+			ctx->context->bind_srv(texture->rhi_srv(), info->binding);
 		}
 		return *this;
 	}
@@ -122,19 +131,19 @@ namespace Engine::MaterialParameters
 		return true;
 	}
 
-	Globals& Globals::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	Globals& Globals::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		auto buffer = ctx.renderer->globals_uniform_buffer();
-		rhi->context()->bind_uniform_buffer(buffer, info->binding);
+		auto buffer = ctx->renderer->globals_uniform_buffer();
+		ctx->context->bind_uniform_buffer(buffer, info->binding);
 		return *this;
 	}
 
 	Surface::Surface() : surface(nullptr) {}
 
-	Surface& Surface::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	Surface& Surface::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
 		auto srv = surface ? surface->rhi_srv() : DefaultResources::Textures::default_texture->rhi_srv();
-		rhi->context()->bind_srv(srv, info->binding);
+		ctx->context->bind_srv(srv, info->binding);
 		return *this;
 	}
 
@@ -147,15 +156,15 @@ namespace Engine::MaterialParameters
 
 	CombinedSurface::CombinedSurface() : surface(nullptr), sampler() {}
 
-	CombinedSurface& CombinedSurface::apply(const RendererContext& ctx, const RHIShaderParameterInfo* info)
+	CombinedSurface& CombinedSurface::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
 		RHIShaderResourceView* srv = surface ? surface->rhi_srv() : nullptr;
 		RHISampler* rhi_sampler    = sampler.rhi_sampler();
 
 		if (srv && rhi_sampler)
 		{
-			rhi->context()->bind_srv(srv, info->binding);
-			rhi->context()->bind_sampler(rhi_sampler, info->binding);
+			ctx->context->bind_srv(srv, info->binding);
+			ctx->context->bind_sampler(rhi_sampler, info->binding);
 		}
 		return *this;
 	}

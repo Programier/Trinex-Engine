@@ -148,7 +148,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedLines& BatchedLines::flush(Renderer* renderer)
+	BatchedLines& BatchedLines::flush(RHIContext* ctx, Renderer* renderer)
 	{
 		if (m_first == nullptr)
 			return *this;
@@ -157,40 +157,39 @@ namespace Engine
 		RHIBuffer* vtx_buffer = pool->request_buffer(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
 
 #if TRINEX_DEBUG_BUILD
-		rhi->context()->push_debug_stage("Lines Rendering");
+		ctx->push_debug_stage("Lines Rendering");
 #endif
 
 		auto pipeline = Pipelines::BatchedLines::instance();
-		pipeline->rhi_bind();
 
 		Matrix4f projview = renderer->scene_view().projview();
 		Vector2f size     = renderer->scene_view().view_size();
 
-		rhi->context()->update_scalar(&projview, pipeline->projview());
-		rhi->context()->update_scalar(&size, pipeline->viewport());
+		ctx->bind_pipeline(pipeline->rhi_pipeline());
+		ctx->update_scalar(&projview, pipeline->projview());
+		ctx->update_scalar(&size, pipeline->viewport());
 
-		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0, 0);
-		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, 12);
-		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Position, 1, 0, 16);
+		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0, 0);
+		ctx->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, 12);
+		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, 1, 0, 16);
 
-		rhi->context()->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
-		rhi->context()->primitive_topology(RHIPrimitiveTopology::LineList);
+		ctx->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
+		ctx->primitive_topology(RHIPrimitiveTopology::LineList);
 
 		while (m_first)
 		{
-			rhi->context()->barrier(vtx_buffer, RHIAccess::TransferDst);
-			rhi->context()->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex),
-			                              reinterpret_cast<byte*>(m_first->vertices));
-			rhi->context()->barrier(vtx_buffer, RHIAccess::VertexBuffer);
+			ctx->barrier(vtx_buffer, RHIAccess::TransferDst);
+			ctx->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<byte*>(m_first->vertices));
+			ctx->barrier(vtx_buffer, RHIAccess::VertexBuffer);
 
-			rhi->context()->draw(m_first->vtx_count, 0);
+			ctx->draw(m_first->vtx_count, 0);
 			m_first = m_first->next;
 		}
 		m_last = nullptr;
 
-		rhi->context()->primitive_topology(RHIPrimitiveTopology::TriangleList);
+		ctx->primitive_topology(RHIPrimitiveTopology::TriangleList);
 #if TRINEX_DEBUG_BUILD
-		rhi->context()->pop_debug_stage();
+		ctx->pop_debug_stage();
 #endif
 
 		pool->return_buffer(vtx_buffer);
@@ -234,7 +233,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedTriangles& BatchedTriangles::render(Renderer* renderer)
+	BatchedTriangles& BatchedTriangles::render(RHIContext* ctx, Renderer* renderer)
 	{
 		if (m_vtx_count == 0)
 			return *this;
@@ -243,21 +242,22 @@ namespace Engine
 		m_color_buffer.rhi_update(m_vtx_count * m_color_buffer.stride());
 
 #if TRINEX_DEBUG_BUILD
-		rhi->context()->push_debug_stage("Triangles Rendering");
+		ctx->push_debug_stage("Triangles Rendering");
 #endif
 
 		Pipelines::BatchedTriangles::instance()->rhi_bind();
 
-		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
-		rhi->context()->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
+		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
+		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
+		ctx->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
 
-		rhi->context()->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
-		rhi->context()->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
+		ctx->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
+		ctx->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
 
-		rhi->context()->draw(m_vtx_count, 0);
+		ctx->draw(m_vtx_count, 0);
 
 #if TRINEX_DEBUG_BUILD
-		rhi->context()->pop_debug_stage();
+		ctx->pop_debug_stage();
 #endif
 
 		return *this;

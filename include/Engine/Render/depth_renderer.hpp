@@ -8,7 +8,7 @@ namespace Engine
 	class ENGINE_EXPORT DepthRenderer : public Renderer
 	{
 	private:
-		DepthRenderer& render_depth();
+		DepthRenderer& render_depth(RHIContext* ctx);
 
 	public:
 		DepthRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
@@ -20,8 +20,8 @@ namespace Engine
 		RHITexture* m_cubemap = nullptr;
 
 	private:
-		DepthCubeRenderer& render_depth(CameraView& camera, uint_t face);
-		DepthCubeRenderer& render_depth();
+		DepthCubeRenderer& render_depth(RHIContext* ctx, CameraView& camera, uint_t face);
+		DepthCubeRenderer& render_depth(RHIContext* ctx);
 
 	public:
 		DepthCubeRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);

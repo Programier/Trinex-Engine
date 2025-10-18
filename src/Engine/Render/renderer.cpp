@@ -76,17 +76,17 @@ namespace Engine
 		});
 	}
 
-	Renderer& Renderer::render()
+	Renderer& Renderer::render(RHIContext* ctx)
 	{
 		while (m_child_renderer)
 		{
-			m_child_renderer->renderer->render();
+			m_child_renderer->renderer->render(ctx);
 			m_child_renderer = m_child_renderer->next;
 		}
 
 		rhi->context()->viewport(m_view.viewport());
 		rhi->context()->scissor(m_view.scissor());
-		m_graph->execute();
+		m_graph->execute(ctx);
 
 		return *this;
 	}
@@ -127,9 +127,9 @@ namespace Engine
 			auto& pass = m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
 
 			if (type == SceneDepth)
-				pass.add_func([target]() { rhi->context()->clear_dsv(target->as_dsv()); });
+				pass.add_func([target](RHIContext* ctx) { ctx->clear_dsv(target->as_dsv()); });
 			else
-				pass.add_func([target]() { rhi->context()->clear_rtv(target->as_rtv()); });
+				pass.add_func([target](RHIContext* ctx) { ctx->clear_rtv(target->as_rtv()); });
 		}
 
 		return m_surfaces[type];

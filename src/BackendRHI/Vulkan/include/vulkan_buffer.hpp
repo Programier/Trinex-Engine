@@ -57,7 +57,7 @@ namespace Engine
 		~VulkanUniformBuffer();
 		VulkanUniformBuffer& flush();
 		VulkanUniformBuffer& update(const void* data, size_t size, size_t offset);
-		size_t block_size() const;
+
 
 		inline VulkanUniformBuffer& reset()
 		{
@@ -66,6 +66,7 @@ namespace Engine
 		}
 
 		inline bool contains(size_t size) const { return m_block_start + size <= m_memory + VulkanBuffer::size(); }
+		inline size_t block_size() const { return m_block_end - m_block_start; }
 		inline size_t block_offset() const { return m_block_start - m_memory; }
 		inline byte* mapped_memory() const { return m_memory; }
 	};

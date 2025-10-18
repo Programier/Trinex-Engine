@@ -5,6 +5,7 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Actors/actor.hpp>
+#include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
@@ -27,7 +28,7 @@ namespace Engine
 	public:
 		HitproxyRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit) : Renderer(scene, view, mode) {}
 
-		RHITexture* render_hitproxies()
+		RHITexture* render_hitproxies(RHIContext* ctx)
 		{
 			Vector2u size                               = scene_view().view_size();
 			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().projview());
@@ -39,12 +40,17 @@ namespace Engine
 			auto surface_rtv = surface->as_rtv();
 			auto depth_dsv   = depth->as_dsv();
 
-			trinex_rhi_push_stage(rhi->context(), "HitProxy");
+			trinex_rhi_push_stage(ctx, "HitProxy");
 
-			rhi->context()->clear_irtv(surface_rtv).clear_dsv(depth_dsv);
-			rhi->context()->bind_render_target1(surface_rtv, depth_dsv);
-			rhi->context()->viewport(RHIViewport(size));
-			rhi->context()->scissor(RHIScissors(size));
+			ctx->barrier(surface, RHIAccess::TransferDst);
+			ctx->barrier(depth, RHIAccess::TransferDst);
+			ctx->clear_irtv(surface_rtv);
+			ctx->clear_dsv(depth_dsv);
+			ctx->barrier(surface, RHIAccess::RTV);
+			ctx->barrier(depth, RHIAccess::DSV);
+			ctx->bind_render_target1(surface_rtv, depth_dsv);
+			ctx->viewport(RHIViewport(size));
+			ctx->scissor(RHIScissors(size));
 
 			static MaterialBindings bindings;
 			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");
@@ -60,15 +66,17 @@ namespace Engine
 					id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
 					(*proxy_id) = id;
 
-					primitive->proxy()->render(this, EditorRenderPasses::HitProxy::static_instance(), &bindings);
+					const Matrix4f* matrix = &primitive->proxy()->world_transform().matrix();
+					RenderPass* pass       = EditorRenderPasses::HitProxy::static_instance();
+					PrimitiveRenderingContext context(this, ctx, pass, matrix, &bindings);
+					primitive->proxy()->render(&context);
 				}
 			}
 
-			trinex_rhi_pop_stage(rhi->context());
+			trinex_rhi_pop_stage(ctx);
 			return surface;
 		}
 	};
-
 
 	EditorRenderer::EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode) : DeferredRenderer(scene, view, mode) {}
 
@@ -76,20 +84,27 @@ namespace Engine
 	{
 		uv = glm::clamp(uv, Vector2f(0.f), Vector2f(1.f));
 		HitproxyRenderer renderer(scene, view);
-		RHITexture* hitproxy = renderer.render_hitproxies();
 
-		auto buffer_pool = RHIBufferPool::global_instance();
-		auto fence_pool  = RHIFencePool::global_instance();
+		auto buffer_pool  = RHIBufferPool::global_instance();
+		auto fence_pool   = RHIFencePool::global_instance();
+		auto context_pool = RHIContextPool::global_instance();
 
 		static constexpr RHIBufferCreateFlags buffer_flags = RHIBufferCreateFlags::TransferDst | RHIBufferCreateFlags::CPURead;
 
 		auto buffer = buffer_pool->request_buffer(8, buffer_flags);
 		auto fence  = fence_pool->request_fence();
+		auto ctx    = context_pool->begin_context();
+
+		RHITexture* hitproxy = renderer.render_hitproxies(ctx);
 
 		Vector2f size = view.view_size();
 		Vector3u offset(static_cast<uint32_t>((size.x * uv.x) + 0.5f), static_cast<uint32_t>((size.y * uv.y) + 0.5f), 0);
-		rhi->context()->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
 
+		ctx->barrier(hitproxy, RHIAccess::TransferSrc);
+		ctx->barrier(buffer, RHIAccess::TransferDst);
+		ctx->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
+
+		context_pool->end_context(ctx);
 		rhi->signal(fence);
 
 		while (!fence->is_signaled()) Thread::static_yield();
@@ -113,48 +128,71 @@ namespace Engine
 		        ->add_pass("Editor Grid")
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
-		        .add_func([this]() {
-			        rhi->context()->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
-			        EditorPipelines::Grid::instance()->render(this);
+		        .add_func([this](RHIContext* ctx) {
+			        ctx->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
+			        EditorPipelines::Grid::instance()->render(ctx, this);
 		        });
 		return *this;
-	}
-
-	void EditorRenderer::render_outlines_pass(Actor** actors, size_t count)
-	{
-		auto view_size = scene_view().view_size();
-		auto pool      = RHITexturePool::global_instance();
-		auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size);
-
-		auto dsv = depth->as_dsv();
-		rhi->context()->clear_dsv(dsv).bind_depth_stencil_target(dsv);
-
-		for (size_t i = 0; i < count; ++i)
-		{
-			Actor* actor = actors[i];
-
-			for (ActorComponent* component : actor->owned_components())
-			{
-				if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
-				{
-					primitive->proxy()->render(this, RenderPasses::Depth::static_instance());
-				}
-			}
-		}
-
-		EditorPipelines::Outline::instance()->render(this, depth->as_srv(), {1.f, 0.f, 0.f});
-		pool->return_surface(depth);
 	}
 
 	EditorRenderer& EditorRenderer::render_outlines(Actor** actors, size_t count)
 	{
 		if (actors && count)
 		{
+			auto view_size = scene_view().view_size();
+			auto pool      = RHITexturePool::global_instance();
+			auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size);
+			auto color     = pool->request_surface(static_surface_format_of(BaseColor), view_size);
+
+			auto dsv = depth->as_dsv();
+
 			render_graph()
-			        ->add_pass("Editor Outlines")
+			        ->add_pass("Outlines Clear Depth")
+			        .add_resource(depth, RHIAccess::TransferDst)
+			        .add_func([dsv](RHIContext* ctx) { ctx->clear_dsv(dsv); });
+
+			auto& outlines_depth = render_graph()->add_pass("Outlines Depth");
+			auto& outlines_color = render_graph()->add_pass("Outlines Color");
+
+			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, actors, count](RHIContext* ctx) {
+				rhi->context()->bind_depth_stencil_target(dsv);
+
+				for (size_t i = 0; i < count; ++i)
+				{
+					Actor* actor = actors[i];
+
+					for (ActorComponent* component : actor->owned_components())
+					{
+						if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
+						{
+							const Matrix4f* matrix = &primitive->proxy()->world_transform().matrix();
+							RenderPass* pass       = RenderPasses::Depth::static_instance();
+							PrimitiveRenderingContext context(this, ctx, pass, matrix);
+							primitive->proxy()->render(&context);
+						}
+					}
+				}
+			});
+
+			outlines_color.add_resource(color, RHIAccess::TransferDst)
+			        .add_resource(scene_color_ldr_target(), RHIAccess::TransferSrc)
+			        .add_func([this, color](RHIContext* ctx) {
+				        RHITextureRegion region = {scene_view().view_size()};
+				        ctx->copy_texture_to_texture(scene_color_ldr_target(), region, color, region);
+			        });
+
+			render_graph()
+			        ->add_pass("Outlines")
 			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 			        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-			        .add_func([this, actors, count]() { render_outlines_pass(actors, count); });
+			        .add_resource(color, RHIAccess::SRVGraphics)
+			        .add_resource(depth, RHIAccess::SRVGraphics)
+			        .add_func([this, color, depth](RHIContext* ctx) {
+				        EditorPipelines::Outline::instance()->render(ctx, this, color->as_srv(), depth->as_srv(),
+				                                                     {1.f, 0.f, 0.f});
+				        RHITexturePool::global_instance()->return_surface(color);
+				        RHITexturePool::global_instance()->return_surface(depth);
+			        });
 		}
 
 		return *this;

@@ -126,6 +126,8 @@ else()
             LINK_DEPENDS_NO_SANITIZE 1
             LINK_FLAGS_RELEASE "-Wl,--no-as-needed"
         )
+    
+        target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_WITH_ADDRESS_SANITIZER=1)
     endif()
 endif()
 

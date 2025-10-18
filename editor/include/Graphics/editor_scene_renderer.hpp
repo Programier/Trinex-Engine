@@ -9,9 +9,6 @@ namespace Engine
 
 	class EditorRenderer : public DeferredRenderer
 	{
-	private:
-		void render_outlines_pass(Actor** actors, size_t count);
-
 	public:
 		static Actor* static_raycast(const SceneView& view, Vector2f uv, Scene* scene);
 

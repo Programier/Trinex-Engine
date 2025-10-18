@@ -19,17 +19,6 @@ namespace Engine
 		class Graph;
 	}
 
-	struct RendererContext {
-		class Renderer* renderer;
-		RenderPass* render_pass;
-		Matrix4f local_to_world;
-
-		inline RendererContext(Renderer* renderer = nullptr, RenderPass* render_pass = nullptr,
-		                       const Matrix4f& local_to_world = Matrix4f(1.f))
-		    : renderer(renderer), render_pass(render_pass), local_to_world(local_to_world)
-		{}
-	};
-
 	class ENGINE_EXPORT Renderer
 	{
 	public:
@@ -77,7 +66,7 @@ namespace Engine
 		RHITexture* surface(SurfaceType type);
 		RHIBuffer* globals_uniform_buffer();
 
-		virtual Renderer& render();
+		virtual Renderer& render(RHIContext* ctx);
 		virtual Renderer& reset(const SceneView& view);
 
 		inline const SceneView& scene_view() const { return m_view; }

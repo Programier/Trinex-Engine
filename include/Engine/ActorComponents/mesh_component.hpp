@@ -27,7 +27,7 @@ namespace Engine
 			virtual VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0, size_t lod = 0) = 0;
 			virtual IndexBuffer* find_index_buffer(size_t lod = 0)                                                    = 0;
 			virtual MaterialInterface* material(size_t index) const;
-			Proxy& render(Renderer* renderer, RenderPass* pass, const MaterialBindings* bindings) override;
+			Proxy& render(PrimitiveRenderingContext* context) override;
 
 			friend class MeshComponent;
 		};

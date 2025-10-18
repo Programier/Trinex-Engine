@@ -9,7 +9,7 @@
 
 namespace Engine
 {
-	struct RendererContext;
+	struct PrimitiveRenderingContext;
 	struct RHIShaderParameterInfo;
 	class Texture2D;
 	class Material;
@@ -41,7 +41,7 @@ public:                                                                         
 			uint16_t m_pipeline_refs = 0;
 
 		protected:
-			virtual Parameter& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) = 0;
+			virtual Parameter& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) = 0;
 
 		public:
 			static Refl::Class* static_find_class(RHIShaderParameterType type);
@@ -54,7 +54,8 @@ public:                                                                         
 		class ENGINE_EXPORT PrimitiveBase : public Parameter
 		{
 		protected:
-			PrimitiveBase& update(const void* data, size_t size, const RHIShaderParameterInfo* info);
+			PrimitiveBase& update(const PrimitiveRenderingContext* ctx, const void* data, size_t size,
+			                      const RHIShaderParameterInfo* info);
 			bool serialize_internal(Archive& ar, void* data, size_t size);
 		};
 
@@ -67,9 +68,9 @@ public:                                                                         
 		protected:
 			Primitive(const T& value = T()) : value(value) {}
 
-			Primitive& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override
+			Primitive& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override
 			{
-				update(&value, sizeof(T), info);
+				update(ctx, &value, sizeof(T), info);
 				return *this;
 			}
 
@@ -175,7 +176,7 @@ public:                                                                         
 
 		public:
 			Float4x4() : Primitive<Matrix4f>(Matrix3f(1.f)) {}
-			Float4x4& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			Float4x4& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT LocalToWorld : public Parameter
@@ -183,7 +184,7 @@ public:                                                                         
 			trinex_material_parameter(LocalToWorld, Parameter);
 
 		public:
-			LocalToWorld& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			LocalToWorld& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Sampler : public Parameter
@@ -194,7 +195,7 @@ public:                                                                         
 			Engine::Sampler sampler;
 
 			Sampler();
-			Sampler& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			Sampler& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -207,7 +208,7 @@ public:                                                                         
 			Engine::Texture2D* texture;
 
 			Sampler2D();
-			Sampler2D& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			Sampler2D& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -219,7 +220,7 @@ public:                                                                         
 			Engine::Texture2D* texture;
 
 			Texture2D();
-			Texture2D& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			Texture2D& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -228,7 +229,7 @@ public:                                                                         
 			trinex_material_parameter(Globals, Parameter);
 
 		public:
-			Globals& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			Globals& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 		};
 
 		class ENGINE_EXPORT Surface : public Parameter
@@ -239,7 +240,7 @@ public:                                                                         
 			Engine::RenderSurface* surface;
 
 			Surface();
-			Surface& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			Surface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -252,7 +253,7 @@ public:                                                                         
 			Engine::Sampler sampler;
 
 			CombinedSurface();
-			CombinedSurface& apply(const RendererContext& ctx, const RHIShaderParameterInfo* info) override;
+			CombinedSurface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 	}// namespace MaterialParameters

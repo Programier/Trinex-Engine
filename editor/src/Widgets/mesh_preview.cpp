@@ -102,7 +102,7 @@ namespace Engine
 				SceneView scene_view(camera_view, view_size);
 
 				EditorRenderer renderer(scene, scene_view);
-				renderer.render_grid().render();
+				renderer.render_grid().render(rhi->context());
 
 				RHITextureRegion region(view_size);
 				rhi->context()->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(),

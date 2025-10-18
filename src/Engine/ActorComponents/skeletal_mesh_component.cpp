@@ -2,6 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/skeletal_mesh_component.hpp>
+#include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/material_bindings.hpp>
 #include <Graphics/mesh.hpp>
@@ -65,18 +66,19 @@ namespace Engine
 		return m_mesh ? m_mesh->materials[index] : nullptr;
 	}
 
-	SkeletalMeshComponent::Proxy& SkeletalMeshComponent::Proxy::render(Renderer* renderer, RenderPass* pass,
-	                                                                   const MaterialBindings* bindings)
+	SkeletalMeshComponent::Proxy& SkeletalMeshComponent::Proxy::render(PrimitiveRenderingContext* ctx)
 	{
 		static MaterialBindings skeletal_bindings;
 		static Name permutation                              = "SkeletalMesh";
 		static MaterialBindings::Binding* trx_skinning_bones = skeletal_bindings.find_or_create("trx_skinning_bones");
 
-		if ((pass = pass->find_permutation(permutation)))
+		if ((ctx->render_pass = ctx->render_pass->find_permutation(permutation)))
 		{
-			skeletal_bindings.prev = bindings;
-			(*trx_skinning_bones)  = m_bones->as_srv();
-			Super::Proxy::render(renderer, pass, &skeletal_bindings);
+			skeletal_bindings.prev = ctx->bindings;
+			ctx->bindings          = &skeletal_bindings;
+
+			(*trx_skinning_bones) = m_bones->as_srv();
+			Super::Proxy::render(ctx);
 		}
 		return *this;
 	}

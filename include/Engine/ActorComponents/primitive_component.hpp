@@ -11,9 +11,7 @@ namespace Engine
 	class VertexBufferBase;
 	class IndexBuffer;
 
-	class RenderPass;
-	class Renderer;
-	class MaterialBindings;
+	class PrimitiveRenderingContext;
 
 	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
 	{
@@ -26,7 +24,7 @@ namespace Engine
 			Box3f m_bounds;
 
 		public:
-			virtual Proxy& render(Renderer* renderer, RenderPass* pass, const MaterialBindings* bindings = nullptr);
+			virtual Proxy& render(PrimitiveRenderingContext* context);
 
 			inline const Box3f& bounding_box() const { return m_bounds; }
 			friend class PrimitiveComponent;

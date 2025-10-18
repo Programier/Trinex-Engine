@@ -269,12 +269,12 @@ namespace Engine
 			        .add_pass("Copy to BackBuffer")
 			        .add_resource(dst, RHIAccess::TransferDst)
 			        .add_resource(src, RHIAccess::TransferSrc)
-			        .add_func([&]() {
+			        .add_func([&](RHIContext* ctx) {
 				        RHITextureRegion region(m_scene_view.view_size());
-				        rhi->context()->copy_texture_to_texture(src, region, dst, region);
+				        ctx->copy_texture_to_texture(src, region, dst, region);
 			        });
 
-			renderer.render();
+			renderer.render(rhi->context());
 
 			auto handle = rhi->context()->end();
 			rhi->submit(handle);

@@ -6,6 +6,7 @@ namespace Engine
 	class RHIShaderResourceView;
 	class RHISampler;
 	class RHIBuffer;
+	class RHIContext;
 	class Renderer;
 	struct LightRenderRanges;
 
@@ -19,8 +20,8 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blur(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction, float sigma,
-			          float radius, Swizzle swizzle = {}, RHISampler* sampler = nullptr);
+			void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction,
+			          float sigma, float radius, Swizzle swizzle = {}, RHISampler* sampler = nullptr);
 		};
 
 		class ENGINE_EXPORT Blit2D : public GlobalGraphicsPipeline
@@ -31,7 +32,7 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blit(RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle = {},
+			void blit(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle = {},
 			          RHISampler* sampler = nullptr);
 		};
 
@@ -94,7 +95,7 @@ namespace Engine
 			const RHIShaderParameterInfo* m_scene_view = nullptr;
 
 		public:
-			TonemappingACES& apply(Renderer* renderer);
+			TonemappingACES& apply(RHIContext* ctx, Renderer* renderer);
 		};
 
 		class SSR : public GlobalGraphicsPipeline
@@ -128,8 +129,8 @@ namespace Engine
 			SSAO& create_samples_buffer(size_t count);
 
 		public:
-			SSAO& render(Renderer* renderer, float intensity, float bias, float power, float radius, float fade_out_distance,
-			             float fade_out_radius, uint_t samples);
+			SSAO& render(RHIContext* ctx, Renderer* renderer, float intensity, float bias, float power, float radius,
+			             float fade_out_distance, float fade_out_radius, uint_t samples);
 		};
 
 		class ClusterInitialize : public GlobalComputePipeline
@@ -142,7 +143,7 @@ namespace Engine
 
 		public:
 			RHIBuffer* create_clusters_buffer();
-			ClusterInitialize& build(RHIBuffer* clusters, Renderer* renderer);
+			ClusterInitialize& build(RHIContext* ctx, RHIBuffer* clusters, Renderer* renderer);
 		};
 
 		class ClusterLightCulling : public GlobalComputePipeline
@@ -156,7 +157,7 @@ namespace Engine
 			const RHIShaderParameterInfo* m_ranges;
 
 		public:
-			ClusterLightCulling& cull(Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
+			ClusterLightCulling& cull(RHIContext* ctx, Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
 			                          const LightRenderRanges& ranges);
 		};
 	}// namespace Pipelines

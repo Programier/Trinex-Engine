@@ -38,21 +38,22 @@ namespace Engine
 		DeferredRenderer& register_shadow_light(DirectionalLightComponent* light, byte* shadow_data);
 
 		DeferredRenderer& register_lit_mode_passes();
-		DeferredRenderer& geometry_pass();
-		DeferredRenderer& translucent_pass();
-		DeferredRenderer& ambient_occlusion_pass(PostProcessParameters* params);
-		DeferredRenderer& deferred_lighting_pass();
-		DeferredRenderer& bloom_pass();
-		DeferredRenderer& copy_base_color_to_scene_color();
-		DeferredRenderer& copy_world_normal_to_scene_color();
-		DeferredRenderer& copy_metalic_to_scene_color();
-		DeferredRenderer& copy_specular_to_scene_color();
-		DeferredRenderer& copy_roughness_to_scene_color();
-		DeferredRenderer& copy_emissive_to_scene_color();
-		DeferredRenderer& copy_ambient_to_scene_color();
-		DeferredRenderer& copy_world_to_scene_color();
-		DeferredRenderer& render_visible_primitives(RenderPass* pass, MaterialBindings* bindings = nullptr);
-		DeferredRenderer& cull_lights();
+		DeferredRenderer& geometry_pass(RHIContext* ctx);
+		DeferredRenderer& translucent_pass(RHIContext* ctx);
+		DeferredRenderer& ambient_occlusion_pass(RHIContext* ctx, PostProcessParameters* params);
+		DeferredRenderer& global_illumination_pass(RHIContext* ctx);
+		DeferredRenderer& deferred_lighting_pass(RHIContext* ctx);
+		DeferredRenderer& bloom_pass(RHIContext* ctx);
+		DeferredRenderer& copy_base_color_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_world_normal_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_metalic_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_specular_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_roughness_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_emissive_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_ambient_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_world_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, MaterialBindings* bindings = nullptr);
+		DeferredRenderer& cull_lights(RHIContext* ctx);
 
 	public:
 		DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode);
@@ -62,7 +63,7 @@ namespace Engine
 		RHIBuffer* clusters_buffer();
 		RHIBuffer* lights_buffer();
 		RHIBuffer* shadow_buffer();
-		DeferredRenderer& render() override;
+		DeferredRenderer& render(RHIContext* cxt) override;
 
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
 		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }

@@ -8,6 +8,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/settings.hpp>
@@ -173,7 +174,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool MaterialInterface::apply(const RendererContext& ctx, const MaterialBindings* bindings)
+	bool MaterialInterface::apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
 	{
 		return false;
 	}
@@ -389,16 +390,16 @@ namespace Engine
 		return *this;
 	}
 
-	bool Material::apply(const RendererContext& ctx, const MaterialBindings* bindings)
+	bool Material::apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
 	{
 		return apply_internal(this, ctx, bindings);
 	}
 
-	bool Material::apply_internal(MaterialInterface* head, const RendererContext& ctx, const MaterialBindings* bindings)
+	bool Material::apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
-		auto pipeline_object = pipeline(ctx.render_pass);
+		auto pipeline_object = pipeline(ctx->render_pass);
 
 		if (pipeline_object == nullptr)
 			return false;
@@ -644,7 +645,7 @@ namespace Engine
 		return parent_material;
 	}
 
-	bool MaterialInstance::apply(const RendererContext& ctx, const MaterialBindings* bindings)
+	bool MaterialInstance::apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
 	{
 		Material* mat = material();
 

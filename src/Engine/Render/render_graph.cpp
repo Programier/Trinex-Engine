@@ -19,6 +19,7 @@ namespace Engine::RenderGraph
 		{
 			Texture = 0,
 			Buffer  = 1,
+			Scope   = 2,
 		};
 
 	private:
@@ -34,7 +35,7 @@ namespace Engine::RenderGraph
 		// So, the last 3 bits of the address will be zeros. We will actually use them to store the resource type.
 		union
 		{
-			RHIObject* m_resource;
+			void* m_resource;
 			uint64_t m_resource_address;
 		};
 
@@ -58,10 +59,15 @@ namespace Engine::RenderGraph
 			}
 		}
 
+		template<typename T>
+		inline T* as() const
+		{
+			return reinterpret_cast<T*>(m_resource_address & s_resource_address_mask);
+		}
+
 		inline Pass* writer() const { return m_writer; }
 		inline Resource* previous() const { return m_prev; }
 		inline Resource* next() const { return m_next; }
-		inline RHIObject* resource() const { return reinterpret_cast<RHIObject*>(m_resource_address & s_resource_address_mask); }
 		inline Type resource_type() const { return static_cast<Type>(m_resource_address & s_resource_type_mask); }
 		friend class Graph;
 	};
@@ -100,17 +106,35 @@ namespace Engine::RenderGraph
 		{
 			auto resource = ref->resource;
 
-			if (resource->resource_type() == RenderGraph::Resource::Texture)
+			switch (resource->resource_type())
 			{
-				ctx->barrier(static_cast<RHITexture*>(resource->resource()), ref->access);
+				case RenderGraph::Resource::Texture:
+				{
+					ctx->barrier(resource->as<RHITexture>(), ref->access);
+					break;
+				}
+
+				case RenderGraph::Resource::Buffer:
+				{
+					ctx->barrier(resource->as<RHIBuffer>(), ref->access);
+					break;
+				}
+
+				case RenderGraph::Resource::Scope:
+				{
+					break;
+				}
+
+				default: break;
 			}
 		}
 
 		for (Task* task : m_tasks)
 		{
-			task->execute();
+			task->execute(ctx);
 			task->~Task();
 		}
+
 		m_tasks.clear();
 		return *this;
 	}
@@ -138,7 +162,6 @@ namespace Engine::RenderGraph
 	Graph::Graph()
 	{
 		m_resource_map.reserve(s_default_reserve_size);
-		m_passes.reserve(s_default_reserve_size);
 		m_outputs.reserve(s_default_reserve_size);
 	}
 
@@ -198,9 +221,7 @@ namespace Engine::RenderGraph
 
 	Pass& Graph::add_pass(const char* name)
 	{
-		Pass* pass = new (rg_allocate<Pass>()) Pass(this, name);
-		m_passes.emplace_back(pass);
-		return *pass;
+		return *(new (rg_allocate<Pass>()) Pass(this, name));
 	}
 
 	Graph::Node* Graph::build_graph(Pass* writer)
@@ -211,11 +232,6 @@ namespace Engine::RenderGraph
 		auto node      = Node::create();
 		writer->m_node = node;
 		node->pass     = writer;
-
-		for (Pass* dep : writer->dependencies())
-		{
-			node->dependencies.push_back(build_graph(dep));
-		}
 
 		for (Pass::Resource* resource : writer->resources())
 		{
@@ -292,7 +308,7 @@ namespace Engine::RenderGraph
 		}
 	}
 
-	bool Graph::execute()
+	bool Graph::execute(RHIContext* ctx)
 	{
 		StackByteAllocator::Mark mark;
 		Node* root = build_graph();
@@ -301,7 +317,7 @@ namespace Engine::RenderGraph
 
 		for (Node* dependency : root->dependencies)
 		{
-			execute_node(dependency, rhi->context());
+			execute_node(dependency, ctx);
 		}
 
 		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this);

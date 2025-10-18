@@ -50,9 +50,9 @@ namespace Engine
 
 
 #if __GNUC__
-#define GNU_COMPILER
+#define TRINEX_GNU_COMPILER
 #elif __clang__
-#define CLANG_COMPILER
+#define TRINEX_CLANG_COMPILER
 #else
 #error "Compiler doesn't support!"
 #endif
@@ -247,7 +247,7 @@ private:                                                                        
 	static Engine::Refl::Enum* s_enum;                                                                                           \
                                                                                                                                  \
 public:                                                                                                                          \
-	static inline class Engine::Refl::Enum* static_reflection()                                                               \
+	static inline class Engine::Refl::Enum* static_reflection()                                                                  \
 	{                                                                                                                            \
 		return s_enum;                                                                                                           \
 	}                                                                                                                            \

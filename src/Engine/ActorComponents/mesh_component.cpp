@@ -2,6 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
+#include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Graphics/material.hpp>
@@ -25,9 +26,9 @@ namespace Engine
 		return nullptr;
 	}
 
-	MeshComponent::Proxy& MeshComponent::Proxy::render(Renderer* renderer, RenderPass* pass, const MaterialBindings* bindings)
+	MeshComponent::Proxy& MeshComponent::Proxy::render(PrimitiveRenderingContext* ctx)
 	{
-		const auto& camera = renderer->scene_view().camera_view();
+		const auto& camera = ctx->renderer->scene_view().camera_view();
 
 		const uint_t lod      = camera.compute_lod(world_transform().location(), lods_count());
 		const uint_t surfaces = surfaces_count(lod);
@@ -44,24 +45,22 @@ namespace Engine
 			if (material_interface == nullptr)
 				continue;
 
-			if (!pass->is_material_compatible(material_interface->material()))
+			if (!ctx->render_pass->is_material_compatible(material_interface->material()))
 				continue;
 
 			Material* material         = material_interface->material();
-			GraphicsPipeline* pipeline = material->pipeline(pass);
+			GraphicsPipeline* pipeline = material->pipeline(ctx->render_pass);
 
 			if (!pipeline)
 				continue;
 
-			RendererContext ctx(renderer, pass, world_transform().matrix());
-
-			if (!material_interface->apply(ctx, bindings))
+			if (!material_interface->apply(ctx))
 				continue;
 
 			byte stream                         = 1;
 			const VertexBufferBase* null_buffer = VertexBufferBase::static_null();
 
-			rhi->context()->bind_vertex_buffer(null_buffer->rhi_buffer(), 0, 0, 0);
+			ctx->context->bind_vertex_buffer(null_buffer->rhi_buffer(), 0, 0, 0);
 
 			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
@@ -70,13 +69,13 @@ namespace Engine
 
 				if (buffer)
 				{
-					rhi->context()->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
-					rhi->context()->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
+					ctx->context->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
+					ctx->context->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
 					++stream;
 				}
 				else
 				{
-					rhi->context()->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, 0, 0);
+					ctx->context->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, 0, 0);
 				}
 			}
 
@@ -84,18 +83,18 @@ namespace Engine
 			{
 				if (auto index_buffer = find_index_buffer(lod))
 				{
-					rhi->context()->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
-					rhi->context()->draw_indexed(surface_data->vertices_count, surface_data->first_index,
-					                             surface_data->base_vertex_index);
+					ctx->context->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
+					ctx->context->draw_indexed(surface_data->vertices_count, surface_data->first_index,
+					                           surface_data->base_vertex_index);
 				}
 				else
 				{
-					rhi->context()->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+					ctx->context->draw(surface_data->vertices_count, surface_data->base_vertex_index);
 				}
 			}
 			else
 			{
-				rhi->context()->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+				ctx->context->draw(surface_data->vertices_count, surface_data->base_vertex_index);
 			}
 		}
 		return *this;

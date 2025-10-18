@@ -24,6 +24,7 @@ namespace Engine
 			m_uniform_buffer_current = &buffer->next;
 		}
 
+
 		VulkanUniformBuffer* buffer = trx_new VulkanUniformBuffer(size);
 		(*m_uniform_buffer_current) = buffer;
 		return buffer;
@@ -38,6 +39,16 @@ namespace Engine
 			buffer->reset();
 			buffer = buffer->next;
 		}
+		return *this;
+	}
+
+	VulkanCommandHandle::UniformBuffer& VulkanCommandHandle::UniformBuffer::flush()
+	{
+		if (*m_uniform_buffer_current)
+		{
+			(*m_uniform_buffer_current)->flush();
+		}
+
 		return *this;
 	}
 
@@ -141,10 +152,7 @@ namespace Engine
 	{
 		for (auto& page : m_uniform_buffers)
 		{
-			if (*page.m_uniform_buffer_current)
-			{
-				(*page.m_uniform_buffer_current)->flush();
-			}
+			page.flush();
 		}
 		return *this;
 	}
@@ -157,7 +165,7 @@ namespace Engine
 	VulkanCommandHandle::~VulkanCommandHandle()
 	{
 		wait();
-		
+
 		auto pool = API->command_buffer_mananger()->command_pool();
 		API->m_device.freeCommandBuffers(pool, *this);
 

@@ -63,9 +63,8 @@ namespace Engine::RenderGraph
 			static inline Node* create() { return trx_stack_new Node(); }
 		};
 
-		RGMap<RHIObject*, Resource*> m_resource_map;
+		RGMap<void*, Resource*> m_resource_map;
 		RGSet<RHIObject*> m_outputs;
-		RGVector<Pass*> m_passes;
 		RGVector<Plugin*> m_plugins;
 
 	private:
@@ -85,9 +84,8 @@ namespace Engine::RenderGraph
 		Graph& add_output(RHITexture* texture);
 		Graph& add_output(RHIBuffer* buffer);
 		Pass& add_pass(const char* name = "Unnamed pass");
-		bool execute();
+		bool execute(RHIContext* context);
 
-		inline const RGVector<Pass*> passes() const { return m_passes; }
 		inline const RGVector<Plugin*> plugins() const { return m_plugins; }
 		inline Graph& add_plugin(Plugin* plugin)
 		{
@@ -106,7 +104,6 @@ namespace Engine::RenderGraph
 		friend Pass;
 	};
 
-
 	class ENGINE_EXPORT Pass
 	{
 	public:
@@ -120,7 +117,7 @@ namespace Engine::RenderGraph
 		class Task
 		{
 		public:
-			virtual void execute() = 0;
+			virtual void execute(RHIContext* ctx) = 0;
 			virtual ~Task() {}
 			friend Pass;
 		};
@@ -134,7 +131,7 @@ namespace Engine::RenderGraph
 
 		public:
 			explicit LambdaTask(Callable&& fn) : m_callable(std::forward<Callable>(fn)) {}
-			void execute() override { m_callable(); }
+			void execute(RHIContext* ctx) override { m_callable(ctx); }
 		};
 
 		class Graph* m_graph;
@@ -142,7 +139,6 @@ namespace Engine::RenderGraph
 		Graph::Node* m_node;
 
 		RGVector<Resource*> m_resources;
-		RGVector<Pass*> m_dependencies;
 		RGVector<Task*> m_tasks;
 
 		Pass(class Graph* graph, const char* name = "Unnamed pass");
@@ -152,19 +148,6 @@ namespace Engine::RenderGraph
 	public:
 		Pass& add_resource(RHITexture* texture, RHIAccess access);
 		Pass& add_resource(RHIBuffer* buffer, RHIAccess access);
-
-		inline Pass& add_dependency(Pass* dependency)
-		{
-			m_dependencies.push_back(dependency);
-			return *this;
-		}
-
-		inline Pass& add_pass(const char* name = "Unnamed pass")
-		{
-			Pass& pass = m_graph->add_pass(name);
-			add_dependency(&pass);
-			return pass;
-		}
 
 		template<typename TaskType, typename... Args>
 		Pass& add_task(Args&&... args)
@@ -185,9 +168,8 @@ namespace Engine::RenderGraph
 			}
 			else
 			{
-				auto wrapper = [func = std::forward<Callable>(callable), ... args = std::forward<Args>(args)]() mutable {
-					func(std::forward<Args>(args)...);
-				};
+				auto wrapper = [func = std::forward<Callable>(callable), ... args = std::forward<Args>(args)](
+				                       RHIContext* ctx) mutable { func(ctx, std::forward<Args>(args)...); };
 
 				return add_task<LambdaTask<decltype(wrapper)>>(std::move(wrapper));
 			}
@@ -198,7 +180,6 @@ namespace Engine::RenderGraph
 		inline class Graph* graph() const { return m_graph; }
 		inline const char* name() const { return m_name; }
 		inline const RGVector<Resource*>& resources() const { return m_resources; }
-		inline const RGVector<Pass*>& dependencies() const { return m_dependencies; }
 		inline const RGVector<Task*>& tasks() const { return m_tasks; }
 		inline bool is_empty() const { return m_tasks.empty(); }
 

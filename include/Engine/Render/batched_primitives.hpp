@@ -7,6 +7,7 @@
 namespace Engine
 {
 	class Renderer;
+	class RHIContext;
 
 	class ENGINE_EXPORT BatchedLines final
 	{
@@ -80,7 +81,7 @@ namespace Engine
 		BatchedLines& add_box(const Vector3f& min, const Vector3f& max, const Color& color = {255, 255, 255, 255},
 		                      float thickness = 1.f);
 
-		BatchedLines& flush(Renderer* renderer);
+		BatchedLines& flush(RHIContext* ctx, Renderer* renderer);
 
 		inline bool is_empty() const { return m_first == nullptr; }
 	};
@@ -99,6 +100,6 @@ namespace Engine
 		BatchedTriangles& add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,
 		                               Color color1 = {255, 255, 255, 255}, Color color2 = {255, 255, 255, 255},
 		                               Color color3 = {255, 255, 255, 255});
-		BatchedTriangles& render(Renderer* renderer);
+		BatchedTriangles& render(RHIContext* ctx, Renderer* renderer);
 	};
 }// namespace Engine

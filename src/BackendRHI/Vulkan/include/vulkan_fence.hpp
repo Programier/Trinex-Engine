@@ -31,8 +31,12 @@ namespace Engine
 
 		VulkanFence& wait();
 		inline vk::Fence fence() const { return m_fence; }
-		inline const VulkanFence& make_pending() const
+
+		inline VulkanFence& make_pending()
 		{
+			if (m_status == Status::Signaled)
+				reset();
+
 			m_status = Status::Undefined;
 			return *this;
 		}

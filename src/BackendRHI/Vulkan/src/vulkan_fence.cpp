@@ -64,6 +64,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::signal(RHIFence* fence)
 	{
+		static_cast<VulkanFence*>(fence)->make_pending();
 		m_graphics_queue->submit({}, static_cast<VulkanFence*>(fence)->fence());
 		return *this;
 	}

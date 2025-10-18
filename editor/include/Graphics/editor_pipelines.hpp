@@ -6,6 +6,7 @@ namespace Engine
 {
 	class Renderer;
 	class RHIShaderResourceView;
+	class RHIContext;
 }// namespace Engine
 
 namespace Engine::EditorPipelines
@@ -25,8 +26,9 @@ namespace Engine::EditorPipelines
 
 	public:
 		using SRV = RHIShaderResourceView;
-		void render(Renderer* renderer, SRV* outline_depth, Vector3f color);
-		void render(Renderer* renderer, SRV* outline_depth, Vector3f color, Vector2f sample_offset);
+		void render(RHIContext* ctx, Renderer* renderer, SRV* scene_color, SRV* outlines_depth, Vector3f color);
+		void render(RHIContext* ctx, Renderer* renderer, SRV* scene_color, SRV* outlines_depth, Vector3f color,
+		            Vector2f sample_offset);
 	};
 
 	class Grid : public GlobalGraphicsPipeline
@@ -38,7 +40,7 @@ namespace Engine::EditorPipelines
 		const RHIShaderParameterInfo* m_fov;
 
 	public:
-		void render(Renderer* renderer);
+		void render(RHIContext* ctx, Renderer* renderer);
 	};
 
 }// namespace Engine::EditorPipelines

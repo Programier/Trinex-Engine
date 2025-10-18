@@ -276,12 +276,8 @@ namespace Engine
 	{
 		std::memcpy(m_block_start + offset, data, size);
 		m_block_end = std::max<byte*>(m_block_end, m_block_start + offset + size);
+		m_block_end = align_up_ptr(m_block_end, API->m_properties.limits.minUniformBufferOffsetAlignment);
 		return *this;
-	}
-
-	size_t VulkanUniformBuffer::block_size() const
-	{
-		return align_up(m_block_end - m_block_start, API->m_properties.limits.minUniformBufferOffsetAlignment);
 	}
 
 	VulkanStaggingBuffer::VulkanStaggingBuffer(VulkanStaggingBufferManager* manager) : m_manager(manager)
