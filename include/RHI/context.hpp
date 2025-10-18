@@ -144,4 +144,18 @@ namespace Engine
 			return update_scalar(data, info->size, info->offset, info->binding);
 		}
 	};
+
+#if TRINEX_DEBUG_BUILD
+#define trinex_rhi_push_stage(ctx, name) ctx->push_debug_stage(name)
+#define trinex_rhi_pop_stage(ctx) ctx->pop_debug_stage()
+#else
+#define trinex_rhi_push_stage(ctx, name)                                                                                         \
+	do                                                                                                                           \
+	{                                                                                                                            \
+	} while (false)
+#define trinex_rhi_pop_stage(ctx)                                                                                                \
+	do                                                                                                                           \
+	{                                                                                                                            \
+	} while (false)
+#endif
 }// namespace Engine

@@ -124,8 +124,7 @@ namespace Engine
 			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.viewport().size);
 			m_surfaces[type]   = target;
 
-			auto& pass = m_graph->add_pass(RenderGraph::Pass::Graphics, clear_pass_names[type])
-			                     .add_resource(target, RHIAccess::TransferDst);
+			auto& pass = m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
 
 			if (type == SceneDepth)
 				pass.add_func([target]() { rhi->context()->clear_dsv(target->as_dsv()); });

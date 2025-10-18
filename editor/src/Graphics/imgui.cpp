@@ -137,12 +137,12 @@ namespace Engine
 		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data)
 		{
 			trinex_profile_cpu_n("ImGui");
-			trinex_rhi_push_stage("ImGui Render");
+			trinex_rhi_push_stage(ctx, "ImGui Render");
 
 			// Avoid rendering when minimized
 			if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
 			{
-				trinex_rhi_pop_stage();
+				trinex_rhi_pop_stage(ctx);
 				return;
 			}
 
@@ -151,11 +151,11 @@ namespace Engine
 
 			if (bd == nullptr || vd == nullptr)
 			{
-				trinex_rhi_pop_stage();
+				trinex_rhi_pop_stage(ctx);
 				return;
 			}
 
-			trinex_rhi_push_stage("ImGui Setup state");
+			trinex_rhi_push_stage(ctx, "ImGui Setup state");
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
@@ -221,20 +221,20 @@ namespace Engine
 			ctx->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
 			ctx->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
 
-			trinex_rhi_pop_stage();
+			trinex_rhi_pop_stage(ctx);
 			{
 				trinex_profile_cpu_n("Render");
 
 				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
 				{
-					trinex_rhi_push_stage("ImGui Command list");
+					trinex_rhi_push_stage(ctx, "ImGui Command list");
 					const ImDrawList* cmd_list = draw_data->CmdLists[n];
 
 					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
 						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-						trinex_rhi_push_stage("ImGui Draw Command");
+						trinex_rhi_push_stage(ctx, "ImGui Draw Command");
 						if (pcmd->UserCallback != nullptr)
 						{
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
@@ -273,16 +273,16 @@ namespace Engine
 							}
 						}
 
-						trinex_rhi_pop_stage();
+						trinex_rhi_pop_stage(ctx);
 					}
 
 					global_idx_offset += cmd_list->IdxBuffer.Size;
 					global_vtx_offset += cmd_list->VtxBuffer.Size;
-					trinex_rhi_pop_stage();
+					trinex_rhi_pop_stage(ctx);
 				}
 			}
 
-			trinex_rhi_pop_stage();
+			trinex_rhi_pop_stage(ctx);
 		}
 
 		static void imgui_trinex_create_fonts_texture()
@@ -452,14 +452,14 @@ namespace Engine
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 				{
-					trinex_rhi_push_stage("ImGuiViewportClient");
+					trinex_rhi_push_stage(ctx, "ImGuiViewportClient");
 					ImGuiContextLock lock(m_window->context());
 					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, m_draw_data.draw_data());
 				}
 				RHIContextPool::global_instance()->end_context(ctx);
 
 				m_draw_data.swap_render_index();
-				trinex_rhi_pop_stage();
+				trinex_rhi_pop_stage(ctx);
 
 				std::swap(viewport, bd->window);// Restore main viewport
 

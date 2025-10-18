@@ -39,7 +39,7 @@ namespace Engine
 			auto surface_rtv = surface->as_rtv();
 			auto depth_dsv   = depth->as_dsv();
 
-			trinex_rhi_push_stage("HitProxy");
+			trinex_rhi_push_stage(rhi->context(), "HitProxy");
 
 			rhi->context()->clear_irtv(surface_rtv).clear_dsv(depth_dsv);
 			rhi->context()->bind_render_target1(surface_rtv, depth_dsv);
@@ -64,7 +64,7 @@ namespace Engine
 				}
 			}
 
-			trinex_rhi_pop_stage();
+			trinex_rhi_pop_stage(rhi->context());
 			return surface;
 		}
 	};
@@ -110,7 +110,7 @@ namespace Engine
 			return *this;
 
 		render_graph()
-		        ->add_pass(RenderGraph::Pass::Graphics, "Editor Grid")
+		        ->add_pass("Editor Grid")
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this]() {
@@ -151,7 +151,7 @@ namespace Engine
 		if (actors && count)
 		{
 			render_graph()
-			        ->add_pass(RenderGraph::Pass::Graphics, "Editor Outlines")
+			        ->add_pass("Editor Outlines")
 			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 			        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
 			        .add_func([this, actors, count]() { render_outlines_pass(actors, count); });

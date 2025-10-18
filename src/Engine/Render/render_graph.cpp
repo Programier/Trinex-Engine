@@ -1,8 +1,11 @@
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/memory.hpp>
 #include <Engine/Render/render_graph.hpp>
+#include <RHI/context.hpp>
+#include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Engine::RenderGraph
@@ -11,26 +14,59 @@ namespace Engine::RenderGraph
 
 	class Resource
 	{
+	public:
+		enum Type
+		{
+			Texture = 0,
+			Buffer  = 1,
+		};
+
 	private:
-		Resource* m_next_version = nullptr;
-		RHIObject* m_resource;
+		static constexpr uint64_t s_resource_type_mask    = 0x7ull;
+		static constexpr uint64_t s_resource_address_mask = ~s_resource_type_mask;
+
+
+		Resource* m_next;
+		Resource* m_prev;
 		Pass* m_writer;
-		uint32_t m_version;
+
+		// Since RHIObject is 8-byte aligned, the address is guaranteed to be aligned to the same value.
+		// So, the last 3 bits of the address will be zeros. We will actually use them to store the resource type.
+		union
+		{
+			RHIObject* m_resource;
+			uint64_t m_resource_address;
+		};
 
 	public:
-		inline Resource(RHIObject* resource, size_t version, Pass* writer = nullptr)
-		    : m_resource(resource), m_writer(writer), m_version(version)
-		{}
+		inline Resource(RHITexture* resource, Pass* writer = nullptr, Resource* prev = nullptr)
+		    : m_next(nullptr), m_prev(prev), m_writer(writer), m_resource(resource)
+		{
+			if (prev)
+			{
+				prev->m_next = this;
+			}
+		}
+
+		inline Resource(RHIBuffer* resource, Pass* writer = nullptr, Resource* prev = nullptr)
+		    : m_next(nullptr), m_prev(prev), m_writer(writer), m_resource(resource)
+		{
+			m_resource_address |= Buffer;
+			if (prev)
+			{
+				prev->m_next = this;
+			}
+		}
+
 		inline Pass* writer() const { return m_writer; }
-		inline Resource* next_version() const { return m_next_version; }
-		inline Resource* next_version(Resource* resource) { return (m_next_version = resource); }
-		inline RHIObject* resource() const { return m_resource; }
-		inline uint32_t version() const { return m_version; }
+		inline Resource* previous() const { return m_prev; }
+		inline Resource* next() const { return m_next; }
+		inline RHIObject* resource() const { return reinterpret_cast<RHIObject*>(m_resource_address & s_resource_address_mask); }
+		inline Type resource_type() const { return static_cast<Type>(m_resource_address & s_resource_type_mask); }
 		friend class Graph;
 	};
 
-	Pass::Pass(Graph* graph, Type type, const char* name)
-	    : m_graph(graph), m_name(name), m_node(nullptr), m_type(type), m_flags(Flags::Undefined)
+	Pass::Pass(Graph* graph, const char* name) : m_graph(graph), m_name(name), m_node(nullptr)
 	{
 		m_resources.reserve(s_default_reserve_size);
 		m_tasks.reserve(s_default_reserve_size);
@@ -45,17 +81,38 @@ namespace Engine::RenderGraph
 	Pass& Pass::add_resource(RHITexture* texture, RHIAccess access)
 	{
 		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->writable_resource(texture, this), access);
+			return add_resource(m_graph->find_resource(texture, this), access);
 		else
-			return add_resource(m_graph->readable_resource(texture), access);
+			return add_resource(m_graph->find_resource(texture), access);
 	}
 
 	Pass& Pass::add_resource(RHIBuffer* buffer, RHIAccess access)
 	{
 		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->writable_resource(buffer, this), access);
+			return add_resource(m_graph->find_resource(buffer, this), access);
 		else
-			return add_resource(m_graph->readable_resource(buffer), access);
+			return add_resource(m_graph->find_resource(buffer), access);
+	}
+
+	Pass& Pass::execute(RHIContext* ctx)
+	{
+		for (Pass::Resource* ref : m_resources)
+		{
+			auto resource = ref->resource;
+
+			if (resource->resource_type() == RenderGraph::Resource::Texture)
+			{
+				ctx->barrier(static_cast<RHITexture*>(resource->resource()), ref->access);
+			}
+		}
+
+		for (Task* task : m_tasks)
+		{
+			task->execute();
+			task->~Task();
+		}
+		m_tasks.clear();
+		return *this;
 	}
 
 	Graph::Plugin& Graph::Plugin::on_frame_begin(Graph* graph)
@@ -85,172 +142,168 @@ namespace Engine::RenderGraph
 		m_outputs.reserve(s_default_reserve_size);
 	}
 
-	Graph::ResourceEntry* Graph::find_resource(RHIObject* object)
+	Resource* Graph::find_resource(RHIObject* object)
 	{
-		return &m_resource_map[object];
+		auto it = m_resource_map.find(object);
+		if (it == m_resource_map.end())
+			return nullptr;
+		return it->second;
 	}
 
-	Graph::ResourceEntry* Graph::find_resource(RHITexture* texture)
+	Resource* Graph::find_resource(RHITexture* texture)
 	{
-		auto& entry = m_resource_map[texture];
+		Resource*& resource = m_resource_map[texture];
 
-		if (entry.first == nullptr)
-			entry.first = entry.last = new (rg_allocate<Resource>()) Resource(texture, 0);
+		if (resource == nullptr)
+			resource = trx_frame_new Resource(texture, nullptr, nullptr);
 
-		return &entry;
+		return resource;
 	}
 
-	Graph::ResourceEntry* Graph::find_resource(RHIBuffer* buffer)
+	Resource* Graph::find_resource(RHIBuffer* buffer)
 	{
-		auto& entry = m_resource_map[buffer];
+		Resource*& resource = m_resource_map[buffer];
 
-		if (entry.first == nullptr)
-			entry.first = entry.last = new (rg_allocate<Resource>()) Resource(buffer, 0);
+		if (resource == nullptr)
+			resource = trx_frame_new Resource(buffer, nullptr, nullptr);
 
-		return &entry;
+		return resource;
 	}
 
-	Resource* Graph::writable_resource(RHITexture* texture, Pass* writer)
+	Resource* Graph::find_resource(RHITexture* texture, Pass* writer)
 	{
-		ResourceEntry* entry = find_resource(texture);
-		uint_t version       = entry->last->version() + 1;
-		entry->last          = entry->last->next_version(new (rg_allocate<Resource>()) Resource(texture, version, writer));
-		return entry->last;
+		Resource*& resource = m_resource_map[texture];
+		resource            = trx_frame_new Resource(texture, writer, resource);
+		return resource;
 	}
 
-	Resource* Graph::writable_resource(RHIBuffer* buffer, Pass* writer)
+	Resource* Graph::find_resource(RHIBuffer* buffer, Pass* writer)
 	{
-		ResourceEntry* entry = find_resource(buffer);
-		uint_t version       = entry->last->version() + 1;
-		entry->last          = entry->last->next_version(new (rg_allocate<Resource>()) Resource(buffer, version, writer));
-		return entry->last;
+		Resource*& resource = m_resource_map[buffer];
+		resource            = trx_frame_new Resource(buffer, writer, resource);
+		return resource;
 	}
 
 	Graph& Graph::add_output(RHITexture* texture)
 	{
-		m_outputs.insert(find_resource(texture)->first);
+		m_outputs.insert(texture);
 		return *this;
 	}
 
 	Graph& Graph::add_output(RHIBuffer* buffer)
 	{
-		m_outputs.insert(find_resource(buffer)->first);
+		m_outputs.insert(buffer);
 		return *this;
 	}
 
-	Pass& Graph::add_pass(Pass::Type type, const char* name)
+	Pass& Graph::add_pass(const char* name)
 	{
-		Pass* pass = new (rg_allocate<Pass>()) Pass(this, type, name);
+		Pass* pass = new (rg_allocate<Pass>()) Pass(this, name);
 		m_passes.emplace_back(pass);
 		return *pass;
 	}
 
-	Graph& Graph::build_graph(Pass* writer, Node* owner)
+	Graph::Node* Graph::build_graph(Pass* writer)
 	{
-		if (owner->pass == writer)
-			return *this;
+		if (writer->m_node)
+			return writer->m_node;
 
-		if (!writer->is_visited())
+		auto node      = Node::create();
+		writer->m_node = node;
+		node->pass     = writer;
+
+		for (Pass* dep : writer->dependencies())
 		{
-			writer->add_flags(Pass::Flags::IsVisited);
+			node->dependencies.push_back(build_graph(dep));
+		}
 
-			Node* writer_node = Node::create();
-			writer_node->pass = writer;
-			writer->m_node    = writer_node;
-			owner->dependencies.push_back(writer_node);
-
-			for (Pass* dependency : writer->dependencies())
+		for (Pass::Resource* resource : writer->resources())
+		{
+			if (resource->access & RHIAccess::ReadableMask && resource->resource->writer() != writer)
 			{
-				build_graph(dependency, writer_node);
-			}
+				if (Node* dep = build_graph(resource->resource))
+					node->dependencies.push_back(dep);
 
-			for (const Pass::Resource* pr : writer->resources())
-			{
-				if (pr->access & RHIAccess::ReadableMask)
+				if (Resource* next = resource->resource->next())
 				{
-					build_graph(pr->resource, writer_node);
+					Node* depends = build_graph(next);
+					depends->dependencies.push_back(node);
 				}
 			}
 		}
-		return *this;
+		return node;
 	}
 
-	Graph& Graph::build_graph(Resource* resource, Node* owner)
+	Graph::Node* Graph::build_graph(Resource* resource)
 	{
-		uint32_t requested_version = resource->version();
-		Resource*& resource_state  = find_resource(resource->resource())->first;
+		auto writer = resource->writer();
 
-		while (resource_state && resource_state->version() <= requested_version)
+		if (writer == nullptr)
+			return nullptr;
+
+		Node* node = build_graph(writer);
+
+		if (Resource* prev = resource->previous())
 		{
-			Resource* current_state = resource_state;
-			resource_state          = current_state->next_version();
-
-			if (Pass* writer = current_state->writer())
-			{
-				build_graph(writer, owner);
-			}
+			if (auto dep = build_graph(prev))
+				node->dependencies.push_back(dep);
 		}
-		return *this;
-	}
 
-	Graph& Graph::build_output(Resource* resource, Node* owner)
-	{
-		while (resource)
-		{
-			if (Pass* writer = resource->writer())
-			{
-				build_graph(writer, owner);
-			}
-
-			resource = resource->next_version();
-		}
-		return *this;
+		return node;
 	}
 
 	Graph::Node* Graph::build_graph()
 	{
 		Node* root = Node::create();
-		root->pass = &add_pass(Pass::Type::Graphics, "Root");
 
-		for (Resource* output : m_outputs)
+		for (RHIObject* output : m_outputs)
 		{
-			build_output(output, root);
+			if (Resource* resource = find_resource(output))
+			{
+				root->dependencies.push_back(build_graph(resource));
+			}
 		}
 
 		return root;
 	}
 
-	void Graph::execute_node(Node* node)
+	void Graph::execute_node(Node* node, RHIContext* ctx)
 	{
 		if (!node->is_executed())
 		{
 			for (Node* dependency : node->dependencies)
 			{
-				execute_node(dependency);
+				execute_node(dependency, ctx);
 			}
 
 			if (!node->is_executed() && !node->is_empty())
 			{
-				trinex_rhi_push_stage(node->name());
+				trinex_rhi_push_stage(ctx, node->name());
 
-				for (Plugin* plugin : m_plugins) plugin->on_pass_begin(node->pass);
+				Pass* pass = node->pass;
+				node->pass = nullptr;
 
-				node->execute();
+				for (Plugin* plugin : m_plugins) plugin->on_pass_begin(pass);
+				pass->execute(ctx);
+				for (Plugin* plugin : m_plugins) plugin->on_pass_end(pass);
 
-				for (Plugin* plugin : m_plugins) plugin->on_pass_end(node->pass);
-				trinex_rhi_pop_stage();
+				trinex_rhi_pop_stage(ctx);
 			}
 		}
 	}
 
 	bool Graph::execute()
 	{
+		StackByteAllocator::Mark mark;
 		Node* root = build_graph();
 
-		// TODO: Implement graph optimizations
-
 		for (Plugin* plugin : m_plugins) plugin->on_frame_begin(this);
-		execute_node(root);
+
+		for (Node* dependency : root->dependencies)
+		{
+			execute_node(dependency, rhi->context());
+		}
+
 		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this);
 		return true;
 	}

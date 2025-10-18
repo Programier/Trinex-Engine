@@ -17,9 +17,9 @@ namespace Engine
 		auto graph = render_graph();
 
 		graph->add_output(scene_depth_target());
-		graph->add_pass(RenderGraph::Pass::Graphics, "Depth Rendering")
-		        .add_resource(scene_depth_target(), RHIAccess::DSV)
-		        .add_func([this]() { render_depth(); });
+		graph->add_pass("Depth Rendering").add_resource(scene_depth_target(), RHIAccess::DSV).add_func([this]() {
+			render_depth();
+		});
 	}
 
 	DepthRenderer& DepthRenderer::render_depth()
@@ -44,9 +44,9 @@ namespace Engine
 		auto graph = render_graph();
 
 		graph->add_output(scene_depth_target());
-		graph->add_pass(RenderGraph::Pass::Graphics, "Depth Rendering")
-		        .add_resource(scene_depth_target(), RHIAccess::DSV)
-		        .add_func([this]() { render_depth(); });
+		graph->add_pass("Depth Rendering").add_resource(scene_depth_target(), RHIAccess::DSV).add_func([this]() {
+			render_depth();
+		});
 	}
 
 	DepthCubeRenderer& DepthCubeRenderer::render_depth(CameraView& camera, uint_t face)

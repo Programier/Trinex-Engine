@@ -254,7 +254,6 @@ namespace Engine
 			m_scene_view.scissor(RHIScissors(size));
 
 			EditorRenderer renderer(m_world->scene(), m_scene_view, mode);
-
 			update_render_stats(&renderer);
 
 			size_t selected_count = m_selected_actors_render_thread.size();
@@ -262,10 +261,20 @@ namespace Engine
 			renderer.render_outlines(m_selected_actors_render_thread.data(), selected_count);
 			renderer.render_primitives(m_selected_actors_render_thread.data(), selected_count);
 
-			renderer.render();
+			RHITexture* dst = scene->rhi_texture();
+			RHITexture* src = renderer.scene_color_ldr_target();
 
-			RHITextureRegion region(m_scene_view.view_size());
-			rhi->context()->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, scene->rhi_texture(), region);
+			renderer.render_graph()
+			        ->add_output(dst)
+			        .add_pass("Copy to BackBuffer")
+			        .add_resource(dst, RHIAccess::TransferDst)
+			        .add_resource(src, RHIAccess::TransferSrc)
+			        .add_func([&]() {
+				        RHITextureRegion region(m_scene_view.view_size());
+				        rhi->context()->copy_texture_to_texture(src, region, dst, region);
+			        });
+
+			renderer.render();
 
 			auto handle = rhi->context()->end();
 			rhi->submit(handle);

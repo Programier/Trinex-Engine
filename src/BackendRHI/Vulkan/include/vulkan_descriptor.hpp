@@ -21,8 +21,8 @@ namespace Engine
 			inline bool operator!=(const Descriptor& other) const { return type != other.type || binding != other.binding; }
 			inline bool operator<(const Descriptor& other) const
 			{
-				const bool is_this_uniform  = (type == vk::DescriptorType::eUniformBuffer);
-				const bool is_other_uniform = (other.type == vk::DescriptorType::eUniformBuffer);
+				const bool is_this_uniform  = (type == vk::DescriptorType::eUniformBufferDynamic);
+				const bool is_other_uniform = (other.type == vk::DescriptorType::eUniformBufferDynamic);
 
 				if (is_this_uniform != is_other_uniform)
 					return is_this_uniform;

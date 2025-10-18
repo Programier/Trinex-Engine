@@ -72,8 +72,6 @@ namespace Engine
 
 		auto graph = render_graph();
 
-		graph->add_output(scene_color_ldr_target());
-
 		PostProcessParameters* post_process_params = FrameAllocator<PostProcessParameters>::allocate(1);
 		new (post_process_params) PostProcessParameters();
 
@@ -82,7 +80,7 @@ namespace Engine
 			post_process_params->blend(post_process->parameters(), post_process->blend_weight());
 		}
 
-		graph->add_pass(RenderGraph::Pass::Graphics, "Geometry Pass")
+		graph->add_pass("Geometry Pass")
 		        .add_resource(base_color_target(), RHIAccess::RTV)
 		        .add_resource(normal_target(), RHIAccess::RTV)
 		        .add_resource(emissive_target(), RHIAccess::RTV)
@@ -92,7 +90,7 @@ namespace Engine
 
 		if (post_process_params->ssao.enabled)
 		{
-			graph->add_pass(RenderGraph::Pass::Graphics, "Ambient Occlusion")
+			graph->add_pass("Ambient Occlusion")
 			        .add_resource(msra_target(), RHIAccess::RTV)
 			        .add_resource(normal_target(), RHIAccess::SRVGraphics)
 			        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
@@ -110,7 +108,7 @@ namespace Engine
 			case ViewMode::Unlit:
 			case ViewMode::Wireframe:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "Base Color Resolve")
+				graph->add_pass("Base Color Resolve")
 				        .add_resource(base_color_target(), RHIAccess::TransferDst)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
 				        .add_func([this]() { copy_base_color_to_scene_color(); });
@@ -119,7 +117,7 @@ namespace Engine
 
 			case ViewMode::WorldNormal:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "World Normal Resolve")
+				graph->add_pass("World Normal Resolve")
 				        .add_resource(normal_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this]() { copy_world_normal_to_scene_color(); });
@@ -128,7 +126,7 @@ namespace Engine
 
 			case ViewMode::Metalic:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "Metalic Resolve")
+				graph->add_pass("Metalic Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this]() { copy_metalic_to_scene_color(); });
@@ -137,7 +135,7 @@ namespace Engine
 
 			case ViewMode::Roughness:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "Roughness Resolve")
+				graph->add_pass("Roughness Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this]() { copy_roughness_to_scene_color(); });
@@ -146,7 +144,7 @@ namespace Engine
 
 			case ViewMode::Specular:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "Specular Resolve")
+				graph->add_pass("Specular Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this]() { copy_specular_to_scene_color(); });
@@ -155,7 +153,7 @@ namespace Engine
 
 			case ViewMode::Emissive:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "Emissive Resolve")
+				graph->add_pass("Emissive Resolve")
 				        .add_resource(emissive_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this]() { copy_emissive_to_scene_color(); });
@@ -164,7 +162,7 @@ namespace Engine
 
 			case ViewMode::AO:
 			{
-				graph->add_pass(RenderGraph::Pass::Graphics, "AO Resolve")
+				graph->add_pass("AO Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this]() { copy_ambient_to_scene_color(); });
@@ -340,12 +338,12 @@ namespace Engine
 	{
 		auto graph = render_graph();
 
-		graph->add_pass(RenderGraph::Pass::Compute, "Light Culling")
+		graph->add_pass("Light Culling")
 		        .add_resource(clusters_buffer(), RHIAccess::UAVCompute)
 		        .add_resource(lights_buffer(), RHIAccess::SRVCompute)
 		        .add_func([this]() { cull_lights(); });
 
-		graph->add_pass(RenderGraph::Pass::Graphics, "Lighting Pass")
+		graph->add_pass("Lighting Pass")
 		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
 		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
 		        .add_resource(emissive_target(), RHIAccess::SRVGraphics)
@@ -357,7 +355,7 @@ namespace Engine
 		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this]() { deferred_lighting_pass(); });
 
-		graph->add_pass(RenderGraph::Pass::Graphics, "Translucent")
+		graph->add_pass("Translucent")
 		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
@@ -366,12 +364,10 @@ namespace Engine
 		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this]() { translucent_pass(); });
 
-		graph->add_pass(RenderGraph::Pass::Graphics, "Bloom")
-		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
-		        .add_func([this]() { bloom_pass(); });
+		graph->add_pass("Bloom").add_resource(scene_color_hdr_target(), RHIAccess::RTV).add_func([this]() { bloom_pass(); });
 
 		// Tonemapping
-		graph->add_pass(RenderGraph::Pass::Graphics, "Tonemapping")
+		graph->add_pass("Tonemapping")
 		        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 		        .add_func([this]() { Pipelines::TonemappingACES::instance()->apply(this); });
@@ -512,8 +508,6 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::bloom_pass()
 	{
 		Vector2u size = scene_view().view_size() / 2;
-
-		// Step one: Collect
 		return *this;
 	}
 
@@ -614,7 +608,7 @@ namespace Engine
 			m_clusters_buffer = Pipelines::ClusterInitialize::instance()->create_clusters_buffer();
 
 			render_graph()
-			        ->add_pass(RenderGraph::Pass::Compute, "Initialize Clusters")
+			        ->add_pass("Initialize Clusters")
 			        .add_resource(m_clusters_buffer, RHIAccess::UAVCompute)
 			        .add_func([this]() { Pipelines::ClusterInitialize::instance()->build(m_clusters_buffer, this); });
 		}
@@ -753,7 +747,7 @@ namespace Engine
 		if (!lines.is_empty())
 		{
 			render_graph()
-			        ->add_pass(RenderGraph::Pass::Graphics, "Batched Primitives")
+			        ->add_pass("Batched Primitives")
 			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 			        .add_resource(scene_depth_target(), RHIAccess::DSV)
 			        .add_func([this]() {
