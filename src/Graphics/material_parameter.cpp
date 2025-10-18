@@ -77,7 +77,7 @@ namespace Engine::MaterialParameters
 
 	Sampler& Sampler::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		sampler.rhi_bind(info->binding);
+		ctx->context->bind_sampler(sampler.rhi_sampler(), info->binding);
 		return *this;
 	}
 

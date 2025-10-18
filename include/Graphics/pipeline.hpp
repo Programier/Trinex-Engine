@@ -37,7 +37,6 @@ namespace Engine
 		inline const Vector<RHIShaderParameterInfo>& parameters() const { return m_parameters; }
 
 		class Material* material() const;
-		const Pipeline& rhi_bind() const;
 		Pipeline& release_render_resources() override;
 		virtual bool serialize(Archive& ar) final override;
 		virtual bool serialize(Archive& ar, Material* material);

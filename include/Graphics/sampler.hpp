@@ -28,7 +28,6 @@ namespace Engine
 		Sampler& release();
 		const RHISamplerInitializer& initializer() const;
 		RHISampler* rhi_sampler() const;
-		const Sampler& rhi_bind(byte location) const;
 		bool serialize(class Archive& ar);
 
 		Sampler& filter(RHISamplerFilter filter);

@@ -171,18 +171,6 @@ namespace Engine
 		return m_sampler->rhi_sampler();
 	}
 
-	const Sampler& Sampler::rhi_bind(byte location) const
-	{
-		if (m_sampler)
-		{
-			if (auto rhi_sampler = m_sampler->rhi_sampler())
-			{
-				rhi->context()->bind_sampler(rhi_sampler, location);
-			}
-		}
-		return *this;
-	}
-
 	bool Sampler::serialize(Archive& ar)
 	{
 		byte size = m_sampler ? sizeof(RHISamplerInitializer) : 0;

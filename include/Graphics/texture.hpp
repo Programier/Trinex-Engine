@@ -35,9 +35,6 @@ namespace Engine
 		RHIResourcePtr<RHITexture> m_texture;
 
 	public:
-		Texture& rhi_bind(byte location);
-		Texture& rhi_bind_combined(byte location, RHISampler* sampler);
-		Texture& rhi_bind_combined(byte location, Sampler* sampler);
 		RHIShaderResourceView* rhi_srv() const;
 		RHITexture* rhi_texture() const;
 	};

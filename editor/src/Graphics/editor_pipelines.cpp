@@ -67,7 +67,7 @@ namespace Engine::EditorPipelines
 	{
 		float fov = Math::tan(Math::radians(renderer->scene_view().camera_view().perspective.fov));
 
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->update_scalar(&fov, m_fov);
 		ctx->draw(6, 0);

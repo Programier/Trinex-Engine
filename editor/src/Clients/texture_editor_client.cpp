@@ -140,7 +140,7 @@ namespace Engine
 	{
 		auto pipeline = TextureView2D::instance();
 
-		pipeline->rhi_bind();
+		rhi->context()->bind_pipeline(pipeline->rhi_pipeline());
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
 		rhi->context()->draw(6, 0);
 	}
@@ -164,7 +164,7 @@ namespace Engine
 
 		for (uint_t face = 0; face < 6; ++face)
 		{
-			pipeline->rhi_bind();
+			rhi->context()->bind_pipeline(pipeline->rhi_pipeline());
 			const Matrix4f face_translate = Math::translate(Matrix4f(1.f), Vector3f(face_offsets[face], 0.f));
 
 			pipeline->update_face(face)

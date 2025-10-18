@@ -82,15 +82,6 @@ namespace Engine
 		return *this;
 	}
 
-	const Pipeline& Pipeline::rhi_bind() const
-	{
-		if (RHIPipeline* pipeline = m_pipeline)
-		{
-			rhi->context()->bind_pipeline(pipeline);
-		}
-		return *this;
-	}
-
 	bool Pipeline::serialize(Archive& ar)
 	{
 		return serialize(ar, nullptr);

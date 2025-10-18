@@ -404,7 +404,7 @@ namespace Engine
 		if (pipeline_object == nullptr)
 			return false;
 
-		pipeline_object->rhi_bind();
+		ctx->context->bind_pipeline(pipeline_object->rhi_pipeline());
 
 		if (bindings)
 		{

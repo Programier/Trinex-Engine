@@ -50,7 +50,7 @@ namespace Engine::Pipelines
 		if (sampler == nullptr)
 			sampler = RHIBilinearSampler::static_sampler();
 
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_srv(src, m_source->binding);
 		ctx->bind_sampler(sampler, m_source->binding);
 		ctx->update_scalar(&args, sizeof(args), m_args);
@@ -85,7 +85,7 @@ namespace Engine::Pipelines
 		shader_args.inv_size = inv_size;
 		shader_args.swizzle  = swizzle;
 
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_srv(src, m_source->binding);
 		ctx->bind_sampler(sampler, m_source->binding);
 		ctx->update_scalar(&shader_args, sizeof(shader_args), m_args);
@@ -154,7 +154,7 @@ namespace Engine::Pipelines
 	TonemappingACES& TonemappingACES::apply(RHIContext* ctx, Renderer* renderer)
 	{
 		ctx->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
@@ -259,7 +259,7 @@ namespace Engine::Pipelines
 	{
 		create_samples_buffer(samples);
 
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 
 		SSAOArguments args;
 		args.noise_scale       = renderer->scene_view().view_size() / Vector2i(4, 4);
@@ -302,7 +302,7 @@ namespace Engine::Pipelines
 
 	ClusterInitialize& ClusterInitialize::build(RHIContext* ctx, RHIBuffer* clusters, Renderer* renderer)
 	{
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_uav(clusters->as_uav(), m_clusters->binding);
 		ctx->dispatch(16, 9, 24);
@@ -320,7 +320,7 @@ namespace Engine::Pipelines
 	ClusterLightCulling& ClusterLightCulling::cull(RHIContext* ctx, Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
 	                                               const LightRenderRanges& ranges)
 	{
-		rhi_bind();
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_uav(clusters->as_uav(), m_clusters->binding);
 		ctx->bind_srv(lights->as_srv(), m_lights->binding);

@@ -241,12 +241,9 @@ namespace Engine
 		m_position_buffer.rhi_update(m_vtx_count * m_position_buffer.stride());
 		m_color_buffer.rhi_update(m_vtx_count * m_color_buffer.stride());
 
-#if TRINEX_DEBUG_BUILD
-		ctx->push_debug_stage("Triangles Rendering");
-#endif
+		trinex_rhi_push_stage(ctx, "Triangles Rendering");
 
-		Pipelines::BatchedTriangles::instance()->rhi_bind();
-
+		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
 		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
 		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, 0, 0);
 		ctx->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 1);
@@ -256,10 +253,7 @@ namespace Engine
 
 		ctx->draw(m_vtx_count, 0);
 
-#if TRINEX_DEBUG_BUILD
-		ctx->pop_debug_stage();
-#endif
-
+		trinex_rhi_pop_stage(ctx);
 		return *this;
 	}
 }// namespace Engine

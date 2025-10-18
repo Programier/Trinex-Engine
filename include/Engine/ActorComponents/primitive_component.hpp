@@ -11,7 +11,7 @@ namespace Engine
 	class VertexBufferBase;
 	class IndexBuffer;
 
-	class PrimitiveRenderingContext;
+	struct PrimitiveRenderingContext;
 
 	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
 	{

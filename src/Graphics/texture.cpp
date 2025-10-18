@@ -22,26 +22,6 @@ namespace Engine
 
 	trinex_implement_engine_class(Texture, Refl::Class::IsAsset) {}
 
-	Texture& Texture::rhi_bind(byte location)
-	{
-		rhi->context()->bind_srv(rhi_srv(), location);
-		return *this;
-	}
-
-	Texture& Texture::rhi_bind_combined(byte location, RHISampler* sampler)
-	{
-		rhi->context()->bind_srv(rhi_srv(), location);
-		rhi->context()->bind_sampler(sampler, location);
-		return *this;
-	}
-
-	Texture& Texture::rhi_bind_combined(byte location, Sampler* sampler)
-	{
-		rhi->context()->bind_srv(rhi_srv(), location);
-		rhi->context()->bind_sampler(sampler->rhi_sampler(), location);
-		return *this;
-	}
-
 	RHIShaderResourceView* Texture::rhi_srv() const
 	{
 		if (m_texture)

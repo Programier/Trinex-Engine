@@ -494,8 +494,8 @@ namespace Engine
 		if (!m_visible_lights.empty())
 		{
 			auto pipeline = Pipelines::DeferredLighting::instance();
-			pipeline->rhi_bind();
 
+			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
 			ctx->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
 			ctx->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->binding);
