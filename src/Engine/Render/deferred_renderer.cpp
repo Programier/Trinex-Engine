@@ -474,6 +474,10 @@ namespace Engine
 		auto pipeline = Pipelines::AmbientLight::instance();
 		ctx->bind_render_target1(scene_color_hdr_target()->as_rtv());
 
+		ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
+		ctx->stencil_state(RHIStencilState(false));
+		ctx->blending_state(RHIBlendingState::additive);
+
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 		ctx->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 		ctx->update_scalar(&scene()->environment.ambient_color, pipeline->ambient_color);
@@ -494,6 +498,10 @@ namespace Engine
 		if (!m_visible_lights.empty())
 		{
 			auto pipeline = Pipelines::DeferredLighting::instance();
+
+			ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
+			ctx->stencil_state(RHIStencilState(false));
+			ctx->blending_state(RHIBlendingState::additive);
 
 			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);

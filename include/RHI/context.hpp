@@ -30,21 +30,13 @@ namespace Engine
 	public:
 		RHIContext();
 		~RHIContext();
-		
-		RHIContext& push_pipeline(RHIPipeline* pipeline);
-		RHIContext& push_depth_state(const RHIDepthState& state);
-		RHIContext& push_stencil_state(const RHIStencilState& state);
-		RHIContext& push_blending_state(const RHIBlendingState& state);
+
 		RHIContext& push_primitive_topology(RHIPrimitiveTopology topology);
 		RHIContext& push_polygon_mode(RHIPolygonMode mode);
 		RHIContext& push_cull_mode(RHICullMode mode);
 		RHIContext& push_front_face(RHIFrontFace face);
 		RHIContext& push_write_mask(RHIColorComponent mask);
-		
-		RHIContext& pop_pipeline();
-		RHIContext& pop_depth_state();
-		RHIContext& pop_stencil_state();
-		RHIContext& pop_blending_state();
+
 		RHIContext& pop_primitive_topology();
 		RHIContext& pop_polygon_mode();
 		RHIContext& pop_cull_mode();

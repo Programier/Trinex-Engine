@@ -80,7 +80,7 @@ namespace Engine::RenderGraph
 
 	Pass& Pass::add_resource(RenderGraph::Resource* resource, RHIAccess access)
 	{
-		m_resources.emplace_back(new (rg_allocate<Resource>()) Resource(resource, access));
+		m_resources.emplace_back(new (rg_allocate<Resource>()) ResourceRef(resource, access));
 		return *this;
 	}
 
@@ -102,7 +102,7 @@ namespace Engine::RenderGraph
 
 	Pass& Pass::execute(RHIContext* ctx)
 	{
-		for (Pass::Resource* ref : m_resources)
+		for (Pass::ResourceRef* ref : m_resources)
 		{
 			auto resource = ref->resource;
 
@@ -233,19 +233,29 @@ namespace Engine::RenderGraph
 		writer->m_node = node;
 		node->pass     = writer;
 
-		for (Pass::Resource* resource : writer->resources())
+		for (Pass::ResourceRef* ref : writer->resources())
 		{
-			if (resource->access & RHIAccess::ReadableMask && resource->resource->writer() != writer)
-			{
-				if (Node* dep = build_graph(resource->resource))
-					node->dependencies.push_back(dep);
+			if (!(ref->access & RHIAccess::ReadableMask))
+				continue;
 
-				if (Resource* next = resource->resource->next())
-				{
-					Node* depends = build_graph(next);
-					depends->dependencies.push_back(node);
-				}
+			if (Resource* next = ref->resource->next())
+			{
+				Node* depends = build_graph(next);
+				depends->dependencies.push_back(node);
 			}
+
+			Resource* current = ref->resource;
+
+			if (ref->access & RHIAccess::WritableMask)
+			{
+				current = current->previous();
+
+				if (current == nullptr)
+					continue;
+			}
+
+			if (Node* dep = build_graph(current))
+				node->dependencies.push_back(dep);
 		}
 		return node;
 	}

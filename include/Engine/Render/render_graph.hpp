@@ -107,11 +107,11 @@ namespace Engine::RenderGraph
 	class ENGINE_EXPORT Pass
 	{
 	public:
-		struct Resource {
+		struct ResourceRef {
 			RenderGraph::Resource* resource;
 			RHIAccess access;
 
-			inline Resource(RenderGraph::Resource* resource, RHIAccess access) : resource(resource), access(access) {}
+			inline ResourceRef(RenderGraph::Resource* resource, RHIAccess access) : resource(resource), access(access) {}
 		};
 
 		class Task
@@ -138,7 +138,7 @@ namespace Engine::RenderGraph
 		const char* m_name;
 		Graph::Node* m_node;
 
-		RGVector<Resource*> m_resources;
+		RGVector<ResourceRef*> m_resources;
 		RGVector<Task*> m_tasks;
 
 		Pass(class Graph* graph, const char* name = "Unnamed pass");
@@ -179,7 +179,7 @@ namespace Engine::RenderGraph
 
 		inline class Graph* graph() const { return m_graph; }
 		inline const char* name() const { return m_name; }
-		inline const RGVector<Resource*>& resources() const { return m_resources; }
+		inline const RGVector<ResourceRef*>& resources() const { return m_resources; }
 		inline const RGVector<Task*>& tasks() const { return m_tasks; }
 		inline bool is_empty() const { return m_tasks.empty(); }
 

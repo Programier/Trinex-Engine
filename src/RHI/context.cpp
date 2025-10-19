@@ -66,10 +66,6 @@ namespace Engine
 	RHIColorComponent RHIStateStack<RHIColorComponent>::s_default = RHIColorComponent::RGBA;
 
 	struct RHIContext::State {
-		RHIStateStack<RHIPipeline*> pipeline;
-		RHIStateStack<RHIDepthState> depth;
-		RHIStateStack<RHIStencilState> stencil;
-		RHIStateStack<RHIBlendingState> blending;
 		RHIStateStack<RHIPrimitiveTopology> topology;
 		RHIStateStack<RHIPolygonMode> polygon_mode;
 		RHIStateStack<RHICullMode> cull_mode;
@@ -78,9 +74,6 @@ namespace Engine
 
 		inline void reset()
 		{
-			depth.reset();
-			stencil.reset();
-			blending.reset();
 			topology.reset();
 			polygon_mode.reset();
 			cull_mode.reset();
@@ -94,26 +87,6 @@ namespace Engine
 	RHIContext::~RHIContext()
 	{
 		trx_delete m_state;
-	}
-
-	RHIContext& RHIContext::push_pipeline(RHIPipeline* pipeline)
-	{
-		return bind_pipeline(m_state->pipeline.push(pipeline));
-	}
-
-	RHIContext& RHIContext::push_depth_state(const RHIDepthState& state)
-	{
-		return depth_state(m_state->depth.push(state));
-	}
-
-	RHIContext& RHIContext::push_stencil_state(const RHIStencilState& state)
-	{
-		return stencil_state(m_state->stencil.push(state));
-	}
-
-	RHIContext& RHIContext::push_blending_state(const RHIBlendingState& state)
-	{
-		return blending_state(m_state->blending.push(state));
 	}
 
 	RHIContext& RHIContext::push_primitive_topology(RHIPrimitiveTopology topology)
@@ -139,26 +112,6 @@ namespace Engine
 	RHIContext& RHIContext::push_write_mask(RHIColorComponent mask)
 	{
 		return write_mask(m_state->write_mask.push(mask));
-	}
-
-	RHIContext& RHIContext::pop_pipeline()
-	{
-		return bind_pipeline(m_state->pipeline.pop());
-	}
-
-	RHIContext& RHIContext::pop_depth_state()
-	{
-		return depth_state(m_state->depth.pop());
-	}
-
-	RHIContext& RHIContext::pop_stencil_state()
-	{
-		return stencil_state(m_state->stencil.pop());
-	}
-
-	RHIContext& RHIContext::pop_blending_state()
-	{
-		return blending_state(m_state->blending.pop());
 	}
 
 	RHIContext& RHIContext::pop_primitive_topology()

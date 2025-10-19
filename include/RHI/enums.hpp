@@ -211,8 +211,10 @@ namespace Engine
 			UAVGraphics       = BIT(13),
 			TransferDst       = BIT(14),
 			ResolveDst        = BIT(15),
-			RTV               = BIT(16),
-			DSV               = BIT(17),
+
+			// Read-Write states
+			RTV = BIT(16),
+			DSV = BIT(17),
 
 			ReadableMask = CPURead | AccelerationRead | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer | SRVCompute |
 			               SRVGraphics | TransferSrc | PresentSrc | UAVCompute | UAVGraphics | RTV | DSV,

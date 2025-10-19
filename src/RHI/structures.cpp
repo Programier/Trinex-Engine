@@ -47,6 +47,35 @@ namespace Engine
 		return ar.serialize(fail, depth_pass, depth_fail, compare, compare_mask, write_mask, reference, enable);
 	}
 
+
+	RHIBlendingState RHIBlendingState::opaque      = RHIBlendingState(false,             //
+	                                                                  RHIBlendFunc::One, //
+	                                                                  RHIBlendFunc::Zero,//
+	                                                                  RHIBlendOp::Add,   //
+	                                                                  RHIBlendFunc::One, //
+	                                                                  RHIBlendFunc::Zero,//
+	                                                                  RHIBlendOp::Add);
+	RHIBlendingState RHIBlendingState::translucent = RHIBlendingState(true,                          //
+	                                                                  RHIBlendFunc::SrcAlpha,        //
+	                                                                  RHIBlendFunc::OneMinusSrcAlpha,//
+	                                                                  RHIBlendOp::Add,               //
+	                                                                  RHIBlendFunc::One,             //
+	                                                                  RHIBlendFunc::OneMinusSrcAlpha,//
+	                                                                  RHIBlendOp::Add);
+	RHIBlendingState RHIBlendingState::additive    = RHIBlendingState(true,                  //
+	                                                                  RHIBlendFunc::SrcAlpha,//
+	                                                                  RHIBlendFunc::One,     //
+	                                                                  RHIBlendOp::Add,       //
+	                                                                  RHIBlendFunc::SrcAlpha,//
+	                                                                  RHIBlendFunc::One,     //
+	                                                                  RHIBlendOp::Add);
+	RHIBlendingState RHIBlendingState::multiply    = RHIBlendingState(true,                  //
+	                                                                  RHIBlendFunc::DstColor,//
+	                                                                  RHIBlendFunc::Zero,    //
+	                                                                  RHIBlendOp::Add,       //
+	                                                                  RHIBlendFunc::One,     //
+	                                                                  RHIBlendFunc::Zero,    //
+	                                                                  RHIBlendOp::Add);
 	bool RHIBlendingState::serialize(Archive& ar)
 	{
 		return ar.serialize(src_color_func, dst_color_func, color_op, src_alpha_func, dst_alpha_func, alpha_op, enable);

@@ -19,20 +19,17 @@ namespace Engine::Pipelines
 {
 	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx)
 	{
-		ctx->push_depth_state(RHIDepthState(false));
-		ctx->push_stencil_state(RHIStencilState(false));
+		ctx->depth_state(RHIDepthState(false));
+		ctx->stencil_state(RHIStencilState(false));
 		ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
 		ctx->push_cull_mode(RHICullMode::None);
-		ctx->push_pipeline(pipeline->rhi_pipeline());
+		ctx->bind_pipeline(pipeline->rhi_pipeline());
 	}
 
 	static inline void pop_context_state(RHIContext* ctx)
 	{
-		ctx->pop_depth_state();
-		ctx->pop_stencil_state();
 		ctx->pop_primitive_topology();
 		ctx->pop_cull_mode();
-		ctx->pop_pipeline();
 	}
 
 	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")

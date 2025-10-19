@@ -65,18 +65,23 @@ namespace Engine
 
 		void ImGuiPipeline::push(RHIContext* ctx)
 		{
-			ctx->push_pipeline(rhi_pipeline());
-			ctx->push_depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
-			ctx->push_stencil_state(RHIStencilState());
-			ctx->push_blending_state(RHIBlendingState(true));
+			ctx->bind_pipeline(rhi_pipeline());
+			ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
+			ctx->stencil_state(RHIStencilState());
+			ctx->blending_state(RHIBlendingState::translucent);
+
+			ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
+			ctx->push_polygon_mode(RHIPolygonMode::Fill);
+			ctx->push_cull_mode(RHICullMode::None);
+			ctx->push_write_mask(RHIColorComponent::RGBA);
 		}
 
 		void ImGuiPipeline::pop(RHIContext* ctx)
 		{
-			ctx->pop_pipeline();
-			ctx->pop_depth_state();
-			ctx->pop_stencil_state();
-			ctx->pop_blending_state();
+			ctx->pop_primitive_topology();
+			ctx->pop_polygon_mode();
+			ctx->pop_cull_mode();
+			ctx->pop_write_mask();
 		}
 
 		void ImGuiPipeline::apply(RHIContext* ctx, const Sampler& sampler)

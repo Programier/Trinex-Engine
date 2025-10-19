@@ -216,9 +216,14 @@ namespace Engine
 		bool serialize(Archive& ar);
 	};
 
-	struct RHIBlendingState final {
+	struct ENGINE_EXPORT RHIBlendingState final {
 		trinex_declare_struct(RHIBlendingState, void);
 		trinex_default_comparable(RHIBlendingState);
+
+		static RHIBlendingState opaque;
+		static RHIBlendingState translucent;
+		static RHIBlendingState additive;
+		static RHIBlendingState multiply;
 
 		RHIBlendFunc src_color_func;
 		RHIBlendFunc dst_color_func;

@@ -62,22 +62,19 @@ namespace Engine::EditorPipelines
 	{
 		float fov = Math::tan(Math::radians(renderer->scene_view().camera_view().perspective.fov));
 
-		ctx->push_depth_state(RHIDepthState(true, RHICompareFunc::Lequal, false));
-		ctx->push_stencil_state(RHIStencilState());
-		ctx->push_blending_state(RHIBlendingState(true));
+		ctx->depth_state(RHIDepthState(true, RHICompareFunc::Lequal, false));
+		ctx->stencil_state(RHIStencilState());
+		ctx->blending_state(RHIBlendingState(true));
+		ctx->bind_pipeline(rhi_pipeline());
+
 		ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
 		ctx->push_cull_mode(RHICullMode::None);
-		ctx->push_pipeline(rhi_pipeline());
 
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->update_scalar(&fov, m_fov);
 		ctx->draw(6, 0);
 
-		ctx->pop_pipeline();
 		ctx->pop_cull_mode();
 		ctx->pop_primitive_topology();
-		ctx->pop_blending_state();
-		ctx->pop_stencil_state();
-		ctx->pop_depth_state();
 	}
 }// namespace Engine::EditorPipelines
