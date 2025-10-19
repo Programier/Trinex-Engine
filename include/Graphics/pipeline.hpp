@@ -51,9 +51,9 @@ namespace Engine
 
 	public:
 		Vector<RHIVertexAttribute> vertex_attributes;
-		RHIDepthTest depth_test;
-		RHIStencilTest stencil_test;
-		RHIColorBlending color_blending;
+		RHIDepthState depth_test;
+		RHIStencilState stencil_test;
+		RHIBlendingState color_blending;
 
 	private:
 		Shader* m_vertex_shader               = nullptr;

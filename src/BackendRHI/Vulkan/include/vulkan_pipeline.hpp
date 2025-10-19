@@ -48,9 +48,6 @@ namespace Engine
 
 		vk::PipelineInputAssemblyStateCreateInfo m_input_assembly;
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
-		vk::PipelineDepthStencilStateCreateInfo m_depth_stencil;
-		vk::PipelineColorBlendAttachmentState m_color_blend_attachment[4];
-		vk::PipelineColorBlendStateCreateInfo m_color_blending;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
 		FlatMap<uint128_t, vk::Pipeline> m_pipelines;
@@ -86,9 +83,6 @@ namespace Engine
 		};
 
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
-		vk::PipelineDepthStencilStateCreateInfo m_depth_stencil;
-		vk::PipelineColorBlendAttachmentState m_color_blend_attachment[4];
-		vk::PipelineColorBlendStateCreateInfo m_color_blending;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
 		FlatMap<uint128_t, vk::Pipeline> m_pipelines;

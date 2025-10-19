@@ -23,6 +23,37 @@ namespace Engine
 
 	class ENGINE_EXPORT RHIContext : public RHIObject
 	{
+	private:
+		struct State;
+		State* m_state;
+
+	public:
+		RHIContext();
+		~RHIContext();
+		
+		RHIContext& push_pipeline(RHIPipeline* pipeline);
+		RHIContext& push_depth_state(const RHIDepthState& state);
+		RHIContext& push_stencil_state(const RHIStencilState& state);
+		RHIContext& push_blending_state(const RHIBlendingState& state);
+		RHIContext& push_primitive_topology(RHIPrimitiveTopology topology);
+		RHIContext& push_polygon_mode(RHIPolygonMode mode);
+		RHIContext& push_cull_mode(RHICullMode mode);
+		RHIContext& push_front_face(RHIFrontFace face);
+		RHIContext& push_write_mask(RHIColorComponent mask);
+		
+		RHIContext& pop_pipeline();
+		RHIContext& pop_depth_state();
+		RHIContext& pop_stencil_state();
+		RHIContext& pop_blending_state();
+		RHIContext& pop_primitive_topology();
+		RHIContext& pop_polygon_mode();
+		RHIContext& pop_cull_mode();
+		RHIContext& pop_front_face();
+		RHIContext& pop_write_mask();
+
+	protected:
+		RHIContext& reset_state();
+
 	public:
 		virtual RHIContext& begin()     = 0;
 		virtual RHICommandHandle* end() = 0;
@@ -78,6 +109,9 @@ namespace Engine
 		virtual RHIContext& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 		                                            const RHITextureRegion& dst_region) = 0;
 
+		virtual RHIContext& depth_state(const RHIDepthState& state)           = 0;
+		virtual RHIContext& stencil_state(const RHIStencilState& state)       = 0;
+		virtual RHIContext& blending_state(const RHIBlendingState& state)     = 0;
 		virtual RHIContext& primitive_topology(RHIPrimitiveTopology topology) = 0;
 		virtual RHIContext& polygon_mode(RHIPolygonMode mode)                 = 0;
 		virtual RHIContext& cull_mode(RHICullMode mode)                       = 0;

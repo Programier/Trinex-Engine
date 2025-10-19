@@ -200,10 +200,6 @@ namespace Engine
 				initializer.parameters       = parameters().data();
 				initializer.parameters_count = parameters().size();
 
-				initializer.depth    = depth_test;
-				initializer.stencil  = stencil_test;
-				initializer.blending = color_blending;
-
 				m_pipeline = rhi->create_graphics_pipeline(&initializer);
 			});
 		}

@@ -100,6 +100,66 @@ namespace Engine
 		}
 	}
 
+	static vk::PipelineDepthStencilStateCreateInfo create_depth_stencil(VulkanStateManager* manager)
+	{
+		static auto stencil_op_state = [](const RHIStencilState& pipeline) {
+			vk::StencilOpState out_state;
+			out_state.setReference(pipeline.reference)
+			        .setWriteMask(pipeline.write_mask)
+			        .setCompareMask(pipeline.compare_mask)
+			        .setCompareOp(VulkanEnums::compare_of(pipeline.compare))
+			        .setFailOp(VulkanEnums::stencil_of(pipeline.fail))
+			        .setPassOp(VulkanEnums::stencil_of(pipeline.depth_pass))
+			        .setDepthFailOp(VulkanEnums::stencil_of(pipeline.depth_fail));
+			return out_state;
+		};
+
+		const RHIDepthState& depth     = manager->depth_state();
+		const RHIStencilState& stencil = manager->stencil_state();
+		vk::StencilOpState stencil_op  = stencil_op_state(stencil);
+
+		vk::PipelineDepthStencilStateCreateInfo depth_stencil;
+		depth_stencil.setDepthTestEnable(depth.enable)
+		        .setDepthWriteEnable(depth.write_enable)
+		        .setDepthBoundsTestEnable(vk::False)
+		        .setDepthCompareOp(VulkanEnums::compare_of(depth.func))
+		        .setMinDepthBounds(0.f)
+		        .setMaxDepthBounds(0.f)
+		        .setStencilTestEnable(stencil.enable)
+		        .setFront(stencil_op)
+		        .setBack(stencil_op);
+
+		return depth_stencil;
+	}
+
+	static vk::PipelineColorBlendStateCreateInfo create_color_blend(VulkanStateManager* manager,
+	                                                                vk::PipelineColorBlendAttachmentState* attachments)
+	{
+		const RHIBlendingState& blending = manager->blending_state();
+		auto write_mask                  = VulkanEnums::color_component_flags_of(manager->write_mask());
+
+		{
+			auto& attachment = attachments[0];
+
+			attachment.setBlendEnable(blending.enable)
+			        .setSrcColorBlendFactor(VulkanEnums::blend_func_of(blending.src_color_func, false))
+			        .setDstColorBlendFactor(VulkanEnums::blend_func_of(blending.dst_color_func, false))
+			        .setColorBlendOp(VulkanEnums::blend_of(blending.color_op))
+			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(blending.src_alpha_func, true))
+			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(blending.dst_alpha_func, true))
+			        .setAlphaBlendOp(VulkanEnums::blend_of(blending.alpha_op))
+			        .setColorWriteMask(write_mask);
+		}
+
+		for (int i = 1; i < 4; ++i)
+		{
+			attachments[i] = attachments[0];
+		}
+
+		vk::PipelineColorBlendStateCreateInfo info;
+		return info.setAttachmentCount(4).setPAttachments(attachments).setLogicOpEnable(false);
+	}
+
 	VulkanPipeline::~VulkanPipeline()
 	{
 		m_layout->release();
@@ -181,22 +241,18 @@ namespace Engine
 		m_rasterizer.setCullMode(VulkanEnums::cull_mode_of(manager->cull_mode()));
 		m_rasterizer.setFrontFace(VulkanEnums::face_of(manager->front_face()));
 
-		auto color_write_mask = VulkanEnums::color_component_flags_of(manager->write_mask());
-
-		for (auto& attachment : m_color_blend_attachment)
-		{
-			attachment.setColorWriteMask(color_write_mask);
-		}
-
+		vk::PipelineColorBlendAttachmentState attachments[4];
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
 		vk::PipelineMultisampleStateCreateInfo multisampling;
 		vk::PipelineVertexInputStateCreateInfo vertex_input =
 		        manager->create_vertex_input(m_vertex_attributes, m_vertex_attributes_count);
+		vk::PipelineDepthStencilStateCreateInfo depth_stencil = create_depth_stencil(manager);
+		vk::PipelineColorBlendStateCreateInfo color_blend     = create_color_blend(manager, attachments);
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, &vertex_input, &m_input_assembly, nullptr, &viewport_state,
-		                                             &m_rasterizer, &multisampling, &m_depth_stencil, &m_color_blending,
-		                                             &dynamic_state, layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
+		                                             &m_rasterizer, &multisampling, &depth_stencil, &color_blend, &dynamic_state,
+		                                             layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 
@@ -211,18 +267,6 @@ namespace Engine
 
 	VulkanGraphicsPipeline::VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline)
 	{
-		static auto get_stencil_op_state = [](const RHIStencilTest& pipeline) {
-			vk::StencilOpState out_state;
-			out_state.setReference(pipeline.reference)
-			        .setWriteMask(pipeline.write_mask)
-			        .setCompareMask(pipeline.compare_mask)
-			        .setCompareOp(VulkanEnums::compare_of(pipeline.compare))
-			        .setFailOp(VulkanEnums::stencil_of(pipeline.fail))
-			        .setPassOp(VulkanEnums::stencil_of(pipeline.depth_pass))
-			        .setDepthFailOp(VulkanEnums::stencil_of(pipeline.depth_fail));
-			return out_state;
-		};
-
 		create_layout(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline));
 
 		m_input_assembly.primitiveRestartEnable = vk::False;
@@ -231,30 +275,6 @@ namespace Engine
 		m_rasterizer.cullMode                   = vk::CullModeFlagBits::eNone;
 		m_rasterizer.frontFace                  = vk::FrontFace::eClockwise;
 		m_rasterizer.lineWidth                  = 1.f;
-
-		auto stencil_state = get_stencil_op_state(pipeline->stencil);
-		m_depth_stencil.setDepthTestEnable(pipeline->depth.enable)
-		        .setDepthWriteEnable(pipeline->depth.write_enable)
-		        .setDepthBoundsTestEnable(vk::False)
-		        .setDepthCompareOp(VulkanEnums::compare_of(pipeline->depth.func))
-		        .setMinDepthBounds(0.f)
-		        .setMaxDepthBounds(0.f)
-		        .setStencilTestEnable(pipeline->stencil.enable)
-		        .setFront(stencil_state)
-		        .setBack(stencil_state);
-
-		for (auto& attachment : m_color_blend_attachment)
-		{
-			attachment.setBlendEnable(pipeline->blending.enable)
-			        .setSrcColorBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_color_func, false))
-			        .setDstColorBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_color_func, false))
-			        .setColorBlendOp(VulkanEnums::blend_of(pipeline->blending.color_op))
-			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_alpha_func, true))
-			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_alpha_func, true))
-			        .setAlphaBlendOp(VulkanEnums::blend_of(pipeline->blending.alpha_op));
-		}
-
-		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
 
 		m_vertex_attributes_count = pipeline->vertex_attributes_count;
 		if (m_vertex_attributes_count)
@@ -312,11 +332,8 @@ namespace Engine
 	VulkanPipeline& VulkanGraphicsPipeline::flush(VulkanContext* ctx)
 	{
 		trinex_profile_cpu_n("VulkanGraphicsPipeline::flush");
-		auto dirty_flags = VulkanStateManager::RenderTarget | VulkanStateManager::Pipeline |
-		                   VulkanStateManager::PrimitiveTopology | VulkanStateManager::PolygonMode |
-		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
 
-		if (ctx->state()->is_dirty(dirty_flags) || is_dirty_vertex_input(ctx->state()))
+		if (ctx->state()->is_dirty(VulkanStateManager::GraphicsMask) || is_dirty_vertex_input(ctx->state()))
 		{
 			auto cmd              = ctx->handle();
 			auto current_pipeline = find_or_create_pipeline(ctx->state());
@@ -345,18 +362,6 @@ namespace Engine
 
 	VulkanMeshPipeline::VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline)
 	{
-		static auto get_stencil_op_state = [](const RHIStencilTest& pipeline) {
-			vk::StencilOpState out_state;
-			out_state.setReference(0)
-			        .setWriteMask(pipeline.write_mask)
-			        .setCompareMask(pipeline.compare_mask)
-			        .setCompareOp(VulkanEnums::compare_of(pipeline.compare))
-			        .setFailOp(VulkanEnums::stencil_of(pipeline.fail))
-			        .setPassOp(VulkanEnums::stencil_of(pipeline.depth_pass))
-			        .setDepthFailOp(VulkanEnums::stencil_of(pipeline.depth_fail));
-			return out_state;
-		};
-
 		create_layout(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline));
 
 		m_rasterizer.polygonMode = vk::PolygonMode::eFill;
@@ -364,29 +369,6 @@ namespace Engine
 		m_rasterizer.frontFace   = vk::FrontFace::eClockwise;
 		m_rasterizer.lineWidth   = 1.f;
 
-		auto stencil_state = get_stencil_op_state(pipeline->stencil);
-		m_depth_stencil.setDepthTestEnable(pipeline->depth.enable)
-		        .setDepthWriteEnable(pipeline->depth.write_enable)
-		        .setDepthBoundsTestEnable(vk::False)
-		        .setDepthCompareOp(VulkanEnums::compare_of(pipeline->depth.func))
-		        .setMinDepthBounds(0.f)
-		        .setMaxDepthBounds(0.f)
-		        .setStencilTestEnable(pipeline->stencil.enable)
-		        .setFront(stencil_state)
-		        .setBack(stencil_state);
-
-		for (auto& attachment : m_color_blend_attachment)
-		{
-			attachment.setBlendEnable(pipeline->blending.enable)
-			        .setSrcColorBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_color_func, false))
-			        .setDstColorBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_color_func, false))
-			        .setColorBlendOp(VulkanEnums::blend_of(pipeline->blending.color_op))
-			        .setSrcAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.src_alpha_func, true))
-			        .setDstAlphaBlendFactor(VulkanEnums::blend_func_of(pipeline->blending.dst_alpha_func, true))
-			        .setAlphaBlendOp(VulkanEnums::blend_of(pipeline->blending.alpha_op));
-		}
-
-		m_color_blending.setAttachments(m_color_blend_attachment).setLogicOpEnable(false);
 
 		static vk::ShaderStageFlagBits graphics_stages[] = {
 		        vk::ShaderStageFlagBits::eTaskEXT,
@@ -421,21 +403,17 @@ namespace Engine
 		m_rasterizer.setCullMode(VulkanEnums::cull_mode_of(manager->cull_mode()));
 		m_rasterizer.setFrontFace(VulkanEnums::face_of(manager->front_face()));
 
-		auto color_write_mask = VulkanEnums::color_component_flags_of(manager->write_mask());
-
-		for (auto& attachment : m_color_blend_attachment)
-		{
-			attachment.setColorWriteMask(color_write_mask);
-		}
-
+		vk::PipelineColorBlendAttachmentState attachments[4];
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
 		vk::PipelineMultisampleStateCreateInfo multisampling;
+		vk::PipelineDepthStencilStateCreateInfo depth_stencil = create_depth_stencil(manager);
+		vk::PipelineColorBlendStateCreateInfo color_blend     = create_color_blend(manager, attachments);
 
 		auto rt = manager->render_target();
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, nullptr, nullptr, nullptr, &viewport_state, &m_rasterizer,
-		                                             &multisampling, &m_depth_stencil, &m_color_blending, &dynamic_state,
+		                                             &multisampling, &depth_stencil, &color_blend, &dynamic_state,
 		                                             layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
@@ -452,10 +430,8 @@ namespace Engine
 	VulkanMeshPipeline& VulkanMeshPipeline::flush(VulkanContext* ctx)
 	{
 		trinex_profile_cpu_n("VulkanGraphicsPipeline::flush");
-		auto dirty_flags = VulkanStateManager::RenderTarget | VulkanStateManager::Pipeline | VulkanStateManager::PolygonMode |
-		                   VulkanStateManager::CullMode | VulkanStateManager::FrontFace;
 
-		if (ctx->state()->is_dirty(dirty_flags))
+		if (ctx->state()->is_dirty(VulkanStateManager::GraphicsMask))
 		{
 			auto cmd              = ctx->handle();
 			auto current_pipeline = find_or_create_pipeline(ctx->state());

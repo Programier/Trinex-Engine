@@ -68,9 +68,9 @@ namespace Engine
 	public:
 		MaterialDomain domain;
 
-		RHIDepthTest depth_test;
-		RHIStencilTest stencil_test;
-		RHIColorBlending color_blending;
+		RHIDepthState depth_test;
+		RHIStencilState stencil_test;
+		RHIBlendingState color_blending;
 
 		Material();
 		GraphicsPipeline* pipeline(RenderPass* pass) const;

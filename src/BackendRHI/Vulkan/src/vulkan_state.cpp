@@ -245,6 +245,24 @@ namespace Engine
 		return memory_hash(&m_graphics_state, sizeof(m_graphics_state));
 	}
 
+	VulkanContext& VulkanContext::depth_state(const RHIDepthState& state)
+	{
+		m_state_manager->bind(state);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::stencil_state(const RHIStencilState& state)
+	{
+		m_state_manager->bind(state);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::blending_state(const RHIBlendingState& state)
+	{
+		m_state_manager->bind(state);
+		return *this;
+	}
+
 	VulkanContext& VulkanContext::primitive_topology(RHIPrimitiveTopology topology)
 	{
 		m_state_manager->bind(topology);

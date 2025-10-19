@@ -288,6 +288,18 @@ public:                                                                         
 		return a = (T) ((__underlying_type(T)) a ^ (__underlying_type(T)) b);                                                    \
 	}
 
+#define trinex_default_copyable(class_name)                                                                                      \
+	inline class_name(const class_name&)            = default;                                                                   \
+	inline class_name& operator=(const class_name&) = default
+
+#define trinex_default_moveable(class_name)                                                                                      \
+	inline class_name(class_name&&)            = default;                                                                        \
+	inline class_name& operator=(class_name&&) = default
+
+#define trinex_default_comparable(class_name)                                                                                    \
+	inline bool operator==(const class_name&) const = default;                                                                   \
+	inline bool operator!=(const class_name&) const = default
+
 #define trinex_non_copyable(class_name)                                                                                          \
 	class_name(const class_name&)            = delete;                                                                           \
 	class_name& operator=(const class_name&) = delete

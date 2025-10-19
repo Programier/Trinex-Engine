@@ -177,8 +177,9 @@ namespace Engine
 		};
 	};
 
-	struct RHIDepthTest final {
-		trinex_declare_struct(RHIDepthTest, void);
+	struct RHIDepthState final {
+		trinex_declare_struct(RHIDepthState, void);
+		trinex_default_comparable(RHIDepthState);
 
 		RHICompareFunc func = RHICompareFunc::Less;
 		bool enable         = true;
@@ -187,8 +188,9 @@ namespace Engine
 		bool serialize(Archive& ar);
 	};
 
-	struct RHIStencilTest final {
-		trinex_declare_struct(RHIStencilTest, void);
+	struct RHIStencilState final {
+		trinex_declare_struct(RHIStencilState, void);
+		trinex_default_comparable(RHIStencilState);
 
 		RHIStencilOp fail       = RHIStencilOp::Decr;
 		RHIStencilOp depth_pass = RHIStencilOp::Decr;
@@ -202,8 +204,9 @@ namespace Engine
 		bool serialize(Archive& ar);
 	};
 
-	struct RHIColorBlending final {
-		trinex_declare_struct(RHIColorBlending, void);
+	struct RHIBlendingState final {
+		trinex_declare_struct(RHIBlendingState, void);
+		trinex_default_comparable(RHIBlendingState);
 
 		RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha;
 		RHIBlendFunc dst_color_func = RHIBlendFunc::OneMinusSrcAlpha;

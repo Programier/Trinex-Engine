@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/types/color.hpp>
-#include <RHI/structures.hpp>
+#include <RHI/enums.hpp>
 
 namespace Engine
 {
@@ -45,13 +45,8 @@ namespace Engine
 		size_t parameters_count                            = 0;
 		size_t vertex_attributes_count                     = 0;
 
-		RHIDepthTest depth;
-		RHIStencilTest stencil;
-		RHIColorBlending blending;
-
 		inline RHIGraphicsPipelineInitializer()
-		    : shaders{nullptr}, parameters(nullptr), vertex_attributes(nullptr), parameters_count(0), vertex_attributes_count(0),
-		      depth(), stencil(), blending()
+		    : shaders{nullptr}, parameters(nullptr), vertex_attributes(nullptr), parameters_count(0), vertex_attributes_count(0)
 		{}
 	};
 
@@ -69,10 +64,6 @@ namespace Engine
 
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		size_t parameters_count                         = 0;
-
-		RHIDepthTest depth;
-		RHIStencilTest stencil;
-		RHIColorBlending blending;
 	};
 
 	struct ENGINE_EXPORT RHIComputePipelineInitializer {

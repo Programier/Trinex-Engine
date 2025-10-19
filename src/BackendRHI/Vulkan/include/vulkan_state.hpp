@@ -63,14 +63,18 @@ namespace Engine
 		{
 			RenderTarget      = 1 << 0,
 			Pipeline          = 1 << 1,
-			PrimitiveTopology = 1 << 2,
-			PolygonMode       = 1 << 3,
-			CullMode          = 1 << 4,
-			FrontFace         = 1 << 5,
-			WriteMask         = 1 << 6,
+			DepthState        = 1 << 2,
+			StencilState      = 1 << 3,
+			BlendingState     = 1 << 4,
+			PrimitiveTopology = 1 << 5,
+			PolygonMode       = 1 << 6,
+			CullMode          = 1 << 7,
+			FrontFace         = 1 << 8,
+			WriteMask         = 1 << 9,
 
-			GraphicsMask = RenderTarget | Pipeline | PrimitiveTopology | PolygonMode | CullMode | FrontFace | WriteMask,
-			ComputeMask  = Pipeline,
+			GraphicsMask = RenderTarget | Pipeline | DepthState | StencilState | BlendingState | PrimitiveTopology | PolygonMode |
+			               CullMode | FrontFace | WriteMask,
+			ComputeMask = Pipeline,
 		};
 
 		struct CombinedImage {
@@ -120,6 +124,10 @@ namespace Engine
 		VulkanPipeline* m_pipeline = nullptr;
 
 		struct GraphicsState {
+			RHIDepthState depth;
+			RHIStencilState stencil;
+			RHIBlendingState blending;
+
 			RHIPrimitiveTopology topology;
 			RHIPolygonMode polygon_mode;
 			RHICullMode cull_mode;
@@ -168,6 +176,51 @@ namespace Engine
 				m_dirty_flags |= RenderTarget;
 			}
 
+			return *this;
+		}
+
+		VulkanStateManager& bind(const RHIDepthState& state)
+		{
+			if (m_graphics_state.depth != state)
+			{
+				m_graphics_state.depth.func         = state.func;
+				m_graphics_state.depth.enable       = state.enable;
+				m_graphics_state.depth.write_enable = state.write_enable;
+				m_dirty_flags |= DepthState;
+			}
+			return *this;
+		}
+
+		VulkanStateManager& bind(const RHIStencilState& state)
+		{
+			if (m_graphics_state.stencil != state)
+			{
+				m_graphics_state.stencil.fail         = state.fail;
+				m_graphics_state.stencil.depth_pass   = state.depth_pass;
+				m_graphics_state.stencil.depth_fail   = state.depth_fail;
+				m_graphics_state.stencil.compare      = state.compare;
+				m_graphics_state.stencil.compare_mask = state.compare_mask;
+				m_graphics_state.stencil.write_mask   = state.write_mask;
+				m_graphics_state.stencil.reference    = state.reference;
+				m_graphics_state.stencil.enable       = state.enable;
+				m_dirty_flags |= StencilState;
+			}
+			return *this;
+		}
+
+		VulkanStateManager& bind(const RHIBlendingState& state)
+		{
+			if (m_graphics_state.blending != state)
+			{
+				m_graphics_state.blending.src_color_func = state.src_color_func;
+				m_graphics_state.blending.dst_color_func = state.dst_color_func;
+				m_graphics_state.blending.color_op       = state.color_op;
+				m_graphics_state.blending.src_alpha_func = state.src_alpha_func;
+				m_graphics_state.blending.dst_alpha_func = state.dst_alpha_func;
+				m_graphics_state.blending.alpha_op       = state.alpha_op;
+				m_graphics_state.blending.enable         = state.enable;
+				m_dirty_flags |= BlendingState;
+			}
 			return *this;
 		}
 
@@ -236,6 +289,9 @@ namespace Engine
 		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
 		inline VulkanRenderTarget* render_target() const { return m_render_target; }
+		inline const RHIDepthState& depth_state() const { return m_graphics_state.depth; }
+		inline const RHIStencilState& stencil_state() const { return m_graphics_state.stencil; }
+		inline const RHIBlendingState& blending_state() const { return m_graphics_state.blending; }
 		inline RHIPrimitiveTopology primitive_topology() const { return m_graphics_state.topology; }
 		inline RHIPolygonMode polygon_mode() const { return m_graphics_state.polygon_mode; }
 		inline RHICullMode cull_mode() const { return m_graphics_state.cull_mode; }

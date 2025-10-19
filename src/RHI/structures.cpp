@@ -7,14 +7,14 @@ namespace Engine
 {
 	static constexpr auto s_flags = Refl::Property::IsTransient;
 
-	trinex_implement_struct(Engine::RHIDepthTest, 0)
+	trinex_implement_struct(Engine::RHIDepthState, 0)
 	{
 		trinex_refl_prop(enable, s_flags)->tooltip("Enable depth test");
 		trinex_refl_prop(write_enable, s_flags)->tooltip("Enable write to depth buffer");
 		trinex_refl_prop(func, s_flags)->tooltip("Depth compare function");
 	}
 
-	trinex_implement_struct(Engine::RHIStencilTest, 0)
+	trinex_implement_struct(Engine::RHIStencilState, 0)
 	{
 		trinex_refl_prop(enable, s_flags)->tooltip("Enable stencil test");
 		trinex_refl_prop(fail, s_flags)->tooltip("Operation on fail");
@@ -25,7 +25,7 @@ namespace Engine
 		trinex_refl_prop(write_mask, s_flags)->tooltip("Stencil write mask");
 	}
 
-	trinex_implement_struct(Engine::RHIColorBlending, 0)
+	trinex_implement_struct(Engine::RHIBlendingState, 0)
 	{
 		trinex_refl_prop(enable, s_flags);
 		trinex_refl_prop(src_color_func, s_flags);
@@ -37,17 +37,17 @@ namespace Engine
 		trinex_refl_prop(alpha_op, s_flags)->display_name("Alpha Operator");
 	}
 
-	bool RHIDepthTest::serialize(Archive& ar)
+	bool RHIDepthState::serialize(Archive& ar)
 	{
 		return ar.serialize(func, enable, write_enable);
 	}
 
-	bool RHIStencilTest::serialize(Archive& ar)
+	bool RHIStencilState::serialize(Archive& ar)
 	{
 		return ar.serialize(fail, depth_pass, depth_fail, compare, compare_mask, write_mask, reference, enable);
 	}
 
-	bool RHIColorBlending::serialize(Archive& ar)
+	bool RHIBlendingState::serialize(Archive& ar)
 	{
 		return ar.serialize(src_color_func, dst_color_func, color_op, src_alpha_func, dst_alpha_func, alpha_op, enable);
 	}

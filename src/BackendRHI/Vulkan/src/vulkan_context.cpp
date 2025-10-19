@@ -238,6 +238,8 @@ namespace Engine
 		{
 			m_cmd = API->command_buffer_mananger()->request_handle();
 			m_cmd->begin();
+
+			reset_state();
 		}
 		return *this;
 	}

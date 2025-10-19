@@ -51,6 +51,8 @@ namespace Engine
 			Matrix4f model;
 			RHIShaderResourceView* srv = nullptr;
 
+			void push(RHIContext* ctx);
+			void pop(RHIContext* ctx);
 			void apply(RHIContext* ctx, const Sampler& sampler);
 		};
 
@@ -76,10 +78,24 @@ namespace Engine
 			model_parameter   = find_parameter("model");
 		}
 
+		void ImGuiPipeline::push(RHIContext* ctx)
+		{
+			ctx->push_pipeline(rhi_pipeline());
+			ctx->push_depth_state(depth_test);
+			ctx->push_stencil_state(stencil_test);
+			ctx->push_blending_state(color_blending);
+		}
+
+		void ImGuiPipeline::pop(RHIContext* ctx)
+		{
+			ctx->pop_pipeline();
+			ctx->pop_depth_state();
+			ctx->pop_stencil_state();
+			ctx->pop_blending_state();
+		}
+
 		void ImGuiPipeline::apply(RHIContext* ctx, const Sampler& sampler)
 		{
-			ctx->bind_pipeline(rhi_pipeline());
-
 			RHIDescriptor sampler_descriptor = sampler.rhi_sampler()->descriptor();
 			RHIDescriptor texture_descriptor = srv->descriptor();
 
@@ -221,6 +237,8 @@ namespace Engine
 			ctx->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
 			ctx->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
 
+			ImGuiPipeline::instance()->push(ctx);
+
 			trinex_rhi_pop_stage(ctx);
 			{
 				trinex_profile_cpu_n("Render");
@@ -281,8 +299,8 @@ namespace Engine
 					trinex_rhi_pop_stage(ctx);
 				}
 			}
-
 			trinex_rhi_pop_stage(ctx);
+			ImGuiPipeline::instance()->pop(ctx);
 		}
 
 		static void imgui_trinex_create_fonts_texture()

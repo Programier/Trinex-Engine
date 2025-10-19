@@ -171,6 +171,9 @@ namespace Engine
 		VulkanContext& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 		                                       const RHITextureRegion& dst_region) override;
 
+		VulkanContext& depth_state(const RHIDepthState& state) override;
+		VulkanContext& stencil_state(const RHIStencilState& state) override;
+		VulkanContext& blending_state(const RHIBlendingState& state) override;
 		VulkanContext& primitive_topology(RHIPrimitiveTopology topology) override;
 		VulkanContext& polygon_mode(RHIPolygonMode mode) override;
 		VulkanContext& cull_mode(RHICullMode mode) override;
