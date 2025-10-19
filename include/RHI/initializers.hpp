@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/types/color.hpp>
-#include <RHI/pipeline.hpp>
+#include <RHI/structures.hpp>
 
 namespace Engine
 {

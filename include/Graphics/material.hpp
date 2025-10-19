@@ -3,7 +3,7 @@
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/object.hpp>
 #include <Graphics/material_parameter.hpp>
-#include <RHI/pipeline.hpp>
+#include <RHI/structures.hpp>
 
 namespace Engine
 {

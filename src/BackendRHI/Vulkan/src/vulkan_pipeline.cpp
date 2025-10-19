@@ -176,14 +176,16 @@ namespace Engine
 
 		StackByteAllocator::Mark mark;
 
-		m_input_assembly.setTopology(manager->primitive_topology());
-		m_rasterizer.setPolygonMode(manager->polygon_mode());
-		m_rasterizer.setCullMode(manager->cull_mode());
-		m_rasterizer.setFrontFace(manager->front_face());
+		m_input_assembly.setTopology(VulkanEnums::primitive_topology_of(manager->primitive_topology()));
+		m_rasterizer.setPolygonMode(VulkanEnums::polygon_mode_of(manager->polygon_mode()));
+		m_rasterizer.setCullMode(VulkanEnums::cull_mode_of(manager->cull_mode()));
+		m_rasterizer.setFrontFace(VulkanEnums::face_of(manager->front_face()));
+
+		auto color_write_mask = VulkanEnums::color_component_flags_of(manager->write_mask());
 
 		for (auto& attachment : m_color_blend_attachment)
 		{
-			attachment.setColorWriteMask(manager->write_mask());
+			attachment.setColorWriteMask(color_write_mask);
 		}
 
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
@@ -404,15 +406,6 @@ namespace Engine
 
 	vk::Pipeline VulkanMeshPipeline::find_or_create_pipeline(VulkanStateManager* manager)
 	{
-		auto rt = manager->render_target();
-
-		Key key;
-		key.pass         = manager->render_target()->m_render_pass;
-		key.polygon_mode = manager->polygon_mode();
-		key.cull_mode    = manager->cull_mode();
-		key.front_face   = manager->front_face();
-		key.write_mask   = manager->write_mask();
-
 		vk::Pipeline& pipeline = m_pipelines[manager->mesh_pipeline_id()];
 
 		if (pipeline)
@@ -424,18 +417,22 @@ namespace Engine
 		static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
 		static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
-		m_rasterizer.setPolygonMode(key.polygon_mode);
-		m_rasterizer.setCullMode(key.cull_mode);
-		m_rasterizer.setFrontFace(key.front_face);
+		m_rasterizer.setPolygonMode(VulkanEnums::polygon_mode_of(manager->polygon_mode()));
+		m_rasterizer.setCullMode(VulkanEnums::cull_mode_of(manager->cull_mode()));
+		m_rasterizer.setFrontFace(VulkanEnums::face_of(manager->front_face()));
+
+		auto color_write_mask = VulkanEnums::color_component_flags_of(manager->write_mask());
 
 		for (auto& attachment : m_color_blend_attachment)
 		{
-			attachment.setColorWriteMask(key.write_mask);
+			attachment.setColorWriteMask(color_write_mask);
 		}
 
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
 		vk::PipelineMultisampleStateCreateInfo multisampling;
+
+		auto rt = manager->render_target();
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, nullptr, nullptr, nullptr, &viewport_state, &m_rasterizer,
 		                                             &multisampling, &m_depth_stencil, &m_color_blending, &dynamic_state,

@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/vector.hpp>
+#include <RHI/structures.hpp>
 #include <cstring>
 #include <vulkan_headers.hpp>
 
@@ -118,12 +119,16 @@ namespace Engine
 
 		VulkanPipeline* m_pipeline = nullptr;
 
-		vk::PrimitiveTopology m_primitive_topology = vk::PrimitiveTopology::eTriangleList;
-		vk::PolygonMode m_polygon_mode             = vk::PolygonMode::eFill;
-		vk::CullModeFlags m_cull_mode              = vk::CullModeFlagBits::eNone;
-		vk::FrontFace m_front_face                 = vk::FrontFace::eClockwise;
-		vk::ColorComponentFlags m_write_mask       = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-		                                       vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+		struct GraphicsState {
+			RHIPrimitiveTopology topology;
+			RHIPolygonMode polygon_mode;
+			RHICullMode cull_mode;
+			RHIFrontFace front_face;
+			RHIColorComponent write_mask;
+
+			void init();
+		} m_graphics_state;
+
 
 	private:
 		VulkanStateManager& flush_state(VulkanCommandHandle* handle);
@@ -166,51 +171,51 @@ namespace Engine
 			return *this;
 		}
 
-		VulkanStateManager& bind(vk::PrimitiveTopology topology)
+		VulkanStateManager& bind(RHIPrimitiveTopology topology)
 		{
-			if (m_primitive_topology != topology)
+			if (m_graphics_state.topology != topology)
 			{
-				m_primitive_topology = topology;
+				m_graphics_state.topology = topology;
 				m_dirty_flags |= PrimitiveTopology;
 			}
 			return *this;
 		}
 
-		VulkanStateManager& bind(vk::PolygonMode mode)
+		VulkanStateManager& bind(RHIPolygonMode mode)
 		{
-			if (m_polygon_mode != mode)
+			if (m_graphics_state.polygon_mode != mode)
 			{
-				m_polygon_mode = mode;
+				m_graphics_state.polygon_mode = mode;
 				m_dirty_flags |= PolygonMode;
 			}
 			return *this;
 		}
 
-		VulkanStateManager& bind(vk::CullModeFlags mode)
+		VulkanStateManager& bind(RHICullMode mode)
 		{
-			if (m_cull_mode != mode)
+			if (m_graphics_state.cull_mode != mode)
 			{
-				m_cull_mode = mode;
+				m_graphics_state.cull_mode = mode;
 				m_dirty_flags |= CullMode;
 			}
 			return *this;
 		}
 
-		VulkanStateManager& bind(vk::FrontFace face)
+		VulkanStateManager& bind(RHIFrontFace face)
 		{
-			if (m_front_face != face)
+			if (m_graphics_state.front_face != face)
 			{
-				m_front_face = face;
+				m_graphics_state.front_face = face;
 				m_dirty_flags |= FrontFace;
 			}
 			return *this;
 		}
 
-		VulkanStateManager& bind(vk::ColorComponentFlags write_mask)
+		VulkanStateManager& bind(RHIColorComponent write_mask)
 		{
-			if (m_write_mask != write_mask)
+			if (m_graphics_state.write_mask != write_mask)
 			{
-				m_write_mask = write_mask;
+				m_graphics_state.write_mask = write_mask;
 				m_dirty_flags |= WriteMask;
 			}
 			return *this;
@@ -224,18 +229,18 @@ namespace Engine
 		VulkanStateManager& reset();
 
 		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);
-		Identifier graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
-		Identifier mesh_pipeline_id() const;
+		uint64_t graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
+		uint64_t mesh_pipeline_id() const;
 
 		inline uint64_t dirty_flags() const { return m_dirty_flags; }
 		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
 		inline VulkanRenderTarget* render_target() const { return m_render_target; }
-		inline vk::PrimitiveTopology primitive_topology() const { return m_primitive_topology; }
-		inline vk::PolygonMode polygon_mode() const { return m_polygon_mode; }
-		inline vk::CullModeFlags cull_mode() const { return m_cull_mode; }
-		inline vk::FrontFace front_face() const { return m_front_face; }
-		inline vk::ColorComponentFlags write_mask() const { return m_write_mask; }
+		inline RHIPrimitiveTopology primitive_topology() const { return m_graphics_state.topology; }
+		inline RHIPolygonMode polygon_mode() const { return m_graphics_state.polygon_mode; }
+		inline RHICullMode cull_mode() const { return m_graphics_state.cull_mode; }
+		inline RHIFrontFace front_face() const { return m_graphics_state.front_face; }
+		inline RHIColorComponent write_mask() const { return m_graphics_state.write_mask; }
 
 		friend class VulkanUniformBuffer;
 	};

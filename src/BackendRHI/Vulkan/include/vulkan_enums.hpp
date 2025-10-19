@@ -472,4 +472,30 @@ namespace Engine::VulkanEnums
 	{
 		return rate == RHIVertexInputRate::Vertex ? vk::VertexInputRate::eVertex : vk::VertexInputRate::eInstance;
 	}
+
+	static inline vk::ColorComponentFlags color_component_flags_of(RHIColorComponent mask)
+	{
+		vk::ColorComponentFlags color_mask;
+
+		if (mask & RHIColorComponent::R)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eR;
+		}
+
+		if (mask & RHIColorComponent::G)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eG;
+		}
+
+		if (mask & RHIColorComponent::B)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eB;
+		}
+
+		if (mask & RHIColorComponent::A)
+		{
+			color_mask |= vk::ColorComponentFlagBits::eA;
+		}
+		return color_mask;
+	}
 }// namespace Engine::VulkanEnums

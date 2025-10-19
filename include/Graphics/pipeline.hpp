@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/filesystem/path.hpp>
 #include <Graphics/render_resource.hpp>
-#include <RHI/pipeline.hpp>
 #include <RHI/resource_ptr.hpp>
 #include <RHI/structures.hpp>
 

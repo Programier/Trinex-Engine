@@ -1,4 +1,3 @@
-#include <Core/etl/data_chain.hpp>
 #include <Core/etl/storage.hpp>
 #include <Core/exception.hpp>
 #include <Core/math/math.hpp>
@@ -16,46 +15,22 @@
 
 namespace Engine
 {
-	struct VulkanChainNode : public Storage<32, 8> {
-
-		inline bool operator<(const VulkanChainNode& node) const
-		{
-			const uint64_t* a = reinterpret_cast<const uint64_t*>(data);
-			const uint64_t* b = reinterpret_cast<const uint64_t*>(node.data);
-
-			for (size_t i = 0; i < 4; ++i)
-			{
-				if (a[i] != b[i])
-					return a[i] < b[i];
-			}
-
-			return false;
-		}
-
-		inline void memset(uint64_t value)
-		{
-			uint64_t* ptr = reinterpret_cast<uint64_t*>(data);
-			ptr[0]        = value;
-			ptr[1]        = value;
-			ptr[2]        = value;
-			ptr[3]        = value;
-		}
-	};
-
-	struct VulkanRasterizationInfo {
-		class VulkanRenderPass* pass;
-		vk::PrimitiveTopology primitive_topology;
-		vk::PolygonMode polygon_mode;
-		vk::CullModeFlags cull_mode;
-		vk::FrontFace front_face;
-		vk::ColorComponentFlags write_mask;
-	};
-
-	static DataChain<VulkanChainNode> s_pipeline_state_chain;
-
-	VulkanStateManager::VulkanStateManager() {}
+	VulkanStateManager::VulkanStateManager()
+	{
+		m_graphics_state.init();
+	}
 
 	VulkanStateManager::~VulkanStateManager() {}
+
+	void VulkanStateManager::GraphicsState::init()
+	{
+		memset(this, 0, sizeof(*this));
+		topology     = RHIPrimitiveTopology::TriangleList;
+		polygon_mode = RHIPolygonMode::Fill;
+		cull_mode    = RHICullMode::None;
+		front_face   = RHIFrontFace::CounterClockWise;
+		write_mask   = RHIColorComponent::RGBA;
+	}
 
 	VulkanStateManager& VulkanStateManager::flush_state(VulkanCommandHandle* handle)
 	{
@@ -230,158 +205,73 @@ namespace Engine
 	Identifier VulkanStateManager::graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const
 	{
 		struct VACache {
-			vk::Format format;
+			uint32_t format;
 			uint16_t offset;
-			byte binding;
-			byte stream;
-		};
-
-		struct VSCache {
 			uint16_t stride;
-			byte binding;
+			uint16_t binding;
+			byte stream;
 			byte rate;
 		};
 
-		static_assert(sizeof(VACache) == 8);
-		static_assert(sizeof(VulkanRasterizationInfo) == sizeof(VulkanChainNode));
-
-		VulkanChainNode node;
-		VulkanRasterizationInfo& info = node.as<VulkanRasterizationInfo, 0>();
-
-		info.pass               = render_target()->render_pass();
-		info.primitive_topology = primitive_topology();
-		info.polygon_mode       = polygon_mode();
-		info.cull_mode          = cull_mode();
-		info.front_face         = front_face();
-		info.write_mask         = write_mask();
-
-		auto link = s_pipeline_state_chain.link(node);
-
-		VulkanVertexAttribute* const end_va = attributes + count;
-		VACache* const end_va_cache         = &node.as<VACache, 0>() + 4;
-		VSCache* const end_vs_cache         = &node.as<VSCache, 0>() + 8;
+		uint128_t hash = memory_hash(&m_graphics_state, sizeof(m_graphics_state), 0);
 
 		// Submit vertex attributes
 		{
-			VulkanVertexAttribute* va = attributes;
+			VACache va;
 
-			while (va != end_va)
+			for (size_t i = 0; i < count; ++i)
 			{
-				node.memset(0);
-				VACache* cache = &node.as<VACache, 0>();
+				auto& src = attributes[i];
 
-				while (cache != end_va_cache && va != end_va)
-				{
-					auto state = vertex_attributes[va->semantic].resource(va->semantic_index);
+				auto va_state = vertex_attributes[src.semantic].resource(src.semantic_index);
+				auto vs_state = vertex_streams.resource(va_state.stream);
 
-					cache->stream  = state.stream;
-					cache->offset  = state.offset;
-					cache->binding = va->binding;
-					cache->format  = va->format;
+				va.format  = static_cast<uint32_t>(src.format);
+				va.offset  = va_state.offset;
+				va.stride  = vs_state.stride;
+				va.binding = src.binding;
+				va.stream  = va_state.stream;
+				va.rate    = static_cast<byte>(vs_state.rate);
 
-					++cache;
-					++va;
-				}
-
-				link = link.next(node);
+				hash = memory_hash(&va, sizeof(va), hash);
 			}
 		}
 
-		// Submit vertex streams
-		{
-			VulkanVertexAttribute* va = attributes;
-
-			while (va != end_va)
-			{
-				node.memset(0);
-				VSCache* cache = &node.as<VSCache, 0>();
-
-				while (cache != end_vs_cache && va != end_va)
-				{
-					auto va_state = vertex_attributes[va->semantic].resource(va->semantic_index);
-					auto vs_state = vertex_streams.resource(va_state.stream);
-
-					cache->binding = va_state.stream;
-					cache->stride  = vs_state.stride;
-					cache->rate    = static_cast<byte>(vs_state.rate);
-
-					++cache;
-					++va;
-				}
-
-				link = link.next(node);
-			}
-		}
-
-		return link.id();
+		return hash;
 	}
 
 	Identifier VulkanStateManager::mesh_pipeline_id() const
 	{
-		VulkanChainNode node;
-
-		static_assert(sizeof(VulkanRasterizationInfo) == sizeof(VulkanChainNode));
-		VulkanRasterizationInfo& info = node.as<VulkanRasterizationInfo, 0>();
-
-		info.pass               = render_target()->render_pass();
-		info.primitive_topology = primitive_topology();
-		info.polygon_mode       = polygon_mode();
-		info.cull_mode          = cull_mode();
-		info.front_face         = front_face();
-		info.write_mask         = write_mask();
-
-		return s_pipeline_state_chain.link(node).id();
+		return memory_hash(&m_graphics_state, sizeof(m_graphics_state));
 	}
 
 	VulkanContext& VulkanContext::primitive_topology(RHIPrimitiveTopology topology)
 	{
-		m_state_manager->bind(VulkanEnums::primitive_topology_of(topology));
+		m_state_manager->bind(topology);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::polygon_mode(RHIPolygonMode mode)
 	{
-		m_state_manager->bind(VulkanEnums::polygon_mode_of(mode));
+		m_state_manager->bind(mode);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::cull_mode(RHICullMode mode)
 	{
-		m_state_manager->bind(VulkanEnums::cull_mode_of(mode));
+		m_state_manager->bind(mode);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::front_face(RHIFrontFace face)
 	{
-		m_state_manager->bind(VulkanEnums::face_of(face));
+		m_state_manager->bind(face);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::write_mask(RHIColorComponent mask)
 	{
-		vk::ColorComponentFlags color_mask;
-
-		if (mask & RHIColorComponent::R)
-		{
-			color_mask |= vk::ColorComponentFlagBits::eR;
-		}
-
-		if (mask & RHIColorComponent::G)
-		{
-			color_mask |= vk::ColorComponentFlagBits::eG;
-		}
-
-		if (mask & RHIColorComponent::B)
-		{
-			color_mask |= vk::ColorComponentFlagBits::eB;
-		}
-
-		if (mask & RHIColorComponent::A)
-		{
-			color_mask |= vk::ColorComponentFlagBits::eA;
-		}
-
-		m_state_manager->bind(color_mask);
+		m_state_manager->bind(mask);
 		return *this;
 	}
 

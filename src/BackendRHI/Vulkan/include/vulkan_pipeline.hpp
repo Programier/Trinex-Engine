@@ -53,7 +53,7 @@ namespace Engine
 		vk::PipelineColorBlendStateCreateInfo m_color_blending;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
-		FlatMap<Identifier, vk::Pipeline> m_pipelines;
+		FlatMap<uint128_t, vk::Pipeline> m_pipelines;
 
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
 		bool is_dirty_vertex_input(VulkanStateManager* manager);
@@ -91,7 +91,7 @@ namespace Engine
 		vk::PipelineColorBlendStateCreateInfo m_color_blending;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
-		FlatMap<Identifier, vk::Pipeline> m_pipelines;
+		FlatMap<uint128_t, vk::Pipeline> m_pipelines;
 
 	private:
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
