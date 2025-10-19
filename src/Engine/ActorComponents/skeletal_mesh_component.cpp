@@ -72,7 +72,7 @@ namespace Engine
 		static Name permutation                              = "SkeletalMesh";
 		static MaterialBindings::Binding* trx_skinning_bones = skeletal_bindings.find_or_create("trx_skinning_bones");
 
-		if ((ctx->render_pass = ctx->render_pass->find_permutation(permutation)))
+		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
 		{
 			skeletal_bindings.prev = ctx->bindings;
 			ctx->bindings          = &skeletal_bindings;

@@ -399,14 +399,16 @@ namespace Engine
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
-		auto pipeline_object = pipeline(ctx->render_pass);
+		RenderPass* pass     = ctx->pass;
+		auto pipeline_object = pipeline(pass);
 
 		if (pipeline_object == nullptr)
 			return false;
 
-		ctx->context->depth_state(depth_test);
-		ctx->context->stencil_state(stencil_test);
-		ctx->context->blending_state(color_blending);
+		pass->apply_depth_state(ctx->context, depth_test);
+		pass->apply_stencil_state(ctx->context, stencil_test);
+		pass->apply_blending_state(ctx->context, color_blending);
+
 		ctx->context->bind_pipeline(pipeline_object->rhi_pipeline());
 
 		if (ctx->bindings)

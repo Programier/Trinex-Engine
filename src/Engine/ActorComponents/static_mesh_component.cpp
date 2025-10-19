@@ -61,7 +61,7 @@ namespace Engine
 	{
 		static Name permutation = "StaticMesh";
 
-		if ((ctx->render_pass = ctx->render_pass->find_permutation(permutation)))
+		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
 		{
 			Super::Proxy::render(ctx);
 		}

@@ -3,6 +3,7 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/shader_compiler.hpp>
+#include <RHI/context.hpp>
 
 namespace Engine
 {
@@ -40,6 +41,24 @@ namespace Engine
 			return nullptr;
 
 		return it->second;
+	}
+
+	RenderPass& RenderPass::apply_depth_state(RHIContext* ctx, const RHIDepthState& state)
+	{
+		ctx->depth_state(state);
+		return *this;
+	}
+
+	RenderPass& RenderPass::apply_stencil_state(RHIContext* ctx, const RHIStencilState& state)
+	{
+		ctx->stencil_state(state);
+		return *this;
+	}
+
+	RenderPass& RenderPass::apply_blending_state(RHIContext* ctx, const RHIBlendingState& state)
+	{
+		ctx->blending_state(state);
+		return *this;
 	}
 
 	bool RenderPass::is_material_compatible(const Material* material)
@@ -80,6 +99,24 @@ namespace Engine
 	}
 
 	RenderPassPermutation::RenderPassPermutation(const char* name, RenderPass* owner) : RenderPass(name, owner), m_owner(owner) {}
+
+	RenderPassPermutation& RenderPassPermutation::apply_depth_state(RHIContext* ctx, const RHIDepthState& state)
+	{
+		m_owner->apply_depth_state(ctx, state);
+		return *this;
+	}
+
+	RenderPassPermutation& RenderPassPermutation::apply_stencil_state(RHIContext* ctx, const RHIStencilState& state)
+	{
+		m_owner->apply_stencil_state(ctx, state);
+		return *this;
+	}
+
+	RenderPassPermutation& RenderPassPermutation::apply_blending_state(RHIContext* ctx, const RHIBlendingState& state)
+	{
+		m_owner->apply_blending_state(ctx, state);
+		return *this;
+	}
 
 	bool RenderPassPermutation::is_material_compatible(const Material* material)
 	{

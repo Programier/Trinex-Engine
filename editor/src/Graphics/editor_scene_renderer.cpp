@@ -52,6 +52,8 @@ namespace Engine
 			ctx->viewport(RHIViewport(size));
 			ctx->scissor(RHIScissors(size));
 
+			ctx->push_blending_state(RHIBlendingState(false));
+
 			static MaterialBindings bindings;
 			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");
 
@@ -72,6 +74,8 @@ namespace Engine
 					primitive->proxy()->render(&context);
 				}
 			}
+
+			ctx->pop_blending_state();
 
 			trinex_rhi_pop_stage(ctx);
 			return surface;

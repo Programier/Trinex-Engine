@@ -45,11 +45,11 @@ namespace Engine
 			if (material_interface == nullptr)
 				continue;
 
-			if (!ctx->render_pass->is_material_compatible(material_interface->material()))
+			if (!ctx->pass->is_material_compatible(material_interface->material()))
 				continue;
 
 			Material* material         = material_interface->material();
-			GraphicsPipeline* pipeline = material->pipeline(ctx->render_pass);
+			GraphicsPipeline* pipeline = material->pipeline(ctx->pass);
 
 			if (!pipeline)
 				continue;

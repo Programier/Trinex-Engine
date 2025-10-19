@@ -7,6 +7,11 @@ namespace Engine
 	class ShaderCompilationEnvironment;
 	class RenderPassPermutation;
 
+	class RHIContext;
+	class RHIDepthState;
+	class RHIStencilState;
+	class RHIBlendingState;
+
 	class ENGINE_EXPORT RenderPass
 	{
 	private:
@@ -31,6 +36,10 @@ namespace Engine
 		static inline RenderPass* static_last_pass() { return s_tail; }
 		static RenderPass* static_find(const Name& name);
 
+		virtual RenderPass& apply_depth_state(RHIContext* ctx, const RHIDepthState& state);
+		virtual RenderPass& apply_stencil_state(RHIContext* ctx, const RHIStencilState& state);
+		virtual RenderPass& apply_blending_state(RHIContext* ctx, const RHIBlendingState& state);
+
 		virtual bool is_material_compatible(const Material* material);
 		virtual RenderPass& modify_shader_compilation_env(ShaderCompilationEnvironment* env);
 		virtual RenderPass* super_pass();
@@ -52,6 +61,11 @@ namespace Engine
 
 	public:
 		RenderPassPermutation(const char* name, RenderPass* owner);
+
+		RenderPassPermutation& apply_depth_state(RHIContext* ctx, const RHIDepthState& state) override;
+		RenderPassPermutation& apply_stencil_state(RHIContext* ctx, const RHIStencilState& state) override;
+		RenderPassPermutation& apply_blending_state(RHIContext* ctx, const RHIBlendingState& state) override;
+
 		bool is_material_compatible(const Material* material) override;
 		RenderPassPermutation& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		String full_name() const override;
