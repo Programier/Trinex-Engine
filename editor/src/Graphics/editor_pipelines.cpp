@@ -56,20 +56,28 @@ namespace Engine::EditorPipelines
 	{
 		m_scene_view = find_parameter("scene_view");
 		m_fov        = find_parameter("fov");
-
-		depth_test.enable       = true;
-		depth_test.write_enable = false;
-		depth_test.func         = RHICompareFunc::Lequal;
-		color_blending.enable   = true;
 	}
 
 	void Grid::render(RHIContext* ctx, Renderer* renderer)
 	{
 		float fov = Math::tan(Math::radians(renderer->scene_view().camera_view().perspective.fov));
 
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->push_depth_state(RHIDepthState(true, RHICompareFunc::Lequal, false));
+		ctx->push_stencil_state(RHIStencilState());
+		ctx->push_blending_state(RHIBlendingState(true));
+		ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
+		ctx->push_cull_mode(RHICullMode::None);
+		ctx->push_pipeline(rhi_pipeline());
+
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->update_scalar(&fov, m_fov);
 		ctx->draw(6, 0);
+
+		ctx->pop_pipeline();
+		ctx->pop_cull_mode();
+		ctx->pop_primitive_topology();
+		ctx->pop_blending_state();
+		ctx->pop_stencil_state();
+		ctx->pop_depth_state();
 	}
 }// namespace Engine::EditorPipelines

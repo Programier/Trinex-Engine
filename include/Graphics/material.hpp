@@ -77,7 +77,6 @@ namespace Engine
 		bool add_pipeline(RenderPass* pass, GraphicsPipeline* pipeline);
 		GraphicsPipeline* remove_pipeline(RenderPass* pass);
 		Material& postload() override;
-		Material& setup_pipeline(GraphicsPipeline* pipeline);
 
 		class Material* material() override;
 		bool apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings = nullptr) override;

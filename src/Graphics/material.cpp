@@ -305,7 +305,6 @@ namespace Engine
 			return false;
 
 		m_pipelines[pass] = pipeline;
-		setup_pipeline(pipeline);
 		return true;
 	}
 
@@ -404,6 +403,9 @@ namespace Engine
 		if (pipeline_object == nullptr)
 			return false;
 
+		ctx->context->depth_state(depth_test);
+		ctx->context->stencil_state(stencil_test);
+		ctx->context->blending_state(color_blending);
 		ctx->context->bind_pipeline(pipeline_object->rhi_pipeline());
 
 		if (bindings)
@@ -479,14 +481,6 @@ namespace Engine
 		}
 
 		return archive;
-	}
-
-	Material& Material::setup_pipeline(GraphicsPipeline* pipeline)
-	{
-		pipeline->depth_test     = depth_test;
-		pipeline->stencil_test   = stencil_test;
-		pipeline->color_blending = color_blending;
-		return *this;
 	}
 
 	Material& Material::remove_unreferenced_parameters()

@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-	template<typename T, T default_value = T()>
+	template<typename T>
 	class RHIStateStack
 	{
 	private:
@@ -59,11 +59,14 @@ namespace Engine
 		inline void reset() { m_size = 0; }
 	};
 
-	template<typename T, T default_value>
-	T RHIStateStack<T, default_value>::s_default = default_value;
+	template<typename T>
+	T RHIStateStack<T>::s_default = T();
+
+	template<>
+	RHIColorComponent RHIStateStack<RHIColorComponent>::s_default = RHIColorComponent::RGBA;
 
 	struct RHIContext::State {
-		RHIStateStack<RHIPipeline*, nullptr> pipeline;
+		RHIStateStack<RHIPipeline*> pipeline;
 		RHIStateStack<RHIDepthState> depth;
 		RHIStateStack<RHIStencilState> stencil;
 		RHIStateStack<RHIBlendingState> blending;
@@ -71,7 +74,7 @@ namespace Engine
 		RHIStateStack<RHIPolygonMode> polygon_mode;
 		RHIStateStack<RHICullMode> cull_mode;
 		RHIStateStack<RHIFrontFace> front_face;
-		RHIStateStack<RHIColorComponent, RHIColorComponent::RGBA> write_mask;
+		RHIStateStack<RHIColorComponent> write_mask;
 
 		inline void reset()
 		{

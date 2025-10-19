@@ -17,12 +17,26 @@
 
 namespace Engine::Pipelines
 {
+	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx)
+	{
+		ctx->push_depth_state(RHIDepthState(false));
+		ctx->push_stencil_state(RHIStencilState(false));
+		ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
+		ctx->push_cull_mode(RHICullMode::None);
+		ctx->push_pipeline(pipeline->rhi_pipeline());
+	}
+
+	static inline void pop_context_state(RHIContext* ctx)
+	{
+		ctx->pop_depth_state();
+		ctx->pop_stencil_state();
+		ctx->pop_primitive_topology();
+		ctx->pop_cull_mode();
+		ctx->pop_pipeline();
+	}
+
 	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
 	{
-		depth_test.enable       = false;
-		depth_test.write_enable = false;
-		color_blending.enable   = false;
-
 		m_source = find_parameter("source");
 		m_args   = find_parameter("args");
 	}
@@ -50,20 +64,19 @@ namespace Engine::Pipelines
 		if (sampler == nullptr)
 			sampler = RHIBilinearSampler::static_sampler();
 
-		ctx->bind_pipeline(rhi_pipeline());
+		push_context_state(this, ctx);
+
 		ctx->bind_srv(src, m_source->binding);
 		ctx->bind_sampler(sampler, m_source->binding);
 		ctx->update_scalar(&args, sizeof(args), m_args);
 
 		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
 	}
 
 	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/graphics/blit.slang")
 	{
-		depth_test.enable       = false;
-		depth_test.write_enable = false;
-		color_blending.enable   = false;
-
 		m_source = find_parameter("source");
 		m_args   = find_parameter("args");
 	}
@@ -85,25 +98,24 @@ namespace Engine::Pipelines
 		shader_args.inv_size = inv_size;
 		shader_args.swizzle  = swizzle;
 
-		ctx->bind_pipeline(rhi_pipeline());
+		push_context_state(this, ctx);
+
 		ctx->bind_srv(src, m_source->binding);
 		ctx->bind_sampler(sampler, m_source->binding);
 		ctx->update_scalar(&shader_args, sizeof(shader_args), m_args);
 
 		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
 	}
 
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang")
 	{
-		color_blending.enable = false;
-		m_projview            = find_parameter("projview");
-		m_viewport            = find_parameter("viewport");
+		m_projview = find_parameter("projview");
+		m_viewport = find_parameter("viewport");
 	}
 
-	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang")
-	{
-		color_blending.enable = true;
-	}
+	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang") {}
 
 	trinex_implement_pipeline(DeferredLighting, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
@@ -121,14 +133,6 @@ namespace Engine::Pipelines
 		clusters = find_parameter("clusters");
 		lights   = find_parameter("lights");
 		shadows  = find_parameter("shadows");
-
-		depth_test.enable       = false;
-		depth_test.write_enable = false;
-
-		color_blending.enable         = true;
-		color_blending.src_color_func = RHIBlendFunc::One;
-		color_blending.dst_color_func = RHIBlendFunc::One;
-		color_blending.color_op       = RHIBlendOp::Add;
 	}
 
 	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/ambient.slang")
@@ -143,34 +147,27 @@ namespace Engine::Pipelines
 
 	trinex_implement_pipeline(TonemappingACES, "[shaders_dir]:/TrinexEngine/trinex/graphics/tonemapping.slang")
 	{
-		depth_test.enable       = false;
-		depth_test.write_enable = false;
-		stencil_test.enable     = false;
-
 		m_hdr_target = find_parameter("hdr_scene");
 		m_scene_view = find_parameter("scene_view");
 	}
 
 	TonemappingACES& TonemappingACES::apply(RHIContext* ctx, Renderer* renderer)
 	{
-		ctx->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
-		ctx->bind_pipeline(rhi_pipeline());
+		push_context_state(this, ctx);
 
+		ctx->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
 		ctx->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
 		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
 
 		return *this;
 	}
 
 	trinex_implement_pipeline(SSR, "[shaders_dir]:/TrinexEngine/trinex/graphics/ssr.slang")
 	{
-		depth_test.enable       = false;
-		depth_test.write_enable = false;
-		stencil_test.enable     = false;
-		color_blending.enable   = false;
-
 		scene_view   = find_parameter("scene_view");
 		scene_color  = find_parameter("scene_color");
 		scene_normal = find_parameter("scene_normal");
@@ -180,19 +177,6 @@ namespace Engine::Pipelines
 
 	trinex_implement_pipeline(SSAO, "[shaders_dir]:/TrinexEngine/trinex/graphics/ssao.slang")
 	{
-		depth_test.enable       = false;
-		depth_test.write_enable = false;
-		stencil_test.enable     = false;
-		color_blending.enable   = true;
-
-		color_blending.color_op       = RHIBlendOp::Add;
-		color_blending.src_color_func = RHIBlendFunc::Zero;
-		color_blending.dst_color_func = RHIBlendFunc::One;
-
-		color_blending.alpha_op       = RHIBlendOp::Add;
-		color_blending.src_alpha_func = RHIBlendFunc::DstAlpha;
-		color_blending.dst_alpha_func = RHIBlendFunc::Zero;
-
 		m_scene_view   = find_parameter("scene_view");
 		m_scene_depth  = find_parameter("scene_depth");
 		m_scene_normal = find_parameter("scene_normal");

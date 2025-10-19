@@ -185,6 +185,10 @@ namespace Engine
 		bool enable         = true;
 		bool write_enable   = true;
 
+		RHIDepthState(bool enable = true, RHICompareFunc func = RHICompareFunc::Less, bool write_enable = true)
+		    : func(func), enable(enable), write_enable(write_enable)
+		{}
+
 		bool serialize(Archive& ar);
 	};
 
@@ -192,14 +196,22 @@ namespace Engine
 		trinex_declare_struct(RHIStencilState, void);
 		trinex_default_comparable(RHIStencilState);
 
-		RHIStencilOp fail       = RHIStencilOp::Decr;
-		RHIStencilOp depth_pass = RHIStencilOp::Decr;
-		RHIStencilOp depth_fail = RHIStencilOp::Decr;
-		RHICompareFunc compare  = RHICompareFunc::Less;
-		byte compare_mask       = 0;
-		byte write_mask         = 0;
-		byte reference          = 0;
-		bool enable             = false;
+		RHIStencilOp fail;
+		RHIStencilOp depth_pass;
+		RHIStencilOp depth_fail;
+		RHICompareFunc compare;
+		byte compare_mask;
+		byte write_mask;
+		byte reference;
+		bool enable;
+
+		inline RHIStencilState(bool enable = false, RHICompareFunc compare = RHICompareFunc::Always,
+		                       RHIStencilOp fail = RHIStencilOp::Keep, RHIStencilOp depth_fail = RHIStencilOp::Keep,
+		                       RHIStencilOp depth_pass = RHIStencilOp::Keep, byte reference = 0, byte compare_mask = 0xFF,
+		                       byte write_mask = 0xFF)
+		    : fail(fail), depth_pass(depth_pass), depth_fail(depth_fail), compare(compare), compare_mask(compare_mask),
+		      write_mask(write_mask), reference(reference), enable(enable)
+		{}
 
 		bool serialize(Archive& ar);
 	};
@@ -208,13 +220,22 @@ namespace Engine
 		trinex_declare_struct(RHIBlendingState, void);
 		trinex_default_comparable(RHIBlendingState);
 
-		RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha;
-		RHIBlendFunc dst_color_func = RHIBlendFunc::OneMinusSrcAlpha;
-		RHIBlendOp color_op         = RHIBlendOp::Add;
-		RHIBlendFunc src_alpha_func = RHIBlendFunc::One;
-		RHIBlendFunc dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha;
-		RHIBlendOp alpha_op         = RHIBlendOp::Add;
-		bool enable                 = false;
+		RHIBlendFunc src_color_func;
+		RHIBlendFunc dst_color_func;
+		RHIBlendOp color_op;
+		RHIBlendFunc src_alpha_func;
+		RHIBlendFunc dst_alpha_func;
+		RHIBlendOp alpha_op;
+		bool enable;
+
+		inline RHIBlendingState(bool enable = false, RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha,
+		                        RHIBlendFunc dst_color_func = RHIBlendFunc::OneMinusSrcAlpha,
+		                        RHIBlendOp color_op = RHIBlendOp::Add, RHIBlendFunc src_alpha_func = RHIBlendFunc::One,
+		                        RHIBlendFunc dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha,
+		                        RHIBlendOp alpha_op         = RHIBlendOp::Add)
+		    : src_color_func(src_color_func), dst_color_func(dst_color_func), color_op(color_op), src_alpha_func(src_alpha_func),
+		      dst_alpha_func(dst_alpha_func), alpha_op(alpha_op), enable(enable)
+		{}
 
 		bool serialize(Archive& ar);
 

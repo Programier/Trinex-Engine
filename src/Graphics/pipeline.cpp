@@ -178,13 +178,6 @@ namespace Engine
 
 		if (vs_inited && fs_inited)
 		{
-			if (auto owner_material = material())
-			{
-				depth_test     = owner_material->depth_test;
-				stencil_test   = owner_material->stencil_test;
-				color_blending = owner_material->color_blending;
-			}
-
 			render_thread()->call([this]() {
 				RHIGraphicsPipelineInitializer initializer;
 				initializer.vertex_shader               = extract_shader(vertex_shader());
@@ -360,13 +353,6 @@ namespace Engine
 
 		if (!Super::serialize(archive, material))
 			return false;
-
-		if (!material)
-		{
-			archive.serialize(depth_test);
-			archive.serialize(stencil_test);
-			archive.serialize(color_blending);
-		}
 
 		vertex_shader(true);
 		fragment_shader(true);

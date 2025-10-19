@@ -58,21 +58,6 @@ namespace Engine
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
 		{
-			color_blending.enable         = true;
-			color_blending.src_color_func = RHIBlendFunc::SrcAlpha;
-			color_blending.dst_color_func = RHIBlendFunc::OneMinusSrcAlpha;
-			color_blending.color_op       = RHIBlendOp::Add;
-			color_blending.src_alpha_func = RHIBlendFunc::One;
-			color_blending.dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha;
-			color_blending.alpha_op       = RHIBlendOp::Add;
-			depth_test.enable             = false;
-			depth_test.write_enable       = false;
-			depth_test.func               = RHICompareFunc::Always;
-
-			stencil_test.enable     = false;
-			stencil_test.depth_fail = stencil_test.depth_pass = stencil_test.fail = RHIStencilOp::Keep;
-			stencil_test.compare                                                  = RHICompareFunc::Always;
-
 			texture_parameter = find_parameter("texture");
 			sampler_parameter = find_parameter("sampler");
 			model_parameter   = find_parameter("model");
@@ -81,9 +66,9 @@ namespace Engine
 		void ImGuiPipeline::push(RHIContext* ctx)
 		{
 			ctx->push_pipeline(rhi_pipeline());
-			ctx->push_depth_state(depth_test);
-			ctx->push_stencil_state(stencil_test);
-			ctx->push_blending_state(color_blending);
+			ctx->push_depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
+			ctx->push_stencil_state(RHIStencilState());
+			ctx->push_blending_state(RHIBlendingState(true));
 		}
 
 		void ImGuiPipeline::pop(RHIContext* ctx)
