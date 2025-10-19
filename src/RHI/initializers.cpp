@@ -17,7 +17,7 @@ namespace Engine
 	      max_lod(std::numeric_limits<float>::max())  //
 	{}
 
-	HashIndex RHISamplerInitializer::hash() const
+	uint64_t RHISamplerInitializer::hash() const
 	{
 		return memory_hash(this, sizeof(RHISamplerInitializer));
 	}

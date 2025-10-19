@@ -172,12 +172,12 @@ namespace Engine
 		return m_class;
 	}
 
-	ENGINE_EXPORT HashIndex Object::hash_of_name(const StringView& name)
+	ENGINE_EXPORT uint64_t Object::hash_of_name(const StringView& name)
 	{
 		return memory_hash(name.data(), name.length(), 0);
 	}
 
-	HashIndex Object::hash_index() const
+	uint64_t Object::hash_index() const
 	{
 		return m_name.hash();
 	}

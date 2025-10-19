@@ -17,8 +17,8 @@ namespace Engine
 
 	const String& Localization::localize(const StringView& line) const
 	{
-		HashIndex hash = memory_hash(line.data(), line.length());
-		auto it        = m_translation_map.find(hash);
+		uint64_t hash = memory_hash(line.data(), line.length());
+		auto it       = m_translation_map.find(hash);
 
 		if (it != m_translation_map.end())
 			return it->second;
@@ -78,7 +78,7 @@ namespace Engine
 		}
 	}
 
-	static void load_localization(Map<HashIndex, String>& out, const Path& path)
+	static void load_localization(Map<uint64_t, String>& out, const Path& path)
 	{
 		try
 		{
@@ -103,10 +103,10 @@ namespace Engine
 					String key, value;
 					if (parse_string(line, key, value))
 					{
-						String p       = entry.relative(path);
-						key            = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
-						HashIndex hash = memory_hash(key.c_str(), key.length());
-						out[hash]      = value;
+						String p      = entry.relative(path);
+						key           = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+						uint64_t hash = memory_hash(key.c_str(), key.length());
+						out[hash]     = value;
 					}
 				}
 			}

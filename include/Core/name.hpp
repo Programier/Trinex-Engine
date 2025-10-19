@@ -28,11 +28,11 @@ namespace Engine
 	public:
 		struct Entry {
 			String name;
-			HashIndex hash;
+			uint64_t hash;
 		};
 
 		struct HashFunction {
-			FORCE_INLINE HashIndex operator()(const Name& name) const { return name.m_index; }
+			FORCE_INLINE uint64_t operator()(const Name& name) const { return name.m_index; }
 		};
 
 		struct Less {
@@ -67,7 +67,7 @@ namespace Engine
 		static Name find_name(const StringView& name);
 
 		bool is_valid() const;
-		HashIndex hash() const;
+		uint64_t hash() const;
 		Index index() const;
 		bool operator==(const StringView& name) const;
 		bool operator!=(const StringView& name) const;

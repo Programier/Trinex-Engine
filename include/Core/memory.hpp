@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-	ENGINE_EXPORT HashIndex memory_hash(const void* memory, const size_t size, HashIndex start_hash = 0);
+	ENGINE_EXPORT uint128_t memory_hash(const void* memory, const size_t size, uint128_t seed = 0);
 	ENGINE_EXPORT const byte* memory_search(const byte* haystack, size_t haystack_len, const byte* needle, size_t needle_len);
 
 	FORCE_INLINE constexpr size_t align_memory(size_t size, size_t alignment)

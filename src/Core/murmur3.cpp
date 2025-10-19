@@ -32,17 +32,17 @@ namespace Engine
 		return k;
 	}
 
-	static FORCE_INLINE uint64_t murmur_hash(const byte* data, const int len, const uint32_t seed)
+	static FORCE_INLINE uint128_t murmur_hash(const byte* data, const size_t size, uint128_t seed)
 	{
-		const int nblocks = len / 16;
+		const size_t nblocks = size / 16;
 
-		uint64_t h1 = seed;
+		uint64_t h1 = seed >> 64;
 		uint64_t h2 = seed;
 
 		const uint64_t c1 = 0x87c37b91114253d5LLU;
 		const uint64_t c2 = 0x4cf5ad432745937fLLU;
 
-		for (int i = 0; i < nblocks; i++)
+		for (size_t i = 0; i < nblocks; i++)
 		{
 			uint64_t k1 = getblock64(data);
 			data += sizeof(uint64_t);
@@ -71,7 +71,7 @@ namespace Engine
 		uint64_t k1 = 0;
 		uint64_t k2 = 0;
 
-		switch (len & 15)
+		switch (size & 15)
 		{
 			case 15: k2 ^= ((uint64_t) data[14]) << 48;
 			case 14: k2 ^= ((uint64_t) data[13]) << 40;
@@ -101,8 +101,8 @@ namespace Engine
 				h1 ^= k1;
 		};
 
-		h1 ^= len;
-		h2 ^= len;
+		h1 ^= size;
+		h2 ^= size;
 
 		h1 += h2;
 		h2 += h1;
@@ -113,11 +113,11 @@ namespace Engine
 		h1 += h2;
 		h2 += h1;
 
-		return h1;
+		return (uint128_t(h1) << 64) | h2;
 	}
 
-	ENGINE_EXPORT HashIndex memory_hash(const void* memory, const size_t size, HashIndex start_hash)
+	ENGINE_EXPORT uint128_t memory_hash(const void* memory, const size_t size, uint128_t seed)
 	{
-		return murmur_hash(static_cast<const byte*>(memory), size, start_hash);
+		return murmur_hash(static_cast<const byte*>(memory), size, seed);
 	}
 }// namespace Engine

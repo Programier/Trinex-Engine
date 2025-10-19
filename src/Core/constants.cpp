@@ -27,7 +27,7 @@ namespace Engine
 	const Vector3f Constants::min_positive_vector         = Vector3f(0.000001f);
 	const ArrayIndex Constants::index_none                = ~static_cast<ArrayIndex>(0);
 	const ArrayOffset Constants::offset_none              = ~static_cast<ArrayOffset>(0);
-	const HashIndex Constants::invalid_hash               = static_cast<HashIndex>(0);
+	const uint64_t Constants::invalid_hash                = static_cast<uint64_t>(0);
 	const size_t Constants::max_size                      = ~static_cast<size_t>(0);
 	const Vector4i Constants::int_zero_vector             = Vector4i(0);
 	const Vector4i Constants::int_identity_vector         = Vector4i(1);
@@ -43,5 +43,5 @@ namespace Engine
 	const String Constants::script_byte_code_extension    = ".asbc";
 	const String Constants::virtual_file_system_extension = ".tvfs";
 	const String Constants::translation_config_extension  = ".lang";
-	const HashIndex Constants::script_userdata_id         = Strings::hash_of("script_userdata_id");
+	const uint64_t Constants::script_userdata_id          = Strings::hash_of("script_userdata_id");
 }// namespace Engine

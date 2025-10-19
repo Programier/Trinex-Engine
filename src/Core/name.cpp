@@ -37,9 +37,9 @@ namespace Engine
 		return entries;
 	}
 
-	static MultiMap<HashIndex, Index>& name_index_map()
+	static MultiMap<uint64_t, Index>& name_index_map()
 	{
-		static MultiMap<HashIndex, Index> indices;
+		static MultiMap<uint64_t, Index> indices;
 		return indices;
 	}
 
@@ -49,7 +49,7 @@ namespace Engine
 		return default_name;
 	}
 
-	static FORCE_INLINE void push_new_name(const char* name, size_t len, HashIndex hash)
+	static FORCE_INLINE void push_new_name(const char* name, size_t len, uint64_t hash)
 	{
 		name_index_map().insert({hash, name_entries().size()});
 		name_entries().push_back(Name::Entry{String(name, len), hash});
@@ -61,7 +61,7 @@ namespace Engine
 	Name Name::find_name(const StringView& name)
 	{
 		Name out_name;
-		HashIndex hash = memory_hash(name.data(), name.length(), 0);
+		uint64_t hash = memory_hash(name.data(), name.length(), 0);
 
 		Vector<Name::Entry>& name_table = name_entries();
 
@@ -91,9 +91,9 @@ namespace Engine
 			return *this;
 		}
 
-		HashIndex hash                      = memory_hash(view.data(), view.length(), 0);
-		Vector<Name::Entry>& name_table     = name_entries();
-		MultiMap<HashIndex, Index>& indices = name_index_map();
+		uint64_t hash                      = memory_hash(view.data(), view.length(), 0);
+		Vector<Name::Entry>& name_table    = name_entries();
+		MultiMap<uint64_t, Index>& indices = name_index_map();
 
 		m_index = name_table.size();
 
@@ -155,7 +155,7 @@ namespace Engine
 		return m_index != Constants::index_none;
 	}
 
-	HashIndex Name::hash() const
+	uint64_t Name::hash() const
 	{
 		return is_valid() ? name_entries()[m_index].hash : Constants::invalid_hash;
 	}

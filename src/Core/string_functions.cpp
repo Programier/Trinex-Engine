@@ -78,7 +78,7 @@ namespace Engine::Strings
 		return capitalize_words(temp);
 	}
 
-	ENGINE_EXPORT HashIndex hash_of(const StringView& str)
+	ENGINE_EXPORT uint64_t hash_of(const StringView& str)
 	{
 		return memory_hash(str.data(), str.length(), 0);
 	}

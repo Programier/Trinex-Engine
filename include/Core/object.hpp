@@ -117,7 +117,7 @@ namespace Engine
 		static Object* static_constructor();
 		static void static_initialize_class();
 		static class Refl::Class* static_reflection();
-		static HashIndex hash_of_name(const StringView& name);
+		static uint64_t hash_of_name(const StringView& name);
 		class Refl::Class* class_instance() const;
 
 		delete_copy_constructors(Object);
@@ -141,7 +141,7 @@ namespace Engine
 		virtual Object* find_child_object(StringView name) const;
 
 		const String& string_name() const;
-		HashIndex hash_index() const;
+		uint64_t hash_index() const;
 		Package* package(bool recursive = false) const;
 		String full_name() const;
 		Counter references() const;

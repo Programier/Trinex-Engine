@@ -17,7 +17,7 @@ namespace Engine::Strings
 	ENGINE_EXPORT StringView rstrip(const StringView& line, bool (*callback)(char ch));
 	ENGINE_EXPORT String capitalize_words(const StringView& sentence);
 	ENGINE_EXPORT String make_sentence(String line);
-	ENGINE_EXPORT HashIndex hash_of(const StringView& str);
+	ENGINE_EXPORT uint64_t hash_of(const StringView& str);
 
 	FORCE_INLINE StringView strip(const StringView& line, const StringView& chars = " \t\n\r")
 	{

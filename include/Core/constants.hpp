@@ -24,7 +24,7 @@ namespace Engine
 		static const Vector3f min_positive_vector;
 		static const ArrayIndex index_none;
 		static const ArrayOffset offset_none;
-		static const HashIndex invalid_hash;
+		static const uint64_t invalid_hash;
 		static const size_t max_size;
 		static const Vector4i int_zero_vector;
 		static const Vector4i int_identity_vector;
@@ -40,6 +40,6 @@ namespace Engine
 		static const String script_byte_code_extension;
 		static const String virtual_file_system_extension;
 		static const String translation_config_extension;
-		static const HashIndex script_userdata_id;
+		static const uint64_t script_userdata_id;
 	};
 }// namespace Engine

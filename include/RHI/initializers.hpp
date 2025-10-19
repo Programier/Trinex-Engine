@@ -20,7 +20,7 @@ namespace Engine
 		float max_lod;
 
 		RHISamplerInitializer();
-		HashIndex hash() const;
+		uint64_t hash() const;
 
 		bool operator==(const RHISamplerInitializer& initializer) const;
 		inline bool operator!=(const RHISamplerInitializer& initializer) const { return !(*this == initializer); }
