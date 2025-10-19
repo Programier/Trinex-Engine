@@ -52,6 +52,7 @@ namespace Engine
 
 	struct MaterialBindingsVisitor {
 	private:
+		RHIContext* m_ctx;
 		const RHIShaderParameterInfo* m_parameter;
 
 		template<RHIShaderParameterType type, typename T>
@@ -59,14 +60,14 @@ namespace Engine
 		{
 			if (m_parameter->type.type_index() == type.type_index())
 			{
-				rhi->context()->update_scalar(&value, m_parameter);
+				m_ctx->update_scalar(&value, m_parameter);
 				return true;
 			}
 			return false;
 		}
 
 	public:
-		inline MaterialBindingsVisitor(const RHIShaderParameterInfo* info) : m_parameter(info) {}
+		inline MaterialBindingsVisitor(RHIContext* ctx, const RHIShaderParameterInfo* info) : m_ctx(ctx), m_parameter(info) {}
 
 		bool operator()(bool value) const { return bind_scalar<RHIShaderParameterType::Bool>(value); }
 		bool operator()(Vector2b value) const { return bind_scalar<RHIShaderParameterType::Bool2>(value); }
@@ -99,7 +100,7 @@ namespace Engine
 
 			if (m_parameter->type & mask)
 			{
-				rhi->context()->bind_srv(value, m_parameter->binding);
+				m_ctx->bind_srv(value, m_parameter->binding);
 				return true;
 			}
 			return false;
@@ -111,7 +112,7 @@ namespace Engine
 
 			if (m_parameter->type.type_index() == dst_type.type_index())
 			{
-				rhi->context()->bind_sampler(value, m_parameter->binding);
+				m_ctx->bind_sampler(value, m_parameter->binding);
 				return true;
 			}
 			return false;
@@ -174,7 +175,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	bool MaterialInterface::apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
+	bool MaterialInterface::apply(const PrimitiveRenderingContext* ctx)
 	{
 		return false;
 	}
@@ -389,12 +390,12 @@ namespace Engine
 		return *this;
 	}
 
-	bool Material::apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
+	bool Material::apply(const PrimitiveRenderingContext* ctx)
 	{
-		return apply_internal(this, ctx, bindings);
+		return apply_internal(this, ctx);
 	}
 
-	bool Material::apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
+	bool Material::apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx)
 	{
 		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
 
@@ -408,13 +409,13 @@ namespace Engine
 		ctx->context->blending_state(color_blending);
 		ctx->context->bind_pipeline(pipeline_object->rhi_pipeline());
 
-		if (bindings)
+		if (ctx->bindings)
 		{
 			for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
 			{
-				if (auto binding = bindings->find(info.name))
+				if (auto binding = ctx->bindings->find(info.name))
 				{
-					MaterialBindingsVisitor visitor(&info);
+					MaterialBindingsVisitor visitor(ctx->context, &info);
 
 					if (std::visit(visitor, *binding))
 						continue;
@@ -639,7 +640,7 @@ namespace Engine
 		return parent_material;
 	}
 
-	bool MaterialInstance::apply(const PrimitiveRenderingContext* ctx, const MaterialBindings* bindings)
+	bool MaterialInstance::apply(const PrimitiveRenderingContext* ctx)
 	{
 		Material* mat = material();
 
@@ -648,7 +649,7 @@ namespace Engine
 			return false;
 		}
 
-		return mat->apply_internal(this, ctx, bindings);
+		return mat->apply_internal(this, ctx);
 	}
 
 	bool MaterialInstance::serialize(Archive& archive)

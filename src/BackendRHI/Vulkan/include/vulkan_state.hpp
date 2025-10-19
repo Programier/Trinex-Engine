@@ -91,7 +91,11 @@ namespace Engine
 			    : buffer(buffer), size(size), offset(offset)
 			{}
 
-			inline bool operator==(const UniformBuffer& other) const { return buffer == other.buffer && offset == other.offset; }
+			inline bool operator==(const UniformBuffer& other) const
+			{
+				return buffer == other.buffer && offset == other.offset && size == other.size;
+			}
+			
 			inline bool operator!=(const UniformBuffer& other) const { return !((*this) == other); }
 		};
 
