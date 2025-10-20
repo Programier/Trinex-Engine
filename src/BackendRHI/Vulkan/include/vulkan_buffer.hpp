@@ -17,12 +17,12 @@ namespace Engine
 		RHIShaderResourceView* m_srv  = nullptr;
 		RHIUnorderedAccessView* m_uav = nullptr;
 
-		RHIBufferCreateFlags m_flags = {};
-		vk::Buffer m_buffer          = VK_NULL_HANDLE;
+		vk::Buffer m_buffer        = VK_NULL_HANDLE;
+		VmaAllocation m_allocation = VK_NULL_HANDLE;
+		RHIDeviceAddress m_address = 0;
+
 		RHIAccess m_access           = RHIAccess::Undefined;
-		VmaAllocation m_allocation   = VK_NULL_HANDLE;
-		size_t m_size                = 0;
-		RHIDeviceAddress m_address   = 0;
+		RHIBufferCreateFlags m_flags = {};
 
 	public:
 		VulkanBuffer& create(vk::DeviceSize size, const byte* data, RHIBufferCreateFlags flags,
@@ -35,10 +35,10 @@ namespace Engine
 		void unmap() override;
 		VulkanBuffer& update(VulkanContext* ctx, size_t offset, size_t size, const byte* data);
 		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
+		size_t size() const;
 
 		RHIShaderResourceView* as_srv() override;
 		RHIUnorderedAccessView* as_uav() override;
-		inline size_t size() const { return m_size; }
 		inline RHIBufferCreateFlags flags() const { return m_flags; }
 		inline vk::Buffer buffer() const { return m_buffer; }
 		~VulkanBuffer();

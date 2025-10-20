@@ -21,7 +21,6 @@ namespace Engine
 	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, RHIBufferCreateFlags flags,
 	                                   VmaMemoryUsage memory_usage)
 	{
-		m_size  = size;
 		m_flags = flags;
 
 		vk::BufferCreateInfo buffer_info({}, size, vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive);
@@ -86,7 +85,6 @@ namespace Engine
 		m_buffer = out_buffer;
 		trinex_check(res == VK_SUCCESS, "Failed to create buffer");
 
-
 		if (flags & RHIBufferCreateFlags::DeviceAddress)
 		{
 			m_address = API->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer), API->pfn);
@@ -96,7 +94,6 @@ namespace Engine
 		{
 			copy(nullptr, 0, data, size);
 		}
-
 
 		if (flags & RHIBufferCreateFlags::ShaderResource)
 		{
@@ -206,6 +203,11 @@ namespace Engine
 		return *this;
 	}
 
+	size_t VulkanBuffer::size() const
+	{
+		return m_allocation->GetSize();
+	}
+
 	RHIShaderResourceView* VulkanBuffer::as_srv()
 	{
 		return m_srv;
@@ -236,7 +238,9 @@ namespace Engine
 	void VulkanBuffer::unmap()
 	{
 		if (m_allocation->IsMappingAllowed())
+		{
 			vmaUnmapMemory(API->m_allocator, m_allocation);
+		}
 	}
 
 	VulkanBuffer::~VulkanBuffer()

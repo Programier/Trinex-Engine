@@ -691,17 +691,6 @@ namespace Engine
 		trinex_declare_enum(RHIColorComponent);
 	};
 
-	struct RHIMappingAccess {
-		enum Enum : byte
-		{
-			Read       = 1 << 0,
-			Write      = 1 << 1,
-			ReadWriter = 1 << 2,
-		};
-
-		trinex_enum_struct(RHIMappingAccess);
-	};
-
 	struct RHITextureType {
 		enum Enum : byte
 		{
