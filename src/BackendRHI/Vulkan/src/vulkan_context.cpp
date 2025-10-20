@@ -279,32 +279,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::scissor(const RHIScissors& unnormalized_scissors)
+	VulkanContext& VulkanContext::scissor(const RHIScissor& scissor)
 	{
 		vk::Rect2D vulkan_scissor;
-
-		static auto normalize = [](RHIScissors rect) {
-			if (rect.pos.x < 0)
-			{
-				rect.size.x -= rect.pos.x;
-				rect.pos.x = 0;
-			}
-
-			if (rect.pos.y < 0)
-			{
-				rect.size.y -= rect.pos.y;
-				rect.pos.y = 0;
-			}
-			return rect;
-		};
-
-		RHIScissors scissors = normalize(unnormalized_scissors);
-
-		vulkan_scissor.offset.setX(scissors.pos.x);
-		vulkan_scissor.offset.setY(scissors.pos.y);
-		vulkan_scissor.extent.setWidth(scissors.size.x);
-		vulkan_scissor.extent.setHeight(scissors.size.y);
-
+		vulkan_scissor.offset.setX(scissor.pos.x);
+		vulkan_scissor.offset.setY(scissor.pos.y);
+		vulkan_scissor.extent.setWidth(scissor.size.x);
+		vulkan_scissor.extent.setHeight(scissor.size.y);
 		m_cmd->setScissor(0, vulkan_scissor);
 		return *this;
 	}
@@ -384,7 +365,7 @@ namespace Engine
 
 	void VulkanContext::destroy()
 	{
-		trx_delete_inline(this);
+		trx_delete this;
 	}
 
 	RHIContext* VulkanAPI::create_context()

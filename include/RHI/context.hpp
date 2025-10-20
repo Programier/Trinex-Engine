@@ -31,12 +31,16 @@ namespace Engine
 		RHIContext();
 		~RHIContext();
 
+		RHIContext& push_viewport(const RHIViewport& viewport);
+		RHIContext& push_scissor(const RHIScissor& scissor);
 		RHIContext& push_primitive_topology(RHIPrimitiveTopology topology);
 		RHIContext& push_polygon_mode(RHIPolygonMode mode);
 		RHIContext& push_cull_mode(RHICullMode mode);
 		RHIContext& push_front_face(RHIFrontFace face);
 		RHIContext& push_write_mask(RHIColorComponent mask);
 
+		RHIContext& pop_viewport();
+		RHIContext& pop_scissor();
 		RHIContext& pop_primitive_topology();
 		RHIContext& pop_polygon_mode();
 		RHIContext& pop_cull_mode();
@@ -69,7 +73,7 @@ namespace Engine
 		                                       RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) = 0;
 
 		virtual RHIContext& viewport(const RHIViewport& viewport) = 0;
-		virtual RHIContext& scissor(const RHIScissors& scissor)   = 0;
+		virtual RHIContext& scissor(const RHIScissor& scissor)    = 0;
 
 		virtual RHIContext& update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index) = 0;
 		virtual RHIContext& push_debug_stage(const char* stage)                                                    = 0;

@@ -50,7 +50,7 @@ namespace Engine
 			ctx->barrier(depth, RHIAccess::DSV);
 			ctx->bind_render_target1(surface_rtv, depth_dsv);
 			ctx->viewport(RHIViewport(size));
-			ctx->scissor(RHIScissors(size));
+			ctx->scissor(RHIScissor(size));
 
 			ctx->blending_state(RHIBlendingState::opaque);
 

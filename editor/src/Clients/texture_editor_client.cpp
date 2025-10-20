@@ -268,7 +268,7 @@ namespace Engine
 			ImDrawCallback callback = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
 				TextureViewVisitor* args = reinterpret_cast<TextureViewVisitor*>(cmd->UserCallbackData);
 				rhi->context()->viewport(RHIViewport(args->size, args->pos));
-				rhi->context()->scissor(RHIScissors(args->size, args->pos));
+				rhi->context()->scissor(RHIScissor(args->size, args->pos));
 				std::visit(*args, args->client->m_texture);
 			};
 

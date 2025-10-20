@@ -251,7 +251,7 @@ namespace Engine
 
 		render_thread()->call([this, scene, mode = m_view_mode, size]() {
 			m_scene_view.viewport(RHIViewport(size));
-			m_scene_view.scissor(RHIScissors(size));
+			m_scene_view.scissor(RHIScissor(size));
 
 			EditorRenderer renderer(m_world->scene(), m_scene_view, mode);
 			update_render_stats(&renderer);

@@ -380,7 +380,7 @@ namespace Engine::Pipelines
 		ctx->bind_pipeline(rhi_pipeline());
 
 		SSAOArguments args;
-		args.noise_scale       = renderer->scene_view().view_size() / Vector2i(4, 4);
+		args.noise_scale       = renderer->scene_view().view_size() / Vector2u(4, 4);
 		args.intensity         = intensity;
 		args.bias              = bias;
 		args.power             = power;

@@ -82,9 +82,13 @@ namespace Engine
 			m_child_renderer = m_child_renderer->next;
 		}
 
-		rhi->context()->viewport(m_view.viewport());
-		rhi->context()->scissor(m_view.scissor());
+		ctx->push_viewport(m_view.viewport());
+		ctx->push_scissor(m_view.scissor());
+
 		m_graph->execute(ctx);
+
+		ctx->pop_viewport();
+		ctx->pop_scissor();
 
 		return *this;
 	}

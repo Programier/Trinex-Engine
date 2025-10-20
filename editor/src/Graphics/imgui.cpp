@@ -258,7 +258,7 @@ namespace Engine
 							if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 								continue;
 
-							RHIScissors scissor;
+							RHIScissor scissor;
 							scissor.pos.x  = clip_min.x;
 							scissor.pos.y  = clip_min.y;
 							scissor.size.x = (clip_max.x - clip_min.x);
@@ -1402,8 +1402,6 @@ namespace Engine
 
 			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 			{
-				ctx->viewport(RHIViewport(viewport->size()));
-				ctx->scissor(RHIScissors(viewport->size()));
 				auto rtv = viewport->rhi_rtv();
 				ctx->barrier(viewport->rhi_texture(), RHIAccess::TransferDst);
 				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f).bind_render_target1(rtv);

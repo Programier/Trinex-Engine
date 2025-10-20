@@ -130,7 +130,7 @@ namespace Engine
 		VulkanContext& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
 		                                  RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) override;
 		VulkanContext& viewport(const RHIViewport& viewport) override;
-		VulkanContext& scissor(const RHIScissors& scissor) override;
+		VulkanContext& scissor(const RHIScissor& scissor) override;
 
 		VulkanContext& draw(size_t vertex_count, size_t vertices_offset) override;
 		VulkanContext& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;

@@ -6,10 +6,10 @@ namespace Engine
 	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
 
 	SceneView::SceneView(const CameraView& view, const Vector2u& view_size, ShowFlags show_flags)
-	    : SceneView(view, RHIViewport(view_size), RHIScissors(view_size), show_flags)
+	    : SceneView(view, RHIViewport(view_size), RHIScissor(view_size), show_flags)
 	{}
 
-	SceneView::SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissors& scissor, ShowFlags show_flags)
+	SceneView::SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissor& scissor, ShowFlags show_flags)
 	    : m_camera_view(view),                                    //
 	      m_projection(view.projection_matrix(viewport.aspect())),//
 	      m_view(view.view_matrix()),                             //
@@ -44,7 +44,7 @@ namespace Engine
 		return *this;
 	}
 
-	SceneView& SceneView::scissor(const RHIScissors& scissor)
+	SceneView& SceneView::scissor(const RHIScissor& scissor)
 	{
 		m_scissor = scissor;
 		return *this;

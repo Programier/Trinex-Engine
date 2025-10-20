@@ -16,6 +16,8 @@ namespace Engine
 	class VulkanUniformBuffer;
 	class VulkanPipeline;
 	class VulkanContext;
+	class VulkanRenderTarget;
+	class VulkanRenderPass;
 	struct VulkanVertexAttribute;
 
 	template<typename T>
@@ -95,7 +97,7 @@ namespace Engine
 			{
 				return buffer == other.buffer && offset == other.offset && size == other.size;
 			}
-			
+
 			inline bool operator!=(const UniformBuffer& other) const { return !((*this) == other); }
 		};
 
@@ -122,10 +124,9 @@ namespace Engine
 	private:
 		uint64_t m_dirty_flags;
 
-		class VulkanRenderPass* m_render_pass     = nullptr;
-		class VulkanRenderTarget* m_render_target = nullptr;
-
-		VulkanPipeline* m_pipeline = nullptr;
+		VulkanRenderPass* m_render_pass     = nullptr;
+		VulkanRenderTarget* m_render_target = nullptr;
+		VulkanPipeline* m_pipeline          = nullptr;
 
 		struct GraphicsState {
 			RHIDepthState depth;

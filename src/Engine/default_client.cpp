@@ -43,7 +43,7 @@ namespace Engine
 
 			ctx->barrier(target, RHIAccess::RTV);
 			ctx->viewport(RHIViewport(viewport->size()));
-			ctx->scissor(RHIScissors(viewport->size()));
+			ctx->scissor(RHIScissor(viewport->size()));
 			ctx->bind_render_target1(rtv, nullptr);
 			ctx->bind_pipeline(HelloTriangle::instance()->rhi_pipeline());
 			ctx->draw(3, 0);
