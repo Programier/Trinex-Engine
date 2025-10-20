@@ -8,9 +8,9 @@ namespace Engine
 	class RenderPassPermutation;
 
 	class RHIContext;
-	class RHIDepthState;
-	class RHIStencilState;
-	class RHIBlendingState;
+	struct RHIDepthState;
+	struct RHIStencilState;
+	struct RHIBlendingState;
 
 	class ENGINE_EXPORT RenderPass
 	{

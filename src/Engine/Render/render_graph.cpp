@@ -19,7 +19,6 @@ namespace Engine::RenderGraph
 		{
 			Texture = 0,
 			Buffer  = 1,
-			Scope   = 2,
 		};
 
 	private:
@@ -72,56 +71,70 @@ namespace Engine::RenderGraph
 		friend class Graph;
 	};
 
+	RHITexture* Pass::ResourceRef::as_texture() const
+	{
+		if (resource->resource_type() == Resource::Texture)
+		{
+			return resource->as<RHITexture>();
+		}
+		return nullptr;
+	}
+
+	RHIBuffer* Pass::ResourceRef::as_buffer() const
+	{
+		if (resource->resource_type() == Resource::Buffer)
+		{
+			return resource->as<RHIBuffer>();
+		}
+		return nullptr;
+	}
+
 	Pass::Pass(Graph* graph, const char* name) : m_graph(graph), m_name(name), m_node(nullptr)
 	{
 		m_resources.reserve(s_default_reserve_size);
 		m_tasks.reserve(s_default_reserve_size);
 	}
 
-	Pass& Pass::add_resource(RenderGraph::Resource* resource, RHIAccess access)
+	Pass& Pass::add_resource(RenderGraph::Resource* resource, RHIAccess access, RHIAccess initial)
 	{
-		m_resources.emplace_back(new (rg_allocate<Resource>()) ResourceRef(resource, access));
+		m_resources.emplace_back(new (rg_allocate<Resource>()) ResourceRef(resource, access, initial));
 		return *this;
 	}
 
-	Pass& Pass::add_resource(RHITexture* texture, RHIAccess access)
+	Pass& Pass::add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial)
 	{
 		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->find_resource(texture, this), access);
+			return add_resource(m_graph->find_resource(texture, this), access, initial);
 		else
-			return add_resource(m_graph->find_resource(texture), access);
+			return add_resource(m_graph->find_resource(texture), access, initial);
 	}
 
-	Pass& Pass::add_resource(RHIBuffer* buffer, RHIAccess access)
+	Pass& Pass::add_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial)
 	{
 		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->find_resource(buffer, this), access);
+			return add_resource(m_graph->find_resource(buffer, this), access, initial);
 		else
-			return add_resource(m_graph->find_resource(buffer), access);
+			return add_resource(m_graph->find_resource(buffer), access, initial);
 	}
 
 	Pass& Pass::execute(RHIContext* ctx)
 	{
-		for (Pass::ResourceRef* ref : m_resources)
+		for (const Pass::ResourceRef* ref : m_resources)
 		{
-			auto resource = ref->resource;
+			auto resource    = ref->resource;
+			RHIAccess access = ref->initial == RHIAccess::Undefined ? ref->access : ref->initial;
 
 			switch (resource->resource_type())
 			{
 				case RenderGraph::Resource::Texture:
 				{
-					ctx->barrier(resource->as<RHITexture>(), ref->access);
+					ctx->barrier(resource->as<RHITexture>(), access);
 					break;
 				}
 
 				case RenderGraph::Resource::Buffer:
 				{
-					ctx->barrier(resource->as<RHIBuffer>(), ref->access);
-					break;
-				}
-
-				case RenderGraph::Resource::Scope:
-				{
+					ctx->barrier(resource->as<RHIBuffer>(), access);
 					break;
 				}
 
@@ -233,7 +246,7 @@ namespace Engine::RenderGraph
 		writer->m_node = node;
 		node->pass     = writer;
 
-		for (Pass::ResourceRef* ref : writer->resources())
+		for (const Pass::ResourceRef* ref : writer->resources())
 		{
 			if (!(ref->access & RHIAccess::ReadableMask))
 				continue;

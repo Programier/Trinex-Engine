@@ -110,8 +110,14 @@ namespace Engine::RenderGraph
 		struct ResourceRef {
 			RenderGraph::Resource* resource;
 			RHIAccess access;
+			RHIAccess initial;
 
-			inline ResourceRef(RenderGraph::Resource* resource, RHIAccess access) : resource(resource), access(access) {}
+			inline ResourceRef(RenderGraph::Resource* resource, RHIAccess access, RHIAccess initial = RHIAccess::Undefined)
+			    : resource(resource), access(access), initial(initial)
+			{}
+
+			RHITexture* as_texture() const;
+			RHIBuffer* as_buffer() const;
 		};
 
 		class Task
@@ -138,16 +144,16 @@ namespace Engine::RenderGraph
 		const char* m_name;
 		Graph::Node* m_node;
 
-		RGVector<ResourceRef*> m_resources;
+		RGVector<const ResourceRef*> m_resources;
 		RGVector<Task*> m_tasks;
 
 		Pass(class Graph* graph, const char* name = "Unnamed pass");
-		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access);
+		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access, RHIAccess initial);
 		Pass& execute(RHIContext* ctx);
 
 	public:
-		Pass& add_resource(RHITexture* texture, RHIAccess access);
-		Pass& add_resource(RHIBuffer* buffer, RHIAccess access);
+		Pass& add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
+		Pass& add_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 
 		template<typename TaskType, typename... Args>
 		Pass& add_task(Args&&... args)
@@ -179,7 +185,7 @@ namespace Engine::RenderGraph
 
 		inline class Graph* graph() const { return m_graph; }
 		inline const char* name() const { return m_name; }
-		inline const RGVector<ResourceRef*>& resources() const { return m_resources; }
+		inline const RGVector<const ResourceRef*>& resources() const { return m_resources; }
 		inline const RGVector<Task*>& tasks() const { return m_tasks; }
 		inline bool is_empty() const { return m_tasks.empty(); }
 

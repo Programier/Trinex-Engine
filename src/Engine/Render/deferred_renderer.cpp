@@ -349,7 +349,6 @@ namespace Engine
 		        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 		        .add_func([this](RHIContext* ctx) { global_illumination_pass(ctx); });
 
-
 		graph->add_pass("Lighting Pass")
 		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
 		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
@@ -372,9 +371,9 @@ namespace Engine
 
 		if (m_post_process_params->bloom.enabled)
 		{
-			graph->add_pass("Bloom").add_resource(scene_color_hdr_target(), RHIAccess::RTV).add_func([this](RHIContext* ctx) {
-				bloom_pass(ctx);
-			});
+			graph->add_pass("Bloom")
+			        .add_resource(scene_color_hdr_target(), RHIAccess::RTV, RHIAccess::SRVGraphics)
+			        .add_func([this](RHIContext* ctx) { bloom_pass(ctx); });
 		}
 
 		// Tonemapping
@@ -434,37 +433,45 @@ namespace Engine
 	{
 		RHITexturePool* pool = RHITexturePool::global_instance();
 
-		Vector2f inv_size = 1.f / Vector2f(scene_view().view_size());
+		Vector2u half_size     = scene_view().view_size() / 2u;
+		Vector2f inv_half_size = 1.f / Vector2f(half_size);
 
-		RHITexture* buffer = pool->request_surface(RHISurfaceFormat::R8, scene_view().view_size());
+		RHITexture* buffer1 = pool->request_surface(RHISurfaceFormat::R8, half_size);
+		RHITexture* buffer2 = pool->request_surface(RHISurfaceFormat::R8, half_size);
 
-		RHIRenderTargetView* buffer_rtv   = buffer->as_rtv();
-		RHIShaderResourceView* buffer_srv = buffer->as_srv();
+		ctx->push_viewport(RHIViewport(half_size));
+		ctx->push_scissor(RHIScissor(half_size));
 
-		RHIRenderTargetView* msra_rtv   = msra_target()->as_rtv();
-		RHIShaderResourceView* msra_srv = msra_target()->as_srv();
-
-		ctx->bind_render_target1(msra_target()->as_rtv());
+		ctx->barrier(buffer1, RHIAccess::RTV);
+		ctx->bind_render_target1(buffer1->as_rtv());
 
 		// Render SSAO
 		auto& ssao = m_post_process_params->ssao;
 		Pipelines::SSAO::instance()->render(ctx, this, ssao.intensity, ssao.bias, ssao.power, ssao.radius, ssao.fade_out_distance,
 		                                    ssao.fade_out_radius, ssao.samples);
-		Swizzle swizzle;
 
 		// Blur vertical
-		ctx->bind_render_target1(buffer_rtv);
-		swizzle.r = Swizzle::A;
-		Pipelines::GaussianBlur::instance()->blur(ctx, msra_srv, {0.f, inv_size.y}, 0.8, 2.f, swizzle);
+		ctx->barrier(buffer1, RHIAccess::SRVGraphics).barrier(buffer2, RHIAccess::RTV);
+		ctx->bind_render_target1(buffer2->as_rtv());
+		Pipelines::GaussianBlur::instance()->blur(ctx, buffer1->as_srv(), {0.f, inv_half_size.y}, 0.8, 2.f);
 
 		// Blur horizontal
-		ctx->bind_render_target1(msra_rtv);
-		ctx->write_mask(RHIColorComponent::A);
-		swizzle.a = Swizzle::R;
-		Pipelines::GaussianBlur::instance()->blur(ctx, buffer_srv, {inv_size.x, 0.f}, 0.8, 2.f, swizzle);
-		ctx->write_mask(RHIColorComponent::RGBA);
+		ctx->barrier(buffer1, RHIAccess::RTV).barrier(buffer2, RHIAccess::SRVGraphics);
+		ctx->bind_render_target1(buffer1->as_rtv());
+		Pipelines::GaussianBlur::instance()->blur(ctx, buffer2->as_srv(), {inv_half_size.x, 0.f}, 0.8, 2.f);
 
-		pool->return_surface(buffer);
+		// ctx->bind_render_target1(msra_rtv);
+		// ctx->write_mask(RHIColorComponent::A);
+		// swizzle.a = Swizzle::R;
+		// Pipelines::GaussianBlur::instance()->blur(ctx, buffer_srv, {inv_size.x, 0.f}, 0.8, 2.f, swizzle);
+		// ctx->write_mask(RHIColorComponent::RGBA);
+
+
+		pool->return_surface(buffer1);
+		pool->return_surface(buffer2);
+
+		ctx->pop_viewport();
+		ctx->pop_scissor();
 		return *this;
 	}
 
@@ -548,9 +555,7 @@ namespace Engine
 		ctx->viewport(RHIViewport(chain[0].size));
 
 		ctx->barrier(chain[0].texture, RHIAccess::RTV);
-
 		ctx->bind_render_target1(chain[0].texture->as_rtv());
-		ctx->barrier(hdr, RHIAccess::SRVGraphics);
 
 		auto& bloom = m_post_process_params->bloom;
 		Pipelines::BloomExtract::instance()->extract(ctx, hdr->as_srv(), bloom.threshold, bloom.knee, bloom.clamp);
