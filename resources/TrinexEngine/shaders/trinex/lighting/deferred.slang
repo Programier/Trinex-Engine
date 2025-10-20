@@ -6,7 +6,6 @@ import "trinex/math.slang";
 
 uniform Texture2D base_color_texture;
 uniform Texture2D normal_texture;
-uniform Texture2D emissive_texture;
 uniform Texture2D msra_texture;
 uniform Texture2D depth_texture;
 
@@ -37,8 +36,6 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	primitive.msra       = msra_texture.SampleLevel(screen_sampler, uv, 0.f);
 	primitive.flags      = Lighting::PrimitiveFlags::Undefined;
 
-	float3 emissive = emissive_texture.SampleLevel(screen_sampler, uv, 0.f).rgb;
-
-	float3 result = Lighting::gather_lighting(primitive, position.xy) + emissive;
+	float3 result = Lighting::gather_lighting(primitive, position.xy);
 	return float4(result, 1.f);
 }

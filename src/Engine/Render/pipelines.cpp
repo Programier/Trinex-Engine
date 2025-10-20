@@ -38,13 +38,13 @@ namespace Engine::Pipelines
 		m_args   = find_parameter("args");
 	}
 
-	void GaussianBlur::blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction,
-	                        float sigma, float radius, Swizzle swizzle, RHISampler* sampler)
+	void GaussianBlur::blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
+	                        Swizzle swizzle, RHISampler* sampler, Vector2f offset, Vector2f size)
 	{
 		struct Args {
 			alignas(16) Vector4u swizzle;
 			alignas(8) Vector2f offset;
-			alignas(8) Vector2f inv_size;
+			alignas(8) Vector2f size;
 			alignas(8) Vector2f direction;
 			alignas(4) float sigma;
 			alignas(4) float radius;
@@ -53,8 +53,8 @@ namespace Engine::Pipelines
 		Args args;
 		args.swizzle   = swizzle;
 		args.offset    = offset;
-		args.inv_size  = inv_size;
-		args.direction = Math::normalize(direction);
+		args.size      = size;
+		args.direction = direction;
 		args.sigma     = sigma;
 		args.radius    = radius;
 
@@ -106,6 +106,144 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
+	trinex_implement_pipeline(Passthrow, "[shaders_dir]:/TrinexEngine/trinex/graphics/passthrow.slang")
+	{
+		m_scene = find_parameter("scene");
+		m_args  = find_parameter("args");
+	}
+
+	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Vector4f color_offset, Vector4f color_scale,
+	                          Vector2f offset, Vector2f size)
+	{
+		struct Args {
+			alignas(8) Vector2f offset;
+			alignas(8) Vector2f size;
+			alignas(16) Vector4f color_offset;
+			alignas(16) Vector4f color_scale;
+		};
+
+		Args args;
+		args.offset       = offset;
+		args.size         = size;
+		args.color_offset = color_offset;
+		args.color_scale  = color_scale;
+
+		push_context_state(this, ctx);
+
+		ctx->bind_srv(src, m_scene->binding);
+		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
+		ctx->update_scalar(&args, sizeof(args), m_args);
+		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
+	}
+
+	trinex_implement_pipeline(Downsample, "[shaders_dir]:/TrinexEngine/trinex/graphics/downsample.slang")
+	{
+		m_scene = find_parameter("scene");
+		m_args  = find_parameter("args");
+	}
+
+	void Downsample::downsample(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f size)
+	{
+		push_context_state(this, ctx);
+
+		struct Args {
+			alignas(8) Vector2f offset;
+			alignas(8) Vector2f size;
+		};
+
+		Args args;
+		args.offset = offset;
+		args.size   = size;
+
+		ctx->bind_srv(src, m_scene->binding);
+		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
+		ctx->update_scalar(&args, m_args);
+		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
+	}
+
+	trinex_implement_pipeline(BloomExtract, "[shaders_dir]:/TrinexEngine/trinex/graphics/bloom/extract.slang")
+	{
+		m_scene = find_parameter("scene");
+		m_args  = find_parameter("args");
+	}
+
+	void BloomExtract::extract(RHIContext* ctx, RHIShaderResourceView* src, float threshold, float knee, float clamp,
+	                           Vector2f offset, Vector2f size)
+	{
+		push_context_state(this, ctx);
+
+		struct Args {
+			alignas(8) Vector2f offset;
+			alignas(8) Vector2f size;
+			alignas(4) float threshold;
+			alignas(4) float knee;
+			alignas(4) float clamp;
+		};
+
+		Args args;
+		args.offset    = offset;
+		args.size      = size;
+		args.threshold = threshold;
+		args.knee      = threshold * knee;
+		args.clamp     = clamp;
+
+		ctx->bind_srv(src, m_scene->binding);
+		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
+		ctx->update_scalar(&args, sizeof(args), m_args);
+		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
+	}
+
+	trinex_implement_pipeline(BloomDownsample, "[shaders_dir]:/TrinexEngine/trinex/graphics/bloom/downsample.slang")
+	{
+		m_scene = find_parameter("scene");
+	}
+
+	void BloomDownsample::downsample(RHIContext* ctx, RHIShaderResourceView* src)
+	{
+		push_context_state(this, ctx);
+
+		ctx->bind_srv(src, m_scene->binding);
+		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
+		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
+	}
+
+	trinex_implement_pipeline(BloomUpsample, "[shaders_dir]:/TrinexEngine/trinex/graphics/bloom/upsample.slang")
+	{
+		m_scene = find_parameter("scene");
+		m_args  = find_parameter("args");
+	}
+
+	void BloomUpsample::upsample(RHIContext* ctx, RHIShaderResourceView* src, float weight, Vector2f offset, Vector2f size)
+	{
+		push_context_state(this, ctx);
+
+		struct Args {
+			Vector2f offset;
+			Vector2f size;
+			float weight;
+		};
+
+		Args args;
+		args.offset = offset;
+		args.size   = size;
+		args.weight = weight;
+
+		ctx->bind_srv(src, m_scene->binding);
+		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
+		ctx->update_scalar(&args, m_args);
+		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
+	}
+
 	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang")
 	{
 		m_projview = find_parameter("projview");
@@ -119,7 +257,6 @@ namespace Engine::Pipelines
 		scene_view         = find_parameter("scene_view");
 		base_color_texture = find_parameter("base_color_texture");
 		normal_texture     = find_parameter("normal_texture");
-		emissive_texture   = find_parameter("emissive_texture");
 		msra_texture       = find_parameter("msra_texture");
 		depth_texture      = find_parameter("depth_texture");
 

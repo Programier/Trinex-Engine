@@ -69,6 +69,13 @@ namespace Engine
 	                                                                  RHIBlendFunc::SrcAlpha,//
 	                                                                  RHIBlendFunc::One,     //
 	                                                                  RHIBlendOp::Add);
+	RHIBlendingState RHIBlendingState::add         = RHIBlendingState(true,             //
+	                                                                  RHIBlendFunc::One,//
+	                                                                  RHIBlendFunc::One,//
+	                                                                  RHIBlendOp::Add,  //
+	                                                                  RHIBlendFunc::One,//
+	                                                                  RHIBlendFunc::One,//
+	                                                                  RHIBlendOp::Add);
 	RHIBlendingState RHIBlendingState::multiply    = RHIBlendingState(true,                  //
 	                                                                  RHIBlendFunc::DstColor,//
 	                                                                  RHIBlendFunc::Zero,    //

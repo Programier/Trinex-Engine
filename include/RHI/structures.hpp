@@ -223,6 +223,7 @@ namespace Engine
 		static RHIBlendingState opaque;
 		static RHIBlendingState translucent;
 		static RHIBlendingState additive;
+		static RHIBlendingState add;
 		static RHIBlendingState multiply;
 
 		RHIBlendFunc src_color_func;

@@ -31,7 +31,6 @@ namespace Engine
 			case SurfaceType::SceneDepth: return RHISurfaceFormat::D32F;
 			case SurfaceType::BaseColor: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Normal: return RHISurfaceFormat::RGB10A2;
-			case SurfaceType::Emissive: return RHISurfaceFormat::RGBA16F;
 			case SurfaceType::MSRA: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Velocity: return RHISurfaceFormat::RG16F;
 			default: return RHISurfaceFormat::RGBA8;
@@ -47,7 +46,6 @@ namespace Engine
 			case SurfaceType::SceneDepth: return "SceneDepth";
 			case SurfaceType::BaseColor: return "BaseColor";
 			case SurfaceType::Normal: return "Normal";
-			case SurfaceType::Emissive: return "Emissive";
 			case SurfaceType::MSRA: return "MSRA";
 			case SurfaceType::Velocity: return "Velocity";
 			default: return "Undefined";
@@ -117,7 +115,7 @@ namespace Engine
 		{
 			static const char* clear_pass_names[] = {
 			        "Clear SceneColor HDR", "Clear SceneColor LDR", "Clear SceneDepth", "Clear BaseColor",
-			        "Clear Normal",         "Clear Emissive",       "Clear MSRA",       "Clear Velocity",
+			        "Clear Normal",         "Clear MSRA",           "Clear Velocity",
 			};
 
 			auto pool          = RHITexturePool::global_instance();

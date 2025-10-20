@@ -21,10 +21,11 @@ namespace Engine
 	class ENGINE_EXPORT DeferredRenderer : public Renderer
 	{
 	private:
-		RHIBuffer* m_clusters_buffer      = nullptr;
-		RHIBuffer* m_lights_buffer        = nullptr;
-		RHIBuffer* m_shadow_buffer        = nullptr;
-		LightRenderRanges* m_light_ranges = nullptr;
+		RHIBuffer* m_clusters_buffer                 = nullptr;
+		RHIBuffer* m_lights_buffer                   = nullptr;
+		RHIBuffer* m_shadow_buffer                   = nullptr;
+		LightRenderRanges* m_light_ranges            = nullptr;
+		PostProcessParameters* m_post_process_params = nullptr;
 
 		FrameVector<PrimitiveComponent*> m_visible_primitives;
 		FrameVector<LightComponent*> m_visible_lights;
@@ -40,7 +41,7 @@ namespace Engine
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass(RHIContext* ctx);
 		DeferredRenderer& translucent_pass(RHIContext* ctx);
-		DeferredRenderer& ambient_occlusion_pass(RHIContext* ctx, PostProcessParameters* params);
+		DeferredRenderer& ambient_occlusion_pass(RHIContext* ctx);
 		DeferredRenderer& global_illumination_pass(RHIContext* ctx);
 		DeferredRenderer& deferred_lighting_pass(RHIContext* ctx);
 		DeferredRenderer& bloom_pass(RHIContext* ctx);
@@ -68,5 +69,6 @@ namespace Engine
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
 		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }
 		inline const FrameVector<PostProcessComponent*> visible_post_processes() const { return m_visible_post_processes; }
+		inline const PostProcessParameters* post_process_parameters() const { return m_post_process_params; }
 	};
 }// namespace Engine

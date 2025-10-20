@@ -29,7 +29,6 @@ namespace Engine
 			SceneDepth,   // Render target for scene depths
 			BaseColor,    // Render target for base color
 			Normal,       // Render target for normal
-			Emissive,     // Render target for emissive
 			MSRA,         // Render target for MSRA (R: Metalic, G: Roughness, B: Specular, A: AO)
 			Velocity,     // Render target for motion vectors
 
@@ -77,7 +76,6 @@ namespace Engine
 		inline RHITexture* scene_depth_target() { return surface(SceneDepth); }
 		inline RHITexture* base_color_target() { return surface(BaseColor); }
 		inline RHITexture* normal_target() { return surface(Normal); }
-		inline RHITexture* emissive_target() { return surface(Emissive); }
 		inline RHITexture* msra_target() { return surface(MSRA); }
 		inline RenderGraph::Graph* render_graph() const { return m_graph; }
 

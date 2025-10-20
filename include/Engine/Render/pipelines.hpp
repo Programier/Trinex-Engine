@@ -20,8 +20,9 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Vector2f direction,
-			          float sigma, float radius, Swizzle swizzle = {}, RHISampler* sampler = nullptr);
+			void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
+			          Swizzle swizzle = {}, RHISampler* sampler = nullptr, Vector2f offset = {0.f, 0.f},
+			          Vector2f size = {1.f, 1.f});
 		};
 
 		class ENGINE_EXPORT Blit2D : public GlobalGraphicsPipeline
@@ -35,6 +36,66 @@ namespace Engine
 			void blit(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle = {},
 			          RHISampler* sampler = nullptr);
 		};
+
+		class ENGINE_EXPORT Passthrow : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(Passthrow, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_scene;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			void passthrow(RHIContext* ctx, RHIShaderResourceView* src, Vector4f color_offset = Vector4f(0.f),
+			               Vector4f color_scale = Vector4f(1.f), Vector2f offset = {0.f, 0.f}, Vector2f size = {1.f, 1.f});
+		};
+
+		class ENGINE_EXPORT Downsample : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(Downsample, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_scene;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			void downsample(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset = {0.f, 0.f},
+			                Vector2f size = {1.f, 1.f});
+		};
+
+		class ENGINE_EXPORT BloomExtract : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(BloomExtract, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_scene;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			void extract(RHIContext* ctx, RHIShaderResourceView* src, float threshold = 1.f, float knee = 0.5, float clamp = 3.f,
+			             Vector2f offset = {0.f, 0.f}, Vector2f size = {1.f, 1.f});
+		};
+
+		class ENGINE_EXPORT BloomDownsample : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(BloomDownsample, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_scene;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			void downsample(RHIContext* ctx, RHIShaderResourceView* src);
+		};
+
+		class ENGINE_EXPORT BloomUpsample : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(BloomUpsample, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_scene;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			void upsample(RHIContext* ctx, RHIShaderResourceView* src, float weight = 1.f, Vector2f offset = {0.f, 0.f},
+			              Vector2f size = {1.f, 1.f});
+		};
+
 
 		class ENGINE_EXPORT BatchedLines : public GlobalGraphicsPipeline
 		{
@@ -62,7 +123,6 @@ namespace Engine
 			const RHIShaderParameterInfo* scene_view         = nullptr;
 			const RHIShaderParameterInfo* base_color_texture = nullptr;
 			const RHIShaderParameterInfo* normal_texture     = nullptr;
-			const RHIShaderParameterInfo* emissive_texture   = nullptr;
 			const RHIShaderParameterInfo* msra_texture       = nullptr;
 			const RHIShaderParameterInfo* depth_texture      = nullptr;
 

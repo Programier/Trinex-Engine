@@ -73,29 +73,28 @@ namespace Engine
 
 		auto graph = render_graph();
 
-		PostProcessParameters* post_process_params = FrameAllocator<PostProcessParameters>::allocate(1);
-		new (post_process_params) PostProcessParameters();
+		m_post_process_params = trx_frame_new PostProcessParameters();
 
 		for (PostProcessComponent* post_process : visible_post_processes())
 		{
-			post_process_params->blend(post_process->parameters(), post_process->blend_weight());
+			m_post_process_params->blend(post_process->parameters(), post_process->blend_weight());
 		}
 
 		graph->add_pass("Geometry Pass")
 		        .add_resource(base_color_target(), RHIAccess::RTV)
 		        .add_resource(normal_target(), RHIAccess::RTV)
-		        .add_resource(emissive_target(), RHIAccess::RTV)
+		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
 		        .add_resource(msra_target(), RHIAccess::RTV)
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this](RHIContext* ctx) { geometry_pass(ctx); });
 
-		if (post_process_params->ssao.enabled)
+		if (m_post_process_params->ssao.enabled)
 		{
 			graph->add_pass("Ambient Occlusion")
 			        .add_resource(msra_target(), RHIAccess::RTV)
 			        .add_resource(normal_target(), RHIAccess::SRVGraphics)
 			        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-			        .add_func([this, post_process_params](RHIContext* ctx) { ambient_occlusion_pass(ctx, post_process_params); });
+			        .add_func([this](RHIContext* ctx) { ambient_occlusion_pass(ctx); });
 		}
 
 		switch (mode)
@@ -155,7 +154,7 @@ namespace Engine
 			case ViewMode::Emissive:
 			{
 				graph->add_pass("Emissive Resolve")
-				        .add_resource(emissive_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this](RHIContext* ctx) { copy_emissive_to_scene_color(ctx); });
 				break;
@@ -354,7 +353,6 @@ namespace Engine
 		graph->add_pass("Lighting Pass")
 		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
 		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
-		        .add_resource(emissive_target(), RHIAccess::SRVGraphics)
 		        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
 		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
@@ -372,9 +370,12 @@ namespace Engine
 		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this](RHIContext* ctx) { translucent_pass(ctx); });
 
-		graph->add_pass("Bloom").add_resource(scene_color_hdr_target(), RHIAccess::RTV).add_func([this](RHIContext* ctx) {
-			bloom_pass(ctx);
-		});
+		if (m_post_process_params->bloom.enabled)
+		{
+			graph->add_pass("Bloom").add_resource(scene_color_hdr_target(), RHIAccess::RTV).add_func([this](RHIContext* ctx) {
+				bloom_pass(ctx);
+			});
+		}
 
 		// Tonemapping
 		graph->add_pass("Tonemapping")
@@ -390,7 +391,7 @@ namespace Engine
 		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
 		ctx->polygon_mode(mode);
 
-		ctx->bind_render_target4(base_color_target()->as_rtv(), normal_target()->as_rtv(), emissive_target()->as_rtv(),
+		ctx->bind_render_target4(base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
 		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv());
 		render_visible_primitives(ctx, RenderPasses::Geometry::static_instance());
 
@@ -429,7 +430,7 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::ambient_occlusion_pass(RHIContext* ctx, PostProcessParameters* params)
+	DeferredRenderer& DeferredRenderer::ambient_occlusion_pass(RHIContext* ctx)
 	{
 		RHITexturePool* pool = RHITexturePool::global_instance();
 
@@ -446,21 +447,21 @@ namespace Engine
 		ctx->bind_render_target1(msra_target()->as_rtv());
 
 		// Render SSAO
-		Pipelines::SSAO::instance()->render(ctx, this, params->ssao.intensity, params->ssao.bias, params->ssao.power,
-		                                    params->ssao.radius, params->ssao.fade_out_distance, params->ssao.fade_out_radius,
-		                                    params->ssao.samples);
+		auto& ssao = m_post_process_params->ssao;
+		Pipelines::SSAO::instance()->render(ctx, this, ssao.intensity, ssao.bias, ssao.power, ssao.radius, ssao.fade_out_distance,
+		                                    ssao.fade_out_radius, ssao.samples);
 		Swizzle swizzle;
 
 		// Blur vertical
 		ctx->bind_render_target1(buffer_rtv);
 		swizzle.r = Swizzle::A;
-		Pipelines::GaussianBlur::instance()->blur(ctx, msra_srv, {0, 0}, inv_size, {1.f, 0.f}, 0.8, 2.f, swizzle);
+		Pipelines::GaussianBlur::instance()->blur(ctx, msra_srv, {0.f, inv_size.y}, 0.8, 2.f, swizzle);
 
 		// Blur horizontal
 		ctx->bind_render_target1(msra_rtv);
 		ctx->write_mask(RHIColorComponent::A);
 		swizzle.a = Swizzle::R;
-		Pipelines::GaussianBlur::instance()->blur(ctx, buffer_srv, {0, 0}, inv_size, {1.f, 0.f}, 0.8, 2.f, swizzle);
+		Pipelines::GaussianBlur::instance()->blur(ctx, buffer_srv, {inv_size.x, 0.f}, 0.8, 2.f, swizzle);
 		ctx->write_mask(RHIColorComponent::RGBA);
 
 		pool->return_surface(buffer);
@@ -506,7 +507,6 @@ namespace Engine
 			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
 			ctx->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
-			ctx->bind_srv(emissive_target()->as_srv(), pipeline->emissive_texture->binding);
 			ctx->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);
 			ctx->bind_srv(scene_depth_target()->as_srv(), pipeline->depth_texture->binding);
 
@@ -528,7 +528,91 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::bloom_pass(RHIContext* ctx)
 	{
-		Vector2u size = scene_view().view_size() / 2;
+		const Vector2u size = scene_view().view_size();
+		auto pool           = RHITexturePool::global_instance();
+
+		struct Chain {
+			RHITexture* texture;
+			Vector2u size;
+		};
+
+		Chain chain[6];
+		chain[0].size    = size / 2u;
+		chain[0].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[0].size);
+
+		RHITexture* const hdr = scene_color_hdr_target();
+
+		trinex_rhi_push_stage(ctx, "Extract");
+
+		ctx->blending_state(RHIBlendingState::opaque);
+		ctx->viewport(RHIViewport(chain[0].size));
+
+		ctx->barrier(chain[0].texture, RHIAccess::RTV);
+
+		ctx->bind_render_target1(chain[0].texture->as_rtv());
+		ctx->barrier(hdr, RHIAccess::SRVGraphics);
+
+		auto& bloom = m_post_process_params->bloom;
+		Pipelines::BloomExtract::instance()->extract(ctx, hdr->as_srv(), bloom.threshold, bloom.knee, bloom.clamp);
+
+		trinex_rhi_pop_stage(ctx);
+
+		// Generate chain
+		trinex_rhi_push_stage(ctx, "Downsample chain");
+		{
+			for (int i = 1; i < 6; ++i)
+			{
+				chain[i].size    = chain[i - 1].size / 2u;
+				chain[i].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[i].size);
+
+				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);
+				ctx->barrier(chain[i].texture, RHIAccess::RTV);
+
+				ctx->viewport(RHIViewport(chain[i].size));
+				ctx->bind_render_target1(chain[i].texture->as_rtv());
+				Pipelines::BloomDownsample::instance()->downsample(ctx, chain[i - 1].texture->as_srv());
+			}
+		}
+		trinex_rhi_pop_stage(ctx);
+
+		// Composite chain
+		{
+			trinex_rhi_push_stage(ctx, "Upsample chain");
+
+			for (int current = 4; current >= 0; --current)
+			{
+				int next = current + 1;
+
+				ctx->barrier(chain[next].texture, RHIAccess::SRVGraphics);
+				ctx->barrier(chain[current].texture, RHIAccess::RTV);
+
+				ctx->viewport(RHIViewport(chain[current].size));
+				ctx->bind_render_target1(chain[current].texture->as_rtv());
+
+				float fade = Math::lerp(bloom.fade_base, bloom.fade_max, static_cast<float>(current) / 5.f);
+				Pipelines::BloomUpsample::instance()->upsample(ctx, chain[next].texture->as_srv(), fade);
+			}
+
+			trinex_rhi_pop_stage(ctx);
+
+			trinex_rhi_push_stage(ctx, "Apply");
+
+			ctx->barrier(chain[0].texture, RHIAccess::SRVGraphics);
+			ctx->barrier(hdr, RHIAccess::RTV);
+
+			ctx->viewport(RHIViewport(size));
+			ctx->bind_render_target1(hdr->as_rtv());
+
+			ctx->write_mask(RHIColorComponent::RGB);
+			ctx->blending_state(RHIBlendingState::add);
+			Pipelines::BloomUpsample::instance()->upsample(ctx, chain[0].texture->as_srv(), bloom.intensity);
+			ctx->write_mask(RHIColorComponent::RGBA);
+
+			trinex_rhi_pop_stage(ctx);
+		}
+
+		ctx->viewport(RHIViewport(size));
+		for (int i = 0; i < 6; ++i) pool->return_surface(chain[i].texture);
 		return *this;
 	}
 
@@ -585,7 +669,7 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::copy_emissive_to_scene_color(RHIContext* ctx)
 	{
-		auto src = emissive_target();
+		auto src = scene_color_hdr_target();
 		auto dst = scene_color_ldr_target();
 
 		RHITextureRegion region(scene_view().view_size());

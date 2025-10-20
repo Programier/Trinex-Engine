@@ -17,10 +17,23 @@ namespace Engine
 
 			float fade_out_distance = 80.f;
 			float fade_out_radius   = 50.f;
-			uint samples            = 32;
+			uint_t samples          = 32;
+		};
+
+		struct Bloom {
+			trinex_declare_struct(Bloom, void);
+
+			bool enabled    = true;
+			float intensity = 1.f;
+			float threshold = 1.f;
+			float knee      = 0.5f;
+			float clamp     = 3.f;
+			float fade_base = 0.6f;
+			float fade_max  = 1.f;
 		};
 
 		SSAO ssao;
+		Bloom bloom;
 
 		PostProcessParameters& blend(const PostProcessParameters& parameters, float blend_factor);
 	};
