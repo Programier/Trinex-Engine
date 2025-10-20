@@ -455,20 +455,20 @@ namespace Engine
 
 			ViewportClient& render_frame(RenderViewport* viewport)
 			{
+				ImGuiContextLock lock(m_window->context());
+
 				auto bd = ImGuiBackend_RHI::imgui_trinex_backend_data();
 				std::swap(viewport, bd->window);// Temporary set as main viewport
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 				{
 					trinex_rhi_push_stage(ctx, "ImGuiViewportClient");
-					ImGuiContextLock lock(m_window->context());
 					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, m_draw_data.draw_data());
+					trinex_rhi_pop_stage(ctx);
 				}
 				RHIContextPool::global_instance()->end_context(ctx);
-
+				
 				m_draw_data.swap_render_index();
-				trinex_rhi_pop_stage(ctx);
-
 				std::swap(viewport, bd->window);// Restore main viewport
 
 				viewport->rhi_present();
