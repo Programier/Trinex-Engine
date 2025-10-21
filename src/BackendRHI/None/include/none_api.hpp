@@ -17,6 +17,7 @@ namespace Engine
 
 		NoneApi& signal(RHIFence* fence) override;
 		NoneApi& submit(RHICommandHandle*) override;
+		NoneApi& idle() override;
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;

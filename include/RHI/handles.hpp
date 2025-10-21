@@ -5,12 +5,14 @@
 
 namespace Engine
 {
+	class Archive;
 	struct LinearColor;
 	struct RHITextureDescRTV;
 	struct RHITextureDescDSV;
 	struct RHITextureDescSRV;
 	struct RHITextureDescUAV;
 	struct RHITextureType;
+	struct RHIMappingAccess;
 
 	class ENGINE_EXPORT RHITimestamp : public RHIObject
 	{
@@ -119,11 +121,14 @@ namespace Engine
 	class ENGINE_EXPORT RHIBuffer : public RHIObject
 	{
 	public:
-		virtual RHIDeviceAddress address()       = 0;
-		virtual byte* map()                      = 0;
-		virtual void unmap()                     = 0;
-		virtual RHIShaderResourceView* as_srv()  = 0;
-		virtual RHIUnorderedAccessView* as_uav() = 0;
+		bool serialize(Archive& ar);
+
+		virtual size_t size() const                = 0;
+		virtual RHIDeviceAddress address()         = 0;
+		virtual byte* map(RHIMappingAccess access) = 0;
+		virtual void unmap()                       = 0;
+		virtual RHIShaderResourceView* as_srv()    = 0;
+		virtual RHIUnorderedAccessView* as_uav()   = 0;
 	};
 
 	class ENGINE_EXPORT RHISwapchain : public RHIObject

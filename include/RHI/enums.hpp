@@ -720,6 +720,17 @@ namespace Engine
 		trinex_enum_struct(RHICubeFace);
 	};
 
+	struct RHIMappingAccess {
+		enum Enum : byte
+		{
+			Undefined = 0,
+			Read      = 1 << 0,
+			Write     = 1 << 1,
+		};
+
+		trinex_enum_struct(RHIMappingAccess);
+	};
+
 	struct RHIRayTracingGeometryType {
 		enum Enum : byte
 		{

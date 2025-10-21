@@ -641,16 +641,6 @@ namespace Engine
 		return rhi->create_context();
 	}
 
-	RHIContext* RHIContextPool::request_transient_context()
-	{
-		if (auto ctx = request_context())
-		{
-			m_transient.push_back(ctx);
-			return ctx;
-		}
-		return nullptr;
-	}
-
 	RHIContextPool& RHIContextPool::release_all()
 	{
 		for (auto& entry : m_pool)

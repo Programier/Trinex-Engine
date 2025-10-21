@@ -112,7 +112,7 @@ namespace Engine
 		while (!fence->is_signaled()) Thread::static_yield();
 
 		Actor* actor = nullptr;
-		byte* data   = buffer->map();
+		byte* data   = buffer->map(RHIMappingAccess::Read);
 		std::memcpy(&actor, data, 8);
 		buffer->unmap();
 

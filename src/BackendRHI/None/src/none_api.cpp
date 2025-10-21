@@ -72,7 +72,6 @@ namespace Engine
 		void reset() override {}
 	};
 
-
 	struct NoneSampler : public NoneApiDestroyable<RHISampler> {
 		RHIDescriptor descriptor() const override { return 0; }
 	};
@@ -105,8 +104,9 @@ namespace Engine
 	};
 
 	struct NoneBuffer : public NoneApiDestroyable<RHIBuffer> {
+		size_t size() const override { return 0; }
 		RHIDeviceAddress address() override { return 0; }
-		byte* map() override { return nullptr; }
+		byte* map(RHIMappingAccess access) override { return nullptr; }
 		void unmap() override {}
 
 		RHIShaderResourceView* as_srv() override { return rhi_default<NoneSRV>(); }
@@ -129,6 +129,11 @@ namespace Engine
 	}
 
 	NoneApi& NoneApi::submit(RHICommandHandle* cmd)
+	{
+		return *this;
+	}
+
+	NoneApi& NoneApi::idle()
 	{
 		return *this;
 	}

@@ -203,11 +203,6 @@ namespace Engine
 		return *this;
 	}
 
-	size_t VulkanBuffer::size() const
-	{
-		return m_allocation->GetSize();
-	}
-
 	RHIShaderResourceView* VulkanBuffer::as_srv()
 	{
 		return m_srv;
@@ -223,7 +218,7 @@ namespace Engine
 		return m_address;
 	}
 
-	byte* VulkanBuffer::map()
+	byte* VulkanBuffer::map(RHIMappingAccess access)
 	{
 		if (m_allocation->IsMappingAllowed())
 		{
@@ -241,6 +236,11 @@ namespace Engine
 		{
 			vmaUnmapMemory(API->m_allocator, m_allocation);
 		}
+	}
+
+	size_t VulkanBuffer::size() const
+	{
+		return m_allocation->GetSize();
 	}
 
 	VulkanBuffer::~VulkanBuffer()

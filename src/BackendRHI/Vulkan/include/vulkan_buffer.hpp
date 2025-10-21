@@ -31,11 +31,11 @@ namespace Engine
 		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
 
 		RHIDeviceAddress address() override;
-		byte* map() override;
+		byte* map(RHIMappingAccess access = RHIMappingAccess::Undefined) override;
 		void unmap() override;
+		size_t size() const override;
 		VulkanBuffer& update(VulkanContext* ctx, size_t offset, size_t size, const byte* data);
 		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
-		size_t size() const;
 
 		RHIShaderResourceView* as_srv() override;
 		RHIUnorderedAccessView* as_uav() override;

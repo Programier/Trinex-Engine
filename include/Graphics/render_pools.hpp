@@ -187,7 +187,6 @@ namespace Engine
 
 		RHIContextPool& update();
 		RHIContext* request_context();
-		RHIContext* request_transient_context();
 		RHIContextPool& release_all();
 		RHIContextPool& return_context(RHIContext* context);
 

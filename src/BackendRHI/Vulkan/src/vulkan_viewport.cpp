@@ -137,7 +137,7 @@ namespace Engine
 
 	VulkanSwapchain& VulkanSwapchain::release_swapchain()
 	{
-		API->wait_idle();
+		API->idle();
 
 		for (VulkanTexture* backbuffer : m_backbuffers)
 		{
@@ -378,7 +378,7 @@ namespace Engine
 
 	void VulkanSwapchain::destroy()
 	{
-		trx_delete_inline(this);
+		trx_delete this;
 	}
 
 	RHISwapchain* VulkanAPI::create_swapchain(Window* window, bool vsync)

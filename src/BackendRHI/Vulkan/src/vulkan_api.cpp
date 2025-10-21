@@ -320,7 +320,7 @@ namespace Engine
 
 	VulkanAPI::~VulkanAPI()
 	{
-		wait_idle();
+		idle();
 
 		context()->release();
 
@@ -465,9 +465,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::wait_idle()
+	VulkanAPI& VulkanAPI::idle()
 	{
-		m_device.waitIdle();
 		m_graphics_queue->queue().waitIdle();
 		return *this;
 	}

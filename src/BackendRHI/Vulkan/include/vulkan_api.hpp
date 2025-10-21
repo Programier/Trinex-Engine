@@ -113,9 +113,9 @@ namespace Engine
 			        {VK_KHR_SPIRV_1_4_EXTENSION_NAME, false},
 			        {VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, false},
 			        {VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME, false},
-			        // {VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, false},
-			        // {VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false},
-			        // {VK_KHR_RAY_QUERY_EXTENSION_NAME, false},
+			        {VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, false},
+			        {VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false},
+			        {VK_KHR_RAY_QUERY_EXTENSION_NAME, false},
 			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
 			        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false},
 			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},
@@ -188,7 +188,7 @@ namespace Engine
 
 		VulkanAPI& signal(RHIFence* fence) override;
 		VulkanAPI& submit(RHICommandHandle* cmd) override;
-		VulkanAPI& wait_idle();
+		VulkanAPI& idle() override;
 
 		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);
 

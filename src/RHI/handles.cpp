@@ -1,6 +1,11 @@
+#include <Core/archive.hpp>
+#include <Core/etl/allocator.hpp>
 #include <Core/math/math.hpp>
 #include <Core/threading.hpp>
+#include <Graphics/render_pools.hpp>
+#include <RHI/context.hpp>
 #include <RHI/handles.hpp>
+#include <RHI/rhi.hpp>
 #include <RHI/structures.hpp>
 
 namespace Engine
@@ -49,5 +54,66 @@ namespace Engine
 	{
 		RHITextureDescUAV view = initialize_description(desc);
 		return m_texture->as_uav(&view);
+	}
+
+	bool RHIBuffer::serialize(Archive& ar)
+	{
+		size_t buffer_size = size();
+
+		if (ar.is_reading())
+		{
+			if (byte* data = map(RHIMappingAccess::Write))
+			{
+				const bool status = ar.read_data(data, buffer_size);
+				unmap();
+				return status;
+			}
+
+			StackByteAllocator::Mark mark;
+			byte* data = StackByteAllocator::allocate(buffer_size);
+
+			if (!ar.read_data(data, buffer_size))
+			{
+				return false;
+			}
+
+			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			{
+				ctx->barrier(this, RHIAccess::TransferDst);
+				ctx->update_buffer(this, 0, buffer_size, data);
+			}
+			RHIContextPool::global_instance()->end_context(ctx);
+
+			return true;
+		}
+		else
+		{
+			if (byte* data = map(RHIMappingAccess::Read))
+			{
+				const bool status = ar.write_data(data, buffer_size);
+				unmap();
+				return status;
+			}
+
+			const auto flags  = RHIBufferCreateFlags::CPURead | RHIBufferCreateFlags::TransferDst;
+			RHIBuffer* buffer = RHIBufferPool::global_instance()->request_buffer(buffer_size, flags);
+
+			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			{
+				ctx->barrier(this, RHIAccess::TransferSrc);
+				ctx->barrier(buffer, RHIAccess::TransferDst);
+				ctx->copy_buffer_to_buffer(this, buffer, buffer_size, 0, 0);
+			}
+			RHIContextPool::global_instance()->end_context(ctx);
+			rhi->idle();
+
+			const byte* data  = buffer->map(RHIMappingAccess::Read);
+			const bool status = ar.write_data(data, buffer_size);
+			buffer->unmap();
+
+			RHIBufferPool::global_instance()->return_buffer(buffer);
+
+			return status;
+		}
 	}
 }// namespace Engine

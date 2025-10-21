@@ -43,6 +43,7 @@ namespace Engine
 
 		virtual RHI& signal(RHIFence* fence)          = 0;
 		virtual RHI& submit(RHICommandHandle* handle) = 0;
+		virtual RHI& idle()                           = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                           = 0;
 		virtual RHIPipelineStatistics* create_pipeline_statistics()                                        = 0;
