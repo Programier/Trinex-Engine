@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/atomic.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/exception.hpp>
 #include <Core/memory.hpp>
@@ -91,7 +92,7 @@ namespace Engine
 		Thread& wait();
 
 		static void static_yield();
-		
+
 		template<typename CommandType, typename... Args>
 		inline Thread& create_task(Args&&... args)
 		{

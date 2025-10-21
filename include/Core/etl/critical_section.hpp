@@ -1,43 +1,33 @@
 #pragma once
-#include <Core/etl/atomic.hpp>
+#include <mutex>
 
 namespace Engine
 {
 	class CriticalSection final
 	{
 	private:
-		AtomicFlag m_flag = ATOMIC_FLAG_INIT;
+		std::mutex m_mutex;
 
 	public:
-		inline void lock()
-		{
-			while (m_flag.test_and_set())
-			{
-				m_flag.wait(true);
-			}
-		}
-
-		inline void unlock()
-		{
-			m_flag.clear();
-			m_flag.notify_one();
-		}
+		inline void lock() { m_mutex.lock(); }
+		inline bool try_lock() { return m_mutex.try_lock(); }
+		inline void unlock() { m_mutex.unlock(); }
 	};
 
 	class ScopeLock final
 	{
 	private:
-		CriticalSection& m_criticalSection;
+		CriticalSection& m_critical_section;
 
 	public:
-		explicit inline ScopeLock(CriticalSection& criticalSection) : m_criticalSection(criticalSection)
+		explicit inline ScopeLock(CriticalSection& criticalSection) : m_critical_section(criticalSection)
 		{
-			m_criticalSection.lock();
+			m_critical_section.lock();
 		}
 
 		ScopeLock(const ScopeLock&)            = delete;
 		ScopeLock& operator=(const ScopeLock&) = delete;
 
-		inline ~ScopeLock() { m_criticalSection.unlock(); }
+		inline ~ScopeLock() { m_critical_section.unlock(); }
 	};
 }// namespace Engine
