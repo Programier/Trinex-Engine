@@ -38,12 +38,12 @@ namespace Engine
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	VertexBufferBase* StaticMeshComponent::Proxy::find_vertex_buffer(RHIVertexSemantic semantic, size_t lod)
+	VertexBufferBase* StaticMeshComponent::Proxy::vertex_buffer(byte stream, size_t lod)
 	{
-		return m_mesh->lods[lod].find_vertex_buffer(semantic);
+		return &m_mesh->lods[lod].buffers[stream];
 	}
 
-	IndexBuffer* StaticMeshComponent::Proxy::find_index_buffer(size_t lod)
+	IndexBuffer* StaticMeshComponent::Proxy::index_buffer(size_t lod)
 	{
 		auto& buffer = m_mesh->lods[lod].indices;
 		return buffer.size() == 0 ? nullptr : &buffer;

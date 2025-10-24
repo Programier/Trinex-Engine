@@ -47,12 +47,12 @@ namespace Engine
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	VertexBufferBase* SkeletalMeshComponent::Proxy::find_vertex_buffer(RHIVertexSemantic semantic, size_t lod)
+	VertexBufferBase* SkeletalMeshComponent::Proxy::vertex_buffer(byte stream, size_t lod)
 	{
-		return m_mesh->lods[lod].find_vertex_buffer(semantic);
+		return nullptr;
 	}
 
-	IndexBuffer* SkeletalMeshComponent::Proxy::find_index_buffer(size_t lod)
+	IndexBuffer* SkeletalMeshComponent::Proxy::index_buffer(size_t lod)
 	{
 		auto& buffer = m_mesh->lods[lod].indices;
 		return buffer.size() == 0 ? nullptr : &buffer;

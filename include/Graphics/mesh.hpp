@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/flat_set.hpp>
 #include <Core/math/box.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
@@ -11,14 +12,37 @@ namespace Engine
 	struct ENGINE_EXPORT MeshSurface {
 		trinex_declare_struct(MeshSurface, void);
 
+		struct Attribute {
+			RHIVertexSemantic semantic;
+			RHIVertexFormat format;
+			byte stream;
+			byte offset;
+
+			inline bool operator<(const Attribute& attribute) const { return semantic < attribute.semantic; }
+		};
+
+		FlatSet<Attribute> attributes;
 		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
+		RHIIndexFormat index_format   = RHIIndexFormat::UInt32;
 		uint32_t base_vertex_index    = 0;
 		uint32_t first_index          = 0;
 		uint32_t vertices_count       = 0;
 		uint16_t material_index       = 0;
 
 		bool serialize(Archive& ar);
+
 		inline bool is_indexed() const { return first_index != ~0U; }
+
+		inline const Attribute* find_attribute(RHIVertexSemantic semantic) const
+		{
+			Attribute attribute;
+			attribute.semantic = semantic;
+			auto it            = attributes.find(attribute);
+
+			if (it == attributes.end())
+				return nullptr;
+			return &(*it);
+		}
 	};
 
 	class ENGINE_EXPORT StaticMesh : public Object
@@ -29,26 +53,11 @@ namespace Engine
 		struct ENGINE_EXPORT LOD {
 			trinex_declare_struct(LOD, void);
 
-			Vector<PositionVertexBuffer> positions;
-			Vector<TexCoordVertexBuffer> tex_coords;
-			Vector<ColorVertexBuffer> colors;
-			Vector<NormalVertexBuffer> normals;
-			Vector<TangentVertexBuffer> tangents;
-
-			IndexBuffer indices;
 			Vector<MeshSurface> surfaces;
-
-		private:
-			PositionVertexBuffer* find_position_buffer(Index index);
-			TexCoordVertexBuffer* find_tex_coord_buffer(Index index);
-			ColorVertexBuffer* find_color_buffer(Index index);
-			NormalVertexBuffer* find_normal_buffer(Index index);
-			TangentVertexBuffer* find_tangent_buffer(Index index);
+			Vector<VertexBufferBase> buffers;
+			IndexBuffer indices;
 
 		public:
-			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic);
-			size_t vertex_count() const;
-			size_t indices_count() const;
 			bool serialize(Archive& ar);
 		};
 

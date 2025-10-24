@@ -64,26 +64,27 @@ namespace Engine
 
 			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
-				auto& attribute          = pipeline->vertex_attributes[i];
-				VertexBufferBase* buffer = find_vertex_buffer(attribute.semantic, lod);
+				RHIVertexSemantic semantic = pipeline->vertex_attributes[i].semantic;
+				auto va                    = surface_data->find_attribute(semantic);
+				VertexBufferBase* buffer   = va ? vertex_buffer(va->stream, lod) : nullptr;
 
 				if (buffer)
 				{
-					ctx->context->bind_vertex_attribute(attribute.semantic, stream, 0);
+					ctx->context->bind_vertex_attribute(semantic, stream, 0);
 					ctx->context->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
 					++stream;
 				}
 				else
 				{
-					ctx->context->bind_vertex_attribute(attribute.semantic, 0, 0);
+					ctx->context->bind_vertex_attribute(semantic, 0, 0);
 				}
 			}
 
 			if (surface_data->is_indexed())
 			{
-				if (auto index_buffer = find_index_buffer(lod))
+				if (auto buffer = index_buffer(lod))
 				{
-					ctx->context->bind_index_buffer(index_buffer->rhi_buffer(), index_buffer->format());
+					ctx->context->bind_index_buffer(buffer->rhi_buffer(), surface_data->index_format);
 					ctx->context->draw_indexed(surface_data->vertices_count, surface_data->first_index,
 					                           surface_data->base_vertex_index);
 				}

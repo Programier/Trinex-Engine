@@ -29,7 +29,7 @@ namespace Engine::Importer
 			T* ptr;
 			size_t size = 0;
 
-			VtxBuffer(T* ptr, byte stride = sizeof(T)) : ptr(ptr) {}
+			VtxBuffer(byte* ptr, byte stride = sizeof(T)) : ptr(reinterpret_cast<T*>(ptr)) {}
 
 			inline void push_back(T&& value)
 			{
@@ -334,11 +334,13 @@ namespace Engine::Importer
 			RHIIndexFormat index_format = vertex_count > 65535 ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
 			byte index_size             = vertex_count > 65535 ? 4 : 2;
 
+			lod.buffers.reserve(4);
+
 			// clang-format off
-			VtxBuffer<Vector3f> positions  = lod.positions.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector3f> normals    = lod.normals.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector4f> tangents   = lod.tangents.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
-			VtxBuffer<Vector2f> uvs        = lod.tex_coords.emplace_back().allocate_data(RHIBufferCreateFlags::Static, vertex_count);
+			VtxBuffer<Vector3f> positions  = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector3f), vertex_count);
+			VtxBuffer<Vector3f> normals    = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector3f), vertex_count);
+			VtxBuffer<Vector4f> tangents   = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector4f), vertex_count);
+			VtxBuffer<Vector2f> uvs        = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector2f), vertex_count);
 			IdxBuffer indices(lod.indices.allocate_data(RHIBufferCreateFlags::Static, index_format, faces_count * 3), index_size);
 			// clang-format on
 
@@ -349,6 +351,13 @@ namespace Engine::Importer
 				aiVector3f* texture_coords    = mesh->mTextureCoords[0];
 
 				MeshSurface& surface = lod.surfaces[mesh_index];
+
+				surface.attributes = {{RHIVertexSemantic::Position, RHIVertexFormat::Float3, 0, 0},
+				                      {RHIVertexSemantic::Normal, RHIVertexFormat::Float3, 1, 0},
+				                      {RHIVertexSemantic::Tangent, RHIVertexFormat::Float4, 2, 0},
+				                      {RHIVertexSemantic::TexCoord0, RHIVertexFormat::Float2, 3, 0}};
+
+				surface.index_format = index_format;
 
 				if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
 					surface.topology = RHIPrimitiveTopology::TriangleList;

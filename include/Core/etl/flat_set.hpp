@@ -159,5 +159,20 @@ namespace Engine
 
 		constexpr const_iterator erase(const_iterator it) { return container_type::erase(it); }
 		constexpr const_iterator erase(const_iterator from, const_iterator to) { return container_type::erase(from, to); }
+		constexpr const Vector<T, AllocatorType>& as_vector() const { return *this; }
+	};
+
+
+	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
+	inline bool trinex_serialize_flat_set(ArchiveType& ar, FlatSet<T, Compare, AllocatorType>& set)
+	    requires(is_complete_archive_type<ArchiveType>)
+	{
+		const Vector<T, AllocatorType>& vector = set.as_vector();
+		return ar.serialize_vector(const_cast<Vector<T, AllocatorType>&>(vector));
+	}
+
+	template<typename T, typename C, typename A>
+	struct Serializer<FlatSet<T, C, A>> {
+		bool serialize(Archive& ar, FlatSet<T, C, A>& set) { return trinex_serialize_flat_set(ar, set); }
 	};
 }// namespace Engine
