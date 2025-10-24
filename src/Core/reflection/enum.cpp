@@ -10,19 +10,29 @@ namespace Engine::Refl
 {
 	implement_reflect_type(Enum);
 
-	Enum::Enum() {}
+	Enum::Enum(byte flags) : m_flags(flags) {}
 
 	Enum& Enum::register_enum_with_entries(const Vector<Enum::Entry>& entries)
 	{
 		String name = full_name();
 		info_log("Enum", "Register enum '%s'", name.c_str());
 
-		ScriptEnumRegistrar registrar(name, true);
-		m_info = registrar.type_info();
-
-		for (auto& entry : entries)
+		if (m_flags & IsScriptable)
 		{
-			create_entry(&registrar, entry.name, entry.value);
+			ScriptEnumRegistrar registrar(name, true);
+			m_info = registrar.type_info();
+
+			for (auto& entry : entries)
+			{
+				create_entry(&registrar, entry.name, entry.value);
+			}
+		}
+		else
+		{
+			for (auto& entry : entries)
+			{
+				create_entry(nullptr, entry.name, entry.value);
+			}
 		}
 		return *this;
 	}
@@ -66,7 +76,6 @@ namespace Engine::Refl
 			return e;
 		if (const Entry* e = entry(value))
 			return e;
-
 
 		Entry new_entry;
 		new_entry.name  = name;

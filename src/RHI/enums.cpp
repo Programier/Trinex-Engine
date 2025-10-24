@@ -5,24 +5,24 @@
 
 namespace Engine
 {
-	trinex_implement_engine_enum(RHISamplerFilter, Point, Bilinear, Trilinear);
-	trinex_implement_engine_enum(RHISamplerAddressMode, Repeat, ClampToEdge, ClampToBorder, MirroredRepeat, MirrorClampToEdge);
-	trinex_implement_engine_enum(RHIColorComponent, R, G, B, A);
-	trinex_implement_engine_enum(RHICompareFunc, Always, Lequal, Gequal, Less, Greater, Equal, NotEqual, Never);
-	trinex_implement_engine_enum(RHIStencilOp, Keep, Zero, Replace, Incr, IncrWrap, Decr, DecrWrap, Invert);
-	trinex_implement_engine_enum(RHIBlendFunc, Zero, One, SrcColor, OneMinusSrcColor, DstColor, OneMinusDstColor, SrcAlpha,
+	trinex_implement_engine_enum(RHISamplerFilter, 0, Point, Bilinear, Trilinear);
+	trinex_implement_engine_enum(RHISamplerAddressMode, 0, Repeat, ClampToEdge, ClampToBorder, MirroredRepeat, MirrorClampToEdge);
+	trinex_implement_engine_enum(RHIColorComponent, 0, R, G, B, A);
+	trinex_implement_engine_enum(RHICompareFunc, 0, Always, Lequal, Gequal, Less, Greater, Equal, NotEqual, Never);
+	trinex_implement_engine_enum(RHIStencilOp, 0, Keep, Zero, Replace, Incr, IncrWrap, Decr, DecrWrap, Invert);
+	trinex_implement_engine_enum(RHIBlendFunc, 0, Zero, One, SrcColor, OneMinusSrcColor, DstColor, OneMinusDstColor, SrcAlpha,
 	                             OneMinusSrcAlpha, DstAlpha, OneMinusDstAlpha, BlendFactor, OneMinusBlendFactor);
-	trinex_implement_engine_enum(RHIBlendOp, Add, Subtract, ReverseSubtract, Min, Max);
-	trinex_implement_engine_enum(RHIPrimitiveTopology, TriangleList, PointList, LineList, LineStrip, TriangleStrip);
-	trinex_implement_engine_enum(RHIPolygonMode, Fill, Line, Point);
-	trinex_implement_engine_enum(RHICullMode, None, Front, Back);
-	trinex_implement_engine_enum(RHIFrontFace, ClockWise, CounterClockWise);
-	trinex_implement_engine_enum(RHIShaderParameterType, Undefined, META_UniformBuffer, META_Sampler, META_Texture, META_Scalar,
-	                             META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3, Bool4, Int, Int2, Int3,
-	                             Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3, Float4x4,
-	                             UniformBuffer, Sampler, Sampler2D, Texture2D);
+	trinex_implement_engine_enum(RHIBlendOp, 0, Add, Subtract, ReverseSubtract, Min, Max);
+	trinex_implement_engine_enum(RHIPrimitiveTopology, 0, TriangleList, PointList, LineList, LineStrip, TriangleStrip);
+	trinex_implement_engine_enum(RHIPolygonMode, 0, Fill, Line, Point);
+	trinex_implement_engine_enum(RHICullMode, 0, None, Front, Back);
+	trinex_implement_engine_enum(RHIFrontFace, 0, ClockWise, CounterClockWise);
+	trinex_implement_engine_enum(RHIShaderParameterType, Refl::Enum::IsScriptable, Undefined, META_UniformBuffer, META_Sampler,
+	                             META_Texture, META_Scalar, META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3,
+	                             Bool4, Int, Int2, Int3, Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3,
+	                             Float4x4, UniformBuffer, Sampler, Sampler2D, Texture2D);
 
-	trinex_implement_engine_enum(RHIColorFormat, Undefined, R8, R8G8, R8G8B8A8, R8_SNORM, R8G8_SNORM, R8G8B8A8_SNORM, R8_UINT,
+	trinex_implement_engine_enum(RHIColorFormat, 0, Undefined, R8, R8G8, R8G8B8A8, R8_SNORM, R8G8_SNORM, R8G8B8A8_SNORM, R8_UINT,
 	                             R8G8_UINT, R8G8B8A8_UINT, R8_SINT, R8G8_SINT, R8G8B8A8_SINT, R16, R16G16, R16G16B16A16,
 	                             R16_SNORM, R16G16_SNORM, R16G16B16A16_SNORM, R16_UINT, R16G16_UINT, R16G16B16A16_UINT, R16_SINT,
 	                             R16G16_SINT, R16G16B16A16_SINT, R32_UINT, R32G32_UINT, R32G32B32A32_UINT, R32_SINT, R32G32_SINT,
@@ -30,8 +30,8 @@ namespace Engine
 	                             BC2_RGBA, BC3_RGBA, BC4_R, BC5_RG, BC7_RGBA, ASTC_4x4_RGBA, ASTC_6x6_RGBA, ASTC_8x8_RGBA,
 	                             ASTC_10x10_RGBA, ETC1_RGB, ETC2_RGB, ETC2_RGBA, NV12, P010, D32F, D16_UNORM, D24S8);
 
-	trinex_implement_engine_enum(RHISurfaceFormat, Undefined, D32F, D16, D24S8, RG8, RGBA8, RGB10A2, R16, RG16, RGBA16, R8S, RG8S,
-	                             RGBA8S, R16S, RG16S, RGBA16S, R8UI, RG8UI, RGBA8UI, R16UI, RG16UI, RGBA16UI, R32UI, RG32UI,
+	trinex_implement_engine_enum(RHISurfaceFormat, 0, Undefined, D32F, D16, D24S8, RG8, RGBA8, RGB10A2, R16, RG16, RGBA16, R8S,
+	                             RG8S, RGBA8S, R16S, RG16S, RGBA16S, R8UI, RG8UI, RGBA8UI, R16UI, RG16UI, RGBA16UI, R32UI, RG32UI,
 	                             RGBA32UI, R8SI, RG8SI, RGBA8SI, R16SI, RG16SI, RGBA16SI, R32SI, RG32SI, RGBA32SI, R16F, RG16F,
 	                             RGBA16F, R32F, RG32F, RGBA32F);
 
