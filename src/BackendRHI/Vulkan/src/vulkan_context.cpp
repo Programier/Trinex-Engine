@@ -302,26 +302,14 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::draw(size_t vertex_count, size_t vertices_offset)
+	VulkanContext& VulkanContext::draw(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
-		m_state_manager->flush_graphics(this)->draw(vertex_count, 1, vertices_offset, 0);
+		m_state_manager->flush_graphics(this)->draw(vertex_count, instances, vertices_offset, 0);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
-	{
-		m_state_manager->flush_graphics(this)->drawIndexed(indices_count, 1, indices_offset, vertices_offset, 0);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)
-	{
-		m_state_manager->flush_graphics(this)->draw(vertex_count, instances, vertex_offset, 0);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-	                                                     size_t instances)
+	VulkanContext& VulkanContext::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+	                                           size_t instances)
 	{
 		m_state_manager->flush_graphics(this)->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;

@@ -45,8 +45,8 @@ namespace Engine
 			struct Value {
 				uint16_t x;
 				uint16_t y;
-				RHISurfaceFormat::Enum format : 16;
 				RHITextureCreateFlags flags;
+				RHISurfaceFormat format;
 			} value;
 
 			static_assert(sizeof(Value) <= sizeof(Identifier));

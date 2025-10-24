@@ -140,11 +140,9 @@ namespace Engine
 		VulkanContext& viewport(const RHIViewport& viewport) override;
 		VulkanContext& scissor(const RHIScissor& scissor) override;
 
-		VulkanContext& draw(size_t vertex_count, size_t vertices_offset) override;
-		VulkanContext& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
-		VulkanContext& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
-		VulkanContext& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-		                                      size_t instances) override;
+		VulkanContext& draw(size_t vertex_count, size_t vertices_offset, size_t instances) override;
+		VulkanContext& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+		                            size_t instances) override;
 
 		VulkanContext& draw_mesh(uint32_t x, uint32_t y, uint32_t z) override;
 		VulkanContext& dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;

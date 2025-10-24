@@ -56,11 +56,9 @@ namespace Engine
 
 		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
 
-		virtual RHIContext& draw(size_t vertex_count, size_t vertices_offset)                                 = 0;
-		virtual RHIContext& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) = 0;
-		virtual RHIContext& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)       = 0;
-		virtual RHIContext& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-		                                           size_t instances)                                          = 0;
+		virtual RHIContext& draw(size_t vertex_count, size_t vertices_offset, size_t instances = 1) = 0;
+		virtual RHIContext& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+		                                 size_t instances = 1)                                      = 0;
 
 		virtual RHIContext& draw_mesh(uint32_t x, uint32_t y, uint32_t z) = 0;
 
