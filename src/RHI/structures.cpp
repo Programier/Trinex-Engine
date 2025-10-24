@@ -102,7 +102,6 @@ namespace Engine
 	{
 		ar.serialize(format);
 		ar.serialize(semantic);
-		ar.serialize(semantic_index);
 		return ar.serialize(binding);
 	}
 }// namespace Engine

@@ -218,9 +218,9 @@ namespace Engine
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
-			ctx->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 0, 0, offsetof(ImDrawVert, pos));
-			ctx->bind_vertex_attribute(RHIVertexSemantic::TexCoord, 1, 0, offsetof(ImDrawVert, uv));
-			ctx->bind_vertex_attribute(RHIVertexSemantic::Color, 0, 0, offsetof(ImDrawVert, col));
+			ctx->bind_vertex_attribute(RHIVertexSemantic::Position, 0, offsetof(ImDrawVert, pos));
+			ctx->bind_vertex_attribute(RHIVertexSemantic::TexCoord0, 0, offsetof(ImDrawVert, uv));
+			ctx->bind_vertex_attribute(RHIVertexSemantic::Color, 0, offsetof(ImDrawVert, col));
 
 			ctx->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
 			ctx->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);

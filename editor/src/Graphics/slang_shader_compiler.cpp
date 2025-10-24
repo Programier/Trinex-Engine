@@ -201,7 +201,7 @@ namespace Engine
 
 			static const TreeMap<String, RHIVertexSemantic> semantics = {
 			        {"position", RHIVertexSemantic::Position},        //
-			        {"texcoord", RHIVertexSemantic::TexCoord},        //
+			        {"texcoord", RHIVertexSemantic::TexCoord0},       //
 			        {"color", RHIVertexSemantic::Color},              //
 			        {"normal", RHIVertexSemantic::Normal},            //
 			        {"tangent", RHIVertexSemantic::Tangent},          //
@@ -329,28 +329,27 @@ namespace Engine
 					return false;
 				}
 
-				if (!find_semantic(var->getSemanticName(), attribute.semantic))
+				if (!find_semantic(semantic_name, attribute.semantic))
 				{
 					return false;
 				}
 
-				if (is_not_in<RHIVertexSemantic::Position,    //
-				              RHIVertexSemantic::TexCoord,    //
-				              RHIVertexSemantic::Color,       //
-				              RHIVertexSemantic::Normal,      //
-				              RHIVertexSemantic::Tangent,     //
-				              RHIVertexSemantic::Bitangent,   //
-				              RHIVertexSemantic::BlendWeight, //
-				              RHIVertexSemantic::BlendIndices,//
-				              RHIVertexSemantic::UserData>(attribute.semantic))
 				{
-					error_log("ShaderCompiler", "Semantic '%s' doesn't support vector type!", var->getSemanticName());
-					return false;
+					const size_t max_semantic_index = attribute.semantic == RHIVertexSemantic::TexCoord0 ? 3 : 0;
+
+					size_t index = var->getSemanticIndex();
+
+					if (index > max_semantic_index)
+					{
+						error_log("ShaderCompiler", "Unsupported semantic index %zu for semantic %s!", index, semantic_name);
+						return false;
+					}
+
+					attribute.semantic = static_cast<RHIVertexSemantic::Enum>(attribute.semantic.value + index);
 				}
 
-				attribute.semantic_index = var->getSemanticIndex();
-				attribute.format         = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
-				attribute.binding        = var.trace_offset(category);
+				attribute.format  = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
+				attribute.binding = var.trace_offset(category);
 
 				m_reflection->vertex_attributes.push_back(attribute);
 			}

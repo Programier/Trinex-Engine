@@ -21,7 +21,7 @@ namespace Engine
 			size_t materials_count() const override;
 			size_t surfaces_count(size_t lod = 0) const override;
 			const MeshSurface* surface(size_t index, size_t lod = 0) const override;
-			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0, size_t lod = 0) override;
+			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, size_t lod = 0) override;
 			IndexBuffer* find_index_buffer(size_t lod = 0) override;
 			MaterialInterface* material(size_t index) const override;
 			Proxy& render(PrimitiveRenderingContext* ctx) override;

@@ -20,11 +20,13 @@ namespace Engine
 		RHITexture* m_cubemap = nullptr;
 
 	private:
+		DepthCubeRenderer& clear_depth(RHIContext* ctx);
 		DepthCubeRenderer& render_depth(RHIContext* ctx, CameraView& camera, uint_t face);
 		DepthCubeRenderer& render_depth(RHIContext* ctx);
 
 	public:
 		DepthCubeRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
+		DepthCubeRenderer& render(RHIContext* cxt) override;
 
 		inline RHITexture* cubemap() const { return m_cubemap; }
 	};

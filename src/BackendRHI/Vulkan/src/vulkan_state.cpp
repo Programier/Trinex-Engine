@@ -43,7 +43,7 @@ namespace Engine
 		srv_images.flush();
 		uav_images.flush();
 		vertex_streams.flush();
-		for (auto& va : vertex_attributes) va.flush();
+		vertex_attributes.flush();
 		handle->flush_uniforms();
 		return *this;
 	}
@@ -129,7 +129,7 @@ namespace Engine
 		srv_images.make_dirty();
 		uav_images.make_dirty();
 		vertex_streams.make_dirty();
-		for (auto& va : vertex_attributes) va.make_dirty();
+		vertex_attributes.make_dirty();
 		m_render_pass = nullptr;
 
 		return *this;
@@ -159,7 +159,7 @@ namespace Engine
 			{
 				auto& src = attributes[i];
 
-				auto va_state = vertex_attributes[src.semantic].resource(src.semantic_index);
+				auto va_state = vertex_attributes.resource(src.semantic);
 
 				va_desc[i].format   = src.format;
 				va_desc[i].offset   = va_state.offset;
@@ -202,7 +202,7 @@ namespace Engine
 		return info;
 	}
 
-	Identifier VulkanStateManager::graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const
+	uint128_t VulkanStateManager::graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const
 	{
 		struct VACache {
 			uint32_t format;
@@ -223,7 +223,7 @@ namespace Engine
 			{
 				auto& src = attributes[i];
 
-				auto va_state = vertex_attributes[src.semantic].resource(src.semantic_index);
+				auto va_state = vertex_attributes.resource(src.semantic);
 				auto vs_state = vertex_streams.resource(va_state.stream);
 
 				va.format  = static_cast<uint32_t>(src.format);
@@ -240,7 +240,7 @@ namespace Engine
 		return hash;
 	}
 
-	Identifier VulkanStateManager::mesh_pipeline_id() const
+	uint128_t VulkanStateManager::mesh_pipeline_id() const
 	{
 		return memory_hash(&m_graphics_state, sizeof(m_graphics_state));
 	}
@@ -299,14 +299,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, byte semantic_index, byte stream,
-	                                                    uint16_t offset)
+	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, byte stream, uint16_t offset)
 	{
 		VulkanStateManager::VertexAttribute va;
 		va.stream = stream;
 		va.offset = offset;
 
-		m_state_manager->vertex_attributes[semantic].bind(va, semantic_index);
+		m_state_manager->vertex_attributes.bind(va, semantic);
 		return *this;
 	}
 }// namespace Engine

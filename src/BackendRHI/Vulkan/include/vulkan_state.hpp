@@ -156,7 +156,7 @@ namespace Engine
 		VulkanResourceState<VulkanTextureSRV*> srv_images;
 		VulkanResourceState<VulkanTextureUAV*> uav_images;
 		VulkanResourceState<VertexStream> vertex_streams;
-		VulkanResourceState<VertexAttribute> vertex_attributes[9];
+		VulkanResourceState<VertexAttribute> vertex_attributes;
 
 		VulkanStateManager();
 		~VulkanStateManager();
@@ -287,8 +287,8 @@ namespace Engine
 		VulkanStateManager& reset();
 
 		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);
-		uint64_t graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
-		uint64_t mesh_pipeline_id() const;
+		uint128_t graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
+		uint128_t mesh_pipeline_id() const;
 
 		inline uint64_t dirty_flags() const { return m_dirty_flags; }
 		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }

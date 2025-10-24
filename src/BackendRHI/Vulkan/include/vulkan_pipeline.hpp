@@ -18,7 +18,6 @@ namespace Engine
 	struct VulkanVertexAttribute {
 		vk::Format format;
 		RHIVertexSemantic semantic;
-		byte semantic_index;
 		byte binding;
 	};
 

@@ -65,17 +65,17 @@ namespace Engine
 			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
 				auto& attribute          = pipeline->vertex_attributes[i];
-				VertexBufferBase* buffer = find_vertex_buffer(attribute.semantic, attribute.semantic_index, lod);
+				VertexBufferBase* buffer = find_vertex_buffer(attribute.semantic, lod);
 
 				if (buffer)
 				{
-					ctx->context->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, stream, 0);
+					ctx->context->bind_vertex_attribute(attribute.semantic, stream, 0);
 					ctx->context->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
 					++stream;
 				}
 				else
 				{
-					ctx->context->bind_vertex_attribute(attribute.semantic, attribute.semantic_index, 0, 0);
+					ctx->context->bind_vertex_attribute(attribute.semantic, 0, 0);
 				}
 			}
 

@@ -6,16 +6,16 @@ uniform float2 viewport;
 
 struct VertexInput 
 {
-    float3 position : POSITION0;
-    float4 color : COLOR0;
-    float thickness : POSITION1;
+    float3 position : POSITION;
+    float4 color : COLOR;
+    float thickness : USERDATA;
 };
 
 struct VertexOutput : WideLines::Vertex 
 {
     float4 position : SV_Position;
     float4 color : COLOR0;
-    noperspective float thickness : POSITION1;
+    noperspective float thickness : USERDATA;
 
     float4 get_position()
     {

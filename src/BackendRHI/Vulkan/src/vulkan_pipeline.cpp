@@ -284,10 +284,9 @@ namespace Engine
 			auto& src = pipeline->vertex_attributes[index];
 			auto& dst = m_vertex_attributes[index];
 
-			dst.semantic       = src.semantic;
-			dst.semantic_index = src.semantic_index;
-			dst.binding        = src.binding;
-			dst.format         = VulkanEnums::vertex_format_of(src.format);
+			dst.semantic = src.semantic;
+			dst.binding  = src.binding;
+			dst.format   = VulkanEnums::vertex_format_of(src.format);
 		}
 
 		static vk::ShaderStageFlagBits graphics_stages[] = {
@@ -314,12 +313,10 @@ namespace Engine
 		{
 			const VulkanVertexAttribute& attribute = m_vertex_attributes[i];
 
-			auto& va = manager->vertex_attributes[attribute.semantic];
-
-			if (va.is_dirty(attribute.semantic_index))
+			if (manager->vertex_attributes.is_dirty(attribute.semantic))
 				return true;
 
-			auto stream = va.resource(attribute.semantic_index).stream;
+			auto stream = manager->vertex_attributes.resource(attribute.semantic).stream;
 
 			if (manager->vertex_streams.is_dirty(stream))
 				return true;

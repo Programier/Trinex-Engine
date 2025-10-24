@@ -46,7 +46,7 @@ namespace Engine
 			TangentVertexBuffer* find_tangent_buffer(Index index);
 
 		public:
-			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0);
+			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic);
 			size_t vertex_count() const;
 			size_t indices_count() const;
 			bool serialize(Archive& ar);

@@ -5,6 +5,7 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/static_mesh_actor.hpp>
+#include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
@@ -102,11 +103,25 @@ namespace Engine
 				SceneView scene_view(camera_view, view_size);
 
 				EditorRenderer renderer(scene, scene_view);
-				renderer.render_grid().render(rhi->context());
+				RenderGraph::Graph* graph = renderer.render_graph();
 
-				RHITextureRegion region(view_size);
-				rhi->context()->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(),
-				                                        region);
+				renderer.render_grid();
+				graph->add_output(surface->rhi_texture());
+
+				graph->add_pass("Copy to Target Surface")
+				        .add_resource(surface->rhi_texture(), RHIAccess::TransferDst)
+				        .add_resource(renderer.scene_color_ldr_target(), RHIAccess::TransferSrc)
+				        .add_func([&](RHIContext* ctx) {
+					        RHITextureRegion region(view_size);
+					        ctx->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(),
+					                                     region);
+				        });
+
+				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+				{
+					renderer.render(ctx);
+				}
+				RHIContextPool::global_instance()->end_context(ctx);
 			});
 		}
 

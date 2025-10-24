@@ -151,12 +151,15 @@ namespace Engine
 		return ar;
 	}
 
-	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(RHIVertexSemantic semantic, Index index)
+	VertexBufferBase* StaticMesh::LOD::find_vertex_buffer(RHIVertexSemantic semantic)
 	{
 		using Func = VertexBufferBase* (*) (LOD * lod, size_t);
 
-		static Func funcs[9] = {
+		static Func funcs[12] = {
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_position_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tex_coord_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tex_coord_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tex_coord_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_tex_coord_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_color_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return lod->find_normal_buffer(index); }),
@@ -167,7 +170,7 @@ namespace Engine
 		        static_cast<Func>([](LOD* lod, size_t index) -> VertexBufferBase* { return nullptr; }),
 		};
 
-		return funcs[semantic](this, index);
+		return funcs[semantic](this, 0);
 	}
 
 	size_t StaticMesh::LOD::vertex_count() const
@@ -225,8 +228,11 @@ namespace Engine
 	{
 		using Func = VertexBufferBase* (*) (LOD * lod, size_t);
 
-		static Func funcs[9] = {
+		static Func funcs[12] = {
 		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_position_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_tex_coord_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_tex_coord_buffer(index); }),
+		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_tex_coord_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_tex_coord_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_color_buffer(index); }),
 		        static_cast<Func>([](LOD* lod, size_t index) { return lod->find_normal_buffer(index); }),

@@ -228,14 +228,17 @@ namespace Engine
 		enum Enum : byte
 		{
 			Position     = 0,
-			TexCoord     = 1,
-			Color        = 2,
-			Normal       = 3,
-			Tangent      = 4,
-			Bitangent    = 5,
-			BlendWeight  = 6,
-			BlendIndices = 7,
-			UserData     = 8,
+			TexCoord0    = 1,
+			TexCoord1    = 2,
+			TexCoord2    = 3,
+			TexCoord3    = 4,
+			Color        = 5,
+			Normal       = 6,
+			Tangent      = 7,
+			Bitangent    = 8,
+			BlendWeight  = 9,
+			BlendIndices = 10,
+			UserData     = 11,
 		};
 
 		trinex_enum_struct(RHIVertexSemantic);
@@ -437,8 +440,9 @@ namespace Engine
 	struct RHIIndexFormat {
 		enum Enum : byte
 		{
-			UInt32 = 0,
-			UInt16 = 1,
+			Undefined = 0,
+			UInt16    = 1,
+			UInt32    = 2,
 		};
 
 		trinex_enum_struct(RHIIndexFormat);

@@ -2,9 +2,9 @@ import "trinex/trinex.slang";
 
 struct VS_INPUT
 {
-    float2 pos : TEXCOORD0;
-	float2 uv : TEXCOORD1;
-	float4 col : COLOR0;
+	float2 pos : POSITION;
+	float2 uv : TEXCOORD;
+	float4 col : COLOR;
 };
 
 struct PS_INPUT

@@ -46,10 +46,26 @@ namespace Engine
 
 		auto graph = render_graph();
 
-		graph->add_output(scene_depth_target());
-		graph->add_pass("Depth Rendering").add_resource(scene_depth_target(), RHIAccess::DSV).add_func([this](RHIContext* ctx) {
-			render_depth(ctx);
-		});
+		graph->add_output(cubemap());
+
+		graph->add_pass("Depth Rendering")
+		        .add_resource(cubemap(), RHIAccess::DSV, RHIAccess::TransferDst)
+		        .add_func([this](RHIContext* ctx) { render_depth(ctx); });
+	}
+
+	DepthCubeRenderer& DepthCubeRenderer::render(RHIContext* cxt)
+	{
+		Renderer::render(cxt);
+		return *this;
+	}
+
+	DepthCubeRenderer& DepthCubeRenderer::clear_depth(RHIContext* ctx)
+	{
+		trinex_rhi_push_stage(ctx, "Clear");
+		ctx->clear_dsv(cubemap()->as_dsv());
+		ctx->barrier(cubemap(), RHIAccess::DSV);
+		trinex_rhi_pop_stage(ctx);
+		return *this;
 	}
 
 	DepthCubeRenderer& DepthCubeRenderer::render_depth(RHIContext* ctx, CameraView& camera, uint_t face)
@@ -72,7 +88,7 @@ namespace Engine
 
 		auto dsv = cubemap()->as_dsv(&view);
 
-		ctx->clear_dsv(dsv).bind_depth_stencil_target(dsv);
+		ctx->bind_depth_stencil_target(dsv);
 
 		for (PrimitiveComponent* component : components)
 		{
@@ -90,6 +106,8 @@ namespace Engine
 
 	DepthCubeRenderer& DepthCubeRenderer::render_depth(RHIContext* ctx)
 	{
+		clear_depth(ctx);
+
 		CameraView camera = scene_view().camera_view();
 
 		// Back (-Z)

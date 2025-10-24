@@ -70,12 +70,10 @@ namespace Engine
 	struct RHIVertexAttribute {
 		RHIVertexFormat format;
 		RHIVertexSemantic semantic;
-		byte semantic_index;
 		byte binding;
 
-		FORCE_INLINE RHIVertexAttribute(RHIVertexSemantic semantic = RHIVertexSemantic::Position, byte semantic_index = 0,
-		                                byte binding = 0)
-		    : semantic(semantic), semantic_index(semantic_index), binding(binding)
+		FORCE_INLINE RHIVertexAttribute(RHIVertexSemantic semantic = RHIVertexSemantic::Position, byte binding = 0)
+		    : semantic(semantic), binding(binding)
 		{}
 
 		bool serialize(Archive& ar);
