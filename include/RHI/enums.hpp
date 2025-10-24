@@ -171,7 +171,7 @@ namespace Engine
 	};
 
 	struct RHICompareFunc {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Always   = 0,
 			Lequal   = 1,
@@ -301,7 +301,7 @@ namespace Engine
 	};
 
 	struct RHISamplerFilter {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Point     = 0,
 			Bilinear  = 1,
@@ -313,7 +313,7 @@ namespace Engine
 	};
 
 	struct RHISamplerAddressMode {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Repeat            = 0,
 			ClampToEdge       = 1,
@@ -327,7 +327,7 @@ namespace Engine
 	};
 
 	struct RHIStencilOp {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Keep     = 0,
 			Zero     = 1,
@@ -344,7 +344,7 @@ namespace Engine
 	};
 
 	struct RHIBlendFunc {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Zero                = 0,
 			One                 = 1,
@@ -365,7 +365,7 @@ namespace Engine
 	};
 
 	struct RHIBlendOp {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Add             = 0,
 			Subtract        = 1,
@@ -379,7 +379,7 @@ namespace Engine
 	};
 
 	struct RHIPrimitiveTopology {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			TriangleList  = 0,
 			TriangleStrip = 1,
@@ -393,7 +393,7 @@ namespace Engine
 	};
 
 	struct RHIPolygonMode {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Fill  = 0,
 			Line  = 1,
@@ -405,7 +405,7 @@ namespace Engine
 	};
 
 	struct RHICullMode {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			None  = 0,
 			Front = 1,
@@ -417,7 +417,7 @@ namespace Engine
 	};
 
 	struct RHIFrontFace {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			ClockWise        = 0,
 			CounterClockWise = 1,
@@ -474,7 +474,7 @@ namespace Engine
 			trinex_bitfield_enum_struct(Capabilities, EnumerateType);
 		};
 
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Undefined = 0,
 
@@ -580,7 +580,7 @@ namespace Engine
 	};
 
 	struct RHISurfaceFormat {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			Undefined = RHIColorFormat::Undefined,
 			D32F      = RHIColorFormat::D32F,
@@ -679,7 +679,7 @@ namespace Engine
 	}
 
 	struct RHIColorComponent {
-		enum Enum : EnumerateType
+		enum Enum : byte
 		{
 			R = 1,
 			G = 2,
@@ -691,7 +691,7 @@ namespace Engine
 			RGBA = R | G | B | A,
 		};
 
-		trinex_bitfield_enum_struct(RHIColorComponent, EnumerateType);
+		trinex_bitfield_enum_struct(RHIColorComponent, byte);
 		trinex_declare_enum(RHIColorComponent);
 	};
 
