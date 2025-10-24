@@ -169,9 +169,9 @@ namespace Engine
 
 	WindowRenderViewport::WindowRenderViewport(Window* window, bool vsync)
 	{
-		m_window = window;
-		render_thread()->call([vp = Pointer(this), vsync]() { vp->m_swapchain = rhi->create_swapchain(vp->window(), vsync); });
-		m_size = window->size();
+		m_window    = window;
+		m_swapchain = rhi->create_swapchain(window, vsync);
+		m_size      = window->size();
 	}
 
 	WindowRenderViewport::~WindowRenderViewport()
@@ -179,9 +179,7 @@ namespace Engine
 		client(nullptr);
 		m_window->m_render_viewport = nullptr;
 		m_window                    = nullptr;
-
-		render_thread()->call([swapchain = m_swapchain]() { swapchain->release(); });
-		m_swapchain = nullptr;
+		m_swapchain                 = nullptr;
 	}
 
 	Window* WindowRenderViewport::window() const
@@ -213,7 +211,7 @@ namespace Engine
 		}
 		else
 		{
-			render_thread()->call([swapchain = m_swapchain, flag]() { swapchain->vsync(flag); });
+			render_thread()->call([this, flag]() { m_swapchain->vsync(flag); });
 		}
 		return *this;
 	}
@@ -227,7 +225,7 @@ namespace Engine
 		else
 		{
 			m_size = size;
-			render_thread()->call([swapchain = m_swapchain, size]() { swapchain->resize(size); });
+			render_thread()->call([this, size]() { m_swapchain->resize(size); });
 		}
 		return *this;
 	}

@@ -189,7 +189,7 @@ namespace Engine
 		return new NonePipeline();
 	}
 
-	RHIBuffer* NoneApi::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
+	RHIBuffer* NoneApi::create_buffer(size_t size, RHIBufferCreateFlags flags)
 	{
 		return new NoneBuffer();
 	}

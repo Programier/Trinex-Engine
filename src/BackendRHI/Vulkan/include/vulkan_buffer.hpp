@@ -25,7 +25,7 @@ namespace Engine
 		RHIBufferCreateFlags m_flags = {};
 
 	public:
-		VulkanBuffer& create(vk::DeviceSize size, const byte* data, RHIBufferCreateFlags flags,
+		VulkanBuffer& create(vk::DeviceSize size, RHIBufferCreateFlags flags,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 
 		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const byte* data, vk::DeviceSize size);

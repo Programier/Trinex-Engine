@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/critical_section.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_headers.hpp>
@@ -40,6 +41,7 @@ namespace Engine
 		}
 
 	private:
+		CriticalSection m_criticals[HeapsCount];
 		vk::DescriptorSetLayoutBinding m_bindings[HeapsCount];
 		Vector<RHIDescriptor> m_free[HeapsCount];
 		RHIDescriptor m_last[HeapsCount] = {0};

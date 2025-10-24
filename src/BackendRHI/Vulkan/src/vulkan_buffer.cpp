@@ -18,8 +18,7 @@
 
 namespace Engine
 {
-	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, RHIBufferCreateFlags flags,
-	                                   VmaMemoryUsage memory_usage)
+	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, RHIBufferCreateFlags flags, VmaMemoryUsage memory_usage)
 	{
 		m_flags = flags;
 
@@ -90,11 +89,6 @@ namespace Engine
 			m_address = API->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer), API->pfn);
 		}
 
-		if (data)
-		{
-			copy(nullptr, 0, data, size);
-		}
-
 		if (flags & RHIBufferCreateFlags::ShaderResource)
 		{
 			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
@@ -138,7 +132,7 @@ namespace Engine
 				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin_context());
 			}
 
-			auto buffer = API->m_stagging_manager->allocate(size, RHIBufferCreateFlags::TransferSrc);
+			auto buffer = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
 			buffer->copy(ctx, offset, data, size);
 
 			barrier(ctx, RHIAccess::TransferDst);
@@ -168,7 +162,7 @@ namespace Engine
 		}
 		else
 		{
-			auto staging = API->m_stagging_manager->allocate(size, RHIBufferCreateFlags::TransferSrc);
+			auto staging = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
 			staging->copy(ctx, 0, data, size);
 
 			vk::BufferCopy region(0, offset, size);
@@ -261,7 +255,7 @@ namespace Engine
 
 		constexpr auto flags =
 		        RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::CPURead | RHIBufferCreateFlags::CPUWrite;
-		create(Math::max(uniform_buffer_page_size, min_size), nullptr, flags);
+		create(Math::max(uniform_buffer_page_size, min_size), flags);
 		m_memory = m_block_start = m_block_end = map();
 	}
 
@@ -312,7 +306,7 @@ namespace Engine
 		}
 
 		VulkanStaggingBuffer* buffer = trx_new VulkanStaggingBuffer(this);
-		buffer->create(buffer_size, nullptr, flags, VMA_MEMORY_USAGE_CPU_ONLY);
+		buffer->create(buffer_size, flags, VMA_MEMORY_USAGE_CPU_ONLY);
 		m_buffers.insert(buffer);
 		return buffer;
 	}
@@ -363,9 +357,9 @@ namespace Engine
 		m_buffers.clear();
 	}
 
-	RHIBuffer* VulkanAPI::create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)
+	RHIBuffer* VulkanAPI::create_buffer(size_t size, RHIBufferCreateFlags flags)
 	{
-		return &(trx_new VulkanBuffer())->create(size, data, flags);
+		return &(trx_new VulkanBuffer())->create(size, flags);
 	}
 
 	VulkanContext& VulkanContext::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,

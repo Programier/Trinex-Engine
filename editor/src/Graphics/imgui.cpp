@@ -165,18 +165,16 @@ namespace Engine
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
-				vd->vertex_count = draw_data->TotalVtxCount + 5000;
-				auto len         = vd->vertex_count * sizeof(ImDrawVert);
-				vd->vertex_buffer =
-				        rhi->create_buffer(len, nullptr, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::VertexBuffer);
+				vd->vertex_count  = draw_data->TotalVtxCount + 5000;
+				auto len          = vd->vertex_count * sizeof(ImDrawVert);
+				vd->vertex_buffer = rhi->create_buffer(len, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::VertexBuffer);
 			}
 
 			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
-				vd->index_count = draw_data->TotalIdxCount + 10000;
-				auto len        = vd->index_count * sizeof(ImDrawIdx);
-				vd->index_buffer =
-				        rhi->create_buffer(len, nullptr, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::IndexBuffer);
+				vd->index_count  = draw_data->TotalIdxCount + 10000;
+				auto len         = vd->index_count * sizeof(ImDrawIdx);
+				vd->index_buffer = rhi->create_buffer(len, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::IndexBuffer);
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer
@@ -467,7 +465,7 @@ namespace Engine
 					trinex_rhi_pop_stage(ctx);
 				}
 				RHIContextPool::global_instance()->end_context(ctx);
-				
+
 				m_draw_data.swap_render_index();
 				std::swap(viewport, bd->window);// Restore main viewport
 

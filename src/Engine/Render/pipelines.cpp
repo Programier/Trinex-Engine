@@ -356,8 +356,15 @@ namespace Engine::Pipelines
 			sample *= glm::mix(0.1f, 1.0f, factor * factor);
 		}
 
-		m_samples_buffer = rhi->create_buffer(count * sizeof(Vector3f), reinterpret_cast<byte*>(kernel),
+		m_samples_buffer = rhi->create_buffer(count * sizeof(Vector3f),
 		                                      RHIBufferCreateFlags::StructuredBuffer | RHIBufferCreateFlags::ShaderResource);
+
+		RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+		{
+			ctx->barrier(m_samples_buffer, RHIAccess::TransferDst);
+			ctx->update_buffer(m_samples_buffer, 0, count * sizeof(Vector3f), reinterpret_cast<const byte*>(kernel));
+		}
+		RHIContextPool::global_instance()->end_context(ctx);
 		return *this;
 	}
 

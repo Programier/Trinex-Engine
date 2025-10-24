@@ -4,6 +4,7 @@
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
+#include <RHI/resource_ptr.hpp>
 
 namespace Engine
 {
@@ -57,7 +58,7 @@ namespace Engine
 	{
 		trinex_declare_class(WindowRenderViewport, RenderViewport);
 		class Window* m_window;
-		class RHISwapchain* m_swapchain;
+		RHIResourcePtr<class RHISwapchain> m_swapchain;
 
 	public:
 		WindowRenderViewport(Window* window, bool vsync);

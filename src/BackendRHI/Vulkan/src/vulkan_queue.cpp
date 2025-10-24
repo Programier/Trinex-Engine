@@ -10,7 +10,22 @@ namespace Engine
 
 	VulkanQueue& VulkanQueue::submit(const vk::SubmitInfo& info, vk::Fence fence)
 	{
+		ScopeLock lock(m_critical);
 		m_queue.submit(info, fence);
+		return *this;
+	}
+
+	vk::Result VulkanQueue::present(const vk::PresentInfoKHR& info)
+	{
+		ScopeLock lock(m_critical);
+		vk::Result result = m_queue.presentKHR(info);
+		return result;
+	}
+
+	VulkanQueue& VulkanQueue::idle()
+	{
+		ScopeLock lock(m_critical);
+		m_queue.waitIdle();
 		return *this;
 	}
 }// namespace Engine

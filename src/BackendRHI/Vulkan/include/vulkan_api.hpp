@@ -19,6 +19,7 @@ namespace Engine
 	class VulkanQueue;
 	class VulkanCommandBufferManager;
 	class VulkanStaggingBufferManager;
+	class VulkanPipelineLayoutManager;
 	class VulkanUniformBufferManager;
 	class VulkanDescriptorSetAllocator;
 	class VulkanStateManager;
@@ -75,9 +76,6 @@ namespace Engine
 		vk::PhysicalDeviceProperties m_properties;
 		vk::PhysicalDeviceFeatures m_features;
 
-		VulkanCommandBufferManager* m_cmd_manager       = nullptr;
-		VulkanStaggingBufferManager* m_stagging_manager = nullptr;
-
 	private:
 		struct VulkanUpdater;
 
@@ -90,11 +88,13 @@ namespace Engine
 
 		Deque<Garbage> m_garbage;
 		Vector<VulkanExtention> m_device_extensions;
-		MultiMap<uint64_t, class VulkanPipelineLayout*> m_pipeline_layouts;
-		VulkanDescriptorSetAllocator* m_descriptor_set_allocator;
+		Vector<class VulkanThreadLocal*> m_thread_locals;
+
 		VulkanQueryPoolManager* m_query_pool_manager;
+		VulkanPipelineLayoutManager* m_pipeline_layout_manager;
 		VulkanDescriptorHeap* m_descriptor_heap;
-		VulkanUpdater* m_updater = nullptr;
+		VulkanStaggingBufferManager* m_stagging_manager = nullptr;
+		VulkanUpdater* m_updater                        = nullptr;
 
 		vk::Semaphore m_timeline;
 
@@ -126,10 +126,6 @@ namespace Engine
 		VulkanAPI& destroy_garbage();
 
 	public:
-		VulkanPipelineLayout* create_pipeline_layout(const RHIShaderParameterInfo* parameters, size_t count,
-		                                             vk::ShaderStageFlags stages);
-		VulkanAPI& destroy_pipeline_layout(VulkanPipelineLayout* layout);
-
 		static consteval size_t find_extension_index(const char* str)
 		{
 			auto extensions = make_extensions_array();
@@ -143,13 +139,15 @@ namespace Engine
 			return 0;
 		}
 
+		friend class VulkanThreadLocal;
+
 	public:
 		inline const Vector<VulkanExtention>& extensions() const { return m_device_extensions; }
 		inline bool is_extension_enabled(size_t index) const { return m_device_extensions[index].enabled; }
-		inline VulkanDescriptorSetAllocator* descriptor_set_allocator() const { return m_descriptor_set_allocator; }
-		inline VulkanCommandBufferManager* command_buffer_mananger() const { return m_cmd_manager; }
 		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
 		inline VulkanQueryPoolManager* query_pool_manager() const { return m_query_pool_manager; }
+		inline VulkanStaggingBufferManager* stagging_manager() const { return m_stagging_manager; };
+		inline VulkanPipelineLayoutManager* pipeline_layout_manager() const { return m_pipeline_layout_manager; }
 		inline const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& ray_trace_properties() const
 		{
 			return m_ray_trace_properties;
@@ -203,7 +201,7 @@ namespace Engine
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
-		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags) override;
+		RHIBuffer* create_buffer(size_t size, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context() override;
 

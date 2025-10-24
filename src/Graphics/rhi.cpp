@@ -15,16 +15,4 @@ namespace Engine
 		}();
 		return ctx;
 	}
-
-	RHIBuffer* RHI::create_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t size,
-	                                             RHIBufferCreateFlags flags)
-	{
-		StackByteAllocator::Mark mark;
-		const byte* data = translate_ray_tracing_instances(instances, size);
-
-		flags |= RHIBufferCreateFlags::AccelerationInput;
-		flags |= RHIBufferCreateFlags::DeviceAddress;
-
-		return create_buffer(size, data, flags);
-	}
 }// namespace Engine

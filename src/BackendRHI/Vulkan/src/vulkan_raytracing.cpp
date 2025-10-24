@@ -251,7 +251,7 @@ namespace Engine
 		                       RHIBufferCreateFlags::DeviceAddress;
 
 		m_acceleration_buffer = trx_new VulkanBuffer();
-		m_acceleration_buffer->create(sizes.accelerationStructureSize, nullptr, flags);
+		m_acceleration_buffer->create(sizes.accelerationStructureSize, flags);
 
 		vk::AccelerationStructureCreateInfoKHR info;
 		info.buffer = m_acceleration_buffer->buffer();

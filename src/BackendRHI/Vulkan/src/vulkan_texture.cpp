@@ -303,7 +303,7 @@ namespace Engine
 	VulkanContext& VulkanContext::update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data,
 	                                             size_t size, size_t buffer_width, size_t buffer_height)
 	{
-		auto buffer = API->m_stagging_manager->allocate(size, RHIBufferCreateFlags::TransferSrc);
+		auto buffer = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
 		buffer->copy(this, 0, static_cast<const byte*>(data), size);
 
 		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(texture);

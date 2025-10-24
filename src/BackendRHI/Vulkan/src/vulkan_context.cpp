@@ -4,6 +4,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_context.hpp>
+#include <vulkan_descriptor.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
@@ -54,7 +55,8 @@ namespace Engine
 
 	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager)
 	{
-		m_fence = trx_new VulkanFence(false);
+		m_fence   = trx_new VulkanFence(false);
+		m_manager = manager;
 
 		vk::CommandPool pool = manager->command_pool();
 		vk::CommandBufferAllocateInfo alloc_info(pool, vk::CommandBufferLevel::ePrimary, 1);
@@ -159,14 +161,14 @@ namespace Engine
 
 	void VulkanCommandHandle::destroy()
 	{
-		API->command_buffer_mananger()->return_handle(this);
+		m_manager->return_handle(this);
 	}
 
 	VulkanCommandHandle::~VulkanCommandHandle()
 	{
 		wait();
 
-		auto pool = API->command_buffer_mananger()->command_pool();
+		auto pool = m_manager->command_pool();
 		API->m_device.freeCommandBuffers(pool, *this);
 
 		for (auto& page : m_uniform_buffers)
@@ -197,16 +199,25 @@ namespace Engine
 		API->m_device.destroyCommandPool(m_pool);
 	}
 
+	VulkanCommandBufferManager* VulkanCommandBufferManager::instance()
+	{
+		static thread_local VulkanCommandBufferManager* manager = trx_new VulkanCommandBufferManager();
+		return manager;
+	}
+
 	VulkanCommandHandle* VulkanCommandBufferManager::request_handle()
 	{
-		if (!m_handles.empty())
 		{
-			auto front = m_handles.front();
-
-			if (front->refresh_fence_status().is_ready_for_begin())
+			ScopeLock lock(m_critical);
+			if (!m_handles.empty())
 			{
-				m_handles.pop_front();
-				return front;
+				auto front = m_handles.front();
+
+				if (front->refresh_fence_status().is_ready_for_begin())
+				{
+					m_handles.pop_front();
+					return front;
+				}
 			}
 		}
 
@@ -215,6 +226,7 @@ namespace Engine
 
 	VulkanCommandBufferManager& VulkanCommandBufferManager::return_handle(VulkanCommandHandle* handle)
 	{
+		ScopeLock lock(m_critical);
 		m_handles.push_back(handle);
 		handle->add_reference();
 		handle->enqueue();
@@ -236,7 +248,7 @@ namespace Engine
 	{
 		if (m_cmd == nullptr)
 		{
-			m_cmd = API->command_buffer_mananger()->request_handle();
+			m_cmd = VulkanCommandBufferManager::instance()->request_handle();
 			m_cmd->begin();
 
 			reset_state();

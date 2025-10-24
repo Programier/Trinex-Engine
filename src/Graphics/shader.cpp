@@ -10,7 +10,7 @@ namespace Engine
 
 	Shader& Shader::init_render_resources()
 	{
-		render_thread()->call([this] { m_shader = rhi->create_shader(source_code.data(), source_code.size()); });
+		m_shader = rhi->create_shader(source_code.data(), source_code.size());
 		return *this;
 	}
 

@@ -56,14 +56,12 @@ namespace Engine
 		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)              = 0;
 		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)        = 0;
 		virtual RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) = 0;
-		virtual RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags flags)        = 0;
+		virtual RHIBuffer* create_buffer(size_t size, RHIBufferCreateFlags flags)                          = 0;
 		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                 = 0;
 		virtual RHIContext* create_context()                                                               = 0;
 
 		// Raytracing
-		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) = 0;
-		virtual RHIBuffer* create_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t size,
-		                                                RHIBufferCreateFlags flags = {});
+		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs)    = 0;
 		virtual const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) = 0;
 
 		virtual RHI& present(RHISwapchain* swapchain) = 0;

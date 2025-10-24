@@ -188,7 +188,7 @@ namespace Engine
 		if (m_layout)
 			m_layout->release();
 
-		m_layout = API->create_pipeline_layout(parameter, count, stages);
+		m_layout = API->pipeline_layout_manager()->allocate(parameter, count, stages);
 		return m_layout;
 	}
 
@@ -199,9 +199,8 @@ namespace Engine
 		if (!is_dirty_state(state))
 			return *this;
 
-		vk::DescriptorSet set                = API->descriptor_set_allocator()->allocate(m_layout, state);
+		vk::DescriptorSet set                = VulkanDescriptorSetAllocator::instance()->allocate(m_layout, state);
 		vk::DescriptorSet descriptor_sets[2] = {set, API->descriptor_heap()->descriptor_set()};
-
 
 		StackByteAllocator::Mark mark;
 		size_t uniforms_count   = m_layout->uniform_buffers_count();
@@ -602,7 +601,7 @@ namespace Engine
 			align_shader_binding_table(storage, pipeline->groups_count, handle_size, handle_size_aligned);
 
 			m_sbt = trx_new VulkanBuffer();
-			m_sbt->create(storage_size, storage, RHIBufferCreateFlags::ShaderBindingTable | RHIBufferCreateFlags::DeviceAddress);
+			//m_sbt->create(storage_size, storage, RHIBufferCreateFlags::ShaderBindingTable | RHIBufferCreateFlags::DeviceAddress);
 		}
 	}
 

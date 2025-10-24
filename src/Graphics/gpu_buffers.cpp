@@ -18,7 +18,10 @@ namespace Engine
 		{
 			render_thread()->call([this]() {
 				byte memory[64] = {};
-				m_buffer        = rhi->create_buffer(64, memory, m_flags | RHIBufferCreateFlags::VertexBuffer);
+				m_buffer        = rhi->create_buffer(64, m_flags | RHIBufferCreateFlags::VertexBuffer);
+				rhi->context()->barrier(m_buffer, RHIAccess::TransferDst);
+				rhi->context()->update_buffer(m_buffer, 0, 64, memory);
+				rhi->context()->barrier(m_buffer, RHIAccess::VertexBuffer);
 			});
 		}
 
@@ -104,7 +107,9 @@ namespace Engine
 		if (m_vtx_count > 0 && m_buffer == nullptr)
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
-				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_data, m_flags | RHIBufferCreateFlags::VertexBuffer);
+				m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferCreateFlags::VertexBuffer);
+				rhi->context()->barrier(m_buffer.get(), RHIAccess::TransferDst);
+				rhi->context()->update_buffer(m_buffer.get(), 0, size(), m_data);
 
 				rhi->context()->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
@@ -319,7 +324,9 @@ namespace Engine
 		if (m_idx_count > 0 && m_buffer == nullptr)
 		{
 			auto create_buffer = [this, keep_cpu_data]() {
-				m_buffer = rhi->create_buffer(size(), m_data, m_flags | RHIBufferCreateFlags::IndexBuffer);
+				m_buffer = rhi->create_buffer(size(), m_flags | RHIBufferCreateFlags::IndexBuffer);
+				rhi->context()->barrier(m_buffer.get(), RHIAccess::TransferDst);
+				rhi->context()->update_buffer(m_buffer, 0, size(), m_data);
 				rhi->context()->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
 
 				if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)

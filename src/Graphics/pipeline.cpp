@@ -178,23 +178,21 @@ namespace Engine
 
 		if (vs_inited && fs_inited)
 		{
-			render_thread()->call([this]() {
-				RHIGraphicsPipelineInitializer initializer;
-				initializer.vertex_shader               = extract_shader(vertex_shader());
-				initializer.tessellation_control_shader = extract_shader(tessellation_control_shader());
-				initializer.tessellation_shader         = extract_shader(tessellation_shader());
-				initializer.geometry_shader             = extract_shader(geometry_shader());
-				initializer.fragment_shader             = extract_shader(fragment_shader());
-				initializer.parameters                  = parameters().data();
-				initializer.parameters_count            = parameters().size();
-				initializer.vertex_attributes           = vertex_attributes.data();
-				initializer.vertex_attributes_count     = vertex_attributes.size();
+			RHIGraphicsPipelineInitializer initializer;
+			initializer.vertex_shader               = extract_shader(vertex_shader());
+			initializer.tessellation_control_shader = extract_shader(tessellation_control_shader());
+			initializer.tessellation_shader         = extract_shader(tessellation_shader());
+			initializer.geometry_shader             = extract_shader(geometry_shader());
+			initializer.fragment_shader             = extract_shader(fragment_shader());
+			initializer.parameters                  = parameters().data();
+			initializer.parameters_count            = parameters().size();
+			initializer.vertex_attributes           = vertex_attributes.data();
+			initializer.vertex_attributes_count     = vertex_attributes.size();
 
-				initializer.parameters       = parameters().data();
-				initializer.parameters_count = parameters().size();
+			initializer.parameters       = parameters().data();
+			initializer.parameters_count = parameters().size();
 
-				m_pipeline = rhi->create_graphics_pipeline(&initializer);
-			});
+			m_pipeline = rhi->create_graphics_pipeline(&initializer);
 		}
 		return *this;
 	}
@@ -421,14 +419,13 @@ namespace Engine
 	ComputePipeline& ComputePipeline::init_render_resources()
 	{
 		init_shader(m_shader);
-		render_thread()->call([this]() {
-			RHIComputePipelineInitializer initializer;
-			initializer.compute_shader   = compute_shader()->rhi_shader();
-			initializer.parameters       = parameters().data();
-			initializer.parameters_count = parameters().size();
 
-			m_pipeline = rhi->create_compute_pipeline(&initializer);
-		});
+		RHIComputePipelineInitializer initializer;
+		initializer.compute_shader   = compute_shader()->rhi_shader();
+		initializer.parameters       = parameters().data();
+		initializer.parameters_count = parameters().size();
+
+		m_pipeline = rhi->create_compute_pipeline(&initializer);
 		return *this;
 	}
 

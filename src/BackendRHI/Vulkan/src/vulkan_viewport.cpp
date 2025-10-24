@@ -233,7 +233,7 @@ namespace Engine
 		try
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
-			result = API->m_graphics_queue->queue().presentKHR(present_info);
+			result = API->m_graphics_queue->present(present_info);
 		}
 		catch (const vk::OutOfDateKHRError& e)
 		{

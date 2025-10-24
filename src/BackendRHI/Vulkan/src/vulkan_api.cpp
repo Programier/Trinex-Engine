@@ -1,5 +1,4 @@
-﻿
-#include <VkBootstrap.h>
+﻿#include <VkBootstrap.h>
 
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
@@ -29,6 +28,7 @@
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
+#include <vulkan_thread_local.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -285,13 +285,11 @@ namespace Engine
 
 		initialize_pfn();
 
-		m_cmd_manager              = trx_new VulkanCommandBufferManager();
-		m_stagging_manager         = trx_new VulkanStaggingBufferManager();
-		m_descriptor_set_allocator = trx_new VulkanDescriptorSetAllocator();
-		m_query_pool_manager       = trx_new VulkanQueryPoolManager();
-		m_descriptor_heap          = trx_new VulkanDescriptorHeap();
-		m_updater                  = trx_new VulkanUpdater();
-
+		m_stagging_manager        = trx_new VulkanStaggingBufferManager();
+		m_pipeline_layout_manager = trx_new VulkanPipelineLayoutManager();
+		m_query_pool_manager      = trx_new VulkanQueryPoolManager();
+		m_descriptor_heap         = trx_new VulkanDescriptorHeap();
+		m_updater                 = trx_new VulkanUpdater();
 
 		// Initialize memory allocator
 		{
@@ -330,15 +328,14 @@ namespace Engine
 
 		trx_delete m_updater;
 		trx_delete m_stagging_manager;
-		trx_delete m_cmd_manager;
+		trx_delete m_pipeline_layout_manager;
 		trx_delete m_graphics_queue;
-		trx_delete m_descriptor_set_allocator;
 		trx_delete m_query_pool_manager;
 		trx_delete m_descriptor_heap;
 
-		for (auto& [hash, layout] : m_pipeline_layouts)
+		for (VulkanThreadLocal* local : m_thread_locals)
 		{
-			trx_delete layout;
+			trx_delete local;
 		}
 
 		vmaDestroyAllocator(m_allocator);
@@ -467,7 +464,7 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::idle()
 	{
-		m_graphics_queue->queue().waitIdle();
+		m_graphics_queue->idle();
 		return *this;
 	}
 

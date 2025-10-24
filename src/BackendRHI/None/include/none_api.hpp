@@ -30,7 +30,7 @@ namespace Engine
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
-		RHIBuffer* create_buffer(size_t size, const byte* data, RHIBufferCreateFlags type) override;
+		RHIBuffer* create_buffer(size_t size, RHIBufferCreateFlags type) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context() override;
 

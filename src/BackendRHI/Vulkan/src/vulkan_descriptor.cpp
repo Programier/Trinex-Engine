@@ -73,7 +73,83 @@ namespace Engine
 
 	void VulkanPipelineLayout::destroy()
 	{
-		API->destroy_pipeline_layout(this);
+		API->pipeline_layout_manager()->desctroy(this);
+	}
+
+	VulkanPipelineLayout* VulkanPipelineLayoutManager::allocate(const RHIShaderParameterInfo* parameters, size_t count,
+	                                                            vk::ShaderStageFlags stages)
+	{
+		using Descriptor = VulkanPipelineLayout::Descriptor;
+
+		StackByteAllocator::Mark mark;
+		Descriptor* descriptors = StackAllocator<Descriptor>::allocate(count);
+
+		size_t descriptors_count = 0;
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			auto type    = VulkanEnums::descriptor_type_of(parameters[i].type);
+			auto binding = parameters[i].binding;
+
+			for (size_t j = 0; j < descriptors_count; ++j)
+			{
+				if (descriptors[j].type == type && descriptors[j].binding == binding)
+				{
+					goto next_parameter;
+				}
+			}
+
+			descriptors[descriptors_count].binding = binding;
+			descriptors[descriptors_count].type    = type;
+			++descriptors_count;
+
+		next_parameter:;
+		}
+
+		std::sort(descriptors, descriptors + descriptors_count);
+
+		uint64_t hash = static_cast<uint64_t>(static_cast<VkShaderStageFlags>(stages));
+		hash          = memory_hash(descriptors, descriptors_count * sizeof(Descriptor), hash);
+
+		ScopeLock lock(m_section);
+		auto search_result = m_pipeline_layouts.equal_range(hash);
+
+		while (search_result.first != search_result.second)
+		{
+			VulkanPipelineLayout* layout = search_result.first->second;
+			if (layout->equals(descriptors, descriptors_count))
+			{
+				layout->add_reference();
+				return layout;
+			}
+			++search_result.first;
+		}
+
+		// Layout is not found, create new one
+		VulkanPipelineLayout* layout = trx_new VulkanPipelineLayout(hash, stages, descriptors, descriptors_count);
+		m_pipeline_layouts.insert({hash, layout});
+		return layout;
+	}
+
+	VulkanPipelineLayoutManager& VulkanPipelineLayoutManager::desctroy(VulkanPipelineLayout* layout)
+	{
+		ScopeLock lock(m_section);
+		auto search_result = m_pipeline_layouts.equal_range(layout->hash());
+
+		while (search_result.first != search_result.second)
+		{
+			VulkanPipelineLayout* target = search_result.first->second;
+
+			if (target->equals(layout->descriptors(), layout->descriptors_count()))
+			{
+				m_pipeline_layouts.erase(search_result.first);
+				trx_delete layout;
+				return *this;
+			}
+			++search_result.first;
+		}
+
+		return *this;
 	}
 
 	struct VulkanDescriptorSetAllocator::VulkanDescriptorPool {
@@ -413,76 +489,9 @@ namespace Engine
 		return set;
 	}
 
-	VulkanPipelineLayout* VulkanAPI::create_pipeline_layout(const RHIShaderParameterInfo* parameters, size_t count,
-	                                                        vk::ShaderStageFlags stages)
+	VulkanDescriptorSetAllocator* VulkanDescriptorSetAllocator::instance()
 	{
-		using Descriptor = VulkanPipelineLayout::Descriptor;
-
-		StackByteAllocator::Mark mark;
-		Descriptor* descriptors = StackAllocator<Descriptor>::allocate(count);
-
-		size_t descriptors_count = 0;
-
-		for (size_t i = 0; i < count; ++i)
-		{
-			auto type    = VulkanEnums::descriptor_type_of(parameters[i].type);
-			auto binding = parameters[i].binding;
-
-			for (size_t j = 0; j < descriptors_count; ++j)
-			{
-				if (descriptors[j].type == type && descriptors[j].binding == binding)
-				{
-					goto next_parameter;
-				}
-			}
-
-			descriptors[descriptors_count].binding = binding;
-			descriptors[descriptors_count].type    = type;
-			++descriptors_count;
-
-		next_parameter:;
-		}
-
-		std::sort(descriptors, descriptors + descriptors_count);
-
-		uint64_t hash = static_cast<uint64_t>(static_cast<VkShaderStageFlags>(stages));
-		hash          = memory_hash(descriptors, descriptors_count * sizeof(Descriptor), hash);
-
-		auto search_result = m_pipeline_layouts.equal_range(hash);
-
-		while (search_result.first != search_result.second)
-		{
-			VulkanPipelineLayout* layout = search_result.first->second;
-			if (layout->equals(descriptors, descriptors_count))
-			{
-				layout->add_reference();
-				return layout;
-			}
-			++search_result.first;
-		}
-
-		// Layout is not found, create new one
-		VulkanPipelineLayout* layout = trx_new VulkanPipelineLayout(hash, stages, descriptors, descriptors_count);
-		m_pipeline_layouts.insert({hash, layout});
-		return layout;
-	}
-
-	VulkanAPI& VulkanAPI::destroy_pipeline_layout(VulkanPipelineLayout* layout)
-	{
-		auto search_result = m_pipeline_layouts.equal_range(layout->hash());
-
-		while (search_result.first != search_result.second)
-		{
-			VulkanPipelineLayout* target = search_result.first->second;
-
-			if (target->equals(layout->descriptors(), layout->descriptors_count()))
-			{
-				m_pipeline_layouts.erase(search_result.first);
-				trx_delete layout;
-				return *this;
-			}
-			++search_result.first;
-		}
-		return *this;
+		static thread_local VulkanDescriptorSetAllocator* allocator = trx_new VulkanDescriptorSetAllocator();
+		return allocator;
 	}
 }// namespace Engine

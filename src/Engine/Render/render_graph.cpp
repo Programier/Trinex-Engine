@@ -3,6 +3,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/memory.hpp>
+#include <Core/profiler.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
@@ -239,6 +240,8 @@ namespace Engine::RenderGraph
 
 	Graph::Node* Graph::build_graph(Pass* writer)
 	{
+		trinex_profile_cpu_n("RenderGraph::Build writer node");
+		
 		if (writer->m_node)
 			return writer->m_node;
 
@@ -275,6 +278,7 @@ namespace Engine::RenderGraph
 
 	Graph::Node* Graph::build_graph(Resource* resource)
 	{
+		trinex_profile_cpu_n("RenderGraph::Build resource node");
 		auto writer = resource->writer();
 
 		if (writer == nullptr)
@@ -293,6 +297,7 @@ namespace Engine::RenderGraph
 
 	Graph::Node* Graph::build_graph()
 	{
+		trinex_profile_cpu_n("RenderGraph::build");
 		Node* root = Node::create();
 
 		for (RHIObject* output : m_outputs)
@@ -333,6 +338,7 @@ namespace Engine::RenderGraph
 
 	bool Graph::execute(RHIContext* ctx)
 	{
+		trinex_profile_cpu_n("RenderGraph::execute");
 		StackByteAllocator::Mark mark;
 		Node* root = build_graph();
 

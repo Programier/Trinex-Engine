@@ -204,7 +204,7 @@ namespace Engine
 			return buffer;
 		}
 
-		RHIBuffer* buffer   = rhi->create_buffer(size, nullptr, flags);
+		RHIBuffer* buffer   = rhi->create_buffer(size, flags);
 		m_buffer_id[buffer] = buffer_id;
 		return buffer;
 	}

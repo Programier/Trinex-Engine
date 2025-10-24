@@ -96,6 +96,8 @@ namespace Engine
 
 	RHIDescriptor VulkanDescriptorHeap::allocate(HeapType type)
 	{
+		ScopeLock lock(m_criticals[type]);
+		
 		auto& free = m_free[type];
 
 		if (!free.empty())

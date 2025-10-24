@@ -1,8 +1,10 @@
 #pragma once
+#include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/context.hpp>
 #include <vulkan/vulkan.hpp>
+#include <vulkan_thread_local.hpp>
 
 namespace Engine
 {
@@ -12,6 +14,7 @@ namespace Engine
 	class VulkanBuffer;
 	class VulkanUniformBuffer;
 	class VulkanFence;
+	class VulkanDescriptorSetAllocator;
 
 	class VulkanCommandHandle final : public vk::CommandBuffer, public RHICommandHandle
 	{
@@ -49,6 +52,7 @@ namespace Engine
 		};
 
 		class VulkanFence* m_fence = nullptr;
+		class VulkanCommandBufferManager* m_manager;
 		Vector<UniformBuffer> m_uniform_buffers;
 		Vector<RHIObject*> m_stagging;
 		State m_state = State::IsReadyForBegin;
@@ -95,18 +99,22 @@ namespace Engine
 		inline VulkanFence* fence() const { return m_fence; }
 	};
 
-	class VulkanCommandBufferManager
+	class VulkanCommandBufferManager : public VulkanThreadLocal
 	{
 	private:
+		CriticalSection m_critical;
 		vk::CommandPool m_pool;
 		Deque<VulkanCommandHandle*> m_handles;
-
 
 	public:
 		VulkanCommandBufferManager();
 		~VulkanCommandBufferManager();
+
+		static VulkanCommandBufferManager* instance();
+
 		VulkanCommandHandle* request_handle();
 		VulkanCommandBufferManager& return_handle(VulkanCommandHandle* handle);
+
 		inline vk::CommandPool command_pool() const { return m_pool; }
 	};
 

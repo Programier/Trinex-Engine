@@ -1,10 +1,12 @@
 #pragma once
+#include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
+#include <vulkan_thread_local.hpp>
 
 namespace Engine
 {
@@ -91,7 +93,18 @@ namespace Engine
 		friend class VulkanPipelineLayoutManager;
 	};
 
-	class VulkanDescriptorSetAllocator
+	class VulkanPipelineLayoutManager
+	{
+	private:
+		CriticalSection m_section;
+		MultiMap<uint64_t, class VulkanPipelineLayout*> m_pipeline_layouts;
+
+	public:
+		VulkanPipelineLayout* allocate(const RHIShaderParameterInfo* parameters, size_t count, vk::ShaderStageFlags stages);
+		VulkanPipelineLayoutManager& desctroy(VulkanPipelineLayout* layout);
+	};
+
+	class VulkanDescriptorSetAllocator : public VulkanThreadLocal
 	{
 	public:
 		struct VulkanDescriptorPool;
@@ -109,5 +122,7 @@ namespace Engine
 		VulkanDescriptorSetAllocator();
 		~VulkanDescriptorSetAllocator();
 		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, VulkanStateManager* state);
+
+		static VulkanDescriptorSetAllocator* instance();
 	};
 }// namespace Engine
