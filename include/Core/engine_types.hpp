@@ -28,6 +28,10 @@ namespace Engine
 	using float_t   = float;
 	using double_t  = double;
 
+	using float16_t = _Float16;
+	using float32_t = float;
+	using float64_t = double;
+
 	using signed_byte = std::int8_t;
 	using size_t      = std::uint64_t;
 	using ptrdiff_t   = std::int64_t;
