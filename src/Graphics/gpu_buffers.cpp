@@ -61,6 +61,7 @@ namespace Engine
 	{
 		m_flags     = buffer.m_flags;
 		m_vtx_count = buffer.m_vtx_count;
+		m_stride    = buffer.m_stride;
 		m_data      = buffer.m_data;
 		m_buffer    = std::move(buffer.m_buffer);
 
@@ -84,6 +85,7 @@ namespace Engine
 
 		m_flags     = buffer.m_flags;
 		m_vtx_count = buffer.m_vtx_count;
+		m_stride    = buffer.m_stride;
 		m_data      = buffer.m_data;
 		m_buffer    = std::move(buffer.m_buffer);
 

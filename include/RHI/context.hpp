@@ -112,10 +112,11 @@ namespace Engine
 		virtual RHIContext& front_face(RHIFrontFace face)                     = 0;
 		virtual RHIContext& write_mask(RHIColorComponent mask)                = 0;
 
-		virtual RHIContext& bind_vertex_attribute(RHIVertexSemantic semantic, byte stream, uint16_t offset = 0) = 0;
+		virtual RHIContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, byte stream,
+		                                          uint16_t offset = 0)                                          = 0;
 		virtual RHIContext& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
 		                                       RHIVertexInputRate rate = RHIVertexInputRate::Vertex)            = 0;
-		virtual RHIContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)                         = 0;
+		virtual RHIContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, size_t byte_offset = 0) = 0;
 		virtual RHIContext& bind_uniform_buffer(RHIBuffer* buffer, byte slot)                                   = 0;
 
 		virtual RHIContext& bind_pipeline(RHIPipeline* pipeline)                                 = 0;

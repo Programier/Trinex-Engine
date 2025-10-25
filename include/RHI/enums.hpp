@@ -244,62 +244,6 @@ namespace Engine
 		trinex_enum_struct(RHIVertexSemantic);
 	};
 
-	struct RHIVertexFormat {
-		enum Enum : byte
-		{
-			Undefined = 0,
-			Float1    = 1,
-			Float2    = 2,
-			Float3    = 3,
-			Float4    = 4,
-
-			Byte1 = 5,
-			Byte2 = 6,
-			Byte4 = 7,
-
-			Byte1N = 8,
-			Byte2N = 9,
-			Byte4N = 10,
-
-			UByte1 = 11,
-			UByte2 = 12,
-			UByte4 = 13,
-
-			UByte1N = 14,
-			UByte2N = 15,
-			UByte4N = 16,
-			Color   = 16,
-
-			Short1 = 17,
-			Short2 = 18,
-			Short4 = 19,
-
-			Short1N = 20,
-			Short2N = 21,
-			Short4N = 22,
-
-			UShort1 = 23,
-			UShort2 = 24,
-			UShort4 = 25,
-
-			UShort1N = 26,
-			UShort2N = 27,
-			UShort4N = 28,
-
-			Int1 = 29,
-			Int2 = 30,
-			Int3 = 31,
-			Int4 = 32,
-
-			UInt1 = 33,
-			UInt2 = 34,
-			UInt3 = 35,
-			UInt4 = 36,
-		};
-
-		trinex_enum_struct(RHIVertexFormat);
-	};
-
 	struct RHISamplerFilter {
 		enum Enum : byte
 		{
@@ -446,6 +390,8 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIIndexFormat);
+
+		inline size_t stride() const { return value << 1; }
 	};
 
 	struct ENGINE_EXPORT RHIColorFormat {
@@ -656,6 +602,74 @@ namespace Engine
 		inline bool has_depth() const { return as_color_format().has_depth(); }
 
 		operator RHIColorFormat() const { return as_color_format(); }
+	};
+
+	struct RHIVertexFormat {
+		enum Enum : byte
+		{
+			Undefined = 0,
+
+			// Unsigned normalized formats,
+			R8      = 1,
+			RG8     = 2,
+			RGB8    = 3,
+			RGBA8   = 4,
+			RGB10A2 = 5,
+			R16     = 6,
+			RG16    = 7,
+			RGB16   = 8,
+			RGBA16  = 9,
+
+			// Signed normalized formats
+			R8S     = 10,
+			RG8S    = 11,
+			RGB8S   = 12,
+			RGBA8S  = 13,
+			R16S    = 14,
+			RG16S   = 15,
+			RGB16S  = 16,
+			RGBA16S = 17,
+
+			// Unsigned integer formats
+			R8UI     = 18,
+			RG8UI    = 19,
+			RGB8UI   = 20,
+			RGBA8UI  = 21,
+			R16UI    = 22,
+			RG16UI   = 23,
+			RGB16UI  = 24,
+			RGBA16UI = 25,
+			R32UI    = 26,
+			RG32UI   = 27,
+			RGB32UI  = 28,
+			RGBA32UI = 29,
+
+			// Signed integer formats
+			R8SI     = 30,
+			RG8SI    = 31,
+			RGB8SI   = 32,
+			RGBA8SI  = 33,
+			R16SI    = 34,
+			RG16SI   = 35,
+			RGB16SI  = 36,
+			RGBA16SI = 37,
+			R32SI    = 38,
+			RG32SI   = 39,
+			RGB32SI  = 40,
+			RGBA32SI = 41,
+
+			// Floating formats
+			R16F    = 42,
+			RG16F   = 43,
+			RGB16F  = 44,
+			RGBA16F = 45,
+			R32F    = 46,
+			RG32F   = 47,
+			RGB32F  = 48,
+			RGBA32F = 49,
+		};
+
+		trinex_enum_struct(RHIVertexFormat);
 	};
 
 	constexpr inline RHIColorFormat::RHIColorFormat(const struct RHISurfaceFormat& format)

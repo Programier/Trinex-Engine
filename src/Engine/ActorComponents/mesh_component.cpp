@@ -70,13 +70,14 @@ namespace Engine
 
 				if (buffer)
 				{
-					ctx->context->bind_vertex_attribute(semantic, stream, 0);
+					ctx->context->bind_vertex_attribute(semantic, va->format, stream, 0);
 					ctx->context->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
 					++stream;
 				}
 				else
 				{
-					ctx->context->bind_vertex_attribute(semantic, 0, 0);
+					RHIVertexFormat format = va ? va->format : RHIVertexFormat(RHIVertexFormat::RGBA32F);
+					ctx->context->bind_vertex_attribute(semantic, format, 0, 0);
 				}
 			}
 
@@ -86,16 +87,16 @@ namespace Engine
 				{
 					ctx->context->bind_index_buffer(buffer->rhi_buffer(), surface_data->index_format);
 					ctx->context->draw_indexed(surface_data->vertices_count, surface_data->first_index,
-					                           surface_data->base_vertex_index);
+					                           surface_data->first_vertex);
 				}
 				else
 				{
-					ctx->context->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+					ctx->context->draw(surface_data->vertices_count, surface_data->first_vertex);
 				}
 			}
 			else
 			{
-				ctx->context->draw(surface_data->vertices_count, surface_data->base_vertex_index);
+				ctx->context->draw(surface_data->vertices_count, surface_data->first_vertex);
 			}
 		}
 		return *this;

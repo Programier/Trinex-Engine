@@ -374,10 +374,10 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format)
+	VulkanContext& VulkanContext::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, size_t byte_offset)
 	{
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
-		m_cmd->bindIndexBuffer(vulkan_buffer->buffer(), 0,
+		m_cmd->bindIndexBuffer(vulkan_buffer->buffer(), byte_offset,
 		                       format == RHIIndexFormat::UInt16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
 		return *this;
 	}

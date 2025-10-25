@@ -68,7 +68,6 @@ namespace Engine
 	};
 
 	struct RHIVertexAttribute {
-		RHIVertexFormat format;
 		RHIVertexSemantic semantic;
 		byte binding;
 

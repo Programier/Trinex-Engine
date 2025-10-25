@@ -161,7 +161,7 @@ namespace Engine
 
 				auto va_state = vertex_attributes.resource(src.semantic);
 
-				va_desc[i].format   = src.format;
+				va_desc[i].format   = VulkanEnums::vertex_format_of(va_state.format);
 				va_desc[i].offset   = va_state.offset;
 				va_desc[i].location = src.binding;
 				va_desc[i].binding  = va_state.stream;
@@ -205,12 +205,13 @@ namespace Engine
 	uint128_t VulkanStateManager::graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const
 	{
 		struct VACache {
-			uint32_t format;
 			uint16_t offset;
 			uint16_t stride;
 			uint16_t binding;
+			byte format;
 			byte stream;
 			byte rate;
+			byte padding = 0;
 		};
 
 		uint128_t hash = memory_hash(&m_graphics_state, sizeof(m_graphics_state), 0);
@@ -226,7 +227,7 @@ namespace Engine
 				auto va_state = vertex_attributes.resource(src.semantic);
 				auto vs_state = vertex_streams.resource(va_state.stream);
 
-				va.format  = static_cast<uint32_t>(src.format);
+				va.format  = va_state.format;
 				va.offset  = va_state.offset;
 				va.stride  = vs_state.stride;
 				va.binding = src.binding;
@@ -299,11 +300,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, byte stream, uint16_t offset)
+	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, byte stream,
+	                                                    uint16_t offset)
 	{
 		VulkanStateManager::VertexAttribute va;
 		va.stream = stream;
 		va.offset = offset;
+		va.format = format;
 
 		m_state_manager->vertex_attributes.bind(va, semantic);
 		return *this;

@@ -16,7 +16,6 @@ namespace Engine
 	class Pipeline;
 
 	struct VulkanVertexAttribute {
-		vk::Format format;
 		RHIVertexSemantic semantic;
 		byte binding;
 	};

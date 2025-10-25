@@ -186,10 +186,11 @@ namespace Engine
 		VulkanContext& front_face(RHIFrontFace face) override;
 		VulkanContext& write_mask(RHIColorComponent mask) override;
 
-		VulkanContext& bind_vertex_attribute(RHIVertexSemantic semantic, byte stream, uint16_t offset) override;
+		VulkanContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, byte stream,
+		                                     uint16_t offset) override;
 		VulkanContext& bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
 		                                  RHIVertexInputRate rate) override;
-		VulkanContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format) override;
+		VulkanContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, size_t byte_offset = 0) override;
 		VulkanContext& bind_uniform_buffer(RHIBuffer* buffer, byte slot) override;
 		VulkanContext& bind_uniform_buffer(VulkanBuffer* buffer, uint32_t size, uint32_t offset, byte slot);
 		VulkanContext& bind_srv(RHIShaderResourceView* view, byte slot) override;

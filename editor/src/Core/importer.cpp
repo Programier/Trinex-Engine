@@ -352,10 +352,10 @@ namespace Engine::Importer
 
 				MeshSurface& surface = lod.surfaces[mesh_index];
 
-				surface.attributes = {{RHIVertexSemantic::Position, RHIVertexFormat::Float3, 0, 0},
-				                      {RHIVertexSemantic::Normal, RHIVertexFormat::Float3, 1, 0},
-				                      {RHIVertexSemantic::Tangent, RHIVertexFormat::Float4, 2, 0},
-				                      {RHIVertexSemantic::TexCoord0, RHIVertexFormat::Float2, 3, 0}};
+				surface.attributes = {{RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0, 0},
+				                      {RHIVertexSemantic::Normal, RHIVertexFormat::RGB32F, 1, 0},
+				                      {RHIVertexSemantic::Tangent, RHIVertexFormat::RGBA32F, 2, 0},
+				                      {RHIVertexSemantic::TexCoord0, RHIVertexFormat::RG32F, 3, 0}};
 
 				surface.index_format = index_format;
 
@@ -368,8 +368,8 @@ namespace Engine::Importer
 				else
 					surface.topology = RHIPrimitiveTopology::TriangleList;
 
-				surface.base_vertex_index = positions.size;
-				surface.first_index       = indices.size;
+				surface.first_vertex = positions.size;
+				surface.first_index  = indices.size;
 
 				for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
 				{

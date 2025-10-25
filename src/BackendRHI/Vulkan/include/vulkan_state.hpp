@@ -104,10 +104,11 @@ namespace Engine
 		struct VertexAttribute {
 			uint16_t stream;
 			uint16_t offset;
+			RHIVertexFormat format;
 
 			inline bool operator==(const VertexAttribute& other) const
 			{
-				return stream == other.stream && offset == other.offset;
+				return stream == other.stream && offset == other.offset && format == other.format;
 			}
 
 			inline bool operator!=(const VertexAttribute& other) const { return !((*this) == other); }

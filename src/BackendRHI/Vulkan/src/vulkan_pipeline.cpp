@@ -286,7 +286,6 @@ namespace Engine
 
 			dst.semantic = src.semantic;
 			dst.binding  = src.binding;
-			dst.format   = VulkanEnums::vertex_format_of(src.format);
 		}
 
 		static vk::ShaderStageFlagBits graphics_stages[] = {

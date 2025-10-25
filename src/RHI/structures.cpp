@@ -100,7 +100,6 @@ namespace Engine
 
 	bool RHIVertexAttribute::serialize(Archive& ar)
 	{
-		ar.serialize(format);
 		ar.serialize(semantic);
 		return ar.serialize(binding);
 	}

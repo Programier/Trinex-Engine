@@ -224,52 +224,6 @@ namespace Engine
 			}
 		}
 
-		static RHIVertexFormat find_vertex_element_type(slang::TypeLayoutReflection* var, RHIVertexSemantic semantic)
-		{
-			if (var == nullptr)
-				return RHIVertexFormat::Undefined;
-
-			auto kind = var->getKind();
-
-			if (kind == slang::TypeReflection::Kind::Scalar)
-			{
-				switch (var->getScalarType())
-				{
-					case slang::TypeReflection::ScalarType::Int8: return RHIVertexFormat::Byte1;
-					case slang::TypeReflection::ScalarType::UInt8: return RHIVertexFormat::UByte1;
-					case slang::TypeReflection::ScalarType::Int16: return RHIVertexFormat::Short1;
-					case slang::TypeReflection::ScalarType::UInt16: return RHIVertexFormat::UShort1;
-					case slang::TypeReflection::ScalarType::Int32: return RHIVertexFormat::Int1;
-					case slang::TypeReflection::ScalarType::UInt32: return RHIVertexFormat::UInt1;
-					case slang::TypeReflection::ScalarType::Float32: return RHIVertexFormat::Float1;
-					default: return RHIVertexFormat::Undefined;
-				}
-			}
-			else if (kind == slang::TypeReflection::Kind::Vector)
-			{
-				auto base_type         = find_vertex_element_type(var->getElementTypeLayout(), semantic);
-				auto components_offset = var->getElementCount() - 1;
-
-				if (components_offset > 3)
-					return RHIVertexFormat::Undefined;
-
-				if (components_offset == 3 &&
-				    !is_in<RHIVertexFormat::Float1, RHIVertexFormat::Int1, RHIVertexFormat::UInt1>(base_type))
-				{
-					--components_offset;
-				}
-
-				RHIVertexFormat result(
-				        static_cast<RHIVertexFormat::Enum>(static_cast<EnumerateType>(base_type) + components_offset));
-
-				if (semantic == RHIVertexSemantic::Color && result == RHIVertexFormat::Float4)
-					return RHIVertexFormat::Color;
-				return result;
-			}
-
-			return RHIVertexFormat::Undefined;
-		}
-
 		inline bool is_variable_used(const VarTraceEntry& var, byte index)
 		{
 			using SPC = SlangParameterCategory;
@@ -348,9 +302,7 @@ namespace Engine
 					attribute.semantic = static_cast<RHIVertexSemantic::Enum>(attribute.semantic.value + index);
 				}
 
-				attribute.format  = find_vertex_element_type(var->getTypeLayout(), attribute.semantic);
 				attribute.binding = var.trace_offset(category);
-
 				m_reflection->vertex_attributes.push_back(attribute);
 			}
 			else

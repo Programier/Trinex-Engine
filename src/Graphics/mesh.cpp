@@ -15,7 +15,7 @@ namespace Engine
 	trinex_implement_struct(Engine::MeshSurface, 0)
 	{
 		trinex_refl_prop(topology, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(base_vertex_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
+		trinex_refl_prop(first_vertex, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(first_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(vertices_count, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(material_index, Refl::Property::IsTransient);
@@ -45,7 +45,7 @@ namespace Engine
 
 	bool MeshSurface::serialize(Archive& ar)
 	{
-		return ar.serialize(attributes, topology, index_format, base_vertex_index, first_index, vertices_count, material_index);
+		return ar.serialize(attributes, topology, index_format, first_vertex, first_index, vertices_count, material_index);
 	}
 
 	StaticMesh& StaticMesh::init_render_resources()

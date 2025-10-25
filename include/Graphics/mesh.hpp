@@ -23,9 +23,9 @@ namespace Engine
 
 		FlatSet<Attribute> attributes;
 		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
-		RHIIndexFormat index_format   = RHIIndexFormat::UInt32;
-		uint32_t base_vertex_index    = 0;
-		uint32_t first_index          = 0;
+		RHIIndexFormat index_format   = RHIIndexFormat::Undefined;
+		uint32_t first_vertex         = 0;
+		uint32_t first_index          = ~0U;
 		uint32_t vertices_count       = 0;
 		uint16_t material_index       = 0;
 
