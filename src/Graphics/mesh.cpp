@@ -45,7 +45,7 @@ namespace Engine
 
 	bool MeshSurface::serialize(Archive& ar)
 	{
-		return ar.serialize(attributes, topology, index_format, first_vertex, first_index, vertices_count, material_index);
+		return ar.serialize(topology, first_vertex, first_index, vertices_count, material_index);
 	}
 
 	StaticMesh& StaticMesh::init_render_resources()
@@ -93,7 +93,7 @@ namespace Engine
 	{
 		serialize_buffers(ar, buffers);
 		indices.serialize(ar);
-		return ar.serialize(surfaces);
+		return ar.serialize(surfaces, attributes);
 	}
 
 	bool StaticMesh::serialize(Archive& ar)

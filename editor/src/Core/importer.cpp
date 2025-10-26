@@ -336,6 +336,11 @@ namespace Engine::Importer
 
 			lod.buffers.reserve(4);
 
+			lod.attributes = {{RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0, 0},
+			                  {RHIVertexSemantic::Normal, RHIVertexFormat::RGB32F, 1, 0},
+			                  {RHIVertexSemantic::Tangent, RHIVertexFormat::RGBA32F, 2, 0},
+			                  {RHIVertexSemantic::TexCoord0, RHIVertexFormat::RG32F, 3, 0}};
+
 			// clang-format off
 			VtxBuffer<Vector3f> positions  = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector3f), vertex_count);
 			VtxBuffer<Vector3f> normals    = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector3f), vertex_count);
@@ -351,13 +356,6 @@ namespace Engine::Importer
 				aiVector3f* texture_coords    = mesh->mTextureCoords[0];
 
 				MeshSurface& surface = lod.surfaces[mesh_index];
-
-				surface.attributes = {{RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0, 0},
-				                      {RHIVertexSemantic::Normal, RHIVertexFormat::RGB32F, 1, 0},
-				                      {RHIVertexSemantic::Tangent, RHIVertexFormat::RGBA32F, 2, 0},
-				                      {RHIVertexSemantic::TexCoord0, RHIVertexFormat::RG32F, 3, 0}};
-
-				surface.index_format = index_format;
 
 				if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
 					surface.topology = RHIPrimitiveTopology::TriangleList;

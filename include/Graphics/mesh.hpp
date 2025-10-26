@@ -9,21 +9,19 @@ namespace Engine
 {
 	class MaterialInterface;
 
+	struct MeshVertexAttribute {
+		RHIVertexSemantic semantic;
+		RHIVertexFormat format;
+		byte stream;
+		byte offset;
+
+		inline bool operator<(const MeshVertexAttribute& attribute) const { return semantic < attribute.semantic; }
+	};
+
 	struct ENGINE_EXPORT MeshSurface {
 		trinex_declare_struct(MeshSurface, void);
 
-		struct Attribute {
-			RHIVertexSemantic semantic;
-			RHIVertexFormat format;
-			byte stream;
-			byte offset;
-
-			inline bool operator<(const Attribute& attribute) const { return semantic < attribute.semantic; }
-		};
-
-		FlatSet<Attribute> attributes;
 		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
-		RHIIndexFormat index_format   = RHIIndexFormat::Undefined;
 		uint32_t first_vertex         = 0;
 		uint32_t first_index          = ~0U;
 		uint32_t vertices_count       = 0;
@@ -32,17 +30,6 @@ namespace Engine
 		bool serialize(Archive& ar);
 
 		inline bool is_indexed() const { return first_index != ~0U; }
-
-		inline const Attribute* find_attribute(RHIVertexSemantic semantic) const
-		{
-			Attribute attribute;
-			attribute.semantic = semantic;
-			auto it            = attributes.find(attribute);
-
-			if (it == attributes.end())
-				return nullptr;
-			return &(*it);
-		}
 	};
 
 	class ENGINE_EXPORT StaticMesh : public Object
@@ -54,11 +41,23 @@ namespace Engine
 			trinex_declare_struct(LOD, void);
 
 			Vector<MeshSurface> surfaces;
+			FlatSet<MeshVertexAttribute> attributes;
 			Vector<VertexBufferBase> buffers;
 			IndexBuffer indices;
 
 		public:
 			bool serialize(Archive& ar);
+
+			inline const MeshVertexAttribute* find_attribute(RHIVertexSemantic semantic) const
+			{
+				MeshVertexAttribute attribute;
+				attribute.semantic = semantic;
+				auto it            = attributes.find(attribute);
+
+				if (it == attributes.end())
+					return nullptr;
+				return &(*it);
+			}
 		};
 
 		Vector<MaterialInterface*> materials;

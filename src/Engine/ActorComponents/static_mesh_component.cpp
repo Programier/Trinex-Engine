@@ -38,6 +38,11 @@ namespace Engine
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
+	const MeshVertexAttribute* StaticMeshComponent::Proxy::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
+	{
+		return m_mesh->lods[lod].find_attribute(semantic);
+	}
+
 	VertexBufferBase* StaticMeshComponent::Proxy::vertex_buffer(byte stream, size_t lod)
 	{
 		return &m_mesh->lods[lod].buffers[stream];

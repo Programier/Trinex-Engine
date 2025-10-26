@@ -47,6 +47,11 @@ namespace Engine
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
+	const MeshVertexAttribute* SkeletalMeshComponent::Proxy::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
+	{
+		return nullptr;
+	}
+
 	VertexBufferBase* SkeletalMeshComponent::Proxy::vertex_buffer(byte stream, size_t lod)
 	{
 		return nullptr;
