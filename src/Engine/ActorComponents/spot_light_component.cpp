@@ -62,6 +62,16 @@ namespace Engine
 		return *this;
 	}
 
+	float SpotLightComponent::calculate_light_intensity() const
+	{
+		if (intensity_units() == LightUnits::Lumens)
+		{
+			return intensity() / (2.f * Math::pi() * (1.f - Math::cos(m_outer_cone_angle)));
+		}
+
+		return Super::calculate_light_intensity();
+	}
+
 	float SpotLightComponent::inner_cone_angle() const
 	{
 		return m_inner_cone_angle;

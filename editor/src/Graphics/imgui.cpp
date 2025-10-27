@@ -250,8 +250,11 @@ namespace Engine
 						}
 						else
 						{
-							ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
-							ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
+							ImVec2 clip_min(Math::max(pcmd->ClipRect.x - clip_off.x, 0.f),
+							                Math::max(pcmd->ClipRect.y - clip_off.y, 0.f));
+
+							ImVec2 clip_max(Math::max(pcmd->ClipRect.z - clip_off.x, clip_min.x),
+							                Math::max(pcmd->ClipRect.w - clip_off.y, clip_min.y));
 
 							if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 								continue;

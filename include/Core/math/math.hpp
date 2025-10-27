@@ -148,4 +148,21 @@ namespace Engine::Math
 	{
 		return static_cast<uint_t>(pow(split, 1.0f / distribution_exponent) * static_cast<float>(count));
 	}
+
+	FORCE_INLINE constexpr float ev100_to_luminance(float ev100)
+	{
+		return 12.5f * pow(2.0f, ev100);
+	}
+
+	FORCE_INLINE float luminance_to_ev100(float luminance)
+	{
+		return log2(luminance / 12.5f);
+	}
+
+	template<typename T = float>
+	FORCE_INLINE constexpr T pi()
+	{
+		return glm::pi<T>();
+	}
+
 }// namespace Engine::Math

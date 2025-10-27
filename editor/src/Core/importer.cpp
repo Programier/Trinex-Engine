@@ -1,14 +1,14 @@
 #include <Core/default_resources.hpp>
-#include <Core/etl/function.hpp>
+#include <Core/etl/optional.hpp>
+#include <Core/etl/variant.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
+#include <Core/memory.hpp>
 #include <Core/package.hpp>
-#include <Core/thread_manager.hpp>
-#include <Core/threading.hpp>
-#include <Engine/ActorComponents/static_mesh_component.hpp>
-#include <Engine/Actors/static_mesh_actor.hpp>
+#include <Core/reflection/class.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/mesh.hpp>
@@ -17,105 +17,269 @@
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 #include <Image/image.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <tiny_gltf.h>
+
+#include <Engine/Actors/directional_light_actor.hpp>
+#include <Engine/Actors/point_light_actor.hpp>
+#include <Engine/Actors/spot_light_actor.hpp>
+#include <Engine/Actors/static_mesh_actor.hpp>
+
+#include <Engine/ActorComponents/directional_light_component.hpp>
+#include <Engine/ActorComponents/point_light_component.hpp>
+#include <Engine/ActorComponents/spot_light_component.hpp>
+#include <Engine/ActorComponents/static_mesh_component.hpp>
+
 
 namespace Engine::Importer
 {
 	struct ImporterContext {
-		template<typename T>
-		struct VtxBuffer {
-			T* ptr;
-			size_t size = 0;
+	private:
+		using Mesh = Variant<Pointer<StaticMesh>, Pointer<SkeletalMesh>>;
 
-			VtxBuffer(byte* ptr, byte stride = sizeof(T)) : ptr(reinterpret_cast<T*>(ptr)) {}
-
-			inline void push_back(T&& value)
+		struct BufferInfo {
+			union
 			{
-				new (ptr++) T(std::move(value));
-				++size;
-			}
+				byte* data = nullptr;
+				uint64_t address;
+			};
 
-			inline void push_back(const T& value)
-			{
-				new (ptr++) T(value);
-				++size;
-			}
-		};
+			size_t stride = 0;
 
-		struct IdxBuffer {
-		private:
-			byte* (*m_push)(byte*, uint32_t);
+			inline void zeroes(size_t count) { memset(data, 0, stride * count); }
+
+			inline byte* element(size_t index) { return data + index * stride; }
 
 			template<typename T>
-			static byte* push(byte* ptr, uint32_t value)
+			inline T* as(size_t index)
 			{
-				new (ptr) T(static_cast<T>(value));
-				return ptr + sizeof(T);
-			}
-
-		public:
-			byte* ptr;
-			size_t size = 0;
-
-			IdxBuffer(void* ptr, byte stride) : ptr(static_cast<byte*>(ptr))
-			{
-				m_push = stride == 2 ? push<uint16_t> : push<uint32_t>;
-			}
-
-			inline void push_back(uint32_t value)
-			{
-				ptr = m_push(ptr, value);
-				++size;
+				reinterpret_cast<T*>(element(index));
 			}
 		};
 
+		struct Accessors {
+			static constexpr uint64_t s_position_flag  = 1 << 0;
+			static constexpr uint64_t s_texcoord0_flag = 1 << 1;
+			static constexpr uint64_t s_normals_flag   = 1 << 2;
+			static constexpr uint64_t s_tangents_flag  = 1 << 3;
+			static constexpr uint64_t s_colors_flag    = 1 << 4;
+			static constexpr uint64_t s_indices_flag   = 1 << 5;
 
-		Package* package;
-		Matrix4f transform;
-		Matrix3f rotation;
-		Map<StringView, Pointer<Texture2D>> textures;
-		Map<aiMaterial*, Pointer<VisualMaterial>> materials;
-		Path dir;
+			static constexpr uint64_t s_texcoord0_normal_tangent_mask = s_texcoord0_flag | s_normals_flag | s_tangents_flag;
 
-		ImporterContext(Package* package, const Transform& transform)
-		    : package(package), transform(transform.matrix()), rotation(transform.rotation_matrix())
+			const tinygltf::Accessor* positions  = nullptr;
+			const tinygltf::Accessor* texcoords0 = nullptr;
+			const tinygltf::Accessor* normals    = nullptr;
+			const tinygltf::Accessor* tangents   = nullptr;
+			const tinygltf::Accessor* colors     = nullptr;
+			const tinygltf::Accessor* indices    = nullptr;
+
+			template<typename... T>
+			static inline uint64_t static_mask(const T*... accessors)
+			{
+				uint64_t result = 0;
+				size_t index    = 0;
+				result |= ((result |= (accessors ? (1ull << index) : 0ull), ++index), ...);
+				return result;
+			}
+
+			inline uint64_t mask() const { return static_mask(positions, texcoords0, normals, tangents, colors, indices); }
+		};
+
+	private:
+		World* m_world;
+
+		struct Packages {
+			Package* root;
+			Package* textures  = nullptr;
+			Package* materials = nullptr;
+			Package* meshes    = nullptr;
+
+			Packages(Package* pkg) : root(pkg) {}
+			Package* create_subpackage(const String& name) { return Object::new_instance<Package>(name, root); }
+
+		} m_package;
+
+		Matrix4f m_transform;
+
+		Vector<Pointer<VisualMaterial>> m_materials;
+		Vector<Pointer<Texture2D>> m_textures;
+		Vector<Optional<Mesh>> m_meshes;
+
+	private:
+		static Matrix4f make_matrix(const tinygltf::Node& node)
+		{
+			Transform transform;
+
+			if (!node.translation.empty())
+			{
+				const double* data = node.translation.data();
+				transform.location({data[0], data[1], data[2]});
+			}
+
+			if (!node.scale.empty())
+			{
+				const double* data = node.scale.data();
+				transform.scale({data[0], data[1], data[2]});
+			}
+
+			return transform.matrix();
+		}
+
+		static const tinygltf::Accessor* find_accessor(const tinygltf::Model& model, const std::map<std::string, int>& attributes,
+		                                               const std::string& attribute)
+		{
+			auto it = attributes.find(attribute);
+
+			if (it == attributes.end())
+				return nullptr;
+
+			return &model.accessors[it->second];
+		}
+
+		template<typename... Accessors>
+		static inline size_t elements_count(const Accessors*... accessors)
+		{
+			return ((accessors ? accessors->count : 0) + ...);
+		}
+
+		static inline RHIPrimitiveTopology topology_of(uint8_t mode)
+		{
+			switch (mode)
+			{
+				case TINYGLTF_MODE_POINTS: return RHIPrimitiveTopology::PointList;
+				case TINYGLTF_MODE_LINE: return RHIPrimitiveTopology::LineList;
+				case TINYGLTF_MODE_LINE_STRIP: return RHIPrimitiveTopology::LineStrip;
+				case TINYGLTF_MODE_TRIANGLE_STRIP: return RHIPrimitiveTopology::TriangleStrip;
+				default: return RHIPrimitiveTopology::TriangleList;
+			}
+		}
+
+		static inline const byte* buffer_address(const tinygltf::Model& model, const tinygltf::Accessor* accessor, size_t& stride)
+		{
+			if (accessor->bufferView == -1)
+			{
+				stride = 0;
+				return nullptr;
+			}
+
+			const tinygltf::BufferView& view = model.bufferViews[accessor->bufferView];
+			const tinygltf::Buffer& buffer   = model.buffers[view.buffer];
+
+			const byte* data = buffer.data.data();
+			stride           = view.byteStride;
+			return data + view.byteOffset + accessor->byteOffset;
+		}
+
+		static void byte2_to_float2(void* dst, const void* src)
+		{
+			float* destination = reinterpret_cast<float*>(dst);
+			const byte* source = static_cast<const byte*>(src);
+
+			destination[0] = static_cast<float>(source[0]) / 255.f;
+			destination[1] = static_cast<float>(source[1]) / 255.f;
+		}
+
+		static void ushort2_to_float2(void* dst, const void* src)
+		{
+			float* destination     = reinterpret_cast<float*>(dst);
+			const ushort_t* source = static_cast<const ushort_t*>(src);
+
+			destination[0] = static_cast<float>(source[0]) / 65535.f;
+			destination[1] = static_cast<float>(source[1]) / 65535.f;
+		}
+
+		static void float3_to_short3(void* dst, const void* src)
+		{
+			short_t* destination = reinterpret_cast<short_t*>(dst);
+			const float* source  = static_cast<const float*>(src);
+
+			for (int i = 0; i < 3; ++i)
+			{
+				float clamped  = Math::clamp(-1.0f, 1.0f, source[i]);
+				destination[i] = static_cast<short_t>(Math::round(clamped * 32767.0f));
+			}
+		}
+
+		static void float4_to_short4(void* dst, const void* src)
+		{
+			short_t* destination = reinterpret_cast<short_t*>(dst);
+			const float* source  = static_cast<const float*>(src);
+
+			for (int i = 0; i < 4; ++i)
+			{
+				float clamped  = Math::clamp(-1.f, 1.f, source[i]);
+				destination[i] = static_cast<short_t>(Math::round(clamped * 32767.0f));
+			}
+		}
+
+		static uint16_t find_material_index(Vector<MaterialInterface*>& materials, Material* material)
+		{
+			uint16_t index = 0;
+
+			for (uint16_t count = materials.size(); index < count; ++index)
+			{
+				MaterialInterface* current = materials[index];
+
+				if (current == material)
+					return index;
+			}
+
+			materials.push_back(material);
+			return index;
+		}
+
+		static RHIColorFormat parse_format(int component, int bits, int pixel_type)
+		{
+			switch (bits)
+			{
+				case 8:
+					if (pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+					{
+						switch (component)
+						{
+							case 1: return RHIColorFormat::R8;
+							case 2: return RHIColorFormat::R8G8;
+							case 4: return RHIColorFormat::R8G8B8A8;
+						}
+					}
+					break;
+
+				case 16:
+					if (pixel_type == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+					{
+						switch (component)
+						{
+							switch (component)
+							{
+								case 1: return RHIColorFormat::R16;
+								case 2: return RHIColorFormat::R16G16;
+								case 4: return RHIColorFormat::R16G16B16A16;
+							}
+						}
+					}
+					break;
+
+				case 32:
+					if (pixel_type == TINYGLTF_COMPONENT_TYPE_FLOAT)
+					{
+						switch (component)
+						{
+							case 1: return RHIColorFormat::R32F;
+							case 2: return RHIColorFormat::R32G32F;
+							case 4: return RHIColorFormat::R32G32B32A32F;
+						}
+					}
+					break;
+			}
+
+			return RHIColorFormat::Undefined;
+		}
+
+	public:
+		ImporterContext(World* world, Package* package, const Transform& transform)
+		    : m_world(world), m_package(package), m_transform(transform.matrix())
 		{}
-
-		static inline Vector3f vector_from_assimp_vec(const aiVector3f& vector)
-		{
-			Vector3f result;
-			result.x = vector.x;
-			result.y = vector.y;
-			result.z = vector.z;
-			return result;
-		}
-
-		static inline Vector3f vector_cast(const Vector4f& vector)
-		{
-			return {vector.x / vector.w, vector.y / vector.w, vector.z / vector.w};
-		}
-
-		static inline Vector4f pack_tangent(const Vector3f& N, const Vector3f& T, const Vector3f& B)
-		{
-			float handedness = Math::sign(Math::dot(Math::cross(N, T), B));
-			return Vector4f(T.x, T.y, T.z, handedness);
-		}
-
-		Matrix4f matrix_cast(const aiMatrix4x4& m)
-		{
-			Matrix4f result;
-
-			// clang-format off
-			result[0][0] = m.a1; result[1][0] = m.a2; result[2][0] = m.a3; result[3][0] = m.a4;
-			result[0][1] = m.b1; result[1][1] = m.b2; result[2][1] = m.b3; result[3][1] = m.b4;
-			result[0][2] = m.c1; result[1][2] = m.c2; result[2][2] = m.c3; result[3][2] = m.c4;
-			result[0][3] = m.d1; result[1][3] = m.d2; result[2][3] = m.d3; result[3][3] = m.d4;
-			// clang-format on
-
-			return result;
-		}
 
 		static inline uint32_t calculate_mip_count(uint32_t width, uint32_t height)
 		{
@@ -123,174 +287,107 @@ namespace Engine::Importer
 			return Math::log2<float>(dimension) + 1;
 		}
 
-		Texture2D* load_texture(const aiScene* scene, int_t index)
+		Texture2D* import_texture(const tinygltf::Model& model, int_t index)
 		{
-			aiTexture* ai_texture = scene->mTextures[index];
-			String name           = Strings::format("Texture {}", static_cast<void*>(ai_texture));
+			Pointer<Texture2D>& texture = m_textures[index];
 
-			if (ai_texture->mHeight > 0)
-			{
-				auto texture = Object::new_instance<Texture2D>(name, package);
-
-				texture->format = RHIColorFormat::R8G8B8A8;
-				auto& mip       = texture->mips.emplace_back();
-
-				mip.size = Vector2u(ai_texture->mWidth, ai_texture->mHeight);
-				mip.data.resize(ai_texture->mWidth * ai_texture->mHeight * 4);
-				std::memcpy(mip.data.data(), ai_texture->pcData, mip.data.size());
-
-				texture->init_render_resources();
+			if (texture)
 				return texture;
-			}
-			else
+
+			if (m_package.textures == nullptr)
 			{
-				Image image = Image(ai_texture->pcData, ai_texture->mWidth);
-
-				if (image.is_empty())
-					return DefaultResources::Textures::default_texture;
-
-				auto texture = Object::new_instance<Texture2D>(name, package);
-
-				texture->format = image.format();
-				auto& mip       = texture->mips.emplace_back();
-				mip.size        = image.size();
-				mip.data        = image.buffer();
-				texture->init_render_resources();
-				return texture;
+				m_package.textures = m_package.create_subpackage("Textures");
 			}
-		}
 
-		Texture2D* load_texture(const aiScene* scene, StringView path)
-		{
-			Pointer<Texture2D>& texture_ref = textures[path];
+			const tinygltf::Image& gltf_image = model.images[index];
 
-			if (texture_ref != nullptr)
-				return texture_ref.ptr();
+			StringView name = gltf_image.name;
 
-			if (path.front() == '*')
+			if (name.empty())
 			{
-				int_t index = Strings::integer_of(path.data() + 1);
-				texture_ref = load_texture(scene, index);
-				return texture_ref;
+				name = Path(gltf_image.uri).filename();
 			}
 
-			Path texture_path = dir / path;
-			StringView name   = texture_path.stem();
-			info_log("Importer", "Loading texture: %s\n", texture_path.c_str());
+			texture = Object::new_instance<Texture2D>(name, m_package.textures);
+			texture->preload();
 
-			Image image = texture_path;
+			auto& mip  = texture->mips.emplace_back();
+			mip.size.x = gltf_image.width;
+			mip.size.y = gltf_image.height;
+			mip.data.resize(gltf_image.image.size());
 
-			if (image.is_empty())
-			{
-				error_log("Importer", "Failed to load texture: %s\n", texture_path.c_str());
-				return DefaultResources::Textures::default_texture;
-			}
 
-			auto texture = Object::new_instance<Texture2D>(name, package);
-			texture_ref  = texture;
+			memcpy(mip.data.data(), gltf_image.image.data(), gltf_image.image.size());
 
-			texture->format = RHIColorFormat::R8G8B8A8;
+			texture->format = parse_format(gltf_image.component, gltf_image.bits, gltf_image.pixel_type);
 
-			const uint_t mips_count = calculate_mip_count(image.width(), image.height());
-
-			Vector<Texture2DMip> mips;
-			mips.resize(mips_count);
-
-			mips[0].size = image.size();
-			mips[0].data = image.buffer();
-
-			for (uint_t i = 1; i < mips_count; ++i)
-			{
-				auto& mip = mips[i];
-
-				uint_t width  = Math::max<uint32_t>(image.width() / 2, 1);
-				uint_t height = Math::max<uint32_t>(image.height() / 2, 1);
-				image.resize({width, height});
-
-				mip.size = {width, height};
-				mip.data = image.buffer();
-			}
-
-			texture->format = image.format();
-			texture->mips   = std::move(mips);
-			texture->init_render_resources();
+			texture->postload();
 
 			return texture;
 		}
 
-		Material* create_material(const aiScene* scene, aiMaterial* ai_material)
+		VisualMaterialGraph::SampleTexture* import_sampler(VisualMaterial* material, const tinygltf::Model& model, int_t index,
+		                                                   int_t uv = 0)
 		{
-			Pointer<VisualMaterial>& material = materials[ai_material];
+			auto sample = material->create_node<VisualMaterialGraph::SampleTexture>();
+
+			const tinygltf::Texture& gltf_texture = model.textures[index];
+
+			sample->texture = import_texture(model, gltf_texture.source);
+			return sample;
+		}
+
+		Material* import_material(const tinygltf::Model& model, int_t index)
+		{
+			Pointer<VisualMaterial>& material = m_materials[index];
 
 			if (material)
 				return material;
 
-			if (ai_material->GetName().length != 0)
+			if (m_package.materials == nullptr)
 			{
-				material = Object::new_instance<VisualMaterial>(ai_material->GetName().C_Str(), package);
-			}
-			else
-			{
-				String name = Strings::format("Material {}", static_cast<const void*>(ai_material));
-				material    = Object::new_instance<VisualMaterial>(name.c_str(), package);
-			}
-			auto* root = material->root_node();
-
-			aiColor4D diffuse;
-			if (ai_material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
-			{
-				root->base_color->default_value()->ref<Vector3f>() = {diffuse.r, diffuse.g, diffuse.b};
-				root->opacity->default_value()->ref<float>()       = diffuse.a;
+				m_package.materials = m_package.create_subpackage("Materials");
 			}
 
-			aiString texture_path;
-			aiString roughness_path;
+			// static auto float_node_class  = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat");
+			// static auto float2_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat2");
+			static auto float3_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat3");
+			// static auto float4_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat4");
+			static auto mul_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::Mul");
 
-			if (ai_material->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path) == AI_SUCCESS)
+
+			const tinygltf::Material& gltf_material = model.materials[index];
+
+			material = Object::new_instance<VisualMaterial>(gltf_material.name, m_package.materials);
 			{
-				Texture2D* texture = load_texture(scene, StringView(texture_path.C_Str(), texture_path.length));
-				if (texture)
+				auto root = material->root_node();
+
+				// Base color initialization
 				{
-					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
-					node->texture = texture;
-					root->base_color->link(node->rgba_pin());
-				}
-			}
+					auto& pbr_mr = gltf_material.pbrMetallicRoughness;
 
-			if (ai_material->GetTexture(aiTextureType_METALNESS, 0, &texture_path) == AI_SUCCESS)
-			{
-				Texture2D* texture = load_texture(scene, StringView(texture_path.C_Str(), texture_path.length));
-				if (texture)
-				{
-					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
-					node->texture = texture;
-					root->metalness->link(node->r_pin());
-				}
-			}
+					Vector3f* factor = &root->base_color->default_value()->ref<Vector3f>();
 
-			if (ai_material->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &roughness_path) == AI_SUCCESS)
-			{
-				Texture2D* texture = load_texture(scene, StringView(roughness_path.C_Str(), roughness_path.length));
-				if (texture)
-				{
-					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
-					node->texture = texture;
+					if (pbr_mr.baseColorTexture.index != -1)
+					{
+						auto& base_color = pbr_mr.baseColorTexture;
+						auto constant    = material->create_node(float3_node_class);
+						auto mul         = material->create_node(mul_node_class);
 
-					if (roughness_path == texture_path)
-						root->roughness->link(node->g_pin());
-					else
-						root->roughness->link(node->r_pin());
-				}
-			}
+						auto sample = import_sampler(material, model, base_color.index, base_color.texCoord);
 
-			if (ai_material->GetTexture(aiTextureType_NORMALS, 0, &texture_path) == AI_SUCCESS)
-			{
-				Texture2D* texture = load_texture(scene, StringView(texture_path.C_Str(), texture_path.length));
-				if (texture)
-				{
-					auto node     = material->create_node<VisualMaterialGraph::SampleTexture>();
-					node->texture = texture;
-					root->normal->link(node->rgba_pin());
+						mul->inputs()[0]->link(sample->rgba_pin());
+						mul->inputs()[1]->link(constant->outputs()[0]);
+
+						sample->texture = import_texture(model, pbr_mr.baseColorTexture.index);
+
+						root->base_color->link(mul->outputs()[0]);
+						factor = &constant->outputs()[0]->default_value()->ref<Vector3f>();
+					}
+
+					factor->r = pbr_mr.baseColorFactor[0];
+					factor->g = pbr_mr.baseColorFactor[1];
+					factor->b = pbr_mr.baseColorFactor[2];
 				}
 			}
 
@@ -298,169 +395,359 @@ namespace Engine::Importer
 			return material;
 		}
 
-		StaticMesh* load_static_mesh(const aiScene* scene, const aiNode* node)
+		StaticMesh* import_static_mesh(const tinygltf::Model& model, int_t index)
 		{
-			String name = node->mName.C_Str() ? String(node->mName.C_Str())
-			                                  : Strings::format("Static Mesh {}", static_cast<const void*>(node));
+			if (m_meshes[index].has_value())
+				return etl::get<Pointer<StaticMesh>>(m_meshes[index].value());
 
-			StaticMesh* static_mesh = package->find_child_object_checked<StaticMesh>(name);
-
-			if (static_mesh)
-				return static_mesh;
-
-			unsigned int meshes_count = node->mNumMeshes;
-			if (meshes_count == 0 || node->mMeshes == nullptr)
-				return nullptr;
-
-			unsigned int vertex_count = 0;
-			unsigned int faces_count  = 0;
-
-			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
+			if (m_package.meshes == nullptr)
 			{
-				unsigned int scene_mesh_index = node->mMeshes[mesh_index];
-				aiMesh* mesh                  = scene->mMeshes[scene_mesh_index];
-				vertex_count += mesh->mNumVertices;
-				faces_count += mesh->mNumFaces;
+				m_package.meshes = m_package.create_subpackage("Meshes");
 			}
 
-			static_mesh = Object::new_instance<StaticMesh>(name.c_str(), package);
-			static_mesh->materials.resize(meshes_count);
+			StackByteAllocator::Mark mark;
 
-			static_mesh->lods.resize(1);
-			auto& lod = static_mesh->lods[0];
-			lod.surfaces.resize(meshes_count);
+			const tinygltf::Mesh& gltf_mesh = model.meshes[index];
+			const size_t primitives         = gltf_mesh.primitives.size();
 
-			auto& bounds                = static_mesh->bounds;
-			RHIIndexFormat index_format = vertex_count > 65535 ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
-			byte index_size             = vertex_count > 65535 ? 4 : 2;
+			StaticMesh* mesh = Object::new_instance<StaticMesh>(gltf_mesh.name, m_package.meshes);
+			mesh->bounds     = {{-1, -1, -1}, {1, 1, 1}};
+			mesh->materials.reserve(primitives);
 
-			lod.buffers.reserve(4);
+			auto& lod = mesh->lods.emplace_back();
+			lod.surfaces.resize(primitives);
 
-			lod.attributes = {{RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0, 0},
-			                  {RHIVertexSemantic::Normal, RHIVertexFormat::RGB32F, 1, 0},
-			                  {RHIVertexSemantic::Tangent, RHIVertexFormat::RGBA32F, 2, 0},
-			                  {RHIVertexSemantic::TexCoord0, RHIVertexFormat::RG32F, 3, 0}};
+			StackVector<Accessors> accessors(primitives);
 
-			// clang-format off
-			VtxBuffer<Vector3f> positions  = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector3f), vertex_count);
-			VtxBuffer<Vector3f> normals    = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector3f), vertex_count);
-			VtxBuffer<Vector4f> tangents   = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector4f), vertex_count);
-			VtxBuffer<Vector2f> uvs        = lod.buffers.emplace_back().allocate_data(RHIBufferCreateFlags::Static, sizeof(Vector2f), vertex_count);
-			IdxBuffer indices(lod.indices.allocate_data(RHIBufferCreateFlags::Static, index_format, faces_count * 3), index_size);
-			// clang-format on
+			uint64_t accessor_mask = 0;
+			size_t vertex_count    = 0;
+			size_t index_count     = 0;
 
-			for (unsigned int mesh_index = 0; mesh_index < meshes_count; ++mesh_index)
+			for (size_t i = 0; i < primitives; ++i)
 			{
-				unsigned int scene_mesh_index = node->mMeshes[mesh_index];
-				aiMesh* mesh                  = scene->mMeshes[scene_mesh_index];
-				aiVector3f* texture_coords    = mesh->mTextureCoords[0];
+				const tinygltf::Primitive& primitive = gltf_mesh.primitives[i];
+				Accessors& accessor                  = accessors[i];
 
-				MeshSurface& surface = lod.surfaces[mesh_index];
+				accessor.positions  = find_accessor(model, primitive.attributes, "POSITION");
+				accessor.texcoords0 = find_accessor(model, primitive.attributes, "TEXCOORD_0");
+				accessor.normals    = find_accessor(model, primitive.attributes, "NORMAL");
+				accessor.tangents   = find_accessor(model, primitive.attributes, "TANGENT");
+				accessor.colors     = find_accessor(model, primitive.attributes, "COLOR_0");
 
-				if (mesh->mPrimitiveTypes & aiPrimitiveType_TRIANGLE)
-					surface.topology = RHIPrimitiveTopology::TriangleList;
-				else if (mesh->mPrimitiveTypes & aiPrimitiveType_LINE)
-					surface.topology = RHIPrimitiveTopology::LineList;
-				else if (mesh->mPrimitiveTypes & aiPrimitiveType_POINT)
-					surface.topology = RHIPrimitiveTopology::PointList;
-				else
-					surface.topology = RHIPrimitiveTopology::TriangleList;
-
-				surface.first_vertex = positions.size;
-				surface.first_index  = indices.size;
-
-				for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
+				if (primitive.indices >= 0)
 				{
-					Vector3f position  = vector_cast(transform * Vector4f(vector_from_assimp_vec(mesh->mVertices[i]), 1.f));
-					Vector3f normal    = Math::normalize(rotation * vector_from_assimp_vec(mesh->mNormals[i]));
-					Vector3f tangent   = Math::normalize(rotation * vector_from_assimp_vec(mesh->mTangents[i]));
-					Vector3f bitangent = Math::normalize(rotation * vector_from_assimp_vec(mesh->mBitangents[i]));
-					Vector2f uv        = vector_from_assimp_vec(texture_coords[i]);
-
-					positions.push_back(position);
-					normals.push_back(normal);
-					tangents.push_back(pack_tangent(normal, tangent, bitangent));
-					uvs.push_back(uv);
+					accessor.indices = &model.accessors[primitive.indices];
 				}
 
-				for (unsigned int face_index = 0; face_index < mesh->mNumFaces; ++face_index)
+				accessor_mask |= accessor.mask();
+
+				size_t vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
+				                                 accessor.colors);
+				size_t indices  = elements_count(accessor.indices);
+
+
+				MeshSurface* surface  = &lod.surfaces[i];
+				surface->topology     = topology_of(primitive.mode);
+				surface->first_vertex = vertex_count;
+
+				if (indices > 0)
 				{
-					auto& face = mesh->mFaces[face_index];
-					for (unsigned int index = 0; index < face.mNumIndices; ++index)
+					surface->first_index    = index_count;
+					surface->vertices_count = indices;
+
+					vertex_count += vertices;
+					index_count += indices;
+				}
+				else
+				{
+					surface->vertices_count = vertices;
+					vertex_count += surface->vertices_count;
+				}
+
+				Material* material = DefaultResources::Materials::base_pass;
+
+				if (primitive.material != -1)
+					material = import_material(model, primitive.material);
+
+				surface->material_index = find_material_index(mesh->materials, material);
+			}
+
+			BufferInfo position, uv0, normal, tangent, indices;
+
+			if (accessor_mask & Accessors::s_position_flag)
+			{
+				MeshVertexAttribute attribute;
+
+				attribute.semantic = RHIVertexSemantic::Position;
+				attribute.format   = RHIVertexFormat::RGB32F;
+				attribute.stream   = lod.buffers.size();
+				attribute.offset   = 0;
+
+				lod.attributes.insert(attribute);
+				auto& buffer = lod.buffers.emplace_back();
+
+				position.data   = buffer.allocate_data(RHIBufferCreateFlags::VertexBuffer, 12, vertex_count);
+				position.stride = 12;
+
+				position.zeroes(vertex_count);
+			}
+
+			if (accessor_mask & Accessors::s_texcoord0_normal_tangent_mask)
+			{
+				MeshVertexAttribute attribute;
+				attribute.stream = lod.buffers.size();
+				attribute.offset = 0;
+
+				if (accessor_mask & Accessors::s_texcoord0_flag)
+				{
+					attribute.semantic = RHIVertexSemantic::TexCoord0;
+					attribute.format   = RHIVertexFormat::RG32F;
+					lod.attributes.insert(attribute);
+					uv0.address = attribute.offset;
+					attribute.offset += 8;
+				}
+
+				if (accessor_mask & Accessors::s_normals_flag)
+				{
+					attribute.semantic = RHIVertexSemantic::Normal;
+					attribute.format   = RHIVertexFormat::RGB32F;
+					lod.attributes.insert(attribute);
+					normal.address = attribute.offset;
+					attribute.offset += 12;
+				}
+
+				if (accessor_mask & Accessors::s_tangents_flag)
+				{
+					attribute.semantic = RHIVertexSemantic::Tangent;
+					attribute.format   = RHIVertexFormat::RGBA32F;
+					lod.attributes.insert(attribute);
+					tangent.address = attribute.offset;
+					attribute.offset += 16;
+				}
+
+				auto& buffer = lod.buffers.emplace_back();
+				byte* data   = buffer.allocate_data(RHIBufferCreateFlags::VertexBuffer, attribute.offset, vertex_count);
+				memset(data, 0, vertex_count * attribute.offset);
+
+				uv0.data     = data + uv0.address;
+				normal.data  = data + normal.address;
+				tangent.data = data + tangent.address;
+
+				uv0.stride     = attribute.offset;
+				normal.stride  = attribute.offset;
+				tangent.stride = attribute.offset;
+			}
+
+			if (index_count > 0)
+			{
+				RHIIndexFormat format = vertex_count > 0xFFFF ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
+
+				indices.data   = lod.indices.allocate_data(RHIBufferCreateFlags::IndexBuffer, format, index_count);
+				indices.stride = format.stride();
+				indices.zeroes(index_count);
+			}
+
+			vertex_count = 0;
+			index_count  = 0;
+
+			for (size_t i = 0; i < primitives; ++i)
+			{
+				Accessors& accessor = accessors[i];
+
+				if (accessor.positions)
+				{
+					size_t stride;
+
+					byte* dst       = position.element(vertex_count);
+					const byte* src = buffer_address(model, accessor.positions, stride);
+					memcpy_elements(dst, src, 12, accessor.positions->count, position.stride, stride);
+				}
+
+				if (accessor.texcoords0)
+				{
+					size_t stride;
+
+					byte* dst       = uv0.element(vertex_count);
+					const byte* src = buffer_address(model, accessor.texcoords0, stride);
+
+					switch (accessor.texcoords0->componentType)
 					{
-						indices.push_back(face.mIndices[index]);
+						case TINYGLTF_COMPONENT_TYPE_BYTE:
+						{
+							if (stride == 0)
+								stride = 2;
+
+							memcpy_transform(dst, src, accessor.texcoords0->count, uv0.stride, stride, byte2_to_float2);
+							break;
+						}
+
+						case TINYGLTF_COMPONENT_TYPE_SHORT:
+						{
+							if (stride == 0)
+								stride = 4;
+
+							memcpy_transform(dst, src, accessor.texcoords0->count, uv0.stride, stride, ushort2_to_float2);
+							break;
+						}
+
+						default:
+						{
+							memcpy_elements(dst, src, 8, accessor.texcoords0->count, uv0.stride, stride);
+							break;
+						}
 					}
 				}
 
-				surface.vertices_count             = indices.size - surface.first_index;
-				surface.material_index             = mesh_index;
-				static_mesh->materials[mesh_index] = create_material(scene, scene->mMaterials[mesh->mMaterialIndex]);
+				if (accessor.normals)
+				{
+					size_t stride;
 
-				auto min_pos = vector_from_assimp_vec(mesh->mAABB.mMin);
-				auto max_pos = vector_from_assimp_vec(mesh->mAABB.mMax);
+					byte* dst       = normal.element(vertex_count);
+					const byte* src = buffer_address(model, accessor.normals, stride);
+					memcpy_elements(dst, src, 12, accessor.normals->count, normal.stride, stride);
+				}
 
-				bounds.min = Math::min(min_pos, bounds.min);
-				bounds.max = Math::max(max_pos, bounds.max);
+				if (accessor.tangents)
+				{
+					size_t stride;
+
+					byte* dst       = tangent.element(vertex_count);
+					const byte* src = buffer_address(model, accessor.tangents, stride);
+					memcpy_elements(dst, src, 16, accessor.tangents->count, tangent.stride, stride);
+				}
+
+				if (accessor.indices)
+				{
+					size_t stride;
+
+					byte* dst       = indices.element(index_count);
+					const byte* src = buffer_address(model, accessor.indices, stride);
+					memcpy_elements(dst, src, indices.stride, accessor.indices->count, indices.stride, stride);
+				}
+
+				size_t vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
+				                                 accessor.colors);
+				size_t indices  = elements_count(accessor.indices);
+
+				vertex_count += vertices;
+				index_count += indices;
 			}
 
-			static_mesh->init_render_resources();
-			return static_mesh;
+			mesh->init_render_resources();
+			m_meshes[index] = mesh;
+			return mesh;
 		}
 
-		void load_meshes(const aiScene* scene, const aiNode* node, World* world, const Matrix4f& transform = Matrix4f(1.f))
+		SkeletalMesh* import_skeletal_mesh(const tinygltf::Model& model, int_t index, int_t skin)
 		{
-			Matrix4f node_transform = transform * matrix_cast(node->mTransformation);
+			Optional<Mesh>& mesh = m_meshes[index];
 
-			StaticMesh* mesh = load_static_mesh(scene, node);
+			if (mesh.has_value())
+				return etl::get<Pointer<SkeletalMesh>>(mesh.value());
 
-			if (world && mesh)
-			{
-				StaticMeshActor* actor = world->spawn_actor<StaticMeshActor>();
-				auto component         = actor->mesh_component();
-
-				component->mesh(mesh);
-				component->local_transform(node_transform);
-			}
-
-			for (unsigned int i = 0, count = node->mNumChildren; i < count; ++i)
-			{
-				auto child = node->mChildren[i];
-				load_meshes(scene, child, world, node_transform);
-			}
+			return nullptr;
 		}
 
-		void import(const Path& path, World* world = nullptr)
+		void spawn_mesh(const String& name, StaticMesh* mesh, const Matrix4f& transform)
 		{
-			info_log("Importer", "Loading resources from file '%s'", path.c_str());
-
-			Assimp::Importer importer;
-
-			unsigned int flags = aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights | aiProcess_Triangulate |
-			                     aiProcess_SortByPType | aiProcess_GenUVCoords | aiProcess_FindDegenerates |
-			                     aiProcess_FindInvalidData | aiProcess_GlobalScale | aiProcess_GenBoundingBoxes |
-			                     aiProcess_FlipUVs;
-
-			flags |= aiProcess_FixInfacingNormals | aiProcess_GenSmoothNormals;
-			flags |= aiProcess_CalcTangentSpace;
-			flags |= aiProcess_OptimizeMeshes | aiProcess_ImproveCacheLocality;
-
-			const aiScene* scene = importer.ReadFile(path.c_str(), flags);
-
-			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-			{
-				error_log("Importer", "Failed to load resource: %s", importer.GetErrorString());
+			if (m_world == nullptr)
 				return;
+
+			StaticMeshActor* actor = m_world->spawn_actor<StaticMeshActor>({}, {}, {1, 1, 1}, name);
+			actor->scene_component()->local_transform(transform);
+			actor->mesh_component()->mesh(mesh);
+		}
+
+		void spawn_light(const String& name, const tinygltf::Model& model, int_t index, const Matrix4f& transform)
+		{
+			if (m_world == nullptr)
+				return;
+
+			const tinygltf::Light& light = model.lights[index];
+
+			PointLightActor* actor = m_world->spawn_actor<PointLightActor>({}, {}, {1, 1, 1}, name);
+			actor->scene_component()->local_transform(transform);
+
+			actor->point_light_component()->intensity(light.intensity, LightUnits::Candelas);
+		}
+
+		void import_node(const tinygltf::Model& model, const tinygltf::Node& node, const Matrix4f& transform = Matrix4f(1.f))
+		{
+			Matrix4f local = transform * make_matrix(node);
+
+			if (node.mesh >= 0)
+			{
+				if (node.skin >= 0)
+				{
+					import_skeletal_mesh(model, node.mesh, node.skin);
+				}
+				else
+				{
+					spawn_mesh(node.name, import_static_mesh(model, node.mesh), local);
+				}
 			}
 
-			dir = path.base_path();
-			load_meshes(scene, scene->mRootNode, world);
-			importer.FreeScene();
+			if (node.light >= 0)
+			{
+				spawn_light(node.name, model, node.light, local);
+			}
+
+			for (int node : node.children)
+			{
+				import_node(model, model.nodes[node], local);
+			}
+		}
+
+		void import_scene(const tinygltf::Model& model, const tinygltf::Scene& scene)
+		{
+			for (int node : scene.nodes)
+			{
+				import_node(model, model.nodes[node], m_transform);
+			}
+		}
+
+		void import(const Path& path)
+		{
+			tinygltf::Model model;
+			tinygltf::TinyGLTF loader;
+			std::string err;
+			std::string warn;
+
+			bool ok = false;
+			if (path.extension() == ".glb")
+				ok = loader.LoadBinaryFromFile(&model, &err, &warn, path.c_str());
+			else
+				ok = loader.LoadASCIIFromFile(&model, &err, &warn, path.c_str());
+
+			if (!ok)
+			{
+				error_log("Importer", "Failed to load scene!");
+			}
+
+			if (!warn.empty())
+			{
+				warn_log("Importer", "%s", warn.c_str());
+			}
+
+			if (!err.empty())
+			{
+				error_log("Importer", "%s", err.c_str());
+			}
+
+			m_meshes.resize(model.meshes.size());
+			m_textures.resize(model.textures.size());
+			m_materials.resize(model.materials.size());
+
+			for (const tinygltf::Scene& scene : model.scenes)
+			{
+				import_scene(model, scene);
+			}
 		}
 	};
 
 	void import_scene(Package* package, const Path& file, World* world, const Transform& transform)
 	{
-		ImporterContext context(package, transform);
-		context.import(file, world);
+		ImporterContext context(world, package, transform);
+		context.import(file);
 	}
 }// namespace Engine::Importer

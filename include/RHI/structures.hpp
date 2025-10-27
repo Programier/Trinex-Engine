@@ -19,10 +19,10 @@ namespace Engine
 	};
 
 	struct RHIScissor {
-		Vector2i size = {0, 0};
-		Vector2i pos  = {0, 0};
+		Vector2u size = {0, 0};
+		Vector2u pos  = {0, 0};
 
-		FORCE_INLINE RHIScissor(Vector2i size = {0, 0}, Vector2i pos = {0, 0}) : size(size), pos(pos) {}
+		FORCE_INLINE RHIScissor(Vector2u size = {0, 0}, Vector2u pos = {0, 0}) : size(size), pos(pos) {}
 		FORCE_INLINE bool operator==(const RHIScissor& v) const { return pos == v.pos && size == v.size; }
 		FORCE_INLINE bool operator!=(const RHIScissor& v) const { return !((*this) == v); }
 	};

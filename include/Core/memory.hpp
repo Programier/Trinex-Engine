@@ -3,6 +3,10 @@
 
 namespace Engine
 {
+	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, size_t element_size, size_t element_count,
+	                                    size_t dst_stride = 0, size_t src_stride = 0);
+	ENGINE_EXPORT void* memcpy_transform(void* dst, const void* src, size_t element_count, size_t dst_stride, size_t src_stride,
+	                                     void (*transform)(void* dst, const void* src));
 	ENGINE_EXPORT uint128_t memory_hash(const void* memory, const size_t size, uint128_t seed = 0);
 	ENGINE_EXPORT const byte* memory_search(const byte* haystack, size_t haystack_len, const byte* needle, size_t needle_len);
 

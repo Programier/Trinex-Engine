@@ -57,10 +57,10 @@ namespace Engine
 			if (!material_interface->apply(ctx))
 				continue;
 
-			byte stream                         = 1;
 			const VertexBufferBase* null_buffer = VertexBufferBase::static_null();
-
 			ctx->context->bind_vertex_buffer(null_buffer->rhi_buffer(), 0, 0, 0);
+
+			uint64_t buffer_mask = 0;
 
 			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
@@ -70,9 +70,13 @@ namespace Engine
 
 				if (buffer)
 				{
-					ctx->context->bind_vertex_attribute(semantic, va->format, stream, 0);
-					ctx->context->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), stream);
-					++stream;
+					if ((buffer_mask & (1 << va->stream)) == 0)
+					{
+						ctx->context->bind_vertex_buffer(buffer->rhi_buffer(), 0, buffer->stride(), va->stream + 1);
+						buffer_mask |= (1 << va->stream);
+					}
+
+					ctx->context->bind_vertex_attribute(semantic, va->format, va->stream + 1, va->offset);
 				}
 				else
 				{

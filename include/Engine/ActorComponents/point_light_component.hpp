@@ -29,6 +29,9 @@ namespace Engine
 
 		PointLightComponent& submit_point_light_data();
 
+	protected:
+		float calculate_light_intensity() const override;
+
 	public:
 		PointLightComponent();
 

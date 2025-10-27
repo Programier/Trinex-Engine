@@ -470,7 +470,7 @@ namespace Engine::VulkanEnums
 			case RHIVertexFormat::RG8SI: return vk::Format::eR8G8Sint;
 			case RHIVertexFormat::RGB8SI: return vk::Format::eR8G8B8Sint;
 			case RHIVertexFormat::RGBA8SI: return vk::Format::eR8G8B8A8Sint;
-			case RHIVertexFormat::RGB10A2I: return vk::Format::eA2R10G10B10SintPack32;
+			case RHIVertexFormat::RGB10A2SI: return vk::Format::eA2R10G10B10SintPack32;
 			case RHIVertexFormat::R16SI: return vk::Format::eR16Sint;
 			case RHIVertexFormat::RG16SI: return vk::Format::eR16G16Sint;
 			case RHIVertexFormat::RGB16SI: return vk::Format::eR16G16B16Sint;

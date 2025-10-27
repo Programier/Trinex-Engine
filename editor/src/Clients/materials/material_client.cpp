@@ -107,7 +107,7 @@ namespace Engine
 
 			if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))
 			{
-				m_material->apply_changes();
+				m_material->postload();
 			}
 		});
 	}

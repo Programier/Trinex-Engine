@@ -16,7 +16,6 @@ namespace Lighting
 		float3 location;
 		float3 direction;
 		float2 spot_angles;
-		float intensivity;
 		float attenuation_radius;
 		float inv_attenuation_radius;
 		float fall_off_exponent;
@@ -163,7 +162,7 @@ namespace Lighting
 		// === Light contribution setup ===
 		float normal_dot_light   = max(dot(normal, light_direction), 0.0);
 		float3 halfway_direction = normalize(view_direction + light_direction);
-		float3 radiance          = light.color * light.intensivity * attenuation;
+		float3 radiance          = light.color * attenuation;
 
 		// === Source size effect on roughness ===
 		float roughness = 2.0 * light.source_radius / light_distance;

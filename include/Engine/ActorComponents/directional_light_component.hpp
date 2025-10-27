@@ -23,6 +23,9 @@ namespace Engine
 
 	private:
 		float m_shadows_distance = 50.f;
+		
+	protected:
+		float calculate_light_intensity() const override;
 
 	public:
 		Type light_type() const override;

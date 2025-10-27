@@ -65,7 +65,6 @@ namespace Engine
 		Vector<LOD> lods;
 
 		StaticMesh& init_render_resources();
-		StaticMesh& apply_changes() override;
 		bool serialize(Archive& ar) override;
 		StaticMesh& postload() override;
 	};
@@ -111,7 +110,6 @@ namespace Engine
 		uint32_t bones = 0;
 
 		SkeletalMesh& init_render_resources();
-		SkeletalMesh& apply_changes() override;
 		bool serialize(Archive& ar) override;
 		SkeletalMesh& postload() override;
 	};

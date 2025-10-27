@@ -36,6 +36,9 @@ namespace Engine
 
 		SpotLightComponent& submit_spot_light_data();
 
+	protected:
+		float calculate_light_intensity() const override;
+
 	public:
 		SpotLightComponent();
 

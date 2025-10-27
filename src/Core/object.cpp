@@ -417,11 +417,6 @@ namespace Engine
 		return *this;
 	}
 
-	Object& Object::apply_changes()
-	{
-		return *this;
-	}
-
 	Object& Object::on_create()
 	{
 		return *this;

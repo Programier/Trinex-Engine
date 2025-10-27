@@ -39,4 +39,9 @@ namespace Engine
 		render_thread()->call([proxy = proxy(), value]() { proxy->m_shadows_distance = value; });
 		return *this;
 	}
+
+	float DirectionalLightComponent::calculate_light_intensity() const
+	{
+		return Super::calculate_light_intensity();
+	}
 }// namespace Engine

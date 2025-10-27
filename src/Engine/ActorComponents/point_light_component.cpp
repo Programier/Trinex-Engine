@@ -1,3 +1,4 @@
+#include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -47,5 +48,15 @@ namespace Engine
 	PointLightComponent::Proxy* PointLightComponent::create_proxy()
 	{
 		return trx_new Proxy();
+	}
+
+	float PointLightComponent::calculate_light_intensity() const
+	{
+		if (intensity_units() == LightUnits::Lumens)
+		{
+			return intensity() / (4.f * Math::pi());
+		}
+
+		return Super::calculate_light_intensity();
 	}
 }// namespace Engine

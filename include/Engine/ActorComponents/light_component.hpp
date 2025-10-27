@@ -9,6 +9,19 @@ namespace Engine
 	class RenderSurface;
 	struct LightRenderParameters;
 
+	struct ENGINE_EXPORT LightUnits {
+		enum Enum : EnumerateType
+		{
+			Unitless = 0,
+			Candelas = 1,
+			Lumens   = 2,
+			EV       = 3,
+		};
+
+		trinex_enum_struct(LightUnits);
+		trinex_declare_enum(LightUnits);
+	};
+
 	class ENGINE_EXPORT LightComponent : public SceneComponent
 	{
 		trinex_declare_class(LightComponent, SceneComponent);
@@ -25,7 +38,7 @@ namespace Engine
 		{
 		protected:
 			LinearColor m_light_color;
-			float m_intensivity;
+			float m_intensity;
 			float m_depth_bias;
 			float m_slope_scale;
 			bool m_is_enabled;
@@ -33,7 +46,7 @@ namespace Engine
 
 		public:
 			inline const LinearColor& light_color() const { return m_light_color; }
-			inline float intensivity() const { return m_intensivity; }
+			inline float intensity() const { return m_intensity; }
 			inline float depth_bias() const { return m_depth_bias; }
 			inline float slope_scale() const { return m_slope_scale; }
 			inline bool is_enabled() const { return m_is_enabled; }
@@ -50,7 +63,8 @@ namespace Engine
 
 	private:
 		Color m_light_color;
-		float m_intensivity;
+		LightUnits m_intensity_units;
+		float m_intensity;
 		float m_depth_bias;
 		float m_slope_scale;
 		bool m_is_enabled;
@@ -58,18 +72,24 @@ namespace Engine
 
 		LightComponent& submit_light_info_render_thread();
 
+	protected:
+		virtual float calculate_light_intensity() const;
+
 	public:
 		LightComponent();
 		inline const Box3f& bounding_box() const { return m_bounding_box; }
 		inline const Color& light_color() const { return m_light_color; }
-		inline float intensivity() const { return m_intensivity; }
+		inline LightUnits intensity_units() const { return m_intensity_units; }
+		inline float intensity() const { return m_intensity; }
 		inline float depth_bias() const { return m_depth_bias; }
 		inline float slope_scale() const { return m_slope_scale; }
 		inline bool is_enabled() const { return m_is_enabled; }
 		inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
 
 		LightComponent& light_color(const Color& color);
-		LightComponent& intensivity(float value);
+		LightComponent& intensity_units(LightUnits units);
+		LightComponent& intensity(float value);
+		LightComponent& intensity(float value, LightUnits units);
 		LightComponent& is_enabled(bool enabled);
 		LightComponent& is_shadows_enabled(bool enabled);
 

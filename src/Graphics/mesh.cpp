@@ -59,11 +59,6 @@ namespace Engine
 		return *this;
 	}
 
-	StaticMesh& StaticMesh::apply_changes()
-	{
-		return init_render_resources();
-	}
-
 	StaticMesh& StaticMesh::postload()
 	{
 		return init_render_resources();
@@ -219,11 +214,6 @@ namespace Engine
 		}
 
 		return *this;
-	}
-
-	SkeletalMesh& SkeletalMesh::apply_changes()
-	{
-		return init_render_resources();
 	}
 
 	bool SkeletalMesh::serialize(Archive& ar)
