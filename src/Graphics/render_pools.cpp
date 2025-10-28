@@ -681,15 +681,13 @@ namespace Engine
 		TickableObject& update(float) override
 		{
 			RenderSurfacePool::global_instance()->update();
+			RHITexturePool::global_instance()->update();
+			RHIBufferPool::global_instance()->update();
+			RHIFencePool::global_instance()->update();
+			RHITimestampPool::global_instance()->update();
+			RHIPipelineStatisticsPool::global_instance()->update();
+			RHIContextPool::global_instance()->update();
 
-			render_thread()->call([]() {
-				RHITexturePool::global_instance()->update();
-				RHIBufferPool::global_instance()->update();
-				RHIFencePool::global_instance()->update();
-				RHITimestampPool::global_instance()->update();
-				RHIPipelineStatisticsPool::global_instance()->update();
-				RHIContextPool::global_instance()->update();
-			});
 			return *this;
 		}
 	} m_pool_update;
@@ -697,16 +695,12 @@ namespace Engine
 
 	static void on_destroy()
 	{
-		render_thread()->call([]() {
-			RHIBufferPool::global_instance()->release_all();
-			RHITexturePool::global_instance()->release_all();
-			RHIFencePool::global_instance()->release_all();
-			RHITimestampPool::global_instance()->release_all();
-			RHIPipelineStatisticsPool::global_instance()->release_all();
-			RHIContextPool::global_instance()->release_all();
-		});
-
-		render_thread()->wait();
+		RHIBufferPool::global_instance()->release_all();
+		RHITexturePool::global_instance()->release_all();
+		RHIFencePool::global_instance()->release_all();
+		RHITimestampPool::global_instance()->release_all();
+		RHIPipelineStatisticsPool::global_instance()->release_all();
+		RHIContextPool::global_instance()->release_all();
 	}
 
 	static DestroyController destroy_controller(on_destroy);

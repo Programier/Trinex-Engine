@@ -219,8 +219,6 @@ namespace Engine
 		{
 			m_properties->object(actor);
 		}
-
-		render_thread()->call([this, actor]() { m_selected_actors_render_thread.push_back(actor); });
 	}
 
 	void EditorClient::on_actor_unselect(World* world, class Actor* actor)
@@ -232,13 +230,6 @@ namespace Engine
 				m_properties->object(nullptr);
 			}
 		}
-
-		render_thread()->call([this, actor]() {
-			auto it = std::find(m_selected_actors_render_thread.begin(), m_selected_actors_render_thread.end(), actor);
-
-			if (it != m_selected_actors_render_thread.end())
-				m_selected_actors_render_thread.erase(it);
-		});
 	}
 
 	RenderSurface* EditorClient::capture_scene()
@@ -249,38 +240,36 @@ namespace Engine
 		if (scene == nullptr)
 			return nullptr;
 
-		render_thread()->call([this, scene, mode = m_view_mode, size]() {
-			m_scene_view.viewport(RHIViewport(size));
-			m_scene_view.scissor(RHIScissor(size));
+		m_scene_view.viewport(RHIViewport(size));
+		m_scene_view.scissor(RHIScissor(size));
 
-			EditorRenderer renderer(m_world->scene(), m_scene_view, mode);
-			update_render_stats(&renderer);
+		EditorRenderer renderer(m_world->scene(), m_scene_view, m_view_mode);
+		update_render_stats(&renderer);
 
-			size_t selected_count = m_selected_actors_render_thread.size();
-			renderer.render_grid();
-			renderer.render_outlines(m_selected_actors_render_thread.data(), selected_count);
-			renderer.render_primitives(m_selected_actors_render_thread.data(), selected_count);
+		const auto& selected = m_world->selected_actors();
+		renderer.render_grid();
+		renderer.render_outlines(selected);
+		renderer.render_primitives(selected);
 
-			RHITexture* dst = scene->rhi_texture();
-			RHITexture* src = renderer.scene_color_ldr_target();
+		RHITexture* dst = scene->rhi_texture();
+		RHITexture* src = renderer.scene_color_ldr_target();
 
-			renderer.render_graph()
-			        ->add_output(dst)
-			        .add_pass("Copy to BackBuffer")
-			        .add_resource(dst, RHIAccess::TransferDst)
-			        .add_resource(src, RHIAccess::TransferSrc)
-			        .add_func([&](RHIContext* ctx) {
-				        RHITextureRegion region(m_scene_view.view_size());
-				        ctx->copy_texture_to_texture(src, region, dst, region);
-			        });
+		renderer.render_graph()
+		        ->add_output(dst)
+		        .add_pass("Copy to BackBuffer")
+		        .add_resource(dst, RHIAccess::TransferDst)
+		        .add_resource(src, RHIAccess::TransferSrc)
+		        .add_func([&](RHIContext* ctx) {
+			        RHITextureRegion region(m_scene_view.view_size());
+			        ctx->copy_texture_to_texture(src, region, dst, region);
+		        });
 
-			renderer.render(rhi->context());
+		renderer.render(rhi->context());
 
-			auto handle = rhi->context()->end();
-			rhi->submit(handle);
-			handle->release();
-			rhi->context()->begin();
-		});
+		auto handle = rhi->context()->end();
+		rhi->submit(handle);
+		handle->release();
+		rhi->context()->begin();
 
 		return scene;
 	}
@@ -791,31 +780,14 @@ namespace Engine
 		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) *
 		                     m_dt.average() * m_camera_speed);
 
-		struct UpdateView : Task<UpdateView> {
-			CameraView view;
-			SceneView& out;
-			ShowFlags show_flags;
-
-			UpdateView(const CameraView& in, SceneView& out, ShowFlags show_flags) : view(in), out(out), show_flags(show_flags) {}
-
-			void execute() override
-			{
-				out.camera_view(view);
-				out.show_flags(show_flags);
-			}
-		};
-
-		render_thread()->create_task<UpdateView>(camera->camera_view(), m_scene_view, m_show_flags);
+		m_scene_view.camera_view(camera->camera_view());
+		m_scene_view.show_flags(m_show_flags);
 		return *this;
 	}
 
 	EditorClient& EditorClient::select_actors(const Vector2f& uv)
 	{
-		Actor* actor = nullptr;
-
-		render_thread()->call(
-		        [this, uv, &actor]() { actor = EditorRenderer::static_raycast(m_scene_view, uv, m_world->scene()); });
-		render_thread()->wait();
+		Actor* actor = EditorRenderer::static_raycast(m_scene_view, uv, m_world->scene());
 
 		m_world->unselect_actors();
 

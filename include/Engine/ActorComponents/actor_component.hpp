@@ -12,18 +12,7 @@ namespace Engine
 	{
 		trinex_declare_class(ActorComponent, Object);
 
-	public:
-		class ENGINE_EXPORT Proxy
-		{
-		public:
-			virtual ~Proxy() {}
-		};
-
 	private:
-		Proxy* m_proxy;
-
-		void destroy_proxy();
-
 		void script_update(float dt);
 		void script_start_play();
 		void script_stop_play();
@@ -72,15 +61,6 @@ namespace Engine
 		virtual ActorComponent& update(float dt);
 		virtual ActorComponent& spawned();
 		virtual ActorComponent& destroyed();
-
-		virtual Proxy* create_proxy();
-		Proxy* proxy() const;
-
-		template<typename ProxyType>
-		ProxyType* typed_proxy() const
-		{
-			return reinterpret_cast<ProxyType*>(proxy());
-		}
 
 		class Actor* actor() const;
 		class World* world() const;

@@ -11,28 +11,7 @@ namespace Engine
 		trinex_refl_prop(m_attenuation_radius)->display_name("Attenuation radius").tooltip("Attenuation radius of this light");
 	}
 
-	LocalLightComponent::Proxy& LocalLightComponent::Proxy::render_parameters(LightRenderParameters& out)
-	{
-		Super::Proxy::render_parameters(out);
-		out.attenuation_radius     = m_attenuation_radius;
-		out.inv_attenuation_radius = 1.f / m_attenuation_radius;
-		return *this;
-	}
-
 	LocalLightComponent::LocalLightComponent() : m_attenuation_radius(30.f) {}
-
-	LocalLightComponent& LocalLightComponent::submit_local_light_info()
-	{
-		render_thread()->call([proxy = proxy(), radius = m_attenuation_radius]() { proxy->m_attenuation_radius = radius; });
-		return *this;
-	}
-
-	LocalLightComponent& LocalLightComponent::start_play()
-	{
-		Super::start_play();
-		submit_local_light_info();
-		return *this;
-	}
 
 	LocalLightComponent& LocalLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
 	{
@@ -40,7 +19,6 @@ namespace Engine
 
 		if (event.property->owner() == static_reflection())
 		{
-			submit_local_light_info();
 			on_transform_changed();
 		}
 
@@ -52,6 +30,14 @@ namespace Engine
 		const Vector3f& location = world_transform().location();
 		Vector3f extends         = {m_attenuation_radius, m_attenuation_radius, m_attenuation_radius};
 		m_bounding_box           = Box3f(location - extends, location + extends);
+		return *this;
+	}
+
+	LocalLightComponent& LocalLightComponent::render_parameters(LightRenderParameters& out)
+	{
+		Super::render_parameters(out);
+		out.attenuation_radius     = m_attenuation_radius;
+		out.inv_attenuation_radius = 1.f / m_attenuation_radius;
 		return *this;
 	}
 }// namespace Engine

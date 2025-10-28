@@ -45,15 +45,13 @@ namespace Engine
 
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->create_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_primitive_octree, primitive,
-		                                                                       primitive->bounding_box());
+		m_primitive_octree.push(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
-		render_thread()->create_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_primitive_octree, primitive,
-		                                                                          primitive->bounding_box());
+		m_primitive_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
@@ -69,12 +67,12 @@ namespace Engine
 	{
 		if (light->light_type() == LightComponent::Directional)
 		{
-			render_thread()->call([this, light]() { m_directional_lights.insert(light); });
+			m_directional_lights.insert(light);
 		}
 		else
 		{
 			Box3f box = light->bounding_box();
-			render_thread()->call([this, box, light]() { m_light_octree.push(box, light); });
+			m_light_octree.push(box, light);
 		}
 
 		return *this;
@@ -84,12 +82,12 @@ namespace Engine
 	{
 		if (light->light_type() == LightComponent::Directional)
 		{
-			render_thread()->call([this, light]() { m_directional_lights.erase(light); });
+			m_directional_lights.erase(light);
 		}
 		else
 		{
 			Box3f box = light->bounding_box();
-			render_thread()->call([this, box, light]() { m_light_octree.remove(box, light); });
+			m_light_octree.remove(box, light);
 		}
 		return *this;
 	}

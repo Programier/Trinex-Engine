@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Core/etl/critical_section.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/flags.hpp>
 #include <Core/object.hpp>
@@ -23,10 +22,6 @@ namespace Engine
 		};
 
 		Flags<Flag> m_flags;
-
-	protected:
-		CriticalSection m_render_end_signal;
-
 
 	public:
 		BaseEngine();

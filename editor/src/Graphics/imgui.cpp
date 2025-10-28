@@ -357,7 +357,6 @@ namespace Engine
 		{
 			if (ImGuiTrinexViewportData* vd = (ImGuiTrinexViewportData*) viewport->RendererUserData)
 			{
-				render_thread()->wait();
 				IM_DELETE(vd);
 			}
 			viewport->RendererUserData = nullptr;
@@ -441,7 +440,6 @@ namespace Engine
 		class ImGuiViewportClient : public ViewportClient
 		{
 			trinex_declare_class(ImGuiViewportClient, ViewportClient);
-			ImGuiDrawData m_draw_data;
 			class ImGuiWindow* m_window;
 
 		public:
@@ -464,12 +462,11 @@ namespace Engine
 				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 				{
 					trinex_rhi_push_stage(ctx, "ImGuiViewportClient");
-					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, m_draw_data.draw_data());
+					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, ImGui::GetDrawData());
 					trinex_rhi_pop_stage(ctx);
 				}
 				RHIContextPool::global_instance()->end_context(ctx);
 
-				m_draw_data.swap_render_index();
 				std::swap(viewport, bd->window);// Restore main viewport
 
 				viewport->rhi_present();
@@ -478,9 +475,7 @@ namespace Engine
 
 			ViewportClient& update(class RenderViewport* vp, float dt) override
 			{
-				m_draw_data.copy(viewport->DrawData);
-				m_draw_data.swap_logic_index();
-				render_thread()->call([self = Pointer(this), viewport = Pointer(vp)]() { self->render_frame(viewport); });
+				render_frame(vp);
 				return *this;
 			}
 		};
@@ -934,19 +929,16 @@ namespace Engine
 
 		static void imgui_trinex_window_destroy(ImGuiViewport* vp)
 		{
-			if (is_in_logic_thread())
+			if (vp->ParentViewportId != 0)
 			{
-				if (vp->ParentViewportId != 0)
+				Identifier id = reinterpret_cast<Identifier>(vp->PlatformUserData);
+				if (Engine::Window* window = WindowManager::instance()->find(id))
 				{
-					Identifier id = reinterpret_cast<Identifier>(vp->PlatformUserData);
-					if (Engine::Window* window = WindowManager::instance()->find(id))
-					{
-						WindowManager::instance()->destroy_window(window);
-					}
+					WindowManager::instance()->destroy_window(window);
 				}
-
-				vp->PlatformUserData = vp->PlatformHandle = nullptr;
 			}
+
+			vp->PlatformUserData = vp->PlatformHandle = nullptr;
 		}
 
 		static void imgui_trinex_window_show(ImGuiViewport* vp)
@@ -1120,70 +1112,6 @@ namespace Engine
 		}
 	}// namespace ImGuiBackend_Window
 
-	ImDrawData* ImGuiDrawData::draw_data()
-	{
-		return &m_draw_data[m_render_index];
-	}
-
-	static void release_draw_data(ImDrawData& data)
-	{
-		if (data.CmdListsCount > 0)
-		{
-			for (int index = 0; index < data.CmdListsCount; index++)
-			{
-				ImDrawList* drawList = data.CmdLists[index];
-				IM_DELETE(drawList);
-			}
-
-			data.CmdLists.clear();
-		}
-
-		data.Clear();
-	}
-
-	ImGuiDrawData& ImGuiDrawData::release(bool full)
-	{
-
-		release_draw_data(m_draw_data[m_logic_index]);
-		if (full)
-			release_draw_data(m_draw_data[m_render_index]);
-
-		return *this;
-	}
-
-	ImGuiDrawData& ImGuiDrawData::copy(ImDrawData* draw_data)
-	{
-		release(false);
-
-		m_draw_data[m_logic_index] = *draw_data;
-
-		m_draw_data[m_logic_index].CmdLists.resize(draw_data->CmdListsCount);
-		for (int index = 0; index < draw_data->CmdListsCount; index++)
-		{
-			ImDrawList* drawList                       = draw_data->CmdLists[index]->CloneOutput();
-			m_draw_data[m_logic_index].CmdLists[index] = drawList;
-		}
-
-		return *this;
-	}
-
-	ImGuiDrawData& ImGuiDrawData::swap_render_index()
-	{
-		m_render_index = (m_render_index + 1) % 2;
-		return *this;
-	}
-
-	ImGuiDrawData& ImGuiDrawData::swap_logic_index()
-	{
-		m_logic_index = (m_logic_index + 1) % 2;
-		return *this;
-	}
-
-	ImGuiDrawData::~ImGuiDrawData()
-	{
-		release(true);
-	}
-
 	ImGuiWidget::ImGuiWidget() {}
 
 	void ImGuiWidget::init(class RenderViewport* viewport) {}
@@ -1351,11 +1279,6 @@ namespace Engine
 		return m_context;
 	}
 
-	ImDrawData* ImGuiWindow::draw_data()
-	{
-		return m_draw_data.draw_data();
-	}
-
 	void ImGuiWindow::make_current(ImGuiWindow* window)
 	{
 		if (m_current_window == window)
@@ -1390,15 +1313,12 @@ namespace Engine
 		widgets.render(m_window->render_viewport());
 		ImGui::Render();
 
-		m_draw_data.copy(ImGui::GetDrawData());
-		m_draw_data.swap_logic_index();
-
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			ImGui::UpdatePlatformWindows();
 		}
 
-		render_thread()->call([this]() {
+		{
 			auto viewport = window()->render_viewport();
 
 			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
@@ -1408,13 +1328,12 @@ namespace Engine
 				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f).bind_render_target1(rtv);
 
 				ImGuiContextLock lock(m_context);
-				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, draw_data());
+				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, ImGui::GetDrawData());
 			}
 			RHIContextPool::global_instance()->end_context(ctx);
 
 			viewport->rhi_present();
-			m_draw_data.swap_render_index();
-		});
+		}
 
 		make_current(nullptr);
 

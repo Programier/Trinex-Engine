@@ -205,41 +205,20 @@ namespace Engine
 
 	WindowRenderViewport& WindowRenderViewport::vsync(bool flag)
 	{
-		if (is_in_render_thread())
-		{
-			m_swapchain->vsync(flag);
-		}
-		else
-		{
-			render_thread()->call([this, flag]() { m_swapchain->vsync(flag); });
-		}
+		m_swapchain->vsync(flag);
 		return *this;
 	}
 
 	WindowRenderViewport& WindowRenderViewport::on_resize(const Vector2u& size)
 	{
-		if (is_in_render_thread())
-		{
-			m_swapchain->resize(size);
-		}
-		else
-		{
-			m_size = size;
-			render_thread()->call([this, size]() { m_swapchain->resize(size); });
-		}
+		m_size = size;
+		m_swapchain->resize(size);
 		return *this;
 	}
 
 	WindowRenderViewport& WindowRenderViewport::on_orientation_changed(Orientation orientation)
 	{
-		if (is_in_render_thread())
-		{
-			m_swapchain->resize(size());
-		}
-		else
-		{
-			render_thread()->call([self = Pointer(this), orientation]() { self->on_orientation_changed(orientation); });
-		}
+		m_swapchain->resize(size());
 		return *this;
 	}
 

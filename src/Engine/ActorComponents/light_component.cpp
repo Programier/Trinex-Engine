@@ -30,20 +30,20 @@ namespace Engine
 		trinex_refl_prop(m_slope_scale);
 	}
 
-	LightComponent::Proxy& LightComponent::Proxy::render_parameters(LightRenderParameters& out)
-	{
-		auto& transform = world_transform();
-
-		out.color = m_light_color;
-		out.color *= m_intensity;
-		out.location = transform.location();
-		return *this;
-	}
-
 	LightComponent::LightComponent()
 	    : m_light_color(255, 255, 255, 255), m_intensity_units(LightUnits::Lumens), m_intensity(250.f), m_depth_bias(0.5f),
 	      m_slope_scale(0.5f), m_is_enabled(true), m_is_shadows_enabled(false)
 	{}
+
+	LightComponent& LightComponent::render_parameters(LightRenderParameters& out)
+	{
+		auto& transform = world_transform();
+
+		out.color = m_light_color;
+		out.color *= calculate_light_intensity();
+		out.location = transform.location();
+		return *this;
+	}
 
 	LightComponent& LightComponent::on_transform_changed()
 	{
@@ -137,20 +137,20 @@ namespace Engine
 
 	LightComponent& LightComponent::submit_light_info_render_thread()
 	{
-		render_thread()->call([proxy           = proxy(),                    //
-		                       color           = m_light_color,              //
-		                       intensity       = calculate_light_intensity(),//
-		                       depth_bias      = m_depth_bias,               //
-		                       slope_scale     = m_slope_scale,              //
-		                       enabled         = m_is_enabled,               //
-		                       shadows_enabled = m_is_shadows_enabled]() {
-			proxy->m_light_color        = color;
-			proxy->m_intensity          = intensity;
-			proxy->m_depth_bias         = depth_bias;
-			proxy->m_slope_scale        = slope_scale;
-			proxy->m_is_enabled         = enabled;
-			proxy->m_is_shadows_enabled = shadows_enabled;
-		});
+		// render_thread()->call([proxy           = proxy(),                    //
+		//                        color           = m_light_color,              //
+		//                        intensity       = calculate_light_intensity(),//
+		//                        depth_bias      = m_depth_bias,               //
+		//                        slope_scale     = m_slope_scale,              //
+		//                        enabled         = m_is_enabled,               //
+		//                        shadows_enabled = m_is_shadows_enabled]() {
+		// 	proxy->m_light_color        = color;
+		// 	proxy->m_intensity          = intensity;
+		// 	proxy->m_depth_bias         = depth_bias;
+		// 	proxy->m_slope_scale        = slope_scale;
+		// 	proxy->m_is_enabled         = enabled;
+		// 	proxy->m_is_shadows_enabled = shadows_enabled;
+		// });
 		return *this;
 	}
 

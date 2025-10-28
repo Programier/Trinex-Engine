@@ -18,80 +18,11 @@ namespace Engine
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", method_of<StaticMeshComponent&, StaticMesh*>(&This::mesh));
 	}
 
-	size_t StaticMeshComponent::Proxy::lods_count() const
-	{
-		return m_mesh->lods.size();
-	}
-
-	size_t StaticMeshComponent::Proxy::materials_count() const
-	{
-		return m_mesh->materials.size();
-	}
-
-	size_t StaticMeshComponent::Proxy::surfaces_count(size_t lod) const
-	{
-		return m_mesh->lods[lod].surfaces.size();
-	}
-
-	const MeshSurface* StaticMeshComponent::Proxy::surface(size_t index, size_t lod) const
-	{
-		return &m_mesh->lods[lod].surfaces[index];
-	}
-
-	const MeshVertexAttribute* StaticMeshComponent::Proxy::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
-	{
-		return m_mesh->lods[lod].find_attribute(semantic);
-	}
-
-	VertexBufferBase* StaticMeshComponent::Proxy::vertex_buffer(byte stream, size_t lod)
-	{
-		return &m_mesh->lods[lod].buffers[stream];
-	}
-
-	IndexBuffer* StaticMeshComponent::Proxy::index_buffer(size_t lod)
-	{
-		auto& buffer = m_mesh->lods[lod].indices;
-		return buffer.size() == 0 ? nullptr : &buffer;
-	}
-
-	MaterialInterface* StaticMeshComponent::Proxy::material(size_t index) const
-	{
-		if (auto material = Super::Proxy::material(index))
-			return material;
-
-		return m_mesh ? m_mesh->materials[index] : nullptr;
-	}
-
-	StaticMeshComponent::Proxy& StaticMeshComponent::Proxy::render(PrimitiveRenderingContext* ctx)
-	{
-		static Name permutation = "StaticMesh";
-
-		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
-		{
-			Super::Proxy::render(ctx);
-		}
-
-		return *this;
-	}
-
-	StaticMeshComponent& StaticMeshComponent::submit_new_mesh()
-	{
-		render_thread()->call([proxy = proxy(), mesh = m_mesh]() { proxy->m_mesh = mesh; });
-		update_bounding_box();
-		return *this;
-	}
-
-	StaticMeshComponent::Proxy* StaticMeshComponent::create_proxy()
-	{
-		return trx_new Proxy();
-	}
-
 	StaticMeshComponent& StaticMeshComponent::update_bounding_box()
 	{
 		if (mesh())
 		{
 			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
-			submit_bounds_to_render_thread();
 		}
 		else
 		{
@@ -117,5 +48,48 @@ namespace Engine
 			return mesh()->materials[index];
 
 		return nullptr;
+	}
+
+	size_t StaticMeshComponent::lods_count() const
+	{
+		return m_mesh->lods.size();
+	}
+
+	size_t StaticMeshComponent::surfaces_count(size_t lod) const
+	{
+		return m_mesh->lods[lod].surfaces.size();
+	}
+
+	const MeshSurface* StaticMeshComponent::surface(size_t index, size_t lod) const
+	{
+		return &m_mesh->lods[lod].surfaces[index];
+	}
+
+	const MeshVertexAttribute* StaticMeshComponent::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
+	{
+		return m_mesh->lods[lod].find_attribute(semantic);
+	}
+
+	VertexBufferBase* StaticMeshComponent::vertex_buffer(byte stream, size_t lod)
+	{
+		return &m_mesh->lods[lod].buffers[stream];
+	}
+
+	IndexBuffer* StaticMeshComponent::index_buffer(size_t lod)
+	{
+		auto& buffer = m_mesh->lods[lod].indices;
+		return buffer.size() == 0 ? nullptr : &buffer;
+	}
+
+	StaticMeshComponent& StaticMeshComponent::render(PrimitiveRenderingContext* ctx)
+	{
+		static Name permutation = "StaticMesh";
+
+		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
+		{
+			Super::render(ctx);
+		}
+
+		return *this;
 	}
 }// namespace Engine

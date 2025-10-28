@@ -94,7 +94,6 @@ namespace Engine
 		Pointer<World> m_world;
 
 		Vector<Identifier> m_event_system_listeners;
-		Vector<class Actor*> m_selected_actors_render_thread;
 
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;

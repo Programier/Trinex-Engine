@@ -55,17 +55,14 @@ namespace Engine
 	void Renderer::static_sort_lights(FrameVector<LightComponent*>& visible_lights)
 	{
 		std::sort(visible_lights.begin(), visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
-			auto a_proxy = a->proxy();
-			auto b_proxy = b->proxy();
-
-			auto a_type = a_proxy->light_type();
-			auto b_type = b_proxy->light_type();
+			auto a_type = a->light_type();
+			auto b_type = b->light_type();
 
 			if (a_type != b_type)
 				return a_type < b_type;
 
-			bool a_has_shadow = a_proxy->is_shadows_enabled();
-			bool b_has_shadow = b_proxy->is_shadows_enabled();
+			bool a_has_shadow = a->is_shadows_enabled();
+			bool b_has_shadow = b->is_shadows_enabled();
 
 			if (a_has_shadow != b_has_shadow)
 				return !a_has_shadow;

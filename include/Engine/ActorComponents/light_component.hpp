@@ -34,30 +34,6 @@ namespace Engine
 			Directional = 2,
 		};
 
-		class ENGINE_EXPORT Proxy : public Super::Proxy
-		{
-		protected:
-			LinearColor m_light_color;
-			float m_intensity;
-			float m_depth_bias;
-			float m_slope_scale;
-			bool m_is_enabled;
-			bool m_is_shadows_enabled;
-
-		public:
-			inline const LinearColor& light_color() const { return m_light_color; }
-			inline float intensity() const { return m_intensity; }
-			inline float depth_bias() const { return m_depth_bias; }
-			inline float slope_scale() const { return m_slope_scale; }
-			inline bool is_enabled() const { return m_is_enabled; }
-			inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
-
-			virtual Proxy& render_parameters(LightRenderParameters& out);
-			virtual Type light_type() const = 0;
-			friend class LightComponent;
-		};
-
-
 	protected:
 		Box3f m_bounding_box;
 
@@ -93,9 +69,9 @@ namespace Engine
 		LightComponent& is_enabled(bool enabled);
 		LightComponent& is_shadows_enabled(bool enabled);
 
+		virtual LightComponent& render_parameters(LightRenderParameters& out);
 		virtual Type light_type() const = 0;
 		virtual LightComponent& update_bounding_box();
-		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 
 		LightComponent& on_transform_changed() override;
 		LightComponent& start_play() override;

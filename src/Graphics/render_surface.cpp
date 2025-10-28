@@ -19,22 +19,19 @@ namespace Engine
 		m_format = format;
 		m_size   = size;
 
-		render_thread()->call([this]() {
-			RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
+		RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
 
-			if (m_format.is_color())
-			{
-				flags |= RHITextureCreateFlags::RenderTarget;
-				flags |= RHITextureCreateFlags::UnorderedAccess;
-			}
-			else if (m_format.has_depth())
-			{
-				flags |= RHITextureCreateFlags::DepthStencilTarget;
-			}
+		if (m_format.is_color())
+		{
+			flags |= RHITextureCreateFlags::RenderTarget;
+			flags |= RHITextureCreateFlags::UnorderedAccess;
+		}
+		else if (m_format.has_depth())
+		{
+			flags |= RHITextureCreateFlags::DepthStencilTarget;
+		}
 
-			m_texture = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(m_format), {m_size, 1}, 1, flags);
-		});
-
+		m_texture = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(m_format), {m_size, 1}, 1, flags);
 		return *this;
 	}
 

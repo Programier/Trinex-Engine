@@ -195,7 +195,7 @@ namespace Engine
 	struct VulkanAPI::VulkanUpdater : TickableObject {
 		VulkanUpdater& update(float dt) override
 		{
-			render_thread()->call([dt]() { API->update(dt); });
+			API->update(dt);
 			return *this;
 		}
 	};

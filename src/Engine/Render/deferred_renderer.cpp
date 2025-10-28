@@ -38,13 +38,13 @@ namespace Engine
 		}
 
 		struct CompareType {
-			bool operator()(const LightComponent* light, uint_t type) const { return light->proxy()->light_type() < type; }
-			bool operator()(uint_t type, const LightComponent* light) const { return light->proxy()->light_type() > type; }
+			bool operator()(const LightComponent* light, uint_t type) const { return light->light_type() < type; }
+			bool operator()(uint_t type, const LightComponent* light) const { return light->light_type() > type; }
 		};
 
 		struct CompareShadows {
-			bool operator()(const LightComponent* light, bool) const { return !light->proxy()->is_shadows_enabled(); }
-			bool operator()(bool, const LightComponent* light) const { return light->proxy()->is_shadows_enabled(); }
+			bool operator()(const LightComponent* light, bool) const { return !light->is_shadows_enabled(); }
+			bool operator()(bool, const LightComponent* light) const { return light->is_shadows_enabled(); }
 		};
 
 		auto lights_range = std::equal_range(lights.begin() + search_offset, lights.end(), light_type, CompareType());
@@ -183,7 +183,7 @@ namespace Engine
 		{
 			for (PrimitiveComponent* component : m_visible_primitives)
 			{
-				auto& bounds = component->proxy()->bounding_box();
+				auto& bounds = component->bounding_box();
 				lines.add_box(bounds.min - Vector3f(0.01f), bounds.max + Vector3f(0.01f), {255, 255, 0, 255}, 3.f);
 			}
 		}
@@ -194,9 +194,8 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::register_shadow_light(PointLightComponent* light, byte* shadow_data)
 	{
 		static const uint_t shadow_map_size = 1024;
-		auto proxy                          = light->proxy();
 
-		auto& transform = proxy->world_transform();
+		auto& transform = light->world_transform();
 
 		CameraView view;
 		view.location = transform.location();
@@ -207,7 +206,7 @@ namespace Engine
 		view.projection_mode = CameraProjectionMode::Perspective;
 		view.perspective.fov = 90.f;
 		view.near            = 0.1f;
-		view.far             = proxy->attenuation_radius();
+		view.far             = light->attenuation_radius();
 
 		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
 		new (renderer) DepthCubeRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
@@ -215,17 +214,16 @@ namespace Engine
 
 		PointLightShadowParameters* data = reinterpret_cast<PointLightShadowParameters*>(shadow_data);
 		data->descriptor                 = renderer->cubemap()->as_srv()->descriptor();
-		data->depth_bias                 = proxy->depth_bias() / static_cast<float>(shadow_map_size);
-		data->slope_scale                = proxy->slope_scale() / static_cast<float>(shadow_map_size);
+		data->depth_bias                 = light->depth_bias() / static_cast<float>(shadow_map_size);
+		data->slope_scale                = light->slope_scale() / static_cast<float>(shadow_map_size);
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, byte* shadow_data)
 	{
 		static const uint_t shadow_map_size = 1024;
-		auto proxy                          = light->proxy();
 
-		auto& transform = proxy->world_transform();
+		auto& transform = light->world_transform();
 
 		CameraView view;
 		view.location = transform.location();
@@ -234,9 +232,9 @@ namespace Engine
 		view.right    = transform.right_vector();
 
 		view.projection_mode = CameraProjectionMode::Perspective;
-		view.perspective.fov = glm::degrees(proxy->outer_cone_angle()) * 2.f;
+		view.perspective.fov = glm::degrees(light->outer_cone_angle()) * 2.f;
 		view.near            = 0.1f;
-		view.far             = proxy->attenuation_radius();
+		view.far             = light->attenuation_radius();
 
 		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
 		new (renderer) DepthRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
@@ -245,8 +243,8 @@ namespace Engine
 		SpotLightShadowParameters* data = reinterpret_cast<SpotLightShadowParameters*>(shadow_data);
 		data->descriptor                = renderer->scene_depth_target()->as_srv()->descriptor();
 		data->projview                  = view.projection_matrix() * view.view_matrix();
-		data->depth_bias                = proxy->depth_bias() / static_cast<float>(shadow_map_size);
-		data->slope_scale               = proxy->slope_scale() / static_cast<float>(shadow_map_size);
+		data->depth_bias                = light->depth_bias() / static_cast<float>(shadow_map_size);
+		data->slope_scale               = light->slope_scale() / static_cast<float>(shadow_map_size);
 		return *this;
 	}
 
@@ -261,13 +259,11 @@ namespace Engine
 		const float camera_near = view.camera_view().near;
 		const float camera_far  = view.camera_view().far;
 
-		auto proxy = light->proxy();
-
-		data->depth_bias  = proxy->depth_bias() / static_cast<float>(shadow_map_size);
-		data->slope_scale = proxy->slope_scale() / static_cast<float>(shadow_map_size);
+		data->depth_bias  = light->depth_bias() / static_cast<float>(shadow_map_size);
+		data->slope_scale = light->slope_scale() / static_cast<float>(shadow_map_size);
 		data->splits      = {0.f, 0.f, 0.f, 0.f};
 
-		const float shadow_distance = proxy->shadows_distance();
+		const float shadow_distance = light->shadows_distance();
 
 		for (uint_t cascade = 0; cascade < s_cascades_per_directional_light; ++cascade)
 		{
@@ -306,7 +302,7 @@ namespace Engine
 				cascade_center        = Math::floor(cascade_center * texels_per_unit) / texels_per_unit;
 			}
 
-			auto& transform = proxy->world_transform();
+			auto& transform = light->world_transform();
 
 			CameraView camera;
 			camera.projection_mode = CameraProjectionMode::Orthographic;
@@ -699,9 +695,9 @@ namespace Engine
 
 		for (PrimitiveComponent* primitive : primitives)
 		{
-			const Matrix4f* matrix = &primitive->proxy()->world_transform().matrix();
+			const Matrix4f* matrix = &primitive->world_transform().matrix();
 			PrimitiveRenderingContext context(this, ctx, pass, matrix, bindings);
-			primitive->proxy()->render(&context);
+			primitive->render(&context);
 		}
 
 		return *this;
@@ -749,7 +745,7 @@ namespace Engine
 
 					for (LightComponent* light : m_visible_lights)
 					{
-						light->proxy()->render_parameters(*(current++));
+						light->render_parameters(*(current++));
 					}
 				}
 

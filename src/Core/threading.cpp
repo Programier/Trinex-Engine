@@ -3,8 +3,7 @@
 
 namespace Engine
 {
-	static Thread* m_logic_thread  = nullptr;
-	static Thread* m_render_thread = nullptr;
+	static Thread* s_logic_thread = nullptr;
 
 	class MainThread : public Thread
 	{
@@ -17,41 +16,21 @@ namespace Engine
 		~MainThread() { unregister_thread(); }
 	};
 
-	ENGINE_EXPORT Thread* this_thread()
-	{
-		return ThisThread::self();
-	}
-
-	ENGINE_EXPORT Thread* render_thread()
-	{
-		return m_render_thread;
-	}
-
 	ENGINE_EXPORT Thread* logic_thread()
 	{
-		return m_logic_thread;
+		return s_logic_thread;
 	}
 
-	ENGINE_EXPORT bool is_in_render_thread()
+	ENGINE_EXPORT Thread* this_thread()
 	{
-		return this_thread() == render_thread();
-	}
-
-	ENGINE_EXPORT bool is_in_logic_thread()
-	{
-		return this_thread() == m_logic_thread;
+		return Thread::static_self();
 	}
 
 	ENGINE_EXPORT void create_threads()
 	{
-		if (m_logic_thread == nullptr)
+		if (s_logic_thread == nullptr)
 		{
-			m_logic_thread = trx_new MainThread();
-		}
-
-		if (m_render_thread == nullptr)
-		{
-			m_render_thread = trx_new Thread("Render");
+			s_logic_thread = trx_new MainThread();
 		}
 	}
 
@@ -67,7 +46,6 @@ namespace Engine
 
 	ENGINE_EXPORT void destroy_threads()
 	{
-		destroy_thread(m_logic_thread);
-		destroy_thread(m_render_thread);
+		destroy_thread(s_logic_thread);
 	}
 }// namespace Engine

@@ -69,13 +69,13 @@ namespace Engine
 			{
 				m_head    = allocate_block();
 				m_current = m_head;
-				m_thread  = ThisThread::self();
+				m_thread  = Thread::static_self();
 				sync->push(this);
 			}
 
 			TempAllocatorData& reset()
 			{
-				if (m_thread == ThisThread::self())
+				if (m_thread == Thread::static_self())
 				{
 					m_current          = m_head;
 					m_current->m_stack = m_current->m_begin;

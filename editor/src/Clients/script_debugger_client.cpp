@@ -919,12 +919,7 @@ namespace Engine
 			if (m_is_in_debug_loop)
 			{
 				viewport()->update(dt);
-
-				m_render_finished.lock();
-				render_thread()->call([this]() {
-					//rhi->submit();
-					m_render_finished.unlock();
-				});
+				//rhi->submit();
 			}
 		}
 

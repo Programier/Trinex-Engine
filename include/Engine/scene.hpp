@@ -50,8 +50,6 @@ namespace Engine
 
 		SceneComponent* root_component() const;
 
-		// Next methods can be used only from render thread
-		// TODO: Move to render proxy class
 		FrameVector<PrimitiveComponent*> collect_visible_primitives(const Frustum& frustum);
 		FrameVector<LightComponent*> collect_visible_lights(const Frustum& frustum);
 		FrameVector<PostProcessComponent*> collect_post_processes(const Vector3f& location);

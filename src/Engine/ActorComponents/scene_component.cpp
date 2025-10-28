@@ -48,7 +48,6 @@ namespace Engine
 		r.method("uint64 childs_count() const final", childs_count);
 		r.method("SceneComponent@ child_at(uint64 index) const final", child_at);
 
-		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
 		r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
 
 		r.method("const Transform& local_transform() const final", method_of<const Transform&>(&This::local_transform));
@@ -74,28 +73,6 @@ namespace Engine
 		        r.method("void on_transform_changed()", trinex_scoped_void_method(This, on_transform_changed));
 
 		ScriptEngine::on_terminate.push([]() { script_scene_comp_transform_changed.release(); });
-	}
-
-	const Transform& SceneComponent::Proxy::world_transform() const
-	{
-		return m_world_transform;
-	}
-
-	const Transform& SceneComponent::Proxy::local_transform() const
-	{
-		return m_local_transform;
-	}
-
-	SceneComponent::Proxy& SceneComponent::Proxy::world_transform(const Transform& transform)
-	{
-		m_world_transform = transform;
-		return *this;
-	}
-
-	SceneComponent::Proxy& SceneComponent::Proxy::local_transform(const Transform& transform)
-	{
-		m_local_transform = transform;
-		return *this;
 	}
 
 	SceneComponent::SceneComponent() {}
@@ -157,8 +134,6 @@ namespace Engine
 	{
 		m_is_dirty = true;
 
-		submit_transform_to_render_thread();
-
 		for (SceneComponent* child : m_childs)
 		{
 			child->on_transform_changed();
@@ -175,33 +150,13 @@ namespace Engine
 		return *this;
 	}
 
-	void SceneComponent::submit_transform_to_render_thread()
-	{
-		if (Proxy* component_proxy = proxy())
-		{
-			Thread* thread = render_thread();
-			thread->create_task<UpdateVariableCommand<Transform>>(local_transform(), component_proxy->m_local_transform);
-			thread->create_task<UpdateVariableCommand<Transform>>(world_transform(), component_proxy->m_world_transform);
-		}
-	}
-
-	SceneComponent& SceneComponent::start_play()
-	{
-		Super::start_play();
-		submit_transform_to_render_thread();
-		return *this;
-	}
-
 	const Transform& SceneComponent::local_transform() const
 	{
-		is_in_logic_thread_checked();
 		return m_local;
 	}
 
 	const Transform& SceneComponent::world_transform() const
 	{
-		is_in_logic_thread_checked();
-
 		if (m_is_dirty)
 		{
 			if (SceneComponent* parent_component = parent())
@@ -220,7 +175,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::local_transform(const Transform& transform)
 	{
-		is_in_logic_thread_checked();
 		m_local = transform;
 		on_transform_changed();
 		return *this;
@@ -228,7 +182,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_local_transform(const Transform& transform)
 	{
-		is_in_logic_thread_checked();
 		m_local += transform;
 		on_transform_changed();
 
@@ -237,7 +190,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::remove_local_transform(const Transform& transform)
 	{
-		is_in_logic_thread_checked();
 		m_local -= transform;
 		on_transform_changed();
 
@@ -246,7 +198,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::location(const Vector3f& new_location)
 	{
-		is_in_logic_thread_checked();
 		m_local.location(new_location);
 		on_transform_changed();
 
@@ -255,7 +206,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::rotation(const Quaternion& new_rotation)
 	{
-		is_in_logic_thread_checked();
 		m_local.rotation(new_rotation);
 		on_transform_changed();
 		return *this;
@@ -263,7 +213,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::rotation(const Vector3f& new_rotation)
 	{
-		is_in_logic_thread_checked();
 		m_local.rotation(new_rotation);
 		on_transform_changed();
 		return *this;
@@ -271,7 +220,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::scale(const Vector3f& new_scale)
 	{
-		is_in_logic_thread_checked();
 		m_local.scale(new_scale);
 		on_transform_changed();
 		return *this;
@@ -279,7 +227,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_location(const Vector3f& delta)
 	{
-		is_in_logic_thread_checked();
 		m_local.add_location(delta);
 		on_transform_changed();
 		return *this;
@@ -287,7 +234,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_rotation(const Vector3f& delta)
 	{
-		is_in_logic_thread_checked();
 		m_local.add_rotation(delta);
 		on_transform_changed();
 		return *this;
@@ -295,7 +241,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_rotation(const Quaternion& delta)
 	{
-		is_in_logic_thread_checked();
 		m_local.add_rotation(delta);
 		on_transform_changed();
 		return *this;
@@ -303,7 +248,6 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_scale(const Vector3f& delta)
 	{
-		is_in_logic_thread_checked();
 		m_local.add_scale(delta);
 		on_transform_changed();
 		return *this;

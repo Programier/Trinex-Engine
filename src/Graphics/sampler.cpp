@@ -63,8 +63,7 @@ namespace Engine
 
 		SamplerImpl& initialize()
 		{
-			is_in_logic_thread_checked();
-			render_thread()->call([this]() { m_sampler = rhi->create_sampler(&m_initializer); });
+			m_sampler                 = rhi->create_sampler(&m_initializer);
 			s_samplers[m_initializer] = this;
 			return *this;
 		}
@@ -101,7 +100,7 @@ namespace Engine
 		{
 			if (m_sampler)
 			{
-				render_thread()->call([sampler = m_sampler]() { sampler->release(); });
+				m_sampler->release();
 			}
 
 			s_samplers.erase(m_initializer);

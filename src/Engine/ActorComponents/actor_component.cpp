@@ -61,21 +61,9 @@ namespace Engine
 		ScriptContext::execute(this, script_actor_comp_destroyed);
 	}
 
-	ActorComponent::ActorComponent() : m_proxy(nullptr) {}
+	ActorComponent::ActorComponent() {}
 
-	ActorComponent::~ActorComponent()
-	{
-		destroy_proxy();
-	}
-
-	void ActorComponent::destroy_proxy()
-	{
-		if (m_proxy)
-		{
-			trx_delete m_proxy;
-			m_proxy = nullptr;
-		}
-	}
+	ActorComponent::~ActorComponent() {}
 
 	ActorComponent& ActorComponent::start_play()
 	{
@@ -94,24 +82,12 @@ namespace Engine
 
 	ActorComponent& ActorComponent::spawned()
 	{
-		m_proxy = create_proxy();
 		return *this;
 	}
 
 	ActorComponent& ActorComponent::destroyed()
 	{
-		destroy_proxy();
 		return *this;
-	}
-
-	ActorComponent::Proxy* ActorComponent::create_proxy()
-	{
-		return nullptr;
-	}
-
-	ActorComponent::Proxy* ActorComponent::proxy() const
-	{
-		return m_proxy;
 	}
 
 	class Actor* ActorComponent::actor() const

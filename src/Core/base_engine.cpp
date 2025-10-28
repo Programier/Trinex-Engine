@@ -16,21 +16,6 @@
 
 namespace Engine
 {
-	struct SubmitCommand : public Task<SubmitCommand> {
-		CriticalSection* m_signal;
-
-		SubmitCommand(CriticalSection* signal) : m_signal(signal) {}
-
-		void execute() override
-		{
-			auto handle = rhi->context()->end();
-			rhi->submit(handle);
-			handle->release();
-			rhi->context()->begin();
-			m_signal->unlock();
-		}
-	};
-
 	trinex_implement_engine_class_default_init(BaseEngine, 0);
 
 	FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
@@ -95,8 +80,10 @@ namespace Engine
 				viewport->update(m_delta_time);
 			}
 
-			m_render_end_signal.lock();
-			render_thread()->create_task<SubmitCommand>(&m_render_end_signal);
+			auto handle = rhi->context()->end();
+			rhi->submit(handle);
+			handle->release();
+			rhi->context()->begin();
 		}
 		return 0;
 	}

@@ -98,7 +98,6 @@ namespace Engine
 		Super::shutdown();
 		stop_play();
 		destroy_all_actors();
-		render_thread()->wait();
 		trx_delete m_scene;
 		return *this;
 	}

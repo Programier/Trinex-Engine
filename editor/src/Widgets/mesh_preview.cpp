@@ -99,30 +99,28 @@ namespace Engine
 		{
 			auto scene = m_mesh->world()->scene();
 
-			render_thread()->call([surface, view_size, camera_view = m_camera->camera_view(), scene]() {
-				SceneView scene_view(camera_view, view_size);
+			SceneView scene_view(m_camera->camera_view(), view_size);
 
-				EditorRenderer renderer(scene, scene_view);
-				RenderGraph::Graph* graph = renderer.render_graph();
+			EditorRenderer renderer(scene, scene_view);
+			RenderGraph::Graph* graph = renderer.render_graph();
 
-				renderer.render_grid();
-				graph->add_output(surface->rhi_texture());
+			renderer.render_grid();
+			graph->add_output(surface->rhi_texture());
 
-				graph->add_pass("Copy to Target Surface")
-				        .add_resource(surface->rhi_texture(), RHIAccess::TransferDst)
-				        .add_resource(renderer.scene_color_ldr_target(), RHIAccess::TransferSrc)
-				        .add_func([&](RHIContext* ctx) {
-					        RHITextureRegion region(view_size);
-					        ctx->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(),
-					                                     region);
-				        });
+			graph->add_pass("Copy to Target Surface")
+			        .add_resource(surface->rhi_texture(), RHIAccess::TransferDst)
+			        .add_resource(renderer.scene_color_ldr_target(), RHIAccess::TransferSrc)
+			        .add_func([&](RHIContext* ctx) {
+				        RHITextureRegion region(view_size);
+				        ctx->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(), region);
+			        });
 
-				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
-				{
-					renderer.render(ctx);
-				}
-				RHIContextPool::global_instance()->end_context(ctx);
-			});
+			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			{
+				renderer.render(ctx);
+			}
+			
+			RHIContextPool::global_instance()->end_context(ctx);
 		}
 
 		return surface;

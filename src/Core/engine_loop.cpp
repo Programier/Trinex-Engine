@@ -172,7 +172,7 @@ namespace Engine
 
 		if (wait_time > 0.f)
 		{
-			ThisThread::sleep_for(wait_time);
+			Thread::static_sleep_for(wait_time);
 		}
 
 		if (show_splash)
@@ -189,13 +189,11 @@ namespace Engine
 	void EngineLoop::update()
 	{
 		engine_instance->update();
-		logic_thread()->execute_commands();
 	}
 
 	void EngineLoop::terminate()
 	{
 		info_log("EngineInstance", "Terminate Engine");
-		render_thread()->wait();
 
 		DestroyController().execute();
 		engine_instance->terminate();
@@ -207,14 +205,10 @@ namespace Engine
 			trx_delete WindowManager::instance();
 
 		GarbageCollector::destroy_all_objects();
-		render_thread()->wait();
 
 		if (rhi)
 		{
-			// Cannot delete rhi in logic thread, because the gpu resources can be used now
-			// So, delete it on render thread
-			render_thread()->call([]() { rhi->info.struct_instance->destroy_struct(rhi); });
-			render_thread()->wait();
+			rhi->info.struct_instance->destroy_struct(rhi);
 			rhi = nullptr;
 		}
 

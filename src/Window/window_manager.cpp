@@ -108,11 +108,6 @@ namespace Engine
 	{
 		if (window)
 		{
-			if (rhi)
-			{
-				render_thread()->wait();
-			}
-
 			if (window == m_main_window)
 				m_main_window = nullptr;
 			m_windows.erase(window->id());

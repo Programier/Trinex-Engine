@@ -21,91 +21,11 @@ namespace Engine
 		         method_of<SkeletalMeshComponent&, SkeletalMesh*>(&This::mesh));
 	}
 
-	SkeletalMeshComponent::Proxy& SkeletalMeshComponent::Proxy::update_mesh(SkeletalMesh* mesh)
-	{
-		m_mesh = mesh;
-		return *this;
-	}
-
-	size_t SkeletalMeshComponent::Proxy::lods_count() const
-	{
-		return m_mesh->lods.size();
-	}
-
-	size_t SkeletalMeshComponent::Proxy::materials_count() const
-	{
-		return m_mesh->materials.size();
-	}
-
-	size_t SkeletalMeshComponent::Proxy::surfaces_count(size_t lod) const
-	{
-		return m_mesh->lods[lod].surfaces.size();
-	}
-
-	const MeshSurface* SkeletalMeshComponent::Proxy::surface(size_t index, size_t lod) const
-	{
-		return &m_mesh->lods[lod].surfaces[index];
-	}
-
-	const MeshVertexAttribute* SkeletalMeshComponent::Proxy::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
-	{
-		return nullptr;
-	}
-
-	VertexBufferBase* SkeletalMeshComponent::Proxy::vertex_buffer(byte stream, size_t lod)
-	{
-		return nullptr;
-	}
-
-	IndexBuffer* SkeletalMeshComponent::Proxy::index_buffer(size_t lod)
-	{
-		auto& buffer = m_mesh->lods[lod].indices;
-		return buffer.size() == 0 ? nullptr : &buffer;
-	}
-
-	MaterialInterface* SkeletalMeshComponent::Proxy::material(size_t index) const
-	{
-		if (auto material = Super::Proxy::material(index))
-			return material;
-
-		return m_mesh ? m_mesh->materials[index] : nullptr;
-	}
-
-	SkeletalMeshComponent::Proxy& SkeletalMeshComponent::Proxy::render(PrimitiveRenderingContext* ctx)
-	{
-		static MaterialBindings skeletal_bindings;
-		static Name permutation                              = "SkeletalMesh";
-		static MaterialBindings::Binding* trx_skinning_bones = skeletal_bindings.find_or_create("trx_skinning_bones");
-
-		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
-		{
-			skeletal_bindings.prev = ctx->bindings;
-			ctx->bindings          = &skeletal_bindings;
-
-			(*trx_skinning_bones) = m_bones->as_srv();
-			Super::Proxy::render(ctx);
-		}
-		return *this;
-	}
-
-	SkeletalMeshComponent& SkeletalMeshComponent::submit_new_mesh()
-	{
-		render_thread()->call([proxy = proxy(), mesh = m_mesh]() { proxy->update_mesh(mesh); });
-		update_bounding_box();
-		return *this;
-	}
-
-	SkeletalMeshComponent::Proxy* SkeletalMeshComponent::create_proxy()
-	{
-		return trx_new Proxy();
-	}
-
 	SkeletalMeshComponent& SkeletalMeshComponent::update_bounding_box()
 	{
 		if (mesh())
 		{
 			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
-			submit_bounds_to_render_thread();
 		}
 		else
 		{
@@ -131,5 +51,53 @@ namespace Engine
 			return mesh()->materials[index];
 
 		return nullptr;
+	}
+
+	size_t SkeletalMeshComponent::lods_count() const
+	{
+		return m_mesh->lods.size();
+	}
+
+	size_t SkeletalMeshComponent::surfaces_count(size_t lod) const
+	{
+		return m_mesh->lods[lod].surfaces.size();
+	}
+
+	const MeshSurface* SkeletalMeshComponent::surface(size_t index, size_t lod) const
+	{
+		return &m_mesh->lods[lod].surfaces[index];
+	}
+
+	const MeshVertexAttribute* SkeletalMeshComponent::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
+	{
+		return nullptr;
+	}
+
+	VertexBufferBase* SkeletalMeshComponent::vertex_buffer(byte stream, size_t lod)
+	{
+		return nullptr;
+	}
+
+	IndexBuffer* SkeletalMeshComponent::index_buffer(size_t lod)
+	{
+		auto& buffer = m_mesh->lods[lod].indices;
+		return buffer.size() == 0 ? nullptr : &buffer;
+	}
+
+	SkeletalMeshComponent& SkeletalMeshComponent::render(PrimitiveRenderingContext* ctx)
+	{
+		static MaterialBindings skeletal_bindings;
+		static Name permutation                              = "SkeletalMesh";
+		static MaterialBindings::Binding* trx_skinning_bones = skeletal_bindings.find_or_create("trx_skinning_bones");
+
+		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
+		{
+			skeletal_bindings.prev = ctx->bindings;
+			ctx->bindings          = &skeletal_bindings;
+
+			(*trx_skinning_bones) = m_bones->as_srv();
+			Super::render(ctx);
+		}
+		return *this;
 	}
 }// namespace Engine

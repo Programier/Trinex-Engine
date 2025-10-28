@@ -37,23 +37,6 @@ namespace Engine
 		inline ~ImGuiContextLock() { ImGui::SetCurrentContext(m_ctx); }
 	};
 
-	class ImGuiDrawData final
-	{
-		ImDrawData m_draw_data[2];
-		byte m_logic_index  = 0;
-		byte m_render_index = 0;
-
-	public:
-		ImDrawData* draw_data();
-		ImGuiDrawData& release(bool full = false);
-		ImGuiDrawData& copy(ImDrawData* draw_data);
-
-		ImGuiDrawData& swap_render_index();
-		ImGuiDrawData& swap_logic_index();
-
-		~ImGuiDrawData();
-	};
-
 	class ImGuiWidget
 	{
 	public:
@@ -133,7 +116,6 @@ namespace Engine
 		trinex_declare_class(ImGuiWindow, Object);
 
 	private:
-		ImGuiDrawData m_draw_data;
 		size_t m_frame;
 
 		ImGuiContext* m_context = nullptr;
@@ -149,7 +131,6 @@ namespace Engine
 		bool terminate();
 
 		ImGuiContext* context() const;
-		ImDrawData* draw_data();
 		ImGuiWindow& new_frame();
 		ImGuiWindow& end_frame();
 		Window* window() const;

@@ -21,11 +21,6 @@ namespace Engine
 
 	static const Box3f default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
-	PrimitiveComponent::Proxy& PrimitiveComponent::Proxy::render(PrimitiveRenderingContext* context)
-	{
-		return *this;
-	}
-
 	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
 
 	bool PrimitiveComponent::is_visible() const
@@ -96,18 +91,14 @@ namespace Engine
 		return update_bounding_box();
 	}
 
-	void PrimitiveComponent::submit_bounds_to_render_thread()
+	PrimitiveComponent& PrimitiveComponent::render(PrimitiveRenderingContext* context)
 	{
-		if (Proxy* component_proxy = proxy())
-		{
-			render_thread()->create_task<UpdateVariableCommand<Box3f>>(m_bounding_box, component_proxy->m_bounds);
-		}
+		return *this;
 	}
 
 	PrimitiveComponent& PrimitiveComponent::update_bounding_box()
 	{
 		m_bounding_box = default_bounds.transform(world_transform().matrix());
-		submit_bounds_to_render_thread();
 		return *this;
 	}
 

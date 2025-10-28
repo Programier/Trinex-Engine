@@ -9,32 +9,16 @@ namespace Engine
 	{
 		trinex_declare_class(SceneComponent, ActorComponent);
 
-	public:
-		class ENGINE_EXPORT Proxy : public Super::Proxy
-		{
-			Transform m_world_transform;
-			Transform m_local_transform;
-
-		public:
-			const Transform& world_transform() const;
-			const Transform& local_transform() const;
-			Proxy& world_transform(const Transform& transform);
-			Proxy& local_transform(const Transform& transform);
-			friend class SceneComponent;
-		};
-
 	private:
 		mutable Transform m_local;
 		mutable Transform m_world;
 		mutable bool m_is_dirty;
-
 
 		Pointer<SceneComponent> m_parent = nullptr;
 		Vector<Pointer<SceneComponent>> m_childs;
 
 	protected:
 		void script_on_transform_changed();
-		void submit_transform_to_render_thread();
 
 	public:
 		template<typename Native>
@@ -52,7 +36,6 @@ namespace Engine
 		SceneComponent& detach_from_parent();
 		bool is_attached_to(SceneComponent* component) const;
 		SceneComponent& destroyed() override;
-		SceneComponent& start_play() override;
 
 		const Transform& local_transform() const;
 		const Transform& world_transform() const;
@@ -72,7 +55,6 @@ namespace Engine
 
 		inline SceneComponent* parent() const { return m_parent.ptr(); }
 		inline const Vector<Pointer<SceneComponent>>& childs() const { return m_childs; }
-		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 
 		virtual SceneComponent& on_transform_changed();
 	};

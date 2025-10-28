@@ -32,9 +32,9 @@ namespace Engine
 
 		for (PrimitiveComponent* component : components)
 		{
-			const Matrix4f* local_to_world = &component->proxy()->world_transform().matrix();
+			const Matrix4f* local_to_world = &component->world_transform().matrix();
 			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), local_to_world);
-			component->proxy()->render(&context);
+			component->render(&context);
 		}
 		return *this;
 	}
@@ -92,9 +92,9 @@ namespace Engine
 
 		for (PrimitiveComponent* component : components)
 		{
-			const Matrix4f* local_to_world = &component->proxy()->world_transform().matrix();
+			const Matrix4f* local_to_world = &component->world_transform().matrix();
 			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), local_to_world);
-			component->proxy()->render(&context);
+			component->render(&context);
 		}
 
 #if TRINEX_DEBUG_BUILD

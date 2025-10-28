@@ -17,24 +17,9 @@ namespace Engine
 	{
 		trinex_declare_class(PrimitiveComponent, SceneComponent);
 
-	public:
-		class ENGINE_EXPORT Proxy : public Super::Proxy
-		{
-		protected:
-			Box3f m_bounds;
-
-		public:
-			virtual Proxy& render(PrimitiveRenderingContext* context);
-
-			inline const Box3f& bounding_box() const { return m_bounds; }
-			friend class PrimitiveComponent;
-		};
-
 	protected:
 		bool m_is_visible;
 		Box3f m_bounding_box;
-
-		void submit_bounds_to_render_thread();
 
 	public:
 		PrimitiveComponent();
@@ -49,9 +34,9 @@ namespace Engine
 		virtual size_t materials_count() const                                 = 0;
 		virtual MaterialInterface* material(size_t index) const                = 0;
 		virtual PrimitiveComponent& material(MaterialInterface*, size_t index) = 0;
+		virtual PrimitiveComponent& render(PrimitiveRenderingContext* context);
 
 		virtual PrimitiveComponent& update_bounding_box();
-		inline Proxy* proxy() const { return typed_proxy<Proxy>(); }
 		~PrimitiveComponent();
 	};
 }// namespace Engine

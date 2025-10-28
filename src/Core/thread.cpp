@@ -65,7 +65,7 @@ namespace Engine
 
 	Thread& Thread::execute_commands()
 	{
-		if (ThisThread::self() == this)
+		if (static_self() == this)
 		{
 			byte* wp = m_write_pointer;
 			byte* rp = m_read_pointer;
@@ -93,7 +93,7 @@ namespace Engine
 
 	Thread& Thread::execute_commands(uint_t commands_limit)
 	{
-		if (ThisThread::self() == this)
+		if (static_self() == this)
 		{
 			byte* wp = m_write_pointer;
 			byte* rp = m_read_pointer;
@@ -123,7 +123,7 @@ namespace Engine
 
 	Thread& Thread::wait()
 	{
-		if (ThisThread::self() != this)
+		if (static_self() != this)
 		{
 			CriticalSection m_section;
 			m_section.lock();
@@ -135,6 +135,21 @@ namespace Engine
 			execute_commands();
 		}
 		return *this;
+	}
+
+	void Thread::static_sleep_for(float seconds)
+	{
+		std::this_thread::sleep_for(std::chrono::microseconds(static_cast<size_t>(seconds * 1000000.f)));
+	}
+
+	Thread* Thread::static_self()
+	{
+		if (this_thread_instance == nullptr)
+		{
+			throw EngineException("Engine::ThisThread::self must be called from a thread that is registered by the engine");
+		}
+
+		return this_thread_instance;
 	}
 
 	void Thread::static_yield()
@@ -163,19 +178,6 @@ namespace Engine
 
 	namespace ThisThread
 	{
-		ENGINE_EXPORT void sleep_for(float seconds)
-		{
-			std::this_thread::sleep_for(std::chrono::microseconds(static_cast<size_t>(seconds * 1000000.f)));
-		}
-
-		ENGINE_EXPORT Thread* self()
-		{
-			if (this_thread_instance == nullptr)
-			{
-				throw EngineException("Engine::ThisThread::self must be called from a thread that is registered by the engine");
-			}
-
-			return this_thread_instance;
-		}
+		ENGINE_EXPORT void sleep_for(float seconds) {}
 	}// namespace ThisThread
 }// namespace Engine

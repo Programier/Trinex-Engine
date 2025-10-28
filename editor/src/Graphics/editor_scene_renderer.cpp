@@ -68,10 +68,10 @@ namespace Engine
 					id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
 					(*proxy_id) = id;
 
-					const Matrix4f* matrix = &primitive->proxy()->world_transform().matrix();
+					const Matrix4f* matrix = &primitive->world_transform().matrix();
 					RenderPass* pass       = EditorRenderPasses::HitProxy::static_instance();
 					PrimitiveRenderingContext context(this, ctx, pass, matrix, &bindings);
-					primitive->proxy()->render(&context);
+					primitive->render(&context);
 				}
 			}
 
@@ -137,9 +137,9 @@ namespace Engine
 		return *this;
 	}
 
-	EditorRenderer& EditorRenderer::render_outlines(Actor** actors, size_t count)
+	EditorRenderer& EditorRenderer::render_outlines(const Set<Actor*>& actors)
 	{
-		if (actors && count)
+		if (!actors.empty())
 		{
 			auto view_size = scene_view().view_size();
 			auto pool      = RHITexturePool::global_instance();
@@ -156,21 +156,19 @@ namespace Engine
 			auto& outlines_depth = render_graph()->add_pass("Outlines Depth");
 			auto& outlines_color = render_graph()->add_pass("Outlines Color");
 
-			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, actors, count](RHIContext* ctx) {
+			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, &actors](RHIContext* ctx) {
 				rhi->context()->bind_depth_stencil_target(dsv);
 
-				for (size_t i = 0; i < count; ++i)
+				for (Actor* actor : actors)
 				{
-					Actor* actor = actors[i];
-
 					for (ActorComponent* component : actor->owned_components())
 					{
 						if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
 						{
-							const Matrix4f* matrix = &primitive->proxy()->world_transform().matrix();
+							const Matrix4f* matrix = &primitive->world_transform().matrix();
 							RenderPass* pass       = RenderPasses::Depth::static_instance();
 							PrimitiveRenderingContext context(this, ctx, pass, matrix);
-							primitive->proxy()->render(&context);
+							primitive->render(&context);
 						}
 					}
 				}
@@ -200,7 +198,7 @@ namespace Engine
 		return *this;
 	}
 
-	EditorRenderer& EditorRenderer::render_primitives(Actor** actors, size_t count)
+	EditorRenderer& EditorRenderer::render_primitives(const Set<Actor*>& actors)
 	{
 		FrameVector<LightComponent*> lights = visible_lights();
 
@@ -211,27 +209,23 @@ namespace Engine
 
 			if (auto spot_light = Object::instance_cast<SpotLightComponent>(light))
 			{
-				auto proxy = spot_light->proxy();
+				auto dir           = spot_light->direction() * 2.f;
+				float outer_radius = 2.f * glm::tan(glm::radians(spot_light->outer_cone_angle()));
+				float inner_radius = 2.f * glm::tan(glm::radians(spot_light->inner_cone_angle()));
 
-				auto dir           = proxy->direction() * 2.f;
-				float outer_radius = 2.f * glm::tan(proxy->outer_cone_angle());
-				float inner_radius = 2.f * glm::tan(proxy->inner_cone_angle());
-
-				auto location = proxy->world_transform().location() + dir;
+				auto location = spot_light->world_transform().location() + dir;
 				lines.add_cone(location, -dir, outer_radius, {255, 255, 0, 255}, 0, 3.f);
 				lines.add_cone(location, -dir, inner_radius, {255, 255, 0, 255}, 0, 3.f);
 			}
 			else if (auto point_light = Object::instance_cast<PointLightComponent>(light))
 			{
-				auto proxy     = point_light->proxy();
-				auto& location = proxy->world_transform().location();
-				lines.add_sphere(location, proxy->attenuation_radius(), {255, 255, 0, 255}, 0, 3.f);
+				auto& location = point_light->world_transform().location();
+				lines.add_sphere(location, point_light->attenuation_radius(), {255, 255, 0, 255}, 0, 3.f);
 			}
 			else if (auto directional_light = Object::instance_cast<DirectionalLightComponent>(light))
 			{
-				auto proxy     = directional_light->proxy();
-				auto& location = proxy->world_transform().location();
-				lines.add_arrow(location, proxy->direction(), {255, 255, 0, 255}, 3.f);
+				auto& location = directional_light->world_transform().location();
+				lines.add_arrow(location, directional_light->direction(), {255, 255, 0, 255}, 3.f);
 			}
 		}
 

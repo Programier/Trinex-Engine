@@ -91,6 +91,8 @@ namespace Engine
 		Thread& execute_commands(uint_t commands_limit);
 		Thread& wait();
 
+		static void static_sleep_for(float seconds);
+		static Thread* static_self();
 		static void static_yield();
 
 		template<typename CommandType, typename... Args>
@@ -142,10 +144,4 @@ namespace Engine
 
 		virtual ~Thread();
 	};
-
-	namespace ThisThread
-	{
-		ENGINE_EXPORT void sleep_for(float seconds);
-		ENGINE_EXPORT Thread* self();
-	}// namespace ThisThread
 }// namespace Engine

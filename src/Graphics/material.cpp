@@ -279,8 +279,6 @@ namespace Engine
 			return false;
 		}
 
-		render_thread()->wait();
-
 		auto current_pipeline = Material::pipeline(pass);
 
 		if (current_pipeline == pipeline)
@@ -315,7 +313,6 @@ namespace Engine
 		if (it == m_pipelines.end())
 			return nullptr;
 
-		render_thread()->wait();
 		GraphicsPipeline* pipeline = it->second;
 		m_pipelines.erase(it);
 		pipeline->owner(nullptr);
@@ -397,8 +394,6 @@ namespace Engine
 
 	bool Material::apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx)
 	{
-		trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
-
 		RenderPass* pass     = ctx->pass;
 		auto pipeline_object = pipeline(pass);
 
@@ -502,7 +497,6 @@ namespace Engine
 
 	Material& Material::remove_all_pipelines()
 	{
-		render_thread()->wait();
 		for (auto& [pass, pipeline] : m_pipelines)
 		{
 			pipeline->owner(nullptr);

@@ -149,7 +149,6 @@ namespace Engine
 
 	Object::Object() : m_references(0), m_instance_index(Constants::index_none)
 	{
-		trinex_always_check(is_in_logic_thread(), "Cannot create new object instance outside logic thread!");
 		if (next_object_info.class_instance == nullptr)
 		{
 			throw EngineException("Next object class is invalid!");
