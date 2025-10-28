@@ -1,15 +1,24 @@
 #pragma once
+#include <Core/engine_types.hpp>
+#include <Core/etl/atomic.hpp>
 #include <Core/etl/critical_section.hpp>
-#include <Core/etl/function.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/exception.hpp>
 #include <Core/memory.hpp>
-#include <Core/task.hpp>
+#include <Core/threading/task.hpp>
+#include <functional>
 #include <thread>
 
 namespace Engine
 {
-	class ENGINE_EXPORT ThreadManager final
+	class ENGINE_EXPORT Thread
 	{
+	public:
+		static constexpr inline size_t command_alignment = 16;
+
+	protected:
+		Thread& register_thread();
+		Thread& unregister_thread();
+
 	protected:
 		template<typename Func>
 		struct FunctionCaller : public Task<FunctionCaller<Func>> {
@@ -30,23 +39,25 @@ namespace Engine
 			void execute() override {}
 		};
 
-		static constexpr inline size_t m_buffer_size = 1024 * 1024 * 1;
-		static constexpr inline size_t m_align       = 16;
+		struct NoThread {
+		};
 
-		alignas(m_align) byte m_buffer[m_buffer_size];
-		Vector<class WorkerThread*> m_threads;
+		byte* const m_buffer;
+		const size_t m_buffer_size;
 
-		Atomic<byte*> m_thread_read_pointer;
+		std::thread* m_thread = nullptr;
+
 		Atomic<byte*> m_read_pointer;
 		Atomic<byte*> m_write_pointer;
 
 		Atomic<bool> m_running = true;
-		Atomic<bool> m_has_tasks;
 
-		CriticalSection m_task_exec_section;
-		CriticalSection m_push_task_section;
+		std::atomic_flag m_exec_flag = ATOMIC_FLAG_INIT;
+		CriticalSection m_push_section;
 
 	protected:
+		void thread_loop();
+
 		inline size_t free_size() const
 		{
 			byte* rp = m_read_pointer;
@@ -64,38 +75,39 @@ namespace Engine
 
 		FORCE_INLINE void wait_for_size(size_t size)
 		{
-			size += m_align;
+			size += command_alignment;
 			while (free_size() < size)
 			{
 				std::this_thread::yield();
 			}
 		}
 
-
-		ThreadManager();
-		~ThreadManager();
-
-		void thread_loop(class WorkerThread* thread);
-		TaskInterface* begin_execute();
-		void end_execute(TaskInterface* interface);
+		Thread(NoThread, size_t command_buffer_size = 1024 * 1024 * 1);
 
 	public:
-		static void destroy_manager();
-		static ThreadManager* instance();
+		Thread(size_t command_buffer_size = 1024 * 1024 * 1);
+		Thread& execute_commands();
+		Thread& execute_commands(uint_t commands_limit);
+		Thread& wait();
+
+		static void static_sleep_for(float seconds);
+		static Thread* static_self();
+		static void static_yield();
 
 		template<typename CommandType, typename... Args>
-		inline ThreadManager& create_task(Args&&... args)
+		inline Thread& create_task(Args&&... args)
 		{
-			m_push_task_section.lock();
+			m_push_section.lock();
 
-			size_t task_size = align_up(sizeof(CommandType), m_align);
+			size_t task_size = align_up(sizeof(CommandType), command_alignment);
 			byte* wp         = m_write_pointer;
 
 			if (wp + task_size > m_buffer + m_buffer_size)
 			{
 				wait_for_size(sizeof(SkipBytes));
 				new (wp) SkipBytes((m_buffer + m_buffer_size) - wp);
-				wp = m_buffer;
+				wp              = m_buffer;
+				m_write_pointer = wp;
 			}
 
 			wait_for_size(task_size);
@@ -109,24 +121,26 @@ namespace Engine
 			}
 
 			m_write_pointer = wp;
-			m_push_task_section.unlock();
+			m_exec_flag.test_and_set();
+			m_exec_flag.notify_all();
 
-			m_has_tasks = true;
-			m_has_tasks.notify_one();
+			m_push_section.unlock();
 			return *this;
 		}
 
 		template<typename Function>
-		FORCE_INLINE ThreadManager& call(Function&& function)
+		FORCE_INLINE Thread& call(Function&& function)
 		{
 			return create_task<FunctionCaller<Function>>(std::forward<Function>(function));
 		}
 
 		template<typename Function, typename... Args>
-		FORCE_INLINE ThreadManager& call(Function&& function, Args&&... args)
+		FORCE_INLINE Thread& call(Function&& function, Args&&... args)
 		{
 			auto new_function = std::bind(std::forward<Function>(function), std::forward<Args>(args)...);
 			return create_task<FunctionCaller<decltype(new_function)>>(std::move(new_function));
 		}
+
+		virtual ~Thread();
 	};
 }// namespace Engine

@@ -2,7 +2,7 @@
 #include <Core/engine_loop.hpp>
 #include <Core/export.hpp>
 #include <Core/logger.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <Platform/platform.hpp>
 
 

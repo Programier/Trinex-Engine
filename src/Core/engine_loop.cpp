@@ -11,8 +11,8 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
-#include <Core/thread.hpp>
 #include <Core/threading.hpp>
+#include <Core/threading/thread.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>

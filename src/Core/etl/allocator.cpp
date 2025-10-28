@@ -7,7 +7,7 @@
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <cstdlib>
 
 namespace Engine

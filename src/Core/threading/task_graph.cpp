@@ -3,7 +3,7 @@
 #include <Core/etl/deque.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/memory.hpp>
-#include <Core/task_graph.hpp>
+#include <Core/threading/task_graph.hpp>
 #include <condition_variable>
 #include <mutex>
 #include <thread>

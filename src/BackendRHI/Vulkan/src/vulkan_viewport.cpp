@@ -2,7 +2,7 @@
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>

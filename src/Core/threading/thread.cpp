@@ -1,6 +1,6 @@
 #include <Core/memory.hpp>
-#include <Core/thread.hpp>
 #include <Core/threading.hpp>
+#include <Core/threading/thread.hpp>
 
 namespace Engine
 {
@@ -13,11 +13,6 @@ namespace Engine
 
 		void execute() override { section->unlock(); }
 	};
-
-	Thread& Thread::register_thread_name(const String& name)
-	{
-		return *this;
-	}
 
 	Thread& Thread::register_thread()
 	{
@@ -38,7 +33,7 @@ namespace Engine
 		m_write_pointer = m_buffer;
 	}
 
-	Thread::Thread(const char* name, size_t command_buffer_size) : Thread(NoThread(), command_buffer_size)
+	Thread::Thread(size_t command_buffer_size) : Thread(NoThread(), command_buffer_size)
 	{
 		m_thread = trx_new std::thread([this]() { thread_loop(); });
 	}
@@ -175,9 +170,4 @@ namespace Engine
 
 		ByteAllocator::deallocate(m_buffer);
 	}
-
-	namespace ThisThread
-	{
-		ENGINE_EXPORT void sleep_for(float seconds) {}
-	}// namespace ThisThread
 }// namespace Engine

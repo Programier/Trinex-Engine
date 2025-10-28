@@ -3,7 +3,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
 #include <RHI/rhi.hpp>

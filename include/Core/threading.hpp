@@ -1,6 +1,5 @@
 #pragma once
-#include <Core/task.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 
 namespace Engine
 {

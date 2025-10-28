@@ -2,7 +2,7 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/pointer.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <TextEditor.h>
 

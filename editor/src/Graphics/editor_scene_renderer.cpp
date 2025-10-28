@@ -1,6 +1,6 @@
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>

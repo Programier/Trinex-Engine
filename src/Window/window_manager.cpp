@@ -6,8 +6,8 @@
 #include <Core/library.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/thread.hpp>
 #include <Core/threading.hpp>
+#include <Core/threading/thread.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
@@ -16,7 +16,6 @@
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-
 
 namespace Engine
 {

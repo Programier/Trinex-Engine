@@ -1,7 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/event.hpp>
 #include <Core/logger.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading/thread.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window.hpp>
@@ -228,11 +228,9 @@ namespace Engine::Platform
 
 			switch (m_event.window.event)
 			{
-				case SDL_WINDOWEVENT_SHOWN:
-					new_event(WindowShown);
+				case SDL_WINDOWEVENT_SHOWN: new_event(WindowShown);
 
-				case SDL_WINDOWEVENT_HIDDEN:
-					new_event(WindowHidden);
+				case SDL_WINDOWEVENT_HIDDEN: new_event(WindowHidden);
 
 
 				case SDL_WINDOWEVENT_MOVED:
@@ -262,24 +260,18 @@ namespace Engine::Platform
 					new_event(WindowResized);
 				}
 
-				case SDL_WINDOWEVENT_MINIMIZED:
-					new_event(WindowMinimized);
+				case SDL_WINDOWEVENT_MINIMIZED: new_event(WindowMinimized);
 
-				case SDL_WINDOWEVENT_MAXIMIZED:
-					new_event(WindowMaximized);
+				case SDL_WINDOWEVENT_MAXIMIZED: new_event(WindowMaximized);
 
-				case SDL_WINDOWEVENT_RESTORED:
-					new_event(WindowRestored);
+				case SDL_WINDOWEVENT_RESTORED: new_event(WindowRestored);
 
 				case SDL_WINDOWEVENT_TAKE_FOCUS:
-				case SDL_WINDOWEVENT_FOCUS_GAINED:
-					new_event(WindowFocusGained);
+				case SDL_WINDOWEVENT_FOCUS_GAINED: new_event(WindowFocusGained);
 
-				case SDL_WINDOWEVENT_FOCUS_LOST:
-					new_event(WindowFocusLost);
+				case SDL_WINDOWEVENT_FOCUS_LOST: new_event(WindowFocusLost);
 
-				case SDL_WINDOWEVENT_CLOSE:
-					new_event(WindowClose);
+				case SDL_WINDOWEVENT_CLOSE: new_event(WindowClose);
 			}
 		}
 
@@ -312,20 +304,15 @@ namespace Engine::Platform
 
 			switch (m_event.type)
 			{
-				case SDL_QUIT:
-					new_event(Quit);
+				case SDL_QUIT: new_event(Quit);
 
-				case SDL_APP_TERMINATING:
-					new_event(AppTerminating);
+				case SDL_APP_TERMINATING: new_event(AppTerminating);
 
-				case SDL_APP_LOWMEMORY:
-					new_event(Quit);
+				case SDL_APP_LOWMEMORY: new_event(Quit);
 
-				case SDL_APP_WILLENTERBACKGROUND:
-					new_event(AppPause);
+				case SDL_APP_WILLENTERBACKGROUND: new_event(AppPause);
 
-				case SDL_APP_DIDENTERFOREGROUND:
-					new_event(AppResume);
+				case SDL_APP_DIDENTERFOREGROUND: new_event(AppResume);
 
 				case SDL_DISPLAYEVENT:
 				{

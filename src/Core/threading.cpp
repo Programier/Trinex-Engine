@@ -8,11 +8,7 @@ namespace Engine
 	class MainThread : public Thread
 	{
 	public:
-		MainThread() : Thread(NoThread())
-		{
-			register_thread();
-			register_thread_name("Main");
-		}
+		MainThread() : Thread(NoThread()) { register_thread(); }
 		~MainThread() { unregister_thread(); }
 	};
 
