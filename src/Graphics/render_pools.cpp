@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/math/vector.hpp>
+#include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>

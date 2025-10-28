@@ -7,7 +7,6 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
-#include <Core/threading/thread.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
@@ -43,7 +42,7 @@ namespace Engine
 			// Maybe the EventSystem will still send information about closing the window to other listeners.
 			// Therefore, we will postpone the deletion of the window until the beginning of the next frame
 
-			logic_thread()->call([id = window->id()]() {
+			logic_thread()->add_task(Task(Task::High, [id = window->id()]() {
 				// Let's check if the manager and the window still exist before deleting the window
 				if (auto manager = WindowManager::instance())
 				{
@@ -52,7 +51,7 @@ namespace Engine
 						manager->destroy_window(window);
 					}
 				}
-			});
+			}));
 		}
 	}
 

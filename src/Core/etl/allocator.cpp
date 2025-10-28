@@ -7,7 +7,7 @@
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
-#include <Core/threading/thread.hpp>
+#include <Core/threading.hpp>
 #include <cstdlib>
 
 namespace Engine
@@ -82,7 +82,7 @@ namespace Engine
 				}
 				else
 				{
-					m_thread->call([this]() { reset(); });
+					m_thread->add_task(Task(Task::High, [this]() { reset(); }));
 				}
 				return *this;
 			}

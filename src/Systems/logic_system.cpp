@@ -1,5 +1,5 @@
 #include <Core/reflection/class.hpp>
-#include <Core/threading/thread.hpp>
+#include <Core/threading.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/logic_system.hpp>

@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <cstring>
 
 namespace Engine
 {

@@ -47,7 +47,7 @@ namespace Engine
 
 	EventSystem& EventSystem::remove_listener(Identifier id)
 	{
-		logic_thread()->call([node = reinterpret_cast<ListenerNode*>(id)]() {
+		logic_thread()->add_task(Task(Task::High, [node = reinterpret_cast<ListenerNode*>(id)]() {
 			if (EventSystem* system = EventSystem::instance())
 			{
 				if (node->prev)
@@ -67,7 +67,7 @@ namespace Engine
 
 				trx_delete node;
 			}
-		});
+		}));
 
 		return *this;
 	}

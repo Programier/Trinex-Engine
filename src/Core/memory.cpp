@@ -1,5 +1,4 @@
 #include <Core/memory.hpp>
-#include <cstring>
 
 namespace Engine
 {

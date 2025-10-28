@@ -116,7 +116,7 @@ namespace Engine
 					{
 						if (m_function.is_valid())
 						{
-							logic_thread()->call([func = m_function]() { ScriptContext::execute(func); });
+							logic_thread()->add_task(Task(Task::High, [func = m_function]() { ScriptContext::execute(func); }));
 						}
 
 						is_open = false;
@@ -929,17 +929,7 @@ namespace Engine
 	{
 		if (is_in_logic_thread())
 		{
-			struct RunDebugLoop : public Task<RunDebugLoop> {
-				ScriptDebuggerClient* m_client;
-				ScriptDebuggerClient& (ScriptDebuggerClient::*m_method)();
-				RunDebugLoop(ScriptDebuggerClient* client, ScriptDebuggerClient& (ScriptDebuggerClient::*method)())
-				    : m_client(client), m_method(method)
-				{}
-
-				void execute() override { (m_client->*m_method)(); }
-			};
-
-			m_debugging_thread->create_task<RunDebugLoop>(this, &This::debugger_thread_loop);
+			m_debugging_thread->add_task(Task(Task::High, [this]() { debugger_thread_loop(); }));
 			m_debugging_thread->wait();
 
 			if (!m_recieved_events.empty())

@@ -3,16 +3,7 @@
 
 namespace Engine
 {
-	class CriticalSection final
-	{
-	private:
-		std::mutex m_mutex;
-
-	public:
-		inline void lock() { m_mutex.lock(); }
-		inline bool try_lock() { return m_mutex.try_lock(); }
-		inline void unlock() { m_mutex.unlock(); }
-	};
+	using CriticalSection = std::mutex;
 
 	class ScopeLock final
 	{

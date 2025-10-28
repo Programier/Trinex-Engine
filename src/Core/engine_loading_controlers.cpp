@@ -87,10 +87,11 @@ namespace Engine
 			if (submit_command)
 			{
 				submit_command = false;
-				logic_thread()->call([]() {
+
+				logic_thread()->add_task(Task(Task::High, []() {
 					submit_command = true;
 					exec_all_if_already_triggered();
-				});
+				}));
 			}
 		}
 

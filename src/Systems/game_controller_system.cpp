@@ -24,14 +24,14 @@ namespace Engine
 		{
 			controller->controller_removed_listener();
 
-			logic_thread()->call([controller]() {
+			logic_thread()->add_task(Task(Task::High, [controller]() {
 				GameControllerSystem* system = GameControllerSystem::instance();
 				if (system)
 				{
 					system->m_controllers.erase(controller->id());
 					trx_delete controller;
 				}
-			});
+			}));
 		}
 	}
 

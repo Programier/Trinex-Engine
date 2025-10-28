@@ -12,8 +12,8 @@
 #include <Core/package.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
-#include <Core/threading/thread.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/pipeline.hpp>

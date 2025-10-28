@@ -5,14 +5,15 @@
 #include <Core/engine_loop.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/etl/templates.hpp>
+#include <Core/exception.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
-#include <Core/threading/thread.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>
@@ -189,6 +190,7 @@ namespace Engine
 	void EngineLoop::update()
 	{
 		engine_instance->update();
+		Thread::static_self()->execute();
 	}
 
 	void EngineLoop::terminate()

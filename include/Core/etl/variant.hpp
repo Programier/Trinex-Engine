@@ -8,16 +8,6 @@ namespace Engine
 
 	namespace etl
 	{
-		template<typename T, typename... Args>
-		constexpr inline T& get(Variant<Args...>& v)
-		{
-			return std::get<T>(v);
-		}
-
-		template<typename T, typename... Args>
-		constexpr inline const T& get(const Variant<Args...>& v)
-		{
-			return std::get<T>(v);
-		}
+		using std::get;
 	}// namespace etl
 }// namespace Engine

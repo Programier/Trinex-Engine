@@ -8,36 +8,6 @@
 
 namespace Engine
 {
-	template<typename OctreeType>
-	class AddPrimitiveTask : public Task<AddPrimitiveTask<OctreeType>>
-	{
-		OctreeType* m_octree;
-		typename OctreeType::ValueType m_primitive;
-		Box3f m_box;
-
-	public:
-		AddPrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const Box3f& box)
-		    : m_octree(octree), m_primitive(primitive), m_box(box)
-		{}
-
-		void execute() override { m_octree->push(m_box, m_primitive); }
-	};
-
-	template<typename OctreeType>
-	class RemovePrimitiveTask : public Task<RemovePrimitiveTask<OctreeType>>
-	{
-		OctreeType* m_octree;
-		typename OctreeType::ValueType m_primitive;
-		Box3f m_box;
-
-	public:
-		RemovePrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const Box3f& box)
-		    : m_octree(octree), m_primitive(primitive), m_box(box)
-		{}
-
-		void execute() override { m_octree->remove(m_box, m_primitive); }
-	};
-
 	Scene::Scene()
 	{
 		m_root_component = Object::new_instance<SceneComponent>("Root");

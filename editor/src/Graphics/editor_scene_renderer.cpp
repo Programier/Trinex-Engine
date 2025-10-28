@@ -1,6 +1,6 @@
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/threading/thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
@@ -111,9 +111,8 @@ namespace Engine
 
 		while (!fence->is_signaled()) Thread::static_yield();
 
-		Actor* actor = nullptr;
 		byte* data   = buffer->map(RHIMappingAccess::Read);
-		std::memcpy(&actor, data, 8);
+		Actor* actor = *reinterpret_cast<Actor**>(data);
 		buffer->unmap();
 
 		RHIFencePool::global_instance()->return_fence(fence);

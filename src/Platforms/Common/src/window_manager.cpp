@@ -1,7 +1,8 @@
 #include <Core/base_engine.hpp>
 #include <Core/event.hpp>
 #include <Core/logger.hpp>
-#include <Core/threading/thread.hpp>
+#include <Core/memory.hpp>
+#include <Core/threading.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window.hpp>
