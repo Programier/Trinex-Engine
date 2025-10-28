@@ -201,7 +201,7 @@ namespace Engine
 	private:
 		inline bool is_empty()
 		{
-			for (uint32_t i = Task::Low; i <= Task::High; ++i)
+			for (uint32_t i = Task::High; i <= Task::Low; ++i)
 			{
 				if (!m_tasks[i].empty())
 					return false;
@@ -211,7 +211,7 @@ namespace Engine
 
 		Task::TaskImpl* fetch_task_locked()
 		{
-			for (uint32_t i = Task::Low; i < Task::High; ++i)
+			for (uint32_t i = Task::High; i <= Task::Low; ++i)
 			{
 				auto& queue = m_tasks[i];
 
@@ -241,6 +241,10 @@ namespace Engine
 				}
 
 				return expected == Task::Executed;
+			}
+			else
+			{
+				push_back(task);
 			}
 
 			return false;
@@ -381,13 +385,13 @@ namespace Engine
 	TaskGraph& TaskGraph::add_task(const Task& task)
 	{
 		task.m_impl->add_ref();
-		m_impl->add_task(task.m_impl);
+		m_impl->push_back(task.m_impl);
 		return *this;
 	}
 
 	TaskGraph& TaskGraph::add_task(Task&& task)
 	{
-		m_impl->add_task(task.m_impl);
+		m_impl->push_back(task.m_impl);
 		task.m_impl = nullptr;
 		return *this;
 	}

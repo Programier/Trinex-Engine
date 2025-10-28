@@ -11,9 +11,9 @@ namespace Engine
 	public:
 		enum Priority : uint8_t
 		{
-			Low    = 0,
+			High   = 0,
 			Middle = 1,
-			High   = 2,
+			Low    = 2,
 		};
 
 		enum Status : uint8_t
