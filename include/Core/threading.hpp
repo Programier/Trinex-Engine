@@ -143,8 +143,6 @@ namespace Engine
 		Thread& execute();
 		Thread& add_task(const Task& task);
 		Thread& add_task(Task&& task);
-		Thread& wait_for(const Task& task);
-		Thread& wait();
 
 		static void static_sleep_for(float seconds);
 		static Thread* static_self();

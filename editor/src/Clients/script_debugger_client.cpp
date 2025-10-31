@@ -930,7 +930,7 @@ namespace Engine
 		if (is_in_logic_thread())
 		{
 			m_debugging_thread->add_task(Task(Task::High, [this]() { debugger_thread_loop(); }));
-			m_debugging_thread->wait();
+			//m_debugging_thread->wait();
 
 			if (!m_recieved_events.empty())
 			{

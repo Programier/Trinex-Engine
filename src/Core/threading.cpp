@@ -331,16 +331,6 @@ namespace Engine
 		return *this;
 	}
 
-	Thread& Thread::wait_for(const Task& task)
-	{
-		return *this;
-	}
-
-	Thread& Thread::wait()
-	{
-		return *this;
-	}
-
 	void Thread::static_sleep_for(float seconds)
 	{
 		std::this_thread::sleep_for(std::chrono::microseconds(static_cast<size_t>(seconds * 1000000.f)));
@@ -382,7 +372,7 @@ namespace Engine
 	class TaskGraphImpl
 	{
 	private:
-		Vector<std::thread> m_workers;
+		Vector<Thread*> m_workers;
 		Deque<Task::TaskImpl*> m_tasks[3];
 
 		std::mutex m_mutex;
@@ -462,6 +452,8 @@ namespace Engine
 			return false;
 		}
 
+		static void worker_main(void* self) { static_cast<TaskGraphImpl*>(self)->worker_loop(); }
+
 		void worker_loop()
 		{
 			while (true)
@@ -489,7 +481,8 @@ namespace Engine
 		{
 			if (thread_count == 0)
 				thread_count = 1;
-			for (size_t i = 0; i < thread_count; ++i) m_workers.emplace_back([this] { worker_loop(); });
+
+			for (size_t i = 0; i < thread_count; ++i) m_workers.emplace_back(trx_new Thread(worker_main, this));
 		}
 
 		~TaskGraphImpl()
@@ -499,7 +492,7 @@ namespace Engine
 				m_stop = true;
 			}
 			m_cv.notify_all();
-			for (auto& t : m_workers) t.join();
+			for (Thread* worker : m_workers) trx_delete worker;
 		}
 
 		void push_back(Task::TaskImpl* task)
@@ -592,8 +585,7 @@ namespace Engine
 		m_impl->wait_for(task.m_impl);
 		return *this;
 	}
-
-
+	
 	///////////////// NAMED THREADS IMPLEMENTATION /////////////////
 
 	static Thread* s_logic_thread = nullptr;

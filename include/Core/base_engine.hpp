@@ -36,12 +36,14 @@ namespace Engine
 		virtual BaseEngine& request_exit();
 
 		bool is_requesting_exit() const;
-		float delta_time() const;
+
 		float time_seconds() const;
-		uint64_t frame_index() const;
 		bool is_shuting_down() const;
 		bool is_inited() const;
 		BaseEngine& make_inited();
+
+		inline float delta_time() const { return m_delta_time; }
+		inline uint64_t frame_index() const { return m_frame_index; }
 	};
 
 	ENGINE_EXPORT extern BaseEngine* engine_instance;
