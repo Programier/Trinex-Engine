@@ -126,7 +126,8 @@ namespace Engine
 		vk::PhysicalDeviceTimelineSemaphoreFeatures timeline_semaphore;
 		vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR device_address;
 		vk::PhysicalDeviceAccelerationStructureFeaturesKHR acceleration;
-		vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing{};
+		vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing;
+		vk::PhysicalDeviceFragmentShadingRateFeaturesKHR shading_rate;
 
 		features.pNext            = &custom_border;
 		custom_border.pNext       = &vk11_features;
@@ -136,6 +137,7 @@ namespace Engine
 		timeline_semaphore.pNext  = &device_address;
 		device_address.pNext      = &acceleration;
 		acceleration.pNext        = &ray_tracing;
+		ray_tracing.pNext         = &shading_rate;
 
 		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
@@ -163,6 +165,9 @@ namespace Engine
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)))
 			builder.add_pNext(&ray_tracing);
+
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
+			builder.add_pNext(&shading_rate);
 
 		auto device_ret = builder.build();
 
@@ -429,6 +434,7 @@ namespace Engine
 		load(pfn.vkCreateRayTracingPipelinesKHR, "vkCreateRayTracingPipelinesKHR");
 		load(pfn.vkGetRayTracingShaderGroupHandlesKHR, "vkGetRayTracingShaderGroupHandlesKHR");
 		load(pfn.vkCmdTraceRaysKHR, "vkCmdTraceRaysKHR");
+		load(pfn.vkCmdSetFragmentShadingRateKHR, "vkCmdSetFragmentShadingRateKHR");
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)

@@ -61,6 +61,7 @@ namespace Engine
 			PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR                   = nullptr;
 			PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR       = nullptr;
 			PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR                                             = nullptr;
+			PFN_vkCmdSetFragmentShadingRateKHR vkCmdSetFragmentShadingRateKHR                   = nullptr;
 
 			inline uint32_t getVkHeaderVersion() const { return VK_HEADER_VERSION; }
 		} pfn;
@@ -116,6 +117,8 @@ namespace Engine
 			        {VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, false},
 			        {VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false},
 			        {VK_KHR_RAY_QUERY_EXTENSION_NAME, false},
+			        {VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME, false},
+			        {VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME, false},
 			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
 			        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false},
 			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},

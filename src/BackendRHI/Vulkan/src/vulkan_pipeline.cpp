@@ -229,10 +229,6 @@ namespace Engine
 			return pipeline;
 		}
 
-		static vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
-		static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
-		static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
-
 		StackByteAllocator::Mark mark;
 
 		m_input_assembly.setTopology(VulkanEnums::primitive_topology_of(manager->primitive_topology()));
@@ -241,8 +237,20 @@ namespace Engine
 		m_rasterizer.setFrontFace(VulkanEnums::face_of(manager->front_face()));
 
 		vk::PipelineColorBlendAttachmentState attachments[4];
-		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);
+
+		vk::DynamicState dynamic_states[3];
+		size_t dynamic_states_count = 0;
+
+		dynamic_states[dynamic_states_count++] = vk::DynamicState::eViewport;
+		dynamic_states[dynamic_states_count++] = vk::DynamicState::eScissor;
+
+		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
+			dynamic_states[dynamic_states_count++] = vk::DynamicState::eFragmentShadingRateKHR;
+
+		vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
+		vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+		vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
+		vk::PipelineDynamicStateCreateInfo dynamic_state({}, dynamic_states_count, dynamic_states);
 		vk::PipelineMultisampleStateCreateInfo multisampling;
 		vk::PipelineVertexInputStateCreateInfo vertex_input =
 		        manager->create_vertex_input(m_vertex_attributes, m_vertex_attributes_count);
@@ -390,14 +398,14 @@ namespace Engine
 			return pipeline;
 		}
 
-		static vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
-		static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
-		static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
 		m_rasterizer.setPolygonMode(VulkanEnums::polygon_mode_of(manager->polygon_mode()));
 		m_rasterizer.setCullMode(VulkanEnums::cull_mode_of(manager->cull_mode()));
 		m_rasterizer.setFrontFace(VulkanEnums::face_of(manager->front_face()));
 
+		vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
+		vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+		vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 		vk::PipelineColorBlendAttachmentState attachments[4];
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, 2, &dynamic_state_params[0]);

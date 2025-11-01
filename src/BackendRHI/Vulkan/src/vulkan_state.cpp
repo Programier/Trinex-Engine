@@ -18,18 +18,21 @@ namespace Engine
 	VulkanStateManager::VulkanStateManager()
 	{
 		m_graphics_state.init();
+		reset();
 	}
 
 	VulkanStateManager::~VulkanStateManager() {}
 
 	void VulkanStateManager::GraphicsState::init()
 	{
-		memset(this, 0, sizeof(*this));
+		(*this) = {};
+
 		topology     = RHIPrimitiveTopology::TriangleList;
 		polygon_mode = RHIPolygonMode::Fill;
 		cull_mode    = RHICullMode::None;
 		front_face   = RHIFrontFace::CounterClockWise;
 		write_mask   = RHIColorComponent::RGBA;
+		rate         = RHIShadingRate::e1x1;
 	}
 
 	VulkanStateManager& VulkanStateManager::flush_state(VulkanCommandHandle* handle)
@@ -93,6 +96,23 @@ namespace Engine
 				end_render_pass(ctx);
 		}
 
+		if (is_dirty(ShadingRate))
+		{
+			if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
+			{
+				vk::Extent2D extent;
+				extent.width  = 1;
+				extent.height = 1;
+
+				vk::FragmentShadingRateCombinerOpKHR ops[2] = {
+				        vk::FragmentShadingRateCombinerOpKHR::eKeep,
+				        vk::FragmentShadingRateCombinerOpKHR::eKeep,
+				};
+
+				ctx->handle()->setFragmentShadingRateKHR(extent, ops, API->pfn);
+			}
+		}
+
 		if (cmd->is_outside_render_pass())
 			begin_render_pass(ctx);
 
@@ -120,7 +140,7 @@ namespace Engine
 
 	VulkanStateManager& VulkanStateManager::reset()
 	{
-		m_dirty_flags = GraphicsMask | ComputeMask;
+		m_dirty_flags = GraphicsMask | ComputeMask | ShadingRate;
 		uniform_buffers.make_dirty();
 		storage_buffers.make_dirty();
 		uniform_texel_buffers.make_dirty();

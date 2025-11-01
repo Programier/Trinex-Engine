@@ -38,5 +38,5 @@ float4 fragment_main(in float2 uv: TEXCOORD0) : SV_Target
 	float3 i = scene.SampleLevel(uv, 0.f, int2(radius, -radius)).rgb;
 
 	float3 color = ((e * 4.0) + ((b + d + f + h) * 2.0) + (a + c + g + i)) / 16.f;
-	return float4(color, 1.f);
+	return float4(color * args.weight, 1.f);
 }

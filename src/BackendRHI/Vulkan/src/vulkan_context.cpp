@@ -5,13 +5,13 @@
 #include <vulkan_buffer.hpp>
 #include <vulkan_context.hpp>
 #include <vulkan_descriptor.hpp>
+#include <vulkan_enums.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_state.hpp>
-
 
 namespace Engine
 {
@@ -362,6 +362,27 @@ namespace Engine
 	{
 		return m_state_manager->end_render_pass(this);
 	}
+
+	VulkanContext& VulkanContext::shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiners)
+	{
+		if (!API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
+			return *this;
+
+		m_state_manager->remove_dirty(VulkanStateManager::ShadingRate);
+
+		vk::Extent2D extent;
+		extent.width  = rate.width();
+		extent.height = rate.height();
+
+		vk::FragmentShadingRateCombinerOpKHR ops[2] = {
+		        VulkanEnums::shading_rate_combiner_of(combiners[0]),
+		        VulkanEnums::shading_rate_combiner_of(combiners[1]),
+		};
+
+		m_cmd->setFragmentShadingRateKHR(extent, ops, API->pfn);
+		return *this;
+	}
+
 
 	void VulkanContext::destroy()
 	{

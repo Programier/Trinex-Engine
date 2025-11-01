@@ -167,6 +167,7 @@ namespace Engine
 
 			vk::BufferCopy region(0, offset, size);
 			cmd->copyBuffer(staging->m_buffer, m_buffer, region);
+			cmd->add_stagging(staging);
 		}
 		return *this;
 	}

@@ -28,7 +28,7 @@ namespace Engine
 			float threshold = 1.f;
 			float knee      = 0.5f;
 			float clamp     = 3.f;
-			float fade_base = 0.6f;
+			float fade_base = 1.f;
 			float fade_max  = 1.f;
 		};
 

@@ -185,6 +185,7 @@ namespace Engine
 		VulkanContext& cull_mode(RHICullMode mode) override;
 		VulkanContext& front_face(RHIFrontFace face) override;
 		VulkanContext& write_mask(RHIColorComponent mask) override;
+		VulkanContext& shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiners) override;
 
 		VulkanContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, byte stream,
 		                                     uint16_t offset) override;

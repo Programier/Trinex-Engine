@@ -73,6 +73,7 @@ namespace Engine
 			CullMode          = 1 << 7,
 			FrontFace         = 1 << 8,
 			WriteMask         = 1 << 9,
+			ShadingRate       = 1 << 10,
 
 			GraphicsMask = RenderTarget | Pipeline | DepthState | StencilState | BlendingState | PrimitiveTopology | PolygonMode |
 			               CullMode | FrontFace | WriteMask,
@@ -139,6 +140,7 @@ namespace Engine
 			RHICullMode cull_mode;
 			RHIFrontFace front_face;
 			RHIColorComponent write_mask;
+			RHIShadingRate rate;
 
 			void init();
 		} m_graphics_state;
@@ -293,6 +295,7 @@ namespace Engine
 
 		inline uint64_t dirty_flags() const { return m_dirty_flags; }
 		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }
+		inline uint64_t remove_dirty(uint64_t flags) { return (m_dirty_flags &= ~flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
 		inline VulkanRenderTarget* render_target() const { return m_render_target; }
 		inline const RHIDepthState& depth_state() const { return m_graphics_state.depth; }

@@ -103,14 +103,15 @@ namespace Engine
 		virtual RHIContext& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 		                                            const RHITextureRegion& dst_region) = 0;
 
-		virtual RHIContext& depth_state(const RHIDepthState& state)           = 0;
-		virtual RHIContext& stencil_state(const RHIStencilState& state)       = 0;
-		virtual RHIContext& blending_state(const RHIBlendingState& state)     = 0;
-		virtual RHIContext& primitive_topology(RHIPrimitiveTopology topology) = 0;
-		virtual RHIContext& polygon_mode(RHIPolygonMode mode)                 = 0;
-		virtual RHIContext& cull_mode(RHICullMode mode)                       = 0;
-		virtual RHIContext& front_face(RHIFrontFace face)                     = 0;
-		virtual RHIContext& write_mask(RHIColorComponent mask)                = 0;
+		virtual RHIContext& depth_state(const RHIDepthState& state)                             = 0;
+		virtual RHIContext& stencil_state(const RHIStencilState& state)                         = 0;
+		virtual RHIContext& blending_state(const RHIBlendingState& state)                       = 0;
+		virtual RHIContext& primitive_topology(RHIPrimitiveTopology topology)                   = 0;
+		virtual RHIContext& polygon_mode(RHIPolygonMode mode)                                   = 0;
+		virtual RHIContext& cull_mode(RHICullMode mode)                                         = 0;
+		virtual RHIContext& front_face(RHIFrontFace face)                                       = 0;
+		virtual RHIContext& write_mask(RHIColorComponent mask)                                  = 0;
+		virtual RHIContext& shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiner) = 0;
 
 		virtual RHIContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, byte stream,
 		                                          uint16_t offset = 0)                                          = 0;

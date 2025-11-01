@@ -333,6 +333,8 @@ namespace Engine::Pipelines
 		if (m_samples_count >= count)
 			return *this;
 
+		m_samples_count = count;
+
 		if (m_samples_buffer)
 			m_samples_buffer->release();
 

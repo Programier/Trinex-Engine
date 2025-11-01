@@ -741,6 +741,37 @@ namespace Engine
 		trinex_enum_struct(RHICubeFace);
 	};
 
+	struct RHIShadingRate {
+		enum Enum : byte
+		{
+			e1x1 = (0 << 0) | (0 << 2),
+			e1x2 = (0 << 0) | (1 << 2),
+			e2x1 = (1 << 0) | (0 << 2),
+			e2x2 = (1 << 0) | (1 << 2),
+			e2x4 = (1 << 0) | (2 << 2),
+			e4x2 = (2 << 0) | (1 << 2),
+			e4x4 = (2 << 0) | (2 << 2)
+		};
+
+		trinex_enum_struct(RHIShadingRate);
+
+		inline uint_t width() const { return 1u << (value & 0b11); }
+		inline uint_t height() const { return 1u << ((value >> 2) & 0b11); }
+	};
+
+	struct RHIShadingRateCombiner {
+		enum Enum : byte
+		{
+			Keep    = 0,
+			Replace = 1,
+			Min     = 2,
+			Max     = 3,
+			Mul     = 4,
+		};
+
+		trinex_enum_struct(RHIShadingRateCombiner);
+	};
+
 	struct RHIMappingAccess {
 		enum Enum : byte
 		{
