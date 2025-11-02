@@ -15,7 +15,7 @@ namespace Engine
 	using MatrixCRT = glm::mat<C, R, T, glm::defaultp>;
 
 	template<size_t N, typename T>
-	class Box;
+	class BoxNT;
 
 	using Vector1f = VectorNT<1, float_t>;
 	using Vector2f = VectorNT<2, float_t>;
@@ -88,8 +88,8 @@ namespace Engine
 
 	using Quaternion = glm::quat;
 
-	using Box2f = Box<2, float_t>;
-	using Box3f = Box<3, float_t>;
-	using Box2i = Box<2, int_t>;
-	using Box3i = Box<3, int_t>;
+	using Box2f = BoxNT<2, float_t>;
+	using Box3f = BoxNT<3, float_t>;
+	using Box2i = BoxNT<2, int_t>;
+	using Box3i = BoxNT<3, int_t>;
 }// namespace Engine

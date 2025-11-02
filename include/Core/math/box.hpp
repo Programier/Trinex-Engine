@@ -5,7 +5,7 @@
 namespace Engine
 {
 	template<size_t N, typename T>
-	class Box
+	class BoxNT
 	{
 	public:
 		static_assert(std::is_signed_v<T>, "T must be signed type!");
@@ -17,13 +17,13 @@ namespace Engine
 		VectorType max;
 
 	public:
-		constexpr Box(const VectorType& min = {}, const VectorType& max = {}) : min(min), max(max) {}
-		constexpr Box(const Box& other)            = default;
-		constexpr Box& operator=(const Box& other) = default;
+		constexpr BoxNT(const VectorType& min = {}, const VectorType& max = {}) : min(min), max(max) {}
+		constexpr BoxNT(const BoxNT& other)            = default;
+		constexpr BoxNT& operator=(const BoxNT& other) = default;
 
 		constexpr VectorType extents() const { return (max - min) / static_cast<T>(2); }
 		constexpr VectorType center() const { return (min + max) / static_cast<T>(2); }
-		constexpr Box& center(const Vector3f& position)
+		constexpr BoxNT& center(const Vector3f& position)
 		{
 			VectorType extends = extents();
 			max                = position + extends;
@@ -34,19 +34,19 @@ namespace Engine
 		constexpr VectorType size() const { return max - min; }
 		constexpr T radius() const { return glm::length(extents()); }
 
-		constexpr Box transform(const MatrixType& matrix) const
+		constexpr BoxNT transform(const MatrixType& matrix) const
 		{
-			VectorType box_center  = center();
-			VectorType box_extents = extents();
+			VectorType BoxNT_center  = center();
+			VectorType BoxNT_extents = extents();
 
-			VectorType center      = VectorType(matrix * VectorNT<N + 1, T>(box_center, static_cast<T>(1)));
+			VectorType center      = VectorType(matrix * VectorNT<N + 1, T>(BoxNT_center, static_cast<T>(1)));
 			MatrixNT<N, T> abs_mat = MatrixNT<N, T>(glm::abs(VectorType(matrix[0])), glm::abs(VectorType(matrix[1])),
 			                                        glm::abs(VectorType(matrix[2])));
-			VectorType extents     = abs_mat * box_extents;
-			return Box(center - extents, center + extents);
+			VectorType extents     = abs_mat * BoxNT_extents;
+			return BoxNT(center - extents, center + extents);
 		}
 
-		constexpr bool inside(const Box& other) const
+		constexpr bool inside(const BoxNT& other) const
 		{
 			uint_t len = VectorType::length();
 
@@ -71,7 +71,7 @@ namespace Engine
 			return true;
 		}
 
-		constexpr bool intersect(const Box& other) const
+		constexpr bool intersect(const BoxNT& other) const
 		{
 			uint_t len = VectorType::length();
 
@@ -96,7 +96,7 @@ namespace Engine
 			return true;
 		}
 
-		constexpr bool outside(const Box& other) const { return !intersect(other); }
+		constexpr bool outside(const BoxNT& other) const { return !intersect(other); }
 		constexpr bool contains(const VectorType& point) const
 		{
 			uint_t len = VectorType::length();
@@ -116,66 +116,66 @@ namespace Engine
 			return true;
 		}
 
-		constexpr Box operator+(T value) const { return Box(min + value, max + value); }
-		constexpr Box operator-(T value) const { return Box(min - value, max - value); }
-		constexpr Box operator*(T value) const { return Box(min * value, max * value); }
-		constexpr Box operator/(T value) const { return Box(min / value, max / value); }
-		constexpr Box operator+(const VectorType& value) const { return Box{min + value, max + value}; }
-		constexpr Box operator-(const VectorType& value) const { return Box{min - value, max - value}; }
-		constexpr Box operator*(const VectorType& value) const { return Box(min * value, max * value); }
-		constexpr Box operator/(const VectorType& value) const { return Box(min / value, max / value); }
+		constexpr BoxNT operator+(T value) const { return BoxNT(min + value, max + value); }
+		constexpr BoxNT operator-(T value) const { return BoxNT(min - value, max - value); }
+		constexpr BoxNT operator*(T value) const { return BoxNT(min * value, max * value); }
+		constexpr BoxNT operator/(T value) const { return BoxNT(min / value, max / value); }
+		constexpr BoxNT operator+(const VectorType& value) const { return BoxNT{min + value, max + value}; }
+		constexpr BoxNT operator-(const VectorType& value) const { return BoxNT{min - value, max - value}; }
+		constexpr BoxNT operator*(const VectorType& value) const { return BoxNT(min * value, max * value); }
+		constexpr BoxNT operator/(const VectorType& value) const { return BoxNT(min / value, max / value); }
 
 
-		constexpr Box& operator+=(T value)
+		constexpr BoxNT& operator+=(T value)
 		{
 			min += value;
 			max += value;
 			return *this;
 		}
 
-		constexpr Box& operator-=(T value)
+		constexpr BoxNT& operator-=(T value)
 		{
 			min -= value;
 			max -= value;
 			return *this;
 		}
 
-		constexpr Box& operator*=(T value)
+		constexpr BoxNT& operator*=(T value)
 		{
 			min *= value;
 			max *= value;
 			return *this;
 		}
 
-		constexpr Box& operator/=(T value)
+		constexpr BoxNT& operator/=(T value)
 		{
 			min /= value;
 			max /= value;
 			return *this;
 		}
 
-		constexpr Box& operator+=(const VectorType& value)
+		constexpr BoxNT& operator+=(const VectorType& value)
 		{
 			min += value;
 			max += value;
 			return *this;
 		}
 
-		constexpr Box& operator-=(const VectorType& value)
+		constexpr BoxNT& operator-=(const VectorType& value)
 		{
 			min -= value;
 			max -= value;
 			return *this;
 		}
 
-		constexpr Box& operator*=(const VectorType& value)
+		constexpr BoxNT& operator*=(const VectorType& value)
 		{
 			min *= value;
 			max *= value;
 			return *this;
 		}
 
-		constexpr Box& operator/=(const VectorType& value)
+		constexpr BoxNT& operator/=(const VectorType& value)
 		{
 			min /= value;
 			max /= value;

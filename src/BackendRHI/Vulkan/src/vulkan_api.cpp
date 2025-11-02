@@ -330,18 +330,18 @@ namespace Engine
 		VulkanRenderPass::destroy_all();
 
 		destroy_garbage();
-
+		
+		for (VulkanThreadLocal* local : m_thread_locals)
+		{
+			trx_delete local;
+		}
+		
 		trx_delete m_updater;
 		trx_delete m_stagging_manager;
 		trx_delete m_pipeline_layout_manager;
 		trx_delete m_graphics_queue;
 		trx_delete m_query_pool_manager;
 		trx_delete m_descriptor_heap;
-
-		for (VulkanThreadLocal* local : m_thread_locals)
-		{
-			trx_delete local;
-		}
 
 		vmaDestroyAllocator(m_allocator);
 		m_allocator = VK_NULL_HANDLE;
