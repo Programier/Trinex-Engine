@@ -175,6 +175,26 @@ namespace Engine
 		register_debug_lines();
 	}
 
+	static void render_octree(Scene::PrimitiveOctree::Node* node, const Frustum& frustum, BatchedLines& lines)
+	{
+		auto box = node->box();
+
+		if (!frustum.intersects(node->box()))
+			return;
+
+		lines.add_box(box.min, box.max, {255, 0, 255, 255}, 3.f);
+
+		for (byte i = 0; i < 8; i++)
+		{
+			auto child = node->child_at(i);
+
+			if (child)
+			{
+				render_octree(child, frustum, lines);
+			}
+		}
+	}
+
 	DeferredRenderer& DeferredRenderer::register_debug_lines()
 	{
 		ShowFlags flags = scene_view().show_flags();
@@ -187,6 +207,23 @@ namespace Engine
 				lines.add_box(bounds.min - Vector3f(0.01f), bounds.max + Vector3f(0.01f), {255, 255, 0, 255}, 3.f);
 			}
 		}
+
+		if (flags & ShowFlags::PrimitiveOctree)
+		{
+			render_octree(scene()->primitive_octree().root_node(), Frustum(scene_view().projview()), lines);
+		}
+
+		render_graph()
+		        ->add_pass("Batched Primitives")
+		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+		        .add_resource(scene_depth_target(), RHIAccess::DSV)
+		        .add_func([this](RHIContext* ctx) {
+			        if (!lines.is_empty())
+			        {
+				        ctx->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
+				        lines.flush(ctx, this);
+			        }
+		        });
 
 		return *this;
 	}
@@ -850,23 +887,5 @@ namespace Engine
 		}
 
 		return m_shadow_buffer;
-	}
-
-	DeferredRenderer& DeferredRenderer::render(RHIContext* ctx)
-	{
-		if (!lines.is_empty())
-		{
-			render_graph()
-			        ->add_pass("Batched Primitives")
-			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-			        .add_resource(scene_depth_target(), RHIAccess::DSV)
-			        .add_func([this](RHIContext* ctx) {
-				        ctx->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
-				        lines.flush(ctx, this);
-			        });
-		}
-
-		Renderer::render(ctx);
-		return *this;
 	}
 }// namespace Engine

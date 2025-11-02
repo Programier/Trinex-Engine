@@ -14,6 +14,7 @@ namespace Engine
 			PostProcess       = BIT(5),
 			StaticMesh        = BIT(6),
 			PrimitiveBounds   = BIT(7),
+			PrimitiveOctree   = BIT(8),
 
 			DefaultFlags = PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess,
 		};

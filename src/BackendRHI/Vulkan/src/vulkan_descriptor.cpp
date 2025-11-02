@@ -52,9 +52,12 @@ namespace Engine
 			}
 
 			vk::DescriptorSetLayoutCreateInfo info({}, count, bindings);
-			m_set_layout                       = API->m_device.createDescriptorSetLayout(info);
-			vk::DescriptorSetLayout layouts[2] = {m_set_layout, API->descriptor_heap()->descriptor_set_layout()};
-			pipeline_info.setSetLayouts(layouts);
+			m_set_layout = API->m_device.createDescriptorSetLayout(info);
+
+			auto layouts = StackAllocator<vk::DescriptorSetLayout>::allocate(2);
+			layouts[0]   = m_set_layout;
+			layouts[1]   = API->descriptor_heap()->descriptor_set_layout();
+			pipeline_info.setPSetLayouts(layouts).setSetLayoutCount(2);
 		}
 
 		m_layout = API->m_device.createPipelineLayout(pipeline_info);
@@ -453,7 +456,7 @@ namespace Engine
 			}
 		}
 
-		uint64_t hash = memory_hash(bindings, count * sizeof(Binding));
+		uint64_t hash = memory_hash(bindings, count * sizeof(Binding), reinterpret_cast<uint64_t>(layout));
 
 		vk::DescriptorSet& set = m_table[hash];
 

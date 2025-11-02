@@ -21,6 +21,13 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT Frustum {
+		enum ContaintmentType
+		{
+			Outside    = 0,
+			Intersects = 1,
+			Contains   = 2,
+		};
+
 		Plane top;
 		Plane bottom;
 		Plane right;
@@ -34,5 +41,8 @@ namespace Engine
 
 		bool contains(const Box3f& box) const;
 		bool contains(const Vector3f& point);
+		bool intersects(const Box3f& box) const;
+		
+		ContaintmentType containtment_type(const Box3f& box) const;
 	};
 }// namespace Engine

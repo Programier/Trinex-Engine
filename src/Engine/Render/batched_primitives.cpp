@@ -185,6 +185,7 @@ namespace Engine
 			ctx->draw(m_first->vtx_count, 0);
 			m_first = m_first->next;
 		}
+
 		m_last = nullptr;
 
 		ctx->primitive_topology(RHIPrimitiveTopology::TriangleList);

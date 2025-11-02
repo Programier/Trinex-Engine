@@ -17,11 +17,12 @@ namespace Engine
 
 	class ENGINE_EXPORT Scene final
 	{
-	private:
+	public:
 		using PrimitiveOctree   = Octree<PrimitiveComponent*>;
 		using LightOctree       = Octree<LightComponent*>;
 		using PostProcessOctree = Octree<PostProcessComponent*>;
 
+	private:
 		PrimitiveOctree m_primitive_octree;
 		LightOctree m_light_octree;
 		PostProcessOctree m_post_process_octree;
@@ -49,6 +50,10 @@ namespace Engine
 		Scene& update_post_process_transform(PostProcessComponent* post_process);
 
 		SceneComponent* root_component() const;
+
+		inline const PrimitiveOctree& primitive_octree() const { return m_primitive_octree; }
+		inline const LightOctree& light_octree() const { return m_light_octree; };
+		inline const PostProcessOctree& post_process_octree() const { return m_post_process_octree; }
 
 		FrameVector<PrimitiveComponent*> collect_visible_primitives(const Frustum& frustum);
 		FrameVector<LightComponent*> collect_visible_lights(const Frustum& frustum);

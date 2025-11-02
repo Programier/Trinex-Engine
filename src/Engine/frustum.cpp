@@ -4,7 +4,6 @@
 #include <Engine/camera_types.hpp>
 #include <Engine/frustum.hpp>
 
-
 namespace Engine
 {
 	Plane::Plane() : normal(Constants::zero_vector), offset(0.f) {}
@@ -76,10 +75,14 @@ namespace Engine
 	{
 		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
 		{
-			if (plane->distance_to(box) < 0.f)
+			const float distance = plane->distance_to(box.center());
+			const Vector3f& n    = plane->normal;
+			const Vector3f e     = box.extents();
+			const float r        = e.x * Math::abs(n.x) + e.y * Math::abs(n.y) + e.z * Math::abs(n.z);
+
+			if (distance - r < 0.f)
 				return false;
 		}
-
 		return true;
 	}
 
@@ -92,5 +95,37 @@ namespace Engine
 		}
 
 		return true;
+	}
+
+	bool Frustum::intersects(const Box3f& box) const
+	{
+		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
+		{
+			if (plane->distance_to(box) < 0.f)
+				return false;
+		}
+
+		return true;
+	}
+
+	Frustum::ContaintmentType Frustum::containtment_type(const Box3f& box) const
+	{
+		bool intersects = false;
+
+		for (const Plane* plane : {&left, &right, &top, &bottom, &near, &far})
+		{
+			const float distance = plane->distance_to(box.center());
+			const Vector3f& n    = plane->normal;
+			const Vector3f e     = box.extents();
+			const float r        = e.x * Math::abs(n.x) + e.y * Math::abs(n.y) + e.z * Math::abs(n.z);
+
+			if (distance + r < 0.f)
+				return Outside;
+
+			if (distance - r < 0.f)
+				intersects = true;
+		}
+
+		return intersects ? Intersects : Contains;
 	}
 }// namespace Engine

@@ -64,7 +64,6 @@ namespace Engine
 		RHIBuffer* clusters_buffer();
 		RHIBuffer* lights_buffer();
 		RHIBuffer* shadow_buffer();
-		DeferredRenderer& render(RHIContext* cxt) override;
 
 		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
 		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }

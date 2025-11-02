@@ -199,8 +199,10 @@ namespace Engine
 		if (!is_dirty_state(state))
 			return *this;
 
-		vk::DescriptorSet set                = VulkanDescriptorSetAllocator::instance()->allocate(m_layout, state);
-		vk::DescriptorSet descriptor_sets[2] = {set, API->descriptor_heap()->descriptor_set()};
+		vk::DescriptorSet sets[2] = {
+		        VulkanDescriptorSetAllocator::instance()->allocate(m_layout, state),
+		        API->descriptor_heap()->descriptor_set(),
+		};
 
 		StackByteAllocator::Mark mark;
 		size_t uniforms_count   = m_layout->uniform_buffers_count();
@@ -212,7 +214,7 @@ namespace Engine
 			offsets[i] = state->uniform_buffers.resource(descriptors[i].binding).offset;
 		}
 
-		ctx->handle()->bindDescriptorSets(bind_point, m_layout->layout(), 0, descriptor_sets,
+		ctx->handle()->bindDescriptorSets(bind_point, m_layout->layout(), 0, sets,
 		                                  vk::ArrayProxy<uint32_t>(uniforms_count, offsets));
 		return *this;
 	}

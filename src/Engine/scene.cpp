@@ -96,14 +96,41 @@ namespace Engine
 	}
 
 	template<typename Node, typename Container>
+	static void collect_elements_internal(Node* node, Container& result)
+	{
+		for (auto component : node->values())
+		{
+			result.emplace_back(component);
+		}
+
+		for (byte i = 0; i < 8; i++)
+		{
+			auto child = node->child_at(i);
+
+			if (child)
+			{
+				collect_elements_internal(child, result);
+			}
+		}
+	}
+
+	template<typename Node, typename Container>
 	static void collect_elements_internal(Node* node, const Frustum& frustum, Container& result)
 	{
-		if (node->size() == 0 || !frustum.contains(node->box()))
+		if (node->size() == 0)
 			return;
+
+		auto type = frustum.containtment_type(node->box());
+
+		if (type == Frustum::Outside)
+			return;
+
+		if (type == Frustum::Contains)
+			return collect_elements_internal(node, result);
 
 		for (auto component : node->values())
 		{
-			if (frustum.contains(component->bounding_box()))
+			if (frustum.intersects(component->bounding_box()))
 			{
 				result.emplace_back(component);
 			}
