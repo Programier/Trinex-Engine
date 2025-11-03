@@ -206,7 +206,7 @@ namespace Engine
 
 	const Transform& Actor::transfrom() const
 	{
-		return m_root_component ? m_root_component->world_transform() : Transform::transform_zero;
+		return m_root_component ? m_root_component->world_transform() : default_value_of<Transform>();
 	}
 
 	SceneComponent* Actor::scene_component() const

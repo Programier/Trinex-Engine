@@ -32,8 +32,8 @@ namespace Engine
 
 		for (PrimitiveComponent* component : components)
 		{
-			const Matrix4f* local_to_world = &component->world_transform().matrix();
-			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), local_to_world);
+			Matrix4f local_to_world = component->world_transform().matrix();
+			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
 			component->render(&context);
 		}
 		return *this;
@@ -92,8 +92,8 @@ namespace Engine
 
 		for (PrimitiveComponent* component : components)
 		{
-			const Matrix4f* local_to_world = &component->world_transform().matrix();
-			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), local_to_world);
+			Matrix4f local_to_world = component->world_transform().matrix();
+			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
 			component->render(&context);
 		}
 

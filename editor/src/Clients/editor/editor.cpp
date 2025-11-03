@@ -517,7 +517,7 @@ namespace Engine
 				{
 
 					Transform new_transform = model;
-					new_transform /= component->parent()->world_transform();
+					new_transform -= component->parent()->world_transform();
 					component->local_transform(new_transform);
 				}
 			}
@@ -633,21 +633,17 @@ namespace Engine
 			ImGui::SameLine();
 			render_separator();
 			const auto& transfom = camera->local_transform();
-			Vector3f location    = transfom.location();
-			Vector3f rotation    = transfom.rotation();
+			Vector3f location    = transfom.location;
 
 			ImGui::BeginGroup();
 			ImGui::PushItemWidth(height * 15.f);
 			bool changed = ImGui::InputFloat3("editor/Loc"_localized, &location.x);
-			ImGui::SameLine();
-			changed = ImGui::InputFloat3("editor/Rot"_localized, &rotation.x) || changed;
 			ImGui::PopItemWidth();
 			ImGui::EndGroup();
 
 			if (changed)
 			{
 				camera->location(location);
-				camera->rotation(rotation);
 				camera->on_transform_changed();
 			}
 		}
@@ -797,11 +793,6 @@ namespace Engine
 	}
 
 	// Inputs
-	static FORCE_INLINE float calculate_y_rotatation(float offset, float size, float fov)
-	{
-		return -offset * fov / size;
-	}
-
 	void EditorClient::on_mouse_press(const Event& event)
 	{
 		const auto& button = event.mouse.button;
@@ -823,26 +814,46 @@ namespace Engine
 		}
 	}
 
+	static FORCE_INLINE float calculate_y_rotation(float offset, float size, float fov)
+	{
+		return Math::radians(-offset * fov / size);
+	}
+
+	static FORCE_INLINE void make_rotation_quat(float yaw, float pitch, Quaternion& out)
+	{
+		Quaternion q_pitch = Math::angle_axis(pitch, Vector3f(1, 0, 0));
+		Quaternion q_yaw   = Math::angle_axis(yaw, Vector3f(0, 1, 0));
+		out                = q_yaw * out * q_pitch;
+	}
+
 	void EditorClient::on_mouse_move(const Event& event)
 	{
 		const auto& motion = event.mouse.motion;
 
 		if (MouseSystem::instance()->is_relative_mode(window()->window()))
 		{
-			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-			                      0.f});
+			float pitch = -calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov);
+			float yaw   = calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov);
+
+			Quaternion rotation = camera->local_transform().rotation;
+			make_rotation_quat(yaw, pitch, rotation);
+			camera->rotation(rotation);
 		}
 	}
 
 	void EditorClient::on_finger_move(const Event& event)
 	{
 		const auto& motion = event.touchscreen.finger_motion;
+
 		if (motion.index == 0 && m_state.viewport.is_hovered)
 		{
-			camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
-			                      calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
-			                      0.f});
+			float pitch = -calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov);
+			float yaw   = calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov);
+
+			Quaternion rotation = camera->local_transform().rotation;
+			make_rotation_quat(yaw, pitch, rotation);
+			camera->rotation(rotation);
 		}
 	}
+
 }// namespace Engine

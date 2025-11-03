@@ -68,9 +68,9 @@ namespace Engine
 					id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
 					(*proxy_id) = id;
 
-					const Matrix4f* matrix = &primitive->world_transform().matrix();
-					RenderPass* pass       = EditorRenderPasses::HitProxy::static_instance();
-					PrimitiveRenderingContext context(this, ctx, pass, matrix, &bindings);
+					Matrix4f matrix  = primitive->world_transform().matrix();
+					RenderPass* pass = EditorRenderPasses::HitProxy::static_instance();
+					PrimitiveRenderingContext context(this, ctx, pass, &matrix, &bindings);
 					primitive->render(&context);
 				}
 			}
@@ -164,9 +164,9 @@ namespace Engine
 					{
 						if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
 						{
-							const Matrix4f* matrix = &primitive->world_transform().matrix();
-							RenderPass* pass       = RenderPasses::Depth::static_instance();
-							PrimitiveRenderingContext context(this, ctx, pass, matrix);
+							Matrix4f matrix  = primitive->world_transform().matrix();
+							RenderPass* pass = RenderPasses::Depth::static_instance();
+							PrimitiveRenderingContext context(this, ctx, pass, &matrix);
 							primitive->render(&context);
 						}
 					}
@@ -212,18 +212,18 @@ namespace Engine
 				float outer_radius = 2.f * glm::tan(glm::radians(spot_light->outer_cone_angle()));
 				float inner_radius = 2.f * glm::tan(glm::radians(spot_light->inner_cone_angle()));
 
-				auto location = spot_light->world_transform().location() + dir;
+				auto location = spot_light->world_transform().location + dir;
 				lines.add_cone(location, -dir, outer_radius, {255, 255, 0, 255}, 0, 3.f);
 				lines.add_cone(location, -dir, inner_radius, {255, 255, 0, 255}, 0, 3.f);
 			}
 			else if (auto point_light = Object::instance_cast<PointLightComponent>(light))
 			{
-				auto& location = point_light->world_transform().location();
+				auto& location = point_light->world_transform().location;
 				lines.add_sphere(location, point_light->attenuation_radius(), {255, 255, 0, 255}, 0, 3.f);
 			}
 			else if (auto directional_light = Object::instance_cast<DirectionalLightComponent>(light))
 			{
-				auto& location = directional_light->world_transform().location();
+				auto& location = directional_light->world_transform().location;
 				lines.add_arrow(location, directional_light->direction(), {255, 255, 0, 255}, 3.f);
 			}
 		}

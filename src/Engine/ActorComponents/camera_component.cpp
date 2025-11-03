@@ -79,7 +79,7 @@ namespace Engine
 	Matrix4f CameraComponent::view_matrix()
 	{
 		auto& global_transfrom = world_transform();
-		return view_matrix(global_transfrom.location(), global_transfrom.forward_vector(), global_transfrom.up_vector());
+		return view_matrix(global_transfrom.location, global_transfrom.forward_vector(), global_transfrom.up_vector());
 	}
 
 	Matrix4f CameraComponent::view_matrix(const Vector3f& position, const Vector3f& direction, const Vector3f& up_vector)
@@ -90,7 +90,7 @@ namespace Engine
 	const CameraComponent& CameraComponent::camera_view(CameraView& out) const
 	{
 		auto& global_transform = world_transform();
-		out.location           = global_transform.location();
+		out.location           = global_transform.location;
 		out.up                 = global_transform.up_vector();
 		out.right              = global_transform.right_vector();
 		out.forward            = global_transform.forward_vector();

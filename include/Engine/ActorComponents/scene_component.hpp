@@ -45,10 +45,8 @@ namespace Engine
 		SceneComponent& remove_local_transform(const Transform&);
 		SceneComponent& location(const Vector3f&);
 		SceneComponent& rotation(const Quaternion&);
-		SceneComponent& rotation(const Vector3f&);
 		SceneComponent& scale(const Vector3f&);
 		SceneComponent& add_location(const Vector3f& delta);
-		SceneComponent& add_rotation(const Vector3f& delta);
 		SceneComponent& add_rotation(const Quaternion& delta);
 		SceneComponent& add_scale(const Vector3f& delta);
 		SceneComponent& look_at(const Vector3f& location, const Vector3f& up = {0.f, 1.f, 0.f});

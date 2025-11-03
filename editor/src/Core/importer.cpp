@@ -114,13 +114,13 @@ namespace Engine::Importer
 			if (!node.translation.empty())
 			{
 				const double* data = node.translation.data();
-				transform.location({data[0], data[1], data[2]});
+				transform.location = {data[0], data[1], data[2]};
 			}
 
 			if (!node.scale.empty())
 			{
 				const double* data = node.scale.data();
-				transform.scale({data[0], data[1], data[2]});
+				transform.scale    = {data[0], data[1], data[2]};
 			}
 
 			return transform.matrix();

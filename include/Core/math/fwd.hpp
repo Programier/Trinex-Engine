@@ -22,6 +22,16 @@ namespace Engine
 	using Vector3f = VectorNT<3, float_t>;
 	using Vector4f = VectorNT<4, float_t>;
 
+	using Vector1f32 = VectorNT<1, float32_t>;
+	using Vector2f32 = VectorNT<2, float32_t>;
+	using Vector3f32 = VectorNT<3, float32_t>;
+	using Vector4f32 = VectorNT<4, float32_t>;
+
+	using Vector1f16 = VectorNT<1, float16_t>;
+	using Vector2f16 = VectorNT<2, float16_t>;
+	using Vector3f16 = VectorNT<3, float16_t>;
+	using Vector4f16 = VectorNT<4, float16_t>;
+
 	using Vector1b = VectorNT<1, bool_t>;
 	using Vector2b = VectorNT<2, bool_t>;
 	using Vector3b = VectorNT<3, bool_t>;
@@ -73,6 +83,20 @@ namespace Engine
 
 	using Matrix4x3f = MatrixCRT<4, 3, float_t>;
 	using Matrix3x4f = MatrixCRT<3, 4, float_t>;
+
+	using Matrix4f32 = MatrixNT<4, float32_t>;
+	using Matrix3f32 = MatrixNT<3, float32_t>;
+	using Matrix2f32 = MatrixNT<2, float32_t>;
+
+	using Matrix4x3f32 = MatrixCRT<4, 3, float32_t>;
+	using Matrix3x4f32 = MatrixCRT<3, 4, float32_t>;
+
+	using Matrix4f16 = MatrixNT<4, float16_t>;
+	using Matrix3f16 = MatrixNT<3, float16_t>;
+	using Matrix2f16 = MatrixNT<2, float16_t>;
+
+	using Matrix4x3f16 = MatrixCRT<4, 3, float16_t>;
+	using Matrix3x4f16 = MatrixCRT<3, 4, float16_t>;
 
 	using Matrix4i = MatrixNT<4, int32_t>;
 	using Matrix3i = MatrixNT<3, int32_t>;

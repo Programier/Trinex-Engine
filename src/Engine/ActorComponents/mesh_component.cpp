@@ -47,7 +47,7 @@ namespace Engine
 	{
 		const auto& camera = ctx->renderer->scene_view().camera_view();
 
-		const uint_t lod      = camera.compute_lod(world_transform().location(), lods_count());
+		const uint_t lod      = camera.compute_lod(world_transform().location, lods_count());
 		const uint_t surfaces = surfaces_count(lod);
 
 		for (uint_t surface_index = 0; surface_index < surfaces; ++surface_index)

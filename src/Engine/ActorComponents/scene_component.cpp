@@ -57,14 +57,10 @@ namespace Engine
 		r.method("SceneComponent@ add_local_transform(const Transform&) final", &This::add_local_transform);
 		r.method("SceneComponent@ remove_local_transform(const Transform&) final", &This::remove_local_transform);
 		r.method("SceneComponent@ location(const Vector3f& new_location) final", &This::location);
-		r.method("SceneComponent@ rotation(const Vector3f& new_rotation) final",
-		         method_of<SceneComponent&, const Vector3f&>(&This::rotation));
 		r.method("SceneComponent@ rotation(const Quaternion& new_rotation) final",
 		         method_of<SceneComponent&, const Quaternion&>(&This::rotation));
 		r.method("SceneComponent@ scale(const Vector3f& new_scale) final", &This::scale);
 		r.method("SceneComponent@ add_location(const Vector3f& delta) final", &This::add_location);
-		r.method("SceneComponent@ add_rotation(const Vector3f& delta) final",
-		         method_of<SceneComponent&, const Vector3f&>(&This::add_rotation));
 		r.method("SceneComponent@ add_rotation(const Quaternion& delta) final",
 		         method_of<SceneComponent&, const Quaternion&>(&This::add_rotation));
 		r.method("SceneComponent@ add_scale(const Vector3f& delta) final", &This::add_scale);
@@ -161,7 +157,7 @@ namespace Engine
 		{
 			if (SceneComponent* parent_component = parent())
 			{
-				m_world = parent_component->world_transform() * m_local;
+				m_world = parent_component->world_transform() + m_local;
 			}
 			else
 			{
@@ -198,65 +194,49 @@ namespace Engine
 
 	SceneComponent& SceneComponent::location(const Vector3f& new_location)
 	{
-		m_local.location(new_location);
+		m_local.location = new_location;
 		on_transform_changed();
-
 		return *this;
 	}
 
 	SceneComponent& SceneComponent::rotation(const Quaternion& new_rotation)
 	{
-		m_local.rotation(new_rotation);
-		on_transform_changed();
-		return *this;
-	}
-
-	SceneComponent& SceneComponent::rotation(const Vector3f& new_rotation)
-	{
-		m_local.rotation(new_rotation);
+		m_local.rotation = new_rotation;
 		on_transform_changed();
 		return *this;
 	}
 
 	SceneComponent& SceneComponent::scale(const Vector3f& new_scale)
 	{
-		m_local.scale(new_scale);
+		m_local.scale = new_scale;
 		on_transform_changed();
 		return *this;
 	}
 
 	SceneComponent& SceneComponent::add_location(const Vector3f& delta)
 	{
-		m_local.add_location(delta);
-		on_transform_changed();
-		return *this;
-	}
-
-	SceneComponent& SceneComponent::add_rotation(const Vector3f& delta)
-	{
-		m_local.add_rotation(delta);
+		m_local.location += delta;
 		on_transform_changed();
 		return *this;
 	}
 
 	SceneComponent& SceneComponent::add_rotation(const Quaternion& delta)
 	{
-		m_local.add_rotation(delta);
+		m_local.rotation *= delta;
 		on_transform_changed();
 		return *this;
 	}
 
 	SceneComponent& SceneComponent::add_scale(const Vector3f& delta)
 	{
-		m_local.add_scale(delta);
+		m_local.scale *= delta;
 		on_transform_changed();
 		return *this;
 	}
 
 	SceneComponent& SceneComponent::look_at(const Vector3f& location, const Vector3f& up)
 	{
-		auto quat = Math::quat_look_at(Math::normalize(location - local_transform().location()), up);
-		m_local.rotation(quat);
+		m_local.rotation = Math::quat_look_at(Math::normalize(location - local_transform().location), up);
 		on_transform_changed();
 		return *this;
 	}

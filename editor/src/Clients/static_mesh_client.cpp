@@ -54,7 +54,7 @@ namespace Engine
 
 		m_camera = new_instance<CameraComponent>();
 		m_camera->location({0, 3, 5});
-		m_camera->rotation({-30, 0, 0});
+		//m_camera->rotation({-30, 0, 0});
 		m_view.camera_view(m_camera->camera_view());
 
 		m_browser           = window()->widgets.create<ContentBrowser>();

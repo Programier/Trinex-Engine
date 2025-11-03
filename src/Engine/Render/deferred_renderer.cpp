@@ -235,7 +235,7 @@ namespace Engine
 		auto& transform = light->world_transform();
 
 		CameraView view;
-		view.location = transform.location();
+		view.location = transform.location;
 		view.up       = transform.up_vector();
 		view.forward  = transform.forward_vector();
 		view.right    = transform.right_vector();
@@ -263,7 +263,7 @@ namespace Engine
 		auto& transform = light->world_transform();
 
 		CameraView view;
-		view.location = transform.location();
+		view.location = transform.location;
 		view.up       = transform.up_vector();
 		view.forward  = transform.forward_vector();
 		view.right    = transform.right_vector();
@@ -732,8 +732,8 @@ namespace Engine
 
 		for (PrimitiveComponent* primitive : primitives)
 		{
-			const Matrix4f* matrix = &primitive->world_transform().matrix();
-			PrimitiveRenderingContext context(this, ctx, pass, matrix, bindings);
+			Matrix4f matrix = primitive->world_transform().matrix();
+			PrimitiveRenderingContext context(this, ctx, pass, &matrix, bindings);
 			primitive->render(&context);
 		}
 
