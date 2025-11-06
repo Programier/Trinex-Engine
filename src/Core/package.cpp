@@ -9,7 +9,6 @@ namespace Engine
 {
 	Package::Package()
 	{
-		flags(Object::IsPackage, true);
 		flags(Object::StandAlone, true);
 	}
 

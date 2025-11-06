@@ -25,6 +25,25 @@
 
 namespace Engine
 {
+	struct PropertyChangedEvent : Refl::PropertyChangedEvent {
+		PropertyChangedEvent(void* ctx, Refl::Property* prop, Refl::PropertyChangedEvent* owner)
+		    : Refl::PropertyChangedEvent(ctx, prop, owner)
+		{
+			if (owner)
+			{
+				owner->member_event = nullptr;
+			}
+		}
+
+		~PropertyChangedEvent()
+		{
+			if (owner_event)
+			{
+				owner_event->member_event = nullptr;
+			}
+		}
+	};
+
 	template<typename T>
 	static FORCE_INLINE T* prop_cast(Refl::Property* prop)
 	{
@@ -222,6 +241,28 @@ namespace Engine
 		return map;
 	}
 
+	PropertyRenderer& PropertyRenderer::propagate_property_event()
+	{
+		Refl::PropertyChangedEvent* event = m_event;
+
+		while (event)
+		{
+			event->property->on_property_changed(*event);
+			event = event->owner_event;
+		}
+
+		return *this;
+	}
+
+	PropertyRenderer& PropertyRenderer::propagate_property_event(void* ctx, Refl::Property* property)
+	{
+		PropertyChangedEvent event(ctx, property, m_event);
+		m_event = &event;
+		propagate_property_event();
+		m_event = event.owner_event;
+		return *this;
+	}
+
 	PropertyRenderer& PropertyRenderer::next_name(const String& name)
 	{
 		m_next_name = name;
@@ -252,10 +293,14 @@ namespace Engine
 		return overrided;
 	}
 
-	void* PropertyRenderer::property_context(size_t stack_offset) const
+	void* PropertyRenderer::property_context() const
 	{
-		trinex_check(stack_offset < m_context_stack.size(), "Stack offset is out of range!");
-		return *(m_context_stack.end() - stack_offset);
+		return m_event->context;
+	}
+
+	Refl::Property* PropertyRenderer::property() const
+	{
+		return m_event->property;
 	}
 
 	bool PropertyRenderer::render_property(void* object, Refl::Property* prop, bool read_only)
@@ -270,13 +315,14 @@ namespace Engine
 
 		if (auto renderer = ctx->renderer_ptr(prop->refl_class_info()))
 		{
-			m_context_stack.push_back(object);
+			PropertyChangedEvent event(object, prop, m_event);
+			m_event = &event;
 			m_property_names_stack.emplace_back(std::move(m_next_name));
 
 			bool result = (*renderer)(this, prop, read_only);
 
 			m_property_names_stack.pop_back();
-			m_context_stack.pop_back();
+			m_event = event.owner_event;
 			return result;
 		}
 
@@ -417,32 +463,26 @@ namespace Engine
 		if (ImGui::Checkbox("##value", &value) && !read_only)
 		{
 			(*value_address) = value;
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			renderer->propagate_property_event();
 			return true;
 		}
 
 		return false;
 	}
 
-	static bool render_scalar_property_colored(void* context, Refl::Property* prop, ImGuiDataType type, int_t components,
-	                                           bool read_only)
+	static bool render_scalar_property(void* context, Refl::Property* prop, PropertyRenderer* renderer, ImGuiDataType type,
+	                                   int_t components, bool read_only)
 	{
 		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
 		void* address             = prop->address(context);
 
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-		bool changed = ImGui::InputScalarN("##value", type, address, components, nullptr, nullptr, nullptr, flags);
-
-		if (changed)
+		if (ImGui::InputScalarN("##value", type, address, components, nullptr, nullptr, nullptr, flags))
 		{
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			renderer->propagate_property_event(context, prop);
+			return true;
 		}
-		return changed;
-	}
-
-	static bool render_scalar_property(void* context, Refl::Property* prop, ImGuiDataType type, int_t components, bool read_only)
-	{
-		return render_scalar_property_colored(context, prop, type, components, read_only);
+		return false;
 	}
 
 	static ImGuiDataType find_imgui_data_type(Refl::IntegerProperty* prop)
@@ -460,7 +500,7 @@ namespace Engine
 		ImGui::TableNextRow();
 		auto prop = prop_cast_checked<Refl::IntegerProperty>(prop_base);
 		render_name(renderer, prop_base);
-		return render_scalar_property(renderer->property_context(), prop, find_imgui_data_type(prop), 1, read_only);
+		return render_scalar_property(renderer->property_context(), prop, renderer, find_imgui_data_type(prop), 1, read_only);
 	}
 
 	static bool render_float_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
@@ -468,7 +508,8 @@ namespace Engine
 		ImGui::TableNextRow();
 		render_name(renderer, prop);
 		auto float_prop = prop_cast_checked<Refl::FloatProperty>(prop);
-		return render_scalar_property(renderer->property_context(), prop, find_imgui_data_type(float_prop), 1, read_only);
+		return render_scalar_property(renderer->property_context(), prop, renderer, find_imgui_data_type(float_prop), 1,
+		                              read_only);
 	}
 
 	static bool render_vector_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
@@ -481,32 +522,25 @@ namespace Engine
 		auto render_scalar = [&](ImGuiDataType type) -> bool {
 			ImGui::TableNextRow();
 			render_name(renderer, prop);
-			bool is_changed = render_scalar_property_colored(prop->address(context), element, type, prop->length(),
-			                                                 read_only || element->is_read_only());
-			if (is_changed)
-				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
-
-			return is_changed;
+			void* address = prop->address(context);
+			return render_scalar_property(address, element, renderer, type, prop->length(), read_only || element->is_read_only());
 		};
 
 		if (element->is_a<Refl::BooleanProperty>())
 		{
 			ImGui::TableNextRow();
 			render_name(renderer, prop);
-			void* context       = renderer->property_context();
-			bool* value_address = prop->address_as<bool>(renderer->property_context());
+			bool* context = prop->address_as<bool>(renderer->property_context());
 
 			char name[] = "##value0";
 			for (size_t i = 0, count = prop->length(); i < count; ++i)
 			{
-				bool value = *(value_address + i);
-				name[7]    = '0' + i;
+				bool& value = *(context + i);
+				name[7]     = '0' + i;
+
 				if (ImGui::Checkbox(name, &value) && !read_only)
 				{
-					element->on_property_changed(
-					        Refl::PropertyChangedEvent(value_address, Refl::PropertyChangeType::value_set, element));
-					(*(value_address)) = value;
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
+					renderer->propagate_property_event(&value, element);
 					return true;
 				}
 			}
@@ -544,18 +578,34 @@ namespace Engine
 
 				void* context = renderer->property_context();
 				void* address = prop->row_address(context, i);
-				bool changed  = renderer->render_property(address, row_prop, read_only);
-
-				if (changed)
-				{
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
-					is_changed = changed;
-				}
+				is_changed    = renderer->render_property(address, row_prop, read_only) || is_changed;
 			}
 			ImGui::Unindent();
 		}
 
 		return is_changed;
+	}
+
+	static bool render_quaternion_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	{
+		auto prop              = prop_cast_checked<Refl::QuaternionProperty>(prop_base);
+		Quaternion* quaternion = prop->address_as<Quaternion>(renderer->property_context());
+		Vector3f degrees       = Math::degrees(Math::euler_angles(*quaternion));
+
+		ImGui::TableNextRow();
+		render_name(renderer, prop);
+
+		ImGuiInputTextFlags flags = (read_only ? ImGuiInputTextFlags_ReadOnly : 0);
+
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+		if (ImGui::InputFloat3("##value", &degrees.x, "%.3f", flags))
+		{
+			*quaternion = Quaternion(Math::radians(degrees));
+			renderer->propagate_property_event();
+			return true;
+		}
+
+		return false;
 	}
 
 	static bool render_enum_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
@@ -582,7 +632,7 @@ namespace Engine
 				if (ImGui::Selectable(entry.name.c_str(), is_selected) && !read_only)
 				{
 					prop->value(context, entry.value);
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+					renderer->propagate_property_event();
 					is_changed = true;
 				}
 			}
@@ -617,7 +667,7 @@ namespace Engine
 		if (ImGui::ColorEdit4("###value", &linear.x, flags))
 		{
 			(*color) = linear;
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::interactive, prop));
+			renderer->propagate_property_event();
 			return true;
 		}
 
@@ -640,7 +690,7 @@ namespace Engine
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 		if (ImGui::ColorEdit4("###value", &color->x, flags))
 		{
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::interactive, prop));
+			renderer->propagate_property_event();
 			return true;
 		}
 
@@ -660,7 +710,7 @@ namespace Engine
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 			if (ImGui::InputText("##Value", *value, flags))
 			{
-				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+				renderer->propagate_property_event();
 				return true;
 			}
 		}
@@ -705,7 +755,7 @@ namespace Engine
 		if (ImGui::InputText("##Path", str, read_only ? ImGuiInputTextFlags_ReadOnly : 0))
 		{
 			*value = str;
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			renderer->propagate_property_event();
 		}
 
 		if (ImGui::TableGetColumnCount() > 2)
@@ -713,9 +763,9 @@ namespace Engine
 			ImGui::TableSetColumnIndex(2);
 			if (ImGui::ImageButton(Icons::icon(Icons::Select), {size, size}))
 			{
-				Function<void(const Path&)> callback = [context, prop, value, &str](const Path& path) {
+				Function<void(const Path&)> callback = [renderer, value, &str](const Path& path) {
 					*value = path;
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+					renderer->propagate_property_event();
 					str = value->str();
 				};
 
@@ -770,12 +820,6 @@ namespace Engine
 			pop_props_id();
 		}
 
-		if (is_changed)
-		{
-			void* context = renderer->property_context();
-			Refl::PropertyChangedEvent event(context, Refl::PropertyChangeType::member_change, prop);
-			prop->on_property_changed(event);
-		}
 		return is_changed;
 	}
 
@@ -826,7 +870,7 @@ namespace Engine
 					if (new_object->class_instance()->is_a(prop->class_instance()))
 					{
 						prop->object(context, new_object);
-						prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+						renderer->propagate_property_event();
 						changed = true;
 					}
 				}
@@ -873,7 +917,7 @@ namespace Engine
 			if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Add), {size, size}))
 			{
 				prop->emplace_back(context);
-				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::array_add, prop));
+				renderer->propagate_property_event();
 				is_changed = true;
 			}
 		}
@@ -895,7 +939,6 @@ namespace Engine
 				if (renderer->render_property(array_object, element_prop, element_prop->is_read_only()))
 				{
 					is_changed = true;
-					prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::member_change, prop));
 				}
 
 				if (ImGui::TableGetColumnCount() > 2)
@@ -963,7 +1006,7 @@ namespace Engine
 			{
 				prop->object(context, use_none ? nullptr : current);
 				changed = true;
-				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+				renderer->propagate_property_event();
 			}
 			ImGui::EndCombo();
 		}
@@ -1011,7 +1054,7 @@ namespace Engine
 			{
 				prop->class_instance(context, use_none ? nullptr : current);
 				changed = true;
-				prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+				renderer->propagate_property_event();
 			}
 			ImGui::EndCombo();
 		}
@@ -1063,7 +1106,7 @@ namespace Engine
 					if (ImGui::CheckboxFlags("##Flags", flags, entry.value))
 					{
 						changed = true;
-						prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+						renderer->propagate_property_event();
 					}
 					ImGui::PopID();
 				}
@@ -1087,7 +1130,7 @@ namespace Engine
 		if (changed)
 		{
 			prop->setter(context, value);
-			prop->on_property_changed(Refl::PropertyChangedEvent(context, Refl::PropertyChangeType::value_set, prop));
+			renderer->propagate_property_event();
 		}
 
 		return changed;
@@ -1126,6 +1169,7 @@ namespace Engine
 		ctx->renderer<Refl::FloatProperty>(render_float_property);
 		ctx->renderer<Refl::VectorProperty>(render_vector_property);
 		ctx->renderer<Refl::MatrixProperty>(render_matrix_property);
+		ctx->renderer<Refl::QuaternionProperty>(render_quaternion_property);
 		ctx->renderer<Refl::EnumProperty>(render_enum_property);
 		ctx->renderer<Refl::ColorProperty>(render_color_property);
 		ctx->renderer<Refl::LinearColorProperty>(render_linear_color_property);

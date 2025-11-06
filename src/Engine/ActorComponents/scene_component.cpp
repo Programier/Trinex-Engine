@@ -32,12 +32,6 @@ namespace Engine
 		auto& local = *trinex_refl_prop(m_local);
 		local.display_name("Transform").tooltip("Local transform of this component");
 
-		local.add_change_listener([](const Refl::PropertyChangedEvent& event) {
-			SceneComponent* component = reinterpret_cast<SceneComponent*>(event.context);
-			component->m_is_dirty     = true;
-			component->on_transform_changed();
-		});
-
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
 		r.method("SceneComponent@ attach(SceneComponent@ child) final", &This::attach);
@@ -133,6 +127,19 @@ namespace Engine
 		for (SceneComponent* child : m_childs)
 		{
 			child->on_transform_changed();
+		}
+
+		return *this;
+	}
+
+	SceneComponent& SceneComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	{
+		Super::on_property_changed(event);
+
+		if (event.is_a(&m_local))
+		{
+			m_is_dirty = true;
+			on_transform_changed();
 		}
 
 		return *this;

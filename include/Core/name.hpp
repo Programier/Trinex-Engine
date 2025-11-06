@@ -45,7 +45,7 @@ namespace Engine
 		static ENGINE_EXPORT Name none;
 
 	private:
-		Index m_index;
+		uint32_t m_index;
 		Name& init(const StringView& view);
 
 	public:
@@ -65,17 +65,15 @@ namespace Engine
 		Name& operator=(const StringView& name);
 
 		static Name find_name(const StringView& name);
+		static size_t static_count();
 
-		bool is_valid() const;
 		uint64_t hash() const;
-		Index index() const;
 		bool operator==(const StringView& name) const;
 		bool operator!=(const StringView& name) const;
 		bool operator==(const char* name) const;
 		bool operator!=(const char* name) const;
 		bool operator==(const String& name) const;
 		bool operator!=(const String& name) const;
-
 
 		bool equals(const String& name) const;
 		bool equals(const char* name) const;
@@ -89,12 +87,16 @@ namespace Engine
 		operator const String&() const;
 		operator StringView() const;
 
-		FORCE_INLINE bool operator==(const Name& name) const { return name.m_index == m_index; }
-		FORCE_INLINE bool operator!=(const Name& name) const { return name.m_index != m_index; }
-		FORCE_INLINE bool operator<(const Name& name) const { return m_index < name.m_index; }
-		FORCE_INLINE bool operator<=(const Name& name) const { return m_index <= name.m_index; }
-		FORCE_INLINE bool operator>(const Name& name) const { return m_index > name.m_index; }
-		FORCE_INLINE bool operator>=(const Name& name) const { return m_index >= name.m_index; }
+		inline bool is_valid() const { return m_index != 0xFFFFFFFF; }
+		inline uint32_t index() const { return m_index; }
+		inline size_t length() const { return to_string().length(); }
+
+		inline bool operator==(const Name& name) const { return name.m_index == m_index; }
+		inline bool operator!=(const Name& name) const { return name.m_index != m_index; }
+		inline bool operator<(const Name& name) const { return m_index < name.m_index; }
+		inline bool operator<=(const Name& name) const { return m_index <= name.m_index; }
+		inline bool operator>(const Name& name) const { return m_index > name.m_index; }
+		inline bool operator>=(const Name& name) const { return m_index >= name.m_index; }
 
 		bool serialize(class Archive& ar);
 	};

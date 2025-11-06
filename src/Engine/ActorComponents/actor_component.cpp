@@ -9,6 +9,7 @@
 namespace Engine
 {
 	static ScriptFunction script_actor_comp_update;
+	static ScriptFunction script_actor_comp_sync;
 	static ScriptFunction script_actor_comp_start_play;
 	static ScriptFunction script_actor_comp_stop_play;
 	static ScriptFunction script_actor_comp_spawned;
@@ -21,6 +22,7 @@ namespace Engine
 		script_actor_comp_start_play = r.method("void start_play()", trinex_scoped_void_method(This, start_play));
 		script_actor_comp_stop_play  = r.method("void stop_play()", trinex_scoped_void_method(This, stop_play));
 		script_actor_comp_update     = r.method("void update(float dt)", trinex_scoped_void_method(This, update));
+		script_actor_comp_sync       = r.method("void sync()", trinex_scoped_void_method(This, sync));
 		script_actor_comp_spawned    = r.method("void spawned()", trinex_scoped_void_method(This, spawned));
 		script_actor_comp_destroyed  = r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
 
@@ -29,6 +31,7 @@ namespace Engine
 
 		ScriptEngine::on_terminate.push([]() {
 			script_actor_comp_update.release();
+			script_actor_comp_sync.release();
 			script_actor_comp_start_play.release();
 			script_actor_comp_stop_play.release();
 			script_actor_comp_spawned.release();
@@ -39,6 +42,11 @@ namespace Engine
 	void ActorComponent::script_update(float dt)
 	{
 		ScriptContext::execute(this, script_actor_comp_update, nullptr, dt);
+	}
+
+	void ActorComponent::script_sync()
+	{
+		ScriptContext::execute(this, script_actor_comp_sync, nullptr);
 	}
 
 	void ActorComponent::script_start_play()
@@ -76,6 +84,11 @@ namespace Engine
 	}
 
 	ActorComponent& ActorComponent::update(float dt)
+	{
+		return *this;
+	}
+
+	ActorComponent& ActorComponent::sync()
 	{
 		return *this;
 	}

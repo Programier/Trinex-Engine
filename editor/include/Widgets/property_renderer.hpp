@@ -9,7 +9,8 @@ namespace Engine
 	namespace Refl
 	{
 		struct ClassInfo;
-	}
+		struct PropertyChangedEvent;
+	}// namespace Refl
 
 	class ScriptFunction;
 
@@ -55,8 +56,7 @@ namespace Engine
 	private:
 		TreeMap<Refl::Struct*, PropertiesMap> m_properties;
 		Vector<String> m_property_names_stack;
-		Vector<void*> m_context_stack;
-
+		Refl::PropertyChangedEvent* m_event = nullptr;
 
 		String m_next_name;
 		Context* m_ctx = nullptr;
@@ -66,6 +66,7 @@ namespace Engine
 
 		PropertiesMap& build_properties_map(PropertiesMap& map, Refl::Struct* self);
 		PropertiesMap& build_properties_map(Refl::Struct* self);
+
 
 	public:
 		UserData userdata;
@@ -81,12 +82,15 @@ namespace Engine
 		Refl::Struct* struct_instance() const;
 		const PropertiesMap& properties_map(Refl::Struct* self);
 
+		PropertyRenderer& propagate_property_event();
+		PropertyRenderer& propagate_property_event(void* ctx, Refl::Property* property);
 		PropertyRenderer& next_name(const String& name);
 		inline const String& property_name() const { return m_property_names_stack.back(); }
 		const String& property_name(const String& name);
 		const String& property_name(Refl::Property* prop, const void* context);
 
-		void* property_context(size_t stack_offset) const;
+		void* property_context() const;
+		Refl::Property* property() const;
 		bool render_property(void* object, Refl::Property* prop, bool read_only = false);
 		bool render_struct_properties(void* object, class Refl::Struct* struct_class, bool read_only = false);
 
@@ -94,7 +98,6 @@ namespace Engine
 		static const char* static_name();
 
 		inline size_t property_index() const { return m_property_index; }
-		inline void* property_context() const { return m_context_stack.back(); }
 		inline Context* renderer_context() const { return m_ctx ? m_ctx : static_global_renderer_context(); }
 		inline PropertyRenderer& renderer_context(Context* ctx)
 		{

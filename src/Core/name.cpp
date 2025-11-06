@@ -55,7 +55,6 @@ namespace Engine
 		name_entries().push_back(Name::Entry{String(name, len), hash});
 	}
 
-
 	ENGINE_EXPORT Name Name::none;
 
 	Name Name::find_name(const StringView& name)
@@ -78,16 +77,20 @@ namespace Engine
 			}
 		}
 
-		out_name.m_index = Constants::index_none;
+		out_name.m_index = 0xFFFFFFFF;
 		return out_name;
 	}
 
+	size_t Name::static_count()
+	{
+		return name_entries().size();
+	}
 
 	Name& Name::init(const StringView& view)
 	{
 		if (view.empty())
 		{
-			m_index = Constants::index_none;
+			m_index = 0xFFFFFFFF;
 			return *this;
 		}
 
@@ -116,7 +119,7 @@ namespace Engine
 		return *this;
 	}
 
-	Name::Name() : m_index(Constants::index_none) {}
+	Name::Name() : m_index(0xFFFFFFFF) {}
 
 	Name::Name(const char* name) : Name(StringView(name)) {}
 
@@ -150,19 +153,9 @@ namespace Engine
 	Name& Name::operator=(const Name&) = default;
 	Name& Name::operator=(Name&&)      = default;
 
-	bool Name::is_valid() const
-	{
-		return m_index != Constants::index_none;
-	}
-
 	uint64_t Name::hash() const
 	{
 		return is_valid() ? name_entries()[m_index].hash : Constants::invalid_hash;
-	}
-
-	Index Name::index() const
-	{
-		return m_index;
 	}
 
 	bool Name::operator==(const StringView& name) const

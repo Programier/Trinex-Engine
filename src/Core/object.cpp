@@ -374,18 +374,18 @@ namespace Engine
 		return result;
 	}
 
-	Counter Object::references() const
+	uint32_t Object::references() const
 	{
 		return m_references;
 	}
 
-	size_t Object::add_reference() const
+	uint32_t Object::add_reference() const
 	{
 		++m_references;
 		return references();
 	}
 
-	size_t Object::remove_reference() const
+	uint32_t Object::remove_reference() const
 	{
 		--m_references;
 		return references();
@@ -500,7 +500,7 @@ namespace Engine
 		return package ? find_next_package(package, name, create) : nullptr;
 	}
 
-	Index Object::instance_index() const
+	uint32_t Object::instance_index() const
 	{
 		return m_instance_index;
 	}

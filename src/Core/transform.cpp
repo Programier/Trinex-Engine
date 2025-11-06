@@ -15,11 +15,11 @@ namespace Engine
 	trinex_implement_struct(Engine::Transform, 0)
 	{
 		auto& location = *trinex_refl_prop(location);
-		//auto& rotation = *trinex_refl_prop(m_rotation);
-		auto& scale = *trinex_refl_prop(scale);
+		auto& rotation = *trinex_refl_prop(rotation);
+		auto& scale    = *trinex_refl_prop(scale);
 
 		location.display_name("Location").tooltip("Location component of transform");
-		//rotation.display_name("Rotation").tooltip("Rotation component of transform");
+		rotation.display_name("Rotation").tooltip("Rotation component of transform");
 		scale.display_name("Scale").tooltip("Scale component of transform");
 	}
 

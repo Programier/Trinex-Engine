@@ -23,6 +23,7 @@ namespace Engine::Refl
 	implement_reflect_type(LinearColorProperty);
 	implement_reflect_type(VectorProperty);
 	implement_reflect_type(MatrixProperty);
+	implement_reflect_type(QuaternionProperty);
 	implement_reflect_type(StringProperty);
 	implement_reflect_type(NameProperty);
 	implement_reflect_type(PathProperty);
@@ -42,23 +43,6 @@ namespace Engine::Refl
 
 	Property::Property(BitMask flags) : m_flags(flags) {}
 
-	Identifier Property::add_change_listener(const ChangeListener& listener)
-	{
-		return m_change_listeners.push(listener);
-	}
-
-	Property& Property::push_change_listener(const ChangeListener& listener)
-	{
-		m_change_listeners.push(listener);
-		return *this;
-	}
-
-	Property& Property::remove_change_listener(Identifier id)
-	{
-		m_change_listeners.remove(id);
-		return *this;
-	}
-
 	const String& Property::property_name(const void* context)
 	{
 		return display_name();
@@ -66,7 +50,6 @@ namespace Engine::Refl
 
 	Property& Property::on_property_changed(const PropertyChangedEvent& event)
 	{
-		m_change_listeners(event);
 		return *this;
 	}
 

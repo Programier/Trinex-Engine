@@ -38,7 +38,7 @@ namespace Engine
 
 		using ObjectClass = Object;
 
-		enum Flag : BitMask
+		enum Flag : uint32_t
 		{
 			None = 0,
 
@@ -50,25 +50,23 @@ namespace Engine
 			IsAvailableForGC = BIT(1),
 
 			IsSerializable = BIT(2),
-			IsPackage      = BIT(3),
 			IsUnreachable  = BIT(4),
 			IsEditable     = BIT(5),
 			IsDirty        = BIT(6),
-			IsScriptable   = BIT(7),
 		};
 
 	private:
 		Refl::Class* m_class;
 		Object* m_owner;
-		mutable Atomic<Counter> m_references;
 		Name m_name;
-		mutable Index m_instance_index;
+		mutable Atomic<uint32_t> m_references;
+		mutable uint32_t m_instance_index;
 
 	protected:
 		static class Refl::Class* m_static_class;
 
 	public:
-		mutable Flags<Object::Flag> flags;
+		mutable Flags<Object::Flag, uint32_t> flags;
 
 	private:
 		// Setup object info
@@ -144,11 +142,11 @@ namespace Engine
 		uint64_t hash_index() const;
 		Package* package(bool recursive = false) const;
 		String full_name() const;
-		Counter references() const;
-		size_t add_reference() const;
-		size_t remove_reference() const;
+		uint32_t references() const;
+		uint32_t add_reference() const;
+		uint32_t remove_reference() const;
 		bool is_noname() const;
-		Index instance_index() const;
+		uint32_t instance_index() const;
 		virtual bool serialize(Archive& archive);
 		Path filepath() const;
 		bool is_editable() const;

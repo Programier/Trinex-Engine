@@ -17,28 +17,15 @@ namespace Engine::Refl
 	template<typename T>
 	class SubClassOf;
 
-	namespace PropertyChangeType
-	{
-		using Type = BitMask;
-
-		constexpr inline const Type unspecified   = BIT(0);
-		constexpr inline const Type array_add     = BIT(1);
-		constexpr inline const Type array_remove  = BIT(2);
-		constexpr inline const Type array_clear   = BIT(3);
-		constexpr inline const Type value_set     = BIT(4);
-		constexpr inline const Type duplicate     = BIT(5);
-		constexpr inline const Type interactive   = BIT(6);
-		constexpr inline const Type member_change = BIT(7);
-	};// namespace PropertyChangeType
-
 	struct PropertyChangedEvent {
 		void* context;
-		PropertyChangeType::Type type;
 		Property* property;
-		Property* member_property;
+		PropertyChangedEvent* owner_event;
+		PropertyChangedEvent* member_event;
 
-		PropertyChangedEvent(void* context, PropertyChangeType::Type type, Property* property)
-		    : context(context), type(type), property(property), member_property(property)
+		PropertyChangedEvent(void* context, Property* property, PropertyChangedEvent* owner_event = nullptr,
+		                     PropertyChangedEvent* member_event = nullptr)
+		    : context(context), property(property), owner_event(owner_event), member_event(member_event)
 		{}
 
 		template<typename T>
@@ -46,6 +33,8 @@ namespace Engine::Refl
 		{
 			return reinterpret_cast<T*>(context);
 		}
+
+		inline bool is_a(const void* field) const;
 	};
 
 
@@ -96,9 +85,6 @@ private:
 
 		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
 
-	private:
-		CallBacks<void(const PropertyChangedEvent&)> m_change_listeners;
-
 	protected:
 		BitMask m_flags = 0;
 
@@ -119,10 +105,6 @@ private:
 		inline bool is_hidden() const { return check_flag(IsHidden); }
 		inline bool is_inline() const { return check_flag(Inline); }
 		inline bool is_inline_single_field() const { return check_flag(InlineSingleField); }
-
-		Identifier add_change_listener(const ChangeListener& listener);
-		Property& push_change_listener(const ChangeListener& listener);
-		Property& remove_change_listener(Identifier id);
 
 		using Super::display_name;
 		virtual void* address(void* context)                   = 0;
@@ -148,6 +130,11 @@ private:
 
 		virtual ~Property();
 	};
+
+	inline bool PropertyChangedEvent::is_a(const void* field) const
+	{
+		return property->address(context) == field;
+	}
 
 	class ENGINE_EXPORT PrimitiveProperty : public Property
 	{
@@ -263,6 +250,17 @@ private:
 		{
 			return reinterpret_cast<const T*>(row_address(context, index, is_vector_context));
 		}
+	};
+
+	class ENGINE_EXPORT QuaternionProperty : public PrimitiveProperty
+	{
+		declare_reflect_type(QuaternionProperty, PrimitiveProperty);
+
+	private:
+		trinex_refl_prop_type_filter(std::is_same_v<T, Quaternion>);
+
+	public:
+		using PrimitiveProperty::PrimitiveProperty;
 	};
 
 	class ENGINE_EXPORT EnumProperty : public PrimitiveProperty
@@ -680,6 +678,13 @@ private:
 		}
 
 		~NativePropertyTyped() override { Refl::Object::destroy_instance(m_inner_property); }
+	};
+
+	template<auto prop, typename T>
+	    requires(QuaternionProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, QuaternionProperty> {
+		using Super = TypedProperty<prop, QuaternionProperty>;
+		using Super::Super;
 	};
 
 	template<auto prop, typename T>

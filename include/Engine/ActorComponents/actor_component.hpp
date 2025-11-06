@@ -14,6 +14,7 @@ namespace Engine
 
 	private:
 		void script_update(float dt);
+		void script_sync();
 		void script_start_play();
 		void script_stop_play();
 		void script_spawned();
@@ -40,6 +41,12 @@ namespace Engine
 				return *this;
 			}
 
+			Scriptable& sync() override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_sync();
+				return *this;
+			}
+
 			Scriptable& spawned() override
 			{
 				reinterpret_cast<ActorComponent*>(this)->script_spawned();
@@ -59,6 +66,7 @@ namespace Engine
 		virtual ActorComponent& start_play();
 		virtual ActorComponent& stop_play();
 		virtual ActorComponent& update(float dt);
+		virtual ActorComponent& sync();
 		virtual ActorComponent& spawned();
 		virtual ActorComponent& destroyed();
 

@@ -55,5 +55,6 @@ namespace Engine
 		inline const Vector<Pointer<SceneComponent>>& childs() const { return m_childs; }
 
 		virtual SceneComponent& on_transform_changed();
+		SceneComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 	};
 }// namespace Engine
