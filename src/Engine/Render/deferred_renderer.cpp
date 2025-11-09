@@ -88,6 +88,11 @@ namespace Engine
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this](RHIContext* ctx) { geometry_pass(ctx); });
 
+		graph->add_pass("Velocity Pass")
+		        .add_resource(velocity_target(), RHIAccess::RTV)
+		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+		        .add_func([this](RHIContext* ctx) { velocity_pass(ctx); });
+
 		if (m_post_process_params->ssao.enabled)
 		{
 			graph->add_pass("Ambient Occlusion")
@@ -166,6 +171,15 @@ namespace Engine
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this](RHIContext* ctx) { copy_ambient_to_scene_color(ctx); });
+				break;
+			}
+
+			case ViewMode::Velocity:
+			{
+				graph->add_pass("Velocity Resolve")
+				        .add_resource(velocity_target(), RHIAccess::TransferSrc)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
+				        .add_func([this](RHIContext* ctx) { copy_velocity_to_scene_color(ctx); });
 				break;
 			}
 
@@ -428,6 +442,11 @@ namespace Engine
 		render_visible_primitives(ctx, RenderPasses::Geometry::static_instance());
 
 		ctx->polygon_mode(RHIPolygonMode::Fill);
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::velocity_pass(RHIContext* ctx)
+	{
 		return *this;
 	}
 
@@ -723,6 +742,16 @@ namespace Engine
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
 		                                    {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
+		return *this;
+	}
+
+	DeferredRenderer& DeferredRenderer::copy_velocity_to_scene_color(RHIContext* ctx)
+	{
+		auto src = velocity_target();
+		auto dst = scene_color_ldr_target();
+
+		RHITextureRegion region(scene_view().view_size());
+		ctx->copy_texture_to_texture(src, region, dst, region);
 		return *this;
 	}
 

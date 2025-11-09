@@ -10,9 +10,12 @@ namespace Engine
 		trinex_declare_class(SceneComponent, ActorComponent);
 
 	private:
-		mutable Transform m_local;
+		Transform m_local;
 		mutable Transform m_world;
-		mutable bool m_is_dirty;
+		Transform m_prev_world;
+
+		mutable bool m_is_transform_dirty : 1;
+		bool m_is_transform_changed : 1;
 
 		Pointer<SceneComponent> m_parent = nullptr;
 		Vector<Pointer<SceneComponent>> m_childs;
@@ -37,8 +40,10 @@ namespace Engine
 		bool is_attached_to(SceneComponent* component) const;
 		SceneComponent& destroyed() override;
 
-		const Transform& local_transform() const;
 		const Transform& world_transform() const;
+		inline const Transform& local_transform() const { return m_local; }
+		inline const Transform& previous_world_transform() const { return m_prev_world; }
+		inline bool is_transform_changed() const { return m_is_transform_changed; }
 
 		SceneComponent& local_transform(const Transform&);
 		SceneComponent& add_local_transform(const Transform&);

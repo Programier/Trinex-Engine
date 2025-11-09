@@ -77,6 +77,7 @@ namespace Engine
 		inline RHITexture* base_color_target() { return surface(BaseColor); }
 		inline RHITexture* normal_target() { return surface(Normal); }
 		inline RHITexture* msra_target() { return surface(MSRA); }
+		inline RHITexture* velocity_target() { return surface(Velocity); }
 		inline RenderGraph::Graph* render_graph() const { return m_graph; }
 
 		virtual ~Renderer() {}

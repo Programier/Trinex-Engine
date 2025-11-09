@@ -40,6 +40,7 @@ namespace Engine
 
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass(RHIContext* ctx);
+		DeferredRenderer& velocity_pass(RHIContext* ctx);
 		DeferredRenderer& translucent_pass(RHIContext* ctx);
 		DeferredRenderer& ambient_occlusion_pass(RHIContext* ctx);
 		DeferredRenderer& global_illumination_pass(RHIContext* ctx);
@@ -52,6 +53,7 @@ namespace Engine
 		DeferredRenderer& copy_roughness_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_emissive_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_ambient_to_scene_color(RHIContext* ctx);
+		DeferredRenderer& copy_velocity_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_world_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, MaterialBindings* bindings = nullptr);
 		DeferredRenderer& cull_lights(RHIContext* ctx);

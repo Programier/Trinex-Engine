@@ -65,7 +65,7 @@ namespace Engine
 		ScriptEngine::on_terminate.push([]() { script_scene_comp_transform_changed.release(); });
 	}
 
-	SceneComponent::SceneComponent() {}
+	SceneComponent::SceneComponent() : m_is_transform_dirty(false), m_is_transform_changed(false) {}
 
 	void SceneComponent::script_on_transform_changed()
 	{
@@ -122,7 +122,17 @@ namespace Engine
 
 	SceneComponent& SceneComponent::on_transform_changed()
 	{
-		m_is_dirty = true;
+		m_is_transform_dirty = true;
+
+		if (!m_is_transform_changed)
+		{
+			m_is_transform_changed = true;
+
+			logic_thread()->add_task(Task([this]() {
+				m_prev_world           = world_transform();
+				m_is_transform_changed = false;
+			}));
+		}
 
 		for (SceneComponent* child : m_childs)
 		{
@@ -138,7 +148,7 @@ namespace Engine
 
 		if (event.is_a(&m_local))
 		{
-			m_is_dirty = true;
+			m_is_transform_dirty = true;
 			on_transform_changed();
 		}
 
@@ -153,14 +163,9 @@ namespace Engine
 		return *this;
 	}
 
-	const Transform& SceneComponent::local_transform() const
-	{
-		return m_local;
-	}
-
 	const Transform& SceneComponent::world_transform() const
 	{
-		if (m_is_dirty)
+		if (m_is_transform_dirty)
 		{
 			if (SceneComponent* parent_component = parent())
 			{
@@ -170,7 +175,7 @@ namespace Engine
 			{
 				m_world = local_transform();
 			}
-			m_is_dirty = false;
+			m_is_transform_dirty = false;
 		}
 
 		return m_world;

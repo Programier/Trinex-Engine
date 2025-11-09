@@ -35,6 +35,7 @@ namespace Engine
 			Specular    = 6,
 			Emissive    = 7,
 			AO          = 8,
+			Velocity    = 9,
 		};
 
 		trinex_enum_struct(ViewMode);
