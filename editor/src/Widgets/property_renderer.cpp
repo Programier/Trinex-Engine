@@ -16,6 +16,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Graphics/imgui.hpp>
+#include <UI/primitives.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imfilebrowser.h>
@@ -761,7 +762,8 @@ namespace Engine
 		if (ImGui::TableGetColumnCount() > 2)
 		{
 			ImGui::TableSetColumnIndex(2);
-			if (ImGui::ImageButton(Icons::icon(Icons::Select), {size, size}))
+
+			if (UI::icon_button(UI::select_icon, "##Select", size))
 			{
 				Function<void(const Path&)> callback = [renderer, value, &str](const Path& path) {
 					*value = path;
@@ -881,7 +883,8 @@ namespace Engine
 			if (!read_only && ImGui::TableGetColumnCount() > 2)
 			{
 				ImGui::TableSetColumnIndex(2);
-				if (ImGui::ImageButton(Icons::icon(Icons::IconType::Rotate), {size, size}))
+
+				if (UI::icon_button(UI::rotate_icon, "###reset", size))
 				{
 					object  = nullptr;
 					changed = true;
@@ -914,7 +917,7 @@ namespace Engine
 		{
 			ImGui::TableSetColumnIndex(2);
 
-			if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Add), {size, size}))
+			if (!read_only && UI::icon_button(UI::plus_icon, "##emplace_back", size))
 			{
 				prop->emplace_back(context);
 				renderer->propagate_property_event();
@@ -945,7 +948,7 @@ namespace Engine
 				{
 					ImGui::TableSetColumnIndex(2);
 
-					if (!read_only && ImGui::ImageButton(Icons::icon(Icons::Remove), {size, size}))
+					if (!read_only && UI::icon_button(UI::minus_icon, "##erase", size))
 					{
 						prop->erase(context, i);
 						--count;

@@ -12,16 +12,9 @@
 
 namespace Engine::Icons
 {
-	static Texture2D* m_icons[IconType::__COUNT__] = {0};
-
 	ImGuiTrinexTextureId default_texture()
 	{
-		return m_icons[IconType::Default];
-	}
-
-	ImGuiTrinexTextureId icon(IconType type)
-	{
-		return m_icons[type];
+		return ImGuiTrinexTextureId(EditorResources::default_icon);
 	}
 
 	ImGuiTrinexTextureId find_icon(Object* object)
@@ -51,22 +44,5 @@ namespace Engine::Icons
 			return data.cast<const Pointer<Texture2D>&>().ptr();
 
 		return default_texture();
-	}
-
-	void on_editor_package_loaded()
-	{
-		m_icons[IconType::Default] = EditorResources::default_icon;
-		m_icons[IconType::Add]     = EditorResources::add_icon;
-		m_icons[IconType::Remove]  = EditorResources::remove_icon;
-		m_icons[IconType::Select]  = EditorResources::select_icon;
-		m_icons[IconType::Move]    = EditorResources::move_icon;
-		m_icons[IconType::Rotate]  = EditorResources::rotate_icon;
-		m_icons[IconType::Scale]   = EditorResources::scale_icon;
-		m_icons[IconType::More]    = EditorResources::more_icon;
-
-		for (Texture2D* icon : m_icons)
-		{
-			trinex_always_check(icon, "Icon can't be null!");
-		}
 	}
 }// namespace Engine::Icons

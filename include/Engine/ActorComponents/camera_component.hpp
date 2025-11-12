@@ -20,8 +20,11 @@ namespace Engine
 		float far                            = 1000.f;
 
 		bool serialize(Archive& archive) override;
+		CameraView camera_view(const Transform& transform, float aspect = 1.f) const;
 		CameraView camera_view(float aspect = 1.f) const;
+		CameraView previous_camera_view(float aspect = 1.f) const;
 		Matrix4f projection_matrix(float aspect = 1.f);
 		Matrix4f view_matrix();
+		Matrix4f previous_view_matrix();
 	};
 }// namespace Engine

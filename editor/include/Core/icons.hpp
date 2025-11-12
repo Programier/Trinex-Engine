@@ -14,20 +14,6 @@ namespace Engine
 
 	namespace Icons
 	{
-		enum IconType
-		{
-			Default,
-			Add,
-			Remove,
-			Select,
-			Move,
-			Rotate,
-			Scale,
-			More,
-			__COUNT__
-		};
-
-		ImGuiTrinexTextureId icon(IconType type);
 		ImGuiTrinexTextureId default_texture();
 
 		ImGuiTrinexTextureId find_icon(Object* object);

@@ -28,6 +28,7 @@
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
+#include <UI/primitives.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
@@ -180,7 +181,7 @@ namespace Engine
 		ImGuiWindow::make_current(prev_window);
 
 		camera = Object::new_instance<CameraComponent>();
-		camera->location({0, 10.f, -10.f});
+		camera->location({0, 3.f, -3.f});
 		camera->look_at({0.f, 0.f, 0.f});
 
 		EventSystem* event_system = EventSystem::system_of<EventSystem>();
@@ -577,7 +578,7 @@ namespace Engine
 		}
 	}
 
-	static bool render_viewport_item_button(const char* id, Texture2D* texture, bool active = false)
+	static bool render_viewport_item_button(const char* id, UI::IconDrawFunc func, bool active = false)
 	{
 		if (active)
 		{
@@ -586,9 +587,7 @@ namespace Engine
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::MakeHoveredColor(active_color));
 		}
 
-		const float height = ImGui::GetFontSize();
-
-		bool result = ImGui::ImageButton(id, texture, {height, height}, {0, 0}, {1, 1});
+		const bool result = UI::icon_button(func, id, ImGui::GetFontSize());
 
 		if (active)
 			ImGui::PopStyleColor(2);
@@ -610,35 +609,31 @@ namespace Engine
 			ImGui::SameLine();
 		};
 
-		if (ImTextureID icon = Icons::icon(Icons::More))
-		{
-			if (ImGui::ImageButton(icon, {height, height}))
-			{
-				m_state.viewport.show_additional_menu = true;
-				ImGui::OpenPopup("##addition_menu");
-				ImGui::SetNextWindowPos(screen_pos + ImVec2(0, height + ImGui::GetStyle().ItemSpacing.y * 2.f),
-				                        ImGuiCond_Appearing);
-			}
-
-			ImGui::SameLine();
-		}
-
 		struct {
 			ImGuizmo::OPERATION op;
-			Texture2D* texture;
+			UI::IconDrawFunc func;
 			const char* name;
 		} operation_controls[] = {
-		        {ImGuizmo::OPERATION::UNIVERSAL, EditorResources::add_icon, "##op_universal"},
-		        {ImGuizmo::OPERATION::TRANSLATE, EditorResources::move_icon, "##op_translate"},
-		        {ImGuizmo::OPERATION::ROTATE, EditorResources::rotate_icon, "##op_rotate"},
-		        {ImGuizmo::OPERATION::SCALE, EditorResources::scale_icon, "##op_scale"},
+		        {ImGuizmo::OPERATION::UNIVERSAL, UI::plus_icon, "##op_universal"},
+		        {ImGuizmo::OPERATION::TRANSLATE, UI::move_icon, "##op_translate"},
+		        {ImGuizmo::OPERATION::ROTATE, UI::rotate_icon, "##op_rotate"},
+		        {ImGuizmo::OPERATION::SCALE, UI::scale_icon, "##op_scale"},
 		};
+
+		if (UI::icon_button(UI::more_icon, "##View", height))
+		{
+			m_state.viewport.show_additional_menu = true;
+			ImGui::OpenPopup("##addition_menu");
+			ImGui::SetNextWindowPos(screen_pos + ImVec2(0, height + ImGui::GetStyle().ItemSpacing.y * 2.f), ImGuiCond_Appearing);
+		}
+
+		ImGui::SameLine();
 
 		for (auto& control : operation_controls)
 		{
 			const bool is_active = m_guizmo_operation == control.op;
 
-			if (render_viewport_item_button(control.name, control.texture, is_active))
+			if (render_viewport_item_button(control.name, control.func, is_active))
 			{
 				m_guizmo_operation = control.op;
 			}
@@ -651,8 +646,16 @@ namespace Engine
 			ImGui::SameLine();
 		}
 
+		if (m_properties)
 		{
-			if (render_viewport_item_button("###globe_mode", EditorResources::globe_texture, ImGuizmo::WORLD == m_guizmo_mode))
+			if (render_viewport_item_button("##Camera", UI::camera_icon, m_properties->object() == camera))
+			{
+				m_properties->object(camera);
+			}
+			ImGui::SameLine();
+		}
+		{
+			if (render_viewport_item_button("###globe_mode", UI::globe_icon, ImGuizmo::WORLD == m_guizmo_mode))
 			{
 				m_guizmo_mode = m_guizmo_mode == ImGuizmo::LOCAL ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
 			}
@@ -660,15 +663,11 @@ namespace Engine
 			ImGui::SameLine();
 		}
 
-		auto add_icon = Icons::icon(Icons::IconType::Add);
+		render_separator();
 
-		if (add_icon)
+		if (UI::icon_button(UI::plus_icon, "##SpawnActor", height))
 		{
-			render_separator();
-			if (ImGui::ImageButton(add_icon, {height, height}))
-			{
-				window()->widgets.create_identified<ImGuiSpawnNewActor>(this, m_world);
-			}
+			window()->widgets.create_identified<ImGuiSpawnNewActor>(this, m_world);
 		}
 
 		{

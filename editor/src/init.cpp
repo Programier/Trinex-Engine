@@ -24,21 +24,9 @@ namespace Engine
 		}
 	}
 
-	namespace Icons
-	{
-		extern void on_editor_package_loaded();
-	}
-
 	namespace EditorResources
 	{
 		Texture2D* default_icon      = nullptr;
-		Texture2D* add_icon          = nullptr;
-		Texture2D* move_icon         = nullptr;
-		Texture2D* remove_icon       = nullptr;
-		Texture2D* rotate_icon       = nullptr;
-		Texture2D* scale_icon        = nullptr;
-		Texture2D* select_icon       = nullptr;
-		Texture2D* more_icon         = nullptr;
 		Texture2D* light_sprite      = nullptr;
 		Texture2D* blueprint_texture = nullptr;
 		Texture2D* globe_texture     = nullptr;
@@ -71,18 +59,10 @@ namespace Engine
 	reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
 		EditorResources::default_icon      = load_object<Texture2D>("TrinexEditor::Textures::DefaultIcon");
-		EditorResources::add_icon          = load_object<Texture2D>("TrinexEditor::Textures::AddIcon");
-		EditorResources::move_icon         = load_object<Texture2D>("TrinexEditor::Textures::MoveIcon");
-		EditorResources::remove_icon       = load_object<Texture2D>("TrinexEditor::Textures::RemoveIcon");
-		EditorResources::rotate_icon       = load_object<Texture2D>("TrinexEditor::Textures::RotateIcon");
-		EditorResources::scale_icon        = load_object<Texture2D>("TrinexEditor::Textures::ScaleIcon");
-		EditorResources::select_icon       = load_object<Texture2D>("TrinexEditor::Textures::SelectIcon");
-		EditorResources::more_icon         = load_object<Texture2D>("TrinexEditor::Textures::MoreIcon");
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
 		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
 		EditorResources::globe_texture     = load_object<Texture2D>("TrinexEditor::Textures::Globe");
 
-		Icons::on_editor_package_loaded();
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}
 

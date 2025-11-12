@@ -69,35 +69,25 @@ namespace Engine::EditorPipelines
 		auto forward     = Plane::static_near(projection).normal;
 		auto bottom      = Plane::static_bottom(projection).normal;
 
-		float angle             = (Math::half_pi() - Math::angle(forward, bottom));
-		float perspective_scale = Math::abs(Math::tan(angle));
+		float angle             = Math::angle(forward, bottom);
+		float perspective_scale = Math::abs(Math::tan(angle)) * 1.4142135381698608f;
 
-		if (perspective_scale == 0.f)
-		{
-			args.lower_scale = 1.f;
-			args.upper_scale = 1.f;
-			args.lower_alpha = 1.f;
-			args.upper_alpha = 0.f;
-		}
-		else
-		{
-			args.lower_scale = 1.f;
-			args.upper_scale = scale_step;
+		args.lower_scale = 1.f;
+		args.upper_scale = scale_step;
 
-			float camera_height = Math::abs(renderer->scene_view().camera_view().location().y);
-			float log_scale     = Math::log(camera_height / (perspective_scale)) / Math::log(scale_step);
+		float camera_height = Math::abs(renderer->scene_view().camera_view().location().y);
+		float log_scale     = Math::log(camera_height / (perspective_scale)) / Math::log(scale_step);
 
-			int32_t step = Math::max(0, (int32_t) Math::floor(log_scale));
+		int32_t step = Math::max(0, (int32_t) Math::floor(log_scale));
 
-			float lower_height = perspective_scale * Math::pow(scale_step, step);
-			float upper_height = lower_height * scale_step;
+		float lower_height = perspective_scale * Math::pow(scale_step, step);
+		float upper_height = lower_height * scale_step;
 
-			args.lower_scale = Math::pow(scale_step, step);
-			args.upper_scale = args.lower_scale * scale_step;
+		args.lower_scale = Math::pow(scale_step, step);
+		args.upper_scale = args.lower_scale * scale_step;
 
-			args.upper_alpha = (camera_height - lower_height) / (upper_height - lower_height);
-			args.lower_alpha = 1.0f - args.upper_alpha;
-		}
+		args.upper_alpha = (camera_height - lower_height) / (upper_height - lower_height);
+		args.lower_alpha = 1.0f - args.upper_alpha;
 
 		ctx->depth_state(RHIDepthState(true, RHICompareFunc::Lequal, false));
 		ctx->stencil_state(RHIStencilState());

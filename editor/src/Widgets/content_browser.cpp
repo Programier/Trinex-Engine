@@ -10,6 +10,7 @@
 #include <Core/theme.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture.hpp>
+#include <UI/primitives.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imgui_internal.h>
@@ -151,10 +152,7 @@ namespace Engine
 	{
 		ImGui::Begin("##ContentBrowserPackages"_localized, nullptr, ImGuiWindowFlags_NoTitleBar);
 
-		auto icon      = Icons::icon(Icons::IconType::Add);
-		auto icon_size = ImGui::GetFontSize();
-
-		if (ImGui::ImageButton(icon, {icon_size, icon_size}))
+		if (UI::icon_button(UI::plus_icon, "###add", ImGui::GetFontSize()))
 		{
 			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
 			auto window                      = ImGuiWindow::current()->widgets.create_identified<ImGuiOpenFile>(this, flags);
