@@ -31,7 +31,8 @@ namespace Engine
 		RHITexture* render_hitproxies(RHIContext* ctx)
 		{
 			Vector2u size                               = scene_view().view_size();
-			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(scene_view().projview());
+			const Matrix4f& projview                    = scene_view().camera_view().projview;
+			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(projview);
 
 			auto pool    = RHITexturePool::global_instance();
 			auto surface = pool->request_transient_surface(RHISurfaceFormat::RG32UI, size);

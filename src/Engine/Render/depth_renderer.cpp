@@ -4,7 +4,7 @@
 #include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/camera_types.hpp>
+#include <Engine/camera_view.hpp>
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/render_pools.hpp>
@@ -25,7 +25,7 @@ namespace Engine
 
 	DepthRenderer& DepthRenderer::render_depth(RHIContext* ctx)
 	{
-		Frustum frustum = scene_view().projview();
+		Frustum frustum = scene_view().camera_view().projview;
 
 		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
 		ctx->bind_depth_stencil_target(scene_depth_target()->as_dsv());
@@ -68,9 +68,13 @@ namespace Engine
 		return *this;
 	}
 
-	DepthCubeRenderer& DepthCubeRenderer::render_depth(RHIContext* ctx, CameraView& camera, uint_t face)
+	DepthCubeRenderer& DepthCubeRenderer::render_depth(RHIContext* ctx, const Vector3f& forward, const Vector3f& up, uint_t face)
 	{
 		const auto& current_scene_view = scene_view();
+
+		CameraView camera = scene_view().camera_view();
+		camera.look(camera.location(), forward, up);
+
 		reset(SceneView(camera, current_scene_view.view_size(), current_scene_view.show_flags()));
 
 #if TRINEX_DEBUG_BUILD
@@ -78,7 +82,7 @@ namespace Engine
 		ctx->push_debug_stage(face_names[face]);
 #endif
 
-		Frustum frustum                             = scene_view().projview();
+		Frustum frustum                             = scene_view().camera_view().projview;
 		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
 
 		RHITextureDescDSV view;
@@ -108,43 +112,23 @@ namespace Engine
 	{
 		clear_depth(ctx);
 
-		CameraView camera = scene_view().camera_view();
-
 		// Back (-Z)
-		camera.forward = {0.f, 0.f, -1.f};
-		camera.up      = {0.f, -1.f, 0.f};
-		camera.right   = {1.f, 0.f, 0.f};
-		render_depth(ctx, camera, RHICubeFace::Back);
+		render_depth(ctx, {0.f, 0.f, -1.f}, {0.f, -1.f, 0.f}, RHICubeFace::Back);
 
 		// Front (+Z)
-		camera.forward = {0.f, 0.f, 1.f};
-		camera.up      = {0.f, -1.f, 0.f};
-		camera.right   = {-1.f, 0.f, 0.f};
-		render_depth(ctx, camera, RHICubeFace::Front);
+		render_depth(ctx, {0.f, 0.f, 1.f}, {0.f, -1.f, 0.f}, RHICubeFace::Front);
 
 		// Right (+X)
-		camera.forward = {1.f, 0.f, 0.f};
-		camera.up      = {0.f, -1.f, 0.f};
-		camera.right   = {0.f, 0.f, 1.f};
-		render_depth(ctx, camera, RHICubeFace::Right);
+		render_depth(ctx, {1.f, 0.f, 0.f}, {0.f, -1.f, 0.f}, RHICubeFace::Right);
 
 		// Left (-X)
-		camera.forward = {-1.f, 0.f, 0.f};
-		camera.up      = {0.f, -1.f, 0.f};
-		camera.right   = {0.f, 0.f, -1.f};
-		render_depth(ctx, camera, RHICubeFace::Left);
+		render_depth(ctx, {-1.f, 0.f, 0.f}, {0.f, -1.f, 0.f}, RHICubeFace::Left);
 
 		// Top (+Y)
-		camera.forward = {0.f, 1.f, 0.f};
-		camera.up      = {0.f, 0.f, -1.f};
-		camera.right   = {1.f, 0.f, 0.f};
-		render_depth(ctx, camera, RHICubeFace::Top);
+		render_depth(ctx, {0.f, 1.f, 0.f}, {0.f, 0.f, -1.f}, RHICubeFace::Top);
 
 		// Bottom (-Y)
-		camera.forward = {0.f, -1.f, 0.f};
-		camera.up      = {0.f, 0.f, 1.f};
-		camera.right   = {1.f, 0.f, 0.f};
-		render_depth(ctx, camera, RHICubeFace::Bottom);
+		render_depth(ctx, {0.f, -1.f, 0.f}, {0.f, 0.f, 1.f}, RHICubeFace::Bottom);
 
 		return *this;
 	}

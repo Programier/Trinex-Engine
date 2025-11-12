@@ -11,6 +11,7 @@ add_subdirectory(imgui-node-editor EXCLUDE_FROM_ALL)
 add_subdirectory(imgui-filebrowser EXCLUDE_FROM_ALL)
 add_subdirectory(ImGuiTextEditor EXCLUDE_FROM_ALL)
 add_subdirectory(ImGuizmo EXCLUDE_FROM_ALL)
+add_subdirectory(ImViewGuizmo EXCLUDE_FROM_ALL)
 
 add_subdirectory(tinygltf-2.9.6 EXCLUDE_FROM_ALL)
 

@@ -223,7 +223,7 @@ namespace Engine::Bindings::GLM
 		}
 
 		return Strings::format("{} {}({}){}", typename_with_modifiers<Ret>(), name,
-							   fmt::join({typename_with_modifiers<Args>()...}, ", "), modifiers);
+		                       fmt::join({typename_with_modifiers<Args>()...}, ", "), modifiers);
 	}
 
 	template<typename Type, typename... Args>
@@ -504,9 +504,11 @@ namespace Engine::Bindings::GLM
 				constexpr glm::length_t len = T::length();
 				using Matrix                = glm::mat<len, len, typename T::value_type>;
 
-				bind_func(reg, "opMul", opMul<T, const Matrix&>);
 				if constexpr (std::is_floating_point_v<Value>)
+				{
+					bind_func(reg, "opMul", opMul<T, const Matrix&>);
 					bind_func(reg, "opDiv", opDiv<T, const Matrix&>);
+				}
 			}
 
 			if constexpr (is_matrix_v<T>)
@@ -529,7 +531,7 @@ namespace Engine::Bindings::GLM
 	};
 
 	template<typename Value>
-		requires(std::is_integral_v<Value>)
+	    requires(std::is_integral_v<Value>)
 	struct Operators<Value> : ScalarOperators {
 		template<typename T>
 		static T opCom(T& self)
@@ -865,8 +867,8 @@ namespace Engine::Bindings::GLM
 			using Column = typename Matrix::col_type;
 			using Val    = typename Matrix::value_type;
 			bind_constructor<Matrix,  //
-							 Val, Val,//
-							 Val, Val>(reg);
+			                 Val, Val,//
+			                 Val, Val>(reg);
 			bind_constructor<Matrix, const Column&, const Column&>(reg);
 		}
 	};
@@ -878,9 +880,9 @@ namespace Engine::Bindings::GLM
 			using Column = typename Matrix::col_type;
 			using Val    = typename Matrix::value_type;
 			bind_constructor<Matrix,       //
-							 Val, Val, Val,//
-							 Val, Val, Val,//
-							 Val, Val, Val>(reg);
+			                 Val, Val, Val,//
+			                 Val, Val, Val,//
+			                 Val, Val, Val>(reg);
 			bind_constructor<Matrix, const Column&, const Column&, const Column&>(reg);
 		}
 	};
@@ -892,10 +894,10 @@ namespace Engine::Bindings::GLM
 			using Column = typename Matrix::col_type;
 			using Val    = typename Matrix::value_type;
 			bind_constructor<Matrix,            //
-							 Val, Val, Val, Val,//
-							 Val, Val, Val, Val,//
-							 Val, Val, Val, Val,//
-							 Val, Val, Val, Val>(reg);
+			                 Val, Val, Val, Val,//
+			                 Val, Val, Val, Val,//
+			                 Val, Val, Val, Val,//
+			                 Val, Val, Val, Val>(reg);
 			bind_constructor<Matrix, const Column&, const Column&, const Column&, const Column&>(reg);
 		}
 	};

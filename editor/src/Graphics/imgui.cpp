@@ -137,7 +137,7 @@ namespace Engine
 			float T = draw_data->DisplayPos.y;
 			float B = T + draw_data->DisplaySize.y;
 
-			pipeline->model = Math::ortho(L, R, T, B, 0.f, 1.f);
+			pipeline->model = Math::ortho(L, R, B, T, 0.f, 1.f);
 		}
 
 		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data)

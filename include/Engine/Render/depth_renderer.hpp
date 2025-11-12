@@ -21,7 +21,7 @@ namespace Engine
 
 	private:
 		DepthCubeRenderer& clear_depth(RHIContext* ctx);
-		DepthCubeRenderer& render_depth(RHIContext* ctx, CameraView& camera, uint_t face);
+		DepthCubeRenderer& render_depth(RHIContext* ctx, const Vector3f& forward, const Vector3f& up, uint_t face);
 		DepthCubeRenderer& render_depth(RHIContext* ctx);
 
 	public:

@@ -4,7 +4,7 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Engine/Render/renderer.hpp>
-#include <Engine/camera_types.hpp>
+#include <Engine/camera_view.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -33,6 +33,7 @@ namespace Engine
 
 	class RHIPipelineStatistics;
 	class RHITimestamp;
+	class CameraComponent;
 
 	class EditorClient : public ImGuiViewportClient
 	{

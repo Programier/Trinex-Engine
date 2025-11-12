@@ -37,7 +37,14 @@ namespace Engine::EditorPipelines
 
 	private:
 		const RHIShaderParameterInfo* m_scene_view;
-		const RHIShaderParameterInfo* m_fov;
+		const RHIShaderParameterInfo* m_args;
+
+		struct Args {
+			float lower_scale;
+			float lower_alpha;
+			float upper_scale;
+			float upper_alpha;
+		};
 
 	public:
 		void render(RHIContext* ctx, Renderer* renderer);

@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/vector.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/scene_view.hpp>
 

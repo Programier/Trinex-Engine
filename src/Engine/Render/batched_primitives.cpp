@@ -162,8 +162,8 @@ namespace Engine
 
 		auto pipeline = Pipelines::BatchedLines::instance();
 
-		Matrix4f projview = renderer->scene_view().projview();
-		Vector2f size     = renderer->scene_view().view_size();
+		const Matrix4f& projview = renderer->scene_view().camera_view().projview;
+		Vector2f size            = renderer->scene_view().view_size();
 
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 		ctx->update_scalar(&projview, pipeline->projview());

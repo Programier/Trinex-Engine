@@ -6,7 +6,16 @@ static float3 grid_plane[6] = {
     float3(-1, -1, 0), float3(1, 1, 0), float3(1, -1, 0)
 };
 
-uniform float fov;
+struct Args
+{
+	float lower_scale;
+	float lower_alpha;
+	float upper_scale;
+	float upper_alpha;
+};
+
+[parameter_type(meta::type::UniformBuffer)]
+uniform Args args;
 
 struct VertexOutput
 {
@@ -15,98 +24,55 @@ struct VertexOutput
     float3 far : POSITION1;
 };
 
-struct Grid
+float4 draw_grid(in float3 pos, in float scale, in float alpha, in float fade)
 {
-    float scale;
-    float alpha;
+	float thickness = 3.0 * lerp(0.6, 1.0, alpha);
 
-    float4 draw(in float3 frag_pos, in float fade) 
-    {
-        float thickness = 3.0 * lerp(0.6, 1.0, alpha);
+	float2 coord      = pos.xz / scale;
+	float2 derivative = fwidth(coord);
+	float2 grid       = abs(fract(coord - 0.5) - 0.5) / (derivative * thickness);
 
-        float2 coord = frag_pos.xz / scale; 
-        float2 derivative = fwidth(coord);
-        float2 grid = abs(fract(coord - 0.5) - 0.5) / (derivative * thickness);
-        
-        float minimumz = derivative.y * thickness * scale;
-        float minimumx = derivative.x * thickness * scale;
-    
-        if (abs(frag_pos.x) < minimumx)
-        {
-            return float4(0.0, 0.0, 1.0, (1.0 - min(grid.x, 1.0)) * alpha); 
-        }
+	float minimumz = derivative.y * thickness * scale;
+	float minimumx = derivative.x * thickness * scale;
 
-        if (abs(frag_pos.z) < minimumz)
-        {
-            return float4(1.0, 0.0, 0.0, (1.0 - min(grid.y, 1.0)) * fade); 
-        }
+	if (abs(pos.x) < minimumx)
+	{
+		return float4(0.0, 0.0, 1.0, (1.0 - min(grid.x, 1.0)) * alpha);
+	}
 
-        return float4(1.0, 1.0, 1.0, (1.0 - min(min(grid.x, grid.y), 1.0)) * alpha);
-    }
-};
+	if (abs(pos.z) < minimumz)
+	{
+		return float4(1.0, 0.0, 0.0, (1.0 - min(grid.y, 1.0)) * fade);
+	}
 
-struct GridDrawer
+	return float4(1.0, 1.0, 1.0, (1.0 - min(min(grid.x, grid.y), 1.0)) * alpha);
+}
+
+float4 draw_grid(in float3 pos)
 {
-    Grid entry1;
-    Grid entry2;
-    float3 frag_pos;
-    float fade;
+	float3 view_direction    = normalize(scene_view.camera.location - pos);
+	float3 view_direction_xz = normalize(float3(scene_view.camera.location.x, 0.0, scene_view.camera.location.z) - pos);
+	float fade               = 1.0 - pow(abs(dot(view_direction, view_direction_xz)), 18);
 
-    __init(float3 pos)
-    {
-        constexpr float scale_step = 8.0;
-        
-        frag_pos = pos;
-        
-        entry1.scale  = 1.f;
-        entry2.scale  = scale_step;
-    
-        float lower_height = 0.f;
-        float upper_height = fov * scale_step;
-        float camera_height = abs(scene_view.camera.location.y);
+	float4 lower = draw_grid(pos, args.lower_scale, args.lower_alpha * fade, fade);
+	float4 upper = draw_grid(pos, args.upper_scale, args.upper_alpha * fade, fade);
 
-        while (upper_height < camera_height)
-        {
-            lower_height = upper_height;
-            upper_height *= scale_step;
+	if (lower.a > upper.a)
+	{
+		return lower;
+	}
 
-            entry1.scale = entry2.scale;
-            entry2.scale = entry2.scale * scale_step;
-        }
+	return upper;
+}
 
-        float3 view_direction = normalize(scene_view.camera.location - pos);
-        float3 view_direction_xz = normalize(float3(scene_view.camera.location.x, 0.0, scene_view.camera.location.z) - pos);
-
-        fade = 1.0 - pow(abs(dot(view_direction, view_direction_xz)), 18);
-
-        entry2.alpha = ((camera_height - lower_height) / upper_height);
-        entry1.alpha = (1.0 - entry2.alpha);
-
-        entry1.alpha *= fade;
-        entry2.alpha *= fade;
-
-    }
-
-    float4 draw()
-    {
-        float4 grid1 = entry1.draw(frag_pos, fade);
-        float4 grid2 = entry2.draw(frag_pos, fade);
-        
-        if(grid1.a > grid2.a)
-        {
-            return grid1;
-        }
-
-        return grid2;
-    }
-};
-
+[ForceInline]
 float3 unproject_point(float x, float y, float z)
 {
     float4 unprojected_point =  scene_view.camera.inv_projview * float4(x, y, z, 1.0);
     return unprojected_point.xyz / unprojected_point.w;
 }
 
+[ForceInline]
 float compute_depth(float3 pos) 
 {
     float4 clip_space_pos = scene_view.camera.projview * float4(pos, 1.0);
@@ -125,14 +91,12 @@ void vertex_main(out VertexOutput output, uint vertex : SV_VertexID)
 }
 
 [shader("fragment")]
-float4 fragment_main(in VertexOutput input, out float depth : SV_Depth) : SV_Target
+void fragment_main(in VertexOutput input, out float depth : SV_Depth, out float4 color : SV_Target)
 {
     float t = -input.near.y / (input.far.y - input.near.y);
-    float3 frag_pos = input.near + t * (input.far - input.near);
-    
-    depth = compute_depth(frag_pos);
-    
-    GridDrawer drawer = GridDrawer(frag_pos);
-    return drawer.draw() * float4(t > 0.0);
+    float3 pos = input.near + t * (input.far - input.near);
+
+	depth = compute_depth(pos);
+    color = draw_grid(pos) * float4(t > 0.0);
 }
 

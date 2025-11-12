@@ -1,6 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/math/math.hpp>
-#include <Engine/camera_types.hpp>
+#include <Engine/camera_view.hpp>
 #include <Engine/scene_view.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <RHI/rhi.hpp>
@@ -12,12 +12,12 @@ namespace Engine
 	{
 		if (scene_view)
 		{
-			camera.projection     = scene_view->projection();
-			camera.view           = scene_view->view_matrix();
-			camera.projview       = scene_view->projview();
-			camera.inv_projection = Math::inverse(camera.projection);
-			camera.inv_view       = Math::inverse(camera.view);
-			camera.inv_projview   = scene_view->inv_projview();
+			camera.projection     = scene_view->camera_view().projection;
+			camera.view           = scene_view->camera_view().view;
+			camera.projview       = scene_view->camera_view().projview;
+			camera.inv_projection = scene_view->camera_view().inv_projection;
+			camera.inv_view       = scene_view->camera_view().inv_view;
+			camera.inv_projview   = scene_view->camera_view().inv_projview;
 			camera.near           = scene_view->camera_view().near;
 			camera.far            = scene_view->camera_view().far;
 

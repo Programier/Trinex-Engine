@@ -19,10 +19,10 @@ namespace Engine
 		static CameraView static_perspective(const Vector3f& origin, const Vector3f& forward, const Vector3f& up, float fov,
 		                                     float aspect, float near, float far);
 		static CameraView static_ortho(const Vector3f& origin, const Vector3f& forward, const Vector3f& up, float left,
-		                               float right, float top, float bottom, float near, float far);
+		                               float right, float bottom, float top, float near, float far);
 
 		CameraView& perspective(float fov, float aspect, float near, float far);
-		CameraView& ortho(float left, float right, float top, float bottom, float near, float far);
+		CameraView& ortho(float left, float right, float bottom, float top, float near, float far);
 		CameraView& look(const Vector3f& origin, const Vector3f& forward, const Vector3f& up);
 
 		Vector3f right() const { return inv_view[0]; }

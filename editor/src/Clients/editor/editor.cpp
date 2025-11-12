@@ -1,3 +1,5 @@
+#define IMVIEWGUIZMO_IMPLEMENTATION 1
+
 #include <Clients/editor_client.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
@@ -19,6 +21,7 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/texture.hpp>
 #include <ImGuizmo.h>
+#include <ImViewGuizmo.h>
 #include <Platform/platform.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
@@ -32,6 +35,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
+
 
 namespace Engine
 {
@@ -176,7 +180,8 @@ namespace Engine
 		ImGuiWindow::make_current(prev_window);
 
 		camera = Object::new_instance<CameraComponent>();
-		camera->location({0, 10, 10});
+		camera->location({0, 10.f, -10.f});
+		camera->look_at({0.f, 0.f, 0.f});
 
 		EventSystem* event_system = EventSystem::system_of<EventSystem>();
 		m_event_system_listeners.push_back(event_system->add_listener(
@@ -485,22 +490,57 @@ namespace Engine
 
 	EditorClient& EditorClient::render_guizmo()
 	{
+		const ImVec2 cursor       = ImGui::GetCursorScreenPos();
+		const ImVec2 content_size = ImGui::GetContentRegionAvail();
+
+		// Render view Guizmo
+		{
+			ImViewGuizmo::Begin();
+			auto& guizmo_style = ImViewGuizmo::GetStyle();
+
+			const ImVec2 padding      = ImGui::GetStyle().FramePadding * ImVec2(-1.f, 1.f);
+			const float guizmo_radius = guizmo_style.bigCircleRadius * guizmo_style.scale;
+			const float button_radius = guizmo_style.toolButtonRadius * guizmo_style.scale;
+
+			auto loc   = camera->local_transform().location;
+			auto pivot = loc;
+			auto rot   = camera->local_transform().rotation;
+			auto pos   = cursor + ImVec2(content_size.x, 0.f) + ImVec2(-guizmo_radius, guizmo_radius) + padding;
+
+			if (ImViewGuizmo::Rotate(loc, rot, pivot, pos))
+			{
+				camera->location(loc).rotation(rot);
+			}
+
+			pos.x += guizmo_radius - (button_radius * 2.f);
+			pos.y += guizmo_radius + button_radius + padding.y;
+
+			if (ImViewGuizmo::Dolly(loc, rot, pos))
+			{
+				camera->location(loc).rotation(rot);
+			}
+
+			pos.y += button_radius * 2.f + padding.y;
+
+			if (ImViewGuizmo::Pan(loc, rot, pos))
+			{
+				camera->location(loc).rotation(rot);
+			}
+		}
+
 		const auto& selected = m_world->selected_actors();
 
-		if (selected.empty())
-		{
+		if (selected.size() == 0)
 			return *this;
-		}
 
 		ImGuizmo::BeginFrame();
 		ImGuizmo::AllowAxisFlip(false);
 		ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_state.viewport.size.x,
-		                  m_state.viewport.size.y);
+		ImGuizmo::SetRect(cursor.x, cursor.y, m_state.viewport.size.x, m_state.viewport.size.y);
 
 		auto view       = camera->view_matrix();
-		auto projection = camera->projection_matrix(viewport()->aspect());
+		auto projection = Math::scale(Matrix4f(1.f), {1.f, -1.f, 1.f}) * camera->projection_matrix(viewport()->aspect());
 
 		for (Actor* actor : selected)
 		{
@@ -522,6 +562,8 @@ namespace Engine
 				}
 			}
 		}
+
+
 		return *this;
 	}
 
@@ -714,7 +756,7 @@ namespace Engine
 		auto cursor_position = ImGui::GetCursorPos();
 		auto viewport_size   = ImGui::GetContentRegionAvail();
 
-		if (!ImGuizmo::IsOver(m_guizmo_operation | ImGuizmo::SCALE) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() &&
+		if (!ImGuizmo::IsOver() && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() &&
 		    ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
@@ -763,10 +805,10 @@ namespace Engine
 			return;
 		KeyboardSystem* keyboard = KeyboardSystem::instance();
 
-		move.z += keyboard->is_pressed(Keyboard::W) ? -1.f : 0.f;
-		move.x += keyboard->is_pressed(Keyboard::A) ? -1.f : 0.f;
-		move.z += keyboard->is_pressed(Keyboard::S) ? 1.f : 0.f;
+		move.z += keyboard->is_pressed(Keyboard::W) ? 1.f : 0.f;
 		move.x += keyboard->is_pressed(Keyboard::D) ? 1.f : 0.f;
+		move.z += keyboard->is_pressed(Keyboard::S) ? -1.f : 0.f;
+		move.x += keyboard->is_pressed(Keyboard::A) ? -1.f : 0.f;
 	}
 
 	EditorClient& EditorClient::update_camera()
@@ -776,8 +818,12 @@ namespace Engine
 		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) *
 		                     m_dt.average() * m_camera_speed);
 
-		m_scene_view.camera_view(camera->camera_view());
-		m_scene_view.show_flags(m_show_flags);
+		float aspect = m_state.viewport.size.x / m_state.viewport.size.y;
+		if (aspect > 0.f)
+		{
+			m_scene_view.camera_view(camera->camera_view(aspect));
+			m_scene_view.show_flags(m_show_flags);
+		}
 		return *this;
 	}
 
@@ -814,9 +860,9 @@ namespace Engine
 		}
 	}
 
-	static FORCE_INLINE float calculate_y_rotation(float offset, float size, float fov)
+	static FORCE_INLINE float calculate_y_rotation(float offset, float size)
 	{
-		return Math::radians(-offset * fov / size);
+		return Math::radians(-offset * 75.f / size);
 	}
 
 	static FORCE_INLINE void make_rotation_quat(float yaw, float pitch, Quaternion& out)
@@ -832,8 +878,8 @@ namespace Engine
 
 		if (MouseSystem::instance()->is_relative_mode(window()->window()))
 		{
-			float pitch = -calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov);
-			float yaw   = calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov);
+			float pitch = calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y);
+			float yaw   = -calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x);
 
 			Quaternion rotation = camera->local_transform().rotation;
 			make_rotation_quat(yaw, pitch, rotation);
@@ -847,8 +893,8 @@ namespace Engine
 
 		if (motion.index == 0 && m_state.viewport.is_hovered)
 		{
-			float pitch = -calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov);
-			float yaw   = calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov);
+			float pitch = calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y);
+			float yaw   = -calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x);
 
 			Quaternion rotation = camera->local_transform().rotation;
 			make_rotation_quat(yaw, pitch, rotation);

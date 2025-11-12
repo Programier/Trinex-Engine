@@ -27,10 +27,10 @@ namespace Engine
 	}
 
 	CameraView CameraView::static_ortho(const Vector3f& origin, const Vector3f& forward, const Vector3f& up, float left,
-	                                    float right, float top, float bottom, float near, float far)
+	                                    float right, float bottom, float top, float near, float far)
 	{
 		CameraView view;
-		view.projection = Math::ortho(left, right, top, bottom, near, far);
+		view.projection = Math::ortho(left, right, bottom, top, near, far);
 		static_initialize(view, origin, forward, up, near, far);
 		return view;
 	}
@@ -49,12 +49,12 @@ namespace Engine
 		return *this;
 	}
 
-	CameraView& CameraView::ortho(float left, float right, float top, float bottom, float near, float far)
+	CameraView& CameraView::ortho(float left, float right, float bottom, float top, float near, float far)
 	{
 		this->near = near;
 		this->far  = far;
 
-		projection = Math::ortho(left, right, top, bottom, near, far);
+		projection = Math::ortho(left, right, bottom, top, near, far);
 		projview   = projection * view;
 
 		inv_projection = Math::inverse(projection);

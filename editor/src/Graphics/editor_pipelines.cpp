@@ -1,5 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Engine/frustum.hpp>
 #include <Graphics/editor_pipelines.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
@@ -55,12 +56,48 @@ namespace Engine::EditorPipelines
 	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang")
 	{
 		m_scene_view = find_parameter("scene_view");
-		m_fov        = find_parameter("fov");
+		m_args       = find_parameter("args");
 	}
 
 	void Grid::render(RHIContext* ctx, Renderer* renderer)
 	{
-		float fov = Math::tan(Math::radians(renderer->scene_view().camera_view().perspective.fov));
+		constexpr float scale_step = 10.0;
+
+		Args args;
+
+		auto& projection = renderer->scene_view().camera_view().projection;
+		auto forward     = Plane::static_near(projection).normal;
+		auto bottom      = Plane::static_bottom(projection).normal;
+
+		float angle             = (Math::half_pi() - Math::angle(forward, bottom));
+		float perspective_scale = Math::abs(Math::tan(angle));
+
+		if (perspective_scale == 0.f)
+		{
+			args.lower_scale = 1.f;
+			args.upper_scale = 1.f;
+			args.lower_alpha = 1.f;
+			args.upper_alpha = 0.f;
+		}
+		else
+		{
+			args.lower_scale = 1.f;
+			args.upper_scale = scale_step;
+
+			float camera_height = Math::abs(renderer->scene_view().camera_view().location().y);
+			float log_scale     = Math::log(camera_height / (perspective_scale)) / Math::log(scale_step);
+
+			int32_t step = Math::max(0, (int32_t) Math::floor(log_scale));
+
+			float lower_height = perspective_scale * Math::pow(scale_step, step);
+			float upper_height = lower_height * scale_step;
+
+			args.lower_scale = Math::pow(scale_step, step);
+			args.upper_scale = args.lower_scale * scale_step;
+
+			args.upper_alpha = (camera_height - lower_height) / (upper_height - lower_height);
+			args.lower_alpha = 1.0f - args.upper_alpha;
+		}
 
 		ctx->depth_state(RHIDepthState(true, RHICompareFunc::Lequal, false));
 		ctx->stencil_state(RHIStencilState());
@@ -71,7 +108,7 @@ namespace Engine::EditorPipelines
 		ctx->push_cull_mode(RHICullMode::None);
 
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		ctx->update_scalar(&fov, m_fov);
+		ctx->update_scalar(&args, m_args);
 		ctx->draw(6, 0);
 
 		ctx->pop_cull_mode();

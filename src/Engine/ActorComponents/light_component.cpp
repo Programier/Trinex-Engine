@@ -7,7 +7,7 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/lighting.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/camera_types.hpp>
+#include <Engine/camera_view.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>

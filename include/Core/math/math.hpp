@@ -6,65 +6,61 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_access.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 namespace Engine::Math
 {
-	using glm::cross;
-	using glm::distance;
-	using glm::dot;
-	using glm::length;
-	using glm::normalize;
-	using glm::reflect;
-	using glm::refract;
-
-	using glm::clamp;
-	using glm::max;
-	using glm::min;
-	using glm::smoothstep;
-	using glm::step;
-
 	using glm::abs;
 	using glm::acos;
+	using glm::angle;
 	using glm::asin;
 	using glm::atan;
+	using glm::axis;
 	using glm::ceil;
+	using glm::clamp;
+	using glm::column;
+	using glm::conjugate;
 	using glm::cos;
+	using glm::cross;
 	using glm::degrees;
+	using glm::determinant;
+	using glm::distance;
+	using glm::dot;
 	using glm::exp;
 	using glm::floor;
 	using glm::fract;
+	using glm::identity;
+	using glm::inverse;
+	using glm::length;
 	using glm::log;
 	using glm::log2;
+	using glm::mat3_cast;
+	using glm::mat4_cast;
+	using glm::max;
+	using glm::min;
 	using glm::mod;
-	using glm::pow;
-	using glm::radians;
-	using glm::round;
-	using glm::sign;
-	using glm::sin;
-	using glm::sqrt;
-	using glm::tan;
-	using glm::trunc;
-
+	using glm::normalize;
 	using glm::ortho;
 	using glm::perspective;
-
-	using glm::determinant;
-	using glm::inverse;
-	using glm::transpose;
-
-	using glm::angle;
-	using glm::axis;
-	using glm::rotate;
-	using glm::slerp;
-
-	using glm::rotate;
-	using glm::scale;
-	using glm::translate;
-
+	using glm::pow;
 	using glm::quat_cast;
-
-	using glm::column;
+	using glm::radians;
+	using glm::reflect;
+	using glm::refract;
+	using glm::rotate;
+	using glm::round;
 	using glm::row;
+	using glm::scale;
+	using glm::sign;
+	using glm::sin;
+	using glm::slerp;
+	using glm::smoothstep;
+	using glm::sqrt;
+	using glm::step;
+	using glm::tan;
+	using glm::translate;
+	using glm::transpose;
+	using glm::trunc;
 
 	template<typename T, glm::qualifier Q>
 	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, Q> look_at(glm::vec<3, T, Q> const& eye, glm::vec<3, T, Q> const& center,
@@ -163,6 +159,12 @@ namespace Engine::Math
 	FORCE_INLINE constexpr T pi()
 	{
 		return glm::pi<T>();
+	}
+
+	template<typename T = float>
+	FORCE_INLINE constexpr T half_pi()
+	{
+		return glm::half_pi<T>();
 	}
 
 }// namespace Engine::Math

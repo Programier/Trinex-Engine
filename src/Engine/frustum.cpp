@@ -1,7 +1,7 @@
 #include <Core/constants.hpp>
 #include <Core/math/box.hpp>
 #include <Core/math/math.hpp>
-#include <Engine/camera_types.hpp>
+#include <Engine/camera_view.hpp>
 #include <Engine/frustum.hpp>
 
 namespace Engine
@@ -47,6 +47,48 @@ namespace Engine
 		return distance + r;
 	}
 
+	Plane Plane::static_left(const Matrix4f& projview)
+	{
+		Vector4f row0 = Math::row(projview, 0);
+		Vector4f row3 = Math::row(projview, 3);
+		return Plane(row3 + row0);
+	}
+
+	Plane Plane::static_right(const Matrix4f& projview)
+	{
+		Vector4f row0 = Math::row(projview, 0);
+		Vector4f row3 = Math::row(projview, 3);
+		return Plane(row3 - row0);
+	}
+
+	Plane Plane::static_top(const Matrix4f& projview)
+	{
+		Vector4f row1 = Math::row(projview, 1);
+		Vector4f row3 = Math::row(projview, 3);
+		return Plane(row3 + row1);
+	}
+
+	Plane Plane::static_bottom(const Matrix4f& projview)
+	{
+		Vector4f row1 = Math::row(projview, 1);
+		Vector4f row3 = Math::row(projview, 3);
+		return Plane(row3 - row1);
+	}
+
+	Plane Plane::static_near(const Matrix4f& projview)
+	{
+		Vector4f row2 = Math::row(projview, 2);
+		Vector4f row3 = Math::row(projview, 3);
+		return Plane(row3 + row2);
+	}
+
+	Plane Plane::static_far(const Matrix4f& projview)
+	{
+		Vector4f row2 = Math::row(projview, 2);
+		Vector4f row3 = Math::row(projview, 3);
+		return Plane(row3 - row2);
+	}
+
 	Frustum::Frustum() = default;
 
 	Frustum::Frustum(const Matrix4f& projview)
@@ -63,8 +105,8 @@ namespace Engine
 
 		new (&left) Plane(row3 + row0);
 		new (&right) Plane(row3 - row0);
-		new (&bottom) Plane(row3 + row1);
-		new (&top) Plane(row3 - row1);
+		new (&top) Plane(row3 + row1);
+		new (&bottom) Plane(row3 - row1);
 		new (&near) Plane(row3 + row2);
 		new (&far) Plane(row3 - row2);
 

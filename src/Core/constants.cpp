@@ -16,7 +16,7 @@ namespace Engine
 	const Quaternion Constants::zero_rotation({0.f, 0.f, 0.f});
 	const Vector3f Constants::right_vector(1.f, 0.f, 0.f);
 	const Vector3f Constants::up_vector(0.f, 1.f, 0.f);
-	const Vector3f Constants::forward_vector(0.f, 0.f, -1.f);
+	const Vector3f Constants::forward_vector(0.f, 0.f, 1.f);
 	const float Constants::PI                             = glm::pi<float>();
 	const float Constants::E                              = glm::e<float>();
 	const glm::mat4 Constants::identity_matrix            = Matrix4f(1.0f);
