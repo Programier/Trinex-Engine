@@ -29,7 +29,6 @@ namespace Engine
 		Texture2D* default_icon      = nullptr;
 		Texture2D* light_sprite      = nullptr;
 		Texture2D* blueprint_texture = nullptr;
-		Texture2D* globe_texture     = nullptr;
 	}// namespace EditorResources
 
 	static void preinit()
@@ -61,7 +60,6 @@ namespace Engine
 		EditorResources::default_icon      = load_object<Texture2D>("TrinexEditor::Textures::DefaultIcon");
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");
 		EditorResources::light_sprite      = load_object<Texture2D>("TrinexEditor::Textures::PointLightSprite");
-		EditorResources::globe_texture     = load_object<Texture2D>("TrinexEditor::Textures::Globe");
 
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}

@@ -15,7 +15,7 @@ float3 screen_to_view(float2 coord)
 [ForceInline]
 float3 intersection(float3 direction, float z)
 {
-	return (-z / direction.z) * direction;
+	return (z / direction.z) * direction;
 }
 
 [shader("compute")]
