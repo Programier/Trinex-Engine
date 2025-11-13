@@ -42,7 +42,7 @@ namespace Engine
 
 		const Transform& world_transform() const;
 		inline const Transform& local_transform() const { return m_local; }
-		inline const Transform& previous_world_transform() const { return m_prev_world; }
+		inline const Transform& prev_world_transform() const { return m_prev_world; }
 		inline bool is_transform_changed() const { return m_is_transform_changed; }
 
 		SceneComponent& local_transform(const Transform&);

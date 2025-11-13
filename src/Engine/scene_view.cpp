@@ -10,15 +10,22 @@ namespace Engine
 	{}
 
 	SceneView::SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissor& scissor, ShowFlags show_flags)
-	    : m_camera_view(view), //
-	      m_viewport(viewport),//
-	      m_scissor(scissor),  //
+	    : m_camera_view(view),     //
+	      m_prev_camera_view(view),//
+	      m_viewport(viewport),    //
+	      m_scissor(scissor),      //
 	      m_show_flags(show_flags)
 	{}
 
 	SceneView& SceneView::camera_view(const CameraView& view)
 	{
 		m_camera_view = view;
+		return *this;
+	}
+
+	SceneView& SceneView::prev_camera_view(const CameraView& view)
+	{
+		m_prev_camera_view = view;
 		return *this;
 	}
 

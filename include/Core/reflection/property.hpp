@@ -2,6 +2,7 @@
 #include <Core/etl/any.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
+#include <Core/math/angle.hpp>
 #include <Core/reflection/object.hpp>
 #include <Core/types/color.hpp>
 
@@ -170,6 +171,15 @@ private:
 	{
 		declare_reflect_type(FloatProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_floating_point_v<T>);
+
+	public:
+		using PrimitiveProperty::PrimitiveProperty;
+	};
+
+	class ENGINE_EXPORT AngleProperty : public PrimitiveProperty
+	{
+		declare_reflect_type(AngleProperty, PrimitiveProperty);
+		trinex_refl_prop_type_filter(std::is_same_v<T, Angle>);
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
@@ -578,6 +588,13 @@ private:
 	    requires(FloatProperty::is_supported<T>)
 	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, FloatProperty> {
 		using Super = TypedProperty<prop, FloatProperty>;
+		using Super::Super;
+	};
+
+	template<auto prop, typename T>
+	    requires(AngleProperty::is_supported<T>)
+	struct NativePropertyTyped<prop, T> : public TypedProperty<prop, AngleProperty> {
+		using Super = TypedProperty<prop, AngleProperty>;
 		using Super::Super;
 	};
 

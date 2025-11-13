@@ -116,4 +116,6 @@ namespace Engine
 	using Box3f = BoxNT<3, float_t>;
 	using Box2i = BoxNT<2, int_t>;
 	using Box3i = BoxNT<3, int_t>;
+
+	struct Angle;
 }// namespace Engine

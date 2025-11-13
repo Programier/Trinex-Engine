@@ -16,7 +16,7 @@ namespace Engine
 		        ->tooltip("Inner Cone Angle of this spot light");
 	}
 
-	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f) {}
+	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(Math::radians(10.f)), m_outer_cone_angle(Math::radians(43.f)) {}
 
 	float SpotLightComponent::calculate_light_intensity() const
 	{
@@ -28,26 +28,16 @@ namespace Engine
 		return Super::calculate_light_intensity();
 	}
 
-	float SpotLightComponent::inner_cone_angle() const
+	SpotLightComponent& SpotLightComponent::inner_cone_angle(Angle value)
 	{
-		return m_inner_cone_angle;
-	}
-
-	float SpotLightComponent::outer_cone_angle() const
-	{
-		return m_outer_cone_angle;
-	}
-
-	SpotLightComponent& SpotLightComponent::inner_cone_angle(float value)
-	{
-		m_inner_cone_angle = Math::clamp(value, 0.f, m_outer_cone_angle);
+		m_inner_cone_angle = Math::clamp(value.value, 0.f, m_outer_cone_angle.value);
 		return *this;
 	}
 
-	SpotLightComponent& SpotLightComponent::outer_cone_angle(float value)
+	SpotLightComponent& SpotLightComponent::outer_cone_angle(Angle value)
 	{
-		m_outer_cone_angle = Math::clamp(value, 0.f, 89.f);
-		m_inner_cone_angle = Math::clamp(m_inner_cone_angle, 0.f, m_outer_cone_angle);
+		m_outer_cone_angle = Math::clamp(value.value, 0.f, Math::half_pi());
+		m_inner_cone_angle = Math::clamp(m_inner_cone_angle.value, 0.f, m_outer_cone_angle.value);
 		return *this;
 	}
 
@@ -60,8 +50,8 @@ namespace Engine
 	{
 		Super::render_parameters(out);
 
-		const float outer = Math::cos(Math::radians(m_outer_cone_angle));
-		const float inner = Math::cos(Math::radians(m_inner_cone_angle));
+		const float outer = Math::cos(m_outer_cone_angle);
+		const float inner = Math::cos(m_inner_cone_angle);
 
 		out.spot_angles = {outer, 1.0f / (inner - outer)};
 		out.direction   = direction();

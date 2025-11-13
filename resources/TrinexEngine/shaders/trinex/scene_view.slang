@@ -37,6 +37,7 @@ struct SceneView
 	Viewport viewport;
 	RenderTarget render_target;
 	Camera camera;
+	Camera prev_camera;
 
 	float time;
 	float delta_time;

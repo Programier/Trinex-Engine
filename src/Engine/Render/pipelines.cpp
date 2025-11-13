@@ -455,4 +455,20 @@ namespace Engine::Pipelines
 		ctx->dispatch(27, 1, 1);
 		return *this;
 	}
+
+	trinex_implement_pipeline(CameraVelocity, "[shaders_dir]:/TrinexEngine/trinex/graphics/velocity.slang")
+	{
+		m_scene_view = find_parameter("scene_view");
+	}
+
+	CameraVelocity& CameraVelocity::render(RHIContext* ctx, Renderer* renderer)
+	{
+		push_context_state(this, ctx);
+
+		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		ctx->draw(6, 0);
+
+		pop_context_state(ctx);
+		return *this;
+	}
 }// namespace Engine::Pipelines

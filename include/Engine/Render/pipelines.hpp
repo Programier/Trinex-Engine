@@ -220,5 +220,16 @@ namespace Engine
 			ClusterLightCulling& cull(RHIContext* ctx, Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
 			                          const LightRenderRanges& ranges);
 		};
+
+		class CameraVelocity : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(CameraVelocity, GlobalGraphicsPipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_scene_view;
+
+		public:
+			CameraVelocity& render(RHIContext* ctx, Renderer* renderer);
+		};
 	}// namespace Pipelines
 }// namespace Engine

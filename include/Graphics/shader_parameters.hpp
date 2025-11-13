@@ -34,6 +34,7 @@ namespace Engine
 		Viewport viewport;
 		RenderTarget render_target;
 		Camera camera;
+		Camera prev_camera;
 
 		alignas(4) float time;
 		alignas(4) float delta_time;

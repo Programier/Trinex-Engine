@@ -614,7 +614,7 @@ namespace Engine
 			UI::IconDrawFunc func;
 			const char* name;
 		} operation_controls[] = {
-		        {ImGuizmo::OPERATION::UNIVERSAL, UI::plus_icon, "##op_universal"},
+		        {ImGuizmo::OPERATION::UNIVERSAL, UI::select_icon, "##op_universal"},
 		        {ImGuizmo::OPERATION::TRANSLATE, UI::move_icon, "##op_translate"},
 		        {ImGuizmo::OPERATION::ROTATE, UI::rotate_icon, "##op_rotate"},
 		        {ImGuizmo::OPERATION::SCALE, UI::scale_icon, "##op_scale"},
@@ -818,11 +818,14 @@ namespace Engine
 		                     m_dt.average() * m_camera_speed);
 
 		float aspect = m_state.viewport.size.x / m_state.viewport.size.y;
+
 		if (aspect > 0.f)
 		{
 			m_scene_view.camera_view(camera->camera_view(aspect));
+			m_scene_view.prev_camera_view(camera->prev_camera_view(aspect));
 			m_scene_view.show_flags(m_show_flags);
 		}
+
 		return *this;
 	}
 

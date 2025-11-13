@@ -210,8 +210,8 @@ namespace Engine
 			if (auto spot_light = Object::instance_cast<SpotLightComponent>(light))
 			{
 				auto dir           = spot_light->direction() * 2.f;
-				float outer_radius = 2.f * glm::tan(glm::radians(spot_light->outer_cone_angle()));
-				float inner_radius = 2.f * glm::tan(glm::radians(spot_light->inner_cone_angle()));
+				float outer_radius = 2.f * Math::tan(spot_light->outer_cone_angle());
+				float inner_radius = 2.f * Math::tan(spot_light->inner_cone_angle());
 
 				auto location = spot_light->world_transform().location + dir;
 				lines.add_cone(location, -dir, outer_radius, {255, 255, 0, 255}, 0, 3.f);

@@ -513,6 +513,24 @@ namespace Engine
 		                              read_only);
 	}
 
+	static bool render_angle_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	{
+		ImGui::TableNextRow();
+		render_name(renderer, prop);
+		auto angle_prop = prop_cast_checked<Refl::AngleProperty>(prop);
+		float* angle    = angle_prop->address_as<float>(renderer->property_context());
+		float degrees   = Math::degrees(*angle);
+
+		if (ImGui::InputFloat("###Angle", &degrees))
+		{
+			*angle = Math::radians(degrees);
+			renderer->propagate_property_event();
+			return true;
+		}
+
+		return false;
+	}
+
 	static bool render_vector_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
 	{
 		auto prop    = prop_cast_checked<Refl::VectorProperty>(prop_base);
@@ -1170,6 +1188,7 @@ namespace Engine
 		ctx->renderer<Refl::BooleanProperty>(render_boolean_property);
 		ctx->renderer<Refl::IntegerProperty>(render_integer_property);
 		ctx->renderer<Refl::FloatProperty>(render_float_property);
+		ctx->renderer<Refl::AngleProperty>(render_angle_property);
 		ctx->renderer<Refl::VectorProperty>(render_vector_property);
 		ctx->renderer<Refl::MatrixProperty>(render_matrix_property);
 		ctx->renderer<Refl::QuaternionProperty>(render_quaternion_property);

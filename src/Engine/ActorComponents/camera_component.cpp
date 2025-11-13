@@ -50,9 +50,9 @@ namespace Engine
 		return camera_view(world_transform(), aspect);
 	}
 
-	CameraView CameraComponent::previous_camera_view(float aspect) const
+	CameraView CameraComponent::prev_camera_view(float aspect) const
 	{
-		return camera_view(previous_world_transform(), aspect);
+		return camera_view(prev_world_transform(), aspect);
 	}
 
 	Matrix4f CameraComponent::projection_matrix(float aspect)
@@ -79,9 +79,9 @@ namespace Engine
 		return Math::look_at(transform.location, transform.location + transform.forward_vector(), transform.up_vector());
 	}
 
-	Matrix4f CameraComponent::previous_view_matrix()
+	Matrix4f CameraComponent::prev_view_matrix()
 	{
-		const Transform& transform = previous_world_transform();
+		const Transform& transform = prev_world_transform();
 		return Math::look_at(transform.location, transform.location + transform.forward_vector(), transform.up_vector());
 	}
 }// namespace Engine

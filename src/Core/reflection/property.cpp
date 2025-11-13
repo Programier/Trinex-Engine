@@ -18,6 +18,7 @@ namespace Engine::Refl
 	implement_reflect_type(BooleanProperty);
 	implement_reflect_type(IntegerProperty);
 	implement_reflect_type(FloatProperty);
+	implement_reflect_type(AngleProperty);
 	implement_reflect_type(EnumProperty);
 	implement_reflect_type(ColorProperty);
 	implement_reflect_type(LinearColorProperty);

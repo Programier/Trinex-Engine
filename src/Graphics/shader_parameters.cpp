@@ -21,6 +21,15 @@ namespace Engine
 			camera.near           = scene_view->camera_view().near;
 			camera.far            = scene_view->camera_view().far;
 
+			prev_camera.projection     = scene_view->prev_camera_view().projection;
+			prev_camera.view           = scene_view->prev_camera_view().view;
+			prev_camera.projview       = scene_view->prev_camera_view().projview;
+			prev_camera.inv_projection = scene_view->prev_camera_view().inv_projection;
+			prev_camera.inv_view       = scene_view->prev_camera_view().inv_view;
+			prev_camera.inv_projview   = scene_view->prev_camera_view().inv_projview;
+			prev_camera.near           = scene_view->prev_camera_view().near;
+			prev_camera.far            = scene_view->prev_camera_view().far;
+
 			const auto& vp    = scene_view->viewport();
 			viewport.pos      = Vector2f(vp.pos);
 			viewport.size     = Vector2f(vp.size);

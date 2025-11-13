@@ -88,10 +88,9 @@ namespace Engine
 		        .add_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this](RHIContext* ctx) { geometry_pass(ctx); });
 
-		graph->add_pass("Velocity Pass")
-		        .add_resource(velocity_target(), RHIAccess::RTV)
-		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-		        .add_func([this](RHIContext* ctx) { velocity_pass(ctx); });
+		graph->add_pass("Velocity Pass").add_resource(velocity_target(), RHIAccess::RTV).add_func([this](RHIContext* ctx) {
+			velocity_pass(ctx);
+		});
 
 		if (m_post_process_params->ssao.enabled)
 		{
@@ -420,6 +419,10 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::velocity_pass(RHIContext* ctx)
 	{
+		ctx->bind_render_target1(velocity_target()->as_rtv());
+		ctx->blending_state(RHIBlendingState::opaque);
+
+		Pipelines::CameraVelocity::instance()->render(ctx, this);
 		return *this;
 	}
 
