@@ -18,8 +18,9 @@ namespace Engine::RenderGraph
 	public:
 		enum Type
 		{
-			Texture = 0,
-			Buffer  = 1,
+			Texture    = 0,
+			Buffer     = 1,
+			RenderPass = 2,
 		};
 
 	private:
@@ -59,6 +60,11 @@ namespace Engine::RenderGraph
 			}
 		}
 
+		inline Resource(Pass* pass) : m_next(nullptr), m_prev(nullptr), m_writer(nullptr), m_resource(pass)
+		{
+			m_resource_address |= RenderPass;
+		}
+
 		template<typename T>
 		inline T* as() const
 		{
@@ -90,6 +96,15 @@ namespace Engine::RenderGraph
 		return nullptr;
 	}
 
+	Pass* Pass::ResourceRef::as_pass() const
+	{
+		if (resource->resource_type() == Resource::RenderPass)
+		{
+			return resource->as<Pass>();
+		}
+		return nullptr;
+	}
+
 	Pass::Pass(Graph* graph, const char* name) : m_graph(graph), m_name(name), m_node(nullptr)
 	{
 		m_resources.reserve(s_default_reserve_size);
@@ -100,6 +115,11 @@ namespace Engine::RenderGraph
 	{
 		m_resources.emplace_back(new (rg_allocate<Resource>()) ResourceRef(resource, access, initial));
 		return *this;
+	}
+
+	Pass& Pass::add_dependency(Pass* pass)
+	{
+		return add_resource(m_graph->find_resource(pass), RHIAccess::Undefined, RHIAccess::Undefined);
 	}
 
 	Pass& Pass::add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial)
@@ -116,6 +136,22 @@ namespace Engine::RenderGraph
 			return add_resource(m_graph->find_resource(buffer, this), access, initial);
 		else
 			return add_resource(m_graph->find_resource(buffer), access, initial);
+	}
+
+	Pass& Pass::add_untracked_resource(RHITexture* texture, RHIAccess access, RHIAccess initial)
+	{
+		if (access & RHIAccess::WritableMask)
+			return add_resource(m_graph->create_resource(texture, this), access, initial);
+		else
+			return add_resource(m_graph->create_resource(texture), access, initial);
+	}
+
+	Pass& Pass::add_untracked_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial)
+	{
+		if (access & RHIAccess::WritableMask)
+			return add_resource(m_graph->create_resource(buffer, this), access, initial);
+		else
+			return add_resource(m_graph->create_resource(buffer), access, initial);
 	}
 
 	Pass& Pass::execute(RHIContext* ctx)
@@ -179,6 +215,16 @@ namespace Engine::RenderGraph
 		m_outputs.reserve(s_default_reserve_size);
 	}
 
+	Resource* Graph::create_resource(RHITexture* texture, Pass* writer)
+	{
+		return trx_frame_new Resource(texture, writer, nullptr);
+	}
+
+	Resource* Graph::create_resource(RHIBuffer* buffer, Pass* writer)
+	{
+		return trx_frame_new Resource(buffer, writer, nullptr);
+	}
+
 	Resource* Graph::find_resource(RHIObject* object)
 	{
 		auto it = m_resource_map.find(object);
@@ -203,6 +249,16 @@ namespace Engine::RenderGraph
 
 		if (resource == nullptr)
 			resource = trx_frame_new Resource(buffer, nullptr, nullptr);
+
+		return resource;
+	}
+
+	Resource* Graph::find_resource(Pass* pass)
+	{
+		Resource*& resource = m_resource_map[pass];
+
+		if (resource == nullptr)
+			resource = trx_frame_new Resource(pass);
 
 		return resource;
 	}
@@ -241,7 +297,7 @@ namespace Engine::RenderGraph
 	Graph::Node* Graph::build_graph(Pass* writer)
 	{
 		trinex_profile_cpu_n("RenderGraph::Build writer node");
-		
+
 		if (writer->m_node)
 			return writer->m_node;
 
@@ -251,15 +307,6 @@ namespace Engine::RenderGraph
 
 		for (const Pass::ResourceRef* ref : writer->resources())
 		{
-			if (!(ref->access & RHIAccess::ReadableMask))
-				continue;
-
-			if (Resource* next = ref->resource->next())
-			{
-				Node* depends = build_graph(next);
-				depends->dependencies.push_back(node);
-			}
-
 			Resource* current = ref->resource;
 
 			if (ref->access & RHIAccess::WritableMask)
@@ -271,7 +318,9 @@ namespace Engine::RenderGraph
 			}
 
 			if (Node* dep = build_graph(current))
+			{
 				node->dependencies.push_back(dep);
+			}
 		}
 		return node;
 	}
@@ -279,10 +328,16 @@ namespace Engine::RenderGraph
 	Graph::Node* Graph::build_graph(Resource* resource)
 	{
 		trinex_profile_cpu_n("RenderGraph::Build resource node");
+
 		auto writer = resource->writer();
 
 		if (writer == nullptr)
-			return nullptr;
+		{
+			if (resource->resource_type() != Resource::RenderPass)
+				return nullptr;
+
+			writer = resource->as<Pass>();
+		}
 
 		Node* node = build_graph(writer);
 

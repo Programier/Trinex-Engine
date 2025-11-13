@@ -73,9 +73,13 @@ namespace Engine::RenderGraph
 		Node* build_graph();
 		void execute_node(Node* node, RHIContext* ctx);
 
+		Resource* create_resource(RHITexture* texture, Pass* writer = nullptr);
+		Resource* create_resource(RHIBuffer* buffer, Pass* writer = nullptr);
+
 		Resource* find_resource(RHIObject* texture);
 		Resource* find_resource(RHITexture* texture);
 		Resource* find_resource(RHIBuffer* buffer);
+		Resource* find_resource(Pass* pass);
 		Resource* find_resource(RHITexture* texture, Pass* writer);
 		Resource* find_resource(RHIBuffer* buffer, Pass* writer);
 
@@ -118,6 +122,7 @@ namespace Engine::RenderGraph
 
 			RHITexture* as_texture() const;
 			RHIBuffer* as_buffer() const;
+			Pass* as_pass() const;
 		};
 
 		class Task
@@ -152,8 +157,11 @@ namespace Engine::RenderGraph
 		Pass& execute(RHIContext* ctx);
 
 	public:
+		Pass& add_dependency(Pass* pass);
 		Pass& add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 		Pass& add_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
+		Pass& add_untracked_resource(RHITexture* texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
+		Pass& add_untracked_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 
 		template<typename TaskType, typename... Args>
 		Pass& add_task(Args&&... args)

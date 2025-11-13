@@ -229,7 +229,7 @@ namespace Engine
 		render_graph()
 		        ->add_pass("Batched Primitives")
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-		        .add_resource(scene_depth_target(), RHIAccess::DSV)
+		        .add_untracked_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_func([this](RHIContext* ctx) {
 			        if (!lines.is_empty())
 			        {
@@ -381,7 +381,7 @@ namespace Engine
 
 		graph->add_pass("Translucent")
 		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
-		        .add_resource(scene_depth_target(), RHIAccess::DSV)
+		        .add_resource(scene_depth_target(), RHIAccess::DSVRead)
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 		        .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
 		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)

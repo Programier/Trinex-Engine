@@ -18,7 +18,8 @@ namespace Engine
 	namespace RenderGraph
 	{
 		class Graph;
-	}
+		class Pass;
+	}// namespace RenderGraph
 
 	class ENGINE_EXPORT Renderer
 	{
@@ -48,7 +49,7 @@ namespace Engine
 		RHIBuffer* m_globals = nullptr;
 		SceneView m_view;
 		ViewMode m_view_mode;
-		RHITexture* m_surfaces[LastSurface] = {};
+		RenderGraph::Pass* m_surface_clears[LastSurface] = {};
 
 	public:
 		static RHISurfaceFormat static_surface_format_of(SurfaceType type);
@@ -64,6 +65,7 @@ namespace Engine
 
 		Renderer& add_child_renderer(Renderer* renderer);
 		RHITexture* surface(SurfaceType type);
+		RenderGraph::Pass* surface_clear_pass(SurfaceType type);
 		RHIBuffer* globals_uniform_buffer();
 
 		virtual Renderer& render(RHIContext* ctx);
@@ -72,6 +74,7 @@ namespace Engine
 		inline const SceneView& scene_view() const { return m_view; }
 		inline Scene* scene() const { return m_scene; }
 		inline ViewMode view_mode() const { return m_view_mode; }
+
 		inline RHITexture* scene_color_hdr_target() { return surface(SceneColorHDR); }
 		inline RHITexture* scene_color_ldr_target() { return surface(SceneColorLDR); }
 		inline RHITexture* scene_depth_target() { return surface(SceneDepth); }
@@ -79,6 +82,15 @@ namespace Engine
 		inline RHITexture* normal_target() { return surface(Normal); }
 		inline RHITexture* msra_target() { return surface(MSRA); }
 		inline RHITexture* velocity_target() { return surface(Velocity); }
+
+		inline RenderGraph::Pass* scene_color_hdr_clear_pass() { return surface_clear_pass(SceneColorHDR); }
+		inline RenderGraph::Pass* scene_color_ldr_clear_pass() { return surface_clear_pass(SceneColorLDR); }
+		inline RenderGraph::Pass* scene_depth_clear_pass() { return surface_clear_pass(SceneDepth); }
+		inline RenderGraph::Pass* base_color_clear_pass() { return surface_clear_pass(BaseColor); }
+		inline RenderGraph::Pass* normal_clear_pass() { return surface_clear_pass(Normal); }
+		inline RenderGraph::Pass* msra_clear_pass() { return surface_clear_pass(MSRA); }
+		inline RenderGraph::Pass* velocity_clear_pass() { return surface_clear_pass(Velocity); }
+
 		inline RenderGraph::Graph* render_graph() const { return m_graph; }
 
 		virtual ~Renderer() {}

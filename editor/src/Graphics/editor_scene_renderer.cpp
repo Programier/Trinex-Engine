@@ -129,7 +129,8 @@ namespace Engine
 		render_graph()
 		        ->add_pass("Editor Grid")
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-		        .add_resource(scene_depth_target(), RHIAccess::DSV)
+		        .add_untracked_resource(scene_depth_target(), RHIAccess::DSV)
+		        .add_dependency(scene_depth_clear_pass())
 		        .add_func([this](RHIContext* ctx) {
 			        ctx->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
 			        EditorPipelines::Grid::instance()->render(ctx, this);

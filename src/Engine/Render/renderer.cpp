@@ -112,7 +112,12 @@ namespace Engine
 
 	RHITexture* Renderer::surface(SurfaceType type)
 	{
-		if (m_surfaces[type] == nullptr)
+		return surface_clear_pass(type)->resources()[0]->as_texture();
+	}
+
+	RenderGraph::Pass* Renderer::surface_clear_pass(SurfaceType type)
+	{
+		if (m_surface_clears[type] == nullptr)
 		{
 			static const char* clear_pass_names[] = {
 			        "Clear SceneColor HDR", "Clear SceneColor LDR", "Clear SceneDepth", "Clear BaseColor",
@@ -121,17 +126,17 @@ namespace Engine
 
 			auto pool          = RHITexturePool::global_instance();
 			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.viewport().size);
-			m_surfaces[type]   = target;
 
-			auto& pass = m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
+			RenderGraph::Pass* pass = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
+			m_surface_clears[type]  = pass;
 
 			if (type == SceneDepth)
-				pass.add_func([target](RHIContext* ctx) { ctx->clear_dsv(target->as_dsv()); });
+				pass->add_func([target](RHIContext* ctx) { ctx->clear_dsv(target->as_dsv()); });
 			else
-				pass.add_func([target](RHIContext* ctx) { ctx->clear_rtv(target->as_rtv()); });
+				pass->add_func([target](RHIContext* ctx) { ctx->clear_rtv(target->as_rtv()); });
 		}
 
-		return m_surfaces[type];
+		return m_surface_clears[type];
 	}
 
 	RHIBuffer* Renderer::globals_uniform_buffer()

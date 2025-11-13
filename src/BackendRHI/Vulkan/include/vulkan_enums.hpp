@@ -259,10 +259,14 @@ namespace Engine::VulkanEnums
 			flags |= vk::AccessFlagBits::eTransferWrite;
 		if (access & RHIAccess::ResolveDst)
 			flags |= vk::AccessFlagBits::eTransferWrite;
-		if (access & RHIAccess::RTV)
-			flags |= vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead;
-		if (access & RHIAccess::DSV)
-			flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentRead;
+		if (access & RHIAccess::RTVRead)
+			flags |= vk::AccessFlagBits::eColorAttachmentRead;
+		if (access & RHIAccess::RTVWrite)
+			flags |= vk::AccessFlagBits::eColorAttachmentWrite;
+		if (access & RHIAccess::DSVRead)
+			flags |= vk::AccessFlagBits::eDepthStencilAttachmentRead;
+		if (access & RHIAccess::DSVWrite)
+			flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
 		return flags;
 	}

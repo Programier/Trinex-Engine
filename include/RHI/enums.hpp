@@ -203,22 +203,27 @@ namespace Engine
 			SRVGraphics      = BIT(7),
 			TransferSrc      = BIT(8),
 			PresentSrc       = BIT(9),
+			RTVRead          = BIT(10),
+			DSVRead          = BIT(11),
 
 			// Writing states
-			CPUWrite          = BIT(10),
-			AccelerationWrite = BIT(11),
-			UAVCompute        = BIT(12),
-			UAVGraphics       = BIT(13),
-			TransferDst       = BIT(14),
-			ResolveDst        = BIT(15),
+			CPUWrite          = BIT(12),
+			AccelerationWrite = BIT(13),
+			UAVCompute        = BIT(14),
+			UAVGraphics       = BIT(15),
+			TransferDst       = BIT(16),
+			ResolveDst        = BIT(17),
+			RTVWrite          = BIT(18),
+			DSVWrite          = BIT(19),
 
 			// Read-Write states
-			RTV = BIT(16),
-			DSV = BIT(17),
+			RTV = RTVRead | RTVWrite,
+			DSV = DSVRead | DSVWrite,
 
 			ReadableMask = CPURead | AccelerationRead | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer | SRVCompute |
-			               SRVGraphics | TransferSrc | PresentSrc | UAVCompute | UAVGraphics | RTV | DSV,
-			WritableMask = CPUWrite | AccelerationWrite | UAVCompute | UAVGraphics | TransferDst | ResolveDst | RTV | DSV,
+			               SRVGraphics | TransferSrc | PresentSrc | UAVCompute | UAVGraphics | RTVRead | DSVRead,
+			WritableMask =
+			        CPUWrite | AccelerationWrite | UAVCompute | UAVGraphics | TransferDst | ResolveDst | RTVWrite | DSVWrite,
 		};
 
 		trinex_bitfield_enum_struct(RHIAccess, EnumerateType);
