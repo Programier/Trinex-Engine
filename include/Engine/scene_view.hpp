@@ -10,6 +10,7 @@ namespace Engine
 	private:
 		CameraView m_camera_view;
 		CameraView m_prev_camera_view;
+		Vector2u m_view_size;
 		RHIViewport m_viewport;
 		RHIScissor m_scissor;
 		ShowFlags m_show_flags;
@@ -17,14 +18,13 @@ namespace Engine
 	public:
 		SceneView(ShowFlags show_flags = ShowFlags::DefaultFlags);
 		SceneView(const CameraView& view, const Vector2u& view_size, ShowFlags show_flags = ShowFlags::DefaultFlags);
-		SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissor& scissor,
-		          ShowFlags show_flags = ShowFlags::DefaultFlags);
 
 		trinex_default_copyable(SceneView);
 
 	public:
 		SceneView& camera_view(const CameraView& view);
 		SceneView& prev_camera_view(const CameraView& view);
+		SceneView& view_size(Vector2u size);
 		SceneView& viewport(const RHIViewport& viewport);
 		SceneView& scissor(const RHIScissor& scissor);
 		SceneView& show_flags(ShowFlags flags);
@@ -38,7 +38,7 @@ namespace Engine
 		FORCE_INLINE const RHIScissor& scissor() const { return m_scissor; }
 		FORCE_INLINE const CameraView& camera_view() const { return m_camera_view; }
 		FORCE_INLINE const CameraView& prev_camera_view() const { return m_prev_camera_view; }
-		FORCE_INLINE const Vector2u& view_size() const { return m_viewport.size; }
+		FORCE_INLINE const Vector2u& view_size() const { return m_view_size; }
 		FORCE_INLINE ShowFlags show_flags() const { return m_show_flags; }
 	};
 }// namespace Engine

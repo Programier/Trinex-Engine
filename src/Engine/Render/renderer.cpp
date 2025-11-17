@@ -79,13 +79,10 @@ namespace Engine
 			m_child_renderer = m_child_renderer->next;
 		}
 
-		ctx->push_viewport(m_view.viewport());
-		ctx->push_scissor(m_view.scissor());
+		ctx->viewport(m_view.viewport());
+		ctx->scissor(m_view.scissor());
 
 		m_graph->execute(ctx);
-
-		ctx->pop_viewport();
-		ctx->pop_scissor();
 
 		return *this;
 	}
@@ -125,7 +122,7 @@ namespace Engine
 			};
 
 			auto pool          = RHITexturePool::global_instance();
-			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.viewport().size);
+			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.view_size());
 
 			RenderGraph::Pass* pass = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
 			m_surface_clears[type]  = pass;

@@ -10,8 +10,8 @@ namespace Engine
 	class RHIBuffer;
 
 	struct RHIRect {
-		Vector2i size = {0, 0};
-		Vector2i pos  = {0, 0};
+		Vector2i size;
+		Vector2i pos;
 
 		FORCE_INLINE RHIRect(Vector2i size = {0, 0}, Vector2i pos = {0, 0}) : size(size), pos(pos) {}
 		FORCE_INLINE bool operator==(const RHIRect& v) const { return pos == v.pos && size == v.size; }
@@ -19,30 +19,24 @@ namespace Engine
 	};
 
 	struct RHIScissor {
-		Vector2u size = {0, 0};
-		Vector2u pos  = {0, 0};
+		Vector2f size;
+		Vector2f pos;
 
-		FORCE_INLINE RHIScissor(Vector2u size = {0, 0}, Vector2u pos = {0, 0}) : size(size), pos(pos) {}
+		FORCE_INLINE RHIScissor(Vector2u size = {1.f, 1.f}, Vector2u pos = {0.f, 0.f}) : size(size), pos(pos) {}
 		FORCE_INLINE bool operator==(const RHIScissor& v) const { return pos == v.pos && size == v.size; }
 		FORCE_INLINE bool operator!=(const RHIScissor& v) const { return !((*this) == v); }
 	};
 
 	struct RHIViewport {
-		Vector2u size   = {0, 0};
-		Vector2u pos    = {0, 0};
-		float min_depth = 0.0f;
-		float max_depth = 1.0f;
+		Vector2f size;
+		Vector2f pos;
+		float min_depth;
+		float max_depth;
 
-		FORCE_INLINE RHIViewport(Vector2u size = {0, 0}, Vector2u pos = {0, 0}, float min_depth = 0.f, float max_depth = 1.f)
+		FORCE_INLINE RHIViewport(Vector2u size = {1.f, 1.f}, Vector2u pos = {0.f, 0.f}, float min_depth = 0.f,
+		                         float max_depth = 1.f)
 		    : size(size), pos(pos), min_depth(min_depth), max_depth(max_depth)
 		{}
-
-		FORCE_INLINE float aspect() const
-		{
-			if (size.x == 0 || size.y == 0)
-				return 1.f;
-			return static_cast<float>(size.x) / static_cast<float>(size.y);
-		}
 
 		FORCE_INLINE bool operator==(const RHIViewport& v) const
 		{

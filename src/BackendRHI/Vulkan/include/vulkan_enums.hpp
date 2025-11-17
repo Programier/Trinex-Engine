@@ -538,6 +538,7 @@ namespace Engine::VulkanEnums
 			case RHIShadingRateCombiner::Min: return vk::FragmentShadingRateCombinerOpKHR::eMin;
 			case RHIShadingRateCombiner::Max: return vk::FragmentShadingRateCombinerOpKHR::eMax;
 			case RHIShadingRateCombiner::Mul: return vk::FragmentShadingRateCombinerOpKHR::eMul;
+			default: return vk::FragmentShadingRateCombinerOpKHR::eKeep;
 		}
 	}
 }// namespace Engine::VulkanEnums

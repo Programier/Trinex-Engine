@@ -31,16 +31,12 @@ namespace Engine
 		RHIContext();
 		~RHIContext();
 
-		RHIContext& push_viewport(const RHIViewport& viewport);
-		RHIContext& push_scissor(const RHIScissor& scissor);
-		RHIContext& push_primitive_topology(RHIPrimitiveTopology topology);
-		RHIContext& push_polygon_mode(RHIPolygonMode mode);
-		RHIContext& push_cull_mode(RHICullMode mode);
-		RHIContext& push_front_face(RHIFrontFace face);
-		RHIContext& push_write_mask(RHIColorComponent mask);
+		RHIContext& push_primitive_topology(RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList);
+		RHIContext& push_polygon_mode(RHIPolygonMode mode = RHIPolygonMode::Fill);
+		RHIContext& push_cull_mode(RHICullMode mode = RHICullMode::None);
+		RHIContext& push_front_face(RHIFrontFace face = RHIFrontFace::CounterClockWise);
+		RHIContext& push_write_mask(RHIColorComponent mask = RHIColorComponent::RGBA);
 
-		RHIContext& pop_viewport();
-		RHIContext& pop_scissor();
 		RHIContext& pop_primitive_topology();
 		RHIContext& pop_polygon_mode();
 		RHIContext& pop_cull_mode();

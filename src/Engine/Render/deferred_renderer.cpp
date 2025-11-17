@@ -467,9 +467,6 @@ namespace Engine
 		RHITexture* buffer1 = pool->request_surface(RHISurfaceFormat::R8, half_size);
 		RHITexture* buffer2 = pool->request_surface(RHISurfaceFormat::R8, half_size);
 
-		ctx->push_viewport(RHIViewport(half_size));
-		ctx->push_scissor(RHIScissor(half_size));
-
 		ctx->barrier(buffer1, RHIAccess::RTV);
 		ctx->bind_render_target1(buffer1->as_rtv());
 
@@ -498,8 +495,6 @@ namespace Engine
 		pool->return_surface(buffer1);
 		pool->return_surface(buffer2);
 
-		ctx->pop_viewport();
-		ctx->pop_scissor();
 		return *this;
 	}
 
@@ -580,7 +575,6 @@ namespace Engine
 		trinex_rhi_push_stage(ctx, "Extract");
 
 		ctx->blending_state(RHIBlendingState::opaque);
-		ctx->viewport(RHIViewport(chain[0].size));
 
 		ctx->barrier(chain[0].texture, RHIAccess::RTV);
 		ctx->bind_render_target1(chain[0].texture->as_rtv());
@@ -601,7 +595,6 @@ namespace Engine
 				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[i].texture, RHIAccess::RTV);
 
-				ctx->viewport(RHIViewport(chain[i].size));
 				ctx->bind_render_target1(chain[i].texture->as_rtv());
 				Pipelines::BloomDownsample::instance()->downsample(ctx, chain[i - 1].texture->as_srv());
 			}
@@ -619,7 +612,6 @@ namespace Engine
 				ctx->barrier(chain[next].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[current].texture, RHIAccess::RTV);
 
-				ctx->viewport(RHIViewport(chain[current].size));
 				ctx->bind_render_target1(chain[current].texture->as_rtv());
 
 				float fade = Math::lerp(bloom.fade_base, bloom.fade_max, static_cast<float>(current) / 5.f);
@@ -633,7 +625,6 @@ namespace Engine
 			ctx->barrier(chain[0].texture, RHIAccess::SRVGraphics);
 			ctx->barrier(hdr, RHIAccess::RTV);
 
-			ctx->viewport(RHIViewport(size));
 			ctx->bind_render_target1(hdr->as_rtv());
 
 			ctx->write_mask(RHIColorComponent::RGB);
@@ -644,7 +635,6 @@ namespace Engine
 			trinex_rhi_pop_stage(ctx);
 		}
 
-		ctx->viewport(RHIViewport(size));
 		for (int i = 0; i < 6; ++i) pool->return_surface(chain[i].texture);
 		return *this;
 	}

@@ -39,6 +39,7 @@ namespace Engine
 		inline VulkanRenderPass* render_pass() const { return m_render_pass; }
 		inline uint16_t width() const { return m_width; }
 		inline uint16_t height() const { return m_height; }
+		Vector2u16 size() const { return {m_width, m_height}; }
 		~VulkanRenderTarget();
 	};
 }// namespace Engine

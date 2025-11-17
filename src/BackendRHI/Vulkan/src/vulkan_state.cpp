@@ -33,11 +33,14 @@ namespace Engine
 		front_face   = RHIFrontFace::CounterClockWise;
 		write_mask   = RHIColorComponent::RGBA;
 		rate         = RHIShadingRate::e1x1;
+		viewport     = RHIViewport();
+		scissor      = RHIScissor();
 	}
 
-	VulkanStateManager& VulkanStateManager::flush_state(VulkanCommandHandle* handle)
+	VulkanStateManager& VulkanStateManager::flush_state(VulkanCommandHandle* handle, uint32_t mask)
 	{
-		m_dirty_flags = 0;
+		remove_dirty(mask);
+
 		uniform_buffers.flush();
 		storage_buffers.flush();
 		uniform_texel_buffers.flush();
@@ -48,6 +51,16 @@ namespace Engine
 		vertex_streams.flush();
 		vertex_attributes.flush();
 		handle->flush_uniforms();
+		return *this;
+	}
+
+	VulkanStateManager& VulkanStateManager::update_viewport_and_scissor(VulkanRenderTarget* target)
+	{
+		if (m_render_target == nullptr || (m_render_target && (m_render_target->size() != target->size())))
+		{
+			m_dirty_flags |= Viewport;
+			m_dirty_flags |= Scissor;
+		}
 		return *this;
 	}
 
@@ -109,14 +122,40 @@ namespace Engine
 				        vk::FragmentShadingRateCombinerOpKHR::eKeep,
 				};
 
-				ctx->handle()->setFragmentShadingRateKHR(extent, ops, API->pfn);
+				cmd->setFragmentShadingRateKHR(extent, ops, API->pfn);
 			}
+		}
+
+		if (is_dirty(Viewport))
+		{
+			vk::Viewport vulkan_viewport;
+			vulkan_viewport.setWidth(m_graphics_state.viewport.size.x * static_cast<float>(m_render_target->width()));
+			vulkan_viewport.setHeight(m_graphics_state.viewport.size.y * static_cast<float>(m_render_target->height()));
+			vulkan_viewport.setX(m_graphics_state.viewport.pos.x * static_cast<float>(m_render_target->width()));
+			vulkan_viewport.setY(m_graphics_state.viewport.pos.y * static_cast<float>(m_render_target->height()));
+			vulkan_viewport.setMinDepth(m_graphics_state.viewport.min_depth);
+			vulkan_viewport.setMaxDepth(m_graphics_state.viewport.max_depth);
+			cmd->setViewport(0, vulkan_viewport);
+
+			remove_dirty(Viewport);
+		}
+
+		if (is_dirty(Scissor))
+		{
+			vk::Rect2D vulkan_scissor;
+			vulkan_scissor.offset.setX(m_graphics_state.scissor.pos.x * static_cast<float>(m_render_target->width()));
+			vulkan_scissor.offset.setY(m_graphics_state.scissor.pos.y * static_cast<float>(m_render_target->height()));
+			vulkan_scissor.extent.setWidth(m_graphics_state.scissor.size.x * static_cast<float>(m_render_target->width()));
+			vulkan_scissor.extent.setHeight(m_graphics_state.scissor.size.y * static_cast<float>(m_render_target->height()));
+			cmd->setScissor(0, vulkan_scissor);
+
+			remove_dirty(Scissor);
 		}
 
 		if (cmd->is_outside_render_pass())
 			begin_render_pass(ctx);
 
-		flush_state(cmd);
+		flush_state(cmd, GraphicsMask);
 		return cmd;
 	}
 
@@ -125,7 +164,7 @@ namespace Engine
 		auto cmd = ctx->handle();
 		trinex_check(m_pipeline, "Pipeline can't be nullptr");
 		m_pipeline->flush(ctx);
-		flush_state(cmd);
+		flush_state(cmd, ComputeMask);
 		return cmd;
 	}
 
@@ -134,13 +173,13 @@ namespace Engine
 		auto cmd = ctx->handle();
 		trinex_check(m_pipeline, "Pipeline can't be nullptr");
 		m_pipeline->flush(ctx);
-		flush_state(cmd);
+		flush_state(cmd, ComputeMask);
 		return cmd;
 	}
 
 	VulkanStateManager& VulkanStateManager::reset()
 	{
-		m_dirty_flags = GraphicsMask | ComputeMask | ShadingRate;
+		m_dirty_flags = GraphicsMask | ComputeMask | GeneralMask;
 		uniform_buffers.make_dirty();
 		storage_buffers.make_dirty();
 		uniform_texel_buffers.make_dirty();
@@ -152,6 +191,7 @@ namespace Engine
 		vertex_attributes.make_dirty();
 		m_render_pass = nullptr;
 
+		m_graphics_state.init();
 		return *this;
 	}
 

@@ -6,14 +6,9 @@ namespace Engine
 	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
 
 	SceneView::SceneView(const CameraView& view, const Vector2u& view_size, ShowFlags show_flags)
-	    : SceneView(view, RHIViewport(view_size), RHIScissor(view_size), show_flags)
-	{}
-
-	SceneView::SceneView(const CameraView& view, const RHIViewport& viewport, const RHIScissor& scissor, ShowFlags show_flags)
 	    : m_camera_view(view),     //
 	      m_prev_camera_view(view),//
-	      m_viewport(viewport),    //
-	      m_scissor(scissor),      //
+	      m_view_size(view_size),  //
 	      m_show_flags(show_flags)
 	{}
 
@@ -26,6 +21,12 @@ namespace Engine
 	SceneView& SceneView::prev_camera_view(const CameraView& view)
 	{
 		m_prev_camera_view = view;
+		return *this;
+	}
+
+	SceneView& SceneView::view_size(Vector2u size)
+	{
+		m_view_size = size;
 		return *this;
 	}
 

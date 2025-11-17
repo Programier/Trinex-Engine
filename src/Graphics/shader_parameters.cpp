@@ -31,15 +31,16 @@ namespace Engine
 			prev_camera.far            = scene_view->prev_camera_view().far;
 
 			const auto& vp    = scene_view->viewport();
-			viewport.pos      = Vector2f(vp.pos);
-			viewport.size     = Vector2f(vp.size);
-			viewport.inv_size = 1.f / Vector2f(vp.size);
+			Vector2f size     = scene_view->view_size();
+			viewport.pos      = vp.pos * size;
+			viewport.size     = vp.size * size;
+			viewport.inv_size = 1.f / viewport.size;
 
 			viewport.min_depth = vp.min_depth;
 			viewport.max_depth = vp.max_depth;
 
-			render_target.size     = Vector2f(target_size);
-			render_target.inv_size = 1.f / Vector2f(target_size);
+			render_target.size     = size;
+			render_target.inv_size = 1.f / size;
 		}
 
 		time       = engine_instance->time_seconds();

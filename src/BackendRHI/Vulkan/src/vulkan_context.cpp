@@ -280,25 +280,13 @@ namespace Engine
 
 	VulkanContext& VulkanContext::viewport(const RHIViewport& viewport)
 	{
-		vk::Viewport vulkan_viewport;
-		vulkan_viewport.setWidth(viewport.size.x);
-		vulkan_viewport.setHeight(viewport.size.y);
-		vulkan_viewport.setX(viewport.pos.x);
-		vulkan_viewport.setY(viewport.pos.y);
-		vulkan_viewport.setMinDepth(viewport.min_depth);
-		vulkan_viewport.setMaxDepth(viewport.max_depth);
-		m_cmd->setViewport(0, vulkan_viewport);
+		m_state_manager->bind(viewport);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::scissor(const RHIScissor& scissor)
 	{
-		vk::Rect2D vulkan_scissor;
-		vulkan_scissor.offset.setX(scissor.pos.x);
-		vulkan_scissor.offset.setY(scissor.pos.y);
-		vulkan_scissor.extent.setWidth(scissor.size.x);
-		vulkan_scissor.extent.setHeight(scissor.size.y);
-		m_cmd->setScissor(0, vulkan_scissor);
+		m_state_manager->bind(scissor);
 		return *this;
 	}
 

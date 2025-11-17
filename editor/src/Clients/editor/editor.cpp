@@ -246,8 +246,7 @@ namespace Engine
 		if (scene == nullptr)
 			return nullptr;
 
-		m_scene_view.viewport(RHIViewport(size));
-		m_scene_view.scissor(RHIScissor(size));
+		m_scene_view.view_size(size);
 
 		EditorRenderer renderer(m_world->scene(), m_scene_view, m_view_mode);
 		update_render_stats(&renderer);

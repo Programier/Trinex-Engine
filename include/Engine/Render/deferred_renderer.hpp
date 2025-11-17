@@ -40,6 +40,7 @@ namespace Engine
 
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass(RHIContext* ctx);
+		DeferredRenderer& reflection_pass(RHIContext* ctx);
 		DeferredRenderer& velocity_pass(RHIContext* ctx);
 		DeferredRenderer& translucent_pass(RHIContext* ctx);
 		DeferredRenderer& ambient_occlusion_pass(RHIContext* ctx);

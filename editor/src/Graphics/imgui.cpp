@@ -127,10 +127,8 @@ namespace Engine
 			auto pipeline = ImGuiPipeline::instance();
 			pipeline->srv = nullptr;
 
-			RHIViewport viewport(bd->window->size());
 			ctx->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
 			ctx->bind_render_target1(bd->window->rhi_rtv());
-			ctx->viewport(viewport);
 
 			float L = draw_data->DisplayPos.x;
 			float R = L + draw_data->DisplaySize.x;
@@ -260,10 +258,10 @@ namespace Engine
 								continue;
 
 							RHIScissor scissor;
-							scissor.pos.x  = clip_min.x;
-							scissor.pos.y  = clip_min.y;
-							scissor.size.x = (clip_max.x - clip_min.x);
-							scissor.size.y = (clip_max.y - clip_min.y);
+							scissor.pos.x  = clip_min.x / draw_data->DisplaySize.x;
+							scissor.pos.y  = clip_min.y / draw_data->DisplaySize.y;
+							scissor.size.x = (clip_max.x - clip_min.x) / draw_data->DisplaySize.x;
+							scissor.size.y = (clip_max.y - clip_min.y) / draw_data->DisplaySize.y;
 
 							ctx->scissor(scissor);
 

@@ -65,15 +65,7 @@ namespace Engine
 	template<>
 	RHIColorComponent RHIStateStack<RHIColorComponent>::s_default = RHIColorComponent::RGBA;
 
-	template<>
-	RHIViewport RHIStateStack<RHIViewport>::s_default = RHIViewport({1u, 1u});
-
-	template<>
-	RHIScissor RHIStateStack<RHIScissor>::s_default = RHIScissor({1u, 1u});
-
 	struct RHIContext::State {
-		RHIStateStack<RHIViewport> viewport;
-		RHIStateStack<RHIScissor> scissor;
 		RHIStateStack<RHIPrimitiveTopology> topology;
 		RHIStateStack<RHIPolygonMode> polygon_mode;
 		RHIStateStack<RHICullMode> cull_mode;
@@ -95,16 +87,6 @@ namespace Engine
 	RHIContext::~RHIContext()
 	{
 		trx_delete m_state;
-	}
-
-	RHIContext& RHIContext::push_viewport(const RHIViewport& new_viewport)
-	{
-		return viewport(m_state->viewport.push(new_viewport));
-	}
-
-	RHIContext& RHIContext::push_scissor(const RHIScissor& new_scissor)
-	{
-		return scissor(m_state->scissor.push(new_scissor));
 	}
 
 	RHIContext& RHIContext::push_primitive_topology(RHIPrimitiveTopology topology)
@@ -130,16 +112,6 @@ namespace Engine
 	RHIContext& RHIContext::push_write_mask(RHIColorComponent mask)
 	{
 		return write_mask(m_state->write_mask.push(mask));
-	}
-
-	RHIContext& RHIContext::pop_viewport()
-	{
-		return viewport(m_state->viewport.pop());
-	}
-
-	RHIContext& RHIContext::pop_scissor()
-	{
-		return scissor(m_state->scissor.pop());
 	}
 
 	RHIContext& RHIContext::pop_primitive_topology()

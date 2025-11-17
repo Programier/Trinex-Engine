@@ -61,7 +61,7 @@ namespace Engine
 	class VulkanStateManager
 	{
 	public:
-		enum DirtyFlags
+		enum DirtyFlags : uint32_t
 		{
 			RenderTarget      = 1 << 0,
 			Pipeline          = 1 << 1,
@@ -74,7 +74,10 @@ namespace Engine
 			FrontFace         = 1 << 8,
 			WriteMask         = 1 << 9,
 			ShadingRate       = 1 << 10,
+			Viewport          = 1 << 11,
+			Scissor           = 1 << 12,
 
+			GeneralMask  = ShadingRate | Viewport | Scissor,
 			GraphicsMask = RenderTarget | Pipeline | DepthState | StencilState | BlendingState | PrimitiveTopology | PolygonMode |
 			               CullMode | FrontFace | WriteMask,
 			ComputeMask = Pipeline,
@@ -124,7 +127,7 @@ namespace Engine
 		};
 
 	private:
-		uint64_t m_dirty_flags;
+		uint32_t m_dirty_flags;
 
 		VulkanRenderPass* m_render_pass     = nullptr;
 		VulkanRenderTarget* m_render_target = nullptr;
@@ -141,13 +144,16 @@ namespace Engine
 			RHIFrontFace front_face;
 			RHIColorComponent write_mask;
 			RHIShadingRate rate;
+			RHIViewport viewport;
+			RHIScissor scissor;
 
 			void init();
 		} m_graphics_state;
 
 
 	private:
-		VulkanStateManager& flush_state(VulkanCommandHandle* handle);
+		VulkanStateManager& flush_state(VulkanCommandHandle* handle, uint32_t mask);
+		VulkanStateManager& update_viewport_and_scissor(VulkanRenderTarget* target);
 
 	public:
 		VulkanResourceState<UniformBuffer> uniform_buffers;
@@ -180,6 +186,7 @@ namespace Engine
 		{
 			if (m_render_target != target)
 			{
+				update_viewport_and_scissor(target);
 				m_render_target = target;
 				m_dirty_flags |= RenderTarget;
 			}
@@ -282,6 +289,26 @@ namespace Engine
 			return *this;
 		}
 
+		VulkanStateManager& bind(RHIViewport viewport)
+		{
+			if (m_graphics_state.viewport != viewport)
+			{
+				m_graphics_state.viewport = viewport;
+				m_dirty_flags |= Viewport;
+			}
+			return *this;
+		}
+
+		VulkanStateManager& bind(RHIScissor scissor)
+		{
+			if (m_graphics_state.scissor != scissor)
+			{
+				m_graphics_state.scissor = scissor;
+				m_dirty_flags |= Scissor;
+			}
+			return *this;
+		}
+
 		VulkanCommandHandle* begin_render_pass(VulkanContext* ctx);
 		VulkanCommandHandle* end_render_pass(VulkanContext* ctx);
 		VulkanCommandHandle* flush_graphics(VulkanContext* ctx);
@@ -293,9 +320,9 @@ namespace Engine
 		uint128_t graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
 		uint128_t mesh_pipeline_id() const;
 
-		inline uint64_t dirty_flags() const { return m_dirty_flags; }
-		inline bool is_dirty(uint64_t flags) const { return (m_dirty_flags & flags); }
-		inline uint64_t remove_dirty(uint64_t flags) { return (m_dirty_flags &= ~flags); }
+		inline uint32_t dirty_flags() const { return m_dirty_flags; }
+		inline bool is_dirty(uint32_t flags) const { return (m_dirty_flags & flags); }
+		inline uint32_t remove_dirty(uint32_t flags) { return (m_dirty_flags &= ~flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
 		inline VulkanRenderTarget* render_target() const { return m_render_target; }
 		inline const RHIDepthState& depth_state() const { return m_graphics_state.depth; }
