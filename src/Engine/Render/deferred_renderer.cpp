@@ -771,50 +771,59 @@ namespace Engine
 
 			if (!m_visible_lights.empty())
 			{
-				LightRenderParameters* parameters = StackAllocator<LightRenderParameters>::allocate(m_visible_lights.size());
-				{
-					LightRenderParameters* current = parameters;
+				auto pass = [this](RHIContext* ctx) {
+					size_t size = sizeof(LightRenderParameters) * m_visible_lights.size();
 
-					for (LightComponent* light : m_visible_lights)
+					LightRenderParameters* parameters = StackAllocator<LightRenderParameters>::allocate(m_visible_lights.size());
 					{
-						light->render_parameters(*(current++));
-					}
-				}
+						LightRenderParameters* current = parameters;
 
-				// Update shadow buffer address for each light
-				{
-					uint_t current = m_light_ranges->point.shadowed.start;
-					uint_t end     = m_light_ranges->point.shadowed.end;
-					uint_t address = 0;
-
-					for (; current < end; ++current)
-					{
-						parameters[current].shadow_address = address;
-						address += sizeof(PointLightShadowParameters);
+						for (LightComponent* light : m_visible_lights)
+						{
+							light->render_parameters(*(current++));
+						}
 					}
 
-					current = m_light_ranges->spot.shadowed.start;
-					end     = m_light_ranges->spot.shadowed.end;
-
-					for (; current < end; ++current)
+					// Update shadow buffer address for each light
 					{
-						parameters[current].shadow_address = address;
-						address += sizeof(SpotLightShadowParameters);
+						uint_t current = m_light_ranges->point.shadowed.start;
+						uint_t end     = m_light_ranges->point.shadowed.end;
+						uint_t address = 0;
+
+						for (; current < end; ++current)
+						{
+							parameters[current].shadow_address = address;
+							address += sizeof(PointLightShadowParameters);
+						}
+
+						current = m_light_ranges->spot.shadowed.start;
+						end     = m_light_ranges->spot.shadowed.end;
+
+						for (; current < end; ++current)
+						{
+							parameters[current].shadow_address = address;
+							address += sizeof(SpotLightShadowParameters);
+						}
+
+						current = m_light_ranges->directional.shadowed.start;
+						end     = m_light_ranges->directional.shadowed.end;
+
+						for (; current < end; ++current)
+						{
+							parameters[current].shadow_address = address;
+							address += sizeof(DirectionalLightShadowParameters) +
+							           s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
+						}
 					}
 
-					current = m_light_ranges->directional.shadowed.start;
-					end     = m_light_ranges->directional.shadowed.end;
+					ctx->barrier(m_lights_buffer, RHIAccess::TransferDst);
+					ctx->update_buffer(m_lights_buffer, 0, size, reinterpret_cast<byte*>(parameters));
+				};
 
-					for (; current < end; ++current)
-					{
-						parameters[current].shadow_address = address;
-						address += sizeof(DirectionalLightShadowParameters) +
-						           s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
-					}
-				}
-
-				rhi->context()->barrier(m_lights_buffer, RHIAccess::TransferDst);
-				rhi->context()->update_buffer(m_lights_buffer, 0, size, reinterpret_cast<byte*>(parameters));
+				render_graph()
+				        ->add_pass("Initialize Light Buffer")
+				        .add_resource(m_lights_buffer, RHIAccess::TransferDst)
+				        .add_func(pass);
 			}
 		}
 		return m_lights_buffer;
@@ -836,49 +845,57 @@ namespace Engine
 			        directional_lights * (sizeof(DirectionalLightShadowParameters) +
 			                              s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
 
-			byte* buffer       = StackByteAllocator::allocate(buffer_size);
-			byte* current_data = buffer;
-
-			uint_t current = m_light_ranges->point.shadowed.start;
-			uint_t end     = m_light_ranges->point.shadowed.end;
-
-			for (; current < end; ++current)
-			{
-				auto light = static_cast<PointLightComponent*>(m_visible_lights[current]);
-				register_shadow_light(light, current_data);
-				current_data += sizeof(PointLightShadowParameters);
-			}
-
-			current = m_light_ranges->spot.shadowed.start;
-			end     = m_light_ranges->spot.shadowed.end;
-
-			for (; current < end; ++current)
-			{
-				auto light = static_cast<SpotLightComponent*>(m_visible_lights[current]);
-				register_shadow_light(light, current_data);
-				current_data += sizeof(SpotLightShadowParameters);
-			}
-
-			current = m_light_ranges->directional.shadowed.start;
-			end     = m_light_ranges->directional.shadowed.end;
-
-			for (; current < end; ++current)
-			{
-				auto light = static_cast<DirectionalLightComponent*>(m_visible_lights[current]);
-				register_shadow_light(light, current_data);
-
-				current_data += sizeof(DirectionalLightShadowParameters) +
-				                s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
-			}
-
 			auto pool       = RHIBufferPool::global_instance();
 			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferCreateFlags::ByteAddressBuffer |
 			                                                                      RHIBufferCreateFlags::ShaderResource |
 			                                                                      RHIBufferCreateFlags::TransferDst);
-			if (buffer_size > 0)
-			{
-				rhi->context()->update_buffer(m_shadow_buffer, 0, buffer_size, buffer);
-			}
+
+			if (buffer_size == 0)
+				return m_shadow_buffer;
+
+			auto pass = [this, buffer_size](RHIContext* ctx) {
+				byte* buffer       = StackByteAllocator::allocate(buffer_size);
+				byte* current_data = buffer;
+
+				uint_t current = m_light_ranges->point.shadowed.start;
+				uint_t end     = m_light_ranges->point.shadowed.end;
+
+				for (; current < end; ++current)
+				{
+					auto light = static_cast<PointLightComponent*>(m_visible_lights[current]);
+					register_shadow_light(light, current_data);
+					current_data += sizeof(PointLightShadowParameters);
+				}
+
+				current = m_light_ranges->spot.shadowed.start;
+				end     = m_light_ranges->spot.shadowed.end;
+
+				for (; current < end; ++current)
+				{
+					auto light = static_cast<SpotLightComponent*>(m_visible_lights[current]);
+					register_shadow_light(light, current_data);
+					current_data += sizeof(SpotLightShadowParameters);
+				}
+
+				current = m_light_ranges->directional.shadowed.start;
+				end     = m_light_ranges->directional.shadowed.end;
+
+				for (; current < end; ++current)
+				{
+					auto light = static_cast<DirectionalLightComponent*>(m_visible_lights[current]);
+					register_shadow_light(light, current_data);
+
+					current_data += sizeof(DirectionalLightShadowParameters) +
+					                s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
+				}
+
+				ctx->update_buffer(m_shadow_buffer, 0, buffer_size, buffer);
+			};
+
+			render_graph()
+			        ->add_pass("Initialize Shadow Buffer")
+			        .add_resource(m_shadow_buffer, RHIAccess::TransferDst)
+			        .add_func(pass);
 		}
 
 		return m_shadow_buffer;

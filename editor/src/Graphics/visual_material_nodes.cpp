@@ -95,7 +95,7 @@ namespace Engine::VisualMaterialGraph
 		if (texture)
 		{
 			float size = 4.f * ImGui::GetFrameHeight();
-			ImGui::Image(texture, {size, size});
+			ImGui::Image(texture->rhi_texture(), {size, size});
 		}
 		return *this;
 	}
@@ -309,7 +309,7 @@ namespace Engine::VisualMaterialGraph
 
 	SampleTexture& SampleTexture::render()
 	{
-		Engine::Texture2D* icon = find_texture();
+		RHITexture* icon = find_texture()->rhi_texture();
 
 		if (icon)
 		{

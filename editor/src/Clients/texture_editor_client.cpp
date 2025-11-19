@@ -43,27 +43,28 @@ namespace Engine
 
 		inline TextureView& update_texture(RHITexture* texture)
 		{
-			rhi->context()->bind_srv(texture->as_srv(), m_texture->binding);
-			rhi->context()->bind_sampler(RHIPointWrapSampler::static_sampler(), m_texture->binding);
+			auto ctx = ImGui::GetCurrentRHI();
+			ctx->bind_srv(texture->as_srv(), m_texture->binding);
+			ctx->bind_sampler(RHIPointWrapSampler::static_sampler(), m_texture->binding);
 			return *this;
 		}
 
 		inline TextureView& update_transform(const Matrix4f& transform)
 		{
-			rhi->context()->update_scalar(&transform, m_transform);
+			ImGui::GetCurrentRHI()->update_scalar(&transform, m_transform);
 			return *this;
 		}
 
 		inline TextureView& update_mask(const Vector4f& mask)
 		{
-			rhi->context()->update_scalar(&mask, m_mask);
+			ImGui::GetCurrentRHI()->update_scalar(&mask, m_mask);
 			return *this;
 		}
 
 		inline TextureView& update_range(Vector2f range)
 		{
 			range = {range.x, 1.f / (range.y - range.x)};
-			rhi->context()->update_scalar(&range, m_range);
+			ImGui::GetCurrentRHI()->update_scalar(&range, m_range);
 			return *this;
 		}
 	};
@@ -79,7 +80,7 @@ namespace Engine
 		TextureView2D& update_mip(uint_t mip)
 		{
 			float scalar = static_cast<float>(mip);
-			rhi->context()->update_scalar(&scalar, m_mip);
+			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
@@ -109,13 +110,13 @@ namespace Engine
 		TextureViewCube& update_mip(uint_t mip)
 		{
 			float scalar = static_cast<float>(mip);
-			rhi->context()->update_scalar(&scalar, m_mip);
+			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
 		TextureViewCube& update_face(uint_t face)
 		{
-			rhi->context()->update_scalar(&face, m_face);
+			ImGui::GetCurrentRHI()->update_scalar(&face, m_face);
 			return *this;
 		}
 
@@ -140,9 +141,11 @@ namespace Engine
 	{
 		auto pipeline = TextureView2D::instance();
 
-		rhi->context()->bind_pipeline(pipeline->rhi_pipeline());
+		auto ctx = ImGui::GetCurrentRHI();
+
+		ctx->bind_pipeline(pipeline->rhi_pipeline());
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
-		rhi->context()->draw(6, 0);
+		ctx->draw(6, 0);
 	}
 
 	static inline void render_texture_cube(RHITexture* src, const Matrix4f& transform, Vector2f range, uint_t level,
@@ -162,9 +165,11 @@ namespace Engine
 		};
 
 
+		auto ctx = ImGui::GetCurrentRHI();
+
 		for (uint_t face = 0; face < 6; ++face)
 		{
-			rhi->context()->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			const Matrix4f face_translate = Math::translate(Matrix4f(1.f), Vector3f(face_offsets[face], 0.f));
 
 			pipeline->update_face(face)
@@ -174,15 +179,14 @@ namespace Engine
 			        .update_mask(mask)
 			        .update_range(range);
 
-			rhi->context()->draw(6, 0);
+			ctx->draw(6, 0);
 		}
 	}
 
 
 	struct TextureViewVisitor {
 		TextureEditorClient* client;
-		Vector2u pos;
-		Vector2u size;
+		Vector2f size;
 
 		void operator()(const Pointer<Texture2D>& texture) const { client->rhi_render(texture, size); }
 		void operator()(const Pointer<TextureCube>& texture) const { client->rhi_render(texture, size); }
@@ -255,28 +259,21 @@ namespace Engine
 
 		ImGui::Begin("Texture View###texture");
 		{
-			auto viewport_size      = ImGui::GetContentRegionAvail();
-			auto half_viewport_size = viewport_size * 0.5f;
-			auto cursor_pos         = ImGui::GetCursorScreenPos();
-			auto viewport_pos       = cursor_pos - ImGui::GetCurrentWindow()->Viewport->Pos;
+			auto content      = ImGui::GetContentRegionAvail();
+			auto half_content = content * 0.5f;
 
 			TextureViewVisitor args;
-			args.client = this;
-			args.pos    = Vector2u(viewport_pos.x, viewport_pos.y);
-			args.size   = Vector2u(viewport_size.x, viewport_size.y);
+			{
+				args.client = this;
+				args.size   = ImGui::EngineVecFrom(content);
+			}
 
 			ImDrawCallback callback = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
 				TextureViewVisitor* args = reinterpret_cast<TextureViewVisitor*>(cmd->UserCallbackData);
-				rhi->context()->viewport(RHIViewport(args->size, args->pos));
-				rhi->context()->scissor(RHIScissor(args->size, args->pos));
 				std::visit(*args, args->client->m_texture);
 			};
 
-			auto list = ImGui::GetWindowDrawList();
-			list->AddCallback(callback, &args, sizeof(args));
-			list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
-
-			ImGui::Dummy(viewport_size);
+			ImGui::Paint(content, callback, &args, sizeof(args));
 
 			if (ImGui::IsItemHovered())
 			{
@@ -284,15 +281,15 @@ namespace Engine
 
 				if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
 				{
-					Vector2f offset = Vector2f(io.MouseDelta.x / half_viewport_size.x, io.MouseDelta.y / half_viewport_size.y);
+					Vector2f offset = Vector2f(io.MouseDelta.x / half_content.x, io.MouseDelta.y / half_content.y);
 					m_translate += offset;
 					m_smooth_translate += offset;
 				}
 
 				if (io.MouseWheel != 0.0f)
 				{
-					ImVec2 mouse_pos = ImGui::GetMousePos() - cursor_pos;
-					Vector2f ndc = Vector2f(mouse_pos.x / half_viewport_size.x - 1.0f, mouse_pos.y / half_viewport_size.y - 1.0f);
+					ImVec2 mouse_pos = ImGui::GetMousePos() - ImGui::GetItemRectMin();
+					Vector2f ndc     = Vector2f(mouse_pos.x / half_content.x - 1.0f, mouse_pos.y / half_content.y - 1.0f);
 
 					float prev_scale = m_scale;
 					float scale      = Math::max(Math::exp(io.MouseWheel * 0.2f), 0.0001f);

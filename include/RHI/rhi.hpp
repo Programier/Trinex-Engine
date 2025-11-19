@@ -39,8 +39,6 @@ namespace Engine
 			Refl::Struct* struct_instance = nullptr;
 		} info;
 
-		RHIContext* context();
-
 		virtual RHI& signal(RHIFence* fence)          = 0;
 		virtual RHI& submit(RHICommandHandle* handle) = 0;
 		virtual RHI& idle()                           = 0;

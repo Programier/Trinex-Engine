@@ -22,7 +22,7 @@ namespace Engine
 		Vector2f size;
 		Vector2f pos;
 
-		FORCE_INLINE RHIScissor(Vector2u size = {1.f, 1.f}, Vector2u pos = {0.f, 0.f}) : size(size), pos(pos) {}
+		FORCE_INLINE RHIScissor(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
 		FORCE_INLINE bool operator==(const RHIScissor& v) const { return pos == v.pos && size == v.size; }
 		FORCE_INLINE bool operator!=(const RHIScissor& v) const { return !((*this) == v); }
 	};
@@ -33,7 +33,7 @@ namespace Engine
 		float min_depth;
 		float max_depth;
 
-		FORCE_INLINE RHIViewport(Vector2u size = {1.f, 1.f}, Vector2u pos = {0.f, 0.f}, float min_depth = 0.f,
+		FORCE_INLINE RHIViewport(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}, float min_depth = 0.f,
 		                         float max_depth = 1.f)
 		    : size(size), pos(pos), min_depth(min_depth), max_depth(max_depth)
 		{}

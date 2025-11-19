@@ -158,7 +158,7 @@ namespace Engine
 			auto& outlines_color = render_graph()->add_pass("Outlines Color");
 
 			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, &actors](RHIContext* ctx) {
-				rhi->context()->bind_depth_stencil_target(dsv);
+				ctx->bind_depth_stencil_target(dsv);
 
 				for (Actor* actor : actors)
 				{

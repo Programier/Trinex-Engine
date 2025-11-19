@@ -42,7 +42,7 @@ namespace Engine
 		VertexBufferBase& release();
 		VertexBufferBase& grow(uint32_t factor = 2);
 
-		VertexBufferBase& rhi_update(size_t size, size_t offset = 0);
+		VertexBufferBase& rhi_update(class RHIContext* ctx, size_t size, size_t offset = 0);
 
 		bool serialize(Archive& ar);
 

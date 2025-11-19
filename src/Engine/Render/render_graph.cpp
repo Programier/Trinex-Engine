@@ -189,22 +189,22 @@ namespace Engine::RenderGraph
 		return *this;
 	}
 
-	Graph::Plugin& Graph::Plugin::on_frame_begin(Graph* graph)
+	Graph::Plugin& Graph::Plugin::on_frame_begin(Graph* graph, RHIContext* ctx)
 	{
 		return *this;
 	}
 
-	Graph::Plugin& Graph::Plugin::on_frame_end(Graph* graph)
+	Graph::Plugin& Graph::Plugin::on_frame_end(Graph* graph, RHIContext* ctx)
 	{
 		return *this;
 	}
 
-	Graph::Plugin& Graph::Plugin::on_pass_begin(Pass* pass)
+	Graph::Plugin& Graph::Plugin::on_pass_begin(Pass* pass, RHIContext* ctx)
 	{
 		return *this;
 	}
 
-	Graph::Plugin& Graph::Plugin::on_pass_end(Pass* pass)
+	Graph::Plugin& Graph::Plugin::on_pass_end(Pass* pass, RHIContext* ctx)
 	{
 		return *this;
 	}
@@ -382,9 +382,9 @@ namespace Engine::RenderGraph
 				Pass* pass = node->pass;
 				node->pass = nullptr;
 
-				for (Plugin* plugin : m_plugins) plugin->on_pass_begin(pass);
+				for (Plugin* plugin : m_plugins) plugin->on_pass_begin(pass, ctx);
 				pass->execute(ctx);
-				for (Plugin* plugin : m_plugins) plugin->on_pass_end(pass);
+				for (Plugin* plugin : m_plugins) plugin->on_pass_end(pass, ctx);
 
 				trinex_rhi_pop_stage(ctx);
 			}
@@ -397,14 +397,14 @@ namespace Engine::RenderGraph
 		StackByteAllocator::Mark mark;
 		Node* root = build_graph();
 
-		for (Plugin* plugin : m_plugins) plugin->on_frame_begin(this);
+		for (Plugin* plugin : m_plugins) plugin->on_frame_begin(this, ctx);
 
 		for (Node* dependency : root->dependencies)
 		{
 			execute_node(dependency, ctx);
 		}
 
-		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this);
+		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this, ctx);
 		return true;
 	}
 }// namespace Engine::RenderGraph

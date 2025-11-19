@@ -26,6 +26,7 @@
 #include <Graphics/texture.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/context.hpp>
+#include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/config.hpp>
@@ -44,64 +45,74 @@ namespace Engine
 		{
 			trinex_declare_pipeline(ImGuiPipeline, GlobalGraphicsPipeline);
 
-		public:
-			const RHIShaderParameterInfo* texture_parameter = nullptr;
-			const RHIShaderParameterInfo* sampler_parameter = nullptr;
-			const RHIShaderParameterInfo* model_parameter   = nullptr;
-			Matrix4f model;
-			RHIShaderResourceView* srv = nullptr;
+			const RHIShaderParameterInfo* m_texture_parameter    = nullptr;
+			const RHIShaderParameterInfo* m_projection_parameter = nullptr;
 
-			void push(RHIContext* ctx);
-			void pop(RHIContext* ctx);
-			void apply(RHIContext* ctx, const Sampler& sampler);
+			RHITexture* m_texture = nullptr;
+			RHISampler* m_sampler = nullptr;
+			RHIResourcePtr<RHIBuffer> m_projection;
+
+
+		public:
+			void bind(RHIContext* ctx, const Matrix4f& projection)
+			{
+				ctx->barrier(m_projection.get(), RHIAccess::TransferDst);
+				ctx->update_buffer(m_projection.get(), 0, sizeof(projection), reinterpret_cast<const byte*>(&projection));
+				ctx->barrier(m_projection.get(), RHIAccess::UniformBuffer);
+				ctx->bind_uniform_buffer(m_projection.get(), m_projection_parameter->binding);
+			}
+
+			void bind(RHIContext* ctx, RHITexture* texture)
+			{
+				if (m_texture != texture)
+				{
+					ctx->barrier(texture, RHIAccess::SRVGraphics);
+					ctx->bind_srv(texture->as_srv(), m_texture_parameter->binding);
+					m_texture = texture;
+				}
+			}
+
+			void bind(RHIContext* ctx, RHISampler* sampler)
+			{
+				if (m_sampler != sampler)
+				{
+					ctx->bind_sampler(sampler, m_texture_parameter->binding);
+					m_sampler = sampler;
+				}
+			}
+
+			void setup(RHIContext* ctx)
+			{
+				m_texture = nullptr;
+				m_sampler = nullptr;
+
+				ctx->bind_pipeline(rhi_pipeline());
+				ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
+				ctx->stencil_state(RHIStencilState());
+				ctx->blending_state(RHIBlendingState::translucent);
+
+				ctx->primitive_topology(RHIPrimitiveTopology::TriangleList);
+				ctx->polygon_mode(RHIPolygonMode::Fill);
+				ctx->cull_mode(RHICullMode::None);
+				ctx->write_mask(RHIColorComponent::RGBA);
+			}
 		};
 
 		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
 		{
-			texture_parameter = find_parameter("texture");
-			sampler_parameter = find_parameter("sampler");
-			model_parameter   = find_parameter("model");
+			m_texture_parameter    = find_parameter("texture");
+			m_projection_parameter = find_parameter("projection");
+
+			m_projection =
+			        rhi->create_buffer(sizeof(Matrix4f), RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::TransferDst);
 		}
-
-		void ImGuiPipeline::push(RHIContext* ctx)
-		{
-			ctx->bind_pipeline(rhi_pipeline());
-			ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
-			ctx->stencil_state(RHIStencilState());
-			ctx->blending_state(RHIBlendingState::translucent);
-
-			ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
-			ctx->push_polygon_mode(RHIPolygonMode::Fill);
-			ctx->push_cull_mode(RHICullMode::None);
-			ctx->push_write_mask(RHIColorComponent::RGBA);
-		}
-
-		void ImGuiPipeline::pop(RHIContext* ctx)
-		{
-			ctx->pop_primitive_topology();
-			ctx->pop_polygon_mode();
-			ctx->pop_cull_mode();
-			ctx->pop_write_mask();
-		}
-
-		void ImGuiPipeline::apply(RHIContext* ctx, const Sampler& sampler)
-		{
-			RHIDescriptor sampler_descriptor = sampler.rhi_sampler()->descriptor();
-			RHIDescriptor texture_descriptor = srv->descriptor();
-
-			ctx->update_scalar(&sampler_descriptor, sampler_parameter);
-			ctx->update_scalar(&texture_descriptor, texture_parameter);
-			ctx->update_scalar(&model, sizeof(model), 0, model_parameter->binding);
-
-			srv = nullptr;
-		}
-
 
 		bool imgui_trinex_rhi_init(Engine::Window*, ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
-		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data);
+		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx);
 
 		struct ImGuiTrinexData {
+			RHIContext* context            = nullptr;
 			Texture2D* font_texture        = nullptr;
 			Engine::RenderViewport* window = nullptr;
 			Sampler sampler;
@@ -121,27 +132,30 @@ namespace Engine
 
 		// RENDERING FUNCTIONS
 
-		static void imgui_trinex_setup_render_state(RHIContext* ctx, ImDrawData* draw_data)
+		static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
 		{
 			auto bd       = imgui_trinex_backend_data();
 			auto pipeline = ImGuiPipeline::instance();
-			pipeline->srv = nullptr;
 
-			ctx->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
-			ctx->bind_render_target1(bd->window->rhi_rtv());
+			bd->context->viewport(RHIViewport());
+			bd->context->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
+			bd->context->bind_render_target1(bd->window->rhi_rtv());
 
 			float L = draw_data->DisplayPos.x;
 			float R = L + draw_data->DisplaySize.x;
 			float T = draw_data->DisplayPos.y;
 			float B = T + draw_data->DisplaySize.y;
 
-			pipeline->model = Math::ortho(L, R, B, T, 0.f, 1.f);
+			pipeline->setup(bd->context);
+			pipeline->bind(bd->context, Math::ortho(L, R, B, T, 0.f, 1.f));
 		}
 
-		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data)
+		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx)
 		{
 			trinex_profile_cpu_n("ImGui");
 			trinex_rhi_push_stage(ctx, "ImGui Render");
+
+			ImDrawData* draw_data = ImGui::GetDrawData();
 
 			// Avoid rendering when minimized
 			if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
@@ -158,6 +172,8 @@ namespace Engine
 				trinex_rhi_pop_stage(ctx);
 				return;
 			}
+
+			bd->context = ctx;
 
 			trinex_rhi_push_stage(ctx, "ImGui Setup state");
 
@@ -210,7 +226,7 @@ namespace Engine
 				ctx->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
 			}
 
-			imgui_trinex_setup_render_state(ctx, draw_data);
+			imgui_trinex_setup_render_state(draw_data);
 
 			int global_idx_offset = 0;
 			int global_vtx_offset = 0;
@@ -222,8 +238,6 @@ namespace Engine
 
 			ctx->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
 			ctx->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
-
-			ImGuiPipeline::instance()->push(ctx);
 
 			trinex_rhi_pop_stage(ctx);
 			{
@@ -238,11 +252,11 @@ namespace Engine
 					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
 						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-						trinex_rhi_push_stage(ctx, "ImGui Draw Command");
+
 						if (pcmd->UserCallback != nullptr)
 						{
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-								imgui_trinex_setup_render_state(ctx, draw_data);
+								imgui_trinex_setup_render_state(draw_data);
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
 						}
@@ -265,22 +279,15 @@ namespace Engine
 
 							ctx->scissor(scissor);
 
-							if (!pipeline->srv)
-							{
-								pipeline->srv = pcmd->TextureId.texture ? pcmd->TextureId.texture->rhi_srv()
-								                                        : pcmd->TextureId.surface->rhi_srv();
-							}
+							pipeline->bind(ctx,
+							               pcmd->TextureId.texture ? pcmd->TextureId.texture : bd->font_texture->rhi_texture());
+							pipeline->bind(ctx, pcmd->TextureId.sampler ? pcmd->TextureId.sampler : bd->sampler.rhi_sampler());
 
 							{
-								trinex_profile_cpu_n("Drawing");
-								pipeline->apply(ctx, bd->sampler);
-
 								ctx->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
 								                  pcmd->VtxOffset + global_vtx_offset);
 							}
 						}
-
-						trinex_rhi_pop_stage(ctx);
 					}
 
 					global_idx_offset += cmd_list->IdxBuffer.Size;
@@ -289,7 +296,7 @@ namespace Engine
 				}
 			}
 			trinex_rhi_pop_stage(ctx);
-			ImGuiPipeline::instance()->pop(ctx);
+			bd->context = nullptr;
 		}
 
 		static void imgui_trinex_create_fonts_texture()
@@ -316,7 +323,7 @@ namespace Engine
 			bd->sampler = Sampler(RHISamplerFilter::Bilinear);
 
 			// Store our identifier
-			io.Fonts->SetTexID(bd->font_texture);
+			io.Fonts->SetTexID(bd->font_texture->rhi_texture());
 		}
 
 		static void imgui_trinex_destroy_device_objects()
@@ -460,7 +467,7 @@ namespace Engine
 				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 				{
 					trinex_rhi_push_stage(ctx, "ImGuiViewportClient");
-					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, ImGui::GetDrawData());
+					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx);
 					trinex_rhi_pop_stage(ctx);
 				}
 				RHIContextPool::global_instance()->end_context(ctx);
@@ -1326,7 +1333,7 @@ namespace Engine
 				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f).bind_render_target1(rtv);
 
 				ImGuiContextLock lock(m_context);
-				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, ImGui::GetDrawData());
+				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx);
 			}
 			RHIContextPool::global_instance()->end_context(ctx);
 
@@ -1381,6 +1388,47 @@ namespace ImGui
 		}
 
 		return 0;
+	}
+
+	Engine::RHIContext* GetCurrentRHI()
+	{
+		return Engine::ImGuiBackend_RHI::imgui_trinex_backend_data()->context;
+	}
+
+	void Paint(ImVec2 size, ImDrawCallback callback, void* userdata, size_t userdata_size)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+
+		if (!window)
+			return;
+
+		Dummy(size);
+
+		if (!IsItemVisible())
+			return;
+
+		ImDrawList* list  = window->DrawList;
+		ImGuiViewport* vp = window->Viewport;
+
+		struct Args {
+			Engine::Vector2f16 pos;
+			Engine::Vector2f16 size;
+		} args;
+
+		args.pos  = EngineVecFrom((ImGui::GetItemRectMin() - vp->Pos) / vp->Size);
+		args.size = EngineVecFrom(size / vp->Size);
+
+		ImDrawCallback viewport_setup = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
+			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
+
+			auto ctx = ImGui::GetCurrentRHI();
+			ctx->viewport(Engine::RHIViewport(args->size, args->pos));
+			ctx->scissor(Engine::RHIScissor(args->size, args->pos));
+		};
+
+		list->AddCallback(viewport_setup, &args, sizeof(args));
+		list->AddCallback(callback, userdata, userdata_size);
+		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 	}
 
 	void TextEllipsis(const char* text, float max_width)

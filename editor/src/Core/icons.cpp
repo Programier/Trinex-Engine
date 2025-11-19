@@ -14,7 +14,7 @@ namespace Engine::Icons
 {
 	ImGuiTrinexTextureId default_texture()
 	{
-		return ImGuiTrinexTextureId(EditorResources::default_icon);
+		return ImGuiTrinexTextureId(EditorResources::default_icon->rhi_texture());
 	}
 
 	ImGuiTrinexTextureId find_icon(Object* object)
@@ -23,11 +23,11 @@ namespace Engine::Icons
 		{
 			if (Texture2D* texture = object->instance_cast<Texture2D>())
 			{
-				return texture;
+				return texture->rhi_texture();
 			}
 
 			if (RenderSurface* surface = object->instance_cast<RenderSurface>())
-				return surface;
+				return surface->rhi_texture();
 
 			return find_icon(object->class_instance());
 		}
@@ -41,7 +41,7 @@ namespace Engine::Icons
 		auto& data       = class_instance->metadata(meta);
 
 		if (data.has_value())
-			return data.cast<const Pointer<Texture2D>&>().ptr();
+			return data.cast<const Pointer<Texture2D>&>().ptr()->rhi_texture();
 
 		return default_texture();
 	}

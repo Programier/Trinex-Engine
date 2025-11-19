@@ -14,15 +14,14 @@ struct PS_INPUT
 	float4 col : COLOR0;
 };
 
-uniform float4x4 model;
-uniform DescriptorHandle<Texture2D> texture;
-uniform DescriptorHandle<SamplerState> sampler;
+uniform float4x4 projection;
+uniform Sampler2D texture;
 
 [shader("vertex")]
 PS_INPUT vertex_main(in VS_INPUT input)
 {
-    PS_INPUT output;
-    output.pos = model * float4(input.pos.xy, 0.f, 1.f);
+	PS_INPUT output;
+	output.pos = projection * float4(input.pos.xy, 0.f, 1.f);
     output.col = input.col;
     output.uv  = input.uv;
     return output;
@@ -31,5 +30,5 @@ PS_INPUT vertex_main(in VS_INPUT input)
 [shader("fragment")]
 float4 fragment_main(in PS_INPUT input) : SV_Target
 {
-    return input.col * texture.Sample(sampler, input.uv); 
+    return input.col * texture.Sample(input.uv); 
 }

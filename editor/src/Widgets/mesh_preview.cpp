@@ -119,7 +119,7 @@ namespace Engine
 			{
 				renderer.render(ctx);
 			}
-			
+
 			RHIContextPool::global_instance()->end_context(ctx);
 		}
 
@@ -194,7 +194,7 @@ namespace Engine
 
 		if (auto surface = render_preview(content_size))
 		{
-			ImGui::Image(surface, content_size);
+			ImGui::Image(surface->rhi_texture(), content_size);
 		}
 
 		ImGui::End();

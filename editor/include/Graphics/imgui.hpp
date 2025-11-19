@@ -10,6 +10,7 @@ namespace Engine
 	struct Event;
 	class RenderViewport;
 	class Window;
+	class RHIContext;
 }// namespace Engine
 
 
@@ -150,6 +151,8 @@ struct ImGuiWindow;
 
 namespace ImGui
 {
+	Engine::RHIContext* GetCurrentRHI();
+
 	FORCE_INLINE ImVec4 MakeHoveredColor(ImVec4 color)
 	{
 		const float factor = 0.2f;
@@ -159,6 +162,8 @@ namespace ImGui
 		color.z = Engine::Math::lerp(color.z, 1.f, factor);
 		return color;
 	}
+
+	void Paint(ImVec2 size, ImDrawCallback callback, void* userdata = nullptr, size_t userdata_size = 0);
 
 	void TextEllipsis(const char* text, float max_width);
 

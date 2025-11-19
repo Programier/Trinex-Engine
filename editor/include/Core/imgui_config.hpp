@@ -4,22 +4,24 @@ struct ImGuiContext;
 
 namespace Engine
 {
-	class RenderSurface;
-	class Texture2D;
+	class RHITexture;
+	class RHISampler;
 }// namespace Engine
 
 struct ImGuiTrinexTextureId {
-	Engine::Texture2D* texture;
-	Engine::RenderSurface* surface;
+	Engine::RHITexture* texture;
+	Engine::RHISampler* sampler;
 
-	inline constexpr ImGuiTrinexTextureId() : texture(nullptr), surface(nullptr) {}
+	inline constexpr ImGuiTrinexTextureId(Engine::RHITexture* texture = nullptr, Engine::RHISampler* sampler = nullptr)
+	    : texture(texture), sampler(sampler)
+	{}
+
 	inline consteval ImGuiTrinexTextureId(decltype(NULL)) : ImGuiTrinexTextureId() {}
 	inline consteval ImGuiTrinexTextureId(decltype(nullptr)) : ImGuiTrinexTextureId() {}
-	inline ImGuiTrinexTextureId(Engine::Texture2D* texture) : texture(texture), surface(nullptr) {}
-	inline ImGuiTrinexTextureId(Engine::RenderSurface* surface) : texture(nullptr), surface(surface) {}
+
 	inline bool operator==(const ImGuiTrinexTextureId& other) const { return other.texture == texture; }
 	inline bool operator!=(const ImGuiTrinexTextureId& other) const { return other.texture != texture; }
-	inline const void* id() const { return texture ? static_cast<const void*>(texture) : static_cast<const void*>(surface); }
+	inline const void* id() const { return texture; }
 	inline operator bool() const { return id() != nullptr; }
 	inline operator const void*() const { return id(); }
 };

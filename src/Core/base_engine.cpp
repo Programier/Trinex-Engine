@@ -79,11 +79,6 @@ namespace Engine
 				auto viewport = viewports[i];
 				viewport->update(m_delta_time);
 			}
-
-			auto handle = rhi->context()->end();
-			rhi->submit(handle);
-			handle->release();
-			rhi->context()->begin();
 		}
 		return 0;
 	}

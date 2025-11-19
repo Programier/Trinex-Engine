@@ -238,13 +238,9 @@ namespace Engine
 		}
 	}
 
-	RenderSurface* EditorClient::capture_scene()
+	RHITexture* EditorClient::capture_scene()
 	{
-		Vector2i size        = viewport()->size();
-		RenderSurface* scene = RenderSurfacePool::global_instance()->request_transient_surface(RHISurfaceFormat::RGBA8, size);
-
-		if (scene == nullptr)
-			return nullptr;
+		Vector2i size = viewport()->size();
 
 		m_scene_view.view_size(size);
 
@@ -252,31 +248,14 @@ namespace Engine
 		update_render_stats(&renderer);
 
 		const auto& selected = m_world->selected_actors();
+		renderer.render_graph()->add_output(renderer.scene_color_ldr_target());
 		renderer.render_grid();
 		renderer.render_outlines(selected);
 		renderer.render_primitives(selected);
 
-		RHITexture* dst = scene->rhi_texture();
-		RHITexture* src = renderer.scene_color_ldr_target();
+		RHIContextPool::global_instance()->execute([&](RHIContext* ctx) { renderer.render(ctx); });
 
-		renderer.render_graph()
-		        ->add_output(dst)
-		        .add_pass("Copy to BackBuffer")
-		        .add_resource(dst, RHIAccess::TransferDst)
-		        .add_resource(src, RHIAccess::TransferSrc)
-		        .add_func([&](RHIContext* ctx) {
-			        RHITextureRegion region(m_scene_view.view_size());
-			        ctx->copy_texture_to_texture(src, region, dst, region);
-		        });
-
-		renderer.render(rhi->context());
-
-		auto handle = rhi->context()->end();
-		rhi->submit(handle);
-		handle->release();
-		rhi->context()->begin();
-
-		return scene;
+		return renderer.scene_color_ldr_target();
 	}
 
 	EditorClient& EditorClient::update_render_stats(Renderer* renderer)
@@ -363,15 +342,15 @@ namespace Engine
 					client->m_stats.pipeline.pool.push_back(m_stats);
 				}
 
-				Plugin& on_frame_begin(RenderGraph::Graph* graph)
+				Plugin& on_frame_begin(RenderGraph::Graph* graph, RHIContext* ctx)
 				{
-					rhi->context()->begin_statistics(m_stats);
+					ctx->begin_statistics(m_stats);
 					return *this;
 				}
 
-				Plugin& on_frame_end(RenderGraph::Graph* graph)
+				Plugin& on_frame_end(RenderGraph::Graph* graph, RHIContext* ctx)
 				{
-					rhi->context()->end_statistics(m_stats);
+					ctx->end_statistics(m_stats);
 					return *this;
 				}
 			};
@@ -390,21 +369,21 @@ namespace Engine
 			public:
 				Plugin(Vector<Stats::TimingQuery>& frame) : m_frame(frame) {}
 
-				Plugin& on_pass_begin(RenderGraph::Pass* pass)
+				Plugin& on_pass_begin(RenderGraph::Pass* pass, RHIContext* ctx)
 				{
 					Stats::TimingQuery entry;
 					entry.pass      = pass->name();
 					entry.timestamp = RHITimestampPool::global_instance()->request_timestamp();
-					rhi->context()->begin_timestamp(entry.timestamp);
+					ctx->begin_timestamp(entry.timestamp);
 
 					m_frame.push_back(entry);
 					return *this;
 				}
 
-				Plugin& on_pass_end(RenderGraph::Pass* pass)
+				Plugin& on_pass_end(RenderGraph::Pass* pass, RHIContext* ctx)
 				{
 					Stats::TimingQuery& entry = m_frame.back();
-					rhi->context()->end_timestamp(entry.timestamp);
+					ctx->end_timestamp(entry.timestamp);
 					return *this;
 				}
 			};
@@ -767,7 +746,7 @@ namespace Engine
 		{
 			m_state.viewport.size = ImGui::EngineVecFrom(viewport_size);
 
-			if (RenderSurface* scene = capture_scene())
+			if (RHITexture* scene = capture_scene())
 			{
 				ImGui::Image(scene, viewport_size);
 				m_state.viewport.is_hovered = ImGui::IsWindowHovered();

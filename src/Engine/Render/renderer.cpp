@@ -82,6 +82,14 @@ namespace Engine
 		ctx->viewport(m_view.viewport());
 		ctx->scissor(m_view.scissor());
 
+		RHIBuffer* view = globals_uniform_buffer();
+
+		GlobalShaderParameters params;
+		params.update(&m_view, m_view.view_size());
+		ctx->barrier(view, RHIAccess::TransferDst);
+		ctx->update_buffer(view, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
+		ctx->barrier(view, RHIAccess::UniformBuffer);
+
 		m_graph->execute(ctx);
 
 		return *this;
@@ -142,12 +150,6 @@ namespace Engine
 		{
 			m_globals = RHIBufferPool::global_instance()->request_transient_buffer(sizeof(GlobalShaderParameters),
 			                                                                       RHIBufferCreateFlags::UniformBuffer);
-
-			GlobalShaderParameters params;
-			params.update(&m_view, m_view.view_size());
-			rhi->context()->barrier(m_globals, RHIAccess::TransferDst);
-			rhi->context()->update_buffer(m_globals, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
-			rhi->context()->barrier(m_globals, RHIAccess::UniformBuffer);
 		}
 		return m_globals;
 	}

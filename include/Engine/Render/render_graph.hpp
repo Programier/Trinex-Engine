@@ -42,11 +42,11 @@ namespace Engine::RenderGraph
 		class Plugin
 		{
 		public:
-			virtual Plugin& on_frame_begin(Graph* graph);
-			virtual Plugin& on_frame_end(Graph* graph);
+			virtual Plugin& on_frame_begin(Graph* graph, RHIContext* ctx);
+			virtual Plugin& on_frame_end(Graph* graph, RHIContext* ctx);
 
-			virtual Plugin& on_pass_begin(Pass* pass);
-			virtual Plugin& on_pass_end(Pass* pass);
+			virtual Plugin& on_pass_begin(Pass* pass, RHIContext* ctx);
+			virtual Plugin& on_pass_end(Pass* pass, RHIContext* ctx);
 		};
 
 	private:

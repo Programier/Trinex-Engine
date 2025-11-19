@@ -325,17 +325,15 @@ namespace Engine
 	{
 		idle();
 
-		context()->release();
-
 		VulkanRenderPass::destroy_all();
 
 		destroy_garbage();
-		
+
 		for (VulkanThreadLocal* local : m_thread_locals)
 		{
 			trx_delete local;
 		}
-		
+
 		trx_delete m_updater;
 		trx_delete m_stagging_manager;
 		trx_delete m_pipeline_layout_manager;

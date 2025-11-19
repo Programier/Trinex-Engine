@@ -2,6 +2,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
+#include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
 #include <RHI/context.hpp>
@@ -46,15 +47,18 @@ namespace Engine
 		m_texture = rhi->create_texture(RHITextureType::Texture2D, format, {size(), 1}, mips.size(),
 		                                RHITextureCreateFlags::ShaderResource);
 
-		rhi->context()->barrier(m_texture, RHIAccess::TransferDst);
+		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
-		for (byte index = 0; auto& mip : mips)
-		{
-			RHITextureRegion region(mip.size, {0, 0}, index++);
-			rhi->context()->update_texture(m_texture, region, mip.data.data(), mip.data.size());
-		}
+			for (byte index = 0; auto& mip : mips)
+			{
+				RHITextureRegion region(mip.size, {0, 0}, index++);
+				ctx->update_texture(m_texture, region, mip.data.data(), mip.data.size());
+			}
 
-		rhi->context()->barrier(m_texture, RHIAccess::SRVGraphics);
+			ctx->barrier(m_texture, RHIAccess::SRVGraphics);
+		});
+
 		return *this;
 	}
 
@@ -90,25 +94,27 @@ namespace Engine
 		m_texture = rhi->create_texture(RHITextureType::TextureCube, format, {size(), 1}, mips.size(),
 		                                RHITextureCreateFlags::ShaderResource);
 
-		rhi->context()->barrier(m_texture, RHIAccess::TransferDst);
+		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
-		for (byte index = 0; auto& mip : mips)
-		{
-			const byte* data      = mip.data.data();
-			const size_t mip_size = mip.data.size() / 6;
-
-			for (byte face = 0; face < 6; ++face)
+			for (byte index = 0; auto& mip : mips)
 			{
-				RHITextureRegion region(mip.size, {0, 0}, index);
-				region.slice = face;
-				rhi->context()->update_texture(m_texture, region, data, mip_size);
-				data += mip_size;
+				const byte* data      = mip.data.data();
+				const size_t mip_size = mip.data.size() / 6;
+
+				for (byte face = 0; face < 6; ++face)
+				{
+					RHITextureRegion region(mip.size, {0, 0}, index);
+					region.slice = face;
+					ctx->update_texture(m_texture, region, data, mip_size);
+					data += mip_size;
+				}
+
+				++index;
 			}
 
-			++index;
-		}
-
-		rhi->context()->barrier(m_texture, RHIAccess::SRVGraphics);
+			ctx->barrier(m_texture, RHIAccess::SRVGraphics);
+		});
 
 		return *this;
 	}

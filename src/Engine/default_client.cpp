@@ -32,26 +32,20 @@ namespace Engine
 
 	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
 	{
-		auto rtv = viewport->rhi_rtv();
+		RHIContextPool::global_instance()->execute([viewport](RHIContext* ctx) {
+			auto rtv    = viewport->rhi_rtv();
+			auto target = static_cast<WindowRenderViewport*>(viewport)->rhi_swapchain()->as_texture();
+			ctx->barrier(target, RHIAccess::TransferDst);
+			ctx->clear_rtv(rtv, 1.f, 0.f, 0.f, 1.f);
 
-		auto ctx = rhi->context();
+			ctx->barrier(target, RHIAccess::RTV);
+			ctx->viewport(RHIViewport(viewport->size()));
+			ctx->scissor(RHIScissor(viewport->size()));
+			ctx->bind_render_target1(rtv, nullptr);
+			ctx->bind_pipeline(HelloTriangle::instance()->rhi_pipeline());
+			ctx->draw(3, 0);
+		});
 
-		auto target = static_cast<WindowRenderViewport*>(viewport)->rhi_swapchain()->as_texture();
-		ctx->barrier(target, RHIAccess::TransferDst);
-		ctx->clear_rtv(rtv, 1.f, 0.f, 0.f, 1.f);
-
-		ctx->barrier(target, RHIAccess::RTV);
-		ctx->viewport(RHIViewport(viewport->size()));
-		ctx->scissor(RHIScissor(viewport->size()));
-		ctx->bind_render_target1(rtv, nullptr);
-		ctx->bind_pipeline(HelloTriangle::instance()->rhi_pipeline());
-		ctx->draw(3, 0);
-
-		auto handle = ctx->end();
-
-		rhi->submit(handle);
-		handle->release();
-		ctx->begin();
 		viewport->rhi_present();
 
 		return *this;

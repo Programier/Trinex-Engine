@@ -119,7 +119,7 @@ namespace Engine
 	private:
 		void on_actor_select(World* world, class Actor* actor);
 		void on_actor_unselect(World* world, class Actor* actor);
-		RenderSurface* capture_scene();
+		RHITexture* capture_scene();
 
 		EditorClient& update_render_stats(Renderer* renderer);
 

@@ -239,8 +239,8 @@ namespace Engine
 		if (m_vtx_count == 0)
 			return *this;
 
-		m_position_buffer.rhi_update(m_vtx_count * m_position_buffer.stride());
-		m_color_buffer.rhi_update(m_vtx_count * m_color_buffer.stride());
+		m_position_buffer.rhi_update(ctx, m_vtx_count * m_position_buffer.stride());
+		m_color_buffer.rhi_update(ctx, m_vtx_count * m_color_buffer.stride());
 
 		trinex_rhi_push_stage(ctx, "Triangles Rendering");
 

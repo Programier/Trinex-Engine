@@ -192,5 +192,16 @@ namespace Engine
 
 		RHIContext* begin_context();
 		RHIContextPool& end_context(RHIContext* context);
+
+		template<typename Func>
+		inline RHIContextPool& execute(const Func& func)
+		{
+			auto ctx = begin_context();
+			{
+				func(ctx);
+			}
+			end_context(ctx);
+			return *this;
+		}
 	};
 }// namespace Engine
