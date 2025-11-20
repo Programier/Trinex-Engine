@@ -20,6 +20,7 @@ namespace Engine
 {
 	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, RHIBufferCreateFlags flags, VmaMemoryUsage memory_usage)
 	{
+		m_size  = size;
 		m_flags = flags;
 
 		vk::BufferCreateInfo buffer_info({}, size, vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive);
@@ -235,7 +236,7 @@ namespace Engine
 
 	size_t VulkanBuffer::size() const
 	{
-		return m_allocation->GetSize();
+		return m_size;
 	}
 
 	VulkanBuffer::~VulkanBuffer()

@@ -2,6 +2,7 @@
 #include <Clients/imgui_client.hpp>
 #include <Core/etl/average.hpp>
 #include <Core/etl/critical_section.hpp>
+#include <Core/etl/deque.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/camera_view.hpp>
@@ -33,6 +34,7 @@ namespace Engine
 
 	class RHIPipelineStatistics;
 	class RHITimestamp;
+	class RHIFence;
 	class CameraComponent;
 
 	class EditorClient : public ImGuiViewportClient
@@ -51,44 +53,59 @@ namespace Engine
 				const char* pass = nullptr;
 			};
 
-			struct {
-				uint64_t vertices                                = 0;
-				uint64_t primitives                              = 0;
-				uint64_t geometry_shader_primitives              = 0;
-				uint64_t clipping_primitives                     = 0;
-				uint64_t vertex_shader_invocations               = 0;
-				uint64_t tessellation_control_shader_invocations = 0;
-				uint64_t tesselation_shader_invocations          = 0;
-				uint64_t geometry_shader_invocations             = 0;
-				uint64_t clipping_invocations                    = 0;
-				uint64_t fragment_shader_invocations             = 0;
-
-				Vector<RHIPipelineStatistics*> pool;
-			} pipeline;
-
-			class
+			class Pipeline
 			{
 			private:
-				CriticalSection m_cs;
-				Vector<TimingQuery> m_frames[5];
-				Vector<TimingResult> m_frame;
-				uint_t m_write_index = 0;
-				uint_t m_read_index  = 0;
+				struct Entry {
+					RHIPipelineStatistics* stats = nullptr;
+					RHIFence* fence              = nullptr;
+				};
+
+				Deque<Entry> m_pool;
+				RHIPipelineStatistics* m_last = nullptr;
 
 			public:
-				inline Vector<TimingResult>& lock()
-				{
-					m_cs.lock();
-					return m_frame;
-				}
+				void update();
+				void submit();
 
-				inline void unlock() { m_cs.unlock(); }
-				inline Vector<TimingQuery>& writing_frame() { return m_frames[m_write_index]; }
-				inline Vector<TimingQuery>& reading_frame() { return m_frames[m_read_index]; }
+				RHIPipelineStatistics* new_frame();
+				inline RHIPipelineStatistics* last_frame() { return m_last; }
+				~Pipeline();
+			} pipeline;
 
-				inline void submit_read_index() { m_read_index = (m_read_index + 1) % 5u; }
-				inline void submit_write_index() { m_write_index = (m_write_index + 1) % 5u; }
+			class Timings
+			{
+			private:
+				struct Frame {
+					RHIFence* fence;
+					Vector<TimingQuery> queries;
+
+					void clear();
+					~Frame();
+				};
+
+				Deque<Frame> m_frames;
+				Vector<TimingResult> m_timings;
+
+			public:
+				void update();
+				void submit();
+
+				Vector<TimingQuery>& new_frame();
+				inline const Vector<TimingResult>& last_frame() const { return m_timings; }
 			} timings;
+
+			inline void update()
+			{
+				timings.update();
+				pipeline.update();
+			}
+
+			inline void submit()
+			{
+				timings.submit();
+				pipeline.submit();
+			}
 		} m_stats;
 
 	private:

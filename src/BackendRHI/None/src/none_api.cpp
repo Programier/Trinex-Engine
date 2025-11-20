@@ -54,17 +54,7 @@ namespace Engine
 	};
 
 	struct NonePipelineStatistics : public NoneApiDestroyable<RHIPipelineStatistics> {
-		uint64_t vertices() override { return 0; }
-		uint64_t primitives() override { return 0; }
-		uint64_t geometry_shader_primitives() override { return 0; }
-		uint64_t clipping_primitives() override { return 0; }
-
-		uint64_t vertex_shader_invocations() override { return 0; }
-		uint64_t tessellation_control_shader_invocations() override { return 0; }
-		uint64_t tesselation_shader_invocations() override { return 0; }
-		uint64_t geometry_shader_invocations() override { return 0; }
-		uint64_t clipping_invocations() override { return 0; }
-		uint64_t fragment_shader_invocations() override { return 0; }
+		NonePipelineStatistics& fetch() override { return *this; }
 	};
 
 	struct NoneFence : public NoneApiDestroyable<RHIFence> {

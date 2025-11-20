@@ -102,234 +102,206 @@ namespace Engine
 		return pool;
 	}
 
-	// class VulkanTimestamp : public VulkanDeferredDestroy<RHITimestamp>
-	// {
-	// private:
-	// 	float m_last_result = 0.f;
+	class VulkanTimestamp : public VulkanDeferredDestroy<RHITimestamp>
+	{
+	private:
+		struct Marker {
+			VulkanQueryPool* pool = nullptr;
+			uint64_t index        = 0;
 
-	// 	struct Marker {
-	// 		VulkanQueryPool* pool = nullptr;
-	// 		uint64_t index        = 0;
-	// 		VulkanFenceRef fence;
+			inline bool is_valid() const { return pool != nullptr; }
 
-	// 		inline bool is_valid() const { return pool != nullptr; }
-	// 		inline bool is_ready() { return fence.is_signaled() || !fence.is_waiting(); }
+			inline uint64_t query()
+			{
+				if (pool)
+				{
+					uint64_t result = 0;
+					pool->query(index, &result, sizeof(result));
+					return result;
+				}
 
-	// 		inline uint64_t query()
-	// 		{
-	// 			if (pool)
-	// 			{
-	// 				uint64_t result = 0;
-	// 				pool->query(index, &result, sizeof(result));
+				return 0.f;
+			}
 
-	// 				pool->release_index(index);
-	// 				pool  = nullptr;
-	// 				index = 0;
+			void release()
+			{
+				if (pool)
+				{
+					pool->release_index(index);
+					pool  = nullptr;
+					index = 0;
+				}
+			}
 
-	// 				return result;
-	// 			}
-	// 			return 0;
-	// 		}
-	// 	};
+			~Marker() { release(); }
+		};
 
-	// 	Marker m_begin;
-	// 	Marker m_end;
+		Marker m_begin;
+		Marker m_end;
 
-	// 	static void write_timestamp(Marker& marker, VulkanQueryPoolManager* manager, VulkanContext* ctx)
-	// 	{
-	// 		if (API->m_properties.limits.timestampComputeAndGraphics)
-	// 		{
-	// 			if (!marker.is_valid())
-	// 			{
-	// 				marker.pool = manager->find_timestamp_pool();
-	// 				marker.pool->find_index(marker.index);
-	// 			}
+		static void write_timestamp(Marker& marker, VulkanQueryPoolManager* manager, VulkanContext* ctx)
+		{
+			if (API->m_properties.limits.timestampComputeAndGraphics)
+			{
+				if (!marker.is_valid())
+				{
+					marker.pool = manager->find_timestamp_pool();
+					marker.pool->find_index(marker.index);
+				}
 
-	// 			auto cmd = ctx->end_render_pass();
-	// 			cmd->resetQueryPool(marker.pool->pool(), marker.index, 1);
-	// 			cmd->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, marker.pool->pool(), marker.index);
-	// 			marker.fence.signal(cmd);
-	// 		}
-	// 	}
+				auto cmd = ctx->end_render_pass();
+				cmd->resetQueryPool(marker.pool->pool(), marker.index, 1);
+				cmd->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, marker.pool->pool(), marker.index);
+			}
+		}
 
-	// public:
-	// 	VulkanTimestamp& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
-	// 	{
-	// 		write_timestamp(m_begin, manager, ctx);
-	// 		return *this;
-	// 	}
+	public:
+		VulkanTimestamp& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
+		{
+			write_timestamp(m_begin, manager, ctx);
+			return *this;
+		}
 
-	// 	VulkanTimestamp& end(VulkanQueryPoolManager* manager, VulkanContext* ctx)
-	// 	{
-	// 		write_timestamp(m_end, manager, ctx);
-	// 		return *this;
-	// 	}
+		VulkanTimestamp& end(VulkanQueryPoolManager* manager, VulkanContext* ctx)
+		{
+			write_timestamp(m_end, manager, ctx);
+			return *this;
+		}
 
-	// 	float milliseconds() override
-	// 	{
-	// 		if (is_ready())
-	// 			return m_last_result;
-	// 		return 0.f;
-	// 	}
-	// };
+		float milliseconds() override
+		{
+			if (m_begin.is_valid() && m_end.is_valid())
+			{
+				uint64_t delta = m_end.query() - m_begin.query();
+				return static_cast<float>(delta) * API->m_properties.limits.timestampPeriod / 1000000.0f;
+			}
+			return 0.f;
+		}
+	};
 
-	// class VulkanPipelineStats : public VulkanDeferredDestroy<RHIPipelineStatistics>
-	// {
-	// private:
-	// 	struct Stats {
-	// 		uint64_t m_vertices                                = 0;
-	// 		uint64_t m_primitives                              = 0;
-	// 		uint64_t m_vertex_shader_invocations               = 0;
-	// 		uint64_t m_geometry_shader_invocations             = 0;
-	// 		uint64_t m_geometry_shader_primitives              = 0;
-	// 		uint64_t m_clipping_invocations                    = 0;
-	// 		uint64_t m_clipping_primitives                     = 0;
-	// 		uint64_t m_fragment_shader_invocations             = 0;
-	// 		uint64_t m_tessellation_control_shader_invocations = 0;
-	// 		uint64_t m_tesselation_shader_invocations          = 0;
-	// 	};
+	class VulkanPipelineStats : public VulkanDeferredDestroy<RHIPipelineStatistics>
+	{
+	private:
+		struct Stats {
+			uint64_t vertices;
+			uint64_t primitives;
+			uint64_t vertex_shader_invocations;
+			uint64_t geometry_shader_invocations;
+			uint64_t geometry_shader_primitives;
+			uint64_t clipping_invocations;
+			uint64_t clipping_primitives;
+			uint64_t fragment_shader_invocations;
+			uint64_t tessellation_control_shader_invocations;
+			uint64_t tesselation_shader_invocations;
+		};
 
-	// 	struct Marker {
-	// 		VulkanQueryPool* pool = nullptr;
-	// 		uint64_t index        = 0;
-	// 		VulkanFenceRef fence;
+		struct Marker {
+			VulkanQueryPool* pool = nullptr;
+			uint64_t index        = 0;
 
-	// 		inline bool is_valid() const { return pool != nullptr; }
-	// 		inline bool is_ready() { return fence.is_signaled(); }
+			inline bool is_valid() const { return pool != nullptr; }
 
-	// 		inline void query(Stats& stats)
-	// 		{
-	// 			if (pool)
-	// 			{
-	// 				pool->query(index, &stats, sizeof(stats));
+			inline void query(Stats* stats)
+			{
+				if (pool)
+				{
+					pool->query(index, stats, sizeof(Stats));
 
-	// 				pool->release_index(index);
-	// 				pool  = nullptr;
-	// 				index = 0;
-	// 				fence.reset();
-	// 			}
-	// 		}
-	// 	};
+					pool->release_index(index);
+					pool  = nullptr;
+					index = 0;
+				}
+			}
+		};
 
-	// 	Stats m_stats;
-	// 	Marker m_marker;
+		Marker m_marker;
 
-	// public:
-	// 	VulkanPipelineStats& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
-	// 	{
-	// 		if (API->m_features.pipelineStatisticsQuery)
-	// 		{
-	// 			if (!m_marker.is_valid())
-	// 			{
-	// 				m_marker.pool = manager->find_statistics_pool();
-	// 				m_marker.pool->find_index(m_marker.index);
-	// 			}
+	public:
+		VulkanPipelineStats& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
+		{
+			if (API->m_features.pipelineStatisticsQuery)
+			{
+				if (!m_marker.is_valid())
+				{
+					m_marker.pool = manager->find_statistics_pool();
+					m_marker.pool->find_index(m_marker.index);
+				}
 
-	// 			auto cmd = ctx->end_render_pass();
-	// 			cmd->resetQueryPool(m_marker.pool->pool(), m_marker.index, 1);
-	// 			cmd->beginQuery(m_marker.pool->pool(), m_marker.index, {});
-	// 			m_marker.fence.reset();
-	// 		}
-	// 		return *this;
-	// 	}
+				auto cmd = ctx->end_render_pass();
+				cmd->resetQueryPool(m_marker.pool->pool(), m_marker.index, 1);
+				cmd->beginQuery(m_marker.pool->pool(), m_marker.index, {});
+			}
+			return *this;
+		}
 
-	// 	VulkanPipelineStats& end(VulkanQueryPoolManager* manager, VulkanContext* ctx)
-	// 	{
-	// 		if (API->m_features.pipelineStatisticsQuery)
-	// 		{
-	// 			if (m_marker.is_valid())
-	// 			{
-	// 				auto cmd = ctx->end_render_pass();
-	// 				cmd->endQuery(m_marker.pool->pool(), m_marker.index);
-	// 				m_marker.fence.signal(cmd);
-	// 			}
-	// 			else
-	// 			{
-	// 				m_stats = {};
-	// 			}
-	// 		}
+		VulkanPipelineStats& end(VulkanQueryPoolManager* manager, VulkanContext* ctx)
+		{
+			if (API->m_features.pipelineStatisticsQuery)
+			{
+				if (m_marker.is_valid())
+				{
+					auto cmd = ctx->end_render_pass();
+					cmd->endQuery(m_marker.pool->pool(), m_marker.index);
+				}
+			}
 
-	// 		return *this;
-	// 	}
+			return *this;
+		}
 
-	// 	bool is_ready() override
-	// 	{
-	// 		if (!m_marker.is_valid())
-	// 			return true;
+		VulkanPipelineStats& fetch()
+		{
+			Stats stats;
+			m_marker.query(&stats);
 
-	// 		if (m_marker.is_ready())
-	// 		{
-	// 			m_marker.query(m_stats);
-	// 			return true;
-	// 		}
-
-	// 		return false;
-	// 	}
-
-	// 	const Stats& query_stats()
-	// 	{
-	// 		if (is_ready())
-	// 		{
-	// 			return m_stats;
-	// 		}
-
-	// 		static const Stats default_stats;
-	// 		return default_stats;
-	// 	}
-
-	// 	uint64_t vertices() override { return query_stats().m_vertices; }
-	// 	uint64_t primitives() override { return query_stats().m_primitives; }
-	// 	uint64_t geometry_shader_primitives() override { return query_stats().m_geometry_shader_primitives; }
-	// 	uint64_t clipping_primitives() override { return query_stats().m_clipping_primitives; }
-	// 	uint64_t vertex_shader_invocations() override { return query_stats().m_vertex_shader_invocations; }
-	// 	uint64_t tesselation_shader_invocations() override { return query_stats().m_tesselation_shader_invocations; }
-	// 	uint64_t geometry_shader_invocations() override { return query_stats().m_geometry_shader_invocations; }
-	// 	uint64_t clipping_invocations() override { return query_stats().m_clipping_invocations; }
-	// 	uint64_t fragment_shader_invocations() override { return query_stats().m_fragment_shader_invocations; }
-
-	// 	uint64_t tessellation_control_shader_invocations() override
-	// 	{
-	// 		return query_stats().m_tessellation_control_shader_invocations;
-	// 	}
-	// };
+			vertices                                = stats.vertices;
+			primitives                              = stats.primitives;
+			vertex_shader_invocations               = stats.vertex_shader_invocations;
+			geometry_shader_invocations             = stats.geometry_shader_invocations;
+			geometry_shader_primitives              = stats.geometry_shader_primitives;
+			clipping_invocations                    = stats.clipping_invocations;
+			clipping_primitives                     = stats.clipping_primitives;
+			fragment_shader_invocations             = stats.fragment_shader_invocations;
+			tessellation_control_shader_invocations = stats.tessellation_control_shader_invocations;
+			tesselation_shader_invocations          = stats.tesselation_shader_invocations;
+			return *this;
+		}
+	};
 
 	RHITimestamp* VulkanAPI::create_timestamp()
 	{
-		//return trx_new VulkanTimestamp();
-		return nullptr;
+		return trx_new VulkanTimestamp();
 	}
 
 	RHIPipelineStatistics* VulkanAPI::create_pipeline_statistics()
 	{
-		//return trx_new VulkanPipelineStats();
-		return nullptr;
+		return trx_new VulkanPipelineStats();
 	}
 
 	VulkanContext& VulkanContext::begin_timestamp(RHITimestamp* timestamp)
 	{
 		auto manager = API->query_pool_manager();
-		// static_cast<VulkanTimestamp*>(timestamp)->begin(manager, this);
+		static_cast<VulkanTimestamp*>(timestamp)->begin(manager, this);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::end_timestamp(RHITimestamp* timestamp)
 	{
 		auto manager = API->query_pool_manager();
-		// static_cast<VulkanTimestamp*>(timestamp)->end(manager, this);
+		static_cast<VulkanTimestamp*>(timestamp)->end(manager, this);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::begin_statistics(RHIPipelineStatistics* stats)
 	{
 		auto manager = API->query_pool_manager();
-		// static_cast<VulkanPipelineStats*>(stats)->begin(manager, this);
+		static_cast<VulkanPipelineStats*>(stats)->begin(manager, this);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::end_statistics(RHIPipelineStatistics* stats)
 	{
 		auto manager = API->query_pool_manager();
-		// static_cast<VulkanPipelineStats*>(stats)->end(manager, this);
+		static_cast<VulkanPipelineStats*>(stats)->end(manager, this);
 		return *this;
 	}
 

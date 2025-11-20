@@ -1,5 +1,3 @@
-#define IMVIEWGUIZMO_IMPLEMENTATION 1
-
 #include <Clients/editor_client.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
@@ -49,6 +47,125 @@ namespace Engine
 	trinex_implement_engine_class(EditorClient, 0)
 	{
 		register_client(Actor::static_reflection(), static_reflection());
+	}
+
+	void EditorClient::Stats::Pipeline::update()
+	{
+		RHIPipelineStatistics* last = m_last;
+		auto stats_pool             = RHIPipelineStatisticsPool::global_instance();
+		auto fence_pool             = RHIFencePool::global_instance();
+
+		while (!m_pool.empty() && m_pool.front().fence->is_signaled())
+		{
+			if (m_last)
+				stats_pool->return_statistics(m_last);
+
+			auto& front = m_pool.front();
+			m_last      = front.stats;
+			fence_pool->return_fence(front.fence);
+
+			m_pool.pop_front();
+		}
+
+		if (last != m_last)
+		{
+			m_last->fetch();
+		}
+	}
+
+	void EditorClient::Stats::Pipeline::submit()
+	{
+		if (!m_pool.empty())
+		{
+			auto& last = m_pool.back();
+			last.fence = RHIFencePool::global_instance()->request_fence();
+			rhi->signal(last.fence);
+		}
+	}
+
+	RHIPipelineStatistics* EditorClient::Stats::Pipeline::new_frame()
+	{
+		auto& frame = m_pool.emplace_back();
+		frame.stats = RHIPipelineStatisticsPool::global_instance()->request_statistics();
+		return frame.stats;
+	}
+
+	EditorClient::Stats::Pipeline::~Pipeline()
+	{
+		if (m_last)
+		{
+			RHIPipelineStatisticsPool::global_instance()->return_statistics(m_last);
+		}
+	}
+
+
+	void EditorClient::Stats::Timings::Frame::clear()
+	{
+		if (fence)
+		{
+			RHIFencePool::global_instance()->return_fence(fence);
+			fence = nullptr;
+		}
+
+		auto pool = RHITimestampPool::global_instance();
+
+		for (auto& entry : queries)
+		{
+			if (entry.timestamp)
+			{
+				pool->return_timestamp(entry.timestamp);
+			}
+		}
+
+		queries.clear();
+	}
+
+	EditorClient::Stats::Timings::Frame::~Frame()
+	{
+		clear();
+	}
+
+	void EditorClient::Stats::Timings::update()
+	{
+		while (!m_frames.empty() && m_frames.front().fence->is_signaled())
+		{
+			m_timings.clear();
+			auto& frame = m_frames.front();
+
+			for (auto& pass : frame.queries)
+			{
+				m_timings.emplace_back(pass.timestamp->milliseconds(), pass.pass);
+			}
+
+			m_frames.pop_back();
+		}
+	}
+
+	void EditorClient::Stats::Timings::submit()
+	{
+		if (!m_frames.empty())
+		{
+			auto& last = m_frames.back();
+
+			if (!last.queries.empty())
+			{
+				last.fence = RHIFencePool::global_instance()->request_fence();
+				rhi->signal(last.fence);
+			}
+		}
+	}
+
+	Vector<EditorClient::Stats::TimingQuery>& EditorClient::Stats::Timings::new_frame()
+	{
+		if (!m_frames.empty())
+		{
+			auto& last = m_frames.back();
+			if (last.queries.empty())
+				return last.queries;
+		}
+
+		auto& frame = m_frames.emplace_back();
+		return frame.queries;
 	}
 
 	EditorClient::EditorClient()
@@ -255,92 +372,25 @@ namespace Engine
 
 		RHIContextPool::global_instance()->execute([&](RHIContext* ctx) { renderer.render(ctx); });
 
+		m_stats.submit();
+
 		return renderer.scene_color_ldr_target();
 	}
 
 	EditorClient& EditorClient::update_render_stats(Renderer* renderer)
 	{
-		if (!m_stats.pipeline.pool.empty())
-		{
-			// auto stats = m_stats.pipeline.pool.front();
-
-			// if (stats->is_ready())
-			// {
-			// 	size_t data[10] = {
-			// 	        stats->vertices(),
-			// 	        stats->primitives(),
-			// 	        stats->geometry_shader_primitives(),
-			// 	        stats->clipping_primitives(),
-			// 	        stats->vertex_shader_invocations(),
-			// 	        stats->tessellation_control_shader_invocations(),
-			// 	        stats->tesselation_shader_invocations(),
-			// 	        stats->geometry_shader_invocations(),
-			// 	        stats->clipping_invocations(),
-			// 	        stats->fragment_shader_invocations(),
-			// 	};
-
-			// 	call_in_logic_thread([=, this]() {
-			// 		m_stats.pipeline.vertices                                = data[0];
-			// 		m_stats.pipeline.primitives                              = data[1];
-			// 		m_stats.pipeline.geometry_shader_primitives              = data[2];
-			// 		m_stats.pipeline.clipping_primitives                     = data[3];
-			// 		m_stats.pipeline.vertex_shader_invocations               = data[4];
-			// 		m_stats.pipeline.tessellation_control_shader_invocations = data[5];
-			// 		m_stats.pipeline.tesselation_shader_invocations          = data[6];
-			// 		m_stats.pipeline.geometry_shader_invocations             = data[7];
-			// 		m_stats.pipeline.clipping_invocations                    = data[8];
-			// 		m_stats.pipeline.fragment_shader_invocations             = data[9];
-			// 	});
-
-			// 	RHIPipelineStatisticsPool::global_instance()->return_statistics(stats);
-			// 	m_stats.pipeline.pool.erase(m_stats.pipeline.pool.begin());
-			// }
-		}
-
-		if (!m_stats.timings.reading_frame().empty())
-		{
-			// auto& frame = m_stats.timings.reading_frame();
-
-			// bool is_ready = true;
-			// for (size_t i = 0, count = frame.size(); is_ready && i < count; ++i)
-			// {
-			// 	is_ready = frame[i].timestamp->is_ready();
-			// }
-
-			// if (is_ready)
-			// {
-			// 	auto& result = m_stats.timings.lock();
-			// 	result.clear();
-
-			// 	auto pool = RHITimestampPool::global_instance();
-
-			// 	for (auto& query : frame)
-			// 	{
-			// 		result.emplace_back(query.timestamp->milliseconds(), query.pass);
-			// 		pool->return_timestamp(query.timestamp);
-			// 	}
-
-			// 	frame.clear();
-			// 	m_stats.timings.unlock();
-
-			// 	m_stats.timings.submit_read_index();
-			// }
-		}
-
 		if (!(m_scene_view.show_flags() & ShowFlags::Statistics))
 			return *this;
 
-		if (m_stats.pipeline.pool.size() < 5)
 		{
+			auto frame = m_stats.pipeline.new_frame();
+
 			class Plugin : public RenderGraph::Graph::Plugin
 			{
 				RHIPipelineStatistics* m_stats;
 
 			public:
-				Plugin(EditorClient* client) : m_stats(RHIPipelineStatisticsPool::global_instance()->request_statistics())
-				{
-					client->m_stats.pipeline.pool.push_back(m_stats);
-				}
+				Plugin(RHIPipelineStatistics* stats) : m_stats(stats) {}
 
 				Plugin& on_frame_begin(RenderGraph::Graph* graph, RHIContext* ctx)
 				{
@@ -355,12 +405,11 @@ namespace Engine
 				}
 			};
 
-			renderer->render_graph()->create_plugin<Plugin>(this);
+			renderer->render_graph()->create_plugin<Plugin>(frame);
 		}
 
-		if (m_stats.timings.writing_frame().empty())
 		{
-			auto& frame = m_stats.timings.writing_frame();
+			auto& frame = m_stats.timings.new_frame();
 
 			class Plugin : public RenderGraph::Graph::Plugin
 			{
@@ -389,7 +438,6 @@ namespace Engine
 			};
 
 			renderer->render_graph()->create_plugin<Plugin>(frame);
-			m_stats.timings.submit_write_index();
 		}
 		return *this;
 	}
@@ -417,23 +465,26 @@ namespace Engine
 			ImGui::TextColored(color, "Delta Time: %f", m_dt.average());
 			ImGui::TextColored(color, "FPS: %f", 1.f / m_dt.average());
 
-			ImGui::TextColored(color, "Vertices: %zu", m_stats.pipeline.vertices);
-			ImGui::TextColored(color, "Primitives: %zu", m_stats.pipeline.primitives);
-			ImGui::TextColored(color, "Clipping primitives: %zu", m_stats.pipeline.clipping_primitives);
-			ImGui::TextColored(color, "Geometry primitives: %zu", m_stats.pipeline.geometry_shader_primitives);
+			if (auto frame = m_stats.pipeline.last_frame())
+			{
+				ImGui::TextColored(color, "Vertices: %zu", frame->vertices);
+				ImGui::TextColored(color, "Primitives: %zu", frame->primitives);
+				ImGui::TextColored(color, "Clipping primitives: %zu", frame->clipping_primitives);
+				ImGui::TextColored(color, "Geometry primitives: %zu", frame->geometry_shader_primitives);
 
-			ImGui::TextColored(color, "Vertex shader invocations: %zu", m_stats.pipeline.vertex_shader_invocations);
-			ImGui::TextColored(color, "Geometry shader invocations: %zu", m_stats.pipeline.geometry_shader_invocations);
-			ImGui::TextColored(color, "Tessellation control shader invocations: %zu",
-			                   m_stats.pipeline.tessellation_control_shader_invocations);
-			ImGui::TextColored(color, "Tessellation shader invocations: %zu", m_stats.pipeline.tesselation_shader_invocations);
-			ImGui::TextColored(color, "Geometry shader invocations: %zu", m_stats.pipeline.geometry_shader_invocations);
-			ImGui::TextColored(color, "Clipping invocations: %zu", m_stats.pipeline.clipping_invocations);
-			ImGui::TextColored(color, "Fragment shader invocations: %zu", m_stats.pipeline.fragment_shader_invocations);
+				ImGui::TextColored(color, "Vertex shader invocations: %zu", frame->vertex_shader_invocations);
+				ImGui::TextColored(color, "Geometry shader invocations: %zu", frame->geometry_shader_invocations);
+				ImGui::TextColored(color, "Tessellation control shader invocations: %zu",
+				                   frame->tessellation_control_shader_invocations);
+				ImGui::TextColored(color, "Tessellation shader invocations: %zu", frame->tesselation_shader_invocations);
+				ImGui::TextColored(color, "Geometry shader invocations: %zu", frame->geometry_shader_invocations);
+				ImGui::TextColored(color, "Clipping invocations: %zu", frame->clipping_invocations);
+				ImGui::TextColored(color, "Fragment shader invocations: %zu", frame->fragment_shader_invocations);
+			}
 
 			ImGui::NewLine();
 
-			auto& timings = m_stats.timings.lock();
+			auto& timings = m_stats.timings.last_frame();
 
 			float total = 0.f;
 			for (auto& time : timings)
@@ -443,7 +494,6 @@ namespace Engine
 			}
 
 			ImGui::TextColored(color, "Total: %f", total);
-			m_stats.timings.unlock();
 		}
 		ImGui::EndVertical();
 		return *this;
@@ -452,6 +502,8 @@ namespace Engine
 	EditorClient& EditorClient::update(float dt)
 	{
 		m_dt.push(dt);
+		m_stats.update();
+
 		update_camera();
 		render_viewport_window();
 

@@ -23,17 +23,18 @@ namespace Engine
 	class ENGINE_EXPORT RHIPipelineStatistics : public RHIObject
 	{
 	public:
-		virtual uint64_t vertices()                   = 0;
-		virtual uint64_t primitives()                 = 0;
-		virtual uint64_t geometry_shader_primitives() = 0;
-		virtual uint64_t clipping_primitives()        = 0;
+		uint64_t vertices                                = 0;
+		uint64_t primitives                              = 0;
+		uint64_t vertex_shader_invocations               = 0;
+		uint64_t geometry_shader_invocations             = 0;
+		uint64_t geometry_shader_primitives              = 0;
+		uint64_t clipping_invocations                    = 0;
+		uint64_t clipping_primitives                     = 0;
+		uint64_t fragment_shader_invocations             = 0;
+		uint64_t tessellation_control_shader_invocations = 0;
+		uint64_t tesselation_shader_invocations          = 0;
 
-		virtual uint64_t vertex_shader_invocations()               = 0;
-		virtual uint64_t tessellation_control_shader_invocations() = 0;
-		virtual uint64_t tesselation_shader_invocations()          = 0;
-		virtual uint64_t geometry_shader_invocations()             = 0;
-		virtual uint64_t clipping_invocations()                    = 0;
-		virtual uint64_t fragment_shader_invocations()             = 0;
+		virtual RHIPipelineStatistics& fetch() = 0;
 	};
 
 	class ENGINE_EXPORT RHIFence : public RHIObject

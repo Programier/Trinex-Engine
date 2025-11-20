@@ -19,6 +19,7 @@ namespace Engine
 
 		vk::Buffer m_buffer        = VK_NULL_HANDLE;
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
+		size_t m_size              = 0;
 		RHIDeviceAddress m_address = 0;
 
 		RHIAccess m_access           = RHIAccess::Undefined;
