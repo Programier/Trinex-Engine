@@ -15,6 +15,10 @@ namespace Engine
 	{
 		namespace Textures
 		{
+			ENGINE_EXPORT Texture2D* white                  = nullptr;
+			ENGINE_EXPORT Texture2D* black                  = nullptr;
+			ENGINE_EXPORT Texture2D* gray                   = nullptr;
+			ENGINE_EXPORT Texture2D* normal                 = nullptr;
 			ENGINE_EXPORT Texture2D* default_texture        = nullptr;
 			ENGINE_EXPORT TextureCube* default_texture_cube = nullptr;
 			ENGINE_EXPORT Texture2D* noise4x4               = nullptr;
@@ -114,8 +118,28 @@ namespace Engine
 		}
 	}
 
+	static void generate_dummy_texture(Package* package, Texture2D*& texture, const char* name, Color color)
+	{
+		texture = create_texture<Texture2D>(package, name);
+
+		auto& mip = texture->mips.emplace_back();
+		mip.size  = {1, 1};
+		mip.data.resize(mip.size.x * mip.size.y * 4);
+
+		(*reinterpret_cast<Color*>(mip.data.data())) = color;
+		texture->init_render_resources();
+	}
+
 	static void generate_default_textures(Package* package)
 	{
+		{
+			namespace Textures = DefaultResources::Textures;
+			generate_dummy_texture(package, Textures::white, "White", {255, 255, 255, 255});
+			generate_dummy_texture(package, Textures::black, "Black", {0, 0, 0, 255});
+			generate_dummy_texture(package, Textures::gray, "Gray", {127, 127, 127, 255});
+			generate_dummy_texture(package, Textures::normal, "Normal", {127, 127, 255, 255});
+		}
+
 		{
 			Texture2D*& texture = DefaultResources::Textures::default_texture;
 			texture             = create_texture<Texture2D>(package, "DefaultTexture");
@@ -156,7 +180,6 @@ namespace Engine
 		generate_default_textures(package);
 		generate_noise_textures(package);
 	}
-
 
 	void load_default_resources()
 	{

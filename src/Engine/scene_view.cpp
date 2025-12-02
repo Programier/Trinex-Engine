@@ -48,6 +48,12 @@ namespace Engine
 		return *this;
 	}
 
+	SceneView& SceneView::history(FrameHistory* history)
+	{
+		m_history = history;
+		return *this;
+	}
+
 	Vector3f SceneView::screen_to_ray_direction(const Vector2f& screen_point) const
 	{
 		int32_t x = Math::trunc(screen_point.x), y = Math::trunc(screen_point.y);

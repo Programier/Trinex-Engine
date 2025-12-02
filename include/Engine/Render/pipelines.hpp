@@ -10,8 +10,24 @@ namespace Engine
 	class Renderer;
 	struct LightRenderRanges;
 
+	struct Swizzle : VectorNT<4, byte> {
+		enum Enum : byte
+		{
+			R    = 0,
+			G    = 1,
+			B    = 2,
+			A    = 3,
+			Zero = 4,
+			One  = 5,
+		};
+
+		inline Swizzle() : VectorNT<4, byte>(R, G, B, A) {}
+		using VectorNT<4, byte>::VectorNT;
+	};
+
 	namespace Pipelines
 	{
+
 		class ENGINE_EXPORT GaussianBlur : public GlobalGraphicsPipeline
 		{
 			trinex_declare_pipeline(GaussianBlur, GlobalGraphicsPipeline);
@@ -20,9 +36,9 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
-			          Swizzle swizzle = {}, RHISampler* sampler = nullptr, Vector2f offset = {0.f, 0.f},
-			          Vector2f size = {1.f, 1.f});
+			static void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
+			                 Swizzle swizzle = {}, RHISampler* sampler = nullptr, Vector2f offset = {0.f, 0.f},
+			                 Vector2f size = {1.f, 1.f});
 		};
 
 		class ENGINE_EXPORT Blit2D : public GlobalGraphicsPipeline
@@ -33,8 +49,8 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void blit(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle = {},
-			          RHISampler* sampler = nullptr);
+			static void blit(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size,
+			                 Swizzle swizzle = {}, RHISampler* sampler = nullptr);
 		};
 
 		class ENGINE_EXPORT Passthrow : public GlobalGraphicsPipeline
@@ -45,8 +61,8 @@ namespace Engine
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			void passthrow(RHIContext* ctx, RHIShaderResourceView* src, Vector4f color_offset = Vector4f(0.f),
-			               Vector4f color_scale = Vector4f(1.f), Vector2f offset = {0.f, 0.f}, Vector2f size = {1.f, 1.f});
+			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle = {}, Vector2f offset = {0.f, 0.f},
+			                      Vector2f size = {1.f, 1.f}, RHISampler* sampler = nullptr);
 		};
 
 		class ENGINE_EXPORT Downsample : public GlobalGraphicsPipeline

@@ -80,7 +80,7 @@ namespace Engine
 	                                                                  RHIBlendFunc::DstColor,//
 	                                                                  RHIBlendFunc::Zero,    //
 	                                                                  RHIBlendOp::Add,       //
-	                                                                  RHIBlendFunc::One,     //
+	                                                                  RHIBlendFunc::DstAlpha,//
 	                                                                  RHIBlendFunc::Zero,    //
 	                                                                  RHIBlendOp::Add);
 	bool RHIBlendingState::serialize(Archive& ar)

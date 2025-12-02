@@ -6,6 +6,7 @@
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 #include <Engine/Render/depth_renderer.hpp>
+#include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/lighting.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/post_process_parameters.hpp>
@@ -471,26 +472,27 @@ namespace Engine
 		ctx->bind_render_target1(buffer1->as_rtv());
 
 		// Render SSAO
+		ctx->push_debug_stage("Calculate");
 		auto& ssao = m_post_process_params->ssao;
 		Pipelines::SSAO::instance()->render(ctx, this, ssao.intensity, ssao.bias, ssao.power, ssao.radius, ssao.fade_out_distance,
 		                                    ssao.fade_out_radius, ssao.samples);
+		ctx->pop_debug_stage();
+		ctx->push_debug_stage("Blur and Apply");
 
 		// Blur vertical
 		ctx->barrier(buffer1, RHIAccess::SRVGraphics).barrier(buffer2, RHIAccess::RTV);
 		ctx->bind_render_target1(buffer2->as_rtv());
-		Pipelines::GaussianBlur::instance()->blur(ctx, buffer1->as_srv(), {0.f, inv_half_size.y}, 0.8, 2.f);
+		Pipelines::GaussianBlur::blur(ctx, buffer1->as_srv(), {0.f, inv_half_size.y}, 0.8, 2.f);
 
 		// Blur horizontal
-		ctx->barrier(buffer1, RHIAccess::RTV).barrier(buffer2, RHIAccess::SRVGraphics);
-		ctx->bind_render_target1(buffer1->as_rtv());
-		Pipelines::GaussianBlur::instance()->blur(ctx, buffer2->as_srv(), {inv_half_size.x, 0.f}, 0.8, 2.f);
+		ctx->barrier(buffer2, RHIAccess::SRVGraphics);
+		ctx->bind_render_target1(msra_target()->as_rtv());
+		ctx->blending_state(RHIBlendingState::multiply);
 
-		// ctx->bind_render_target1(msra_rtv);
-		// ctx->write_mask(RHIColorComponent::A);
-		// swizzle.a = Swizzle::R;
-		// Pipelines::GaussianBlur::instance()->blur(ctx, buffer_srv, {inv_size.x, 0.f}, 0.8, 2.f, swizzle);
-		// ctx->write_mask(RHIColorComponent::RGBA);
+		Pipelines::GaussianBlur::blur(ctx, buffer2->as_srv(), {inv_half_size.x, 0.f}, 0.8, 2.f,
+		                              {Swizzle::One, Swizzle::One, Swizzle::One, Swizzle::R});
 
+		ctx->pop_debug_stage();
 
 		pool->return_surface(buffer1);
 		pool->return_surface(buffer2);
@@ -645,6 +647,7 @@ namespace Engine
 		auto dst = scene_color_ldr_target();
 
 		RHITextureRegion region(scene_view().view_size());
+		ctx->blending_state(RHIBlendingState());
 		ctx->copy_texture_to_texture(src, region, dst, region);
 		return *this;
 	}
@@ -653,6 +656,7 @@ namespace Engine
 	{
 		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
 		auto src = normal_target()->as_srv();
+		ctx->blending_state(RHIBlendingState());
 		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
 		                                    {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
 		return *this;
@@ -663,6 +667,7 @@ namespace Engine
 		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
 		auto src = msra_target()->as_srv();
 
+		ctx->blending_state(RHIBlendingState());
 		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
 		                                    {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
 		return *this;
@@ -672,6 +677,7 @@ namespace Engine
 	{
 		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
 		auto src = msra_target()->as_srv();
+		ctx->blending_state(RHIBlendingState());
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
@@ -683,6 +689,7 @@ namespace Engine
 	{
 		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
 		auto src = msra_target()->as_srv();
+		ctx->blending_state(RHIBlendingState());
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
@@ -694,6 +701,7 @@ namespace Engine
 	{
 		auto src = scene_color_hdr_target();
 		auto dst = scene_color_ldr_target();
+		ctx->blending_state(RHIBlendingState());
 
 		RHITextureRegion region(scene_view().view_size());
 		ctx->copy_texture_to_texture(src, region, dst, region);
@@ -702,8 +710,9 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::copy_ambient_to_scene_color(RHIContext* ctx)
 	{
-		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
 		auto src = msra_target()->as_srv();
+		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
+		ctx->blending_state(RHIBlendingState());
 
 		RHIRect rect(scene_view().view_size());
 		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
@@ -715,6 +724,7 @@ namespace Engine
 	{
 		auto src = velocity_target();
 		auto dst = scene_color_ldr_target();
+		ctx->blending_state(RHIBlendingState());
 
 		RHITextureRegion region(scene_view().view_size());
 		ctx->copy_texture_to_texture(src, region, dst, region);

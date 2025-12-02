@@ -2,6 +2,8 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/exception.hpp>
+#include <Core/math/random.hpp>
+#include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
@@ -13,7 +15,6 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
-#include <random>
 
 namespace Engine::Pipelines
 {
@@ -42,30 +43,31 @@ namespace Engine::Pipelines
 	                        Swizzle swizzle, RHISampler* sampler, Vector2f offset, Vector2f size)
 	{
 		struct Args {
-			alignas(16) Vector4u swizzle;
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f direction;
 			alignas(4) float sigma;
 			alignas(4) float radius;
+			alignas(4) Swizzle swizzle;
 		};
 
 		Args args;
-		args.swizzle   = swizzle;
 		args.offset    = offset;
 		args.size      = size;
 		args.direction = direction;
 		args.sigma     = sigma;
 		args.radius    = radius;
+		args.swizzle   = swizzle;
 
 		if (sampler == nullptr)
 			sampler = RHIBilinearSampler::static_sampler();
 
-		push_context_state(this, ctx);
+		auto self = instance();
+		push_context_state(self, ctx);
 
-		ctx->bind_srv(src, m_source->binding);
-		ctx->bind_sampler(sampler, m_source->binding);
-		ctx->update_scalar(&args, sizeof(args), m_args);
+		ctx->bind_srv(src, self->m_source->binding);
+		ctx->bind_sampler(sampler, self->m_source->binding);
+		ctx->update_scalar(&args, sizeof(args), self->m_args);
 
 		ctx->draw(6, 0);
 
@@ -84,7 +86,7 @@ namespace Engine::Pipelines
 		struct ShaderArgs {
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f inv_size;
-			alignas(16) Vector4u swizzle;
+			alignas(4) Swizzle swizzle;
 		};
 
 		if (sampler == nullptr)
@@ -95,11 +97,13 @@ namespace Engine::Pipelines
 		shader_args.inv_size = inv_size;
 		shader_args.swizzle  = swizzle;
 
-		push_context_state(this, ctx);
+		auto self = instance();
 
-		ctx->bind_srv(src, m_source->binding);
-		ctx->bind_sampler(sampler, m_source->binding);
-		ctx->update_scalar(&shader_args, sizeof(shader_args), m_args);
+		push_context_state(self, ctx);
+
+		ctx->bind_srv(src, self->m_source->binding);
+		ctx->bind_sampler(sampler, self->m_source->binding);
+		ctx->update_scalar(&shader_args, sizeof(shader_args), self->m_args);
 
 		ctx->draw(6, 0);
 
@@ -112,27 +116,29 @@ namespace Engine::Pipelines
 		m_args  = find_parameter("args");
 	}
 
-	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Vector4f color_offset, Vector4f color_scale,
-	                          Vector2f offset, Vector2f size)
+	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle, Vector2f offset, Vector2f size,
+	                          RHISampler* sampler)
 	{
 		struct Args {
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
-			alignas(16) Vector4f color_offset;
-			alignas(16) Vector4f color_scale;
+			alignas(4) Swizzle swizzle;
 		};
 
 		Args args;
-		args.offset       = offset;
-		args.size         = size;
-		args.color_offset = color_offset;
-		args.color_scale  = color_scale;
+		args.offset  = offset;
+		args.size    = size;
+		args.swizzle = swizzle;
 
-		push_context_state(this, ctx);
+		auto self = instance();
+		push_context_state(self, ctx);
 
-		ctx->bind_srv(src, m_scene->binding);
-		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
-		ctx->update_scalar(&args, sizeof(args), m_args);
+		if (sampler == nullptr)
+			sampler = RHIBilinearSampler::static_sampler();
+
+		ctx->bind_srv(src, self->m_scene->binding);
+		ctx->bind_sampler(sampler, self->m_scene->binding);
+		ctx->update_scalar(&args, sizeof(args), self->m_args);
 		ctx->draw(6, 0);
 
 		pop_context_state(ctx);
@@ -341,19 +347,16 @@ namespace Engine::Pipelines
 		StackByteAllocator::Mark mark;
 		Vector3f* kernel = StackAllocator<Vector3f>::allocate(count);
 
-		std::uniform_real_distribution<float> random(0.0, 1.0);
-		std::default_random_engine generator;
-
 		for (size_t i = 0; i < count; ++i)
 		{
 			Vector3f& sample = kernel[i];
 
-			sample.x = random(generator) * 2.0f - 1.f;
-			sample.y = random(generator) * 2.0f - 1.f;
-			sample.z = random(generator) * 2.0f - 1.f;
+			sample.x = Random::floating() * 2.0f - 1.f;
+			sample.y = Random::floating() * 2.0f - 1.f;
+			sample.z = Random::floating() * 2.0f - 1.f;
 
 			sample = glm::normalize(sample);
-			sample *= random(generator);
+			sample *= Random::floating();
 			float factor = static_cast<float>(i) / static_cast<float>(count);
 			sample *= glm::mix(0.1f, 1.0f, factor * factor);
 		}

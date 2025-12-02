@@ -246,6 +246,8 @@ namespace Engine
 			ImGui::Spacing();
 			ImGui::Text("GPU: %s\n", rhi->info.renderer.c_str());
 		});
+
+		m_scene_view.history(&m_history);
 	}
 
 	EditorClient& EditorClient::create_content_browser()

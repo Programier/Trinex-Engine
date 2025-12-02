@@ -16,6 +16,10 @@ namespace Engine
 	{
 		namespace Textures
 		{
+			ENGINE_EXPORT extern Texture2D* white;
+			ENGINE_EXPORT extern Texture2D* black;
+			ENGINE_EXPORT extern Texture2D* gray;
+			ENGINE_EXPORT extern Texture2D* normal;
 			ENGINE_EXPORT extern Texture2D* default_texture;
 			ENGINE_EXPORT extern TextureCube* default_texture_cube;
 			ENGINE_EXPORT extern Texture2D* noise4x4;

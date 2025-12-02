@@ -144,4 +144,24 @@ namespace Math
 	{
 		return dot(color, float3(0.2126, 0.7152, 0.0722));
     }
+
+    [ForceInline]
+    float4 swizzle(in float4 color, in uint channels)
+	{
+		const float mapping[6] = {
+		    color.r,
+		    color.g,
+		    color.b,
+		    color.a,
+		    0.f,
+		    1.f
+	    };
+
+		const uint r = (channels >> 0x00) & 0b111;
+		const uint g = (channels >> 0x08) & 0b111;
+		const uint b = (channels >> 0x10) & 0b111;
+		const uint a = (channels >> 0x18) & 0b111;
+		
+		return float4(mapping[r], mapping[g], mapping[b], mapping[a]);
+    }
 }

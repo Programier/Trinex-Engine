@@ -1,16 +1,17 @@
 import "trinex/trinex.slang";
 import "trinex/quad.slang";
+import "trinex/math.slang";
 
 uniform Sampler2D source;
 
 struct Args
 {
-	uint4 swizzle;// [0 -> R, 1 -> G, 2 -> B, 3 -> A, 4 -> 0.f, 5 -> 1.f]
 	float2 offset;
 	float2 size;
 	float2 direction;
 	float sigma;
 	float radius;
+	uint swizzle;
 };
 
 [parameter_type(meta::type::UniformBuffer)]
@@ -21,21 +22,6 @@ float4 vertex_main(in uint index: SV_VertexID, out float2 uv : TEXCOORD0) : SV_P
 {
 	uv = args.offset + args.size * FullScreenQuad::uv_by_index(index);
 	return FullScreenQuad::vertex_by_index(index);
-}
-
-[ForceInline]
-float4 calculate_swizzle(in float4 color)
-{
-	const float swizzle[6] = {
-		color.r,
-		color.g,
-		color.b,
-		color.a,
-		0.f,
-		1.f
-	};
-
-	return float4(swizzle[args.swizzle.r], swizzle[args.swizzle.g], swizzle[args.swizzle.b], swizzle[args.swizzle.a]);
 }
 
 [shader("fragment")]
@@ -52,5 +38,5 @@ float4 fragment_main(in float2 uv: TEXCOORD0) : SV_Target
 		weight_sum += weight;
 	}
 
-	return calculate_swizzle(value / weight_sum);
+	return Math::swizzle(value / weight_sum, args.swizzle);
 }

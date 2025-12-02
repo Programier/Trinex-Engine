@@ -1,12 +1,12 @@
 import "trinex/quad.slang";
 import "trinex/trinex.slang";
+import "trinex/math.slang";
 
 struct Args
 {
 	float2 offset;
 	float2 size;
-	float4 color_offset;
-	float4 color_scale;
+	uint swizzle;
 }
 
 uniform Sampler2D scene;
@@ -24,5 +24,5 @@ float4 vertex_main(in uint index: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Po
 [shader("fragment")]
 float4 fragment_main(in float2 uv: TEXCOORD0) : SV_Target
 {
-	return (scene.SampleLevel(uv, 0.f) + args.color_offset) * args.color_scale;
+	return Math::swizzle(scene.SampleLevel(uv, 0.f), args.swizzle);
 }

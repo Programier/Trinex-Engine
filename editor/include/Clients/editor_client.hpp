@@ -4,6 +4,7 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/reflection/enum.hpp>
+#include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/camera_view.hpp>
 #include <Engine/scene.hpp>
@@ -119,6 +120,7 @@ namespace Engine
 		ShowFlags m_show_flags = ShowFlags::DefaultFlags;
 		ViewMode m_view_mode   = ViewMode::Lit;
 		SceneView m_scene_view;
+		FrameHistory m_history;
 
 		class ContentBrowser* m_content_browser = nullptr;
 		PropertyRenderer* m_properties          = nullptr;

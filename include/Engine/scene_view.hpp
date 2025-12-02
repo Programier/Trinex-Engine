@@ -5,6 +5,8 @@
 
 namespace Engine
 {
+	struct FrameHistory;
+
 	class ENGINE_EXPORT SceneView
 	{
 	private:
@@ -14,6 +16,8 @@ namespace Engine
 		RHIViewport m_viewport;
 		RHIScissor m_scissor;
 		ShowFlags m_show_flags;
+
+		FrameHistory* m_history = nullptr;
 
 	public:
 		SceneView(ShowFlags show_flags = ShowFlags::DefaultFlags);
@@ -28,6 +32,7 @@ namespace Engine
 		SceneView& viewport(const RHIViewport& viewport);
 		SceneView& scissor(const RHIScissor& scissor);
 		SceneView& show_flags(ShowFlags flags);
+		SceneView& history(FrameHistory* history);
 
 		Vector3f screen_to_ray_direction(const Vector2f& screen_point) const;
 		Vector3f uv_to_ray_direction(const Vector2f& uv) const;
@@ -40,5 +45,6 @@ namespace Engine
 		FORCE_INLINE const CameraView& prev_camera_view() const { return m_prev_camera_view; }
 		FORCE_INLINE const Vector2u& view_size() const { return m_view_size; }
 		FORCE_INLINE ShowFlags show_flags() const { return m_show_flags; }
+		FORCE_INLINE FrameHistory* history() const { return m_history; }
 	};
 }// namespace Engine

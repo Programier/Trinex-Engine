@@ -13,7 +13,7 @@ namespace Engine
 			float intensity = 1.f;
 			float bias      = 0.03f;
 			float power     = 2.f;
-			float radius    = 0.35f;
+			float radius    = 0.01f;
 
 			float fade_out_distance = 80.f;
 			float fade_out_radius   = 50.f;

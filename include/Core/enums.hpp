@@ -4,21 +4,6 @@
 
 namespace Engine
 {
-	struct Swizzle : VectorNT<4, byte> {
-		enum Enum : byte
-		{
-			R    = 0,
-			G    = 1,
-			B    = 2,
-			A    = 3,
-			Zero = 4,
-			One  = 5,
-		};
-
-		inline Swizzle() : VectorNT<4, byte>(R, G, B, A) {}
-		using VectorNT<4, byte>::VectorNT;
-	};
-
 	struct OperationSystemType {
 		enum Enum
 		{
