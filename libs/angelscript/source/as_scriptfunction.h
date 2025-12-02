@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2024 Andreas Jonsson
+   Copyright (c) 2003-2025 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -136,6 +136,7 @@ struct asSTryCatchInfo
 {
 	asUINT tryPos;
 	asUINT catchPos;
+	asUINT stackSize;
 };
 
 struct asSSystemFunctionInterface;
@@ -161,7 +162,10 @@ public:
 	asEFuncType          GetFuncType() const;
 	const char          *GetModuleName() const;
 	asIScriptModule     *GetModule() const;
+#ifdef AS_DEPRECATED
+	// deprecated since 2025-04-25, 2.38.0
 	const char          *GetScriptSectionName() const;
+#endif
 	const char          *GetConfigGroup() const;
 	asDWORD              GetAccessMask() const;
 	void                *GetAuxiliary() const;
@@ -203,8 +207,13 @@ public:
 	asUINT               GetVarCount() const;
 	int                  GetVar(asUINT index, const char **name, int *typeId = 0) const;
 	const char *         GetVarDecl(asUINT index, bool includeNamespace = false) const;
+#ifdef AS_DEPRECATED
+	// deprecated since 2025-11-14, 2.39.0
 	int                  FindNextLineWithCode(int line) const;
+#endif
 	int                  GetDeclaredAt(const char** scriptSection, int* row, int* col) const;
+	int                  GetLineEntryCount() const;
+	int                  GetLineEntry(asUINT index, int* row, int* col, const char** sectionName, const asDWORD** byteCode) const;
 
 	// For JIT compilation
 	asDWORD *            GetByteCode(asUINT *length = 0);
@@ -259,9 +268,9 @@ public:
 	void      ComputeSignatureId();
 	bool      IsSignatureEqual(const asCScriptFunction *func) const;
 	bool      IsSignatureExceptNameEqual(const asCScriptFunction *func) const;
-	bool      IsSignatureExceptNameEqual(const asCDataType &retType, const asCArray<asCDataType> &paramTypes, const asCArray<asETypeModifiers> &inOutFlags, const asCObjectType *type, bool isReadOnly) const;
+	bool      IsSignatureExceptNameEqual(const asCDataType &retType, const asCArray<asCDataType> &paramTypes, const asCArray<asETypeModifiers> &inOutFlags, const asCObjectType *type, bool isReadOnly, bool isVariadic) const;
 	bool      IsSignatureExceptNameAndReturnTypeEqual(const asCScriptFunction *fun) const;
-	bool      IsSignatureExceptNameAndReturnTypeEqual(const asCArray<asCDataType> &paramTypes, const asCArray<asETypeModifiers> &inOutFlags, const asCObjectType *type, bool isReadOnly) const;
+	bool      IsSignatureExceptNameAndReturnTypeEqual(const asCArray<asCDataType> &paramTypes, const asCArray<asETypeModifiers> &inOutFlags, const asCObjectType *type, bool isReadOnly, bool isVariadic) const;
 	bool      IsSignatureExceptNameAndObjectTypeEqual(const asCScriptFunction *func) const;
 
 	asCTypeInfo *GetTypeInfoOfLocalVar(short varOffset);
@@ -294,7 +303,8 @@ public:
 	void ReleaseAllHandles(asIScriptEngine *engine);
 
 	// Don't allow the script function to be copied
-	asCScriptFunction(const asCScriptFunction&) = delete;
+private:
+	asCScriptFunction(const asCScriptFunction&);
 
 public:
 	//-----------------------------------

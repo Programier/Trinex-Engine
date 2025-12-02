@@ -377,6 +377,8 @@ The following flags are covered by asGetTypeTraits:
 <tr><td>\ref asOBJ_APP_ARRAY                  &nbsp; </td><td>The C++ type is an array</td></tr>
 </table>
 
+Don't include the flags for constructor, destructor, assignment, and/or copy constructor if they have been declared as '= default' in the C++ class.
+
 On some platforms the native calling convention may require further knowledge about the class and its members that \ref asGetTypeTraits
 cannot determine in order to work properly. Whether or not the flags are needed depends on the compiler and target platform, but if the flags
 are not needed AngelScript will simply ignore them so there is no harm in informing them.
@@ -594,7 +596,7 @@ the pointer. If the composite member is inlined, then the parameter should be se
 
 \page doc_reg_objprop Registering object properties
 
-Class member variables can be registered so that they can be directly
+Class member variables can be registered with \ref asIScriptEngine::RegisterObjectProperty "RegisterObjectProperty" so that they can be directly
 accessed by the script without the need for any method calls.
 
 \code
@@ -608,7 +610,7 @@ r = engine->RegisterObjectProperty("mytype", "int a", asOFFSET(MyStruct,a)); ass
 
 If a class member is indirect, i.e. the class holds a pointer to the member that is 
 allocated on the heap, then it is possible to registered the property using & to tell
-the script engine that an dereference is needed to access the member.
+the script engine that a dereference is needed to access the member.
 
 \code
 struct MyStruct
@@ -621,6 +623,12 @@ r = engine->RegisterObjectProperty("mytype", "othertype &a", asOFFSET(MyStruct,a
 
 Of course, the application must make sure the pointer is valid during the whole time 
 that it may be accessed from the script.
+
+Remember, in C++ it is not possible to take the address of class members declared as references, because 
+the & operator in this case gives the actual reference that the member is referring to. For this reason
+it is not possible to use asOFFSET to determine the offset of members declared as references. Instead the
+offset can be manually calculated relative to an adjacent member. Remember to verify the byte alignment 
+and possible padding added by the compiler.
 
 \section doc_reg_objprop_composite Composite members
 
@@ -643,6 +651,8 @@ r = engine->RegisterObjectProperty("object", "comp_a", asOFFSET(Component, a), a
 
 The last parameter indicates that to reach the property of the composite member it is necessary to dereference 
 the pointer. If the composite member is inlined, then the parameter should be set to false.
+
+
 
 
 

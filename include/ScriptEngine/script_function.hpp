@@ -48,7 +48,6 @@ namespace Engine
 		Type type() const;
 		StringView module_name() const;
 		ScriptModule module() const;
-		StringView script_section_name() const;
 
 		// Function signature
 		ScriptTypeInfo object_type() const;

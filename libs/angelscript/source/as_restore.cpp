@@ -971,29 +971,65 @@ void asCReader::ReadUsedFunctions()
 							}
 						}
 
-						int r = engine->GetTemplateFunctionInstance(templFunc, func.templateSubTypes);
-						if (r >= 0)
+						if (templFunc)
 						{
-							templFunc = engine->scriptFunctions[r];
-							asASSERT(templFunc->IsSignatureEqual(&func));
+							int r = engine->GetTemplateFunctionInstance(templFunc, func.templateSubTypes);
+							if (r >= 0)
+							{
+								templFunc = engine->scriptFunctions[r];
+								asASSERT(templFunc->IsSignatureEqual(&func));
 
-							usedFunctions[n] = templFunc;
+								usedFunctions[n] = templFunc;
+							}
 						}
 					}
 				}
 				else if( func.objectType )
 				{
-					// It is a class member, so we can search directly in the object type's members
-					// TODO: virtual function is different that implemented method
-					for( asUINT i = 0; i < func.objectType->methods.GetLength(); i++ )
+					if (func.templateSubTypes.GetLength() == 0)
 					{
-						asCScriptFunction *f = engine->scriptFunctions[func.objectType->methods[i]];
-						if( f == 0 ||
-							!func.IsSignatureEqual(f) )
-							continue;
+						// It is a class member, so we can search directly in the object type's members
+						// TODO: virtual function is different that implemented method
+						for (asUINT i = 0; i < func.objectType->methods.GetLength(); i++)
+						{
+							asCScriptFunction* f = engine->scriptFunctions[func.objectType->methods[i]];
+							if (f == 0 ||
+								!func.IsSignatureEqual(f))
+								continue;
 
-						usedFunctions[n] = f;
-						break;
+							usedFunctions[n] = f;
+							break;
+						}
+					}
+					else
+					{
+						// This is a template function
+						asCScriptFunction* templFunc = 0;
+						for (asUINT i = 0; i < func.objectType->methods.GetLength(); i++)
+						{
+							asCScriptFunction* f = engine->scriptFunctions[func.objectType->methods[i]];
+							if (f->name == func.name &&
+								f->nameSpace == func.nameSpace &&
+								f->IsReadOnly() == func.IsReadOnly() && 
+								f->parameterTypes.GetLength() == func.parameterTypes.GetLength() &&
+								f->templateSubTypes.GetLength() == func.templateSubTypes.GetLength())
+							{
+								templFunc = f;
+								break;
+							}
+						}
+
+						if (templFunc)
+						{
+							int r = engine->GetTemplateFunctionInstance(templFunc, func.templateSubTypes);
+							if (r >= 0)
+							{
+								templFunc = engine->scriptFunctions[r];
+								asASSERT(templFunc->IsSignatureEqual(&func));
+
+								usedFunctions[n] = templFunc;
+							}
+						}
 					}
 				}
 			}
@@ -1112,25 +1148,21 @@ void asCReader::ReadFunctionSignature(asCScriptFunction *func, asCObjectType **p
 		func->nameSpace = func->objectType->nameSpace;
 	}
 
-	// Only read the function traits if it is a class method, or could potentially be a global virtual property
-	if (func->objectType || func->name.SubString(0, 4) == "get_" || func->name.SubString(0, 4) == "set_")
-	{
-		asBYTE b;
-		ReadData(&b, 1);
-		func->SetReadOnly((b & 1) ? true : false);
-		func->SetPrivate((b & 2) ? true : false);
-		func->SetProtected((b & 4) ? true : false);
-		func->SetFinal((b & 8) ? true : false);
-		func->SetOverride((b & 16) ? true : false);
-		func->SetExplicit((b & 32) ? true : false);
-		func->SetProperty((b & 64) ? true : false);
-	}
+	asBYTE b;
+	ReadData(&b, 1);
+	func->SetReadOnly((b & 1) ? true : false);
+	func->SetPrivate((b & 2) ? true : false);
+	func->SetProtected((b & 4) ? true : false);
+	func->SetFinal((b & 8) ? true : false);
+	func->SetOverride((b & 16) ? true : false);
+	func->SetExplicit((b & 32) ? true : false);
+	func->SetProperty((b & 64) ? true : false);
+	func->SetVariadic((b & 128) ? true : false);
 
 	if (!func->objectType)
 	{
 		if (func->funcType == asFUNC_FUNCDEF)
 		{
-			asBYTE b;
 			ReadData(&b, 1);
 			if (b == 'n')
 			{
@@ -1155,13 +1187,17 @@ void asCReader::ReadFunctionSignature(asCScriptFunction *func, asCObjectType **p
 			ReadString(&ns);
 			func->nameSpace = engine->AddNameSpace(ns.AddressOf());
 		}
+	}
 
-		if (isTemplateFunc)
+	if (isTemplateFunc)
+	{
+		count = ReadEncodedUInt();
+		func->templateSubTypes.SetLength(count);
+		for (asUINT n = 0; n < count; n++)
 		{
-			count = ReadEncodedUInt();
-			func->templateSubTypes.SetLength(count);
-			for (asUINT n = 0; n < count; n++)
-				ReadDataType(&func->templateSubTypes[n]);
+			ReadDataType(&func->templateSubTypes[n]);
+			if(func->templateSubTypes[n].GetTypeInfo())
+				func->templateSubTypes[n].GetTypeInfo()->AddRefInternal();
 		}
 	}
 }
@@ -1309,6 +1345,9 @@ asCScriptFunction *asCReader::ReadFunction(bool &isNew, bool addToModule, bool a
 						// The program position must be adjusted to be in number of instructions
 						func->scriptData->tryCatchInfo[i].tryPos = SanityCheck(ReadEncodedUInt(), 1000000);
 						func->scriptData->tryCatchInfo[i].catchPos = SanityCheck(ReadEncodedUInt(), 1000000);
+						
+						// The stack position must be adjusted to be according to the size of the variables
+						func->scriptData->tryCatchInfo[i].stackSize = SanityCheck(ReadEncodedUInt(), 100000);
 					}
 				}
 
@@ -1619,6 +1658,16 @@ void asCReader::ReadTypeDeclaration(asCTypeInfo *type, int phase, bool *isExtern
 		if( type->flags & asOBJ_ENUM )
 		{
 			asCEnumType *t = CastToEnumType(type);
+			eTokenType tt = (eTokenType)ReadEncodedUInt();
+			if( !((tt >= ttInt && tt <= ttInt64) ||
+				  (tt >= ttUInt && tt <= ttUInt64)) )
+			{
+				// Only 32 bit enums are supported
+				Error(TXT_INVALID_BYTECODE_d);
+				return;
+			}
+			t->enumType = asCDataType::CreatePrimitive(tt, false);
+
 			int count = SanityCheck(ReadEncodedUInt(), 1000000);
 			bool sharedExists = existingShared.MoveTo(0, type);
 			if( !sharedExists )
@@ -1634,7 +1683,7 @@ void asCReader::ReadTypeDeclaration(asCTypeInfo *type, int phase, bool *isExtern
 						return;
 					}
 					ReadString(&e->name);
-					ReadData(&e->value, 4); // TODO: Should be encoded
+					ReadData(&e->value, t->GetSize()); // TODO: Should be encoded
 					t->enumValues.PushLast(e);
 				}
 			}
@@ -1646,7 +1695,7 @@ void asCReader::ReadTypeDeclaration(asCTypeInfo *type, int phase, bool *isExtern
 				for( int n = 0; n < count; n++ )
 				{
 					ReadString(&name);
-					ReadData(&value, 4); // TODO: Should be encoded
+					ReadData(&value, t->GetSize()); // TODO: Should be encoded
 					bool found = false;
 					for( asUINT e = 0; e < t->enumValues.GetLength(); e++ )
 					{
@@ -2484,8 +2533,10 @@ void asCReader::ReadByteCode(asCScriptFunction *func)
 		asUINT newSize = asUINT(func->scriptData->byteCode.GetLength()) + len;
 		if( func->scriptData->byteCode.GetCapacity() < newSize )
 		{
+			asUINT size = newSize;
 			// Determine the average size of the loaded instructions and re-estimate the final size
-			asUINT size = asUINT(float(newSize) / (total - numInstructions) * total) + 1;
+			if (total != numInstructions)
+				size = asUINT(float(newSize) / (total - numInstructions) * total) + 1;
 			func->scriptData->byteCode.AllocateNoConstruct(size, true);
 		}
 		if( !func->scriptData->byteCode.SetLengthNoConstruct(newSize) )
@@ -3241,6 +3292,7 @@ void asCReader::TranslateFunction(asCScriptFunction *func)
 	{
 		func->scriptData->tryCatchInfo[n].tryPos = instructionNbrToPos[func->scriptData->tryCatchInfo[n].tryPos];
 		func->scriptData->tryCatchInfo[n].catchPos = instructionNbrToPos[func->scriptData->tryCatchInfo[n].catchPos];
+		func->scriptData->tryCatchInfo[n].stackSize = AdjustStackPosition(func->scriptData->tryCatchInfo[n].stackSize);
 	}
 
 	// The program position (every even number) needs to be adjusted
@@ -3254,7 +3306,7 @@ void asCReader::TranslateFunction(asCScriptFunction *func)
 }
 
 asCReader::SListAdjuster::SListAdjuster(asCReader* rd, asDWORD* bc, asCObjectType* listType) :
-	reader(rd), allocMemBC(bc), maxOffset(0), patternType(listType), repeatCount(0), lastOffset(-1), nextOffset(0), nextTypeId(-1), patternNode(0)
+	reader(rd), allocMemBC(bc), maxOffset(0), patternType(listType), repeatCount(0), lastOffset(-1), nextOffset(0), patternNode(0), nextTypeId(-1)
 {
 	asASSERT( patternType && (patternType->flags & asOBJ_LIST_PATTERN) );
 
@@ -3791,6 +3843,8 @@ int asCReader::AdjustGetOffset(int offset, asCScriptFunction *func, asDWORD prog
 			currOffset++;
 #endif
 	}
+	if (offset > currOffset && calledFunc->IsVariadic())
+		currOffset++;
 	for( asUINT p = 0; p < calledFunc->parameterTypes.GetLength(); p++ )
 	{
 		if( offset <= currOffset ) break;
@@ -3817,6 +3871,38 @@ int asCReader::AdjustGetOffset(int offset, asCScriptFunction *func, asDWORD prog
 			// Enums or built-in primitives are passed by value
 			asASSERT( calledFunc->parameterTypes[p].IsPrimitive() );
 			currOffset += calledFunc->parameterTypes[p].GetSizeOnStackDWords();
+		}
+	}
+	if (offset > currOffset && calledFunc->IsVariadic())
+	{
+		asCDataType variadicType = calledFunc->parameterTypes[calledFunc->parameterTypes.GetLength() - 1];
+		for (;;)
+		{
+			if (offset <= currOffset) break;
+
+			if (!variadicType.IsPrimitive() ||
+				variadicType.IsReference())
+			{
+				// objects and references are passed by pointer
+				currOffset++;
+				if (currOffset > 0)
+					numPtrs++;
+#if AS_PTR_SIZE == 2
+				// For 64bit platforms it is necessary to increment the currOffset by one more
+				// DWORD since the stackDelta was counting the full 64bit size of the pointer
+				else if (stackDelta)
+					currOffset++;
+#endif
+				// The variable arg ? has an additional 32bit int with the typeid
+				if (variadicType.IsAnyType())
+					currOffset += 1;
+			}
+			else
+			{
+				// built-in primitives or enums are passed by value
+				asASSERT(variadicType.IsPrimitive());
+				currOffset += variadicType.GetSizeOnStackDWords();
+			}
 		}
 	}
 
@@ -3872,10 +3958,10 @@ int asCWriter::WriteData(const void *data, asUINT size)
 	int ret = 0;
 #if defined(AS_BIG_ENDIAN)
 	for( asUINT n = 0; ret >= 0 && n < size; n++ )
-		ret = stream->Write(((asBYTE*)data)+n, 1);
+		ret = stream->Write(((const asBYTE*)data)+n, 1);
 #else
 	for( int n = size-1; ret >= 0 && n >= 0; n-- )
-		ret = stream->Write(((asBYTE*)data)+n, 1);
+		ret = stream->Write(((const asBYTE*)data)+n, 1);
 #endif
 	if (ret < 0)
 		Error(TXT_UNEXPECTED_END_OF_FILE);
@@ -4181,19 +4267,19 @@ void asCWriter::WriteFunctionSignature(asCScriptFunction *func)
 
 	WriteTypeInfo(func->objectType);
 
-	// Only write function traits for methods and global functions that can potentially be virtual properties
-	if (func->objectType || func->name.SubString(0, 4) == "get_" || func->name.SubString(0, 4) == "set_")
-	{
-		asBYTE b = 0;
-		b += func->IsReadOnly() ? 1 : 0;
-		b += func->IsPrivate() ? 2 : 0;
-		b += func->IsProtected() ? 4 : 0;
-		b += func->IsFinal() ? 8 : 0;
-		b += func->IsOverride() ? 16 : 0;
-		b += func->IsExplicit() ? 32 : 0;
-		b += func->IsProperty() ? 64 : 0;
-		WriteData(&b, 1);
-	}
+	// TODO: Only the Variadic trait must be saved for all 
+	// function types. Can we store that bit somewhere else so it 
+	// is possible to save 1 byte for other types of functions/methods?
+	asBYTE b = 0;
+	b += func->IsReadOnly() ? 1 : 0;
+	b += func->IsPrivate() ? 2 : 0;
+	b += func->IsProtected() ? 4 : 0;
+	b += func->IsFinal() ? 8 : 0;
+	b += func->IsOverride() ? 16 : 0;
+	b += func->IsExplicit() ? 32 : 0;
+	b += func->IsProperty() ? 64 : 0;
+	b += func->IsVariadic() ? 128 : 0;
+	WriteData(&b, 1);
 
 	if (!func->objectType)
 	{
@@ -4202,28 +4288,28 @@ void asCWriter::WriteFunctionSignature(asCScriptFunction *func)
 			if (func->nameSpace)
 			{
 				// This funcdef was declared as global entity
-				asBYTE b = 'n';
+				b = 'n';
 				WriteData(&b, 1);
 				WriteString(&func->nameSpace->name);
 			}
 			else
 			{
 				// This funcdef was declared as class member
-				asBYTE b = 'o';
+				b = 'o';
 				WriteData(&b, 1);
 				WriteTypeInfo(func->funcdefType->parentClass);
 			}
 		}
 		else
 			WriteString(&func->nameSpace->name);
+	}
 
-		// Save the function template subtypes
-		if (func->templateSubTypes.GetLength())
-		{
-			WriteEncodedInt64(func->templateSubTypes.GetLength());
-			for (asUINT n = 0; n < func->templateSubTypes.GetLength(); n++)
-				WriteDataType(&func->templateSubTypes[n]);
-		}
+	// Save the function template subtypes
+	if (func->templateSubTypes.GetLength())
+	{
+		WriteEncodedInt64(func->templateSubTypes.GetLength());
+		for (asUINT n = 0; n < func->templateSubTypes.GetLength(); n++)
+			WriteDataType(&func->templateSubTypes[n]);
 	}
 }
 
@@ -4312,6 +4398,8 @@ void asCWriter::WriteFunction(asCScriptFunction* func)
 				// The program position must be adjusted to be in number of instructions
 				WriteEncodedInt64(bytecodeNbrByPos[func->scriptData->tryCatchInfo[i].tryPos]);
 				WriteEncodedInt64(bytecodeNbrByPos[func->scriptData->tryCatchInfo[i].catchPos]);
+				// The stack size must be adjusted to be according to variable sizes
+				WriteEncodedInt64(AdjustStackPosition(func->scriptData->tryCatchInfo[i].stackSize));
 			}
 		}
 
@@ -4454,15 +4542,18 @@ void asCWriter::WriteTypeDeclaration(asCTypeInfo *type, int phase)
 
 		if(type->flags & asOBJ_ENUM )
 		{
+			// underlying type
+			asCEnumType* t = CastToEnumType(type);
+			WriteEncodedInt64(t->enumType.GetTokenType());
+
 			// enumValues[]
-			asCEnumType *t = CastToEnumType(type);
 			int size = (int)t->enumValues.GetLength();
 			WriteEncodedInt64(size);
 
 			for( int n = 0; n < size; n++ )
 			{
 				WriteString(&t->enumValues[n]->name);
-				WriteData(&t->enumValues[n]->value, 4);
+				WriteData(&t->enumValues[n]->value, t->GetSize());
 			}
 		}
 		else if(type->flags & asOBJ_TYPEDEF )
@@ -5015,6 +5106,8 @@ int asCWriter::AdjustGetOffset(int offset, asCScriptFunction *func, asDWORD prog
 		if( currOffset > 0 )
 			numPtrs++;
 	}
+	if (offset > currOffset && calledFunc->IsVariadic())
+		currOffset++;
 	for( asUINT p = 0; p < calledFunc->parameterTypes.GetLength(); p++ )
 	{
 		if( offset <= currOffset ) break;
@@ -5036,6 +5129,33 @@ int asCWriter::AdjustGetOffset(int offset, asCScriptFunction *func, asDWORD prog
 			// built-in primitives or enums are passed by value
 			asASSERT( calledFunc->parameterTypes[p].IsPrimitive() );
 			currOffset += calledFunc->parameterTypes[p].GetSizeOnStackDWords();
+		}
+	}
+	if (offset > currOffset && calledFunc->IsVariadic())
+	{
+		asCDataType variadicType = calledFunc->parameterTypes[calledFunc->parameterTypes.GetLength() - 1];
+		for (;;)
+		{
+			if (offset <= currOffset) break;
+
+			if(!variadicType.IsPrimitive() ||
+				variadicType.IsReference())
+			{
+				// objects and references are passed by pointer
+				currOffset += AS_PTR_SIZE;
+				if (currOffset > 0)
+					numPtrs++;
+
+				// The variable arg ? has an additional 32bit int with the typeid
+				if (variadicType.IsAnyType())
+					currOffset += 1;
+			}
+			else
+			{
+				// built-in primitives or enums are passed by value
+				asASSERT(variadicType.IsPrimitive());
+				currOffset += variadicType.GetSizeOnStackDWords();
+			}
 		}
 	}
 

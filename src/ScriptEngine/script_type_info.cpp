@@ -251,11 +251,12 @@ namespace Engine
 	}
 
 	bool ScriptTypeInfo::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected,
-	                              int_t* offset, bool* is_reference) const
+	                              int_t* offset, bool* is_reference, bool* is_const) const
 	{
 		check_info(false);
 		const char* c_name = nullptr;
-		int_t res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset, is_reference);
+		int_t res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset, is_reference,
+		                                0, 0, 0, is_const);
 
 		if (name)
 		{
@@ -325,36 +326,21 @@ namespace Engine
 	{
 		switch (b)
 		{
-			case asBEHAVE_CONSTRUCT:
-				return ScriptClassBehave::Construct;
-			case asBEHAVE_LIST_CONSTRUCT:
-				return ScriptClassBehave::ListConstruct;
-			case asBEHAVE_DESTRUCT:
-				return ScriptClassBehave::Destruct;
-			case asBEHAVE_FACTORY:
-				return ScriptClassBehave::Factory;
-			case asBEHAVE_LIST_FACTORY:
-				return ScriptClassBehave::ListFactory;
-			case asBEHAVE_ADDREF:
-				return ScriptClassBehave::AddRef;
-			case asBEHAVE_RELEASE:
-				return ScriptClassBehave::Release;
-			case asBEHAVE_GET_WEAKREF_FLAG:
-				return ScriptClassBehave::GetWeakRefFlag;
-			case asBEHAVE_TEMPLATE_CALLBACK:
-				return ScriptClassBehave::TemplateCallback;
-			case asBEHAVE_GETREFCOUNT:
-				return ScriptClassBehave::GetRefCount;
-			case asBEHAVE_SETGCFLAG:
-				return ScriptClassBehave::SetGCFlag;
-			case asBEHAVE_GETGCFLAG:
-				return ScriptClassBehave::GetGCFlag;
-			case asBEHAVE_ENUMREFS:
-				return ScriptClassBehave::EnumRefs;
-			case asBEHAVE_RELEASEREFS:
-				return ScriptClassBehave::ReleaseRefs;
-			default:
-				throw EngineException("Undefined behave");
+			case asBEHAVE_CONSTRUCT: return ScriptClassBehave::Construct;
+			case asBEHAVE_LIST_CONSTRUCT: return ScriptClassBehave::ListConstruct;
+			case asBEHAVE_DESTRUCT: return ScriptClassBehave::Destruct;
+			case asBEHAVE_FACTORY: return ScriptClassBehave::Factory;
+			case asBEHAVE_LIST_FACTORY: return ScriptClassBehave::ListFactory;
+			case asBEHAVE_ADDREF: return ScriptClassBehave::AddRef;
+			case asBEHAVE_RELEASE: return ScriptClassBehave::Release;
+			case asBEHAVE_GET_WEAKREF_FLAG: return ScriptClassBehave::GetWeakRefFlag;
+			case asBEHAVE_TEMPLATE_CALLBACK: return ScriptClassBehave::TemplateCallback;
+			case asBEHAVE_GETREFCOUNT: return ScriptClassBehave::GetRefCount;
+			case asBEHAVE_SETGCFLAG: return ScriptClassBehave::SetGCFlag;
+			case asBEHAVE_GETGCFLAG: return ScriptClassBehave::GetGCFlag;
+			case asBEHAVE_ENUMREFS: return ScriptClassBehave::EnumRefs;
+			case asBEHAVE_RELEASEREFS: return ScriptClassBehave::ReleaseRefs;
+			default: throw EngineException("Undefined behave");
 		}
 
 		return {};
@@ -399,17 +385,10 @@ namespace Engine
 		return m_info->GetEnumValueCount();
 	}
 
-	StringView ScriptTypeInfo::enum_value_by_index(uint_t index, int_t* out_value) const
+	StringView ScriptTypeInfo::enum_value_by_index(uint_t index, int64_t* out_value) const
 	{
 		check_info("");
-		return Strings::make_string_view(m_info->GetEnumValueByIndex(index, reinterpret_cast<int*>(out_value)));
-	}
-
-	// Typedef
-	int_t ScriptTypeInfo::typedef_type_id() const
-	{
-		check_info(0);
-		return m_info->GetTypedefTypeId();
+		return Strings::make_string_view(m_info->GetEnumValueByIndex(index, out_value));
 	}
 
 	// Funcdef

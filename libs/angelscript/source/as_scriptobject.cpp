@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2023 Andreas Jonsson
+   Copyright (c) 2003-2025 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied 
    warranty. In no event will the authors be held liable for any 
@@ -924,9 +924,9 @@ int asCScriptObject::CopyFromAs(const asCScriptObject *other, asCObjectType *in_
                 asCObjectProperty *prop = in_objType->properties[n];
                 if( prop->type.IsObject() )
 				{
-                    void **dst = (void**)(((char*)this) + prop->byteOffset);
-                    void **src = (void**)(((char*)other) + prop->byteOffset);
-                    if( !prop->type.IsObjectHandle() )
+					void **dst = (void**)(((char*)this) + prop->byteOffset);
+					void **src = (void**)(const_cast<char*>((const char*)other) + prop->byteOffset);
+					if( !prop->type.IsObjectHandle() )
 					{
                         if( prop->type.IsReference() || (prop->type.GetTypeInfo()->flags & asOBJ_REF) )
 							CopyObject(*src, *dst, CastToObjectType(prop->type.GetTypeInfo()), engine);
@@ -938,18 +938,18 @@ int asCScriptObject::CopyFromAs(const asCScriptObject *other, asCObjectType *in_
 				}
 				else if (prop->type.IsFuncdef())
 				{
-                    asCScriptFunction **dst = (asCScriptFunction**)(((char*)this) + prop->byteOffset);
-                    asCScriptFunction **src = (asCScriptFunction**)(((char*)other) + prop->byteOffset);
+					asCScriptFunction **dst = (asCScriptFunction**)(((char*)this) + prop->byteOffset);
+					asCScriptFunction **src = (asCScriptFunction**)(const_cast<char*>((const char*)other) + prop->byteOffset);
 					if (*dst)
 						(*dst)->Release();
-					*dst = *src;
+					*dst = *const_cast<asCScriptFunction**>(src);
 					if (*dst)
 						(*dst)->AddRef();
 				}
 				else
 				{
-                    void *dst = ((char*)this) + prop->byteOffset;
-                    void *src = ((char*)other) + prop->byteOffset;
+					void *dst = ((char*)this) + prop->byteOffset;
+					const void *src = ((const char*)other) + prop->byteOffset;
 					memcpy(dst, src, prop->type.GetSizeInMemoryBytes());
 				}
 			}
@@ -1047,7 +1047,7 @@ int asIScriptObject::CopyFrom(const asIScriptObject *other)
     if( GetTypeId() != other->GetTypeId() )
 		return asINVALID_TYPE;
 
-    *this = *(asCScriptObject*)other;
+	*this = *(const asCScriptObject*)other;
 
 	return asSUCCESS;
 }

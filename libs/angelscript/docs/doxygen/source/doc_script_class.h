@@ -421,14 +421,14 @@ properties or methods are inappropriately used.
 
 \page doc_script_class_memberinit Initialization of class members
 
-The order in which the class members are initialized during the construction of an object becomes 
+The order in which the class members are initialized during the construction of an object becomes
 important when using inheritance, or when defining the initialization of the members directly in
-the declaration. If a member is accessed before it has been initialized the script may cause a null 
+the declaration. If a member is accessed before it has been initialized the script may cause a null
 handle access exception, which will abort the execution of the script.
 
-For a simple class, the order in which the members are initialized is the same as the order in which 
-they were declared. When explicit initializations are given in the declaration of the members, these 
-members will be initialized last. 
+For a simple class, the order in which the members are initialized is the same as the order in which
+they were declared. When explicit initializations are given in the declaration of the members, these
+members will be initialized last.
 
 <pre>
   // The order of this class will be: a, c, b, d
@@ -441,8 +441,8 @@ members will be initialized last.
   }
 </pre>
 
-When \ref doc_script_class_inheritance "inheritance" is used, the derived class' members without 
-explicit initialization will be initialized before the base class' members, and the members with 
+When \ref doc_script_class_inheritance "inheritance" is used, the derived class' members without
+explicit initialization will be initialized before the base class' members, and the members with
 explicit initialization will be initialized after the base class' members.
 
 <pre>
@@ -462,12 +462,12 @@ explicit initialization will be initialized after the base class' members.
 </pre>
 
 This order of initialization has been chosen to avoid most problems with accessing members before they
-have been initialized. 
+have been initialized.
 
 All members are initialized immediately in the beginning of the defined constructor, so the rest of the 
 code in the constructor can access members without worry. The exception is when the constructor explicitly
-initializes a base class by calling super(), in this case the members with explicit initialization will
-remain uninitialized until after the base class has been fully constructed.
+initializes a base class by calling super(), or overrides the initialization of a member within the body of the constructor.
+In this case the members explicitly initialized within the body will remain uninitialized until that statement is reached.
 
 <pre>
   class Bar
@@ -480,11 +480,13 @@ remain uninitialized until after the base class has been fully constructed.
   {
     Foo()
     {
-      // b is already initialized here
+      // b is initialized first
+      // If not explicitly initialized later, c would be initialized here, leading 
+      // to a null pointer exception since super() has not been called yet.
 
-      super(b); // a will be initialized in this call
+      super(b); // a will only be initialized in this call
 
-      // c is initialized right after super() returns
+      c = a; // explicitly initialize c after the base class to avoid the null pointer exception
     }
     
     string b;
@@ -492,14 +494,31 @@ remain uninitialized until after the base class has been fully constructed.
   }
 </pre>
 
+Members can also be initialized in conditions. If they are, then both cases must initialize the members.
+
+<pre>
+  class Foo
+  {
+    Foo(int a)
+    {
+      if( a == 0 ) // If a member is initialized in a condition, then both possibilities must initialize the member
+        d = 'foo';
+      else
+        d = 'bar';
+    }
+    
+    string d = 'default';
+  }
+</pre>
+
 Be wary about cases where a constructor or member initialization calls class methods. As class methods can
-be overridden by derived classes it is possible for a base class to unwittingly access a member of the derived 
+be overridden by derived classes it is possible for a base class to unwittingly access a member of the derived
 class before it has been initialized.
 
 <pre>
   class Bar
   {
-    Bar() 
+    Bar()
     {
       DoSomething();
     }
@@ -507,14 +526,14 @@ class before it has been initialized.
     void DoSomething() {}
   }
   
-  // This class will cause a null handle exception, because the Bar's constructor calls 
-  // the DoSomething() method that accesses the member msg before it has been initialized. 
+  // This class will cause a null handle exception, because the Bar's constructor calls
+  // the DoSomething() method that accesses the member msg before it has been initialized.
   class Foo : Bar
   {
     string msg = 'hello';
-    void DoSomething() 
-    { 
-      print(msg); 
+    void DoSomething()
+    {
+      print(msg);
     }
   }
 </pre>

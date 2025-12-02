@@ -13,7 +13,7 @@
 //  0 = off
 //  1 = on
 #ifndef AS_USE_STLNAMES
-#define AS_USE_STLNAMES 1
+#define AS_USE_STLNAMES 0
 #endif
 
 // Some prefer to use property accessors to get/set the length of the array
@@ -27,7 +27,7 @@ BEGIN_AS_NAMESPACE
 struct SArrayBuffer;
 struct SArrayCache;
 
-class AS_API CScriptArray
+class CScriptArray
 {
 public:
 	// Set the memory functions that should be used by all CScriptArrays

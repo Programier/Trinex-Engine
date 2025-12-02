@@ -76,7 +76,7 @@ namespace Engine
 
 		for (asUINT i = 0; i < count; i++)
 		{
-			int value = 0;
+			int64_t value = 0;
 
 			if (meta == enum_type->GetEnumValueByIndex(i, &value))
 			{
@@ -129,14 +129,10 @@ namespace Engine
 
 			switch (type)
 			{
-				case MetaType::Flags:
-					register_flags_meta(prop, meta);
-					break;
+				case MetaType::Flags: register_flags_meta(prop, meta); break;
 				case MetaType::Assignment:
-				case MetaType::FunctionCall:
-					register_expression_meta(script, prop, meta);
-				default:
-					break;
+				case MetaType::FunctionCall: register_expression_meta(script, prop, meta);
+				default: break;
 			}
 		}
 	}
@@ -150,10 +146,8 @@ namespace Engine
 			switch (type)
 			{
 				case MetaType::Assignment:
-				case MetaType::FunctionCall:
-					register_expression_meta(script, self, meta);
-				default:
-					break;
+				case MetaType::FunctionCall: register_expression_meta(script, self, meta);
+				default: break;
 			}
 		}
 	}

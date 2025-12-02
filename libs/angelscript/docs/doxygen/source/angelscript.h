@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2024 Andreas Jonsson
+   Copyright (c) 2003-2025 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -63,9 +63,9 @@ BEGIN_AS_NAMESPACE
 
 // AngelScript version
 
-//! Version 2.38.0
-#define ANGELSCRIPT_VERSION        23800
-#define ANGELSCRIPT_VERSION_STRING "2.38.0 WIP"
+//! Version 2.39.0
+#define ANGELSCRIPT_VERSION        23900
+#define ANGELSCRIPT_VERSION_STRING "2.39.0"
 
 // Data types
 
@@ -293,6 +293,12 @@ enum asEEngineProp
 	asEP_ALWAYS_IMPL_DEFAULT_COPY           = 36,
 	//! Determine if the default copy constructor is provided automatically by compiler. 0 - as per language spec, 1 - always, 2 - never. Default: 0
 	asEP_ALWAYS_IMPL_DEFAULT_COPY_CONSTRUCT = 37,
+	//! Determine how class members with init expressions are handled. 0 - pre 2.38.0, members with init expr in declaration are initialized after super(), 1 - all members initialized in beginning, except if explicitly initialized in body. Default: 1
+	asEP_MEMBER_INIT_MODE                   = 38,
+	//! Determine how boolean conversion are done. 0 - only use opImplConv for registered value type, 1 - use also opConv in contextual conversion even for reference types. Default: 1
+	asEP_BOOL_CONVERSION_MODE               = 39,
+	//! Enable foreach support. Default: true
+	asEP_FOREACH_SUPPORT                    = 40,
 
 	asEP_LAST_PROPERTY
 };
@@ -638,7 +644,9 @@ enum asEFuncType
 	//! \brief An imported function
 	asFUNC_IMPORTED  = 5,
 	//! \brief A function delegate
-	asFUNC_DELEGATE  = 6
+	asFUNC_DELEGATE  = 6,
+	//! \brief A template function
+	asFUNC_TEMPLATE  = 7
 };
 
 // Is the target a 64bit system?
@@ -702,6 +710,9 @@ typedef void (*asJITFunction)(asSVMRegisters* registers, asPWORD jitArg);
 // This macro does basically the same thing as offsetof defined in stddef.h, but
 // GNUC should not complain about the usage as I'm not using 0 as the base pointer.
 //! \brief Returns the offset of an attribute in a struct
+//!
+//! This macro doesn't work for members that are declared as references, as C++ doesn't allow taking the offset for these. For these the offset must be manually calculated. 
+//! \see \ref doc_reg_objprop
 #define asOFFSET(s,m) ((int)(size_t)(&reinterpret_cast<s*>(100000)->m)-100000)
 
 //! \brief Returns an asSFuncPtr representing the function specified by the name
@@ -1204,6 +1215,16 @@ public:
 	//! It is recommended to register the message callback routine right after creating the engine,
 	//! as some of the registration functions can provide useful information to better explain errors.
 	virtual int SetMessageCallback(const asSFuncPtr &callback, void *obj, asDWORD callConv) = 0;
+	//! \brief Gets the current message callback.
+	//! \param[out] callback Will be set with the function or method pointer.
+	//! \param[out] obj      Will be set with the object pointer.
+	//! \param[out] callConv Will be set with the calling convention.
+	//! \return A negative value for an error.
+	//! \retval asNO_FUNCTION No message callback has been registered.
+	//!
+	//! The current message callback can be retrieved so that another 
+	//! callback can be temporarily set and then the original one restored.
+	virtual int GetMessageCallback(asSFuncPtr *callback, void **obj, asDWORD *callConv) = 0;
 	//! \brief Clears the registered message callback routine.
 	//! \return A negative value on error.
 	//!
@@ -1553,6 +1574,7 @@ public:
 
 	//! \brief Registers an enum type.
 	//! \param[in] type The name of the enum type.
+	//! \param[in] underlyingType The underlying type for the enum.
 	//! \return The type id on success, or a negative value on error.
 	//! \retval asINVALID_NAME \a type is null, not an identifier, or it is a reserved keyword.
 	//! \retval asALREADY_REGISTERED Another type with this name already exists.
@@ -1561,7 +1583,7 @@ public:
 	//!
 	//! This method registers an enum type in the engine. The enum values should then be registered 
 	//! with \ref RegisterEnumValue.
-	virtual int          RegisterEnum(const char *type) = 0;
+	virtual int          RegisterEnum(const char* typeName, const char* underlyingType = "int32") = 0;
 	//! \brief Registers an enum value.
 	//! \param[in] type The name of the enum type.
 	//! \param[in] name The name of the enum value.
@@ -1572,7 +1594,7 @@ public:
 	//! \retval asALREADY_REGISTERED The \a name is already registered for this enum.
 	//!
 	//! This method registers an enum value for a previously registered enum type.
-	virtual int          RegisterEnumValue(const char *type, const char *name, int value) = 0;
+	virtual int          RegisterEnumValue(const char* type, const char* name, asINT64 value) = 0;
 	//! \brief Returns the number of registered enum types.
 	//! \return The number of registered enum types.
 	virtual asUINT       GetEnumCount() const = 0;
@@ -2186,7 +2208,7 @@ public:
 	//! <pre>  void (param::*)(asIScriptContext *);</pre>
 	//!
 	//! See \ref doc_cpp_exceptions_1 for an example on how to use this.
-	virtual int SetTranslateAppExceptionCallback(asSFuncPtr callback, void *param, int callConv) = 0;
+	virtual int SetTranslateAppExceptionCallback(const asSFuncPtr &callback, void *param, int callConv) = 0;
 	//! \}
 
 protected:
@@ -2237,7 +2259,7 @@ public:
 	//! informed in number of bytes.
 	virtual int         GetRawStringData(const void *str, char *data, asUINT *length) const = 0;
 
-protected:
+	// The destructor doesn't have to be protected as the string factory is not necessarily reference counted
 	virtual ~asIStringFactory() {}
 };
 #endif
@@ -2812,7 +2834,7 @@ public:
 	//! \retval asINVALID_ARG The function is from a different engine than the context.
 	//! \retval asOUT_OF_MEMORY The context ran out of memory while allocating call stack.
 	//!
-	//! This method prepares the context for executeion of a script function. It allocates
+	//! This method prepares the context for execution of a script function. It allocates
 	//! the stack space required and reserves space for return value and parameters. The
 	//! default value for parameters and return value is 0.
 	//!
@@ -2835,7 +2857,7 @@ public:
 	//! \retval asEXECUTION_EXCEPTION The execution ended with an exception.
 	//!
 	//! Executes the prepared function until the script returns. If the execution was previously 
-	//! suspended the function resumes where it left of.
+	//! suspended the function resumes where it left off.
 	//!
 	//! Note that if the script freezes, e.g. if trapped in a never ending loop, you may call 
 	//! \ref Abort from another thread to stop execution.
@@ -3015,9 +3037,16 @@ public:
 	//! \param[in] arg The argument index.
 	//! \return A pointer to the argument on the stack.
 	//!
-	//! This method returns a pointer to the argument on the stack for assignment. For object handles, you
-	//! should increment the reference counter. For object values, you should pass a pointer to a copy of the
-	//! object.
+	//! This method returns a pointer to the argument on the stack for assignment, so it can be set by the application.
+	//!
+	//! For object handles, the application must increment the reference counter to the object because
+	//! the reference will be released before the function returns.
+	//!
+	//! For object values, the application must give a pointer to a copy of the object because
+	//! AngelScript will delete the object once it the function returns.
+	//!
+	//! This method is generic, i.e. it works for all argument types; primitive, handles, objects, by value, or by reference.
+	//! For this reason it is very convenient to be used in generated code, such as templates or macros.
 	virtual void *GetAddressOfArg(asUINT arg) = 0;
 	//! \}	
 
@@ -3059,6 +3088,9 @@ public:
 	virtual void   *GetReturnObject() = 0;
 	//! \brief Returns the address of the returned value
 	//! \return A pointer to the return value returned from the script function, or 0 on error.
+	//!
+	//! This method is generic, i.e. it works for all types; primitive, handles, objects, by value, or by reference.
+	//! For this reason it is very convenient to be used in generated code, such as templates or macros.
 	virtual void   *GetAddressOfReturnValue() = 0;
 	//! \}
 
@@ -3130,7 +3162,7 @@ public:
 	//! \ref asCALL_THISCALL, \ref asCALL_CDECL_OBJLAST, or \ref asCALL_CDECL_OBJFIRST.
 	//! 
 	//! \see \ref doc_call_script_4
-	virtual int                SetExceptionCallback(asSFuncPtr callback, void *obj, int callConv) = 0;
+	virtual int                SetExceptionCallback(const asSFuncPtr &callback, void *obj, int callConv) = 0;
 	//! \brief Removes the registered callback.
 	//!
 	//! Removes a previously registered callback.
@@ -3169,7 +3201,7 @@ public:
 	//! \ref asCALL_THISCALL, \ref asCALL_CDECL_OBJLAST, or \ref asCALL_CDECL_OBJFIRST.
 	//!
 	//! \see \ref doc_debug
-	virtual int                SetLineCallback(asSFuncPtr callback, void *obj, int callConv) = 0;
+	virtual int                SetLineCallback(const asSFuncPtr &callback, void *obj, int callConv) = 0;
 	//! \brief Removes the registered callback.
 	//!
 	//! Removes a previously registered callback.
@@ -3227,6 +3259,12 @@ public:
 	//! \return Returns a negative value on error.
 	//! \retval asINVALID_ARG The index or stack level is invalid.
 	//! \retval asNOT_SUPPORTED The function is not a script function.
+	//!
+	//! If stackOffset <= 0 the returned variable is one of the function arguments, else it is a local variable.
+	//!
+	//! Temporary variables will have no name.
+	//! 
+	//! Use \ref IsVarInScope to determine if the variable is visible at the current position.
 	virtual int                GetVar(asUINT varIndex, asUINT stackLevel, const char** name, int* typeId = 0, asETypeModifiers* typeModifiers = 0, bool* isVarOnHeap = 0, int* stackOffset = 0) = 0;
 #ifdef AS_DEPRECATED
 	// deprecated since 2022-05-04, 2.36.0
@@ -3353,8 +3391,9 @@ public:
 	//! \param[out] objectRegister Will be set to the address of the object held in the object register, or null if no object is currently held.
 	//! \param[out] objectTypeRegister Will be set to the object type of the object held in the object register, or null if no object is currently held.
 	//! \return A negative value to indicate an error.
-	//! \retval asERROR The \a stackLevel is not 0 or doesn't represent a pushed state for nested calls.
+	//! \retval asNO_FUNCTION The \a stackLevel is not 0 or doesn't represent a pushed state for nested calls.
 	//! \retval asINVALID_ARG The \a stackLevel is out of bounds.
+	//! \retval asERROR The context is in an invalid state.
 	//!
 	//! Call this to get the context state registers for serialization. During serialization the current state registers must be stored. If the context
 	//! has been used for nested calls, then this method must also be used to retrieve any pushed states by passing the \a stackLevel representing the push state.
@@ -3372,7 +3411,8 @@ public:
 	//! \param[out] stackIndex Will be set to the index of the stack memory block.
 	//! \return A negative value to indicate an error.
 	//! \retval asINVALID_ARG The \a stackLevel is out of bounds.
-	//! \retval asERROR The \a stackLevel represent a pushed state for nested calls.
+	//! \retval asNO_FUNCTION The \a stackLevel represent a pushed state for nested calls.
+	//! \retval asERROR The context is in an invalid state.
 	//!
 	//! Use this method to get the call state registers for serialization. Each function on the call stack must be stored during serialization. 
 	//! The number of functions on the call stack can be obtained with \ref GetCallstackSize.
@@ -3539,6 +3579,11 @@ public:
 	//! \brief Returns a pointer to the argument value.
 	//! \param[in] arg The argument index.
 	//! \return A pointer to the argument value.
+	//!
+	//! This method returns a pointer to the argument, so the application can read it.
+	//!
+	//! This method is generic, i.e. it works for all argument types; primitive, handles, objects, by value, or by reference.
+	//! For this reason it is very convenient to be used in generated code, such as templates or macros.
 	virtual void   *GetAddressOfArg(asUINT arg) = 0;
 	//! \}
 
@@ -3841,6 +3886,9 @@ public:
 	//! \brief Returns the number of template sub types.
 	//! \return The number of template sub types.
 	virtual asUINT           GetSubTypeCount() const = 0;
+	//! \brief Returns the type id that the typedef or enum represents.
+	//! \return The type id that the typedef or enum represents.
+	virtual int              GetUnderlyingTypeId() const = 0;
 	//! \}
 
 	// Interfaces
@@ -3935,9 +3983,10 @@ public:
 	//! \param[out] accessMask The access mask of the property
 	//! \param[out] compositeOffset The offset to composite type if used
 	//! \param[out] isCompositeIndirect Set to false if the composite type is inline
+	//! \param[out] isConst Set to true if the property is read only
 	//! \return A negative value on error
 	//! \retval asINVALID_ARG The \a index is out of bounds
-	virtual int         GetProperty(asUINT index, const char **name, int *typeId = 0, bool *isPrivate = 0, bool *isProtected = 0, int *offset = 0, bool *isReference = 0, asDWORD *accessMask = 0, int *compositeOffset = 0, bool *isCompositeIndirect = 0) const = 0;
+	virtual int         GetProperty(asUINT index, const char **name, int *typeId = 0, bool *isPrivate = 0, bool *isProtected = 0, int *offset = 0, bool *isReference = 0, asDWORD *accessMask = 0, int *compositeOffset = 0, bool *isCompositeIndirect = 0, bool *isConst = 0) const = 0;
 	//! \brief Returns the declaration of the property
 	//! \param[in] index The index of the property
 	//! \param[in] includeNamespace Set to true if the namespace should be included in the declaration.
@@ -3985,17 +4034,21 @@ public:
 	//! \param[in] index The index of the enum value.
 	//! \param[out] outValue Receives the value of the enum value.
 	//! \return The name of the enum value.
-	virtual const char *GetEnumValueByIndex(asUINT index, int *outValue) const = 0;
+	virtual const char *GetEnumValueByIndex(asUINT index, asINT64 *outValue) const = 0;
 	//! \}
 
+#ifdef AS_DEPRECATED
+	// deprecated since 2025-09-13, 2.39.0
 	// Typedef
 	//! \name Typedef
 	//! \{
 
 	//! \brief Returns the type id that the typedef represents.
 	//! \return The type id that the typedef represents.
+	//! \deprecated Since 2.39.0. Use \ref GetUnderlyingTypeId instead
 	virtual int GetTypedefTypeId() const = 0;
 	//! \}
+#endif
 
 	// Funcdef
 	//! \name Funcdef
@@ -4077,13 +4130,13 @@ public:
 	//! The returned value can be null if the module doesn't exist anymore, or if the function 
 	//! is not owned by any module, e.g. registered by the application or it is a \ref doc_callbacks_delegate "delegate".
 	virtual asIScriptModule *GetModule() const = 0;
+#ifdef AS_DEPRECATED
+	// deprecated since 2025-04-25, 2.38.0
 	//! \brief Returns the name of the script section where the function was implemented.
 	//! \return A null terminated string with the script section name where the function was implemented.
-	//!
-	//! The returned pointer is null when the function doesn't originate from a script file, i.e.
-	//! a registered function or an auto-generated script function. It can also be null if the information
-	//! has been removed, e.g. when saving bytecode without debug info.
+	//! \deprecated Since 2.38.0. Use \ref asIScriptFunction::GetDeclaredAt instead
 	virtual const char      *GetScriptSectionName() const = 0;
+#endif
 	//! \brief Returns the name of the config group in which the function was registered.
 	//! \return The name of the config group, or null if not in any group.
 	virtual const char      *GetConfigGroup() const = 0;
@@ -4148,6 +4201,9 @@ public:
 	//! \brief Returns true if the function is declared as 'property'.
 	//! \return True if the function is a property accessor.
 	virtual bool             IsProperty() const = 0;
+	//! \brief Returns true if the function has variadic arguments.
+	//! \return True if the function has variadic arguments.
+	virtual bool             IsVariadic() const = 0;
 	//! \brief Returns the number of parameters for this function.
 	//! \return The number of parameters.
 	virtual asUINT           GetParamCount() const = 0;
@@ -4169,6 +4225,23 @@ public:
 	virtual int              GetReturnTypeId(asDWORD *flags = 0) const = 0;
 	//! \}
 
+	//! \name Template functions
+	//! \{
+		
+	// Template functions
+	//! \brief Returns the number of template sub types.
+	//! \return The number of template sub types.
+	virtual asUINT           GetSubTypeCount() const = 0;
+	//! \brief Returns the type id of a template sub type.
+	//! \param[in] subTypeIndex The index of the template sub type.
+	//! \return The type id of the template sub type.
+	virtual int              GetSubTypeId(asUINT subTypeIndex = 0) const = 0;
+	//! \brief Returns the type info for a template sub type.
+	//! \param[in] subTypeIndex The index of the template sub type.
+	//! \return the type info for the template sub type.
+	virtual asITypeInfo     *GetSubType(asUINT subTypeIndex = 0) const = 0;
+	//! \}
+	
 	//! \name Type id for function pointers
 	//! \{
 
@@ -4216,17 +4289,46 @@ public:
 	//! \param[in] includeNamespace Set to true if the namespace should be included in the declaration.
 	//! \return The declaration string, or null on error
 	virtual const char      *GetVarDecl(asUINT index, bool includeNamespace = false) const = 0;
+#ifdef AS_DEPRECATED
+	// deprecated since 2025-11-14, 2.39.0
 	//! \brief Returns the next line number with code
 	//! \param[in] line A line number
 	//! \return The number of the next line with code, or a negative value if the line is outside the function.
+	//! \deprecated Since 2.39.0. Use \ref GetLineEntry instead
 	virtual int              FindNextLineWithCode(int line) const = 0;
+#endif
 	//! \brief Returns the location in the script where the function was declared
 	//! \param[out] scriptSection The name of the script section where the function was declared
 	//! \param[out] row The row number where the function was declared
 	//! \param[out] col The column number where the function was declared
 	//! \return A negative value on error
 	//! \retval asNOT_SUPPORTED The function is not a script function
+	//!
+	//! The returned pointer for \a scriptSection is null when the function doesn't originate from a script file,
+	//! e.g. a registered function or an auto-generated script function. It can also be null if the information
+	//! has been removed, e.g. when saving bytecode without debug info.
 	virtual int              GetDeclaredAt(const char** scriptSection, int* row, int* col) const = 0;
+	//! \brief Returns the number of line information entries
+	//! \return A negative value on error
+	//! \retval asNOT_SUPPORTED The function is not a script function
+	virtual int              GetLineEntryCount() const = 0;
+	//! \brief Returns the line information entry
+	//! \param[in]  index The index of the line entry to retrieve
+	//! \param[out] row The row of the line entry
+	//! \param[out] col The column of the line entry
+	//! \param[out] sectionName The script section that the line is referring to
+	//! \param[out] byteCode The compiled bytecode that the line starts at
+	//! \return A negative value on error
+	//! \retval asNOT_SUPPORTED The function is not a script function
+	//! \retval asINVALID_ARG The index is out of range
+	//! \retval asERROR There is no bytecode
+	//! 
+	//! This function can be used to find all the lines with code in a function. Observe that the lines may not be sequential,
+	//! or even from the same script section, if the function has been compiled from multiple pieces of code. A common example of
+	//! this is class constructors that contain the initializations of class members as well as additional logic from the constructor body.
+	//! 
+	//! The bytecode pointer can be used to inspect the compiled bytecode at the line.
+	virtual int              GetLineEntry(asUINT index, int* row, int* col, const char** sectionName, const asDWORD** byteCode) const = 0;
 	//! \}
 
 	//! \name JIT compilation

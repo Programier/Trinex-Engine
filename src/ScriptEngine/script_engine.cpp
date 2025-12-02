@@ -842,7 +842,7 @@ namespace Engine
 
 			for (uint_t i = 0; i < enum_value_count; ++i)
 			{
-				int_t val;
+				int64_t val;
 				StringView text = info.enum_value_by_index(i, &val);
 
 				if (val == value)

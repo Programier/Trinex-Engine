@@ -64,7 +64,8 @@ namespace Engine
 		// Properties
 		uint_t property_count() const;
 		bool property(uint_t index, StringView* name = nullptr, int_t* type_id = nullptr, bool* is_private = nullptr,
-		              bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr) const;
+		              bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr,
+		              bool* is_const = nullptr) const;
 		String property_declaration(uint_t index, bool include_bamespace = false) const;
 		StringView property_name(uint_t index) const;
 		int_t property_type_id(uint_t index) const;
@@ -85,10 +86,7 @@ namespace Engine
 
 		// Enums
 		uint_t enum_value_count() const;
-		StringView enum_value_by_index(uint_t index, int_t* out_value = nullptr) const;
-
-		// Typedef
-		int_t typedef_type_id() const;
+		StringView enum_value_by_index(uint_t index, int64_t* out_value = nullptr) const;
 
 		// Funcdef
 		ScriptFunction funcdef_signature() const;

@@ -9,7 +9,7 @@
 
 BEGIN_AS_NAMESPACE
 
-class AS_API CScriptAny
+class CScriptAny
 {
 public:
 	// Constructors

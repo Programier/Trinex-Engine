@@ -79,24 +79,15 @@ namespace Engine
 		asEFuncType type = m_function->GetFuncType();
 		switch (type)
 		{
-			case asFUNC_DUMMY:
-				return Type::Dummy;
-			case asFUNC_SYSTEM:
-				return Type::System;
-			case asFUNC_SCRIPT:
-				return Type::Script;
-			case asFUNC_INTERFACE:
-				return Type::Interface;
-			case asFUNC_VIRTUAL:
-				return Type::Virtual;
-			case asFUNC_FUNCDEF:
-				return Type::Funcdef;
-			case asFUNC_IMPORTED:
-				return Type::Imported;
-			case asFUNC_DELEGATE:
-				return Type::Delegate;
-			default:
-				return Type::Dummy;
+			case asFUNC_DUMMY: return Type::Dummy;
+			case asFUNC_SYSTEM: return Type::System;
+			case asFUNC_SCRIPT: return Type::Script;
+			case asFUNC_INTERFACE: return Type::Interface;
+			case asFUNC_VIRTUAL: return Type::Virtual;
+			case asFUNC_FUNCDEF: return Type::Funcdef;
+			case asFUNC_IMPORTED: return Type::Imported;
+			case asFUNC_DELEGATE: return Type::Delegate;
+			default: return Type::Dummy;
 		}
 	}
 
@@ -110,12 +101,6 @@ namespace Engine
 	{
 		check_function({});
 		return ScriptModule(m_function->GetModule());
-	}
-
-	StringView ScriptFunction::script_section_name() const
-	{
-		check_function("");
-		return Strings::make_string_view(m_function->GetScriptSectionName());
 	}
 
 	ScriptTypeInfo ScriptFunction::object_type() const

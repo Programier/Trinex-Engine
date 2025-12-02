@@ -14,7 +14,7 @@ namespace Engine::Refl
 		auto count = info.enum_value_count();
 		for (uint_t i = 0; i < count; ++i)
 		{
-			int_t value;
+			int64_t value;
 			StringView name = info.enum_value_by_index(i, &value);
 			create_entry(nullptr, name, value);
 		}
