@@ -353,7 +353,7 @@ namespace Engine
 
 	static int_t find_type_id_internal(const char* declaration, const char* module_name)
 	{
-		ScriptModule module(module_name, ScriptModule::OnlyIfExists);
+		ScriptModule module(module_name, ScriptModuleLookup::OnlyIfExists);
 		if (module.is_valid())
 		{
 			return module.type_id_by_decl(declaration);

@@ -34,12 +34,12 @@ namespace Engine
 
 	ScriptModule::ScriptModule(asIScriptModule* module) : m_module(module) {}
 
-	ScriptModule::ScriptModule(const char* name, ModuleFlags flags)
+	ScriptModule::ScriptModule(const char* name, ScriptModuleLookup lookup)
 	{
-		(*this) = ScriptEngine::create_module(name, flags);
+		(*this) = ScriptEngine::module_by_name(name, lookup);
 	}
 
-	ScriptModule::ScriptModule(const String& name, ModuleFlags flags) : ScriptModule(name.c_str(), flags) {}
+	ScriptModule::ScriptModule(const String& name, ScriptModuleLookup lookup) : ScriptModule(name.c_str(), lookup) {}
 
 	asIScriptModule* ScriptModule::as_module() const
 	{

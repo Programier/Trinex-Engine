@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/enums.hpp>
+#include <ScriptEngine/enums.hpp>
 
 namespace Engine
 {

@@ -244,30 +244,6 @@ namespace Engine
 		return register_property(declaration.c_str(), data);
 	}
 
-	ScriptModule ScriptEngine::create_module(const String& name, EnumerateType flags)
-	{
-		return create_module(name.c_str(), flags);
-	}
-
-	ScriptModule ScriptEngine::create_module(const char* name, EnumerateType flags)
-	{
-		using MFlags = ScriptModule::ModuleFlags;
-
-		MFlags module_flags = static_cast<MFlags>(flags);
-		switch (module_flags)
-		{
-			case MFlags::CreateIfNotExists: return m_engine->GetModule(name, asGM_CREATE_IF_NOT_EXISTS);
-			case MFlags::OnlyIfExists: return m_engine->GetModule(name, asGM_ONLY_IF_EXISTS);
-			case MFlags::AlwaysCreate: return m_engine->GetModule(name, asGM_ALWAYS_CREATE);
-			default: return ScriptModule();
-		}
-	}
-
-	uint_t ScriptEngine::module_count()
-	{
-		return m_engine->GetModuleCount();
-	}
-
 	class ScriptFolder* ScriptEngine::scripts_folder()
 	{
 		return m_script_folder;
@@ -483,9 +459,28 @@ namespace Engine
 		return discard_module(module_name.c_str());
 	}
 
+	uint_t ScriptEngine::module_count()
+	{
+		return m_engine->GetModuleCount();
+	}
+
 	ScriptModule ScriptEngine::module_by_index(uint_t index)
 	{
 		return ScriptModule(m_engine->GetModuleByIndex(index));
+	}
+
+	ScriptModule ScriptEngine::module_by_name(const char* name, ScriptModuleLookup lookup)
+	{
+		asEGMFlags flags = asGM_ONLY_IF_EXISTS;
+
+		switch (lookup)
+		{
+			case ScriptModuleLookup::OnlyIfExists: flags = asGM_ONLY_IF_EXISTS; break;
+			case ScriptModuleLookup::AlwaysCreate: flags = asGM_ALWAYS_CREATE; break;
+			case ScriptModuleLookup::CreateIfNotExists: flags = asGM_CREATE_IF_NOT_EXISTS; break;
+		}
+
+		return ScriptModule(m_engine->GetModule(name, flags));
 	}
 
 	// Script functions

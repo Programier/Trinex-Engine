@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/enums.hpp>
 #include <Core/etl/map.hpp>
+#include <ScriptEngine/enums.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
 #include <ScriptEngine/script_function.hpp>
 
@@ -67,9 +67,6 @@ namespace Engine
 		static StringView default_namespace();
 		static int_t register_property(const char* declaration, void* data);
 		static int_t register_property(const String& declaration, void* data);
-		static ScriptModule create_module(const String& name, EnumerateType flags = 0);
-		static ScriptModule create_module(const char* name, EnumerateType flags = 0);
-		static uint_t module_count();
 		static class ScriptFolder* scripts_folder();
 		static ScriptEngine& load_scripts();
 
@@ -122,7 +119,9 @@ namespace Engine
 		// Script modules
 		static ScriptEngine& discard_module(const char* module);
 		static ScriptEngine& discard_module(const String& module);
+		static uint_t module_count();
 		static ScriptModule module_by_index(uint_t index);
+		static ScriptModule module_by_name(const char* name, ScriptModuleLookup lookup = ScriptModuleLookup::OnlyIfExists);
 
 		// Script functions
 		static int_t last_function_id();

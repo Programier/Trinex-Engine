@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
+#include <ScriptEngine/enums.hpp>
 
 class asIScriptModule;
 class asITypeInfo;
@@ -17,17 +18,10 @@ namespace Engine
 		asIScriptModule* m_module;
 
 	public:
-		enum ModuleFlags
-		{
-			OnlyIfExists      = 0,
-			CreateIfNotExists = 1,
-			AlwaysCreate      = 2,
-		};
-
 		copy_constructors_hpp(ScriptModule);
 		ScriptModule(asIScriptModule* module = nullptr);
-		ScriptModule(const char* name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
-		ScriptModule(const String& name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
+		ScriptModule(const char* name, ScriptModuleLookup lookup = ScriptModuleLookup::CreateIfNotExists);
+		ScriptModule(const String& name, ScriptModuleLookup lookup = ScriptModuleLookup::CreateIfNotExists);
 
 		asIScriptModule* as_module() const;
 		bool is_valid() const;

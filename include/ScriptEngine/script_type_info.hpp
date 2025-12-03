@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/enums.hpp>
 #include <Core/etl/string.hpp>
+#include <ScriptEngine/enums.hpp>
 
 class asITypeInfo;
 

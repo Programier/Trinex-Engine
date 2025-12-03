@@ -1,7 +1,7 @@
 #pragma once
-#include <Core/enums.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/flags.hpp>
+#include <ScriptEngine/enums.hpp>
 
 class asIScriptContext;
 class asIScriptFunction;

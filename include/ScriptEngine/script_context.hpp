@@ -215,7 +215,7 @@ namespace Engine
 		static Vector2i line_position(uint_t stack_level = 0, StringView* section_name = nullptr);
 		static uint_t var_count(uint_t stack_level = 0);
 		static bool var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id = 0,
-		                Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
+		                ScriptTypeModifiers* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
 		static String var_declaration(uint_t var_index, uint_t stack_level = 0, bool include_namespace = false);
 		static byte* address_of_var(uint_t var_index, uint_t stack_level = 0, bool dont_dereference = false,
 		                            bool return_address_of_unitialized_objects = false);

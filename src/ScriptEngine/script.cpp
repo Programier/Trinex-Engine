@@ -462,7 +462,12 @@ namespace Engine
 		const bool old_exception_on_error = ScriptEngine::exception_on_error;
 		ScriptEngine::exception_on_error  = exception_on_error;
 
-		if (builder.StartNewModule(ScriptEngine::engine(), "__TRINEX_TEMPORARY_BUILD_MODULE__") < 0)
+		StringView module_name = path().str();
+
+		if (module_name.starts_with(ScriptEngine::scripts_folder()->path().str()))
+			module_name.remove_prefix(ScriptEngine::scripts_folder()->path().length() + 1);
+
+		if (builder.StartNewModule(ScriptEngine::engine(), module_name.data()) < 0)
 		{
 			error_log("Script", "Failed to start new module!");
 			return false;
@@ -490,7 +495,6 @@ namespace Engine
 		}
 
 		m_module = builder.GetModule();
-		m_module.name(path().str());
 		m_module.as_module()->SetUserData(this, Constants::script_userdata_id);
 		load_metadata(builder);
 		create_reflection();

@@ -473,7 +473,7 @@ namespace Engine
 	}
 
 	bool ScriptContext::var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id,
-	                        Flags<ScriptTypeModifiers>* modifiers, bool* is_var_on_heap, int_t* stack_offset)
+	                        ScriptTypeModifiers* modifiers, bool* is_var_on_heap, int_t* stack_offset)
 	{
 		asETypeModifiers script_modifiers;
 		const char* script_name;

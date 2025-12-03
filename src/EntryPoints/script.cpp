@@ -19,67 +19,49 @@ namespace Engine
 		trinex_declare_class(ScriptExec, EntryPoint);
 
 	public:
-		static inline String read_content(std::istream& stream)
+		int_t execute() override
 		{
-			return String(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
-		}
+			auto module_argument   = Arguments::find("module");
+			auto function_argument = Arguments::find("function");
 
-		static int_t exec_script(const String& source)
-		{
-			ScriptModule module("__TRINEX_SCRIPT_EXEC_MODULE__", ScriptModule::AlwaysCreate);
-			if (!module.add_script_section("Global", source.c_str(), source.length()))
+			if (module_argument == nullptr || module_argument->type != Arguments::Type::String)
 			{
-				error_log("ScriptExec", "Failed to add script section!");
+				error_log("ScriptExec", "Failed to get module name!");
 				return -1;
 			}
 
-			if (!module.build())
+			if (function_argument == nullptr || function_argument->type != Arguments::Type::String)
 			{
-				error_log("ScriptExec", "Failed to build module!");
+				error_log("ScriptExec", "Failed to get function name!");
 				return -1;
 			}
 
 
-			ScriptFunction function = module.function_by_decl("int main()");
+			ScriptModule module = ScriptEngine::module_by_name(module_argument->get<const String&>().c_str());
+
+			if (!module.is_valid())
+			{
+				error_log("ScriptExec", "Failed to get script module!");
+				return -1;
+			}
+
+			ScriptFunction function = module.function_by_name(function_argument->get<const String&>().c_str());
 
 			if (!function.is_valid())
 			{
-				error_log("ScriptExec", "Failed to get main function from script");
+				error_log("ScriptExec", "Failed to get script function!");
 				return -1;
 			}
 
-			int_t result;
+			if (function.param_count() != 0)
+			{
+				error_log("ScriptExec", "Script function must have only 0 parameters");
+				return -1;
+			}
+
+			int_t result = 0;
 			ScriptContext::execute(function, &result);
 			return result;
-		}
-
-		int_t execute() override
-		{
-			auto file_argument = Arguments::find("file");
-
-			if (file_argument == nullptr || file_argument->type != Arguments::Type::String)
-			{
-				error_log("ScriptExec", "Failed to get path to script file!");
-				return -1;
-			}
-
-			std::ifstream file(file_argument->get<const String&>());
-			if (!file.is_open())
-			{
-				error_log("ScriptExec", "Failed to open script file!");
-				return -1;
-			}
-
-			String content = read_content(file);
-
-			if (content.empty())
-			{
-				error_log("ScriptExec", "Script file is empty!");
-				return -1;
-			}
-
-
-			return exec_script(content);
 		}
 	};
 
@@ -99,6 +81,6 @@ namespace Engine
 		}
 	};
 
-	trinex_implement_engine_class_default_init(ScriptExec, 0);
-	trinex_implement_engine_class_default_init(ScriptConfigDump, 0);
+	trinex_implement_class_default_init(ScriptExec, 0);
+	trinex_implement_class_default_init(ScriptConfigDump, 0);
 }// namespace Engine

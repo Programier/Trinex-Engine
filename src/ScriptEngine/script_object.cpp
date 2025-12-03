@@ -23,7 +23,7 @@ namespace Engine
 
 	static FORCE_INLINE int_t find_type_id(const char* declaration, const char* module_name)
 	{
-		auto module = ScriptModule(module_name, ScriptModule::OnlyIfExists);
+		auto module = ScriptModule(module_name, ScriptModuleLookup::OnlyIfExists);
 
 		if (module.is_valid())
 			return module.type_id_by_decl(declaration);

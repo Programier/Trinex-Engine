@@ -67,7 +67,7 @@ namespace Engine
 		initialize_graphics_api(true);
 
 		int_t result = 0;
-		if (Object* entry_object = Refl::Class::static_find(entry_name, Refl::FindFlags::IsRequired)->create_object())
+		if (Object* entry_object = Refl::Class::static_require(entry_name)->create_object())
 		{
 			if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
 			{
