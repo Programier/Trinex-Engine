@@ -9,7 +9,7 @@ namespace Engine
 		struct SSAO {
 			trinex_declare_struct(SSAO, void);
 
-			bool enabled    = true;
+			bool enabled    = false;
 			float intensity = 1.f;
 			float bias      = 0.03f;
 			float power     = 2.f;

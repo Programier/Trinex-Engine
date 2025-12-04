@@ -70,7 +70,7 @@ namespace Engine
 		uint_t param_count() const;
 		bool param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,
 		           StringView* default_arg = nullptr) const;
-		int_t return_type_id(Flags<ScriptTypeModifiers>* flags = nullptr) const;
+		int_t return_type_id(ScriptTypeModifiers* flags = nullptr) const;
 
 		// Type id for function pointers
 		int_t type_id() const;

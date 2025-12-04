@@ -18,15 +18,6 @@ namespace Engine
 	static asIScriptContext* m_context      = nullptr;
 	static Function<void(void*)> m_callback = {};
 
-	struct ExecInfo {
-		Flags<ScriptTypeModifiers> return_type_modifiers;
-		int_t return_type_id = 0;
-		bool is_active       = false;
-	};
-
-	static Vector<ExecInfo> m_exec_info;
-
-
 	static void script_line_callback_internal(asIScriptEngine* engine, void* userdata)
 	{
 		if (m_callback)
@@ -72,11 +63,11 @@ namespace Engine
 		return context;
 	}
 
-
 	bool ScriptContext::begin_execute(const ScriptFunction& function)
 	{
 		auto current_state = state();
-		if (!is_in<State::Uninitialized, State::Active, State::Finished>(current_state))
+
+		if (!is_in<State::Uninitialized, State::Active>(current_state))
 		{
 			if (current_state == State::Exception)
 			{
@@ -85,17 +76,8 @@ namespace Engine
 			throw EngineException("State of context must be Uninitialized or Active!");
 		}
 
-		if (current_state == State::Finished)
-		{
-			return false;
-		}
-
-		ExecInfo info;
-		info.return_type_id = function.return_type_id(&info.return_type_modifiers);
-
 		if (current_state == State::Active)
 		{
-			info.is_active = true;
 			if (!push_state())
 			{
 				throw EngineException("Failed to push new state!");
@@ -108,65 +90,65 @@ namespace Engine
 			{
 				pop_state();
 			}
+
 			throw EngineException("Failed to prepare function!");
 		}
 
-		m_exec_info.emplace_back(std::move(info));
 		return true;
 	}
 
-	bool ScriptContext::end_execute(bool is_valid, void* return_value)
+	bool ScriptContext::end_execute(void* return_value)
 	{
-		if (m_exec_info.empty())
-			throw EngineException("ScriptContext::end_execute: call begin_execute before calling this method!");
+		const bool is_active = callstack_size() > 1;
 
-		ExecInfo info = m_exec_info.back();
-		m_exec_info.pop_back();
+		bool is_prepared = state() == State::Prepared;
 
-		if (is_valid)
+		if (is_prepared)
 		{
-			if (!(is_valid = execute()))
+			if (!execute())
 			{
 				unprepare();
 
-				if (info.is_active == true)
+				if (is_active)
 				{
 					pop_state();
 				}
 
 				throw EngineException("Failed to execute script function!");
 			}
-		}
 
-		if (is_valid && info.return_type_id != 0 && return_value)
-		{
-			if (info.return_type_modifiers.has_all(ScriptTypeModifiers::OutRef) ||
-			    ScriptEngine::is_handle_type(info.return_type_id))
+			ScriptFunction current_function = function();
+
+			ScriptTypeModifiers modifiers;
+			auto type_id = current_function.return_type_id(&modifiers);
+
+			if (type_id != 0 && return_value)
 			{
-				(*static_cast<void**>(return_value)) = return_address();
-			}
-			else if (ScriptEngine::is_primitive_type(info.return_type_id))
-			{
-				std::memcpy(return_value, address_of_return_value(), ScriptEngine::sizeof_primitive_type(info.return_type_id));
-			}
-			else
-			{
-				ScriptEngine::assign_script_object(return_value, return_object_ptr(),
-				                                   ScriptEngine::type_info_by_id(info.return_type_id));
+				if ((modifiers & ScriptTypeModifiers::OutRef) || ScriptEngine::is_handle_type(type_id))
+				{
+					(*static_cast<void**>(return_value)) = return_address();
+				}
+				else if (ScriptEngine::is_primitive_type(type_id))
+				{
+					std::memcpy(return_value, address_of_return_value(), ScriptEngine::sizeof_primitive_type(type_id));
+				}
+				else
+				{
+					ScriptEngine::assign_script_object(return_value, return_object_ptr(), ScriptEngine::type_info_by_id(type_id));
+				}
 			}
 		}
 
-		if (!info.is_active && !unprepare())
+		if (is_active)
 		{
-			throw EngineException("Failed to unprepare function!");
+			if (!unprepare())
+				throw EngineException("Failed to unprepare function!");
+
+			if (!pop_state())
+				throw EngineException("Failed to pop state!");
 		}
 
-		if (info.is_active && !pop_state())
-		{
-			throw EngineException("Failed to pop state!");
-		}
-
-		return is_valid;
+		return is_prepared;
 	}
 
 	asIScriptContext* ScriptContext::context()

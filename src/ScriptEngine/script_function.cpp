@@ -227,7 +227,7 @@ namespace Engine
 		return status;
 	}
 
-	int_t ScriptFunction::return_type_id(Flags<ScriptTypeModifiers>* flags) const
+	int_t ScriptFunction::return_type_id(ScriptTypeModifiers* flags) const
 	{
 		check_function(0);
 		asDWORD script_flags = 0;
@@ -235,7 +235,7 @@ namespace Engine
 
 		if (flags)
 		{
-			(*flags) = Flags<ScriptTypeModifiers>(script_flags);
+			(*flags) = script_flags;
 		}
 
 		return result;

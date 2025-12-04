@@ -99,7 +99,6 @@ namespace Engine
 		        "Engine::DefaultScriptAddons",
 		        "Engine::ScriptVector",
 		        "Engine::ScriptPointer",
-		        "Engine::PrimitiveWrappers",
 		};
 
 		for (auto addon : addons)
@@ -754,7 +753,7 @@ namespace Engine
 			if (!func.is_valid())
 				continue;
 
-			Flags<ScriptTypeModifiers> modifiers;
+			ScriptTypeModifiers modifiers;
 			if (func.return_type_id(&modifiers) < 0)
 				continue;
 
@@ -765,7 +764,7 @@ namespace Engine
 					script->on_discard.push([id = info.type_id()](Script*) { func_map.erase(id); });
 			}
 
-			if (modifiers.has_any(ScriptTypeModifiers::OutRef))
+			if (modifiers & ScriptTypeModifiers::OutRef)
 			{
 				auto ref = func_map.insert({info.type_id(), {&script_object_to_string_ref, func.function()}});
 				return ref.first->second;

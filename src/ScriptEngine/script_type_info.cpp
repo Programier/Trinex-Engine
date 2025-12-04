@@ -21,7 +21,6 @@ namespace Engine
 		add_ref();
 	}
 
-
 	ScriptTypeInfo::ScriptTypeInfo(const ScriptTypeInfo& obj)
 	{
 		m_info = obj.m_info;

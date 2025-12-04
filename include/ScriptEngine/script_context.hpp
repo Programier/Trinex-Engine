@@ -24,6 +24,12 @@ namespace Engine
 		static void initialize();
 		static void terminate();
 
+		struct ExecutionInfo {
+			ScriptTypeModifiers return_type_modifiers;
+			int_t return_type_id = 0;
+			bool is_active       = false;
+		};
+
 	public:
 		enum class State
 		{
@@ -41,7 +47,7 @@ namespace Engine
 
 		static ScriptContext& instance();
 		static bool begin_execute(const ScriptFunction& function);
-		static bool end_execute(bool execute, void* return_value = nullptr);
+		static bool end_execute(void* return_value = nullptr);
 
 		static asIScriptContext* context();
 		static bool prepare(const ScriptFunction& func);
@@ -146,55 +152,36 @@ namespace Engine
 		template<typename... Args>
 		static inline bool execute(const ScriptFunction& function, void* return_value = nullptr, const Args&... args)
 		{
-			if (!begin_execute(function))
-				return false;
+			begin_execute(function);
 
 			uint_t argument = 0;
-			if ((arg(argument++, args) && ...))
-			{
-				return end_execute(true, return_value);
-			}
+			(arg(argument++, args), ...);
 
-			end_execute(false);
-			throw EngineException("Failed to bind arguments to script function!");
+			return end_execute(return_value);
 		}
 
 		template<typename... Args>
 		static inline bool execute(const ScriptObject& self, const ScriptFunction& function, void* return_value = nullptr,
 		                           const Args&... args)
 		{
-			if (!begin_execute(function))
-				return false;
+			begin_execute(function);
 
 			uint_t argument = 0;
-			if (object(self) && (arg(argument++, args) && ...))
-			{
-				return end_execute(true, return_value);
-			}
+			object(self), (arg(argument++, args), ...);
 
-			end_execute(false);
-			if (argument == 0)
-				throw EngineException("Failed to bind script object");
-			throw EngineException("Failed to bind arguments to script function!");
+			return end_execute(return_value);
 		}
 
 		template<typename... Args>
 		static inline bool execute(const void* self, const ScriptFunction& function, void* return_value = nullptr,
 		                           const Args&... args)
 		{
-			if (!begin_execute(function))
-				return false;
+			begin_execute(function);
 
 			uint_t argument = 0;
-			if (object(self) && (arg(argument++, args) && ...))
-			{
-				return end_execute(true, return_value);
-			}
+			object(self), (arg(argument++, args), ...);
 
-			end_execute(false);
-			if (argument == 0)
-				throw EngineException("Failed to bind script object");
-			throw EngineException("Failed to bind arguments to script function!");
+			return end_execute(return_value);
 		}
 
 		// Exception handling
