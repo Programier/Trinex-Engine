@@ -11,7 +11,7 @@ namespace Engine
 
 	class ENGINE_EXPORT TouchScreenSystem : public Singletone<TouchScreenSystem, System>
 	{
-		trinex_declare_class(TouchScreenSystem, System);
+		trinex_class(TouchScreenSystem, System);
 
 	public:
 		struct ENGINE_EXPORT Finger {

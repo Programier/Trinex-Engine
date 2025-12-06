@@ -20,7 +20,7 @@ namespace Engine
 		};
 
 		trinex_bitfield_enum_struct(ShowFlags, EnumerateType);
-		trinex_declare_enum(ShowFlags);
+		trinex_enum(ShowFlags);
 	};
 
 	struct ENGINE_EXPORT ViewMode {
@@ -39,7 +39,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(ViewMode);
-		trinex_declare_enum(ViewMode);
+		trinex_enum(ViewMode);
 	};
 
 	struct ENGINE_EXPORT CameraProjectionMode {
@@ -50,7 +50,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(CameraProjectionMode);
-		trinex_declare_enum(CameraProjectionMode);
+		trinex_enum(CameraProjectionMode);
 	};
 
 }// namespace Engine

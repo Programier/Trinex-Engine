@@ -444,7 +444,7 @@ namespace Engine
 
 		class ImGuiViewportClient : public ViewportClient
 		{
-			trinex_declare_class(ImGuiViewportClient, ViewportClient);
+			trinex_class(ImGuiViewportClient, ViewportClient);
 			class ImGuiWindow* m_window;
 
 		public:

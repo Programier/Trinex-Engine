@@ -19,12 +19,12 @@ namespace Engine
 		};
 
 		trinex_enum_struct(LightUnits);
-		trinex_declare_enum(LightUnits);
+		trinex_enum(LightUnits);
 	};
 
 	class ENGINE_EXPORT LightComponent : public SceneComponent
 	{
-		trinex_declare_class(LightComponent, SceneComponent);
+		trinex_class(LightComponent, SceneComponent);
 
 	public:
 		enum Type

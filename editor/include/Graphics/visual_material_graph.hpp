@@ -230,7 +230,7 @@ namespace Engine::VisualMaterialGraph
 
 	class Node : public Object
 	{
-		trinex_declare_class(Node, Object);
+		trinex_class(Node, Object);
 
 	private:
 		Vector<InputPin*> m_inputs;

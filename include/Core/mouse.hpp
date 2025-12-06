@@ -13,7 +13,7 @@ namespace Engine::Mouse
 		};
 
 		trinex_enum_struct(Status);
-		trinex_declare_enum(Status);
+		trinex_enum(Status);
 	};
 
 	struct Button {
@@ -29,6 +29,6 @@ namespace Engine::Mouse
 		};
 
 		trinex_enum_struct(Button);
-		trinex_declare_enum(Button);
+		trinex_enum(Button);
 	};
 }// namespace Engine::Mouse

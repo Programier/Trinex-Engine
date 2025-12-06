@@ -19,7 +19,7 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT MeshSurface {
-		trinex_declare_struct(MeshSurface, void);
+		trinex_struct(MeshSurface, void);
 
 		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
 		uint32_t first_vertex         = 0;
@@ -34,11 +34,11 @@ namespace Engine
 
 	class ENGINE_EXPORT StaticMesh : public Object
 	{
-		trinex_declare_class(StaticMesh, Object);
+		trinex_class(StaticMesh, Object);
 
 	public:
 		struct ENGINE_EXPORT LOD {
-			trinex_declare_struct(LOD, void);
+			trinex_struct(LOD, void);
 
 			Vector<MeshSurface> surfaces;
 			FlatSet<MeshVertexAttribute> attributes;
@@ -71,11 +71,11 @@ namespace Engine
 
 	class ENGINE_EXPORT SkeletalMesh : public Object
 	{
-		trinex_declare_class(SkeletalMesh, Object);
+		trinex_class(SkeletalMesh, Object);
 
 	public:
 		struct ENGINE_EXPORT LOD {
-			trinex_declare_struct(LOD, void);
+			trinex_struct(LOD, void);
 
 			Vector<PositionVertexBuffer> positions;
 			Vector<TexCoordVertexBuffer> tex_coords;

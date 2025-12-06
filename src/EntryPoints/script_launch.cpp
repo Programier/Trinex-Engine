@@ -16,7 +16,7 @@ namespace Engine
 {
 	class ScriptExec : public EntryPoint
 	{
-		trinex_declare_class(ScriptExec, EntryPoint);
+		trinex_class(ScriptExec, EntryPoint);
 
 	public:
 		int_t execute() override
@@ -67,7 +67,7 @@ namespace Engine
 
 	class ScriptConfigDump : public EntryPoint
 	{
-		trinex_declare_class(ScriptConfigDump, EntryPoint);
+		trinex_class(ScriptConfigDump, EntryPoint);
 
 	public:
 		int_t execute() override

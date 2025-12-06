@@ -7,7 +7,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(ScriptStruct);
+	trinex_implement_reflect_type(ScriptStruct);
 
 	ScriptStruct::ScriptStruct(ScriptStruct* parent, Script* script, const ScriptTypeInfo& info, BitMask flags)
 	    : Struct(parent, flags | IsScriptable), m_script(script)

@@ -13,7 +13,7 @@ namespace Engine
 
 	class SLANG_ShaderCompiler : public ShaderCompiler
 	{
-		trinex_declare_class(SLANG_ShaderCompiler, ShaderCompiler);
+		trinex_class(SLANG_ShaderCompiler, ShaderCompiler);
 
 	public:
 		struct ShaderInfo {
@@ -130,7 +130,7 @@ namespace Engine
 
 	class NONE_ShaderCompiler : public SLANG_ShaderCompiler
 	{
-		trinex_declare_class(NONE_ShaderCompiler, SLANG_ShaderCompiler);
+		trinex_class(NONE_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;
@@ -138,7 +138,7 @@ namespace Engine
 
 	class VULKAN_ShaderCompiler : public SLANG_ShaderCompiler
 	{
-		trinex_declare_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
+		trinex_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
 
 	private:
 		struct SPIRV {
@@ -164,7 +164,7 @@ namespace Engine
 
 	class D3D12_ShaderCompiler : public SLANG_ShaderCompiler
 	{
-		trinex_declare_class(D3D12_ShaderCompiler, SLANG_ShaderCompiler);
+		trinex_class(D3D12_ShaderCompiler, SLANG_ShaderCompiler);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;

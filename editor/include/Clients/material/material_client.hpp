@@ -6,7 +6,7 @@ namespace Engine
 {
 	class MaterialEditorClient : public ImGuiViewportClient
 	{
-		trinex_declare_class(MaterialEditorClient, ImGuiViewportClient);
+		trinex_class(MaterialEditorClient, ImGuiViewportClient);
 
 	protected:
 		class ContentBrowser* m_content_browser      = nullptr;

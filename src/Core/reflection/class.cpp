@@ -10,7 +10,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(Class);
+	trinex_implement_reflect_type(Class);
 
 	bool Struct::is_class() const
 	{

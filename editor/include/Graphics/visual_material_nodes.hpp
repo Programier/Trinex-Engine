@@ -10,7 +10,7 @@ namespace Engine::VisualMaterialGraph
 {
 	class MaterialRoot : public Node
 	{
-		trinex_declare_class(MaterialRoot, Node);
+		trinex_class(MaterialRoot, Node);
 
 	public:
 		InputPin* const base_color;
@@ -28,7 +28,7 @@ namespace Engine::VisualMaterialGraph
 
 	class Texture2D : public Node
 	{
-		trinex_declare_class(Texture2D, Node);
+		trinex_class(Texture2D, Node);
 
 	public:
 		String name;
@@ -48,7 +48,7 @@ namespace Engine::VisualMaterialGraph
 
 	class Sampler : public Node
 	{
-		trinex_declare_class(Sampler, Node);
+		trinex_class(Sampler, Node);
 
 	public:
 		String name;
@@ -67,7 +67,7 @@ namespace Engine::VisualMaterialGraph
 
 	class SampleTexture : public Node
 	{
-		trinex_declare_class(SampleTexture, Node);
+		trinex_class(SampleTexture, Node);
 
 		Expression compile_texture(Compiler& compiler);
 		Expression compile_uv(Compiler& compiler);

@@ -17,7 +17,7 @@ namespace Engine
 
 	class VisualMaterialEditorClient : public MaterialEditorClient
 	{
-		trinex_declare_class(VisualMaterialEditorClient, MaterialEditorClient);
+		trinex_class(VisualMaterialEditorClient, MaterialEditorClient);
 
 	private:
 		Vector<VisualMaterialGraph::Node*> m_selected_nodes;

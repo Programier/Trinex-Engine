@@ -10,7 +10,7 @@ namespace Engine
 {
 	class ScriptDebuggerClient : public ImGuiViewportClient
 	{
-		trinex_declare_class(ScriptDebuggerClient, ImGuiViewportClient);
+		trinex_class(ScriptDebuggerClient, ImGuiViewportClient);
 
 		struct Editor {
 			ImGui::TextEditor m_editor;

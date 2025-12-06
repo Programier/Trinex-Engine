@@ -212,7 +212,7 @@ namespace Engine::Refl
 
 	declare_enum_operators(FindFlags);
 
-#define declare_reflect_type(name, base)                                                                                         \
+#define trinex_reflect_type(name, base)                                                                                          \
 public:                                                                                                                          \
 	using This  = name;                                                                                                          \
 	using Super = base;                                                                                                          \
@@ -235,7 +235,7 @@ public:                                                                         
 	}
 
 
-#define implement_reflect_type(name)                                                                                             \
+#define trinex_implement_reflect_type(name)                                                                                      \
 	Engine::Refl::ClassInfo* name::static_refl_class_info()                                                                      \
 	{                                                                                                                            \
 		static Engine::Refl::ClassInfo info(#name, Super::static_refl_class_info());                                             \

@@ -59,7 +59,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ShaderCompiler : public Object
 	{
-		trinex_declare_class(ShaderCompiler, Object);
+		trinex_class(ShaderCompiler, Object);
 
 	public:
 		template<template<class T> typename AllocatorType = Allocator>

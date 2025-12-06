@@ -13,28 +13,28 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(Property);
-	implement_reflect_type(PrimitiveProperty);
-	implement_reflect_type(BooleanProperty);
-	implement_reflect_type(IntegerProperty);
-	implement_reflect_type(FloatProperty);
-	implement_reflect_type(AngleProperty);
-	implement_reflect_type(EnumProperty);
-	implement_reflect_type(ColorProperty);
-	implement_reflect_type(LinearColorProperty);
-	implement_reflect_type(VectorProperty);
-	implement_reflect_type(MatrixProperty);
-	implement_reflect_type(QuaternionProperty);
-	implement_reflect_type(StringProperty);
-	implement_reflect_type(NameProperty);
-	implement_reflect_type(PathProperty);
-	implement_reflect_type(ObjectProperty);
-	implement_reflect_type(StructProperty);
-	implement_reflect_type(ArrayProperty);
-	implement_reflect_type(ReflObjectProperty);
-	implement_reflect_type(SubClassProperty);
-	implement_reflect_type(FlagsProperty);
-	implement_reflect_type(VirtualProperty);
+	trinex_implement_reflect_type(Property);
+	trinex_implement_reflect_type(PrimitiveProperty);
+	trinex_implement_reflect_type(BooleanProperty);
+	trinex_implement_reflect_type(IntegerProperty);
+	trinex_implement_reflect_type(FloatProperty);
+	trinex_implement_reflect_type(AngleProperty);
+	trinex_implement_reflect_type(EnumProperty);
+	trinex_implement_reflect_type(ColorProperty);
+	trinex_implement_reflect_type(LinearColorProperty);
+	trinex_implement_reflect_type(VectorProperty);
+	trinex_implement_reflect_type(MatrixProperty);
+	trinex_implement_reflect_type(QuaternionProperty);
+	trinex_implement_reflect_type(StringProperty);
+	trinex_implement_reflect_type(NameProperty);
+	trinex_implement_reflect_type(PathProperty);
+	trinex_implement_reflect_type(ObjectProperty);
+	trinex_implement_reflect_type(StructProperty);
+	trinex_implement_reflect_type(ArrayProperty);
+	trinex_implement_reflect_type(ReflObjectProperty);
+	trinex_implement_reflect_type(SubClassProperty);
+	trinex_implement_reflect_type(FlagsProperty);
+	trinex_implement_reflect_type(VirtualProperty);
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{

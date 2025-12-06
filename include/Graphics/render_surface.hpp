@@ -14,7 +14,7 @@ namespace Engine
 
 	class ENGINE_EXPORT RenderSurface : public RenderResource
 	{
-		trinex_declare_class(RenderSurface, RenderResource);
+		trinex_class(RenderSurface, RenderResource);
 
 		RHIResourcePtr<RHITexture> m_texture;
 

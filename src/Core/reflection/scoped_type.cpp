@@ -5,7 +5,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(ScopedType);
+	trinex_implement_reflect_type(ScopedType);
 
 	static ScopedType* root = nullptr;
 

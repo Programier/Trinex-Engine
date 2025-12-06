@@ -14,7 +14,7 @@ namespace Engine
 
 	class ImGuiViewportClient : public ViewportClient
 	{
-		trinex_declare_class(ImGuiViewportClient, ViewportClient);
+		trinex_class(ImGuiViewportClient, ViewportClient);
 
 	public:
 		static constexpr uint32_t s_dock_id = 0x524F4F54;// 'ROOT'

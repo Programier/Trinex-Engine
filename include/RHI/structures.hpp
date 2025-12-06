@@ -168,7 +168,7 @@ namespace Engine
 	};
 
 	struct RHIDepthState final {
-		trinex_declare_struct(RHIDepthState, void);
+		trinex_struct(RHIDepthState, void);
 		trinex_default_comparable(RHIDepthState);
 
 		RHICompareFunc func = RHICompareFunc::Less;
@@ -183,7 +183,7 @@ namespace Engine
 	};
 
 	struct RHIStencilState final {
-		trinex_declare_struct(RHIStencilState, void);
+		trinex_struct(RHIStencilState, void);
 		trinex_default_comparable(RHIStencilState);
 
 		RHIStencilOp fail;
@@ -207,7 +207,7 @@ namespace Engine
 	};
 
 	struct ENGINE_EXPORT RHIBlendingState final {
-		trinex_declare_struct(RHIBlendingState, void);
+		trinex_struct(RHIBlendingState, void);
 		trinex_default_comparable(RHIBlendingState);
 
 		static RHIBlendingState opaque;

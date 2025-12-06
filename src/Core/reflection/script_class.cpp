@@ -7,7 +7,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(ScriptClass);
+	trinex_implement_reflect_type(ScriptClass);
 
 	bool Class::is_script_class(Class* self)
 	{

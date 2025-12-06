@@ -10,7 +10,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ActorComponent : public Object
 	{
-		trinex_declare_class(ActorComponent, Object);
+		trinex_class(ActorComponent, Object);
 
 	private:
 		void script_update(float dt);

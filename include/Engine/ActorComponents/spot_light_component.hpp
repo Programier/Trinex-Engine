@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT SpotLightComponent : public PointLightComponent
 	{
-		trinex_declare_class(SpotLightComponent, PointLightComponent);
+		trinex_class(SpotLightComponent, PointLightComponent);
 
 	private:
 		Angle m_inner_cone_angle;

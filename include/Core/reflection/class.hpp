@@ -12,7 +12,7 @@ namespace Engine
 	{
 		class ENGINE_EXPORT Class : public Struct
 		{
-			declare_reflect_type(Class, Struct);
+			trinex_reflect_type(Class, Struct);
 
 		private:
 			mutable Engine::Object* m_singletone_object;

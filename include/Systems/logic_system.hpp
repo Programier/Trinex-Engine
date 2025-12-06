@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT LogicSystem : public Singletone<LogicSystem, System>
 	{
-		trinex_declare_class(LogicSystem, System);
+		trinex_class(LogicSystem, System);
 
 	protected:
 		LogicSystem& create() override;

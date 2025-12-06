@@ -21,7 +21,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
-		trinex_declare_class(MaterialInterface, Object);
+		trinex_class(MaterialInterface, Object);
 
 	public:
 		using Parameter = MaterialParameters::Parameter;
@@ -49,7 +49,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Material : public MaterialInterface
 	{
-		trinex_declare_class(Material, MaterialInterface);
+		trinex_class(Material, MaterialInterface);
 
 	protected:
 		Map<RenderPass*, GraphicsPipeline*> m_pipelines;
@@ -90,7 +90,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MaterialInstance : public MaterialInterface
 	{
-		trinex_declare_class(MaterialInstance, MaterialInterface);
+		trinex_class(MaterialInstance, MaterialInterface);
 
 	public:
 		MaterialInterface* parent_material = nullptr;

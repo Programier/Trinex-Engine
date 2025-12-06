@@ -14,7 +14,7 @@ namespace Engine
 
 	class VisualMaterial : public Material
 	{
-		trinex_declare_class(VisualMaterial, Material);
+		trinex_class(VisualMaterial, Material);
 
 	private:
 		using RootNode = VisualMaterialGraph::MaterialRoot;

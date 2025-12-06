@@ -8,7 +8,7 @@ namespace Engine
 	class RHIShader;
 	class ENGINE_EXPORT Shader : public RenderResource
 	{
-		trinex_declare_class(Shader, RenderResource);
+		trinex_class(Shader, RenderResource);
 
 	protected:
 		RHIResourcePtr<RHIShader> m_shader;

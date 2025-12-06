@@ -7,7 +7,7 @@ namespace Engine::Refl
 {
 	class ENGINE_EXPORT Enum : public Object
 	{
-		declare_reflect_type(Enum, Object);
+		trinex_reflect_type(Enum, Object);
 
 	public:
 		struct Entry {

@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT SkeletalMeshActor : public Actor
 	{
-		trinex_declare_class(SkeletalMeshActor, Actor);
+		trinex_class(SkeletalMeshActor, Actor);
 
 	private:
 		class SkeletalMeshComponent* m_mesh_component = nullptr;

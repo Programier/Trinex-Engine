@@ -10,7 +10,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(Struct);
+	trinex_implement_reflect_type(Struct);
 
 	Struct::Struct(Struct* parent, BitMask flags) : flags(flags), m_parent(parent)
 	{

@@ -8,7 +8,7 @@ namespace Engine
 
 	class ObjectViewClient : public ImGuiViewportClient
 	{
-		trinex_declare_class(ObjectViewClient, ImGuiViewportClient);
+		trinex_class(ObjectViewClient, ImGuiViewportClient);
 
 	private:
 		PropertyRenderer* m_property_renderer = nullptr;

@@ -11,7 +11,7 @@ namespace Engine::Refl
 {
 	class ENGINE_EXPORT ScriptEnum : public Enum
 	{
-		declare_reflect_type(ScriptEnum, Enum);
+		trinex_reflect_type(ScriptEnum, Enum);
 
 		Script* m_script;
 

@@ -40,7 +40,7 @@ namespace Engine
 
 	class EditorClient : public ImGuiViewportClient
 	{
-		trinex_declare_class(EditorClient, ImGuiViewportClient);
+		trinex_class(EditorClient, ImGuiViewportClient);
 
 	private:
 		struct Stats {

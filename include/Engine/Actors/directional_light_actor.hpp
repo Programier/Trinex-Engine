@@ -5,7 +5,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT DirectionalLightActor : public LightActor
 	{
-		trinex_declare_class(DirectionalLightActor, LightActor);
+		trinex_class(DirectionalLightActor, LightActor);
 
 	private:
 		class DirectionalLightComponent* m_directional_light_component = nullptr;

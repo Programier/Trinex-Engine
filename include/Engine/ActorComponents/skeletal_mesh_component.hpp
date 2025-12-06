@@ -9,7 +9,7 @@ namespace Engine
 
 	class ENGINE_EXPORT SkeletalMeshComponent : public MeshComponent
 	{
-		trinex_declare_class(SkeletalMeshComponent, MeshComponent);
+		trinex_class(SkeletalMeshComponent, MeshComponent);
 
 	private:
 		class SkeletalMesh* m_mesh = nullptr;

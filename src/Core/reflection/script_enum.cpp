@@ -4,7 +4,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(ScriptEnum);
+	trinex_implement_reflect_type(ScriptEnum);
 
 	ScriptEnum::ScriptEnum(Script* script, const ScriptTypeInfo& info) : m_script(script)
 	{

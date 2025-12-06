@@ -8,7 +8,7 @@
 
 namespace Engine::Refl
 {
-	implement_reflect_type(Enum);
+	trinex_implement_reflect_type(Enum);
 
 	Enum::Enum(byte flags) : m_flags(flags) {}
 

@@ -9,7 +9,7 @@ namespace Engine
 
 	class ENGINE_EXPORT MeshComponent : public PrimitiveComponent
 	{
-		trinex_declare_class(MeshComponent, PrimitiveComponent);
+		trinex_class(MeshComponent, PrimitiveComponent);
 
 	private:
 		Vector<MaterialInterface*> m_material_overrides;

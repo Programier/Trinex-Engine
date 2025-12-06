@@ -335,7 +335,7 @@ namespace Engine
 	};
 
 
-#define trinex_declare_class(class_name, base_name)                                                                              \
+#define trinex_class(class_name, base_name)                                                                                      \
 protected:                                                                                                                       \
 	static class Engine::Refl::Class* m_static_class;                                                                            \
                                                                                                                                  \

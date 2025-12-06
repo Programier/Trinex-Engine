@@ -11,7 +11,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, Engine::System>
 	{
-		trinex_declare_class(EventSystem, System);
+		trinex_class(EventSystem, System);
 
 	public:
 		using ListenerSignature = void(const Event&);

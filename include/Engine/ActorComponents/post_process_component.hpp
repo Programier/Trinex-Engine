@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT PostProcessComponent : public SceneComponent
 	{
-		trinex_declare_class(PostProcessComponent, SceneComponent);
+		trinex_class(PostProcessComponent, SceneComponent);
 
 	private:
 		PostProcessParameters m_parameters;

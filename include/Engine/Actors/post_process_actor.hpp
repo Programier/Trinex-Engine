@@ -7,7 +7,7 @@ namespace Engine
 
 	class ENGINE_EXPORT PostProcessActor : public Actor
 	{
-		trinex_declare_class(PostProcessActor, Actor);
+		trinex_class(PostProcessActor, Actor);
 
 	private:
 		PostProcessComponent* m_post_process_component;

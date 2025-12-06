@@ -5,7 +5,7 @@ namespace Engine::Refl
 {
 	class ENGINE_EXPORT ScopedType : public Object
 	{
-		declare_reflect_type(ScopedType, Object);
+		trinex_reflect_type(ScopedType, Object);
 
 	protected:
 		Map<String, Object*> m_childs;

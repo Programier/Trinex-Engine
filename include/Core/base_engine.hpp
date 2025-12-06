@@ -8,7 +8,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT BaseEngine : public EngineResource<Object>
 	{
-		trinex_declare_class(BaseEngine, Object);
+		trinex_class(BaseEngine, Object);
 
 		uint64_t m_frame_index;
 		float m_delta_time;

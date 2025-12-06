@@ -230,7 +230,7 @@ public:                                                                         
 		return *this;                                                                                                            \
 	}
 
-#define trinex_declare_struct(struct_name, base_name)                                                                            \
+#define trinex_struct(struct_name, base_name)                                                                                    \
 protected:                                                                                                                       \
 	static Engine::Refl::Struct* m_static_struct;                                                                                \
                                                                                                                                  \
@@ -240,7 +240,7 @@ public:                                                                         
 	static void static_initialize_struct();                                                                                      \
 	static class Engine::Refl::Struct* static_reflection();
 
-#define trinex_declare_enum(enum_name)                                                                                           \
+#define trinex_enum(enum_name)                                                                                                   \
 	static constexpr bool is_enum_reflected = true;                                                                              \
                                                                                                                                  \
 private:                                                                                                                         \

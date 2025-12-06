@@ -7,7 +7,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT SceneComponent : public ActorComponent
 	{
-		trinex_declare_class(SceneComponent, ActorComponent);
+		trinex_class(SceneComponent, ActorComponent);
 
 	private:
 		Transform m_local;

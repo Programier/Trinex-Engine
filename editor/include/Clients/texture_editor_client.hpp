@@ -11,7 +11,7 @@ namespace Engine
 
 	class TextureEditorClient : public ImGuiViewportClient
 	{
-		trinex_declare_class(TextureEditorClient, ImGuiViewportClient);
+		trinex_class(TextureEditorClient, ImGuiViewportClient);
 
 	private:
 		using TextureVariant = Variant<Pointer<Texture2D>, Pointer<TextureCube>, Pointer<RenderSurface>>;

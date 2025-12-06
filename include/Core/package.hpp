@@ -8,7 +8,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Package : public ObjectTreeNode<Object, Object>
 	{
-		trinex_declare_class(Package, Object);
+		trinex_class(Package, Object);
 
 		bool can_add_object(Object* object) const;
 

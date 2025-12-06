@@ -15,7 +15,7 @@ namespace Engine::Refl
 {
 	class ENGINE_EXPORT Struct : public ScopedType
 	{
-		declare_reflect_type(Struct, ScopedType);
+		trinex_reflect_type(Struct, ScopedType);
 
 	public:
 		struct StructCompare {

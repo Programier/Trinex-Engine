@@ -29,7 +29,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Texture : public RenderResource
 	{
-		trinex_declare_class(Texture, RenderResource);
+		trinex_class(Texture, RenderResource);
 
 	protected:
 		RHIResourcePtr<RHITexture> m_texture;
@@ -41,7 +41,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Texture2D : public Texture
 	{
-		trinex_declare_class(Texture2D, Texture);
+		trinex_class(Texture2D, Texture);
 
 	public:
 		Vector<Texture2DMip> mips;
@@ -56,7 +56,7 @@ namespace Engine
 
 	class ENGINE_EXPORT TextureCube : public Texture
 	{
-		trinex_declare_class(TextureCube, Texture);
+		trinex_class(TextureCube, Texture);
 
 	public:
 		Vector<TextureCubeMip> mips;

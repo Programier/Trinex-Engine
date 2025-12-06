@@ -110,7 +110,7 @@ namespace Engine
 		};
 
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
-		trinex_declare_enum(RHIShaderParameterType);
+		trinex_enum(RHIShaderParameterType);
 
 		ENGINE_EXPORT RHIShaderParameterType make_vector(byte len);
 		ENGINE_EXPORT RHIShaderParameterType make_scalar();
@@ -184,7 +184,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHICompareFunc);
-		trinex_declare_enum(RHICompareFunc);
+		trinex_enum(RHICompareFunc);
 	};
 
 	struct RHIAccess {
@@ -258,7 +258,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHISamplerFilter);
-		trinex_declare_enum(RHISamplerFilter);
+		trinex_enum(RHISamplerFilter);
 	};
 
 	struct RHISamplerAddressMode {
@@ -272,7 +272,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHISamplerAddressMode);
-		trinex_declare_enum(RHISamplerAddressMode);
+		trinex_enum(RHISamplerAddressMode);
 	};
 
 	struct RHIStencilOp {
@@ -289,7 +289,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIStencilOp);
-		trinex_declare_enum(RHIStencilOp);
+		trinex_enum(RHIStencilOp);
 	};
 
 	struct RHIBlendFunc {
@@ -310,7 +310,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIBlendFunc);
-		trinex_declare_enum(RHIBlendFunc);
+		trinex_enum(RHIBlendFunc);
 	};
 
 	struct RHIBlendOp {
@@ -324,7 +324,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIBlendOp);
-		trinex_declare_enum(RHIBlendOp);
+		trinex_enum(RHIBlendOp);
 	};
 
 	struct RHIPrimitiveTopology {
@@ -338,7 +338,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIPrimitiveTopology);
-		trinex_declare_enum(RHIPrimitiveTopology);
+		trinex_enum(RHIPrimitiveTopology);
 	};
 
 	struct RHIPolygonMode {
@@ -350,7 +350,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIPolygonMode);
-		trinex_declare_enum(RHIPolygonMode);
+		trinex_enum(RHIPolygonMode);
 	};
 
 	struct RHICullMode {
@@ -362,7 +362,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHICullMode);
-		trinex_declare_enum(RHICullMode);
+		trinex_enum(RHICullMode);
 	};
 
 	struct RHIFrontFace {
@@ -373,7 +373,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIFrontFace);
-		trinex_declare_enum(RHIFrontFace);
+		trinex_enum(RHIFrontFace);
 	};
 
 	struct RHIVertexInputRate {
@@ -503,7 +503,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIColorFormat);
-		trinex_declare_enum(RHIColorFormat);
+		trinex_enum(RHIColorFormat);
 
 		constexpr inline RHIColorFormat(const struct RHISurfaceFormat& format);
 		constexpr inline RHIColorFormat& operator=(const struct RHISurfaceFormat& format);
@@ -587,7 +587,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHISurfaceFormat);
-		trinex_declare_enum(RHISurfaceFormat);
+		trinex_enum(RHISurfaceFormat);
 
 		constexpr inline bool operator==(const struct RHIColorFormat& format) const noexcept
 		{
@@ -714,7 +714,7 @@ namespace Engine
 		};
 
 		trinex_bitfield_enum_struct(RHIColorComponent, byte);
-		trinex_declare_enum(RHIColorComponent);
+		trinex_enum(RHIColorComponent);
 	};
 
 	struct RHITextureType {

@@ -11,7 +11,7 @@ namespace Engine
 
 	class GameControllerSystem : public Singletone<GameControllerSystem, System>
 	{
-		trinex_declare_class(GameControllerSystem, System);
+		trinex_class(GameControllerSystem, System);
 
 
 	private:

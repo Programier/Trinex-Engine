@@ -5,7 +5,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT LocalLightComponent : public LightComponent
 	{
-		trinex_declare_class(LocalLightComponent, LightComponent);
+		trinex_class(LocalLightComponent, LightComponent);
 
 	private:
 		float m_attenuation_radius;

@@ -9,7 +9,7 @@ namespace Engine
 
 	class ENGINE_EXPORT CameraComponent : public SceneComponent
 	{
-		trinex_declare_class(CameraComponent, SceneComponent);
+		trinex_class(CameraComponent, SceneComponent);
 
 	public:
 		CameraProjectionMode projection_mode = CameraProjectionMode::Perspective;

@@ -15,7 +15,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Pipeline : public RenderResource
 	{
-		trinex_declare_class(Pipeline, RenderResource);
+		trinex_class(Pipeline, RenderResource);
 
 	protected:
 		static StringView pipeline_name_of(StringView name);
@@ -47,7 +47,7 @@ namespace Engine
 
 	class ENGINE_EXPORT GraphicsPipeline : public Pipeline
 	{
-		trinex_declare_class(GraphicsPipeline, Pipeline);
+		trinex_class(GraphicsPipeline, Pipeline);
 
 	public:
 		Vector<RHIVertexAttribute> vertex_attributes;
@@ -87,7 +87,7 @@ namespace Engine
 
 	class ENGINE_EXPORT ComputePipeline : public Pipeline
 	{
-		trinex_declare_class(ComputePipeline, Pipeline);
+		trinex_class(ComputePipeline, Pipeline);
 
 		Shader* m_shader = nullptr;
 

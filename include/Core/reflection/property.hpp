@@ -72,7 +72,7 @@ private:
 
 	class ENGINE_EXPORT Property : public Object
 	{
-		declare_reflect_type(Property, Object);
+		trinex_reflect_type(Property, Object);
 
 	public:
 		enum Flag
@@ -139,7 +139,7 @@ private:
 
 	class ENGINE_EXPORT PrimitiveProperty : public Property
 	{
-		declare_reflect_type(PrimitiveProperty, Property);
+		trinex_reflect_type(PrimitiveProperty, Property);
 
 	public:
 		using Property::Property;
@@ -148,7 +148,7 @@ private:
 
 	class ENGINE_EXPORT BooleanProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(BooleanProperty, PrimitiveProperty);
+		trinex_reflect_type(BooleanProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_same_v<T, bool>);
 
 	public:
@@ -158,7 +158,7 @@ private:
 
 	class ENGINE_EXPORT IntegerProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(IntegerProperty, PrimitiveProperty);
+		trinex_reflect_type(IntegerProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(!std::is_same_v<T, bool> && std::is_integral_v<T> && !std::is_enum_v<T>);
 
 	public:
@@ -169,7 +169,7 @@ private:
 
 	class ENGINE_EXPORT FloatProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(FloatProperty, PrimitiveProperty);
+		trinex_reflect_type(FloatProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_floating_point_v<T>);
 
 	public:
@@ -178,7 +178,7 @@ private:
 
 	class ENGINE_EXPORT AngleProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(AngleProperty, PrimitiveProperty);
+		trinex_reflect_type(AngleProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_same_v<T, Angle>);
 
 	public:
@@ -187,7 +187,7 @@ private:
 
 	class ENGINE_EXPORT VectorProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(VectorProperty, PrimitiveProperty);
+		trinex_reflect_type(VectorProperty, PrimitiveProperty);
 
 	private:
 		template<typename T>
@@ -225,7 +225,7 @@ private:
 
 	class ENGINE_EXPORT MatrixProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(MatrixProperty, PrimitiveProperty);
+		trinex_reflect_type(MatrixProperty, PrimitiveProperty);
 
 	private:
 		template<typename T>
@@ -264,7 +264,7 @@ private:
 
 	class ENGINE_EXPORT QuaternionProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(QuaternionProperty, PrimitiveProperty);
+		trinex_reflect_type(QuaternionProperty, PrimitiveProperty);
 
 	private:
 		trinex_refl_prop_type_filter(std::is_same_v<T, Quaternion>);
@@ -275,7 +275,7 @@ private:
 
 	class ENGINE_EXPORT EnumProperty : public PrimitiveProperty
 	{
-		declare_reflect_type(EnumProperty, PrimitiveProperty);
+		trinex_reflect_type(EnumProperty, PrimitiveProperty);
 
 		template<typename T>
 		using enum_detector =
@@ -293,7 +293,7 @@ private:
 	class ENGINE_EXPORT ColorProperty : public PrimitiveProperty
 	{
 		trinex_refl_prop_type_filter(std::is_same_v<T, Engine::Color>);
-		declare_reflect_type(ColorProperty, PrimitiveProperty);
+		trinex_reflect_type(ColorProperty, PrimitiveProperty);
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
@@ -302,7 +302,7 @@ private:
 	class ENGINE_EXPORT LinearColorProperty : public PrimitiveProperty
 	{
 		trinex_refl_prop_type_filter(std::is_same_v<T, Engine::LinearColor>);
-		declare_reflect_type(LinearColorProperty, PrimitiveProperty);
+		trinex_reflect_type(LinearColorProperty, PrimitiveProperty);
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
@@ -310,7 +310,7 @@ private:
 
 	class ENGINE_EXPORT StringProperty : public Property
 	{
-		declare_reflect_type(StringProperty, Property);
+		trinex_reflect_type(StringProperty, Property);
 		trinex_refl_prop_type_filter(std::is_same_v<String, T>);
 
 	public:
@@ -322,7 +322,7 @@ private:
 
 	class ENGINE_EXPORT NameProperty : public Property
 	{
-		declare_reflect_type(NameProperty, Property);
+		trinex_reflect_type(NameProperty, Property);
 		trinex_refl_prop_type_filter(std::is_same_v<Name, T>);
 
 	public:
@@ -333,7 +333,7 @@ private:
 
 	class ENGINE_EXPORT PathProperty : public Property
 	{
-		declare_reflect_type(PathProperty, Property);
+		trinex_reflect_type(PathProperty, Property);
 		trinex_refl_prop_type_filter(std::is_same_v<Path, T>);
 
 	public:
@@ -344,7 +344,7 @@ private:
 
 	class ENGINE_EXPORT ObjectProperty : public Property
 	{
-		declare_reflect_type(ObjectProperty, Property);
+		trinex_reflect_type(ObjectProperty, Property);
 		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Engine::Object, std::remove_pointer_t<T>>);
 
 	private:
@@ -367,7 +367,7 @@ private:
 
 	class ENGINE_EXPORT StructProperty : public Property
 	{
-		declare_reflect_type(StructProperty, Property);
+		trinex_reflect_type(StructProperty, Property);
 
 	private:
 		template<typename T>
@@ -384,7 +384,7 @@ private:
 
 	class ENGINE_EXPORT ArrayProperty : public Property
 	{
-		declare_reflect_type(ArrayProperty, Property);
+		trinex_reflect_type(ArrayProperty, Property);
 
 	protected:
 		template<typename T>
@@ -451,7 +451,7 @@ private:
 
 	class ENGINE_EXPORT ReflObjectProperty : public Property
 	{
-		declare_reflect_type(ReflObjectProperty, Property);
+		trinex_reflect_type(ReflObjectProperty, Property);
 		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Engine::Refl::Object, std::remove_pointer_t<T>>);
 
 	public:
@@ -469,7 +469,7 @@ private:
 
 	class ENGINE_EXPORT SubClassProperty : public ReflObjectProperty
 	{
-		declare_reflect_type(SubClassProperty, ReflObjectProperty);
+		trinex_reflect_type(SubClassProperty, ReflObjectProperty);
 
 		template<typename T>
 		struct IsSubClassProp {
@@ -496,7 +496,7 @@ private:
 
 	class ENGINE_EXPORT FlagsProperty : public Property
 	{
-		declare_reflect_type(FlagsProperty, Property);
+		trinex_reflect_type(FlagsProperty, Property);
 
 		template<typename T>
 		using enum_detector =
@@ -511,7 +511,7 @@ private:
 
 	class ENGINE_EXPORT VirtualProperty : public Property
 	{
-		declare_reflect_type(VirtualProperty, Property);
+		trinex_reflect_type(VirtualProperty, Property);
 
 	public:
 		using Property::Property;

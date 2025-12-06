@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT ShaderMaterial : public Material
 	{
-		trinex_declare_class(ShaderMaterial, Material);
+		trinex_class(ShaderMaterial, Material);
 
 	public:
 		String shader_path;

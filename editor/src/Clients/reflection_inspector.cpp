@@ -10,7 +10,7 @@ namespace Engine
 {
 	class ReflInspector : public ImGuiViewportClient
 	{
-		trinex_declare_class(ReflInspector, ImGuiViewportClient);
+		trinex_class(ReflInspector, ImGuiViewportClient);
 
 	public:
 		static bool draw_object_info(Refl::Object* object)

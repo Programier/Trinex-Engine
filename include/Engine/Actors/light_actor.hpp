@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT LightActor : public Actor
 	{
-		trinex_declare_class(LightActor, Actor);
+		trinex_class(LightActor, Actor);
 
 	public:
 	};

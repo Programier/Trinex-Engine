@@ -5,7 +5,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT PointLightComponent : public LocalLightComponent
 	{
-		trinex_declare_class(PointLightComponent, LocalLightComponent);
+		trinex_class(PointLightComponent, LocalLightComponent);
 
 	private:
 		float m_source_radius;

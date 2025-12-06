@@ -7,7 +7,7 @@ namespace Engine
 
 	class ENGINE_EXPORT SpotLightActor : public LightActor
 	{
-		trinex_declare_class(SpotLightActor, LightActor);
+		trinex_class(SpotLightActor, LightActor);
 
 	private:
 		class SpotLightComponent* m_spot_light_component = nullptr;

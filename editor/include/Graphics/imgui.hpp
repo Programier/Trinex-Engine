@@ -114,7 +114,7 @@ namespace Engine
 
 	class ImGuiWindow final : private Object
 	{
-		trinex_declare_class(ImGuiWindow, Object);
+		trinex_class(ImGuiWindow, Object);
 
 	private:
 		size_t m_frame;

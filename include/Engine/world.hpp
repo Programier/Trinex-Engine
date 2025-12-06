@@ -11,7 +11,7 @@ namespace Engine
 
 	class ENGINE_EXPORT World : public System
 	{
-		trinex_declare_class(World, System);
+		trinex_class(World, System);
 
 		struct ENGINE_EXPORT DestroyActorInfo {
 			Pointer<class Actor> actor;

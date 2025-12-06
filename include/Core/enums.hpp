@@ -13,7 +13,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(OperationSystemType);
-		trinex_declare_enum(OperationSystemType);
+		trinex_enum(OperationSystemType);
 	};
 
 	struct PhysicalSizeMetric {
@@ -24,7 +24,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(PhysicalSizeMetric);
-		trinex_declare_enum(PhysicalSizeMetric);
+		trinex_enum(PhysicalSizeMetric);
 	};
 
 	struct WindowAttribute {
@@ -47,7 +47,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(WindowAttribute);
-		trinex_declare_enum(WindowAttribute);
+		trinex_enum(WindowAttribute);
 	};
 
 	struct CursorMode {
@@ -58,7 +58,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(CursorMode);
-		trinex_declare_enum(CursorMode);
+		trinex_enum(CursorMode);
 	};
 
 	struct Orientation {
@@ -71,7 +71,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(Orientation);
-		trinex_declare_enum(Orientation);
+		trinex_enum(Orientation);
 	};
 
 	struct MessageBoxType {
@@ -83,7 +83,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(MessageBoxType);
-		trinex_declare_enum(MessageBoxType);
+		trinex_enum(MessageBoxType);
 	};
 
 	struct SerializationFlags {
@@ -148,7 +148,7 @@ namespace Engine
 		};
 
 		trinex_enum_struct(MaterialDomain);
-		trinex_declare_enum(MaterialDomain);
+		trinex_enum(MaterialDomain);
 	};
 
 	struct SplashTextType {
@@ -162,6 +162,6 @@ namespace Engine
 		};
 
 		trinex_enum_struct(SplashTextType);
-		trinex_declare_enum(SplashTextType);
+		trinex_enum(SplashTextType);
 	};
 }// namespace Engine

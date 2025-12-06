@@ -9,7 +9,7 @@ namespace Engine
 
 	class ENGINE_EXPORT Sampler final
 	{
-		trinex_declare_struct(Sampler, void);
+		trinex_struct(Sampler, void);
 
 	private:
 		class SamplerImpl* m_sampler = nullptr;

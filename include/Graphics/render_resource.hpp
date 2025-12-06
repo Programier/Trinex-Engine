@@ -6,7 +6,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT RenderResource : public Object
 	{
-		trinex_declare_class(RenderResource, Object);
+		trinex_class(RenderResource, Object);
 
 	public:
 		virtual RenderResource& init_render_resources();

@@ -11,7 +11,7 @@ namespace Engine::Refl
 {
 	class ENGINE_EXPORT ScriptClass : public Class
 	{
-		declare_reflect_type(ScriptClass, Class);
+		trinex_reflect_type(ScriptClass, Class);
 
 	private:
 		Script* m_script;

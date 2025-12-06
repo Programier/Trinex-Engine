@@ -4,10 +4,10 @@
 namespace Engine
 {
 	struct PostProcessParameters final {
-		trinex_declare_struct(PostProcessParameters, void);
+		trinex_struct(PostProcessParameters, void);
 
 		struct SSAO {
-			trinex_declare_struct(SSAO, void);
+			trinex_struct(SSAO, void);
 
 			bool enabled    = false;
 			float intensity = 1.f;
@@ -21,7 +21,7 @@ namespace Engine
 		};
 
 		struct Bloom {
-			trinex_declare_struct(Bloom, void);
+			trinex_struct(Bloom, void);
 
 			bool enabled    = true;
 			float intensity = 1.f;

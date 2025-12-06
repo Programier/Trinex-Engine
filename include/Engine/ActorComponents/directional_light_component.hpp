@@ -5,7 +5,7 @@ namespace Engine
 {
 	class ENGINE_EXPORT DirectionalLightComponent : public LightComponent
 	{
-		trinex_declare_class(DirectionalLightComponent, LightComponent);
+		trinex_class(DirectionalLightComponent, LightComponent);
 
 	private:
 		float m_shadows_distance = 50.f;
