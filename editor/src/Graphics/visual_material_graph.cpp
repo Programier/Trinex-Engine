@@ -250,7 +250,7 @@ namespace Engine::VisualMaterialGraph
 		{
 			auto type_component1 = static_component_type_of(type1);
 			auto type_component2 = static_component_type_of(type2);
-			byte result_len      = glm::max(type1.vector_length(), type2.vector_length());
+			byte result_len      = glm::max(type1.columns(), type2.columns());
 
 			if (type_component1 == RHIShaderParameterType::Float || type_component2 == RHIShaderParameterType::Float)
 				return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(result_len);
@@ -331,7 +331,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (self.is_numeric())
 		{
-			byte len = self.vector_length();
+			byte len = self.columns();
 			return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(len);
 		}
 
@@ -345,7 +345,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (self.is_numeric())
 		{
-			byte len        = self.vector_length();
+			byte len        = self.columns();
 			byte normalized = glm::clamp<byte>(glm::clamp(len, min, max), 1, 4);
 
 			if (normalized != len)
@@ -372,7 +372,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		auto component = static_component_type_of(type);
 
-		if (component.is_scalar() && type.vector_length() > 1)
+		if (component.is_scalar() && type.columns() > 1)
 		{
 			return Expression(component, value + s_swizzle[1]);
 		}
@@ -384,7 +384,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		auto component = static_component_type_of(type);
 
-		if (component.is_scalar() && type.vector_length() > 2)
+		if (component.is_scalar() && type.columns() > 2)
 		{
 			return Expression(component, value + s_swizzle[2]);
 		}
@@ -396,7 +396,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		auto component = static_component_type_of(type);
 
-		if (component.is_scalar() && type.vector_length() > 3)
+		if (component.is_scalar() && type.columns() > 3)
 		{
 			return Expression(component, value + s_swizzle[3]);
 		}
@@ -411,8 +411,8 @@ namespace Engine::VisualMaterialGraph
 
 		if ((dst.is_vector() || dst.is_scalar()) && (type.is_vector() || type.is_scalar()))
 		{
-			size_t src_components = type.vector_length();
-			size_t dst_components = dst.vector_length();
+			size_t src_components = type.columns();
+			size_t dst_components = dst.columns();
 
 			const auto src_component_type = static_component_type_of(type);
 			const auto dst_component_type = static_component_type_of(dst);
@@ -616,11 +616,7 @@ namespace Engine::VisualMaterialGraph
 		if (output_pin)
 		{
 			Expression expression = compile(output_pin);
-
-			if (!pin->type().is_meta())
-				expression = expression.convert(pin->type());
-
-			return expression;
+			return expression.convert(pin->type());
 		}
 
 		return compile_default(pin);
@@ -935,9 +931,8 @@ namespace Engine::VisualMaterialGraph
 		expression.static_function("bool static_is_vector(RHIShaderParameterType self)", &Expression::static_is_vector);
 		expression.static_function("bool static_is_matrix(RHIShaderParameterType self)", &Expression::static_is_matrix);
 		expression.static_function("bool static_is_numeric(RHIShaderParameterType self)", &Expression::static_is_numeric);
-		expression.static_function("bool static_is_meta(RHIShaderParameterType self)", &Expression::static_is_meta);
-		expression.static_function("uint16 static_type_index(RHIShaderParameterType self)", &Expression::static_type_index);
-		expression.static_function("uint8 static_vector_length(RHIShaderParameterType self)", &Expression::static_vector_length);
+		expression.static_function("uint8 static_columns(RHIShaderParameterType self)", &Expression::static_columns);
+        expression.static_function("uint8 static_rows(RHIShaderParameterType self)", &Expression::static_rows);
 
 		// clang-format on
 

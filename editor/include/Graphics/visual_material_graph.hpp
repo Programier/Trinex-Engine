@@ -52,9 +52,8 @@ namespace Engine::VisualMaterialGraph
 		static inline bool static_is_vector(RHIShaderParameterType self) { return self.is_vector(); }
 		static inline bool static_is_matrix(RHIShaderParameterType self) { return self.is_matrix(); }
 		static inline bool static_is_numeric(RHIShaderParameterType self) { return self.is_numeric(); }
-		static inline bool static_is_meta(RHIShaderParameterType self) { return self.is_meta(); }
-		static inline uint16_t static_type_index(RHIShaderParameterType self) { return self.type_index(); }
-		static inline byte static_vector_length(RHIShaderParameterType self) { return self.vector_length(); }
+		static inline byte static_columns(RHIShaderParameterType self) { return self.columns(); }
+		static inline byte static_rows(RHIShaderParameterType self) { return self.rows(); }
 
 		inline Expression() : type(RHIShaderParameterType::Undefined) {}
 		Expression(RHIShaderParameterType type, const char* value) : type(type), value(value) {}

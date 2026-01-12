@@ -19,6 +19,14 @@ namespace Engine
 		bool serialize(Archive& ar);
 	};
 
+	struct ENGINE_EXPORT Texture3DMip {
+		Vector3u size;
+		Buffer data;
+
+		Texture3DMip(Vector3u init_size = {}, const Buffer& buffer = {}) : size(init_size), data(buffer) {}
+		bool serialize(Archive& ar);
+	};
+
 	struct ENGINE_EXPORT TextureCubeMip {
 		Vector2u size;
 		Buffer data;
@@ -26,6 +34,7 @@ namespace Engine
 		TextureCubeMip(Vector2u init_size = {}, const Buffer& buffer = {}) : size(init_size), data(buffer) {}
 		bool serialize(Archive& ar);
 	};
+
 
 	class ENGINE_EXPORT Texture : public RenderResource
 	{
@@ -51,6 +60,22 @@ namespace Engine
 		uint_t width(byte mip = 0) const;
 		uint_t height(byte mip = 0) const;
 		Vector2u size(byte mip = 0) const;
+		bool serialize(Archive& archive) override;
+	};
+	
+	class ENGINE_EXPORT Texture3D : public Texture
+	{
+		trinex_class(Texture2D, Texture);
+		
+	public:
+		Vector<Texture3DMip> mips;
+		RHIColorFormat format;
+		
+		Texture3D& init_render_resources() override;
+		uint_t width(byte mip = 0) const;
+		uint_t height(byte mip = 0) const;
+		uint_t depth(byte mip = 0) const;
+		Vector3u size(byte mip = 0) const;
 		bool serialize(Archive& archive) override;
 	};
 

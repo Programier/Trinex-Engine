@@ -9,104 +9,130 @@ namespace Engine
 			Undefined = 0,
 
 			// Meta
-			META_UniformBuffer       = BIT(16),
-			META_Sampler             = BIT(17),
-			META_Texture             = BIT(18),
-			META_RWTexture           = BIT(19),
-			META_Buffer              = BIT(20),
-			META_RWBuffer            = BIT(21),
-			META_StructuredBuffer    = BIT(22),
-			META_RWStructuredBuffer  = BIT(23),
-			META_ByteAddressBuffer   = BIT(24),
-			META_RWByteAddressBuffer = BIT(25),
+			META_Descriptor            = BIT(0),
+			META_UniformBuffer         = BIT(1),
+			META_Sampler               = BIT(2),
+			META_Texture               = BIT(3),
+			META_Buffer                = BIT(4),
+			META_StructuredBuffer      = BIT(5),
+			META_ByteAddressBuffer     = BIT(6),
+			META_AccelerationStructure = BIT(7),
 
-			META_AccelerationStructure = BIT(26),
-
-			META_Scalar  = BIT(27),
-			META_Vector  = BIT(28),
-			META_Matrix  = BIT(29),
+			META_Scalar  = BIT(8),
+			META_Vector  = BIT(9),
+			META_Matrix  = BIT(10),
 			META_Numeric = META_Scalar | META_Vector,
 
-			META_ExcludeMaterialParameter = BIT(30),
-			META_Any                      = 65535U << 16,
+			META_RW       = BIT(11),
+			META_Array    = BIT(12),
+			META_Cube     = BIT(13),
+			META_Boolean  = BIT(14),
+			META_Integer  = BIT(15),
+			META_Floating = BIT(16),
+			META_Unsigned = BIT(17),
+
+			// Dimensions
+			META_1R = BIT(18),
+			META_2R = BIT(19),
+			META_3R = BIT(18) | BIT(19),
+			META_4R = BIT(20),
+
+			META_1C = BIT(21),
+			META_2C = BIT(22),
+			META_3C = BIT(21) | BIT(22),
+			META_4C = BIT(23),
+
+			META_1D = META_1R | META_1C,
+			META_2D = META_2R | META_2C,
+			META_3D = META_3R | META_3C,
+			META_4D = META_4R | META_4C,
+
+			META_ExcludeMaterialParameter = BIT(24),
+
+			META_Special0 = BIT(31),
+			META_Any      = ~0U,
 
 			// Scalars
-			Bool          = 1 | META_Scalar | META_UniformBuffer,
-			Bool2         = 2 | META_Vector | META_UniformBuffer,
-			Bool3         = 3 | META_Vector | META_UniformBuffer,
-			Bool4         = 4 | META_Vector | META_UniformBuffer,
-			Int           = 5 | META_Scalar | META_UniformBuffer,
-			Int2          = 6 | META_Vector | META_UniformBuffer,
-			Int3          = 7 | META_Vector | META_UniformBuffer,
-			Int4          = 8 | META_Vector | META_UniformBuffer,
-			UInt          = 9 | META_Scalar | META_UniformBuffer,
-			UInt2         = 10 | META_Vector | META_UniformBuffer,
-			UInt3         = 11 | META_Vector | META_UniformBuffer,
-			UInt4         = 12 | META_Vector | META_UniformBuffer,
-			Float         = 13 | META_Scalar | META_UniformBuffer,
-			Float2        = 14 | META_Vector | META_UniformBuffer,
-			Float3        = 15 | META_Vector | META_UniformBuffer,
-			Float4        = 16 | META_Vector | META_UniformBuffer,
-			Float3x3      = 17 | META_Matrix | META_UniformBuffer,
-			Float4x4      = 18 | META_Matrix | META_UniformBuffer,
-			UniformBuffer = 19 | META_UniformBuffer,
+			Bool          = META_Boolean | META_Scalar | META_UniformBuffer | META_1D,
+			Bool2         = META_Boolean | META_Scalar | META_UniformBuffer | META_2D,
+			Bool3         = META_Boolean | META_Scalar | META_UniformBuffer | META_3D,
+			Bool4         = META_Boolean | META_Scalar | META_UniformBuffer | META_4D,
+			Int           = META_Integer | META_Scalar | META_UniformBuffer | META_1D,
+			Int2          = META_Integer | META_Scalar | META_UniformBuffer | META_2D,
+			Int3          = META_Integer | META_Scalar | META_UniformBuffer | META_3D,
+			Int4          = META_Integer | META_Scalar | META_UniformBuffer | META_4D,
+			UInt          = META_Integer | META_Scalar | META_UniformBuffer | META_1D | META_Unsigned,
+			UInt2         = META_Integer | META_Scalar | META_UniformBuffer | META_2D | META_Unsigned,
+			UInt3         = META_Integer | META_Scalar | META_UniformBuffer | META_3D | META_Unsigned,
+			UInt4         = META_Integer | META_Scalar | META_UniformBuffer | META_4D | META_Unsigned,
+			Float         = META_Floating | META_Scalar | META_UniformBuffer | META_1D,
+			Float2        = META_Floating | META_Scalar | META_UniformBuffer | META_2D,
+			Float3        = META_Floating | META_Scalar | META_UniformBuffer | META_3D,
+			Float4        = META_Floating | META_Scalar | META_UniformBuffer | META_4D,
+			Float3x3      = META_Floating | META_Matrix | META_UniformBuffer | META_3D,
+			Float4x4      = META_Floating | META_Matrix | META_UniformBuffer | META_4D,
+			UniformBuffer = META_UniformBuffer,
 
-			Sampler          = 20 | META_Sampler,
-			Sampler1D        = 21 | META_Texture | META_Sampler,
-			Sampler2D        = 22 | META_Texture | META_Sampler,
-			Sampler3D        = 23 | META_Texture | META_Sampler,
-			SamplerCube      = 24 | META_Texture | META_Sampler,
-			Sampler1DArray   = 25 | META_Texture | META_Sampler,
-			Sampler2DArray   = 26 | META_Texture | META_Sampler,
-			SamplerCubeArray = 27 | META_Texture | META_Sampler,
+			// Samplers
+			Sampler          = META_Sampler,
+			Sampler1D        = META_Texture | META_Sampler | META_1D,
+			Sampler2D        = META_Texture | META_Sampler | META_2D,
+			Sampler3D        = META_Texture | META_Sampler | META_3D,
+			SamplerCube      = META_Texture | META_Sampler | META_Cube,
+			Sampler1DArray   = META_Texture | META_Sampler | META_1D | META_Array,
+			Sampler2DArray   = META_Texture | META_Sampler | META_2D | META_Array,
+			SamplerCubeArray = META_Texture | META_Sampler | META_Cube | META_Array,
 
-			RWSampler1D        = 28 | META_RWTexture | META_Sampler,
-			RWSampler2D        = 29 | META_RWTexture | META_Sampler,
-			RWSampler3D        = 30 | META_RWTexture | META_Sampler,
-			RWSamplerCube      = 31 | META_RWTexture | META_Sampler,
-			RWSampler1DArray   = 32 | META_RWTexture | META_Sampler,
-			RWSampler2DArray   = 33 | META_RWTexture | META_Sampler,
-			RWSamplerCubeArray = 34 | META_RWTexture | META_Sampler,
+			RWSampler1D        = META_RW | Sampler1D,
+			RWSampler2D        = META_RW | Sampler2D,
+			RWSampler3D        = META_RW | Sampler3D,
+			RWSamplerCube      = META_RW | SamplerCube,
+			RWSampler1DArray   = META_RW | Sampler1DArray,
+			RWSampler2DArray   = META_RW | Sampler2DArray,
+			RWSamplerCubeArray = META_RW | SamplerCubeArray,
 
-			Texture1D        = 35 | META_Texture,
-			Texture2D        = 36 | META_Texture,
-			Texture3D        = 37 | META_Texture,
-			TextureCube      = 38 | META_Texture,
-			Texture1DArray   = 39 | META_Texture,
-			Texture2DArray   = 40 | META_Texture,
-			TextureCubeArray = 41 | META_Texture,
+			// Textures
+			Texture1D        = META_Texture | META_1D,
+			Texture2D        = META_Texture | META_2D,
+			Texture3D        = META_Texture | META_3D,
+			TextureCube      = META_Texture | META_Cube,
+			Texture1DArray   = META_Texture | META_1D | META_Array,
+			Texture2DArray   = META_Texture | META_2D | META_Array,
+			TextureCubeArray = META_Texture | META_Cube | META_Array,
 
-			RWTexture1D        = 42 | META_RWTexture,
-			RWTexture2D        = 43 | META_RWTexture,
-			RWTexture3D        = 44 | META_RWTexture,
-			RWTextureCube      = 45 | META_RWTexture,
-			RWTexture1DArray   = 46 | META_RWTexture,
-			RWTexture2DArray   = 47 | META_RWTexture,
-			RWTextureCubeArray = 48 | META_RWTexture,
+			RWTexture1D        = META_RW | Texture1D,
+			RWTexture2D        = META_RW | Texture2D,
+			RWTexture3D        = META_RW | Texture3D,
+			RWTextureCube      = META_RW | TextureCube,
+			RWTexture1DArray   = META_RW | Texture1DArray,
+			RWTexture2DArray   = META_RW | Texture2DArray,
+			RWTextureCubeArray = META_RW | TextureCubeArray,
 
-			Buffer            = 49 | META_Buffer,
-			StructuredBuffer  = 50 | META_StructuredBuffer,
-			ByteAddressBuffer = 51 | META_ByteAddressBuffer,
+			// Buffers
+			Buffer            = META_Buffer,
+			StructuredBuffer  = META_StructuredBuffer,
+			ByteAddressBuffer = META_ByteAddressBuffer,
 
-			RWBuffer            = 52 | META_RWBuffer,
-			RWStructuredBuffer  = 53 | META_RWStructuredBuffer,
-			RWByteAddressBuffer = 54 | META_RWByteAddressBuffer,
+			RWBuffer            = META_RW | Buffer,
+			RWStructuredBuffer  = META_RW | StructuredBuffer,
+			RWByteAddressBuffer = META_RW | ByteAddressBuffer,
 
-			AccelerationStructure = 55 | META_AccelerationStructure,
-
-			Globals         = 56 | META_UniformBuffer,
-			LocalToWorld    = 57 | META_Matrix | META_UniformBuffer,
-			Surface         = 58 | META_Texture,
-			CombinedSurface = 59 | META_Texture | META_Sampler,
+			AccelerationStructure = META_AccelerationStructure,
 
 			// Descriptors
-			DescriptorTexture1D        = 60 | META_UniformBuffer,
-			DescriptorTexture2D        = 61 | META_UniformBuffer,
-			DescriptorTexture3D        = 62 | META_UniformBuffer,
-			DescriptorTextureCube      = 63 | META_UniformBuffer,
-			DescriptorTexture1DArray   = 64 | META_UniformBuffer,
-			DescriptorTexture2DArray   = 65 | META_UniformBuffer,
-			DescriptorTextureCubeArray = 66 | META_UniformBuffer,
+			DescriptorTexture1D        = Texture1D | META_Descriptor,
+			DescriptorTexture2D        = Texture2D | META_Descriptor,
+			DescriptorTexture3D        = Texture3D | META_Descriptor,
+			DescriptorTextureCube      = TextureCube | META_Descriptor,
+			DescriptorTexture1DArray   = Texture1DArray | META_Descriptor,
+			DescriptorTexture2DArray   = Texture2DArray | META_Descriptor,
+			DescriptorTextureCubeArray = TextureCubeArray | META_Descriptor,
+
+			// Special
+			Globals         = UniformBuffer | META_Special0,
+			LocalToWorld    = Float4x4 | META_Special0,
+			Surface         = Texture2D | META_Special0,
+			CombinedSurface = Sampler2D | META_Special0,
 		};
 
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
@@ -118,15 +144,20 @@ namespace Engine
 		inline constexpr bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
 		inline constexpr bool is_vector() const { return (value & META_Vector) == META_Vector; }
 		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
-		inline constexpr bool is_numeric() const { return (value & META_Numeric) != 0; }
-		inline constexpr bool is_meta() const { return (value & 0xFFFF) == 0; }
-		inline constexpr uint16_t type_index() const { return (value & 0xFFFF) - 1; }
+		inline constexpr bool is_numeric() const { return (value & META_Numeric); }
 
-		inline constexpr byte vector_length() const
+		inline constexpr byte rows() const
 		{
-			if (!is_vector() && !is_scalar())
-				return 0;
-			return (((value & 0xFFFF) - 1) % 4) + 1;
+			constexpr EnumerateType mask = META_1R | META_2R | META_3R | META_4R;
+			EnumerateType value          = bitfield & mask;
+			return value >> 16;
+		}
+
+		inline constexpr byte columns() const
+		{
+			constexpr EnumerateType mask = META_1C | META_2C | META_3C | META_4C;
+			EnumerateType value          = bitfield & mask;
+			return value >> 19;
 		}
 	};
 

@@ -437,7 +437,7 @@ namespace Engine
 					if (auto default_value = input->default_value())
 					{
 						VerticalLayout layout;
-						s_default_type_renderers[default_value->type().type_index()](input->default_value()->address());
+						// s_default_type_renderers[default_value->type().type_index()](input->default_value()->address());
 					}
 				}
 
@@ -460,7 +460,7 @@ namespace Engine
 				if (auto default_value = output->default_value())
 				{
 					VerticalLayout layout;
-					s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
+					//s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
 				}
 
 				ImGui::Text(" %*s", max_output_name_len, output->name().c_str());
@@ -920,25 +920,25 @@ namespace Engine
 	{
 		using T = RHIShaderParameterType;
 
-		s_default_type_renderers[T(T::Bool).type_index()]  = render_vector_nb<1>;
-		s_default_type_renderers[T(T::Bool2).type_index()] = render_vector_nb<2>;
-		s_default_type_renderers[T(T::Bool3).type_index()] = render_vector_nb<3>;
-		s_default_type_renderers[T(T::Bool4).type_index()] = render_vector_nb<4>;
+		// s_default_type_renderers[T(T::Bool).type_index()]  = render_vector_nb<1>;
+		// s_default_type_renderers[T(T::Bool2).type_index()] = render_vector_nb<2>;
+		// s_default_type_renderers[T(T::Bool3).type_index()] = render_vector_nb<3>;
+		// s_default_type_renderers[T(T::Bool4).type_index()] = render_vector_nb<4>;
 
-		s_default_type_renderers[T(T::Int).type_index()]  = render_vector_nt<1, ImGuiDataType_S32, int32_t>;
-		s_default_type_renderers[T(T::Int2).type_index()] = render_vector_nt<2, ImGuiDataType_S32, int32_t>;
-		s_default_type_renderers[T(T::Int3).type_index()] = render_vector_nt<3, ImGuiDataType_S32, int32_t>;
-		s_default_type_renderers[T(T::Int4).type_index()] = render_vector_nt<4, ImGuiDataType_S32, int32_t>;
+		// s_default_type_renderers[T(T::Int).type_index()]  = render_vector_nt<1, ImGuiDataType_S32, int32_t>;
+		// s_default_type_renderers[T(T::Int2).type_index()] = render_vector_nt<2, ImGuiDataType_S32, int32_t>;
+		// s_default_type_renderers[T(T::Int3).type_index()] = render_vector_nt<3, ImGuiDataType_S32, int32_t>;
+		// s_default_type_renderers[T(T::Int4).type_index()] = render_vector_nt<4, ImGuiDataType_S32, int32_t>;
 
-		s_default_type_renderers[T(T::UInt).type_index()]  = render_vector_nt<1, ImGuiDataType_U32, uint32_t>;
-		s_default_type_renderers[T(T::UInt2).type_index()] = render_vector_nt<2, ImGuiDataType_U32, uint32_t>;
-		s_default_type_renderers[T(T::UInt3).type_index()] = render_vector_nt<3, ImGuiDataType_U32, uint32_t>;
-		s_default_type_renderers[T(T::UInt4).type_index()] = render_vector_nt<4, ImGuiDataType_U32, uint32_t>;
+		// s_default_type_renderers[T(T::UInt).type_index()]  = render_vector_nt<1, ImGuiDataType_U32, uint32_t>;
+		// s_default_type_renderers[T(T::UInt2).type_index()] = render_vector_nt<2, ImGuiDataType_U32, uint32_t>;
+		// s_default_type_renderers[T(T::UInt3).type_index()] = render_vector_nt<3, ImGuiDataType_U32, uint32_t>;
+		// s_default_type_renderers[T(T::UInt4).type_index()] = render_vector_nt<4, ImGuiDataType_U32, uint32_t>;
 
-		s_default_type_renderers[T(T::Float).type_index()]  = render_vector_nt<1, ImGuiDataType_Float, float>;
-		s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float, float>;
-		s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float, float>;
-		s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float, float>;
+		// s_default_type_renderers[T(T::Float).type_index()]  = render_vector_nt<1, ImGuiDataType_Float, float>;
+		// s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float, float>;
+		// s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float, float>;
+		// s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float, float>;
 	}
 
 	static PreInitializeController preinit(pre_initialize);

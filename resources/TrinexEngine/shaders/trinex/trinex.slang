@@ -4,19 +4,13 @@ namespace meta
 {
 	enum type
 	{
-		UniformBuffer            = 0x00010013,
-		ExcludeMaterialParameter = 0x40000000,
-		SceneView                = 0x00010038,
-		LocalToWorld             = 0x20010039,
+		UniformBuffer            = 2,
+		ExcludeMaterialParameter = 0 | 1 << 24,
+		SceneView                = 2 | 1 << 31,
+		LocalToWorld             = 0 | 1 << 31,
 
 		// Descriptors
-		DescriptorTexture1D        = 0x1003c,
-		DescriptorTexture2D        = 0x1003d,
-		DescriptorTexture3D        = 0x1003e,
-		DescriptorTextureCube      = 0x1003f,
-		DescriptorTexture1DArray   = 0x10040,
-		DescriptorTexture2DArray   = 0x10041,
-		DescriptorTextureCubeArray = 0x10042,
+		Descriptor = 1 << 0
 	}
 }
 

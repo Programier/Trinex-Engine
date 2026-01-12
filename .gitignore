@@ -4,8 +4,4 @@ android/.gradle/
 android/.idea/
 android/app/.cxx/
 android/app/build/
-render_doc_settings.cap
-src/Engine/GraphicsAPI/OpenGL/CMakeLists.txt.user
-src/Engine/GraphicsAPI/OpenGL/build*/
-src/Engine/GraphicsAPI/Vulkan/CMakeLists.txt.user
-src/Engine/GraphicsAPI/Vulkan/build*/
+TODO.md

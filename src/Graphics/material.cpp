@@ -58,7 +58,7 @@ namespace Engine
 		template<RHIShaderParameterType type, typename T>
 		bool bind_scalar(const T& value) const
 		{
-			if (m_parameter->type.type_index() == type.type_index())
+			if (m_parameter->type == type)
 			{
 				m_ctx->update_scalar(&value, m_parameter);
 				return true;
@@ -110,7 +110,7 @@ namespace Engine
 		{
 			static constexpr RHIShaderParameterType dst_type = RHIShaderParameterType::Sampler;
 
-			if (m_parameter->type.type_index() == dst_type.type_index())
+			if (m_parameter->type == dst_type)
 			{
 				m_ctx->bind_sampler(value, m_parameter->binding);
 				return true;
@@ -234,7 +234,7 @@ namespace Engine
 
 			if (Parameter* param = find_parameter(info.name))
 			{
-				if (param->type().type_index() == info.type.type_index())
+				if (param->type() == info.type)
 				{
 					++param->m_pipeline_refs;
 					continue;

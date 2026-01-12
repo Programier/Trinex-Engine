@@ -12,8 +12,12 @@ namespace Engine
 {
 	bool Texture2DMip::serialize(Archive& ar)
 	{
-		ar.serialize(size, data);
-		return true;
+		return ar.serialize(size, data);
+	}
+
+	bool Texture3DMip::serialize(Archive& ar)
+	{
+		return ar.serialize(size, data);
 	}
 
 	bool TextureCubeMip::serialize(Archive& ar)
@@ -78,6 +82,58 @@ namespace Engine
 	}
 
 	bool Texture2D::serialize(Archive& archive)
+	{
+		if (!Super::serialize(archive))
+			return false;
+		return archive.serialize(mips);
+	}
+
+	trinex_implement_engine_class(Texture3D, Refl::Class::IsAsset)
+	{
+		trinex_refl_prop(format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
+	}
+
+	Texture3D& Texture3D::init_render_resources()
+	{
+		m_texture = rhi->create_texture(RHITextureType::Texture3D, format, size(), mips.size(),
+		                                RHITextureCreateFlags::ShaderResource);
+
+		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+			ctx->barrier(m_texture, RHIAccess::TransferDst);
+
+			for (byte index = 0; auto& mip : mips)
+			{
+				RHITextureRegion region(mip.size, {0, 0, 0}, index++);
+				ctx->update_texture(m_texture, region, mip.data.data(), mip.data.size());
+			}
+
+			ctx->barrier(m_texture, RHIAccess::SRVGraphics);
+		});
+
+		return *this;
+	}
+
+	uint_t Texture3D::width(byte mip) const
+	{
+		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.x : 0;
+	}
+
+	uint_t Texture3D::height(byte mip) const
+	{
+		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.y : 0;
+	}
+
+	uint_t Texture3D::depth(byte mip) const
+	{
+		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.z : 0;
+	}
+
+	Vector3u Texture3D::size(byte mip) const
+	{
+		return mips.size() <= static_cast<size_t>(mip) ? Vector3u{0, 0, 0} : mips[mip].size;
+	}
+
+	bool Texture3D::serialize(Archive& archive)
 	{
 		if (!Super::serialize(archive))
 			return false;

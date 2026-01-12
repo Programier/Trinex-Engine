@@ -5,6 +5,7 @@
 namespace Engine
 {
 	class Texture2D;
+	class Texture3D;
 	class TextureCube;
 	class RenderSurface;
 	class PropertyRenderer;
@@ -14,7 +15,7 @@ namespace Engine
 		trinex_class(TextureEditorClient, ImGuiViewportClient);
 
 	private:
-		using TextureVariant = Variant<Pointer<Texture2D>, Pointer<TextureCube>, Pointer<RenderSurface>>;
+		using TextureVariant = Variant<Pointer<Texture2D>, Pointer<Texture3D>, Pointer<TextureCube>, Pointer<RenderSurface>>;
 
 		PropertyRenderer* m_properties = nullptr;
 
@@ -37,6 +38,7 @@ namespace Engine
 		Matrix4f build_projection(Vector2u texture_size, Vector2u viewport_size) const;
 
 		TextureEditorClient& rhi_render(Texture2D* texture, Vector2u size);
+		TextureEditorClient& rhi_render(Texture3D* texture, Vector2u size);
 		TextureEditorClient& rhi_render(TextureCube* texture, Vector2u size);
 		TextureEditorClient& rhi_render(RenderSurface* texture, Vector2u size);
 

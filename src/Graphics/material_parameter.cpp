@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/flat_map.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
@@ -17,23 +18,25 @@
 
 namespace Engine::MaterialParameters
 {
-	static Vector<Refl::Class*> s_parameter_classes;
+	static FlatMap<EnumerateType, Refl::Class*> s_parameter_classes;
 
 	template<typename T>
 	static void register_parameter()
 	{
-		uint16_t index = T::static_type().type_index();
-		if (index >= s_parameter_classes.size())
-			s_parameter_classes.resize(index + 1);
+		EnumerateType index        = static_cast<EnumerateType>(T::static_type());
 		s_parameter_classes[index] = T::static_reflection();
 	}
 
 	Refl::Class* Parameter::static_find_class(RHIShaderParameterType type)
 	{
-		uint16_t index = type.type_index();
-		if (index >= s_parameter_classes.size())
+		EnumerateType index = static_cast<EnumerateType>(type);
+
+		auto it = s_parameter_classes.find(index);
+
+		if (it == s_parameter_classes.end())
 			return nullptr;
-		return s_parameter_classes[index];
+
+		return it->second;
 	}
 
 #define implement_parameter(name) trinex_implement_class(Engine::MaterialParameters::name, 0)

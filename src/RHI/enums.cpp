@@ -72,7 +72,7 @@ namespace Engine
 		else if (is_vector())
 		{
 			RHIShaderParameterType result = *this;
-			byte current_len              = vector_length();
+			byte current_len              = columns();
 
 			if (current_len > len)
 			{
@@ -102,9 +102,10 @@ namespace Engine
 		if (is_vector())
 		{
 			RHIShaderParameterType result = *this;
-			byte current_len              = vector_length();
 
-			result.bitfield -= static_cast<EnumerateType>(current_len - 1);
+			result &= RHIShaderParameterType(~(META_1D | META_2D | META_3D | META_4D));
+			result |= META_1D;
+
 			result &= RHIShaderParameterType(~META_Vector);
 			result |= META_Scalar;
 

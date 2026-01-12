@@ -8,6 +8,7 @@ namespace Engine
 	class Texture;
 	class Material;
 	class Texture2D;
+	class Texture3D;
 	class TextureCube;
 	class PositionVertexBuffer;
 	class StaticMesh;
@@ -25,6 +26,7 @@ namespace Engine
 			ENGINE_EXPORT extern Texture2D* noise4x4;
 			ENGINE_EXPORT extern Texture2D* noise16x16;
 			ENGINE_EXPORT extern Texture2D* noise128x128;
+			ENGINE_EXPORT extern Texture3D* default_lut;
 		}// namespace Textures
 
 		namespace Buffers

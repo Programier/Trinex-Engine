@@ -327,9 +327,6 @@ namespace Engine
 		{
 			auto type = find_parameter_type(var->getVariable());
 
-			if (!type.is_meta())
-				return type;
-
 			auto reflection = var->getType();
 			auto rows       = reflection->getRowCount();
 			auto colums     = reflection->getColumnCount();
@@ -349,6 +346,43 @@ namespace Engine
 			}
 
 			return RHIShaderParameterType::UniformBuffer;
+		}
+
+		static RHIShaderParameterType parse_binding_type(slang::TypeLayoutReflection* refl)
+		{
+			RHIShaderParameterType type = RHIShaderParameterType::Undefined;
+
+			//  ParameterBlock = SLANG_BINDING_TYPE_PARAMETER_BLOCK,
+			//  TypedBuffer = SLANG_BINDING_TYPE_TYPED_BUFFER,
+			//  RawBuffer = SLANG_BINDING_TYPE_RAW_BUFFER,
+			//  InputRenderTarget = SLANG_BINDING_TYPE_INPUT_RENDER_TARGET,
+			//  InlineUniformData = SLANG_BINDING_TYPE_INLINE_UNIFORM_DATA,
+			//  RayTracingAccelerationStructure = SLANG_BINDING_TYPE_RAY_TRACING_ACCELERATION_STRUCTURE,
+			//  VaryingInput = SLANG_BINDING_TYPE_VARYING_INPUT,
+			//  VaryingOutput = SLANG_BINDING_TYPE_VARYING_OUTPUT,
+			//  ExistentialValue = SLANG_BINDING_TYPE_EXISTENTIAL_VALUE,
+			//  PushConstant = SLANG_BINDING_TYPE_PUSH_CONSTANT,
+			//  MutableTypedBuffer = SLANG_BINDING_TYPE_MUTABLE_TYPED_BUFFER,
+			//  MutableRawBuffer = SLANG_BINDING_TYPE_MUTABLE_RAW_BUFFER,
+
+			for (uint_t i = 0, count = refl->getBindingRangeCount(); i < count; ++i)
+			{
+				slang::BindingType binding_type = refl->getBindingRangeType(i);
+
+				switch (binding_type)
+				{
+					case slang::BindingType::ConstantBuffer: type |= RHIShaderParameterType::META_UniformBuffer; break;
+					case slang::BindingType::CombinedTextureSampler: type |= RHIShaderParameterType::META_Texture;
+					case slang::BindingType::Sampler: type |= RHIShaderParameterType::META_Sampler; break;
+
+					case slang::BindingType::MutableTexture: type |= RHIShaderParameterType::META_RW;
+					case slang::BindingType::Texture: type |= RHIShaderParameterType::META_Texture; break;
+
+					default: return false;
+				}
+			}
+
+			return type;
 		}
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
@@ -392,96 +426,8 @@ namespace Engine
 				m_reflection->parameters.push_back(info);
 				return true;
 			}
-			else if (is_in<slang::TypeReflection::Kind::Resource>(param.kind) &&
+			else if (is_in<slang::TypeReflection::Kind::Resource, slang::TypeReflection::Kind::SamplerState>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
-			{
-				auto type = find_parameter_type(param.var->getVariable());
-
-				if (auto type_layout = param.var->getTypeLayout())
-				{
-					SlangResourceShape shape      = type_layout->getResourceShape();
-					SlangResourceShape shape_mask = static_cast<SlangResourceShape>(shape & SLANG_RESOURCE_BASE_SHAPE_MASK);
-
-					RHIShaderParameterInfo object;
-					object.binding = param.trace_offset(param.category());
-
-					if (!is_variable_used(param, object.binding))
-						return true;
-
-					object.name = param.parameter_name();
-					object.type = type;
-
-					if (shape_mask == SLANG_TEXTURE_2D)
-					{
-						if (type.is_meta())
-						{
-							auto binding_type = type_layout->getBindingRangeType(0);
-
-							switch (binding_type)
-							{
-								case slang::BindingType::CombinedTextureSampler:
-									object.type |= RHIShaderParameterType::Sampler2D;
-									break;
-
-								case slang::BindingType::Texture: object.type |= RHIShaderParameterType::Texture2D; break;
-								case slang::BindingType::MutableTexture:
-									object.type |= RHIShaderParameterType::RWTexture2D;
-									break;
-
-								default: return false;
-							}
-						}
-
-						m_reflection->parameters.push_back(object);
-						return true;
-					}
-					else if (shape_mask == SLANG_TEXTURE_CUBE)
-					{
-						if (type.is_meta())
-						{
-							auto binding_type = type_layout->getBindingRangeType(0);
-
-							switch (binding_type)
-							{
-								case slang::BindingType::CombinedTextureSampler:
-									object.type |= RHIShaderParameterType::SamplerCube;
-									break;
-
-								case slang::BindingType::Texture: object.type |= RHIShaderParameterType::TextureCube; break;
-								case slang::BindingType::MutableTexture:
-									object.type |= RHIShaderParameterType::RWTextureCube;
-									break;
-
-								default: return false;
-							}
-						}
-
-						m_reflection->parameters.push_back(object);
-					}
-					else if (shape_mask == SLANG_STRUCTURED_BUFFER)
-					{
-						if (type.is_meta())
-						{
-							object.type |= RHIShaderParameterType::StructuredBuffer;
-						}
-
-						m_reflection->parameters.push_back(object);
-						return true;
-					}
-					else if (shape_mask == SLANG_BYTE_ADDRESS_BUFFER)
-					{
-						if (type.is_meta())
-						{
-							object.type |= RHIShaderParameterType::ByteAddressBuffer;
-						}
-
-						m_reflection->parameters.push_back(object);
-						return true;
-					}
-				}
-			}
-			else if (is_in<slang::TypeReflection::Kind::SamplerState>(param.kind) &&
-			         !param.is_excluded(VarTraceEntry::exclude_sampler))
 			{
 				RHIShaderParameterInfo object;
 				object.binding = param.trace_offset(param.category());
@@ -490,9 +436,62 @@ namespace Engine
 					return true;
 
 				object.name = param.parameter_name();
-				object.type = RHIShaderParameterType::Sampler;
-				m_reflection->parameters.push_back(object);
-				return true;
+				object.type = find_parameter_type(param.var->getVariable());
+
+				if (auto type_layout = param.var->getTypeLayout())
+				{
+					SlangResourceShape shape      = type_layout->getResourceShape();
+					SlangResourceShape shape_mask = static_cast<SlangResourceShape>(shape & SLANG_RESOURCE_BASE_SHAPE_MASK);
+
+					object.type |= parse_binding_type(type_layout);
+
+					if (shape_mask & SLANG_TEXTURE_ARRAY_FLAG)
+					{
+						object.type |= RHIShaderParameterType::META_Array;
+					}
+
+					if (shape_mask & SLANG_TEXTURE_COMBINED_FLAG)
+					{
+						object.type |= RHIShaderParameterType::META_Texture;
+						object.type |= RHIShaderParameterType::META_Sampler;
+					}
+
+					if (shape_mask & SLANG_TEXTURE_ARRAY_FLAG)
+					{
+						object.type |= RHIShaderParameterType::META_Array;
+					}
+
+					if (shape_mask == SLANG_TEXTURE_2D)
+					{
+						object.type |= RHIShaderParameterType::META_2D;
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
+					else if (shape_mask == SLANG_TEXTURE_3D)
+					{
+						object.type |= RHIShaderParameterType::META_2D;
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
+					else if (shape_mask == SLANG_TEXTURE_CUBE)
+					{
+						object.type |= RHIShaderParameterType::META_Cube;
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
+					else if (shape_mask == SLANG_STRUCTURED_BUFFER)
+					{
+						object.type |= RHIShaderParameterType::META_StructuredBuffer;
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
+					else if (shape_mask == SLANG_BYTE_ADDRESS_BUFFER)
+					{
+						object.type |= RHIShaderParameterType::META_ByteAddressBuffer;
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
+				}
 			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))
 			{
@@ -503,7 +502,7 @@ namespace Engine
 
 				RHIShaderParameterType flags = find_parameter_type(param.var->getVariable());
 
-				if ((flags & RHIShaderParameterType::UniformBuffer) == RHIShaderParameterType::UniformBuffer)
+				if (flags & RHIShaderParameterType::META_UniformBuffer)
 				{
 					additional_exclude |= VarTraceEntry::exclude_scalar;
 					additional_exclude |= VarTraceEntry::exclude_vector;

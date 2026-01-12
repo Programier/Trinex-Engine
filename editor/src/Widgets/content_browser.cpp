@@ -10,6 +10,7 @@
 #include <Core/theme.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture.hpp>
+#include <RHI/static_sampler.hpp>
 #include <UI/primitives.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
@@ -189,6 +190,8 @@ namespace Engine
 			return false;
 
 		ImTextureID imgui_texture     = Icons::find_icon(object);
+		imgui_texture.sampler         = RHIPointWrapSampler::static_sampler();
+		
 		const float image_side_length = item_size.x * 0.93f;
 		const ImVec2 image_size       = ImVec2(image_side_length, image_side_length);
 

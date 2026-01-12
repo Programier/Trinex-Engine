@@ -162,6 +162,10 @@ namespace Engine
 	VulkanCommandHandle* VulkanStateManager::flush_compute(VulkanContext* ctx)
 	{
 		auto cmd = ctx->handle();
+
+		if (cmd->is_inside_render_pass())
+			end_render_pass(ctx);
+
 		trinex_check(m_pipeline, "Pipeline can't be nullptr");
 		m_pipeline->flush(ctx);
 		flush_state(cmd, ComputeMask);

@@ -24,6 +24,7 @@ namespace Engine
 			ENGINE_EXPORT Texture2D* noise4x4               = nullptr;
 			ENGINE_EXPORT Texture2D* noise16x16             = nullptr;
 			ENGINE_EXPORT Texture2D* noise128x128           = nullptr;
+			ENGINE_EXPORT Texture3D* default_lut            = nullptr;
 		}// namespace Textures
 
 		namespace Buffers
@@ -118,6 +119,25 @@ namespace Engine
 		}
 	}
 
+	static void generate_lut_texture(Vector3u size, Color* texture)
+	{
+		for (uint32_t z = 0; z < size.z; ++z)
+		{
+			for (uint32_t y = 0; y < size.y; ++y)
+			{
+				for (uint32_t x = 0; x < size.x; ++x)
+				{
+					uint32_t offset = x + size.x * (y + size.y * z);
+
+					texture[offset].x = uint8_t(float(x) / float(size.x - 1) * 255.f);
+					texture[offset].y = uint8_t(float(y) / float(size.y - 1) * 255.f);
+					texture[offset].z = uint8_t(float(z) / float(size.z - 1) * 255.f);
+					texture[offset].w = 255;
+				}
+			}
+		}
+	}
+
 	static void generate_dummy_texture(Package* package, Texture2D*& texture, const char* name, Color color)
 	{
 		texture = create_texture<Texture2D>(package, name);
@@ -169,6 +189,19 @@ namespace Engine
 				pixels += mip.size.x * mip.size.y;
 			}
 
+			texture->init_render_resources();
+		}
+
+		{
+			Texture3D*& texture = DefaultResources::Textures::default_lut;
+			texture             = create_texture<Texture3D>(package, "DefaultLUT");
+
+			auto& mip = texture->mips.emplace_back();
+			mip.size  = {32, 32, 32};
+			mip.data.resize(mip.size.x * mip.size.y * mip.size.z * 4);
+
+			Color* pixels = reinterpret_cast<Color*>(mip.data.data());
+			generate_lut_texture(mip.size, pixels);
 			texture->init_render_resources();
 		}
 	}

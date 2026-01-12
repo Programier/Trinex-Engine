@@ -45,7 +45,7 @@ namespace Engine
 		{
 			auto ctx = ImGui::GetCurrentRHI();
 			ctx->bind_srv(texture->as_srv(), m_texture->binding);
-			ctx->bind_sampler(RHIPointWrapSampler::static_sampler(), m_texture->binding);
+			ctx->bind_sampler(RHIPointSampler::static_sampler(), m_texture->binding);
 			return *this;
 		}
 
@@ -98,6 +98,46 @@ namespace Engine
 		m_mip = find_parameter("mip");
 	}
 
+	class TextureView3D : public TextureView
+	{
+		trinex_declare_pipeline(TextureView3D, TextureView);
+
+	private:
+		const RHIShaderParameterInfo* m_depth = nullptr;
+		const RHIShaderParameterInfo* m_mip   = nullptr;
+
+	public:
+		static inline uint_t static_grid_size(uint_t depth) { return Math::ceil(Math::sqrt(static_cast<float>(depth))); }
+
+	public:
+		TextureView3D& update_mip(uint_t mip)
+		{
+			float scalar = static_cast<float>(mip);
+			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
+			return *this;
+		}
+
+		TextureView3D& update_depth(float depth)
+		{
+			ImGui::GetCurrentRHI()->update_scalar(&depth, m_depth);
+			return *this;
+		}
+
+		TextureView3D& modify_compilation_env(ShaderCompilationEnvironment* env) override
+		{
+			Super::modify_compilation_env(env);
+			env->add_module("editor/texture_view/3d.slang");
+			return *this;
+		}
+	};
+
+	trinex_implement_pipeline(TextureView3D, "[shaders_dir]:/TrinexEditor/editor/texture_view/view.slang")
+	{
+		Super::initialize();
+		m_depth = find_parameter("depth");
+		m_mip   = find_parameter("mip");
+	}
+
 	class TextureViewCube : public TextureView
 	{
 		trinex_declare_pipeline(TextureViewCube, TextureView);
@@ -135,7 +175,6 @@ namespace Engine
 		m_face = find_parameter("face");
 	}
 
-
 	static inline void render_texture_2d(RHITexture* src, const Matrix4f& transform, Vector2f range, uint_t level,
 	                                     const Vector4f& mask)
 	{
@@ -146,6 +185,41 @@ namespace Engine
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
 		ctx->draw(6, 0);
+	}
+
+	static inline void render_texture_3d(RHITexture* src, uint_t grid, uint_t z, const Matrix4f& transform, Vector2f range,
+	                                     uint_t level, const Vector4f& mask)
+	{
+		auto pipeline = TextureView3D::instance();
+
+		const Matrix4f scale = Math::scale(Matrix4f(1.f), Vector3f(1.f / grid, 1.f / grid, 1.f));
+
+		auto ctx = ImGui::GetCurrentRHI();
+
+		ctx->bind_pipeline(pipeline->rhi_pipeline());
+
+		const float step  = 2.f / grid;
+		const float start = -1.f + (0.5f * step);
+
+		for (uint_t i = 0; i < z; ++i)
+		{
+			float depth = static_cast<float>(i) / Math::max(static_cast<float>(z - 1), 1.f);
+
+			float dx = start + step * static_cast<float>(i % grid);
+			float dy = start + step * static_cast<float>(i / grid);
+
+			const Matrix4f translate      = Math::translate(Vector3f{dx, dy, 0.f});
+			const Matrix4f local_to_world = transform * translate * scale;
+
+			pipeline->update_depth(depth)
+			        .update_mip(level)
+			        .update_texture(src)
+			        .update_transform(local_to_world)
+			        .update_mask(mask)
+			        .update_range(range);
+
+			ctx->draw(6, 0);
+		}
 	}
 
 	static inline void render_texture_cube(RHITexture* src, const Matrix4f& transform, Vector2f range, uint_t level,
@@ -189,6 +263,7 @@ namespace Engine
 		Vector2f size;
 
 		void operator()(const Pointer<Texture2D>& texture) const { client->rhi_render(texture, size); }
+		void operator()(const Pointer<Texture3D>& texture) const { client->rhi_render(texture, size); }
 		void operator()(const Pointer<TextureCube>& texture) const { client->rhi_render(texture, size); }
 		void operator()(const Pointer<RenderSurface>& texture) const { client->rhi_render(texture, size); }
 	};
@@ -196,6 +271,7 @@ namespace Engine
 	trinex_implement_engine_class(TextureEditorClient, 0)
 	{
 		register_client(Texture2D::static_reflection(), static_reflection());
+		register_client(Texture3D::static_reflection(), static_reflection());
 		register_client(TextureCube::static_reflection(), static_reflection());
 		register_client(RenderSurface::static_reflection(), static_reflection());
 	}
@@ -318,6 +394,10 @@ namespace Engine
 		{
 			m_texture = texture;
 		}
+		else if (Texture3D* texture = instance_cast<Texture3D>(object))
+		{
+			m_texture = texture;
+		}
 		else if (RenderSurface* surface = instance_cast<RenderSurface>(object))
 		{
 			m_texture = surface;
@@ -373,6 +453,19 @@ namespace Engine
 
 		Matrix4f projection = build_projection(texture->size(0), size);
 		render_texture_2d(texture->rhi_texture(), projection, range(), mip(), mask());
+		return *this;
+	}
+
+	TextureEditorClient& TextureEditorClient::rhi_render(Texture3D* texture, Vector2u size)
+	{
+		if (texture == nullptr)
+			return *this;
+
+		const uint_t z            = texture->size(mip()).z;
+		const uint_t grid         = TextureView3D::static_grid_size(z);
+		const Matrix4f projection = build_projection(texture->size(0), size);
+
+		render_texture_3d(texture->rhi_texture(), grid, z, projection, range(), mip(), mask());
 		return *this;
 	}
 
