@@ -133,8 +133,6 @@ namespace Engine
 		ImGui::InputScalarN("###vector_nt", T, data, N, nullptr, nullptr, element_format);
 	}
 
-	static void (*s_default_type_renderers[17])(void* value) = {nullptr};
-
 	template<typename T>
 	static int_t find_max_pin_name_len(const T& pins)
 	{
@@ -144,6 +142,33 @@ namespace Engine
 			len = glm::max<int_t>(pin->name().length(), len);
 		}
 		return len;
+	}
+
+	static void render_default_type(VisualMaterialGraph::Pin::DefaultValue* value)
+	{
+		RHIShaderParameterType type = value->type();
+		byte* address               = value->address();
+
+		const bool is_unsigned = type.is_unsigned();
+		const uint_t len       = type.columns();
+
+		ImGuiDataType data_type;
+
+		switch (type.type())
+		{
+			case RHIShaderParameterType::META_Integer: data_type = is_unsigned ? ImGuiDataType_U32 : ImGuiDataType_S32; break;
+			case RHIShaderParameterType::META_Boolean: data_type = ImGuiDataType_Bool; break;
+			default: data_type = ImGuiDataType_Float; break;
+		}
+
+		if (data_type == ImGuiDataType_Bool)
+		{
+		}
+		else
+		{
+			const ImGuiDataTypeInfo* info = ImGui::DataTypeGetInfo(data_type);
+			ImGui::InputScalarN("###vector", data_type, address, len, nullptr, nullptr, info->ScanFmt);
+		}
 	}
 
 	static void show_label(const char* label, ImColor color)
@@ -437,7 +462,7 @@ namespace Engine
 					if (auto default_value = input->default_value())
 					{
 						VerticalLayout layout;
-						// s_default_type_renderers[default_value->type().type_index()](input->default_value()->address());
+						render_default_type(default_value);
 					}
 				}
 
@@ -460,7 +485,7 @@ namespace Engine
 				if (auto default_value = output->default_value())
 				{
 					VerticalLayout layout;
-					//s_default_type_renderers[default_value->type().type_index()](output->default_value()->address());
+					render_default_type(default_value);
 				}
 
 				ImGui::Text(" %*s", max_output_name_len, output->name().c_str());
@@ -913,33 +938,4 @@ namespace Engine
 		ImGui::DockBuilderDockWindow("###Graph", center);
 		return center;
 	}
-
-	//////////////////// INITITALIZATION ////////////////////
-
-	static void pre_initialize()
-	{
-		using T = RHIShaderParameterType;
-
-		// s_default_type_renderers[T(T::Bool).type_index()]  = render_vector_nb<1>;
-		// s_default_type_renderers[T(T::Bool2).type_index()] = render_vector_nb<2>;
-		// s_default_type_renderers[T(T::Bool3).type_index()] = render_vector_nb<3>;
-		// s_default_type_renderers[T(T::Bool4).type_index()] = render_vector_nb<4>;
-
-		// s_default_type_renderers[T(T::Int).type_index()]  = render_vector_nt<1, ImGuiDataType_S32, int32_t>;
-		// s_default_type_renderers[T(T::Int2).type_index()] = render_vector_nt<2, ImGuiDataType_S32, int32_t>;
-		// s_default_type_renderers[T(T::Int3).type_index()] = render_vector_nt<3, ImGuiDataType_S32, int32_t>;
-		// s_default_type_renderers[T(T::Int4).type_index()] = render_vector_nt<4, ImGuiDataType_S32, int32_t>;
-
-		// s_default_type_renderers[T(T::UInt).type_index()]  = render_vector_nt<1, ImGuiDataType_U32, uint32_t>;
-		// s_default_type_renderers[T(T::UInt2).type_index()] = render_vector_nt<2, ImGuiDataType_U32, uint32_t>;
-		// s_default_type_renderers[T(T::UInt3).type_index()] = render_vector_nt<3, ImGuiDataType_U32, uint32_t>;
-		// s_default_type_renderers[T(T::UInt4).type_index()] = render_vector_nt<4, ImGuiDataType_U32, uint32_t>;
-
-		// s_default_type_renderers[T(T::Float).type_index()]  = render_vector_nt<1, ImGuiDataType_Float, float>;
-		// s_default_type_renderers[T(T::Float2).type_index()] = render_vector_nt<2, ImGuiDataType_Float, float>;
-		// s_default_type_renderers[T(T::Float3).type_index()] = render_vector_nt<3, ImGuiDataType_Float, float>;
-		// s_default_type_renderers[T(T::Float4).type_index()] = render_vector_nt<4, ImGuiDataType_Float, float>;
-	}
-
-	static PreInitializeController preinit(pre_initialize);
 }// namespace Engine

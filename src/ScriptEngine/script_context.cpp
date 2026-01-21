@@ -139,11 +139,11 @@ namespace Engine
 			}
 		}
 
+		if (!unprepare())
+			throw EngineException("Failed to unprepare function!");
+
 		if (is_active)
 		{
-			if (!unprepare())
-				throw EngineException("Failed to unprepare function!");
-
 			if (!pop_state())
 				throw EngineException("Failed to pop state!");
 		}

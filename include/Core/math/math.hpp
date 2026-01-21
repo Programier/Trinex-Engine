@@ -12,7 +12,9 @@ namespace Engine::Math
 {
 	using glm::abs;
 	using glm::acos;
+	using glm::all;
 	using glm::angle;
+	using glm::any;
 	using glm::asin;
 	using glm::atan;
 	using glm::axis;
@@ -26,6 +28,7 @@ namespace Engine::Math
 	using glm::determinant;
 	using glm::distance;
 	using glm::dot;
+	using glm::equal;
 	using glm::exp;
 	using glm::floor;
 	using glm::fract;
@@ -124,14 +127,37 @@ namespace Engine::Math
 	template<typename T, typename... Ts>
 	FORCE_INLINE constexpr T max(T a, T b, Ts... rest)
 	{
-		a = max(a, b);
+		a = glm::max(a, b);
 		return ((a = max(a, rest)), ...);
 	}
+
+	template<glm::length_t N, typename T>
+	    requires(N > 0)
+	FORCE_INLINE constexpr T max(const VectorNT<N, T>& values)
+	{
+		T m = values[0];
+		for (size_t i = 1; i < N; ++i)
+			if (values[i] > m)
+				m = values[i];
+		return m;
+	}
+
 	template<typename T, typename... Ts>
 	FORCE_INLINE constexpr T min(T a, T b, Ts... rest)
 	{
-		a = min(a, b);
+		a = glm::min(a, b);
 		return ((a = min(a, rest)), ...);
+	}
+
+	template<glm::length_t N, typename T>
+	    requires(N > 0)
+	FORCE_INLINE constexpr T min(const VectorNT<N, T>& values)
+	{
+		T m = values[0];
+		for (size_t i = 1; i < N; ++i)
+			if (values[i] < m)
+				m = values[i];
+		return m;
 	}
 
 	FORCE_INLINE constexpr float cascade_split(uint_t index, uint_t count, float distribution_exponent = 1.2f)

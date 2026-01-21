@@ -47,7 +47,9 @@ namespace Engine
 			META_3D = META_3R | META_3C,
 			META_4D = META_4R | META_4C,
 
-			META_ExcludeMaterialParameter = BIT(24),
+			META_Color = BIT(24),
+
+			META_ExcludeMaterialParameter = BIT(25),
 
 			META_Special0 = BIT(31),
 			META_Any      = ~0U,
@@ -145,19 +147,22 @@ namespace Engine
 		inline constexpr bool is_vector() const { return (value & META_Vector) == META_Vector; }
 		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
 		inline constexpr bool is_numeric() const { return (value & META_Numeric); }
+		inline constexpr bool is_unsigned() const { return value & META_Unsigned; }
+		inline constexpr bool is_color() const { return value & META_Color; }
+		inline constexpr RHIShaderParameterType type() const { return value & (META_Boolean | META_Integer | META_Floating); }
 
 		inline constexpr byte rows() const
 		{
 			constexpr EnumerateType mask = META_1R | META_2R | META_3R | META_4R;
 			EnumerateType value          = bitfield & mask;
-			return value >> 16;
+			return value >> 18;
 		}
 
 		inline constexpr byte columns() const
 		{
 			constexpr EnumerateType mask = META_1C | META_2C | META_3C | META_4C;
 			EnumerateType value          = bitfield & mask;
-			return value >> 19;
+			return value >> 21;
 		}
 	};
 
