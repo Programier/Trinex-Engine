@@ -7,6 +7,8 @@ namespace Engine
 {
 	class ActorComponent;
 	class ScriptFunction;
+	class World;
+	class Level;
 
 
 	class ENGINE_EXPORT Actor : public Object
@@ -47,20 +49,13 @@ namespace Engine
 			}
 		};
 
-		enum Flag
-		{
-			Selected = BIT(0),
-		};
-
-		Flags<Flag, Atomic<BitMask>> actor_flags;
-
 	private:
 		Pointer<class SceneComponent> m_root_component;
 		Vector<class ActorComponent*> m_owned_components;
 
-		bool m_is_playing         = false;
-		bool m_is_being_destroyed = false;
-		bool m_is_visible         = true;
+		bool m_is_playing : 1         = false;
+		bool m_is_being_destroyed : 1 = false;
+		bool m_is_visible : 1         = true;
 
 		void scriptable_update(float dt);
 		void scriptable_start_play();
@@ -93,12 +88,12 @@ namespace Engine
 		bool is_visible() const;
 		Actor& is_visible(bool visible);
 		bool is_playing() const;
-		bool is_selected() const;
 
 		const Vector<class ActorComponent*>& owned_components() const;
 		const Transform& transfrom() const;
 		SceneComponent* scene_component() const;
-
+		
+		class Level* level() const;
 		class World* world() const;
 		class Scene* scene() const;
 		bool serialize(Archive& archive) override;

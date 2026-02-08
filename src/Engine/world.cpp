@@ -1,3 +1,4 @@
+#include <Core/etl/scope_variable.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
@@ -13,291 +14,77 @@ namespace Engine
 {
 	trinex_implement_engine_class_default_init(World, 0);
 
-	World* World::current = nullptr;
+	static thread_local World* s_current_world = nullptr;
 
-	World& World::create()
+	World::World() : m_scene(trx_new Scene()) {}
+
+	World::~World()
 	{
-		Super::create();
-		LogicSystem::system_of<LogicSystem>()->register_subsystem(this);
-		m_is_playing = false;
-
-		m_scene = trx_new Scene();
-
-		return *this;
+		stop_play();
+		destroy_all_actors();
+		trx_delete m_scene;
 	}
 
-	World& World::wait()
+	World* World::current()
 	{
-		Super::wait();
-		return *this;
+		return s_current_world;
 	}
 
 	World& World::update(float dt)
 	{
+		ScopeVariable scope_world(s_current_world, this);
+
 		Super::update(dt);
 
-		if (!m_is_playing)
-			return *this;
-
-		current = this;
-
-		if (!m_actors_to_destroy.empty())
+		for (Level* level : m_levels)
 		{
-			while (!m_actors_to_destroy.empty())
-			{
-				auto& front = m_actors_to_destroy.front();
+			level->update(dt);
+		}
 
-				if (front.skip_frames == 0)
+		return *this;
+	}
+
+	World* World::world()
+	{
+		return this;
+	}
+
+	bool World::register_child(Object* child)
+	{
+		if (Level* level = instance_cast<Level>(child))
+		{
+			for (size_t i = 0; i < m_levels.size(); ++i)
+			{
+				if (m_levels[i] == level)
 				{
-					destroy_actor(front.actor, true);
-					m_actors_to_destroy.pop_front();
-				}
-				else
+					m_levels.erase(m_levels.begin() + i);
 					break;
+				}
 			}
-
-			for (auto& actor_info : m_actors_to_destroy)
-			{
-				--actor_info.skip_frames;
-			}
+			return true;
 		}
 
-		for (size_t index = 0, count = m_actors.size(); index < count; ++index)
+		return Super::register_child(child);
+	}
+
+	bool World::unregister_child(Object* child)
+	{
+		if (Level* level = instance_cast<Level>(child))
 		{
-			Actor* actor = m_actors[index];
-			if (actor->is_playing())
-			{
-				m_actors[index]->update(dt);
-			}
+			m_levels.push_back(level);
+			return true;
 		}
 
-		current = nullptr;
+		return Super::unregister_child(child);
+	}
 
+	World& World::add_level(Level* level)
+	{
 		return *this;
 	}
 
-	World& World::destroy_all_actors()
+	World& World::remove_level(Level* level)
 	{
-		for (auto& info : m_actors_to_destroy)
-		{
-			destroy_actor(info.actor, true);
-		}
-
-		m_actors_to_destroy.clear();
-
-		while (!m_actors.empty())
-		{
-			destroy_actor(m_actors.front(), true);
-		}
-
 		return *this;
-	}
-
-	World& World::shutdown()
-	{
-		Super::shutdown();
-		stop_play();
-		destroy_all_actors();
-		trx_delete m_scene;
-		return *this;
-	}
-
-	World& World::start_play()
-	{
-		if (m_is_playing)
-			return *this;
-
-		for (size_t index = 0; index < m_actors.size(); index++)
-		{
-			m_actors[index]->start_play();
-		}
-
-		m_is_playing = true;
-		return *this;
-	}
-
-	World& World::stop_play()
-	{
-		if (!m_is_playing)
-			return *this;
-
-		for (size_t index = 0; index < m_actors.size(); index++)
-		{
-			m_actors[index]->stop_play();
-		}
-
-		m_is_playing = false;
-		return *this;
-	}
-
-	Actor* World::spawn_actor(Actor* actor, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale)
-	{
-		if (actor == nullptr)
-		{
-			error_log("World", "Failed to allocate actor!");
-			return nullptr;
-		}
-
-		actor->spawned();
-
-		{
-			SceneComponent* root = actor->scene_component();
-			if (root)
-			{
-				root->location(location);
-				root->rotation(rotation);
-				root->scale(scale);
-				m_scene->root_component()->attach(root);
-			}
-		}
-
-		if (m_is_playing)
-		{
-			actor->start_play();
-		}
-
-		m_actors.push_back(actor);
-		return actor;
-	}
-
-	Actor* World::spawn_actor(class Refl::Class* self, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale,
-	                          const Name& actor_name)
-	{
-		if (!self)
-		{
-			error_log("World", "Failed to create actor, because class instance is nullptr");
-			return nullptr;
-		}
-
-		if (!self->is_a(Actor::static_reflection()))
-		{
-			error_log("World", "Failed to create actor from non-Actor class '%s'!", self->name().c_str());
-			return nullptr;
-		}
-
-		Actor* actor = self->create_object(actor_name, this)->instance_cast<Actor>();
-		return spawn_actor(actor, location, rotation, scale);
-	}
-
-	World& World::destroy_actor(Actor* actor, bool ignore_playing)
-	{
-		if (!actor || actor->world() != this)
-			return *this;
-
-		unselect_actor(actor);
-
-		if (!ignore_playing && actor->is_playing())
-		{
-			actor->stop_play();
-			// Perhaps the method will be called before World::update, so we skip one frame and only then delete the actor
-			DestroyActorInfo info;
-			info.actor       = actor;
-			info.skip_frames = 1;
-			m_actors_to_destroy.push_back(info);
-			return *this;
-		}
-
-
-		if (actor->is_playing())
-			actor->stop_play();
-
-		actor->destroyed();
-		actor->owner(nullptr);
-
-		for (size_t index = 0, count = m_actors.size(); index < count; ++index)
-		{
-			if (m_actors[index] == actor)
-			{
-				m_actors.erase(m_actors.begin() + index);
-				break;
-			}
-		}
-
-		return *this;
-	}
-
-	World& World::destroy_actor(Actor* actor)
-	{
-		return destroy_actor(actor, false);
-	}
-
-	Scene* World::scene() const
-	{
-		return m_scene;
-	}
-
-	World& World::select_actor(Actor* actor)
-	{
-		if (actor->world() == this && !is_selected(actor))
-		{
-			m_selected_actors.insert(actor);
-			actor->actor_flags(Actor::Selected, true);
-			on_actor_select(this, actor);
-		}
-		return *this;
-	}
-
-	World& World::unselect_actor(Actor* actor)
-	{
-		if (is_selected(actor))
-		{
-			m_selected_actors.erase(actor);
-			actor->actor_flags(Actor::Selected, false);
-
-			on_actor_unselect(this, actor);
-		}
-		return *this;
-	}
-
-	World& World::select_actors(const Vector<Actor*>& actors)
-	{
-		for (Actor* actor : actors)
-		{
-			select_actor(actor);
-		}
-		return *this;
-	}
-
-	World& World::unselect_actors(const Vector<Actor*>& actors)
-	{
-		for (Actor* actor : actors)
-		{
-			unselect_actor(actor);
-		}
-		return *this;
-	}
-
-	World& World::unselect_actors()
-	{
-		for (auto& selected : m_selected_actors)
-		{
-			selected->actor_flags(Actor::Selected, false);
-			on_actor_unselect(this, selected);
-		}
-		m_selected_actors.clear();
-		return *this;
-	}
-
-	const Set<Actor*>& World::selected_actors() const
-	{
-		return m_selected_actors;
-	}
-
-	bool World::is_selected(Actor* actor) const
-	{
-		return actor->world() == this && actor->actor_flags.has_all(Actor::Selected);
-	}
-
-	const Vector<class Actor*>& World::actors() const
-	{
-		return m_actors;
-	}
-
-	World::~World()
-	{
-		if (!is_shutdowned())
-		{
-			shutdown();
-		}
 	}
 }// namespace Engine

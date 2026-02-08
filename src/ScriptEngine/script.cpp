@@ -102,7 +102,7 @@ namespace Engine
 			if (name.empty())
 				continue;
 
-			if (name == "[scripts_dir]:" && m_name == "[scripts_dir]:")
+			if (name == "[scripts]:" && m_name == "[scripts]:")
 				continue;
 
 			auto it = folder->m_folders.find(name);

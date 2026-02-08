@@ -294,6 +294,14 @@ namespace Engine
 		}
 
 		template<typename Type>
+		static const Type* instance_cast(const Object* object)
+		{
+			if (!object)
+				return nullptr;
+			return object->instance_cast<Type>();
+		}
+
+		template<typename Type>
 		bool leaf_class_is() const
 		{
 			const void* self = this;

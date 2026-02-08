@@ -12,6 +12,8 @@ namespace Engine
 	String Project::version;
 
 	// Project structure definition
+	String Project::project_dir;
+	String Project::resources_dir;
 	String Project::configs_dir;
 	String Project::assets_dir;
 	String Project::scripts_dir;
@@ -33,6 +35,8 @@ namespace Engine
 
 		register_var(name);
 		register_var(version);
+		register_var(project_dir);
+		register_var(resources_dir);
 		register_var(configs_dir);
 		register_var(assets_dir);
 		register_var(scripts_dir);
@@ -49,6 +53,8 @@ namespace Engine
 	{
 		name             = "";
 		version          = "";
+		project_dir      = "";
+		resources_dir    = "";
 		configs_dir      = "";
 		assets_dir       = "";
 		scripts_dir      = "";
@@ -63,6 +69,8 @@ namespace Engine
 	{
 		auto rfs = rootfs();
 
+		rfs->create_dir(Project::project_dir);
+		rfs->create_dir(Project::resources_dir);
 		rfs->create_dir(Project::configs_dir);
 		rfs->create_dir(Project::assets_dir);
 		rfs->create_dir(Project::scripts_dir);
@@ -74,29 +82,33 @@ namespace Engine
 
 	static void rename_dirs_to_mount_points()
 	{
-		Project::configs_dir      = "[configs_dir]:";
-		Project::assets_dir       = "[assets_dir]:";
-		Project::scripts_dir      = "[scripts_dir]:";
-		Project::shaders_dir      = "[shaders_dir]:";
-		Project::localization_dir = "[localization_dir]:";
-		Project::libraries_dir    = "[libraries_dir]:";
-		Project::shader_cache_dir = "[shader_cache_dir]:";
+		Project::project_dir      = "[project]:";
+		Project::resources_dir    = "[resources]:";
+		Project::configs_dir      = "[configs]:";
+		Project::assets_dir       = "[assets]:";
+		Project::scripts_dir      = "[scripts]:";
+		Project::shaders_dir      = "[shaders]:";
+		Project::localization_dir = "[localization]:";
+		Project::libraries_dir    = "[libraries]:";
+		Project::shader_cache_dir = "[shader_cache]:";
 	}
 
 	static void apply_project_config()
 	{
 		auto rfs = rootfs();
-		create_folders();
-
-		rfs->mount("[configs_dir]:", Project::configs_dir);
-		rfs->mount("[assets_dir]:", Project::assets_dir);
-		rfs->mount("[scripts_dir]:", Project::scripts_dir);
-		rfs->mount("[shaders_dir]:", Project::shaders_dir);
-		rfs->mount("[localization_dir]:", Project::localization_dir);
-		rfs->mount("[libraries_dir]:", Project::libraries_dir);
-		rfs->mount("[shader_cache_dir]:", Project::shader_cache_dir);
-
+		
+		rfs->mount("[project]:", Project::project_dir);
+		rfs->mount("[resources]:", Project::resources_dir);
+		rfs->mount("[configs]:", Project::configs_dir);
+		rfs->mount("[assets]:", Project::assets_dir);
+		rfs->mount("[scripts]:", Project::scripts_dir);
+		rfs->mount("[shaders]:", Project::shaders_dir);
+		rfs->mount("[localization]:", Project::localization_dir);
+		rfs->mount("[libraries]:", Project::libraries_dir);
+		rfs->mount("[shader_cache]:", Project::shader_cache_dir);
+		
 		rename_dirs_to_mount_points();
+		create_folders();
 	}
 
 	bool Project::open_project(const String& config, const Path& root)
@@ -108,6 +120,8 @@ namespace Engine
 
 		if (status)
 		{
+			project_dir      = (root / project_dir).str();
+			resources_dir    = (root / resources_dir).str();
 			configs_dir      = (root / configs_dir).str();
 			assets_dir       = (root / assets_dir).str();
 			scripts_dir      = (root / scripts_dir).str();
@@ -132,6 +146,8 @@ namespace Engine
 	static constexpr inline const char* literal = R"(// Trinex Engine Project file
 Engine::Project::name = "{}";
 Engine::Project::version = "{}";
+Engine::Project::project_dir = "{}";
+Engine::Project::resources_dir = "{}";
 Engine::Project::configs_dir = "{}";
 Engine::Project::assets_dir = "{}";
 Engine::Project::scripts_dir = "{}";
@@ -143,8 +159,8 @@ Engine::Project::shader_cache_dir = "{}";
 
 	String Project::to_string()
 	{
-		return Strings::format(literal, name, version, configs_dir, assets_dir, scripts_dir, shader_cache_dir, localization_dir,
-		                       libraries_dir, shader_cache_dir);
+		return Strings::format(literal, name, version, project_dir, resources_dir, configs_dir, assets_dir, scripts_dir,
+		                       shader_cache_dir, localization_dir, libraries_dir, shader_cache_dir);
 	}
 
 	static bool check_initialize(bool with_msg)
@@ -158,6 +174,8 @@ Engine::Project::shader_cache_dir = "{}";
 		}                                                                                                                        \
 		return false;                                                                                                            \
 	}
+		check_var(project_dir);
+		check_var(resources_dir);
 		check_var(configs_dir);
 		check_var(assets_dir);
 		check_var(scripts_dir);
@@ -172,13 +190,15 @@ Engine::Project::shader_cache_dir = "{}";
 	{
 		Engine::Project::name             = "Trinex Engine Project";
 		Engine::Project::version          = "1.0.0";
-		Engine::Project::configs_dir      = "resources/configs";
-		Engine::Project::assets_dir       = "resources/assets";
-		Engine::Project::scripts_dir      = "resources/scripts";
-		Engine::Project::shaders_dir      = "resources/shaders";
-		Engine::Project::localization_dir = "resources/localization";
-		Engine::Project::libraries_dir    = "libs";
-		Engine::Project::shader_cache_dir = "ShaderCache";
+		Engine::Project::project_dir      = "[exec]:";
+		Engine::Project::resources_dir    = "[exec]:/resources";
+		Engine::Project::configs_dir      = "[resources]:/configs";
+		Engine::Project::assets_dir       = "[resources]:/assets";
+		Engine::Project::scripts_dir      = "[resources]:/scripts";
+		Engine::Project::shaders_dir      = "[resources]:/shaders";
+		Engine::Project::localization_dir = "[resources]:/localization";
+		Engine::Project::libraries_dir    = "[project]:/libs";
+		Engine::Project::shader_cache_dir = "[project]:/ShaderCache";
 
 		apply_project_config();
 	}

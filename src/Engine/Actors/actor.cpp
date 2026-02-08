@@ -160,11 +160,6 @@ namespace Engine
 		return m_is_playing;
 	}
 
-	bool Actor::is_selected() const
-	{
-		return actor_flags(Flag::Selected);
-	}
-
 	Actor& Actor::spawned()
 	{
 		for (Index index = 0, count = m_owned_components.size(); index < count; ++index)
@@ -219,17 +214,22 @@ namespace Engine
 		return m_owned_components;
 	}
 
+	class Level* Actor::level() const
+	{
+		return instance_cast<Level>(owner());
+	}
+
 	class World* Actor::world() const
 	{
-		return instance_cast<World>(owner());
+		if (Level* actor_level = level())
+			return actor_level->world();
+		return nullptr;
 	}
 
 	class Scene* Actor::scene() const
 	{
 		if (World* actor_world = world())
-		{
 			return actor_world->scene();
-		}
 		return nullptr;
 	}
 
@@ -285,6 +285,8 @@ namespace Engine
 		}
 
 		components->display_name("Components").tooltip("Array of components of this actor");
-		trinex_refl_prop(m_is_visible)->display_name("Is Visible").tooltip("If true, actor is visible in the scene");
+		trinex_refl_virtual_prop(Is Visible, is_visible, is_visible)
+		        ->display_name("Is Visible")
+		        .tooltip("If true, actor is visible in the scene");
 	}
 }// namespace Engine

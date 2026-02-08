@@ -7,6 +7,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
+#include <Editor/engine.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -283,11 +284,11 @@ namespace Engine
 		wd->size(monitor_info.size);
 
 		EventSystem::system_of<EventSystem>()->process_event_method(EventSystem::PoolEvents);
-		m_world                       = World::system_of<World>();
-		m_on_actor_select_callback_id = m_world->on_actor_select.push(
-		        std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
-		m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
-		        std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
+		m_world = Object::new_instance<World>();
+		// m_on_actor_select_callback_id = m_world->on_actor_select.push(
+		//         std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
+		// m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
+		//         std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
 		m_world->start_play();
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
@@ -319,8 +320,8 @@ namespace Engine
 	{
 		Super::on_unbind_viewport(viewport);
 
-		m_world->on_actor_select.remove(m_on_actor_select_callback_id);
-		m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
+		// m_world->on_actor_select.remove(m_on_actor_select_callback_id);
+		// m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
 
 		m_world->stop_play();
 
@@ -340,7 +341,7 @@ namespace Engine
 
 	void EditorClient::on_actor_select(World* world, class Actor* actor)
 	{
-		if (m_properties)
+		if (m_properties && world == m_world)
 		{
 			m_properties->object(actor);
 		}
@@ -348,7 +349,7 @@ namespace Engine
 
 	void EditorClient::on_actor_unselect(World* world, class Actor* actor)
 	{
-		if (m_properties)
+		if (m_properties && world == m_world)
 		{
 			if (m_properties->object() == actor || actor == nullptr)
 			{
@@ -366,11 +367,11 @@ namespace Engine
 		EditorRenderer renderer(m_world->scene(), m_scene_view, m_view_mode);
 		update_render_stats(&renderer);
 
-		const auto& selected = m_world->selected_actors();
+		const auto& selected = EditorEngine::instance()->selected_actors();
 		renderer.render_graph()->add_output(renderer.scene_color_ldr_target());
 		renderer.render_grid();
-		renderer.render_outlines(selected);
-		renderer.render_primitives(selected);
+		renderer.render_outlines(selected.data(), selected.size());
+		renderer.render_primitives(selected.data(), selected.size());
 
 		RHIContextPool::global_instance()->execute([&](RHIContext* ctx) { renderer.render(ctx); });
 
@@ -503,6 +504,8 @@ namespace Engine
 
 	EditorClient& EditorClient::update(float dt)
 	{
+		m_world->update(dt);
+
 		m_dt.push(dt);
 		m_stats.update();
 
@@ -511,11 +514,11 @@ namespace Engine
 
 		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
 		{
-			auto& selected = m_world->selected_actors();
-			while (!selected.empty())
-			{
-				m_world->destroy_actor(*selected.begin());
-			}
+			// auto& selected = m_world->selected_actors();
+			// while (!selected.empty())
+			// {
+			// 	m_world->destroy_actor(*selected.begin());
+			// }
 		}
 
 		return *this;
@@ -561,7 +564,7 @@ namespace Engine
 			}
 		}
 
-		const auto& selected = m_world->selected_actors();
+		const auto& selected = EditorEngine::instance()->selected_actors();
 
 		if (selected.size() == 0)
 			return *this;
@@ -590,7 +593,8 @@ namespace Engine
 				{
 
 					Transform new_transform = model;
-					new_transform -= component->parent()->world_transform();
+					if (SceneComponent* parent = component->parent())
+						new_transform -= parent->world_transform();
 					component->local_transform(new_transform);
 				}
 			}
@@ -865,10 +869,12 @@ namespace Engine
 	{
 		Actor* actor = EditorRenderer::static_raycast(m_scene_view, uv, m_world->scene());
 
-		m_world->unselect_actors();
+		auto editor = EditorEngine::instance();
+		editor->unselect(m_world);
 
 		if (actor)
-			m_world->select_actor(actor);
+			editor->select(actor);
+
 		return *this;
 	}
 

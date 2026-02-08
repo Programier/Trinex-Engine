@@ -10,6 +10,8 @@ namespace Engine
 		static String version;
 
 		// Project structure definition
+		static String project_dir;
+		static String resources_dir;
 		static String configs_dir;
 		static String assets_dir;
 		static String scripts_dir;

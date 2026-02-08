@@ -1,6 +1,7 @@
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/threading.hpp>
+#include <Editor/engine.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
@@ -138,9 +139,9 @@ namespace Engine
 		return *this;
 	}
 
-	EditorRenderer& EditorRenderer::render_outlines(const Set<Actor*>& actors)
+	EditorRenderer& EditorRenderer::render_outlines(Actor* const* actors, size_t count)
 	{
-		if (!actors.empty())
+		if (actors && count)
 		{
 			auto view_size = scene_view().view_size();
 			auto pool      = RHITexturePool::global_instance();
@@ -157,11 +158,12 @@ namespace Engine
 			auto& outlines_depth = render_graph()->add_pass("Outlines Depth");
 			auto& outlines_color = render_graph()->add_pass("Outlines Color");
 
-			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, &actors](RHIContext* ctx) {
+			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, actors, count](RHIContext* ctx) mutable {
 				ctx->bind_depth_stencil_target(dsv);
 
-				for (Actor* actor : actors)
+				while (count-- > 0)
 				{
+					Actor* actor = *(actors++);
 					for (ActorComponent* component : actor->owned_components())
 					{
 						if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
@@ -199,13 +201,15 @@ namespace Engine
 		return *this;
 	}
 
-	EditorRenderer& EditorRenderer::render_primitives(const Set<Actor*>& actors)
+	EditorRenderer& EditorRenderer::render_primitives(Actor* const* actors, size_t count)
 	{
 		FrameVector<LightComponent*> lights = visible_lights();
 
+		auto editor = EditorEngine::instance();
+
 		for (LightComponent* light : lights)
 		{
-			if (!light->actor()->is_selected())
+			if (!editor->is_selected(light->actor()))
 				continue;
 
 			if (auto spot_light = Object::instance_cast<SpotLightComponent>(light))

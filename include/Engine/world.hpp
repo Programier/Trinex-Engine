@@ -1,73 +1,35 @@
 #pragma once
-#include <Core/callback.hpp>
-#include <Core/etl/list.hpp>
-#include <Core/etl/set.hpp>
-#include <Core/pointer.hpp>
-#include <Systems/system.hpp>
+#include <Engine/level.hpp>
 
 namespace Engine
 {
 	class Scene;
 
-	class ENGINE_EXPORT World : public System
+	class ENGINE_EXPORT World : public Level
 	{
-		trinex_class(World, System);
-
-		struct ENGINE_EXPORT DestroyActorInfo {
-			Pointer<class Actor> actor;
-			byte skip_frames;
-		};
+		trinex_class(World, Level);
 
 	private:
-		Vector<class Actor*> m_actors;
-		List<DestroyActorInfo> m_actors_to_destroy;
-		Set<class Actor*> m_selected_actors;
-		bool m_is_playing;
-
+		Vector<class Level*> m_levels;
 		Scene* m_scene = nullptr;
 
-		World& destroy_actor(Actor* actor, bool ignore_playing);
-		World& destroy_all_actors();
-		Actor* spawn_actor(Actor* actor, const Vector3f& location = {}, const Vector3f& rotation = {},
-		                   const Vector3f& scale = {1, 1, 1});
-
 	protected:
-		World& create() override;
+		bool register_child(Object* child) override;
+		bool unregister_child(Object* child) override;
 
 	public:
-		static World* current;
-
-		CallBacks<void(World*, Actor*)> on_actor_select;
-		CallBacks<void(World*, Actor*)> on_actor_unselect;
-
-		World& wait() override;
-		World& update(float dt) override;
-		World& shutdown() override;
-
-		World& start_play();
-		World& stop_play();
-		Actor* spawn_actor(class Refl::Class* self, const Vector3f& location = {}, const Vector3f& rotation = {},
-		                   const Vector3f& scale = {1, 1, 1}, const Name& name = {});
-
-		template<typename T>
-		T* spawn_actor(const Vector3f& location = {}, const Vector3f& rotation = {}, const Vector3f& scale = {1, 1, 1},
-		               const Name& name = {})
-		{
-			T* actor = new_instance<T>(name, this);
-			return static_cast<T*>(spawn_actor(actor, location, rotation, scale));
-		}
-
-		World& destroy_actor(Actor* actor);
-		Scene* scene() const;
-		World& select_actor(Actor* actor);
-		World& unselect_actor(Actor* actor);
-		World& select_actors(const Vector<Actor*>& actors);
-		World& unselect_actors(const Vector<Actor*>& actors);
-		World& unselect_actors();
-		const Set<Actor*>& selected_actors() const;
-		bool is_selected(Actor* actor) const;
-
-		const Vector<class Actor*>& actors() const;
+		World();
 		~World();
+
+		static World* current();
+
+		World& update(float dt) override;
+		World* world() override;
+
+		World& add_level(Level* level);
+		World& remove_level(Level* level);
+
+		inline const Vector<class Level*>& levels() const { return m_levels; }
+		inline Scene* scene() const { return m_scene; }
 	};
 }// namespace Engine

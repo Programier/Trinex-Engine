@@ -92,7 +92,7 @@ namespace Engine
 		}
 	};
 
-	trinex_implement_pipeline(TextureView2D, "[shaders_dir]:/TrinexEditor/editor/texture_view/view.slang")
+	trinex_implement_pipeline(TextureView2D, "[shaders]:/TrinexEditor/editor/texture_view/view.slang")
 	{
 		Super::initialize();
 		m_mip = find_parameter("mip");
@@ -131,7 +131,7 @@ namespace Engine
 		}
 	};
 
-	trinex_implement_pipeline(TextureView3D, "[shaders_dir]:/TrinexEditor/editor/texture_view/view.slang")
+	trinex_implement_pipeline(TextureView3D, "[shaders]:/TrinexEditor/editor/texture_view/view.slang")
 	{
 		Super::initialize();
 		m_depth = find_parameter("depth");
@@ -168,7 +168,7 @@ namespace Engine
 		}
 	};
 
-	trinex_implement_pipeline(TextureViewCube, "[shaders_dir]:/TrinexEditor/editor/texture_view/view.slang")
+	trinex_implement_pipeline(TextureViewCube, "[shaders]:/TrinexEditor/editor/texture_view/view.slang")
 	{
 		Super::initialize();
 		m_mip  = find_parameter("mip");

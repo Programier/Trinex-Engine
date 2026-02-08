@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/set.hpp>
 #include <Core/math/vector.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 
@@ -17,7 +16,7 @@ namespace Engine
 		EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
 
 		EditorRenderer& render_grid();
-		EditorRenderer& render_outlines(const Set<Actor*>& actors);
-		EditorRenderer& render_primitives(const Set<Actor*>& actors);
+		EditorRenderer& render_outlines(Actor* const* actors = nullptr, size_t count = 0);
+		EditorRenderer& render_primitives(Actor* const* actors = nullptr, size_t count = 0);
 	};
 }// namespace Engine

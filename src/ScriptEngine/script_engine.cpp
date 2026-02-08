@@ -138,7 +138,7 @@ namespace Engine
 		PostDestroyController controller(ScriptEngine::terminate, "Engine::ScriptEngine");
 		ScriptContext::initialize();
 
-		m_script_folder = trx_new ScriptFolder("[scripts_dir]:");
+		m_script_folder = trx_new ScriptFolder("[scripts]:");
 		trigger_addons_initialization();
 		return instance();
 	}

@@ -725,8 +725,8 @@ namespace Engine
 
 		Path include_directories[] = {
 		        rootfs()->native_path(Project::shaders_dir),
-		        rootfs()->native_path("[shaders_dir]:/TrinexEditor"),
-		        rootfs()->native_path("[shaders_dir]:/TrinexEngine"),
+		        rootfs()->native_path("[shaders]:/TrinexEditor"),
+		        rootfs()->native_path("[shaders]:/TrinexEngine"),
 		};
 
 		SessionInitializer desc;

@@ -12,7 +12,6 @@ namespace Engine
 	class PrimitiveComponent;
 	class LightComponent;
 	class PostProcessComponent;
-	class SceneComponent;
 	struct Frustum;
 
 	class ENGINE_EXPORT Scene final
@@ -30,12 +29,8 @@ namespace Engine
 		FlatSet<PostProcessComponent*> m_unbound_post_processes;
 		FlatSet<LightComponent*> m_directional_lights;
 
-		Pointer<SceneComponent> m_root_component;
-
 	public:
 		WorldEnvironment environment;
-
-		Scene();
 
 		Scene& add_primitive(PrimitiveComponent* primitive);
 		Scene& remove_primitive(PrimitiveComponent* primitive);
@@ -48,8 +43,6 @@ namespace Engine
 		Scene& add_post_process(PostProcessComponent* post_process);
 		Scene& remove_post_process(PostProcessComponent* post_process);
 		Scene& update_post_process_transform(PostProcessComponent* post_process);
-
-		SceneComponent* root_component() const;
 
 		inline const PrimitiveOctree& primitive_octree() const { return m_primitive_octree; }
 		inline const LightOctree& light_octree() const { return m_light_octree; };

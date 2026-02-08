@@ -16,7 +16,7 @@ namespace Engine
 		trinex_declare_pipeline(HelloTriangle, GlobalGraphicsPipeline);
 	};
 
-	trinex_implement_pipeline(HelloTriangle, "[shaders_dir]:/TrinexEngine/trinex/graphics/hello_triangle.slang") {}
+	trinex_implement_pipeline(HelloTriangle, "[shaders]:/TrinexEngine/trinex/graphics/hello_triangle.slang") {}
 
 	DefaultClient::DefaultClient()
 	{

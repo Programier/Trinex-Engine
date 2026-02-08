@@ -4,6 +4,7 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/theme.hpp>
+#include <Editor/engine.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>
@@ -536,6 +537,8 @@ namespace Engine
 			if (m_world)
 			{
 				auto& actors = m_world->actors();
+				auto editor  = EditorEngine::instance();
+
 				for (size_t i = 0, count = actors.size(); i < count; ++i)
 				{
 					if (Actor* actor = actors[i])
@@ -556,13 +559,11 @@ namespace Engine
 
 						ImGui::TableNextColumn();
 
-						if (ImGui::Selectable(actor->class_instance()->name().c_str(), m_world->is_selected(actor),
+						bool selected = editor->is_selected(actor);
+						if (ImGui::Selectable(actor->class_instance()->name().c_str(), selected,
 						                      ImGuiSelectableFlags_SpanAllColumns))
 						{
-							if (m_world->is_selected(actor))
-								m_world->unselect_actor(actor);
-							else
-								m_world->select_actor(actor);
+							editor->is_selected(actor, !selected);
 						}
 
 						ImGui::PopID();

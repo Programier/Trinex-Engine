@@ -57,9 +57,11 @@ namespace Engine
 		auto vfs      = VFS::RootFS::create_instance();
 		auto exec_dir = Platform::find_exec_directory();
 
-		vfs->mount("[exec_dir]:", exec_dir, VFS::FileSystem::Native);
-		vfs->mount("[assets_dir]:/TrinexEngine", "[exec_dir]:/resources/TrinexEngine/assets");
-		vfs->mount("[shaders_dir]:/TrinexEngine", "[exec_dir]:/resources/TrinexEngine/shaders");
+		vfs->mount("[exec]:", exec_dir, VFS::FileSystem::Native);
+		
+		// Engine resources
+		vfs->mount("[assets]:/TrinexEngine", "[exec]:/resources/TrinexEngine/assets");
+		vfs->mount("[shaders]:/TrinexEngine", "[exec]:/resources/TrinexEngine/shaders");
 	}
 
 	static int_t execute_entry(const StringView& entry_name)

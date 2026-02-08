@@ -33,7 +33,7 @@ namespace Engine::Pipelines
 		ctx->pop_cull_mode();
 	}
 
-	trinex_implement_pipeline(GaussianBlur, "[shaders_dir]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
+	trinex_implement_pipeline(GaussianBlur, "[shaders]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
 	{
 		m_source = find_parameter("source");
 		m_args   = find_parameter("args");
@@ -74,7 +74,7 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(Blit2D, "[shaders_dir]:/TrinexEngine/trinex/graphics/blit.slang")
+	trinex_implement_pipeline(Blit2D, "[shaders]:/TrinexEngine/trinex/graphics/blit.slang")
 	{
 		m_source = find_parameter("source");
 		m_args   = find_parameter("args");
@@ -110,7 +110,7 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(Passthrow, "[shaders_dir]:/TrinexEngine/trinex/graphics/passthrow.slang")
+	trinex_implement_pipeline(Passthrow, "[shaders]:/TrinexEngine/trinex/graphics/passthrow.slang")
 	{
 		m_scene = find_parameter("scene");
 		m_args  = find_parameter("args");
@@ -144,7 +144,7 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(Downsample, "[shaders_dir]:/TrinexEngine/trinex/graphics/downsample.slang")
+	trinex_implement_pipeline(Downsample, "[shaders]:/TrinexEngine/trinex/graphics/downsample.slang")
 	{
 		m_scene = find_parameter("scene");
 		m_args  = find_parameter("args");
@@ -171,7 +171,7 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(BloomExtract, "[shaders_dir]:/TrinexEngine/trinex/graphics/bloom/extract.slang")
+	trinex_implement_pipeline(BloomExtract, "[shaders]:/TrinexEngine/trinex/graphics/bloom/extract.slang")
 	{
 		m_scene = find_parameter("scene");
 		m_args  = find_parameter("args");
@@ -205,7 +205,7 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(BloomDownsample, "[shaders_dir]:/TrinexEngine/trinex/graphics/bloom/downsample.slang")
+	trinex_implement_pipeline(BloomDownsample, "[shaders]:/TrinexEngine/trinex/graphics/bloom/downsample.slang")
 	{
 		m_scene = find_parameter("scene");
 	}
@@ -221,7 +221,7 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(BloomUpsample, "[shaders_dir]:/TrinexEngine/trinex/graphics/bloom/upsample.slang")
+	trinex_implement_pipeline(BloomUpsample, "[shaders]:/TrinexEngine/trinex/graphics/bloom/upsample.slang")
 	{
 		m_scene = find_parameter("scene");
 		m_args  = find_parameter("args");
@@ -250,15 +250,15 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 	}
 
-	trinex_implement_pipeline(BatchedLines, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_lines.slang")
+	trinex_implement_pipeline(BatchedLines, "[shaders]:/TrinexEngine/trinex/graphics/batched_lines.slang")
 	{
 		m_projview = find_parameter("projview");
 		m_viewport = find_parameter("viewport");
 	}
 
-	trinex_implement_pipeline(BatchedTriangles, "[shaders_dir]:/TrinexEngine/trinex/graphics/batched_triangles.slang") {}
+	trinex_implement_pipeline(BatchedTriangles, "[shaders]:/TrinexEngine/trinex/graphics/batched_triangles.slang") {}
 
-	trinex_implement_pipeline(DeferredLighting, "[shaders_dir]:/TrinexEngine/trinex/lighting/deferred.slang")
+	trinex_implement_pipeline(DeferredLighting, "[shaders]:/TrinexEngine/trinex/lighting/deferred.slang")
 	{
 		scene_view         = find_parameter("scene_view");
 		base_color_texture = find_parameter("base_color_texture");
@@ -275,7 +275,7 @@ namespace Engine::Pipelines
 		shadows  = find_parameter("shadows");
 	}
 
-	trinex_implement_pipeline(AmbientLight, "[shaders_dir]:/TrinexEngine/trinex/lighting/ambient.slang")
+	trinex_implement_pipeline(AmbientLight, "[shaders]:/TrinexEngine/trinex/lighting/ambient.slang")
 	{
 		//setup_lighting_pipeline_state(this);
 
@@ -285,7 +285,7 @@ namespace Engine::Pipelines
 		ambient_color = find_parameter("ambient_color");
 	}
 
-	trinex_implement_pipeline(TonemappingACES, "[shaders_dir]:/TrinexEngine/trinex/graphics/tonemapping.slang")
+	trinex_implement_pipeline(TonemappingACES, "[shaders]:/TrinexEngine/trinex/graphics/tonemapping.slang")
 	{
 		m_hdr_target = find_parameter("hdr_scene");
 		m_scene_view = find_parameter("scene_view");
@@ -306,7 +306,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(SSR, "[shaders_dir]:/TrinexEngine/trinex/graphics/ssr.slang")
+	trinex_implement_pipeline(SSR, "[shaders]:/TrinexEngine/trinex/graphics/ssr.slang")
 	{
 		scene_view   = find_parameter("scene_view");
 		scene_color  = find_parameter("scene_color");
@@ -315,7 +315,7 @@ namespace Engine::Pipelines
 		sampler      = find_parameter("sampler");
 	}
 
-	trinex_implement_pipeline(SSAO, "[shaders_dir]:/TrinexEngine/trinex/graphics/ssao.slang")
+	trinex_implement_pipeline(SSAO, "[shaders]:/TrinexEngine/trinex/graphics/ssao.slang")
 	{
 		m_scene_view   = find_parameter("scene_view");
 		m_scene_depth  = find_parameter("scene_depth");
@@ -413,7 +413,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(ClusterInitialize, "[shaders_dir]:/TrinexEngine/trinex/cluster/initialize.slang")
+	trinex_implement_pipeline(ClusterInitialize, "[shaders]:/TrinexEngine/trinex/cluster/initialize.slang")
 	{
 		m_scene_view = find_parameter("scene_view");
 		m_clusters   = find_parameter("clusters");
@@ -439,7 +439,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(ClusterLightCulling, "[shaders_dir]:/TrinexEngine/trinex/cluster/light_culling.slang")
+	trinex_implement_pipeline(ClusterLightCulling, "[shaders]:/TrinexEngine/trinex/cluster/light_culling.slang")
 	{
 		m_scene_view = find_parameter("scene_view");
 		m_clusters   = find_parameter("clusters");
@@ -459,7 +459,7 @@ namespace Engine::Pipelines
 		return *this;
 	}
 
-	trinex_implement_pipeline(CameraVelocity, "[shaders_dir]:/TrinexEngine/trinex/graphics/velocity.slang")
+	trinex_implement_pipeline(CameraVelocity, "[shaders]:/TrinexEngine/trinex/graphics/velocity.slang")
 	{
 		m_scene_view = find_parameter("scene_view");
 	}

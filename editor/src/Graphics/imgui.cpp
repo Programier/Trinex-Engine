@@ -98,7 +98,7 @@ namespace Engine
 			}
 		};
 
-		trinex_implement_pipeline(ImGuiPipeline, "[shaders_dir]:/TrinexEditor/imgui.slang")
+		trinex_implement_pipeline(ImGuiPipeline, "[shaders]:/TrinexEditor/imgui.slang")
 		{
 			m_texture_parameter    = find_parameter("texture");
 			m_projection_parameter = find_parameter("projection");

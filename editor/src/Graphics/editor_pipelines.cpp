@@ -10,7 +10,7 @@
 
 namespace Engine::EditorPipelines
 {
-	trinex_implement_pipeline(Outline, "[shaders_dir]:/TrinexEditor/outlines.slang")
+	trinex_implement_pipeline(Outline, "[shaders]:/TrinexEditor/outlines.slang")
 	{
 		m_scene_color   = find_parameter("args.scene_color");
 		m_scene_depth   = find_parameter("args.scene_depth");
@@ -53,7 +53,7 @@ namespace Engine::EditorPipelines
 		ctx->draw(6, 0);
 	}
 
-	trinex_implement_pipeline(Grid, "[shaders_dir]:/TrinexEditor/grid.slang")
+	trinex_implement_pipeline(Grid, "[shaders]:/TrinexEditor/grid.slang")
 	{
 		m_scene_view = find_parameter("scene_view");
 		m_args       = find_parameter("args");

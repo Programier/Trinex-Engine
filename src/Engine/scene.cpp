@@ -8,11 +8,6 @@
 
 namespace Engine
 {
-	Scene::Scene()
-	{
-		m_root_component = Object::new_instance<SceneComponent>("Root");
-	}
-
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
 		m_primitive_octree.push(primitive->bounding_box(), primitive);
@@ -88,11 +83,6 @@ namespace Engine
 	Scene& Scene::update_post_process_transform(PostProcessComponent* post_process)
 	{
 		return *this;
-	}
-
-	SceneComponent* Scene::root_component() const
-	{
-		return m_root_component.ptr();
 	}
 
 	template<typename Node, typename Container>
