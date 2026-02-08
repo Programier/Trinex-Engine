@@ -1,4 +1,4 @@
-file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 if(TRINEX_AS_EXECUTABLE)
     set(TRINEX_EDITOR_TARGET TrinexEngine)
@@ -9,7 +9,7 @@ else()
     if(ANDROID)
         add_library(TrinexEngineEditor SHARED ${TRINEX_ENGINE_EDITOR_SOURCES})
     else()
-        add_executable(TrinexEngineEditor PRIVATE ${TRINEX_ENGINE_EDITOR_SOURCES})
+        add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SOURCES})
     endif()
     
     target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine)

@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
 #include <Graphics/imgui.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -1334,18 +1335,15 @@ namespace Engine
 				return ImGui::RadioButton(label.c_str(), &value, v_button);
 			}
 
-			static bool Combo(const String& label, int& current_item, const CScriptArray& items, int height_in_items)
+			static bool Combo(const String& label, int& current_item, const Vector<String>& items, int height_in_items)
 			{
-				const int items_count = items.GetSize();
-				Vector<const char*> items_data;
+				StackByteAllocator::Mark mark;
 
-				items_data.reserve(items_count);
-				for (int n = 0; n < items_count; ++n)
-				{
-					items_data.push_back(reinterpret_cast<const String*>(items.At(n))->c_str());
-				}
+				const size_t count = items.size();
+				const char** data  = StackAllocator<const char*>::allocate(count);
 
-				return ImGui::Combo(label.c_str(), &current_item, items_data.data(), items_count, height_in_items);
+				etl::transform(items.begin(), items.end(), data, [](const String& item) -> const char* { return item.c_str(); });
+				return ImGui::Combo(label.c_str(), &current_item, data, count, height_in_items);
 			}
 
 			static bool Combo2(const String& label, int& current_item, const String& items_separated_by_zeros,
@@ -1522,7 +1520,7 @@ namespace Engine
 		// e.register_function("bool ImageButton(const string& str_id, ImTextureID user_texture_id, const ImVec2 & image_size, const ImVec2 & uv0, const ImVec2 & uv1, const ImVec4 & bg_col, const ImVec4 & tint_col)", ImBinder<func_of<bool, const char *, ImTextureID, const ImVec2 &, const ImVec2 &, const ImVec2 &, const ImVec4 &, const ImVec4 &>(&ImGui::ImageButton)>::bind());
 		e.register_function("bool BeginCombo(const string& label, const string& preview_value, int flags = 0)", ImBinder<func_of<bool, const char *, const char *, ImGuiComboFlags>(&ImGui::BeginCombo)>::bind());
 		e.register_function("void EndCombo()", ImBinder<func_of<void>(&ImGui::EndCombo)>::bind());
-		e.register_function("bool Combo(const string &in label, int &inout current_item, const array<string> &in items, int popup_max_height_in_items = -1)", Custom::Combo);
+		e.register_function("bool Combo(const string &in label, int &inout current_item, const Engine::Vector<string> &in items, int popup_max_height_in_items = -1)", Custom::Combo);
 		e.register_function("bool Combo(const string& label, int& current_item, const string& items_separated_by_zeros, int popup_max_height_in_items = -1)", Custom::Combo2);
 		e.register_function("bool DragFloat(const string& label, float& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat, ImArg<1, float[1]>>::bind());
 		e.register_function("bool DragFloat2(const string& label, ImVec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat2, ImArg<1, float[2]>>::bind());

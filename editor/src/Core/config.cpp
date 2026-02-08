@@ -4,7 +4,7 @@
 
 namespace Engine::Settings::Editor
 {
-	String font_path       = "resources/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+	String font_path       = "[content_dir]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	float small_font_size  = 12.f;
 	float normal_font_size = 18.f;
 	float large_font_size  = 24.f;

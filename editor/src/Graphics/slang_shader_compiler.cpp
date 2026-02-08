@@ -491,6 +491,12 @@ namespace Engine
 						m_reflection->parameters.push_back(object);
 						return true;
 					}
+					else if (param.kind == slang::TypeReflection::Kind::SamplerState)
+					{
+						object.type |= RHIShaderParameterType::META_Sampler;
+						m_reflection->parameters.push_back(object);
+						return true;
+					}
 				}
 			}
 			else if (is_in<slang::TypeReflection::Kind::Struct>(param.kind) && !param.is_excluded(VarTraceEntry::exclude_struct))

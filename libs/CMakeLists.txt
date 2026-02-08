@@ -19,8 +19,6 @@ set(ASMJIT_STATIC on)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/asmjit/" EXCLUDE_FROM_ALL)
 set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")
 
-add_subdirectory(zlib EXCLUDE_FROM_ALL)
-
 add_subdirectory(fmt EXCLUDE_FROM_ALL)
 set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
 

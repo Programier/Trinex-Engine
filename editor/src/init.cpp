@@ -35,6 +35,7 @@ namespace Engine
 	{
 		auto fs = rootfs();
 
+		fs->mount("[content_dir]:/TrinexEditor", "[exec_dir]:/resources/TrinexEditor");
 		fs->mount("[assets_dir]:/TrinexEditor", "[exec_dir]:/resources/TrinexEditor/assets");
 		fs->mount("[configs_dir]:/editor", "[exec_dir]:/resources/TrinexEditor/configs");
 		fs->mount("[shaders_dir]:/TrinexEditor", "[exec_dir]:/resources/TrinexEditor/shaders");
@@ -66,7 +67,7 @@ namespace Engine
 
 	static void load_configs()
 	{
-		Engine::Settings::Splash::font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+		Engine::Settings::Splash::font = "[content_dir]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	}
 
 	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");

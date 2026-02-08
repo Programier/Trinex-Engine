@@ -100,7 +100,8 @@ namespace Engine
 	{
 		for (auto component : node->values())
 		{
-			result.emplace_back(component);
+			if (component->is_visible())
+				result.emplace_back(component);
 		}
 
 		for (byte i = 0; i < 8; i++)
@@ -130,7 +131,7 @@ namespace Engine
 
 		for (auto component : node->values())
 		{
-			if (frustum.intersects(component->bounding_box()))
+			if (component->is_visible() && frustum.intersects(component->bounding_box()))
 			{
 				result.emplace_back(component);
 			}

@@ -18,13 +18,10 @@ namespace Engine
 		trinex_class(PrimitiveComponent, SceneComponent);
 
 	protected:
-		bool m_is_visible;
 		Box3f m_bounding_box;
 
 	public:
 		PrimitiveComponent();
-		bool is_visible() const;
-		PrimitiveComponent& is_visible(bool visible);
 		const Box3f& bounding_box() const;
 
 		PrimitiveComponent& start_play() override;

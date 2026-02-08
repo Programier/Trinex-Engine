@@ -58,7 +58,7 @@ namespace Engine
 		template<RHIShaderParameterType type, typename T>
 		bool bind_scalar(const T& value) const
 		{
-			if (m_parameter->type == type)
+			if ((m_parameter->type & type) == type)
 			{
 				m_ctx->update_scalar(&value, m_parameter);
 				return true;

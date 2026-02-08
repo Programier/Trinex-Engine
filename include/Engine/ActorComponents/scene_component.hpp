@@ -15,6 +15,7 @@ namespace Engine
 		Transform m_prev_world;
 
 		mutable bool m_is_transform_dirty : 1;
+		bool m_is_visible : 1;
 		bool m_is_transform_changed : 1;
 
 		Pointer<SceneComponent> m_parent = nullptr;
@@ -45,6 +46,8 @@ namespace Engine
 		inline const Transform& prev_world_transform() const { return m_prev_world; }
 		inline bool is_transform_changed() const { return m_is_transform_changed; }
 
+		bool is_visible() const;
+		SceneComponent& is_visible(bool visible);
 		SceneComponent& local_transform(const Transform&);
 		SceneComponent& add_local_transform(const Transform&);
 		SceneComponent& remove_local_transform(const Transform&);

@@ -275,6 +275,45 @@ namespace Engine::Refl
 		return ar;
 	}
 
+	bool Struct::has_properties(bool recursive) const
+	{
+		if (!m_properties.empty())
+			return true;
+
+		if (recursive)
+		{
+			Struct* self = parent();
+
+			while (self)
+			{
+				if (!self->m_properties.empty())
+					return true;
+
+				self = self->parent();
+			}
+		}
+
+		return false;
+	}
+
+	size_t Struct::properties_count(bool recursive) const
+	{
+		size_t count = m_properties.size();
+
+		if (recursive)
+		{
+			Struct* self = parent();
+
+			while (self)
+			{
+				count += self->m_properties.size();
+				self = self->parent();
+			}
+		}
+
+		return count;
+	}
+
 	bool Struct::serialize(void* object, Archive& ar)
 	{
 		return serialize_properties(object, ar);

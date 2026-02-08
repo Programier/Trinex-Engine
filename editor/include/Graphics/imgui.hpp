@@ -182,6 +182,11 @@ namespace ImGui
 
 	float TableGetAutoWidth(const char* name);
 	float TableGetAutoWidth(ImGuiID table_id);
+	bool InputScalarWithPrefix(const char* prefix, ImGuiDataType data_type, void* p_data, const void* p_step = nullptr,
+	                           const void* p_step_fast = nullptr, const char* format = nullptr, ImGuiInputTextFlags flags = 0);
+	bool InputScalarWithPrefix(const char* prefix, ImU32 prefix_bg, ImGuiDataType data_type, void* p_data,
+	                           const void* p_step = nullptr, const void* p_step_fast = nullptr, const char* format = nullptr,
+	                           ImGuiInputTextFlags flags = 0);
 
 	FORCE_INLINE ImVec2 ImVecFrom(const Engine::Vector2f& vec)
 	{

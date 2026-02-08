@@ -23,26 +23,9 @@ namespace Engine
 
 	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
 
-	bool PrimitiveComponent::is_visible() const
-	{
-		if (m_is_visible)
-		{
-			if (auto owner_actor = actor())
-				return owner_actor->is_visible();
-			return true;
-		}
-		return false;
-	}
-
 	const Box3f& PrimitiveComponent::bounding_box() const
 	{
 		return m_bounding_box;
-	}
-
-	PrimitiveComponent& PrimitiveComponent::is_visible(bool visible)
-	{
-		m_is_visible = visible;
-		return *this;
 	}
 
 	PrimitiveComponent& PrimitiveComponent::start_play()

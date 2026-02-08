@@ -14,6 +14,7 @@
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 #include <RHI/rhi.hpp>
+#include <UI/property_renderer.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -64,74 +65,28 @@ namespace Engine
 		~EditorSuspend() { ed::Resume(); }
 	};
 
-	template<int N>
-	static void render_vector_nb(void* data)
+	class NodePropertiesContext : public UI::PropertyRenderer::Context
 	{
-		static_assert(N > 0);
-		auto* window = ImGui::GetCurrentWindow();
+	public:
+		float cell = 0.f;
 
-		if (window->SkipItems)
-			return;
+		NodePropertiesContext() : Context(UI::PropertyRenderer::static_context()) {};
 
-		if constexpr (N == 1)
+		UI::PropertyRenderingFlags flags() const override
 		{
-			ImGui::Checkbox("##vector1b", reinterpret_cast<bool*>(data));
-		}
-		else
-		{
-			auto& style = ImGui::GetStyle();
-
-			ImGui::BeginGroup();
-			ImGui::PushMultiItemsWidths(N, ImGui::CalcItemWidth());
-
-			for (int i = 0; i < N; i++)
-			{
-				ImGui::PushID(i);
-				if (i > 0)
-					ImGui::SameLine(0, style.ItemInnerSpacing.x);
-
-				ImGui::Checkbox("##vectornb", reinterpret_cast<bool*>(data) + i);
-				ImGui::PopID();
-				ImGui::PopItemWidth();
-			}
-
-			ImGui::PopID();
-			ImGui::EndGroup();
-		}
-	}
-
-	template<int N, ImGuiDataType T, typename Element>
-	static void render_vector_nt(void* data)
-	{
-		static constexpr const char* data_type_formats[] = {
-		        "%hhd", // ImGuiDataType_S8
-		        "%hhu", // ImGuiDataType_U8
-		        "%hd",  // ImGuiDataType_S16
-		        "%hu",  // ImGuiDataType_U16
-		        "%d",   // ImGuiDataType_S32
-		        "%u",   // ImGuiDataType_U32
-		        "%lld", // ImGuiDataType_S64
-		        "%llu", // ImGuiDataType_U64
-		        "%.3f", // ImGuiDataType_Float
-		        "%.3lf",// ImGuiDataType_Double
-		};
-
-		constexpr const char* element_format = data_type_formats[T];
-		float max_length                     = 0;
-
-		for (int i = 0; i < N; ++i)
-		{
-			char buffer[64];
-			snprintf(buffer, sizeof(buffer), element_format, reinterpret_cast<Element*>(data)[i]);
-			max_length = glm::max(max_length, ImGui::CalcTextSize(buffer).x);
+			auto except = UI::PropertyRenderingFlags::RenderNames;
+			return Context::flags() & (~except);
 		}
 
-		float padding     = ImGui::GetStyle().FramePadding.x * 2.0f;
-		float total_width = (max_length + padding) * N + ImGui::GetStyle().ItemInnerSpacing.x * (N - 1);
+		bool on_begin_rendering(UI::PropertyRenderer* renderer) override { return true; }
+		Context& on_end_rendering(UI::PropertyRenderer* renderer, bool rendered) override { return *this; }
 
-		ImGui::SetNextItemWidth(total_width);
-		ImGui::InputScalarN("###vector_nt", T, data, N, nullptr, nullptr, element_format);
-	}
+		uint_t columns() const override { return 2; }
+		Context& column(uint_t index) override { return *this; }
+		Context& next_row(ImGuiTableRowFlags row_flags = 0, float row_min_height = 0.f) override { return *this; }
+
+		float cell_width() const override { return cell; }
+	};
 
 	template<typename T>
 	static int_t find_max_pin_name_len(const T& pins)
@@ -147,28 +102,60 @@ namespace Engine
 	static void render_default_type(VisualMaterialGraph::Pin::DefaultValue* value)
 	{
 		RHIShaderParameterType type = value->type();
+		const byte length           = type.columns();
 		byte* address               = value->address();
 
-		const bool is_unsigned = type.is_unsigned();
-		const uint_t len       = type.columns();
 
-		ImGuiDataType data_type;
+		static Refl::Property* property_table[4][4] = {
+		        {
+		                Refl::Property::null_property<float>(),
+		                Refl::Property::null_property<Vector2f>(),
+		                Refl::Property::null_property<Vector3f>(),
+		                Refl::Property::null_property<Vector4f>(),
+		        },
+		        {
+		                Refl::Property::null_property<uint32_t>(),
+		                Refl::Property::null_property<Vector2u>(),
+		                Refl::Property::null_property<Vector3u>(),
+		                Refl::Property::null_property<Vector4u>(),
+		        },
+		        {
+		                Refl::Property::null_property<int32_t>(),
+		                Refl::Property::null_property<Vector2i>(),
+		                Refl::Property::null_property<Vector3i>(),
+		                Refl::Property::null_property<Vector4i>(),
+		        },
+		        {
+		                Refl::Property::null_property<bool>(),
+		                Refl::Property::null_property<Vector2b>(),
+		                Refl::Property::null_property<Vector3b>(),
+		                Refl::Property::null_property<Vector4b>(),
+		        },
+		};
+
+		const bool is_unsigned = type.is_unsigned();
+		uint32_t type_index    = 0;
 
 		switch (type.type())
 		{
-			case RHIShaderParameterType::META_Integer: data_type = is_unsigned ? ImGuiDataType_U32 : ImGuiDataType_S32; break;
-			case RHIShaderParameterType::META_Boolean: data_type = ImGuiDataType_Bool; break;
-			default: data_type = ImGuiDataType_Float; break;
+			case RHIShaderParameterType::META_Integer: type_index = is_unsigned ? 1 : 2; break;
+			case RHIShaderParameterType::META_Boolean: type_index = 3; break;
+			default: type_index = 0; break;
 		}
 
-		if (data_type == ImGuiDataType_Bool)
-		{
-		}
-		else
-		{
-			const ImGuiDataTypeInfo* info = ImGui::DataTypeGetInfo(data_type);
-			ImGui::InputScalarN("###vector", data_type, address, len, nullptr, nullptr, info->ScanFmt);
-		}
+		Refl::Property* prop = property_table[type_index][length - 1];
+
+		static NodePropertiesContext ctx;
+		const ImGuiStyle& style = ImGui::GetStyle();
+
+		const float frame_height = ImGui::GetFrameHeight();
+		const float frame_width  = frame_height * 4.0f;
+		ctx.cell                 = frame_width * length + style.ItemInnerSpacing.x * (length - 1);
+
+		auto renderer = UI::PropertyRenderer::static_renderer();
+		renderer->begin(&ctx);
+		renderer->render_property(address, prop);
+		renderer->end();
 	}
 
 	static void show_label(const char* label, ImColor color)
@@ -845,13 +832,13 @@ namespace Engine
 			{
 				auto node = m_selected_nodes.front();
 
-				if (m_properties_window->properties_map(node->class_instance()).empty())
+				if (node->class_instance()->has_properties())
 				{
-					properties_object = m_material;
+					properties_object = node;
 				}
 				else
 				{
-					properties_object = node;
+					properties_object = m_material;
 				}
 			}
 			else
@@ -859,7 +846,7 @@ namespace Engine
 				properties_object = m_material;
 			}
 
-			m_properties_window->object(properties_object, false);
+			m_properties_window->object(properties_object);
 		}
 		return *this;
 	}

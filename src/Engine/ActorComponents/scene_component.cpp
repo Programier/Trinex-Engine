@@ -5,6 +5,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
+#include <Engine/Actors/actor.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -29,6 +30,8 @@ namespace Engine
 
 	trinex_implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
 	{
+		trinex_refl_virtual_prop(Is Visible, is_visible, is_visible);
+
 		auto& local = *trinex_refl_prop(m_local);
 		local.display_name("Transform").tooltip("Local transform of this component");
 
@@ -65,7 +68,7 @@ namespace Engine
 		ScriptEngine::on_terminate.push([]() { script_scene_comp_transform_changed.release(); });
 	}
 
-	SceneComponent::SceneComponent() : m_is_transform_dirty(false), m_is_transform_changed(false) {}
+	SceneComponent::SceneComponent() : m_is_transform_dirty(false), m_is_visible(true), m_is_transform_changed(false) {}
 
 	void SceneComponent::script_on_transform_changed()
 	{
@@ -179,6 +182,24 @@ namespace Engine
 		}
 
 		return m_world;
+	}
+
+	bool SceneComponent::is_visible() const
+	{
+		if (m_is_visible)
+		{
+			if (auto owner_actor = actor())
+				return owner_actor->is_visible();
+			return true;
+		}
+
+		return false;
+	}
+
+	SceneComponent& SceneComponent::is_visible(bool visible)
+	{
+		m_is_visible = visible;
+		return *this;
 	}
 
 	SceneComponent& SceneComponent::local_transform(const Transform& transform)

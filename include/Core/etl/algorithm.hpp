@@ -18,6 +18,7 @@ namespace Engine::etl
 	using std::remove;
 	using std::remove_if;
 	using std::sort;
+	using std::stable_sort;
 	using std::swap;
 	using std::transform;
 	using std::unique;

@@ -86,6 +86,17 @@ private:
 
 		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
 
+		template<typename T>
+		static constexpr T Property::* null_address = nullptr;
+
+		template<typename T>
+		static NativeProperty<Property::null_address<T>>* null_property()
+		{
+			using PropType            = NativeProperty<Property::null_address<T>>;
+			static PropType* property = Object::new_instance<PropType>(nullptr, StringView("Element"));
+			return property;
+		}
+
 	protected:
 		BitMask m_flags = 0;
 
@@ -403,18 +414,6 @@ private:
 		struct IsScriptableArray<Engine::Vector<T>> : std::true_type {
 		};
 
-		template<typename T>
-		static Property* construct_element_property()
-		{
-			static Property* instance = []() -> Property* {
-				using Value                                = typename T::value_type;
-				constexpr Value ArrayProperty::* null_prop = nullptr;
-				return Object::new_instance<NativeProperty<null_prop>>(nullptr, StringView("Element"));
-			}();
-
-			return instance;
-		}
-
 		trinex_refl_prop_type_filter(IsArray<T>::value);
 
 	public:
@@ -659,8 +658,8 @@ private:
 		NativePropertyTyped& construct() override
 		{
 			Super::construct();
-			constexpr typename T::row_type T::* inner_prop = nullptr;
-			m_inner_property                               = Object::new_instance<NativeProperty<inner_prop>>(nullptr, "Value");
+			using Row        = typename T::row_type;
+			m_inner_property = Object::new_instance<NativeProperty<Property::null_address<Row>>>(nullptr, "Value");
 			return *this;
 		}
 
@@ -774,7 +773,7 @@ private:
 		using Value = typename T::value_type;
 
 	public:
-		Property* element_property() const override { return ArrayProperty::construct_element_property<T>(); }
+		Property* element_property() const override { return Property::null_property<typename T::value_type>(); }
 		size_t element_size() const override { return sizeof(Value); }
 
 		T& array_of(void* context, bool is_vector_context)

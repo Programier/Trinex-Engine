@@ -1554,6 +1554,61 @@ namespace ImGui
 
 		return width;
 	}
+
+	bool InputScalarWithPrefix(const char* prefix, ImGuiDataType data_type, void* p_data, const void* p_step,
+	                           const void* p_step_fast, const char* format, ImGuiInputTextFlags flags)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		const float prefix_w = ImGui::CalcTextSize(prefix).x + style.FramePadding.x * 2.0f;
+
+		ImGui::PushID(prefix);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x + prefix_w, style.FramePadding.y));
+
+		bool changed = ImGui::InputScalar("##input", data_type, p_data, p_step, p_step_fast, format, flags);
+
+		ImGui::PopStyleVar();
+
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		auto min       = ImGui::GetItemRectMin();
+
+		const ImVec2 text_pos(min.x + style.FramePadding.x, min.y + (ImGui::GetItemRectSize().y - ImGui::GetFontSize()) * 0.5f);
+
+		dl->AddText(text_pos, ImGui::GetColorU32(ImGuiCol_Text), prefix);
+
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool InputScalarWithPrefix(const char* prefix, ImU32 prefix_bg, ImGuiDataType data_type, void* p_data, const void* p_step,
+	                           const void* p_step_fast, const char* format, ImGuiInputTextFlags flags)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		const float prefix_w = ImGui::CalcTextSize(prefix).x + style.FramePadding.x * 2.0f;
+
+		ImGui::PushID(prefix);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x + prefix_w, style.FramePadding.y));
+
+		bool changed = ImGui::InputScalar("##input", data_type, p_data, p_step, p_step_fast, format, flags);
+
+		ImGui::PopStyleVar();
+
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+
+		ImRect rect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+
+		ImRect prefix_rect(rect.Min, ImVec2(rect.Min.x + prefix_w, rect.Max.y));
+		dl->AddRectFilled(prefix_rect.Min, prefix_rect.Max, prefix_bg, style.FrameRounding, ImDrawFlags_RoundCornersLeft);
+
+		const ImVec2 text_pos(rect.Min.x + style.FramePadding.x,
+		                      rect.Min.y + (ImGui::GetItemRectSize().y - ImGui::GetFontSize()) * 0.5f);
+
+		dl->AddText(text_pos, ImGui::GetColorU32(ImGuiCol_Text), prefix);
+
+		ImGui::PopID();
+		return changed;
+	}
 }// namespace ImGui
 
 

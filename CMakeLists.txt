@@ -77,7 +77,7 @@ endif()
 
 # Trinex Engine compile options
 target_include_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
-target_link_libraries(TrinexEngine PUBLIC freetype asmjit zlib_library lz4_static stb_library)
+target_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
 
 target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS=1)
 

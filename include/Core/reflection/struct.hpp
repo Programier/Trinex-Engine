@@ -106,6 +106,8 @@ namespace Engine::Refl
 		const Vector<Property*>& properties() const;
 		Property* find_property(StringView name);
 		bool serialize_properties(void* object, Archive& ar);
+		bool has_properties(bool recursive = true) const;
+		size_t properties_count(bool recursive = true) const;
 
 		Struct& group(class Group*);
 		class Group* group() const;
