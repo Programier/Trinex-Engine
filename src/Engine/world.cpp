@@ -22,6 +22,14 @@ namespace Engine
 	{
 		stop_play();
 		destroy_all_actors();
+
+		auto levels = etl::move(m_levels);
+
+		for (Level* level : levels)
+		{
+			level->owner(nullptr);
+		}
+
 		trx_delete m_scene;
 	}
 
@@ -53,14 +61,7 @@ namespace Engine
 	{
 		if (Level* level = instance_cast<Level>(child))
 		{
-			for (size_t i = 0; i < m_levels.size(); ++i)
-			{
-				if (m_levels[i] == level)
-				{
-					m_levels.erase(m_levels.begin() + i);
-					break;
-				}
-			}
+			m_levels.push_back(level);
 			return true;
 		}
 
@@ -71,7 +72,15 @@ namespace Engine
 	{
 		if (Level* level = instance_cast<Level>(child))
 		{
-			m_levels.push_back(level);
+
+			for (size_t i = 0; i < m_levels.size(); ++i)
+			{
+				if (m_levels[i] == level)
+				{
+					m_levels.erase(m_levels.begin() + i);
+					break;
+				}
+			}
 			return true;
 		}
 
