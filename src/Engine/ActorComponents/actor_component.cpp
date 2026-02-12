@@ -26,8 +26,8 @@ namespace Engine
 		script_actor_comp_spawned    = r.method("void spawned()", trinex_scoped_void_method(This, spawned));
 		script_actor_comp_destroyed  = r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
 
-		r.method("Actor actor() const final", method_of<Actor*>(&This::actor));
-		r.method("void actor(Actor actor) const final", method_of<ActorComponent&, Actor*>(&This::actor));
+		r.method("Actor actor() const final", overload_of<Actor*()>(&This::actor));
+		r.method("void actor(Actor actor) const final", overload_of<ActorComponent&()>(&This::actor));
 
 		ScriptEngine::on_terminate.push([]() {
 			script_actor_comp_update.release();

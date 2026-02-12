@@ -24,11 +24,12 @@ namespace Engine
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
-		m_ic_script_update = r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiViewportClient&, float));
+		m_ic_script_update =
+		        r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiViewportClient & (float) ));
 		m_ic_script_select = r.method("void select(Object@ object)", trinex_scoped_method(This, select));
 
 		r.method("void update(RenderViewport viewport, float dt)",
-		         trinex_scoped_method(This, update, ImGuiViewportClient&, RenderViewport*, float));
+		         trinex_scoped_method(This, update, ImGuiViewportClient & (RenderViewport*, float) ));
 		r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
 		r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
 		r.method("RenderViewport viewport() const final", &This::viewport);

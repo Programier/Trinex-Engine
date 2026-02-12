@@ -293,17 +293,17 @@ namespace Engine
 		registrar.behave(ScriptClassBehave::Construct, "void f(const StringView&)",
 		                 ScriptClassRegistrar::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
 
-		registrar.static_function("Name find_name(const StringView&)", func_of<Name(const StringView&)>(Name::find_name));
+		registrar.static_function("Name find_name(const StringView&)", overload_of<Name(const StringView&)>(Name::find_name));
 		registrar.method("bool is_valid() const", &Name::is_valid);
 		registrar.method("uint64 hash() const", &Name::hash);
-		registrar.method("const string& to_string() const", method_of<const String&>(&Name::to_string));
-		registrar.method("const Name& to_string(string&) const", method_of<const Name&>(&Name::to_string));
+		registrar.method("const string& to_string() const", overload_of<const String&()>(&Name::to_string));
+		registrar.method("const Name& to_string(string&) const", overload_of<const Name&()>(&Name::to_string));
 
-		registrar.method("Engine::Name& opAssign(const StringView&)", method_of<Name&, const StringView&>(&Name::operator=));
-		registrar.method("Engine::Name& opAssign(const string&)", method_of<Name&, const String&>(&Name::operator=));
-		registrar.method("bool opEquals(const StringView&) const", method_of<bool, const StringView&>(&Name::operator==));
-		registrar.method("bool opEquals(const string&) const", method_of<bool, const String&>(&Name::operator==));
-		registrar.method("bool opEquals(const Name&) const", method_of<bool, const Name&>(&Name::operator==));
+		registrar.method("Engine::Name& opAssign(const StringView&)", overload_of<Name&(const StringView&)>(&Name::operator=));
+		registrar.method("Engine::Name& opAssign(const string&)", overload_of<Name&(const String&)>(&Name::operator=));
+		registrar.method("bool opEquals(const StringView&) const", overload_of<bool(const StringView&)>(&Name::operator==));
+		registrar.method("bool opEquals(const string&) const", overload_of<bool(const String&)>(&Name::operator==));
+		registrar.method("bool opEquals(const Name&) const", overload_of<bool(const Name&)>(&Name::operator==));
 
 		registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
 		registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);

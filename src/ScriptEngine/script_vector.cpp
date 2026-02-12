@@ -724,8 +724,8 @@ namespace Engine
 			size_t n        = other->size();
 
 			prepare_insert(p, n);
-			auto* callback = m_type ? func_of<void, byte*, byte*, byte*>(call_copy_constructor_list)
-			                        : func_of<void, byte*, byte*, byte*>(fill_primitives_list);
+			auto* callback = m_type ? overload_of<void(byte*, byte*, byte*)>(call_copy_constructor_list)
+			                        : overload_of<void(byte*, byte*, byte*)>(fill_primitives_list);
 
 			if (m_self == other)
 			{

@@ -16,9 +16,8 @@ namespace Engine
 		trinex_refl_virtual_prop(mesh, mesh, mesh)->tooltip("Mesh object of this component");
 
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
-		r.method("SkeletalMesh@ mesh() const final", method_of<SkeletalMesh*>(&This::mesh));
-		r.method("SkeletalMeshComponent@ mesh(SkeletalMesh@ mesh) final",
-		         method_of<SkeletalMeshComponent&, SkeletalMesh*>(&This::mesh));
+		r.method("SkeletalMesh@ mesh() const final", overload_of<SkeletalMesh*()>(&This::mesh));
+		r.method("SkeletalMeshComponent@ mesh(SkeletalMesh@ mesh) final", overload_of<SkeletalMeshComponent&()>(&This::mesh));
 	}
 
 	SkeletalMeshComponent& SkeletalMeshComponent::update_bounding_box()

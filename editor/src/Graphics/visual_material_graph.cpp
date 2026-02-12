@@ -873,15 +873,15 @@ namespace Engine::VisualMaterialGraph
 		compiler.method("Expression make_uniform(RHIShaderParameterType type, const string& name_override = \"\") final",
 		                &Compiler::make_uniform);
 		compiler.method("Expression make_variable(RHIShaderParameterType type) final",
-		                method_of<Expression, RHIShaderParameterType>(&Compiler::make_variable));
+		                overload_of<Expression(RHIShaderParameterType)>(&Compiler::make_variable));
 		compiler.method("Expression make_variable(const Expression& expression) final",
-		                method_of<Expression, const Expression&>(&Compiler::make_variable));
+		                overload_of<Expression(const Expression&)>(&Compiler::make_variable));
 
 		compiler.method("Compiler& add_include(const StringView& file) final", &Compiler::add_include);
 		compiler.method("Expression compile_default(InputPin@ pin) final", &Compiler::compile_default);
 		compiler.method("Expression compile_default(OutputPin@ pin) final", &Compiler::compile_default);
-		compiler.method("Expression compile(InputPin@ pin) final", method_of<Expression, InputPin*>(&Compiler::compile));
-		compiler.method("Expression compile(OutputPin@ pin) final", method_of<Expression, OutputPin*>(&Compiler::compile));
+		compiler.method("Expression compile(InputPin@ pin) final", overload_of<Expression(InputPin*)>(&Compiler::compile));
+		compiler.method("Expression compile(OutputPin@ pin) final", overload_of<Expression(OutputPin*)>(&Compiler::compile));
 
 		// Input pin class
 
@@ -915,9 +915,9 @@ namespace Engine::VisualMaterialGraph
 		expression.static_function("Expression static_half(RHIShaderParameterType type)", &Expression::static_half);
 		expression.static_function("Expression static_one(RHIShaderParameterType type)", &Expression::static_one);
 		expression.static_function("RHIShaderParameterType static_component_type_of(RHIShaderParameterType type)", &Expression::static_component_type_of);
-		constexpr auto static_resolve1 = func_of<SPType, SPType, SPType>(&Expression::static_resolve);
-		constexpr auto static_resolve2 = func_of<SPType, SPType, SPType, SPType>(&Expression::static_resolve);
-		constexpr auto static_resolve3 = func_of<SPType, SPType, SPType, SPType, SPType>(&Expression::static_resolve);
+		constexpr auto static_resolve1 = overload_of<SPType(SPType, SPType)>(&Expression::static_resolve);
+		constexpr auto static_resolve2 = overload_of<SPType(SPType, SPType, SPType)>(&Expression::static_resolve);
+		constexpr auto static_resolve3 = overload_of<SPType(SPType, SPType, SPType, SPType)>(&Expression::static_resolve);
 		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)", static_resolve1);
 		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3)", static_resolve2);
 		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3, RHIShaderParameterType type4)", static_resolve3);

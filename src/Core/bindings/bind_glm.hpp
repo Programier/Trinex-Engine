@@ -944,103 +944,103 @@ namespace Engine::Bindings::GLM
 	{
 		ScriptNamespaceScopedChanger changer("glm");
 
-		bind_func("sin", func_of<float, float>(glm::sin));
+		bind_func("sin", overload_of<float(float)>(glm::sin));
 		bind_func("sin", glm::sin<1, float, glm::defaultp>);
 		bind_func("sin", glm::sin<2, float, glm::defaultp>);
 		bind_func("sin", glm::sin<3, float, glm::defaultp>);
 		bind_func("sin", glm::sin<4, float, glm::defaultp>);
 
-		bind_func("cos", func_of<float, float>(glm::cos));
+		bind_func("cos", overload_of<float(float)>(glm::cos));
 		bind_func("cos", glm::cos<1, float, glm::defaultp>);
 		bind_func("cos", glm::cos<2, float, glm::defaultp>);
 		bind_func("cos", glm::cos<3, float, glm::defaultp>);
 		bind_func("cos", glm::cos<4, float, glm::defaultp>);
 
-		bind_func("tan", func_of<float, float>(glm::tan));
+		bind_func("tan", overload_of<float(float)>(glm::tan));
 		bind_func("tan", glm::tan<1, float, glm::defaultp>);
 		bind_func("tan", glm::tan<2, float, glm::defaultp>);
 		bind_func("tan", glm::tan<3, float, glm::defaultp>);
 		bind_func("tan", glm::tan<4, float, glm::defaultp>);
 
-		bind_func("asin", func_of<float, float>(glm::asin));
+		bind_func("asin", overload_of<float(float)>(glm::asin));
 		bind_func("asin", glm::asin<1, float, glm::defaultp>);
 		bind_func("asin", glm::asin<2, float, glm::defaultp>);
 		bind_func("asin", glm::asin<3, float, glm::defaultp>);
 		bind_func("asin", glm::asin<4, float, glm::defaultp>);
 
-		bind_func("acos", func_of<float, float>(glm::acos));
+		bind_func("acos", overload_of<float(float)>(glm::acos));
 		bind_func("acos", glm::acos<1, float, glm::defaultp>);
 		bind_func("acos", glm::acos<2, float, glm::defaultp>);
 		bind_func("acos", glm::acos<3, float, glm::defaultp>);
 		bind_func("acos", glm::acos<4, float, glm::defaultp>);
 
-		bind_func("atan", func_of<float, float, float>(glm::atan));
-		bind_func("atan", func_of<Vector1f, const Vector1f&, const Vector1f&>(glm::atan));
-		bind_func("atan", func_of<Vector2f, const Vector2f&, const Vector2f&>(glm::atan));
-		bind_func("atan", func_of<Vector3f, const Vector3f&, const Vector3f&>(glm::atan));
-		bind_func("atan", func_of<Vector4f, const Vector4f&, const Vector4f&>(glm::atan));
+		bind_func("atan", overload_of<float(float, float)>(glm::atan));
+		bind_func("atan", overload_of<Vector1f(const Vector1f&, const Vector1f&)>(glm::atan));
+		bind_func("atan", overload_of<Vector2f(const Vector2f&, const Vector2f&)>(glm::atan));
+		bind_func("atan", overload_of<Vector3f(const Vector3f&, const Vector3f&)>(glm::atan));
+		bind_func("atan", overload_of<Vector4f(const Vector4f&, const Vector4f&)>(glm::atan));
 
-		bind_func("sinh", func_of<float, float>(glm::sinh));
+		bind_func("sinh", overload_of<float(float)>(glm::sinh));
 		bind_func("sinh", glm::sinh<1, float, glm::defaultp>);
 		bind_func("sinh", glm::sinh<2, float, glm::defaultp>);
 		bind_func("sinh", glm::sinh<3, float, glm::defaultp>);
 		bind_func("sinh", glm::sinh<4, float, glm::defaultp>);
 
-		bind_func("cosh", func_of<float, float>(glm::cosh));
+		bind_func("cosh", overload_of<float(float)>(glm::cosh));
 		bind_func("cosh", glm::cosh<1, float, glm::defaultp>);
 		bind_func("cosh", glm::cosh<2, float, glm::defaultp>);
 		bind_func("cosh", glm::cosh<3, float, glm::defaultp>);
 		bind_func("cosh", glm::cosh<4, float, glm::defaultp>);
 
-		bind_func("tanh", func_of<float, float>(glm::tanh));
+		bind_func("tanh", overload_of<float(float)>(glm::tanh));
 		bind_func("tanh", glm::tanh<1, float, glm::defaultp>);
 		bind_func("tanh", glm::tanh<2, float, glm::defaultp>);
 		bind_func("tanh", glm::tanh<3, float, glm::defaultp>);
 		bind_func("tanh", glm::tanh<4, float, glm::defaultp>);
 
-		bind_func("log", func_of<float, float>(glm::log));
+		bind_func("log", overload_of<float(float)>(glm::log));
 		bind_func("log", glm::log<1, float, glm::defaultp>);
 		bind_func("log", glm::log<2, float, glm::defaultp>);
 		bind_func("log", glm::log<3, float, glm::defaultp>);
 		bind_func("log", glm::log<4, float, glm::defaultp>);
 
-		bind_func("log2", func_of<float, float>(glm::log2));
+		bind_func("log2", overload_of<float(float)>(glm::log2));
 		bind_func("log2", glm::log2<1, float, glm::defaultp>);
 		bind_func("log2", glm::log2<2, float, glm::defaultp>);
 		bind_func("log2", glm::log2<3, float, glm::defaultp>);
 		bind_func("log2", glm::log2<4, float, glm::defaultp>);
 
-		bind_func("pow", func_of<float, float, float>(glm::pow));
+		bind_func("pow", overload_of<float(float, float)>(glm::pow));
 		bind_func("pow", glm::pow<1, float, glm::defaultp>);
 		bind_func("pow", glm::pow<2, float, glm::defaultp>);
 		bind_func("pow", glm::pow<3, float, glm::defaultp>);
 		bind_func("pow", glm::pow<4, float, glm::defaultp>);
 
-		bind_func("exp", func_of<float, float>(glm::exp));
+		bind_func("exp", overload_of<float(float)>(glm::exp));
 		bind_func("exp", glm::exp<1, float, glm::defaultp>);
 		bind_func("exp", glm::exp<2, float, glm::defaultp>);
 		bind_func("exp", glm::exp<3, float, glm::defaultp>);
 		bind_func("exp", glm::exp<4, float, glm::defaultp>);
 
-		bind_func("sqrt", func_of<float, float>(glm::sqrt));
+		bind_func("sqrt", overload_of<float(float)>(glm::sqrt));
 		bind_func("sqrt", glm::sqrt<1, float, glm::defaultp>);
 		bind_func("sqrt", glm::sqrt<2, float, glm::defaultp>);
 		bind_func("sqrt", glm::sqrt<3, float, glm::defaultp>);
 		bind_func("sqrt", glm::sqrt<4, float, glm::defaultp>);
 
-		bind_func("ceil", func_of<float, float>(glm::ceil));
+		bind_func("ceil", overload_of<float(float)>(glm::ceil));
 		bind_func("ceil", glm::ceil<1, float, glm::defaultp>);
 		bind_func("ceil", glm::ceil<2, float, glm::defaultp>);
 		bind_func("ceil", glm::ceil<3, float, glm::defaultp>);
 		bind_func("ceil", glm::ceil<4, float, glm::defaultp>);
 
-		bind_func("abs", func_of<float, float>(glm::abs));
+		bind_func("abs", overload_of<float(float)>(glm::abs));
 		bind_func("abs", glm::abs<1, float, glm::defaultp>);
 		bind_func("abs", glm::abs<2, float, glm::defaultp>);
 		bind_func("abs", glm::abs<3, float, glm::defaultp>);
 		bind_func("abs", glm::abs<4, float, glm::defaultp>);
 
-		bind_func("floor", func_of<float, float>(glm::floor));
+		bind_func("floor", overload_of<float(float)>(glm::floor));
 		bind_func("floor", glm::floor<1, float, glm::defaultp>);
 		bind_func("floor", glm::floor<2, float, glm::defaultp>);
 		bind_func("floor", glm::floor<3, float, glm::defaultp>);
@@ -1052,8 +1052,8 @@ namespace Engine::Bindings::GLM
 		bind_func("dot", glm::dot<3, float, glm::defaultp>);
 		bind_func("dot", glm::dot<4, float, glm::defaultp>);
 
-		bind_func("cross", func_of<Vector3f, const Vector3f&, const Vector3f&>(glm::cross));
-		bind_func("cross", func_of<Quaternion, const Quaternion&, const Quaternion&>(glm::cross));
+		bind_func("cross", overload_of<Vector3f(const Vector3f&, const Vector3f&)>(glm::cross));
+		bind_func("cross", overload_of<Quaternion(const Quaternion&, const Quaternion&)>(glm::cross));
 
 		bind_func("length", glm::length<float>);
 		bind_func("length", glm::length<1, float, glm::defaultp>);
@@ -1079,47 +1079,47 @@ namespace Engine::Bindings::GLM
 		bind_func("reflect", glm::reflect<4, float, glm::defaultp>);
 
 		bind_func("mix", glm::mix<float, float>);
-		bind_func("mix", func_of<Vector1f, const Vector1f&, const Vector1f&, float>(glm::mix));
-		bind_func("mix", func_of<Vector2f, const Vector2f&, const Vector2f&, float>(glm::mix));
-		bind_func("mix", func_of<Vector3f, const Vector3f&, const Vector3f&, float>(glm::mix));
-		bind_func("mix", func_of<Vector4f, const Vector4f&, const Vector4f&, float>(glm::mix));
-		bind_func("mix", func_of<Vector2f, const Vector2f&, const Vector2f&, const Vector2f&>(glm::mix));
-		bind_func("mix", func_of<Vector3f, const Vector3f&, const Vector3f&, const Vector3f&>(glm::mix));
-		bind_func("mix", func_of<Vector4f, const Vector4f&, const Vector4f&, const Vector4f&>(glm::mix));
-		bind_func("mix", func_of<Quaternion, const Quaternion&, const Quaternion&, float>(glm::mix));
+		bind_func("mix", overload_of<Vector1f(const Vector1f&, const Vector1f&, float)>(glm::mix));
+		bind_func("mix", overload_of<Vector2f(const Vector2f&, const Vector2f&, float)>(glm::mix));
+		bind_func("mix", overload_of<Vector3f(const Vector3f&, const Vector3f&, float)>(glm::mix));
+		bind_func("mix", overload_of<Vector4f(const Vector4f&, const Vector4f&, float)>(glm::mix));
+		bind_func("mix", overload_of<Vector2f(const Vector2f&, const Vector2f&, const Vector2f&)>(glm::mix));
+		bind_func("mix", overload_of<Vector3f(const Vector3f&, const Vector3f&, const Vector3f&)>(glm::mix));
+		bind_func("mix", overload_of<Vector4f(const Vector4f&, const Vector4f&, const Vector4f&)>(glm::mix));
+		bind_func("mix", overload_of<Quaternion(const Quaternion&, const Quaternion&, float)>(glm::mix));
 
 		bind_func("max", glm::max<float>);
-		bind_func("max", func_of<Vector1f, const Vector1f&, float>(glm::max));
-		bind_func("max", func_of<Vector2f, const Vector2f&, float>(glm::max));
-		bind_func("max", func_of<Vector3f, const Vector3f&, float>(glm::max));
-		bind_func("max", func_of<Vector4f, const Vector4f&, float>(glm::max));
-		bind_func("max", func_of<Vector1f, const Vector1f&, const Vector1f&>(glm::max));
-		bind_func("max", func_of<Vector2f, const Vector2f&, const Vector2f&>(glm::max));
-		bind_func("max", func_of<Vector3f, const Vector3f&, const Vector3f&>(glm::max));
-		bind_func("max", func_of<Vector4f, const Vector4f&, const Vector4f&>(glm::max));
+		bind_func("max", overload_of<Vector1f(const Vector1f&, float)>(glm::max));
+		bind_func("max", overload_of<Vector2f(const Vector2f&, float)>(glm::max));
+		bind_func("max", overload_of<Vector3f(const Vector3f&, float)>(glm::max));
+		bind_func("max", overload_of<Vector4f(const Vector4f&, float)>(glm::max));
+		bind_func("max", overload_of<Vector1f(const Vector1f&, const Vector1f&)>(glm::max));
+		bind_func("max", overload_of<Vector2f(const Vector2f&, const Vector2f&)>(glm::max));
+		bind_func("max", overload_of<Vector3f(const Vector3f&, const Vector3f&)>(glm::max));
+		bind_func("max", overload_of<Vector4f(const Vector4f&, const Vector4f&)>(glm::max));
 
 		bind_func("min", glm::min<float>);
-		bind_func("min", func_of<Vector1f, const Vector1f&, float>(glm::min));
-		bind_func("min", func_of<Vector2f, const Vector2f&, float>(glm::min));
-		bind_func("min", func_of<Vector3f, const Vector3f&, float>(glm::min));
-		bind_func("min", func_of<Vector4f, const Vector4f&, float>(glm::min));
-		bind_func("min", func_of<Vector1f, const Vector1f&, const Vector1f&>(glm::min));
-		bind_func("min", func_of<Vector2f, const Vector2f&, const Vector2f&>(glm::min));
-		bind_func("min", func_of<Vector3f, const Vector3f&, const Vector3f&>(glm::min));
-		bind_func("min", func_of<Vector4f, const Vector4f&, const Vector4f&>(glm::min));
+		bind_func("min", overload_of<Vector1f(const Vector1f&, float)>(glm::min));
+		bind_func("min", overload_of<Vector2f(const Vector2f&, float)>(glm::min));
+		bind_func("min", overload_of<Vector3f(const Vector3f&, float)>(glm::min));
+		bind_func("min", overload_of<Vector4f(const Vector4f&, float)>(glm::min));
+		bind_func("min", overload_of<Vector1f(const Vector1f&, const Vector1f&)>(glm::min));
+		bind_func("min", overload_of<Vector2f(const Vector2f&, const Vector2f&)>(glm::min));
+		bind_func("min", overload_of<Vector3f(const Vector3f&, const Vector3f&)>(glm::min));
+		bind_func("min", overload_of<Vector4f(const Vector4f&, const Vector4f&)>(glm::min));
 
 		bind_func("clamp", glm::clamp<float>);
-		bind_func("clamp", func_of<Vector1f, const Vector1f&, float, float>(glm::clamp));
-		bind_func("clamp", func_of<Vector2f, const Vector2f&, float, float>(glm::clamp));
-		bind_func("clamp", func_of<Vector3f, const Vector3f&, float, float>(glm::clamp));
-		bind_func("clamp", func_of<Vector4f, const Vector4f&, float, float>(glm::clamp));
-		bind_func("clamp", func_of<Vector1f, const Vector1f&, const Vector1f&, const Vector1f&>(glm::clamp));
-		bind_func("clamp", func_of<Vector2f, const Vector2f&, const Vector2f&, const Vector2f&>(glm::clamp));
-		bind_func("clamp", func_of<Vector3f, const Vector3f&, const Vector3f&, const Vector3f&>(glm::clamp));
-		bind_func("clamp", func_of<Vector4f, const Vector4f&, const Vector4f&, const Vector4f&>(glm::clamp));
+		bind_func("clamp", overload_of<Vector1f(const Vector1f&, float, float)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector2f(const Vector2f&, float, float)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector3f(const Vector3f&, float, float)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector4f(const Vector4f&, float, float)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector1f(const Vector1f&, const Vector1f&, const Vector1f&)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector2f(const Vector2f&, const Vector2f&, const Vector2f&)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector3f(const Vector3f&, const Vector3f&, const Vector3f&)>(glm::clamp));
+		bind_func("clamp", overload_of<Vector4f(const Vector4f&, const Vector4f&, const Vector4f&)>(glm::clamp));
 
-		bind_func("lerp", func_of<Quaternion, const Quaternion&, const Quaternion&, float>(glm::lerp));
-		bind_func("slerp", func_of<Quaternion, const Quaternion&, const Quaternion&, float>(glm::slerp));
+		bind_func("lerp", overload_of<Quaternion(const Quaternion&, const Quaternion&, float)>(glm::lerp));
+		bind_func("slerp", overload_of<Quaternion(const Quaternion&, const Quaternion&, float)>(glm::slerp));
 
 		bind_func("angle", glm::angle<float, glm::defaultp>);
 

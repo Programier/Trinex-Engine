@@ -401,22 +401,22 @@ namespace Engine::Refl
 			}
 		}
 
-		r.method("Engine::Refl::Object@ owner(Engine::Refl::Object@ new_owner)", method_of<Object&>(&T::owner));
-		r.method("Engine::Refl::Object@ owner()", method_of<Object*>(&T::owner));
+		r.method("Engine::Refl::Object@ owner(Engine::Refl::Object@ new_owner)", overload_of<Object&>(&T::owner));
+		r.method("Engine::Refl::Object@ owner()", overload_of<Object*>(&T::owner));
 		r.method("const Engine::Name& name() const", &T::name);
-		r.method("string full_name() const", method_of<String>(&T::full_name));
+		r.method("string full_name() const", overload_of<String>(&T::full_name));
 		r.method("string scope_name() const", &T::scope_name);
 		r.method("bool is_initialized() const", &T::is_initialized);
 
-		r.method("const string& display_name() const", method_of<const String&>(&T::display_name));
-		r.method("const string& tooltip() const", method_of<const String&>(&T::tooltip));
-		r.method("const string& description() const", method_of<const String&>(&T::description));
-		r.method("const string& group() const", method_of<const String&>(&T::group));
+		r.method("const string& display_name() const", overload_of<const String&>(&T::display_name));
+		r.method("const string& tooltip() const", overload_of<const String&>(&T::tooltip));
+		r.method("const string& description() const", overload_of<const String&>(&T::description));
+		r.method("const string& group() const", overload_of<const String&>(&T::group));
 
-		r.method("Engine::Refl::Object@ display_name(Engine::StringView name)", method_of<Object&>(&T::display_name));
-		r.method("Engine::Refl::Object@ tooltip(Engine::StringView tooltip)", method_of<Object&>(&T::tooltip));
-		r.method("Engine::Refl::Object@ description(Engine::StringView description)", method_of<Object&>(&T::description));
-		r.method("Engine::Refl::Object@ group(Engine::StringView group)", method_of<Object&>(&T::group));
+		r.method("Engine::Refl::Object@ display_name(Engine::StringView name)", overload_of<Object&>(&T::display_name));
+		r.method("Engine::Refl::Object@ tooltip(Engine::StringView tooltip)", overload_of<Object&>(&T::tooltip));
+		r.method("Engine::Refl::Object@ description(Engine::StringView description)", overload_of<Object&>(&T::description));
+		r.method("Engine::Refl::Object@ group(Engine::StringView group)", overload_of<Object&>(&T::group));
 
 		r.method("Engine::Refl::Object@ remove_metadata(const Engine::Name& name)", &T::remove_metadata);
 

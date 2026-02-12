@@ -15,6 +15,7 @@ namespace Engine
 	static ScriptFunction script_level_update;
 	static ScriptFunction script_level_start_play;
 	static ScriptFunction script_level_stop_play;
+	static ScriptFunction script_level_spawn_actor;
 
 	trinex_implement_class(Engine::Level, Refl::Class::IsScriptable)
 	{
@@ -50,9 +51,15 @@ namespace Engine
 		ScriptContext::execute(this, script_level_update, nullptr, dt);
 	}
 
-	void Level::scriptable_start_play() {}
+	void Level::scriptable_start_play()
+	{
+		ScriptContext::execute(this, script_level_start_play, nullptr);
+	}
 
-	void Level::scriptable_stop_play() {}
+	void Level::scriptable_stop_play()
+	{
+		ScriptContext::execute(this, script_level_stop_play, nullptr);
+	}
 
 	Level& Level::destroy_actor(Actor* actor, bool ignore_playing)
 	{

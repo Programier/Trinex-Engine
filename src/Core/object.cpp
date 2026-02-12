@@ -60,7 +60,7 @@ namespace Engine
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 		r.method("const string& string_name() const final", &Object::string_name);
 		r.static_function("Package@ root_package()", &Object::root_package);
-		r.method("const Name& name() const final", method_of<const Name&>(&Object::name));
+		r.method("const Name& name() const final", overload_of<const Name&>(&Object::name));
 		r.method("Refl::Class@ class_instance() const final", &Object::class_instance);
 
 		script_object_preload  = r.method("void preload()", trinex_scoped_method(Object, preload));
