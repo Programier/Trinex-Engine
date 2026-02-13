@@ -18,7 +18,7 @@ namespace Engine
 		void script_start_play();
 		void script_stop_play();
 		void script_spawned();
-		void script_destroyed();
+		void script_despawned();
 
 	public:
 		template<typename NativeType>
@@ -53,9 +53,9 @@ namespace Engine
 				return *this;
 			}
 
-			Scriptable& destroyed() override
+			Scriptable& despawned() override
 			{
-				reinterpret_cast<ActorComponent*>(this)->script_destroyed();
+				reinterpret_cast<ActorComponent*>(this)->script_despawned();
 				return *this;
 			}
 		};
@@ -68,7 +68,7 @@ namespace Engine
 		virtual ActorComponent& update(float dt);
 		virtual ActorComponent& sync();
 		virtual ActorComponent& spawned();
-		virtual ActorComponent& destroyed();
+		virtual ActorComponent& despawned();
 
 		class Actor* actor() const;
 		class World* world() const;

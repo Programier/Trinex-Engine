@@ -13,7 +13,7 @@ namespace Engine
 	static ScriptFunction script_actor_comp_start_play;
 	static ScriptFunction script_actor_comp_stop_play;
 	static ScriptFunction script_actor_comp_spawned;
-	static ScriptFunction script_actor_comp_destroyed;
+	static ScriptFunction script_actor_comp_despawned;
 
 	trinex_implement_engine_class(ActorComponent, Refl::Class::IsScriptable)
 	{
@@ -24,7 +24,7 @@ namespace Engine
 		script_actor_comp_update     = r.method("void update(float dt)", trinex_scoped_void_method(This, update));
 		script_actor_comp_sync       = r.method("void sync()", trinex_scoped_void_method(This, sync));
 		script_actor_comp_spawned    = r.method("void spawned()", trinex_scoped_void_method(This, spawned));
-		script_actor_comp_destroyed  = r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
+		script_actor_comp_despawned  = r.method("void despawned()", trinex_scoped_void_method(This, despawned));
 
 		r.method("Actor actor() const final", overload_of<Actor*()>(&This::actor));
 		r.method("void actor(Actor actor) const final", overload_of<ActorComponent&()>(&This::actor));
@@ -35,7 +35,7 @@ namespace Engine
 			script_actor_comp_start_play.release();
 			script_actor_comp_stop_play.release();
 			script_actor_comp_spawned.release();
-			script_actor_comp_destroyed.release();
+			script_actor_comp_despawned.release();
 		});
 	}
 
@@ -64,9 +64,9 @@ namespace Engine
 		ScriptContext::execute(this, script_actor_comp_spawned);
 	}
 
-	void ActorComponent::script_destroyed()
+	void ActorComponent::script_despawned()
 	{
-		ScriptContext::execute(this, script_actor_comp_destroyed);
+		ScriptContext::execute(this, script_actor_comp_despawned);
 	}
 
 	ActorComponent::ActorComponent() {}
@@ -98,7 +98,7 @@ namespace Engine
 		return *this;
 	}
 
-	ActorComponent& ActorComponent::destroyed()
+	ActorComponent& ActorComponent::despawned()
 	{
 		return *this;
 	}

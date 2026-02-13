@@ -45,7 +45,7 @@ namespace Engine
 		r.method("uint64 childs_count() const final", childs_count);
 		r.method("SceneComponent@ child_at(uint64 index) const final", child_at);
 
-		r.method("void destroyed()", trinex_scoped_void_method(This, destroyed));
+		r.method("void despawned()", trinex_scoped_void_method(This, despawned));
 
 		r.method("const Transform& local_transform() const final", overload_of<const Transform&()>(&This::local_transform));
 		r.method("const Transform& world_transform() const final", &This::world_transform);
@@ -158,10 +158,10 @@ namespace Engine
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::destroyed()
+	SceneComponent& SceneComponent::despawned()
 	{
 		detach_from_parent();
-		Super::destroyed();
+		Super::despawned();
 
 		return *this;
 	}

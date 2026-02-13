@@ -9,6 +9,7 @@
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
+#include <angelscript.h>
 
 namespace Engine
 {
@@ -16,15 +17,35 @@ namespace Engine
 	static ScriptFunction script_level_start_play;
 	static ScriptFunction script_level_stop_play;
 	static ScriptFunction script_level_spawn_actor;
+	static ScriptFunction script_level_spawn_actor_t;
+
+	static Actor* scriptable_spawn_actor(Level* level, class Refl::Class* self, const Vector3f& location,
+	                                     const Vector3f& rotation, const Vector3f& scale, const Name& name)
+	{
+		return level->spawn_actor(self, location, rotation, scale, name);
+	}
+
+	static void scriptable_spawn_actor_t(asIScriptGeneric* generic) {}
 
 	trinex_implement_class(Engine::Level, Refl::Class::IsScriptable)
 	{
 		auto self = static_reflection();
 		auto r    = ScriptClassRegistrar::existing_class(self);
 
-		script_level_update     = r.method("void update(float dt)", trinex_scoped_void_method(Level, update));
-		script_level_start_play = r.method("void start_play()", trinex_scoped_void_method(Level, start_play));
-		script_level_stop_play  = r.method("void stop_play()", trinex_scoped_void_method(Level, stop_play));
+
+		static constexpr const char* signatures[] = {
+		        "void update(float dt)",
+		        "void start_play()",
+		        "void stop_play()",
+		        "Actor@ spawn_actor(Class@ , const Vector3f&, const Vector3f&, const Vector3f&, const Name&) final",
+		        "T@ spawn_actor<T>(const Vector3f&, const Vector3f&, const Vector3f&, const Name&) final",
+		};
+
+		script_level_update        = r.method(signatures[0], trinex_scoped_void_method(Level, update));
+		script_level_start_play    = r.method(signatures[1], trinex_scoped_void_method(Level, start_play));
+		script_level_stop_play     = r.method(signatures[2], trinex_scoped_void_method(Level, stop_play));
+		script_level_spawn_actor   = r.method(signatures[3], scriptable_spawn_actor);
+		script_level_spawn_actor_t = r.method(signatures[4], scriptable_spawn_actor_t, ScriptCallConv::Generic);
 
 		r.method("bool is_playing() const final", &Level::is_playing);
 		r.method("const Vector<Actor@>& actors() const final", &Level::actors);
@@ -81,7 +102,7 @@ namespace Engine
 		if (actor->is_playing())
 			actor->stop_play();
 
-		actor->destroyed();
+		actor->despawned();
 		actor->owner(nullptr);
 
 		for (size_t index = 0, count = m_actors.size(); index < count; ++index)

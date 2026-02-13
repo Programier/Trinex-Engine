@@ -42,9 +42,9 @@ namespace Engine
 				return *this;
 			}
 
-			Scriptable& destroyed() override
+			Scriptable& despawned() override
 			{
-				static_cast<Actor*>(this)->scriptable_destroyed();
+				static_cast<Actor*>(this)->scriptable_despawned();
 				return *this;
 			}
 		};
@@ -61,7 +61,7 @@ namespace Engine
 		void scriptable_start_play();
 		void scriptable_stop_play();
 		void scriptable_spawned();
-		void scriptable_destroyed();
+		void scriptable_despawned();
 
 	protected:
 		Actor& add_component(ActorComponent* component);
@@ -80,7 +80,7 @@ namespace Engine
 		virtual Actor& start_play();
 		virtual Actor& stop_play();
 		virtual Actor& spawned();
-		virtual Actor& destroyed();
+		virtual Actor& despawned();
 
 		Actor& destroy();
 		Actor& update_drawing_data();
@@ -92,7 +92,7 @@ namespace Engine
 		const Vector<class ActorComponent*>& owned_components() const;
 		const Transform& transfrom() const;
 		SceneComponent* scene_component() const;
-		
+
 		class Level* level() const;
 		class World* world() const;
 		class Scene* scene() const;

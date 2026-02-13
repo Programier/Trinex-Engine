@@ -16,7 +16,7 @@ namespace Engine
 	static ScriptFunction script_actor_start_play;
 	static ScriptFunction script_actor_stop_play;
 	static ScriptFunction script_actor_spawned;
-	static ScriptFunction script_actor_destroyed;
+	static ScriptFunction script_actor_despawned;
 
 	void Actor::scriptable_update(float dt)
 	{
@@ -38,9 +38,9 @@ namespace Engine
 		ScriptObject(this).execute(script_actor_spawned);
 	}
 
-	void Actor::scriptable_destroyed()
+	void Actor::scriptable_despawned()
 	{
-		ScriptObject(this).execute(script_actor_destroyed);
+		ScriptObject(this).execute(script_actor_despawned);
 	}
 
 	ActorComponent* Actor::create_component(Refl::Class* self, const Name& component_name)
@@ -180,7 +180,7 @@ namespace Engine
 		return *this;
 	}
 
-	Actor& Actor::destroyed()
+	Actor& Actor::despawned()
 	{
 		if (m_is_playing)
 		{
@@ -192,7 +192,7 @@ namespace Engine
 		{
 			ActorComponent* component = m_owned_components[index];
 
-			component->destroyed();
+			component->despawned();
 			component->owner(nullptr);
 		}
 
@@ -263,7 +263,7 @@ namespace Engine
 		script_actor_start_play = r.method("void start_play()", trinex_scoped_void_method(Actor, start_play));
 		script_actor_stop_play  = r.method("void stop_play()", trinex_scoped_void_method(Actor, stop_play));
 		script_actor_spawned    = r.method("void spawned()", trinex_scoped_void_method(Actor, spawned));
-		script_actor_destroyed  = r.method("void destroyed()", trinex_scoped_void_method(Actor, destroyed));
+		script_actor_despawned  = r.method("void despawned()", trinex_scoped_void_method(Actor, despawned));
 
 		constexpr ActorComponent* (*create_component)(Actor*, Refl::Class*, const Name&) =
 		        [](Actor* actor, Refl::Class* self, const Name& name) { return actor->create_component(self, name); };
@@ -274,7 +274,7 @@ namespace Engine
 			script_actor_start_play.release();
 			script_actor_stop_play.release();
 			script_actor_spawned.release();
-			script_actor_destroyed.release();
+			script_actor_despawned.release();
 		});
 
 		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_owned_components, Refl::Property::IsReadOnly);

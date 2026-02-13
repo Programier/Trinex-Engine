@@ -23,11 +23,10 @@ namespace Engine
 
 		static World* current();
 
+		World& start_play() override;
+		World& stop_play() override;
 		World& update(float dt) override;
 		World* world() override;
-
-		World& add_level(Level* level);
-		World& remove_level(Level* level);
 
 		inline const Vector<class Level*>& levels() const { return m_levels; }
 		inline Scene* scene() const { return m_scene; }

@@ -39,7 +39,7 @@ namespace Engine
 		SceneComponent& attach(SceneComponent* child);
 		SceneComponent& detach_from_parent();
 		bool is_attached_to(SceneComponent* component) const;
-		SceneComponent& destroyed() override;
+		SceneComponent& despawned() override;
 
 		const Transform& world_transform() const;
 		inline const Transform& local_transform() const { return m_local; }

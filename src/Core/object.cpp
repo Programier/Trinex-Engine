@@ -441,6 +441,12 @@ namespace Engine
 		if (new_owner == m_owner)
 			return true;
 
+		if (this == new_owner)
+		{
+			error_log("Object", "Object cannot own itself!");
+			return false;
+		}
+
 		bool result = true;
 
 		if (m_owner)
@@ -457,11 +463,9 @@ namespace Engine
 
 		if (new_owner)
 		{
-			if ((result = new_owner->register_child(this)))
-			{
-				m_owner = new_owner;
-			}
-			else
+			m_owner = new_owner;
+
+			if (!(result = new_owner->register_child(this)))
 			{
 				error_log("Object", "Failed to register object to owner!");
 			}
