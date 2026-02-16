@@ -214,8 +214,11 @@ namespace Engine
 			offsets[i] = state->uniform_buffers.resource(descriptors[i].binding).offset;
 		}
 
-		ctx->handle()->bindDescriptorSets(bind_point, m_layout->layout(), 0, sets,
-		                                  vk::ArrayProxy<uint32_t>(uniforms_count, offsets));
+		{
+			trinex_profile_cpu_n("bindDescriptorSets");
+			ctx->handle()->bindDescriptorSets(bind_point, m_layout->layout(), 0, sets,
+			                                  vk::ArrayProxy<uint32_t>(uniforms_count, offsets));
+		}
 		return *this;
 	}
 

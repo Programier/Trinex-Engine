@@ -76,12 +76,12 @@ namespace Engine::Refl
 				auto factory =
 				        Strings::format(R"({}@ f(Engine::StringView name = "", Engine::Object owner = null))", full_name());
 
-				registrar.behave(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor,
+				registrar.behave(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
 				                 ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behave(ScriptClassBehave::Construct,
 				                 R"(void f(Engine::StringView name = "", Engine::Object owner = null))",
-				                 &Class::script_object_constructor_default, ScriptCallConv::ThisCall_ObjFirst, this);
+				                 &Class::script_object_constructor, ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behave(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
 			}

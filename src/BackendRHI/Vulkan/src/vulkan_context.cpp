@@ -280,18 +280,21 @@ namespace Engine
 
 	VulkanContext& VulkanContext::viewport(const RHIViewport& viewport)
 	{
+		trinex_profile_cpu_n("VulkanContext::viewport");
 		m_state_manager->bind(viewport);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::scissor(const RHIScissor& scissor)
 	{
+		trinex_profile_cpu_n("VulkanContext::scissor");
 		m_state_manager->bind(scissor);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw(size_t vertex_count, size_t vertices_offset, size_t instances)
 	{
+		trinex_profile_cpu_n("VulkanContext::draw");
 		m_state_manager->flush_graphics(this)->draw(vertex_count, instances, vertices_offset, 0);
 		return *this;
 	}
@@ -299,18 +302,21 @@ namespace Engine
 	VulkanContext& VulkanContext::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset,
 	                                           size_t instances)
 	{
+		trinex_profile_cpu_n("VulkanContext::draw_indexed");
 		m_state_manager->flush_graphics(this)->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
 	{
+		trinex_profile_cpu_n("VulkanContext::draw_mesh");
 		m_state_manager->flush_graphics(this)->drawMeshTasksEXT(x, y, z, API->pfn);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
 	{
+		trinex_profile_cpu_n("VulkanContext::dispatch");
 		m_state_manager->flush_compute(this)->dispatch(group_x, group_y, group_z);
 		return *this;
 	}
@@ -343,16 +349,20 @@ namespace Engine
 
 	VulkanCommandHandle* VulkanContext::begin_render_pass()
 	{
+		trinex_profile_cpu_n("VulkanContext::begin_render_pass");
 		return m_state_manager->begin_render_pass(this);
 	}
 
 	VulkanCommandHandle* VulkanContext::end_render_pass()
 	{
+		trinex_profile_cpu_n("VulkanContext::end_render_pass");
 		return m_state_manager->end_render_pass(this);
 	}
 
 	VulkanContext& VulkanContext::shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiners)
 	{
+		trinex_profile_cpu_n("VulkanContext::shading_rate");
+
 		if (!API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
 			return *this;
 

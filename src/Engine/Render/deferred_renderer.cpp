@@ -1,4 +1,5 @@
 #include <Core/etl/templates.hpp>
+#include <Core/profiler.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/post_process_component.hpp>
@@ -733,6 +734,8 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::render_visible_primitives(RHIContext* ctx, RenderPass* pass, MaterialBindings* bindings)
 	{
+		trinex_profile_cpu_n("DeferredRenderer::render_visible_primitives");
+
 		const FrameVector<PrimitiveComponent*>& primitives = visible_primitives();
 
 		for (PrimitiveComponent* primitive : primitives)

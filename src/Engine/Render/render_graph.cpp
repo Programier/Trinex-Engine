@@ -377,6 +377,7 @@ namespace Engine::RenderGraph
 
 			if (!node->is_executed() && !node->is_empty())
 			{
+				trinex_profile_transient_cpu_n(node->name());
 				trinex_rhi_push_stage(ctx, node->name());
 
 				Pass* pass = node->pass;

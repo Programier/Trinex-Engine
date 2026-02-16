@@ -66,6 +66,7 @@ namespace Engine
 
 		if (auto instance = EngineSystem::instance())
 		{
+			trinex_profile_cpu_n("Systems::update");
 			instance->update(m_delta_time);
 			instance->wait();
 		}
@@ -76,6 +77,7 @@ namespace Engine
 
 			for (size_t i = 0; i < viewports.size(); ++i)
 			{
+				trinex_profile_cpu_n("RenderViewport::update");
 				auto viewport = viewports[i];
 				viewport->update(m_delta_time);
 			}

@@ -1,3 +1,4 @@
+#include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -70,6 +71,8 @@ namespace Engine
 
 	StaticMeshComponent& StaticMeshComponent::render(PrimitiveRenderingContext* ctx)
 	{
+		trinex_profile_cpu_n("StaticMeshComponent::render");
+		
 		static Name permutation = "StaticMesh";
 
 		if ((ctx->pass = ctx->pass->find_permutation(permutation)))

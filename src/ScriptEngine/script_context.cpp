@@ -2,6 +2,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/vector.hpp>
+#include <Core/profiler.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -65,6 +66,7 @@ namespace Engine
 
 	bool ScriptContext::begin_execute(const ScriptFunction& function)
 	{
+		trinex_profile_cpu_n("ScriptContext::begin_execute");
 		auto current_state = state();
 
 		if (!is_in<State::Uninitialized, State::Active>(current_state))
@@ -99,6 +101,7 @@ namespace Engine
 
 	bool ScriptContext::end_execute(void* return_value)
 	{
+		trinex_profile_cpu_n("ScriptContext::end_execute");
 		const bool is_active = callstack_size() > 1;
 
 		bool is_prepared = state() == State::Prepared;

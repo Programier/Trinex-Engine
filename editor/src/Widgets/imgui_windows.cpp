@@ -537,39 +537,55 @@ namespace Engine
 
 			if (m_world)
 			{
-				auto& actors = m_world->actors();
-				auto editor  = EditorEngine::instance();
+				Level* level       = m_world;
+				size_t level_index = 0;
 
-				for (size_t i = 0, count = actors.size(); i < count; ++i)
+				do
 				{
-					if (Actor* actor = actors[i])
+					auto& actors = level->actors();
+					auto editor  = EditorEngine::instance();
+
+					for (size_t i = 0, count = actors.size(); i < count; ++i)
 					{
-						ImGui::PushID(i);
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn();
-
-						bool is_visible = actor->is_visible();
-
-						if (ImGui::Checkbox("###Visible", &is_visible))
+						if (Actor* actor = actors[i])
 						{
-							actor->is_visible(is_visible);
+							ImGui::PushID(i);
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							bool is_visible = actor->is_visible();
+
+							if (ImGui::Checkbox("###Visible", &is_visible))
+							{
+								actor->is_visible(is_visible);
+							}
+
+							ImGui::TableNextColumn();
+							ImGui::Text("%s", actor->is_noname() ? "No Name" : actor->name().c_str());
+
+							ImGui::TableNextColumn();
+
+							bool selected = editor->is_selected(actor);
+							if (ImGui::Selectable(actor->class_instance()->name().c_str(), selected,
+							                      ImGuiSelectableFlags_SpanAllColumns))
+							{
+								editor->is_selected(actor, !selected);
+							}
+
+							ImGui::PopID();
 						}
-
-						ImGui::TableNextColumn();
-						ImGui::Text("%s", actor->is_noname() ? "No Name" : actor->name().c_str());
-
-						ImGui::TableNextColumn();
-
-						bool selected = editor->is_selected(actor);
-						if (ImGui::Selectable(actor->class_instance()->name().c_str(), selected,
-						                      ImGuiSelectableFlags_SpanAllColumns))
-						{
-							editor->is_selected(actor, !selected);
-						}
-
-						ImGui::PopID();
 					}
-				}
+
+					if (level_index < m_world->levels().size())
+					{
+						level = m_world->levels()[level_index++];
+					}
+					else
+					{
+						level = nullptr;
+					}
+
+				} while (level);
 			}
 
 			ImGui::EndTable();

@@ -1,3 +1,4 @@
+#include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -45,6 +46,8 @@ namespace Engine
 
 	MeshComponent& MeshComponent::render(PrimitiveRenderingContext* ctx)
 	{
+		trinex_profile_cpu_n("MeshComponent::render");
+		
 		const auto& camera = ctx->renderer->scene_view().camera_view();
 
 		const uint_t lod      = camera.compute_lod(world_transform().location, lods_count());

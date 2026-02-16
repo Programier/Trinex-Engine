@@ -21,6 +21,10 @@ namespace Engine
 		constexpr BoxNT(const BoxNT& other)            = default;
 		constexpr BoxNT& operator=(const BoxNT& other) = default;
 
+		template<typename ArgumentType>
+		constexpr BoxNT(const BoxNT<N, ArgumentType>& other) : min(other.min), max(other.max)
+		{}
+
 		constexpr VectorType extents() const { return (max - min) / static_cast<T>(2); }
 		constexpr VectorType center() const { return (min + max) / static_cast<T>(2); }
 		constexpr BoxNT& center(const Vector3f& position)
@@ -48,7 +52,7 @@ namespace Engine
 
 		constexpr bool inside(const BoxNT& other) const
 		{
-			uint_t len = VectorType::length();
+			constexpr uint_t len = VectorType::length();
 
 			const T* min_ptr1 = &min.x;
 			const T* max_ptr1 = &max.x;
@@ -73,7 +77,7 @@ namespace Engine
 
 		constexpr bool intersect(const BoxNT& other) const
 		{
-			uint_t len = VectorType::length();
+			constexpr uint_t len = VectorType::length();
 
 			const T* min_ptr1 = &min.x;
 			const T* max_ptr1 = &max.x;
@@ -99,7 +103,7 @@ namespace Engine
 		constexpr bool outside(const BoxNT& other) const { return !intersect(other); }
 		constexpr bool contains(const VectorType& point) const
 		{
-			uint_t len = VectorType::length();
+			constexpr uint_t len = VectorType::length();
 
 			const T* min_ptr   = &min.x;
 			const T* max_ptr   = &max.x;
