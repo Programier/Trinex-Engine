@@ -13,16 +13,19 @@
 
 namespace Engine
 {
-	static ScriptFunction script_level_update;
+
 	static ScriptFunction script_level_start_play;
+	static ScriptFunction script_level_update;
 	static ScriptFunction script_level_stop_play;
+
 	static ScriptFunction script_level_spawn_actor;
 	static ScriptFunction script_level_spawn_actor_t;
 
 	static Actor* scriptable_spawn_actor(Level* level, class Refl::Class* self, const Vector3f& location,
 	                                     const Vector3f& rotation, const Vector3f& scale, const Name& name)
 	{
-		return level->spawn_actor(self, location, rotation, scale, name);
+		return nullptr;
+		//return level->spawn_actor(self, location, rotation, scale, name);
 	}
 
 	static void scriptable_spawn_actor_t(asIScriptGeneric* generic) {}
@@ -34,15 +37,16 @@ namespace Engine
 
 
 		static constexpr const char* signatures[] = {
-		        "void update(float dt)",
 		        "void start_play()",
+		        "void update(float dt)",
 		        "void stop_play()",
 		        "Actor@ spawn_actor(Class@ , const Vector3f&, const Vector3f&, const Vector3f&, const Name&) final",
 		        "T@ spawn_actor<T>(const Vector3f&, const Vector3f&, const Vector3f&, const Name&) final",
 		};
 
-		script_level_update        = r.method(signatures[0], trinex_scoped_void_method(Level, update));
-		script_level_start_play    = r.method(signatures[1], trinex_scoped_void_method(Level, start_play));
+
+		script_level_start_play    = r.method(signatures[0], trinex_scoped_void_method(Level, start_play));
+		script_level_update        = r.method(signatures[1], trinex_scoped_void_method(Level, update));
 		script_level_stop_play     = r.method(signatures[2], trinex_scoped_void_method(Level, stop_play));
 		script_level_spawn_actor   = r.method(signatures[3], scriptable_spawn_actor);
 		script_level_spawn_actor_t = r.method(signatures[4], scriptable_spawn_actor_t, ScriptCallConv::Generic);
@@ -63,13 +67,11 @@ namespace Engine
 
 	Level::~Level()
 	{
-		stop_play();
-		destroy_all_actors();
-	}
-
-	void Level::scriptable_update(float dt)
-	{
-		ScriptContext::execute(this, script_level_update, nullptr, dt);
+		while (!m_actors.empty())
+		{
+			Actor* actor = m_actors.back();
+			actor->owner(nullptr);
+		}
 	}
 
 	void Level::scriptable_start_play()
@@ -77,90 +79,56 @@ namespace Engine
 		ScriptContext::execute(this, script_level_start_play, nullptr);
 	}
 
+	void Level::scriptable_update(float dt)
+	{
+		ScriptContext::execute(this, script_level_update, nullptr, dt);
+	}
+
 	void Level::scriptable_stop_play()
 	{
 		ScriptContext::execute(this, script_level_stop_play, nullptr);
 	}
 
-	Level& Level::destroy_actor(Actor* actor, bool ignore_playing)
+	bool Level::register_child(Object* child, uint32_t& index)
 	{
-		if (!actor || actor->level() != this)
-			return *this;
+		Actor* actor = instance_cast<Actor>(child);
 
-		if (!ignore_playing && actor->is_playing())
-		{
-			actor->stop_play();
-			// Perhaps the method will be called before World::update, so we skip one frame and only then delete the actor
-			DestroyActorInfo info;
-			info.actor       = actor;
-			info.skip_frames = 1;
-			m_actors_to_destroy.push_back(info);
-			return *this;
-		}
-
-
-		if (actor->is_playing())
-			actor->stop_play();
-
-		actor->despawned();
-		actor->owner(nullptr);
-
-		for (size_t index = 0, count = m_actors.size(); index < count; ++index)
-		{
-			if (m_actors[index] == actor)
-			{
-				m_actors.erase(m_actors.begin() + index);
-				break;
-			}
-		}
-
-		return *this;
-	}
-
-	Level& Level::destroy_all_actors()
-	{
-		for (auto& info : m_actors_to_destroy)
-		{
-			destroy_actor(info.actor, true);
-		}
-
-		m_actors_to_destroy.clear();
-
-		while (!m_actors.empty())
-		{
-			destroy_actor(m_actors.front(), true);
-		}
-
-		return *this;
-	}
-
-	Actor* Level::spawn_actor(Actor* actor, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale)
-	{
 		if (actor == nullptr)
-		{
-			error_log("World", "Failed to allocate actor!");
-			return nullptr;
-		}
+			return Super::register_child(child, index);
+
+		index = m_actors.size();
+		m_actors.push_back(actor);
 
 		actor->spawned();
 
-		{
-			SceneComponent* root = actor->scene_component();
-			if (root)
-			{
-				root->location(location);
-				root->rotation(rotation);
-				root->scale(scale);
-			}
-		}
-
-		if (m_is_playing)
+		if (is_playing())
 		{
 			actor->start_play();
 		}
 
-		m_actors.push_back(actor);
-		return actor;
+		return true;
+	}
+
+	bool Level::unregister_child(Object* child)
+	{
+		Actor* actor = instance_cast<Actor>(child);
+
+		if (actor == nullptr)
+			return Super::unregister_child(child);
+
+		if (actor->is_playing())
+		{
+			actor->stop_play();
+		}
+
+		actor->despawned();
+
+		return actor->remove_from(m_actors);
+	}
+
+	Level& Level::spawned()
+	{
+		return *this;
 	}
 
 	Level& Level::start_play()
@@ -174,6 +142,25 @@ namespace Engine
 		}
 
 		m_is_playing = true;
+
+		return *this;
+	}
+
+	Level& Level::update(float dt)
+	{
+		if (!m_is_playing)
+			return *this;
+
+		ScopeVariable level_scope(s_current_level, this);
+
+		for (size_t index = 0, count = m_actors.size(); index < count; ++index)
+		{
+			Actor* actor = m_actors[index];
+			if (actor->is_playing())
+			{
+				m_actors[index]->update(dt);
+			}
+		}
 
 		return *this;
 	}
@@ -193,72 +180,13 @@ namespace Engine
 		return *this;
 	}
 
-	Level& Level::update(float dt)
+	Level& Level::despawned()
 	{
-		if (!m_is_playing)
-			return *this;
-
-		ScopeVariable level_scope(s_current_level, this);
-
-		if (!m_actors_to_destroy.empty())
-		{
-			while (!m_actors_to_destroy.empty())
-			{
-				auto& front = m_actors_to_destroy.front();
-
-				if (front.skip_frames == 0)
-				{
-					destroy_actor(front.actor, true);
-					m_actors_to_destroy.pop_front();
-				}
-				else
-					break;
-			}
-
-			for (auto& actor_info : m_actors_to_destroy)
-			{
-				--actor_info.skip_frames;
-			}
-		}
-
-		for (size_t index = 0, count = m_actors.size(); index < count; ++index)
-		{
-			Actor* actor = m_actors[index];
-			if (actor->is_playing())
-			{
-				m_actors[index]->update(dt);
-			}
-		}
-
 		return *this;
 	}
 
 	World* Level::world()
 	{
 		return instance_cast<World>(owner());
-	}
-
-	Actor* Level::spawn_actor(class Refl::Class* self, const Vector3f& location, const Vector3f& rotation, const Vector3f& scale,
-	                          const Name& actor_name)
-	{
-		if (!self)
-		{
-			error_log("World", "Failed to create actor, because class instance is nullptr");
-			return nullptr;
-		}
-
-		if (!self->is_a(Actor::static_reflection()))
-		{
-			error_log("World", "Failed to create actor from non-Actor class '%s'!", self->name().c_str());
-			return nullptr;
-		}
-
-		Actor* actor = self->create_object(actor_name, this)->instance_cast<Actor>();
-		return spawn_actor(actor, location, rotation, scale);
-	}
-
-	Level& Level::destroy_actor(Actor* actor)
-	{
-		return destroy_actor(actor, false);
 	}
 }// namespace Engine

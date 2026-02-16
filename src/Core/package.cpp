@@ -43,10 +43,10 @@ namespace Engine
 		return Object::static_reflection();
 	}
 
-	bool Package::register_child(Object* object)
+	bool Package::register_child(Object* object, uint32_t& index)
 	{
 		if (can_add_object(object))
-			return ObjectTreeNode::register_child(object);
+			return ObjectTreeNode::register_child(object, index);
 		return false;
 	}
 

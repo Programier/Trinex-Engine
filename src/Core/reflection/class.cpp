@@ -5,6 +5,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
@@ -40,13 +41,18 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	class NativeObjectContructor : public Class
+	void Class::script_object_constructor(void* object, StringView name, Engine::Object* owner)
 	{
-	public:
-		void f(asIScriptObject* object, StringView name, Engine::Object* owner) { create_placement_object(object, name, owner); }
+		if (!Engine::Object::static_setup_next_object_info())
+		{
+			int_t type_id = ScriptContext::this_type_id();
 
-		void f_default(asIScriptObject* object) { f(object, "", nullptr); }
-	};
+			if (Class* script_class = ScriptEngine::find_class(type_id))
+				Engine::Object::static_setup_next_object_info(script_class);
+		}
+
+		create_placement_object(object, name, owner);
+	}
 
 	Class& Class::initialize()
 	{
@@ -70,10 +76,13 @@ namespace Engine::Refl
 				auto factory =
 				        Strings::format(R"({}@ f(Engine::StringView name = "", Engine::Object owner = null))", full_name());
 
-				registrar.behave(ScriptClassBehave::Construct, "void f()", &NativeObjectContructor::f_default,
+				registrar.behave(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor,
 				                 ScriptCallConv::ThisCall_ObjFirst, this);
-				registrar.behave(ScriptClassBehave::Construct, R"(void f(Engine::StringView name, Engine::Object owner = null))",
-				                 &NativeObjectContructor::f, ScriptCallConv::ThisCall_ObjFirst, this);
+
+				registrar.behave(ScriptClassBehave::Construct,
+				                 R"(void f(Engine::StringView name = "", Engine::Object owner = null))",
+				                 &Class::script_object_constructor_default, ScriptCallConv::ThisCall_ObjFirst, this);
+
 				registrar.behave(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
 			}
 		}

@@ -51,11 +51,10 @@ namespace Engine
 
 	private:
 		Pointer<class SceneComponent> m_root_component;
-		Vector<class ActorComponent*> m_owned_components;
+		Vector<class ActorComponent*> m_components;
 
-		bool m_is_playing : 1         = false;
-		bool m_is_being_destroyed : 1 = false;
-		bool m_is_visible : 1         = true;
+		bool m_is_playing : 1 = false;
+		bool m_is_visible : 1 = true;
 
 		void scriptable_update(float dt);
 		void scriptable_start_play();
@@ -64,32 +63,27 @@ namespace Engine
 		void scriptable_despawned();
 
 	protected:
-		Actor& add_component(ActorComponent* component);
-		Actor& remove_component(ActorComponent* component);
+		bool register_child(Object* child, uint32_t& index) override;
+		bool unregister_child(Object* child) override;
 
 	public:
-		ActorComponent* create_component(Refl::Class* self, const Name& name = {});
+		using Super::new_instance;
 
-		template<typename ComponentType>
-		FORCE_INLINE ComponentType* create_component(const Name& name = {})
-		{
-			return create_component(ComponentType::static_reflection(), name)->template instance_cast<ComponentType>();
-		}
+		static Actor* new_instance(Refl::Class* self, const Vector3f& location = {0.f, 0.f, 0.f},
+		                           const Quaternion& rotation = {0.f, 0.f, 0.f, 1.f}, const Vector3f& scale = {1.f, 1.f, 1.f},
+		                           const Name& name = Name::none);
 
-		virtual Actor& update(float dt);
-		virtual Actor& start_play();
-		virtual Actor& stop_play();
 		virtual Actor& spawned();
+		virtual Actor& start_play();
+		virtual Actor& update(float dt);
+		virtual Actor& stop_play();
 		virtual Actor& despawned();
-
-		Actor& destroy();
-		Actor& update_drawing_data();
 
 		bool is_visible() const;
 		Actor& is_visible(bool visible);
 		bool is_playing() const;
 
-		const Vector<class ActorComponent*>& owned_components() const;
+		inline const Vector<class ActorComponent*>& components() const { return m_components; }
 		const Transform& transfrom() const;
 		SceneComponent* scene_component() const;
 

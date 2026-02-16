@@ -9,7 +9,7 @@ namespace Engine
 
 	PointLightActor::PointLightActor()
 	{
-		m_point_light_component = create_component<PointLightComponent>(("PointLightComponent"));
+		m_point_light_component = new_instance<PointLightComponent>("PointLightComponent", this);
 	}
 
 	PointLightComponent* PointLightActor::point_light_component() const

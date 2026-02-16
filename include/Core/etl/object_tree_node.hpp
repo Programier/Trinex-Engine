@@ -50,14 +50,14 @@ namespace Engine
 	protected:
 		virtual Refl::Class* object_tree_child_class() const = 0;
 
-		bool register_child(Object* child) override
+		bool register_child(Object* child, uint32_t& index) override
 		{
 			Object** begin = reinterpret_cast<Object**>(Holder::m_child_objects.begin());
 			Object** end   = reinterpret_cast<Object**>(Holder::m_child_objects.end());
 			Object** place = nullptr;
 
 			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, object_tree_child_class()))
-				return Super::register_child(child);
+				return Super::register_child(child, index);
 
 			Holder::m_child_objects.insert(reinterpret_cast<Element**>(place), Super::template instance_cast<Element>(child));
 			return true;

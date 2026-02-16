@@ -21,12 +21,10 @@ namespace Engine
 	World::~World()
 	{
 		stop_play();
-		destroy_all_actors();
-
-		auto levels = etl::move(m_levels);
-
-		for (Level* level : levels)
+		
+		while (!m_levels.empty())
 		{
+			Level* level = m_levels.back();
 			level->owner(nullptr);
 		}
 
@@ -53,20 +51,6 @@ namespace Engine
 		return *this;
 	}
 
-	World& World::stop_play()
-	{
-		if (!is_playing())
-			return *this;
-
-		for (Level* level : m_levels)
-		{
-			level->stop_play();
-		}
-
-		Super::stop_play();
-		return *this;
-	}
-
 	World& World::update(float dt)
 	{
 		ScopeVariable scope_world(s_current_world, this);
@@ -81,42 +65,58 @@ namespace Engine
 		return *this;
 	}
 
+	World& World::stop_play()
+	{
+		if (!is_playing())
+			return *this;
+
+		for (Level* level : m_levels)
+		{
+			level->stop_play();
+		}
+
+		Super::stop_play();
+		return *this;
+	}
+
 	World* World::world()
 	{
 		return this;
 	}
 
-	bool World::register_child(Object* child)
+	bool World::register_child(Object* child, uint32_t& index)
 	{
-		if (Level* level = instance_cast<Level>(child))
+		Level* level = instance_cast<Level>(child);
+
+		if (level == nullptr)
+			return Super::register_child(child, index);
+
+		index = m_levels.size();
+		m_levels.push_back(level);
+
+		level->spawned();
+
+		if (is_playing())
 		{
-			m_levels.push_back(level);
-
-			if (is_playing())
-			{
-				level->start_play();
-			}
-			return true;
+			level->start_play();
 		}
-
-		return Super::register_child(child);
+		return true;
 	}
 
 	bool World::unregister_child(Object* child)
 	{
-		if (Level* level = instance_cast<Level>(child))
+		Level* level = instance_cast<Level>(child);
+
+		if (level == nullptr)
+			return Super::unregister_child(child);
+
+		if (level->is_playing())
 		{
-			for (size_t i = 0; i < m_levels.size(); ++i)
-			{
-				if (m_levels[i] == level)
-				{
-					m_levels.erase(m_levels.begin() + i);
-					break;
-				}
-			}
-			return true;
+			level->stop_play();
 		}
 
-		return Super::unregister_child(child);
+		level->despawned();
+
+		return level->remove_from(m_levels);
 	}
 }// namespace Engine

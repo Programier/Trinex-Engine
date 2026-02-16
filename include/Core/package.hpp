@@ -14,7 +14,7 @@ namespace Engine
 
 	protected:
 		Refl::Class* object_tree_child_class() const override;
-		bool register_child(Object* object) override;
+		bool register_child(Object* object, uint32_t& index) override;
 
 	public:
 		delete_copy_constructors(Package);

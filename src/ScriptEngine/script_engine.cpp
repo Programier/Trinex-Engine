@@ -29,6 +29,22 @@ static constexpr bool enable_jit = false;
 
 namespace Engine
 {
+	struct ScriptEngineData {
+		Vector<class Script*> scripts;
+		asIScriptEngine* engine      = nullptr;
+		asIJITCompiler* jit_compiler = nullptr;
+		ScriptFolder* script_folder  = nullptr;
+
+		Map<int_t, ScriptEngine::VariableToStringFunction> parsers_map;
+		Map<int_t, Refl::Class*> classes_map;
+
+		static ScriptEngineData* instance()
+		{
+			static ScriptEngineData data;
+			return &data;
+		}
+	};
+
 	static void angel_script_callback(const asSMessageInfo* msg, void* param)
 	{
 		if (msg->type == asMSGTYPE_WARNING)
@@ -62,12 +78,6 @@ namespace Engine
 	{
 		ByteAllocator::deallocate(static_cast<unsigned char*>(ptr));
 	}
-
-	Vector<class Script*> ScriptEngine::m_scripts;
-	asIScriptEngine* ScriptEngine::m_engine      = nullptr;
-	asIJITCompiler* ScriptEngine::m_jit_compiler = nullptr;
-	ScriptFolder* ScriptEngine::m_script_folder  = nullptr;
-	TreeMap<int_t, ScriptEngine::VariableToStringFunction> ScriptEngine::m_custom_variable_parsers;
 
 	bool ScriptEngine::exception_on_error = true;
 	CallBacks<void()> ScriptEngine::on_terminate;
@@ -109,56 +119,60 @@ namespace Engine
 
 	ScriptEngine& ScriptEngine::initialize()
 	{
-		if (m_engine != nullptr)
+		ScriptEngineData* data = ScriptEngineData::instance();
+
+		if (data->engine != nullptr)
 			return instance();
 
 		asSetGlobalMemoryFunctions(angel_script_allocate, angel_script_deallocate);
 
-		m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
-		info_log("ScriptEngine", "Created script engine [%p]", m_engine);
+		data->engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
+		info_log("ScriptEngine", "Created script engine [%p]", data->engine);
 
-		m_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
-		m_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
-		m_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
-		m_engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
-		m_engine->SetEngineProperty(asEP_FOREACH_SUPPORT, false);
-		m_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
-		m_engine->SetTranslateAppExceptionCallback(asFUNCTION(angel_script_translate_exception), nullptr, asCALL_CDECL);
+		data->engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
+		data->engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
+		data->engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
+		data->engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
+		data->engine->SetEngineProperty(asEP_FOREACH_SUPPORT, false);
+		data->engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
+		data->engine->SetTranslateAppExceptionCallback(asFUNCTION(angel_script_translate_exception), nullptr, asCALL_CDECL);
 
 #if ARCH_X86_64 || ARCH_ARM
 		if constexpr (enable_jit)
 		{
 			info_log("ScriptEngine", "Enable JIT compiler!");
-			auto compiler  = trx_new PlatformJitCompiler();
-			m_jit_compiler = compiler;
-			m_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
-			m_engine->SetJITCompiler(m_jit_compiler);
+			data->jit_compiler = trx_new PlatformJitCompiler();
+			data->engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
+			data->engine->SetJITCompiler(data->jit_compiler);
 		}
 #endif
 		PostDestroyController controller(ScriptEngine::terminate, "Engine::ScriptEngine");
 		ScriptContext::initialize();
 
-		m_script_folder = trx_new ScriptFolder("[scripts]:");
+		data->script_folder = trx_new ScriptFolder("[scripts]:");
 		trigger_addons_initialization();
 		return instance();
 	}
 
 	void ScriptEngine::terminate()
 	{
-		if (m_engine)
+		ScriptEngineData* data = ScriptEngineData::instance();
+
+		if (data->engine)
 		{
 			on_terminate();
 			ScriptContext::terminate();
-			trx_delete_inline(m_script_folder);
-			m_script_folder = nullptr;
-			m_engine->Release();
-			m_engine = nullptr;
+
+			trx_delete_inline(data->script_folder);
+			data->script_folder = nullptr;
+			data->engine->Release();
+			data->engine = nullptr;
 		}
 
-		if (m_jit_compiler)
+		if (data->jit_compiler)
 		{
-			trx_delete m_jit_compiler;
-			m_jit_compiler = nullptr;
+			trx_delete data->jit_compiler;
+			data->jit_compiler = nullptr;
 		}
 	}
 
@@ -170,12 +184,12 @@ namespace Engine
 
 	asIScriptEngine* ScriptEngine::engine()
 	{
-		return m_engine;
+		return ScriptEngineData::instance()->engine;
 	}
 
 	asIScriptContext* ScriptEngine::new_context()
 	{
-		return m_engine->RequestContext();
+		return ScriptEngineData::instance()->engine->RequestContext();
 	}
 
 	static asDWORD create_call_conv(ScriptCallConv conv)
@@ -198,8 +212,8 @@ namespace Engine
 	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv,
 	                                               void* auxiliary)
 	{
-		int_t id = m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv),
-		                                            auxiliary);
+		int_t id = ScriptEngineData::instance()->engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
+		                                                                        create_call_conv(conv), auxiliary);
 		if (id < 0)
 			return {};
 		return function_by_id(id);
@@ -213,7 +227,7 @@ namespace Engine
 
 	const ScriptEngine& ScriptEngine::release_context(asIScriptContext* context)
 	{
-		m_engine->ReturnContext(context);
+		ScriptEngineData::instance()->engine->ReturnContext(context);
 		return instance();
 	}
 
@@ -224,18 +238,18 @@ namespace Engine
 
 	ScriptEngine& ScriptEngine::default_namespace(const char* ns)
 	{
-		m_engine->SetDefaultNamespace(ns);
+		ScriptEngineData::instance()->engine->SetDefaultNamespace(ns);
 		return instance();
 	}
 
 	StringView ScriptEngine::default_namespace()
 	{
-		return m_engine->GetDefaultNamespace();
+		return ScriptEngineData::instance()->engine->GetDefaultNamespace();
 	}
 
 	int_t ScriptEngine::register_property(const char* declaration, void* data)
 	{
-		return m_engine->RegisterGlobalProperty(declaration, data);
+		return ScriptEngineData::instance()->engine->RegisterGlobalProperty(declaration, data);
 	}
 
 	int_t ScriptEngine::register_property(const String& declaration, void* data)
@@ -245,21 +259,51 @@ namespace Engine
 
 	class ScriptFolder* ScriptEngine::scripts_folder()
 	{
-		return m_script_folder;
+		return ScriptEngineData::instance()->script_folder;
+	}
+
+	ScriptEngine& ScriptEngine::register_class(int_t type_id, Refl::Class* self)
+	{
+		if (self)
+		{
+			ScriptEngineData::instance()->classes_map[type_id] = self;
+		}
+
+		return instance();
+	}
+
+	Refl::Class* ScriptEngine::find_class(int_t type_id)
+	{
+		auto& map = ScriptEngineData::instance()->classes_map;
+		auto it   = map.find(type_id);
+
+		if (it == map.end())
+			return nullptr;
+
+		return it->second;
+	}
+
+	ScriptEngine& ScriptEngine::unregister_class(int_t type_id)
+	{
+		ScriptEngineData::instance()->classes_map.erase(type_id);
+		return instance();
 	}
 
 	ScriptEngine& ScriptEngine::bind_imports()
 	{
-		for (Counter i = 0, j = m_engine->GetModuleCount(); i < j; i++)
+		ScriptEngineData* data = ScriptEngineData::instance();
+
+		for (uint32_t i = 0, j = data->engine->GetModuleCount(); i < j; i++)
 		{
-			m_engine->GetModuleByIndex(i)->BindAllImportedFunctions();
+			data->engine->GetModuleByIndex(i)->BindAllImportedFunctions();
 		}
+
 		return instance();
 	}
 
 	ScriptEngine& ScriptEngine::register_funcdef(const char* declaration)
 	{
-		m_engine->RegisterFuncdef(declaration);
+		ScriptEngineData::instance()->engine->RegisterFuncdef(declaration);
 		return instance();
 	}
 
@@ -270,7 +314,7 @@ namespace Engine
 
 	ScriptEngine& ScriptEngine::register_typedef(const char* type, const char* declaration)
 	{
-		m_engine->RegisterTypedef(type, declaration);
+		ScriptEngineData::instance()->engine->RegisterTypedef(type, declaration);
 		return instance();
 	}
 
@@ -281,23 +325,23 @@ namespace Engine
 
 	ScriptEngine& ScriptEngine::destroy_script_object(void* object, const ScriptTypeInfo& info)
 	{
-		m_engine->ReleaseScriptObject(object, info.info());
+		ScriptEngineData::instance()->engine->ReleaseScriptObject(object, info.info());
 		return instance();
 	}
 
 	uint_t ScriptEngine::global_function_count()
 	{
-		return m_engine->GetGlobalFunctionCount();
+		return ScriptEngineData::instance()->engine->GetGlobalFunctionCount();
 	}
 
 	ScriptFunction ScriptEngine::global_function_by_index(uint_t index)
 	{
-		return ScriptFunction(m_engine->GetGlobalFunctionByIndex(index));
+		return ScriptFunction(ScriptEngineData::instance()->engine->GetGlobalFunctionByIndex(index));
 	}
 
 	ScriptFunction ScriptEngine::global_function_by_decl(const char* declaration)
 	{
-		return ScriptFunction(m_engine->GetGlobalFunctionByDecl(declaration));
+		return ScriptFunction(ScriptEngineData::instance()->engine->GetGlobalFunctionByDecl(declaration));
 	}
 
 	ScriptFunction ScriptEngine::global_function_by_decl(const String& declaration)
@@ -307,12 +351,12 @@ namespace Engine
 
 	uint_t ScriptEngine::global_property_count()
 	{
-		return m_engine->GetGlobalPropertyCount();
+		return ScriptEngineData::instance()->engine->GetGlobalPropertyCount();
 	}
 
 	int_t ScriptEngine::global_property_index_by_name(const char* name)
 	{
-		return m_engine->GetGlobalPropertyIndexByName(name);
+		return ScriptEngineData::instance()->engine->GetGlobalPropertyIndexByName(name);
 	}
 
 	int_t ScriptEngine::global_property_index_by_name(const String& name)
@@ -322,7 +366,7 @@ namespace Engine
 
 	int_t ScriptEngine::global_property_index_by_decl(const char* declaration)
 	{
-		return m_engine->GetGlobalPropertyIndexByDecl(declaration);
+		return ScriptEngineData::instance()->engine->GetGlobalPropertyIndexByDecl(declaration);
 	}
 
 	int_t ScriptEngine::global_property_index_by_decl(const String& declaration)
@@ -337,9 +381,9 @@ namespace Engine
 		const char* c_name_space = nullptr;
 		const char* c_group      = nullptr;
 
-		bool result = m_engine->GetGlobalPropertyByIndex(index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr,
-		                                                 type_id, is_const, config_group ? &c_group : nullptr,
-		                                                 reinterpret_cast<void**>(pointer)) >= 0;
+		bool result = ScriptEngineData::instance()->engine->GetGlobalPropertyByIndex(
+		                      index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr, type_id, is_const,
+		                      config_group ? &c_group : nullptr, reinterpret_cast<void**>(pointer)) >= 0;
 
 		if (result)
 		{
@@ -364,7 +408,7 @@ namespace Engine
 
 	bool ScriptEngine::begin_config_group(const char* group)
 	{
-		return m_engine->BeginConfigGroup(group) >= 0;
+		return ScriptEngineData::instance()->engine->BeginConfigGroup(group) >= 0;
 	}
 
 	bool ScriptEngine::begin_config_group(const String& group)
@@ -374,12 +418,12 @@ namespace Engine
 
 	bool ScriptEngine::end_config_group()
 	{
-		return m_engine->EndConfigGroup() >= 0;
+		return ScriptEngineData::instance()->engine->EndConfigGroup() >= 0;
 	}
 
 	bool ScriptEngine::remove_config_group(const char* group)
 	{
-		return m_engine->RemoveConfigGroup(group) >= 0;
+		return ScriptEngineData::instance()->engine->RemoveConfigGroup(group) >= 0;
 	}
 
 	bool ScriptEngine::remove_config_group(const String& group)
@@ -389,18 +433,18 @@ namespace Engine
 
 	ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, size_t iterations)
 	{
-		m_engine->GarbageCollect(flags, iterations);
+		ScriptEngineData::instance()->engine->GarbageCollect(flags, iterations);
 		return instance();
 	}
 
 	uint_t ScriptEngine::object_type_count()
 	{
-		return m_engine->GetObjectTypeCount();
+		return ScriptEngineData::instance()->engine->GetObjectTypeCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::object_type_by_index(uint_t index)
 	{
-		return ScriptTypeInfo(m_engine->GetObjectTypeByIndex(index));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetObjectTypeByIndex(index));
 	}
 
 	bool ScriptEngine::exec_string(const String& line)
@@ -410,46 +454,46 @@ namespace Engine
 
 	bool ScriptEngine::exec_string(const char* line)
 	{
-		return ExecuteString(m_engine, line) >= 0;
+		return ExecuteString(ScriptEngineData::instance()->engine, line) >= 0;
 	}
 
 	// Enums
 	uint_t ScriptEngine::enum_count()
 	{
-		return m_engine->GetEnumCount();
+		return ScriptEngineData::instance()->engine->GetEnumCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::enum_by_index(uint_t index)
 	{
-		return ScriptTypeInfo(m_engine->GetEnumByIndex(index));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetEnumByIndex(index));
 	}
 
 	// Funcdefs
 	uint_t ScriptEngine::funcdef_count()
 	{
-		return m_engine->GetFuncdefCount();
+		return ScriptEngineData::instance()->engine->GetFuncdefCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::funcdef_by_index(uint_t index)
 	{
-		return ScriptTypeInfo(m_engine->GetFuncdefByIndex(index));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetFuncdefByIndex(index));
 	}
 
 	// Typedefs
 	uint_t ScriptEngine::typedef_count()
 	{
-		return m_engine->GetTypedefCount();
+		return ScriptEngineData::instance()->engine->GetTypedefCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::typedef_by_index(uint_t index)
 	{
-		return ScriptTypeInfo(m_engine->GetTypedefByIndex(index));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypedefByIndex(index));
 	}
 
 	// Script modules
 	ScriptEngine& ScriptEngine::discard_module(const char* module_name)
 	{
-		m_engine->DiscardModule(module_name);
+		ScriptEngineData::instance()->engine->DiscardModule(module_name);
 		return instance();
 	}
 
@@ -460,12 +504,12 @@ namespace Engine
 
 	uint_t ScriptEngine::module_count()
 	{
-		return m_engine->GetModuleCount();
+		return ScriptEngineData::instance()->engine->GetModuleCount();
 	}
 
 	ScriptModule ScriptEngine::module_by_index(uint_t index)
 	{
-		return ScriptModule(m_engine->GetModuleByIndex(index));
+		return ScriptModule(ScriptEngineData::instance()->engine->GetModuleByIndex(index));
 	}
 
 	ScriptModule ScriptEngine::module_by_name(const char* name, ScriptModuleLookup lookup)
@@ -479,18 +523,18 @@ namespace Engine
 			case ScriptModuleLookup::CreateIfNotExists: flags = asGM_CREATE_IF_NOT_EXISTS; break;
 		}
 
-		return ScriptModule(m_engine->GetModule(name, flags));
+		return ScriptModule(ScriptEngineData::instance()->engine->GetModule(name, flags));
 	}
 
 	// Script functions
 	int_t ScriptEngine::last_function_id()
 	{
-		return m_engine->GetLastFunctionId();
+		return ScriptEngineData::instance()->engine->GetLastFunctionId();
 	}
 
 	ScriptFunction ScriptEngine::function_by_id(int_t func_id)
 	{
-		return ScriptFunction(m_engine->GetFunctionById(func_id));
+		return ScriptFunction(ScriptEngineData::instance()->engine->GetFunctionById(func_id));
 	}
 
 	// Type identification
@@ -568,7 +612,7 @@ namespace Engine
 
 	int_t ScriptEngine::type_id_by_decl(const char* decl)
 	{
-		return m_engine->GetTypeIdByDecl(decl);
+		return ScriptEngineData::instance()->engine->GetTypeIdByDecl(decl);
 	}
 
 	int_t ScriptEngine::type_id_by_decl(const String& decl)
@@ -578,27 +622,27 @@ namespace Engine
 
 	String ScriptEngine::type_declaration(int type_id, bool include_namespace)
 	{
-		return Strings::make_string(m_engine->GetTypeDeclaration(type_id, include_namespace));
+		return Strings::make_string(ScriptEngineData::instance()->engine->GetTypeDeclaration(type_id, include_namespace));
 	}
 
 	int_t ScriptEngine::sizeof_primitive_type(int type_id)
 	{
-		return m_engine->GetSizeOfPrimitiveType(type_id);
+		return ScriptEngineData::instance()->engine->GetSizeOfPrimitiveType(type_id);
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_id(int type_id)
 	{
-		return ScriptTypeInfo(m_engine->GetTypeInfoById(type_id));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypeInfoById(type_id));
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_name(const char* name)
 	{
-		return ScriptTypeInfo(m_engine->GetTypeInfoByName(name));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypeInfoByName(name));
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_decl(const char* decl)
 	{
-		return ScriptTypeInfo(m_engine->GetTypeInfoByDecl(decl));
+		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypeInfoByDecl(decl));
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_name(const String& name)
@@ -686,21 +730,25 @@ namespace Engine
 	{
 		if (function == nullptr)
 			return unregister_custom_variable(type_id);
-		m_custom_variable_parsers[type_id] = function;
+
+		ScriptEngineData::instance()->parsers_map[type_id] = function;
 		return instance();
 	}
 
 	ScriptEngine& ScriptEngine::unregister_custom_variable(int_t type_id)
 	{
-		m_custom_variable_parsers.erase(type_id);
+		ScriptEngineData::instance()->parsers_map.erase(type_id);
 		return instance();
 	}
 
 	ScriptEngine::VariableToStringFunction ScriptEngine::custom_variable_parser(int_t type_id)
 	{
-		auto it = m_custom_variable_parsers.find(type_id);
-		if (it != m_custom_variable_parsers.end())
+		ScriptEngineData* data = ScriptEngineData::instance();
+
+		auto it = data->parsers_map.find(type_id);
+		if (it != data->parsers_map.end())
 			return it->second;
+
 		return nullptr;
 	}
 
@@ -873,7 +921,7 @@ namespace Engine
 
 	bool ScriptEngine::assign_script_object(void* dst, void* src, const ScriptTypeInfo& info)
 	{
-		return m_engine->AssignScriptObject(dst, src, info.info()) >= 0;
+		return ScriptEngineData::instance()->engine->AssignScriptObject(dst, src, info.info()) >= 0;
 	}
 
 	static void variable_name_generic(asIScriptGeneric* generic)

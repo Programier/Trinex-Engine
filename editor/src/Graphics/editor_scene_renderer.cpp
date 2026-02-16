@@ -164,7 +164,7 @@ namespace Engine
 				while (count-- > 0)
 				{
 					Actor* actor = *(actors++);
-					for (ActorComponent* component : actor->owned_components())
+					for (ActorComponent* component : actor->components())
 					{
 						if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
 						{

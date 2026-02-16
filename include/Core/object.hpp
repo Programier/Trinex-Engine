@@ -59,8 +59,10 @@ namespace Engine
 		Refl::Class* m_class;
 		Object* m_owner;
 		Name m_name;
+
 		mutable Atomic<uint32_t> m_references;
-		mutable uint32_t m_instance_index;
+		mutable uint32_t m_child_index;
+		mutable uint32_t m_global_index;
 
 	protected:
 		static class Refl::Class* m_static_class;
@@ -70,7 +72,7 @@ namespace Engine
 
 	private:
 		// Setup object info
-		static Refl::Class* static_setup_next_object_info(Refl::Class* self);
+		static Refl::Class* static_setup_next_object_info(Refl::Class* self = nullptr);
 		static void static_setup_new_object(Object* object, StringView name, Object* owner);
 
 		template<typename T>
@@ -83,15 +85,36 @@ namespace Engine
 			return object;
 		}
 
+		template<uint32_t Object::* prop = &Object::m_child_index, typename ContainerType>
+		bool remove_from(ContainerType& container, uint32_t idx)
+		{
+			if (container.empty())
+				return false;
+
+			const uint32_t last = container.size() - 1;
+
+			if (idx >= container.size() || container[idx] != this)
+				return false;
+
+			if (idx != last)
+			{
+				auto* moved                        = container[last];
+				container[idx]                     = moved;
+				static_cast<Object*>(moved)->*prop = idx;
+			}
+
+			container.pop_back();
+			return true;
+		}
+
 		void script_preload();
 		void script_postload();
 
 	protected:
 		bool private_check_instance(const class Refl::Class* const check_class) const;
-		static Object* noname_object();
-
+		
 		virtual Object& on_owner_update(Object* new_owner);
-		virtual bool register_child(Object* child);
+		virtual bool register_child(Object* child, uint32_t& index);
 		virtual bool unregister_child(Object* child);
 		virtual Object& post_rename(Object* old_owner, Name old_name);
 
@@ -115,7 +138,6 @@ namespace Engine
 		static Object* static_constructor();
 		static void static_initialize_class();
 		static class Refl::Class* static_reflection();
-		static uint64_t hash_of_name(const StringView& name);
 		class Refl::Class* class_instance() const;
 
 		delete_copy_constructors(Object);
@@ -123,13 +145,18 @@ namespace Engine
 		static String object_name_of(const StringView& name);
 		static StringView package_name_sv_of(const StringView& name);
 		static StringView object_name_sv_of(const StringView& name);
-		static const Vector<Object*>& all_objects();
+		static const Vector<Object*>& static_root_objects();
+		static const Vector<Object*>& static_objects();
 		static Package* root_package();
 		static bool static_validate_object_name(StringView name, String* msg = nullptr);
 
 		static const String& language();
 		static void language(const StringView& new_language);
 		static const String& localize(const StringView& line);
+
+		static Object* load_object(StringView fullname, class BufferReader* reader, SerializationFlags flags = {});
+		static Object* load_object(StringView fullname, SerializationFlags flags = {});
+		static Object* load_object_from_file(const Path& path, SerializationFlags flags = {});
 
 		virtual bool rename(StringView name, Object* new_owner = nullptr);
 		const Name& name() const;
@@ -139,14 +166,14 @@ namespace Engine
 		virtual Object* find_child_object(StringView name) const;
 
 		const String& string_name() const;
-		uint64_t hash_index() const;
 		Package* package(bool recursive = false) const;
 		String full_name() const;
 		uint32_t references() const;
 		uint32_t add_reference() const;
 		uint32_t remove_reference() const;
 		bool is_noname() const;
-		uint32_t instance_index() const;
+		uint32_t child_index() const;
+		uint32_t global_index() const;
 		virtual bool serialize(Archive& archive);
 		Path filepath() const;
 		bool is_editable() const;
@@ -156,10 +183,6 @@ namespace Engine
 		bool is_dirty() const;
 
 		virtual bool save(class BufferWriter* writer = nullptr, SerializationFlags flags = {});
-		ENGINE_EXPORT static Object* load_object(StringView fullname, class BufferReader* reader, SerializationFlags flags = {});
-		ENGINE_EXPORT static Object* load_object(StringView fullname, SerializationFlags flags = {});
-		ENGINE_EXPORT static Object* load_object_from_file(const Path& path, SerializationFlags flags = {});
-
 		virtual Object& on_create();
 		virtual Object& on_destroy();
 
@@ -332,6 +355,17 @@ namespace Engine
 			return nullptr;
 		}
 
+		template<typename ContainerType>
+		bool remove_from(ContainerType& container)
+		{
+			if (remove_from(container, m_child_index))
+			{
+				m_child_index = 0xFFFFFFFF;
+				return true;
+			}
+
+			return false;
+		}
 
 		virtual ~Object();
 		friend class PointerBase;

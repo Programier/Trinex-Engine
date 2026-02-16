@@ -18,19 +18,6 @@ namespace Engine
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", overload_of<StaticMeshComponent&()>(&This::mesh));
 	}
 
-	StaticMeshComponent& StaticMeshComponent::update_bounding_box()
-	{
-		if (mesh())
-		{
-			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
-		}
-		else
-		{
-			Super::update_bounding_box();
-		}
-		return *this;
-	}
-
 	size_t StaticMeshComponent::materials_count() const
 	{
 		if (m_mesh)
@@ -90,6 +77,19 @@ namespace Engine
 			Super::render(ctx);
 		}
 
+		return *this;
+	}
+
+	StaticMeshComponent& StaticMeshComponent::update_bounding_box()
+	{
+		if (mesh())
+		{
+			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
+		}
+		else
+		{
+			Super::update_bounding_box();
+		}
 		return *this;
 	}
 }// namespace Engine

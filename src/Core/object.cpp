@@ -34,17 +34,32 @@ namespace Engine
 
 		void reset() { class_instance = nullptr; }
 
-	} next_object_info;
+	} s_next_object_info;
+
+	static Package* s_root_package = nullptr;
+
+	static Vector<Object*> s_root_objects;
+	static Vector<Object*> s_objects;
+
+	static void create_default_package()
+	{
+		if (s_root_package == nullptr)
+		{
+			s_root_package = Object::new_instance<Package>("Content");
+			s_root_package->flags(Object::IsSerializable, false);
+			s_root_package->add_reference();
+		}
+	}
 
 	Refl::Class* Object::static_setup_next_object_info(Refl::Class* self)
 	{
-		if (!next_object_info.class_instance)
+		if (!s_next_object_info.class_instance)
 		{
-			next_object_info.class_instance = self;
+			s_next_object_info.class_instance = self;
 			return self;
 		}
 
-		return next_object_info.class_instance;
+		return s_next_object_info.class_instance;
 	}
 
 	void Object::static_setup_new_object(Object* object, StringView name, Object* owner)
@@ -52,7 +67,7 @@ namespace Engine
 		object->m_name = name;
 		object->owner(owner);
 		object->on_create();
-		next_object_info.reset();
+		s_next_object_info.reset();
 	}
 
 	trinex_implement_engine_class(Object, Refl::Class::IsScriptable)
@@ -62,6 +77,7 @@ namespace Engine
 		r.static_function("Package@ root_package()", &Object::root_package);
 		r.method("const Name& name() const final", overload_of<const Name&>(&Object::name));
 		r.method("Refl::Class@ class_instance() const final", &Object::class_instance);
+		r.method("bool owner(Object@ new_owner) final", overload_of<bool()>(&Object::owner));
 
 		script_object_preload  = r.method("void preload()", trinex_scoped_method(Object, preload));
 		script_object_postload = r.method("void postload()", trinex_scoped_method(Object, postload));
@@ -74,19 +90,6 @@ namespace Engine
 		{
 			ScriptNamespaceScopedChanger changer("Engine::Object");
 			ScriptEngine::register_function("Object@ static_find_object(StringView object_name)", static_find_object);
-		}
-	}
-
-	static Package* s_root_package = nullptr;
-	static Vector<Object*> s_objects_array;
-
-	static void create_default_package()
-	{
-		if (s_root_package == nullptr)
-		{
-			s_root_package = Object::new_instance<Package>("Content");
-			s_root_package->flags(Object::IsSerializable, false);
-			s_root_package->add_reference();
 		}
 	}
 
@@ -147,9 +150,9 @@ namespace Engine
 		return 0;
 	}
 
-	Object::Object() : m_references(0), m_instance_index(Constants::index_none)
+	Object::Object() : m_references(0)
 	{
-		if (next_object_info.class_instance == nullptr)
+		if (s_next_object_info.class_instance == nullptr)
 		{
 			throw EngineException("Next object class is invalid!");
 		}
@@ -159,26 +162,19 @@ namespace Engine
 		flags(Flag::IsAvailableForGC, true);
 
 		m_owner = nullptr;
-		m_class = next_object_info.class_instance;
-		next_object_info.reset();
+		m_class = s_next_object_info.class_instance;
+		s_next_object_info.reset();
 
-		m_instance_index = s_objects_array.size();
-		s_objects_array.push_back(this);
+		m_child_index = s_root_objects.size();
+		s_root_objects.push_back(this);
+
+		m_global_index = s_objects.size();
+		s_objects.push_back(this);
 	}
 
 	class Refl::Class* Object::class_instance() const
 	{
 		return m_class;
-	}
-
-	ENGINE_EXPORT uint64_t Object::hash_of_name(const StringView& name)
-	{
-		return memory_hash(name.data(), name.length(), 0);
-	}
-
-	uint64_t Object::hash_index() const
-	{
-		return m_name.hash();
 	}
 
 	ENGINE_EXPORT String Object::package_name_of(const StringView& name)
@@ -213,28 +209,19 @@ namespace Engine
 		return name.substr(pos, name.length() - pos);
 	}
 
-	ENGINE_EXPORT const Vector<Object*>& Object::all_objects()
+	ENGINE_EXPORT const Vector<Object*>& Object::static_root_objects()
 	{
-		return s_objects_array;
+		return s_root_objects;
+	}
+
+	const Vector<Object*>& Object::static_objects()
+	{
+		return s_objects;
 	}
 
 	Object::~Object()
 	{
-		if (m_owner)
-		{
-			m_owner->unregister_child(this);
-			m_owner = nullptr;
-		}
-
-		Object* last_object = s_objects_array.back();
-
-		if (last_object != this)
-		{
-			s_objects_array[m_instance_index] = last_object;
-			last_object->m_instance_index     = m_instance_index;
-		}
-
-		s_objects_array.pop_back();
+		remove_from<&Object::m_global_index>(s_objects, m_global_index);
 	}
 
 	const String& Object::string_name() const
@@ -309,18 +296,12 @@ namespace Engine
 		return m_name;
 	}
 
-	Object* Object::noname_object()
-	{
-		static thread_local byte data[sizeof(Object)];
-		return reinterpret_cast<Object*>(data);
-	}
-
 	Object& Object::on_owner_update(Object* new_owner)
 	{
 		return *this;
 	}
 
-	bool Object::register_child(Object* child)
+	bool Object::register_child(Object* child, uint32_t& index)
 	{
 		return true;
 	}
@@ -355,7 +336,7 @@ namespace Engine
 			if (object->m_name.is_valid())
 				return object->m_name.to_string();
 
-			return Strings::format("Noname object {}", object->m_instance_index);
+			return Strings::format("Noname object {}", object->m_global_index);
 		};
 
 		String result         = object_name_of(this);
@@ -365,7 +346,7 @@ namespace Engine
 		while (current && current != root)
 		{
 			String current_name = (current->m_name.is_valid() ? current->m_name.to_string()
-			                                                  : Strings::format("Noname object {}", current->m_instance_index));
+			                                                  : Strings::format("Noname object {}", current->m_global_index));
 
 			result  = Strings::format("{}{}{}", current_name, Constants::name_separator, result);
 			current = current->m_owner;
@@ -423,6 +404,15 @@ namespace Engine
 
 	Object& Object::on_destroy()
 	{
+		if (m_owner)
+		{
+			m_owner->unregister_child(this);
+			m_owner = nullptr;
+		}
+		else
+		{
+			remove_from(s_root_objects);
+		}
 		return *this;
 	}
 
@@ -447,32 +437,46 @@ namespace Engine
 			return false;
 		}
 
-		bool result = true;
+		const bool is_global = m_owner == nullptr;
 
 		if (m_owner)
 		{
-			result  = m_owner->unregister_child(this);
-			m_owner = nullptr;
-
-			if (!result)
+			if (!m_owner->unregister_child(this))
 			{
 				error_log("Object", "Failed to unregister object from prev owner!");
 				return false;
 			}
+
+			m_owner = nullptr;
 		}
 
 		if (new_owner)
 		{
-			m_owner = new_owner;
+			m_owner       = new_owner;
+			uint32_t idx  = m_child_index;
+			m_child_index = 0xFFFFFFFF;
 
-			if (!(result = new_owner->register_child(this)))
+			if (new_owner->register_child(this, m_child_index))
+			{
+				if (is_global)
+				{
+					remove_from(s_root_objects, idx);
+				}
+			}
+			else
 			{
 				error_log("Object", "Failed to register object to owner!");
+				m_owner = nullptr;
 			}
 		}
+		else
+		{
+			m_child_index = s_root_objects.size();
+			s_root_objects.push_back(this);
+		}
 
-		on_owner_update(new_owner);
-		return result;
+		on_owner_update(m_owner);
+		return true;
 	}
 
 	static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
@@ -504,9 +508,14 @@ namespace Engine
 		return package ? find_next_package(package, name, create) : nullptr;
 	}
 
-	uint32_t Object::instance_index() const
+	uint32_t Object::child_index() const
 	{
-		return m_instance_index;
+		return m_child_index;
+	}
+
+	uint32_t Object::global_index() const
+	{
+		return m_global_index;
 	}
 
 	bool Object::serialize(Archive& archive)

@@ -764,7 +764,7 @@ namespace Engine
 
 	ScriptEngine& ScriptEngine::load_scripts()
 	{
-		m_script_folder->load_scripts();
+		scripts_folder()->load_scripts();
 		return instance();
 	}
 }// namespace Engine

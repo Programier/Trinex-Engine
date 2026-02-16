@@ -15,7 +15,7 @@ namespace Engine
 
 	StaticMeshActor::StaticMeshActor()
 	{
-		m_mesh_component = create_component<StaticMeshComponent>("StaticMeshComponent");
+		m_mesh_component = new_instance<StaticMeshComponent>("StaticMeshComponent", this);
 	}
 
 	StaticMeshComponent* StaticMeshActor::mesh_component() const

@@ -14,7 +14,7 @@ namespace Engine
 		Scene* m_scene = nullptr;
 
 	protected:
-		bool register_child(Object* child) override;
+		bool register_child(Object* child, uint32_t& index) override;
 		bool unregister_child(Object* child) override;
 
 	public:
@@ -24,8 +24,9 @@ namespace Engine
 		static World* current();
 
 		World& start_play() override;
-		World& stop_play() override;
 		World& update(float dt) override;
+		World& stop_play() override;
+
 		World* world() override;
 
 		inline const Vector<class Level*>& levels() const { return m_levels; }

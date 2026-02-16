@@ -49,6 +49,7 @@ namespace Engine
 		bool is_visible() const;
 		SceneComponent& is_visible(bool visible);
 		SceneComponent& local_transform(const Transform&);
+		SceneComponent& local_transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale);
 		SceneComponent& add_local_transform(const Transform&);
 		SceneComponent& remove_local_transform(const Transform&);
 		SceneComponent& location(const Vector3f&);

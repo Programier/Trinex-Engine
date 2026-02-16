@@ -638,6 +638,14 @@ namespace Engine::Importer
 			return mesh;
 		}
 
+		template<typename T>
+		T* create_actor(const String& name, const Transform& transform)
+		{
+			T* actor = Object::new_instance<T>(name);
+			actor->scene_component()->local_transform(transform);
+			return actor;
+		}
+
 		SkeletalMesh* import_skeletal_mesh(const tinygltf::Model& model, int_t index, int_t skin)
 		{
 			Optional<Mesh>& mesh = m_meshes[index];
@@ -653,9 +661,9 @@ namespace Engine::Importer
 			if (m_world == nullptr)
 				return;
 
-			StaticMeshActor* actor = m_world->spawn_actor<StaticMeshActor>({}, {}, {1, 1, 1}, name);
-			actor->scene_component()->local_transform(transform);
+			StaticMeshActor* actor = create_actor<StaticMeshActor>(name, transform);
 			actor->mesh_component()->mesh(mesh);
+			actor->owner(m_world);
 		}
 
 		void spawn_light(const String& name, const tinygltf::Model& model, int_t index, const Matrix4f& transform)
@@ -665,10 +673,9 @@ namespace Engine::Importer
 
 			const tinygltf::Light& light = model.lights[index];
 
-			PointLightActor* actor = m_world->spawn_actor<PointLightActor>({}, {}, {1, 1, 1}, name);
-			actor->scene_component()->local_transform(transform);
-
+			PointLightActor* actor = create_actor<PointLightActor>(name, transform);
 			actor->point_light_component()->intensity(light.intensity, LightUnits::Candelas);
+			actor->owner(m_world);
 		}
 
 		void import_node(const tinygltf::Model& model, const tinygltf::Node& node, const Matrix4f& transform = Matrix4f(1.f))

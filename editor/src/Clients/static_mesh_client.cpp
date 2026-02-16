@@ -51,6 +51,8 @@ namespace Engine
 		Super::on_bind_viewport(vp);
 
 		m_world = System::system_of<World>();
+		m_actor = new_instance<StaticMeshActor>("", m_world);
+		m_viewport->mesh(m_actor);
 
 		m_camera = new_instance<CameraComponent>();
 		m_camera->location({0, 3, 5});
@@ -89,15 +91,7 @@ namespace Engine
 		{
 			m_mesh = mesh;
 			m_property_renderer->object(object);
-
-			if (m_actor)
-			{
-				m_world->destroy_actor(m_actor);
-			}
-
-			m_actor = instance_cast<StaticMeshActor>(m_world->spawn_actor(StaticMeshActor::static_reflection()));
 			m_actor->mesh_component()->mesh(mesh);
-			m_viewport->mesh(m_actor);
 		}
 
 		return *this;

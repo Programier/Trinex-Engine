@@ -54,7 +54,7 @@ namespace Engine
 	protected:
 		Map<RenderPass*, GraphicsPipeline*> m_pipelines;
 
-		bool register_child(Object* child) override;
+		bool register_child(Object* child, uint32_t& index) override;
 		bool unregister_child(Object* child) override;
 		bool apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx);
 

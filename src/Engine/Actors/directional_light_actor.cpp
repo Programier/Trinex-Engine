@@ -8,7 +8,7 @@ namespace Engine
 
 	DirectionalLightActor::DirectionalLightActor()
 	{
-		m_directional_light_component = create_component<DirectionalLightComponent>("DirectionalLightComponent");
+		m_directional_light_component = new_instance<DirectionalLightComponent>("DirectionalLightComponent", this);
 	}
 
 	DirectionalLightComponent* DirectionalLightActor::directional_light_component() const

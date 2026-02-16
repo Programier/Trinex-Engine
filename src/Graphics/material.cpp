@@ -333,12 +333,12 @@ namespace Engine
 		return pipeline;
 	}
 
-	bool Material::register_child(Object* child)
+	bool Material::register_child(Object* child, uint32_t& index)
 	{
 		if (child && child->is_instance_of<Pipeline>())
 			return true;
 
-		return ObjectTreeNode::register_child(child);
+		return ObjectTreeNode::register_child(child, index);
 	}
 
 	bool Material::unregister_child(Object* child)

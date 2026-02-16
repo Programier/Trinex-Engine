@@ -9,7 +9,7 @@ namespace Engine
 
 	SpotLightActor::SpotLightActor()
 	{
-		m_spot_light_component = create_component<SpotLightComponent>(("SpotLightComponent"));
+		m_spot_light_component = new_instance<SpotLightComponent>("SpotLightComponent", this);
 	}
 
 	SpotLightComponent* SpotLightActor::spot_light_component() const

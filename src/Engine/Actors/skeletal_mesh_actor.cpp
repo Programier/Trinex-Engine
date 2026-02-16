@@ -15,7 +15,7 @@ namespace Engine
 
 	SkeletalMeshActor::SkeletalMeshActor()
 	{
-		m_mesh_component = create_component<SkeletalMeshComponent>("SkeletalMeshComponent");
+		m_mesh_component = new_instance<SkeletalMeshComponent>("SkeletalMeshComponent", this);
 	}
 
 	SkeletalMeshComponent* SkeletalMeshActor::mesh_component() const

@@ -35,12 +35,6 @@ namespace Engine
 		using VariableToStringFunction = String (*)(const byte* object, int_t type_id, bool repr);
 
 	private:
-		static Vector<class Script*> m_scripts;
-		static asIScriptEngine* m_engine;
-		static asIJITCompiler* m_jit_compiler;
-		static class ScriptFolder* m_script_folder;
-		static TreeMap<int_t, VariableToStringFunction> m_custom_variable_parsers;
-
 		static void terminate();
 		static asIScriptContext* new_context();
 		static ScriptEngine& destroy_script_object(void*, const ScriptTypeInfo& info);
@@ -69,6 +63,10 @@ namespace Engine
 		static int_t register_property(const String& declaration, void* data);
 		static class ScriptFolder* scripts_folder();
 		static ScriptEngine& load_scripts();
+
+		static ScriptEngine& register_class(int_t type_id, Refl::Class* self);
+		static Refl::Class* find_class(int_t type_id);
+		static ScriptEngine& unregister_class(int_t type_id);
 
 		static ScriptEngine& bind_imports();
 		static ScriptEngine& register_funcdef(const char* declaration);

@@ -12,15 +12,15 @@
 
 namespace Engine
 {
-	static ScriptFunction script_actor_update;
-	static ScriptFunction script_actor_start_play;
-	static ScriptFunction script_actor_stop_play;
 	static ScriptFunction script_actor_spawned;
+	static ScriptFunction script_actor_start_play;
+	static ScriptFunction script_actor_update;
+	static ScriptFunction script_actor_stop_play;
 	static ScriptFunction script_actor_despawned;
 
-	void Actor::scriptable_update(float dt)
+	void Actor::scriptable_spawned()
 	{
-		ScriptObject(this).execute(script_actor_update, nullptr, dt);
+		ScriptObject(this).execute(script_actor_spawned);
 	}
 
 	void Actor::scriptable_start_play()
@@ -28,14 +28,14 @@ namespace Engine
 		ScriptObject(this).execute(script_actor_start_play);
 	}
 
+	void Actor::scriptable_update(float dt)
+	{
+		ScriptObject(this).execute(script_actor_update, nullptr, dt);
+	}
+
 	void Actor::scriptable_stop_play()
 	{
 		ScriptObject(this).execute(script_actor_stop_play);
-	}
-
-	void Actor::scriptable_spawned()
-	{
-		ScriptObject(this).execute(script_actor_spawned);
 	}
 
 	void Actor::scriptable_despawned()
@@ -43,105 +43,67 @@ namespace Engine
 		ScriptObject(this).execute(script_actor_despawned);
 	}
 
-	ActorComponent* Actor::create_component(Refl::Class* self, const Name& component_name)
+	Actor* Actor::new_instance(Refl::Class* self, const Vector3f& location, const Quaternion& rotation, const Vector3f& scale,
+	                           const Name& name)
 	{
-		if (self == nullptr)
+		Actor* actor = self->create_object()->instance_cast<Actor>();
+
+		if (actor == nullptr)
 			return nullptr;
 
-		ActorComponent* component_object = self->create_object(component_name)->instance_cast<ActorComponent>();
-		if (!component_object)
-			throw EngineException("Cannot create actor component from non component class!");
+		if (SceneComponent* scene_component = actor->scene_component())
+		{
+			scene_component->local_transform(location, rotation, scale);
+		}
 
-		add_component(component_object);
-		return component_object;
+		return actor;
 	}
 
-	Actor& Actor::add_component(ActorComponent* component)
+	bool Actor::register_child(Object* child, uint32_t& index)
 	{
+		ActorComponent* component = instance_cast<ActorComponent>(child);
+
+		if (component == nullptr)
+			return Super::register_child(child, index);
+
+		index = m_components.size();
+		m_components.push_back(component);
+
+		if (m_root_component == nullptr)
 		{
-			Actor* owner = component->actor();
-			if (owner)
-			{
-				owner->remove_component(component);
-			}
+			m_root_component = instance_cast<SceneComponent>(component);
 		}
 
-		component->owner(this);
+		component->spawned();
 
+		if (is_playing())
 		{
-			SceneComponent* scene_component = component->instance_cast<SceneComponent>();
-			if (!m_root_component && scene_component)
-			{
-				m_root_component = scene_component;
-			}
-			else if (m_root_component && scene_component)
-			{
-				m_root_component->attach(scene_component);
-			}
+			component->start_play();
 		}
 
-		m_owned_components.push_back(component);
-		return *this;
+		return true;
 	}
 
-	Actor& Actor::remove_component(ActorComponent* component)
+	bool Actor::unregister_child(Object* child)
 	{
-		for (size_t i = 0, count = m_owned_components.size(); i < count; i++)
+		ActorComponent* component = instance_cast<ActorComponent>(child);
+
+		if (component == nullptr)
+			return Super::unregister_child(child);
+
+		if (component->is_playing())
 		{
-			ActorComponent* actor_component = m_owned_components[i];
-			if (actor_component == component)
-			{
-				if (m_root_component == component)
-				{
-					m_root_component = nullptr;
-				}
-
-
-				component->owner(nullptr);
-				m_owned_components.erase(m_owned_components.begin() + i);
-				break;
-			}
-		}
-		return *this;
-	}
-
-	Actor& Actor::update(float dt)
-	{
-		// Update each component in actor
-		for (auto& component : m_owned_components)
-		{
-			component->update(dt);
-		}
-		return *this;
-	}
-
-	Actor& Actor::start_play()
-	{
-		if (m_is_playing == false)
-		{
-			m_is_playing = true;
-
-			for (auto& component : m_owned_components)
-			{
-				component->start_play();
-			}
-		}
-		return *this;
-	}
-
-	Actor& Actor::stop_play()
-	{
-		if (m_is_playing)
-		{
-			m_is_playing = false;
-
-			for (auto& component : m_owned_components)
-			{
-				component->stop_play();
-			}
+			component->stop_play();
 		}
 
-		return *this;
+		component->despawned();
+
+		if (m_root_component == component)
+		{
+			m_root_component = nullptr;
+		}
+
+		return component->remove_from(m_components);
 	}
 
 	bool Actor::is_visible() const
@@ -162,35 +124,64 @@ namespace Engine
 
 	Actor& Actor::spawned()
 	{
-		for (Index index = 0, count = m_owned_components.size(); index < count; ++index)
+		for (Index index = 0, count = m_components.size(); index < count; ++index)
 		{
-			auto component = m_owned_components[index];
+			auto component = m_components[index];
 			component->spawned();
 		}
 		return *this;
 	}
 
-	Actor& Actor::destroy()
+	Actor& Actor::start_play()
 	{
-		if (!m_is_being_destroyed)
+		if (!is_playing())
 		{
-			world()->destroy_actor(this);
-			m_is_being_destroyed = true;
+			m_is_playing = true;
+
+			for (auto& component : m_components)
+			{
+				component->start_play();
+			}
 		}
+		return *this;
+	}
+
+	Actor& Actor::update(float dt)
+	{
+		// Update each component in actor
+		for (auto& component : m_components)
+		{
+			component->update(dt);
+		}
+		return *this;
+	}
+
+	Actor& Actor::stop_play()
+	{
+		if (m_is_playing)
+		{
+			m_is_playing = false;
+
+			for (auto& component : m_components)
+			{
+				component->stop_play();
+			}
+		}
+
 		return *this;
 	}
 
 	Actor& Actor::despawned()
 	{
-		if (m_is_playing)
+		if (is_playing())
 		{
 			stop_play();
 		}
 
 		// Call destroy for each component
-		for (size_t index = 0, count = m_owned_components.size(); index < count; ++index)
+		for (size_t index = 0, count = m_components.size(); index < count; ++index)
 		{
-			ActorComponent* component = m_owned_components[index];
+			ActorComponent* component = m_components[index];
 
 			component->despawned();
 			component->owner(nullptr);
@@ -207,11 +198,6 @@ namespace Engine
 	SceneComponent* Actor::scene_component() const
 	{
 		return m_root_component.ptr();
-	}
-
-	const Vector<class ActorComponent*>& Actor::owned_components() const
-	{
-		return m_owned_components;
 	}
 
 	class Level* Actor::level() const
@@ -259,25 +245,23 @@ namespace Engine
 		auto self = static_reflection();
 		auto r    = ScriptClassRegistrar::existing_class(self);
 
-		script_actor_update     = r.method("void update(float dt)", trinex_scoped_void_method(Actor, update));
-		script_actor_start_play = r.method("void start_play()", trinex_scoped_void_method(Actor, start_play));
-		script_actor_stop_play  = r.method("void stop_play()", trinex_scoped_void_method(Actor, stop_play));
 		script_actor_spawned    = r.method("void spawned()", trinex_scoped_void_method(Actor, spawned));
+		script_actor_start_play = r.method("void start_play()", trinex_scoped_void_method(Actor, start_play));
+		script_actor_update     = r.method("void update(float dt)", trinex_scoped_void_method(Actor, update));
+		script_actor_stop_play  = r.method("void stop_play()", trinex_scoped_void_method(Actor, stop_play));
 		script_actor_despawned  = r.method("void despawned()", trinex_scoped_void_method(Actor, despawned));
 
-		constexpr ActorComponent* (*create_component)(Actor*, Refl::Class*, const Name&) =
-		        [](Actor* actor, Refl::Class* self, const Name& name) { return actor->create_component(self, name); };
-		r.method("ActorComponent create_component(Class self, const Name& name) final", create_component);
+		r.method("SceneComponent@ scene_component() const final", &This::scene_component);
 
 		ScriptEngine::on_terminate.push([]() {
-			script_actor_update.release();
-			script_actor_start_play.release();
-			script_actor_stop_play.release();
 			script_actor_spawned.release();
+			script_actor_start_play.release();
+			script_actor_update.release();
+			script_actor_stop_play.release();
 			script_actor_despawned.release();
 		});
 
-		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_owned_components, Refl::Property::IsReadOnly);
+		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_components, Refl::Property::IsReadOnly);
 
 		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
 		{

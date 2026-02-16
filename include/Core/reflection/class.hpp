@@ -17,6 +17,10 @@ namespace Engine
 		private:
 			mutable Engine::Object* m_singletone_object;
 
+		private:
+			void script_object_constructor(void* object, StringView name = "", Engine::Object* owner = nullptr);
+			inline void script_object_constructor_default(void* object) { script_object_constructor(object); }
+
 		protected:
 			static bool is_script_class(Class* self);
 			using ObjectFactory = Engine::Object*(StringView name, Engine::Object* owner);

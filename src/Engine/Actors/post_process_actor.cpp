@@ -8,6 +8,6 @@ namespace Engine
 
 	PostProcessActor::PostProcessActor()
 	{
-		m_post_process_component = create_component<PostProcessComponent>(("Post Process Component"));
+		m_post_process_component = new_instance<PostProcessComponent>("Post Process Component", this);
 	}
 }// namespace Engine

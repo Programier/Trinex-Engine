@@ -480,7 +480,8 @@ namespace Engine
 
 		if (m_selected && ImGui::Button("editor/Spawn"_localized))
 		{
-			world->spawn_actor(m_selected->self, m_location, m_rotation, m_scale, m_name);
+			Actor* actor = Actor::new_instance(m_selected->self, m_location, m_rotation, m_scale, m_name);
+			actor->owner(world);
 			m_is_open = false;
 		}
 	}

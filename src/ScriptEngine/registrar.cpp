@@ -98,26 +98,16 @@ namespace Engine
 	{
 		switch (conv)
 		{
-			case ScriptCallConv::CDecl:
-				return asCALL_CDECL;
-			case ScriptCallConv::StdCall:
-				return asCALL_STDCALL;
-			case ScriptCallConv::ThisCallAsGlobal:
-				return asCALL_THISCALL_ASGLOBAL;
-			case ScriptCallConv::ThisCall:
-				return asCALL_THISCALL;
-			case ScriptCallConv::CDeclObjLast:
-				return asCALL_CDECL_OBJLAST;
-			case ScriptCallConv::CDeclObjFirst:
-				return asCALL_CDECL_OBJFIRST;
-			case ScriptCallConv::Generic:
-				return asCALL_GENERIC;
-			case ScriptCallConv::ThisCall_ObjLast:
-				return asCALL_THISCALL_OBJLAST;
-			case ScriptCallConv::ThisCall_ObjFirst:
-				return asCALL_THISCALL_OBJFIRST;
-			default:
-				throw EngineException("Undefined call convension!");
+			case ScriptCallConv::CDecl: return asCALL_CDECL;
+			case ScriptCallConv::StdCall: return asCALL_STDCALL;
+			case ScriptCallConv::ThisCallAsGlobal: return asCALL_THISCALL_ASGLOBAL;
+			case ScriptCallConv::ThisCall: return asCALL_THISCALL;
+			case ScriptCallConv::CDeclObjLast: return asCALL_CDECL_OBJLAST;
+			case ScriptCallConv::CDeclObjFirst: return asCALL_CDECL_OBJFIRST;
+			case ScriptCallConv::Generic: return asCALL_GENERIC;
+			case ScriptCallConv::ThisCall_ObjLast: return asCALL_THISCALL_OBJLAST;
+			case ScriptCallConv::ThisCall_ObjFirst: return asCALL_THISCALL_OBJFIRST;
+			default: throw EngineException("Undefined call convension!");
 		}
 	}
 
@@ -125,36 +115,21 @@ namespace Engine
 	{
 		switch (behave)
 		{
-			case ScriptClassBehave::Construct:
-				return asBEHAVE_CONSTRUCT;
-			case ScriptClassBehave::ListConstruct:
-				return asBEHAVE_LIST_CONSTRUCT;
-			case ScriptClassBehave::Destruct:
-				return asBEHAVE_DESTRUCT;
-			case ScriptClassBehave::Factory:
-				return asBEHAVE_FACTORY;
-			case ScriptClassBehave::ListFactory:
-				return asBEHAVE_LIST_FACTORY;
-			case ScriptClassBehave::AddRef:
-				return asBEHAVE_ADDREF;
-			case ScriptClassBehave::Release:
-				return asBEHAVE_RELEASE;
-			case ScriptClassBehave::GetWeakRefFlag:
-				return asBEHAVE_GET_WEAKREF_FLAG;
-			case ScriptClassBehave::TemplateCallback:
-				return asBEHAVE_TEMPLATE_CALLBACK;
-			case ScriptClassBehave::GetRefCount:
-				return asBEHAVE_GETREFCOUNT;
-			case ScriptClassBehave::GetGCFlag:
-				return asBEHAVE_GETGCFLAG;
-			case ScriptClassBehave::SetGCFlag:
-				return asBEHAVE_SETGCFLAG;
-			case ScriptClassBehave::EnumRefs:
-				return asBEHAVE_ENUMREFS;
-			case ScriptClassBehave::ReleaseRefs:
-				return asBEHAVE_RELEASEREFS;
-			default:
-				throw EngineException("Undefined behave!");
+			case ScriptClassBehave::Construct: return asBEHAVE_CONSTRUCT;
+			case ScriptClassBehave::ListConstruct: return asBEHAVE_LIST_CONSTRUCT;
+			case ScriptClassBehave::Destruct: return asBEHAVE_DESTRUCT;
+			case ScriptClassBehave::Factory: return asBEHAVE_FACTORY;
+			case ScriptClassBehave::ListFactory: return asBEHAVE_LIST_FACTORY;
+			case ScriptClassBehave::AddRef: return asBEHAVE_ADDREF;
+			case ScriptClassBehave::Release: return asBEHAVE_RELEASE;
+			case ScriptClassBehave::GetWeakRefFlag: return asBEHAVE_GET_WEAKREF_FLAG;
+			case ScriptClassBehave::TemplateCallback: return asBEHAVE_TEMPLATE_CALLBACK;
+			case ScriptClassBehave::GetRefCount: return asBEHAVE_GETREFCOUNT;
+			case ScriptClassBehave::GetGCFlag: return asBEHAVE_GETGCFLAG;
+			case ScriptClassBehave::SetGCFlag: return asBEHAVE_SETGCFLAG;
+			case ScriptClassBehave::EnumRefs: return asBEHAVE_ENUMREFS;
+			case ScriptClassBehave::ReleaseRefs: return asBEHAVE_RELEASEREFS;
+			default: throw EngineException("Undefined behave!");
 		}
 	}
 
@@ -211,7 +186,8 @@ namespace Engine
 		auto res = ScriptClassRegistrar(class_instance->full_name(), class_instance->size(), create_flags(info));
 		auto ti  = res.type_info();
 		class_instance->script_type_info = ti;
-		ti.info()->SetNativeClassUserData(class_instance);
+
+		ScriptEngine::register_class(ti.type_id(), class_instance);
 		return res;
 	}
 

@@ -13,6 +13,9 @@ namespace Engine
 		trinex_class(ActorComponent, Object);
 
 	private:
+		bool m_is_playing = false;
+
+	private:
 		void script_update(float dt);
 		void script_sync();
 		void script_start_play();
@@ -23,15 +26,15 @@ namespace Engine
 	public:
 		template<typename NativeType>
 		struct Scriptable : public Super::Scriptable<NativeType> {
-			Scriptable& start_play() override
+			Scriptable& spawned() override
 			{
-				reinterpret_cast<ActorComponent*>(this)->script_start_play();
+				reinterpret_cast<ActorComponent*>(this)->script_spawned();
 				return *this;
 			}
 
-			Scriptable& stop_play() override
+			Scriptable& start_play() override
 			{
-				reinterpret_cast<ActorComponent*>(this)->script_stop_play();
+				reinterpret_cast<ActorComponent*>(this)->script_start_play();
 				return *this;
 			}
 
@@ -41,15 +44,9 @@ namespace Engine
 				return *this;
 			}
 
-			Scriptable& sync() override
+			Scriptable& stop_play() override
 			{
-				reinterpret_cast<ActorComponent*>(this)->script_sync();
-				return *this;
-			}
-
-			Scriptable& spawned() override
-			{
-				reinterpret_cast<ActorComponent*>(this)->script_spawned();
+				reinterpret_cast<ActorComponent*>(this)->script_stop_play();
 				return *this;
 			}
 
@@ -58,17 +55,26 @@ namespace Engine
 				reinterpret_cast<ActorComponent*>(this)->script_despawned();
 				return *this;
 			}
+
+			Scriptable& sync() override
+			{
+				reinterpret_cast<ActorComponent*>(this)->script_sync();
+				return *this;
+			}
 		};
 
 		ActorComponent();
 		~ActorComponent();
 
-		virtual ActorComponent& start_play();
-		virtual ActorComponent& stop_play();
-		virtual ActorComponent& update(float dt);
-		virtual ActorComponent& sync();
 		virtual ActorComponent& spawned();
+		virtual ActorComponent& start_play();
+		virtual ActorComponent& update(float dt);
+		virtual ActorComponent& stop_play();
 		virtual ActorComponent& despawned();
+
+		virtual ActorComponent& sync();
+
+		inline bool is_playing() const { return m_is_playing; }
 
 		class Actor* actor() const;
 		class World* world() const;

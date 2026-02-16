@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/reflection/class.hpp>
+#include <ScriptEngine/script_function.hpp>
 
 namespace Engine
 {
@@ -15,6 +16,7 @@ namespace Engine::Refl
 
 	private:
 		Script* m_script;
+		ScriptFunction m_factory;
 
 		Engine::Object* object_constructor(StringView name, Engine::Object* owner, bool scriptable) override;
 

@@ -50,7 +50,7 @@ namespace Engine
 		r.method("const Transform& local_transform() const final", overload_of<const Transform&()>(&This::local_transform));
 		r.method("const Transform& world_transform() const final", &This::world_transform);
 		r.method("SceneComponent@ local_transform(const Transform&) final",
-		         overload_of<SceneComponent&()>(&This::local_transform));
+		         overload_of<SceneComponent&(const Transform&)>(&This::local_transform));
 		r.method("SceneComponent@ add_local_transform(const Transform&) final", &This::add_local_transform);
 		r.method("SceneComponent@ remove_local_transform(const Transform&) final", &This::remove_local_transform);
 		r.method("SceneComponent@ location(const Vector3f& new_location) final", &This::location);
@@ -205,6 +205,15 @@ namespace Engine
 	SceneComponent& SceneComponent::local_transform(const Transform& transform)
 	{
 		m_local = transform;
+		on_transform_changed();
+		return *this;
+	}
+
+	SceneComponent& SceneComponent::local_transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale)
+	{
+		m_local.location = location;
+		m_local.rotation = rotation;
+		m_local.scale    = scale;
 		on_transform_changed();
 		return *this;
 	}

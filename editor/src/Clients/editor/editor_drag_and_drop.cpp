@@ -10,10 +10,9 @@ namespace Engine
 	{
 		if (StaticMesh* mesh = object->instance_cast<StaticMesh>())
 		{
-			StaticMeshActor* actor =
-			        m_world->spawn_actor(StaticMeshActor::static_reflection())->instance_cast<StaticMeshActor>();
+			StaticMeshActor* actor = Object::new_instance<StaticMeshActor>();
 			actor->mesh_component()->mesh(mesh);
-			actor->mesh_component()->on_transform_changed();
+			actor->owner(m_world);
 		}
 
 		return *this;

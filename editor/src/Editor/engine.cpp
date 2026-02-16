@@ -34,6 +34,7 @@ namespace Engine
 
 	EditorEngine& EditorEngine::unselect(World* world)
 	{
+		m_selected_actors.clear();
 		return *this;
 	}
 

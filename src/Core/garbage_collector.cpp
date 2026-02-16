@@ -65,7 +65,7 @@ namespace Engine
 
 	void GarbageCollector::update(float dt)
 	{
-		if (Object::all_objects().empty())
+		if (Object::static_objects().empty())
 			return;
 
 		if (gc_state.stage == GCStage::MarkUnreachable)
@@ -96,7 +96,7 @@ namespace Engine
 
 	bool GarbageCollector::process_objects(void (*callback)(Object* object))
 	{
-		const auto& objects     = Object::all_objects();
+		const auto& objects     = Object::static_objects();
 		uint_t objects_per_tick = get_max_objects_per_tick();
 		auto objects_count      = objects.size();
 
@@ -190,7 +190,7 @@ namespace Engine
 		if (!object->flags.has_all(Object::IsAvailableForGC))
 			return false;
 
-		auto index = object->instance_index();
+		auto index = object->global_index();
 
 		if (Object* owner = object->owner())
 		{
@@ -198,7 +198,7 @@ namespace Engine
 				return false;
 
 			// Maybe this object is already destroyed, check it
-			if (Object::all_objects()[index] != object)
+			if (Object::static_objects()[index] != object)
 				return true;
 		}
 
@@ -208,7 +208,7 @@ namespace Engine
 
 	void GarbageCollector::destroy_all_objects()
 	{
-		auto& objects = const_cast<Vector<Object*>&>(Object::all_objects());
+		auto& objects = const_cast<Vector<Object*>&>(Object::static_objects());
 
 		size_t index = 0;
 
