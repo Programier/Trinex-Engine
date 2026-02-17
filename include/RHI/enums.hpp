@@ -800,6 +800,19 @@ namespace Engine
 		inline uint_t height() const { return 1u << ((value >> 2) & 0b11); }
 	};
 
+	struct RHIContextFlags {
+		enum Enum : byte
+		{
+			Undefined = 0,
+			Secondary = 1 << 0,
+			Graphics  = 1 << 2,
+			Compute   = 1 << 3,
+			Transfer  = 1 << 4,
+		};
+
+		trinex_bitfield_enum_struct(RHIContextFlags, byte);
+	};
+
 	struct RHIShadingRateCombiner {
 		enum Enum : byte
 		{

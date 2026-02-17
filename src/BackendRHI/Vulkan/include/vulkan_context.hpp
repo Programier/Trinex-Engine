@@ -56,9 +56,10 @@ namespace Engine
 		Vector<UniformBuffer> m_uniform_buffers;
 		Vector<RHIObject*> m_stagging;
 		State m_state = State::IsReadyForBegin;
+		const RHIContextFlags m_flags;
 
 	public:
-		VulkanCommandHandle(class VulkanCommandBufferManager* manager);
+		VulkanCommandHandle(class VulkanCommandBufferManager* manager, RHIContextFlags flags);
 		VulkanCommandHandle(const VulkanCommandHandle&) = delete;
 		VulkanCommandHandle(VulkanCommandHandle&&)      = delete;
 		~VulkanCommandHandle();
@@ -67,7 +68,7 @@ namespace Engine
 		VulkanCommandHandle& operator=(VulkanCommandHandle&&)      = delete;
 
 		VulkanCommandHandle& refresh_fence_status();
-		VulkanCommandHandle& begin();
+		VulkanCommandHandle& begin(const vk::CommandBufferBeginInfo& info = {});
 		VulkanCommandHandle& end();
 		VulkanCommandHandle& begin_render_pass(VulkanRenderTarget* rt);
 		VulkanCommandHandle& end_render_pass();
@@ -96,6 +97,9 @@ namespace Engine
 		inline bool has_begun() const { return m_state == State::IsInsideBegin || m_state == State::IsInsideRenderPass; }
 		inline bool has_ended() const { return m_state == State::HasEnded; }
 		inline bool is_submitted() const { return m_state == State::Submitted; }
+		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
+		inline bool is_primary() const { return (m_flags & RHIContextFlags::Secondary) == RHIContextFlags::Undefined; }
+
 		inline VulkanFence* fence() const { return m_fence; }
 	};
 
@@ -104,7 +108,8 @@ namespace Engine
 	private:
 		CriticalSection m_critical;
 		vk::CommandPool m_pool;
-		Deque<VulkanCommandHandle*> m_handles;
+		Deque<VulkanCommandHandle*> m_primary;
+		Deque<VulkanCommandHandle*> m_secondary;
 
 	public:
 		VulkanCommandBufferManager();
@@ -112,7 +117,7 @@ namespace Engine
 
 		static VulkanCommandBufferManager* instance();
 
-		VulkanCommandHandle* request_handle();
+		VulkanCommandHandle* request_handle(RHIContextFlags flags = RHIContextFlags::Undefined);
 		VulkanCommandBufferManager& return_handle(VulkanCommandHandle* handle);
 
 		inline vk::CommandPool command_pool() const { return m_pool; }
@@ -123,14 +128,15 @@ namespace Engine
 	private:
 		VulkanStateManager* m_state_manager;
 		VulkanCommandHandle* m_cmd = nullptr;
+		RHIContextFlags m_flags;
 
 		void destroy() override;
 
 	public:
-		VulkanContext();
+		VulkanContext(RHIContextFlags flags);
 		~VulkanContext();
 
-		VulkanContext& begin() override;
+		VulkanContext& begin(RHIContext* primary = nullptr) override;
 		VulkanCommandHandle* end() override;
 
 		VulkanContext& execute(RHICommandHandle* handle) override;
@@ -212,6 +218,7 @@ namespace Engine
 		VulkanCommandHandle* begin_render_pass();
 		VulkanCommandHandle* end_render_pass();
 
+		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline VulkanCommandHandle* handle() const { return m_cmd; }
 		inline VulkanStateManager* state() const { return m_state_manager; }
 	};

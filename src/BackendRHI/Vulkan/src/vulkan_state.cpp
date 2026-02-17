@@ -75,7 +75,11 @@ namespace Engine
 
 	VulkanCommandHandle* VulkanStateManager::begin_render_pass(VulkanContext* ctx)
 	{
-		auto cmd      = ctx->handle();
+		auto cmd = ctx->handle();
+
+		if (ctx->is_secondary())
+			return cmd;
+
 		m_render_pass = m_render_target->m_render_pass;
 		cmd->begin_render_pass(m_render_target);
 		return cmd;
@@ -84,6 +88,9 @@ namespace Engine
 	VulkanCommandHandle* VulkanStateManager::end_render_pass(VulkanContext* ctx)
 	{
 		auto cmd = ctx->handle();
+
+		if (ctx->is_secondary())
+			return cmd;
 
 		if (ctx->handle()->is_inside_render_pass())
 		{
@@ -196,6 +203,26 @@ namespace Engine
 		m_render_pass = nullptr;
 
 		m_graphics_state.init();
+		return *this;
+	}
+
+	VulkanStateManager& VulkanStateManager::copy(VulkanStateManager* src, size_t dirty_mask)
+	{
+		m_dirty_flags         = src->m_dirty_flags & dirty_mask;
+		uniform_buffers       = src->uniform_buffers;
+		storage_buffers       = src->storage_buffers;
+		uniform_texel_buffers = src->uniform_texel_buffers;
+		storage_texel_buffers = src->storage_texel_buffers;
+		samplers              = src->samplers;
+		srv_images            = src->srv_images;
+		uav_images            = src->uav_images;
+		vertex_streams        = src->vertex_streams;
+		vertex_attributes     = src->vertex_attributes;
+		m_render_pass         = src->m_render_pass;
+		m_render_target       = src->m_render_target;
+		m_pipeline            = src->m_pipeline;
+		m_graphics_state      = src->m_graphics_state;
+
 		return *this;
 	}
 

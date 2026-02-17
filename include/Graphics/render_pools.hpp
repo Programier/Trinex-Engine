@@ -186,7 +186,7 @@ namespace Engine
 		static RHIContextPool* global_instance();
 
 		RHIContextPool& update();
-		RHIContext* request_context();
+		RHIContext* request_context(RHIContextFlags flags = RHIContextFlags::Undefined);
 		RHIContextPool& release_all();
 		RHIContextPool& return_context(RHIContext* context);
 

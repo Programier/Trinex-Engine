@@ -115,6 +115,9 @@ namespace Engine
 	VulkanContext& VulkanContext::bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
 	                                                 RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil)
 	{
+		if (is_secondary())
+			return *this;
+		
 		VulkanTextureRTV* surfaces[4] = {static_cast<VulkanTextureRTV*>(rt1), static_cast<VulkanTextureRTV*>(rt2),
 		                                 static_cast<VulkanTextureRTV*>(rt3), static_cast<VulkanTextureRTV*>(rt4)};
 

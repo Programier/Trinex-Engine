@@ -56,7 +56,7 @@ namespace Engine
 		virtual RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) = 0;
 		virtual RHIBuffer* create_buffer(size_t size, RHIBufferCreateFlags flags)                          = 0;
 		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                                 = 0;
-		virtual RHIContext* create_context()                                                               = 0;
+		virtual RHIContext* create_context(RHIContextFlags flags = RHIContextFlags::Undefined)             = 0;
 
 		// Raytracing
 		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs)    = 0;

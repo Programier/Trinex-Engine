@@ -139,6 +139,11 @@ namespace Engine
 		return write_mask(m_state->write_mask.pop());
 	}
 
+	RHIContext& RHIContext::copy_state(RHIContext* src)
+	{
+		return *this;
+	}
+
 	RHIContext& RHIContext::reset_state()
 	{
 		m_state->reset();

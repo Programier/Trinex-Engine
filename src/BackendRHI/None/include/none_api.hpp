@@ -32,7 +32,7 @@ namespace Engine
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
 		RHIBuffer* create_buffer(size_t size, RHIBufferCreateFlags type) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
-		RHIContext* create_context() override;
+		RHIContext* create_context(RHIContextFlags flags) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) override;

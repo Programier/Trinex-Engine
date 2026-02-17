@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/atomic.hpp>
-#include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/tuple.hpp>
 #include <Core/etl/type_traits.hpp>
@@ -24,6 +23,7 @@ namespace Engine
 			Undefined,
 			Pending,
 			Executing,
+			Completing,
 			Executed
 		};
 
@@ -69,14 +69,14 @@ namespace Engine
 	public:
 		Task();
 
-		template<typename Callable, typename... Args>
+		template<typename Callable, typename... Args, typename = std::enable_if_t<!std::is_same_v<std::decay_t<Callable>, Task>>>
 		Task(Callable&& callable, Args&&... args) : Task(Middle)
 		{
 			using FuncType = FunctionImpl<std::decay_t<Callable>, std::decay_t<Args>...>;
 			new (data(sizeof(FuncType))) FuncType(etl::forward<Callable>(callable), etl::forward<Args>(args)...);
 		}
 
-		template<typename Callable, typename... Args>
+		template<typename Callable, typename... Args, typename = std::enable_if_t<!std::is_same_v<std::decay_t<Callable>, Task>>>
 		Task(Priority priority, Callable&& callable, Args&&... args) : Task(priority)
 		{
 			using FuncType = FunctionImpl<std::decay_t<Callable>, std::decay_t<Args>...>;
@@ -89,9 +89,10 @@ namespace Engine
 		Task& operator=(Task&& task);
 		~Task();
 
-		Task& clear_dependencies();
-		Task& add_dependency(const Task& dep);
-		Task& add_dependency(Task&& dep);
+		bool is_multi_threaded() const;
+		Task& is_multi_threaded(bool flag);
+		Task& add_dependent(const Task& dependent);
+		Task& add_dependent(Task&& dependent);
 		Priority priority() const;
 		Status status() const;
 
@@ -102,6 +103,7 @@ namespace Engine
 
 		inline operator bool() const { return is_valid(); }
 
+		friend class TaskQueue;
 		friend class TaskGraph;
 		friend class TaskGraphImpl;
 		friend class Thread;
@@ -115,25 +117,13 @@ namespace Engine
 
 	private:
 		struct Impl;
-
-		Deque<Task::TaskImpl*> m_tasks[3];
 		Impl* m_thread = nullptr;
-
-		CriticalSection m_cs;
 
 	private:
 		void thread_loop();
 		Task::TaskImpl* fetch_task_locked();
 
-		inline bool has_tasks() const
-		{
-			for (auto& queue : m_tasks)
-			{
-				if (!queue.empty())
-					return true;
-			}
-			return false;
-		}
+		bool has_tasks() const;
 
 	public:
 		Thread();
@@ -163,8 +153,43 @@ namespace Engine
 		static TaskGraph* instance();
 
 		TaskGraph& add_task(const Task& task);
-		TaskGraph& add_task(Task&& task);
 		TaskGraph& wait_for(const Task& task);
+
+
+		template<typename Callable>
+		inline TaskGraph& for_each(size_t count, Callable&& func, size_t block = 64)
+		{
+			if (count < block)
+			{
+				for (size_t i = 0; i < count; ++i)
+				{
+					func(i);
+				}
+				return *this;
+			}
+
+			Atomic<size_t> counter = 0;
+
+			Task task = Task(Task::High, [&]() {
+				size_t start;
+
+				while ((start = counter.fetch_add(block)) < count)
+				{
+					size_t end = start + block;
+
+					if (end > count)
+						end = count;
+
+					for (size_t i = start; i < end; ++i)
+					{
+						func(i);
+					}
+				}
+			});
+
+			//task.is_multi_threaded(true);
+			return wait_for(task);
+		}
 	};
 
 	ENGINE_EXPORT void create_threads();

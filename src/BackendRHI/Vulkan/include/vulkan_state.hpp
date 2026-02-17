@@ -127,6 +127,7 @@ namespace Engine
 		};
 
 	private:
+		RHIContextFlags m_flags;
 		uint32_t m_dirty_flags;
 
 		VulkanRenderPass* m_render_pass     = nullptr;
@@ -315,6 +316,7 @@ namespace Engine
 		VulkanCommandHandle* flush_compute(VulkanContext* ctx);
 		VulkanCommandHandle* flush_raytrace(VulkanContext* ctx);
 		VulkanStateManager& reset();
+		VulkanStateManager& copy(VulkanStateManager* src, size_t dirty_mask = ~0ULL);
 
 		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);
 		uint128_t graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;

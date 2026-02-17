@@ -189,7 +189,7 @@ namespace Engine
 		return new NoneSwapchain();
 	}
 
-	RHIContext* NoneApi::create_context()
+	RHIContext* NoneApi::create_context(RHIContextFlags flags)
 	{
 		return nullptr;
 	}

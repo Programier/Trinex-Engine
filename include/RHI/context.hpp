@@ -44,11 +44,12 @@ namespace Engine
 		RHIContext& pop_write_mask();
 
 	protected:
+		RHIContext& copy_state(RHIContext* src);
 		RHIContext& reset_state();
 
 	public:
-		virtual RHIContext& begin()     = 0;
-		virtual RHICommandHandle* end() = 0;
+		virtual RHIContext& begin(RHIContext* primary = nullptr) = 0;
+		virtual RHICommandHandle* end()                          = 0;
 
 		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
 

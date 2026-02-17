@@ -631,7 +631,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHIContext* RHIContextPool::request_context()
+	RHIContext* RHIContextPool::request_context(RHIContextFlags flags)
 	{
 		if (!m_pool.empty())
 		{
@@ -639,7 +639,8 @@ namespace Engine
 			m_pool.pop_back();
 			return ctx;
 		}
-		return rhi->create_context();
+
+		return rhi->create_context(flags);
 	}
 
 	RHIContextPool& RHIContextPool::release_all()

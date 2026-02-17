@@ -1,5 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/atomic.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/exception.hpp>
@@ -11,6 +12,14 @@
 
 namespace Engine
 {
+	///////////////// TASK QUEUE IMPLEMENTATION /////////////////
+
+	class TaskQueue
+	{
+	public:
+		virtual void add_task_internal(Task::TaskImpl* task) = 0;
+	};
+
 	///////////////// TASK CLASS IMPLEMENTATION /////////////////
 
 	class Task::TaskImpl
@@ -29,10 +38,15 @@ namespace Engine
 
 		size_t m_data_size = 0;
 
-		Vector<Task> m_deps;
-		Atomic<uint64_t> m_refs = 1;
-		Atomic<Status> m_status = Undefined;
-		Priority m_priority     = Middle;
+		TaskQueue* m_queue = nullptr;
+		Vector<Task> m_dependents;
+		Atomic<uint32_t> m_dependencies = 0;
+		Atomic<uint32_t> m_refs         = 1;
+		Atomic<uint32_t> m_workers      = 0;
+		Atomic<Status> m_status         = Undefined;
+		Priority m_priority             = Middle;
+
+		bool m_is_multi_threaded = false;
 
 	public:
 		static TaskImpl* allocate()
@@ -55,17 +69,19 @@ namespace Engine
 
 		inline void reset()
 		{
-			m_deps.clear();
+			m_queue = nullptr;
+			m_dependents.clear();
 			m_refs.store(1, etl::memory_order_relaxed);
-			m_status   = Undefined;
-			m_priority = Middle;
+			m_status            = Undefined;
+			m_priority          = Middle;
+			m_is_multi_threaded = false;
 
 			m_function->~Function();
 		}
 
 		inline void add_ref() { m_refs.fetch_add(1, etl::memory_order_relaxed); }
 
-		inline void release()
+		inline bool release()
 		{
 			if (m_refs.fetch_sub(1, etl::memory_order_acq_rel) == 1)
 			{
@@ -77,21 +93,42 @@ namespace Engine
 				{
 					m_next.store(head, etl::memory_order_relaxed);
 				} while (!s_task_queue.compare_exchange_weak(head, this, etl::memory_order_release, etl::memory_order_relaxed));
-			}
-		}
 
-		bool ready() const
-		{
-			for (const auto& dep : m_deps)
-				if (dep.m_impl->m_status != Status::Executed)
-					return false;
+				return false;
+			}
+
 			return true;
 		}
 
-		inline void execute()
+		inline void remove_dependency()
+		{
+			if (--m_dependencies == 0)
+			{
+				if (m_queue)
+				{
+					m_queue->add_task_internal(this);
+				}
+			}
+		}
+
+		inline bool execute()
 		{
 			m_function->execute();
-			m_status.store(Status::Executed, etl::memory_order_release);
+
+			if (m_is_multi_threaded && m_workers.fetch_sub(1, std::memory_order_acq_rel) != 1)
+			{
+				m_status.store(Status::Completing, std::memory_order_release);
+				return false;
+			}
+			else
+			{
+				m_status.store(Status::Executed, std::memory_order_release);
+				for (Task& dependent : m_dependents)
+				{
+					dependent.m_impl->remove_dependency();
+				}
+				return true;
+			}
 		}
 
 		inline void* data(size_t size)
@@ -160,21 +197,28 @@ namespace Engine
 			m_impl->release();
 	}
 
-	Task& Task::clear_dependencies()
+	bool Task::is_multi_threaded() const
 	{
-		m_impl->m_deps.clear();
+		return m_impl->m_is_multi_threaded;
+	}
+
+	Task& Task::is_multi_threaded(bool flag)
+	{
+		m_impl->m_is_multi_threaded = flag;
 		return *this;
 	}
 
-	Task& Task::add_dependency(const Task& dep)
+	Task& Task::add_dependent(const Task& dependent)
 	{
-		m_impl->m_deps.push_back(dep);
+		m_impl->m_dependents.push_back(dependent);
+		dependent.m_impl->m_dependencies += 1;
 		return *this;
 	}
 
-	Task& Task::add_dependency(Task&& dep)
+	Task& Task::add_dependent(Task&& dependent)
 	{
-		m_impl->m_deps.push_back(etl::move(dep));
+		dependent.m_impl->m_dependencies += 1;
+		m_impl->m_dependents.push_back(etl::move(dependent));
 		return *this;
 	}
 
@@ -188,19 +232,50 @@ namespace Engine
 		return m_impl->m_status;
 	}
 
-
 	///////////////// THREAD CLASS IMPLEMENTATION /////////////////
 
 	static thread_local Thread* this_thread_instance = nullptr;
 
 	struct Thread::Impl {
-		std::thread thread;
-		std::condition_variable cv;
-		bool running = false;
+		Deque<Task::TaskImpl*> m_tasks[3];
+		CriticalSection m_cs;
 
-		template<typename... Args>
-		Impl(Args... args) : thread(args...)
+		struct ThreadData {
+			std::thread m_thread;
+			std::condition_variable m_cv;
+			bool m_running = false;
+
+			template<typename Func>
+			ThreadData(Func&& func) : m_thread(etl::forward<Func>(func))
+			{}
+
+			~ThreadData()
+			{
+				m_running = false;
+				m_cv.notify_all();
+
+				if (m_thread.joinable())
+				{
+					m_thread.join();
+				}
+			}
+
+		}* m_thread_data = nullptr;
+
+		Impl() {}
+
+		template<typename Func>
+		Impl(Func&& func) : m_thread_data(trx_new ThreadData(etl::forward<Func>(func)))
 		{}
+
+		~Impl()
+		{
+			if (m_thread_data)
+			{
+				trx_delete m_thread_data;
+				m_thread_data = nullptr;
+			}
+		}
 	};
 
 	Thread::Thread()
@@ -216,6 +291,8 @@ namespace Engine
 		}
 
 		this_thread_instance = this;
+
+		m_thread = trx_new Impl();
 	}
 
 	Thread::Thread(void (*function)(void* data), void* data)
@@ -231,14 +308,16 @@ namespace Engine
 	{
 		this_thread_instance = this;
 
-		while (m_thread->running)
+		Thread::Impl::ThreadData* thread = m_thread->m_thread_data;
+
+		while (thread->m_running)
 		{
 			Task::TaskImpl* task = nullptr;
 			{
-				std::unique_lock lock(m_cs);
-				m_thread->cv.wait(lock, [this] { return !m_thread->running || has_tasks(); });
+				std::unique_lock lock(m_thread->m_cs);
+				thread->m_cv.wait(lock, [this, thread] { return !thread->m_running || has_tasks(); });
 
-				if (!m_thread->running)
+				if (!thread->m_running)
 					break;
 
 				task = fetch_task_locked();
@@ -257,13 +336,23 @@ namespace Engine
 		this_thread_instance = nullptr;
 	}
 
+	bool Thread::has_tasks() const
+	{
+		for (auto& queue : m_thread->m_tasks)
+		{
+			if (!queue.empty())
+				return true;
+		}
+		return false;
+	}
+
 	Task::TaskImpl* Thread::fetch_task_locked()
 	{
 		for (uint32_t i = Task::High; i <= Task::Low; ++i)
 		{
-			auto& queue = m_tasks[i];
+			auto& queue = m_thread->m_tasks[i];
 
-			while (!queue.empty())
+			if (!queue.empty())
 			{
 				Task::TaskImpl* t = etl::move(queue.front());
 				queue.pop_front();
@@ -281,7 +370,7 @@ namespace Engine
 			while (true)
 			{
 				{
-					ScopeLock lock(m_cs);
+					ScopeLock lock(m_thread->m_cs);
 					task = fetch_task_locked();
 				}
 
@@ -303,14 +392,14 @@ namespace Engine
 	Thread& Thread::add_task(const Task& task)
 	{
 		{
-			ScopeLock lock(m_cs);
+			ScopeLock lock(m_thread->m_cs);
 			task.m_impl->add_ref();
-			m_tasks[task.priority()].emplace_back(task.m_impl);
+			m_thread->m_tasks[task.priority()].emplace_back(task.m_impl);
 		}
 
-		if (m_thread)
+		if (m_thread->m_thread_data)
 		{
-			m_thread->cv.notify_one();
+			m_thread->m_thread_data->m_cv.notify_one();
 		}
 		return *this;
 	}
@@ -318,15 +407,15 @@ namespace Engine
 	Thread& Thread::add_task(Task&& task)
 	{
 		{
-			ScopeLock lock(m_cs);
-			m_tasks[task.priority()].emplace_back(task.m_impl);
+			ScopeLock lock(m_thread->m_cs);
+			m_thread->m_tasks[task.priority()].emplace_back(task.m_impl);
 		}
 
 		task.m_impl = nullptr;
 
-		if (m_thread)
+		if (m_thread->m_thread_data)
 		{
-			m_thread->cv.notify_one();
+			m_thread->m_thread_data->m_cv.notify_one();
 		}
 		return *this;
 	}
@@ -355,21 +444,13 @@ namespace Engine
 	{
 		if (m_thread)
 		{
-			m_thread->running = false;
-			m_thread->cv.notify_all();
-
-			if (m_thread->thread.joinable())
-			{
-				m_thread->thread.join();
-			}
-
 			trx_delete m_thread;
 		}
 	}
 
 	///////////////// TASK GRAPH CLASS IMPLEMENTATION /////////////////
 
-	class TaskGraphImpl
+	class TaskGraphImpl : public TaskQueue
 	{
 	private:
 		Vector<Thread*> m_workers;
@@ -390,66 +471,61 @@ namespace Engine
 			return true;
 		}
 
-		Task::TaskImpl* fetch_task_locked()
+		Task::TaskImpl* acquire_task_locked(Deque<Task::TaskImpl*>& queue)
 		{
-			for (uint32_t i = Task::High; i <= Task::Low; ++i)
+			while (!queue.empty())
 			{
-				auto& queue = m_tasks[i];
+				Task::TaskImpl* task = queue.front();
+				Task::Status status  = task->m_status;
 
-				while (!queue.empty())
+				if (task->m_is_multi_threaded)
 				{
-					Task::TaskImpl* t = queue.front();
+					if (status == Task::Status::Pending || status == Task::Status::Executing)
+					{
+						if (status == Task::Status::Pending)
+							task->m_status = Task::Status::Executing;
+
+						++task->m_workers;
+						return task;
+					}
+
+					task->release();
+					queue.pop_front();
+				}
+				else
+				{
 					queue.pop_front();
 
-					if (t->m_status == Task::Status::Pending)
-						return t;
+					if (status == Task::Status::Pending)
+					{
+						task->m_status = Task::Status::Executing;
+						return task;
+					}
+
+					task->release();
 				}
 			}
 
 			return nullptr;
 		}
 
-		bool execute_task(Task::TaskImpl* task)
+		Task::TaskImpl* acquire_task_locked()
 		{
-			if (task->ready())
+			for (uint32_t i = Task::High; i <= Task::Low; ++i)
 			{
-				Task::Status expected = Task::Status::Pending;
+				auto& queue = m_tasks[i];
 
-				if (task->m_status.compare_exchange_strong(expected, Task::Status::Executing))
-				{
-					task->execute();
-					return true;
-				}
-
-				return expected == Task::Executed;
-			}
-			else
-			{
-				push_back(task);
+				if (Task::TaskImpl* task = acquire_task_locked(queue))
+					return task;
 			}
 
-			return false;
+			return nullptr;
 		}
 
-		bool execute_next()
+		inline Task::TaskImpl* acquire_task()
 		{
-			Task::TaskImpl* task = nullptr;
-			{
-				std::unique_lock lock(m_mutex);
-				task = fetch_task_locked();
-			}
-
-			if (task)
-			{
-				if (execute_task(task))
-				{
-					task->release();
-				}
-
-				return true;
-			}
-
-			return false;
+			std::unique_lock lock(m_mutex);
+			return acquire_task_locked();
 		}
 
 		static void worker_main(void* self) { static_cast<TaskGraphImpl*>(self)->worker_loop(); }
@@ -466,10 +542,10 @@ namespace Engine
 					if (m_stop)
 						return;
 
-					task = fetch_task_locked();
+					task = acquire_task_locked();
 				}
 
-				if (task && execute_task(task))
+				if (task && task->execute())
 				{
 					task->release();
 				}
@@ -495,50 +571,83 @@ namespace Engine
 			for (Thread* worker : m_workers) trx_delete worker;
 		}
 
-		void push_back(Task::TaskImpl* task)
+		void add_task_locked(Task::TaskImpl* task)
 		{
-			std::unique_lock lock(m_mutex);
+			task->add_ref();
 			m_tasks[task->m_priority].push_back(task);
 			task->m_status.store(Task::Pending, std::memory_order_release);
-			m_cv.notify_one();
+
+			if (task->m_is_multi_threaded)
+			{
+				task->add_ref();
+				m_cv.notify_all();
+			}
+			else
+			{
+				m_cv.notify_one();
+			}
 		}
 
-		void push_front(Task::TaskImpl* task)
+		void add_task_internal(Task::TaskImpl* task) override
 		{
 			std::unique_lock lock(m_mutex);
-			m_tasks[task->m_priority].push_front(task);
-			task->m_status.store(Task::Pending, std::memory_order_release);
-			m_cv.notify_one();
+			add_task_locked(task);
+		}
+
+		void add_task(Task::TaskImpl* task)
+		{
+			if (task->m_queue != nullptr)
+				return;
+
+			std::unique_lock lock(m_mutex);
+
+			if (task->m_dependencies == 0)
+			{
+				add_task_locked(task);
+			}
+			else
+			{
+				task->m_queue = this;
+			}
 		}
 
 		void wait_for(Task::TaskImpl* task)
 		{
-			if (!task)
-				return;
-
-			for (const Task& dep : task->m_deps) wait_for(dep.m_impl);
-
-			while (true)
+			Task::TaskImpl* current = nullptr;
 			{
-				Task::Status st = task->m_status;
+				std::unique_lock lock(m_mutex);
+				Task::Status status = task->m_status;
 
-				if (st == Task::Status::Executed)
+				if (status == Task::Status::Executed)
 					return;
 
-				if (st == Task::Status::Pending && task->ready())
+				if (task->m_queue == nullptr)
 				{
-					Task::Status expected = Task::Status::Pending;
-
-					if (task->m_status.compare_exchange_strong(expected, Task::Status::Executing))
+					if (task->m_dependencies == 0)
 					{
-						task->execute();
-						return;
+						add_task_locked(task);
+					}
+					else
+					{
+						task->m_queue = this;
 					}
 				}
 
-				if (!execute_next())
+				current = acquire_task_locked();
+			}
+
+			if (current && current->execute())
+			{
+				current->release();
+			}
+
+			while (task->m_status != Task::Status::Executed)
+			{
+				current = acquire_task();
+
+				if (current && current->execute())
 				{
-					std::this_thread::yield();
+					current->release();
 				}
 			}
 		}
@@ -568,15 +677,7 @@ namespace Engine
 
 	TaskGraph& TaskGraph::add_task(const Task& task)
 	{
-		task.m_impl->add_ref();
-		m_impl->push_back(task.m_impl);
-		return *this;
-	}
-
-	TaskGraph& TaskGraph::add_task(Task&& task)
-	{
-		m_impl->push_back(task.m_impl);
-		task.m_impl = nullptr;
+		m_impl->add_task(task.m_impl);
 		return *this;
 	}
 
@@ -585,7 +686,7 @@ namespace Engine
 		m_impl->wait_for(task.m_impl);
 		return *this;
 	}
-	
+
 	///////////////// NAMED THREADS IMPLEMENTATION /////////////////
 
 	static Thread* s_logic_thread = nullptr;

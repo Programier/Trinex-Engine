@@ -53,13 +53,17 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager)
+	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager, RHIContextFlags flags) : m_flags(flags)
 	{
 		m_fence   = trx_new VulkanFence(false);
 		m_manager = manager;
 
+		const bool secondary               = is_secondary();
+		const vk::CommandBufferLevel level = secondary ? vk::CommandBufferLevel::eSecondary : vk::CommandBufferLevel::ePrimary;
+
 		vk::CommandPool pool = manager->command_pool();
-		vk::CommandBufferAllocateInfo alloc_info(pool, vk::CommandBufferLevel::ePrimary, 1);
+		vk::CommandBufferAllocateInfo alloc_info(pool, level, 1);
+
 		static_cast<vk::CommandBuffer&>(*this) = API->m_device.allocateCommandBuffers(alloc_info).front();
 	}
 
@@ -77,23 +81,18 @@ namespace Engine
 				{
 					page.reset();
 				}
-
-				for (RHIObject* stagging : m_stagging)
-				{
-					stagging->destroy();
-				}
-
-				m_stagging.clear();
 			}
 		}
 
 		return *this;
 	}
 
-	VulkanCommandHandle& VulkanCommandHandle::begin()
+	VulkanCommandHandle& VulkanCommandHandle::begin(const vk::CommandBufferBeginInfo& info)
 	{
 		trinex_check(m_state == State::IsReadyForBegin, "Vulkan cmd state must be ready for begin");
-		vk::CommandBuffer::begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+		vk::CommandBuffer::begin(info);
+
 		m_state = State::IsInsideBegin;
 		return *this;
 	}
@@ -161,6 +160,12 @@ namespace Engine
 
 	void VulkanCommandHandle::destroy()
 	{
+		for (RHIObject* stagging : m_stagging)
+		{
+			stagging->destroy();
+		}
+
+		m_stagging.clear();
 		m_manager->return_handle(this);
 	}
 
@@ -191,7 +196,12 @@ namespace Engine
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()
 	{
-		for (VulkanCommandHandle* handle : m_handles)
+		for (VulkanCommandHandle* handle : m_primary)
+		{
+			trx_delete handle;
+		}
+
+		for (VulkanCommandHandle* handle : m_secondary)
 		{
 			trx_delete handle;
 		}
@@ -205,35 +215,41 @@ namespace Engine
 		return manager;
 	}
 
-	VulkanCommandHandle* VulkanCommandBufferManager::request_handle()
+	VulkanCommandHandle* VulkanCommandBufferManager::request_handle(RHIContextFlags flags)
 	{
 		{
 			ScopeLock lock(m_critical);
-			if (!m_handles.empty())
+
+			Deque<VulkanCommandHandle*>* handles = flags & RHIContextFlags::Secondary ? &m_secondary : &m_primary;
+
+			if (!handles->empty())
 			{
-				auto front = m_handles.front();
+				auto front = handles->front();
 
 				if (front->refresh_fence_status().is_ready_for_begin())
 				{
-					m_handles.pop_front();
+					handles->pop_front();
 					return front;
 				}
 			}
 		}
 
-		return trx_new VulkanCommandHandle(this);
+		return trx_new VulkanCommandHandle(this, flags);
 	}
 
 	VulkanCommandBufferManager& VulkanCommandBufferManager::return_handle(VulkanCommandHandle* handle)
 	{
 		ScopeLock lock(m_critical);
-		m_handles.push_back(handle);
+
+		auto& queue = handle->is_primary() ? m_primary : m_secondary;
+		queue.push_back(handle);
+
 		handle->add_reference();
 		handle->enqueue();
 		return *this;
 	}
 
-	VulkanContext::VulkanContext() : m_state_manager(trx_new VulkanStateManager()) {}
+	VulkanContext::VulkanContext(RHIContextFlags flags) : m_state_manager(trx_new VulkanStateManager()), m_flags(flags) {}
 
 	VulkanContext::~VulkanContext()
 	{
@@ -244,14 +260,37 @@ namespace Engine
 		trx_delete m_state_manager;
 	}
 
-	VulkanContext& VulkanContext::begin()
+	VulkanContext& VulkanContext::begin(RHIContext* primary)
 	{
 		if (m_cmd == nullptr)
 		{
-			m_cmd = VulkanCommandBufferManager::instance()->request_handle();
-			m_cmd->begin();
+			m_cmd                = VulkanCommandBufferManager::instance()->request_handle(m_flags);
+			VulkanContext* owner = static_cast<VulkanContext*>(primary);
 
-			reset_state();
+			if (is_secondary())
+			{
+				if (owner->handle()->is_outside_render_pass())
+					owner->begin_render_pass();
+
+				vk::CommandBufferBeginInfo begin_info;
+				vk::CommandBufferInheritanceInfo inherit;
+
+				inherit.setFramebuffer(owner->state()->render_target()->framebuffer());
+				inherit.setRenderPass(owner->state()->render_target()->render_pass()->render_pass());
+				
+				begin_info.setPInheritanceInfo(&inherit);
+				begin_info.setFlags(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+
+				m_cmd->begin(begin_info);
+				m_state_manager->copy(owner->m_state_manager);
+				copy_state(primary);
+			}
+			else
+			{
+				m_cmd->begin();
+				m_state_manager->reset();
+				reset_state();
+			}
 		}
 		return *this;
 	}
@@ -268,13 +307,15 @@ namespace Engine
 			cmd->end_render_pass();
 		cmd->end();
 
-		m_state_manager->reset();
 		return cmd;
 	}
 
 	VulkanContext& VulkanContext::execute(RHICommandHandle* handle)
 	{
 		m_cmd->executeCommands(*static_cast<VulkanCommandHandle*>(handle));
+
+		handle->add_reference();
+		m_cmd->add_stagging(handle);
 		return *this;
 	}
 
@@ -387,8 +428,8 @@ namespace Engine
 		trx_delete this;
 	}
 
-	RHIContext* VulkanAPI::create_context()
+	RHIContext* VulkanAPI::create_context(RHIContextFlags flags)
 	{
-		return trx_new VulkanContext();
+		return trx_new VulkanContext(flags);
 	}
 }// namespace Engine
