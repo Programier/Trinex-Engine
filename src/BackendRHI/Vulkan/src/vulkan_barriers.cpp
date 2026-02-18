@@ -1,4 +1,3 @@
-#include <Core/exception.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_context.hpp>
@@ -66,14 +65,14 @@ namespace Engine::Barrier
 					stage  = vk::PipelineStageFlagBits::eAllCommands;
 					break;
 
-				default: throw EngineException("Undefined layout");
+				default: trinex_unreachable_msg("Undefined layout");
 			}
 		}
 	};
 
 	void transition_image_layout(VulkanContext* ctx, vk::ImageMemoryBarrier& barrier)
 	{
-		auto cmd = ctx->end_render_pass();
+		auto cmd = ctx->handle();
 
 		LayoutFlags src;
 		LayoutFlags dst;

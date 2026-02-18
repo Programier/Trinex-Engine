@@ -467,14 +467,16 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 
-			try
+			trinex_try
 			{
 				g->SetReturnAddress(&(m_self->at(g->GetArgQWord(0) * m_type_size)));
 			}
-			catch (const std::exception& e)
+#if TRINEX_WITH_EXCEPTIONS
+			trinex_catch(const std::exception& e)
 			{
 				asGetActiveContext()->SetException(e.what());
 			}
+#endif
 		}
 
 		static byte* front(Instance* self)
@@ -538,7 +540,7 @@ namespace Engine
 			if (m_self->capacity() >= result_cap)
 				return;
 
-			try
+			trinex_try
 			{
 				if (m_type)
 				{
@@ -555,10 +557,12 @@ namespace Engine
 				else
 					m_self->reserve(result_cap);
 			}
-			catch (const std::exception& e)
+#if TRINEX_WITH_EXCEPTIONS
+			trinex_catch(const std::exception& e)
 			{
 				asGetActiveContext()->SetException(e.what());
 			}
+#endif
 		}
 
 		static void reserve(asIScriptGeneric* g)

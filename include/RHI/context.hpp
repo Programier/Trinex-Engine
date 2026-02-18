@@ -51,6 +51,9 @@ namespace Engine
 		virtual RHIContext& begin(RHIContext* primary = nullptr) = 0;
 		virtual RHICommandHandle* end()                          = 0;
 
+		virtual RHIContext& begin_rendering(const RHIRenderingInfo& info) = 0;
+		virtual RHIContext& end_rendering()                               = 0;
+
 		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
 
 		virtual RHIContext& draw(size_t vertex_count, size_t vertices_offset, size_t instances = 1) = 0;
@@ -63,9 +66,6 @@ namespace Engine
 
 		virtual RHIContext& trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen = 0,
 		                               const RHIRange& miss = {}, const RHIRange& hit = {}, const RHIRange& callable = {}) = 0;
-
-		virtual RHIContext& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
-		                                       RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) = 0;
 
 		virtual RHIContext& viewport(const RHIViewport& viewport) = 0;
 		virtual RHIContext& scissor(const RHIScissor& scissor)    = 0;
@@ -132,34 +132,6 @@ namespace Engine
 		virtual RHIContext& begin_statistics(RHIPipelineStatistics* stats) = 0;
 		virtual RHIContext& end_statistics(RHIPipelineStatistics* stats)   = 0;
 
-		inline RHIContext& bind_depth_stencil_target(RHIDepthStencilView* depth_stencil)
-		{
-			return bind_render_target(nullptr, nullptr, nullptr, nullptr, depth_stencil);
-		}
-
-		inline RHIContext& bind_render_target1(RHIRenderTargetView* rt1, RHIDepthStencilView* depth_stencil = nullptr)
-		{
-			return bind_render_target(rt1, nullptr, nullptr, nullptr, depth_stencil);
-		}
-
-		inline RHIContext& bind_render_target2(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2,
-		                                       RHIDepthStencilView* depth_stencil = nullptr)
-		{
-			return bind_render_target(rt1, rt2, nullptr, nullptr, depth_stencil);
-		}
-
-		inline RHIContext& bind_render_target3(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
-		                                       RHIDepthStencilView* depth_stencil = nullptr)
-		{
-			return bind_render_target(rt1, rt2, rt3, nullptr, depth_stencil);
-		}
-
-		inline RHIContext& bind_render_target4(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
-		                                       RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil = nullptr)
-		{
-			return bind_render_target(rt1, rt2, rt3, rt4, depth_stencil);
-		}
-
 		inline RHIContext& update_scalar(const void* data, size_t size, const RHIShaderParameterInfo* info)
 		{
 			return update_scalar(data, size, info->offset, info->binding);
@@ -168,6 +140,14 @@ namespace Engine
 		inline RHIContext& update_scalar(const void* data, const RHIShaderParameterInfo* info)
 		{
 			return update_scalar(data, info->size, info->offset, info->binding);
+		}
+
+		template<typename Func>
+		inline RHIContext& render(const RHIRenderingInfo& info, Func&& func)
+		{
+			begin_rendering(info);
+			func();
+			return end_rendering();
 		}
 	};
 

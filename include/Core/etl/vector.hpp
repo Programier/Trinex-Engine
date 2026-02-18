@@ -55,8 +55,10 @@ namespace Engine
 	private:
 		constexpr inline void range_check(size_type n) const
 		{
+#if TRINEX_WITH_EXCEPTIONS
 			if (n >= size())
 				throw std::out_of_range("Index out of range");
+#endif
 		}
 
 		template<typename Ptr>
@@ -77,15 +79,15 @@ namespace Engine
 		pointer allocate_and_copy(size_type count, const_pointer first, const_pointer last)
 		{
 			pointer result = allocator().allocate(count);
-			try
+			trinex_try
 			{
 				std::uninitialized_copy(first, last, result);
 				return result;
 			}
-			catch (...)
+			trinex_catch(...)
 			{
 				allocator().deallocate(result, count);
-				throw;
+				trinex_throw_exception_again;
 			}
 		}
 
@@ -106,19 +108,19 @@ namespace Engine
 					pointer new_start(allocator().allocate(len));
 					pointer destroy_from = pointer();
 
-					try
+					trinex_try
 					{
 						std::uninitialized_default_construct_n(new_start + s, n);
 						destroy_from = new_start + s;
 						std::uninitialized_move(m_start, m_finish, new_start);
 					}
-					catch (...)
+					trinex_catch(...)
 					{
 						if (destroy_from)
 							std::destroy(destroy_from, destroy_from + n);
 
 						allocator().deallocate(new_start, len);
-						throw;
+						trinex_throw_exception_again;
 					}
 
 					allocator().deallocate(m_start, capacity());
@@ -165,7 +167,7 @@ namespace Engine
 					pointer new_start(allocator().allocate(len));
 					pointer new_finish(new_start);
 
-					try
+					trinex_try
 					{
 						std::uninitialized_fill_n(new_start + elems_before, n, x);
 						new_finish = nullptr;
@@ -173,14 +175,14 @@ namespace Engine
 						new_finish += n;
 						new_finish = std::uninitialized_move(pos, old_finish, new_finish);
 					}
-					catch (...)
+					trinex_catch(...)
 					{
 						if (!new_finish)
 							std::destroy(new_start + elems_before, new_start + elems_before + n);
 						else
 							std::destroy(new_start, new_finish);
 						allocator().deallocate(new_start, len);
-						throw;
+						trinex_throw_exception_again;
 					}
 					std::destroy(old_start, old_finish);
 					allocator().deallocate(old_start, capacity());
@@ -192,8 +194,8 @@ namespace Engine
 		}
 
 		template<typename Type, typename... Args>
-		constexpr auto construct_at(Type* loc, Args&&... args) noexcept(noexcept(::new((void*) 0) Type(std::declval<Args>()...)))
-		        -> decltype(::new((void*) 0) Type(std::declval<Args>()...))
+		constexpr auto construct_at(Type* loc, Args&&... args) noexcept(noexcept(::new ((void*) 0) Type(std::declval<Args>()...)))
+		        -> decltype(::new ((void*) 0) Type(std::declval<Args>()...))
 		{
 			return ::new ((void*) loc) Type(std::forward<Args>(args)...);
 		}
@@ -208,21 +210,21 @@ namespace Engine
 			pointer new_start(allocator().allocate(len));
 			pointer new_finish(new_start);
 
-			try
+			trinex_try
 			{
 				construct_at(new_start + elems_before, std::forward<Args>(args)...);
 				new_finish = nullptr;
 				new_finish = std::uninitialized_move(old_start, pos, new_start) + 1;
 				new_finish = std::uninitialized_move(pos, old_finish, new_finish);
 			}
-			catch (...)
+			trinex_catch(...)
 			{
 				if (!new_finish)
 					std::destroy_at(new_start + elems_before);
 				else
 					std::destroy(new_start, new_finish);
 				allocator().deallocate(new_start, len);
-				throw;
+				trinex_throw_exception_again;
 			}
 
 			std::destroy(old_start, old_finish);
@@ -639,14 +641,14 @@ namespace Engine
 
 			if (m_start)
 			{
-				try
+				trinex_try
 				{
 					std::uninitialized_move(m_start, m_finish, new_mem);
 				}
-				catch (...)
+				trinex_catch(...)
 				{
 					allocator().deallocate(new_mem, n);
-					throw;
+					trinex_throw_exception_again;
 				}
 
 				std::destroy(m_start, m_finish);

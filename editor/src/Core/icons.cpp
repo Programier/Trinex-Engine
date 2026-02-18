@@ -1,6 +1,5 @@
 #include <Core/editor_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/icons.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>

@@ -1,5 +1,4 @@
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
@@ -77,8 +76,8 @@ namespace Engine
 
 	SceneComponent& SceneComponent::attach(SceneComponent* child)
 	{
-		trinex_check(child != this, "Cannot attach a component to itself");
-		trinex_check(child && !is_attached_to(child), "Setting up attachment would create a cycle");
+		trinex_assert_msg(child != this, "Cannot attach a component to itself");
+		trinex_assert_msg(child && !is_attached_to(child), "Setting up attachment would create a cycle");
 
 		child->detach_from_parent();
 

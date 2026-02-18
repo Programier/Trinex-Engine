@@ -1,3 +1,4 @@
+#include <Core/logger.hpp>
 #include <Core/reflection/script_class.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -24,8 +25,8 @@ namespace Engine::Refl
 		script->m_refl_objects.insert(this);
 
 		auto factories = info.factory_count();
-		
-		
+
+
 		for (uint_t i = 0; i < factories; ++i)
 		{
 			m_factory = info.factory_by_index(i);
@@ -36,22 +37,20 @@ namespace Engine::Refl
 			}
 		}
 
-		if (m_factory == nullptr)
-		{
-			throw EngineException("The script class does not contain a default constructor");
-		}
+		trinex_verify_msg(m_factory.is_valid(), "The script class does not contain a default constructor");
 	}
 
 	Engine::Object* ScriptClass::object_constructor(StringView name, Engine::Object* owner, bool scriptable)
 	{
-		trinex_always_check(scriptable, "Cannot create non-scriptable object from scriptable class");
+		trinex_verify_msg(scriptable, "Cannot create non-scriptable object from scriptable class");
 
 		Engine::Object* obj = nullptr;
 		ScriptContext::execute(m_factory, &obj);
 
 		if (obj == nullptr)
 		{
-			throw EngineException("Failed to create new instance");
+			error_log("ScriptClass", "Failed to create new instance");
+			return nullptr;
 		}
 
 		if (!name.empty() || owner)

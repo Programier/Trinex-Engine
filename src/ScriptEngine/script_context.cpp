@@ -73,17 +73,15 @@ namespace Engine
 		{
 			if (current_state == State::Exception)
 			{
-				throw EngineException(exception_string());
+				trinex_unreachable_msg(exception_string().c_str());
 			}
-			throw EngineException("State of context must be Uninitialized or Active!");
+
+			trinex_unreachable_msg("State of context must be Uninitialized or Active!");
 		}
 
 		if (current_state == State::Active)
 		{
-			if (!push_state())
-			{
-				throw EngineException("Failed to push new state!");
-			}
+			trinex_verify(push_state());
 		}
 
 		if (!prepare(function))
@@ -93,7 +91,7 @@ namespace Engine
 				pop_state();
 			}
 
-			throw EngineException("Failed to prepare function!");
+			trinex_verify_msg(false, "Failed to prepare function!");
 		}
 
 		return true;
@@ -117,7 +115,7 @@ namespace Engine
 					pop_state();
 				}
 
-				throw EngineException("Failed to execute script function!");
+				trinex_unreachable_msg("Failed to execute script function!");
 			}
 
 			ScriptFunction current_function = function();
@@ -142,13 +140,11 @@ namespace Engine
 			}
 		}
 
-		if (!unprepare())
-			throw EngineException("Failed to unprepare function!");
+		trinex_verify_msg(unprepare(), "Failed to unprepare function!");
 
 		if (is_active)
 		{
-			if (!pop_state())
-				throw EngineException("Failed to pop state!");
+			trinex_verify_msg(pop_state(), "Failed to unprepare function!");
 		}
 
 		return is_prepared;

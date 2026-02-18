@@ -1,7 +1,6 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
-#include <Core/exception.hpp>
 #include <Core/math/random.hpp>
 #include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/pipelines.hpp>
@@ -293,15 +292,16 @@ namespace Engine::Pipelines
 
 	TonemappingACES& TonemappingACES::apply(RHIContext* ctx, Renderer* renderer)
 	{
-		push_context_state(this, ctx);
-
-		ctx->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
-		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		ctx->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
-		ctx->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->begin_rendering(renderer->scene_color_ldr_target()->as_rtv());
+		{
+			push_context_state(this, ctx);
+			ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+			ctx->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
+			ctx->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
+			ctx->draw(6, 0);
+			pop_context_state(ctx);
+		}
+		ctx->end_rendering();
 
 		return *this;
 	}

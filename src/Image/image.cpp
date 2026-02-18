@@ -177,8 +177,7 @@ namespace Engine
 
 	byte* Image::sample(uint_t x, uint_t y)
 	{
-		if (x > m_size.x || y > m_size.y)
-			throw EngineException("Image: Invalid UV");
+		trinex_assert_msg(x < m_size.x && y < m_size.y, "Invalid sample coords");
 
 		uint_t index = y * (width() * channels()) + x * channels();
 		return m_data.data() + index;

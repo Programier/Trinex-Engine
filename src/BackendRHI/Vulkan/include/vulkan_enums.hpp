@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/exception.hpp>
 #include <RHI/enums.hpp>
 #include <vulkan_headers.hpp>
 
@@ -83,6 +82,32 @@ namespace Engine::VulkanEnums
 			case RHIColorFormat::D16_UNORM: return vk::Format::eD16Unorm;
 
 			default: return vk::Format::eUndefined;
+		}
+	}
+
+	constexpr inline bool is_depth_format(vk::Format format)
+	{
+		switch (format)
+		{
+			case vk::Format::eD16Unorm:
+			case vk::Format::eD16UnormS8Uint:
+			case vk::Format::eX8D24UnormPack32:
+			case vk::Format::eD24UnormS8Uint:
+			case vk::Format::eD32Sfloat:
+			case vk::Format::eD32SfloatS8Uint: return true;
+			default: return false;
+		}
+	}
+
+	constexpr inline bool is_stencil_format(vk::Format format)
+	{
+		switch (format)
+		{
+			case vk::Format::eS8Uint:
+			case vk::Format::eD16UnormS8Uint:
+			case vk::Format::eD24UnormS8Uint:
+			case vk::Format::eD32SfloatS8Uint: return true;
+			default: return false;
 		}
 	}
 
@@ -367,7 +392,8 @@ namespace Engine::VulkanEnums
 		if ((type & RHIShaderParameterType::META_AccelerationStructure) == RHIShaderParameterType::META_AccelerationStructure)
 			return vk::DescriptorType::eAccelerationStructureKHR;
 
-		throw EngineException("Undefined descriptor type");
+		trinex_unreachable_msg("Undefined descriptor type");
+		return vk::DescriptorType::eSampler;
 	}
 
 	static inline vk::FrontFace face_of(RHIFrontFace face)
@@ -535,6 +561,25 @@ namespace Engine::VulkanEnums
 			case RHIShadingRateCombiner::Max: return vk::FragmentShadingRateCombinerOpKHR::eMax;
 			case RHIShadingRateCombiner::Mul: return vk::FragmentShadingRateCombinerOpKHR::eMul;
 			default: return vk::FragmentShadingRateCombinerOpKHR::eKeep;
+		}
+	}
+
+	static inline vk::AttachmentLoadOp load_of(RHILoadFunc func)
+	{
+		switch (func)
+		{
+			case RHILoadFunc::Clear: return vk::AttachmentLoadOp::eClear;
+			case RHILoadFunc::DontCare: return vk::AttachmentLoadOp::eDontCare;
+			default: return vk::AttachmentLoadOp::eLoad;
+		}
+	}
+
+	static inline vk::AttachmentStoreOp store_of(RHIStoreFunc func)
+	{
+		switch (func)
+		{
+			case RHIStoreFunc::DontCare: return vk::AttachmentStoreOp::eDontCare;
+			default: return vk::AttachmentStoreOp::eStore;
 		}
 	}
 }// namespace Engine::VulkanEnums

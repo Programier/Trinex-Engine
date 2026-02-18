@@ -1,5 +1,5 @@
-#include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>
@@ -25,7 +25,7 @@ namespace Engine
 	{
 		if (!create(info, is_uninitialized))
 		{
-			throw EngineException("Failed to create new script variable!");
+			//throw EngineException("Failed to create new script variable!");
 		}
 	}
 
@@ -35,7 +35,7 @@ namespace Engine
 	{
 		if (!create(src_address, info, handle_is_object, modifiers))
 		{
-			throw EngineException("Failed to create new script variable!");
+			//throw EngineException("Failed to create new script variable!");
 		}
 	}
 
@@ -345,7 +345,7 @@ namespace Engine
 	{
 		if (!create(type_id))
 		{
-			throw EngineException("Failed to create new script variable!");
+			//throw EngineException("Failed to create new script variable!");
 		}
 	}
 
@@ -369,7 +369,7 @@ namespace Engine
 	{
 		if (!create(address, type_id, handle_is_object, modifiers))
 		{
-			throw EngineException("Failed to create new script variable!");
+			//throw EngineException("Failed to create new script variable!");
 		}
 	}
 
@@ -402,7 +402,7 @@ namespace Engine
 
 		if (!create(object))
 		{
-			throw EngineException("Failed to create new script variable!");
+			//throw EngineException("Failed to create new script variable!");
 		}
 
 		return *this;

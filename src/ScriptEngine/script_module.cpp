@@ -1,6 +1,7 @@
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>

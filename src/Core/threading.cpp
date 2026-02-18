@@ -3,7 +3,6 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/exception.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
 #include <condition_variable>
@@ -285,11 +284,7 @@ namespace Engine
 
 	Thread::Thread(NoThread)
 	{
-		if (this_thread_instance != nullptr)
-		{
-			throw EngineException("Thread already exist!");
-		}
-
+		trinex_assert_msg(this_thread_instance == nullptr, "Thread already exist");
 		this_thread_instance = this;
 
 		m_thread = trx_new Impl();
@@ -427,11 +422,7 @@ namespace Engine
 
 	Thread* Thread::static_self()
 	{
-		if (this_thread_instance == nullptr)
-		{
-			throw EngineException("Engine::ThisThread::self must be called from a thread that is registered by the engine");
-		}
-
+		trinex_assert_msg(this_thread_instance, "self method must be called from a thread that is registered by the engine");
 		return this_thread_instance;
 	}
 

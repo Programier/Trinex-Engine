@@ -43,7 +43,8 @@ namespace Engine
 			}
 		}
 
-		throw EngineException("Failed to get localized string");
+		error_log("Localization", "Failed to get localized string for line '%s'", line.data());
+		return Name::none.to_string();
 	}
 
 	const String& Localization::language() const
@@ -80,7 +81,7 @@ namespace Engine
 
 	static void load_localization(Map<uint64_t, String>& out, const Path& path)
 	{
-		try
+		trinex_try
 		{
 			std::stringstream stream;
 
@@ -111,10 +112,12 @@ namespace Engine
 				}
 			}
 		}
-		catch (const std::exception& e)
+#if TRINEX_WITH_EXCEPTIONS
+		trinex_catch(const std::exception& e)
 		{
 			error_log("Localization", "%s", e.what());
 		}
+#endif
 	}
 
 	Localization& Localization::reload(bool clear, bool with_default)

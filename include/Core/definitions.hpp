@@ -82,6 +82,18 @@ namespace Engine
 #define TRINEX_WITH_RTTI 0
 #endif
 
+#if __cpp_exceptions
+#define TRINEX_WITH_EXCEPTIONS 1
+#define trinex_try try
+#define trinex_catch(x) catch (x)
+#define trinex_throw_exception_again throw
+#else
+#define TRINEX_WITH_EXCEPTIONS 0
+#define trinex_try if (true)
+#define trinex_catch(x) if (false)
+#define trinex_throw_exception_again ((void) 0)
+#endif
+
 #define BIT(index) (1ULL << (index))
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))

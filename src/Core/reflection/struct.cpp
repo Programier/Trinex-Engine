@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
@@ -84,18 +83,19 @@ namespace Engine::Refl
 
 	void* Struct::create_struct()
 	{
-		throw EngineException("Unimplemented method");
+		trinex_unreachable();
+		return nullptr;
 	}
 
 	Struct& Struct::destroy_struct(void* obj)
 	{
-		throw EngineException("Unimplemented method");
+		trinex_unreachable();
 		return *this;
 	}
 
 	size_t Struct::size() const
 	{
-		throw EngineException("Unimplemented method");
+		trinex_unreachable();
 		return 0;
 	}
 

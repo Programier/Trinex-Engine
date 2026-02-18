@@ -241,7 +241,9 @@ namespace JIT
 
 	static void STDCALL_DECL make_exception_nullptr_access()
 	{
+#if __cpp_exceptions
 		throw std::runtime_error("Attempting to access a null pointer");
+#endif
 	}
 
 	////////////////////// MUST BE REMOVED IN FUTURE! //////////////////////
@@ -704,7 +706,11 @@ namespace JIT
 				return index;
 		}
 
+#if __cpp_exceptions
 		throw std::runtime_error("Undefined label");
+#else
+		return info->labels.size();
+#endif
 	}
 
 	asUINT X86_64_Compiler::instruction_size(asEBCInstr instruction)
@@ -1397,7 +1403,9 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_STR(CompileInfo* info)
 	{
 		// Byte code is deprecated!
+#if __cpp_exceptions
 		throw std::runtime_error("Byte code asBC_STR is deprecated!");
+#endif
 	}
 
 	void X86_64_Compiler::exec_asBC_CALLSYS(CompileInfo* info)

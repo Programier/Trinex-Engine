@@ -34,23 +34,25 @@ namespace Engine::EditorPipelines
 	void Outline::render(RHIContext* ctx, Renderer* renderer, SRV* scene_color, SRV* outline_depth, Vector3f color,
 	                     Vector2f sample_offset)
 	{
-		ctx->bind_render_target1(renderer->scene_color_ldr_target()->as_rtv());
+		ctx->begin_rendering(renderer->scene_color_ldr_target()->as_rtv());
+		{
+			SRV* scene_depth = renderer->scene_depth_target()->as_srv();
 
-		SRV* scene_depth = renderer->scene_depth_target()->as_srv();
+			ctx->bind_pipeline(rhi_pipeline());
+			ctx->bind_srv(scene_color, m_scene_color->binding);
+			ctx->bind_srv(scene_depth, m_scene_depth->binding);
+			ctx->bind_srv(outline_depth, m_outline_depth->binding);
 
-		ctx->bind_pipeline(rhi_pipeline());
-		ctx->bind_srv(scene_color, m_scene_color->binding);
-		ctx->bind_srv(scene_depth, m_scene_depth->binding);
-		ctx->bind_srv(outline_depth, m_outline_depth->binding);
+			ctx->bind_sampler(RHIPointSampler::static_sampler(), m_sampler->binding);
+			ctx->update_scalar(&color, m_outline_color);
 
-		ctx->bind_sampler(RHIPointSampler::static_sampler(), m_sampler->binding);
-		ctx->update_scalar(&color, m_outline_color);
-
-		auto& camera_view = renderer->scene_view().camera_view();
-		ctx->update_scalar(&camera_view.near, m_near);
-		ctx->update_scalar(&camera_view.far, m_far);
-		ctx->update_scalar(&sample_offset, m_sample_offset);
-		ctx->draw(6, 0);
+			auto& camera_view = renderer->scene_view().camera_view();
+			ctx->update_scalar(&camera_view.near, m_near);
+			ctx->update_scalar(&camera_view.far, m_far);
+			ctx->update_scalar(&sample_offset, m_sample_offset);
+			ctx->draw(6, 0);
+		}
+		ctx->end_rendering();
 	}
 
 	trinex_implement_pipeline(Grid, "[shaders]:/TrinexEditor/grid.slang")

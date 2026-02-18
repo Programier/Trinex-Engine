@@ -4,7 +4,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/icons.hpp>
 #include <Core/logger.hpp>
@@ -54,7 +53,7 @@ namespace Engine::UI
 	static FORCE_INLINE T* prop_cast_checked(Refl::Property* prop)
 	{
 		auto res = prop_cast<T>(prop);
-		trinex_always_check(res, "Failed to cast property");
+		trinex_assert_msg(res, "Failed to cast property");
 		return res;
 	}
 

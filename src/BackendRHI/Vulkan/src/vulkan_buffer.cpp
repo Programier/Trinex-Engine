@@ -2,7 +2,6 @@
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 
-#include <Core/exception.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Graphics/render_pools.hpp>
@@ -83,7 +82,7 @@ namespace Engine
 		auto res = vmaCreateBuffer(API->m_allocator, &static_cast<VkBufferCreateInfo&>(buffer_info), &alloc_info, &out_buffer,
 		                           &m_allocation, nullptr);
 		m_buffer = out_buffer;
-		trinex_check(res == VK_SUCCESS, "Failed to create buffer");
+		trinex_assert_msg(res == VK_SUCCESS, "Failed to create buffer");
 
 		if (flags & RHIBufferCreateFlags::DeviceAddress)
 		{
@@ -137,7 +136,7 @@ namespace Engine
 			buffer->copy(ctx, offset, data, size);
 
 			barrier(ctx, RHIAccess::TransferDst);
-			auto cmd = ctx->end_render_pass();
+			auto cmd = ctx->handle();
 
 			vk::BufferCopy region(0, offset, size);
 			cmd->copyBuffer(buffer->buffer(), m_buffer, region);
@@ -153,7 +152,7 @@ namespace Engine
 
 	VulkanBuffer& VulkanBuffer::update(VulkanContext* ctx, size_t offset, size_t size, const byte* data)
 	{
-		auto cmd = ctx->end_render_pass();
+		auto cmd = ctx->handle();
 		barrier(ctx, RHIAccess::TransferDst);
 
 		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
@@ -183,8 +182,6 @@ namespace Engine
 			m_access = access;
 			return *this;
 		}
-
-		ctx->end_render_pass();
 
 		const vk::PipelineStageFlags src_stage = VulkanEnums::pipeline_stage_of(m_access);
 		const vk::PipelineStageFlags dst_stage = VulkanEnums::pipeline_stage_of(access);
@@ -220,7 +217,7 @@ namespace Engine
 		{
 			void* mapped = nullptr;
 			auto res     = vmaMapMemory(API->m_allocator, m_allocation, &mapped);
-			trinex_check(res == VK_SUCCESS, "Failed to map buffer");
+			trinex_assert_msg(res == VK_SUCCESS, "Failed to map buffer");
 			return reinterpret_cast<byte*>(mapped);
 		}
 		return nullptr;

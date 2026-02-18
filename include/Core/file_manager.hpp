@@ -2,8 +2,8 @@
 
 #include <Core/buffer_manager.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/exception.hpp>
 
 namespace Engine
 {

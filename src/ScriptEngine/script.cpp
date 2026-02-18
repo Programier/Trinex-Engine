@@ -5,6 +5,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/script_class.hpp>
+#include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>

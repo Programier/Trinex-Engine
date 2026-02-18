@@ -1,7 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
@@ -292,13 +291,13 @@ namespace Engine::Refl
 
 	void* VirtualProperty::address(void* context)
 	{
-		throw EngineException("Cannot use Property::address method on virtual properties!");
+		trinex_unreachable_msg("Cannot use Property::address method on virtual properties!");
 		return nullptr;
 	}
 
 	const void* VirtualProperty::address(const void* context) const
 	{
-		throw EngineException("Cannot use Property::address method on virtual properties!");
+		trinex_unreachable_msg("Cannot use Property::address method on virtual properties!");
 		return nullptr;
 	}
 

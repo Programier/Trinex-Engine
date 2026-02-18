@@ -21,10 +21,9 @@ namespace Engine
 	private:
 		enum class State
 		{
-			IsReadyForBegin,
-			IsInsideBegin,
-			IsInsideRenderPass,
-			HasEnded,
+			Unused,
+			Active,
+			Pending,
 			Submitted,
 		};
 
@@ -55,7 +54,7 @@ namespace Engine
 		class VulkanCommandBufferManager* m_manager;
 		Vector<UniformBuffer> m_uniform_buffers;
 		Vector<RHIObject*> m_stagging;
-		State m_state = State::IsReadyForBegin;
+		State m_state = State::Unused;
 		const RHIContextFlags m_flags;
 
 	public:
@@ -70,8 +69,6 @@ namespace Engine
 		VulkanCommandHandle& refresh_fence_status();
 		VulkanCommandHandle& begin(const vk::CommandBufferBeginInfo& info = {});
 		VulkanCommandHandle& end();
-		VulkanCommandHandle& begin_render_pass(VulkanRenderTarget* rt);
-		VulkanCommandHandle& end_render_pass();
 		VulkanCommandHandle& enqueue();
 		VulkanCommandHandle& wait();
 		VulkanCommandHandle& flush_uniforms();
@@ -91,11 +88,9 @@ namespace Engine
 			return *this;
 		}
 
-		inline bool is_ready_for_begin() const { return m_state == State::IsReadyForBegin; }
-		inline bool is_inside_render_pass() const { return m_state == State::IsInsideRenderPass; }
-		inline bool is_outside_render_pass() const { return m_state == State::IsInsideBegin; }
-		inline bool has_begun() const { return m_state == State::IsInsideBegin || m_state == State::IsInsideRenderPass; }
-		inline bool has_ended() const { return m_state == State::HasEnded; }
+		inline bool is_unused() const { return m_state == State::Unused; }
+		inline bool is_active() const { return m_state == State::Active; }
+		inline bool is_pending() const { return m_state == State::Pending; }
 		inline bool is_submitted() const { return m_state == State::Submitted; }
 		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline bool is_primary() const { return (m_flags & RHIContextFlags::Secondary) == RHIContextFlags::Undefined; }
@@ -139,10 +134,11 @@ namespace Engine
 		VulkanContext& begin(RHIContext* primary = nullptr) override;
 		VulkanCommandHandle* end() override;
 
+		VulkanContext& begin_rendering(const RHIRenderingInfo& info) override;
+		VulkanContext& end_rendering() override;
+
 		VulkanContext& execute(RHICommandHandle* handle) override;
 
-		VulkanContext& bind_render_target(RHIRenderTargetView* rt1, RHIRenderTargetView* rt2, RHIRenderTargetView* rt3,
-		                                  RHIRenderTargetView* rt4, RHIDepthStencilView* depth_stencil) override;
 		VulkanContext& viewport(const RHIViewport& viewport) override;
 		VulkanContext& scissor(const RHIScissor& scissor) override;
 
@@ -214,9 +210,6 @@ namespace Engine
 
 		VulkanContext& begin_statistics(RHIPipelineStatistics* stats) override;
 		VulkanContext& end_statistics(RHIPipelineStatistics* stats) override;
-
-		VulkanCommandHandle* begin_render_pass();
-		VulkanCommandHandle* end_render_pass();
 
 		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline VulkanCommandHandle* handle() const { return m_cmd; }

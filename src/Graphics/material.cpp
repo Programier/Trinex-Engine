@@ -505,7 +505,7 @@ namespace Engine
 			{
 				if (Parameter* param = find_parameter(info.name))
 				{
-					trinex_check(param->m_pipeline_refs > 0, "Parameter is referenced by pipeline, but reference count == 0");
+					trinex_assert_msg(param->m_pipeline_refs, "Parameter is referenced by pipeline, but reference count == 0");
 					--param->m_pipeline_refs;
 				}
 			}

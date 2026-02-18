@@ -1,7 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
@@ -11,7 +10,7 @@ namespace Engine
 {
 	void System::on_create_fail()
 	{
-		throw EngineException("Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
+		trinex_unreachable_msg("Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
 	}
 
 	void System::on_new_system(System* system)
@@ -32,11 +31,8 @@ namespace Engine
 	{
 		const Refl::Class* self = class_instance();
 
-		if (self == static_reflection())
-		{
-			throw EngineException("Each class based from Engine::System must be registered!");
-		}
-
+		trinex_verify_msg(self != static_reflection(), "Each class based from Engine::System must be registered!");
+		
 		debug_log("System", "Created system with type '%s'", self->name().c_str());
 		m_is_initialized = true;
 		return *this;

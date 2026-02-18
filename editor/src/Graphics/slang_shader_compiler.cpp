@@ -4,12 +4,12 @@
 #include <Core/etl/flat_set.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
@@ -700,10 +700,7 @@ namespace Engine
 
 		if (g_slang_global_session == nullptr)
 		{
-			if (SLANG_FAILED(slang::createGlobalSession(&g_slang_global_session)))
-			{
-				throw EngineException("Cannot create global session");
-			}
+			trinex_verify(SLANG_SUCCEEDED(slang::createGlobalSession(&g_slang_global_session)));
 		}
 		else
 		{
@@ -967,7 +964,7 @@ namespace Engine
 
 	void NONE_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
-		throw EngineException("Something is wrong! Cannot compile shaders for None API!");
+		trinex_unreachable_msg("Something is wrong! Cannot compile shaders for None API!");
 	}
 
 	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const uint32_t* spirv, const uint32_t words,

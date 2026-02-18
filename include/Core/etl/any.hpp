@@ -201,7 +201,8 @@ namespace Engine
 			{
 				return *address_as<DecayT>();
 			}
-			throw bad_any_cast();
+
+			trinex_unreachable();
 		}
 
 		template<typename T>
@@ -212,7 +213,8 @@ namespace Engine
 			{
 				return *address_as<DecayT>();
 			}
-			throw bad_any_cast();
+
+			trinex_unreachable();
 		}
 
 		template<typename T>
@@ -223,7 +225,8 @@ namespace Engine
 			{
 				return *address_as<DecayT>();
 			}
-			throw bad_any_cast();
+
+			trinex_unreachable();
 		}
 
 		template<typename T>
@@ -234,7 +237,8 @@ namespace Engine
 			{
 				return *address_as<DecayT>();
 			}
-			throw bad_any_cast();
+
+			trinex_unreachable();
 		}
 
 		~Any();

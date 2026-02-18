@@ -2,6 +2,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/threading.hpp>

@@ -8,6 +8,8 @@
 namespace Engine
 {
 	class RHIBuffer;
+	class RHIRenderTargetView;
+	class RHIDepthStencilView;
 
 	struct RHIRect {
 		Vector2i size;
@@ -275,6 +277,74 @@ namespace Engine
 		inline bool affects_color() const
 		{
 			return enable && !(src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero);
+		}
+	};
+
+	struct RHIColorAttachmentInfo {
+		RHIRenderTargetView* view = nullptr;
+
+		union
+		{
+			Vector4i icolor = {0, 0, 0, 0};
+			Vector4u ucolor;
+			Vector4f color;
+		};
+
+		RHILoadFunc load   = RHILoadFunc::Load;
+		RHIStoreFunc store = RHIStoreFunc::Store;
+	};
+
+	struct RHIDepthStencilAttachmentInfo {
+		RHIDepthStencilView* view = nullptr;
+
+		float depth                = 0.f;
+		byte stencil               = 0;
+		RHILoadFunc depth_load     = RHILoadFunc::Load;
+		RHILoadFunc stencil_load   = RHILoadFunc::Load;
+		RHIStoreFunc depth_store   = RHIStoreFunc::Store;
+		RHIStoreFunc stencil_store = RHIStoreFunc::Store;
+	};
+
+	struct RHIRenderingInfo {
+		RHIColorAttachmentInfo colors[4];
+		RHIDepthStencilAttachmentInfo depth_stencil;
+		RHIRect rect;
+		RHIRenderingFlags flags = RHIRenderingFlags::Undefined;
+
+		RHIRenderingInfo() = default;
+
+		inline RHIRenderingInfo(RHIDepthStencilView* dsv) { depth_stencil.view = dsv; }
+
+		inline RHIRenderingInfo(RHIRenderTargetView* rtv0, RHIDepthStencilView* dsv = nullptr)
+		{
+			colors[0].view     = rtv0;
+			depth_stencil.view = dsv;
+		}
+
+		inline RHIRenderingInfo(RHIRenderTargetView* rtv0, RHIRenderTargetView* rtv1, RHIDepthStencilView* dsv = nullptr)
+		{
+			colors[0].view     = rtv0;
+			colors[1].view     = rtv1;
+			depth_stencil.view = dsv;
+		}
+
+		inline RHIRenderingInfo(RHIRenderTargetView* rtv0, RHIRenderTargetView* rtv1, RHIRenderTargetView* rtv2,
+		                        RHIDepthStencilView* dsv = nullptr)
+		{
+			colors[0].view     = rtv0;
+			colors[1].view     = rtv1;
+			colors[2].view     = rtv2;
+			depth_stencil.view = dsv;
+		}
+
+		inline RHIRenderingInfo(RHIRenderTargetView* rtv0, RHIRenderTargetView* rtv1, RHIRenderTargetView* rtv2,
+		                        RHIRenderTargetView* rtv3, RHIDepthStencilView* dsv = nullptr)
+		{
+			colors[0].view     = rtv0;
+			colors[1].view     = rtv1;
+			colors[2].view     = rtv2;
+			colors[3].view     = rtv3;
+			depth_stencil.view = dsv;
 		}
 	};
 }// namespace Engine

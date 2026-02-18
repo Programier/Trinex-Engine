@@ -13,6 +13,8 @@ namespace Engine
 	class VulkanTexture;
 	class VulkanTextureSRV;
 	class VulkanTextureUAV;
+	class VulkanTextureRTV;
+	class VulkanTextureDSV;
 	class VulkanUniformBuffer;
 	class VulkanPipeline;
 	class VulkanContext;
@@ -105,6 +107,13 @@ namespace Engine
 			inline bool operator!=(const UniformBuffer& other) const { return !((*this) == other); }
 		};
 
+		struct Framebuffer {
+			vk::Format formats[6] = {vk::Format::eUndefined};
+			Vector2u16 size       = {0, 0};
+
+			vk::PipelineRenderingCreateInfo pipeline_create_info() const;
+		};
+
 		struct VertexAttribute {
 			uint16_t stream;
 			uint16_t offset;
@@ -130,9 +139,8 @@ namespace Engine
 		RHIContextFlags m_flags;
 		uint32_t m_dirty_flags;
 
-		VulkanRenderPass* m_render_pass     = nullptr;
-		VulkanRenderTarget* m_render_target = nullptr;
-		VulkanPipeline* m_pipeline          = nullptr;
+		Framebuffer m_framebuffer;
+		VulkanPipeline* m_pipeline = nullptr;
 
 		struct GraphicsState {
 			RHIDepthState depth;
@@ -154,7 +162,7 @@ namespace Engine
 
 	private:
 		VulkanStateManager& flush_state(VulkanCommandHandle* handle, uint32_t mask);
-		VulkanStateManager& update_viewport_and_scissor(VulkanRenderTarget* target);
+		VulkanStateManager& on_framebuffer_update();
 
 	public:
 		VulkanResourceState<UniformBuffer> uniform_buffers;
@@ -173,6 +181,31 @@ namespace Engine
 
 		VulkanStateManager& update_scalar(VulkanContext* ctx, const void* data, size_t size, size_t offset, byte buffer_index);
 
+		VulkanStateManager& bind(const Framebuffer& framebuffer)
+		{
+			if (m_framebuffer.size != framebuffer.size)
+			{
+				m_dirty_flags |= RenderTarget;
+				m_dirty_flags |= Viewport;
+				m_dirty_flags |= Scissor;
+
+				m_framebuffer = framebuffer;
+				return *this;
+			}
+
+			for (uint16_t i = 0; i < 6; ++i)
+			{
+				if (m_framebuffer.formats[i] != framebuffer.formats[i])
+				{
+					m_dirty_flags |= RenderTarget;
+					m_framebuffer = framebuffer;
+					return *this;
+				}
+			}
+
+			return *this;
+		}
+
 		VulkanStateManager& bind(VulkanPipeline* pipeline)
 		{
 			if (m_pipeline != pipeline)
@@ -180,18 +213,6 @@ namespace Engine
 				m_pipeline = pipeline;
 				m_dirty_flags |= Pipeline;
 			}
-			return *this;
-		}
-
-		VulkanStateManager& bind(VulkanRenderTarget* target)
-		{
-			if (m_render_target != target)
-			{
-				update_viewport_and_scissor(target);
-				m_render_target = target;
-				m_dirty_flags |= RenderTarget;
-			}
-
 			return *this;
 		}
 
@@ -310,8 +331,6 @@ namespace Engine
 			return *this;
 		}
 
-		VulkanCommandHandle* begin_render_pass(VulkanContext* ctx);
-		VulkanCommandHandle* end_render_pass(VulkanContext* ctx);
 		VulkanCommandHandle* flush_graphics(VulkanContext* ctx);
 		VulkanCommandHandle* flush_compute(VulkanContext* ctx);
 		VulkanCommandHandle* flush_raytrace(VulkanContext* ctx);
@@ -324,9 +343,10 @@ namespace Engine
 
 		inline uint32_t dirty_flags() const { return m_dirty_flags; }
 		inline bool is_dirty(uint32_t flags) const { return (m_dirty_flags & flags); }
+		inline uint32_t add_dirty(uint32_t flags) { return (m_dirty_flags |= flags); }
 		inline uint32_t remove_dirty(uint32_t flags) { return (m_dirty_flags &= ~flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
-		inline VulkanRenderTarget* render_target() const { return m_render_target; }
+		inline const Framebuffer& framebuffer() const { return m_framebuffer; }
 		inline const RHIDepthState& depth_state() const { return m_graphics_state.depth; }
 		inline const RHIStencilState& stencil_state() const { return m_graphics_state.stencil; }
 		inline const RHIBlendingState& blending_state() const { return m_graphics_state.blending; }

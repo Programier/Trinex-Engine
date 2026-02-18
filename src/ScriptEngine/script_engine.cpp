@@ -1,7 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/array.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/stacktrace.hpp>
 #include <Core/string_functions.hpp>
@@ -58,7 +57,9 @@ namespace Engine
 		else
 		{
 			if (ScriptEngine::exception_on_error)
-				throw EngineException(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+			{
+				//trinex_(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+			}
 			else
 				error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 		}
@@ -66,7 +67,7 @@ namespace Engine
 
 	static void angel_script_translate_exception(asIScriptContext* ctx, void*)
 	{
-		throw;
+		trinex_throw_exception_again;
 	}
 
 	static void* angel_script_allocate(size_t size)
@@ -205,7 +206,7 @@ namespace Engine
 			case ScriptCallConv::Generic: return asCALL_GENERIC;
 			case ScriptCallConv::ThisCall_ObjLast: return asCALL_THISCALL_OBJLAST;
 			case ScriptCallConv::ThisCall_ObjFirst: return asCALL_THISCALL_OBJFIRST;
-			default: throw EngineException("Undefined call convension!");
+			default: trinex_unreachable_msg("Undefined call convension!"); return asCALL_CDECL;
 		}
 	}
 

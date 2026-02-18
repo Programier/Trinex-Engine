@@ -1,5 +1,4 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
@@ -92,19 +91,19 @@ namespace Engine::Refl
 
 	Engine::Object* Class::object_constructor(StringView name, Engine::Object* owner, bool scriptable)
 	{
-		throw EngineException("Unimplemented method");
+		trinex_unreachable();
 		return nullptr;
 	}
 
 	Engine::Object* Class::object_placement_constructor(void* mem, StringView name, Engine::Object* owner, bool scriptable)
 	{
-		throw EngineException("Unimplemented method");
+		trinex_unreachable();
 		return nullptr;
 	}
 
 	Class::ObjectFactory* Class::script_object_factory() const
 	{
-		throw EngineException("Unimplemented method");
+		trinex_unreachable();
 		return nullptr;
 	}
 

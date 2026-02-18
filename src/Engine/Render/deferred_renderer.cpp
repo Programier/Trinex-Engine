@@ -235,8 +235,11 @@ namespace Engine
 		        .add_func([this](RHIContext* ctx) {
 			        if (!lines.is_empty())
 			        {
-				        ctx->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
-				        lines.flush(ctx, this);
+				        ctx->begin_rendering({scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv()});
+				        {
+					        lines.flush(ctx, this);
+				        }
+				        ctx->end_rendering();
 			        }
 		        });
 
@@ -411,20 +414,24 @@ namespace Engine
 		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
 		ctx->polygon_mode(mode);
 
-		ctx->bind_render_target4(base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
-		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv());
-		render_visible_primitives(ctx, RenderPasses::Geometry::static_instance());
-
-		ctx->polygon_mode(RHIPolygonMode::Fill);
+		ctx->begin_rendering({base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
+		                      msra_target()->as_rtv(), scene_depth_target()->as_dsv()});
+		{
+			render_visible_primitives(ctx, RenderPasses::Geometry::static_instance());
+			ctx->polygon_mode(RHIPolygonMode::Fill);
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::velocity_pass(RHIContext* ctx)
 	{
-		ctx->bind_render_target1(velocity_target()->as_rtv());
-		ctx->blending_state(RHIBlendingState::opaque);
-
-		Pipelines::CameraVelocity::instance()->render(ctx, this);
+		ctx->begin_rendering(velocity_target()->as_rtv());
+		{
+			ctx->blending_state(RHIBlendingState::opaque);
+			Pipelines::CameraVelocity::instance()->render(ctx, this);
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
@@ -451,8 +458,11 @@ namespace Engine
 		ctx->polygon_mode(mode);
 		ctx->cull_mode(RHICullMode::Front);
 
-		ctx->bind_render_target1(scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv());
-		render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &s_bindings);
+		ctx->begin_rendering({scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv()});
+		{
+			render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &s_bindings);
+		}
+		ctx->end_rendering();
 
 		ctx->polygon_mode(RHIPolygonMode::Fill);
 		ctx->cull_mode(RHICullMode::None);
@@ -470,28 +480,41 @@ namespace Engine
 		RHITexture* buffer2 = pool->request_surface(RHISurfaceFormat::R8, half_size);
 
 		ctx->barrier(buffer1, RHIAccess::RTV);
-		ctx->bind_render_target1(buffer1->as_rtv());
 
 		// Render SSAO
-		ctx->push_debug_stage("Calculate");
-		auto& ssao = m_post_process_params->ssao;
-		Pipelines::SSAO::instance()->render(ctx, this, ssao.intensity, ssao.bias, ssao.power, ssao.radius, ssao.fade_out_distance,
-		                                    ssao.fade_out_radius, ssao.samples);
-		ctx->pop_debug_stage();
+		ctx->begin_rendering(buffer1->as_rtv());
+		{
+			ctx->push_debug_stage("Calculate");
+			auto& ssao = m_post_process_params->ssao;
+			Pipelines::SSAO::instance()->render(ctx, this, ssao.intensity, ssao.bias, ssao.power, ssao.radius,
+			                                    ssao.fade_out_distance, ssao.fade_out_radius, ssao.samples);
+
+			ctx->pop_debug_stage();
+		}
+		ctx->end_rendering();
+		
 		ctx->push_debug_stage("Blur and Apply");
 
 		// Blur vertical
 		ctx->barrier(buffer1, RHIAccess::SRVGraphics).barrier(buffer2, RHIAccess::RTV);
-		ctx->bind_render_target1(buffer2->as_rtv());
-		Pipelines::GaussianBlur::blur(ctx, buffer1->as_srv(), {0.f, inv_half_size.y}, 0.8, 2.f);
+
+		ctx->begin_rendering(buffer2->as_rtv());
+		{
+			Pipelines::GaussianBlur::blur(ctx, buffer1->as_srv(), {0.f, inv_half_size.y}, 0.8, 2.f);
+		}
+		ctx->end_rendering();
 
 		// Blur horizontal
 		ctx->barrier(buffer2, RHIAccess::SRVGraphics);
-		ctx->bind_render_target1(msra_target()->as_rtv());
-		ctx->blending_state(RHIBlendingState::multiply);
 
-		Pipelines::GaussianBlur::blur(ctx, buffer2->as_srv(), {inv_half_size.x, 0.f}, 0.8, 2.f,
-		                              {Swizzle::One, Swizzle::One, Swizzle::One, Swizzle::R});
+		ctx->begin_rendering(msra_target()->as_rtv());
+		{
+			ctx->blending_state(RHIBlendingState::multiply);
+
+			Pipelines::GaussianBlur::blur(ctx, buffer2->as_srv(), {inv_half_size.x, 0.f}, 0.8, 2.f,
+			                              {Swizzle::One, Swizzle::One, Swizzle::One, Swizzle::R});
+		}
+		ctx->end_rendering();
 
 		ctx->pop_debug_stage();
 
@@ -506,22 +529,25 @@ namespace Engine
 		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
 
 		auto pipeline = Pipelines::AmbientLight::instance();
-		ctx->bind_render_target1(scene_color_hdr_target()->as_rtv());
 
-		ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
-		ctx->stencil_state(RHIStencilState(false));
-		ctx->blending_state(RHIBlendingState::additive);
+		ctx->begin_rendering(scene_color_hdr_target()->as_rtv());
+		{
+			ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
+			ctx->stencil_state(RHIStencilState(false));
+			ctx->blending_state(RHIBlendingState::additive);
 
-		ctx->bind_pipeline(pipeline->rhi_pipeline());
-		ctx->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
-		ctx->update_scalar(&scene()->environment.ambient_color, pipeline->ambient_color);
-		ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
-		ctx->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
+			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
+			ctx->update_scalar(&scene()->environment.ambient_color, pipeline->ambient_color);
+			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
+			ctx->bind_srv(msra_target()->as_srv(), pipeline->msra->binding);
 
-		ctx->bind_sampler(sampler, pipeline->base_color->binding);
-		ctx->bind_sampler(sampler, pipeline->msra->binding);
+			ctx->bind_sampler(sampler, pipeline->base_color->binding);
+			ctx->bind_sampler(sampler, pipeline->msra->binding);
 
-		ctx->draw(6, 0);
+			ctx->draw(6, 0);
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
@@ -577,13 +603,18 @@ namespace Engine
 
 		trinex_rhi_push_stage(ctx, "Extract");
 
-		ctx->blending_state(RHIBlendingState::opaque);
-
-		ctx->barrier(chain[0].texture, RHIAccess::RTV);
-		ctx->bind_render_target1(chain[0].texture->as_rtv());
-
 		auto& bloom = m_post_process_params->bloom;
-		Pipelines::BloomExtract::instance()->extract(ctx, hdr->as_srv(), bloom.threshold, bloom.knee, bloom.clamp);
+
+		ctx->blending_state(RHIBlendingState::opaque);
+		ctx->barrier(chain[0].texture, RHIAccess::RTV);
+
+		ctx->begin_rendering(chain[0].texture->as_rtv());
+		{
+
+			auto& bloom = m_post_process_params->bloom;
+			Pipelines::BloomExtract::instance()->extract(ctx, hdr->as_srv(), bloom.threshold, bloom.knee, bloom.clamp);
+		}
+		ctx->end_rendering();
 
 		trinex_rhi_pop_stage(ctx);
 
@@ -598,8 +629,11 @@ namespace Engine
 				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[i].texture, RHIAccess::RTV);
 
-				ctx->bind_render_target1(chain[i].texture->as_rtv());
-				Pipelines::BloomDownsample::instance()->downsample(ctx, chain[i - 1].texture->as_srv());
+				ctx->begin_rendering(chain[i].texture->as_rtv());
+				{
+					Pipelines::BloomDownsample::instance()->downsample(ctx, chain[i - 1].texture->as_srv());
+				}
+				ctx->end_rendering();
 			}
 		}
 		trinex_rhi_pop_stage(ctx);
@@ -615,10 +649,12 @@ namespace Engine
 				ctx->barrier(chain[next].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[current].texture, RHIAccess::RTV);
 
-				ctx->bind_render_target1(chain[current].texture->as_rtv());
-
-				float fade = Math::lerp(bloom.fade_base, bloom.fade_max, static_cast<float>(current) / 5.f);
-				Pipelines::BloomUpsample::instance()->upsample(ctx, chain[next].texture->as_srv(), fade);
+				ctx->begin_rendering(chain[current].texture->as_rtv());
+				{
+					float fade = Math::lerp(bloom.fade_base, bloom.fade_max, static_cast<float>(current) / 5.f);
+					Pipelines::BloomUpsample::instance()->upsample(ctx, chain[next].texture->as_srv(), fade);
+				}
+				ctx->end_rendering();
 			}
 
 			trinex_rhi_pop_stage(ctx);
@@ -628,12 +664,14 @@ namespace Engine
 			ctx->barrier(chain[0].texture, RHIAccess::SRVGraphics);
 			ctx->barrier(hdr, RHIAccess::RTV);
 
-			ctx->bind_render_target1(hdr->as_rtv());
-
-			ctx->write_mask(RHIColorComponent::RGB);
-			ctx->blending_state(RHIBlendingState::add);
-			Pipelines::BloomUpsample::instance()->upsample(ctx, chain[0].texture->as_srv(), bloom.intensity);
-			ctx->write_mask(RHIColorComponent::RGBA);
+			ctx->begin_rendering(hdr->as_rtv());
+			{
+				ctx->write_mask(RHIColorComponent::RGB);
+				ctx->blending_state(RHIBlendingState::add);
+				Pipelines::BloomUpsample::instance()->upsample(ctx, chain[0].texture->as_srv(), bloom.intensity);
+				ctx->write_mask(RHIColorComponent::RGBA);
+			}
+			ctx->end_rendering();
 
 			trinex_rhi_pop_stage(ctx);
 		}
@@ -655,46 +693,58 @@ namespace Engine
 
 	DeferredRenderer& DeferredRenderer::copy_world_normal_to_scene_color(RHIContext* ctx)
 	{
-		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
-		auto src = normal_target()->as_srv();
-		ctx->blending_state(RHIBlendingState());
-		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-		                                    {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
+		{
+			auto src = normal_target()->as_srv();
+			ctx->blending_state(RHIBlendingState());
+			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
+			                                    {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::copy_metalic_to_scene_color(RHIContext* ctx)
 	{
-		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
-		auto src = msra_target()->as_srv();
+		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
+		{
+			auto src = msra_target()->as_srv();
 
-		ctx->blending_state(RHIBlendingState());
-		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-		                                    {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
+			ctx->blending_state(RHIBlendingState());
+			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
+			                                    {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::copy_specular_to_scene_color(RHIContext* ctx)
 	{
-		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
-		auto src = msra_target()->as_srv();
-		ctx->blending_state(RHIBlendingState());
+		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
+		{
+			auto src = msra_target()->as_srv();
+			ctx->blending_state(RHIBlendingState());
 
-		RHIRect rect(scene_view().view_size());
-		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-		                                    {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
+			RHIRect rect(scene_view().view_size());
+			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
+			                                    {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::copy_roughness_to_scene_color(RHIContext* ctx)
 	{
-		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
-		auto src = msra_target()->as_srv();
-		ctx->blending_state(RHIBlendingState());
+		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
+		{
+			auto src = msra_target()->as_srv();
+			ctx->blending_state(RHIBlendingState());
 
-		RHIRect rect(scene_view().view_size());
-		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-		                                    {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
+			RHIRect rect(scene_view().view_size());
+			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
+			                                    {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 
@@ -712,12 +762,15 @@ namespace Engine
 	DeferredRenderer& DeferredRenderer::copy_ambient_to_scene_color(RHIContext* ctx)
 	{
 		auto src = msra_target()->as_srv();
-		ctx->bind_render_target1(scene_color_ldr_target()->as_rtv());
-		ctx->blending_state(RHIBlendingState());
+		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
+		{
+			ctx->blending_state(RHIBlendingState());
 
-		RHIRect rect(scene_view().view_size());
-		Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-		                                    {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
+			RHIRect rect(scene_view().view_size());
+			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
+			                                    {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 

@@ -1,5 +1,4 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/group.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
@@ -153,7 +152,7 @@ namespace Engine::VisualMaterialGraph
 			case RHIShaderParameterType::Float4: return Expression(type, "float4(0.f, 0.f, 0.f, 0.f)");
 			case RHIShaderParameterType::Float3x3: return Expression(type, "float3x3(0.f)");
 			case RHIShaderParameterType::Float4x4: return Expression(type, "float4x4(0.f)");
-			default: throw EngineException("Unsupported shader parameter type!");
+			default: trinex_unreachable_msg("Unsupported shader parameter type!"); return Expression();
 		}
 	}
 
@@ -182,7 +181,7 @@ namespace Engine::VisualMaterialGraph
 			case RHIShaderParameterType::Float4: return Expression(type, "float4(0.5f, 0.5f, 0.5f, 0.5f)");
 			case RHIShaderParameterType::Float3x3: return Expression(type, "float3x3(0.5f)");
 			case RHIShaderParameterType::Float4x4: return Expression(type, "float4x4(0.5f)");
-			default: throw EngineException("Unsupported shader parameter type!");
+			default: trinex_unreachable_msg("Unsupported shader parameter type!"); return Expression();
 		}
 	}
 
@@ -211,7 +210,7 @@ namespace Engine::VisualMaterialGraph
 			case RHIShaderParameterType::Float4: return Expression(type, "float4(1.f, 1.f, 1.f, 1.f)");
 			case RHIShaderParameterType::Float3x3: return Expression(type, "float3x3(1.f)");
 			case RHIShaderParameterType::Float4x4: return Expression(type, "float4x4(1.f)");
-			default: throw EngineException("Unsupported shader parameter type!");
+			default: trinex_unreachable_msg("Unsupported shader parameter type!"); return Expression();
 		}
 	}
 
@@ -309,7 +308,8 @@ namespace Engine::VisualMaterialGraph
 				break;
 		}
 		// clang-format on
-		throw EngineException("Unsupported type!");
+		trinex_unreachable_msg("Unsupported type!");
+		return "";
 	}
 
 	bool Expression::is_compatible_types(RHIShaderParameterType src, RHIShaderParameterType dst)
@@ -456,8 +456,8 @@ namespace Engine::VisualMaterialGraph
 			return Expression(dst, result);
 		}
 
-
-		throw EngineException("Unsupported expression type for cast");
+		trinex_unreachable_msg("Unsupported expression type for cast");
+		return Expression();
 	}
 
 	Expression Expression::vector_length() const
@@ -723,11 +723,8 @@ namespace Engine::VisualMaterialGraph
 
 	void Node::static_node_group(Refl::Class* node_class, const String& group)
 	{
-		if (!node_class->is_a<Node>())
-		{
-			throw EngineException(
-			        "Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
-		}
+		trinex_assert_msg(node_class->is_a<Node>(),
+		                  "Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
 
 		String full_group_name = Strings::format("Engine::VisualMaterialGraph::Nodes::{}", group);
 		Group::find(full_group_name, true)->add_struct(node_class);

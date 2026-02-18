@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/etl/constexpr_string.hpp>
-#include <Core/exception.hpp>
 #include <Core/string_functions.hpp>
 
 class CScriptArray;
@@ -35,7 +34,7 @@ namespace Engine
 		asITypeInfo* find_object_type() const;
 
 		void insert_last(const void* ptr);
-		void* element_at(size_type pos) const;
+		void* element_at(size_type index) const;
 
 		void do_copy(const ScriptArrayBase* from);
 		void do_move(ScriptArrayBase* from);

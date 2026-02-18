@@ -1,5 +1,4 @@
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
@@ -17,8 +16,6 @@
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
-#include <vulkan_render_target.hpp>
-#include <vulkan_renderpass.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
@@ -224,8 +221,6 @@ namespace Engine
 
 	vk::Pipeline VulkanGraphicsPipeline::find_or_create_pipeline(VulkanStateManager* manager)
 	{
-		auto rt = manager->render_target();
-
 		auto link_id   = manager->graphics_pipeline_id(m_vertex_attributes, m_vertex_attributes_count);
 		auto& pipeline = m_pipelines[link_id];
 
@@ -254,6 +249,7 @@ namespace Engine
 
 		vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
 		vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+
 		vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 		vk::PipelineDynamicStateCreateInfo dynamic_state({}, dynamic_states_count, dynamic_states);
 		vk::PipelineMultisampleStateCreateInfo multisampling;
@@ -261,17 +257,14 @@ namespace Engine
 		        manager->create_vertex_input(m_vertex_attributes, m_vertex_attributes_count);
 		vk::PipelineDepthStencilStateCreateInfo depth_stencil = create_depth_stencil(manager);
 		vk::PipelineColorBlendStateCreateInfo color_blend     = create_color_blend(manager, attachments);
+		vk::PipelineRenderingCreateInfo rendering_info        = manager->framebuffer().pipeline_create_info();
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, &vertex_input, &m_input_assembly, nullptr, &viewport_state,
 		                                             &m_rasterizer, &multisampling, &depth_stencil, &color_blend, &dynamic_state,
-		                                             layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
+		                                             layout()->layout(), {}, 0, {}, {}, &rendering_info);
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
-
-		if (pipeline_result.result != vk::Result::eSuccess)
-		{
-			throw EngineException("Failed to create pipeline");
-		}
+		trinex_assert(pipeline_result.result == vk::Result::eSuccess);
 
 		pipeline = pipeline_result.value;
 		return pipeline;
@@ -410,6 +403,7 @@ namespace Engine
 
 		vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
 		vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+
 		vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 		vk::PipelineColorBlendAttachmentState attachments[4];
 		vk::DynamicState dynamic_state_params[] = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
@@ -417,19 +411,14 @@ namespace Engine
 		vk::PipelineMultisampleStateCreateInfo multisampling;
 		vk::PipelineDepthStencilStateCreateInfo depth_stencil = create_depth_stencil(manager);
 		vk::PipelineColorBlendStateCreateInfo color_blend     = create_color_blend(manager, attachments);
-
-		auto rt = manager->render_target();
+		vk::PipelineRenderingCreateInfo rendering_info        = manager->framebuffer().pipeline_create_info();
 
 		vk::GraphicsPipelineCreateInfo pipeline_info({}, m_stages, nullptr, nullptr, nullptr, &viewport_state, &m_rasterizer,
 		                                             &multisampling, &depth_stencil, &color_blend, &dynamic_state,
-		                                             layout()->layout(), rt->m_render_pass->render_pass(), 0, {});
+		                                             layout()->layout(), {}, 0, {}, {}, &rendering_info);
 
 		auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
-
-		if (pipeline_result.result != vk::Result::eSuccess)
-		{
-			throw EngineException("Failed to create pipeline");
-		}
+		trinex_assert(pipeline_result.result == vk::Result::eSuccess);
 
 		pipeline = pipeline_result.value;
 		return pipeline;
@@ -604,8 +593,7 @@ namespace Engine
 
 			auto result = API->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, pipeline->groups_count, storage_size,
 			                                                               storage, API->pfn);
-			if (result != vk::Result::eSuccess)
-				throw EngineException("Failed to create shader binding table!");
+			trinex_assert_msg(result == vk::Result::eSuccess, "Failed to create shader binding table!");
 
 			align_shader_binding_table(storage, pipeline->groups_count, handle_size, handle_size_aligned);
 

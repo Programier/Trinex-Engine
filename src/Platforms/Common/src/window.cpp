@@ -34,12 +34,11 @@ namespace Engine
 		uint32_t value = 0;
 		for (auto ell : attrib)
 		{
-			try
+			trinex_try
 			{
 				value |= window_attributes.at(ell);
 			}
-			catch (...)
-			{}
+			trinex_catch(...) {}
 		}
 		return value;
 	}
@@ -352,7 +351,7 @@ namespace Engine
 
 	WindowSDL& WindowSDL::attribute(const WindowAttribute& attrib, bool value)
 	{
-		try
+		trinex_try
 		{
 
 			static struct {
@@ -423,8 +422,7 @@ namespace Engine
 			if (fullscreen_mode.m_fullscreen)
 				SDL_SetWindowFullscreen(m_window, fullscreen_mode.m_flag);
 		}
-		catch (const std::exception& e)
-		{}
+		trinex_catch(...) {}
 
 		return *this;
 	}
@@ -478,12 +476,12 @@ namespace Engine
 	template<typename MapType, typename KeyType, bool& result>
 	static decltype(auto) value_at(MapType&& map, KeyType&& key)
 	{
-		try
+		trinex_try
 		{
 			result = true;
 			return map.at(std::forward<KeyType>(key));
 		}
-		catch (...)
+		trinex_catch(...)
 		{
 			error_log("SDL Window System", "Cannot get value '%d' from map", int(key));
 			result = false;

@@ -2,6 +2,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <Platform/platform.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -96,7 +97,7 @@ namespace Engine
 	static void apply_project_config()
 	{
 		auto rfs = rootfs();
-		
+
 		rfs->mount("[project]:", Project::project_dir);
 		rfs->mount("[resources]:", Project::resources_dir);
 		rfs->mount("[configs]:", Project::configs_dir);
@@ -106,7 +107,7 @@ namespace Engine
 		rfs->mount("[localization]:", Project::localization_dir);
 		rfs->mount("[libraries]:", Project::libraries_dir);
 		rfs->mount("[shader_cache]:", Project::shader_cache_dir);
-		
+
 		rename_dirs_to_mount_points();
 		create_folders();
 	}

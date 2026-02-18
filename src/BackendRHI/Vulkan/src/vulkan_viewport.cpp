@@ -1,4 +1,3 @@
-#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
@@ -13,8 +12,6 @@
 #include <vulkan_context.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_queue.hpp>
-#include <vulkan_render_target.hpp>
-#include <vulkan_renderpass.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
@@ -99,16 +96,10 @@ namespace Engine
 
 		auto swapchain = builder.build();
 
-		if (!swapchain)
-		{
-			throw EngineException(swapchain.error().message());
-		}
+		trinex_verify_msg(swapchain.has_value(), swapchain.error().message().c_str());
 
 		auto images_result = swapchain->get_images();
-
-		if (!images_result.has_value())
-			throw EngineException(images_result.error().message());
-
+		trinex_verify_msg(images_result.has_value(), images_result.error().message().c_str());
 		auto& images = images_result.value();
 
 		m_backbuffers.resize(images.size());
@@ -212,7 +203,7 @@ namespace Engine
 		}
 		else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
 		{
-			throw EngineException("Failed to acquire image index");
+			trinex_unreachable_msg("Failed to acquire image index");
 		}
 
 		m_image_index = result.value;
@@ -279,7 +270,7 @@ namespace Engine
 			}
 			else
 			{
-				throw EngineException("Failed to present swapchain");
+				trinex_unreachable_msg("Failed to present swapchain");
 			}
 
 			Thread::static_sleep_for(0.1);
@@ -311,7 +302,7 @@ namespace Engine
 
 			if (try_present(&VulkanSwapchain::acquire_image_index, false) < 0)
 			{
-				throw EngineException("Failed to acquire image index");
+				trinex_unreachable_msg("Failed to acquire image index");
 			}
 		}
 

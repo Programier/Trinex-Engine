@@ -66,7 +66,6 @@ namespace Engine
 			{
 				if (m_texture != texture)
 				{
-					ctx->barrier(texture, RHIAccess::SRVGraphics);
 					ctx->bind_srv(texture->as_srv(), m_texture_parameter->binding);
 					m_texture = texture;
 				}
@@ -138,8 +137,8 @@ namespace Engine
 			auto pipeline = ImGuiPipeline::instance();
 
 			bd->context->viewport(RHIViewport());
-			bd->context->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
-			bd->context->bind_render_target1(bd->window->rhi_rtv());
+			//bd->context->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
+			//bd->context->bind_render_target1(bd->window->rhi_rtv());
 
 			float L = draw_data->DisplayPos.x;
 			float R = L + draw_data->DisplaySize.x;
@@ -226,6 +225,22 @@ namespace Engine
 				ctx->barrier(vd->index_buffer, RHIAccess::IndexBuffer);
 			}
 
+			// Apply barriers
+			for (int n = 0; n < draw_data->CmdListsCount; n++)
+			{
+				const ImDrawList* cmd_list = draw_data->CmdLists[n];
+
+				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				{
+					const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+
+					if (pcmd->TextureId.texture)
+					{
+						ctx->barrier(pcmd->TextureId.texture, RHIAccess::SRVGraphics);
+					}
+				}
+			}
+
 			imgui_trinex_setup_render_state(draw_data);
 
 			int global_idx_offset = 0;
@@ -242,6 +257,7 @@ namespace Engine
 			trinex_rhi_pop_stage(ctx);
 			{
 				trinex_profile_cpu_n("Render");
+				ctx->begin_rendering(bd->window->rhi_rtv());
 
 				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -294,6 +310,8 @@ namespace Engine
 					global_vtx_offset += cmd_list->VtxBuffer.Size;
 					trinex_rhi_pop_stage(ctx);
 				}
+
+				ctx->end_rendering();
 			}
 			trinex_rhi_pop_stage(ctx);
 			bd->context = nullptr;
@@ -1330,7 +1348,8 @@ namespace Engine
 			{
 				auto rtv = viewport->rhi_rtv();
 				ctx->barrier(viewport->rhi_texture(), RHIAccess::TransferDst);
-				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f).bind_render_target1(rtv);
+				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
+				ctx->barrier(viewport->rhi_texture(), RHIAccess::RTV);
 
 				ImGuiContextLock lock(m_context);
 				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx);

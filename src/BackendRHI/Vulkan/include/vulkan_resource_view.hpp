@@ -1,12 +1,10 @@
 #pragma once
-#include <Core/etl/set.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Engine
 {
-	class VulkanRenderTarget;
 	class VulkanSampler;
 	class VulkanTexture;
 	class VulkanContext;
@@ -83,7 +81,6 @@ namespace Engine
 	class VulkanTextureRTV : public VulkanRTV
 	{
 	private:
-		Set<VulkanRenderTarget*> m_render_targets;
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
@@ -106,24 +103,11 @@ namespace Engine
 		FORCE_INLINE uint16_t base_layer() const { return m_base_layer; }
 		FORCE_INLINE uint16_t layer_count() const { return m_layer_count; }
 		FORCE_INLINE uint16_t mip() const { return m_mip; }
-
-		FORCE_INLINE VulkanTextureRTV& add_target(VulkanRenderTarget* target)
-		{
-			m_render_targets.insert(target);
-			return *this;
-		}
-
-		FORCE_INLINE VulkanTextureRTV& remove_target(VulkanRenderTarget* target)
-		{
-			m_render_targets.erase(target);
-			return *this;
-		}
 	};
 
 	class VulkanTextureDSV : public VulkanDSV
 	{
 	private:
-		Set<VulkanRenderTarget*> m_render_targets;
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
@@ -146,18 +130,6 @@ namespace Engine
 		FORCE_INLINE uint16_t base_layer() const { return m_base_layer; }
 		FORCE_INLINE uint16_t layer_count() const { return m_layer_count; }
 		FORCE_INLINE uint16_t mip() const { return m_mip; }
-
-		FORCE_INLINE VulkanTextureDSV& add_target(VulkanRenderTarget* target)
-		{
-			m_render_targets.insert(target);
-			return *this;
-		}
-
-		FORCE_INLINE VulkanTextureDSV& remove_target(VulkanRenderTarget* target)
-		{
-			m_render_targets.erase(target);
-			return *this;
-		}
 	};
 
 	class VulkanBufferSRV : public VulkanSRV

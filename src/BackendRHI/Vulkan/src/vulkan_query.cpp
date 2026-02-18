@@ -149,7 +149,7 @@ namespace Engine
 					marker.pool->find_index(marker.index);
 				}
 
-				auto cmd = ctx->end_render_pass();
+				auto cmd = ctx->handle();
 				cmd->resetQueryPool(marker.pool->pool(), marker.index, 1);
 				cmd->writeTimestamp(vk::PipelineStageFlagBits::eBottomOfPipe, marker.pool->pool(), marker.index);
 			}
@@ -227,7 +227,7 @@ namespace Engine
 					m_marker.pool->find_index(m_marker.index);
 				}
 
-				auto cmd = ctx->end_render_pass();
+				auto cmd = ctx->handle();
 				cmd->resetQueryPool(m_marker.pool->pool(), m_marker.index, 1);
 				cmd->beginQuery(m_marker.pool->pool(), m_marker.index, {});
 			}
@@ -240,7 +240,7 @@ namespace Engine
 			{
 				if (m_marker.is_valid())
 				{
-					auto cmd = ctx->end_render_pass();
+					auto cmd = ctx->handle();
 					cmd->endQuery(m_marker.pool->pool(), m_marker.index);
 				}
 			}

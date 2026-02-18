@@ -2,7 +2,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/reflection/object.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -66,12 +65,12 @@ namespace Engine::Refl
 
 	void Object::initialize_next_object(StringView name)
 	{
-		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
+		trinex_verify_msg(!name.empty(), "Reflection object name cannot be empty!");
 
 		if (name != "Root")
 		{
-			trinex_always_check(static_find(name, FindFlags::DisableReflectionCheck) == nullptr,
-			                    "Object with same name already exist");
+			trinex_verify_msg(static_find(name, FindFlags::DisableReflectionCheck) == nullptr,
+			                  "Object with same name already exist");
 		}
 
 		auto owner_name = Strings::namespace_sv_of(name);
@@ -94,12 +93,12 @@ namespace Engine::Refl
 
 	void Object::initialize_next_object(Object* owner, StringView name)
 	{
-		trinex_always_check(!name.empty(), "Reflection object name cannot be empty!");
+		trinex_verify_msg(!name.empty(), "Reflection object name cannot be empty!");
 
 		if (owner)
 		{
-			trinex_always_check(owner->find(name, FindFlags::DisableReflectionCheck) == nullptr,
-			                    "Object with same name already exist");
+			trinex_verify_msg(owner->find(name, FindFlags::DisableReflectionCheck) == nullptr,
+			                  "Object with same name already exist");
 		}
 
 		m_next_object_name     = Strings::class_name_sv_of(name);
@@ -120,7 +119,7 @@ namespace Engine::Refl
 
 	Object::Object() : m_owner(nullptr), m_name(m_next_object_name)
 	{
-		trinex_always_check(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
+		trinex_verify_msg(m_has_next_object_info, "Use new_instance or new_child method for creating reflection objects!");
 		m_instances.insert(this);
 		m_next_object_name = "";
 
@@ -144,13 +143,13 @@ namespace Engine::Refl
 
 	Object& Object::unregister_subobject(Object* subobject)
 	{
-		throw EngineException("Cannot unregister object to non-scoped object");
+		trinex_unreachable_msg("Cannot unregister object to non-scoped object");
 		return *this;
 	}
 
 	Object& Object::register_subobject(Object* subobject)
 	{
-		throw EngineException("Cannot register object to non-scoped object");
+		trinex_unreachable_msg("Cannot register object to non-scoped object");
 		return *this;
 	}
 
@@ -333,16 +332,11 @@ namespace Engine::Refl
 
 	Object* Object::find(StringView name, FindFlags flags)
 	{
-		if ((flags & FindFlags::CreateScope) == FindFlags::CreateScope)
-		{
-			throw EngineException("Cannot create new scope with non-scoped owner");
-		}
+		trinex_assert_msg((flags & FindFlags::CreateScope) == FindFlags::CreateScope,
+		                  "Cannot create new scope with non-scoped owner");
 
-		if ((flags & FindFlags::IsRequired) == FindFlags::IsRequired)
-		{
-			throw EngineException(Strings::format("Failed to find reflection for '{}'", concat_scoped_name(full_name(), name)));
-		}
-
+		trinex_assert_fmt((flags & FindFlags::IsRequired) == FindFlags::IsRequired, "Failed to find reflection for '%s'",
+		                  concat_scoped_name(full_name(), name).c_str());
 		return nullptr;
 	}
 

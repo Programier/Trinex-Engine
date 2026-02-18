@@ -50,32 +50,36 @@ namespace Engine
 			ctx->clear_dsv(depth_dsv);
 			ctx->barrier(surface, RHIAccess::RTV);
 			ctx->barrier(depth, RHIAccess::DSV);
-			ctx->bind_render_target1(surface_rtv, depth_dsv);
-			ctx->viewport(scene_view().viewport());
-			ctx->scissor(scene_view().scissor());
 
-			ctx->blending_state(RHIBlendingState::opaque);
-
-			static MaterialBindings bindings;
-			static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");
-
-			for (PrimitiveComponent* primitive : primitives)
+			ctx->begin_rendering(RHIRenderingInfo(surface_rtv, depth_dsv));
 			{
-				if (Actor* actor = primitive->actor())
+				ctx->viewport(scene_view().viewport());
+				ctx->scissor(scene_view().scissor());
+
+				ctx->blending_state(RHIBlendingState::opaque);
+
+				static MaterialBindings bindings;
+				static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");
+
+				for (PrimitiveComponent* primitive : primitives)
 				{
-					uintptr_t addr = reinterpret_cast<uintptr_t>(actor);
+					if (Actor* actor = primitive->actor())
+					{
+						uintptr_t addr = reinterpret_cast<uintptr_t>(actor);
 
-					Vector2u id;
-					id.x        = static_cast<uint32_t>(addr & 0xFFFFFFFFu);
-					id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
-					(*proxy_id) = id;
+						Vector2u id;
+						id.x        = static_cast<uint32_t>(addr & 0xFFFFFFFFu);
+						id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
+						(*proxy_id) = id;
 
-					Matrix4f matrix  = primitive->world_transform().matrix();
-					RenderPass* pass = EditorRenderPasses::HitProxy::static_instance();
-					PrimitiveRenderingContext context(this, ctx, pass, &matrix, &bindings);
-					primitive->render(&context);
+						Matrix4f matrix  = primitive->world_transform().matrix();
+						RenderPass* pass = EditorRenderPasses::HitProxy::static_instance();
+						PrimitiveRenderingContext context(this, ctx, pass, &matrix, &bindings);
+						primitive->render(&context);
+					}
 				}
 			}
+			ctx->end_rendering();
 
 			trinex_rhi_pop_stage(ctx);
 			return surface;
@@ -133,8 +137,14 @@ namespace Engine
 		        .add_untracked_resource(scene_depth_target(), RHIAccess::DSV)
 		        .add_dependency(scene_depth_clear_pass())
 		        .add_func([this](RHIContext* ctx) {
-			        ctx->bind_render_target1(scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv());
-			        EditorPipelines::Grid::instance()->render(ctx, this);
+			        auto rtv = scene_color_ldr_target()->as_rtv();
+			        auto dsv = scene_depth_target()->as_dsv();
+
+			        ctx->begin_rendering(RHIRenderingInfo(rtv, dsv));
+			        {
+				        EditorPipelines::Grid::instance()->render(ctx, this);
+			        }
+			        ctx->end_rendering();
 		        });
 		return *this;
 	}
@@ -159,22 +169,24 @@ namespace Engine
 			auto& outlines_color = render_graph()->add_pass("Outlines Color");
 
 			outlines_depth.add_resource(depth, RHIAccess::DSV).add_func([this, dsv, actors, count](RHIContext* ctx) mutable {
-				ctx->bind_depth_stencil_target(dsv);
-
-				while (count-- > 0)
+				ctx->begin_rendering(dsv);
 				{
-					Actor* actor = *(actors++);
-					for (ActorComponent* component : actor->components())
+					while (count-- > 0)
 					{
-						if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
+						Actor* actor = *(actors++);
+						for (ActorComponent* component : actor->components())
 						{
-							Matrix4f matrix  = primitive->world_transform().matrix();
-							RenderPass* pass = RenderPasses::Depth::static_instance();
-							PrimitiveRenderingContext context(this, ctx, pass, &matrix);
-							primitive->render(&context);
+							if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
+							{
+								Matrix4f matrix  = primitive->world_transform().matrix();
+								RenderPass* pass = RenderPasses::Depth::static_instance();
+								PrimitiveRenderingContext context(this, ctx, pass, &matrix);
+								primitive->render(&context);
+							}
 						}
 					}
 				}
+				ctx->end_rendering();
 			});
 
 			outlines_color.add_resource(color, RHIAccess::TransferDst)

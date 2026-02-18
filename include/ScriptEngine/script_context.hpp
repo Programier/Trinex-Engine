@@ -3,8 +3,8 @@
 #include <Core/enums.hpp>
 #include <Core/etl/function.hpp>
 #include <Core/etl/ref.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/exception.hpp>
 #include <Core/flags.hpp>
 #include <Core/math/fwd.hpp>
 #include <ScriptEngine/script_variable.hpp>

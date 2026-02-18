@@ -28,14 +28,16 @@ namespace Engine
 		Frustum frustum = scene_view().camera_view().projview;
 
 		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
-		ctx->bind_depth_stencil_target(scene_depth_target()->as_dsv());
-
-		for (PrimitiveComponent* component : components)
+		ctx->begin_rendering(scene_depth_target()->as_dsv());
 		{
-			Matrix4f local_to_world = component->world_transform().matrix();
-			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
-			component->render(&context);
+			for (PrimitiveComponent* component : components)
+			{
+				Matrix4f local_to_world = component->world_transform().matrix();
+				PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
+				component->render(&context);
+			}
 		}
+		ctx->end_rendering();
 		return *this;
 	}
 
@@ -92,14 +94,16 @@ namespace Engine
 
 		auto dsv = cubemap()->as_dsv(&view);
 
-		ctx->bind_depth_stencil_target(dsv);
-
-		for (PrimitiveComponent* component : components)
+		ctx->begin_rendering(dsv);
 		{
-			Matrix4f local_to_world = component->world_transform().matrix();
-			PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
-			component->render(&context);
+			for (PrimitiveComponent* component : components)
+			{
+				Matrix4f local_to_world = component->world_transform().matrix();
+				PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
+				component->render(&context);
+			}
 		}
+		ctx->end_rendering();
 
 #if TRINEX_DEBUG_BUILD
 		ctx->pop_debug_stage();

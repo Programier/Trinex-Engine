@@ -1,7 +1,6 @@
 ﻿#include <VkBootstrap.h>
 
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
@@ -23,8 +22,6 @@
 #include <vulkan_pipeline.hpp>
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
-#include <vulkan_render_target.hpp>
-#include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
@@ -128,6 +125,7 @@ namespace Engine
 		vk::PhysicalDeviceAccelerationStructureFeaturesKHR acceleration;
 		vk::PhysicalDeviceRayTracingPipelineFeaturesKHR ray_tracing;
 		vk::PhysicalDeviceFragmentShadingRateFeaturesKHR shading_rate;
+		vk::PhysicalDeviceDynamicRenderingFeaturesKHR dynamic_rendering;
 
 		features.pNext            = &custom_border;
 		custom_border.pNext       = &vk11_features;
@@ -138,6 +136,7 @@ namespace Engine
 		device_address.pNext      = &acceleration;
 		acceleration.pNext        = &ray_tracing;
 		ray_tracing.pNext         = &shading_rate;
+		shading_rate.pNext        = &dynamic_rendering;
 
 		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
@@ -150,6 +149,7 @@ namespace Engine
 		builder.add_pNext(&vk11_features);
 		builder.add_pNext(&descriptor_indexing);
 		builder.add_pNext(&timeline_semaphore);
+		builder.add_pNext(&dynamic_rendering);
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
 			builder.add_pNext(&custom_border);
@@ -248,12 +248,7 @@ namespace Engine
 
 		auto instance_ret = instance_builder.build();
 
-		if (!instance_ret)
-		{
-			auto message = instance_ret.error().message();
-			error_log("Vulkan", "%s", message.c_str());
-			throw EngineException(message);
-		}
+		trinex_verify_msg(instance_ret.has_value(), instance_ret.error().message().c_str());
 
 		m_instance = instance_ret.value();
 
@@ -283,7 +278,7 @@ namespace Engine
 
 		if (!graphics_queue_index.has_value() || !graphics_queue.has_value())
 		{
-			throw EngineException("Failed to create graphics queue");
+			trinex_unreachable_msg("Failed to create graphics queue");
 		}
 
 		m_graphics_queue = trx_new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
@@ -324,8 +319,6 @@ namespace Engine
 	VulkanAPI::~VulkanAPI()
 	{
 		idle();
-
-		VulkanRenderPass::destroy_all();
 
 		destroy_garbage();
 
@@ -400,8 +393,7 @@ namespace Engine
 	{
 		auto present_modes = m_physical_device.getSurfacePresentModesKHR(surface);
 
-		if (present_modes.empty())
-			throw EngineException("Failed to find present mode!");
+		trinex_verify_msg(!present_modes.empty(), "Failed to find present mode!");
 
 		if (vsync)
 		{
@@ -433,6 +425,8 @@ namespace Engine
 		load(pfn.vkGetRayTracingShaderGroupHandlesKHR, "vkGetRayTracingShaderGroupHandlesKHR");
 		load(pfn.vkCmdTraceRaysKHR, "vkCmdTraceRaysKHR");
 		load(pfn.vkCmdSetFragmentShadingRateKHR, "vkCmdSetFragmentShadingRateKHR");
+		load(pfn.vkCmdBeginRenderingKHR, "vkCmdBeginRenderingKHR");
+		load(pfn.vkCmdEndRenderingKHR, "vkCmdEndRenderingKHR");
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)

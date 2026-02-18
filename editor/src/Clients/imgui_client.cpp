@@ -2,6 +2,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Core/types/color.hpp>
@@ -161,14 +162,13 @@ namespace Engine
 	ImGuiViewportClient& ImGuiViewportClient::on_bind_viewport(class RenderViewport* viewport)
 	{
 		m_viewport = instance_cast<WindowRenderViewport>(viewport);
-		trinex_always_check(m_viewport, "Viewport is invalid");
+		trinex_verify_msg(m_viewport, "Viewport is invalid");
 
 		m_opened_clients.insert({class_instance(), this});
 		Super::on_bind_viewport(viewport);
 		auto window = m_viewport->window();
 
-		if (window == nullptr)
-			throw EngineException("ImGuiViewportClient requires valid window object!");
+		trinex_verify_msg(window, "ImGuiViewportClient requires valid window object!");
 
 		m_window = Object::new_instance<ImGuiWindow>();
 		m_window->initialize(window, m_context);

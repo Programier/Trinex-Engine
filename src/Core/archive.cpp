@@ -10,23 +10,17 @@ namespace Engine
 
 	Archive::Archive(BufferReader* reader) : m_is_saving(false)
 	{
-		m_reader = reader;
-		if (reader == nullptr)
-		{
-			throw EngineException("Archive: Reader can't be nullptr!");
-		}
+		trinex_assert(reader);
 
+		m_reader         = reader;
 		m_process_status = m_reader->is_open();
 	}
 
 	Archive::Archive(BufferWriter* writer) : m_is_saving(true)
 	{
+		trinex_assert(writer);
+		
 		m_writer = writer;
-		if (writer == nullptr)
-		{
-			throw EngineException("Archive: Writer can't be nullptr!");
-		}
-
 		m_process_status = m_writer->is_open();
 	}
 

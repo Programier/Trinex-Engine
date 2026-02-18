@@ -1,4 +1,3 @@
-#include <Core/exception.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <vulkan_api.hpp>
@@ -47,7 +46,7 @@ namespace Engine
 					case vk::DescriptorType::eUniformTexelBuffer: ++m_uniform_texel_buffers; break;
 					case vk::DescriptorType::eStorageTexelBuffer: ++m_storage_texel_buffers; break;
 					case vk::DescriptorType::eAccelerationStructureKHR: ++m_acceleration_structures; break;
-					default: throw EngineException("Unimplemented descriptor type!");
+					default: trinex_unreachable_msg("Unimplemented descriptor type!");
 				}
 			}
 

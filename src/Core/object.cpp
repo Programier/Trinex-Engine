@@ -152,10 +152,7 @@ namespace Engine
 
 	Object::Object() : m_references(0)
 	{
-		if (s_next_object_info.class_instance == nullptr)
-		{
-			throw EngineException("Next object class is invalid!");
-		}
+		trinex_verify_msg(s_next_object_info.class_instance, "Next object class is invalid!");
 
 		flags(Flag::IsSerializable, true);
 		flags(Flag::IsEditable, true);

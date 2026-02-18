@@ -1,5 +1,4 @@
 #include <Core/etl/storage.hpp>
-#include <Core/exception.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
@@ -10,11 +9,23 @@
 #include <vulkan_enums.hpp>
 #include <vulkan_fence.hpp>
 #include <vulkan_pipeline.hpp>
-#include <vulkan_render_target.hpp>
+#include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
 
 namespace Engine
 {
+	vk::PipelineRenderingCreateInfo VulkanStateManager::Framebuffer::pipeline_create_info() const
+	{
+		vk::PipelineRenderingCreateInfo info;
+		info.setColorAttachmentCount(4);
+		info.setPColorAttachmentFormats(formats);
+		info.setDepthAttachmentFormat(formats[4]);
+		info.setStencilAttachmentFormat(formats[5]);
+		info.setViewMask(0);
+
+		return info;
+	}
+
 	VulkanStateManager::VulkanStateManager()
 	{
 		m_graphics_state.init();
@@ -54,13 +65,9 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanStateManager& VulkanStateManager::update_viewport_and_scissor(VulkanRenderTarget* target)
+	VulkanStateManager& VulkanStateManager::on_framebuffer_update()
 	{
-		if (m_render_target == nullptr || (m_render_target && (m_render_target->size() != target->size())))
-		{
-			m_dirty_flags |= Viewport;
-			m_dirty_flags |= Scissor;
-		}
+
 		return *this;
 	}
 
@@ -73,48 +80,14 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandHandle* VulkanStateManager::begin_render_pass(VulkanContext* ctx)
-	{
-		auto cmd = ctx->handle();
-
-		if (ctx->is_secondary())
-			return cmd;
-
-		m_render_pass = m_render_target->m_render_pass;
-		cmd->begin_render_pass(m_render_target);
-		return cmd;
-	}
-
-	VulkanCommandHandle* VulkanStateManager::end_render_pass(VulkanContext* ctx)
-	{
-		auto cmd = ctx->handle();
-
-		if (ctx->is_secondary())
-			return cmd;
-
-		if (ctx->handle()->is_inside_render_pass())
-		{
-			cmd->end_render_pass();
-			m_render_pass = nullptr;
-		}
-		return cmd;
-	}
-
 	VulkanCommandHandle* VulkanStateManager::flush_graphics(VulkanContext* ctx)
 	{
 		trinex_profile_cpu_n("VulkanStateManager::flush_graphics");
 		auto cmd = ctx->handle();
 
-		trinex_check(m_pipeline, "Pipeline can't be nullptr");
-		trinex_check(m_render_target, "Render target can't be nullptr");
+		trinex_assert_msg(m_pipeline, "Pipeline can't be nullptr");
 
 		m_pipeline->flush(ctx);
-
-		if (is_dirty(RenderTarget))
-		{
-			if (cmd->is_inside_render_pass())
-				end_render_pass(ctx);
-		}
 
 		if (is_dirty(ShadingRate))
 		{
@@ -136,10 +109,10 @@ namespace Engine
 		if (is_dirty(Viewport))
 		{
 			vk::Viewport vulkan_viewport;
-			vulkan_viewport.setWidth(m_graphics_state.viewport.size.x * static_cast<float>(m_render_target->width()));
-			vulkan_viewport.setHeight(m_graphics_state.viewport.size.y * static_cast<float>(m_render_target->height()));
-			vulkan_viewport.setX(m_graphics_state.viewport.pos.x * static_cast<float>(m_render_target->width()));
-			vulkan_viewport.setY(m_graphics_state.viewport.pos.y * static_cast<float>(m_render_target->height()));
+			vulkan_viewport.setWidth(m_graphics_state.viewport.size.x * static_cast<float>(m_framebuffer.size.x));
+			vulkan_viewport.setHeight(m_graphics_state.viewport.size.y * static_cast<float>(m_framebuffer.size.y));
+			vulkan_viewport.setX(m_graphics_state.viewport.pos.x * static_cast<float>(m_framebuffer.size.x));
+			vulkan_viewport.setY(m_graphics_state.viewport.pos.y * static_cast<float>(m_framebuffer.size.y));
 			vulkan_viewport.setMinDepth(m_graphics_state.viewport.min_depth);
 			vulkan_viewport.setMaxDepth(m_graphics_state.viewport.max_depth);
 			cmd->setViewport(0, vulkan_viewport);
@@ -150,17 +123,14 @@ namespace Engine
 		if (is_dirty(Scissor))
 		{
 			vk::Rect2D vulkan_scissor;
-			vulkan_scissor.offset.setX(m_graphics_state.scissor.pos.x * static_cast<float>(m_render_target->width()));
-			vulkan_scissor.offset.setY(m_graphics_state.scissor.pos.y * static_cast<float>(m_render_target->height()));
-			vulkan_scissor.extent.setWidth(m_graphics_state.scissor.size.x * static_cast<float>(m_render_target->width()));
-			vulkan_scissor.extent.setHeight(m_graphics_state.scissor.size.y * static_cast<float>(m_render_target->height()));
+			vulkan_scissor.offset.setX(m_graphics_state.scissor.pos.x * static_cast<float>(m_framebuffer.size.x));
+			vulkan_scissor.offset.setY(m_graphics_state.scissor.pos.y * static_cast<float>(m_framebuffer.size.y));
+			vulkan_scissor.extent.setWidth(m_graphics_state.scissor.size.x * static_cast<float>(m_framebuffer.size.x));
+			vulkan_scissor.extent.setHeight(m_graphics_state.scissor.size.y * static_cast<float>(m_framebuffer.size.y));
 			cmd->setScissor(0, vulkan_scissor);
 
 			remove_dirty(Scissor);
 		}
-
-		if (cmd->is_outside_render_pass())
-			begin_render_pass(ctx);
 
 		flush_state(cmd, GraphicsMask);
 		return cmd;
@@ -170,10 +140,7 @@ namespace Engine
 	{
 		auto cmd = ctx->handle();
 
-		if (cmd->is_inside_render_pass())
-			end_render_pass(ctx);
-
-		trinex_check(m_pipeline, "Pipeline can't be nullptr");
+		trinex_assert_msg(m_pipeline, "Pipeline can't be nullptr");
 		m_pipeline->flush(ctx);
 		flush_state(cmd, ComputeMask);
 		return cmd;
@@ -182,7 +149,7 @@ namespace Engine
 	VulkanCommandHandle* VulkanStateManager::flush_raytrace(VulkanContext* ctx)
 	{
 		auto cmd = ctx->handle();
-		trinex_check(m_pipeline, "Pipeline can't be nullptr");
+		trinex_assert_msg(m_pipeline, "Pipeline can't be nullptr");
 		m_pipeline->flush(ctx);
 		flush_state(cmd, ComputeMask);
 		return cmd;
@@ -200,7 +167,7 @@ namespace Engine
 		uav_images.make_dirty();
 		vertex_streams.make_dirty();
 		vertex_attributes.make_dirty();
-		m_render_pass = nullptr;
+		m_framebuffer = Framebuffer();
 
 		m_graphics_state.init();
 		return *this;
@@ -208,7 +175,11 @@ namespace Engine
 
 	VulkanStateManager& VulkanStateManager::copy(VulkanStateManager* src, size_t dirty_mask)
 	{
-		m_dirty_flags         = src->m_dirty_flags & dirty_mask;
+		m_dirty_flags    = src->m_dirty_flags & dirty_mask;
+		m_framebuffer    = src->m_framebuffer;
+		m_pipeline       = src->m_pipeline;
+		m_graphics_state = src->m_graphics_state;
+
 		uniform_buffers       = src->uniform_buffers;
 		storage_buffers       = src->storage_buffers;
 		uniform_texel_buffers = src->uniform_texel_buffers;
@@ -218,10 +189,6 @@ namespace Engine
 		uav_images            = src->uav_images;
 		vertex_streams        = src->vertex_streams;
 		vertex_attributes     = src->vertex_attributes;
-		m_render_pass         = src->m_render_pass;
-		m_render_target       = src->m_render_target;
-		m_pipeline            = src->m_pipeline;
-		m_graphics_state      = src->m_graphics_state;
 
 		return *this;
 	}
@@ -305,7 +272,14 @@ namespace Engine
 			byte padding = 0;
 		};
 
-		uint128_t hash = memory_hash(&m_graphics_state, sizeof(m_graphics_state), 0);
+		uint128_t hash = 0;
+
+		// Hash render target formats
+		{
+			hash = memory_hash(m_framebuffer.formats, sizeof(m_framebuffer.formats), hash);
+		}
+
+		hash = memory_hash(&m_graphics_state, sizeof(m_graphics_state), 0);
 
 		// Submit vertex attributes
 		{

@@ -5,6 +5,7 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/material.hpp>
@@ -442,14 +443,7 @@ namespace Engine
 			String source_code;
 			FileReader reader(self->shader_path());
 
-			if (reader.is_open())
-			{
-				source_code = reader.read_string();
-			}
-			else
-			{
-				throw EngineException("Failed to read global shader");
-			}
+			trinex_verify_msg(reader.is_open(), "Failed to read global shader");
 
 			ShaderCompiler::StackEnvironment env;
 			ShaderCompilationResult result;
@@ -457,15 +451,10 @@ namespace Engine
 			env.add_source(source_code.c_str());
 			self->modify_compilation_env(&env);
 
-			if (ShaderCompiler::instance()->compile(&env, result))
-			{
-				cache.init_from(result);
-				cache.store(cache_path);
-			}
-			else
-			{
-				throw EngineException("Failed to compile global shader");
-			}
+			trinex_verify_msg(ShaderCompiler::instance()->compile(&env, result), "Failed to compile global shader");
+
+			cache.init_from(result);
+			cache.store(cache_path);
 		}
 
 		cache.apply_to(self);

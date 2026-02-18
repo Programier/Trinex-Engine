@@ -800,6 +800,39 @@ namespace Engine
 		inline uint_t height() const { return 1u << ((value >> 2) & 0b11); }
 	};
 
+	struct RHILoadFunc {
+		enum Enum : byte
+		{
+			Load     = 0,
+			Clear    = 1,
+			DontCare = 2,
+		};
+
+		trinex_enum_struct(RHILoadFunc);
+	};
+
+	struct RHIStoreFunc {
+		enum Enum : byte
+		{
+			Store    = 0,
+			DontCare = 1,
+		};
+
+		trinex_enum_struct(RHIStoreFunc);
+	};
+
+	struct RHIRenderingFlags {
+		enum Enum : byte
+		{
+			Undefined            = 0,
+			SecondaryBuffersOnly = 1 << 0,
+			Suspending           = 1 << 1,
+			Resuming             = 1 << 2,
+		};
+
+		trinex_bitfield_enum_struct(RHIRenderingFlags, byte);
+	};
+
 	struct RHIContextFlags {
 		enum Enum : byte
 		{

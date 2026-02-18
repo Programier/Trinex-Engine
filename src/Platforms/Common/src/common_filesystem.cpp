@@ -1,4 +1,3 @@
-#include <Core/exception.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>

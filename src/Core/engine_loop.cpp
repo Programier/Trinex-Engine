@@ -5,7 +5,6 @@
 #include <Core/engine_loop.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
@@ -46,10 +45,7 @@ namespace Engine
 		auto decl  = Strings::format("Engine::TRINEX_RHI::{}", Strings::to_upper(api));
 		rhi        = reinterpret_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
 
-		if (!rhi)
-		{
-			throw EngineException("Failed to init API");
-		}
+		trinex_verify_msg(rhi, "Failed to init RHI API");
 	}
 
 	static void initialize_filesystem()
@@ -69,23 +65,12 @@ namespace Engine
 		initialize_graphics_api(true);
 
 		int_t result = 0;
-		if (Object* entry_object = Refl::Class::static_require(entry_name)->create_object())
-		{
-			if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
-			{
-				Settings::Rendering::force_keep_cpu_resources = true;
-
-				result = entry->execute();
-			}
-			else
-			{
-				throw EngineException("Failed to cast entry point!");
-			}
-		}
-		else
-		{
-			throw EngineException("Failed to create entry point!");
-		}
+		EntryPoint* entry = Object::instance_cast<EntryPoint>(Refl::Class::static_require(entry_name)->create_object());
+		trinex_verify_msg(entry, "Failed to create entry point!");
+		
+		Settings::Rendering::force_keep_cpu_resources = true;
+		result = entry->execute();
+		
 		engine_instance->request_exit();
 		return result;
 	}

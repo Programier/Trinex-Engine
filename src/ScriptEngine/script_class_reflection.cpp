@@ -5,6 +5,7 @@
 #include <Core/reflection/script_enum.hpp>
 #include <Core/reflection/script_property.hpp>
 #include <Core/reflection/script_struct.hpp>
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -85,7 +86,7 @@ namespace Engine
 			}
 		}
 
-		throw EngineException(Strings::format("Failed to find property flag with name '{}'", meta));
+		trinex_unreachable_fmt("Failed to find property flag with name '%s'", meta.data());
 	}
 
 	static void register_expression_meta(Script* script, Refl::Object* self, const String& meta)
@@ -93,8 +94,7 @@ namespace Engine
 		const Refl::ClassInfo* refl_info = self->refl_class_info();
 		while (!refl_info->is_scriptable) refl_info = refl_info->parent;
 
-		if (refl_info == nullptr)
-			throw EngineException(Strings::format("Cannot find scriptable property type for prop '{}'", self->full_name()));
+		trinex_verify_fmt(refl_info, "Cannot find scriptable property type for prop '{}'", self->full_name().c_str());
 
 		String code = Strings::format("void __trinex_engine_execute_meta__(Engine::Refl::{}@ prop) {{ prop.{}; }}",
 		                              refl_info->class_name.to_string(), meta);
@@ -109,8 +109,9 @@ namespace Engine
 
 		String section              = Strings::format("{}: {}: MetaData", script->name(), self->full_name());
 		asIScriptFunction* function = nullptr;
-		if (module->CompileFunction(section.c_str(), code.c_str(), 0, 0, &function) < 0)
-			throw EngineException(Strings::format("Failed to bind meta '{}'", meta));
+
+		const bool success = module->CompileFunction(section.c_str(), code.c_str(), 0, 0, &function) >= 0;
+		trinex_verify_fmt(success, "Failed to bind meta '%s'", meta.data());
 
 		ScriptContext::prepare(function);
 		ScriptContext::arg_address(0, self);
@@ -262,7 +263,7 @@ namespace Engine
 		else if (has_property_meta)
 		{
 			bool is_handle = ScriptEngine::is_handle_type(self->script_type_info.property_type_id(prop_idx));
-			trinex_always_check(!is_handle, "Cannot register handle as struct property!");
+			trinex_verify_msg(!is_handle, "Cannot register handle as struct property!");
 			prop = self->new_child<Refl::ScriptStructProperty>(name, offset, prop_struct);
 		}
 
@@ -323,12 +324,10 @@ namespace Engine
 			if (instance->script_type_info == info)
 				return instance;
 
-			throw EngineException(
-			        Strings::format("Cannot register script class, because class with name '{}' already exist!", decl));
+			trinex_unreachable_fmt("Cannot register script class, because class with name '{}' already exist!", decl.c_str());
 		}
 
-		if (info.is_native())
-			throw EngineException(Strings::format("Cannot create script reflection for native type '{}'", decl));
+		trinex_verify_fmt(!info.is_native(), "Cannot create script reflection for native type '%s'", decl.c_str());
 
 		auto base       = info.base_type();
 		auto base_class = base.is_valid() ? create_reflection(base) : nullptr;
@@ -362,7 +361,7 @@ namespace Engine
 	static Refl::Property* string_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, uint_t idx)
 	{
 		bool is_handle = ScriptEngine::is_handle_type(self->script_type_info.property_type_id(idx));
-		trinex_always_check(!is_handle, "Cannot register handle as string property!");
+		trinex_verify_msg(!is_handle, "Cannot register handle as string property!");
 
 		uint_t offset = self->script_type_info.property_offset(idx);
 		String name   = String(self->script_type_info.property_name(idx));

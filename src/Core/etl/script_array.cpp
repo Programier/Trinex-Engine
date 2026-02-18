@@ -31,15 +31,12 @@ namespace Engine
 		m_as_array->InsertLast(const_cast<void*>(ptr));
 	}
 
-	void* ScriptArrayBase::element_at(size_type pos) const
+	void* ScriptArrayBase::element_at(size_type index) const
 	{
 		script_array_init_check(nullptr);
-		void* result = m_as_array->At(static_cast<asUINT>(pos));
-		if (result == nullptr)
-		{
-			throw EngineException("Position out of range");
-		}
-		return result;
+		void* element = m_as_array->At(static_cast<asUINT>(index));
+		trinex_verify_msg(element, "Index out of range");
+		return element;
 	}
 
 	void ScriptArrayBase::do_copy(const ScriptArrayBase* from)

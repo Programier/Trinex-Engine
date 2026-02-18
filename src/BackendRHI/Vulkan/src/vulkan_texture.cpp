@@ -1,7 +1,6 @@
 #include <Core/default_resources.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/exception.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
@@ -11,7 +10,6 @@
 #include <vulkan_context.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
-#include <vulkan_render_target.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
@@ -167,7 +165,7 @@ namespace Engine
 		VkImage out_image = VK_NULL_HANDLE;
 		auto res          = vmaCreateImage(API->m_allocator, &static_cast<VkImageCreateInfo&>(info), &alloc_info, &out_image,
 		                                   &m_allocation, nullptr);
-		trinex_check(res == VK_SUCCESS, "Failed to create texture!");
+		trinex_assert_msg(res == VK_SUCCESS, "Failed to create texture!");
 		m_image = out_image;
 
 		return *this;
@@ -191,7 +189,7 @@ namespace Engine
 
 		auto src_stage = VulkanEnums::pipeline_stage_of(m_access);
 		auto dst_stage = VulkanEnums::pipeline_stage_of(access);
-		ctx->end_render_pass()->pipelineBarrier(src_stage, dst_stage, {}, {}, {}, barrier);
+		ctx->handle()->pipelineBarrier(src_stage, dst_stage, {}, {}, {}, barrier);
 
 		m_access = access;
 		return *this;
@@ -347,7 +345,6 @@ namespace Engine
 	VulkanContext& VulkanContext::copy_texture_to_texture(RHITexture* src_texture, const RHITextureRegion& src_region,
 	                                                      RHITexture* dst_texture, const RHITextureRegion& dst_region)
 	{
-		end_render_pass();
 		VulkanTexture* src = static_cast<VulkanTexture*>(src_texture);
 		VulkanTexture* dst = static_cast<VulkanTexture*>(dst_texture);
 

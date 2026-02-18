@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/exception.hpp>
+#include <Core/etl/vector.hpp>
+#include <ostream>
 
 namespace Engine
 {
@@ -55,11 +56,7 @@ namespace Engine
 		FORCE_INLINE T read_primitive()
 		{
 			T result;
-			if (read_primitives(result))
-			{
-				throw EngineException("Failed to read primitive");
-			}
-
+			trinex_verify(read_primitives(result));
 			return result;
 		}
 

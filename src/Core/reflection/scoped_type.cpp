@@ -1,5 +1,4 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/reflection/scoped_type.hpp>
 #include <Core/string_functions.hpp>
 
@@ -62,14 +61,14 @@ namespace Engine::Refl
 
 	ScopedType& ScopedType::unregister_subobject(Object* subobject)
 	{
-		trinex_always_check(!is_locked(), "Object must be unlocked");
+		trinex_verify_msg(!is_locked(), "Object must be unlocked");
 		m_childs.erase(subobject->name());
 		return *this;
 	}
 
 	ScopedType& ScopedType::register_subobject(Object* subobject)
 	{
-		trinex_always_check(!is_locked(), "Object must be unlocked");
+		trinex_verify_msg(!is_locked(), "Object must be unlocked");
 		m_childs.insert({subobject->name(), subobject});
 		return *this;
 	}
@@ -96,11 +95,9 @@ namespace Engine::Refl
 			}
 			else
 			{
-				if ((flags & FindFlags::IsRequired) == FindFlags::IsRequired)
-				{
-					auto msg = Strings::format("Failed to find reflection for '{}'", concat_scoped_name(full_name(), name));
-					throw EngineException(msg);
-				}
+				const bool is_required = (flags & FindFlags::IsRequired) == FindFlags::IsRequired;
+				trinex_assert_fmt(!is_required, "Failed to find reflection for '%s'",
+				                  concat_scoped_name(full_name(), name).c_str());
 				return nullptr;
 			}
 		}
@@ -114,8 +111,8 @@ namespace Engine::Refl
 			object = object->find(name, flags);
 		}
 
-		if (object == nullptr && (flags & FindFlags::IsRequired) == FindFlags::IsRequired)
-			throw EngineException(Strings::format("Failed to find reflection for '{}'", concat_scoped_name(full_name(), name)));
+		const bool is_found = object != nullptr || (flags & FindFlags::IsRequired) != FindFlags::IsRequired;
+		trinex_assert_fmt(is_found, "Failed to find reflection for '%s'", concat_scoped_name(full_name(), name).c_str());
 
 		return object;
 	}

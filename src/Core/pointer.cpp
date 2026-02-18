@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/exception.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 
@@ -41,7 +40,7 @@ namespace Engine
 		}
 		else
 		{
-			trinex_always_check(object, "Cannot serialize nullptr object!");
+			trinex_verify_msg(object, "Cannot serialize nullptr object!");
 			object->serialize(ar);
 		}
 

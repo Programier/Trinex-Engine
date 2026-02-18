@@ -1,4 +1,3 @@
-#include <Core/exception.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
@@ -97,7 +96,7 @@ namespace Engine
 	RHIDescriptor VulkanDescriptorHeap::allocate(HeapType type)
 	{
 		ScopeLock lock(m_criticals[type]);
-		
+
 		auto& free = m_free[type];
 
 		if (!free.empty())
@@ -107,11 +106,8 @@ namespace Engine
 			return descriptor;
 		}
 
-		if (m_last[type] >= m_bindings[type].descriptorCount)
-		{
-			String msg = Strings::format("Cannot allocate descriptor in heap '%s'", heap_name(type));
-			throw EngineException(msg);
-		}
+		trinex_assert_fmt(m_last[type] < m_bindings[type].descriptorCount, "Cannot allocate descriptor in heap '%s'",
+		                  heap_name(type));
 
 		return m_last[type]++;
 	}
@@ -144,7 +140,7 @@ namespace Engine
 		}
 		else
 		{
-			throw EngineException("Unsupported heap type!");
+			trinex_unreachable_msg("Unsupported heap type!");
 		}
 
 		return descriptor;

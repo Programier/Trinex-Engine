@@ -1,5 +1,4 @@
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
@@ -12,12 +11,7 @@ namespace Engine
 {
 	static FT_Library m_library;
 
-	static PreInitializeController preinitilize_controller([]() {
-		if (FT_Init_FreeType(&m_library))
-		{
-			throw EngineException("Failed to initialize FreeType library!");
-		}
-	});
+	static PreInitializeController preinitilize_controller([]() { trinex_assert(!FT_Init_FreeType(&m_library)); });
 
 	static PostDestroyController destroy_controller([]() {
 		if (FT_Done_FreeType(m_library))

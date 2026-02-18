@@ -1,4 +1,3 @@
-#include <Core/exception.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -1758,7 +1757,8 @@ namespace ImGui
             if (mBreakpoints[i].mLine == line)
                 return mBreakpoints[i];
 
-        throw Engine::EngineException("Index out of range");
+        trinex_unreachable_msg("Index out of range");
+        return mBreakpoints[0];
     }
 
     void TextEditor::RenderInternal(const char* aTitle)

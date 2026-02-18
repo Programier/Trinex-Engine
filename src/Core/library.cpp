@@ -3,7 +3,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/library.hpp>
@@ -71,22 +70,12 @@ namespace Engine
 			info.handle = m_handle;
 
 			auto it = m_libraries.find(info);
+			trinex_verify(it != m_libraries.end());
+			trinex_verify(it->handle == m_handle);
 
-			if (it == m_libraries.end())
-			{
-				throw EngineException("Unexpected error!");
-			}
-
-			if (it->handle == m_handle)
-			{
-				m_libraries.erase(it);
-				info_log("Library", "Close library: '%s'", m_libname.c_str());
-				Platform::LibraryLoader::close_library(m_handle);
-			}
-			else
-			{
-				throw EngineException("Unexpected error!");
-			}
+			m_libraries.erase(it);
+			info_log("Library", "Close library: '%s'", m_libname.c_str());
+			Platform::LibraryLoader::close_library(m_handle);
 		}
 	}
 

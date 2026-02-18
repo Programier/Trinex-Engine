@@ -5,6 +5,7 @@
 #include <Core/importer.hpp>
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Editor/engine.hpp>

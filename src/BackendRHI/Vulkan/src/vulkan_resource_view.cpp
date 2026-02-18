@@ -4,7 +4,6 @@
 #include <vulkan_context.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
-#include <vulkan_render_target.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_state.hpp>
@@ -56,23 +55,11 @@ namespace Engine
 
 	VulkanTextureRTV::~VulkanTextureRTV()
 	{
-		while (!m_render_targets.empty())
-		{
-			auto rt = *m_render_targets.begin();
-			trx_delete rt;
-		}
-
 		API->m_device.destroyImageView(m_view);
 	}
 
 	VulkanTextureDSV::~VulkanTextureDSV()
 	{
-		while (!m_render_targets.empty())
-		{
-			auto rt = *m_render_targets.begin();
-			trx_delete rt;
-		}
-
 		API->m_device.destroyImageView(m_view);
 	}
 
@@ -138,8 +125,6 @@ namespace Engine
 
 	VulkanContext& VulkanContext::clear_rtv(RHIRenderTargetView* rtv, const vk::ClearColorValue& color)
 	{
-		end_render_pass();
-
 		VulkanTextureRTV* view = static_cast<VulkanTextureRTV*>(rtv);
 
 		vk::ImageSubresourceRange range;
@@ -170,8 +155,6 @@ namespace Engine
 
 	VulkanContext& VulkanContext::clear_dsv(RHIDepthStencilView* dsv, float_t depth, byte stencil)
 	{
-		end_render_pass();
-
 		VulkanTextureDSV* view = static_cast<VulkanTextureDSV*>(dsv);
 		VulkanTexture* texture = view->texture();
 

@@ -1,3 +1,4 @@
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/script_call_state.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <angelscript.h>

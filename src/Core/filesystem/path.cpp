@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/etl/hash.hpp>
-#include <Core/exception.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/math/math.hpp>
 #include <Core/string_functions.hpp>

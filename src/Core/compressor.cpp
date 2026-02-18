@@ -1,5 +1,4 @@
 #include <Core/compressor.hpp>
-#include <Core/exception.hpp>
 #include <Engine/settings.hpp>
 #include <lz4hc.h>
 
@@ -30,12 +29,7 @@ namespace Engine::Compressor
 
 		out_size = LZ4_decompress_safe(reinterpret_cast<const char*>(src.data() + sizeof(size_t)),
 		                               reinterpret_cast<char*>(dst.data()), input_size, out_size);
-
-		if (out_size < 0)
-		{
-			throw EngineException("LZ4: Failed to decompress data!");
-		}
-
+		trinex_verify(out_size >= 0);
 		dst.resize(out_size);
 	}
 }// namespace Engine::Compressor

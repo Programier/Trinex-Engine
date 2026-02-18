@@ -1,6 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/exception.hpp>
+#include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -339,7 +339,7 @@ namespace Engine
 			case asBEHAVE_GETGCFLAG: return ScriptClassBehave::GetGCFlag;
 			case asBEHAVE_ENUMREFS: return ScriptClassBehave::EnumRefs;
 			case asBEHAVE_RELEASEREFS: return ScriptClassBehave::ReleaseRefs;
-			default: throw EngineException("Undefined behave");
+			default: trinex_unreachable_msg("Undefined behave"); return ScriptClassBehave::Construct;
 		}
 
 		return {};

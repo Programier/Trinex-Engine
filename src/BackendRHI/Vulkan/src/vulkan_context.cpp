@@ -1,4 +1,4 @@
-#include <Core/exception.hpp>
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <vulkan_api.hpp>
@@ -9,8 +9,7 @@
 #include <vulkan_fence.hpp>
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
-#include <vulkan_render_target.hpp>
-#include <vulkan_renderpass.hpp>
+#include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
 
 namespace Engine
@@ -73,7 +72,7 @@ namespace Engine
 		{
 			if (m_fence->is_signaled())
 			{
-				m_state = State::IsReadyForBegin;
+				m_state = State::Unused;
 				reset();
 				m_fence->reset();
 
@@ -89,47 +88,25 @@ namespace Engine
 
 	VulkanCommandHandle& VulkanCommandHandle::begin(const vk::CommandBufferBeginInfo& info)
 	{
-		trinex_check(m_state == State::IsReadyForBegin, "Vulkan cmd state must be ready for begin");
+		trinex_assert_msg(is_unused(), "Command Buffer must be unused");
 
 		vk::CommandBuffer::begin(info);
-
-		m_state = State::IsInsideBegin;
+		m_state = State::Active;
 		return *this;
 	}
 
 	VulkanCommandHandle& VulkanCommandHandle::end()
 	{
-		trinex_check(is_outside_render_pass(), "Command Buffer must be in outside render pass state!");
+		trinex_assert_msg(is_active(), "Command Buffer must be active!");
 		vk::CommandBuffer::end();
-		m_state = State::HasEnded;
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::begin_render_pass(VulkanRenderTarget* rt)
-	{
-		trinex_check(has_begun(), "Command Buffer must be begun!");
-
-		vk::Rect2D area({0, 0}, {rt->width(), rt->height()});
-		vk::RenderPassBeginInfo info(rt->m_render_pass->render_pass(), rt->framebuffer(), area);
-		vk::CommandBuffer::beginRenderPass(info, vk::SubpassContents::eInline);
-
-		m_state = State::IsInsideRenderPass;
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::end_render_pass()
-	{
-		trinex_check(is_inside_render_pass(), "Command Buffer must be inside render pass!");
-		vk::CommandBuffer::endRenderPass();
-
-		m_state = State::IsInsideBegin;
+		m_state = State::Pending;
 		return *this;
 	}
 
 	VulkanCommandHandle& VulkanCommandHandle::enqueue()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
-		trinex_check(has_ended(), "Command Buffer must be in ended state!");
+		trinex_assert_msg(is_pending(), "Command Buffer must be in ended state!");
 		API->m_graphics_queue->submit({}, m_fence->fence());
 		m_fence->make_pending();
 		m_state = State::Submitted;
@@ -226,7 +203,7 @@ namespace Engine
 			{
 				auto front = handles->front();
 
-				if (front->refresh_fence_status().is_ready_for_begin())
+				if (front->refresh_fence_status().is_unused())
 				{
 					handles->pop_front();
 					return front;
@@ -269,19 +246,19 @@ namespace Engine
 
 			if (is_secondary())
 			{
-				if (owner->handle()->is_outside_render_pass())
-					owner->begin_render_pass();
+				// if (owner->handle()->is_outside_render_pass())
+				// 	owner->begin_render_pass();
 
-				vk::CommandBufferBeginInfo begin_info;
-				vk::CommandBufferInheritanceInfo inherit;
+				// vk::CommandBufferBeginInfo begin_info;
+				// vk::CommandBufferInheritanceInfo inherit;
 
-				inherit.setFramebuffer(owner->state()->render_target()->framebuffer());
-				inherit.setRenderPass(owner->state()->render_target()->render_pass()->render_pass());
-				
-				begin_info.setPInheritanceInfo(&inherit);
-				begin_info.setFlags(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+				// inherit.setFramebuffer(owner->state()->render_target()->framebuffer());
+				// inherit.setRenderPass(owner->state()->render_target()->render_pass()->render_pass());
 
-				m_cmd->begin(begin_info);
+				// begin_info.setPInheritanceInfo(&inherit);
+				// begin_info.setFlags(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+
+				// m_cmd->begin(begin_info);
 				m_state_manager->copy(owner->m_state_manager);
 				copy_state(primary);
 			}
@@ -302,12 +279,96 @@ namespace Engine
 
 		VulkanCommandHandle* cmd = m_cmd;
 		m_cmd                    = nullptr;
-
-		if (cmd->is_inside_render_pass())
-			cmd->end_render_pass();
 		cmd->end();
 
 		return cmd;
+	}
+
+	VulkanContext& VulkanContext::begin_rendering(const RHIRenderingInfo& info)
+	{
+		VulkanStateManager::Framebuffer fb;
+
+		auto push_extent = [&fb](const vk::Extent3D& extent) {
+			Vector2u16 current = {extent.width, extent.height};
+			fb.size            = (fb.size.x & fb.size.y) ? Math::min(fb.size, current) : current;
+		};
+
+		vk::RenderingAttachmentInfo attachments[6];
+		vk::RenderingAttachmentInfo* depth   = nullptr;
+		vk::RenderingAttachmentInfo* stencil = nullptr;
+
+		for (uint_t i = 0; i < 4; ++i)
+		{
+			const RHIColorAttachmentInfo& src = info.colors[i];
+
+			if (src.view == nullptr)
+				continue;
+
+			vk::RenderingAttachmentInfo& dst = attachments[i];
+
+			VulkanTextureRTV* rtv = static_cast<VulkanTextureRTV*>(src.view);
+
+			push_extent(rtv->extent());
+			fb.formats[i] = rtv->format();
+
+			dst.setClearValue(vk::ClearColorValue(src.ucolor.x, src.ucolor.y, src.ucolor.z, src.ucolor.w));
+			dst.setImageLayout(vk::ImageLayout::eColorAttachmentOptimal);
+			dst.setImageView(rtv->view());
+			dst.setStoreOp(VulkanEnums::store_of(src.store));
+			dst.setLoadOp(VulkanEnums::load_of(src.load));
+		}
+
+		if (info.depth_stencil.view)
+		{
+			const RHIDepthStencilAttachmentInfo& src = info.depth_stencil;
+
+			VulkanTextureDSV* dsv = static_cast<VulkanTextureDSV*>(info.depth_stencil.view);
+			vk::Format format     = dsv->format();
+
+			push_extent(dsv->extent());
+
+			if (VulkanEnums::is_depth_format(format))
+			{
+				depth         = &attachments[4];
+				fb.formats[4] = format;
+
+				depth->setClearValue(vk::ClearDepthStencilValue(src.depth, src.stencil));
+				depth->setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+				depth->setImageView(dsv->view());
+				depth->setStoreOp(VulkanEnums::store_of(src.depth_store));
+				depth->setLoadOp(VulkanEnums::load_of(src.depth_load));
+			}
+
+			if (VulkanEnums::is_stencil_format(format))
+			{
+				stencil       = &attachments[5];
+				fb.formats[5] = format;
+
+				stencil->setClearValue(vk::ClearDepthStencilValue(src.depth, src.stencil));
+				stencil->setImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+				stencil->setImageView(dsv->view());
+				stencil->setStoreOp(VulkanEnums::store_of(src.stencil_store));
+				stencil->setLoadOp(VulkanEnums::load_of(src.stencil_load));
+			}
+		}
+
+		vk::RenderingInfo rendering;
+		rendering.setLayerCount(1);
+		rendering.setRenderArea(vk::Rect2D({0, 0}, {fb.size.x, fb.size.y}));
+		rendering.setColorAttachmentCount(4);
+		rendering.setPColorAttachments(attachments);
+		rendering.setPDepthAttachment(depth);
+		rendering.setPStencilAttachment(stencil);
+
+		m_cmd->beginRenderingKHR(rendering, API->pfn);
+		m_state_manager->bind(fb);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::end_rendering()
+	{
+		m_cmd->endRenderingKHR(API->pfn);
+		return *this;
 	}
 
 	VulkanContext& VulkanContext::execute(RHICommandHandle* handle)
@@ -388,18 +449,6 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanCommandHandle* VulkanContext::begin_render_pass()
-	{
-		trinex_profile_cpu_n("VulkanContext::begin_render_pass");
-		return m_state_manager->begin_render_pass(this);
-	}
-
-	VulkanCommandHandle* VulkanContext::end_render_pass()
-	{
-		trinex_profile_cpu_n("VulkanContext::end_render_pass");
-		return m_state_manager->end_render_pass(this);
-	}
-
 	VulkanContext& VulkanContext::shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiners)
 	{
 		trinex_profile_cpu_n("VulkanContext::shading_rate");
@@ -421,7 +470,6 @@ namespace Engine
 		m_cmd->setFragmentShadingRateKHR(extent, ops, API->pfn);
 		return *this;
 	}
-
 
 	void VulkanContext::destroy()
 	{
